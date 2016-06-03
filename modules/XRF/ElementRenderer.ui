@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>elementRenderer</class>
+ <widget class="QDockWidget" name="elementRenderer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>222</width>
+    <height>202</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>222</width>
+    <height>202</height>
+   </size>
+  </property>
+  <property name="features">
+   <set>QDockWidget::DockWidgetFeatureMask</set>
+  </property>
+  <property name="windowTitle">
+   <string>Element Name</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <property name="minimumSize">
+    <size>
+     <width>200</width>
+     <height>200</height>
+    </size>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="margin">
+     <number>1</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QVTKWidgetMouseReleaseWorkaround" name="renContainer" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>200</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKWidgetMouseReleaseWorkaround</class>
+   <extends></extends>
+   <header>QVTKWidgetMouseReleaseWorkaround.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

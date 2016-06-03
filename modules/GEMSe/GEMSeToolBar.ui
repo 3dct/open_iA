@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GEMSeToolBar</class>
+ <widget class="QToolBar" name="GEMSeToolBar">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>160</width>
+    <height>43</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+    <kerning>true</kerning>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>GEMSeToolBar</string>
+  </property>
+  <property name="toolTip">
+   <string/>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::LeftToRight</enum>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>32</width>
+    <height>32</height>
+   </size>
+  </property>
+  <action name="action_ResetFilter">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/GEMSe_filter_reset.png</normaloff>:/images/GEMSe_filter_reset.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset Filters</string>
+   </property>
+  </action>
+  <action name="action_ToggleAutoShrink">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/GEMSe_toggle_autoshrink.png</normaloff>:/images/GEMSe_toggle_autoshrink.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Auto Shrink</string>
+   </property>
+  </action>
+  <action name="action_ToggleTitleBar">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/GEMSe_toggle_titleBar.png</normaloff>:/images/GEMSe_toggle_titleBar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Title Bar</string>
+   </property>
+  </action>
+  <action name="action_ExportIDs">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/GEMSe_export_ids.png</normaloff>:/images/GEMSe_export_ids.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export IDs of currently selected cluster (e.g. for VALENE)</string>
+   </property>
+  </action>
+  <action name="action_ExportAttributeRangeRanking">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/GEMSe_export_ranges.png</normaloff>:/images/GEMSe_export_ranges.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export current ranking ranges for all attributes</string>
+   </property>
+  </action>
+  <action name="action_ExportRanking">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/GEMSe_export_rankings.png</normaloff>:/images/GEMSe_export_rankings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export current image/cluster rankings</string>
+   </property>
+  </action>
+  <action name="action_ImportRanking">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/GEMSe_import_rankings.png</normaloff>:/images/GEMSe_import_rankings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export current image/cluster rankings</string>
+   </property>
+  </action>
+  <addaction name="action_ResetFilter"/>
+  <addaction name="action_ToggleAutoShrink"/>
+  <addaction name="action_ToggleTitleBar"/>
+  <addaction name="action_ExportIDs"/>
+  <addaction name="action_ExportAttributeRangeRanking"/>
+  <addaction name="action_ExportRanking"/>
+  <addaction name="action_ImportRanking"/>
+ </widget>
+ <resources>
+  <include location="../../core/open_iA.qrc"/>
+ </resources>
+ <connections/>
+</ui>

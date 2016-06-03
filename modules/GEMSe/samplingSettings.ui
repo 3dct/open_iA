@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>samplingSettings</class>
+ <widget class="QDialog" name="samplingSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>680</width>
+    <height>845</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Sampling Settings</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="4">
+    <widget class="QPushButton" name="pbChooseOutputFolder">
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="3">
+    <widget class="QLineEdit" name="leGammaMax">
+     <property name="text">
+      <string>100</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="3">
+    <widget class="QLabel" name="label_13">
+     <property name="text">
+      <string>hours</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_11">
+     <property name="text">
+      <string># of Samples</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="3">
+    <widget class="QLineEdit" name="leBetaMax">
+     <property name="text">
+      <string>10000</string>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="3" colspan="2">
+    <widget class="QLabel" name="lbAvailableMetricsDescription">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Drag Metrics from the list on the left into the boxes for the modalities</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="0">
+    <widget class="QLabel" name="label_9">
+     <property name="text">
+      <string>Modality Weights</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_12">
+     <property name="text">
+      <string>Estimated Runtime</string>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="2">
+    <widget class="QListWidget" name="lwAvailableMetrics">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="dragEnabled">
+      <bool>true</bool>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::DragOnly</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>Output Folder</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="3">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>To</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2" rowspan="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="2" colspan="2">
+    <widget class="QSpinBox" name="sbNumberOfSamples">
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>200</number>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="0">
+    <widget class="QLabel" name="lbAvailableMetrics">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Available Metrics:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="2">
+    <widget class="QLineEdit" name="leGammaMin">
+     <property name="text">
+      <string>0.5</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLabel" name="lbSVMGamma">
+     <property name="text">
+      <string>Gamma</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="4">
+    <widget class="QCheckBox" name="cbBetaLogScale">
+     <property name="text">
+      <string>log scale</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2" colspan="2">
+    <widget class="QLineEdit" name="leOutputFolder">
+     <property name="text">
+      <string>D:/sampling</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="2">
+    <widget class="QLineEdit" name="leBetaMin">
+     <property name="text">
+      <string>0.00001</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Parameter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::RichText</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="2">
+    <widget class="QLineEdit" name="leSVM_C_From">
+     <property name="text">
+      <string>0.00001</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QLabel" name="lbSVMC">
+     <property name="text">
+      <string>C</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="3">
+    <widget class="QLineEdit" name="leSVM_C_To">
+     <property name="text">
+      <string>10000</string>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="4">
+    <widget class="QCheckBox" name="cbWeightLogScale">
+     <property name="text">
+      <string>log scale</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="4">
+    <widget class="QCheckBox" name="cbSVM_Gamma_LogScale">
+     <property name="text">
+      <string>log scale</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="4">
+    <widget class="QCheckBox" name="cbGammaLogScale">
+     <property name="text">
+      <string>log scale</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>From</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2" colspan="2">
+    <widget class="QComboBox" name="cbSamplingMethod">
+     <property name="currentText">
+      <string>Latin Hypercubes</string>
+     </property>
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>Random</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Latin Hypercubes</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="15" column="1">
+    <widget class="QLabel" name="lbERWGamma">
+     <property name="text">
+      <string>Gamma</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="3">
+    <widget class="QLineEdit" name="leSVM_Channels_To">
+     <property name="text">
+      <string>2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2">
+    <widget class="QLabel" name="lbEstimate">
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1">
+    <widget class="QLabel" name="lbERWBeta">
+     <property name="text">
+      <string>Beta</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Sampling Method</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="3">
+    <widget class="QLineEdit" name="leSVM_gamma_To">
+     <property name="text">
+      <string>10</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="2">
+    <widget class="QLineEdit" name="leSVM_Channels_From">
+     <property name="text">
+      <string>1</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <widget class="QLineEdit" name="leSVM_gamma_From">
+     <property name="text">
+      <string>0.00000000001</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="1">
+    <widget class="QLabel" name="lbSVMChannels">
+     <property name="text">
+      <string>Channels</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="4">
+    <widget class="QCheckBox" name="cbSVM_C_LogScale">
+     <property name="text">
+      <string>log scale</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="label_15">
+     <property name="text">
+      <string>Random Walker</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="label_16">
+     <property name="text">
+      <string>SVM</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QCheckBox" name="cbStoreProbabilities">
+     <property name="text">
+      <string>Store Probabilities</string>
+     </property>
+    </widget>
+   </item>
+   <item row="23" column="0" colspan="5">
+    <widget class="QWidget" name="wdButtonBar" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pbRun">
+        <property name="text">
+         <string>Run!</string>
+        </property>
+        <property name="default">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pbCancel">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="16" column="1">
+    <widget class="QLabel" name="lbERWMaxIter">
+     <property name="text">
+      <string>Max. Iterations</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="2">
+    <widget class="QLineEdit" name="leMaxIterMin">
+     <property name="text">
+      <string>100</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="3">
+    <widget class="QLineEdit" name="leMaxIterMax">
+     <property name="text">
+      <string>10000</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="4">
+    <widget class="QCheckBox" name="cbMaxIterLogScale">
+     <property name="text">
+      <string>log scale</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>leOutputFolder</tabstop>
+  <tabstop>pbChooseOutputFolder</tabstop>
+  <tabstop>cbSamplingMethod</tabstop>
+  <tabstop>sbNumberOfSamples</tabstop>
+  <tabstop>leSVM_C_From</tabstop>
+  <tabstop>leSVM_C_To</tabstop>
+  <tabstop>cbSVM_C_LogScale</tabstop>
+  <tabstop>leSVM_gamma_From</tabstop>
+  <tabstop>leSVM_gamma_To</tabstop>
+  <tabstop>cbSVM_Gamma_LogScale</tabstop>
+  <tabstop>leSVM_Channels_From</tabstop>
+  <tabstop>leSVM_Channels_To</tabstop>
+  <tabstop>leBetaMin</tabstop>
+  <tabstop>leBetaMax</tabstop>
+  <tabstop>cbBetaLogScale</tabstop>
+  <tabstop>leGammaMin</tabstop>
+  <tabstop>leGammaMax</tabstop>
+  <tabstop>cbGammaLogScale</tabstop>
+  <tabstop>cbWeightLogScale</tabstop>
+  <tabstop>lwAvailableMetrics</tabstop>
+  <tabstop>pbRun</tabstop>
+  <tabstop>pbCancel</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>assistant</class>
+ <widget class="QDockWidget" name="assistant">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>595</width>
+    <height>464</height>
+   </rect>
+  </property>
+  <property name="features">
+   <set>QDockWidget::DockWidgetFeatureMask</set>
+  </property>
+  <property name="windowTitle">
+   <string>GEMSe Assistant</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="3">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>1.1 Manually assemble Modalities List</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="5">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>1.2 Load Modalities File</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="3">
+     <widget class="QLabel" name="label_19">
+      <property name="text">
+       <string>2.1.1.4 Click on slicer to set seed for currently marked label</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="3">
+     <widget class="QLabel" name="label_18">
+      <property name="text">
+       <string>2.1.1.3 Enable Editing</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="3">
+     <widget class="QLabel" name="label_16">
+      <property name="text">
+       <string>2.1.1.1 Go To Labels Dialog</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>1. Data</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="3">
+     <widget class="QLabel" name="label_17">
+      <property name="text">
+       <string>2.1.1.2 Add as many labels as you need (+)</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="5">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>2.2. Load from File</string>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="3">
+     <widget class="QLabel" name="label_22">
+      <property name="text">
+       <string>2.1.2.3 Check result via modality lens</string>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="3">
+     <widget class="QLabel" name="label_21">
+      <property name="text">
+       <string>2.1.2.2 Create priors via &quot;SVM&quot; button</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="3">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>2.1. Create Manually</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="3">
+     <widget class="QLabel" name="label_11">
+      <property name="text">
+       <string>2.1.1 Define Seeds</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="2">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>2. Prior</string>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="2">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>3. Sampling Results</string>
+      </property>
+     </widget>
+    </item>
+    <item row="13" column="3">
+     <widget class="QLabel" name="label_20">
+      <property name="text">
+       <string>2.1.2.1 Set parameters via priors dialog</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1" rowspan="17">
+     <widget class="QWidget" name="widget" native="true"/>
+    </item>
+    <item row="16" column="5">
+     <widget class="QLabel" name="label_12">
+      <property name="text">
+       <string>3.2 Load pre-calculated</string>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="3">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>3.1 Sample over prior model &amp; parameter range</string>
+      </property>
+     </widget>
+    </item>
+    <item row="17" column="2">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>4. Explore</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="3">
+     <widget class="QLabel" name="label_10">
+      <property name="text">
+       <string>2.1.2 Run SVM</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QLabel" name="label_13">
+      <property name="text">
+       <string>1.1.1 Load Single File</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="3">
+     <widget class="QLabel" name="label_14">
+      <property name="text">
+       <string>1.1.2 Open Modality Explorer</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3">
+     <widget class="QLabel" name="label_15">
+      <property name="text">
+       <string>1.1.3 Add Modalitities</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QLabel" name="label_23">
+      <property name="text">
+       <string>1.5 Explore Data</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="3">
+     <widget class="QLabel" name="label_24">
+      <property name="text">
+       <string>Use &quot;Modality Lens&quot; to check modality data</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

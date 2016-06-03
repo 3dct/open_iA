@@ -1,0 +1,952 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1692</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>800</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="open_iA.qrc">
+    <normaloff>:/images/ia.png</normaloff>:/images/ia.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QMdiArea" name="mdiArea">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>681</width>
+      <height>431</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string/>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="background">
+     <brush brushstyle="SolidPattern">
+      <color alpha="255">
+       <red>40</red>
+       <green>40</green>
+       <blue>40</blue>
+      </color>
+     </brush>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1692</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="newAct"/>
+    <addaction name="openAct"/>
+    <addaction name="actionOpen_Image_Stack"/>
+    <addaction name="actionOpen_Volume_Stack"/>
+    <addaction name="actionOpen_With_DataTypeConversion"/>
+    <addaction name="separator"/>
+    <addaction name="saveAct"/>
+    <addaction name="saveAsAct"/>
+    <addaction name="actionSave_Image_Stack"/>
+    <addaction name="saveScreenAct"/>
+    <addaction name="separator"/>
+    <addaction name="loadSettingsAct"/>
+    <addaction name="saveSettingsAct"/>
+    <addaction name="switchAct"/>
+    <addaction name="exitAct"/>
+   </widget>
+   <widget class="QMenu" name="menu_Window">
+    <property name="title">
+     <string>&amp;Window</string>
+    </property>
+    <addaction name="closeAct"/>
+    <addaction name="closeAllAct"/>
+    <addaction name="separator"/>
+    <addaction name="tileAct"/>
+    <addaction name="cascadeAct"/>
+    <addaction name="separator"/>
+    <addaction name="nextAct"/>
+    <addaction name="previousAct"/>
+    <addaction name="separator"/>
+    <addaction name="action_ChildStatusBar"/>
+   </widget>
+   <widget class="QMenu" name="menu_Views">
+    <property name="title">
+     <string>&amp;Views</string>
+    </property>
+    <addaction name="xyAct"/>
+    <addaction name="xzAct"/>
+    <addaction name="yzAct"/>
+    <addaction name="rcAct"/>
+    <addaction name="separator"/>
+    <addaction name="multiAct"/>
+    <addaction name="actionLink_views"/>
+    <addaction name="separator"/>
+    <addaction name="actionEnableInteraction"/>
+    <addaction name="action_MainWindowStatusBar"/>
+   </widget>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="aboutAct"/>
+    <addaction name="aboutQtAct"/>
+   </widget>
+   <widget class="QMenu" name="menu_Tools">
+    <property name="title">
+     <string>&amp;Tools</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_Edit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionPreferences"/>
+    <addaction name="actionRendererSettings"/>
+    <addaction name="actionSlicerSettings"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_transfer_function"/>
+    <addaction name="actionSave_transfer_function"/>
+    <addaction name="actionChange_color"/>
+    <addaction name="actionDelete_point"/>
+    <addaction name="actionReset_view"/>
+    <addaction name="actionReset_function"/>
+    <addaction name="separator"/>
+    <addaction name="actionUpdate_automatically"/>
+    <addaction name="actionUpdateViews"/>
+    <addaction name="separator"/>
+    <addaction name="actionSnake_Slicer"/>
+   </widget>
+   <widget class="QMenu" name="menu_Filters">
+    <property name="title">
+     <string>Filters</string>
+    </property>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_Edit"/>
+   <addaction name="menu_Filters"/>
+   <addaction name="menu_Tools"/>
+   <addaction name="menu_Views"/>
+   <addaction name="menu_Window"/>
+   <addaction name="menu_Help"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="fileToolBar">
+   <property name="windowTitle">
+    <string>Main Toolbar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="newAct"/>
+   <addaction name="openAct"/>
+   <addaction name="saveAct"/>
+   <addaction name="saveAsAct"/>
+   <addaction name="saveScreenAct"/>
+   <addaction name="actionPreferences"/>
+   <addaction name="actionRendererSettings"/>
+   <addaction name="actionSlicerSettings"/>
+  </widget>
+  <widget class="QToolBar" name="histogramToolbar">
+   <property name="windowTitle">
+    <string>Histogram Toolbar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionLoad_transfer_function"/>
+   <addaction name="actionSave_transfer_function"/>
+   <addaction name="actionDelete_point"/>
+   <addaction name="actionChange_color"/>
+   <addaction name="actionReset_view"/>
+   <addaction name="actionReset_function"/>
+   <addaction name="actionUpdate_automatically"/>
+   <addaction name="actionUpdateViews"/>
+  </widget>
+  <widget class="QToolBar" name="SnakeSlicerToolbar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="windowTitle">
+    <string>Tools</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSnake_Slicer"/>
+   <addaction name="actionRawProfile"/>
+   <addaction name="actionMagicLens"/>
+  </widget>
+  <widget class="QToolBar" name="raycasterToolbar">
+   <property name="windowTitle">
+    <string>RayCaster</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionView_X_direction_in_raycaster"/>
+   <addaction name="actionView_mX_direction_in_raycaster"/>
+   <addaction name="actionView_Y_direction_in_raycaster"/>
+   <addaction name="actionView_mY_direction_in_raycaster"/>
+   <addaction name="actionView_Z_direction_in_raycaster"/>
+   <addaction name="actionView_mZ_direction_in_raycaster"/>
+   <addaction name="actionIsometric_view_in_raycaster"/>
+  </widget>
+  <widget class="QToolBar" name="cameraToolbar">
+   <property name="windowTitle">
+    <string>Camera</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>32</width>
+     <height>32</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSave_Camera_Settings"/>
+   <addaction name="actionLoad_Camera_Settings"/>
+   <addaction name="actionAssignView"/>
+  </widget>
+  <widget class="QToolBar" name="layoutToolbar">
+   <property name="windowTitle">
+    <string>Layout</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>35</width>
+     <height>35</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>BottomToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSave_Layout"/>
+   <addaction name="actionLoad_Layout"/>
+   <addaction name="actionDelete_Layout"/>
+   <addaction name="actionResetLayout"/>
+  </widget>
+  <action name="newAct">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;New</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="openAct">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Open...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open an existing file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="saveAct">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the document to disk</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="saveAsAct">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/saveas.png</normaloff>:/images/saveas.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save &amp;As...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the document under a new name</string>
+   </property>
+  </action>
+  <action name="exitAct">
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="toolTip">
+    <string>Exit the application</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="switchAct">
+   <property name="text">
+    <string>Switch layout direction</string>
+   </property>
+  </action>
+  <action name="closeAct">
+   <property name="text">
+    <string>Cl&amp;ose</string>
+   </property>
+   <property name="toolTip">
+    <string>Close the active window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F4</string>
+   </property>
+  </action>
+  <action name="closeAllAct">
+   <property name="text">
+    <string>Close &amp;All</string>
+   </property>
+   <property name="toolTip">
+    <string>Close all the windows</string>
+   </property>
+  </action>
+  <action name="tileAct">
+   <property name="text">
+    <string>&amp;Tile</string>
+   </property>
+   <property name="toolTip">
+    <string>Tile the windows</string>
+   </property>
+  </action>
+  <action name="cascadeAct">
+   <property name="text">
+    <string>&amp;Cascade</string>
+   </property>
+   <property name="toolTip">
+    <string>Cascade the windows</string>
+   </property>
+  </action>
+  <action name="nextAct">
+   <property name="text">
+    <string>Ne&amp;xt</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the focus to the next window</string>
+   </property>
+  </action>
+  <action name="previousAct">
+   <property name="text">
+    <string>Pre&amp;vious</string>
+   </property>
+   <property name="toolTip">
+    <string>Move the focus to the previous window</string>
+   </property>
+  </action>
+  <action name="xyAct">
+   <property name="text">
+    <string>XY</string>
+   </property>
+   <property name="toolTip">
+    <string>Show XY view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Z</string>
+   </property>
+  </action>
+  <action name="xzAct">
+   <property name="text">
+    <string>XZ</string>
+   </property>
+   <property name="toolTip">
+    <string>Show XZ view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Y</string>
+   </property>
+  </action>
+  <action name="yzAct">
+   <property name="text">
+    <string>YZ</string>
+   </property>
+   <property name="toolTip">
+    <string>Show YZ view</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+X</string>
+   </property>
+  </action>
+  <action name="rcAct">
+   <property name="text">
+    <string>Raycaster</string>
+   </property>
+   <property name="toolTip">
+    <string>Show raycaster</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+R</string>
+   </property>
+  </action>
+  <action name="multiAct">
+   <property name="text">
+    <string>Multi view</string>
+   </property>
+   <property name="toolTip">
+    <string>Show multiple views</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Μ</string>
+   </property>
+  </action>
+  <action name="aboutAct">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the application's About box</string>
+   </property>
+  </action>
+  <action name="aboutQtAct">
+   <property name="text">
+    <string>About &amp;Qt</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the Qt library's About box</string>
+   </property>
+  </action>
+  <action name="tabAct">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string notr="true">Show Tab Widget</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Tab Widget</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/settings_preferences.png</normaloff>:/images/settings_preferences.png</iconset>
+   </property>
+   <property name="text">
+    <string>Preferences</string>
+   </property>
+  </action>
+  <action name="histogramAct">
+   <property name="text">
+    <string>Histogram</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+H</string>
+   </property>
+  </action>
+  <action name="imagepropertyAct">
+   <property name="text">
+    <string>Image Property</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+I</string>
+   </property>
+  </action>
+  <action name="actionRendererSettings">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/settings_renderer.png</normaloff>:/images/settings_renderer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Renderer settings</string>
+   </property>
+  </action>
+  <action name="actionSlicerSettings">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/settings_slicer.png</normaloff>:/images/settings_slicer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Slicer settings</string>
+   </property>
+  </action>
+  <action name="actionLink_views">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Link views</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+L</string>
+   </property>
+  </action>
+  <action name="actionTestUIChange">
+   <property name="text">
+    <string>TestUIChange</string>
+   </property>
+  </action>
+  <action name="actionDelete_point">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/deletePoint.png</normaloff>:/images/deletePoint.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete point</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete selected point</string>
+   </property>
+  </action>
+  <action name="actionChange_color">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/changeColor.png</normaloff>:/images/changeColor.png</iconset>
+   </property>
+   <property name="text">
+    <string>Change color</string>
+   </property>
+   <property name="toolTip">
+    <string>Change color of selected point </string>
+   </property>
+  </action>
+  <action name="actionLoad_transfer_function">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/loadtrf.png</normaloff>:/images/loadtrf.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load transfer function</string>
+   </property>
+  </action>
+  <action name="actionSave_transfer_function">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/savetrf.png</normaloff>:/images/savetrf.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save transfer function</string>
+   </property>
+  </action>
+  <action name="actionReset_view">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/resetView.png</normaloff>:/images/resetView.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset view</string>
+   </property>
+  </action>
+  <action name="actionUpdate_automatically">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/autoUpdate.png</normaloff>:/images/autoUpdate.png</iconset>
+   </property>
+   <property name="text">
+    <string>Update automatically</string>
+   </property>
+  </action>
+  <action name="actionUpdateViews">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
+   </property>
+   <property name="text">
+    <string>Update Views</string>
+   </property>
+  </action>
+  <action name="actionReset_function">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/resetTrf.png</normaloff>:/images/resetTrf.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset function</string>
+   </property>
+  </action>
+  <action name="saveScreenAct">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/savescreen.png</normaloff>:/images/savescreen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Screen...</string>
+   </property>
+  </action>
+  <action name="LicenceUpdateAct">
+   <property name="text">
+    <string>Licence Update</string>
+   </property>
+  </action>
+  <action name="loadSettingsAct">
+   <property name="text">
+    <string>Load Settings...</string>
+   </property>
+  </action>
+  <action name="saveSettingsAct">
+   <property name="text">
+    <string>Save Settings...</string>
+   </property>
+  </action>
+  <action name="actionSnake_Slicer">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/snakeSlicer.png</normaloff>:/images/snakeSlicer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Snake Slicer</string>
+   </property>
+  </action>
+  <action name="actionOpen_Image_Stack">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open Image Stack...</string>
+   </property>
+  </action>
+  <action name="actionEnableInteraction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Interaction</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+I</string>
+   </property>
+  </action>
+  <action name="actionView_X_direction_in_raycaster">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/px.png</normaloff>:/images/px.png</iconset>
+   </property>
+   <property name="text">
+    <string>View +X direction in raycaster...</string>
+   </property>
+   <property name="toolTip">
+    <string>View +X direction in raycaster</string>
+   </property>
+  </action>
+  <action name="actionView_Y_direction_in_raycaster">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/py.png</normaloff>:/images/py.png</iconset>
+   </property>
+   <property name="text">
+    <string>View +Y direction in raycaster...</string>
+   </property>
+   <property name="toolTip">
+    <string>View +Y direction in raycaster</string>
+   </property>
+  </action>
+  <action name="actionView_Z_direction_in_raycaster">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/pz.png</normaloff>:/images/pz.png</iconset>
+   </property>
+   <property name="text">
+    <string>View +Z direction in raycaster...</string>
+   </property>
+   <property name="toolTip">
+    <string>View +Z direction in raycaster</string>
+   </property>
+  </action>
+  <action name="actionView_mX_direction_in_raycaster">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/mx.png</normaloff>:/images/mx.png</iconset>
+   </property>
+   <property name="text">
+    <string>View -X direction in raycaster...</string>
+   </property>
+   <property name="toolTip">
+    <string>View -X direction in raycaster</string>
+   </property>
+  </action>
+  <action name="actionView_mY_direction_in_raycaster">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/my.png</normaloff>:/images/my.png</iconset>
+   </property>
+   <property name="text">
+    <string>View -Y direction in raycaster...</string>
+   </property>
+   <property name="toolTip">
+    <string>View -Y direction in raycaster</string>
+   </property>
+  </action>
+  <action name="actionView_mZ_direction_in_raycaster">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/mz.png</normaloff>:/images/mz.png</iconset>
+   </property>
+   <property name="text">
+    <string>View -Z direction in raycaster...</string>
+   </property>
+   <property name="toolTip">
+    <string>View -Z direction in raycaster</string>
+   </property>
+  </action>
+  <action name="actionAssignView">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
+   </property>
+   <property name="text">
+    <string>Assign camera view</string>
+   </property>
+   <property name="toolTip">
+    <string>Assign camera view</string>
+   </property>
+  </action>
+  <action name="actionIsometric_view_in_raycaster">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/iso.png</normaloff>:/images/iso.png</iconset>
+   </property>
+   <property name="text">
+    <string>Isometric view  in raycaster...</string>
+   </property>
+   <property name="toolTip">
+    <string>Isometric view  in raycaster</string>
+   </property>
+  </action>
+  <action name="actionSave_Image_Stack">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Image Stack...</string>
+   </property>
+  </action>
+  <action name="actionRawProfile">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/profile.png</normaloff>:/images/profile.png</iconset>
+   </property>
+   <property name="text">
+    <string>Raw Profile</string>
+   </property>
+   <property name="toolTip">
+    <string>Create raw profile by placing start and end points in slicer view</string>
+   </property>
+  </action>
+  <action name="actionOpen_With_DataTypeConversion">
+   <property name="text">
+    <string>Open With DataTypeConversion</string>
+   </property>
+  </action>
+  <action name="actionOpen_Volume_Stack">
+   <property name="text">
+    <string>Open Volume Stack...</string>
+   </property>
+  </action>
+  <action name="actionSave_Camera_Settings">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/saveCamera.png</normaloff>:/images/saveCamera.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Camera Settings</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="actionLoad_Camera_Settings">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/loadCamera.png</normaloff>:/images/loadCamera.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load Camera Settings</string>
+   </property>
+  </action>
+  <action name="actionSave_Layout">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/layout_export.png</normaloff>:/images/layout_export.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Layout</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current layout of the child window</string>
+   </property>
+  </action>
+  <action name="actionLoad_Layout">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/layout_load.png</normaloff>:/images/layout_load.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load Layout</string>
+   </property>
+   <property name="toolTip">
+    <string>Load previously saved layout of the child window</string>
+   </property>
+  </action>
+  <action name="actionDelete_Layout">
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/layout_delete.png</normaloff>:/images/layout_delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete Layout</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete currently selected layout</string>
+   </property>
+  </action>
+  <action name="actionMagicLens">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="open_iA.qrc">
+     <normaloff>:/images/magicLens.png</normaloff>:/images/magicLens.png</iconset>
+   </property>
+   <property name="text">
+    <string>actionMagicLens</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable magic lens</string>
+   </property>
+  </action>
+  <action name="actionResetLayout">
+   <property name="icon">
+    <iconset>
+     <normalon>:/images/layout_reset.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Reset Layout</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resets the Layout of the current mdichild&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="action_ChildStatusBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Status Bar</string>
+   </property>
+  </action>
+  <action name="action_MainWindowStatusBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Main Window Status Bar</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="open_iA.qrc"/>
+ </resources>
+ <connections/>
+</ui>

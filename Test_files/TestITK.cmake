@@ -1,0 +1,3 @@
+SET(SITE "${FIX_SITE}_Test ITK filter" CACHE STRING "" FORCE) 
+ 
+set(Test_ITK  "ON" CACHE BOOL "" FORCE)

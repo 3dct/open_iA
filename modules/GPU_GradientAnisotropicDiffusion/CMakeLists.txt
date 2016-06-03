@@ -1,0 +1,5 @@
+SET( MODULE_DESCRIPTION_OUT
+	"Use GPU based gradient anisotropic diffusion\n Requires: OpenCL"
+	PARENT_SCOPE
+)
+SET( MODULE_DEFAULT_OPTION_VALUE_OUT OFF  PARENT_SCOPE)

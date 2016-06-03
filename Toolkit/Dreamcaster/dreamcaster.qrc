@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="/">
+    <file>images/mini_rect.png</file>
+    <file>images/opends.png</file>
+    <file>images/specifyds.png</file>
+    <file>images/add.png</file>
+    <file>images/remove.png</file>
+  </qresource>
+</RCC>

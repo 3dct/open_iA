@@ -1,0 +1,91 @@
+/*********************************  open_iA 2016 06  ******************************** *
+* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
+*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* ************************************************************************************/
+ 
+#ifndef IAXRFDATA_H
+#define IAXRFDATA_H
+
+#include <vector>
+
+#include <QObject>
+#include <QVector>
+
+#include <vtkSmartPointer.h>
+
+class vtkColorTransferFunction;
+class vtkDiscretizableColorTransferFunction;
+class vtkImageData;
+
+struct iASpectrumFilter;
+
+enum iAFilterMode
+{
+	filter_AND,
+	filter_OR,
+};
+
+class iAXRFData {
+public:
+	typedef std::vector<vtkSmartPointer<vtkImageData> >	Container;
+	typedef Container::const_iterator	Iterator;
+	Iterator begin() const;
+	Iterator end() const;
+
+	size_t size() const;
+
+	Container * GetDataPtr()
+	{
+		return &m_data;
+	}
+
+	vtkSmartPointer<vtkImageData> const & GetImage(size_t idx) const
+	{
+		return m_data[idx];
+	}
+
+	void GetExtent(int extent[6]) const;
+
+	QObject* UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies);
+
+	vtkSmartPointer<vtkImageData> GetCombinedVolume();
+	vtkSmartPointer<vtkDiscretizableColorTransferFunction> GetColorTransferFunction();
+
+	//! returns a mask image which contains a 1 for a voxel where the counts in all the given filters lie inside
+	//! the [min,max] interval specified in the filter
+	vtkSmartPointer<vtkImageData> FilterSpectrum(QVector<iASpectrumFilter> const & filter, iAFilterMode mode);
+	bool CheckFilters(int x, int y, int z, QVector<iASpectrumFilter> const & filter, iAFilterMode mode) const;
+	
+	void SetColorTransferFunction(vtkSmartPointer<vtkDiscretizableColorTransferFunction> ctf);
+	void SetCombinedImage(vtkSmartPointer<vtkImageData> combinedVolume);
+
+	void SetEnergyRange(double minEnergy, double maxEnergy);
+	double GetMinEnergy() const;
+	double GetMaxEnergy() const;
+private:
+
+	Container m_data;
+	
+	vtkSmartPointer<vtkImageData> m_combinedVolume;
+	vtkSmartPointer<vtkDiscretizableColorTransferFunction> m_colorTransfer;
+
+	double m_minEnergy, m_maxEnergy;
+};
+
+#endif

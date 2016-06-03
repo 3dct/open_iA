@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Settings</class>
+ <widget class="QWidget" name="Settings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>645</width>
+    <height>341</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="QPushButton" name="pb_SaveSettings">
+     <property name="text">
+      <string>Save settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QPushButton" name="pb_Reset">
+     <property name="text">
+      <string>Reset</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>462</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QTableWidget" name="tableWidget">
+     <attribute name="horizontalHeaderVisible">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>100</number>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>100</number>
+     </attribute>
+     <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
+     <row>
+      <property name="text">
+       <string>THREAD_GRID_X</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>THREAD_GRID_Y</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>SCALE_COEF</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>COLORING_COEF</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>RFRAME_W</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>RFRAME_H</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>VFRAME_W</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>VFRAME_H</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>ORIGIN_Z</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>PLANE_Z</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>PLANE_H_W</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>PLANE_H_H</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>TREE_L1</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>TREE_L2</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>TREE_L3</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>TREE_SPLIT1</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>TREE_SPLIT2</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>BG_COL_R</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>BG_COL_G</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>BG_COL_B</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>PLATE_COL_R</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>PLATE_COL_G</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>PLATE_COL_B</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>COL_RANGE_MIN_R</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>COL_RANGE_MIN_G</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>COL_RANGE_MIN_B</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>COL_RANGE_MAX_R</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>COL_RANGE_MAX_G</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>COL_RANGE_MAX_B</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>BATCH_SIZE</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string>Value</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Description</string>
+      </property>
+     </column>
+     <item row="0" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="0" column="1">
+      <property name="text">
+       <string>Number of tiles by X axis. Each tile is processed in separate thread.</string>
+      </property>
+     </item>
+     <item row="1" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="1" column="1">
+      <property name="text">
+       <string>Number of tiles by Y axis. Each tile is processed in separate thread.</string>
+      </property>
+     </item>
+     <item row="2" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="2" column="1">
+      <property name="text">
+       <string>Coefficient used for coloring colormap before normalization is implemented.</string>
+      </property>
+     </item>
+     <item row="3" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="3" column="1">
+      <property name="text">
+       <string>Scale coefficient applied when coloring raycasted image and colormap</string>
+      </property>
+     </item>
+     <item row="4" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="4" column="1">
+      <property name="text">
+       <string>Resolution by X axis (number of rays per row).</string>
+      </property>
+     </item>
+     <item row="5" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="5" column="1">
+      <property name="text">
+       <string>Resolution by Y axis (number of rays per column).</string>
+      </property>
+     </item>
+     <item row="6" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="6" column="1">
+      <property name="text">
+       <string>Width of color map in pixels.</string>
+      </property>
+     </item>
+     <item row="7" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="7" column="1">
+      <property name="text">
+       <string>Height of color map in pixels.</string>
+      </property>
+     </item>
+     <item row="8" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="8" column="1">
+      <property name="text">
+       <string>Distance between specimen center and rays origin by Z axis</string>
+      </property>
+     </item>
+     <item row="9" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="9" column="1">
+      <property name="text">
+       <string>Distance between specimen center and sensor plane by Z axis</string>
+      </property>
+     </item>
+     <item row="10" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="10" column="1">
+      <property name="text">
+       <string>Sensor plane's half width</string>
+      </property>
+     </item>
+     <item row="11" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="11" column="1">
+      <property name="text">
+       <string>Sensor plane's half height</string>
+      </property>
+     </item>
+     <item row="12" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="12" column="1">
+      <property name="text">
+       <string>Level of KD-tree for models with number of trianles less than TREE_SPLIT1</string>
+      </property>
+     </item>
+     <item row="13" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="13" column="1">
+      <property name="text">
+       <string>Level of KD-tree for models with number of trianles between TREE_SPLIT1 and TREE_SPLIT2</string>
+      </property>
+     </item>
+     <item row="14" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="14" column="1">
+      <property name="text">
+       <string>Level of KD-tree for models with number of trianles more then TREE_SPLIT2</string>
+      </property>
+     </item>
+     <item row="15" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="15" column="1">
+      <property name="text">
+       <string>Number of triangles wich is bound between levels 1 and 2</string>
+      </property>
+     </item>
+     <item row="16" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="16" column="1">
+      <property name="text">
+       <string>Number of triangles wich is bound between levels 2 and 3 </string>
+      </property>
+     </item>
+     <item row="17" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="17" column="1">
+      <property name="text">
+       <string>Red component of 3D view background color</string>
+      </property>
+     </item>
+     <item row="18" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="18" column="1">
+      <property name="text">
+       <string>Green component of 3D view background color</string>
+      </property>
+     </item>
+     <item row="19" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="19" column="1">
+      <property name="text">
+       <string>Blue component of 3D view background color</string>
+      </property>
+     </item>
+     <item row="20" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="20" column="1">
+      <property name="text">
+       <string>Red component of 3D view plane color</string>
+      </property>
+     </item>
+     <item row="21" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="21" column="1">
+      <property name="text">
+       <string>Green component of 3D view plane color</string>
+      </property>
+     </item>
+     <item row="22" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="22" column="1">
+      <property name="text">
+       <string>Blue component of 3D view plane color</string>
+      </property>
+     </item>
+     <item row="23" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="23" column="1">
+      <property name="text">
+       <string>Red component of color used for minimum values while colormapping</string>
+      </property>
+     </item>
+     <item row="24" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="24" column="1">
+      <property name="text">
+       <string>Green component of color used for minimum values while colormapping</string>
+      </property>
+     </item>
+     <item row="25" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="25" column="1">
+      <property name="text">
+       <string>Blue component of color used for minimum values while colormapping</string>
+      </property>
+     </item>
+     <item row="26" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="26" column="1">
+      <property name="text">
+       <string>Red component of color used for maximum values while colormapping</string>
+      </property>
+     </item>
+     <item row="27" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="27" column="1">
+      <property name="text">
+       <string>Green component of color used for maximum values while colormapping</string>
+      </property>
+     </item>
+     <item row="28" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="28" column="1">
+      <property name="text">
+       <string>Blue component of color used for maximum values while colormapping</string>
+      </property>
+     </item>
+     <item row="29" column="0">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="29" column="1">
+      <property name="text">
+       <string>Size of batch in CUDA ray casting (number of single renderings done at one call of CUDA kernel). </string>
+      </property>
+     </item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
