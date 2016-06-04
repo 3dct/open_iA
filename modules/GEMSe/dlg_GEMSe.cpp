@@ -802,7 +802,10 @@ void dlg_GEMSe::ExportAttributeRangeRanking(QString const &fileName)
 	{
 		t << m_attributes->Get(i)->GetName();
 		if (!m_charts[i])
+		{
+			t << "\n";
 			continue;
+		}
 		size_t numBin = m_charts[i]->GetNumBin();
 		double min = m_attributes->Get(i)->GetMin();
 		double max = m_attributes->Get(i)->GetMax();
@@ -1109,7 +1112,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, Lab
 		
 		CalculateMeasures(refImg, lblImg, labelCount, measures[1], measures[2], measures[3], measures[4]);
 		for (int i=0; i<MeasureCount; ++i)
-		{o
+		{
 			leaf->SetAttribute(m_refCompMeasureStart + i, measures[i]);
 			m_attributes->Get(m_refCompMeasureStart + i)->AdjustMinMax(measures[i]);
 		}
