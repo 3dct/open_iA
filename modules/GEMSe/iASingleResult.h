@@ -37,6 +37,9 @@ public:
 	static QSharedPointer<iASingleResult> Create(QString const & line, QString const & path,
 		QSharedPointer<iAAttributes> attributes);
 
+	static QSharedPointer<iASingleResult> Create(int id, QString const & path,
+		QVector<double> const & parameter);
+
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)
 	QString ToString(QSharedPointer<iAAttributes> attributes, int type);

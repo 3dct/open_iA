@@ -96,7 +96,7 @@ const int MaxSelectedClusters = 8;
 const int ChartColoringHeight = 5;
 
 //! the spacing between charts
-const int ChartSpacing = 10;
+const int ChartSpacing = 5;
 
 // CAMERA VIEW
 

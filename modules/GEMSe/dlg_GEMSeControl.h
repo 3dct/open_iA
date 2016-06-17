@@ -28,7 +28,7 @@
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class iAImageClusterer;
-class iAMMSegSampler;
+class iAImageSampler;
 
 class dlg_labels;
 class dlg_modalities;
@@ -93,7 +93,7 @@ private:
 	dlg_modalitySPLOM*					 m_dlgModalitySPLOM;
 	dlg_labels*                          m_dlgLabels;
 
-	QSharedPointer<iAMMSegSampler>       m_sampler;
+	QSharedPointer<iAImageSampler>       m_sampler;
 	QSharedPointer<iASamplingResults>    m_samplingResults;
 
 	QSharedPointer<iAImageClusterer>     m_clusterer;

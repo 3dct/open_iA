@@ -18,29 +18,33 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
+ 
+#ifndef IA_PARAMETER_GENERATOR_IMPL_H
+#define IA_PARAMETER_GENERATOR_IMPL_H
 
-#pragma once
+#include "iAParameterGenerator.h"
 
-class iANameMapper;
-class iAAttributeDescriptor;
-
-#include "iAValueType.h"
-
-#include <QVector>
-#include <QSharedPointer>
-
-class QTextStream;
-
-class iAAttributes
+class iARandomParameterGenerator: public iAParameterGenerator
 {
-public:
-	static QSharedPointer<iAAttributes> Create(QTextStream & in);
-	int size() const;
-	QSharedPointer<iAAttributeDescriptor const> at(int idx) const;
-	QSharedPointer<iAAttributeDescriptor> at(int idx);
-	void Add(QSharedPointer<iAAttributeDescriptor> range);
-	void Store(QTextStream & out);
-private:
-	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
+	virtual QString GetName() const;
+	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
 };
 
+class iALatinHypercubeParameterGenerator: public iAParameterGenerator
+{
+	virtual QString GetName() const;
+	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+};
+
+//! as all parameter values are supposed to be equally spaced,
+//! and the number of values equally distributed among all parameters,
+//! this algorithm will typically give less than the specified amount of samples
+class iACartesianGridParameterGenerator : public iAParameterGenerator
+{
+	virtual QString GetName() const;
+	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+};
+
+QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();
+
+#endif // IA_PARAMETER_GENERATOR_IMPL_H

@@ -37,18 +37,18 @@ QSharedPointer<iAAttributes> iAAttributes::Create(QTextStream & in)
 	return result;
 }
 
-int iAAttributes::GetCount() const
+int iAAttributes::size() const
 {
 	return m_attributes.size();
 }
 
 
-QSharedPointer<iAAttributeDescriptor> iAAttributes::Get(int idx)
+QSharedPointer<iAAttributeDescriptor> iAAttributes::at(int idx)
 {
 	return m_attributes[idx];
 }
 
-QSharedPointer<iAAttributeDescriptor const> iAAttributes::Get(int idx) const
+QSharedPointer<iAAttributeDescriptor const> iAAttributes::at(int idx) const
 {
 	return m_attributes[idx];
 }

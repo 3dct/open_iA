@@ -45,8 +45,6 @@
 #include <sstream>
 #include <string>
 
-#include <QFileDialog>
-
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData),

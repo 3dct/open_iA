@@ -339,10 +339,10 @@ void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 
 QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, AttributeID id)
 {
-	switch(attributes->Get(id)->GetValueType())
+	switch(attributes->at(id)->GetValueType())
 	{
 		case Discrete:    return QString::number(static_cast<int>(value)); break;
-		case Categorical: return attributes->Get(id)->GetNameMapper()->GetName(static_cast<int>(value)); break;
+		case Categorical: return attributes->at(id)->GetNameMapper()->GetName(static_cast<int>(value)); break;
 		default:          return QString::number(value); break;
 	}
 }
@@ -359,25 +359,25 @@ void iADetailView::SetNode(iAImageClusterNode const * node)
 	m_detailText->clear();
 	m_detailText->append(QString("ID: ") + QString::number(node->GetID()));
 
-	m_detailText->setMinimumWidth(m_detailText->document()->textWidth()+
-		m_detailText->contentsMargins().left() + m_detailText->contentsMargins().right());
+	//m_detailText->setMinimumWidth(m_detailText->document()->textWidth()+m_detailText->contentsMargins().left() + m_detailText->contentsMargins().right());
+	m_detailText->setMinimumWidth(50);
 	if (node->IsLeaf())
 	{
-		for (int i = 0; i < m_attributes->GetCount(); ++i)
+		for (int i = 0; i < m_attributes->size(); ++i)
 		{
 			AttributeID id = static_cast<AttributeID>(i);
 			double value = node->GetAttribute(id);
 			QString valueStr = attrValueStr(value, m_attributes, id);
 
-			m_detailText->append(m_attributes->Get(id)->GetName() + " = " + valueStr);
+			m_detailText->append(m_attributes->at(id)->GetName() + " = " + valueStr);
 		}
 	}
 	else
 	{
-		for (int i=0; i<m_attributes->GetCount(); ++i)
+		for (int i=0; i<m_attributes->size(); ++i)
 		{
 			AttributeID id = static_cast<AttributeID>(i);
-			if (m_attributes->Get(id)->GetValueType() != Categorical)
+			if (m_attributes->at(id)->GetValueType() != Categorical)
 			{
 				double min, max;
 				GetClusterMinMax(node, id, min, max);
@@ -385,7 +385,7 @@ void iADetailView::SetNode(iAImageClusterNode const * node)
 				{
 					continue;
 				}
-				m_detailText->append(m_attributes->Get(id)->GetName() + ": [" +
+				m_detailText->append(m_attributes->at(id)->GetName() + ": [" +
 					attrValueStr(min, m_attributes, id) + ".." + attrValueStr(max, m_attributes, id) + "]");
 			}
 		}

@@ -45,6 +45,7 @@ public:
 	double GetMin() const;
 	double GetMax() const;
 	QString GetName() const;
+	void SetLogScale(bool l);
 	bool IsLogScale() const;
 	void ResetMinMax();
 	void AdjustMinMax(double value);
