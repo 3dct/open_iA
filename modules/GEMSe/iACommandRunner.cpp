@@ -2,6 +2,8 @@
 
 #include "iAConsole.h"
 
+#include <QFileInfo>
+
 iACommandRunner::iACommandRunner(QString const & executable, QStringList const & arguments)
 	:m_executable(executable),
 	m_arguments(arguments)
@@ -14,6 +16,8 @@ void iACommandRunner::run()
 	m_timer.start();
 	QProcess myProcess;
 	myProcess.setProgram(m_executable);
+	QFileInfo fi(m_executable);
+	myProcess.setWorkingDirectory(fi.absolutePath());
 	myProcess.setArguments(m_arguments);
 	DEBUG_LOG(QString("Running '%1' with arguments '%2'\n").arg(m_executable).arg(m_arguments.join(" ")));
 	myProcess.setProcessChannelMode(QProcess::MergedChannels);
