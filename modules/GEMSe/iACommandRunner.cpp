@@ -27,6 +27,13 @@ void iACommandRunner::run()
 
 void iACommandRunner::errorOccured(QProcess::ProcessError p)
 {
+	DEBUG_LOG(QString("CommandRunner: An error has occured %1").arg
+	(p == QProcess::FailedToStart ? "failed to start" :
+		p == QProcess::Crashed ? "Crashed" :
+		p == QProcess::Timedout ? "Timedout" :
+		p == QProcess::ReadError ? "Read Error" :
+		p == QProcess::WriteError ? "Write Error" :
+		"Unknown Error"));
 	m_success = false;
 }
 

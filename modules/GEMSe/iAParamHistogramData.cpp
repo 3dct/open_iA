@@ -25,7 +25,6 @@
 #include "iAAttributeFilter.h"
 #include "iAConsole.h"
 #include "iAImageTree.h"
-#include "iAMMSegParameter.h"
 #include "iAMathUtility.h"
 
 #include <algorithm> // for std::fill
