@@ -38,6 +38,6 @@ dlg_console::~dlg_console()
 
 void dlg_console::Log(QString text)
 {
-	this->ConsoleWidget->insertPlainText(text);
+	this->ConsoleWidget->append(text);
 }
 
