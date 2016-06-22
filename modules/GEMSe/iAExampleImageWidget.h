@@ -23,7 +23,9 @@
 #define IA_EXAMPLE_IMAGE_WIDGET
 
 #include "iASlicerMode.h"
-#include "iAImageTypes.h"
+
+#include "iAITKIO.h" // TODO: replace?
+typedef iAITKIO::ImagePointer ClusterImageType;
 
 #include <QGridLayout>
 #include <QSharedPointer>

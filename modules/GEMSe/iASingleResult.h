@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "iAImageTypes.h"
+#include "iAITKIO.h" // TODO: replace?
 
 #include <QSharedPointer>
 #include <QString>

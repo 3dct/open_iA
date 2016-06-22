@@ -38,7 +38,6 @@
 #include "iAAttributeDescriptor.h"
 #include "iAQtCaptionWidget.h"
 #include "iAGEMSeConstants.h"
-#include "iASpectraDistance.h"
 #include "iAToolsITK.h"
 
 #include <QVTKWidget2.h>

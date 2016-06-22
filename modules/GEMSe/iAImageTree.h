@@ -23,7 +23,6 @@
 #define IA_IMAGE_TREE_H
 
 #include "iAGEMSeConstants.h"
-#include "iAImageTypes.h"
 
 #include <itkImage.h>
 #include <itkSmartPointer.h>
@@ -40,6 +39,20 @@ class iAImageClusterLeaf;
 
 typedef int ClusterIDType;
 typedef float ClusterDistanceType;
+
+// TODO: Remove!
+const int DIM = 3;
+typedef int LabelPixelType;
+typedef itk::Image<LabelPixelType, DIM> LabelImageType;
+typedef LabelImageType::Pointer LabelImagePointer;
+
+typedef double ProbabilityPixel;
+typedef itk::Image<ProbabilityPixel, DIM> ProbabilityImageType;
+typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
+
+#include "iAITKIO.h" // TODO: replace?
+typedef iAITKIO::ImagePointer ClusterImageType;
+
 
 struct LabelPixelHistogram
 {

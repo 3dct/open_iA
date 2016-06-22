@@ -32,9 +32,6 @@
 #include "iASingleResult.h"
 #include "iASamplingResults.h"
 #include "iAModality.h"
-#include "iANormalizerImpl.h"
-#include "iAPCA.h"
-#include "iASpectraDistance.h"
 #include "SVMImageFilter.h"
 
 #include <QMap>

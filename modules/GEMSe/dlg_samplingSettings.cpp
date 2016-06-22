@@ -27,7 +27,6 @@
 #include "iAConsole.h"
 #include "iAModality.h"
 #include "iAParameterGeneratorImpl.h"
-#include "iASpectraDistanceImpl.h"
 
 #include "QxtSpanSlider"
 
@@ -38,6 +37,8 @@
 #include <QShortcut>
 #include <QTextStream>
 #include <QStandardItemModel>
+
+#include <cassert>
 
 struct ParameterInputs
 {
