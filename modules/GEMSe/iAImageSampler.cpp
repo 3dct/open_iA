@@ -73,7 +73,10 @@ iAImageSampler::iAImageSampler(
 
 void iAImageSampler::StatusMsg(QString const & msg)
 {
-	emit Status(msg);
+	QString statusMsg(msg);
+	if (statusMsg.length() > 105);
+	statusMsg = statusMsg.left(100) + "...";
+	emit Status(statusMsg);
 	DEBUG_LOG(msg+"\n");
 }
 
@@ -182,9 +185,10 @@ void iAImageSampler::computationFinished()
 		DEBUG_LOG("Invalid state: NULL sender in computationFinished!\n");
 		return;
 	}
+	int id = m_runningComputation[cmd];
 	iAPerformanceTimer::DurationType computationTime = cmd->duration();
 	StatusMsg(QString("Sampling run %1: Finished in %2 seconds; output: %3\n")
-		.arg(QString::number(m_curLoop))
+		.arg(QString::number(id))
 		.arg(QString::number(computationTime))
 		.arg(cmd->output().c_str()));
 	m_computationDuration += computationTime;
@@ -199,7 +203,6 @@ void iAImageSampler::computationFinished()
 		m_mutex.unlock();
 		return;
 	}
-	int id = m_runningComputation[cmd];
 	ParameterSet const & param = m_parameterSets->at(id);
 
 	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, m_outputBaseDir, param);
