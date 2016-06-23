@@ -23,7 +23,6 @@
 #include "iACharacteristics.h"
 
 #include "iAConsole.h"
-#include "iAImageTypes.h"
 #include "iASingleResult.h"
 #include "iAAttributes.h"
 
@@ -33,6 +32,11 @@
 
 #include <QString>
 
+// TODO: Remove!
+const int DIM = 3;
+typedef int LabelPixelType;
+typedef itk::Image<LabelPixelType, DIM> LabelImageType;
+typedef LabelImageType::Pointer LabelImagePointer;
 
 CharacteristicsCalculator::CharacteristicsCalculator(
 		QSharedPointer<iASingleResult> result,
