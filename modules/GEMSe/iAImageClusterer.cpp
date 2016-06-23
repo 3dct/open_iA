@@ -22,8 +22,9 @@
 #include "pch.h"
 #include "iAImageClusterer.h"
 
-#include "iAImageTree.h"
 #include "iAConsole.h"
+#include "iAImageTree.h"
+#include "iAMathUtility.h"
 #include "iARepresentative.h"
 
 #include "iAImageComparisonMetrics.h"
@@ -84,7 +85,7 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 		DEBUG_LOG(QString("itk Exception: %1\n").arg(e.GetDescription()).toStdString());
 		return 0.0;
 	}
-	if (isnan(meanOverlap))
+	if (isNaN(meanOverlap))
 	{
 		//DebugOut() << "ERROR: CalcDistance -> NAN!" << std::endl;
 		return 1.0;
@@ -319,7 +320,7 @@ void iAImageClusterer::run()
 			{
 				distance = CalcDistance(img1, img2);
 			}
-			if (isnan(distance))
+			if (isNaN(distance))
 			{
 				DEBUG_LOG(QString("ERROR: %1, %2 -> NAN!")
 					.arg(m_currImage)

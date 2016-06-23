@@ -25,10 +25,9 @@
 #include "iAConsole.h"
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
-#include "iAToolsITK.h"
-#include "iASpectraDistance.h"
 #include "iAMathUtility.h"
-//#include "iAPerformanceHelper.h"
+#include "iASpectraDistance.h"
+#include "iAToolsITK.h"
 
 #include <itkImage.h>
 
@@ -154,7 +153,7 @@ namespace
 			pixelIndex[0] = coord.x;
 			pixelIndex[1] = coord.y;
 			pixelIndex[2] = coord.z;
-			if (imgVal < 0 || imgVal > 1 || std::isinf(imgVal) ||std::isnan(imgVal))
+			if (imgVal < 0 || imgVal > 1 || isInf(imgVal) || isNaN(imgVal))
 			{
 				/*
 				DebugOut() << "Invalid pixel value at ("
