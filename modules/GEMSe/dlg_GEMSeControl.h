@@ -33,7 +33,6 @@ class iAImageSampler;
 class dlg_labels;
 class dlg_modalities;
 class dlg_modalitySPLOM;
-class dlg_priors;
 class dlg_samplingSettings;
 class dlg_progress;
 class dlg_GEMSe;
@@ -50,7 +49,6 @@ public:
 	dlg_GEMSeControl(QWidget *parentWidget,
 		dlg_GEMSe* dlgGEMSe,
 		dlg_modalities* dlgModalities,
-		dlg_priors* dlgPriors,
 		dlg_labels* dlgLabels,
 		QString const & defaultThemeName
 	);
@@ -86,7 +84,6 @@ private:
 	void OpenGEMSe();
 	
 	dlg_modalities*                      m_dlgModalities;
-	dlg_priors*                          m_dlgPriors;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
 	dlg_GEMSe*                           m_dlgGEMSe;

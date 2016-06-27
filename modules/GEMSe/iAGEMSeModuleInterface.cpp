@@ -165,7 +165,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 
 	iAModalityExplorerAttachment* modalityExplorerAttachment = GetModalityExplorer(m_mainWnd, m_dispatcher)->GetAttachment(m_mdiChild);
 	modalityExplorerAttachment->SetModalities(modList);
-	// load priors:
+	// load seeds/labels:
 	if (!gemseAttach->LoadSeeds(seaFile.GetSeedsFileName()) ||
 	// load sampling data:
 		!gemseAttach->LoadSampling(seaFile.GetSamplingFileName()) ||

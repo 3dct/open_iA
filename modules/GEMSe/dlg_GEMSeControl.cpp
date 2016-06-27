@@ -24,7 +24,6 @@
 
 #include "dlg_labels.h"
 #include "dlg_modalities.h"
-#include "dlg_priors.h"
 #include "dlg_samplingSettings.h"
 #include "dlg_progress.h"
 #include "dlg_GEMSe.h"
@@ -53,7 +52,6 @@
 dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
 	dlg_GEMSe* dlgGEMSe,
 	dlg_modalities* dlgModalities,
-	dlg_priors* dlgPriors,
 	dlg_labels* dlgLabels,
 	QString const & defaultThemeName
 ):
@@ -62,7 +60,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
 	m_dlgProgress(0),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
-	m_dlgPriors(dlgPriors),
 	m_dlgModalitySPLOM(0),
 	m_dlgLabels(dlgLabels)
 {
