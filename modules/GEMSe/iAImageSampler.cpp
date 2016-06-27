@@ -130,7 +130,7 @@ void iAImageSampler::run()
 
 		for (int i = 0; i < m_modalities->size(); ++i)
 		{
-			argumentList << QString("\"%1\"").arg(m_modalities->Get(i)->GetFileName()) ;
+			argumentList << QString("%1").arg(m_modalities->Get(i)->GetFileName()) ;
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)

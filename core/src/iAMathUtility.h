@@ -33,7 +33,7 @@
 	#define isInf(x) std::isinf(x)
 #else
 	#define isNaN(x) isnan(x)
-	#define isinf(x) isinf(x)
+	#define isInf(x) isinf(x)
 #endif
 
 /**
