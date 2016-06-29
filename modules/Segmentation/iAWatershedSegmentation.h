@@ -45,15 +45,13 @@ class iAWatershedSegmentation : public iASegmentation
 public:
 	iAWatershedSegmentation( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 	virtual ~iAWatershedSegmentation();
-	void watershed(  );
-
-	/**
-	 * Sets a watershed parameters. 
-	 * \param	l	SetLevel value. 
-	 * \param	t	Threshold. 
-	 */
+	void watershed();
+	void morph_watershed();
 
 	void setWParameters( double l, double t ) { level = l; threshold = t; };
+	void setMWSParameters( QString f, double l, bool mwsmwsl, bool mwsFC, bool mwsSRGBI ){ mwsRGBFilePath = f; mwsLevel = l;
+	mwsMarkWSLines = mwsmwsl; mwsFullyConnected = mwsFC; mwsSaveRGBImage = mwsSRGBI; };
+
 	vtkImageData* getImageDataNew ( ) { return imageDataNew; }
 
 protected:
@@ -61,6 +59,10 @@ protected:
 
 private:
 	double level, threshold;
+	double mwsLevel; // Morphological Watershed Segmentation Filter
+	bool mwsMarkWSLines, mwsFullyConnected, mwsSaveRGBImage;	// Morphological Watershed Segmentation Filter
+	QString mwsRGBFilePath; // Morphological Watershed Segmentation Filter
+
 	vtkImageData* imageDataNew;
 };
 #endif
