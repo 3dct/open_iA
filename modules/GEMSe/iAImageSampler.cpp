@@ -225,14 +225,9 @@ void iAImageSampler::computationFinished()
 void iAImageSampler::derivedOutputFinished()
 {
 	CharacteristicsCalculator* charactCalc = dynamic_cast<CharacteristicsCalculator*>(QObject::sender());
-	if (!charactCalc)
+	if (!charactCalc || !charactCalc->success())
 	{
-		DEBUG_LOG("ERROR: charactCalcFinished - NULL or on-CharacteristicsCalculator sender!\n");
-		return;
-	}
-	if (!charactCalc->success())
-	{
-		DEBUG_LOG("Derived Output calculation finished with errors, not storing result!\n");
+		DEBUG_LOG("ERROR: charactCalcFinished - invalid sender or errors during calculation, not storing result!!\n");
 		return;
 	}
 
