@@ -166,7 +166,6 @@ IF (VTK_VERSION_MAJOR GREATER 5)
 			vtkIOMovie
 			vtkIOGeometry
 			vtkImagingStatistics
-			vtkImagingStatistics
 			vtkIOGeometry
 			vtkIOMovie
 			vtkIOXML

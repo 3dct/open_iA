@@ -43,15 +43,15 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 		return QSharedPointer<iASingleResult>();
 	}
 	QSharedPointer<iASingleResult> result(new iASingleResult(id, path + "/sample" + QString::number(id)));
-	if (tokens.size() != attributes->GetCount()+1) // +1 for ID
+	if (tokens.size() != attributes->size()+1) // +1 for ID
 	{
-		DEBUG_LOG(QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->GetCount()+1));
+		DEBUG_LOG(QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
 		return QSharedPointer<iASingleResult>();
 	}
-	for (int i = 0; i < attributes->GetCount(); ++i)
+	for (int i = 0; i < attributes->size(); ++i)
 	{
 		double value = -1;
-		int valueType = attributes->Get(i)->GetValueType();
+		int valueType = attributes->at(i)->GetValueType();
 		QString curToken = tokens[i + 1];
 		switch (valueType)
 		{
@@ -62,7 +62,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 				value = curToken.toInt(&ok);
 				break;
 			case Categorical:
-				value = attributes->Get(i)->GetNameMapper()->GetIdx(curToken, ok);
+				value = attributes->at(i)->GetNameMapper()->GetIdx(curToken, ok);
 				break;
 		}
 		if (!ok)
@@ -75,30 +75,38 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 	return result;
 }
 
+QSharedPointer<iASingleResult> iASingleResult::Create(int id, QString const & path,
+	QVector<double> const & parameter)
+{
+	QSharedPointer<iASingleResult> result(new iASingleResult(id, path + "/sample" + QString::number(id)));
+	result->m_attributeValues = parameter;
+	return result;
+}
+
 
 QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int type)
 {
 	QString result;
-	if (attributes->GetCount() != m_attributeValues.size())
+	if (attributes->size() != m_attributeValues.size())
 	{
 		DEBUG_LOG("Non-matching attribute list given (number of descriptors and number of values don't match\n");
 		return result;
 	}
 	for (int i = 0; i < m_attributeValues.size(); ++i)
 	{
-		if (attributes->Get(i)->GetAttribType() == type)
+		if (attributes->at(i)->GetAttribType() == type)
 		{
 			if (!result.isEmpty())
 			{
 				result += ValueSplitString;
 			}
-			if (attributes->Get(i)->GetNameMapper())
+			if (attributes->at(i)->GetNameMapper())
 			{
-				result += attributes->Get(i)->GetNameMapper()->GetName(m_attributeValues[i]);
+				result += attributes->at(i)->GetNameMapper()->GetName(m_attributeValues[i]);
 			}
 			else
 			{
-				result += (attributes->Get(i)->GetValueType() == iAValueType::Discrete) ?
+				result += (attributes->at(i)->GetValueType() == iAValueType::Discrete) ?
 					QString::number(static_cast<int>(m_attributeValues[i])) :
 					QString::number(m_attributeValues[i]);
 			}

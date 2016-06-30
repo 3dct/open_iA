@@ -22,153 +22,70 @@
 #include "pch.h"
 #include "dlg_samplingSettings.h"
 
-#include "iAMMSegParameterRange.h"
-#include "iAMMSegParameterGeneratorImpl.h"
+#include "iAAttributes.h"
+#include "iAAttributeDescriptor.h"
+#include "iAConsole.h"
 #include "iAModality.h"
-#include "iASpectraDistanceImpl.h"
+#include "iAParameterGeneratorImpl.h"
+
 #include "QxtSpanSlider"
 
+#include <QCheckBox>
 #include <QDropEvent>
 #include <QFileDialog>
 #include <QMimeData>
 #include <QShortcut>
+#include <QTextStream>
 #include <QStandardItemModel>
 
-namespace
+#include <cassert>
+
+struct ParameterInputs
 {
-	const int MaxFactor = 1000;
+	QLabel* label;
+	QLineEdit* from;
+	QLineEdit* to;
+	QCheckBox* logScale;
+	QSharedPointer<iAAttributeDescriptor> descriptor;
+	ParameterInputs():
+		label(0),
+		from(0),
+		to(0),
+		logScale(0)
+	{}
 };
 
-class MyListWidget: public QListWidget
-{
-protected:
 
-	bool containsItem(QString title)
-	{
-		for (int i = 0; i < count(); ++i) {
-			if (item(i)->text() == title)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	virtual void dropEvent ( QDropEvent * event )
-	{
-		QStringList formats = event->mimeData()->formats();
-		if (!formats.contains("application/x-qabstractitemmodeldatalist"))
-		{
-			event->setDropAction(Qt::IgnoreAction);
-			event->accept();
-			return;
-		}
-		QStandardItemModel model;
-		model.dropMimeData(event->mimeData(), Qt::CopyAction, 0,0, QModelIndex());
-		for (int i=0; i<model.rowCount(); ++i)
-		{
-			if (containsItem(model.item(i)->text()))
-			{
-				event->setDropAction(Qt::IgnoreAction);
-				event->accept();
-				return;
-			}
-		}
-		QListWidget::dropEvent(event);
-	}
-};
-
-dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget, QSharedPointer<iAModalityList const> modalities):
+dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
+	QSharedPointer<iAModalityList const> modalities):
 	dlg_samplingSettingsUI(parentWidget)
 {
 	assert(modalities->size() > 0);
 	QSharedPointer<iAModality const> mod0 = modalities->Get(0);
+	m_modalityCount = modalities->size();
 	m_imagePixelCount = mod0->GetHeight() * mod0->GetWidth() * mod0->GetDepth();
 
 	// assemble modality parameter input on the fly:
 
 	QGridLayout* gridLay = dynamic_cast<QGridLayout*>(layout());
-	int startLine = gridLay->rowCount()-2;
+	m_startLine = gridLay->rowCount()-2;
 
-	size_t channelCount = 0;
-	for (int i=0; i<modalities->size(); ++i)
-	{		
-		ModalityControls modCtrl;
-		
-		modCtrl.weightSlider = new QxtSpanSlider(Qt::Horizontal);
-		modCtrl.weightSlider->setMinimum(0);
-		modCtrl.weightSlider->setMaximum(MaxFactor);
-		modCtrl.weightSlider->setLowerValue(0);
-		modCtrl.weightSlider->setUpperValue(MaxFactor);
-		connect(modCtrl.weightSlider, SIGNAL(lowerPositionChanged(int)), this, SLOT(ModalityMinWeightChanged(int)));
-		connect(modCtrl.weightSlider, SIGNAL(upperPositionChanged(int)), this, SLOT(ModalityMaxWeightChanged(int)));
-		
-		modCtrl.distanceMeasures = new MyListWidget();
-		modCtrl.distanceMeasures->setAcceptDrops(true);
-
-		modCtrl.distanceDeleteShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), modCtrl.distanceMeasures);
-		modCtrl.distanceDeleteShortcut->setContext(Qt::WidgetShortcut);
-		connect(modCtrl.distanceDeleteShortcut, SIGNAL(activated()), this, SLOT(DeleteItem()));
-
-		QLabel* lbModName = new QLabel(modalities->Get(i)->GetName());
-		QLabel* lbWeight = new QLabel("Weight");
-		QLabel* lbDistanceFunc = new QLabel("Distance Metric");
-
-		gridLay->addWidget(lbModName, startLine, 0);
-
-		gridLay->addWidget(lbWeight, startLine, 1);
-		gridLay->addWidget(modCtrl.weightSlider, startLine, 2, 1, 2);
-
-		gridLay->addWidget(lbDistanceFunc, startLine+1, 1);
-		gridLay->addWidget(modCtrl.distanceMeasures, startLine+1, 2, 1, 2);
-
-		channelCount += modalities->Get(i)->GetData()->channelCount();
-		if (modalities->Get(i)->GetData()->channelCount() > 1)
-		{
-			QLabel* lbPCA = new QLabel("PCA");
-			modCtrl.pcaMin = new QLineEdit("1");
-			modCtrl.pcaMax = new QLineEdit(QString::number(modalities->Get(i)->GetData()->channelCount()));
-
-			gridLay->addWidget(lbPCA, startLine+2, 1);
-			gridLay->addWidget(modCtrl.pcaMin, startLine+2, 2);
-			gridLay->addWidget(modCtrl.pcaMax, startLine+2, 3);
-			startLine += 3;
-
-			modCtrl.distanceMeasures->addItem("Squared");
-		}
-		else
-		{
-			// add default distance measure:
-			modCtrl.distanceMeasures->addItem("Squared");
-
-			modCtrl.pcaMin = 0;
-			modCtrl.pcaMax = 0;
-			startLine += 2;
-		}
-		gridLay->addWidget(lbAvailableMetrics, startLine, 0);
-		gridLay->addWidget(lwAvailableMetrics, startLine, 1);
-		gridLay->addWidget(lbAvailableMetricsDescription, startLine, 2, 1, 2);
-		m_modalityControls.push_back(modCtrl);
-	}
-	gridLay->addWidget(wdButtonBar, startLine+1, 0, 1, 4);
-
-	leSVM_Channels_To->setText(QString::number(channelCount));
-
-	for (int i=0; i<GetDistanceMeasureCount(); ++i)
-	{
-		lwAvailableMetrics->addItem(GetDistanceMeasureNames()[i]);
-	}
+	gridLay->addWidget(wdButtonBar, m_startLine+1, 0, 1, 4);
 	
 	cbSamplingMethod->clear();
 	auto & paramGens = GetParameterGenerators();
-	for (QSharedPointer<iAMMSegParameterGenerator> paramGen : paramGens)
+	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
 		cbSamplingMethod->addItem(paramGen->GetName());
 	}
 	cbSamplingMethod->setCurrentIndex(1);
 
+	connect(leParamDescriptor, SIGNAL(editingFinished()), this, SLOT(ParameterDescriptorChanged()));
 	connect(sbNumberOfSamples, SIGNAL(valueChanged(int)), this, SLOT(UpdateEstimate(int)));
 	connect(pbChooseOutputFolder, SIGNAL(clicked()), this, SLOT(ChooseOutputFolder()));
+	connect(pbChooseParameterDescriptor, SIGNAL(clicked()), this, SLOT(ChooseParameterDescriptor()));
+	connect(pbChooseExecutable, SIGNAL(clicked()), this, SLOT(ChooseExecutable()));
+
 
 	connect (pbRun, SIGNAL(clicked()), this, SLOT(accept()));
 	connect (pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
@@ -176,159 +93,166 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget, QSharedPointer
 	UpdateEstimate(10000);
 }
 
-void dlg_samplingSettings::DeleteItem()
-{
-	QShortcut* shortCut = dynamic_cast<QShortcut*>(sender());
-	assert(shortCut);
-	if (!shortCut)
-	{
-		return;
-	}
-	foreach(ModalityControls modCtrl, m_modalityControls)
-	{
-		if (shortCut == modCtrl.distanceDeleteShortcut)
-		{
-			delete modCtrl.distanceMeasures->currentItem();
-		}
-	}
-}
-
-void dlg_samplingSettings::ModalityMinWeightChanged(int min)
-{
-	QVector<QSignalBlocker*> blockers;
-	int otherMaxSum = 0;
-	
-	QxtSpanSlider* span = dynamic_cast<QxtSpanSlider*>(sender());
-
-	foreach(ModalityControls modCtrl, m_modalityControls)
-	{
-		blockers.push_back(new QSignalBlocker(modCtrl.weightSlider));
-		if (span != modCtrl.weightSlider)
-		{
-			otherMaxSum += (MaxFactor - modCtrl.weightSlider->upperValue());
-		}
-	}
-
-	foreach(ModalityControls modCtrl, m_modalityControls)
-	{
-		if (span != modCtrl.weightSlider)
-		{
-			// if need be, adapt max of other modalities in the same ratio as they currently have to each other:
-			double ratio =
-				(otherMaxSum == 0) ? 1 :
-				static_cast<double>(MaxFactor - modCtrl.weightSlider->upperValue()) / otherMaxSum;
-
-			// TODO: make sure min - other maxes add up to MaxFactor?
-			int newMax = MaxFactor - static_cast<int>(min * ratio);
-			modCtrl.weightSlider->setUpperValue( newMax );
-		}
-	}
-
-
-	foreach(QSignalBlocker* block, blockers)
-	{
-		delete block;
-	}
-}
-
-void dlg_samplingSettings::ModalityMaxWeightChanged(int max)
-{
-	QVector<QSignalBlocker*> blockers;
-	int otherMinSum = 0;
-	
-	QxtSpanSlider* span = dynamic_cast<QxtSpanSlider*>(sender());
-
-	foreach(ModalityControls modCtrl, m_modalityControls)
-	{
-		blockers.push_back(new QSignalBlocker(modCtrl.weightSlider));
-		if (span != modCtrl.weightSlider)
-		{
-			otherMinSum += modCtrl.weightSlider->lowerValue();
-		}
-	}
-
-	foreach(ModalityControls modCtrl, m_modalityControls)
-	{
-		if (span != modCtrl.weightSlider)
-		{
-			// if need be, adapt min of other modalities in the same ratio as they currently have to each other:
-			double ratio =
-				(otherMinSum == 0) ? 1 :
-				static_cast<double>(modCtrl.weightSlider->lowerValue()) / otherMinSum;
-
-			// TODO: make sure min - other maxes add up to MaxFactor?
-			int newMin = static_cast<int>((MaxFactor-max) * ratio);
-			modCtrl.weightSlider->setLowerValue( newMin );
-		}
-	}
-
-
-	foreach(QSignalBlocker* block, blockers)
-	{
-		delete block;
-	}
-}
-
-QSharedPointer<iAMMSegParameterGenerator> dlg_samplingSettings::GetGenerator()
+QSharedPointer<iAParameterGenerator> dlg_samplingSettings::GetGenerator()
 {
 	return GetParameterGenerators()[cbSamplingMethod->currentIndex()];
 }
 
-void AssembleDistanceFuncs(QListWidget* listWidget, QVector<QSharedPointer<iASpectraDistance> > & result)
+
+void dlg_samplingSettings::ChooseParameterDescriptor()
 {
-	for (int i=0; i<listWidget->count(); ++i)
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Parameter Descriptor"),
+		QString(), // TODO get directory of current file
+		tr("Comma separated file (*.csv);;"));
+	if (!fileName.isEmpty())
 	{
-		QListWidgetItem * item = listWidget->item(i);
-		QSharedPointer<iASpectraDistance> dist = GetDistanceMeasure(item->text());
-		result.push_back(dist);
+		leParamDescriptor->setText(fileName);
 	}
+	LoadDescriptor(leParamDescriptor->text());
 }
 
 
-QSharedPointer<iAMMSegParameterRange> dlg_samplingSettings::GetRange()
+void dlg_samplingSettings::ChooseExecutable()
 {
-	QSharedPointer<iAMMSegParameterRange> result(new iAMMSegParameterRange);
-	result->erw_beta_From = leBetaMin->text().toDouble();
-	result->erw_beta_To = leBetaMax->text().toDouble();
-	result->erw_beta_logScale = cbBetaLogScale->isChecked();
-	result->erw_gamma_From = leGammaMin->text().toDouble();
-	result->erw_gamma_To = leGammaMax->text().toDouble();
-	result->erw_gamma_logScale = cbGammaLogScale->isChecked();
-	result->erw_maxIter_From = leMaxIterMin->text().toDouble();
-	result->erw_maxIter_To = leMaxIterMax->text().toDouble();
-	result->erw_maxIter_logScale = cbMaxIterLogScale->isChecked();
-	result->svm_C_From = leSVM_C_From->text().toDouble();
-	result->svm_C_To = leSVM_C_To->text().toDouble();
-	result->svm_C_logScale = cbSVM_C_LogScale->isChecked();
-	result->svm_gamma_From = leSVM_gamma_From->text().toDouble();
-	result->svm_gamma_To = leSVM_gamma_To->text().toDouble();
-	result->svm_gamma_logScale = cbSVM_Gamma_LogScale->isChecked();
-	result->svm_channels_From = leSVM_Channels_From->text().toDouble();
-	result->svm_channels_To = leSVM_Channels_To->text().toDouble();
-
-	result->sampleCount = sbNumberOfSamples->value();
-	result->weightLogScale = cbWeightLogScale->isChecked();
-	result->objCountMin = std::numeric_limits<int>::max();
-	result->objCountMax = std::numeric_limits<int>::lowest();
-	result->durationMin = std::numeric_limits<int>::max();
-	result->durationMax = std::numeric_limits<int>::lowest();
-	
-	for (int i=0; i<m_modalityControls.size(); ++i)
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Executable"),
+		QString(), // TODO get directory of current file
+		tr("Windows Executable (*.exe);;Batch Script (*.bat);;Shell Script (*.sh);;Any Executable (*);;"));
+	if (!fileName.isEmpty())
 	{
-		iAMMSegModalityParamRange modParamRng;
-		modParamRng.pcaDimMin  = (m_modalityControls[i].pcaMin) ? m_modalityControls[i].pcaMin->text().toInt() : 1;
-		modParamRng.pcaDimMax  = (m_modalityControls[i].pcaMax) ? m_modalityControls[i].pcaMax->text().toInt() : 1;
-		modParamRng.weightFrom = static_cast<double>(m_modalityControls[i].weightSlider->lowerValue()) / MaxFactor;
-		modParamRng.weightTo   = static_cast<double>(m_modalityControls[i].weightSlider->upperValue()) / MaxFactor;
-		AssembleDistanceFuncs(m_modalityControls[i].distanceMeasures, modParamRng.distanceFuncs);
-		result->modalityParamRange.push_back(modParamRng);
+		leExecutable->setText(fileName);
 	}
+}
 
+void dlg_samplingSettings::ParameterDescriptorChanged()
+{
+	// load parameter descriptor from file
+	LoadDescriptor(leParamDescriptor->text());
+}
+
+ParameterInputs CreateParameterLine(
+	QString const & pName,
+	QSharedPointer<iAAttributeDescriptor> descriptor,
+	QGridLayout* gridLay,
+	int curGridLine)
+{
+	ParameterInputs result;
+	result.label = new QLabel(pName);
+	result.from = new QLineEdit(QString::number(descriptor->GetMin()));
+	result.to = new QLineEdit(QString::number(descriptor->GetMax()));
+	gridLay->addWidget(result.label, curGridLine, 0);
+	gridLay->addWidget(result.from, curGridLine, 1);
+	gridLay->addWidget(result.to, curGridLine, 2);
+	if (descriptor->GetValueType() != Categorical)
+	{
+		result.logScale = new QCheckBox("Log Scale");
+		result.logScale->setChecked(descriptor->IsLogScale());
+		gridLay->addWidget(result.logScale, curGridLine, 3);
+	}
+	result.descriptor = descriptor;
+	return result;
+}
+
+void dlg_samplingSettings::LoadDescriptor(QString const & fileName)
+{
+	if (fileName == m_descriptorFileName)
+	{
+		// same filename as before, we don't need to load again
+		return;
+	}
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		DEBUG_LOG(QString("Couldn't open parameter descriptor file '%1'\n").arg(fileName));
+		return;
+	}
+	QTextStream in(&file);
+	m_descriptor = iAAttributes::Create(in);
+
+	// TODO: store values from previous descriptor?
+	for (int i = 0; i < m_paramInputs.size(); ++i)
+	{
+		delete m_paramInputs[i].label;
+		delete m_paramInputs[i].from;
+		delete m_paramInputs[i].to;
+		delete m_paramInputs[i].logScale;
+	}
+	m_paramInputs.clear();
+	int curGridLine = m_startLine+1;
+	QGridLayout* gridLay = dynamic_cast<QGridLayout*>(layout());
+	for (int i = 0; i < m_descriptor->size(); ++i)
+	{
+		QString pName(m_descriptor->at(i)->GetName());
+		if (pName.startsWith("Mod "))
+		{
+			for (int m = 0; m < m_modalityCount; ++m)
+			{
+				ParameterInputs pInput = CreateParameterLine(QString("Mod %1 ").arg(m) +
+					pName.right(pName.length() - 4),
+					m_descriptor->at(i),
+					gridLay,
+					curGridLine);
+				curGridLine++;
+				m_paramInputs.push_back(pInput);
+			}
+		}
+		else
+		{
+			ParameterInputs pInput = CreateParameterLine(
+				pName,
+				m_descriptor->at(i),
+				gridLay,
+				curGridLine);
+			curGridLine++;
+			m_paramInputs.push_back(pInput);
+		}
+	}
+	gridLay->addWidget(wdButtonBar, curGridLine, 0, 1, 4);
+	m_descriptorFileName = fileName;
+}
+
+
+void SetMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
+{
+	bool ok;
+	double value = valueText.toDouble(&ok);
+	if (desc->GetValueType() == Categorical ||
+		desc->GetValueType() == Discrete)
+	{
+		int value = valueText.toInt(&ok);
+	}
+	if (!ok)
+	{
+		DEBUG_LOG(QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->GetName()));
+		return;
+	}
+	desc->AdjustMinMax(value);
+}
+
+QSharedPointer<iAAttributes> dlg_samplingSettings::GetAttributes()
+{
+	QSharedPointer<iAAttributes> result(new iAAttributes);
+	for (int l = 0; l < m_paramInputs.size(); ++l)
+	{
+		QString pName(m_paramInputs[l].label->text());
+		QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
+			pName,
+			iAAttributeDescriptor::Parameter,
+			m_paramInputs[l].descriptor->GetValueType()));
+		SetMinMax(desc, m_paramInputs[l].from->text());
+		SetMinMax(desc, m_paramInputs[l].to->text());
+		if (m_paramInputs[l].logScale)
+		{
+			assert(desc->GetValueType() != Categorical);
+			desc->SetLogScale(m_paramInputs[l].logScale->isChecked());
+		}
+		result->Add(desc);
+	}
 	return result;
 }
 
 double dlg_samplingSettings::GetEstimatedDuration() const
 {
+	// try one run before to get those magic numbers?
 	return (0.00007*m_imagePixelCount*m_nbOfSamples )/3600 ;
 }
 
@@ -358,8 +282,17 @@ QString dlg_samplingSettings::GetOutputFolder() const
 }
 
 
-bool dlg_samplingSettings::DoStoreProbabilities() const
+QString dlg_samplingSettings::GetAdditionalArguments() const
 {
-	return cbStoreProbabilities->isChecked();
+	return leAdditionalArguments->text();
+}
 
+QString dlg_samplingSettings::GetExecutable() const
+{
+	return leExecutable->text();
+}
+
+int dlg_samplingSettings::GetSampleCount() const
+{
+	return sbNumberOfSamples->value();
 }

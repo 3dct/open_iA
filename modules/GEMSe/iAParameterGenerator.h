@@ -19,18 +19,23 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
  
-#ifndef IA_MMSEG_PARAMETER_GENERATOR_H
-#define IA_MMSEG_PARAMETER_GENERATOR_H
+#ifndef IA_PARAMETER_GENERATOR_H
+#define IA_PARAMETER_GENERATOR_H
 
-#include "iAMMSegParameterListFwd.h"
+class iAAttributes;
 
-class iAMMSegParameterRange;
+#include <QSharedPointer>
+#include <QVector>
 
-class iAMMSegParameterGenerator
+typedef QVector<double> ParameterSet;
+typedef QVector<ParameterSet> ParameterSets;
+typedef QSharedPointer<ParameterSets> ParameterSetsPointer;
+
+class iAParameterGenerator
 {
 public:
 	virtual QString GetName() const =0;
-	virtual ParameterListPointer GetParameterSets(QSharedPointer<iAMMSegParameterRange> parameterRange) =0;
+	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
 };
 
 #endif

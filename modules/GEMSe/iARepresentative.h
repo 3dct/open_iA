@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAImageTypes.h"
+#include "iAITKIO.h"
 
-iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, LabelPixelType differenceMarkerValue);
+iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, int differenceMarkerValue);
 

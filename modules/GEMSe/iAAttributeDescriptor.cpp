@@ -234,6 +234,16 @@ QString iAAttributeDescriptor::ToString() const
 			result += QString::number(GetMin()) + AttributeSplitString + QString::number(GetMax()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
 			break;
 		case iAValueType::Categorical:	{
+			if (!m_nameMapper)
+			{
+				DEBUG_LOG("NameMapper NULL for categorical attribute!\n");
+				for (int i = GetMin(); i <= GetMax(); ++i)
+				{
+					result += QString::number(i);
+					if (i < GetMax()) result += CategoricalValueSplitString;
+				}
+				break;
+			}
 			for (int i = 0; i < m_nameMapper->size(); ++i)
 			{
 				result += m_nameMapper->GetName(i);
@@ -252,7 +262,8 @@ iAAttributeDescriptor::iAAttributeDescriptor(
 		QString const & name, iAAttributeType attribType, iAValueType valueType) :
 	m_name(name),
 	m_attribType(attribType),
-	m_valueType(valueType)
+	m_valueType(valueType),
+	m_logarithmic(false)
 {
 	ResetMinMax();
 }
@@ -303,6 +314,12 @@ QString iAAttributeDescriptor::GetName() const
 bool iAAttributeDescriptor::IsLogScale() const
 {
 	return m_logarithmic;
+}
+
+
+void iAAttributeDescriptor::SetLogScale(bool l)
+{
+	m_logarithmic = l;
 }
 
 bool iAAttributeDescriptor::CoversWholeRange(double min, double max) const

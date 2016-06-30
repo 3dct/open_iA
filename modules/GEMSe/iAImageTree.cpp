@@ -27,7 +27,6 @@
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 #include "iARepresentative.h"
-#include "iAImageTypes.h"
 #include "iAToolsITK.h"
 
 #include <QDir>

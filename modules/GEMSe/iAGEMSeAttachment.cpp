@@ -24,7 +24,6 @@
 
 #include "dlg_labels.h"
 #include "dlg_modalities.h"
-#include "dlg_priors.h"
 #include "dlg_GEMSeControl.h"
 #include "dlg_GEMSe.h"
 #include "iAChildData.h"
@@ -44,8 +43,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-
-#include <QFileDialog>
 
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData):
@@ -67,12 +64,10 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 	newAttachment->m_dlgGEMSe = new dlg_GEMSe(mdiChild, mdiChild->getLogger(), colorTheme);
 	
 	newAttachment->m_dlgLabels = new dlg_labels(mdiChild, colorTheme);
-	newAttachment->m_dlgPriors = new dlg_priors(modalityAttachment->GetModalitiesDlg(), newAttachment->m_dlgLabels);
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
 		childData.child,
 		newAttachment->m_dlgGEMSe,
 		modalityAttachment->GetModalitiesDlg(),
-		newAttachment->m_dlgPriors,
 		newAttachment->m_dlgLabels,
 		defaultThemeName
 	);
@@ -80,9 +75,7 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
 	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
 	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, modalityAttachment->GetModalitiesDlg(), Qt::Horizontal);
-	mdiChild->splitDockWidget(modalityAttachment->GetModalitiesDlg(), newAttachment->m_dlgPriors, Qt::Vertical);
-	mdiChild->splitDockWidget(newAttachment->m_dlgPriors, newAttachment->m_dlgLabels, Qt::Vertical);
-	newAttachment->m_dlgPriors->hide();
+	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
 
 	connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
 	connect(mdiChild->getSlicerDataXY(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
@@ -101,12 +94,6 @@ bool iAGEMSeAttachment::LoadSampling(QString const & smpFileName)
 bool iAGEMSeAttachment::LoadClustering(QString const & fileName)
 {
 	return m_dlgGEMSeControl->LoadClustering(fileName);
-}
-
-
-bool iAGEMSeAttachment::LoadPriors(QString const & priorsFileName)
-{
-	return m_dlgPriors->Load(priorsFileName);
 }
 
 bool iAGEMSeAttachment::LoadSeeds(QString const & seedsFileName)

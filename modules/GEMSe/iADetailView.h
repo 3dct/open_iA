@@ -22,7 +22,8 @@
 #ifndef IA_DETAIL_VIEW_H
 #define IA_DETAIL_VIEW_H
 
-#include "iAImageTypes.h"
+#include "iAITKIO.h" // TODO: replace?
+typedef iAITKIO::ImagePointer ClusterImageType;
 
 #include <vtkSmartPointer.h>
 

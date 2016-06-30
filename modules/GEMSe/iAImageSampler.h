@@ -19,44 +19,42 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
  
-#ifndef IA_MMSEG_SAMPLER_H
-#define IA_MMSEG_SAMPLER_H
+#ifndef IA_IMAGE_SAMPLER_H
+#define IA_IMAGE_SAMPLER_H
 
 #include <QMap>
+#include <QMutex>
 #include <QSharedPointer>
 #include <QThread>
 
 #include "iAAbortListener.h"
 #include "iADurationEstimator.h"
-#include "iAMMSegParameterListFwd.h"
+#include "iAParameterGenerator.h"
 #include "iAPerformanceHelper.h"
-#include "iARandomWalker.h"
 #include "iASpectrumType.h"
-#include "SVMImageFilter.h"
-
 
 class iAAttributes;
 class iAModalityList;
-class iAMMSegParameterRange;
-class iAMMSegParameterGenerator;
 class iASamplingResults;
 class iASingleResult;
 class CharacteristicsCalculator;
+class iACommandRunner;
 
-class iAMMSegSampler: public QThread, public iADurationEstimator, public iAAbortListener
+class iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
 {
 	Q_OBJECT
 public:
-	iAMMSegSampler(
+	iAImageSampler(
 		QSharedPointer<iAModalityList const> modalities,
-		QSharedPointer<iAMMSegParameterRange> range,
-		QSharedPointer<iAMMSegParameterGenerator> sampleGenerator,
-		SVMImageFilter::SeedsPointer seeds,
+		QSharedPointer<iAAttributes> range,
+		QSharedPointer<iAParameterGenerator> sampleGenerator,
+		int sampleCount,
 		QString const & outputBaseDir,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
 		QString const & characteristicsFile,
-		bool storeProbabilities);
+		QString const & computationExecutable,
+		QString const & additionalArguments);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
 	virtual double elapsed() const;
@@ -70,45 +68,43 @@ private:
 	//! @{
 	//! input
 	QSharedPointer<iAModalityList const> m_modalities;
-	QSharedPointer<iAMMSegParameterRange> m_range;
-	QSharedPointer<iAMMSegParameterGenerator> m_sampleGenerator;
-	SVMImageFilter::SeedsPointer m_seeds;
-	ParameterListPointer m_parameters;
-	//! @}
-
-	size_t m_curLoop;
+	QSharedPointer<iAAttributes> m_parameters;
+	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
+	int m_sampleCount;
+	ParameterSetsPointer m_parameterSets;
+	QString m_computationExecutable;
+	QString m_additionalArguments;
 	QString m_outputBaseDir;
-	bool m_storeProbabilities;
-	bool m_aborted;
-	
+
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
 	QString m_characteristicsFile;
+	//! @}
+
+	size_t m_curLoop;
+	bool m_aborted;
 
 	//! @{
 	//! Performance Measurement
-	iAPerformanceTimer m_erwPerfTimer;
-	iAPerformanceTimer m_ChaPerfTimer;
-	iAPerformanceTimer::DurationType m_calcERWDuration;
-	iAPerformanceTimer::DurationType m_calcChaDuration;
+	iAPerformanceTimer m_overallTimer;
+	iAPerformanceTimer::DurationType m_computationDuration;
+	iAPerformanceTimer::DurationType m_derivedOutputDuration;
 	//! @}
 
 	// intention: running several extended random walker's in parallel
 	// downside: seems to slow down rather than speed up overall process
-	QMap<iAExtendedRandomWalker* , QSharedPointer<iAMMSegParameter> > m_runningERW;
-	QMap<CharacteristicsCalculator*, QSharedPointer<iASingleResult> > m_runningCharCalc;
+	QMap<iACommandRunner*, int > m_runningComputation;
+	QMap<CharacteristicsCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
 
 	QSharedPointer<iASamplingResults> m_results;
 	QMutex m_mutex;
 	int m_runningOperations;
-	int m_derivedOutputStart;
-
-	QSharedPointer<iAAttributes> m_attributes;
+	int m_parameterCount;
 
 	void StatusMsg(QString const & msg);
 private slots:
-	void erwFinished();
-	void charactCalcFinished();
+	void computationFinished();
+	void derivedOutputFinished();
 };
 
-#endif // IA_MMSEG_SAMPLER_H
+#endif // IA_IMAGE_SAMPLER_H

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "iAImageTypes.h"
+#include "iAITKIO.h" // TODO: replace?
 
 #include <QSharedPointer>
 #include <QString>
@@ -36,6 +36,9 @@ public:
 	//! create from string
 	static QSharedPointer<iASingleResult> Create(QString const & line, QString const & path,
 		QSharedPointer<iAAttributes> attributes);
+
+	static QSharedPointer<iASingleResult> Create(int id, QString const & path,
+		QVector<double> const & parameter);
 
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)

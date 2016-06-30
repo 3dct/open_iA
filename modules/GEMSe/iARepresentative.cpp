@@ -27,7 +27,7 @@
 #include <QVector>
 
 template <class T>
-void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, LabelPixelType differenceMarkerValue, iAITKIO::ImagePointer & result)
+void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, int differenceMarkerValue, iAITKIO::ImagePointer & result)
 {
 	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
 	QVector<ImgType*> imgs;
@@ -60,7 +60,7 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, LabelPixelType di
 	result = out;
 }
 
-iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, LabelPixelType differenceMarkerValue)
+iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, int differenceMarkerValue)
 {
 	if (imgs.size() == 0)
 	{

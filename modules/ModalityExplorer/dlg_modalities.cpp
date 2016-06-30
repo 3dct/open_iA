@@ -96,6 +96,8 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer,
 	mapper->SetLookupTable(lut);
 
 	QHBoxLayout* hbox = new QHBoxLayout();
+	hbox->setSpacing(0);
+	hbox->setMargin(2);
 	histogramContainer->setLayout(hbox);
 }
 

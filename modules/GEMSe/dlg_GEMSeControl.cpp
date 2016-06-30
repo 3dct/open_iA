@@ -24,18 +24,17 @@
 
 #include "dlg_labels.h"
 #include "dlg_modalities.h"
-#include "dlg_priors.h"
 #include "dlg_samplingSettings.h"
 #include "dlg_progress.h"
 #include "dlg_GEMSe.h"
+#include "iAAttributes.h"
 #include "iACharacteristics.h"
 #include "iAColorTheme.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
-#include "iAMMSegParameterRange.h"
-#include "iAMMSegSampler.h"
+#include "iAImageSampler.h"
 #include "iAModality.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
@@ -53,7 +52,6 @@
 dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
 	dlg_GEMSe* dlgGEMSe,
 	dlg_modalities* dlgModalities,
-	dlg_priors* dlgPriors,
 	dlg_labels* dlgLabels,
 	QString const & defaultThemeName
 ):
@@ -62,7 +60,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
 	m_dlgProgress(0),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
-	m_dlgPriors(dlgPriors),
 	m_dlgModalitySPLOM(0),
 	m_dlgLabels(dlgLabels)
 {
@@ -110,11 +107,6 @@ void dlg_GEMSeControl::StartSampling()
 		DEBUG_LOG("No data available.\n");
 		return;
 	}
-	if (!m_dlgLabels->AreSeedsAvailable())
-	{
-		QMessageBox::warning(this, "Segmentation Explorer", "No seeds for SVM available. Sampling requires seeds!");
-		return;
-	}
 	if (m_dlgSamplingSettings || m_sampler)
 	{
 		QMessageBox::warning(this, "Segmentation Explorer", "Another sampler still running / dialog is still open...");
@@ -124,37 +116,23 @@ void dlg_GEMSeControl::StartSampling()
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
 		// get parameter ranges
-		QSharedPointer<iAMMSegParameterRange> range = m_dlgSamplingSettings->GetRange();
-		bool distFuncDefined = true;
-		for (int i=0; i<range->modalityParamRange.size(); ++i)
-		{
-			if (range->modalityParamRange[i].distanceFuncs.empty())
-			{
-				distFuncDefined = false;
-				break;
-			}
-		}
-		if (!distFuncDefined)
-		{
-			QMessageBox::warning(this, "Segmentation Explorer", "You need to specify at least one distance function per modality");
-			delete m_dlgSamplingSettings;
-			m_dlgSamplingSettings = 0;
-			return;
-		}
+		QSharedPointer<iAAttributes> parameters = m_dlgSamplingSettings->GetAttributes();
 		m_outputFolder = m_dlgSamplingSettings->GetOutputFolder();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
 		
-		m_sampler = QSharedPointer<iAMMSegSampler>(new iAMMSegSampler(
+		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_dlgModalities->GetModalities(),
-			range,
+			parameters,
 			m_dlgSamplingSettings->GetGenerator(),
-			m_dlgLabels->GetSeeds(),
+			m_dlgSamplingSettings->GetSampleCount(),
 			m_outputFolder,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_dlgSamplingSettings->DoStoreProbabilities()) );
+			m_dlgSamplingSettings->GetExecutable(),
+			m_dlgSamplingSettings->GetAdditionalArguments()
+		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
@@ -455,8 +433,8 @@ void dlg_GEMSeControl::CalcCharacteristics()
 
 void dlg_GEMSeControl::DataAvailable()
 {
-	pbSample->setEnabled(m_dlgModalities->GetModalities()->size() > 0 && m_dlgLabels->AreSeedsAvailable());
-	pbSamplingLoad->setEnabled(m_dlgModalities->GetModalities()->size() > 0 && m_dlgLabels->AreSeedsAvailable());
+	pbSample->setEnabled(m_dlgModalities->GetModalities()->size() > 0);
+	pbSamplingLoad->setEnabled(m_dlgModalities->GetModalities()->size() > 0);
 }
 
 void dlg_GEMSeControl::StoreAll()
