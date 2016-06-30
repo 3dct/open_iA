@@ -40,6 +40,8 @@
 #include <QFileDialog>
 #include <QMdiSubWindow>
 #include <QMessageBox>
+#include <QSettings>
+#include <QCheckBox>
 
 void iASegmentationModuleInterface::Initialize()
 {
@@ -53,6 +55,7 @@ void iASegmentationModuleInterface::Initialize()
 	QAction * actionOtsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Otsu threshold filter", 0), m_mainWnd );
 	QAction * actionMaximum_distance_filter = new QAction(QApplication::translate("MainWindow", "Maximum distance filter", 0), m_mainWnd );
 	QAction * actionWatershed_Segmentation_Filter = new QAction(QApplication::translate("MainWindow", "Watershed Segmentation Filter", 0), m_mainWnd );
+	QAction * actionMorphological_Watershed_Segmentation_Filter = new QAction( QApplication::translate( "MainWindow", "Morphological Watershed Segmentation Filter", 0 ), m_mainWnd );
 	QAction * actionAdaptive_otsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Adaptive Otsu threshold filter", 0), m_mainWnd );
 	QAction * actionRats_threshold_filter = new QAction(QApplication::translate("MainWindow", "Rats threshold filter", 0), m_mainWnd );
 	QAction * actionOtsu_Multiple_Threshold_Filter = new QAction(QApplication::translate("MainWindow", "Otsu multiple threshold filter", 0), m_mainWnd );
@@ -63,10 +66,12 @@ void iASegmentationModuleInterface::Initialize()
 	menuRegion_Growing->addAction( actionOtsu_Multiple_Threshold_Filter );
 	menuSegmentation->addAction( actionMaximum_distance_filter );
 	menuSegmentation_based_on_Watersheds->addAction( actionWatershed_Segmentation_Filter );
+	menuSegmentation_based_on_Watersheds->addAction( actionMorphological_Watershed_Segmentation_Filter );
 
 	connect( actionOtsu_threshold_filter, SIGNAL( triggered() ), this, SLOT( otsu_Threshold_Filter() ) );
 	connect( actionMaximum_distance_filter, SIGNAL( triggered() ), this, SLOT( maximum_Distance_Filter() ) );
 	connect( actionWatershed_Segmentation_Filter, SIGNAL( triggered() ), this, SLOT( watershed_seg() ) );
+	connect( actionMorphological_Watershed_Segmentation_Filter, SIGNAL( triggered() ), this, SLOT( morph_watershed_seg() ) );
 	connect( actionAdaptive_otsu_threshold_filter, SIGNAL( triggered() ), this, SLOT( adaptive_Otsu_Threshold_Filter() ) );
 	connect( actionRats_threshold_filter, SIGNAL( triggered() ), this, SLOT( rats_Threshold_Filter() ) );
 	connect( actionOtsu_Multiple_Threshold_Filter, SIGNAL( triggered() ), this, SLOT( otsu_Multiple_Threshold_Filter() ) );
@@ -300,6 +305,72 @@ void iASegmentationModuleInterface::watershed_seg()
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setWParameters( wsLevel, wsThreshold );
+	thread->start();
+	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+}
+
+void iASegmentationModuleInterface::saveMWSRGBImage( int state )
+{
+	if ( state == Qt::Checked )
+	{
+		mwsRGBFilePath = QFileDialog::getSaveFileName( 0, tr( "Save RGB Image" ), m_mainWnd->getPath(), tr( "mhd Files (*.mhd *.MHD)" ) );
+		if ( mwsRGBFilePath.isEmpty() )
+		{
+			QObject *signalSender = sender();
+			QCheckBox *checkBox = static_cast<QCheckBox*>( signalSender );
+			checkBox->setCheckState( Qt::Unchecked );
+			QMessageBox msgBox;
+			msgBox.setText( "No destination file was specified!" );
+			msgBox.setWindowTitle( "iAnalyse -- Porosity Measurement" );
+			msgBox.exec();
+			return;
+		}
+	}
+}
+
+void iASegmentationModuleInterface::morph_watershed_seg()
+{
+	QSettings settings;
+	mwsLevel = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
+	mwsMarkWSLines = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
+	mwsFullyConnected = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected" ).toBool();
+
+	QTextDocument *fDescr = new QTextDocument( 0 );
+	fDescr->setHtml(
+		"<p><font size=+1>Calculates the Morphological Watershed Transformation.</font></p>"
+		"<p>For further details see: http://www.insight-journal.org/browse/publication/92Select <br>"
+		"Note 1: As input image use e.g., a gradient magnitude image.<br>"
+		"Note 2: Mark WS Lines label whatershed lines with 0, background with 1. )</p>"
+		);
+
+	//set parameters
+	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) << tr( "$Save RGB Image" ) );
+	QList<QVariant> inPara;
+	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected ) << tr( "%1" ).arg( false );
+	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", 4, inList, inPara, fDescr );
+
+	QCheckBox *cb_rgbSave = dlg.findChild<QCheckBox *>( "Save RGB ImageCheckBox" );
+	connect( cb_rgbSave, SIGNAL( stateChanged( int ) ), this, SLOT( saveMWSRGBImage( int ) ) );
+
+	if ( dlg.exec() != QDialog::Accepted )
+		return;
+		
+	mwsLevel = dlg.getValues()[0]; mwsMarkWSLines = dlg.getCheckValues()[1]; 
+	mwsFullyConnected = dlg.getCheckValues()[2]; mwsSaveRGBImage = dlg.getCheckValues()[3];
+	
+	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
+	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
+	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
+
+	//prepare
+	QString filterName = tr( "Morphological Watershed Segmentation" );
+	PrepareResultChild( filterName );
+	m_mdiChild->addStatusMsg( filterName );
+	//execute
+	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, MORPH_WATERSHED,
+																   m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
+	m_mdiChild->connectThreadSignalsToChildSlots( thread );
+	thread->setMWSParameters( mwsRGBFilePath, mwsLevel, mwsMarkWSLines, mwsFullyConnected, mwsSaveRGBImage );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

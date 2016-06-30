@@ -37,10 +37,12 @@ private slots:
 	void otsu_Threshold_Filter();
 	void maximum_Distance_Filter();
 	void watershed_seg();
+	void morph_watershed_seg();
 	void adaptive_Otsu_Threshold_Filter();
 	void rats_Threshold_Filter();
 	void otsu_Multiple_Threshold_Filter();
 	bool CalculateSegmentationMetrics();
+	void saveMWSRGBImage( int state );
 
 private:
 	//settings
@@ -48,6 +50,9 @@ private:
 	bool otremovepeaks;
 	double mdfli, mdfbins; int mdfuli; //maximum distance filter parameters
 	double wsLevel, wsThreshold;
+	double mwsLevel; // Morphological Watershed Segmentation Filter
+	bool mwsMarkWSLines, mwsFullyConnected, mwsSaveRGBImage; // Morphological Watershed Segmentation Filter
+	QString mwsRGBFilePath;	// Morphological Watershed Segmentation Filter
 	double aotBins, aotOutside, aotInside, aotRadius; 
 	unsigned int aotSamples, aotLevels, aotControlpoints;
 	double rtPow, rtOutside, rtInside;
