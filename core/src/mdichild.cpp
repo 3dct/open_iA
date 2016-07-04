@@ -25,22 +25,32 @@
 #include "dlg_commoninput.h"
 #include "dlg_histogram.h"
 #include "dlg_imageproperty.h"
+#include "dlg_modalities.h"
+#include "dlg_modalityRenderer.h"
+#include "iAChannelVisualizationData.h"
+#include "iAChildData.h"
+#include "iAConsole.h"
 #include "dlg_profile.h"
 #include "dlg_volumePlayer.h"
 #include "iAAlgorithms.h"
 #include "iAFilter.h"
 #include "iAIO.h"
 #include "iAIOProvider.h"
+#include "iALogger.h"
 #include "iAMdiChildLogger.h"
+#include "iAModality.h"
 #include "iAObserverProgress.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
 #include "iAProfileWidget.h"
 #include "iARenderer.h"
+#include "iARenderSettings.h"
+#include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
+#include "iAWidgetAddHelper.h"
 #include "mainwindow.h"
 
 #include "extension2id.h"
@@ -72,6 +82,10 @@
 #include <QSpinBox>
 #include <QToolButton>
 
+//#include <fstream>
+//#include <sstream>
+//#include <string>
+
 MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack(new iAVolumeStack),
 	isMagicLensEnabled(false),
 	ioThread(0),
@@ -90,6 +104,11 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	sXZ = new dlg_sliceXZ(this);
 	sYZ = new dlg_sliceYZ(this);
 
+	dlg_modalityRenderer * renderWidget = new dlg_modalityRenderer();
+	m_dlgModalities = new dlg_modalities(renderWidget->GetRenderer());
+	QSharedPointer<iAModalityList> modList(new iAModalityList);
+	SetModalities(modList);
+
 	pbar = new QProgressBar(this);
 	pbar->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	pbar->setMaximumSize(350, 17);
@@ -103,6 +122,9 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	splitDockWidget(r, sXZ, Qt::Horizontal);
 	splitDockWidget(r, sYZ, Qt::Vertical);
 	splitDockWidget(sXZ, sXY, Qt::Vertical);
+
+	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
+	splitDockWidget(r, renderWidget, Qt::Horizontal);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -241,7 +263,19 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
+	connect(getSlicerXY()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(getSlicerXZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(getSlicerYZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(getSlicerXY()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(getSlicerXZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(getSlicerYZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 
+	/*
+	connect(this, SIGNAL(renderSettingsChanged()), this, SLOT(RenderSettingsChanged()));
+	connect(this, SIGNAL(preferencesChanged()), this, SLOT(preferencesChanged()));
+	*/
+
+	connect(m_dlgModalities, SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool providesProgress, bool usesDoneSignal )
@@ -297,6 +331,12 @@ void MdiChild::disableRenderWindows(int ch)
 
 void MdiChild::enableRenderWindows()
 {
+	// TODO: better logic (directly couple to successful I/O finish?
+	if (!currentFile().isEmpty() && GetModalitiesDlg()->GetModalities()->size() == 0)
+	{
+		GetModalitiesDlg()->GetModalities()->Add(QSharedPointer<iAModality>(
+			new iAModality("Main", currentFile(), getImagePointer(), iAModality::MainRenderer)));
+	}
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
 	{
 		calculateHistogram();
@@ -1414,6 +1454,7 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool 
 	}
 
 	emit preferencesChanged();
+	m_dlgModalities->ChangeMagicLensSize(GetMagicLensSize());
 
 	return true;
 }
@@ -1595,6 +1636,7 @@ bool MdiChild::editRendererSettings( bool rsShowVolume, bool rsShowSlicers,  boo
 	r->vtkWidgetRC->show();
 
 	emit renderSettingsChanged();
+	m_dlgModalities->ChangeRenderSettings(GetRenderSettings());
 
 	return true;
 }
@@ -1836,6 +1878,29 @@ bool MdiChild::isSliceProfileToggled(void) const
 void MdiChild::toggleMagicLens( bool isEnabled )
 {
 	isMagicLensEnabled = isEnabled;
+
+	if (isEnabled)
+	{
+		iAChannelVisualizationData * chData = GetChannelData(ch_ModalityLens);
+		if (!chData)
+		{
+			chData = new iAChannelVisualizationData();
+			InsertChannelData(ch_ModalityLens, chData);
+		}
+		m_currentModality = m_dlgModalities->GetSelected();
+		vtkSmartPointer<vtkImageData> img = m_dlgModalities->GetModalities()->Get(m_currentModality)->GetImage();
+		chData->SetActiveImage(img);
+		chData->SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
+		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
+		chData->SetOpacity(0.5);
+		InitChannelRenderer(ch_ModalityLens, false, false);
+		SetMagicLensInput(ch_ModalityLens, true);
+		SetMagicLensCaption(m_dlgModalities->GetModalities()->Get(m_currentModality)->GetName().toStdString());
+	}
+	//SetMagicLensEnabled(isEnabled);
+
+	//updateSlicers();
+
 	emit magicLensToggled(isMagicLensEnabled);
 }
 
@@ -2751,4 +2816,112 @@ bool MdiChild::IsOnlyPolyDataLoaded()
 {
 	return QString::compare(getFileInfo().suffix(), "STL", Qt::CaseInsensitive) == 0 ||
 		QString::compare(getFileInfo().suffix(), "FEM", Qt::CaseInsensitive) == 0 && !(imageData->GetExtent()[1] > 0);
+}
+
+
+void MdiChild::ChangeModality(int chg)
+{
+	SetCurrentModality(
+		(GetCurrentModality() + chg + GetModalitiesDlg()->GetModalities()->size())
+		% (GetModalitiesDlg()->GetModalities()->size())
+	);
+	int curModIdx = GetCurrentModality();
+	if (curModIdx < 0 || curModIdx >= GetModalitiesDlg()->GetModalities()->size())
+	{
+		DEBUG_LOG("Invalid modality index!");
+		return;
+	}
+	ChangeImage(GetModalitiesDlg()->GetModalities()->Get(curModIdx)->GetImage(),
+		GetModalitiesDlg()->GetModalities()->Get(curModIdx)->GetName().toStdString());
+}
+
+void MdiChild::ChangeMagicLensOpacity(int chg)
+{
+	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
+	if (!sliceWidget)
+	{
+		DEBUG_LOG("Invalid slice widget sender!");
+		return;
+	}
+	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+}
+
+
+int MdiChild::GetCurrentModality() const
+{
+	return m_currentModality;
+}
+
+
+void MdiChild::SetCurrentModality(int modality)
+{
+	m_currentModality = modality;
+}
+
+
+void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
+{
+	int selected = m_dlgModalities->GetSelected();
+	if (selected != -1)
+	{
+		m_currentModality = selected;
+		ChangeImage(img, m_dlgModalities->GetModalities()->Get(selected)->GetName().toStdString());
+	}
+}
+
+void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption)
+{
+	if (!isMagicLensToggled())
+	{
+		return;
+	}
+	reInitMagicLens(ch_ModalityLens, img,
+		m_dlgModalities->GetCTF(m_currentModality),
+		m_dlgModalities->GetOTF(m_currentModality), caption);
+}
+
+void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
+{
+	bool noDataLoaded = m_dlgModalities->GetModalities()->size() > 0;
+	return m_dlgModalities->SetModalities(modList);
+
+	if (noDataLoaded && m_dlgModalities->GetModalities()->size() > 0)
+	{
+		// TODO: avoid Duplication (LoadModalities!)
+		setImageData(
+			GetModalitiesDlg()->GetModalities()->Get(0)->GetFileName(),
+			GetModalitiesDlg()->GetModalities()->Get(0)->GetImage()
+		);
+	}
+}
+
+
+/*
+void MdiChild::RenderSettingsChanged()
+{
+	m_dlgModalities->ChangeRenderSettings(GetRenderSettings());
+}
+
+void MdiChild::preferencesChanged()
+{
+	m_dlgModalities->ChangeMagicLensSize(GetMagicLensSize());
+}
+*/
+
+dlg_modalities* MdiChild::GetModalitiesDlg()
+{
+	return m_dlgModalities;
+}
+
+void MdiChild::LoadModalities()
+{
+	bool noDataLoaded = m_dlgModalities->GetModalities()->size() > 0;
+	m_dlgModalities->Load();
+	if (noDataLoaded && m_dlgModalities->GetModalities()->size() > 0)
+	{
+		setImageData(
+			GetModalitiesDlg()->GetModalities()->Get(0)->GetFileName(),
+			GetModalitiesDlg()->GetModalities()->Get(0)->GetImage()
+		);
+	}
 }

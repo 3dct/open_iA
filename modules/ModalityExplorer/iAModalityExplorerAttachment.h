@@ -53,10 +53,6 @@ private slots:
 	void ChangeMagicLensOpacity(int);
 private:
 	iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
-	dlg_modalities *                  m_dlgModalities;
-	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	int                               m_currentModality;
 };
 
 #endif // IA_MODALITY_EXPLORER_ATTACHMENT_H

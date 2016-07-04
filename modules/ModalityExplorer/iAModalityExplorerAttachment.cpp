@@ -61,26 +61,8 @@ iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * 
 
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
 	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);
-	planeSlicer->hide(); // not fully implemented, therefore hide
+	planeSlicer->hide();
 		
-	newAttachment->m_dlgModalities = new dlg_modalities(renderWidget->GetRenderer(), planeSlicer);
-	mdiChild->splitDockWidget(renderWidget, newAttachment->m_dlgModalities, Qt::Horizontal);
-
-	newAttachment->RenderSettingsChanged(); // apply main window render settings
-
-	connect(mdiChild->getSlicerXY()->widget(), SIGNAL(shiftMouseWheel(int)), newAttachment, SLOT(ChangeModality(int)));
-	connect(mdiChild->getSlicerXZ()->widget(), SIGNAL(shiftMouseWheel(int)), newAttachment, SLOT(ChangeModality(int)));
-	connect(mdiChild->getSlicerYZ()->widget(), SIGNAL(shiftMouseWheel(int)), newAttachment, SLOT(ChangeModality(int)));
-	connect(mdiChild->getSlicerXY()->widget(), SIGNAL(altMouseWheel(int)), newAttachment, SLOT(ChangeMagicLensOpacity(int)));
-	connect(mdiChild->getSlicerXZ()->widget(), SIGNAL(altMouseWheel(int)), newAttachment, SLOT(ChangeMagicLensOpacity(int)));
-	connect(mdiChild->getSlicerYZ()->widget(), SIGNAL(altMouseWheel(int)), newAttachment, SLOT(ChangeMagicLensOpacity(int)));
-
-	connect(mdiChild, SIGNAL(magicLensToggled(bool)), newAttachment, SLOT(MagicLensToggled(bool)) );
-	connect(mdiChild, SIGNAL(renderSettingsChanged()), newAttachment, SLOT(RenderSettingsChanged()) );
-	connect(mdiChild, SIGNAL(preferencesChanged()), newAttachment, SLOT(preferencesChanged()));
-	
-	connect(newAttachment->m_dlgModalities,  SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), newAttachment, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
-
 	return newAttachment;
 }
 

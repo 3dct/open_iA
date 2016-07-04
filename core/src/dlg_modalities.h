@@ -50,7 +50,7 @@ class dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalities(iAFast3DMagicLensWidget* renderer, dlg_planeSlicer* planeSlicer);
+	dlg_modalities(iAFast3DMagicLensWidget* renderer);
 	void SetModalities(QSharedPointer<iAModalityList> modalities);
 	QSharedPointer<iAModalityList const>  GetModalities() const;
 	QSharedPointer<iAModalityList>  GetModalities();
@@ -73,7 +73,7 @@ private slots:
 	void Store();
 	void ManualRegistration();
 	void MagicLens();
-	void CuttingPlane();
+	//void CuttingPlane();
 	void RendererMouseMoved();
 
 	void EnableButtons();
@@ -88,9 +88,9 @@ private:
 	QString m_FileName;
 	int m_selectedRow;
 	iAFast3DMagicLensWidget* renderer;
-	dlg_planeSlicer* m_planeSlicer;
-	vtkSmartPointer<vtkActor> m_cuttingPlaneActor;
-	vtkSmartPointer<vtkPlaneSource> m_planeSource;
+	//dlg_planeSlicer* m_planeSlicer;
+	//vtkSmartPointer<vtkActor> m_cuttingPlaneActor;
+	//vtkSmartPointer<vtkPlaneSource> m_planeSource;
 
 	double m_boundingBoxMin[3];
 	double m_boundingBoxMax[3];

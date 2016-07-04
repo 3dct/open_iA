@@ -68,6 +68,7 @@ class dlg_charts;
 class dlg_function;
 class dlg_histogram;
 class dlg_imageproperty;
+class dlg_modalities;
 class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
@@ -75,6 +76,7 @@ class iAAlgorithms;
 class iAHistogramWidget;
 class iAIO;
 class iALogger;
+class iAModalityList;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iARenderer;
@@ -541,6 +543,22 @@ private:
 	bool raycasterInitialized;
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
+
+	// previously "Modality Explorer":
+	dlg_modalities * m_dlgModalities;
+	int m_currentModality;
+private slots:
+	void ChangeModality(int chg);
+	void ChangeMagicLensOpacity(int chg);
+private:
+	int GetCurrentModality() const;
+	void SetCurrentModality(int modality);
+	void ChangeImage(vtkSmartPointer<vtkImageData> img);
+	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
+public:
+	void SetModalities(QSharedPointer<iAModalityList> modList);
+	dlg_modalities* GetModalitiesDlg();
+	void LoadModalities();
 };
 
 #endif

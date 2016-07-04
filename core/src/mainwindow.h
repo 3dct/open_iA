@@ -112,6 +112,8 @@ private slots:
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
+	void LoadModalities();
+	void OpenTLGICTData();
 
 public slots:
 	void saveLayout();

@@ -24,7 +24,7 @@
 
 #include "dlg_modalityProperties.h"
 #include "dlg_modalityRenderer.h"
-#include "dlg_planeSlicer.h"
+//#include "dlg_planeSlicer.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
@@ -53,13 +53,11 @@
 #include <cassert>
 
 
-dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer,
-	dlg_planeSlicer* planeSlicer) :
-	//m_mdiChild(mdiChild),
+dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer) :
+
 	modalities(new iAModalityList),
 	m_selectedRow(-1),
-	renderer(modalityRenderer),
-	m_planeSlicer(planeSlicer)
+	renderer(modalityRenderer)
 {
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
@@ -68,13 +66,14 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer,
 	connect(pbLoad, SIGNAL(clicked()), this, SLOT(Load()));
 	connect(cbManualRegistration, SIGNAL(clicked()), this, SLOT(ManualRegistration()));
 	connect(cbShowMagicLens, SIGNAL(clicked()), this, SLOT(MagicLens()));
-	connect(cbCuttingPlane, SIGNAL(clicked()), this, SLOT(CuttingPlane()) );
+	// connect(cbCuttingPlane, SIGNAL(clicked()), this, SLOT(CuttingPlane()) );
 	
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(ListClicked(QListWidgetItem*)));
 
 	connect(modalityRenderer, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
 
+	/*
 	m_cuttingPlaneActor = vtkSmartPointer<vtkActor>::New();
 	m_planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -94,6 +93,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer,
 	lut->SetTableValue(0, 0, 0, 0, 1);  //Black
 	mapper->SetScalarRange(0, tableSize - 1);
 	mapper->SetLookupTable(lut);
+	*/
 
 	QHBoxLayout* hbox = new QHBoxLayout();
 	hbox->setSpacing(0);
@@ -175,7 +175,7 @@ void dlg_modalities::MagicLens()
 		renderer->magicLensOff();
 	}
 }
-
+/*
 void dlg_modalities::CuttingPlane()
 {
 	if (cbCuttingPlane->isChecked())
@@ -187,6 +187,7 @@ void dlg_modalities::CuttingPlane()
 		renderer->getMainRenderer()->RemoveActor(m_cuttingPlaneActor);
 	}
 }
+*/
 
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 {
@@ -218,7 +219,7 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	}
 	determineBoundingBox();
 
-	m_planeSlicer->AddImage(imgData, modTransfer->getColorFunction(), 0.5);
+	//m_planeSlicer->AddImage(imgData, modTransfer->getColorFunction(), 0.5);
 
 	emit ModalityAvailable();
 }
@@ -393,8 +394,10 @@ void dlg_modalities::determineBoundingBox()
 			}
 		}
 	}
+	/*
 	m_planeSource->SetPoint1(m_boundingBoxMin);
 	m_planeSource->SetPoint1(m_boundingBoxMax);
+	*/
 }
 
 void dlg_modalities::RendererMouseMoved()
@@ -402,7 +405,7 @@ void dlg_modalities::RendererMouseMoved()
 	double baseVector[3] = { 0, 0, 1 };
 	double basePosition[3] = { -0.1, -0.1, -0.1 };
 
-	m_planeSlicer->SetCuttingPlane(basePosition, baseVector);
+	// m_planeSlicer->SetCuttingPlane(basePosition, baseVector);
 
 	/*
 	double* orientation = m_cuttingPlaneActor->GetOrientation(); // this is angles. we have to calculate a vector...

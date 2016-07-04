@@ -71,6 +71,8 @@
     <addaction name="actionOpen_Image_Stack"/>
     <addaction name="actionOpen_Volume_Stack"/>
     <addaction name="actionOpen_With_DataTypeConversion"/>
+    <addaction name="actionOpen_TLGI_CT_Data"/>
+    <addaction name="actionOpen_Project"/>
     <addaction name="separator"/>
     <addaction name="saveAct"/>
     <addaction name="saveAsAct"/>
@@ -942,6 +944,16 @@
    </property>
    <property name="text">
     <string>Main Window Status Bar</string>
+   </property>
+  </action>
+  <action name="actionOpen_TLGI_CT_Data">
+   <property name="text">
+    <string>Open TLGI-CT Data</string>
+   </property>
+  </action>
+  <action name="actionOpen_Project">
+   <property name="text">
+    <string>Open Project</string>
    </property>
   </action>
  </widget>

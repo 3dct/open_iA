@@ -86,7 +86,7 @@ bool iAModalityExplorerModuleInterface::OpenDialog()
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	if (!m_mdiChild->currentFile().isEmpty())
 	{
-		modList->Add(QSharedPointer<iAModality>(new iAModality("CT", m_mdiChild->currentFile(), m_mdiChild->getImagePointer(), iAModality::MainRenderer)));
+		modList->Add(QSharedPointer<iAModality>(new iAModality("Main", m_mdiChild->currentFile(), m_mdiChild->getImagePointer(), iAModality::MainRenderer)));
 	}
 	modExplorerAttach->SetModalities(modList);
 	
