@@ -20,7 +20,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="open_iA.qrc">
+   <iconset resource="../open_iA.qrc">
     <normaloff>:/images/ia.png</normaloff>:/images/ia.png</iconset>
   </property>
   <property name="styleSheet">
@@ -300,7 +300,7 @@
   </widget>
   <action name="newAct">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
    </property>
    <property name="text">
@@ -315,7 +315,7 @@
   </action>
   <action name="openAct">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
@@ -330,7 +330,7 @@
   </action>
   <action name="saveAct">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
    </property>
    <property name="text">
@@ -345,7 +345,7 @@
   </action>
   <action name="saveAsAct">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/saveas.png</normaloff>:/images/saveas.png</iconset>
    </property>
    <property name="text">
@@ -509,7 +509,7 @@
   </action>
   <action name="actionPreferences">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/settings_preferences.png</normaloff>:/images/settings_preferences.png</iconset>
    </property>
    <property name="text">
@@ -534,7 +534,7 @@
   </action>
   <action name="actionRendererSettings">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/settings_renderer.png</normaloff>:/images/settings_renderer.png</iconset>
    </property>
    <property name="text">
@@ -543,7 +543,7 @@
   </action>
   <action name="actionSlicerSettings">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/settings_slicer.png</normaloff>:/images/settings_slicer.png</iconset>
    </property>
    <property name="text">
@@ -571,7 +571,7 @@
   </action>
   <action name="actionDelete_point">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/deletePoint.png</normaloff>:/images/deletePoint.png</iconset>
    </property>
    <property name="text">
@@ -583,7 +583,7 @@
   </action>
   <action name="actionChange_color">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/changeColor.png</normaloff>:/images/changeColor.png</iconset>
    </property>
    <property name="text">
@@ -595,7 +595,7 @@
   </action>
   <action name="actionLoad_transfer_function">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/loadtrf.png</normaloff>:/images/loadtrf.png</iconset>
    </property>
    <property name="text">
@@ -604,7 +604,7 @@
   </action>
   <action name="actionSave_transfer_function">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/savetrf.png</normaloff>:/images/savetrf.png</iconset>
    </property>
    <property name="text">
@@ -613,7 +613,7 @@
   </action>
   <action name="actionReset_view">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/resetView.png</normaloff>:/images/resetView.png</iconset>
    </property>
    <property name="text">
@@ -625,7 +625,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/autoUpdate.png</normaloff>:/images/autoUpdate.png</iconset>
    </property>
    <property name="text">
@@ -634,7 +634,7 @@
   </action>
   <action name="actionUpdateViews">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
    </property>
    <property name="text">
@@ -643,7 +643,7 @@
   </action>
   <action name="actionReset_function">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/resetTrf.png</normaloff>:/images/resetTrf.png</iconset>
    </property>
    <property name="text">
@@ -652,7 +652,7 @@
   </action>
   <action name="saveScreenAct">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/savescreen.png</normaloff>:/images/savescreen.png</iconset>
    </property>
    <property name="text">
@@ -679,7 +679,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/snakeSlicer.png</normaloff>:/images/snakeSlicer.png</iconset>
    </property>
    <property name="text">
@@ -688,7 +688,7 @@
   </action>
   <action name="actionOpen_Image_Stack">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
    </property>
    <property name="text">
@@ -711,7 +711,7 @@
   </action>
   <action name="actionView_X_direction_in_raycaster">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/px.png</normaloff>:/images/px.png</iconset>
    </property>
    <property name="text">
@@ -723,7 +723,7 @@
   </action>
   <action name="actionView_Y_direction_in_raycaster">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/py.png</normaloff>:/images/py.png</iconset>
    </property>
    <property name="text">
@@ -735,7 +735,7 @@
   </action>
   <action name="actionView_Z_direction_in_raycaster">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/pz.png</normaloff>:/images/pz.png</iconset>
    </property>
    <property name="text">
@@ -747,7 +747,7 @@
   </action>
   <action name="actionView_mX_direction_in_raycaster">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/mx.png</normaloff>:/images/mx.png</iconset>
    </property>
    <property name="text">
@@ -759,7 +759,7 @@
   </action>
   <action name="actionView_mY_direction_in_raycaster">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/my.png</normaloff>:/images/my.png</iconset>
    </property>
    <property name="text">
@@ -771,7 +771,7 @@
   </action>
   <action name="actionView_mZ_direction_in_raycaster">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/mz.png</normaloff>:/images/mz.png</iconset>
    </property>
    <property name="text">
@@ -783,7 +783,7 @@
   </action>
   <action name="actionAssignView">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
    </property>
    <property name="text">
@@ -795,7 +795,7 @@
   </action>
   <action name="actionIsometric_view_in_raycaster">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/iso.png</normaloff>:/images/iso.png</iconset>
    </property>
    <property name="text">
@@ -807,7 +807,7 @@
   </action>
   <action name="actionSave_Image_Stack">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
    </property>
    <property name="text">
@@ -819,7 +819,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/profile.png</normaloff>:/images/profile.png</iconset>
    </property>
    <property name="text">
@@ -841,7 +841,7 @@
   </action>
   <action name="actionSave_Camera_Settings">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/saveCamera.png</normaloff>:/images/saveCamera.png</iconset>
    </property>
    <property name="text">
@@ -853,7 +853,7 @@
   </action>
   <action name="actionLoad_Camera_Settings">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/loadCamera.png</normaloff>:/images/loadCamera.png</iconset>
    </property>
    <property name="text">
@@ -862,7 +862,7 @@
   </action>
   <action name="actionSave_Layout">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/layout_export.png</normaloff>:/images/layout_export.png</iconset>
    </property>
    <property name="text">
@@ -874,7 +874,7 @@
   </action>
   <action name="actionLoad_Layout">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/layout_load.png</normaloff>:/images/layout_load.png</iconset>
    </property>
    <property name="text">
@@ -886,7 +886,7 @@
   </action>
   <action name="actionDelete_Layout">
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/layout_delete.png</normaloff>:/images/layout_delete.png</iconset>
    </property>
    <property name="text">
@@ -901,7 +901,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="open_iA.qrc">
+    <iconset resource="../open_iA.qrc">
      <normaloff>:/images/magicLens.png</normaloff>:/images/magicLens.png</iconset>
    </property>
    <property name="text">
@@ -958,7 +958,7 @@
   </action>
  </widget>
  <resources>
-  <include location="open_iA.qrc"/>
+  <include location="../open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>

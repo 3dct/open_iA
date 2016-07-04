@@ -18,7 +18,16 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>1</number>
+    </property>
+    <property name="topMargin">
+     <number>1</number>
+    </property>
+    <property name="rightMargin">
+     <number>1</number>
+    </property>
+    <property name="bottomMargin">
      <number>1</number>
     </property>
     <item row="0" column="0">
@@ -63,7 +72,7 @@
        <bool>false</bool>
       </property>
       <property name="dragDropMode">
-       <enum>QAbstractItemView::NoDragDrop</enum>
+       <enum>QAbstractItemView::DragOnly</enum>
       </property>
       <property name="alternatingRowColors">
        <bool>true</bool>
@@ -98,7 +107,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="open_iA.qrc"/>
+  <include location="../open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>

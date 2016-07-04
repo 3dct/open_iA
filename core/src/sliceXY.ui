@@ -196,7 +196,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="open_iA.qrc">
+            <iconset resource="../open_iA.qrc">
              <normaloff>:/images/savemov.png</normaloff>:/images/savemov.png</iconset>
            </property>
            <property name="iconSize">
@@ -219,7 +219,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="open_iA.qrc">
+            <iconset resource="../open_iA.qrc">
              <normaloff>:/images/savescreen.png</normaloff>:/images/savescreen.png</iconset>
            </property>
            <property name="iconSize">
@@ -242,7 +242,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="open_iA.qrc">
+            <iconset resource="../open_iA.qrc">
              <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
            </property>
            <property name="iconSize">
@@ -271,7 +271,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="open_iA.qrc">
+            <iconset resource="../open_iA.qrc">
              <normaloff>:/images/stepforward.png</normaloff>:/images/stepforward.png</iconset>
            </property>
            <property name="iconSize">
@@ -307,7 +307,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="open_iA.qrc">
+            <iconset resource="../open_iA.qrc">
              <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
            </property>
            <property name="iconSize">
@@ -399,7 +399,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="open_iA.qrc"/>
+  <include location="../open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>
