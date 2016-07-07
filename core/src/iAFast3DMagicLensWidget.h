@@ -32,13 +32,10 @@ class open_iA_Core_API iAFast3DMagicLensWidget : public iAAbstractMagicLensWidge
 public:
 	iAFast3DMagicLensWidget( QWidget * parent = 0 );
 	~iAFast3DMagicLensWidget( );
-signals:
-	void MouseMoved();
 protected:
 	virtual void			updateLens( );
 	virtual void			updateGUI( );
 	virtual void	resizeEvent( QResizeEvent * event );
-	virtual void	mouseMoveEvent(QMouseEvent * event);
 	virtual void mouseReleaseEvent(QMouseEvent * event);
 private:
 	double			m_viewAngle;

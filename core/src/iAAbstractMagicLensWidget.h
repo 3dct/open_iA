@@ -50,6 +50,8 @@ public:
 
 	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
 
+signals:
+	void MouseMoved();
 protected:
 	virtual void		mouseMoveEvent( QMouseEvent * event );
 	virtual void		updateLens( );

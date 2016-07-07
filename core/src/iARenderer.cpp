@@ -141,7 +141,7 @@ iARenderer::iARenderer(QObject *par)  :  QThread( par ),
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
-	renWin->SetInteractor(vtkGenericRenderWindowInteractor::New());
+	//renWin->SetInteractor(vtkGenericRenderWindowInteractor::New());
 
 	cam = vtkSmartPointer<vtkCamera>::New();
 
@@ -318,7 +318,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunc
 	labelRen->SetLayer(2);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();
-	renWin->SetNumberOfLayers(3);
+	renWin->SetNumberOfLayers(5);
 	renWin->AddRenderer(ren);
 	renWin->AddRenderer(labelRen);
 	renWin->LineSmoothingOn();

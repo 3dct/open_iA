@@ -91,7 +91,7 @@ void iAFast3DMagicLensWidget::updateGUI( )
 
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
-	repaint();//less flickering, but resize is less responsive
+	//repaint();//less flickering, but resize is less responsive
 	QVTKWidget2::resizeEvent( event );
 
 	vtkCamera * mainCam = m_mainRen->GetActiveCamera();
@@ -105,13 +105,6 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 {
 	return -1. / std::tan( viewAngle * M_PI / 180. );
-}
-
-
-void iAFast3DMagicLensWidget::mouseMoveEvent(QMouseEvent * event)
-{
-	QVTKWidget2::mouseMoveEvent(event);
-	emit MouseMoved();
 }
 
 void iAFast3DMagicLensWidget::mouseReleaseEvent(QMouseEvent * event)

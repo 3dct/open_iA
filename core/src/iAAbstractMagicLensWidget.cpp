@@ -91,12 +91,15 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
+	repaint();
 	QVTKWidget2::mouseMoveEvent( event );
 	int * pos = GetInteractor()->GetEventPosition();
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );
 	updateGUI( );
 	GetRenderWindow()->Render();
+
+	emit MouseMoved();
 }
 
 void iAAbstractMagicLensWidget::updateLens()
@@ -215,13 +218,16 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 
 void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin)
 {
-	GetRenderWindow()->SetNumberOfLayers(2);
-	GetRenderWindow()->AddRenderer(m_mainRen);
+	SetRenderWindow(renWin);
 
-	m_mainRen->SetLayer(0);
-	m_lensRen->SetLayer(0);
-	m_GUIRen->SetLayer(1);
+	renWin->SetNumberOfLayers(3);
+	renWin->AddRenderer(m_mainRen);
+
+	m_mainRen->SetLayer(1);
+	m_lensRen->SetLayer(2);
+	m_GUIRen->SetLayer(5);
 	m_mainRen->SetBackground(0.5, 0.5, 0.5);
+	m_mainRen->InteractiveOn();
 	m_lensRen->InteractiveOff();
 	m_lensRen->SetBackground(0.5, 0.5, 0.5);
 	m_GUIRen->InteractiveOff();
