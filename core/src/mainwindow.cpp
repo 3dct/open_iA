@@ -1842,7 +1842,8 @@ void MainWindow::connectSignalsToSlots()
 		connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
 	}
 
-	connect(actionOpen_Project, SIGNAL(triggered()), this, SLOT(LoadModalities()));
+	connect(actionOpen_Project, SIGNAL(triggered()), this, SLOT(OpenProject()));
+	connect(actionSave_Project, SIGNAL(triggered()), this, SLOT(SaveProject()));
 	connect(actionOpen_TLGI_CT_Data, SIGNAL(triggered()), this, SLOT(OpenTLGICTData()));
 }
 
@@ -2503,19 +2504,29 @@ void MainWindow::InitResources()
 
 
 
-void MainWindow::LoadModalities()
+void MainWindow::OpenProject()
 {
 	MdiChild * activeChild = activeMdiChild();
-	bool loadFirstDataset = false;
 	if (!activeChild)
 	{
-		loadFirstDataset = true;
 		MdiChild* child = createMdiChild();
 		child->newFile();
 		child->show();
 		activeChild = child;
 	}
 	activeChild->LoadModalities();
+}
+
+
+
+void MainWindow::SaveProject()
+{
+	MdiChild * activeChild = activeMdiChild();
+	if (!activeChild)
+	{
+		return;
+	}
+	activeChild->StoreModalities();
 }
 
 

@@ -119,7 +119,7 @@ void dlg_modalities::Store()
 		QApplication::activeWindow(),
 		tr("Select Output File"),
 		QString(), // TODO get directory of current file
-		tr("Segmentation Explorer Modalities file (*.mod);;All files (*.*)" ) );
+		tr("open_iA project file (*.mod);;All files (*.*)" ) );
 	Store(modalitiesFileName);
 }
 
@@ -134,7 +134,7 @@ void dlg_modalities::Load()
 		QApplication::activeWindow(),
 		tr("Open Input File"),
 		QString(), // TODO get directory of current file
-		tr("Segmentation Explorer Modalities file (*.mod);;All files (*.*)" ) );
+		tr("open_iA project file (*.mod);;All files (*.*)" ) );
 	if (!modalitiesFileName.isEmpty() && Load(modalitiesFileName))
 	{
 		EnableButtons();

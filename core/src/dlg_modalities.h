@@ -65,6 +65,7 @@ public:
 	bool Load(QString const & filename);
 public slots:
 	void Load();
+	void Store();
 signals:
 	void ModalityAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> img);
@@ -72,7 +73,6 @@ private slots:
 	void AddClicked();
 	void RemoveClicked();
 	void EditClicked();
-	void Store();
 	void ManualRegistration();
 	void MagicLens();
 	//void CuttingPlane();

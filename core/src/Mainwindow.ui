@@ -72,12 +72,14 @@
     <addaction name="actionOpen_Volume_Stack"/>
     <addaction name="actionOpen_With_DataTypeConversion"/>
     <addaction name="actionOpen_TLGI_CT_Data"/>
-    <addaction name="actionOpen_Project"/>
     <addaction name="separator"/>
     <addaction name="saveAct"/>
     <addaction name="saveAsAct"/>
     <addaction name="actionSave_Image_Stack"/>
     <addaction name="saveScreenAct"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_Project"/>
+    <addaction name="actionSave_Project"/>
     <addaction name="separator"/>
     <addaction name="loadSettingsAct"/>
     <addaction name="saveSettingsAct"/>
@@ -953,7 +955,12 @@
   </action>
   <action name="actionOpen_Project">
    <property name="text">
-    <string>Open Project</string>
+    <string>Open Project...</string>
+   </property>
+  </action>
+  <action name="actionSave_Project">
+   <property name="text">
+    <string>Save Project...</string>
    </property>
   </action>
  </widget>

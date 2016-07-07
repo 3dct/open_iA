@@ -2926,3 +2926,8 @@ void MdiChild::LoadModalities()
 		);
 	}
 }
+
+void MdiChild::StoreModalities()
+{
+	m_dlgModalities->Store();
+}

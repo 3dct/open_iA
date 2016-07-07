@@ -560,6 +560,7 @@ public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);
 	dlg_modalities* GetModalitiesDlg();
 	void LoadModalities();
+	void StoreModalities();
 };
 
 #endif
