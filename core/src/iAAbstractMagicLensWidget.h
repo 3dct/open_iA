@@ -48,6 +48,8 @@ public:
 	vtkRenderer *		getLensRenderer( );
 	void				setViewMode( ViewMode mode );
 
+	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
+
 protected:
 	virtual void		mouseMoveEvent( QMouseEvent * event );
 	virtual void		updateLens( );

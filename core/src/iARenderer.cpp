@@ -50,6 +50,8 @@
 #include <vtkDelaunay2D.h>
 #include <vtkElevationFilter.h>
 #include <vtkGenericMovieWriter.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkGenericRenderWindowInteractor.h>
 #include <vtkGeometryFilter.h>
 #include <vtkGlyph3D.h>
 #include <vtkIdFilter.h>
@@ -83,7 +85,7 @@
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderPassCollection.h>
-#include <vtkRenderWindow.h>
+//#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSequencePass.h>
 #include <vtkSmartPointer.h>
@@ -135,10 +137,11 @@ iARenderer::iARenderer(QObject *par)  :  QThread( par ),
 	ren = vtkOpenGLRenderer::New();
 	labelRen = vtkOpenGLRenderer::New();
 
-	renWin = vtkRenderWindow::New();
+	renWin = vtkGenericOpenGLRenderWindow::New();
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
+	renWin->SetInteractor(vtkGenericRenderWindowInteractor::New());
 
 	cam = vtkSmartPointer<vtkCamera>::New();
 

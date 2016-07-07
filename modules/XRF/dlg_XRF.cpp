@@ -24,6 +24,7 @@
 
 #include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
+#include "dlg_renderer.h"
 #include "iAAccumulatedXRFData.h"
 #include "iACharacteristicEnergy.h"
 #include "iAColorTheme.h"

@@ -22,23 +22,23 @@
 #pragma once
 
 
-#include "ui_modalityRenderer.h"
+#include "ui_renderer.h"
 #include <iAQTtoUIConnector.h>
-typedef iAQTtoUIConnector<QDockWidget, Ui_ModalityRenderer> dlg_modalityRendererUI;
+typedef iAQTtoUIConnector<QDockWidget, Ui_renderer> dlg_rendererUI;
 
 #include <vtkCommand.h>
 
-class dlg_modalityRenderer : public dlg_modalityRendererUI
+class dlg_renderer : public dlg_rendererUI
 {
 	Q_OBJECT
 public:
-	dlg_modalityRenderer()
+	dlg_renderer(QWidget* parent): dlg_rendererUI(parent)
 	{
 		
 	}
 	iAFast3DMagicLensWidget * GetRenderer()
 	{
-		return renderer;
+		return vtkWidgetRC;
 	}
 signals:
 	void MouseMoved();

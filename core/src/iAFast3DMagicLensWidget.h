@@ -39,10 +39,14 @@ protected:
 	virtual void			updateGUI( );
 	virtual void	resizeEvent( QResizeEvent * event );
 	virtual void	mouseMoveEvent(QMouseEvent * event);
-
+	virtual void mouseReleaseEvent(QMouseEvent * event);
 private:
 	double			m_viewAngle;
 	double			calculateZ( double viewAngle );
+
+Q_SIGNALS:
+	void rightButtonReleasedSignal();
+	void leftButtonReleasedSignal();
 };
 
 #endif // IAFAST3DMAGICLENSWIDGET_H

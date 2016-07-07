@@ -23,10 +23,10 @@
 #include "mdichild.h"
 
 #include "dlg_commoninput.h"
+#include "dlg_renderer.h"
 #include "dlg_histogram.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
-#include "dlg_modalityRenderer.h"
 #include "iAChannelVisualizationData.h"
 #include "iAChildData.h"
 #include "iAConsole.h"
@@ -57,6 +57,7 @@
 
 #include <vtkCamera.h>
 #include <vtkCornerAnnotation.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -104,8 +105,8 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	sXZ = new dlg_sliceXZ(this);
 	sYZ = new dlg_sliceYZ(this);
 
-	dlg_modalityRenderer * renderWidget = new dlg_modalityRenderer();
-	m_dlgModalities = new dlg_modalities(renderWidget->GetRenderer());
+	//dlg_modalityRenderer * renderWidget = new dlg_modalityRenderer();
+	m_dlgModalities = new dlg_modalities(r->GetRenderer());
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 
@@ -124,7 +125,7 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	splitDockWidget(sXZ, sXY, Qt::Vertical);
 
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
-	splitDockWidget(r, renderWidget, Qt::Horizontal);
+	//splitDockWidget(r, renderWidget, Qt::Horizontal);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -301,7 +302,7 @@ void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool prov
 
 void MdiChild::SetRenderWindows()
 {
-	r->vtkWidgetRC->SetRenderWindow(Raycaster->GetRenderWindow());
+	r->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
 }
 
 void MdiChild::updateRenderWindows(int channels)

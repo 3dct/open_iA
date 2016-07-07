@@ -60,11 +60,13 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
+class vtkRenderWindow;
 class vtkTable;
 class vtkTransform;
 
 struct CBCTReconstructionSettings;
 class dlg_charts;
+class dlg_renderer;
 class dlg_function;
 class dlg_histogram;
 class dlg_imageproperty;
@@ -89,7 +91,6 @@ class RenderSettings;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
-typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>   dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild

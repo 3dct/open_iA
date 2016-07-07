@@ -91,6 +91,7 @@ void iAFast3DMagicLensWidget::updateGUI( )
 
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
+	repaint();//less flickering, but resize is less responsive
 	QVTKWidget2::resizeEvent( event );
 
 	vtkCamera * mainCam = m_mainRen->GetActiveCamera();
@@ -111,4 +112,13 @@ void iAFast3DMagicLensWidget::mouseMoveEvent(QMouseEvent * event)
 {
 	QVTKWidget2::mouseMoveEvent(event);
 	emit MouseMoved();
+}
+
+void iAFast3DMagicLensWidget::mouseReleaseEvent(QMouseEvent * event)
+{
+	if (Qt::RightButton == event->button())
+		emit rightButtonReleasedSignal();
+	else if (Qt::LeftButton == event->button())
+		emit leftButtonReleasedSignal();
+	QVTKWidget2::mouseReleaseEvent(event);
 }

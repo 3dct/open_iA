@@ -29,6 +29,7 @@ class iAWrapperText;
 
 #include "open_iA_Core_export.h"
 
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>
 
 #include <QThread>
@@ -70,7 +71,6 @@ class vtkPolyDataMapper;
 class vtkProp;
 class vtkQImageToImageSource;
 class vtkRenderer;
-class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 class vtkSmartVolumeMapper;
 class vtkSphereSource;
@@ -218,7 +218,7 @@ private:
 
 	vtkRenderWindowInteractor* interactor;
 	vtkInteractorStyleSwitch* interactorStyle;
-	vtkRenderWindow* renWin;
+	vtkGenericOpenGLRenderWindow* renWin;
 	vtkOpenGLRenderer * ren, *labelRen;
 	vtkSmartPointer<vtkCamera> cam;
 	vtkImageData* imageData;

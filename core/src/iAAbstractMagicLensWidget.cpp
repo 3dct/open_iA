@@ -47,22 +47,6 @@ iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ 
 	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
 	, m_viewMode( iAAbstractMagicLensWidget::OFFSET )
 {
-	GetRenderWindow()->SetNumberOfLayers( 2 );
-	GetRenderWindow()->AddRenderer( m_mainRen );
-
-	m_mainRen->SetLayer( 0 );
-	m_lensRen->SetLayer( 0 );
-	m_GUIRen->SetLayer( 1 );
-	m_mainRen->SetBackground( 0.5, 0.5, 0.5 );
-	m_lensRen->InteractiveOff();
-	m_lensRen->SetBackground( 0.5, 0.5, 0.5 );
-	m_GUIRen->InteractiveOff();
-	m_GUIRen->AddActor( m_GUIActor );
-	m_GUIActor->GetProperty()->SetLineWidth( 2. );
-	m_GUIActor->GetProperty()->SetColor( 1., 1., 0 );
-
-	// default values
-	setLensSize( 200, 200 );
 }
 
 iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
@@ -226,4 +210,25 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 	default:
 		break;
 	}
+}
+
+
+void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin)
+{
+	GetRenderWindow()->SetNumberOfLayers(2);
+	GetRenderWindow()->AddRenderer(m_mainRen);
+
+	m_mainRen->SetLayer(0);
+	m_lensRen->SetLayer(0);
+	m_GUIRen->SetLayer(1);
+	m_mainRen->SetBackground(0.5, 0.5, 0.5);
+	m_lensRen->InteractiveOff();
+	m_lensRen->SetBackground(0.5, 0.5, 0.5);
+	m_GUIRen->InteractiveOff();
+	m_GUIRen->AddActor(m_GUIActor);
+	m_GUIActor->GetProperty()->SetLineWidth(2.);
+	m_GUIActor->GetProperty()->SetColor(1., 1., 0);
+
+	// default values
+	setLensSize(200, 200);
 }
