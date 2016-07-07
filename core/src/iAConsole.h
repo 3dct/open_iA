@@ -50,7 +50,8 @@ public:
 	void Log(std::string const & text);
 	void Log(char const * text);
 	void Log(QString const & text);
-
+	void SetLogToFile(bool value);
+	bool IsLogToFileOn();
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void LogSignal(QString const & text);
@@ -64,6 +65,7 @@ private:
 	void operator=(iAConsole const&)	= delete;
 
 	dlg_console* m_console;
+	bool m_logToFile;
 };
 
 #endif // IA_CONSOLE_H

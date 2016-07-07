@@ -24,6 +24,8 @@
 
 #include "dlg_console.h"
 
+#include <fstream>
+
 void iAConsole::Log(std::string const & text)
 {
 	Log(QString::fromStdString(text));
@@ -43,12 +45,34 @@ void iAConsole::LogSlot(QString const & text)
 {
 	m_console->show();
 	m_console->Log(text);
+	if (m_logToFile)
+	{
+		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::app);
+		logfile << text.toStdString();
+		logfile.close();
+	}
+}
+
+void iAConsole::SetLogToFile(bool value)
+{
+	m_logToFile = value;
+}
+
+bool iAConsole::IsLogToFileOn()
+{
+	return m_logToFile;
 }
 
 iAConsole::iAConsole():
-	m_console(new dlg_console())
+	m_console(new dlg_console()),
+	m_logToFile(false)
 {
 	connect(this, SIGNAL(LogSignal(QString const &)), this, SLOT(LogSlot(QString const &)));
+	if (m_logToFile)
+	{
+		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::trunc);
+		logfile.close();
+	}
 }
 
 iAConsole::~iAConsole()

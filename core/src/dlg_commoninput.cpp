@@ -192,7 +192,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, int n, QStri
 		if(containerLayout->minimumSize().height() > HEIGHT){
 			scrollArea->setMinimumHeight(HEIGHT);
 		}else{
-			scrollArea->setMinimumHeight(containerLayout->minimumSize().height());
+			scrollArea->setMinimumHeight(containerLayout->minimumSize().height()+5);
 		}
 		if(containerLayout->minimumSize().width() > WIDTH){
 			scrollArea->setMinimumWidth(WIDTH+20);
