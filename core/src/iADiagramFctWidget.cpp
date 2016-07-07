@@ -44,6 +44,7 @@
 #include <QMdiSubWindow>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>
 #include <QtXml/QDomDocument>

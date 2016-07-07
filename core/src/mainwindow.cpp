@@ -43,6 +43,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkVersion.h>
 
+#include <QCloseEvent>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QMessageBox>

@@ -39,6 +39,8 @@
 #include <vtkActor2DCollection.h>
 #include <vtkProperty2D.h>
 
+#include <QMouseEvent>
+
 iAFast3DMagicLensWidget::iAFast3DMagicLensWidget( QWidget * parent /*= 0 */ )
 	: iAAbstractMagicLensWidget( parent )
 	, m_viewAngle{ 15. }

@@ -41,7 +41,7 @@ class iAGEMSeAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData, iAModalityExplorerAttachment* modalityAttachment);
+	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData);
 	bool LoadSampling(QString const & smpFileName);
 	bool LoadClustering(QString const & fileName);
 	bool LoadPriors(QString const & priorsFileName);

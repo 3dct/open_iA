@@ -22,6 +22,10 @@
 #ifndef DLG_MODALITIES_H
 #define DLG_MODALITIES_H
 
+#include "open_iA_Core_export.h"
+
+#include <vtkSmartPointer.h>
+
 #include <QSharedPointer>
 #include <QVector>
 
@@ -38,15 +42,13 @@ class iAModalityList;
 class MdiChild;
 class RenderSettings;
 
-#include <vtkSmartPointer.h>
-
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPlaneSource;
 
-class dlg_modalities : public dlg_modalitiesUI
+class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:

@@ -23,6 +23,7 @@
 #define IA_SPECTRUM_TYPE_H
 
 #include "iAFunction.h"
+#include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
 #include <QVector>
@@ -34,7 +35,7 @@ class iASpectrumType;
 typedef double iASpectrumDataType;
 
 //! base class for access to multi-channel data, arranged as array
-class iASpectralVoxelData
+class open_iA_Core_API iASpectralVoxelData
 {
 private:
 	mutable iASpectrumDataType m_maxSum;
@@ -70,7 +71,7 @@ public:
 	void set(IndexType, iASpectrumDataType);
 };
 
-class iADirectAccessSpectrumType: public iASpectrumType
+class open_iA_Core_API iADirectAccessSpectrumType: public iASpectrumType
 {
 private:
 	iASpectralVoxelData const & m_data;

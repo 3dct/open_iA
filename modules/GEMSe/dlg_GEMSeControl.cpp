@@ -60,7 +60,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
 	m_dlgProgress(0),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
-	m_dlgModalitySPLOM(0),
 	m_dlgLabels(dlgLabels)
 {
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
@@ -489,17 +488,6 @@ void dlg_GEMSeControl::ExportIDs()
 	QSharedPointer<iAImageClusterNode> cluster = m_dlgGEMSe->GetCurrentCluster();
 	std::ofstream out(fileName.toStdString());
 	ExportClusterIDs(cluster, out);
-}
-
-#include "dlg_modalitySPLOM.h"
-
-
-void dlg_GEMSeControl::ModalitySPLOM()
-{
-	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(m_dlgModalities->GetModalities());
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->tabifyDockWidget(this, m_dlgModalitySPLOM);
 }
 
 

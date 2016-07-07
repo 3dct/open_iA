@@ -31,7 +31,6 @@
 #include "iAColorTheme.h"
 #include "iALogger.h"
 #include "iAModality.h"
-#include "iAModalityExplorerAttachment.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
@@ -51,7 +50,7 @@ iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData
 {
 }
 
-iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData childData, iAModalityExplorerAttachment* modalityAttachment)
+iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData childData)
 {
 	MdiChild * mdiChild = childData.child;
 	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, childData);
@@ -67,14 +66,13 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
 		childData.child,
 		newAttachment->m_dlgGEMSe,
-		modalityAttachment->GetModalitiesDlg(),
+		childData.child->GetModalitiesDlg(),
 		newAttachment->m_dlgLabels,
 		defaultThemeName
 	);
-	newAttachment->m_modalityAttachment = modalityAttachment;
 	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
 	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
-	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, modalityAttachment->GetModalitiesDlg(), Qt::Horizontal);
+	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, childData.child->GetModalitiesDlg(), Qt::Horizontal);
 	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
 
 	connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));

@@ -38,19 +38,6 @@ class iAModalityExplorerAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 public:
 	static iAModalityExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void SetModalities(QSharedPointer<iAModalityList> modList);
-	dlg_modalities* GetModalitiesDlg();
-	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
-	int GetCurrentModality() const;
-	void SetCurrentModality(int modality);
-	bool LoadModalities();
-private slots:
-	void ChangeImage(vtkSmartPointer<vtkImageData> img);
-	void MagicLensToggled(bool isOn);
-	void RenderSettingsChanged();
-	void preferencesChanged();
-	void ChangeModality(int);
-	void ChangeMagicLensOpacity(int);
 private:
 	iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
 };

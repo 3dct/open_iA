@@ -18,7 +18,9 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
+
+#include "open_iA_Core_export.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
@@ -38,7 +40,7 @@ class vtkVolumeProperty;
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
 
-class iAModality
+class open_iA_Core_API iAModality
 {
 public:
 	enum RenderFlag
@@ -110,7 +112,7 @@ private:
 typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
 
 
-class iAModalityList: public QObject
+class open_iA_Core_API iAModalityList: public QObject
 {
 	Q_OBJECT
 public:

@@ -32,8 +32,6 @@
 // cross library boundaries!
 #include "dlg_modalities.h"
 #include "iAModality.h"
-#include "iAModalityExplorerModuleInterface.h"
-#include "iAModalityExplorerAttachment.h"
 
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -66,24 +64,6 @@ void iAGEMSeModuleInterface::Initialize()
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }
 
-namespace
-{
-	iAModalityExplorerModuleInterface* GetModalityExplorer(MainWindow* mainWnd, iAModuleDispatcher* dispatcher)
-	{
-		// TODO: find better solution than to duplicate ModalityExplorer here
-		//       maybe include ModalityExplorer in core?
-		static iAModalityExplorerModuleInterface* result(0);
-		if (!result)
-		{
-			result = new iAModalityExplorerModuleInterface();
-			result->SetMainWindow(mainWnd);
-			result->SetDispatcher(dispatcher);
-		}
-		assert (result);
-		return result;
-	}
-}
-
 bool iAGEMSeModuleInterface::StartGEMSe()
 {
 	PrepareActiveChild();
@@ -91,21 +71,13 @@ bool iAGEMSeModuleInterface::StartGEMSe()
 	{
 		return false;
 	}
-	bool result = AttachToMdiChild( m_mdiChild );
-	
-	iAModalityExplorerAttachment* modalityAttachment = GetModalityExplorer(m_mainWnd, m_dispatcher)->GetAttachment(m_mdiChild);
-	if (!modalityAttachment->GetModalitiesDlg()->GetModalities())
-	{
-		QSharedPointer<iAModalityList> modList(new iAModalityList);
-		modList->Add(QSharedPointer<iAModality>(new iAModality("Modality 1", m_mdiChild->currentFile(), m_mdiChild->getImagePointer(), 0)));
-		modalityAttachment->SetModalities(modList);
-	}
+	bool result = AttachToMdiChild(m_mdiChild);
 	return result;
 }
 
 iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
 {
-	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, childData, GetModalityExplorer(mainWnd, m_dispatcher)->GetAttachment(m_mdiChild));
+	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, childData);
 	if (result)
 	{
 		SetupToolbar();
@@ -163,8 +135,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		return;
 	}
 
-	iAModalityExplorerAttachment* modalityExplorerAttachment = GetModalityExplorer(m_mainWnd, m_dispatcher)->GetAttachment(m_mdiChild);
-	modalityExplorerAttachment->SetModalities(modList);
+	child->SetModalities(modList);
 	// load seeds/labels:
 	if (!gemseAttach->LoadSeeds(seaFile.GetSeedsFileName()) ||
 	// load sampling data:

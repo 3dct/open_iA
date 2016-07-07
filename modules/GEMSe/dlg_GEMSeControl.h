@@ -32,7 +32,6 @@ class iAImageSampler;
 
 class dlg_labels;
 class dlg_modalities;
-class dlg_modalitySPLOM;
 class dlg_samplingSettings;
 class dlg_progress;
 class dlg_GEMSe;
@@ -73,7 +72,6 @@ private slots:
 	void StoreAll();
 	void DataAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void ModalitySPLOM();
 	void Help();
 	void ResetFilters();
 	void SetMagicLensOpacity(int newValue);
@@ -87,7 +85,6 @@ private:
 	dlg_samplingSettings*                m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
 	dlg_GEMSe*                           m_dlgGEMSe;
-	dlg_modalitySPLOM*					 m_dlgModalitySPLOM;
 	dlg_labels*                          m_dlgLabels;
 
 	QSharedPointer<iAImageSampler>       m_sampler;
