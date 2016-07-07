@@ -20,6 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
+#include "defines.h" // for DefaultMagicLensSize
 #include "iAAbstractMagicLensWidget.h"
 // vtk
 #include <QVTKInteractor.h>
@@ -216,16 +217,18 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 }
 
 
-void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin)
+void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin, vtkCamera* cam)
 {
 	SetRenderWindow(renWin);
 
 	renWin->SetNumberOfLayers(3);
 	renWin->AddRenderer(m_mainRen);
 
+	m_mainRen->SetActiveCamera(cam);
+
 	m_mainRen->SetLayer(1);
-	m_lensRen->SetLayer(2);
-	m_GUIRen->SetLayer(5);
+	m_lensRen->SetLayer(3);
+	m_GUIRen->SetLayer(4);
 	m_mainRen->SetBackground(0.5, 0.5, 0.5);
 	m_mainRen->InteractiveOn();
 	m_lensRen->InteractiveOff();
@@ -236,5 +239,5 @@ void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow
 	m_GUIActor->GetProperty()->SetColor(1., 1., 0);
 
 	// default values
-	setLensSize(200, 200);
+	setLensSize(DefaultMagicLensSize, DefaultMagicLensSize);
 }

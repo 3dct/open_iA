@@ -60,7 +60,6 @@ public:
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
 	void ChangeRenderSettings(RenderSettings const & rs);
-	void ChangeMagicLensSize(int size);
 	void Store(QString const & filename);
 	bool Load(QString const & filename);
 public slots:

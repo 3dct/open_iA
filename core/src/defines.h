@@ -174,6 +174,6 @@ enum FilterID
 	MORPH_WATERSHED
 };
 
-
+const int DefaultMagicLensSize = 120;
 
 #endif	// DEFINES_H

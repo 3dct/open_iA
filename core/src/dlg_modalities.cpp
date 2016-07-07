@@ -359,11 +359,6 @@ void dlg_modalities::ChangeRenderSettings(RenderSettings const & rs)
 	renderer->getLensRenderer()->SetBackground(rs.BackgroundColor.redF(), rs.BackgroundColor.greenF(), rs.BackgroundColor.blueF());
 }
 
-void dlg_modalities::ChangeMagicLensSize(int size)
-{
-	renderer->setLensSize(size, size);
-}
-
 void dlg_modalities::determineBoundingBox()
 {
 	for (int i = 0; i < modalities->size(); ++i)

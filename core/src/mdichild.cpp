@@ -91,7 +91,8 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	isMagicLensEnabled(false),
 	ioThread(0),
 	reInitializeRenderWindows(true),
-	m_logger(new MdiChildLogger(this))
+	m_logger(new MdiChildLogger(this)),
+	magicLensSize(DefaultMagicLensSize)
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);
@@ -302,7 +303,7 @@ void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool prov
 
 void MdiChild::SetRenderWindows()
 {
-	r->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
+	r->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow(), Raycaster->getCamera());
 }
 
 void MdiChild::updateRenderWindows(int channels)
@@ -1421,11 +1422,11 @@ void MdiChild::enableInteraction( bool b)
 
 }
 
-bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init)
+bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool resultInNewWindow, bool init)
 {
 	compression = c;
 	filterHistogram = m;
-	resultInNewWindow = r;
+	resultInNewWindow = resultInNewWindow;
 	histogramBins = h;
 	statExt = e;
 	magicLensSize = mls;
@@ -1443,6 +1444,7 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool 
 	slicerXY->SetMagicLensSize(magicLensSize);
 	slicerXZ->SetMagicLensSize(magicLensSize);
 	slicerYZ->SetMagicLensSize(magicLensSize);
+	r->vtkWidgetRC->setLensSize(magicLensSize, magicLensSize);
 
 	slicerXY->setStatisticalExtent(statExt);
 	slicerYZ->setStatisticalExtent(statExt);
@@ -1455,7 +1457,6 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool 
 	}
 
 	emit preferencesChanged();
-	m_dlgModalities->ChangeMagicLensSize(GetMagicLensSize());
 
 	return true;
 }
@@ -2896,18 +2897,6 @@ void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 	}
 }
 
-
-/*
-void MdiChild::RenderSettingsChanged()
-{
-	m_dlgModalities->ChangeRenderSettings(GetRenderSettings());
-}
-
-void MdiChild::preferencesChanged()
-{
-	m_dlgModalities->ChangeMagicLensSize(GetMagicLensSize());
-}
-*/
 
 dlg_modalities* MdiChild::GetModalitiesDlg()
 {

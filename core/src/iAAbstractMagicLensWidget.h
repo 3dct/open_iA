@@ -28,6 +28,7 @@
 #include <vtkSmartPointer.h>
 
 class vtkActor2D;
+class vtkCamera;
 class vtkInteractorStyle;
 class vtkRenderer;
 
@@ -48,7 +49,7 @@ public:
 	vtkRenderer *		getLensRenderer( );
 	void				setViewMode( ViewMode mode );
 
-	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
+	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin, vtkCamera* cam);
 
 signals:
 	void MouseMoved();

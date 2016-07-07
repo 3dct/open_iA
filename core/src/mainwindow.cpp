@@ -1094,6 +1094,7 @@ void MainWindow::prefs()
 		<< tr("$Remove Peaks from Histogram")
 		<< tr("$Log to file")
 		<< tr("+Looks")
+		<< tr("#Magic lens size")
 		<< tr("#Magic lens frame width"));
 	QStringList looks;
 	//if(qssName == ":/dark.qss")
@@ -1124,9 +1125,10 @@ void MainWindow::prefs()
 		<< (child->getMedianFilterHistogram() ? tr("true") : tr("false"))
 		<< (iAConsole::GetInstance().IsLogToFileOn() ? tr("true") : tr("false"))
 		<< looks
+		<< tr("%1").arg(child->GetMagicLensSize())
 		<< tr("%1").arg(child->GetMagicLensFrameWidth());
 
-	dlg_commoninput dlg(this, "Preferences", 8, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Preferences", 9, inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -1142,8 +1144,8 @@ void MainWindow::prefs()
 		qssName = styleNames[looksStr];
 		applyQSS();
 
-		prefMagicLensFrameWidth = dlg.getValues()[7];
-		prefMagicLensSize = child->GetMagicLensSize();
+		prefMagicLensSize = dlg.getValues()[7];
+		prefMagicLensFrameWidth = dlg.getValues()[8];
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefMedianFilterFistogram, prefResultInNewWindow, false))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
@@ -1880,6 +1882,7 @@ void MainWindow::readSettings()
 	prefCompression = settings.value("Preferences/prefCompression", true).toBool();
 	prefResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", true).toBool();
 	prefMedianFilterFistogram = settings.value("Preferences/prefMedianFilterFistogram", true).toBool();
+	prefMagicLensSize = settings.value("Preferences/prefMagicLensSize", DefaultMagicLensSize).toInt();
 	prefMagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
