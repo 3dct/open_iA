@@ -24,11 +24,18 @@
 #include "mainwindow.h"
 #include "version.h"
 
+#include "iARedirectVtkOutput.h"
+
 #include <QApplication>
 #include <QDate>
 
+#include <vtkSmartPointer.h>
+
 int main(int argc, char *argv[])
 {
+	vtkSmartPointer<iARedirectVtkOutput> myOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
+	vtkOutputWindow::SetInstance(myOutputWindow);
+
 	MainWindow::InitResources();
 	QApplication app(argc, argv);
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);

@@ -863,6 +863,7 @@ void MainWindow::savePreferences(QDomDocument &doc)
 	preferencesElement.setAttribute("removePeaks", tr("%1").arg(prefMedianFilterFistogram));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(prefMagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(prefMagicLensFrameWidth));
+	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::GetInstance().IsLogToFileOn()));
 
 	doc.documentElement().appendChild(preferencesElement);
 }
@@ -878,6 +879,9 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 	prefMedianFilterFistogram = attributes.namedItem("removePeaks").nodeValue() == "1";
 	prefMagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
 	prefMagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
+	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
+
+	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
 	activeMdiChild()->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefMedianFilterFistogram, prefResultInNewWindow, false);
 }
@@ -1086,9 +1090,10 @@ void MainWindow::prefs()
 		<< tr("#Statistical extent")
 		<< tr("$Compression")
 		<< tr("$Results in new window")
-		<< tr("$Remove Peaks from Histogram"))
+		<< tr("$Remove Peaks from Histogram")
+		<< tr("$Log to file")
 		<< tr("+Looks")
-		<< tr("#Magic lens frame width");
+		<< tr("#Magic lens frame width"));
 	QStringList looks;
 	//if(qssName == ":/dark.qss")
 	//	looks = ( QStringList() <<  tr("Dark") <<  tr("Bright") );
@@ -1116,24 +1121,27 @@ void MainWindow::prefs()
 		<< (child->getCompression() ? tr("true") : tr("false"))
 		<< (child->getResultInNewWindow() ? tr("true") : tr("false"))
 		<< (child->getMedianFilterHistogram() ? tr("true") : tr("false"))
+		<< (iAConsole::GetInstance().IsLogToFileOn() ? tr("true") : tr("false"))
 		<< looks
 		<< tr("%1").arg(child->GetMagicLensFrameWidth());
 
-	dlg_commoninput dlg(this, "Preferences", 7, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Preferences", 8, inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		prefHistogramBins = (int)dlg.getValues()[0];
 		prefStatExt = (int)dlg.getValues()[1];
-		dlg.getCheckValues()[2] == 0 ? prefCompression = false : prefCompression = true;
-		dlg.getCheckValues()[3] == 0 ? prefResultInNewWindow = false : prefResultInNewWindow = true;
-		dlg.getCheckValues()[4] == 0 ? prefMedianFilterFistogram = false : prefMedianFilterFistogram = true;
+		prefCompression = dlg.getCheckValues()[2] != 0;
+		prefResultInNewWindow = dlg.getCheckValues()[3] != 0;
+		prefMedianFilterFistogram = dlg.getCheckValues()[4] != 0;
+		bool prefLogToFile = dlg.getCheckValues()[5] != 0;
+		iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
-		QString looksStr = dlg.getComboBoxValues()[5];
+		QString looksStr = dlg.getComboBoxValues()[6];
 		qssName = styleNames[looksStr];
 		applyQSS();
 
-		prefMagicLensFrameWidth = dlg.getValues()[6];
+		prefMagicLensFrameWidth = dlg.getValues()[7];
 		prefMagicLensSize = child->GetMagicLensSize();
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefMedianFilterFistogram, prefResultInNewWindow, false))
@@ -1868,6 +1876,8 @@ void MainWindow::readSettings()
 	prefResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", true).toBool();
 	prefMedianFilterFistogram = settings.value("Preferences/prefMedianFilterFistogram", true).toBool();
 	prefMagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
+	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
+	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
 	rsShowVolume = settings.value("Renderer/rsShowVolume", true).toBool();;
 	rsShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
@@ -1964,6 +1974,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefMedianFilterFistogram", prefMedianFilterFistogram);
 	settings.setValue("Preferences/prefMagicLensSize", prefMagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", prefMagicLensFrameWidth);
+	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance().IsLogToFileOn());
 
 	settings.setValue("Renderer/rsShowVolume", rsShowVolume);
 	settings.setValue("Renderer/rsShowSlicers", rsShowSlicers);
