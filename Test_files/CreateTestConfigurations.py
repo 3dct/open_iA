@@ -24,7 +24,6 @@ ModuleDirs = sys.argv[4]
 ModuleDirList = ModuleDirs.split("+")
 RunnerScriptLinux = SrcDir + '/Test_files/TestRunner.sh'
 RunnerScriptWindows = SrcDir + '/Test_files/TestRunner.bat'
-KeyValidation = 'KeyValidation'
 
 AllModulesOnScript = 'all_flags.cmake'
 AllModulesOffScript = 'no_flags.cmake'
