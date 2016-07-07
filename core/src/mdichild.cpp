@@ -1429,7 +1429,7 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool 
 	resultInNewWindow = resultInNewWindow;
 	histogramBins = h;
 	statExt = e;
-	magicLensSize = mls;
+	magicLensSize = (mls < MinimumMagicLensSize || mls > MaximumMagicLensSize) ? DefaultMagicLensSize : mls;
 	magicLensFrameWidth = mlfw;
 
 	if (!init && getHistogram())
