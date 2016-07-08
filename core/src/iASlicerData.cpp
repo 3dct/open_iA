@@ -1223,6 +1223,7 @@ void iASlicerData::GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, doubl
 
 void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, double* result)
 {
+	cout << xCoord << "," << yCoord << "," << zCoord << "," << endl;
 	if (!m_decorations || 0 == m_ptMapped) return;
 
 	vtkImageData * reslicerOutput = reslicer->GetOutput();
@@ -1251,8 +1252,60 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 
 	FmtStr(m_strDetails, 
 		"index     [ " << xCoord << ", " << yCoord << ", " << zCoord << " ]\n" <<
-		"position  [ " << result[0] << ", " << result[1] << ", " << result[2] <<" ]\n" <<
 		"datavalue [" );
+
+	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
+	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild())
+	{
+		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getM_mainWnd()->MdiChildList();
+		for (int i = 0; i < mdiwindows.size(); i++) {
+			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+			if (tmpChild != mdi_parent) {
+				double spacing[3];
+				tmpChild->getImageData()->GetSpacing(spacing);
+				switch (m_mode)
+				{
+				case iASlicerMode::XY://XY
+					tmpChild->getSlicerDataXY()->setPlaneCenter(xCoord*spacing[0], yCoord*spacing[1], 1);
+					tmpChild->getSlicerXY()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(zCoord);
+					
+					tmpChild->getSlicerDataXY()->update();
+					tmpChild->getSlicerDataXY()->printVoxelInformation(xCoord, yCoord, zCoord, result);
+					tmpChild->getSlicerXY()->update();
+					tmpChild->getSlicerDlgYZ()->update();
+
+					tmpChild->update();
+					break;
+				case iASlicerMode::YZ://YZ
+					tmpChild->getSlicerDataYZ()->setPlaneCenter(yCoord*spacing[1], zCoord*spacing[2], 1);
+					tmpChild->getSlicerYZ()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(xCoord);
+
+					tmpChild->getSlicerDataYZ()->update();
+					tmpChild->getSlicerDataYZ()->printVoxelInformation(xCoord, yCoord, zCoord, result);
+					tmpChild->getSlicerYZ()->update();
+					tmpChild->getSlicerDlgYZ()->update();
+					tmpChild->update();
+					break;
+				case iASlicerMode::XZ://XZ
+					tmpChild->getSlicerDataXZ()->setPlaneCenter(xCoord*spacing[0], zCoord*spacing[2], 1);
+					tmpChild->getSlicerXZ()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(yCoord);
+
+					tmpChild->getSlicerDataXZ()->update();
+					tmpChild->getSlicerDataXZ()->printVoxelInformation(xCoord, yCoord, zCoord, result);
+					tmpChild->getSlicerXZ()->update();
+					tmpChild->getSlicerDlgXZ()->update();
+					
+					tmpChild->update();
+					break;
+				default://ERROR
+					break;
+				}
+			}
+		}
+	}
 
 	for ( int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
 		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX,cY,0,i);
