@@ -21,6 +21,7 @@
  
 #include "pch.h"
 #include "iAFast3DMagicLensWidget.h"
+
 // std
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -48,7 +49,6 @@ iAFast3DMagicLensWidget::iAFast3DMagicLensWidget( QWidget * parent /*= 0 */ )
 
 iAFast3DMagicLensWidget::~iAFast3DMagicLensWidget()
 {
-	//iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget();
 }
 
 void iAFast3DMagicLensWidget::updateLens()
@@ -84,14 +84,8 @@ void iAFast3DMagicLensWidget::updateLens()
 	magicLensCam->SetScreenTopRight(    p[0] + w, p[1] + h, z );
 }
 
-void iAFast3DMagicLensWidget::updateGUI( )
-{
-	iAAbstractMagicLensWidget::updateGUI();
-}
-
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
-	//repaint();//less flickering, but resize is less responsive
 	QVTKWidget2::resizeEvent( event );
 
 	vtkCamera * mainCam = m_mainRen->GetActiveCamera();

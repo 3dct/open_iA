@@ -34,7 +34,6 @@ public:
 	~iAFast3DMagicLensWidget( );
 protected:
 	virtual void			updateLens( );
-	virtual void			updateGUI( );
 	virtual void	resizeEvent( QResizeEvent * event );
 	virtual void mouseReleaseEvent(QMouseEvent * event);
 private:

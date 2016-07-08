@@ -92,7 +92,6 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
-	repaint();
 	QVTKWidget2::mouseMoveEvent( event );
 	int * pos = GetInteractor()->GetEventPosition();
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
