@@ -24,6 +24,8 @@
 
 #include "dlg_console.h"
 
+#include <QDateTime>
+
 #include <fstream>
 
 void iAConsole::Log(std::string const & text)
@@ -55,7 +57,12 @@ void iAConsole::LogSlot(QString const & text)
 	if (m_logToFile)
 	{
 		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::app);
-		logfile << text.toStdString();
+		logfile << QString("%1 %2")
+			.arg(QLocale().toString(
+				QDateTime::currentDateTime(),
+				QLocale::ShortFormat))
+			.arg(text)
+			.toStdString();
 		logfile.close();
 	}
 }
@@ -76,11 +83,6 @@ iAConsole::iAConsole() :
 	m_closed(false)
 {
 	connect(this, SIGNAL(LogSignal(QString const &)), this, SLOT(LogSlot(QString const &)));
-	if (m_logToFile)
-	{
-		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::trunc);
-		logfile.close();
-	}
 }
 
 iAConsole::~iAConsole()
