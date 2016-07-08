@@ -64,8 +64,11 @@ private:
 	iAConsole(iAConsole const&)			= delete;
 	void operator=(iAConsole const&)	= delete;
 
+	void close();
+
 	dlg_console* m_console;
 	bool m_logToFile;
+	bool m_closed;
 };
 
 #endif // IA_CONSOLE_H

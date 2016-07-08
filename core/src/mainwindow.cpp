@@ -2503,10 +2503,6 @@ void MainWindow::InitResources()
 }
 
 
-
-
-
-
 void MainWindow::OpenProject()
 {
 	MdiChild * activeChild = activeMdiChild();

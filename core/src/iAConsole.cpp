@@ -43,8 +43,15 @@ void iAConsole::Log(QString const & text)
 
 void iAConsole::LogSlot(QString const & text)
 {
-	m_console->show();
-	m_console->Log(text);
+	// The log window prevents the whole application from shutting down
+	// if it is still open at the time the program should exit.
+	// Therefore, we don't reopen the console after the close() method
+	// has been called. This allows the program to exit properly.
+	if (!m_closed)
+	{
+		m_console->show();
+		m_console->Log(text);
+	}
 	if (m_logToFile)
 	{
 		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::app);
@@ -63,9 +70,10 @@ bool iAConsole::IsLogToFileOn()
 	return m_logToFile;
 }
 
-iAConsole::iAConsole():
+iAConsole::iAConsole() :
 	m_console(new dlg_console()),
-	m_logToFile(false)
+	m_logToFile(false),
+	m_closed(false)
 {
 	connect(this, SIGNAL(LogSignal(QString const &)), this, SLOT(LogSlot(QString const &)));
 	if (m_logToFile)
@@ -87,7 +95,14 @@ iAConsole& iAConsole::GetInstance()
 }
 
 
+void iAConsole::close()
+{
+	m_closed = true;
+	m_console->close();
+}
+
+
 void iAConsole::Close()
 {
-	GetInstance().m_console->close();
+	GetInstance().close();
 }
