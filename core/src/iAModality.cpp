@@ -253,7 +253,7 @@ void iAModality::SetDisplay(QSharedPointer<ModalityDisplay> display)
 	if (!Str2Vec3D(orientationSettings, orientation) ||
 		!Str2Vec3D(positionSettings, position))
 	{
-		DEBUG_LOG("Invalid orientation/position!\n");
+		//DEBUG_LOG("Invalid orientation/position!\n");
 		return;
 	}
 	display->volume->SetPosition(position);

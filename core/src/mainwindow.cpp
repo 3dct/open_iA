@@ -1164,8 +1164,6 @@ void MainWindow::renderSettings()
 	QMap<int, QString> renderModes;
 	renderModes.insert(vtkSmartVolumeMapper::DefaultRenderMode, tr("DefaultRenderMode"));
 	renderModes.insert(vtkSmartVolumeMapper::RayCastRenderMode, tr("RayCastRenderMode"));
-	//renderModes.insert(vtkSmartVolumeMapper::RayCastAndTextureRenderMode, tr("RayCastAndTextureRenderMode")); -> deprecated
-	//renderModes.insert(vtkSmartVolumeMapper::TextureRenderMode, tr("TextureRenderMode")); -> deprecated
 	renderModes.insert(vtkSmartVolumeMapper::GPURenderMode, tr("GPURenderMode"));
 
 	int currentRenderMode = child->GetRenderMode();
@@ -1219,14 +1217,14 @@ void MainWindow::renderSettings()
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		dlg.getCheckValues()[0] == 0 ? rsShowVolume = false : rsShowVolume = true;
-		dlg.getCheckValues()[1] == 0 ? rsShowSlicers = false : rsShowSlicers = true;
-		dlg.getCheckValues()[2] == 0 ? rsShowHelpers = false : rsShowHelpers = true;
-		dlg.getCheckValues()[3] == 0 ? rsShowRPosition = false : rsShowRPosition = true;
-		dlg.getCheckValues()[4] == 0 ? rsLinearInterpolation = false : rsLinearInterpolation = true;
-		dlg.getCheckValues()[5] == 0 ? rsShading = false : rsShading = true;
-		dlg.getCheckValues()[6] == 0 ? rsBoundingBox = false : rsBoundingBox = true;
-		dlg.getCheckValues()[7] == 0 ? rsParallelProjection = false : rsParallelProjection = true;
+		rsShowVolume = dlg.getCheckValues()[0] != 0;
+		rsShowSlicers = dlg.getCheckValues()[1] != 0;
+		rsShowHelpers = dlg.getCheckValues()[2] != 0;
+		rsShowRPosition = dlg.getCheckValues()[3] != 0;
+		rsLinearInterpolation = dlg.getCheckValues()[4] != 0;
+		rsShading = dlg.getCheckValues()[5] != 0;
+		rsBoundingBox = dlg.getCheckValues()[6] != 0;
+		rsParallelProjection = dlg.getCheckValues()[7] != 0;
 
 		rsImageSampleDistance = dlg.getValues()[8];
 		rsSampleDistance = dlg.getValues()[9];
@@ -1245,17 +1243,9 @@ void MainWindow::renderSettings()
 		{
 			rsRenderMode = vtkSmartVolumeMapper::DefaultRenderMode;
 		}
-		else if (renderType == tr("RayCastAndTextureRenderMode"))
-		{
-			rsRenderMode = vtkSmartVolumeMapper::RayCastAndTextureRenderMode;
-		}
 		else if (renderType == tr("RayCastRenderMode"))
 		{
 			rsRenderMode = vtkSmartVolumeMapper::RayCastRenderMode;
-		}
-		else if (renderType == tr("TextureRenderMode"))
-		{
-			rsRenderMode = vtkSmartVolumeMapper::TextureRenderMode;
 		}
 		else if (renderType == tr("GPURenderMode"))
 		{

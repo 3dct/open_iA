@@ -1899,9 +1899,8 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 		SetMagicLensInput(ch_ModalityLens, true);
 		SetMagicLensCaption(m_dlgModalities->GetModalities()->Get(m_currentModality)->GetName().toStdString());
 	}
-	//SetMagicLensEnabled(isEnabled);
-
-	//updateSlicers();
+	SetMagicLensEnabled(isEnabled);
+	updateSlicers();
 
 	emit magicLensToggled(isMagicLensEnabled);
 }

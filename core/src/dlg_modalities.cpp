@@ -355,8 +355,6 @@ void dlg_modalities::ChangeRenderSettings(RenderSettings const & rs)
 		QSharedPointer<ModalityDisplay> modDisp = modalities->Get(i)->GetDisplay();
 		modDisp->SetRenderSettings(rs);
 	}
-	renderer->getMainRenderer()->SetBackground(rs.BackgroundColor.redF(), rs.BackgroundColor.greenF(), rs.BackgroundColor.blueF());
-	renderer->getLensRenderer()->SetBackground(rs.BackgroundColor.redF(), rs.BackgroundColor.greenF(), rs.BackgroundColor.blueF());
 }
 
 void dlg_modalities::determineBoundingBox()
