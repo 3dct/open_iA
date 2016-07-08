@@ -123,7 +123,7 @@
 #endif
 
 
-iARenderer::iARenderer(QObject *par)  :  QThread( par ),
+iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	interactor(0),
 	volumeMapper(0),
 	imageSampleDistance(-1.0),
@@ -141,7 +141,6 @@ iARenderer::iARenderer(QObject *par)  :  QThread( par ),
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
-	//renWin->SetInteractor(vtkGenericRenderWindowInteractor::New());
 
 	cam = vtkSmartPointer<vtkCamera>::New();
 
@@ -631,14 +630,6 @@ void iARenderer::initializePasses()
 	defaultPas->Delete();
 	translucentPass->Delete();
 }
-
-void iARenderer::run()
-{
-	qApp->processEvents();
-
-	this->update();
-}
-
 
 void iARenderer::showSlicers( bool s ) 
 {

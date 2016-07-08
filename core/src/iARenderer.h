@@ -32,7 +32,7 @@ class iAWrapperText;
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>
 
-#include <QThread>
+#include <QObject>
 
 #include <set>
 #include <vector>
@@ -83,21 +83,14 @@ class vtkVolumeProperty;
 class vtkVolumeRayCastCompositeFunction;
 
 
-class open_iA_Core_API iARenderer : public QThread
+class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
 public:
 	iARenderer( QObject *parent = 0 );
 	virtual ~iARenderer( );
-	/*
-	enum {
-		FP_RAYCASTMAPPER = 0,
-		GPU_RAYCASTMAPPER = 1
-	};
-	*/
 
 protected:
-	virtual void run();
 	void InitObserver();
 
 public:
