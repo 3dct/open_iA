@@ -382,7 +382,6 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 		if (mode != 2) {
 			if (showPosition) {
 				slicerXZ->setPlaneCenter(x*spacing[0], z*spacing[2], 1);
-				cout << "Showing Position" << endl;
 			}
 			slicerXZ->setIndex(x,y,z);
 			sXZ->spinBoxXZ->setValue(y);

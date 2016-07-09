@@ -1223,7 +1223,6 @@ void iASlicerData::GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, doubl
 
 void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, double* result)
 {
-	cout << xCoord << "," << yCoord << "," << zCoord << "," << endl;
 	if (!m_decorations || 0 == m_ptMapped) return;
 
 	vtkImageData * reslicerOutput = reslicer->GetOutput();
@@ -1250,9 +1249,22 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	// get index, coords and value to display
 	std::string tmp;
 
-	FmtStr(m_strDetails, 
+	FmtStr(m_strDetails,
 		"index     [ " << xCoord << ", " << yCoord << ", " << zCoord << " ]\n" <<
 		"datavalue [" );
+
+	for (int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
+		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, i);
+		FmtStr(tmp, " " << Pix); m_strDetails += tmp;
+	}
+	FmtStr(tmp, " ]\n"); m_strDetails += tmp;
+	std::ostringstream ss;
+	double tmpPix;
+	std::size_t found, found2, found3;
+	std::string modAbb;
+	bool longName = true;
+	std::string file;
+	std::string path;
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild())
@@ -1271,11 +1283,33 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(zCoord);
 					
 					tmpChild->getSlicerDataXY()->update();
-					tmpChild->getSlicerDataXY()->printVoxelInformation(xCoord, yCoord, zCoord, result);
 					tmpChild->getSlicerXY()->update();
 					tmpChild->getSlicerDlgYZ()->update();
 
 					tmpChild->update();
+					
+					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					found3 = path.find_last_of("/");
+					found2 = path.find_last_of(".");
+					file = path.substr(found3 + 1);
+
+					if (file.length() > 11) {
+						found = path.find_last_of("_");
+						modAbb = path.substr(found + 1, (found2 - found - 7));
+						if (modAbb.find(".OT") != std::string::npos) {
+							modAbb = "OT";
+						}
+					}
+					else {
+						modAbb = file.substr(0,6);
+					}
+
+					m_strDetails += modAbb + "\t\t\t, " + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
 					break;
 				case iASlicerMode::YZ://YZ
 					tmpChild->getSlicerDataYZ()->setPlaneCenter(yCoord*spacing[1], zCoord*spacing[2], 1);
@@ -1283,10 +1317,32 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(xCoord);
 
 					tmpChild->getSlicerDataYZ()->update();
-					tmpChild->getSlicerDataYZ()->printVoxelInformation(xCoord, yCoord, zCoord, result);
+					//tmpChild->getSlicerDataYZ()->printVoxelInformation(xCoord, yCoord, zCoord, result);
 					tmpChild->getSlicerYZ()->update();
 					tmpChild->getSlicerDlgYZ()->update();
+
 					tmpChild->update();
+
+					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					found2 = tmpChild->getFilePath().toStdString().find_last_of(".");
+					file = tmpChild->getFilePath().toStdString().substr(found2 + 1);
+
+					if (file.length() > 10) {
+						found = tmpChild->getFilePath().toStdString().find_last_of("_");
+						modAbb = tmpChild->getFilePath().toStdString().substr(found + 1, (found2)-(found + 1));
+						if (modAbb.find(".OT") != std::string::npos) {
+							modAbb = "OT";
+						}
+					}
+					else {
+						modAbb = file.substr(4, 5) + ": ";
+					}
+
+					m_strDetails += modAbb + ", \t" + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
 					break;
 				case iASlicerMode::XZ://XZ
 					tmpChild->getSlicerDataXZ()->setPlaneCenter(xCoord*spacing[0], zCoord*spacing[2], 1);
@@ -1294,11 +1350,31 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(yCoord);
 
 					tmpChild->getSlicerDataXZ()->update();
-					tmpChild->getSlicerDataXZ()->printVoxelInformation(xCoord, yCoord, zCoord, result);
 					tmpChild->getSlicerXZ()->update();
 					tmpChild->getSlicerDlgXZ()->update();
 					
 					tmpChild->update();
+
+					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					found2 = tmpChild->getFilePath().toStdString().find_last_of(".");
+					file = tmpChild->getFilePath().toStdString().substr(found2 + 1);
+
+					if (file.length() > 10) {
+						found = tmpChild->getFilePath().toStdString().find_last_of("_");
+						modAbb = tmpChild->getFilePath().toStdString().substr(found + 1, (found2)-(found + 1));
+						if (modAbb.find(".OT") != std::string::npos) {
+							modAbb = "OT";
+						}
+					}
+					else {
+						modAbb = file.substr(4, 5) + ": ";
+					}
+
+					m_strDetails += modAbb + ", \t" + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
 					break;
 				default://ERROR
 					break;
@@ -1306,12 +1382,6 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 			}
 		}
 	}
-
-	for ( int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
-		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX,cY,0,i);
-		FmtStr(tmp, " " << Pix ); m_strDetails += tmp;
-	}
-	FmtStr(tmp, " ]\n"); m_strDetails += tmp;
 
 	// if requested calculate distance and show actor
 	if (pLineActor->GetVisibility()) {
