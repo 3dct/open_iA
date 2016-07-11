@@ -465,7 +465,6 @@ void iARenderer::reInitializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* 
 	volumePropertyHighlight->SetScalarOpacity(piecewiseFunctionHighlight);
 
 	volumeMapper->SetInputData(imageDataHighlight);
-	volumeMapper->SetInputData(imageDataHighlight);
 	volumeHighlight->SetMapper(volumeMapper);
 	volumeHighlight->SetProperty(volumePropertyHighlight);
 
