@@ -109,10 +109,10 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	//We read the first 2k bytes into memory to parse the header.
 	//The fixed buffer size looks a bit like a hack, and it is one, but it gets the job done.
 	// TODO: use proper parser!
-	const int MAX_HEADER_SIZE = 2047;
+	const size_t MAX_HEADER_SIZE = 2047;
 
 	char buffer[MAX_HEADER_SIZE+1];
-	int readBytes = fread(buffer, sizeof(char), MAX_HEADER_SIZE, fp);
+	size_t readBytes = fread(buffer, sizeof(char), MAX_HEADER_SIZE, fp);
 	if (readBytes != MAX_HEADER_SIZE)
 	{
 		DEBUG_LOG(QString("Could not read first %1 bytes of Avizo/AmiraMesh file %2.\n").arg(MAX_HEADER_SIZE).arg(fileName));

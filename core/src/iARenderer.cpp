@@ -546,7 +546,7 @@ void iARenderer::updateChannelImages() //add active channel images as additional
 	{
 		if ((*it)->IsEnabled())
 		{
-			size_t renChan = renderedChannel + m_showMainVolumeWithChannels ? 0 : 1;
+			int renChan = renderedChannel + m_showMainVolumeWithChannels ? 0 : 1;
 			vtkColorTransferFunction* ctf = dynamic_cast<vtkColorTransferFunction*> ( (*it)->GetCTF() );
 			assert(ctf);
 			volumeProperty->SetColor( renChan, ctf);
