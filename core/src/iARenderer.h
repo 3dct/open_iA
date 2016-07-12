@@ -114,10 +114,6 @@ public:
 	void removeChannel(iAChannelVisualizationData * chData);
 	void showMainVolumeWithChannels(bool show);
 
-	void initializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf );
-	void reInitializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf );
-	void visualizeHighlight( bool enabled );
-
 	void visibility( bool b );
 	void disableInteractor();
 	void enableInteractor();
@@ -182,16 +178,24 @@ public:
 	void saveMovie(const QString& fileName, int mode, int qual = 2);
 	RenderObserver * getRenderObserver(){ return renderObserver; }
 
+	// TODO: move out of here! ----------
+	void initializeHighlight(vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
+	void reInitializeHighlight(vtkImageData* ds, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
+	void visualizeHighlight(bool enabled);
+
 	void setMeanObjectSelected ( bool s ) { meanObjectSelected = s; };
 	bool getMeanObjectSelected ( ) { return meanObjectSelected; };
 	void setMeanObjectHighlighted ( bool h ) { meanObjectHighlighted = h; };
 	bool getMeanObjectHighlighted ( ) { return meanObjectHighlighted; };
 	void setMeanObjectId( int id ) { meanObjectId = id; };
-	int getMeanObjectId( ) { return meanObjectId; };
+	int  getMeanObjectId( ) { return meanObjectId; };
+	// <---------- until here!
+
 	void setImageSampleDistance(double imageSampleDistance);
 	void setSampleDistance(double sampleDistance);
-	void setOrientationMarkerCamera(vtkCamera * camera);
 	void hideOrientationMarker();
+
+
 	void AddRenderer(vtkRenderer* renderer);
 	void SetRenderMode(int mode);
 protected:
