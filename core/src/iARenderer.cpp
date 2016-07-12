@@ -50,7 +50,6 @@
 #include <vtkDelaunay2D.h>
 #include <vtkElevationFilter.h>
 #include <vtkGenericMovieWriter.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkGenericRenderWindowInteractor.h>
 #include <vtkGeometryFilter.h>
 #include <vtkGlyph3D.h>
@@ -87,9 +86,7 @@
 #include <vtkRenderPassCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSequencePass.h>
-#include <vtkSmartPointer.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkSphereSource.h>
 #include <vtkTextMapper.h>
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
@@ -182,28 +179,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane2 = vtkPlane::New();
 	plane3 = vtkPlane::New();
 
-	/*
-	sphere = vtkSphereSource::New();
-	pickerPGlyphs = vtkGlyph3D::New();
-	pickerPPoints = vtkPoints::New();
-	pickerPPolyMapper = vtkPolyDataMapper::New();
-	pickerPPolyActor = vtkActor::New();
-	pickerPPolyData = vtkPolyData::New();
-	pickerVGlyphs = vtkGlyph3D::New();
-	pickerVPoints = vtkPoints::New();
-	pickerVPolyMapper = vtkPolyDataMapper::New();
-	pickerVPolyActor = vtkActor::New();
-	pickerVPolyData = vtkPolyData::New();
-
-	helperGlyphs = vtkGlyph3D::New();
-	helperPoints = vtkPoints::New();
-	helperPolyMapper = vtkPolyDataMapper::New();
-	helperPolyActor = vtkActor::New();
-	helperPolyData = vtkPolyData::New();
-
-	moveableHelperPolyActor = vtkActor::New();
-	*/
-
 	textInfo->AddToScene(ren);
 	textInfo->SetText(" ");
 	textInfo->SetPosition(iAWrapperText::POS_LOWER_LEFT);
@@ -241,28 +216,6 @@ iARenderer::~iARenderer(void)
 	cSource->Delete();
 	cMapper->Delete();
 	cActor->Delete();
-
-	/*
-	sphere->Delete();	
-	pickerPGlyphs->Delete();	
-	pickerPPoints->Delete();	
-	pickerPPolyMapper->Delete();	
-	pickerPPolyActor->Delete();	
-	pickerPPolyData->Delete();	
-	pickerVGlyphs->Delete();	
-	pickerVPoints->Delete();	
-	pickerVPolyMapper->Delete();	
-	pickerVPolyActor->Delete();	
-	pickerVPolyData->Delete();	
-
-	helperGlyphs->Delete();	
-	helperPoints->Delete();	
-	helperPolyMapper->Delete();	
-	helperPolyActor->Delete();	
-	helperPolyData->Delete();
-
-	moveableHelperPolyActor->Delete();
-	*/
 
 	orientationMarkerWidget	->Delete();
 	textProperty->Delete();
@@ -398,8 +351,6 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFu
 	emit reInitialized();
 
 	update();
-
-	//setCamPosition( 0,0,1, 1,1,1 ); // +Z
 }
 
 
@@ -428,8 +379,6 @@ void iARenderer::initializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* ot
 
 	volumeProperty->SetColor(0, colorTransferFunction);
 	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
-
-	//volumePropertyHighlight->DeepCopy(volumeProperty);
 
 	volumePropertyHighlight->SetColor(colorTransferFunctionHighlight);
 	volumePropertyHighlight->SetScalarOpacity(piecewiseFunctionHighlight);
@@ -687,29 +636,6 @@ void iARenderer::setupTxt()
 	actor2D->SetMapper(textMapper);
 }
 
-/*
-void iARenderer::setupHelper()
-{
-	sphere->Update();
-	helperGlyphs->SetSourceConnection( sphere->GetOutputPort() );
-	helperGlyphs->SetColorModeToColorByScale();
-	helperGlyphs->SetVectorModeToUseNormal();
-	helperGlyphs->SetScaleFactor(1.5);
-	helperGlyphs->SetScaleModeToDataScalingOff();
-
-	helperPoints->InsertNextPoint(0,0,0);
-
-	helperPolyData->SetPoints(helperPoints);
-	helperGlyphs->SetInputData(helperPolyData);
-	helperPolyMapper->SetInputConnection(helperGlyphs->GetOutputPort());
-	helperPolyActor->SetMapper(helperPolyMapper);
-	helperPolyActor->GetProperty()->SetColor(0.1,0.1,0.1);
-
-	moveableHelperPolyActor->SetMapper(helperPolyMapper);
-	moveableHelperPolyActor->GetProperty()->SetColor(0.1,0.1,0.1);
-}
-*/
-
 void iARenderer::setupCube()
 {
 	annotatedCubeActor->SetPickable(1);
@@ -750,7 +676,6 @@ void iARenderer::setupAxes(double spacing[3])
 	transform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
 
 	axesActor->SetUserTransform(transform);
-	//helperPolyActor->SetUserTransform(transform);
 	transform->Delete();
 
 	moveableAxesActor->AxisLabelsOff();
@@ -760,7 +685,6 @@ void iARenderer::setupAxes(double spacing[3])
 	axesTransform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
 
 	moveableAxesActor->SetUserTransform(axesTransform);
-	//moveableHelperPolyActor->SetUserTransform(axesTransform);
 }
 
 void iARenderer::setupOrientationMarker()
@@ -777,30 +701,10 @@ void iARenderer::hideOrientationMarker()
 	orientationMarkerWidget->SetEnabled(false);
 }
 
-/*
-void iARenderer::setupPickerGlyphs()
-{
-	sphere->Update();
-	pickerPGlyphs->SetSourceConnection( sphere->GetOutputPort() );
-	pickerPGlyphs->SetColorModeToColorByScale();
-	pickerPGlyphs->SetVectorModeToUseNormal();
-	pickerPGlyphs->SetScaleFactor(1.5);
-	pickerPGlyphs->SetScaleModeToDataScalingOff();
-
-	sphere->Update();
-	pickerVGlyphs->SetSourceConnection( sphere->GetOutputPort() );
-	pickerVGlyphs->SetColorModeToColorByScale();
-	pickerVGlyphs->SetVectorModeToUseNormal();
-	pickerVGlyphs->SetScaleFactor(1.5);
-	pickerVGlyphs->SetScaleModeToDataScalingOff();
-}
-*/
-
 void iARenderer::setupRenderer()
 {
 	outlineFilter->SetInputData(imageData);
 	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
-	//outlineActor->GetProperty()->SetLineWidth(0.5);
 	outlineActor->GetProperty()->SetColor(0,0,0);
 	outlineActor->PickableOff();
 	outlineActor->SetMapper(outlineMapper);
@@ -809,22 +713,6 @@ void iARenderer::setupRenderer()
 	polyMapper->SelectColorArray("Colors");
 	polyMapper->SetScalarModeToUsePointFieldData();
 	polyActor->SetMapper(polyMapper);
-
-	/*
-	pickerPPolyData->SetPoints(pickerPPoints);
-	pickerPGlyphs->SetInputData(pickerPPolyData);
-	pickerPPolyMapper->SetInputConnection(pickerPGlyphs->GetOutputPort());
-	pickerPPolyMapper->ScalarVisibilityOff();
-	pickerPPolyActor->SetMapper(pickerPPolyMapper);
-	pickerPPolyActor->GetProperty()->SetColor(0,0,1);
-
-	pickerVPolyData->SetPoints(pickerVPoints);
-	pickerVGlyphs->SetInputData(pickerVPolyData);
-	pickerVPolyMapper->SetInputConnection(pickerVGlyphs->GetOutputPort());
-	pickerVPolyMapper->ScalarVisibilityOff();
-	pickerVPolyActor->SetMapper(pickerVPolyMapper);
-	pickerVPolyActor->GetProperty()->SetColor(1,0,0);
-	*/
 
 	volumeProperty->SetColor(0, colorTransferFunction);
 	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
@@ -838,18 +726,11 @@ void iARenderer::setupRenderer()
 	ren->GradientBackgroundOn();
 	ren->AddVolume(volume);
 	ren->AddActor(polyActor);
-	//ren->AddActor(pickerPPolyActor);
-	//ren->AddActor(pickerVPolyActor);
 	ren->AddActor(cActor);
 	ren->AddActor(actor2D);
-	//ren->AddActor(helperPolyActor);
-	//ren->AddActor(moveableHelperPolyActor);
 	ren->AddActor(axesActor);
 	ren->AddActor(moveableAxesActor);
 	ren->AddActor(outlineActor);
-
-	//ren->SetBackground(1.0, 1.0, 1.0);
-	//ren->SetBackground2(0.5, 0.66666666666666666666666666666667, 1.0);
 	emit onSetupRenderer();
 }
 
@@ -864,10 +745,6 @@ void iARenderer::reset(double imageSampleDistance, double sampleDistance)
 
 void iARenderer::update()
 {
-	/*
-	pickerPGlyphs->Update();
-	pickerVGlyphs->Update();
-	*/
 	volume->Update();
 	volumeMapper->Update();
 	polyMapper->Update();
@@ -878,9 +755,7 @@ void iARenderer::update()
 void iARenderer::showHelpers(bool show)
 {
 	orientationMarkerWidget->SetEnabled(show);
-	//helperPolyActor->SetVisibility(show);
 	axesActor->SetVisibility(show);
-	//moveableHelperPolyActor->SetVisibility(show);
 	moveableAxesActor->SetVisibility(show);
 	logowidget->SetEnabled(show);
 	cActor->SetVisibility(show);
@@ -1213,8 +1088,8 @@ void iARenderer::setTransferFunctionToHighlight() { volumeProperty->SetColor(col
 void iARenderer::setTransferFunctionToTransparent() { volumeProperty->SetColor(colorTransferFunctionTransparent); volumeProperty->SetScalarOpacity(piecewiseFunctionTransparent); update(); };
 
 void iARenderer::visibility(bool b) { volume->SetVisibility(b); };
-void iARenderer::disableInteractor() { interactor->Disable(); disabled = true; }
-void iARenderer::enableInteractor() { interactor->ReInitialize(); disabled = false; }
+void iARenderer::disableInteractor() { interactor->Disable(); }
+void iARenderer::enableInteractor() { interactor->ReInitialize(); }
 
 vtkTransform* iARenderer::getCoordinateSystemTransform() { axesTransform->Update(); return axesTransform; }
 void iARenderer::GetImageDataBounds(double bounds[6]) { imageData->GetBounds(bounds); }

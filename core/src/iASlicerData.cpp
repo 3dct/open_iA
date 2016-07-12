@@ -289,7 +289,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		logoWidget->SetInteractor( interactor );
 		logoWidget->SetRepresentation( rep );
 		logoWidget->SetResizable(false);
-		logoWidget->SetSelectable(false);
+		logoWidget->SetSelectable(true);
 		logoWidget->On();
 
 		textProperty->SetBold(1);

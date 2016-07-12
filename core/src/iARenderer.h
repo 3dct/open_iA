@@ -51,7 +51,6 @@ class vtkColorTransferFunction;
 class vtkCornerAnnotation;
 class vtkCubeSource;
 class vtkFixedPointVolumeRayCastMapper;
-//class vtkGlyph3D;
 class vtkGPUVolumeRayCastMapper;
 class vtkImageData;
 class vtkInteractorStyle;
@@ -73,7 +72,6 @@ class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkSmartVolumeMapper;
-class vtkSphereSource;
 class vtkTextMapper;
 class vtkTextProperty;
 class vtkTransform;
@@ -153,10 +151,8 @@ public:
 
 	void setupCutter();
 	void setupTxt();
-	void setupHelper();
 	void setupCube();
 	void setupAxes(double spacing[3]);
-	//void setupPickerGlyphs();
 	void setupOrientationMarker();
 	void setupRenderer();
 	void reset(double imageSampleDistance = 0.0, double sampleDistance = 0.0);
@@ -175,10 +171,6 @@ public:
 	vtkVolumeProperty* GetVolumeProperty() { return volumeProperty; };
 	vtkActor* GetOutlineActor() { return outlineActor; };
 	vtkActor* GetPolyActor() { return polyActor; };
-	/*
-	vtkPoints *GetPPoints() { return pickerPPoints; };
-	vtkPoints *GetVPoints() { return pickerVPoints; };
-	*/
 	vtkTransform* getCoordinateSystemTransform();
 	void GetImageDataBounds(double bounds[6]);
 	vtkOpenGLRenderer * GetLabelRenderer (void) { return labelRen; }
@@ -240,20 +232,11 @@ private:
 	vtkTransform *axesTransform;
 	vtkTextProperty* textProperty;
 	vtkOrientationMarkerWidget* orientationMarkerWidget;
-	vtkSphereSource* sphere;
 	vtkLookupTable *bwLUT;
 	vtkOutlineFilter *outlineSliceFilter;
 	vtkPolyDataMapper *outlineSlicePolyDataMapper;
 	vtkPlane *plane1, *plane2, *plane3;
 	vtkPicker* pointPicker;
-
-	/*
-	vtkGlyph3D *pickerPGlyphs, *pickerVGlyphs, *helperGlyphs;
-	vtkPoints *pickerPPoints, *pickerVPoints, *helperPoints;
-	vtkPolyDataMapper *pickerPPolyMapper, *pickerVPolyMapper, *helperPolyMapper;
-	vtkActor *pickerPPolyActor, *pickerVPolyActor, *helperPolyActor, *moveableHelperPolyActor;
-	vtkPolyData *pickerPPolyData, *pickerVPolyData, *helperPolyData;
-	*/
 
 	// multi channel image members
 	vtkImageData*	multiChannelImageData;
@@ -261,6 +244,7 @@ private:
 	bool	m_showMainVolumeWithChannels;
 
 	// mobject visualization members
+	// TODO: remove ----------
 	vtkImageData* imageDataHighlight;
 	vtkPiecewiseFunction* piecewiseFunctionHighlight;
 	vtkColorTransferFunction* colorTransferFunctionHighlight;
@@ -273,15 +257,19 @@ private:
 	int meanObjectId;
 	vtkPiecewiseFunction* piecewiseFunctionTransparent;
 	vtkColorTransferFunction* colorTransferFunctionTransparent;
+	// ------------> until here!
 
+	//! @{
+	//! position marker cube
 	vtkCubeSource *cSource;
 	vtkPolyDataMapper *cMapper;
 	vtkActor *cActor;
+	//! @}
+
 	QWidget *parent;
 	iAWrapperText* textInfo;
 
-	int ext;
-	bool disabled;
+	int ext; //!< statistical extent size
 	double imageSampleDistance, sampleDistance;
 
 	void setInputVolume(vtkImageData* imageData);

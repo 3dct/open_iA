@@ -83,10 +83,6 @@
 #include <QSpinBox>
 #include <QToolButton>
 
-//#include <fstream>
-//#include <sstream>
-//#include <string>
-
 MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack(new iAVolumeStack),
 	isMagicLensEnabled(false),
 	ioThread(0),
@@ -106,7 +102,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	sXZ = new dlg_sliceXZ(this);
 	sYZ = new dlg_sliceYZ(this);
 
-	//dlg_modalityRenderer * renderWidget = new dlg_modalityRenderer();
 	m_dlgModalities = new dlg_modalities(r->GetRenderer());
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
@@ -126,7 +121,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	splitDockWidget(sXZ, sXY, Qt::Vertical);
 
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
-	//splitDockWidget(r, renderWidget, Qt::Horizontal);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -271,11 +265,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(getSlicerXY()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(getSlicerXZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(getSlicerYZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-
-	/*
-	connect(this, SIGNAL(renderSettingsChanged()), this, SLOT(RenderSettingsChanged()));
-	connect(this, SIGNAL(preferencesChanged()), this, SLOT(preferencesChanged()));
-	*/
 
 	connect(m_dlgModalities, SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
 }
