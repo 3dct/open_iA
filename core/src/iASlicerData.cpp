@@ -1267,7 +1267,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	std::string path;
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
-	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() && mdi_parent)
+	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() && mdi_parent->getLinkedMDIs())
 	{
 		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getM_mainWnd()->MdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++) {
@@ -1293,21 +1293,9 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 
 					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
 					found3 = path.find_last_of("/");
-					found2 = path.find_last_of(".");
 					file = path.substr(found3 + 1);
 
-					if (file.length() > 11) {
-						found = path.find_last_of("_");
-						modAbb = path.substr(found + 1, (found2 - found - 7));
-						if (modAbb.find(".OT") != std::string::npos) {
-							modAbb = "OT";
-						}
-					}
-					else {
-						modAbb = file.substr(0,6);
-					}
-
-					m_strDetails += modAbb + "\t\t\t, " + ss.str() + "\n";
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
 					ss.str("");
 					ss.clear();
 					break;
@@ -1325,21 +1313,11 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
 					ss << tmpPix;
 
-					found2 = tmpChild->getFilePath().toStdString().find_last_of(".");
-					file = tmpChild->getFilePath().toStdString().substr(found2 + 1);
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					found3 = path.find_last_of("/");
+					file = path.substr(found3 + 1);
 
-					if (file.length() > 10) {
-						found = tmpChild->getFilePath().toStdString().find_last_of("_");
-						modAbb = tmpChild->getFilePath().toStdString().substr(found + 1, (found2)-(found + 1));
-						if (modAbb.find(".OT") != std::string::npos) {
-							modAbb = "OT";
-						}
-					}
-					else {
-						modAbb = file.substr(4, 5) + ": ";
-					}
-
-					m_strDetails += modAbb + ", \t" + ss.str() + "\n";
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
 					ss.str("");
 					ss.clear();
 					break;
@@ -1357,21 +1335,11 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
 					ss << tmpPix;
 
-					found2 = tmpChild->getFilePath().toStdString().find_last_of(".");
-					file = tmpChild->getFilePath().toStdString().substr(found2 + 1);
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					found3 = path.find_last_of("/");
+					file = path.substr(found3 + 1);
 
-					if (file.length() > 10) {
-						found = tmpChild->getFilePath().toStdString().find_last_of("_");
-						modAbb = tmpChild->getFilePath().toStdString().substr(found + 1, (found2)-(found + 1));
-						if (modAbb.find(".OT") != std::string::npos) {
-							modAbb = "OT";
-						}
-					}
-					else {
-						modAbb = file.substr(4, 5) + ": ";
-					}
-
-					m_strDetails += modAbb + ", \t" + ss.str() + "\n";
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
 					ss.str("");
 					ss.clear();
 					break;
