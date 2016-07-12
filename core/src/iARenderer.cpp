@@ -85,7 +85,6 @@
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderPassCollection.h>
-//#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSequencePass.h>
 #include <vtkSmartPointer.h>
@@ -183,6 +182,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane2 = vtkPlane::New();
 	plane3 = vtkPlane::New();
 
+	/*
 	sphere = vtkSphereSource::New();
 	pickerPGlyphs = vtkGlyph3D::New();
 	pickerPPoints = vtkPoints::New();
@@ -202,6 +202,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	helperPolyData = vtkPolyData::New();
 
 	moveableHelperPolyActor = vtkActor::New();
+	*/
 
 	textInfo->AddToScene(ren);
 	textInfo->SetText(" ");
@@ -241,6 +242,7 @@ iARenderer::~iARenderer(void)
 	cMapper->Delete();
 	cActor->Delete();
 
+	/*
 	sphere->Delete();	
 	pickerPGlyphs->Delete();	
 	pickerPPoints->Delete();	
@@ -260,6 +262,7 @@ iARenderer::~iARenderer(void)
 	helperPolyData->Delete();
 
 	moveableHelperPolyActor->Delete();
+	*/
 
 	orientationMarkerWidget	->Delete();
 	textProperty->Delete();
@@ -353,10 +356,10 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunc
 
 	setupCutter();
 	setupTxt();
-	setupHelper();
+	//setupHelper();
 	setupCube();
 	setupAxes(spacing);
-	setupPickerGlyphs();
+	//setupPickerGlyphs();
 	setupOrientationMarker();
 	setupRenderer();
 
@@ -684,6 +687,7 @@ void iARenderer::setupTxt()
 	actor2D->SetMapper(textMapper);
 }
 
+/*
 void iARenderer::setupHelper()
 {
 	sphere->Update();
@@ -704,6 +708,7 @@ void iARenderer::setupHelper()
 	moveableHelperPolyActor->SetMapper(helperPolyMapper);
 	moveableHelperPolyActor->GetProperty()->SetColor(0.1,0.1,0.1);
 }
+*/
 
 void iARenderer::setupCube()
 {
@@ -745,7 +750,7 @@ void iARenderer::setupAxes(double spacing[3])
 	transform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
 
 	axesActor->SetUserTransform(transform);
-	helperPolyActor->SetUserTransform(transform);
+	//helperPolyActor->SetUserTransform(transform);
 	transform->Delete();
 
 	moveableAxesActor->AxisLabelsOff();
@@ -755,7 +760,7 @@ void iARenderer::setupAxes(double spacing[3])
 	axesTransform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
 
 	moveableAxesActor->SetUserTransform(axesTransform);
-	moveableHelperPolyActor->SetUserTransform(axesTransform);
+	//moveableHelperPolyActor->SetUserTransform(axesTransform);
 }
 
 void iARenderer::setupOrientationMarker()
@@ -772,6 +777,7 @@ void iARenderer::hideOrientationMarker()
 	orientationMarkerWidget->SetEnabled(false);
 }
 
+/*
 void iARenderer::setupPickerGlyphs()
 {
 	sphere->Update();
@@ -788,6 +794,7 @@ void iARenderer::setupPickerGlyphs()
 	pickerVGlyphs->SetScaleFactor(1.5);
 	pickerVGlyphs->SetScaleModeToDataScalingOff();
 }
+*/
 
 void iARenderer::setupRenderer()
 {
@@ -803,6 +810,7 @@ void iARenderer::setupRenderer()
 	polyMapper->SetScalarModeToUsePointFieldData();
 	polyActor->SetMapper(polyMapper);
 
+	/*
 	pickerPPolyData->SetPoints(pickerPPoints);
 	pickerPGlyphs->SetInputData(pickerPPolyData);
 	pickerPPolyMapper->SetInputConnection(pickerPGlyphs->GetOutputPort());
@@ -816,6 +824,7 @@ void iARenderer::setupRenderer()
 	pickerVPolyMapper->ScalarVisibilityOff();
 	pickerVPolyActor->SetMapper(pickerVPolyMapper);
 	pickerVPolyActor->GetProperty()->SetColor(1,0,0);
+	*/
 
 	volumeProperty->SetColor(0, colorTransferFunction);
 	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
@@ -829,12 +838,12 @@ void iARenderer::setupRenderer()
 	ren->GradientBackgroundOn();
 	ren->AddVolume(volume);
 	ren->AddActor(polyActor);
-	ren->AddActor(pickerPPolyActor);
-	ren->AddActor(pickerVPolyActor);
+	//ren->AddActor(pickerPPolyActor);
+	//ren->AddActor(pickerVPolyActor);
 	ren->AddActor(cActor);
 	ren->AddActor(actor2D);
-	ren->AddActor(helperPolyActor);
-	ren->AddActor(moveableHelperPolyActor);
+	//ren->AddActor(helperPolyActor);
+	//ren->AddActor(moveableHelperPolyActor);
 	ren->AddActor(axesActor);
 	ren->AddActor(moveableAxesActor);
 	ren->AddActor(outlineActor);
@@ -855,8 +864,10 @@ void iARenderer::reset(double imageSampleDistance, double sampleDistance)
 
 void iARenderer::update()
 {
+	/*
 	pickerPGlyphs->Update();
 	pickerVGlyphs->Update();
+	*/
 	volume->Update();
 	volumeMapper->Update();
 	polyMapper->Update();
@@ -867,9 +878,9 @@ void iARenderer::update()
 void iARenderer::showHelpers(bool show)
 {
 	orientationMarkerWidget->SetEnabled(show);
-	helperPolyActor->SetVisibility(show),
-		axesActor->SetVisibility(show);
-	moveableHelperPolyActor->SetVisibility(show);
+	//helperPolyActor->SetVisibility(show);
+	axesActor->SetVisibility(show);
+	//moveableHelperPolyActor->SetVisibility(show);
 	moveableAxesActor->SetVisibility(show);
 	logowidget->SetEnabled(show);
 	cActor->SetVisibility(show);

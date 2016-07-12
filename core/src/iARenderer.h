@@ -51,7 +51,7 @@ class vtkColorTransferFunction;
 class vtkCornerAnnotation;
 class vtkCubeSource;
 class vtkFixedPointVolumeRayCastMapper;
-class vtkGlyph3D;
+//class vtkGlyph3D;
 class vtkGPUVolumeRayCastMapper;
 class vtkImageData;
 class vtkInteractorStyle;
@@ -156,7 +156,7 @@ public:
 	void setupHelper();
 	void setupCube();
 	void setupAxes(double spacing[3]);
-	void setupPickerGlyphs();
+	//void setupPickerGlyphs();
 	void setupOrientationMarker();
 	void setupRenderer();
 	void reset(double imageSampleDistance = 0.0, double sampleDistance = 0.0);
@@ -175,8 +175,10 @@ public:
 	vtkVolumeProperty* GetVolumeProperty() { return volumeProperty; };
 	vtkActor* GetOutlineActor() { return outlineActor; };
 	vtkActor* GetPolyActor() { return polyActor; };
+	/*
 	vtkPoints *GetPPoints() { return pickerPPoints; };
 	vtkPoints *GetVPoints() { return pickerVPoints; };
+	*/
 	vtkTransform* getCoordinateSystemTransform();
 	void GetImageDataBounds(double bounds[6]);
 	vtkOpenGLRenderer * GetLabelRenderer (void) { return labelRen; }
@@ -244,11 +246,14 @@ private:
 	vtkPolyDataMapper *outlineSlicePolyDataMapper;
 	vtkPlane *plane1, *plane2, *plane3;
 	vtkPicker* pointPicker;
+
+	/*
 	vtkGlyph3D *pickerPGlyphs, *pickerVGlyphs, *helperGlyphs;
 	vtkPoints *pickerPPoints, *pickerVPoints, *helperPoints;
 	vtkPolyDataMapper *pickerPPolyMapper, *pickerVPolyMapper, *helperPolyMapper;
 	vtkActor *pickerPPolyActor, *pickerVPolyActor, *helperPolyActor, *moveableHelperPolyActor;
 	vtkPolyData *pickerPPolyData, *pickerVPolyData, *helperPolyData;
+	*/
 
 	// multi channel image members
 	vtkImageData*	multiChannelImageData;
