@@ -1267,7 +1267,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	std::string path;
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
-	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild())
+	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() && mdi_parent)
 	{
 		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getM_mainWnd()->MdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++) {
@@ -1317,7 +1317,6 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(xCoord);
 
 					tmpChild->getSlicerDataYZ()->update();
-					//tmpChild->getSlicerDataYZ()->printVoxelInformation(xCoord, yCoord, zCoord, result);
 					tmpChild->getSlicerYZ()->update();
 					tmpChild->getSlicerDlgYZ()->update();
 

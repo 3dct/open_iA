@@ -99,6 +99,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
 	applyQSS();
 	actionLink_views->setChecked(ssLinkViews);//removed from readSettings, if is needed at all?
+	actionLink_mdis->setChecked(ssLinkMDIs);
 	setCentralWidget(mdiArea);
 
 	windowMapper = new QSignalMapper(this);
@@ -960,6 +961,7 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 	slicerSettingsElement.setAttribute("maxIsovalue", tr("%1").arg(ssMaxIsovalue));
 	slicerSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(ssImageActorUseInterpolation));
 	slicerSettingsElement.setAttribute("snakeSlices", tr("%1").arg(ssSnakeSlices));
+	slicerSettingsElement.setAttribute("linkMDIs", tr("%1").arg(ssLinkMDIs));
 
 	doc.documentElement().appendChild(slicerSettingsElement);
 }
@@ -977,8 +979,9 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 	ssMaxIsovalue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
 	ssImageActorUseInterpolation = attributes.namedItem("linearInterpolation").nodeValue().toDouble();
 	ssSnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
+	ssLinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 
-	activeMdiChild()->editSlicerSettings(ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices);
+	activeMdiChild()->editSlicerSettings(ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs);
 }
 
 
@@ -1054,6 +1057,18 @@ void MainWindow::linkViews()
 
 		if (ssLinkViews)
 			statusBar()->showMessage(tr("Link Views"), 5000);
+	}
+}
+
+void MainWindow::linkMDIs()
+{
+	if (activeMdiChild())
+	{
+		ssLinkMDIs = actionLink_mdis->isChecked();
+		activeMdiChild()->linkMDIs(ssLinkMDIs);
+
+		if (ssLinkViews)
+			statusBar()->showMessage(tr("Link MDIs"), 5000);
 	}
 }
 
@@ -1273,7 +1288,8 @@ void MainWindow::slicerSettings()
 		<< tr("#Number of Isolines")
 		<< tr("#Min Isovalue")
 		<< tr("#Max Isovalue")
-		<< tr("#Snake Slices"));
+		<< tr("#Snake Slices")
+		<< tr("$Link MDIs"));
 	QList<QVariant> inPara; 	inPara  << (child->getLinkedViews() ? tr("true") : tr("false"))
 		<< (child->getShowPosition() ? tr("true") : tr("false"))
 		<< (child->getShowIsolines() ? tr("true") : tr("false"))
@@ -1281,9 +1297,10 @@ void MainWindow::slicerSettings()
 		<< tr("%1").arg(child->getNumberOfIsolines())
 		<< tr("%1").arg(child->getMinIsovalue())
 		<< tr("%1").arg(child->getMaxIsovalue())
-		<< tr("%1").arg(child->getSnakeSlices());
+		<< tr("%1").arg(child->getSnakeSlices())
+		<< (child->getLinkedMDIs() ? tr("true") : tr("false"));
 
-	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", 8, inList, inPara, NULL);
+	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", 9, inList, inPara, NULL);
 
 	if (dlg->exec() == QDialog::Accepted)
 	{
@@ -1295,8 +1312,9 @@ void MainWindow::slicerSettings()
 		ssMinIsovalue = dlg->getValues()[5];
 		ssMaxIsovalue = dlg->getValues()[6];
 		ssSnakeSlices = dlg->getValues()[7];
+		dlg->getCheckValues()[9] == 0 ? ssLinkMDIs = false : ssLinkMDIs = true;
 
-		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices))
+		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
 	}
 }
@@ -1646,6 +1664,7 @@ void MainWindow::updateMenus()
 	multiAct->setEnabled(hasMdiChild);
 	tabAct->setEnabled(hasMdiChild);
 	actionLink_views->setEnabled(hasMdiChild);
+	actionLink_mdis->setEnabled(hasMdiChild);
 	actionEnableInteraction->setEnabled(hasMdiChild);
 	actionPreferences->setEnabled(hasMdiChild);
 	actionRendererSettings->setEnabled(hasMdiChild);
@@ -1790,6 +1809,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(rcAct, SIGNAL(triggered()), this, SLOT(maxRC()));
 	connect(multiAct, SIGNAL(triggered()), this, SLOT(multi()));
 	connect(actionLink_views, SIGNAL(triggered()), this, SLOT(linkViews()));
+	connect(actionLink_mdis, SIGNAL(triggered()), this, SLOT(linkMDIs()));
 	connect(actionEnableInteraction, SIGNAL(triggered()), this, SLOT(enableInteraction()));
 	connect(actionPreferences, SIGNAL(triggered()), this, SLOT(prefs()));
 	connect(actionRendererSettings, SIGNAL(triggered()), this, SLOT(renderSettings()));
