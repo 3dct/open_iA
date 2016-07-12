@@ -1249,16 +1249,106 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	// get index, coords and value to display
 	std::string tmp;
 
-	FmtStr(m_strDetails, 
+	FmtStr(m_strDetails,
 		"index     [ " << xCoord << ", " << yCoord << ", " << zCoord << " ]\n" <<
-		"position  [ " << result[0] << ", " << result[1] << ", " << result[2] <<" ]\n" <<
 		"datavalue [" );
 
-	for ( int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
-		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX,cY,0,i);
-		FmtStr(tmp, " " << Pix ); m_strDetails += tmp;
+	for (int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
+		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, i);
+		FmtStr(tmp, " " << Pix); m_strDetails += tmp;
 	}
 	FmtStr(tmp, " ]\n"); m_strDetails += tmp;
+	std::ostringstream ss;
+	double tmpPix;
+	std::size_t found, found2, found3;
+	std::string modAbb;
+	bool longName = true;
+	std::string file;
+	std::string path;
+
+	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
+	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() && mdi_parent->getLinkedMDIs())
+	{
+		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getM_mainWnd()->MdiChildList();
+		for (int i = 0; i < mdiwindows.size(); i++) {
+			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+			if (tmpChild != mdi_parent) {
+				double spacing[3];
+				tmpChild->getImageData()->GetSpacing(spacing);
+				switch (m_mode)
+				{
+				case iASlicerMode::XY://XY
+					tmpChild->getSlicerDataXY()->setPlaneCenter(xCoord*spacing[0], yCoord*spacing[1], 1);
+					tmpChild->getSlicerXY()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(zCoord);
+					
+					tmpChild->getSlicerDataXY()->update();
+					tmpChild->getSlicerXY()->update();
+					tmpChild->getSlicerDlgYZ()->update();
+
+					tmpChild->update();
+					
+					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					found3 = path.find_last_of("/");
+					file = path.substr(found3 + 1);
+
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
+					break;
+				case iASlicerMode::YZ://YZ
+					tmpChild->getSlicerDataYZ()->setPlaneCenter(yCoord*spacing[1], zCoord*spacing[2], 1);
+					tmpChild->getSlicerYZ()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(xCoord);
+
+					tmpChild->getSlicerDataYZ()->update();
+					tmpChild->getSlicerYZ()->update();
+					tmpChild->getSlicerDlgYZ()->update();
+
+					tmpChild->update();
+
+					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					found3 = path.find_last_of("/");
+					file = path.substr(found3 + 1);
+
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
+					break;
+				case iASlicerMode::XZ://XZ
+					tmpChild->getSlicerDataXZ()->setPlaneCenter(xCoord*spacing[0], zCoord*spacing[2], 1);
+					tmpChild->getSlicerXZ()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(yCoord);
+
+					tmpChild->getSlicerDataXZ()->update();
+					tmpChild->getSlicerXZ()->update();
+					tmpChild->getSlicerDlgXZ()->update();
+					
+					tmpChild->update();
+
+					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					found3 = path.find_last_of("/");
+					file = path.substr(found3 + 1);
+
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
+					break;
+				default://ERROR
+					break;
+				}
+			}
+		}
+	}
 
 	// if requested calculate distance and show actor
 	if (pLineActor->GetVisibility()) {

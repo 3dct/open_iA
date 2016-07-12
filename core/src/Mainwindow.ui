@@ -108,6 +108,7 @@
     <addaction name="separator"/>
     <addaction name="multiAct"/>
     <addaction name="actionLink_views"/>
+    <addaction name="actionLink_mdis"/>
     <addaction name="separator"/>
     <addaction name="actionEnableInteraction"/>
     <addaction name="action_MainWindowStatusBar"/>
@@ -562,6 +563,17 @@
     <string>Ctrl+Alt+L</string>
    </property>
   </action>
+   <action name="actionLink_mdis">
+     <property name="checkable">
+       <bool>true</bool>
+     </property>
+     <property name="checked">
+       <bool>false</bool>
+     </property>
+     <property name="text">
+       <string>Link MDIs</string>
+     </property>
+   </action>
   <action name="actionTestUIChange">
    <property name="text">
     <string>TestUIChange</string>

@@ -380,8 +380,9 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 	if (linkviews) {
 		xCoord = x; yCoord = y; zCoord = z;
 		if (mode != 2) {
-			if (showPosition)
+			if (showPosition) {
 				slicerXZ->setPlaneCenter(x*spacing[0], z*spacing[2], 1);
+			}
 			slicerXZ->setIndex(x,y,z);
 			sXZ->spinBoxXZ->setValue(y);
 		}
@@ -445,7 +446,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
 		specularLighting, specularPower, backgroundTop, backgroundBottom,
 		renderMode, false);
-	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true );
+	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true, linkmdis );
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -631,7 +632,7 @@ void MdiChild::setupViewInternal(bool active)
 		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
 		specularLighting, specularPower, backgroundTop, backgroundBottom,
 		renderMode, false);//AMA 06.05.2010 was resetting results of initView when STL is opened
-	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true);
+	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true, linkmdis);
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -1366,6 +1367,11 @@ void MdiChild::link( bool l)
 	linkviews = l;
 }
 
+void MdiChild::linkM(bool lm)
+{
+	linkmdis = lm;
+}
+
 void MdiChild::enableInteraction( bool b)
 {
 	if (b) {
@@ -1494,7 +1500,7 @@ int MdiChild::GetRenderMode()
 	return renderMode;
 }
 
-void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool init)
+void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool init, bool lm)
 {
 	linkviews = lv;
 	showIsolines = sil;
@@ -1504,6 +1510,7 @@ void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, dou
 	maxIsovalue = max;
 	imageActorUseInterpolation = li;
 	snakeSlices = ss;
+	linkmdis = lm;
 
 	if (snakeSlicer)
 	{
@@ -1514,6 +1521,7 @@ void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, dou
 	}
 
 	linkViews(lv);
+	linkMDIs(lm);
 
 	slicerYZ->setup( sil, sp, no, min, max, li);
 	slicerXY->setup( sil, sp, no, min, max, li);
@@ -1607,9 +1615,9 @@ RenderSettings MdiChild::GetRenderSettings()
 }
 
 
-bool MdiChild::editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss)
+bool MdiChild::editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm)
 {
-	setupSlicers( lv, sil, sp, no, min, max, li, ss, false);
+	setupSlicers( lv, sil, sp, no, min, max, li, ss, false, lm);
 
 	slicerXY->show();
 	slicerYZ->show();
@@ -2751,4 +2759,9 @@ bool MdiChild::IsOnlyPolyDataLoaded()
 {
 	return QString::compare(getFileInfo().suffix(), "STL", Qt::CaseInsensitive) == 0 ||
 		QString::compare(getFileInfo().suffix(), "FEM", Qt::CaseInsensitive) == 0 && !(imageData->GetExtent()[1] > 0);
+}
+
+MainWindow* MdiChild::getM_mainWnd()
+{
+	return m_mainWnd;
 }
