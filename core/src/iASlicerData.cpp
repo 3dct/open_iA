@@ -152,6 +152,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		image1 = vtkQImageToImageSource::New();
 
 		m_planeSrc = vtkPlaneSource::New();
+		m_planeSrc->SetCenter(0, 0, -10000); // to initially hide the green rectangle - use actor visibility instead maybe?
 		m_planeMapper = vtkPolyDataMapper::New();
 		m_planeActor = vtkActor::New();
 

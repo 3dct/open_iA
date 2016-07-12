@@ -97,9 +97,8 @@ void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );
 	updateGUI( );
-	GetRenderWindow()->Render();
-
 	emit MouseMoved();
+	GetRenderWindow()->Render();
 }
 
 void iAAbstractMagicLensWidget::updateLens()
