@@ -1310,7 +1310,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 
 					tmpChild->update();
 
-					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					tmpPix = tmpChild->getSlicerDataYZ()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
 					ss << tmpPix;
 
 					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
@@ -1332,7 +1332,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					
 					tmpChild->update();
 
-					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					tmpPix = tmpChild->getSlicerDataXZ()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
 					ss << tmpPix;
 
 					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();

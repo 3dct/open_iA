@@ -170,7 +170,7 @@ public:
 	void enableInteraction(bool b);
 	void setupRaycaster(  bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
 		double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init );
-	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool init = false, bool lm = false);
+	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init);
 	void check2DMode();
 	iALogger * getLogger();
 	RenderSettings GetRenderSettings();

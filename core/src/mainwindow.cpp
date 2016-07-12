@@ -1312,15 +1312,15 @@ void MainWindow::slicerSettings()
 
 	if (dlg->exec() == QDialog::Accepted)
 	{
-		dlg->getCheckValues()[0] == 0 ? ssLinkViews = false : ssLinkViews = true;
-		dlg->getCheckValues()[1] == 0 ? ssShowPosition = false : ssShowPosition = true;
-		dlg->getCheckValues()[2] == 0 ? ssShowIsolines = false : ssShowIsolines = true;
-		dlg->getCheckValues()[3] == 0 ? ssImageActorUseInterpolation = false : ssImageActorUseInterpolation = true;
+		ssLinkViews = dlg->getCheckValues()[0] != 0;
+		ssShowPosition = dlg->getCheckValues()[1] != 0;
+		ssShowIsolines = dlg->getCheckValues()[2] != 0;
+		ssImageActorUseInterpolation = dlg->getCheckValues()[3] != 0;
 		ssNumberOfIsolines = dlg->getValues()[4];
 		ssMinIsovalue = dlg->getValues()[5];
 		ssMaxIsovalue = dlg->getValues()[6];
 		ssSnakeSlices = dlg->getValues()[7];
-		dlg->getCheckValues()[9] == 0 ? ssLinkMDIs = false : ssLinkMDIs = true;
+		ssLinkMDIs = dlg->getCheckValues()[8] != 0;
 
 		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
@@ -1770,7 +1770,7 @@ MdiChild* MainWindow::createMdiChild()
 		rsImageSampleDistance, rsSampleDistance, rsAmbientLighting, rsDiffuseLighting,
 		rsSpecularLighting, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom,
 		rsRenderMode, true );
-	child->setupSlicers( ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices);
+	child->setupSlicers( ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs, false);
 	child->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefMedianFilterFistogram, prefResultInNewWindow, true);
 
 	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
@@ -1920,6 +1920,7 @@ void MainWindow::readSettings()
 	ssLinkViews = settings.value("Slicer/ssLinkViews", false).toBool();
 	ssShowPosition = settings.value("Slicer/ssShowPosition", true).toBool();
 	ssShowIsolines = settings.value("Slicer/ssShowIsolines", false).toBool();
+	ssLinkMDIs = settings.value("Slicer/ssLinkMDIs", false).toBool();
 	ssNumberOfIsolines = settings.value("Slicer/ssNumberOfIsolines", 5).toDouble();
 	ssMinIsovalue = settings.value("Slicer/ssMinIsovalue", 20000).toDouble();
 	ssMaxIsovalue = settings.value("Slicer/ssMaxIsovalue", 40000).toDouble();
@@ -2017,6 +2018,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssLinkViews", ssLinkViews);
 	settings.setValue("Slicer/ssShowPosition", ssShowPosition);
 	settings.setValue("Slicer/ssShowIsolines", ssShowIsolines);
+	settings.setValue("Slicer/ssLinkMDIs", ssLinkMDIs);
 	settings.setValue("Slicer/ssNumberOfIsolines", ssNumberOfIsolines);
 	settings.setValue("Slicer/ssMinIsovalue", ssMinIsovalue);
 	settings.setValue("Slicer/ssMaxIsovalue", ssMaxIsovalue);

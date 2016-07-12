@@ -446,7 +446,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
 		specularLighting, specularPower, backgroundTop, backgroundBottom,
 		renderMode, false);
-	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true, linkmdis );
+	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true );
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -632,7 +632,7 @@ void MdiChild::setupViewInternal(bool active)
 		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
 		specularLighting, specularPower, backgroundTop, backgroundBottom,
 		renderMode, false);//AMA 06.05.2010 was resetting results of initView when STL is opened
-	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true, linkmdis);
+	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true);
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -1500,7 +1500,7 @@ int MdiChild::GetRenderMode()
 	return renderMode;
 }
 
-void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool init, bool lm)
+void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init)
 {
 	linkviews = lv;
 	showIsolines = sil;
@@ -1617,7 +1617,7 @@ RenderSettings MdiChild::GetRenderSettings()
 
 bool MdiChild::editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm)
 {
-	setupSlicers( lv, sil, sp, no, min, max, li, ss, false, lm);
+	setupSlicers( lv, sil, sp, no, min, max, li, ss, lm, false);
 
 	slicerXY->show();
 	slicerYZ->show();
