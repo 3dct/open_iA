@@ -1913,8 +1913,8 @@ void MainWindow::readSettings()
 	rsDiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
 	rsSpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
 	rsSpecularPower = settings.value("Renderer/rsSpecularPower", 10).toDouble();
-	rsBackgroundTop = settings.value("Renderer/rsBackgroundTop", "7FAAFF").toString();
-	rsBackgroundBottom = settings.value("Renderer/rsBackgroundBottom", "FFFFFF").toString();
+	rsBackgroundTop = settings.value("Renderer/rsBackgroundTop", "#7FAAFF").toString();
+	rsBackgroundBottom = settings.value("Renderer/rsBackgroundBottom", "#FFFFFF").toString();
 	rsRenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
 	ssLinkViews = settings.value("Slicer/ssLinkViews", false).toBool();
