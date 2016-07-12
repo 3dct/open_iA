@@ -1260,7 +1260,6 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	FmtStr(tmp, " ]\n"); m_strDetails += tmp;
 	std::ostringstream ss;
 	double tmpPix;
-	std::size_t found, found2, found3;
 	std::string modAbb;
 	bool longName = true;
 	std::string file;
@@ -1274,6 +1273,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
 			if (tmpChild != mdi_parent) {
 				double spacing[3];
+				std::size_t foundSlash;
 				tmpChild->getImageData()->GetSpacing(spacing);
 				switch (m_mode)
 				{
@@ -1292,8 +1292,8 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					ss << tmpPix;
 
 					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
-					found3 = path.find_last_of("/");
-					file = path.substr(found3 + 1);
+					foundSlash = path.find_last_of("/");
+					file = path.substr(foundSlash + 1);
 
 					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
 					ss.str("");
@@ -1314,8 +1314,8 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					ss << tmpPix;
 
 					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
-					found3 = path.find_last_of("/");
-					file = path.substr(found3 + 1);
+					foundSlash = path.find_last_of("/");
+					file = path.substr(foundSlash + 1);
 
 					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
 					ss.str("");
@@ -1336,8 +1336,8 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					ss << tmpPix;
 
 					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
-					found3 = path.find_last_of("/");
-					file = path.substr(found3 + 1);
+					foundSlash = path.find_last_of("/");
+					file = path.substr(foundSlash + 1);
 
 					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
 					ss.str("");
