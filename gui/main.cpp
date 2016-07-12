@@ -45,8 +45,9 @@ int main(int argc, char *argv[])
 	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
 
 	if (argc > 1) mainWin.loadFile(QString(argv[1]));
-	
+
 	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
+	mainWin.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
 
 	if( QDate::currentDate().dayOfYear() >= 340 ) {
 		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");
