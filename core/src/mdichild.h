@@ -138,11 +138,12 @@ public:
 	bool yzview() { maximizeYZ(); return true; };
 	bool rcview() { maximizeRC(); return true; };
 	bool linkViews( bool l ) { link(l); return true; }
+	bool linkMDIs( bool l ) { linkM(l); return true; }
 	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init );
 	bool editRendererSettings( bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
 		double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int renderMode );
 	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
-	bool editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss);
+	bool editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm);
 	bool loadTransferFunction();
 	bool saveTransferFunction();
 	void saveRenderWindow(vtkRenderWindow *renderWindow);
@@ -172,7 +173,7 @@ public:
 	void enableInteraction(bool b);
 	void setupRaycaster(  bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
 		double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init );
-	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool init = false);
+	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init);
 	void check2DMode();
 	iALogger * getLogger();
 	RenderSettings GetRenderSettings();
@@ -235,6 +236,7 @@ public:
 	QString getBackgroundBottom() const { return backgroundBottom; };
 
 	bool getLinkedViews() const { return linkviews; };
+	bool getLinkedMDIs() const { return linkmdis; };
 	bool getShowIsolines() const { return showIsolines; };
 	int getNumberOfIsolines() const { return numberOfIsolines; };
 	double getMinIsovalue() const { return minIsovalue; };
@@ -305,6 +307,8 @@ public:
 	int getYCoord() const { return yCoord; }
 	int getZCoord() const { return zCoord; }
 
+	MainWindow* getM_mainWnd();
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -342,6 +346,7 @@ private slots:
 	void triggerInteractionYZ();
 	void triggerInteractionRaycaster();
 	void link( bool l );
+	void linkM( bool lm );
 	void setSliceXY(int s);
 	void setSliceYZ(int s);
 	void setSliceXZ(int s);
@@ -483,7 +488,7 @@ private:
 	double imageSampleDistance, sampleDistance,	ambientLighting, diffuseLighting ,specularLighting, specularPower;
 	double minIsovalue, maxIsovalue;
 	int numberOfIsolines, snakeSlices;
-	bool linkviews, showIsolines, imageActorUseInterpolation, interactorsEnabled;
+	bool linkviews, showIsolines, imageActorUseInterpolation, interactorsEnabled, linkmdis;
 	unsigned char visibility;
 	QString backgroundTop, backgroundBottom;
 	int renderMode;

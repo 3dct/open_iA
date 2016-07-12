@@ -146,8 +146,8 @@ void iAAbstractMagicLensWidget::updateGUI( )
 		double p5[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] + m_halfSize[1], 0. };	// right
 		double p6[3] = { m_pos[0] + m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] + m_halfSize[1], 0. };	// right
 		double p7[3] = { m_pos[0] + m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] - m_halfSize[1], 0. };	// right
-		double p8[3] = { m_pos[0] + m_halfSize[0]			  , m_pos[1]				, 0. };	// line
-		double p9[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1], 0. };	// line
+		double p8[3] = { m_pos[0] + m_halfSize[0]			  , static_cast<double>(m_pos[1])	  , 0. };	// line
+		double p9[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), static_cast<double>(m_pos[1]), 0. };	// line
 		points->InsertNextPoint( p0 );
 		points->InsertNextPoint( p1 );
 		points->InsertNextPoint( p2 );

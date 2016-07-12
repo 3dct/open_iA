@@ -85,6 +85,7 @@ private slots:
 	void multi();
 	void prefs();
 	void linkViews();
+	void linkMDIs();
 	void enableInteraction();
 	void renderSettings();
 	void slicerSettings();
@@ -246,7 +247,7 @@ private:
 	double rsImageSampleDistance, rsSampleDistance, rsAmbientLighting, rsDiffuseLighting, rsSpecularLighting, rsSpecularPower;
 	double ssMinIsovalue, ssMaxIsovalue;
 	int ssNumberOfIsolines, ssSnakeSlices;
-	bool ssLinkViews, ssShowIsolines, ssShowPosition, ssImageActorUseInterpolation, ssInteractionEnabled, ssShowPorosityMaps; 
+	bool ssLinkViews, ssShowIsolines, ssShowPosition, ssImageActorUseInterpolation, ssInteractionEnabled, ssShowPorosityMaps, ssLinkMDIs;
 	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
 	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;//openwithdatatypeconversion
 	float owdtcmin, owdtcmax; double owdtcoutmin, owdtcoutmax; int owdtcdov ;//openwithdatatype

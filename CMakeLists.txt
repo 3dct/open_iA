@@ -236,7 +236,8 @@ IF (ITK_VERSION_MAJOR GREATER 3)
 
 		itkhdf5						itkhdf5_cpp				itkjpeg					ITKMetaIO				itkNetlibSlatec
 		ITKniftiio					ITKNrrdIO				itkopenjpeg				itkpng					itksys
-		itktiff						itkv3p_lsqr				itkv3p_netlib			itkvcl					itkvnl
+		itktiff						#itkv3p_lsqr				
+		itkv3p_netlib			itkvcl					itkvnl
 		itkvnl_algo					itkzlib					ITKznz
 	)
 	IF (NOT ${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
