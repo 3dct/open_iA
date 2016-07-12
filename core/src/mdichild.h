@@ -302,6 +302,8 @@ public:
 	int getYCoord() const { return yCoord; }
 	int getZCoord() const { return zCoord; }
 
+	MainWindow* getM_mainWnd();
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();

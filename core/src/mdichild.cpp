@@ -380,8 +380,9 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 	if (linkviews) {
 		xCoord = x; yCoord = y; zCoord = z;
 		if (mode != 2) {
-			if (showPosition)
+			if (showPosition) {
 				slicerXZ->setPlaneCenter(x*spacing[0], z*spacing[2], 1);
+			}
 			slicerXZ->setIndex(x,y,z);
 			sXZ->spinBoxXZ->setValue(y);
 		}
@@ -2751,4 +2752,9 @@ bool MdiChild::IsOnlyPolyDataLoaded()
 {
 	return QString::compare(getFileInfo().suffix(), "STL", Qt::CaseInsensitive) == 0 ||
 		QString::compare(getFileInfo().suffix(), "FEM", Qt::CaseInsensitive) == 0 && !(imageData->GetExtent()[1] > 0);
+}
+
+MainWindow* MdiChild::getM_mainWnd()
+{
+	return m_mainWnd;
 }

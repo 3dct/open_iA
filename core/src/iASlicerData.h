@@ -40,6 +40,11 @@
 #include <QSharedPointer>
 
 #include <string>
+#include <QMdiSubWindow>
+#include "mainwindow.h"
+#include "ui_sliceXY.h"
+#include "ui_sliceXZ.h"
+#include "ui_sliceYZ.h"
 
 class vtkScalarBarWidget;
 class vtkTextProperty;
@@ -69,6 +74,7 @@ class vtkActor;
 class iARulerWidget;
 class iAObserverRedirect;
 class iAMagicLens;
+
 /**
  * \brief	implements a slicer widget
  * 
@@ -176,7 +182,7 @@ protected:
 	*/
 	void snap(double &x, double &y);
 	void InitReslicerWithImageData();
-	void UpdateReslicer();
+	void UpdateReslicer();	
 	
 Q_SIGNALS:
 	void msg(QString s);
