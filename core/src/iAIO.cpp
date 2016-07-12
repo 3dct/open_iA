@@ -27,6 +27,7 @@
 #include "dlg_openfile_sizecheck.h"
 #include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
+#include "iAExceptionThrowingErrorObserver.h"
 #include "iAObserverProgress.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
@@ -1410,11 +1411,21 @@ bool iAIO::readImageStack()
 	}
 	imgReader->ReleaseDataFlagOn();
 	imgReader->AddObserver(vtkCommand::ProgressEvent, observerProgress);
-	imgReader->SetFileNames( fileNameArray );
-	imgReader->SetDataOrigin( origin );
-	imgReader->SetDataSpacing( spacing );
-	imgReader->SetOutput(getVtkImageData());
-	imgReader->Update();
+	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
+	try
+	{
+		imgReader->SetFileNames(fileNameArray);
+		imgReader->SetDataOrigin(origin);
+		imgReader->SetDataSpacing(spacing);
+		imgReader->SetOutput(getVtkImageData());
+		imgReader->Update();
+	}
+	catch (std::exception &e)
+	{
+		emit msg(tr("%1  An error occured while loading image stack (%2), aborting.")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(e.what()));
+		return false;
+	}
 
 	printFileInfos();
 
