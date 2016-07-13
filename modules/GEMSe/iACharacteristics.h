@@ -18,14 +18,10 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IACHARACTERISTICS_H
-#define IACHARACTERISTICS_H
+#pragma once
 
 #include <QSharedPointer>
 #include <QThread>
-
-//#include "iAGEMSeConstants.h"
 
 class iAAttributes;
 class iASingleResult;
@@ -45,5 +41,3 @@ private:
 	virtual void run();
 
 };
-
-#endif // IACHARACTERISTICS_H

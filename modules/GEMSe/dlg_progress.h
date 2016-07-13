@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_PROGRESS_H
-#define DLG_PROGRESS_H
+#pragma once
 
 #include "ui_progress.h"
 #include <iAQTtoUIConnector.h>
@@ -45,5 +43,3 @@ private:
 	QSharedPointer<iADurationEstimator const> m_durationEstimator;
 	QSharedPointer<iAAbortListener> m_abortListener;
 };
-
-#endif

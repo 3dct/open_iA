@@ -1,4 +1,3 @@
-#ifndef QXTSPANSLIDER_H
 /****************************************************************************
 ** Copyright (c) 2006 - 2011, the LibQxt project.
 ** See the Qxt AUTHORS file for a list of authors and copyright holders.
@@ -28,8 +27,7 @@
 **
 ** <http://libqxt.org>  <foundation@libqxt.org>
 *****************************************************************************/
-
-#define QXTSPANSLIDER_H
+#pragma once
 
 #include <QSlider>
 #include "qxtglobal.h"
@@ -101,5 +99,3 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent* event);
     virtual void paintEvent(QPaintEvent* event);
 };
-
-#endif // QXTSPANSLIDER_H

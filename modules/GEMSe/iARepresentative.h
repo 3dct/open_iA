@@ -23,4 +23,3 @@
 #include "iAITKIO.h"
 
 iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, int differenceMarkerValue);
-

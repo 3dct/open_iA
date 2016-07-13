@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_CAMERA_WIDGET_H
-#define IA_CAMERA_WIDGET_H
+#pragma once
 
 #include "iASlicerMode.h"
 
@@ -64,5 +62,3 @@ private slots:
 	void MiniSlicerUpdated();
 	void ScrollBarChanged(int);
 };
-
-#endif // IA_CAMERA_WIDGET_H

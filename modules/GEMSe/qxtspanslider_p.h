@@ -1,4 +1,3 @@
-#ifndef QXTSPANSLIDER_P_H
 /****************************************************************************
 ** Copyright (c) 2006 - 2011, the LibQxt project.
 ** See the Qxt AUTHORS file for a list of authors and copyright holders.
@@ -28,8 +27,7 @@
 **
 ** <http://libqxt.org>  <foundation@libqxt.org>
 *****************************************************************************/
-
-#define QXTSPANSLIDER_P_H
+#pragma once
 
 #include <QStyle>
 #include <QObject>
@@ -77,5 +75,3 @@ public Q_SLOTS:
     void updateRange(int min, int max);
     void movePressedHandle();
 };
-
-#endif // QXTSPANSLIDER_P_H

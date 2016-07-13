@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef SVM_IMAGE_FILTER_H
-#define SVM_IMAGE_FILTER_H
+#pragma once
 
 #include <vtkSmartPointer.h>
 
@@ -63,5 +61,3 @@ private:
 	QString m_error;
 	//! @}
 };
-
-#endif // SVM_IMAGE_FILTER_H

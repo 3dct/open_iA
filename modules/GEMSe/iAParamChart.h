@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_PARAM_CHART
-#define IA_PARAM_CHART
+#pragma once
 
 #include "iADiagramFctWidget.h"
 
@@ -28,16 +26,6 @@
 
 class iAParamHistogramData;
 class iANameMapper;
-
-/*
-class iAParamChart
-{
-public:
-	virtual double mapBinToValue(double value) const;
-	virtual void RemoveMarker();
-	virtual void SetMarker(double value);
-};
-*/
 
 class iAParamChart: public iADiagramFctWidget
 {
@@ -89,5 +77,3 @@ private:
 	double x2value(int x) const;
 	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
 };
-
-#endif // IA_PARAM_CHART

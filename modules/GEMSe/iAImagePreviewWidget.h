@@ -18,11 +18,8 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_PREVIEW_WIDGET
-#define IA_IMAGE_PREVIEW_WIDGET
+#pragma once
 
-//#include "iAImageTypes.h"
 #include "iAITKIO.h"
 #include "iASlicer.h"
 
@@ -92,5 +89,3 @@ private slots:
 	void SlicerClicked();
 	void SlicerHovered(int x, int y, int z, int mode);
 };
-
-#endif // IA_IMAGE_PREVIEW_WIDGET

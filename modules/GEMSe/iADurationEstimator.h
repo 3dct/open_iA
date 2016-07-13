@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_DURATION_ESTIMATOR_H
-#define IA_DURATION_ESTIMATOR_H
+#pragma once
 
 class iADurationEstimator
 {
@@ -37,5 +35,3 @@ public:
 	*/
 	virtual double estimatedTimeRemaining() const =0;
 };
-
-#endif // IA_DURATION_ESTIMATOR_H

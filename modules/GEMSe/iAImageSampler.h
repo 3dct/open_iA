@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_SAMPLER_H
-#define IA_IMAGE_SAMPLER_H
+#pragma once
 
 #include <QMap>
 #include <QMutex>
@@ -106,5 +104,3 @@ private slots:
 	void computationFinished();
 	void derivedOutputFinished();
 };
-
-#endif // IA_IMAGE_SAMPLER_H

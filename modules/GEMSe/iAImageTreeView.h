@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_TREE_VIEW
-#define IA_IMAGE_TREE_VIEW
+#pragma once
 
 #include "iAImageTree.h"
 #include "iAImageNodeWidget.h"
@@ -116,5 +114,3 @@ private:
 	int m_iconSize;
 	int m_representativeType;
 };
-
-#endif

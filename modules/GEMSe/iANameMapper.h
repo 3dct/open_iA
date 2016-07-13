@@ -18,11 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-
-#ifndef IANAMEMAPPER_H
-#define IANAMEMAPPER_H
+#pragma once
 
 class QString;
 
@@ -34,5 +30,3 @@ public:
 	virtual int GetIdx(QString const & name, bool & ok) const = 0;
 	virtual int size() const =0;
 };
-
-#endif // IANAMEMAPPER_H

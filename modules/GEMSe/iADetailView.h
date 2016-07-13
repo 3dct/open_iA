@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_DETAIL_VIEW_H
-#define IA_DETAIL_VIEW_H
+#pragma once
 
 #include "iAITKIO.h" // TODO: replace?
 typedef iAITKIO::ImagePointer ClusterImageType;
@@ -96,5 +94,3 @@ private:
 	void UpdateGeometry();
 	void SetImage();
 };
-
-#endif // IA_DETAIL_VIEW_H

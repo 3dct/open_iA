@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_TREE_H
-#define IA_IMAGE_TREE_H
+#pragma once
 
 #include "iAGEMSeConstants.h"
 
@@ -204,5 +202,3 @@ private:
 };
 
 void GetClusterMinMax(iAImageClusterNode const * node, AttributeID attribID, double & min, double & max);
-
-#endif // IA_IMAGE_TREE_H

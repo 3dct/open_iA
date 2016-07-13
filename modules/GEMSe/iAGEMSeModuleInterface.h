@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_MULTI_CHANNEL_SEGMENTATION_MODULE_H
-#define IA_MULTI_CHANNEL_SEGMENTATION_MODULE_H
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -56,5 +54,3 @@ private:
 	
 	iAGEMSeToolbar* m_toolbar;
 };
-
-#endif // IA_MULTI_CHANNEL_SEGMENTATION_MODULE_H

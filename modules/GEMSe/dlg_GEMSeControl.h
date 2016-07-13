@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_GEMSECONTROL_H
-#define DLG_GEMSECONTROL_H
+#pragma once
 
 #include "ui_GEMSeControl.h"
 
@@ -97,5 +95,3 @@ private:
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 };
-
-#endif // DLG_GEMSECONTROL_H

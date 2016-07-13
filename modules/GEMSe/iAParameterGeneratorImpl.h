@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_PARAMETER_GENERATOR_IMPL_H
-#define IA_PARAMETER_GENERATOR_IMPL_H
+#pragma once
 
 #include "iAParameterGenerator.h"
 
@@ -46,5 +44,3 @@ class iACartesianGridParameterGenerator : public iAParameterGenerator
 };
 
 QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();
-
-#endif // IA_PARAMETER_GENERATOR_IMPL_H

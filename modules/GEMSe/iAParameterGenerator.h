@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_PARAMETER_GENERATOR_H
-#define IA_PARAMETER_GENERATOR_H
+#pragma once
 
 class iAAttributes;
 
@@ -37,5 +35,3 @@ public:
 	virtual QString GetName() const =0;
 	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameters, int sampleCount) =0;
 };
-
-#endif

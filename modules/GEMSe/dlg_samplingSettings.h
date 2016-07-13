@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_SAMPLING_SETTINGS_H
-#define DLG_SAMPLING_SETTINGS_H
+#pragma once
 
 #include "ui_samplingSettings.h"
 #include <iAQTtoUIConnector.h>
@@ -64,5 +62,3 @@ private:
 
 	void LoadDescriptor(QString const & fileName);
 };
-
-#endif

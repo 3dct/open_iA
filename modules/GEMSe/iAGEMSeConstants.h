@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SEGM_EXPLORER_CONSTANTS
-#define IA_SEGM_EXPLORER_CONSTANTS
+#pragma once
 
 #include <QColor>
 #include <QPen>
@@ -215,5 +213,3 @@ enum iARepresentativeType
 	AverageLabel,
 	LabelDistribution
 };
-
-#endif // IA_SEGM_EXPLORER_CONSTANTS

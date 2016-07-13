@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
-
 #pragma once
 
 #include <QSharedPointer>
@@ -54,5 +53,4 @@ private:
 
 	bool LoadInternal(QString const & parameterSetFileName, QString const & characteristicsFileName);
 	bool StoreAttributes(int type, QString const & fileName, bool id);
-
 };
