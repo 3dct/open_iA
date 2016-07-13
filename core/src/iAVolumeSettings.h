@@ -19,50 +19,48 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
  
-#include "pch.h"
-#include "iAModalityDisplay.h"
+#pragma once
 
-#include "iAModalityTransfer.h"
-#include "iAVolumeSettings.h"
+#include <QColor>
+#include <QString>
 
-#include <vtkImageData.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-
-ModalityDisplay::ModalityDisplay(
-	QSharedPointer<ModalityTransfer> transfer,
-	vtkSmartPointer<vtkImageData> imgData)
+class iAVolumeSettings
 {
-	double rangeMin = imgData->GetScalarRange()[0];
-	double rangeMax = imgData->GetScalarRange()[1];
+public:
+	bool   LinearInterpolation;
+	bool   Shading;
+	double AmbientLighting;
+	double DiffuseLighting;
+	double SpecularLighting;
+	double SpecularPower;
+	QColor BackgroundColor;
+	int Mode;                       //!< a value out of the unnamed enum in vtkSmartVolumeMapper (e.g. DefaultRenderMode)
 
-	volProp = vtkSmartPointer<vtkVolumeProperty>::New();
-	volProp->SetColor(transfer->getColorFunction());
-	volProp->SetScalarOpacity(transfer->getOpacityFunction());
-	CreateVolumeMapper(imgData);
-	volume = vtkSmartPointer<vtkVolume>::New();
-	volume->SetMapper(volMapper);
-	volume->SetProperty(volProp);
-	volume->SetVisibility(true);
-}
+	iAVolumeSettings() :
+		LinearInterpolation(true),
+		Shading(true),
+		AmbientLighting(0.2),
+		DiffuseLighting(0.5),
+		SpecularLighting(0.7),
+		SpecularPower(10),
+		Mode(0)
+	{}
 
-void ModalityDisplay::SetRenderSettings(iAVolumeSettings const & rs)
-{
-	volProp->SetAmbient(rs.AmbientLighting);
-	volProp->SetDiffuse(rs.DiffuseLighting);
-	volProp->SetSpecular(rs.SpecularLighting);
-	volProp->SetSpecularPower(rs.SpecularPower);
-	volProp->SetInterpolationType(rs.LinearInterpolation);
-	volProp->SetShade(rs.Shading);
-	volMapper->SetRequestedRenderMode(rs.Mode);
-}
-
-void ModalityDisplay::CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData)
-{
-	volMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-	volMapper->SetBlendModeToComposite(); // composite first
-	volMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
-	volMapper->SetInputData(imgData);
-	//volMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
-}
+	iAVolumeSettings(
+		bool    linearInterpolation,
+		bool    shading,
+		double  ambientLighting,
+		double  diffuseLighting,
+		double  specularLighting,
+		double  specularPower,
+		QString backgroundColor)
+	:
+		LinearInterpolation(linearInterpolation),
+		Shading(shading),
+		AmbientLighting(ambientLighting),
+		DiffuseLighting(diffuseLighting),
+		SpecularLighting(specularLighting),
+		SpecularPower(specularPower),
+		BackgroundColor(backgroundColor)
+	{}
+};

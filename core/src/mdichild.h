@@ -24,8 +24,10 @@
 
 #include "defines.h"
 #include "iAChannelVisualizationData.h"
-#include "iAVolumeStack.h"
 #include "iAChannelID.h"
+#include "iARenderSettings.h"
+#include "iAVolumeSettings.h"
+#include "iAVolumeStack.h"
 #include "open_iA_Core_export.h"
 
 #include <vtkSmartPointer.h>
@@ -86,7 +88,6 @@ class iASimReader;
 class iASlicer;
 class iASlicerData;
 class MainWindow;
-class RenderSettings;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
@@ -128,7 +129,6 @@ public:
 	bool saveAs();
 	bool saveAsImageStack();
 	bool saveFile(const QString &f);
-	void setShowVolume(bool sV) { showVolume = sV; };
 	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
@@ -140,8 +140,7 @@ public:
 	bool linkViews( bool l ) { link(l); return true; }
 	bool linkMDIs( bool l ) { linkM(l); return true; }
 	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init );
-	bool editRendererSettings( bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-		double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int renderMode );
+	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
 	bool editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm);
 	bool loadTransferFunction();
@@ -171,12 +170,12 @@ public:
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileToggled(void) const;
 	void enableInteraction(bool b);
-	void setupRaycaster(  bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-		double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init );
+	void setupRaycaster(iARenderSettings const & rs, iAVolumeSettings const & vs, bool init );
 	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init);
 	void check2DMode();
 	iALogger * getLogger();
-	RenderSettings GetRenderSettings();
+	iARenderSettings const & GetRenderSettings() const;
+	iAVolumeSettings const & GetVolumeSettings() const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithms* thread, bool providesProgress = true, bool usesDoneSignal = false);
@@ -209,39 +208,21 @@ public:
 	dlg_imageproperty * getImagePropertyDlg();
 	dlg_histogram * getHistogramDlg();
 	vtkTransform* getSlicerTransform();
-	bool getResultInNewWindow() const { return resultInNewWindow; };
-	bool getCompression() const { return compression; };
-	bool getShowPosition() const { return showPosition; };
-	bool getMedianFilterHistogram() const { return filterHistogram; };
-	int getNumberOfHistogramBins() const { return histogramBins; };
-	int getStatExtent() const { return statExt; };
+	bool getResultInNewWindow() const { return resultInNewWindow; }
+	bool getCompression() const { return compression; }
+	bool getShowPosition() const { return showPosition; }
+	bool getMedianFilterHistogram() const { return filterHistogram; }
+	int getNumberOfHistogramBins() const { return histogramBins; }
+	int getStatExtent() const { return statExt; }
 
-	bool getShowVolume() const { return showVolume; };
-	bool getShowSlicers() const { return showSlicers; };
-	bool getShowHelpers() const { return showHelpers; };
-	bool getShowRPosition() const { return showRPosition; };
-
-	bool getLinearInterpolation() const { return linearInterpolation; };
-	bool getShading() const { return shading; };
-	bool getBoundingBox() const { return boundingBox; };
-	bool getParallelProjection() const { return parallelProjection; };
-
-	double getSampleDistance() const { return sampleDistance; };
-	double getAmbientLighting() const { return ambientLighting; };
-	double getDiffuseLighting() const { return diffuseLighting; };
-	double getSpecularLighting() const { return specularLighting; };
-	double getSpecularPower() const { return specularPower; };
-	QString getBackgroundTop() const { return backgroundTop; };
-	QString getBackgroundBottom() const { return backgroundBottom; };
-
-	bool getLinkedViews() const { return linkviews; };
-	bool getLinkedMDIs() const { return linkmdis; };
-	bool getShowIsolines() const { return showIsolines; };
-	int getNumberOfIsolines() const { return numberOfIsolines; };
-	double getMinIsovalue() const { return minIsovalue; };
-	double getMaxIsovalue() const { return maxIsovalue; };
+	bool getLinkedViews() const { return linkviews; }
+	bool getLinkedMDIs() const { return linkmdis; }
+	bool getShowIsolines() const { return showIsolines; }
+	int getNumberOfIsolines() const { return numberOfIsolines; }
+	double getMinIsovalue() const { return minIsovalue; }
+	double getMaxIsovalue() const { return maxIsovalue; }
 	bool getImageActorUseInterpolation() const { return imageActorUseInterpolation; }
-	int getSnakeSlices() const { return snakeSlices; };
+	int getSnakeSlices() const { return snakeSlices; }
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
@@ -477,28 +458,26 @@ private:
 
 	QString curFile, path;
 	QPoint lastPoint;
-	bool isUntitled/*, maximizedXY, maximizedXZ, maximizedYZ, maximizedRC, maximizedTab*/, tabsVisible;
+	bool isUntitled, tabsVisible;
 	int xCoord, yCoord, zCoord;
 	int histogramBins, statExt, magicLensSize, magicLensFrameWidth;
 	bool compression, showPosition, resultInNewWindow, filterHistogram, linkSlicers, logarithmicHistogram;
-	
-	// Renderer Settings:
-	bool  showVolume, showSlicers, showHelpers, showRPosition, linearInterpolation, shading, boundingBox, parallelProjection;
-	double sampleDistance,	ambientLighting, diffuseLighting ,specularLighting, specularPower;
+
+	iARenderSettings renderSettings;
+	iAVolumeSettings volumeSettings;
+
 	double minIsovalue, maxIsovalue;
 	int numberOfIsolines, snakeSlices;
 	bool linkviews, showIsolines, imageActorUseInterpolation, interactorsEnabled, linkmdis;
 	unsigned char visibility;
-	QString backgroundTop, backgroundBottom;
-	int renderMode;
 
 	ConnectionState connectionState;
 	int roi[6];
 
 	bool snakeSlicer;
-	bool isSliceProfileEnabled;	//slice profile, shown in slices
-	bool isArbProfileEnabled;	//arbitrary profile, shown in profile widget
-	bool isMagicLensEnabled;	//magic lens exploration
+	bool isSliceProfileEnabled;	//!< slice profile, shown in slices
+	bool isArbProfileEnabled;	//!< arbitrary profile, shown in profile widget
+	bool isMagicLensEnabled;	//!< magic lens exploration
 	
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);

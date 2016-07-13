@@ -429,7 +429,8 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 			slicerXY->setIndex(x,y,z);
 			sXY->spinBoxXY->setValue(z);
 		}
-		if (showRPosition) Raycaster->setCubeCenter(x, y, z);
+		if (renderSettings.ShowRPosition)
+			Raycaster->setCubeCenter(x, y, z);
 	}
 }
 
@@ -472,11 +473,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	initView( );
 	setWindowTitle( title );
 
-	setupRaycaster( showVolume, showSlicers, showHelpers, showRPosition,
-		linearInterpolation, shading, boundingBox, parallelProjection,
-		imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
-		specularLighting, specularPower, backgroundTop, backgroundBottom,
-		renderMode, false);
+	setupRaycaster(renderSettings, volumeSettings, false);
 	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true );
 
 	if (imageData->GetExtent()[1] <= 1)
@@ -647,7 +644,7 @@ bool MdiChild::setupStackView(bool active)
 void MdiChild::setupViewInternal(bool active)
 {
 	if (IsOnlyPolyDataLoaded())
-		showVolume = false;
+		renderSettings.ShowVolume = false;
 	else
 		calculateHistogram();//AMA assertion error on rendering otherwise
 
@@ -656,13 +653,10 @@ void MdiChild::setupViewInternal(bool active)
 	m_mainWnd->setCurrentFile(currentFile());
 
 	if ((imageData->GetExtent()[1] < 3) || (imageData->GetExtent()[3]) < 3 || (imageData->GetExtent()[5] < 3))
-		shading = false;
+		volumeSettings.Shading = false;
 
-	setupRaycaster(showVolume, showSlicers, showHelpers, showRPosition,
-		linearInterpolation, shading, boundingBox, parallelProjection,
-		imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
-		specularLighting, specularPower, backgroundTop, backgroundBottom,
-		renderMode, false);//AMA 06.05.2010 was resetting results of initView when STL is opened
+	renderSettings.SampleDistance = imageData->GetSpacing()[0];
+	setupRaycaster(renderSettings, volumeSettings, false);
 	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true);
 
 	if (imageData->GetExtent()[1] <= 1)
@@ -1261,7 +1255,7 @@ void MdiChild::setSliceXY(int s)
 			}
 		}
 		slicerXY->setSliceNumber(s);
-		if (getShowSlicers())
+		if (renderSettings.ShowSlicers)
 		{
 			Raycaster->getPlane3()->SetNormal(0.0, 0.0, 1.0);
 			Raycaster->getPlane3()->SetOrigin(0.0,0.0,s*imageData->GetSpacing()[2]);
@@ -1309,7 +1303,7 @@ void MdiChild::setSliceYZ(int s)
 			}
 		}
 		slicerYZ->setSliceNumber(s);
-		if (getShowSlicers())
+		if (renderSettings.ShowSlicers)
 		{
 			Raycaster->getPlane1()->SetOrigin(s*imageData->GetSpacing()[0],0,0);
 			Raycaster->update();
@@ -1356,7 +1350,7 @@ void MdiChild::setSliceXZ(int s)
 			}
 		}
 		slicerXZ->setSliceNumber(s);
-		if (getShowSlicers())
+		if (renderSettings.ShowSlicers)
 		{
 			Raycaster->getPlane2()->SetOrigin(0,s*imageData->GetSpacing()[1],0);
 			Raycaster->update();
@@ -1456,25 +1450,10 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool 
 	return true;
 }
 
-void MdiChild::setupRaycaster( bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-	double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init )
+void MdiChild::setupRaycaster(iARenderSettings const & rs, iAVolumeSettings const & vs, bool init )
 {
-	showVolume = sv;
-	showSlicers = ss;
-	showHelpers = sh;
-	showRPosition = spo;
-	linearInterpolation = li;
-	shading = s;
-	boundingBox = bb;
-	parallelProjection = pp;
-	sampleDistance = sd;
-	ambientLighting = al;
-	diffuseLighting = dl;
-	specularLighting = sl;
-	specularPower = sp;
-	backgroundTop = backt;
-	backgroundBottom = backb;
-	renderMode = mode;
+	renderSettings = rs;
+	volumeSettings = vs;
 
 	if (!init)
 		applyCurrentSettingsToRaycaster(Raycaster);
@@ -1483,51 +1462,51 @@ void MdiChild::setupRaycaster( bool sv, bool ss, bool sh, bool spo, bool li, boo
 
 void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 {
-	raycaster->GetVolume()->SetVisibility(showVolume);
+	raycaster->GetVolume()->SetVisibility(renderSettings.ShowVolume);
 	//setup slicers
 	if (snakeSlicer) {
 		//setSliceXY(sXY->spinBoxXY->value());
-		raycaster->showSlicers(false, false, showSlicers);
+		raycaster->showSlicers(false, false, renderSettings.ShowSlicers);
 	}
 	else
 	{
-		raycaster->showSlicers(showSlicers);
+		raycaster->showSlicers(renderSettings.ShowSlicers);
 	}
 	// setup raycaster
-	raycaster->setSampleDistance(sampleDistance);
+	raycaster->setSampleDistance(renderSettings.SampleDistance);
 
 	// setup properties, visibility, background
-	raycaster->GetVolumeProperty()->SetAmbient(ambientLighting);
-	raycaster->GetVolumeProperty()->SetDiffuse(diffuseLighting);
-	raycaster->GetVolumeProperty()->SetSpecular(specularLighting);
-	raycaster->GetVolumeProperty()->SetSpecularPower(specularPower);
-	raycaster->GetVolumeProperty()->SetInterpolationType(linearInterpolation);
-	raycaster->GetVolumeProperty()->SetShade(shading);
+	raycaster->GetVolumeProperty()->SetAmbient(volumeSettings.AmbientLighting);
+	raycaster->GetVolumeProperty()->SetDiffuse(volumeSettings.DiffuseLighting);
+	raycaster->GetVolumeProperty()->SetSpecular(volumeSettings.SpecularLighting);
+	raycaster->GetVolumeProperty()->SetSpecularPower(volumeSettings.SpecularPower);
+	raycaster->GetVolumeProperty()->SetInterpolationType(volumeSettings.LinearInterpolation);
+	raycaster->GetVolumeProperty()->SetShade(volumeSettings.Shading);
 
-	raycaster->GetOutlineActor()->SetVisibility(boundingBox);
-	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(parallelProjection);
+	raycaster->GetOutlineActor()->SetVisibility(renderSettings.ShowBoundingBox);
+	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(renderSettings.ParallelProjection);
 
-	backgroundTop = backgroundTop.trimmed();
-	backgroundBottom = backgroundBottom.trimmed();
-	QColor bgTop(backgroundTop);
-	QColor bgBottom(backgroundBottom);
+	QColor bgTop(renderSettings.BackgroundTop);
+	QColor bgBottom(renderSettings.BackgroundBottom);
 	if (!bgTop.isValid()) {
 		bgTop.setRgbF(0.5, 0.666666666666666667, 1.0);
+		renderSettings.BackgroundTop = bgTop.name();
 	}
 	if (!bgBottom.isValid())  {
 		bgBottom.setRgbF(1.0, 1.0, 1.0);
+		renderSettings.BackgroundBottom = bgTop.name();
 	}
 	raycaster->GetRenderer()->SetBackground(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	raycaster->GetRenderer()->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
-	raycaster->showHelpers(showHelpers);
-	raycaster->showRPosition(showRPosition);
+	raycaster->showHelpers(renderSettings.ShowHelpers);
+	raycaster->showRPosition(renderSettings.ShowRPosition);
 	
-	raycaster->SetRenderMode(renderMode);
+	raycaster->SetRenderMode(volumeSettings.Mode);
 }
 
 int MdiChild::GetRenderMode()
 {
-	return renderMode;
+	return volumeSettings.Mode;
 }
 
 void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init)
@@ -1618,33 +1597,27 @@ void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, dou
 }
 
 
-bool MdiChild::editRendererSettings( bool rsShowVolume, bool rsShowSlicers,  bool rsShowHelpers, bool rsShowRPosition,
-	bool rsLinearInterpolation, bool rsShading, bool rsBoundingBox, bool rsParallelProjection,
-	double rsSampleDistance, double rsAmbientLightning,
-	double rsDiffuseLightning, double rsSpecularLightning, double rsSpecularPower,
-	QString rsBackgroundTop, QString rsBackgroundBottom, int renderMode)
+bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {
-	setupRaycaster( rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition,
-		rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection,
-		rsSampleDistance, rsAmbientLightning, rsDiffuseLightning,
-		rsSpecularLightning, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom,
-		renderMode, false);
+	setupRaycaster(rs, vs, false);
 
 	r->vtkWidgetRC->show();
 
 	emit renderSettingsChanged();
-	m_dlgModalities->ChangeRenderSettings(GetRenderSettings());
+	m_dlgModalities->ChangeRenderSettings(vs);
 
 	return true;
 }
 
-#include "iARenderSettings.h"
-
-RenderSettings MdiChild::GetRenderSettings()
+iARenderSettings const & MdiChild::GetRenderSettings() const
 {
-	return RenderSettings(linearInterpolation, shading, ambientLighting, diffuseLighting, specularLighting, specularPower, backgroundTop);
+	return renderSettings;
 }
 
+iAVolumeSettings const &  MdiChild::GetVolumeSettings() const
+{
+	return volumeSettings;
+}
 
 bool MdiChild::editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm)
 {
@@ -1822,7 +1795,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 	}
 	else
 	{
-		showSlicers = false;
+		renderSettings.ShowSlicers = false;
 
 		sXY->spinBoxXY->setValue(imageData->GetDimensions()[2]>>1);
 		slicerXY->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);
@@ -1845,7 +1818,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		slicerYZ->GetRenderer()->ResetCamera();
 		slicerYZ->GetRenderer()->Render();
 
-		if (showSlicers)
+		if (renderSettings.ShowSlicers)
 			Raycaster->showSlicers(true);
 
 		slicerXY->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
@@ -2316,7 +2289,7 @@ void MdiChild::changeVisibility(unsigned char mode)
 	sXZ->setVisible(xz);
 
 	logs->setVisible(tab);
-	if(showVolume)
+	if (renderSettings.ShowVolume)
 		imgHistogram->setVisible(tab);
 }
 

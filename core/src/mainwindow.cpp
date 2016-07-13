@@ -897,22 +897,22 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 
 	// add new camera node
 	QDomElement renderSettingsElement = doc.createElement("renderSettings");
-	renderSettingsElement.setAttribute("showVolume", tr("%1").arg(rsShowVolume));
-	renderSettingsElement.setAttribute("showSlicers", tr("%1").arg(rsShowSlicers));
-	renderSettingsElement.setAttribute("showHelpers", tr("%1").arg(rsShowHelpers));
-	renderSettingsElement.setAttribute("showRPosition", tr("%1").arg(rsShowRPosition));
-	renderSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(rsLinearInterpolation));
-	renderSettingsElement.setAttribute("shading", tr("%1").arg(rsShading));
-	renderSettingsElement.setAttribute("boundingBox", tr("%1").arg(rsBoundingBox));
-	renderSettingsElement.setAttribute("parallelProjection", tr("%1").arg(rsParallelProjection));
-	renderSettingsElement.setAttribute("sampleDistance", tr("%1").arg(rsSampleDistance));
-	renderSettingsElement.setAttribute("ambientLighting", tr("%1").arg(rsAmbientLighting));
-	renderSettingsElement.setAttribute("diffuseLighting", tr("%1").arg(rsDiffuseLighting));
-	renderSettingsElement.setAttribute("specularLighting", tr("%1").arg(rsSpecularLighting));
-	renderSettingsElement.setAttribute("specularPower", tr("%1").arg(rsSpecularPower));
-	renderSettingsElement.setAttribute("backgroundTop", tr("%1").arg(rsBackgroundTop.toLatin1().constData()));
-	renderSettingsElement.setAttribute("backgroundBottom", tr("%1").arg(rsBackgroundBottom.toLatin1().constData()));
-	renderSettingsElement.setAttribute("renderMode", tr("%1").arg(rsRenderMode));
+	renderSettingsElement.setAttribute("showVolume", tr("%1").arg(defaultRenderSettings.ShowVolume));
+	renderSettingsElement.setAttribute("showSlicers", tr("%1").arg(defaultRenderSettings.ShowSlicers));
+	renderSettingsElement.setAttribute("showHelpers", tr("%1").arg(defaultRenderSettings.ShowHelpers));
+	renderSettingsElement.setAttribute("showRPosition", tr("%1").arg(defaultRenderSettings.ShowRPosition));
+	renderSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(defaultVolumeSettings.LinearInterpolation));
+	renderSettingsElement.setAttribute("shading", tr("%1").arg(defaultVolumeSettings.Shading));
+	renderSettingsElement.setAttribute("boundingBox", tr("%1").arg(defaultRenderSettings.ShowBoundingBox));
+	renderSettingsElement.setAttribute("parallelProjection", tr("%1").arg(defaultRenderSettings.ParallelProjection));
+	renderSettingsElement.setAttribute("sampleDistance", tr("%1").arg(defaultRenderSettings.SampleDistance));
+	renderSettingsElement.setAttribute("ambientLighting", tr("%1").arg(defaultVolumeSettings.AmbientLighting));
+	renderSettingsElement.setAttribute("diffuseLighting", tr("%1").arg(defaultVolumeSettings.DiffuseLighting));
+	renderSettingsElement.setAttribute("specularLighting", tr("%1").arg(defaultVolumeSettings.SpecularLighting));
+	renderSettingsElement.setAttribute("specularPower", tr("%1").arg(defaultVolumeSettings.SpecularPower));
+	renderSettingsElement.setAttribute("backgroundTop", tr("%1").arg(defaultRenderSettings.BackgroundTop.toLatin1().constData()));
+	renderSettingsElement.setAttribute("backgroundBottom", tr("%1").arg(defaultRenderSettings.BackgroundBottom.toLatin1().constData()));
+	renderSettingsElement.setAttribute("renderMode", tr("%1").arg(defaultVolumeSettings.Mode));
 
 	doc.documentElement().appendChild(renderSettingsElement);
 }
@@ -922,28 +922,25 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 {
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
 
-	rsShowVolume = attributes.namedItem("showVolume").nodeValue() == "1";
-	rsShowSlicers = attributes.namedItem("showSlicers").nodeValue() == "1";
-	rsShowHelpers = attributes.namedItem("showHelpers").nodeValue() == "1";
-	rsShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
-	rsLinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
-	rsShading = attributes.namedItem("shading").nodeValue() == "1";
-	rsBoundingBox = attributes.namedItem("boundingBox").nodeValue() == "1";
-	rsParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
+	defaultRenderSettings.ShowVolume = attributes.namedItem("showVolume").nodeValue() == "1";
+	defaultRenderSettings.ShowSlicers = attributes.namedItem("showSlicers").nodeValue() == "1";
+	defaultRenderSettings.ShowHelpers = attributes.namedItem("showHelpers").nodeValue() == "1";
+	defaultRenderSettings.ShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
+	defaultVolumeSettings.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
+	defaultVolumeSettings.Shading = attributes.namedItem("shading").nodeValue() == "1";
+	defaultRenderSettings.ShowBoundingBox = attributes.namedItem("boundingBox").nodeValue() == "1";
+	defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
 
-	rsSampleDistance = attributes.namedItem("sampleDistance").nodeValue().toDouble();
-	rsAmbientLighting = attributes.namedItem("ambientLighting").nodeValue().toDouble();
-	rsDiffuseLighting = attributes.namedItem("diffuseLighting").nodeValue().toDouble();
-	rsSpecularLighting = attributes.namedItem("specularLighting").nodeValue().toDouble();
-	rsSpecularPower = attributes.namedItem("specularPower").nodeValue().toDouble();
-	rsBackgroundTop = attributes.namedItem("backgroundTop").nodeValue();
-	rsBackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
-	rsRenderMode = attributes.namedItem("renderMode").nodeValue().toInt();
+	defaultRenderSettings.SampleDistance = attributes.namedItem("sampleDistance").nodeValue().toDouble();
+	defaultVolumeSettings.AmbientLighting = attributes.namedItem("ambientLighting").nodeValue().toDouble();
+	defaultVolumeSettings.DiffuseLighting = attributes.namedItem("diffuseLighting").nodeValue().toDouble();
+	defaultVolumeSettings.SpecularLighting = attributes.namedItem("specularLighting").nodeValue().toDouble();
+	defaultVolumeSettings.SpecularPower = attributes.namedItem("specularPower").nodeValue().toDouble();
+	defaultRenderSettings.BackgroundTop = attributes.namedItem("backgroundTop").nodeValue();
+	defaultRenderSettings.BackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
+	defaultVolumeSettings.Mode = attributes.namedItem("renderMode").nodeValue().toInt();
 
-	activeMdiChild()->editRendererSettings(
-		rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition, rsLinearInterpolation, rsShading, rsBoundingBox,
-		rsParallelProjection, rsSampleDistance, rsAmbientLighting,
-		rsDiffuseLighting, rsSpecularLighting, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom, rsRenderMode);
+	activeMdiChild()->editRendererSettings(defaultRenderSettings, defaultVolumeSettings);
 }
 
 
@@ -1197,7 +1194,6 @@ void MainWindow::renderSettings()
 		<< tr("$Shading")
 		<< tr("$Bounding box")
 		<< tr("$Parallel projection")
-		<< tr("#Image sample distance")
 		<< tr("#Sample distance")
 		<< tr("#Ambient lighting")
 		<< tr("#Diffuse lighting")
@@ -1207,66 +1203,68 @@ void MainWindow::renderSettings()
 		<< tr("#Background bottom")
 		<< tr("+Renderer Type");
 	QList<QVariant> inPara;
-	inPara << (child->getShowVolume() ? t : f)
-		<< (child->getShowSlicers() ? t : f)
-		<< (child->getShowHelpers() ? t : f)
-		<< (child->getShowRPosition() ? t : f)
-		<< (child->getLinearInterpolation() ? t : f)
-		<< (child->getShading() ? t : f)
-		<< (child->getBoundingBox() ? t : f)
-		<< (child->getParallelProjection() ? t : f)
+	iARenderSettings const & renderSettings = child->GetRenderSettings();
+	iAVolumeSettings const & volumeSettings = child->GetVolumeSettings();
+	inPara << (renderSettings.ShowVolume ? t : f)
+		<< (renderSettings.ShowSlicers ? t : f)
+		<< (renderSettings.ShowHelpers ? t : f)
+		<< (renderSettings.ShowRPosition ? t : f)
+		<< (volumeSettings.LinearInterpolation ? t : f)
+		<< (volumeSettings.Shading ? t : f)
+		<< (renderSettings.ShowBoundingBox ? t : f)
+		<< (renderSettings.ParallelProjection ? t : f)
 
-		<< tr("%1").arg(child->getSampleDistance())
-		<< tr("%1").arg(child->getAmbientLighting())
-		<< tr("%1").arg(child->getDiffuseLighting())
-		<< tr("%1").arg(child->getSpecularLighting())
-		<< tr("%1").arg(child->getSpecularPower())
-		<< tr("%1").arg(child->getBackgroundTop())
-		<< tr("%1").arg(child->getBackgroundBottom())
+		<< tr("%1").arg(renderSettings.SampleDistance)
+		<< tr("%1").arg(volumeSettings.AmbientLighting)
+		<< tr("%1").arg(volumeSettings.DiffuseLighting)
+		<< tr("%1").arg(volumeSettings.SpecularLighting)
+		<< tr("%1").arg(volumeSettings.SpecularPower)
+		<< tr("%1").arg(renderSettings.BackgroundTop)
+		<< tr("%1").arg(renderSettings.BackgroundBottom)
 		<< renderTypes;
 
 	dlg_commoninput dlg(this, "Renderer settings", 16, inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		rsShowVolume = dlg.getCheckValues()[0] != 0;
-		rsShowSlicers = dlg.getCheckValues()[1] != 0;
-		rsShowHelpers = dlg.getCheckValues()[2] != 0;
-		rsShowRPosition = dlg.getCheckValues()[3] != 0;
-		rsLinearInterpolation = dlg.getCheckValues()[4] != 0;
-		rsShading = dlg.getCheckValues()[5] != 0;
-		rsBoundingBox = dlg.getCheckValues()[6] != 0;
-		rsParallelProjection = dlg.getCheckValues()[7] != 0;
+		defaultRenderSettings.ShowVolume = dlg.getCheckValues()[0] != 0;
+		defaultRenderSettings.ShowSlicers = dlg.getCheckValues()[1] != 0;
+		defaultRenderSettings.ShowHelpers = dlg.getCheckValues()[2] != 0;
+		defaultRenderSettings.ShowRPosition = dlg.getCheckValues()[3] != 0;
+		
+		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValues()[4] != 0;
+		defaultVolumeSettings.Shading = dlg.getCheckValues()[5] != 0;
+		defaultRenderSettings.ShowBoundingBox = dlg.getCheckValues()[6] != 0;
+		defaultRenderSettings.ParallelProjection = dlg.getCheckValues()[7] != 0;
 
-		rsSampleDistance = dlg.getValues()[8];
-		rsAmbientLighting = dlg.getValues()[9];
-		rsDiffuseLighting = dlg.getValues()[10];
-		rsSpecularLighting = dlg.getValues()[11];
-		rsSpecularPower = dlg.getValues()[12];
-		rsBackgroundTop = dlg.getText()[13];
-		rsBackgroundBottom = dlg.getText()[14];
+		defaultRenderSettings.SampleDistance = dlg.getValues()[8];
+		defaultVolumeSettings.AmbientLighting = dlg.getValues()[9];
+		defaultVolumeSettings.DiffuseLighting = dlg.getValues()[10];
+		defaultVolumeSettings.SpecularLighting = dlg.getValues()[11];
+		defaultVolumeSettings.SpecularPower = dlg.getValues()[12];
+		defaultRenderSettings.BackgroundTop = dlg.getText()[13];
+		defaultRenderSettings.BackgroundBottom = dlg.getText()[14];
 
 		QString renderType = dlg.getComboBoxValues()[15];
 
 		// TODO: use renderModes / reverse mapping ?
-		rsRenderMode = vtkSmartVolumeMapper::DefaultRenderMode;
+		defaultVolumeSettings.Mode = vtkSmartVolumeMapper::DefaultRenderMode;
 		if (renderType == tr("DefaultRenderMode"))
 		{
-			rsRenderMode = vtkSmartVolumeMapper::DefaultRenderMode;
+			defaultVolumeSettings.Mode = vtkSmartVolumeMapper::DefaultRenderMode;
 		}
 		else if (renderType == tr("RayCastRenderMode"))
 		{
-			rsRenderMode = vtkSmartVolumeMapper::RayCastRenderMode;
+			defaultVolumeSettings.Mode = vtkSmartVolumeMapper::RayCastRenderMode;
 		}
 		else if (renderType == tr("GPURenderMode"))
 		{
-			rsRenderMode = vtkSmartVolumeMapper::GPURenderMode;
+			defaultVolumeSettings.Mode = vtkSmartVolumeMapper::GPURenderMode;
 		}
 
 		if (activeMdiChild() && activeMdiChild()->editRendererSettings(
-			rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition, rsLinearInterpolation, rsShading, rsBoundingBox,
-			rsParallelProjection, rsSampleDistance, rsAmbientLighting,
-			rsDiffuseLighting, rsSpecularLighting, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom, rsRenderMode))
+			defaultRenderSettings,
+			defaultVolumeSettings))
 		{
 			statusBar()->showMessage(tr("Changed renderer settings"), 5000);
 		}
@@ -1447,7 +1445,7 @@ void MainWindow::raycasterAssignIso()
 			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
 
 			// check dimension and spacing here, if not the same with active mdichild, skip.
-			tmpChild->setCamPosition(camOptions, rsParallelProjection);
+			tmpChild->setCamPosition(camOptions, defaultRenderSettings.ParallelProjection);
 		}
 	}
 }
@@ -1754,11 +1752,7 @@ MdiChild* MainWindow::createMdiChild()
 	MdiChild *child = new MdiChild(this);
 	mdiArea->addSubWindow(child);
 
-	child->setupRaycaster( rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition,
-		rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection,
-		rsSampleDistance, rsAmbientLighting, rsDiffuseLighting,
-		rsSpecularLighting, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom,
-		rsRenderMode, true );
+	child->setupRaycaster( defaultRenderSettings, defaultVolumeSettings, true );
 	child->setupSlicers( ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs, false);
 	child->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefMedianFilterFistogram, prefResultInNewWindow, true);
 
@@ -1893,22 +1887,22 @@ void MainWindow::readSettings()
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
-	rsShowVolume = settings.value("Renderer/rsShowVolume", true).toBool();;
-	rsShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
-	rsShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
-	rsShowRPosition = settings.value("Renderer/rsShowRPosition", true).toBool();
-	rsLinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
-	rsShading = settings.value("Renderer/rsShading", true).toBool();
-	rsBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
-	rsParallelProjection = settings.value("Renderer/rsParallelProjection", false).toBool();
-	rsSampleDistance = settings.value("Renderer/rsSampleDistance", 1).toDouble();
-	rsAmbientLighting = settings.value("Renderer/rsAmbientLighting", 0.2).toDouble();
-	rsDiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
-	rsSpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
-	rsSpecularPower = settings.value("Renderer/rsSpecularPower", 10).toDouble();
-	rsBackgroundTop = settings.value("Renderer/rsBackgroundTop", "#7FAAFF").toString();
-	rsBackgroundBottom = settings.value("Renderer/rsBackgroundBottom", "#FFFFFF").toString();
-	rsRenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
+	defaultRenderSettings.ShowVolume = settings.value("Renderer/rsShowVolume", true).toBool();
+	defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
+	defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
+	defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", true).toBool();
+	defaultVolumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
+	defaultVolumeSettings.Shading = settings.value("Renderer/rsShading", true).toBool();
+	defaultRenderSettings.ShowBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
+	defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", false).toBool();
+	defaultRenderSettings.SampleDistance = settings.value("Renderer/rsSampleDistance", 1).toDouble();
+	defaultVolumeSettings.AmbientLighting = settings.value("Renderer/rsAmbientLighting", 0.2).toDouble();
+	defaultVolumeSettings.DiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
+	defaultVolumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
+	defaultVolumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 10).toDouble();
+	defaultRenderSettings.BackgroundTop = settings.value("Renderer/rsBackgroundTop", "#7FAAFF").toString();
+	defaultRenderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", "#FFFFFF").toString();
+	defaultVolumeSettings.Mode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
 	ssLinkViews = settings.value("Slicer/ssLinkViews", false).toBool();
 	ssShowPosition = settings.value("Slicer/ssShowPosition", true).toBool();
@@ -1990,22 +1984,22 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefMagicLensFrameWidth", prefMagicLensFrameWidth);
 	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance().IsLogToFileOn());
 
-	settings.setValue("Renderer/rsShowVolume", rsShowVolume);
-	settings.setValue("Renderer/rsShowSlicers", rsShowSlicers);
-	settings.setValue("Renderer/rsLinearInterpolation", rsLinearInterpolation);
-	settings.setValue("Renderer/rsShading", rsShading);
-	settings.setValue("Renderer/rsBoundingBox", rsBoundingBox);
-	settings.setValue("Renderer/rsParallelProjection", rsParallelProjection);
-	settings.setValue("Renderer/rsShowHelpers", rsShowHelpers);
-	settings.setValue("Renderer/rsShowRPosition", rsShowRPosition);
-	settings.setValue("Renderer/rsSampleDistance", rsSampleDistance);
-	settings.setValue("Renderer/rsAmbientLighting", rsAmbientLighting);
-	settings.setValue("Renderer/rsDiffuseLighting", rsDiffuseLighting);
-	settings.setValue("Renderer/rsSpecularLighting", rsSpecularLighting);
-	settings.setValue("Renderer/rsSpecularPower", rsSpecularPower);
-	settings.setValue("Renderer/rsBackgroundTop", rsBackgroundTop);
-	settings.setValue("Renderer/rsBackgroundBottom", rsBackgroundBottom);
-	settings.setValue("Renderer/rsRenderMode", rsRenderMode);
+	settings.setValue("Renderer/rsShowVolume", defaultRenderSettings.ShowVolume);
+	settings.setValue("Renderer/rsShowSlicers", defaultRenderSettings.ShowSlicers);
+	settings.setValue("Renderer/rsLinearInterpolation", defaultVolumeSettings.LinearInterpolation);
+	settings.setValue("Renderer/rsShading", defaultVolumeSettings.Shading);
+	settings.setValue("Renderer/rsBoundingBox", defaultRenderSettings.ShowBoundingBox);
+	settings.setValue("Renderer/rsParallelProjection", defaultRenderSettings.ParallelProjection);
+	settings.setValue("Renderer/rsShowHelpers", defaultRenderSettings.ShowHelpers);
+	settings.setValue("Renderer/rsShowRPosition", defaultRenderSettings.ShowRPosition);
+	settings.setValue("Renderer/rsSampleDistance", defaultRenderSettings.SampleDistance);
+	settings.setValue("Renderer/rsAmbientLighting", defaultVolumeSettings.AmbientLighting);
+	settings.setValue("Renderer/rsDiffuseLighting", defaultVolumeSettings.DiffuseLighting);
+	settings.setValue("Renderer/rsSpecularLighting", defaultVolumeSettings.SpecularLighting);
+	settings.setValue("Renderer/rsSpecularPower", defaultVolumeSettings.SpecularPower);
+	settings.setValue("Renderer/rsBackgroundTop", defaultRenderSettings.BackgroundTop);
+	settings.setValue("Renderer/rsBackgroundBottom", defaultRenderSettings.BackgroundBottom);
+	settings.setValue("Renderer/rsRenderMode", defaultVolumeSettings.Mode);
 
 	settings.setValue("Slicer/ssLinkViews", ssLinkViews);
 	settings.setValue("Slicer/ssShowPosition", ssShowPosition);

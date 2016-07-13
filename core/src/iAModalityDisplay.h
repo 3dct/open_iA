@@ -25,8 +25,8 @@
 
 #include <QSharedPointer>
 
+class iAVolumeSettings;
 class ModalityTransfer;
-class RenderSettings;
 
 class vtkImageData;
 class vtkSmartVolumeMapper;
@@ -41,7 +41,7 @@ public:
 	ModalityDisplay(
 		QSharedPointer<ModalityTransfer> transfer,
 		vtkSmartPointer<vtkImageData> imgData);
-	void SetRenderSettings(RenderSettings const & rs);
+	void SetRenderSettings(iAVolumeSettings const & rs);
 private:
 	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
 

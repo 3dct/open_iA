@@ -29,7 +29,7 @@
 #include "iAModalityDisplay.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
-#include "iARenderSettings.h"
+#include "iAVolumeSettings.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 
@@ -346,7 +346,7 @@ vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::GetOTF(int modality)
 	return modalities->Get(modality)->GetTransfer()->getOpacityFunction();
 }
 
-void dlg_modalities::ChangeRenderSettings(RenderSettings const & rs)
+void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
 {
 	for (int i = 0; i < modalities->size(); ++i)
 	{

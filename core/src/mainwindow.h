@@ -25,6 +25,9 @@
 #include "ui_Mainwindow.h"
 #include "open_iA_Core_export.h"
 
+#include "iARenderSettings.h"
+#include "iAVolumeSettings.h"
+
 #include <QMainWindow>
 
 #include <string>
@@ -139,35 +142,15 @@ public slots:
 
 public:
 	bool isStack;
-	//void setFeaturesFromMasks(QStringList featuremask);
-	//int updateVisibility(void);
-	//int exportVisibility(QString filename);
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
 	int getPrefHistoBinCnt() { return prefHistogramBins; };
 	bool getPrefCompression() { return prefCompression; };
 	bool getPrefMedianFilterFistogram() { return prefMedianFilterFistogram; };
 	bool getPrefResultInNewWindow() { return prefResultInNewWindow; };
-	
-	bool getShowVolume() { return rsShowVolume; };
-	bool getShowSlicers() { return rsShowSlicers; };
-	bool getShowHelpers() { return rsShowHelpers; };
-	bool getShowRPosition() { return rsShowRPosition; };
-	bool getLinearInterpolation() { return rsLinearInterpolation; };
-	bool getShading() { return rsShading; };
-	bool getBoundingBox() { return rsBoundingBox; };
-	bool getParallelProjection() { return rsParallelProjection; };
-	
-	double getSampleDistance() { return rsSampleDistance; };
-	double getAmbientLighting() { return rsAmbientLighting; };
-	double getDiffuseLighting() { return rsDiffuseLighting; };
-	double getSpecularLighting() { return rsSpecularLighting; };
-	double getSpecularPower() { return rsSpecularPower; };
-	QString getBackgroundTop() { return rsBackgroundTop; };
-	QString getBackgroundBottom() { return rsBackgroundBottom; };
+
 	QColor *getColors() { return colors; }
 
-	void setSampleDistance( double d ) { rsSampleDistance = d; };
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
 
@@ -241,17 +224,16 @@ private:
 	bool prefCompression, prefResultInNewWindow, prefMedianFilterFistogram;
 	
 	QString qssName;
-	bool rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition, rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection;
-	double rsSampleDistance, rsAmbientLighting, rsDiffuseLighting, rsSpecularLighting, rsSpecularPower;
+
+	iAVolumeSettings defaultVolumeSettings;	
+	iARenderSettings defaultRenderSettings;
+
 	double ssMinIsovalue, ssMaxIsovalue;
 	int ssNumberOfIsolines, ssSnakeSlices;
 	bool ssLinkViews, ssShowIsolines, ssShowPosition, ssImageActorUseInterpolation, ssInteractionEnabled, ssShowPorosityMaps, ssLinkMDIs;
 	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
 	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;//openwithdatatypeconversion
 	float owdtcmin, owdtcmax; double owdtcoutmin, owdtcoutmax; int owdtcdov ;//openwithdatatype
-
-	QString rsBackgroundTop, rsBackgroundBottom;
-	int rsRenderMode;
 
 	bool lpCamera, lpSliceViews, lpTransferFunction, lpProbabilityFunctions, lpPreferences, lpRenderSettings, lpSlicerSettings;
 	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
@@ -267,7 +249,6 @@ private:
 	QColor colors[7];
 
 	QTimer *timer;
-	//bool isStack;
 
 	QComboBox * layout;
 

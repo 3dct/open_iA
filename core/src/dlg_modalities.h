@@ -33,14 +33,13 @@
 #include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
-//class dlg_modalityRenderer;
 class dlg_planeSlicer;
 class iAFast3DMagicLensWidget;
 class iAHistogramWidget;
 class iAModality;
 class iAModalityList;
+class iAVolumeSettings;
 class MdiChild;
-class RenderSettings;
 
 class vtkActor;
 class vtkColorTransferFunction;
@@ -59,7 +58,7 @@ public:
 	int						GetSelected() const;
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
-	void ChangeRenderSettings(RenderSettings const & rs);
+	void ChangeRenderSettings(iAVolumeSettings const & rs);
 	void Store(QString const & filename);
 	bool Load(QString const & filename);
 public slots:
