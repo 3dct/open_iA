@@ -90,7 +90,7 @@ public:
 	void initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showIsoLines = false, bool showPolygon = false );
 	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showIsoLines = false, bool showPolygon = false );
 	void changeImageData(vtkImageData *idata);
-	void setup(bool showIsoLines, bool showPos, int no, double min, double max, bool linearInterpolation);
+	void setup(iASingleSlicerSettings const & settings);
 	
 	void initializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
 	void reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData);

@@ -26,6 +26,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAChannelID.h"
 #include "iARenderSettings.h"
+#include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
 #include "iAVolumeStack.h"
 #include "open_iA_Core_export.h"
@@ -142,7 +143,7 @@ public:
 	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init );
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
-	bool editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm);
+	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
 	bool saveTransferFunction();
 	void saveRenderWindow(vtkRenderWindow *renderWindow);
@@ -171,11 +172,12 @@ public:
 	bool isSliceProfileToggled(void) const;
 	void enableInteraction(bool b);
 	void setupRaycaster(iARenderSettings const & rs, iAVolumeSettings const & vs, bool init );
-	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init);
+	void setupSlicers(iASlicerSettings const & ss, bool init);
 	void check2DMode();
 	iALogger * getLogger();
 	iARenderSettings const & GetRenderSettings() const;
 	iAVolumeSettings const & GetVolumeSettings() const;
+	iASlicerSettings const & GetSlicerSettings() const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithms* thread, bool providesProgress = true, bool usesDoneSignal = false);
@@ -210,19 +212,11 @@ public:
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return resultInNewWindow; }
 	bool getCompression() const { return compression; }
-	bool getShowPosition() const { return showPosition; }
 	bool getMedianFilterHistogram() const { return filterHistogram; }
 	int getNumberOfHistogramBins() const { return histogramBins; }
 	int getStatExtent() const { return statExt; }
 
-	bool getLinkedViews() const { return linkviews; }
-	bool getLinkedMDIs() const { return linkmdis; }
-	bool getShowIsolines() const { return showIsolines; }
-	int getNumberOfIsolines() const { return numberOfIsolines; }
-	double getMinIsovalue() const { return minIsovalue; }
-	double getMaxIsovalue() const { return maxIsovalue; }
-	bool getImageActorUseInterpolation() const { return imageActorUseInterpolation; }
-	int getSnakeSlices() const { return snakeSlices; }
+	bool getLinkedMDIs() const { return slicerSettings.LinkMDIs; }
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
@@ -465,19 +459,17 @@ private:
 
 	iARenderSettings renderSettings;
 	iAVolumeSettings volumeSettings;
+	iASlicerSettings slicerSettings;
 
-	double minIsovalue, maxIsovalue;
-	int numberOfIsolines, snakeSlices;
-	bool linkviews, showIsolines, imageActorUseInterpolation, interactorsEnabled, linkmdis;
 	unsigned char visibility;
 
 	ConnectionState connectionState;
 	int roi[6];
 
-	bool snakeSlicer;
-	bool isSliceProfileEnabled;	//!< slice profile, shown in slices
-	bool isArbProfileEnabled;	//!< arbitrary profile, shown in profile widget
-	bool isMagicLensEnabled;	//!< magic lens exploration
+	bool snakeSlicer;           //!< whether snake slicer is enabled
+	bool isSliceProfileEnabled; //!< slice profile, shown in slices
+	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
+	bool isMagicLensEnabled;    //!< magic lens exploration
 	
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);

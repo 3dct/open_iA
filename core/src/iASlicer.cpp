@@ -272,9 +272,9 @@ void iASlicer::setIndex( int x, int y, int z )
 	m_widget->setIndex(x, y, z);
 }
 
-void iASlicer::setup( bool sil, bool sp, int no, double min, double max, bool li )
+void iASlicer::setup( iASingleSlicerSettings const & settings )
 {
-	m_data->setup(sil, sp, no, min, max, li);
+	m_data->setup(settings);
 	if (m_magicLens)
 	{
 		m_widget->updateMagicLens();

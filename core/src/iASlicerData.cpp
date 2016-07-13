@@ -31,6 +31,7 @@
 #include "iAObserverRedirect.h"
 #include "iAMagicLens.h"
 #include "iAPieChartGlyph.h"
+#include "iASlicerSettings.h"
 
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
@@ -488,21 +489,21 @@ void iASlicerData::updateROI()
 }
 
 
-void iASlicerData::setup( bool showIsoLines, bool showPos, int no, double min, double max, bool linearInterpolation)
+void iASlicerData::setup(iASingleSlicerSettings const & settings)
 {
-	imageActor->SetInterpolate(linearInterpolation);
+	imageActor->SetInterpolate(settings.LinearInterpolation);
 	QList<iAChannelID> idList = m_channels.keys();
 	for (QList<iAChannelID>::const_iterator it = idList.begin(); it != idList.end(); ++it)
 	{
-		m_channels[*it]->imageActor->SetInterpolate(linearInterpolation);
+		m_channels[*it]->imageActor->SetInterpolate(settings.LinearInterpolation);
 	}
 	if (m_magicLensExternal)
 	{
-		m_magicLensExternal->SetInterpolate(linearInterpolation);
+		m_magicLensExternal->SetInterpolate(settings.LinearInterpolation);
 	}
-	setContours(no,min,max);
-	showIsolines(showIsoLines);
-	showPosition(showPos);
+	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
+	showIsolines(settings.ShowIsoLines);
+	showPosition(settings.ShowPosition);
 }
 
 

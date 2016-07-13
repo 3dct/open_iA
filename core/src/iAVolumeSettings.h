@@ -45,22 +45,4 @@ public:
 		SpecularPower(10),
 		Mode(0)
 	{}
-
-	iAVolumeSettings(
-		bool    linearInterpolation,
-		bool    shading,
-		double  ambientLighting,
-		double  diffuseLighting,
-		double  specularLighting,
-		double  specularPower,
-		QString backgroundColor)
-	:
-		LinearInterpolation(linearInterpolation),
-		Shading(shading),
-		AmbientLighting(ambientLighting),
-		DiffuseLighting(diffuseLighting),
-		SpecularLighting(specularLighting),
-		SpecularPower(specularPower),
-		BackgroundColor(backgroundColor)
-	{}
 };

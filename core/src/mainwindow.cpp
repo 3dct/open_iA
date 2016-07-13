@@ -99,8 +99,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
 	applyQSS();
-	actionLink_views->setChecked(ssLinkViews);//removed from readSettings, if is needed at all?
-	actionLink_mdis->setChecked(ssLinkMDIs);
+	actionLink_views->setChecked(defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
+	actionLink_mdis->setChecked(defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(mdiArea);
 
 	windowMapper = new QSignalMapper(this);
@@ -952,16 +952,16 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 
 	// add new camera node
 	QDomElement slicerSettingsElement = doc.createElement("slicerSettings");
-	slicerSettingsElement.setAttribute("linkViews", tr("%1").arg(ssLinkViews));
-	slicerSettingsElement.setAttribute("showIsolines", tr("%1").arg(ssShowIsolines));
-	slicerSettingsElement.setAttribute("showPosition", tr("%1").arg(ssShowPosition));
+	slicerSettingsElement.setAttribute("linkViews", tr("%1").arg(defaultSlicerSettings.LinkViews));
+	slicerSettingsElement.setAttribute("showIsolines", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowIsoLines));
+	slicerSettingsElement.setAttribute("showPosition", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowPosition));
 
-	slicerSettingsElement.setAttribute("numberOfIsolines", tr("%1").arg(ssNumberOfIsolines));
-	slicerSettingsElement.setAttribute("minIsovalue", tr("%1").arg(ssMinIsovalue));
-	slicerSettingsElement.setAttribute("maxIsovalue", tr("%1").arg(ssMaxIsovalue));
-	slicerSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(ssImageActorUseInterpolation));
-	slicerSettingsElement.setAttribute("snakeSlices", tr("%1").arg(ssSnakeSlices));
-	slicerSettingsElement.setAttribute("linkMDIs", tr("%1").arg(ssLinkMDIs));
+	slicerSettingsElement.setAttribute("numberOfIsolines", tr("%1").arg(defaultSlicerSettings.SingleSlicer.NumberOfIsoLines));
+	slicerSettingsElement.setAttribute("minIsovalue", tr("%1").arg(defaultSlicerSettings.SingleSlicer.MinIsoValue));
+	slicerSettingsElement.setAttribute("maxIsovalue", tr("%1").arg(defaultSlicerSettings.SingleSlicer.MaxIsoValue));
+	slicerSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(defaultSlicerSettings.SingleSlicer.LinearInterpolation));
+	slicerSettingsElement.setAttribute("snakeSlices", tr("%1").arg(defaultSlicerSettings.SnakeSlices));
+	slicerSettingsElement.setAttribute("linkMDIs", tr("%1").arg(defaultSlicerSettings.LinkMDIs));
 
 	doc.documentElement().appendChild(slicerSettingsElement);
 }
@@ -971,17 +971,17 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 {
 	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
 
-	ssLinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
-	ssShowIsolines = attributes.namedItem("showIsolines").nodeValue() == "1";
-	ssShowPosition = attributes.namedItem("showPosition").nodeValue() == "1";
-	ssNumberOfIsolines = attributes.namedItem("numberOfIsolines").nodeValue().toInt();
-	ssMinIsovalue = attributes.namedItem("minIsovalue").nodeValue().toDouble();
-	ssMaxIsovalue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
-	ssImageActorUseInterpolation = attributes.namedItem("linearInterpolation").nodeValue().toDouble();
-	ssSnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
-	ssLinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
+	defaultSlicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
+	defaultSlicerSettings.SingleSlicer.ShowIsoLines = attributes.namedItem("showIsolines").nodeValue() == "1";
+	defaultSlicerSettings.SingleSlicer.ShowPosition = attributes.namedItem("showPosition").nodeValue() == "1";
+	defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = attributes.namedItem("numberOfIsolines").nodeValue().toInt();
+	defaultSlicerSettings.SingleSlicer.MinIsoValue = attributes.namedItem("minIsovalue").nodeValue().toDouble();
+	defaultSlicerSettings.SingleSlicer.MaxIsoValue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
+	defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue().toDouble();
+	defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
+	defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 
-	activeMdiChild()->editSlicerSettings(ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs);
+	activeMdiChild()->editSlicerSettings(defaultSlicerSettings);
 }
 
 
@@ -1052,10 +1052,10 @@ void MainWindow::linkViews()
 {
 	if (activeMdiChild())
 	{
-		ssLinkViews = actionLink_views->isChecked();
-		activeMdiChild()->linkViews(ssLinkViews);
+		defaultSlicerSettings.LinkViews = actionLink_views->isChecked();
+		activeMdiChild()->linkViews(defaultSlicerSettings.LinkViews);
 
-		if (ssLinkViews)
+		if (defaultSlicerSettings.LinkViews)
 			statusBar()->showMessage(tr("Link Views"), 5000);
 	}
 }
@@ -1064,10 +1064,10 @@ void MainWindow::linkMDIs()
 {
 	if (activeMdiChild())
 	{
-		ssLinkMDIs = actionLink_mdis->isChecked();
-		activeMdiChild()->linkMDIs(ssLinkMDIs);
+		defaultSlicerSettings.LinkMDIs = actionLink_mdis->isChecked();
+		activeMdiChild()->linkMDIs(defaultSlicerSettings.LinkMDIs);
 
-		if (ssLinkViews)
+		if (defaultSlicerSettings.LinkViews)
 			statusBar()->showMessage(tr("Link MDIs"), 5000);
 	}
 }
@@ -1077,10 +1077,10 @@ void MainWindow::enableInteraction()
 {
 	if (activeMdiChild())
 	{
-		ssInteractionEnabled = actionEnableInteraction->isChecked();
-		activeMdiChild()->enableInteraction(ssInteractionEnabled);
+		defaultSlicerSettings.InteractorsEnabled = actionEnableInteraction->isChecked();
+		activeMdiChild()->enableInteraction(defaultSlicerSettings.InteractorsEnabled);
 
-		if (ssInteractionEnabled)
+		if (defaultSlicerSettings.InteractorsEnabled)
 			statusBar()->showMessage(tr("Interaction Enabled"), 5000);
 		else
 			statusBar()->showMessage(tr("Interaction Disabled"), 5000);
@@ -1285,31 +1285,32 @@ void MainWindow::slicerSettings()
 		<< tr("#Max Isovalue")
 		<< tr("#Snake Slices")
 		<< tr("$Link MDIs"));
-	QList<QVariant> inPara; 	inPara  << (child->getLinkedViews() ? tr("true") : tr("false"))
-		<< (child->getShowPosition() ? tr("true") : tr("false"))
-		<< (child->getShowIsolines() ? tr("true") : tr("false"))
-		<< (child->getImageActorUseInterpolation() ? tr("true") : tr("false"))
-		<< tr("%1").arg(child->getNumberOfIsolines())
-		<< tr("%1").arg(child->getMinIsovalue())
-		<< tr("%1").arg(child->getMaxIsovalue())
-		<< tr("%1").arg(child->getSnakeSlices())
+	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
+	QList<QVariant> inPara; 	inPara  << (slicerSettings.LinkViews ? tr("true") : tr("false"))
+		<< (slicerSettings.SingleSlicer.ShowPosition ? tr("true") : tr("false"))
+		<< (slicerSettings.SingleSlicer.ShowIsoLines ? tr("true") : tr("false"))
+		<< (slicerSettings.SingleSlicer.LinearInterpolation ? tr("true") : tr("false"))
+		<< tr("%1").arg(slicerSettings.SingleSlicer.NumberOfIsoLines)
+		<< tr("%1").arg(slicerSettings.SingleSlicer.MinIsoValue)
+		<< tr("%1").arg(slicerSettings.SingleSlicer.MaxIsoValue)
+		<< tr("%1").arg(slicerSettings.SnakeSlices)
 		<< (child->getLinkedMDIs() ? tr("true") : tr("false"));
 
 	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", 9, inList, inPara, NULL);
 
 	if (dlg->exec() == QDialog::Accepted)
 	{
-		ssLinkViews = dlg->getCheckValues()[0] != 0;
-		ssShowPosition = dlg->getCheckValues()[1] != 0;
-		ssShowIsolines = dlg->getCheckValues()[2] != 0;
-		ssImageActorUseInterpolation = dlg->getCheckValues()[3] != 0;
-		ssNumberOfIsolines = dlg->getValues()[4];
-		ssMinIsovalue = dlg->getValues()[5];
-		ssMaxIsovalue = dlg->getValues()[6];
-		ssSnakeSlices = dlg->getValues()[7];
-		ssLinkMDIs = dlg->getCheckValues()[8] != 0;
+		defaultSlicerSettings.LinkViews = dlg->getCheckValues()[0] != 0;
+		defaultSlicerSettings.SingleSlicer.ShowPosition = dlg->getCheckValues()[1] != 0;
+		defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg->getCheckValues()[2] != 0;
+		defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg->getCheckValues()[3] != 0;
+		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg->getValues()[4];
+		defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg->getValues()[5];
+		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg->getValues()[6];
+		defaultSlicerSettings.SnakeSlices = dlg->getValues()[7];
+		defaultSlicerSettings.LinkMDIs = dlg->getCheckValues()[8] != 0;
 
-		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs))
+		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(defaultSlicerSettings))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
 	}
 }
@@ -1752,8 +1753,8 @@ MdiChild* MainWindow::createMdiChild()
 	MdiChild *child = new MdiChild(this);
 	mdiArea->addSubWindow(child);
 
-	child->setupRaycaster( defaultRenderSettings, defaultVolumeSettings, true );
-	child->setupSlicers( ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs, false);
+	child->setupRaycaster(defaultRenderSettings, defaultVolumeSettings, true);
+	child->setupSlicers(defaultSlicerSettings, false);
 	child->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefMedianFilterFistogram, prefResultInNewWindow, true);
 
 	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
@@ -1904,15 +1905,15 @@ void MainWindow::readSettings()
 	defaultRenderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", "#FFFFFF").toString();
 	defaultVolumeSettings.Mode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
-	ssLinkViews = settings.value("Slicer/ssLinkViews", false).toBool();
-	ssShowPosition = settings.value("Slicer/ssShowPosition", true).toBool();
-	ssShowIsolines = settings.value("Slicer/ssShowIsolines", false).toBool();
-	ssLinkMDIs = settings.value("Slicer/ssLinkMDIs", false).toBool();
-	ssNumberOfIsolines = settings.value("Slicer/ssNumberOfIsolines", 5).toDouble();
-	ssMinIsovalue = settings.value("Slicer/ssMinIsovalue", 20000).toDouble();
-	ssMaxIsovalue = settings.value("Slicer/ssMaxIsovalue", 40000).toDouble();
-	ssImageActorUseInterpolation = settings.value("Slicer/ssImageActorUseInterpolation", true).toBool();
-	ssSnakeSlices = settings.value("Slicer/ssSnakeSlices", 100).toInt();
+	defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", false).toBool();
+	defaultSlicerSettings.SingleSlicer.ShowPosition = settings.value("Slicer/ssShowPosition", true).toBool();
+	defaultSlicerSettings.SingleSlicer.ShowIsoLines = settings.value("Slicer/ssShowIsolines", false).toBool();
+	defaultSlicerSettings.LinkMDIs = settings.value("Slicer/ssLinkMDIs", false).toBool();
+	defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = settings.value("Slicer/ssNumberOfIsolines", 5).toDouble();
+	defaultSlicerSettings.SingleSlicer.MinIsoValue = settings.value("Slicer/ssMinIsovalue", 20000).toDouble();
+	defaultSlicerSettings.SingleSlicer.MaxIsoValue = settings.value("Slicer/ssMaxIsovalue", 40000).toDouble();
+	defaultSlicerSettings.SingleSlicer.LinearInterpolation = settings.value("Slicer/ssImageActorUseInterpolation", true).toBool();
+	defaultSlicerSettings.SnakeSlices = settings.value("Slicer/ssSnakeSlices", 100).toInt();
 	lpCamera = settings.value("Parameters/lpCamera").toBool();
 	lpSliceViews = settings.value("Parameters/lpSliceViews").toBool();
 	lpTransferFunction = settings.value("Parameters/lpTransferFunction").toBool();
@@ -2001,15 +2002,15 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsBackgroundBottom", defaultRenderSettings.BackgroundBottom);
 	settings.setValue("Renderer/rsRenderMode", defaultVolumeSettings.Mode);
 
-	settings.setValue("Slicer/ssLinkViews", ssLinkViews);
-	settings.setValue("Slicer/ssShowPosition", ssShowPosition);
-	settings.setValue("Slicer/ssShowIsolines", ssShowIsolines);
-	settings.setValue("Slicer/ssLinkMDIs", ssLinkMDIs);
-	settings.setValue("Slicer/ssNumberOfIsolines", ssNumberOfIsolines);
-	settings.setValue("Slicer/ssMinIsovalue", ssMinIsovalue);
-	settings.setValue("Slicer/ssMaxIsovalue", ssMaxIsovalue);
-	settings.setValue("Slicer/ssImageActorUseInterpolation", ssImageActorUseInterpolation);
-	settings.setValue("Slicer/ssSnakeSlices", ssSnakeSlices);
+	settings.setValue("Slicer/ssLinkViews", defaultSlicerSettings.LinkViews);
+	settings.setValue("Slicer/ssShowPosition", defaultSlicerSettings.SingleSlicer.ShowPosition);
+	settings.setValue("Slicer/ssShowIsolines", defaultSlicerSettings.SingleSlicer.ShowIsoLines);
+	settings.setValue("Slicer/ssLinkMDIs", defaultSlicerSettings.LinkMDIs);
+	settings.setValue("Slicer/ssNumberOfIsolines", defaultSlicerSettings.SingleSlicer.NumberOfIsoLines);
+	settings.setValue("Slicer/ssMinIsovalue", defaultSlicerSettings.SingleSlicer.MinIsoValue);
+	settings.setValue("Slicer/ssMaxIsovalue", defaultSlicerSettings.SingleSlicer.MaxIsoValue);
+	settings.setValue("Slicer/ssImageActorUseInterpolation", defaultSlicerSettings.SingleSlicer.LinearInterpolation);
+	settings.setValue("Slicer/ssSnakeSlices", defaultSlicerSettings.SnakeSlices);
 
 	settings.setValue("Parameters/lpCamera", lpCamera);
 	settings.setValue("Parameters/lpSliceViews", lpSliceViews);

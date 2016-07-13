@@ -127,8 +127,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	isUntitled = true;
 	visibility = MULTI;
 	tabsVisible = true;
-	linkviews = false;
-	interactorsEnabled = true;
 	xCoord = 0, yCoord = 0, zCoord = 0;
 	connectionState = cs_NONE;
 	for (int i = 0; i < 6; i++) roi[i] = 0;
@@ -408,7 +406,7 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 		imageData->GetSpacing(spacing);
 
 //TODO: improve using iASlicer stuff
-	if (linkviews) {
+	if (slicerSettings.LinkViews) {
 		xCoord = x; yCoord = y; zCoord = z;
 		if (mode != 2) {
 			if (showPosition) {
@@ -474,7 +472,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	setWindowTitle( title );
 
 	setupRaycaster(renderSettings, volumeSettings, false);
-	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true );
+	setupSlicers(slicerSettings, true );
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -657,7 +655,7 @@ void MdiChild::setupViewInternal(bool active)
 
 	renderSettings.SampleDistance = imageData->GetSpacing()[0];
 	setupRaycaster(renderSettings, volumeSettings, false);
-	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true);
+	setupSlicers(slicerSettings, true);
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -1389,12 +1387,12 @@ void MdiChild::setRotationXZ(double a)
 
 void MdiChild::link( bool l)
 {
-	linkviews = l;
+	slicerSettings.LinkViews = l;
 }
 
 void MdiChild::linkM(bool lm)
 {
-	linkmdis = lm;
+	slicerSettings.LinkMDIs = lm;
 }
 
 void MdiChild::enableInteraction( bool b)
@@ -1509,32 +1507,24 @@ int MdiChild::GetRenderMode()
 	return volumeSettings.Mode;
 }
 
-void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init)
+void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 {
-	linkviews = lv;
-	showIsolines = sil;
-	showPosition = sp;
-	numberOfIsolines = no;
-	minIsovalue = min;
-	maxIsovalue = max;
-	imageActorUseInterpolation = li;
-	snakeSlices = ss;
-	linkmdis = lm;
+	slicerSettings = ss;
 
 	if (snakeSlicer)
 	{
 		int prevMax = sXY->spinBoxXY->maximum();
 		int prevValue = sXY->spinBoxXY->value();
-		sXY->spinBoxXY->setRange(0, snakeSlices-1);
-		sXY->spinBoxXY->setValue((double)prevValue/prevMax*(snakeSlices-1));
+		sXY->spinBoxXY->setRange(0, ss.SnakeSlices-1);
+		sXY->spinBoxXY->setValue((double)prevValue/prevMax*(ss.SnakeSlices-1));
 	}
 
-	linkViews(lv);
-	linkMDIs(lm);
+	linkViews(ss.LinkViews);
+	linkMDIs(ss.LinkMDIs);
 
-	slicerYZ->setup( sil, sp, no, min, max, li);
-	slicerXY->setup( sil, sp, no, min, max, li);
-	slicerXZ->setup( sil, sp, no, min, max, li);
+	slicerYZ->setup(ss.SingleSlicer);
+	slicerXY->setup(ss.SingleSlicer);
+	slicerXZ->setup(ss.SingleSlicer);
 
 	if (init)
 	{
@@ -1619,9 +1609,14 @@ iAVolumeSettings const &  MdiChild::GetVolumeSettings() const
 	return volumeSettings;
 }
 
-bool MdiChild::editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm)
+iASlicerSettings const & MdiChild::GetSlicerSettings() const
 {
-	setupSlicers( lv, sil, sp, no, min, max, li, ss, lm, false);
+	return slicerSettings;
+}
+
+bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
+{
+	setupSlicers(slicerSettings, false);
 
 	slicerXY->show();
 	slicerYZ->show();
@@ -1990,6 +1985,7 @@ void MdiChild::getSnakeNormal(int index, double point[3], double normal[3])
 	double spacing[3];
 	imageData->GetSpacing(spacing);
 
+	int snakeSlices = slicerSettings.SnakeSlices;
 	if (index == (snakeSlices-1))
 	{
 		i1--;

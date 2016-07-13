@@ -26,6 +26,7 @@
 #include "open_iA_Core_export.h"
 
 #include "iARenderSettings.h"
+#include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
 
 #include <QMainWindow>
@@ -227,12 +228,14 @@ private:
 
 	iAVolumeSettings defaultVolumeSettings;	
 	iARenderSettings defaultRenderSettings;
+	iASlicerSettings defaultSlicerSettings;
 
-	double ssMinIsovalue, ssMaxIsovalue;
-	int ssNumberOfIsolines, ssSnakeSlices;
-	bool ssLinkViews, ssShowIsolines, ssShowPosition, ssImageActorUseInterpolation, ssInteractionEnabled, ssShowPorosityMaps, ssLinkMDIs;
+	//! @{ DataType Conversion settings
 	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
-	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;//openwithdatatypeconversion
+	//! @}
+	//! @{ Open with DataType Conversion settings
+	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;
+	//! @}
 	float owdtcmin, owdtcmax; double owdtcoutmin, owdtcoutmax; int owdtcdov ;//openwithdatatype
 
 	bool lpCamera, lpSliceViews, lpTransferFunction, lpProbabilityFunctions, lpPreferences, lpRenderSettings, lpSlicerSettings;

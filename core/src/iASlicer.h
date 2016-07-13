@@ -44,11 +44,12 @@ class vtkScalarsToColors;
 class vtkTransform;
 
 class iAChannelVisualizationData;
+class iAChannelSlicerData;
 class iAMagicLens;
 class iAMultiChannelVisualization;
+class iASingleSlicerSettings;
 class iASlicerData;
 class iASlicerWidget;
-class iAChannelSlicerData;
 
 static const int MODE_TO_X_IND[3]	= { 1, 0, 0 }; 
 static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 }; 
@@ -106,7 +107,7 @@ public:
 	void saveImageStack();
 	vtkImageReslice * GetReslicer() const;
 	void setResliceAxesOrigin(double x, double y, double z);
-	void setup( bool sil, bool sp, int no, double min, double max, bool li);
+	void setup(iASingleSlicerSettings const & settings);
 	vtkRenderer * GetRenderer() const;
 	vtkGenericOpenGLRenderWindow * GetRenderWindow() const;
 	vtkImageData* GetImageData() const;
