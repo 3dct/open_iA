@@ -905,7 +905,6 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 	renderSettingsElement.setAttribute("shading", tr("%1").arg(rsShading));
 	renderSettingsElement.setAttribute("boundingBox", tr("%1").arg(rsBoundingBox));
 	renderSettingsElement.setAttribute("parallelProjection", tr("%1").arg(rsParallelProjection));
-	renderSettingsElement.setAttribute("imageSampleDistance", tr("%1").arg(rsImageSampleDistance));
 	renderSettingsElement.setAttribute("sampleDistance", tr("%1").arg(rsSampleDistance));
 	renderSettingsElement.setAttribute("ambientLighting", tr("%1").arg(rsAmbientLighting));
 	renderSettingsElement.setAttribute("diffuseLighting", tr("%1").arg(rsDiffuseLighting));
@@ -932,7 +931,6 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 	rsBoundingBox = attributes.namedItem("boundingBox").nodeValue() == "1";
 	rsParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
 
-	rsImageSampleDistance = attributes.namedItem("imageSampleDistance").nodeValue().toDouble();
 	rsSampleDistance = attributes.namedItem("sampleDistance").nodeValue().toDouble();
 	rsAmbientLighting = attributes.namedItem("ambientLighting").nodeValue().toDouble();
 	rsDiffuseLighting = attributes.namedItem("diffuseLighting").nodeValue().toDouble();
@@ -944,7 +942,7 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 
 	activeMdiChild()->editRendererSettings(
 		rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition, rsLinearInterpolation, rsShading, rsBoundingBox,
-		rsParallelProjection, rsImageSampleDistance, rsSampleDistance, rsAmbientLighting,
+		rsParallelProjection, rsSampleDistance, rsAmbientLighting,
 		rsDiffuseLighting, rsSpecularLighting, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom, rsRenderMode);
 }
 
@@ -1218,7 +1216,6 @@ void MainWindow::renderSettings()
 		<< (child->getBoundingBox() ? t : f)
 		<< (child->getParallelProjection() ? t : f)
 
-		<< tr("%1").arg(child->getImageSampleDistance())
 		<< tr("%1").arg(child->getSampleDistance())
 		<< tr("%1").arg(child->getAmbientLighting())
 		<< tr("%1").arg(child->getDiffuseLighting())
@@ -1228,7 +1225,7 @@ void MainWindow::renderSettings()
 		<< tr("%1").arg(child->getBackgroundBottom())
 		<< renderTypes;
 
-	dlg_commoninput dlg(this, "Renderer settings", 17, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Renderer settings", 16, inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -1241,16 +1238,15 @@ void MainWindow::renderSettings()
 		rsBoundingBox = dlg.getCheckValues()[6] != 0;
 		rsParallelProjection = dlg.getCheckValues()[7] != 0;
 
-		rsImageSampleDistance = dlg.getValues()[8];
-		rsSampleDistance = dlg.getValues()[9];
-		rsAmbientLighting = dlg.getValues()[10];
-		rsDiffuseLighting = dlg.getValues()[11];
-		rsSpecularLighting = dlg.getValues()[12];
-		rsSpecularPower = dlg.getValues()[13];
-		rsBackgroundTop = dlg.getText()[14];
-		rsBackgroundBottom = dlg.getText()[15];
+		rsSampleDistance = dlg.getValues()[8];
+		rsAmbientLighting = dlg.getValues()[9];
+		rsDiffuseLighting = dlg.getValues()[10];
+		rsSpecularLighting = dlg.getValues()[11];
+		rsSpecularPower = dlg.getValues()[12];
+		rsBackgroundTop = dlg.getText()[13];
+		rsBackgroundBottom = dlg.getText()[14];
 
-		QString renderType = dlg.getComboBoxValues()[16];
+		QString renderType = dlg.getComboBoxValues()[15];
 
 		// TODO: use renderModes / reverse mapping ?
 		rsRenderMode = vtkSmartVolumeMapper::DefaultRenderMode;
@@ -1269,7 +1265,7 @@ void MainWindow::renderSettings()
 
 		if (activeMdiChild() && activeMdiChild()->editRendererSettings(
 			rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition, rsLinearInterpolation, rsShading, rsBoundingBox,
-			rsParallelProjection, rsImageSampleDistance, rsSampleDistance, rsAmbientLighting,
+			rsParallelProjection, rsSampleDistance, rsAmbientLighting,
 			rsDiffuseLighting, rsSpecularLighting, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom, rsRenderMode))
 		{
 			statusBar()->showMessage(tr("Changed renderer settings"), 5000);
@@ -1760,7 +1756,7 @@ MdiChild* MainWindow::createMdiChild()
 
 	child->setupRaycaster( rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition,
 		rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection,
-		rsImageSampleDistance, rsSampleDistance, rsAmbientLighting, rsDiffuseLighting,
+		rsSampleDistance, rsAmbientLighting, rsDiffuseLighting,
 		rsSpecularLighting, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom,
 		rsRenderMode, true );
 	child->setupSlicers( ssLinkViews, ssShowIsolines, ssShowPosition, ssNumberOfIsolines, ssMinIsovalue, ssMaxIsovalue, ssImageActorUseInterpolation, ssSnakeSlices, ssLinkMDIs, false);
@@ -1905,7 +1901,6 @@ void MainWindow::readSettings()
 	rsShading = settings.value("Renderer/rsShading", true).toBool();
 	rsBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
 	rsParallelProjection = settings.value("Renderer/rsParallelProjection", false).toBool();
-	rsImageSampleDistance = settings.value("Renderer/rsImageSampleDistance", 1).toDouble();
 	rsSampleDistance = settings.value("Renderer/rsSampleDistance", 1).toDouble();
 	rsAmbientLighting = settings.value("Renderer/rsAmbientLighting", 0.2).toDouble();
 	rsDiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
@@ -2003,7 +1998,6 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsParallelProjection", rsParallelProjection);
 	settings.setValue("Renderer/rsShowHelpers", rsShowHelpers);
 	settings.setValue("Renderer/rsShowRPosition", rsShowRPosition);
-	settings.setValue("Renderer/rsImageSampleDistance", rsImageSampleDistance);
 	settings.setValue("Renderer/rsSampleDistance", rsSampleDistance);
 	settings.setValue("Renderer/rsAmbientLighting", rsAmbientLighting);
 	settings.setValue("Renderer/rsDiffuseLighting", rsDiffuseLighting);

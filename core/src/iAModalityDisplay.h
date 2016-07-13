@@ -43,5 +43,7 @@ public:
 		vtkSmartPointer<vtkImageData> imgData);
 	void SetRenderSettings(RenderSettings const & rs);
 private:
+	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
+
 	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
 };

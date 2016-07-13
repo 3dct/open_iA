@@ -23,8 +23,6 @@
 #include "dlg_modalities.h"
 
 #include "dlg_modalityProperties.h"
-//#include "dlg_modalityRenderer.h"
-//#include "dlg_planeSlicer.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"

@@ -151,7 +151,7 @@ public:
 	void setupAxes(double spacing[3]);
 	void setupOrientationMarker();
 	void setupRenderer();
-	void reset(double imageSampleDistance = 0.0, double sampleDistance = 0.0);
+	void reset();
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
@@ -191,11 +191,8 @@ public:
 	int  getMeanObjectId( ) { return meanObjectId; };
 	// <---------- until here!
 
-	void setImageSampleDistance(double imageSampleDistance);
 	void setSampleDistance(double sampleDistance);
 	void hideOrientationMarker();
-
-
 	void AddRenderer(vtkRenderer* renderer);
 	void SetRenderMode(int mode);
 protected:
@@ -274,7 +271,6 @@ private:
 	iAWrapperText* textInfo;
 
 	int ext; //!< statistical extent size
-	double imageSampleDistance, sampleDistance;
 
 	void setInputVolume(vtkImageData* imageData);
 	void recreateMapper(vtkImageData* imageData);

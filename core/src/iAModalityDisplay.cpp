@@ -40,9 +40,7 @@ ModalityDisplay::ModalityDisplay(
 	volProp = vtkSmartPointer<vtkVolumeProperty>::New();
 	volProp->SetColor(transfer->getColorFunction());
 	volProp->SetScalarOpacity(transfer->getOpacityFunction());
-	volMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-	volMapper->SetBlendModeToComposite(); // composite first
-	volMapper->SetInputData(imgData);
+	CreateVolumeMapper(imgData);
 	volume = vtkSmartPointer<vtkVolume>::New();
 	volume->SetMapper(volMapper);
 	volume->SetProperty(volProp);
@@ -57,4 +55,15 @@ void ModalityDisplay::SetRenderSettings(RenderSettings const & rs)
 	volProp->SetSpecularPower(rs.SpecularPower);
 	volProp->SetInterpolationType(rs.LinearInterpolation);
 	volProp->SetShade(rs.Shading);
+
+	//volMapper->SetRequestedRenderMode(rs.Mode);
+}
+
+void ModalityDisplay::CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData)
+{
+	volMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+	volMapper->SetBlendModeToComposite(); // composite first
+	volMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
+	volMapper->SetInputData(imgData);
+	//volMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
 }

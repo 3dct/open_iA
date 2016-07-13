@@ -141,7 +141,7 @@ public:
 	bool linkMDIs( bool l ) { linkM(l); return true; }
 	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init );
 	bool editRendererSettings( bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-		double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int renderMode );
+		double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int renderMode );
 	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
 	bool editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm);
 	bool loadTransferFunction();
@@ -172,7 +172,7 @@ public:
 	bool isSliceProfileToggled(void) const;
 	void enableInteraction(bool b);
 	void setupRaycaster(  bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-		double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init );
+		double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init );
 	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool lm, bool init);
 	void check2DMode();
 	iALogger * getLogger();
@@ -226,7 +226,6 @@ public:
 	bool getBoundingBox() const { return boundingBox; };
 	bool getParallelProjection() const { return parallelProjection; };
 
-	double getImageSampleDistance() const { return imageSampleDistance; };
 	double getSampleDistance() const { return sampleDistance; };
 	double getAmbientLighting() const { return ambientLighting; };
 	double getDiffuseLighting() const { return diffuseLighting; };
@@ -485,7 +484,7 @@ private:
 	
 	// Renderer Settings:
 	bool  showVolume, showSlicers, showHelpers, showRPosition, linearInterpolation, shading, boundingBox, parallelProjection;
-	double imageSampleDistance, sampleDistance,	ambientLighting, diffuseLighting ,specularLighting, specularPower;
+	double sampleDistance,	ambientLighting, diffuseLighting ,specularLighting, specularPower;
 	double minIsovalue, maxIsovalue;
 	int numberOfIsolines, snakeSlices;
 	bool linkviews, showIsolines, imageActorUseInterpolation, interactorsEnabled, linkmdis;

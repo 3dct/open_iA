@@ -158,7 +158,6 @@ public:
 	bool getBoundingBox() { return rsBoundingBox; };
 	bool getParallelProjection() { return rsParallelProjection; };
 	
-	double getImageSampleDistance() { return rsImageSampleDistance; };
 	double getSampleDistance() { return rsSampleDistance; };
 	double getAmbientLighting() { return rsAmbientLighting; };
 	double getDiffuseLighting() { return rsDiffuseLighting; };
@@ -168,7 +167,6 @@ public:
 	QString getBackgroundBottom() { return rsBackgroundBottom; };
 	QColor *getColors() { return colors; }
 
-	void setImageSampleDistance( double d ) { rsImageSampleDistance = d; };
 	void setSampleDistance( double d ) { rsSampleDistance = d; };
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
@@ -244,7 +242,7 @@ private:
 	
 	QString qssName;
 	bool rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition, rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection;
-	double rsImageSampleDistance, rsSampleDistance, rsAmbientLighting, rsDiffuseLighting, rsSpecularLighting, rsSpecularPower;
+	double rsSampleDistance, rsAmbientLighting, rsDiffuseLighting, rsSpecularLighting, rsSpecularPower;
 	double ssMinIsovalue, ssMaxIsovalue;
 	int ssNumberOfIsolines, ssSnakeSlices;
 	bool ssLinkViews, ssShowIsolines, ssShowPosition, ssImageActorUseInterpolation, ssInteractionEnabled, ssShowPorosityMaps, ssLinkMDIs;

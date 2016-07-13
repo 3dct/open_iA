@@ -474,7 +474,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 
 	setupRaycaster( showVolume, showSlicers, showHelpers, showRPosition,
 		linearInterpolation, shading, boundingBox, parallelProjection,
-		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
+		imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
 		specularLighting, specularPower, backgroundTop, backgroundBottom,
 		renderMode, false);
 	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true );
@@ -660,7 +660,7 @@ void MdiChild::setupViewInternal(bool active)
 
 	setupRaycaster(showVolume, showSlicers, showHelpers, showRPosition,
 		linearInterpolation, shading, boundingBox, parallelProjection,
-		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
+		imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
 		specularLighting, specularPower, backgroundTop, backgroundBottom,
 		renderMode, false);//AMA 06.05.2010 was resetting results of initView when STL is opened
 	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, linkmdis, true);
@@ -1457,7 +1457,7 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool 
 }
 
 void MdiChild::setupRaycaster( bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-	double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init )
+	double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init )
 {
 	showVolume = sv;
 	showSlicers = ss;
@@ -1467,7 +1467,6 @@ void MdiChild::setupRaycaster( bool sv, bool ss, bool sh, bool spo, bool li, boo
 	shading = s;
 	boundingBox = bb;
 	parallelProjection = pp;
-	imageSampleDistance = isd;
 	sampleDistance = sd;
 	ambientLighting = al;
 	diffuseLighting = dl;
@@ -1495,7 +1494,6 @@ void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 		raycaster->showSlicers(showSlicers);
 	}
 	// setup raycaster
-	raycaster->setImageSampleDistance(imageSampleDistance);
 	raycaster->setSampleDistance(sampleDistance);
 
 	// setup properties, visibility, background
@@ -1622,13 +1620,13 @@ void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, dou
 
 bool MdiChild::editRendererSettings( bool rsShowVolume, bool rsShowSlicers,  bool rsShowHelpers, bool rsShowRPosition,
 	bool rsLinearInterpolation, bool rsShading, bool rsBoundingBox, bool rsParallelProjection,
-	double rsImageSampleDistance, double rsSampleDistance, double rsAmbientLightning,
+	double rsSampleDistance, double rsAmbientLightning,
 	double rsDiffuseLightning, double rsSpecularLightning, double rsSpecularPower,
 	QString rsBackgroundTop, QString rsBackgroundBottom, int renderMode)
 {
 	setupRaycaster( rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition,
 		rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection,
-		rsImageSampleDistance, rsSampleDistance, rsAmbientLightning, rsDiffuseLightning,
+		rsSampleDistance, rsAmbientLightning, rsDiffuseLightning,
 		rsSpecularLightning, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom,
 		renderMode, false);
 

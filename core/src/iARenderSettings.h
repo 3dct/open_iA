@@ -34,6 +34,7 @@ public:
 	double SpecularLighting;
 	double SpecularPower;
 	QColor BackgroundColor;
+	// RenderMode Mode;
 	RenderSettings(
 		bool    linearInterpolation,
 		bool    shading,

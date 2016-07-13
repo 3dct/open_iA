@@ -122,8 +122,6 @@
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	interactor(0),
 	volumeMapper(0),
-	imageSampleDistance(-1.0),
-	sampleDistance(-1.0),
 	m_showMainVolumeWithChannels(true)
 {
 	multiChannelImageData = vtkImageData::New();
@@ -734,10 +732,8 @@ void iARenderer::setupRenderer()
 	emit onSetupRenderer();
 }
 
-void iARenderer::reset(double imageSampleDistance, double sampleDistance)
+void iARenderer::reset()
 {
-	this->imageSampleDistance = imageSampleDistance;
-	this->sampleDistance = sampleDistance;
 	recreateMapper(imageData);
 	volume->SetProperty(volumeProperty);
 	volume->Update();
@@ -1025,16 +1021,8 @@ void iARenderer::recreateMapper(vtkImageData* imageData)
 	volumeMapper->Update();
 }
 
-void iARenderer::setImageSampleDistance(double imageSampleDistance)
-{
-	this->imageSampleDistance = imageSampleDistance;
-	// SetImageSampleDistance function not available in vtkSmartVolumeMapper
-	// volumeMapper->SetImageSampleDistance(sampleDistance);
-}
-
 void iARenderer::setSampleDistance(double sampleDistance)
 {
-	this->sampleDistance = sampleDistance;
 	// SetSampleDistance function only exists in vtkSmartVolumeMapper when OpenGL2 backend is selected!
 	 volumeMapper->SetSampleDistance(sampleDistance);
 }
