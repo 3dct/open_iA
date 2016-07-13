@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_RW_SEEDS_H
-#define DLG_RW_SEEDS_H
+#pragma once
 
 #include "ui_RWSeeds.h"
 #include <iAQTtoUIConnector.h>
@@ -40,5 +38,3 @@ public:
 		return leBeta->text().toDouble();
 	}
 };
-
-#endif // DLG_RW_SEEDS_H

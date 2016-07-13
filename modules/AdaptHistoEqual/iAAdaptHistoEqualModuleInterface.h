@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAAdaptHistoEquaModuleInterfacel_h__
-#define iAAdaptHistoEquaModuleInterfacel_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -40,5 +38,3 @@ protected:
 	//settings
 	double aheAlpha, aheBeta; //AdpativeHistogramEqualization
 };
-
-#endif // iAAdaptHistoEquaModuleInterfacel_h__

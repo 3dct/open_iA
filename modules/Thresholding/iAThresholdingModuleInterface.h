@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAThresholdingModuleInterface_h__
-#define iAThresholdingModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -41,5 +39,3 @@ protected:
 	double btlower, btupper, btoutside, btinside; //binary threshold 
 	double gtlower, gtupper, gtoutside; //general threshold
 };
-
-#endif // iAThresholdingModuleInterface_h__

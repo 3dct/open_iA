@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAGEOMETRICTRANSFORMATIONS_H
-#define IAGEOMETRICTRANSFORMATIONS_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -113,6 +109,3 @@ private:
 	unsigned int dim;
 	double outputMin, outputMax;
 };
-#endif
-
-

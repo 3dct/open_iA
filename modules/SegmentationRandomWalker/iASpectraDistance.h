@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SPECTRA_DISTANCE_H
-#define IA_SPECTRA_DISTANCE_H
+#pragma once
 
 #include "iASpectrumType.h"
 
@@ -36,6 +34,3 @@ public:
 	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const = 0;
 	virtual bool isSymmetric() const;
 };
-
-
-#endif // IA_SPECTRA_DISTANCE_H

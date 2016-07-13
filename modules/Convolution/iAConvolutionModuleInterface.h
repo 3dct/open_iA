@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IACONVOLUTIONMODULEINTERFACE_H
-#define IACONVOLUTIONMODULEINTERFACE_H
+#pragma once
 
 #include "iAModuleInterface.h"
 #include "defines.h"
@@ -37,5 +35,3 @@ private slots:
 	void FFT_correlate();
 	void FFT_CPP_correlate();
 };
-
-#endif // IACONVOLUTIONMODULEINTERFACE_H

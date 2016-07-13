@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_SIMILARITY_MAP_H
-#define DLG_SIMILARITY_MAP_H
+#pragma once
 
 #include <QScopedPointer>
 #include <vtkSmartPointer.h>
@@ -53,5 +51,3 @@ protected:
 	QGridLayout * m_similarityWidgetGridLayout;
 private:
 };
-
-#endif

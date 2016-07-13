@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_REFSPECTRA_H
-#define DLG_REFSPECTRA_H
+#pragma once
 
 #include "ui_RefSpectra.h"
 #include <iAQTtoUIConnector.h>
@@ -33,5 +31,3 @@ public:
 	dlg_RefSpectra(QWidget *parent): dlg_RefSpectraContainer(parent) {}
 	QListView * getSpectraList() { return refSpectraListView; }
 };
-
-#endif /* DLG_REFSPECTRA_H */

@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAFHWCASTIMAGEFILTER_H
-#define IAFHWCASTIMAGEFILTER_H
-
 #pragma once
 
 #include <string>
@@ -62,4 +58,3 @@ private:
 	string m_type; float m_min, m_max; int m_dov; double m_outmin, m_outmax;
 
 };
-#endif

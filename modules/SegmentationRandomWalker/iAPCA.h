@@ -18,9 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_PCA_H
-#define IA_PCA_H
 
 #include "iASpectrumType.h"
 
@@ -38,5 +35,3 @@ private:
 
 	QSharedPointer<iASpectralVoxelData const> m_spectralData;
 };
-
-#endif // IA_PCA_H

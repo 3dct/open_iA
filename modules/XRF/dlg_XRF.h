@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_XRF_H
-#define DLG_XRF_H
+#pragma once
 
 #include <QSharedPointer>
 #include <QStandardItemModel>
@@ -214,5 +212,3 @@ private:
 	QDockWidget*											m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>					m_periodicTableListener;
 };
-
-#endif

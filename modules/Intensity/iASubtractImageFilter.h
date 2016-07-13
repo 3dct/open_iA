@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IASUBTRACTIMAGEFILTER_H
-#define IASUBTRACTIMAGEFILTER_H
-
 #pragma once
 
 #include <iostream>
@@ -58,4 +54,3 @@ private:
 	vtkImageData* m_Image;
 
 };
-#endif

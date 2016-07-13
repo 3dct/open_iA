@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_ITK_RANDOM_WALKER
-#define IA_ITK_RANDOM_WALKER
+#pragma once
 
 #include "iARandomWalker.h"
 
@@ -78,6 +76,4 @@ private:
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "iAitkRandomWalker.hxx"
-#endif
-
 #endif

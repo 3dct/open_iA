@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAMorphologyModuleInterface_h__
-#define iAMorphologyModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -41,5 +39,3 @@ protected:
 	//settings
 	int dilrad, errad, sigmaenh; //morphology filter parameters
 };
-
-#endif // iAMorphologyModuleInterface_h__

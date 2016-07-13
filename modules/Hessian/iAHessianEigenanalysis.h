@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAHESSIANEIGENANALYSIS_H
-#define IAHESSIANEIGENANALYSIS_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -96,4 +92,3 @@ private:
 	bool hessianComputed;
 	int nr;
 };
-#endif

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAHessianModuleInterface_h__
-#define iAHessianModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -45,5 +43,3 @@ protected:
 	unsigned int chefSigma;
 	void computeHessianEigenanalysis(int nr);
 };
-
-#endif // iAHessianModuleInterface_h__

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SEGMENTATION_RANDOM_WALKER_MODULE_H
-#define IA_SEGMENTATION_RANDOM_WALKER_MODULE_H
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -34,5 +32,3 @@ private slots:
 	bool CalculateRW();
 	bool CalculateERW();
 };
-
-#endif // IA_SEGMENTATION_RANDOM_WALKER_MODULE_H

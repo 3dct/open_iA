@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_MODALITY_EXPLORER_MODULE_INTERFACE_H
-#define IA_MODALITY_EXPLORER_MODULE_INTERFACE_H
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -42,5 +40,3 @@ private slots:
 private:
 	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };
-
-#endif // IA_MODALITY_EXPLORER_MODULE_INTERFACE_H

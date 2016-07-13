@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAGPU_DreamcasterToolModuleInterface_h__
-#define iAGPU_DreamcasterToolModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -39,5 +37,3 @@ private slots:
 protected:
 	//settings
 };
-
-#endif // iAGPU_DreamcasterToolModuleInterface_h__

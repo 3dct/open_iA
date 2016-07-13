@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_GRAPH_WEIGHTS_H
-#define IA_GRAPH_WEIGHTS_H
+#pragma once
 
 #include "iAImageGraphTypes.h"
 
@@ -54,5 +52,3 @@ QSharedPointer<iAGraphWeights const> CombineGraphWeights(
 	QVector<QSharedPointer<iAGraphWeights>> const & graphWeights,
 	QVector<double> const & weight
 );
-
-#endif // IA_GRAPH_WEIGHTS_H

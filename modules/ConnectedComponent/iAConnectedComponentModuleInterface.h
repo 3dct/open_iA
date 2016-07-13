@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAConnectedComponentModuleInterface_h__
-#define iAConnectedComponentModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -45,5 +43,3 @@ protected:
 	int srcifs ; //simple relabel component filter
 	bool srcifw; //simple relabel component filter
 };
-
-#endif // iAConnectedComponentModuleInterface_h__

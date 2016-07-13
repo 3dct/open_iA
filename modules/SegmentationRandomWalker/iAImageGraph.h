@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_GRAPH_H
-#define IA_IMAGE_GRAPH_H
+#pragma once
 
 #include <vector>
 
@@ -65,5 +63,3 @@ private:
 	iAImageCoordConverter m_converter;
 	QVector<iAEdgeType> m_edges;
 };
-
-#endif // IA_IMAGE_GRAPH_H

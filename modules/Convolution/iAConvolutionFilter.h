@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IACONVOLUTIONFILTER_H
-#define IACONVOLUTIONFILTER_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -55,4 +51,3 @@ private:
 	std::string templFileName; 
 
 };
-#endif //IACONVOLUTIONFILTER_H

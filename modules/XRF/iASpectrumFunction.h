@@ -18,13 +18,9 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SPECTRUM_FUNCTION_H
-#define IA_SPECTRUM_FUNCTION_H
+#pragma once
 
 #include "iAFunction.h"
 #include <cstddef> // for size_t
 
 typedef iAFunction<size_t, unsigned int> iASpectrumFunction;
-
-#endif

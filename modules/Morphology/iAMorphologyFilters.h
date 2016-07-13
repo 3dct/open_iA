@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAMORPHOLOGYFILTERS_H
-#define IAMORPHOLOGYFILTERS_H
-
 #pragma once
 
 #include "itkGrayscaleDilateImageFilter.h"
@@ -68,4 +64,3 @@ private:
 	vtkImageData* m_Image;
 
 };
-#endif

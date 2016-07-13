@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_TYPES
-#define IA_IMAGE_TYPES
+#pragma once
 
 #include <itkImage.h>
 #include "iAITKIO.h" // TODO: replace?
@@ -48,5 +46,3 @@ typedef itk::Image<PreviewPixelType, 3> PreviewImageType;
 typedef PreviewImageType::Pointer PreviewImagePointer;
 
 typedef iAITKIO::ImagePointer ClusterImageType;
-
-#endif // IA_IMAGE_TYPES

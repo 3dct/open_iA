@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IASEGMENTATION_H
-#define IASEGMENTATION_H
-
 #pragma once
 
 #include "iAAlgorithms.h"
@@ -38,9 +34,8 @@ public:
 
 
 protected:
-    virtual void run();
+	virtual void run();
 
 private:
 
 };
-#endif

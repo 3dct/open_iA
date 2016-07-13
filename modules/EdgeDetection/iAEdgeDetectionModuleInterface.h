@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAEdgeDetectionModuleInterface_h__
-#define iAEdgeDetectionModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -40,5 +38,3 @@ protected:
 	//settings
 	double cedfVariance, cedfMaximumError, cedfUpper, cedfLower;
 };
-
-#endif // iAEdgeDetectionModuleInterface_h__

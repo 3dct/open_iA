@@ -18,15 +18,10 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAENERGYSPECTRUM_H
-#define IAENERGYSPECTRUM_H
+#pragma once
 
 #include <QVector>
 
 typedef double CountType;
 typedef QVector<CountType> iAEnergySpectrum;
 const CountType CountTypeNull = 0.0;
-
-
-#endif /* IAENERGYSPECTRUM_H */

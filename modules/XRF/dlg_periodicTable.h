@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_PERIODICTABLE_H
-#define DLG_PERIODICTABLE_H
+#pragma once
 
 #include "iAPeriodicTableWidget.h"
 
@@ -56,5 +54,3 @@ public:
 private:
 	iAPeriodicTableWidget* m_periodicTableWidget;
 };
-
-#endif /* DLG_PERIODICTABLE_H */

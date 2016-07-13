@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_CHARACTERISTIC_ENERGY_H
-#define  IA_CHARACTERISTIC_ENERGY_H
+#pragma once
 
 #include <QString>
 #include <QVector>
@@ -49,18 +47,6 @@ struct iACharacteristicEnergy
 
 };
 
-/*
-struct SymbolMatcher
-{
-	SymbolMatcher(QString symbol): symbol(symbol) {};
-	bool operator()(iACharacteristicEnergy const & elem)
-	{
-		return elem.symbol == symbol;
-	}
-	QString symbol;
-};
-*/
-
 class EnergyLoader
 {
 public:
@@ -68,5 +54,3 @@ public:
 private:
 	static iACharacteristicEnergy ConstructElement(QString line);
 };
-
-#endif

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SPECTRA_HISTOGRAMS_H
-#define IA_SPECTRA_HISTOGRAMS_H
+#pragma once
 
 class iAXRFData;
 
@@ -53,5 +51,3 @@ private:
 	QSharedPointer<iAXRFData> m_xrfData;	///< pointer to the input xrf data set
 	CountType	m_maxValue;			///< maximum value of all histograms' bins
 };
-
-#endif // IA_SPECTRA_HISTOGRAMS_H

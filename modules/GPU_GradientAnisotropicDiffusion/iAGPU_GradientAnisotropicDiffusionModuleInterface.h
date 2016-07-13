@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
-
-#ifndef iAGPU_GradientAnisotropicDiffusionModuleInterface_h__
-#define iAGPU_GradientAnisotropicDiffusionModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -41,5 +39,3 @@ protected:
 	unsigned int gadIterations;
 	double gadTimeStep, gadConductance;
 };
-
-#endif // iAGPU_GradientAnisotropicDiffusionModuleInterface_h__

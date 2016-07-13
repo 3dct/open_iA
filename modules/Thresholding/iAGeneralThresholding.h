@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAGENERALTHRESHOLDING_H
-#define IAGENERALTHRESHOLDING_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -51,10 +47,9 @@ public:
 	void setGTParameters( double l, double u, double o ) { lower = l; upper = u; outer = o; };
 
 protected:
-    void run();
+	void run();
 
 private:
 	double lower, upper, outer;
 	
 };
-#endif

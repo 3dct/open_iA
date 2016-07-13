@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAELEMENTCONSTANTS_H
-#define IAELEMENTCONSTANTS_H
+#pragma once
 
 namespace PeriodicTable
 {
@@ -188,5 +186,3 @@ const iAElement elements[] =
 };
 
 } // namespace PeriodicElements
-
-#endif /* IAELEMENTCONSTANTS_H */

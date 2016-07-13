@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAINTENSITY_H
-#define IAINTENSITY_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -70,7 +66,7 @@ public:
 	};
 
 protected:
-    void run();
+	void run();
 	void difference(  );
 	void invert_intensity( );
 	void mask();
@@ -80,4 +76,3 @@ private:
 	double DifferenceThreshold, ToleranceRadius, windowMinimum, windowMaximum, outputMinimum, outputMaximum;
 	vtkImageData* image2;
 };
-#endif

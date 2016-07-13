@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iADistanceMapModuleInterface_h__
-#define iADistanceMapModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -40,5 +38,3 @@ protected:
 	//settings
 	int smdmi, smdms, smdmp, smdmn; //Signed_Maurer_Distance_Map
 };
-
-#endif // iADistanceMapModuleInterface_h__

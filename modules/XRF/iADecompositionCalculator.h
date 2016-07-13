@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_DECOMPOSITION_CALCULATOR_H
-#define IA_DECOMPOSITION_CALCULATOR_H
+#pragma once
 
 #include <QSharedPointer>
 #include <QThread>
@@ -53,5 +51,3 @@ signals:
 	void success();
 	void progress(int percent);
 };
-
-#endif // IA_DECOMPOSITION_CALCULATOR_H

@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAMEDIAN_H
-#define IAMEDIAN_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -50,11 +46,10 @@ public:
 	void setDParameters(unsigned int r_x, unsigned int r_y, unsigned int r_z) { iRx = r_x; iRy = r_y; iRz = r_z; };
 
 protected:
-    void run();
+	void run();
 	void median( );
 
 private:
 	unsigned int iRx, iRy, iRz; 
 
 };
-#endif

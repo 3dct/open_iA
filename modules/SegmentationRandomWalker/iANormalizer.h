@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_NORMALIZER_H
-#define IA_NORMALIZER_H
+#pragma once
 
 #include "iADistanceType.h"
 
@@ -31,5 +29,3 @@ public:
 	virtual void SetMaxValue(iADistanceType maxValue) =0;
 	virtual char const * const GetName() const =0;
 };
-
-#endif // IA_NORMALIZER_H

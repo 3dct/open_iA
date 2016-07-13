@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SPECTRA_DISTANCE_IMPL_H
-#define IA_SPECTRA_DISTANCE_IMPL_H
+#pragma once
 
 #include "iASpectraDistance.h"
 
@@ -142,5 +140,3 @@ public:
 	virtual bool isSymmetric() {return true; }
 };
 */
-
-#endif // IA_SPECTRA_DISTANCE_IMPL_H

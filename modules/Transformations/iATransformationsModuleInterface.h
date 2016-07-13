@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iATransformationsModuleInterface_h__
-#define iATransformationsModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -42,5 +40,3 @@ private slots:
 protected:
 	vtkImageData * prepare(const QString & caption);
 };
-
-#endif // iATransformationsModuleInterface_h__

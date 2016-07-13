@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IATHRESHOLDING_H
-#define IATHRESHOLDING_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -56,4 +52,3 @@ private:
 	double lower, upper, outer, inner;
 	
 };
-#endif

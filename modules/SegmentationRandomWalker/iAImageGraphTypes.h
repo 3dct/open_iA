@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_GRAPH_TYPES_H
-#define IA_IMAGE_GRAPH_TYPES_H
+#pragma once
 
 #include <cstddef> // for size_t
 #include <utility> // for std::pair
@@ -37,5 +35,3 @@ typedef double iAEdgeWeightType;
 typedef std::pair<iAVoxelIndexType, iAVoxelIndexType> iAEdgeType;
 
 typedef QVector<iALabelType> iALabelData;
-
-#endif // IA_IMAGE_GRAPH_TYPES_H

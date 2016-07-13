@@ -18,13 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAEDGEPRESERVINGSMOOTHING_H
-#define IAEDGEPRESERVINGSMOOTHING_H
-
 #pragma once
-
-
 
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
@@ -74,4 +68,3 @@ private:
 	double timestep, conductance, rangesigma, domainsigma;
 
 };
-#endif

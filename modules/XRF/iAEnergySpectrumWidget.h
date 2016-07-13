@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAENERGYSPECTRUMWIDGET_H
-#define IAENERGYSPECTRUMWIDGET_H
+#pragma once
 
 #include "iADiagramFctWidget.h"
 
@@ -63,5 +61,3 @@ private:
 	iASpectrumFilterListener* filterListener;
 	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
 };
-
-#endif /* IAENERGYSPECTRUMWIDGET_H */

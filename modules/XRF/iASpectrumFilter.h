@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IASPECTRUMFILTER_H
-#define IASPECTRUMFILTER_H
+#pragma once
 
 #include <QVector>
 #include <stdint.h>
@@ -40,5 +38,3 @@ class iASpectrumFilterListener
 public:
 	virtual void OnSelectionUpdate(QVector<iASpectrumFilter> const & filter) =0;
 };
-
-#endif /* IASPECTRUMFILTER_H */

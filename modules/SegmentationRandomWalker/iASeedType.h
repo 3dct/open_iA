@@ -18,14 +18,10 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SEED_TYPE_H
-#define IA_SEED_TYPE_H
+#pragma once
 
 #include <QVector>
 struct iAImageCoordinate;
 
 typedef std::pair<iAImageCoordinate, int> SeedType;
 typedef QVector<SeedType> SeedVector;
-
-#endif // IA_SEED_TYPE_H
