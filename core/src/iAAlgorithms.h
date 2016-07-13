@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAALGORITHMS_H
-#define IAALGORITHMS_H
-
 #pragma once
 
 #include "defines.h"
@@ -115,4 +111,3 @@ private:
 	QWaitCondition condition;
 	iAConnector **con;
 };
-#endif

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAFUNCTIONDRAWER_h__
-#define iAFUNCTIONDRAWER_h__
+#pragma once
 
 #include "iAAbstractDrawableFunction.h"
 #include "iAColorable.h"
@@ -117,4 +115,3 @@ public:
 private:
 	QVector<QSharedPointer<iAAbstractDrawableFunction> > lines;
 };
-#endif /*iAFUNCTIONDRAWER_h__*/

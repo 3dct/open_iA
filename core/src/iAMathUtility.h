@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_MATH_UTILITY_H
-#define IA_MATH_UTILITY_H
+#pragma once
 
 #include <cassert>
 
@@ -162,5 +160,3 @@ inline T linterp(const T a, const T b, const T t)
 {
 	return a + (b - a)*t;
 }
-
-#endif // IA_MATH_UTILITY_H

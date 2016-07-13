@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DEFINES_H
-#define DEFINES_H
+#pragma once
 
 #include <QString>
 
@@ -177,5 +175,3 @@ enum FilterID
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 10;
 const int MaximumMagicLensSize = 8192;
-
-#endif	// DEFINES_H

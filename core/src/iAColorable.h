@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IACOLORABLE_H
-#define IACOLORABLE_H
+#pragma once
 
 #include <QColor>
 
@@ -39,5 +37,3 @@ public:
 private:
 	QColor m_color;
 };
-
-#endif /* IACOLORABLE_H */

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_CHARTS_H
-#define	DLG_CHARTS_H
+#pragma once
 
 #include "ui_Charts.h"
 
@@ -48,5 +46,3 @@ private:
 	std::vector<vtkSmartPointer<vtkContextView> > contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY> > charts;
 };
-
-#endif

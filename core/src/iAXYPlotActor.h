@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef __vtkMyXYPlotActor_h
-#define __vtkMyXYPlotActor_h
+#pragma once
 
 #define VTK_XYPLOT_INDEX                 0
 #define VTK_XYPLOT_ARC_LENGTH            1
@@ -643,6 +641,3 @@ private:
   iAXYPlotActor(const iAXYPlotActor&);  // Not implemented.
   void operator=(const iAXYPlotActor&);  // Not implemented.
 };
-
-
-#endif

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IASLICER_H
-#define IASLICER_H
+#pragma once
 
 #include "iAChannelID.h"
 #include "open_iA_Core_export.h"
@@ -175,5 +173,3 @@ inline const int SlicerZInd(const iASlicerMode & slicerMode)
 {
 	return MODE_TO_Z_IND[slicerMode];
 }
-
-#endif

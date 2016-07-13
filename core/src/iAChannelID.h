@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IACHANNELID_H
-#define IACHANNELID_H
+#pragma once
 
 // TODO: remove completely. instead, return ID when creating channel
 enum iAChannelID
@@ -76,5 +74,3 @@ enum iAChannelID
 	ch_Concentration8,
 	ch_Concentration9,
 };
-
-#endif /* IACHANNELID_H */

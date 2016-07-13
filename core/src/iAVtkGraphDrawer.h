@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAVTKGRAPHDRAWER_H
-#define IAVTKGRAPHDRAWER_H
+#pragma once
 
 #include "iAGraphDrawer.h"
 #include "open_iA_Core_export.h"
@@ -45,5 +43,3 @@ private:
 // 	map<idType, vtkEdgeType>	m_edgeMapToVtk;
 // 	map<vtkEdgeType, idType>	m_edgeMapFromVtk;
 };
-
-#endif

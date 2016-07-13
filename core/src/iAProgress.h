@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAPROGRESS_H
-#define IAPROGRESS_H
-
 #pragma once
 
 #include "open_iA_Core_export.h"
@@ -51,6 +47,3 @@ private:
 	itk::Object *m_Caller;
 	RedrawCommandType::Pointer m_RedrawCommand;
 };
-
-
-#endif

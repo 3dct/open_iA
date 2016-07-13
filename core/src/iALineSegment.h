@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IALINESEGMENT
-#define IALINESEGMENT
+#pragma once
 
 class vtkPoints;
 class vtkActor;
@@ -37,5 +35,3 @@ struct iALineSegment
 	vtkPolyDataMapper	*mapper;
 	vtkLineSource		*lineSource;
 };
-
-#endif // IALINESEGMENT

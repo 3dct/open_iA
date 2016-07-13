@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SIMPLE_TESTER_H
-#define IA_SIMPLE_TESTER_H
+#pragma once
 
 #include <cstddef>
 #include <iostream>
@@ -105,6 +103,3 @@ int main(int argc, char** argv) {
 	std::cout << "Overall: " << ((simpleTesterTestsFailed>0)? "FAILED" : "PASSED") << std::endl; \
 	return simpleTesterTestsFailed; \
 }
-
-
-#endif // IA_SIMPLE_TESTER_H

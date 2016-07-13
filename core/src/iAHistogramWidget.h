@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_HISTOGRAM_WIDGET_H
-#define IA_HISTOGRAM_WIDGET_H
+#pragma once
 
 #include "iADiagramFctWidget.h"
 #include "open_iA_Core_export.h"
@@ -59,6 +57,3 @@ private:
 	void reInitialize(bool resetFunction);
 
 };
-
-#endif // IA_HISTOGRAM_WIDGET_H
-

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAGRAPHDRAWER_H
-#define IAGRAPHDRAWER_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -28,8 +26,6 @@
 #include <vector>
 
 using namespace std;
-
-
 
 typedef long	idType;
 
@@ -115,5 +111,3 @@ private:
 	static idType	m_uniqueIndex;		// do not use this variable directly
 	iAGraphDrawerImpl* m_pImpl;
 };
-
-#endif

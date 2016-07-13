@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef extension2id_h__
-#define extension2id_h__
+#pragma once
 
 #include <QMap>
 #include "defines.h"
@@ -71,5 +69,3 @@ static mapQString2int fill_extensionToIdStack()
 	return m;
 }
 const mapQString2int extensionToIdStack = fill_extensionToIdStack();
-
-#endif // extension2id_h__

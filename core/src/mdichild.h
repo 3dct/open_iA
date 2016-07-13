@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef MDICHILD_H
-#define MDICHILD_H
+#pragma once
 
 #include "defines.h"
 #include "iAChannelVisualizationData.h"
@@ -390,7 +388,6 @@ protected:
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
 	bool addHistogram( );
 	bool addProfile( );
-	void showProfile( bool isVisible );
 	int profileWidgetIndex;
 
 	bool LoadCsvFile(vtkTable *table, FilterID fid);
@@ -537,5 +534,3 @@ public:
 	void LoadModalities();
 	void StoreModalities();
 };
-
-#endif

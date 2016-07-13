@@ -18,10 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-#ifndef QWidgetToolbar_H
-#define QWidgetToolbar_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -49,5 +46,3 @@ protected:
 		QWidget::style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 	}
 };
-
-#endif

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iALookupTable_h__
-#define iALookupTable_h__
+#pragma once
 
 //#define iALookupTable_USE_VTK //!! uncomment if you want to allow VTK lookup table input
 
@@ -157,5 +155,3 @@ protected:
 	double m_rangeLen;						///< length of the total scalar range that is mapped by the lookup table
 	unsigned long m_numColors;				///< number of colors stored in the lookup table
 };
-
-#endif // iALookupTable_h__

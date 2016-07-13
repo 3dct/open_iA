@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAPARTICLECHARACTERIZATION_H
-#define IAPARTICLECHARACTERIZATION_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -75,10 +71,9 @@ public:
 	};
 
 protected:
-    void run();
+	void run();
 	void compute_particletest( );
 
 private:
 	unsigned int param1;
 };
-#endif

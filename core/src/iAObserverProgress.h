@@ -18,10 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-#ifndef IAOBSERVERPROGRESS_H
-#define IAOBSERVERPROGRESS_H
+#pragma once
 
 #include <vtkCommand.h>
 
@@ -49,4 +46,3 @@ protected:
 private:
 	virtual void Execute(vtkObject *caller, unsigned long, void*);
 };
-#endif

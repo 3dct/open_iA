@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
-
-#ifndef IABINARYDILATEIMAGEFILTER_H
-#define IABINARYDILATEIMAGEFILTER_H
+#pragma once
 
 #include <vector>
 #include <queue>
@@ -153,6 +151,4 @@ namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "iABinaryDilateImageFilter.hxx"
-#endif
-
 #endif

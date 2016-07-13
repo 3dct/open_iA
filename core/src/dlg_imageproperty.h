@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_IMAGEPROPERTY_H
-#define DLG_IMAGEPROPERTY_H
+#pragma once
 
 #include <QDockWidget>
 #include "ui_ImageProperty.h"
@@ -39,5 +37,3 @@ public:
 private:
 	void enterMsg(QString txt);
 };
-
-#endif

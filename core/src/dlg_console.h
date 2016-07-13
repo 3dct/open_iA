@@ -18,12 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-// author: alexander a
 #pragma once
-#ifndef DLG_CONSOLE_H
-#define DLG_CONSOLE_H
 
 #include "ui_Console.h"
 #include "iAQTtoUIConnector.h"
@@ -42,5 +37,3 @@ public:
 
 	void Log(QString text);
 };
-
-#endif // DLG_CONSOLE_H

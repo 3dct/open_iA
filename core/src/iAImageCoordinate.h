@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_COORDINATE_H
-#define IA_IMAGE_COORDINATE_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -81,5 +79,3 @@ private:
 	iAVoxelIndexType m_depth;
 	iAImageCoordinate::IndexOrdering m_ordering;
 };
-
-#endif // IA_IMAGE_COORDINATE_H

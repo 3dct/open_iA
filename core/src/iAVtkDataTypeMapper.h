@@ -18,7 +18,8 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
+#pragma once
+
 #include <vtkType.h>
 
 // this allows us to get the correct VTK_* data type for a built-in type

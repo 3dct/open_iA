@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAPARAMETRICSPLINE_H
-#define IAPARAMETRICSPLINE_H
+#pragma once
 
 #include "vtkParametricSpline.h"
 
@@ -30,8 +28,6 @@ public:
 	iAParametricSpline()	{ }
 	~iAParametricSpline()	{ }
 
-    static iAParametricSpline *New() {return new iAParametricSpline();}
+	static iAParametricSpline *New() {return new iAParametricSpline();}
 	double GetLength(){ return this->Length; }
-
 };
-#endif

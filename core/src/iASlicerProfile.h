@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IASLICERPROFILE
-#define IASLICERPROFILE
+#pragma once
 
 #include "iALineSegment.h"
 #include "iALinePointers.h"
@@ -66,5 +64,3 @@ protected:
 	vtkSmartPointer<vtkPolyDataMapper>	m_plotMapper;
 	float								m_plotScaleFactor;
 };
-
-#endif // IASLICERPROFILE

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_MODALITY_PROPERTIES_H
-#define DLG_MODALITY_PROPERTIES_H
+#pragma once
 
 #include <QSharedPointer>
 
@@ -41,5 +39,3 @@ public slots:
 private:
 	QSharedPointer<iAModality> m_modality;
 };
-
-#endif // DLG_MODALITY_PROPERTIES_H

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IALOGGER_H
-#define IALOGGER_H
+#pragma once
 
 #include <QString>
 
@@ -30,5 +28,3 @@ public:
 	virtual ~iALogger() {}
 	virtual void log(QString const & msg) =0;
 };
-
-#endif // IALOGGER_H

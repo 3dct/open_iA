@@ -18,9 +18,12 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
+#pragma once
 
 /*
+Originally distributed under the MIT License:
+
+
 For more information, please see: http://software.sci.utah.edu
 
 The MIT License
@@ -47,8 +50,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
-#ifndef _OIF_READER_H_
-#define _OIF_READER_H_
 
 #include <stdio.h>
 #include <string>
@@ -213,5 +214,3 @@ private:
 	//time sequence id
 	wstring m_time_id;
 };
-
-#endif//_OIF_READER_H_

@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_VTK_IMAGE_SPECTRAL_VOXEL_DATA_H
-#define IA_VTK_IMAGE_SPECTRAL_VOXEL_DATA_H
+#pragma once
 
 #include "iASpectrumType.h"
 
@@ -108,5 +106,3 @@ iASpectrumDataType iAitkImagesMultiChannelAdapter<ImageType>::get(size_t voxelId
 	iASpectrumDataType value = m_images[channelIdx]->GetPixel(idx);
 	return value;
 }
-
-#endif // IA_VTK_IMAGE_SPECTRAL_VOXEL_DATA_H

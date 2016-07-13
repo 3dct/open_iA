@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef TOOLS_ITK_H
-#define TOOLS_ITK_H
+#pragma once
 
 #include "iAConsole.h"
 #include "iAITKIO.h"
@@ -114,6 +112,3 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 			.arg(e.what()));
 	}
 }
-
-
-#endif

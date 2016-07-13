@@ -18,10 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-#ifndef IA_PIE_SOURCE_H
-#define IA_PIE_SOURCE_H
+#pragma once
 
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkInformation.h>
@@ -148,5 +145,3 @@ private:
 	iAPieSource(const iAPieSource&);  // Not implemented.
 	void operator=(const iAPieSource&);  // Not implemented.
 };
-
-#endif //IA_PIE_SOURCE_H

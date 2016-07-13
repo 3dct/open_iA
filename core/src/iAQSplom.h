@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAQSplom_h
-#define iAQSplom_h
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -174,5 +172,3 @@ protected:
 	QPropertyAnimation * m_animationOut;
 	QList<int> m_highlightedPoints;					//!< list of always highlighted points
 };
-
-#endif // iAQSplom_h

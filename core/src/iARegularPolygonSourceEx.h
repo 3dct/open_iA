@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef __vtkRegularPolygonSourceEx_h
-#define __vtkRegularPolygonSourceEx_h
+#pragma once
 
 #include <vtkRegularPolygonSource.h>
 #include "vtkCellArray.h"
@@ -153,4 +151,3 @@ protected:
 		double Point1[3], Point2[3];
 };
 vtkStandardNewMacro(iARegularPolygonSourceEx);
-#endif

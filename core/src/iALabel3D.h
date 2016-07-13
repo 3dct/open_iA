@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef LABEL_3D
-#define LABEL_3D
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -102,5 +100,3 @@ private:
 	double m_tubeRadius;
 	double m_displacement;
 };
-
-#endif

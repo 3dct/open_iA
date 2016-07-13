@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SLICER_MODE
-#define IA_SLICER_MODE
+#pragma once
 
 enum iASlicerMode{
 	YZ,
@@ -28,5 +26,3 @@ enum iASlicerMode{
 	XZ,
 	SlicerModeCount
 };
-
-#endif // IA_SLICER_MODE

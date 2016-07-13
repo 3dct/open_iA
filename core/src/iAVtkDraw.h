@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_VTK_DRAW_H
-#define IA_VTK_DRAW_H
+#pragma once
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
@@ -108,5 +106,3 @@ void clearImage(vtkImageData* img, T c)
 		}
 	}
 }
-
-#endif // IA_VTK_DRAW_H

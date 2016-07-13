@@ -18,11 +18,10 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_FILE_MANAGER_H
-#define IA_FILE_MANAGER_H
+#pragma once
 
 #include <vtkSmartPointer.h>
+
 class vtkImageData;
 class QString;
 
@@ -31,5 +30,3 @@ class iAFileManager
 public:
 	virtual void AddWindow(QString const & title, vtkSmartPointer<vtkImageData> image) =0;
 };
-
-#endif // IA_FILE_MANAGER_H

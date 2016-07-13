@@ -18,10 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-#ifndef IAWRAPPERTEXT_H
-#define IAWRAPPERTEXT_H
+#pragma once
 
 #include "vtkObject.h"
 
@@ -33,51 +30,50 @@ class vtkActor2D;
 
 class iAWrapperText : public vtkObject {
 
-    public:
-        static iAWrapperText *New();
+	public:
+		static iAWrapperText *New();
 
-        // Just pass the current window size and the text will center itself.
-        void SetParentWindowSize(int cxWin, int cyWin);
+		// Just pass the current window size and the text will center itself.
+		void SetParentWindowSize(int cxWin, int cyWin);
 
-        // Add the to the scene.
-        void AddToScene(vtkRenderer *pParentRenderer);
+		// Add the to the scene.
+		void AddToScene(vtkRenderer *pParentRenderer);
 
-        // Hide or show the text.
-        void Show(int bShow);
+		// Hide or show the text.
+		void Show(int bShow);
 
-        // Set the text.
-        void SetText(const char *pszText);
+		// Set the text.
+		void SetText(const char *pszText);
 
-        // Set the position of the text.
-        void SetPosition(int nPosition);
+		// Set the position of the text.
+		void SetPosition(int nPosition);
 
-        // Get a pointer to the internal text mapper.
-        vtkTextMapper* GetTextMapper() { return m_TextMapper; }
+		// Get a pointer to the internal text mapper.
+		vtkTextMapper* GetTextMapper() { return m_TextMapper; }
 		vtkActor2D* GetActor() { return m_Actor; }
 
-        enum {
-            POS_CENTER,
-            POS_UPPER_LEFT,
-            POS_UPPER_RIGHT,
-            POS_LOWER_RIGHT,
-            POS_LOWER_LEFT
-        };
+		enum {
+			POS_CENTER,
+			POS_UPPER_LEFT,
+			POS_UPPER_RIGHT,
+			POS_LOWER_RIGHT,
+			POS_LOWER_LEFT
+		};
 
-    private:
+	private:
 
 		// Combine a text mapper with an actor.
 		vtkTextMapper *m_TextMapper;
 		vtkActor2D    *m_Actor;
 
-        int m_cxWin, m_cyWin;
-        int m_nPositionType;
+		int m_cxWin, m_cyWin;
+		int m_nPositionType;
 
-    private:
-        iAWrapperText(const iAWrapperText&); // Not implemented
-        void operator=(const iAWrapperText&); // Not implemented
+	private:
+		iAWrapperText(const iAWrapperText&); // Not implemented
+		void operator=(const iAWrapperText&); // Not implemented
 
-    protected:
-        iAWrapperText();
-        ~iAWrapperText();
+	protected:
+		iAWrapperText();
+		~iAWrapperText();
 };
-#endif

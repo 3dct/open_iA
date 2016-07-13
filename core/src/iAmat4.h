@@ -18,14 +18,12 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef __Mat4__
-#define __Mat4__
+#pragma once
 
-#include	"iAvec3.h"
+#include "iAvec3.h"
 #include "open_iA_Core_export.h"
 
-#include	<memory.h>
+#include <memory.h>
 
 /**	\class Mat4.
 	\brief Class representing 4x4 float matrix.
@@ -91,4 +89,3 @@ iAMat4  frProjectYZ2(float);
 iAMat4  frProjectXY3(float);
 iAMat4  frProjectXZ3(float);
 iAMat4  frProjectYZ3(float);
-#endif

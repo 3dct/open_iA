@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef QVTKWidgetMouseReleaseWorkaround_H
-#define QVTKWidgetMouseReleaseWorkaround_H
+#pragma once
 
 #include "QVTKWidget.h"
 
@@ -45,5 +43,3 @@ Q_SIGNALS:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();
 };
-
-#endif

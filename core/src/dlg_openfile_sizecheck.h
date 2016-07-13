@@ -18,10 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-#ifndef dlg_openfile_sizecheck_H
-#define dlg_openfile_sizecheck_H
+#pragma once
 
 #include "dlg_commoninput.h"
 
@@ -62,4 +59,3 @@ private slots:
 */
 	int CheckFileSize();
 };
-#endif

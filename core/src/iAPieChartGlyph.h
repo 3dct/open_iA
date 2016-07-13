@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_PIE_CHART_GLYPH
-#define IA_PIE_CHART_GLYPH
+#pragma once
 
 #include "iAPieSource.h"
 
@@ -69,5 +67,3 @@ private:
 		actor->SetMapper(mapper);
 	}
 };
-
-#endif	//IA_PIE_CHART_GLYPH

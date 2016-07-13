@@ -18,12 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-// author: alexander a
 #pragma once
-#ifndef IA_CONSOLE_H
-#define IA_CONSOLE_H
 
 #include "open_iA_Core_export.h"
 
@@ -70,5 +65,3 @@ private:
 	bool m_logToFile;
 	bool m_closed;
 };
-
-#endif // IA_CONSOLE_H

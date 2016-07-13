@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_SPECTRUM_TYPE_H
-#define IA_SPECTRUM_TYPE_H
+#pragma once
 
 #include "iAFunction.h"
 #include "open_iA_Core_export.h"
@@ -81,8 +79,3 @@ public:
 	iASpectrumDataType get(size_t channelIdx) const;
 	IndexType size() const;
 };
-
-
-//QSharedPointer<iASpectrumType> getNormalized(QSharedPointer<iASpectrumType const> spec);
-
-#endif // IA_SPECTRUM_TYPE_H

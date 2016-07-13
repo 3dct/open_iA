@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAVTKRENDERERMANAGER_H
-#define IAVTKRENDERERMANAGER_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -49,5 +47,3 @@ private:
 	int						m_isRedrawn;
 	vtkCamera*				m_commonCamera;
 };
-
-#endif //IAVTKRENDERERMANAGER_H

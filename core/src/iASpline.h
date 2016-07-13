@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IASPLINE_H
-#define IASPLINE_H
+#pragma once
 
 #include <vtkActor.h>
 #include <vtkParametricSpline.h>
@@ -117,5 +115,3 @@ protected:
 	vtkSmartPointer<vtkParametricSpline>			m_spline;			// actual spline
 	vtkSmartPointer<vtkParametricFunctionSource>	m_parametricFuncSrc;// source for spline function
 };
-
-#endif // IASPLINE_H

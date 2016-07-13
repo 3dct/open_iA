@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef RENDER_OBSERVER_H
-#define RENDER_OBSERVER_H
-
 #pragma once
 
 #include "open_iA_Core_export.h"
@@ -143,4 +139,3 @@ private:
 Q_SIGNALS:
 	void Clicked(int x, int y, int z);
 };
-#endif

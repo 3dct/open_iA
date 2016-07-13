@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAFASTMAGICLENSWIDGET_H
-#define IAFASTMAGICLENSWIDGET_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 // vtk
@@ -71,5 +69,3 @@ protected:
 private:
 	static const double				OFFSET_VAL;
 };
-
-#endif // IAFASTMAGICLENSWIDGET_H

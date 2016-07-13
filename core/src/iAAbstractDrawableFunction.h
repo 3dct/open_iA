@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAABSTRACTDRAWABLEFUNCTION_H
-#define IAABSTRACTDRAWABLEFUNCTION_H
+#pragma once
 
 #include <QSharedPointer>
 
@@ -59,7 +57,3 @@ public:
 	*/
 	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
 };
-
-
-
-#endif /* IAABSTRACTDRAWABLEFUNCTION_H */

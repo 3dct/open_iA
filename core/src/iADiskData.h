@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IADISKDATA
-#define IADISKDATA
+#pragma once
 
 class vtkDiskSource;
 class vtkPolyDataMapper;
@@ -35,5 +33,3 @@ struct iADiskData
 	vtkPolyDataMapper *mapper;
 	vtkActor *actor;
 };
-
-#endif // IADISKDATA

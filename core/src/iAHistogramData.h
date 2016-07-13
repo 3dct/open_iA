@@ -18,16 +18,14 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAHISTOGRAMDATA_H
-#define IAHISTOGRAMDATA_H
-
-class vtkImageData;
-class vtkImageAccumulate;
+#pragma once
 
 #include "iAAbstractDiagramData.h"
 
 #include <vtkSmartPointer.h>
+
+class vtkImageData;
+class vtkImageAccumulate;
 
 class iAHistogramData: public iAAbstractDiagramRangedData
 {
@@ -55,5 +53,3 @@ private:
 
 	void SetMaxFreq();
 };
-
-#endif /* IAHISTOGRAMDATA_H */

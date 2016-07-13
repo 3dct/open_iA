@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_FILE_UTILS_H
-#define IA_FILE_UTILS_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -28,5 +26,3 @@ class QString;
 
 open_iA_Core_API QString MakeAbsolute(QString const & baseDir, QString const & fileName);
 open_iA_Core_API QString MakeRelative(QString const & baseDir, QString const & fileName);
-
-#endif // IA_FILE_UTILS_H

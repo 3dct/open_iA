@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_PROFILE_WIDGET_H
-#define IA_PROFILE_WIDGET_H
+#pragma once
 
 #include <QPoint>
 #include <QMouseEvent>
@@ -29,7 +27,6 @@
 #include "vtkPolyData.h"
 
 #include "iADiagramWidget.h"
-
 
 // FORWARD DECLARATIONS
 class vtkPolyData;
@@ -91,5 +88,3 @@ private:
 Q_SIGNALS:
 	void binSelected(int newBin);
 };
-
-#endif // IA_PROFILE_WIDGET_H

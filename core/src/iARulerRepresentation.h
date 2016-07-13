@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IARULERREPRESENTATION_H
-#define IARULERREPRESENTATION_H
+#pragma once
 
 #include <vtkBorderRepresentation.h>
 
@@ -63,5 +61,3 @@ private:
   iARulerRepresentation(const iARulerRepresentation &); // Not implemented
   void operator=(const iARulerRepresentation &);   // Not implemented
 };
-
-#endif //__iAVtkRulerRepresentation_h

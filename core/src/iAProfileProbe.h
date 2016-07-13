@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_PROFILE_PROBE_H
-#define IA_PROFILE_PROBE_H
+#pragma once
 
 #include <vtkLineSource.h>
 #include <vtkProbeFilter.h>
@@ -75,4 +73,3 @@ public:
 	vtkPolyData * profileData;
 	double positions[2][3];
 };
-#endif // IA_PROFILE_PROBE_H

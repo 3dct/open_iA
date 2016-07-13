@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IARULERACTOR_H
-#define IARULERACTOR_H
+#pragma once
 
 #include <vtkCoordinate.h> // For vtkViewportCoordinateMacro
 #include <vtkProp.h>
@@ -164,5 +162,3 @@ private:
   iARulerActor(const iARulerActor&);  //Not implemented
   void operator=(const iARulerActor&);  //Not implemented
 };
-
-#endif

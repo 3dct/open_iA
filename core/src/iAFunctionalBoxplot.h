@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAFUNCTIONALBOXPLOT_H_
-#define IAFUNCTIONALBOXPLOT_H_
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -450,5 +448,3 @@ std::vector<iAFunction<ArgType, ValType> *> const & iAFunctionalBoxplot<ArgType,
 {
 	return m_outliers;
 }
-
-#endif

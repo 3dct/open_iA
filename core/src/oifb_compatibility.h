@@ -18,9 +18,12 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
+#pragma once
 
 /*
+Originally distributed under the MIT License:
+
+
 For more information, please see: http://software.sci.utah.edu
 
 The MIT License
@@ -53,8 +56,6 @@ DEALINGS IN THE SOFTWARE.
  * @author Brig Bagley
  * @version 4 March 2014
  */
-#ifndef __COMPATIBILITY_H__
-#define __COMPATIBILITY_H__
 
 #ifdef _WIN32 //WINDOWS ONLY
 
@@ -81,18 +82,18 @@ inline wchar_t GETSLASH() { return L'/'; }
 
 inline std::wstring s2ws(const std::string& utf8) {
 //    return std::wstring( str.begin(), str.end() );
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-    return converter.from_bytes(utf8);
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
+	return converter.from_bytes(utf8);
 }
 
 inline std::string ws2s(const std::wstring& utf16) {
 //    return std::string( str.begin(), str.end() );
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
-    return converter.to_bytes(utf16);
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
+	return converter.to_bytes(utf16);
 }
 
 inline FILE* FOPEN(FILE** fp, const char *fname, const char* mode) {
-    fopen_s(fp,fname,mode);
+	fopen_s(fp,fname,mode);
 	return *fp;
 }
 
@@ -138,23 +139,23 @@ inline uint32_t GET_TICK_COUNT() { return GetTickCount(); }
 /*
 void FIND_FILES(std::string path, std::string ext, std::vector<std::string> & list, int cur_batch, std::string regex = "")
 {
-    QDir dir(path);
-    QFileInfoList files = dir.entryInfoList();
-    list.clear();
-    foreach(const QFileInfo &fi, files)
-    {
-        QString filename = fi.absoluteFilePath();
-        list.push_back(filename);
-    }
+	QDir dir(path);
+	QFileInfoList files = dir.entryInfoList();
+	list.clear();
+	foreach(const QFileInfo &fi, files)
+	{
+		QString filename = fi.absoluteFilePath();
+		list.push_back(filename);
+	}
 }
 */
 
 inline void FIND_FILES(std::wstring m_path_name,
-      std::wstring search_ext,
-      std::vector<std::wstring> &m_batch_list,
-      int &m_cur_batch, std::wstring regex = L"") {
+	  std::wstring search_ext,
+	  std::vector<std::wstring> &m_batch_list,
+	  int &m_cur_batch, std::wstring regex = L"") {
    std::wstring search_path = m_path_name.substr(0,
-         m_path_name.find_last_of(L'/')) + L'/';
+		 m_path_name.find_last_of(L'/')) + L'/';
    std::wstring search_str = regex + L"*" + search_ext;
    if (std::string::npos == search_str.find(m_path_name))
 	   search_str = m_path_name + search_str;
@@ -163,22 +164,22 @@ inline void FIND_FILES(std::wstring m_path_name,
    hFind = FindFirstFileW(search_str.c_str(), &FindFileData);
    if (hFind != INVALID_HANDLE_VALUE)
    {
-      int cnt = 0;
-      m_batch_list.clear();
-      std::wstring name = search_path + FindFileData.cFileName;
-      m_batch_list.push_back(name);
-      if (name == m_path_name)
-         m_cur_batch = cnt;
-      cnt++;
+	  int cnt = 0;
+	  m_batch_list.clear();
+	  std::wstring name = search_path + FindFileData.cFileName;
+	  m_batch_list.push_back(name);
+	  if (name == m_path_name)
+		 m_cur_batch = cnt;
+	  cnt++;
 
-      while (FindNextFileW(hFind, &FindFileData) != 0)
-      {
-         name = search_path + FindFileData.cFileName;
-         m_batch_list.push_back(name);
-         if (name == m_path_name)
-            m_cur_batch = cnt;
-         cnt++;
-      }
+	  while (FindNextFileW(hFind, &FindFileData) != 0)
+	  {
+		 name = search_path + FindFileData.cFileName;
+		 m_batch_list.push_back(name);
+		 if (name == m_path_name)
+			m_cur_batch = cnt;
+		 cnt++;
+	  }
    }
    FindClose(hFind);
 }
@@ -205,16 +206,16 @@ inline std::wstring s2ws(const std::string& utf8) {
 //    return std::wstring( str.begin(), str.end() );
 //    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
 //    return converter.from_bytes(utf8);
-    QString str(utf8.c_str());
-    return str.toStdWString();
+	QString str(utf8.c_str());
+	return str.toStdWString();
 }
 
 inline std::string ws2s(const std::wstring& utf16) {
 //    return std::string( str.begin(), str.end() );
 //    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
 //    return converter.to_bytes(utf16);
-    QString str(QString::fromWCharArray(utf16.c_str()));
-    return str.toStdString();
+	QString str(QString::fromWCharArray(utf16.c_str()));
+	return str.toStdString();
 }
 
 /*
@@ -275,56 +276,56 @@ inline int CREATE_DIR(const char *f) { return mkdir(f, S_IRWXU | S_IRGRP | S_IXG
 
 typedef union _LARGE_INTEGER {
    struct {
-      unsigned int LowPart;
-      long HighPart;
+	  unsigned int LowPart;
+	  long HighPart;
    };
    struct {
-      unsigned int LowPart;
-      long HighPart;
+	  unsigned int LowPart;
+	  long HighPart;
    } u;
    long long QuadPart;
 } LARGE_INTEGER, *PLARGE_INTEGER;
 
 inline void FIND_FILES(std::wstring m_path_name,
-      std::wstring search_ext,
-      std::vector<std::wstring> &m_batch_list,
-      int &m_cur_batch, std::wstring regex = L"") {
+	  std::wstring search_ext,
+	  std::vector<std::wstring> &m_batch_list,
+	  int &m_cur_batch, std::wstring regex = L"") {
    std::wstring search_path = m_path_name.substr(0,m_path_name.find_last_of(L'/')) + L'/';
    std::wstring regex_min;
    if(regex.find(search_path) != std::string::npos)
-      regex_min = regex.substr(search_path.length(),regex.length() - search_path.length());
+	  regex_min = regex.substr(search_path.length(),regex.length() - search_path.length());
    else
-      regex_min = regex;
+	  regex_min = regex;
    DIR* dir;
    struct dirent *ent;
    if ((dir = opendir(ws2s(search_path).c_str())) != NULL) {
-      int cnt = 0;
-      m_batch_list.clear();
-      while((ent = readdir(dir)) != NULL) {
-         std::string file(ent->d_name);
-         std::wstring wfile = s2ws(file);
-         //check if it contains the string.
-         if (wfile.find(search_ext) != std::string::npos &&
-               wfile.find(regex_min) != std::string::npos) {
-            std::string ss = ent->d_name;
-            std::wstring f = s2ws(ss);
-            std::wstring name;
-            if(f.find(search_path) == std::string::npos)
-               name = search_path + f;
-            else
-               name = f;
-            m_batch_list.push_back(name);
-            if (name == m_path_name)
-               m_cur_batch = cnt;
-            cnt++;
-         }
-      }
+	  int cnt = 0;
+	  m_batch_list.clear();
+	  while((ent = readdir(dir)) != NULL) {
+		 std::string file(ent->d_name);
+		 std::wstring wfile = s2ws(file);
+		 //check if it contains the string.
+		 if (wfile.find(search_ext) != std::string::npos &&
+			   wfile.find(regex_min) != std::string::npos) {
+			std::string ss = ent->d_name;
+			std::wstring f = s2ws(ss);
+			std::wstring name;
+			if(f.find(search_path) == std::string::npos)
+			   name = search_path + f;
+			else
+			   name = f;
+			m_batch_list.push_back(name);
+			if (name == m_path_name)
+			   m_cur_batch = cnt;
+			cnt++;
+		 }
+	  }
    }
 }
 
 inline FILE* WFOPEN(FILE ** fp, const wchar_t* filename, const wchar_t* mode) {
    *fp = fopen(ws2s(std::wstring(filename)).c_str(),
-         ws2s(std::wstring(mode)).c_str());
+		 ws2s(std::wstring(mode)).c_str());
    return *fp;
 }
 
@@ -347,5 +348,3 @@ inline uint32_t GET_TICK_COUNT() {
 #endif
 
 #endif //END_IF_DEF__WIN32__
-
-#endif //END__COMPATIBILITY_H__

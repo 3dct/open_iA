@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IACHANNELVISUALIZATIONDATA_H
-#define IACHANNELVISUALIZATIONDATA_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -138,5 +136,3 @@ private:
 };
 
 void open_iA_Core_API ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
-
-#endif

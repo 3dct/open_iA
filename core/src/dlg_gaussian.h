@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_GAUSSIAN_H
-#define DLG_GAUSSIAN_H
+#pragma once
 
 #include "dlg_function.h"
 #include "open_iA_Core_export.h"
@@ -98,5 +96,3 @@ private:
 	// convert image to data
 	double i2dX(int x);
 };
-
-#endif

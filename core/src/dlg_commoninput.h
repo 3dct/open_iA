@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_COMMONINPUT_H
-#define DLG_COMMONINPUT_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 #include "ui_CommonInput.h"
@@ -84,4 +82,3 @@ protected:
 	QStringList widgetList;
 
 };
-#endif

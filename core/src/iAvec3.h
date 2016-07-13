@@ -18,12 +18,9 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef		__VECTOR__
-#define		__VECTOR__
+#pragma once
 
 #include "open_iA_Core_export.h"
-// #include	<cmath>
 
 /**	\class Vec3.
 \brief Class representing 3 dimensional vector.
@@ -190,4 +187,3 @@ inline iAVec3 operator ^ (const iAVec3& u,const iAVec3& v)
 		u.z*v.x - u.x*v.z,
 		u.x*v.y - u.y*v.x);
 }
-#endif

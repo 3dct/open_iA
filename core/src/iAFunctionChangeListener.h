@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAFUNCTIONCHANGELISTENER_H
-#define IAFUNCTIONCHANGELISTENER_H
+#pragma once
 
 class iAFunctionChangeListener
 {
@@ -28,5 +26,3 @@ public:
 	virtual void onFunctionChanged() =0;
 	~iAFunctionChangeListener() {}
 };
-
-#endif /* IAFUNCTIONCHANGELISTENER_H */

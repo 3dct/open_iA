@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAITKIO_h
-#define iAITKIO_h
+#pragma once
 
 #include "iATypedCallHelper.h"
 
@@ -95,7 +93,4 @@ namespace iAITKIO
 	{
 		ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);
 	}
-};
-
-
-#endif
+} // namespace iAITKIO

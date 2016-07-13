@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#if !defined(PCH_H)
-#define PCH_H
+#pragma once
 
 #ifdef USE_PRECOMPILED_HEADERS
 // #pragma message("Using pre-compiled headers\n")
@@ -546,4 +544,3 @@
 #include <vector>
 
 #endif	// USE_PRECOMPILED_HEADERS
-#endif	// PCH_H

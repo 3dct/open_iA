@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IASLICERDATA_H
-#define IASLICERDATA_H
-
 #pragma once
 
 #include "iAChannelID.h"
@@ -275,5 +271,3 @@ private:
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
 	void GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, double* result);
 };
-
-#endif

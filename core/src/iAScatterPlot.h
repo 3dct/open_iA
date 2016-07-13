@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAScatterPlot_h__
-#define iAScatterPlot_h__
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -198,5 +196,3 @@ protected:
 	bool m_isMaximizedPlot;						//!< flag telling if plot is maximized (bigger plot)
 	bool m_isPreviewPlot;						//!< flag telling if plot is previewed (displayed in maximized plot)
 };
-
-#endif // iAScatterPlot_h__

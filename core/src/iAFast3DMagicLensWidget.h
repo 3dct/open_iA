@@ -18,9 +18,8 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IAFAST3DMAGICLENSWIDGET_H
-#define IAFAST3DMAGICLENSWIDGET_H
+#pragma once
+
 // iA
 #include "iAAbstractMagicLensWidget.h"
 
@@ -44,5 +43,3 @@ Q_SIGNALS:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();
 };
-
-#endif // IAFAST3DMAGICLENSWIDGET_H

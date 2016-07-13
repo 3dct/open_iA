@@ -18,26 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-
-/*=========================================================================
-
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: PixelAccessors.h,v $
-  Language:  C++
-  Date:      $Date: 2005-06-13 13:48:10 $
-  Version:   $Revision: 1.1 $
-
-  Copyright (c) 2002 Insight Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
-#ifndef __PixelAccessors_h
-#define __PixelAccessors_h
+#pragma once
 
 // Eigenvalue pixel accessor to access vector of eigen value pixels
 // as individual images 
@@ -49,14 +30,14 @@ public:
   typedef float                      ExternalType;
   
   inline ExternalType Get( const InternalType & input ) const 
-    {
-      return static_cast<ExternalType>( input[m_EigenIdx] );
-    }
+	{
+	  return static_cast<ExternalType>( input[m_EigenIdx] );
+	}
 
   void SetEigenIdx( unsigned int i )
-    {
-    this->m_EigenIdx = i;
-    }
+	{
+	this->m_EigenIdx = i;
+	}
   
 private:
   unsigned int m_EigenIdx;
@@ -66,20 +47,18 @@ private:
 // Functor to get trace of the hessian matrix (laplacian of the image )
 namespace Functor {  
  
-template< typename TInput, typename TOutput >
-class HessianToLaplacianFunction
-{
-public:
-  typedef typename TInput::RealValueType  RealValueType;
-  HessianToLaplacianFunction() {}
-  ~HessianToLaplacianFunction() {}
+	template< typename TInput, typename TOutput >
+	class HessianToLaplacianFunction
+	{
+	public:
+	  typedef typename TInput::RealValueType  RealValueType;
+	  HessianToLaplacianFunction() {}
+	  ~HessianToLaplacianFunction() {}
   
-  inline TOutput operator()( const TInput & x ) const
-    {
-    return static_cast< TOutput >( x(0,0) + x(1,1) + x(2,2) );
-    }
-}; 
+	  inline TOutput operator()( const TInput & x ) const
+		{
+		return static_cast< TOutput >( x(0,0) + x(1,1) + x(2,2) );
+		}
+	};
 
-}
-
-#endif
+} // namespace Functor
