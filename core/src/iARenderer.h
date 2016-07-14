@@ -93,25 +93,12 @@ public:
 	void reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf, int e = 10 );
 	void setPolyData( vtkPolyData* pd );
 	vtkPolyData* getPolyData();
-	void parallelProjection( bool b );
-	void shade( bool b );
-	void interpolationType( int val );
-	void ambient( double val );
-	void diffuse( double val );
-	void specular( double val );
-	void specularPower( double val );
-	void color( vtkColorTransferFunction* TF );
-	void scalarOpacity( vtkPiecewiseFunction* TF );
-	void setTransferFunctions( vtkPiecewiseFunction* opacityTFHighlight, vtkColorTransferFunction* colorTFHighlight, vtkPiecewiseFunction* opacityTFTransparent, vtkColorTransferFunction* colorTFTransparent );
-	void setTransferFunctionToHighlight();
-	void setTransferFunctionToTransparent();
 
 	void updateChannelImages();
 	void addChannel(iAChannelVisualizationData * chData );
 	void removeChannel(iAChannelVisualizationData * chData);
 	void showMainVolumeWithChannels(bool show);
 
-	void visibility( bool b );
 	void disableInteractor();
 	void enableInteractor();
 	void setAxesTransform(vtkTransform *transform) { axesTransform = transform; }
@@ -175,7 +162,8 @@ public:
 	void saveMovie(const QString& fileName, int mode, int qual = 2);
 	RenderObserver * getRenderObserver(){ return renderObserver; }
 
-	// TODO: move out of here! ----------
+	// TODO: move out of here, to MObjects ----------
+	void setTransferFunctions(vtkPiecewiseFunction* opacityTFHighlight, vtkColorTransferFunction* colorTFHighlight, vtkPiecewiseFunction* opacityTFTransparent, vtkColorTransferFunction* colorTFTransparent);
 	void initializeHighlight(vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
 	void reInitializeHighlight(vtkImageData* ds, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
 	void visualizeHighlight(bool enabled);
@@ -265,7 +253,6 @@ private:
 	//! @}
 
 	QWidget *parent;
-	iAWrapperText* textInfo;
 
 	int ext; //!< statistical extent size
 

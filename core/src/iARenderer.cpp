@@ -127,8 +127,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	multiChannelImageData = vtkImageData::New();
 
 	parent = (QWidget*)par;
-
-	ren = vtkOpenGLRenderer::New();
 	labelRen = vtkOpenGLRenderer::New();
 
 	renWin = vtkGenericOpenGLRenderWindow::New();
@@ -151,9 +149,12 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	logowidget = vtkLogoWidget::New();
 	image1 = vtkQImageToImageSource::New();
 
-	volumeProperty = vtkVolumeProperty::New();
-
+	ren = vtkOpenGLRenderer::New();
 	volume = vtkVolume::New();
+	volumeProperty = vtkVolumeProperty::New();
+	volumeMapper = vtkSmartVolumeMapper::New();
+	volumeMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
+
 	actor2D = vtkActor2D::New();
 	textMapper = vtkTextMapper::New();
 
@@ -166,8 +167,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	textProperty = vtkTextProperty::New();
 	orientationMarkerWidget = vtkOrientationMarkerWidget::New();
 
-	textInfo = iAWrapperText::New();
-
 	pointPicker = vtkPicker::New();
 	renderObserver = NULL;
 	observerFPProgress = iAObserverProgress::New();
@@ -177,19 +176,11 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane2 = vtkPlane::New();
 	plane3 = vtkPlane::New();
 
-	textInfo->AddToScene(ren);
-	textInfo->SetText(" ");
-	textInfo->SetPosition(iAWrapperText::POS_LOWER_LEFT);
-	textInfo->Show(1);
-
 	cellLocator = vtkCellLocator::New();
 
 	// mobject image members initialize
 	volumeHighlight = vtkVolume::New();
 	volumePropertyHighlight = vtkVolumeProperty::New();
-	volumeMapper = vtkSmartVolumeMapper::New();
-	volumeMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
-
 	highlightMode = false;
 	meanObjectSelected = false;
 	meanObjectHighlighted = false;
@@ -204,8 +195,6 @@ iARenderer::~iARenderer(void)
 	if (renderObserver) renderObserver->Delete();
 	observerFPProgress->Delete();
 	observerGPUProgress->Delete();
-
-	textInfo->Delete();	
 
 	plane1->Delete();
 	plane2->Delete();
@@ -247,8 +236,6 @@ iARenderer::~iARenderer(void)
 
 	ren->Delete();
 	labelRen->Delete();
-
-	//cam->Delete();	// now the camera is vtkSmartPointer
 	cellLocator->Delete();
 }
 
@@ -307,10 +294,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunc
 
 	setupCutter();
 	setupTxt();
-	//setupHelper();
 	setupCube();
 	setupAxes(spacing);
-	//setupPickerGlyphs();
 	setupOrientationMarker();
 	setupRenderer();
 
@@ -361,7 +346,6 @@ void iARenderer::setTransferFunctions( vtkPiecewiseFunction* opacityTFHighlight,
 
 	update();
 }
-
 
 
 void iARenderer::initializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
@@ -1059,23 +1043,6 @@ vtkPolyData* iARenderer::getPolyData()
 	return polyData;
 }
 
-void iARenderer::parallelProjection(bool b)
-{
-	ren->GetActiveCamera()->SetParallelProjection(b);
-}
-
-void iARenderer::shade(bool b) { volumeProperty->SetShade(b); };
-void iARenderer::interpolationType(int val) { volumeProperty->SetInterpolationType(val); };
-void iARenderer::ambient(double val) { volumeProperty->SetAmbient(val); };
-void iARenderer::diffuse(double val) { volumeProperty->SetDiffuse(val); };
-void iARenderer::specular(double val) { volumeProperty->SetSpecular(val); };
-void iARenderer::specularPower(double val) { volumeProperty->SetSpecularPower(val); };
-void iARenderer::color(vtkColorTransferFunction* TF) { volumeProperty->SetColor(TF); };
-void iARenderer::scalarOpacity(vtkPiecewiseFunction* TF) { volumeProperty->SetScalarOpacity(TF); };
-void iARenderer::setTransferFunctionToHighlight() { volumeProperty->SetColor(colorTransferFunctionHighlight); volumeProperty->SetScalarOpacity(piecewiseFunctionHighlight); update(); };
-void iARenderer::setTransferFunctionToTransparent() { volumeProperty->SetColor(colorTransferFunctionTransparent); volumeProperty->SetScalarOpacity(piecewiseFunctionTransparent); update(); };
-
-void iARenderer::visibility(bool b) { volume->SetVisibility(b); };
 void iARenderer::disableInteractor() { interactor->Disable(); }
 void iARenderer::enableInteractor() { interactor->ReInitialize(); }
 

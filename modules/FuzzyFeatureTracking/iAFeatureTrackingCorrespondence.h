@@ -27,7 +27,7 @@
 
 using namespace std;
 
-enum FeatureEvent { Creation, Continuation, Bifurcation, Amalgamation, Dissipation }; //Creation, Continuation, Dissipation, Bifurcation, Amalgamation 
+enum FeatureEvent { Creation, Continuation, Bifurcation, Amalgamation, Dissipation }; //Creation, Continuation, Dissipation, Bifurcation, Amalgamation
 
 class iAFeatureTrackingCorrespondence
 {	
