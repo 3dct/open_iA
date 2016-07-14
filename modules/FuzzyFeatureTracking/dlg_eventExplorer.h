@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_EVENT_EXPLORER_H
-#define	DLG_EVENT_EXPLORER_H
+#pragma once
 
 #include <QtGui>
 #include <QObject>
@@ -130,5 +128,3 @@ private:
 	vtkDoubleArray* m_trackingUncertainty;
 	vtkEventQtSlotConnect* m_chartConnections;
 };
-
-#endif

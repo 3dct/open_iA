@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef DLG_DATAVIEW4DCT
-#define DLG_DATAVIEW4DCT
+#pragma once
 
 #include "ui_DataView4DCT.h"
 #include <iAQTtoUIConnector.h>
@@ -55,5 +53,3 @@ private:
 	MdiChild*							m_mdiChild;
 	iARendererManager					m_rendererManager;
 };
-
-#endif // DLG_DATAVIEW4DCT

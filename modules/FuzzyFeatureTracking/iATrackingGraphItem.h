@@ -18,9 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef IA_TRACKING_GRAPH_ITEM_H
-#define	IA_TRACKING_GRAPH_ITEM_H
+#pragma once
 
 #include <vtkGraphItem.h>
 
@@ -45,5 +43,3 @@ protected:
 	virtual vtkStdString VertexTooltip(vtkIdType vertex);
 	virtual void PaintBuffers(vtkContext2D *painter);
 };
-
-#endif
