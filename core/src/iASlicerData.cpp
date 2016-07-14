@@ -83,15 +83,10 @@
 #include <string>
 #include <sstream>
 
-#ifdef VTK_USE_MPEG2_ENCODER
-#include <vtkMPEG2Writer.h>
-#endif
-
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 #include <vtkOggTheoraWriter.h>
 #endif
-
-#ifdef WIN32
+#ifdef _WIN32
 #include <vtkAVIWriter.h>
 #endif
 
@@ -584,14 +579,10 @@ void iASlicerData::showPosition(bool s)
 void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 { 
 	QString movie_file_types;
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	movie_file_types += "MPEG2 (*.mpeg);;";
-#endif
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 	movie_file_types += "OGG (*.ogv);;";
 #endif
-#ifdef WIN32
+#ifdef _WIN32
 	movie_file_types += "AVI (*.avi);;";
 #endif
 
@@ -608,14 +599,6 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
 
 	// Try to create proper video encoder based on given file name.
-#ifdef VTK_USE_MPEG2_ENCODER
-	if (fileName.endsWith(".mpeg")){
-		vtkSmartPointer<vtkMPEG2Writer> mpegwriter;
-		mpegwriter = vtkSmartPointer<vtkMPEG2Writer>::New();
-		movieWriter = mpegwriter;
-	}
-#endif
-
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 	if (fileName.endsWith(".ogv")) {
 		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
@@ -625,7 +608,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	}
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 	vtkSmartPointer<vtkAVIWriter> aviwriter;
 	if (fileName.endsWith(".avi")){
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();

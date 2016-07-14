@@ -69,15 +69,11 @@
 #include <QApplication>
 #include <QImage>
 
-#ifdef VTK_USE_MPEG2_ENCODER
-#include <vtkMPEG2Writer.h>
-#endif
-
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 #include <vtkOggTheoraWriter.h>
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <vtkAVIWriter.h>
 #endif
 
@@ -744,29 +740,21 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
 
 	// Try to create proper video encoder based on given file name.
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	if (fileName.endsWith(".mpeg")){
-		vtkSmartPointer<vtkMPEG2Writer> mpegwriter;
-		mpegwriter = vtkSmartPointer<vtkMPEG2Writer>::New();
-		movieWriter = mpegwriter;
-	}
-#endif
-
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 	if (fileName.endsWith(".ogv")) {
 		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
 		oggwriter = vtkSmartPointer<vtkOggTheoraWriter>::New();
 		oggwriter->SetQuality(qual);
+		oggwriter->SetRate(25);
 		movieWriter = oggwriter;
 	}
 #endif
-
-#ifdef WIN32
+#ifdef _WIN32
 	vtkSmartPointer<vtkAVIWriter> aviwriter;
 	if (fileName.endsWith(".avi")){
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
-		aviwriter->SetCompressorFourCC("XVID");
+		aviwriter->SetCompressorFourCC("XVID");	// check for codec(s)?
+		aviwriter->SetRate(25);
 		aviwriter->PromptCompressionOptionsOn();
 		aviwriter->SetQuality(qual);
 		movieWriter = aviwriter;

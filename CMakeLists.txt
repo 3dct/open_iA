@@ -161,13 +161,11 @@ IF (VTK_VERSION_MAJOR GREATER 5)
 			vtkGUISupportQt
 			vtkGUISupportQtOpenGL
 			vtkImagingCore
+			vtkImagingStatistics
 			vtkInfovisCore
 			vtkIOCore
 			vtkIOMovie
 			vtkIOGeometry
-			vtkImagingStatistics
-			vtkIOGeometry
-			vtkIOMovie
 			vtkIOXML
 			vtkRenderingContext2D
 			vtkRenderingContextOpenGL2
@@ -184,8 +182,8 @@ IF (VTK_VERSION_MAJOR GREATER 5)
 		)
 	ELSE ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 		SET( VTK_LIBRARIES
-			vtkChartsCore
 			vtkCommonCore
+			vtkChartsCore
 			vtkDICOMParser
 			vtkFiltersCore
 			vtkGUISupportQt
@@ -195,13 +193,13 @@ IF (VTK_VERSION_MAJOR GREATER 5)
 			vtkInfovisCore
 			vtkIOCore
 			vtkIOMovie
-			vtkIOXML
 			vtkIOGeometry
+			vtkIOXML
 			vtkRenderingImage
 			vtkRenderingOpenGL
-			vtksys
 			vtkViewsCore
 			vtkViewsInfovis
+			vtksys
 		)
 		IF (VTK_VERSION_MAJOR GREATER 6 OR  VTK_VERSION_MINOR GREATER 0)
 			SET (VTK_LIBRARIES ${VTK_LIBRARIES}
@@ -219,6 +217,11 @@ IF (VTK_VERSION_MAJOR GREATER 5)
 		ENDIF (VTK_VERSION_MAJOR GREATER 6 OR  VTK_VERSION_MINOR GREATER 0)
 	ENDIF("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 	
+	IF (vtkoggtheora_LOADED)
+		MESSAGE(STATUS "Video: Ogg Theora Encoder available")
+		ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
+	ENDIF(vtkoggtheora_LOADED)
+
 ELSE (VTK_VERSION_MAJOR GREATER 5)
 	STATUS(SEND_ERROR "Your VTK version is too old. Please use VTK >= 6.0")
 ENDIF (VTK_VERSION_MAJOR GREATER 5)

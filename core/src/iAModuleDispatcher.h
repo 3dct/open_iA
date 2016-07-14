@@ -46,7 +46,7 @@ struct iAModuleAction
 
 class iAModuleInterface;
 
-#ifdef WIN32
+#ifdef _WIN32
 	#define MODULE_HANDLE HINSTANCE
 #else
 	#define MODULE_HANDLE void*

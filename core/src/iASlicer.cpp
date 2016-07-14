@@ -178,13 +178,10 @@ void iASlicer::saveMovie()
 {
 	QString movie_file_types;
 
-#ifdef VTK_USE_MPEG2_ENCODER
-	movie_file_types += "MPEG2 (*.mpeg);;";
-#endif
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 	movie_file_types += "OGG (*.ogv);;";
 #endif
-#ifdef WIN32
+#ifdef _WIN32
 	movie_file_types += "AVI (*.avi);;";
 #endif
 

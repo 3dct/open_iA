@@ -651,15 +651,6 @@ void iABlobManager::SaveMovie(  QWidget *activeChild,
 
 	// Try to create proper video encoder based on given
 	// file name.
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	if (fileName.endsWith(".mpeg")){
-		vtkSmartPointer<vtkMPEG2Writer> mpegwriter;
-		mpegwriter = vtkSmartPointer<vtkMPEG2Writer>::New();
-		movieWriter = mpegwriter;
-	}
-#endif
-
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 	if (fileName.endsWith(".ogv")) {
 		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
@@ -669,7 +660,7 @@ void iABlobManager::SaveMovie(  QWidget *activeChild,
 	}
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 	if (fileName.endsWith(".avi")){
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
 		aviwriter->SetCompressorFourCC("XVID");
