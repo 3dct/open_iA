@@ -27,7 +27,6 @@
 #include "iAChannelVisualizationData.h"
 #include "iAObserverProgress.h"
 #include "iARenderObserver.h"
-#include "iAXmlFiberParser.h"
 
 #include <vtkActor.h>
 #include <vtkActor2D.h>
