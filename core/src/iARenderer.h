@@ -20,10 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-class iAObserverProgress;
-class iAObserverGizmoKeyEvent;
-class iAWrapperText;
-
 #include "open_iA_Core_export.h"
 
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -36,10 +32,10 @@ class iAWrapperText;
 
 class iAChannelVisualizationData;
 class iAChannelRenderData;
+class iAObserverProgress;
 class RenderObserver;
 
 class vtkActor;
-class vtkActor2D;
 class vtkAnnotatedCubeActor;
 class vtkAxesActor;
 class vtkCamera;
@@ -47,30 +43,22 @@ class vtkCellLocator;
 class vtkColorTransferFunction;
 class vtkCornerAnnotation;
 class vtkCubeSource;
-class vtkFixedPointVolumeRayCastMapper;
-class vtkGPUVolumeRayCastMapper;
 class vtkImageData;
-class vtkInteractorStyle;
 class vtkInteractorStyleSwitch;
 class vtkLogoRepresentation;
 class vtkLogoWidget;
-class vtkLookupTable;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkOutlineFilter;
 class vtkPicker;
 class vtkPiecewiseFunction;
 class vtkPlane;
-class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
-class vtkProp;
 class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkSmartVolumeMapper;
-class vtkTextMapper;
-class vtkTextProperty;
 class vtkTransform;
 class vtkVolume;
 class vtkVolumeMapper;
@@ -190,33 +178,36 @@ private:
 	vtkGenericOpenGLRenderWindow* renWin;
 	vtkOpenGLRenderer * ren, *labelRen;
 	vtkSmartPointer<vtkCamera> cam;
-	vtkImageData* imageData;
 	vtkPolyData* polyData;
 	vtkCellLocator * cellLocator;
-	vtkPiecewiseFunction* piecewiseFunction;
-	vtkColorTransferFunction* colorTransferFunction;
-	vtkOutlineFilter* outlineFilter;
-	vtkPolyDataMapper* outlineMapper;
-	vtkActor* outlineActor;
 	vtkPolyDataMapper* polyMapper;
 	vtkActor* polyActor;
+
+	//! @{ Logo
 	vtkLogoRepresentation *rep;
 	vtkLogoWidget *logowidget;
 	vtkQImageToImageSource *image1;
+	//! @}
 
+	//! @{ Bounding Box
+	vtkOutlineFilter* outlineFilter;
+	vtkPolyDataMapper* outlineMapper;
+	vtkActor* outlineActor;
+	//! @}
+
+	vtkImageData* imageData;
+	vtkPiecewiseFunction* piecewiseFunction;
+	vtkColorTransferFunction* colorTransferFunction;
+	
+	vtkSmartVolumeMapper* volumeMapper;
 	vtkVolumeProperty* volumeProperty;
 	vtkVolume* volume;
-
-	vtkActor2D* actor2D;
-	vtkTextMapper* textMapper;
-	vtkTextProperty* textProperty;
 
 	vtkAnnotatedCubeActor* annotatedCubeActor;
 	vtkAxesActor* axesActor;
 	vtkAxesActor* moveableAxesActor;
 	vtkTransform *axesTransform;
 	vtkOrientationMarkerWidget* orientationMarkerWidget;
-	vtkLookupTable *bwLUT;
 	vtkOutlineFilter *outlineSliceFilter;
 	vtkPolyDataMapper *outlineSlicePolyDataMapper;
 	vtkPlane *plane1, *plane2, *plane3;
@@ -234,7 +225,6 @@ private:
 	vtkColorTransferFunction* colorTransferFunctionHighlight;
 	vtkVolume* volumeHighlight;
 	vtkVolumeProperty* volumePropertyHighlight;
-	vtkSmartVolumeMapper* volumeMapper;
 	bool highlightMode;
 	bool meanObjectSelected;
 	bool meanObjectHighlighted;

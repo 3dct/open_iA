@@ -29,7 +29,6 @@
 #include "iARenderObserver.h"
 
 #include <vtkActor.h>
-#include <vtkActor2D.h>
 #include <vtkAnnotatedCubeActor.h>
 #include <vtkAxesActor.h>
 #include <vtkCamera.h>
@@ -58,8 +57,6 @@
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkTextMapper.h>
-#include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
@@ -121,10 +118,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	volumeMapper = vtkSmartVolumeMapper::New();
 	volumeMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
 
-	actor2D = vtkActor2D::New();
-	textMapper = vtkTextMapper::New();
-	textProperty = vtkTextProperty::New();
-
 	polyMapper = vtkPolyDataMapper::New();
 	polyActor = vtkActor::New();
 
@@ -174,11 +167,6 @@ iARenderer::~iARenderer(void)
 	axesActor->Delete();
 	moveableAxesActor->Delete();
 	//annotatedCubeActor->Delete(); Load simulation crashes in Release mode but not in Debug mode
-
-	textProperty->Delete();
-	textMapper->ReleaseDataFlagOn();
-	textMapper->Delete();
-	actor2D->Delete();
 
 	volume->Delete();
 	if (volumeMapper != NULL) {
@@ -260,7 +248,6 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunc
 	cActor->GetProperty()->SetColor(1,0,0);
 
 	setupCutter();
-	setupTxt();
 	setupCube();
 	setupAxes(spacing);
 	setupOrientationMarker();
@@ -532,19 +519,6 @@ void iARenderer::setupCutter()
 	plane3->SetNormal(0, 0, 1);
 }
 
-void iARenderer::setupTxt()
-{
-	textProperty->SetBold(0);
-	textProperty->SetItalic(0);
-	textProperty->SetFontSize(11);
-	textProperty->SetFontFamily(VTK_COURIER);
-	textProperty->SetJustification(VTK_TEXT_CENTERED);
-	textProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
-
-	textMapper->SetTextProperty(textProperty);
-	actor2D->SetMapper(textMapper);
-}
-
 void iARenderer::setupCube()
 {
 	annotatedCubeActor->SetPickable(1);
@@ -636,7 +610,6 @@ void iARenderer::setupRenderer()
 	ren->AddVolume(volume);
 	ren->AddActor(polyActor);
 	ren->AddActor(cActor);
-	ren->AddActor(actor2D);
 	ren->AddActor(axesActor);
 	ren->AddActor(moveableAxesActor);
 	ren->AddActor(outlineActor);
