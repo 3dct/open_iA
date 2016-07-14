@@ -61,7 +61,6 @@ class vtkRenderWindowInteractor;
 class vtkSmartVolumeMapper;
 class vtkTransform;
 class vtkVolume;
-class vtkVolumeMapper;
 class vtkVolumeProperty;
 
 
@@ -117,7 +116,6 @@ public:
 	void setStatExt( int s ) { ext = s; };
 
 	void setupCutter();
-	void setupTxt();
 	void setupCube();
 	void setupAxes(double spacing[3]);
 	void setupOrientationMarker();
@@ -164,7 +162,6 @@ public:
 	// <---------- until here!
 
 	void setSampleDistance(double sampleDistance);
-	void hideOrientationMarker();
 	void AddRenderer(vtkRenderer* renderer);
 	void SetRenderMode(int mode);
 protected:
@@ -202,6 +199,9 @@ private:
 	vtkSmartVolumeMapper* volumeMapper;
 	vtkVolumeProperty* volumeProperty;
 	vtkVolume* volume;
+	void setInputVolume(vtkImageData* imageData);
+	void recreateMapper(vtkImageData* imageData);
+	void getNewVolumeMapper(vtkImageData* imageData);
 
 	vtkAnnotatedCubeActor* annotatedCubeActor;
 	vtkAxesActor* axesActor;
@@ -243,17 +243,12 @@ private:
 	QWidget *parent;
 
 	int ext; //!< statistical extent size
-
-	void setInputVolume(vtkImageData* imageData);
-	void recreateMapper(vtkImageData* imageData);
-	void getNewVolumeMapper(vtkImageData* imageData);
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
-	void updateMeanObjects(int);
 	void Clicked(int, int, int);
 
 	void reInitialized();

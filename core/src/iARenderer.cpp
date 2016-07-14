@@ -113,10 +113,9 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	image1 = vtkQImageToImageSource::New();
 
 	ren = vtkOpenGLRenderer::New();
+
 	volume = vtkVolume::New();
 	volumeProperty = vtkVolumeProperty::New();
-	volumeMapper = vtkSmartVolumeMapper::New();
-	volumeMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
 
 	polyMapper = vtkPolyDataMapper::New();
 	polyActor = vtkActor::New();
@@ -579,11 +578,6 @@ void iARenderer::setupOrientationMarker()
 	orientationMarkerWidget->InteractiveOff();
 }
 
-void iARenderer::hideOrientationMarker()
-{
-	orientationMarkerWidget->SetEnabled(false);
-}
-
 void iARenderer::setupRenderer()
 {
 	outlineFilter->SetInputData(imageData);
@@ -649,7 +643,6 @@ void iARenderer::showRPosition(bool s)
 void iARenderer::SetRenderMode(int mode)
 {
 	volumeMapper->SetRequestedRenderMode(mode);
-	volumeMapper->InteractiveAdjustSampleDistancesOff();
 }
 
 void iARenderer::setPlaneNormals( vtkTransform *tr ) 
@@ -894,6 +887,8 @@ void iARenderer::getNewVolumeMapper(vtkImageData* imageData)
 	volumeMapper->SetBlendModeToComposite(); // composite first
 	volumeMapper->SetInputData(imageData);
 	volumeMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
+	volumeMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);	// TODO: set mode from MdiChild
+	volumeMapper->InteractiveAdjustSampleDistancesOff();
 }
 
 void iARenderer::recreateMapper(vtkImageData* imageData)
