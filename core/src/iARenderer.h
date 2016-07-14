@@ -75,7 +75,6 @@ class vtkTransform;
 class vtkVolume;
 class vtkVolumeMapper;
 class vtkVolumeProperty;
-class vtkVolumeRayCastCompositeFunction;
 
 
 class open_iA_Core_API iARenderer: public QObject
@@ -186,9 +185,6 @@ protected:
 	iAObserverProgress* observerGPUProgress;
 
 private:
-	//! Initialize passes of renderer for correct visualization isosurface of blob
-	void initializePasses(void);
-
 	vtkRenderWindowInteractor* interactor;
 	vtkInteractorStyleSwitch* interactorStyle;
 	vtkGenericOpenGLRenderWindow* renWin;
@@ -207,16 +203,18 @@ private:
 	vtkLogoRepresentation *rep;
 	vtkLogoWidget *logowidget;
 	vtkQImageToImageSource *image1;
+
 	vtkVolumeProperty* volumeProperty;
-	vtkVolumeRayCastCompositeFunction* rayCastCompositeFunction;
 	vtkVolume* volume;
+
 	vtkActor2D* actor2D;
 	vtkTextMapper* textMapper;
+	vtkTextProperty* textProperty;
+
 	vtkAnnotatedCubeActor* annotatedCubeActor;
 	vtkAxesActor* axesActor;
 	vtkAxesActor* moveableAxesActor;
 	vtkTransform *axesTransform;
-	vtkTextProperty* textProperty;
 	vtkOrientationMarkerWidget* orientationMarkerWidget;
 	vtkLookupTable *bwLUT;
 	vtkOutlineFilter *outlineSliceFilter;

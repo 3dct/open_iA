@@ -27,76 +27,43 @@
 #include "iAChannelVisualizationData.h"
 #include "iAObserverProgress.h"
 #include "iARenderObserver.h"
-#include "iAWrapperText.h"
 #include "iAXmlFiberParser.h"
 
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotatedCubeActor.h>
 #include <vtkAxesActor.h>
-#include <vtkBox.h>
 #include <vtkCamera.h>
-#include <vtkCameraPass.h>
 #include <vtkCellArray.h>
 #include <vtkCellLocator.h>
-#include <vtkClearZPass.h>
-#include <vtkClipVolume.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkCornerAnnotation.h>
 #include <vtkCubeSource.h>
-#include <vtkDataSetMapper.h>
-#include <vtkDecimatePro.h>
-#include <vtkDefaultPass.h>
-#include <vtkDelaunay2D.h>
-#include <vtkElevationFilter.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericRenderWindowInteractor.h>
-#include <vtkGeometryFilter.h>
-#include <vtkGlyph3D.h>
-#include <vtkIdFilter.h>
-#include <vtkIdTypeArray.h>
 #include <vtkImageAppendComponents.h>
 #include <vtkImageBlend.h>
 #include <vtkImageData.h>
 #include <vtkImageCast.h>
-#include <vtkImageExtractComponents.h>
 #include <vtkInteractorStyleSwitch.h>
-#include <vtkLightsPass.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
-#include <vtkLookupTable.h>
-#include <vtkLoopSubdivisionFilter.h> 
-#include <vtkObjectFactory.h>
-#include <vtkOpaquePass.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkOutlineFilter.h>
-#include <vtkOverlayPass.h>
 #include <vtkPicker.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
-#include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkPolygon.h>
 #include <vtkQImageToImageSource.h>
-#include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderPassCollection.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSequencePass.h>
 #include <vtkSmartVolumeMapper.h>
 #include <vtkTextMapper.h>
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
-#include <vtkTranslucentPass.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkVertexGlyphFilter.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
-#include <vtkVolumeRayCastCompositeFunction.h>
-#include <vtkVolumetricPass.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QApplication>
@@ -157,6 +124,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 
 	actor2D = vtkActor2D::New();
 	textMapper = vtkTextMapper::New();
+	textProperty = vtkTextProperty::New();
 
 	polyMapper = vtkPolyDataMapper::New();
 	polyActor = vtkActor::New();
@@ -164,7 +132,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	annotatedCubeActor = vtkAnnotatedCubeActor::New();
 	axesActor = vtkAxesActor::New();
 	moveableAxesActor = vtkAxesActor::New();
-	textProperty = vtkTextProperty::New();
 	orientationMarkerWidget = vtkOrientationMarkerWidget::New();
 
 	pointPicker = vtkPicker::New();
@@ -205,14 +172,15 @@ iARenderer::~iARenderer(void)
 	cActor->Delete();
 
 	orientationMarkerWidget	->Delete();
-	textProperty->Delete();
 	axesActor->Delete();
 	moveableAxesActor->Delete();
 	//annotatedCubeActor->Delete(); Load simulation crashes in Release mode but not in Debug mode
 
+	textProperty->Delete();
 	textMapper->ReleaseDataFlagOn();
 	textMapper->Delete();
 	actor2D->Delete();
+
 	volume->Delete();
 	if (volumeMapper != NULL) {
 		volumeMapper->ReleaseDataFlagOn();
@@ -523,46 +491,6 @@ void iARenderer::showMainVolumeWithChannels(bool show)
 	updateChannelImages();
 }
 
-void iARenderer::initializePasses()
-{
-	// initialize passes
-	vtkCameraPass* cameraPass			= vtkCameraPass::New();
-	vtkClearZPass* clearZPass			= vtkClearZPass::New();
-	vtkDefaultPass* defaultPas			= vtkDefaultPass::New();
-	vtkSequencePass* renderPass			= vtkSequencePass::New();
-	vtkOpaquePass* opaquePass			= vtkOpaquePass::New();
-	vtkTranslucentPass* translucentPass	= vtkTranslucentPass::New();
-	vtkVolumetricPass* volumePass		= vtkVolumetricPass::New();
-	vtkOverlayPass* overlayPass			= vtkOverlayPass::New();
-	vtkLightsPass* lightsPass			= vtkLightsPass::New();
-	vtkRenderPassCollection* passes		= vtkRenderPassCollection::New();
-
-	passes->AddItem(clearZPass);
-	passes->AddItem(lightsPass);
-	passes->AddItem(defaultPas);
-	passes->AddItem(volumePass);
-	passes->AddItem(translucentPass);
-	passes->AddItem(opaquePass);
-	passes->AddItem(overlayPass);
-
-	renderPass->SetPasses(passes);
-	cameraPass->SetDelegatePass(renderPass);
-
-	// attach pass to renderer
-	ren->SetPass(cameraPass);
-
-	// delete passes
-	opaquePass->Delete();
-	volumePass->Delete();
-	overlayPass->Delete();
-	renderPass->Delete();
-	passes->Delete();
-	cameraPass->Delete();
-	lightsPass->Delete();
-	clearZPass->Delete();
-	defaultPas->Delete();
-	translucentPass->Delete();
-}
 
 void iARenderer::showSlicers( bool s ) 
 {
