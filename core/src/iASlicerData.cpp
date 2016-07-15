@@ -22,16 +22,17 @@
 #include "pch.h"
 #include "iASlicerData.h"
 
-#include "mdichild.h"
 #include "dlg_commoninput.h"
+#include "iAMagicLens.h"
 #include "iAMathUtility.h"
-#include "iASlicer.h"
+#include "iAMovieHelper.h"
+#include "iAObserverRedirect.h"
+#include "iAPieChartGlyph.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
-#include "iAObserverRedirect.h"
-#include "iAMagicLens.h"
-#include "iAPieChartGlyph.h"
+#include "iASlicer.h"
 #include "iASlicerSettings.h"
+#include "mdichild.h"
 
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
@@ -82,13 +83,6 @@
 
 #include <string>
 #include <sstream>
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-#include <vtkOggTheoraWriter.h>
-#endif
-#ifdef _WIN32
-#include <vtkAVIWriter.h>
-#endif
 
 
 iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 0 */,
@@ -576,13 +570,7 @@ void iASlicerData::showPosition(bool s)
 
 void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 { 
-	QString movie_file_types;
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef _WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if(!mdi_parent)
@@ -594,28 +582,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 		return;
 	}
 
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
-
-	// Try to create proper video encoder based on given file name.
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	if (fileName.endsWith(".ogv")) {
-		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
-		oggwriter = vtkSmartPointer<vtkOggTheoraWriter>::New();
-		oggwriter->SetQuality(qual);
-		movieWriter = oggwriter;
-	}
-#endif
-
-#ifdef _WIN32
-	vtkSmartPointer<vtkAVIWriter> aviwriter;
-	if (fileName.endsWith(".avi")){
-		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
-		aviwriter->SetCompressorFourCC("XVID");
-		aviwriter->PromptCompressionOptionsOn();
-		aviwriter->SetQuality(qual);
-		movieWriter = aviwriter;
-	}
-#endif
+	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
 
 	if (movieWriter.GetPointer() == NULL)
 		return;

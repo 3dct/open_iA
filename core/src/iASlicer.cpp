@@ -24,6 +24,7 @@
 
 #include "iAConsole.h"
 #include "iAMagicLens.h"
+#include "iAMovieHelper.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
 #include "mdichild.h"
@@ -176,14 +177,7 @@ void iASlicer::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 void iASlicer::saveMovie()
 {
-	QString movie_file_types;
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef _WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	QWidget * parentWidget = dynamic_cast<QWidget*>( this->parent() );
 	if( !parentWidget )

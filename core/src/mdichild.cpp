@@ -39,6 +39,7 @@
 #include "iALogger.h"
 #include "iAMdiChildLogger.h"
 #include "iAModality.h"
+#include "iAMovieHelper.h"
 #include "iAObserverProgress.h"
 #include "iAParametricSpline.h"
 #include "iAProfileProbe.h"
@@ -1689,14 +1690,7 @@ void MdiChild::saveMovie(iASlicer * slicer)
 
 void MdiChild::saveMovie(iARenderer& raycaster)
 {
-	QString movie_file_types;
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef _WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	// If VTK was built without video support, display error message and quit.
 	if (movie_file_types.isEmpty())

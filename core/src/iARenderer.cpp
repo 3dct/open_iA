@@ -25,6 +25,7 @@
 #include "defines.h"
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
+#include "iAMovieHelper.h"
 #include "iAObserverProgress.h"
 #include "iARenderObserver.h"
 
@@ -68,14 +69,6 @@
 #include <QLocale>
 #include <QApplication>
 #include <QImage>
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-#include <vtkOggTheoraWriter.h>
-#endif
-
-#ifdef _WIN32
-#include <vtkAVIWriter.h>
-#endif
 
 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
@@ -737,29 +730,7 @@ vtkCamera* iARenderer::getCamera()
 
 void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ )
 {
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
-
-	// Try to create proper video encoder based on given file name.
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	if (fileName.endsWith(".ogv")) {
-		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
-		oggwriter = vtkSmartPointer<vtkOggTheoraWriter>::New();
-		oggwriter->SetQuality(qual);
-		oggwriter->SetRate(25);
-		movieWriter = oggwriter;
-	}
-#endif
-#ifdef _WIN32
-	vtkSmartPointer<vtkAVIWriter> aviwriter;
-	if (fileName.endsWith(".avi")){
-		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
-		aviwriter->SetCompressorFourCC("XVID");	// check for codec(s)?
-		aviwriter->SetRate(25);
-		aviwriter->PromptCompressionOptionsOn();
-		aviwriter->SetQuality(qual);
-		movieWriter = aviwriter;
-	}
-#endif
+	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
 
 	if (movieWriter.GetPointer() == NULL)
 		return;

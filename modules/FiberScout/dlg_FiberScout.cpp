@@ -29,6 +29,7 @@
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAFiberScoutScatterPlotMatrix.h"
+#include "iAMovieHelper.h"
 #include "iARenderer.h"
 #include "mdichild.h"
 
@@ -4561,14 +4562,7 @@ QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
 
 void dlg_FiberScout::SaveBlobMovie()
 {
-	QString movie_file_types;
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef _WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	// If VTK was built without video support,
 	// display error message and quit.
