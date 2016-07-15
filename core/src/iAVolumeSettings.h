@@ -32,6 +32,7 @@ public:
 	double DiffuseLighting;
 	double SpecularLighting;
 	double SpecularPower;
+	double SampleDistance;
 	QColor BackgroundColor;
 	int Mode;                       //!< a value out of the unnamed enum in vtkSmartVolumeMapper (e.g. DefaultRenderMode)
 
@@ -42,6 +43,7 @@ public:
 		DiffuseLighting(0.5),
 		SpecularLighting(0.7),
 		SpecularPower(10),
+		SampleDistance(1),
 		Mode(0)
 	{}
 };

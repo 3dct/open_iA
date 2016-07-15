@@ -40,7 +40,6 @@ public:
 		ShowRPosition(true),
 		ShowBoundingBox(true),
 		ParallelProjection(false),
-		SampleDistance(1),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF")
 	{}

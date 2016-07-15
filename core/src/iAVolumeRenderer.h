@@ -28,6 +28,8 @@ class iAVolumeSettings;
 class ModalityTransfer;
 
 class vtkImageData;
+class vtkOpenGLRenderer;
+class vtkRenderWindow;
 class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
@@ -38,14 +40,21 @@ public:
 	iAVolumeRenderer(
 		QSharedPointer<ModalityTransfer> transfer,
 		vtkSmartPointer<vtkImageData> imgData);
-	void SetRenderSettings(iAVolumeSettings const & rs);
+	void ApplySettings(iAVolumeSettings const & rs);
 	double * GetOrientation();
 	double * GetPosition();
+	void SetPosition(double *);
+	void SetOrientation(double *);
+	void AddToWindow(vtkRenderWindow* w);
+	void RemoveFromWindow();
+	vtkSmartPointer<vtkVolume> GetVolume();
+	void Update();
 private:
 	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
 
-	vtkSmartPointer<vtkRenderer> renderer;
+	vtkSmartPointer<vtkOpenGLRenderer> renderer;
 	vtkSmartPointer<vtkVolume> volume;
 	vtkSmartPointer<vtkVolumeProperty> volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
+	vtkRenderWindow* currentWindow;
 };

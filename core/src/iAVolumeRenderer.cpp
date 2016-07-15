@@ -22,10 +22,13 @@
 #include "pch.h"
 #include "iAVolumeRenderer.h"
 
+#include "iAConsole.h"
 #include "iAModalityTransfer.h"
 #include "iAVolumeSettings.h"
 
 #include <vtkImageData.h>
+#include <vtkOpenGLRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkSmartVolumeMapper.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
@@ -33,21 +36,24 @@
 iAVolumeRenderer::iAVolumeRenderer(
 	QSharedPointer<ModalityTransfer> transfer,
 	vtkSmartPointer<vtkImageData> imgData)
+:
+	volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
+	volume(vtkSmartPointer<vtkVolume>::New()),
+	renderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
+	volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
+	currentWindow(0)
 {
-	double rangeMin = imgData->GetScalarRange()[0];
-	double rangeMax = imgData->GetScalarRange()[1];
-
-	volProp = vtkSmartPointer<vtkVolumeProperty>::New();
-	volProp->SetColor(transfer->getColorFunction());
-	volProp->SetScalarOpacity(transfer->getOpacityFunction());
-	CreateVolumeMapper(imgData);
-	volume = vtkSmartPointer<vtkVolume>::New();
+	volProp->SetColor(0, transfer->getColorFunction());
+	volProp->SetScalarOpacity(0, transfer->getOpacityFunction());
+	volMapper->SetBlendModeToComposite();
+	volMapper->SetInputData(imgData);
 	volume->SetMapper(volMapper);
 	volume->SetProperty(volProp);
 	volume->SetVisibility(true);
+	renderer->AddVolume(volume);
 }
 
-void iAVolumeRenderer::SetRenderSettings(iAVolumeSettings const & rs)
+void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & rs)
 {
 	volProp->SetAmbient(rs.AmbientLighting);
 	volProp->SetDiffuse(rs.DiffuseLighting);
@@ -58,15 +64,6 @@ void iAVolumeRenderer::SetRenderSettings(iAVolumeSettings const & rs)
 	volMapper->SetRequestedRenderMode(rs.Mode);
 }
 
-void iAVolumeRenderer::CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData)
-{
-	volMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-	volMapper->SetBlendModeToComposite(); // composite first
-	//volMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
-	volMapper->SetInputData(imgData);
-	//volMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
-}
-
 double * iAVolumeRenderer::GetOrientation()
 {
 	return volume->GetOrientation();
@@ -75,4 +72,56 @@ double * iAVolumeRenderer::GetOrientation()
 double * iAVolumeRenderer::GetPosition()
 {
 	return volume->GetPosition();
+}
+
+void iAVolumeRenderer::SetOrientation(double* orientation)
+{
+	volume->SetOrientation(orientation);
+}
+
+void iAVolumeRenderer::SetPosition(double* position)
+{
+	volume->SetPosition(position);
+}
+
+#include <vtkRendererCollection.h>
+
+void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
+{
+	if (currentWindow)
+	{
+		RemoveFromWindow();
+	}
+	//int layers = w->GetNumberOfLayers();
+	//w->SetNumberOfLayers(layers + 1);
+	w->AddRenderer(renderer);
+	vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	renderer->SetActiveCamera(cam);
+	renderer->SetLayer(2);
+	renderer->SetBackground(1, 0.5, 0.5);
+	renderer->InteractiveOn();
+	currentWindow = w;
+}
+
+void iAVolumeRenderer::RemoveFromWindow()
+{
+	if (!currentWindow)
+	{
+		DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!\n");
+		return;
+	}
+	currentWindow->RemoveRenderer(renderer);
+	currentWindow = 0;
+}
+
+
+vtkSmartPointer<vtkVolume> iAVolumeRenderer::GetVolume()
+{
+	return volume;
+}
+
+void iAVolumeRenderer::Update()
+{
+	volume->Update();
+	volMapper->Update();
 }

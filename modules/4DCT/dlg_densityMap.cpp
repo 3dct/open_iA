@@ -161,22 +161,14 @@ void dlg_densityMap::InitChannel()
 	chDensity->SetOpacityTF(otf);
 
 	m_mdiChild->InitChannelRenderer(chId, true);
-	m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
 	m_mdiChild->UpdateChannelSlicerOpacity(chId, 0.5);
-
+	/*
+	// rewrite using new volume
+	m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
 	m_mdiChild->getRenderer()->updateChannelImages();
+	*/
 	m_mdiChild->getSlicerDataXY()->updateChannelMappers();
 	m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
 	m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
 	m_mdiChild->updateViews();
-
-	//m_mdiChild->getRe
-
-	//vtkSmartPointer<vtkImageData> newImg = vtkSmartPointer<vtkImageData>::New();
-	//newImg->Initialize();
-	//newImg->DeepCopy(extractor->GetOutput());
-
-	//chDensity-
-
-	//chDensity->setIm
 }

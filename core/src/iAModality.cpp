@@ -256,8 +256,8 @@ void iAModality::SetDisplay(QSharedPointer<iAVolumeRenderer> display)
 		//DEBUG_LOG("Invalid orientation/position!\n");
 		return;
 	}
-	display->volume->SetPosition(position);
-	display->volume->SetOrientation(orientation);
+	display->SetPosition(position);
+	display->SetOrientation(orientation);
 }
 
 QSharedPointer<iAVolumeRenderer> iAModality::GetDisplay()

@@ -44,6 +44,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 
 #include <QFileDialog>
 #include <QSettings>
@@ -122,8 +123,9 @@ void dlg_modalities::Store()
 }
 
 void dlg_modalities::Store(QString const & filename)
-{
-	modalities->Store(filename, renderer->getMainRenderer()->GetActiveCamera());
+{								// TODO: VOLUME: CHECK IF WORKING!
+	vtkCamera* cam = renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	modalities->Store(filename, cam);
 }
 
 void dlg_modalities::Load()
@@ -142,7 +144,9 @@ void dlg_modalities::Load()
 
 bool dlg_modalities::Load(QString const & filename)
 {
-	return modalities->Load(filename, renderer->getMainRenderer()->GetActiveCamera());
+									// TODO: VOLUME: CHECK IF WORKING!
+	vtkCamera* cam = renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	return modalities->Load(filename, cam);
 }
 
 QString GetCaption(iAModality const & mod)
@@ -187,6 +191,9 @@ void dlg_modalities::CuttingPlane()
 }
 */
 
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 {
 	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
@@ -204,15 +211,17 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	mod->SetDisplay(modDisp);
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->getMainRenderer()->AddVolume(modDisp->volume);
+		modDisp->AddToWindow(renderer->GetRenderWindow());
 	}
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->getLensRenderer()->AddVolume(modDisp->volume);
+		// TODO: VOLUME: use render window for magic lens as well?
+		renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
 	}
 	if (modalities->size() == 1)
 	{
-		renderer->getMainRenderer()->ResetCamera();
+		// TODO: VOLUME: find better way!
+		renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCamera();
 		renderer->getLensRenderer()->ResetCamera();
 	}
 	determineBoundingBox();
@@ -234,11 +243,11 @@ void dlg_modalities::RemoveClicked()
 	QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(idx)->GetDisplay();
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->getMainRenderer()->RemoveVolume(modDisp->volume);
+		modDisp->RemoveFromWindow();
 	}
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->getLensRenderer()->RemoveVolume(modDisp->volume);
+		renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
 	}
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
@@ -269,22 +278,22 @@ void dlg_modalities::EditClicked()
 	if ((renderFlagsBefore & iAModality::MainRenderer) == iAModality::MainRenderer
 		&& !editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->getMainRenderer()->RemoveVolume(modDisp->volume);
+		modDisp->RemoveFromWindow();
 	}
 	if ((renderFlagsBefore & iAModality::MainRenderer) == 0
 		&& editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->getMainRenderer()->AddVolume(modDisp->volume);
+		modDisp->AddToWindow(renderer->GetRenderWindow());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == iAModality::MagicLens
 		&& !editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->getLensRenderer()->RemoveVolume(modDisp->volume);
+		renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == 0
 		&& editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->getLensRenderer()->AddVolume(modDisp->volume);
+		renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 }
@@ -351,7 +360,7 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
 	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(i)->GetDisplay();
-		modDisp->SetRenderSettings(rs);
+		modDisp->ApplySettings(rs);
 	}
 }
 
@@ -363,7 +372,8 @@ void dlg_modalities::determineBoundingBox()
 		QSharedPointer<iAVolumeRenderer> disp = m->GetDisplay();
 		if (!disp)
 			continue;
-		vtkSmartPointer<vtkVolume> vol = disp->volume;
+		// TODO: VOLUME: use vtkOutlineFilter!
+		vtkSmartPointer<vtkVolume> vol = disp->GetVolume();
 		double * bounds = vol->GetBounds();
 		if (!bounds)
 		{

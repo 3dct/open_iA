@@ -57,9 +57,7 @@
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSmartVolumeMapper.h>
 #include <vtkTransform.h>
-#include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkWindowToImageFilter.h>
 
@@ -73,7 +71,6 @@
 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	interactor(0),
-	volumeMapper(0),
 	m_showMainVolumeWithChannels(true)
 {
 	multiChannelImageData = vtkImageData::New();
@@ -102,9 +99,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	image1 = vtkQImageToImageSource::New();
 
 	ren = vtkOpenGLRenderer::New();
-
-	volume = vtkVolume::New();
-	volumeProperty = vtkVolumeProperty::New();
 
 	polyMapper = vtkPolyDataMapper::New();
 	polyActor = vtkActor::New();
@@ -154,14 +148,6 @@ iARenderer::~iARenderer(void)
 	orientationMarkerWidget	->Delete();
 	axesActor->Delete();
 	moveableAxesActor->Delete();
-	//annotatedCubeActor->Delete(); Load simulation crashes in Release mode but not in Debug mode
-
-	volume->Delete();
-	if (volumeMapper != NULL) {
-		volumeMapper->ReleaseDataFlagOn();
-		volumeMapper->Delete();
-	}
-	volumeProperty->Delete();
 
 	outlineActor->Delete();
 	outlineMapper->ReleaseDataFlagOn();
@@ -182,8 +168,7 @@ iARenderer::~iARenderer(void)
 	cellLocator->Delete();
 }
 
-void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunction* otf, 
-	vtkColorTransferFunction* ctf, int e )
+void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 {
 	imageData = ds;
 	polyData = pd;
@@ -191,14 +176,12 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunc
 	if(polyData)
 		if( polyData->GetNumberOfCells() )
 			cellLocator->BuildLocator();
-	piecewiseFunction = otf;
-	colorTransferFunction = ctf;
 	ext = e;
 
-	double spacing[3];	imageData->GetSpacing(spacing);
+	double spacing[3];	ds->GetSpacing(spacing);
 
 	ren->SetLayer(0);
-	labelRen->SetLayer(2);
+	labelRen->SetLayer(1);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();
 	renWin->SetNumberOfLayers(5);
@@ -239,15 +222,14 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunc
 	setupCube();
 	setupAxes(spacing);
 	setupOrientationMarker();
-	setupRenderer();
+	setupRenderer(ds);
 
 	labelRen->SetActiveCamera(cam);
 	ren->SetActiveCamera(cam);
 	setCamPosition( 0,0,1, 1,1,1 ); // +Z
 }
 
-void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunction* otf, 
-	vtkColorTransferFunction* ctf, int e )
+void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
 {
 	imageData = ds;
 	polyData = pd;
@@ -257,19 +239,13 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFu
 		if( polyData->GetNumberOfCells() )
 			cellLocator->BuildLocator();
 	}
-	piecewiseFunction = otf;
-	colorTransferFunction = ctf;
 	ext = e;
 
-	volumeMapper->SetInputData(imageData);
-	outlineFilter->SetInputData(imageData);
+	outlineFilter->SetInputData(ds);
 	polyMapper->SetInputData(polyData);
 
-	volumeProperty->SetColor(0, colorTransferFunction);
-	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
-
 	renderObserver->ReInitialize( ren, labelRen, interactor, pointPicker,
-		axesTransform, imageData,
+		axesTransform, ds,
 		plane1, plane2, plane3, cellLocator );
 	interactor->ReInitialize();
 
@@ -278,7 +254,8 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFu
 	update();
 }
 
-
+/*
+// TODO: VOLUME: check MObjects, at least those used in FiberScout, how to adapt them to use new stuff!
 void iARenderer::setTransferFunctions( vtkPiecewiseFunction* opacityTFHighlight, vtkColorTransferFunction* colorTFHighlight, vtkPiecewiseFunction* opacityTFTransparent, vtkColorTransferFunction* colorTFTransparent )
 {
 	piecewiseFunctionHighlight = opacityTFHighlight;
@@ -360,7 +337,10 @@ void iARenderer::visualizeHighlight( bool enabled )
 		ren->RemoveVolume(volumeHighlight);
 	}
 }
+*/
 
+/*
+// TODO: VOLUME: Channels: rewrite to use different volumes?
 namespace
 {
 	bool hasActiveChannel(std::set<iAChannelVisualizationData*> const & channels)
@@ -464,8 +444,10 @@ void iARenderer::showMainVolumeWithChannels(bool show)
 	m_showMainVolumeWithChannels = show;
 	updateChannelImages();
 }
+*/
 
-
+/*
+// TODO: VOLUME: "Show" Slicers - move to VolumeManager?
 void iARenderer::showSlicers( bool s ) 
 {
 	if (s) {
@@ -499,6 +481,7 @@ void iARenderer::showSlicers( bool showPlane1, bool showPlane2, bool showPlane3 
 		volumeMapper->RemoveClippingPlane(plane3);
 	}
 }
+*/
 
 void iARenderer::setupCutter()
 {
@@ -567,9 +550,9 @@ void iARenderer::setupOrientationMarker()
 	orientationMarkerWidget->InteractiveOff();
 }
 
-void iARenderer::setupRenderer()
+void iARenderer::setupRenderer(vtkImageData* ds)
 {
-	outlineFilter->SetInputData(imageData);
+	outlineFilter->SetInputData(ds);
 	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
 	outlineActor->GetProperty()->SetColor(0,0,0);
 	outlineActor->PickableOff();
@@ -580,17 +563,7 @@ void iARenderer::setupRenderer()
 	polyMapper->SetScalarModeToUsePointFieldData();
 	polyActor->SetMapper(polyMapper);
 
-	volumeProperty->SetColor(0, colorTransferFunction);
-	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
-
-	getNewVolumeMapper(imageData);
-
-	volume->SetMapper(volumeMapper);
-	volume->SetProperty(volumeProperty);
-	volume->SetVisibility(false);
-
 	ren->GradientBackgroundOn();
-	ren->AddVolume(volume);
 	ren->AddActor(polyActor);
 	ren->AddActor(cActor);
 	ren->AddActor(axesActor);
@@ -599,19 +572,10 @@ void iARenderer::setupRenderer()
 	emit onSetupRenderer();
 }
 
-void iARenderer::reset()
-{
-	recreateMapper(imageData);
-	volume->SetProperty(volumeProperty);
-	volume->Update();
-}
-
 void iARenderer::update()
 {
-	volume->Update();
-	volumeMapper->Update();
+	// TODO: VOLUME: hook here and update all currently added volumes?
 	polyMapper->Update();
-
 	renWin->Render();
 }
 
@@ -627,11 +591,6 @@ void iARenderer::showHelpers(bool show)
 void iARenderer::showRPosition(bool s) 
 { 
 	cActor->SetVisibility(s); 
-}
-
-void iARenderer::SetRenderMode(int mode)
-{
-	volumeMapper->SetRequestedRenderMode(mode);
 }
 
 void iARenderer::setPlaneNormals( vtkTransform *tr ) 
@@ -831,39 +790,6 @@ void iARenderer::mouseLeftButtonReleasedSlot()
 	interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
-void iARenderer::setInputVolume(vtkImageData* imageData)
-{
-	// workaround for vtk 6.1 problem (bug?)
-	// where an access violation happens if input image to mapper is changed
-	// to one with a higher number of components
-	recreateMapper(imageData);
-}
-
-
-void iARenderer::getNewVolumeMapper(vtkImageData* imageData)
-{
-	volumeMapper = vtkSmartVolumeMapper::New();
-	volumeMapper->SetBlendModeToComposite(); // composite first
-	volumeMapper->SetInputData(imageData);
-	volumeMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
-	volumeMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);	// TODO: set mode from MdiChild
-}
-
-void iARenderer::recreateMapper(vtkImageData* imageData)
-{
-	volumeMapper->ReleaseDataFlagOn();
-	volumeMapper->Delete();
-	getNewVolumeMapper(imageData);
-	volume->SetMapper(volumeMapper);
-	volumeMapper->Update();
-}
-
-void iARenderer::setSampleDistance(double sampleDistance)
-{
-	// SetSampleDistance function only exists in vtkSmartVolumeMapper when OpenGL2 backend is selected!
-	 volumeMapper->SetSampleDistance(sampleDistance);
-}
-
 void iARenderer::InitObserver()
 {
 	renderObserver = RenderObserver::New(ren, labelRen, interactor, pointPicker,
@@ -900,7 +826,6 @@ void iARenderer::enableInteractor() { interactor->ReInitialize(); }
 
 vtkTransform* iARenderer::getCoordinateSystemTransform() { axesTransform->Update(); return axesTransform; }
 void iARenderer::GetImageDataBounds(double bounds[6]) { imageData->GetBounds(bounds); }
-
 
 void iARenderer::AddRenderer(vtkRenderer* renderer)
 {

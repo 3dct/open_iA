@@ -59,13 +59,14 @@ void dlg_elementRenderer::removeObserver()
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
+	// TODO: VOLUME: add here!
 	if(!m_rendInitialized)
 	{
-		m_renderer->initialize(imgData, polyData, otf, ctf);
+		m_renderer->initialize(imgData, polyData);
 		m_rendInitialized = true;
 	}
 	else
-		m_renderer->reInitialize(imgData, polyData, otf, ctf);
+		m_renderer->reInitialize(imgData, polyData);
 }
 
 iARenderer * dlg_elementRenderer::GetRenderer()

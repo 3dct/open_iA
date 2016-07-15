@@ -58,7 +58,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_renderers[i] = new iARenderer(this);
 		m_renderers[i]->setAxesTransform(m_axesTransform);
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->GetRenderWindow());
-		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData(), m_volumeStack->getPiecewiseFunction(i), m_volumeStack->getColorTransferFunction(i));
+		// TODO: VOLUME: add volume here!
+		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
 		m_mdiChild->applyCurrentSettingsToRaycaster(m_renderers[i]);
 		
 		// setup renderers
@@ -82,7 +83,8 @@ void dlg_dataView4DCT::update()
 {
 	for(int i = 0; i < m_volumeStack->getNumberOfVolumes(); i++)
 	{
-		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData(), m_volumeStack->getPiecewiseFunction(i), m_volumeStack->getColorTransferFunction(i));
+		// TODO: VOLUME: update volume here!
+		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
 		m_renderers[i]->update();
 	}
 }

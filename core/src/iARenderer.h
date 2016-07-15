@@ -75,22 +75,28 @@ protected:
 	void InitObserver();
 
 public:
-	void initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf, int e = 10 );
-	void reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf, int e = 10 );
+	void initialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
+	void reInitialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
 	void setPolyData( vtkPolyData* pd );
 	vtkPolyData* getPolyData();
 
+/*
+	// TODO: VOLUME: rewrite to use different volumes?
 	void updateChannelImages();
 	void addChannel(iAChannelVisualizationData * chData );
 	void removeChannel(iAChannelVisualizationData * chData);
 	void showMainVolumeWithChannels(bool show);
+*/
 
 	void disableInteractor();
 	void enableInteractor();
 	void setAxesTransform(vtkTransform *transform) { axesTransform = transform; }
 	vtkTransform * getAxesTransform(void) { return axesTransform; }
+	/*
+	// TODO: VOLUME: move to VolumeManager?
 	void showSlicers( bool s );
 	void showSlicers( bool showPlane1, bool showPlane2, bool showPlane3 );
+	*/
 	void setPlaneNormals( vtkTransform *tr ) ;
 	void setCubeCenter( int x, int y, int z );
 	void setCamPosition ( int uvx, int uvy, int uvz, int px, int py, int pz );
@@ -119,8 +125,7 @@ public:
 	void setupCube();
 	void setupAxes(double spacing[3]);
 	void setupOrientationMarker();
-	void setupRenderer();
-	void reset();
+	void setupRenderer(vtkImageData* ds);
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
@@ -132,8 +137,6 @@ public:
 	vtkRenderWindow* GetRenderWindow() { return renWin; };
 
 	vtkOpenGLRenderer * GetRenderer() { return ren; };
-	vtkVolume* GetVolume() { return volume; }
-	vtkVolumeProperty* GetVolumeProperty() { return volumeProperty; };
 	vtkActor* GetOutlineActor() { return outlineActor; };
 	vtkActor* GetPolyActor() { return polyActor; };
 	vtkTransform* getCoordinateSystemTransform();
@@ -147,6 +150,7 @@ public:
 	void saveMovie(const QString& fileName, int mode, int qual = 2);
 	RenderObserver * getRenderObserver(){ return renderObserver; }
 
+/*
 	// TODO: move out of here, to MObjects ----------
 	void setTransferFunctions(vtkPiecewiseFunction* opacityTFHighlight, vtkColorTransferFunction* colorTFHighlight, vtkPiecewiseFunction* opacityTFTransparent, vtkColorTransferFunction* colorTFTransparent);
 	void initializeHighlight(vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
@@ -160,10 +164,8 @@ public:
 	void setMeanObjectId( int id ) { meanObjectId = id; };
 	int  getMeanObjectId( ) { return meanObjectId; };
 	// <---------- until here!
-
-	void setSampleDistance(double sampleDistance);
+*/
 	void AddRenderer(vtkRenderer* renderer);
-	void SetRenderMode(int mode);
 protected:
 	RenderObserver *renderObserver;
 	iAObserverProgress* observerFPProgress;
@@ -192,17 +194,9 @@ private:
 	vtkActor* outlineActor;
 	//! @}
 
+	// TODO: VOLUME: check if this can be removed:
 	vtkImageData* imageData;
-	vtkPiecewiseFunction* piecewiseFunction;
-	vtkColorTransferFunction* colorTransferFunction;
 	
-	vtkSmartVolumeMapper* volumeMapper;
-	vtkVolumeProperty* volumeProperty;
-	vtkVolume* volume;
-	void setInputVolume(vtkImageData* imageData);
-	void recreateMapper(vtkImageData* imageData);
-	void getNewVolumeMapper(vtkImageData* imageData);
-
 	vtkAnnotatedCubeActor* annotatedCubeActor;
 	vtkAxesActor* axesActor;
 	vtkAxesActor* moveableAxesActor;

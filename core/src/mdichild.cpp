@@ -349,7 +349,7 @@ void MdiChild::enableRenderWindows()
 	// unless explicitly set otherwise)
 	reInitializeRenderWindows = true;
 
-	Raycaster->reInitialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
+	Raycaster->reInitialize(imageData, polyData);
 
 	if (!IsOnlyPolyDataLoaded())
 	{
@@ -381,11 +381,15 @@ void MdiChild::enableRenderWindows()
 				slicerXZ->reInitializeChannel(key, chData);
 				slicerXY->reInitializeChannel(key, chData);
 				slicerYZ->reInitializeChannel(key, chData);
+
+				/*
+				// TODO: VOLUME: check!
 				// if 3d enabled
 				if (chData->Uses3D())
 				{
 					Raycaster->updateChannelImages();
 				}
+				*/
 			}
 		}
 		if (!anyChannelEnabled)
@@ -441,7 +445,8 @@ void MdiChild::newFile()
 
 void MdiChild::showPoly()
 {
-	Raycaster->GetVolume()->SetVisibility(false);
+	// TODO: VOLUME: VolumeManager
+	// Raycaster->GetVolume()->SetVisibility(false);
 	widgetsVisible(false);
 	visibilityBlock(QList<QSpacerItem*>(),
 		QList<QWidget*>() << r->stackedWidgetRC << r->pushSaveRC << r->pushMaxRC << r->pushStopRC, true);
@@ -585,7 +590,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	getHistogram()->redraw();
 	getHistogram()->drawHistogram();
 
-	Raycaster->reInitialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
+	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
 	slicerXY->reInitialize(imageData, slicerTransform, colorTransferFunction);
 	slicerYZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
@@ -628,7 +633,7 @@ bool MdiChild::setupStackView(bool active)
 
 	setupViewInternal(active);
 
-	Raycaster->reInitialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
+	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
 	slicerXY->reInitialize(imageData, slicerTransform, colorTransferFunction);
 	slicerYZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
@@ -1461,6 +1466,8 @@ void MdiChild::setupRaycaster(iARenderSettings const & rs, iAVolumeSettings cons
 
 void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 {
+	/*
+	// TODO: VOLUME: set in VolumeManager
 	raycaster->GetVolume()->SetVisibility(renderSettings.ShowVolume);
 	//setup slicers
 	if (snakeSlicer) {
@@ -1481,6 +1488,7 @@ void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 	raycaster->GetVolumeProperty()->SetSpecularPower(volumeSettings.SpecularPower);
 	raycaster->GetVolumeProperty()->SetInterpolationType(volumeSettings.LinearInterpolation);
 	raycaster->GetVolumeProperty()->SetShade(volumeSettings.Shading);
+	*/
 
 	raycaster->GetOutlineActor()->SetVisibility(renderSettings.ShowBoundingBox);
 	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(renderSettings.ParallelProjection);
@@ -1499,8 +1507,6 @@ void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 	raycaster->GetRenderer()->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	raycaster->showHelpers(renderSettings.ShowHelpers);
 	raycaster->showRPosition(renderSettings.ShowRPosition);
-	
-	raycaster->SetRenderMode(volumeSettings.Mode);
 }
 
 int MdiChild::GetRenderMode()
@@ -1804,8 +1810,11 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		slicerYZ->GetRenderer()->ResetCamera();
 		slicerYZ->GetRenderer()->Render();
 
+		/*
+		// TODO: VOLUME: VolumeManager
 		if (renderSettings.ShowSlicers)
 			Raycaster->showSlicers(true);
+		*/
 
 		slicerXY->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
 		slicerXZ->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
@@ -2040,7 +2049,7 @@ bool MdiChild::initView( )
 	slicerYZ->initializeData(imageData, slicerTransform, colorTransferFunction);
 	if (!raycasterInitialized)
 	{
-		Raycaster->initialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
+		Raycaster->initialize(imageData, polyData);
 		raycasterInitialized = true;
 	}
 	r->stackedWidgetRC->setCurrentIndex(0);
@@ -2286,7 +2295,8 @@ void MdiChild::widgetsVisible(bool isVisible)
 	visibilityBlock(QList<QSpacerItem*>(),
 		QList<QWidget*>() << sXY << sXZ << sYZ << r, isVisible);
 
-	Raycaster->GetVolume()->SetVisibility(true);
+	// TODO: VOLUME: VolumeManager
+	// Raycaster->GetVolume()->SetVisibility(true);
 	this->update();
 }
 
@@ -2328,11 +2338,14 @@ void MdiChild::InitChannelRenderer(iAChannelID id, bool use3D, bool enableChanne
 	slicerXY->initializeChannel(id, data);
 	slicerXZ->initializeChannel(id, data);
 	slicerYZ->initializeChannel(id, data);
+	/*
+	// TODO: VOLUME: rewrite using separate volume
 	if (use3D)
 	{
 		data->Set3D(true);
 		Raycaster->addChannel(data);
 	}
+	*/
 	SetChannelRenderingEnabled(id, enableChannel);
 }
 
@@ -2409,10 +2422,13 @@ void MdiChild::SetChannelRenderingEnabled(iAChannelID id, bool enabled)
 	getSlicerDataXY()->enableChannel(id, enabled, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	getSlicerDataXZ()->enableChannel(id, enabled, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
 	getSlicerDataYZ()->enableChannel(id, enabled, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
+	/*
+	// TODO: VOLUME: rewrite using volume manager:
 	if (data->Uses3D())
 	{
 		getRenderer()->updateChannelImages();
 	}
+	*/
 	updateViews();
 }
 

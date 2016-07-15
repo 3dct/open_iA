@@ -78,7 +78,8 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	splitter->setStretchFactor( 1, 0 );
 
 	// setup renderer
-	m_mainRen = qvtkWidget->getMainRenderer();
+	// TODO: VOLUME: add separate Renderer !
+	// m_mainRen = qvtkWidget->getMainRenderer();
 	m_magicLensRen = qvtkWidget->getLensRenderer();
 
 	// setup dock widgets
