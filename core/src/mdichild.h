@@ -65,8 +65,6 @@ class vtkRenderWindow;
 class vtkTable;
 class vtkTransform;
 
-struct CBCTReconstructionSettings;
-class dlg_charts;
 class dlg_renderer;
 class dlg_function;
 class dlg_histogram;
@@ -83,7 +81,6 @@ class iAModalityList;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iARenderer;
-class iASimReader;
 class iASlicer;
 class iASlicerData;
 class MainWindow;
@@ -103,15 +100,7 @@ public:
 	dlg_sliceYZ * sYZ;
 	dlg_logs * logs;
 	QProgressBar * pbar;
-private:
-	QByteArray m_beforeMaximizeState;
-	bool m_isSmthMaximized;
-	QDockWidget * m_whatMaximized;
-	int m_pbarMaxVal;
-	void maximizeDockWidget(QDockWidget * dw);
-	void demaximizeDockWidget(QDockWidget * dw);
-	void resizeDockWidget(QDockWidget * dw);
-public:
+
 	enum ConnectionState {cs_NONE, cs_ROI};
 
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
@@ -246,22 +235,23 @@ public:
 
 	vtkImageAccumulate * getImageAccumulate() { return imageAccumulate; }
 
+	//! @{ Multi-Channel rendering
 	void SetChannelRenderingEnabled(iAChannelID, bool enabled);
-
 	void InsertChannelData(iAChannelID id, iAChannelVisualizationData * channelData);
-
 	iAChannelVisualizationData * GetChannelData(iAChannelID id);
 	iAChannelVisualizationData const * GetChannelData(iAChannelID id) const;
 	void UpdateChannelSlicerOpacity(iAChannelID id, double opacity);
 	void InitChannelRenderer(iAChannelID id, bool use3D, bool enableChannel = true);
+	void reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	void updateChannelMappers();
+	//! @}
 
 	void SetSlicerPieGlyphsEnabled(bool isOn);
 	void SetPieGlyphParameters(double opacity, double spacing, double magFactor);
 
-	void updateChannelMappers();
 	QString getFilePath() const;
 
-	// Magic Lens
+	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
 	void SetMagicLensInput(iAChannelID id, bool initReslicer);
@@ -270,8 +260,7 @@ public:
 	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption = "");
 	int  GetMagicLensSize() const { return magicLensSize; }
 	int  GetMagicLensFrameWidth() const { return magicLensFrameWidth; }
-
-	void reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	//! @}
 
 	int GetRenderMode();
 
@@ -413,6 +402,14 @@ protected:
 	virtual void resizeEvent ( QResizeEvent * event );
 
 private:
+	QByteArray m_beforeMaximizeState;
+	bool m_isSmthMaximized;
+	QDockWidget * m_whatMaximized;
+	int m_pbarMaxVal;
+	void maximizeDockWidget(QDockWidget * dw);
+	void demaximizeDockWidget(QDockWidget * dw);
+	void resizeDockWidget(QDockWidget * dw);
+
 	iAHistogramWidget * getHistogram(dlg_histogram * h);
 	void connectSignalsToSlots();
 	void SetRenderWindows();
@@ -491,14 +488,8 @@ private:
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
 
-	dlg_charts* charts;
-	dlg_charts* charts2;
-	dlg_charts* charts3;
-
-
 	// csv file to table
 	vtkSmartPointer<vtkTable> mdCsvTable;
-
 
 	bool saveNative;
 	std::vector<iAAlgorithms*> workingAlgorithms;

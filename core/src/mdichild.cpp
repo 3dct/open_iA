@@ -2062,7 +2062,6 @@ bool MdiChild::initView( )
 	{
 		this->addHistogram();
 		this->addImageProperty();
-		//this->addVolumePlayer();
 		this->addProfile();
 	}
 
