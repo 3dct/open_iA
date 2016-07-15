@@ -25,7 +25,7 @@
 #include "iAConsole.h"
 #include "iAImageCoordinate.h"
 #include "iAitkImagesMultiChannelAdapter.h"
-#include "iAModalityDisplay.h"
+#include "iAVolumeRenderer.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
 #include "extension2id.h"
@@ -241,7 +241,7 @@ bool Str2Vec3D(QString const & str, double vec[3])
 	return true;
 }
 
-void iAModality::SetDisplay(QSharedPointer<ModalityDisplay> display)
+void iAModality::SetDisplay(QSharedPointer<iAVolumeRenderer> display)
 {
 	this->display = display;
 	if (orientationSettings.isEmpty() || positionSettings.isEmpty())
@@ -260,7 +260,7 @@ void iAModality::SetDisplay(QSharedPointer<ModalityDisplay> display)
 	display->volume->SetOrientation(orientation);
 }
 
-QSharedPointer<ModalityDisplay> iAModality::GetDisplay()
+QSharedPointer<iAVolumeRenderer> iAModality::GetDisplay()
 {
 	return display;
 }
@@ -336,15 +336,15 @@ QString Vec3D2String(double* vec)
 	return QString("%1 %2 %3").arg(vec[0]).arg(vec[1]).arg(vec[2]);
 }
 
-QString GetOrientation(QSharedPointer<ModalityDisplay> display)
+QString GetOrientation(QSharedPointer<iAVolumeRenderer> display)
 {
-	double * orientation = display->volume->GetOrientation();
+	double * orientation = display->GetOrientation();
 	return Vec3D2String(orientation);
 }
 
-QString GetPosition(QSharedPointer<ModalityDisplay> display)
+QString GetPosition(QSharedPointer<iAVolumeRenderer> display)
 {
-	double * position = display->volume->GetPosition();
+	double * position = display->GetPosition();
 	return Vec3D2String(position);
 }
 

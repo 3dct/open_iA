@@ -18,51 +18,34 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "iAModalityDisplay.h"
+#pragma once
 
-#include "iAModalityTransfer.h"
-#include "iAVolumeSettings.h"
+#include <vtkSmartPointer.h>
 
-#include <vtkImageData.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
+#include <QSharedPointer>
 
-ModalityDisplay::ModalityDisplay(
-	QSharedPointer<ModalityTransfer> transfer,
-	vtkSmartPointer<vtkImageData> imgData)
+class iAVolumeSettings;
+class ModalityTransfer;
+
+class vtkImageData;
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkVolumeProperty;
+
+class iAVolumeRenderer
 {
-	double rangeMin = imgData->GetScalarRange()[0];
-	double rangeMax = imgData->GetScalarRange()[1];
+public:
+	iAVolumeRenderer(
+		QSharedPointer<ModalityTransfer> transfer,
+		vtkSmartPointer<vtkImageData> imgData);
+	void SetRenderSettings(iAVolumeSettings const & rs);
+	double * GetOrientation();
+	double * GetPosition();
+private:
+	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
 
-	volProp = vtkSmartPointer<vtkVolumeProperty>::New();
-	volProp->SetColor(transfer->getColorFunction());
-	volProp->SetScalarOpacity(transfer->getOpacityFunction());
-	CreateVolumeMapper(imgData);
-	volume = vtkSmartPointer<vtkVolume>::New();
-	volume->SetMapper(volMapper);
-	volume->SetProperty(volProp);
-	volume->SetVisibility(true);
-}
-
-void ModalityDisplay::SetRenderSettings(iAVolumeSettings const & rs)
-{
-	volProp->SetAmbient(rs.AmbientLighting);
-	volProp->SetDiffuse(rs.DiffuseLighting);
-	volProp->SetSpecular(rs.SpecularLighting);
-	volProp->SetSpecularPower(rs.SpecularPower);
-	volProp->SetInterpolationType(rs.LinearInterpolation);
-	volProp->SetShade(rs.Shading);
-	volMapper->SetRequestedRenderMode(rs.Mode);
-}
-
-void ModalityDisplay::CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData)
-{
-	volMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-	volMapper->SetBlendModeToComposite(); // composite first
-	//volMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
-	volMapper->SetInputData(imgData);
-	//volMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
-}
+	vtkSmartPointer<vtkRenderer> renderer;
+	vtkSmartPointer<vtkVolume> volume;
+	vtkSmartPointer<vtkVolumeProperty> volProp;
+	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
+};

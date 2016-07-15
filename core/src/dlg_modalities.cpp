@@ -26,7 +26,7 @@
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
-#include "iAModalityDisplay.h"
+#include "iAVolumeRenderer.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iAVolumeSettings.h"
@@ -200,7 +200,7 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 		2048));
 	mod->SetTransfer(modTransfer);
 	modTransfer->ShowHistogram(histogramContainer);
-	QSharedPointer<ModalityDisplay> modDisp(new ModalityDisplay(modTransfer, imgData));
+	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(modTransfer, imgData));
 	mod->SetDisplay(modDisp);
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
@@ -231,7 +231,7 @@ void dlg_modalities::RemoveClicked()
 		return;
 	}
 	// TODO: refactor
-	QSharedPointer<ModalityDisplay> modDisp = modalities->Get(idx)->GetDisplay();
+	QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(idx)->GetDisplay();
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer))
 	{
 		renderer->getMainRenderer()->RemoveVolume(modDisp->volume);
@@ -265,7 +265,7 @@ void dlg_modalities::EditClicked()
 	{
 		DEBUG_LOG("Changing file not supported!\n");
 	}
-	QSharedPointer<ModalityDisplay> modDisp = modalities->Get(idx)->GetDisplay();
+	QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(idx)->GetDisplay();
 	if ((renderFlagsBefore & iAModality::MainRenderer) == iAModality::MainRenderer
 		&& !editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
@@ -350,7 +350,7 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
 {
 	for (int i = 0; i < modalities->size(); ++i)
 	{
-		QSharedPointer<ModalityDisplay> modDisp = modalities->Get(i)->GetDisplay();
+		QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(i)->GetDisplay();
 		modDisp->SetRenderSettings(rs);
 	}
 }
@@ -360,7 +360,7 @@ void dlg_modalities::determineBoundingBox()
 	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAModality> m = modalities->Get(i);
-		QSharedPointer<ModalityDisplay> disp = m->GetDisplay();
+		QSharedPointer<iAVolumeRenderer> disp = m->GetDisplay();
 		if (!disp)
 			continue;
 		vtkSmartPointer<vtkVolume> vol = disp->volume;

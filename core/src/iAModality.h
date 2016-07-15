@@ -31,7 +31,7 @@
 class iAImageCoordConverter;
 class iASpectralVoxelData;
 class ModalityTransfer;
-class ModalityDisplay;
+class iAVolumeRenderer;
 
 class vtkCamera;
 class vtkImageData;
@@ -85,8 +85,8 @@ public:
 
 	void SetTransfer(QSharedPointer<ModalityTransfer> transfer);
 	QSharedPointer<ModalityTransfer> GetTransfer();
-	void SetDisplay(QSharedPointer<ModalityDisplay> display);
-	QSharedPointer<ModalityDisplay> GetDisplay();
+	void SetDisplay(QSharedPointer<iAVolumeRenderer> display);
+	QSharedPointer<iAVolumeRenderer> GetDisplay();
 
 	// TODO: Refactor
 	QString positionSettings;
@@ -100,7 +100,7 @@ private:
 	QSharedPointer<iASpectralVoxelData> m_data;
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<ModalityTransfer> transfer;
-	QSharedPointer<ModalityDisplay> display;
+	QSharedPointer<iAVolumeRenderer> display;
 	double m_spacing[3];
 
 	// IO-related methods:
