@@ -247,8 +247,6 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
 
-	// LeftButtonReleaseEvent would be better than Press, but doesn't seem to get triggered (apparently a vtk bug)
-	interactor->AddObserver( vtkCommand::LeftButtonReleaseEvent, observerMouseMove );
 	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, observerMouseMove );
 	interactor->AddObserver( vtkCommand::MouseMoveEvent, observerMouseMove );
 	interactor->AddObserver( vtkCommand::KeyReleaseEvent, observerMouseMove );
@@ -1137,12 +1135,6 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 		emit UserInteraction();
 		break;
 	}
-	// TODO: find a better way of reacting on a change in slicer camera!
-	case vtkCommand::LeftButtonReleaseEvent:
-	{
-		emit UserInteraction();
-		break;
-	}
 	case vtkCommand::MouseMoveEvent:
 	{
 		double result[4];
@@ -1153,12 +1145,7 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 			printVoxelInformation(xCoord, yCoord, zCoord, result);
 		}
 		emit oslicerPos(xCoord, yCoord, zCoord, m_mode);
-		
-		// TODO: check if mouse button pressed!
-		//if (LeftMouseButtonPressed)
-		//{
 		emit UserInteraction();
-		//}
 		break;
 	}
 	case vtkCommand::KeyPressEvent:

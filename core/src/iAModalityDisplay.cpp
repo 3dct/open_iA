@@ -62,7 +62,7 @@ void ModalityDisplay::CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData)
 {
 	volMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
 	volMapper->SetBlendModeToComposite(); // composite first
-	volMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
+	//volMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);
 	volMapper->SetInputData(imgData);
 	//volMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
 }

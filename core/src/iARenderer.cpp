@@ -876,7 +876,6 @@ void iARenderer::getNewVolumeMapper(vtkImageData* imageData)
 	volumeMapper->SetInputData(imageData);
 	volumeMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
 	volumeMapper->SetRequestedRenderMode(vtkSmartVolumeMapper::RayCastRenderMode);	// TODO: set mode from MdiChild
-	volumeMapper->InteractiveAdjustSampleDistancesOff();
 }
 
 void iARenderer::recreateMapper(vtkImageData* imageData)
@@ -904,7 +903,6 @@ void iARenderer::InitObserver()
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, renderObserver);
 	//There is a VTK bug, observer does not catch mouse release events!
 	// workaround using QVTKWidgetMouseReleaseWorkaround used
-	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, renderObserver);
 }
