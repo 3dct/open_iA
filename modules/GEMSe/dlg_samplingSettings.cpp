@@ -40,20 +40,6 @@
 
 #include <cassert>
 
-struct ParameterInputs
-{
-	QLabel* label;
-	QLineEdit* from;
-	QLineEdit* to;
-	QCheckBox* logScale;
-	QSharedPointer<iAAttributeDescriptor> descriptor;
-	ParameterInputs():
-		label(0),
-		from(0),
-		to(0),
-		logScale(0)
-	{}
-};
 
 
 dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,

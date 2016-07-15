@@ -94,7 +94,7 @@ int morph_watershed_template( QString mwsRGBFilePath, double mwsLevel, bool mwsM
 	typedef  itk::ImageFileWriter< RGBImageType  > WriterType;
 
 	typedef itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType> MWIFType;
-	MWIFType::Pointer mWSFilter = MWIFType::New();
+	typename MWIFType::Pointer mWSFilter = MWIFType::New();
 	mwsMarkWSLines ? mWSFilter->MarkWatershedLineOn() : mWSFilter->MarkWatershedLineOff();
 	mwsFullyConnected ? mWSFilter->FullyConnectedOn() : mWSFilter->FullyConnectedOff();
 	mWSFilter->SetLevel( mwsLevel );
@@ -109,10 +109,10 @@ int morph_watershed_template( QString mwsRGBFilePath, double mwsLevel, bool mwsM
 	typename CastFilterType::Pointer longcaster = CastFilterType::New();
 	longcaster->SetInput( 0, mWSFilter->GetOutput() );
 
-	typedef MWIFType::OutputImageType  LabeledImageType;
+	typedef typename MWIFType::OutputImageType  LabeledImageType;
 	typedef itk::Functor::ScalarToRGBPixelFunctor<unsigned long> ColorMapFunctorType;
 	typedef itk::UnaryFunctorImageFilter<LabeledImageType, RGBImageType, ColorMapFunctorType> ColorMapFilterType;
-	ColorMapFilterType::Pointer colormapper = ColorMapFilterType::New();
+	typename ColorMapFilterType::Pointer colormapper = ColorMapFilterType::New();
 	colormapper->SetInput( mWSFilter->GetOutput() );
 
 	if ( !mwsRGBFilePath.isEmpty() && mwsSaveRGBImage )

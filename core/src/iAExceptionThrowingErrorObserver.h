@@ -17,6 +17,6 @@ public:
 		void *calldata)
 	{
 		assert(event == vtkCommand::ErrorEvent);
-		throw std::exception(static_cast<char *>(calldata));
+		throw std::runtime_error(static_cast<char *>(calldata));
 	}
 };
