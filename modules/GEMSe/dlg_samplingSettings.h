@@ -25,13 +25,28 @@
 typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
 
 class iAAttributes;
+class iAAttributeDescriptor;
 class iAModalityList;
 class iAParameterGenerator;
 
-class ParameterInputs;
-
+class QCheckBox;
 class QShortcut;
 class QxtSpanSlider;
+
+struct ParameterInputs
+{
+	QLabel* label;
+	QLineEdit* from;
+	QLineEdit* to;
+	QCheckBox* logScale;
+	QSharedPointer<iAAttributeDescriptor> descriptor;
+	ParameterInputs():
+		label(0),
+		from(0),
+		to(0),
+		logScale(0)
+	{}
+};
 
 class dlg_samplingSettings : public dlg_samplingSettingsUI
 {
