@@ -1428,10 +1428,9 @@ void MdiChild::enableInteraction( bool b)
 
 }
 
-bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool resultInNewWindow, bool init)
+bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool resultInNewWindow, bool init)
 {
 	compression = c;
-	filterHistogram = m;
 	resultInNewWindow = resultInNewWindow;
 	histogramBins = h;
 	statExt = e;
@@ -2112,8 +2111,6 @@ bool MdiChild::calculateHistogram( )
 	imageAccumulate->SetInputData(imageData);
 	imageAccumulate->Update();
 
-	if (m_mainWnd->getPrefMedianFilterFistogram()) medianFilterHistogram(imageAccumulate);
-
 	addMsg(tr("  Scalar Component %1: VoxelCount: %2  Min: %3  Max: %4  Mean: %5  StdDev: %6 ")
 		.arg(0)
 		.arg(imageAccumulate->GetVoxelCount())
@@ -2135,12 +2132,6 @@ bool MdiChild::calculateHistogram( )
 	if(imgProfile!=NULL)
 		imgProfile->profileWidget->initialize(profileProbe->profileData, profileProbe->GetRayLength());
 	//////////////////////////////////////////////////////////////////////////
-	return true;
-}
-
-bool MdiChild::medianFilterHistogram( vtkImageAccumulate* imgA )
-{
-
 	return true;
 }
 

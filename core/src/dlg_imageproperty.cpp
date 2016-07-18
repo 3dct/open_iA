@@ -61,7 +61,7 @@ void dlg_imageproperty::updateProperties(vtkImageData* src, vtkImageAccumulate* 
 
 	enterMsg(tr("  VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
 		.arg(accum->GetVoxelCount())
-        .arg(*accum->GetMin())
+		.arg(*accum->GetMin())
 		.arg(*accum->GetMax())
 		.arg(*accum->GetMean())
 		.arg(*accum->GetStandardDeviation()));

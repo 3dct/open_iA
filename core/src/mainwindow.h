@@ -145,7 +145,6 @@ public:
 	void updateRecentFileActions();
 	int getPrefHistoBinCnt() { return prefHistogramBins; };
 	bool getPrefCompression() { return prefCompression; };
-	bool getPrefMedianFilterFistogram() { return prefMedianFilterFistogram; };
 	bool getPrefResultInNewWindow() { return prefResultInNewWindow; };
 
 	void setPath(QString p) { path = p; };
@@ -218,7 +217,7 @@ private:
 	
 	int prefHistogramBins, prefStatExt;
 	int prefMagicLensSize, prefMagicLensFrameWidth;
-	bool prefCompression, prefResultInNewWindow, prefMedianFilterFistogram;
+	bool prefCompression, prefResultInNewWindow;
 	
 	QString qssName;
 

@@ -126,7 +126,7 @@ public:
 	bool rcview() { maximizeRC(); return true; };
 	bool linkViews( bool l ) { link(l); return true; }
 	bool linkMDIs( bool l ) { linkM(l); return true; }
-	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init );
+	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool r, bool init );
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
@@ -199,7 +199,6 @@ public:
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return resultInNewWindow; }
 	bool getCompression() const { return compression; }
-	bool getMedianFilterHistogram() const { return filterHistogram; }
 	int getNumberOfHistogramBins() const { return histogramBins; }
 	int getStatExtent() const { return statExt; }
 
@@ -370,7 +369,6 @@ protected:
 	void closeEvent(QCloseEvent *event);
 
 	bool calculateHistogram( );
-	bool medianFilterHistogram( vtkImageAccumulate* imgA );
 	bool addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
 	bool addHistogram( );
@@ -441,7 +439,7 @@ private:
 	bool isUntitled, tabsVisible;
 	int xCoord, yCoord, zCoord;
 	int histogramBins, statExt, magicLensSize, magicLensFrameWidth;
-	bool compression, showPosition, resultInNewWindow, filterHistogram, linkSlicers, logarithmicHistogram;
+	bool compression, showPosition, resultInNewWindow, linkSlicers, logarithmicHistogram;
 
 	iARenderSettings renderSettings;
 	iAVolumeSettings volumeSettings;
