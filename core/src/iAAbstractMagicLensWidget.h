@@ -43,11 +43,10 @@ public:
 	void				magicLensOn();
 	void				magicLensOff();
 	void				setLensSize( int sizeX, int sizeY );
-	//vtkRenderer *		getMainRenderer( );
-	vtkRenderer *		getLensRenderer( );
+	vtkRenderer*		getLensRenderer( );
 	void				setViewMode( ViewMode mode );
 
-	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin, vtkCamera* cam);
+	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
 
 signals:
 	void MouseMoved();
@@ -57,7 +56,6 @@ protected:
 	virtual void		updateGUI( );
 	void				getViewportPoints( double points[4] );
 
-	//vtkSmartPointer<vtkRenderer>	m_mainRen;
 	vtkSmartPointer<vtkRenderer>	m_lensRen;
 	vtkSmartPointer<vtkRenderer>	m_GUIRen;
 	vtkSmartPointer<vtkActor2D>		m_GUIActor;

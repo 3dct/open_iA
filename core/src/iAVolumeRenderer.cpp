@@ -92,8 +92,6 @@ void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
 	{
 		RemoveFromWindow();
 	}
-	//int layers = w->GetNumberOfLayers();
-	//w->SetNumberOfLayers(layers + 1);
 	w->AddRenderer(renderer);
 	vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	renderer->SetActiveCamera(cam);

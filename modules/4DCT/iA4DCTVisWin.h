@@ -70,7 +70,7 @@ public slots:
 protected:
 	void				setEnabledToolsDockWidgets( bool enabled );
 
-	vtkRenderer *							m_mainRen;
+	vtkSmartPointer<vtkRenderer>			m_mainRen;
 	vtkRenderer *							m_magicLensRen;
 	double									m_size[3];
 	int										m_currentStage;

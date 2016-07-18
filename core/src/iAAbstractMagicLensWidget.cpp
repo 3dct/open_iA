@@ -42,7 +42,6 @@ const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
 iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ )
 	: QVTKWidget2( parent )
-	//, m_mainRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
@@ -74,13 +73,6 @@ void iAAbstractMagicLensWidget::setLensSize( int sizeX, int sizeY )
 	m_size[0] = sizeX; m_size[1] = sizeY;
 	m_halfSize[0] = .5 * sizeX; m_halfSize[1] = .5 * sizeY;
 }
-
-/*
-vtkRenderer * iAAbstractMagicLensWidget::getMainRenderer( )
-{
-	return m_mainRen.GetPointer();
-}
-*/
 
 vtkRenderer * iAAbstractMagicLensWidget::getLensRenderer( )
 {
@@ -217,20 +209,15 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 }
 
 
-void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin, vtkCamera* cam)
+void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin)
 {
 	SetRenderWindow(renWin);
 
+	// TODO: VOLUME: move somewhere else?
 	renWin->SetNumberOfLayers(5);
-	//renWin->AddRenderer(m_mainRen);
 
-	//m_mainRen->SetActiveCamera(cam);
-
-	//m_mainRen->SetLayer(1);
 	m_lensRen->SetLayer(2);
 	m_GUIRen->SetLayer(3);
-	//m_mainRen->SetBackground(0.5, 0.5, 0.5);
-	//m_mainRen->InteractiveOn();
 	m_lensRen->InteractiveOff();
 	m_lensRen->SetBackground(0.5, 0.5, 0.5);
 	m_GUIRen->InteractiveOff();

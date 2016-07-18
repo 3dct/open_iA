@@ -78,8 +78,14 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	splitter->setStretchFactor( 1, 0 );
 
 	// setup renderer
-	// TODO: VOLUME: add separate Renderer !
-	// m_mainRen = qvtkWidget->getMainRenderer();
+	m_mainRen = vtkSmartPointer<vtkRenderer>::New();
+	qvtkWidget->GetRenderWindow()->AddRenderer(m_mainRen);
+	// TODO: VOLUME: CHECK IF WORKING!
+	vtkCamera* cam = qvtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	m_mainRen->SetActiveCamera(cam);
+	m_mainRen->SetLayer(1);
+	m_mainRen->SetBackground(0.5, 0.5, 0.5);
+	m_mainRen->InteractiveOn();
 	m_magicLensRen = qvtkWidget->getLensRenderer();
 
 	// setup dock widgets

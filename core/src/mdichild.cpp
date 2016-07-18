@@ -291,7 +291,7 @@ void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool prov
 
 void MdiChild::SetRenderWindows()
 {
-	r->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow(), Raycaster->getCamera());
+	r->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
 }
 
 void MdiChild::updateRenderWindows(int channels)
