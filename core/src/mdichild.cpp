@@ -1771,11 +1771,12 @@ void MdiChild::resetView()
 void MdiChild::resetTrf()
 {
 	getHistogram()->resetTrf();
-	activeChild->addMsg(tr("Resetting Transfer Functions."));
-	activeChild->addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-		.arg(getHistogram()->GetData()->GetDataRange(0)));
-	activeChild->addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-		.arg(getHistogram()->GetData()->GetDataRange(1)));
+	addMsg(tr("Resetting Transfer Functions."));
+	iAHistogramWidget const *  hist = getHistogram();
+	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
+		.arg(hist->GetData()->GetDataRange(0)));
+	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
+		.arg(hist->GetData()->GetDataRange(1)));
 }
 
 

@@ -148,8 +148,6 @@ public:
 	bool getPrefMedianFilterFistogram() { return prefMedianFilterFistogram; };
 	bool getPrefResultInNewWindow() { return prefResultInNewWindow; };
 
-	QColor *getColors() { return colors; }
-
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
 

@@ -23,6 +23,8 @@
 #include <QColor>
 #include <QString>
 
+#include "open_iA_Core_export.h"
+
 #define DIM 3
 
 const QString organisationName = "FHW";
@@ -179,4 +181,4 @@ const int MaximumMagicLensSize = 8192;
 
 
 // define preset colors
-QColor PredefinedColors[7];
+open_iA_Core_API QColor * PredefinedColors();

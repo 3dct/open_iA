@@ -815,7 +815,7 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 		QDomNode functionNode = list.item(n);
 		if (functionNode.nodeName() == "bezier")
 		{
-			dlg_bezier *bezier = new dlg_bezier(activeMdiChild()->getHistogram(), colors[colorIndex % 7], false);
+			dlg_bezier *bezier = new dlg_bezier(activeMdiChild()->getHistogram(), PredefinedColors()[colorIndex % 7], false);
 			QDomNodeList innerList = functionNode.childNodes();
 			for (int in = 0; in < innerList.length(); in++)
 			{
@@ -832,7 +832,7 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 		}
 		else if (functionNode.nodeName() == "gaussian")
 		{
-			dlg_gaussian *gaussian = new dlg_gaussian(activeMdiChild()->getHistogram(), colors[colorIndex % 7], false);
+			dlg_gaussian *gaussian = new dlg_gaussian(activeMdiChild()->getHistogram(), PredefinedColors()[colorIndex % 7], false);
 
 			mean = functionNode.attributes().namedItem("mean").nodeValue().toDouble();
 			sigma = functionNode.attributes().namedItem("sigma").nodeValue().toDouble();
@@ -1526,7 +1526,7 @@ MdiChild * MainWindow::GetResultChild( QString const & title )
 			case dlg_function::GAUSSIAN:
 				{
 					dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
-					dlg_gaussian * newGaussian = new dlg_gaussian( child->getHistogram(), getColors()[i%7] );
+					dlg_gaussian * newGaussian = new dlg_gaussian( child->getHistogram(), PredefinedColors()[i%7] );
 
 					newGaussian->setMean(oldGaussian->getMean());
 					newGaussian->setMultiplier(oldGaussian->getMultiplier());
@@ -1538,7 +1538,7 @@ MdiChild * MainWindow::GetResultChild( QString const & title )
 			case dlg_function::BEZIER:
 				{
 					dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
-					dlg_bezier * newBezier = new dlg_bezier( child->getHistogram(), getColors()[i%7] );
+					dlg_bezier * newBezier = new dlg_bezier( child->getHistogram(), PredefinedColors()[i%7] );
 
 					for( unsigned int j=0; j<oldBezier->getPoints().size(); ++j )
 						newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());

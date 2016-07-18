@@ -938,7 +938,7 @@ void iADiagramFctWidget::applyTransferFunctionForAll()
 
 void iADiagramFctWidget::addBezierFunction()
 {
-	dlg_bezier *bezier = new dlg_bezier(this, PredefinedColors[functions.size() % 7]);
+	dlg_bezier *bezier = new dlg_bezier(this, PredefinedColors()[functions.size() % 7]);
 
 	bezier->addPoint(contextPos.x(), getActiveHeight()-contextPos.y());
 
@@ -952,7 +952,7 @@ void iADiagramFctWidget::addBezierFunction()
 
 void iADiagramFctWidget::addGaussianFunction()
 {
-	dlg_gaussian *gaussian = new dlg_gaussian(this, PredefinedColors[functions.size() % 7]);
+	dlg_gaussian *gaussian = new dlg_gaussian(this, PredefinedColors()[functions.size() % 7]);
 
 	gaussian->setMean(contextPos.x());
 	gaussian->setSigma(width/6);
