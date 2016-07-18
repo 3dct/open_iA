@@ -38,6 +38,7 @@
 #include <vtkAxisActor2D.h>
 #include <vtkBMPWriter.h>
 #include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -1213,7 +1214,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 			if (tmpChild != mdi_parent) {
 				double spacing[3];
 				std::size_t foundSlash;
-				tmpChild->getImageData()->GetSpacing(spacing);
+				tmpChild->getImagePointer()->GetSpacing(spacing);
 				switch (m_mode)
 				{
 				case iASlicerMode::XY://XY

@@ -102,6 +102,8 @@
 #include <QTableView>
 #include <QTreeView>
 
+#include <cmath>
+
 //Global defines for initial layout
 const int initEExpPCPPHeight = 300;
 const int initEExpWidth = 1000;
@@ -166,8 +168,6 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, FilterID fid, vtkRenderer* blo
 	setupUi( this );
 	this->width = this->geometry().width();
 	this->height = this->geometry().height();
-	this->oTF = oTF;
-	this->cTF = cTF;
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
@@ -1347,7 +1347,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 	typedef itk::Image< long, DIM > IType;
 	typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
 	VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
-	if ( static_cast<MdiChild*>( activeChild )->getImageData()->GetScalarType() != 8 )	// long type
+	if ( static_cast<MdiChild*>( activeChild )->getImagePointer()->GetScalarType() != 8 )	// long type
 	{
 		vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
 		cast->SetInputData( static_cast<MdiChild*>( activeChild )->getImagePointer() );
@@ -1361,9 +1361,9 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 
 	IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
 	double spacing[3];
-	spacing[0] = static_cast<MdiChild*>( activeChild )->getImageData()->GetSpacing()[0];
-	spacing[1] = static_cast<MdiChild*>( activeChild )->getImageData()->GetSpacing()[1];
-	spacing[2] = static_cast<MdiChild*>( activeChild )->getImageData()->GetSpacing()[2];
+	spacing[0] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[0];
+	spacing[1] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[1];
+	spacing[2] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[2];
 	itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
 
 	// Create MObject transfer functions
@@ -1776,8 +1776,8 @@ void ColormapRGBAbsoluteNormalized( const double normal[3], double color_out[3] 
 
 void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 {
-	double longest = max( normal[0], normal[1] );
-	longest = max( normal[2], longest );
+	double longest = std::max( normal[0], normal[1] );
+	longest = std::max( normal[2], longest );
 	if ( !longest ) longest = 0.00000000001;
 
 	double oneVec[3] = { 1.0, 1.0, 1.0 };

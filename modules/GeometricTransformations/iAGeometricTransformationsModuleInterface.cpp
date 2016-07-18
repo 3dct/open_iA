@@ -27,6 +27,8 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
+#include <vtkImageData.h>
+
 void iAGeometricTransformationsModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();

@@ -39,6 +39,8 @@
 #include "mdichild.h"
 
 #include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkVersion.h>
@@ -1512,7 +1514,7 @@ MdiChild * MainWindow::GetResultChild( QString const & title )
 
 	if (child->getResultInNewWindow())
 	{
-		vtkImageData* imageData = activeMdiChild()->getImageData();
+		vtkSmartPointer<vtkImageData> imageData = activeMdiChild()->getImagePointer();
 		std::vector<dlg_function*> activeChildFunctions = activeMdiChild()->getFunctions();
 		child = createMdiChild();
 		//child->setCurrentFile(filename);
@@ -1567,7 +1569,7 @@ MdiChild * MainWindow::GetResultChild( int childInd, QString const & f )
 
 	if (child->getResultInNewWindow())
 	{
-		vtkImageData* imageData = child->getImageData();
+		vtkSmartPointer<vtkImageData> imageData = child->getImagePointer();
 		child = createMdiChild();
 		//child->setCurrentFile(filename);
 		child->show();

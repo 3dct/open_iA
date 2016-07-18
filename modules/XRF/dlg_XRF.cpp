@@ -26,6 +26,7 @@
 #include "dlg_RefSpectra.h"
 #include "dlg_renderer.h"
 #include "iAAccumulatedXRFData.h"
+#include "iAChannelVisualizationData.h"
 #include "iACharacteristicEnergy.h"
 #include "iAColorTheme.h"
 #include "iAConnector.h"

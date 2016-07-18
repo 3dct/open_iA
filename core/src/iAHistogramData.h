@@ -40,7 +40,6 @@ public:
 
 	void initialize(vtkImageAccumulate* imgAccumulate, double * scalarRange);
 	void initialize(vtkImageAccumulate* imgAccumulate, DataType* data, size_t numBin, double space, DataType min, DataType max);
-	void SetImage(vtkImageData* imgData);
 
 private:
 	vtkImageAccumulate* accumulate;

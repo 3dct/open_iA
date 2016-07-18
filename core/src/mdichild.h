@@ -21,13 +21,18 @@
 #pragma once
 
 #include "defines.h"
-#include "iAChannelVisualizationData.h"
 #include "iAChannelID.h"
+#include "iAQTtoUIConnector.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
-#include "iAVolumeStack.h"
 #include "open_iA_Core_export.h"
+#include "ui_logs.h"
+#include "ui_Mdichild.h"
+#include "ui_renderer.h"
+#include "ui_sliceXY.h"
+#include "ui_sliceXZ.h"
+#include "ui_sliceYZ.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
@@ -39,15 +44,6 @@
 #include <QSharedPointer>
 
 #include <vector>
-
-#include "ui_logs.h"
-#include "ui_Mdichild.h"
-#include "ui_renderer.h"
-#include "ui_sliceXY.h"
-#include "ui_sliceXZ.h"
-#include "ui_sliceYZ.h"
-
-#include "iAQTtoUIConnector.h"
 
 class QProgressBar;
 
@@ -62,6 +58,7 @@ class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
 class vtkRenderWindow;
+class vtkScalarsToColors;
 class vtkTable;
 class vtkTransform;
 
@@ -74,6 +71,7 @@ class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
 class iAAlgorithms;
+class iAChannelVisualizationData;
 class iAHistogramWidget;
 class iAIO;
 class iALogger;
@@ -83,6 +81,7 @@ struct iAProfileProbe;
 class iARenderer;
 class iASlicer;
 class iASlicerData;
+class iAVolumeStack;
 class MainWindow;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
@@ -178,10 +177,11 @@ public:
 	vtkTable * getMdCsvTable() { return mdCsvTable.GetPointer(); }
 
 	//! deprecated; use getImagePointer instead!
-	vtkImageData* getImageData() { return imageData; }
+	vtkImageData* getImageData();
 	//! function to retrieve main image data object of this MDI child
 	vtkSmartPointer<vtkImageData> getImagePointer() { return imageData; }
-	void setImageData(vtkImageData * iData) { imageData = iData; }
+	//! deprecated; use the version with smart pointer instead!
+	void setImageData(vtkImageData * iData);
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
 	vtkPolyData* getPolyData() { return polyData; };
 	iARenderer* getRenderer() { return Raycaster; };
@@ -353,17 +353,15 @@ public slots:
 	void camMZ();
 	void camIso();
 
-	/**
-	* Calls the getCamPosition function of iARenderer (described there in more detail).
-	* \param	camOptions	All informations of the camera stored in a double array
-	*/
+	//! Calls the getCamPosition function of iARenderer (described there in more detail).
+	//!
+	//! \param camOptions	All informations of the camera stored in a double array
 	void getCamPosition(double * camOptions);
-	/**
-	* Calls the setCamPosition function of iARenderer (described there in more detail).
-	*
-	* \param	camOptions	All informations of the camera stored in a double array
-	* \param	rsParallelProjection	boolean variable to determine if parallel projection option on.
-	*/
+
+	//! Calls the setCamPosition function of iARenderer (described there in more detail).
+	//!
+	//! \param camOptions	All informations of the camera stored in a double array
+	//! \param rsParallelProjection	boolean variable to determine if parallel projection option on.
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
 	void UpdateProbe(int ptIndex, double * newPos);
 	void resetLayout();
@@ -386,14 +384,10 @@ protected:
 	bool initView( );
 	bool initTransferfunctions( );
 	int EvaluatePosition(int pos, int i, bool invert = false);
-	//void printFileInfos();
-	//void printSTLFileInfos();
 
-	/**
-	* Changes the display of views from full to multi screen or multi screen to fullscreen.
-	*
-	* \param	mode	how the views should be arranged \return.
-	*/
+	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
+	//!
+	//! \param mode	how the views should be arranged.
 	void changeVisibility(unsigned char mode);
 	int getVisibility() const;
 	void widgetsVisible(bool b);
@@ -418,16 +412,14 @@ private:
 	void updateSliceIndicators();
 	QString strippedName(const QString &f);
 	
-	/**
-	* sets up the IO thread for saving the correct file type for the given filename.
-	* @return	true if it succeeds, false if it fails.
-	*/
+	//! sets up the IO thread for saving the correct file type for the given filename.
+	//!
+	//! \return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f);
 
-	/**
-	* sets up the IO thread for loading the correct file type according to the given filename.
-	* @return	true if it succeeds, false if it fails.
-	*/
+	//! sets up the IO thread for loading the correct file type according to the given filename.
+	//!
+	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
 
 	QFileInfo fileInfo;
@@ -488,7 +480,7 @@ private:
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
 
-	// csv file to table
+	//! csv file to table
 	vtkSmartPointer<vtkTable> mdCsvTable;
 
 	bool saveNative;
@@ -508,7 +500,7 @@ private:
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
 
-	// previously "Modality Explorer":
+	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 private slots:
@@ -524,4 +516,5 @@ public:
 	dlg_modalities* GetModalitiesDlg();
 	void LoadModalities();
 	void StoreModalities();
+	//! @}
 };

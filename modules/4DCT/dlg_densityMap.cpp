@@ -69,7 +69,7 @@ void dlg_densityMap::loadImages()
 	// load files
 	QString text = this->labelImageTextEdit->toPlainText();
 	QStringList sList = text.split('\n', QString::SplitBehavior::SkipEmptyParts);
-	for (auto iFileName = begin(sList); iFileName != end(sList); iFileName++)
+	for (auto iFileName = sList.begin(); iFileName != sList.end(); iFileName++)
 	{
 		MdiChild* mdiChild = m_mainWindow->createMdiChild();
 		mdiChild->loadFile(*iFileName, false);

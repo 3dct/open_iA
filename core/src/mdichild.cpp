@@ -68,6 +68,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkVolumeProperty.h>
 #include <vtkWindowToImageFilter.h>
+
 // TODO: refactor methods using the following out of mdichild!
 #include <vtkBMPWriter.h>
 #include <vtkPNGWriter.h>
@@ -555,10 +556,22 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 
 void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData)
 {
-	setImageData(imgData);
+	imageData = imgData;
 	setCurrentFile(filename);
 	setupView(false);
 	enableRenderWindows();
+}
+
+
+void MdiChild::setImageData(vtkImageData * iData)
+{
+	imageData = iData;		// potential for double free!
+}
+
+
+vtkImageData* MdiChild::getImageData()
+{
+	return imageData;
 }
 
 

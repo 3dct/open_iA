@@ -22,6 +22,7 @@
 #include "pch.h"
 #include "dlg_modalitySPLOM.h"
 
+#include "iAChannelVisualizationData.h"
 #include "iAModality.h"
 #include "iAQSplom.h"
 
