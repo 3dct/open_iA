@@ -49,11 +49,11 @@ public:
 		iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space);
 
 	void drawHistogram();
+	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 
 private:
 	QSharedPointer<iAHistogramData> data;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 	void reInitialize(bool resetFunction);
 
 };

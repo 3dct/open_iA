@@ -63,7 +63,7 @@ void iAHistogramWidget::datatypehistograminitialize(vtkImageAccumulate* hData, i
 
 void iAHistogramWidget::reInitialize(bool resetFunction)
 {
-	//set attribut, so that the objects are deleted while
+	//set attribute, so that the objects are deleted while
 	//this widget is closed
 	this->setAttribute(Qt::WA_DeleteOnClose);
 	this->setFocusPolicy(Qt::WheelFocus);

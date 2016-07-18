@@ -80,7 +80,6 @@ public:
 
 	void updateTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
-	QWidget* getParent();
 	dlg_function *getSelectedFunction();
 	int getHeight() const;
 	int getChartHeight() const;

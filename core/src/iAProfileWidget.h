@@ -55,7 +55,6 @@ public:
 	void drawProfilePlot();
 	void redraw();
 
-	QWidget* getParent() { return activeChild; };
 	int getHeight() { return height; }
 	int getMax() { return yHeight; }
 	

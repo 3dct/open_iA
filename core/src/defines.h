@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QColor>
 #include <QString>
 
 #define DIM 3
@@ -175,3 +176,7 @@ enum FilterID
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 10;
 const int MaximumMagicLensSize = 8192;
+
+
+// define preset colors
+QColor PredefinedColors[7];

@@ -123,10 +123,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	std::replace( git_version.begin(), git_version.end(), '-', '.');
 	splashScreen->showMessage(tr("\n      Version: %1").arg ( git_version.c_str() ), Qt::AlignTop, QColor(255, 255, 255));
 
-	// define preset colors
-	colors[0] = QColor(0, 0, 0);     colors[1] = QColor(0, 255, 0);   colors[2] = QColor(255, 0, 0); colors[3] = QColor(255, 255, 0);
-	colors[4] = QColor(0, 255, 255); colors[5] = QColor(255, 0, 255); colors[6] = QColor(255, 255, 255);
-
 	isStack=false;
 
 	layout = new QComboBox(this);

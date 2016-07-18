@@ -247,7 +247,6 @@ private:
 	QString fvFileName;
 
 	QString curFile, path;
-	QColor colors[7];
 
 	QTimer *timer;
 
