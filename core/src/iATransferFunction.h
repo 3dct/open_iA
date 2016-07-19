@@ -31,10 +31,10 @@ class vtkPiecewiseFunction;
 class TransferFunction
 {
 public:
-	virtual vtkPiecewiseFunction* getOpacityFunction() =0;
-	virtual vtkColorTransferFunction* getColorFunction() = 0;
+	virtual vtkPiecewiseFunction* GetOpacityFunction() =0;
+	virtual vtkColorTransferFunction* GetColorFunction() = 0;
 };
 
 // double range? pass in vtk variables?
-open_iA_Core_API vtkColorTransferFunction* GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData);
-open_iA_Core_API vtkPiecewiseFunction* GetDefaultPiecewiseFunction(vtkSmartPointer<vtkImageData> imageData);
+open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData);
+open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(vtkSmartPointer<vtkImageData> imageData);

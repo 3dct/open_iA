@@ -54,7 +54,6 @@
 #include <vtkVariantArray.h>
 #include <vtkVolume.h>
 
-#include "dlg_histogram.h"
 #include "dlg_imageproperty.h"
 #include "iAFiberScoutModuleInterface.h"
 #include "iAQTtoUIConnector.h"

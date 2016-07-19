@@ -713,12 +713,12 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, dlg_transfer* transferF
 	// add new function node
 	QDomElement transferElement = doc.createElement("transfer");
 
-	for (int i = 0; i < transferFunction->getOpacityFunction()->GetSize(); i++)
+	for (int i = 0; i < transferFunction->GetOpacityFunction()->GetSize(); i++)
 	{
 		double opacityTFValue[4];
 		double colorTFValue[6];
-		transferFunction->getOpacityFunction()->GetNodeValue(i, opacityTFValue);
-		transferFunction->getColorFunction()->GetNodeValue(i, colorTFValue);
+		transferFunction->GetOpacityFunction()->GetNodeValue(i, opacityTFValue);
+		transferFunction->GetColorFunction()->GetNodeValue(i, colorTFValue);
 
 		QDomElement nodeElement = doc.createElement("node");
 		nodeElement.setAttribute("value",   tr("%1").arg(opacityTFValue[0]));

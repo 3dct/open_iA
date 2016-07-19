@@ -607,8 +607,8 @@ void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double range[2]
 	// does functions node exist
 	double value, opacity, red, green, blue;
 
-	getOpacityFunction()->RemoveAllPoints();
-	getColorFunction()->RemoveAllPoints();
+	GetOpacityFunction()->RemoveAllPoints();
+	GetColorFunction()->RemoveAllPoints();
 
 	QDomNodeList list = transferElement.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
@@ -624,8 +624,8 @@ void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double range[2]
 
 		if (value < range[0]) value = range[0];
 		if (value > range[1]) value = range[1];
-		getOpacityFunction()->AddPoint(value, opacity);
-		getColorFunction()->AddRGBPoint(value, red, green, blue);
+		GetOpacityFunction()->AddPoint(value, opacity);
+		GetColorFunction()->AddRGBPoint(value, red, green, blue);
 	}
 	triggerOnChange();
 }

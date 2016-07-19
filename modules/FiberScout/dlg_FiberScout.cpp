@@ -4704,7 +4704,7 @@ bool dlg_FiberScout::initParallelCoordinates( FilterID fid )
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
 	iovPP->colorMapSelection->hide();
-	mdiChild->getHistogramDlg()->hide();
+	mdiChild->hideHistogram();
 	mdiChild->getImagePropertyDlg()->hide();
 	mdiChild->logs->hide();
 	mdiChild->sYZ->hide();

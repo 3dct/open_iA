@@ -51,7 +51,7 @@ class vtkAbstractTransform;
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkCornerAnnotation;
-class vtkImageAccumulate;
+//class vtkImageAccumulate;
 class vtkImageCast;
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -64,7 +64,6 @@ class vtkTransform;
 
 class dlg_renderer;
 class dlg_function;
-class dlg_histogram;
 class dlg_imageproperty;
 class dlg_modalities;
 class dlg_periodicTable;
@@ -169,12 +168,14 @@ public:
 	void connectThreadSignalsToChildSlots(iAAlgorithms* thread, bool providesProgress = true, bool usesDoneSignal = false);
 	bool isHessianComputed() { return hessianComputed; }
 	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
-	vtkPiecewiseFunction * getPiecewiseFunction() { return piecewiseFunction; }
-	vtkColorTransferFunction * getColorTransferFunction() { return colorTransferFunction; }
+	vtkPiecewiseFunction * getPiecewiseFunction();
+	vtkColorTransferFunction * getColorTransferFunction();
 	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
 
+	// TODO: move out of here ---------->
 	bool LoadCsvFile(FilterID fid, const QString &fileName);
 	vtkTable * getMdCsvTable() { return mdCsvTable.GetPointer(); }
+	// <---------- end
 
 	//! deprecated; use getImagePointer instead!
 	vtkImageData* getImageData();
@@ -195,7 +196,6 @@ public:
 	dlg_sliceXZ	* getSlicerDlgXZ();
 	dlg_sliceYZ	* getSlicerDlgYZ();
 	dlg_imageproperty * getImagePropertyDlg();
-	dlg_histogram * getHistogramDlg();
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return resultInNewWindow; }
 	bool getCompression() const { return compression; }
@@ -232,8 +232,6 @@ public:
 	QSpinBox * getSpinBoxYZ();
 	QSpinBox * getSpinBoxXZ();
 
-	vtkImageAccumulate * getImageAccumulate() { return imageAccumulate; }
-
 	//! @{ Multi-Channel rendering
 	void SetChannelRenderingEnabled(iAChannelID, bool enabled);
 	void InsertChannelData(iAChannelID id, iAChannelVisualizationData * channelData);
@@ -268,6 +266,7 @@ public:
 	int getZCoord() const { return zCoord; }
 
 	MainWindow* getM_mainWnd();
+	void hideHistogram();
 
 Q_SIGNALS:
 	void rendererDeactivated(int c);
@@ -283,7 +282,6 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
-	void ioSuccesful();
 
 private slots:
 	void maximizeRC();
@@ -365,7 +363,7 @@ public slots:
 	void UpdateProbe(int ptIndex, double * newPos);
 	void resetLayout();
 
-protected:
+private:
 	void closeEvent(QCloseEvent *event);
 
 	bool calculateHistogram( );
@@ -375,12 +373,7 @@ protected:
 	bool addProfile( );
 	int profileWidgetIndex;
 
-	bool LoadCsvFile(vtkTable *table, FilterID fid);
-	bool LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileName);
-
-
 	bool initView( );
-	bool initTransferfunctions( );
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
@@ -393,7 +386,6 @@ protected:
 	void cleanWorkingAlgorithms();
 	virtual void resizeEvent ( QResizeEvent * event );
 
-private:
 	QByteArray m_beforeMaximizeState;
 	bool m_isSmthMaximized;
 	QDockWidget * m_whatMaximized;
@@ -402,7 +394,6 @@ private:
 	void demaximizeDockWidget(QDockWidget * dw);
 	void resizeDockWidget(QDockWidget * dw);
 
-	iAHistogramWidget * getHistogram(dlg_histogram * h);
 	void connectSignalsToSlots();
 	void SetRenderWindows();
 	void getSnakeNormal(int index, double point[3], double normal[3]);
@@ -461,9 +452,6 @@ private:
 
 	vtkSmartPointer<vtkImageData> imageData;
 	vtkPolyData* polyData;
-	vtkImageAccumulate* imageAccumulate;
-	vtkPiecewiseFunction* piecewiseFunction;
-	vtkColorTransferFunction* colorTransferFunction;
 	vtkTransform* axesTransform;
 	vtkTransform* slicerTransform;
 	vtkAbstractTransform *SlicerYZ_Transform, *SlicerXY_Transform, *SlicerXZ_Transform;
@@ -473,13 +461,17 @@ private:
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
 
-	dlg_histogram* imgHistogram;
+	QDockWidget* histogramContainer;
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
-
+	
+	// TODO: move out of here ---------->
+	bool LoadCsvFile(vtkTable *table, FilterID fid);
+	bool LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileName);
 	//! csv file to table
 	vtkSmartPointer<vtkTable> mdCsvTable;
+	// <---------- end
 
 	bool saveNative;
 	std::vector<iAAlgorithms*> workingAlgorithms;
@@ -504,10 +496,10 @@ private:
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
+	void ChangeImage(vtkSmartPointer<vtkImageData> img);
 private:
 	int GetCurrentModality() const;
 	void SetCurrentModality(int modality);
-	void ChangeImage(vtkSmartPointer<vtkImageData> img);
 	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
 public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);

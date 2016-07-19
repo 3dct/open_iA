@@ -196,10 +196,10 @@ void iADetailView::DblClicked()
 	m_magicLensData->SetColor(color);
 	m_ctf = (mod->GetName() == "Ground Truth") ?
 		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->getColorFunction();
+		mod->GetTransfer()->GetColorFunction();
 	m_otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->getOpacityFunction();
+		mod->GetTransfer()->GetOpacityFunction();
 	ResetChannel(m_magicLensData, imageData, m_ctf, m_otf);
 	slicer->SetMagicLensCaption(mod->GetName().toStdString());
 	slicer->initializeChannel(id, m_magicLensData);
@@ -239,10 +239,10 @@ void iADetailView::ChangeModality(int )
 	vtkSmartPointer<vtkImageData> imageData = mod->GetImage();
 	m_ctf = (mod->GetName() == "Ground Truth") ?
 		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->getColorFunction();
+		mod->GetTransfer()->GetColorFunction();
 	m_otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->getOpacityFunction();
+		mod->GetTransfer()->GetOpacityFunction();
 	ResetChannel(m_magicLensData, imageData, m_ctf, m_otf);
 	slicer->SetMagicLensCaption(mod->GetName().toStdString());
 	slicer->reInitializeChannel(id, m_magicLensData);

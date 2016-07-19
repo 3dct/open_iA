@@ -175,7 +175,6 @@ void iAProfileWidget::drawHistogram(QPainter &painter)
 
 void iAProfileWidget::drawAxes(QPainter &painter)
 {
-	//TODO: reflect changes in dlg_histogram::drawAxes(...)
 	drawXAxis(painter);
 	drawYAxis(painter);
 }
@@ -232,7 +231,6 @@ void iAProfileWidget::drawXAxis(QPainter &painter)
 
 void iAProfileWidget::drawYAxis(QPainter &painter)
 {
-	//TODO: reflect changes in dlg_histogram::drawAxes(...)
 	//change pen color to black
 	painter.setPen(Qt::black);
 	QFontMetrics fm = painter.fontMetrics();

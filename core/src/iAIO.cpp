@@ -203,15 +203,6 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, bool
 	m_fileNames_volstack(fileNames)
 {
 	init(par);
-	if (par)
-	{
-		if (!initVolumePlayer) {
-			connect(this, SIGNAL(done(bool)), par, SLOT(setupView(bool)));		// should be done from the outside
-		}
-		else {
-			connect(this, SIGNAL(done(bool)), par, SLOT(setupStackView(bool)));		// should be done from the outside
-		}
-	}
 }
 
 

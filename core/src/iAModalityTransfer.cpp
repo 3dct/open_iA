@@ -31,8 +31,9 @@
 
 #include <QLayout>
 #include <QLayoutItem>
+#include <QDockWidget>
 
-ModalityTransfer::ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QWidget * parent, int binCount)
+ModalityTransfer::ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount)
 {
 	double rangeMin = imgData->GetScalarRange()[0];
 	double rangeMax = imgData->GetScalarRange()[1];
@@ -54,30 +55,36 @@ ModalityTransfer::ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QWidge
 		accumulate,
 		otf,
 		ctf,
-		QString("Histogram"),
+		name + QString(" Histogram"),
 		false);
 }
 
-
-void ModalityTransfer::ShowHistogram(QWidget* histogramContainer)
+iAHistogramWidget* ModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
 {
 	QLayoutItem * child;
 	while ((child = histogramContainer->layout()->takeAt(0)) != 0)
 	{
 		child->widget()->hide();
 	}
-	histogram->SetEnableAdditionalFunctions(false);
+	histogram->SetEnableAdditionalFunctions(enableFunctions);
 	histogram->show();
-	histogramContainer->layout()->addWidget(histogram);
+
+	histogramContainer->setWidget(histogram);
+
+	return histogram;
 }
 
-vtkPiecewiseFunction* ModalityTransfer::getOpacityFunction()
+vtkPiecewiseFunction* ModalityTransfer::GetOpacityFunction()
 {
 	return otf.Get();
 }
 
-vtkColorTransferFunction* ModalityTransfer::getColorFunction()
+vtkColorTransferFunction* ModalityTransfer::GetColorFunction()
 {
-	return ctf.Get();
+	return ctf;
+}
 
+vtkSmartPointer<vtkImageAccumulate> ModalityTransfer::GetAccumulate()
+{
+	return accumulate;
 }

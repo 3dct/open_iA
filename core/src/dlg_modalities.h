@@ -38,6 +38,7 @@ class iAModality;
 class iAModalityList;
 class iAVolumeSettings;
 class MdiChild;
+class ModalityTransfer;
 
 class vtkActor;
 class vtkColorTransferFunction;
@@ -49,7 +50,7 @@ class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalities(iAFast3DMagicLensWidget* renderer);
+	dlg_modalities(iAFast3DMagicLensWidget* renderer, int numBin, QDockWidget* histogramContainer);
 	void SetModalities(QSharedPointer<iAModalityList> modalities);
 	QSharedPointer<iAModalityList const>  GetModalities() const;
 	QSharedPointer<iAModalityList>  GetModalities();
@@ -59,12 +60,23 @@ public:
 	void ChangeRenderSettings(iAVolumeSettings const & rs);
 	void Store(QString const & filename);
 	bool Load(QString const & filename);
+	iAHistogramWidget* GetHistogram();
 public slots:
 	void Load();
 	void Store();
 signals:
 	void ModalityAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> img);
+
+	//! @{ for histogram:
+	void PointSelected();
+	void NoPointSelected();
+	void EndPointSelected();
+	void Active();
+	void AutoUpdateChanged(bool toogled);
+	void UpdateViews();
+	//! @}
+
 private slots:
 	void AddClicked();
 	void RemoveClicked();
@@ -86,10 +98,15 @@ private:
 	QString m_FileName;
 	int m_selectedRow;
 	iAFast3DMagicLensWidget* renderer;
-	//dlg_planeSlicer* m_planeSlicer;
-	//vtkSmartPointer<vtkActor> m_cuttingPlaneActor;
-	//vtkSmartPointer<vtkPlaneSource> m_planeSource;
+
+	int m_numBin;
+	dlg_planeSlicer* m_planeSlicer;
+	vtkSmartPointer<vtkActor> m_cuttingPlaneActor;
+	vtkSmartPointer<vtkPlaneSource> m_planeSource;
 
 	double m_boundingBoxMin[3];
 	double m_boundingBoxMax[3];
+	QDockWidget* m_histogramContainer;
+	iAHistogramWidget* m_currentHistogram;
+	void SwitchHistogram(QSharedPointer<ModalityTransfer> modTrans);
 };

@@ -32,6 +32,8 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 
 class QColor;
+class QDockWidget;
+class QString;
 class QWidget;
 
 class ModalityTransfer: public TransferFunction
@@ -42,8 +44,12 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> otf;
 public:
-	ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QWidget * parent, int binCount);
-	void ShowHistogram(QWidget* histogramContainer);
-	vtkPiecewiseFunction* getOpacityFunction();
-	vtkColorTransferFunction* getColorFunction();
+	ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
+
+	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
+	vtkPiecewiseFunction* GetOpacityFunction();
+	vtkColorTransferFunction* GetColorFunction();
+
+	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
+	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
 };

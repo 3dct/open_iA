@@ -18,20 +18,8 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
-
 #include "pch.h"
 #include "dlg_modalities.h"
-
-#include "dlg_modalityProperties.h"
-#include "iAConsole.h"
-#include "iAFast3DMagicLensWidget.h"
-#include "iAModality.h"
-#include "iAVolumeRenderer.h"
-#include "iAModalityTransfer.h"
-#include "iARenderer.h"
-#include "iAVolumeSettings.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -46,17 +34,32 @@
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 
+#include "dlg_modalityProperties.h"
+#include "iAConsole.h"
+#include "iAFast3DMagicLensWidget.h"
+#include "iAHistogramWidget.h"
+#include "iAModality.h"
+#include "iAModalityTransfer.h"
+#include "iARenderer.h"
+#include "iASlicer.h"
+#include "iASlicerData.h"
+#include "iAVolumeRenderer.h"
+#include "iAVolumeSettings.h"
+
 #include <QFileDialog>
 #include <QSettings>
 
 #include <cassert>
 
 
-dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer) :
+dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer, int numBin, QDockWidget* histogramContainer) :
 
 	modalities(new iAModalityList),
 	m_selectedRow(-1),
-	renderer(modalityRenderer)
+	renderer(modalityRenderer),
+	m_numBin(numBin),
+	m_histogramContainer(histogramContainer),
+	m_currentHistogram(0)
 {
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
@@ -72,32 +75,32 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer) :
 
 	connect(modalityRenderer, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
 
+	//m_cuttingPlaneActor = vtkSmartPointer<vtkActor>::New();
+	//m_planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	//vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	//mapper->SetInputConnection(m_planeSource->GetOutputPort());
+	//m_boundingBoxMin[0] = m_boundingBoxMin[1] = m_boundingBoxMin[2] = -0.1;
+	//m_boundingBoxMax[0] = m_boundingBoxMax[1] = m_boundingBoxMax[2] =  0.1;
+	//m_planeSource->SetPoint1(m_boundingBoxMin);
+	//m_planeSource->SetPoint1(m_boundingBoxMax);
+	//m_cuttingPlaneActor->SetMapper(mapper);
+	//m_cuttingPlaneActor->GetProperty()->SetInterpolationToFlat();
+	//m_cuttingPlaneActor->GetProperty()->LightingOff();
+
+	//int tableSize = 1;
+	//vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	//lut->SetNumberOfTableValues(tableSize);
+	//lut->Build();
+	//lut->SetTableValue(0, 0, 0, 0, 1);  //Black
+	//mapper->SetScalarRange(0, tableSize - 1);
+	//mapper->SetLookupTable(lut);
+
 	/*
-	m_cuttingPlaneActor = vtkSmartPointer<vtkActor>::New();
-	m_planeSource = vtkSmartPointer<vtkPlaneSource>::New();
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputConnection(m_planeSource->GetOutputPort());
-	m_boundingBoxMin[0] = m_boundingBoxMin[1] = m_boundingBoxMin[2] = -0.1;
-	m_boundingBoxMax[0] = m_boundingBoxMax[1] = m_boundingBoxMax[2] =  0.1;
-	m_planeSource->SetPoint1(m_boundingBoxMin);
-	m_planeSource->SetPoint1(m_boundingBoxMax);
-	m_cuttingPlaneActor->SetMapper(mapper);
-	m_cuttingPlaneActor->GetProperty()->SetInterpolationToFlat();
-	m_cuttingPlaneActor->GetProperty()->LightingOff();
-
-	int tableSize = 1;
-	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-	lut->SetNumberOfTableValues(tableSize);
-	lut->Build();
-	lut->SetTableValue(0, 0, 0, 0, 1);  //Black
-	mapper->SetScalarRange(0, tableSize - 1);
-	mapper->SetLookupTable(lut);
-	*/
-
 	QHBoxLayout* hbox = new QHBoxLayout();
 	hbox->setSpacing(0);
 	hbox->setMargin(2);
 	histogramContainer->setLayout(hbox);
+	*/
 }
 
 void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
@@ -177,19 +180,18 @@ void dlg_modalities::MagicLens()
 		renderer->magicLensOff();
 	}
 }
-/*
-void dlg_modalities::CuttingPlane()
-{
-	if (cbCuttingPlane->isChecked())
-	{
-		renderer->getMainRenderer()->AddActor(m_cuttingPlaneActor);
-	}
-	else
-	{
-		renderer->getMainRenderer()->RemoveActor(m_cuttingPlaneActor);
-	}
-}
-*/
+
+//void dlg_modalities::CuttingPlane()
+//{
+//	if (cbCuttingPlane->isChecked())
+//	{
+//		renderer->getMainRenderer()->AddActor(m_cuttingPlaneActor);
+//	}
+//	else
+//	{
+//		renderer->getMainRenderer()->RemoveActor(m_cuttingPlaneActor);
+//	}
+//}
 
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
@@ -203,10 +205,11 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	vtkSmartPointer<vtkImageData> imgData = mod->GetImage();
 	QSharedPointer<ModalityTransfer> modTransfer(new ModalityTransfer(
 		imgData,
+		mod->GetName(),
 		this,
-		2048));
+		m_numBin));
 	mod->SetTransfer(modTransfer);
-	modTransfer->ShowHistogram(histogramContainer);
+	m_currentHistogram = modTransfer->ShowHistogram(m_histogramContainer);
 	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(modTransfer, imgData));
 	mod->SetDisplay(modDisp);
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
@@ -229,6 +232,23 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	//m_planeSlicer->AddImage(imgData, modTransfer->getColorFunction(), 0.5);
 
 	emit ModalityAvailable();
+}
+
+
+void  dlg_modalities::SwitchHistogram(QSharedPointer<ModalityTransfer> modTrans)
+{
+	if (m_currentHistogram)
+	{
+		m_currentHistogram->disconnect();
+	}
+	m_currentHistogram = modTrans->ShowHistogram(m_histogramContainer);
+
+	connect(m_currentHistogram, SIGNAL(updateViews()), this, SIGNAL(UpdateViews()));
+	connect(m_currentHistogram, SIGNAL(pointSelected()), this, SIGNAL(PointSelected()));
+	connect(m_currentHistogram, SIGNAL(noPointSelected()), this, SIGNAL(NoPointSelected()));
+	connect(m_currentHistogram, SIGNAL(endPointSelected()), this, SIGNAL(EndPointSelected()));
+	connect(m_currentHistogram, SIGNAL(active()), this, SIGNAL(Active()));
+	connect(m_currentHistogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(AutoUpdateChanged(bool)));
 }
 
 void dlg_modalities::RemoveClicked()
@@ -325,7 +345,7 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	if (m_selectedRow >= 0)
 	{
 		QSharedPointer<ModalityTransfer> modTransfer = currentData->GetTransfer();
-		modTransfer->ShowHistogram(histogramContainer);
+		m_currentHistogram = modTransfer->ShowHistogram(m_histogramContainer);
 	}
 	emit ShowImage(currentData->GetImage());
 }
@@ -347,12 +367,12 @@ int dlg_modalities::GetSelected() const
 
 vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::GetCTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->getColorFunction();
+	return modalities->Get(modality)->GetTransfer()->GetColorFunction();
 }
 
 vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::GetOTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->getOpacityFunction();
+	return modalities->Get(modality)->GetTransfer()->GetOpacityFunction();
 }
 
 void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
@@ -395,10 +415,8 @@ void dlg_modalities::determineBoundingBox()
 			}
 		}
 	}
-	/*
-	m_planeSource->SetPoint1(m_boundingBoxMin);
-	m_planeSource->SetPoint1(m_boundingBoxMax);
-	*/
+	//m_planeSource->SetPoint1(m_boundingBoxMin);
+	//m_planeSource->SetPoint1(m_boundingBoxMax);
 }
 
 void dlg_modalities::RendererMouseMoved()
@@ -408,14 +426,17 @@ void dlg_modalities::RendererMouseMoved()
 
 	// m_planeSlicer->SetCuttingPlane(basePosition, baseVector);
 
-	/*
-	double* orientation = m_cuttingPlaneActor->GetOrientation(); // this is angles. we have to calculate a vector...
-	double* position = m_cuttingPlaneActor->GetCenter();
+	//double* orientation = m_cuttingPlaneActor->GetOrientation(); // this is angles. we have to calculate a vector...
+	//double* position = m_cuttingPlaneActor->GetCenter();
 
-	double * planePosition = m_planeSource->GetCenter();
-	double * planeNormal = m_planeSource->GetNormal();
+	//double * planePosition = m_planeSource->GetCenter();
+	//double * planeNormal = m_planeSource->GetNormal();
 
 
-	m_planeSlicer->SetCuttingPlane(position, planeNormal);
-	*/
+	//m_planeSlicer->SetCuttingPlane(position, planeNormal);
+}
+
+iAHistogramWidget* dlg_modalities::GetHistogram()
+{
+	return m_currentHistogram;
 }

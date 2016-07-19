@@ -43,8 +43,8 @@ iAVolumeRenderer::iAVolumeRenderer(
 	volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
 	currentWindow(0)
 {
-	volProp->SetColor(0, transfer->getColorFunction());
-	volProp->SetScalarOpacity(0, transfer->getOpacityFunction());
+	volProp->SetColor(0, transfer->GetColorFunction());
+	volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
 	volMapper->SetBlendModeToComposite();
 	volMapper->SetInputData(imgData);
 	volume->SetMapper(volMapper);
