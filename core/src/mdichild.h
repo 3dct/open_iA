@@ -80,7 +80,6 @@ struct iAProfileProbe;
 class iARenderer;
 class iASlicer;
 class iASlicerData;
-class iAVolumeMananger;
 class iAVolumeStack;
 class MainWindow;
 

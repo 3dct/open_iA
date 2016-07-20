@@ -37,6 +37,7 @@ class iAHistogramWidget;
 class iAModality;
 class iAModalityList;
 class iAVolumeSettings;
+class iAVolumeMananger;
 class MdiChild;
 class ModalityTransfer;
 
@@ -44,7 +45,6 @@ class vtkActor;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
-class vtkPlaneSource;
 
 class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
@@ -91,21 +91,13 @@ private slots:
 	void ModalityAdded(QSharedPointer<iAModality> mod);
 
 private:
-	void determineBoundingBox();
-
 	MdiChild* m_mdiChild;
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	int m_selectedRow;
 	iAFast3DMagicLensWidget* renderer;
-
+	QSharedPointer<iAVolumeMananger> m_volumeManager;
 	int m_numBin;
-	dlg_planeSlicer* m_planeSlicer;
-	vtkSmartPointer<vtkActor> m_cuttingPlaneActor;
-	vtkSmartPointer<vtkPlaneSource> m_planeSource;
-
-	double m_boundingBoxMin[3];
-	double m_boundingBoxMax[3];
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
 	void SwitchHistogram(QSharedPointer<ModalityTransfer> modTrans);
