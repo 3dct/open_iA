@@ -857,6 +857,7 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 
 void iADiagramFctWidget::autoUpdate(bool toggled)
 {
+	// TODO: VOLUME: apply to all histograms?
 	updateAutomatically = toggled;
 
 	emit autoUpdateChanged(toggled);

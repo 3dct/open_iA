@@ -75,7 +75,7 @@
 #include <vtkTIFFWriter.h>
 #include <vtkTransform.h>
 
-// TODO: VOLUME: check all places using m_dlgModalities->GetModalities()->Get(0)->GetTransfer() !
+// TODO: VOLUME: check all places using GetModality(0)->GetTransfer() !
 
 #include <QFile>
 #include <QFileDialog>
@@ -91,6 +91,7 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
 	magicLensSize(DefaultMagicLensSize),
+	histogramBins(DefaultHistogramBins),
 	histogramContainer(new QDockWidget("Histogram", this))
 {
 	m_mainWnd = mainWnd;
@@ -322,12 +323,13 @@ void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
 	{
-		calculateHistogram();
-
-		QSharedPointer<ModalityTransfer> modTrans = m_dlgModalities->GetModalities()->Get(0)->GetTransfer();
+		QSharedPointer<ModalityTransfer> modTrans = GetModality(m_dlgModalities->GetSelected())->GetTransfer();
+		/*
+		// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
 		getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), true);
 		getHistogram()->updateTrf();
 		getHistogram()->redraw();
+		*/
 
 		Raycaster->enableInteractor();
 
@@ -466,7 +468,6 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	if (image != NULL){
 		imageData->ReleaseData();
 		imageData->DeepCopy(image);
-		if ( !calculateHistogram() ) return false;
 	}
 
 	initView( );
@@ -597,9 +598,8 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	colorTransferFunction->DeepCopy(volumeStack->getColorTransferFunction(updateIndex));
 	piecewiseFunction->DeepCopy(volumeStack->getPiecewiseFunction(updateIndex));
 
+	// TODO: VOLUME: update all histograms?
 	getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
-
-	calculateHistogram();
 	getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
 	getHistogram()->updateTrf();
 	getHistogram()->redraw();
@@ -641,7 +641,7 @@ bool MdiChild::setupStackView(bool active)
 		cTF->Delete(); pWF->Delete();
 	}
 
-	QSharedPointer<ModalityTransfer> modTrans = m_dlgModalities->GetModalities()->Get(0)->GetTransfer();
+	QSharedPointer<ModalityTransfer> modTrans = GetModality(0)->GetTransfer();
 	if (numberOfVolumes > 0) {
 		modTrans->GetColorFunction()->DeepCopy(volumeStack->getColorTransferFunction(0));
 		modTrans->GetOpacityFunction()->DeepCopy(volumeStack->getPiecewiseFunction(0));
@@ -667,9 +667,8 @@ void MdiChild::setupViewInternal(bool active)
 	if (!active) initView();
 
 	if (IsOnlyPolyDataLoaded())
+		// TODO: VOLUME: Make apply for all modalities
 		renderSettings.ShowVolume = false;
-	else
-		calculateHistogram();	// TODO: VOLUME: check - isn't this redundant with the call from enableRenderWindows?
 
 	m_mainWnd->setCurrentFile(currentFile());
 
@@ -1443,8 +1442,12 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool resultIn
 
 	if (!init && getHistogram())
 	{
-		calculateHistogram();
-		getHistogram()->initialize(m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetAccumulate(), imageData->GetScalarRange(), false);
+		// apply histogram bin number to all modalities
+		for (int i = 0; i < GetModalities()->size(); ++i)
+		{
+			QSharedPointer<ModalityTransfer> modTrans = GetModality(i)->GetTransfer();
+			modTrans->SetHistogramBins(h);
+		}
 		getHistogram()->redraw();
 	}
 	slicerXY->SetMagicLensFrameWidth(magicLensFrameWidth);
@@ -1875,14 +1878,14 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 			InsertChannelData(ch_ModalityLens, chData);
 		}
 		m_currentModality = m_dlgModalities->GetSelected();
-		vtkSmartPointer<vtkImageData> img = m_dlgModalities->GetModalities()->Get(m_currentModality)->GetImage();
+		vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetImage();
 		chData->SetActiveImage(img);
 		chData->SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
 		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
 		chData->SetOpacity(0.5);
 		InitChannelRenderer(ch_ModalityLens, false, false);
 		SetMagicLensInput(ch_ModalityLens, true);
-		SetMagicLensCaption(m_dlgModalities->GetModalities()->Get(m_currentModality)->GetName().toStdString());
+		SetMagicLensCaption(GetModality(m_currentModality)->GetName().toStdString());
 	}
 	SetMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2055,9 +2058,9 @@ bool MdiChild::initView( )
 			new iAModality(i.completeBaseName(),
 				currentFile(), imageData, iAModality::MainRenderer)));
 	}
-	slicerXZ->initializeData(imageData, slicerTransform, m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetColorFunction());
-	slicerXY->initializeData(imageData, slicerTransform, m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetColorFunction());
-	slicerYZ->initializeData(imageData, slicerTransform, m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetColorFunction());
+	slicerXZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
+	slicerXY->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
+	slicerYZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
 
 	r->stackedWidgetRC->setCurrentIndex(0);
 
@@ -2089,22 +2092,6 @@ void MdiChild::resetLayout()
 	restoreState(m_initialLayoutState);
 }
 
-bool MdiChild::calculateHistogram( )
-{
-	// TODO: VOLUME: check what makes sense here
-	vtkImageAccumulate * imageAccumulate = m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetAccumulate();
-	addMsg(tr("  Scalar Component %1: VoxelCount: %2  Min: %3  Max: %4  Mean: %5  StdDev: %6 ")
-		.arg(0)
-		.arg(imageAccumulate->GetVoxelCount())
-		.arg(imageAccumulate->GetMin()[0])
-		.arg(imageAccumulate->GetMax()[0])
-		.arg(imageAccumulate->GetMean()[0])
-		.arg(imageAccumulate->GetStandardDeviation()[0])
-		);
-	return true;
-}
-
-
 void MdiChild::hideHistogram()
 {
 	histogramContainer->hide();
@@ -2113,7 +2100,7 @@ void MdiChild::hideHistogram()
 bool MdiChild::addImageProperty()
 {
 	imgProperty = new dlg_imageproperty(this, imageData,
-		m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath());
+		GetModality(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath());
 	tabifyDockWidget(logs, imgProperty);
 
 	return true;
@@ -2122,7 +2109,7 @@ bool MdiChild::addImageProperty()
 bool MdiChild::addVolumePlayer(iAVolumeStack* volumeStack)
 {
 	volumePlayer = new dlg_volumePlayer(this, imageData,
-		m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath(), volumeStack);
+		GetModality(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath(), volumeStack);
 	tabifyDockWidget(logs, volumePlayer);
 	for (int id=0; id<volumeStack->getNumberOfVolumes(); id++) {
 		CheckedList.append(0);
@@ -2807,7 +2794,7 @@ void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
 	if (selected != -1)
 	{
 		m_currentModality = selected;
-		ChangeImage(img, m_dlgModalities->GetModalities()->Get(selected)->GetName().toStdString());
+		ChangeImage(img, GetModality(selected)->GetName().toStdString());
 	}
 }
 
@@ -2824,15 +2811,15 @@ void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const 
 
 void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 {
-	bool noDataLoaded = m_dlgModalities->GetModalities()->size() == 0;
+	bool noDataLoaded = GetModalities()->size() == 0;
 	return m_dlgModalities->SetModalities(modList);
 
-	if (noDataLoaded && m_dlgModalities->GetModalities()->size() > 0)
+	if (noDataLoaded && GetModalities()->size() > 0)
 	{
 		// TODO: avoid Duplication (LoadModalities!)
 		setImageData(
-			GetModalitiesDlg()->GetModalities()->Get(0)->GetFileName(),
-			GetModalitiesDlg()->GetModalities()->Get(0)->GetImage()
+			GetModality(0)->GetFileName(),
+			GetModality(0)->GetImage()
 		);
 	}
 }
@@ -2843,15 +2830,25 @@ dlg_modalities* MdiChild::GetModalitiesDlg()
 	return m_dlgModalities;
 }
 
+QSharedPointer<iAModalityList> MdiChild::GetModalities()
+{
+	return m_dlgModalities->GetModalities();
+}
+
+QSharedPointer<iAModality> MdiChild::GetModality(int idx)
+{
+	return GetModalities()->Get(idx);
+}
+
 void MdiChild::LoadModalities()
 {
-	bool noDataLoaded = m_dlgModalities->GetModalities()->size() == 0;
+	bool noDataLoaded = GetModalities()->size() == 0;
 	m_dlgModalities->Load();
-	if (noDataLoaded && m_dlgModalities->GetModalities()->size() > 0)
+	if (noDataLoaded && GetModalities()->size() > 0)
 	{
 		setImageData(
-			GetModalitiesDlg()->GetModalities()->Get(0)->GetFileName(),
-			GetModalitiesDlg()->GetModalities()->Get(0)->GetImage()
+			GetModality(0)->GetFileName(),
+			GetModality(0)->GetImage()
 		);
 	}
 }
@@ -2869,11 +2866,10 @@ MainWindow* MdiChild::getM_mainWnd()
 
 vtkPiecewiseFunction * MdiChild::getPiecewiseFunction()
 {
-	return m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetOpacityFunction();
+	return GetModality(0)->GetTransfer()->GetOpacityFunction();
 }
 
 vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 {
-
-	return m_dlgModalities->GetModalities()->Get(0)->GetTransfer()->GetColorFunction();
+	return GetModality(0)->GetTransfer()->GetColorFunction();
 }

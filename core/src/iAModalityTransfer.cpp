@@ -59,6 +59,12 @@ ModalityTransfer::ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QStrin
 		false);
 }
 
+void ModalityTransfer::SetHistogramBins(int binCount)
+{
+	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
+	accumulate->Update();
+}
+
 iAHistogramWidget* ModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
 {
 	QLayoutItem * child;

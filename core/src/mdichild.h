@@ -51,7 +51,6 @@ class vtkAbstractTransform;
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkCornerAnnotation;
-//class vtkImageAccumulate;
 class vtkImageCast;
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -74,12 +73,14 @@ class iAChannelVisualizationData;
 class iAHistogramWidget;
 class iAIO;
 class iALogger;
+class iAModality;
 class iAModalityList;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iARenderer;
 class iASlicer;
 class iASlicerData;
+class iAVolumeMananger;
 class iAVolumeStack;
 class MainWindow;
 
@@ -365,11 +366,8 @@ public slots:
 
 private:
 	void closeEvent(QCloseEvent *event);
-
-	bool calculateHistogram( );
 	bool addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
-	bool addHistogram( );
 	bool addProfile( );
 	int profileWidgetIndex;
 
@@ -503,6 +501,8 @@ private:
 	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
 public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);
+	QSharedPointer<iAModalityList> GetModalities();
+	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
 	void LoadModalities();
 	void StoreModalities();

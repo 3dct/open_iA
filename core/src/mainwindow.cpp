@@ -1872,7 +1872,7 @@ void MainWindow::readSettings()
 	qssName = settings.value("qssName", ":/dark.qss").toString();
 
 	defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
-	prefHistogramBins = settings.value("Preferences/prefHistogramBins", 2048).toInt();
+	prefHistogramBins = settings.value("Preferences/prefHistogramBins", DefaultHistogramBins).toInt();
 	prefStatExt = settings.value("Preferences/prefStatExt", 3).toInt();
 	prefCompression = settings.value("Preferences/prefCompression", true).toBool();
 	prefResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", true).toBool();

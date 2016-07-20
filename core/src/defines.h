@@ -178,7 +178,7 @@ enum FilterID
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 10;
 const int MaximumMagicLensSize = 8192;
-
+const int DefaultHistogramBins = 2048;
 
 // define preset colors
 open_iA_Core_API QColor * PredefinedColors();
