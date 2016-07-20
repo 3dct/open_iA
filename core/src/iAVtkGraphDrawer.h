@@ -18,32 +18,30 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
+
 #ifndef IAVTKGRAPHDRAWER_H
 #define IAVTKGRAPHDRAWER_H
 
-#include "iAGraphDrawer.h"
-#include "open_iA_Core_export.h"
+#include <open_iA_Core_export.h>
 
+#include <graphdrawer.h>
+#include <map>
 #include <vtkMutableDirectedGraph.h>
 
-#include <map>
-
-// forward declarations
 class vtkPoints;
 
-class open_iA_Core_API iAVtkGraphDrawer : public iAGraphDrawer {
+class open_iA_Core_API iAVtkGraphDrawer {
 public:
 	void	createLayout(vtkPoints* points, vtkMutableDirectedGraph* graph, int* windowsSize, size_t numRanks);
+
 private:
 	void	fillGraph(vtkMutableDirectedGraph* graph);
 	void	locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks);
 
-	map<vtkIdType, idType>	m_vertMapFromVtk;
-	map<idType, vtkIdType>	m_vertMapToVtk;
-
-// 	map<idType, vtkEdgeType>	m_edgeMapToVtk;
-// 	map<vtkEdgeType, idType>	m_edgeMapFromVtk;
+	map<vtkIdType, Graph::idType>	m_vertMapFromVtk;
+	map<Graph::idType, vtkIdType>	m_vertMapToVtk;
+	GraphDrawer						m_graphDrawer;
+	Graph							m_graph;
 };
 
-#endif
+#endif // IAVTKGRAPHDRAWER_H

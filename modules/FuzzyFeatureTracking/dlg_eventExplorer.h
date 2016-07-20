@@ -85,7 +85,7 @@ public:
 	void updateCheckBoxLogX(int c);
 	void updateCheckBoxLogY(int c);
 
-	void chartMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
+	void chartMouseButtonCallBack(vtkObject * obj);
 
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);

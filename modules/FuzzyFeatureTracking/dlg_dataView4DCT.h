@@ -19,6 +19,12 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
  
+
+ /**
+ * \author 	Alexander A
+ * \Date	2014-03-07
+ */
+
 #ifndef DLG_DATAVIEW4DCT
 #define DLG_DATAVIEW4DCT
 
