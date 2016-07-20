@@ -36,8 +36,8 @@ class iAFast3DMagicLensWidget;
 class iAHistogramWidget;
 class iAModality;
 class iAModalityList;
+class iAVolumeRenderer;
 class iAVolumeSettings;
-class iAVolumeMananger;
 class MdiChild;
 class ModalityTransfer;
 
@@ -45,7 +45,10 @@ class vtkActor;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
+class vtkPlane;
 
+
+// TODO: VOLUME: split off volume manager for the management of the actual volume rendering stuff
 class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
@@ -61,6 +64,10 @@ public:
 	void Store(QString const & filename);
 	bool Load(QString const & filename);
 	iAHistogramWidget* GetHistogram();
+	void ShowVolumes(bool show);
+	void ShowSlicePlanes(bool enabled);
+	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
+
 public slots:
 	void Load();
 	void Store();
@@ -95,10 +102,13 @@ private:
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	int m_selectedRow;
-	iAFast3DMagicLensWidget* renderer;
-	QSharedPointer<iAVolumeMananger> m_volumeManager;
+	iAFast3DMagicLensWidget* m_renderer;
 	int m_numBin;
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
 	void SwitchHistogram(QSharedPointer<ModalityTransfer> modTrans);
+	void ShowVolume(QSharedPointer<iAVolumeRenderer> renderer, bool enabled);
+	bool m_showVolumes;
+	bool m_showSlicePlanes;
+	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 };

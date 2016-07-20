@@ -28,6 +28,7 @@ class iAVolumeSettings;
 class ModalityTransfer;
 
 class vtkImageData;
+class vtkPlane;
 class vtkOpenGLRenderer;
 class vtkRenderWindow;
 class vtkSmartVolumeMapper;
@@ -49,6 +50,8 @@ public:
 	void RemoveFromWindow();
 	vtkSmartPointer<vtkVolume> GetVolume();
 	void Update();
+	void SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
+	void RemoveCuttingPlanes();
 private:
 	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
 

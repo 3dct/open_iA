@@ -53,10 +53,12 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer, int nu
 
 	modalities(new iAModalityList),
 	m_selectedRow(-1),
-	renderer(modalityRenderer),
+	m_renderer(modalityRenderer),
 	m_numBin(numBin),
 	m_histogramContainer(histogramContainer),
-	m_currentHistogram(0)
+	m_currentHistogram(0),
+	m_showVolumes(true),
+	m_showSlicePlanes(false)
 {
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
@@ -96,7 +98,7 @@ void dlg_modalities::Store()
 
 void dlg_modalities::Store(QString const & filename)
 {								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-	vtkCamera* cam = renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	vtkCamera* cam = m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	modalities->Store(filename, cam);
 }
 
@@ -116,7 +118,7 @@ void dlg_modalities::Load()
 
 bool dlg_modalities::Load(QString const & filename)
 {								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-	vtkCamera* cam = renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	vtkCamera* cam = m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	return modalities->Load(filename, cam);
 }
 
@@ -141,11 +143,11 @@ void dlg_modalities::MagicLens()
 {
 	if (cbShowMagicLens->isChecked())
 	{
-		renderer->magicLensOn();
+		m_renderer->magicLensOn();
 	}
 	else
 	{
-		renderer->magicLensOff();
+		m_renderer->magicLensOff();
 	}
 }
 
@@ -165,20 +167,20 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	SwitchHistogram(modTransfer);
 	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(modTransfer, imgData));
 	mod->SetDisplay(modDisp);
-	if (mod->hasRenderFlag(iAModality::MainRenderer))
+	if (mod->hasRenderFlag(iAModality::MainRenderer) && m_showVolumes)
 	{
-		modDisp->AddToWindow(renderer->GetRenderWindow());
+		modDisp->AddToWindow(m_renderer->GetRenderWindow());
 	}
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
 		// TODO: VOLUME: use render window for magic lens as well?
-		renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
 	}
 	if (modalities->size() == 1)
 	{
 		// TODO: VOLUME: find better way!
-		renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCamera();
-		renderer->getLensRenderer()->ResetCamera();
+		m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCamera();
+		m_renderer->getLensRenderer()->ResetCamera();
 	}
 
 	emit ModalityAvailable();
@@ -216,7 +218,7 @@ void dlg_modalities::RemoveClicked()
 	}
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
 	}
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
@@ -252,17 +254,17 @@ void dlg_modalities::EditClicked()
 	if ((renderFlagsBefore & iAModality::MainRenderer) == 0
 		&& editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		modDisp->AddToWindow(renderer->GetRenderWindow());
+		modDisp->AddToWindow(m_renderer->GetRenderWindow());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == iAModality::MagicLens
 		&& !editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == 0
 		&& editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 }
@@ -279,11 +281,11 @@ void dlg_modalities::ManualRegistration()
 {
 	if (cbManualRegistration->isChecked())
 	{
-		renderer->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballActor::New());
+		m_renderer->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballActor::New());
 	}
 	else
 	{
-		renderer->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
+		m_renderer->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
 	}
 }
 
@@ -342,4 +344,55 @@ void dlg_modalities::RendererMouseMoved()
 iAHistogramWidget* dlg_modalities::GetHistogram()
 {
 	return m_currentHistogram;
+}
+
+
+void dlg_modalities::ShowVolumes(bool show)
+{
+	m_showVolumes = show;
+	for (int i = 0; i < modalities->size(); ++i)
+	{
+		if (!modalities->Get(i)->hasRenderFlag(iAModality::MainRenderer))
+		{
+			continue;
+		}
+		ShowVolume(modalities->Get(i)->GetDisplay(), show);
+	}
+}
+
+void dlg_modalities::ShowVolume(QSharedPointer<iAVolumeRenderer> renderer, bool enabled)
+{
+	if (enabled)
+	{
+		renderer->AddToWindow(m_renderer->GetRenderWindow());
+	}
+	else
+	{
+		renderer->RemoveFromWindow();
+	}
+}
+
+void dlg_modalities::ShowSlicePlanes(bool enabled)
+{
+	m_showSlicePlanes = enabled;
+	for (int i = 0; i < modalities->size(); ++i)
+	{
+		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetDisplay();
+		if (enabled)
+		{
+			renderer->SetCuttingPlanes(m_plane1, m_plane2, m_plane3);
+		}
+		else
+		{
+			renderer->RemoveCuttingPlanes();
+		}
+	}
+}
+
+void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
+{
+
+	m_plane1 = plane1;
+	m_plane2 = plane2;
+	m_plane3 = plane3;
 }

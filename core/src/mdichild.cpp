@@ -158,6 +158,8 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	connect(r->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), Raycaster, SLOT(mouseLeftButtonReleasedSlot()) );
 	Raycaster->setAxesTransform(axesTransform);
 
+	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
+
 	imgProperty = 0;
 	imgProfile = 0;
 	SetRenderWindows();
@@ -667,7 +669,6 @@ void MdiChild::setupViewInternal(bool active)
 	if (!active) initView();
 
 	if (IsOnlyPolyDataLoaded())
-		// TODO: VOLUME: Make apply for all modalities
 		renderSettings.ShowVolume = false;
 
 	m_mainWnd->setCurrentFile(currentFile());
@@ -1508,6 +1509,8 @@ void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 	raycaster->GetVolumeProperty()->SetInterpolationType(volumeSettings.LinearInterpolation);
 	raycaster->GetVolumeProperty()->SetShade(volumeSettings.Shading);
 	*/
+	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
+	m_dlgModalities->ShowVolumes(renderSettings.ShowVolume);
 
 	raycaster->GetOutlineActor()->SetVisibility(renderSettings.ShowBoundingBox);
 	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(renderSettings.ParallelProjection);

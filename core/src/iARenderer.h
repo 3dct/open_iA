@@ -92,11 +92,7 @@ public:
 	void enableInteractor();
 	void setAxesTransform(vtkTransform *transform) { axesTransform = transform; }
 	vtkTransform * getAxesTransform(void) { return axesTransform; }
-	/*
-	// TODO: VOLUME: move to VolumeManager?
-	void showSlicers( bool s );
-	void showSlicers( bool showPlane1, bool showPlane2, bool showPlane3 );
-	*/
+
 	void setPlaneNormals( vtkTransform *tr ) ;
 	void setCubeCenter( int x, int y, int z );
 	void setCamPosition ( int uvx, int uvy, int uvz, int px, int py, int pz );

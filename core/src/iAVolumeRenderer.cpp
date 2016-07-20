@@ -123,3 +123,16 @@ void iAVolumeRenderer::Update()
 	volume->Update();
 	volMapper->Update();
 }
+
+
+void iAVolumeRenderer::SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
+{
+	volMapper->AddClippingPlane(p1);
+	volMapper->AddClippingPlane(p2);
+	volMapper->AddClippingPlane(p3);
+}
+
+void iAVolumeRenderer::RemoveCuttingPlanes()
+{
+	volMapper->RemoveAllClippingPlanes();
+}

@@ -446,43 +446,6 @@ void iARenderer::showMainVolumeWithChannels(bool show)
 }
 */
 
-/*
-// TODO: VOLUME: "Show" Slicers - move to VolumeManager?
-void iARenderer::showSlicers( bool s ) 
-{
-	if (s) {
-		volumeMapper->AddClippingPlane(plane1);
-		volumeMapper->AddClippingPlane(plane2);
-		volumeMapper->AddClippingPlane(plane3);
-	} else {
-		volumeMapper->RemoveAllClippingPlanes();
-	}
-}
-
-void iARenderer::showSlicers( bool showPlane1, bool showPlane2, bool showPlane3 ) 
-{
-	volumeMapper->RemoveAllClippingPlanes();
-
-	if (showPlane1) {
-		volumeMapper->AddClippingPlane(plane1);
-	} else {
-		volumeMapper->RemoveClippingPlane(plane1);
-	}
-
-	if (showPlane2) {
-		volumeMapper->AddClippingPlane(plane2);
-	} else {
-		volumeMapper->RemoveClippingPlane(plane2);
-	}
-
-	if (showPlane3) {
-		volumeMapper->AddClippingPlane(plane3);
-	} else {
-		volumeMapper->RemoveClippingPlane(plane3);
-	}
-}
-*/
-
 void iARenderer::setupCutter()
 {
 	plane1->SetNormal(1, 0, 0);

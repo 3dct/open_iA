@@ -1086,27 +1086,17 @@ void MainWindow::enableInteraction()
 
 void MainWindow::prefs()
 {
-	/////////////////////////////
-	// # -> switch on line edit
-	// $ -> switch on check box
-	// + -> switch on combo box
-	/////////////////////////////
 	MdiChild *child = activeMdiChild();
 
 	QStringList inList = (QStringList() << tr("#Histogram Bins")
 		<< tr("#Statistical extent")
 		<< tr("$Compression")
 		<< tr("$Results in new window")
-		<< tr("$Remove Peaks from Histogram")
 		<< tr("$Log to file")
 		<< tr("+Looks")
 		<< tr("#Magic lens size")
 		<< tr("#Magic lens frame width"));
 	QStringList looks;
-	//if(qssName == ":/dark.qss")
-	//	looks = ( QStringList() <<  tr("Dark") <<  tr("Bright") );
-	//else
-	//	looks = ( QStringList() <<  tr("Bright") <<  tr("Dark") );
 	QMap<QString, QString> styleNames;
 	styleNames.insert(tr("Dark")      , ":/dark.qss");
 	styleNames.insert(tr("Bright")    , ":/bright.qss");
@@ -1141,15 +1131,15 @@ void MainWindow::prefs()
 		prefStatExt = (int)dlg.getValues()[1];
 		prefCompression = dlg.getCheckValues()[2] != 0;
 		prefResultInNewWindow = dlg.getCheckValues()[3] != 0;
-		bool prefLogToFile = dlg.getCheckValues()[5] != 0;
+		bool prefLogToFile = dlg.getCheckValues()[4] != 0;
 		iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
-		QString looksStr = dlg.getComboBoxValues()[6];
+		QString looksStr = dlg.getComboBoxValues()[5];
 		qssName = styleNames[looksStr];
 		applyQSS();
 
-		prefMagicLensSize = dlg.getValues()[7];
-		prefMagicLensFrameWidth = dlg.getValues()[8];
+		prefMagicLensSize = dlg.getValues()[6];
+		prefMagicLensFrameWidth = dlg.getValues()[7];
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefResultInNewWindow, false))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
@@ -2329,7 +2319,6 @@ void MainWindow::OpenWithDataTypeConversion()
 	}
 
 	loadFile(testfinalfilename);
-	//int test1 = 0;
 }
 
 void MainWindow::applyQSS()
