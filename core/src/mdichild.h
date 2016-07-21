@@ -23,6 +23,7 @@
 #include "defines.h"
 #include "iAChannelID.h"
 #include "iAQTtoUIConnector.h"
+#include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
@@ -125,7 +126,7 @@ public:
 	bool rcview() { maximizeRC(); return true; };
 	bool linkViews( bool l ) { link(l); return true; }
 	bool linkMDIs( bool l ) { linkM(l); return true; }
-	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool r, bool init );
+	bool editPrefs(iAPreferences const & p, bool init );
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
@@ -163,6 +164,7 @@ public:
 	iARenderSettings const & GetRenderSettings() const;
 	iAVolumeSettings const & GetVolumeSettings() const;
 	iASlicerSettings const & GetSlicerSettings() const;
+	iAPreferences    const & GetPreferences()    const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithms* thread, bool providesProgress = true, bool usesDoneSignal = false);
@@ -197,11 +199,7 @@ public:
 	dlg_sliceYZ	* getSlicerDlgYZ();
 	dlg_imageproperty * getImagePropertyDlg();
 	vtkTransform* getSlicerTransform();
-	bool getResultInNewWindow() const { return resultInNewWindow; }
-	bool getCompression() const { return compression; }
-	int getNumberOfHistogramBins() const { return histogramBins; }
-	int getStatExtent() const { return statExt; }
-
+	bool getResultInNewWindow() const { return preferences.ResultInNewWindow; }
 	bool getLinkedMDIs() const { return slicerSettings.LinkMDIs; }
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
@@ -257,8 +255,8 @@ public:
 	void SetMagicLensEnabled(bool isOn);
 	void SetMagicLensCaption(std::string caption);
 	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption = "");
-	int  GetMagicLensSize() const { return magicLensSize; }
-	int  GetMagicLensFrameWidth() const { return magicLensFrameWidth; }
+	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
+	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
 
 	int GetRenderMode();
@@ -429,12 +427,11 @@ private:
 	QPoint lastPoint;
 	bool isUntitled;
 	int xCoord, yCoord, zCoord;
-	int histogramBins, statExt, magicLensSize, magicLensFrameWidth;
-	bool compression, showPosition, resultInNewWindow, linkSlicers, logarithmicHistogram;
 
 	iARenderSettings renderSettings;
 	iAVolumeSettings volumeSettings;
 	iASlicerSettings slicerSettings;
+	iAPreferences preferences;
 
 	unsigned char visibility;
 
@@ -478,7 +475,7 @@ private:
 
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;
 
-	bool hessianComputed;
+	bool hessianComputed;	//!< belongs to Hessian module, move there!
 	bool updateSliceIndicator;
 	int numberOfVolumes;
 	int previousIndexOfVolume;

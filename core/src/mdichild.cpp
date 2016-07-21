@@ -43,6 +43,7 @@
 #include "iAMovieHelper.h"
 #include "iAObserverProgress.h"
 #include "iAParametricSpline.h"
+#include "iAPreferences.h"
 #include "iAProfileProbe.h"
 #include "iAProfileWidget.h"
 #include "iARenderer.h"
@@ -91,8 +92,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	ioThread(0),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
-	magicLensSize(DefaultMagicLensSize),
-	histogramBins(DefaultHistogramBins),
 	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram"))
 {
 	m_mainWnd = mainWnd;
@@ -107,7 +106,7 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	sXZ = new dlg_sliceXZ(this);
 	sYZ = new dlg_sliceYZ(this);
 	
-	m_dlgModalities = new dlg_modalities(r->GetRenderer(), histogramBins, histogramContainer);
+	m_dlgModalities = new dlg_modalities(r->GetRenderer(), preferences.HistogramBins, histogramContainer);
 	connect(m_dlgModalities, SIGNAL(UpdateViews()), this, SLOT(updateViews()));
 	connect(m_dlgModalities, SIGNAL(PointSelected()), this, SIGNAL(pointSelected()));
 	connect(m_dlgModalities, SIGNAL(NoPointSelected()), this, SIGNAL(noPointSelected()));
@@ -352,12 +351,12 @@ void MdiChild::enableRenderWindows()
 
 	if (!IsOnlyPolyDataLoaded())
 	{
-		if(this->updateSliceIndicator){
+		if(updateSliceIndicator){
 			updateSliceIndicators();
 			camIso();
 		}
 		else{
-			this->updateSliceIndicator = true;
+			updateSliceIndicator = true;
 		}
 
 		bool anyChannelEnabled = false;
@@ -414,20 +413,20 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 	if (slicerSettings.LinkViews) {
 		xCoord = x; yCoord = y; zCoord = z;
 		if (mode != 2) {
-			if (showPosition) {
+			if (slicerSettings.SingleSlicer.ShowPosition) {
 				slicerXZ->setPlaneCenter(x*spacing[0], z*spacing[2], 1);
 			}
 			slicerXZ->setIndex(x,y,z);
 			sXZ->spinBoxXZ->setValue(y);
 		}
 		if (mode != 0) {
-			if (showPosition)
+			if (slicerSettings.SingleSlicer.ShowPosition)
 				slicerYZ->setPlaneCenter(y*spacing[1], z*spacing[2], 1);
 			slicerYZ->setIndex(x,y,z);
 			sYZ->spinBoxYZ->setValue(x);
 		}
 		if (mode != 1) {
-			if (showPosition)
+			if (slicerSettings.SingleSlicer.ShowPosition)
 				slicerXY->setPlaneCenter(x*spacing[0], y*spacing[1], 1);
 			slicerXY->setIndex(x,y,z);
 			sXY->spinBoxXY->setValue(z);
@@ -669,7 +668,7 @@ void MdiChild::setupViewInternal(bool active)
 	if (IsOnlyPolyDataLoaded())
 		renderSettings.ShowVolume = false;
 
-	m_mainWnd->setCurrentFile(currentFile());
+	m_mainWnd->setCurrentFile(currentFile());	// should be done on the outside?
 
 	if ((imageData->GetExtent()[1] < 3) || (imageData->GetExtent()[3]) < 3 || (imageData->GetExtent()[5] < 3))
 		volumeSettings.Shading = false;
@@ -864,7 +863,7 @@ bool MdiChild::setupSaveIO(QString const & f)
 		} else {
 			if ((QString::compare(pars.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
 				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0)){
-					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(),m_mainWnd->getPrefCompression()) ) return false;
+					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) ) return false;
 					setCurrentFile(f);
 					m_mainWnd->setCurrentFile(f);
 					QString t; t = f;
@@ -1430,37 +1429,31 @@ void MdiChild::enableInteraction( bool b)
 
 }
 
-bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool resultInNewWindow, bool init)
+bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
 {
-	compression = c;
-	resultInNewWindow = resultInNewWindow;
-	histogramBins = h;
-	statExt = e;
-	magicLensSize = (mls < MinimumMagicLensSize || mls > MaximumMagicLensSize) ? DefaultMagicLensSize : mls;
-	magicLensFrameWidth = mlfw;
-
+	preferences = prefs;
 	if (!init && getHistogram())
 	{
 		// apply histogram bin number to all modalities
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
 			QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
-			modTrans->SetHistogramBins(h);
+			modTrans->SetHistogramBins(preferences.HistogramBins);
 		}
 		getHistogram()->redraw();
 	}
-	slicerXY->SetMagicLensFrameWidth(magicLensFrameWidth);
-	slicerXZ->SetMagicLensFrameWidth(magicLensFrameWidth);
-	slicerYZ->SetMagicLensFrameWidth(magicLensFrameWidth);
-	slicerXY->SetMagicLensSize(magicLensSize);
-	slicerXZ->SetMagicLensSize(magicLensSize);
-	slicerYZ->SetMagicLensSize(magicLensSize);
-	r->vtkWidgetRC->setLensSize(magicLensSize, magicLensSize);
+	slicerXY->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerXZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerYZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
+	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
+	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
+	r->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
 
-	slicerXY->setStatisticalExtent(statExt);
-	slicerYZ->setStatisticalExtent(statExt);
-	slicerXZ->setStatisticalExtent(statExt);
-	Raycaster->setStatExt(statExt);
+	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
+	slicerYZ->setStatisticalExtent(preferences.StatisticalExtent);
+	slicerXZ->setStatisticalExtent(preferences.StatisticalExtent);
+	Raycaster->setStatExt(preferences.StatisticalExtent);
 
 	if (isMagicLensToggled())
 	{
@@ -1639,6 +1632,12 @@ iAVolumeSettings const &  MdiChild::GetVolumeSettings() const
 iASlicerSettings const & MdiChild::GetSlicerSettings() const
 {
 	return slicerSettings;
+}
+
+
+iAPreferences const & MdiChild::GetPreferences() const
+{
+	return preferences;
 }
 
 bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)

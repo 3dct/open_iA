@@ -855,12 +855,12 @@ void MainWindow::savePreferences(QDomDocument &doc)
 	removeNode(node, "preferences");
 	// add new camera node
 	QDomElement preferencesElement = doc.createElement("preferences");
-	preferencesElement.setAttribute("histogramBins", tr("%1").arg(prefHistogramBins));
-	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(prefStatExt));
-	preferencesElement.setAttribute("compression", tr("%1").arg(prefCompression));
-	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(prefResultInNewWindow));
-	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(prefMagicLensSize));
-	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(prefMagicLensFrameWidth));
+	preferencesElement.setAttribute("histogramBins", tr("%1").arg(defaultPreferences.HistogramBins));
+	preferencesElement.setAttribute("statisticalExtent", tr("%1").arg(defaultPreferences.StatisticalExtent));
+	preferencesElement.setAttribute("compression", tr("%1").arg(defaultPreferences.Compression));
+	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(defaultPreferences.ResultInNewWindow));
+	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(defaultPreferences.MagicLensSize));
+	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(defaultPreferences.MagicLensFrameWidth));
 	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::GetInstance().IsLogToFileOn()));
 
 	doc.documentElement().appendChild(preferencesElement);
@@ -870,17 +870,17 @@ void MainWindow::savePreferences(QDomDocument &doc)
 void MainWindow::loadPreferences(QDomNode &preferencesNode)
 {
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
-	prefHistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
-	prefStatExt = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
-	prefCompression = attributes.namedItem("compression").nodeValue() == "1";
-	prefResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
-	prefMagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
-	prefMagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
+	defaultPreferences.HistogramBins = attributes.namedItem("histogramBins").nodeValue().toInt();
+	defaultPreferences.StatisticalExtent = attributes.namedItem("statisticalExtent").nodeValue().toDouble();
+	defaultPreferences.Compression = attributes.namedItem("compression").nodeValue() == "1";
+	defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
+	defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
+	defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
 
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
-	activeMdiChild()->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefResultInNewWindow, false);
+	activeMdiChild()->editPrefs(defaultPreferences, false);
 }
 
 
@@ -1113,35 +1113,36 @@ void MainWindow::prefs()
 			looks.append(key);
 		}
 	}
-	QList<QVariant> inPara; 	inPara << tr("%1").arg(child->getNumberOfHistogramBins())
-		<< tr("%1").arg(child->getStatExtent())
-		<< (child->getCompression() ? tr("true") : tr("false"))
-		<< (child->getResultInNewWindow() ? tr("true") : tr("false"))
+	iAPreferences p = child ? child->GetPreferences() : defaultPreferences;
+	QList<QVariant> inPara; 	inPara << tr("%1").arg(p.HistogramBins)
+		<< tr("%1").arg(p.StatisticalExtent)
+		<< (p.Compression ? tr("true") : tr("false"))
+		<< (p.ResultInNewWindow ? tr("true") : tr("false"))
 		<< (iAConsole::GetInstance().IsLogToFileOn() ? tr("true") : tr("false"))
 		<< looks
-		<< tr("%1").arg(child->GetMagicLensSize())
-		<< tr("%1").arg(child->GetMagicLensFrameWidth());
+		<< tr("%1").arg(p.MagicLensSize)
+		<< tr("%1").arg(p.MagicLensFrameWidth);
 
 	dlg_commoninput dlg(this, "Preferences", 8, inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		prefHistogramBins = (int)dlg.getValues()[0];
-		prefStatExt = (int)dlg.getValues()[1];
-		prefCompression = dlg.getCheckValues()[2] != 0;
-		prefResultInNewWindow = dlg.getCheckValues()[3] != 0;
-		bool prefLogToFile = dlg.getCheckValues()[4] != 0;
-		iAConsole::GetInstance().SetLogToFile(prefLogToFile);
-
+		defaultPreferences.HistogramBins = (int)dlg.getValues()[0];
+		defaultPreferences.StatisticalExtent = (int)dlg.getValues()[1];
+		defaultPreferences.Compression = dlg.getCheckValues()[2] != 0;
+		defaultPreferences.ResultInNewWindow = dlg.getCheckValues()[3] != 0;
+		bool logToFile = dlg.getCheckValues()[4] != 0;
 		QString looksStr = dlg.getComboBoxValues()[5];
 		qssName = styleNames[looksStr];
 		applyQSS();
 
-		prefMagicLensSize = dlg.getValues()[6];
-		prefMagicLensFrameWidth = dlg.getValues()[7];
+		defaultPreferences.MagicLensSize = dlg.getValues()[6];
+		defaultPreferences.MagicLensFrameWidth = dlg.getValues()[7];
 
-		if (activeMdiChild() && activeMdiChild()->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefResultInNewWindow, false))
+		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences, false))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
+
+		iAConsole::GetInstance().SetLogToFile(logToFile);
 	}
 }
 
@@ -1645,7 +1646,6 @@ void MainWindow::updateMenus()
 	actionLink_views->setEnabled(hasMdiChild);
 	actionLink_mdis->setEnabled(hasMdiChild);
 	actionEnableInteraction->setEnabled(hasMdiChild);
-	actionPreferences->setEnabled(hasMdiChild);
 	actionRendererSettings->setEnabled(hasMdiChild);
 	actionSlicerSettings->setEnabled(hasMdiChild);
 	actionLoad_transfer_function->setEnabled(hasMdiChild);
@@ -1738,7 +1738,7 @@ MdiChild* MainWindow::createMdiChild()
 
 	child->setupRaycaster(defaultRenderSettings, defaultVolumeSettings, true);
 	child->setupSlicers(defaultSlicerSettings, false);
-	child->editPrefs(prefHistogramBins, prefMagicLensSize, prefMagicLensFrameWidth, prefStatExt, prefCompression, prefResultInNewWindow, true);
+	child->editPrefs(defaultPreferences, true);
 
 	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
 	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );
@@ -1861,12 +1861,12 @@ void MainWindow::readSettings()
 	qssName = settings.value("qssName", ":/dark.qss").toString();
 
 	defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
-	prefHistogramBins = settings.value("Preferences/prefHistogramBins", DefaultHistogramBins).toInt();
-	prefStatExt = settings.value("Preferences/prefStatExt", 3).toInt();
-	prefCompression = settings.value("Preferences/prefCompression", true).toBool();
-	prefResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", true).toBool();
-	prefMagicLensSize = settings.value("Preferences/prefMagicLensSize", DefaultMagicLensSize).toInt();
-	prefMagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
+	defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", DefaultHistogramBins).toInt();
+	defaultPreferences.StatisticalExtent = settings.value("Preferences/prefStatExt", 3).toInt();
+	defaultPreferences.Compression = settings.value("Preferences/prefCompression", true).toBool();
+	defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", true).toBool();
+	defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", DefaultMagicLensSize).toInt();
+	defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
@@ -1958,12 +1958,12 @@ void MainWindow::writeSettings()
 	settings.setValue("qssName", qssName);
 
 	settings.setValue("Preferences/defaultLayout", layout->currentText());
-	settings.setValue("Preferences/prefHistogramBins", prefHistogramBins);
-	settings.setValue("Preferences/prefStatExt", prefStatExt);
-	settings.setValue("Preferences/prefCompression", prefCompression);
-	settings.setValue("Preferences/prefResultInNewWindow", prefResultInNewWindow);
-	settings.setValue("Preferences/prefMagicLensSize", prefMagicLensSize);
-	settings.setValue("Preferences/prefMagicLensFrameWidth", prefMagicLensFrameWidth);
+	settings.setValue("Preferences/prefHistogramBins", defaultPreferences.HistogramBins);
+	settings.setValue("Preferences/prefStatExt", defaultPreferences.StatisticalExtent);
+	settings.setValue("Preferences/prefCompression", defaultPreferences.Compression);
+	settings.setValue("Preferences/prefResultInNewWindow", defaultPreferences.ResultInNewWindow);
+	settings.setValue("Preferences/prefMagicLensSize", defaultPreferences.MagicLensSize);
+	settings.setValue("Preferences/prefMagicLensFrameWidth", defaultPreferences.MagicLensFrameWidth);
 	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance().IsLogToFileOn());
 
 	settings.setValue("Renderer/rsShowVolume", defaultRenderSettings.ShowVolume);
@@ -2271,16 +2271,16 @@ void MainWindow::OpenWithDataTypeConversion()
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		owdtcs = dlg.getValues()[1];
-		owdtcx = dlg.getValues()[2];	owdtcy = dlg.getValues()[3]; owdtcz = dlg.getValues()[4];
+		owdtcx = dlg.getValues()[2]; owdtcy = dlg.getValues()[3]; owdtcz = dlg.getValues()[4];
 		owdtcsx = dlg.getValues()[5]; owdtcsy = dlg.getValues()[6];	owdtcsz = dlg.getValues()[7];
 
 		QString owdtcintype = dlg.getComboBoxValues()[0];
 
 		double para[8];
 		para[0] = dlg.getValues()[1];
-		para[1] = dlg.getValues()[2];	para[2] = dlg.getValues()[3]; para[3] = dlg.getValues()[4];
+		para[1] = dlg.getValues()[2]; para[2] = dlg.getValues()[3]; para[3] = dlg.getValues()[4];
 		para[4] = dlg.getValues()[5]; para[5] = dlg.getValues()[6];	para[6] = dlg.getValues()[7];
-		para[7] = this->getPrefHistoBinCnt();
+		para[7] = defaultPreferences.HistogramBins;
 
 		QSize qwinsize = this->size();
 		double winsize[2];
@@ -2461,7 +2461,8 @@ void MainWindow::childClosed()
 	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
 	if (!sender)
 		return;
-	prefMagicLensSize = sender->GetMagicLensSize();
+	// magic lens size can be modified in the slicers as well; make sure to store this change:
+	defaultPreferences.MagicLensSize = sender->GetMagicLensSize();
 	if( mdiArea->subWindowList().size() == 1 )
 	{
 		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );

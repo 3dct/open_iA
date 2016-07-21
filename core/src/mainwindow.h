@@ -23,6 +23,7 @@
 #include "ui_Mainwindow.h"
 #include "open_iA_Core_export.h"
 
+#include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
@@ -143,9 +144,6 @@ public:
 	bool isStack;
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
-	int getPrefHistoBinCnt() { return prefHistogramBins; };
-	bool getPrefCompression() { return prefCompression; };
-	bool getPrefResultInNewWindow() { return prefResultInNewWindow; };
 
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
@@ -215,15 +213,12 @@ private:
 
 	QSignalMapper *windowMapper;
 	
-	int prefHistogramBins, prefStatExt;
-	int prefMagicLensSize, prefMagicLensFrameWidth;
-	bool prefCompression, prefResultInNewWindow;
-	
 	QString qssName;
 
 	iAVolumeSettings defaultVolumeSettings;	
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
+	iAPreferences defaultPreferences;
 
 	//! @{ DataType Conversion settings
 	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
