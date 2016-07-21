@@ -68,6 +68,8 @@ public:
 	void ShowSlicePlanes(bool enabled);
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 
+	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
+
 public slots:
 	void Load();
 	void Store();

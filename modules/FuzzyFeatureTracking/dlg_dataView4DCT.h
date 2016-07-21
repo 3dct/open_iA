@@ -32,10 +32,11 @@ class vtkCamera;
 class vtkPolyData;
 class vtkTransform;
 
-class iAVolumeStack;
-class QVTKWidgetMouseReleaseWorkaround;
 class iARenderer;
+class iAVolumeRenderer;
+class iAVolumeStack;
 class MdiChild;
+class QVTKWidgetMouseReleaseWorkaround;
 
 class dlg_dataView4DCT : public dlg_dataView4DCTContainer
 {
@@ -49,6 +50,7 @@ private:
 	iAVolumeStack*						m_volumeStack;
 	QVTKWidgetMouseReleaseWorkaround**	m_vtkWidgets;
 	iARenderer**						m_renderers;
+	iAVolumeRenderer**					m_volumeRenderer;
 	vtkSmartPointer<vtkTransform>		m_axesTransform;
 	MdiChild*							m_mdiChild;
 	iARendererManager					m_rendererManager;

@@ -4,6 +4,21 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
+iASimpleTransferFunction::iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf) :
+	m_ctf(ctf),
+	m_otf(otf)
+{}
+
+vtkColorTransferFunction * iASimpleTransferFunction::GetColorFunction()
+{
+	return m_ctf;
+}
+
+vtkPiecewiseFunction * iASimpleTransferFunction::GetOpacityFunction()
+{
+	return m_otf;
+}
+
 vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData)
 {
 	auto cTF = vtkSmartPointer<vtkColorTransferFunction>::New();

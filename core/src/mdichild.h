@@ -269,6 +269,7 @@ public:
 
 	MainWindow* getM_mainWnd();
 	void hideHistogram();
+	void ShowVolumes(bool enable);
 
 Q_SIGNALS:
 	void rendererDeactivated(int c);
@@ -380,7 +381,7 @@ private:
 	//! \param mode	how the views should be arranged.
 	void changeVisibility(unsigned char mode);
 	int getVisibility() const;
-	void widgetsVisible(bool b);
+	void hideVolumeWidgets();
 	void visibilityBlock(QList<QSpacerItem*> spacerItems, QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
 	virtual void resizeEvent ( QResizeEvent * event );
@@ -426,7 +427,7 @@ private:
 
 	QString curFile, path;
 	QPoint lastPoint;
-	bool isUntitled, tabsVisible;
+	bool isUntitled;
 	int xCoord, yCoord, zCoord;
 	int histogramBins, statExt, magicLensSize, magicLensFrameWidth;
 	bool compression, showPosition, resultInNewWindow, linkSlicers, logarithmicHistogram;

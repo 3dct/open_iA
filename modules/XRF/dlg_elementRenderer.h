@@ -26,7 +26,10 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_elementRenderer>   dlg_elemRendererCon
 
 #include <vtkSmartPointer.h>
 
+#include <QSharedPointer>
+
 class iARenderer;
+class iAVolumeRenderer;
 
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -50,6 +53,7 @@ private:
 	iARenderer * m_renderer;
 	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
+	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	vtkRenderer * m_observedRenderer;
 	unsigned long m_tag;
 	size_t m_indexInReferenceLib;

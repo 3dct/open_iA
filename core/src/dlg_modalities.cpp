@@ -396,3 +396,11 @@ void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane
 	m_plane2 = plane2;
 	m_plane3 = plane3;
 }
+
+
+
+void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString const & name)
+{
+	QSharedPointer<iAModality> newModality(new iAModality(name, "", img, iAModality::MainRenderer));
+	modalities->Add(newModality);
+}

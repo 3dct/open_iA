@@ -25,12 +25,13 @@
 #include "dlg_renderer.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
+#include "dlg_profile.h"
+#include "dlg_volumePlayer.h"
 #include "iAHistogramWidget.h"
 #include "iAChannelVisualizationData.h"
 #include "iAChildData.h"
 #include "iAConsole.h"
-#include "dlg_profile.h"
-#include "dlg_volumePlayer.h"
+#include "iADockWidgetWrapper.h"
 #include "iAAlgorithms.h"
 #include "iAFilter.h"
 #include "iAIO.h"
@@ -92,7 +93,7 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	m_logger(new MdiChildLogger(this)),
 	magicLensSize(DefaultMagicLensSize),
 	histogramBins(DefaultHistogramBins),
-	histogramContainer(new QDockWidget("Histogram", this))
+	histogramContainer(new iADockWidgetWrapper(this, new QWidget(), "Histogram", "HistogramContainer"))
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);
@@ -137,7 +138,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 
 	isUntitled = true;
 	visibility = MULTI;
-	tabsVisible = true;
 	xCoord = 0, yCoord = 0, zCoord = 0;
 	connectionState = cs_NONE;
 	for (int i = 0; i < 6; i++) roi[i] = 0;
@@ -384,6 +384,7 @@ void MdiChild::enableRenderWindows()
 				/*
 				// TODO: VOLUME: check!
 				// if 3d enabled
+				// for 3d renderer, volumes are now enabled through modality explorer!
 				if (chData->Uses3D())
 				{
 					Raycaster->updateChannelImages();
@@ -438,15 +439,13 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 
 void MdiChild::newFile()
 {
-	widgetsVisible(false);
+	hideVolumeWidgets();
 	addMsg(tr("%1  New File.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 void MdiChild::showPoly()
 {
-	// TODO: VOLUME: VolumeManager
-	// Raycaster->GetVolume()->SetVisibility(false);
-	widgetsVisible(false);
+	hideVolumeWidgets();
 	visibilityBlock(QList<QSpacerItem*>(),
 		QList<QWidget*>() << r->stackedWidgetRC << r->pushSaveRC << r->pushMaxRC << r->pushStopRC, true);
 
@@ -460,7 +459,6 @@ void MdiChild::showPoly()
 
 bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPolyData* poly)
 {
-	// TODO: VOLUME: adapt!
 	addStatusMsg("Creating Result View");
 	if (poly != NULL){
 		polyData->ReleaseData();
@@ -1767,6 +1765,7 @@ void MdiChild::changeColor()
 
 void MdiChild::autoUpdate(bool toggled)
 {
+	// TODO: VOLUME: apply to all histograms?
 	getHistogram()->autoUpdate(toggled);
 }
 
@@ -2251,15 +2250,11 @@ void MdiChild::changeVisibility(unsigned char mode)
 		histogramContainer->setVisible(tab);
 }
 
-void MdiChild::widgetsVisible(bool isVisible)
+void MdiChild::hideVolumeWidgets()
 {
-	isVisible ? tabsVisible = true :  tabsVisible = false;
-
 	visibilityBlock(QList<QSpacerItem*>(),
-		QList<QWidget*>() << sXY << sXZ << sYZ << r, isVisible);
-
-	// TODO: VOLUME: VolumeManager
-	// Raycaster->GetVolume()->SetVisibility(true);
+		QList<QWidget*>() << sXY << sXZ << sYZ << r, false);
+	ShowVolumes(false);
 	this->update();
 }
 
@@ -2309,6 +2304,11 @@ void MdiChild::InitChannelRenderer(iAChannelID id, bool use3D, bool enableChanne
 		Raycaster->addChannel(data);
 	}
 	*/
+	if (use3D)
+	{
+		data->Set3D(true);
+		m_dlgModalities->AddModality(data->GetImage(), QString("Channel %1").arg(id));
+	}
 	SetChannelRenderingEnabled(id, enableChannel);
 }
 
@@ -2875,4 +2875,11 @@ vtkPiecewiseFunction * MdiChild::getPiecewiseFunction()
 vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 {
 	return GetModality(0)->GetTransfer()->GetColorFunction();
+}
+
+
+void MdiChild::ShowVolumes(bool enable)
+{
+	renderSettings.ShowVolume = enable;
+	m_dlgModalities->ShowVolumes(enable);
 }

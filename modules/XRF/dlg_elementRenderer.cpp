@@ -23,6 +23,8 @@
 #include "dlg_elementRenderer.h"
 
 #include "iARenderer.h"
+#include "iATransferFunction.h"
+#include "iAVolumeRenderer.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -59,14 +61,23 @@ void dlg_elementRenderer::removeObserver()
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
-	// TODO: VOLUME: add here!
+	// TODO: VOLUME: check if working!
+	iASimpleTransferFunction transferFunction(ctf, otf);
 	if(!m_rendInitialized)
 	{
 		m_renderer->initialize(imgData, polyData);
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer->AddToWindow(m_renderer->GetRenderWindow());
 		m_rendInitialized = true;
 	}
 	else
+	{
+		// TODO: VOLUME: check if recreation of volume renderer is necessary!
+		m_volumeRenderer->RemoveFromWindow();
 		m_renderer->reInitialize(imgData, polyData);
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer->AddToWindow(m_renderer->GetRenderWindow());
+	}
 }
 
 iARenderer * dlg_elementRenderer::GetRenderer()

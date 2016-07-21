@@ -21,12 +21,12 @@
 #pragma once
 
 #include <QDockWidget>
-#include <QVBoxLayout>
 
 class iADockWidgetWrapper: public QDockWidget
 {
 public:
-	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName)
+	iADockWidgetWrapper(QWidget* parent, QWidget* widget, QString const & windowTitle, QString const & objectName):
+		QDockWidget(parent)
 	{
 		setWindowTitle(windowTitle);
 		setFeatures(DockWidgetVerticalTitleBar | DockWidgetClosable | DockWidgetMovable | DockWidgetFloatable);

@@ -36,6 +36,19 @@ public:
 	virtual vtkColorTransferFunction* GetColorFunction() = 0;
 };
 
+//! simplest possible transfer function: just a container for ctf and otf
+//! (no management of these contained classes!)
+class open_iA_Core_API iASimpleTransferFunction : public iATransferFunction
+{
+public:
+	iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf);
+	virtual vtkColorTransferFunction * GetColorFunction();
+	virtual vtkPiecewiseFunction * GetOpacityFunction();
+private:
+	vtkColorTransferFunction * m_ctf;
+	vtkPiecewiseFunction * m_otf;
+};
+
 // double range? pass in vtk variables?
 open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData);
 open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(vtkSmartPointer<vtkImageData> imageData);

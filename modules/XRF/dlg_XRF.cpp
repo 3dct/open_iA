@@ -193,7 +193,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
 
 	m_spectrumDiagram->setColorTransferFunctionChangeListener(this);
-	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
+	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(dynamic_cast<QWidget*>(parent()), m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
 	InitCommonGUI(widgetAddHelper);
@@ -268,7 +268,7 @@ void dlg_XRF::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 
 	m_pieChart = new iAPieChartWidget(this);
 	m_pieChart->setObjectName(QString::fromUtf8("Composition"));
-	m_pieChartContainer = new iADockWidgetWrapper(m_pieChart, "Element Concentration", "PieChartWidget");
+	m_pieChartContainer = new iADockWidgetWrapper(dynamic_cast<QWidget*>(parent()), m_pieChart, "Element Concentration", "PieChartWidget");
 	m_pieChartContainer->setContentsMargins(0, 0, 0, 0);
 	//m_pieChartContainer->hide();
 	widgetAddHelper.SplitWidget(m_periodicTable, this, Qt::Vertical);
