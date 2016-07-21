@@ -136,7 +136,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 		m_childData.child->InsertChannelData( ch_XRF, chData );
 	}
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
-	chData->SetActiveImage( img );
+	chData->SetImage( img );
 	m_otf = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	m_otf->AddPoint(img->GetScalarRange()[0], 1);
 	m_otf->AddPoint(img->GetScalarRange()[1], 1);

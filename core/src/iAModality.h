@@ -30,7 +30,7 @@
 
 class iAImageCoordConverter;
 class iASpectralVoxelData;
-class ModalityTransfer;
+class iAModalityTransfer;
 class iAVolumeRenderer;
 
 class vtkCamera;
@@ -83,8 +83,8 @@ public:
 
 	bool LoadData();
 
-	void SetTransfer(QSharedPointer<ModalityTransfer> transfer);
-	QSharedPointer<ModalityTransfer> GetTransfer();
+	void SetTransfer(QSharedPointer<iAModalityTransfer> transfer);
+	QSharedPointer<iAModalityTransfer> GetTransfer();
 	void SetDisplay(QSharedPointer<iAVolumeRenderer> display);
 	QSharedPointer<iAVolumeRenderer> GetDisplay();
 
@@ -99,7 +99,7 @@ private:
 
 	QSharedPointer<iASpectralVoxelData> m_data;
 	QSharedPointer<iAImageCoordConverter> m_converter;
-	QSharedPointer<ModalityTransfer> transfer;
+	QSharedPointer<iAModalityTransfer> transfer;
 	QSharedPointer<iAVolumeRenderer> display;
 	double m_spacing[3];
 

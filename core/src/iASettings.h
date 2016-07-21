@@ -25,7 +25,7 @@
 #include <QDomDocument>
 
 class dlg_transfer;
-class TransferFunction;
+class iATransferFunction;
 
 class open_iA_Core_API Settings
 {
@@ -34,8 +34,8 @@ private:
 public:
 	Settings();
 	Settings(QString const & filename);
-	void LoadTransferFunction(TransferFunction* transferFunction, double range[2]);
-	void StoreTransferFunction(TransferFunction* transferFunction);
+	void LoadTransferFunction(iATransferFunction* transferFunction, double range[2]);
+	void StoreTransferFunction(iATransferFunction* transferFunction);
 	void Save(QString const & fileName);
 private:
 	void removeNode(QString const & str);

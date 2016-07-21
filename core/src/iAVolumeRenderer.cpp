@@ -23,18 +23,19 @@
 #include "iAVolumeRenderer.h"
 
 #include "iAConsole.h"
-#include "iAModalityTransfer.h"
+#include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
 #include <vtkSmartVolumeMapper.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
 iAVolumeRenderer::iAVolumeRenderer(
-	QSharedPointer<ModalityTransfer> transfer,
+	iATransferFunction * transfer,
 	vtkSmartPointer<vtkImageData> imgData)
 :
 	volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
@@ -83,8 +84,6 @@ void iAVolumeRenderer::SetPosition(double* position)
 {
 	volume->SetPosition(position);
 }
-
-#include <vtkRendererCollection.h>
 
 void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
 {

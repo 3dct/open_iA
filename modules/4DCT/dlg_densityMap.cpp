@@ -156,7 +156,7 @@ void dlg_densityMap::InitChannel()
 	otf->AddPoint(range[1], 0.5);
 
 
-	chDensity->SetActiveImage(image);
+	chDensity->SetImage(image);
 	chDensity->SetColorTF(ctf);
 	chDensity->SetOpacityTF(otf);
 

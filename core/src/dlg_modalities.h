@@ -39,7 +39,7 @@ class iAModalityList;
 class iAVolumeRenderer;
 class iAVolumeSettings;
 class MdiChild;
-class ModalityTransfer;
+class iAModalityTransfer;
 
 class vtkActor;
 class vtkColorTransferFunction;
@@ -106,7 +106,7 @@ private:
 	int m_numBin;
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
-	void SwitchHistogram(QSharedPointer<ModalityTransfer> modTrans);
+	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
 	void ShowVolume(QSharedPointer<iAVolumeRenderer> renderer, bool enabled);
 	bool m_showVolumes;
 	bool m_showSlicePlanes;

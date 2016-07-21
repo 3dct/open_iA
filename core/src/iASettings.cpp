@@ -63,7 +63,7 @@ Settings::Settings(QString const & filename)
 	file.close();
 }
 
-void Settings::LoadTransferFunction(TransferFunction* transferFunction, double range[2])
+void Settings::LoadTransferFunction(iATransferFunction* transferFunction, double range[2])
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
@@ -96,7 +96,7 @@ void Settings::LoadTransferFunction(TransferFunction* transferFunction, double r
 	transferFunction->GetColorFunction()->Build();
 }
 
-void Settings::StoreTransferFunction(TransferFunction* transferFunction)
+void Settings::StoreTransferFunction(iATransferFunction* transferFunction)
 {
 	// does functions node exist
 	QDomNode functionsNode = domDocument.documentElement().namedItem("functions");

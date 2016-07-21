@@ -208,7 +208,7 @@ bool iAModality::LoadData()
 	return true;
 }
 
-void iAModality::SetTransfer(QSharedPointer<ModalityTransfer> transfer)
+void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
 {
 	this->transfer = transfer;
 	if (tfFileName.isEmpty())
@@ -219,7 +219,7 @@ void iAModality::SetTransfer(QSharedPointer<ModalityTransfer> transfer)
 	s.LoadTransferFunction(transfer.data(), GetImage()->GetScalarRange());
 }
 
-QSharedPointer<ModalityTransfer> iAModality::GetTransfer()
+QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
 {
 	return transfer;
 }

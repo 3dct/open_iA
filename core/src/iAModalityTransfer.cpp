@@ -33,7 +33,7 @@
 #include <QLayoutItem>
 #include <QDockWidget>
 
-ModalityTransfer::ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount)
+iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount)
 {
 	double rangeMin = imgData->GetScalarRange()[0];
 	double rangeMax = imgData->GetScalarRange()[1];
@@ -59,13 +59,13 @@ ModalityTransfer::ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QStrin
 		false);
 }
 
-void ModalityTransfer::SetHistogramBins(int binCount)
+void iAModalityTransfer::SetHistogramBins(int binCount)
 {
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
 	accumulate->Update();
 }
 
-iAHistogramWidget* ModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
+iAHistogramWidget* iAModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
 {
 	QLayoutItem * child;
 	while ((child = histogramContainer->layout()->takeAt(0)) != 0)
@@ -80,17 +80,17 @@ iAHistogramWidget* ModalityTransfer::ShowHistogram(QDockWidget* histogramContain
 	return histogram;
 }
 
-vtkPiecewiseFunction* ModalityTransfer::GetOpacityFunction()
+vtkPiecewiseFunction* iAModalityTransfer::GetOpacityFunction()
 {
 	return otf.Get();
 }
 
-vtkColorTransferFunction* ModalityTransfer::GetColorFunction()
+vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 {
 	return ctf;
 }
 
-vtkSmartPointer<vtkImageAccumulate> ModalityTransfer::GetAccumulate()
+vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
 {
 	return accumulate;
 }

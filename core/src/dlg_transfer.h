@@ -34,7 +34,7 @@ class vtkColorTransferFunction;
 
 class iAFunctionChangeListener;
 
-class open_iA_Core_API dlg_transfer : public dlg_function, public TransferFunction
+class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunction
 {
 	int selectedPoint;
 

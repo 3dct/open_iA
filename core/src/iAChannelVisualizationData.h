@@ -62,7 +62,7 @@ public:
 	void updateReslicer();
 
 	vtkImageActor*						imageActor;
-	vtkSmartPointer<vtkImageData>		activeImage;
+	vtkSmartPointer<vtkImageData>		image;
 	vtkImageReslice*					reslicer;
 
 	vtkSmartPointer<vtkMarchingContourFilter>	cFilter;
@@ -108,7 +108,7 @@ public:
 	bool Uses3D() const;
 	void Set3D(bool enabled);
 
-	void SetActiveImage(vtkSmartPointer<vtkImageData> image);
+	void SetImage(vtkSmartPointer<vtkImageData> image);
 	void SetColorTF(vtkScalarsToColors* cTF);
 	void SetOpacityTF(vtkPiecewiseFunction* oTF);
 
@@ -121,7 +121,7 @@ public:
 	void SetSimilarityRenderingEnabled(bool enabled);
 	// end
 
-	vtkSmartPointer<vtkImageData> GetActiveImage();
+	vtkSmartPointer<vtkImageData> GetImage();
 	vtkPiecewiseFunction * GetOTF();
 	vtkScalarsToColors* GetCTF();
 private:
@@ -130,7 +130,7 @@ private:
 	bool threeD;
 	QColor color;
 	bool similarityRenderingEnabled;
-	vtkSmartPointer<vtkImageData>		activeImage;
+	vtkSmartPointer<vtkImageData>		image;
 	vtkPiecewiseFunction*				piecewiseFunction;
 	vtkScalarsToColors*			colorTransferFunction;
 };

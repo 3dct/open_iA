@@ -325,7 +325,7 @@ void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
 	{
-		QSharedPointer<ModalityTransfer> modTrans = GetModality(m_dlgModalities->GetSelected())->GetTransfer();
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(m_dlgModalities->GetSelected())->GetTransfer();
 		/*
 		// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
 		getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), true);
@@ -643,7 +643,7 @@ bool MdiChild::setupStackView(bool active)
 		cTF->Delete(); pWF->Delete();
 	}
 
-	QSharedPointer<ModalityTransfer> modTrans = GetModality(0)->GetTransfer();
+	QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
 	if (numberOfVolumes > 0) {
 		modTrans->GetColorFunction()->DeepCopy(volumeStack->getColorTransferFunction(0));
 		modTrans->GetOpacityFunction()->DeepCopy(volumeStack->getPiecewiseFunction(0));
@@ -1446,7 +1446,7 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool resultIn
 		// apply histogram bin number to all modalities
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			QSharedPointer<ModalityTransfer> modTrans = GetModality(i)->GetTransfer();
+			QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
 			modTrans->SetHistogramBins(h);
 		}
 		getHistogram()->redraw();
@@ -1882,7 +1882,7 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 		}
 		m_currentModality = m_dlgModalities->GetSelected();
 		vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetImage();
-		chData->SetActiveImage(img);
+		chData->SetImage(img);
 		chData->SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
 		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
 		chData->SetOpacity(0.5);
@@ -2678,7 +2678,7 @@ void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgDa
 	{
 		return;
 	}
-	chData->SetActiveImage( imgData );
+	chData->SetImage( imgData );
 	chData->SetColorTF( ctf );
 	chData->SetOpacityTF( otf );
 	slicerXZ->reInitializeChannel( id, chData );

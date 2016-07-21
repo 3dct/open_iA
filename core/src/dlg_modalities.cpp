@@ -158,14 +158,14 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	EnableButtons();
 	m_selectedRow = lwModalities->row( listItem );
 	vtkSmartPointer<vtkImageData> imgData = mod->GetImage();
-	QSharedPointer<ModalityTransfer> modTransfer(new ModalityTransfer(
+	QSharedPointer<iAModalityTransfer> modTransfer(new iAModalityTransfer(
 		imgData,
 		mod->GetName(),
 		this,
 		m_numBin));
 	mod->SetTransfer(modTransfer);
 	SwitchHistogram(modTransfer);
-	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(modTransfer, imgData));
+	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(modTransfer.data(), imgData));
 	mod->SetDisplay(modDisp);
 	if (mod->hasRenderFlag(iAModality::MainRenderer) && m_showVolumes)
 	{
@@ -187,7 +187,7 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 }
 
 
-void  dlg_modalities::SwitchHistogram(QSharedPointer<ModalityTransfer> modTrans)
+void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans)
 {
 	if (m_currentHistogram)
 	{
@@ -295,7 +295,7 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	QSharedPointer<iAModality> currentData = modalities->Get(m_selectedRow);
 	if (m_selectedRow >= 0)
 	{
-		QSharedPointer<ModalityTransfer> modTransfer = currentData->GetTransfer();
+		QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
 		SwitchHistogram(modTransfer);
 	}
 	emit ShowImage(currentData->GetImage());

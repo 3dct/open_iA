@@ -36,7 +36,7 @@ class QDockWidget;
 class QString;
 class QWidget;
 
-class ModalityTransfer: public TransferFunction
+class iAModalityTransfer: public iATransferFunction
 {
 private:
 	vtkSmartPointer<vtkImageAccumulate> accumulate;
@@ -44,7 +44,7 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> otf;
 public:
-	ModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
+	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
 
 	void SetHistogramBins(int binCount);
 

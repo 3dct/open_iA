@@ -28,7 +28,8 @@ class vtkPiecewiseFunction;
 
 #include "open_iA_Core_export.h"
 
-class TransferFunction
+//! base class for anything providing a full transfer function (opacity + color)
+class iATransferFunction
 {
 public:
 	virtual vtkPiecewiseFunction* GetOpacityFunction() =0;

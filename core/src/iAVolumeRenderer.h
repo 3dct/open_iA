@@ -20,12 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 
 class iAVolumeSettings;
-class ModalityTransfer;
+class iATransferFunction;
 
 class vtkImageData;
 class vtkPlane;
@@ -35,11 +37,11 @@ class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
-class iAVolumeRenderer
+class open_iA_Core_API iAVolumeRenderer
 {
 public:
 	iAVolumeRenderer(
-		QSharedPointer<ModalityTransfer> transfer,
+		iATransferFunction * transfer,
 		vtkSmartPointer<vtkImageData> imgData);
 	void ApplySettings(iAVolumeSettings const & rs);
 	double * GetOrientation();

@@ -243,8 +243,10 @@ public:
 	void updateChannelMappers();
 	//! @}
 
+	//! @{ slicer pie glyphs - move to XRF module!
 	void SetSlicerPieGlyphsEnabled(bool isOn);
 	void SetPieGlyphParameters(double opacity, double spacing, double magFactor);
+	//! @}
 
 	QString getFilePath() const;
 
