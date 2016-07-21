@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "mainwindow.h"
 
@@ -2327,11 +2326,6 @@ void MainWindow::applyQSS()
 	QFile styleFile(qssName);
 	if (styleFile.open( QFile::ReadOnly ))
 	{
-		//QSS does not allow styling QMdiArea >_<, so we do it manually
-// 		if(qssName == ":/bright.qss")
-// 			mdiArea->setBackground(QColor(150,150,150));
-// 		if(qssName == ":/dark.qss")
-// 			mdiArea->setBackground(QColor(15,15,15));
 		QTextStream styleIn(&styleFile);
 		QString style = styleIn.readAll();
 		styleFile.close();

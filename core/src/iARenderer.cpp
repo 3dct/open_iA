@@ -70,11 +70,8 @@
 
 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
-	interactor(0),
-	m_showMainVolumeWithChannels(true)
+	interactor(0)
 {
-	multiChannelImageData = vtkImageData::New();
-
 	parent = (QWidget*)par;
 	labelRen = vtkOpenGLRenderer::New();
 
@@ -131,7 +128,7 @@ iARenderer::~iARenderer(void)
 {
 	ren->RemoveAllObservers();
 	renWin->RemoveAllObservers();
-	multiChannelImageData->Delete();
+	//multiChannelImageData->Delete();
 	pointPicker->Delete();
 	if (renderObserver) renderObserver->Delete();
 	observerFPProgress->Delete();
@@ -339,113 +336,6 @@ void iARenderer::visualizeHighlight( bool enabled )
 }
 */
 
-/*
-// TODO: VOLUME: Channels: rewrite to use different volumes?
-namespace
-{
-	bool hasActiveChannel(std::set<iAChannelVisualizationData*> const & channels)
-	{
-		for (std::set<iAChannelVisualizationData* >::iterator it = channels.begin();
-			it != channels.end();
-			++it)
-		{
-			if ((*it)->IsEnabled())
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-}
-
-void iARenderer::updateChannelImages() //add active channel images as additional components to the image data
-{
-	if (!hasActiveChannel(m_channels))
-	{
-		// in case we don't have any additional channels:
-		setInputVolume(imageData);
-		return;
-	}
-
-	vtkSmartPointer<vtkImageAppendComponents> append = vtkSmartPointer<vtkImageAppendComponents>::New();
-
-	if(m_showMainVolumeWithChannels) {
-		append->SetInputData(imageData);
-	}
-
-	for (std::set<iAChannelVisualizationData*>::iterator it = m_channels.begin();
-		it != m_channels.end();
-		++it)
-	{
-		if ((*it)->IsEnabled())
-		{
-			//we cast channel image to the scalar type of image data
-			vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
-			caster->SetInputData((*it)->GetActiveImage());
-			caster->SetOutputScalarType(imageData->GetScalarType());
-			//we upscale the channel image to the size of image data
-			vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
-			reslice->SetInterpolationModeToCubic();
-			reslice->SetInformationInput(imageData);
-			reslice->SetInputConnection(0, caster->GetOutputPort());
-			// and append them to image data
-			reslice->Update();
-			append->AddInputData(reslice->GetOutput());
-		}
-	}
-	append->Update();
-	multiChannelImageData->DeepCopy(append->GetOutput());
-
-	int renderedChannel = 0;
-	for (std::set<iAChannelVisualizationData* >::iterator it = m_channels.begin();
-		it != m_channels.end();
-		++it)
-	{
-		if ((*it)->IsEnabled())
-		{
-			int renChan = renderedChannel + m_showMainVolumeWithChannels ? 0 : 1;
-			vtkColorTransferFunction* ctf = dynamic_cast<vtkColorTransferFunction*> ( (*it)->GetCTF() );
-			assert(ctf);
-			volumeProperty->SetColor( renChan, ctf);
-			volumeProperty->SetScalarOpacity( renChan, (*it)->GetOTF() );
-			renderedChannel++;
-		}
-	}
-	volume->SetProperty(volumeProperty);
-
-	setInputVolume(multiChannelImageData);
-}
-
-void iARenderer::addChannel(iAChannelVisualizationData * chData)
-{
-	if (!chData ||
-		m_channels.size() == iAChannelVisualizationData::Maximum3DChannels)
-	{
-		// show warning?
-		return;
-	}
-	m_channels.insert(chData);
-}
-
-
-void iARenderer::removeChannel(iAChannelVisualizationData * chData)
-{
-	std::set<iAChannelVisualizationData*>::const_iterator it = m_channels.find(chData);
-	if (it != m_channels.end())
-	{
-		m_channels.erase(it);
-		updateChannelImages();
-	}
-}
-
-
-void iARenderer::showMainVolumeWithChannels(bool show)
-{
-	m_showMainVolumeWithChannels = show;
-	updateChannelImages();
-}
-*/
-
 void iARenderer::setupCutter()
 {
 	plane1->SetNormal(1, 0, 0);
@@ -537,7 +427,7 @@ void iARenderer::setupRenderer(vtkImageData* ds)
 
 void iARenderer::update()
 {
-	// TODO: VOLUME: hook here and update all currently added volumes?
+	// TODO: VOLUME: hook here and update all currently added volumes? is volumeMapper / volume update even necessary?
 	polyMapper->Update();
 	renWin->Render();
 }
