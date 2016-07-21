@@ -93,7 +93,7 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	m_logger(new MdiChildLogger(this)),
 	magicLensSize(DefaultMagicLensSize),
 	histogramBins(DefaultHistogramBins),
-	histogramContainer(new iADockWidgetWrapper(this, new QWidget(), "Histogram", "HistogramContainer"))
+	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram"))
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);

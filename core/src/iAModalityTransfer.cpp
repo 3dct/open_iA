@@ -67,16 +67,9 @@ void iAModalityTransfer::SetHistogramBins(int binCount)
 
 iAHistogramWidget* iAModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
 {
-	QLayoutItem * child;
-	while ((child = histogramContainer->layout()->takeAt(0)) != 0)
-	{
-		child->widget()->hide();
-	}
 	histogram->SetEnableAdditionalFunctions(enableFunctions);
 	histogram->show();
-
 	histogramContainer->setWidget(histogram);
-
 	return histogram;
 }
 

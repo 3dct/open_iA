@@ -25,12 +25,12 @@
 class iADockWidgetWrapper: public QDockWidget
 {
 public:
-	iADockWidgetWrapper(QWidget* parent, QWidget* widget, QString const & windowTitle, QString const & objectName):
-		QDockWidget(parent)
+	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName)
 	{
 		setWindowTitle(windowTitle);
 		setFeatures(DockWidgetVerticalTitleBar | DockWidgetClosable | DockWidgetMovable | DockWidgetFloatable);
-		setWidget(widget);
+		//if (widget)
+			setWidget(widget);
 		setObjectName(objectName);
 	}
 };
