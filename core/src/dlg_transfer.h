@@ -100,8 +100,6 @@ private:
 	void setPoint(int selectedPoint, int x, int y);
 	void setPointX(int selectedPoint, int x);
 	void setPointY(int selectedPoint, int y);
-		
-	void swapPoints(int fromIndex, int toIndex);
 	
 	// convert view to data
 	double v2dX(int x);
