@@ -32,10 +32,6 @@
 
 #include <QTextStream>
 
-using namespace std;
-
-#define FmtStr(str_out, strm) { std::ostringstream oss; oss << strm; str_out = oss.str(); }
-
 RenderObserver::RenderObserver(vtkRenderer* pRen,
 	vtkRenderer* pLabelRen,
 	vtkRenderWindowInteractor* pIren,
@@ -96,6 +92,8 @@ void RenderObserver::Execute(vtkObject * caller,
 	unsigned long eid,  
 	void *  callData)  
 {
+	char keyCode = m_pIren->GetKeyCode();
+	// TODO: check original intention of checking key code here - it is always 0 (due to a vtk bug maybe?)!
 	if (eid == vtkCommand::LeftButtonPressEvent)
 	{
 		PickWithWorldPicker();
@@ -110,7 +108,7 @@ void RenderObserver::Execute(vtkObject * caller,
 	{
 		listener->Execute(caller, eid, callData);
 	}
-	if (m_pIren->GetKeyCode() == '\t'){
+	if (keyCode == '\t'){
 		mode++; if (mode > 1) mode = 0;
 	}
 
@@ -121,7 +119,7 @@ void RenderObserver::Execute(vtkObject * caller,
 		m_pImageData->GetDimensions(dims);
 		m_pImageData->GetSpacing(spacing);
 
-		switch(m_pIren->GetKeyCode())
+		switch(keyCode)
 		{
 		case 'x': 
 			{
@@ -157,13 +155,14 @@ void RenderObserver::Execute(vtkObject * caller,
 		if (m_pIren->GetControlKey())
 			rotate = !rotate;
 
-		if (m_pIren->GetKeyCode() == '\t')
+		// TODO: check: double-use of code '\t' (also used for mode switching, see above)
+		if (keyCode == '\t')
 		{
 			if (speed == 10.0) speed = 1.0;
 			else speed = 10.0;
 		}
 
-		switch(m_pIren->GetKeyCode())
+		switch(keyCode)
 		{
 		case '0':	
 			{
@@ -214,7 +213,7 @@ void RenderObserver::Execute(vtkObject * caller,
 
 		if (rotate)
 		{
-			switch(m_pIren->GetKeyCode())
+			switch(keyCode)
 			{
 			case 'x': m_pTrans->RotateWXYZ(speed, 1.0, 0.0, 0.0); break;
 			case 'X': m_pTrans->RotateWXYZ(-speed, 1.0, 0.0, 0.0); break;
@@ -226,7 +225,7 @@ void RenderObserver::Execute(vtkObject * caller,
 		}
 		else
 		{
-			switch(m_pIren->GetKeyCode())
+			switch(keyCode)
 			{
 			case 'x': m_pTrans->Translate(speed, 0.0, 0.0); break;
 			case 'X': m_pTrans->Translate(-speed, 0.0, 0.0); break;
@@ -422,8 +421,8 @@ void RenderObserver::PickWithWorldPicker()
 {
 	m_pRen->Render();
 	m_pWorldPicker->Pick(
-		m_pIren->GetEventPosition()[0], 
-		m_pIren->GetEventPosition()[1], 
+		m_pIren->GetEventPosition()[0],
+		m_pIren->GetEventPosition()[1],
 		0,  // always zero.
 		m_pRen);
 }
