@@ -55,9 +55,11 @@ void iAFast3DMagicLensWidget::updateLens()
 {
 	iAAbstractMagicLensWidget::updateLens();
 	// preparations
-	// TODO: VOLUME: use camera from main renderer from iARenderer?
-	/*
-	vtkCamera * mainCam = m_mainRen->GetActiveCamera();
+
+	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+		return;
+	
+	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	vtkCamera * magicLensCam = m_lensRen->GetActiveCamera();
 
 	if( mainCam->GetUseOffAxisProjection() == 0 )
@@ -84,22 +86,21 @@ void iAFast3DMagicLensWidget::updateLens()
 	magicLensCam->SetScreenBottomLeft(  p[0] - w, p[1] - h, z );
 	magicLensCam->SetScreenBottomRight( p[0] + w, p[1] - h, z );
 	magicLensCam->SetScreenTopRight(    p[0] + w, p[1] + h, z );
-	*/
 }
 
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
 	QVTKWidget2::resizeEvent( event );
 
-	/*
-	// TODO: VOLUME: use camera from main renderer from iARenderer?
-	vtkCamera * mainCam = m_mainRen->GetActiveCamera();
+	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+		return;
+
+	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	double w = (double)width() / height();	// calculate width aspect ratio
 	double z = calculateZ( m_viewAngle );
 	mainCam->SetScreenBottomLeft( -w, -1, z );
 	mainCam->SetScreenBottomRight( w, -1, z );
 	mainCam->SetScreenTopRight(    w,  1, z );
-	*/
 }
 
 inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )

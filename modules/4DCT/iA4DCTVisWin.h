@@ -71,6 +71,7 @@ protected:
 	void				setEnabledToolsDockWidgets( bool enabled );
 
 	vtkSmartPointer<vtkRenderer>			m_mainRen;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
 	vtkRenderer *							m_magicLensRen;
 	double									m_size[3];
 	int										m_currentStage;

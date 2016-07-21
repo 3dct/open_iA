@@ -673,7 +673,7 @@ void MdiChild::setupViewInternal(bool active)
 	if ((imageData->GetExtent()[1] < 3) || (imageData->GetExtent()[3]) < 3 || (imageData->GetExtent()[5] < 3))
 		volumeSettings.Shading = false;
 
-	renderSettings.SampleDistance = imageData->GetSpacing()[0];
+	volumeSettings.SampleDistance = imageData->GetSpacing()[0];
 	setupRaycaster(renderSettings, volumeSettings, false);
 	setupSlicers(slicerSettings, true);
 
@@ -1477,29 +1477,6 @@ void MdiChild::setupRaycaster(iARenderSettings const & rs, iAVolumeSettings cons
 
 void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 {
-	/*
-	// TODO: VOLUME: set in VolumeManager
-	raycaster->GetVolume()->SetVisibility(renderSettings.ShowVolume);
-	//setup slicers
-	if (snakeSlicer) {
-		//setSliceXY(sXY->spinBoxXY->value());
-		raycaster->showSlicers(false, false, renderSettings.ShowSlicers);
-	}
-	else
-	{
-		raycaster->showSlicers(renderSettings.ShowSlicers);
-	}
-	// setup raycaster
-	raycaster->setSampleDistance(renderSettings.SampleDistance);
-
-	// setup properties, visibility, background
-	raycaster->GetVolumeProperty()->SetAmbient(volumeSettings.AmbientLighting);
-	raycaster->GetVolumeProperty()->SetDiffuse(volumeSettings.DiffuseLighting);
-	raycaster->GetVolumeProperty()->SetSpecular(volumeSettings.SpecularLighting);
-	raycaster->GetVolumeProperty()->SetSpecularPower(volumeSettings.SpecularPower);
-	raycaster->GetVolumeProperty()->SetInterpolationType(volumeSettings.LinearInterpolation);
-	raycaster->GetVolumeProperty()->SetShade(volumeSettings.Shading);
-	*/
 	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
 	m_dlgModalities->ShowVolumes(renderSettings.ShowVolume);
 
@@ -1764,8 +1741,11 @@ void MdiChild::changeColor()
 
 void MdiChild::autoUpdate(bool toggled)
 {
-	// TODO: VOLUME: apply to all histograms?
-	getHistogram()->autoUpdate(toggled);
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
+		modTrans->GetHistogram()->autoUpdate(toggled);
+	}
 }
 
 

@@ -230,8 +230,6 @@ private:
 	vtkActor *cActor;
 	//! @}
 
-	QWidget *parent;
-
 	int ext; //!< statistical extent size
 public slots:
 	void mouseRightButtonReleasedSlot();

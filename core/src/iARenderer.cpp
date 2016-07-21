@@ -72,10 +72,9 @@
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	interactor(0)
 {
-	parent = (QWidget*)par;
 	labelRen = vtkOpenGLRenderer::New();
 
-	renWin = vtkGenericOpenGLRenderWindow::New();
+	renWin = vtkGenericOpenGLRenderWindow::New();		// TODO: move out of here?
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
@@ -184,7 +183,6 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	renWin->SetNumberOfLayers(5);
 	renWin->AddRenderer(ren);
 	renWin->AddRenderer(labelRen);
-	renWin->LineSmoothingOn();
 	pointPicker->SetTolerance(0.00005);//spacing[0]/150);
 	interactor = renWin->GetInteractor();
 	interactor->SetPicker(pointPicker);

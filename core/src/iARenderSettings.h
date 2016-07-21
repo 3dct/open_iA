@@ -29,7 +29,6 @@ public:
 		ShowRPosition,
 		ShowBoundingBox,
 		ParallelProjection;
-	double SampleDistance;
 	QString BackgroundTop,
 		BackgroundBottom;
 

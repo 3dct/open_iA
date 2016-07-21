@@ -900,7 +900,7 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 	renderSettingsElement.setAttribute("shading", tr("%1").arg(defaultVolumeSettings.Shading));
 	renderSettingsElement.setAttribute("boundingBox", tr("%1").arg(defaultRenderSettings.ShowBoundingBox));
 	renderSettingsElement.setAttribute("parallelProjection", tr("%1").arg(defaultRenderSettings.ParallelProjection));
-	renderSettingsElement.setAttribute("sampleDistance", tr("%1").arg(defaultRenderSettings.SampleDistance));
+	renderSettingsElement.setAttribute("sampleDistance", tr("%1").arg(defaultVolumeSettings.SampleDistance));
 	renderSettingsElement.setAttribute("ambientLighting", tr("%1").arg(defaultVolumeSettings.AmbientLighting));
 	renderSettingsElement.setAttribute("diffuseLighting", tr("%1").arg(defaultVolumeSettings.DiffuseLighting));
 	renderSettingsElement.setAttribute("specularLighting", tr("%1").arg(defaultVolumeSettings.SpecularLighting));
@@ -926,7 +926,7 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 	defaultRenderSettings.ShowBoundingBox = attributes.namedItem("boundingBox").nodeValue() == "1";
 	defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
 
-	defaultRenderSettings.SampleDistance = attributes.namedItem("sampleDistance").nodeValue().toDouble();
+	defaultVolumeSettings.SampleDistance = attributes.namedItem("sampleDistance").nodeValue().toDouble();
 	defaultVolumeSettings.AmbientLighting = attributes.namedItem("ambientLighting").nodeValue().toDouble();
 	defaultVolumeSettings.DiffuseLighting = attributes.namedItem("diffuseLighting").nodeValue().toDouble();
 	defaultVolumeSettings.SpecularLighting = attributes.namedItem("specularLighting").nodeValue().toDouble();
@@ -1198,7 +1198,7 @@ void MainWindow::renderSettings()
 		<< (renderSettings.ShowBoundingBox ? t : f)
 		<< (renderSettings.ParallelProjection ? t : f)
 
-		<< tr("%1").arg(renderSettings.SampleDistance)
+		<< tr("%1").arg(volumeSettings.SampleDistance)
 		<< tr("%1").arg(volumeSettings.AmbientLighting)
 		<< tr("%1").arg(volumeSettings.DiffuseLighting)
 		<< tr("%1").arg(volumeSettings.SpecularLighting)
@@ -1221,7 +1221,7 @@ void MainWindow::renderSettings()
 		defaultRenderSettings.ShowBoundingBox = dlg.getCheckValues()[6] != 0;
 		defaultRenderSettings.ParallelProjection = dlg.getCheckValues()[7] != 0;
 
-		defaultRenderSettings.SampleDistance = dlg.getValues()[8];
+		defaultVolumeSettings.SampleDistance = dlg.getValues()[8];
 		defaultVolumeSettings.AmbientLighting = dlg.getValues()[9];
 		defaultVolumeSettings.DiffuseLighting = dlg.getValues()[10];
 		defaultVolumeSettings.SpecularLighting = dlg.getValues()[11];
@@ -1836,20 +1836,7 @@ void MainWindow::connectSignalsToSlots()
 
 void MainWindow::setupStatusBar()
 {
-	//statusBar()->addWidget(progress);
 	statusBar()->showMessage(tr("Ready"));
-
-	//stateLabel = new QLabel(" ready ", this);
-	//stateLabel->setAlignment(Qt::AlignLeft);
-	//stateLabel->setMinimumSize(locationLabel->sizeHint());
-
-	//modLabel = new QLabel(" MOD ", this);
-	//modLabel->setAlignment(Qt::AlignHCenter);
-	//modLabel->setMinimumSize(modLabel->sizeHint());
-
-	//statusBar()->addWidget(locationLabel);
-	//statusBar()->addWidget(stateLabel,1);
-	//statusBar()->addWidget(modLabel);
 }
 
 
@@ -1878,7 +1865,7 @@ void MainWindow::readSettings()
 	defaultVolumeSettings.Shading = settings.value("Renderer/rsShading", true).toBool();
 	defaultRenderSettings.ShowBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
 	defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", false).toBool();
-	defaultRenderSettings.SampleDistance = settings.value("Renderer/rsSampleDistance", 1).toDouble();
+	defaultVolumeSettings.SampleDistance = settings.value("Renderer/rsSampleDistance", 1).toDouble();
 	defaultVolumeSettings.AmbientLighting = settings.value("Renderer/rsAmbientLighting", 0.2).toDouble();
 	defaultVolumeSettings.DiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
 	defaultVolumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
@@ -1974,7 +1961,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsParallelProjection", defaultRenderSettings.ParallelProjection);
 	settings.setValue("Renderer/rsShowHelpers", defaultRenderSettings.ShowHelpers);
 	settings.setValue("Renderer/rsShowRPosition", defaultRenderSettings.ShowRPosition);
-	settings.setValue("Renderer/rsSampleDistance", defaultRenderSettings.SampleDistance);
+	settings.setValue("Renderer/rsSampleDistance", defaultVolumeSettings.SampleDistance);
 	settings.setValue("Renderer/rsAmbientLighting", defaultVolumeSettings.AmbientLighting);
 	settings.setValue("Renderer/rsDiffuseLighting", defaultVolumeSettings.DiffuseLighting);
 	settings.setValue("Renderer/rsSpecularLighting", defaultVolumeSettings.SpecularLighting);

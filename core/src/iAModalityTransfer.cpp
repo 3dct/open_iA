@@ -73,6 +73,12 @@ iAHistogramWidget* iAModalityTransfer::ShowHistogram(QDockWidget* histogramConta
 	return histogram;
 }
 
+
+iAHistogramWidget* iAModalityTransfer::GetHistogram()
+{
+	return histogram;
+}
+
 vtkPiecewiseFunction* iAModalityTransfer::GetOpacityFunction()
 {
 	return otf.Get();

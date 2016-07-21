@@ -54,15 +54,16 @@ iAVolumeRenderer::iAVolumeRenderer(
 	renderer->AddVolume(volume);
 }
 
-void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & rs)
+void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
-	volProp->SetAmbient(rs.AmbientLighting);
-	volProp->SetDiffuse(rs.DiffuseLighting);
-	volProp->SetSpecular(rs.SpecularLighting);
-	volProp->SetSpecularPower(rs.SpecularPower);
-	volProp->SetInterpolationType(rs.LinearInterpolation);
-	volProp->SetShade(rs.Shading);
-	volMapper->SetRequestedRenderMode(rs.Mode);
+	volProp->SetAmbient(vs.AmbientLighting);
+	volProp->SetDiffuse(vs.DiffuseLighting);
+	volProp->SetSpecular(vs.SpecularLighting);
+	volProp->SetSpecularPower(vs.SpecularPower);
+	volProp->SetInterpolationType(vs.LinearInterpolation);
+	volProp->SetShade(vs.Shading);
+	volMapper->SetRequestedRenderMode(vs.Mode);
+	volMapper->SetSampleDistance(vs.SampleDistance);
 }
 
 double * iAVolumeRenderer::GetOrientation()

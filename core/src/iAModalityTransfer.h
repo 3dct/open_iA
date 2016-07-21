@@ -45,7 +45,7 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> otf;
 public:
 	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
-
+	iAHistogramWidget* GetHistogram();
 	void SetHistogramBins(int binCount);
 
 	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
