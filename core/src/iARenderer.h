@@ -126,22 +126,21 @@ public:
 	void showHelpers(bool show);
 	void showRPosition(bool show);
 
-	vtkPlane* getPlane1() { return plane1; };
-	vtkPlane* getPlane2() { return plane2; };
-	vtkPlane* getPlane3() { return plane3; };
-	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
-	vtkRenderWindow* GetRenderWindow() { return renWin; };
-
-	vtkOpenGLRenderer * GetRenderer() { return ren; };
-	vtkActor* GetOutlineActor() { return outlineActor; };
-	vtkActor* GetPolyActor() { return polyActor; };
+	vtkPlane* getPlane1();
+	vtkPlane* getPlane2();
+	vtkPlane* getPlane3();
+	vtkRenderWindowInteractor* GetInteractor() { return interactor; }
+	vtkRenderWindow* GetRenderWindow() { return renWin;  }
+	vtkOpenGLRenderer * GetRenderer();
+	vtkActor* GetOutlineActor();
+	vtkActor* GetPolyActor();
 	vtkTransform* getCoordinateSystemTransform();
 	void GetImageDataBounds(double bounds[6]);
-	vtkOpenGLRenderer * GetLabelRenderer (void) { return labelRen; }
-	vtkPolyDataMapper* GetPolyMapper() const { return polyMapper; }
+	vtkOpenGLRenderer * GetLabelRenderer ();
+	vtkPolyDataMapper* GetPolyMapper() const;
 	
-	iAObserverProgress* getObserverFPProgress() { return observerFPProgress; };
-	iAObserverProgress* getObserverGPUProgress() { return observerGPUProgress; };
+	iAObserverProgress* getObserverFPProgress() { return observerFPProgress; }
+	iAObserverProgress* getObserverGPUProgress() { return observerGPUProgress; }
 
 	void saveMovie(const QString& fileName, int mode, int qual = 2);
 	RenderObserver * getRenderObserver(){ return renderObserver; }
@@ -168,67 +167,63 @@ protected:
 	iAObserverProgress* observerGPUProgress;
 
 private:
+	//! @{ things that are set from the outside
 	vtkRenderWindowInteractor* interactor;
-	vtkInteractorStyleSwitch* interactorStyle;
-	vtkGenericOpenGLRenderWindow* renWin;
-	vtkOpenGLRenderer * ren, *labelRen;
-	vtkSmartPointer<vtkCamera> cam;
 	vtkPolyData* polyData;
-	vtkCellLocator * cellLocator;
-	vtkPolyDataMapper* polyMapper;
-	vtkActor* polyActor;
+	// TODO: VOLUME: check if this can be removed:
+	vtkImageData* imageData;
+	vtkTransform* axesTransform;
+	//! @}
+
+	vtkSmartPointer<vtkInteractorStyleSwitch> interactorStyle;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
+	vtkSmartPointer<vtkOpenGLRenderer> ren, labelRen;
+	vtkSmartPointer<vtkCamera> cam;
+	vtkSmartPointer<vtkCellLocator> cellLocator;
+	vtkSmartPointer<vtkPolyDataMapper> polyMapper;
+	vtkSmartPointer<vtkActor> polyActor;
 
 	//! @{ Logo
-	vtkLogoRepresentation *rep;
-	vtkLogoWidget *logowidget;
-	vtkQImageToImageSource *image1;
+	vtkSmartPointer<vtkLogoRepresentation> logoRep;
+	vtkSmartPointer<vtkLogoWidget> logoWidget;
+	vtkSmartPointer<vtkQImageToImageSource> logoImage;
 	//! @}
 
 	//! @{ Bounding Box
-	vtkOutlineFilter* outlineFilter;
-	vtkPolyDataMapper* outlineMapper;
-	vtkActor* outlineActor;
+	vtkSmartPointer<vtkOutlineFilter> outlineFilter;
+	vtkSmartPointer<vtkPolyDataMapper> outlineMapper;
+	vtkSmartPointer<vtkActor> outlineActor;
 	//! @}
 
-	// TODO: VOLUME: check if this can be removed:
-	vtkImageData* imageData;
+	//! @{ position marker cube
+	vtkSmartPointer<vtkCubeSource> cSource;
+	vtkSmartPointer<vtkPolyDataMapper> cMapper;
+	vtkSmartPointer<vtkActor> cActor;
+	//! @}
 	
-	vtkAnnotatedCubeActor* annotatedCubeActor;
-	vtkAxesActor* axesActor;
-	vtkAxesActor* moveableAxesActor;
-	vtkTransform *axesTransform;
-	vtkOrientationMarkerWidget* orientationMarkerWidget;
-	vtkOutlineFilter *outlineSliceFilter;
-	vtkPolyDataMapper *outlineSlicePolyDataMapper;
-	vtkPlane *plane1, *plane2, *plane3;
-	vtkPicker* pointPicker;
-
-	// multi channel image members
-	vtkImageData*	multiChannelImageData;
-	std::set<iAChannelVisualizationData*>	m_channels;
-	bool	m_showMainVolumeWithChannels;
+	vtkSmartPointer<vtkAnnotatedCubeActor> annotatedCubeActor;
+	vtkSmartPointer<vtkAxesActor> axesActor;
+	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
+	vtkSmartPointer<vtkOrientationMarkerWidget> orientationMarkerWidget;
+	vtkSmartPointer<vtkPlane> plane1, plane2, plane3;
+	vtkSmartPointer<vtkPicker> pointPicker;
 
 	// mobject visualization members
 	// TODO: remove ----------
+	/*
 	vtkImageData* imageDataHighlight;
 	vtkPiecewiseFunction* piecewiseFunctionHighlight;
 	vtkColorTransferFunction* colorTransferFunctionHighlight;
-	vtkVolume* volumeHighlight;
-	vtkVolumeProperty* volumePropertyHighlight;
+	vtkSmartPointer<vtkVolume> volumeHighlight;
+	vtkSmartPointer<vtkVolumeProperty> volumePropertyHighlight;
 	bool highlightMode;
 	bool meanObjectSelected;
 	bool meanObjectHighlighted;
 	int meanObjectId;
 	vtkPiecewiseFunction* piecewiseFunctionTransparent;
 	vtkColorTransferFunction* colorTransferFunctionTransparent;
+	*/
 	// ------------> until here!
-
-	//! @{
-	//! position marker cube
-	vtkCubeSource *cSource;
-	vtkPolyDataMapper *cMapper;
-	vtkActor *cActor;
-	//! @}
 
 	int ext; //!< statistical extent size
 public slots:

@@ -73,55 +73,56 @@
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	interactor(0)
 {
-	labelRen = vtkOpenGLRenderer::New();
-
-	renWin = vtkGenericOpenGLRenderWindow::New();		// TODO: move out of here?
+	renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();		// TODO: move out of here?
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
 
 	cam = vtkSmartPointer<vtkCamera>::New();
 
-	interactorStyle = vtkInteractorStyleSwitch::New();
-	outlineFilter = vtkOutlineFilter::New();
-	outlineMapper = vtkPolyDataMapper::New();
-	outlineActor = vtkActor::New();
+	interactorStyle = vtkSmartPointer<vtkInteractorStyleSwitch>::New();
+	outlineFilter = vtkSmartPointer<vtkOutlineFilter>::New();
+	outlineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	outlineActor = vtkSmartPointer<vtkActor>::New();
 
-	cSource = vtkCubeSource::New();
-	cMapper = vtkPolyDataMapper::New();
-	cActor = vtkActor::New();
+	cSource = vtkSmartPointer<vtkCubeSource>::New();
+	cMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	cActor = vtkSmartPointer<vtkActor>::New();
 
-	rep = vtkLogoRepresentation::New();
-	logowidget = vtkLogoWidget::New();
-	image1 = vtkQImageToImageSource::New();
+	logoRep = vtkSmartPointer<vtkLogoRepresentation>::New();
+	logoWidget = vtkSmartPointer<vtkLogoWidget>::New();
+	logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
 
-	ren = vtkOpenGLRenderer::New();
+	labelRen = vtkSmartPointer<vtkOpenGLRenderer>::New();
+	ren = vtkSmartPointer<vtkOpenGLRenderer>::New();
 
-	polyMapper = vtkPolyDataMapper::New();
-	polyActor = vtkActor::New();
+	polyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	polyActor = vtkSmartPointer<vtkActor>::New();
 
-	annotatedCubeActor = vtkAnnotatedCubeActor::New();
-	axesActor = vtkAxesActor::New();
-	moveableAxesActor = vtkAxesActor::New();
-	orientationMarkerWidget = vtkOrientationMarkerWidget::New();
+	annotatedCubeActor = vtkSmartPointer<vtkAnnotatedCubeActor>::New();
+	axesActor = vtkSmartPointer<vtkAxesActor>::New();
+	moveableAxesActor = vtkSmartPointer<vtkAxesActor>::New();
+	orientationMarkerWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
 
-	pointPicker = vtkPicker::New();
+	pointPicker = vtkSmartPointer<vtkPicker>::New();
 	renderObserver = NULL;
 	observerFPProgress = iAObserverProgress::New();
 	observerGPUProgress = iAObserverProgress::New();
 
-	plane1 = vtkPlane::New();
-	plane2 = vtkPlane::New();
-	plane3 = vtkPlane::New();
+	plane1 = vtkSmartPointer<vtkPlane>::New();
+	plane2 = vtkSmartPointer<vtkPlane>::New();
+	plane3 = vtkSmartPointer<vtkPlane>::New();
 
-	cellLocator = vtkCellLocator::New();
+	cellLocator = vtkSmartPointer<vtkCellLocator>::New();
 
 	// mobject image members initialize
-	volumeHighlight = vtkVolume::New();
+	/*
+	volumeHighlight = vtkSmartPointer<vtkVolume>::New();
 	volumePropertyHighlight = vtkVolumeProperty::New();
 	highlightMode = false;
 	meanObjectSelected = false;
 	meanObjectHighlighted = false;
+	*/
 }
 
 iARenderer::~iARenderer(void)
@@ -129,40 +130,10 @@ iARenderer::~iARenderer(void)
 	ren->RemoveAllObservers();
 	renWin->RemoveAllObservers();
 	//multiChannelImageData->Delete();
-	pointPicker->Delete();
+
 	if (renderObserver) renderObserver->Delete();
 	observerFPProgress->Delete();
 	observerGPUProgress->Delete();
-
-	plane1->Delete();
-	plane2->Delete();
-	plane3->Delete();
-
-	cSource->Delete();
-	cMapper->Delete();
-	cActor->Delete();
-
-	orientationMarkerWidget	->Delete();
-	axesActor->Delete();
-	moveableAxesActor->Delete();
-
-	outlineActor->Delete();
-	outlineMapper->ReleaseDataFlagOn();
-	outlineMapper->Delete();
-	outlineFilter->ReleaseDataFlagOn();
-	outlineFilter->Delete();
-
-	interactorStyle->Delete();
-
-	rep->Delete();
-	logowidget->Delete();
-	image1->Delete();
-
-	renWin->Delete();
-
-	ren->Delete();
-	labelRen->Delete();
-	cellLocator->Delete();
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -195,14 +166,14 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
 	else img.load(":/images/fhlogo.png");
 
-	image1->SetQImage(&img);
-	image1->Update();
-	rep->SetImage(image1->GetOutput( ));
-	logowidget->SetInteractor(interactor);
-	logowidget->SetRepresentation(rep);
-	logowidget->SetResizable(false);
-	logowidget->SetSelectable(false);
-	logowidget->On();
+	logoImage->SetQImage(&img);
+	logoImage->Update();
+	logoRep->SetImage(logoImage->GetOutput( ));
+	logoWidget->SetInteractor(interactor);
+	logoWidget->SetRepresentation(logoRep);
+	logoWidget->SetResizable(false);
+	logoWidget->SetSelectable(false);
+	logoWidget->On();
 
 	interactor->Initialize();
 
@@ -436,7 +407,7 @@ void iARenderer::showHelpers(bool show)
 	orientationMarkerWidget->SetEnabled(show);
 	axesActor->SetVisibility(show);
 	moveableAxesActor->SetVisibility(show);
-	logowidget->SetEnabled(show);
+	logoWidget->SetEnabled(show);
 	cActor->SetVisibility(show);
 }
 
@@ -518,7 +489,7 @@ void iARenderer::setCamPosition( double * camOptions, bool rsParallelProjection 
 	cam->SetFocalPoint( camOptions[6], camOptions[7], camOptions[8] );
 
 	if(rsParallelProjection)
-	cam->SetParallelScale( camOptions[9] );
+		cam->SetParallelScale( camOptions[9] );
 
 	update();
 }
@@ -689,3 +660,12 @@ void iARenderer::AddRenderer(vtkRenderer* renderer)
 {
 	renWin->AddRenderer(renderer);
 }
+
+vtkPlane* iARenderer::getPlane1() { return plane1; };
+vtkPlane* iARenderer::getPlane2() { return plane2; };
+vtkPlane* iARenderer::getPlane3() { return plane3; };
+vtkOpenGLRenderer * iARenderer::GetRenderer() { return ren; };
+vtkActor* iARenderer::GetOutlineActor() { return outlineActor; };
+vtkActor* iARenderer::GetPolyActor() { return polyActor; };
+vtkOpenGLRenderer * iARenderer::GetLabelRenderer(void) { return labelRen; }
+vtkPolyDataMapper* iARenderer::GetPolyMapper() const { return polyMapper; }
