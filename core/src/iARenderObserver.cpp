@@ -22,6 +22,8 @@
 #include "pch.h"
 #include "iARenderObserver.h"
 
+#include "iAConsole.h"
+
 #include <vtkImageData.h>
 #include <vtkActorCollection.h>
 #include <vtkCamera.h>
@@ -87,154 +89,177 @@ RenderObserver::~RenderObserver()
 	m_pWorldPicker->Delete();
 }
 
-
 void RenderObserver::Execute(vtkObject * caller, 
 	unsigned long eid,  
 	void *  callData)  
 {
 	char keyCode = m_pIren->GetKeyCode();
-	// TODO: check original intention of checking key code here - it is always 0 (due to a vtk bug maybe?)!
-	if (eid == vtkCommand::LeftButtonPressEvent)
+	char* keySym = m_pIren->GetKeySym();
+	DEBUG_LOG(QString("Key Code: %1 Key Sym %2").arg((int)keyCode).arg(keySym));
+	// TODO: check original intention of this code
+	//       VTK seems to have done a major change to how keycode works...
+	switch (eid)
 	{
-		PickWithWorldPicker();
-		double* pos = m_pWorldPicker->GetPickPosition();
-		double* spacing = m_pImageData->GetSpacing();
-		int x = static_cast<int>(pos[0] / spacing[0] ),
-			y = static_cast<int>(pos[1] / spacing[1] ),
-			z = static_cast<int>(pos[2] / spacing[2] );
-		emit Clicked(x, y, z);
+		case vtkCommand::LeftButtonPressEvent:
+		{
+			PickWithWorldPicker();
+			double* pos = m_pWorldPicker->GetPickPosition();
+			double* spacing = m_pImageData->GetSpacing();
+			int x = static_cast<int>(pos[0] / spacing[0]),
+				y = static_cast<int>(pos[1] / spacing[1]),
+				z = static_cast<int>(pos[2] / spacing[2]);
+			emit Clicked(x, y, z);
+			break;
+		}
+		case vtkCommand::KeyPressEvent:
+		{
+			if (keyCode == '\t') {
+				mode++; if (mode > 1) mode = 0;
+			}
+
+			if (mode == 0)
+			{
+				int dims[3];
+				double spacing[3];
+				m_pImageData->GetDimensions(dims);
+				m_pImageData->GetSpacing(spacing);
+				
+				if (!keySym || strlen(keySym) == 0)
+					return;
+				keyCode = keySym[0];
+				switch (keyCode)
+				{
+				case 'x':
+				{
+					m_pPlane1->SetNormal(-m_pPlane1->GetNormal()[0], -m_pPlane1->GetNormal()[1], -m_pPlane1->GetNormal()[2]);
+				}
+				break;
+				case 'y':
+				{
+					m_pPlane2->SetNormal(-m_pPlane2->GetNormal()[0], -m_pPlane2->GetNormal()[1], -m_pPlane2->GetNormal()[2]);
+				}
+				break;
+				case 'z':
+				{
+					m_pPlane3->SetNormal(-m_pPlane3->GetNormal()[0], -m_pPlane3->GetNormal()[1], -m_pPlane3->GetNormal()[2]);
+				}
+				break;
+				case 'r':
+				{
+					pos[0] = 0; pos[1] = 0; pos[2] = 0; CheckPos(2);
+
+					m_pPlane1->SetOrigin(0, 0, 0);
+					m_pPlane2->SetOrigin(0, 0, 0);
+					m_pPlane3->SetOrigin(0, 0, 0);
+					m_pPlane1->SetNormal(1, 0, 0);
+					m_pPlane2->SetNormal(0, 1, 0);
+					m_pPlane3->SetNormal(0, 0, 1);
+
+					// TODO: avoid duplication with iARenderer setCamPosition!
+					vtkCamera* cam = m_pRen->GetActiveCamera();
+					cam->SetViewUp(0, 0, 1);
+					cam->SetPosition(1, 1, 1);
+					cam->SetFocalPoint(0, 0, 0);
+					m_pRen->ResetCamera();
+				}
+				break;
+				}
+			}
+			else if (mode == 1)
+			{
+				if (m_pIren->GetControlKey())
+					rotate = !rotate;
+
+				// TODO: check: double-use of code '\t' (also used for mode switching, see above)
+				if (keyCode == '\t')
+				{
+					if (speed == 10.0) speed = 1.0;
+					else speed = 10.0;
+				}
+
+				if (!keySym || strlen(keySym) == 0)
+					return;
+				keyCode = keySym[0];
+				switch (keyCode)
+				{
+				case '0':
+				{
+					double origin[3];
+					PickVolume(origin);
+
+					vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+					matrix->DeepCopy(m_pTrans->GetMatrix());
+					matrix->SetElement(0, 3, origin[0]);
+					matrix->SetElement(1, 3, origin[1]);
+					matrix->SetElement(2, 3, origin[2]);
+					m_pTrans->SetMatrix(matrix);
+				}
+				break;
+				case '1':
+				{
+					double pickedAxis[3];
+					PickVolume(pickedAxis);
+
+					SetAxis(X_AXIS, pickedAxis);
+				}
+				break;
+				case '2':
+				{
+					double pickedAxis[3];
+					PickVolume(pickedAxis);
+
+					SetAxis(Y_AXIS, pickedAxis);
+				}
+				break;
+				case '3':
+				{
+					double pickedAxis[3];
+					PickVolume(pickedAxis);
+
+					SetAxis(Z_AXIS, pickedAxis);
+				}
+				break;
+				case '4':
+					scale *= 0.8;
+					m_pTrans->Scale(0.8, 0.8, 0.8);
+					break;
+				case '5':
+					scale *= 1.2;
+					m_pTrans->Scale(1.2, 1.2, 1.2);
+					break;
+				}
+
+				if (rotate)
+				{
+					switch (keyCode)
+					{
+					case 'x': m_pTrans->RotateWXYZ(speed, 1.0, 0.0, 0.0); break;
+					case 'X': m_pTrans->RotateWXYZ(-speed, 1.0, 0.0, 0.0); break;
+					case 'y': m_pTrans->RotateWXYZ(speed, 0.0, 1.0, 0.0); break;
+					case 'Y': m_pTrans->RotateWXYZ(-speed, 0.0, 1.0, 0.0); break;
+					case 'z': m_pTrans->RotateWXYZ(speed, 0.0, 0.0, 1.0); break;
+					case 'Z': m_pTrans->RotateWXYZ(-speed, 0.0, 0.0, 1.0); break;
+					}
+				}
+				else
+				{
+					switch (keyCode)
+					{
+					case 'x': m_pTrans->Translate(speed, 0.0, 0.0); break;
+					case 'X': m_pTrans->Translate(-speed, 0.0, 0.0); break;
+					case 'y': m_pTrans->Translate(0.0, speed, 0.0); break;
+					case 'Y': m_pTrans->Translate(0.0, -speed, 0.0); break;
+					case 'z': m_pTrans->Translate(0.0, 0.0, speed); break;
+					case 'Z': m_pTrans->Translate(0.0, 0.0, -speed); break;
+					}
+				}
+			}
+			break;
+		}
 	}
 	for (vtkCommand * listener : m_listener)
 	{
 		listener->Execute(caller, eid, callData);
-	}
-	if (keyCode == '\t'){
-		mode++; if (mode > 1) mode = 0;
-	}
-
-	if (mode == 0)
-	{
-		int dims[3];
-		double spacing[3];
-		m_pImageData->GetDimensions(dims);
-		m_pImageData->GetSpacing(spacing);
-
-		switch(keyCode)
-		{
-		case 'x': 
-			{
-				m_pPlane1->SetNormal(-m_pPlane1->GetNormal()[0],-m_pPlane1->GetNormal()[1],-m_pPlane1->GetNormal()[2]);
-			}
-			break;
-		case 'y': 
-			{
-				m_pPlane2->SetNormal(-m_pPlane2->GetNormal()[0],-m_pPlane2->GetNormal()[1],-m_pPlane2->GetNormal()[2]);
-			}
-			break;
-		case 'z': 
-			{
-				m_pPlane3->SetNormal(-m_pPlane3->GetNormal()[0],-m_pPlane3->GetNormal()[1],-m_pPlane3->GetNormal()[2]);
-			}
-			break;
-		case 'r': 
-			{
-				pos[0] = 0; pos[1] = 0; pos[2] = 0; CheckPos(2); 
-
-				m_pPlane1->SetOrigin(0,0,0);
-				m_pPlane2->SetOrigin(0,0,0);
-				m_pPlane3->SetOrigin(0,0,0);
-				m_pPlane1->SetNormal(1,0,0);
-				m_pPlane2->SetNormal(0,1,0);
-				m_pPlane3->SetNormal(0,0,1);
-			}
-			break;
-		}
-	}
-	else if (mode == 1)
-	{
-		if (m_pIren->GetControlKey())
-			rotate = !rotate;
-
-		// TODO: check: double-use of code '\t' (also used for mode switching, see above)
-		if (keyCode == '\t')
-		{
-			if (speed == 10.0) speed = 1.0;
-			else speed = 10.0;
-		}
-
-		switch(keyCode)
-		{
-		case '0':	
-			{
-				double origin[3];
-				PickVolume(origin);
-
-				vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-				matrix->DeepCopy(m_pTrans->GetMatrix());
-				matrix->SetElement(0, 3, origin[0]);
-				matrix->SetElement(1, 3, origin[1]);
-				matrix->SetElement(2, 3, origin[2]);
-				m_pTrans->SetMatrix(matrix);
-			}
-			break;
-		case '1':
-			{
-				double pickedAxis[3];
-				PickVolume(pickedAxis);
-
-				SetAxis(X_AXIS, pickedAxis);
-			}
-			break;
-		case '2':
-			{
-				double pickedAxis[3];
-				PickVolume(pickedAxis);
-
-				SetAxis(Y_AXIS, pickedAxis);
-			}
-			break;
-		case '3':
-			{
-				double pickedAxis[3];
-				PickVolume(pickedAxis);
-
-				SetAxis(Z_AXIS, pickedAxis);
-			}
-			break;
-		case '-':
-			scale *= 0.8;
-			m_pTrans->Scale(0.8, 0.8, 0.8);
-			break;
-		case '+':
-			scale *= 1.2;
-			m_pTrans->Scale(1.2, 1.2, 1.2);
-			break;
-		}
-
-		if (rotate)
-		{
-			switch(keyCode)
-			{
-			case 'x': m_pTrans->RotateWXYZ(speed, 1.0, 0.0, 0.0); break;
-			case 'X': m_pTrans->RotateWXYZ(-speed, 1.0, 0.0, 0.0); break;
-			case 'y': m_pTrans->RotateWXYZ(speed, 0.0, 1.0, 0.0); break;
-			case 'Y': m_pTrans->RotateWXYZ(-speed, 0.0, 1.0, 0.0); break;
-			case 'z': m_pTrans->RotateWXYZ(speed, 0.0, 0.0, 1.0); break;
-			case 'Z': m_pTrans->RotateWXYZ(-speed, 0.0, 0.0, 1.0); break;
-			}
-		}
-		else
-		{
-			switch(keyCode)
-			{
-			case 'x': m_pTrans->Translate(speed, 0.0, 0.0); break;
-			case 'X': m_pTrans->Translate(-speed, 0.0, 0.0); break;
-			case 'y': m_pTrans->Translate(0.0, speed, 0.0); break;
-			case 'Y': m_pTrans->Translate(0.0, -speed, 0.0); break;
-			case 'z': m_pTrans->Translate(0.0, 0.0, speed); break;
-			case 'Z': m_pTrans->Translate(0.0, 0.0, -speed); break;
-			}
-		}
 	}
 	m_pRen->Render();
 	m_pIren->Render();

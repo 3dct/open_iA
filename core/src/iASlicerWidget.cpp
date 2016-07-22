@@ -67,6 +67,7 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	m_slicerDataExternal(slicerMaster->m_data),
 	m_decorations(decorations)
 {
+	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
 	setCursor(QCursor(Qt::CrossCursor));
 
 	m_imageData = NULL;

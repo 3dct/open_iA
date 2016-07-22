@@ -27,7 +27,10 @@
 #include <QMouseEvent>
 
 /**
- * \brief	Qvtk widget which emits signals when button released. Temporary solution because of the VTK bug. TODO:remove when bug fixed in VTK 
+ * \brief	Qvtk widget which emits signals when button released.
+ *
+ * Solution for a "non-bug" in VTK http://www.vtk.org/pipermail/vtkusers/2013-December/082291.html
+ * which will not get fixed.
  */
 
 class open_iA_Core_API QVTKWidgetMouseReleaseWorkaround : public QVTKWidget

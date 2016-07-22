@@ -40,9 +40,6 @@ public:
 Q_SIGNALS:
 	void oprogress( int progress);
 
-protected:
-
-
 private:
 	virtual void Execute(vtkObject *caller, unsigned long, void*);
 };

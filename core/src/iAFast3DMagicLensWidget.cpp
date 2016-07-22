@@ -21,6 +21,7 @@
  
 #include "pch.h"
 #include "iAFast3DMagicLensWidget.h"
+#include "iAConsole.h"
 
 // std
 #define _USE_MATH_DEFINES
@@ -45,7 +46,9 @@
 iAFast3DMagicLensWidget::iAFast3DMagicLensWidget( QWidget * parent /*= 0 */ )
 	: iAAbstractMagicLensWidget( parent )
 	, m_viewAngle{ 15. }
-{ /* not implemented*/ }
+{
+	setFocusPolicy(Qt::StrongFocus);	// to receive the KeyPress Event!
+}
 
 iAFast3DMagicLensWidget::~iAFast3DMagicLensWidget()
 {

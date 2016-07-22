@@ -24,6 +24,7 @@
 
 #include "defines.h"
 #include "iAChannelID.h"
+#include "iAConsole.h"
 #include "iAChannelVisualizationData.h"
 #include "iAMovieHelper.h"
 #include "iAObserverProgress.h"
@@ -647,12 +648,18 @@ void iARenderer::InitObserver()
 		axesTransform, imageData,
 		plane1, plane2, plane3, cellLocator);
 
+	vtkInteractorObserver *currentStyle = interactor->GetInteractorStyle();
+	DEBUG_LOG(QString("currentStyle class name: %1").arg(currentStyle->GetClassName()));
+
+	vtkInteractorStyleSwitch *iss =	vtkInteractorStyleSwitch::SafeDownCast(currentStyle);
+	vtkInteractorObserver *actualStyle = iss->GetCurrentStyle();
+	DEBUG_LOG(QString("actualStyle class name: %1").arg(actualStyle->GetClassName()));
+
 	interactor->AddObserver(vtkCommand::KeyPressEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, renderObserver);
-	//There is a VTK bug, observer does not catch mouse release events!
-	// workaround using QVTKWidgetMouseReleaseWorkaround used
 	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, renderObserver);
-	interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, renderObserver);
+	interactorStyle->AddObserver(vtkCommand::RightButtonPressEvent, renderObserver);
+	interactorStyle->AddObserver(vtkCommand::RightButtonReleaseEvent, renderObserver);
 }
 
 void iARenderer::setPolyData(vtkPolyData* pd)

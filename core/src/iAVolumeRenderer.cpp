@@ -63,6 +63,7 @@ void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 	volProp->SetInterpolationType(vs.LinearInterpolation);
 	volProp->SetShade(vs.Shading);
 	volMapper->SetRequestedRenderMode(vs.Mode);
+	volMapper->InteractiveAdjustSampleDistancesOff();
 	volMapper->SetSampleDistance(vs.SampleDistance);
 }
 
