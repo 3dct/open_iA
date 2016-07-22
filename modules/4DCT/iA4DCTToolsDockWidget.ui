@@ -16,102 +16,19 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>FractureViewer:</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QWidget" name="widget" native="true">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QPushButton" name="pbFractureViewerAdd">
-         <property name="text">
-          <string>Add</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../../core/open_iA.qrc">
-           <normaloff>:/images/4DCT_AddFractureView.png</normaloff>:/images/4DCT_AddFractureView.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pbFractureViewerLoad">
-         <property name="text">
-          <string>Load</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../../core/open_iA.qrc">
-           <normaloff>:/images/4DCT_LoadFractureView.png</normaloff>:/images/4DCT_LoadFractureView.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>SurfaceViewer:</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="pbSurfaceViewerAdd">
-      <property name="text">
-       <string>Add</string>
-      </property>
-      <property name="icon">
-       <iconset resource="../../core/open_iA.qrc">
-        <normaloff>:/images/4DCT_SurfaceVisAdd.png</normaloff>:/images/4DCT_SurfaceVisAdd.png</iconset>
-      </property>
-      <property name="iconSize">
-       <size>
-        <width>24</width>
-        <height>24</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>DefectViewer:</string>
+       <string>Defect Viewer</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QPushButton" name="pbDefectViewerAdd">
       <property name="text">
-       <string>Add</string>
+       <string>Add 2D-slice</string>
       </property>
       <property name="icon">
-       <iconset resource="../../core/open_iA.qrc">
+       <iconset resource="../../iAnalyse.qrc">
         <normaloff>:/images/4DCT_AddDefectView.png</normaloff>:/images/4DCT_AddDefectView.png</iconset>
       </property>
       <property name="iconSize">
@@ -125,18 +42,83 @@
     <item>
      <widget class="QLabel" name="label_5">
       <property name="text">
-       <string>DensityMap:</string>
+       <string>Density Map Visualization</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pbCalcDensityMap">
+      <property name="text">
+       <string>Calculate Density Map</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QPushButton" name="pbDensityMapAdd">
       <property name="text">
-       <string>Add</string>
+       <string>Add 2D Density Map</string>
       </property>
       <property name="icon">
-       <iconset resource="../../core/open_iA.qrc">
+       <iconset resource="../../iAnalyse.qrc">
         <normaloff>:/images/4DCT_Map.png</normaloff>:/images/4DCT_Map.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>24</width>
+        <height>24</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pbSurfaceViewerAdd">
+      <property name="text">
+       <string>Add 3D Density Map</string>
+      </property>
+      <property name="icon">
+       <iconset resource="../../iAnalyse.qrc">
+        <normaloff>:/images/4DCT_SurfaceVisAdd.png</normaloff>:/images/4DCT_SurfaceVisAdd.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>24</width>
+        <height>24</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Final Fracture Visualization</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pbFractureViewerAdd">
+      <property name="text">
+       <string>Extract Final Fracture</string>
+      </property>
+      <property name="icon">
+       <iconset resource="../../iAnalyse.qrc">
+        <normaloff>:/images/4DCT_AddFractureView.png</normaloff>:/images/4DCT_AddFractureView.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>24</width>
+        <height>24</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pbFractureViewerLoad">
+      <property name="text">
+       <string>Load Final Fracture from file</string>
+      </property>
+      <property name="icon">
+       <iconset resource="../../iAnalyse.qrc">
+        <normaloff>:/images/4DCT_LoadFractureView.png</normaloff>:/images/4DCT_LoadFractureView.png</iconset>
       </property>
       <property name="iconSize">
        <size>
@@ -156,10 +138,10 @@
     <item>
      <widget class="QPushButton" name="pbBoundingBoxAdd">
       <property name="text">
-       <string>Add</string>
+       <string>Add bounding box</string>
       </property>
       <property name="icon">
-       <iconset resource="../../core/open_iA.qrc">
+       <iconset resource="../../iAnalyse.qrc">
         <normaloff>:/images/4DCT_AddBoundingBox.png</normaloff>:/images/4DCT_AddBoundingBox.png</iconset>
       </property>
       <property name="iconSize">
@@ -187,7 +169,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../iAnalyse.qrc"/>
  </resources>
  <connections/>
 </ui>

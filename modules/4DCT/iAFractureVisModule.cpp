@@ -206,9 +206,8 @@ void iAFractureVisModule::calculateMap(MapType* map, QString fileName, MapName m
 	ImageType::Pointer image = reader->GetOutput();
 	ImageType::SizeType imgSize = image->GetLargestPossibleRegion().GetSize();
 
-	int quarterZ = imgSize[2] / 4;
-	int minZ = quarterZ;
-	int maxZ = 3 * quarterZ;
+ 	int minZ = 0.5 * imgSize[2];
+ 	int maxZ = 1. * imgSize[2];
 
 	//HeightmapType::Pointer heightmap = HeightmapType::New();
 	//map = MapType::New();
@@ -225,6 +224,7 @@ void iAFractureVisModule::calculateMap(MapType* map, QString fileName, MapName m
 	for (ind[0] = 0; ind[0] < imgSize[0]; ind[0]++) {
 		for (ind[1] = 0; ind[1] < imgSize[1]; ind[1]++) {
 			QVector<unsigned int> ray;
+			//for (ind[2] = 0; ind[2] < imgSize[2]; ind[2]++) {
 			for (ind[2] = minZ; ind[2] < maxZ; ind[2]++) {
 				PixelType pixel = image->GetPixel(ind);
 				if (pixel > 0) {

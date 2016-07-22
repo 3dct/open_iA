@@ -56,9 +56,9 @@ double dlg_regionView::getThreshold()
 	return dspThreshold->value();
 }
 
-void dlg_regionView::getDimension( int * dim )
-{
-	dim[0] = sbDimX->value();
-	dim[1] = sbDimY->value();
-	dim[2] = sbDimZ->value();
-}
+//void dlg_regionView::getDimension( int * dim )
+//{
+//	dim[0] = sbDimX->value();
+//	dim[1] = sbDimY->value();
+//	dim[2] = sbDimZ->value();
+//}

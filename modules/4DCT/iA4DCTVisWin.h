@@ -113,8 +113,9 @@ private slots:
 	//void				onSaveButtonClicked( );
 	void				onLoadButtonClicked( );
 	void				onExtractButtonClicked( );
-	// surface vis
+	// defect density maps
 	void				addSurfaceVis( );
+	void				calcDensityMap();
 	// bounding box
 	void				addBoundingBox( );
 	// defect view

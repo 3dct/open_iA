@@ -38,7 +38,7 @@ public:
 	void				setData( iA4DCTData * data );
 	QString				getImagePath();
 	double				getThreshold();
-	void				getDimension( int * dim );
+	//void				getDimension( int * dim );
 
 private slots:
 	void				onSelectButtonClicked();

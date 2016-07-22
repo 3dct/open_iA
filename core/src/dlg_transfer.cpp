@@ -336,18 +336,21 @@ void dlg_transfer::moveSelectedPoint(int x, int y)
 		
 		if (dataX >= nextOpacityTFValue[0])
 		{
-			swapPoints(selectedPoint, selectedPoint+1);
-
-			selectedPoint++;
+			int newX = d2vX(nextOpacityTFValue[0]) - 1;
+			setPoint(selectedPoint, newX, y);
+			setColorPoint(selectedPoint, newX);
 		}
 		else if (dataX <= prevOpacityTFValue[0])
 		{
-			swapPoints(selectedPoint, selectedPoint-1);
-
-			selectedPoint--;
+			int newX = d2vX(nextOpacityTFValue[0]) + 1;
+			setPoint(selectedPoint, newX, y);
+			setColorPoint(selectedPoint, newX);
 		}
-		setPoint(selectedPoint, x, y);
-		setColorPoint(selectedPoint, x);
+		else
+		{
+			setPoint(selectedPoint, x, y);
+			setColorPoint(selectedPoint, x);
+		}
 	}
 	else
 		setPointY(selectedPoint, y);
@@ -513,29 +516,6 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 	
 	opacityTFValues[1] = v2dY(y);
 	opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
-}
-
-void dlg_transfer::swapPoints(int fromIndex, int toIndex)
-{
-	double opacityTFValueFrom[4];
-	double colorTFValueFrom[6];
-	double opacityTFValueTo[4];
-	double colorTFValueTo[6];
-
-
-	opacityTF->GetNodeValue(fromIndex, opacityTFValueFrom);
-	opacityTF->GetNodeValue(toIndex, opacityTFValueTo);
-	colorTF->GetNodeValue(fromIndex, colorTFValueFrom);
-	colorTF->GetNodeValue(toIndex, colorTFValueTo);
-
-	opacityTF->SetNodeValue(fromIndex, opacityTFValueTo);
-	opacityTF->SetNodeValue(toIndex, opacityTFValueFrom);
-	colorTF->SetNodeValue(fromIndex, colorTFValueTo);
-	colorTF->SetNodeValue(toIndex, colorTFValueFrom);
-
-	colorTF->Modified();
-	colorTF->Build();
-	triggerOnChange();
 }
 
 double dlg_transfer::v2dX(int x)

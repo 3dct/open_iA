@@ -97,7 +97,7 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, ma
 
 	vtkNew<vtkPoints> points;	
 	iAVtkGraphDrawer graphDrawer;
-	graphDrawer.setMaxIteration(MAX_ITERATIONS);
+	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
 	graphDrawer.createLayout(points.GetPointer(), m_graph, m_renderWindow->GetSize(), nunRanks);
 	m_graph->SetPoints(points.GetPointer());
 	
