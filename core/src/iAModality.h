@@ -119,7 +119,8 @@ class open_iA_Core_API iAModalityList: public QObject
 public:
 	iAModalityList();
 	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename, vtkCamera* cam);
+	bool Load(QString const & filename);
+	void ApplyCameraSettings(vtkCamera* cam);
 	
 	int size() const;
 	QSharedPointer<iAModality> Get(int idx);
@@ -135,4 +136,5 @@ private:
 	ModalityCollection m_modalities;
 	double m_spacing[3];
 	QString m_fileName;
+	double camPosition[3], camFocalPoint[3], camViewUp[3];
 };

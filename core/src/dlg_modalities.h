@@ -69,7 +69,7 @@ public:
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 
 	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
-
+	void SelectRow(int idx);
 public slots:
 	void Load();
 	void Store();

@@ -23,16 +23,13 @@
 #include "iAGEMSeModuleInterface.h"
 
 #include "dlg_commoninput.h"
+#include "dlg_modalities.h"
 #include "iAConsole.h"
 #include "iAFileUtils.h"
 #include "iAGEMSeAttachment.h"
-#include "iASEAFile.h"
-#include "iAModuleDispatcher.h"
-
-// cross library boundaries!
-#include "dlg_modalities.h"
 #include "iAModality.h"
-
+#include "iAModuleDispatcher.h"
+#include "iASEAFile.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -110,7 +107,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		DEBUG_LOG("Given precalculated data file could not be read.\n");
 		return;
 	}
-	modList->Load(seaFile.GetModalityFileName(), 0);
+	modList->Load(seaFile.GetModalityFileName());
 	if (modList->size() == 0)
 	{
 		DEBUG_LOG("You need to specify at least one modality!\n");

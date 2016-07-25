@@ -557,7 +557,7 @@ void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageDa
 	imageData = imgData;
 	setCurrentFile(filename);
 	setupView(false);
-	enableRenderWindows(); // TODO: VOLUME check if really needed - also called on thread done/finished signal!
+	enableRenderWindows();
 }
 
 
@@ -2028,10 +2028,16 @@ bool MdiChild::initView( )
 	if (!raycasterInitialized)
 	{
 		Raycaster->initialize(imageData, polyData);
+		
+		// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
+		vtkCamera* cam = Raycaster->getCamera();
+		m_dlgModalities->GetModalities()->ApplyCameraSettings(cam);
+
 		raycasterInitialized = true;
 	}
 	if (!currentFile().isEmpty() && GetModalitiesDlg()->GetModalities()->size() == 0)
 	{
+		// TODO: VOLUME: resolve duplicity between here (called on loadFile) and adding modalities (e.g. via LoadProject)
 		QFileInfo i(currentFile());
 		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
 		// before, which adds the renderers which this call will use
@@ -2777,6 +2783,13 @@ void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
 	{
 		m_currentModality = selected;
 		ChangeImage(img, GetModality(selected)->GetName().toStdString());
+		/*
+		// change slicer image as well?
+		slicerXY->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
+		slicerXZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
+		slicerYZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
+		updateSlicers();
+		*/
 	}
 }
 
@@ -2798,7 +2811,7 @@ void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 
 	if (noDataLoaded && GetModalities()->size() > 0)
 	{
-		// TODO: avoid Duplication (LoadModalities!)
+		// TODO: avoid Duplication (LoadProject!)
 		setImageData(
 			GetModality(0)->GetFileName(),
 			GetModality(0)->GetImage()
@@ -2822,7 +2835,7 @@ QSharedPointer<iAModality> MdiChild::GetModality(int idx)
 	return GetModalities()->Get(idx);
 }
 
-void MdiChild::LoadModalities()
+void MdiChild::LoadProject()
 {
 	bool noDataLoaded = GetModalities()->size() == 0;
 	m_dlgModalities->Load();
@@ -2835,7 +2848,7 @@ void MdiChild::LoadModalities()
 	}
 }
 
-void MdiChild::StoreModalities()
+void MdiChild::StoreProject()
 {
 	m_dlgModalities->Store();
 }

@@ -116,10 +116,17 @@ void dlg_modalities::Load()
 	}
 }
 
+void dlg_modalities::SelectRow(int idx)
+{
+	lwModalities->setCurrentRow(idx);
+	m_selectedRow = idx;
+}
+
 bool dlg_modalities::Load(QString const & filename)
-{								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-	vtkCamera* cam = m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-	return modalities->Load(filename, cam);
+{
+	bool result = modalities->Load(filename);
+	SelectRow(0);
+	return result;
 }
 
 QString GetCaption(iAModality const & mod)
@@ -176,13 +183,6 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 		// TODO: VOLUME: use render window for magic lens as well?
 		m_renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
 	}
-	if (modalities->size() == 1)
-	{
-		// TODO: VOLUME: find better way!
-		m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCamera();
-		m_renderer->getLensRenderer()->ResetCamera();
-	}
-
 	emit ModalityAvailable();
 }
 

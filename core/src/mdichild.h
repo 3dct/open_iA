@@ -503,7 +503,7 @@ public:
 	QSharedPointer<iAModalityList> GetModalities();
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
-	void LoadModalities();
-	void StoreModalities();
+	void LoadProject();
+	void StoreProject();
 	//! @}
 };

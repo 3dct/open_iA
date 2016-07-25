@@ -619,13 +619,6 @@ void iARenderer::InitObserver()
 		axesTransform, imageData,
 		plane1, plane2, plane3, cellLocator);
 
-	vtkInteractorObserver *currentStyle = interactor->GetInteractorStyle();
-	DEBUG_LOG(QString("currentStyle class name: %1").arg(currentStyle->GetClassName()));
-
-	vtkInteractorStyleSwitch *iss =	vtkInteractorStyleSwitch::SafeDownCast(currentStyle);
-	vtkInteractorObserver *actualStyle = iss->GetCurrentStyle();
-	DEBUG_LOG(QString("actualStyle class name: %1").arg(actualStyle->GetClassName()));
-
 	interactor->AddObserver(vtkCommand::KeyPressEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, renderObserver);

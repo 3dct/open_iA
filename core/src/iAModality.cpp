@@ -377,7 +377,7 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 	}
 }
 
-bool iAModalityList::Load(QString const & filename, vtkCamera* camera)
+bool iAModalityList::Load(QString const & filename)
 {
 	if (filename.isEmpty())
 	{
@@ -400,21 +400,11 @@ bool iAModalityList::Load(QString const & filename, vtkCamera* camera)
 			.arg(ModFileVersion));
 		return false;
 	}
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
 	if (!Str2Vec3D(settings.value(CameraPositionKey).toString(), camPosition) ||
 		!Str2Vec3D(settings.value(CameraFocalPointKey).toString(), camFocalPoint) ||
 		!Str2Vec3D(settings.value(CameraViewUpKey).toString(), camViewUp))
 	{
 		DEBUG_LOG(QString("Invalid or missing camera information.\n"));
-	}
-	else
-	{
-		if (camera)
-		{
-			camera->SetPosition(camPosition);
-			camera->SetFocalPoint(camFocalPoint);
-			camera->SetViewUp(camViewUp);
-		}
 	}
 
 	bool setSpacingToOne = settings.contains(SetSpacingToOneKey) && settings.value(SetSpacingToOneKey).toBool();
@@ -469,6 +459,17 @@ bool iAModalityList::Load(QString const & filename, vtkCamera* camera)
 	}
 	m_fileName = filename;
 	return true;
+}
+
+void iAModalityList::ApplyCameraSettings(vtkCamera* camera)
+{
+	if (!camera)
+	{
+		return;
+	}
+	camera->SetPosition(camPosition);
+	camera->SetFocalPoint(camFocalPoint);
+	camera->SetViewUp(camViewUp);
 }
 
 namespace

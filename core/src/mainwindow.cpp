@@ -2477,7 +2477,7 @@ void MainWindow::OpenProject()
 		child->show();
 		activeChild = child;
 	}
-	activeChild->LoadModalities();
+	activeChild->LoadProject();
 }
 
 
@@ -2489,7 +2489,7 @@ void MainWindow::SaveProject()
 	{
 		return;
 	}
-	activeChild->StoreModalities();
+	activeChild->StoreProject();
 }
 
 

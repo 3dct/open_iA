@@ -95,7 +95,6 @@ void RenderObserver::Execute(vtkObject * caller,
 {
 	char keyCode = m_pIren->GetKeyCode();
 	char* keySym = m_pIren->GetKeySym();
-	DEBUG_LOG(QString("Key Code: %1 Key Sym %2").arg((int)keyCode).arg(keySym));
 	// TODO: check original intention of this code
 	//       VTK seems to have done a major change to how keycode works...
 	switch (eid)
