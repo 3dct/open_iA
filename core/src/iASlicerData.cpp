@@ -99,8 +99,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	scalarWidget(0),
 	textProperty(0),
 	logoWidget(0),
-	rep(0),
-	image1(0),
+	logoRep(0),
+	logoImage(0),
 	m_planeSrc(0),
 	m_planeMapper(0),
 	m_planeActor(0),
@@ -138,8 +138,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		scalarWidget = vtkScalarBarWidget::New();
 		textProperty = vtkTextProperty::New();
 		logoWidget = vtkLogoWidget::New();
-		rep = vtkLogoRepresentation::New();
-		image1 = vtkQImageToImageSource::New();
+		logoRep = vtkLogoRepresentation::New();
+		logoImage = vtkQImageToImageSource::New();
 
 		m_planeSrc = vtkPlaneSource::New();
 		m_planeSrc->SetCenter(0, 0, -10000); // to initially hide the green rectangle - use actor visibility instead maybe?
@@ -192,9 +192,9 @@ iASlicerData::~iASlicerData(void)
 		textInfo->Delete();	
 
 		textProperty->Delete();
-		rep->Delete();
+		logoRep->Delete();
 		logoWidget->Delete();
-		image1->Delete();
+		logoImage->Delete();
 
 		m_planeSrc->Delete();
 		m_planeMapper->Delete();
@@ -269,13 +269,11 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		QImage img;
 		if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
 		else img.load(":/images/fhlogo.png");
-
-		// may be uncomment to test and remove logo for video
-		image1->SetQImage(&img);
-		image1->Update();
-		rep->SetImage(image1->GetOutput( ));
+		logoImage->SetQImage(&img);
+		logoImage->Update();
+		logoRep->SetImage(logoImage->GetOutput( ));
 		logoWidget->SetInteractor( interactor );
-		logoWidget->SetRepresentation( rep );
+		logoWidget->SetRepresentation(logoRep);
 		logoWidget->SetResizable(false);
 		logoWidget->SetSelectable(true);
 		logoWidget->On();

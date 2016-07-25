@@ -215,9 +215,11 @@ private:
 
 	vtkScalarBarWidget *scalarWidget;
 	vtkTextProperty *textProperty;
+
+	// TODO: extract/ unify with iARenderer
 	vtkLogoWidget *logoWidget;
-	vtkLogoRepresentation *rep;
-	vtkQImageToImageSource *image1;
+	vtkLogoRepresentation *logoRep;
+	vtkQImageToImageSource *logoImage;
 
 	iAWrapperText* textInfo;
 
