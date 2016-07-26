@@ -371,7 +371,7 @@ private:
 	bool addProfile( );
 	int profileWidgetIndex;
 
-	bool initView( );
+	bool initView(QString const & title);
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.

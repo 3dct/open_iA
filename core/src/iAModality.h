@@ -136,5 +136,6 @@ private:
 	ModalityCollection m_modalities;
 	double m_spacing[3];
 	QString m_fileName;
+	bool m_camSettingsAvailable;
 	double camPosition[3], camFocalPoint[3], camViewUp[3];
 };

@@ -393,7 +393,7 @@ void MdiChild::enableRenderWindows()
 		}
 		if (!anyChannelEnabled)
 		{
-			imgProperty->updateProperties(imageData, GetModalitiesDlg()->GetModalities()->Get(0)->GetTransfer()->GetAccumulate(), true);
+			imgProperty->updateProperties(imageData, GetModality(0)->GetTransfer()->GetAccumulate(), true);
 		}
 	}
 }
@@ -469,7 +469,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		imageData->DeepCopy(image);
 	}
 
-	initView( );
+	initView( title );
 	setWindowTitle( title );
 
 	setupRaycaster(renderSettings, volumeSettings, false);
@@ -575,9 +575,9 @@ vtkImageData* MdiChild::getImageData()
 
 bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	// TODO: VOLUME: Test!!! copy from currently selected instead of fixed 0 index?
-	vtkColorTransferFunction* colorTransferFunction = GetModalitiesDlg()->GetModalities()->Get(0)->GetTransfer()->GetColorFunction();
-	vtkPiecewiseFunction* piecewiseFunction = GetModalitiesDlg()->GetModalities()->Get(0)->GetTransfer()->GetOpacityFunction();
-	vtkImageAccumulate* imageAccumulate = GetModalitiesDlg()->GetModalities()->Get(0)->GetTransfer()->GetAccumulate();
+	vtkColorTransferFunction* colorTransferFunction = GetModality(0)->GetTransfer()->GetColorFunction();
+	vtkPiecewiseFunction* piecewiseFunction = GetModality(0)->GetTransfer()->GetOpacityFunction();
+	vtkImageAccumulate* imageAccumulate = GetModality(0)->GetTransfer()->GetAccumulate();
 	volumeStack->getColorTransferFunction(previousIndexOfVolume)->DeepCopy(colorTransferFunction);
 	volumeStack->getPiecewiseFunction(previousIndexOfVolume)->DeepCopy(piecewiseFunction);
 	previousIndexOfVolume = updateIndex;
@@ -663,7 +663,7 @@ bool MdiChild::setupStackView(bool active)
 
 void MdiChild::setupViewInternal(bool active)
 {
-	if (!active) initView();
+	if (!active) initView(curFile.isEmpty() ? "Untitled":"" );
 
 	if (IsOnlyPolyDataLoaded())
 		renderSettings.ShowVolume = false;
@@ -2023,7 +2023,7 @@ void MdiChild::getSnakeNormal(int index, double point[3], double normal[3])
 	}
 }
 
-bool MdiChild::initView( )
+bool MdiChild::initView( QString const & title )
 {
 	if (!raycasterInitialized)
 	{
@@ -2031,18 +2031,28 @@ bool MdiChild::initView( )
 		
 		// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
 		vtkCamera* cam = Raycaster->getCamera();
-		m_dlgModalities->GetModalities()->ApplyCameraSettings(cam);
+		GetModalities()->ApplyCameraSettings(cam);
 
 		raycasterInitialized = true;
 	}
-	if (!currentFile().isEmpty() && GetModalitiesDlg()->GetModalities()->size() == 0)
+	if (GetModalities()->size() == 0)
 	{
 		// TODO: VOLUME: resolve duplicity between here (called on loadFile) and adding modalities (e.g. via LoadProject)
-		QFileInfo i(currentFile());
+		QString name;
+		if (!curFile.isEmpty())
+		{
+			QFileInfo i(curFile);
+			name = i.completeBaseName();
+		}
+		else
+		{
+			name = title;
+		}
+
 		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
 		// before, which adds the renderers which this call will use
-		GetModalitiesDlg()->GetModalities()->Add(QSharedPointer<iAModality>(
-			new iAModality(i.completeBaseName(),
+		GetModalities()->Add(QSharedPointer<iAModality>(
+			new iAModality(name,
 				currentFile(), imageData, iAModality::MainRenderer)));
 	}
 	slicerXZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
@@ -2739,17 +2749,17 @@ bool MdiChild::IsOnlyPolyDataLoaded()
 void MdiChild::ChangeModality(int chg)
 {
 	SetCurrentModality(
-		(GetCurrentModality() + chg + GetModalitiesDlg()->GetModalities()->size())
-		% (GetModalitiesDlg()->GetModalities()->size())
+		(GetCurrentModality() + chg + GetModalities()->size())
+		% (GetModalities()->size())
 	);
 	int curModIdx = GetCurrentModality();
-	if (curModIdx < 0 || curModIdx >= GetModalitiesDlg()->GetModalities()->size())
+	if (curModIdx < 0 || curModIdx >= GetModalities()->size())
 	{
 		DEBUG_LOG("Invalid modality index!");
 		return;
 	}
-	ChangeImage(GetModalitiesDlg()->GetModalities()->Get(curModIdx)->GetImage(),
-		GetModalitiesDlg()->GetModalities()->Get(curModIdx)->GetName().toStdString());
+	ChangeImage(GetModalities()->Get(curModIdx)->GetImage(),
+		GetModalities()->Get(curModIdx)->GetName().toStdString());
 }
 
 void MdiChild::ChangeMagicLensOpacity(int chg)

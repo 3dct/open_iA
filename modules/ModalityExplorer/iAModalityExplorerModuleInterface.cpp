@@ -76,6 +76,6 @@ void iAModalityExplorerModuleInterface::ModalitySPLOM()
 {
 	PrepareActiveChild();
 	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(m_mdiChild->GetModalitiesDlg()->GetModalities());
+	m_dlgModalitySPLOM->SetData(m_mdiChild->GetModalities());
 	m_mdiChild->tabifyDockWidget(m_childData.logs, m_dlgModalitySPLOM);
 }

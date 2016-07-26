@@ -301,7 +301,8 @@ namespace
 }
 
 
-iAModalityList::iAModalityList()
+iAModalityList::iAModalityList():
+	m_camSettingsAvailable(false)
 {
 	m_spacing[0] = m_spacing[1] = m_spacing[2] = 1.0;
 }
@@ -406,6 +407,10 @@ bool iAModalityList::Load(QString const & filename)
 	{
 		DEBUG_LOG(QString("Invalid or missing camera information.\n"));
 	}
+	else
+	{
+		m_camSettingsAvailable = true;
+	}
 
 	bool setSpacingToOne = settings.contains(SetSpacingToOneKey) && settings.value(SetSpacingToOneKey).toBool();
 	int currIdx = 0;
@@ -463,7 +468,7 @@ bool iAModalityList::Load(QString const & filename)
 
 void iAModalityList::ApplyCameraSettings(vtkCamera* camera)
 {
-	if (!camera)
+	if (!camera || !m_camSettingsAvailable)
 	{
 		return;
 	}

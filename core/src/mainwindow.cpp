@@ -1499,7 +1499,6 @@ MdiChild * MainWindow::GetResultChild( QString const & title )
 		vtkSmartPointer<vtkImageData> imageData = activeMdiChild()->getImagePointer();
 		std::vector<dlg_function*> activeChildFunctions = activeMdiChild()->getFunctions();
 		child = createMdiChild();
-		//child->setCurrentFile(filename);
 		child->show();
 		child->displayResult(title, imageData );
 
@@ -1553,7 +1552,6 @@ MdiChild * MainWindow::GetResultChild( int childInd, QString const & f )
 	{
 		vtkSmartPointer<vtkImageData> imageData = child->getImagePointer();
 		child = createMdiChild();
-		//child->setCurrentFile(filename);
 		child->show();
 		child->displayResult(f, imageData );
 	}
