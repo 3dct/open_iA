@@ -1629,6 +1629,7 @@ void MainWindow::updateMenus()
 	cascadeAct->setEnabled(hasMdiChild);
 	nextAct->setEnabled(hasMdiChild);
 	previousAct->setEnabled(hasMdiChild);
+	actionSave_Project->setEnabled(hasMdiChild);
 
 	xyAct->setEnabled(hasMdiChild);
 	xzAct->setEnabled(hasMdiChild);

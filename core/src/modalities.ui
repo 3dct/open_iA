@@ -65,6 +65,58 @@
          <property name="bottomMargin">
           <number>0</number>
          </property>
+         <item row="5" column="1">
+          <widget class="QWidget" name="wdLoadStore" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="pbLoad">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../open_iA.qrc">
+                <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pbStore">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="../open_iA.qrc">
+                <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
          <item row="1" column="1">
           <widget class="QPushButton" name="pbEdit">
            <property name="enabled">
@@ -75,7 +127,7 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0" rowspan="8">
+         <item row="0" column="0" rowspan="7">
           <widget class="QListWidget" name="lwModalities"/>
          </item>
          <item row="2" column="1">
@@ -89,6 +141,13 @@
           <widget class="QCheckBox" name="cbShowMagicLens">
            <property name="text">
             <string>Show magic lens</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QPushButton" name="pbRegister">
+           <property name="text">
+            <string>Register...</string>
            </property>
           </widget>
          </item>
@@ -138,72 +197,6 @@
               <property name="icon">
                <iconset resource="../open_iA.qrc">
                 <normaloff>:/images/minus.png</normaloff>:/images/minus.png</iconset>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QPushButton" name="pbRegister">
-           <property name="text">
-            <string>Register...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QCheckBox" name="cbCuttingPlane">
-           <property name="text">
-            <string>Cutting Plane</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QWidget" name="wdLoadStore" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <property name="spacing">
-             <number>4</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="pbLoad">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../open_iA.qrc">
-                <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pbStore">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset resource="../open_iA.qrc">
-                <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
               </property>
              </widget>
             </item>
