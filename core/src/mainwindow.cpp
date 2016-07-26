@@ -276,12 +276,6 @@ void MainWindow::loadFileInternal(QString fileName)
 
 		QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 		path = t;
-
-		QMdiSubWindow *existing = findMdiChild(fileName);
-		if (existing) {
-			mdiArea->setActiveSubWindow(existing);
-			return;
-		}
 		if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
 		{
 			if (activeMdiChild())
