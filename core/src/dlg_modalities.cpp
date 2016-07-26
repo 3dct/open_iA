@@ -113,10 +113,9 @@ void dlg_modalities::Load()
 		tr("Open Input File"),
 		QString(), // TODO get directory of current file
 		tr(ProjectFileTypeFilter) );
-	if (!modalitiesFileName.isEmpty() && Load(modalitiesFileName))
+	if (!modalitiesFileName.isEmpty())
 	{
-		EnableButtons();
-		emit ModalityAvailable();
+		Load(modalitiesFileName);
 	}
 }
 
@@ -129,7 +128,12 @@ void dlg_modalities::SelectRow(int idx)
 bool dlg_modalities::Load(QString const & filename)
 {
 	bool result = modalities->Load(filename);
-	SelectRow(0);
+	if (result)
+	{
+		SelectRow(0);
+		EnableButtons();
+		emit ModalityAvailable();
+	}
 	return result;
 }
 
