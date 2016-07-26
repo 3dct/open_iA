@@ -299,11 +299,14 @@ void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
 	{
-		calculateHistogram();
-		getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), true);
-		getHistogram()->updateTrf();
-		getHistogram()->redraw();
-
+		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
+		{
+			calculateHistogram();
+			getHistogram()->initialize( imageAccumulate, imageData->GetScalarRange(), true );
+			getHistogram()->updateTrf();
+			getHistogram()->redraw();
+		}
+		
 		Raycaster->enableInteractor();
 
 		slicerXZ->enableInteractor();
@@ -358,7 +361,7 @@ void MdiChild::enableRenderWindows()
 				}
 			}
 		}
-		if (!anyChannelEnabled)
+		if (!anyChannelEnabled && imageData)
 		{
 			imgProperty->updateProperties(imageData, imageAccumulate, true);
 		}
@@ -616,7 +619,7 @@ void MdiChild::setupViewInternal(bool active)
 {
 	if (IsOnlyPolyDataLoaded())
 		showVolume = false;
-	else
+	else if (imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 		calculateHistogram();//AMA assertion error on rendering otherwise
 
 	if (!active) initView();
@@ -642,7 +645,8 @@ void MdiChild::setupViewInternal(bool active)
 
 	if (active) changeVisibility(visibility);
 
-	if (imageData->GetNumberOfScalarComponents() > 1)
+	if (imageData->GetNumberOfScalarComponents() > 1 &&
+		imageData->GetNumberOfScalarComponents() < 4 )
 	{
 		r->spinBoxRC->setRange(0, imageData->GetNumberOfScalarComponents() - 1);
 		r->stackedWidgetRC->setCurrentIndex(1);
@@ -1990,7 +1994,10 @@ void MdiChild::getSnakeNormal(int index, double point[3], double normal[3])
 bool MdiChild::initTransferfunctions( )
 {
 	piecewiseFunction->RemoveAllPoints();
-	piecewiseFunction->AddPoint ( imageData->GetScalarRange()[0], 0.0 );
+	if ( imageData->GetNumberOfScalarComponents() == 1 )	
+		piecewiseFunction->AddPoint ( imageData->GetScalarRange()[0], 0.0 );
+	else //Set range of rgb, rgba or vector pixel type images to fully opaque
+		piecewiseFunction->AddPoint( imageData->GetScalarRange()[0], 1.0 ); 
 	piecewiseFunction->AddPoint ( imageData->GetScalarRange()[1], 1.0 );
 
 	colorTransferFunction->RemoveAllPoints();
@@ -2031,13 +2038,15 @@ bool MdiChild::initView( )
 		extent[2] == 0 && extent[3] == -1 &&
 		extent[4] == 0 && extent[5] == -1) //Polygonal mesh is loaded
 		showPoly();
-	else //Scalar field is loaded
+	else if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 	{
+		//Scalar field is loaded
 		this->addHistogram();
-		this->addImageProperty();
 		//this->addVolumePlayer();
 		this->addProfile();
 	}
+
+	this->addImageProperty();
 
 	connect(Raycaster->getObserverFPProgress(), SIGNAL( oprogress(int) ), this, SLOT( updateProgressBar(int))) ;
 	connect(Raycaster->getObserverGPUProgress(), SIGNAL( oprogress(int) ), this, SLOT( updateProgressBar(int))) ;

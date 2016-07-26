@@ -382,6 +382,13 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFu
 	outlineFilter->SetInputData(imageData);
 	polyMapper->SetInputData(polyData);
 
+	if ( imageData->GetNumberOfScalarComponents() > 1 )
+	{
+		volumeMapper->SetBlendModeToComposite();
+		volumeProperty->SetIndependentComponents( 0 );
+		volumeProperty->Modified();
+	}
+
 	volumeProperty->SetColor(0, colorTransferFunction);
 	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
 

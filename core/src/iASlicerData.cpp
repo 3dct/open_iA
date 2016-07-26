@@ -375,6 +375,12 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	}
 
 	colormapper->SetLookupTable(colorTransferFunction);
+
+	if ( imageData->GetNumberOfScalarComponents() > 1 )
+	{
+		colormapper->SetLookupTable( 0 );
+	}
+
 	colormapper->SetInputConnection(reslicer->GetOutputPort());
 	colormapper->Update();
 	imageActor->SetInputData(colormapper->GetOutput());
@@ -447,6 +453,11 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTra
 	}
 
 	colormapper->SetLookupTable(colorTransferFunction);
+
+	if ( imageData->GetNumberOfScalarComponents() > 1 )
+	{
+		colormapper->SetLookupTable( 0 );
+	}
 
 	colormapper->Update();
 }
@@ -521,10 +532,6 @@ void iASlicerData::update()
 	if( !imageData )
 		return;
 	
-	if (m_decorations)
-	{
-		cFilter->Update();
-	}
 	colormapper->Update();
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
 		ch->updateMapper();

@@ -36,6 +36,7 @@
 // TODO: unify with iAITKIO !
 
 open_iA_Core_API itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image);
+open_iA_Core_API itk::ImageIOBase::IOPixelType GetITKPixelType( iAITKIO::ImagePointer image );
 open_iA_Core_API iAITKIO::ImagePointer AllocateImage(iAITKIO::ImagePointer img);
 open_iA_Core_API iAITKIO::ImagePointer AllocateImage(int const size[3], double const spacing[3], itk::ImageIOBase::IOComponentType type);
 open_iA_Core_API void StoreImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression);

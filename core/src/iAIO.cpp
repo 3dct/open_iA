@@ -31,7 +31,7 @@
 #include "iAOIFReader.h"
 #include "iAProgress.h"
 #include "iAVolumeStack.h"
-#include "iATypedCallHelper.h"
+#include "iAExtendedTypedCallHelper .h"
 
 #include <itkExceptionObject.h>
 #include <itkGDCMImageIO.h>
@@ -612,6 +612,7 @@ bool iAIO::writeDCM()
 bool iAIO::loadMetaImageFile(QString const & fileName)
 {
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
+	typedef itk::ImageIOBase::IOPixelType PixelType;
 	itk::ImageIOBase::Pointer imageIO;
 	QString errorMsg;
 	try
@@ -635,7 +636,8 @@ bool iAIO::loadMetaImageFile(QString const & fileName)
 		imageIO->SetFileName(fileName.toLatin1());
 		imageIO->ReadImageInformation();
 		const ScalarPixelType pixelType = imageIO->GetComponentType();
-		ITK_TYPED_CALL(read_image_template, pixelType,
+		const PixelType imagePixelType = imageIO->GetPixelType();
+		ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType,
 			fileName, getItkProgress(), getConnector());
 	}
 	catch (itk::ExceptionObject &excep)
@@ -1228,7 +1230,8 @@ bool iAIO::writeMetaImage( )
 	try
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(write_image_template, itkType,
+		iAConnector::ITKPixelType itkPixelType = getConnector()->GetITKPixelType();
+		ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType, 
 			compression, fileName, getItkProgress(), getConnector());
 	}
 	catch( itk::ExceptionObject &excep)
@@ -1443,6 +1446,8 @@ void iAIO::printFileInfos()
 								   .arg(getVtkImageData()->GetOrigin()[2]));
 
 	emit msg("  DataType: " + tr(getVtkImageData()->GetScalarTypeAsString()));
+
+	emit msg( tr("  Components: %1").arg(getVtkImageData()->GetNumberOfScalarComponents() ) );
 }
 
 
