@@ -33,6 +33,7 @@
 
 int main(int argc, char *argv[])
 {
+	// redirect VTK output to console window:
 	vtkSmartPointer<iARedirectVtkOutput> myOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
 	vtkOutputWindow::SetInstance(myOutputWindow);
 
@@ -44,8 +45,13 @@ int main(int argc, char *argv[])
 
 	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
 
-	if (argc > 1) mainWin.loadFile(QString(argv[1]));
-
+	if (argc > 1)
+	{
+		QStringList files;
+		for (int a = 1; a < argc; ++a) files << argv[a];
+		mainWin.loadFiles(files);
+	}
+	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
 	mainWin.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
 

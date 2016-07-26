@@ -142,14 +142,13 @@ public slots:
 	void tabChanged(int index);
 
 public:
-	bool isStack;
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
 
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
 
-	void loadFile(QString fileName);
+	void loadFile(QString fileName, bool isStack);
 	void loadFiles(QStringList fileNames);
 
 	QDomDocument loadSettingsFile(QString filename);
@@ -196,7 +195,7 @@ private:
 	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
-	void loadFileInternal(QString fileName);
+	void loadFileInternal(QString fileName, bool isStack);
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 

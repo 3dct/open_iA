@@ -122,8 +122,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	std::replace( git_version.begin(), git_version.end(), '-', '.');
 	splashScreen->showMessage(tr("\n      Version: %1").arg ( git_version.c_str() ), Qt::AlignTop, QColor(255, 255, 255));
 
-	isStack=false;
-
 	layout = new QComboBox(this);
 	for (int i=0; i<layoutNames.size(); ++i)
 	{
@@ -188,7 +186,6 @@ void MainWindow::newFile()
 
 void MainWindow::open()
 {
-	isStack=false;
 	loadFiles(
 		QFileDialog::getOpenFileNames(
 			this,
@@ -200,21 +197,20 @@ void MainWindow::open()
 }
 
 
-void MainWindow::loadFiles(QStringList fileNames){
+void MainWindow::loadFiles(QStringList fileNames) {
 
 	statusBar()->showMessage(tr("Loading data..."), 5000);
 	QString fileName;
 
 	for (int i = 0; i < fileNames.length(); i++)
 	{
-		loadFileInternal(fileNames[i]);
+		loadFileInternal(fileNames[i], false);
 	}
 }
 
 
 void MainWindow::openImageStack()
 {
-	isStack=false;
 	loadFile(
 		QFileDialog::getOpenFileName(
 			this,
@@ -228,14 +224,13 @@ void MainWindow::openImageStack()
 				"BMP stacks (*.bmp);;"
 				"JPEG stacks (*.jpg)"
 			)
-		)
+		), true
 	);
 }
 
 
 void MainWindow::openVolumeStack()
 {
-	isStack = true;
 	loadFile(
 		QFileDialog::getOpenFileName(
 			this,
@@ -247,9 +242,8 @@ void MainWindow::openVolumeStack()
 				"RAW files (*.raw);;"
 				"Volume Stack (*.volstack)"
 			)
-		)
+		), true
 	);
-	isStack = false;
 }
 
 
@@ -266,11 +260,11 @@ void MainWindow::openRecentFile()
 	}
 	else
 	{
-		loadFile(fileName);
+		loadFile(fileName, fileName.endsWith(".volstack"));
 	}
 }
 
-void MainWindow::loadFileInternal(QString fileName)
+void MainWindow::loadFileInternal(QString fileName, bool isStack)
 {
 	if (!fileName.isEmpty()) {
 
@@ -318,10 +312,10 @@ void MainWindow::loadFileInternal(QString fileName)
 	}
 }
 
-void MainWindow::loadFile(QString fileName)
+void MainWindow::loadFile(QString fileName, bool isStack)
 {
 	statusBar()->showMessage(tr("Loading data..."), 5000);
-	loadFileInternal(fileName);
+	loadFileInternal(fileName, isStack);
 }
 
 
@@ -2307,7 +2301,7 @@ void MainWindow::OpenWithDataTypeConversion()
 		}
 	}
 
-	loadFile(testfinalfilename);
+	loadFile(testfinalfilename, false);
 }
 
 void MainWindow::applyQSS()

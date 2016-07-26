@@ -323,7 +323,7 @@ void MdiChild::disableRenderWindows(int ch)
 void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
-	{
+	{	// TODO: VOLUME: determine whether to always show first volume in main slicer/renderers and adapt accordingly!
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(m_dlgModalities->GetSelected())->GetTransfer();
 		/*
 		// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
