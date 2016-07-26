@@ -47,9 +47,16 @@ int main(int argc, char *argv[])
 
 	if (argc > 1)
 	{
-		QStringList files;
-		for (int a = 1; a < argc; ++a) files << argv[a];
-		mainWin.loadFiles(files);
+		if (argc > 2)
+		{
+			QStringList files;
+			for (int a = 1; a < argc; ++a) files << argv[a];
+			mainWin.loadFiles(files);
+		}
+		else
+		{
+			mainWin.LoadFile(QString(argv[1]));
+		}
 	}
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));

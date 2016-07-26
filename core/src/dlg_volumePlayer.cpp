@@ -487,7 +487,6 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 			m_mdiChild->InitChannelRenderer(id, true);
 			// TODO: VOLUME: rewrite!
 			// m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
-			m_mdiChild->ShowVolumes(false);
 		}
 
 		m_mdiChild->UpdateChannelSlicerOpacity(id, opacity[i]);

@@ -39,7 +39,8 @@
 
 iAModality::iAModality():
 	m_name(""),
-	m_filename("")
+	m_filename(""),
+	renderFlags(MainRenderer)
 {
 }
 
@@ -329,6 +330,7 @@ QString GetRenderFlagString(QSharedPointer<iAModality> mod)
 	QString result;
 	if (mod->hasRenderFlag(iAModality::MagicLens)) result += "L";
 	if (mod->hasRenderFlag(iAModality::MainRenderer)) result += "R";
+	if (mod->hasRenderFlag(iAModality::BoundingBox)) result += "B";
 	return result;
 }
 
@@ -433,7 +435,8 @@ bool iAModalityList::Load(QString const & filename)
 		else
 		{
 			int renderFlags = (modalityRenderFlags.isEmpty() || modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
-				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0);
+				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
+				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0);
 
 			QSharedPointer<iAModality> mod(new iAModality(modalityName, modalityFile, renderFlags));
 			if (!mod->LoadData())

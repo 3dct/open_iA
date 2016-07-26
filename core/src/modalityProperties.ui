@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>271</width>
-    <height>142</height>
+    <height>165</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,6 +29,27 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="cbMainRenderer">
+        <property name="text">
+         <string>Main Renderer</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Show in</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="cbMagicLens">
+        <property name="text">
+         <string>Magic Lens</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
@@ -59,24 +80,10 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QCheckBox" name="cbMainRenderer">
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="cbBoundingBox">
         <property name="text">
-         <string>Main Renderer</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Show in</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="cbMagicLens">
-        <property name="text">
-         <string>Magic Lens</string>
+         <string>Bounding Box</string>
         </property>
        </widget>
       </item>

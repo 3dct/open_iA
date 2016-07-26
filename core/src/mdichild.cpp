@@ -662,10 +662,8 @@ bool MdiChild::setupStackView(bool active)
 
 void MdiChild::setupViewInternal(bool active)
 {
-	if (!active) initView(curFile.isEmpty() ? "Untitled":"" );
-
-	if (IsOnlyPolyDataLoaded())
-		renderSettings.ShowVolume = false;
+	if (!active)
+		initView(curFile.isEmpty() ? "Untitled":"" );
 
 	m_mainWnd->setCurrentFile(currentFile());	// should be done on the outside?
 
@@ -1477,9 +1475,7 @@ void MdiChild::setupRaycaster(iARenderSettings const & rs, iAVolumeSettings cons
 void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 {
 	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
-	m_dlgModalities->ShowVolumes(renderSettings.ShowVolume);
 
-	raycaster->GetOutlineActor()->SetVisibility(renderSettings.ShowBoundingBox);
 	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(renderSettings.ParallelProjection);
 
 	QColor bgTop(renderSettings.BackgroundTop);
@@ -2240,15 +2236,13 @@ void MdiChild::changeVisibility(unsigned char mode)
 	sXZ->setVisible(xz);
 
 	logs->setVisible(tab);
-	if (renderSettings.ShowVolume)
-		histogramContainer->setVisible(tab);
+	histogramContainer->setVisible(tab);	// TODO: VOLUME: determine whether any volume data is loaded here
 }
 
 void MdiChild::hideVolumeWidgets()
 {
 	visibilityBlock(QList<QSpacerItem*>(),
 		QList<QWidget*>() << sXY << sXZ << sYZ << r, false);
-	ShowVolumes(false);
 	this->update();
 }
 
@@ -2894,11 +2888,4 @@ vtkPiecewiseFunction * MdiChild::getPiecewiseFunction()
 vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 {
 	return GetModality(0)->GetTransfer()->GetColorFunction();
-}
-
-
-void MdiChild::ShowVolumes(bool enable)
-{
-	renderSettings.ShowVolume = enable;
-	m_dlgModalities->ShowVolumes(enable);
 }

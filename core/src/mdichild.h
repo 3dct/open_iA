@@ -267,8 +267,6 @@ public:
 
 	MainWindow* getM_mainWnd();
 	void hideHistogram();
-	void ShowVolumes(bool enable);
-
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();

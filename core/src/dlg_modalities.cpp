@@ -61,7 +61,6 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer, int nu
 	m_numBin(numBin),
 	m_histogramContainer(histogramContainer),
 	m_currentHistogram(0),
-	m_showVolumes(true),
 	m_showSlicePlanes(false)
 {
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
@@ -182,9 +181,13 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	SwitchHistogram(modTransfer);
 	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(modTransfer.data(), imgData));
 	mod->SetDisplay(modDisp);
-	if (mod->hasRenderFlag(iAModality::MainRenderer) && m_showVolumes)
+	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
 		modDisp->AddToWindow(m_renderer->GetRenderWindow());
+	}
+	if (mod->hasRenderFlag(iAModality::BoundingBox))
+	{
+		modDisp->AddBoundingBoxToWindow(m_renderer->GetRenderWindow());
 	}
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
@@ -228,6 +231,10 @@ void dlg_modalities::RemoveClicked()
 	{
 		m_renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
 	}
+	if (modalities->Get(idx)->hasRenderFlag(iAModality::BoundingBox))
+	{
+		modDisp->RemoveBoundingBoxFromWindow();
+	}
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
 	EnableButtons();
@@ -263,6 +270,16 @@ void dlg_modalities::EditClicked()
 		&& editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
 		modDisp->AddToWindow(m_renderer->GetRenderWindow());
+	}
+	if ((renderFlagsBefore & iAModality::BoundingBox) == iAModality::BoundingBox
+		&& !editModality->hasRenderFlag(iAModality::BoundingBox))
+	{
+		modDisp->RemoveBoundingBoxFromWindow();
+	}
+	if ((renderFlagsBefore & iAModality::BoundingBox) == 0
+		&& editModality->hasRenderFlag(iAModality::BoundingBox))
+	{
+		modDisp->AddBoundingBoxToWindow(m_renderer->GetRenderWindow());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == iAModality::MagicLens
 		&& !editModality->hasRenderFlag(iAModality::MagicLens))
@@ -354,20 +371,7 @@ iAHistogramWidget* dlg_modalities::GetHistogram()
 	return m_currentHistogram;
 }
 
-
-void dlg_modalities::ShowVolumes(bool show)
-{
-	m_showVolumes = show;
-	for (int i = 0; i < modalities->size(); ++i)
-	{
-		if (!modalities->Get(i)->hasRenderFlag(iAModality::MainRenderer))
-		{
-			continue;
-		}
-		ShowVolume(modalities->Get(i)->GetDisplay(), show);
-	}
-}
-
+/*
 void dlg_modalities::ShowVolume(QSharedPointer<iAVolumeRenderer> renderer, bool enabled)
 {
 	if (enabled)
@@ -379,6 +383,7 @@ void dlg_modalities::ShowVolume(QSharedPointer<iAVolumeRenderer> renderer, bool 
 		renderer->RemoveFromWindow();
 	}
 }
+*/
 
 void dlg_modalities::ShowSlicePlanes(bool enabled)
 {

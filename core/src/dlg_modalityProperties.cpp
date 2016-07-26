@@ -35,6 +35,7 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	edFilename->setText(modality->GetFileName());
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
 	cbMainRenderer->setChecked(modality->hasRenderFlag(iAModality::MainRenderer));
+	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
 	connect(pbChooseFile, SIGNAL(clicked()), this, SLOT(FileChooserClicked()));
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
@@ -46,7 +47,8 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_modality->SetFileName(edFilename->text());
 	m_modality->SetRenderFlag(
 		(cbMagicLens->isChecked() ? iAModality::MagicLens : 0) |
-		(cbMainRenderer->isChecked() ? iAModality::MainRenderer : 0)
+		(cbMainRenderer->isChecked() ? iAModality::MainRenderer : 0) |
+		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0)
 	);
 	if (m_modality->LoadData())
 	{

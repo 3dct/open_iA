@@ -64,7 +64,6 @@ public:
 	void Store(QString const & filename);
 	bool Load(QString const & filename);
 	iAHistogramWidget* GetHistogram();
-	void ShowVolumes(bool show);
 	void ShowSlicePlanes(bool enabled);
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 
@@ -109,8 +108,6 @@ private:
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
 	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
-	void ShowVolume(QSharedPointer<iAVolumeRenderer> renderer, bool enabled);
-	bool m_showVolumes;
 	bool m_showSlicePlanes;
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 };

@@ -49,7 +49,6 @@ class vtkLogoRepresentation;
 class vtkLogoWidget;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
-class vtkOutlineFilter;
 class vtkPicker;
 class vtkPiecewiseFunction;
 class vtkPlane;
@@ -58,10 +57,7 @@ class vtkPolyDataMapper;
 class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
-class vtkSmartVolumeMapper;
 class vtkTransform;
-class vtkVolume;
-class vtkVolumeProperty;
 
 
 class open_iA_Core_API iARenderer: public QObject
@@ -132,7 +128,6 @@ public:
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; }
 	vtkRenderWindow* GetRenderWindow() { return renWin;  }
 	vtkOpenGLRenderer * GetRenderer();
-	vtkActor* GetOutlineActor();
 	vtkActor* GetPolyActor();
 	vtkTransform* getCoordinateSystemTransform();
 	void GetImageDataBounds(double bounds[6]);
@@ -187,12 +182,6 @@ private:
 	vtkSmartPointer<vtkLogoRepresentation> logoRep;
 	vtkSmartPointer<vtkLogoWidget> logoWidget;
 	vtkSmartPointer<vtkQImageToImageSource> logoImage;
-	//! @}
-
-	//! @{ Bounding Box
-	vtkSmartPointer<vtkOutlineFilter> outlineFilter;
-	vtkSmartPointer<vtkPolyDataMapper> outlineMapper;
-	vtkSmartPointer<vtkActor> outlineActor;
 	//! @}
 
 	//! @{ position marker cube

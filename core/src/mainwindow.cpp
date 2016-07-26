@@ -255,6 +255,11 @@ void MainWindow::openRecentFile()
 		return;
 
 	QString fileName = action->data().toString();
+	LoadFile(fileName);
+}
+
+void MainWindow::LoadFile(QString const & fileName)
+{
 	if (fileName.endsWith(ProjectFileExtension))
 	{
 		LoadProject(fileName);
@@ -892,13 +897,11 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 
 	// add new camera node
 	QDomElement renderSettingsElement = doc.createElement("renderSettings");
-	renderSettingsElement.setAttribute("showVolume", tr("%1").arg(defaultRenderSettings.ShowVolume));
 	renderSettingsElement.setAttribute("showSlicers", tr("%1").arg(defaultRenderSettings.ShowSlicers));
 	renderSettingsElement.setAttribute("showHelpers", tr("%1").arg(defaultRenderSettings.ShowHelpers));
 	renderSettingsElement.setAttribute("showRPosition", tr("%1").arg(defaultRenderSettings.ShowRPosition));
 	renderSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(defaultVolumeSettings.LinearInterpolation));
 	renderSettingsElement.setAttribute("shading", tr("%1").arg(defaultVolumeSettings.Shading));
-	renderSettingsElement.setAttribute("boundingBox", tr("%1").arg(defaultRenderSettings.ShowBoundingBox));
 	renderSettingsElement.setAttribute("parallelProjection", tr("%1").arg(defaultRenderSettings.ParallelProjection));
 	renderSettingsElement.setAttribute("sampleDistance", tr("%1").arg(defaultVolumeSettings.SampleDistance));
 	renderSettingsElement.setAttribute("ambientLighting", tr("%1").arg(defaultVolumeSettings.AmbientLighting));
@@ -917,13 +920,11 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 {
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
 
-	defaultRenderSettings.ShowVolume = attributes.namedItem("showVolume").nodeValue() == "1";
 	defaultRenderSettings.ShowSlicers = attributes.namedItem("showSlicers").nodeValue() == "1";
 	defaultRenderSettings.ShowHelpers = attributes.namedItem("showHelpers").nodeValue() == "1";
 	defaultRenderSettings.ShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
 	defaultVolumeSettings.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
 	defaultVolumeSettings.Shading = attributes.namedItem("shading").nodeValue() == "1";
-	defaultRenderSettings.ShowBoundingBox = attributes.namedItem("boundingBox").nodeValue() == "1";
 	defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
 
 	defaultVolumeSettings.SampleDistance = attributes.namedItem("sampleDistance").nodeValue().toDouble();
@@ -1169,14 +1170,12 @@ void MainWindow::renderSettings()
 	}
 
 	QStringList inList;
-	inList 
-		<< tr("$Show volume")
+	inList
 		<< tr("$Show slicers")
 		<< tr("$Show helpers")
 		<< tr("$Show position")
 		<< tr("$Linear interpolation")
 		<< tr("$Shading")
-		<< tr("$Bounding box")
 		<< tr("$Parallel projection")
 		<< tr("#Sample distance")
 		<< tr("#Ambient lighting")
@@ -1189,13 +1188,11 @@ void MainWindow::renderSettings()
 	QList<QVariant> inPara;
 	iARenderSettings const & renderSettings = child->GetRenderSettings();
 	iAVolumeSettings const & volumeSettings = child->GetVolumeSettings();
-	inPara << (renderSettings.ShowVolume ? t : f)
-		<< (renderSettings.ShowSlicers ? t : f)
+	inPara << (renderSettings.ShowSlicers ? t : f)
 		<< (renderSettings.ShowHelpers ? t : f)
 		<< (renderSettings.ShowRPosition ? t : f)
 		<< (volumeSettings.LinearInterpolation ? t : f)
 		<< (volumeSettings.Shading ? t : f)
-		<< (renderSettings.ShowBoundingBox ? t : f)
 		<< (renderSettings.ParallelProjection ? t : f)
 
 		<< tr("%1").arg(volumeSettings.SampleDistance)
@@ -1207,29 +1204,27 @@ void MainWindow::renderSettings()
 		<< tr("%1").arg(renderSettings.BackgroundBottom)
 		<< renderTypes;
 
-	dlg_commoninput dlg(this, "Renderer settings", 16, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Renderer settings", 14, inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		defaultRenderSettings.ShowVolume = dlg.getCheckValues()[0] != 0;
-		defaultRenderSettings.ShowSlicers = dlg.getCheckValues()[1] != 0;
-		defaultRenderSettings.ShowHelpers = dlg.getCheckValues()[2] != 0;
-		defaultRenderSettings.ShowRPosition = dlg.getCheckValues()[3] != 0;
+		defaultRenderSettings.ShowSlicers = dlg.getCheckValues()[0] != 0;
+		defaultRenderSettings.ShowHelpers = dlg.getCheckValues()[1] != 0;
+		defaultRenderSettings.ShowRPosition = dlg.getCheckValues()[2] != 0;
 		
-		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValues()[4] != 0;
-		defaultVolumeSettings.Shading = dlg.getCheckValues()[5] != 0;
-		defaultRenderSettings.ShowBoundingBox = dlg.getCheckValues()[6] != 0;
-		defaultRenderSettings.ParallelProjection = dlg.getCheckValues()[7] != 0;
+		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValues()[3] != 0;
+		defaultVolumeSettings.Shading = dlg.getCheckValues()[4] != 0;
+		defaultRenderSettings.ParallelProjection = dlg.getCheckValues()[5] != 0;
 
-		defaultVolumeSettings.SampleDistance = dlg.getValues()[8];
-		defaultVolumeSettings.AmbientLighting = dlg.getValues()[9];
-		defaultVolumeSettings.DiffuseLighting = dlg.getValues()[10];
-		defaultVolumeSettings.SpecularLighting = dlg.getValues()[11];
-		defaultVolumeSettings.SpecularPower = dlg.getValues()[12];
-		defaultRenderSettings.BackgroundTop = dlg.getText()[13];
-		defaultRenderSettings.BackgroundBottom = dlg.getText()[14];
+		defaultVolumeSettings.SampleDistance = dlg.getValues()[6];
+		defaultVolumeSettings.AmbientLighting = dlg.getValues()[7];
+		defaultVolumeSettings.DiffuseLighting = dlg.getValues()[8];
+		defaultVolumeSettings.SpecularLighting = dlg.getValues()[9];
+		defaultVolumeSettings.SpecularPower = dlg.getValues()[10];
+		defaultRenderSettings.BackgroundTop = dlg.getText()[11];
+		defaultRenderSettings.BackgroundBottom = dlg.getText()[12];
 
-		QString renderType = dlg.getComboBoxValues()[15];
+		QString renderType = dlg.getComboBoxValues()[13];
 
 		// TODO: use renderModes / reverse mapping ?
 		defaultVolumeSettings.Mode = vtkSmartVolumeMapper::DefaultRenderMode;
@@ -1855,13 +1850,11 @@ void MainWindow::readSettings()
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
-	defaultRenderSettings.ShowVolume = settings.value("Renderer/rsShowVolume", true).toBool();
 	defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
 	defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
 	defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", true).toBool();
 	defaultVolumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
 	defaultVolumeSettings.Shading = settings.value("Renderer/rsShading", true).toBool();
-	defaultRenderSettings.ShowBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
 	defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", false).toBool();
 	defaultVolumeSettings.SampleDistance = settings.value("Renderer/rsSampleDistance", 1).toDouble();
 	defaultVolumeSettings.AmbientLighting = settings.value("Renderer/rsAmbientLighting", 0.2).toDouble();
@@ -1951,11 +1944,9 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefMagicLensFrameWidth", defaultPreferences.MagicLensFrameWidth);
 	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance().IsLogToFileOn());
 
-	settings.setValue("Renderer/rsShowVolume", defaultRenderSettings.ShowVolume);
 	settings.setValue("Renderer/rsShowSlicers", defaultRenderSettings.ShowSlicers);
 	settings.setValue("Renderer/rsLinearInterpolation", defaultVolumeSettings.LinearInterpolation);
 	settings.setValue("Renderer/rsShading", defaultVolumeSettings.Shading);
-	settings.setValue("Renderer/rsBoundingBox", defaultRenderSettings.ShowBoundingBox);
 	settings.setValue("Renderer/rsParallelProjection", defaultRenderSettings.ParallelProjection);
 	settings.setValue("Renderer/rsShowHelpers", defaultRenderSettings.ShowHelpers);
 	settings.setValue("Renderer/rsShowRPosition", defaultRenderSettings.ShowRPosition);

@@ -28,6 +28,9 @@
 
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkOutlineFilter.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
 #include <vtkSmartVolumeMapper.h>
@@ -42,6 +45,10 @@ iAVolumeRenderer::iAVolumeRenderer(
 	volume(vtkSmartPointer<vtkVolume>::New()),
 	renderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
+	outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
+	outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	outlineActor(vtkSmartPointer<vtkActor>::New()),
+	outlineRenderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	currentWindow(0)
 {
 	volProp->SetColor(0, transfer->GetColorFunction());
@@ -52,6 +59,13 @@ iAVolumeRenderer::iAVolumeRenderer(
 	volume->SetProperty(volProp);
 	volume->SetVisibility(true);
 	renderer->AddVolume(volume);
+
+	outlineFilter->SetInputData(imgData);
+	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
+	outlineActor->GetProperty()->SetColor(0, 0, 0);
+	outlineActor->PickableOff();
+	outlineActor->SetMapper(outlineMapper);
+	outlineRenderer->AddActor(outlineActor);
 }
 
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
@@ -80,11 +94,13 @@ double * iAVolumeRenderer::GetPosition()
 void iAVolumeRenderer::SetOrientation(double* orientation)
 {
 	volume->SetOrientation(orientation);
+	outlineActor->SetOrientation(orientation);
 }
 
 void iAVolumeRenderer::SetPosition(double* position)
 {
 	volume->SetPosition(position);
+	outlineActor->SetPosition(position);
 }
 
 void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
@@ -100,6 +116,33 @@ void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
 	renderer->SetBackground(1, 0.5, 0.5);
 	renderer->InteractiveOn();
 	currentWindow = w;
+}
+
+void iAVolumeRenderer::AddBoundingBoxToWindow(vtkRenderWindow* w)
+{
+	outlineRenderer->SetLayer(1);
+	outlineRenderer->InteractiveOff();
+	vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	outlineRenderer->SetActiveCamera(cam);
+	w->AddRenderer(outlineRenderer);
+	currentBoundingBoxWindow = w;
+}
+
+
+void iAVolumeRenderer::RemoveBoundingBoxFromWindow()
+{
+	if (!currentBoundingBoxWindow)
+		return;
+	currentBoundingBoxWindow->RemoveRenderer(outlineRenderer);
+	currentBoundingBoxWindow = 0;
+}
+
+void iAVolumeRenderer::UpdateBoundingBoxPosition()
+{
+	if (!currentBoundingBoxWindow)
+		return;
+	outlineActor->SetOrientation(volume->GetOrientation());
+	outlineActor->SetPosition(volume->GetPosition());
 }
 
 void iAVolumeRenderer::RemoveFromWindow()

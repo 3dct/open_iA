@@ -148,6 +148,7 @@ public:
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
 
+	void LoadFile(QString const & fileName);
 	void loadFile(QString fileName, bool isStack);
 	void loadFiles(QStringList fileNames);
 

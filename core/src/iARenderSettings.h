@@ -23,21 +23,18 @@
 class iARenderSettings
 {
 public:
-	bool ShowVolume,
+	bool
 		ShowSlicers,
 		ShowHelpers,
 		ShowRPosition,
-		ShowBoundingBox,
 		ParallelProjection;
 	QString BackgroundTop,
 		BackgroundBottom;
 
 	iARenderSettings():
-		ShowVolume(true),
 		ShowSlicers(false),
 		ShowHelpers(true),
 		ShowRPosition(true),
-		ShowBoundingBox(true),
 		ParallelProjection(false),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF")

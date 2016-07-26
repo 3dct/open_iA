@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>213</width>
-    <height>236</height>
+    <width>240</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>213</width>
-    <height>236</height>
+    <width>240</width>
+    <height>240</height>
    </size>
   </property>
   <property name="features">
@@ -65,7 +65,17 @@
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <item row="0" column="0" rowspan="7">
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pbEdit">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" rowspan="8">
           <widget class="QListWidget" name="lwModalities"/>
          </item>
          <item row="2" column="1">
@@ -82,32 +92,14 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
-          <widget class="QPushButton" name="pbRegister">
-           <property name="text">
-            <string>Register...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QCheckBox" name="cbCuttingPlane">
-           <property name="text">
-            <string>Cutting Plane</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="pbEdit">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Edit</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QWidget" name="wdAddRemove" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <property name="spacing">
              <number>4</number>
@@ -152,8 +144,28 @@
            </layout>
           </widget>
          </item>
+         <item row="5" column="1">
+          <widget class="QPushButton" name="pbRegister">
+           <property name="text">
+            <string>Register...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QCheckBox" name="cbCuttingPlane">
+           <property name="text">
+            <string>Cutting Plane</string>
+           </property>
+          </widget>
+         </item>
          <item row="6" column="1">
           <widget class="QWidget" name="wdLoadStore" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <property name="spacing">
              <number>4</number>

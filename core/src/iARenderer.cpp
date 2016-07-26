@@ -49,7 +49,6 @@
 #include <vtkLogoWidget.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
-#include <vtkOutlineFilter.h>
 #include <vtkPicker.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
@@ -79,11 +78,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	renWin->PointSmoothingOn();
 
 	cam = vtkSmartPointer<vtkCamera>::New();
-
 	interactorStyle = vtkSmartPointer<vtkInteractorStyleSwitch>::New();
-	outlineFilter = vtkSmartPointer<vtkOutlineFilter>::New();
-	outlineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	outlineActor = vtkSmartPointer<vtkActor>::New();
 
 	cSource = vtkSmartPointer<vtkCubeSource>::New();
 	cMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -172,7 +167,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	logoWidget->SetInteractor(interactor);
 	logoWidget->SetRepresentation(logoRep);
 	logoWidget->SetResizable(false);
-	logoWidget->SetSelectable(false);
+	logoWidget->SetSelectable(true);
 	logoWidget->On();
 
 	interactor->Initialize();
@@ -207,8 +202,6 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
 			cellLocator->BuildLocator();
 	}
 	ext = e;
-
-	outlineFilter->SetInputData(ds);
 	polyMapper->SetInputData(polyData);
 
 	renderObserver->ReInitialize( ren, labelRen, interactor, pointPicker,
@@ -375,11 +368,6 @@ void iARenderer::setupOrientationMarker()
 
 void iARenderer::setupRenderer(vtkImageData* ds)
 {
-	outlineFilter->SetInputData(ds);
-	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
-	outlineActor->GetProperty()->SetColor(0,0,0);
-	outlineActor->PickableOff();
-	outlineActor->SetMapper(outlineMapper);
 
 	polyMapper->SetInputData(polyData);
 	polyMapper->SelectColorArray("Colors");
@@ -391,7 +379,6 @@ void iARenderer::setupRenderer(vtkImageData* ds)
 	ren->AddActor(cActor);
 	ren->AddActor(axesActor);
 	ren->AddActor(moveableAxesActor);
-	ren->AddActor(outlineActor);
 	emit onSetupRenderer();
 }
 
@@ -658,7 +645,6 @@ vtkPlane* iARenderer::getPlane1() { return plane1; };
 vtkPlane* iARenderer::getPlane2() { return plane2; };
 vtkPlane* iARenderer::getPlane3() { return plane3; };
 vtkOpenGLRenderer * iARenderer::GetRenderer() { return ren; };
-vtkActor* iARenderer::GetOutlineActor() { return outlineActor; };
 vtkActor* iARenderer::GetPolyActor() { return polyActor; };
 vtkOpenGLRenderer * iARenderer::GetLabelRenderer(void) { return labelRen; }
 vtkPolyDataMapper* iARenderer::GetPolyMapper() const { return polyMapper; }

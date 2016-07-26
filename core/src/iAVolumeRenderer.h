@@ -29,9 +29,12 @@
 class iAVolumeSettings;
 class iATransferFunction;
 
+class vtkActor;
 class vtkImageData;
 class vtkPlane;
 class vtkOpenGLRenderer;
+class vtkOutlineFilter;
+class vtkPolyDataMapper;
 class vtkRenderWindow;
 class vtkSmartVolumeMapper;
 class vtkVolume;
@@ -50,10 +53,13 @@ public:
 	void SetOrientation(double *);
 	void AddToWindow(vtkRenderWindow* w);
 	void RemoveFromWindow();
+	void iAVolumeRenderer::AddBoundingBoxToWindow(vtkRenderWindow* w);
+	void RemoveBoundingBoxFromWindow();
 	vtkSmartPointer<vtkVolume> GetVolume();
 	void Update();
 	void SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
 	void RemoveCuttingPlanes();
+	void UpdateBoundingBoxPosition();
 private:
 	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
 
@@ -62,4 +68,12 @@ private:
 	vtkSmartPointer<vtkVolumeProperty> volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
 	vtkRenderWindow* currentWindow;
+	vtkRenderWindow* currentBoundingBoxWindow;
+
+	//! @{ Bounding Box
+	vtkSmartPointer<vtkOutlineFilter> outlineFilter;
+	vtkSmartPointer<vtkPolyDataMapper> outlineMapper;
+	vtkSmartPointer<vtkActor> outlineActor;
+	vtkSmartPointer<vtkOpenGLRenderer> outlineRenderer;
+	//! @}
 };
