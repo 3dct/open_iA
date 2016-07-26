@@ -2697,6 +2697,6 @@ void MainWindow::OpenTLGICTData()
 	MdiChild* child = createMdiChild();
 	child->newFile();
 	child->show();
-
 	child->SetModalities(modList);
+	child->setCurrentFile(baseDirectory);
 }

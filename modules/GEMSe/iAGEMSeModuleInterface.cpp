@@ -99,28 +99,14 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 {
 	MdiChild *child = m_mainWnd->createMdiChild();
-
-	QSharedPointer<iAModalityList> modList(new iAModalityList);
-
 	if (!seaFile.good())
 	{
 		DEBUG_LOG("Given precalculated data file could not be read.\n");
 		return;
 	}
-	modList->Load(seaFile.GetModalityFileName());
-	if (modList->size() == 0)
-	{
-		DEBUG_LOG("You need to specify at least one modality!\n");
-		return;
-	}
-
-	child->setImageData(modList->Get(0)->GetFileName(), modList->Get(0)->GetImage());
-	child->show();
-	child->showMaximized();
+	child->LoadProject(seaFile.GetModalityFileName());
 	m_mdiChild = child;
 	UpdateChildData();
-	
-	m_mdiChild->waitForPreviousIO();
 
 	// load segmentation explorer:
 	bool result = AttachToMdiChild( m_mdiChild );
@@ -131,8 +117,6 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		DEBUG_LOG("GEMSE module is not attached!");
 		return;
 	}
-
-	child->SetModalities(modList);
 	// load seeds/labels:
 	if (!gemseAttach->LoadSeeds(seaFile.GetSeedsFileName()) ||
 	// load sampling data:
