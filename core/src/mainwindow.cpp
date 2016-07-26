@@ -133,6 +133,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	}
 	this->layout->setStyleSheet("padding: 0");
 	this->layout->resize(this->layout->geometry().width(), 100);
+	this->layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	this->layoutToolbar->insertWidget(this->actionSave_Layout, layout);
 
 	m_moduleDispatcher->InitializeModules(&GlobalConsoleLogger);
