@@ -504,6 +504,7 @@ public:
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
 	void LoadProject();
+	void LoadProject(QString const & fileName);
 	void StoreProject();
 	//! @}
 };

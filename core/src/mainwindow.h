@@ -116,7 +116,8 @@ private slots:
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
-	void OpenProject();
+	void LoadProject();
+	void LoadProject(QString const & fileName);
 	void SaveProject();
 	void OpenTLGICTData();
 

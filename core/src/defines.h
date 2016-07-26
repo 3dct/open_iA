@@ -29,6 +29,7 @@
 
 const QString organisationName = "FHW";
 const QString applicationName = "open_iA";
+const QString ProjectFileExtension = ".mod";
 
 enum IOType
 {

@@ -48,6 +48,10 @@
 
 #include <cassert>
 
+namespace
+{
+	char const * ProjectFileTypeFilter("open_iA project file (*.mod);;All files (*.*)");
+}
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer, int numBin, QDockWidget* histogramContainer) :
 
@@ -92,7 +96,7 @@ void dlg_modalities::Store()
 		QApplication::activeWindow(),
 		tr("Select Output File"),
 		QString(), // TODO get directory of current file
-		tr("open_iA project file (*.mod);;All files (*.*)" ) );
+		tr(ProjectFileTypeFilter ) );
 	Store(modalitiesFileName);
 }
 
@@ -108,7 +112,7 @@ void dlg_modalities::Load()
 		QApplication::activeWindow(),
 		tr("Open Input File"),
 		QString(), // TODO get directory of current file
-		tr("open_iA project file (*.mod);;All files (*.*)" ) );
+		tr(ProjectFileTypeFilter) );
 	if (!modalitiesFileName.isEmpty() && Load(modalitiesFileName))
 	{
 		EnableButtons();

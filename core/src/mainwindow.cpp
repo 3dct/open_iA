@@ -256,7 +256,18 @@ void MainWindow::openVolumeStack()
 void MainWindow::openRecentFile()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
-	if (action) loadFile(action->data().toString());
+	if (!action)
+		return;
+
+	QString fileName = action->data().toString();
+	if (fileName.endsWith(ProjectFileExtension))
+	{
+		LoadProject(fileName);
+	}
+	else
+	{
+		loadFile(fileName);
+	}
 }
 
 void MainWindow::loadFileInternal(QString fileName)
@@ -1826,7 +1837,7 @@ void MainWindow::connectSignalsToSlots()
 		connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
 	}
 
-	connect(actionOpen_Project, SIGNAL(triggered()), this, SLOT(OpenProject()));
+	connect(actionOpen_Project, SIGNAL(triggered()), this, SLOT(LoadProject()));
 	connect(actionSave_Project, SIGNAL(triggered()), this, SLOT(SaveProject()));
 	connect(actionOpen_TLGI_CT_Data, SIGNAL(triggered()), this, SLOT(OpenTLGICTData()));
 }
@@ -2465,19 +2476,22 @@ void MainWindow::InitResources()
 }
 
 
-void MainWindow::OpenProject()
+void MainWindow::LoadProject()
 {
-	MdiChild * activeChild = activeMdiChild();
-	if (!activeChild)
-	{
-		MdiChild* child = createMdiChild();
-		child->newFile();
-		child->show();
-		activeChild = child;
-	}
-	activeChild->LoadProject();
+	MdiChild* child = createMdiChild();
+	child->newFile();
+	child->show();
+	child->LoadProject();
 }
 
+
+void MainWindow::LoadProject(QString const & fileName)
+{
+	MdiChild* child = createMdiChild();
+	child->newFile();
+	child->show();
+	child->LoadProject(fileName);
+}
 
 
 void MainWindow::SaveProject()

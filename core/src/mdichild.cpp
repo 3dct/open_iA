@@ -2849,6 +2849,24 @@ void MdiChild::LoadProject()
 {
 	bool noDataLoaded = GetModalities()->size() == 0;
 	m_dlgModalities->Load();
+	setCurrentFile(GetModalities()->GetFileName());
+	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
+	if (noDataLoaded && GetModalities()->size() > 0)
+	{
+		setImageData(
+			GetModality(0)->GetFileName(),
+			GetModality(0)->GetImage()
+		);
+	}
+}
+
+// TODO: VOLUME: remove duplication!
+void MdiChild::LoadProject(QString const & fileName)
+{
+	bool noDataLoaded = GetModalities()->size() == 0;
+	m_dlgModalities->Load(fileName);
+	setCurrentFile(GetModalities()->GetFileName());
+	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
 	if (noDataLoaded && GetModalities()->size() > 0)
 	{
 		setImageData(
