@@ -491,6 +491,7 @@ private:
 	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
+	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);

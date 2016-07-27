@@ -106,7 +106,6 @@ private slots:
 	void ListClicked(QListWidgetItem* item);
 
 private:
-	MdiChild* m_mdiChild;
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_renderer;

@@ -141,6 +141,10 @@ int iAModality::RenderFlags() const
 
 bool iAModality::LoadData()
 {
+	if (m_imgData)
+	{	// if already loaded, there's nothing to do!
+		return true;
+	}
 	if (m_filename.endsWith(iAIO::VolstackExtension))
 	{
 		std::vector<vtkSmartPointer<vtkImageData> > volumes;
@@ -212,6 +216,7 @@ bool iAModality::LoadData()
 
 void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
 {
+	// TODO: VOLUME: rewrite / move to iAModalityTransfer constructor if possible!
 	this->transfer = transfer;
 	if (tfFileName.isEmpty())
 	{

@@ -92,7 +92,8 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	ioThread(0),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
-	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram"))
+	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
+	m_initVolumeRenderers(false)
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);
@@ -329,7 +330,7 @@ void MdiChild::enableRenderWindows()
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 
 		// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
-		getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), true);
+		getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
 		getHistogram()->updateTrf();
 		getHistogram()->redraw();
 
@@ -697,8 +698,19 @@ void MdiChild::setupViewInternal(bool active)
 	}
 
 	// only after everything in the window is set up
-	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
-		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
+	if (m_initVolumeRenderers)
+	{
+		m_initVolumeRenderers = false;
+		for (int i = 0; i<GetModalities()->size(); ++i)
+		{
+			m_dlgModalities->InitDisplay(GetModality(i));
+		}
+		ApplyVolumeSettings();
+
+		connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
+			m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
+	}
+
 }
 
 
@@ -2049,10 +2061,12 @@ bool MdiChild::initView( QString const & title )
 
 		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
 		// before, which adds the renderers which this call will use
-		GetModalities()->Add(QSharedPointer<iAModality>(
-			new iAModality(name,
-				currentFile(), imageData, iAModality::MainRenderer)));
-		ApplyVolumeSettings();
+		QSharedPointer<iAModality> mod(new iAModality(name,
+			currentFile(), imageData, iAModality::MainRenderer));
+		GetModalities()->Add(mod);
+		m_dlgModalities->AddListItemAndTransfer(mod);
+		m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
+		m_initVolumeRenderers = true;
 	}
 	slicerXZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
 	slicerXY->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
@@ -2847,15 +2861,11 @@ void MdiChild::InitDisplay()
 	// TODO: VOLUME: remove indirect dependency from mdichild -> getHistogram to modalities dlg!
 	m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
 	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
+	m_initVolumeRenderers = true;
 	setImageData(
 		GetModality(0)->GetFileName(),
 		GetModality(0)->GetImage()
 	);
-	for (int i = 0; i<GetModalities()->size(); ++i)
-	{
-		m_dlgModalities->InitDisplay(GetModality(i));
-	}
-	ApplyVolumeSettings();
 }
 
 void MdiChild::LoadProject()
