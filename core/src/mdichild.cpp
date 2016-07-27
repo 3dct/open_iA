@@ -2843,7 +2843,7 @@ void MdiChild::LoadProject()
 	bool noDataLoaded = GetModalities()->size() == 0;
 	m_dlgModalities->Load();
 	setCurrentFile(GetModalities()->GetFileName());
-	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
+	//m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
 	if (noDataLoaded && GetModalities()->size() > 0)
 	{
 		setImageData(
@@ -2856,6 +2856,9 @@ void MdiChild::LoadProject()
 // TODO: VOLUME: remove duplication!
 void MdiChild::LoadProject(QString const & fileName)
 {
+	// crashes most of the time in setupOrientationMarker in iARenderer.
+	// TODO: VOLUME: find out why!
+	/*
 	bool noDataLoaded = GetModalities()->size() == 0;
 	m_dlgModalities->Load(fileName);
 	setCurrentFile(GetModalities()->GetFileName());
@@ -2867,6 +2870,7 @@ void MdiChild::LoadProject(QString const & fileName)
 			GetModality(0)->GetImage()
 		);
 	}
+	*/
 }
 
 void MdiChild::StoreProject()

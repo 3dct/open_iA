@@ -107,7 +107,14 @@ void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
 {
 	if (currentWindow)
 	{
-		RemoveFromWindow();
+		if (currentWindow != w)
+		{
+			RemoveFromWindow();
+		}
+		else
+		{
+			return;
+		}
 	}
 	w->AddRenderer(renderer);
 	vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
@@ -120,7 +127,18 @@ void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
 
 void iAVolumeRenderer::AddBoundingBoxToWindow(vtkRenderWindow* w)
 {
-	outlineRenderer->SetLayer(1);
+	if (currentBoundingBoxWindow)
+	{
+		if (currentBoundingBoxWindow != w)
+		{
+			RemoveBoundingBoxFromWindow();
+		}
+		else
+		{
+			return;
+		}
+	}
+	outlineRenderer->SetLayer(3);
 	outlineRenderer->InteractiveOff();
 	vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	outlineRenderer->SetActiveCamera(cam);
