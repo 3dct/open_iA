@@ -324,13 +324,14 @@ void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
 	{	// TODO: VOLUME: determine whether to always show first volume in main slicer/renderers and adapt accordingly!
-		QSharedPointer<iAModalityTransfer> modTrans = GetModality(m_dlgModalities->GetSelected())->GetTransfer();
-		/*
+		//int modalityIdx = m_dlgModalities->GetSelected();
+		int modalityIdx = 0;
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
+
 		// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
 		getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), true);
 		getHistogram()->updateTrf();
 		getHistogram()->redraw();
-		*/
 
 		Raycaster->enableInteractor();
 
@@ -471,8 +472,8 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 
 	initView( title );
 	setWindowTitle( title );
-
-	setupRaycaster(renderSettings, volumeSettings, false);
+	ApplyRenderSettings(Raycaster);
+	ApplyVolumeSettings();
 	setupSlicers(slicerSettings, true );
 
 	if (imageData->GetExtent()[1] <= 1)
@@ -665,13 +666,13 @@ void MdiChild::setupViewInternal(bool active)
 	if (!active)
 		initView(curFile.isEmpty() ? "Untitled":"" );
 
-	m_mainWnd->setCurrentFile(currentFile());	// should be done on the outside?
+	m_mainWnd->setCurrentFile(currentFile());	// TODO: VOLUME: should be done on the outside?
 
 	if ((imageData->GetExtent()[1] < 3) || (imageData->GetExtent()[3]) < 3 || (imageData->GetExtent()[5] < 3))
 		volumeSettings.Shading = false;
 
 	volumeSettings.SampleDistance = imageData->GetSpacing()[0];
-	setupRaycaster(renderSettings, volumeSettings, false);
+	ApplyRenderSettings(Raycaster);
 	setupSlicers(slicerSettings, true);
 
 	if (imageData->GetExtent()[1] <= 1)
@@ -694,6 +695,10 @@ void MdiChild::setupViewInternal(bool active)
 		r->stackedWidgetRC->setCurrentIndex(0);
 		r->channelLabelRC->setEnabled(false);
 	}
+
+	// only after everything in the window is set up
+	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
+		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
 }
 
 
@@ -862,7 +867,7 @@ bool MdiChild::setupSaveIO(QString const & f)
 				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0)){
 					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) ) return false;
 					setCurrentFile(f);
-					m_mainWnd->setCurrentFile(f);
+					m_mainWnd->setCurrentFile(f);	// TODO: VOLUME: do in setCurrentFile member method?
 					QString t; t = f;
 					t.truncate(t.lastIndexOf('/'));
 					m_mainWnd->setPath(t);
@@ -1462,20 +1467,14 @@ bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
 	return true;
 }
 
-void MdiChild::setupRaycaster(iARenderSettings const & rs, iAVolumeSettings const & vs, bool init )
+void MdiChild::setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {
 	renderSettings = rs;
 	volumeSettings = vs;
-
-	if (!init)
-		applyCurrentSettingsToRaycaster(Raycaster);
 }
 
-
-void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
+void MdiChild::ApplyRenderSettings(iARenderer* raycaster)
 {
-	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
-
 	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(renderSettings.ParallelProjection);
 
 	QColor bgTop(renderSettings.BackgroundTop);
@@ -1484,7 +1483,7 @@ void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 		bgTop.setRgbF(0.5, 0.666666666666666667, 1.0);
 		renderSettings.BackgroundTop = bgTop.name();
 	}
-	if (!bgBottom.isValid())  {
+	if (!bgBottom.isValid()) {
 		bgBottom.setRgbF(1.0, 1.0, 1.0);
 		renderSettings.BackgroundBottom = bgTop.name();
 	}
@@ -1492,6 +1491,12 @@ void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
 	raycaster->GetRenderer()->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	raycaster->showHelpers(renderSettings.ShowHelpers);
 	raycaster->showRPosition(renderSettings.ShowRPosition);
+}
+
+void MdiChild::ApplyVolumeSettings()
+{
+	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
+	m_dlgModalities->ChangeRenderSettings(volumeSettings);
 }
 
 int MdiChild::GetRenderMode()
@@ -1581,13 +1586,11 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 
 bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {
-	setupRaycaster(rs, vs, false);
-
+	setRenderSettings(rs, vs);
+	ApplyRenderSettings(Raycaster);
+	ApplyVolumeSettings();
 	r->vtkWidgetRC->show();
-
 	emit renderSettingsChanged();
-	m_dlgModalities->ChangeRenderSettings(vs);
-
 	return true;
 }
 
@@ -2049,6 +2052,7 @@ bool MdiChild::initView( QString const & title )
 		GetModalities()->Add(QSharedPointer<iAModality>(
 			new iAModality(name,
 				currentFile(), imageData, iAModality::MainRenderer)));
+		ApplyVolumeSettings();
 	}
 	slicerXZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
 	slicerXY->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
@@ -2084,7 +2088,7 @@ void MdiChild::resetLayout()
 	restoreState(m_initialLayoutState);
 }
 
-void MdiChild::hideHistogram()
+void MdiChild::HideHistogram()
 {
 	histogramContainer->hide();
 }
@@ -2814,11 +2818,7 @@ void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 
 	if (noDataLoaded && GetModalities()->size() > 0)
 	{
-		// TODO: avoid Duplication (LoadProject!)
-		setImageData(
-			GetModality(0)->GetFileName(),
-			GetModality(0)->GetImage()
-		);
+		InitDisplay();
 	}
 }
 
@@ -2838,22 +2838,38 @@ QSharedPointer<iAModality> MdiChild::GetModality(int idx)
 	return GetModalities()->Get(idx);
 }
 
+void MdiChild::InitDisplay()
+{
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		m_dlgModalities->AddListItemAndTransfer(GetModality(i));
+	}
+	// TODO: VOLUME: remove indirect dependency from mdichild -> getHistogram to modalities dlg!
+	m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
+	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
+	setImageData(
+		GetModality(0)->GetFileName(),
+		GetModality(0)->GetImage()
+	);
+	for (int i = 0; i<GetModalities()->size(); ++i)
+	{
+		m_dlgModalities->InitDisplay(GetModality(i));
+	}
+	ApplyVolumeSettings();
+}
+
 void MdiChild::LoadProject()
 {
-	bool noDataLoaded = GetModalities()->size() == 0;
 	m_dlgModalities->Load();
 	setCurrentFile(GetModalities()->GetFileName());
 	//m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	if (noDataLoaded && GetModalities()->size() > 0)
+	if (GetModalities()->size() > 0)
 	{
-		setImageData(
-			GetModality(0)->GetFileName(),
-			GetModality(0)->GetImage()
-		);
+		InitDisplay();
 	}
 }
 
-// TODO: VOLUME: remove duplication!
+// TODO: VOLUME: remove duplication with previous function!
 void MdiChild::LoadProject(QString const & fileName)
 {
 	// crashes most of the time in setupOrientationMarker in iARenderer.

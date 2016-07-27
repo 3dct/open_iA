@@ -49,6 +49,7 @@ class vtkPlane;
 
 
 // TODO: VOLUME: split off volume manager for the management of the actual volume rendering stuff
+// TODO: VOLUME: rename to dlg_dataList or such
 class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
@@ -66,12 +67,19 @@ public:
 	iAHistogramWidget* GetHistogram();
 	void ShowSlicePlanes(bool enabled);
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
-
+	//! double responsibility function, adding modality to list and initializing its transfer function
+	// TODO: VOLUME: split up!
+	void AddListItemAndTransfer(QSharedPointer<iAModality> mod);
+	//! initialize a modality's display in renderers
+	void InitDisplay(QSharedPointer<iAModality> mod);
 	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
 	void SelectRow(int idx);
+	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
 public slots:
 	void Load();
 	void Store();
+	//! add modality to list, create transfer function, show histogram, add volume to renderers
+	void ModalityAdded(QSharedPointer<iAModality> mod);
 signals:
 	void ModalityAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> img);
@@ -96,18 +104,19 @@ private slots:
 
 	void EnableButtons();
 	void ListClicked(QListWidgetItem* item);
-	void ModalityAdded(QSharedPointer<iAModality> mod);
 
 private:
 	MdiChild* m_mdiChild;
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
-	int m_selectedRow;
 	iAFast3DMagicLensWidget* m_renderer;
 	int m_numBin;
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
-	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
 	bool m_showSlicePlanes;
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
+
+	void AddToList(QSharedPointer<iAModality> mod);
+	//! initialize a modality's transfer function
+	void InitTransfer(QSharedPointer<iAModality> mod);
 };

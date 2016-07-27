@@ -1730,7 +1730,7 @@ MdiChild* MainWindow::createMdiChild()
 	MdiChild *child = new MdiChild(this);
 	mdiArea->addSubWindow(child);
 
-	child->setupRaycaster(defaultRenderSettings, defaultVolumeSettings, true);
+	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
 	child->setupSlicers(defaultSlicerSettings, false);
 	child->editPrefs(defaultPreferences, true);
 

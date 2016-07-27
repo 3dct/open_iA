@@ -94,3 +94,8 @@ size_t dlg_elementRenderer::GetRefLibIndex()
 {
 	return m_indexInReferenceLib;
 }
+
+void dlg_elementRenderer::ApplyVolumeSettings(iAVolumeSettings const & vs)
+{
+	m_volumeRenderer->ApplySettings(vs);
+}

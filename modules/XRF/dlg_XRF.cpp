@@ -1015,7 +1015,8 @@ void dlg_XRF::showLinkedElementMaps( int show )
 		dlg_elementRenderer *elemRend = new dlg_elementRenderer( mdiChild );
 		elemRend->SetRefLibIndex(i);
 		InitElementRenderer( elemRend, i );
-		mdiChild->applyCurrentSettingsToRaycaster( elemRend->GetRenderer() );
+		mdiChild->ApplyRenderSettings( elemRend->GetRenderer() );
+		elemRend->ApplyVolumeSettings(mdiChild->GetVolumeSettings());
 		m_rendererManager.addToBundle(elemRend->GetRenderer());
 		m_elementRenderers.push_back( elemRend );
 		if(isFirst)

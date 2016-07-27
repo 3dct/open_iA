@@ -128,7 +128,6 @@ public:
 	bool linkMDIs( bool l ) { linkM(l); return true; }
 	bool editPrefs(iAPreferences const & p, bool init );
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
-	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
 	bool saveTransferFunction();
@@ -157,7 +156,7 @@ public:
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileToggled(void) const;
 	void enableInteraction(bool b);
-	void setupRaycaster(iARenderSettings const & rs, iAVolumeSettings const & vs, bool init );
+	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void setupSlicers(iASlicerSettings const & ss, bool init);
 	void check2DMode();
 	iALogger * getLogger();
@@ -266,7 +265,11 @@ public:
 	int getZCoord() const { return zCoord; }
 
 	MainWindow* getM_mainWnd();
-	void hideHistogram();
+	void HideHistogram();
+	//! apply current rendering settings of this mdi child to the given iARenderer
+	void ApplyRenderSettings(iARenderer* raycaster);
+	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
+	void ApplyVolumeSettings();
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -496,6 +499,7 @@ private:
 	int GetCurrentModality() const;
 	void SetCurrentModality(int modality);
 	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
+	void InitDisplay();
 public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);
 	QSharedPointer<iAModalityList> GetModalities();

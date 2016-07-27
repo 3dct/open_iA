@@ -69,7 +69,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->GetRenderWindow());
 		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
 		m_volumeRenderer[i]->AddToWindow(m_renderers[i]->GetRenderWindow());
-		m_mdiChild->applyCurrentSettingsToRaycaster(m_renderers[i]);
+		m_mdiChild->ApplyRenderSettings(m_renderers[i]);
+		m_volumeRenderer[i]->ApplySettings(m_mdiChild->GetVolumeSettings());
 		
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);

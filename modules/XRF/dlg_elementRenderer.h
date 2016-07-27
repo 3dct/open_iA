@@ -30,6 +30,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_elementRenderer>   dlg_elemRendererCon
 
 class iARenderer;
 class iAVolumeRenderer;
+class iAVolumeSettings;
 
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -48,6 +49,7 @@ public:
 	iARenderer * GetRenderer();
 	void SetRefLibIndex(size_t index);
 	size_t GetRefLibIndex();
+	void ApplyVolumeSettings(iAVolumeSettings const & vs);
 
 private:
 	iARenderer * m_renderer;

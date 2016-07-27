@@ -157,7 +157,7 @@ bool iAModality::LoadData()
 		assert(volumes.size() > 0);
 		if (volumes.size() == 0)
 		{
-			DEBUG_LOG("No volume found in stack!\n");
+			DEBUG_LOG("No volume found in stack!");
 			return false;
 		}
 		int channels = volumes.size();
@@ -191,18 +191,19 @@ bool iAModality::LoadData()
 		const mapQString2int * ext2id = &extensionToId;
 		if (ext2id->find(extension) == ext2id->end())
 		{
-			DEBUG_LOG("Unknown file type!\n");
+			DEBUG_LOG("Unknown file type!");
 			return false;
 		}
 		IOType id = ext2id->find(extension).value();
 		if (!io.setupIO( id, m_filename ))
 		{
-			DEBUG_LOG("Error while setting up modality loading!\n");
+			DEBUG_LOG("Error while setting up modality loading!");
 			return false;
 		}
 		// TODO: check for errors during actual loading!
 		//connect(io, done(bool), this, )
 		io.start();
+		// TODO: VOLUME: make asynchronous!
 		io.wait();
 		SetData(img);
 	}
@@ -384,13 +385,13 @@ bool iAModalityList::Load(QString const & filename)
 {
 	if (filename.isEmpty())
 	{
-		DEBUG_LOG("No modality file given.\n");
+		DEBUG_LOG("No modality file given.");
 		return false;
 	}
 	QFileInfo fi(filename);
 	if (!fi.exists())
 	{
-		DEBUG_LOG(QString("Given modality file '%1' does not exist\n").arg(filename));
+		DEBUG_LOG(QString("Given modality file '%1' does not exist.").arg(filename));
 		return false;
 	}
 	QSettings settings(filename, QSettings::IniFormat );
@@ -398,7 +399,7 @@ bool iAModalityList::Load(QString const & filename)
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
 	{
-		DEBUG_LOG(QString("Invalid modality file version (was %1, expected %2! Trying to parse anyway, but expect failures.\n")
+		DEBUG_LOG(QString("Invalid modality file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
 			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
 			.arg(ModFileVersion));
 		return false;
@@ -407,7 +408,7 @@ bool iAModalityList::Load(QString const & filename)
 		!Str2Vec3D(settings.value(CameraFocalPointKey).toString(), camFocalPoint) ||
 		!Str2Vec3D(settings.value(CameraViewUpKey).toString(), camViewUp))
 	{
-		DEBUG_LOG(QString("Invalid or missing camera information.\n"));
+		DEBUG_LOG(QString("Invalid or missing camera information."));
 	}
 	else
 	{

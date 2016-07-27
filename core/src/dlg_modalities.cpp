@@ -56,7 +56,6 @@ namespace
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer, int numBin, QDockWidget* histogramContainer) :
 
 	modalities(new iAModalityList),
-	m_selectedRow(-1),
 	m_renderer(modalityRenderer),
 	m_numBin(numBin),
 	m_histogramContainer(histogramContainer),
@@ -81,12 +80,6 @@ void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
 {
 	modalities = modList;
 	lwModalities->clear();
-	connect(modalities.data(), SIGNAL(Added(QSharedPointer<iAModality>)), this, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
-	for (int i=0; i<modalities->size(); ++i)
-	{
-		ModalityAdded(modalities->Get(i));
-	}
-	m_selectedRow = 0;
 }
 
 void dlg_modalities::Store()
@@ -121,7 +114,6 @@ void dlg_modalities::Load()
 void dlg_modalities::SelectRow(int idx)
 {
 	lwModalities->setCurrentRow(idx);
-	m_selectedRow = idx;
 }
 
 bool dlg_modalities::Load(QString const & filename)
@@ -165,12 +157,8 @@ void dlg_modalities::MagicLens()
 	}
 }
 
-void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
+void dlg_modalities::InitTransfer(QSharedPointer<iAModality> mod)
 {
-	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
-	lwModalities->addItem (listItem);
-	EnableButtons();
-	m_selectedRow = lwModalities->row( listItem );
 	vtkSmartPointer<vtkImageData> imgData = mod->GetImage();
 	QSharedPointer<iAModalityTransfer> modTransfer(new iAModalityTransfer(
 		imgData,
@@ -178,8 +166,11 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 		this,
 		m_numBin));
 	mod->SetTransfer(modTransfer);
-	SwitchHistogram(modTransfer);
-	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(modTransfer.data(), imgData));
+}
+
+void dlg_modalities::InitDisplay(QSharedPointer<iAModality> mod)
+{
+	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(mod->GetTransfer().data(), mod->GetImage()));
 	mod->SetDisplay(modDisp);
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
@@ -194,9 +185,31 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 		// TODO: VOLUME: use render window for magic lens as well?
 		m_renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
 	}
-	emit ModalityAvailable();
 }
 
+void dlg_modalities::AddToList(QSharedPointer<iAModality> mod)
+{
+	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
+	lwModalities->addItem(listItem);
+	lwModalities->setCurrentItem(listItem);
+}
+
+void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
+{
+	// TODO: VOLUME: split up somehow
+	AddToList(mod);
+	EnableButtons();
+	InitTransfer(mod);
+}
+
+void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
+{
+	// TODO: VOLUME: split up somehow
+	AddListItemAndTransfer(mod);
+	SwitchHistogram(mod->GetTransfer());
+	InitDisplay(mod);
+	emit ModalityAvailable();
+}
 
 void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans)
 {
@@ -221,7 +234,6 @@ void dlg_modalities::RemoveClicked()
 		DEBUG_LOG(QString("Index out of range (%1)\n").arg(idx));
 		return;
 	}
-	// TODO: refactor
 	QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(idx)->GetDisplay();
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer))
 	{
@@ -316,13 +328,14 @@ void dlg_modalities::ManualRegistration()
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)
 {
-	m_selectedRow = lwModalities->row( item );
-	QSharedPointer<iAModality> currentData = modalities->Get(m_selectedRow);
-	if (m_selectedRow >= 0)
+	int selectedRow = lwModalities->row( item );
+	if (selectedRow < 0)
 	{
-		QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
-		SwitchHistogram(modTransfer);
+		return;
 	}
+	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
+	QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
+	SwitchHistogram(modTransfer);
 	emit ShowImage(currentData->GetImage());
 }
 
@@ -338,7 +351,7 @@ QSharedPointer<iAModalityList> dlg_modalities::GetModalities()
 
 int dlg_modalities::GetSelected() const
 {
-	return m_selectedRow;
+	return lwModalities->currentRow();
 }
 
 vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::GetCTF(int modality)
@@ -355,8 +368,13 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
 {
 	for (int i = 0; i < modalities->size(); ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(i)->GetDisplay();
-		modDisp->ApplySettings(rs);
+		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetDisplay();
+		if (!renderer)
+		{
+			DEBUG_LOG("ChangeRenderSettings: No Renderer set!");
+			return;
+		}
+		renderer->ApplySettings(rs);
 	}
 }
 
@@ -371,26 +389,17 @@ iAHistogramWidget* dlg_modalities::GetHistogram()
 	return m_currentHistogram;
 }
 
-/*
-void dlg_modalities::ShowVolume(QSharedPointer<iAVolumeRenderer> renderer, bool enabled)
-{
-	if (enabled)
-	{
-		renderer->AddToWindow(m_renderer->GetRenderWindow());
-	}
-	else
-	{
-		renderer->RemoveFromWindow();
-	}
-}
-*/
-
 void dlg_modalities::ShowSlicePlanes(bool enabled)
 {
 	m_showSlicePlanes = enabled;
 	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetDisplay();
+		if (!renderer)
+		{
+			DEBUG_LOG("ShowSlicePlanes: No Renderer set!");
+			return;
+		}
 		if (enabled)
 		{
 			renderer->SetCuttingPlanes(m_plane1, m_plane2, m_plane3);
@@ -409,8 +418,6 @@ void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane
 	m_plane2 = plane2;
 	m_plane3 = plane3;
 }
-
-
 
 void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString const & name)
 {
