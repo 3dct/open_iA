@@ -36,7 +36,6 @@ class vtkOpenGLRenderer;
 class vtkOutlineFilter;
 class vtkPolyDataMapper;
 class vtkRenderer;
-//class vtkRenderWindow;
 class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
@@ -67,14 +66,12 @@ private:
 	vtkSmartPointer<vtkVolume> volume;
 	vtkSmartPointer<vtkVolumeProperty> volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
-	vtkRenderer* currentWindow;
-	//vtkSmartPointer<vtkOpenGLRenderer> renderer;
+	vtkRenderer* currentRenderer;
 
 	//! @{ Bounding Box
 	vtkSmartPointer<vtkOutlineFilter> outlineFilter;
 	vtkSmartPointer<vtkPolyDataMapper> outlineMapper;
 	vtkSmartPointer<vtkActor> outlineActor;
-	vtkRenderer* currentBoundingBoxWindow;
-	//vtkSmartPointer<vtkOpenGLRenderer> outlineRenderer;
+	vtkRenderer* currentBoundingBoxRenderer;
 	//! @}
 };

@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAVolumeRenderer.h"
 
@@ -47,10 +46,8 @@ iAVolumeRenderer::iAVolumeRenderer(
 	outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	outlineActor(vtkSmartPointer<vtkActor>::New()),
-	//renderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
-	//outlineRenderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
-	currentWindow(0),
-	currentBoundingBoxWindow(0)
+	currentRenderer(0),
+	currentBoundingBoxRenderer(0)
 {
 	volProp->SetColor(0, transfer->GetColorFunction());
 	volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
@@ -59,14 +56,12 @@ iAVolumeRenderer::iAVolumeRenderer(
 	volume->SetMapper(volMapper);
 	volume->SetProperty(volProp);
 	volume->SetVisibility(true);
-	//renderer->AddVolume(volume);
 
 	outlineFilter->SetInputData(imgData);
 	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
 	outlineActor->GetProperty()->SetColor(0, 0, 0);
 	outlineActor->PickableOff();
 	outlineActor->SetMapper(outlineMapper);
-	//outlineRenderer->AddActor(outlineActor);
 }
 
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
@@ -108,9 +103,9 @@ void iAVolumeRenderer::SetPosition(double* position)
 
 void iAVolumeRenderer::AddTo(vtkRenderer* w)
 {
-	if (currentWindow)
+	if (currentRenderer)
 	{
-		if (currentWindow != w)
+		if (currentRenderer != w)
 		{
 			Remove();
 		}
@@ -120,40 +115,25 @@ void iAVolumeRenderer::AddTo(vtkRenderer* w)
 		}
 	}
 	w->AddVolume(volume);
-	
-	// experiment adding a separate renderer for each volume:
-	//w->AddRenderer(renderer);
-	//vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-	//renderer->SetActiveCamera(cam);
-	//renderer->SetLayer(2);
-	//renderer->SetBackground(1, 0.5, 0.5);
-	//renderer->InteractiveOn();
-
-	// - produces better looking output on vtk OpenGL2 backend (using the same renderer there
-	//     has the effect that the later added volume appears in front of the others)
-	// - but introduced the "bug" that only the volume of the last inserted renderer
-	//     was affected by actor interaction, for which there seems to be no workaround
-
-	currentWindow = w;
+	currentRenderer = w;
 }
 
 void iAVolumeRenderer::Remove()
 {
-	if (!currentWindow)
+	if (!currentRenderer)
 	{
 		DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!\n");
 		return;
 	}
-	//currentWindow->RemoveRenderer(renderer);
-	currentWindow->RemoveVolume(volume);
-	currentWindow = 0;
+	currentRenderer->RemoveVolume(volume);
+	currentRenderer = 0;
 }
 
 void iAVolumeRenderer::AddBoundingBoxTo(vtkRenderer* w)
 {
-	if (currentBoundingBoxWindow)
+	if (currentBoundingBoxRenderer)
 	{
-		if (currentBoundingBoxWindow != w)
+		if (currentBoundingBoxRenderer != w)
 		{
 			RemoveBoundingBox();
 		}
@@ -162,28 +142,22 @@ void iAVolumeRenderer::AddBoundingBoxTo(vtkRenderer* w)
 			return;
 		}
 	}
-	//outlineRenderer->SetLayer(3);
-	//outlineRenderer->InteractiveOff();
-	//vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-	//outlineRenderer->SetActiveCamera(cam);
-	//w->AddRenderer(outlineRenderer);
 	w->AddActor(outlineActor);
-	currentBoundingBoxWindow = w;
+	currentBoundingBoxRenderer = w;
 }
 
 
 void iAVolumeRenderer::RemoveBoundingBox()
 {
-	if (!currentBoundingBoxWindow)
+	if (!currentBoundingBoxRenderer)
 		return;
-	//currentBoundingBoxWindow->RemoveRenderer(outlineRenderer);
-	currentBoundingBoxWindow->RemoveActor(outlineActor);
-	currentBoundingBoxWindow = 0;
+	currentBoundingBoxRenderer->RemoveActor(outlineActor);
+	currentBoundingBoxRenderer = 0;
 }
 
 void iAVolumeRenderer::UpdateBoundingBox()
 {
-	if (!currentBoundingBoxWindow)
+	if (!currentBoundingBoxRenderer)
 		return;
 	outlineActor->SetOrientation(volume->GetOrientation());
 	outlineActor->SetPosition(volume->GetPosition());
