@@ -36,6 +36,8 @@ class QDockWidget;
 class QString;
 class QWidget;
 
+//! class uniting a color transfer function, an opacity transfer function
+//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
 class iAModalityTransfer: public iATransferFunction
 {
 private:

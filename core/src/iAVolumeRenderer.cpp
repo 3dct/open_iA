@@ -78,8 +78,10 @@ void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 	volProp->SetInterpolationType(vs.LinearInterpolation);
 	volProp->SetShade(vs.Shading);
 	volMapper->SetRequestedRenderMode(vs.Mode);
-	volMapper->InteractiveAdjustSampleDistancesOff();
+#ifdef VTK_OPENGL2_BACKEND
 	volMapper->SetSampleDistance(vs.SampleDistance);
+	volMapper->InteractiveAdjustSampleDistancesOff();
+#endif
 }
 
 double * iAVolumeRenderer::GetOrientation()

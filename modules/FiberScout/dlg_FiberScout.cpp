@@ -1544,7 +1544,9 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		// Create volume and mapper and set input for mapper
 		vtkVolume* volume = vtkVolume::New();
 		vtkSmartPointer<vtkSmartVolumeMapper> mapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+#ifdef VTK_OPENGL2_BACKEND
 		mapper->SetSampleDistance( 1.0 );
+#endif
 		mapper->SetInterpolationModeToLinear();
 		mapper->SetBlendModeToComposite();
 		mapper->SetInputData( meanObjectImage );
