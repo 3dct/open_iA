@@ -2872,7 +2872,7 @@ void MdiChild::LoadProject()
 {
 	m_dlgModalities->Load();
 	setCurrentFile(GetModalities()->GetFileName());
-	//m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
+	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
 	if (GetModalities()->size() > 0)
 	{
 		InitDisplay();
@@ -2882,21 +2882,20 @@ void MdiChild::LoadProject()
 // TODO: VOLUME: remove duplication with previous function!
 void MdiChild::LoadProject(QString const & fileName)
 {
-	// crashes most of the time in setupOrientationMarker in iARenderer.
-	// TODO: VOLUME: find out why!
-	/*
-	bool noDataLoaded = GetModalities()->size() == 0;
+	// workaround for the crash when loading project from recent files.
+	// apparently some work needs to be done between creating the mdi child
+	// (done in Mainwindow::LoadProject) and setting up the dataset
+	// Could probably be omitted if the data loading in dlg_modalities was
+	// asynchronous!
+	QApplication::processEvents();
+
 	m_dlgModalities->Load(fileName);
 	setCurrentFile(GetModalities()->GetFileName());
 	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	if (noDataLoaded && GetModalities()->size() > 0)
+	if (GetModalities()->size() > 0)
 	{
-		setImageData(
-			GetModality(0)->GetFileName(),
-			GetModality(0)->GetImage()
-		);
+		InitDisplay();
 	}
-	*/
 }
 
 void MdiChild::StoreProject()
