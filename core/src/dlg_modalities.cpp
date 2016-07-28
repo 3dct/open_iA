@@ -386,6 +386,10 @@ void dlg_modalities::RendererMouseMoved()
 {
 	for (int i = 0; i < modalities->size(); ++i)
 	{
+		if (!modalities->Get(i)->GetRenderer())
+		{
+			return;
+		}
 		modalities->Get(i)->GetRenderer()->UpdateBoundingBox();
 	}
 }
