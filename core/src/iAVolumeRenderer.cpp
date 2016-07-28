@@ -49,7 +49,8 @@ iAVolumeRenderer::iAVolumeRenderer(
 	outlineActor(vtkSmartPointer<vtkActor>::New()),
 	//renderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	//outlineRenderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
-	currentWindow(0)
+	currentWindow(0),
+	currentBoundingBoxWindow(0)
 {
 	volProp->SetColor(0, transfer->GetColorFunction());
 	volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());

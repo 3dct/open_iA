@@ -379,8 +379,10 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
 
 void dlg_modalities::RendererMouseMoved()
 {
-	double baseVector[3] = { 0, 0, 1 };
-	double basePosition[3] = { -0.1, -0.1, -0.1 };
+	for (int i = 0; i < modalities->size(); ++i)
+	{
+		modalities->Get(i)->GetRenderer()->UpdateBoundingBox();
+	}
 }
 
 iAHistogramWidget* dlg_modalities::GetHistogram()
