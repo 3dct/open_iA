@@ -43,12 +43,12 @@ iAVolumeRenderer::iAVolumeRenderer(
 :
 	volProp(vtkSmartPointer<vtkVolumeProperty>::New()),
 	volume(vtkSmartPointer<vtkVolume>::New()),
-	renderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	volMapper(vtkSmartPointer<vtkSmartVolumeMapper>::New()),
 	outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	outlineActor(vtkSmartPointer<vtkActor>::New()),
-	outlineRenderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
+	//renderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
+	//outlineRenderer(vtkSmartPointer<vtkOpenGLRenderer>::New()),
 	currentWindow(0)
 {
 	volProp->SetColor(0, transfer->GetColorFunction());
@@ -58,14 +58,14 @@ iAVolumeRenderer::iAVolumeRenderer(
 	volume->SetMapper(volMapper);
 	volume->SetProperty(volProp);
 	volume->SetVisibility(true);
-	renderer->AddVolume(volume);
+	//renderer->AddVolume(volume);
 
 	outlineFilter->SetInputData(imgData);
 	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
 	outlineActor->GetProperty()->SetColor(0, 0, 0);
 	outlineActor->PickableOff();
 	outlineActor->SetMapper(outlineMapper);
-	outlineRenderer->AddActor(outlineActor);
+	//outlineRenderer->AddActor(outlineActor);
 }
 
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
@@ -103,75 +103,87 @@ void iAVolumeRenderer::SetPosition(double* position)
 	outlineActor->SetPosition(position);
 }
 
-void iAVolumeRenderer::AddToWindow(vtkRenderWindow* w)
+void iAVolumeRenderer::AddTo(vtkRenderer* w)
 {
 	if (currentWindow)
 	{
 		if (currentWindow != w)
 		{
-			RemoveFromWindow();
+			Remove();
 		}
 		else
 		{
 			return;
 		}
 	}
-	w->AddRenderer(renderer);
-	vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-	renderer->SetActiveCamera(cam);
-	renderer->SetLayer(2);
-	renderer->SetBackground(1, 0.5, 0.5);
-	renderer->InteractiveOn();
+	w->AddVolume(volume);
+	
+	// experiment adding a separate renderer for each volume:
+	//w->AddRenderer(renderer);
+	//vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	//renderer->SetActiveCamera(cam);
+	//renderer->SetLayer(2);
+	//renderer->SetBackground(1, 0.5, 0.5);
+	//renderer->InteractiveOn();
+
+	// - produces better looking output on vtk OpenGL2 backend (using the same renderer there
+	//     has the effect that the later added volume appears in front of the others)
+	// - but introduced the "bug" that only the volume of the last inserted renderer
+	//     was affected by actor interaction, for which there seems to be no workaround
+
 	currentWindow = w;
 }
 
-void iAVolumeRenderer::AddBoundingBoxToWindow(vtkRenderWindow* w)
-{
-	if (currentBoundingBoxWindow)
-	{
-		if (currentBoundingBoxWindow != w)
-		{
-			RemoveBoundingBoxFromWindow();
-		}
-		else
-		{
-			return;
-		}
-	}
-	outlineRenderer->SetLayer(3);
-	outlineRenderer->InteractiveOff();
-	vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-	outlineRenderer->SetActiveCamera(cam);
-	w->AddRenderer(outlineRenderer);
-	currentBoundingBoxWindow = w;
-}
-
-
-void iAVolumeRenderer::RemoveBoundingBoxFromWindow()
-{
-	if (!currentBoundingBoxWindow)
-		return;
-	currentBoundingBoxWindow->RemoveRenderer(outlineRenderer);
-	currentBoundingBoxWindow = 0;
-}
-
-void iAVolumeRenderer::UpdateBoundingBoxPosition()
-{
-	if (!currentBoundingBoxWindow)
-		return;
-	outlineActor->SetOrientation(volume->GetOrientation());
-	outlineActor->SetPosition(volume->GetPosition());
-}
-
-void iAVolumeRenderer::RemoveFromWindow()
+void iAVolumeRenderer::Remove()
 {
 	if (!currentWindow)
 	{
 		DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!\n");
 		return;
 	}
-	currentWindow->RemoveRenderer(renderer);
+	//currentWindow->RemoveRenderer(renderer);
+	currentWindow->RemoveVolume(volume);
 	currentWindow = 0;
+}
+
+void iAVolumeRenderer::AddBoundingBoxTo(vtkRenderer* w)
+{
+	if (currentBoundingBoxWindow)
+	{
+		if (currentBoundingBoxWindow != w)
+		{
+			RemoveBoundingBox();
+		}
+		else
+		{
+			return;
+		}
+	}
+	//outlineRenderer->SetLayer(3);
+	//outlineRenderer->InteractiveOff();
+	//vtkCamera* cam = w->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	//outlineRenderer->SetActiveCamera(cam);
+	//w->AddRenderer(outlineRenderer);
+	w->AddActor(outlineActor);
+	currentBoundingBoxWindow = w;
+}
+
+
+void iAVolumeRenderer::RemoveBoundingBox()
+{
+	if (!currentBoundingBoxWindow)
+		return;
+	//currentBoundingBoxWindow->RemoveRenderer(outlineRenderer);
+	currentBoundingBoxWindow->RemoveActor(outlineActor);
+	currentBoundingBoxWindow = 0;
+}
+
+void iAVolumeRenderer::UpdateBoundingBox()
+{
+	if (!currentBoundingBoxWindow)
+		return;
+	outlineActor->SetOrientation(volume->GetOrientation());
+	outlineActor->SetPosition(volume->GetPosition());
 }
 
 

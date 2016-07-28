@@ -35,7 +35,8 @@ class vtkPlane;
 class vtkOpenGLRenderer;
 class vtkOutlineFilter;
 class vtkPolyDataMapper;
-class vtkRenderWindow;
+class vtkRenderer;
+//class vtkRenderWindow;
 class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
@@ -51,29 +52,29 @@ public:
 	double * GetPosition();
 	void SetPosition(double *);
 	void SetOrientation(double *);
-	void AddToWindow(vtkRenderWindow* w);
-	void RemoveFromWindow();
-	void iAVolumeRenderer::AddBoundingBoxToWindow(vtkRenderWindow* w);
-	void RemoveBoundingBoxFromWindow();
+	void AddTo(vtkRenderer* w);
+	void Remove();
+	void iAVolumeRenderer::AddBoundingBoxTo(vtkRenderer* w);
+	void RemoveBoundingBox();
 	vtkSmartPointer<vtkVolume> GetVolume();
 	void Update();
 	void SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
 	void RemoveCuttingPlanes();
-	void UpdateBoundingBoxPosition();
+	void UpdateBoundingBox();
 private:
 	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
 
-	vtkSmartPointer<vtkOpenGLRenderer> renderer;
 	vtkSmartPointer<vtkVolume> volume;
 	vtkSmartPointer<vtkVolumeProperty> volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
-	vtkRenderWindow* currentWindow;
-	vtkRenderWindow* currentBoundingBoxWindow;
+	vtkRenderer* currentWindow;
+	//vtkSmartPointer<vtkOpenGLRenderer> renderer;
 
 	//! @{ Bounding Box
 	vtkSmartPointer<vtkOutlineFilter> outlineFilter;
 	vtkSmartPointer<vtkPolyDataMapper> outlineMapper;
 	vtkSmartPointer<vtkActor> outlineActor;
-	vtkSmartPointer<vtkOpenGLRenderer> outlineRenderer;
+	vtkRenderer* currentBoundingBoxWindow;
+	//vtkSmartPointer<vtkOpenGLRenderer> outlineRenderer;
 	//! @}
 };

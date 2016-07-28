@@ -21,16 +21,6 @@
 #include "pch.h"
 #include "dlg_modalities.h"
 
-#include <QVTKInteractor.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
-#include <vtkInteractorStyleTrackballActor.h>
-#include <vtkInteractorStyleTrackballCamera.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRendererCollection.h>
-
 #include "dlg_modalityProperties.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
@@ -42,6 +32,15 @@
 #include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
 #include "iAVolumeSettings.h"
+
+#include <QVTKInteractor.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
+#include <vtkInteractorStyleSwitch.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
 
 #include <QFileDialog>
 #include <QSettings>
@@ -170,20 +169,20 @@ void dlg_modalities::InitTransfer(QSharedPointer<iAModality> mod)
 
 void dlg_modalities::InitDisplay(QSharedPointer<iAModality> mod)
 {
-	QSharedPointer<iAVolumeRenderer> modDisp(new iAVolumeRenderer(mod->GetTransfer().data(), mod->GetImage()));
-	mod->SetDisplay(modDisp);
+	QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->GetTransfer().data(), mod->GetImage()));
+	mod->SetRenderer(renderer);
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
-		modDisp->AddToWindow(m_renderer->GetRenderWindow());
+		renderer->AddTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 	}
 	if (mod->hasRenderFlag(iAModality::BoundingBox))
 	{
-		modDisp->AddBoundingBoxToWindow(m_renderer->GetRenderWindow());
+		renderer->AddBoundingBoxTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 	}
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
 		// TODO: VOLUME: use render window for magic lens as well?
-		m_renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->AddVolume(renderer->GetVolume());
 	}
 }
 
@@ -234,18 +233,18 @@ void dlg_modalities::RemoveClicked()
 		DEBUG_LOG(QString("Index out of range (%1)\n").arg(idx));
 		return;
 	}
-	QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(idx)->GetDisplay();
+	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer))
 	{
-		modDisp->RemoveFromWindow();
+		renderer->Remove();
 	}
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->RemoveVolume(renderer->GetVolume());
 	}
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::BoundingBox))
 	{
-		modDisp->RemoveBoundingBoxFromWindow();
+		renderer->RemoveBoundingBox();
 	}
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
@@ -272,36 +271,36 @@ void dlg_modalities::EditClicked()
 	{
 		DEBUG_LOG("Changing file not supported!\n");
 	}
-	QSharedPointer<iAVolumeRenderer> modDisp = modalities->Get(idx)->GetDisplay();
+	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
 	if ((renderFlagsBefore & iAModality::MainRenderer) == iAModality::MainRenderer
 		&& !editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		modDisp->RemoveFromWindow();
+		renderer->Remove();
 	}
 	if ((renderFlagsBefore & iAModality::MainRenderer) == 0
 		&& editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		modDisp->AddToWindow(m_renderer->GetRenderWindow());
+		renderer->AddTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 	}
 	if ((renderFlagsBefore & iAModality::BoundingBox) == iAModality::BoundingBox
 		&& !editModality->hasRenderFlag(iAModality::BoundingBox))
 	{
-		modDisp->RemoveBoundingBoxFromWindow();
+		renderer->RemoveBoundingBox();
 	}
 	if ((renderFlagsBefore & iAModality::BoundingBox) == 0
 		&& editModality->hasRenderFlag(iAModality::BoundingBox))
 	{
-		modDisp->AddBoundingBoxToWindow(m_renderer->GetRenderWindow());
+		renderer->AddBoundingBoxTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == iAModality::MagicLens
 		&& !editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_renderer->getLensRenderer()->RemoveVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->RemoveVolume(renderer->GetVolume());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == 0
 		&& editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_renderer->getLensRenderer()->AddVolume(modDisp->GetVolume());
+		m_renderer->getLensRenderer()->AddVolume(renderer->GetVolume());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 }
@@ -368,7 +367,7 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
 {
 	for (int i = 0; i < modalities->size(); ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetDisplay();
+		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
 		if (!renderer)
 		{
 			DEBUG_LOG("ChangeRenderSettings: No Renderer set!");
@@ -394,7 +393,7 @@ void dlg_modalities::ShowSlicePlanes(bool enabled)
 	m_showSlicePlanes = enabled;
 	for (int i = 0; i < modalities->size(); ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetDisplay();
+		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
 		if (!renderer)
 		{
 			DEBUG_LOG("ShowSlicePlanes: No Renderer set!");

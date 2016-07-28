@@ -31,6 +31,7 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPolyData.h>
+#include <vtkRendererCollection.h>
 #include <vtkTransform.h>
 
 dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
@@ -67,16 +68,16 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	{
 		m_renderer->initialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
-		m_volumeRenderer->AddToWindow(m_renderer->GetRenderWindow());
+		m_volumeRenderer->AddTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 		m_rendInitialized = true;
 	}
 	else
 	{
 		// TODO: VOLUME: check if recreation of volume renderer is necessary!
-		m_volumeRenderer->RemoveFromWindow();
+		m_volumeRenderer->Remove();
 		m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
-		m_volumeRenderer->AddToWindow(m_renderer->GetRenderWindow());
+		m_volumeRenderer->AddTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 	}
 }
 

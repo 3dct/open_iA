@@ -35,6 +35,7 @@
 #include <vtkCamera.h>
 #include <vtkPolyData.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkTransform.h>
 
 const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};
@@ -68,7 +69,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_renderers[i]->setAxesTransform(m_axesTransform);
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->GetRenderWindow());
 		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
-		m_volumeRenderer[i]->AddToWindow(m_renderers[i]->GetRenderWindow());
+		m_volumeRenderer[i]->AddTo(m_renderers[i]->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 		m_mdiChild->ApplyRenderSettings(m_renderers[i]);
 		m_volumeRenderer[i]->ApplySettings(m_mdiChild->GetVolumeSettings());
 		

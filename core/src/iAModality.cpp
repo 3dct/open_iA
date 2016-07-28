@@ -217,7 +217,7 @@ bool iAModality::LoadData()
 void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
 {
 	// TODO: VOLUME: rewrite / move to iAModalityTransfer constructor if possible!
-	this->transfer = transfer;
+	m_transfer = transfer;
 	if (tfFileName.isEmpty())
 	{
 		return;
@@ -228,7 +228,7 @@ void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
 
 QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
 {
-	return transfer;
+	return m_transfer;
 }
 
 bool Str2Vec3D(QString const & str, double vec[3])
@@ -248,9 +248,9 @@ bool Str2Vec3D(QString const & str, double vec[3])
 	return true;
 }
 
-void iAModality::SetDisplay(QSharedPointer<iAVolumeRenderer> display)
+void iAModality::SetRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 {
-	this->display = display;
+	m_renderer = renderer;
 	if (orientationSettings.isEmpty() || positionSettings.isEmpty())
 	{
 		return;
@@ -263,13 +263,13 @@ void iAModality::SetDisplay(QSharedPointer<iAVolumeRenderer> display)
 		//DEBUG_LOG("Invalid orientation/position!\n");
 		return;
 	}
-	display->SetPosition(position);
-	display->SetOrientation(orientation);
+	renderer->SetPosition(position);
+	renderer->SetOrientation(orientation);
 }
 
-QSharedPointer<iAVolumeRenderer> iAModality::GetDisplay()
+QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 {
-	return display;
+	return m_renderer;
 }
 
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
@@ -345,15 +345,15 @@ QString Vec3D2String(double* vec)
 	return QString("%1 %2 %3").arg(vec[0]).arg(vec[1]).arg(vec[2]);
 }
 
-QString GetOrientation(QSharedPointer<iAVolumeRenderer> display)
+QString GetOrientation(QSharedPointer<iAVolumeRenderer> renderer)
 {
-	double * orientation = display->GetOrientation();
+	double * orientation = renderer->GetOrientation();
 	return Vec3D2String(orientation);
 }
 
-QString GetPosition(QSharedPointer<iAVolumeRenderer> display)
+QString GetPosition(QSharedPointer<iAVolumeRenderer> renderer)
 {
-	double * position = display->GetPosition();
+	double * position = renderer->GetPosition();
 	return Vec3D2String(position);
 }
 
@@ -374,8 +374,8 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		settings.setValue(GetModalityKey(i, "Name"), m_modalities[i]->GetName());
 		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->GetFileName()));
 		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalities[i]) );
-		settings.setValue(GetModalityKey(i, "Orientation"), GetOrientation(m_modalities[i]->GetDisplay()));
-		settings.setValue(GetModalityKey(i, "Position"), GetPosition(m_modalities[i]->GetDisplay()));
+		settings.setValue(GetModalityKey(i, "Orientation"), GetOrientation(m_modalities[i]->GetRenderer()));
+		settings.setValue(GetModalityKey(i, "Position"), GetPosition(m_modalities[i]->GetRenderer()));
 		QFileInfo modFileInfo(m_modalities[i]->GetFileName());
 		QString absoluteTFFileName(modFileInfo.absoluteFilePath() + "_tf.xml");
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);

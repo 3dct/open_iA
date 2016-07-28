@@ -86,8 +86,8 @@ public:
 
 	void SetTransfer(QSharedPointer<iAModalityTransfer> transfer);
 	QSharedPointer<iAModalityTransfer> GetTransfer();
-	void SetDisplay(QSharedPointer<iAVolumeRenderer> display);
-	QSharedPointer<iAVolumeRenderer> GetDisplay();
+	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
+	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
 	// TODO: Refactor
 	QString positionSettings;
@@ -100,8 +100,8 @@ private:
 
 	QSharedPointer<iASpectralVoxelData> m_data;
 	QSharedPointer<iAImageCoordConverter> m_converter;
-	QSharedPointer<iAModalityTransfer> transfer;
-	QSharedPointer<iAVolumeRenderer> display;
+	QSharedPointer<iAModalityTransfer> m_transfer;
+	QSharedPointer<iAVolumeRenderer> m_renderer;
 	double m_spacing[3];
 
 	// IO-related methods:
