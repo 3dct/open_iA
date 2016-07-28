@@ -342,7 +342,7 @@ void dlg_transfer::moveSelectedPoint(int x, int y)
 		}
 		else if (dataX <= prevOpacityTFValue[0])
 		{
-			int newX = d2vX(nextOpacityTFValue[0]) + 1;
+			int newX = d2vX(prevOpacityTFValue[0]) + 1;
 			setPoint(selectedPoint, newX, y);
 			setColorPoint(selectedPoint, newX);
 		}
