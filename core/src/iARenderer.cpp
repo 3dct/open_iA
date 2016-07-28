@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iARenderer.h"
 
@@ -109,15 +108,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane3 = vtkSmartPointer<vtkPlane>::New();
 
 	cellLocator = vtkSmartPointer<vtkCellLocator>::New();
-
-	// mobject image members initialize
-	/*
-	volumeHighlight = vtkSmartPointer<vtkVolume>::New();
-	volumePropertyHighlight = vtkVolumeProperty::New();
-	highlightMode = false;
-	meanObjectSelected = false;
-	meanObjectHighlighted = false;
-	*/
 }
 
 iARenderer::~iARenderer(void)
@@ -213,91 +203,6 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
 
 	update();
 }
-
-/*
-// TODO: VOLUME: check MObjects, at least those used in FiberScout, how to adapt them to use new stuff!
-void iARenderer::setTransferFunctions( vtkPiecewiseFunction* opacityTFHighlight, vtkColorTransferFunction* colorTFHighlight, vtkPiecewiseFunction* opacityTFTransparent, vtkColorTransferFunction* colorTFTransparent )
-{
-	piecewiseFunctionHighlight = opacityTFHighlight;
-	colorTransferFunctionHighlight = colorTFHighlight;
-	piecewiseFunctionTransparent = opacityTFTransparent;
-	colorTransferFunctionTransparent = colorTFTransparent;
-
-	update();
-}
-
-
-void iARenderer::initializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
-{
-	imageDataHighlight = ds;
-	piecewiseFunctionHighlight = otfHighlight;
-	colorTransferFunctionHighlight = ctfHighlight;
-
-	piecewiseFunction = otf;
-	colorTransferFunction = ctf;
-
-	highlightMode = true;
-
-	volumeProperty->SetColor(0, colorTransferFunction);
-	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
-
-	volumePropertyHighlight->SetColor(colorTransferFunctionHighlight);
-	volumePropertyHighlight->SetScalarOpacity(piecewiseFunctionHighlight);
-	volumePropertyHighlight->SetAmbient(volumeProperty->GetAmbient());
-	volumePropertyHighlight->SetDiffuse(volumeProperty->GetDiffuse());
-	volumePropertyHighlight->SetSpecular(volumeProperty->GetSpecular());
-	volumePropertyHighlight->SetSpecularPower(volumeProperty->GetSpecularPower());
-	volumePropertyHighlight->SetInterpolationType(volumeProperty->GetInterpolationType()); 
-	volumePropertyHighlight->SetShade(volumeProperty->GetShade());
-
-	volumeMapper->SetInputData(imageDataHighlight);
-	volumeMapper->AddObserver(vtkCommand::VolumeMapperComputeGradientsProgressEvent, this->observerFPProgress);
-	volumeHighlight->SetMapper(volumeMapper);
-	volumeHighlight->SetProperty(volumePropertyHighlight);
-
-	volumeHighlight->SetPosition((imageData->GetDimensions()[0]-imageDataHighlight->GetDimensions()[0])/2*10-10,
-		(imageData->GetDimensions()[1]-imageDataHighlight->GetDimensions()[1])/2*10-10,
-		(imageData->GetDimensions()[2]-imageDataHighlight->GetDimensions()[2])/2*10-10);
-
-	volumeHighlight->Update();
-
-	ren->AddVolume(volumeHighlight);
-
-	update();
-}
-
-void iARenderer::reInitializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
-{
-	highlightMode = true;
-
-	imageDataHighlight = ds;
-	piecewiseFunctionHighlight = otf;
-	colorTransferFunctionHighlight = ctf;
-
-	volumePropertyHighlight->SetColor(colorTransferFunctionHighlight);
-	volumePropertyHighlight->SetScalarOpacity(piecewiseFunctionHighlight);
-
-	volumeMapper->SetInputData(imageDataHighlight);
-	volumeHighlight->SetMapper(volumeMapper);
-	volumeHighlight->SetProperty(volumePropertyHighlight);
-
-	ren->AddVolume(volumeHighlight);
-
-	update();
-}
-
-void iARenderer::visualizeHighlight( bool enabled )
-{
-	if(enabled)
-	{
-		ren->AddVolume(volumeHighlight);
-	}
-	else
-	{
-		ren->RemoveVolume(volumeHighlight);
-	}
-}
-*/
 
 void iARenderer::setupCutter()
 {

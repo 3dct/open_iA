@@ -76,14 +76,6 @@ public:
 	void setPolyData( vtkPolyData* pd );
 	vtkPolyData* getPolyData();
 
-/*
-	// TODO: VOLUME: rewrite to use different volumes?
-	void updateChannelImages();
-	void addChannel(iAChannelVisualizationData * chData );
-	void removeChannel(iAChannelVisualizationData * chData);
-	void showMainVolumeWithChannels(bool show);
-*/
-
 	void disableInteractor();
 	void enableInteractor();
 	void setAxesTransform(vtkTransform *transform) { axesTransform = transform; }
