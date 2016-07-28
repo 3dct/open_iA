@@ -315,13 +315,18 @@ void dlg_modalities::EnableButtons()
 
 void dlg_modalities::ManualRegistration()
 {
+	vtkInteractorStyleSwitch* interactSwitch = dynamic_cast<vtkInteractorStyleSwitch*>(m_renderer->GetInteractor()->GetInteractorStyle());
+	if (!interactSwitch)
+	{
+		return;
+	}
 	if (cbManualRegistration->isChecked())
 	{
-		m_renderer->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballActor::New());
+		interactSwitch->SetCurrentStyleToTrackballActor();
 	}
 	else
 	{
-		m_renderer->GetInteractor()->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
+		interactSwitch->SetCurrentStyleToTrackballCamera();
 	}
 }
 
