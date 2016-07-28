@@ -139,22 +139,6 @@ public:
 
 	void saveMovie(const QString& fileName, int mode, int qual = 2);
 	RenderObserver * getRenderObserver(){ return renderObserver; }
-
-/*
-	// TODO: move out of here, to MObjects ----------
-	void setTransferFunctions(vtkPiecewiseFunction* opacityTFHighlight, vtkColorTransferFunction* colorTFHighlight, vtkPiecewiseFunction* opacityTFTransparent, vtkColorTransferFunction* colorTFTransparent);
-	void initializeHighlight(vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
-	void reInitializeHighlight(vtkImageData* ds, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
-	void visualizeHighlight(bool enabled);
-
-	void setMeanObjectSelected ( bool s ) { meanObjectSelected = s; };
-	bool getMeanObjectSelected ( ) { return meanObjectSelected; };
-	void setMeanObjectHighlighted ( bool h ) { meanObjectHighlighted = h; };
-	bool getMeanObjectHighlighted ( ) { return meanObjectHighlighted; };
-	void setMeanObjectId( int id ) { meanObjectId = id; };
-	int  getMeanObjectId( ) { return meanObjectId; };
-	// <---------- until here!
-*/
 	void AddRenderer(vtkRenderer* renderer);
 protected:
 	RenderObserver *renderObserver;
@@ -197,24 +181,8 @@ private:
 	vtkSmartPointer<vtkPlane> plane1, plane2, plane3;
 	vtkSmartPointer<vtkPicker> pointPicker;
 
-	// mobject visualization members
-	// TODO: remove ----------
-	/*
-	vtkImageData* imageDataHighlight;
-	vtkPiecewiseFunction* piecewiseFunctionHighlight;
-	vtkColorTransferFunction* colorTransferFunctionHighlight;
-	vtkSmartPointer<vtkVolume> volumeHighlight;
-	vtkSmartPointer<vtkVolumeProperty> volumePropertyHighlight;
-	bool highlightMode;
-	bool meanObjectSelected;
-	bool meanObjectHighlighted;
-	int meanObjectId;
-	vtkPiecewiseFunction* piecewiseFunctionTransparent;
-	vtkColorTransferFunction* colorTransferFunctionTransparent;
-	*/
-	// ------------> until here!
-
 	int ext; //!< statistical extent size
+
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();

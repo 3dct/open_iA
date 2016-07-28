@@ -609,8 +609,8 @@ void iARenderer::InitObserver()
 	interactor->AddObserver(vtkCommand::KeyPressEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, renderObserver);
-	interactorStyle->AddObserver(vtkCommand::RightButtonPressEvent, renderObserver);
-	interactorStyle->AddObserver(vtkCommand::RightButtonReleaseEvent, renderObserver);
+	interactor->AddObserver(vtkCommand::RightButtonPressEvent, renderObserver);
+	interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, renderObserver);
 }
 
 void iARenderer::setPolyData(vtkPolyData* pd)

@@ -99,7 +99,8 @@ void iAAbstractMagicLensWidget::updateLens()
 {
 	if( GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0 )
 		return;
-	double points[4]; getViewportPoints( points );
+	double points[4];
+	getViewportPoints( points );
 	m_lensRen->SetViewport( points[0], points[1], points[2], points[3] );
 }
 
