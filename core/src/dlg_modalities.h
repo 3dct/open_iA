@@ -46,7 +46,7 @@ class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPlane;
-
+class vtkRenderer;
 
 // TODO: VOLUME: split off volume manager for the management of the actual volume rendering stuff
 // TODO: VOLUME: rename to dlg_dataList or such
@@ -54,7 +54,8 @@ class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalities(iAFast3DMagicLensWidget* renderer, int numBin, QDockWidget* histogramContainer);
+	dlg_modalities(iAFast3DMagicLensWidget* renderer,
+		vtkRenderer* mainRenderer, int numBin, QDockWidget* histogramContainer);
 	void SetModalities(QSharedPointer<iAModalityList> modalities);
 	QSharedPointer<iAModalityList const>  GetModalities() const;
 	QSharedPointer<iAModalityList>  GetModalities();
@@ -108,12 +109,13 @@ private slots:
 private:
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
-	iAFast3DMagicLensWidget* m_renderer;
+	iAFast3DMagicLensWidget* m_magicLensWidget;
 	int m_numBin;
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
 	bool m_showSlicePlanes;
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
+	vtkRenderer* m_mainRenderer;
 
 	void AddToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function

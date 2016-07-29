@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include <vtkSmartPointer.h>
+
 #include <QObject>
 
 #include <string>
@@ -29,6 +31,7 @@
 #include <QString>
 
 class dlg_console;
+class iARedirectVtkOutput;
 
 #define DEBUG_LOG(t) iAConsole::GetInstance().Log(t)
 
@@ -64,4 +67,5 @@ private:
 	dlg_console* m_console;
 	bool m_logToFile;
 	bool m_closed;
+	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
 };

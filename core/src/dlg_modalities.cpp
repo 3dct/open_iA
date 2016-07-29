@@ -52,10 +52,13 @@ namespace
 	char const * ProjectFileTypeFilter("open_iA project file (*.mod);;All files (*.*)");
 }
 
-dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer, int numBin, QDockWidget* histogramContainer) :
+dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
+	vtkRenderer* mainRenderer,
+	int numBin, QDockWidget* histogramContainer) :
 
 	modalities(new iAModalityList),
-	m_renderer(modalityRenderer),
+	m_magicLensWidget(magicLensWidget),
+	m_mainRenderer(mainRenderer),
 	m_numBin(numBin),
 	m_histogramContainer(histogramContainer),
 	m_currentHistogram(0),
@@ -72,7 +75,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* modalityRenderer, int nu
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(ListClicked(QListWidgetItem*)));
 
-	connect(modalityRenderer, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
+	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
 }
 
 void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
@@ -93,7 +96,7 @@ void dlg_modalities::Store()
 
 void dlg_modalities::Store(QString const & filename)
 {								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-	vtkCamera* cam = m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	vtkCamera* cam = m_mainRenderer->GetActiveCamera();
 	modalities->Store(filename, cam);
 }
 
@@ -148,11 +151,11 @@ void dlg_modalities::MagicLens()
 {
 	if (cbShowMagicLens->isChecked())
 	{
-		m_renderer->magicLensOn();
+		m_magicLensWidget->magicLensOn();
 	}
 	else
 	{
-		m_renderer->magicLensOff();
+		m_magicLensWidget->magicLensOff();
 	}
 }
 
@@ -173,16 +176,15 @@ void dlg_modalities::InitDisplay(QSharedPointer<iAModality> mod)
 	mod->SetRenderer(renderer);
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->AddTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+		renderer->AddTo(m_mainRenderer);
 	}
 	if (mod->hasRenderFlag(iAModality::BoundingBox))
 	{
-		renderer->AddBoundingBoxTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+		renderer->AddBoundingBoxTo(m_mainRenderer);
 	}
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
-		// TODO: VOLUME: use render window for magic lens as well?
-		m_renderer->getLensRenderer()->AddVolume(renderer->GetVolume());
+		m_magicLensWidget->getLensRenderer()->AddVolume(renderer->GetVolume());
 	}
 }
 
@@ -240,7 +242,7 @@ void dlg_modalities::RemoveClicked()
 	}
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_renderer->getLensRenderer()->RemoveVolume(renderer->GetVolume());
+		m_magicLensWidget->getLensRenderer()->RemoveVolume(renderer->GetVolume());
 	}
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::BoundingBox))
 	{
@@ -280,7 +282,7 @@ void dlg_modalities::EditClicked()
 	if ((renderFlagsBefore & iAModality::MainRenderer) == 0
 		&& editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->AddTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+		renderer->AddTo(m_mainRenderer);
 	}
 	if ((renderFlagsBefore & iAModality::BoundingBox) == iAModality::BoundingBox
 		&& !editModality->hasRenderFlag(iAModality::BoundingBox))
@@ -290,17 +292,17 @@ void dlg_modalities::EditClicked()
 	if ((renderFlagsBefore & iAModality::BoundingBox) == 0
 		&& editModality->hasRenderFlag(iAModality::BoundingBox))
 	{
-		renderer->AddBoundingBoxTo(m_renderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+		renderer->AddBoundingBoxTo(m_mainRenderer);
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == iAModality::MagicLens
 		&& !editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_renderer->getLensRenderer()->RemoveVolume(renderer->GetVolume());
+		m_magicLensWidget->getLensRenderer()->RemoveVolume(renderer->GetVolume());
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == 0
 		&& editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_renderer->getLensRenderer()->AddVolume(renderer->GetVolume());
+		m_magicLensWidget->getLensRenderer()->AddVolume(renderer->GetVolume());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 }
@@ -315,7 +317,7 @@ void dlg_modalities::EnableButtons()
 
 void dlg_modalities::ManualRegistration()
 {
-	vtkInteractorStyleSwitch* interactSwitch = dynamic_cast<vtkInteractorStyleSwitch*>(m_renderer->GetInteractor()->GetInteractorStyle());
+	vtkInteractorStyleSwitch* interactSwitch = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
 	if (!interactSwitch)
 	{
 		return;

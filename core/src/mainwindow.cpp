@@ -2687,3 +2687,23 @@ void MainWindow::OpenTLGICTData()
 	child->SetModalities(modList);
 	child->setCurrentFile(baseDirectory);
 }
+
+
+void MainWindow::LoadArguments(int argc, char** argv)
+{
+	if (argc > 2)
+	{
+		QStringList files;
+		for (int a = 1; a < argc; ++a) files << argv[a];
+		loadFiles(files);
+	}
+	else if (argc > 1)
+	{
+		LoadFile(QString(argv[1]));
+	}
+}
+
+iAPreferences const & MainWindow::GetDefaultPreferences() const
+{
+	return defaultPreferences;
+}

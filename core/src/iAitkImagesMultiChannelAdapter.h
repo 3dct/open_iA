@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASpectrumType.h"
-
 #include "iAImageCoordinate.h"
+#include "open_iA_Core_export.h"
+#include "iASpectrumType.h"
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 
-class iAvtkImagesMultiChannelAdapter: public iASpectralVoxelData
+class open_iA_Core_API iAvtkImagesMultiChannelAdapter: public iASpectralVoxelData
 {
 public:
 	iAvtkImagesMultiChannelAdapter(size_t width, size_t height, size_t depth);

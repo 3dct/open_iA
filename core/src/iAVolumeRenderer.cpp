@@ -49,19 +49,27 @@ iAVolumeRenderer::iAVolumeRenderer(
 	currentRenderer(0),
 	currentBoundingBoxRenderer(0)
 {
-	volProp->SetColor(0, transfer->GetColorFunction());
-	volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
 	volMapper->SetBlendModeToComposite();
-	volMapper->SetInputData(imgData);
 	volume->SetMapper(volMapper);
 	volume->SetProperty(volProp);
 	volume->SetVisibility(true);
 
-	outlineFilter->SetInputData(imgData);
 	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
 	outlineActor->GetProperty()->SetColor(0, 0, 0);
 	outlineActor->PickableOff();
 	outlineActor->SetMapper(outlineMapper);
+
+	SetImage(transfer, imgData);
+}
+
+
+void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData)
+{
+	volMapper->SetInputData(imgData);
+	volProp->SetColor(0, transfer->GetColorFunction());
+	volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
+	outlineFilter->SetInputData(imgData);
+	Update();
 }
 
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
@@ -173,6 +181,7 @@ void iAVolumeRenderer::Update()
 {
 	volume->Update();
 	volMapper->Update();
+	outlineMapper->Update();
 }
 
 
@@ -186,4 +195,15 @@ void iAVolumeRenderer::SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3
 void iAVolumeRenderer::RemoveCuttingPlanes()
 {
 	volMapper->RemoveAllClippingPlanes();
+}
+
+
+void iAVolumeRenderer::ShowVolume(bool visible)
+{
+	volume->SetVisibility(visible);
+}
+
+void iAVolumeRenderer::ShowBoundingBox(bool visible)
+{
+	outlineActor->SetVisibility(visible);
 }

@@ -60,9 +60,11 @@ public:
 	void SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
 	void RemoveCuttingPlanes();
 	void UpdateBoundingBox();
+	
+	void ShowVolume(bool visible);
+	void ShowBoundingBox(bool visible);
+	void SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
 private:
-	void CreateVolumeMapper(vtkSmartPointer<vtkImageData> imgData);
-
 	vtkSmartPointer<vtkVolume> volume;
 	vtkSmartPointer<vtkVolumeProperty> volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;

@@ -92,6 +92,7 @@ private:
 class open_iA_Core_API iAChannelVisualizationData
 {
 public:
+	// TODO: VOLUME: new channel vis. shouldn't have the Maximum3DChannels Limit!
 	static const size_t Maximum3DChannels = 3;
 
 	iAChannelVisualizationData();

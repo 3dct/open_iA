@@ -24,8 +24,6 @@
 #include "mainwindow.h"
 #include "version.h"
 
-#include "iARedirectVtkOutput.h"
-
 #include <QApplication>
 #include <QDate>
 
@@ -33,10 +31,6 @@
 
 int main(int argc, char *argv[])
 {
-	// redirect VTK output to console window:
-	vtkSmartPointer<iARedirectVtkOutput> myOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
-	vtkOutputWindow::SetInstance(myOutputWindow);
-
 	MainWindow::InitResources();
 	QApplication app(argc, argv);
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
@@ -45,19 +39,7 @@ int main(int argc, char *argv[])
 
 	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
 
-	if (argc > 1)
-	{
-		if (argc > 2)
-		{
-			QStringList files;
-			for (int a = 1; a < argc; ++a) files << argv[a];
-			mainWin.loadFiles(files);
-		}
-		else
-		{
-			mainWin.LoadFile(QString(argv[1]));
-		}
-	}
+	mainWin.LoadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
 	mainWin.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));

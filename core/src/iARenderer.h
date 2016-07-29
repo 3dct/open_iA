@@ -33,6 +33,7 @@
 class iAChannelVisualizationData;
 class iAChannelRenderData;
 class iAObserverProgress;
+class iARenderSettings;
 class RenderObserver;
 
 class vtkActor;
@@ -67,10 +68,6 @@ public:
 	iARenderer( QObject *parent = 0 );
 	virtual ~iARenderer( );
 
-protected:
-	void InitObserver();
-
-public:
 	void initialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
 	void reInitialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
 	void setPolyData( vtkPolyData* pd );
@@ -122,17 +119,19 @@ public:
 	vtkOpenGLRenderer * GetRenderer();
 	vtkActor* GetPolyActor();
 	vtkTransform* getCoordinateSystemTransform();
-	void GetImageDataBounds(double bounds[6]);
+	void GetImageDataBounds(double bounds[6]); //!< remove
 	vtkOpenGLRenderer * GetLabelRenderer ();
 	vtkPolyDataMapper* GetPolyMapper() const;
 	
 	iAObserverProgress* getObserverFPProgress() { return observerFPProgress; }
 	iAObserverProgress* getObserverGPUProgress() { return observerGPUProgress; }
 
-	void saveMovie(const QString& fileName, int mode, int qual = 2);
+	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	RenderObserver * getRenderObserver(){ return renderObserver; }
 	void AddRenderer(vtkRenderer* renderer);
+	void ApplySettings(iARenderSettings & settings);
 protected:
+	void InitObserver();
 	RenderObserver *renderObserver;
 	iAObserverProgress* observerFPProgress;
 	iAObserverProgress* observerGPUProgress;

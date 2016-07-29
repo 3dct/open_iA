@@ -97,7 +97,7 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 		return;
-
+						// TODO: VOLUME: find better way to get "main" renderer here!
 	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	double w = (double)width() / height();	// calculate width aspect ratio
 	double z = calculateZ( m_viewAngle );

@@ -28,6 +28,7 @@
 #include "iAMovieHelper.h"
 #include "iAObserverProgress.h"
 #include "iARenderObserver.h"
+#include "iARenderSettings.h"
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
@@ -130,11 +131,9 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 		if( polyData->GetNumberOfCells() )
 			cellLocator->BuildLocator();
 	ext = e;
-
 	double spacing[3];	ds->GetSpacing(spacing);
-
 	ren->SetLayer(0);
-	labelRen->SetLayer(1);
+	labelRen->SetLayer(2);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();
 	renWin->SetNumberOfLayers(5);
@@ -553,3 +552,23 @@ vtkOpenGLRenderer * iARenderer::GetRenderer() { return ren; };
 vtkActor* iARenderer::GetPolyActor() { return polyActor; };
 vtkOpenGLRenderer * iARenderer::GetLabelRenderer(void) { return labelRen; }
 vtkPolyDataMapper* iARenderer::GetPolyMapper() const { return polyMapper; }
+
+void iARenderer::ApplySettings(iARenderSettings & settings)
+{
+	cam->SetParallelProjection(settings.ParallelProjection);
+
+	QColor bgTop(settings.BackgroundTop);
+	QColor bgBottom(settings.BackgroundBottom);
+	if (!bgTop.isValid()) {
+		bgTop.setRgbF(0.5, 0.666666666666666667, 1.0);
+		settings.BackgroundTop = bgTop.name();
+	}
+	if (!bgBottom.isValid()) {
+		bgBottom.setRgbF(1.0, 1.0, 1.0);
+		settings.BackgroundBottom = bgTop.name();
+	}
+	ren->SetBackground(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
+	ren->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+	showHelpers(settings.ShowHelpers);
+	showRPosition(settings.ShowRPosition);
+}

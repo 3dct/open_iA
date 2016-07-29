@@ -52,6 +52,7 @@ class vtkAbstractTransform;
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkCornerAnnotation;
+class vtkImageAccumulate;
 class vtkImageCast;
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -200,10 +201,12 @@ public:
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return preferences.ResultInNewWindow; }
 	bool getLinkedMDIs() const { return slicerSettings.LinkMDIs; }
+	bool getLinkedViews() const { return slicerSettings.LinkViews; }
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
 	iAHistogramWidget * getHistogram();
+	vtkImageAccumulate * getImageAccumulate();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);

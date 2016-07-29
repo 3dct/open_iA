@@ -23,6 +23,7 @@
 #include "iAConsole.h"
 
 #include "dlg_console.h"
+#include "iARedirectVtkOutput.h"
 
 #include <QDateTime>
 
@@ -82,6 +83,10 @@ iAConsole::iAConsole() :
 	m_logToFile(false),
 	m_closed(false)
 {
+	// redirect VTK output to console window:
+	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
+	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
+
 	connect(this, SIGNAL(LogSignal(QString const &)), this, SLOT(LogSlot(QString const &)));
 }
 

@@ -106,17 +106,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	sXY = new dlg_sliceXY(this);
 	sXZ = new dlg_sliceXZ(this);
 	sYZ = new dlg_sliceYZ(this);
-	
-	m_dlgModalities = new dlg_modalities(r->GetRenderer(), preferences.HistogramBins, histogramContainer);
-	connect(m_dlgModalities, SIGNAL(UpdateViews()), this, SLOT(updateViews()));
-	connect(m_dlgModalities, SIGNAL(PointSelected()), this, SIGNAL(pointSelected()));
-	connect(m_dlgModalities, SIGNAL(NoPointSelected()), this, SIGNAL(noPointSelected()));
-	connect(m_dlgModalities, SIGNAL(EndPointSelected()), this, SIGNAL(endPointSelected()));
-	connect(m_dlgModalities, SIGNAL(Active()), this, SIGNAL(active()));
-	connect(m_dlgModalities, SIGNAL(AutoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
-
-	QSharedPointer<iAModalityList> modList(new iAModalityList);
-	SetModalities(modList);
 
 	pbar = new QProgressBar(this);
 	pbar->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -131,8 +120,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	splitDockWidget(r, sXZ, Qt::Horizontal);
 	splitDockWidget(r, sYZ, Qt::Vertical);
 	splitDockWidget(sXZ, sXY, Qt::Vertical);
-
-	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -158,6 +145,17 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	connect(r->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), Raycaster, SLOT(mouseLeftButtonReleasedSlot()) );
 	Raycaster->setAxesTransform(axesTransform);
 
+	m_dlgModalities = new dlg_modalities(r->GetRenderer(), Raycaster->GetRenderer(),
+		preferences.HistogramBins, histogramContainer);
+	connect(m_dlgModalities, SIGNAL(UpdateViews()), this, SLOT(updateViews()));
+	connect(m_dlgModalities, SIGNAL(PointSelected()), this, SIGNAL(pointSelected()));
+	connect(m_dlgModalities, SIGNAL(NoPointSelected()), this, SIGNAL(noPointSelected()));
+	connect(m_dlgModalities, SIGNAL(EndPointSelected()), this, SIGNAL(endPointSelected()));
+	connect(m_dlgModalities, SIGNAL(Active()), this, SIGNAL(active()));
+	connect(m_dlgModalities, SIGNAL(AutoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
+	QSharedPointer<iAModalityList> modList(new iAModalityList);
+	SetModalities(modList);
+	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
 	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 
 	imgProperty = 0;
@@ -473,7 +471,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 
 	initView( title );
 	setWindowTitle( title );
-	ApplyRenderSettings(Raycaster);
+	Raycaster->ApplySettings(renderSettings);
 	ApplyVolumeSettings();
 	setupSlicers(slicerSettings, true );
 
@@ -673,7 +671,7 @@ void MdiChild::setupViewInternal(bool active)
 		volumeSettings.Shading = false;
 
 	volumeSettings.SampleDistance = imageData->GetSpacing()[0];
-	ApplyRenderSettings(Raycaster);
+	Raycaster->ApplySettings(renderSettings);
 	setupSlicers(slicerSettings, true);
 
 	if (imageData->GetExtent()[1] <= 1)
@@ -1487,22 +1485,7 @@ void MdiChild::setRenderSettings(iARenderSettings const & rs, iAVolumeSettings c
 
 void MdiChild::ApplyRenderSettings(iARenderer* raycaster)
 {
-	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(renderSettings.ParallelProjection);
-
-	QColor bgTop(renderSettings.BackgroundTop);
-	QColor bgBottom(renderSettings.BackgroundBottom);
-	if (!bgTop.isValid()) {
-		bgTop.setRgbF(0.5, 0.666666666666666667, 1.0);
-		renderSettings.BackgroundTop = bgTop.name();
-	}
-	if (!bgBottom.isValid()) {
-		bgBottom.setRgbF(1.0, 1.0, 1.0);
-		renderSettings.BackgroundBottom = bgTop.name();
-	}
-	raycaster->GetRenderer()->SetBackground(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
-	raycaster->GetRenderer()->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
-	raycaster->showHelpers(renderSettings.ShowHelpers);
-	raycaster->showRPosition(renderSettings.ShowRPosition);
+	raycaster->ApplySettings(renderSettings);
 }
 
 void MdiChild::ApplyVolumeSettings()
@@ -2715,6 +2698,12 @@ std::vector<dlg_function*> & MdiChild::getFunctions()
 iAHistogramWidget * MdiChild::getHistogram()
 {
 	return m_dlgModalities->GetHistogram();
+}
+
+
+vtkImageAccumulate * MdiChild::getImageAccumulate()
+{
+	return GetModality(m_dlgModalities->GetSelected())->GetTransfer()->GetAccumulate();
 }
 
 void MdiChild::redrawHistogram()

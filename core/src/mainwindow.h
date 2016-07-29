@@ -65,7 +65,51 @@ public:
 	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
 	~MainWindow();
 	static void InitResources();
+	void setCurrentFile(const QString &fileName);
+	void updateRecentFileActions();
 
+	void setPath(QString p) { path = p; };
+	QString getPath() { return path; };
+
+	void LoadFile(QString const & fileName);
+	void loadFile(QString fileName, bool isStack);
+	void loadFiles(QStringList fileNames);
+
+	QDomDocument loadSettingsFile(QString filename);
+	void saveSettingsFile(QDomDocument &doc, QString filename);
+	void saveCamera(QDomDocument &doc);
+	void loadCamera(QDomNode &cameraNode);
+	void saveSliceViews(QDomDocument &doc);
+	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr);
+	void loadSliceViews(QDomNode &sliceViewsNode);
+	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
+	void saveProbabilityFunctions(QDomDocument &doc);
+	void loadProbabilityFunctions(QDomNode &functionsNode);
+	void savePreferences(QDomDocument &doc);
+	void loadPreferences(QDomNode &preferencesNode);
+	void saveRenderSettings(QDomDocument &doc);
+	void loadRenderSettings(QDomNode &renderSettingsNode);
+	void saveSlicerSettings(QDomDocument &doc);
+	void loadSlicerSettings(QDomNode &slicerSettingsNode);
+
+	void removeNode(QDomNode &node, char const *str);
+
+	QList<QString> mdiWindowTitles();
+
+	QMenu * getToolsMenu();
+	QMenu * getFiltersMenu();
+	QMenu * getHelpMenu();
+	QMenu * getFileMenu();
+	MdiChild *GetResultChild( QString const & title );
+	MdiChild *GetResultChild( int childInd, QString const & title );
+	MdiChild *activeMdiChild();
+	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	int SelectInputs(QString winTitel, int n, QStringList inList, int * out_inputIndxs, bool modal = true);
+	void addSubWindow(QWidget * child);
+	QString getCurFile() { return curFile; }
+	void loadLayout(MdiChild* child, QString const & layout);
+	void LoadArguments(int argc, char** argv);
+	iAPreferences const & GetDefaultPreferences() const;
 protected:
 	void closeEvent(QCloseEvent *event);
 
@@ -140,51 +184,6 @@ public slots:
 	void endPointSelected();
 	void setHistogramFocus();
 	void tabChanged(int index);
-
-public:
-	void setCurrentFile(const QString &fileName);
-	void updateRecentFileActions();
-
-	void setPath(QString p) { path = p; };
-	QString getPath() { return path; };
-
-	void LoadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack);
-	void loadFiles(QStringList fileNames);
-
-	QDomDocument loadSettingsFile(QString filename);
-	void saveSettingsFile(QDomDocument &doc, QString filename);
-	void saveCamera(QDomDocument &doc);
-	void loadCamera(QDomNode &cameraNode);
-	void saveSliceViews(QDomDocument &doc);
-	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr);
-	void loadSliceViews(QDomNode &sliceViewsNode);
-	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
-	void saveProbabilityFunctions(QDomDocument &doc);
-	void loadProbabilityFunctions(QDomNode &functionsNode);
-	void savePreferences(QDomDocument &doc);
-	void loadPreferences(QDomNode &preferencesNode);
-	void saveRenderSettings(QDomDocument &doc);
-	void loadRenderSettings(QDomNode &renderSettingsNode);
-	void saveSlicerSettings(QDomDocument &doc);
-	void loadSlicerSettings(QDomNode &slicerSettingsNode);
-
-	void removeNode(QDomNode &node, char const *str);
-	
-	QList<QString> mdiWindowTitles();
-
-	QMenu * getToolsMenu();
-	QMenu * getFiltersMenu();
-	QMenu * getHelpMenu();
-	QMenu * getFileMenu();
-	MdiChild *GetResultChild( QString const & title );
-	MdiChild *GetResultChild( int childInd, QString const & title );
-	MdiChild *activeMdiChild();
-	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	int SelectInputs(QString winTitel, int n, QStringList inList, int * out_inputIndxs, bool modal = true);
-	void addSubWindow(QWidget * child);
-	QString getCurFile() { return curFile; }
-	void loadLayout(MdiChild* child, QString const & layout);
 
 private:
 	void connectSignalsToSlots();

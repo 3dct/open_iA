@@ -24,7 +24,7 @@ class iARenderSettings
 {
 public:
 	bool
-		ShowSlicers,
+		ShowSlicers,			//! TODO: VOLUME: move to iAVolumeSettings?
 		ShowHelpers,
 		ShowRPosition,
 		ParallelProjection;
