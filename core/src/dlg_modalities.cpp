@@ -184,7 +184,7 @@ void dlg_modalities::InitDisplay(QSharedPointer<iAModality> mod)
 	}
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_magicLensWidget->getLensRenderer()->AddVolume(renderer->GetVolume());
+		renderer->AddTo(m_magicLensWidget->getLensRenderer());
 	}
 }
 
@@ -236,13 +236,10 @@ void dlg_modalities::RemoveClicked()
 		return;
 	}
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
-	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer))
+	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer) ||
+		modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
 	{
 		renderer->Remove();
-	}
-	if (modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
-	{
-		m_magicLensWidget->getLensRenderer()->RemoveVolume(renderer->GetVolume());
 	}
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::BoundingBox))
 	{
@@ -297,12 +294,12 @@ void dlg_modalities::EditClicked()
 	if ((renderFlagsBefore & iAModality::MagicLens) == iAModality::MagicLens
 		&& !editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_magicLensWidget->getLensRenderer()->RemoveVolume(renderer->GetVolume());
+		renderer->Remove();
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == 0
 		&& editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		m_magicLensWidget->getLensRenderer()->AddVolume(renderer->GetVolume());
+		renderer->AddTo(m_magicLensWidget->getLensRenderer());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 }

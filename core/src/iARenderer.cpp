@@ -133,7 +133,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	ext = e;
 	double spacing[3];	ds->GetSpacing(spacing);
 	ren->SetLayer(0);
-	labelRen->SetLayer(2);
+	labelRen->SetLayer(1);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();
 	renWin->SetNumberOfLayers(5);
