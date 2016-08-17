@@ -142,7 +142,6 @@ private:
 	vtkPolyData* polyData;
 	// TODO: VOLUME: check if this can be removed:
 	vtkImageData* imageData;
-	vtkTransform* axesTransform;
 	//! @}
 
 	vtkSmartPointer<vtkInteractorStyleSwitch> interactorStyle;
@@ -167,10 +166,15 @@ private:
 	
 	vtkSmartPointer<vtkAnnotatedCubeActor> annotatedCubeActor;
 	vtkSmartPointer<vtkAxesActor> axesActor;
-	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
 	vtkSmartPointer<vtkOrientationMarkerWidget> orientationMarkerWidget;
 	vtkSmartPointer<vtkPlane> plane1, plane2, plane3;
 	vtkSmartPointer<vtkPicker> pointPicker;
+
+	//! @{ movable axes
+	// TODO: check what the movable axes are useful for!
+	vtkTransform* axesTransform;
+	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
+	//! @}
 
 	int ext; //!< statistical extent size
 
