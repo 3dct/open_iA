@@ -80,6 +80,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	QCoreApplication::setOrganizationName("FHW");
 	QCoreApplication::setOrganizationDomain("3dct.at");
 	QCoreApplication::setApplicationName(appName);
+	setWindowTitle(appName);
 	QSettings settings;
 	path = settings.value("Path").toString();
 	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
@@ -2010,12 +2011,6 @@ void MainWindow::writeSettings()
 void MainWindow::setCurrentFile(const QString &fileName)
 {
 	curFile = fileName;
-	if (curFile.isEmpty())
-		setWindowTitle(tr("Recent Files"));
-	else
-		setWindowTitle(tr("%1 - %2").arg(strippedName(curFile))
-		.arg(tr("Recent Files")));
-
 	QSettings settings;
 	QStringList files = settings.value("recentFileList").toStringList();
 	files.removeAll(fileName);
