@@ -115,7 +115,6 @@ iARenderer::~iARenderer(void)
 {
 	ren->RemoveAllObservers();
 	renWin->RemoveAllObservers();
-	//multiChannelImageData->Delete();
 
 	if (renderObserver) renderObserver->Delete();
 	observerFPProgress->Delete();
@@ -272,7 +271,6 @@ void iARenderer::setupOrientationMarker()
 
 void iARenderer::setupRenderer(vtkImageData* ds)
 {
-
 	polyMapper->SetInputData(polyData);
 	polyMapper->SelectColorArray("Colors");
 	polyMapper->SetScalarModeToUsePointFieldData();
@@ -288,8 +286,10 @@ void iARenderer::setupRenderer(vtkImageData* ds)
 
 void iARenderer::update()
 {
-	// TODO: VOLUME: hook here and update all currently added volumes? is volumeMapper / volume update even necessary?
-	polyMapper->Update();
+	if (polyData)
+	{
+		polyMapper->Update();
+	}
 	renWin->Render();
 }
 

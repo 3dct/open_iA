@@ -227,7 +227,7 @@ void iAChannelSlicerData::SetShowContours( bool show )
 	cActor->SetVisibility( show );
 }
 
-void iAChannelSlicerData::SetContourLineParams( double lineWidth, bool dashed /*= false */ )
+void iAChannelSlicerData::SetContourLineParams( double lineWidth, bool dashed)
 {
 	cActor->GetProperty()->SetLineWidth( lineWidth );
 	if( dashed )
@@ -238,7 +238,6 @@ void iAChannelSlicerData::SetContoursOpacity( double opacity )
 {
 	cActor->GetProperty()->SetOpacity( opacity );
 }
-
 
 iAChannelVisualizationData::iAChannelVisualizationData():
 	piecewiseFunction(NULL),

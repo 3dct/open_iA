@@ -50,7 +50,7 @@ public:
 	};
 	static const int OFFSET_MODE_X_OFFSET;
 
-	iAMagicLens(std::string const & caption = "" );
+	iAMagicLens();
 
 	~iAMagicLens();
 

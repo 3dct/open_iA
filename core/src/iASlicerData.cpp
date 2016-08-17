@@ -1592,20 +1592,21 @@ void iASlicerData::enableChannel(iAChannelID id, bool enabled, double x, double 
 
 void iASlicerData::enableChannel( iAChannelID id, bool enabled )
 {
+	// TODO: move into channeldata!
 	if( enabled )
 	{
-		ren->AddActor( GetOrCreateChannel( id ).imageActor );
+		ren->AddActor(GetOrCreateChannel(id).imageActor );
 		if (m_decorations)
 		{
-			ren->AddActor( GetOrCreateChannel( id ).cActor );
+			ren->AddActor(GetOrCreateChannel(id).cActor);
 		}
 	}
 	else
 	{
-		ren->RemoveActor( GetOrCreateChannel( id ).imageActor );
+		ren->RemoveActor(GetOrCreateChannel(id).imageActor);
 		if (m_decorations)
 		{
-			ren->RemoveActor( GetOrCreateChannel( id ).cActor );
+			ren->RemoveActor(GetOrCreateChannel(id).cActor);
 		}
 	}
 }

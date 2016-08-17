@@ -114,7 +114,7 @@ void iAXRFAttachment::reInitXRF()
 	m_otf = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	m_otf->AddPoint(img->GetScalarRange()[0], 1);
 	m_otf->AddPoint(img->GetScalarRange()[1], 1);
-	m_childData.child->reInitMagicLens(ch_XRF, img, dlgXRF->GetColorTransferFunction(), m_otf );
+	m_childData.child->reInitMagicLens(ch_XRF, img, dlgXRF->GetColorTransferFunction(), m_otf, "Spectral Color Image");
 }
 
 void iAXRFAttachment::initXRF()
@@ -148,13 +148,12 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	{
 		updateSlicerXRFOpacity();
 	}
-	else
+	else if (isMagicLensEnabled)
 	{
-		m_childData.child->SetMagicLensEnabled( isMagicLensEnabled );
+		m_childData.child->SetMagicLensInput(ch_XRF,
+			!m_childData.child->GetChannelData(ch_XRF)->IsEnabled(),
+			"Spectral Color Image");
 	}
-	m_childData.child->SetMagicLensInput(ch_XRF, 
-		isMagicLensEnabled && m_childData.child->GetChannelData( ch_XRF ) && !m_childData.child->GetChannelData( ch_XRF )->IsEnabled() );
-
 	m_childData.child->updateSlicers();
 	m_childData.child->addMsg( tr( "%1  Spectral color image initialized." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
 }
@@ -341,7 +340,6 @@ void iAXRFAttachment::magicLensToggled( bool isOn )
 		initSlicerXRF( false );
 		return;
 	}
-	m_childData.child->SetMagicLensEnabled( isOn );
 }
 
 void iAXRFAttachment::ioFinished()

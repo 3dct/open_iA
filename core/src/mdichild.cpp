@@ -1858,8 +1858,7 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
 		chData->SetOpacity(0.5);
 		InitChannelRenderer(ch_ModalityLens, false, false);
-		SetMagicLensInput(ch_ModalityLens, true);
-		SetMagicLensCaption(GetModality(m_currentModality)->GetName().toStdString());
+		SetMagicLensInput(ch_ModalityLens, true, GetModality(m_currentModality)->GetName().toStdString());
 	}
 	SetMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2630,7 +2629,7 @@ void MdiChild::check2DMode()
 	}
 }
 
-void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
+void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice, std::string const & caption)
 {
 	slicerXY->SetMagicLensInput(id);
 	slicerXZ->SetMagicLensInput(id);
@@ -2642,6 +2641,7 @@ void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
 		slicerXZ->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
 		slicerXY->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	}
+	SetMagicLensCaption(caption);
 }
 
 
@@ -2653,7 +2653,7 @@ void MdiChild::SetMagicLensEnabled(bool isOn)
 }
 
 
-void MdiChild::SetMagicLensCaption(std::string caption)
+void MdiChild::SetMagicLensCaption(std::string const & caption)
 {
 	slicerXZ->SetMagicLensCaption(caption);
 	slicerYZ->SetMagicLensCaption(caption);
@@ -2683,8 +2683,7 @@ void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> img
 		return;
 	}
 	reInitChannel(id, imgData, ctf, otf);
-	SetMagicLensInput( id, true);
-	SetMagicLensCaption( caption );
+	SetMagicLensInput( id, true, caption);
 	updateSlicers();
 }
 

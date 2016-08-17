@@ -53,16 +53,18 @@ public:
 	void SetOrientation(double *);
 	void AddTo(vtkRenderer* w);
 	void Remove();
-	void iAVolumeRenderer::AddBoundingBoxTo(vtkRenderer* w);
-	void RemoveBoundingBox();
 	vtkSmartPointer<vtkVolume> GetVolume();
 	void Update();
+	void ShowVolume(bool visible);
+
 	void SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3);
 	void RemoveCuttingPlanes();
+
+	void AddBoundingBoxTo(vtkRenderer* w);
+	void RemoveBoundingBox();
 	void UpdateBoundingBox();
-	
-	void ShowVolume(bool visible);
 	void ShowBoundingBox(bool visible);
+
 	void SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
 private:
 	vtkSmartPointer<vtkVolume> volume;
