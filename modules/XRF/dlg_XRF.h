@@ -139,7 +139,6 @@ private slots:
 	void decompositionFinished();
 
 	void computeSimilarityMap();
-	void computeSimilarityMatrix();
 
 public slots:
 	void ReferenceSpectrumDoubleClicked( const QModelIndex &index );
