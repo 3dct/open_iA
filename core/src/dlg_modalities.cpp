@@ -232,7 +232,7 @@ void dlg_modalities::RemoveClicked()
 	int idx = lwModalities->currentRow();
 	if (idx < 0 || idx >= modalities->size())
 	{
-		DEBUG_LOG(QString("Index out of range (%1)\n").arg(idx));
+		DEBUG_LOG(QString("Index out of range (%1)").arg(idx));
 		return;
 	}
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
@@ -255,7 +255,7 @@ void dlg_modalities::EditClicked()
 	int idx = lwModalities->currentRow();
 	if (idx < 0 || idx >= modalities->size())
 	{
-		DEBUG_LOG(QString("Index out of range (%1)\n").arg(idx));
+		DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
 		return;
 	}
 	QString fnBefore = modalities->Get(idx)->GetFileName();
@@ -268,7 +268,7 @@ void dlg_modalities::EditClicked()
 	}
 	if (fnBefore != editModality->GetFileName())
 	{
-		DEBUG_LOG("Changing file not supported!\n");
+		DEBUG_LOG("Changing file not supported!");
 	}
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
 	if ((renderFlagsBefore & iAModality::MainRenderer) == iAModality::MainRenderer

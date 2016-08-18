@@ -103,7 +103,7 @@ void dlg_GEMSeControl::StartSampling()
 {
 	if (!m_dlgModalities->GetModalities()->size())
 	{
-		DEBUG_LOG("No data available.\n");
+		DEBUG_LOG("No data available.");
 		return;
 	}
 	if (m_dlgSamplingSettings || m_sampler)
@@ -171,7 +171,7 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName)
 {
 	if (fileName.isEmpty())
 	{
-		DEBUG_LOG("No filename given, not loading.\n");
+		DEBUG_LOG("No filename given, not loading.");
 		return false;
 	}
 	m_samplingResults = iASamplingResults::Load(fileName);
@@ -188,7 +188,7 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName)
 	}
 	else
 	{
-		DEBUG_LOG("Loading Sampling failed.\n");
+		DEBUG_LOG("Loading Sampling failed.");
 		return false;
 	}
 	return true;
@@ -203,7 +203,7 @@ void dlg_GEMSeControl::SamplingFinished()
 
 	if (m_sampler->IsAborted())
 	{
-		DEBUG_LOG("Since Sampling was aborted, we're skipping clustering\n");
+		DEBUG_LOG("Sampling was aborted, skipping clustering.");
 		m_sampler.clear();
 		return;
 	}
@@ -236,7 +236,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	assert(m_samplingResults);
 	if (!m_samplingResults || fileName.isEmpty())
 	{
-		DEBUG_LOG("No Clustering available!\n");
+		DEBUG_LOG("No Clustering available!");
 		return false;
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -244,7 +244,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	QSharedPointer<iAImageTree> tree = iAImageTree::Create(fileName, m_samplingResults->GetResults(), m_dlgLabels->count());
 	if (!tree)
 	{
-		DEBUG_LOG("Loading Clustering failed!\n");
+		DEBUG_LOG("Loading Clustering failed!");
 		return false;
 	}
 	m_dlgGEMSe->SetTree(
@@ -264,20 +264,20 @@ void dlg_GEMSeControl::CalculateClustering()
 	assert(m_samplingResults);
 	if (!m_samplingResults || m_samplingResults->size() == 0)
 	{
-		DEBUG_LOG("No Sampling Results available!\n");
+		DEBUG_LOG("No Sampling Results available!");
 		return;
 	}
 	assert( !m_dlgProgress );
 	if (m_dlgProgress)
 	{
-		DEBUG_LOG("Other operation still running?\n");
+		DEBUG_LOG("Other operation still running?");
 		return;
 	}
 	QString dir = m_outputFolder+"/representatives";
 	QDir qdir;
 	if (!qdir.mkpath(dir))
 	{
-		DEBUG_LOG("Can't create representative directory!\n");
+		DEBUG_LOG("Can't create representative directory!");
 	}
 	if (dir.isEmpty())
 	{
@@ -313,12 +313,12 @@ void dlg_GEMSeControl::ClusteringFinished()
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
-		DEBUG_LOG("Segmentation Explorer not set!\n");
+		DEBUG_LOG("Segmentation Explorer not set!");
 		return;
 	}
 	if (m_clusterer->IsAborted() || !m_clusterer->GetResult())
 	{
-		DEBUG_LOG("Clusterer aborted / missing Clustering Result!\n");
+		DEBUG_LOG("Clusterer aborted / missing Clustering Result!");
 		return;
 	}
 	if (!m_outputFolder.isEmpty())

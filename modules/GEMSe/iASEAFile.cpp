@@ -67,18 +67,18 @@ iASEAFile::iASEAFile(QString const & fileName):
 {
 	QFile file(fileName);
 	if (!file.exists()) {
-		DEBUG_LOG(QString("Load Precalculated Data: File '%1' doesn't exist!\n").arg(fileName));
+		DEBUG_LOG(QString("Load Precalculated Data: File '%1' doesn't exist!").arg(fileName));
 		return;
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Load Precalculated Data: Reading file '%1' failed!\n").arg(fileName));
+		DEBUG_LOG(QString("Load Precalculated Data: Reading file '%1' failed!").arg(fileName));
 		return;
 	}
 	if (!metaFile.contains(FileVersionKey) || metaFile.value(FileVersionKey).toString() != FileVersionValue)
 	{
-		DEBUG_LOG(QString("Load Precalculated Data: Precalculated data file: Invalid or missing version descriptor ('%1' expected, '%2' found)!\n")
+		DEBUG_LOG(QString("Load Precalculated Data: Precalculated data file: Invalid or missing version descriptor ('%1' expected, '%2' found)!")
 			.arg(FileVersionValue)
 			.arg((metaFile.contains(FileVersionKey) ? "'"+metaFile.value(FileVersionKey).toString()+"'" : "none")) );
 		return;
@@ -90,7 +90,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 		AddIfMissing(metaFile, missingKeys, ClusteringDataKey) ||
 		AddIfMissing(metaFile, missingKeys, LayoutKey))
 	{
-		DEBUG_LOG(QString("Load Precalculated Data: Required setting(s) %1 missing in analysis description File\n").arg(missingKeys));
+		DEBUG_LOG(QString("Load Precalculated Data: Required setting(s) %1 missing in analysis description file.").arg(missingKeys));
 		return;
 	}
 	m_SEAFileName = fileName;
@@ -136,7 +136,7 @@ void iASEAFile::Store(QString const & fileName)
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Storing precalculated data: File '%1' couldn't be written.\n").arg(fileName));
+		DEBUG_LOG(QString("Storing precalculated data: File '%1' couldn't be written.").arg(fileName));
 	}
 }
 

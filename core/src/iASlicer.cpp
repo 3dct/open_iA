@@ -51,7 +51,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 	assert(m_widget);
 	if (!m_widget)
 	{
-		DEBUG_LOG("Slicer: Could not allocate iASlicerWidget!\n");
+		DEBUG_LOG("Slicer: Could not allocate iASlicerWidget!");
 		return;
 	}
 	ConnectWidgetAndData();
@@ -301,7 +301,7 @@ void iASlicer::SetMagicLensEnabled( bool isEnabled )
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!\n");
+		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->SetEnabled(isEnabled);
@@ -313,7 +313,7 @@ void iASlicer::SetMagicLensSize(int newSize)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!\n");
+		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->SetSize(newSize);
@@ -325,7 +325,7 @@ void iASlicer::SetMagicLensFrameWidth(int newWidth)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!\n");
+		DEBUG_LOG("SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->SetFrameWidth(newWidth);

@@ -184,7 +184,6 @@ void iAPerformanceHelper::printTime(iAPerformanceTimer::DurationType duration, s
 	{
 		printMemoryUsage();
 	}
-	DEBUG_LOG("\n");
 }
 
 void iAPerformanceHelper::printMemoryUsage()
@@ -202,7 +201,6 @@ void iAPerformanceHelper::start(std::string const & caption, bool printMemUsage)
 	{
 		printMemoryUsage();
 	}
-	DEBUG_LOG("\n");
 }
 
 

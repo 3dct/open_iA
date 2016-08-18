@@ -67,7 +67,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Could not parse attribute value # %1: '%2' (type=%3)\n").arg(i).arg(curToken).arg((valueType==Continuous?"Continuous": valueType == Discrete? "Discrete":"Categorical")));
+			DEBUG_LOG(QString("Could not parse attribute value # %1: '%2' (type=%3).").arg(i).arg(curToken).arg((valueType==Continuous?"Continuous": valueType == Discrete? "Discrete":"Categorical")));
 			return QSharedPointer<iASingleResult>();
 		}
 		result->m_attributeValues.push_back(value);
@@ -89,7 +89,7 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 	QString result;
 	if (attributes->size() != m_attributeValues.size())
 	{
-		DEBUG_LOG("Non-matching attribute list given (number of descriptors and number of values don't match\n");
+		DEBUG_LOG("Non-matching attribute list given (number of descriptors and number of values don't match).");
 		return result;
 	}
 	for (int i = 0; i < m_attributeValues.size(); ++i)

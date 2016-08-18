@@ -2521,7 +2521,7 @@ void MainWindow::OpenTLGICTData()
 	QFileInfoList subDirs = dir.entryInfoList();
 	if (subDirs.size() == 0)
 	{
-		DEBUG_LOG("No data found (expected to find subfolders with _Rec suffix)\n");
+		DEBUG_LOG("No data found (expected to find subfolders with _Rec suffix).");
 		return;
 	}
 
@@ -2538,7 +2538,7 @@ void MainWindow::OpenTLGICTData()
 
 	if (!dlg->exec() == QDialog::Accepted)
 	{
-		DEBUG_LOG("Data input aborted by user.\n");
+		DEBUG_LOG("Data input aborted by user.");
 		return;
 	}
 
@@ -2583,7 +2583,7 @@ void MainWindow::OpenTLGICTData()
 			int myNum = lastDigit.toInt(&ok);
 			if (!ok)
 			{
-				//DEBUG_LOG(QString("Skipping image with no number at end '%1'\n").arg(imgFileName));
+				//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
 				continue;
 			}
 			if (ext.isEmpty())
@@ -2594,7 +2594,7 @@ void MainWindow::OpenTLGICTData()
 			{
 				if (ext != completeSuffix)
 				{
-					DEBUG_LOG(QString("Inconsistent file suffix: %1 has %2, previous files had %3\n").arg(imgFileName).arg(completeSuffix).arg(ext));
+					DEBUG_LOG(QString("Inconsistent file suffix: %1 has %2, previous files had %3.").arg(imgFileName).arg(completeSuffix).arg(ext));
 					return;
 				}
 			}
@@ -2608,7 +2608,7 @@ void MainWindow::OpenTLGICTData()
 			int num = numStr.toInt(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'\n").arg(numStr).arg(imgFileName));
+				DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
 				return;
 			}
 			if (num < min)
@@ -2623,7 +2623,7 @@ void MainWindow::OpenTLGICTData()
 
 		if (max - min + 1 > imgFiles.size())
 		{
-			DEBUG_LOG(QString("Stack loading: not all indices in the interval [%1, %2] are used for base name %3.\n").arg(min).arg(max).arg(fileNameBase));
+			DEBUG_LOG(QString("Stack loading: not all indices in the interval [%1, %2] are used for base name %3.").arg(min).arg(max).arg(fileNameBase));
 			return;
 		}
 
@@ -2656,7 +2656,7 @@ void MainWindow::OpenTLGICTData()
 		}
 		else
 		{
-			DEBUG_LOG(QString("Unknown or undefined image extension (%1)!\n").arg(ext));
+			DEBUG_LOG(QString("Unknown or undefined image extension (%1)!").arg(ext));
 			return;
 		}
 		reader->SetFileNames(fileNames);
@@ -2672,7 +2672,7 @@ void MainWindow::OpenTLGICTData()
 	}
 	if (modList->size() == 0)
 	{
-		DEBUG_LOG("No modalities loaded!\n");
+		DEBUG_LOG("No modalities loaded!");
 		return;
 	}
 

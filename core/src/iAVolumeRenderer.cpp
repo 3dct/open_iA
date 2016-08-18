@@ -130,7 +130,7 @@ void iAVolumeRenderer::Remove()
 {
 	if (!currentRenderer)
 	{
-		DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!\n");
+		DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
 		return;
 	}
 	currentRenderer->RemoveVolume(volume);

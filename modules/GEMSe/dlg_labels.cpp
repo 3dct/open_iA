@@ -366,7 +366,7 @@ bool dlg_labels::Load(QString const & filename)
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{	
-		DEBUG_LOG(QString("Seed file loading: Failed to open file '%1'!\n").arg(filename));
+		DEBUG_LOG(QString("Seed file loading: Failed to open file '%1'!").arg(filename));
 		return false;
 	}
 	QXmlStreamReader stream(&file);
@@ -390,7 +390,7 @@ bool dlg_labels::Load(QString const & filename)
 				curLabelRow = AddLabelItem(name);
 				if (m_itemModel->rowCount()-1 != id.toInt())
 				{
-					DEBUG_LOG(QString("Inserting row: rowCount %1 <-> label id %2 mismatch!\n")
+					DEBUG_LOG(QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
 						.arg(m_itemModel->rowCount())
 						.arg(id) );
 				}
@@ -399,7 +399,7 @@ bool dlg_labels::Load(QString const & filename)
 			{
 				if (curLabelRow == -1)
 				{
-					DEBUG_LOG(QString("Error loading seed file '%1': Current label not set!\n")
+					DEBUG_LOG(QString("Error loading seed file '%1': Current label not set!")
 						.arg(filename) );
 					return false;
 				}
@@ -415,14 +415,14 @@ bool dlg_labels::Load(QString const & filename)
 	file.close();
 	if (stream.hasError())
 	{
-	   DEBUG_LOG(QString("Error: Failed to parse seed xml file '%1': %2\n")
+	   DEBUG_LOG(QString("Error: Failed to parse seed xml file '%1': %2")
 		   .arg(filename)
 		   .arg(stream.errorString()) );
 	   return false;
 	}
 	else if (file.error() != QFile::NoError)
 	{
-		DEBUG_LOG(QString("Error: Cannot read file '%1': %2\n")
+		DEBUG_LOG(QString("Error: Cannot read file '%1': %2")
 			.arg(filename )
 			.arg(file.errorString()) );
 	   return false;

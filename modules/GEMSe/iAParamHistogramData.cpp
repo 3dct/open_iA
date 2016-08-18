@@ -179,7 +179,7 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	assert(!m_log || min > 0);
 	if (m_log && min <= 0)
 	{
-		DEBUG_LOG("Need to define minimum bigger than 0 for logarithmic scale!\n");
+		DEBUG_LOG("Need to define minimum bigger than 0 for logarithmic scale!");
 		min = 0.000001;
 	}
 	std::fill(m_data, m_data+numBin, 0.0);

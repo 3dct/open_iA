@@ -39,7 +39,7 @@ void iACommandRunner::run()
 	QFileInfo fi(m_executable);
 	myProcess.setWorkingDirectory(fi.absolutePath());
 	myProcess.setArguments(m_arguments);
-	DEBUG_LOG(QString("Running '%1' with arguments '%2'\n").arg(m_executable).arg(m_arguments.join(" ")));
+	DEBUG_LOG(QString("Running '%1' with arguments '%2'").arg(m_executable).arg(m_arguments.join(" ")));
 	myProcess.setProcessChannelMode(QProcess::MergedChannels);
 	connect(&myProcess, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(errorOccured(QProcess::ProcessError)));
 	myProcess.start();
@@ -47,11 +47,11 @@ void iACommandRunner::run()
 	if (myProcess.exitStatus() != QProcess::NormalExit)
 	{
 		m_success = false;
-		DEBUG_LOG("Program crashed!\n");
+		DEBUG_LOG("Program crashed!");
 	}
 	else
 	{
-		DEBUG_LOG(QString("Program exited with status code %1\n").arg(myProcess.exitCode()));
+		DEBUG_LOG(QString("Program exited with status code %1").arg(myProcess.exitCode()));
 		int statusCode = myProcess.exitCode();
 		m_success = (statusCode == 0);
 	}
@@ -63,7 +63,7 @@ void iACommandRunner::run()
 
 void iACommandRunner::errorOccured(QProcess::ProcessError p)
 {
-	DEBUG_LOG(QString("CommandRunner: An error has occured %1\n").arg
+	DEBUG_LOG(QString("CommandRunner: An error has occured %1").arg
 	(p == QProcess::FailedToStart ? "failed to start" :
 		p == QProcess::Crashed ? "Crashed" :
 		p == QProcess::Timedout ? "Timedout" :

@@ -360,7 +360,7 @@ void dlg_GEMSe::RecreateCharts()
 			m_attributes->at(id)->IsLogScale());
 		if (!data)
 		{
-			DEBUG_LOG(QString("ERROR: Creating chart data for attribute %1 failed!\n").arg(id));
+			DEBUG_LOG(QString("ERROR: Creating chart data for attribute %1 failed!").arg(id));
 			continue;
 		}
 
@@ -619,7 +619,7 @@ void dlg_GEMSe::FilterChanged(double min, double max)
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("FilterChanged called from non-slider widget...\n");
+		DEBUG_LOG("FilterChanged called from non-slider widget.");
 		return;
 	}
 	AttributeID attribID = slider->GetAttribID();
@@ -970,7 +970,7 @@ void dlg_GEMSe::ChartDblClicked()
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("FilterChanged called from non-slider widget...\n");
+		DEBUG_LOG("FilterChanged called from non-slider widget.");
 		return;
 	}
 	AttributeID attribID = slider->GetAttribID();
@@ -1127,7 +1127,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 {
 	if (!refImg)
 	{
-		DEBUG_LOG("Reference image comparison calculate: NULL reference image (maybe wrong image type?)!\n");
+		DEBUG_LOG("Reference image comparison calculate: NULL reference image (maybe wrong image type?)!");
 		return;
 	}
 	if (m_attributes->size() == m_refCompMeasureStart)

@@ -107,7 +107,7 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 	}
 	catch (itk::ExceptionObject const & e)
 	{
-		DEBUG_LOG(QString("Error while writing image file '%1': %2\n")
+		DEBUG_LOG(QString("Error while writing image file '%1': %2")
 			.arg(filename)
 			.arg(e.what()));
 	}

@@ -141,7 +141,7 @@ void SVMImageFilter::Run()
 	char const * error = svm_check_parameter(&problem, &param);
 	if (error)
 	{
-		DEBUG_LOG(QString("Error in SVM parameters: %1\n").arg(error));
+		DEBUG_LOG(QString("Error in SVM parameters: %1.").arg(error));
 	}
 	// train the model
 	svm_model* model = svm_train(&problem, &param);
@@ -278,7 +278,7 @@ void SVMImageFilter::Run()
 
 			if (prob_estimates[l] < 0.0 || prob_estimates[l] > 1.0)
 			{
-				DEBUG_LOG(QString("SVM: Invalid probability (%1) at %2, %3, %4\n")
+				DEBUG_LOG(QString("SVM: Invalid probability (%1) at %2, %3, %4")
 					.arg(prob_estimates[l])
 					.arg(coord.x)
 					.arg(coord.y)
@@ -287,7 +287,7 @@ void SVMImageFilter::Run()
 		}
 		if (probSum - 1.0 > std::numeric_limits<float>::epsilon())
 		{
-			DEBUG_LOG(QString("SVM: Probabilities at %1, %2, %3 add up to %4 instead of 1!\n")
+			DEBUG_LOG(QString("SVM: Probabilities at %1, %2, %3 add up to %4 instead of 1!")
 				.arg(coord.x)
 				.arg(coord.y)
 				.arg(coord.z)

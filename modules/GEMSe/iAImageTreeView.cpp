@@ -193,7 +193,7 @@ void iAImageTreeView::UpdateSubtreeHighlight()
 		QSharedPointer<iAImageClusterNode> node = m_selectedNode[i];
 		if (!m_nodeWidgets.contains(node.data()))
 		{
-			DEBUG_LOG("ERROR in UpdateSubtreeHighlight: widget for selected node doesn't exist!\n");
+			DEBUG_LOG("ERROR in UpdateSubtreeHighlight: widget for selected node doesn't exist!");
 			m_selectedNode.remove(m_selectedNode.indexOf(node));
 			if (m_selectedNode.empty())
 			{
@@ -257,12 +257,12 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageClusterNode > node, int no
 	}
 	if (!m_nodeWidgets.contains(node.data()))
 	{
-		DEBUG_LOG("ERROR in LayoutNode: widget for current child node doesn't exist.\n");
+		DEBUG_LOG("ERROR in LayoutNode: widget for current child node doesn't exist.");
 		return nodeNumber;
 	}
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
 	if (!nodeWidget) {
-		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is NULL.\n");
+		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is NULL.");
 		return nodeNumber;
 	}
 	nodeWidget->UpdateShrinkStatus();
@@ -299,13 +299,13 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageClusterNode > n
 {
 	if (!m_nodeWidgets.contains(node.data()))
 	{
-		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node doesn't exist.\n");
+		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node doesn't exist.");
 		return;
 	}
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
 	if (!nodeWidget)
 	{
-		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node is NULL.\n");
+		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node is NULL.");
 		return;
 	}
 	if (!nodeWidget->IsShrinked())
@@ -342,7 +342,7 @@ void iAImageTreeView::CollapseNode(QSharedPointer<iAImageClusterNode > node, boo
 		QSharedPointer<iAImageClusterNode> child = node->GetChild(i);
 		if (!m_nodeWidgets.contains(child.data()))
 		{
-			DEBUG_LOG("ERROR in CollapseNode: widget for expanded child doesn't exist.\n");
+			DEBUG_LOG("ERROR in CollapseNode: widget for expanded child doesn't exist.");
 			return;
 		}
 		iAImageNodeWidget* childWidget = m_nodeWidgets[child.data()];
@@ -442,7 +442,7 @@ void iAImageTreeView::JumpToNode(iAImageClusterNode const * cluster, int stepLim
 
 	if (!found)
 	{
-		DEBUG_LOG("JumpToNode: Couldn't find given cluster!\n");
+		DEBUG_LOG("JumpToNode: Couldn't find given cluster!");
 	}
 	
 	//QList<iAImageClusterNode const *> path(pathStack.toList());

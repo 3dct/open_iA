@@ -260,7 +260,7 @@ void iAModality::SetRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 	if (!Str2Vec3D(orientationSettings, orientation) ||
 		!Str2Vec3D(positionSettings, position))
 	{
-		//DEBUG_LOG("Invalid orientation/position!\n");
+		//DEBUG_LOG("Invalid orientation/position!");
 		return;
 	}
 	renderer->SetPosition(position);

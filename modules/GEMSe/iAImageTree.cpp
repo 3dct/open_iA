@@ -686,13 +686,13 @@ bool iAImageTree::Store(QString const & fileName) const
 {
 	if (!m_root)
 	{
-		DEBUG_LOG("Root is null!\n");
+		DEBUG_LOG("Root is null!");
 		return false;
 	}
 	QFile file(fileName);
 	if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Opening clustering file '%1' for writing failed!\n").arg(fileName));
+		DEBUG_LOG(QString("Opening clustering file '%1' for writing failed!").arg(fileName));
 		return false;
 	}
 	QTextStream out(&file);
@@ -712,7 +712,7 @@ QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleR
 	}
 	// shouldn't happen...
 	assert(false);
-	DEBUG_LOG(QString("Result with requested id %1 was not found!\n").arg(id));
+	DEBUG_LOG(QString("Result with requested id %1 was not found!").arg(id));
 	return QSharedPointer<iASingleResult>();
 }
 
@@ -726,7 +726,7 @@ QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
 	if (in.atEnd())
 	{
 		assert(false);
-		DEBUG_LOG("Reading node in cluster file failed!\n");
+		DEBUG_LOG("Reading node in cluster file failed!");
 		return QSharedPointer<iAImageClusterNode>();
 	}
 	QString currentLine = in.readLine().trimmed();
@@ -775,7 +775,7 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName, QVecto
 	QSharedPointer<iAImageTree> result;
 	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Opening clustering file '%1' for reading failed!\n").arg(fileName));
+		DEBUG_LOG(QString("Opening clustering file '%1' for reading failed!").arg(fileName));
 		return result;
 	}
 	QTextStream in(&file);
@@ -784,7 +784,7 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName, QVecto
 	QDir qdir;
 	if (!qdir.mkpath(dir))
 	{
-		DEBUG_LOG("Can't create representative directory!\n");
+		DEBUG_LOG("Can't create representative directory!");
 	}
 	int lastClusterID = sampleResults.size();
 	result =  QSharedPointer<iAImageTree>(new iAImageTree(ReadNode(in, sampleResults, labelCount,

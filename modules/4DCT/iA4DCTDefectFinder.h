@@ -172,7 +172,7 @@ template< typename TLabelImage, typename TIntensityImage >
 void iA4DCTDefectFinder<TLabelImage, TIntensityImage>::run()
 {
 	if (m_labldImg.IsNull() || m_intenImg.IsNull()) {
-		DEBUG_LOG("Wrong imput parameters\n");
+		DEBUG_LOG("Wrong input parameters.");
 		return;
 	}
 
@@ -193,7 +193,7 @@ void iA4DCTDefectFinder<TLabelImage, TIntensityImage>::run()
 	labelGeometryImageFilter->GetLabels( &allLabels );
 	typename LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 
-	DEBUG_LOG("Number of labels: " + std::to_string(labelGeometryImageFilter->GetNumberOfLabels()) + "\n\n");
+	DEBUG_LOG("Number of labels: " + std::to_string(labelGeometryImageFilter->GetNumberOfLabels()) + "\n");
 
 	for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
 	{
@@ -391,11 +391,11 @@ void iA4DCTDefectFinder<TLabelImage, TIntensityImage>::run()
 		}
 	}
 
-	DEBUG_LOG("Founded:\n");
-	DEBUG_LOG("\t" + std::to_string(m_cracks.size()) + " matrix cracks\n");
-	DEBUG_LOG("\t" + std::to_string(m_pullouts.size()) + " fiber pull-outs\n");
-	DEBUG_LOG("\t" + std::to_string(m_breakages.size()) + " breakages\n");
-	DEBUG_LOG("\t" + std::to_string(m_debondings.size()) + " debondings\n");
+	DEBUG_LOG("Found:");
+	DEBUG_LOG("\t" + std::to_string(m_cracks.size()) + " matrix cracks");
+	DEBUG_LOG("\t" + std::to_string(m_pullouts.size()) + " fiber pull-outs");
+	DEBUG_LOG("\t" + std::to_string(m_breakages.size()) + " breakages");
+	DEBUG_LOG("\t" + std::to_string(m_debondings.size()) + " debondings");
 }
 
 template< typename TLabelImage, typename TIntensityImage >
@@ -429,7 +429,7 @@ void iA4DCTDefectFinder<TLabelImage, TIntensityImage>::setFiberInfo(QString path
 {	
 	// read fiber info from file
 	m_fiberInfo = FiberCharacteristics::ReadFromCSV(path.toStdString(), 2);
-	DEBUG_LOG("Founded " + std::to_string(m_fiberInfo.size()) + " fibers\n");
+	DEBUG_LOG("Found " + std::to_string(m_fiberInfo.size()) + " fibers.");
 }
 
 #endif // IA4DCTDEFECTFINDER_H

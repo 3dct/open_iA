@@ -72,7 +72,7 @@ int decodeRLE(RawDataType* in, size_t inLength, RawDataType* out, size_t maxOutL
 
 		if ((curOutStart + len) >= maxOutLength)
 		{
-			DEBUG_LOG("decodeRLE: More data in encoded array than fits into output!\n");
+			DEBUG_LOG("decodeRLE: More data in encoded array than fits into output!");
 			break;
 		}
 
@@ -100,11 +100,11 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	FILE* fp = fopen(fileName.toStdString().c_str(), "rb");
 	if (!fp)
 	{
-		DEBUG_LOG(QString("Could not find %1\n").arg(fileName));
+		DEBUG_LOG(QString("Could not open file '%1'.").arg(fileName));
 		return vtkSmartPointer<vtkImageData>();
 	}
 
-	//DEBUG_LOG(QString("Reading %1\n").arg(fileName));
+	//DEBUG_LOG(QString("Reading %1").arg(fileName));
 
 	//We read the first 2k bytes into memory to parse the header.
 	//The fixed buffer size looks a bit like a hack, and it is one, but it gets the job done.
@@ -115,7 +115,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	size_t readBytes = fread(buffer, sizeof(char), MAX_HEADER_SIZE, fp);
 	if (readBytes != MAX_HEADER_SIZE)
 	{
-		DEBUG_LOG(QString("Could not read first %1 bytes of Avizo/AmiraMesh file %2.\n").arg(MAX_HEADER_SIZE).arg(fileName));
+		DEBUG_LOG(QString("Could not read first %1 bytes of Avizo/AmiraMesh file %2.").arg(MAX_HEADER_SIZE).arg(fileName));
 		fclose(fp);
 		return vtkSmartPointer<vtkImageData>();
 	}
@@ -126,7 +126,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	if (!header.startsWith(AmiraMeshFileTag) &&
 		!header.startsWith(AvizoFileTag))
 	{
-		DEBUG_LOG(QString("Not a proper Avizo/AmiraMesh file: %1.\n").arg(fileName));
+		DEBUG_LOG(QString("Not a proper Avizo/AmiraMesh file: %1.").arg(fileName));
 		fclose(fp);
 		return vtkSmartPointer<vtkImageData>();
 	}
@@ -134,18 +134,18 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	//Find the Lattice definition, i.e., the dimensions of the uniform grid
 	int xDim(0), yDim(0), zDim(0);
 	sscanf(FindAndJump(buffer, DefineLatticeToken), "%d %d %d", &xDim, &yDim, &zDim);
-	//DEBUG_LOG(QString("Grid Dimensions: %1 %2 %3\n").arg(xDim).arg(yDim).arg(zDim));
+	//DEBUG_LOG(QString("Grid Dimensions: %1 %2 %3").arg(xDim).arg(yDim).arg(zDim));
 
 	//Find the BoundingBox
 	float xmin(1.0f), ymin(1.0f), zmin(1.0f);
 	float xmax(-1.0f), ymax(-1.0f), zmax(-1.0f);
 	sscanf(FindAndJump(buffer, BoundingBoxToken), "%g %g %g %g %g %g", &xmin, &xmax, &ymin, &ymax, &zmin, &zmax);
-	//DEBUG_LOG(QString("BoundingBox: x=[%1...%2], y=[%3...%4], z=[%5...%6]\n")
+	//DEBUG_LOG(QString("BoundingBox: x=[%1...%2], y=[%3...%4], z=[%5...%6]")
 	//	.arg(xmin).arg(xmax).arg(ymin).arg(ymax).arg(zmin).arg(zmax));
 
 	//Is it a uniform grid? We need this only for the sanity check below.
 	const bool bIsUniform = (strstr(buffer, "CoordType \"uniform\"") != NULL);
-	//DEBUG_LOG(QString("GridType: %1\n").arg(bIsUniform ? "uniform" : "UNKNOWN"));
+	//DEBUG_LOG(QString("GridType: %1").arg(bIsUniform ? "uniform" : "UNKNOWN"));
 
 	//Type of the field: scalar, vector
 	int NumComponents(0);
@@ -176,7 +176,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	}
 	else
 	{
-		DEBUG_LOG(QString("Unknown pixel type '%1' (not yet implemented)\n").arg(dataTypeStr));
+		DEBUG_LOG(QString("Unknown pixel type '%1' (not yet implemented).").arg(dataTypeStr));
 		return vtkSmartPointer<vtkImageData>();
 	}
 	const QString RLEMarker("HxByteRLE");
@@ -187,7 +187,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	{
 		if (latticeTokens.size() < 6)
 		{
-			DEBUG_LOG(QString("Expected at least 6 tokens in lattice line, only found %1").arg(latticeTokens.size()));
+			DEBUG_LOG(QString("Expected at least 6 tokens in lattice line, only found %1.").arg(latticeTokens.size()));
 			return vtkSmartPointer<vtkImageData>();
 		}
 		int pos = latticeTokens[5].indexOf(RLEMarker);
@@ -196,9 +196,9 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		int sizeLen = latticeTokens[5].length() - pos - RLEMarker.length() - 2;
 		QString dataLenStr = latticeTokens[5].mid(sizePos, sizeLen);
 		rawDataSize = dataLenStr.toInt();
-		DEBUG_LOG(QString("RLE encoded (%1 compressed bytes)\n").arg(rawDataSize));
+		DEBUG_LOG(QString("RLE encoded (%1 compressed bytes)").arg(rawDataSize));
 	}
-	//DEBUG_LOG(QString("Number of Components: %1\n").arg(NumComponents));
+	//DEBUG_LOG(QString("Number of Components: %1").arg(NumComponents));
 
 	vtkImageData* imageData = vtkImageData::New();
 	imageData->SetDimensions(xDim, yDim, zDim);
@@ -209,7 +209,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		|| xmin > xmax || ymin > ymax || zmin > zmax
 		|| !bIsUniform || NumComponents <= 0)
 	{
-		DEBUG_LOG("Something went wrong (dimensions smaller or equal 0, [xyz]min > [xyz]max, not uniform or numComponents <= 0).\n");
+		DEBUG_LOG("Something went wrong (dimensions smaller or equal 0, [xyz]min > [xyz]max, not uniform or numComponents <= 0).");
 		fclose(fp);
 		return 	vtkSmartPointer<vtkImageData>();
 	}
@@ -217,7 +217,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	const long idxStartData = strstr(buffer, "# Data section follows") - buffer;
 	if (idxStartData <= 0)
 	{
-		DEBUG_LOG("Data section not found!\n");
+		DEBUG_LOG("Data section not found!");
 		fclose(fp);
 		return 	vtkSmartPointer<vtkImageData>();
 	}
@@ -229,7 +229,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	err &= fgets(buffer, MAX_HEADER_SIZE, fp) != 0;
 	if (err)
 	{
-		DEBUG_LOG("A read error occured while seeking data section!\n");
+		DEBUG_LOG("A read error occured while seeking data section!");
 		fclose(fp);
 		return 	vtkSmartPointer<vtkImageData>();
 	}

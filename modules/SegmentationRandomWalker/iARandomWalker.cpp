@@ -364,14 +364,14 @@ void iARandomWalker::run()
 	std::string error = solver.lastErrorMessage();
 	if (error != "")
 	{
-		DEBUG_LOG(QString(error.c_str()) + "\n");
+		DEBUG_LOG(QString(error.c_str()));
 		return;
 	}
 	solver.factorize(A);
 	error = solver.lastErrorMessage();
 	if (error != "")
 	{
-		DEBUG_LOG(QString(error.c_str()) + "\n");
+		DEBUG_LOG(QString(error.c_str()));
 		return;
 	}
 #else
