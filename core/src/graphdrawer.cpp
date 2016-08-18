@@ -29,7 +29,7 @@ bool compare(pair<Graph::idType, Graph::Vertex> v1, pair<Graph::idType, Graph::V
 	return (v1.second.rank < v2.second.rank);
 }
 
-bool compareMedians(pair<Graph::idType, int> v1, pair<Graph::idType, int> v2) {
+bool compareMedians(pair<Graph::idType, float> v1, pair<Graph::idType, float> v2) {
 	return (v1.second < v2.second);
 }
 
