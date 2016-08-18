@@ -34,6 +34,7 @@
 #include "iAModality.h"
 #include "SVMImageFilter.h"
 
+#include <QDir>
 #include <QMap>
 #include <QTextStream>
 
@@ -77,7 +78,7 @@ void iAImageSampler::StatusMsg(QString const & msg)
 	if (statusMsg.length() > 105);
 	statusMsg = statusMsg.left(100) + "...";
 	emit Status(statusMsg);
-	DEBUG_LOG(msg+"\n");
+	DEBUG_LOG(msg);
 }
 
 QStringList SplitAdditionalArguments(QString const & additionalArguments)
@@ -89,11 +90,11 @@ QStringList SplitAdditionalArguments(QString const & additionalArguments)
 void iAImageSampler::run()
 {
 	m_overallTimer.start();
-	StatusMsg("Generating sampling parameter sets...\n");
+	StatusMsg("Generating sampling parameter sets...");
 	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameters, m_sampleCount);
 	if (!m_parameterSets)
 	{
-		DEBUG_LOG("No Parameters available!\n");
+		DEBUG_LOG("No Parameters available!");
 		return;
 	}
 
@@ -123,10 +124,12 @@ void iAImageSampler::run()
 			break;
 		}
 		StatusMsg(QString("Sampling run %1:").arg(m_curLoop));
+		QString outputDirectory = m_outputBaseDir + "/sample" + QString::number(m_curLoop);
+		QDir sampleOutputDir(outputDirectory);
 
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
-		argumentList << m_outputBaseDir + "/sample" + QString::number(m_curLoop);
+		argumentList << outputDirectory;
 
 		for (int i = 0; i < m_modalities->size(); ++i)
 		{
@@ -182,19 +185,19 @@ void iAImageSampler::computationFinished()
 	iACommandRunner* cmd = dynamic_cast<iACommandRunner*>(QObject::sender());
 	if (!cmd)
 	{
-		DEBUG_LOG("Invalid state: NULL sender in computationFinished!\n");
+		DEBUG_LOG("Invalid state: NULL sender in computationFinished!");
 		return;
 	}
 	int id = m_runningComputation[cmd];
 	iAPerformanceTimer::DurationType computationTime = cmd->duration();
-	StatusMsg(QString("Sampling run %1: Finished in %2 seconds; output: %3\n")
+	StatusMsg(QString("Sampling run %1: Finished in %2 seconds; output: %3")
 		.arg(QString::number(id))
 		.arg(QString::number(computationTime))
-		.arg(cmd->output().c_str()));
+		.arg(cmd->output()));
 	m_computationDuration += computationTime;
 	if (!cmd->success())
 	{
-		DEBUG_LOG(QString("Computation was NOT successful!\n"));
+		DEBUG_LOG(QString("Computation was NOT successful!"));
 		m_aborted = true;
 
 		// we don't start characteristics calculation (at which's end we would do this otherwise):
@@ -227,7 +230,7 @@ void iAImageSampler::derivedOutputFinished()
 	CharacteristicsCalculator* charactCalc = dynamic_cast<CharacteristicsCalculator*>(QObject::sender());
 	if (!charactCalc || !charactCalc->success())
 	{
-		DEBUG_LOG("ERROR: charactCalcFinished - invalid sender or errors during calculation, not storing result!!\n");
+		DEBUG_LOG("ERROR: charactCalcFinished - invalid sender or errors during calculation, not storing result!!");
 		return;
 	}
 
@@ -242,7 +245,7 @@ void iAImageSampler::derivedOutputFinished()
 	emit Progress((100*m_results->size()) / m_parameterSets->size());
 	if (!m_results->Store(sampleMetaFile, parameterSetFile, characteristicsFile))
 	{
-		DEBUG_LOG("Error writing parameter file.\n");
+		DEBUG_LOG("Error writing parameter file.");
 	}
 	m_runningDerivedOutput.remove(charactCalc);
 	delete charactCalc;

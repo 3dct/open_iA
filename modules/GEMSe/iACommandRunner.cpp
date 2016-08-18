@@ -43,7 +43,7 @@ void iACommandRunner::run()
 	myProcess.setProcessChannelMode(QProcess::MergedChannels);
 	connect(&myProcess, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(errorOccured(QProcess::ProcessError)));
 	myProcess.start();
-	myProcess.waitForFinished();
+	myProcess.waitForFinished(-1);
 	if (myProcess.exitStatus() != QProcess::NormalExit)
 	{
 		m_success = false;
@@ -55,7 +55,8 @@ void iACommandRunner::run()
 		int statusCode = myProcess.exitCode();
 		m_success = (statusCode == 0);
 	}
-	m_output = myProcess.readAllStandardOutput().toStdString();
+	m_output = myProcess.readAllStandardOutput();
+	m_output.replace("\r", "");
 	m_duration = m_timer.elapsed();
 }
 
@@ -78,7 +79,7 @@ iAPerformanceTimer::DurationType iACommandRunner::duration() const
 }
 
 
-std::string iACommandRunner::output() const
+QString iACommandRunner::output() const
 {
 	return m_output;
 }

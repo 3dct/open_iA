@@ -32,7 +32,7 @@ public:
 	iACommandRunner(QString const & executable, QStringList const & arguments);
 	void run();
 	iAPerformanceTimer::DurationType duration() const;
-	std::string output() const;
+	QString output() const;
 	bool success() const;
 private slots:
 	void errorOccured(QProcess::ProcessError);
@@ -41,6 +41,6 @@ private:
 	QStringList m_arguments;
 	iAPerformanceTimer m_timer;
 	iAPerformanceTimer::DurationType m_duration;
-	std::string m_output;
+	QString m_output;
 	bool m_success;
 }; 

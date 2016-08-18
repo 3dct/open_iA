@@ -166,7 +166,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 	assert(defTokens.size() >= 3);
 	if (defTokens.size() < 3)
 	{
-		DEBUG_LOG(QString("Not enough tokens in attribute descriptor %1\n").arg(def));
+		DEBUG_LOG(QString("Not enough tokens in attribute descriptor %1").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	QString name = defTokens[0];
@@ -179,7 +179,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 	int requiredTokens = result->GetValueType() == Categorical ? 4 : 5;
 	if (defTokens.size() < requiredTokens)
 	{
-		DEBUG_LOG(QString("Not enough tokens in continuous attribute descriptor %1\n").arg(def));
+		DEBUG_LOG(QString("Not enough tokens in continuous attribute descriptor %1").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	switch (result->GetValueType())
