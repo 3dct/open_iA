@@ -4,6 +4,7 @@ set CONFIG_FILE=%3
 set VS_PATH=%4
 set CTEST_MODE=Nightly
 set BUILD_TYPE=Release
+set MSBUILD_OPTS=/t:clean /m
 if NOT [%5]==[] set CTEST_MODE=%5
 CALL :dequote VS_PATH
 
@@ -35,7 +36,7 @@ md %TEST_BIN_DIR%
 cd %TEST_BIN_DIR%
 
 :: Set up basic build environment
-cmake -C "%TEST_SRC_DIR%\Test_files\%CONFIG_FILE%" %TEST_SRC_DIR%
+cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR%
 
 :: Create test configurations:
 md %TEST_CONFIG_PATH%
@@ -43,14 +44,14 @@ python %TEST_SRC_DIR%\Test_files\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT
 
 :: Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR%
-MSBuild "%TEST_BIN_DIR%\open_iA.sln" /t:clean
+MSBuild "%TEST_BIN_DIR%\open_iA.sln" %MSBUILD_OPTS%
 del %TEST_Bin_DIR%\core\moc_*
 del %TEST_Bin_DIR%\modules\moc_*
 ctest -D %CTEST_MODE% -C %BUILD_TYPE%
 
 :: Run with no flags enabled:
 cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR%
-MSBuild "%TEST_BIN_DIR%\open_iA.sln" /t:clean
+MSBuild "%TEST_BIN_DIR%\open_iA.sln" %MSBUILD_OPTS%
 del %TEST_Bin_DIR%\core\moc_*
 del %TEST_Bin_DIR%\modules\moc_*
 ctest -D Experimental -C %BUILD_TYPE%
@@ -60,7 +61,7 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	@echo %%~nm
 	cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR%
 	cmake -C %%m %TEST_SRC_DIR%
-	MSBuild "%TEST_BIN_DIR%\open_iA.sln" /t:clean
+	MSBuild "%TEST_BIN_DIR%\open_iA.sln" %MSBUILD_OPTS%
 	del %TEST_Bin_DIR%\core\moc_*
 	del %TEST_Bin_DIR%\modules\moc_*
 	ctest -D Experimental -C %BUILD_TYPE%

@@ -28,7 +28,7 @@ KeyValidation = 'KeyValidation'
 AllModulesOnScript = 'all_flags.cmake'
 AllModulesOffScript = 'no_flags.cmake'
 
-print "CreateTestConfiguration script v0.1"
+print("script for creating open_iA module compilation cmake scripts")
 
 moduleNames = os.listdir(ModuleDir)
 
@@ -64,17 +64,17 @@ for key in dependencies:
 	while (depstack):
 		subdep = depstack.pop()
 		if (subdep == key):
-			print key+": Circular dependency"
+			print(key+": Circular dependency")
 		if (subdep != key and not subdep in recursiveDeps[key]):
 			recursiveDeps[key].append(subdep)
 			if (subdep in dependencies):
 				depstack.extend(dependencies[subdep])
-print
+print("\n")
 
-#print "Resolved dependencies:"
+#print("Resolved dependencies:")
 #for key in recursiveDeps:
-#	print key+": "
-#	print recursiveDeps[key]
+#	print(key+": ")
+#	print(recursiveDeps[key])
 
 # write one build config per module:
 for module in moduleNames:
@@ -87,4 +87,4 @@ for module in moduleNames:
 			for submodule in recursiveDeps[module]:
 				file.write('SET (Module_'+submodule+' "ON" CACHE BOOL "" FORCE)\n')
 
-print "Done."
+print("Done.")
