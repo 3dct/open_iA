@@ -10,7 +10,6 @@ ENDIF (WIN32 AND MSVC)
 
 IF (BUILD_TESTING AND Module_SegmentationRandomWalker)
 
-	INCLUDE_DIRECTORIES(${open_iA_SOURCE_DIR}/modules/ModalityExplorer)
 	INCLUDE_DIRECTORIES(${open_iA_core_SOURCE_DIR}/src)  # for pch.h, iAFunction.h, ...
 	INCLUDE_DIRECTORIES(${open_iA_core_BINARY_DIR})  # for open_iA_Core_export.h
 	

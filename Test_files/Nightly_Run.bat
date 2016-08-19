@@ -8,6 +8,12 @@ set MSBUILD_OPTS=/t:clean /m
 if NOT [%5]==[] set CTEST_MODE=%5
 CALL :dequote VS_PATH
 
+set TEST_FILES_DIR=%TEST_SRC_DIR%/Test_files
+if NOT [%6]==[] set TEST_FILES_DIR=%6
+
+set MAIN_SOLUTION=open_iA.sln
+if NOT [%7]==[] set MAIN_SOLUTION=%7
+
 python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
 
@@ -40,18 +46,18 @@ cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR%
 
 :: Create test configurations:
 md %TEST_CONFIG_PATH%
-python %TEST_SRC_DIR%\Test_files\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH%
+python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH%
 
 :: Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR%
-MSBuild "%TEST_BIN_DIR%\open_iA.sln" %MSBUILD_OPTS%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
 del %TEST_Bin_DIR%\core\moc_*
 del %TEST_Bin_DIR%\modules\moc_*
 ctest -D %CTEST_MODE% -C %BUILD_TYPE%
 
 :: Run with no flags enabled:
 cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR%
-MSBuild "%TEST_BIN_DIR%\open_iA.sln" %MSBUILD_OPTS%
+MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
 del %TEST_Bin_DIR%\core\moc_*
 del %TEST_Bin_DIR%\modules\moc_*
 ctest -D Experimental -C %BUILD_TYPE%
@@ -61,7 +67,7 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	@echo %%~nm
 	cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR%
 	cmake -C %%m %TEST_SRC_DIR%
-	MSBuild "%TEST_BIN_DIR%\open_iA.sln" %MSBUILD_OPTS%
+	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
 	del %TEST_Bin_DIR%\core\moc_*
 	del %TEST_Bin_DIR%\modules\moc_*
 	ctest -D Experimental -C %BUILD_TYPE%
@@ -70,11 +76,8 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 :: CLEANUP:
 :: remove test configurations:
 rd /s /q %TEST_CONFIG_PATH%
-:: reset site name:
-cmake -C %TEST_SRC_DIR%\Test_files\site_reset.cmake .
 
 goto end
-:: shutdown -s
 
 :DeQuote
 for /f "delims=" %%A in ('echo %%%1%%') do set %1=%%~A
