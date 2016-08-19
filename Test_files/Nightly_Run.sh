@@ -14,10 +14,7 @@ fi
 if [ -n "$6" ];
 then
 	MODULE_DIR=$6
-	echo "Using $CTEST_MODE CTest mode!"
 fi
-
-
 
 TEST_CONFIG_DIR=$(mktemp --tmpdir=/tmp -d ctestconfigs.XXXXXXXXXX)
 
