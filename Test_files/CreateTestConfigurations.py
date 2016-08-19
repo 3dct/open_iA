@@ -12,7 +12,7 @@ import os, re, sys
 if (len(sys.argv) != 5 ):
 	print("Invalid number of arguments")
 	print("Expected Syntax:")
-	print("  $ CreateTestConfiguration.py <SrcDir> <BranchName> <ConfigOutFolder> <ModuleDirs (separate multiple dirs by :)>")
+	print("  $ CreateTestConfiguration.py <SrcDir> <BranchName> <ConfigOutFolder> <ModuleDirs (separate multiple dirs by +)>")
 	sys.exit(1)
 
 SrcDir = sys.argv[1]
@@ -21,7 +21,8 @@ ConfigOutFolder = sys.argv[3]
 ModuleDirs = sys.argv[4]
 
 # Constants:
-ModuleDirList = ModuleDirs.split(":")
+ModuleDirList = ModuleDirs.split("+")
+print("Module Directories: "+",".join(ModuleDirList))
 RunnerScriptLinux = SrcDir + '/Test_files/TestRunner.sh'
 RunnerScriptWindows = SrcDir + '/Test_files/TestRunner.bat'
 KeyValidation = 'KeyValidation'
