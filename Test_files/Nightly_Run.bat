@@ -14,6 +14,9 @@ if NOT [%6]==[] set TEST_FILES_DIR=%6
 set MAIN_SOLUTION=open_iA.sln
 if NOT [%7]==[] set MAIN_SOLUTION=%7
 
+set MODULE_DIRS=%TEST_SRC_DIR%/modules
+if NOT [%8]==[] set MODULE_DIRS=%8
+
 python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
 
@@ -46,20 +49,20 @@ cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR%
 
 :: Create test configurations:
 md %TEST_CONFIG_PATH%
-python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH%
+python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS%
 
 :: Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR%
 MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
-del %TEST_Bin_DIR%\core\moc_*
-del %TEST_Bin_DIR%\modules\moc_*
+:: del %TEST_Bin_DIR%\core\moc_*
+:: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D %CTEST_MODE% -C %BUILD_TYPE%
 
 :: Run with no flags enabled:
 cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR%
 MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
-del %TEST_Bin_DIR%\core\moc_*
-del %TEST_Bin_DIR%\modules\moc_*
+:: del %TEST_Bin_DIR%\core\moc_*
+:: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D Experimental -C %BUILD_TYPE%
 
 :: iterate over module tests, run build&tests for each:
@@ -68,8 +71,8 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 	cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR%
 	cmake -C %%m %TEST_SRC_DIR%
 	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
-	del %TEST_Bin_DIR%\core\moc_*
-	del %TEST_Bin_DIR%\modules\moc_*
+	:: del %TEST_Bin_DIR%\core\moc_*
+	:: del %TEST_Bin_DIR%\modules\moc_*
 	ctest -D Experimental -C %BUILD_TYPE%
 )
 
