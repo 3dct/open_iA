@@ -7,6 +7,18 @@ then
 	CTEST_MODE=$4
 	echo "Using $CTEST_MODE CTest mode!"
 fi
+if [ -n "$5" ];
+then
+	TEST_FILES_DIR=$5
+fi
+if [ -n "$6" ];
+then
+	MODULE_DIR=$6
+	echo "Using $CTEST_MODE CTest mode!"
+fi
+
+
+
 TEST_CONFIG_DIR=$(mktemp --tmpdir=/tmp -d ctestconfigs.XXXXXXXXXX)
 
 cd $TEST_SRC_DIR
@@ -19,11 +31,11 @@ cd $TEST_BIN_DIR
 
 # Set up basic build environment
 make clean
-cmake -C $TEST_SRC_DIR/Test_files/$CONFIG_FILE $TEST_SRC_DIR
+cmake -C $CONFIG_FILE $TEST_SRC_DIR
 
 # Create test configurations:
 mkdir -p $TEST_CONFIG_DIR
-python $TEST_SRC_DIR/Test_files/CreateTestConfigurations.py $TEST_SRC_DIR $GIT_BRANCH $TEST_CONFIG_DIR
+python $TEST_FILES_DIR/CreateTestConfigurations.py $TEST_SRC_DIR $GIT_BRANCH $TEST_CONFIG_DIR $MODULE_DIR
 
 # Run with all flags enabled:
 cmake -C $TEST_CONFIG_DIR/all_flags.cmake $TEST_SRC_DIR
@@ -50,5 +62,4 @@ done
 # CLEANUP:
 # remove test configurations:
 rm -r $TEST_CONFIG_DIR
-# reset site name:
-cmake -C $TEST_SRC_DIR/Test_files/site_reset.cmake .
+
