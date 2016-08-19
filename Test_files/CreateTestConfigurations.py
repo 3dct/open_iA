@@ -22,7 +22,6 @@ ModuleDirs = sys.argv[4]
 
 # Constants:
 ModuleDirList = ModuleDirs.split("+")
-print("Module Directories: "+",".join(ModuleDirList))
 RunnerScriptLinux = SrcDir + '/Test_files/TestRunner.sh'
 RunnerScriptWindows = SrcDir + '/Test_files/TestRunner.bat'
 KeyValidation = 'KeyValidation'
