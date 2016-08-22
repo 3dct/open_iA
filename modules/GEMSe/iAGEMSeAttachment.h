@@ -33,7 +33,6 @@ class iAWidgetAddHelper;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
-class iAModalityExplorerAttachment;
 
 class iAGEMSeAttachment : public iAModuleAttachmentToChild
 {
@@ -60,5 +59,4 @@ private:
 	QWidget*                          m_dummyTitleWidget;
 	dlg_GEMSe*                        m_dlgGEMSe;
 	QSharedPointer<iAWidgetAddHelper> m_widgetAddHelper;
-	iAModalityExplorerAttachment*     m_modalityAttachment;
 };
