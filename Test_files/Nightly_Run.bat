@@ -21,7 +21,9 @@ python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
 
 :: for security reasons (as we call deltree on it) we don't make that configurable
-set TEST_CONFIG_PATH=C:\tmp\ctest_configurations
+:uniqTmpLoop
+set "TEST_CONFIG_PATH=%tmp%\ctest_config_%RANDOM%"
+if exist "%TEST_CONFIG_PATH%" goto :uniqTmpLoop
 
 :: remove binary directory to start from scratch:
 rd /s /q %TEST_BIN_DIR%
@@ -51,14 +53,14 @@ cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR%
 md %TEST_CONFIG_PATH%
 python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS%
 
-:: Run with all flags enabled:
+rem Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR%
 MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
 :: del %TEST_Bin_DIR%\core\moc_*
 :: del %TEST_Bin_DIR%\modules\moc_*
 ctest -D %CTEST_MODE% -C %BUILD_TYPE%
 
-:: Run with no flags enabled:
+rem Run with no flags enabled:
 cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR%
 MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
 :: del %TEST_Bin_DIR%\core\moc_*
