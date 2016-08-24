@@ -2,6 +2,13 @@ CMAKE_MINIMUM_REQUIRED ( VERSION 3.0 )
 
 PROJECT ( open_iA LANGUAGES CXX  )
 
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+  message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
+   "cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
+   "and run cmake with a newly created build directory.")
+endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+
 INCLUDE (CTest)
 enable_testing()
 
