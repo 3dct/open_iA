@@ -208,8 +208,8 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 		case Categorical:
 		{
 			QStringList categories = defTokens[3].split(CategoricalValueSplitString);
-			result->m_min = 1;
-			result->m_max = categories.size();
+			result->m_min = 0;
+			result->m_max = categories.size()-1;
 			result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
 			if (defTokens.size() > 5)
 			{
@@ -330,4 +330,9 @@ bool iAAttributeDescriptor::CoversWholeRange(double min, double max) const
 QSharedPointer<iANameMapper> iAAttributeDescriptor::GetNameMapper() const
 {
 	return m_nameMapper;
+}
+
+void iAAttributeDescriptor::SetNameMapper(QSharedPointer<iANameMapper> mapper)
+{
+	m_nameMapper = mapper;
 }

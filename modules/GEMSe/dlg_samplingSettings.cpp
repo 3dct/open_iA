@@ -224,6 +224,7 @@ QSharedPointer<iAAttributes> dlg_samplingSettings::GetAttributes()
 			pName,
 			iAAttributeDescriptor::Parameter,
 			m_paramInputs[l].descriptor->GetValueType()));
+		desc->SetNameMapper(m_paramInputs[l].descriptor->GetNameMapper());
 		SetMinMax(desc, m_paramInputs[l].from->text());
 		SetMinMax(desc, m_paramInputs[l].to->text());
 		if (m_paramInputs[l].logScale)

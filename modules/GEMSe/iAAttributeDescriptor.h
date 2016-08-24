@@ -50,7 +50,10 @@ public:
 	void AdjustMinMax(double value);
 	bool CoversWholeRange(double min, double max) const;
 	QString ToString() const;
+	void SetNameMapper(QSharedPointer<iANameMapper> mapper);
 private:
+	iAAttributeDescriptor(iAAttributeDescriptor const & other) = delete;
+	iAAttributeDescriptor& operator=(iAAttributeDescriptor const & other) = delete;
 	iAAttributeType m_attribType;
 	iAValueType m_valueType;
 	double m_min, m_max;
