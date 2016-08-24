@@ -30,6 +30,7 @@
 #include "iAImageCoordinate.h"
 #include "iAParameterGenerator.h"
 #include "iASingleResult.h"
+#include "iAStringHelper.h"
 #include "iASamplingResults.h"
 #include "iAModality.h"
 #include "SVMImageFilter.h"
@@ -81,12 +82,6 @@ void iAImageSampler::StatusMsg(QString const & msg)
 	DEBUG_LOG(msg);
 }
 
-QStringList SplitAdditionalArguments(QString const & additionalArguments)
-{
-	// TODO: proper split that considers quoted arguments!
-	return additionalArguments.split(" ");
-}
-
 void iAImageSampler::run()
 {
 	m_overallTimer.start();
@@ -102,7 +97,7 @@ void iAImageSampler::run()
 
 	m_parameterCount = m_parameters->size();
 
-	QStringList additionalArgumentList = SplitAdditionalArguments(m_additionalArguments);
+	QStringList additionalArgumentList = SplitPossiblyQuotedString(m_additionalArguments);
 
 	// add derived output to the attributes (which we want to set during sampling):
 	QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor("Object Count", iAAttributeDescriptor::DerivedOutput, Discrete));
