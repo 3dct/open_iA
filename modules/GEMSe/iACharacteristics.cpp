@@ -59,13 +59,14 @@ void CharacteristicsCalculator::run()
 		connected->SetDistanceThreshold(0.5);
 		if (m_result->GetLabelledImage().IsNull())
 		{
-			DEBUG_LOG("Labelled Image is null\n");
+			DEBUG_LOG("Labelled Image is null");
 			m_success = false;
 			return;
 		}
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_result->GetLabelledImage().GetPointer());
 		connected->SetInput(lblImg);
 		connected->Update();
+		m_result->DiscardDetails();
 		typedef itk::RelabelComponentImageFilter <OutputImageType, OutputImageType >
 			RelabelFilterType;
 		RelabelFilterType::Pointer relabel = RelabelFilterType::New();
