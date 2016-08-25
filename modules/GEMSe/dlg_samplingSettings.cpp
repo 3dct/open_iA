@@ -265,7 +265,8 @@ void dlg_samplingSettings::ChooseOutputFolder()
 
 QString dlg_samplingSettings::GetOutputFolder() const
 {
-	return leOutputFolder->text();
+	QString outDir = leOutputFolder->text();
+	return outDir.replace("\\", "/");
 }
 
 
