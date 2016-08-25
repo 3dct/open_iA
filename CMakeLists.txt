@@ -15,6 +15,17 @@ enable_testing()
 # Enable Unicode
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)
 
+IF (MSVC)
+	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
+	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
+	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo")
+	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel")
+
+	IF (NOT EXISTS ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user)
+		CONFIGURE_FILE( ${PROJECT_SOURCE_DIR}/core/ALL_BUILD.vcxproj.user ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user )
+	ENDIF (NOT EXISTS ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user)
+ENDIF(MSVC)
+
 #-----------------------------------------------------------------------------------------
 # PACKAGES
 #-----------------------------------------------------------------------------------------
@@ -24,31 +35,124 @@ ADD_DEFINITIONS(-DUNICODE -D_UNICODE)
 FIND_PACKAGE(ITK)
 IF(ITK_FOUND)
 	INCLUDE(${ITK_USE_FILE})
-	INCLUDE_DIRECTORIES($ENV{ITK_APPS_SRC_PATH}/QtITK )
-	set_target_properties(${ITK} PROPERTIES MAP_INPORTED_CONFIG_RELWITHDEBUGINFO RELEASE)
-	get_cmake_property(_variableNames VARIABLES)
+#	INCLUDE_DIRECTORIES($ENV{ITK_APPS_SRC_PATH}/QtITK )
 ELSE(ITK_FOUND)
 	MESSAGE(FATAL_ERROR "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
+IF(ITK_VERSION_MAJOR LESS 4)
+	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.x")
+ENDIF (ITK_VERSION_MAJOR LESS 4)
+SET( ITK_LIBRARIES
+	ITKBiasCorrection		ITKBioCell				ITKCommon			ITKIOImageBase
+	ITKFEM					ITKIOBioRad				ITKIOBMP			ITKIOGDCM			ITKIOGE
+	ITKIOGIPL				ITKIOHDF5				ITKIOIPL			ITKIOJPEG			ITKIOLSM
+	ITKIOMeta				ITKIONIFTI				ITKIONRRD			ITKIOPNG			ITKIOSiemens
+	ITKIOSpatialObjects		ITKIOStimulate			ITKIOTIFF			ITKIOVTK			ITKIOXML
+	ITKVtkGlue				ITKKLMRegionGrowing		ITKMesh				ITKOptimizers		ITKPath
+	ITKVNLInstantiation		ITKVTK					ITKWatersheds		ITKDICOMParser		ITKEXPAT
+	ITKLabelMap
+	itkhdf5					itkhdf5_cpp				itkjpeg				ITKMetaIO			itkNetlibSlatec
+	ITKniftiio				ITKNrrdIO				itkopenjpeg			itkpng				itksys
+	itktiff					itkv3p_netlib
+	itkvcl					itkvnl					itkvnl_algo
+	itkzlib					ITKznz
+)
+IF (NOT ${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
+	# cannot use ITKGPUCommon_LOADED - it is always defined - bug?
+	SET( ITK_LIBRARIES  ${ITK_LIBRARIES}
+		ITKGPUAnisotropicSmoothing
+		ITKGPUCommon
+		ITKGPUFiniteDifference
+		ITKGPUImageFilterBase
+		ITKGPUSmoothing
+		ITKGPUThresholding)
+ELSE(ITKGPUCommon_LOADED)
+	IF (open_iA_GPU_USING_OPENCL)
+		MESSAGE(SEND_ERROR "You're trying to build with GPU support (open_iA_GPU_USING_OPENCL), but your ITK build has GPU support disabled! Please build ITK libraries with ITK_USE_GPU enabled!")
+	ENDIF()
+ENDIF()
+IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
+	# starting with ITK 4.5, Review has a dependency on ITKIOMRC it seems:
+	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
+	IF (SCIFIO_LOADED)
+		ADD_DEFINITIONS( -DUSE_SCIFIO )
+		MESSAGE(STATUS "ITK has SCIFIO support enabled. Notice that in order to run a build with this library on another machine than the one you built it, the environment variable SCIFIO_PATH has to be set to the path containing the SCIFIO jar files! Otherwise loading images will fail!")
+		SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
+		IF (MSVC)
+			# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
+		ELSE(MSVC)
+			SET (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scifio_jars")
+			configure_file("${SCIFIO_PATH}/bioformats_package.jar" "${DESTDIR}/bioformats_package.jar" COPYONLY)
+			configure_file("${SCIFIO_PATH}/scifio-itk-bridge.jar" "${DESTDIR}/scifio-itk-bridge.jar" COPYONLY)
+		ENDIF(MSVC)
+		SET(ITK_LIBRARIES ${ITK_LIBRARIES} SCIFIO)
+	ENDIF(SCIFIO_LOADED)
+ENDIF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 
 
 # VTK
 FIND_PACKAGE(VTK)
-
-FIND_PACKAGE(VTK)
 IF(VTK_FOUND)
 	INCLUDE(${VTK_USE_FILE})
 	include_directories(${VTK_INCLUDE_DIRS})
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS ${VTK_DEFINITIONS})
-	set_target_properties(${VTK} PROPERTIES MAP_INPORTED_CONFIG_RELWITHDEBUGINFO RELEASE)
 ELSE(VTK_FOUND)
 	MESSAGE(FATAL_ERROR "Cannot build without VTK.  Please set VTK_DIR.")
 ENDIF(VTK_FOUND)
+IF(VTK_VERSION_MAJOR LESS 6)
+	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 6.0")
+ENDIF(VTK_VERSION_MAJOR LESS 6)
+SET (VTK_LIBRARIES
+	vtkCommonCore
+	vtkChartsCore
+	vtkDICOMParser
+	vtkFiltersCore
+	vtkGUISupportQt
+	vtkGUISupportQtOpenGL
+	vtkImagingCore
+	vtkImagingStatistics
+	vtkInfovisCore
+	vtkIOCore
+	vtkIOMovie
+	vtkIOGeometry
+	vtkIOXML
+	vtkRenderingContext2D
+	vtkRenderingImage
+	vtkViewsCore
+	vtkViewsInfovis
+	vtksys)
+IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
+	SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingOpenGL2)
+ELSE ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+	SET( VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingOpenGL)
+ENDIF("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 0)
+	SET (VTK_LIBRARIES ${VTK_LIBRARIES}
+		vtkRenderingCore
+		vtkRenderingFreeType
+		vtkRenderingQt
+		vtkViewsContext2D)
+	IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingVolumeOpenGL2)
+	ELSE()
+		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingVolumeOpenGL)
+	ENDIF()
+ENDIF (VTK_VERSION_MAJOR GREATER 6 OR  VTK_VERSION_MINOR GREATER 0)
+IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 1)
+	IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingContextOpenGL2)
+	ELSE()
+		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingContextOpenGL)
+	ENDIF()
+ENDIF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 1)
+IF (vtkoggtheora_LOADED)
+	MESSAGE(STATUS "Video: Ogg Theora Encoder available")
+	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
+ENDIF(vtkoggtheora_LOADED)
 
 
 # Qt
 SET(CMAKE_AUTOMOC ON)
-
 SET(QT_USE_QTXML TRUE)
 IF (WIN32)
 	SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x64" )
@@ -139,153 +243,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
-IF (MSVC)
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo")
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel")
-
-	IF (NOT EXISTS ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user)
-		CONFIGURE_FILE( ${PROJECT_SOURCE_DIR}/core/ALL_BUILD.vcxproj.user ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user )
-	ENDIF (NOT EXISTS ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user)
-ENDIF(MSVC)
-
 SET (CORE_LIBRARY_NAME open_iA_Core)
-
-
-#========================================================================================
-# collect required libraries
-#========================================================================================
-
-# vtk libraries
-IF (VTK_VERSION_MAJOR GREATER 5)
-	IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-		ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
-		SET( VTK_LIBRARIES
-			vtkCommonCore
-			vtkChartsCore
-			vtkDICOMParser
-			vtkFiltersCore
-			vtkGUISupportQt
-			vtkGUISupportQtOpenGL
-			vtkImagingCore
-			vtkImagingStatistics
-			vtkInfovisCore
-			vtkIOCore
-			vtkIOMovie
-			vtkIOGeometry
-			vtkIOXML
-			vtkRenderingContext2D
-			vtkRenderingContextOpenGL2
-			vtkRenderingCore
-			vtkRenderingFreeType
-			vtkRenderingImage
-			vtkRenderingOpenGL2
-			vtkRenderingQt
-			vtkRenderingVolumeOpenGL2
-			vtkViewsCore
-			vtkViewsContext2D
-			vtkViewsInfovis
-			vtksys
-		)
-	ELSE ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-		SET( VTK_LIBRARIES
-			vtkCommonCore
-			vtkChartsCore
-			vtkDICOMParser
-			vtkFiltersCore
-			vtkGUISupportQt
-			vtkGUISupportQtOpenGL
-			vtkImagingCore
-			vtkImagingStatistics
-			vtkInfovisCore
-			vtkIOCore
-			vtkIOMovie
-			vtkIOGeometry
-			vtkIOXML
-			vtkRenderingImage
-			vtkRenderingOpenGL
-			vtkViewsCore
-			vtkViewsInfovis
-			vtksys
-		)
-		IF (VTK_VERSION_MAJOR GREATER 6 OR  VTK_VERSION_MINOR GREATER 0)
-			SET (VTK_LIBRARIES ${VTK_LIBRARIES}
-				vtkRenderingCore
-				vtkRenderingFreeType
-				vtkRenderingQt
-				vtkRenderingVolumeOpenGL
-				vtkViewsContext2D
-			)
-			IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 1)
-				SET (VTK_LIBRARIES ${VTK_LIBRARIES}
-					vtkRenderingContextOpenGL
-				)
-			ENDIF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 1)
-		ENDIF (VTK_VERSION_MAJOR GREATER 6 OR  VTK_VERSION_MINOR GREATER 0)
-	ENDIF("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-	
-	IF (vtkoggtheora_LOADED)
-		MESSAGE(STATUS "Video: Ogg Theora Encoder available")
-		ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
-	ENDIF(vtkoggtheora_LOADED)
-
-ELSE (VTK_VERSION_MAJOR GREATER 5)
-	STATUS(SEND_ERROR "Your VTK version is too old. Please use VTK >= 6.0")
-ENDIF (VTK_VERSION_MAJOR GREATER 5)
-
-IF (ITK_VERSION_MAJOR GREATER 3)
-	SET( ITK_LIBRARIES
-		ITKBiasCorrection			ITKBioCell				ITKCommon				ITKIOImageBase
-		ITKFEM						ITKIOBioRad				ITKIOBMP				ITKIOGDCM				ITKIOGE
-		ITKIOGIPL					ITKIOHDF5				ITKIOIPL				ITKIOJPEG				ITKIOLSM
-		ITKIOMeta					ITKIONIFTI				ITKIONRRD				ITKIOPNG				ITKIOSiemens
-		ITKIOSpatialObjects			ITKIOStimulate			ITKIOTIFF				ITKIOVTK				ITKIOXML
-		ITKVtkGlue					ITKKLMRegionGrowing		ITKMesh					ITKOptimizers			ITKPath
-		ITKVNLInstantiation			ITKVTK					ITKWatersheds			ITKDICOMParser			ITKEXPAT
-		ITKLabelMap
-
-		itkhdf5						itkhdf5_cpp				itkjpeg					ITKMetaIO				itkNetlibSlatec
-		ITKniftiio					ITKNrrdIO				itkopenjpeg				itkpng					itksys
-		itktiff						#itkv3p_lsqr				
-		itkv3p_netlib			itkvcl					itkvnl
-		itkvnl_algo					itkzlib					ITKznz
-	)
-	IF (NOT ${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
-		# cannot use ITKGPUCommon_LOADED - it is always defined - bug?
-		SET( ITK_LIBRARIES  ${ITK_LIBRARIES}
-			ITKGPUAnisotropicSmoothing	ITKGPUCommon		ITKGPUFiniteDifference  ITKGPUImageFilterBase
-			ITKGPUSmoothing 		ITKGPUThresholding
-		)
-	ELSE(ITKGPUCommon_LOADED)
-		IF (open_iA_GPU_USING_OPENCL)
-			MESSAGE(SEND_ERROR "You're trying to build with GPU support (open_iA_GPU_USING_OPENCL), but your ITK build has GPU support disabled! Please build ITK libraries with ITK_USE_GPU enabled!")
-		ENDIF()
-	ENDIF()
-
-	IF (ITK_VERSION_MAJOR GREATER 4 OR (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR GREATER 4) )
-		# starting with ITK 4.5, Review has a dependency on ITKIOMRC it seems:
-		SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
-		IF (SCIFIO_LOADED)
-			ADD_DEFINITIONS( -DUSE_SCIFIO )
-			MESSAGE(STATUS "ITK has SCIFIO support enabled. Notice that in order to run a build with this library on another machine than the one you built it, the environment variable SCIFIO_PATH has to be set to the path containing the SCIFIO jar files! Otherwise loading images will fail!")
-			SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
-			IF (MSVC)
-				# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
-			ELSE()
-				SET (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scifio_jars")
-				configure_file("${SCIFIO_PATH}/bioformats_package.jar" "${DESTDIR}/bioformats_package.jar" COPYONLY)
-				configure_file("${SCIFIO_PATH}/scifio-itk-bridge.jar" "${DESTDIR}/scifio-itk-bridge.jar" COPYONLY)
-			ENDIF()
-			SET(ITK_LIBRARIES ${ITK_LIBRARIES} SCIFIO)
-		ENDIF()
-	
-	ENDIF()
-ELSE (ITK_VERSION_MAJOR GREATER 3)
-	MESSAGE(SEND_ERROR "Your ITK version is too old. Please use ITK >= 4.x")
-ENDIF (ITK_VERSION_MAJOR GREATER 3)
-
-SET(Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
+SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 
 ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(core)
