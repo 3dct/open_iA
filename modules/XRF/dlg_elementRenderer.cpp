@@ -16,19 +16,22 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "dlg_elementRenderer.h"
 
 #include "iARenderer.h"
+#include "iATransferFunction.h"
+#include "iAVolumeRenderer.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPolyData.h>
+#include <vtkRendererCollection.h>
 #include <vtkTransform.h>
 
 dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
@@ -59,13 +62,23 @@ void dlg_elementRenderer::removeObserver()
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
+	// TODO: VOLUME: check if working!
+	iASimpleTransferFunction transferFunction(ctf, otf);
 	if(!m_rendInitialized)
 	{
-		m_renderer->initialize(imgData, polyData, otf, ctf);
+		m_renderer->initialize(imgData, polyData);
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer->AddTo(m_renderer->GetRenderer());
 		m_rendInitialized = true;
 	}
 	else
-		m_renderer->reInitialize(imgData, polyData, otf, ctf);
+	{
+		// TODO: VOLUME: check if recreation of volume renderer is necessary!
+		m_volumeRenderer->Remove();
+		m_renderer->reInitialize(imgData, polyData);
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer->AddTo(m_renderer->GetRenderer());
+	}
 }
 
 iARenderer * dlg_elementRenderer::GetRenderer()
@@ -81,4 +94,9 @@ void dlg_elementRenderer::SetRefLibIndex( size_t index )
 size_t dlg_elementRenderer::GetRefLibIndex()
 {
 	return m_indexInReferenceLib;
+}
+
+void dlg_elementRenderer::ApplyVolumeSettings(iAVolumeSettings const & vs)
+{
+	m_volumeRenderer->ApplySettings(vs);
 }

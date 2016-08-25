@@ -1,5 +1,24 @@
-#ifndef I_COMMON_H
-#define I_COMMON_H
+/*********************************  open_iA 2016 06  ******************************** *
+* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
+*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
+#pragma once
 
 #include "iAmat4.h"
 #include <vector>
@@ -291,7 +310,7 @@ inline float Rand( float a_Range );
 			vertices[1] = 0;
 			vertices[2] = 0;
 		};
-		iAVec3 N;	
+		iAVec3 N;
 		iAVec3 *vertices[3];// 12
 	};
 
@@ -299,11 +318,10 @@ inline float Rand( float a_Range );
 	{
 		iAVec3 m_N;
 		iAVec3 m_A;
-		//float m_U, m_V;							
-		float nu, nv, nd;						
-		unsigned int k;									
-		float bnu, bnv;							
-		float cnu, cnv;		
+		float nu, nv, nd;
+		unsigned int k;	
+		float bnu, bnv;
+		float cnu, cnv;	
 	};
 	struct ct_state{
 		iAVec3 o;///< rays origin
@@ -321,15 +339,8 @@ inline float Rand( float a_Range );
 	public:
 		plane() : N( 0, 0, 0 ), D( 0 ) {};
 		plane( iAVec3 a_Normal, float a_D ) : N( a_Normal ), D( a_D ) {};
-		//union
-		//{
-		//	struct
-		//	{
-				iAVec3 N;
-				float D;
-		//	};
-		//	float cell[4];
-		//};
+		iAVec3 N;
+		float D;
 	};
 
 	struct ModelData 
@@ -338,7 +349,3 @@ inline float Rand( float a_Range );
 		std::vector<iAVec3*>		vertices;///< loaded mesh's vertices vector
 		aabb box;///< loaded mesh's aabb
 	};
-	//typedef iAVec3 Color;
-//}; // namespace Raytracer
-
-#endif

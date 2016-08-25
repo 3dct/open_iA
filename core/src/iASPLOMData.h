@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iASPLOMData_h__
-#define iASPLOMData_h__
+#pragma once
 
 #include <QTableWidget>
 
@@ -81,5 +79,3 @@ protected:
 	unsigned long m_numParams;			///< total number of data point parameters
 	unsigned long m_numPoints;			///< total number of data points
 };
-
-#endif // iASPLOMData_h__

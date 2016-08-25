@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_CHART_SPAN_SLIDER
-#define IA_CHART_SPAN_SLIDER
+#pragma once
 
 #include "iAValueType.h"
 #include "iAGEMSeConstants.h" // for AttributeID
@@ -83,6 +81,3 @@ private:
 	
 	QSharedPointer<iAParamHistogramData> m_filteredClusterData;
 };
-
-
-#endif // IA_CHART_SPAN_SLIDER

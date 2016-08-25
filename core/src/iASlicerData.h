@@ -16,12 +16,8 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IASLICERDATA_H
-#define IASLICERDATA_H
-
 #pragma once
 
 #include "iAChannelID.h"
@@ -40,6 +36,11 @@
 #include <QSharedPointer>
 
 #include <string>
+#include <QMdiSubWindow>
+#include "mainwindow.h"
+#include "ui_sliceXY.h"
+#include "ui_sliceXZ.h"
+#include "ui_sliceYZ.h"
 
 class vtkScalarBarWidget;
 class vtkTextProperty;
@@ -69,6 +70,7 @@ class vtkActor;
 class iARulerWidget;
 class iAObserverRedirect;
 class iAMagicLens;
+
 /**
  * \brief	implements a slicer widget
  * 
@@ -84,7 +86,7 @@ public:
 	void initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showIsoLines = false, bool showPolygon = false );
 	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showIsoLines = false, bool showPolygon = false );
 	void changeImageData(vtkImageData *idata);
-	void setup(bool showIsoLines, bool showPos, int no, double min, double max, bool linearInterpolation);
+	void setup(iASingleSlicerSettings const & settings);
 	
 	void initializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
 	void reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
@@ -176,7 +178,7 @@ protected:
 	*/
 	void snap(double &x, double &y);
 	void InitReslicerWithImageData();
-	void UpdateReslicer();
+	void UpdateReslicer();	
 	
 Q_SIGNALS:
 	void msg(QString s);
@@ -213,9 +215,11 @@ private:
 
 	vtkScalarBarWidget *scalarWidget;
 	vtkTextProperty *textProperty;
+
+	// TODO: extract/ unify with iARenderer
 	vtkLogoWidget *logoWidget;
-	vtkLogoRepresentation *rep;
-	vtkQImageToImageSource *image1;
+	vtkLogoRepresentation *logoRep;
+	vtkQImageToImageSource *logoImage;
 
 	iAWrapperText* textInfo;
 
@@ -269,5 +273,3 @@ private:
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
 	void GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, double* result);
 };
-
-#endif

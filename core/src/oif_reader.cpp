@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -646,7 +646,7 @@ OIFReader::TiffImgPtr OIFReader::ReadTiffImage(std::string file_name)
 
 	if (!imageIO)
 	{
-		DEBUG_LOG(QString("OIF Reader: Could not open file %1, aborting loading (error message: %2).\n")
+		DEBUG_LOG(QString("OIF Reader: Could not open file %1, aborting loading (error message: %2).")
 			.arg(file_name.c_str())
 			.arg(errorMsg));
 		return OIFReader::TiffImgPtr();
@@ -671,13 +671,13 @@ OIFReader::TiffImgPtr OIFReader::ReadTiffImage(std::string file_name)
 		case itk::ImageIOBase::DOUBLE:	return read_image_template(file_name, static_cast<double>(0));  break;
 		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
 		default:
-			DEBUG_LOG("OIF Reader: Unknown component type\n");
+			DEBUG_LOG("OIF Reader: Unknown component type");
 			return OIFReader::TiffImgPtr();
 		}
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		DEBUG_LOG(QString("OIF Reader: Exception %1\n").arg(excep.what()));
+		DEBUG_LOG(QString("OIF Reader: Exception %1").arg(excep.what()));
 	}
 	return OIFReader::TiffImgPtr();
 }

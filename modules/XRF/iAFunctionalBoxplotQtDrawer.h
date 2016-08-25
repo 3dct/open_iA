@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_FUNCTIONAL_BOXPLOT_QT_DRAWER
-#define IA_FUNCTIONAL_BOXPLOT_QT_DRAWER
+#pragma once
 
 #include <QSharedPointer>
 
@@ -31,5 +29,3 @@ class iAFunctionalBoxplot;
 typedef iAFunctionalBoxplot<size_t, unsigned int> FunctionalBoxPlot;
 
 QSharedPointer<QImage> drawFunctionalBoxplot(FunctionalBoxPlot const * fbp, int width, int height);
-
-#endif // IA_FUNCTIONAL_BOXPLOT_QT_DRAWER

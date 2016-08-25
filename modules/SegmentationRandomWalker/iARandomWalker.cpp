@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -25,10 +25,9 @@
 #include "iAConsole.h"
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
-#include "iAToolsITK.h"
-#include "iASpectraDistance.h"
 #include "iAMathUtility.h"
-//#include "iAPerformanceHelper.h"
+#include "iASpectraDistance.h"
+#include "iAToolsITK.h"
 
 #include <itkImage.h>
 
@@ -154,7 +153,7 @@ namespace
 			pixelIndex[0] = coord.x;
 			pixelIndex[1] = coord.y;
 			pixelIndex[2] = coord.z;
-			if (imgVal < 0 || imgVal > 1 || std::isinf(imgVal) ||std::isnan(imgVal))
+			if (imgVal < 0 || imgVal > 1 || isInf(imgVal) || isNaN(imgVal))
 			{
 				/*
 				DebugOut() << "Invalid pixel value at ("
@@ -365,14 +364,14 @@ void iARandomWalker::run()
 	std::string error = solver.lastErrorMessage();
 	if (error != "")
 	{
-		DEBUG_LOG(QString(error.c_str()) + "\n");
+		DEBUG_LOG(QString(error.c_str()));
 		return;
 	}
 	solver.factorize(A);
 	error = solver.lastErrorMessage();
 	if (error != "")
 	{
-		DEBUG_LOG(QString(error.c_str()) + "\n");
+		DEBUG_LOG(QString(error.c_str()));
 		return;
 	}
 #else

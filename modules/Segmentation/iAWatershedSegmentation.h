@@ -16,12 +16,8 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAWATERSHEDSEGMENTATION_H
-#define IAWATERSHEDSEGMENTATION_H
-
 #pragma once
 
 #include "iASegmentation.h"
@@ -56,7 +52,7 @@ public:
 	vtkImageData* getImageDataNew ( ) { return imageDataNew; }
 
 protected:
-    virtual void run();
+	virtual void run();
 
 private:
 	double level, threshold;
@@ -65,4 +61,3 @@ private:
 
 	vtkImageData* imageDataNew;
 };
-#endif

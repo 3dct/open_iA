@@ -16,11 +16,10 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_TRACKINGGRAPH_H
-#define	DLG_TRACKINGGRAPH_H
+#pragma once
+
 // Qt
 #include <QDockWidget>
 #include <QWidget>
@@ -70,5 +69,3 @@ private:
 	map<vtkIdType, int>					m_nodesToLayers;
 	map<int, map<vtkIdType, int>>		m_graphToTableId;
 };
-
-#endif

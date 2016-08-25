@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iAConsole.h"
@@ -26,6 +26,8 @@
 
 #include <QApplication>
 #include <QDate>
+
+#include <vtkSmartPointer.h>
 
 int main(int argc, char *argv[])
 {
@@ -37,9 +39,10 @@ int main(int argc, char *argv[])
 
 	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
 
-	if (argc > 1) mainWin.loadFile(QString(argv[1]));
-	
+	mainWin.LoadArguments(argc, argv);
+	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
+	mainWin.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
 
 	if( QDate::currentDate().dayOfYear() >= 340 ) {
 		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");

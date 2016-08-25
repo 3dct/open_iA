@@ -16,12 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-
-#ifndef QWidgetToolbar_H
-#define QWidgetToolbar_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -49,5 +46,3 @@ protected:
 		QWidget::style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 	}
 };
-
-#endif

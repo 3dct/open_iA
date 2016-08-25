@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_HISTOGRAM_WIDGET_H
-#define IA_HISTOGRAM_WIDGET_H
+#pragma once
 
 #include "iADiagramFctWidget.h"
 #include "open_iA_Core_export.h"
@@ -51,14 +49,11 @@ public:
 		iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space);
 
 	void drawHistogram();
+	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 
 private:
 	QSharedPointer<iAHistogramData> data;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 	void reInitialize(bool resetFunction);
 
 };
-
-#endif // IA_HISTOGRAM_WIDGET_H
-

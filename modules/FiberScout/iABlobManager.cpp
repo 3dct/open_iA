@@ -16,13 +16,13 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iABlobManager.h"
 
 #include "iABlobCluster.h"
+#include "iAMovieHelper.h"
 #include "iARenderer.h"
 #include "mdichild.h"
 
@@ -32,20 +32,19 @@
 #include <itkGaussianBlurImageFunction.h>
 #include <itkImageRegionIterator.h>
 
-#include <vtkAVIWriter.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCamera.h>
 #include <vtkCellData.h>
 #include <vtkDepthSortPolyData.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkLookupTable.h>
+#include <vtkPlane.h>
 #include <vtkPointData.h>
 #include <vtkPolyDataSilhouette.h>
 #include <vtkRenderWindow.h>
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
-#include <vtkPlane.h>
 
 #include <QSettings>
 #include <QWidget>
@@ -646,38 +645,7 @@ void iABlobManager::SaveMovie(  QWidget *activeChild,
 	if(numberOfFrames<=1)
 		return;
 
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
-	vtkSmartPointer<vtkAVIWriter> aviwriter;
-
-	// Try to create proper video encoder based on given
-	// file name.
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	if (fileName.endsWith(".mpeg")){
-		vtkSmartPointer<vtkMPEG2Writer> mpegwriter;
-		mpegwriter = vtkSmartPointer<vtkMPEG2Writer>::New();
-		movieWriter = mpegwriter;
-	}
-#endif
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	if (fileName.endsWith(".ogv")) {
-		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
-		oggwriter = vtkSmartPointer<vtkOggTheoraWriter>::New();
-		oggwriter->SetQuality(qual);
-		movieWriter = oggwriter;
-	}
-#endif
-
-#ifdef WIN32
-	if (fileName.endsWith(".avi")){
-		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
-		aviwriter->SetCompressorFourCC("XVID");
-		aviwriter->PromptCompressionOptionsOn();
-		aviwriter->SetQuality(qual);
-		movieWriter = aviwriter;
-	}
-#endif
+	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
 
 	if (movieWriter.GetPointer() == NULL)
 		return;

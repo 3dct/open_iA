@@ -21,7 +21,7 @@ void CheckSCIFIO(char const * progPath)
 	if (!QFile::exists(scifioPath))
 	{
 		DEBUG_LOG(QString("ITK was built with SCIFIO, SCIFIO_PATH environment variable is not set, and scifio_jars directory (%1) was not found."
-			"You might not be able to load files!\n").arg(scifioPath));
+			"You might not be able to load files!").arg(scifioPath));
 		return;
 	}
 	scifioPath.replace("/", "\\");

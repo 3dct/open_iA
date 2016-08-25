@@ -16,67 +16,61 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-// FeatureTracking.h
+#include <string>
+#include <iostream>
+#include <vector>
+#include <iterator>
+#include <sstream>
+#include <fstream>
+#include <vtkTable.h>
+#include <vtkSmartPointer.h>
+#include <vtkTypeUInt32Array.h>
+#include <vtkVariantArray.h>
 
-#ifndef FT_H
-#define FT_H
-
-	#include <string>
-	#include <iostream>
-	#include <vector>
-	#include <iterator>
-	#include <sstream>
-	#include <fstream>
-	#include <vtkTable.h>
-	#include <vtkSmartPointer.h>
-	#include <vtkTypeUInt32Array.h>
-	#include <vtkVariantArray.h>
-
-	#include "iAFeatureTrackingCorrespondence.h"
+#include "iAFeatureTrackingCorrespondence.h"
 
 
-	using namespace std;
+using namespace std;
 
-	class iAFeatureTracking
-	{
-	private:
-		string file1;
-		string file2;
-		int lineOffset;
-		vtkTable *u;
-		vtkTable *v;
-		float dissipationThreshold;
-		float overlapThreshold;
-		float volumeThreshold;
-		float overallMatchingPercentage;
-		int maxSearchValue;
-		vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *uToV;
-		vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *vToU;
-		vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *allUtoV;
-		vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *allVtoU;
-		string outputFilename;
-		vector<string> &split(const string &s, char delim, vector<string> &elems);
-		vector<string> split(const string &s, char delim);
-		vtkTable &readTableFromFile(const string &filename, int dataLineOffset);
-		void sortCorrespondencesByOverlap(vector<iAFeatureTrackingCorrespondence> &correspondences);
-		vector<iAFeatureTrackingCorrespondence>& getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
-		void ComputeOverallMatchingPercentage();
+class iAFeatureTracking
+{
+private:
+	string file1;
+	string file2;
+	int lineOffset;
+	vtkTable *u;
+	vtkTable *v;
+	float dissipationThreshold;
+	float overlapThreshold;
+	float volumeThreshold;
+	float overallMatchingPercentage;
+	int maxSearchValue;
+	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *uToV;
+	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *vToU;
+	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *allUtoV;
+	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *allVtoU;
+	string outputFilename;
+	vector<string> &split(const string &s, char delim, vector<string> &elems);
+	vector<string> split(const string &s, char delim);
+	vtkTable &readTableFromFile(const string &filename, int dataLineOffset);
+	void sortCorrespondencesByOverlap(vector<iAFeatureTrackingCorrespondence> &correspondences);
+	vector<iAFeatureTrackingCorrespondence>& getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
+	void ComputeOverallMatchingPercentage();
 
-	public:
-		iAFeatureTracking(string fileName1, string fileName2, int lineOffset, string outputFilename, float dissipationThreshold,
-			float overlapThreshold, float volumeThreshold, int maxSearchValue);
-		void TrackFeatures();
-		vector<iAFeatureTrackingCorrespondence> FromUtoV(unsigned int uId);
-		vector<iAFeatureTrackingCorrespondence> FromVtoU(unsigned int vId);
-		float GetOverallMatchingPercentage();
+public:
+	iAFeatureTracking(string fileName1, string fileName2, int lineOffset, string outputFilename, float dissipationThreshold,
+		float overlapThreshold, float volumeThreshold, int maxSearchValue);
+	void TrackFeatures();
+	vector<iAFeatureTrackingCorrespondence> FromUtoV(unsigned int uId);
+	vector<iAFeatureTrackingCorrespondence> FromVtoU(unsigned int vId);
+	float GetOverallMatchingPercentage();
 		
-		size_t getNumberOfEventsInU();
-		size_t getNumberOfEventsInV();
-		vtkTable* getU();
-		vtkTable* getV();
-	};
-
-#endif
+	size_t getNumberOfEventsInU();
+	size_t getNumberOfEventsInV();
+	vtkTable* getU();
+	vtkTable* getV();
+};

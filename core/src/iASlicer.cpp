@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,6 +24,7 @@
 
 #include "iAConsole.h"
 #include "iAMagicLens.h"
+#include "iAMovieHelper.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
 #include "mdichild.h"
@@ -50,7 +51,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 	assert(m_widget);
 	if (!m_widget)
 	{
-		DEBUG_LOG("Slicer: Could not allocate iASlicerWidget!\n");
+		DEBUG_LOG("Slicer: Could not allocate iASlicerWidget!");
 		return;
 	}
 	ConnectWidgetAndData();
@@ -176,17 +177,7 @@ void iASlicer::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 void iASlicer::saveMovie()
 {
-	QString movie_file_types;
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	movie_file_types += "MPEG2 (*.mpeg);;";
-#endif
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	QWidget * parentWidget = dynamic_cast<QWidget*>( this->parent() );
 	if( !parentWidget )
@@ -272,9 +263,9 @@ void iASlicer::setIndex( int x, int y, int z )
 	m_widget->setIndex(x, y, z);
 }
 
-void iASlicer::setup( bool sil, bool sp, int no, double min, double max, bool li )
+void iASlicer::setup( iASingleSlicerSettings const & settings )
 {
-	m_data->setup(sil, sp, no, min, max, li);
+	m_data->setup(settings);
 	if (m_magicLens)
 	{
 		m_widget->updateMagicLens();
@@ -310,7 +301,7 @@ void iASlicer::SetMagicLensEnabled( bool isEnabled )
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!\n");
+		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->SetEnabled(isEnabled);
@@ -322,7 +313,7 @@ void iASlicer::SetMagicLensSize(int newSize)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!\n");
+		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->SetSize(newSize);
@@ -334,7 +325,7 @@ void iASlicer::SetMagicLensFrameWidth(int newWidth)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!\n");
+		DEBUG_LOG("SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->SetFrameWidth(newWidth);

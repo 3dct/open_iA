@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #ifndef DLG_REGIONVIEW_H
@@ -38,7 +38,7 @@ public:
 	void				setData( iA4DCTData * data );
 	QString				getImagePath();
 	double				getThreshold();
-	void				getDimension( int * dim );
+	//void				getDimension( int * dim );
 
 private slots:
 	void				onSelectButtonClicked();

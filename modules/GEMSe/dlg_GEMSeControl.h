@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_GEMSECONTROL_H
-#define DLG_GEMSECONTROL_H
+#pragma once
 
 #include "ui_GEMSeControl.h"
 
@@ -28,12 +26,10 @@
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class iAImageClusterer;
-class iAMMSegSampler;
+class iAImageSampler;
 
 class dlg_labels;
 class dlg_modalities;
-class dlg_modalitySPLOM;
-class dlg_priors;
 class dlg_samplingSettings;
 class dlg_progress;
 class dlg_GEMSe;
@@ -50,7 +46,6 @@ public:
 	dlg_GEMSeControl(QWidget *parentWidget,
 		dlg_GEMSe* dlgGEMSe,
 		dlg_modalities* dlgModalities,
-		dlg_priors* dlgPriors,
 		dlg_labels* dlgLabels,
 		QString const & defaultThemeName
 	);
@@ -75,7 +70,6 @@ private slots:
 	void StoreAll();
 	void DataAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void ModalitySPLOM();
 	void Help();
 	void ResetFilters();
 	void SetMagicLensOpacity(int newValue);
@@ -86,14 +80,12 @@ private:
 	void OpenGEMSe();
 	
 	dlg_modalities*                      m_dlgModalities;
-	dlg_priors*                          m_dlgPriors;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
 	dlg_GEMSe*                           m_dlgGEMSe;
-	dlg_modalitySPLOM*					 m_dlgModalitySPLOM;
 	dlg_labels*                          m_dlgLabels;
 
-	QSharedPointer<iAMMSegSampler>       m_sampler;
+	QSharedPointer<iAImageSampler>       m_sampler;
 	QSharedPointer<iASamplingResults>    m_samplingResults;
 
 	QSharedPointer<iAImageClusterer>     m_clusterer;
@@ -103,5 +95,3 @@ private:
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 };
-
-#endif // DLG_GEMSECONTROL_H

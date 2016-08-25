@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -97,7 +97,7 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, ma
 
 	vtkNew<vtkPoints> points;	
 	iAVtkGraphDrawer graphDrawer;
-	graphDrawer.setMaxIteration(MAX_ITERATIONS);
+	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
 	graphDrawer.createLayout(points.GetPointer(), m_graph, m_renderWindow->GetSize(), nunRanks);
 	m_graph->SetPoints(points.GetPointer());
 	

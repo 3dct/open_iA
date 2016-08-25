@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -73,6 +73,11 @@ void dlg_4DCTFileOpen::onTreeViewDoubleClicked( const QModelIndex & index )
 
 void dlg_4DCTFileOpen::setFileAndClose( const QModelIndex & index )
 {
-	m_file = m_data->at( index.parent().row() )->Files[ index.row() ];
+	int idx = index.parent().row();
+	if (idx < 0)
+	{
+		return;
+	}
+	m_file = m_data->at( idx )->Files[ index.row() ];
 	QDialog::accept();
 }

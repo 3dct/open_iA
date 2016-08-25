@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -27,6 +27,7 @@
 #include "dlg_openfile_sizecheck.h"
 #include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
+#include "iAExceptionThrowingErrorObserver.h"
 #include "iAObserverProgress.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
@@ -202,15 +203,6 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, bool
 	m_fileNames_volstack(fileNames)
 {
 	init(par);
-	if (par)
-	{
-		if (!initVolumePlayer) {
-			connect(this, SIGNAL(done(bool)), par, SLOT(setupView(bool)));		// should be done from the outside
-		}
-		else {
-			connect(this, SIGNAL(done(bool)), par, SLOT(setupStackView(bool)));		// should be done from the outside
-		}
-	}
 }
 
 
@@ -1413,11 +1405,21 @@ bool iAIO::readImageStack()
 	}
 	imgReader->ReleaseDataFlagOn();
 	imgReader->AddObserver(vtkCommand::ProgressEvent, observerProgress);
-	imgReader->SetFileNames( fileNameArray );
-	imgReader->SetDataOrigin( origin );
-	imgReader->SetDataSpacing( spacing );
-	imgReader->SetOutput(getVtkImageData());
-	imgReader->Update();
+	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
+	try
+	{
+		imgReader->SetFileNames(fileNameArray);
+		imgReader->SetDataOrigin(origin);
+		imgReader->SetDataSpacing(spacing);
+		imgReader->SetOutput(getVtkImageData());
+		imgReader->Update();
+	}
+	catch (std::exception &e)
+	{
+		emit msg(tr("%1  An error occured while loading image stack (%2), aborting.")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(e.what()));
+		return false;
+	}
 
 	printFileInfos();
 

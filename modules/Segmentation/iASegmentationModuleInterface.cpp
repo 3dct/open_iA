@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -98,9 +98,9 @@ void CalculateSegmentationMetrics_template(iAConnector & groundTruthCon, iAConne
 	filter->SetTargetImage(segmentedPtr);
 	filter->Update();
 
-	DEBUG_LOG("************ All Labels *************\n");
-	DEBUG_LOG(" \t Total \t Union (jaccard) \t Mean (dice) \t Volume sim. \t False negative \t False positive \n");
-	DEBUG_LOG(QString(" \t %1 \t %2 \t  %3 \t  %4 \t  %5 \t  %6 \t \n")
+	DEBUG_LOG("************ All Labels *************");
+	DEBUG_LOG(" \t Total \t Union (jaccard) \t Mean (dice) \t Volume sim. \t False negative \t False positive");
+	DEBUG_LOG(QString(" \t %1 \t %2 \t  %3 \t  %4 \t  %5 \t  %6")
 		.arg(filter->GetTotalOverlap())
 		.arg(filter->GetUnionOverlap())
 		.arg(filter->GetMeanOverlap())
@@ -108,8 +108,8 @@ void CalculateSegmentationMetrics_template(iAConnector & groundTruthCon, iAConne
 		.arg(filter->GetFalseNegativeError())
 		.arg(filter->GetFalsePositiveError()));
 
-	DEBUG_LOG("************ Individual Labels *************\n");
-	DEBUG_LOG("Label \t Target \t Union (jaccard) \t Mean (dice) \t Volume sim. \t False negative \t False positive \n");
+	DEBUG_LOG("************ Individual Labels *************");
+	DEBUG_LOG("Label \t Target \t Union (jaccard) \t Mean (dice) \t Volume sim. \t False negative \t False positive");
 
 	typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
 	typename FilterType::MapType::const_iterator it;
@@ -120,7 +120,7 @@ void CalculateSegmentationMetrics_template(iAConnector & groundTruthCon, iAConne
 			continue;
 		}
 		int label = (*it).first;
-		DEBUG_LOG(QString(" \t %1 \t %2 \t  %3 \t  %4 \t  %5 \t  %6 \t \n")
+		DEBUG_LOG(QString(" \t %1 \t %2 \t  %3 \t  %4 \t  %5 \t  %6")
 			.arg(label)
 			.arg(filter->GetTargetOverlap(label))
 			.arg(filter->GetUnionOverlap(label))
@@ -210,13 +210,13 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		case itk::ImageIOBase::DOUBLE:
 		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
 		default:
-			DEBUG_LOG("Unknown/Invalid component type\n");
+			DEBUG_LOG("Unknown/Invalid component type.");
 			return false;
 		}
 	}
 	catch (itk::ExceptionObject &e)
 	{
-		DEBUG_LOG(QString("Segmentation Metric calculation terminated unexpectedly: %1\n").arg(e.what()));
+		DEBUG_LOG(QString("Segmentation Metric calculation terminated unexpectedly: %1.").arg(e.what()));
 		return false;
 	}
 	return true;

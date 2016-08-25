@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -67,6 +67,7 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	m_slicerDataExternal(slicerMaster->m_data),
 	m_decorations(decorations)
 {
+	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
 	setCursor(QCursor(Qt::CrossCursor));
 
 	m_imageData = NULL;

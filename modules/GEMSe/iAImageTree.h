@@ -16,14 +16,11 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_TREE_H
-#define IA_IMAGE_TREE_H
+#pragma once
 
 #include "iAGEMSeConstants.h"
-#include "iAImageTypes.h"
 
 #include <itkImage.h>
 #include <itkSmartPointer.h>
@@ -40,6 +37,20 @@ class iAImageClusterLeaf;
 
 typedef int ClusterIDType;
 typedef float ClusterDistanceType;
+
+// TODO: Remove!
+const int DIM = 3;
+typedef int LabelPixelType;
+typedef itk::Image<LabelPixelType, DIM> LabelImageType;
+typedef LabelImageType::Pointer LabelImagePointer;
+
+typedef double ProbabilityPixel;
+typedef itk::Image<ProbabilityPixel, DIM> ProbabilityImageType;
+typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
+
+#include "iAITKIO.h" // TODO: replace?
+typedef iAITKIO::ImagePointer ClusterImageType;
+
 
 struct LabelPixelHistogram
 {
@@ -191,5 +202,3 @@ private:
 };
 
 void GetClusterMinMax(iAImageClusterNode const * node, AttributeID attribID, double & min, double & max);
-
-#endif // IA_IMAGE_TREE_H

@@ -16,13 +16,10 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_PREVIEW_WIDGET
-#define IA_IMAGE_PREVIEW_WIDGET
+#pragma once
 
-//#include "iAImageTypes.h"
 #include "iAITKIO.h"
 #include "iASlicer.h"
 
@@ -92,5 +89,3 @@ private slots:
 	void SlicerClicked();
 	void SlicerHovered(int x, int y, int z, int mode);
 };
-
-#endif // IA_IMAGE_PREVIEW_WIDGET

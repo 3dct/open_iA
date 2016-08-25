@@ -16,14 +16,17 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include "ui_Mainwindow.h"
 #include "open_iA_Core_export.h"
+
+#include "iAPreferences.h"
+#include "iARenderSettings.h"
+#include "iASlicerSettings.h"
+#include "iAVolumeSettings.h"
 
 #include <QMainWindow>
 
@@ -62,7 +65,51 @@ public:
 	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
 	~MainWindow();
 	static void InitResources();
+	void setCurrentFile(const QString &fileName);
+	void updateRecentFileActions();
 
+	void setPath(QString p) { path = p; };
+	QString getPath() { return path; };
+
+	void LoadFile(QString const & fileName);
+	void loadFile(QString fileName, bool isStack);
+	void loadFiles(QStringList fileNames);
+
+	QDomDocument loadSettingsFile(QString filename);
+	void saveSettingsFile(QDomDocument &doc, QString filename);
+	void saveCamera(QDomDocument &doc);
+	void loadCamera(QDomNode &cameraNode);
+	void saveSliceViews(QDomDocument &doc);
+	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr);
+	void loadSliceViews(QDomNode &sliceViewsNode);
+	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
+	void saveProbabilityFunctions(QDomDocument &doc);
+	void loadProbabilityFunctions(QDomNode &functionsNode);
+	void savePreferences(QDomDocument &doc);
+	void loadPreferences(QDomNode &preferencesNode);
+	void saveRenderSettings(QDomDocument &doc);
+	void loadRenderSettings(QDomNode &renderSettingsNode);
+	void saveSlicerSettings(QDomDocument &doc);
+	void loadSlicerSettings(QDomNode &slicerSettingsNode);
+
+	void removeNode(QDomNode &node, char const *str);
+
+	QList<QString> mdiWindowTitles();
+
+	QMenu * getToolsMenu();
+	QMenu * getFiltersMenu();
+	QMenu * getHelpMenu();
+	QMenu * getFileMenu();
+	MdiChild *GetResultChild( QString const & title );
+	MdiChild *GetResultChild( int childInd, QString const & title );
+	MdiChild *activeMdiChild();
+	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	int SelectInputs(QString winTitel, int n, QStringList inList, int * out_inputIndxs, bool modal = true);
+	void addSubWindow(QWidget * child);
+	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
+	void loadLayout(MdiChild* child, QString const & layout);
+	void LoadArguments(int argc, char** argv);
+	iAPreferences const & GetDefaultPreferences() const;
 protected:
 	void closeEvent(QCloseEvent *event);
 
@@ -85,6 +132,7 @@ private slots:
 	void multi();
 	void prefs();
 	void linkViews();
+	void linkMDIs();
 	void enableInteraction();
 	void renderSettings();
 	void slicerSettings();
@@ -112,6 +160,10 @@ private slots:
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
+	void LoadProject();
+	void LoadProject(QString const & fileName);
+	void SaveProject();
+	void OpenTLGICTData();
 
 public slots:
 	void saveLayout();
@@ -133,79 +185,6 @@ public slots:
 	void setHistogramFocus();
 	void tabChanged(int index);
 
-public:
-	bool isStack;
-	//void setFeaturesFromMasks(QStringList featuremask);
-	//int updateVisibility(void);
-	//int exportVisibility(QString filename);
-	void setCurrentFile(const QString &fileName);
-	void updateRecentFileActions();
-	int getPrefHistoBinCnt() { return prefHistogramBins; };
-	bool getPrefCompression() { return prefCompression; };
-	bool getPrefMedianFilterFistogram() { return prefMedianFilterFistogram; };
-	bool getPrefResultInNewWindow() { return prefResultInNewWindow; };
-	
-	bool getShowVolume() { return rsShowVolume; };
-	bool getShowSlicers() { return rsShowSlicers; };
-	bool getShowHelpers() { return rsShowHelpers; };
-	bool getShowRPosition() { return rsShowRPosition; };
-	bool getLinearInterpolation() { return rsLinearInterpolation; };
-	bool getShading() { return rsShading; };
-	bool getBoundingBox() { return rsBoundingBox; };
-	bool getParallelProjection() { return rsParallelProjection; };
-	
-	double getImageSampleDistance() { return rsImageSampleDistance; };
-	double getSampleDistance() { return rsSampleDistance; };
-	double getAmbientLighting() { return rsAmbientLighting; };
-	double getDiffuseLighting() { return rsDiffuseLighting; };
-	double getSpecularLighting() { return rsSpecularLighting; };
-	double getSpecularPower() { return rsSpecularPower; };
-	QString getBackgroundTop() { return rsBackgroundTop; };
-	QString getBackgroundBottom() { return rsBackgroundBottom; };
-	QColor *getColors() { return colors; }
-
-	void setImageSampleDistance( double d ) { rsImageSampleDistance = d; };
-	void setSampleDistance( double d ) { rsSampleDistance = d; };
-	void setPath(QString p) { path = p; };
-	QString getPath() { return path; };
-
-	void loadFile(QString fileName);
-	void loadFiles(QStringList fileNames);
-
-	QDomDocument loadSettingsFile(QString filename);
-	void saveSettingsFile(QDomDocument &doc, QString filename);
-	void saveCamera(QDomDocument &doc);
-	void loadCamera(QDomNode &cameraNode);
-	void saveSliceViews(QDomDocument &doc);
-	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr);
-	void loadSliceViews(QDomNode &sliceViewsNode);
-	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
-	void saveProbabilityFunctions(QDomDocument &doc);
-	void loadProbabilityFunctions(QDomNode &functionsNode);
-	void savePreferences(QDomDocument &doc);
-	void loadPreferences(QDomNode &preferencesNode);
-	void saveRenderSettings(QDomDocument &doc);
-	void loadRenderSettings(QDomNode &renderSettingsNode);
-	void saveSlicerSettings(QDomDocument &doc);
-	void loadSlicerSettings(QDomNode &slicerSettingsNode);
-
-	void removeNode(QDomNode &node, char const *str);
-	
-	QList<QString> mdiWindowTitles();
-
-	QMenu * getToolsMenu();
-	QMenu * getFiltersMenu();
-	QMenu * getHelpMenu();
-	QMenu * getFileMenu();
-	MdiChild *GetResultChild( QString const & title );
-	MdiChild *GetResultChild( int childInd, QString const & title );
-	MdiChild *activeMdiChild();
-	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	int SelectInputs(QString winTitel, int n, QStringList inList, int * out_inputIndxs, bool modal = true);
-	void addSubWindow(QWidget * child);
-	QString getCurFile() { return curFile; }
-	void loadLayout(MdiChild* child, QString const & layout);
-
 private:
 	void connectSignalsToSlots();
 	void setupToolBars();
@@ -216,7 +195,7 @@ private:
 	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
-	void loadFileInternal(QString fileName);
+	void loadFileInternal(QString fileName, bool isStack);
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 
@@ -234,22 +213,20 @@ private:
 
 	QSignalMapper *windowMapper;
 	
-	int prefHistogramBins, prefStatExt;
-	int prefMagicLensSize, prefMagicLensFrameWidth;
-	bool prefCompression, prefResultInNewWindow, prefMedianFilterFistogram;
-	
 	QString qssName;
-	bool rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition, rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection;
-	double rsImageSampleDistance, rsSampleDistance, rsAmbientLighting, rsDiffuseLighting, rsSpecularLighting, rsSpecularPower;
-	double ssMinIsovalue, ssMaxIsovalue;
-	int ssNumberOfIsolines, ssSnakeSlices;
-	bool ssLinkViews, ssShowIsolines, ssShowPosition, ssImageActorUseInterpolation, ssInteractionEnabled, ssShowPorosityMaps; 
-	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
-	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;//openwithdatatypeconversion
-	float owdtcmin, owdtcmax; double owdtcoutmin, owdtcoutmax; int owdtcdov ;//openwithdatatype
 
-	QString rsBackgroundTop, rsBackgroundBottom;
-	int rsRenderMode;
+	iAVolumeSettings defaultVolumeSettings;	
+	iARenderSettings defaultRenderSettings;
+	iASlicerSettings defaultSlicerSettings;
+	iAPreferences defaultPreferences;
+
+	//! @{ DataType Conversion settings
+	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
+	//! @}
+	//! @{ Open with DataType Conversion settings
+	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;
+	//! @}
+	float owdtcmin, owdtcmax; double owdtcoutmin, owdtcoutmax; int owdtcdov ;//openwithdatatype
 
 	bool lpCamera, lpSliceViews, lpTransferFunction, lpProbabilityFunctions, lpPreferences, lpRenderSettings, lpSlicerSettings;
 	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
@@ -262,10 +239,8 @@ private:
 	QString fvFileName;
 
 	QString curFile, path;
-	QColor colors[7];
 
 	QTimer *timer;
-	//bool isStack;
 
 	QComboBox * layout;
 
@@ -273,5 +248,3 @@ private:
 	QStringList layoutNames;
 	QString m_gitVersion;
 };
-
-#endif

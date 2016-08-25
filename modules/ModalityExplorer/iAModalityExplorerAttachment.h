@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_MODALITY_EXPLORER_ATTACHMENT_H
-#define IA_MODALITY_EXPLORER_ATTACHMENT_H
+#pragma once
 
 #include "iAModuleAttachmentToChild.h"
 
@@ -38,25 +36,6 @@ class iAModalityExplorerAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 public:
 	static iAModalityExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void SetModalities(QSharedPointer<iAModalityList> modList);
-	dlg_modalities* GetModalitiesDlg();
-	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
-	int GetCurrentModality() const;
-	void SetCurrentModality(int modality);
-	bool LoadModalities();
-private slots:
-	void ChangeImage(vtkSmartPointer<vtkImageData> img);
-	void MagicLensToggled(bool isOn);
-	void RenderSettingsChanged();
-	void preferencesChanged();
-	void ChangeModality(int);
-	void ChangeMagicLensOpacity(int);
 private:
 	iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
-	dlg_modalities *                  m_dlgModalities;
-	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	int                               m_currentModality;
 };
-
-#endif // IA_MODALITY_EXPLORER_ATTACHMENT_H

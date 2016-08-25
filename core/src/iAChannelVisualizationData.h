@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IACHANNELVISUALIZATIONDATA_H
-#define IACHANNELVISUALIZATIONDATA_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 
@@ -64,7 +62,7 @@ public:
 	void updateReslicer();
 
 	vtkImageActor*						imageActor;
-	vtkSmartPointer<vtkImageData>		activeImage;
+	vtkSmartPointer<vtkImageData>		image;
 	vtkImageReslice*					reslicer;
 
 	vtkSmartPointer<vtkMarchingContourFilter>	cFilter;
@@ -94,6 +92,7 @@ private:
 class open_iA_Core_API iAChannelVisualizationData
 {
 public:
+	// TODO: VOLUME: new channel vis. shouldn't have the Maximum3DChannels Limit!
 	static const size_t Maximum3DChannels = 3;
 
 	iAChannelVisualizationData();
@@ -110,7 +109,7 @@ public:
 	bool Uses3D() const;
 	void Set3D(bool enabled);
 
-	void SetActiveImage(vtkSmartPointer<vtkImageData> image);
+	void SetImage(vtkSmartPointer<vtkImageData> image);
 	void SetColorTF(vtkScalarsToColors* cTF);
 	void SetOpacityTF(vtkPiecewiseFunction* oTF);
 
@@ -123,7 +122,7 @@ public:
 	void SetSimilarityRenderingEnabled(bool enabled);
 	// end
 
-	vtkSmartPointer<vtkImageData> GetActiveImage();
+	vtkSmartPointer<vtkImageData> GetImage();
 	vtkPiecewiseFunction * GetOTF();
 	vtkScalarsToColors* GetCTF();
 private:
@@ -132,11 +131,9 @@ private:
 	bool threeD;
 	QColor color;
 	bool similarityRenderingEnabled;
-	vtkSmartPointer<vtkImageData>		activeImage;
+	vtkSmartPointer<vtkImageData>		image;
 	vtkPiecewiseFunction*				piecewiseFunction;
 	vtkScalarsToColors*			colorTransferFunction;
 };
 
 void open_iA_Core_API ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
-
-#endif

@@ -16,14 +16,13 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "iACharacteristics.h"
 
 #include "iAConsole.h"
-#include "iAImageTypes.h"
 #include "iASingleResult.h"
 #include "iAAttributes.h"
 
@@ -33,108 +32,54 @@
 
 #include <QString>
 
-iACharacteristics::iACharacteristics():
-m_objectCount(0),
-m_duration(0.0)
-{
-	std::fill(m_measures, m_measures+MeasureCount, 0.0);
-}
+// TODO: Remove!
+const int DIM = 3;
+typedef int LabelPixelType;
+typedef itk::Image<LabelPixelType, DIM> LabelImageType;
+typedef LabelImageType::Pointer LabelImagePointer;
 
-int iACharacteristics::ObjectCount() const
-{
-	return m_objectCount;
-}
-
-void iACharacteristics::SetObjectCount(int objCount)
-{
-	m_objectCount = objCount;
-}
-
-double iACharacteristics::Duration() const
-{
-	return m_duration;
-}
-
-void iACharacteristics::SetDuration(double value)
-{
-	m_duration = value;
-}
-
-void iACharacteristics::SetMeasures(double value[MeasureCount])
-{
-	for (int i=0; i<MeasureCount; ++i)
-	{
-		m_measures[i] = value[i];
-	}
-}
-
-double iACharacteristics::Measure(int idx) const
-{
-	return m_measures[idx];
-}
-
-iACharacteristics iACharacteristics::Create(QString const & descriptor)
-{
-	iACharacteristics result;
-	QStringList tokens = descriptor.split(" ");
-	if (tokens.size() == 0)
-	{
-		DEBUG_LOG(QString("Characteristics: Invalid line '%1'\n").arg(descriptor));
-		return result;
-	}
-	bool ok;
-	result.m_objectCount = tokens[0].toInt(&ok);
-	if (!ok)
-	{
-		DEBUG_LOG(QString("Characteristics: Invalid objectCount in line '%1'\n").arg(descriptor));
-	}
-	ok = true;
-	result.m_duration = (tokens.size() > 1) ? tokens[1].toDouble(&ok) : 0;
-	if (!ok)
-	{
-		DEBUG_LOG(QString("Characteristics:Invalid duration in line '%1'\n").arg(descriptor));
-	}
-	if (tokens.size() <= 1)
-	{
-		DEBUG_LOG(QString("Characteristics: Missing duration in line '%1'\n").arg(descriptor));
-		return result;
-	}
-	return result;
-}
-
-QString iACharacteristics::GetDescriptor() const
-{
-	return QString::number(m_objectCount) + " " + QString::number(m_duration);
-}
-
-CharacteristicsCalculator::CharacteristicsCalculator(QSharedPointer<iASingleResult> result, QSharedPointer<iAAttributes> range, int objCountIdx):
-m_result(result), m_range(range),
-m_objCountIdx(objCountIdx)
+CharacteristicsCalculator::CharacteristicsCalculator(
+		QSharedPointer<iASingleResult> result,
+		QSharedPointer<iAAttributes> range,
+		int objCountIdx):
+	m_result(result),
+	m_range(range),
+	m_objCountIdx(objCountIdx),
+	m_success(true)
 {}
 
 
 void CharacteristicsCalculator::run()
 {
-	typedef itk::Image< unsigned int, 3 > OutputImageType;
-	typedef itk::ScalarConnectedComponentImageFilter <LabelImageType, OutputImageType > ConnectedComponentImageFilterType;
-	ConnectedComponentImageFilterType::Pointer connected = ConnectedComponentImageFilterType::New ();
-	connected->SetDistanceThreshold(0.5);
-	if (m_result->GetLabelledImage().IsNull())
+	try
 	{
-		DEBUG_LOG("Labelled Image is null\n");
-		return;
-	}
-	LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_result->GetLabelledImage().GetPointer());
-	connected->SetInput(lblImg);
-	connected->Update();
-	typedef itk::RelabelComponentImageFilter <OutputImageType, OutputImageType >
-	RelabelFilterType;
-	RelabelFilterType::Pointer relabel = RelabelFilterType::New();
+		typedef itk::Image< unsigned int, 3 > OutputImageType;
+		typedef itk::ScalarConnectedComponentImageFilter <LabelImageType, OutputImageType > ConnectedComponentImageFilterType;
+		ConnectedComponentImageFilterType::Pointer connected = ConnectedComponentImageFilterType::New();
+		connected->SetDistanceThreshold(0.5);
+		if (m_result->GetLabelledImage().IsNull())
+		{
+			DEBUG_LOG("Labelled Image is null");
+			m_success = false;
+			return;
+		}
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_result->GetLabelledImage().GetPointer());
+		connected->SetInput(lblImg);
+		connected->Update();
+		m_result->DiscardDetails();
+		typedef itk::RelabelComponentImageFilter <OutputImageType, OutputImageType >
+			RelabelFilterType;
+		RelabelFilterType::Pointer relabel = RelabelFilterType::New();
 		relabel->SetInput(connected->GetOutput());
-	//relabel->SetSortByObjectSize(false);
-	relabel->Update();
-	int objCount = relabel->GetNumberOfObjects();
-	m_result->SetAttribute(m_objCountIdx, objCount);
+		//relabel->SetSortByObjectSize(false);
+		relabel->Update();
+		int objCount = relabel->GetNumberOfObjects();
+		m_result->SetAttribute(m_objCountIdx, objCount);
+	} catch (std::exception & e)
+	{
+		DEBUG_LOG(QString("An exception occured while computing derived output: %1").arg(e.what()));
+		m_success = false;
+	}
 	/*
 	itk::ImageFileWriter<OutputImageType>::Pointer writer = itk::ImageFileWriter<OutputImageType>::New();
 	writer->SetFileName(debugCount.toStdString() );
@@ -142,4 +87,10 @@ void CharacteristicsCalculator::run()
 	writer->SetInput(relabel->GetOutput() );
 	writer->Update();
 	*/
+}
+
+
+bool CharacteristicsCalculator::success()
+{
+	return m_success;
 }

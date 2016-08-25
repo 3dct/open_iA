@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_SPECTRA_DISTANCE_IMPL_H
-#define IA_SPECTRA_DISTANCE_IMPL_H
+#pragma once
 
 #include "iASpectraDistance.h"
 
@@ -142,5 +140,3 @@ public:
 	virtual bool isSymmetric() {return true; }
 };
 */
-
-#endif // IA_SPECTRA_DISTANCE_IMPL_H

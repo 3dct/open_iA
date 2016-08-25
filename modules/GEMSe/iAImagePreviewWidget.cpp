@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -80,7 +80,7 @@ void iAImagePreviewWidget::InitializeSlicer()
 
 	BuildCTF();
 	
-	m_slicer->setup( false, false, 0, 0, 0, false);
+	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->initializeData(m_imageData, m_slicerTransform, m_ctf, false, false);
 	m_slicer->initializeWidget(m_imageData);
 	m_slicer->SetBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);

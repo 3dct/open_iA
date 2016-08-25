@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -56,9 +56,9 @@ double dlg_regionView::getThreshold()
 	return dspThreshold->value();
 }
 
-void dlg_regionView::getDimension( int * dim )
-{
-	dim[0] = sbDimX->value();
-	dim[1] = sbDimY->value();
-	dim[2] = sbDimZ->value();
-}
+//void dlg_regionView::getDimension( int * dim )
+//{
+//	dim[0] = sbDimX->value();
+//	dim[1] = sbDimY->value();
+//	dim[2] = sbDimZ->value();
+//}

@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_SEGM_EXPLORER_CONSTANTS
-#define IA_SEGM_EXPLORER_CONSTANTS
+#pragma once
 
 #include <QColor>
 #include <QPen>
@@ -96,7 +94,7 @@ const int MaxSelectedClusters = 8;
 const int ChartColoringHeight = 5;
 
 //! the spacing between charts
-const int ChartSpacing = 10;
+const int ChartSpacing = 5;
 
 // CAMERA VIEW
 
@@ -215,5 +213,3 @@ enum iARepresentativeType
 	AverageLabel,
 	LabelDistribution
 };
-
-#endif // IA_SEGM_EXPLORER_CONSTANTS

@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #ifndef IAREGIONVISMODULE_H
@@ -62,7 +62,7 @@ public:
 	void		setSurfaceColor( double r, double g, double b );
 	void		setImage( QString fileName );
 	void		setSilhoetteLineWidth( double width );
-	void		setThreshold( double thresholdVal );
+	void		setDefectDensity( double densityVal );
 	void		setDensityMapDimension( int dimX, int dimY, int dimZ );
 	void		setDensityMapDimension( int * dim );
 	
@@ -78,7 +78,7 @@ private:
 	vtkSmartPointer<vtkActor>				m_silhouetteActor;
 
 	int			m_densityMapSize[3];
-	double		m_threshold;
+	double		m_densityVal;
 };
 
 #endif // IAREGIONVISMODULE_H

@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef TOOLS_ITK_H
-#define TOOLS_ITK_H
+#pragma once
 
 #include "iAConsole.h"
 #include "iAITKIO.h"
@@ -110,11 +108,8 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 	}
 	catch (itk::ExceptionObject const & e)
 	{
-		DEBUG_LOG(QString("Error while writing image file '%1': %2\n")
+		DEBUG_LOG(QString("Error while writing image file '%1': %2")
 			.arg(filename)
 			.arg(e.what()));
 	}
 }
-
-
-#endif

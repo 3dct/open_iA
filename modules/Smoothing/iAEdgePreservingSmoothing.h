@@ -16,15 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAEDGEPRESERVINGSMOOTHING_H
-#define IAEDGEPRESERVINGSMOOTHING_H
-
 #pragma once
-
-
 
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
@@ -74,4 +68,3 @@ private:
 	double timestep, conductance, rangesigma, domainsigma;
 
 };
-#endif

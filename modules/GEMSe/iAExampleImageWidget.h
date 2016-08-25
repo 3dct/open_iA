@@ -16,14 +16,14 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_EXAMPLE_IMAGE_WIDGET
-#define IA_EXAMPLE_IMAGE_WIDGET
+#pragma once
 
 #include "iASlicerMode.h"
-#include "iAImageTypes.h"
+
+#include "iAITKIO.h" // TODO: replace?
+typedef iAITKIO::ImagePointer ClusterImageType;
 
 #include <QGridLayout>
 #include <QSharedPointer>
@@ -73,4 +73,3 @@ private slots:
 	void ImageClicked();
 	void ImageHovered();
 };
-#endif // IA_EXAMPLE_IMAGE_WIDGET

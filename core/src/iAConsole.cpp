@@ -16,13 +16,18 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "iAConsole.h"
 
 #include "dlg_console.h"
+#include "iARedirectVtkOutput.h"
+
+#include <QDateTime>
+
+#include <fstream>
 
 void iAConsole::Log(std::string const & text)
 {
@@ -41,13 +46,47 @@ void iAConsole::Log(QString const & text)
 
 void iAConsole::LogSlot(QString const & text)
 {
-	m_console->show();
-	m_console->Log(text);
+	// The log window prevents the whole application from shutting down
+	// if it is still open at the time the program should exit.
+	// Therefore, we don't reopen the console after the close() method
+	// has been called. This allows the program to exit properly.
+	if (!m_closed)
+	{
+		m_console->show();
+		m_console->Log(text);
+	}
+	if (m_logToFile)
+	{
+		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::app);
+		logfile << QString("%1 %2")
+			.arg(QLocale().toString(
+				QDateTime::currentDateTime(),
+				QLocale::ShortFormat))
+			.arg(text)
+			.toStdString();
+		logfile.close();
+	}
 }
 
-iAConsole::iAConsole():
-	m_console(new dlg_console())
+void iAConsole::SetLogToFile(bool value)
 {
+	m_logToFile = value;
+}
+
+bool iAConsole::IsLogToFileOn()
+{
+	return m_logToFile;
+}
+
+iAConsole::iAConsole() :
+	m_console(new dlg_console()),
+	m_logToFile(false),
+	m_closed(false)
+{
+	// redirect VTK output to console window:
+	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
+	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
+
 	connect(this, SIGNAL(LogSignal(QString const &)), this, SLOT(LogSlot(QString const &)));
 }
 
@@ -63,7 +102,14 @@ iAConsole& iAConsole::GetInstance()
 }
 
 
+void iAConsole::close()
+{
+	m_closed = true;
+	m_console->close();
+}
+
+
 void iAConsole::Close()
 {
-	GetInstance().m_console->close();
+	GetInstance().close();
 }

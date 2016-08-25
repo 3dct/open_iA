@@ -16,11 +16,13 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "iAFast3DMagicLensWidget.h"
+#include "iAConsole.h"
+
 // std
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -39,21 +41,28 @@
 #include <vtkActor2DCollection.h>
 #include <vtkProperty2D.h>
 
+#include <QMouseEvent>
+
 iAFast3DMagicLensWidget::iAFast3DMagicLensWidget( QWidget * parent /*= 0 */ )
 	: iAAbstractMagicLensWidget( parent )
 	, m_viewAngle{ 15. }
-{ /* not implemented*/ }
+{
+	setFocusPolicy(Qt::StrongFocus);	// to receive the KeyPress Event!
+}
 
 iAFast3DMagicLensWidget::~iAFast3DMagicLensWidget()
 {
-	//iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget();
 }
 
 void iAFast3DMagicLensWidget::updateLens()
 {
 	iAAbstractMagicLensWidget::updateLens();
 	// preparations
-	vtkCamera * mainCam = m_mainRen->GetActiveCamera();
+
+	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+		return;
+	
+	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	vtkCamera * magicLensCam = m_lensRen->GetActiveCamera();
 
 	if( mainCam->GetUseOffAxisProjection() == 0 )
@@ -82,16 +91,14 @@ void iAFast3DMagicLensWidget::updateLens()
 	magicLensCam->SetScreenTopRight(    p[0] + w, p[1] + h, z );
 }
 
-void iAFast3DMagicLensWidget::updateGUI( )
-{
-	iAAbstractMagicLensWidget::updateGUI();
-}
-
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
 	QVTKWidget2::resizeEvent( event );
 
-	vtkCamera * mainCam = m_mainRen->GetActiveCamera();
+	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
+		return;
+						// TODO: VOLUME: find better way to get "main" renderer here!
+	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	double w = (double)width() / height();	// calculate width aspect ratio
 	double z = calculateZ( m_viewAngle );
 	mainCam->SetScreenBottomLeft( -w, -1, z );
@@ -104,9 +111,11 @@ inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 	return -1. / std::tan( viewAngle * M_PI / 180. );
 }
 
-
-void iAFast3DMagicLensWidget::mouseMoveEvent(QMouseEvent * event)
+void iAFast3DMagicLensWidget::mouseReleaseEvent(QMouseEvent * event)
 {
-	QVTKWidget2::mouseMoveEvent(event);
-	emit MouseMoved();
+	if (Qt::RightButton == event->button())
+		emit rightButtonReleasedSignal();
+	else if (Qt::LeftButton == event->button())
+		emit leftButtonReleasedSignal();
+	QVTKWidget2::mouseReleaseEvent(event);
 }

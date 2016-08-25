@@ -16,53 +16,28 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IACHARACTERISTICS_H
-#define IACHARACTERISTICS_H
+#pragma once
 
 #include <QSharedPointer>
 #include <QThread>
-
-#include "iAGEMSeConstants.h"
 
 class iAAttributes;
 class iASingleResult;
 
 class QString;
 
-class iACharacteristics
-{
-public:
-	iACharacteristics();
-	int ObjectCount() const;
-	void SetObjectCount(int objCount);
-	static iACharacteristics Create(QString const & Descriptor);
-	QString GetDescriptor() const;
-
-	void SetDuration(double value);
-	//! retrieve duration of ERW calculation
-	double Duration() const;
-
-	void SetMeasures(double value[MeasureCount]);
-	double Measure(int idx) const;
-private:
-	int m_objectCount;
-	double m_duration;
-	double m_measures[MeasureCount];
-};
-
 class CharacteristicsCalculator : public QThread
 {
 public:
 	CharacteristicsCalculator(QSharedPointer<iASingleResult> result, QSharedPointer<iAAttributes> range, int objCountIdx);
+	bool success();
 private:
 	QSharedPointer<iASingleResult> m_result;
 	QSharedPointer<iAAttributes>   m_range;
 	int m_objCountIdx;
+	bool m_success;
 	virtual void run();
 
 };
-
-#endif // IACHARACTERISTICS_H

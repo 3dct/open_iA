@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "pch.h"
@@ -29,6 +29,7 @@
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAFiberScoutScatterPlotMatrix.h"
+#include "iAMovieHelper.h"
 #include "iARenderer.h"
 #include "mdichild.h"
 
@@ -101,6 +102,8 @@
 #include <QTableView>
 #include <QTreeView>
 
+#include <cmath>
+
 //Global defines for initial layout
 const int initEExpPCPPHeight = 300;
 const int initEExpWidth = 1000;
@@ -165,8 +168,6 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, FilterID fid, vtkRenderer* blo
 	setupUi( this );
 	this->width = this->geometry().width();
 	this->height = this->geometry().height();
-	this->oTF = oTF;
-	this->cTF = cTF;
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
@@ -1346,7 +1347,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 	typedef itk::Image< long, DIM > IType;
 	typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
 	VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
-	if ( static_cast<MdiChild*>( activeChild )->getImageData()->GetScalarType() != 8 )	// long type
+	if ( static_cast<MdiChild*>( activeChild )->getImagePointer()->GetScalarType() != 8 )	// long type
 	{
 		vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
 		cast->SetInputData( static_cast<MdiChild*>( activeChild )->getImagePointer() );
@@ -1360,9 +1361,9 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 
 	IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
 	double spacing[3];
-	spacing[0] = static_cast<MdiChild*>( activeChild )->getImageData()->GetSpacing()[0];
-	spacing[1] = static_cast<MdiChild*>( activeChild )->getImageData()->GetSpacing()[1];
-	spacing[2] = static_cast<MdiChild*>( activeChild )->getImageData()->GetSpacing()[2];
+	spacing[0] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[0];
+	spacing[1] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[1];
+	spacing[2] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[2];
 	itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
 
 	// Create MObject transfer functions
@@ -1543,7 +1544,9 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		// Create volume and mapper and set input for mapper
 		vtkVolume* volume = vtkVolume::New();
 		vtkSmartPointer<vtkSmartVolumeMapper> mapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+#ifdef VTK_OPENGL2_BACKEND
 		mapper->SetSampleDistance( 1.0 );
+#endif
 		mapper->SetInterpolationModeToLinear();
 		mapper->SetBlendModeToComposite();
 		mapper->SetInputData( meanObjectImage );
@@ -1775,8 +1778,8 @@ void ColormapRGBAbsoluteNormalized( const double normal[3], double color_out[3] 
 
 void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 {
-	double longest = max( normal[0], normal[1] );
-	longest = max( normal[2], longest );
+	double longest = std::max( normal[0], normal[1] );
+	longest = std::max( normal[2], longest );
 	if ( !longest ) longest = 0.00000000001;
 
 	double oneVec[3] = { 1.0, 1.0, 1.0 };
@@ -4561,17 +4564,7 @@ QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
 
 void dlg_FiberScout::SaveBlobMovie()
 {
-	QString movie_file_types;
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	movie_file_types += "MPEG2 (*.mpeg);;";
-#endif
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	// If VTK was built without video support,
 	// display error message and quit.
@@ -4713,7 +4706,7 @@ bool dlg_FiberScout::initParallelCoordinates( FilterID fid )
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
 	iovPP->colorMapSelection->hide();
-	mdiChild->getHistogramDlg()->hide();
+	mdiChild->HideHistogram();
 	mdiChild->getImagePropertyDlg()->hide();
 	mdiChild->logs->hide();
 	mdiChild->sYZ->hide();

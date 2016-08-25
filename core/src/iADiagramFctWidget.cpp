@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -44,6 +44,7 @@
 #include <QMdiSubWindow>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>
 #include <QtXml/QDomDocument>
@@ -872,16 +873,6 @@ void iADiagramFctWidget::resetTrf()
 	dlg_function *func = *(it + selectedFunction);
 
 	func->reset();
-
-	if (activeChild)
-	{
-		activeChild->addMsg(tr("  Resetting Transferfunctions."));
-		activeChild->addMsg(tr("  Adding transfer functions point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-			.arg(GetData()->GetDataRange(0)));
-		activeChild->addMsg(tr("  Adding transfer functions point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-			.arg(GetData()->GetDataRange(1)));
-	}
-
 	redraw();
 
 	emit updateViews();
@@ -947,12 +938,7 @@ void iADiagramFctWidget::applyTransferFunctionForAll()
 
 void iADiagramFctWidget::addBezierFunction()
 {
-	if (!activeChild)
-	{
-		return;
-	}
-	MainWindow* mw = (MainWindow*)activeChild->window();
-	dlg_bezier *bezier = new dlg_bezier(this, mw->getColors()[functions.size() % 7]);
+	dlg_bezier *bezier = new dlg_bezier(this, PredefinedColors()[functions.size() % 7]);
 
 	bezier->addPoint(contextPos.x(), getActiveHeight()-contextPos.y());
 
@@ -966,12 +952,7 @@ void iADiagramFctWidget::addBezierFunction()
 
 void iADiagramFctWidget::addGaussianFunction()
 {
-	if (!activeChild)
-	{
-		return;
-	}
-	MainWindow* mw = (MainWindow*)activeChild->window();
-	dlg_gaussian *gaussian = new dlg_gaussian(this, mw->getColors()[functions.size() % 7]);
+	dlg_gaussian *gaussian = new dlg_gaussian(this, PredefinedColors()[functions.size() % 7]);
 
 	gaussian->setMean(contextPos.x());
 	gaussian->setSigma(width/6);
@@ -993,7 +974,6 @@ bool iADiagramFctWidget::loadFunctions()
 	}
 	QString filePath = activeChild->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
-
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
@@ -1080,11 +1060,6 @@ void iADiagramFctWidget::GetDataRange(double* range)
 double iADiagramFctWidget::GetDataRange()
 {
 	return GetData()->GetDataRange(1) - GetData()->GetDataRange(0);
-}
-
-QWidget* iADiagramFctWidget::getParent()
-{
-	return activeChild;
 }
 
 dlg_function *iADiagramFctWidget::getSelectedFunction()

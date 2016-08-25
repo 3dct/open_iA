@@ -16,12 +16,11 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
 
-#include "iAImageTypes.h"
+#include "iAITKIO.h" // TODO: replace?
 
 #include <QSharedPointer>
 #include <QString>
@@ -36,6 +35,9 @@ public:
 	//! create from string
 	static QSharedPointer<iASingleResult> Create(QString const & line, QString const & path,
 		QSharedPointer<iAAttributes> attributes);
+
+	static QSharedPointer<iASingleResult> Create(int id, QString const & path,
+		QVector<double> const & parameter);
 
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)

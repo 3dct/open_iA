@@ -16,12 +16,8 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAGRADIENTS_H
-#define IAGRADIENTS_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -55,7 +51,7 @@ public:
 	void setHOAGDParameters(const HOAccGradientDerrivativeSettings * settings) { m_HOAGDSettings = *settings; };
 
 protected:
-    void run();
+	void run();
 	void derivative();
 	void hoa_derivative();
 	void gradient_magnitude();
@@ -65,4 +61,3 @@ private:
 	HOAccGradientDerrivativeSettings m_HOAGDSettings;
 
 };
-#endif

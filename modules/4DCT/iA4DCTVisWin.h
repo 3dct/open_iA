@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #ifndef IA4DCTVISWIN_H
@@ -70,7 +70,8 @@ public slots:
 protected:
 	void				setEnabledToolsDockWidgets( bool enabled );
 
-	vtkRenderer *							m_mainRen;
+	vtkSmartPointer<vtkRenderer>			m_mainRen;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
 	vtkRenderer *							m_magicLensRen;
 	double									m_size[3];
 	int										m_currentStage;
@@ -113,8 +114,9 @@ private slots:
 	//void				onSaveButtonClicked( );
 	void				onLoadButtonClicked( );
 	void				onExtractButtonClicked( );
-	// surface vis
+	// defect density maps
 	void				addSurfaceVis( );
+	void				calcDensityMap();
 	// bounding box
 	void				addBoundingBox( );
 	// defect view

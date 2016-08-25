@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_NORMALIZER_IMPL_H
-#define IA_NORMALIZER_IMPL_H
+#pragma once
 
 #include "iANormalizer.h"
 
@@ -76,5 +74,3 @@ private:
 
 char const * const * const GetNormalizerNames();
 QSharedPointer<iANormalizer> CreateNormalizer(QString const & name);
-
-#endif

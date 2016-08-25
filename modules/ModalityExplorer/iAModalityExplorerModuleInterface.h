@@ -16,14 +16,13 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_MODALITY_EXPLORER_MODULE_INTERFACE_H
-#define IA_MODALITY_EXPLORER_MODULE_INTERFACE_H
+#pragma once
 
 #include "iAModuleInterface.h"
 
+class dlg_modalitySPLOM;
 class iAModalityExplorerAttachment;
 
 class iAModalityExplorerModuleInterface : public iAModuleInterface
@@ -33,15 +32,11 @@ class iAModalityExplorerModuleInterface : public iAModuleInterface
 public:
 	iAModalityExplorerModuleInterface();
 	void Initialize();
-	iAModalityExplorerAttachment* GetAttachment(MdiChild* child);
 protected:
 	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 private slots:
-	void LoadModalities();
-	void ModalityExplorer();
-	void OpenTLGICTData();
+	void ModalitySlicer();
+	void ModalitySPLOM();
 private:
-	bool OpenDialog();
+	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };
-
-#endif // IA_MODALITY_EXPLORER_MODULE_INTERFACE_H

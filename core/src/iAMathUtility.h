@@ -16,13 +16,23 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_MATH_UTILITY_H
-#define IA_MATH_UTILITY_H
+#pragma once
 
 #include <cassert>
+
+// consistently define isNaN/isInf:
+#if (defined(_MSC_VER) && _MSC_VER <= 1600)
+	#define isNaN(x) _isnan(x)
+	#define isInf(x) (!_finite(x))
+#elif (defined(__GNUG__))
+	#define isNaN(x) std::isnan(x)
+	#define isInf(x) std::isinf(x)
+#else
+	#define isNaN(x) isnan(x)
+	#define isInf(x) isinf(x)
+#endif
 
 /**
  * make sure the given value is inside the given interval
@@ -150,5 +160,3 @@ inline T linterp(const T a, const T b, const T t)
 {
 	return a + (b - a)*t;
 }
-
-#endif // IA_MATH_UTILITY_H

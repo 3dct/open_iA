@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iAAttributeDescriptor.h"
@@ -166,7 +166,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 	assert(defTokens.size() >= 3);
 	if (defTokens.size() < 3)
 	{
-		DEBUG_LOG(QString("Not enough tokens in attribute descriptor %1\n").arg(def));
+		DEBUG_LOG(QString("Not enough tokens in attribute descriptor %1").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	QString name = defTokens[0];
@@ -179,7 +179,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 	int requiredTokens = result->GetValueType() == Categorical ? 4 : 5;
 	if (defTokens.size() < requiredTokens)
 	{
-		DEBUG_LOG(QString("Not enough tokens in continuous attribute descriptor %1\n").arg(def));
+		DEBUG_LOG(QString("Not enough tokens in continuous attribute descriptor %1").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	switch (result->GetValueType())
@@ -208,8 +208,8 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 		case Categorical:
 		{
 			QStringList categories = defTokens[3].split(CategoricalValueSplitString);
-			result->m_min = 1;
-			result->m_max = categories.size();
+			result->m_min = 0;
+			result->m_max = categories.size()-1;
 			result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
 			if (defTokens.size() > 5)
 			{
@@ -234,6 +234,16 @@ QString iAAttributeDescriptor::ToString() const
 			result += QString::number(GetMin()) + AttributeSplitString + QString::number(GetMax()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
 			break;
 		case iAValueType::Categorical:	{
+			if (!m_nameMapper)
+			{
+				DEBUG_LOG("NameMapper NULL for categorical attribute!\n");
+				for (int i = GetMin(); i <= GetMax(); ++i)
+				{
+					result += QString::number(i);
+					if (i < GetMax()) result += CategoricalValueSplitString;
+				}
+				break;
+			}
 			for (int i = 0; i < m_nameMapper->size(); ++i)
 			{
 				result += m_nameMapper->GetName(i);
@@ -252,7 +262,8 @@ iAAttributeDescriptor::iAAttributeDescriptor(
 		QString const & name, iAAttributeType attribType, iAValueType valueType) :
 	m_name(name),
 	m_attribType(attribType),
-	m_valueType(valueType)
+	m_valueType(valueType),
+	m_logarithmic(false)
 {
 	ResetMinMax();
 }
@@ -305,6 +316,12 @@ bool iAAttributeDescriptor::IsLogScale() const
 	return m_logarithmic;
 }
 
+
+void iAAttributeDescriptor::SetLogScale(bool l)
+{
+	m_logarithmic = l;
+}
+
 bool iAAttributeDescriptor::CoversWholeRange(double min, double max) const
 {
 	return min <= m_min && m_max <= max;
@@ -313,4 +330,9 @@ bool iAAttributeDescriptor::CoversWholeRange(double min, double max) const
 QSharedPointer<iANameMapper> iAAttributeDescriptor::GetNameMapper() const
 {
 	return m_nameMapper;
+}
+
+void iAAttributeDescriptor::SetNameMapper(QSharedPointer<iANameMapper> mapper)
+{
+	m_nameMapper = mapper;
 }

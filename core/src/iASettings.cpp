@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -63,7 +63,7 @@ Settings::Settings(QString const & filename)
 	file.close();
 }
 
-void Settings::LoadTransferFunction(TransferFunction* transferFunction, double range[2])
+void Settings::LoadTransferFunction(iATransferFunction* transferFunction, double range[2])
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
@@ -73,8 +73,8 @@ void Settings::LoadTransferFunction(TransferFunction* transferFunction, double r
 	if (!transferElement.isElement())
 		return;
 
-	transferFunction->getOpacityFunction()->RemoveAllPoints();
-	transferFunction->getColorFunction()->RemoveAllPoints();
+	transferFunction->GetOpacityFunction()->RemoveAllPoints();
+	transferFunction->GetColorFunction()->RemoveAllPoints();
 
 	QDomNodeList list = transferElement.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
@@ -90,13 +90,13 @@ void Settings::LoadTransferFunction(TransferFunction* transferFunction, double r
 
 		//if (value < range[0]) value = range[0];
 		//if (value > range[1]) value = range[1];
-		transferFunction->getOpacityFunction()->AddPoint(value, opacity);
-		transferFunction->getColorFunction()->AddRGBPoint(value, red, green, blue);
+		transferFunction->GetOpacityFunction()->AddPoint(value, opacity);
+		transferFunction->GetColorFunction()->AddRGBPoint(value, red, green, blue);
 	}
-	transferFunction->getColorFunction()->Build();
+	transferFunction->GetColorFunction()->Build();
 }
 
-void Settings::StoreTransferFunction(TransferFunction* transferFunction)
+void Settings::StoreTransferFunction(iATransferFunction* transferFunction)
 {
 	// does functions node exist
 	QDomNode functionsNode = domDocument.documentElement().namedItem("functions");
@@ -109,12 +109,12 @@ void Settings::StoreTransferFunction(TransferFunction* transferFunction)
 
 	QDomElement transferElement = domDocument.createElement("transfer");
 
-	for (int i = 0; i < transferFunction->getOpacityFunction()->GetSize(); i++)
+	for (int i = 0; i < transferFunction->GetOpacityFunction()->GetSize(); i++)
 	{
 		double opacityTFValue[4];
 		double colorTFValue[6];
-		transferFunction->getOpacityFunction()->GetNodeValue(i, opacityTFValue);
-		transferFunction->getColorFunction()->GetNodeValue(i, colorTFValue);
+		transferFunction->GetOpacityFunction()->GetNodeValue(i, opacityTFValue);
+		transferFunction->GetColorFunction()->GetNodeValue(i, colorTFValue);
 
 		QDomElement nodeElement = domDocument.createElement("node");
 		nodeElement.setAttribute("value", QObject::tr("%1").arg(opacityTFValue[0]));

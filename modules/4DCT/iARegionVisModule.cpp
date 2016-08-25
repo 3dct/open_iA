@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,10 +24,6 @@
 // iA
 #include "iACalculateDensityMap.h"
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
-// itk
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkResampleImageFilter.h>
-#include <itkImageToVTKImageFilter.h>
 // vtk
 #include <vtkActor.h>
 #include <vtkPolyDataMapper.h>
@@ -39,10 +35,16 @@
 #include <vtkDepthSortPolyData.h>
 #include <vtkMetaImageReader.h>
 #include <vtkMetaImageReader.h>
+// itk
+#include <itkBinaryThresholdImageFilter.h>
+#include <itkResampleImageFilter.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
 
 iARegionVisModule::iARegionVisModule()
 	: iAVisModule()
-	, m_threshold( 1500 )
+	, m_densityVal( 0.5 )
 {
 	setDensityMapDimension( 15, 5, 30 );
 
@@ -152,7 +154,85 @@ void iARegionVisModule::setSurfaceOpacity( double opacity )
 
 void iARegionVisModule::setImage( QString fileName )
 {
-	calculateDensityMap( fileName, this );
+	//calculateDensityMap( fileName, this );
+
+	typedef itk::Image<double, 3> DensityMapImageType;
+	DensityMapImageType::Pointer image = DensityMapImageType::New();;
+	{
+		typedef itk::ImageFileReader<DensityMapImageType> ReaderType;
+		ReaderType::Pointer reader = ReaderType::New();
+		reader->SetFileName(fileName.toStdString());
+		reader->Update();
+
+		DensityMapImageType::IndexType index; index.Fill( 0 );
+		DensityMapImageType::SizeType originalSize, size;
+		originalSize = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
+		size[0] = originalSize[0] + 2;
+		size[1] = originalSize[1] + 2;
+		size[2] = originalSize[2] + 2;
+		DensityMapImageType::RegionType region( index, size );
+		image->SetRegions( region );
+		image->SetSpacing( reader->GetOutput()->GetSpacing() );
+		image->Allocate();
+		image->FillBuffer( 0 );
+		for (int x = 0; x < originalSize[0]; x++)
+		{
+			for (int y = 0; y < originalSize[1]; y++)
+			{
+				for (int z = 0; z < originalSize[2]; z++)
+				{
+					DensityMapImageType::IndexType ind1, ind2;
+					ind1[0] = x; ind1[1] = y; ind1[2] = z;
+					ind2[0] = x + 1; ind2[1] = y + 1; ind2[2] = z + 1;
+					image->SetPixel(ind2, reader->GetOutput()->GetPixel(ind1));
+				}
+			}
+		}
+	}
+	DensityMapImageType::SpacingType spacing = image->GetSpacing();
+	spacing[0] = spacing[0] * SCENE_SCALE;
+	spacing[1] = spacing[1] * SCENE_SCALE;
+	spacing[2] = spacing[2] * SCENE_SCALE;
+	image->SetSpacing(spacing);
+
+	// binary thrshold
+	typedef itk::BinaryThresholdImageFilter<DensityMapImageType, DensityMapImageType> DensitymapThresholdingType;
+	DensitymapThresholdingType::Pointer densitymapThresholding = DensitymapThresholdingType::New();
+	densitymapThresholding->SetInput( image );
+	densitymapThresholding->SetLowerThreshold( m_densityVal );
+	densitymapThresholding->SetInsideValue( 1 );
+	densitymapThresholding->SetOutsideValue( 0 );
+	densitymapThresholding->Update();
+
+	DensityMapImageType::SizeType outputSize;
+	DensityMapImageType::SizeType size = image->GetLargestPossibleRegion().GetSize();
+	outputSize[0] = size[0] * 4;
+	outputSize[1] = size[1] * 4;
+	outputSize[2] = size[2] * 4;
+	//DensityMapImageType::SpacingType spacing = image->GetSpacing();
+	double outputSpacing[3];
+	outputSpacing[0] = spacing[0] / 4;
+	outputSpacing[1] = spacing[1] / 4;
+	outputSpacing[2] = spacing[2] / 4;
+	typedef itk::ResampleImageFilter<DensityMapImageType, DensityMapImageType> ResampleImageFilterType;
+	ResampleImageFilterType::Pointer resample = ResampleImageFilterType::New();
+	resample->SetInput( densitymapThresholding->GetOutput( ) );
+	resample->SetSize( outputSize );
+	resample->SetOutputSpacing( outputSpacing );
+	double origin[3] = {0, 0, 0};
+	resample->SetOutputOrigin( origin );
+	resample->Update();
+	//resample->UpdateLargestPossibleRegion();
+
+	// itk to vtk
+	typedef itk::ImageToVTKImageFilter<DensityMapImageType> ConnectorType;
+	ConnectorType::Pointer connector = ConnectorType::New();
+	connector->SetInput( resample->GetOutput() );
+	connector->Update();
+
+	setData( connector->GetOutput() );
+	double pos[] = { spacing[0], spacing[1], spacing[2] };
+	setPosition( pos );
 }
 
 void iARegionVisModule::setSilhoetteLineWidth( double width )
@@ -163,9 +243,9 @@ void iARegionVisModule::setSilhoetteLineWidth( double width )
 	m_silhouetteActor->GetProperty()->SetLineWidth( width );
 }
 
-void iARegionVisModule::setThreshold( double thresholdVal )
+void iARegionVisModule::setDefectDensity( double densityVal )
 {
-	m_threshold = thresholdVal;
+	m_densityVal = densityVal;
 }
 
 void iARegionVisModule::setDensityMapDimension( int dimX, int dimY, int dimZ )
@@ -191,7 +271,8 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 	// calculate density map
 	//int m_densityMapSize[3] = { 15, 5, 30 };
 	std::vector<std::vector<std::vector<double>>> density;
-	density = CalculateDensityMap<double, unsigned short>::Calculate( reader->GetOutput(), m_densityMapSize );
+	double cellSize[3];
+	density = CalculateDensityMap<double, unsigned short>::Calculate( reader->GetOutput(), m_densityMapSize, cellSize );
 
 	// make an itk image
 	double* oldSpacing = reader->GetOutput()->GetSpacing();
@@ -228,11 +309,17 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 		}
 	}
 
+	typedef itk::ImageFileWriter<DoubleImageType> FileWriterType;
+	FileWriterType::Pointer writer = FileWriterType::New();
+	writer->SetFileName("D:\\DensityImg.mhd");
+	writer->SetInput(image);
+	writer->Update();
+
 	// binary thrshold
 	typedef itk::BinaryThresholdImageFilter<DoubleImageType, DoubleImageType> DensitymapThresholdingType;
 	DensitymapThresholdingType::Pointer densitymapThresholding = DensitymapThresholdingType::New();
 	densitymapThresholding->SetInput( image );
-	densitymapThresholding->SetLowerThreshold( m_threshold );
+	densitymapThresholding->SetLowerThreshold( m_densityVal * cellSize[0] * cellSize[1] * cellSize[2] );
 	densitymapThresholding->SetInsideValue( 1 );
 	densitymapThresholding->SetOutsideValue( 0 );
 	densitymapThresholding->Update();

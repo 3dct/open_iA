@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -52,7 +52,7 @@ namespace
 	const int CaptionFontSize = 13;
 }
 
-iAMagicLens::iAMagicLens(std::string const & caption) : 
+iAMagicLens::iAMagicLens() :
 		m_qvtkWidget(0), 
 		m_isEnabled(false), 
 		m_splitPosition(0.65f),
@@ -96,7 +96,7 @@ iAMagicLens::iAMagicLens(std::string const & caption) :
 	m_textActor->GetTextProperty()->SetFontSize ( CaptionFontSize );
 	m_textActor->SetPosition( GetFrameWidth() + CaptionFrameDistance, GetFrameWidth() + CaptionFrameDistance);
 	m_ren->AddActor2D ( m_textActor );
-	m_textActor->SetInput ( caption.c_str()  );
+	m_textActor->SetInput("");
 	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
 	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
 	m_textActor->GetTextProperty()->SetBackgroundOpacity(0.5);

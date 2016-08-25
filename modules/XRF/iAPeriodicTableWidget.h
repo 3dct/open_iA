@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAPERIODICTABLEWIDGET_H
-#define IAPERIODICTABLEWIDGET_H
+#pragma once
 
 #include "iAElementSelectionListener.h"
 
@@ -55,5 +53,3 @@ private:
 	QSharedPointer<iAElementSelectionListener> m_listener;
 	int m_currentElemIdx;
 };
-
-#endif /* IAPERIODICTABLEWIDGET_H */

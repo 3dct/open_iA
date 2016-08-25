@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#if !defined(PCH_H)
-#define PCH_H
+#pragma once
 
 #ifdef USE_PRECOMPILED_HEADERS
 // #pragma message("Using pre-compiled headers\n")
@@ -546,4 +544,3 @@
 #include <vector>
 
 #endif	// USE_PRECOMPILED_HEADERS
-#endif	// PCH_H

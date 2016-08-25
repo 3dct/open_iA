@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAFUNCTION_H_
-#define IAFUNCTION_H_
+#pragma once
 
 #include <cassert>
 
@@ -126,7 +124,3 @@ ArgType iAFunction<ArgType, ValType>::size() const
 {
 	return m_size;
 }
-
-
-
-#endif // IAFUNCTION_H_

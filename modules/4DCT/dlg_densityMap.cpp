@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -69,7 +69,7 @@ void dlg_densityMap::loadImages()
 	// load files
 	QString text = this->labelImageTextEdit->toPlainText();
 	QStringList sList = text.split('\n', QString::SplitBehavior::SkipEmptyParts);
-	for (auto iFileName = begin(sList); iFileName != end(sList); iFileName++)
+	for (auto iFileName = sList.begin(); iFileName != sList.end(); iFileName++)
 	{
 		MdiChild* mdiChild = m_mainWindow->createMdiChild();
 		mdiChild->loadFile(*iFileName, false);
@@ -156,27 +156,19 @@ void dlg_densityMap::InitChannel()
 	otf->AddPoint(range[1], 0.5);
 
 
-	chDensity->SetActiveImage(image);
+	chDensity->SetImage(image);
 	chDensity->SetColorTF(ctf);
 	chDensity->SetOpacityTF(otf);
 
 	m_mdiChild->InitChannelRenderer(chId, true);
-	m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
 	m_mdiChild->UpdateChannelSlicerOpacity(chId, 0.5);
-
+	/*
+	// rewrite using new volume
+	m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
 	m_mdiChild->getRenderer()->updateChannelImages();
+	*/
 	m_mdiChild->getSlicerDataXY()->updateChannelMappers();
 	m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
 	m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
 	m_mdiChild->updateViews();
-
-	//m_mdiChild->getRe
-
-	//vtkSmartPointer<vtkImageData> newImg = vtkSmartPointer<vtkImageData>::New();
-	//newImg->Initialize();
-	//newImg->DeepCopy(extractor->GetOutput());
-
-	//chDensity-
-
-	//chDensity->setIm
 }

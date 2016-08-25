@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAMAGICLENS_H
-#define IAMAGICLENS_H
+#pragma once
 
 #include "iAFramedQVTKWidget2.h"
 #include "open_iA_Core_export.h"
@@ -52,7 +50,7 @@ public:
 	};
 	static const int OFFSET_MODE_X_OFFSET;
 
-	iAMagicLens(std::string const & caption = "" );
+	iAMagicLens();
 
 	~iAMagicLens();
 
@@ -112,5 +110,3 @@ private:
 	void UpdateShowFrame();
 
 };
-
-#endif // IAMAGICLENS_H

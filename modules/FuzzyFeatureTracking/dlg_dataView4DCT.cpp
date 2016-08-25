@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,7 +24,10 @@
 
 #include "ui_DataView4DCT.h"
 #include "iAQTtoUIConnector.h"
+#include "iAModalityTransfer.h"
 #include "iARenderer.h"
+#include "iATransferFunction.h"
+#include "iAVolumeRenderer.h"
 #include "iAVolumeStack.h"
 #include "QVTKWidgetMouseReleaseWorkaround.h"
 #include "mdichild.h"
@@ -32,6 +35,7 @@
 #include <vtkCamera.h>
 #include <vtkPolyData.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkTransform.h>
 
 const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};
@@ -47,19 +51,27 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 
 	m_rendererManager.addToBundle(m_mdiChild->getRenderer());
 
-
 	// add widgets to window
 	int numOfVolumes = m_volumeStack->getNumberOfVolumes();
 	m_vtkWidgets = new QVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
 	m_renderers = new iARenderer*[numOfVolumes];
+	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
 	for(int i = 0; i < numOfVolumes; i++)
 	{
 		m_vtkWidgets[i] = new QVTKWidgetMouseReleaseWorkaround(this);
 		m_renderers[i] = new iARenderer(this);
+		// TODO: VOLUME: check if this is working!
+		iASimpleTransferFunction transferFunction(
+			m_volumeStack->getColorTransferFunction(i),
+			m_volumeStack->getPiecewiseFunction(i)
+		);
+		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->getVolume(i));
 		m_renderers[i]->setAxesTransform(m_axesTransform);
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->GetRenderWindow());
-		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData(), m_volumeStack->getPiecewiseFunction(i), m_volumeStack->getColorTransferFunction(i));
-		m_mdiChild->applyCurrentSettingsToRaycaster(m_renderers[i]);
+		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
+		m_volumeRenderer[i]->AddTo(m_renderers[i]->GetRenderer());
+		m_mdiChild->ApplyRenderSettings(m_renderers[i]);
+		m_volumeRenderer[i]->ApplySettings(m_mdiChild->GetVolumeSettings());
 		
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);
@@ -82,7 +94,8 @@ void dlg_dataView4DCT::update()
 {
 	for(int i = 0; i < m_volumeStack->getNumberOfVolumes(); i++)
 	{
-		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData(), m_volumeStack->getPiecewiseFunction(i), m_volumeStack->getColorTransferFunction(i));
+		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
 		m_renderers[i]->update();
+		m_volumeRenderer[i]->Update(); // TODO: VOLUME: check if necessary!
 	}
 }

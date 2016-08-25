@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_VOLUMEPLAYER_H
-#define DLG_VOLUMEPLAYER_H
+#pragma once
 
 #include "ui_VolumePlayer.h"
 #include <QtGui/QPalette>
@@ -113,5 +111,3 @@ protected slots:
 	void blendingStateChanged(int state);
 	void enableVolume(int state);
 };
-
-#endif

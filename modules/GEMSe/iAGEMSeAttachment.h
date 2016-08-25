@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_MC_SEG_ATTACHMENT_H
-#define IA_MC_SEG_ATTACHMENT_H
+#pragma once
 
 #include "iAModuleAttachmentToChild.h"
 
@@ -35,13 +33,12 @@ class iAWidgetAddHelper;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
-class iAModalityExplorerAttachment;
 
 class iAGEMSeAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData, iAModalityExplorerAttachment* modalityAttachment);
+	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData);
 	bool LoadSampling(QString const & smpFileName);
 	bool LoadClustering(QString const & fileName);
 	bool LoadPriors(QString const & priorsFileName);
@@ -62,7 +59,4 @@ private:
 	QWidget*                          m_dummyTitleWidget;
 	dlg_GEMSe*                        m_dlgGEMSe;
 	QSharedPointer<iAWidgetAddHelper> m_widgetAddHelper;
-	iAModalityExplorerAttachment*     m_modalityAttachment;
 };
-
-#endif // IA_MC_SEG_ATTACHMENT_H

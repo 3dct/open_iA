@@ -1,6 +1,5 @@
 # Modules which are used by the given module
 SET( DEPENDENCIES_MODULES
-	ModalityExplorer
 )
 
 # Cmake defines which are used by the given module

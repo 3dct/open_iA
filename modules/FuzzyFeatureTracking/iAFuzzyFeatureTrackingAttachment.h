@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAFuzzyFeatureTrackingAttachment_h__
-#define iAFuzzyFeatureTrackingAttachment_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 #include "iAModuleAttachmentToChild.h"
@@ -54,5 +52,3 @@ protected:
 	dlg_eventExplorer * m_dlgEventExplorer;
 	iAVolumeStack * m_volumeStack;
 };
-
-#endif // iAFuzzyFeatureTrackingAttachment_h__

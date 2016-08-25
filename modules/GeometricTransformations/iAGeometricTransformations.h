@@ -16,12 +16,8 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAGEOMETRICTRANSFORMATIONS_H
-#define IAGEOMETRICTRANSFORMATIONS_H
-
 #pragma once
 
 #include "iAFilter.h"
@@ -113,6 +109,3 @@ private:
 	unsigned int dim;
 	double outputMin, outputMax;
 };
-#endif
-
-

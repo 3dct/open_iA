@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -25,7 +25,6 @@
 #include "iAAttributeFilter.h"
 #include "iAConsole.h"
 #include "iAImageTree.h"
-#include "iAMMSegParameter.h"
 #include "iAMathUtility.h"
 
 #include <algorithm> // for std::fill
@@ -180,7 +179,7 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	assert(!m_log || min > 0);
 	if (m_log && min <= 0)
 	{
-		DEBUG_LOG("Need to define minimum bigger than 0 for logarithmic scale!\n");
+		DEBUG_LOG("Need to define minimum bigger than 0 for logarithmic scale!");
 		min = 0.000001;
 	}
 	std::fill(m_data, m_data+numBin, 0.0);

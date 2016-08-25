@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -42,6 +42,7 @@
 #include "iAVisModuleItem.h"
 #include "iAMagicLens.h"
 #include "iA4DCTToolsDockWidget.h"
+#include "DensityMap.h"
 // Qt
 #include <QFileDialog>
 #include <QSettings>
@@ -78,7 +79,13 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	splitter->setStretchFactor( 1, 0 );
 
 	// setup renderer
-	m_mainRen = qvtkWidget->getMainRenderer();
+	m_renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	qvtkWidget->SetMainRenderWindow(m_renderWindow);
+	m_mainRen = vtkSmartPointer<vtkRenderer>::New();
+	m_mainRen->SetLayer(0);
+	m_mainRen->SetBackground(0.5, 0.5, 0.5);
+	m_mainRen->InteractiveOn();
+	qvtkWidget->GetRenderWindow()->AddRenderer(m_mainRen);
 	m_magicLensRen = qvtkWidget->getLensRenderer();
 
 	// setup dock widgets
@@ -128,6 +135,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	connect( m_dwTools->pbFractureViewerAdd,	SIGNAL( clicked( ) ), this, SLOT( onExtractButtonClicked( ) ) );
 	connect( m_dwTools->pbFractureViewerLoad,	SIGNAL( clicked( ) ), this, SLOT( onLoadButtonClicked( ) ) );
 	connect( m_dwTools->pbSurfaceViewerAdd,		SIGNAL( clicked( ) ), this, SLOT( addSurfaceVis( ) ) );
+	connect( m_dwTools->pbCalcDensityMap,		SIGNAL( clicked( ) ), this, SLOT( calcDensityMap( ) ) );
 	connect( actionMagicLens,	SIGNAL( toggled( bool ) ), this, SLOT( enableMagicLens( bool ) ) );
 	connect( sStage,	SIGNAL( valueChanged( int ) ), this, SLOT( onStageSliderValueChanged( int ) ) );
 	connect( pbFirst,		SIGNAL( clicked() ), this, SLOT( onFirstButtonClicked() ) );
@@ -273,7 +281,6 @@ void iA4DCTVisWin::addSurfaceVis()
 
 	QString imagePath = dialog.getImagePath();
 	double threshold = dialog.getThreshold();
-	int dim[3]; dialog.getDimension( dim );
 
 	// add vis module
 	iARegionVisModule * regionView = new iARegionVisModule;
@@ -285,8 +292,8 @@ void iA4DCTVisWin::addSurfaceVis()
 	{
 		regionView->attachTo( m_mainRen );
 	}
-	regionView->setThreshold( threshold );
-	regionView->setDensityMapDimension( dim );
+	regionView->setDefectDensity( threshold );
+	//regionView->setDensityMapDimension( dim );
 	regionView->setImage( imagePath );
 	static int number = 0;
 	m_visModules.addModule( regionView, "Region vis " + QString::number( number++ ) );
@@ -503,4 +510,13 @@ void iA4DCTVisWin::setYZBackView( )
 	m_mainRen->GetActiveCamera()->SetPosition( -1, 0, 0 );
 	m_mainRen->GetActiveCamera()->SetViewUp( 0., 0., 1. );
 	resetCamera( );
+}
+
+void iA4DCTVisWin::calcDensityMap()
+{
+	int size[3] = {30, 30, 30};
+	//DensityMap::calculate("K:\\\\[transfer]\\\\GD301\\\\440\\\\GD301_woCA_3um_440N_mask.mhd", "K:\\\\[transfer]\\\\GD301\\\\440\\\\GD301_woCA_3um_440N_density_map.mhd", size);
+	//DensityMap::calculate("K:\\\\[transfer]\\\\GD301\\\\422\\\\GD301_woCA_3um_422N_mask.mhd", "K:\\\\[transfer]\\\\GD301\\\\422\\\\GD301_woCA_3um_422N_density_map.mhd", size);
+	//int size[3] = {16, 11, 18};
+	DensityMap::calculate("K:\\[transfer]\\GD301\\374\\GD301_woCA_3um_374N_mask.mhd", "K:\\[transfer]\\GD301\\374\\GD301_woCA_3um_374N_density_map.mhd", size);
 }

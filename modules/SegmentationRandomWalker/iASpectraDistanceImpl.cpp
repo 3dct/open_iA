@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -300,11 +300,6 @@ char const * iAKullbackLeiblerDivergence::GetName() const
 	return MeasureNames[dmKullbackLeibler];
 }
 
-#if (defined(_MSC_VER) && _MSC_VER <= 1600)
-#define isnan(x) _isnan(x)
-#define isinf(x) (!_finite(x))
-#endif
-
 double iAKullbackLeiblerDivergence::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
@@ -314,12 +309,12 @@ double iAKullbackLeiblerDivergence::GetDistance(QSharedPointer<iASpectrumType co
 	for(iASpectrumType::IndexType i = 0; i<s1->size(); ++i)
 	{
 		double logTerm = (s2->get(i) == 0)? 0 : (s1->get(i) / s2->get(i));
-		if (isinf(logTerm) || isnan(logTerm))
+		if (isInf(logTerm) || isNaN(logTerm))
 		{
 			logTerm = 0;
 		}
 		kldiv += (logTerm == 0)? 0 : (std::log(logTerm) * (s1->get(i)));
-		if (isinf(kldiv) || isnan(kldiv))
+		if (isInf(kldiv) || isNaN(kldiv))
 		{
 			kldiv = 0;
 		}

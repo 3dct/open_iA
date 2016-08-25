@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAENERGYSPECTRUMDIAGRAMDATA_H
-#define IAENERGYSPECTRUMDIAGRAMDATA_H
+#pragma once
 
 #include "iAAbstractDiagramData.h"
 
@@ -42,5 +40,3 @@ private:
 	DataType* m_energyFunction;
 	iAXRFData * m_xrfData_ext;
 };
-
-#endif /* IAENERGYSPECTRUMDIAGRAMDATA_H */

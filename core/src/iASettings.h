@@ -16,9 +16,8 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #pragma once
 
 #include "open_iA_Core_export.h"
@@ -26,7 +25,7 @@
 #include <QDomDocument>
 
 class dlg_transfer;
-class TransferFunction;
+class iATransferFunction;
 
 class open_iA_Core_API Settings
 {
@@ -35,8 +34,8 @@ private:
 public:
 	Settings();
 	Settings(QString const & filename);
-	void LoadTransferFunction(TransferFunction* transferFunction, double range[2]);
-	void StoreTransferFunction(TransferFunction* transferFunction);
+	void LoadTransferFunction(iATransferFunction* transferFunction, double range[2]);
+	void StoreTransferFunction(iATransferFunction* transferFunction);
 	void Save(QString const & fileName);
 private:
 	void removeNode(QString const & str);

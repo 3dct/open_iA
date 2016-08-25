@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -99,7 +99,7 @@ vtkImageData * iATransformationsModuleInterface::prepare(const QString & caption
 			case dlg_function::GAUSSIAN:
 			{
 				dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
-				dlg_gaussian * newGaussian = new dlg_gaussian(m_mdiChild->getHistogram(), m_mainWnd->getColors()[i % 7]);
+				dlg_gaussian * newGaussian = new dlg_gaussian(m_mdiChild->getHistogram(), PredefinedColors()[i % 7]);
 
 				newGaussian->setMean(oldGaussian->getMean());
 				newGaussian->setMultiplier(oldGaussian->getMultiplier());
@@ -111,7 +111,7 @@ vtkImageData * iATransformationsModuleInterface::prepare(const QString & caption
 			case dlg_function::BEZIER:
 			{
 				dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
-				dlg_bezier * newBezier = new dlg_bezier(m_mdiChild->getHistogram(), m_mainWnd->getColors()[i % 7]);
+				dlg_bezier * newBezier = new dlg_bezier(m_mdiChild->getHistogram(), PredefinedColors()[i % 7]);
 
 				for (unsigned int j = 0; j<oldBezier->getPoints().size(); ++j)
 					newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());

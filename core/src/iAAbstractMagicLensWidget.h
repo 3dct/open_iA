@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAFASTMAGICLENSWIDGET_H
-#define IAFASTMAGICLENSWIDGET_H
+#pragma once
 
 #include "open_iA_Core_export.h"
 // vtk
@@ -28,6 +26,7 @@
 #include <vtkSmartPointer.h>
 
 class vtkActor2D;
+class vtkCamera;
 class vtkInteractorStyle;
 class vtkRenderer;
 
@@ -44,17 +43,19 @@ public:
 	void				magicLensOn();
 	void				magicLensOff();
 	void				setLensSize( int sizeX, int sizeY );
-	vtkRenderer *		getMainRenderer( );
-	vtkRenderer *		getLensRenderer( );
+	vtkRenderer*		getLensRenderer( );
 	void				setViewMode( ViewMode mode );
 
+	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
+
+signals:
+	void MouseMoved();
 protected:
 	virtual void		mouseMoveEvent( QMouseEvent * event );
 	virtual void		updateLens( );
 	virtual void		updateGUI( );
 	void				getViewportPoints( double points[4] );
 
-	vtkSmartPointer<vtkRenderer>	m_mainRen;
 	vtkSmartPointer<vtkRenderer>	m_lensRen;
 	vtkSmartPointer<vtkRenderer>	m_GUIRen;
 	vtkSmartPointer<vtkActor2D>		m_GUIActor;
@@ -66,5 +67,3 @@ protected:
 private:
 	static const double				OFFSET_VAL;
 };
-
-#endif // IAFASTMAGICLENSWIDGET_H

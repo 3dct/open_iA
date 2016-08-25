@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -179,7 +179,7 @@ int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFull
 	typedef itk::Image< RGBPixelType, DIM > RGBImageType;
 	
 	typedef itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType> MWIFType;
-	MWIFType::Pointer mWSFilter = MWIFType::New();
+	typename MWIFType::Pointer mWSFilter = MWIFType::New();
 	mwsMarkWSLines ? mWSFilter->MarkWatershedLineOn() : mWSFilter->MarkWatershedLineOff();
 	mwsFullyConnected ? mWSFilter->FullyConnectedOn() : mWSFilter->FullyConnectedOff();
 	mWSFilter->SetLevel( mwsLevel );
@@ -194,10 +194,10 @@ int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFull
 	typename CastFilterType::Pointer longcaster = CastFilterType::New();
 	longcaster->SetInput( 0, mWSFilter->GetOutput() );
 
-	//typedef MWIFType::OutputImageType  LabeledImageType;
+	//typedef typename MWIFType::OutputImageType  LabeledImageType;
 	//typedef itk::Functor::ScalarToRGBPixelFunctor<unsigned long> ColorMapFunctorType;
 	//typedef itk::UnaryFunctorImageFilter<LabeledImageType, RGBImageType, ColorMapFunctorType> ColorMapFilterType;
-	//ColorMapFilterType::Pointer colormapper = ColorMapFilterType::New();
+	//typename ColorMapFilterType::Pointer colormapper = ColorMapFilterType::New();
 	//colormapper->SetInput( mWSFilter->GetOutput() );
 
 	if ( mwsRGBColorCoding )

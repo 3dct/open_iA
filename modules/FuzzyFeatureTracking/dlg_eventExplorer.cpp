@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -140,7 +140,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		m_chartConnections->Connect(m_charts.at(i),
 			vtkCommand::SelectionChangedEvent,
 			this,
-			SLOT(chartMouseButtonCallBack(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
+			SLOT(chartMouseButtonCallBack(vtkObject*)));
 	}
 
 	this->m_activeChild = parent;
@@ -1143,7 +1143,7 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 	}
 }
 
-void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command)
+void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 {
 #ifdef _MSC_VER
 	AllocConsole();
@@ -1173,8 +1173,6 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj, unsigned long,
 	{
 		m_nodes.push_back(vector<int>());
 	}
-
-	vtkChart *chart = vtkChart::SafeDownCast(obj);
 
 	cout << endl << endl << "SELECTION" << endl;
 

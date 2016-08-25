@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -63,7 +63,7 @@ void iAHistogramWidget::datatypehistograminitialize(vtkImageAccumulate* hData, i
 
 void iAHistogramWidget::reInitialize(bool resetFunction)
 {
-	//set attribut, so that the objects are deleted while
+	//set attribute, so that the objects are deleted while
 	//this widget is closed
 	this->setAttribute(Qt::WA_DeleteOnClose);
 	this->setFocusPolicy(Qt::WheelFocus);

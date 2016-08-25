@@ -16,10 +16,11 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
+#include "defines.h" // for DefaultMagicLensSize
 #include "iAAbstractMagicLensWidget.h"
 // vtk
 #include <QVTKInteractor.h>
@@ -41,28 +42,11 @@ const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
 iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ )
 	: QVTKWidget2( parent )
-	, m_mainRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
 	, m_viewMode( iAAbstractMagicLensWidget::OFFSET )
 {
-	GetRenderWindow()->SetNumberOfLayers( 2 );
-	GetRenderWindow()->AddRenderer( m_mainRen );
-
-	m_mainRen->SetLayer( 0 );
-	m_lensRen->SetLayer( 0 );
-	m_GUIRen->SetLayer( 1 );
-	m_mainRen->SetBackground( 0.5, 0.5, 0.5 );
-	m_lensRen->InteractiveOff();
-	m_lensRen->SetBackground( 0.5, 0.5, 0.5 );
-	m_GUIRen->InteractiveOff();
-	m_GUIRen->AddActor( m_GUIActor );
-	m_GUIActor->GetProperty()->SetLineWidth( 2. );
-	m_GUIActor->GetProperty()->SetColor( 1., 1., 0 );
-
-	// default values
-	setLensSize( 200, 200 );
 }
 
 iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
@@ -90,11 +74,6 @@ void iAAbstractMagicLensWidget::setLensSize( int sizeX, int sizeY )
 	m_halfSize[0] = .5 * sizeX; m_halfSize[1] = .5 * sizeY;
 }
 
-vtkRenderer * iAAbstractMagicLensWidget::getMainRenderer( )
-{
-	return m_mainRen.GetPointer();
-}
-
 vtkRenderer * iAAbstractMagicLensWidget::getLensRenderer( )
 {
 	return m_lensRen.GetPointer();
@@ -112,6 +91,7 @@ void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );
 	updateGUI( );
+	emit MouseMoved();
 	GetRenderWindow()->Render();
 }
 
@@ -119,7 +99,8 @@ void iAAbstractMagicLensWidget::updateLens()
 {
 	if( GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0 )
 		return;
-	double points[4]; getViewportPoints( points );
+	double points[4];
+	getViewportPoints( points );
 	m_lensRen->SetViewport( points[0], points[1], points[2], points[3] );
 }
 
@@ -160,8 +141,8 @@ void iAAbstractMagicLensWidget::updateGUI( )
 		double p5[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] + m_halfSize[1], 0. };	// right
 		double p6[3] = { m_pos[0] + m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] + m_halfSize[1], 0. };	// right
 		double p7[3] = { m_pos[0] + m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] - m_halfSize[1], 0. };	// right
-		double p8[3] = { m_pos[0] + m_halfSize[0]			  , m_pos[1]				, 0. };	// line
-		double p9[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1], 0. };	// line
+		double p8[3] = { m_pos[0] + m_halfSize[0]			  , static_cast<double>(m_pos[1])	  , 0. };	// line
+		double p9[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), static_cast<double>(m_pos[1]), 0. };	// line
 		points->InsertNextPoint( p0 );
 		points->InsertNextPoint( p1 );
 		points->InsertNextPoint( p2 );
@@ -226,4 +207,25 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 	default:
 		break;
 	}
+}
+
+
+void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin)
+{
+	SetRenderWindow(renWin);
+
+	// TODO: VOLUME: move somewhere else?
+	renWin->SetNumberOfLayers(5);
+
+	m_lensRen->SetLayer(2);
+	m_GUIRen->SetLayer(3);
+	m_lensRen->InteractiveOff();
+	m_lensRen->SetBackground(0.5, 0.5, 0.5);
+	m_GUIRen->InteractiveOff();
+	m_GUIRen->AddActor(m_GUIActor);
+	m_GUIActor->GetProperty()->SetLineWidth(2.);
+	m_GUIActor->GetProperty()->SetColor(1., 1., 0);
+
+	// default values
+	setLensSize(DefaultMagicLensSize, DefaultMagicLensSize);
 }

@@ -16,32 +16,27 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #pragma once
-#ifndef __iARenderer_h
-#define __iARenderer_h
-
-class iAObserverProgress;
-class iAObserverGizmoKeyEvent;
-class iAWrapperText;
 
 #include "open_iA_Core_export.h"
 
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>
 
-#include <QThread>
+#include <QObject>
 
 #include <set>
 #include <vector>
 
 class iAChannelVisualizationData;
 class iAChannelRenderData;
+class iAObserverProgress;
+class iARenderSettings;
 class RenderObserver;
 
 class vtkActor;
-class vtkActor2D;
 class vtkAnnotatedCubeActor;
 class vtkAxesActor;
 class vtkCamera;
@@ -49,91 +44,40 @@ class vtkCellLocator;
 class vtkColorTransferFunction;
 class vtkCornerAnnotation;
 class vtkCubeSource;
-class vtkFixedPointVolumeRayCastMapper;
-class vtkGlyph3D;
-class vtkGPUVolumeRayCastMapper;
 class vtkImageData;
-class vtkInteractorStyle;
 class vtkInteractorStyleSwitch;
 class vtkLogoRepresentation;
 class vtkLogoWidget;
-class vtkLookupTable;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
-class vtkOutlineFilter;
 class vtkPicker;
 class vtkPiecewiseFunction;
 class vtkPlane;
-class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
-class vtkProp;
 class vtkQImageToImageSource;
 class vtkRenderer;
-class vtkRenderWindow;
 class vtkRenderWindowInteractor;
-class vtkSmartVolumeMapper;
-class vtkSphereSource;
-class vtkTextMapper;
-class vtkTextProperty;
 class vtkTransform;
-class vtkVolume;
-class vtkVolumeMapper;
-class vtkVolumeProperty;
-class vtkVolumeRayCastCompositeFunction;
 
 
-class open_iA_Core_API iARenderer : public QThread
+class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
 public:
 	iARenderer( QObject *parent = 0 );
 	virtual ~iARenderer( );
-	/*
-	enum {
-		FP_RAYCASTMAPPER = 0,
-		GPU_RAYCASTMAPPER = 1
-	};
-	*/
 
-protected:
-	virtual void run();
-	void InitObserver();
-
-public:
-	void initialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf, int e = 10 );
-	void reInitialize( vtkImageData* ds, vtkPolyData* pd, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf, int e = 10 );
+	void initialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
+	void reInitialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
 	void setPolyData( vtkPolyData* pd );
 	vtkPolyData* getPolyData();
-	void parallelProjection( bool b );
-	void shade( bool b );
-	void interpolationType( int val );
-	void ambient( double val );
-	void diffuse( double val );
-	void specular( double val );
-	void specularPower( double val );
-	void color( vtkColorTransferFunction* TF );
-	void scalarOpacity( vtkPiecewiseFunction* TF );
-	void setTransferFunctions( vtkPiecewiseFunction* opacityTFHighlight, vtkColorTransferFunction* colorTFHighlight, vtkPiecewiseFunction* opacityTFTransparent, vtkColorTransferFunction* colorTFTransparent );
-	void setTransferFunctionToHighlight();
-	void setTransferFunctionToTransparent();
 
-	void updateChannelImages();
-	void addChannel(iAChannelVisualizationData * chData );
-	void removeChannel(iAChannelVisualizationData * chData);
-	void showMainVolumeWithChannels(bool show);
-
-	void initializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* otfHighlight, vtkColorTransferFunction* ctfHighlight, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf );
-	void reInitializeHighlight( vtkImageData* ds, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf );
-	void visualizeHighlight( bool enabled );
-
-	void visibility( bool b );
 	void disableInteractor();
 	void enableInteractor();
 	void setAxesTransform(vtkTransform *transform) { axesTransform = transform; }
 	vtkTransform * getAxesTransform(void) { return axesTransform; }
-	void showSlicers( bool s );
-	void showSlicers( bool showPlane1, bool showPlane2, bool showPlane3 );
+
 	void setPlaneNormals( vtkTransform *tr ) ;
 	void setCubeCenter( int x, int y, int z );
 	void setCamPosition ( int uvx, int uvy, int uvz, int px, int py, int pz );
@@ -159,148 +103,90 @@ public:
 	void setStatExt( int s ) { ext = s; };
 
 	void setupCutter();
-	void setupTxt();
-	void setupHelper();
 	void setupCube();
 	void setupAxes(double spacing[3]);
-	void setupPickerGlyphs();
 	void setupOrientationMarker();
-	void setupRenderer();
-	void reset(double imageSampleDistance = 0.0, double sampleDistance = 0.0);
+	void setupRenderer(vtkImageData* ds);
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
 
-	vtkPlane* getPlane1() { return plane1; };
-	vtkPlane* getPlane2() { return plane2; };
-	vtkPlane* getPlane3() { return plane3; };
-	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
-	vtkRenderWindow* GetRenderWindow() { return renWin; };
-
-	vtkOpenGLRenderer * GetRenderer() { return ren; };
-	vtkVolume* GetVolume() { return volume; }
-	vtkVolumeProperty* GetVolumeProperty() { return volumeProperty; };
-	vtkActor* GetOutlineActor() { return outlineActor; };
-	vtkActor* GetPolyActor() { return polyActor; };
-	vtkPoints *GetPPoints() { return pickerPPoints; };
-	vtkPoints *GetVPoints() { return pickerVPoints; };
+	vtkPlane* getPlane1();
+	vtkPlane* getPlane2();
+	vtkPlane* getPlane3();
+	vtkRenderWindowInteractor* GetInteractor() { return interactor; }
+	vtkRenderWindow* GetRenderWindow() { return renWin;  }
+	vtkOpenGLRenderer * GetRenderer();
+	vtkActor* GetPolyActor();
 	vtkTransform* getCoordinateSystemTransform();
-	void GetImageDataBounds(double bounds[6]);
-	vtkOpenGLRenderer * GetLabelRenderer (void) { return labelRen; }
-	vtkPolyDataMapper* GetPolyMapper() const { return polyMapper; }
+	void GetImageDataBounds(double bounds[6]); //!< remove
+	vtkOpenGLRenderer * GetLabelRenderer ();
+	vtkPolyDataMapper* GetPolyMapper() const;
 	
-	iAObserverProgress* getObserverFPProgress() { return observerFPProgress; };
-	iAObserverProgress* getObserverGPUProgress() { return observerGPUProgress; };
+	iAObserverProgress* getObserverFPProgress() { return observerFPProgress; }
+	iAObserverProgress* getObserverGPUProgress() { return observerGPUProgress; }
 
-	void saveMovie(const QString& fileName, int mode, int qual = 2);
+	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	RenderObserver * getRenderObserver(){ return renderObserver; }
-
-	void setMeanObjectSelected ( bool s ) { meanObjectSelected = s; };
-	bool getMeanObjectSelected ( ) { return meanObjectSelected; };
-	void setMeanObjectHighlighted ( bool h ) { meanObjectHighlighted = h; };
-	bool getMeanObjectHighlighted ( ) { return meanObjectHighlighted; };
-	void setMeanObjectId( int id ) { meanObjectId = id; };
-	int getMeanObjectId( ) { return meanObjectId; };
-	void setImageSampleDistance(double imageSampleDistance);
-	void setSampleDistance(double sampleDistance);
-	void setOrientationMarkerCamera(vtkCamera * camera);
-	void hideOrientationMarker();
 	void AddRenderer(vtkRenderer* renderer);
-	void SetRenderMode(int mode);
+	void ApplySettings(iARenderSettings & settings);
 protected:
+	void InitObserver();
 	RenderObserver *renderObserver;
 	iAObserverProgress* observerFPProgress;
 	iAObserverProgress* observerGPUProgress;
 
 private:
-	//! Initialize passes of renderer for correct visualization isosurface of blob
-	void initializePasses(void);
-
+	//! @{ things that are set from the outside
 	vtkRenderWindowInteractor* interactor;
-	vtkInteractorStyleSwitch* interactorStyle;
-	vtkRenderWindow* renWin;
-	vtkOpenGLRenderer * ren, *labelRen;
-	vtkSmartPointer<vtkCamera> cam;
-	vtkImageData* imageData;
 	vtkPolyData* polyData;
-	vtkCellLocator * cellLocator;
-	vtkPiecewiseFunction* piecewiseFunction;
-	vtkColorTransferFunction* colorTransferFunction;
-	vtkOutlineFilter* outlineFilter;
-	vtkPolyDataMapper* outlineMapper;
-	vtkActor* outlineActor;
-	vtkPolyDataMapper* polyMapper;
-	vtkActor* polyActor;
-	vtkLogoRepresentation *rep;
-	vtkLogoWidget *logowidget;
-	vtkQImageToImageSource *image1;
-	vtkVolumeProperty* volumeProperty;
-	vtkVolumeRayCastCompositeFunction* rayCastCompositeFunction;
-	vtkVolume* volume;
-	vtkActor2D* actor2D;
-	vtkTextMapper* textMapper;
-	vtkAnnotatedCubeActor* annotatedCubeActor;
-	vtkAxesActor* axesActor;
-	vtkAxesActor* moveableAxesActor;
-	vtkTransform *axesTransform;
-	vtkTextProperty* textProperty;
-	vtkOrientationMarkerWidget* orientationMarkerWidget;
-	vtkSphereSource* sphere;
-	vtkLookupTable *bwLUT;
-	vtkOutlineFilter *outlineSliceFilter;
-	vtkPolyDataMapper *outlineSlicePolyDataMapper;
-	vtkPlane *plane1, *plane2, *plane3;
-	vtkPicker* pointPicker;
-	vtkGlyph3D *pickerPGlyphs, *pickerVGlyphs, *helperGlyphs;
-	vtkPoints *pickerPPoints, *pickerVPoints, *helperPoints;
-	vtkPolyDataMapper *pickerPPolyMapper, *pickerVPolyMapper, *helperPolyMapper;
-	vtkActor *pickerPPolyActor, *pickerVPolyActor, *helperPolyActor, *moveableHelperPolyActor;
-	vtkPolyData *pickerPPolyData, *pickerVPolyData, *helperPolyData;
+	// TODO: VOLUME: check if this can be removed:
+	vtkImageData* imageData;
+	//! @}
 
-	// multi channel image members
-	vtkImageData*	multiChannelImageData;
-	std::set<iAChannelVisualizationData*>	m_channels;
-	bool	m_showMainVolumeWithChannels;
+	vtkSmartPointer<vtkInteractorStyleSwitch> interactorStyle;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
+	vtkSmartPointer<vtkOpenGLRenderer> ren, labelRen;
+	vtkSmartPointer<vtkCamera> cam;
+	vtkSmartPointer<vtkCellLocator> cellLocator;
+	vtkSmartPointer<vtkPolyDataMapper> polyMapper;
+	vtkSmartPointer<vtkActor> polyActor;
 
-	// mobject visualization members
-	vtkImageData* imageDataHighlight;
-	vtkPiecewiseFunction* piecewiseFunctionHighlight;
-	vtkColorTransferFunction* colorTransferFunctionHighlight;
-	vtkVolume* volumeHighlight;
-	vtkVolumeProperty* volumePropertyHighlight;
-	vtkSmartVolumeMapper* volumeMapper;
-	bool highlightMode;
-	bool meanObjectSelected;
-	bool meanObjectHighlighted;
-	int meanObjectId;
-	vtkPiecewiseFunction* piecewiseFunctionTransparent;
-	vtkColorTransferFunction* colorTransferFunctionTransparent;
+	//! @{ Logo
+	vtkSmartPointer<vtkLogoRepresentation> logoRep;
+	vtkSmartPointer<vtkLogoWidget> logoWidget;
+	vtkSmartPointer<vtkQImageToImageSource> logoImage;
+	//! @}
 
-	vtkCubeSource *cSource;
-	vtkPolyDataMapper *cMapper;
-	vtkActor *cActor;
-	QWidget *parent;
-	iAWrapperText* textInfo;
+	//! @{ position marker cube
+	vtkSmartPointer<vtkCubeSource> cSource;
+	vtkSmartPointer<vtkPolyDataMapper> cMapper;
+	vtkSmartPointer<vtkActor> cActor;
+	//! @}
+	
+	vtkSmartPointer<vtkAnnotatedCubeActor> annotatedCubeActor;
+	vtkSmartPointer<vtkAxesActor> axesActor;
+	vtkSmartPointer<vtkOrientationMarkerWidget> orientationMarkerWidget;
+	vtkSmartPointer<vtkPlane> plane1, plane2, plane3;
+	vtkSmartPointer<vtkPicker> pointPicker;
 
-	int ext;
-	bool disabled;
-	double imageSampleDistance, sampleDistance;
+	//! @{ movable axes
+	// TODO: check what the movable axes are useful for!
+	vtkTransform* axesTransform;
+	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
+	//! @}
 
-	void setInputVolume(vtkImageData* imageData);
-	void recreateMapper(vtkImageData* imageData);
-	void getNewVolumeMapper(vtkImageData* imageData);
+	int ext; //!< statistical extent size
+
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
-	void updateMeanObjects(int);
 	void Clicked(int, int, int);
 
 	void reInitialized();
 	void onSetupRenderer();
 	void onSetCamera();
 };
-
-#endif

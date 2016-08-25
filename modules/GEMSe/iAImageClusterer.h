@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_IMAGE_CLUSTERER_H
-#define IA_IMAGE_CLUSTERER_H
+#pragma once
 
 #include "iAAbortListener.h"
 #include "iADurationEstimator.h"
@@ -63,5 +61,3 @@ private:
 	iAPerformanceTimer::DurationType m_imageDistCalcDuration;
 	QString m_outputDirectory;
 };
-
-#endif

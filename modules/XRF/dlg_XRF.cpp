@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,7 +24,9 @@
 
 #include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
+#include "dlg_renderer.h"
 #include "iAAccumulatedXRFData.h"
+#include "iAChannelVisualizationData.h"
 #include "iACharacteristicEnergy.h"
 #include "iAColorTheme.h"
 #include "iAConnector.h"
@@ -145,8 +147,7 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	connect ( cb_functionalBoxplot, SIGNAL( stateChanged(int) ), this, SLOT( updateFunctionalBoxplot(int) ) );
 	connect ( rb_DrawMode_Log, SIGNAL( toggled(bool) ), this, SLOT( setLogDrawMode(bool) ) );
 	connect ( rb_DrawMode_Lin, SIGNAL( toggled(bool) ), this, SLOT( setLinDrawMode(bool) ) );
-	//connect ( pb_computeSimilarityMap, SIGNAL( clicked() ), this, SLOT( computeSimilarityMap() ) );
-	connect ( pb_computeSimilarityMap, SIGNAL( clicked() ), this, SLOT( computeSimilarityMatrix() ) );
+	connect ( pb_computeSimilarityMap, SIGNAL( clicked() ), this, SLOT( computeSimilarityMap() ) );
 }
 
 
@@ -1013,7 +1014,8 @@ void dlg_XRF::showLinkedElementMaps( int show )
 		dlg_elementRenderer *elemRend = new dlg_elementRenderer( mdiChild );
 		elemRend->SetRefLibIndex(i);
 		InitElementRenderer( elemRend, i );
-		mdiChild->applyCurrentSettingsToRaycaster( elemRend->GetRenderer() );
+		mdiChild->ApplyRenderSettings( elemRend->GetRenderer() );
+		elemRend->ApplyVolumeSettings(mdiChild->GetVolumeSettings());
 		m_rendererManager.addToBundle(elemRend->GetRenderer());
 		m_elementRenderers.push_back( elemRend );
 		if(isFirst)
@@ -1167,6 +1169,17 @@ void dlg_XRF::showRefLineChanged( int show )
 
 void dlg_XRF::computeSimilarityMap()
 {
+
+	QString fileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		tr("Save Similarity Map"),
+		QDir::currentPath(),
+		tr("MetaImage (*.mhd);;")
+	);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
 	//init resulting similarity map
 	int numEBins = (int)m_xrfData->size();
 	vtkSmartPointer<vtkImageData> similarityImageData = vtkSmartPointer<vtkImageData>::New();
@@ -1279,13 +1292,12 @@ void dlg_XRF::computeSimilarityMap()
 			errDescr.append( QString(excp.GetDescription()) );
 		}
 	}
-
 	try 
 	{
 		vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
 		writer->SetCompression(false);
 		writer->SetInputData(similarityImageData);
-		writer->SetFileName( ( QString("C:\\Artem\\Work\\Datasets\\SimilarityMaps\\SimilarityMap.mhd") ).toLatin1().constData() );
+		writer->SetFileName(fileName.toLatin1().constData());
 		writer->Write();
 		writer->Update();
 	}
@@ -1303,224 +1315,6 @@ void dlg_XRF::computeSimilarityMap()
 	for (int i=0; i<errorCount; ++i) 
 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + errDescr[i]);
 }
-
-void dlg_XRF::computeSimilarityMatrix()
-{
-	//initialization
-	//typedefs
-	const int NumElements = 3;
-	const QString mapNames[NumElements] = {
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Decomposition/_normalized_0.mhd", //Au
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Decomposition/_normalized_1.mhd", //Ga
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Decomposition/_normalized_2.mhd", //Ba
-	};
-	const int Dimensions = 2;
-	const int NumMasks = 6;
-	const QString maskNames[NumMasks] = {
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/_mask_air.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/_mask_water.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/_mask_au.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/_mask_ba.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/_mask_gd.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/_mask_mix.mhd"
-	};
-
-	const QString simMatNames[NumMasks] = {
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/simMat_air.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/simMat_water.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/simMat_au.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/simMat_ba.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/simMat_gd.mhd",
-		"C:/Artem/Work/Datasets/4VSG_datasets/2D_stanford/Segmentation/simMat_mix.mhd"
-	};
-	typedef float ScalarType;
-	typedef itk::Image < unsigned char, 3 >  MaskImageType3D;
-	typedef itk::Image < unsigned char, Dimensions >  MaskImageType;
-	typedef itk::Image < ScalarType, Dimensions >  ImageType;
-	typedef itk::Image < ScalarType, 3 >  ImageType3D;
-	typedef itk::ImageMaskSpatialObject< Dimensions > MaskType;
-	typedef itk::ExtractImageFilter < ImageType3D, ImageType > ExtractImageType;
-	typedef itk::ExtractImageFilter < MaskImageType3D, MaskImageType > MaskExtractImageType;
-	//metrics
-	typedef itk::MutualInformationImageToImageMetric < ImageType, ImageType >  MutualInformationMetricType;
-	typedef itk::MeanSquaresImageToImageMetric < ImageType, ImageType >  MeanSquaresMetricType;
-	typedef itk::NormalizedCorrelationImageToImageMetric < ImageType, ImageType > NormalizedCorrelationMetricType;
-	typedef MutualInformationMetricType MetricType;
-
-	typedef itk::LinearInterpolateImageFunction < ImageType, double > InterpolatorType;
-	typedef itk::IdentityTransform<double, Dimensions>  TransformType;
-	
-	//convert images from vtk to itk type
-	
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	//read masks
-	vtkImageData ** maskImages = new vtkImageData*[NumMasks];
-	MaskImageType3D ** maskImagesItk = new MaskImageType3D*[NumMasks];
-	iAConnector * maskConnectors = new iAConnector[NumMasks];
-	for( int i = 0; i < NumMasks; ++i )
-	{
-		maskImages[i] = vtkImageData::New();
-		reader->SetFileName( maskNames[i].toLocal8Bit().data() );
-		reader->Update();
-		maskImages[i] = reader->GetOutput();
-
-		maskConnectors[i].SetImage( maskImages[i] );
-		maskConnectors[i].Modified();
-		maskImagesItk[i] = dynamic_cast <MaskImageType3D*> (maskConnectors[i].GetITKImage());
-	}
-	//read element maps
-	vtkImageData ** mapImages = new vtkImageData*[NumElements];
-	ImageType3D ** mapImagesItk = new ImageType3D*[NumElements];
-	iAConnector * mapConnectors = new iAConnector[NumElements];
-	for( int i = 0; i < NumElements; ++i )
-	{
-		mapImages[i] = vtkImageData::New();
-		reader->SetFileName( mapNames[i].toLocal8Bit().data() );
-		reader->Update();
-		mapImages[i] = reader->GetOutput();
-
-		mapConnectors[i].SetImage( mapImages[i] );
-		mapConnectors[i].Modified();
-		mapImagesItk[i] = dynamic_cast <ImageType3D*> (mapConnectors[i].GetITKImage());
-	}
-
-	//extract slice from 3D
-	ExtractImageType::Pointer extractSliceFilter1, extractSliceFilter2;
-	MaskExtractImageType::Pointer extractSliceFilter3;
-	ImageType3D::RegionType desiredRegion;
-	MaskImageType3D::RegionType desiredRegion2;
-	try
-	{
-		ImageType3D::IndexType desiredStart;
-		desiredStart.Fill( 0 );
-		ImageType3D::SizeType desiredSize;
-		desiredSize[0] = mapImagesItk[0]->GetLargestPossibleRegion().GetSize()[0];
-		desiredSize[1] = mapImagesItk[0]->GetLargestPossibleRegion().GetSize()[1];
-		desiredSize[2] = 0;
-		desiredRegion = ImageType3D::RegionType( desiredStart, desiredSize );
-
-		MaskImageType3D::IndexType desiredStart2;
-		desiredStart2.Fill( 0 );
-		MaskImageType3D::SizeType desiredSize2;
-		desiredSize2[0] = maskImagesItk[0]->GetLargestPossibleRegion().GetSize()[0];
-		desiredSize2[1] = maskImagesItk[0]->GetLargestPossibleRegion().GetSize()[1];
-		desiredSize2[2] = 0;
-		desiredRegion2 = MaskImageType3D::RegionType( desiredStart2, desiredSize2 );
-
-		extractSliceFilter1 = ExtractImageType::New();
-		extractSliceFilter2 = ExtractImageType::New();
-		extractSliceFilter3 = MaskExtractImageType::New();
-		extractSliceFilter1->SetDirectionCollapseToIdentity();
-		extractSliceFilter2->SetDirectionCollapseToIdentity();
-		extractSliceFilter3->SetDirectionCollapseToIdentity();
-	}
-	catch( itk::ExceptionObject & excp )
-	{
-		(dynamic_cast<MdiChild*>(parent()))->addMsg( "Exception in computeSimilarityMap(): " + QString( excp.GetDescription() ) );
-		delete[] mapConnectors;
-		delete[] maskConnectors;
-		delete[] mapImagesItk;
-		delete[] maskImagesItk;
-		return;
-	}
-
-	//similarity matrix image
-
-	//iteration
-
-	const unsigned int numSamples = 6400;
-	double numIterations = NumMasks * NumElements * NumElements;
-	double curIteration = 0.0; int percentage = 0;
-	int errorCount = 0;
-	QStringList errDescr;
-	MdiChild * mdiChild = dynamic_cast <MdiChild*> (parent());
-	mdiChild->addStatusMsg( "Computing Similarity Matrix" );
-	mdiChild->initProgressBar();
-	QCoreApplication::processEvents();
-
-	for( int m = 0; m < NumMasks; ++m )
-	{
-		vtkSmartPointer<vtkImageData> similarityImageData = vtkSmartPointer<vtkImageData>::New();
-		similarityImageData->SetDimensions( NumElements, NumElements, 1 );
-		similarityImageData->AllocateScalars( VTK_DOUBLE, 1 );
-		double * similarityData = static_cast <double*> (similarityImageData->GetScalarPointer());
-		extractSliceFilter3->SetInput( maskImagesItk[m] ); 
-		extractSliceFilter3->SetExtractionRegion(desiredRegion2); 
-		extractSliceFilter3->Update();
-		MaskType::Pointer spatialObjectMask = MaskType::New();
-		spatialObjectMask->SetImage( extractSliceFilter3->GetOutput() );
-		for( int i = 0; i < NumElements; ++i )
-		{
-			try
-			{
-				MetricType::Pointer metric = MetricType::New();
-				InterpolatorType::Pointer interpolator = InterpolatorType::New();
-				TransformType::Pointer transform = TransformType::New();
-				TransformType::ParametersType params( transform->GetNumberOfParameters() );
-
-
-				params.Fill( 0.0 );
-				extractSliceFilter1->SetInput( mapImagesItk[i] ); extractSliceFilter1->SetExtractionRegion(desiredRegion); extractSliceFilter1->Update();
-				interpolator->SetInputImage( extractSliceFilter1->GetOutput() );
-				//interpolator->SetInputImage( mapImagesItk[i] );
-				interpolator->Modified();
-
-				for( int j = 0; j < NumElements; ++j )
-				{
-					metric->SetNumberOfSpatialSamples( numSamples );
-					extractSliceFilter2->SetInput( mapImagesItk[j] ); extractSliceFilter2->SetExtractionRegion(desiredRegion); extractSliceFilter2->Update();
-					metric->SetFixedImage( extractSliceFilter1->GetOutput() );//metric->SetFixedImage( mapImagesItk[i] );
-					metric->SetMovingImage( extractSliceFilter2->GetOutput() );//metric->SetMovingImage( mapImagesItk[j] );
-					metric->SetFixedImageRegion( extractSliceFilter1->GetOutput()->GetLargestPossibleRegion() );
-					metric->SetFixedImageMask( spatialObjectMask );
-					//metric->SetMovingImageMask( spatialObjectMask );
-					metric->SetTransform( transform );
-					metric->SetInterpolator( interpolator );
-					metric->Initialize();
-					double metricValue = metric->GetValue( params );
-					similarityData[i + j*NumElements] /*= similarityData[j + i*NumElements]*/ = metricValue;
-					curIteration++; int newPercentage = 100 * curIteration / numIterations;
-					if( newPercentage != percentage )
-					{
-						percentage = newPercentage;
-						mdiChild->updateProgressBar( percentage );
-						QCoreApplication::processEvents();
-					}
-				}
-			}
-			catch( itk::ExceptionObject & excp )
-			{
-				errorCount++;
-				errDescr.append( QString( excp.GetDescription() ) );
-			}
-		}
-		try
-		{
-			vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
-			writer->SetCompression( false );
-			writer->SetInputData( similarityImageData );
-			writer->SetFileName( simMatNames[m].toLatin1().constData() );
-			writer->Write();
-			writer->Update();
-		}
-		catch( itk::ExceptionObject & excp )
-		{
-			(dynamic_cast<MdiChild*>(parent()))->addMsg( "Exception in computeSimilarityMatrix(): " + QString( excp.GetDescription() ) );
-		}
-	}
-
-	delete[] maskConnectors;
-	delete[] mapConnectors;
-	delete[] mapImages;
-	delete[] maskImages;
-
-	mdiChild->hideProgressBar();
-	QCoreApplication::processEvents();
-
-	for( int i = 0; i < errorCount; ++i )
-		(dynamic_cast<MdiChild*>(parent()))->addMsg( "Exception in computeSimilarityMatrix(): " + errDescr[i] );
-}
-
 
 void dlg_XRF::energyBinsSelected( int binX, int binY )
 {

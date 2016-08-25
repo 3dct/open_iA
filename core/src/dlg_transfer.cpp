@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -107,43 +107,41 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 			painter.drawLine(x1, y1, x2, y2); // draw line
 			if (active)
 			{
-				switch( m_rangeSliderHandles )
+				if (!m_rangeSliderHandles)
 				{
-					case false:	
-						if ( i - 1 == selectedPoint  )
-						{
-							painter.setPen( redPen );
-							painter.setBrush( QBrush( c ) );
-							painter.drawEllipse( x1 - iADiagramFctWidget::SELECTED_POINT_RADIUS, y1 - iADiagramFctWidget::SELECTED_POINT_RADIUS,
-												 iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE );
-						}
-						else
-						{
-							painter.setPen( pen1 );
-							painter.setBrush( QBrush( c ) );
-							painter.drawEllipse( x1 - iADiagramFctWidget::POINT_RADIUS, y1 - iADiagramFctWidget::POINT_RADIUS,
-												 iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE );
-						}
-						break;
-
-					case true:
-						if ( i - 1 == selectedPoint &&  i - 1 > 0 )
-						{
-							painter.setPen( redPen );
-							painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
-							QRectF rectangle( x1 - iADiagramFctWidget::SELECTED_PIE_RADIUS, y1 - iADiagramFctWidget::SELECTED_PIE_RADIUS,
-											  iADiagramFctWidget::SELECTED_PIE_SIZE, iADiagramFctWidget::SELECTED_PIE_SIZE );
-							painter.drawPie( rectangle, 60 * 16, 60 * 16 );
-						}
-						else if ( i - 1 > 0 )
-						{
-							painter.setPen( redPen );
-							painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
-							QRectF rectangle( x1 - iADiagramFctWidget::PIE_RADIUS, y1 - iADiagramFctWidget::PIE_RADIUS,
-											  iADiagramFctWidget::PIE_SIZE, iADiagramFctWidget::PIE_SIZE );
-							painter.drawPie( rectangle, 60 * 16, 60 * 16 );
-						}
-						break;
+					if (i - 1 == selectedPoint)
+					{
+						painter.setPen(redPen);
+						painter.setBrush(QBrush(c));
+						painter.drawEllipse(x1 - iADiagramFctWidget::SELECTED_POINT_RADIUS, y1 - iADiagramFctWidget::SELECTED_POINT_RADIUS,
+							iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE);
+					}
+					else
+					{
+						painter.setPen(pen1);
+						painter.setBrush(QBrush(c));
+						painter.drawEllipse(x1 - iADiagramFctWidget::POINT_RADIUS, y1 - iADiagramFctWidget::POINT_RADIUS,
+							iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE);
+					}
+				}
+				else
+				{
+					if ( i - 1 == selectedPoint &&  i - 1 > 0 )
+					{
+						painter.setPen( redPen );
+						painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
+						QRectF rectangle( x1 - iADiagramFctWidget::SELECTED_PIE_RADIUS, y1 - iADiagramFctWidget::SELECTED_PIE_RADIUS,
+											iADiagramFctWidget::SELECTED_PIE_SIZE, iADiagramFctWidget::SELECTED_PIE_SIZE );
+						painter.drawPie( rectangle, 60 * 16, 60 * 16 );
+					}
+					else if ( i - 1 > 0 )
+					{
+						painter.setPen( redPen );
+						painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
+						QRectF rectangle( x1 - iADiagramFctWidget::PIE_RADIUS, y1 - iADiagramFctWidget::PIE_RADIUS,
+											iADiagramFctWidget::PIE_SIZE, iADiagramFctWidget::PIE_SIZE );
+						painter.drawPie( rectangle, 60 * 16, 60 * 16 );
+					}
 				}
 			}
 
@@ -336,18 +334,21 @@ void dlg_transfer::moveSelectedPoint(int x, int y)
 		
 		if (dataX >= nextOpacityTFValue[0])
 		{
-			swapPoints(selectedPoint, selectedPoint+1);
-
-			selectedPoint++;
+			int newX = d2vX(nextOpacityTFValue[0]) - 1;
+			setPoint(selectedPoint, newX, y);
+			setColorPoint(selectedPoint, newX);
 		}
 		else if (dataX <= prevOpacityTFValue[0])
 		{
-			swapPoints(selectedPoint, selectedPoint-1);
-
-			selectedPoint--;
+			int newX = d2vX(prevOpacityTFValue[0]) + 1;
+			setPoint(selectedPoint, newX, y);
+			setColorPoint(selectedPoint, newX);
 		}
-		setPoint(selectedPoint, x, y);
-		setColorPoint(selectedPoint, x);
+		else
+		{
+			setPoint(selectedPoint, x, y);
+			setColorPoint(selectedPoint, x);
+		}
 	}
 	else
 		setPointY(selectedPoint, y);
@@ -515,29 +516,6 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 	opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
-void dlg_transfer::swapPoints(int fromIndex, int toIndex)
-{
-	double opacityTFValueFrom[4];
-	double colorTFValueFrom[6];
-	double opacityTFValueTo[4];
-	double colorTFValueTo[6];
-
-
-	opacityTF->GetNodeValue(fromIndex, opacityTFValueFrom);
-	opacityTF->GetNodeValue(toIndex, opacityTFValueTo);
-	colorTF->GetNodeValue(fromIndex, colorTFValueFrom);
-	colorTF->GetNodeValue(toIndex, colorTFValueTo);
-
-	opacityTF->SetNodeValue(fromIndex, opacityTFValueTo);
-	opacityTF->SetNodeValue(toIndex, opacityTFValueFrom);
-	colorTF->SetNodeValue(fromIndex, colorTFValueTo);
-	colorTF->SetNodeValue(toIndex, colorTFValueFrom);
-
-	colorTF->Modified();
-	colorTF->Build();
-	triggerOnChange();
-}
-
 double dlg_transfer::v2dX(int x)
 {
 	double dataRange[2];
@@ -607,8 +585,8 @@ void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double range[2]
 	// does functions node exist
 	double value, opacity, red, green, blue;
 
-	getOpacityFunction()->RemoveAllPoints();
-	getColorFunction()->RemoveAllPoints();
+	GetOpacityFunction()->RemoveAllPoints();
+	GetColorFunction()->RemoveAllPoints();
 
 	QDomNodeList list = transferElement.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
@@ -624,8 +602,8 @@ void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double range[2]
 
 		if (value < range[0]) value = range[0];
 		if (value > range[1]) value = range[1];
-		getOpacityFunction()->AddPoint(value, opacity);
-		getColorFunction()->AddRGBPoint(value, red, green, blue);
+		GetOpacityFunction()->AddPoint(value, opacity);
+		GetColorFunction()->AddRGBPoint(value, red, green, blue);
 	}
 	triggerOnChange();
 }

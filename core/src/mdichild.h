@@ -16,17 +16,24 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef MDICHILD_H
-#define MDICHILD_H
+#pragma once
 
 #include "defines.h"
-#include "iAChannelVisualizationData.h"
-#include "iAVolumeStack.h"
 #include "iAChannelID.h"
+#include "iAQTtoUIConnector.h"
+#include "iAPreferences.h"
+#include "iARenderSettings.h"
+#include "iASlicerSettings.h"
+#include "iAVolumeSettings.h"
 #include "open_iA_Core_export.h"
+#include "ui_logs.h"
+#include "ui_Mdichild.h"
+#include "ui_renderer.h"
+#include "ui_sliceXY.h"
+#include "ui_sliceXZ.h"
+#include "ui_sliceYZ.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
@@ -38,15 +45,6 @@
 #include <QSharedPointer>
 
 #include <vector>
-
-#include "ui_logs.h"
-#include "ui_Mdichild.h"
-#include "ui_renderer.h"
-#include "ui_sliceXY.h"
-#include "ui_sliceXZ.h"
-#include "ui_sliceYZ.h"
-
-#include "iAQTtoUIConnector.h"
 
 class QProgressBar;
 
@@ -60,34 +58,36 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
+class vtkRenderWindow;
+class vtkScalarsToColors;
 class vtkTable;
 class vtkTransform;
 
-struct CBCTReconstructionSettings;
-class dlg_charts;
+class dlg_renderer;
 class dlg_function;
-class dlg_histogram;
 class dlg_imageproperty;
+class dlg_modalities;
 class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
 class iAAlgorithms;
+class iAChannelVisualizationData;
 class iAHistogramWidget;
 class iAIO;
 class iALogger;
+class iAModality;
+class iAModalityList;
 class iAParametricSpline;
 struct iAProfileProbe;
 class iARenderer;
-class iASimReader;
 class iASlicer;
 class iASlicerData;
+class iAVolumeStack;
 class MainWindow;
-class RenderSettings;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
-typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>   dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
@@ -100,15 +100,7 @@ public:
 	dlg_sliceYZ * sYZ;
 	dlg_logs * logs;
 	QProgressBar * pbar;
-private:
-	QByteArray m_beforeMaximizeState;
-	bool m_isSmthMaximized;
-	QDockWidget * m_whatMaximized;
-	int m_pbarMaxVal;
-	void maximizeDockWidget(QDockWidget * dw);
-	void demaximizeDockWidget(QDockWidget * dw);
-	void resizeDockWidget(QDockWidget * dw);
-public:
+
 	enum ConnectionState {cs_NONE, cs_ROI};
 
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
@@ -125,7 +117,6 @@ public:
 	bool saveAs();
 	bool saveAsImageStack();
 	bool saveFile(const QString &f);
-	void setShowVolume(bool sV) { showVolume = sV; };
 	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
@@ -135,11 +126,10 @@ public:
 	bool yzview() { maximizeYZ(); return true; };
 	bool rcview() { maximizeRC(); return true; };
 	bool linkViews( bool l ) { link(l); return true; }
-	bool editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init );
-	bool editRendererSettings( bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-		double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int renderMode );
-	void applyCurrentSettingsToRaycaster(iARenderer * raycaster);
-	bool editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss);
+	bool linkMDIs( bool l ) { linkM(l); return true; }
+	bool editPrefs(iAPreferences const & p, bool init );
+	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
+	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
 	bool saveTransferFunction();
 	void saveRenderWindow(vtkRenderWindow *renderWindow);
@@ -167,29 +157,34 @@ public:
 	void toggleSliceProfile(bool isEnabled);
 	bool isSliceProfileToggled(void) const;
 	void enableInteraction(bool b);
-	void setupRaycaster(  bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-		double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init );
-	void setupSlicers(bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool init = false);
+	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
+	void setupSlicers(iASlicerSettings const & ss, bool init);
 	void check2DMode();
 	iALogger * getLogger();
-	RenderSettings GetRenderSettings();
+	iARenderSettings const & GetRenderSettings() const;
+	iAVolumeSettings const & GetVolumeSettings() const;
+	iASlicerSettings const & GetSlicerSettings() const;
+	iAPreferences    const & GetPreferences()    const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithms* thread, bool providesProgress = true, bool usesDoneSignal = false);
 	bool isHessianComputed() { return hessianComputed; }
 	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
-	vtkPiecewiseFunction * getPiecewiseFunction() { return piecewiseFunction; }
-	vtkColorTransferFunction * getColorTransferFunction() { return colorTransferFunction; }
+	vtkPiecewiseFunction * getPiecewiseFunction();
+	vtkColorTransferFunction * getColorTransferFunction();
 	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
 
+	// TODO: move out of here ---------->
 	bool LoadCsvFile(FilterID fid, const QString &fileName);
 	vtkTable * getMdCsvTable() { return mdCsvTable.GetPointer(); }
+	// <---------- end
 
 	//! deprecated; use getImagePointer instead!
-	vtkImageData* getImageData() { return imageData; }
+	vtkImageData* getImageData();
 	//! function to retrieve main image data object of this MDI child
 	vtkSmartPointer<vtkImageData> getImagePointer() { return imageData; }
-	void setImageData(vtkImageData * iData) { imageData = iData; }
+	//! deprecated; use the version with smart pointer instead!
+	void setImageData(vtkImageData * iData);
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
 	vtkPolyData* getPolyData() { return polyData; };
 	iARenderer* getRenderer() { return Raycaster; };
@@ -203,45 +198,15 @@ public:
 	dlg_sliceXZ	* getSlicerDlgXZ();
 	dlg_sliceYZ	* getSlicerDlgYZ();
 	dlg_imageproperty * getImagePropertyDlg();
-	dlg_histogram * getHistogramDlg();
 	vtkTransform* getSlicerTransform();
-	bool getResultInNewWindow() const { return resultInNewWindow; };
-	bool getCompression() const { return compression; };
-	bool getShowPosition() const { return showPosition; };
-	bool getMedianFilterHistogram() const { return filterHistogram; };
-	int getNumberOfHistogramBins() const { return histogramBins; };
-	int getStatExtent() const { return statExt; };
-
-	bool getShowVolume() const { return showVolume; };
-	bool getShowSlicers() const { return showSlicers; };
-	bool getShowHelpers() const { return showHelpers; };
-	bool getShowRPosition() const { return showRPosition; };
-
-	bool getLinearInterpolation() const { return linearInterpolation; };
-	bool getShading() const { return shading; };
-	bool getBoundingBox() const { return boundingBox; };
-	bool getParallelProjection() const { return parallelProjection; };
-
-	double getImageSampleDistance() const { return imageSampleDistance; };
-	double getSampleDistance() const { return sampleDistance; };
-	double getAmbientLighting() const { return ambientLighting; };
-	double getDiffuseLighting() const { return diffuseLighting; };
-	double getSpecularLighting() const { return specularLighting; };
-	double getSpecularPower() const { return specularPower; };
-	QString getBackgroundTop() const { return backgroundTop; };
-	QString getBackgroundBottom() const { return backgroundBottom; };
-
-	bool getLinkedViews() const { return linkviews; };
-	bool getShowIsolines() const { return showIsolines; };
-	int getNumberOfIsolines() const { return numberOfIsolines; };
-	double getMinIsovalue() const { return minIsovalue; };
-	double getMaxIsovalue() const { return maxIsovalue; };
-	bool getImageActorUseInterpolation() const { return imageActorUseInterpolation; }
-	int getSnakeSlices() const { return snakeSlices; };
+	bool getResultInNewWindow() const { return preferences.ResultInNewWindow; }
+	bool getLinkedMDIs() const { return slicerSettings.LinkMDIs; }
+	bool getLinkedViews() const { return slicerSettings.LinkViews; }
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
 	iAHistogramWidget * getHistogram();
+	vtkImageAccumulate * getImageAccumulate();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -267,34 +232,34 @@ public:
 	QSpinBox * getSpinBoxYZ();
 	QSpinBox * getSpinBoxXZ();
 
-	vtkImageAccumulate * getImageAccumulate() { return imageAccumulate; }
-
+	//! @{ Multi-Channel rendering
 	void SetChannelRenderingEnabled(iAChannelID, bool enabled);
-
 	void InsertChannelData(iAChannelID id, iAChannelVisualizationData * channelData);
-
 	iAChannelVisualizationData * GetChannelData(iAChannelID id);
 	iAChannelVisualizationData const * GetChannelData(iAChannelID id) const;
 	void UpdateChannelSlicerOpacity(iAChannelID id, double opacity);
 	void InitChannelRenderer(iAChannelID id, bool use3D, bool enableChannel = true);
+	void reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	void updateChannelMappers();
+	//! @}
 
+	//! @{ slicer pie glyphs - move to XRF module!
 	void SetSlicerPieGlyphsEnabled(bool isOn);
 	void SetPieGlyphParameters(double opacity, double spacing, double magFactor);
+	//! @}
 
-	void updateChannelMappers();
 	QString getFilePath() const;
 
-	// Magic Lens
+	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
-	void SetMagicLensInput(iAChannelID id, bool initReslicer);
+	void SetMagicLensInput(iAChannelID id, bool initReslicer, std::string const & caption);
 	void SetMagicLensEnabled(bool isOn);
-	void SetMagicLensCaption(std::string caption);
-	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption = "");
-	int  GetMagicLensSize() const { return magicLensSize; }
-	int  GetMagicLensFrameWidth() const { return magicLensFrameWidth; }
-
-	void reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	void SetMagicLensCaption(std::string const & caption);
+	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption);
+	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
+	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
+	//! @}
 
 	int GetRenderMode();
 
@@ -302,6 +267,12 @@ public:
 	int getYCoord() const { return yCoord; }
 	int getZCoord() const { return zCoord; }
 
+	MainWindow* getM_mainWnd();
+	void HideHistogram();
+	//! apply current rendering settings of this mdi child to the given iARenderer
+	void ApplyRenderSettings(iARenderer* raycaster);
+	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
+	void ApplyVolumeSettings();
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -316,7 +287,6 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
-	void ioSuccesful();
 
 private slots:
 	void maximizeRC();
@@ -339,6 +309,7 @@ private slots:
 	void triggerInteractionYZ();
 	void triggerInteractionRaycaster();
 	void link( bool l );
+	void linkM( bool lm );
 	void setSliceXY(int s);
 	void setSliceYZ(int s);
 	void setSliceXZ(int s);
@@ -384,57 +355,47 @@ public slots:
 	void camMZ();
 	void camIso();
 
-	/**
-	* Calls the getCamPosition function of iARenderer (described there in more detail).
-	* \param	camOptions	All informations of the camera stored in a double array
-	*/
+	//! Calls the getCamPosition function of iARenderer (described there in more detail).
+	//!
+	//! \param camOptions	All informations of the camera stored in a double array
 	void getCamPosition(double * camOptions);
-	/**
-	* Calls the setCamPosition function of iARenderer (described there in more detail).
-	*
-	* \param	camOptions	All informations of the camera stored in a double array
-	* \param	rsParallelProjection	boolean variable to determine if parallel projection option on.
-	*/
+
+	//! Calls the setCamPosition function of iARenderer (described there in more detail).
+	//!
+	//! \param camOptions	All informations of the camera stored in a double array
+	//! \param rsParallelProjection	boolean variable to determine if parallel projection option on.
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
 	void UpdateProbe(int ptIndex, double * newPos);
 	void resetLayout();
 
-protected:
+private:
 	void closeEvent(QCloseEvent *event);
-
-	bool calculateHistogram( );
-	bool medianFilterHistogram( vtkImageAccumulate* imgA );
 	bool addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
-	bool addHistogram( );
 	bool addProfile( );
-	void showProfile( bool isVisible );
 	int profileWidgetIndex;
 
-	bool LoadCsvFile(vtkTable *table, FilterID fid);
-	bool LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileName);
-
-
-	bool initView( );
-	bool initTransferfunctions( );
+	bool initView(QString const & title);
 	int EvaluatePosition(int pos, int i, bool invert = false);
-	//void printFileInfos();
-	//void printSTLFileInfos();
 
-	/**
-	* Changes the display of views from full to multi screen or multi screen to fullscreen.
-	*
-	* \param	mode	how the views should be arranged \return.
-	*/
+	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
+	//!
+	//! \param mode	how the views should be arranged.
 	void changeVisibility(unsigned char mode);
 	int getVisibility() const;
-	void widgetsVisible(bool b);
+	void hideVolumeWidgets();
 	void visibilityBlock(QList<QSpacerItem*> spacerItems, QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
 	virtual void resizeEvent ( QResizeEvent * event );
 
-private:
-	iAHistogramWidget * getHistogram(dlg_histogram * h);
+	QByteArray m_beforeMaximizeState;
+	bool m_isSmthMaximized;
+	QDockWidget * m_whatMaximized;
+	int m_pbarMaxVal;
+	void maximizeDockWidget(QDockWidget * dw);
+	void demaximizeDockWidget(QDockWidget * dw);
+	void resizeDockWidget(QDockWidget * dw);
+
 	void connectSignalsToSlots();
 	void SetRenderWindows();
 	void getSnakeNormal(int index, double point[3], double normal[3]);
@@ -442,16 +403,14 @@ private:
 	void updateSliceIndicators();
 	QString strippedName(const QString &f);
 	
-	/**
-	* sets up the IO thread for saving the correct file type for the given filename.
-	* @return	true if it succeeds, false if it fails.
-	*/
+	//! sets up the IO thread for saving the correct file type for the given filename.
+	//!
+	//! \return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f);
 
-	/**
-	* sets up the IO thread for loading the correct file type according to the given filename.
-	* @return	true if it succeeds, false if it fails.
-	*/
+	//! sets up the IO thread for loading the correct file type according to the given filename.
+	//!
+	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
 
 	QFileInfo fileInfo;
@@ -470,28 +429,23 @@ private:
 
 	QString curFile, path;
 	QPoint lastPoint;
-	bool isUntitled/*, maximizedXY, maximizedXZ, maximizedYZ, maximizedRC, maximizedTab*/, tabsVisible;
+	bool isUntitled;
 	int xCoord, yCoord, zCoord;
-	int histogramBins, statExt, magicLensSize, magicLensFrameWidth;
-	bool compression, showPosition, resultInNewWindow, filterHistogram, linkSlicers, logarithmicHistogram;
-	
-	// Renderer Settings:
-	bool  showVolume, showSlicers, showHelpers, showRPosition, linearInterpolation, shading, boundingBox, parallelProjection;
-	double imageSampleDistance, sampleDistance,	ambientLighting, diffuseLighting ,specularLighting, specularPower;
-	double minIsovalue, maxIsovalue;
-	int numberOfIsolines, snakeSlices;
-	bool linkviews, showIsolines, imageActorUseInterpolation, interactorsEnabled;
+
+	iARenderSettings renderSettings;
+	iAVolumeSettings volumeSettings;
+	iASlicerSettings slicerSettings;
+	iAPreferences preferences;
+
 	unsigned char visibility;
-	QString backgroundTop, backgroundBottom;
-	int renderMode;
 
 	ConnectionState connectionState;
 	int roi[6];
 
-	bool snakeSlicer;
-	bool isSliceProfileEnabled;	//slice profile, shown in slices
-	bool isArbProfileEnabled;	//arbitrary profile, shown in profile widget
-	bool isMagicLensEnabled;	//magic lens exploration
+	bool snakeSlicer;           //!< whether snake slicer is enabled
+	bool isSliceProfileEnabled; //!< slice profile, shown in slices
+	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
+	bool isMagicLensEnabled;    //!< magic lens exploration
 	
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
@@ -499,9 +453,6 @@ private:
 
 	vtkSmartPointer<vtkImageData> imageData;
 	vtkPolyData* polyData;
-	vtkImageAccumulate* imageAccumulate;
-	vtkPiecewiseFunction* piecewiseFunction;
-	vtkColorTransferFunction* colorTransferFunction;
 	vtkTransform* axesTransform;
 	vtkTransform* slicerTransform;
 	vtkAbstractTransform *SlicerYZ_Transform, *SlicerXY_Transform, *SlicerXZ_Transform;
@@ -511,26 +462,24 @@ private:
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
 
-	dlg_histogram* imgHistogram;
+	QDockWidget* histogramContainer;
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
-
-	dlg_charts* charts;
-	dlg_charts* charts2;
-	dlg_charts* charts3;
-
-
-	// csv file to table
+	
+	// TODO: move out of here ---------->
+	bool LoadCsvFile(vtkTable *table, FilterID fid);
+	bool LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileName);
+	//! csv file to table
 	vtkSmartPointer<vtkTable> mdCsvTable;
-
+	// <---------- end
 
 	bool saveNative;
 	std::vector<iAAlgorithms*> workingAlgorithms;
 
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;
 
-	bool hessianComputed;
+	bool hessianComputed;	//!< belongs to Hessian module, move there!
 	bool updateSliceIndicator;
 	int numberOfVolumes;
 	int previousIndexOfVolume;
@@ -541,6 +490,27 @@ private:
 	bool raycasterInitialized;
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
-};
 
-#endif
+	//! @{ previously "Modality Explorer":
+	dlg_modalities * m_dlgModalities;
+	int m_currentModality;
+	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
+private slots:
+	void ChangeModality(int chg);
+	void ChangeMagicLensOpacity(int chg);
+	void ChangeImage(vtkSmartPointer<vtkImageData> img);
+private:
+	int GetCurrentModality() const;
+	void SetCurrentModality(int modality);
+	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
+	void InitDisplay();
+public:
+	void SetModalities(QSharedPointer<iAModalityList> modList);
+	QSharedPointer<iAModalityList> GetModalities();
+	QSharedPointer<iAModality> GetModality(int idx);
+	dlg_modalities* GetModalitiesDlg();
+	void LoadProject();
+	void LoadProject(QString const & fileName);
+	void StoreProject();
+	//! @}
+};

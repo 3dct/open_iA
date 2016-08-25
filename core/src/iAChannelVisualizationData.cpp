@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -45,7 +45,7 @@
 #include <cassert>
 
 iAChannelSlicerData::iAChannelSlicerData():
-	activeImage(NULL),
+	image(NULL),
 	reslicer(vtkImageReslice::New()),
 	colormapper(vtkImageMapToColors::New()),
 	imageActor(vtkImageActor::New()),
@@ -88,7 +88,7 @@ void iAChannelSlicerData::SetResliceAxesOrigin(double x, double y, double z)
 void iAChannelSlicerData::Assign(vtkSmartPointer<vtkImageData> imageData, QColor const &col)
 {
 	color = col;
-	activeImage = imageData;
+	image = imageData;
 	reslicer->SetInputData(imageData);
 	reslicer->SetInformationInput(imageData);
 }
@@ -97,12 +97,12 @@ void iAChannelSlicerData::Assign(vtkSmartPointer<vtkImageData> imageData, QColor
 void iAChannelSlicerData::SetupOutput( vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf )
 {
 	double rgb[3];
-	double range[2]; activeImage->GetScalarRange( range );
+	double range[2]; image->GetScalarRange( range );
 	m_lut->SetRange( range );
 	const int numCols = 1024;
 	m_lut->SetNumberOfColors( numCols );
-	double alpha;// = otf->GetValue( activeImage->GetScalarRange()[0] );
-	//double deltaAlpha = (otf->GetValue( activeImage->GetScalarRange()[1] ) - alpha) / (numCols - 1);
+	double alpha;// = otf->GetValue( image->GetScalarRange()[0] );
+	//double deltaAlpha = (otf->GetValue(image->GetScalarRange()[1] ) - alpha) / (numCols - 1);
 	double scalVal = range[0];
 	double scalValDelta = (range[1] - range[0]) / (numCols - 1);
 	for( int i = 0; i < numCols; ++i )
@@ -125,7 +125,7 @@ void iAChannelSlicerData::SetupOutput( vtkScalarsToColors* ctf, vtkPiecewiseFunc
 void iAChannelSlicerData::Init(iAChannelVisualizationData * chData, int mode)
 {
 	m_isInitialized = true;
-	Assign(chData->GetActiveImage(), chData->GetColor());
+	Assign(chData->GetImage(), chData->GetColor());
 
 	reslicer->SetOutputDimensionality( 2 );
 	reslicer->SetInterpolationModeToCubic();
@@ -157,7 +157,7 @@ void iAChannelSlicerData::UpdateResliceAxesDirectionCosines( int mode )
 
 void iAChannelSlicerData::ReInit(iAChannelVisualizationData * chData)
 {
-	Assign(chData->GetActiveImage(), chData->GetColor());
+	Assign(chData->GetImage(), chData->GetColor());
 
 	reslicer->UpdateWholeExtent();
 	reslicer->Update();
@@ -227,7 +227,7 @@ void iAChannelSlicerData::SetShowContours( bool show )
 	cActor->SetVisibility( show );
 }
 
-void iAChannelSlicerData::SetContourLineParams( double lineWidth, bool dashed /*= false */ )
+void iAChannelSlicerData::SetContourLineParams( double lineWidth, bool dashed)
 {
 	cActor->GetProperty()->SetLineWidth( lineWidth );
 	if( dashed )
@@ -238,7 +238,6 @@ void iAChannelSlicerData::SetContoursOpacity( double opacity )
 {
 	cActor->GetProperty()->SetOpacity( opacity );
 }
-
 
 iAChannelVisualizationData::iAChannelVisualizationData():
 	piecewiseFunction(NULL),
@@ -289,9 +288,9 @@ double iAChannelVisualizationData::GetOpacity() const
 	return opacity;
 }
 
-void iAChannelVisualizationData::SetActiveImage( vtkSmartPointer<vtkImageData> image )
+void iAChannelVisualizationData::SetImage( vtkSmartPointer<vtkImageData> img )
 {
-	activeImage = image;
+	image = img;
 }
 
 void iAChannelVisualizationData::SetColorTF( vtkScalarsToColors* cTF )
@@ -334,14 +333,14 @@ vtkScalarsToColors * iAChannelVisualizationData::GetCTF()
 	return colorTransferFunction;
 }
 
-vtkSmartPointer<vtkImageData> iAChannelVisualizationData::GetActiveImage()
+vtkSmartPointer<vtkImageData> iAChannelVisualizationData::GetImage()
 {
-	return activeImage;
+	return image;
 }
 
 void ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
-	chData->SetActiveImage(image);
+	chData->SetImage(image);
 	chData->SetColorTF(ctf);
 	chData->SetOpacityTF(otf);
 }

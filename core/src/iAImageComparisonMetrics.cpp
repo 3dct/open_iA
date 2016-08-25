@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iAImageComparisonMetrics.h"
@@ -31,6 +31,11 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
 	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
 	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
+	if (!img || !ref)
+	{
+		result.equalPixelRate = 0;
+		return;
+	}
 	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
 	int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
 	float sumEqual = 0.0f, dice = 0.0f;

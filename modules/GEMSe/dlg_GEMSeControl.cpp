@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,18 +24,17 @@
 
 #include "dlg_labels.h"
 #include "dlg_modalities.h"
-#include "dlg_priors.h"
 #include "dlg_samplingSettings.h"
 #include "dlg_progress.h"
 #include "dlg_GEMSe.h"
+#include "iAAttributes.h"
 #include "iACharacteristics.h"
 #include "iAColorTheme.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
-#include "iAMMSegParameterRange.h"
-#include "iAMMSegSampler.h"
+#include "iAImageSampler.h"
 #include "iAModality.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
@@ -53,7 +52,6 @@
 dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
 	dlg_GEMSe* dlgGEMSe,
 	dlg_modalities* dlgModalities,
-	dlg_priors* dlgPriors,
 	dlg_labels* dlgLabels,
 	QString const & defaultThemeName
 ):
@@ -62,8 +60,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
 	m_dlgProgress(0),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
-	m_dlgPriors(dlgPriors),
-	m_dlgModalitySPLOM(0),
 	m_dlgLabels(dlgLabels)
 {
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
@@ -107,12 +103,7 @@ void dlg_GEMSeControl::StartSampling()
 {
 	if (!m_dlgModalities->GetModalities()->size())
 	{
-		DEBUG_LOG("No data available.\n");
-		return;
-	}
-	if (!m_dlgLabels->AreSeedsAvailable())
-	{
-		QMessageBox::warning(this, "Segmentation Explorer", "No seeds for SVM available. Sampling requires seeds!");
+		DEBUG_LOG("No data available.");
 		return;
 	}
 	if (m_dlgSamplingSettings || m_sampler)
@@ -124,37 +115,23 @@ void dlg_GEMSeControl::StartSampling()
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
 		// get parameter ranges
-		QSharedPointer<iAMMSegParameterRange> range = m_dlgSamplingSettings->GetRange();
-		bool distFuncDefined = true;
-		for (int i=0; i<range->modalityParamRange.size(); ++i)
-		{
-			if (range->modalityParamRange[i].distanceFuncs.empty())
-			{
-				distFuncDefined = false;
-				break;
-			}
-		}
-		if (!distFuncDefined)
-		{
-			QMessageBox::warning(this, "Segmentation Explorer", "You need to specify at least one distance function per modality");
-			delete m_dlgSamplingSettings;
-			m_dlgSamplingSettings = 0;
-			return;
-		}
+		QSharedPointer<iAAttributes> parameters = m_dlgSamplingSettings->GetAttributes();
 		m_outputFolder = m_dlgSamplingSettings->GetOutputFolder();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
 		
-		m_sampler = QSharedPointer<iAMMSegSampler>(new iAMMSegSampler(
+		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_dlgModalities->GetModalities(),
-			range,
+			parameters,
 			m_dlgSamplingSettings->GetGenerator(),
-			m_dlgLabels->GetSeeds(),
+			m_dlgSamplingSettings->GetSampleCount(),
 			m_outputFolder,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_dlgSamplingSettings->DoStoreProbabilities()) );
+			m_dlgSamplingSettings->GetExecutable(),
+			m_dlgSamplingSettings->GetAdditionalArguments()
+		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
@@ -194,26 +171,23 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName)
 {
 	if (fileName.isEmpty())
 	{
-		DEBUG_LOG("No filename given, not loading.\n");
+		DEBUG_LOG("No filename given, not loading.");
 		return false;
 	}
 	m_samplingResults = iASamplingResults::Load(fileName);
-	if (m_samplingResults)
+	if (!m_samplingResults)
 	{
-		pbSamplingStore->setEnabled(true);
-		pbClusteringCalc->setEnabled(true);
-		pbClusteringLoad->setEnabled(true);
-		pbCalcCharac->setEnabled(true);
-		pbAllStore->setEnabled(true);
-		pbResetFilters->setEnabled(true);
-		QFileInfo fi(fileName);
-		m_outputFolder = fi.absolutePath();
-	}
-	else
-	{
-		DEBUG_LOG("Loading Sampling failed.\n");
+		DEBUG_LOG("Loading Sampling failed.");
 		return false;
 	}
+	pbSamplingStore->setEnabled(true);
+	pbClusteringCalc->setEnabled(true);
+	pbClusteringLoad->setEnabled(true);
+	pbCalcCharac->setEnabled(true);
+	pbAllStore->setEnabled(true);
+	pbResetFilters->setEnabled(true);
+	QFileInfo fi(fileName);
+	m_outputFolder = fi.absolutePath();
 	return true;
 }
 
@@ -226,7 +200,7 @@ void dlg_GEMSeControl::SamplingFinished()
 
 	if (m_sampler->IsAborted())
 	{
-		DEBUG_LOG("Since Sampling was aborted, we're skipping clustering\n");
+		DEBUG_LOG("Sampling was aborted, skipping clustering.");
 		m_sampler.clear();
 		return;
 	}
@@ -259,7 +233,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	assert(m_samplingResults);
 	if (!m_samplingResults || fileName.isEmpty())
 	{
-		DEBUG_LOG("No Clustering available!\n");
+		DEBUG_LOG("No Clustering available!");
 		return false;
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -267,7 +241,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	QSharedPointer<iAImageTree> tree = iAImageTree::Create(fileName, m_samplingResults->GetResults(), m_dlgLabels->count());
 	if (!tree)
 	{
-		DEBUG_LOG("Loading Clustering failed!\n");
+		DEBUG_LOG("Loading Clustering failed!");
 		return false;
 	}
 	m_dlgGEMSe->SetTree(
@@ -287,20 +261,20 @@ void dlg_GEMSeControl::CalculateClustering()
 	assert(m_samplingResults);
 	if (!m_samplingResults || m_samplingResults->size() == 0)
 	{
-		DEBUG_LOG("No Sampling Results available!\n");
+		DEBUG_LOG("No Sampling Results available!");
 		return;
 	}
 	assert( !m_dlgProgress );
 	if (m_dlgProgress)
 	{
-		DEBUG_LOG("Other operation still running?\n");
+		DEBUG_LOG("Other operation still running?");
 		return;
 	}
 	QString dir = m_outputFolder+"/representatives";
 	QDir qdir;
 	if (!qdir.mkpath(dir))
 	{
-		DEBUG_LOG("Can't create representative directory!\n");
+		DEBUG_LOG("Can't create representative directory!");
 	}
 	if (dir.isEmpty())
 	{
@@ -336,12 +310,12 @@ void dlg_GEMSeControl::ClusteringFinished()
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
-		DEBUG_LOG("Segmentation Explorer not set!\n");
+		DEBUG_LOG("Segmentation Explorer not set!");
 		return;
 	}
 	if (m_clusterer->IsAborted() || !m_clusterer->GetResult())
 	{
-		DEBUG_LOG("Clusterer aborted / missing Clustering Result!\n");
+		DEBUG_LOG("Clusterer aborted / missing Clustering Result!");
 		return;
 	}
 	if (!m_outputFolder.isEmpty())
@@ -455,8 +429,8 @@ void dlg_GEMSeControl::CalcCharacteristics()
 
 void dlg_GEMSeControl::DataAvailable()
 {
-	pbSample->setEnabled(m_dlgModalities->GetModalities()->size() > 0 && m_dlgLabels->AreSeedsAvailable());
-	pbSamplingLoad->setEnabled(m_dlgModalities->GetModalities()->size() > 0 && m_dlgLabels->AreSeedsAvailable());
+	pbSample->setEnabled(m_dlgModalities->GetModalities()->size() > 0);
+	pbSamplingLoad->setEnabled(m_dlgModalities->GetModalities()->size() > 0);
 }
 
 void dlg_GEMSeControl::StoreAll()
@@ -511,17 +485,6 @@ void dlg_GEMSeControl::ExportIDs()
 	QSharedPointer<iAImageClusterNode> cluster = m_dlgGEMSe->GetCurrentCluster();
 	std::ofstream out(fileName.toStdString());
 	ExportClusterIDs(cluster, out);
-}
-
-#include "dlg_modalitySPLOM.h"
-
-
-void dlg_GEMSeControl::ModalitySPLOM()
-{
-	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(m_dlgModalities->GetModalities());
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->tabifyDockWidget(this, m_dlgModalitySPLOM);
 }
 
 

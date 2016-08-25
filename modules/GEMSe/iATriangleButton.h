@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_TRIANGLE_BUTTON
-#define IA_TRIANGLE_BUTTON
+#pragma once
 
 #include <QWidget>
 
@@ -39,5 +37,3 @@ protected:
 private:
 	bool m_expanded;
 };
-
-#endif // IA_TRIANGLE_BUTTON

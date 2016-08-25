@@ -16,12 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_ELEMENT_RENDERER_H
-#define DLG_ELEMENT_RENDERER_H
-
+#pragma once
 
 #include "ui_ElementRenderer.h"
 #include <iAQTtoUIConnector.h>
@@ -29,7 +26,11 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_elementRenderer>   dlg_elemRendererCon
 
 #include <vtkSmartPointer.h>
 
+#include <QSharedPointer>
+
 class iARenderer;
+class iAVolumeRenderer;
+class iAVolumeSettings;
 
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -48,14 +49,14 @@ public:
 	iARenderer * GetRenderer();
 	void SetRefLibIndex(size_t index);
 	size_t GetRefLibIndex();
+	void ApplyVolumeSettings(iAVolumeSettings const & vs);
 
 private:
 	iARenderer * m_renderer;
 	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
+	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	vtkRenderer * m_observedRenderer;
 	unsigned long m_tag;
 	size_t m_indexInReferenceLib;
 };
-
-#endif

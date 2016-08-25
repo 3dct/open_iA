@@ -16,9 +16,8 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
 
 #include "iAValueType.h"
@@ -45,12 +44,16 @@ public:
 	double GetMin() const;
 	double GetMax() const;
 	QString GetName() const;
+	void SetLogScale(bool l);
 	bool IsLogScale() const;
 	void ResetMinMax();
 	void AdjustMinMax(double value);
 	bool CoversWholeRange(double min, double max) const;
 	QString ToString() const;
+	void SetNameMapper(QSharedPointer<iANameMapper> mapper);
 private:
+	iAAttributeDescriptor(iAAttributeDescriptor const & other) = delete;
+	iAAttributeDescriptor& operator=(iAAttributeDescriptor const & other) = delete;
 	iAAttributeType m_attribType;
 	iAValueType m_valueType;
 	double m_min, m_max;

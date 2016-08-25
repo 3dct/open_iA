@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_PROFILE_WIDGET_H
-#define IA_PROFILE_WIDGET_H
+#pragma once
 
 #include <QPoint>
 #include <QMouseEvent>
@@ -29,7 +27,6 @@
 #include "vtkPolyData.h"
 
 #include "iADiagramWidget.h"
-
 
 // FORWARD DECLARATIONS
 class vtkPolyData;
@@ -58,7 +55,6 @@ public:
 	void drawProfilePlot();
 	void redraw();
 
-	QWidget* getParent() { return activeChild; };
 	int getHeight() { return height; }
 	int getMax() { return yHeight; }
 	
@@ -91,5 +87,3 @@ private:
 Q_SIGNALS:
 	void binSelected(int newBin);
 };
-
-#endif // IA_PROFILE_WIDGET_H

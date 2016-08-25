@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef QVTKWidgetMouseReleaseWorkaround_H
-#define QVTKWidgetMouseReleaseWorkaround_H
+#pragma once
 
 #include "QVTKWidget.h"
 
@@ -29,7 +27,10 @@
 #include <QMouseEvent>
 
 /**
- * \brief	Qvtk widget which emits signals when button released. Temporary solution because of the VTK bug. TODO:remove when bug fixed in VTK 
+ * \brief	Qvtk widget which emits signals when button released.
+ *
+ * Solution for a "non-bug" in VTK http://www.vtk.org/pipermail/vtkusers/2013-December/082291.html
+ * which will not get fixed.
  */
 
 class open_iA_Core_API QVTKWidgetMouseReleaseWorkaround : public QVTKWidget
@@ -45,5 +46,3 @@ Q_SIGNALS:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();
 };
-
-#endif

@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_RW_SEEDS_H
-#define DLG_RW_SEEDS_H
+#pragma once
 
 #include "ui_RWSeeds.h"
 #include <iAQTtoUIConnector.h>
@@ -40,5 +38,3 @@ public:
 		return leBeta->text().toDouble();
 	}
 };
-
-#endif // DLG_RW_SEEDS_H

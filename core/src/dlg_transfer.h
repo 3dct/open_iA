@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_TRANSFER_H
-#define DLG_TRANSFER_H
+#pragma once
 
 #include "dlg_function.h"
 #include "open_iA_Core_export.h"
@@ -36,7 +34,7 @@ class vtkColorTransferFunction;
 
 class iAFunctionChangeListener;
 
-class open_iA_Core_API dlg_transfer : public dlg_function, public TransferFunction
+class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunction
 {
 	int selectedPoint;
 
@@ -85,8 +83,8 @@ public:
 	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { this->opacityTF = opacityTF; }
 	void setColorFunction(vtkColorTransferFunction *colorTF) { this->colorTF = colorTF; }
 
-	vtkPiecewiseFunction* getOpacityFunction() { return opacityTF; }
-	vtkColorTransferFunction* getColorFunction() { return colorTF; }
+	vtkPiecewiseFunction* GetOpacityFunction() { return opacityTF; }
+	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
 
 	void setChangeListener(iAFunctionChangeListener* listener);
 
@@ -100,8 +98,6 @@ private:
 	void setPoint(int selectedPoint, int x, int y);
 	void setPointX(int selectedPoint, int x);
 	void setPointY(int selectedPoint, int y);
-		
-	void swapPoints(int fromIndex, int toIndex);
 	
 	// convert view to data
 	double v2dX(int x);
@@ -119,5 +115,3 @@ private:
 
 	bool m_rangeSliderHandles;
 };
-
-#endif

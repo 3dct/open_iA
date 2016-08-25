@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_GEMSE_H
-#define DLG_GEMSE_H
+#pragma once
 
 #include "ui_GEMSe.h"
 #include <iAQTtoUIConnector.h>
@@ -162,5 +160,3 @@ private:
 
 	QVector< QVector<float> > m_attitudes;
 };
-
-#endif // DLG_GEMSE_H

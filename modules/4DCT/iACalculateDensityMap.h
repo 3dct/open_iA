@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #ifndef IACALCULATEDENSITYMAP_H
@@ -31,11 +31,11 @@ class CalculateDensityMap
 {
 public:
 	static std::vector<std::vector<std::vector<TPrecision>>>
-		Calculate(vtkImageData* mask, int* gridSize);
+		Calculate(vtkImageData* mask, int* gridSize, double* cellSize);
 };
 
 template<class TPrecision, class TScalar>
-std::vector<std::vector<std::vector<TPrecision>>> CalculateDensityMap<TPrecision, TScalar>::Calculate(vtkImageData* mask, int* gridSize)
+std::vector<std::vector<std::vector<TPrecision>>> CalculateDensityMap<TPrecision, TScalar>::Calculate(vtkImageData* mask, int* gridSize, double* cellSize)
 {
 	TScalar* buffer = (TScalar*)mask->GetScalarPointer();
 	int extent[6];
@@ -61,7 +61,7 @@ std::vector<std::vector<std::vector<TPrecision>>> CalculateDensityMap<TPrecision
 		density.push_back(subVec);
 	}
 
-	double cellSize[3];
+	//double cellSize[3];
 	cellSize[0] = (double)size[0] / gridSize[0];
 	cellSize[1] = (double)size[1] / gridSize[1];
 	cellSize[2] = (double)size[2] / gridSize[2];

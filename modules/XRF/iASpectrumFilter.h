@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IASPECTRUMFILTER_H
-#define IASPECTRUMFILTER_H
+#pragma once
 
 #include <QVector>
 #include <stdint.h>
@@ -40,5 +38,3 @@ class iASpectrumFilterListener
 public:
 	virtual void OnSelectionUpdate(QVector<iASpectrumFilter> const & filter) =0;
 };
-
-#endif /* IASPECTRUMFILTER_H */

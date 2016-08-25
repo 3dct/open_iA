@@ -16,39 +16,27 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #pragma once
 
-#include <QColor>
-#include <QString>
-
-class RenderSettings
+class iARenderSettings
 {
 public:
-	bool   LinearInterpolation;
-	bool   Shading;
-	double AmbientLighting;
-	double DiffuseLighting;
-	double SpecularLighting;
-	double SpecularPower;
-	QColor BackgroundColor;
-	RenderSettings(
-		bool    linearInterpolation,
-		bool    shading,
-		double  ambientLighting,
-		double  diffuseLighting,
-		double  specularLighting,
-		double  specularPower,
-		QString backgroundColor)
-	:
-		LinearInterpolation(linearInterpolation),
-		Shading(shading),
-		AmbientLighting(ambientLighting),
-		DiffuseLighting(diffuseLighting),
-		SpecularLighting(specularLighting),
-		SpecularPower(specularPower),
-		BackgroundColor(backgroundColor)
+	bool
+		ShowSlicers,			//! TODO: VOLUME: move to iAVolumeSettings?
+		ShowHelpers,
+		ShowRPosition,
+		ParallelProjection;
+	QString BackgroundTop,
+		BackgroundBottom;
+
+	iARenderSettings():
+		ShowSlicers(false),
+		ShowHelpers(true),
+		ShowRPosition(true),
+		ParallelProjection(false),
+		BackgroundTop("#7FAAFF"),
+		BackgroundBottom("#FFFFFF")
 	{}
 };

@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAGradientsModuleInterface_h__
-#define iAGradientsModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 #include <QScopedPointer>
@@ -43,5 +41,3 @@ protected:
 	//settings
 	unsigned int dfOrder, dfDirection;
 };
-
-#endif // iAGradientsModuleInterface_h__

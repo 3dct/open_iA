@@ -16,11 +16,10 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAFAST3DMAGICLENSWIDGET_H
-#define IAFAST3DMAGICLENSWIDGET_H
+#pragma once
+
 // iA
 #include "iAAbstractMagicLensWidget.h"
 
@@ -32,17 +31,15 @@ class open_iA_Core_API iAFast3DMagicLensWidget : public iAAbstractMagicLensWidge
 public:
 	iAFast3DMagicLensWidget( QWidget * parent = 0 );
 	~iAFast3DMagicLensWidget( );
-signals:
-	void MouseMoved();
 protected:
 	virtual void			updateLens( );
-	virtual void			updateGUI( );
 	virtual void	resizeEvent( QResizeEvent * event );
-	virtual void	mouseMoveEvent(QMouseEvent * event);
-
+	virtual void mouseReleaseEvent(QMouseEvent * event);
 private:
 	double			m_viewAngle;
 	double			calculateZ( double viewAngle );
-};
 
-#endif // IAFAST3DMAGICLENSWIDGET_H
+Q_SIGNALS:
+	void rightButtonReleasedSignal();
+	void leftButtonReleasedSignal();
+};

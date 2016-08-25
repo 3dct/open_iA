@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAPARAMETRICSPLINE_H
-#define IAPARAMETRICSPLINE_H
+#pragma once
 
 #include "vtkParametricSpline.h"
 
@@ -30,8 +28,6 @@ public:
 	iAParametricSpline()	{ }
 	~iAParametricSpline()	{ }
 
-    static iAParametricSpline *New() {return new iAParametricSpline();}
+	static iAParametricSpline *New() {return new iAParametricSpline();}
 	double GetLength(){ return this->Length; }
-
 };
-#endif

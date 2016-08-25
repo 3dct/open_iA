@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
 #include "iAProfileWidget.h"
@@ -175,7 +175,6 @@ void iAProfileWidget::drawHistogram(QPainter &painter)
 
 void iAProfileWidget::drawAxes(QPainter &painter)
 {
-	//TODO: reflect changes in dlg_histogram::drawAxes(...)
 	drawXAxis(painter);
 	drawYAxis(painter);
 }
@@ -232,7 +231,6 @@ void iAProfileWidget::drawXAxis(QPainter &painter)
 
 void iAProfileWidget::drawYAxis(QPainter &painter)
 {
-	//TODO: reflect changes in dlg_histogram::drawAxes(...)
 	//change pen color to black
 	painter.setPen(Qt::black);
 	QFontMetrics fm = painter.fontMetrics();

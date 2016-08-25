@@ -16,26 +16,22 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_QT_CAPTION_WIDGET_H
-#define IA_QT_CAPTION_WIDGET_H
+#pragma once
 
 #include <QWidget>
 
 #include "iAGEMSeConstants.h"
 
- class iAQtCaptionWidget: public QWidget
- {
- public:
+class iAQtCaptionWidget : public QWidget
+{
+public:
 	iAQtCaptionWidget(QWidget* parent, QString const & name);
- private:
+private:
 	virtual void paintEvent(QPaintEvent* ev);
 	QString m_name;
 	int m_height;
- };
+};
 
- void SetCaptionedContent(QWidget* parent, QString const & caption, QWidget* w);
-
-#endif // IA_QT_CAPTION_WIDGET_H
+void SetCaptionedContent(QWidget* parent, QString const & caption, QWidget* w);

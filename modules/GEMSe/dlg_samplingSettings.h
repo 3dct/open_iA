@@ -16,30 +16,36 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_SAMPLING_SETTINGS_H
-#define DLG_SAMPLING_SETTINGS_H
+#pragma once
 
 #include "ui_samplingSettings.h"
 #include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
 
-class iAMMSegParameterGenerator;
-class iAMMSegParameterRange;
+class iAAttributes;
+class iAAttributeDescriptor;
 class iAModalityList;
+class iAParameterGenerator;
 
+class QCheckBox;
 class QShortcut;
 class QxtSpanSlider;
 
-struct ModalityControls
+struct ParameterInputs
 {
-	QxtSpanSlider* weightSlider;
-	QListWidget*   distanceMeasures;
-	QShortcut*     distanceDeleteShortcut;
-	QLineEdit*     pcaMin;
-	QLineEdit*     pcaMax;
+	QLabel* label;
+	QLineEdit* from;
+	QLineEdit* to;
+	QCheckBox* logScale;
+	QSharedPointer<iAAttributeDescriptor> descriptor;
+	ParameterInputs():
+		label(0),
+		from(0),
+		to(0),
+		logScale(0)
+	{}
 };
 
 class dlg_samplingSettings : public dlg_samplingSettingsUI
@@ -47,21 +53,27 @@ class dlg_samplingSettings : public dlg_samplingSettingsUI
 	Q_OBJECT
 public:
 	dlg_samplingSettings(QWidget *parentWidget, QSharedPointer<iAModalityList const> modalities);
-	QSharedPointer<iAMMSegParameterGenerator> GetGenerator();
-	QSharedPointer<iAMMSegParameterRange> GetRange();
+	QSharedPointer<iAParameterGenerator> GetGenerator();
+	QSharedPointer<iAAttributes> GetAttributes();
 	double GetEstimatedDuration() const;
 	QString GetOutputFolder() const;
-	bool DoStoreProbabilities() const;
+	QString GetExecutable() const;
+	QString GetAdditionalArguments() const;
+	int GetSampleCount() const;
 private slots:
-	void ModalityMinWeightChanged(int lower);
-	void ModalityMaxWeightChanged(int upper);
-	void DeleteItem();
 	void UpdateEstimate(int);
 	void ChooseOutputFolder();
+	void ChooseParameterDescriptor();
+	void ChooseExecutable();
+	void ParameterDescriptorChanged();
 private:
 	int m_nbOfSamples;
 	double m_imagePixelCount;
-	QVector<ModalityControls> m_modalityControls;
-};
+	int m_startLine;
+	int m_modalityCount;
+	QSharedPointer<iAAttributes> m_descriptor;
+	QString m_descriptorFileName;
+	QVector<ParameterInputs> m_paramInputs;
 
-#endif
+	void LoadDescriptor(QString const & fileName);
+};

@@ -16,37 +16,51 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "mdichild.h"
 
 #include "dlg_commoninput.h"
-#include "dlg_histogram.h"
+#include "dlg_renderer.h"
 #include "dlg_imageproperty.h"
+#include "dlg_modalities.h"
 #include "dlg_profile.h"
 #include "dlg_volumePlayer.h"
+#include "iAHistogramWidget.h"
+#include "iAChannelVisualizationData.h"
+#include "iAChildData.h"
+#include "iAConsole.h"
+#include "iADockWidgetWrapper.h"
 #include "iAAlgorithms.h"
 #include "iAFilter.h"
 #include "iAIO.h"
 #include "iAIOProvider.h"
+#include "iALogger.h"
 #include "iAMdiChildLogger.h"
+#include "iAModality.h"
+#include "iAModalityTransfer.h"
+#include "iAMovieHelper.h"
 #include "iAObserverProgress.h"
 #include "iAParametricSpline.h"
+#include "iAPreferences.h"
 #include "iAProfileProbe.h"
 #include "iAProfileWidget.h"
 #include "iARenderer.h"
+#include "iARenderSettings.h"
+#include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
+#include "iAWidgetAddHelper.h"
 #include "mainwindow.h"
 
 #include "extension2id.h"
 
 #include <vtkCamera.h>
 #include <vtkCornerAnnotation.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -54,15 +68,16 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPlane.h>
 #include <vtkRenderWindow.h>
-#include <vtkVolumeProperty.h>
 #include <vtkWindowToImageFilter.h>
+
 // TODO: refactor methods using the following out of mdichild!
 #include <vtkBMPWriter.h>
 #include <vtkPNGWriter.h>
 #include <vtkJPEGWriter.h>
 #include <vtkTIFFWriter.h>
 #include <vtkTransform.h>
-#include <vtkVolumeProperty.h>
+
+// TODO: VOLUME: check all places using GetModality(0)->GetTransfer() !
 
 #include <QFile>
 #include <QFileDialog>
@@ -76,7 +91,9 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	isMagicLensEnabled(false),
 	ioThread(0),
 	reInitializeRenderWindows(true),
-	m_logger(new MdiChildLogger(this))
+	m_logger(new MdiChildLogger(this)),
+	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
+	m_initVolumeRenderers(false)
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);
@@ -108,9 +125,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 
 	isUntitled = true;
 	visibility = MULTI;
-	tabsVisible = true;
-	linkviews = false;
-	interactorsEnabled = true;
 	xCoord = 0, yCoord = 0, zCoord = 0;
 	connectionState = cs_NONE;
 	for (int i = 0; i < 6; i++) roi[i] = 0;
@@ -119,9 +133,6 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	imageData->AllocateScalars(VTK_DOUBLE, 1);
 	polyData = vtkPolyData::New();
 
-	imageAccumulate = vtkImageAccumulate::New();
-	colorTransferFunction = vtkColorTransferFunction::New();
-	piecewiseFunction = vtkPiecewiseFunction::New();
 	axesTransform = vtkTransform::New();
 	slicerTransform = vtkTransform::New();
 
@@ -134,7 +145,19 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	connect(r->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), Raycaster, SLOT(mouseLeftButtonReleasedSlot()) );
 	Raycaster->setAxesTransform(axesTransform);
 
-	imgHistogram = 0;
+	m_dlgModalities = new dlg_modalities(r->GetRenderer(), Raycaster->GetRenderer(),
+		preferences.HistogramBins, histogramContainer);
+	connect(m_dlgModalities, SIGNAL(UpdateViews()), this, SLOT(updateViews()));
+	connect(m_dlgModalities, SIGNAL(PointSelected()), this, SIGNAL(pointSelected()));
+	connect(m_dlgModalities, SIGNAL(NoPointSelected()), this, SIGNAL(noPointSelected()));
+	connect(m_dlgModalities, SIGNAL(EndPointSelected()), this, SIGNAL(endPointSelected()));
+	connect(m_dlgModalities, SIGNAL(Active()), this, SIGNAL(active()));
+	connect(m_dlgModalities, SIGNAL(AutoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
+	QSharedPointer<iAModalityList> modList(new iAModalityList);
+	SetModalities(modList);
+	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
+	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
+
 	imgProperty = 0;
 	imgProfile = 0;
 	SetRenderWindows();
@@ -173,16 +196,10 @@ MdiChild::~MdiChild()
 {
 	cleanWorkingAlgorithms();
 	polyData->ReleaseData();
-	imageAccumulate->ReleaseDataFlagOn();
-	colorTransferFunction->RemoveAllPoints();
-	piecewiseFunction->RemoveAllPoints();
 	axesTransform->Delete();
 	slicerTransform->Delete();
 
 	polyData->Delete();
-	imageAccumulate->Delete();
-	colorTransferFunction->Delete();
-	piecewiseFunction->Delete();
 
 	delete slicerXZ;
 	delete slicerXY;
@@ -190,7 +207,6 @@ MdiChild::~MdiChild()
 	delete Raycaster; Raycaster = 0;
 
 	if(imgProperty)		delete imgProperty;
-	if(getHistogram())	delete getHistogram();
 	if(imgProfile)		delete imgProfile;
 }
 
@@ -241,11 +257,19 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
+	connect(getSlicerXY()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(getSlicerXZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(getSlicerYZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(getSlicerXY()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(getSlicerXZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(getSlicerYZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 
+	connect(m_dlgModalities, SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool providesProgress, bool usesDoneSignal )
 {
+	// TODO: make more specific for each filter! iAIO saving for example would not require an update to the render windows!!!
 	connect(thread, SIGNAL( startUpdate(int) ), this, SLOT( updateRenderWindows(int) ));
 	if (usesDoneSignal)
 	{
@@ -267,7 +291,7 @@ void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool prov
 
 void MdiChild::SetRenderWindows()
 {
-	r->vtkWidgetRC->SetRenderWindow(Raycaster->GetRenderWindow());
+	r->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
 }
 
 void MdiChild::updateRenderWindows(int channels)
@@ -298,40 +322,43 @@ void MdiChild::disableRenderWindows(int ch)
 void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
-	{
+	{	// TODO: VOLUME: determine whether to always show first volume in main slicer/renderers and adapt accordingly!
+		//int modalityIdx = m_dlgModalities->GetSelected();
 		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 		{
-			calculateHistogram();
-			getHistogram()->initialize( imageAccumulate, imageData->GetScalarRange(), true );
+			int modalityIdx = 0;
+			QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
+	
+			// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
+			getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
 			getHistogram()->updateTrf();
 			getHistogram()->redraw();
 		}
-		
 		Raycaster->enableInteractor();
 
 		slicerXZ->enableInteractor();
-		slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
+		slicerXZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
 
 		slicerXY->enableInteractor();
-		slicerXY->reInitialize(imageData, slicerTransform, colorTransferFunction);
+		slicerXY->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
 
 		slicerYZ->enableInteractor();
-		slicerYZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
+		slicerYZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
 	}
 	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
 	// unless explicitly set otherwise)
 	reInitializeRenderWindows = true;
 
-	Raycaster->reInitialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
+	Raycaster->reInitialize(imageData, polyData);
 
 	if (!IsOnlyPolyDataLoaded())
 	{
-		if(this->updateSliceIndicator){
+		if(updateSliceIndicator){
 			updateSliceIndicators();
 			camIso();
 		}
 		else{
-			this->updateSliceIndicator = true;
+			updateSliceIndicator = true;
 		}
 
 		bool anyChannelEnabled = false;
@@ -354,16 +381,21 @@ void MdiChild::enableRenderWindows()
 				slicerXZ->reInitializeChannel(key, chData);
 				slicerXY->reInitializeChannel(key, chData);
 				slicerYZ->reInitializeChannel(key, chData);
+
+				/*
+				// TODO: VOLUME: check!
 				// if 3d enabled
+				// for 3d renderer, volumes are now enabled through modality explorer!
 				if (chData->Uses3D())
 				{
 					Raycaster->updateChannelImages();
 				}
+				*/
 			}
 		}
 		if (!anyChannelEnabled && imageData)
 		{
-			imgProperty->updateProperties(imageData, imageAccumulate, true);
+			imgProperty->updateProperties(imageData, GetModality(0)->GetTransfer()->GetAccumulate(), true);
 		}
 	}
 }
@@ -380,40 +412,41 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 		imageData->GetSpacing(spacing);
 
 //TODO: improve using iASlicer stuff
-	if (linkviews) {
+	if (slicerSettings.LinkViews) {
 		xCoord = x; yCoord = y; zCoord = z;
 		if (mode != 2) {
-			if (showPosition)
+			if (slicerSettings.SingleSlicer.ShowPosition) {
 				slicerXZ->setPlaneCenter(x*spacing[0], z*spacing[2], 1);
+			}
 			slicerXZ->setIndex(x,y,z);
 			sXZ->spinBoxXZ->setValue(y);
 		}
 		if (mode != 0) {
-			if (showPosition)
+			if (slicerSettings.SingleSlicer.ShowPosition)
 				slicerYZ->setPlaneCenter(y*spacing[1], z*spacing[2], 1);
 			slicerYZ->setIndex(x,y,z);
 			sYZ->spinBoxYZ->setValue(x);
 		}
 		if (mode != 1) {
-			if (showPosition)
+			if (slicerSettings.SingleSlicer.ShowPosition)
 				slicerXY->setPlaneCenter(x*spacing[0], y*spacing[1], 1);
 			slicerXY->setIndex(x,y,z);
 			sXY->spinBoxXY->setValue(z);
 		}
-		if (showRPosition) Raycaster->setCubeCenter(x, y, z);
+		if (renderSettings.ShowRPosition)
+			Raycaster->setCubeCenter(x, y, z);
 	}
 }
 
 void MdiChild::newFile()
 {
-	widgetsVisible(false);
+	hideVolumeWidgets();
 	addMsg(tr("%1  New File.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 void MdiChild::showPoly()
 {
-	Raycaster->GetVolume()->SetVisibility(false);
-	widgetsVisible(false);
+	hideVolumeWidgets();
 	visibilityBlock(QList<QSpacerItem*>(),
 		QList<QWidget*>() << r->stackedWidgetRC << r->pushSaveRC << r->pushMaxRC << r->pushStopRC, true);
 
@@ -435,20 +468,14 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 
 	if (image != NULL){
 		imageData->ReleaseData();
-		imageAccumulate->SetReleaseDataFlag(true);
 		imageData->DeepCopy(image);
-		if ( !calculateHistogram() ) return false;
 	}
 
-	initView( );
+	initView( title );
 	setWindowTitle( title );
-
-	setupRaycaster( showVolume, showSlicers, showHelpers, showRPosition,
-		linearInterpolation, shading, boundingBox, parallelProjection,
-		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
-		specularLighting, specularPower, backgroundTop, backgroundBottom,
-		renderMode, false);
-	setupSlicers( linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true );
+	Raycaster->ApplySettings(renderSettings);
+	ApplyVolumeSettings();
+	setupSlicers(slicerSettings, true );
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -478,8 +505,6 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	if (!setUp)
 	{
 		imageData->ReleaseData();
-		imageAccumulate->ReleaseDataFlagOn();
-
 		QString extension = fileInfo.suffix();
 		extension = extension.toUpper();
 		const mapQString2int * ext2id = &extensionToId;
@@ -505,6 +530,12 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	waitForPreviousIO();
 
 	ioThread = new iAIO(imageData, polyData, m_logger, this, isStack, volumeStack->GetVolumes(), volumeStack->GetFileNames());
+	if (!isStack) {
+		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+	}
+	else {
+		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
+	}
 	connectThreadSignalsToChildSlots(ioThread, false, true);
 	connect( ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ) );
 	
@@ -525,14 +556,29 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 
 void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData)
 {
-	setImageData(imgData);
-	setCurrentFile(filename);
+	imageData = imgData;
 	setupView(false);
 	enableRenderWindows();
 }
 
 
+void MdiChild::setImageData(vtkImageData * iData)
+{
+	imageData = iData;		// potential for double free!
+}
+
+
+vtkImageData* MdiChild::getImageData()
+{
+	return imageData;
+}
+
+
 bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
+	// TODO: VOLUME: Test!!! copy from currently selected instead of fixed 0 index?
+	vtkColorTransferFunction* colorTransferFunction = GetModality(0)->GetTransfer()->GetColorFunction();
+	vtkPiecewiseFunction* piecewiseFunction = GetModality(0)->GetTransfer()->GetOpacityFunction();
+	vtkImageAccumulate* imageAccumulate = GetModality(0)->GetTransfer()->GetAccumulate();
 	volumeStack->getColorTransferFunction(previousIndexOfVolume)->DeepCopy(colorTransferFunction);
 	volumeStack->getPiecewiseFunction(previousIndexOfVolume)->DeepCopy(piecewiseFunction);
 	previousIndexOfVolume = updateIndex;
@@ -552,15 +598,14 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	colorTransferFunction->DeepCopy(volumeStack->getColorTransferFunction(updateIndex));
 	piecewiseFunction->DeepCopy(volumeStack->getPiecewiseFunction(updateIndex));
 
+	// TODO: VOLUME: update all histograms?
 	getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
-
-	calculateHistogram();
 	getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
 	getHistogram()->updateTrf();
 	getHistogram()->redraw();
 	getHistogram()->drawHistogram();
 
-	Raycaster->reInitialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
+	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
 	slicerXY->reInitialize(imageData, slicerTransform, colorTransferFunction);
 	slicerYZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
@@ -596,17 +641,19 @@ bool MdiChild::setupStackView(bool active)
 		cTF->Delete(); pWF->Delete();
 	}
 
+	QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
 	if (numberOfVolumes > 0) {
-		colorTransferFunction->DeepCopy(volumeStack->getColorTransferFunction(0));
-		piecewiseFunction->DeepCopy(volumeStack->getPiecewiseFunction(0));
+		modTrans->GetColorFunction()->DeepCopy(volumeStack->getColorTransferFunction(0));
+		modTrans->GetOpacityFunction()->DeepCopy(volumeStack->getPiecewiseFunction(0));
 	}
+	
 
 	setupViewInternal(active);
 
-	Raycaster->reInitialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
-	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
-	slicerXY->reInitialize(imageData, slicerTransform, colorTransferFunction);
-	slicerYZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
+	Raycaster->reInitialize(imageData, polyData);
+	slicerXZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
+	slicerXY->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
+	slicerYZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
 	updateViews();
 
 	Raycaster->update();
@@ -617,24 +664,17 @@ bool MdiChild::setupStackView(bool active)
 
 void MdiChild::setupViewInternal(bool active)
 {
-	if (IsOnlyPolyDataLoaded())
-		showVolume = false;
-	else if (imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
-		calculateHistogram();//AMA assertion error on rendering otherwise
+	if (!active)
+		initView(curFile.isEmpty() ? "Untitled":"" );
 
-	if (!active) initView();
-
-	m_mainWnd->setCurrentFile(currentFile());
+	m_mainWnd->setCurrentFile(currentFile());	// TODO: VOLUME: should be done on the outside?
 
 	if ((imageData->GetExtent()[1] < 3) || (imageData->GetExtent()[3]) < 3 || (imageData->GetExtent()[5] < 3))
-		shading = false;
+		volumeSettings.Shading = false;
 
-	setupRaycaster(showVolume, showSlicers, showHelpers, showRPosition,
-		linearInterpolation, shading, boundingBox, parallelProjection,
-		imageData->GetSpacing()[0], imageData->GetSpacing()[0], ambientLighting, diffuseLighting,
-		specularLighting, specularPower, backgroundTop, backgroundBottom,
-		renderMode, false);//AMA 06.05.2010 was resetting results of initView when STL is opened
-	setupSlicers(linkviews, showIsolines, showPosition, numberOfIsolines, minIsovalue, maxIsovalue, imageActorUseInterpolation, snakeSlices, true);
+	volumeSettings.SampleDistance = imageData->GetSpacing()[0];
+	Raycaster->ApplySettings(renderSettings);
+	setupSlicers(slicerSettings, true);
 
 	if (imageData->GetExtent()[1] <= 1)
 		visibility &= (YZ | TAB);
@@ -657,6 +697,21 @@ void MdiChild::setupViewInternal(bool active)
 		r->stackedWidgetRC->setCurrentIndex(0);
 		r->channelLabelRC->setEnabled(false);
 	}
+
+	// only after everything in the window is set up
+	if (m_initVolumeRenderers)
+	{
+		m_initVolumeRenderers = false;
+		for (int i = 0; i<GetModalities()->size(); ++i)
+		{
+			m_dlgModalities->InitDisplay(GetModality(i));
+		}
+		ApplyVolumeSettings();
+
+		connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
+			m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
+	}
+
 }
 
 
@@ -823,9 +878,9 @@ bool MdiChild::setupSaveIO(QString const & f)
 		} else {
 			if ((QString::compare(pars.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
 				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0)){
-					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(),m_mainWnd->getPrefCompression()) ) return false;
+					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) ) return false;
 					setCurrentFile(f);
-					m_mainWnd->setCurrentFile(f);
+					m_mainWnd->setCurrentFile(f);	// TODO: VOLUME: do in setCurrentFile member method?
 					QString t; t = f;
 					t.truncate(t.lastIndexOf('/'));
 					m_mainWnd->setPath(t);
@@ -1233,7 +1288,7 @@ void MdiChild::setSliceXY(int s)
 			}
 		}
 		slicerXY->setSliceNumber(s);
-		if (getShowSlicers())
+		if (renderSettings.ShowSlicers)
 		{
 			Raycaster->getPlane3()->SetNormal(0.0, 0.0, 1.0);
 			Raycaster->getPlane3()->SetOrigin(0.0,0.0,s*imageData->GetSpacing()[2]);
@@ -1281,7 +1336,7 @@ void MdiChild::setSliceYZ(int s)
 			}
 		}
 		slicerYZ->setSliceNumber(s);
-		if (getShowSlicers())
+		if (renderSettings.ShowSlicers)
 		{
 			Raycaster->getPlane1()->SetOrigin(s*imageData->GetSpacing()[0],0,0);
 			Raycaster->update();
@@ -1328,7 +1383,7 @@ void MdiChild::setSliceXZ(int s)
 			}
 		}
 		slicerXZ->setSliceNumber(s);
-		if (getShowSlicers())
+		if (renderSettings.ShowSlicers)
 		{
 			Raycaster->getPlane2()->SetOrigin(0,s*imageData->GetSpacing()[1],0);
 			Raycaster->update();
@@ -1367,7 +1422,12 @@ void MdiChild::setRotationXZ(double a)
 
 void MdiChild::link( bool l)
 {
-	linkviews = l;
+	slicerSettings.LinkViews = l;
+}
+
+void MdiChild::linkM(bool lm)
+{
+	slicerSettings.LinkMDIs = lm;
 }
 
 void MdiChild::enableInteraction( bool b)
@@ -1384,33 +1444,31 @@ void MdiChild::enableInteraction( bool b)
 
 }
 
-bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool r, bool init)
+bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
 {
-	compression = c;
-	filterHistogram = m;
-	resultInNewWindow = r;
-	histogramBins = h;
-	statExt = e;
-	magicLensSize = mls;
-	magicLensFrameWidth = mlfw;
-
+	preferences = prefs;
 	if (!init && getHistogram())
 	{
-		calculateHistogram();
-		getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
+		// apply histogram bin number to all modalities
+		for (int i = 0; i < GetModalities()->size(); ++i)
+		{
+			QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
+			modTrans->SetHistogramBins(preferences.HistogramBins);
+		}
 		getHistogram()->redraw();
 	}
-	slicerXY->SetMagicLensFrameWidth(magicLensFrameWidth);
-	slicerXZ->SetMagicLensFrameWidth(magicLensFrameWidth);
-	slicerYZ->SetMagicLensFrameWidth(magicLensFrameWidth);
-	slicerXY->SetMagicLensSize(magicLensSize);
-	slicerXZ->SetMagicLensSize(magicLensSize);
-	slicerYZ->SetMagicLensSize(magicLensSize);
+	slicerXY->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerXZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerYZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
+	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
+	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
+	r->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
 
-	slicerXY->setStatisticalExtent(statExt);
-	slicerYZ->setStatisticalExtent(statExt);
-	slicerXZ->setStatisticalExtent(statExt);
-	Raycaster->setStatExt(statExt);
+	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
+	slicerYZ->setStatisticalExtent(preferences.StatisticalExtent);
+	slicerXZ->setStatisticalExtent(preferences.StatisticalExtent);
+	Raycaster->setStatExt(preferences.StatisticalExtent);
 
 	if (isMagicLensToggled())
 	{
@@ -1422,106 +1480,46 @@ bool MdiChild::editPrefs( int h, int mls, int mlfw, int e, bool c, bool m, bool 
 	return true;
 }
 
-void MdiChild::setupRaycaster( bool sv, bool ss, bool sh, bool spo, bool li, bool s, bool bb, bool pp,
-	double isd, double sd, double al, double dl, double sl, double sp, QString backt, QString backb, int mode, bool init )
+void MdiChild::setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {
-	showVolume = sv;
-	showSlicers = ss;
-	showHelpers = sh;
-	showRPosition = spo;
-	linearInterpolation = li;
-	shading = s;
-	boundingBox = bb;
-	parallelProjection = pp;
-	imageSampleDistance = isd;
-	sampleDistance = sd;
-	ambientLighting = al;
-	diffuseLighting = dl;
-	specularLighting = sl;
-	specularPower = sp;
-	backgroundTop = backt;
-	backgroundBottom = backb;
-	renderMode = mode;
-
-	if (!init)
-		applyCurrentSettingsToRaycaster(Raycaster);
+	renderSettings = rs;
+	volumeSettings = vs;
 }
 
-
-void MdiChild::applyCurrentSettingsToRaycaster(iARenderer * raycaster)
+void MdiChild::ApplyRenderSettings(iARenderer* raycaster)
 {
-	raycaster->GetVolume()->SetVisibility(showVolume);
-	//setup slicers
-	if (snakeSlicer) {
-		//setSliceXY(sXY->spinBoxXY->value());
-		raycaster->showSlicers(false, false, showSlicers);
-	}
-	else
-	{
-		raycaster->showSlicers(showSlicers);
-	}
-	// setup raycaster
-	raycaster->setImageSampleDistance(imageSampleDistance);
-	raycaster->setSampleDistance(sampleDistance);
+	raycaster->ApplySettings(renderSettings);
+}
 
-	// setup properties, visibility, background
-	raycaster->GetVolumeProperty()->SetAmbient(ambientLighting);
-	raycaster->GetVolumeProperty()->SetDiffuse(diffuseLighting);
-	raycaster->GetVolumeProperty()->SetSpecular(specularLighting);
-	raycaster->GetVolumeProperty()->SetSpecularPower(specularPower);
-	raycaster->GetVolumeProperty()->SetInterpolationType(linearInterpolation);
-	raycaster->GetVolumeProperty()->SetShade(shading);
-
-	raycaster->GetOutlineActor()->SetVisibility(boundingBox);
-	raycaster->GetRenderer()->GetActiveCamera()->SetParallelProjection(parallelProjection);
-
-	backgroundTop = backgroundTop.trimmed();
-	backgroundBottom = backgroundBottom.trimmed();
-	QColor bgTop(backgroundTop);
-	QColor bgBottom(backgroundBottom);
-	if (!bgTop.isValid()) {
-		bgTop.setRgbF(0.5, 0.666666666666666667, 1.0);
-	}
-	if (!bgBottom.isValid())  {
-		bgBottom.setRgbF(1.0, 1.0, 1.0);
-	}
-	raycaster->GetRenderer()->SetBackground(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
-	raycaster->GetRenderer()->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
-	raycaster->showHelpers(showHelpers);
-	raycaster->showRPosition(showRPosition);
-	
-	raycaster->SetRenderMode(renderMode);
+void MdiChild::ApplyVolumeSettings()
+{
+	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
+	m_dlgModalities->ChangeRenderSettings(volumeSettings);
 }
 
 int MdiChild::GetRenderMode()
 {
-	return renderMode;
+	return volumeSettings.Mode;
 }
 
-void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss, bool init)
+void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 {
-	linkviews = lv;
-	showIsolines = sil;
-	showPosition = sp;
-	numberOfIsolines = no;
-	minIsovalue = min;
-	maxIsovalue = max;
-	imageActorUseInterpolation = li;
-	snakeSlices = ss;
+	slicerSettings = ss;
 
 	if (snakeSlicer)
 	{
 		int prevMax = sXY->spinBoxXY->maximum();
 		int prevValue = sXY->spinBoxXY->value();
-		sXY->spinBoxXY->setRange(0, snakeSlices-1);
-		sXY->spinBoxXY->setValue((double)prevValue/prevMax*(snakeSlices-1));
+		sXY->spinBoxXY->setRange(0, ss.SnakeSlices-1);
+		sXY->spinBoxXY->setValue((double)prevValue/prevMax*(ss.SnakeSlices-1));
 	}
 
-	linkViews(lv);
+	linkViews(ss.LinkViews);
+	linkMDIs(ss.LinkMDIs);
 
-	slicerYZ->setup( sil, sp, no, min, max, li);
-	slicerXY->setup( sil, sp, no, min, max, li);
-	slicerXZ->setup( sil, sp, no, min, max, li);
+	slicerYZ->setup(ss.SingleSlicer);
+	slicerXY->setup(ss.SingleSlicer);
+	slicerXZ->setup(ss.SingleSlicer);
 
 	if (init)
 	{
@@ -1584,36 +1582,40 @@ void MdiChild::setupSlicers( bool lv, bool sil, bool sp, int no, double min, dou
 }
 
 
-bool MdiChild::editRendererSettings( bool rsShowVolume, bool rsShowSlicers,  bool rsShowHelpers, bool rsShowRPosition,
-	bool rsLinearInterpolation, bool rsShading, bool rsBoundingBox, bool rsParallelProjection,
-	double rsImageSampleDistance, double rsSampleDistance, double rsAmbientLightning,
-	double rsDiffuseLightning, double rsSpecularLightning, double rsSpecularPower,
-	QString rsBackgroundTop, QString rsBackgroundBottom, int renderMode)
+bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {
-	setupRaycaster( rsShowVolume, rsShowSlicers, rsShowHelpers, rsShowRPosition,
-		rsLinearInterpolation, rsShading, rsBoundingBox, rsParallelProjection,
-		rsImageSampleDistance, rsSampleDistance, rsAmbientLightning, rsDiffuseLightning,
-		rsSpecularLightning, rsSpecularPower, rsBackgroundTop, rsBackgroundBottom,
-		renderMode, false);
-
+	setRenderSettings(rs, vs);
+	ApplyRenderSettings(Raycaster);
+	ApplyVolumeSettings();
 	r->vtkWidgetRC->show();
-
 	emit renderSettingsChanged();
-
 	return true;
 }
 
-#include "iARenderSettings.h"
-
-RenderSettings MdiChild::GetRenderSettings()
+iARenderSettings const & MdiChild::GetRenderSettings() const
 {
-	return RenderSettings(linearInterpolation, shading, ambientLighting, diffuseLighting, specularLighting, specularPower, backgroundTop);
+	return renderSettings;
+}
+
+iAVolumeSettings const &  MdiChild::GetVolumeSettings() const
+{
+	return volumeSettings;
+}
+
+iASlicerSettings const & MdiChild::GetSlicerSettings() const
+{
+	return slicerSettings;
 }
 
 
-bool MdiChild::editSlicerSettings( bool lv, bool sil, bool sp, int no, double min, double max, bool li, int ss)
+iAPreferences const & MdiChild::GetPreferences() const
 {
-	setupSlicers( lv, sil, sp, no, min, max, li, ss, false);
+	return preferences;
+}
+
+bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
+{
+	setupSlicers(slicerSettings, false);
 
 	slicerXY->show();
 	slicerYZ->show();
@@ -1686,17 +1688,7 @@ void MdiChild::saveMovie(iASlicer * slicer)
 
 void MdiChild::saveMovie(iARenderer& raycaster)
 {
-	QString movie_file_types;
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	movie_file_types += "MPEG2 (*.mpeg);;";
-#endif
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	// If VTK was built without video support, display error message and quit.
 	if (movie_file_types.isEmpty())
@@ -1745,7 +1737,11 @@ void MdiChild::changeColor()
 
 void MdiChild::autoUpdate(bool toggled)
 {
-	getHistogram()->autoUpdate(toggled);
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
+		modTrans->GetHistogram()->autoUpdate(toggled);
+	}
 }
 
 
@@ -1758,6 +1754,12 @@ void MdiChild::resetView()
 void MdiChild::resetTrf()
 {
 	getHistogram()->resetTrf();
+	addMsg(tr("Resetting Transfer Functions."));
+	iAHistogramWidget const *  hist = getHistogram();
+	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
+		.arg(hist->GetData()->GetDataRange(0)));
+	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
+		.arg(hist->GetData()->GetDataRange(1)));
 }
 
 
@@ -1787,7 +1789,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 	}
 	else
 	{
-		showSlicers = false;
+		renderSettings.ShowSlicers = false;
 
 		sXY->spinBoxXY->setValue(imageData->GetDimensions()[2]>>1);
 		slicerXY->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);
@@ -1810,8 +1812,11 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		slicerYZ->GetRenderer()->ResetCamera();
 		slicerYZ->GetRenderer()->Render();
 
-		if (showSlicers)
+		/*
+		// TODO: VOLUME: VolumeManager
+		if (renderSettings.ShowSlicers)
 			Raycaster->showSlicers(true);
+		*/
 
 		slicerXY->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
 		slicerXZ->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
@@ -1840,6 +1845,27 @@ bool MdiChild::isSliceProfileToggled(void) const
 void MdiChild::toggleMagicLens( bool isEnabled )
 {
 	isMagicLensEnabled = isEnabled;
+
+	if (isEnabled)
+	{
+		iAChannelVisualizationData * chData = GetChannelData(ch_ModalityLens);
+		if (!chData)
+		{
+			chData = new iAChannelVisualizationData();
+			InsertChannelData(ch_ModalityLens, chData);
+		}
+		m_currentModality = m_dlgModalities->GetSelected();
+		vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetImage();
+		chData->SetImage(img);
+		chData->SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
+		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
+		chData->SetOpacity(0.5);
+		InitChannelRenderer(ch_ModalityLens, false, false);
+		SetMagicLensInput(ch_ModalityLens, true, GetModality(m_currentModality)->GetName().toStdString());
+	}
+	SetMagicLensEnabled(isEnabled);
+	updateSlicers();
+
 	emit magicLensToggled(isMagicLensEnabled);
 }
 
@@ -1960,6 +1986,7 @@ void MdiChild::getSnakeNormal(int index, double point[3], double normal[3])
 	double spacing[3];
 	imageData->GetSpacing(spacing);
 
+	int snakeSlices = slicerSettings.SnakeSlices;
 	if (index == (snakeSlices-1))
 	{
 		i1--;
@@ -1991,44 +2018,45 @@ void MdiChild::getSnakeNormal(int index, double point[3], double normal[3])
 	}
 }
 
-bool MdiChild::initTransferfunctions( )
+bool MdiChild::initView( QString const & title )
 {
-	piecewiseFunction->RemoveAllPoints();
-	if ( imageData->GetNumberOfScalarComponents() == 1 )	
-		piecewiseFunction->AddPoint ( imageData->GetScalarRange()[0], 0.0 );
-	else //Set range of rgb, rgba or vector pixel type images to fully opaque
-		piecewiseFunction->AddPoint( imageData->GetScalarRange()[0], 1.0 ); 
-	piecewiseFunction->AddPoint ( imageData->GetScalarRange()[1], 1.0 );
-
-	colorTransferFunction->RemoveAllPoints();
-	colorTransferFunction->AddRGBPoint ( imageData->GetScalarRange()[0], 0.0, 0.0, 0.0 );
-	colorTransferFunction->AddRGBPoint ( imageData->GetScalarRange()[1], 1.0, 1.0, 1.0 );
-	colorTransferFunction->Build();
-
-	addMsg(tr("%1  Initializing transfer functions.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	addMsg(tr("  Adding transfer functions point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-		.arg(imageData->GetScalarRange()[0]));
-	addMsg(tr("  Adding transfer functions point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-		.arg(imageData->GetScalarRange()[1]));
-
-	return true;
-}
-
-bool MdiChild::initView( )
-{
-	colorTransferFunction->RemoveAllPoints();
-	piecewiseFunction->RemoveAllPoints();
-
-	if ( !initTransferfunctions() ) return false;
-
-	slicerXZ->initializeData(imageData, slicerTransform, colorTransferFunction);
-	slicerXY->initializeData(imageData, slicerTransform, colorTransferFunction);
-	slicerYZ->initializeData(imageData, slicerTransform, colorTransferFunction);
 	if (!raycasterInitialized)
 	{
-		Raycaster->initialize(imageData, polyData, piecewiseFunction, colorTransferFunction);
+		Raycaster->initialize(imageData, polyData);
+		
+		// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
+		vtkCamera* cam = Raycaster->getCamera();
+		GetModalities()->ApplyCameraSettings(cam);
+
 		raycasterInitialized = true;
 	}
+	if (GetModalities()->size() == 0)
+	{
+		// TODO: VOLUME: resolve duplicity between here (called on loadFile) and adding modalities (e.g. via LoadProject)
+		QString name;
+		if (!curFile.isEmpty())
+		{
+			QFileInfo i(curFile);
+			name = i.completeBaseName();
+		}
+		else
+		{
+			name = title;
+		}
+
+		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
+		// before, which adds the renderers which this call will use
+		QSharedPointer<iAModality> mod(new iAModality(name,
+			currentFile(), imageData, iAModality::MainRenderer));
+		GetModalities()->Add(mod);
+		m_dlgModalities->AddListItemAndTransfer(mod);
+		m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
+		m_initVolumeRenderers = true;
+	}
+	slicerXZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
+	slicerXY->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
+	slicerYZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
+
 	r->stackedWidgetRC->setCurrentIndex(0);
 
 	updateSliceIndicators();
@@ -2040,9 +2068,8 @@ bool MdiChild::initView( )
 		showPoly();
 	else if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 	{
-		//Scalar field is loaded
-		this->addHistogram();
-		//this->addVolumePlayer();
+		tabifyDockWidget(logs, histogramContainer);
+		this->addImageProperty();
 		this->addProfile();
 	}
 
@@ -2062,66 +2089,15 @@ void MdiChild::resetLayout()
 	restoreState(m_initialLayoutState);
 }
 
-bool MdiChild::calculateHistogram( )
+void MdiChild::HideHistogram()
 {
-	addMsg(tr("%1  Accumulating Histogram.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-
-	imageAccumulate->ReleaseDataFlagOn();
-	imageAccumulate->SetComponentExtent(0, m_mainWnd->getPrefHistoBinCnt()-1, 0, 0, 0, 0); // number of bars
-	imageAccumulate->SetComponentSpacing((imageData->GetScalarRange()[1] - imageData->GetScalarRange()[0])/m_mainWnd->getPrefHistoBinCnt(), 0.0, 0.0);
-	imageAccumulate->SetComponentOrigin(imageData->GetScalarRange()[0], 0.0, 0.0);
-	imageAccumulate->SetInputData(imageData);
-	imageAccumulate->Update();
-
-	if (m_mainWnd->getPrefMedianFilterFistogram()) medianFilterHistogram(imageAccumulate);
-
-	addMsg(tr("  Scalar Component %1: VoxelCount: %2  Min: %3  Max: %4  Mean: %5  StdDev: %6 ")
-		.arg(0)
-		.arg(imageAccumulate->GetVoxelCount())
-		.arg(imageAccumulate->GetMin()[0])
-		.arg(imageAccumulate->GetMax()[0])
-		.arg(imageAccumulate->GetMean()[0])
-		.arg(imageAccumulate->GetStandardDeviation()[0])
-		);
-
-	//TODO: move away, to its separate place
-	//////////////////////////////////////////////////////////////////////////
-	double start[3], end[3];
-	int dim[3];
-	imageData->GetOrigin(start);
-	imageData->GetDimensions(dim);
-	for (int i=0; i<3; i++)
-		end[i] = start[i] + dim[i];
-	profileProbe = QSharedPointer<iAProfileProbe>( new iAProfileProbe(start, end, imageData) );
-	if(imgProfile!=NULL)
-		imgProfile->profileWidget->initialize(profileProbe->profileData, profileProbe->GetRayLength());
-	//////////////////////////////////////////////////////////////////////////
-	return true;
-}
-
-bool MdiChild::medianFilterHistogram( vtkImageAccumulate* imgA )
-{
-
-	return true;
-}
-
-bool MdiChild::addHistogram( )
-{
-	imgHistogram = new dlg_histogram(this, imageData, imageAccumulate, piecewiseFunction, colorTransferFunction);
-
-	connect(getHistogram(), SIGNAL(updateViews()), this, SLOT(updateViews()));
-	connect(getHistogram(), SIGNAL(pointSelected()), this, SIGNAL(pointSelected()));
-	connect(getHistogram(), SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
-	connect(getHistogram(), SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
-	connect(getHistogram(), SIGNAL(active()), this, SIGNAL(active()));
-	connect(getHistogram(), SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
-	tabifyDockWidget(logs, imgHistogram);
-	return true;
+	histogramContainer->hide();
 }
 
 bool MdiChild::addImageProperty()
 {
-	imgProperty = new dlg_imageproperty(this, imageData, imageAccumulate, fileInfo.canonicalFilePath());
+	imgProperty = new dlg_imageproperty(this, imageData,
+		GetModality(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath());
 	tabifyDockWidget(logs, imgProperty);
 
 	return true;
@@ -2129,7 +2105,8 @@ bool MdiChild::addImageProperty()
 
 bool MdiChild::addVolumePlayer(iAVolumeStack* volumeStack)
 {
-	volumePlayer = new dlg_volumePlayer(this, imageData, imageAccumulate, fileInfo.canonicalFilePath(), volumeStack);
+	volumePlayer = new dlg_volumePlayer(this, imageData,
+		GetModality(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath(), volumeStack);
 	tabifyDockWidget(logs, volumePlayer);
 	for (int id=0; id<volumeStack->getNumberOfVolumes(); id++) {
 		CheckedList.append(0);
@@ -2264,18 +2241,13 @@ void MdiChild::changeVisibility(unsigned char mode)
 	sXZ->setVisible(xz);
 
 	logs->setVisible(tab);
-	if(showVolume)
-		imgHistogram->setVisible(tab);
+	histogramContainer->setVisible(tab);	// TODO: VOLUME: determine whether any volume data is loaded here
 }
 
-void MdiChild::widgetsVisible(bool isVisible)
+void MdiChild::hideVolumeWidgets()
 {
-	isVisible ? tabsVisible = true :  tabsVisible = false;
-
 	visibilityBlock(QList<QSpacerItem*>(),
-		QList<QWidget*>() << sXY << sXZ << sYZ << r, isVisible);
-
-	Raycaster->GetVolume()->SetVisibility(true);
+		QList<QWidget*>() << sXY << sXZ << sYZ << r, false);
 	this->update();
 }
 
@@ -2317,10 +2289,18 @@ void MdiChild::InitChannelRenderer(iAChannelID id, bool use3D, bool enableChanne
 	slicerXY->initializeChannel(id, data);
 	slicerXZ->initializeChannel(id, data);
 	slicerYZ->initializeChannel(id, data);
+	/*
+	// TODO: VOLUME: rewrite using separate volume
 	if (use3D)
 	{
 		data->Set3D(true);
 		Raycaster->addChannel(data);
+	}
+	*/
+	if (use3D)
+	{
+		data->Set3D(true);
+		m_dlgModalities->AddModality(data->GetImage(), QString("Channel %1").arg(id));
 	}
 	SetChannelRenderingEnabled(id, enableChannel);
 }
@@ -2398,10 +2378,13 @@ void MdiChild::SetChannelRenderingEnabled(iAChannelID id, bool enabled)
 	getSlicerDataXY()->enableChannel(id, enabled, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	getSlicerDataXZ()->enableChannel(id, enabled, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
 	getSlicerDataYZ()->enableChannel(id, enabled, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
+	/*
+	// TODO: VOLUME: rewrite using volume manager:
 	if (data->Uses3D())
 	{
 		getRenderer()->updateChannelImages();
 	}
+	*/
 	updateViews();
 }
 
@@ -2439,7 +2422,15 @@ void MdiChild::resizeEvent( QResizeEvent * event )
 bool MdiChild::addProfile()
 {
 	delete imgProfile;
+	double start[3], end[3];
+	int dim[3];
+	imageData->GetOrigin(start);
+	imageData->GetDimensions(dim);
+	for (int i = 0; i<3; i++)
+		end[i] = start[i] + dim[i];
+	profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(start, end, imageData));
 	imgProfile = new dlg_profile(this, profileProbe->profileData, profileProbe->GetRayLength());
+	
 	tabifyDockWidget(logs, imgProfile);
 	connect(imgProfile->profileMode, SIGNAL(toggled(bool)), this, SLOT(toggleArbitraryProfile(bool)));
 	return true;
@@ -2460,6 +2451,7 @@ void MdiChild::UpdateProbe( int ptIndex, double * newPos )
 	imgProfile->profileWidget->redraw();
 }
 
+// TODO: move out of here ---------->
 bool MdiChild::LoadCsvFile(vtkTable *table, FilterID fid)
 {
 	QString f = QFileDialog::getOpenFileName(this, tr("Open CSV File"), path, tr("CSV files (*.csv *.CSV)"));
@@ -2492,6 +2484,7 @@ bool MdiChild::LoadCsvFile( FilterID fid, const QString &fileName )
 {
 	return LoadCsvFile( mdCsvTable, fid, fileName );
 }
+// <---------- end
 
 int MdiChild::getSliceXY()
 {
@@ -2567,13 +2560,6 @@ void MdiChild::ioFinished()
 	ioThread = 0;
 }
 
-iAHistogramWidget * MdiChild::getHistogram( dlg_histogram * h )
-{
-	if(!h)
-		return 0;
-	return h->histogram;
-}
-
 iASlicerData* MdiChild::getSlicerDataXZ()
 {
 	return slicerXZ->GetSlicerData();
@@ -2624,11 +2610,6 @@ dlg_imageproperty * MdiChild::getImagePropertyDlg()
 	return imgProperty;
 }
 
-dlg_histogram    * MdiChild::getHistogramDlg()
-{
-	return imgHistogram;
-}
-
 vtkTransform* MdiChild::getSlicerTransform()
 {
 	return slicerTransform;
@@ -2653,7 +2634,7 @@ void MdiChild::check2DMode()
 	}
 }
 
-void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
+void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice, std::string const & caption)
 {
 	slicerXY->SetMagicLensInput(id);
 	slicerXZ->SetMagicLensInput(id);
@@ -2665,6 +2646,7 @@ void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
 		slicerXZ->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
 		slicerXY->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	}
+	SetMagicLensCaption(caption);
 }
 
 
@@ -2676,7 +2658,7 @@ void MdiChild::SetMagicLensEnabled(bool isOn)
 }
 
 
-void MdiChild::SetMagicLensCaption(std::string caption)
+void MdiChild::SetMagicLensCaption(std::string const & caption)
 {
 	slicerXZ->SetMagicLensCaption(caption);
 	slicerYZ->SetMagicLensCaption(caption);
@@ -2690,7 +2672,7 @@ void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgDa
 	{
 		return;
 	}
-	chData->SetActiveImage( imgData );
+	chData->SetImage( imgData );
 	chData->SetColorTF( ctf );
 	chData->SetOpacityTF( otf );
 	slicerXZ->reInitializeChannel( id, chData );
@@ -2706,8 +2688,7 @@ void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> img
 		return;
 	}
 	reInitChannel(id, imgData, ctf, otf);
-	SetMagicLensInput( id, true);
-	SetMagicLensCaption( caption );
+	SetMagicLensInput( id, true, caption);
 	updateSlicers();
 }
 
@@ -2720,7 +2701,13 @@ std::vector<dlg_function*> & MdiChild::getFunctions()
 
 iAHistogramWidget * MdiChild::getHistogram()
 {
-	return getHistogram( imgHistogram );
+	return m_dlgModalities->GetHistogram();
+}
+
+
+vtkImageAccumulate * MdiChild::getImageAccumulate()
+{
+	return GetModality(m_dlgModalities->GetSelected())->GetTransfer()->GetAccumulate();
 }
 
 void MdiChild::redrawHistogram()
@@ -2760,4 +2747,167 @@ bool MdiChild::IsOnlyPolyDataLoaded()
 {
 	return QString::compare(getFileInfo().suffix(), "STL", Qt::CaseInsensitive) == 0 ||
 		QString::compare(getFileInfo().suffix(), "FEM", Qt::CaseInsensitive) == 0 && !(imageData->GetExtent()[1] > 0);
+}
+
+
+void MdiChild::ChangeModality(int chg)
+{
+	SetCurrentModality(
+		(GetCurrentModality() + chg + GetModalities()->size())
+		% (GetModalities()->size())
+	);
+	int curModIdx = GetCurrentModality();
+	if (curModIdx < 0 || curModIdx >= GetModalities()->size())
+	{
+		DEBUG_LOG("Invalid modality index!");
+		return;
+	}
+	ChangeImage(GetModalities()->Get(curModIdx)->GetImage(),
+		GetModalities()->Get(curModIdx)->GetName().toStdString());
+}
+
+void MdiChild::ChangeMagicLensOpacity(int chg)
+{
+	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
+	if (!sliceWidget)
+	{
+		DEBUG_LOG("Invalid slice widget sender!");
+		return;
+	}
+	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+}
+
+
+int MdiChild::GetCurrentModality() const
+{
+	return m_currentModality;
+}
+
+
+void MdiChild::SetCurrentModality(int modality)
+{
+	m_currentModality = modality;
+}
+
+
+void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
+{
+	int selected = m_dlgModalities->GetSelected();
+	if (selected != -1)
+	{
+		m_currentModality = selected;
+		ChangeImage(img, GetModality(selected)->GetName().toStdString());
+		/*
+		// change slicer image as well?
+		slicerXY->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
+		slicerXZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
+		slicerYZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
+		updateSlicers();
+		*/
+	}
+}
+
+void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption)
+{
+	if (!isMagicLensToggled())
+	{
+		return;
+	}
+	reInitMagicLens(ch_ModalityLens, img,
+		m_dlgModalities->GetCTF(m_currentModality),
+		m_dlgModalities->GetOTF(m_currentModality), caption);
+}
+
+void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
+{
+	bool noDataLoaded = GetModalities()->size() == 0;
+	return m_dlgModalities->SetModalities(modList);
+
+	if (noDataLoaded && GetModalities()->size() > 0)
+	{
+		InitDisplay();
+	}
+}
+
+
+dlg_modalities* MdiChild::GetModalitiesDlg()
+{
+	return m_dlgModalities;
+}
+
+QSharedPointer<iAModalityList> MdiChild::GetModalities()
+{
+	return m_dlgModalities->GetModalities();
+}
+
+QSharedPointer<iAModality> MdiChild::GetModality(int idx)
+{
+	return GetModalities()->Get(idx);
+}
+
+void MdiChild::InitDisplay()
+{
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		m_dlgModalities->AddListItemAndTransfer(GetModality(i));
+	}
+	// TODO: VOLUME: remove indirect dependency from mdichild -> getHistogram to modalities dlg!
+	m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
+	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
+	m_initVolumeRenderers = true;
+	setImageData(
+		GetModality(0)->GetFileName(),
+		GetModality(0)->GetImage()
+	);
+}
+
+void MdiChild::LoadProject()
+{
+	m_dlgModalities->Load();
+	setCurrentFile(GetModalities()->GetFileName());
+	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
+	if (GetModalities()->size() > 0)
+	{
+		InitDisplay();
+	}
+}
+
+// TODO: VOLUME: remove duplication with previous function!
+void MdiChild::LoadProject(QString const & fileName)
+{
+	// workaround for the crash when loading project from recent files.
+	// apparently some work needs to be done between creating the mdi child
+	// (done in Mainwindow::LoadProject) and setting up the dataset
+	// Could probably be omitted if the data loading in dlg_modalities was
+	// asynchronous!
+	QApplication::processEvents();
+
+	m_dlgModalities->Load(fileName);
+	setCurrentFile(GetModalities()->GetFileName());
+	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
+	if (GetModalities()->size() > 0)
+	{
+		InitDisplay();
+	}
+}
+
+void MdiChild::StoreProject()
+{
+	m_dlgModalities->Store();
+}
+
+MainWindow* MdiChild::getM_mainWnd()
+{
+	return m_mainWnd;
+}
+
+
+vtkPiecewiseFunction * MdiChild::getPiecewiseFunction()
+{
+	return GetModality(0)->GetTransfer()->GetOpacityFunction();
+}
+
+vtkColorTransferFunction * MdiChild::getColorTransferFunction()
+{
+	return GetModality(0)->GetTransfer()->GetColorFunction();
 }

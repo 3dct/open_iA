@@ -16,26 +16,28 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iASlicerData.h"
 
-#include "mdichild.h"
 #include "dlg_commoninput.h"
+#include "iAMagicLens.h"
 #include "iAMathUtility.h"
-#include "iASlicer.h"
+#include "iAMovieHelper.h"
+#include "iAObserverRedirect.h"
+#include "iAPieChartGlyph.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
-#include "iAObserverRedirect.h"
-#include "iAMagicLens.h"
-#include "iAPieChartGlyph.h"
+#include "iASlicer.h"
+#include "iASlicerSettings.h"
+#include "mdichild.h"
 
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkBMPWriter.h>
 #include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -82,18 +84,6 @@
 #include <string>
 #include <sstream>
 
-#ifdef VTK_USE_MPEG2_ENCODER
-#include <vtkMPEG2Writer.h>
-#endif
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-#include <vtkOggTheoraWriter.h>
-#endif
-
-#ifdef WIN32
-#include <vtkAVIWriter.h>
-#endif
-
 
 iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 0 */,
 		bool decorations/*=true*/) : QObject( parent ),
@@ -109,8 +99,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	scalarWidget(0),
 	textProperty(0),
 	logoWidget(0),
-	rep(0),
-	image1(0),
+	logoRep(0),
+	logoImage(0),
 	m_planeSrc(0),
 	m_planeMapper(0),
 	m_planeActor(0),
@@ -148,10 +138,11 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		scalarWidget = vtkScalarBarWidget::New();
 		textProperty = vtkTextProperty::New();
 		logoWidget = vtkLogoWidget::New();
-		rep = vtkLogoRepresentation::New();
-		image1 = vtkQImageToImageSource::New();
+		logoRep = vtkLogoRepresentation::New();
+		logoImage = vtkQImageToImageSource::New();
 
 		m_planeSrc = vtkPlaneSource::New();
+		m_planeSrc->SetCenter(0, 0, -10000); // to initially hide the green rectangle - use actor visibility instead maybe?
 		m_planeMapper = vtkPolyDataMapper::New();
 		m_planeActor = vtkActor::New();
 
@@ -201,9 +192,9 @@ iASlicerData::~iASlicerData(void)
 		textInfo->Delete();	
 
 		textProperty->Delete();
-		rep->Delete();
+		logoRep->Delete();
 		logoWidget->Delete();
-		image1->Delete();
+		logoImage->Delete();
 
 		m_planeSrc->Delete();
 		m_planeMapper->Delete();
@@ -250,8 +241,6 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
 
-	// LeftButtonReleaseEvent would be better than Press, but doesn't seem to get triggered (apparently a vtk bug)
-	interactor->AddObserver( vtkCommand::LeftButtonReleaseEvent, observerMouseMove );
 	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, observerMouseMove );
 	interactor->AddObserver( vtkCommand::MouseMoveEvent, observerMouseMove );
 	interactor->AddObserver( vtkCommand::KeyReleaseEvent, observerMouseMove );
@@ -280,15 +269,13 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		QImage img;
 		if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
 		else img.load(":/images/fhlogo.png");
-
-		// may be uncomment to test and remove logo for video
-		image1->SetQImage(&img);
-		image1->Update();
-		rep->SetImage(image1->GetOutput( ));
+		logoImage->SetQImage(&img);
+		logoImage->Update();
+		logoRep->SetImage(logoImage->GetOutput( ));
 		logoWidget->SetInteractor( interactor );
-		logoWidget->SetRepresentation( rep );
+		logoWidget->SetRepresentation(logoRep);
 		logoWidget->SetResizable(false);
-		logoWidget->SetSelectable(false);
+		logoWidget->SetSelectable(true);
 		logoWidget->On();
 
 		textProperty->SetBold(1);
@@ -498,21 +485,21 @@ void iASlicerData::updateROI()
 }
 
 
-void iASlicerData::setup( bool showIsoLines, bool showPos, int no, double min, double max, bool linearInterpolation)
+void iASlicerData::setup(iASingleSlicerSettings const & settings)
 {
-	imageActor->SetInterpolate(linearInterpolation);
+	imageActor->SetInterpolate(settings.LinearInterpolation);
 	QList<iAChannelID> idList = m_channels.keys();
 	for (QList<iAChannelID>::const_iterator it = idList.begin(); it != idList.end(); ++it)
 	{
-		m_channels[*it]->imageActor->SetInterpolate(linearInterpolation);
+		m_channels[*it]->imageActor->SetInterpolate(settings.LinearInterpolation);
 	}
 	if (m_magicLensExternal)
 	{
-		m_magicLensExternal->SetInterpolate(linearInterpolation);
+		m_magicLensExternal->SetInterpolate(settings.LinearInterpolation);
 	}
-	setContours(no,min,max);
-	showIsolines(showIsoLines);
-	showPosition(showPos);
+	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
+	showIsolines(settings.ShowIsoLines);
+	showPosition(settings.ShowPosition);
 }
 
 
@@ -588,17 +575,7 @@ void iASlicerData::showPosition(bool s)
 
 void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 { 
-	QString movie_file_types;
-
-#ifdef VTK_USE_MPEG2_ENCODER
-	movie_file_types += "MPEG2 (*.mpeg);;";
-#endif
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	movie_file_types += "OGG (*.ogv);;";
-#endif
-#ifdef WIN32
-	movie_file_types += "AVI (*.avi);;";
-#endif
+	QString movie_file_types = GetAvailableMovieFormats();
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if(!mdi_parent)
@@ -610,36 +587,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 		return;
 	}
 
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
-
-	// Try to create proper video encoder based on given file name.
-#ifdef VTK_USE_MPEG2_ENCODER
-	if (fileName.endsWith(".mpeg")){
-		vtkSmartPointer<vtkMPEG2Writer> mpegwriter;
-		mpegwriter = vtkSmartPointer<vtkMPEG2Writer>::New();
-		movieWriter = mpegwriter;
-	}
-#endif
-
-#ifdef VTK_USE_OGGTHEORA_ENCODER
-	if (fileName.endsWith(".ogv")) {
-		vtkSmartPointer<vtkOggTheoraWriter> oggwriter;
-		oggwriter = vtkSmartPointer<vtkOggTheoraWriter>::New();
-		oggwriter->SetQuality(qual);
-		movieWriter = oggwriter;
-	}
-#endif
-
-#ifdef WIN32
-	vtkSmartPointer<vtkAVIWriter> aviwriter;
-	if (fileName.endsWith(".avi")){
-		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
-		aviwriter->SetCompressorFourCC("XVID");
-		aviwriter->PromptCompressionOptionsOn();
-		aviwriter->SetQuality(qual);
-		movieWriter = aviwriter;
-	}
-#endif
+	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
 
 	if (movieWriter.GetPointer() == NULL)
 		return;
@@ -1159,12 +1107,6 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 		emit UserInteraction();
 		break;
 	}
-	// TODO: find a better way of reacting on a change in slicer camera!
-	case vtkCommand::LeftButtonReleaseEvent:
-	{
-		emit UserInteraction();
-		break;
-	}
 	case vtkCommand::MouseMoveEvent:
 	{
 		double result[4];
@@ -1175,12 +1117,7 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 			printVoxelInformation(xCoord, yCoord, zCoord, result);
 		}
 		emit oslicerPos(xCoord, yCoord, zCoord, m_mode);
-		
-		// TODO: check if mouse button pressed!
-		//if (LeftMouseButtonPressed)
-		//{
 		emit UserInteraction();
-		//}
 		break;
 	}
 	case vtkCommand::KeyPressEvent:
@@ -1256,16 +1193,106 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	// get index, coords and value to display
 	std::string tmp;
 
-	FmtStr(m_strDetails, 
+	FmtStr(m_strDetails,
 		"index     [ " << xCoord << ", " << yCoord << ", " << zCoord << " ]\n" <<
-		"position  [ " << result[0] << ", " << result[1] << ", " << result[2] <<" ]\n" <<
 		"datavalue [" );
 
-	for ( int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
-		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX,cY,0,i);
-		FmtStr(tmp, " " << Pix ); m_strDetails += tmp;
+	for (int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
+		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, i);
+		FmtStr(tmp, " " << Pix); m_strDetails += tmp;
 	}
 	FmtStr(tmp, " ]\n"); m_strDetails += tmp;
+	std::ostringstream ss;
+	double tmpPix;
+	std::string modAbb;
+	bool longName = true;
+	std::string file;
+	std::string path;
+
+	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
+	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() && mdi_parent->getLinkedMDIs())
+	{
+		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getM_mainWnd()->MdiChildList();
+		for (int i = 0; i < mdiwindows.size(); i++) {
+			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+			if (tmpChild != mdi_parent) {
+				double spacing[3];
+				std::size_t foundSlash;
+				tmpChild->getImagePointer()->GetSpacing(spacing);
+				switch (m_mode)
+				{
+				case iASlicerMode::XY://XY
+					tmpChild->getSlicerDataXY()->setPlaneCenter(xCoord*spacing[0], yCoord*spacing[1], 1);
+					tmpChild->getSlicerXY()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(zCoord);
+					
+					tmpChild->getSlicerDataXY()->update();
+					tmpChild->getSlicerXY()->update();
+					tmpChild->getSlicerDlgYZ()->update();
+
+					tmpChild->update();
+					
+					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					foundSlash = path.find_last_of("/");
+					file = path.substr(foundSlash + 1);
+
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
+					break;
+				case iASlicerMode::YZ://YZ
+					tmpChild->getSlicerDataYZ()->setPlaneCenter(yCoord*spacing[1], zCoord*spacing[2], 1);
+					tmpChild->getSlicerYZ()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(xCoord);
+
+					tmpChild->getSlicerDataYZ()->update();
+					tmpChild->getSlicerYZ()->update();
+					tmpChild->getSlicerDlgYZ()->update();
+
+					tmpChild->update();
+
+					tmpPix = tmpChild->getSlicerDataYZ()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					foundSlash = path.find_last_of("/");
+					file = path.substr(foundSlash + 1);
+
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
+					break;
+				case iASlicerMode::XZ://XZ
+					tmpChild->getSlicerDataXZ()->setPlaneCenter(xCoord*spacing[0], zCoord*spacing[2], 1);
+					tmpChild->getSlicerXZ()->setIndex(xCoord, yCoord, zCoord);
+					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(yCoord);
+
+					tmpChild->getSlicerDataXZ()->update();
+					tmpChild->getSlicerXZ()->update();
+					tmpChild->getSlicerDlgXZ()->update();
+					
+					tmpChild->update();
+
+					tmpPix = tmpChild->getSlicerDataXZ()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+					ss << tmpPix;
+
+					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
+					foundSlash = path.find_last_of("/");
+					file = path.substr(foundSlash + 1);
+
+					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
+					ss.str("");
+					ss.clear();
+					break;
+				default://ERROR
+					break;
+				}
+			}
+		}
+	}
 
 	// if requested calculate distance and show actor
 	if (pLineActor->GetVisibility()) {
@@ -1572,20 +1599,21 @@ void iASlicerData::enableChannel(iAChannelID id, bool enabled, double x, double 
 
 void iASlicerData::enableChannel( iAChannelID id, bool enabled )
 {
+	// TODO: move into channeldata!
 	if( enabled )
 	{
-		ren->AddActor( GetOrCreateChannel( id ).imageActor );
+		ren->AddActor(GetOrCreateChannel(id).imageActor );
 		if (m_decorations)
 		{
-			ren->AddActor( GetOrCreateChannel( id ).cActor );
+			ren->AddActor(GetOrCreateChannel(id).cActor);
 		}
 	}
 	else
 	{
-		ren->RemoveActor( GetOrCreateChannel( id ).imageActor );
+		ren->RemoveActor(GetOrCreateChannel(id).imageActor);
 		if (m_decorations)
 		{
-			ren->RemoveActor( GetOrCreateChannel( id ).cActor );
+			ren->RemoveActor(GetOrCreateChannel(id).cActor);
 		}
 	}
 }

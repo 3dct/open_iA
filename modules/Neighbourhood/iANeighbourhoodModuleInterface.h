@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iANeighbourhoodModuleInterface_h__
-#define iANeighbourhoodModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
 
@@ -40,5 +38,3 @@ protected:
 	//settings
 	unsigned int medR_x, medR_y, medR_z; //median filter
 };
-
-#endif // iANeighbourhoodModuleInterface_h__

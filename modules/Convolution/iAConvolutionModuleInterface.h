@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IACONVOLUTIONMODULEINTERFACE_H
-#define IACONVOLUTIONMODULEINTERFACE_H
+#pragma once
 
 #include "iAModuleInterface.h"
 #include "defines.h"
@@ -37,5 +35,3 @@ private slots:
 	void FFT_correlate();
 	void FFT_CPP_correlate();
 };
-
-#endif // IACONVOLUTIONMODULEINTERFACE_H

@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IARULERWIDGET_H
-#define IARULERWIDGET_H
+#pragma once
 
 #include <vtkBorderWidget.h>
 
@@ -77,5 +75,3 @@ private:
   iARulerWidget(const iARulerWidget&);  //Not implemented
   void operator=(const iARulerWidget&);  //Not implemented
 };
-
-#endif

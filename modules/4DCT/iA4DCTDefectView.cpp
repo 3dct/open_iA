@@ -16,7 +16,7 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -25,6 +25,7 @@
 #include "FilterLabelImage.h"
 #include "iAConsole.h"
 #include "iASlicer.h"
+#include "iASlicerSettings.h"
 #include "iAChannelVisualizationData.h"
 // vtk
 #include <vtkColorTransferFunction.h>
@@ -86,7 +87,7 @@ void iA4DCTDefectView::initializeSlicer(QString path)
 	m_colorTF->AddRGBPoint(m_intensityImg->GetScalarRange()[1], 1., 1., 1.);
 
 	// initialize slicer
-	m_slicer->setup(false, false, 0, 0, 0, false);
+	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->initializeData(m_intensityImg, m_transform, m_colorTF);
 	m_slicer->initializeWidget(m_intensityImg);
 	m_slicer->setSliceNumber(58);

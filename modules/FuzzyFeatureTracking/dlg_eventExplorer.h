@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_EVENT_EXPLORER_H
-#define	DLG_EVENT_EXPLORER_H
+#pragma once
 
 #include <QtGui>
 #include <QObject>
@@ -85,7 +83,7 @@ public:
 	void updateCheckBoxLogX(int c);
 	void updateCheckBoxLogY(int c);
 
-	void chartMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
+	void chartMouseButtonCallBack(vtkObject * obj);
 
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
@@ -130,5 +128,3 @@ private:
 	vtkDoubleArray* m_trackingUncertainty;
 	vtkEventQtSlotConnect* m_chartConnections;
 };
-
-#endif

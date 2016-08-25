@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_DATAVIEW4DCT
-#define DLG_DATAVIEW4DCT
+#pragma once
 
 #include "ui_DataView4DCT.h"
 #include <iAQTtoUIConnector.h>
@@ -34,10 +32,11 @@ class vtkCamera;
 class vtkPolyData;
 class vtkTransform;
 
-class iAVolumeStack;
-class QVTKWidgetMouseReleaseWorkaround;
 class iARenderer;
+class iAVolumeRenderer;
+class iAVolumeStack;
 class MdiChild;
+class QVTKWidgetMouseReleaseWorkaround;
 
 class dlg_dataView4DCT : public dlg_dataView4DCTContainer
 {
@@ -51,9 +50,8 @@ private:
 	iAVolumeStack*						m_volumeStack;
 	QVTKWidgetMouseReleaseWorkaround**	m_vtkWidgets;
 	iARenderer**						m_renderers;
+	iAVolumeRenderer**					m_volumeRenderer;
 	vtkSmartPointer<vtkTransform>		m_axesTransform;
 	MdiChild*							m_mdiChild;
 	iARendererManager					m_rendererManager;
 };
-
-#endif // DLG_DATAVIEW4DCT

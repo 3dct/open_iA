@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_ELEMENT_SPECTRAL_INFO
-#define IA_ELEMENT_SPECTRAL_INFO
+#pragma once
 
 #include <QFileInfo>
 #include <QStringList>
@@ -113,5 +111,3 @@ private:
 	iAEnergySpectrum		m_countsData;	///< number of counted photons for measured spectrum points
 	QVector<float>			m_uncertData;	///< uncertainty of the measured number of counts
 };
-
-#endif // IA_ELEMENT_SPECTRAL_INFO

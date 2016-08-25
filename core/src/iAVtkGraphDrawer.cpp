@@ -16,9 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAVtkGraphDrawer.h"
 
@@ -31,10 +31,10 @@
 #include <cassert>
 
 void iAVtkGraphDrawer::createLayout(vtkPoints* points, vtkMutableDirectedGraph* graph, int* windowsSize, size_t numRanks) {
-	this->fillGraph(graph);
-	this->ordering();
-	this->setPosition();
-	this->locatePoints(points, windowsSize, numRanks);
+	fillGraph(graph);
+	m_graphDrawer.setNumberOfIterations(40);
+	m_graphDrawer.start();
+	locatePoints(points, windowsSize, numRanks);
 }
 
 void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph) {
@@ -43,7 +43,7 @@ void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph) {
 	while(vertIt->HasNext()) {
 		vtkIdType idVtk = vertIt->Next();
 		int rank = graph->GetVertexData()->GetAbstractArray("Layer")->GetVariantValue(idVtk).ToInt();
-		idType id = this->addVertex(graphVertex(0, 0, rank));
+		Graph::idType id = m_graph.addVertex(Graph::Vertex(rank, 0, 0));
 		m_vertMapToVtk[id] = idVtk;
 		m_vertMapFromVtk[idVtk] = id;
 	}
@@ -55,27 +55,29 @@ void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph) {
 		int rankSource = graph->GetVertexData()->GetAbstractArray("Layer")->GetVariantValue(idVtk.Source).ToInt();
 		int rankTarget = graph->GetVertexData()->GetAbstractArray("Layer")->GetVariantValue(idVtk.Target).ToInt();
 		assert (rankSource != rankTarget);		// FIMXE: we can't have a edges are connected two vertex on a same rank
-		idType id;
+		Graph::idType id;
 		if (rankSource < rankTarget) {
-			id = this->addEdge(m_vertMapFromVtk[idVtk.Source], m_vertMapFromVtk[idVtk.Target]);
+			id = m_graph.addEdge(m_vertMapFromVtk[idVtk.Source], m_vertMapFromVtk[idVtk.Target]);
 		} else {
-			id = this->addEdge(m_vertMapFromVtk[idVtk.Target], m_vertMapFromVtk[idVtk.Source]);
+			id = m_graph.addEdge(m_vertMapFromVtk[idVtk.Target], m_vertMapFromVtk[idVtk.Source]);
 		}
 // 		m_edgeMapToVtk[id] = idVtk;
 // 		m_edgeMapFromVtk[idVtk] = id;
 	}
+	m_graphDrawer.setGraph(&m_graph);
 }
 
 void iAVtkGraphDrawer::locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks) {
-	map<vtkIdType, idType>::iterator it;
+	map<vtkIdType, Graph::idType>::iterator it;
 	float maxPosY, minPosY;
-	maxPosY = minPosY = this->getVertex(m_vertMapFromVtk.at(0))->positionY;
+	//maxPosY = minPosY = this->getVertex(m_vertMapFromVtk.at(0))->positionY;
+	maxPosY = minPosY = m_graph.getVertices()->at(m_vertMapFromVtk.at(0)).posX;
 	for (it = m_vertMapFromVtk.begin(); it != m_vertMapFromVtk.end(); it++) {
-		if (maxPosY < (this->getVertex(it->second))->positionY) {
-			maxPosY = (this->getVertex(it->second))->positionY;
+		if (maxPosY < m_graph.getVertices()->at(it->second).posX) {
+			maxPosY = m_graph.getVertices()->at(it->second).posY;
 		}
-		if (minPosY > (this->getVertex(it->second))->positionY) {
-			minPosY = (this->getVertex(it->second))->positionY;
+		if (minPosY > m_graph.getVertices()->at(it->second).posY) {
+			minPosY = m_graph.getVertices()->at(it->second).posY;
 		}
 	}
 
@@ -84,6 +86,6 @@ void iAVtkGraphDrawer::locatePoints(vtkPoints* points, int* windowsSize, size_t 
 	divisions[1] = (float)windowsSize[1] / (maxPosY - minPosY + 1);
 
 	for (it = m_vertMapFromVtk.begin(); it != m_vertMapFromVtk.end(); it++) {
-		points->InsertNextPoint(divisions[0] / 2 + divisions[0] * this->getVertex(it->second)->positionX, divisions[1] / 2 + divisions[1] * (this->getVertex(it->second)->positionY - minPosY), 0);
+		points->InsertNextPoint(divisions[0] / 2 + divisions[0] * m_graph.getVertices()->at(it->second).posX, divisions[1] / 2 + divisions[1] * (m_graph.getVertices()->at(it->second).posY * 0.3 - minPosY), 0);
 	}
 }

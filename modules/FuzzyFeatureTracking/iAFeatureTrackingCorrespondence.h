@@ -16,33 +16,27 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-// iAFeatureTrackingCorrespondence.h
+#include <string>
+#include <iostream>
+#include <vector>
+#include <vtkTable.h>
 
-#ifndef CORRESPONDENCE_H
-#define CORRESPONDENCE_H
+using namespace std;
 
-	#include <string>
-	#include <iostream>
-	#include <vector>
-	#include <vtkTable.h>
+enum FeatureEvent { Creation, Continuation, Bifurcation, Amalgamation, Dissipation }; //Creation, Continuation, Dissipation, Bifurcation, Amalgamation
 
-	using namespace std;
-
-	enum FeatureEvent { Creation, Continuation, Bifurcation, Amalgamation, Dissipation }; //Creation, Continuation, Dissipation, Bifurcation, Amalgamation 
-
-	class iAFeatureTrackingCorrespondence
-	{	
-	public:
-		iAFeatureTrackingCorrespondence(vtkIdType id, float overlap, float volumeRatio, bool isTakenForCurrentIteration, float likelyhood, FeatureEvent featureEvent);
-		vtkIdType id;
-		float overlap;
-		float volumeRatio;
-		bool isTakenForCurrentIteration;
-		float likelyhood;
-		FeatureEvent featureEvent;
-	};
-
-#endif
+class iAFeatureTrackingCorrespondence
+{	
+public:
+	iAFeatureTrackingCorrespondence(vtkIdType id, float overlap, float volumeRatio, bool isTakenForCurrentIteration, float likelyhood, FeatureEvent featureEvent);
+	vtkIdType id;
+	float overlap;
+	float volumeRatio;
+	bool isTakenForCurrentIteration;
+	float likelyhood;
+	FeatureEvent featureEvent;
+};

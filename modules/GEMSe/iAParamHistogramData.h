@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_PARAM_HISTOGRAM_DATA
-#define IA_PARAM_HISTOGRAM_DATA
+#pragma once
 
 #include "iAAbstractDiagramData.h"
 #include "iAGEMSeConstants.h"
@@ -72,60 +70,3 @@ private:
 	iAValueType m_rangeType;
 	bool m_log;
 };
-
-
-/*
-class MyFakeData: public iAAbstractDiagramRangedData
-{
-public:
-	const int FAKE_NUM_BIN = 20;
-	MyFakeData():
-		m_data(new DataType[FAKE_NUM_BIN])
-	{
-		const double MU    = 10.0;
-		const double SIGMA = 5.0;
-		const double PI = 3.14159265;
-		for (int i=0; i<FAKE_NUM_BIN; ++i)
-		{
-			m_data[i] = ( 1.0 / (SIGMA * sqrt(2*PI)) )
-				* exp(-1.0/2 * pow((i - MU)/ SIGMA, 2) );
-		}
-		m_range[0] = 0;
-		m_range[1] = FAKE_NUM_BIN;
-	}
-	~MyFakeData()
-	{
-		delete [] m_data;
-	}
-	virtual DataType const * GetData() const 
-	{
-		return m_data;
-	}
-	virtual size_t GetNumBin() const
-	{
-		return FAKE_NUM_BIN;
-	}
-	virtual double GetSpacing(int component) const 
-	{
-		return 1;
-	}
-	virtual double * GetDataRange()
-	{
-		return m_range;
-	}
-	virtual double GetDataRange(int idx) const
-	{
-		return m_range[idx];
-	}
-	virtual DataType GetMaxValue() const
-	{
-		return m_data[10];
-	}
-private:
-	DataType* m_data;
-	double m_range[2];
-};
-*/
-
-
-#endif // IA_PARAM_HISTOGRAM_DATA

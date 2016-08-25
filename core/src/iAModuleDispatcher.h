@@ -16,11 +16,9 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAModuleDispatcher_h__
-#define iAModuleDispatcher_h__
+#pragma once
 
 #include <QVector>
 #include <QString>
@@ -48,7 +46,7 @@ struct iAModuleAction
 
 class iAModuleInterface;
 
-#ifdef WIN32
+#ifdef _WIN32
 	#define MODULE_HANDLE HINSTANCE
 #else
 	#define MODULE_HANDLE void*
@@ -96,5 +94,3 @@ template <typename T> T* iAModuleDispatcher::GetModule(T* type)
 	}
 	return 0;
 }
-
-#endif // iAModuleDispatcher_h__

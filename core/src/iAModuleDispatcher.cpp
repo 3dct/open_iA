@@ -16,13 +16,12 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "iAModuleDispatcher.h"
 
-#include "iAConsole.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"
@@ -143,16 +142,12 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 	MODULE_HANDLE handle = LoadModule(fi);
 	if (!handle)
 	{
-		std::ostringstream oss;
-		oss << "Could not load the dynamic library '" << fi.absoluteFilePath().toStdString() << "'" << std::endl;
-		logger->log(oss.str().c_str());
+		logger->log(QString("Could not load the dynamic library '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	iAModuleInterface * m = LoadModuleInterface(handle);
 	if (!m) {
-		std::ostringstream oss;
-		oss << "Could not locate the GetModuleInterface function in '" << fi.absoluteFilePath().toStdString() << "'" << std::endl;
-		logger->log(oss.str().c_str());
+		logger->log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	InitializeModuleInterface(m);
