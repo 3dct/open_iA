@@ -175,22 +175,19 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName)
 		return false;
 	}
 	m_samplingResults = iASamplingResults::Load(fileName);
-	if (m_samplingResults)
-	{
-		pbSamplingStore->setEnabled(true);
-		pbClusteringCalc->setEnabled(true);
-		pbClusteringLoad->setEnabled(true);
-		pbCalcCharac->setEnabled(true);
-		pbAllStore->setEnabled(true);
-		pbResetFilters->setEnabled(true);
-		QFileInfo fi(fileName);
-		m_outputFolder = fi.absolutePath();
-	}
-	else
+	if (!m_samplingResults)
 	{
 		DEBUG_LOG("Loading Sampling failed.");
 		return false;
 	}
+	pbSamplingStore->setEnabled(true);
+	pbClusteringCalc->setEnabled(true);
+	pbClusteringLoad->setEnabled(true);
+	pbCalcCharac->setEnabled(true);
+	pbAllStore->setEnabled(true);
+	pbResetFilters->setEnabled(true);
+	QFileInfo fi(fileName);
+	m_outputFolder = fi.absolutePath();
 	return true;
 }
 
