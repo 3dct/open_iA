@@ -30,7 +30,7 @@ cd $TEST_BIN_DIR
 
 # Set up basic build environment
 make clean
-cmake -C $CONFIG_FILE $TEST_SRC_DIR
+cmake -C $CONFIG_FILE $TEST_SRC_DIR 2>&1
 
 # Create test configurations:
 mkdir -p $TEST_CONFIG_DIR
@@ -38,12 +38,12 @@ echo $MODULE_DIRS
 python $TEST_FILES_DIR/CreateTestConfigurations.py $TEST_SRC_DIR $GIT_BRANCH $TEST_CONFIG_DIR $MODULE_DIRS
 
 # Run with all flags enabled:
-cmake -C $TEST_CONFIG_DIR/all_flags.cmake $TEST_SRC_DIR
+cmake -C $TEST_CONFIG_DIR/all_flags.cmake $TEST_SRC_DIR 2>&1
 make clean
 ctest -D $CTEST_MODE
 
 # Run with no flags enabled:
-cmake -C $TEST_CONFIG_DIR/no_flags.cmake $TEST_SRC_DIR
+cmake -C $TEST_CONFIG_DIR/no_flags.cmake $TEST_SRC_DIR 2>&1
 make clean
 ctest -D Experimental
 
@@ -53,8 +53,8 @@ do
 	echo
 	echo "--------------------------------------------------------------------------------"
 	echo `basename $modulefile .cmake`
-	cmake -C ${TEST_CONFIG_DIR}/no_flags.cmake $TEST_SRC_DIR
-	cmake -C $modulefile $TEST_SRC_DIR
+	cmake -C ${TEST_CONFIG_DIR}/no_flags.cmake $TEST_SRC_DIR 2>&1
+	cmake -C $modulefile $TEST_SRC_DIR 2>&1
 	make clean
 	ctest -D Experimental
 done
