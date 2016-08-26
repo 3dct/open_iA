@@ -15,7 +15,7 @@ enable_testing()
 # Enable Unicode
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)
 
-IF (MSVC)
+IF(MSVC)
 	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
 	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
 	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo")
@@ -24,6 +24,9 @@ IF (MSVC)
 	IF (NOT EXISTS ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user)
 		CONFIGURE_FILE( ${PROJECT_SOURCE_DIR}/core/ALL_BUILD.vcxproj.user ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user )
 	ENDIF (NOT EXISTS ${PROJECT_BINARY_DIR}/ALL_BUILD.vcxproj.user)
+ELSE(MSVC)
+	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+	SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 ENDIF(MSVC)
 
 #-----------------------------------------------------------------------------------------
@@ -81,6 +84,7 @@ IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 		IF (MSVC)
 			# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
 		ELSE(MSVC)
+			MESSAGE(STATUS "Copying SCIFIO jars from ${SCIFIO_PATH} to ${DESTDIR}")
 			SET (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scifio_jars")
 			configure_file("${SCIFIO_PATH}/bioformats_package.jar" "${DESTDIR}/bioformats_package.jar" COPYONLY)
 			configure_file("${SCIFIO_PATH}/scifio-itk-bridge.jar" "${DESTDIR}/scifio-itk-bridge.jar" COPYONLY)
@@ -237,9 +241,6 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 		#set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 		#MESSAGE (STATUS "${CMAKE_C_FLAGS}")
 	ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-	SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-	SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
