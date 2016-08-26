@@ -53,17 +53,6 @@ iAVolumeRenderer::iAVolumeRenderer(
 	volume->SetMapper(volMapper);
 	volume->SetProperty(volProp);
 	volume->SetVisibility(true);
-
-	volumeProperty->SetColor(0, colorTransferFunction);
-	volumeProperty->SetScalarOpacity(0, piecewiseFunction);
-
-	if ( imgData->GetNumberOfScalarComponents() > 1 )
-	{
-		volMapper->SetBlendModeToComposite();
-		volProperty->SetIndependentComponents( 0 );
-		volProperty->Modified();
-	}
-
 	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
 	outlineActor->GetProperty()->SetColor(0, 0, 0);
 	outlineActor->PickableOff();
@@ -76,8 +65,17 @@ iAVolumeRenderer::iAVolumeRenderer(
 void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData)
 {
 	volMapper->SetInputData(imgData);
-	volProp->SetColor(0, transfer->GetColorFunction());
-	volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
+	if ( imgData->GetNumberOfScalarComponents() > 1 )
+	{
+		volMapper->SetBlendModeToComposite();
+		volProp->SetIndependentComponents( 0 );
+	}
+	else
+	{
+		volProp->SetColor(0, transfer->GetColorFunction());
+		volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
+	}
+	volProp->Modified();
 	outlineFilter->SetInputData(imgData);
 	Update();
 }

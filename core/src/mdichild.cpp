@@ -324,11 +324,10 @@ void MdiChild::enableRenderWindows()
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
 	{	// TODO: VOLUME: determine whether to always show first volume in main slicer/renderers and adapt accordingly!
 		//int modalityIdx = m_dlgModalities->GetSelected();
+		int modalityIdx = 0;
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 		{
-			int modalityIdx = 0;
-			QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
-	
 			// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
 			getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
 			getHistogram()->updateTrf();
