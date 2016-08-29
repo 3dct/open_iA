@@ -118,10 +118,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	actionDelete_point->setEnabled(false);
 	actionChange_color->setEnabled(false);
 
-	std::string git_version(m_gitVersion.toStdString());
-	git_version = git_version.substr(0, git_version.length() - 9);
-	std::replace( git_version.begin(), git_version.end(), '-', '.');
-	splashScreen->showMessage(tr("\n      Version: %1").arg ( git_version.c_str() ), Qt::AlignTop, QColor(255, 255, 255));
+	splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
 
 	layout = new QComboBox(this);
 	for (int i=0; i<layoutNames.size(); ++i)
@@ -1595,10 +1592,7 @@ double MainWindow::neighborhood(vtkImageData *imageData, int x0, int y0, int z0)
 void MainWindow::about()
 {
 	splashScreen->show();
-	string git_version(m_gitVersion.toStdString());
-	git_version = git_version.substr(0, git_version.length() - 9);
-	std::replace( git_version.begin(), git_version.end(), '-', '.');
-	splashScreen->showMessage(tr("\n      Version: %1").arg ( git_version.c_str() ), Qt::AlignTop, QColor(255, 255, 255));
+	splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
 }
 
 

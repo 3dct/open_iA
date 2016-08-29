@@ -130,6 +130,9 @@ FOREACH( indx RANGE ${len} )
 			set_target_properties(${module_name} PROPERTIES
 				LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
 		ENDIF(MSVC)
+		
+		# Installation
+		INSTALL (TARGETS ${module_name} DESTINATION bin/plugins)
 	ENDIF( ${module_option} )
 ENDFOREACH()
 

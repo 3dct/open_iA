@@ -63,7 +63,6 @@ function(get_git_head_revision _refspecvar _hashvar)
 	endif()
 	set(HEAD_FILE "${GIT_DATA}/HEAD")
 	configure_file("${GIT_DIR}/HEAD" "${HEAD_FILE}" COPYONLY)
-
 	configure_file("${_gitdescmoddir}/GetGitRevisionDescription.cmake.in"
 		"${GIT_DATA}/grabRef.cmake"
 		@ONLY)
@@ -113,8 +112,11 @@ function(git_describe _var)
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
 	endif()
-
-	set(${_var} "${out}" PARENT_SCOPE)
+	STRING(LENGTH ${out} STRLENOUT)
+	MATH(EXPR MINUSOUT "${STRLENOUT}-9" )
+	STRING(SUBSTRING ${out} 0 ${MINUSOUT} substrout)
+	STRING(REGEX REPLACE "-" "." replout ${substrout})
+	set(${_var} "${replout}" PARENT_SCOPE)
 endfunction()
 
 function(git_get_exact_tag _var)
