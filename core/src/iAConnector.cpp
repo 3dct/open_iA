@@ -22,7 +22,7 @@
 
 #include "pch.h"
 #include "iAConnector.h"
-#include "iAExtendedTypedCallHelper .h"
+#include "iAExtendedTypedCallHelper.h"
 #include "iAToolsITK.h"
 
 #include <vtkImageData.h>

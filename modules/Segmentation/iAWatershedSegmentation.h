@@ -49,8 +49,9 @@ public:
 	void morph_watershed();
 
 	void setWParameters( double l, double t ) { level = l; threshold = t; };
-	void setMWSParameters( double mwsl, bool mwsmwsl, bool mwsFC, bool mwsRGBCC ){
-		mwsLevel = mwsl; mwsMarkWSLines = mwsmwsl; mwsFullyConnected = mwsFC; mwsRGBColorCoding = mwsRGBCC;
+	void setMWSParameters( double mwsl, bool mwsmwsl, bool mwsFC )
+	{
+		mwsLevel = mwsl; mwsMarkWSLines = mwsmwsl; mwsFullyConnected = mwsFC;
 	};
 
 	vtkImageData* getImageDataNew ( ) { return imageDataNew; }
@@ -61,7 +62,7 @@ protected:
 private:
 	double level, threshold;
 	double mwsLevel; // Morphological Watershed Segmentation Filter
-	bool mwsMarkWSLines, mwsFullyConnected, mwsRGBColorCoding;	// Morphological Watershed Segmentation Filter
+	bool mwsMarkWSLines, mwsFullyConnected;	// Morphological Watershed Segmentation Filter
 
 	vtkImageData* imageDataNew;
 };

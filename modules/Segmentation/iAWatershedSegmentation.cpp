@@ -25,6 +25,7 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include "mdichild.h"
 
 #ifdef __GNUC__
 #include <inttypes.h>
@@ -36,33 +37,6 @@
 #include <itkScalarToRGBPixelFunctor.h>
 #include <itkUnaryFunctorImageFilter.h>
 #include <itkWatershedImageFilter.h>
-
-
-//
-#include <itkImageFileReader.h>
-#include <itkImageToVTKImageFilter.h>
-#include "itkRedPixelAccessor.h"
-#include "itkGreenPixelAccessor.h"
-#include "itkBluePixelAccessor.h"
-#include "itkAdaptImageFilter.h"
-#include "itkRGBPixel.h"
-#include "itkRGBAPixel.h"
-#include "iAChannelVisualizationData.h"
-#include "mdichild.h"
-#include <vtkGPUVolumeRayCastMapper.h>
-#include <vtkFixedPointVolumeRayCastMapper.h>
-#include <vtkVolumeProperty.h>
-#include <vtkLightCollection.h>
-#include <vtkRenderer.h>
-#include <vtkLight.h>
-#include <vtkVolume.h>
-#include <vtkRenderWindow.h>
-#include "itkImageDuplicator.h"
-#include "itkLabelGeometryImageFilter.h"
-#include "itkLabelToRGBImageFilter.h"
-#include <itkImageRegionConstIterator.h>
-#include <itkImageRegionIterator.h>
-//
 
 #include <vtkImageData.h>
 
@@ -92,11 +66,12 @@ int watershed_template( double l, double t, iAProgress* p, iAConnector* image, v
 
 	filter->Update();
 
-	typedef itk::Image< typename WIFType::OutputImagePixelType, 3 > IntImageType;
-	typedef itk::Image<	unsigned long, 3>  LongImageType;
+	typedef itk::Image< typename WIFType::OutputImagePixelType, DIM > IntImageType;
+	typedef itk::Image<	unsigned long, DIM>  LongImageType;
 	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
 	typename CastFilterType::Pointer longcaster = CastFilterType::New();
 	longcaster->SetInput(0, filter->GetOutput() );
+	
 	image->SetImage( longcaster->GetOutput() );
 	image->Modified();
  
@@ -111,72 +86,11 @@ int watershed_template( double l, double t, iAProgress* p, iAConnector* image, v
 }
 
 template<class T>
-int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFullyConnected, bool mwsRGBColorCoding,
-							  iAProgress* p, iAConnector* image, vtkImageData* imageDataNew, MdiChild* mdiChild )
+int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFullyConnected, iAProgress* p,
+							  iAConnector* image, vtkImageData* imageDataNew, MdiChild* mdiChild )
 {
-	//typedef itk::Image<itk::RGBPixel<unsigned char>, DIM> RGBImageType;
-	//typedef itk::Image<unsigned int, DIM> OutputImageType;
-	//
-	//typedef itk::RGBAPixel< unsigned char > RGBAPixelType;
-	//typedef itk::Image< RGBAPixelType, DIM>  RGBAImageType;
-	//typedef itk::ImageFileReader<RGBAImageType> ReaderType;
-
-	//ReaderType::Pointer reader = ReaderType::New();
-	//reader->SetFileName( "C://Users//p41036//Desktop//rgbat.mhd" );
-	//reader->Update();
-
-	//typedef itk::ImageToVTKImageFilter<RGBAImageType> ITKTOVTKConverterType;
-	//ITKTOVTKConverterType::Pointer converter0 = ITKTOVTKConverterType::New();
-
-	//converter0->SetInput( reader->GetOutput() );
-	//converter0->Update();
-	//vtkSmartPointer<vtkImageData> vtkRedChnImg = vtkSmartPointer<vtkImageData>::New();
-	//vtkRedChnImg->DeepCopy( converter0->GetOutput() );
-
-	//vtkRenderWindow *renWin = vtkRenderWindow::New();
-	// vtkRenderer *ren1 = vtkRenderer::New();
-	// ren1->SetBackground( 0.1, 0.4, 0.2 );
-	//
-	//   renWin->AddRenderer( ren1 );
-	// renWin->SetSize( 301, 300 ); // intentional odd and NPOT  width/height
-	//
-	//   vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
-	// iren->SetRenderWindow( renWin );
-
- //  renWin->Render(); // make sure we have an OpenGL context.
-	//
-	//   vtkVolumeProperty *volumeProperty;
-	//  vtkVolume *volume;
-	//
-	//  vtkGPUVolumeRayCastMapper  *volumeMapper = vtkGPUVolumeRayCastMapper::New();
-	//  volumeMapper->SetSampleDistance( 1.0 );
-	//
-	//  volumeMapper->SetInputData( vtkRedChnImg );
-	//
-	//   volumeProperty = vtkVolumeProperty::New();
-	//  volumeMapper->SetBlendModeToComposite();
-	//  volumeProperty->ShadeOff();
-	//  volumeProperty->SetSpecularPower( 128.0 );
-	//  volumeProperty->SetInterpolationType( VTK_LINEAR_INTERPOLATION );
-	//  volumeProperty->SetIndependentComponents( 0 );
-	//
-	//   volume = vtkVolume::New();
-	//  volume->SetMapper( volumeMapper );
-	//  volume->SetProperty( volumeProperty );
-	//  ren1->AddVolume( volume );
-	//
-	// ren1->ResetCamera();
-	// renWin->Render();
-
-	//       iren->Start();
-
-
-
-
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< unsigned long, DIM > OutputImageType;
-	typedef itk::RGBPixel< unsigned char > RGBPixelType;
-	typedef itk::Image< RGBPixelType, DIM > RGBImageType;
 	
 	typedef itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType> MWIFType;
 	MWIFType::Pointer mWSFilter = MWIFType::New();
@@ -188,79 +102,21 @@ int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFull
 	p->Observe( mWSFilter );
 	mWSFilter->Update();
 
-	typedef itk::Image< typename MWIFType::OutputImagePixelType, 3 > IntImageType;
-	typedef itk::Image<	unsigned long, 3>  LongImageType;
+	typedef itk::Image< typename MWIFType::OutputImagePixelType, DIM > IntImageType;
+	typedef itk::Image<	unsigned long, DIM>  LongImageType;
 	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
 	typename CastFilterType::Pointer longcaster = CastFilterType::New();
 	longcaster->SetInput( 0, mWSFilter->GetOutput() );
 
-	//typedef MWIFType::OutputImageType  LabeledImageType;
-	//typedef itk::Functor::ScalarToRGBPixelFunctor<unsigned long> ColorMapFunctorType;
-	//typedef itk::UnaryFunctorImageFilter<LabeledImageType, RGBImageType, ColorMapFunctorType> ColorMapFilterType;
-	//ColorMapFilterType::Pointer colormapper = ColorMapFilterType::New();
-	//colormapper->SetInput( mWSFilter->GetOutput() );
-
-	if ( mwsRGBColorCoding )
-	{
-
-	typedef itk::LabelToRGBImageFilter<OutputImageType, RGBImageType> RGBFilterType;
-	RGBFilterType::Pointer rgbLabelImage = RGBFilterType::New();
-	rgbLabelImage->SetInput( mWSFilter->GetOutput() );
-	rgbLabelImage->Update();
-
-	RGBImageType::RegionType region;
-	region.SetSize( rgbLabelImage->GetOutput()->GetLargestPossibleRegion().GetSize() );
-	region.SetIndex( rgbLabelImage->GetOutput()->GetLargestPossibleRegion().GetIndex() );
-
-	typedef itk::RGBAPixel< unsigned char > RGBAPixelType;
-	typedef itk::Image< RGBAPixelType, DIM>  RGBAImageType;
-	RGBAImageType::Pointer rgbaImage = RGBAImageType::New();
-	rgbaImage->SetRegions( region );
-	rgbaImage->SetSpacing( rgbLabelImage->GetOutput()->GetSpacing() );
-	rgbaImage->Allocate();
-
-	// copy values from input image
-	itk::ImageRegionConstIterator< RGBImageType > cit( rgbLabelImage->GetOutput(), region );
-	itk::ImageRegionIterator< RGBAImageType >     it( rgbaImage, region );
-	for ( cit.GoToBegin(), it.GoToBegin(); !it.IsAtEnd(); ++cit, ++it )
-	{
-		it.Value().SetRed( cit.Value().GetRed() );
-		it.Value().SetBlue( cit.Value().GetBlue() );
-		it.Value().SetGreen( cit.Value().GetGreen() );
-		it.Value().SetAlpha( 225 );
-	}
-
-
-		//typedef  itk::ImageFileWriter< RGBAImageType  > WriterType;
-		//WriterType::Pointer writer = WriterType::New();
-		//writer->SetFileName( mwsRGBFilePath.toStdString() );
-		//writer->SetInput( rgbaImage );
-		//try
-		//{
-		//	writer->Update();
-		//}
-		//catch ( itk::ExceptionObject & excep )
-		//{
-		//	std::cerr << "Exception caught !" << std::endl;
-		//	std::cerr << excep << std::endl;
-		//	return EXIT_FAILURE;
-		//}
-
-		image->SetImage( rgbaImage );
-	}
-	else
-	{
-		image->SetImage( longcaster->GetOutput() );
-	}
-	
+	image->SetImage( longcaster->GetOutput() );
 	image->Modified();
 
 	imageDataNew->Initialize();
 	imageDataNew->DeepCopy( image->GetVTKImage() );
 	imageDataNew->CopyInformationFromPipeline( image->GetVTKImage()->GetInformation() );
 
-//	mWSFilter->ReleaseDataFlagOn();
-	//longcaster->ReleaseDataFlagOn();
+	mWSFilter->ReleaseDataFlagOn();
+	longcaster->ReleaseDataFlagOn();
 
 	return EXIT_SUCCESS;
 }
@@ -329,7 +185,7 @@ void iAWatershedSegmentation::morph_watershed()
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 		ITK_TYPED_CALL( morph_watershed_template, itkType, mwsLevel, mwsMarkWSLines,
-						mwsFullyConnected, mwsRGBColorCoding, getItkProgress(), getConnector(), imageDataNew, mdiChild );
+						mwsFullyConnected, getItkProgress(), getConnector(), imageDataNew, mdiChild );
 	}
 	catch ( itk::ExceptionObject &excep )
 	{

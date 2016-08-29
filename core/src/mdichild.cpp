@@ -299,12 +299,17 @@ void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
 	{
-		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
+		if ( imageData->GetNumberOfScalarComponents() == 1 ) 
 		{
 			calculateHistogram();
 			getHistogram()->initialize( imageAccumulate, imageData->GetScalarRange(), true );
 			getHistogram()->updateTrf();
 			getHistogram()->redraw();
+		}
+		else if ( imageData->GetNumberOfScalarComponents() == 4 ) //No histogram for rgb, rgba or vector pixel type images
+		{
+			piecewiseFunction->RemoveAllPoints();
+			colorTransferFunction->RemoveAllPoints();
 		}
 		
 		Raycaster->enableInteractor();
@@ -617,11 +622,12 @@ bool MdiChild::setupStackView(bool active)
 
 void MdiChild::setupViewInternal(bool active)
 {
-	if (IsOnlyPolyDataLoaded())
+	if ( IsOnlyPolyDataLoaded() )
 		showVolume = false;
-	else if (imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
+		
+	if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 		calculateHistogram();//AMA assertion error on rendering otherwise
-
+	
 	if (!active) initView();
 
 	m_mainWnd->setCurrentFile(currentFile());
@@ -2038,7 +2044,8 @@ bool MdiChild::initView( )
 		extent[2] == 0 && extent[3] == -1 &&
 		extent[4] == 0 && extent[5] == -1) //Polygonal mesh is loaded
 		showPoly();
-	else if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
+
+	if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 	{
 		//Scalar field is loaded
 		this->addHistogram();

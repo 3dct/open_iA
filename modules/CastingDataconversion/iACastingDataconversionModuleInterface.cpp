@@ -43,7 +43,7 @@ void iACastingDataconversionModuleInterface::castimage_Filter()
 	QStringList datatype = (QStringList() << tr( "VTK_SIGNED_CHAR" ) << tr( "VTK_UNSIGNED_CHAR" ) << tr( "VTK_SHORT" )
 		<< tr( "VTK_UNSIGNED_SHORT" ) << tr( "VTK_INT" ) << tr( "VTK_UNSIGNED_INT" ) << tr( "VTK_LONG" ) << tr( "VTK_UNSIGNED_LONG" )
 		<< tr( "VTK_FLOAT" ) << tr( "VTK_DOUBLE" ) << tr( "VTK_LONG_LONG" ) << tr( "VTK_UNSIGNED_LONG_LONG" ) << tr( "VTK__INT64" )
-		<< tr( "VTK_UNSIGNED__INT64" ));
+		<< tr( "VTK_UNSIGNED__INT64" ) << ( "Label image to color-coded RGBA image" ) );
 	QStringList inList = (QStringList() << tr( "+Output Data Type" ));
 	QList<QVariant> inPara; 	inPara << datatype;
 	dlg_commoninput dlg( m_mainWnd, "FHW CastImage Filter", 1, inList, inPara, NULL );

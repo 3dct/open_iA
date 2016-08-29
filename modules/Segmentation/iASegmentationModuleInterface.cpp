@@ -316,7 +316,6 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	mwsLevel = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
 	mwsMarkWSLines = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
 	mwsFullyConnected = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected" ).toBool();
-	mwsRGBColorCoding = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsRGBColorCoding" ).toBool();
 
 	QTextDocument *fDescr = new QTextDocument( 0 );
 	fDescr->setHtml(
@@ -326,21 +325,21 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 		"Note 2: Mark WS Lines label whatershed lines with 0, background with 1. )</p>"
 		);
 
-	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) << tr( "$RGB color-coding" ) );
+	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) );
 	QList<QVariant> inPara;
-	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected ) << tr( "%1" ).arg( mwsRGBColorCoding );
-	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", 4, inList, inPara, fDescr );
+	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected );
+	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", 3, inList, inPara, fDescr );
 
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 		
-	mwsLevel = dlg.getValues()[0]; mwsMarkWSLines = dlg.getCheckValues()[1]; 
-	mwsFullyConnected = dlg.getCheckValues()[2]; mwsRGBColorCoding = dlg.getCheckValues()[3];
+	mwsLevel = dlg.getValues()[0]; 
+	mwsMarkWSLines = dlg.getCheckValues()[1]; 
+	mwsFullyConnected = dlg.getCheckValues()[2];
 	
 	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
 	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
 	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
-	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsRGBColorCoding", mwsRGBColorCoding );
 
 	//prepare
 	QString filterName = tr( "Morphological Watershed Segmentation" );
@@ -350,7 +349,7 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, MORPH_WATERSHED,
 																   m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setMWSParameters( mwsLevel, mwsMarkWSLines, mwsFullyConnected, mwsRGBColorCoding );
+	thread->setMWSParameters( mwsLevel, mwsMarkWSLines, mwsFullyConnected );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

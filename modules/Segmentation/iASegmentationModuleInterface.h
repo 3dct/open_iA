@@ -50,7 +50,7 @@ private:
 	double mdfli, mdfbins; int mdfuli; //maximum distance filter parameters
 	double wsLevel, wsThreshold;
 	double mwsLevel; // Morphological Watershed Segmentation Filter
-	bool mwsMarkWSLines, mwsFullyConnected, mwsRGBColorCoding; // Morphological Watershed Segmentation Filter
+	bool mwsMarkWSLines, mwsFullyConnected; // Morphological Watershed Segmentation Filter
 	double aotBins, aotOutside, aotInside, aotRadius; 
 	unsigned int aotSamples, aotLevels, aotControlpoints;
 	double rtPow, rtOutside, rtInside;
