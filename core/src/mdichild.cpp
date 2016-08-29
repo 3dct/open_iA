@@ -333,6 +333,12 @@ void MdiChild::enableRenderWindows()
 			getHistogram()->updateTrf();
 			getHistogram()->redraw();
 		}
+		else if ( imageData->GetNumberOfScalarComponents() == 4 ) //No histogram for rgb, rgba or vector pixel type images
+		{
+			piecewiseFunction->RemoveAllPoints();
+			colorTransferFunction->RemoveAllPoints();
+		}
+		
 		Raycaster->enableInteractor();
 
 		slicerXZ->enableInteractor();
@@ -2065,7 +2071,8 @@ bool MdiChild::initView( QString const & title )
 		extent[2] == 0 && extent[3] == -1 &&
 		extent[4] == 0 && extent[5] == -1) //Polygonal mesh is loaded
 		showPoly();
-	else if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
+
+	if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 	{
 		tabifyDockWidget(logs, histogramContainer);
 		this->addImageProperty();

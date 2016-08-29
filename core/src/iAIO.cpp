@@ -32,7 +32,7 @@
 #include "iAOIFReader.h"
 #include "iAProgress.h"
 #include "iAVolumeStack.h"
-#include "iAExtendedTypedCallHelper .h"
+#include "iAExtendedTypedCallHelper.h"
 
 #include <itkExceptionObject.h>
 #include <itkGDCMImageIO.h>
