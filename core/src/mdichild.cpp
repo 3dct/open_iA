@@ -472,6 +472,10 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	initView( title );
 	setWindowTitle( title );
 	Raycaster->ApplySettings(renderSettings);
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		GetModality(i)->GetTransfer()->ResetTransferFunctions(GetModality(i)->GetImage());
+	}
 	InitVolumeRenderers();
 	setupSlicers(slicerSettings, true );
 

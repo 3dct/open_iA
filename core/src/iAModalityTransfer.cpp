@@ -33,21 +33,15 @@
 #include <QLayoutItem>
 #include <QDockWidget>
 
-iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount)
+iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount):
+	m_binCount(binCount)
 {
-	double rangeMin = imgData->GetScalarRange()[0];
-	double rangeMax = imgData->GetScalarRange()[1];
-	
 	ctf = GetDefaultColorTransferFunction(imgData);
 	otf = GetDefaultPiecewiseFunction(imgData);
-
 	accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
 	accumulate->ReleaseDataFlagOn();
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
-	accumulate->SetComponentSpacing((rangeMax - rangeMin) / binCount, 0.0, 0.0);
-	accumulate->SetComponentOrigin(rangeMin, 0.0, 0.0);
-	accumulate->SetInputData(imgData);
-	accumulate->Update();
+	UpdateAccumulateImageData(imgData);
 
 	histogram = new iAHistogramWidget(parent,
 		/* MdiChild */ 0, // todo: remove!
@@ -60,9 +54,27 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 	histogram->hide();
 }
 
+void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData)
+{
+	double rangeMin = imgData->GetScalarRange()[0];
+	double rangeMax = imgData->GetScalarRange()[1];
+	m_range = rangeMax - rangeMin;
+	accumulate->SetComponentSpacing(m_range / m_binCount, 0.0, 0.0);
+	accumulate->SetComponentOrigin(rangeMin, 0.0, 0.0);
+	accumulate->SetInputData(imgData);
+	accumulate->Update();
+}
+
+void iAModalityTransfer::ResetTransferFunctions(vtkSmartPointer<vtkImageData> imgData)
+{
+	UpdateAccumulateImageData(imgData);
+	histogram->resetTrf();
+}
+
 void iAModalityTransfer::SetHistogramBins(int binCount)
 {
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
+	accumulate->SetComponentSpacing(m_range / m_binCount, 0.0, 0.0);
 	accumulate->Update();
 }
 
