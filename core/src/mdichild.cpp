@@ -326,17 +326,13 @@ void MdiChild::enableRenderWindows()
 		//int modalityIdx = m_dlgModalities->GetSelected();
 		int modalityIdx = 0;
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
+
 		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 		{
 			// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
 			getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
 			getHistogram()->updateTrf();
 			getHistogram()->redraw();
-		}
-		else if ( imageData->GetNumberOfScalarComponents() == 4 ) //No histogram for rgb, rgba or vector pixel type images
-		{
-			piecewiseFunction->RemoveAllPoints();
-			colorTransferFunction->RemoveAllPoints();
 		}
 		
 		Raycaster->enableInteractor();
@@ -398,7 +394,7 @@ void MdiChild::enableRenderWindows()
 				*/
 			}
 		}
-		if (!anyChannelEnabled && imageData)
+		if (!anyChannelEnabled && imageData && imgProperty)
 		{
 			imgProperty->updateProperties(imageData, GetModality(0)->GetTransfer()->GetAccumulate(), true);
 		}
@@ -476,6 +472,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		imageData->DeepCopy(image);
 	}
 
+	// TODO: VOLUME: initialize modality... ?
 	initView( title );
 	setWindowTitle( title );
 	Raycaster->ApplySettings(renderSettings);
@@ -2072,14 +2069,16 @@ bool MdiChild::initView( QString const & title )
 		extent[4] == 0 && extent[5] == -1) //Polygonal mesh is loaded
 		showPoly();
 
+	tabifyDockWidget(logs, histogramContainer);
+	this->addImageProperty();
 	if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 	{
-		tabifyDockWidget(logs, histogramContainer);
-		this->addImageProperty();
 		this->addProfile();
 	}
-
-	this->addImageProperty();
+	else
+	{
+		HideHistogram();
+	}
 
 	connect(Raycaster->getObserverFPProgress(), SIGNAL( oprogress(int) ), this, SLOT( updateProgressBar(int))) ;
 	connect(Raycaster->getObserverGPUProgress(), SIGNAL( oprogress(int) ), this, SLOT( updateProgressBar(int))) ;

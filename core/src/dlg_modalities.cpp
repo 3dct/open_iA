@@ -271,6 +271,10 @@ void dlg_modalities::EditClicked()
 		DEBUG_LOG("Changing file not supported!");
 	}
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
+	if (!renderer)
+	{
+		return;
+	}
 	if ((renderFlagsBefore & iAModality::MainRenderer) == iAModality::MainRenderer
 		&& !editModality->hasRenderFlag(iAModality::MainRenderer))
 	{

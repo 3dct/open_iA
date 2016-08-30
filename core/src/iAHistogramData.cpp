@@ -28,8 +28,6 @@
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
 
-#include <cassert>
-
 iAHistogramData::iAHistogramData()
 	: accumulate(0),
 	numBin(0), rawData(0), rawImg(0), maxFreq(0)
@@ -74,10 +72,6 @@ void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
 	caster->Update();
 	rawImg = caster->GetOutput();
 	rawData = static_cast<DataType* >(rawImg->GetScalarPointer());
-	
-	double null1, null2;
-	accumulate->GetComponentSpacing(accSpacing, null1, null2);
-	assert (null1 == 0.0 && null2 == 0.0);
 
 	dataRange[0] = scalarRange[0];
 	dataRange[1] = scalarRange[1];

@@ -37,17 +37,20 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 {
 	double rangeMin = imgData->GetScalarRange()[0];
 	double rangeMax = imgData->GetScalarRange()[1];
-	
+
 	ctf = GetDefaultColorTransferFunction(imgData);
 	otf = GetDefaultPiecewiseFunction(imgData);
 
 	accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-	accumulate->ReleaseDataFlagOn();
-	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
-	accumulate->SetComponentSpacing((rangeMax - rangeMin) / binCount, 0.0, 0.0);
-	accumulate->SetComponentOrigin(rangeMin, 0.0, 0.0);
-	accumulate->SetInputData(imgData);
-	accumulate->Update();
+	if (imgData->GetNumberOfScalarComponents() == 1) //No histogram for rgb, rgba or vector pixel type images)
+	{
+		accumulate->ReleaseDataFlagOn();
+		accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
+		accumulate->SetComponentSpacing((rangeMax - rangeMin) / binCount, 0.0, 0.0);
+		accumulate->SetComponentOrigin(rangeMin, 0.0, 0.0);
+		accumulate->SetInputData(imgData);
+		accumulate->Update();
+	}
 
 	histogram = new iAHistogramWidget(parent,
 		/* MdiChild */ 0, // todo: remove!
