@@ -57,6 +57,7 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 		ctf,
 		name + QString(" Histogram"),
 		false);
+	histogram->hide();
 }
 
 void iAModalityTransfer::SetHistogramBins(int binCount)

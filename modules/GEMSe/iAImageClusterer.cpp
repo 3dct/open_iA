@@ -198,7 +198,6 @@ public:
 			DEBUG_LOG(QString("Clusterer::DiagonalMatrix: GetMinimum - DiagonalMatrix seems to be empty already (m_side=%1)!\n")
 				.arg(m_side));
 		}
-//		assert(minIdx.first != minIdx.second);
 		return minIdx;
 	}
 
@@ -244,7 +243,7 @@ private:
 	// source: http://www.codeguru.com/cpp/cpp/algorithms/general/article.php/c11211/TIP-Half-Size-Triangular-Matrix.htm
 	int translate(int x, int y)
 	{
-		assert(x != y);    //You can add this in if you like
+		assert(x != y);
 		if (y<x)
 			std::swap(x, y);
 
