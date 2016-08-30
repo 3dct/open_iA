@@ -58,7 +58,7 @@ void iAConsole::LogSlot(QString const & text)
 	if (m_logToFile)
 	{
 		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::app);
-		logfile << QString("%1 %2")
+		logfile << QString("%1 %2\n")
 			.arg(QLocale().toString(
 				QDateTime::currentDateTime(),
 				QLocale::ShortFormat))
