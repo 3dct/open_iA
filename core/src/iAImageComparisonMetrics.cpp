@@ -33,6 +33,7 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
 	if (!img || !ref)
 	{
+		DEBUG_LOG("compareImg_tmpl: One of the images to be compared is NULL!");
 		result.equalPixelRate = 0;
 		return;
 	}

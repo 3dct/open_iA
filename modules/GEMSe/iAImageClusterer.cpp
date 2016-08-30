@@ -87,7 +87,7 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 	}
 	if (isNaN(meanOverlap))
 	{
-		//DebugOut() << "ERROR: CalcDistance -> NAN!" << std::endl;
+		DEBUG_LOG("ERROR: CalcDistance -> NAN!");
 		return 1.0;
 	}
 	return 1-meanOverlap;
