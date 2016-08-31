@@ -503,7 +503,8 @@ private:
 	int GetCurrentModality() const;
 	void SetCurrentModality(int modality);
 	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
-	void InitDisplay();
+	void InitModalities();
+	void InitVolumeRenderers();
 public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);
 	QSharedPointer<iAModalityList> GetModalities();

@@ -472,7 +472,11 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	initView( title );
 	setWindowTitle( title );
 	Raycaster->ApplySettings(renderSettings);
-	ApplyVolumeSettings();
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		GetModality(i)->GetTransfer()->ResetTransferFunctions(GetModality(i)->GetImage());
+	}
+	InitVolumeRenderers();
 	setupSlicers(slicerSettings, true );
 
 	if (imageData->GetExtent()[1] <= 1)
@@ -694,21 +698,8 @@ void MdiChild::setupViewInternal(bool active)
 		r->stackedWidgetRC->setCurrentIndex(0);
 		r->channelLabelRC->setEnabled(false);
 	}
-
 	// only after everything in the window is set up
-	if (m_initVolumeRenderers)
-	{
-		m_initVolumeRenderers = false;
-		for (int i = 0; i<GetModalities()->size(); ++i)
-		{
-			m_dlgModalities->InitDisplay(GetModality(i));
-		}
-		ApplyVolumeSettings();
-
-		connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
-			m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
-	}
-
+	InitVolumeRenderers();
 }
 
 
@@ -2040,7 +2031,6 @@ bool MdiChild::initView( QString const & title )
 		{
 			name = title;
 		}
-
 		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
 		// before, which adds the renderers which this call will use
 		QSharedPointer<iAModality> mod(new iAModality(name,
@@ -2820,7 +2810,7 @@ void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 
 	if (noDataLoaded && GetModalities()->size() > 0)
 	{
-		InitDisplay();
+		InitModalities();
 	}
 }
 
@@ -2840,7 +2830,7 @@ QSharedPointer<iAModality> MdiChild::GetModality(int idx)
 	return GetModalities()->Get(idx);
 }
 
-void MdiChild::InitDisplay()
+void MdiChild::InitModalities()
 {
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
@@ -2856,6 +2846,22 @@ void MdiChild::InitDisplay()
 	);
 }
 
+void MdiChild::InitVolumeRenderers()
+{
+	if (!m_initVolumeRenderers)
+	{
+		return;
+	}
+	m_initVolumeRenderers = false;
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		m_dlgModalities->InitDisplay(GetModality(i));
+	}
+	ApplyVolumeSettings();
+	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
+		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
+}
+
 void MdiChild::LoadProject()
 {
 	m_dlgModalities->Load();
@@ -2863,7 +2869,7 @@ void MdiChild::LoadProject()
 	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
 	if (GetModalities()->size() > 0)
 	{
-		InitDisplay();
+		InitModalities();
 	}
 }
 
@@ -2882,7 +2888,7 @@ void MdiChild::LoadProject(QString const & fileName)
 	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
 	if (GetModalities()->size() > 0)
 	{
-		InitDisplay();
+		InitModalities();
 	}
 }
 

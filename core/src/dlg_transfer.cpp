@@ -22,6 +22,7 @@
 #include "pch.h"
 #include "dlg_transfer.h"
 
+#include "iAConsole.h"
 #include "iADiagramFctWidget.h"
 #include "iAFunctionChangeListener.h"
 #include "iAMathUtility.h"
@@ -82,91 +83,95 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 	gradient.setFinalStop(gradientWidth, 0);
 	
 	// draw opacity and color tf
-	if ( opacityTF->GetSize() == colorTF->GetSize())
+	if (opacityTF->GetSize() != colorTF->GetSize())
 	{
-		double opacityTFValue[4];
-		double colorTFValue[6];
+		DEBUG_LOG(QString("Definition mismatch: opacity TF has %1 positions, color TF %2!")
+			.arg(opacityTF->GetSize())
+			.arg(colorTF->GetSize()));
+		return;
+	}
+	double opacityTFValue[4];
+	double colorTFValue[6];
 
-		opacityTF->GetNodeValue(0, opacityTFValue);
-		colorTF->GetNodeValue(0, colorTFValue);
+	opacityTF->GetNodeValue(0, opacityTFValue);
+	colorTF->GetNodeValue(0, colorTFValue);
 		
-		int x1, y1;
-		x1 = d2iX(opacityTFValue[0]);
-		y1 = d2iY(opacityTFValue[1]);
+	int x1, y1;
+	x1 = d2iX(opacityTFValue[0]);
+	y1 = d2iY(opacityTFValue[1]);
 		
-		c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150); 
-		gradient.setColorAt((double)x1/gradientWidth, c );
+	c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150); 
+	gradient.setColorAt((double)x1/gradientWidth, c );
 		
-		for ( int i = 1; i < opacityTF->GetSize(); i++)
+	for ( int i = 1; i < opacityTF->GetSize(); i++)
+	{
+		opacityTF->GetNodeValue(i, opacityTFValue);
+		colorTF->GetNodeValue(i, colorTFValue);
+
+		int x2 = d2iX(opacityTFValue[0]);
+		int y2 = d2iY(opacityTFValue[1]);
+		painter.drawLine(x1, y1, x2, y2); // draw line
+		if (active)
 		{
-			opacityTF->GetNodeValue(i, opacityTFValue);
-			colorTF->GetNodeValue(i, colorTFValue);
-
-			int x2 = d2iX(opacityTFValue[0]);
-			int y2 = d2iY(opacityTFValue[1]);
-			painter.drawLine(x1, y1, x2, y2); // draw line
-			if (active)
+			if (!m_rangeSliderHandles)
 			{
-				if (!m_rangeSliderHandles)
+				if (i - 1 == selectedPoint)
 				{
-					if (i - 1 == selectedPoint)
-					{
-						painter.setPen(redPen);
-						painter.setBrush(QBrush(c));
-						painter.drawEllipse(x1 - iADiagramFctWidget::SELECTED_POINT_RADIUS, y1 - iADiagramFctWidget::SELECTED_POINT_RADIUS,
-							iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE);
-					}
-					else
-					{
-						painter.setPen(pen1);
-						painter.setBrush(QBrush(c));
-						painter.drawEllipse(x1 - iADiagramFctWidget::POINT_RADIUS, y1 - iADiagramFctWidget::POINT_RADIUS,
-							iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE);
-					}
+					painter.setPen(redPen);
+					painter.setBrush(QBrush(c));
+					painter.drawEllipse(x1 - iADiagramFctWidget::SELECTED_POINT_RADIUS, y1 - iADiagramFctWidget::SELECTED_POINT_RADIUS,
+						iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE);
 				}
 				else
 				{
-					if ( i - 1 == selectedPoint &&  i - 1 > 0 )
-					{
-						painter.setPen( redPen );
-						painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
-						QRectF rectangle( x1 - iADiagramFctWidget::SELECTED_PIE_RADIUS, y1 - iADiagramFctWidget::SELECTED_PIE_RADIUS,
-											iADiagramFctWidget::SELECTED_PIE_SIZE, iADiagramFctWidget::SELECTED_PIE_SIZE );
-						painter.drawPie( rectangle, 60 * 16, 60 * 16 );
-					}
-					else if ( i - 1 > 0 )
-					{
-						painter.setPen( redPen );
-						painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
-						QRectF rectangle( x1 - iADiagramFctWidget::PIE_RADIUS, y1 - iADiagramFctWidget::PIE_RADIUS,
-											iADiagramFctWidget::PIE_SIZE, iADiagramFctWidget::PIE_SIZE );
-						painter.drawPie( rectangle, 60 * 16, 60 * 16 );
-					}
+					painter.setPen(pen1);
+					painter.setBrush(QBrush(c));
+					painter.drawEllipse(x1 - iADiagramFctWidget::POINT_RADIUS, y1 - iADiagramFctWidget::POINT_RADIUS,
+						iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE);
 				}
-			}
-
-			painter.setPen(pen);
-			c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150);
-			gradient.setColorAt((double)x2/gradientWidth, QColor(c.red(), c.green(), c.blue(), 150));
-			x1 = x2;
-			y1 = y2;
-		}
-		if ( active && !m_rangeSliderHandles )
-		{
-			if (selectedPoint == opacityTF->GetSize()-1)
-			{
-				painter.setPen(redPen);
-				painter.setBrush(QBrush(c));
-				painter.drawEllipse(x1-iADiagramFctWidget::SELECTED_POINT_RADIUS, y1-iADiagramFctWidget::SELECTED_POINT_RADIUS,
-					iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE);
 			}
 			else
 			{
-				painter.setPen(pen1);
-				painter.setBrush(QBrush(c));
-				painter.drawEllipse(x1-iADiagramFctWidget::POINT_RADIUS, y1-iADiagramFctWidget::POINT_RADIUS,
-					iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE);
+				if ( i - 1 == selectedPoint &&  i - 1 > 0 )
+				{
+					painter.setPen( redPen );
+					painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
+					QRectF rectangle( x1 - iADiagramFctWidget::SELECTED_PIE_RADIUS, y1 - iADiagramFctWidget::SELECTED_PIE_RADIUS,
+										iADiagramFctWidget::SELECTED_PIE_SIZE, iADiagramFctWidget::SELECTED_PIE_SIZE );
+					painter.drawPie( rectangle, 60 * 16, 60 * 16 );
+				}
+				else if ( i - 1 > 0 )
+				{
+					painter.setPen( redPen );
+					painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
+					QRectF rectangle( x1 - iADiagramFctWidget::PIE_RADIUS, y1 - iADiagramFctWidget::PIE_RADIUS,
+										iADiagramFctWidget::PIE_SIZE, iADiagramFctWidget::PIE_SIZE );
+					painter.drawPie( rectangle, 60 * 16, 60 * 16 );
+				}
 			}
+		}
+
+		painter.setPen(pen);
+		c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150);
+		gradient.setColorAt((double)x2/gradientWidth, QColor(c.red(), c.green(), c.blue(), 150));
+		x1 = x2;
+		y1 = y2;
+	}
+	if ( active && !m_rangeSliderHandles )
+	{
+		if (selectedPoint == opacityTF->GetSize()-1)
+		{
+			painter.setPen(redPen);
+			painter.setBrush(QBrush(c));
+			painter.drawEllipse(x1-iADiagramFctWidget::SELECTED_POINT_RADIUS, y1-iADiagramFctWidget::SELECTED_POINT_RADIUS,
+				iADiagramFctWidget::SELECTED_POINT_SIZE, iADiagramFctWidget::SELECTED_POINT_SIZE);
+		}
+		else
+		{
+			painter.setPen(pen1);
+			painter.setBrush(QBrush(c));
+			painter.drawEllipse(x1-iADiagramFctWidget::POINT_RADIUS, y1-iADiagramFctWidget::POINT_RADIUS,
+				iADiagramFctWidget::POINT_SIZE, iADiagramFctWidget::POINT_SIZE);
 		}
 	}
 }
