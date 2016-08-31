@@ -68,17 +68,19 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 	double meanOverlap = 0;
 	try
 	{
-		/*
-		// TODO: find out why this is not working (sometimes)
+		LabelImageType * img1t = dynamic_cast<LabelImageType*>(img1.GetPointer());
+		LabelImageType * img2t = dynamic_cast<LabelImageType*>(img2.GetPointer());
 		typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType > FilterType;
 		FilterType::Pointer filter = FilterType::New();
-		filter->SetSourceImage(img1);
-		filter->SetTargetImage(img2);
+		filter->SetSourceImage(img1t);
+		filter->SetTargetImage(img2t);
 		filter->Update();
 		meanOverlap = filter->GetMeanOverlap();
-		*/
+		/*
+		// not working at the moment for larger images:
 		iAImageComparisonResult r = CompareImages(img1, img2);
 		meanOverlap = r.equalPixelRate;
+		*/
 	}
 	catch (itk::ExceptionObject & e)
 	{
@@ -291,7 +293,6 @@ bool IsEmpty(DiagonalMatrix<float> & distances, int idx, int cnt)
 	{
 		DEBUG_LOG(QString("%1 is empty!").arg(idx));
 	}
-	DEBUG_LOG("\n");
 	return true;
 }
 
@@ -301,10 +302,17 @@ void iAImageClusterer::run()
 	m_perfTimer.start();
 	emit Status("Calculating distances for all image pairs");
 	DiagonalMatrix<float> distances((m_images.size()*2)-1);
+#ifdef CLUSTER_DEBUGGING
+	std::ofstream distFile("cluster-debugging.txt");
+#endif
 	for (m_currImage=0; m_currImage<m_images.size() && !m_aborted; ++m_currImage)
 	{
 		emit Status(QString("Calculating distances for image pairs, image ")+QString::number(m_currImage) +" of " +QString::number(m_images.size()) );
 		// assuming here that the metric is symmetric
+#ifdef CLUSTER_DEBUGGING
+		std::ostringstream distFileLine;
+		distFileLine << m_currImage << ":";
+#endif
 		for (int j=m_currImage+1; j<m_images.size() && !m_aborted; ++j)
 		{
 			ClusterImageType img1 = m_images[m_currImage]->GetRepresentativeImage(iARepresentativeType::Difference).GetPointer();
@@ -326,10 +334,20 @@ void iAImageClusterer::run()
 					.arg(j));
 				distance = 1.0;
 			}
+			// itk unloads images after filter is applied to them
+			// (which at the moment happens in CalcDistance)
+			// so we can just discard the smart pointers here,
+			// the images need to be reloaded anyway!
 			m_images[j]->DiscardDetails();
+			m_images[m_currImage]->DiscardDetails();
 			distances.SetValue(m_currImage, j, distance);
+#ifdef CLUSTER_DEBUGGING
+			distFileLine<<" "<<j<<":"<<distance;
+#endif
 		}
-		m_images[m_currImage]->DiscardDetails();
+#ifdef CLUSTER_DEBUGGING
+		distFile << distFileLine.str() << std::endl;
+#endif
 		emit Progress(SplitFactorDistanceCalc * 
 			(static_cast<double>(sumUpToDiff(m_images.size(), m_currImage))/ sumUpTo(m_images.size())) );
 	}
@@ -369,10 +387,10 @@ void iAImageClusterer::run()
 
 		if (!m_images[idx.first] || !m_images[idx.second])
 		{
-			DEBUG_LOG(QString("Clustering: One or both of images to cluster already clustered (%1, %2\n")
+			DEBUG_LOG(QString("Clustering: One or both of images to cluster already clustered (%1, %2)")
 				.arg(m_images[idx.first] ? "first set" : "!first NOT set!")
-				.arg(m_images[idx.second] ? "second set" : "!second NOT set!\n"));
-			DEBUG_LOG(QString("Premature exit with %1 nodes remaining: ").arg(m_remainingNodes));
+				.arg(m_images[idx.second] ? "second set" : "!second NOT set!"));
+			DEBUG_LOG(QString("Premature exit with %1 nodes remaining!").arg(m_remainingNodes));
 			for (int i=0; i<m_images.size(); ++i)
 			{
 				if (!m_images[i].isNull())
@@ -380,7 +398,6 @@ void iAImageClusterer::run()
 					IsEmpty(distances, i, m_images.size());
 				}
 			}
-			DEBUG_LOG("\n");
 			break;
 		}
 		// create merged node:
@@ -400,8 +417,10 @@ void iAImageClusterer::run()
 		
 		// recalculate distances:
 		int newItemIdx = m_images.size()-1;
-		//DebugOut() << "Clustered " << idx.first << ", " << idx.second << " to " << newItemIdx << std::endl;
-
+#ifdef CLUSTER_DEBUGGING
+		std::ostringstream distFileLine;
+		distFileLine << newItemIdx << "("<<idx.first<<","<<idx.second<<"):";
+#endif
 		for (int i=0; i<m_images.size()-1 && !m_aborted; ++i) // last one is the just inserted one, skip that
 		{
 			if (i == idx.first || i == idx.second || !m_images[i]) // skip deleted ones
@@ -414,13 +433,16 @@ void iAImageClusterer::run()
 			);
 			// index translation should take care that everything gets into the right place
 			distances.SetValue(i, newItemIdx, distance);
+#ifdef CLUSTER_DEBUGGING
+			distFileLine << " " << i << ":" << distance;
+#endif
 		}
-
+#ifdef CLUSTER_DEBUGGING
+		distFile << distFileLine.str() << std::endl;
+#endif
 		// remove from matrix & list:
-
 		distances.Remove(idx.first);
 		m_images[idx.first] = QSharedPointer<iAImageClusterNode>();
-
 		distances.Remove(idx.second);
 		m_images[idx.second] = QSharedPointer<iAImageClusterNode>();
 

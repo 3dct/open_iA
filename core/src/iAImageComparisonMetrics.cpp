@@ -25,6 +25,7 @@
 #include "iAToolsITK.h" // for GetITKScalarPixelType
 
 
+// TODO: check why this function is delivering bogus results for larger images!
 template <typename T>
 void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
 {
@@ -38,8 +39,8 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 		return;
 	}
 	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	float sumEqual = 0.0f, dice = 0.0f;
+	double size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
+	double sumEqual = 0.0;
 #pragma omp parallel for reduction(+:sumEqual)
 	for (int i = 0; i < size; ++i)
 	{
