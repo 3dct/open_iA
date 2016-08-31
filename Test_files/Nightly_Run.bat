@@ -45,6 +45,7 @@ call "%VS_PATH%\VC\vcvarsall.bat" amd64
 :: just in case it doesn't exist yet, create output directory:
 md %TEST_BIN_DIR%
 cd %TEST_BIN_DIR%
+if %ERRORLEVEL% GEQ 1 goto BinDirError
 
 :: Set up basic build environment
 cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR% 2>&1
@@ -90,6 +91,10 @@ Goto :eof
 
 :PythonNotFound
 echo Python wasn't found in the PATH! Please install/set PATH appropriately!
+goto end
+
+:BinDirError
+echo Could not create or enter binary directory, exiting!
 goto end
 
 :end
