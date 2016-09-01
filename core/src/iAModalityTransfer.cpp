@@ -29,12 +29,14 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
+#include <QLabel>
 #include <QLayout>
 #include <QLayoutItem>
 #include <QDockWidget>
 
 iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount):
-	m_binCount(binCount)
+	m_binCount(binCount),
+	histogram(0)
 {
 	ctf = GetDefaultColorTransferFunction(imgData);
 	otf = GetDefaultPiecewiseFunction(imgData);
@@ -45,36 +47,39 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 		accumulate->ReleaseDataFlagOn();
 		accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
 		UpdateAccumulateImageData(imgData);
+		histogram = new iAHistogramWidget(parent,
+			/* MdiChild */ 0, // todo: remove!
+			imgData->GetScalarRange(),
+			accumulate,
+			otf,
+			ctf,
+			name + QString(" Histogram"),
+			false);
+		histogram->hide();
 	}
-	histogram = new iAHistogramWidget(parent,
-		/* MdiChild */ 0, // todo: remove!
-		imgData->GetScalarRange(),
-		accumulate,
-		otf,
-		ctf,
-		name + QString(" Histogram"),
-		false);
-	histogram->hide();
 }
 
 void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData)
 {
-	m_useAccumulate = imgData->GetNumberOfScalarComponents() == 1;
 	if (!m_useAccumulate)
 	{
 		return;
 	}
-	double rangeMin = imgData->GetScalarRange()[0];
-	double rangeMax = imgData->GetScalarRange()[1];
-	m_range = rangeMax - rangeMin;
-	accumulate->SetComponentSpacing(m_range / m_binCount, 0.0, 0.0);
-	accumulate->SetComponentOrigin(rangeMin, 0.0, 0.0);
+	m_useAccumulate = imgData->GetNumberOfScalarComponents() == 1;
+	m_scalarRange[0] = imgData->GetScalarRange()[0];
+	m_scalarRange[1] = imgData->GetScalarRange()[1];
+	accumulate->SetComponentSpacing((m_scalarRange[1] - m_scalarRange[0]) / m_binCount, 0.0, 0.0);
+	accumulate->SetComponentOrigin(m_scalarRange[0], 0.0, 0.0);
 	accumulate->SetInputData(imgData);
 	accumulate->Update();
 }
 
 void iAModalityTransfer::ResetTransferFunctions(vtkSmartPointer<vtkImageData> imgData)
 {
+	if (!m_useAccumulate)
+	{
+		return;
+	}
 	UpdateAccumulateImageData(imgData);
 	histogram->resetTrf();
 }
@@ -86,15 +91,22 @@ void iAModalityTransfer::SetHistogramBins(int binCount)
 		return;
 	}
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
-	accumulate->SetComponentSpacing(m_range / m_binCount, 0.0, 0.0);
+	accumulate->SetComponentSpacing((m_scalarRange[1] - m_scalarRange[0]) / m_binCount, 0.0, 0.0);
 	accumulate->Update();
 }
 
 iAHistogramWidget* iAModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
 {
-	histogram->SetEnableAdditionalFunctions(enableFunctions);
-	histogram->show();
-	histogramContainer->setWidget(histogram);
+	if (histogram)
+	{
+		histogram->SetEnableAdditionalFunctions(enableFunctions);
+		histogram->show();
+		histogramContainer->setWidget(histogram);
+	}
+	else
+	{
+		histogramContainer->setWidget(NoHistogramAvailableWidget());
+	}
 	return histogram;
 }
 
@@ -117,4 +129,23 @@ vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
 {
 	return accumulate;
+}
+
+void iAModalityTransfer::ReInitHistogram(vtkSmartPointer<vtkImageData> imgData)
+{
+	if (!m_useAccumulate)
+	{
+		return;
+	}
+	UpdateAccumulateImageData(imgData);
+	histogram->initialize(accumulate, m_scalarRange, false);
+	histogram->updateTrf();
+	histogram->redraw();
+}
+
+QWidget* iAModalityTransfer::NoHistogramAvailableWidget()
+{
+	static QLabel * NoHistogramLabel(new QLabel("Histogram not available for this dataset!"));
+	NoHistogramLabel->setAlignment(Qt::AlignCenter);
+	return NoHistogramLabel;
 }

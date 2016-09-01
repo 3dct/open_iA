@@ -31,9 +31,9 @@ class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 	Q_OBJECT
 
 public:
-	dlg_imageproperty(QWidget *parent, vtkImageData* s , vtkImageAccumulate* a, QString f);
-	void updateProperties(vtkImageData* src, vtkImageAccumulate* accum, bool cl = false);
-
+	dlg_imageproperty(QWidget *parent, vtkImageData* s , vtkImageAccumulate* a, QString const & f);
+	void AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name);
+	void Clear();
 private:
-	void enterMsg(QString txt);
+	void EnterMsg(QString txt);
 };

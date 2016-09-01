@@ -46,7 +46,7 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> otf;
 	int m_binCount;
-	double m_range;
+	double m_scalarRange[2];
 	bool m_useAccumulate;
 	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData);
 public:
@@ -54,6 +54,7 @@ public:
 	iAHistogramWidget* GetHistogram();
 	void SetHistogramBins(int binCount);
 	void ResetTransferFunctions(vtkSmartPointer<vtkImageData> imgData);
+	void ReInitHistogram(vtkSmartPointer<vtkImageData> imgData);
 
 	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
 	vtkPiecewiseFunction* GetOpacityFunction();
@@ -61,4 +62,6 @@ public:
 
 	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
 	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
+
+	static QWidget* NoHistogramAvailableWidget();
 };

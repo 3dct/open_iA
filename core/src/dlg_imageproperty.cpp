@@ -25,45 +25,49 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 
-dlg_imageproperty::dlg_imageproperty(QWidget *parent, vtkImageData* src, vtkImageAccumulate* accum, QString Filename) : QDockWidget(parent)
+dlg_imageproperty::dlg_imageproperty(QWidget *parent, vtkImageData* src, vtkImageAccumulate* accum, QString const & Filename) : QDockWidget(parent)
 {
 	setupUi(this);
-	enterMsg( tr ("  Filename: %1 ").arg(Filename));
-	updateProperties(src, accum);
+	AddInfo(src, accum, QString("Filename: %1 ").arg(Filename));
 }
 
-void dlg_imageproperty::enterMsg(QString txt)
+void dlg_imageproperty::EnterMsg(QString txt)
 {
 	lWidget->addItem(txt); 
 	lWidget->scrollToBottom();
 }
 
-void dlg_imageproperty::updateProperties( vtkImageData* src, vtkImageAccumulate* accum, bool cl )
+void dlg_imageproperty::Clear()
 {
-	if ( cl ) lWidget->clear();
-	enterMsg( tr( "  Extent: [%1 %2]  [%3 %4]  [%5 %6]" ).arg( src->GetExtent()[0] )
+	lWidget->clear();
+}
+
+void dlg_imageproperty::AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name)
+{
+	EnterMsg(name);
+	EnterMsg( tr( "    Extent: [%1 %2]  [%3 %4]  [%5 %6]" ).arg( src->GetExtent()[0] )
 			  .arg( src->GetExtent()[1] )
 			  .arg( src->GetExtent()[2] )
 			  .arg( src->GetExtent()[3] )
 			  .arg( src->GetExtent()[4] )
 			  .arg( src->GetExtent()[5] ) );
 
-	enterMsg( tr( "  Spacing:  %1  %2  %3" ).arg( src->GetSpacing()[0] )
+	EnterMsg( tr( "    Spacing:  %1  %2  %3" ).arg( src->GetSpacing()[0] )
 			  .arg( src->GetSpacing()[1] )
 			  .arg( src->GetSpacing()[2] ) );
 
-	enterMsg( tr( "  Origin: %1 %2 %3" ).arg( src->GetOrigin()[0] )
+	EnterMsg( tr( "    Origin: %1 %2 %3" ).arg( src->GetOrigin()[0] )
 			  .arg( src->GetOrigin()[1] )
 			  .arg( src->GetOrigin()[2] ) );
 
 	QString txt = src->GetScalarTypeAsString();
-	enterMsg( "  Datatype: " + txt );
+	EnterMsg( "    Datatype: " + txt );
 	
-	enterMsg( tr( "  Components: %1" ).arg( src->GetNumberOfScalarComponents() ) );
+	EnterMsg( tr( "    Components: %1" ).arg( src->GetNumberOfScalarComponents() ) );
 	
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
-		enterMsg(tr("  VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
+		EnterMsg(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
 			.arg(accum->GetVoxelCount())
 			.arg(*accum->GetMin())
 			.arg(*accum->GetMax())

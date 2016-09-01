@@ -322,17 +322,25 @@ void MdiChild::disableRenderWindows(int ch)
 void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
-	{	// TODO: VOLUME: determine whether to always show first volume in main slicer/renderers and adapt accordingly!
+	{	// TODO: VOLUME: at the moment, we always show first volume in main slicer/renderers
 		//int modalityIdx = m_dlgModalities->GetSelected();
 		int modalityIdx = 0;
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 
+		/*
 		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 		{
 			// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
+			// as it is, it's dangerous as it might initialize the "current" histogram with data from modality 0
+			// for all modalities?
 			getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
 			getHistogram()->updateTrf();
 			getHistogram()->redraw();
+		}
+		*/
+		for (int i = 0; i < GetModalities()->size(); ++i)
+		{
+			GetModality(i)->GetTransfer()->ReInitHistogram(GetModality(i)->GetImage());
 		}
 		
 		Raycaster->enableInteractor();
@@ -352,51 +360,54 @@ void MdiChild::enableRenderWindows()
 
 	Raycaster->reInitialize(imageData, polyData);
 
-	if (!IsOnlyPolyDataLoaded())
+	if (IsOnlyPolyDataLoaded())
 	{
-		if(updateSliceIndicator){
-			updateSliceIndicators();
-			camIso();
-		}
-		else{
-			updateSliceIndicator = true;
-		}
+		return;
+	}
+	if(updateSliceIndicator){
+		updateSliceIndicators();
+		camIso();
+	}
+	else{
+		updateSliceIndicator = true;
+	}
 
-		bool anyChannelEnabled = false;
-		QList<iAChannelID> keys = m_channels.keys();
-		for (QList<iAChannelID>::iterator it = keys.begin();
-			it != keys.end();
-			++it)
+	QList<iAChannelID> keys = m_channels.keys();
+	for (QList<iAChannelID>::iterator it = keys.begin();
+		it != keys.end();
+		++it)
+	{
+		iAChannelID key = *it;
+		iAChannelVisualizationData * chData = m_channels.value(key).data();
+		if (chData->IsEnabled()
+			|| (isMagicLensEnabled && (
+				key == slicerXY->getMagicLensInput() ||
+				key == slicerXZ->getMagicLensInput() ||
+				key == slicerYZ->getMagicLensInput()
+				))
+			)
 		{
-			iAChannelID key = *it;
-			iAChannelVisualizationData * chData = m_channels.value(key).data();
-			if (chData->IsEnabled()
-				|| (isMagicLensEnabled && (
-					key == slicerXY->getMagicLensInput() ||
-					key == slicerXZ->getMagicLensInput() ||
-					key == slicerYZ->getMagicLensInput()
-					))
-				)
+			slicerXZ->reInitializeChannel(key, chData);
+			slicerXY->reInitializeChannel(key, chData);
+			slicerYZ->reInitializeChannel(key, chData);
+
+			/*
+			// TODO: VOLUME: check!
+			// if 3d enabled
+			// for 3d renderer, volumes are now enabled through modality explorer!
+			if (chData->Uses3D())
 			{
-				anyChannelEnabled = true;
-				slicerXZ->reInitializeChannel(key, chData);
-				slicerXY->reInitializeChannel(key, chData);
-				slicerYZ->reInitializeChannel(key, chData);
-
-				/*
-				// TODO: VOLUME: check!
-				// if 3d enabled
-				// for 3d renderer, volumes are now enabled through modality explorer!
-				if (chData->Uses3D())
-				{
-					Raycaster->updateChannelImages();
-				}
-				*/
+				Raycaster->updateChannelImages();
 			}
+			*/
 		}
-		if (!anyChannelEnabled && imageData && imgProperty)
+	}
+	if (imageData && imgProperty)
+	{
+		imgProperty->Clear();
+		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			imgProperty->updateProperties(imageData, GetModality(0)->GetTransfer()->GetAccumulate(), true);
+			imgProperty->AddInfo(imageData, GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
 		}
 	}
 }
@@ -605,11 +616,18 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	piecewiseFunction->DeepCopy(volumeStack->getPiecewiseFunction(updateIndex));
 
 	// TODO: VOLUME: update all histograms?
-	getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
-	getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
-	getHistogram()->updateTrf();
-	getHistogram()->redraw();
-	getHistogram()->drawHistogram();
+	if (!getHistogram())
+	{
+		getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
+		getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
+		getHistogram()->updateTrf();
+		getHistogram()->redraw();
+		getHistogram()->drawHistogram();
+	}
+	else
+	{
+		DEBUG_LOG("Histogram is not set!");
+	}
 
 	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
@@ -1617,16 +1635,97 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
 	return true;
 }
 
+// Just proxies for histogram functions:
+// {
 
 bool MdiChild::loadTransferFunction()
 {
+	if (!getHistogram()) return false;
 	return getHistogram()->loadTransferFunction();
 }
 
 bool MdiChild::saveTransferFunction()
 {
+	if (!getHistogram()) return false;
 	return getHistogram()->saveTransferFunction();
 }
+
+int MdiChild::deletePoint()
+{
+	if (!getHistogram()) return -1;
+	return getHistogram()->deletePoint();
+}
+
+void MdiChild::resetView()
+{
+	if (!getHistogram()) return;
+	getHistogram()->resetView();
+}
+
+void MdiChild::changeColor()
+{
+	if (!getHistogram()) return;
+	getHistogram()->changeColor();
+}
+
+int MdiChild::getSelectedFuncPoint()
+{
+	if (!getHistogram()) return -1;
+	return getHistogram()->getSelectedFuncPoint();
+}
+
+int MdiChild::isFuncEndPoint(int index)
+{
+	if (!getHistogram()) return -1;
+	return getHistogram()->isFuncEndPoint(index);
+}
+
+bool MdiChild::isUpdateAutomatically()
+{
+	if (!getHistogram()) return false;
+	return getHistogram()->isUpdateAutomatically();
+}
+
+void MdiChild::setHistogramFocus()
+{
+	if (!getHistogram()) return;
+	getHistogram()->setFocus(Qt::OtherFocusReason);
+}
+
+void MdiChild::redrawHistogram()
+{
+	if (!getHistogram()) return;
+	getHistogram()->redraw();
+}
+
+void MdiChild::resetTrf()
+{
+	if (!getHistogram()) return;
+	getHistogram()->resetTrf();
+	addMsg(tr("Resetting Transfer Functions."));
+	iAHistogramWidget const *  hist = getHistogram();
+	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
+		.arg(hist->GetData()->GetDataRange(0)));
+	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
+		.arg(hist->GetData()->GetDataRange(1)));
+}
+
+std::vector<dlg_function*> & MdiChild::getFunctions()
+{
+	if (!getHistogram())
+	{
+		static std::vector<dlg_function*> nullVec;
+		return nullVec;
+	}
+	return getHistogram()->getFunctions();
+}
+
+iAHistogramWidget * MdiChild::getHistogram()
+{
+	return m_dlgModalities->GetHistogram();
+}
+
+// }
 
 
 void MdiChild::saveRenderWindow(vtkRenderWindow *renderWindow)
@@ -1716,43 +1815,16 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 }
 
 
-int MdiChild::deletePoint()
-{
-	return getHistogram()->deletePoint();
-}
-
-
-void MdiChild::changeColor()
-{
-	getHistogram()->changeColor();
-}
-
-
 void MdiChild::autoUpdate(bool toggled)
 {
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
-		modTrans->GetHistogram()->autoUpdate(toggled);
+		if (modTrans->GetHistogram())
+		{
+			modTrans->GetHistogram()->autoUpdate(toggled);
+		}
 	}
-}
-
-
-void MdiChild::resetView()
-{
-	getHistogram()->resetView();
-}
-
-
-void MdiChild::resetTrf()
-{
-	getHistogram()->resetTrf();
-	addMsg(tr("Resetting Transfer Functions."));
-	iAHistogramWidget const *  hist = getHistogram();
-	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-		.arg(hist->GetData()->GetDataRange(0)));
-	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-		.arg(hist->GetData()->GetDataRange(1)));
 }
 
 
@@ -2128,32 +2200,6 @@ void MdiChild::addMsg(QString txt)
 void MdiChild::addStatusMsg(QString txt)
 {
 	m_mainWnd->statusBar()->showMessage(txt, 10000);
-}
-
-int MdiChild::getSelectedFuncPoint()
-{
-	if (getHistogram() != NULL)
-		return getHistogram()->getSelectedFuncPoint();
-
-	return -1;
-}
-
-int MdiChild::isFuncEndPoint(int index)
-{
-	return getHistogram()->isFuncEndPoint(index);
-}
-
-bool MdiChild::isUpdateAutomatically()
-{
-	if (getHistogram() != NULL)
-		return getHistogram()->isUpdateAutomatically();
-
-	return false;
-}
-
-void MdiChild::setHistogramFocus()
-{
-	getHistogram()->setFocus(Qt::OtherFocusReason);
 }
 
 bool MdiChild::isMaximized()
@@ -2689,25 +2735,9 @@ void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> img
 
 
 
-std::vector<dlg_function*> & MdiChild::getFunctions()
-{
-	return getHistogram()->getFunctions();
-}
-
-iAHistogramWidget * MdiChild::getHistogram()
-{
-	return m_dlgModalities->GetHistogram();
-}
-
-
 vtkImageAccumulate * MdiChild::getImageAccumulate()
 {
 	return GetModality(m_dlgModalities->GetSelected())->GetTransfer()->GetAccumulate();
-}
-
-void MdiChild::redrawHistogram()
-{
-	getHistogram()->redraw();
 }
 
 void MdiChild::updateLayout()
