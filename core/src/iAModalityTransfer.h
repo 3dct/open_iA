@@ -47,7 +47,7 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> otf;
 	int m_binCount;
 	double m_range;
-	
+	bool m_useAccumulate;
 	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData);
 public:
 	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);

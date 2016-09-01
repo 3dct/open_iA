@@ -39,7 +39,8 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 	ctf = GetDefaultColorTransferFunction(imgData);
 	otf = GetDefaultPiecewiseFunction(imgData);
 	accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-	if (imgData->GetNumberOfScalarComponents() == 1) //No histogram for rgb, rgba or vector pixel type images)
+	m_useAccumulate = imgData->GetNumberOfScalarComponents() == 1;
+	if (m_useAccumulate)
 	{
 		accumulate->ReleaseDataFlagOn();
 		accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
@@ -58,7 +59,8 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 
 void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData)
 {
-	if (imgData->GetNumberOfScalarComponents() > 1) //No histogram for rgb, rgba or vector pixel type images)
+	m_useAccumulate = imgData->GetNumberOfScalarComponents() == 1;
+	if (!m_useAccumulate)
 	{
 		return;
 	}
@@ -79,7 +81,7 @@ void iAModalityTransfer::ResetTransferFunctions(vtkSmartPointer<vtkImageData> im
 
 void iAModalityTransfer::SetHistogramBins(int binCount)
 {
-	if (imgData->GetNumberOfScalarComponents() > 1) //No histogram for rgb, rgba or vector pixel type images)
+	if (!m_useAccumulate)
 	{
 		return;
 	}
