@@ -4693,14 +4693,14 @@ bool dlg_FiberScout::initParallelCoordinates( FilterID fid )
 
 	iovPC = new dlg_IOVPC( this );
 	iovPP = new dlg_IOVPP( this );
-	iovPC->setMinimumHeight( mdiChild->size().height() / 3 );
-	iovPC->setMaximumHeight( mdiChild->size().height() / 3 );
+	//iovPC->setMinimumHeight( mdiChild->size().height() / 3 );
+	//iovPC->setMaximumHeight( mdiChild->size().height() / 3 );
 	iovPC->setMinimumWidth( initPCWidth );
-	iovPP->setMinimumHeight( mdiChild->size().height() / 3 );
-	iovPP->setMaximumHeight( mdiChild->size().height() / 3 );
+	//iovPP->setMinimumHeight( mdiChild->size().height() / 3 );
+	//iovPP->setMaximumHeight( mdiChild->size().height() / 3 );
 	iovPP->setMinimumWidth( initPPWidth );
-	this->setMinimumHeight( mdiChild->size().height() / 3 );
-	this->setMaximumHeight( mdiChild->size().height() / 3 );
+	//this->setMinimumHeight( mdiChild->size().height() / 3 );
+	//this->setMaximumHeight( mdiChild->size().height() / 3 );
 	this->setMaximumWidth( initEExpWidth );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, this );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );

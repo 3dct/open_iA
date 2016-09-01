@@ -39,10 +39,12 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 	ctf = GetDefaultColorTransferFunction(imgData);
 	otf = GetDefaultPiecewiseFunction(imgData);
 	accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-	accumulate->ReleaseDataFlagOn();
-	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
-	UpdateAccumulateImageData(imgData);
-
+	if (imgData->GetNumberOfScalarComponents() == 1) //No histogram for rgb, rgba or vector pixel type images)
+	{
+		accumulate->ReleaseDataFlagOn();
+		accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
+		UpdateAccumulateImageData(imgData);
+	}
 	histogram = new iAHistogramWidget(parent,
 		/* MdiChild */ 0, // todo: remove!
 		imgData->GetScalarRange(),
@@ -56,6 +58,10 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 
 void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData)
 {
+	if (imgData->GetNumberOfScalarComponents() > 1) //No histogram for rgb, rgba or vector pixel type images)
+	{
+		return;
+	}
 	double rangeMin = imgData->GetScalarRange()[0];
 	double rangeMax = imgData->GetScalarRange()[1];
 	m_range = rangeMax - rangeMin;
@@ -73,6 +79,10 @@ void iAModalityTransfer::ResetTransferFunctions(vtkSmartPointer<vtkImageData> im
 
 void iAModalityTransfer::SetHistogramBins(int binCount)
 {
+	if (imgData->GetNumberOfScalarComponents() > 1) //No histogram for rgb, rgba or vector pixel type images)
+	{
+		return;
+	}
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
 	accumulate->SetComponentSpacing(m_range / m_binCount, 0.0, 0.0);
 	accumulate->Update();

@@ -327,11 +327,14 @@ void MdiChild::enableRenderWindows()
 		int modalityIdx = 0;
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 
-		// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
-		getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
-		getHistogram()->updateTrf();
-		getHistogram()->redraw();
-
+		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
+		{
+			// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
+			getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
+			getHistogram()->updateTrf();
+			getHistogram()->redraw();
+		}
+		
 		Raycaster->enableInteractor();
 
 		slicerXZ->enableInteractor();
@@ -391,7 +394,7 @@ void MdiChild::enableRenderWindows()
 				*/
 			}
 		}
-		if (!anyChannelEnabled)
+		if (!anyChannelEnabled && imageData && imgProperty)
 		{
 			imgProperty->updateProperties(imageData, GetModality(0)->GetTransfer()->GetAccumulate(), true);
 		}
@@ -469,6 +472,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		imageData->DeepCopy(image);
 	}
 
+	// TODO: VOLUME: initialize modality... ?
 	initView( title );
 	setWindowTitle( title );
 	Raycaster->ApplySettings(renderSettings);
@@ -687,7 +691,8 @@ void MdiChild::setupViewInternal(bool active)
 
 	if (active) changeVisibility(visibility);
 
-	if (imageData->GetNumberOfScalarComponents() > 1)
+	if (imageData->GetNumberOfScalarComponents() > 1 &&
+		imageData->GetNumberOfScalarComponents() < 4 )
 	{
 		r->spinBoxRC->setRange(0, imageData->GetNumberOfScalarComponents() - 1);
 		r->stackedWidgetRC->setCurrentIndex(1);
@@ -2053,11 +2058,16 @@ bool MdiChild::initView( QString const & title )
 		extent[2] == 0 && extent[3] == -1 &&
 		extent[4] == 0 && extent[5] == -1) //Polygonal mesh is loaded
 		showPoly();
-	else //Scalar field is loaded
+
+	tabifyDockWidget(logs, histogramContainer);
+	this->addImageProperty();
+	if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
 	{
-		tabifyDockWidget(logs, histogramContainer);
-		this->addImageProperty();
 		this->addProfile();
+	}
+	else
+	{
+		HideHistogram();
 	}
 
 	connect(Raycaster->getObserverFPProgress(), SIGNAL( oprogress(int) ), this, SLOT( updateProgressBar(int))) ;

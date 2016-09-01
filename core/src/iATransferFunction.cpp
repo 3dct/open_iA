@@ -33,7 +33,10 @@ vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(vtkSmartPointe
 {
 	auto pWF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	pWF->RemoveAllPoints();
-	pWF->AddPoint(imageData->GetScalarRange()[0], 0.0);
+	if ( imageData->GetNumberOfScalarComponents() == 1 )
+		pWF->AddPoint ( imageData->GetScalarRange()[0], 0.0 );
+	else //Set range of rgb, rgba or vector pixel type images to fully opaque
+		pWF->AddPoint( imageData->GetScalarRange()[0], 1.0 );
 	pWF->AddPoint(imageData->GetScalarRange()[1], 1.0);
 	return pWF;
 }

@@ -30,25 +30,25 @@ using namespace std;
 /**
  * An itk fhw cast image filter. Basic filter is itkCastImageFilter.
  * Further details at http://www.itk.org/Doxygen/html/classitk_1_1CastImageFilter.html
- * \remarks	Kana, 01/12/2010. 
+ * \remarks	Kana, 01/12/2010.
  */
 
 class iACastImageFilter : public iAFilter
 {
 public:
 	iACastImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iACastImageFilter( );
+	~iACastImageFilter();
 
-	void fhwCastImage( );
-	void DataTypeConversion( );
+	void fhwCastImage();
+	void DataTypeConversion();
 
 	/**
-	 * Sets an odt parameters. 
+	 * Sets an odt parameters.
 	 * \param	odt	Output image datatype.
 	 */
 
-	void setODTParameters( string odt ) { m_odt = odt;};
-	void setDTCParameters( string type, float min, float max, double outmin, double outmax, int dtcdov  ) { m_type = type; m_min = min; m_max = max; m_outmin = outmin; m_outmax = outmax; m_dov = dtcdov;};
+	void setODTParameters( string odt ) { m_odt = odt; };
+	void setDTCParameters( string type, float min, float max, double outmin, double outmax, int dtcdov ) { m_type = type; m_min = min; m_max = max; m_outmin = outmin; m_outmax = outmax; m_dov = dtcdov; };
 
 protected:
 	void run();

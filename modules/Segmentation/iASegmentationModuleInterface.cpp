@@ -309,27 +309,9 @@ void iASegmentationModuleInterface::watershed_seg()
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }
 
-void iASegmentationModuleInterface::saveMWSRGBImage( int state )
-{
-	if ( state == Qt::Checked )
-	{
-		mwsRGBFilePath = QFileDialog::getSaveFileName( 0, tr( "Save RGB Image" ), m_mainWnd->getPath(), tr( "mhd Files (*.mhd *.MHD)" ) );
-		if ( mwsRGBFilePath.isEmpty() )
-		{
-			QObject *signalSender = sender();
-			QCheckBox *checkBox = static_cast<QCheckBox*>( signalSender );
-			checkBox->setCheckState( Qt::Unchecked );
-			QMessageBox msgBox;
-			msgBox.setText( "No destination file was specified!" );
-			msgBox.setWindowTitle( "iAnalyse -- Porosity Measurement" );
-			msgBox.exec();
-			return;
-		}
-	}
-}
-
 void iASegmentationModuleInterface::morph_watershed_seg()
 {
+	//set parameters
 	QSettings settings;
 	mwsLevel = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
 	mwsMarkWSLines = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
@@ -343,20 +325,17 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 		"Note 2: Mark WS Lines label whatershed lines with 0, background with 1. )</p>"
 		);
 
-	//set parameters
-	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) << tr( "$Save RGB Image" ) );
+	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) );
 	QList<QVariant> inPara;
-	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected ) << tr( "%1" ).arg( false );
-	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", 4, inList, inPara, fDescr );
-
-	QCheckBox *cb_rgbSave = dlg.findChild<QCheckBox *>( "Save RGB ImageCheckBox" );
-	connect( cb_rgbSave, SIGNAL( stateChanged( int ) ), this, SLOT( saveMWSRGBImage( int ) ) );
+	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected );
+	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", 3, inList, inPara, fDescr );
 
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 		
-	mwsLevel = dlg.getValues()[0]; mwsMarkWSLines = dlg.getCheckValues()[1]; 
-	mwsFullyConnected = dlg.getCheckValues()[2]; mwsSaveRGBImage = dlg.getCheckValues()[3];
+	mwsLevel = dlg.getValues()[0]; 
+	mwsMarkWSLines = dlg.getCheckValues()[1]; 
+	mwsFullyConnected = dlg.getCheckValues()[2];
 	
 	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
 	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
@@ -370,7 +349,7 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, MORPH_WATERSHED,
 																   m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setMWSParameters( mwsRGBFilePath, mwsLevel, mwsMarkWSLines, mwsFullyConnected, mwsSaveRGBImage );
+	thread->setMWSParameters( mwsLevel, mwsMarkWSLines, mwsFullyConnected );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

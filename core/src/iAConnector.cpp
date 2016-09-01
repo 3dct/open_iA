@@ -22,7 +22,7 @@
 
 #include "pch.h"
 #include "iAConnector.h"
-#include "iATypedCallHelper.h"
+#include "iAExtendedTypedCallHelper.h"
 #include "iAToolsITK.h"
 
 #include <vtkImageData.h>
@@ -31,6 +31,7 @@
 
 #include <itkVTKImageImport.h>
 #include <itkVTKImageExport.h>
+
 
 
 /**
@@ -123,6 +124,8 @@ iAConnector::iAConnector() :
 	m_VTKImage(vtkSmartPointer<vtkImageData>::New()),
 	m_itkScalarType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE),
 	m_isTypeInitialized(false),
+	m_itkPixelType( itk::ImageIOBase::UNKNOWNPIXELTYPE ),
+	m_isPixelTypeInitialized( false ),
 	m_vtkImporter(vtkSmartPointer<vtkImageImport>::New()),
 	m_vtkExporter(vtkSmartPointer<vtkImageExport>::New())
 {}
@@ -142,9 +145,10 @@ void iAConnector::SetImage( ImageBaseType * image )
 
 void iAConnector::UpdateImageVTK()
 {
-	iAConnector::ITKScalarPixelType pixelType = GetITKScalarPixelType();
+	iAConnector::ITKScalarPixelType componentType = GetITKScalarPixelType();
+	iAConnector::ITKPixelType pixelType = GetITKPixelType();
 	m_VTKImage = 0;
-	ITK_TYPED_CALL(SetupPipelineITKtoVTK, pixelType, m_ITKImage, m_itkExporter, m_vtkImporter);
+	ITK_EXTENDED_TYPED_CALL(SetupPipelineITKtoVTK, componentType, pixelType, m_ITKImage, m_itkExporter, m_vtkImporter);
 	m_VTKImage = m_vtkImporter->GetOutput();
 }
 
@@ -160,8 +164,9 @@ void iAConnector::UpdateImageITK()
 {
 	m_isTypeInitialized = false;
 	int scalarType = m_VTKImage->GetScalarType();
+	int compCount = m_VTKImage->GetNumberOfScalarComponents();
 	m_ITKImage = 0;
-	VTK_TYPED_CALL(SetupPipelineVTKtoITK, scalarType, m_VTKImage, m_vtkExporter, m_itkImporter);
+	VTK_EXTENDED_TYPED_CALL( SetupPipelineVTKtoITK, scalarType, compCount, m_VTKImage, m_vtkExporter, m_itkImporter );
 	m_ITKImage = dynamic_cast<ImageBaseType*>(m_itkImporter->GetOutputs()[0].GetPointer());
 }
 
@@ -186,6 +191,19 @@ iAConnector::ITKScalarPixelType iAConnector::GetITKScalarPixelType()
 	if (!m_isTypeInitialized)
 		UpdateScalarType();
 	return m_itkScalarType;
+}
+
+void iAConnector::UpdatePixelType()
+{
+	m_isPixelTypeInitialized = true;
+	m_itkPixelType = ::GetITKPixelType( m_ITKImage );
+}
+
+iAConnector::ITKPixelType iAConnector::GetITKPixelType()
+{
+	if ( !m_isPixelTypeInitialized )
+		UpdatePixelType();
+	return m_itkPixelType;
 }
 
 void iAConnector::Modified()

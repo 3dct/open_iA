@@ -42,6 +42,7 @@ public:
 	typedef itk::ImageBase< 3 >					ImageBaseType;
 	typedef ImageBaseType::Pointer				ImagePointer;
 	typedef itk::ImageIOBase::IOComponentType	ITKScalarPixelType;
+	typedef itk::ImageIOBase::IOPixelType		ITKPixelType;
 	typedef itk::ProcessObject::Pointer			ProcessObjectPointer;
 
 	// Methods
@@ -60,6 +61,7 @@ public:
 
 	// -Helper methods
 	ITKScalarPixelType GetITKScalarPixelType();
+	ITKPixelType GetITKPixelType();
 	void Modified();
 
 protected:
@@ -67,12 +69,15 @@ protected:
 	void UpdateImageITK();
 	void UpdateImageVTK();
 	void UpdateScalarType();	
+	void UpdatePixelType();
 
 protected:
 	ImagePointer m_ITKImage; //The pointer for the ITK image
 	vtkSmartPointer<vtkImageData> m_VTKImage; //The pointer for the VTK image
 	ITKScalarPixelType m_itkScalarType;
 	bool m_isTypeInitialized;
+	ITKPixelType m_itkPixelType;
+	bool m_isPixelTypeInitialized;
 
 	ProcessObjectPointer m_itkImporter;//itk::VTKImageImport
 	ProcessObjectPointer m_itkExporter;//itk::VTKImageExport

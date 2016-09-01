@@ -25,6 +25,7 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include "mdichild.h"
 
 #ifdef __GNUC__
 #include <inttypes.h>
@@ -65,11 +66,12 @@ int watershed_template( double l, double t, iAProgress* p, iAConnector* image, v
 
 	filter->Update();
 
-	typedef itk::Image< typename WIFType::OutputImagePixelType, 3 > IntImageType;
-	typedef itk::Image<	unsigned long, 3>  LongImageType;
+	typedef itk::Image< typename WIFType::OutputImagePixelType, DIM > IntImageType;
+	typedef itk::Image<	unsigned long, DIM>  LongImageType;
 	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
 	typename CastFilterType::Pointer longcaster = CastFilterType::New();
 	longcaster->SetInput(0, filter->GetOutput() );
+	
 	image->SetImage( longcaster->GetOutput() );
 	image->Modified();
  
@@ -84,15 +86,12 @@ int watershed_template( double l, double t, iAProgress* p, iAConnector* image, v
 }
 
 template<class T>
-int morph_watershed_template( QString mwsRGBFilePath, double mwsLevel, bool mwsMarkWSLines, bool mwsFullyConnected, bool mwsSaveRGBImage,
-							  iAProgress* p, iAConnector* image, vtkImageData* imageDataNew )
+int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFullyConnected, iAProgress* p,
+							  iAConnector* image, vtkImageData* imageDataNew, MdiChild* mdiChild )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< unsigned long, DIM > OutputImageType;
-	typedef itk::RGBPixel< unsigned char > RGBPixelType;
-	typedef itk::Image< RGBPixelType, DIM > RGBImageType;
-	typedef  itk::ImageFileWriter< RGBImageType  > WriterType;
-
+	
 	typedef itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType> MWIFType;
 	typename MWIFType::Pointer mWSFilter = MWIFType::New();
 	mwsMarkWSLines ? mWSFilter->MarkWatershedLineOn() : mWSFilter->MarkWatershedLineOff();
@@ -103,34 +102,11 @@ int morph_watershed_template( QString mwsRGBFilePath, double mwsLevel, bool mwsM
 	p->Observe( mWSFilter );
 	mWSFilter->Update();
 
-	typedef itk::Image< typename MWIFType::OutputImagePixelType, 3 > IntImageType;
-	typedef itk::Image<	unsigned long, 3>  LongImageType;
+	typedef itk::Image< typename MWIFType::OutputImagePixelType, DIM > IntImageType;
+	typedef itk::Image<	unsigned long, DIM>  LongImageType;
 	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
 	typename CastFilterType::Pointer longcaster = CastFilterType::New();
 	longcaster->SetInput( 0, mWSFilter->GetOutput() );
-
-	typedef typename MWIFType::OutputImageType  LabeledImageType;
-	typedef itk::Functor::ScalarToRGBPixelFunctor<unsigned long> ColorMapFunctorType;
-	typedef itk::UnaryFunctorImageFilter<LabeledImageType, RGBImageType, ColorMapFunctorType> ColorMapFilterType;
-	typename ColorMapFilterType::Pointer colormapper = ColorMapFilterType::New();
-	colormapper->SetInput( mWSFilter->GetOutput() );
-
-	if ( !mwsRGBFilePath.isEmpty() && mwsSaveRGBImage )
-	{
-		WriterType::Pointer writer = WriterType::New();
-		writer->SetFileName( mwsRGBFilePath.toStdString() );
-		writer->SetInput( colormapper->GetOutput() );
-		try
-		{
-			writer->Update();
-		}
-		catch ( itk::ExceptionObject & excep )
-		{
-			std::cerr << "Exception caught !" << std::endl;
-			std::cerr << excep << std::endl;
-			return EXIT_FAILURE;
-		}
-	}
 
 	image->SetImage( longcaster->GetOutput() );
 	image->Modified();
@@ -199,6 +175,8 @@ void iAWatershedSegmentation::watershed(  )
 
 void iAWatershedSegmentation::morph_watershed()
 {
+	MdiChild* mdiChild = dynamic_cast<MdiChild*>( parent() );
+	
 	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
 			.arg( getFilterName() ) );
 	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
@@ -206,8 +184,8 @@ void iAWatershedSegmentation::morph_watershed()
 	try
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( morph_watershed_template, itkType, mwsRGBFilePath, mwsLevel, mwsMarkWSLines,
-						mwsFullyConnected, mwsSaveRGBImage, getItkProgress(), getConnector(), imageDataNew );
+		ITK_TYPED_CALL( morph_watershed_template, itkType, mwsLevel, mwsMarkWSLines,
+						mwsFullyConnected, getItkProgress(), getConnector(), imageDataNew, mdiChild );
 	}
 	catch ( itk::ExceptionObject &excep )
 	{
@@ -222,7 +200,5 @@ void iAWatershedSegmentation::morph_watershed()
 	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
 			.arg( getFilterName() )
 			.arg( Stop() ) );
-	if ( mwsSaveRGBImage )
-		addMsg( tr( "RGB image saved to : %1" ).arg( mwsRGBFilePath ) );
 	emit startUpdate();
 }
