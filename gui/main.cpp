@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
 	mainWin.show();
 
-	CheckSCIFIO(argv[0]);
+	CheckSCIFIO();
 
 	return app.exec();
 }

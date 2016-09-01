@@ -2,12 +2,13 @@
 
 #include "iAConsole.h"
 
+#include <QCoreApplication>
 #include <QFileInfo>
 
-void CheckSCIFIO(char const * progPath)
+void CheckSCIFIO()
 {
 #ifdef USE_SCIFIO
-	// Work around for ITK requiring SCIFIO_PATH to be set when compiled with SCIFIO
+	// Workaround for ITK requiring SCIFIO_PATH to be set when compiled with SCIFIO
 	const char* SCIFIO_PATH = "SCIFIO_PATH";
 	QString envScifioPath(getenv(SCIFIO_PATH));
 
@@ -16,7 +17,7 @@ void CheckSCIFIO(char const * progPath)
 		return;
 	}
 
-	QFileInfo fi(progPath);
+	QFileInfo fi(QCoreApplication::applicationDirPath());
 	QString scifioPath(fi.absolutePath() + "/scifio_jars");
 	if (!QFile::exists(scifioPath))
 	{
