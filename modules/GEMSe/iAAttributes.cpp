@@ -38,6 +38,10 @@ QSharedPointer<iAAttributes> iAAttributes::Create(QTextStream & in)
 		{
 			result->m_attributes.push_back(descriptor);
 		}
+		else
+		{
+			return QSharedPointer<iAAttributes>(new iAAttributes);
+		}
 	}
 	return result;
 }
