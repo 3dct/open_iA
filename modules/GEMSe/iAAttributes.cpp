@@ -32,7 +32,12 @@ QSharedPointer<iAAttributes> iAAttributes::Create(QTextStream & in)
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();
-		result->m_attributes.push_back(iAAttributeDescriptor::Create(line));
+		QSharedPointer<iAAttributeDescriptor> descriptor =
+			iAAttributeDescriptor::Create(line);
+		if (descriptor)
+		{
+			result->m_attributes.push_back(descriptor);
+		}
 	}
 	return result;
 }

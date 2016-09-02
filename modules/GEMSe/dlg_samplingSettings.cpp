@@ -89,7 +89,7 @@ void dlg_samplingSettings::ChooseParameterDescriptor()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Parameter Descriptor"),
 		QString(), // TODO get directory of current file
-		tr("Comma separated file (*.csv);;"));
+		tr("Parameter Descriptor Text File (*.txt);;All Files (*);;"));
 	if (!fileName.isEmpty())
 	{
 		leParamDescriptor->setText(fileName);
@@ -123,8 +123,12 @@ ParameterInputs CreateParameterLine(
 {
 	ParameterInputs result;
 	result.label = new QLabel(pName);
-	result.from = new QLineEdit(QString::number(descriptor->GetMin()));
-	result.to = new QLineEdit(QString::number(descriptor->GetMax()));
+	result.from = new QLineEdit(QString::number(descriptor->GetMin(),
+		descriptor->GetValueType() == Discrete ? 'd' : 'g',
+		descriptor->GetValueType() == Discrete ? 0 : 6));
+	result.to = new QLineEdit(QString::number(descriptor->GetMax(),
+		descriptor->GetValueType() == Discrete ? 'd' : 'g',
+		descriptor->GetValueType() == Discrete ? 0 : 6));
 	gridLay->addWidget(result.label, curGridLine, 0);
 	gridLay->addWidget(result.from, curGridLine, 1);
 	gridLay->addWidget(result.to, curGridLine, 2);
@@ -161,6 +165,11 @@ void dlg_samplingSettings::LoadDescriptor(QString const & fileName)
 		delete m_paramInputs[i].from;
 		delete m_paramInputs[i].to;
 		delete m_paramInputs[i].logScale;
+	}
+	if (m_descriptor->size() == 0)
+	{
+		DEBUG_LOG("Invalid descriptor file!");
+		return;
 	}
 	m_paramInputs.clear();
 	int curGridLine = m_startLine+1;

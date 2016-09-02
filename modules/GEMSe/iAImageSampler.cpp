@@ -143,6 +143,7 @@ void iAImageSampler::run()
 				value = QString::number(static_cast<long>(paramSet.at(i)));
 				break;
 			case Categorical:
+				// TODO: think about writing actual category names instead of indices as params?
 				value = QString::number(static_cast<long>(paramSet.at(i)));
 				break;
 			}
