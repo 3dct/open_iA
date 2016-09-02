@@ -120,11 +120,16 @@ void iAImageSampler::run()
 		}
 		StatusMsg(QString("Sampling run %1:").arg(m_curLoop));
 		QString outputDirectory = m_outputBaseDir + "/sample" + QString::number(m_curLoop);
-		QDir sampleOutputDir(outputDirectory);
-
+		QDir d(QDir::root());
+		if (!d.mkpath(outputDirectory))
+		{
+			DEBUG_LOG(QString("Could not create output directory '%1'").arg(outputDirectory));
+			return;
+		}
+		QString outputFile = outputDirectory + "\\label.mhd";
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
-		argumentList << outputDirectory;
+		argumentList << outputFile;
 
 		for (int i = 0; i < m_modalities->size(); ++i)
 		{

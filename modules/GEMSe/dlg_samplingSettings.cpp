@@ -124,11 +124,11 @@ ParameterInputs CreateParameterLine(
 	ParameterInputs result;
 	result.label = new QLabel(pName);
 	result.from = new QLineEdit(QString::number(descriptor->GetMin(),
-		descriptor->GetValueType() == Discrete ? 'd' : 'g',
-		descriptor->GetValueType() == Discrete ? 0 : 6));
+		descriptor->GetValueType() != Continuous? 'd' : 'g',
+		descriptor->GetValueType() != Continuous ? 0 : 6));
 	result.to = new QLineEdit(QString::number(descriptor->GetMax(),
-		descriptor->GetValueType() == Discrete ? 'd' : 'g',
-		descriptor->GetValueType() == Discrete ? 0 : 6));
+		descriptor->GetValueType() != Continuous ? 'd' : 'g',
+		descriptor->GetValueType() != Continuous ? 0 : 6));
 	gridLay->addWidget(result.label, curGridLine, 0);
 	gridLay->addWidget(result.from, curGridLine, 1);
 	gridLay->addWidget(result.to, curGridLine, 2);
