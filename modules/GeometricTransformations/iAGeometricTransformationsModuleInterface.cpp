@@ -51,18 +51,32 @@ void iAGeometricTransformationsModuleInterface::resampler()
 {
 	//set parameters
 	PrepareActiveChild();
-	QStringList inList = (QStringList() << tr( "#OriginX" ) << tr( "#OriginY" ) << tr( "#OriginZ" )
-		<< tr( "#SpacingX" ) << tr( "#SpacingY" ) << tr( "#SpacingZ" )
-		<< tr( "#SizeX" ) << tr( "#SizeY" ) << tr( "#SizeZ" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( rOriginX ) << tr( "%1" ).arg( rOriginY ) << tr( "%1" ).arg( rOriginZ )
+	QStringList inList = (QStringList() 
+		<< tr("#OriginX") << tr("#OriginY") << tr("#OriginZ")
+		<< tr("#SpacingX") << tr("#SpacingY") << tr("#SpacingZ")
+		<< tr("#SizeX") << tr("#SizeY") << tr("#SizeZ" ))
+		<< tr("+Interpolator");
+
+	QStringList interpolators;
+	interpolators
+		<< QString("!")+iAGeometricTransformations::InterpLinear
+		<< iAGeometricTransformations::InterpNearestNeighbour
+		<< iAGeometricTransformations::InterpBSpline
+		<< iAGeometricTransformations::InterpWindowedSinc
+	;
+	QList<QVariant> inPara;
+	inPara
+		<< tr( "%1" ).arg( rOriginX ) << tr( "%1" ).arg( rOriginY ) << tr( "%1" ).arg( rOriginZ )
 		<< tr( "%1" ).arg( m_childData.imgData->GetSpacing()[1] )
 		<< tr( "%1" ).arg( m_childData.imgData->GetSpacing()[0] )
 		<< tr( "%1" ).arg( m_childData.imgData->GetSpacing()[2] )
 		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[1] )
 		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[3] )
-		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[5] );
+		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[5] )
+		<< interpolators;
 
-	dlg_commoninput dlg( m_mainWnd, "Resampler", 9, inList, inPara, NULL );
+
+	dlg_commoninput dlg( m_mainWnd, "Resampler", 10, inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -75,6 +89,7 @@ void iAGeometricTransformationsModuleInterface::resampler()
 	rSizeX = dlg.getValues()[6];
 	rSizeY = dlg.getValues()[7];
 	rSizeZ = dlg.getValues()[8];
+	rInterpolator = dlg.getComboBoxValues()[9];
 
 	//prepare
 	QString filterName = tr( "Resampler" );
@@ -85,7 +100,12 @@ void iAGeometricTransformationsModuleInterface::resampler()
 	iAGeometricTransformations* thread = new iAGeometricTransformations( filterName, RESAMPLER,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setRParameters( rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ );
+	thread->setRParameters(
+		rOriginX, rOriginY, rOriginZ,
+		rSpacingX, rSpacingY, rSpacingZ,
+		rSizeX, rSizeY, rSizeZ,
+		rInterpolator
+	);
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

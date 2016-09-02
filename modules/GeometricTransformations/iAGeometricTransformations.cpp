@@ -25,7 +25,9 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkBSplineInterpolateImageFunction.h>
 #include <itkImageIOBase.h>
+#include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
 #include <itkExtractImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
@@ -34,6 +36,12 @@
 #include <vtkImageData.h>
 
 #include <QLocale>
+
+const QString iAGeometricTransformations::InterpLinear("Linear");
+const QString iAGeometricTransformations::InterpNearestNeighbour("Nearest Neighbour");
+const QString iAGeometricTransformations::InterpBSpline("BSpline");
+const QString iAGeometricTransformations::InterpWindowedSinc("Windowed Sinc");
+
 
 /**
 * template extractImage
@@ -116,7 +124,12 @@ int extractImage_template( double indexX, double indexY, double indexZ, double s
 * \return	int Status-Code. 
 */
 template<class T> 
-int resampler_template( double originX, double originY, double originZ, double spacingX, double spacingY, double spacingZ, double sizeX, double sizeY, double sizeZ, iAProgress* p, iAConnector* image  )
+int resampler_template(
+	double originX, double originY, double originZ,
+	double spacingX, double spacingY, double spacingZ,
+	double sizeX, double sizeY, double sizeZ,
+	QString const & interpolator,
+	iAProgress* p, iAConnector* image  )
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
@@ -127,16 +140,36 @@ int resampler_template( double originX, double originY, double originZ, double s
 	typename ResampleFilterType::SpacingType spacing; spacing[0] = spacingX; spacing[1] = spacingY; spacing[2] = spacingZ;
 	typename ResampleFilterType::SizeType size; size[0] = sizeX; size[1] = sizeY; size[2] = sizeZ;
 
-
-	// 	typedef itk::Function::HammingWindowFunction<3> WindowFunctionType; 
-	// 	typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType; 
-	// 	typedef itk::WindowedSincInterpolateImageFunction<
-	// 		InputImageType, 3, 
-	// 		WindowFunctionType, 
-	// 		ConditionType, 
-	// 		double> InterpolatorType;
-	// 	InterpolatorType::Pointer interpolator = InterpolatorType::New();
-	// 	resampler->SetInterpolator(interpolator);
+	if (interpolator == iAGeometricTransformations::InterpLinear)
+	{
+		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolator == iAGeometricTransformations::InterpNearestNeighbour)
+	{
+		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolator == iAGeometricTransformations::InterpBSpline)
+	{
+		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolator == iAGeometricTransformations::InterpWindowedSinc)
+	{
+		typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
+		typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
+		typedef itk::WindowedSincInterpolateImageFunction<
+			InputImageType, 3,
+			WindowFunctionType,
+			ConditionType,
+			double> InterpolatorType;
+		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
 	resampler->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 	resampler->SetOutputOrigin( origin );
 	resampler->SetOutputSpacing( spacing );
@@ -256,7 +289,11 @@ void iAGeometricTransformations::resampler( )
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 		ITK_TYPED_CALL(resampler_template, itkType,
-			originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ, getItkProgress(), getConnector());
+			originX, originY, originZ,
+			spacingX, spacingY, spacingZ,
+			sizeX, sizeY, sizeZ,
+			interpolator,
+			getItkProgress(), getConnector());
 	}
 	catch( itk::ExceptionObject &excep)
 	{

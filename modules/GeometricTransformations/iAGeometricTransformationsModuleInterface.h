@@ -39,6 +39,7 @@ private slots:
 protected:
 	//settings
 	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
+	QString rInterpolator;
 	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
 	double outputMin, outputMax; 
 };

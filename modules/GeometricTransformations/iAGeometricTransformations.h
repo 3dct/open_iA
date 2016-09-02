@@ -36,6 +36,12 @@
 class iAGeometricTransformations : public iAFilter
 {
 public:
+
+	static const QString InterpLinear;
+	static const QString InterpNearestNeighbour;
+	static const QString InterpBSpline;
+	static const QString InterpWindowedSinc;
+
 	iAGeometricTransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 	~iAGeometricTransformations();
 
@@ -58,7 +64,8 @@ public:
 
 	void setRParameters(double oX, double oY, double oZ, 
 		double spX, double spY, double spZ, 
-		double sX, double sY, double sZ)
+		double sX, double sY, double sZ,
+		QString const & interp)
 	{
 		originX = oX;
 		originY = oY;
@@ -69,6 +76,7 @@ public:
 		sizeX = sX;
 		sizeY = sY;
 		sizeZ = sZ;
+		interpolator = interp;
 	};
 
 	/**
@@ -106,6 +114,7 @@ protected:
 
 private:
 	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
+	QString interpolator;
 	unsigned int dim;
 	double outputMin, outputMax;
 };
