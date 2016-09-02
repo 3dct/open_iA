@@ -232,6 +232,11 @@ void iAImageSampler::derivedOutputFinished()
 	if (!charactCalc || !charactCalc->success())
 	{
 		DEBUG_LOG("ERROR: charactCalcFinished - invalid sender or errors during calculation, not storing result!!");
+		m_mutex.lock();
+		m_runningOperations--;
+		m_mutex.unlock();
+		m_runningDerivedOutput.remove(charactCalc);
+		delete charactCalc;
 		return;
 	}
 
