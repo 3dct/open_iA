@@ -18,7 +18,7 @@ void CheckSCIFIO()
 	}
 
 	QFileInfo fi(QCoreApplication::applicationDirPath());
-	QString scifioPath(fi.absolutePath() + "/scifio_jars");
+	QString scifioPath(fi.absoluteFilePath() + "/scifio_jars");
 	if (!QFile::exists(scifioPath))
 	{
 		DEBUG_LOG(QString("ITK was built with SCIFIO, SCIFIO_PATH environment variable is not set, and scifio_jars directory (%1) was not found."
