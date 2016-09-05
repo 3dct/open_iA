@@ -231,7 +231,7 @@ void iAImageSampler::derivedOutputFinished()
 	CharacteristicsCalculator* charactCalc = dynamic_cast<CharacteristicsCalculator*>(QObject::sender());
 	if (!charactCalc || !charactCalc->success())
 	{
-		DEBUG_LOG("ERROR: charactCalcFinished - invalid sender or errors during calculation, not storing result!!");
+		DEBUG_LOG("ERROR: Derived output calculation was not successful! Make sure sampling results in a signed integer");
 		m_mutex.lock();
 		m_runningOperations--;
 		m_mutex.unlock();
