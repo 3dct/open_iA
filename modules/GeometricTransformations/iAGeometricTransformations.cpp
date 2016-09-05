@@ -143,19 +143,19 @@ int resampler_template(
 	if (interpolator == iAGeometricTransformations::InterpLinear)
 	{
 		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
 	else if (interpolator == iAGeometricTransformations::InterpNearestNeighbour)
 	{
 		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
 	else if (interpolator == iAGeometricTransformations::InterpBSpline)
 	{
 		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
 	else if (interpolator == iAGeometricTransformations::InterpWindowedSinc)
@@ -167,7 +167,7 @@ int resampler_template(
 			WindowFunctionType,
 			ConditionType,
 			double> InterpolatorType;
-		InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
 	resampler->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );

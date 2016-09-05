@@ -36,6 +36,14 @@
 #include <QLocale>
 #include <exception>
 
+class myRGBATypeException : public exception
+{
+	virtual const char* what() const throw()
+	{
+		return "RGBA Converion Error: LONG type needed.";
+	}
+} myRGBATypeExcep;
+
 template<class T> int FHW_CastImage_template( string m_odt, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -301,14 +309,6 @@ void iACastImageFilter::run()
 			addMsg( tr( "unknown filter type" ) );
 	}
 }
-
-class myRGBATypeException : public exception
-{
-	virtual const char* what() const throw( )
-	{
-		return "RGBA Converion Error: LONG type needed.";
-	}
-} myRGBATypeExcep;
 
 void iACastImageFilter::fhwCastImage()
 {
