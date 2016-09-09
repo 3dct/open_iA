@@ -315,6 +315,15 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		DEBUG_LOG("Loading Clustering failed!");
 		return false;
 	}
+	double * origSpacing = originalImage->GetSpacing();
+	const itk::Vector<double, 3> resultSpacing =
+		tree->m_root->GetRepresentativeImage(iARepresentativeType::Difference)->GetSpacing();
+	if (origSpacing[0] != resultSpacing[0] ||
+		origSpacing[1] != resultSpacing[1] ||
+		origSpacing[2] != resultSpacing[2])
+	{
+		DEBUG_LOG("Spacing of original images and of result images does not match!");
+	}
 	m_dlgGEMSe->SetTree(
 		tree,
 		originalImage,
