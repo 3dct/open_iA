@@ -22,6 +22,7 @@
 #include "pch.h"
 #include "iAFileUtils.h"
 
+#include <QDir>
 #include <QString>
 
 QString MakeAbsolute(QString const & baseDir, QString const & fileName)
@@ -40,6 +41,8 @@ QString MakeAbsolute(QString const & baseDir, QString const & fileName)
 
 QString MakeRelative(QString const & baseDir,  QString const & fileName)
 {
+	QDir dir(baseDir);
+	return  dir.relativeFilePath(fileName);
 	if (fileName.startsWith(baseDir))
 	{                                                               // for '/'
 		return fileName.right(fileName.length() - baseDir.length() - 1);
