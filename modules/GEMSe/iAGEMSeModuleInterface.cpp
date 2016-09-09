@@ -117,10 +117,8 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		DEBUG_LOG("GEMSE module is not attached!");
 		return;
 	}
-	// load seeds/labels:
-	if (!gemseAttach->LoadSeeds(seaFile.GetSeedsFileName()) ||
 	// load sampling data:
-		!gemseAttach->LoadSampling(seaFile.GetSamplingFileName()) ||
+	if (!gemseAttach->LoadSampling(seaFile.GetSamplingFileName(), seaFile.GetLabelCount()) ||
 	// load cluster result:
 		!gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
 	{

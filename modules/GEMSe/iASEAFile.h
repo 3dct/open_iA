@@ -31,19 +31,19 @@ public:
 	static const QString DefaultCHRFileName;
 	static const QString DefaultCLTFileName;
 	static const QString DefaultModalityFileName;
-	static const QString DefaultSeedFileName;
+	static const int DefaultLabelCount;
 
 	iASEAFile(QString const & seaFileName);
 	iASEAFile(
 		QString const & modFileName,
-		QString const & seedsFileName,
+		int labelCount,
 		QString const & smpFileName,
 		QString const & cltFileName,
 		QString const & layoutName
 	);
 	void Store(QString const & seaFileName);
 	QString const & GetModalityFileName() const;
-	QString const & GetSeedsFileName() const;
+	int GetLabelCount() const;
 	QString const & GetSamplingFileName() const;
 	QString const & GetClusteringFileName() const;
 	QString const & GetLayoutName() const;
@@ -52,7 +52,7 @@ public:
 	// QString const & GetSEAFileName();
 private:
 	QString m_ModalityFileName;
-	QString m_SeedsFileName;
+	int m_LabelCount;
 	QString m_SamplingFileName;
 	QString m_ClusteringFileName;
 	QString m_LayoutName;

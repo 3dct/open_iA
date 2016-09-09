@@ -39,7 +39,7 @@ class iAGEMSeAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 public:
 	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	bool LoadSampling(QString const & smpFileName);
+	bool LoadSampling(QString const & smpFileName, int labelCount);
 	bool LoadClustering(QString const & fileName);
 	bool LoadPriors(QString const & priorsFileName);
 	bool LoadSeeds(QString const & seedsFileName);

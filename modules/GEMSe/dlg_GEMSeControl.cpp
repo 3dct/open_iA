@@ -22,6 +22,7 @@
 #include "pch.h"
 #include "dlg_GEMSeControl.h"
 
+#include "dlg_commoninput.h"
 #include "dlg_labels.h"
 #include "dlg_modalities.h"
 #include "dlg_samplingSettings.h"
@@ -49,23 +50,67 @@
 #include <QSettings>
 #include <QTextStream>
 
-dlg_GEMSeControl::dlg_GEMSeControl(QWidget *parentWidget,
+#include "iALabelInfo.h"
+class iASimpleLabelInfo : public iALabelInfo
+{
+private:
+	int m_labelCount;
+	iAColorTheme const * m_theme;
+public:
+	iASimpleLabelInfo() :
+		m_labelCount(-1),
+		m_theme(0)
+	{}
+	virtual int count() const
+	{
+		assert(m_labelCount > 0);
+		return m_labelCount;
+	}
+	virtual QString GetName(int idx) const
+	{
+		assert(idx >= 0 && idx < m_labelCount);
+		return QString("Label %1").arg(idx);
+	}
+
+	virtual QColor GetColor(int idx) const
+	{
+		assert(m_theme);
+		if (!m_theme)
+			return QColor(0, 0, 0);
+		return m_theme->GetColor(idx);
+	}
+
+	void SetLabelCount(int labelCount)
+	{
+		m_labelCount = labelCount;
+	}
+
+	void SetColorTheme(iAColorTheme const * theme)
+	{
+		m_theme = theme;
+	}
+};
+
+dlg_GEMSeControl::dlg_GEMSeControl(
+	QWidget *parentWidget,
 	dlg_GEMSe* dlgGEMSe,
 	dlg_modalities* dlgModalities,
 	dlg_labels* dlgLabels,
-	QString const & defaultThemeName
+	iAColorTheme const * colorTheme
 ):
 	dlg_GEMSeControlUI(parentWidget),
 	m_dlgSamplingSettings(0),
 	m_dlgProgress(0),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
-	m_dlgLabels(dlgLabels)
+	m_dlgLabels(dlgLabels),
+	m_simpleLabelInfo(new iASimpleLabelInfo())
 {
+	m_simpleLabelInfo->SetColorTheme(colorTheme);
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
 	{
 		cbColorThemes->addItem(themeName);
-		if (themeName == defaultThemeName)
+		if (themeName == colorTheme->GetName())
 		{
 			cbColorThemes->setCurrentText(themeName);
 		}
@@ -108,7 +153,8 @@ void dlg_GEMSeControl::StartSampling()
 	}
 	if (m_dlgSamplingSettings || m_sampler)
 	{
-		QMessageBox::warning(this, "Segmentation Explorer", "Another sampler still running / dialog is still open...");
+		DEBUG_LOG("Cannot start sampling while another sampling is still running...");
+		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
 	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->GetModalities());
@@ -119,7 +165,13 @@ void dlg_GEMSeControl::StartSampling()
 		m_outputFolder = m_dlgSamplingSettings->GetOutputFolder();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
-		
+		if (m_dlgSamplingSettings->GetLabelCount() < 2)
+		{
+			DEBUG_LOG("Label Count must not be smaller than 2!");
+			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
+			return;
+		}
+		m_simpleLabelInfo->SetLabelCount(m_dlgSamplingSettings->GetLabelCount());
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_dlgModalities->GetModalities(),
 			parameters,
@@ -161,14 +213,27 @@ void dlg_GEMSeControl::LoadSampling()
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
 		QString(), // TODO get directory of current file
 		tr("Sampling data file (*.smp );;" ) );
+
+	QStringList inList;
+	inList << tr("#Label Count");
+	QList<QVariant> inPara;
+	inPara << tr("%1").arg(2);
+	dlg_commoninput lblCountInput(this, "Label Count", 1, inList, inPara, NULL);
+	if (lblCountInput.exec() != QDialog::Accepted)
+	{
+		DEBUG_LOG("Cannot load sampling without label count input!");
+		return;
+	}
+	int labelCount = lblCountInput.getSpinBoxValues()[0];
 	if (!fileName.isEmpty())
 	{
-		LoadSampling(fileName);
+		LoadSampling(fileName, labelCount);
 	}
 }
 
-bool dlg_GEMSeControl::LoadSampling(QString const & fileName)
+bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount)
 {
+	m_simpleLabelInfo->SetLabelCount(labelCount);
 	if (fileName.isEmpty())
 	{
 		DEBUG_LOG("No filename given, not loading.");
@@ -230,6 +295,11 @@ void dlg_GEMSeControl::LoadClustering()
 
 bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 {
+	if (m_simpleLabelInfo->count() < 2)
+	{
+		DEBUG_LOG("Label Count must not be smaller than 2!");
+		return false;
+	}
 	assert(m_samplingResults);
 	if (!m_samplingResults || fileName.isEmpty())
 	{
@@ -238,7 +308,8 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->getImageData();
-	QSharedPointer<iAImageTree> tree = iAImageTree::Create(fileName, m_samplingResults->GetResults(), m_dlgLabels->count());
+	QSharedPointer<iAImageTree> tree = iAImageTree::Create(fileName, m_samplingResults->GetResults(),
+		m_simpleLabelInfo->count());
 	if (!tree)
 	{
 		DEBUG_LOG("Loading Clustering failed!");
@@ -249,7 +320,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		originalImage,
 		m_samplingResults->GetAttributes(),
 		m_dlgModalities->GetModalities(),
-		*m_dlgLabels
+		*m_simpleLabelInfo.data()
 	);
 	pbClusteringStore->setEnabled(true);
 	m_cltFile = fileName;
@@ -284,7 +355,7 @@ void dlg_GEMSeControl::CalculateClustering()
 			return;
 		}
 	}
-	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_dlgLabels->count(), dir));
+	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), dir));
 	m_dlgProgress = new dlg_progress(this, m_clusterer, m_clusterer, "Clustering Progress");
 	for (int i=0; i<m_samplingResults->size(); ++i)
 	{
@@ -328,11 +399,6 @@ void dlg_GEMSeControl::ClusteringFinished()
 			m_outputFolder + "/" + iASEAFile::DefaultCHRFileName);
 		m_clusterer->GetResult()->Store(m_cltFile);
 
-		if (m_dlgLabels->GetFileName().isEmpty())
-		{
-			m_dlgLabels->Store(iASEAFile::DefaultSeedFileName);
-		}
-
 		if (m_dlgModalities->GetModalities()->GetFileName().isEmpty())
 		{
 			m_dlgModalities->Store(m_outputFolder+"/"+iASEAFile::DefaultModalityFileName);
@@ -340,19 +406,18 @@ void dlg_GEMSeControl::ClusteringFinished()
 
 		iASEAFile metaFile(
 			m_dlgModalities->GetModalities()->GetFileName(),
-			m_dlgLabels->GetFileName(),
+			m_simpleLabelInfo->count(),
 			m_samplingResults->GetFileName(),
 			m_cltFile,
 			"");		// TODO: store current layout
 		metaFile.Store(m_outputFolder+"/sampling.sea");
 	}
-
 	m_dlgGEMSe->SetTree(
 		m_clusterer->GetResult(),
 		originalImage,
 		m_samplingResults->GetAttributes(),
 		m_dlgModalities->GetModalities(),
-		*m_dlgLabels
+		*m_simpleLabelInfo.data()
 	);
 
 }
@@ -444,7 +509,7 @@ void dlg_GEMSeControl::StoreAll()
 	}
 	iASEAFile metaFile(
 		m_dlgModalities->GetModalities()->GetFileName(),
-		m_dlgLabels->GetFileName(),
+		m_simpleLabelInfo->count(),
 		m_samplingResults->GetFileName(),
 		m_cltFile,
 		"");		// TODO: store current layout
@@ -518,7 +583,8 @@ void dlg_GEMSeControl::SetColorTheme(const QString &themeName)
 {
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme(themeName);
 	m_dlgLabels->SetColorTheme(theme);
-	m_dlgGEMSe->SetColorTheme(theme, *m_dlgLabels);
+	m_simpleLabelInfo->SetColorTheme(theme);
+	m_dlgGEMSe->SetColorTheme(theme, *m_simpleLabelInfo.data());
 }
 
 

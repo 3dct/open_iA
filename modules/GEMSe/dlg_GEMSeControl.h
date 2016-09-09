@@ -33,6 +33,8 @@ class dlg_modalities;
 class dlg_samplingSettings;
 class dlg_progress;
 class dlg_GEMSe;
+class iAColorTheme;
+class iASimpleLabelInfo;
 class iASamplingResults;
 
 #include <vtkSmartPointer.h>
@@ -43,13 +45,14 @@ class dlg_GEMSeControl: public dlg_GEMSeControlUI
 {
 	Q_OBJECT
 public:
-	dlg_GEMSeControl(QWidget *parentWidget,
+	dlg_GEMSeControl(
+		QWidget *parentWidget,
 		dlg_GEMSe* dlgGEMSe,
 		dlg_modalities* dlgModalities,
 		dlg_labels* dlgLabels,
-		QString const & defaultThemeName
+		iAColorTheme const * colorTheme
 	);
-	bool LoadSampling(QString const & fileName);
+	bool LoadSampling(QString const & fileName, int labelCount);
 	bool LoadClustering(QString const & fileName);
 	void ExportAttributeRangeRanking();
 	void ExportRankings();
@@ -94,4 +97,5 @@ private:
 	
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
+	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
 };

@@ -34,15 +34,15 @@ const QString iASEAFile::DefaultSPSFileName("sampling.sps");
 const QString iASEAFile::DefaultCHRFileName("characteristics.chr");
 const QString iASEAFile::DefaultCLTFileName("cluster.clt");
 const QString iASEAFile::DefaultModalityFileName("modalities.mod");
-const QString iASEAFile::DefaultSeedFileName("points.seed");
+const int DefaultLabelCount = 2;
 
 namespace
 {
 	const QString FileVersionKey   = "FileVersion";
-	const QString FileVersionValue = "1.6";
+	const QString FileVersionValue = "1.6.1";
 	
 	const QString ModalitiesKey = "Modalities";
-	const QString SeedsKey = "Seeds";
+	const QString LabelCountKey = "LabelCount";
 	const QString SamplingDataKey = "SamplingData";
 	const QString ClusteringDataKey = "ClusteringData";
 	const QString LayoutKey = "Layout";
@@ -85,7 +85,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 	}
 	QString missingKeys;
 	if (AddIfMissing(metaFile, missingKeys, ModalitiesKey) ||
-		AddIfMissing(metaFile, missingKeys, SeedsKey) ||
+		AddIfMissing(metaFile, missingKeys, LabelCountKey) ||
 		AddIfMissing(metaFile, missingKeys, SamplingDataKey) ||
 		AddIfMissing(metaFile, missingKeys, ClusteringDataKey) ||
 		AddIfMissing(metaFile, missingKeys, LayoutKey))
@@ -96,7 +96,13 @@ iASEAFile::iASEAFile(QString const & fileName):
 	m_SEAFileName = fileName;
 	QFileInfo fi(fileName);
 	m_ModalityFileName   = MakeAbsolute(fi.absolutePath(), metaFile.value(ModalitiesKey).toString());
-	m_SeedsFileName      = MakeAbsolute(fi.absolutePath(), metaFile.value(SeedsKey).toString());
+	bool labelCountOK;
+	m_LabelCount		 = metaFile.value(LabelCountKey).toString().toInt(&labelCountOK);
+	if (!labelCountOK)
+	{
+		DEBUG_LOG("Load Precalculated Data: Label Count invalid!");
+		return;
+	}
 	m_SamplingFileName   = MakeAbsolute(fi.absolutePath(), metaFile.value(SamplingDataKey).toString());
 	m_ClusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
@@ -105,12 +111,12 @@ iASEAFile::iASEAFile(QString const & fileName):
 
 
 iASEAFile::iASEAFile(QString const & modalityFile,
-		QString const & seedsFile,
+		int labelCount,
 		QString const & smpFile,
 		QString const & clusterFile,
 		QString const & layout):
 	m_ModalityFileName(modalityFile),
-	m_SeedsFileName(seedsFile),
+	m_LabelCount(labelCount),
 	m_SamplingFileName(smpFile),
 	m_ClusteringFileName(clusterFile),
 	m_LayoutName(layout),
@@ -128,7 +134,7 @@ void iASEAFile::Store(QString const & fileName)
 	QFileInfo fi(fileName);
 	QString path(fi.absolutePath());
 	metaFile.setValue(ModalitiesKey    , MakeRelative(path, m_ModalityFileName));
-	metaFile.setValue(SeedsKey         , MakeRelative(path, m_SeedsFileName));
+	metaFile.setValue(LabelCountKey    , m_LabelCount);
 	metaFile.setValue(SamplingDataKey  , MakeRelative(path, m_SamplingFileName));
 	metaFile.setValue(ClusteringDataKey, MakeRelative(path, m_ClusteringFileName));
 	metaFile.setValue(LayoutKey        , MakeRelative(path, m_LayoutName));
@@ -151,9 +157,9 @@ QString const & iASEAFile::GetModalityFileName() const
 	return m_ModalityFileName;
 }
 
-QString const & iASEAFile::GetSeedsFileName() const
+int iASEAFile::GetLabelCount() const
 {
-	return m_SeedsFileName;
+	return m_LabelCount;
 }
 
 QString const & iASEAFile::GetSamplingFileName() const

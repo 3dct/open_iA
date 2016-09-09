@@ -68,7 +68,7 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 		newAttachment->m_dlgGEMSe,
 		childData.child->GetModalitiesDlg(),
 		newAttachment->m_dlgLabels,
-		defaultThemeName
+		colorTheme
 	);
 	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
 	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
@@ -83,9 +83,9 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 	return newAttachment;
 }
 
-bool iAGEMSeAttachment::LoadSampling(QString const & smpFileName)
+bool iAGEMSeAttachment::LoadSampling(QString const & smpFileName, int labelCount)
 {
-	return m_dlgGEMSeControl->LoadSampling(smpFileName);
+	return m_dlgGEMSeControl->LoadSampling(smpFileName, labelCount);
 }
 
 bool iAGEMSeAttachment::LoadClustering(QString const & fileName)
