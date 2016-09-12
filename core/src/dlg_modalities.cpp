@@ -47,10 +47,6 @@
 
 #include <cassert>
 
-namespace
-{
-	char const * ProjectFileTypeFilter("open_iA project file (*.mod);;All files (*.*)");
-}
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	vtkRenderer* mainRenderer,
@@ -67,8 +63,6 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
 	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
-	connect(pbStore,  SIGNAL(clicked()), this, SLOT(Store()));
-	connect(pbLoad, SIGNAL(clicked()), this, SLOT(Load()));
 	connect(cbManualRegistration, SIGNAL(clicked()), this, SLOT(ManualRegistration()));
 	connect(cbShowMagicLens, SIGNAL(clicked()), this, SLOT(MagicLens()));
 	
@@ -84,33 +78,11 @@ void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
 	lwModalities->clear();
 }
 
-void dlg_modalities::Store()
-{
-	QString modalitiesFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Select Output File"),
-		QString(), // TODO get directory of current file
-		tr(ProjectFileTypeFilter ) );
-	Store(modalitiesFileName);
-}
 
 void dlg_modalities::Store(QString const & filename)
 {								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
 	vtkCamera* cam = m_mainRenderer->GetActiveCamera();
 	modalities->Store(filename, cam);
-}
-
-void dlg_modalities::Load()
-{
-	QString modalitiesFileName = QFileDialog::getOpenFileName(
-		QApplication::activeWindow(),
-		tr("Open Input File"),
-		QString(), // TODO get directory of current file
-		tr(ProjectFileTypeFilter) );
-	if (!modalitiesFileName.isEmpty())
-	{
-		Load(modalitiesFileName);
-	}
 }
 
 void dlg_modalities::SelectRow(int idx)

@@ -2885,39 +2885,32 @@ void MdiChild::InitVolumeRenderers()
 		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
 }
 
-void MdiChild::LoadProject()
-{
-	m_dlgModalities->Load();
-	setCurrentFile(GetModalities()->GetFileName());
-	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	if (GetModalities()->size() > 0)
-	{
-		InitModalities();
-	}
-}
 
-// TODO: VOLUME: remove duplication with previous function!
-void MdiChild::LoadProject(QString const & fileName)
+bool MdiChild::LoadProject(QString const & fileName)
 {
-	// workaround for the crash when loading project from recent files.
+	// processEvents: workaround for the crash when loading project from recent files.
 	// apparently some work needs to be done between creating the mdi child
 	// (done in Mainwindow::LoadProject) and setting up the dataset
 	// Could probably be omitted if the data loading in dlg_modalities was
 	// asynchronous!
 	QApplication::processEvents();
 
-	m_dlgModalities->Load(fileName);
+	if (!m_dlgModalities->Load(fileName))
+	{
+		return false;
+	}
 	setCurrentFile(GetModalities()->GetFileName());
 	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	if (GetModalities()->size() > 0)
+	if (GetModalities()->size() <= 0)
 	{
-		InitModalities();
+		return false;
 	}
+	InitModalities();
 }
 
-void MdiChild::StoreProject()
+void MdiChild::StoreProject(QString const & fileName)
 {
-	m_dlgModalities->Store();
+	m_dlgModalities->Store(fileName);
 }
 
 MainWindow* MdiChild::getM_mainWnd()

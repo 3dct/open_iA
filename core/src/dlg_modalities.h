@@ -77,8 +77,6 @@ public:
 	void SelectRow(int idx);
 	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
 public slots:
-	void Load();
-	void Store();
 	//! add modality to list, create transfer function, show histogram, add volume to renderers
 	void ModalityAdded(QSharedPointer<iAModality> mod);
 signals:
