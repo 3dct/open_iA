@@ -23,6 +23,9 @@
 
 #include <QObject>
 
+const QString iAIOProvider::ProjectFileExtension(".mod");
+const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;All files (*.*)");
+
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QObject::tr(

@@ -37,4 +37,8 @@ class open_iA_Core_API iAIOProvider
 public:
 	static QString GetSupportedSaveFormats();
 	static QString GetSupportedLoadFormats();
+
+
+	static const QString ProjectFileTypeFilter;
+	static const QString ProjectFileExtension;
 };
