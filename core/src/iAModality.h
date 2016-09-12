@@ -89,6 +89,8 @@ public:
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
+	void ReInitHistogram();
+
 	// TODO: Refactor
 	QString positionSettings;
 	QString orientationSettings;

@@ -138,7 +138,8 @@ void iAModalityTransfer::ReInitHistogram(vtkSmartPointer<vtkImageData> imgData)
 		return;
 	}
 	UpdateAccumulateImageData(imgData);
-	histogram->initialize(accumulate, m_scalarRange, false);
+	// TODO: don't reset if loaded from project?
+	histogram->initialize(accumulate, m_scalarRange, true);
 	histogram->updateTrf();
 	histogram->redraw();
 }

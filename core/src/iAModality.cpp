@@ -273,6 +273,11 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
+void iAModality::ReInitHistogram()
+{
+	GetTransfer()->ReInitHistogram(GetImage());
+}
+
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);

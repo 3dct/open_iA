@@ -322,27 +322,13 @@ void MdiChild::disableRenderWindows(int ch)
 void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
-	{	// TODO: VOLUME: at the moment, we always show first volume in main slicer/renderers
-		//int modalityIdx = m_dlgModalities->GetSelected();
-		int modalityIdx = 0;
-		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
-
-		/*
-		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
-		{
-			// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
-			// as it is, it's dangerous as it might initialize the "current" histogram with data from modality 0
-			// for all modalities?
-			getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
-			getHistogram()->updateTrf();
-			getHistogram()->redraw();
-		}
-		*/
+	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			GetModality(i)->GetTransfer()->ReInitHistogram(GetModality(i)->GetImage());
+			GetModality(i)->ReInitHistogram();
 		}
-		
+		int modalityIdx = 0;
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 		Raycaster->enableInteractor();
 
 		slicerXZ->enableInteractor();
@@ -472,6 +458,8 @@ void MdiChild::showPoly()
 
 bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPolyData* poly)
 {
+	// TODO: image is actually not the final imagedata here (or at least not always)
+	//    -> maybe skip all image-related initializations?
 	addStatusMsg("Creating Result View");
 	if (poly != NULL){
 		polyData->ReleaseData();
@@ -483,14 +471,9 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		imageData->DeepCopy(image);
 	}
 
-	// TODO: VOLUME: initialize modality... ?
 	initView( title );
 	setWindowTitle( title );
 	Raycaster->ApplySettings(renderSettings);
-	for (int i = 0; i < GetModalities()->size(); ++i)
-	{
-		GetModality(i)->GetTransfer()->ResetTransferFunctions(GetModality(i)->GetImage());
-	}
 	InitVolumeRenderers();
 	setupSlicers(slicerSettings, true );
 
