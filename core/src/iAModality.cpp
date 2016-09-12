@@ -218,12 +218,17 @@ void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
 {
 	// TODO: VOLUME: rewrite / move to iAModalityTransfer constructor if possible!
 	m_transfer = transfer;
+}
+
+
+void iAModality::LoadTransferFunction()
+{
 	if (tfFileName.isEmpty())
 	{
 		return;
 	}
 	Settings s(tfFileName);
-	s.LoadTransferFunction(transfer.data(), GetImage()->GetScalarRange());
+	s.LoadTransferFunction(GetTransfer().data(), GetImage()->GetScalarRange());
 	tfFileName = "";
 }
 
@@ -273,9 +278,10 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
-void iAModality::ReInitHistogram()
+void iAModality::InitHistogram()
 {
-	GetTransfer()->ReInitHistogram(GetImage());
+	GetTransfer()->InitHistogram(GetImage());
+	LoadTransferFunction();
 }
 
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)

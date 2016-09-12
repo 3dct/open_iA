@@ -74,16 +74,6 @@ void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData>
 	accumulate->Update();
 }
 
-void iAModalityTransfer::ResetTransferFunctions(vtkSmartPointer<vtkImageData> imgData)
-{
-	if (!m_useAccumulate)
-	{
-		return;
-	}
-	UpdateAccumulateImageData(imgData);
-	histogram->resetTrf();
-}
-
 void iAModalityTransfer::SetHistogramBins(int binCount)
 {
 	if (!m_useAccumulate)
@@ -131,14 +121,13 @@ vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
 	return accumulate;
 }
 
-void iAModalityTransfer::ReInitHistogram(vtkSmartPointer<vtkImageData> imgData)
+void iAModalityTransfer::InitHistogram(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!m_useAccumulate)
 	{
 		return;
 	}
 	UpdateAccumulateImageData(imgData);
-	// TODO: don't reset if loaded from project?
 	histogram->initialize(accumulate, m_scalarRange, true);
 	histogram->updateTrf();
 	histogram->redraw();

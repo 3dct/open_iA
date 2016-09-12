@@ -325,7 +325,7 @@ void MdiChild::enableRenderWindows()
 	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			GetModality(i)->ReInitHistogram();
+			GetModality(i)->InitHistogram();
 		}
 		int modalityIdx = 0;
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
