@@ -20,45 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "ui_samplings.h"
+#include <iAQTtoUIConnector.h>
+typedef iAQTtoUIConnector<QDockWidget, Ui_samplings> dlgSamplingsUI;
 
-#include <QSharedPointer>
-#include <vtkSmartPointer.h>
+class iASamplingResults;
 
-class dlg_GEMSe;
-class dlg_GEMSeControl;
-class dlg_labels;
-class dlg_priors;
-class dlg_samplings;
-class iAWidgetAddHelper;
+class QStandardItemModel;
 
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
-
-class iAGEMSeAttachment : public iAModuleAttachmentToChild
+class dlg_samplings : public dlgSamplingsUI
 {
 	Q_OBJECT
 public:
-	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	bool LoadSampling(QString const & smpFileName, int labelCount);
-	bool LoadClustering(QString const & fileName);
-	bool LoadPriors(QString const & priorsFileName);
-	bool LoadSeeds(QString const & seedsFileName);
-
-	void ResetFilter();
-	void ToggleAutoShrink();
-	void ToggleDockWidgetTitleBar();
-	void ExportClusterIDs();
-	void ExportAttributeRangeRanking();
-	void ExportRankings();
-	void ImportRankings();
+	dlg_samplings();
+	void Add(QSharedPointer<iASamplingResults> samplingResults);
+	int count() const;
+public slots:
+	void Add();
+	void Remove();
 private:
-	iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData);
-	dlg_labels*						  m_dlgLabels;
-	dlg_priors*                       m_dlgPriors;
-	dlg_GEMSeControl*                 m_dlgGEMSeControl;
-	QWidget*                          m_dummyTitleWidget;
-	dlg_GEMSe*                        m_dlgGEMSe;
-	dlg_samplings*                    m_dlgSamplings;
-	QSharedPointer<iAWidgetAddHelper> m_widgetAddHelper;
+	QStandardItemModel* m_itemModel;
 };

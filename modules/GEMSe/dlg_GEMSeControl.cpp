@@ -25,6 +25,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_labels.h"
 #include "dlg_modalities.h"
+#include "dlg_samplings.h"
 #include "dlg_samplingSettings.h"
 #include "dlg_progress.h"
 #include "dlg_GEMSe.h"
@@ -96,6 +97,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	dlg_GEMSe* dlgGEMSe,
 	dlg_modalities* dlgModalities,
 	dlg_labels* dlgLabels,
+	dlg_samplings* dlgSamplings,
 	iAColorTheme const * colorTheme
 ):
 	dlg_GEMSeControlUI(parentWidget),
@@ -104,8 +106,10 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
 	m_dlgLabels(dlgLabels),
+	m_dlgSamplings(dlgSamplings),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
 {
+	dlgLabels->hide();
 	m_simpleLabelInfo->SetColorTheme(colorTheme);
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
 	{
@@ -245,6 +249,7 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount)
 		DEBUG_LOG("Loading Sampling failed.");
 		return false;
 	}
+	m_dlgSamplings->Add(m_samplingResults);
 	pbSamplingStore->setEnabled(true);
 	pbClusteringCalc->setEnabled(true);
 	pbClusteringLoad->setEnabled(true);
@@ -270,6 +275,7 @@ void dlg_GEMSeControl::SamplingFinished()
 		return;
 	}
 	m_sampler.clear();
+	m_dlgSamplings->Add(m_samplingResults);
 
 	CalculateClustering();
 
