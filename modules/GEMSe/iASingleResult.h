@@ -71,8 +71,8 @@ public:
 
 	void AddProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs);
 
-	QString GetFolder() const;
-
+	int GetDatasetID() const;
+	QSharedPointer<iAAttributes> GetAttributes() const;
 private:
 	//! for now, value-type agnostic storage of values:
 	QVector<double> m_attributeValues;
@@ -85,4 +85,5 @@ private:
 
 	QString GetLabelPath() const;
 	QString GetProbabilityPath(int label) const;
+	QString GetFolder() const;
 };

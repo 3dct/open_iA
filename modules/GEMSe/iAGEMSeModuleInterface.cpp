@@ -110,17 +110,21 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 
 	// load segmentation explorer:
 	bool result = AttachToMdiChild( m_mdiChild );
-	assert(result);
 	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
-	if (!gemseAttach)
+	if (!result || !gemseAttach)
 	{
 		DEBUG_LOG("GEMSE module is not attached!");
 		return;
 	}
 	// load sampling data:
-	if (!gemseAttach->LoadSampling(seaFile.GetSamplingFileName(), seaFile.GetLabelCount()) ||
-	// load cluster result:
-		!gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
+	QMap<int, QString> const & samplings = seaFile.GetSamplings();
+	for (int key : samplings.keys())
+	{
+		result &= gemseAttach->LoadSampling(samplings[key], seaFile.GetLabelCount(), key);
+		if (!result)
+			break;
+	}
+	if (!result || !gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
 	{
 		DEBUG_LOG("Precomputed Data Loading failed!\n");
 	}

@@ -112,25 +112,6 @@ const int FavoriteWidth    = FavoriteBarWidth - (2 * ExampleViewSpacing);
 //! Attributes available for charts/histograms:
 typedef int AttributeID;
 
-enum ERWParams
-{
-	erwBeta,
-	erwGamma,
-	erwMaxIter,
-	svmC,
-	svmGamma,
-	svmChannelCount,
-	NonModalityParamCount
-};
-
-enum ModalityParams
-{
-	pca,
-	weight,
-	distance,
-	ModalityParamCount
-};
-
 const int MeasureCount = 5;
 
 enum DerivedOutput

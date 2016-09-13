@@ -77,6 +77,8 @@ dlg_GEMSe::dlg_GEMSe(
 	m_colorTheme(colorTheme),
 	m_representativeType(iARepresentativeType::Difference)
 {
+	// TODO: MULTI: initialize attributes!
+	// m_attributes
 }
 
 dlg_GEMSe::~dlg_GEMSe()
@@ -90,6 +92,10 @@ void dlg_GEMSe::AddDiagramSubWidgetsWithProperStretch()
 	{
 		chartLay->removeWidget(m_chartContainer);
 	}
+	int paramChartsShownCount = 1,
+		derivedChartsShownCount = 1;
+	/*
+	// TODO: find proper way to do this
 	int paramChartsShownCount = 0,
 		derivedChartsShownCount = 0;
 	for (AttributeID id = 0; id != m_attributes->size(); ++id )
@@ -108,6 +114,7 @@ void dlg_GEMSe::AddDiagramSubWidgetsWithProperStretch()
 			derivedChartsShownCount++;
 		}
 	}
+	*/
 	chartLay->addWidget(m_chartContainer);
 	m_chartContainer->addWidget(m_paramChartContainer);
 	m_chartContainer->addWidget(m_derivedOutputChartContainer);
@@ -118,7 +125,6 @@ void dlg_GEMSe::AddDiagramSubWidgetsWithProperStretch()
 void dlg_GEMSe::SetTree(
 	QSharedPointer<iAImageTree > imageTree,
 	vtkSmartPointer<vtkImageData> originalImage,
-	QSharedPointer<iAAttributes> attributes,
 	QSharedPointer<iAModalityList> modalities,
 	iALabelInfo const & labelInfo)
 {
@@ -137,13 +143,11 @@ void dlg_GEMSe::SetTree(
 	}
 
 	assert(imageTree);
-	assert(attributes);
 	assert(originalImage);
-	if (!imageTree || !attributes || !originalImage)
+	if (!imageTree || !originalImage)
 	{
 		return;
 	}
-	m_attributes = attributes;
 	m_refCompMeasureStart = m_attributes->size();
 	m_selectedCluster = imageTree->m_root;
 	m_selectedLeaf = 0;
@@ -160,7 +164,7 @@ void dlg_GEMSe::SetTree(
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
 	wdTree->layout()->addWidget(m_treeView);
 
-	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, m_attributes, labelInfo,
+	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, labelInfo,
 		m_representativeType);
 	m_detailView->SetNode(m_selectedCluster.data());
 	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
@@ -339,10 +343,10 @@ void dlg_GEMSe::RemoveAllCharts()
 
 void dlg_GEMSe::RecreateCharts()
 {
-	if (!m_attributes)
-	{
-		return;
-	}
+	/*
+	// TODO: MULTI
+	// go over all datasets, determine their attributes
+	*/
 	AddDiagramSubWidgetsWithProperStretch();
 	RemoveAllCharts();
 	for (AttributeID id = 0; id != m_attributes->size(); ++id )

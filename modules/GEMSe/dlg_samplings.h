@@ -32,12 +32,15 @@ class dlg_samplings : public dlgSamplingsUI
 {
 	Q_OBJECT
 public:
+	typedef QSharedPointer<iASamplingResults> SamplingResultPointer;
 	dlg_samplings();
-	void Add(QSharedPointer<iASamplingResults> samplingResults);
-	int count() const;
+	void Add(SamplingResultPointer samplingResults);
+	SamplingResultPointer GetSampling(int idx);
+	int SamplingCount() const;
+	QVector<SamplingResultPointer> const & GetSamplings();
 public slots:
-	void Add();
 	void Remove();
 private:
 	QStandardItemModel* m_itemModel;
+	QVector<SamplingResultPointer> m_samplings;
 };

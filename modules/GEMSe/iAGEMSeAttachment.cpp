@@ -87,9 +87,9 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 	return newAttachment;
 }
 
-bool iAGEMSeAttachment::LoadSampling(QString const & smpFileName, int labelCount)
+bool iAGEMSeAttachment::LoadSampling(QString const & smpFileName, int labelCount, int datasetID)
 {
-	return m_dlgGEMSeControl->LoadSampling(smpFileName, labelCount);
+	return m_dlgGEMSeControl->LoadSampling(smpFileName, labelCount, datasetID);
 }
 
 bool iAGEMSeAttachment::LoadClustering(QString const & fileName)

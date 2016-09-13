@@ -46,16 +46,30 @@ namespace
 	const QString SamplingDataKey = "SamplingData";
 	const QString ClusteringDataKey = "ClusteringData";
 	const QString LayoutKey = "Layout";
+
+	void AppendToString(QString & result, QString const & append)
+	{
+		if (!result.isEmpty())
+		{
+			result.append(", ");
+		}
+		result.append(append);
+	}
 	
 	bool AddIfMissing(QSettings const & settings, QString & result, QString const & key)
 	{
 		if (!settings.contains(key))
 		{
-			if (!result.isEmpty())
-			{
-				result.append(", ");
-			}
-			result.append(key);
+			AppendToString(result, key);
+			return true;
+		}
+		return false;
+	}
+	bool AddIfEmpty(QStringList const & stringlist, QString & result, QString const & key)
+	{
+		if (stringlist.isEmpty())
+		{
+			AppendToString(result, key);
 			return true;
 		}
 		return false;
@@ -83,12 +97,13 @@ iASEAFile::iASEAFile(QString const & fileName):
 			.arg((metaFile.contains(FileVersionKey) ? "'"+metaFile.value(FileVersionKey).toString()+"'" : "none")) );
 		return;
 	}
+	QStringList datasetKeys(metaFile.allKeys().filter(SamplingDataKey));
 	QString missingKeys;
 	if (AddIfMissing(metaFile, missingKeys, ModalitiesKey) ||
 		AddIfMissing(metaFile, missingKeys, LabelCountKey) ||
-		AddIfMissing(metaFile, missingKeys, SamplingDataKey) ||
 		AddIfMissing(metaFile, missingKeys, ClusteringDataKey) ||
-		AddIfMissing(metaFile, missingKeys, LayoutKey))
+		AddIfMissing(metaFile, missingKeys, LayoutKey) ||
+		AddIfEmpty(datasetKeys, missingKeys, SamplingDataKey))
 	{
 		DEBUG_LOG(QString("Load Precalculated Data: Required setting(s) %1 missing in analysis description file.").arg(missingKeys));
 		return;
@@ -103,21 +118,36 @@ iASEAFile::iASEAFile(QString const & fileName):
 		DEBUG_LOG("Load Precalculated Data: Label Count invalid!");
 		return;
 	}
-	m_SamplingFileName   = MakeAbsolute(fi.absolutePath(), metaFile.value(SamplingDataKey).toString());
+	for (QString keyStr : datasetKeys)
+	{
+		bool ok = false;
+		int key = 0;
+		if (keyStr != SamplingDataKey) // old precalculated data, only one dataset, without ID!
+		{
+			key = keyStr.right(keyStr.length() - SamplingDataKey.length()).toInt(&ok);
+		}
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Load Precalculated Data: Invalid Dataset identifier: %1").arg(keyStr));
+			return;
+		}
+		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
+	}
 	m_ClusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
 	m_good = true;
 }
 
 
-iASEAFile::iASEAFile(QString const & modalityFile,
+iASEAFile::iASEAFile(
+		QString const & modalityFile,
 		int labelCount,
-		QString const & smpFile,
+		QMap<int, QString> const & samplings,
 		QString const & clusterFile,
 		QString const & layout):
 	m_ModalityFileName(modalityFile),
 	m_LabelCount(labelCount),
-	m_SamplingFileName(smpFile),
+	m_Samplings(samplings),
 	m_ClusteringFileName(clusterFile),
 	m_LayoutName(layout),
 	m_good(true)
@@ -135,7 +165,10 @@ void iASEAFile::Store(QString const & fileName)
 	QString path(fi.absolutePath());
 	metaFile.setValue(ModalitiesKey    , MakeRelative(path, m_ModalityFileName));
 	metaFile.setValue(LabelCountKey    , m_LabelCount);
-	metaFile.setValue(SamplingDataKey  , MakeRelative(path, m_SamplingFileName));
+	for (int key : m_Samplings.keys())
+	{
+		metaFile.setValue(SamplingDataKey + QString::number(key), MakeRelative(path, m_Samplings[key]));
+	}
 	metaFile.setValue(ClusteringDataKey, MakeRelative(path, m_ClusteringFileName));
 	metaFile.setValue(LayoutKey        , MakeRelative(path, m_LayoutName));
 	
@@ -162,9 +195,9 @@ int iASEAFile::GetLabelCount() const
 	return m_LabelCount;
 }
 
-QString const & iASEAFile::GetSamplingFileName() const
+QMap<int, QString> const & iASEAFile::GetSamplings() const
 {
-	return m_SamplingFileName;
+	return m_Samplings;
 }
 
 QString const & iASEAFile::GetClusteringFileName() const

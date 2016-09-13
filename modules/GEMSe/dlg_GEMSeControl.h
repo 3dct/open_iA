@@ -54,7 +54,7 @@ public:
 		dlg_samplings* dlgSamplings,
 		iAColorTheme const * colorTheme
 	);
-	bool LoadSampling(QString const & fileName, int labelCount);
+	bool LoadSampling(QString const & fileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
 	void ExportAttributeRangeRanking();
 	void ExportRankings();
@@ -69,8 +69,8 @@ private slots:
 	void LoadClustering();
 	void CalculateClustering();
 	void StoreClustering();
-	void StoreSampling();
-	void CalcCharacteristics();
+	//void StoreSampling();
+	//void CalcCharacteristics();
 	void CalcRefImgComp();
 	void StoreAll();
 	void DataAvailable();
@@ -92,8 +92,6 @@ private:
 	dlg_samplings*                       m_dlgSamplings;
 
 	QSharedPointer<iAImageSampler>       m_sampler;
-	QSharedPointer<iASamplingResults>    m_samplingResults;
-
 	QSharedPointer<iAImageClusterer>     m_clusterer;
 
 	QString								 m_outputFolder;

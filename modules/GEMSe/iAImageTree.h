@@ -149,6 +149,7 @@ private:
 	int m_labelCount;
 };
 
+class iAAttributes;
 
 class iAImageClusterLeaf: public iAImageClusterNode
 {
@@ -172,6 +173,8 @@ public:
 	void SetAttribute(int id, double value);
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
 	virtual CombinedProbPtr UpdateProbabilities() const;
+	int GetDatasetID() const;
+	QSharedPointer<iAAttributes> GetAttributes() const;
 private:
 	bool m_filtered;
 	int m_labelCount;
@@ -180,12 +183,17 @@ private:
 
 
 class iAAttributeFilter;
+class iASamplingResults;
+
 class QTextStream;
 
 class iAImageTree
 {
 public:
-	static QSharedPointer<iAImageTree> Create(QString const & fileName, QVector<QSharedPointer<iASingleResult> > const & sampleResults, int labelCount);
+	static QSharedPointer<iAImageTree> Create(
+		QString const & fileName,
+		QVector<QSharedPointer<iASamplingResults> > const & samplings,
+		int labelCount);
 	iAImageTree(QSharedPointer<iAImageClusterNode >, int labelCount);
 	QSharedPointer<iAImageClusterNode > m_root;
 	bool Store(QString const & fileName) const;
@@ -194,7 +202,7 @@ private:
 	static void WriteNode(QTextStream & out, QSharedPointer<iAImageClusterNode >, int level);
 	static QSharedPointer<iAImageClusterNode> ReadNode(
 		QTextStream & in,
-		QVector<QSharedPointer<iASingleResult> > const & sampleResults,
+		QVector<QSharedPointer<iASamplingResults> > const & samplings,
 		int labelCount,
 		QString const & outputDirectory,
 		int & lastClusterID);

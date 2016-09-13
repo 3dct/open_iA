@@ -215,3 +215,14 @@ QString iASingleResult::GetProbabilityPath(int label) const
 {
 	return QString("%1/prob%2.mhd").arg(GetFolder()).arg(label);
 }
+
+
+int iASingleResult::GetDatasetID() const
+{
+	return m_sampling.GetID();
+}
+
+QSharedPointer<iAAttributes> iASingleResult::GetAttributes() const
+{
+	return m_sampling.GetAttributes();
+}

@@ -34,10 +34,17 @@
 #include <QFileInfo>
 
 
-iASamplingResults::iASamplingResults(QSharedPointer<iAAttributes> attr, QString const & samplingMethod):
+iASamplingResults::iASamplingResults(
+	QSharedPointer<iAAttributes> attr,
+	QString const & samplingMethod,
+	int id
+):
 	m_attributes(attr),
-	m_samplingMethod(samplingMethod)
-{}
+	m_samplingMethod(samplingMethod),
+	m_id(id)
+{
+	NewID = (id >= NewID)? id + 1: NewID;
+}
 
 // TODO: replace with QSettings?
 namespace
@@ -56,7 +63,7 @@ namespace
 	}
 }
 
-QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFileName)
+QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFileName, int datasetID)
 {
 	QFile file(smpFileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -90,7 +97,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 	}
 
 	QSharedPointer<iAAttributes> attributes = iAAttributes::Create(in);
-	QSharedPointer<iASamplingResults> result(new iASamplingResults(attributes, samplingMethod));
+	QSharedPointer<iASamplingResults> result(new iASamplingResults(attributes, samplingMethod, datasetID));
 	file.close();
 	if (result->LoadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), characteristicsFileName)))
@@ -234,7 +241,7 @@ QVector<QSharedPointer<iASingleResult> > const & iASamplingResults::GetResults()
 	return m_results;
 }
 
-QSharedPointer<iAAttributes> iASamplingResults::GetAttributes()
+QSharedPointer<iAAttributes> iASamplingResults::GetAttributes() const
 {
 	return m_attributes;
 }
@@ -249,4 +256,16 @@ QString iASamplingResults::GetFileName() const
 QString iASamplingResults::GetPath(int id) const
 {
 	return m_path + "/sample" + QString::number(id);
+}
+
+int iASamplingResults::GetID() const
+{
+	return m_id;
+}
+
+int iASamplingResults::NewID = 0;
+
+int iASamplingResults::GetNewID()
+{
+	return NewID;
 }

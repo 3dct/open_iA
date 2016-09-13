@@ -60,7 +60,6 @@ public:
 	~dlg_GEMSe();
 	void SetTree(QSharedPointer<iAImageTree > imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
-		QSharedPointer<iAAttributes> attributes,
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo);
 	void StoreClustering(QString const & fileName);

@@ -21,6 +21,7 @@
 #pragma once
 
 #include <QString>
+#include <QMap>
 
 class iASEAFile
 {
@@ -37,14 +38,14 @@ public:
 	iASEAFile(
 		QString const & modFileName,
 		int labelCount,
-		QString const & smpFileName,
+		QMap<int, QString> const & samplings,
 		QString const & cltFileName,
 		QString const & layoutName
 	);
 	void Store(QString const & seaFileName);
 	QString const & GetModalityFileName() const;
 	int GetLabelCount() const;
-	QString const & GetSamplingFileName() const;
+	QMap<int, QString> const & GetSamplings() const;
 	QString const & GetClusteringFileName() const;
 	QString const & GetLayoutName() const;
 
@@ -53,7 +54,7 @@ public:
 private:
 	QString m_ModalityFileName;
 	int m_LabelCount;
-	QString m_SamplingFileName;
+	QMap<int, QString> m_Samplings;
 	QString m_ClusteringFileName;
 	QString m_LayoutName;
 	QString m_SEAFileName;

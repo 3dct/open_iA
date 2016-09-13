@@ -103,7 +103,10 @@ void iAImageSampler::run()
 	m_parameters->Add(objectCountAttr);
 	m_parameters->Add(timeAttr);
 
-	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(m_parameters, m_sampleGenerator->GetName()));
+	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
+		m_parameters,
+		m_sampleGenerator->GetName(),
+		iASamplingResults::GetNewID()));
 
 	for (m_curLoop=0; !m_aborted && m_curLoop<m_parameterSets->size(); ++m_curLoop)
 	{
@@ -212,7 +215,7 @@ void iAImageSampler::computationFinished()
 	m_results->GetAttributes()->at(m_parameterCount+1)->AdjustMinMax(computationTime);
 
 	// TODO: calculate external programs here to calculate derived output!
-	CharacteristicsCalculator * newCharCalc = new CharacteristicsCalculator (result, m_results->GetAttributes(), m_parameterCount);
+	CharacteristicsCalculator * newCharCalc = new CharacteristicsCalculator (result, m_parameterCount);
 	m_runningDerivedOutput.insert(newCharCalc, result);
 	connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()) );
 	newCharCalc->start();

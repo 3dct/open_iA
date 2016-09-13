@@ -30,8 +30,12 @@ class iASingleResult;
 class iASamplingResults
 {
 public:
-	iASamplingResults(QSharedPointer<iAAttributes> attr, QString const & samplingMethod);
-	static QSharedPointer<iASamplingResults> Load(QString const & metaFileName);
+	iASamplingResults(
+		QSharedPointer<iAAttributes> attr,
+		QString const & samplingMethod,
+		int id
+	);
+	static QSharedPointer<iASamplingResults> Load(QString const & metaFileName, int datasetID);
 	bool Store(QString const & smpFileName,
 		QString const & parameterSetFileName,
 		QString const & characteristicsFileName);
@@ -39,16 +43,20 @@ public:
 	QSharedPointer<iASingleResult> Get(int i) const;
 	void AddResult(QSharedPointer<iASingleResult> result);
 	QVector<QSharedPointer<iASingleResult> > const & GetResults() const;
-	QSharedPointer<iAAttributes> GetAttributes();
+	QSharedPointer<iAAttributes> GetAttributes() const;
 	QString GetFileName() const;
 	QString GetPath(int id) const;
+	int GetID() const;
+	static int GetNewID();
 private:
 	QSharedPointer<iAAttributes> m_attributes;
 	QVector<QSharedPointer<iASingleResult> > m_results;
 	QString m_samplingMethod; //!< the name of the applied sampling method (Latin Hypercube, Random, ...)
 	QString m_fileName;       //!< smp fileName
 	QString m_path;           //!< base filename for the sampling results
+	int m_id;
 
 	bool LoadInternal(QString const & parameterSetFileName, QString const & characteristicsFileName);
 	bool StoreAttributes(int type, QString const & fileName, bool id);
+	static int NewID;
 };

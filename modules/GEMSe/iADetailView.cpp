@@ -45,7 +45,6 @@ iADetailView::iADetailView(
 		iAImagePreviewWidget* prevWdgt,
 		ClusterImageType nullImage,
 		QSharedPointer<iAModalityList> modalities,
-		QSharedPointer<iAAttributes> attributes,
 		iALabelInfo const & labelInfo,
 		int representativeType) :
 	m_previewWidget(prevWdgt),
@@ -57,7 +56,6 @@ iADetailView::iADetailView(
 	m_modalities(modalities),
 	m_magicLensData(0),
 	m_magicLensCurrentModality(0),
-	m_attributes(attributes),
 	m_representativeType(representativeType)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
@@ -362,17 +360,21 @@ void iADetailView::SetNode(iAImageClusterNode const * node)
 	m_detailText->setMinimumWidth(50);
 	if (node->IsLeaf())
 	{
-		for (int i = 0; i < m_attributes->size(); ++i)
+		iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node;
+		QSharedPointer<iAAttributes> attributes = leaf->GetAttributes();
+		for (int i = 0; i < attributes->size(); ++i)
 		{
 			AttributeID id = static_cast<AttributeID>(i);
 			double value = node->GetAttribute(id);
-			QString valueStr = attrValueStr(value, m_attributes, id);
+			QString valueStr = attrValueStr(value, attributes, id);
 
-			m_detailText->append(m_attributes->at(id)->GetName() + " = " + valueStr);
+			m_detailText->append(attributes->at(id)->GetName() + " = " + valueStr);
 		}
 	}
 	else
 	{
+		/*
+		TODO: MULTIP find a way to get attributes here!
 		for (int i=0; i<m_attributes->size(); ++i)
 		{
 			AttributeID id = static_cast<AttributeID>(i);
@@ -388,6 +390,7 @@ void iADetailView::SetNode(iAImageClusterNode const * node)
 					attrValueStr(min, m_attributes, id) + ".." + attrValueStr(max, m_attributes, id) + "]");
 			}
 		}
+		*/
 		m_detailText->append("Maximum distance: "+QString::number(node->GetDistance()));
 	}
 }

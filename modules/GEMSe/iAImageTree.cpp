@@ -27,6 +27,7 @@
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 #include "iARepresentative.h"
+#include "iASamplingResults.h"
 #include "iAToolsITK.h"
 
 #include <QDir>
@@ -36,6 +37,12 @@
 
 #include <cassert>
 #include <random>
+
+namespace
+{
+	QString LeafMarker("leaf");
+	QString MergeMarker("merge");
+}
 
 iAImageClusterNode::iAImageClusterNode():
 	m_attitude(NoPreference)
@@ -657,6 +664,18 @@ CombinedProbPtr iAImageClusterLeaf::UpdateProbabilities() const
 }
 
 
+int iAImageClusterLeaf::GetDatasetID() const
+{
+	return m_singleResult->GetDatasetID();
+}
+
+
+QSharedPointer<iAAttributes> iAImageClusterLeaf::GetAttributes() const
+{
+	return m_singleResult->GetAttributes();
+}
+
+
 // tree
 
 iAImageTree::iAImageTree(QSharedPointer<iAImageClusterNode > node, int labelCount):
@@ -672,9 +691,17 @@ void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageClusterNode
 	{
 		out << " ";
 	}
-	out << QString::number(node->GetID())
-		<< (!node->IsLeaf()?QString(" ")+QString::number(node->GetDistance()):"")
-		<< endl;
+	out << QString::number(node->GetID()) << " ";
+	if (node->IsLeaf())
+	{
+		iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node.data();
+		out << LeafMarker << " " << leaf->GetDatasetID();
+	}
+	else
+	{
+		out << MergeMarker << " " << QString::number(node->GetDistance());
+	}
+	out << endl;
 	for (int c=0; c<node->GetChildCount(); ++c)
 	{
 		WriteNode(out, node->GetChild(c), level+1);
@@ -718,7 +745,7 @@ QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleR
 
 
 QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
-	QVector<QSharedPointer<iASingleResult> > const & sampleResults,
+	QVector<QSharedPointer<iASamplingResults> > const & samplingResults,
 	int labelCount,
 	QString const & outputDirectory,
 	int & lastClusterID)
@@ -730,33 +757,32 @@ QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
 		return QSharedPointer<iAImageClusterNode>();
 	}
 	QString currentLine = in.readLine().trimmed();
+	QStringList strs = currentLine.split(" ");
+	bool isLeaf(strs[1] == LeafMarker);
 	bool isNum = false;
-	float diff = 0.0;
-	if (currentLine.contains(" "))
-	{
-		QStringList strs = currentLine.split(" ");
-		currentLine = strs[0];
-		diff = strs[1].toFloat();
-	}
-	int id = currentLine.toInt(&isNum);
-
-	bool isLeaf = isNum && id < sampleResults.size();
-
+	int id = strs[0].toInt(&isNum);
 	if (!isNum)
 	{
-		// old-style clustering file with * as merge node marker;
-		id = lastClusterID++;
+		DEBUG_LOG(QString("Reading node: Invalid (non-integer) ID in cluster file, line: '%1'").arg(currentLine));
+		return QSharedPointer<iAImageClusterNode>();
 	}
-
 	if (isLeaf)
 	{
+		int datasetID = strs[2].toInt(&isNum);
+		if (!isNum)
+		{
+			DEBUG_LOG(QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
+			return QSharedPointer<iAImageClusterNode>();
+		}
+		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults[datasetID]->GetResults();
 		QSharedPointer<iASingleResult> result = findResultWithID(sampleResults, id);
 		return QSharedPointer<iAImageClusterNode>(new iAImageClusterLeaf(result, labelCount) );
 	}
 	else
 	{
-		QSharedPointer<iAImageClusterNode> child1(iAImageTree::ReadNode(in, sampleResults, labelCount, outputDirectory, lastClusterID));
-		QSharedPointer<iAImageClusterNode> child2(iAImageTree::ReadNode(in, sampleResults, labelCount, outputDirectory, lastClusterID));
+		float diff = strs[2].toFloat();
+		QSharedPointer<iAImageClusterNode> child1(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
+		QSharedPointer<iAImageClusterNode> child2(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
 		QSharedPointer<iAImageClusterNode> result(new iAImageClusterInternal(child1, child2,
 			labelCount,
 			outputDirectory,
@@ -769,7 +795,8 @@ QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
 }
 
 
-QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName, QVector<QSharedPointer<iASingleResult> > const & sampleResults, int labelCount)
+QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
+	QVector<QSharedPointer<iASamplingResults> > const & sampleResults, int labelCount)
 {
 	QFile file(fileName);
 	QSharedPointer<iAImageTree> result;
