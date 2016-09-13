@@ -164,6 +164,13 @@
            </property>
           </widget>
          </item>
+         <item row="4" column="1">
+          <widget class="QCheckBox" name="cbManualRegistration">
+           <property name="text">
+            <string>Manual Registration</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </widget>

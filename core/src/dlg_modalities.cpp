@@ -285,7 +285,6 @@ void dlg_modalities::EnableButtons()
 	bool enable = modalities->size() > 0;
 	pbEdit->setEnabled(enable);
 	pbRemove->setEnabled(enable);
-	pbStore->setEnabled(enable);
 }
 
 void dlg_modalities::ManualRegistration()
