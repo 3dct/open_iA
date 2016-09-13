@@ -31,7 +31,6 @@ class iAParameterGenerator;
 
 class QCheckBox;
 class QShortcut;
-class QxtSpanSlider;
 
 struct ParameterInputs
 {

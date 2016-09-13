@@ -37,7 +37,6 @@ class vtkPiecewiseFunction;
 
 class QCheckBox;
 class QLabel;
-class QxtSpanSlider;
 
 class iAChartSpanSlider: public QWidget
 {

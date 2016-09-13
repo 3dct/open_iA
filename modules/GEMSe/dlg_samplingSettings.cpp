@@ -28,8 +28,6 @@
 #include "iAModality.h"
 #include "iAParameterGeneratorImpl.h"
 
-#include "QxtSpanSlider"
-
 #include <QCheckBox>
 #include <QDropEvent>
 #include <QFileDialog>
