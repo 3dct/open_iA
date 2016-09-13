@@ -37,19 +37,17 @@ public:
 		QString const & characteristicsFileName);
 	int size() const;
 	QSharedPointer<iASingleResult> Get(int i) const;
-
 	void AddResult(QSharedPointer<iASingleResult> result);
-
 	QVector<QSharedPointer<iASingleResult> > const & GetResults() const;
-
 	QSharedPointer<iAAttributes> GetAttributes();
-
 	QString GetFileName() const;
+	QString GetPath(int id) const;
 private:
 	QSharedPointer<iAAttributes> m_attributes;
 	QVector<QSharedPointer<iASingleResult> > m_results;
-	QString m_samplingMethod;
-	QString m_fileName;       // smp fileName
+	QString m_samplingMethod; //!< the name of the applied sampling method (Latin Hypercube, Random, ...)
+	QString m_fileName;       //!< smp fileName
+	QString m_path;           //!< base filename for the sampling results
 
 	bool LoadInternal(QString const & parameterSetFileName, QString const & characteristicsFileName);
 	bool StoreAttributes(int type, QString const & fileName, bool id);

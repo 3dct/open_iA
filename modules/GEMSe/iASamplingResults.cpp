@@ -178,6 +178,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 	(&characFile);
 	QFileInfo paramFileInfo(paramFile);
 	int lineNr = 0;
+	m_path = paramFileInfo.absolutePath();
 	while (!paramIn.atEnd())
 	{
 		QString paramLine = paramIn.readLine();
@@ -191,7 +192,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 		QSharedPointer<iASingleResult> result = iASingleResult::Create(
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
-			paramFileInfo.absolutePath(),
+			*this,
 			m_attributes);
 		if (!result)
 		{
@@ -242,4 +243,10 @@ QSharedPointer<iAAttributes> iASamplingResults::GetAttributes()
 QString iASamplingResults::GetFileName() const
 {
 	return m_fileName;
+}
+
+
+QString iASamplingResults::GetPath(int id) const
+{
+	return m_path + "/sample" + QString::number(id);
 }

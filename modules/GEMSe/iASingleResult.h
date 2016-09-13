@@ -27,23 +27,28 @@
 #include <QVector>
 
 class iAAttributes;
+class iASamplingResults;
 
 class iASingleResult
 {
 public:
 
 	//! create from string
-	static QSharedPointer<iASingleResult> Create(QString const & line, QString const & path,
+	static QSharedPointer<iASingleResult> Create(
+		QString const & line,
+		iASamplingResults const & sampling,
 		QSharedPointer<iAAttributes> attributes);
 
-	static QSharedPointer<iASingleResult> Create(int id, QString const & path,
+	static QSharedPointer<iASingleResult> Create(
+		int id,
+		iASamplingResults const & sampling,
 		QVector<double> const & parameter);
 
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)
 	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
 
-	iASingleResult(int id, QString const & dir);
+	iASingleResult(int id, iASamplingResults const & sampling);
 
 	//! retrieve labelled image
 	iAITKIO::ImagePointer const GetLabelledImage();
@@ -71,11 +76,13 @@ public:
 private:
 	//! for now, value-type agnostic storage of values:
 	QVector<double> m_attributeValues;
-	QString m_path;
+	iASamplingResults const & m_sampling;
 	int m_id;
 	iAITKIO::ImagePointer m_labelImg;
 	QVector<iAITKIO::ImagePointer> m_probabilityImg;
 
-	//! load label image
 	bool LoadLabelImage();
+
+	QString GetLabelPath() const;
+	QString GetProbabilityPath(int label) const;
 };

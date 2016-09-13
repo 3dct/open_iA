@@ -182,7 +182,6 @@ void iAImageSampler::run()
 
 void iAImageSampler::computationFinished()
 {
-
 	iACommandRunner* cmd = dynamic_cast<iACommandRunner*>(QObject::sender());
 	if (!cmd)
 	{
@@ -209,7 +208,7 @@ void iAImageSampler::computationFinished()
 	}
 	ParameterSet const & param = m_parameterSets->at(id);
 
-	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, m_outputBaseDir, param);
+	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, *m_results.data(), param);
 	
 	result->SetAttribute(m_parameterCount+1, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+1)->AdjustMinMax(computationTime);

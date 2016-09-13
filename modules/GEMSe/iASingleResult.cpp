@@ -25,13 +25,16 @@
 #include "iAAttributes.h"
 #include "iAGEMSeConstants.h"
 #include "iANameMapper.h"
+#include "iASamplingResults.h"
 
 #include "iAConsole.h"
 #include "iAToolsITK.h"
 #include "iAITKIO.h"
 
 QSharedPointer<iASingleResult> iASingleResult::Create(
-	QString const & line, QString const & path, QSharedPointer<iAAttributes> attributes)
+	QString const & line,
+	iASamplingResults const & sampling,
+	QSharedPointer<iAAttributes> attributes)
 {
 	QStringList tokens = line.split(ValueSplitString);
 
@@ -42,7 +45,10 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 		DEBUG_LOG(QString("Invalid result ID: %1").arg(id));
 		return QSharedPointer<iASingleResult>();
 	}
-	QSharedPointer<iASingleResult> result(new iASingleResult(id, path + "/sample" + QString::number(id)));
+	QSharedPointer<iASingleResult> result(new iASingleResult(
+		id,
+		sampling
+	));
 	if (tokens.size() != attributes->size()+1) // +1 for ID
 	{
 		DEBUG_LOG(QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
@@ -75,10 +81,12 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 	return result;
 }
 
-QSharedPointer<iASingleResult> iASingleResult::Create(int id, QString const & path,
+QSharedPointer<iASingleResult> iASingleResult::Create(
+	int id,
+	iASamplingResults const & sampling,
 	QVector<double> const & parameter)
 {
-	QSharedPointer<iASingleResult> result(new iASingleResult(id, path + "/sample" + QString::number(id)));
+	QSharedPointer<iASingleResult> result(new iASingleResult(id, sampling));
 	result->m_attributeValues = parameter;
 	return result;
 }
@@ -116,9 +124,9 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 }
 
 
-iASingleResult::iASingleResult(int id, QString const & path):
+iASingleResult::iASingleResult(int id, iASamplingResults const & sampling):
 	m_id(id),
-	m_path(path)
+	m_sampling(sampling)
 {
 }
 
@@ -139,7 +147,7 @@ iAITKIO::ImagePointer const iASingleResult::GetLabelledImage()
 bool iASingleResult::LoadLabelImage()
 {
 	iAITKIO::ScalarPixelType pixelType;
-	m_labelImg = iAITKIO::readFile(QString(m_path + "/label.mhd"), pixelType);
+	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType);
 	return (m_labelImg);
 }
 
@@ -165,18 +173,18 @@ void iASingleResult::SetAttribute(int id, double value)
 	m_attributeValues[id] = value;
 }
 
-iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int l)
+iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int label)
 {
-	if (m_probabilityImg.size() <= l)
+	if (m_probabilityImg.size() <= label)
 	{
-		m_probabilityImg.resize(l+1);
+		m_probabilityImg.resize(label +1);
 	}
-	if (!m_probabilityImg[l])
+	if (!m_probabilityImg[label])
 	{
 		iAITKIO::ScalarPixelType pixelType;
-		m_probabilityImg[l] = iAITKIO::readFile(QString("%1/prob%2.mhd").arg(m_path).arg(l), pixelType);
+		m_probabilityImg[label] = iAITKIO::readFile(GetProbabilityPath(label), pixelType);
 	}
-	return m_probabilityImg[l];
+	return m_probabilityImg[label];
 }
 
 
@@ -194,5 +202,16 @@ void iASingleResult::AddProbabilityImages(QVector<iAITKIO::ImagePointer> & probI
 
 QString iASingleResult::GetFolder() const
 {
-	return m_path;
+	return m_sampling.GetPath(m_id);
+}
+
+
+QString iASingleResult::GetLabelPath() const
+{
+	return GetFolder() + "/label.mhd";
+}
+
+QString iASingleResult::GetProbabilityPath(int label) const
+{
+	return QString("%1/prob%2.mhd").arg(GetFolder()).arg(label);
 }
