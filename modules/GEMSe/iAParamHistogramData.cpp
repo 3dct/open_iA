@@ -146,10 +146,15 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageCluster
 	double min, double max, bool log,
 	iAChartAttributeMapper const & chartAttrMap)
 {
+	// maximum number of bins:
+	//		- square root of number of values (https://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width)
+	//      - adapting to width of histogram?
+	//      - if discrete or categorical values: limit by range
+	size_t maxBin = std::min(static_cast<size_t>(std::sqrt(tree->GetClusterSize())), HistogramBinCount);
 	int numBin = (min == max)? 1 :
 		(rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical) ?
-		std::min(static_cast<size_t>(max-min+1), HistogramBinCount) :
-		HistogramBinCount;
+		std::min(static_cast<size_t>(max-min+1), maxBin) :
+		maxBin;
 	if (rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical)
 	{
 		max = max+1;
