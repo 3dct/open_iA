@@ -64,7 +64,6 @@ public:
 	{}
 	virtual int count() const
 	{
-		assert(m_labelCount > 0);
 		return m_labelCount;
 	}
 	virtual QString GetName(int idx) const
@@ -123,10 +122,10 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbSample,         SIGNAL(clicked()), this, SLOT(StartSampling()));
 	connect(pbSamplingLoad,   SIGNAL(clicked()), this, SLOT(LoadSampling()));
 	//connect(pbSamplingStore,  SIGNAL(clicked()), this, SLOT(StoreSampling()));
-	//connect(pbClusteringCalc, SIGNAL(clicked()), this, SLOT(CalculateClustering()));
+	//connect(pbCalcCharac,     SIGNAL(clicked()), this, SLOT(CalcCharacteristics()));
+	connect(pbClusteringCalc, SIGNAL(clicked()), this, SLOT(CalculateClustering()));
 	connect(pbClusteringLoad, SIGNAL(clicked()), this, SLOT(LoadClustering()));
 	connect(pbClusteringStore,SIGNAL(clicked()), this, SLOT(StoreClustering()));
-	connect(pbCalcCharac,     SIGNAL(clicked()), this, SLOT(CalcCharacteristics()));
 	connect(pbRefImgComp,     SIGNAL(clicked()), this, SLOT(CalcRefImgComp()));
 	connect(pbAllStore,       SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbHelp,           SIGNAL(clicked()), this, SLOT(Help()));
@@ -218,17 +217,21 @@ void dlg_GEMSeControl::LoadSampling()
 		QString(), // TODO get directory of current file
 		tr("Sampling data file (*.smp );;" ) );
 
-	QStringList inList;
-	inList << tr("#Label Count");
-	QList<QVariant> inPara;
-	inPara << tr("%1").arg(2);
-	dlg_commoninput lblCountInput(this, "Label Count", 1, inList, inPara, NULL);
-	if (lblCountInput.exec() != QDialog::Accepted)
+	int labelCount = m_simpleLabelInfo->count();
+	if (labelCount < 2)
 	{
-		DEBUG_LOG("Cannot load sampling without label count input!");
-		return;
+		QStringList inList;
+		inList << tr("*Label Count");
+		QList<QVariant> inPara;
+		inPara << tr("%1").arg(2);
+		dlg_commoninput lblCountInput(this, "Label Count", 1, inList, inPara, NULL);
+		if (lblCountInput.exec() != QDialog::Accepted)
+		{
+			DEBUG_LOG("Cannot load sampling without label count input!");
+			return;
+		}
+		labelCount = lblCountInput.getSpinBoxValues()[0];
 	}
-	int labelCount = lblCountInput.getSpinBoxValues()[0];
 	if (!fileName.isEmpty())
 	{
 		LoadSampling(fileName, labelCount, iASamplingResults::GetNewID());
@@ -352,7 +355,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 
 void dlg_GEMSeControl::CalculateClustering()
 {
-	if (!m_dlgSamplings->SamplingCount() == 0)
+	if (m_dlgSamplings->SamplingCount() == 0)
 	{
 		DEBUG_LOG("No Sampling Results available!");
 		return;
@@ -363,19 +366,21 @@ void dlg_GEMSeControl::CalculateClustering()
 		DEBUG_LOG("Other operation still running?");
 		return;
 	}
-	QString dir = m_outputFolder+"/representatives";
+	QString dir = m_outputFolder + "/representatives";
+	if (m_outputFolder.isEmpty())
+	{
+		m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), QString());
+		if (m_outputFolder.isEmpty())
+		{
+			return;
+		}
+		dir = m_outputFolder;
+	}
 	QDir qdir;
 	if (!qdir.mkpath(dir))
 	{
 		DEBUG_LOG("Can't create representative directory!");
-	}
-	if (dir.isEmpty())
-	{
-		dir = QFileDialog::getExistingDirectory(this, tr("Output Directory"), QString());
-		if (dir.isEmpty())
-		{
-			return;
-		}
+		return;
 	}
 	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), dir));
 	m_dlgProgress = new dlg_progress(this, m_clusterer, m_clusterer, "Clustering Progress");

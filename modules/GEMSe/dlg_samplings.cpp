@@ -64,7 +64,7 @@ void dlg_samplings::Remove()
 
 int dlg_samplings::SamplingCount() const
 {
-	return m_itemModel->rowCount();
+	return m_samplings.size();
 }
 
 QVector<dlg_samplings::SamplingResultPointer> const & dlg_samplings::GetSamplings()

@@ -425,7 +425,7 @@ bool iAModalityList::Load(QString const & filename)
 		!Str2Vec3D(settings.value(CameraFocalPointKey).toString(), camFocalPoint) ||
 		!Str2Vec3D(settings.value(CameraViewUpKey).toString(), camViewUp))
 	{
-		DEBUG_LOG(QString("Invalid or missing camera information."));
+		//DEBUG_LOG(QString("Invalid or missing camera information."));
 	}
 	else
 	{

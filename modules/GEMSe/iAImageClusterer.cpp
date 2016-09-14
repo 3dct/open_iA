@@ -26,6 +26,7 @@
 #include "iAImageTree.h"
 #include "iAMathUtility.h"
 #include "iARepresentative.h"
+#include "iASingleResult.h"
 
 #include "iAImageComparisonMetrics.h"
 
@@ -46,7 +47,6 @@ iAImageClusterer::iAImageClusterer(int labelCount, QString const & outputDirecto
 {
 }
 
-#include "iASingleResult.h"
 
 void iAImageClusterer::AddImage(QSharedPointer<iASingleResult> singleResult)
 {
@@ -59,7 +59,6 @@ QSharedPointer<iAImageTree > iAImageClusterer::GetResult()
 	return m_tree;
 }
 
-#include "iAImageComparisonMetrics.h"
 
 double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 {
