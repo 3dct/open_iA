@@ -22,7 +22,8 @@
 #include "pch.h"
 #include "iAParamHistogramData.h"
 
-#include "iAAttributeFilter.h"
+#include "iAChartFilter.h"
+#include "iAChartAttributeMapper.h"
 #include "iAConsole.h"
 #include "iAImageTree.h"
 #include "iAMathUtility.h"
@@ -63,9 +64,17 @@ double iAParamHistogramData::mapBinToValue(double bin) const
 }
 
 
-void iAParamHistogramData::CountNodeBin(iAImageClusterNode const * node, QSharedPointer<iAParamHistogramData> data, AttributeID attribID)
+void iAParamHistogramData::CountNodeBin(iAImageClusterNode const * node,
+	QSharedPointer<iAParamHistogramData> data, int chartID,
+	iAChartAttributeMapper const & chartAttrMap)
 {
-	double value = node->GetAttribute(attribID);
+	iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node;
+	if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
+	{
+		return;
+	}
+	int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
+	double value = node->GetAttribute(attributeID);
 	int binIdx = clamp(0, static_cast<int>(data->m_numBin-1), static_cast<int>(data->mapValueToBin(value)));
 	data->m_data[binIdx]++;
 	if (data->m_data[binIdx] > data->m_maxValue)
@@ -76,42 +85,44 @@ void iAParamHistogramData::CountNodeBin(iAImageClusterNode const * node, QShared
 
 
 void iAParamHistogramData::VisitNode(iAImageClusterNode const * node,
-	QSharedPointer<iAParamHistogramData> data, AttributeID attribID)
+	QSharedPointer<iAParamHistogramData> data, int chartID,
+	iAChartAttributeMapper const & chartAttrMap)
 {
 	if (!node->IsLeaf())
 	{
 		for (int i=0; i<node->GetChildCount(); ++i)
 		{
-			VisitNode(node->GetChild(i).data(), data, attribID);
+			VisitNode(node->GetChild(i).data(), data, chartID, chartAttrMap);
 		}
 	}
 	else
 	{
-		CountNodeBin(node, data, attribID);
+		CountNodeBin(node, data, chartID, chartAttrMap);
 	}
 }
 
 
 void iAParamHistogramData::VisitNode(iAImageClusterNode const * node,
-	QSharedPointer<iAParamHistogramData> data, AttributeID attribID,
-	iAAttributeFilter const & attributeFilter)
+	QSharedPointer<iAParamHistogramData> data, int chartID,
+	iAChartAttributeMapper const & chartAttrMap,
+	iAChartFilter const & attributeFilter)
 {
 	if (!node->IsLeaf())
 	{
 		for (int i=0; i<node->GetChildCount(); ++i)
 		{
-			VisitNode(node->GetChild(i).data(), data, attribID, attributeFilter);
+			VisitNode(node->GetChild(i).data(), data, chartID, chartAttrMap, attributeFilter);
 		}
 	}
 	else
 	{
 		iAImageClusterLeaf const * leaf = dynamic_cast<iAImageClusterLeaf const *> (node);
 		assert(leaf);
-		if (!attributeFilter.Matches(leaf))
+		if (!attributeFilter.Matches(leaf, chartAttrMap))
 		{
 			return;
 		}
-		CountNodeBin(node, data, attribID);
+		CountNodeBin(node, data, chartID, chartAttrMap);
 	}
 }
 
@@ -130,9 +141,10 @@ double iAParamHistogramData::GetBinStart(int binNr) const
 
 
 QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageClusterNode const * tree,
-	AttributeID attribID,
+	int chartID,
 	iAValueType rangeType,
-	double min, double max, bool log)
+	double min, double max, bool log,
+	iAChartAttributeMapper const & chartAttrMap)
 {
 	int numBin = (min == max)? 1 :
 		(rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical) ?
@@ -143,16 +155,17 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageCluster
 		max = max+1;
 	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
-	VisitNode(tree, result, attribID);
+	VisitNode(tree, result, chartID, chartAttrMap);
 	return result;
 }
 
 
 QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageClusterNode const * tree,
-	AttributeID attribID,
+	int chartID,
 	iAValueType rangeType,
 	double min, double max, bool log,
-	iAAttributeFilter const & attributeFilter)
+	iAChartAttributeMapper const & chartAttrMap,
+	iAChartFilter const & attributeFilter)
 {
 	int numBin = (min == max)? 1 :
 		(rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical) ?
@@ -163,7 +176,7 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageCluster
 		max = max+1;
 	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
-	VisitNode(tree, result, attribID, attributeFilter);
+	VisitNode(tree, result, chartID, chartAttrMap, attributeFilter);
 	return result;
 }
 

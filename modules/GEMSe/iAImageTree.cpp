@@ -22,12 +22,13 @@
 #include "pch.h"
 #include "iAImageTree.h"
 
-#include "iAAttributeFilter.h"
-#include "iASingleResult.h"
+#include "iAChartAttributeMapper.h"
+#include "iAChartFilter.h"
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 #include "iARepresentative.h"
 #include "iASamplingResults.h"
+#include "iASingleResult.h"
 #include "iAToolsITK.h"
 
 #include <QDir>
@@ -323,7 +324,7 @@ ClusterIDType iAImageClusterInternal::GetID() const
 }
 
 
-double iAImageClusterInternal::GetAttribute(AttributeID id) const
+double iAImageClusterInternal::GetAttribute(int id) const
 {
 	assert(false);
 	return 0.0;
@@ -334,12 +335,13 @@ int  iAImageClusterInternal::GetFilteredSize() const
 	return m_filteredSize;
 }
 
-void iAImageClusterInternal::UpdateFilter(iAAttributeFilter const & filter)
+void iAImageClusterInternal::UpdateFilter(iAChartFilter const & filter,
+	iAChartAttributeMapper const & chartAttrMap)
 {
 	m_filteredSize = 0;
 	for (int i=0; i<GetChildCount(); ++i)
 	{
-		GetChild(i)->UpdateFilter(filter);
+		GetChild(i)->UpdateFilter(filter, chartAttrMap);
 		m_filteredSize += GetChild(i)->GetFilteredSize();
 	}
 	m_filteredRepresentativeOutdated = true;
@@ -594,7 +596,7 @@ ClusterImageType const iAImageClusterLeaf::GetLargeImage() const
 }
 
 
-double iAImageClusterLeaf::GetAttribute(AttributeID id) const
+double iAImageClusterLeaf::GetAttribute(int id) const
 {
 	return m_singleResult->GetAttribute(id);
 }
@@ -610,9 +612,10 @@ int iAImageClusterLeaf::GetFilteredSize() const
 	return (m_filtered)? 0 : 1;
 }
 
-void iAImageClusterLeaf::UpdateFilter(iAAttributeFilter const & filter)
+void iAImageClusterLeaf::UpdateFilter(iAChartFilter const & filter,
+	iAChartAttributeMapper const & chartAttrMap)
 {
-	m_filtered = !filter.Matches(this);
+	m_filtered = !filter.Matches(this, chartAttrMap);
 }
 
 ClusterDistanceType iAImageClusterLeaf::GetDistance() const
@@ -796,7 +799,7 @@ QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
 
 
 QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
-	QVector<QSharedPointer<iASamplingResults> > const & sampleResults, int labelCount)
+	QVector<QSharedPointer<iASamplingResults> > const & samplingResults, int labelCount)
 {
 	QFile file(fileName);
 	QSharedPointer<iAImageTree> result;
@@ -813,8 +816,12 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
 	{
 		DEBUG_LOG("Can't create representative directory!");
 	}
-	int lastClusterID = sampleResults.size();
-	result =  QSharedPointer<iAImageTree>(new iAImageTree(ReadNode(in, sampleResults, labelCount,
+	int lastClusterID = -1;
+	for (int i=0; i<samplingResults.size(); ++i)
+	{
+		lastClusterID = std::max(lastClusterID, samplingResults[i]->size());
+	}
+	result =  QSharedPointer<iAImageTree>(new iAImageTree(ReadNode(in, samplingResults, labelCount,
 		dir, lastClusterID), labelCount));
 	file.close();
 	return result;
@@ -825,13 +832,19 @@ int iAImageTree::GetLabelCount() const
 	return m_labelCount;
 }
 
-void iAImageClusterLeaf::GetMinMax(AttributeID attribID, double & min, double & max) const
+void iAImageClusterLeaf::GetMinMax(int chartID, double & min, double & max,
+	iAChartAttributeMapper const & chartAttrMap) const
 {
 	if (m_filtered)
 	{
 		return;
 	}
-	double value = GetAttribute(attribID);
+	if (!chartAttrMap.GetDatasetIDs(chartID).contains(GetDatasetID()))
+	{
+		return;
+	}
+	int attributeID = chartAttrMap.GetAttributeID(chartID, GetDatasetID());
+	double value = GetAttribute(attributeID);
 	if (value < min)
 	{
 		min = value;
@@ -842,17 +855,19 @@ void iAImageClusterLeaf::GetMinMax(AttributeID attribID, double & min, double & 
 	}
 }
 
-void iAImageClusterInternal::GetMinMax(AttributeID attribID, double & min, double & max) const
+void iAImageClusterInternal::GetMinMax(int chartID, double & min, double & max,
+	iAChartAttributeMapper const & chartAttrMap) const
 {
 	for (int i = 0; i < GetChildCount(); ++i)
 	{
-		GetChild(i)->GetMinMax(attribID, min, max);
+		GetChild(i)->GetMinMax(chartID, min, max, chartAttrMap);
 	}
 }
 
-void GetClusterMinMax(iAImageClusterNode const * node, AttributeID attribID, double & min, double & max)
+void GetClusterMinMax(iAImageClusterNode const * node, int chartID, double & min, double & max,
+	iAChartAttributeMapper const & chartAttrMap)
 {
 	min = std::numeric_limits<double>::max();
 	max = std::numeric_limits<double>::lowest();
-	node->GetMinMax(attribID, min, max);
+	node->GetMinMax(chartID, min, max, chartAttrMap);
 }

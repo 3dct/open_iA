@@ -156,13 +156,11 @@ void iASingleResult::DiscardDetails()
 	m_labelImg = NULL;
 }
 
-//! get attribute (parameter or characteristic)
 double iASingleResult::GetAttribute(int id) const
 {
 	return m_attributeValues[id];
 }
 
-//! set attribute (parameter or characteristic)
 void iASingleResult::SetAttribute(int id, double value)
 {
 	if (id >= m_attributeValues.size())

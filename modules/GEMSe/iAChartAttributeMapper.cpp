@@ -18,44 +18,48 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "iAAttributeFilter.h"
+#include "iAChartAttributeMapper.h"
 
-#include "iAImageTree.h"
-
-
-void iAAttributeFilter::RemoveFilter(AttributeID attribID)
+int iAChartAttributeMapper::GetChartID(int datasetID, int attributeID) const
 {
-	m_filters.remove(attribID);
+	return m_attributeChartMap[std::make_pair(datasetID, attributeID)];
 }
 
-void iAAttributeFilter::Reset()
+QList<int> iAChartAttributeMapper::GetDatasetIDs(int chartID) const
 {
-	m_filters.clear();
+	return m_chartAttributeMap[chartID].keys();
 }
 
-void iAAttributeFilter::AddFilter(AttributeID attribID, double min, double max)
+int iAChartAttributeMapper::GetAttributeID(int chartID, int datasetID) const
 {
-	m_filters.insert(attribID, std::make_pair(min, max));
+	return m_chartAttributeMap[chartID][datasetID];
 }
 
-bool iAAttributeFilter::Matches(iAImageClusterLeaf const * leaf) const
+int iAChartAttributeMapper::GetAttribCount(int datasetID) const
 {
-	QList<AttributeID> keys = m_filters.keys();
-	for (QList<AttributeID>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+	return m_datasetAttribCount[datasetID];
+}
+
+void iAChartAttributeMapper::Add(int datasetID, int attributeID, int chartID)
+{
+	if (!m_chartAttributeMap.contains(chartID))
 	{
-		double value = leaf->GetAttribute(*it);
-		std::pair<double, double> const & range = m_filters[*it];
-		if (value < range.first || value > range.second)
-		{
-			return false;
-		}
+		QMap<int, int> datatsetAttributeMap;
+		datatsetAttributeMap.insert(datasetID, chartID);
+		m_chartAttributeMap.insert(chartID, datatsetAttributeMap);
 	}
-	return true;
+	else
+	{
+		m_chartAttributeMap[datasetID][attributeID] = chartID;
+	}
+	m_attributeChartMap.insert(std::make_pair(datasetID, attributeID), chartID);
+	m_datasetAttribCount[datasetID] = std::max(m_datasetAttribCount[datasetID], attributeID + 1);
 }
 
-bool iAAttributeFilter::MatchesAll() const
+void iAChartAttributeMapper::Clear()
 {
-	return m_filters.size() == 0;
+	m_attributeChartMap.clear();
+	m_chartAttributeMap.clear();
+	m_datasetAttribCount.clear();
 }
+

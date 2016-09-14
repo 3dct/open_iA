@@ -342,7 +342,8 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		tree,
 		originalImage,
 		m_dlgModalities->GetModalities(),
-		*m_simpleLabelInfo.data()
+		*m_simpleLabelInfo.data(),
+		m_dlgSamplings->GetSamplings()
 	);
 	pbClusteringStore->setEnabled(true);
 	m_cltFile = fileName;
@@ -443,7 +444,8 @@ void dlg_GEMSeControl::ClusteringFinished()
 		m_clusterer->GetResult(),
 		originalImage,
 		m_dlgModalities->GetModalities(),
-		*m_simpleLabelInfo.data()
+		*m_simpleLabelInfo.data(),
+		m_dlgSamplings->GetSamplings()
 	);
 
 }

@@ -20,55 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
+#include "iAGEMSeConstants.h"
 
-#include "iAITKIO.h" // TODO: replace?
-typedef iAITKIO::ImagePointer ClusterImageType;
+#include <QMap>
 
-#include <QGridLayout>
-#include <QSharedPointer>
-#include <QVector>
-#include <QWidget>
-
+class iAChartAttributeMapper;
 class iAImageClusterLeaf;
-class iAImageClusterNode;
-class iAImagePreviewWidget;
-class iAPreviewWidgetPool;
 
-class ExampleGrid;
-
-class vtkCamera;
-
-class iAExampleImageWidget: public QWidget
+class iAChartFilter
 {
-	Q_OBJECT
 public:
-	//! aspectRatio = height/width
-	iAExampleImageWidget(QWidget* parent, double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
-	void SetSelectedNode(QSharedPointer<iAImageClusterNode> node);
-	void SetSelectedImage(iAImageClusterLeaf * leaf);
-	void FilterUpdated();
-public slots:
-	void AdaptLayout();
-	void ImageUpdated();
-signals:
-	void Selected(iAImageClusterLeaf *);
-	void Hovered(iAImageClusterLeaf *);
-	void ViewUpdated();
-protected:
-	virtual void resizeEvent(QResizeEvent *);
+	void RemoveFilter(int chartID);
+	void AddFilter(int chartID, double min, double max);
+	bool Matches(iAImageClusterLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const;
+	bool MatchesAll() const;
+	void Reset();
 private:
-	void UpdateImages();
-	QVector<iAImageClusterLeaf *> m_nodes;
-	QGridLayout* m_layout;
-	int m_width;
-	int m_height;
-	QSharedPointer<iAImageClusterNode> m_rootNode;
-	double m_aspectRatio;
-	iAPreviewWidgetPool * m_previewPool;
-	ExampleGrid* m_gridWidget;
-	ClusterImageType m_nullImage;
-private slots:
-	void ImageClicked();
-	void ImageHovered();
+	QMap<int, std::pair<double, double> > m_filters;
 };

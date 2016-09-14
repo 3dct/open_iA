@@ -18,22 +18,50 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+ 
+#include "pch.h"
+#include "iAChartFilter.h"
 
-#include "iAGEMSeConstants.h"
+#include "iAChartAttributeMapper.h"
+#include "iAImageTree.h"
 
-#include <QMap>
 
-class iAImageClusterLeaf;
-
-class iAAttributeFilter
+void iAChartFilter::RemoveFilter(int chartID)
 {
-public:
-	void RemoveFilter(AttributeID attribID);
-	void AddFilter(AttributeID attribID, double min, double max);
-	bool Matches(iAImageClusterLeaf const * leaf) const;
-	bool MatchesAll() const;
-	void Reset();
-private:
-	QMap<AttributeID, std::pair<double, double> > m_filters;
-};
+	m_filters.remove(chartID);
+}
+
+void iAChartFilter::Reset()
+{
+	m_filters.clear();
+}
+
+void iAChartFilter::AddFilter(int chartID, double min, double max)
+{
+	m_filters.insert(chartID, std::make_pair(min, max));
+}
+
+bool iAChartFilter::Matches(iAImageClusterLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const
+{
+	QList<int> chartIDs = m_filters.keys();
+	for (int chartID: chartIDs)
+	{
+		if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
+		{	// filter doesn't apply for this leaf, so don't filter it
+			return true;
+		}
+		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
+		double value = leaf->GetAttribute(attributeID);
+		std::pair<double, double> const & range = m_filters[chartID];
+		if (value < range.first || value > range.second)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool iAChartFilter::MatchesAll() const
+{
+	return m_filters.size() == 0;
+}

@@ -109,9 +109,6 @@ const int CameraSpacing   = ExampleViewSpacing;
 const int FavoriteBarWidth = 80;
 const int FavoriteWidth    = FavoriteBarWidth - (2 * ExampleViewSpacing);
 
-//! Attributes available for charts/histograms:
-typedef int AttributeID;
-
 const int MeasureCount = 5;
 
 enum DerivedOutput

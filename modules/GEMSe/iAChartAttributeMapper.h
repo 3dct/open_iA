@@ -20,55 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
+#include <QMap>
 
-#include "iAITKIO.h" // TODO: replace?
-typedef iAITKIO::ImagePointer ClusterImageType;
+#include <utility>
 
-#include <QGridLayout>
-#include <QSharedPointer>
-#include <QVector>
-#include <QWidget>
-
-class iAImageClusterLeaf;
-class iAImageClusterNode;
-class iAImagePreviewWidget;
-class iAPreviewWidgetPool;
-
-class ExampleGrid;
-
-class vtkCamera;
-
-class iAExampleImageWidget: public QWidget
+class iAChartAttributeMapper
 {
-	Q_OBJECT
 public:
-	//! aspectRatio = height/width
-	iAExampleImageWidget(QWidget* parent, double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
-	void SetSelectedNode(QSharedPointer<iAImageClusterNode> node);
-	void SetSelectedImage(iAImageClusterLeaf * leaf);
-	void FilterUpdated();
-public slots:
-	void AdaptLayout();
-	void ImageUpdated();
-signals:
-	void Selected(iAImageClusterLeaf *);
-	void Hovered(iAImageClusterLeaf *);
-	void ViewUpdated();
-protected:
-	virtual void resizeEvent(QResizeEvent *);
+	int GetChartID(int datasetID, int attributeID) const;
+	QList<int> GetDatasetIDs(int chartID) const;
+	int GetAttributeID(int chartID, int datasetID) const;
+	int GetAttribCount(int datasetID) const;
+
+	void Add(int datasetID, int attributeID, int chartID);
+	void Clear();
 private:
-	void UpdateImages();
-	QVector<iAImageClusterLeaf *> m_nodes;
-	QGridLayout* m_layout;
-	int m_width;
-	int m_height;
-	QSharedPointer<iAImageClusterNode> m_rootNode;
-	double m_aspectRatio;
-	iAPreviewWidgetPool * m_previewPool;
-	ExampleGrid* m_gridWidget;
-	ClusterImageType m_nullImage;
-private slots:
-	void ImageClicked();
-	void ImageHovered();
+	QMap<int, QMap<int, int> > m_chartAttributeMap;
+	QMap<std::pair<int, int>, int>  m_attributeChartMap;
+	QMap<int, int> m_datasetAttribCount;
 };

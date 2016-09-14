@@ -334,7 +334,7 @@ void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 	else        m_pbHate->setStyleSheet("qproperty-icon: url(:/images/GEMSe_hate.png); background-color: "+DefaultColors::BackgroundColorText+"; border:none;");
 }
 
-QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, AttributeID id)
+QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int id)
 {
 	switch(attributes->at(id)->GetValueType())
 	{
@@ -362,23 +362,24 @@ void iADetailView::SetNode(iAImageClusterNode const * node)
 	{
 		iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node;
 		QSharedPointer<iAAttributes> attributes = leaf->GetAttributes();
-		for (int i = 0; i < attributes->size(); ++i)
+		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
 		{
-			AttributeID id = static_cast<AttributeID>(i);
-			double value = node->GetAttribute(id);
-			QString valueStr = attrValueStr(value, attributes, id);
+			double value = node->GetAttribute(attributeID);
+			QString valueStr = attrValueStr(value, attributes, attributeID);
 
-			m_detailText->append(attributes->at(id)->GetName() + " = " + valueStr);
+			m_detailText->append(attributes->at(attributeID)->GetName() + " = " + valueStr);
 		}
 	}
 	else
 	{
 		/*
 		TODO: MULTIP find a way to get attributes here!
-		for (int i=0; i<m_attributes->size(); ++i)
+			- either all attributes (-> need to be passed in from the outside)
+			- or only the ones actually in this cluster (collection might be complex & time-consuming)
+		for (int chartID=0; chartID<m_chartAttributes->size(); ++chartID)
 		{
-			AttributeID id = static_cast<AttributeID>(i);
-			if (m_attributes->at(id)->GetValueType() != Categorical)
+								// v mapper!
+			if (m_attributes->at(chartID)->GetValueType() != Categorical)
 			{
 				double min, max;
 				GetClusterMinMax(node, id, min, max);
