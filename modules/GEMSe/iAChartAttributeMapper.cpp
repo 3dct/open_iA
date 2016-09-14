@@ -45,15 +45,18 @@ void iAChartAttributeMapper::Add(int datasetID, int attributeID, int chartID)
 	if (!m_chartAttributeMap.contains(chartID))
 	{
 		QMap<int, int> datatsetAttributeMap;
-		datatsetAttributeMap.insert(datasetID, chartID);
+		datatsetAttributeMap.insert(datasetID, attributeID);
 		m_chartAttributeMap.insert(chartID, datatsetAttributeMap);
 	}
 	else
 	{
-		m_chartAttributeMap[datasetID][attributeID] = chartID;
+		m_chartAttributeMap[chartID][datasetID] = attributeID;
 	}
 	m_attributeChartMap.insert(std::make_pair(datasetID, attributeID), chartID);
-	m_datasetAttribCount[datasetID] = std::max(m_datasetAttribCount[datasetID], attributeID + 1);
+	m_datasetAttribCount[datasetID] = std::max(
+		m_datasetAttribCount.contains(datasetID) ? m_datasetAttribCount[datasetID] : 0,
+		attributeID + 1
+	);
 }
 
 void iAChartAttributeMapper::Clear()

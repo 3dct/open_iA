@@ -313,7 +313,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		return false;
 	}
 	assert(m_dlgSamplings->SamplingCount() > 0);
-	if (!m_dlgSamplings->SamplingCount() == 0 || fileName.isEmpty())
+	if (m_dlgSamplings->SamplingCount() == 0 || fileName.isEmpty())
 	{
 		DEBUG_LOG("No sampling data is available!");
 		return false;

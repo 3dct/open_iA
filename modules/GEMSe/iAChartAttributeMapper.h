@@ -35,7 +35,11 @@ public:
 	void Add(int datasetID, int attributeID, int chartID);
 	void Clear();
 private:
+	//! map from chartID to (map from datasetID to attributeID)
 	QMap<int, QMap<int, int> > m_chartAttributeMap;
+
+	//! map from (datasetID, attributeID) to chartID
 	QMap<std::pair<int, int>, int>  m_attributeChartMap;
+	//! map from datasetID to attribute count
 	QMap<int, int> m_datasetAttribCount;
 };
