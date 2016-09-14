@@ -216,7 +216,10 @@ void dlg_GEMSeControl::LoadSampling()
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
 		QString(), // TODO get directory of current file
 		tr("Sampling data file (*.smp );;" ) );
-
+	if (fileName.isEmpty())
+	{
+		return;
+	}
 	int labelCount = m_simpleLabelInfo->count();
 	if (labelCount < 2)
 	{
@@ -232,10 +235,7 @@ void dlg_GEMSeControl::LoadSampling()
 		}
 		labelCount = lblCountInput.getSpinBoxValues()[0];
 	}
-	if (!fileName.isEmpty())
-	{
-		LoadSampling(fileName, labelCount, iASamplingResults::GetNewID());
-	}
+	LoadSampling(fileName, labelCount, iASamplingResults::GetNewID());
 }
 
 bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, int datasetID)
@@ -284,8 +284,6 @@ void dlg_GEMSeControl::SamplingFinished()
 		m_outputFolder + "/" + iASEAFile::DefaultSMPFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultSPSFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultCHRFileName);
-
-	CalculateClustering();
 
 	pbSamplingStore->setEnabled(true);
 	pbClusteringCalc->setEnabled(true);
@@ -366,23 +364,19 @@ void dlg_GEMSeControl::CalculateClustering()
 		DEBUG_LOG("Other operation still running?");
 		return;
 	}
-	QString dir = m_outputFolder + "/representatives";
+	QString m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), QString());
 	if (m_outputFolder.isEmpty())
 	{
-		m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), QString());
-		if (m_outputFolder.isEmpty())
-		{
-			return;
-		}
-		dir = m_outputFolder;
+		return;
 	}
+	QString cacheDir = m_outputFolder + "/representatives";
 	QDir qdir;
-	if (!qdir.mkpath(dir))
+	if (!qdir.mkpath(cacheDir))
 	{
 		DEBUG_LOG("Can't create representative directory!");
 		return;
 	}
-	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), dir));
+	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir));
 	m_dlgProgress = new dlg_progress(this, m_clusterer, m_clusterer, "Clustering Progress");
 	for (int samplingIdx=0; samplingIdx<m_dlgSamplings->SamplingCount(); ++samplingIdx)
 	{

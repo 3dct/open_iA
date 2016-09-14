@@ -339,6 +339,7 @@ void dlg_GEMSe::RemoveAllCharts()
 
 void dlg_GEMSe::CreateMapper()
 {
+	m_chartAttributes = QSharedPointer<iAAttributes>(new iAAttributes());
 	m_chartAttributeMapper.Clear();
 	int nextChartID = 0;
 	for (int samplingIdx=0; samplingIdx<m_samplings.size(); ++samplingIdx)

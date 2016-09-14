@@ -446,7 +446,10 @@ void iAImageClusterer::run()
 		m_images[idx.second] = QSharedPointer<iAImageClusterNode>();
 
 		--m_remainingNodes;
-		emit Progress((SplitFactorDistanceCalc + (FullProgress-SplitFactorDistanceCalc)*(m_images.size()-m_remainingNodes)) / m_images.size());
+		emit Progress(
+			SplitFactorDistanceCalc +
+			(FullProgress-SplitFactorDistanceCalc) * (m_images.size()-m_remainingNodes)/m_images.size()
+		);
 	}
 	if (!m_aborted)
 	{
