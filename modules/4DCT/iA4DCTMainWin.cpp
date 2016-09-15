@@ -22,11 +22,7 @@
 #include "pch.h"
 #include "iA4DCTMainWin.h"
 // iA
-#include "dlg_findDefects.h"
-#include "dlg_showDefects.h"
 #include "iA4DCTData.h"
-#include "iA4DCTDefectFinder.h"
-#include "iA4DCTDefectView.h"
 #include "iA4DCTDefects.h"
 #include "iA4DCTProjectReaderWriter.h"
 #include "iA4DCTSettings.h"
@@ -70,9 +66,6 @@ iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
 	m_size[ 0 ] = 100.; m_size[ 1 ] = 100.; m_size[ 2 ] = 100.;
 
 	connect( actionAdd, SIGNAL( triggered() ), this, SLOT( addButtonClick() ) );
-	connect( actionDefectFinder, SIGNAL( triggered() ), this, SLOT( findDefects() ) );
-	//connect(actionDefectView, SIGNAL(triggered()), this, SLOT(showDefects()));
-	//connect(actionDensityMap, SIGNAL(triggered()), this, SLOT(densityMap()));
 	connect( actionVisualization, SIGNAL( triggered() ), this, SLOT( openVisualizationWin() ) );
 	connect( actionSave, SIGNAL( triggered() ), this, SLOT( save() ) );
 }
@@ -155,155 +148,6 @@ void iA4DCTMainWin::openVisualizationWin()
 	mainWin->mdiArea->addSubWindow( visWin );
 	visWin->showMaximized();
 }
-
-void iA4DCTMainWin::findDefects()
-{
-	dlg_findDefects* dialog = new dlg_findDefects( getStageData(), this );
-	if( dialog->exec() != QDialog::Accepted ) {
-		return;
-	}
-
-	iA4DCTStageData* stgData = m_stages[ dialog->getStageIndex() ]->getData();
-
-	QString outputDir = dialog->getOutputDir();
-	QDir dir( outputDir );
-	if( !dir.exists() ) {
-		DEBUG_LOG( "Wrong output directory" );
-		return;
-	}
-
-	QString intensPath = stgData->Files[ dialog->getIntensityImgIndex() ].Path;
-	QString labeldPath = stgData->Files[ dialog->getLabledImgIndex() ].Path;
-	//QString fiberInfoPath	= stgData->ExtractedFibers;
-	QString fiberInfoPath;
-	if( !stgData->getFilePath( S_4DCT_EXTRACTED_FIBERS, fiberInfoPath ) )
-		return;
-
-
-	//typedef unsigned int	PixelType;
-	//const int Dim = 3;
-	typedef itk::Image<unsigned short, 3>		TImage;
-	typedef itk::Image<unsigned short, 3>		TLabelImage;
-
-	iA4DCTDefectFinder<TLabelImage, TImage> finder;
-	finder.setFiberInfo( fiberInfoPath );
-	finder.setIntensityImg( intensPath );
-	finder.setLabeledImg( labeldPath );
-	finder.run();
-
-	iA4DCTDefects::save( finder.getBreakages(), outputDir + "/breakages.txt" );
-	iA4DCTDefects::save( finder.getCracks(), outputDir + "/cracks.txt" );
-	iA4DCTDefects::save( finder.getDebondings(), outputDir + "/debondings.txt" );
-	iA4DCTDefects::save( finder.getPullouts(), outputDir + "/pullouts.txt" );
-
-	// read image
-	typedef itk::ImageFileReader<TImage>	ReaderType;
-	ReaderType::Pointer reader = ReaderType::New();
-	reader->SetFileName( labeldPath.toStdString() );
-	reader->Update();
-	TImage::Pointer labelImg = reader->GetOutput();
-	itk::SmartPointer<TImage> pullouts = TImage::New();
-	pullouts->SetRegions( labelImg->GetLargestPossibleRegion() );
-	pullouts->Allocate();
-	itk::SmartPointer<TImage> breakages = TImage::New();
-	breakages->SetRegions( labelImg->GetLargestPossibleRegion() );
-	breakages->Allocate();
-	itk::SmartPointer<TImage> cracks = TImage::New();
-	cracks->SetRegions( labelImg->GetLargestPossibleRegion() );
-	cracks->Allocate();
-	itk::SmartPointer<TImage> debondings = TImage::New();
-	debondings->SetRegions( labelImg->GetLargestPossibleRegion() );
-	debondings->Allocate();
-
-	iA4DCTDefects::HashDataType breakagesHash = iA4DCTDefects::DefectDataToHash( finder.getBreakages() );
-	iA4DCTDefects::HashDataType pulloutsHash = iA4DCTDefects::DefectDataToHash( finder.getPullouts() );
-	iA4DCTDefects::HashDataType cracksHash = iA4DCTDefects::DefectDataToHash( finder.getCracks() );
-	iA4DCTDefects::HashDataType debondingHash = iA4DCTDefects::DefectDataToHash( finder.getDebondings() );
-
-	itk::ImageRegionIterator<TImage> labelIterator( labelImg, labelImg->GetLargestPossibleRegion() );
-	itk::ImageRegionIterator<TImage> breakageIterator( breakages, breakages->GetLargestPossibleRegion() );
-	itk::ImageRegionIterator<TImage> pulloutIterator( pullouts, pullouts->GetLargestPossibleRegion() );
-	itk::ImageRegionIterator<TImage> crackIterator( cracks, cracks->GetLargestPossibleRegion() );
-	itk::ImageRegionIterator<TImage> debondingIterator( debondings, debondings->GetLargestPossibleRegion() );
-	while(!labelIterator.IsAtEnd())
-    {
-		if( breakagesHash.contains( labelIterator.Get() ) )	{
-			breakageIterator.Set(255); 
-		}
-		else {
-			breakageIterator.Set(0); 
-		}
-
-		if( pulloutsHash.contains( labelIterator.Get() ) )	{
-			pulloutIterator.Set(255); 
-		}
-		else {
-			pulloutIterator.Set(0); 
-		}
-
-		if( cracksHash.contains( labelIterator.Get() ) )	{
-			crackIterator.Set(255); 
-		}
-		else {
-			crackIterator.Set(0); 
-		}
-
-		if( debondingHash.contains( labelIterator.Get() ) )	{
-			debondingIterator.Set(255); 
-		}
-		else {
-			debondingIterator.Set(0); 
-		}
-
-		++labelIterator;
-		++breakageIterator;
-		++pulloutIterator;
-		++crackIterator;
-		++debondingIterator;
-    }
-
-	typedef itk::ImageFileWriter<TImage> WriterType;
-	WriterType::Pointer writer = WriterType::New();
-	writer->SetFileName( outputDir.toStdString() + "/breakages.mhd" );
-	writer->SetInput( breakages );
-	writer->Update();
-	writer->SetFileName( outputDir.toStdString() + "/debondings.mhd" );
-	writer->SetInput( debondings );
-	writer->Update();
-	writer->SetFileName( outputDir.toStdString() + "/pullouts.mhd" );
-	writer->SetInput( pullouts );
-	writer->Update();
-	writer->SetFileName( outputDir.toStdString() + "/cracks.mhd" );
-	writer->SetInput( cracks );
-	writer->Update();
-}
-
-void iA4DCTMainWin::showDefects()
-{
-	dlg_showDefects* dialog = new dlg_showDefects( getStageData(), this );
-	if( dialog->exec() != QDialog::Accepted ) {
-		return;
-	}
-
-	iA4DCTStageData* sData = m_stages[ dialog->getStageIndex() ]->getData();
-	QString intensImgPath = sData->Files[ dialog->getIntensityImgIndex() ].Path;
-	QString labeledImgPath = sData->Files[ dialog->getLabledImgIndex() ].Path;
-	QString pulloutsPath = sData->Files[ dialog->getPulloutsFileIndex() ].Path;
-	QString cracksPath = sData->Files[ dialog->getCracksFileIndex() ].Path;
-	QString breakagesPath = sData->Files[ dialog->getBreakagesFileIndex() ].Path;
-	QString debondingsPath = sData->Files[ dialog->getDebondingsFileIndex() ].Path;
-
-	MainWindow* mainWin = qobject_cast< MainWindow* >( qApp->activeWindow() );
-	iA4DCTDefectView* defectView = new iA4DCTDefectView( mainWin );
-	mainWin->mdiArea->addSubWindow( defectView );
-	defectView->show();
-
-	defectView->initializeSlicer( intensImgPath );
-	defectView->setDefects( labeledImgPath, pulloutsPath, cracksPath, breakagesPath, debondingsPath );
-}
-
-void iA4DCTMainWin::densityMap()
-{ /* not yet implemented */ }
 
 iA4DCTData * iA4DCTMainWin::getStageData()
 {

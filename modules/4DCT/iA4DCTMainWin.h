@@ -49,9 +49,6 @@ public:
 
 public slots:
 	void						save();
-	void						findDefects();
-	void						showDefects();
-	void						densityMap();
 	void						openVisualizationWin();
 	void						addButtonClick();
 

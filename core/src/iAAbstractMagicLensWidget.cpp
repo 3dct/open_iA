@@ -217,8 +217,8 @@ void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow
 	// TODO: VOLUME: move somewhere else?
 	renWin->SetNumberOfLayers(5);
 
-	m_lensRen->SetLayer(2);
-	m_GUIRen->SetLayer(3);
+	m_lensRen->SetLayer(0);
+	m_GUIRen->SetLayer(1);
 	m_lensRen->InteractiveOff();
 	m_lensRen->SetBackground(0.5, 0.5, 0.5);
 	m_GUIRen->InteractiveOff();

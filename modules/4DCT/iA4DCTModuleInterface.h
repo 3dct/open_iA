@@ -22,7 +22,6 @@
 #ifndef IA4DCTMODULEINTERFACE_H
 #define IA4DCTMODULEINTERFACE_H
 // iA
-#include "iA4DCTDefectView.h"
 #include "iAFiberCharacteristics.h"
 #include "iAModuleInterface.h"
 #include "iAThresholding.h"
@@ -55,7 +54,6 @@ private:
 
 	vtkImageData*		m_fracture;
 	int					m_labeImageChildInd;
-	iA4DCTDefectView*	m_defectView;
 	dlg_densityMap*		m_densityMap;
 };
 
