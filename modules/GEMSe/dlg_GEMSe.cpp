@@ -189,9 +189,10 @@ void dlg_GEMSe::SetTree(
 
 	m_paramChartContainer = new QWidget();
 	m_paramChartWidget = new QWidget();
-	m_paramChartWidget->setLayout(new QHBoxLayout());
-	m_paramChartWidget->layout()->setSpacing(ChartSpacing);
-	m_paramChartWidget->layout()->setMargin(0);
+	m_paramChartLayout = new QGridLayout();
+	m_paramChartLayout->setSpacing(ChartSpacing);
+	m_paramChartLayout->setMargin(0);
+	m_paramChartWidget->setLayout(m_paramChartLayout);
 	SetCaptionedContent(m_paramChartContainer, "Input Parameters", m_paramChartWidget);
 	m_chartContainer = new QSplitter();
 	m_derivedOutputChartContainer = new QWidget();
@@ -222,7 +223,7 @@ void dlg_GEMSe::SetTree(
 	connect(m_exampleView,    SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
 	connect(m_favoriteWidget, SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
 
-	RecreateCharts();
+	CreateCharts();
 }
 
 
@@ -380,7 +381,7 @@ void dlg_GEMSe::CreateMapper()
 }
 
 
-void dlg_GEMSe::RecreateCharts()
+void dlg_GEMSe::CreateCharts()
 {
 	/*
 	// TODO: MULTI
@@ -388,6 +389,9 @@ void dlg_GEMSe::RecreateCharts()
 	*/
 	AddDiagramSubWidgetsWithProperStretch();
 	RemoveAllCharts();
+	int curMinDatasetID = 0;
+	int paramChartRow = 0;
+	int paramChartCol = 0;
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
@@ -421,7 +425,16 @@ void dlg_GEMSe::RecreateCharts()
 	
 		if (attrib->GetAttribType() == iAAttributeDescriptor::Parameter)
 		{
-			m_paramChartWidget->layout()->addWidget(m_charts[chartID]);
+			QList<int> datasetIDs = m_chartAttributeMapper.GetDatasetIDs(chartID);
+			if (!datasetIDs.contains(curMinDatasetID))
+			{
+				// alternative to GridLayout: Use combination of VBox and HBox layout?
+				curMinDatasetID = datasetIDs[0];
+				paramChartCol = 0;
+				paramChartRow++;
+			}
+			m_paramChartLayout->addWidget(m_charts[chartID], paramChartRow, paramChartCol);
+			paramChartCol++;
 		}
 		else
 		{
@@ -1246,7 +1259,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
 	CalculateRefImgComp(m_treeView->GetTree()->m_root, refImg, m_treeView->GetTree()->GetLabelCount());
-	RecreateCharts();
+	CreateCharts();
 }
 
 

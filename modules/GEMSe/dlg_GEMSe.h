@@ -65,7 +65,7 @@ public:
 		iALabelInfo const & labelInfo,
 		QVector<QSharedPointer<iASamplingResults> > samplings);
 	void StoreClustering(QString const & fileName);
-	void RecreateCharts();
+	void CreateCharts();
 	QSharedPointer<iAImageClusterNode> GetCurrentCluster();
 	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
@@ -139,6 +139,7 @@ private:
 	vtkSmartPointer<vtkChartXY> m_comparisonChart;
 	QWidget * m_paramChartWidget, *m_derivedOutputChartWidget;
 	QWidget * m_paramChartContainer, * m_derivedOutputChartContainer;
+	QGridLayout* m_paramChartLayout;
 	QSplitter* m_chartContainer;
 	QMap<int, iAChartSpanSlider*> m_charts;
 	iAColorTheme const * m_colorTheme;
