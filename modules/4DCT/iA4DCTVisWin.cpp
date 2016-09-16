@@ -62,6 +62,7 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkAxesActor.h>
 
 iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	: QMainWindow( parent )
@@ -87,6 +88,8 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	m_mainRen->InteractiveOn();
 	qvtkWidget->GetRenderWindow()->AddRenderer(m_mainRen);
 	m_magicLensRen = qvtkWidget->getLensRenderer();
+
+	setOrientationWidgetEnabled(true);
 
 	// setup dock widgets
 	// tools
@@ -126,7 +129,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwPlane );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwRegionVis );
 
-	setEnabledToolsDockWidgets( false );
+	setToolsDockWidgetsEnabled( false );
 
 	// setup signals
 	connect( m_dwTools->pbDefectViewerAdd,		SIGNAL( clicked( ) ), this, SLOT( addDefectView( ) ) );
@@ -380,7 +383,7 @@ void iA4DCTVisWin::selectedVisModule( iAVisModule * visModule )
 	iAFractureVisModule * fractureVis = dynamic_cast< iAFractureVisModule * >( visModule );
 	iAPlaneVisModule * planeVis = dynamic_cast< iAPlaneVisModule * >( visModule );
 
-	setEnabledToolsDockWidgets( false );
+	setToolsDockWidgetsEnabled( false );
 
 	if(regionVis) {
 		m_dwRegionVis->setEnabled( true );
@@ -439,7 +442,7 @@ void iA4DCTVisWin::onIntervalValueChanged( int val )
 	m_timer.setInterval( val );
 }
 
-void iA4DCTVisWin::setEnabledToolsDockWidgets( bool enabled )
+void iA4DCTVisWin::setToolsDockWidgetsEnabled( bool enabled )
 {
 	m_dwFractureVis->setEnabled( enabled );
 	m_dwPlane->setEnabled( enabled );
@@ -519,4 +522,28 @@ void iA4DCTVisWin::calcDensityMap()
 	//DensityMap::calculate("K:\\\\[transfer]\\\\GD301\\\\422\\\\GD301_woCA_3um_422N_mask.mhd", "K:\\\\[transfer]\\\\GD301\\\\422\\\\GD301_woCA_3um_422N_density_map.mhd", size);
 	//int size[3] = {16, 11, 18};
 	DensityMap::calculate("K:\\[transfer]\\GD301\\374\\GD301_woCA_3um_374N_mask.mhd", "K:\\[transfer]\\GD301\\374\\GD301_woCA_3um_374N_density_map.mhd", size);
+}
+
+void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
+{
+	if (enabled)
+	{
+		if (m_orientWidget) return;
+
+		vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+		m_orientWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+		m_orientWidget->SetOutlineColor(0.9300, 0.5700, 0.1300);
+		m_orientWidget->SetOrientationMarker(axes);
+		m_orientWidget->SetInteractor(m_renderWindow->GetInteractor());
+		m_orientWidget->SetViewport(0.0, 0.0, 0.2, 0.2);
+		m_orientWidget->SetEnabled(1);
+		m_orientWidget->InteractiveOn();
+	}
+	else
+	{
+		if (!m_orientWidget) return;
+
+		m_orientWidget->SetEnabled(false);
+		m_orientWidget = NULL;
+	}
 }

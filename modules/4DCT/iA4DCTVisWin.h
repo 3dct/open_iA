@@ -29,6 +29,7 @@
 #include "iAVisModulesCollection.h"
 // vtk
 #include <vtkSmartPointer.h>
+#include <vtkOrientationMarkerWidget.h>
 // Qt
 #include <QDockWidget>
 #include <QMainWindow>
@@ -46,6 +47,7 @@ class iA4DCTRegionViewDockWidget;
 class iA4DCTSettingsDockWidget;
 class iA4DCTToolsDockWidget;
 class iAVisModule;
+class vtkOrientationMarkerWidget;
 
 const float SCENE_SCALE = 0.01;
 
@@ -66,12 +68,13 @@ public slots:
 	void				selectedVisModule( iAVisModule * visModule );
 	void				updateVisualizations();
 
+private:
+	void				setToolsDockWidgetsEnabled( bool enabled );
+	void				setOrientationWidgetEnabled( bool enabled );
 
-protected:
-	void				setEnabledToolsDockWidgets( bool enabled );
-
-	vtkSmartPointer<vtkRenderer>			m_mainRen;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
+	vtkSmartPointer<vtkRenderer>			m_mainRen;	// ToDo: renderer into iAFast3DMagicLensWidget?
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow>	m_renderWindow;
+	vtkSmartPointer<vtkOrientationMarkerWidget>		m_orientWidget;
 	vtkRenderer *							m_magicLensRen;
 	double									m_size[3];
 	int										m_currentStage;
