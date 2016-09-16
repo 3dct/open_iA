@@ -215,14 +215,7 @@ void MainWindow::openImageStack()
 			this,
 			tr("Open File"),
 			path,
-			tr(
-				"All supported types (*.mhd *.mha *.tif *.png *.jpg *.bmp);;"
-				"MetaImages (*.mhd *.mha);;"
-				"TIFF stacks (*.tif);;"
-				"PNG stacks (*.png);;"
-				"BMP stacks (*.bmp);;"
-				"JPEG stacks (*.jpg)"
-			)
+			iAIOProvider::GetSupportedImageStackFormats()
 		), true
 	);
 }
@@ -235,12 +228,7 @@ void MainWindow::openVolumeStack()
 			this,
 			tr("Open File"),
 			path,
-			tr(
-				"All supported types (*.mhd *.raw *.volstack);;"
-				"MetaImages (*.mhd *.mha);;"
-				"RAW files (*.raw);;"
-				"Volume Stack (*.volstack)"
-			)
+			iAIOProvider::GetSupportedVolumeStackFormats()
 		), true
 	);
 }
@@ -2200,16 +2188,11 @@ void MainWindow::OpenWithDataTypeConversion()
 	QString finalfilename;
 	QString testfinalfilename;
 
-	QString file = QFileDialog::getOpenFileName(this,tr("Open File"),path,
-		tr("All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars);;"
-			"MetaImages (*.mhd *.mha);;"
-			"STL files (*.stl);;"
-			"VGI files (*.vgi);;"
-			"RAW files (*.raw);;"
-			"REC files (*.rec);;"
-			"VOL files (*.vol);;"
-			"PRO files (*.pro);;"
-			"PARS files (*.pars);;"));
+	QString file = QFileDialog::getOpenFileName(this,
+		tr("Open File"),
+		path,
+		iAIOProvider::GetSupportedLoadFormats()
+	);
 
 	QStringList datatype = (QStringList()
 		<<  tr("VTK_SIGNED_CHAR") <<  tr("VTK_UNSIGNED_CHAR")

@@ -22,6 +22,7 @@
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
+#include "iAIOProvider.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAMovieHelper.h"
@@ -698,7 +699,7 @@ void iASlicerData::saveAsImage() const
 {
 	QString file = QFileDialog::getSaveFileName(0, tr("Save Image"), 
 												"",
-												tr("JPEG (*.jpg);;TIFF (*.tif);;PNG (*.png);;BMP (*.bmp)" ) );
+												iAIOProvider::GetSupportedImageFormats()) );
 
 
 	if (file.isEmpty())
@@ -802,7 +803,7 @@ void iASlicerData::saveImageStack()
 		return;
 	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image"), 
 		"",
-		tr("JPEG (*.jpg);;TIFF (*.tif);;PNG (*.png);;BMP (*.bmp)" ) );
+		iAIOProvider::GetSupportedImageFormats() );
 
 	if (file.isEmpty())
 		return;

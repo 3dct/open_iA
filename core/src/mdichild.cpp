@@ -836,7 +836,7 @@ bool MdiChild::saveAsImageStack()
 
 	QString f = QFileDialog::getSaveFileName(this, tr("Save As"),
 		filePath,
-		tr("TIFF stacks (*.tif);; PNG stacks (*.png);; BMP stacks (*.bmp);; JPEG stacks (*.jpg);; DICOM series (*.dcm) "));
+		tr("TIFF stacks (*.tif);; PNG stacks (*.png);; BMP stacks (*.bmp);; JPEG stacks (*.jpg);; DICOM series (*.dcm)"));
 
 	if (f.isEmpty())
 		return false;
@@ -1715,7 +1715,7 @@ void MdiChild::saveRenderWindow(vtkRenderWindow *renderWindow)
 {
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image"),
 		"",
-		tr("JPEG (*.jpg);;TIFF (*.tif);;PNG (*.png);;BMP (*.bmp)" ) );
+		iAIOProvider::GetSupportedImageFormats());
 
 	if (file.isEmpty())
 		return;
