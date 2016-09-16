@@ -121,8 +121,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 
 	connect(pbSample,         SIGNAL(clicked()), this, SLOT(StartSampling()));
 	connect(pbSamplingLoad,   SIGNAL(clicked()), this, SLOT(LoadSampling()));
-	//connect(pbSamplingStore,  SIGNAL(clicked()), this, SLOT(StoreSampling()));
-	//connect(pbCalcCharac,     SIGNAL(clicked()), this, SLOT(CalcCharacteristics()));
 	connect(pbClusteringCalc, SIGNAL(clicked()), this, SLOT(CalculateClustering()));
 	connect(pbClusteringLoad, SIGNAL(clicked()), this, SLOT(LoadClustering()));
 	connect(pbClusteringStore,SIGNAL(clicked()), this, SLOT(StoreClustering()));
@@ -253,10 +251,8 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, in
 		return false;
 	}
 	m_dlgSamplings->Add(samplingResults);
-	pbSamplingStore->setEnabled(true);
 	pbClusteringCalc->setEnabled(true);
 	pbClusteringLoad->setEnabled(true);
-	pbCalcCharac->setEnabled(true);
 	pbAllStore->setEnabled(true);
 	pbResetFilters->setEnabled(true);
 	QFileInfo fi(fileName);
@@ -285,10 +281,8 @@ void dlg_GEMSeControl::SamplingFinished()
 		m_outputFolder + "/" + iASEAFile::DefaultSPSFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultCHRFileName);
 
-	pbSamplingStore->setEnabled(true);
 	pbClusteringCalc->setEnabled(true);
 	pbClusteringLoad->setEnabled(true);
-	pbCalcCharac->setEnabled(true);
 	pbAllStore->setEnabled(true);
 	pbResetFilters->setEnabled(true);
 }
@@ -423,21 +417,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 		{
 			m_dlgModalities->Store(m_outputFolder+"/"+iASEAFile::DefaultModalityFileName);
 		}
-		QMap<int, QString> samplings;
-		for (int i = 0; i < m_dlgSamplings->SamplingCount(); ++i)
-		{
-			samplings.insert(
-				m_dlgSamplings->GetSampling(i)->GetID(),
-				m_dlgSamplings->GetSampling(i)->GetFileName()
-			);
-		}
-		iASEAFile metaFile(
-			m_dlgModalities->GetModalities()->GetFileName(),
-			m_simpleLabelInfo->count(),
-			samplings,
-			m_cltFile,
-			"");		// TODO: store current layout
-		metaFile.Store(m_outputFolder+"/sampling.sea");
+		StoreGEMSeProject(m_outputFolder + "/sampling.sea");
 	}
 	m_dlgGEMSe->SetTree(
 		m_clusterer->GetResult(),
@@ -460,61 +440,6 @@ void dlg_GEMSeControl::StoreClustering()
 	}
 }
 
-/*
-void dlg_GEMSeControl::StoreSampling()
-{
-	QString smpFile = QFileDialog::getSaveFileName(this, tr("Save sampling data"),
-		QString(), // TODO get directory of current file
-		tr("Sampling data file (*.smp );;" ) );
-	if (smpFile.isEmpty())
-		return;
-	QString spsFile = QFileDialog::getSaveFileName(this, tr("Save sampling parameter set"),
-		QString(), // TODO get directory of current file
-		tr("Sampling parameter set (*.sps );;" ) );
-	if (spsFile.isEmpty())
-		return;
-	QString chrFile = QFileDialog::getSaveFileName(this, tr("Save sampling characteristics"),
-		QString(), // TODO get directory of current file
-		tr("Sampling characteristics file (*.chr );;" ) );
-	if (chrFile.isEmpty())
-		return;
-	m_samplingResults->Store(smpFile, spsFile, chrFile);
-}
-
-void dlg_GEMSeControl::CalcCharacteristics()
-{
-	if (!m_dlgSamplingResults->)
-	{
-		return;
-	}
-	QString chrFile = QFileDialog::getSaveFileName(this, tr("Save sampling characteristics"),
-		QString(), // TODO get directory of current file
-		tr("Sampling characteristics file (*.chr );;" ) );
-	if (chrFile.isEmpty())
-		return;
-	// TODO: MULTIP: set properly!
-	int derivedOutputStart = 20;
-	for (int i=0; i<m_samplingResults->size(); ++i)
-	{
-		CharacteristicsCalculator calc(m_samplingResults->Get(i), derivedOutputStart);
-		/ * TODO: perform async!
-		connect(calc, SIGNAL(finished()), this, SLOT(CharacteristicsCalculated()));
-		* /
-		calc.start();
-		calc.wait();
-	}
-	QString smp(m_samplingResults->GetFileName());
-	if (smp.isEmpty())
-	{
-		smp = m_outputFolder + "/" + iASEAFile::DefaultSMPFileName;
-	}
-	m_samplingResults->Store(
-		smp,
-		m_outputFolder + "/" + iASEAFile::DefaultSPSFileName,
-		chrFile);
-	m_dlgGEMSe->RecreateCharts();
-}
-*/
 
 void dlg_GEMSeControl::DataAvailable()
 {
@@ -531,8 +456,13 @@ void dlg_GEMSeControl::StoreAll()
 	{
 		return;
 	}
+	StoreGEMSeProject(fileName);
+}
+
+void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
+{
 	QMap<int, QString> samplingFilenames;
-	for (QSharedPointer<iASamplingResults> sampling: m_dlgSamplings->GetSamplings())
+	for (QSharedPointer<iASamplingResults> sampling : m_dlgSamplings->GetSamplings())
 	{
 		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
 	}

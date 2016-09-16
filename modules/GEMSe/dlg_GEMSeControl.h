@@ -83,6 +83,7 @@ private slots:
 	void SetRepresentative(const QString &);
 private:
 	void OpenGEMSe();
+	void StoreGEMSeProject(QString const & fileName);
 	
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
