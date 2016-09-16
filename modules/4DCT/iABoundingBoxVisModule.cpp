@@ -79,3 +79,8 @@ void iABoundingBoxVisModule::setPosition( double x, double y, double z )
 {
 	m_actor->SetPosition( x, y, z );
 }
+
+void iABoundingBoxVisModule::setLineWidth( float w )
+{
+	m_actor->GetProperty()->SetLineWidth( w );
+}

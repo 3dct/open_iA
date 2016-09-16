@@ -46,6 +46,7 @@ public:
 	void		setSize( double * size );
 	void		setColor( double r, double g, double b );
 	void		setPosition( double x, double y, double z );
+	void		setLineWidth( float w );
 	
 	iABoundingBoxSettings	settings;
 

@@ -44,7 +44,7 @@ class iA4DCTFractureVisDockWidget;
 class iA4DCTMainWin;
 class iA4DCTPlaneDockWidget;
 class iA4DCTRegionViewDockWidget;
-class iA4DCTSettingsDockWidget;
+class iA4DCTBoundingBoxDockWidget;
 class iA4DCTToolsDockWidget;
 class iAVisModule;
 class vtkOrientationMarkerWidget;
@@ -67,10 +67,10 @@ public slots:
 	void				addedVisualization( );
 	void				selectedVisModule( iAVisModule * visModule );
 	void				updateVisualizations();
+	void				changeBackground( QColor col );
 
 private:
 	void				setToolsDockWidgetsEnabled( bool enabled );
-	void				setOrientationWidgetEnabled( bool enabled );
 
 	vtkSmartPointer<vtkRenderer>			m_mainRen;	// ToDo: renderer into iAFast3DMagicLensWidget?
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow>	m_renderWindow;
@@ -88,7 +88,7 @@ private:
 	iA4DCTAllVisualizationsDockWidget *		m_dwAllVis;
 	iA4DCTCurrentVisualizationsDockWidget *	m_dwCurrentVis;
 	iA4DCTRegionViewDockWidget *			m_dwRegionVis;
-	iA4DCTSettingsDockWidget *				m_dwSettings;
+	iA4DCTBoundingBoxDockWidget *			m_dwBoundingBox;
 	iA4DCTToolsDockWidget *					m_dwTools;
 
 	bool									m_isVirgin;
@@ -112,6 +112,8 @@ private slots:
 	void				setXYBackView( );
 	void				setXZBackView( );
 	void				setYZBackView( );
+
+	void				setOrientationWidgetEnabled( bool enabled );
 
 	// fracture vis
 	//void				onSaveButtonClicked( );

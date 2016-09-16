@@ -45,9 +45,9 @@ QColor iAColorBox::getColor()
 void iAColorBox::paintEvent(QPaintEvent *)
 {
     QPainter painter( this );
-    painter.setPen( m_color );
+    painter.setPen( QColor(0, 0, 0) );
 	painter.setBrush( QBrush( m_color ) );
-	painter.drawRect( 0, 0, this->width(), this->height() );
+	painter.drawRect( 0, 0, this->width() - 1, this->height() - 1 );
 }
 
 void iAColorBox::mouseDoubleClickEvent( QMouseEvent * event )

@@ -32,7 +32,7 @@
 #include "iA4DCTPlaneDockWidget.h"
 #include "iA4DCTRegionViewDockWidget.h"
 #include "iA4DCTSettings.h"
-#include "iA4DCTSettingsDockWidget.h"
+#include "iA4DCTBoundingBoxDockWidget.h"
 #include "iABoundingBoxVisModule.h"
 #include "iAFractureVisModule.h"
 #include "iAMhdFileInfo.h"
@@ -95,9 +95,9 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	// tools
 	m_dwTools = new iA4DCTToolsDockWidget( this );
 	// settings
-	m_dwSettings = new iA4DCTSettingsDockWidget( this );
-	m_dwSettings->setRenderer( m_mainRen );
-	connect( m_dwSettings, SIGNAL( updateRenderWindow() ), this, SLOT( updateRenderWindow() ) );
+	m_dwBoundingBox = new iA4DCTBoundingBoxDockWidget( this );
+	m_dwBoundingBox->setRenderer( m_mainRen );
+	connect( m_dwBoundingBox, SIGNAL( updateRenderWindow() ), this, SLOT( updateRenderWindow() ) );
 	// fracture vis
 	m_dwFractureVis = new iA4DCTFractureVisDockWidget( this );
 	m_dwFractureVis->setData( m_mainWin->getStageData() );
@@ -124,7 +124,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	addDockWidget( Qt::RightDockWidgetArea, m_dwAllVis );
 	addDockWidget( Qt::RightDockWidgetArea, m_dwCurrentVis );
 	addDockWidget( Qt::RightDockWidgetArea, m_dwTools );
-	addDockWidget( Qt::LeftDockWidgetArea, m_dwSettings );
+	addDockWidget( Qt::LeftDockWidgetArea, m_dwBoundingBox );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwFractureVis );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwPlane );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwRegionVis );
@@ -139,6 +139,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	connect( m_dwTools->pbFractureViewerLoad,	SIGNAL( clicked( ) ), this, SLOT( onLoadButtonClicked( ) ) );
 	connect( m_dwTools->pbSurfaceViewerAdd,		SIGNAL( clicked( ) ), this, SLOT( addSurfaceVis( ) ) );
 	connect( m_dwTools->pbCalcDensityMap,		SIGNAL( clicked( ) ), this, SLOT( calcDensityMap( ) ) );
+	connect( m_dwTools->cbBackground,			SIGNAL( colorChanged( QColor ) ), this, SLOT( changeBackground( QColor ) ) );
 	connect( actionMagicLens,	SIGNAL( toggled( bool ) ), this, SLOT( enableMagicLens( bool ) ) );
 	connect( sStage,	SIGNAL( valueChanged( int ) ), this, SLOT( onStageSliderValueChanged( int ) ) );
 	connect( pbFirst,		SIGNAL( clicked() ), this, SLOT( onFirstButtonClicked() ) );
@@ -155,6 +156,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	connect( actionXYBackView,	SIGNAL( triggered( ) ), this, SLOT( setXYBackView( ) ) );
 	connect( actionXZBackView,	SIGNAL( triggered( ) ), this, SLOT( setXZBackView( ) ) );
 	connect( actionYZBackView,	SIGNAL( triggered( ) ), this, SLOT( setYZBackView( ) ) );
+	connect( actionOrientationMarker,	SIGNAL( toggled( bool ) ), this, SLOT( setOrientationWidgetEnabled( bool ) ) );
 }
 
 iA4DCTVisWin::~iA4DCTVisWin()
@@ -378,23 +380,23 @@ void iA4DCTVisWin::addedVisualization()
 
 void iA4DCTVisWin::selectedVisModule( iAVisModule * visModule )
 {
-	iARegionVisModule * regionVis = dynamic_cast< iARegionVisModule * >( visModule );
-	iABoundingBoxVisModule * boundingBox = dynamic_cast< iABoundingBoxVisModule * >( visModule );
-	iAFractureVisModule * fractureVis = dynamic_cast< iAFractureVisModule * >( visModule );
-	iAPlaneVisModule * planeVis = dynamic_cast< iAPlaneVisModule * >( visModule );
+	iARegionVisModule * regionVis		= dynamic_cast< iARegionVisModule * >( visModule );
+	iABoundingBoxVisModule * bbVis		= dynamic_cast< iABoundingBoxVisModule * >( visModule );
+	iAFractureVisModule * fractureVis	= dynamic_cast< iAFractureVisModule * >( visModule );
+	iAPlaneVisModule * planeVis			= dynamic_cast< iAPlaneVisModule * >( visModule );
 
 	setToolsDockWidgetsEnabled( false );
 
-	if(regionVis) {
+	if( regionVis ) {
 		m_dwRegionVis->setEnabled( true );
 		m_dwRegionVis->attachTo( regionVis );
-	} else if(boundingBox) {
-		m_dwSettings->setBoundingBox( boundingBox );
-	} else if(fractureVis) {
-		//m_dwColoring->setEnabled( true );
+	} else if( bbVis ) {
+		m_dwBoundingBox->setEnabled( true );
+		m_dwBoundingBox->attachTo( bbVis );
+	} else if( fractureVis ) {
 		m_dwFractureVis->setEnabled( true );
 		m_dwFractureVis->attachTo( fractureVis );
-	} else if(planeVis) {
+	} else if( planeVis ) {
 		m_dwPlane->setEnabled( true );
 		m_dwPlane->attachTo( planeVis );
 	}
@@ -447,6 +449,7 @@ void iA4DCTVisWin::setToolsDockWidgetsEnabled( bool enabled )
 	m_dwFractureVis->setEnabled( enabled );
 	m_dwPlane->setEnabled( enabled );
 	m_dwRegionVis->setEnabled( enabled );
+	m_dwBoundingBox->setEnabled( enabled );
 }
 
 void iA4DCTVisWin::enableMagicLens( bool enable )
@@ -538,6 +541,7 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 		m_orientWidget->SetViewport(0.0, 0.0, 0.2, 0.2);
 		m_orientWidget->SetEnabled(1);
 		m_orientWidget->InteractiveOn();
+		//updateRenderWindow();		// ToDo: initialization error
 	}
 	else
 	{
@@ -545,5 +549,12 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 
 		m_orientWidget->SetEnabled(false);
 		m_orientWidget = NULL;
+		//updateRenderWindow()
 	}
+}
+
+void iA4DCTVisWin::changeBackground( QColor col )
+{
+	m_mainRen->SetBackground( col.redF(), col.greenF(), col.blueF() );
+	updateRenderWindow();
 }
