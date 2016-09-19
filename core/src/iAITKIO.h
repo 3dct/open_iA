@@ -38,13 +38,16 @@ namespace iAITKIO
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	
 	template<class T>
-	inline int read_image_template( QString const & f, ImagePointer & image )
+	inline int read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
 	{
 		typedef itk::Image< T, m_DIM>   InputImageType;
 		typedef itk::ImageFileReader<InputImageType> ReaderType;
 		typename ReaderType::Pointer reader = ReaderType::New();
 
-		reader->ReleaseDataFlagOn();
+		if (releaseFlag)
+		{
+			reader->ReleaseDataFlagOn();
+		}
 		reader->SetFileName( f.toLatin1().data() );
 		reader->Update();
 		image = reader->GetOutput();
@@ -69,7 +72,7 @@ namespace iAITKIO
 		return EXIT_SUCCESS;
 	}
 
-	inline ImagePointer readFile (QString const & fileName, ScalarPixelType & pixelType )
+	inline ImagePointer readFile (QString const & fileName, ScalarPixelType & pixelType, bool releaseFlag)
 	{
 		itk::ImageIOBase::Pointer imageIO =
 		itk::ImageIOFactory::CreateImageIO( fileName.toLatin1(), itk::ImageIOFactory::ReadMode );
@@ -84,7 +87,7 @@ namespace iAITKIO
 		imageIO->ReadImageInformation();
 		pixelType = imageIO->GetComponentType();    
 		ImagePointer image;
-		ITK_TYPED_CALL( read_image_template, pixelType, fileName, image );
+		ITK_TYPED_CALL( read_image_template, pixelType, fileName, image, releaseFlag);
 
 		return image;
 	}

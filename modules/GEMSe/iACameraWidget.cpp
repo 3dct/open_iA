@@ -78,10 +78,13 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 			0, false, 0, static_cast<iASlicerMode>(i), labelCount, iAColorTheme::NullTheme());
 		m_sliceViews[i]->SetImage(originalData, false, false);
 		m_sliceViews[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		/*
+		// why should that be necessary?
 		if (i==0)
 		{
 			m_sliceViews[i]->GetSlicer()->rotateSlice(-90);
 		}
+		*/
 
 		gridLay->addWidget(m_sliceViews[i], GridSlicerMap[i].x(), GridSlicerMap[i].y());
 		connect(m_sliceViews[i], SIGNAL(Clicked()), this, SLOT( MiniSlicerClicked() ));

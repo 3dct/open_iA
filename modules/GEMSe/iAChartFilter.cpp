@@ -18,55 +18,50 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+ 
+#include "pch.h"
+#include "iAChartFilter.h"
 
-#include "open_iA_Core_export.h"
+#include "iAChartAttributeMapper.h"
+#include "iAImageTree.h"
 
-#include <QColor>
-#include <QList>
-#include <QMap>
 
-#include <vector>
-
-class QString;
-class QStringList;
-
-//! A simple color theme. Holds a number of colors (which can be distinguished easily)
-class open_iA_Core_API iAColorTheme
+void iAChartFilter::RemoveFilter(int chartID)
 {
-public:
-	iAColorTheme(QString const & name);
-	//! returns the number of colors in this theme
-	size_t size() const;
-	//! returns the color with the given index in this theme
-	QColor const & GetColor(int idx) const;
-	//! add a color to the theme (typically only necessary for theme creators)
-	void AddColor(QColor const &);
+	m_filters.remove(chartID);
+}
 
-	QString const & GetName() const;
-
-	static iAColorTheme const * NullTheme();
-private:
-	std::vector<QColor> m_colors;
-	static QColor ErrorColor;
-	QString m_name;
-};
-
-//! Manager for color themes. Internally creates the qualitative color themes from
-//! Color Brewer (http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt) and provides
-//! access to their names as well as the single themes.
-class open_iA_Core_API iAColorThemeManager
+void iAChartFilter::Reset()
 {
-public:
-	//! only every need one of those
-	static iAColorThemeManager const & GetInstance();
-	//! Get the list of all available themes
-	QList<QString> GetAvailableThemes() const;
-	//! Get a theme by name
-	iAColorTheme const * GetTheme(QString const & name) const;
-private:
-	iAColorThemeManager();
-	~iAColorThemeManager();
+	m_filters.clear();
+}
 
-	QMap<QString, iAColorTheme*> m_themes;
-};
+void iAChartFilter::AddFilter(int chartID, double min, double max)
+{
+	m_filters.insert(chartID, std::make_pair(min, max));
+}
+
+bool iAChartFilter::Matches(iAImageClusterLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const
+{
+	QList<int> chartIDs = m_filters.keys();
+	for (int chartID: chartIDs)
+	{
+		if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
+		{	// filter doesn't apply for this leaf, so don't filter it
+			return true;
+		}
+		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
+		double value = leaf->GetAttribute(attributeID);
+		std::pair<double, double> const & range = m_filters[chartID];
+		if (value < range.first || value > range.second)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool iAChartFilter::MatchesAll() const
+{
+	return m_filters.size() == 0;
+}

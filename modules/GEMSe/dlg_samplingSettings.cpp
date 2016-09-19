@@ -28,8 +28,6 @@
 #include "iAModality.h"
 #include "iAParameterGeneratorImpl.h"
 
-#include "QxtSpanSlider"
-
 #include <QCheckBox>
 #include <QDropEvent>
 #include <QFileDialog>
@@ -293,3 +291,9 @@ int dlg_samplingSettings::GetSampleCount() const
 {
 	return sbNumberOfSamples->value();
 }
+
+int dlg_samplingSettings::GetLabelCount() const
+{
+	return sbLabelCount->value();
+}
+

@@ -23,21 +23,22 @@
 #include "dlg_GEMSe.h"
 
 #include "iAAttributes.h"
+#include "iAAttributeDescriptor.h"
 #include "iACameraWidget.h"
 #include "iAChartSpanSlider.h"
 #include "iAConsole.h"
 #include "iADetailView.h"
 #include "iAExampleImageWidget.h"
 #include "iAFavoriteWidget.h"
+#include "iAGEMSeConstants.h"
 #include "iAImagePreviewWidget.h"
 #include "iAImageTreeView.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"
 #include "iAParamHistogramData.h"
 #include "iAPreviewWidgetPool.h"
-#include "iAAttributeDescriptor.h"
 #include "iAQtCaptionWidget.h"
-#include "iAGEMSeConstants.h"
+#include "iASamplingResults.h"
 #include "iAToolsITK.h"
 
 #include <QVTKWidget2.h>
@@ -92,14 +93,14 @@ void dlg_GEMSe::AddDiagramSubWidgetsWithProperStretch()
 	}
 	int paramChartsShownCount = 0,
 		derivedChartsShownCount = 0;
-	for (AttributeID id = 0; id != m_attributes->size(); ++id )
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		if (m_attributes->at(id)->GetMin() == m_attributes->at(id)->GetMax())
+		if (m_chartAttributes->at(chartID)->GetMin() == m_chartAttributes->at(chartID)->GetMax())
 		{
 			//DebugOut() << "Only one value for attribute " << id << ", not showing chart." << std::endl;
 			continue;
 		}
-		if (m_attributes->at(id)->GetAttribType() == iAAttributeDescriptor::Parameter)
+		if (m_chartAttributes->at(chartID)->GetAttribType() == iAAttributeDescriptor::Parameter)
 		{
 			paramChartsShownCount++;
 		}
@@ -118,9 +119,9 @@ void dlg_GEMSe::AddDiagramSubWidgetsWithProperStretch()
 void dlg_GEMSe::SetTree(
 	QSharedPointer<iAImageTree > imageTree,
 	vtkSmartPointer<vtkImageData> originalImage,
-	QSharedPointer<iAAttributes> attributes,
 	QSharedPointer<iAModalityList> modalities,
-	iALabelInfo const & labelInfo)
+	iALabelInfo const & labelInfo,
+	QVector<QSharedPointer<iASamplingResults> > samplings)
 {
 	// reset previous
 	if (m_treeView)
@@ -135,16 +136,14 @@ void dlg_GEMSe::SetTree(
 		delete m_treeView;
 		delete m_previewWidgetPool;
 	}
-
+	m_samplings = samplings;
+	CreateMapper();
 	assert(imageTree);
-	assert(attributes);
 	assert(originalImage);
-	if (!imageTree || !attributes || !originalImage)
+	if (!imageTree || !originalImage)
 	{
 		return;
 	}
-	m_attributes = attributes;
-	m_refCompMeasureStart = m_attributes->size();
 	m_selectedCluster = imageTree->m_root;
 	m_selectedLeaf = 0;
 	m_cameraWidget = new iACameraWidget(this, originalImage, imageTree->GetLabelCount(), iACameraWidget::GridLayout);
@@ -160,7 +159,7 @@ void dlg_GEMSe::SetTree(
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
 	wdTree->layout()->addWidget(m_treeView);
 
-	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, m_attributes, labelInfo,
+	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, labelInfo,
 		m_representativeType);
 	m_detailView->SetNode(m_selectedCluster.data());
 	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
@@ -190,9 +189,10 @@ void dlg_GEMSe::SetTree(
 
 	m_paramChartContainer = new QWidget();
 	m_paramChartWidget = new QWidget();
-	m_paramChartWidget->setLayout(new QHBoxLayout());
-	m_paramChartWidget->layout()->setSpacing(ChartSpacing);
-	m_paramChartWidget->layout()->setMargin(0);
+	m_paramChartLayout = new QGridLayout();
+	m_paramChartLayout->setSpacing(ChartSpacing);
+	m_paramChartLayout->setMargin(0);
+	m_paramChartWidget->setLayout(m_paramChartLayout);
 	SetCaptionedContent(m_paramChartContainer, "Input Parameters", m_paramChartWidget);
 	m_chartContainer = new QSplitter();
 	m_derivedOutputChartContainer = new QWidget();
@@ -223,7 +223,7 @@ void dlg_GEMSe::SetTree(
 	connect(m_exampleView,    SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
 	connect(m_favoriteWidget, SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
 
-	RecreateCharts();
+	CreateCharts();
 }
 
 
@@ -241,7 +241,7 @@ void ClearFilteredRep(QSharedPointer<iAImageClusterNode> node)
 
 void dlg_GEMSe::UpdateComparisonChart()
 {
-	iAAttributeFilter emptyFilter;
+	iAChartFilter emptyFilter;
 	m_allTable = GetComparisonTable(m_treeView->GetTree()->m_root.data(), emptyFilter); // TODO do we need m_comparisonTable as member?
 	if (!m_allTable)
 	{
@@ -255,10 +255,10 @@ void dlg_GEMSe::UpdateComparisonChart()
 	auto yAxis = m_comparisonChart->GetAxis(vtkAxis::LEFT);
 	int idx1 = m_selectedForComparison[0];
 	int idx2 = m_selectedForComparison[0];
-	xAxis->SetTitle(m_attributes->at(idx1)->GetName().toStdString());
-	xAxis->SetLogScale(m_attributes->at(idx1)->IsLogScale() );
-	yAxis->SetTitle(m_attributes->at(idx2)->GetName().toStdString());
-	yAxis->SetLogScale(m_attributes->at(idx2)->IsLogScale() );
+	xAxis->SetTitle(m_chartAttributes->at(idx1)->GetName().toStdString());
+	xAxis->SetLogScale(m_chartAttributes->at(idx1)->IsLogScale() );
+	yAxis->SetTitle(m_chartAttributes->at(idx2)->GetName().toStdString());
+	yAxis->SetLogScale(m_chartAttributes->at(idx2)->IsLogScale() );
 
 	vtkPlot* plot = m_comparisonChart->AddPlot(vtkChart::POINTS);
 	plot->SetColor(
@@ -271,15 +271,15 @@ void dlg_GEMSe::UpdateComparisonChart()
 	plot->SetInputData(m_allTable, 0, 1);
 	UpdateComparisonChartClusterPlot();
 	UpdateComparisonChartLeafPlot();
-	if (!m_attributeFilter.MatchesAll())
+	if (!m_chartFilter.MatchesAll())
 	{
-		UpdateComparisonChart(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_attributeFilter);
+		UpdateComparisonChart(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
 		ClearFilteredRep(m_treeView->GetTree()->m_root);
 	}
 }
 
 void dlg_GEMSe::UpdateComparisonChart(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot, iAImageClusterNode const * node,
-	QColor const & color, iAAttributeFilter const & filter)
+	QColor const & color, iAChartFilter const & filter)
 {
 	if (plot)
 	{
@@ -310,89 +310,156 @@ void dlg_GEMSe::UpdateComparisonChart(vtkSmartPointer<vtkTable> & table, vtkSmar
 
 void dlg_GEMSe::UpdateComparisonChartLeafPlot()
 {
-	iAAttributeFilter emptyFilter;
+	iAChartFilter emptyFilter;
 	UpdateComparisonChart(m_singleTable, m_singlePlot, m_selectedLeaf, DefaultColors::ImageChartColor, emptyFilter);
 }
 
 void dlg_GEMSe::UpdateComparisonChartClusterPlot()
 {
-	iAAttributeFilter emptyFilter;
+	iAChartFilter emptyFilter;
 	UpdateComparisonChart(m_clusterTable, m_clusterPlot, m_selectedCluster.data(), DefaultColors::ClusterChartColor[0], emptyFilter);	
-	if (!m_attributeFilter.MatchesAll())
+	if (!m_chartFilter.MatchesAll())
 	{
-		UpdateComparisonChart(m_clusterFilteredTable, m_clusterFilteredPlot, m_selectedCluster.data(), DefaultColors::FilteredClusterChartColor, m_attributeFilter);
+		UpdateComparisonChart(m_clusterFilteredTable, m_clusterFilteredPlot, m_selectedCluster.data(), DefaultColors::FilteredClusterChartColor, m_chartFilter);
 	}
 }
 
 void dlg_GEMSe::RemoveAllCharts()
 {
-	for (AttributeID id = 0; id != m_attributes->size(); ++id)
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		if (m_charts.contains(id))
+		if (m_charts.contains(chartID))
 		{
-			delete m_charts[id];
-			m_charts.remove(id);
+			delete m_charts[chartID];
+			m_charts.remove(chartID);
 		}
 	}
 	m_charts.clear();
 }
 
-void dlg_GEMSe::RecreateCharts()
+
+void dlg_GEMSe::CreateMapper()
 {
-	if (!m_attributes)
+	m_chartAttributes = QSharedPointer<iAAttributes>(new iAAttributes());
+	m_chartAttributeMapper.Clear();
+	int nextChartID = 0;
+	for (int samplingIdx=0; samplingIdx<m_samplings.size(); ++samplingIdx)
 	{
-		return;
+		QSharedPointer<iASamplingResults> sampling = m_samplings[samplingIdx];
+		int datasetID = sampling->GetID();
+		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
+		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
+		{
+			int chartID = -1;
+			QSharedPointer<iAAttributeDescriptor> attribute = attributes->at(attributeID);
+			
+			// check if previous datasets have an attribute with the same name
+			/*
+			if (samplingIdx > 1 &&
+				attrib->GetAttribType() ==
+				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
+			{
+				// TODO: reuse existing
+			}
+			if (chartID != -1)
+			{
+				// reuse existing chart, only add mapping
+				m_chartAttributeMapper->Add(datasetID, attributeID, chartID);
+			}
+			else
+			{
+			*/
+				// add chart and mapping:
+				m_chartAttributes->Add(attribute);
+				chartID = nextChartID;
+				nextChartID++;
+			//}
+			m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
+		}
 	}
+	m_MeasureChartIDStart = m_chartAttributes->size();
+}
+
+
+void dlg_GEMSe::CreateCharts()
+{
+	/*
+	// TODO: MULTI
+	// go over all datasets, determine their attributes
+	*/
 	AddDiagramSubWidgetsWithProperStretch();
 	RemoveAllCharts();
-	for (AttributeID id = 0; id != m_attributes->size(); ++id )
+	int curMinDatasetID = 0;
+	int paramChartRow = 0;
+	int paramChartCol = 0;
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		if (m_attributes->at(id)->GetMin() == m_attributes->at(id)->GetMax())
+		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		if (attrib->GetMin() == attrib->GetMax())
 		{
 			//DebugOut() << "Only one value for attribute " << id << ", not showing chart." << std::endl;
 			continue;
 		}
 
-		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::Create(m_selectedCluster.data(), id,
-			m_attributes->at(id)->GetValueType(),
-			m_attributes->at(id)->GetMin(),
-			m_attributes->at(id)->GetMax(),
-			m_attributes->at(id)->IsLogScale());
+		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::Create(
+			m_selectedCluster.data(),
+			chartID,
+			attrib->GetValueType(),
+			attrib->GetMin(),
+			attrib->GetMax(),
+			attrib->IsLogScale(),
+			m_chartAttributeMapper);
 		if (!data)
 		{
-			DEBUG_LOG(QString("ERROR: Creating chart data for attribute %1 failed!").arg(id));
+			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
+				.arg(attrib->GetName()));
 			continue;
 		}
 
-		m_charts.insert(id, new iAChartSpanSlider(m_attributes->at(id)->GetName(), id, data,
-			m_attributes->at(id)->GetNameMapper() ));
+		m_charts.insert(chartID, new iAChartSpanSlider(attrib->GetName(), chartID, data,
+			attrib->GetNameMapper() ));
 		
-		connect(m_charts[id], SIGNAL(Toggled(bool)), this, SLOT(ChartSelected(bool)));
-		connect(m_charts[id], SIGNAL(FilterChanged(double, double)), this, SLOT(FilterChanged(double, double)));
-		connect(m_charts[id], SIGNAL(ChartDblClicked()), this, SLOT(ChartDblClicked()));
+		connect(m_charts[chartID], SIGNAL(Toggled(bool)), this, SLOT(ChartSelected(bool)));
+		connect(m_charts[chartID], SIGNAL(FilterChanged(double, double)), this, SLOT(FilterChanged(double, double)));
+		connect(m_charts[chartID], SIGNAL(ChartDblClicked()), this, SLOT(ChartDblClicked()));
 	
-		if (m_attributes->at(id)->GetAttribType() == iAAttributeDescriptor::Parameter)
+		if (attrib->GetAttribType() == iAAttributeDescriptor::Parameter)
 		{
-			m_paramChartWidget->layout()->addWidget(m_charts[id]);
+			QList<int> datasetIDs = m_chartAttributeMapper.GetDatasetIDs(chartID);
+			if (!datasetIDs.contains(curMinDatasetID))
+			{
+				// alternative to GridLayout: Use combination of VBox and HBox layout?
+				curMinDatasetID = datasetIDs[0];
+				paramChartCol = 0;
+				paramChartRow++;
+			}
+			m_paramChartLayout->addWidget(m_charts[chartID], paramChartRow, paramChartCol);
+			paramChartCol++;
 		}
 		else
 		{
-			m_derivedOutputChartWidget->layout()->addWidget(m_charts[id]);
+			m_derivedOutputChartWidget->layout()->addWidget(m_charts[chartID]);
 		}
-		m_charts[id]->update();
+		m_charts[chartID]->update();
 	}
 	UpdateClusterChartData();
 }
 
-void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageClusterNode const * node, AttributeID p1, AttributeID p2, int & rowNr, iAAttributeFilter const & attribFilter)
+void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageClusterNode const * node, int p1, int p2, int & rowNr,
+	iAChartFilter const & attribFilter,
+	iAChartAttributeMapper const & chartAttrMap)
 {
 	if (node->IsLeaf())
 	{
 		iAImageClusterLeaf const * leaf = dynamic_cast<iAImageClusterLeaf const *>(node);
-		if (attribFilter.Matches(leaf))
+		if (attribFilter.Matches(leaf, chartAttrMap))
 		{
-			table->SetValue(rowNr, 0, node->GetAttribute(p1));
-			table->SetValue(rowNr, 1, node->GetAttribute(p2));
+			int attr1Idx = chartAttrMap.GetAttributeID(p1, leaf->GetDatasetID());
+			int attr2Idx = chartAttrMap.GetAttributeID(p2, leaf->GetDatasetID());
+			double attr1Value = node->GetAttribute(attr1Idx);
+			double attr2Value = node->GetAttribute(attr2Idx);
+			table->SetValue(rowNr, 0, attr1Value);
+			table->SetValue(rowNr, 1, attr2Value);
 			rowNr++;
 		}
 	}
@@ -400,12 +467,12 @@ void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageClusterNode const * 
 	{
 		for (int i=0; i<node->GetChildCount(); ++i)
 		{
-			AddTableValues(table, node->GetChild(i).data(), p1, p2, rowNr, attribFilter);
+			AddTableValues(table, node->GetChild(i).data(), p1, p2, rowNr, attribFilter, chartAttrMap);
 		}
 	}
 }
 
-vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageClusterNode const * node, iAAttributeFilter const & attribFilter)
+vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageClusterNode const * node, iAChartFilter const & attribFilter)
 {
 	if (!node || m_selectedForComparison.size() < 2)
 	{
@@ -416,15 +483,16 @@ vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageClusterNode const
 	int numberOfSamples = node->GetClusterSize();
 	vtkSmartPointer<vtkFloatArray> arrX(vtkSmartPointer<vtkFloatArray>::New());
 	vtkSmartPointer<vtkFloatArray> arrY(vtkSmartPointer<vtkFloatArray>::New());
-	arrX->SetName(m_attributes->at(m_selectedForComparison[0])->GetName().toStdString().c_str());  // TODO: get
-	arrY->SetName(m_attributes->at(m_selectedForComparison[1])->GetName().toStdString().c_str());
+	arrX->SetName(m_chartAttributes->at(m_selectedForComparison[0])->GetName().toStdString().c_str());  // TODO: get
+	arrY->SetName(m_chartAttributes->at(m_selectedForComparison[1])->GetName().toStdString().c_str());
 	comparisonTable->AddColumn(arrX);
 	comparisonTable->AddColumn(arrY);
 	// we may call SetNumberOfRows only after we've added all columns, otherwise there is an error
 	comparisonTable->SetNumberOfRows(numberOfSamples);
 
 	int rowNr = 0;
-	AddTableValues(comparisonTable, node, m_selectedForComparison[0], m_selectedForComparison[1], rowNr, attribFilter); 
+	AddTableValues(comparisonTable, node, m_selectedForComparison[0], m_selectedForComparison[1], rowNr, attribFilter,
+		m_chartAttributeMapper); 
 
 	// reduce number of rows to actual number:
 	comparisonTable->SetNumberOfRows(rowNr);
@@ -486,18 +554,24 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageClusterLeaf * node)
 	m_selectedLeaf = node;
 	m_detailView->SetNode(node);
 
-	for (AttributeID id=0; id<m_attributes->size(); ++id)
+	for (int chartID=0; chartID<m_chartAttributes->size(); ++chartID)
 	{
-		if (!m_charts.contains(id) || !m_charts[id])
+		if (!m_charts.contains(chartID) || !m_charts[chartID])
 		{
 			continue;
 		}
-		double value = node->GetAttribute(id);
-		if (m_attributes->at(id)->GetValueType() == Discrete || m_attributes->at(id)->GetValueType() == Categorical)
+		if (!m_chartAttributeMapper.GetDatasetIDs(chartID).contains(node->GetDatasetID()))
+		{
+			continue;
+		}
+		int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, node->GetDatasetID());
+		double value = node->GetAttribute(attributeID);
+		if (m_chartAttributes->at(chartID)->GetValueType() == Discrete ||
+			m_chartAttributes->at(chartID)->GetValueType() == Categorical)
 		{
 			value += 0.5;
 		}
-		m_charts[id]->SetMarker(value);
+		m_charts[chartID]->SetMarker(value);
 	}
 	UpdateComparisonChartLeafPlot();
 }
@@ -512,7 +586,7 @@ void dlg_GEMSe::ChartSelected(bool selected)
 {
 	iAChartSpanSlider* chart = dynamic_cast<iAChartSpanSlider*>(sender());
 	
-	AttributeID id = m_charts.key(chart);
+	int id = m_charts.key(chart);
 	if (selected)
 	{
 		m_selectedForComparison.push_back(id);
@@ -533,70 +607,78 @@ void dlg_GEMSe::ChartSelected(bool selected)
 void dlg_GEMSe::UpdateClusterChartData()
 {
 	QVector<QSharedPointer<iAImageClusterNode> > const selection =  m_treeView->CurrentSelection();
-	for (AttributeID id=0; id<m_attributes->size(); ++id )
+	for (int chartID=0; chartID<m_chartAttributes->size(); ++chartID)
 	{
-		if (!m_charts.contains(id) || !m_charts[id])
+		if (!m_charts.contains(chartID) || !m_charts[chartID])
 		{
 			continue;
 		}
-		m_charts[id]->ClearClusterData();
+		m_charts[chartID]->ClearClusterData();
 		foreach(QSharedPointer<iAImageClusterNode> const node, selection)
 		{
-			m_charts[id]->AddClusterData(iAParamHistogramData::Create(node.data(), id,
-				m_attributes->at(id)->GetValueType(),
-				m_attributes->at(id)->GetMin(),
-				m_attributes->at(id)->GetMax(),
-				m_attributes->at(id)->IsLogScale()));
+			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			m_charts[chartID]->AddClusterData(iAParamHistogramData::Create(node.data(), chartID,
+				attrib->GetValueType(),
+				attrib->GetMin(),
+				attrib->GetMax(),
+				attrib->IsLogScale(),
+				m_chartAttributeMapper));
 		}
-		m_charts[id]->UpdateChart();
+		m_charts[chartID]->UpdateChart();
 	}
 }
 
 void dlg_GEMSe::UpdateClusterFilteredChartData()
 {
-	for (AttributeID id=0; id<m_attributes->size(); ++id)
+	for (int chartID =0; chartID<m_chartAttributes->size(); ++chartID)
 	{
-		if (!m_charts.contains(id) || !m_charts[id])
+		if (!m_charts.contains(chartID) || !m_charts[chartID])
 		{
 			continue;
 		}
-		assert (m_charts[id]);
-		if (m_attributeFilter.MatchesAll())
+		assert (m_charts[chartID]);
+		if (m_chartFilter.MatchesAll())
 		{
-			m_charts[id]->RemoveFilterData();
+			m_charts[chartID]->RemoveFilterData();
 		}
 		else
 		{
-			m_charts[id]->SetFilteredClusterData(iAParamHistogramData::Create(m_selectedCluster.data(), id,
-				m_attributes->at(id)->GetValueType(),
-				m_attributes->at(id)->GetMin(),
-				m_attributes->at(id)->GetMax(),
-				m_attributes->at(id)->IsLogScale(), m_attributeFilter));
+			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::Create(m_selectedCluster.data(), chartID,
+				attrib->GetValueType(),
+				attrib->GetMin(),
+				attrib->GetMax(),
+				attrib->IsLogScale(),
+				m_chartAttributeMapper,
+				m_chartFilter));
 		}
 	}
 }
 
 void dlg_GEMSe::UpdateFilteredChartData()
 {
-	for (AttributeID id=0; id<m_attributes->size(); ++id)
+	for (int chartID=0; chartID<m_chartAttributes->size(); ++chartID)
 	{
-		if (!m_charts.contains(id) || !m_charts[id])
+		if (!m_charts.contains(chartID) || !m_charts[chartID])
 		{
 			continue;
 		}
-		assert (m_charts[id]);
-		m_charts[id]->SetFilteredData(iAParamHistogramData::Create(m_treeView->GetTree()->m_root.data(), id,
-			m_attributes->at(id)->GetValueType(),
-			m_attributes->at(id)->GetMin(),
-			m_attributes->at(id)->GetMax(),
-			m_attributes->at(id)->IsLogScale(), m_attributeFilter));
+		assert (m_charts[chartID]);
+		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		m_charts[chartID]->SetFilteredData(iAParamHistogramData::Create(m_treeView->GetTree()->m_root.data(), chartID,
+			attrib->GetValueType(),
+			attrib->GetMin(),
+			attrib->GetMax(),
+			attrib->IsLogScale(),
+			m_chartAttributeMapper,
+			m_chartFilter));
 	}
 }
 
 
 void dlg_GEMSe::UpdateFilteredData()
 {
-	m_treeView->GetTree()->m_root->UpdateFilter(m_attributeFilter);
+	m_treeView->GetTree()->m_root->UpdateFilter(m_chartFilter, m_chartAttributeMapper);
 	m_treeView->FilterUpdated();
 	m_exampleView->FilterUpdated();
 
@@ -606,9 +688,9 @@ void dlg_GEMSe::UpdateFilteredData()
 	}
 	UpdateFilteredChartData();
 	UpdateClusterFilteredChartData();
-	if (!m_attributeFilter.MatchesAll())
+	if (!m_chartFilter.MatchesAll())
 	{
-		UpdateComparisonChart(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_attributeFilter);
+		UpdateComparisonChart(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
 	}
 	UpdateComparisonChartClusterPlot();
 }
@@ -622,14 +704,14 @@ void dlg_GEMSe::FilterChanged(double min, double max)
 		DEBUG_LOG("FilterChanged called from non-slider widget.");
 		return;
 	}
-	AttributeID attribID = slider->GetAttribID();
-	if (m_attributes->at(attribID)->CoversWholeRange(min, max))
+	int chartID = slider->GetID();
+	if (m_chartAttributes->at(chartID)->CoversWholeRange(min, max))
 	{
-		m_attributeFilter.RemoveFilter(attribID);
+		m_chartFilter.RemoveFilter(chartID);
 	}
 	else
 	{
-		m_attributeFilter.AddFilter(attribID, min, max);
+		m_chartFilter.AddFilter(chartID, min, max);
 	}
 	
 	UpdateFilteredData();
@@ -637,19 +719,19 @@ void dlg_GEMSe::FilterChanged(double min, double max)
 
 void dlg_GEMSe::ResetFilters()
 {
-	if (!m_attributes)
+	if (!m_chartAttributes)
 	{
 		return;
 	}
-	m_attributeFilter.Reset();
-	for (AttributeID id = 0; id != m_attributes->size(); ++id )
+	m_chartFilter.Reset();
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		if (!m_charts.contains(id) || !m_charts[id])
+		if (!m_charts.contains(chartID) || !m_charts[chartID])
 		{
 			continue;
 		}
-		QSignalBlocker blocker(m_charts[id]);
-		m_charts[id]->ResetSpan();
+		QSignalBlocker blocker(m_charts[chartID]);
+		m_charts[chartID]->ResetSpan();
 	}
 	UpdateFilteredData();
 }
@@ -707,28 +789,39 @@ struct AttributeHistogram
 	AttributeHistogram & operator=(const AttributeHistogram & other) = delete;
 };
 
-void AddClusterData(AttributeHistogram & hist, iAImageClusterNode const * node, AttributeID id, iAChartSpanSlider* chart, int numBin)
+void AddClusterData(AttributeHistogram & hist,
+	iAImageClusterNode const * node, int chartID, iAChartSpanSlider* chart, int numBin,
+	iAChartAttributeMapper const & chartAttrMap)
 {
 	if (node->IsLeaf())
 	{
-		int bin = clamp(0, numBin-1, static_cast<int>(chart->mapValueToBin(node->GetAttribute(id))));
+		iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node;
+		if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
+		{
+			return;
+		}
+		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
+		double value = node->GetAttribute(attributeID);
+		int bin = clamp(0, numBin-1, static_cast<int>(chart->mapValueToBin(value)));
 		hist.data[bin]++;
 	}
 	else
 	{
 		for (int i=0; i<node->GetChildCount(); ++i)
 		{
-			AddClusterData(hist, node->GetChild(i).data(), id, chart, numBin);
+			AddClusterData(hist, node->GetChild(i).data(), chartID, chart, numBin, chartAttrMap);
 		}
 	}
 }
 
-void GetHistData(AttributeHistogram & hist, AttributeID id, iAChartSpanSlider* chart, QVector<iAImageClusterNode const *> const & nodes, int numBin)
+void GetHistData(AttributeHistogram & hist,
+	int chartID, iAChartSpanSlider* chart, QVector<iAImageClusterNode const *> const & nodes, int numBin,
+	iAChartAttributeMapper const & chartAttrMap)
 {
 	for (int l = 0; l < nodes.size(); ++l)
 	{
 		iAImageClusterNode const * node = nodes[l];
-		AddClusterData(hist, node, id, chart, numBin);
+		AddClusterData(hist, node, chartID, chart, numBin, chartAttrMap);
 	}
 }
 
@@ -751,18 +844,18 @@ void dlg_GEMSe::UpdateAttributeRangeAttitude()
 	FindByAttitude(m_treeView->GetTree()->m_root.data(), iAImageClusterNode::Hated, hates);
 
 	m_attitudes.clear();
-	for (AttributeID id = 0; id != m_attributes->size(); ++id)
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		m_attitudes.push_back(QVector<float>());
-		if (!m_charts.contains(id) || !m_charts[id])
+		if (!m_charts.contains(chartID) || !m_charts[chartID])
 		{
 			continue;
 		}
-		int numBin = m_charts[id]->GetNumBin();
+		int numBin = m_charts[chartID]->GetNumBin();
 		AttributeHistogram likeHist(numBin);
-		GetHistData(likeHist, id, m_charts[id], likes, numBin);
+		GetHistData(likeHist, chartID, m_charts[chartID], likes, numBin, m_chartAttributeMapper);
 		AttributeHistogram hateHist(numBin);
-		GetHistData(hateHist, id, m_charts[id], hates, numBin);
+		GetHistData(hateHist, chartID, m_charts[chartID], hates, numBin, m_chartAttributeMapper);
 
 		for (int b = 0; b < numBin; ++b)
 		{
@@ -780,9 +873,9 @@ void dlg_GEMSe::UpdateAttributeRangeAttitude()
 				color.setRed(-attitude * 255);
 				color.setAlpha(-attitude * 100);
 			}
-			m_attitudes[id].push_back(attitude);
-			m_charts[id]->SetBinColor(b, color);
-			m_charts[id]->UpdateChart();
+			m_attitudes[chartID].push_back(attitude);
+			m_charts[chartID]->SetBinColor(b, color);
+			m_charts[chartID]->UpdateChart();
 		}
 	}
 }
@@ -799,12 +892,12 @@ void dlg_GEMSe::ExportAttributeRangeRanking(QString const &fileName)
 	QTextStream t(&f);
 	for (int i=0; i<m_attitudes.size(); ++i)
 	{
-		t << m_attributes->at(i)->GetName();
+		t << m_chartAttributes->at(i)->GetName();
 		if (!m_charts[i])
 			continue;
 		size_t numBin = m_charts[i]->GetNumBin();
-		double min = m_attributes->at(i)->GetMin();
-		double max = m_attributes->at(i)->GetMax();
+		double min = m_chartAttributes->at(i)->GetMin();
+		double max = m_chartAttributes->at(i)->GetMax();
 		t << "," << min << "," << max << "," << numBin;
 		for (int b = 0; b < m_attitudes[i].size(); ++b)
 		{
@@ -973,9 +1066,9 @@ void dlg_GEMSe::ChartDblClicked()
 		DEBUG_LOG("FilterChanged called from non-slider widget.");
 		return;
 	}
-	AttributeID attribID = slider->GetAttribID();
+	int chartID = slider->GetID();
 	double min, max;
-	GetClusterMinMax(m_selectedCluster.data(), attribID, min, max);
+	GetClusterMinMax(m_selectedCluster.data(), chartID, min, max, m_chartAttributeMapper);
 	slider->SetSpanValues(min, max);
 }
 
@@ -1109,8 +1202,10 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, Lab
 		CalculateMeasures(refImg, lblImg, labelCount, measures[1], measures[2], measures[3], measures[4]);
 		for (int i=0; i<MeasureCount; ++i)
 		{
-			leaf->SetAttribute(m_refCompMeasureStart + i, measures[i]);
-			m_attributes->at(m_refCompMeasureStart + i)->AdjustMinMax(measures[i]);
+			int chartID = m_MeasureChartIDStart + i;
+			int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, leaf->GetDatasetID());
+			leaf->SetAttribute(attributeID, measures[i]);
+			m_chartAttributes->at(chartID)->AdjustMinMax(measures[i]);
 		}
 	}
 	else
@@ -1130,25 +1225,41 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		DEBUG_LOG("Reference image comparison calculate: NULL reference image (maybe wrong image type?)!");
 		return;
 	}
-	if (m_attributes->size() == m_refCompMeasureStart)
+	if (m_chartAttributes->size() == m_MeasureChartIDStart)
 	{
-		m_attributes->Add(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 			"Dice", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		m_attributes->Add(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 			"Kappa", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		m_attributes->Add(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		m_attributes->Add(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 			"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		m_attributes->Add(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 			"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
+
+		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
+		{
+			int chartID = m_chartAttributes->size();
+			m_chartAttributes->Add(measure);
+			// add mappings:
+			for (int sampleIdx = 0; sampleIdx < m_samplings.size(); ++sampleIdx)
+			{
+				QSharedPointer<iAAttributes> attribs = m_samplings[sampleIdx]->GetAttributes();
+				int attributeID = attribs->size();
+				int datasetID = m_samplings[sampleIdx]->GetID();
+				attribs->Add(measure);
+				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
+			}
+		}
 	}
-	for (int i= m_refCompMeasureStart; i<m_refCompMeasureStart+MeasureCount; ++i)
+	for (int i= m_MeasureChartIDStart; i<m_MeasureChartIDStart+MeasureCount; ++i)
 	{
-		m_attributes->at(i)->ResetMinMax();
+		m_chartAttributes->at(i)->ResetMinMax();
 	}
 	CalculateRefImgComp(m_treeView->GetTree()->m_root, refImg, m_treeView->GetTree()->GetLabelCount());
-	RecreateCharts();
+	CreateCharts();
 }
 
 

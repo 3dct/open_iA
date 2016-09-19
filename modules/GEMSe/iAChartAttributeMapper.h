@@ -20,44 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include <QMap>
 
-#include <QList>
-#include <QSharedPointer>
-#include <QVector>
+#include <utility>
 
-struct iAImageCoordinate;
-class iAModalityList;
-
-class vtkImageData;
-
-class SVMImageFilter
+class iAChartAttributeMapper
 {
 public:
-	typedef QVector<vtkSmartPointer<vtkImageData> >	ProbabilityImagesType;
-	typedef QSharedPointer<ProbabilityImagesType> ProbabilityImagesPointer;
-	typedef QVector<QList<iAImageCoordinate> > SeedsType;
-	typedef QSharedPointer<SeedsType> SeedsPointer;
-	typedef QSharedPointer<iAModalityList const> ModalitiesPointer;
+	int GetChartID(int datasetID, int attributeID) const;
+	QList<int> GetDatasetIDs(int chartID) const;
+	int GetAttributeID(int chartID, int datasetID) const;
+	int GetAttribCount(int datasetID) const;
 
-	SVMImageFilter(double c, double gamma,
-		ModalitiesPointer modalities,
-		SeedsPointer seeds,
-		int channelCount); // TODO: replace by bool mask to allow selective enabling/disabling of channels
-	void Run();
-	ProbabilityImagesPointer GetResult();
+	void Add(int datasetID, int attributeID, int chartID);
+	void Clear();
 private:
-	//! @{
-	//! Input
-	double m_c;
-	double m_gamma;
-	SeedsPointer m_seeds;
-	ModalitiesPointer m_modalities;
-	int m_channelCount;
-	//! @}
-	//! @{
-	//! Output
-	ProbabilityImagesPointer m_probabilities;
-	QString m_error;
-	//! @}
+	//! map from chartID to (map from datasetID to attributeID)
+	QMap<int, QMap<int, int> > m_chartAttributeMap;
+
+	//! map from (datasetID, attributeID) to chartID
+	QMap<std::pair<int, int>, int>  m_attributeChartMap;
+	//! map from datasetID to attribute count
+	QMap<int, int> m_datasetAttribCount;
 };

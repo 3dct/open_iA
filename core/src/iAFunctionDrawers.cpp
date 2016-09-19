@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAFunctionDrawers.h"
 
@@ -65,8 +64,6 @@ void iAPolygonBasedFunctionDrawer::draw(QPainter& painter, double binWidth, QSha
 	if (!m_poly || m_cachedBinWidth != binWidth || !m_cachedCoordConv || !m_cachedCoordConv->equals(converter) )
 	{
 		m_cachedBinWidth = binWidth;
-		// TODO: how to cache converter...?
-		//m_cachedYScaleFactor = yScaleFactor;
 		m_cachedCoordConv = converter->clone();
 		if (!computePolygons(binWidth, converter))
 		{
@@ -166,16 +163,12 @@ iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstract
 QColor iAFilledLineFunctionDrawer::getFillColor() const
 {
 	QColor fillColor = getColor();
-	fillColor.setAlpha( getColor().alpha() / 5);
+	fillColor.setAlpha( getColor().alpha() / 3);
 	return fillColor;
 }
 
 void iAFilledLineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> poly) const
 {
-	QPen pen(painter.pen());
-	pen.setColor(getColor());
-	painter.setPen(pen);
-	painter.drawPolyline(*poly.data());
 	QPainterPath tmpPath;
 	tmpPath.addPolygon(*poly.data());
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
@@ -212,10 +205,8 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<C
 		x = (int)(j * binWidth) + m_margin/2;
 		h = converter->Diagram2ScreenY(rawData[j]);
 		QColor fillColor = getColor();
-		fillColor.setAlpha( getColor().alpha() / 5);
+		fillColor.setAlpha( getColor().alpha() / 3);
 		painter.fillRect(QRect(x, 1, intBinWidth, h), fillColor);
-		painter.setPen(getColor());
-		painter.drawRect(QRect(x, 1, intBinWidth, h));
 	}
 }
 

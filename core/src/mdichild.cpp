@@ -2895,17 +2895,15 @@ bool MdiChild::LoadProject(QString const & fileName)
 	// asynchronous!
 	QApplication::processEvents();
 
-	if (!m_dlgModalities->Load(fileName))
+	if (!m_dlgModalities->Load(fileName) ||
+		GetModalities()->size() <= 0)
 	{
 		return false;
 	}
 	setCurrentFile(GetModalities()->GetFileName());
 	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	if (GetModalities()->size() <= 0)
-	{
-		return false;
-	}
 	InitModalities();
+	return true;
 }
 
 void MdiChild::StoreProject(QString const & fileName)

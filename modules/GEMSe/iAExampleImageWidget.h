@@ -30,7 +30,6 @@ typedef iAITKIO::ImagePointer ClusterImageType;
 #include <QVector>
 #include <QWidget>
 
-class iAAttributeFilter;
 class iAImageClusterLeaf;
 class iAImageClusterNode;
 class iAImagePreviewWidget;

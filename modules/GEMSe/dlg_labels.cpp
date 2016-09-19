@@ -566,16 +566,3 @@ bool dlg_labels::AreSeedsAvailable() const
 	}
 	return false;
 }
-
-#include "SVMImageFilter.h"
-
-SVMImageFilter::SeedsPointer dlg_labels::GetSeeds() const
-{
-	SVMImageFilter::SeedsPointer seeds(new SVMImageFilter::SeedsType);
-	for (int label = 0; label<count(); ++label)
-	{
-		QList<iAImageCoordinate> coords = GetSeeds(label);
-		seeds->push_back(coords);
-	}
-	return seeds;
-}
