@@ -699,7 +699,7 @@ void iASlicerData::saveAsImage() const
 {
 	QString file = QFileDialog::getSaveFileName(0, tr("Save Image"), 
 												"",
-												iAIOProvider::GetSupportedImageFormats()) );
+												iAIOProvider::GetSupportedImageFormats());
 
 
 	if (file.isEmpty())
