@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAChartAttributeMapper.h"
 
+#include <cassert>
+
 int iAChartAttributeMapper::GetChartID(int datasetID, int attributeID) const
 {
 	return m_attributeChartMap[std::make_pair(datasetID, attributeID)];
@@ -32,6 +34,7 @@ QList<int> iAChartAttributeMapper::GetDatasetIDs(int chartID) const
 
 int iAChartAttributeMapper::GetAttributeID(int chartID, int datasetID) const
 {
+	assert(m_chartAttributeMap[chartID].contains(datasetID));
 	return m_chartAttributeMap[chartID][datasetID];
 }
 
