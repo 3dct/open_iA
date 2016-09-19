@@ -1380,7 +1380,7 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	initRunsCSVFile( m_runsCSV, batchDir, paramsNameType );
 	// inintialize input datset
 	ScalarPixelType pixelType;
-	ImagePointer image = iAITKIO::readFile( datasetName, pixelType );
+	ImagePointer image = iAITKIO::readFile( datasetName, pixelType, true);
 
 	//GT image
 	ImagePointer gtMask;
@@ -1390,7 +1390,7 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	{
 		ScalarPixelType maskPixType;
 		QString gtMaskFile = dsPath + "/" + m_datasetGTs[dsFN];
-		gtMask = iAITKIO::readFile( gtMaskFile, maskPixType );
+		gtMask = iAITKIO::readFile( gtMaskFile, maskPixType, true);
 	}
 
 	double val = 0.0;

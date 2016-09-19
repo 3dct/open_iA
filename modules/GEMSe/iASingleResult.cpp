@@ -147,7 +147,7 @@ iAITKIO::ImagePointer const iASingleResult::GetLabelledImage()
 bool iASingleResult::LoadLabelImage()
 {
 	iAITKIO::ScalarPixelType pixelType;
-	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType);
+	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
 	return (m_labelImg);
 }
 
@@ -180,7 +180,7 @@ iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int label)
 	if (!m_probabilityImg[label])
 	{
 		iAITKIO::ScalarPixelType pixelType;
-		m_probabilityImg[label] = iAITKIO::readFile(GetProbabilityPath(label), pixelType);
+		m_probabilityImg[label] = iAITKIO::readFile(GetProbabilityPath(label), pixelType, false);
 	}
 	return m_probabilityImg[label];
 }

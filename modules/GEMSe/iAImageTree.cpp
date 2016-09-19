@@ -289,7 +289,7 @@ ClusterImageType const iAImageClusterInternal::GetRepresentativeImage(int type) 
 		else
 		{
 			iAITKIO::ScalarPixelType pixelType;
-			m_representative[type] = iAITKIO::readFile(GetCachedFileName(type), pixelType);
+			m_representative[type] = iAITKIO::readFile(GetCachedFileName(type), pixelType, false);
 		}
 	}
 	if (!m_representative[type])
