@@ -30,6 +30,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_Segm3DView>   Segm3DViewContainer;
 
 #include <vtkSmartPointer.h>
 
+class iAFast3DMagicLensWidget;
 class iARenderer;
 class iARendererManager;
 class iAVolumeRenderer;
@@ -54,7 +55,7 @@ public:
 	void SetPolyData( vtkPolyData * polyData );
 	void UpdateRange();
 	iARenderer * GetRenderer();
-	QVTKWidgetMouseReleaseWorkaround * GetWidget();
+	iAFast3DMagicLensWidget * GetWidget();
 	void ShowVolume( bool visible );
 	void ShowSurface( bool visible );
 	void ShowWireframe( bool visible );
@@ -69,7 +70,7 @@ protected:
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	vtkRenderer * m_observedRenderer;
 	unsigned long m_tag;
-	QVTKWidgetMouseReleaseWorkaround * m_wgt;
+	iAFast3DMagicLensWidget * m_wgt;
 	vtkSmartPointer<vtkScalarBarWidget> scalarBarWgt;
 	vtkSmartPointer<vtkScalarBarWidget> volScalarBarWgt;
 	double m_sensitivity;
