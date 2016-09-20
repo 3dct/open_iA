@@ -83,7 +83,7 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>Run</string>
+       <string>Start...</string>
       </property>
      </widget>
     </item>
@@ -103,7 +103,7 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>Load</string>
+       <string>Load...</string>
       </property>
      </widget>
     </item>
@@ -245,7 +245,7 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>Load</string>
+       <string>Load...</string>
       </property>
      </widget>
     </item>

@@ -69,20 +69,16 @@ private slots:
 	void LoadClustering();
 	void CalculateClustering();
 	void StoreClustering();
-	//void StoreSampling();
-	//void CalcCharacteristics();
 	void CalcRefImgComp();
 	void StoreAll();
 	void DataAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void Help();
 	void ResetFilters();
 	void SetMagicLensOpacity(int newValue);
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
 private:
-	void OpenGEMSe();
 	void StoreGEMSeProject(QString const & fileName);
 	
 	dlg_modalities*                      m_dlgModalities;
