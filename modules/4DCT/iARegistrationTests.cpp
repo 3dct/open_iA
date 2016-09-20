@@ -360,7 +360,11 @@ int RegistrationTest(vtkImageData* image, int region[6], std::string outputFileP
 					//movingPointSet->GetPoint(i, &p);
 					fixedPointSet->GetPoint(i, &p);
 					//int curPos[3] = { p[0] + x + transform->GetParameters()[0], p[1] + y + transform->GetParameters()[1], p[2] + z + transform->GetParameters()[2] };
-					int curPos[3] = { p[0] + x, p[1] + y, p[2] + z };
+					int curPos[3] = {
+						static_cast<int>(p[0] + x),
+						static_cast<int>(p[1] + y),
+						static_cast<int>(p[2] + z)
+					};
 
 					if (curPos[0] <= extent[0] || curPos[0] >= extent[1] ||
 						curPos[1] <= extent[2] || curPos[1] >= extent[3] ||
