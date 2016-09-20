@@ -37,12 +37,12 @@
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageSampler.h"
+#include "iALabelInfo.h"
 #include "iAModality.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"
 #include "mdichild.h"
-#include "ui_assistant.h"
 
 #include <itkVTKImageToImageFilter.h>
 
@@ -51,7 +51,6 @@
 #include <QSettings>
 #include <QTextStream>
 
-#include "iALabelInfo.h"
 class iASimpleLabelInfo : public iALabelInfo
 {
 private:
@@ -126,7 +125,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbClusteringStore,SIGNAL(clicked()), this, SLOT(StoreClustering()));
 	connect(pbRefImgComp,     SIGNAL(clicked()), this, SLOT(CalcRefImgComp()));
 	connect(pbAllStore,       SIGNAL(clicked()), this, SLOT(StoreAll()));
-	connect(pbHelp,           SIGNAL(clicked()), this, SLOT(Help()));
 
 	connect(pbModalitySPLOM,  SIGNAL(clicked()), this, SLOT(ModalitySPLOM()));
 
@@ -199,15 +197,6 @@ void dlg_GEMSeControl::StartSampling()
 	m_dlgSamplingSettings = 0;
 }
 
-#include <iAQTtoUIConnector.h>
-typedef iAQTtoUIConnector<QDockWidget, Ui_assistant> dlg_assistantUI;
-
-void dlg_GEMSeControl::Help()
-{
-	dlg_assistantUI* assistant = new dlg_assistantUI();
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->tabifyDockWidget(this, assistant);
-}
 
 void dlg_GEMSeControl::LoadSampling()
 {

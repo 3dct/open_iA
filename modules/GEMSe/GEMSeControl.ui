@@ -67,13 +67,6 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="3">
-     <widget class="QPushButton" name="pbHelp">
-      <property name="text">
-       <string>Help</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="1">
      <widget class="QPushButton" name="pbClusteringCalc">
       <property name="enabled">
@@ -263,7 +256,6 @@
   <tabstop>pbSample</tabstop>
   <tabstop>pbClusteringCalc</tabstop>
   <tabstop>pbClusteringStore</tabstop>
-  <tabstop>pbHelp</tabstop>
  </tabstops>
  <resources/>
  <connections/>
