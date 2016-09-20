@@ -31,7 +31,6 @@ class iAParameterGenerator;
 
 class QCheckBox;
 class QShortcut;
-class QxtSpanSlider;
 
 struct ParameterInputs
 {
@@ -60,6 +59,7 @@ public:
 	QString GetExecutable() const;
 	QString GetAdditionalArguments() const;
 	int GetSampleCount() const;
+	int GetLabelCount() const;
 private slots:
 	void UpdateEstimate(int);
 	void ChooseOutputFolder();

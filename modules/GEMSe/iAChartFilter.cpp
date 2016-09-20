@@ -18,49 +18,50 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+ 
+#include "pch.h"
+#include "iAChartFilter.h"
 
-#include "iATransferFunction.h"
+#include "iAChartAttributeMapper.h"
+#include "iAImageTree.h"
 
-#include <vtkSmartPointer.h>
 
-class iAHistogramWidget;
-
-class vtkColorTransferFunction;
-class vtkImageAccumulate;
-class vtkImageData;
-class vtkPiecewiseFunction;
-
-class QColor;
-class QDockWidget;
-class QString;
-class QWidget;
-
-//! class uniting a color transfer function, an opacity transfer function
-//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
-class iAModalityTransfer: public iATransferFunction
+void iAChartFilter::RemoveFilter(int chartID)
 {
-private:
-	vtkSmartPointer<vtkImageAccumulate> accumulate;
-	iAHistogramWidget* histogram;
-	vtkSmartPointer<vtkColorTransferFunction> ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> otf;
-	int m_binCount;
-	double m_scalarRange[2];
-	bool m_useAccumulate;
-	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData);
-public:
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
-	iAHistogramWidget* GetHistogram();
-	void SetHistogramBins(int binCount);
-	void InitHistogram(vtkSmartPointer<vtkImageData> imgData);
+	m_filters.remove(chartID);
+}
 
-	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
-	vtkPiecewiseFunction* GetOpacityFunction();
-	vtkColorTransferFunction* GetColorFunction();
+void iAChartFilter::Reset()
+{
+	m_filters.clear();
+}
 
-	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
-	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
+void iAChartFilter::AddFilter(int chartID, double min, double max)
+{
+	m_filters.insert(chartID, std::make_pair(min, max));
+}
 
-	static QWidget* NoHistogramAvailableWidget();
-};
+bool iAChartFilter::Matches(iAImageClusterLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const
+{
+	QList<int> chartIDs = m_filters.keys();
+	for (int chartID: chartIDs)
+	{
+		if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
+		{	// filter doesn't apply for this leaf, so don't filter it
+			return true;
+		}
+		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
+		double value = leaf->GetAttribute(attributeID);
+		std::pair<double, double> const & range = m_filters[chartID];
+		if (value < range.first || value > range.second)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool iAChartFilter::MatchesAll() const
+{
+	return m_filters.size() == 0;
+}

@@ -31,7 +31,8 @@
 
 const int CHILD_NODE_NUMBER = 2;
 
-class iAAttributeFilter;
+class iAChartAttributeMapper;
+class iAChartFilter;
 class iASingleResult;
 class iAImageClusterLeaf;
 
@@ -79,7 +80,8 @@ public:
 	virtual int GetChildCount() const =0;
 	virtual int GetClusterSize() const =0;
 	virtual int GetFilteredSize() const =0;
-	virtual void UpdateFilter(iAAttributeFilter const & filter) =0;
+	virtual void UpdateFilter(iAChartFilter const & filter,
+		iAChartAttributeMapper const & chartAttrMap) =0;
 	virtual bool IsLeaf() const =0;
 	//! median image for this cluster:
 	virtual ClusterImageType const GetRepresentativeImage(int type) const =0;
@@ -89,8 +91,9 @@ public:
 	virtual void SetParent(QSharedPointer<iAImageClusterNode > parent);
 	virtual QSharedPointer<iAImageClusterNode > GetParent() const;
 	virtual QSharedPointer<iAImageClusterNode > GetChild(int idx) const =0;
-	virtual double GetAttribute(AttributeID) const =0;
-	virtual void GetMinMax(AttributeID attribID, double & min, double & max) const = 0;
+	virtual double GetAttribute(int) const =0;
+	virtual void GetMinMax(int chartID, double & min, double & max,
+		iAChartAttributeMapper const & chartAttrMap) const = 0;
 	virtual ClusterDistanceType GetDistance() const =0;
 	virtual Attitude GetAttitude() const;
 	virtual void SetAttitude(Attitude att);
@@ -118,7 +121,8 @@ public:
 	virtual int GetChildCount() const;
 	virtual int GetClusterSize() const;
 	virtual int GetFilteredSize() const;
-	virtual void UpdateFilter(iAAttributeFilter const & filter);
+	virtual void UpdateFilter(iAChartFilter const & filter,
+		iAChartAttributeMapper const & chartAttrMap);
 	virtual bool IsLeaf() const { return false; }
 	virtual ClusterImageType const GetRepresentativeImage(int type) const;
 	virtual void DiscardDetails();
@@ -126,8 +130,9 @@ public:
 	virtual ClusterIDType GetID() const;
 	virtual void GetExampleImages(QVector<iAImageClusterLeaf *> & result, int amount);
 	virtual QSharedPointer<iAImageClusterNode > GetChild(int idx) const;
-	virtual double GetAttribute(AttributeID) const;
-	virtual void GetMinMax(AttributeID attribID, double & min, double & max) const;
+	virtual double GetAttribute(int) const;
+	virtual void GetMinMax(int chartID, double & min, double & max,
+		iAChartAttributeMapper const & chartAttrMap) const;
 	virtual ClusterDistanceType GetDistance() const;
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
 	virtual CombinedProbPtr UpdateProbabilities() const;
@@ -149,6 +154,7 @@ private:
 	int m_labelCount;
 };
 
+class iAAttributes;
 
 class iAImageClusterLeaf: public iAImageClusterNode
 {
@@ -157,7 +163,8 @@ public:
 	virtual int GetChildCount() const;
 	virtual int GetClusterSize() const;
 	virtual int GetFilteredSize() const;
-	virtual void UpdateFilter(iAAttributeFilter const & filter);
+	virtual void UpdateFilter(iAChartFilter const & filter,
+		iAChartAttributeMapper const & chartAttrMap);
 	virtual ClusterImageType const GetRepresentativeImage(int type) const;
 	virtual void DiscardDetails();
 	virtual ClusterImageType const GetDetailImage() const;
@@ -166,12 +173,15 @@ public:
 	virtual void GetExampleImages(QVector<iAImageClusterLeaf *> & result, int amount);
 	virtual QSharedPointer<iAImageClusterNode > GetChild(int idx) const;
 	ClusterImageType const GetLargeImage() const;
-	virtual double GetAttribute(AttributeID) const;
-	virtual void GetMinMax(AttributeID attribID, double & min, double & max) const;
+	virtual double GetAttribute(int) const;
+	virtual void GetMinMax(int chartID, double & min, double & max,
+		iAChartAttributeMapper const & chartAttrMap) const;
 	virtual ClusterDistanceType GetDistance() const;
 	void SetAttribute(int id, double value);
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
 	virtual CombinedProbPtr UpdateProbabilities() const;
+	int GetDatasetID() const;
+	QSharedPointer<iAAttributes> GetAttributes() const;
 private:
 	bool m_filtered;
 	int m_labelCount;
@@ -179,13 +189,18 @@ private:
 };
 
 
-class iAAttributeFilter;
+class iAChartFilter;
+class iASamplingResults;
+
 class QTextStream;
 
 class iAImageTree
 {
 public:
-	static QSharedPointer<iAImageTree> Create(QString const & fileName, QVector<QSharedPointer<iASingleResult> > const & sampleResults, int labelCount);
+	static QSharedPointer<iAImageTree> Create(
+		QString const & fileName,
+		QVector<QSharedPointer<iASamplingResults> > const & samplings,
+		int labelCount);
 	iAImageTree(QSharedPointer<iAImageClusterNode >, int labelCount);
 	QSharedPointer<iAImageClusterNode > m_root;
 	bool Store(QString const & fileName) const;
@@ -194,11 +209,12 @@ private:
 	static void WriteNode(QTextStream & out, QSharedPointer<iAImageClusterNode >, int level);
 	static QSharedPointer<iAImageClusterNode> ReadNode(
 		QTextStream & in,
-		QVector<QSharedPointer<iASingleResult> > const & sampleResults,
+		QVector<QSharedPointer<iASamplingResults> > const & samplings,
 		int labelCount,
 		QString const & outputDirectory,
 		int & lastClusterID);
 	int m_labelCount;
 };
 
-void GetClusterMinMax(iAImageClusterNode const * node, AttributeID attribID, double & min, double & max);
+void GetClusterMinMax(iAImageClusterNode const * node, int chartID, double & min, double & max,
+	iAChartAttributeMapper const & chartAttrMap);

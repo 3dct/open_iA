@@ -25,10 +25,11 @@
 #include <QSharedPointer>
 #include <vtkSmartPointer.h>
 
+class dlg_GEMSe;
+class dlg_GEMSeControl;
 class dlg_labels;
 class dlg_priors;
-class dlg_GEMSeControl;
-class dlg_GEMSe;
+class dlg_samplings;
 class iAWidgetAddHelper;
 
 class vtkColorTransferFunction;
@@ -39,7 +40,7 @@ class iAGEMSeAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 public:
 	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	bool LoadSampling(QString const & smpFileName);
+	bool LoadSampling(QString const & smpFileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
 	bool LoadPriors(QString const & priorsFileName);
 	bool LoadSeeds(QString const & seedsFileName);
@@ -58,5 +59,6 @@ private:
 	dlg_GEMSeControl*                 m_dlgGEMSeControl;
 	QWidget*                          m_dummyTitleWidget;
 	dlg_GEMSe*                        m_dlgGEMSe;
+	dlg_samplings*                    m_dlgSamplings;
 	QSharedPointer<iAWidgetAddHelper> m_widgetAddHelper;
 };

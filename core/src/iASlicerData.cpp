@@ -22,6 +22,7 @@
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
+#include "iAIOProvider.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAMovieHelper.h"
@@ -698,7 +699,7 @@ void iASlicerData::saveAsImage() const
 {
 	QString file = QFileDialog::getSaveFileName(0, tr("Save Image"), 
 												"",
-												tr("JPEG (*.jpg);;TIFF (*.tif);;PNG (*.png);;BMP (*.bmp)" ) );
+												iAIOProvider::GetSupportedImageFormats());
 
 
 	if (file.isEmpty())
@@ -802,7 +803,7 @@ void iASlicerData::saveImageStack()
 		return;
 	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image"), 
 		"",
-		tr("JPEG (*.jpg);;TIFF (*.tif);;PNG (*.png);;BMP (*.bmp)" ) );
+		iAIOProvider::GetSupportedImageFormats() );
 
 	if (file.isEmpty())
 		return;
@@ -1210,7 +1211,9 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	std::string path;
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
-	if (mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() && mdi_parent->getLinkedMDIs())
+	if (mdi_parent &&
+		mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() &&
+		mdi_parent->getLinkedMDIs())
 	{
 		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getM_mainWnd()->MdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++) {

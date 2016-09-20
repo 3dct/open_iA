@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAImageSampler.h"
 
@@ -33,7 +32,6 @@
 #include "iAStringHelper.h"
 #include "iASamplingResults.h"
 #include "iAModality.h"
-#include "SVMImageFilter.h"
 
 #include <QDir>
 #include <QMap>
@@ -105,7 +103,10 @@ void iAImageSampler::run()
 	m_parameters->Add(objectCountAttr);
 	m_parameters->Add(timeAttr);
 
-	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(m_parameters, m_sampleGenerator->GetName()));
+	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
+		m_parameters,
+		m_sampleGenerator->GetName(),
+		iASamplingResults::GetNewID()));
 
 	for (m_curLoop=0; !m_aborted && m_curLoop<m_parameterSets->size(); ++m_curLoop)
 	{
@@ -182,7 +183,6 @@ void iAImageSampler::run()
 
 void iAImageSampler::computationFinished()
 {
-
 	iACommandRunner* cmd = dynamic_cast<iACommandRunner*>(QObject::sender());
 	if (!cmd)
 	{
@@ -209,13 +209,13 @@ void iAImageSampler::computationFinished()
 	}
 	ParameterSet const & param = m_parameterSets->at(id);
 
-	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, m_outputBaseDir, param);
+	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, *m_results.data(), param);
 	
 	result->SetAttribute(m_parameterCount+1, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+1)->AdjustMinMax(computationTime);
 
 	// TODO: calculate external programs here to calculate derived output!
-	CharacteristicsCalculator * newCharCalc = new CharacteristicsCalculator (result, m_results->GetAttributes(), m_parameterCount);
+	CharacteristicsCalculator * newCharCalc = new CharacteristicsCalculator (result, m_parameterCount);
 	m_runningDerivedOutput.insert(newCharCalc, result);
 	connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()) );
 	newCharCalc->start();

@@ -40,10 +40,8 @@ typedef LabelImageType::Pointer LabelImagePointer;
 
 CharacteristicsCalculator::CharacteristicsCalculator(
 		QSharedPointer<iASingleResult> result,
-		QSharedPointer<iAAttributes> range,
 		int objCountIdx):
 	m_result(result),
-	m_range(range),
 	m_objCountIdx(objCountIdx),
 	m_success(true)
 {}

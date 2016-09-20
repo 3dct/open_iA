@@ -257,7 +257,7 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
  			//QString datasetName = compCSV.item( cid, 3 )->text();
  			//QString gtMaskFile = m_datasetsDir + "/" + datasetGTs[datasetName];
  			//ScalarPixelType maskPixType;
- 			//ImagePointer gtMaskPtr = iAITKIO::readFile( gtMaskFile, maskPixType );
+ 			//ImagePointer gtMaskPtr = iAITKIO::readFile( gtMaskFile, maskPixType, true );
  			////////////////////////////////////////////////////////////////////////////
 			for( int rid = 1; rid < runsCSV.rowCount(); ++rid ) //1 because 0 is header
 			{
@@ -278,7 +278,7 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
 				m_data.item( lastRow, maskInd )->setText( fullMaskPath );
  //				///UNCOMMENT TO CALCULATE DICE METRIC/////////////////////////////////////
  //				ScalarPixelType maskPixType;
- //				ImagePointer maskPtr = iAITKIO::readFile( fullMaskPath, maskPixType );
+ //				ImagePointer maskPtr = iAITKIO::readFile( fullMaskPath, maskPixType, true );
  //				MaskImageType * mask = dynamic_cast<MaskImageType*>(maskPtr.GetPointer());
 	//			MaskImageType * gtImage = dynamic_cast<MaskImageType*>( gtMaskPtr.GetPointer() );
  //				MaskImageType::RegionType reg = mask->GetLargestPossibleRegion();

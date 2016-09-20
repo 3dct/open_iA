@@ -35,6 +35,7 @@ class QStringList;
 class open_iA_Core_API iAColorTheme
 {
 public:
+	iAColorTheme(QString const & name);
 	//! returns the number of colors in this theme
 	size_t size() const;
 	//! returns the color with the given index in this theme
@@ -42,10 +43,13 @@ public:
 	//! add a color to the theme (typically only necessary for theme creators)
 	void AddColor(QColor const &);
 
+	QString const & GetName() const;
+
 	static iAColorTheme const * NullTheme();
 private:
 	std::vector<QColor> m_colors;
 	static QColor ErrorColor;
+	QString m_name;
 };
 
 //! Manager for color themes. Internally creates the qualitative color themes from

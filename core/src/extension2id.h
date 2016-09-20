@@ -39,15 +39,15 @@ static mapQString2int fill_extensionToId()
 	m["PRO"] = PRO_READER;
 	m["PARS"] = PARS_READER;
 	m["VGI"] = VGI_READER;
-	m["TIF"] = TIF_STACK_READER;
-	m["TIFF"] = TIF_STACK_READER;
-	m["JPG"] = JPG_STACK_READER;
-	m["JPEG"] = JPG_STACK_READER;
-	m["PNG"] = PNG_STACK_READER;
-	m["BMP"] = BMP_STACK_READER;
 	m["DCM"] = DCM_READER;
 	m["DCM"] = DCM_WRITER;
 	m["NRRD"] = NRRD_READER;
+	m["TIF"] = MHD_READER;
+	m["TIFF"] = MHD_READER;
+	m["JPG"] = MHD_READER;
+	m["JPEG"] = MHD_READER;
+	m["PNG"] = MHD_READER;
+	m["BMP"] = MHD_READER;
 	m["PNG"] = MHD_READER;
 	m["OIF"] = OIF_READER;
 	m["AM"] = AM_READER;
@@ -65,6 +65,12 @@ static mapQString2int fill_extensionToIdStack()
 	m["RAW"] = VOLUME_STACK_READER;
 	m["MHD"] = VOLUME_STACK_MHD_READER;
 	m["VOLSTACK"] = VOLUME_STACK_VOLSTACK_READER;
+	m["TIF"] = TIF_STACK_READER;
+	m["TIFF"] = TIF_STACK_READER;
+	m["JPG"] = JPG_STACK_READER;
+	m["JPEG"] = JPG_STACK_READER;
+	m["PNG"] = PNG_STACK_READER;
+	m["BMP"] = BMP_STACK_READER;
 
 	return m;
 }

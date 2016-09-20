@@ -30,9 +30,12 @@ class iAImageSampler;
 
 class dlg_labels;
 class dlg_modalities;
+class dlg_samplings;
 class dlg_samplingSettings;
 class dlg_progress;
 class dlg_GEMSe;
+class iAColorTheme;
+class iASimpleLabelInfo;
 class iASamplingResults;
 
 #include <vtkSmartPointer.h>
@@ -43,13 +46,15 @@ class dlg_GEMSeControl: public dlg_GEMSeControlUI
 {
 	Q_OBJECT
 public:
-	dlg_GEMSeControl(QWidget *parentWidget,
+	dlg_GEMSeControl(
+		QWidget *parentWidget,
 		dlg_GEMSe* dlgGEMSe,
 		dlg_modalities* dlgModalities,
 		dlg_labels* dlgLabels,
-		QString const & defaultThemeName
+		dlg_samplings* dlgSamplings,
+		iAColorTheme const * colorTheme
 	);
-	bool LoadSampling(QString const & fileName);
+	bool LoadSampling(QString const & fileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
 	void ExportAttributeRangeRanking();
 	void ExportRankings();
@@ -64,8 +69,8 @@ private slots:
 	void LoadClustering();
 	void CalculateClustering();
 	void StoreClustering();
-	void StoreSampling();
-	void CalcCharacteristics();
+	//void StoreSampling();
+	//void CalcCharacteristics();
 	void CalcRefImgComp();
 	void StoreAll();
 	void DataAvailable();
@@ -78,20 +83,21 @@ private slots:
 	void SetRepresentative(const QString &);
 private:
 	void OpenGEMSe();
+	void StoreGEMSeProject(QString const & fileName);
 	
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
 	dlg_GEMSe*                           m_dlgGEMSe;
 	dlg_labels*                          m_dlgLabels;
+	dlg_samplings*                       m_dlgSamplings;
 
 	QSharedPointer<iAImageSampler>       m_sampler;
-	QSharedPointer<iASamplingResults>    m_samplingResults;
-
 	QSharedPointer<iAImageClusterer>     m_clusterer;
 
 	QString								 m_outputFolder;
 	
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
+	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
 };

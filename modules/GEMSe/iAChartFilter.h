@@ -20,47 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATransferFunction.h"
+#include "iAGEMSeConstants.h"
 
-#include <vtkSmartPointer.h>
+#include <QMap>
 
-class iAHistogramWidget;
+class iAChartAttributeMapper;
+class iAImageClusterLeaf;
 
-class vtkColorTransferFunction;
-class vtkImageAccumulate;
-class vtkImageData;
-class vtkPiecewiseFunction;
-
-class QColor;
-class QDockWidget;
-class QString;
-class QWidget;
-
-//! class uniting a color transfer function, an opacity transfer function
-//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
-class iAModalityTransfer: public iATransferFunction
+class iAChartFilter
 {
-private:
-	vtkSmartPointer<vtkImageAccumulate> accumulate;
-	iAHistogramWidget* histogram;
-	vtkSmartPointer<vtkColorTransferFunction> ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> otf;
-	int m_binCount;
-	double m_scalarRange[2];
-	bool m_useAccumulate;
-	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData);
 public:
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
-	iAHistogramWidget* GetHistogram();
-	void SetHistogramBins(int binCount);
-	void InitHistogram(vtkSmartPointer<vtkImageData> imgData);
-
-	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
-	vtkPiecewiseFunction* GetOpacityFunction();
-	vtkColorTransferFunction* GetColorFunction();
-
-	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
-	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
-
-	static QWidget* NoHistogramAvailableWidget();
+	void RemoveFilter(int chartID);
+	void AddFilter(int chartID, double min, double max);
+	bool Matches(iAImageClusterLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const;
+	bool MatchesAll() const;
+	void Reset();
+private:
+	QMap<int, std::pair<double, double> > m_filters;
 };

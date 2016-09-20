@@ -145,7 +145,7 @@ void iACalculatePorePropertiesThread::run()
 			}
 
 			ScalarPixelType pixelType;
-			ImagePointer image = iAITKIO::readFile( masksName, pixelType );
+			ImagePointer image = iAITKIO::readFile( masksName, pixelType, true );
 			InputImageType * input = dynamic_cast<InputImageType*>( image.GetPointer() );
 	
 			//label image
@@ -359,7 +359,7 @@ void iACalculatePorePropertiesThread::run()
 		//	}
 		//	ScalarPixelType pixelType;
 		//	qDebug() << masksName;
-		//	ImagePointer image = iAITKIO::readFile( masksName, pixelType );
+		//	ImagePointer image = iAITKIO::readFile( masksName, pixelType, true );
 		//	ImageType * input = dynamic_cast<ImageType*>(image.GetPointer());
 
 		//	//label image

@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAChartSpanSlider.h"
 
@@ -36,9 +35,12 @@
 
 #include <cmath>
 
-iAChartSpanSlider::iAChartSpanSlider(QString const & caption, AttributeID id, QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper):
-	m_attribID(id),
+iAChartSpanSlider::iAChartSpanSlider(
+	QString const & caption,
+	int id,
+	QSharedPointer<iAParamHistogramData> data,
+	QSharedPointer<iANameMapper> nameMapper):
+	m_ID(id),
 	m_oldMin(-1),
 	m_oldMax(-1)
 {
@@ -161,9 +163,9 @@ void iAChartSpanSlider::SelectionChanged()
 	}
 }
 
-AttributeID iAChartSpanSlider::GetAttribID() const
+int iAChartSpanSlider::GetID() const
 {
-	return m_attribID;
+	return m_ID;
 }
 
 iAValueType iAChartSpanSlider::GetRangeType() const

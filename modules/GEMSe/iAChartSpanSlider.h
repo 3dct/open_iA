@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iAValueType.h"
-#include "iAGEMSeConstants.h" // for AttributeID
 
 #include <vtkSmartPointer.h>
 
@@ -37,13 +36,12 @@ class vtkPiecewiseFunction;
 
 class QCheckBox;
 class QLabel;
-class QxtSpanSlider;
 
 class iAChartSpanSlider: public QWidget
 {
 	Q_OBJECT
 public:
-	iAChartSpanSlider(QString const & caption, AttributeID attrib, QSharedPointer<iAParamHistogramData> data,
+	iAChartSpanSlider(QString const & caption, int id, QSharedPointer<iAParamHistogramData> data,
 		QSharedPointer<iANameMapper> nameMapper);
 	void SetFilteredData(QSharedPointer<iAParamHistogramData> data);
 	void SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data);
@@ -52,7 +50,7 @@ public:
 	void ClearClusterData();
 	void SetMarker(double xPos);
 	size_t GetNumBin() const;
-	AttributeID GetAttribID() const;
+	int GetID() const;
 	iAValueType GetRangeType() const;
 	
 	void SetSpanValues(double minValue, double maxValue);
@@ -72,7 +70,7 @@ private:
 	
 	iAParamChart*  m_charts;
 	QCheckBox*     m_checkbox;
-	AttributeID    m_attribID;
+	int    m_ID;
 	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_clusterDrawer;
 	QSharedPointer<iAAbstractDrawableFunction> m_filteredDrawer;
 	QSharedPointer<iAAbstractDrawableFunction> m_filteredClusterDrawer;

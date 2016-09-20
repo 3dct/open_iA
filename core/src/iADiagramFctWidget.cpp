@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iADiagramFctWidget.h"
 
@@ -677,20 +676,8 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 
 		int textX = textPos(markerX, i, stepNumber, fm.width(text));
 		int textY = fm.height() + TextAxisDistance;
-		if (GetData()->GetRangeType() == Categorical)
-		{
-			textY = fm.height()*0.9 + (fm.width(text) * sin(deg2rad(CATEGORICAL_TEXT_ROTATION)) ) ;
-		}
 		painter.translate(textX, textY);
-		if (GetData()->GetRangeType() == Categorical)
-		{
-			painter.rotate(-CATEGORICAL_TEXT_ROTATION);
-		}
 		painter.drawText(0, 0, text);
-		if (GetData()->GetRangeType() == Categorical)
-		{
-			painter.rotate(CATEGORICAL_TEXT_ROTATION);
-		}
 		painter.translate(-textX, -textY);
 	}
 	

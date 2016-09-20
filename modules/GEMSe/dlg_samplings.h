@@ -20,47 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATransferFunction.h"
+#include "ui_samplings.h"
+#include <iAQTtoUIConnector.h>
+typedef iAQTtoUIConnector<QDockWidget, Ui_samplings> dlgSamplingsUI;
 
-#include <vtkSmartPointer.h>
+class iASamplingResults;
 
-class iAHistogramWidget;
+class QStandardItemModel;
 
-class vtkColorTransferFunction;
-class vtkImageAccumulate;
-class vtkImageData;
-class vtkPiecewiseFunction;
-
-class QColor;
-class QDockWidget;
-class QString;
-class QWidget;
-
-//! class uniting a color transfer function, an opacity transfer function
-//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
-class iAModalityTransfer: public iATransferFunction
+class dlg_samplings : public dlgSamplingsUI
 {
-private:
-	vtkSmartPointer<vtkImageAccumulate> accumulate;
-	iAHistogramWidget* histogram;
-	vtkSmartPointer<vtkColorTransferFunction> ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> otf;
-	int m_binCount;
-	double m_scalarRange[2];
-	bool m_useAccumulate;
-	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData);
+	Q_OBJECT
 public:
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
-	iAHistogramWidget* GetHistogram();
-	void SetHistogramBins(int binCount);
-	void InitHistogram(vtkSmartPointer<vtkImageData> imgData);
-
-	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
-	vtkPiecewiseFunction* GetOpacityFunction();
-	vtkColorTransferFunction* GetColorFunction();
-
-	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
-	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
-
-	static QWidget* NoHistogramAvailableWidget();
+	typedef QSharedPointer<iASamplingResults> SamplingResultPointer;
+	dlg_samplings();
+	void Add(SamplingResultPointer samplingResults);
+	SamplingResultPointer GetSampling(int idx);
+	int SamplingCount() const;
+	QVector<SamplingResultPointer> const & GetSamplings();
+public slots:
+	void Remove();
+private:
+	QStandardItemModel* m_itemModel;
+	QVector<SamplingResultPointer> m_samplings;
 };

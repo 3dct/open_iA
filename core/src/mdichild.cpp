@@ -322,27 +322,13 @@ void MdiChild::disableRenderWindows(int ch)
 void MdiChild::enableRenderWindows()
 {
 	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
-	{	// TODO: VOLUME: at the moment, we always show first volume in main slicer/renderers
-		//int modalityIdx = m_dlgModalities->GetSelected();
-		int modalityIdx = 0;
-		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
-
-		/*
-		if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
-		{
-			// TODO: VOLUME: check whether/where this is really needed - not for the "standard" case of loading a file!
-			// as it is, it's dangerous as it might initialize the "current" histogram with data from modality 0
-			// for all modalities?
-			getHistogram()->initialize(modTrans->GetAccumulate(), imageData->GetScalarRange(), false);
-			getHistogram()->updateTrf();
-			getHistogram()->redraw();
-		}
-		*/
+	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			GetModality(i)->GetTransfer()->ReInitHistogram(GetModality(i)->GetImage());
+			GetModality(i)->InitHistogram();
 		}
-		
+		int modalityIdx = 0;
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 		Raycaster->enableInteractor();
 
 		slicerXZ->enableInteractor();
@@ -472,6 +458,8 @@ void MdiChild::showPoly()
 
 bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPolyData* poly)
 {
+	// TODO: image is actually not the final imagedata here (or at least not always)
+	//    -> maybe skip all image-related initializations?
 	addStatusMsg("Creating Result View");
 	if (poly != NULL){
 		polyData->ReleaseData();
@@ -483,14 +471,9 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		imageData->DeepCopy(image);
 	}
 
-	// TODO: VOLUME: initialize modality... ?
 	initView( title );
 	setWindowTitle( title );
 	Raycaster->ApplySettings(renderSettings);
-	for (int i = 0; i < GetModalities()->size(); ++i)
-	{
-		GetModality(i)->GetTransfer()->ResetTransferFunctions(GetModality(i)->GetImage());
-	}
 	InitVolumeRenderers();
 	setupSlicers(slicerSettings, true );
 
@@ -853,7 +836,7 @@ bool MdiChild::saveAsImageStack()
 
 	QString f = QFileDialog::getSaveFileName(this, tr("Save As"),
 		filePath,
-		tr("TIFF stacks (*.tif);; PNG stacks (*.png);; BMP stacks (*.bmp);; JPEG stacks (*.jpg);; DICOM series (*.dcm) "));
+		tr("TIFF stacks (*.tif);; PNG stacks (*.png);; BMP stacks (*.bmp);; JPEG stacks (*.jpg);; DICOM series (*.dcm)"));
 
 	if (f.isEmpty())
 		return false;
@@ -1732,7 +1715,7 @@ void MdiChild::saveRenderWindow(vtkRenderWindow *renderWindow)
 {
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image"),
 		"",
-		tr("JPEG (*.jpg);;TIFF (*.tif);;PNG (*.png);;BMP (*.bmp)" ) );
+		iAIOProvider::GetSupportedImageFormats());
 
 	if (file.isEmpty())
 		return;
@@ -2902,39 +2885,30 @@ void MdiChild::InitVolumeRenderers()
 		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
 }
 
-void MdiChild::LoadProject()
-{
-	m_dlgModalities->Load();
-	setCurrentFile(GetModalities()->GetFileName());
-	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	if (GetModalities()->size() > 0)
-	{
-		InitModalities();
-	}
-}
 
-// TODO: VOLUME: remove duplication with previous function!
-void MdiChild::LoadProject(QString const & fileName)
+bool MdiChild::LoadProject(QString const & fileName)
 {
-	// workaround for the crash when loading project from recent files.
+	// processEvents: workaround for the crash when loading project from recent files.
 	// apparently some work needs to be done between creating the mdi child
 	// (done in Mainwindow::LoadProject) and setting up the dataset
 	// Could probably be omitted if the data loading in dlg_modalities was
 	// asynchronous!
 	QApplication::processEvents();
 
-	m_dlgModalities->Load(fileName);
+	if (!m_dlgModalities->Load(fileName) ||
+		GetModalities()->size() <= 0)
+	{
+		return false;
+	}
 	setCurrentFile(GetModalities()->GetFileName());
 	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	if (GetModalities()->size() > 0)
-	{
-		InitModalities();
-	}
+	InitModalities();
+	return true;
 }
 
-void MdiChild::StoreProject()
+void MdiChild::StoreProject(QString const & fileName)
 {
-	m_dlgModalities->Store();
+	m_dlgModalities->Store(fileName);
 }
 
 MainWindow* MdiChild::getM_mainWnd()

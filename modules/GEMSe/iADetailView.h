@@ -50,7 +50,6 @@ public:
 	iADetailView(iAImagePreviewWidget* prevWdgt,
 		ClusterImageType nullImage,
 		QSharedPointer<iAModalityList> modalities,
-		QSharedPointer<iAAttributes> attributes,
 		iALabelInfo const & labelInfo,
 		int representativeType);
 	void SetNode(iAImageClusterNode const * node);
@@ -85,7 +84,6 @@ private:
 	QSharedPointer<iAModalityList> m_modalities;
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	QSharedPointer<iAAttributes> m_attributes;
 	QStandardItemModel* m_labelItemModel;
 	int m_representativeType;
 	iAChannelVisualizationData* m_magicLensData;

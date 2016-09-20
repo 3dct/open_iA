@@ -215,14 +215,7 @@ void MainWindow::openImageStack()
 			this,
 			tr("Open File"),
 			path,
-			tr(
-				"All supported types (*.mhd *.mha *.tif *.png *.jpg *.bmp);;"
-				"MetaImages (*.mhd *.mha);;"
-				"TIFF stacks (*.tif);;"
-				"PNG stacks (*.png);;"
-				"BMP stacks (*.bmp);;"
-				"JPEG stacks (*.jpg)"
-			)
+			iAIOProvider::GetSupportedImageStackFormats()
 		), true
 	);
 }
@@ -235,12 +228,7 @@ void MainWindow::openVolumeStack()
 			this,
 			tr("Open File"),
 			path,
-			tr(
-				"All supported types (*.mhd *.raw *.volstack);;"
-				"MetaImages (*.mhd *.mha);;"
-				"RAW files (*.raw);;"
-				"Volume Stack (*.volstack)"
-			)
+			iAIOProvider::GetSupportedVolumeStackFormats()
 		), true
 	);
 }
@@ -258,7 +246,7 @@ void MainWindow::openRecentFile()
 
 void MainWindow::LoadFile(QString const & fileName)
 {
-	if (fileName.endsWith(ProjectFileExtension))
+	if (fileName.endsWith(iAIOProvider::ProjectFileExtension))
 	{
 		LoadProject(fileName);
 	}
@@ -2004,6 +1992,11 @@ void MainWindow::writeSettings()
 
 void MainWindow::setCurrentFile(const QString &fileName)
 {
+	if (fileName.isEmpty())
+	{
+		DEBUG_LOG("Can't use empty filename as current!");
+		return;
+	}
 	curFile = fileName;
 	QSettings settings;
 	QStringList files = settings.value("recentFileList").toStringList();
@@ -2195,16 +2188,11 @@ void MainWindow::OpenWithDataTypeConversion()
 	QString finalfilename;
 	QString testfinalfilename;
 
-	QString file = QFileDialog::getOpenFileName(this,tr("Open File"),path,
-		tr("All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars);;"
-			"MetaImages (*.mhd *.mha);;"
-			"STL files (*.stl);;"
-			"VGI files (*.vgi);;"
-			"RAW files (*.raw);;"
-			"REC files (*.rec);;"
-			"VOL files (*.vol);;"
-			"PRO files (*.pro);;"
-			"PARS files (*.pars);;"));
+	QString file = QFileDialog::getOpenFileName(this,
+		tr("Open File"),
+		path,
+		iAIOProvider::GetSupportedLoadFormats()
+	);
 
 	QStringList datatype = (QStringList()
 		<<  tr("VTK_SIGNED_CHAR") <<  tr("VTK_UNSIGNED_CHAR")
@@ -2448,30 +2436,44 @@ void MainWindow::InitResources()
 
 void MainWindow::LoadProject()
 {
-	MdiChild* child = createMdiChild();
-	child->newFile();
-	child->show();
-	child->LoadProject();
+	QString fileName = QFileDialog::getOpenFileName(
+		QApplication::activeWindow(),
+		tr("Open Input File"),
+		path,
+		iAIOProvider::ProjectFileTypeFilter);
+	LoadProject(fileName);
 }
-
 
 void MainWindow::LoadProject(QString const & fileName)
 {
+	if (fileName.isEmpty())
+		return;
 	MdiChild* child = createMdiChild();
 	child->newFile();
-	child->show();
-	child->LoadProject(fileName);
+	if (child->LoadProject(fileName))
+	{
+		child->show();
+	}
+	else
+	{
+		delete child;
+	}
 }
 
 
 void MainWindow::SaveProject()
 {
+	QString modalitiesFileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		tr("Select Output File"),
+		path,
+		iAIOProvider::ProjectFileTypeFilter);
 	MdiChild * activeChild = activeMdiChild();
-	if (!activeChild)
+	if (!activeChild || modalitiesFileName.isEmpty())
 	{
 		return;
 	}
-	activeChild->StoreProject();
+	activeChild->StoreProject(modalitiesFileName);
 }
 
 

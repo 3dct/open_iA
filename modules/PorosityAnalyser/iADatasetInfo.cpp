@@ -191,7 +191,7 @@ void iADatasetInfo::calculateInfo()
 
 		// inintialize input datset
 		ScalarPixelType pixelType;
-		ImagePointer image = iAITKIO::readFile( datasetPath + "/" + datasetName, pixelType );
+		ImagePointer image = iAITKIO::readFile( datasetPath + "/" + datasetName, pixelType, true);
 		try
 		{
 			switch ( pixelType )

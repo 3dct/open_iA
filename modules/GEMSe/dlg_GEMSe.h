@@ -24,7 +24,8 @@
 #include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 
-#include "iAAttributeFilter.h"
+#include "iAChartAttributeMapper.h"
+#include "iAChartFilter.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTreeView.h"
 #include "iAImageNodeWidget.h"
@@ -60,11 +61,11 @@ public:
 	~dlg_GEMSe();
 	void SetTree(QSharedPointer<iAImageTree > imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
-		QSharedPointer<iAAttributes> attributes,
 		QSharedPointer<iAModalityList> modalities,
-		iALabelInfo const & labelInfo);
+		iALabelInfo const & labelInfo,
+		QVector<QSharedPointer<iASamplingResults> > samplings);
 	void StoreClustering(QString const & fileName);
-	void RecreateCharts();
+	void CreateCharts();
 	QSharedPointer<iAImageClusterNode> GetCurrentCluster();
 	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
@@ -107,23 +108,26 @@ private:
 	void AddDiagramSubWidgetsWithProperStretch();
 
 	void RemoveAllCharts();
+	void CreateMapper();
 
 	void CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,
 		int labelCount);
 
-	vtkSmartPointer<vtkTable> GetComparisonTable(iAImageClusterNode const * node, iAAttributeFilter const & filter);
+	vtkSmartPointer<vtkTable> GetComparisonTable(iAImageClusterNode const * node, iAChartFilter const & filter);
 	void UpdateComparisonChart(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot,
-		iAImageClusterNode const * node, QColor const & color, iAAttributeFilter const & filter);
+		iAImageClusterNode const * node, QColor const & color, iAChartFilter const & filter);
 	
-	// data
-	QSharedPointer<iAAttributes> m_attributes;
-	int m_refCompMeasureStart;
-	QVector<AttributeID> m_selectedForComparison;
+	// data:
+	QVector<QSharedPointer<iASamplingResults> > m_samplings;
+	QSharedPointer<iAAttributes> m_chartAttributes;
+	iAChartAttributeMapper m_chartAttributeMapper;
+	int m_MeasureChartIDStart;
+	QVector<int> m_selectedForComparison;
 	
 	QSharedPointer<iAImageClusterNode> m_selectedCluster;
 	iAImageClusterLeaf * m_selectedLeaf;
 
-	iAAttributeFilter m_attributeFilter;
+	iAChartFilter m_chartFilter;
 
 	// GUI components:
 	iAImageTreeView* m_treeView;
@@ -135,8 +139,9 @@ private:
 	vtkSmartPointer<vtkChartXY> m_comparisonChart;
 	QWidget * m_paramChartWidget, *m_derivedOutputChartWidget;
 	QWidget * m_paramChartContainer, * m_derivedOutputChartContainer;
+	QGridLayout* m_paramChartLayout;
 	QSplitter* m_chartContainer;
-	QMap<AttributeID, iAChartSpanSlider*> m_charts;
+	QMap<int, iAChartSpanSlider*> m_charts;
 	iAColorTheme const * m_colorTheme;
 
 	vtkSmartPointer<vtkTable> m_allTable;
@@ -149,8 +154,7 @@ private:
 	vtkSmartPointer<vtkPlot> m_clusterFilteredPlot;
 	vtkSmartPointer<vtkPlot> m_singlePlot;
 
-	// diagram data:
-	QMap<AttributeID, QSharedPointer<iAParamHistogramData> > m_chartData;
+	QMap<int, QSharedPointer<iAParamHistogramData> > m_chartData;
 
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;

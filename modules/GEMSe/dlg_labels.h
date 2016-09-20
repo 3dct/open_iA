@@ -27,8 +27,6 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 #include "iALabelInfo.h"
 #include <vtkSmartPointer.h>
 
-#include "SVMImageFilter.h" // for seeds input type
-
 #include <QList>
 
 class iAColorTheme;
@@ -60,7 +58,6 @@ public:
 	virtual QString GetName(int idx) const;
 	virtual QColor GetColor(int idx) const;
 	bool AreSeedsAvailable() const;
-	SVMImageFilter::SeedsPointer GetSeeds() const;
 public slots:
 	void RendererClicked(int, int, int);
 	void SlicerClicked(int, int, int);

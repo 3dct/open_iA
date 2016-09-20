@@ -89,6 +89,8 @@ public:
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
+	void InitHistogram();
+
 	// TODO: Refactor
 	QString positionSettings;
 	QString orientationSettings;
@@ -104,8 +106,8 @@ private:
 	QSharedPointer<iAVolumeRenderer> m_renderer;
 	double m_spacing[3];
 
-	// IO-related methods:
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
+	void LoadTransferFunction();
 	
 	vtkSmartPointer<vtkImageData> m_imgData;
 };

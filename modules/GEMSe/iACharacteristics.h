@@ -31,11 +31,10 @@ class QString;
 class CharacteristicsCalculator : public QThread
 {
 public:
-	CharacteristicsCalculator(QSharedPointer<iASingleResult> result, QSharedPointer<iAAttributes> range, int objCountIdx);
+	CharacteristicsCalculator(QSharedPointer<iASingleResult> result, int objCountIdx);
 	bool success();
 private:
 	QSharedPointer<iASingleResult> m_result;
-	QSharedPointer<iAAttributes>   m_range;
 	int m_objCountIdx;
 	bool m_success;
 	virtual void run();

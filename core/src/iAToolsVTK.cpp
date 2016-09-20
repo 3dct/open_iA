@@ -33,11 +33,11 @@ void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, b
 	iAITKIO::writeFile(filename, con.GetITKImage(), pixelType, useCompression);
 }
 
-vtkSmartPointer<vtkImageData> ReadImage(QString const & filename)
+vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag)
 {
 	iAConnector con;
 	iAITKIO::ScalarPixelType pixelType;
-	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType);
+	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, releaseFlag);
 	con.SetImage(img);
 	return con.GetVTKImage();
 }
