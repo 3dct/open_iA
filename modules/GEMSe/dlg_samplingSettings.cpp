@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "dlg_samplingSettings.h"
 
@@ -65,16 +64,11 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	cbSamplingMethod->setCurrentIndex(1);
 
 	connect(leParamDescriptor, SIGNAL(editingFinished()), this, SLOT(ParameterDescriptorChanged()));
-	connect(sbNumberOfSamples, SIGNAL(valueChanged(int)), this, SLOT(UpdateEstimate(int)));
 	connect(pbChooseOutputFolder, SIGNAL(clicked()), this, SLOT(ChooseOutputFolder()));
 	connect(pbChooseParameterDescriptor, SIGNAL(clicked()), this, SLOT(ChooseParameterDescriptor()));
 	connect(pbChooseExecutable, SIGNAL(clicked()), this, SLOT(ChooseExecutable()));
-
-
 	connect (pbRun, SIGNAL(clicked()), this, SLOT(accept()));
 	connect (pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
-
-	UpdateEstimate(10000);
 }
 
 QSharedPointer<iAParameterGenerator> dlg_samplingSettings::GetGenerator()
@@ -242,18 +236,6 @@ QSharedPointer<iAAttributes> dlg_samplingSettings::GetAttributes()
 		result->Add(desc);
 	}
 	return result;
-}
-
-double dlg_samplingSettings::GetEstimatedDuration() const
-{
-	// try one run before to get those magic numbers?
-	return (0.00007*m_imagePixelCount*m_nbOfSamples )/3600 ;
-}
-
-void dlg_samplingSettings::UpdateEstimate(int nbOfSamples)
-{
-	m_nbOfSamples = nbOfSamples;
-	lbEstimate->setText(QString::number( GetEstimatedDuration(), 'g', 3 ));
 }
 
 

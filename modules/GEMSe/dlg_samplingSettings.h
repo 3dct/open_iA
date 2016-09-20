@@ -54,14 +54,12 @@ public:
 	dlg_samplingSettings(QWidget *parentWidget, QSharedPointer<iAModalityList const> modalities);
 	QSharedPointer<iAParameterGenerator> GetGenerator();
 	QSharedPointer<iAAttributes> GetAttributes();
-	double GetEstimatedDuration() const;
 	QString GetOutputFolder() const;
 	QString GetExecutable() const;
 	QString GetAdditionalArguments() const;
 	int GetSampleCount() const;
 	int GetLabelCount() const;
 private slots:
-	void UpdateEstimate(int);
 	void ChooseOutputFolder();
 	void ChooseParameterDescriptor();
 	void ChooseExecutable();
