@@ -697,21 +697,17 @@ void iASlicerData::changeImageData( vtkImageData *idata )
 
 void iASlicerData::saveAsImage() const
 {
-	QString file = QFileDialog::getSaveFileName(0, tr("Save Image"), 
-												"",
-												iAIOProvider::GetSupportedImageFormats());
-
-
+	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
+	if (!mdi_parent)
+		return;
+	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image"),
+		"", iAIOProvider::GetSupportedImageFormats());
 	if (file.isEmpty())
 		return;
 
 	QStringList inList = ( QStringList() << tr("$Save native image") );
 	bool saveNative = true;
 	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false")) );
-
-	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
-	if(!mdi_parent)
-		return;
 
 	dlg_commoninput *dlg = new dlg_commoninput (mdi_parent, "Save options", 1, inList, inPara, NULL);
 	if (dlg->exec() == QDialog::Accepted)
@@ -802,9 +798,7 @@ void iASlicerData::saveImageStack()
 	if(!mdi_parent)
 		return;
 	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image"), 
-		"",
-		iAIOProvider::GetSupportedImageFormats() );
-
+		"", iAIOProvider::GetSupportedImageFormats() );
 	if (file.isEmpty())
 		return;
 
