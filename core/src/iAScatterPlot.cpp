@@ -446,6 +446,8 @@ void iAScatterPlot::applyMarginToRanges()
 
 void iAScatterPlot::calculateNiceSteps()
 {
+	if ( m_locRect.width() == 0 || m_locRect.height() == 0 )
+		return;
 	double rx[2] = { x2p( 0 ), x2p( m_locRect.width() ) };
 	double ry[2] = { y2p( m_locRect.height() ), y2p( 0 ) };
 	calculateNiceSteps( rx, &m_ticksX );

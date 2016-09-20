@@ -23,6 +23,7 @@
 #include "iASegm3DView.h"
 
 #include "defines.h"
+#include "iAFast3DMagicLensWidget.h"
 #include "iARenderer.h"
 #include "iARendererManager.h"
 #include "iAPerceptuallyUniformLUT.h"
@@ -156,7 +157,7 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer( 0 ),
 	m_tag( 0 ),
-	m_wgt( new QVTKWidgetMouseReleaseWorkaround ),
+	m_wgt( new iAFast3DMagicLensWidget ),
 	scalarBarWgt( vtkSmartPointer<vtkScalarBarWidget>::New() ),
 	volScalarBarWgt( vtkSmartPointer<vtkScalarBarWidget>::New() ),
 	m_sensitivity( 1.0 ),
@@ -199,7 +200,7 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	m_wireActor->GetProperty()->SetSpecular( 0.0 );
 	m_renderer->GetRenderer()->AddActor( m_wireActor );
 
-	m_wgt->SetRenderWindow( m_renderer->GetRenderWindow() );
+	m_wgt->SetRenderWindow( (vtkGenericOpenGLRenderWindow* )m_renderer->GetRenderWindow() );
 	m_renderer->setAxesTransform( m_axesTransform );
 
 	QObject::connect( m_wgt, SIGNAL( rightButtonReleasedSignal() ), m_renderer, SLOT( mouseRightButtonReleasedSlot() ) );
@@ -311,7 +312,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volScalarBarWgt->SetEnabled( settings.value( "PorosityAnalyser/GUI/ShowVolume", false ).toBool() );
 }
 
-QVTKWidgetMouseReleaseWorkaround * iASegm3DViewData::GetWidget()
+iAFast3DMagicLensWidget * iASegm3DViewData::GetWidget()
 {
 	return m_wgt;
 }

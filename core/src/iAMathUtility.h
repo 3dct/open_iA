@@ -51,6 +51,7 @@ T clamp(T const min, T const max, T const val)
 
 /**
  * map value from given interval to "norm" interval [0..1]
+ * if min is bigger than max, a reverse mapping is applied
  * @param minSrcVal minimum value of source interval
  * @param maxSrcVal maximum value of source interval
  * @param value a value in source interval
@@ -60,7 +61,7 @@ T clamp(T const min, T const max, T const val)
 template <typename SrcType>
 double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const value)
 {
-	assert (value >= minSrcVal && value <= maxSrcVal);
+	//assert (value >= minSrcVal && value <= maxSrcVal);
 	SrcType range = maxSrcVal - minSrcVal;
 	if (range == 0)
 	{	// to prevent division by 0
@@ -70,7 +71,6 @@ double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const
 	assert(returnVal >= 0 && returnVal <= 1);
 	return clamp(0.0, 1.0, returnVal);
 }
-
 
 
 template <typename T>
@@ -112,6 +112,8 @@ DstType mapNormTo(DstType minDstVal, DstType maxDstVal, double norm)
 	{
 		returnVal = norm * (maxDstVal - minDstVal) + minDstVal;
 	}
+	if ( minDstVal > maxDstVal )
+		std::swap( minDstVal, maxDstVal );
 	assert (returnVal >= minDstVal && returnVal <= maxDstVal);
 	return returnVal;
 }
