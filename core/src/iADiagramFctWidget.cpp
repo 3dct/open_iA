@@ -1229,6 +1229,7 @@ QString iADiagramFctWidget::GetXAxisCaption(double value, int placesBeforeComma,
 
 bool iADiagramFctWidget::IsDrawnDiscrete() const
 {
-	return ((GetData()->GetRangeType() == Discrete && ((GetData()->GetDataRange()[1]-GetData()->GetDataRange()[0]) <= GetData()->GetNumBin()))
+	return ((GetData()->GetRangeType() == Discrete &&
+		((GetData()->GetDataRange()[1]-GetData()->GetDataRange()[0]) <= GetData()->GetNumBin()))
 		|| GetData()->GetRangeType() == Categorical);
 }

@@ -83,9 +83,10 @@ double iAParamChart::mapValueToBin(double value) const
 QSharedPointer<iAAbstractDrawableFunction> iAParamChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
 {
 	return
-		// IsDrawnDiscrete() ?
+		IsDrawnDiscrete() ?
 		QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(data, color, 2))
 		//: QSharedPointer<iAAbstractDrawableFunction>(new iAFilledLineFunctionDrawer(data, color))
+		: QSharedPointer<iAAbstractDrawableFunction>(new iALineFunctionDrawer(data, color))
 		;
 }
 
