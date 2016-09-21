@@ -55,6 +55,7 @@ private:
 private slots:
 	void		onAddButtonClicked();
 	void		onDeleteButtonClicked();
+	void		dataChanged( const QModelIndex & topLeft, const QModelIndex & bottomRight );
 };
 
 #endif // IAVISMODULESDOCKWIDGET_H

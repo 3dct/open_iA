@@ -40,6 +40,13 @@
      </widget>
     </item>
     <item>
+     <widget class="QPushButton" name="pbDefectVisAdd">
+      <property name="text">
+       <string>Add 3D-mesh</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QLabel" name="label_5">
       <property name="text">
        <string>Density Map Visualization</string>
@@ -50,23 +57,6 @@
      <widget class="QPushButton" name="pbCalcDensityMap">
       <property name="text">
        <string>Calculate Density Map</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="pbDensityMapAdd">
-      <property name="text">
-       <string>Add 2D Density Map</string>
-      </property>
-      <property name="icon">
-       <iconset resource="../../core/open_iA.qrc">
-        <normaloff>:/images/4DCT_Map.png</normaloff>:/images/4DCT_Map.png</iconset>
-      </property>
-      <property name="iconSize">
-       <size>
-        <width>24</width>
-        <height>24</height>
-       </size>
       </property>
      </widget>
     </item>

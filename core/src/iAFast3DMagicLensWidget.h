@@ -32,9 +32,9 @@ public:
 	iAFast3DMagicLensWidget( QWidget * parent = 0 );
 	~iAFast3DMagicLensWidget( );
 protected:
-	virtual void			updateLens( );
+	virtual void	updateLens( );
 	virtual void	resizeEvent( QResizeEvent * event );
-	virtual void mouseReleaseEvent(QMouseEvent * event);
+	virtual void	mouseReleaseEvent(QMouseEvent * event);
 private:
 	double			m_viewAngle;
 	double			calculateZ( double viewAngle );

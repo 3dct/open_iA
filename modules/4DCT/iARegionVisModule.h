@@ -51,11 +51,11 @@ class iARegionVisModule : public iAVisModule
 public:
 	typedef itk::Image<double, 3>		DensityMapType;
 
-				iARegionVisModule();
-	void		enable();
-	void		disable();
-	void		setData( vtkImageData* image );
-	void		setPosition( double* position );
+				iARegionVisModule( );
+	void		enable( );
+	void		disable( );
+	void		setData( vtkImageData * image );
+	void		setPosition( double * position );
 	void		setSilhoetteOpacity( double opacity );
 	void		setSurfaceOpacity( double opacity );
 	void		setSilhoetteColor( double r, double g, double b );

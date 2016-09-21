@@ -41,6 +41,7 @@ iA4DCTAllVisualizationsDockWidget::iA4DCTAllVisualizationsDockWidget( QWidget* p
 	setupUi( this );
 	connect( pbAdd, SIGNAL( clicked() ), this, SLOT( onAddButtonClicked() ) );
 	connect( pbDelete, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
+	connect( m_visModulesModel, SIGNAL( dataChanged( QModelIndex, QModelIndex ) ), this, SLOT ( dataChanged( QModelIndex, QModelIndex ) ) );
 }
 
 iA4DCTAllVisualizationsDockWidget::~iA4DCTAllVisualizationsDockWidget()
@@ -104,4 +105,15 @@ iAVisModuleItem * iA4DCTAllVisualizationsDockWidget::getSelectedModule()
 		return m_collection->getModules().at( index.row() );
 	}
 	return nullptr;
+}
+
+void iA4DCTAllVisualizationsDockWidget::dataChanged( const QModelIndex & topLeft, const QModelIndex & bottomRight )
+{
+	// only if one column has been changed
+	if( topLeft == bottomRight )
+	{
+		int i = topLeft.row();
+		m_collection->getModules().at( i )->name = m_visModulesModel->data( topLeft, Qt::DisplayRole ).toString();
+	}
+	emit addedVisualization();
 }

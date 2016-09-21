@@ -18,44 +18,35 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "iA4DCTBoundingBoxDockWidget.h"
-// iA
-#include "iABoundingBoxVisModule.h"
-// vtk
-#include <vtkRenderer.h>
 
-iA4DCTBoundingBoxDockWidget::iA4DCTBoundingBoxDockWidget( QWidget * parent )
-	: QDockWidget( parent )
+#ifndef IA4DCTDEFECTVISDOCKWIDGET_H
+#define IA4DCTDEFECTVISDOCKWIDGET_H
+// Ui
+#include "ui_iA4DCTDefectVisDockWidget.h"
+// Qt
+#include <QDockWidget>
+
+class iADefectVisModule;
+class vtkRenderer;
+
+class iA4DCTDefectVisDockWidget : public QDockWidget, public Ui::DefectVisDockWidget
 {
-	setupUi( this );
-	connect( cbBoundingBox, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeColor( QColor ) ) );
-	connect( sWidth, SIGNAL( valueChanged( int ) ), this, SLOT( changeLineWidth( int ) ) );
+	Q_OBJECT
+public:
+				iA4DCTDefectVisDockWidget( QWidget * parent );
+	void		attachTo( iADefectVisModule * defectVis );
+	void		setRenderer( vtkRenderer * renderer );
 
-	// default values
-	cbBoundingBox->setColor( QColor( 0xff, 0xff, 0xff ) );
-}
+signals:
+	void		updateRenderWindow();
 
-void iA4DCTBoundingBoxDockWidget::attachTo( iABoundingBoxVisModule * boundingBox )
-{
-	m_boundingBox = boundingBox;
-}
+private slots:
+	void		changeColor( const QColor & col );
+	void		changeOpacity( int val );
 
-void iA4DCTBoundingBoxDockWidget::changeColor( const QColor & col )
-{
-	m_boundingBox->setColor( col.redF(), col.greenF(), col.blueF() );
-	emit updateRenderWindow();
-}
+private:
+	iADefectVisModule *		m_defectVis;
+	vtkRenderer *			m_renderer;
+};
 
-void iA4DCTBoundingBoxDockWidget::changeLineWidth( int val )
-{
-	float width = static_cast<float>(val + 1) / sWidth->maximum() * 10.;
-	m_boundingBox->setLineWidth( width );
-	emit updateRenderWindow();
-}
-
-void iA4DCTBoundingBoxDockWidget::setRenderer( vtkRenderer * renderer )
-{
-	m_renderer = renderer;
-}
+#endif // IA4DCTDEFECTVISDOCKWIDGET_H

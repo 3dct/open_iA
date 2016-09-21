@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BoundingBoxDockWidget</class>
- <widget class="QDockWidget" name="BoundingBoxDockWidget">
+ <class>DefectVisDockWidget</class>
+ <widget class="QDockWidget" name="DefectVisDockWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,12 +11,12 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Bounding box</string>
+   <string>DefectVis</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
     <item row="3" column="1">
-     <widget class="QSlider" name="sWidth">
+     <widget class="QSlider" name="sOpacity">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -38,7 +38,7 @@
     <item row="2" column="0">
      <widget class="QLabel" name="lBackground">
       <property name="text">
-       <string>Bounding box color:</string>
+       <string>Color</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -46,7 +46,7 @@
      </widget>
     </item>
     <item row="2" column="1">
-     <widget class="iAColorBox" name="cbBoundingBox" native="true">
+     <widget class="iAColorBox" name="cbDefectVis" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -70,7 +70,7 @@
     <item row="3" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>Width</string>
+       <string>Opacity</string>
       </property>
      </widget>
     </item>

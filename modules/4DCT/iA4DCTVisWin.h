@@ -24,7 +24,6 @@
 // Ui
 #include "ui_iA4DCTVisWin.h"
 // iA
-#include "iABoundingBoxVisModule.h"
 #include "iAQTtoUIConnector.h"
 #include "iAVisModulesCollection.h"
 // vtk
@@ -43,11 +42,14 @@ class iA4DCTCurrentVisualizationsDockWidget;
 class iA4DCTFractureVisDockWidget;
 class iA4DCTMainWin;
 class iA4DCTPlaneDockWidget;
+class iABoundingBoxVisModule;
+class iADefectVisModule;
 class iA4DCTRegionViewDockWidget;
 class iA4DCTBoundingBoxDockWidget;
 class iA4DCTToolsDockWidget;
 class iAVisModule;
 class vtkOrientationMarkerWidget;
+class iA4DCTDefectVisDockWidget;
 
 const float SCENE_SCALE = 0.01;
 
@@ -69,6 +71,7 @@ public slots:
 	void				updateVisualizations();
 	void				changeBackground( QColor col );
 
+
 private:
 	void				setToolsDockWidgetsEnabled( bool enabled );
 
@@ -89,6 +92,7 @@ private:
 	iA4DCTCurrentVisualizationsDockWidget *	m_dwCurrentVis;
 	iA4DCTRegionViewDockWidget *			m_dwRegionVis;
 	iA4DCTBoundingBoxDockWidget *			m_dwBoundingBox;
+	iA4DCTDefectVisDockWidget *				m_dwDefectVis;
 	iA4DCTToolsDockWidget *					m_dwTools;
 
 	bool									m_isVirgin;
@@ -116,16 +120,15 @@ private slots:
 	void				setOrientationWidgetEnabled( bool enabled );
 
 	// fracture vis
-	//void				onSaveButtonClicked( );
 	void				onLoadButtonClicked( );
 	void				onExtractButtonClicked( );
 	// defect density maps
 	void				addSurfaceVis( );
-	void				calcDensityMap();
 	// bounding box
 	void				addBoundingBox( );
 	// defect view
 	void				addDefectView( );
+	void				addDefectVis( );
 	// magic lens
 	void				enableMagicLens( bool enable );
 };

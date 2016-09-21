@@ -31,6 +31,7 @@
 #include "iA4DCTMainWin.h"
 #include "iA4DCTPlaneDockWidget.h"
 #include "iA4DCTRegionViewDockWidget.h"
+#include "iA4DCTDefectVisDockWidget.h"
 #include "iA4DCTSettings.h"
 #include "iA4DCTBoundingBoxDockWidget.h"
 #include "iABoundingBoxVisModule.h"
@@ -42,7 +43,7 @@
 #include "iAVisModuleItem.h"
 #include "iAMagicLens.h"
 #include "iA4DCTToolsDockWidget.h"
-#include "DensityMap.h"
+#include "iADefectVisModule.h"
 // Qt
 #include <QFileDialog>
 #include <QSettings>
@@ -83,13 +84,13 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	m_renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	qvtkWidget->SetMainRenderWindow(m_renderWindow);
 	m_mainRen = vtkSmartPointer<vtkRenderer>::New();
-	m_mainRen->SetLayer(0);
-	m_mainRen->SetBackground(0.5, 0.5, 0.5);
+	m_mainRen->SetLayer( 0 );
+	m_mainRen->SetBackground( 0.5, 0.5, 0.5 );
 	m_mainRen->InteractiveOn();
-	qvtkWidget->GetRenderWindow()->AddRenderer(m_mainRen);
+	qvtkWidget->GetRenderWindow()->AddRenderer( m_mainRen );
 	m_magicLensRen = qvtkWidget->getLensRenderer();
 
-	setOrientationWidgetEnabled(true);
+	setOrientationWidgetEnabled( true );
 
 	// setup dock widgets
 	// tools
@@ -105,6 +106,9 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	// plane
 	m_dwPlane = new iA4DCTPlaneDockWidget( this );
 	connect( m_dwPlane, SIGNAL( updateRenderWindow() ), this, SLOT( updateRenderWindow() ) );
+	// defect vis
+	m_dwDefectVis = new iA4DCTDefectVisDockWidget( this );
+	connect( m_dwDefectVis, SIGNAL( updateRenderWindow() ), this, SLOT( updateRenderWindow() ) );
 	// all visualizations view
 	m_dwAllVis = new iA4DCTAllVisualizationsDockWidget( this );
 	m_dwAllVis->setCollection( &m_visModules );
@@ -127,27 +131,28 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwBoundingBox );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwFractureVis );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwPlane );
+	addDockWidget( Qt::LeftDockWidgetArea, m_dwDefectVis );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwRegionVis );
 
 	setToolsDockWidgetsEnabled( false );
 
 	// setup signals
 	connect( m_dwTools->pbDefectViewerAdd,		SIGNAL( clicked( ) ), this, SLOT( addDefectView( ) ) );
+	connect( m_dwTools->pbDefectVisAdd,			SIGNAL( clicked( ) ), this, SLOT( addDefectVis( ) ) );
 	connect( m_dwTools->pbBoundingBoxAdd,		SIGNAL( clicked( ) ), this, SLOT( addBoundingBox( ) ) );
-	//connect( m_dwTools->pbDensityMapAdd,		SIGNAL( clicked( ) ), this, SLOT(  ) );
 	connect( m_dwTools->pbFractureViewerAdd,	SIGNAL( clicked( ) ), this, SLOT( onExtractButtonClicked( ) ) );
 	connect( m_dwTools->pbFractureViewerLoad,	SIGNAL( clicked( ) ), this, SLOT( onLoadButtonClicked( ) ) );
 	connect( m_dwTools->pbSurfaceViewerAdd,		SIGNAL( clicked( ) ), this, SLOT( addSurfaceVis( ) ) );
 	connect( m_dwTools->pbCalcDensityMap,		SIGNAL( clicked( ) ), this, SLOT( calcDensityMap( ) ) );
 	connect( m_dwTools->cbBackground,			SIGNAL( colorChanged( QColor ) ), this, SLOT( changeBackground( QColor ) ) );
 	connect( actionMagicLens,	SIGNAL( toggled( bool ) ), this, SLOT( enableMagicLens( bool ) ) );
-	connect( sStage,	SIGNAL( valueChanged( int ) ), this, SLOT( onStageSliderValueChanged( int ) ) );
-	connect( pbFirst,		SIGNAL( clicked() ), this, SLOT( onFirstButtonClicked() ) );
-	connect( pbPrevious,	SIGNAL( clicked() ), this, SLOT( onPreviousButtonClicked() ) );
-	connect( pbNext,		SIGNAL( clicked() ), this, SLOT( onNextButtonClicked() ) );
-	connect( pbLast,		SIGNAL( clicked() ), this, SLOT( onLastButtonClicked() ) );
+	connect( sStage,		SIGNAL( valueChanged( int ) ), this, SLOT( onStageSliderValueChanged( int ) ) );
+	connect( pbFirst,		SIGNAL( clicked( ) ), this, SLOT( onFirstButtonClicked( ) ) );
+	connect( pbPrevious,	SIGNAL( clicked( ) ), this, SLOT( onPreviousButtonClicked( ) ) );
+	connect( pbNext,		SIGNAL( clicked( ) ), this, SLOT( onNextButtonClicked( ) ) );
+	connect( pbLast,		SIGNAL( clicked( ) ), this, SLOT( onLastButtonClicked( ) ) );
 	connect( pbPlay,		SIGNAL( clicked( bool ) ), this, SLOT( onPlayButtonClicked( bool ) ) );
-	connect( &m_timer,	SIGNAL( timeout() ), this, SLOT( onNextButtonClicked() ) );
+	connect( &m_timer,		SIGNAL( timeout( ) ), this, SLOT( onNextButtonClicked() ) );
 	connect( sbInterval,	SIGNAL( valueChanged( int ) ), this, SLOT( onIntervalValueChanged( int ) ) );
 	connect( actionResetCam,	SIGNAL( triggered( ) ), this, SLOT( resetCamera( ) ) );
 	connect( actionXYView,		SIGNAL( triggered( ) ), this, SLOT( setXYView( ) ) );
@@ -157,6 +162,7 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	connect( actionXZBackView,	SIGNAL( triggered( ) ), this, SLOT( setXZBackView( ) ) );
 	connect( actionYZBackView,	SIGNAL( triggered( ) ), this, SLOT( setYZBackView( ) ) );
 	connect( actionOrientationMarker,	SIGNAL( toggled( bool ) ), this, SLOT( setOrientationWidgetEnabled( bool ) ) );
+	connect( actionOrientationMarker,	SIGNAL( toggled( bool ) ), this, SLOT( updateRenderWindow( ) ) );
 }
 
 iA4DCTVisWin::~iA4DCTVisWin()
@@ -192,25 +198,6 @@ bool iA4DCTVisWin::showDialog( QString & imagePath )
 	imagePath = dialog.getFile().Path;
 	return true;
 }
-
-//// save current surface to a file
-//void iA4DCTVisWin::onSaveButtonClicked()
-//{
-//	// save heigthmap
-//	QSettings settings;
-//	QString fileName = QFileDialog::getSaveFileName( this, tr( "Save surface" ),
-//		settings.value( S_4DCT_SAVE_SURFACE_DIR ).toString(), tr( "Images (*.mhd)" ) );
-//	if(fileName.isEmpty())	{
-//		return;
-//	}
-//	settings.setValue( S_4DCT_SAVE_SURFACE_DIR, fileName );
-//
-//	/*typedef itk::ImageFileWriter<MapType> WriterType;
-//	WriterType::Pointer writer = WriterType::New();
-//	writer->SetInput(m_heightmap);
-//	writer->SetFileName(fileName.toStdString());
-//	writer->Update();*/
-//}
 
 // load a surface from the input surface file
 void iA4DCTVisWin::onLoadButtonClicked()
@@ -357,6 +344,23 @@ void iA4DCTVisWin::addDefectView()
 	m_dwAllVis->updateContext();
 }
 
+void iA4DCTVisWin::addDefectVis( )
+{
+	// open dialog
+	QString imagePath;
+	if( !showDialog( imagePath ) ) {
+		return;
+	}
+
+	iADefectVisModule* defVis = new iADefectVisModule;
+	defVis->setInputFile( imagePath );
+	defVis->attachTo( m_mainRen );
+	defVis->setColor( 1, 0.75, 0 );
+	static int number = 0;
+	m_visModules.addModule( defVis, "DefectVis " + QString::number( number++ ) );
+	m_dwAllVis->updateContext();
+}
+
 void iA4DCTVisWin::updateVisualizations()
 {
 	QList<iAVisModuleItem *> modules = m_visModules.getModules();
@@ -384,6 +388,7 @@ void iA4DCTVisWin::selectedVisModule( iAVisModule * visModule )
 	iABoundingBoxVisModule * bbVis		= dynamic_cast< iABoundingBoxVisModule * >( visModule );
 	iAFractureVisModule * fractureVis	= dynamic_cast< iAFractureVisModule * >( visModule );
 	iAPlaneVisModule * planeVis			= dynamic_cast< iAPlaneVisModule * >( visModule );
+	iADefectVisModule * defectVis		= dynamic_cast< iADefectVisModule * >( visModule );
 
 	setToolsDockWidgetsEnabled( false );
 
@@ -399,6 +404,9 @@ void iA4DCTVisWin::selectedVisModule( iAVisModule * visModule )
 	} else if( planeVis ) {
 		m_dwPlane->setEnabled( true );
 		m_dwPlane->attachTo( planeVis );
+	} else if( defectVis ) {
+		m_dwDefectVis->setEnabled( true );
+		m_dwDefectVis->attachTo( defectVis );
 	}
 }
 
@@ -450,6 +458,7 @@ void iA4DCTVisWin::setToolsDockWidgetsEnabled( bool enabled )
 	m_dwPlane->setEnabled( enabled );
 	m_dwRegionVis->setEnabled( enabled );
 	m_dwBoundingBox->setEnabled( enabled );
+	m_dwDefectVis->setEnabled( enabled );
 }
 
 void iA4DCTVisWin::enableMagicLens( bool enable )
@@ -518,15 +527,6 @@ void iA4DCTVisWin::setYZBackView( )
 	resetCamera( );
 }
 
-void iA4DCTVisWin::calcDensityMap()
-{
-	int size[3] = {30, 30, 30};
-	//DensityMap::calculate("K:\\\\[transfer]\\\\GD301\\\\440\\\\GD301_woCA_3um_440N_mask.mhd", "K:\\\\[transfer]\\\\GD301\\\\440\\\\GD301_woCA_3um_440N_density_map.mhd", size);
-	//DensityMap::calculate("K:\\\\[transfer]\\\\GD301\\\\422\\\\GD301_woCA_3um_422N_mask.mhd", "K:\\\\[transfer]\\\\GD301\\\\422\\\\GD301_woCA_3um_422N_density_map.mhd", size);
-	//int size[3] = {16, 11, 18};
-	DensityMap::calculate("K:\\[transfer]\\GD301\\374\\GD301_woCA_3um_374N_mask.mhd", "K:\\[transfer]\\GD301\\374\\GD301_woCA_3um_374N_density_map.mhd", size);
-}
-
 void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 {
 	if (enabled)
@@ -541,7 +541,6 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 		m_orientWidget->SetViewport(0.0, 0.0, 0.2, 0.2);
 		m_orientWidget->SetEnabled(1);
 		m_orientWidget->InteractiveOn();
-		//updateRenderWindow();		// ToDo: initialization error
 	}
 	else
 	{
@@ -549,7 +548,6 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 
 		m_orientWidget->SetEnabled(false);
 		m_orientWidget = NULL;
-		//updateRenderWindow()
 	}
 }
 

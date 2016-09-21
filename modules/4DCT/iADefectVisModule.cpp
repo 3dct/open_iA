@@ -18,44 +18,68 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
-#include "iA4DCTBoundingBoxDockWidget.h"
+#include "iADefectVisModule.h"
 // iA
-#include "iABoundingBoxVisModule.h"
+#include "iA4DCTVisWin.h"
 // vtk
 #include <vtkRenderer.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkOBJReader.h>
+#include <vtkTransform.h>
+#include <vtkTransformFilter.h>
+#include <vtkProperty.h>
 
-iA4DCTBoundingBoxDockWidget::iA4DCTBoundingBoxDockWidget( QWidget * parent )
-	: QDockWidget( parent )
+iADefectVisModule::iADefectVisModule( )
+	: iAVisModule( )
 {
-	setupUi( this );
-	connect( cbBoundingBox, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeColor( QColor ) ) );
-	connect( sWidth, SIGNAL( valueChanged( int ) ), this, SLOT( changeLineWidth( int ) ) );
+	m_reader = vtkSmartPointer<vtkOBJReader>::New();
 
-	// default values
-	cbBoundingBox->setColor( QColor( 0xff, 0xff, 0xff ) );
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->Scale( SCENE_SCALE, SCENE_SCALE, SCENE_SCALE );
+
+	vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+	transformFilter->SetInputConnection( m_reader->GetOutputPort( ) );
+	transformFilter->SetTransform( transform );
+
+	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
+	m_mapper->SetInputConnection( transformFilter->GetOutputPort( ) );
+	m_actor = vtkSmartPointer<vtkActor>::New( );
+	m_actor->SetMapper( m_mapper );
 }
 
-void iA4DCTBoundingBoxDockWidget::attachTo( iABoundingBoxVisModule * boundingBox )
+void iADefectVisModule::enable( )
 {
-	m_boundingBox = boundingBox;
+	if ( !isAttached() ) return;
+	if( !isEnabled() ) {
+		m_renderer->AddActor( m_actor );
+	}
+	iAVisModule::enable();
 }
 
-void iA4DCTBoundingBoxDockWidget::changeColor( const QColor & col )
+void iADefectVisModule::disable( )
 {
-	m_boundingBox->setColor( col.redF(), col.greenF(), col.blueF() );
-	emit updateRenderWindow();
+	if ( !isAttached() ) return;
+	if( isEnabled() ) {
+		m_renderer->RemoveActor( m_actor );
+	}
+	iAVisModule::disable();
 }
 
-void iA4DCTBoundingBoxDockWidget::changeLineWidth( int val )
+void iADefectVisModule::setInputFile( QString path )
 {
-	float width = static_cast<float>(val + 1) / sWidth->maximum() * 10.;
-	m_boundingBox->setLineWidth( width );
-	emit updateRenderWindow();
+	m_reader->SetFileName( path.toStdString().c_str( ) );
+	m_reader->Update( );
 }
 
-void iA4DCTBoundingBoxDockWidget::setRenderer( vtkRenderer * renderer )
+void iADefectVisModule::setColor( double r, double g, double b )
 {
-	m_renderer = renderer;
+	m_actor->GetProperty()->SetColor( r, g, b );
+}
+
+void iADefectVisModule::setOpacity( double opacity )
+{
+	m_actor->GetProperty()->SetOpacity( opacity );
 }

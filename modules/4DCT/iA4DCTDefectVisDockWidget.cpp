@@ -18,44 +18,41 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
-#include "iA4DCTBoundingBoxDockWidget.h"
+#include "iA4DCTDefectVisDockWidget.h"
 // iA
-#include "iABoundingBoxVisModule.h"
+#include "iADefectVisModule.h"
 // vtk
 #include <vtkRenderer.h>
 
-iA4DCTBoundingBoxDockWidget::iA4DCTBoundingBoxDockWidget( QWidget * parent )
+iA4DCTDefectVisDockWidget::iA4DCTDefectVisDockWidget( QWidget * parent )
 	: QDockWidget( parent )
 {
 	setupUi( this );
-	connect( cbBoundingBox, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeColor( QColor ) ) );
-	connect( sWidth, SIGNAL( valueChanged( int ) ), this, SLOT( changeLineWidth( int ) ) );
-
-	// default values
-	cbBoundingBox->setColor( QColor( 0xff, 0xff, 0xff ) );
+	connect( cbDefectVis, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeColor( QColor ) ) );
+	connect( sOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( changeOpacity( int ) ) );
 }
 
-void iA4DCTBoundingBoxDockWidget::attachTo( iABoundingBoxVisModule * boundingBox )
+void iA4DCTDefectVisDockWidget::attachTo( iADefectVisModule * defectVis )
 {
-	m_boundingBox = boundingBox;
+	m_defectVis = defectVis;
 }
 
-void iA4DCTBoundingBoxDockWidget::changeColor( const QColor & col )
-{
-	m_boundingBox->setColor( col.redF(), col.greenF(), col.blueF() );
-	emit updateRenderWindow();
-}
-
-void iA4DCTBoundingBoxDockWidget::changeLineWidth( int val )
-{
-	float width = static_cast<float>(val + 1) / sWidth->maximum() * 10.;
-	m_boundingBox->setLineWidth( width );
-	emit updateRenderWindow();
-}
-
-void iA4DCTBoundingBoxDockWidget::setRenderer( vtkRenderer * renderer )
+void iA4DCTDefectVisDockWidget::setRenderer( vtkRenderer * renderer )
 {
 	m_renderer = renderer;
+}
+
+void iA4DCTDefectVisDockWidget::changeColor( const QColor & col )
+{
+	m_defectVis->setColor( col.redF(), col.greenF(), col.blueF() );
+	emit updateRenderWindow();
+}
+
+void iA4DCTDefectVisDockWidget::changeOpacity( int val )
+{
+	float opacity = static_cast<float>(val + 1) / sOpacity->maximum();
+	m_defectVis->setOpacity( opacity );
+	emit updateRenderWindow();
 }

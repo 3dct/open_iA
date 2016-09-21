@@ -18,44 +18,34 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "iA4DCTBoundingBoxDockWidget.h"
+
+#ifndef IADEFECTVISMODULE_H
+#define IADEFECTVISMODULE_H
 // iA
-#include "iABoundingBoxVisModule.h"
+#include "iAVisModule.h"
 // vtk
-#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
+// Qt
+#include <QString>
 
-iA4DCTBoundingBoxDockWidget::iA4DCTBoundingBoxDockWidget( QWidget * parent )
-	: QDockWidget( parent )
+class vtkPolyDataMapper;
+class vtkActor;
+class vtkOBJReader;
+
+class iADefectVisModule : public iAVisModule
 {
-	setupUi( this );
-	connect( cbBoundingBox, SIGNAL( colorChanged( QColor ) ), this, SLOT( changeColor( QColor ) ) );
-	connect( sWidth, SIGNAL( valueChanged( int ) ), this, SLOT( changeLineWidth( int ) ) );
+public:
+			iADefectVisModule( );
+	void	setInputFile( QString path );
+	void	setColor( double r, double g, double b );
+	void	setOpacity( double opacity );
+	void	enable( );
+	void	disable( );
 
-	// default values
-	cbBoundingBox->setColor( QColor( 0xff, 0xff, 0xff ) );
-}
+private:
+	vtkSmartPointer<vtkOBJReader>		m_reader;
+	vtkSmartPointer<vtkPolyDataMapper>	m_mapper;
+	vtkSmartPointer<vtkActor>			m_actor;
+};
 
-void iA4DCTBoundingBoxDockWidget::attachTo( iABoundingBoxVisModule * boundingBox )
-{
-	m_boundingBox = boundingBox;
-}
-
-void iA4DCTBoundingBoxDockWidget::changeColor( const QColor & col )
-{
-	m_boundingBox->setColor( col.redF(), col.greenF(), col.blueF() );
-	emit updateRenderWindow();
-}
-
-void iA4DCTBoundingBoxDockWidget::changeLineWidth( int val )
-{
-	float width = static_cast<float>(val + 1) / sWidth->maximum() * 10.;
-	m_boundingBox->setLineWidth( width );
-	emit updateRenderWindow();
-}
-
-void iA4DCTBoundingBoxDockWidget::setRenderer( vtkRenderer * renderer )
-{
-	m_renderer = renderer;
-}
+#endif // IADEFECTVISMODULE_H
