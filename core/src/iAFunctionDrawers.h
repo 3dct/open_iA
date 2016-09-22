@@ -45,23 +45,15 @@ private:
 class open_iA_Core_API iAPolygonBasedFunctionDrawer: public iAAbstractDrawableFunction, public iAColorable
 {
 public:
-	enum Style
-	{
-		FUNCTION,
-		HISTOGRAM
-	};
-public:
-	iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, Style style = HISTOGRAM);
-	iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, Style style = HISTOGRAM);
+	iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data);
+	iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
 	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const;
 	void update();
 private:
-	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
-	virtual bool computePolygonsFunction(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
-	virtual bool computePolygonsHistogram(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
+	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
 	virtual void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const = 0;
+protected:
 	QSharedPointer<iAAbstractDiagramData> m_data;
-	Style m_style;
 	//! @{
 	//! just for caching:
 	mutable QSharedPointer<QPolygon> m_poly;
@@ -74,19 +66,32 @@ private:
 class open_iA_Core_API iALineFunctionDrawer: public iAPolygonBasedFunctionDrawer
 {
 public:
-	iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, Style style = FUNCTION);
-	iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, Style style = FUNCTION);
+	iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data);
+	iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
 private:
+	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const;
 };
 
 
-class open_iA_Core_API iAFilledLineFunctionDrawer: public iAPolygonBasedFunctionDrawer
+class open_iA_Core_API iAStepFunctionDrawer : public iAPolygonBasedFunctionDrawer
 {
 public:
-	iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, Style style = HISTOGRAM);
-	iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, Style style = HISTOGRAM);
+	iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data);
+	iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
 private:
+	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
+	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const;
+	virtual QColor getFillColor() const;
+};
+
+class open_iA_Core_API iAFilledLineFunctionDrawer : public iAPolygonBasedFunctionDrawer
+{
+public:
+	iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data);
+	iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
+private:
+	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const;
 	virtual QColor getFillColor() const;
 };

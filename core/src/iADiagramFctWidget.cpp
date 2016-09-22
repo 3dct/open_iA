@@ -1101,6 +1101,14 @@ iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYAxisValue() const
 void iADiagramFctWidget::SetMaxYAxisValue(iAAbstractDiagramData::DataType val)
 {
 	m_maxYAxisValue = val;
+	if (m_primaryDrawer)
+		m_primaryDrawer->update();
+	for (QVector<QSharedPointer<iAAbstractDrawableFunction> >::const_iterator it = m_datasets.constBegin();
+		it != m_datasets.constEnd();
+		++it)
+	{
+		(*it)->update();
+	}
 }
 
 void iADiagramFctWidget::setColorTransferFunctionChangeListener(iAFunctionChangeListener* listener)

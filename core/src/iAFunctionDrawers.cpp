@@ -45,16 +45,14 @@ void iASelectedBinDrawer::setPosition( int position )
 	m_position = position;
 }
 
-iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, Style style):
+iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data):
 	m_data(data),
-	m_style(style),
 	m_cachedBinWidth(0.0)
 {}
 
-iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, Style style):
+iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
 	iAColorable(color),
 	m_data(data),
-	m_style(style),
 	m_cachedBinWidth(0.0),
 	m_cachedCoordConv(0)
 {}
@@ -73,55 +71,6 @@ void iAPolygonBasedFunctionDrawer::draw(QPainter& painter, double binWidth, QSha
 	drawPoly(painter, m_poly);
 }
 
-bool iAPolygonBasedFunctionDrawer::computePolygons( double binWidth, QSharedPointer<CoordinateConverter> converter) const
-{
-	switch (m_style)
-	{
-	case FUNCTION:
-		return computePolygonsFunction(binWidth, converter);
-	case HISTOGRAM:
-		return computePolygonsHistogram(binWidth, converter);
-	default:
-		return false;
-	}
-}
-
-bool iAPolygonBasedFunctionDrawer::computePolygonsFunction( double binWidth, QSharedPointer<CoordinateConverter> converter) const
-{
-	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
-	if (!rawData)
-		return false;
-	int binWidthHalf = binWidth/2;
-	m_poly = QSharedPointer<QPolygon>(new QPolygon);
-	m_poly->push_back(QPoint(0, 0));
-	for ( int j = 0; j < m_data->GetNumBin(); j++ )
-	{
-		int curX = (int)(j * binWidth) + binWidthHalf;
-		int curY = converter->Diagram2ScreenY(rawData[j]);
-		m_poly->push_back(QPoint(curX, curY));
-	}
-	m_poly->push_back(QPoint( (m_data->GetNumBin()+1) * binWidth, 0 ));
-	return true;
-}
-
-bool iAPolygonBasedFunctionDrawer::computePolygonsHistogram( double binWidth, QSharedPointer<CoordinateConverter> converter) const
-{
-	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
-	if (!rawData)
-		return false;
-	m_poly = QSharedPointer<QPolygon>(new QPolygon);
-	m_poly->push_back(QPoint(1, 0));
-	for ( int j = 0; j < m_data->GetNumBin(); j++ )
-	{
-		int curX1 = 1+(int)(j * binWidth);
-		int curX2 = 1+(int)(j * binWidth) + binWidth;
-		int curY = converter->Diagram2ScreenY(rawData[j]);
-		m_poly->push_back(QPoint(curX1, curY));
-		m_poly->push_back(QPoint(curX2, curY));
-	}
-	m_poly->push_back(QPoint( m_data->GetNumBin() * binWidth, 0 ));
-	return true;
-}
 
 void iAPolygonBasedFunctionDrawer::update()
 {
@@ -130,13 +79,13 @@ void iAPolygonBasedFunctionDrawer::update()
 }
 
 
-iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, Style style):
-	iAPolygonBasedFunctionDrawer(data, style)
+iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data):
+	iAPolygonBasedFunctionDrawer(data)
 {
 }
 
-iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, Style style):
-	iAPolygonBasedFunctionDrawer(data, color, style)
+iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
+	iAPolygonBasedFunctionDrawer(data, color)
 {
 }
 
@@ -149,14 +98,33 @@ void iALineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> 
 }
 
 
+bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
+{
+	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
+	if (!rawData)
+		return false;
+	int binWidthHalf = binWidth / 2;
+	m_poly = QSharedPointer<QPolygon>(new QPolygon);
+	int curY = converter->Diagram2ScreenY(rawData[0]);
+	m_poly->push_back(QPoint(0, curY));
+	for (int j = 0; j < m_data->GetNumBin(); j++)
+	{
+		int curX = (int)(j * binWidth) + binWidthHalf;
+		curY = converter->Diagram2ScreenY(rawData[j]);
+		m_poly->push_back(QPoint(curX, curY));
+	}
+	m_poly->push_back(QPoint((m_data->GetNumBin() + 1) * binWidth, curY));
+	return true;
+}
 
-iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, Style style):
-	iAPolygonBasedFunctionDrawer(data, Qt::blue, style)
+
+iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data):
+	iAPolygonBasedFunctionDrawer(data, Qt::blue)
 {
 }
 
-iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, Style style):
-	iAPolygonBasedFunctionDrawer(data, color, style)
+iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
+	iAPolygonBasedFunctionDrawer(data, color)
 {
 }
 
@@ -173,6 +141,70 @@ void iAFilledLineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPol
 	tmpPath.addPolygon(*poly.data());
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
+
+bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
+{
+	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
+	if (!rawData)
+		return false;
+	m_poly = QSharedPointer<QPolygon>(new QPolygon);
+	m_poly->push_back(QPoint(1, 0));
+	int binWidthHalf = binWidth / 2;
+	for (int j = 0; j < m_data->GetNumBin(); j++)
+	{
+		int curX = (int)(j * binWidth) + binWidthHalf;
+		int curY = converter->Diagram2ScreenY(rawData[j]);
+		m_poly->push_back(QPoint(curX, curY));
+	}
+	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0));
+	return true;
+}
+
+
+
+iAStepFunctionDrawer::iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data) :
+	iAPolygonBasedFunctionDrawer(data, Qt::blue)
+{
+}
+
+iAStepFunctionDrawer::iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color) :
+	iAPolygonBasedFunctionDrawer(data, color)
+{
+}
+
+QColor iAStepFunctionDrawer::getFillColor() const
+{
+	QColor fillColor = getColor();
+	fillColor.setAlpha(getColor().alpha() / 3);
+	return fillColor;
+}
+
+void iAStepFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> poly) const
+{
+	QPainterPath tmpPath;
+	tmpPath.addPolygon(*poly.data());
+	painter.fillPath(tmpPath, QBrush(getFillColor()));
+}
+
+bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
+{
+	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
+	if (!rawData)
+		return false;
+	m_poly = QSharedPointer<QPolygon>(new QPolygon);
+	m_poly->push_back(QPoint(1, 0));
+	for (int j = 0; j < m_data->GetNumBin(); j++)
+	{
+		int curX1 = 1 + (int)(j * binWidth);
+		int curX2 = 1 + (int)(j * binWidth) + binWidth;
+		int curY = converter->Diagram2ScreenY(rawData[j]);
+		m_poly->push_back(QPoint(curX1, curY));
+		m_poly->push_back(QPoint(curX2, curY));
+	}
+	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0));
+	return true;
+}
+
 
 
 
