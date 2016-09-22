@@ -105,15 +105,14 @@ bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 		return false;
 	int binWidthHalf = binWidth / 2;
 	m_poly = QSharedPointer<QPolygon>(new QPolygon);
-	int curY = converter->Diagram2ScreenY(rawData[0]);
-	m_poly->push_back(QPoint(0, curY));
+	m_poly->push_back(QPoint(0, 0));
 	for (int j = 0; j < m_data->GetNumBin(); j++)
 	{
 		int curX = (int)(j * binWidth) + binWidthHalf;
-		curY = converter->Diagram2ScreenY(rawData[j]);
+		int curY = converter->Diagram2ScreenY(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
 	}
-	m_poly->push_back(QPoint((m_data->GetNumBin() + 1) * binWidth, curY));
+	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0 ));
 	return true;
 }
 
@@ -204,7 +203,6 @@ bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0));
 	return true;
 }
-
 
 
 
