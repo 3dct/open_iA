@@ -84,7 +84,9 @@ public:
 	int getHeight() const;
 	int getChartHeight() const;
 	std::vector<dlg_function*> &getFunctions();
-	iAAbstractDiagramData::DataType getMax();
+	iAAbstractDiagramData::DataType GetMaxYValue() const;
+	iAAbstractDiagramData::DataType GetMaxYAxisValue() const;
+	void SetMaxYAxisValue(iAAbstractDiagramData::DataType val);
 
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData() =0;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const =0;
@@ -144,6 +146,7 @@ protected:
 	unsigned int selectedFunction;
 	double min_intensity[3];
 	double max_intensity[3];
+	iAAbstractDiagramData::DataType m_maxYAxisValue;
 
 	QString xCaption, yCaption;
 
@@ -211,5 +214,5 @@ private:
 	virtual double getMaxXZoom() const;
 	virtual void selectBin(QMouseEvent *event);
 
-
+	void CreateYConverter();
 };

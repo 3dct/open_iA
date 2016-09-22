@@ -473,13 +473,13 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 		{
 			QPointF functionPoint = realPoints[functionPointIndex];
 			
-			if (pointX < dataRange[0] || pointY < 0 || pointX > dataRange[1] || pointY > fctDiagram->getMax()/fctDiagram->getYZoom())
+			if (pointX < dataRange[0] || pointY < 0 || pointX > dataRange[1] || pointY > fctDiagram->GetMaxYAxisValue()/fctDiagram->getYZoom())
 			{
 				//calculate intersection with horizontal borders
 				double dx = realPoints[selectedPoint].x() -functionPoint.x();
 				double dy = realPoints[selectedPoint].y() -functionPoint.y();
 
-				double t = ((pointY < 0 ? 0.0 : fctDiagram->getMax()/fctDiagram->getYZoom())-functionPoint.y())/dy;
+				double t = ((pointY < 0 ? 0.0 : fctDiagram->GetMaxYAxisValue()/fctDiagram->getYZoom())-functionPoint.y())/dy;
 				double x = functionPoint.x() +t*dx;
 
 				//calculate intersection with vertical borders
@@ -488,7 +488,7 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 				if (x >= dataRange[0] && x <= dataRange[1] && t > 0)
 				{
 					viewPoints[selectedPoint].setX(x);
-					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: fctDiagram->getMax()/fctDiagram->getYZoom());
+					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: fctDiagram->GetMaxYAxisValue()/fctDiagram->getYZoom());
 				}
 				else
 				{
@@ -562,7 +562,7 @@ double dlg_bezier::v2dX(int x)
 
 double dlg_bezier::v2dY(int y)
 {
-	return fctDiagram->GetCoordinateConverter()->Diagram2ScreenY(y) *fctDiagram->getMax() /fctDiagram->getYZoom();
+	return fctDiagram->GetCoordinateConverter()->Diagram2ScreenY(y) *fctDiagram->GetMaxYAxisValue() /fctDiagram->getYZoom();
 }
 
 int dlg_bezier::d2vX(double x)
@@ -575,7 +575,7 @@ int dlg_bezier::d2vX(double x)
 
 int dlg_bezier::d2vY(double y)
 {
-	return (int)(y /fctDiagram->getMax() *(double)(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) *fctDiagram->getYZoom());
+	return (int)(y /fctDiagram->GetMaxYAxisValue() *(double)(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) *fctDiagram->getYZoom());
 }
 
 int dlg_bezier::d2iX(double x)

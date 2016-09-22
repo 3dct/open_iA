@@ -162,12 +162,12 @@ private:
 }
 
 iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
-		MdiChild *mdiChild,
-		vtkPiecewiseFunction* oTF,
-		vtkColorTransferFunction* cTF,
-		QString const & xLabel,
-		QString const & yLabel) :
-	iADiagramWidget (parent),
+	MdiChild *mdiChild,
+	vtkPiecewiseFunction* oTF,
+	vtkColorTransferFunction* cTF,
+	QString const & xLabel,
+	QString const & yLabel) :
+	iADiagramWidget(parent),
 	contextMenu(new QMenu(this)),
 	xCaption(xLabel),
 	yCaption(yLabel),
@@ -180,7 +180,8 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
 	m_enableAdditionalFunctions(true),
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
-	m_showFunctions(true)
+	m_showFunctions(true),
+	m_maxYAxisValue(std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
 {
 	leftMargin   = (yLabel == "") ? 0 : 60;
 	selectedFunction = 0;
@@ -235,15 +236,33 @@ void iADiagramFctWidget::paintEvent(QPaintEvent * e)
 	painter.drawImage(QRectF(0, 0, this->geometry().width(), this->geometry().height()), image);
 }
 
+
+void iADiagramFctWidget::CreateYConverter()
+{
+	if (m_maxYAxisValue == std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
+	{
+		m_maxYAxisValue = GetData()->GetMaxValue();
+	}
+	if (m_yDrawMode == Linear)
+	{
+		m_yConverter = QSharedPointer<CoordinateConverter>(new LinearConverter(yZoom, m_maxYAxisValue, getActiveHeight() - 1));
+	}
+	else
+	{																	// 1 - smallest value larger than 0. TODO: find that from data!
+		m_yConverter = QSharedPointer<CoordinateConverter>(new LogarithmicConverter(yZoom, m_maxYAxisValue, 1, getActiveHeight() - 1));
+	}
+}
+
+
 void iADiagramFctWidget::drawEverything()
 {
 	if (!m_yConverter)
 	{
-		m_yConverter = QSharedPointer<CoordinateConverter>(new LinearConverter(yZoom, GetData()->GetMaxValue(), getActiveHeight()-1));
+		CreateYConverter();
 	}
 	// TODO: update converter every time one of these values changes
 	//		 alternative: give converter direct access to values (via some interface)
-	m_yConverter->update(yZoom, GetData()->GetMaxValue(), 1, getActiveHeight());
+	m_yConverter->update(yZoom, m_maxYAxisValue, 1, getActiveHeight());
 
 	QPainter painter(&image);
 	painter.setRenderHint(QPainter::Antialiasing);
@@ -709,7 +728,7 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 	int activeHeight = getActiveHeight()-1;
 
 	const double step = 1.0 / (Y_AXIS_STEPS * yZoom);
-	double logMax = LogFunc(static_cast<double>(GetData()->GetMaxValue()));
+	double logMax = LogFunc(static_cast<double>(m_maxYAxisValue));
 
 	for (int i = 0; i <= Y_AXIS_STEPS; ++i)
 	{
@@ -719,7 +738,7 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 
 		double yValue =
 			(m_yDrawMode == Linear) ?
-			pos * GetData()->GetMaxValue():
+			pos * m_maxYAxisValue :
 			/* Logarithmic: */
 			std::pow(LogBase, logMax/yZoom - (Y_AXIS_STEPS - i));
 
@@ -1069,9 +1088,19 @@ std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
 	return functions;
 }
 
-iAAbstractDiagramData::DataType iADiagramFctWidget::getMax()
+iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYValue() const
 {
 	return GetData()->GetMaxValue();
+}
+
+iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYAxisValue() const
+{
+	return m_maxYAxisValue;
+}
+
+void iADiagramFctWidget::SetMaxYAxisValue(iAAbstractDiagramData::DataType val)
+{
+	m_maxYAxisValue = val;
 }
 
 void iADiagramFctWidget::setColorTransferFunctionChangeListener(iAFunctionChangeListener* listener)
@@ -1173,14 +1202,7 @@ void iADiagramFctWidget::SetYDrawMode(DrawModeType drawMode)
 	if (m_yDrawMode == drawMode)
 		return;
 	m_yDrawMode = drawMode;
-	if (m_yDrawMode == Linear)
-	{
-		m_yConverter = QSharedPointer<CoordinateConverter>(new LinearConverter(yZoom, GetData()->GetMaxValue(), getActiveHeight()-1));
-	}
-	else
-	{																	// 1 - smallest value larger than 0. TODO: find that from data!
-		m_yConverter = QSharedPointer<CoordinateConverter>(new LogarithmicConverter(yZoom, GetData()->GetMaxValue(), 1, getActiveHeight()-1));
-	}
+	CreateYConverter();
 }
 
 void iADiagramFctWidget::SetXAxisSteps(int xSteps)

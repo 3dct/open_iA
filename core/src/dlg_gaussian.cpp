@@ -198,7 +198,7 @@ void dlg_gaussian::moveSelectedPoint(int x, int y)
 		}
 
 		double meanValue = 1.0/(sigma*sqrt(2*PI))*fctDiagram->getYZoom();
-		multiplier  = (double)y /(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1)*fctDiagram->getMax() /meanValue;
+		multiplier  = (double)y /(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1)*fctDiagram->GetMaxYAxisValue() /meanValue;
 	}
 }
 
@@ -223,7 +223,7 @@ double dlg_gaussian::v2dX(int x)
 
 double dlg_gaussian::v2dY(int y)
 {
-	return fctDiagram->GetCoordinateConverter()->Diagram2ScreenY(y) *fctDiagram->getMax() /fctDiagram->getYZoom();
+	return fctDiagram->GetCoordinateConverter()->Diagram2ScreenY(y) *fctDiagram->GetMaxYAxisValue() /fctDiagram->getYZoom();
 }
 
 int dlg_gaussian::d2vX(double x)
@@ -236,7 +236,7 @@ int dlg_gaussian::d2vX(double x)
 
 int dlg_gaussian::d2vY(double y)
 {
-	return (int)(y /fctDiagram->getMax() *(double)(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) *fctDiagram->getYZoom());
+	return (int)(y /fctDiagram->GetMaxYAxisValue() *(double)(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) *fctDiagram->getYZoom());
 }
 
 int dlg_gaussian::d2iX(double x)
