@@ -392,6 +392,7 @@ void dlg_GEMSe::CreateCharts()
 	int curMinDatasetID = 0;
 	int paramChartRow = 0;
 	int paramChartCol = 0;
+	double maxValue = -1;
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
@@ -415,7 +416,10 @@ void dlg_GEMSe::CreateCharts()
 				.arg(attrib->GetName()));
 			continue;
 		}
-
+		if (attrib->GetAttribType() == iAAttributeDescriptor::Parameter)
+		{
+			maxValue = std::max(data->GetMaxValue(), maxValue);
+		}
 		m_charts.insert(chartID, new iAChartSpanSlider(attrib->GetName(), chartID, data,
 			attrib->GetNameMapper() ));
 		
@@ -441,6 +445,14 @@ void dlg_GEMSe::CreateCharts()
 			m_derivedOutputChartWidget->layout()->addWidget(m_charts[chartID]);
 		}
 		m_charts[chartID]->update();
+	}
+	for (int i = 0; i < m_chartAttributes->size(); ++i)
+	{
+		if (m_charts[i] &&
+			m_chartAttributes->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+		{
+			m_charts[i]->SetMaxYAxisValue(maxValue);
+		}
 	}
 	UpdateClusterChartData();
 }

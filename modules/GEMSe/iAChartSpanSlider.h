@@ -52,6 +52,8 @@ public:
 	size_t GetNumBin() const;
 	int GetID() const;
 	iAValueType GetRangeType() const;
+	double GetMaxYValue() const;
+	void SetMaxYAxisValue(double val);
 	
 	void SetSpanValues(double minValue, double maxValue);
 	void ResetSpan();

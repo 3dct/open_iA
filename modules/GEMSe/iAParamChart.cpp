@@ -164,8 +164,6 @@ void iAParamChart::RemoveMarker()
 	m_markedLocation = InvalidMarker;
 }
 
-
-
 iAValueType iAParamChart::GetRangeType() const
 {
 	return m_data->GetRangeType();

@@ -173,6 +173,17 @@ iAValueType iAChartSpanSlider::GetRangeType() const
 	return m_charts->GetRangeType();
 }
 
+
+double iAChartSpanSlider::GetMaxYValue() const
+{
+	return m_charts->GetMaxYValue();
+}
+
+void iAChartSpanSlider::SetMaxYAxisValue(double val)
+{
+	m_charts->SetMaxYAxisValue(val);
+}
+
 void iAChartSpanSlider::ResetSpan()
 {
 	double dr0= m_charts->mapBinToValue(0);
