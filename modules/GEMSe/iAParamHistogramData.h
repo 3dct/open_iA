@@ -40,14 +40,16 @@ public:
 		iAValueType rangeType,
 		double min, double max,
 		bool log,
-		iAChartAttributeMapper const & chartAttrMap);
+		iAChartAttributeMapper const & chartAttrMap,
+		int numBin);
 	static QSharedPointer<iAParamHistogramData> Create(iAImageClusterNode const * ,
 		int chartID,
 		iAValueType rangeType,
 		double min, double max,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
-		iAChartFilter const & attributeFilter);
+		iAChartFilter const & attributeFilter,
+		int numBin);
 	virtual ~iAParamHistogramData();
 	virtual DataType const * GetData() const;
 	virtual size_t GetNumBin() const;

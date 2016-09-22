@@ -401,15 +401,25 @@ void dlg_GEMSe::CreateCharts()
 			//DebugOut() << "Only one value for attribute " << id << ", not showing chart." << std::endl;
 			continue;
 		}
-
+		// maximum number of bins:
+		//		- square root of number of values (https://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width)
+		//      - adapting to width of histogram?
+		//      - if discrete or categorical values: limit by range
+		iAImageClusterNode* rootNode = m_treeView->GetTree()->m_root.data();
+		size_t maxBin = std::min(static_cast<size_t>(std::sqrt(rootNode->GetClusterSize())), HistogramBinCount);
+		int numBin = (attrib->GetMin() == attrib->GetMax()) ? 1 :
+			(attrib->GetValueType() == iAValueType::Discrete || attrib->GetValueType() == iAValueType::Categorical) ?
+			std::min(static_cast<size_t>(attrib->GetMax() - attrib->GetMin() + 1), maxBin) :
+			maxBin;
 		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::Create(
-			m_selectedCluster.data(),
+			rootNode,
 			chartID,
 			attrib->GetValueType(),
 			attrib->GetMin(),
 			attrib->GetMax(),
 			attrib->IsLogScale(),
-			m_chartAttributeMapper);
+			m_chartAttributeMapper,
+			numBin);
 		if (!data)
 		{
 			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
@@ -438,6 +448,7 @@ void dlg_GEMSe::CreateCharts()
 				paramChartRow++;
 			}
 			m_paramChartLayout->addWidget(m_charts[chartID], paramChartRow, paramChartCol);
+			m_paramChartLayout->setColumnStretch(paramChartCol, 1);
 			paramChartCol++;
 		}
 		else
@@ -634,7 +645,8 @@ void dlg_GEMSe::UpdateClusterChartData()
 				attrib->GetMin(),
 				attrib->GetMax(),
 				attrib->IsLogScale(),
-				m_chartAttributeMapper));
+				m_chartAttributeMapper,
+				m_charts[chartID]->GetNumBin()));
 		}
 		m_charts[chartID]->UpdateChart();
 	}
@@ -662,7 +674,8 @@ void dlg_GEMSe::UpdateClusterFilteredChartData()
 				attrib->GetMax(),
 				attrib->IsLogScale(),
 				m_chartAttributeMapper,
-				m_chartFilter));
+				m_chartFilter,
+				m_charts[chartID]->GetNumBin()));
 		}
 	}
 }
@@ -683,7 +696,8 @@ void dlg_GEMSe::UpdateFilteredChartData()
 			attrib->GetMax(),
 			attrib->IsLogScale(),
 			m_chartAttributeMapper,
-			m_chartFilter));
+			m_chartFilter,
+			m_charts[chartID]->GetNumBin()));
 	}
 }
 

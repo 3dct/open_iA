@@ -85,8 +85,8 @@ QSharedPointer<iAAbstractDrawableFunction> iAParamChart::GetDrawer(QSharedPointe
 	return
 		IsDrawnDiscrete() ?
 		QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(data, color, 2))
-		//: QSharedPointer<iAAbstractDrawableFunction>(new iAFilledLineFunctionDrawer(data, color))
-		: QSharedPointer<iAAbstractDrawableFunction>(new iALineFunctionDrawer(data, color))
+		: QSharedPointer<iAAbstractDrawableFunction>(new iAFilledLineFunctionDrawer(data, color))
+		//: QSharedPointer<iAAbstractDrawableFunction>(new iALineFunctionDrawer(data, color))
 		;
 }
 
