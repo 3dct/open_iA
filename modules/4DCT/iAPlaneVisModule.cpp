@@ -110,7 +110,7 @@ void iAPlaneVisModule::setImage( QString fileName )
 	setSlice( 0 );
 }
 
-void iAPlaneVisModule::setSlice( double slice )
+void iAPlaneVisModule::setSlice( int slice )
 {
 	// set settings
 	settings.Slice = slice;
@@ -141,15 +141,15 @@ void iAPlaneVisModule::setSlice( double slice )
 	double sliceNum;
 	switch( settings.Dir ) {
 	case iAPlaneVisSettings::Direction::XY:
-		sliceNum = slice * m_imgSize[2] * m_imgSpacing[2];
+		sliceNum = slice * m_imgSpacing[2];
 		resliceAxes->DeepCopy( axialElementsXY );
 		break;
 	case iAPlaneVisSettings::Direction::XZ:
-		sliceNum = slice * m_imgSize[1] * m_imgSpacing[1];
+		sliceNum = slice * m_imgSpacing[1];
 		resliceAxes->DeepCopy( axialElementsXZ );
 		break;
 	case iAPlaneVisSettings::Direction::YZ:
-		sliceNum = slice * m_imgSize[0] * m_imgSpacing[0];
+		sliceNum = slice * m_imgSpacing[0];
 		resliceAxes->DeepCopy( axialElementsYZ );
 		break;
 	}
@@ -229,13 +229,13 @@ void iAPlaneVisModule::setDirYZ( )
 //	}
 //}
 
-void iAPlaneVisModule::setPlanePosition( double slice )
+void iAPlaneVisModule::setPlanePosition( int slice )
 {
 	switch( settings.Dir )
 	{
 	case iAPlaneVisSettings::Direction::XY:
 	{
-		double zPos = slice * m_size[2];// / m_imgSize[2];
+		double zPos = (double)slice / m_imgSize[2] * m_size[2];
 		m_plane->SetOrigin( 0, 0, zPos * SCENE_SCALE );
 		m_plane->SetPoint1( m_size[0] * SCENE_SCALE, 0, zPos * SCENE_SCALE );
 		m_plane->SetPoint2( 0, m_size[1] * SCENE_SCALE, zPos * SCENE_SCALE );
@@ -243,7 +243,7 @@ void iAPlaneVisModule::setPlanePosition( double slice )
 	}
 	case iAPlaneVisSettings::Direction::XZ:
 	{
-		double yPos = slice * m_size[1];// / m_imgSize[1];
+		double yPos = (double)slice / m_imgSize[1] * m_size[1];
 		m_plane->SetOrigin( 0, yPos * SCENE_SCALE, 0 );
 		m_plane->SetPoint1( m_size[0] * SCENE_SCALE, yPos * SCENE_SCALE, 0 );
 		m_plane->SetPoint2( 0, yPos * SCENE_SCALE, m_size[2] * SCENE_SCALE );
@@ -251,11 +251,16 @@ void iAPlaneVisModule::setPlanePosition( double slice )
 	}
 	case iAPlaneVisSettings::Direction::YZ:
 	{
-		double xPos = slice * m_size[0];// / m_imgSize[0];
+		double xPos = (double)slice / m_imgSize[0] * m_size[0];
 		m_plane->SetOrigin( xPos * SCENE_SCALE, 0, 0 );
 		m_plane->SetPoint1( xPos * SCENE_SCALE, m_size[1] * SCENE_SCALE, 0 );
 		m_plane->SetPoint2( xPos * SCENE_SCALE, 0, m_size[2] * SCENE_SCALE );
 		break;
 	}
 	}
+}
+
+void iAPlaneVisModule::getImageSize( int * imgSize )
+{
+	imgSize[0] = m_imgSize[0]; imgSize[1] = m_imgSize[1]; imgSize[2] = m_imgSize[2];
 }

@@ -25,26 +25,26 @@
 #include "dlg_4DCTFileOpen.h"
 #include "dlg_regionView.h"
 #include "iA4DCTAllVisualizationsDockWidget.h"
+#include "iA4DCTBoundingBoxDockWidget.h"
 #include "iA4DCTCurrentVisualizationsDockWidget.h"
 #include "iA4DCTData.h"
+#include "iA4DCTDefectVisDockWidget.h"
+#include "iA4DCTFileData.h"
 #include "iA4DCTFractureVisDockWidget.h"
 #include "iA4DCTMainWin.h"
 #include "iA4DCTPlaneDockWidget.h"
 #include "iA4DCTRegionViewDockWidget.h"
-#include "iA4DCTDefectVisDockWidget.h"
 #include "iA4DCTSettings.h"
-#include "iA4DCTBoundingBoxDockWidget.h"
+#include "iA4DCTToolsDockWidget.h"
 #include "iABoundingBoxVisModule.h"
+#include "iADefectVisModule.h"
 #include "iAFractureVisModule.h"
+#include "iAMagicLens.h"
 #include "iAMhdFileInfo.h"
 #include "iAPlaneVisModule.h"
 #include "iARegionVisModule.h"
 #include "iAVisModule.h"
 #include "iAVisModuleItem.h"
-#include "iAMagicLens.h"
-#include "iA4DCTToolsDockWidget.h"
-#include "iADefectVisModule.h"
-#include "iA4DCTFileData.h"
 // Qt
 #include <QFileDialog>
 #include <QSettings>
@@ -59,14 +59,14 @@
 #include <itkMinimumMaximumImageCalculator.h>
 #include <itkResampleImageFilter.h>
 // vtk
+#include <vtkAxesActor.h>
 #include <vtkCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#include <vtkAxesActor.h>
 
-iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
+iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	: QMainWindow( parent )
 	, m_mainWin( parent )
 	, m_currentStage( 0 )
@@ -235,7 +235,8 @@ void iA4DCTVisWin::onExtractButtonClicked( )
 	if( actionAddToMagicLens->isChecked( ) )
 	{
 		fractureView->attachTo( m_magicLensRen );
-	} else
+	}
+	else
 	{
 		fractureView->attachTo( m_mainRen );
 	}
@@ -253,7 +254,8 @@ void iA4DCTVisWin::onExtractButtonClicked( )
 	if( actionAddToMagicLens->isChecked( ) )
 	{
 		boundingBox->attachTo( m_magicLensRen );
-	} else
+	}
+	else
 	{
 		boundingBox->attachTo( m_mainRen );
 	}
@@ -279,7 +281,8 @@ void iA4DCTVisWin::addSurfaceVis( )
 	if( actionAddToMagicLens->isChecked( ) )
 	{
 		regionView->attachTo( m_magicLensRen );
-	} else
+	}
+	else
 	{
 		regionView->attachTo( m_mainRen );
 	}
@@ -307,7 +310,8 @@ void iA4DCTVisWin::addBoundingBox( )
 	if( actionAddToMagicLens->isChecked( ) )
 	{
 		boundingBox->attachTo( m_magicLensRen );
-	} else
+	}
+	else
 	{
 		boundingBox->attachTo( m_mainRen );
 	}
@@ -330,7 +334,8 @@ void iA4DCTVisWin::addDefectView( )
 	if( actionAddToMagicLens->isChecked( ) )
 	{
 		planeVis->attachTo( m_magicLensRen );
-	} else
+	}
+	else
 	{
 		planeVis->attachTo( m_mainRen );
 	}
@@ -463,7 +468,8 @@ void iA4DCTVisWin::enableMagicLens( bool enable )
 	if( enable )
 	{
 		qvtkWidget->magicLensOn( );
-	} else
+	}
+	else
 	{
 		qvtkWidget->magicLensOff( );
 	}
@@ -537,7 +543,8 @@ void iA4DCTVisWin::setOrientationWidgetEnabled( bool enabled )
 		m_orientWidget->SetViewport( 0.0, 0.0, 0.2, 0.2 );
 		m_orientWidget->SetEnabled( 1 );
 		m_orientWidget->InteractiveOn( );
-	} else
+	}
+	else
 	{
 		if( !m_orientWidget ) return;
 

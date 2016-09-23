@@ -45,7 +45,7 @@ struct iAPlaneVisSettings
 {
 	enum Direction { XY, XZ, YZ };
 	Direction Dir;
-	double Slice;
+	int Slice;
 	double Opacity;
 	bool Shading;
 };
@@ -58,13 +58,14 @@ public:
 	void		disable( );
 	void		setSize( double * size );
 	void		setImage( QString fileName );
-	void		setSlice( double slice );
+	void		setSlice( int slice );
 	void		setOpacity( double opacity );
 	void		enableShading( );
 	void		disableShading( );
 	void		setDirXY( );
 	void		setDirXZ( );
 	void		setDirYZ( );
+	void		getImageSize( int * imgSize );
 
 	template<typename T>
 	void		highlightDefects( QVector<QString> defects, QVector<QColor> colors, QString labeledImgPath );
@@ -76,7 +77,7 @@ public:
 	iAPlaneVisSettings		settings;
 
 private:
-	void		setPlanePosition( double slice );
+	void		setPlanePosition( int slice );
 
 	vtkSmartPointer<vtkPlaneSource>			m_plane;
 	vtkSmartPointer<vtkTexture>				m_texture;
@@ -88,7 +89,7 @@ private:
 	//enum Direction { XY, XZ, YZ };
 	//Direction		m_dir;
 	double			m_size[3];
-	double			m_imgSize[3];
+	int				m_imgSize[3];
 	double			m_imgSpacing[3];
 	double			m_axialElements[16];
 };

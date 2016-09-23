@@ -27,30 +27,30 @@
 #include "iAQTtoUIConnector.h"
 #include "iAVisModulesCollection.h"
 // vtk
-#include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
+#include <vtkSmartPointer.h>
 // Qt
 #include <QDockWidget>
 #include <QMainWindow>
-#include <QTimer>
 #include <QSharedPointer>
+#include <QTimer>
 
 class QString;
-class vtkRenderer;
 class iA4DCTAllVisualizationsDockWidget;
+class iA4DCTBoundingBoxDockWidget;
 class iA4DCTCurrentVisualizationsDockWidget;
+class iA4DCTDefectVisDockWidget;
+class iA4DCTFileData;
 class iA4DCTFractureVisDockWidget;
 class iA4DCTMainWin;
 class iA4DCTPlaneDockWidget;
+class iA4DCTRegionViewDockWidget;
+class iA4DCTToolsDockWidget;
 class iABoundingBoxVisModule;
 class iADefectVisModule;
-class iA4DCTRegionViewDockWidget;
-class iA4DCTBoundingBoxDockWidget;
-class iA4DCTToolsDockWidget;
 class iAVisModule;
 class vtkOrientationMarkerWidget;
-class iA4DCTDefectVisDockWidget;
-class iA4DCTFileData;
+class vtkRenderer;
 
 const float SCENE_SCALE = 0.01;
 
