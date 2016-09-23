@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAPreviewMaker.h"
 // itk
@@ -29,74 +29,74 @@
 #include <itkImageIORegion.h>
 #include <itkImageIOBase.h>
 
-void iAPreviewMaker::makeUsingType(QString fileName, QString thumbFileName)
+void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 {
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 	itk::ImageIOBase::Pointer imageIO;
-	imageIO = itk::ImageIOFactory::CreateImageIO(fileName.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
-	if (!imageIO) {
+	imageIO = itk::ImageIOFactory::CreateImageIO( fileName.toStdString( ).c_str( ), itk::ImageIOFactory::ReadMode );
+	if( !imageIO ) {
 		//std::cerr << "Could not CreateImageIO for: " << inputFilename << std::endl;
 		return;
 	}
-	imageIO->SetFileName(fileName.toStdString().c_str());
-	imageIO->ReadImageInformation();
+	imageIO->SetFileName( fileName.toStdString( ).c_str( ) );
+	imageIO->ReadImageInformation( );
 
-	const ScalarPixelType pixelType = imageIO->GetComponentType();
-	switch (pixelType)
+	const ScalarPixelType pixelType = imageIO->GetComponentType( );
+	switch( pixelType )
 	{
 	case itk::ImageIOBase::USHORT:
 	{
 		typedef unsigned short PixelType;
-		makeUsingType<PixelType>(fileName, thumbFileName);
+		makeUsingType<PixelType>( fileName, thumbFileName );
 		break;
 	}
 	case itk::ImageIOBase::ULONG:
 	{
 		typedef unsigned long int PixelType;
-		makeUsingType<PixelType>(fileName, thumbFileName);
+		makeUsingType<PixelType>( fileName, thumbFileName );
 		break;
 	}
 	}
 }
 
 template<typename TPixelType>
-void iAPreviewMaker::makeUsingType(QString filename, QString thumbFileName)
+void iAPreviewMaker::makeUsingType( QString filename, QString thumbFileName )
 {
 	typedef itk::Image<TPixelType, 3> InputImageType;
 	typedef itk::Image<TPixelType, 2> OutputImageType;
 
 	// read image
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
+	typename ReaderType::Pointer reader = ReaderType::New( );
 
-	reader->SetFileName(filename.toStdString());
-	reader->Update();
-	typename InputImageType::Pointer image = reader->GetOutput();
+	reader->SetFileName( filename.toStdString( ) );
+	reader->Update( );
+	typename InputImageType::Pointer image = reader->GetOutput( );
 
 
 	// extract the region
-	typename InputImageType::SizeType inputSize = image->GetLargestPossibleRegion().GetSize();
+	typename InputImageType::SizeType inputSize = image->GetLargestPossibleRegion( ).GetSize( );
 	typename InputImageType::IndexType desiredStart;
-	desiredStart = { 0, static_cast<typename InputImageType::IndexType::IndexValueType>(inputSize[1]) / 2, 0 };
+	desiredStart = { 0, static_cast<typename InputImageType::IndexType::IndexValueType>( inputSize[1] ) / 2, 0 };
 	typename InputImageType::SizeType desiredSize;
 	desiredSize = { inputSize[0], 0, inputSize[2] };
-	typename InputImageType::RegionType desiredReg(desiredStart, desiredSize);
+	typename InputImageType::RegionType desiredReg( desiredStart, desiredSize );
 
 	typedef itk::ExtractImageFilter<InputImageType, OutputImageType> FilterType;
-	typename FilterType::Pointer filter = FilterType::New();
-	filter->SetExtractionRegion(desiredReg);
-	filter->SetInput(image);
-	filter->SetDirectionCollapseToIdentity();
-	filter->Update();
-	typename OutputImageType::Pointer output = filter->GetOutput();
-	output->DisconnectPipeline();
+	typename FilterType::Pointer filter = FilterType::New( );
+	filter->SetExtractionRegion( desiredReg );
+	filter->SetInput( image );
+	filter->SetDirectionCollapseToIdentity( );
+	filter->Update( );
+	typename OutputImageType::Pointer output = filter->GetOutput( );
+	output->DisconnectPipeline( );
 
 
 	// write
 	typedef itk::ImageFileWriter<OutputImageType> WriterType;
-	typename WriterType::Pointer writer = WriterType::New();
-	writer->SetFileName(thumbFileName.toStdString());
-	writer->SetInput(output);
-	writer->Update();
+	typename WriterType::Pointer writer = WriterType::New( );
+	writer->SetFileName( thumbFileName.toStdString( ) );
+	writer->SetInput( output );
+	writer->Update( );
 }

@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAVISMODULESDOCKWIDGET_H
 #define IAVISMODULESDOCKWIDGET_H
 // Ui
@@ -36,25 +36,28 @@ class iA4DCTAllVisualizationsDockWidget : public QDockWidget, public Ui::AllVisu
 	Q_OBJECT
 public:
 				iA4DCTAllVisualizationsDockWidget( QWidget * parent );
-				~iA4DCTAllVisualizationsDockWidget();
+				~iA4DCTAllVisualizationsDockWidget( );
 	void		setCollection( iAVisModulesCollection * collection );
-	void		updateContext();
+	void		updateContext( );
 	void		setCurrentStage( int currentStage );
 
+
 signals:
-	void		addedVisualization();
+	void		addedVisualization( );
+
 
 private:
-	iAVisModuleItem *			getSelectedModule();
+	iAVisModuleItem *			getSelectedModule( );
 
 	iAVisModulesCollection *	m_collection;
 	QStringListModel *			m_visModulesModel;
 	QStringList					m_visModulesList;
 	int							m_currentStage;
 
+
 private slots:
-	void		onAddButtonClicked();
-	void		onDeleteButtonClicked();
+	void		onAddButtonClicked( );
+	void		onDeleteButtonClicked( );
 	void		dataChanged( const QModelIndex & topLeft, const QModelIndex & bottomRight );
 };
 

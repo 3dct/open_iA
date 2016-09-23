@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTTOOLSDOCKWIDGET_H
 #define IA4DCTTOOLSDOCKWIDGET_H
 // Ui
@@ -31,7 +31,7 @@ class iA4DCTToolsDockWidget : public QDockWidget, public Ui::ToolsDockWidget
 	Q_OBJECT
 public:
 	iA4DCTToolsDockWidget( QWidget * parent );
-	~iA4DCTToolsDockWidget();
+	~iA4DCTToolsDockWidget( );
 };
 
 #endif // IA4DCTTOOLSDOCKWIDGET_H

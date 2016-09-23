@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAREGIONVISMODULE_H
 #define IAREGIONVISMODULE_H
 // iA
@@ -65,7 +65,7 @@ public:
 	void		setDefectDensity( double densityVal );
 	void		setDensityMapDimension( int dimX, int dimY, int dimZ );
 	void		setDensityMapDimension( int * dim );
-	
+
 	iARegionVisSettings		settings;
 
 private:

@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAStageView.h"
 // iA
@@ -33,10 +33,10 @@ iAStageView::iAStageView( QWidget* parent /*= 0*/ )
 {
 	setupUi( this );
 	lvImages->setStageView( this );
-	connect(lForce, SIGNAL( valueChanged( int ) ), this, SLOT( forceValueChanged( int ) ) );
+	connect( lForce, SIGNAL( valueChanged( int ) ), this, SLOT( forceValueChanged( int ) ) );
 }
 
-iAStageView::~iAStageView()
+iAStageView::~iAStageView( )
 {
 
 }
@@ -46,12 +46,12 @@ void iAStageView::setData( iA4DCTStageData * data )
 	m_data = data;
 }
 
-iA4DCTStageData* iAStageView::getData()
+iA4DCTStageData* iAStageView::getData( )
 {
 	return m_data;
 }
 
-void iAStageView::updateWidgets()
+void iAStageView::updateWidgets( )
 {
 	//this->lForce->setText( QString::number( m_data->Force ) );
 	this->lForce->setValue( m_data->Force );
@@ -60,26 +60,26 @@ void iAStageView::updateWidgets()
 	if( m_data->getFilePath( S_4DCT_THUMB_NAME, thumb ) ) {
 		QPixmap pixmap( thumb );
 		pixmap = pixmap.scaled( 600, 600, Qt::KeepAspectRatio );
-		this->thumb->getBigPreview()->setPixmap( pixmap );
+		this->thumb->getBigPreview( )->setPixmap( pixmap );
 		pixmap = pixmap.scaled( 200, 200, Qt::KeepAspectRatio );
 		this->thumb->setPixmap( pixmap );
 	}
 
-	this->lvImages->updateData();
+	this->lvImages->updateData( );
 }
 
-void iAStageView::addFile()
+void iAStageView::addFile( )
 {
 	dlg_fileEdit* fileEdit = new dlg_fileEdit( this );
-	if( fileEdit->exec() != QDialog::Accepted ) {
+	if( fileEdit->exec( ) != QDialog::Accepted ) {
 		return;
 	}
 
 	iA4DCTFileData fileData;
-	fileData.Name = fileEdit->getFileName();
-	fileData.Path = fileEdit->getFilePath();
+	fileData.Name = fileEdit->getFileName( );
+	fileData.Path = fileEdit->getFilePath( );
 	m_data->Files.push_back( fileData );
-	updateWidgets();
+	updateWidgets( );
 }
 
 void iAStageView::forceValueChanged( int val )

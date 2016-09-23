@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTMODULEINTERFACE_H
 #define IA4DCTMODULEINTERFACE_H
 // iA
@@ -36,18 +36,15 @@ class iA4DCTModuleInterface : public iAModuleInterface
 	Q_OBJECT
 
 public:
-						iA4DCTModuleInterface();
-						~iA4DCTModuleInterface();
-	void				Initialize();
+						iA4DCTModuleInterface( );
+						~iA4DCTModuleInterface( );
+	void				Initialize( );
 
 private slots:
-	void				openProj();
-	void				newProj();
-	void				saveProj();
+	void				openProj( );
+	void				newProj( );
+	void				saveProj( );
 	//void				enableDensityMap();
-
-	virtual	iAModuleAttachmentToChild*
-						CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 
 private:
 	//float				distBetweenFiberAndPoint(FiberCharacteristics* f, iAVec3 p);

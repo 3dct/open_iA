@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTLISTVIEW_H
 #define IA4DCTLISTVIEW_H
 // iA
@@ -35,18 +35,18 @@ class iA4DCTListView : public QListView
 	Q_OBJECT
 
 public:
-				iA4DCTListView(QWidget* parent = 0);
-				~iA4DCTListView();
-	void		setStageView(iAStageView* stageView);
-	void		updateData();
+				iA4DCTListView( QWidget* parent = 0 );
+				~iA4DCTListView( );
+	void		setStageView( iAStageView* stageView );
+	void		updateData( );
 
 protected:
-	void		contextMenuEvent(QContextMenuEvent* event);
+	void		contextMenuEvent( QContextMenuEvent* event );
 
 private slots:
-	void		openFile();
-	void		addFile();
-	
+	void		openFile( );
+	void		addFile( );
+
 private:
 	QMenu *					m_menu;
 	QAction *				m_actOpen;

@@ -46,13 +46,13 @@ void iA4DCTDefectVisDockWidget::setRenderer( vtkRenderer * renderer )
 
 void iA4DCTDefectVisDockWidget::changeColor( const QColor & col )
 {
-	m_defectVis->setColor( col.redF(), col.greenF(), col.blueF() );
-	emit updateRenderWindow();
+	m_defectVis->setColor( col.redF( ), col.greenF( ), col.blueF( ) );
+	emit updateRenderWindow( );
 }
 
 void iA4DCTDefectVisDockWidget::changeOpacity( int val )
 {
-	float opacity = static_cast<float>(val + 1) / sOpacity->maximum();
+	float opacity = static_cast<float>( val + 1 ) / sOpacity->maximum( );
 	m_defectVis->setOpacity( opacity );
-	emit updateRenderWindow();
+	emit updateRenderWindow( );
 }

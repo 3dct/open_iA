@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTAllVisualizationsDockWidget.h"
 // iA
@@ -39,12 +39,12 @@ iA4DCTAllVisualizationsDockWidget::iA4DCTAllVisualizationsDockWidget( QWidget* p
 	, m_visModulesModel( new QStringListModel )
 {
 	setupUi( this );
-	connect( pbAdd, SIGNAL( clicked() ), this, SLOT( onAddButtonClicked() ) );
-	connect( pbDelete, SIGNAL( clicked() ), this, SLOT( onDeleteButtonClicked() ) );
-	connect( m_visModulesModel, SIGNAL( dataChanged( QModelIndex, QModelIndex ) ), this, SLOT ( dataChanged( QModelIndex, QModelIndex ) ) );
+	connect( pbAdd, SIGNAL( clicked( ) ), this, SLOT( onAddButtonClicked( ) ) );
+	connect( pbDelete, SIGNAL( clicked( ) ), this, SLOT( onDeleteButtonClicked( ) ) );
+	connect( m_visModulesModel, SIGNAL( dataChanged( QModelIndex, QModelIndex ) ), this, SLOT( dataChanged( QModelIndex, QModelIndex ) ) );
 }
 
-iA4DCTAllVisualizationsDockWidget::~iA4DCTAllVisualizationsDockWidget()
+iA4DCTAllVisualizationsDockWidget::~iA4DCTAllVisualizationsDockWidget( )
 {
 	delete m_visModulesModel;
 }
@@ -52,57 +52,57 @@ iA4DCTAllVisualizationsDockWidget::~iA4DCTAllVisualizationsDockWidget()
 void iA4DCTAllVisualizationsDockWidget::setCollection( iAVisModulesCollection* collection )
 {
 	m_collection = collection;
-	updateContext();	
+	updateContext( );
 }
 
-void iA4DCTAllVisualizationsDockWidget::updateContext()
+void iA4DCTAllVisualizationsDockWidget::updateContext( )
 {
 	if( m_collection == nullptr )
 		return;
 
-	m_visModulesList.clear();
-	for( auto m : m_collection->getModules() ) {
+	m_visModulesList.clear( );
+	for( auto m : m_collection->getModules( ) ) {
 		m_visModulesList << m->name;
 	}
 	m_visModulesModel->setStringList( m_visModulesList );
 	lvVisModules->setModel( m_visModulesModel );
 }
 
-void iA4DCTAllVisualizationsDockWidget::onAddButtonClicked()
+void iA4DCTAllVisualizationsDockWidget::onAddButtonClicked( )
 {
 	/*QModelIndexList indexList = lvVisModules->selectionModel()->selectedIndexes();
 	for( auto index : indexList ) {
 		iAVisModuleItem * moduleItem = m_collection->getModules().at( index.row() );
 		moduleItem->stages.append( m_currentStage );
 	}*/
-	iAVisModuleItem * moduleItem = getSelectedModule();
+	iAVisModuleItem * moduleItem = getSelectedModule( );
 	if( moduleItem == nullptr ) return;
 	moduleItem->stages.append( m_currentStage );
-	emit addedVisualization();
+	emit addedVisualization( );
 }
 
-void iA4DCTAllVisualizationsDockWidget::setCurrentStage(int currentStage)
+void iA4DCTAllVisualizationsDockWidget::setCurrentStage( int currentStage )
 {
 	m_currentStage = currentStage;
 }
 
-void iA4DCTAllVisualizationsDockWidget::onDeleteButtonClicked()
+void iA4DCTAllVisualizationsDockWidget::onDeleteButtonClicked( )
 {
-	iAVisModuleItem * moduleItem = getSelectedModule();
+	iAVisModuleItem * moduleItem = getSelectedModule( );
 	if( moduleItem == nullptr ) return;
-	if( moduleItem->stages.size() > 0 ) {
-		QMessageBox::warning( this, "Can't remove the module", "The visualization module is used. Please first delete it from all stages.");
+	if( moduleItem->stages.size( ) > 0 ) {
+		QMessageBox::warning( this, "Can't remove the module", "The visualization module is used. Please first delete it from all stages." );
 		return;
 	}
 	m_collection->removeModule( moduleItem->id );
-	updateContext();
+	updateContext( );
 }
 
-iAVisModuleItem * iA4DCTAllVisualizationsDockWidget::getSelectedModule()
+iAVisModuleItem * iA4DCTAllVisualizationsDockWidget::getSelectedModule( )
 {
-	QModelIndexList indexList = lvVisModules->selectionModel()->selectedIndexes();
+	QModelIndexList indexList = lvVisModules->selectionModel( )->selectedIndexes( );
 	for( auto index : indexList ) {
-		return m_collection->getModules().at( index.row() );
+		return m_collection->getModules( ).at( index.row( ) );
 	}
 	return nullptr;
 }
@@ -112,8 +112,8 @@ void iA4DCTAllVisualizationsDockWidget::dataChanged( const QModelIndex & topLeft
 	// only if one column has been changed
 	if( topLeft == bottomRight )
 	{
-		int i = topLeft.row();
-		m_collection->getModules().at( i )->name = m_visModulesModel->data( topLeft, Qt::DisplayRole ).toString();
+		int i = topLeft.row( );
+		m_collection->getModules( ).at( i )->name = m_visModulesModel->data( topLeft, Qt::DisplayRole ).toString( );
 	}
-	emit addedVisualization();
+	emit addedVisualization( );
 }

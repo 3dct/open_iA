@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAPLANEVISMODULE_H
 #define IAPLANEVISMODULE_H
 // iA
@@ -71,7 +71,7 @@ public:
 	template<typename T>
 	void		densityMap( QString defect, QColor color, QString labeledImgPath, int * size );
 	template<typename T>
-	void		labledImageToMask(vtkImageData* img, iA4DCTDefects::VectorDataType list);
+	void		labledImageToMask( vtkImageData* img, iA4DCTDefects::VectorDataType list );
 
 	iAPlaneVisSettings		settings;
 
@@ -103,7 +103,7 @@ template<typename T>
 void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColor> colors, QString labeledImgPath )
 {
 	QVector<iA4DCTDefects::VectorDataType> defectsLists;
-	for( int i = 0; i < defects.size(); i++ )
+	for( int i = 0; i < defects.size( ); i++ )
 	{
 		iA4DCTDefects::VectorDataType defList = iA4DCTDefects::load( defects[i] );
 		defectsLists.push_back( defList );
@@ -111,26 +111,26 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 
 	// read the labeled image
 	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( labeledImgPath.toStdString().c_str( ) );
+	reader->SetFileName( labeledImgPath.toStdString( ).c_str( ) );
 	reader->Update( );
-	vtkImageData * labeledImg = reader->GetOutput();
+	vtkImageData * labeledImg = reader->GetOutput( );
 
 	// hash the defects
 	QVector<iA4DCTDefects::HashDataType> hashes;
-	for ( auto l : defectsLists ) {
+	for( auto l : defectsLists ) {
 		iA4DCTDefects::HashDataType hash = iA4DCTDefects::DefectDataToHash( l );
 		hashes.push_back( hash );
 	}
 
 	// scalars to colors
-	vtkSmartPointer<vtkLookupTable> lookupTable = vtkSmartPointer<vtkLookupTable>::New();
-	lookupTable->SetRange(0, 255);
-	lookupTable->SetValueRange(0., 1.);
-	lookupTable->SetSaturationRange(0., 0.);
-	lookupTable->SetRampToLinear();
-	lookupTable->Build();
+	vtkSmartPointer<vtkLookupTable> lookupTable = vtkSmartPointer<vtkLookupTable>::New( );
+	lookupTable->SetRange( 0, 255 );
+	lookupTable->SetValueRange( 0., 1. );
+	lookupTable->SetSaturationRange( 0., 0. );
+	lookupTable->SetRampToLinear( );
+	lookupTable->Build( );
 
-	vtkSmartPointer<vtkImageMapToColors> scalarValuesToColors =	vtkSmartPointer<vtkImageMapToColors>::New();
+	vtkSmartPointer<vtkImageMapToColors> scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New( );
 	scalarValuesToColors->PassAlphaToOutputOn( );
 	scalarValuesToColors->SetLookupTable( lookupTable );
 	scalarValuesToColors->SetInputData( m_img );
@@ -138,16 +138,16 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 	m_img = scalarValuesToColors->GetOutput( );
 
 	int * dims = labeledImg->GetDimensions( );
-	for (int x = 0; x < dims[0]; x++)
+	for( int x = 0; x < dims[0]; x++ )
 	{
-		for (int y = 0; y < dims[1]; y++)
+		for( int y = 0; y < dims[1]; y++ )
 		{
-			for (int z = 0; z < dims[2]; z++)
+			for( int z = 0; z < dims[2]; z++ )
 			{
 				T * labeledPixel = static_cast<T *>( labeledImg->GetScalarPointer( x, y, z ) );
-				for (int i = 0; i < hashes.size(); i++)
+				for( int i = 0; i < hashes.size( ); i++ )
 				{
-					if ( hashes[i].contains( labeledPixel[0] ) ) {
+					if( hashes[i].contains( labeledPixel[0] ) ) {
 						unsigned char * imgPixel = static_cast<unsigned char *>( m_img->GetScalarPointer( x, y, z ) );
 						imgPixel[0] = colors[i].red( );
 						imgPixel[1] = colors[i].green( );
@@ -168,9 +168,9 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, QString labeled
 {
 	// read the labeled image
 	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( labeledImgPath.toStdString().c_str( ) );
+	reader->SetFileName( labeledImgPath.toStdString( ).c_str( ) );
 	reader->Update( );
-	vtkImageData * labeledImg = reader->GetOutput();
+	vtkImageData * labeledImg = reader->GetOutput( );
 
 	// hash the defect
 	iA4DCTDefects::VectorDataType list = iA4DCTDefects::load( defect );
@@ -181,7 +181,7 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, QString labeled
 	for( int x = 0; x < size[0]; x++ )
 	{
 		densityMap[x] = new int*[size[1]];
-		for(int y = 0; y < size[1]; y++ )
+		for( int y = 0; y < size[1]; y++ )
 		{
 			densityMap[x][y] = new int[size[2]];
 			for( int z = 0; z < size[2]; z++ )
@@ -195,14 +195,14 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, QString labeled
 
 	int * dims = labeledImg->GetDimensions( );
 	int maxDensity = 0;
-	for (int x = 0; x < dims[0]; x++)
+	for( int x = 0; x < dims[0]; x++ )
 	{
-		for (int y = 0; y < dims[1]; y++)
+		for( int y = 0; y < dims[1]; y++ )
 		{
-			for (int z = 0; z < dims[2]; z++)
+			for( int z = 0; z < dims[2]; z++ )
 			{
 				T * labeledPixel = static_cast<T *>( labeledImg->GetScalarPointer( x, y, z ) );
-				if( labeledPixel[0] > 0)
+				if( labeledPixel[0] > 0 )
 				{
 					int newX = x * size[0] / dims[0];
 					int newY = y * size[1] / dims[1];
@@ -215,34 +215,34 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, QString labeled
 	}
 
 	// scalars to colors
-	vtkSmartPointer<vtkLookupTable> lookupTable = vtkSmartPointer<vtkLookupTable>::New();
-	lookupTable->SetRange(0, 255);
-	lookupTable->SetValueRange(0., 1.);
-	lookupTable->SetSaturationRange(0., 0.);
-	lookupTable->SetRampToLinear();
-	lookupTable->Build();
+	vtkSmartPointer<vtkLookupTable> lookupTable = vtkSmartPointer<vtkLookupTable>::New( );
+	lookupTable->SetRange( 0, 255 );
+	lookupTable->SetValueRange( 0., 1. );
+	lookupTable->SetSaturationRange( 0., 0. );
+	lookupTable->SetRampToLinear( );
+	lookupTable->Build( );
 
-	vtkSmartPointer<vtkImageMapToColors> scalarValuesToColors =	vtkSmartPointer<vtkImageMapToColors>::New();
+	vtkSmartPointer<vtkImageMapToColors> scalarValuesToColors = vtkSmartPointer<vtkImageMapToColors>::New( );
 	scalarValuesToColors->PassAlphaToOutputOn( );
 	scalarValuesToColors->SetLookupTable( lookupTable );
 	scalarValuesToColors->SetInputData( m_img );
 	scalarValuesToColors->Update( );
 	m_img = scalarValuesToColors->GetOutput( );
 
-	for (int x = 0; x < dims[0]; x++)
+	for( int x = 0; x < dims[0]; x++ )
 	{
-		for (int y = 0; y < dims[1]; y++)
+		for( int y = 0; y < dims[1]; y++ )
 		{
-			for (int z = 0; z < dims[2]; z++)
+			for( int z = 0; z < dims[2]; z++ )
 			{
 				unsigned char * imgPixel = static_cast<unsigned char *>( m_img->GetScalarPointer( x, y, z ) );
 				int newX = x * size[0] / dims[0];
 				int newY = y * size[1] / dims[1];
 				int newZ = z * size[2] / dims[2];
 				double coef = (double)densityMap[newX][newY][newZ] / maxDensity;
-				imgPixel[0] = imgPixel[0] + (color.red()   - imgPixel[0] ) * coef;
-				imgPixel[1] = imgPixel[1] + (color.green() - imgPixel[1] ) * coef;
-				imgPixel[2] = imgPixel[2] + (color.blue()  - imgPixel[2] ) * coef;
+				imgPixel[0] = imgPixel[0] + ( color.red( ) - imgPixel[0] ) * coef;
+				imgPixel[1] = imgPixel[1] + ( color.green( ) - imgPixel[1] ) * coef;
+				imgPixel[2] = imgPixel[2] + ( color.blue( ) - imgPixel[2] ) * coef;
 			}
 		}
 	}
@@ -251,28 +251,29 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, QString labeled
 
 	for( int x = 0; x < size[0]; x++ )
 	{
-		for(int y = 0; y < size[1]; y++ )
+		for( int y = 0; y < size[1]; y++ )
 		{
-			delete [] densityMap[x][y];
+			delete[ ] densityMap[x][y];
 		}
-		delete [] densityMap[x];
+		delete[ ] densityMap[x];
 	}
-	delete [] densityMap;
+	delete[ ] densityMap;
 }
 
 template<typename T>
 void iAPlaneVisModule::labledImageToMask( vtkImageData* img, iA4DCTDefects::VectorDataType list )
 {
-	iA4DCTDefects::HashDataType hash = iA4DCTDefects::DefectDataToHash(list);
+	iA4DCTDefects::HashDataType hash = iA4DCTDefects::DefectDataToHash( list );
 
-	int* dims = img->GetDimensions();
-	for (int x = 0; x < dims[0]; x++) {
-		for (int y = 0; y < dims[1]; y++) {
-			for (int z = 0; z < dims[2]; z++) {
-				T* pixel = static_cast<T*>(img->GetScalarPointer(x, y, z));
-				if (hash.contains(pixel[0])) {
+	int* dims = img->GetDimensions( );
+	for( int x = 0; x < dims[0]; x++ ) {
+		for( int y = 0; y < dims[1]; y++ ) {
+			for( int z = 0; z < dims[2]; z++ ) {
+				T* pixel = static_cast<T*>( img->GetScalarPointer( x, y, z ) );
+				if( hash.contains( pixel[0] ) ) {
 					pixel[0] = 1;
-				} else {
+				}
+				else {
 					pixel[0] = 0;
 				}
 			}

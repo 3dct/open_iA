@@ -70,7 +70,7 @@ void iA4DCTPlaneDockWidget::changedSlice( int val )
 {
 	if( m_visModule == nullptr )
 		return;
-	double doubleVal = ( double )val / sSlice->maximum( );
+	double doubleVal = (double)val / sSlice->maximum( );
 	m_visModule->setSlice( doubleVal );
 	emit updateRenderWindow( );
 }
@@ -79,7 +79,7 @@ void iA4DCTPlaneDockWidget::changedOpacity( int val )
 {
 	if( m_visModule == nullptr )
 		return;
-	double doubleVal = ( double )val / sOpacity->maximum( );
+	double doubleVal = (double)val / sOpacity->maximum( );
 	m_visModule->setOpacity( doubleVal );
 	emit updateRenderWindow( );
 }

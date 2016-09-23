@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAColorBox.h"
 // Qt
@@ -37,22 +37,22 @@ void iAColorBox::setColor( QColor col )
 	m_color = col;
 }
 
-QColor iAColorBox::getColor()
+QColor iAColorBox::getColor( )
 {
 	return m_color;
 }
 
-void iAColorBox::paintEvent(QPaintEvent *)
+void iAColorBox::paintEvent( QPaintEvent * )
 {
-    QPainter painter( this );
-    painter.setPen( QColor(0, 0, 0) );
+	QPainter painter( this );
+	painter.setPen( QColor( 0, 0, 0 ) );
 	painter.setBrush( QBrush( m_color ) );
-	painter.drawRect( 0, 0, this->width() - 1, this->height() - 1 );
+	painter.drawRect( 0, 0, this->width( ) - 1, this->height( ) - 1 );
 }
 
 void iAColorBox::mouseDoubleClickEvent( QMouseEvent * event )
 {
-	m_dialog.open();
+	m_dialog.open( );
 }
 
 void iAColorBox::onCurrentColorChanged( const QColor & col )

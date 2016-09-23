@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAMHDFILEINFO_H
 #define IAMHDFILEINFO_H
 // Qt
@@ -28,12 +28,12 @@
 class iAMhdFileInfo
 {
 public:
-				iAMhdFileInfo(QString fileName);
-	void		getFileDimSize(double* dimSize);
-	void		getElementSpacing(double* spacing);
+				iAMhdFileInfo( QString fileName );
+	void		getFileDimSize( double* dimSize );
+	void		getElementSpacing( double* spacing );
 
 protected:
-	void		parseFile(QString fileName);
+	void		parseFile( QString fileName );
 
 	QFile		m_file;
 	double		m_dimSize[3];

@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTCURRENTVISUALIZATIONSDOCKWIDGET_H
 #define IA4DCTCURRENTVISUALIZATIONSDOCKWIDGET_H
 // Ui
@@ -37,14 +37,14 @@ class iA4DCTCurrentVisualizationsDockWidget : public QDockWidget, public Ui::Cur
 	Q_OBJECT
 public:
 					iA4DCTCurrentVisualizationsDockWidget( QWidget * parent );
-					~iA4DCTCurrentVisualizationsDockWidget();
+					~iA4DCTCurrentVisualizationsDockWidget( );
 	void			setCollection( iAVisModulesCollection * collection );
 	void			setCurrentStage( int stage );
-	void			updateContext();
+	void			updateContext( );
 
 signals:
 	void			selectedVisModule( iAVisModule * visModule );
-	void			removedVisModule();
+	void			removedVisModule( );
 
 private:
 	int							m_currentStage;
@@ -57,7 +57,7 @@ private:
 
 private slots:
 	void			selectionChanged( const QItemSelection & selected, const QItemSelection & deselected );
-	void			onRemoveButtonClicked();
+	void			onRemoveButtonClicked( );
 };
 
 #endif // IA4DCTCURRENTVISUALIZATIONSDOCKWIDGET_H

@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef DLG_REGIONVIEW_H
 #define DLG_REGIONVIEW_H
 // Ui
@@ -39,10 +39,11 @@ public:
 	QString				getImagePath( );
 	QString				getImageName( );
 	double				getThreshold( );
-	//void				getDimension( int * dim );
+
 
 private slots:
-	void				onSelectButtonClicked();
+	void				onSelectButtonClicked( );
+
 
 private:
 	iA4DCTData *		m_data;

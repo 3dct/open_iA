@@ -18,12 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTModuleInterface.h"
 // iA
 #include "dlg_commoninput.h"
-#include "iA4DCTAttachment.h"
 #include "iA4DCTMainWin.h"
 #include "iA4DCTSettings.h"
 #include "iAConnector.h"
@@ -60,45 +59,40 @@
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
 
-iA4DCTModuleInterface::iA4DCTModuleInterface()
+iA4DCTModuleInterface::iA4DCTModuleInterface( )
 { /* not implemented */ }
 
-iA4DCTModuleInterface::~iA4DCTModuleInterface()
+iA4DCTModuleInterface::~iA4DCTModuleInterface( )
 { /* not implemented */ }
 
-void iA4DCTModuleInterface::Initialize()
+void iA4DCTModuleInterface::Initialize( )
 {
-	QMenu* toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
 
 	// ToFix: the menu should be added through the standard way of adding modules menus.
 	// But a new menu won't be enabled by the default till a mdichild is created or opened.
 	// This hack allows to be the menu enabled by the default.
-	QMenu* menu4DCT = new QMenu(toolsMenu);
-	menu4DCT->setTitle(tr("4DCT"));
-	toolsMenu->addMenu(menu4DCT);
+	QMenu* menu4DCT = new QMenu( toolsMenu );
+	menu4DCT->setTitle( tr( "4DCT" ) );
+	toolsMenu->addMenu( menu4DCT );
 
-	QAction * newProj = new QAction(m_mainWnd);
-	newProj->setText(QApplication::translate("MainWindows", "New 4DCT project", 0));
-	newProj->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4, Qt::Key_N));
-	connect(newProj, SIGNAL(triggered()), this, SLOT(newProj()));
-	menu4DCT->addAction(newProj);
+	QAction * newProj = new QAction( m_mainWnd );
+	newProj->setText( QApplication::translate( "MainWindows", "New 4DCT project", 0 ) );
+	newProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_N ) );
+	connect( newProj, SIGNAL( triggered( ) ), this, SLOT( newProj( ) ) );
+	menu4DCT->addAction( newProj );
 
-	QAction * openProj = new QAction(m_mainWnd);
-	openProj->setText(QApplication::translate("MainWindows", "Open 4DCT project", 0));
-	openProj->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4, Qt::Key_O));
-	connect(openProj, SIGNAL(triggered()), this, SLOT(openProj()));
-	menu4DCT->addAction(openProj);
+	QAction * openProj = new QAction( m_mainWnd );
+	openProj->setText( QApplication::translate( "MainWindows", "Open 4DCT project", 0 ) );
+	openProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_O ) );
+	connect( openProj, SIGNAL( triggered( ) ), this, SLOT( openProj( ) ) );
+	menu4DCT->addAction( openProj );
 
-	QAction* saveProj = new QAction(m_mainWnd);
-	saveProj->setText(QApplication::translate("MainWindows", "Save 4DCT project", 0));
-	saveProj->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4, Qt::Key_S));
-	connect(saveProj, SIGNAL(triggered()), this, SLOT(saveProj()));
-	menu4DCT->addAction(saveProj);
-}
-
-iAModuleAttachmentToChild * iA4DCTModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	return new iA4DCTAttachment(mainWnd, childData);
+	QAction* saveProj = new QAction( m_mainWnd );
+	saveProj->setText( QApplication::translate( "MainWindows", "Save 4DCT project", 0 ) );
+	saveProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ) );
+	connect( saveProj, SIGNAL( triggered( ) ), this, SLOT( saveProj( ) ) );
+	menu4DCT->addAction( saveProj );
 }
 
 /*============
@@ -107,40 +101,40 @@ iAModuleAttachmentToChild * iA4DCTModuleInterface::CreateAttachment(MainWindow* 
 
 ============*/
 
-void iA4DCTModuleInterface::openProj()
+void iA4DCTModuleInterface::openProj( )
 {
 	QSettings settings;
 	QString fileName = QFileDialog::getOpenFileName(
 		m_mainWnd,
-		tr("Open 4DCT proj"),
-		settings.value(S_4DCT_OPEN_DIR).toString(), 
-		tr("4DCT project (*.xml)") );
+		tr( "Open 4DCT proj" ),
+		settings.value( S_4DCT_OPEN_DIR ).toString( ),
+		tr( "4DCT project (*.xml)" ) );
 
-	QFileInfo file(fileName);
-	if (!file.exists()) {
+	QFileInfo file( fileName );
+	if( !file.exists( ) ) {
 		return;
 	}
-	settings.setValue(S_4DCT_OPEN_DIR, file.absolutePath());
+	settings.setValue( S_4DCT_OPEN_DIR, file.absolutePath( ) );
 
-	iA4DCTMainWin* sv = new iA4DCTMainWin(m_mainWnd);
-	sv->load(fileName);
-	m_mainWnd->mdiArea->addSubWindow(sv);
-	sv->show();
+	iA4DCTMainWin* sv = new iA4DCTMainWin( m_mainWnd );
+	sv->load( fileName );
+	m_mainWnd->mdiArea->addSubWindow( sv );
+	sv->show( );
 }
 
-void iA4DCTModuleInterface::newProj()
+void iA4DCTModuleInterface::newProj( )
 {
-	iA4DCTMainWin* sv = new iA4DCTMainWin(m_mainWnd);
-	m_mainWnd->mdiArea->addSubWindow(sv);
-	sv->show();
+	iA4DCTMainWin* sv = new iA4DCTMainWin( m_mainWnd );
+	m_mainWnd->mdiArea->addSubWindow( sv );
+	sv->show( );
 }
 
-void iA4DCTModuleInterface::saveProj()
+void iA4DCTModuleInterface::saveProj( )
 {
-	QMdiSubWindow* subWnd = m_mainWnd->mdiArea->currentSubWindow();
-	iA4DCTMainWin* stackView = qobject_cast<iA4DCTMainWin*>(subWnd->widget());
-	if (stackView != NULL) {
-		stackView->save();
+	QMdiSubWindow* subWnd = m_mainWnd->mdiArea->currentSubWindow( );
+	iA4DCTMainWin* stackView = qobject_cast<iA4DCTMainWin*>( subWnd->widget( ) );
+	if( stackView != NULL ) {
+		stackView->save( );
 	}
 }
 

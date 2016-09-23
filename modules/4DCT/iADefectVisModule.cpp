@@ -35,12 +35,12 @@
 iADefectVisModule::iADefectVisModule( )
 	: iAVisModule( )
 {
-	m_reader = vtkSmartPointer<vtkOBJReader>::New();
+	m_reader = vtkSmartPointer<vtkOBJReader>::New( );
 
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New( );
 	transform->Scale( SCENE_SCALE, SCENE_SCALE, SCENE_SCALE );
 
-	vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+	vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New( );
 	transformFilter->SetInputConnection( m_reader->GetOutputPort( ) );
 	transformFilter->SetTransform( transform );
 
@@ -52,34 +52,34 @@ iADefectVisModule::iADefectVisModule( )
 
 void iADefectVisModule::enable( )
 {
-	if ( !isAttached() ) return;
-	if( !isEnabled() ) {
+	if( !isAttached( ) ) return;
+	if( !isEnabled( ) ) {
 		m_renderer->AddActor( m_actor );
 	}
-	iAVisModule::enable();
+	iAVisModule::enable( );
 }
 
 void iADefectVisModule::disable( )
 {
-	if ( !isAttached() ) return;
-	if( isEnabled() ) {
+	if( !isAttached( ) ) return;
+	if( isEnabled( ) ) {
 		m_renderer->RemoveActor( m_actor );
 	}
-	iAVisModule::disable();
+	iAVisModule::disable( );
 }
 
 void iADefectVisModule::setInputFile( QString path )
 {
-	m_reader->SetFileName( path.toStdString().c_str( ) );
+	m_reader->SetFileName( path.toStdString( ).c_str( ) );
 	m_reader->Update( );
 }
 
 void iADefectVisModule::setColor( double r, double g, double b )
 {
-	m_actor->GetProperty()->SetColor( r, g, b );
+	m_actor->GetProperty( )->SetColor( r, g, b );
 }
 
 void iADefectVisModule::setOpacity( double opacity )
 {
-	m_actor->GetProperty()->SetOpacity( opacity );
+	m_actor->GetProperty( )->SetOpacity( opacity );
 }

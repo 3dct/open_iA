@@ -18,48 +18,48 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTDefects.h"
 // Qt
 #include <QFile>
 #include <QTextStream>
 
-bool iA4DCTDefects::save(VectorDataType defects, QString path)
+bool iA4DCTDefects::save( VectorDataType defects, QString path )
 {
-	QFile file(path);
-	QTextStream out(&file);
-	if (file.open(QIODevice::WriteOnly)) {
-		for (auto d : defects) {
-			out << std::to_string(d).c_str() << '\n';
+	QFile file( path );
+	QTextStream out( &file );
+	if( file.open( QIODevice::WriteOnly ) ) {
+		for( auto d : defects ) {
+			out << std::to_string( d ).c_str( ) << '\n';
 		}
 		return true;
 	}
 	return false;
 }
 
-iA4DCTDefects::VectorDataType iA4DCTDefects::load(QString path)
+iA4DCTDefects::VectorDataType iA4DCTDefects::load( QString path )
 {
 	VectorDataType list;
 	// open file
-	QFile file(path);
-	QTextStream stream(&file);
+	QFile file( path );
+	QTextStream stream( &file );
 	// open and read file
-	if (file.open(QIODevice::ReadOnly)) {
-		QString line = stream.readLine();
-		while (!line.isNull()) {
-			list.push_back(line.toULong());
-			line = stream.readLine();
+	if( file.open( QIODevice::ReadOnly ) ) {
+		QString line = stream.readLine( );
+		while( !line.isNull( ) ) {
+			list.push_back( line.toULong( ) );
+			line = stream.readLine( );
 		}
-	}	
+	}
 	return list;
 }
 
-iA4DCTDefects::HashDataType iA4DCTDefects::DefectDataToHash(VectorDataType defects)
+iA4DCTDefects::HashDataType iA4DCTDefects::DefectDataToHash( VectorDataType defects )
 {
 	HashDataType hash;
-	for (auto d : defects) {
-		hash.insert(d, true);
+	for( auto d : defects ) {
+		hash.insert( d, true );
 	}
 	return hash;
 }

@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAPREVIEW_H
 #define IAPREVIEW_H
 // Qt
@@ -31,13 +31,13 @@ class iAPreview : public QLabel
 	Q_OBJECT
 
 public:
-				iAPreview(QWidget* parent = 0);
-				~iAPreview();
-	QLabel*		getBigPreview();
+				iAPreview( QWidget* parent = 0 );
+				~iAPreview( );
+	QLabel*		getBigPreview( );
 
 protected:
-	void		mousePressEvent(QMouseEvent* event);
-	void		mouseReleaseEvent(QMouseEvent* event);
+	void		mousePressEvent( QMouseEvent* event );
+	void		mouseReleaseEvent( QMouseEvent* event );
 
 private:
 	QLabel*		m_smallPreview;

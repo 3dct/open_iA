@@ -18,14 +18,14 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAVisModulesCollection.h"
 // iA
 #include "iAVisModule.h"
 #include "iAVisModuleItem.h"
 
-iAVisModulesCollection::iAVisModulesCollection()
+iAVisModulesCollection::iAVisModulesCollection( )
 	: m_currentId( 0 )
 { /* not implemented */ }
 
@@ -39,7 +39,7 @@ int iAVisModulesCollection::addModule( iAVisModule * module, QString name )
 
 bool iAVisModulesCollection::removeModule( int id )
 {
-	for( int i = 0; i < m_modules.size(); i++) {
+	for( int i = 0; i < m_modules.size( ); i++ ) {
 		if( m_modules[i]->id == id ) {
 			m_modules.removeAt( i );
 			return true;
@@ -48,7 +48,7 @@ bool iAVisModulesCollection::removeModule( int id )
 	return false;
 }
 
-QList<iAVisModuleItem *> iAVisModulesCollection::getModules()
+QList<iAVisModuleItem *> iAVisModulesCollection::getModules( )
 {
 	return m_modules;
 }

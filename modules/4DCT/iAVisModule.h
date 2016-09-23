@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAVISMODULE_H
 #define IAVISMODULE_H
 
@@ -27,14 +27,14 @@ class vtkRenderer;
 class iAVisModule
 {
 public:
-						iAVisModule();
-	void				attachTo(vtkRenderer* renderer);
-	void				detach();
-	bool				isAttached();
-	bool				isEnabled();
-	virtual void		reset();
-	virtual void		enable() = 0;
-	virtual void		disable() = 0;
+						iAVisModule( );
+	void				attachTo( vtkRenderer* renderer );
+	void				detach( );
+	bool				isAttached( );
+	bool				isEnabled( );
+	virtual void		reset( );
+	virtual void		enable( ) = 0;
+	virtual void		disable( ) = 0;
 
 protected:
 	vtkRenderer *		m_renderer;

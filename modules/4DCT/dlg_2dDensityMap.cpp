@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "dlg_2dDensityMap.h"
 // iA
@@ -35,7 +35,7 @@ dlg_2dDensityMap::dlg_2dDensityMap( QWidget * parent /*= 0 */ )
 	cbDefect->setColor( QColor( 255, 0, 0 ) );
 }
 
-dlg_2dDensityMap::~dlg_2dDensityMap()
+dlg_2dDensityMap::~dlg_2dDensityMap( )
 { /* not implemented */ }
 
 void dlg_2dDensityMap::setVisWin( iA4DCTVisWin * visWin )
@@ -43,14 +43,14 @@ void dlg_2dDensityMap::setVisWin( iA4DCTVisWin * visWin )
 	m_visWin = visWin;
 }
 
-void dlg_2dDensityMap::defectButtonClicked()
+void dlg_2dDensityMap::defectButtonClicked( )
 {
 	iA4DCTFileData fileData;
 	m_visWin->showDialog( fileData );
 	leDefect->setText( fileData.Path );
 }
 
-void dlg_2dDensityMap::labeledImgButtonClicked()
+void dlg_2dDensityMap::labeledImgButtonClicked( )
 {
 	iA4DCTFileData fileData;
 	m_visWin->showDialog( fileData );

@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTMainWin.h"
 // iA
@@ -63,14 +63,14 @@ iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
 {
 	setupUi( this );
 
-	m_size[ 0 ] = 100.; m_size[ 1 ] = 100.; m_size[ 2 ] = 100.;
+	m_size[0] = 100.; m_size[1] = 100.; m_size[2] = 100.;
 
-	connect( actionAdd, SIGNAL( triggered() ), this, SLOT( addButtonClick() ) );
-	connect( actionVisualization, SIGNAL( triggered() ), this, SLOT( openVisualizationWin() ) );
-	connect( actionSave, SIGNAL( triggered() ), this, SLOT( save() ) );
+	connect( actionAdd, SIGNAL( triggered( ) ), this, SLOT( addButtonClick( ) ) );
+	connect( actionVisualization, SIGNAL( triggered( ) ), this, SLOT( openVisualizationWin( ) ) );
+	connect( actionSave, SIGNAL( triggered( ) ), this, SLOT( save( ) ) );
 }
 
-iA4DCTMainWin::~iA4DCTMainWin()
+iA4DCTMainWin::~iA4DCTMainWin( )
 {
 
 }
@@ -80,20 +80,20 @@ void iA4DCTMainWin::load( QString settingsFile )
 	iA4DCTProjectReaderWriter::load( this, settingsFile );
 }
 
-void iA4DCTMainWin::save()
+void iA4DCTMainWin::save( )
 {
 	QSettings settings;
 	QString fileName = QFileDialog::getSaveFileName(
 		m_mainWnd,
 		tr( "Save 4DCT proj" ),
-		settings.value( S_4DCT_SAVE_DIR ).toString(),
+		settings.value( S_4DCT_SAVE_DIR ).toString( ),
 		tr( "4DCT project (*.xml)" ) );
 
 	QFileInfo file( fileName );
-	if( !file.dir().exists() ) {
+	if( !file.dir( ).exists( ) ) {
 		return;
 	}
-	settings.setValue( S_4DCT_SAVE_DIR, file.absolutePath() );
+	settings.setValue( S_4DCT_SAVE_DIR, file.absolutePath( ) );
 
 	save( fileName );
 }
@@ -103,30 +103,30 @@ void iA4DCTMainWin::save( QString settingsFile )
 	iA4DCTProjectReaderWriter::save( this, settingsFile );
 }
 
-void iA4DCTMainWin::addButtonClick()
+void iA4DCTMainWin::addButtonClick( )
 {
 	// open dialog
 	QSettings settings;
-	QString fileNamePath = settings.value( S_4DCT_ADD_BUTTON_DLG ).toString();
+	QString fileNamePath = settings.value( S_4DCT_ADD_BUTTON_DLG ).toString( );
 	QString fileName = QFileDialog::getOpenFileName( m_mainWnd, "Open file", fileNamePath, "Meta header (*.mhd)" );
-	if( !fileName.isEmpty() ) {
+	if( !fileName.isEmpty( ) ) {
 		settings.setValue( S_4DCT_ADD_BUTTON_DLG, fileName );
 	}
 
 	// does file exist
 	QFileInfo fiMhd( fileName );
-	if( !fiMhd.exists() )
+	if( !fiMhd.exists( ) )
 		return;
 
 	// add widget
 	iA4DCTStageData stageData;
-	stageData.Files.push_back( iA4DCTFileData( fiMhd.absoluteFilePath(), fiMhd.baseName() ) );
-	iAPreviewMaker::makeUsingType( fiMhd.absoluteFilePath(), fiMhd.absolutePath() + "/thumbnail.png" );
-	iA4DCTFileData file( fiMhd.absolutePath() + "/thumbnail.png", S_4DCT_THUMB_NAME );
+	stageData.Files.push_back( iA4DCTFileData( fiMhd.absoluteFilePath( ), fiMhd.baseName( ) ) );
+	iAPreviewMaker::makeUsingType( fiMhd.absoluteFilePath( ), fiMhd.absolutePath( ) + "/thumbnail.png" );
+	iA4DCTFileData file( fiMhd.absolutePath( ) + "/thumbnail.png", S_4DCT_THUMB_NAME );
 	stageData.Files.push_back( file );
 	addStage( stageData );
 
-	if( m_stages.size() <= 1 )
+	if( m_stages.size( ) <= 1 )
 	{
 		iAMhdFileInfo mhdFileInfo( fileName );
 		double dimSize[3]; double spacing[3];
@@ -139,17 +139,17 @@ void iA4DCTMainWin::addButtonClick()
 	}
 }
 
-void iA4DCTMainWin::openVisualizationWin()
+void iA4DCTMainWin::openVisualizationWin( )
 {
-	MainWindow * mainWin = qobject_cast< MainWindow* >( qApp->activeWindow() );
+	MainWindow * mainWin = qobject_cast<MainWindow*>( qApp->activeWindow( ) );
 	iA4DCTVisWin* visWin = new iA4DCTVisWin( this );
 	visWin->setImageSize( m_size );
-	visWin->setNumberOfStages( m_stages.size() );
+	visWin->setNumberOfStages( m_stages.size( ) );
 	mainWin->mdiArea->addSubWindow( visWin );
-	visWin->showMaximized();
+	visWin->showMaximized( );
 }
 
-iA4DCTData * iA4DCTMainWin::getStageData()
+iA4DCTData * iA4DCTMainWin::getStageData( )
 {
 	/*iA4DCTData data;
 	for( iAStageView* sv : m_stages ) {
@@ -163,22 +163,22 @@ iAStageView * iA4DCTMainWin::addStage( iA4DCTStageData stageData )
 {
 	iA4DCTStageData * sd = new iA4DCTStageData( stageData );
 	m_data.push_back( sd );
-	iAStageView * stage = new iAStageView();
+	iAStageView * stage = new iAStageView( );
 	stage->setData( sd );
-	stage->updateWidgets();
+	stage->updateWidgets( );
 	m_stages.push_back( stage );
-	layoutStage->addWidget( ( QWidget * )stage );
+	layoutStage->addWidget( (QWidget *)stage );
 	return stage;
 }
 
-double * iA4DCTMainWin::getSize()
+double * iA4DCTMainWin::getSize( )
 {
 	return m_size;
 }
 
 void iA4DCTMainWin::setSize( double * size )
 {
-	m_size[ 0 ] = size[ 0 ];
-	m_size[ 1 ] = size[ 1 ];
-	m_size[ 2 ] = size[ 2 ];
+	m_size[0] = size[0];
+	m_size[1] = size[1];
+	m_size[2] = size[2];
 }

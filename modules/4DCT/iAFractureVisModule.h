@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAFRACTUREVISMODULE_H
 #define IAFRACTUREVISMODULE_H
 // iA
@@ -43,10 +43,10 @@ public:
 	typedef itk::Image<double, 2>		MapType;
 	enum MapName { Heightmap, Colormap };
 
-				iAFractureVisModule();
-	void		enable();
-	void		disable();
-	void		setData(vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors = 0);
+				iAFractureVisModule( );
+	void		enable( );
+	void		disable( );
+	void		setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors = 0 );
 	void		load( QString fileName );
 	void		save( QString fileName );
 	void		extract( QString fileName );

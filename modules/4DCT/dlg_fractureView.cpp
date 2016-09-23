@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "dlg_fractureView.h"
 
@@ -54,12 +54,12 @@ int dlg_fractureView::getImageIndex( )
 
 void dlg_fractureView::stageCurrentIndexChanged( int ind )
 {
-	if ( m_data->size( ) <= 0 )
+	if( m_data->size( ) <= 0 )
 		return;
 
 	cbMaskImg->clear( );
 
-	for ( iA4DCTFileData f : m_data->at( ind )->Files ) {
+	for( iA4DCTFileData f : m_data->at( ind )->Files ) {
 		cbMaskImg->addItem( f.Name );
 	}
 }

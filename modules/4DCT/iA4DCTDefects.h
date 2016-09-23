@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTDEFECTDATA_H
 #define IA4DCTDEFECTDATA_H
 // Qt
@@ -32,9 +32,9 @@ namespace iA4DCTDefects
 	typedef QVector<TType>			VectorDataType;
 	typedef QHash<TType, bool>		HashDataType;
 
-	bool					save(VectorDataType defects, QString path);
-	VectorDataType			load(QString path);
-	HashDataType			DefectDataToHash(VectorDataType defects);
+	bool					save( VectorDataType defects, QString path );
+	VectorDataType			load( QString path );
+	HashDataType			DefectDataToHash( VectorDataType defects );
 };
 
 #endif // IA4DCTDEFECTDATA_H

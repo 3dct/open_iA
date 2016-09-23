@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "dlg_4DCTFileOpen.h"
 // Qt
@@ -36,7 +36,7 @@ void dlg_4DCTFileOpen::setData( iA4DCTData * data )
 {
 	m_data = data;
 
-	QStandardItem * rootNode = m_model.invisibleRootItem();
+	QStandardItem * rootNode = m_model.invisibleRootItem( );
 	for( auto stageData : *m_data ) {
 		QStandardItem * stageNode = new QStandardItem( QString::number( stageData->Force ) );
 		for( auto file : stageData->Files ) {
@@ -46,14 +46,14 @@ void dlg_4DCTFileOpen::setData( iA4DCTData * data )
 		}
 		rootNode->appendRow( stageNode );
 	}
-	twFiles->expandAll();
+	twFiles->expandAll( );
 }
 
-void dlg_4DCTFileOpen::accept()
+void dlg_4DCTFileOpen::accept( )
 {
-	QItemSelectionModel * selectionModel = twFiles->selectionModel();
-	QModelIndexList selectedIndexes = selectionModel->selectedIndexes();
-	if( selectedIndexes.size() != 1)
+	QItemSelectionModel * selectionModel = twFiles->selectionModel( );
+	QModelIndexList selectedIndexes = selectionModel->selectedIndexes( );
+	if( selectedIndexes.size( ) != 1 )
 		return;
 	QModelIndex index = selectedIndexes[0];
 	//m_file = m_data->at( index.parent().row() )->Files[ index.row() ];
@@ -61,7 +61,7 @@ void dlg_4DCTFileOpen::accept()
 	setFileAndClose( index );
 }
 
-iA4DCTFileData dlg_4DCTFileOpen::getFile()
+iA4DCTFileData dlg_4DCTFileOpen::getFile( )
 {
 	return m_file;
 }
@@ -73,11 +73,11 @@ void dlg_4DCTFileOpen::onTreeViewDoubleClicked( const QModelIndex & index )
 
 void dlg_4DCTFileOpen::setFileAndClose( const QModelIndex & index )
 {
-	int idx = index.parent().row();
-	if (idx < 0)
+	int idx = index.parent( ).row( );
+	if( idx < 0 )
 	{
 		return;
 	}
-	m_file = m_data->at( idx )->Files[ index.row() ];
-	QDialog::accept();
+	m_file = m_data->at( idx )->Files[index.row( )];
+	QDialog::accept( );
 }

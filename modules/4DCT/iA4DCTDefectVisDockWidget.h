@@ -38,7 +38,7 @@ public:
 	void		setRenderer( vtkRenderer * renderer );
 
 signals:
-	void		updateRenderWindow();
+	void		updateRenderWindow( );
 
 private slots:
 	void		changeColor( const QColor & col );

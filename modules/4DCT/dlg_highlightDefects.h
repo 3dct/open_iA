@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef DLG_HIGHLIGHTDEFECTS_H
 #define DLG_HIGHLIGHTDEFECTS_H
 // Ui
@@ -37,12 +37,14 @@ public:
 				~dlg_highlightDefects( );
 	void		setVisWin( iA4DCTVisWin * visWin );
 
+
 private slots:
-	void		pulloutsButtonClicked();
-	void		breakagesButtonClicked();
-	void		debondingsButtonClicked();
-	void		cracksButtonClicked();
-	void		labeledImgButtonClicked();
+	void		pulloutsButtonClicked( );
+	void		breakagesButtonClicked( );
+	void		debondingsButtonClicked( );
+	void		cracksButtonClicked( );
+	void		labeledImgButtonClicked( );
+
 
 private:
 	iA4DCTVisWin *	m_visWin;

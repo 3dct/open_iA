@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IABOUNDINGBOXVISMODULE_H
 #define IABOUNDINGBOXVISMODULE_H
 // iA
@@ -40,14 +40,14 @@ struct iABoundingBoxSettings
 class iABoundingBoxVisModule : public iAVisModule
 {
 public:
-				iABoundingBoxVisModule();
-	void		enable();
-	void		disable();
+				iABoundingBoxVisModule( );
+	void		enable( );
+	void		disable( );
 	void		setSize( double * size );
 	void		setColor( double r, double g, double b );
 	void		setPosition( double x, double y, double z );
 	void		setLineWidth( float w );
-	
+
 	iABoundingBoxSettings	settings;
 
 protected:
