@@ -137,7 +137,7 @@ void dlg_labels::Remove()
 	
 	QStandardItem* item = m_itemModel->itemFromIndex(indices[0]);
 	bool updateOverlay = true;
-	if (item->parent() == NULL)  // a label was selected
+	if (item->parent() == nullptr)  // a label was selected
 	{
 		int curLabel = GetCurLabelRow();
 		if (curLabel == -1)
@@ -189,7 +189,7 @@ int dlg_labels::GetCurLabelRow() const
 		return -1;
 	}
 	QStandardItem* item = m_itemModel->itemFromIndex(indices[0]);
-	while (item->parent() != NULL)
+	while (item->parent() != nullptr)
 	{
 		item = item->parent();
 	}
@@ -354,7 +354,7 @@ void dlg_labels::LabelOverlayReady()
 	}
 	else
 	{
-		m_labelOverlayThread = NULL;
+		m_labelOverlayThread = nullptr;
 	}
 }
 

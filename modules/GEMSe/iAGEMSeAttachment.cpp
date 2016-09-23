@@ -117,7 +117,7 @@ void iAGEMSeAttachment::ToggleDockWidgetTitleBar()
 	QWidget* titleBar = m_dlgGEMSe->titleBarWidget();
 	if (titleBar == m_dummyTitleWidget)
 	{
-		m_dlgGEMSe->setTitleBarWidget(NULL);
+		m_dlgGEMSe->setTitleBarWidget(nullptr);
 	}
 	else
 	{
