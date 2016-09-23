@@ -34,6 +34,7 @@ class QTextEdit;
 
 class iAAttributes;
 class iAChannelVisualizationData;
+class iAChartAttributeMapper;
 class iAColorTheme;
 class iAImageClusterNode;
 class iAImagePreviewWidget;
@@ -52,7 +53,9 @@ public:
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
 		int representativeType);
-	void SetNode(iAImageClusterNode const * node);
+	void SetNode(iAImageClusterNode const * node,
+		QSharedPointer<iAAttributes> allAttributes,
+		iAChartAttributeMapper const & mapper);
 	int GetSliceNumber() const;
 	void UpdateLikeHate(bool isLike, bool isHate);
 	bool IsShowingCluster() const;

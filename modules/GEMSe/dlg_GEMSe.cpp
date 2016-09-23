@@ -161,7 +161,7 @@ void dlg_GEMSe::SetTree(
 
 	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, labelInfo,
 		m_representativeType);
-	m_detailView->SetNode(m_selectedCluster.data());
+	m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
 	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
 	wdImagePreview->layout()->addWidget(m_detailView);
 
@@ -567,7 +567,7 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageClusterNode> node)
 	}
 	else
 	{
-		m_detailView->SetNode(node.data());
+		m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
 	}
 }
 
@@ -575,7 +575,7 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageClusterNode> node)
 void dlg_GEMSe::ClusterLeafSelected(iAImageClusterLeaf * node)
 {
 	m_selectedLeaf = node;
-	m_detailView->SetNode(node);
+	m_detailView->SetNode(node, m_chartAttributes, m_chartAttributeMapper);
 
 	for (int chartID=0; chartID<m_chartAttributes->size(); ++chartID)
 	{
@@ -710,7 +710,7 @@ void dlg_GEMSe::UpdateFilteredData()
 
 	if (m_detailView->IsShowingCluster())
 	{
-		m_detailView->SetNode(m_selectedCluster.data());
+		m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
 	}
 	UpdateFilteredChartData();
 	UpdateClusterFilteredChartData();

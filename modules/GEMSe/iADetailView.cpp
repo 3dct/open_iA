@@ -344,7 +344,9 @@ QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int 
 	}
 }
 
-void iADetailView::SetNode(iAImageClusterNode const * node)
+void iADetailView::SetNode(iAImageClusterNode const * node,
+	QSharedPointer<iAAttributes> allAttributes,
+	iAChartAttributeMapper const & mapper)
 {
 	m_node = node;
 	SetImage();
@@ -372,26 +374,25 @@ void iADetailView::SetNode(iAImageClusterNode const * node)
 	}
 	else
 	{
-		/*
-		TODO: MULTIP find a way to get attributes here!
-			- either all attributes (-> need to be passed in from the outside)
-			- or only the ones actually in this cluster (collection might be complex & time-consuming)
-		for (int chartID=0; chartID<m_chartAttributes->size(); ++chartID)
+		if (allAttributes)
 		{
-								// v mapper!
-			if (m_attributes->at(chartID)->GetValueType() != Categorical)
+			for (int chartID = 0; chartID < allAttributes->size(); ++chartID)
 			{
-				double min, max;
-				GetClusterMinMax(node, id, min, max);
-				if (min == max)
+				if (allAttributes->at(chartID)->GetValueType() != Categorical)
 				{
-					continue;
+					double min,	max;
+					GetClusterMinMax(node, chartID, min, max, mapper);
+					if (min != std::numeric_limits<double>::max() ||
+						max != std::numeric_limits<double>::lowest())
+					{
+						m_detailText->append(allAttributes->at(chartID)->GetName() + ": [" +
+							attrValueStr(min, allAttributes, chartID) + ".." +
+							attrValueStr(max, allAttributes, chartID) + "]");
+					}
 				}
-				m_detailText->append(m_attributes->at(id)->GetName() + ": [" +
-					attrValueStr(min, m_attributes, id) + ".." + attrValueStr(max, m_attributes, id) + "]");
+				// else { } // collect list of all categorical values used!
 			}
 		}
-		*/
 		m_detailText->append("Maximum distance: "+QString::number(node->GetDistance()));
 	}
 }
