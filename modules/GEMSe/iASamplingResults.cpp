@@ -37,10 +37,12 @@
 iASamplingResults::iASamplingResults(
 	QSharedPointer<iAAttributes> attr,
 	QString const & samplingMethod,
+	QString const & path,
 	int id
 ):
 	m_attributes(attr),
 	m_samplingMethod(samplingMethod),
+	m_path(path),
 	m_id(id)
 {
 	NewID = (id >= NewID)? id + 1: NewID;
@@ -97,7 +99,8 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 	}
 
 	QSharedPointer<iAAttributes> attributes = iAAttributes::Create(in);
-	QSharedPointer<iASamplingResults> result(new iASamplingResults(attributes, samplingMethod, datasetID));
+	QSharedPointer<iASamplingResults> result(new iASamplingResults(
+		attributes, samplingMethod, fileInfo.absolutePath(), datasetID));
 	file.close();
 	if (result->LoadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), characteristicsFileName)))
@@ -182,10 +185,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 	{
 		characIn = new QTextStream(&characFile);
 	}
-	(&characFile);
-	QFileInfo paramFileInfo(paramFile);
 	int lineNr = 0;
-	m_path = paramFileInfo.absolutePath();
 	while (!paramIn.atEnd())
 	{
 		QString paramLine = paramIn.readLine();

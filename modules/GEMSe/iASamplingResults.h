@@ -33,6 +33,7 @@ public:
 	iASamplingResults(
 		QSharedPointer<iAAttributes> attr,
 		QString const & samplingMethod,
+		QString const & path,
 		int id
 	);
 	static QSharedPointer<iASamplingResults> Load(QString const & metaFileName, int datasetID);

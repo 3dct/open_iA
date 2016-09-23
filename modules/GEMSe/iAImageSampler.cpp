@@ -113,6 +113,7 @@ void iAImageSampler::run()
 	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
 		m_parameters,
 		m_sampleGenerator->GetName(),
+		m_outputBaseDir,
 		iASamplingResults::GetNewID()));
 
 	for (m_curLoop=0; !m_aborted && m_curLoop<m_parameterSets->size(); ++m_curLoop)
