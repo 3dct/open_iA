@@ -18,17 +18,17 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTVISWIN_H
 #define IA4DCTVISWIN_H
 // Ui
 #include "ui_iA4DCTVisWin.h"
 // iA
-#include "iABoundingBoxVisModule.h"
 #include "iAQTtoUIConnector.h"
 #include "iAVisModulesCollection.h"
 // vtk
 #include <vtkSmartPointer.h>
+#include <vtkOrientationMarkerWidget.h>
 // Qt
 #include <QDockWidget>
 #include <QMainWindow>
@@ -42,10 +42,15 @@ class iA4DCTCurrentVisualizationsDockWidget;
 class iA4DCTFractureVisDockWidget;
 class iA4DCTMainWin;
 class iA4DCTPlaneDockWidget;
+class iABoundingBoxVisModule;
+class iADefectVisModule;
 class iA4DCTRegionViewDockWidget;
-class iA4DCTSettingsDockWidget;
+class iA4DCTBoundingBoxDockWidget;
 class iA4DCTToolsDockWidget;
 class iAVisModule;
+class vtkOrientationMarkerWidget;
+class iA4DCTDefectVisDockWidget;
+class iA4DCTFileData;
 
 const float SCENE_SCALE = 0.01;
 
@@ -58,20 +63,22 @@ public:
 	void				setImageSize( double * size );
 	void				setNumberOfStages( int number );
 
-	bool				showDialog( QString & imagePath );
+	bool				showDialog( iA4DCTFileData & fileData );
 
 public slots:
 	void				updateRenderWindow( );
 	void				addedVisualization( );
 	void				selectedVisModule( iAVisModule * visModule );
-	void				updateVisualizations();
+	void				updateVisualizations( );
+	void				changeBackground( QColor col );
 
 
-protected:
-	void				setEnabledToolsDockWidgets( bool enabled );
+private:
+	void				setToolsDockWidgetsEnabled( bool enabled );
 
-	vtkSmartPointer<vtkRenderer>			m_mainRen;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
+	vtkSmartPointer<vtkRenderer>			m_mainRen;	// ToDo: renderer into iAFast3DMagicLensWidget?
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow>	m_renderWindow;
+	vtkSmartPointer<vtkOrientationMarkerWidget>		m_orientWidget;
 	vtkRenderer *							m_magicLensRen;
 	double									m_size[3];
 	int										m_currentStage;
@@ -85,7 +92,8 @@ protected:
 	iA4DCTAllVisualizationsDockWidget *		m_dwAllVis;
 	iA4DCTCurrentVisualizationsDockWidget *	m_dwCurrentVis;
 	iA4DCTRegionViewDockWidget *			m_dwRegionVis;
-	iA4DCTSettingsDockWidget *				m_dwSettings;
+	iA4DCTBoundingBoxDockWidget *			m_dwBoundingBox;
+	iA4DCTDefectVisDockWidget *				m_dwDefectVis;
 	iA4DCTToolsDockWidget *					m_dwTools;
 
 	bool									m_isVirgin;
@@ -110,17 +118,18 @@ private slots:
 	void				setXZBackView( );
 	void				setYZBackView( );
 
+	void				setOrientationWidgetEnabled( bool enabled );
+
 	// fracture vis
-	//void				onSaveButtonClicked( );
 	void				onLoadButtonClicked( );
 	void				onExtractButtonClicked( );
 	// defect density maps
 	void				addSurfaceVis( );
-	void				calcDensityMap();
 	// bounding box
 	void				addBoundingBox( );
 	// defect view
 	void				addDefectView( );
+	void				addDefectVis( );
 	// magic lens
 	void				enableMagicLens( bool enable );
 };

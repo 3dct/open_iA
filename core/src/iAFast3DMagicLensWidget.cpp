@@ -111,7 +111,7 @@ inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 	return -1. / std::tan( viewAngle * M_PI / 180. );
 }
 
-void iAFast3DMagicLensWidget::mouseReleaseEvent(QMouseEvent * event)
+void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
 {
 	if (Qt::RightButton == event->button())
 		emit rightButtonReleasedSignal();

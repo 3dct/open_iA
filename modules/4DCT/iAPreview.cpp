@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAPreview.h"
 // iA
@@ -28,35 +28,35 @@
 #include <QToolTip>
 #include <QCursor>
 
-iAPreview::iAPreview(QWidget* parent /*= 0*/) :
-	QLabel(parent)
+iAPreview::iAPreview( QWidget* parent /*= 0*/ ) :
+	QLabel( parent )
 {
 	m_bigPreview = new QLabel;
-	m_bigPreview->setWindowFlags(Qt::CustomizeWindowHint);
+	m_bigPreview->setWindowFlags( Qt::CustomizeWindowHint );
 }
 
-iAPreview::~iAPreview()
+iAPreview::~iAPreview( )
 {
 	delete m_bigPreview;
 }
 
-QLabel* iAPreview::getBigPreview()
+QLabel* iAPreview::getBigPreview( )
 {
 	return m_bigPreview;
 }
 
-void iAPreview::mousePressEvent(QMouseEvent* event)
+void iAPreview::mousePressEvent( QMouseEvent* event )
 {
-	if (event->button() == Qt::LeftButton) {
-		m_bigPreview->move(QCursor::pos());
-		m_bigPreview->show();
+	if( event->button( ) == Qt::LeftButton ) {
+		m_bigPreview->move( QCursor::pos( ) );
+		m_bigPreview->show( );
 	}
 }
 
-void iAPreview::mouseReleaseEvent(QMouseEvent* event)
+void iAPreview::mouseReleaseEvent( QMouseEvent* event )
 {
-	if (!m_bigPreview->isHidden()) {
-		m_bigPreview->hide();
+	if( !m_bigPreview->isHidden( ) ) {
+		m_bigPreview->hide( );
 	}
 }
 

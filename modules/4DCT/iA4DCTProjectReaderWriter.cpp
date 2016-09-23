@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTProjectReaderWriter.h"
 // iA
@@ -39,20 +39,20 @@ void iA4DCTProjectReaderWriter::save( iA4DCTMainWin * mainWin, QString path )
 	// open file
 	QFile file( path );
 	file.open( QFile::WriteOnly );
-	if( !file.isOpen() ) return;
+	if( !file.isOpen( ) ) return;
 
-	iA4DCTData * stageData = mainWin->getStageData();
+	iA4DCTData * stageData = mainWin->getStageData( );
 
 	QFileInfo fileInfo( path );
-	QDir dir = fileInfo.absoluteDir();
+	QDir dir = fileInfo.absoluteDir( );
 
 	QXmlStreamWriter stream( &file );
 	stream.setAutoFormatting( true );
-	stream.writeStartDocument();
+	stream.writeStartDocument( );
 	stream.writeStartElement( "data" );
-	double * size = mainWin->getSize();
-	stream.writeTextElement( "size", QString( "%1 %2 %3" ).arg( QString::number( size[ 0 ] ) ).arg( QString::number( size[ 1 ] ) ).arg( QString::number( size[ 2 ] ) ) );
-	for( int i = 0; i < stageData->count(); i++ )
+	double * size = mainWin->getSize( );
+	stream.writeTextElement( "size", QString( "%1 %2 %3" ).arg( QString::number( size[0] ) ).arg( QString::number( size[1] ) ).arg( QString::number( size[2] ) ) );
+	for( int i = 0; i < stageData->count( ); i++ )
 	{
 		iA4DCTStageData * sd = stageData->at( i );
 		stream.writeStartElement( "stage" );
@@ -65,16 +65,16 @@ void iA4DCTProjectReaderWriter::save( iA4DCTMainWin * mainWin, QString path )
 			stream.writeTextElement( "absolutePath", f.Path );
 			stream.writeTextElement( "relativePath", dir.relativeFilePath( f.Path ) );
 			stream.writeTextElement( "name", f.Name );
-			stream.writeEndElement();
+			stream.writeEndElement( );
 		}
-		stream.writeEndElement();
+		stream.writeEndElement( );
 
-		stream.writeEndElement();
+		stream.writeEndElement( );
 	}
-	stream.writeEndElement();
-	stream.writeEndDocument();
+	stream.writeEndElement( );
+	stream.writeEndDocument( );
 
-	file.close();
+	file.close( );
 }
 
 bool iA4DCTProjectReaderWriter::load( iA4DCTMainWin * mainWin, QString path )
@@ -86,60 +86,60 @@ bool iA4DCTProjectReaderWriter::load( iA4DCTMainWin * mainWin, QString path )
 		return false;
 	}
 	if( !doc.setContent( &file ) ) {
-		file.close();
+		file.close( );
 		return false;
 	}
 
 	QFileInfo fileInfo( path );
-	QDir dir = fileInfo.absoluteDir();
+	QDir dir = fileInfo.absoluteDir( );
 
 	// parse
 	QDomElement sizeElem = doc.elementsByTagName( "data" ).item( 0 ).firstChildElement( "size" );
-	if( !sizeElem.isNull() ) {
-		QStringList stringList = sizeElem.text().split( ' ' );
-		double size[ 3 ] = { stringList[ 0 ].toDouble(), stringList[ 1 ].toDouble(), stringList[ 2 ].toDouble() };
+	if( !sizeElem.isNull( ) ) {
+		QStringList stringList = sizeElem.text( ).split( ' ' );
+		double size[3] = { stringList[0].toDouble( ), stringList[1].toDouble( ), stringList[2].toDouble( ) };
 		mainWin->setSize( size );
 	} else {
 		// ToDo: give a warning
 	}
 
 	QDomNodeList stages = doc.elementsByTagName( "stage" );
-	for( int i = 0; i < stages.count(); i++ )
+	for( int i = 0; i < stages.count( ); i++ )
 	{
 		QDomNode stage = stages.item( i );
 		QDomElement force = stage.firstChildElement( "force" );
 
 		QDomElement files = stage.firstChildElement( "files" );
 		QList<iA4DCTFileData> list;
-		if( files.hasChildNodes() ) {
-			QDomNodeList fileList = files.childNodes();
-			for( int i = 0; i < fileList.size(); i++ ) {
+		if( files.hasChildNodes( ) ) {
+			QDomNodeList fileList = files.childNodes( );
+			for( int i = 0; i < fileList.size( ); i++ ) {
 				QDomNode f = fileList.item( i );
 				QDomElement abssolutePath = f.firstChildElement( "absolutePath" );
 				QDomElement relativePath = f.firstChildElement( "relativePath" );
 				QDomElement name = f.firstChildElement( "name" );
 
-				QString path = dir.filePath( abssolutePath.text() );
+				QString path = dir.filePath( abssolutePath.text( ) );
 				if( !QFile::exists( path ) ) {
-					path = dir.filePath( relativePath.text() );
+					path = dir.filePath( relativePath.text( ) );
 					if( !QFile::exists( path ) ) {
 						continue;
 					}
 				}
-				path = QFileInfo( path ).absoluteFilePath();	// cleaning path
-				if( name.isNull() )
+				path = QFileInfo( path ).absoluteFilePath( );	// cleaning path
+				if( name.isNull( ) )
 					continue;;
-				iA4DCTFileData fd; fd.Name = name.text(); fd.Path = path;
+				iA4DCTFileData fd; fd.Name = name.text( ); fd.Path = path;
 				list.push_back( fd );
 			}
 		}
 
-		if( force.isNull() )
+		if( force.isNull( ) )
 			continue;
 
 		iA4DCTStageData sd;
 		sd.Files = list;
-		sd.Force = force.text().toInt();
+		sd.Force = force.text( ).toInt( );
 
 		mainWin->addStage( sd );
 	}

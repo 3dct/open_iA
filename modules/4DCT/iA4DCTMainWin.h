@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IASTACKVIEW_H
 #define IASTACKVIEW_H
 // iA
@@ -39,21 +39,18 @@ class iA4DCTMainWin : public QMainWindow, public Ui::iA4DMainWin
 
 public:
 								iA4DCTMainWin( MainWindow* parent = 0 );
-								~iA4DCTMainWin();
+								~iA4DCTMainWin( );
 	void						load( QString path );
 	void						save( QString path );
-	iA4DCTData *				getStageData();
+	iA4DCTData *				getStageData( );
 	iAStageView *				addStage( iA4DCTStageData stageData );
-	double *					getSize();
+	double *					getSize( );
 	void						setSize( double * size );
 
 public slots:
-	void						save();
-	void						findDefects();
-	void						showDefects();
-	void						densityMap();
-	void						openVisualizationWin();
-	void						addButtonClick();
+	void						save( );
+	void						openVisualizationWin( );
+	void						addButtonClick( );
 
 private:
 	MainWindow *				m_mainWnd;

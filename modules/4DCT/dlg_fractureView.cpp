@@ -18,19 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "dlg_fractureView.h"
 
-dlg_fractureView::dlg_fractureView(QWidget* parent /*= 0*/) :
-	QDialog(parent)
+dlg_fractureView::dlg_fractureView( QWidget* parent /*= 0*/ )
+	: QDialog( parent )
 {
-	setupUi(this);
-	connect(cbStage, SIGNAL(currentIndexChanged(int)), this, SLOT(stageCurrentIndexChanged(int)));
+	setupUi( this );
+	connect( cbStage, SIGNAL( currentIndexChanged( int ) ), this, SLOT( stageCurrentIndexChanged( int ) ) );
 }
 
-dlg_fractureView::dlg_fractureView(iA4DCTData * data, QWidget* parent /*= 0*/) :
-	dlg_fractureView(parent)
+dlg_fractureView::dlg_fractureView( iA4DCTData * data, QWidget* parent /*= 0*/ )
+	: dlg_fractureView( parent )
 {
 	m_data = data;
 
@@ -39,27 +39,27 @@ dlg_fractureView::dlg_fractureView(iA4DCTData * data, QWidget* parent /*= 0*/) :
 	}
 }
 
-dlg_fractureView::~dlg_fractureView()
+dlg_fractureView::~dlg_fractureView( )
 { /* not implemented yet */ }
 
-int dlg_fractureView::getStageIndex()
+int dlg_fractureView::getStageIndex( )
 {
-	return cbStage->currentIndex();
+	return cbStage->currentIndex( );
 }
 
-int dlg_fractureView::getImageIndex()
+int dlg_fractureView::getImageIndex( )
 {
-	return cbMaskImg->currentIndex();
+	return cbMaskImg->currentIndex( );
 }
 
-void dlg_fractureView::stageCurrentIndexChanged(int ind)
+void dlg_fractureView::stageCurrentIndexChanged( int ind )
 {
-	if (m_data->size() <= 0)
+	if( m_data->size( ) <= 0 )
 		return;
 
-	cbMaskImg->clear();
+	cbMaskImg->clear( );
 
-	for (iA4DCTFileData f : m_data->at(ind)->Files) {
-		cbMaskImg->addItem(f.Name);
+	for( iA4DCTFileData f : m_data->at( ind )->Files ) {
+		cbMaskImg->addItem( f.Name );
 	}
 }

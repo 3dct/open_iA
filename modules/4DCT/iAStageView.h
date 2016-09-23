@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IASTAGEVIEW_H
 #define IASTAGEVIEW_H
 // Qt
@@ -35,16 +35,16 @@ class iAStageView : public QWidget, public Ui::StageView
 
 public:
 						iAStageView( QWidget * parent = 0 );
-						~iAStageView();
+						~iAStageView( );
 	void				setData( iA4DCTStageData * data );
-	iA4DCTStageData *	getData();
-	void				updateWidgets();
-	void				addFile();
+	iA4DCTStageData *	getData( );
+	void				updateWidgets( );
+	void				addFile( );
 
 private:
 	iA4DCTStageData *	m_data;
 
-private slots:
+	private slots:
 	void				forceValueChanged( int val );
 };
 

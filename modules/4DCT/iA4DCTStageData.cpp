@@ -18,12 +18,12 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTStageData.h"
 
-iA4DCTStageData::iA4DCTStageData()
-	: Force(-1)
+iA4DCTStageData::iA4DCTStageData( )
+	: Force( -1 )
 { /* not yet implemented */ }
 
 /*============
@@ -33,10 +33,10 @@ iA4DCTStageData::iA4DCTStageData()
 ============*/
 // get path of a file using name
 // the function returns true if the file found. Otherwise it returns false
-bool iA4DCTStageData::getFilePath(QString fileName, QString& path)
+bool iA4DCTStageData::getFilePath( QString fileName, QString& path )
 {
-	for (auto f : Files) {
-		if (fileName == f.Name) {
+	for( auto f : Files ) {
+		if( fileName == f.Name ) {
 			path = f.Path;
 			return true;	// file found
 		}

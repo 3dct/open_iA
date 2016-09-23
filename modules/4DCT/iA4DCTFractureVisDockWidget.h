@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTFRACTUREVISDOCKWIDGET_H
 #define IA4DCTFRACTUREVISDOCKWIDGET_H
 // Ui
@@ -40,8 +40,8 @@ public:
 	void		setData( iA4DCTData * data );
 
 private slots:
-	void		onSaveButtonClicked();
-	void		onColorizeButtonClicked();
+	void		onSaveButtonClicked( );
+	void		onColorizeButtonClicked( );
 	void		onLowIntensityColorChanged( const QColor & color );
 	void		onHighIntensityColorChanged( const QColor & color );
 	void		onColorChanged( const QColor & color );
@@ -49,7 +49,7 @@ private slots:
 	void		onOpacityValueChanged( int val );
 
 signals:
-	void		updateRenderWindow();
+	void		updateRenderWindow( );
 
 private:
 	iAFractureVisModule *		m_visModule;

@@ -18,26 +18,27 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "dlg_highlightDefects.h"
 // iA
 #include "iA4DCTVisWin.h"
+#include "iA4DCTFileData.h"
 
-const QColor CrackColor(91, 155, 213);		// blue
-const QColor DebondingColor(0, 176, 80);	// green
-const QColor PulloutColor(255, 192, 0);		// yellow
-const QColor BreakageColor(255, 0, 0);		// red
+const QColor CrackColor( 91, 155, 213 );		// blue
+const QColor DebondingColor( 0, 176, 80 );		// green
+const QColor PulloutColor( 255, 192, 0 );		// yellow
+const QColor BreakageColor( 255, 0, 0 );		// red
 
 dlg_highlightDefects::dlg_highlightDefects( QWidget * parent )
 	: QDialog( parent )
 {
 	setupUi( this );
-	connect( pbPullouts,	SIGNAL( clicked( ) ), this, SLOT( pulloutsButtonClicked( ) ) );
-	connect( pbBreakages,	SIGNAL( clicked( ) ), this, SLOT( breakagesButtonClicked( ) ) );
-	connect( pbCracks,		SIGNAL( clicked( ) ), this, SLOT( cracksButtonClicked( ) ) );
-	connect( pbDebondings,	SIGNAL( clicked( ) ), this, SLOT( debondingsButtonClicked( ) ) );
-	connect( pbLabeledImg,	SIGNAL( clicked( ) ), this, SLOT( labeledImgButtonClicked( ) ) );
+	connect( pbPullouts, SIGNAL( clicked( ) ), this, SLOT( pulloutsButtonClicked( ) ) );
+	connect( pbBreakages, SIGNAL( clicked( ) ), this, SLOT( breakagesButtonClicked( ) ) );
+	connect( pbCracks, SIGNAL( clicked( ) ), this, SLOT( cracksButtonClicked( ) ) );
+	connect( pbDebondings, SIGNAL( clicked( ) ), this, SLOT( debondingsButtonClicked( ) ) );
+	connect( pbLabeledImg, SIGNAL( clicked( ) ), this, SLOT( labeledImgButtonClicked( ) ) );
 
 	cbPullouts->setColor( PulloutColor );
 	cbBreakages->setColor( BreakageColor );
@@ -46,7 +47,8 @@ dlg_highlightDefects::dlg_highlightDefects( QWidget * parent )
 }
 
 dlg_highlightDefects::~dlg_highlightDefects( )
-{ /* not implemented */ }
+{ /* not implemented */
+}
 
 void dlg_highlightDefects::setVisWin( iA4DCTVisWin * visWin )
 {
@@ -55,35 +57,35 @@ void dlg_highlightDefects::setVisWin( iA4DCTVisWin * visWin )
 
 void dlg_highlightDefects::pulloutsButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	lePullouts->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	lePullouts->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::breakagesButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leBreakages->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leBreakages->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::debondingsButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leDebondings->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leDebondings->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::cracksButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leCracks->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leCracks->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::labeledImgButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leLabeledImg->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leLabeledImg->setText( fileData.Path );
 }

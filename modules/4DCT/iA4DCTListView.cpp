@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTListView.h"
 // iA
@@ -32,65 +32,65 @@
 #include <QApplication>
 #include <QStringListModel>
 
-iA4DCTListView::iA4DCTListView(QWidget* parent/*=0*/) :
-	QListView(parent)
+iA4DCTListView::iA4DCTListView( QWidget* parent/*=0*/ ) :
+	QListView( parent )
 {
-	m_actOpen = new QAction(tr("Open file"), this);
-	connect(m_actOpen, SIGNAL(triggered()), this, SLOT(openFile()));
-	m_actNew = new QAction(tr("Add new file"), this);
-	connect(m_actNew, SIGNAL(triggered()), this, SLOT(addFile()));
+	m_actOpen = new QAction( tr( "Open file" ), this );
+	connect( m_actOpen, SIGNAL( triggered( ) ), this, SLOT( openFile( ) ) );
+	m_actNew = new QAction( tr( "Add new file" ), this );
+	connect( m_actNew, SIGNAL( triggered( ) ), this, SLOT( addFile( ) ) );
 
-	m_menu = new QMenu(this);
-	m_menu->addAction(m_actOpen);
-	m_menu->addAction(m_actNew);
+	m_menu = new QMenu( this );
+	m_menu->addAction( m_actOpen );
+	m_menu->addAction( m_actNew );
 }
 
-iA4DCTListView::~iA4DCTListView()
+iA4DCTListView::~iA4DCTListView( )
 { }
 
 void iA4DCTListView::setStageView( iAStageView * stageView )
 {
 	// assign local stage view variable
 	m_stageView = stageView;
-	updateData();
+	updateData( );
 }
 
-void iA4DCTListView::updateData()
+void iA4DCTListView::updateData( )
 {
 	// fill the list view widget with data
-	if( m_stageView->getData() == nullptr)
+	if( m_stageView->getData( ) == nullptr )
 		return;
-	m_data = &m_stageView->getData()->Files;
+	m_data = &m_stageView->getData( )->Files;
 	QStringListModel * model = new QStringListModel;
 	QStringList list;
-	for (auto fd : *m_data) {
+	for( auto fd : *m_data ) {
 		list << fd.Name;
 	}
-	model->setStringList(list);
-	setModel(model);
+	model->setStringList( list );
+	setModel( model );
 }
 
-void iA4DCTListView::contextMenuEvent(QContextMenuEvent* event)
+void iA4DCTListView::contextMenuEvent( QContextMenuEvent* event )
 {
-	m_menu->exec(event->globalPos());
+	m_menu->exec( event->globalPos( ) );
 }
 
-void iA4DCTListView::openFile()
+void iA4DCTListView::openFile( )
 {
-	MainWindow* win = qobject_cast<MainWindow*>(QApplication::activeWindow());
+	MainWindow* win = qobject_cast<MainWindow*>( QApplication::activeWindow( ) );
 
-	QModelIndexList indexes = this->selectionModel()->selectedIndexes();
-	if (indexes.size() > 1) {
+	QModelIndexList indexes = this->selectionModel( )->selectedIndexes( );
+	if( indexes.size( ) > 1 ) {
 		return;
 	}
 
-	if (win != NULL) {
-		win->loadFile(m_data->at(indexes[0].row()).Path, false);
+	if( win != NULL ) {
+		win->loadFile( m_data->at( indexes[0].row( ) ).Path, false );
 	}
 }
 
-void iA4DCTListView::addFile()
+void iA4DCTListView::addFile( )
 {
-	if (m_stageView != NULL)
-		m_stageView->addFile();
+	if( m_stageView != NULL )
+		m_stageView->addFile( );
 }

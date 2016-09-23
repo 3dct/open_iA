@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IACOLORBOX_H
 #define IACOLORBOX_H
 // Qt
@@ -32,7 +32,7 @@ class iAColorBox : public QWidget
 public:
 					iAColorBox( QWidget * parent );
 	void			setColor( QColor col );
-	QColor			getColor();
+	QColor			getColor( );
 
 private:
 	QColorDialog	m_dialog;
@@ -43,9 +43,9 @@ signals:
 
 protected:
 	void			mouseDoubleClickEvent( QMouseEvent * event );
-	void			paintEvent(QPaintEvent *);
+	void			paintEvent( QPaintEvent * );
 
-private slots:
+	private slots:
 	void			onCurrentColorChanged( const QColor & col );
 };
 

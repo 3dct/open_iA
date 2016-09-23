@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAMhdFileInfo.h"
 // Qt
@@ -26,13 +26,13 @@
 #include <QStringList>
 
 
-iAMhdFileInfo::iAMhdFileInfo(QString fileName)
+iAMhdFileInfo::iAMhdFileInfo( QString fileName )
 {
-	parseFile(fileName);
+	parseFile( fileName );
 }
 
 
-void iAMhdFileInfo::getFileDimSize(double* dimSize)
+void iAMhdFileInfo::getFileDimSize( double* dimSize )
 {
 	dimSize[0] = m_dimSize[0];
 	dimSize[1] = m_dimSize[1];
@@ -40,7 +40,7 @@ void iAMhdFileInfo::getFileDimSize(double* dimSize)
 }
 
 
-void iAMhdFileInfo::getElementSpacing(double* spacing)
+void iAMhdFileInfo::getElementSpacing( double* spacing )
 {
 	spacing[0] = m_elemSpacing[0];
 	spacing[1] = m_elemSpacing[1];
@@ -48,26 +48,28 @@ void iAMhdFileInfo::getElementSpacing(double* spacing)
 }
 
 
-void iAMhdFileInfo::parseFile(QString fileName)
+void iAMhdFileInfo::parseFile( QString fileName )
 {
-	m_file.setFileName(fileName);
-	if (!m_file.open(QIODevice::ReadOnly)) {
+	m_file.setFileName( fileName );
+	if( !m_file.open( QIODevice::ReadOnly ) ) {
 		return;
 	}
 
-	while (!m_file.atEnd()) {
-        QString line = QString(m_file.readLine());
-        QStringList strList = line.split(' ');
-		if (strList[0] == "DimSize") {
-			m_dimSize[0] = strList[2].toDouble();
-			m_dimSize[1] = strList[3].toDouble();
-			m_dimSize[2] = strList[4].toDouble();
-		} else if (strList[0] == "ElementSpacing") {
-			m_elemSpacing[0] = strList[2].toDouble();
-			m_elemSpacing[1] = strList[3].toDouble();
-			m_elemSpacing[2] = strList[4].toDouble();
-		} else {
+	while( !m_file.atEnd( ) ) {
+		QString line = QString( m_file.readLine( ) );
+		QStringList strList = line.split( ' ' );
+		if( strList[0] == "DimSize" ) {
+			m_dimSize[0] = strList[2].toDouble( );
+			m_dimSize[1] = strList[3].toDouble( );
+			m_dimSize[2] = strList[4].toDouble( );
+		}
+		else if( strList[0] == "ElementSpacing" ) {
+			m_elemSpacing[0] = strList[2].toDouble( );
+			m_elemSpacing[1] = strList[3].toDouble( );
+			m_elemSpacing[2] = strList[4].toDouble( );
+		}
+		else {
 			continue;
 		}
-    }
+	}
 }

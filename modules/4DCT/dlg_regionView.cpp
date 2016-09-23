@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "dlg_regionView.h"
 // iA
@@ -28,16 +28,16 @@ dlg_regionView::dlg_regionView( QWidget * parent )
 	: QDialog( parent )
 {
 	setupUi( this );
-	connect( pbSelectImage, SIGNAL( clicked() ), this, SLOT( onSelectButtonClicked() ) );
+	connect( pbSelectImage, SIGNAL( clicked( ) ), this, SLOT( onSelectButtonClicked( ) ) );
 }
 
-void dlg_regionView::onSelectButtonClicked()
+void dlg_regionView::onSelectButtonClicked( )
 {
 	dlg_4DCTFileOpen dialog( this );
 	dialog.setData( m_data );
-	if( dialog.exec() != QDialog::Accepted )
+	if( dialog.exec( ) != QDialog::Accepted )
 		return;
-	m_file = dialog.getFile();
+	m_file = dialog.getFile( );
 	lFilename->setText( m_file.Name );
 }
 
@@ -46,19 +46,17 @@ void dlg_regionView::setData( iA4DCTData * data )
 	m_data = data;
 }
 
-QString dlg_regionView::getImagePath()
+QString dlg_regionView::getImagePath( )
 {
 	return m_file.Path;
 }
 
-double dlg_regionView::getThreshold()
+QString dlg_regionView::getImageName( )
 {
-	return dspThreshold->value();
+	return m_file.Name;
 }
 
-//void dlg_regionView::getDimension( int * dim )
-//{
-//	dim[0] = sbDimX->value();
-//	dim[1] = sbDimY->value();
-//	dim[2] = sbDimZ->value();
-//}
+double dlg_regionView::getThreshold( )
+{
+	return dspThreshold->value( );
+}

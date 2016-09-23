@@ -64,7 +64,11 @@
      </widget>
     </item>
     <item>
-     <widget class="QListView" name="lvCurrentVisModules"/>
+     <widget class="QListView" name="lvCurrentVisModules">
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

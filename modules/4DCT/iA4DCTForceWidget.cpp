@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTForceWidget.h"
 // Ui
@@ -30,7 +30,7 @@ iA4DCTForceWidget::iA4DCTForceWidget( QWidget * parent )
 	: QLabel( parent )
 { /* not implemented */ }
 
-iA4DCTForceWidget::~iA4DCTForceWidget()
+iA4DCTForceWidget::~iA4DCTForceWidget( )
 { /* not implemented */ }
 
 void iA4DCTForceWidget::setValue( int val )
@@ -39,18 +39,18 @@ void iA4DCTForceWidget::setValue( int val )
 	this->setText( QString::number( m_value ) );
 }
 
-int iA4DCTForceWidget::getValue()
+int iA4DCTForceWidget::getValue( )
 {
 	return m_value;
 }
 
 void iA4DCTForceWidget::mouseDoubleClickEvent( QMouseEvent * event )
 {
-	QDialog * dialog = new QDialog ( this );
+	QDialog * dialog = new QDialog( this );
 	Ui::ForceDialog dialogUi;
 	dialogUi.setupUi( dialog );
 	dialogUi.spinBox->setValue( m_value );
-	if( dialog->exec() == QDialog::Accepted )
+	if( dialog->exec( ) == QDialog::Accepted )
 	{
 		int newValue = dialogUi.spinBox->value( );
 		setValue( newValue );

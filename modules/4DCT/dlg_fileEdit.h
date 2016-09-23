@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef DLG_FILEEDIT_H
 #define DLG_FILEEDIT_H
 // Ui
@@ -31,16 +31,16 @@ class dlg_fileEdit : public QDialog, public Ui::FileEditDialog
 {
 	Q_OBJECT
 public:
-				dlg_fileEdit(QWidget* parent = 0);
-				~dlg_fileEdit();
+				dlg_fileEdit( QWidget* parent = 0 );
+				~dlg_fileEdit( );
 
-	QString		getFilePath();
-	QString		getFileName();
+	QString		getFilePath( );
+	QString		getFileName( );
 
 
 protected slots:
-	void		onBrowseButtonClick();
-	void		fileTypeChanged(int index);
+	void		onBrowseButtonClick( );
+	void		fileTypeChanged( int index );
 };
 
 #endif // DLG_FILEEDIT_H

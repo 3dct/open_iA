@@ -18,16 +18,16 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef DLG_FRACTUREVIEW_H
 #define DLG_FRACTUREVIEW_H
 // Ui
 #include "ui_iA4DCTFractureViewDialog.h"
 // iA
-//#include "iA4DCTStageData.h"
 #include "iA4DCTData.h"
 // Qt
 #include <QDialog>
+
 
 class dlg_fractureView : public QDialog, private Ui::FractureViewDialog
 {
@@ -35,17 +35,17 @@ class dlg_fractureView : public QDialog, private Ui::FractureViewDialog
 public:
 						dlg_fractureView( QWidget* patent = 0 );
 						dlg_fractureView( iA4DCTData * data, QWidget* parent = 0 );
-						~dlg_fractureView();
+						~dlg_fractureView( );
 
-	int					getStageIndex();
-	int					getImageIndex();
+	int					getStageIndex( );
+	int					getImageIndex( );
 
 private:
 	// internal data
 	iA4DCTData *		m_data;
 
 private slots:
-	void				stageCurrentIndexChanged(int ind);
+	void				stageCurrentIndexChanged( int ind );
 };
 
 #endif // DLG_FACTUREVIEW_H

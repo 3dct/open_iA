@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iABoundingBoxVisModule.h"
 // iA
@@ -30,36 +30,36 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 
-iABoundingBoxVisModule::iABoundingBoxVisModule()
-	: iAVisModule()
+iABoundingBoxVisModule::iABoundingBoxVisModule( )
+	: iAVisModule( )
 {
-	m_cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+	m_cubeSource = vtkSmartPointer<vtkCubeSource>::New( );
 
-	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_mapper->SetInputConnection(m_cubeSource->GetOutputPort());
+	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New( );
+	m_mapper->SetInputConnection( m_cubeSource->GetOutputPort( ) );
 
-	m_actor = vtkSmartPointer<vtkActor>::New();
-	m_actor->SetMapper(m_mapper);
-	m_actor->GetProperty()->SetRepresentationToWireframe();
-	m_actor->GetProperty()->LightingOff();
+	m_actor = vtkSmartPointer<vtkActor>::New( );
+	m_actor->SetMapper( m_mapper );
+	m_actor->GetProperty( )->SetRepresentationToWireframe( );
+	m_actor->GetProperty( )->LightingOff( );
 }
 
-void iABoundingBoxVisModule::enable()
+void iABoundingBoxVisModule::enable( )
 {
-	if ( !isAttached() ) return;
-	if( !isEnabled() ) {
+	if( !isAttached( ) ) return;
+	if( !isEnabled( ) ) {
 		m_renderer->AddActor( m_actor );
 	}
-	iAVisModule::enable();
+	iAVisModule::enable( );
 }
 
-void iABoundingBoxVisModule::disable()
+void iABoundingBoxVisModule::disable( )
 {
-	if ( !isAttached() ) return;
-	if( isEnabled() ) {
+	if( !isAttached( ) ) return;
+	if( isEnabled( ) ) {
 		m_renderer->RemoveActor( m_actor );
 	}
-	iAVisModule::disable();
+	iAVisModule::disable( );
 }
 
 void iABoundingBoxVisModule::setSize( double * size )
@@ -72,10 +72,15 @@ void iABoundingBoxVisModule::setColor( double r, double g, double b )
 	// set settings
 	settings.Color = QColor( r * 255, g * 255, b * 255 );
 	// update visualization
-	m_actor->GetProperty()->SetColor( r, g, b );
+	m_actor->GetProperty( )->SetColor( r, g, b );
 }
 
 void iABoundingBoxVisModule::setPosition( double x, double y, double z )
 {
 	m_actor->SetPosition( x, y, z );
+}
+
+void iABoundingBoxVisModule::setLineWidth( float w )
+{
+	m_actor->GetProperty( )->SetLineWidth( w );
 }

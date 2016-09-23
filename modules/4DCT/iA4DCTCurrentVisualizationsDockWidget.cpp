@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTCurrentVisualizationsDockWidget.h"
 // iA
@@ -41,11 +41,11 @@ iA4DCTCurrentVisualizationsDockWidget::iA4DCTCurrentVisualizationsDockWidget( QW
 	setupUi( this );
 
 	lvCurrentVisModules->setModel( m_model );
-	connect( lvCurrentVisModules->selectionModel(), SIGNAL( selectionChanged( QItemSelection, QItemSelection ) ), this, SLOT( selectionChanged( QItemSelection, QItemSelection ) ) );
-	connect( pbRemove, SIGNAL( clicked() ), this, SLOT( onRemoveButtonClicked() ) );
+	connect( lvCurrentVisModules->selectionModel( ), SIGNAL( selectionChanged( QItemSelection, QItemSelection ) ), this, SLOT( selectionChanged( QItemSelection, QItemSelection ) ) );
+	connect( pbRemove, SIGNAL( clicked( ) ), this, SLOT( onRemoveButtonClicked( ) ) );
 }
 
-iA4DCTCurrentVisualizationsDockWidget::~iA4DCTCurrentVisualizationsDockWidget()
+iA4DCTCurrentVisualizationsDockWidget::~iA4DCTCurrentVisualizationsDockWidget( )
 {
 	delete m_model;
 }
@@ -54,7 +54,7 @@ void iA4DCTCurrentVisualizationsDockWidget::setCurrentStage( int stage )
 {
 	m_currentStage = stage;
 	sbPreview->setValue( m_currentStage );
-	updateContext();
+	updateContext( );
 }
 
 void iA4DCTCurrentVisualizationsDockWidget::setCollection( iAVisModulesCollection * collection )
@@ -62,12 +62,12 @@ void iA4DCTCurrentVisualizationsDockWidget::setCollection( iAVisModulesCollectio
 	m_collection = collection;
 }
 
-void iA4DCTCurrentVisualizationsDockWidget::updateContext()
+void iA4DCTCurrentVisualizationsDockWidget::updateContext( )
 {
 	if( m_collection == nullptr )
 		return;
 
-	m_visModulesNameList.clear();
+	m_visModulesNameList.clear( );
 	m_visModulesList = m_collection->getModulesByStage( m_currentStage );
 	for( auto item : m_visModulesList ) {
 		m_visModulesNameList << item->name;
@@ -78,22 +78,21 @@ void iA4DCTCurrentVisualizationsDockWidget::updateContext()
 void iA4DCTCurrentVisualizationsDockWidget::selectionChanged( const QItemSelection & selected, const QItemSelection & deselected )
 {
 	m_currentVisModule = nullptr;
-	if( selected.size() == 0 ) {
+	if( selected.size( ) == 0 ) {
 		emit selectedVisModule( nullptr );
-	}
-	else if( selected.size() == 1 ) {
-		m_currentVisModule = m_visModulesList[ selected.indexes()[0].row() ];
+	} else if( selected.size( ) == 1 ) {
+		m_currentVisModule = m_visModulesList[selected.indexes( )[0].row( )];
 		emit selectedVisModule( m_currentVisModule->module );
 	}
 }
 
-void iA4DCTCurrentVisualizationsDockWidget::onRemoveButtonClicked()
+void iA4DCTCurrentVisualizationsDockWidget::onRemoveButtonClicked( )
 {
 	if( m_currentVisModule != nullptr ) {
 		m_currentVisModule->stages.remove( m_currentStage );
 		m_currentVisModule = nullptr;
 		emit selectedVisModule( nullptr );
 	}
-	updateContext();
-	emit removedVisModule();
+	updateContext( );
+	emit removedVisModule( );
 }

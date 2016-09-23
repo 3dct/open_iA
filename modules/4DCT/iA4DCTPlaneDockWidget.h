@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IA4DCTPLANEDOCKWIDGET_H
 #define IA4DCTPLANEDOCKWIDGET_H
 // Ui
@@ -37,15 +37,15 @@ public:
 	void		attachTo( iAPlaneVisModule * module );
 
 signals:
-	void		updateRenderWindow();
+	void		updateRenderWindow( );
 
 private slots:
 	void		changedSlice( int val );
 	void		changedOpacity( int val );
 	void		enableShading( int state );
-	void		setXYDir();
-	void		setXZDir();
-	void		setYZDir();
+	void		setXYDir( );
+	void		setXZDir( );
+	void		setYZDir( );
 	void		hightlightDefectsButtonClicked( );
 	void		densityMapButtonClicked( );
 

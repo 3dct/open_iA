@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef DLG_4DCTFILEOPEN_H
 #define DLG_4DCTFILEOPEN_H
 // Ui
@@ -39,10 +39,10 @@ class dlg_4DCTFileOpen : public QDialog, public Ui::FileOpenDialog
 public:
 						dlg_4DCTFileOpen( QWidget * parent );
 	void				setData( iA4DCTData * data );
-	iA4DCTFileData		getFile();
+	iA4DCTFileData		getFile( );
 
 public slots:
-	void				accept();
+	void				accept( );
 	void				onTreeViewDoubleClicked( const QModelIndex & index );
 
 private:

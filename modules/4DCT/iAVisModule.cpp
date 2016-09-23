@@ -18,46 +18,47 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iAVisModule.h"
 // vtk
 #include <vtkRenderer.h>
 
-iAVisModule::iAVisModule()
+iAVisModule::iAVisModule( )
 	: m_enabled( false )
-{ /* not implemented */ }
+{ /* not implemented */
+}
 
-bool iAVisModule::isAttached()
+bool iAVisModule::isAttached( )
 {
 	return m_renderer != nullptr;
 }
 
-void iAVisModule::attachTo(vtkRenderer* renderer)
+void iAVisModule::attachTo( vtkRenderer* renderer )
 {
-	if (renderer == nullptr) return;
+	if( renderer == nullptr ) return;
 	m_renderer = renderer;
 }
 
-void iAVisModule::detach()
+void iAVisModule::detach( )
 {
 	m_renderer = nullptr;
 }
 
-void iAVisModule::reset()
+void iAVisModule::reset( )
 { /* not implemented */ }
 
-void iAVisModule::enable()
+void iAVisModule::enable( )
 {
 	m_enabled = true;
 }
 
-void iAVisModule::disable()
+void iAVisModule::disable( )
 {
 	m_enabled = false;
 }
 
-bool iAVisModule::isEnabled()
+bool iAVisModule::isEnabled( )
 {
 	return m_enabled;
 }

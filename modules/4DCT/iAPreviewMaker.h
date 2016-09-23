@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #ifndef IAPREVIEWMAKER_H
 #define IAPREVIEWMAKER_H
 // Qt
@@ -27,10 +27,11 @@
 class iAPreviewMaker
 {
 public:
-	static void		makeUsingType(QString fileName, QString thumbFileName);
+	static void		makeUsingType( QString fileName, QString thumbFileName );
+
 private:
 	template<typename TPixelType>
-	static void		makeUsingType(QString filename, QString thumbFileName);
+	static void		makeUsingType( QString filename, QString thumbFileName );
 };
- 
+
 #endif // IAPREVIEWMAKER_H
