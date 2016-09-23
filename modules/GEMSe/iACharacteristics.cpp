@@ -93,7 +93,7 @@ void CharacteristicsCalculator::run()
 				statisticsImageFilter->Update();
 				m_result->SetAttribute(m_avgUncIdx, statisticsImageFilter->GetMean());
 			}
-			// Discard Probability();
+			m_result->DiscardProbability();
 		}
 	} catch (std::exception & e)
 	{
