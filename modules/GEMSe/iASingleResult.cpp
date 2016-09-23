@@ -153,7 +153,15 @@ bool iASingleResult::LoadLabelImage()
 
 void iASingleResult::DiscardDetails()
 {
-	m_labelImg = NULL;
+	m_labelImg = nullptr;
+}
+
+void iASingleResult::DiscardProbability()
+{
+	for (int i = 0; i < m_probabilityImg.size(); ++i)
+	{
+		m_probabilityImg[i] = nullptr;
+	}
 }
 
 double iASingleResult::GetAttribute(int id) const
@@ -184,7 +192,6 @@ iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int label)
 	}
 	return m_probabilityImg[label];
 }
-
 
 void iASingleResult::SetLabelImage(iAITKIO::ImagePointer labelImg)
 {

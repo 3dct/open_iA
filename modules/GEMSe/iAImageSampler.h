@@ -47,6 +47,7 @@ public:
 		QSharedPointer<iAAttributes> range,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
 		int sampleCount,
+		int labelCount,
 		QString const & outputBaseDir,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
@@ -69,6 +70,7 @@ private:
 	QSharedPointer<iAAttributes> m_parameters;
 	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
 	int m_sampleCount;
+	int m_labelCount;
 	ParameterSetsPointer m_parameterSets;
 	QString m_computationExecutable;
 	QString m_additionalArguments;

@@ -22,28 +22,29 @@
 #include "pch.h"
 #include "iACharacteristics.h"
 
-#include "iAConsole.h"
-#include "iASingleResult.h"
 #include "iAAttributes.h"
+#include "iAConsole.h"
+#include "iAImageTree.h"
+#include "iASingleResult.h"
+
 
 #include <itkImageFileWriter.h>
 #include <itkRelabelComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
+#include <itkStatisticsImageFilter.h>
 
 #include <QString>
 
-// TODO: Remove!
-const int DIM = 3;
-typedef int LabelPixelType;
-typedef itk::Image<LabelPixelType, DIM> LabelImageType;
-typedef LabelImageType::Pointer LabelImagePointer;
-
 CharacteristicsCalculator::CharacteristicsCalculator(
 		QSharedPointer<iASingleResult> result,
-		int objCountIdx):
+		int objCountIdx,
+		int avgUncIdx,
+		int labelCount):
 	m_result(result),
 	m_objCountIdx(objCountIdx),
-	m_success(true)
+	m_avgUncIdx(avgUncIdx),
+	m_success(true),
+	m_labelCount(labelCount)
 {}
 
 
@@ -73,6 +74,27 @@ void CharacteristicsCalculator::run()
 		relabel->Update();
 		int objCount = relabel->GetNumberOfObjects();
 		m_result->SetAttribute(m_objCountIdx, objCount);
+
+		if (m_result->GetProbabilityImg(0))
+		{
+			for (int i = 0; i < m_labelCount; ++i)
+			{
+				ProbabilityImageType* probImg = dynamic_cast<ProbabilityImageType*>(m_result->GetProbabilityImg(i).GetPointer());
+				if (!probImg)
+				{
+					DEBUG_LOG(QString("Invalid probability image type!"));
+					m_success = false;
+					return;
+				}
+				probImg->ReleaseDataFlagOff();
+				typedef itk::StatisticsImageFilter<ProbabilityImageType> StatImgFilter;
+				StatImgFilter::Pointer statisticsImageFilter = StatImgFilter::New();
+				statisticsImageFilter->SetInput(probImg);
+				statisticsImageFilter->Update();
+				m_result->SetAttribute(m_avgUncIdx, statisticsImageFilter->GetMean());
+			}
+			// Discard Probability();
+		}
 	} catch (std::exception & e)
 	{
 		DEBUG_LOG(QString("An exception occured while computing derived output: %1").arg(e.what()));

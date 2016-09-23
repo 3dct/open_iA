@@ -176,6 +176,7 @@ void dlg_GEMSeControl::StartSampling()
 			parameters,
 			m_dlgSamplingSettings->GetGenerator(),
 			m_dlgSamplingSettings->GetSampleCount(),
+			m_dlgSamplingSettings->GetLabelCount(),
 			m_outputFolder,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,

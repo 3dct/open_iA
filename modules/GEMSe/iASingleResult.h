@@ -57,6 +57,8 @@ public:
 	// TODO: check if that can be done automatically somehow
 	void DiscardDetails();
 
+	void DiscardProbability();
+
 	//! get attribute (parameter or characteristic)
 	double GetAttribute(int id) const;
 	
