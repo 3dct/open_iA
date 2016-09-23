@@ -46,6 +46,7 @@ iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
 	connect( pbDensityMap, SIGNAL( clicked( ) ), this, SLOT( densityMapButtonClicked( ) ) );
 	connect( pbNext, SIGNAL( clicked( ) ), this, SLOT( nextSlice( ) ) );
 	connect( pbPrevious, SIGNAL( clicked( ) ), this, SLOT( previousSlice( ) ) );
+	connect( cbHighlighting, SIGNAL( stateChanged( int ) ), this, SLOT( enableHighlighting( int ) ) );
 }
 
 void iA4DCTPlaneDockWidget::attachTo( iAPlaneVisModule * module )
@@ -87,13 +88,10 @@ void iA4DCTPlaneDockWidget::changedOpacity( int val )
 
 void iA4DCTPlaneDockWidget::enableShading( int state )
 {
-	if( m_visModule == nullptr )
-		return;
-	if( state == Qt::Checked ) {
+	if( state == Qt::Checked )
 		m_visModule->enableShading( );
-	} else {
+	else
 		m_visModule->disableShading( );
-	}
 	emit updateRenderWindow( );
 }
 
@@ -161,8 +159,8 @@ void iA4DCTPlaneDockWidget::hightlightDefectsButtonClicked( )
 		defectsColors.push_back( dialog.cbCracks->getColor( ) );
 	}
 
-
 	m_visModule->highlightDefects<unsigned short>( defectsLists, defectsColors, dialog.leLabeledImg->text( ) );
+	cbHighlighting->setEnabled( true ); cbHighlighting->setChecked( true );
 }
 
 void iA4DCTPlaneDockWidget::densityMapButtonClicked( )
@@ -187,4 +185,13 @@ void iA4DCTPlaneDockWidget::nextSlice( )
 void iA4DCTPlaneDockWidget::previousSlice( )
 {
 	sSlice->setValue( sSlice->value( ) - 1 );
+}
+
+void iA4DCTPlaneDockWidget::enableHighlighting( int state )
+{
+	if( state == Qt::Checked )
+		m_visModule->enableHighlighting( true );
+	else
+		m_visModule->enableHighlighting( false );
+	emit updateRenderWindow( );
 }

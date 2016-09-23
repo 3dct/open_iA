@@ -24,15 +24,14 @@
 // iA
 #include "iA4DCTVisWin.h"
 // vtk
-#include <vtkPlaneSource.h>
+#include <vtkImageCast.h>
+#include <vtkImageShiftScale.h>
+#include <vtkMatrix4x4.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkTexture.h>
-#include <vtkMatrix4x4.h>
-#include <vtkImageCast.h>
-#include <vtkProperty.h>
-#include <vtkImageShiftScale.h>
-#include <vtkRenderWindow.h>
 
 iAPlaneVisModule::iAPlaneVisModule( )
 	: iAVisModule( )
@@ -162,9 +161,9 @@ void iAPlaneVisModule::setSlice( int slice )
 	m_reslice->SetResliceAxes( resliceAxes );
 	m_reslice->Update( );
 
-	setPlanePosition( slice );
-
 	m_texture->SetInputConnection( m_reslice->GetOutputPort( ) );
+
+	setPlanePosition( slice );
 }
 
 void iAPlaneVisModule::setOpacity( double opacity )
@@ -209,26 +208,6 @@ void iAPlaneVisModule::setDirYZ( )
 	setSlice( settings.Slice );
 }
 
-//void iAPlaneVisModule::highlightDefects( QVector<iA4DCTDefects::VectorDataType> defects, QVector<QColor> colors, QString labeledImg )
-//{
-//	// read the labeled image
-//	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-//	reader->SetFileName( labeledImg.toStdString().c_str( ) );
-//	reader->Update( );
-//
-//	int * dims = reader->GetOutput( )->GetDimensions( );
-//	for (int x = 0; x < dims[0]; x++)
-//	{
-//		for (int y = 0; y < dims[1]; y++)
-//		{
-//			for (int z = 0; z < dims[2]; z++)
-//			{
-//				
-//			}
-//		}
-//	}
-//}
-
 void iAPlaneVisModule::setPlanePosition( int slice )
 {
 	switch( settings.Dir )
@@ -263,4 +242,13 @@ void iAPlaneVisModule::setPlanePosition( int slice )
 void iAPlaneVisModule::getImageSize( int * imgSize )
 {
 	imgSize[0] = m_imgSize[0]; imgSize[1] = m_imgSize[1]; imgSize[2] = m_imgSize[2];
+}
+
+void iAPlaneVisModule::enableHighlighting( bool enable )
+{
+	if( enable )
+		m_reslice->SetInputData( m_colorImg );
+	else
+		m_reslice->SetInputData( m_img );
+	m_plane->Modified( );
 }

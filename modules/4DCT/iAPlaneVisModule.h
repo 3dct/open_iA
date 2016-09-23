@@ -26,18 +26,18 @@
 #include "iA4DCTDefects.h"
 // vtk
 #include <vtkImageData.h>
-#include <vtkImageReslice.h>
-#include <vtkMetaImageReader.h>
-#include <vtkSmartPointer.h>
 #include <vtkImageMapToColors.h>
+#include <vtkImageReslice.h>
 #include <vtkLookupTable.h>
+#include <vtkMetaImageReader.h>
+#include <vtkPlaneSource.h>
+#include <vtkSmartPointer.h>
 // Qt
 #include <QString>
 #include <QColor>
 #include <QVector>
 
 class vtkActor;
-class vtkPlaneSource;
 class vtkPolyDataMapper;
 class vtkTexture;
 
@@ -66,6 +66,7 @@ public:
 	void		setDirXZ( );
 	void		setDirYZ( );
 	void		getImageSize( int * imgSize );
+	void		enableHighlighting( bool enable );
 
 	template<typename T>
 	void		highlightDefects( QVector<QString> defects, QVector<QColor> colors, QString labeledImgPath );
@@ -85,9 +86,8 @@ private:
 	vtkSmartPointer<vtkActor>				m_actor;
 	vtkSmartPointer<vtkImageReslice>		m_reslice;
 	vtkSmartPointer<vtkImageData>			m_img;
+	vtkSmartPointer<vtkImageData>			m_colorImg;
 
-	//enum Direction { XY, XZ, YZ };
-	//Direction		m_dir;
 	double			m_size[3];
 	int				m_imgSize[3];
 	double			m_imgSpacing[3];
@@ -136,7 +136,7 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 	scalarValuesToColors->SetLookupTable( lookupTable );
 	scalarValuesToColors->SetInputData( m_img );
 	scalarValuesToColors->Update( );
-	m_img = scalarValuesToColors->GetOutput( );
+	m_colorImg = scalarValuesToColors->GetOutput( );
 
 	int * dims = labeledImg->GetDimensions( );
 	for( int x = 0; x < dims[0]; x++ )
@@ -149,7 +149,7 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 				for( int i = 0; i < hashes.size( ); i++ )
 				{
 					if( hashes[i].contains( labeledPixel[0] ) ) {
-						unsigned char * imgPixel = static_cast<unsigned char *>( m_img->GetScalarPointer( x, y, z ) );
+						unsigned char * imgPixel = static_cast<unsigned char *>( m_colorImg->GetScalarPointer( x, y, z ) );
 						imgPixel[0] = colors[i].red( );
 						imgPixel[1] = colors[i].green( );
 						imgPixel[2] = colors[i].blue( );
@@ -161,7 +161,8 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 		}
 	}
 
-	m_reslice->SetInputData( m_img );
+	m_reslice->SetInputData( m_colorImg );
+	m_plane->Modified( );
 }
 
 template<typename T>
