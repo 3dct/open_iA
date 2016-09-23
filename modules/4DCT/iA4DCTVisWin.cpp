@@ -44,6 +44,7 @@
 #include "iAMagicLens.h"
 #include "iA4DCTToolsDockWidget.h"
 #include "iADefectVisModule.h"
+#include "iA4DCTFileData.h"
 // Qt
 #include <QFileDialog>
 #include <QSettings>
@@ -143,7 +144,6 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin* parent /*= 0*/ )
 	connect( m_dwTools->pbFractureViewerAdd,	SIGNAL( clicked( ) ), this, SLOT( onExtractButtonClicked( ) ) );
 	connect( m_dwTools->pbFractureViewerLoad,	SIGNAL( clicked( ) ), this, SLOT( onLoadButtonClicked( ) ) );
 	connect( m_dwTools->pbSurfaceViewerAdd,		SIGNAL( clicked( ) ), this, SLOT( addSurfaceVis( ) ) );
-	connect( m_dwTools->pbCalcDensityMap,		SIGNAL( clicked( ) ), this, SLOT( calcDensityMap( ) ) );
 	connect( m_dwTools->cbBackground,			SIGNAL( colorChanged( QColor ) ), this, SLOT( changeBackground( QColor ) ) );
 	connect( actionMagicLens,	SIGNAL( toggled( bool ) ), this, SLOT( enableMagicLens( bool ) ) );
 	connect( sStage,		SIGNAL( valueChanged( int ) ), this, SLOT( onStageSliderValueChanged( int ) ) );
@@ -186,7 +186,7 @@ void iA4DCTVisWin::updateRenderWindow()
 }
 
 // show dialog to select an image file
-bool iA4DCTVisWin::showDialog( QString & imagePath )
+bool iA4DCTVisWin::showDialog( iA4DCTFileData & fileData )
 {
 	/*int stageId;
 	return showDialog( imagePath, stageId );*/
@@ -195,22 +195,22 @@ bool iA4DCTVisWin::showDialog( QString & imagePath )
 	dialog.setData( m_mainWin->getStageData() );
 	if( dialog.exec() != QDialog::Accepted )
 		return false;
-	imagePath = dialog.getFile().Path;
+	fileData = dialog.getFile();
 	return true;
 }
 
 // load a surface from the input surface file
 void iA4DCTVisWin::onLoadButtonClicked()
 {
-	QString imagePath;
-	if(!showDialog( imagePath )) {
+	iA4DCTFileData fileData;
+	if(!showDialog( fileData )) {
 		return;
 	}
 
 	iAFractureVisModule* fractureView = new iAFractureVisModule;
 	fractureView->attachTo( m_mainRen );
 	fractureView->setSize( m_size );
-	fractureView->load( imagePath );
+	fractureView->load( fileData.Path );
 	static int number = 0;
 	m_visModules.addModule( fractureView, "Fracture (loaded) " + QString::number( number++ ) );
 	m_dwAllVis->updateContext();
@@ -219,11 +219,11 @@ void iA4DCTVisWin::onLoadButtonClicked()
 // calculate a new surface from the input file
 void iA4DCTVisWin::onExtractButtonClicked()
 {
-	QString imagePath;
-	if(!showDialog( imagePath )) {
+	iA4DCTFileData fileData;
+	if(!showDialog( fileData )) {
 		return;
 	}
-	iAMhdFileInfo mhdFileInfo( imagePath );
+	iAMhdFileInfo mhdFileInfo( fileData.Path );
 	double imgSize[ 3 ], imgSpacing[ 3 ];
 	mhdFileInfo.getFileDimSize( imgSize );
 	mhdFileInfo.getElementSpacing( imgSpacing );
@@ -240,7 +240,7 @@ void iA4DCTVisWin::onExtractButtonClicked()
 		fractureView->attachTo( m_mainRen );
 	}
 	fractureView->setSize( size );
-	fractureView->extract( imagePath );
+	fractureView->extract( fileData.Path );
 	static int number = 0;
 	m_visModules.addModule( fractureView, "Fracture (extracted) " + QString::number( number++ ) );
 
@@ -272,6 +272,7 @@ void iA4DCTVisWin::addSurfaceVis()
 		return;
 
 	QString imagePath = dialog.getImagePath();
+	QString imageName = dialog.getImageName();
 	double threshold = dialog.getThreshold();
 
 	// add vis module
@@ -288,7 +289,7 @@ void iA4DCTVisWin::addSurfaceVis()
 	//regionView->setDensityMapDimension( dim );
 	regionView->setImage( imagePath );
 	static int number = 0;
-	m_visModules.addModule( regionView, "Region vis " + QString::number( number++ ) );
+	m_visModules.addModule( regionView, "Final Fracture Surface (" + imageName + ") " + QString::number( number++ ) );
 	m_dwAllVis->updateContext();
 }
 
@@ -322,8 +323,8 @@ void iA4DCTVisWin::addBoundingBox()
 void iA4DCTVisWin::addDefectView()
 {
 	// open dialog
-	QString imagePath;
-	if( !showDialog( imagePath ) ) {
+	iA4DCTFileData fileData;
+	if( !showDialog( fileData ) ) {
 		return;
 	}
 
@@ -337,27 +338,27 @@ void iA4DCTVisWin::addDefectView()
 	{
 		planeVis->attachTo( m_mainRen );
 	}
-	planeVis->setImage( imagePath );
+	planeVis->setImage( fileData.Path );
 	planeVis->setSize( m_size );
 	static int number = 0;
-	m_visModules.addModule( planeVis, "Slice " + QString::number( number++ ) );
+	m_visModules.addModule( planeVis, "Defect Viewer (" + fileData.Name + ") " + QString::number( number++ ) );
 	m_dwAllVis->updateContext();
 }
 
 void iA4DCTVisWin::addDefectVis( )
 {
 	// open dialog
-	QString imagePath;
-	if( !showDialog( imagePath ) ) {
+	iA4DCTFileData fileData;
+	if( !showDialog( fileData ) ) {
 		return;
 	}
 
 	iADefectVisModule* defVis = new iADefectVisModule;
-	defVis->setInputFile( imagePath );
+	defVis->setInputFile( fileData.Path );
 	defVis->attachTo( m_mainRen );
 	defVis->setColor( 1, 0.75, 0 );
 	static int number = 0;
-	m_visModules.addModule( defVis, "DefectVis " + QString::number( number++ ) );
+	m_visModules.addModule( defVis, "3D Defect Viewer (" + fileData.Name + ") " + QString::number( number++ ) );
 	m_dwAllVis->updateContext();
 }
 

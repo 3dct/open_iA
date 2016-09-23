@@ -23,6 +23,7 @@
 #include "dlg_highlightDefects.h"
 // iA
 #include "iA4DCTVisWin.h"
+#include "iA4DCTFileData.h"
 
 const QColor CrackColor(91, 155, 213);		// blue
 const QColor DebondingColor(0, 176, 80);	// green
@@ -55,35 +56,35 @@ void dlg_highlightDefects::setVisWin( iA4DCTVisWin * visWin )
 
 void dlg_highlightDefects::pulloutsButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	lePullouts->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	lePullouts->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::breakagesButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leBreakages->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leBreakages->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::debondingsButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leDebondings->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leDebondings->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::cracksButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leCracks->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leCracks->setText( fileData.Path );
 }
 
 void dlg_highlightDefects::labeledImgButtonClicked( )
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leLabeledImg->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leLabeledImg->setText( fileData.Path );
 }

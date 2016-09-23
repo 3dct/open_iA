@@ -36,8 +36,9 @@ class dlg_regionView : public QDialog, public Ui::RegionViewDialog
 public:
 						dlg_regionView( QWidget * parent );
 	void				setData( iA4DCTData * data );
-	QString				getImagePath();
-	double				getThreshold();
+	QString				getImagePath( );
+	QString				getImageName( );
+	double				getThreshold( );
 	//void				getDimension( int * dim );
 
 private slots:

@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "pch.h"
 #include "iA4DCTPlaneDockWidget.h"
 // iA
@@ -38,7 +38,7 @@ iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
 
 	connect( sSlice, SIGNAL( valueChanged( int ) ), this, SLOT( changedSlice( int ) ) );
 	connect( sOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( changedOpacity( int ) ) );
-	connect( cbShading, SIGNAL( stateChanged( int ) ), this, SLOT( enableShading ( int ) ) );
+	connect( cbShading, SIGNAL( stateChanged( int ) ), this, SLOT( enableShading( int ) ) );
 	connect( rbXY, SIGNAL( clicked( ) ), this, SLOT( setXYDir( ) ) );
 	connect( rbXZ, SIGNAL( clicked( ) ), this, SLOT( setXZDir( ) ) );
 	connect( rbYZ, SIGNAL( clicked( ) ), this, SLOT( setYZDir( ) ) );
@@ -49,8 +49,8 @@ iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
 void iA4DCTPlaneDockWidget::attachTo( iAPlaneVisModule * module )
 {
 	m_visModule = module;
-	sSlice->setValue( m_visModule->settings.Slice * sSlice->maximum() );
-	sOpacity->setValue( m_visModule->settings.Opacity * sOpacity->maximum() );
+	sSlice->setValue( m_visModule->settings.Slice * sSlice->maximum( ) );
+	sOpacity->setValue( m_visModule->settings.Opacity * sOpacity->maximum( ) );
 	cbShading->setChecked( m_visModule->settings.Shading );
 	switch( m_visModule->settings.Dir )
 	{
@@ -70,18 +70,18 @@ void iA4DCTPlaneDockWidget::changedSlice( int val )
 {
 	if( m_visModule == nullptr )
 		return;
-	double doubleVal = (double)val / sSlice->maximum();
+	double doubleVal = ( double )val / sSlice->maximum( );
 	m_visModule->setSlice( doubleVal );
-	emit updateRenderWindow();
+	emit updateRenderWindow( );
 }
 
 void iA4DCTPlaneDockWidget::changedOpacity( int val )
 {
 	if( m_visModule == nullptr )
 		return;
-	double doubleVal = (double)val / sOpacity->maximum();
+	double doubleVal = ( double )val / sOpacity->maximum( );
 	m_visModule->setOpacity( doubleVal );
-	emit updateRenderWindow();
+	emit updateRenderWindow( );
 }
 
 void iA4DCTPlaneDockWidget::enableShading( int state )
@@ -89,42 +89,42 @@ void iA4DCTPlaneDockWidget::enableShading( int state )
 	if( m_visModule == nullptr )
 		return;
 	if( state == Qt::Checked ) {
-		m_visModule->enableShading();
+		m_visModule->enableShading( );
 	} else {
-		m_visModule->disableShading();
+		m_visModule->disableShading( );
 	}
-	emit updateRenderWindow();
+	emit updateRenderWindow( );
 }
 
-void iA4DCTPlaneDockWidget::setXYDir()
+void iA4DCTPlaneDockWidget::setXYDir( )
 {
 	if( m_visModule == nullptr )
 		return;
-	m_visModule->setDirXY();
-	emit updateRenderWindow();
+	m_visModule->setDirXY( );
+	emit updateRenderWindow( );
 }
 
-void iA4DCTPlaneDockWidget::setXZDir()
+void iA4DCTPlaneDockWidget::setXZDir( )
 {
 	if( m_visModule == nullptr )
 		return;
-	m_visModule->setDirXZ();
-	emit updateRenderWindow();
+	m_visModule->setDirXZ( );
+	emit updateRenderWindow( );
 }
 
-void iA4DCTPlaneDockWidget::setYZDir()
+void iA4DCTPlaneDockWidget::setYZDir( )
 {
 	if( m_visModule == nullptr )
 		return;
-	m_visModule->setDirYZ();
-	emit updateRenderWindow();
+	m_visModule->setDirYZ( );
+	emit updateRenderWindow( );
 }
 
 void iA4DCTPlaneDockWidget::hightlightDefectsButtonClicked( )
 {
 	dlg_highlightDefects dialog( this );
 	dialog.setVisWin( m_visWin );
-	if( dialog.exec() != QDialog::Accepted )
+	if( dialog.exec( ) != QDialog::Accepted )
 		return;
 
 	QVector<QString> defectsLists; QVector<QColor> defectsColors;
@@ -153,7 +153,7 @@ void iA4DCTPlaneDockWidget::hightlightDefectsButtonClicked( )
 		defectsLists.push_back( dialog.leCracks->text( ) );
 		defectsColors.push_back( dialog.cbCracks->getColor( ) );
 	}
-	
+
 
 	m_visModule->highlightDefects<unsigned short>( defectsLists, defectsColors, dialog.leLabeledImg->text( ) );
 }
@@ -162,11 +162,11 @@ void iA4DCTPlaneDockWidget::densityMapButtonClicked( )
 {
 	dlg_2dDensityMap dialog( this );
 	dialog.setVisWin( m_visWin );
-	if( dialog.exec() != QDialog::Accepted )
+	if( dialog.exec( ) != QDialog::Accepted )
 		return;
 
 	int size[3] = { dialog.sbSizeX->value( ), dialog.sbSizeY->value( ), dialog.sbSizeZ->value( ) };
-	m_visModule->densityMap<unsigned short>( dialog.leDefect->text(),
+	m_visModule->densityMap<unsigned short>( dialog.leDefect->text( ),
 											 dialog.cbDefect->getColor( ),
 											 dialog.leLabeledImg->text( ),
 											 size );

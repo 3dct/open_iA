@@ -23,7 +23,7 @@
 #include "dlg_2dDensityMap.h"
 // iA
 #include "iA4DCTVisWin.h"
-
+#include "iA4DCTFileData.h"
 
 dlg_2dDensityMap::dlg_2dDensityMap( QWidget * parent /*= 0 */ )
 	: QDialog( parent )
@@ -45,14 +45,14 @@ void dlg_2dDensityMap::setVisWin( iA4DCTVisWin * visWin )
 
 void dlg_2dDensityMap::defectButtonClicked()
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leDefect->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leDefect->setText( fileData.Path );
 }
 
 void dlg_2dDensityMap::labeledImgButtonClicked()
 {
-	QString file;
-	m_visWin->showDialog( file );
-	leLabeledImg->setText( file );
+	iA4DCTFileData fileData;
+	m_visWin->showDialog( fileData );
+	leLabeledImg->setText( fileData.Path );
 }

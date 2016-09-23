@@ -51,6 +51,11 @@ QString dlg_regionView::getImagePath()
 	return m_file.Path;
 }
 
+QString dlg_regionView::getImageName( )
+{
+	return m_file.Name;
+}
+
 double dlg_regionView::getThreshold()
 {
 	return dspThreshold->value();

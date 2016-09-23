@@ -50,6 +50,7 @@ class iA4DCTToolsDockWidget;
 class iAVisModule;
 class vtkOrientationMarkerWidget;
 class iA4DCTDefectVisDockWidget;
+class iA4DCTFileData;
 
 const float SCENE_SCALE = 0.01;
 
@@ -62,7 +63,7 @@ public:
 	void				setImageSize( double * size );
 	void				setNumberOfStages( int number );
 
-	bool				showDialog( QString & imagePath );
+	bool				showDialog( iA4DCTFileData & fileData );
 
 public slots:
 	void				updateRenderWindow( );
