@@ -130,7 +130,6 @@ iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstract
 QColor iAFilledLineFunctionDrawer::getFillColor() const
 {
 	QColor fillColor = getColor();
-	fillColor.setAlpha( getColor().alpha() / 3);
 	return fillColor;
 }
 
@@ -235,7 +234,6 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<C
 		x = (int)(j * binWidth) + m_margin/2;
 		h = converter->Diagram2ScreenY(rawData[j]);
 		QColor fillColor = getColor();
-		fillColor.setAlpha( getColor().alpha() / 3);
 		painter.fillRect(QRect(x, 1, intBinWidth, h), fillColor);
 	}
 }
