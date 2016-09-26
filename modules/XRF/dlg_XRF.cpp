@@ -109,7 +109,7 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	gb_pieGlyphsSettings->hide();
 
 	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData> (new iAEnergySpectrumDiagramData(m_xrfData.data()));
-	m_voxelSpectrumDrawer = QSharedPointer<iAFilledLineFunctionDrawer>(new iAFilledLineFunctionDrawer(m_voxelEnergy, QColor(150, 0, 0)));
+	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionDrawer>(new iAStepFunctionDrawer(m_voxelEnergy, QColor(150, 0, 0)));
 
 	m_selectedBinXDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 150, 0, 0, 50 ) ) );
 	m_selectedBinYDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 0, 0, 150, 50 ) ) );
@@ -1419,7 +1419,7 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
 		m_accumulatedXRF->GetMaxValue()));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
-	QSharedPointer<iAFilledLineFunctionDrawer> drawable(new iAFilledLineFunctionDrawer(data, color));
+	QSharedPointer<iAStepFunctionDrawer> drawable(new iAStepFunctionDrawer(data, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
 	m_spectrumDiagram->AddDataset(drawable);
 	m_spectrumDiagram->redraw();

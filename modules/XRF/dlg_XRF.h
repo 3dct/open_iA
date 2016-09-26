@@ -61,7 +61,7 @@ class iAEnergySpectrumDiagramData;
 class iAReferenceSpectraLibrary;
 class iAAbstractDrawableFunction;
 class iAMultipleFunctionDrawer;
-class iAFilledLineFunctionDrawer;
+class iAStepFunctionDrawer;
 class iAElementConcentrations;
 class iASelectedBinDrawer;
 class iAWidgetAddHelper;
@@ -174,7 +174,7 @@ private:
 	QSharedPointer<iAEnergySpectrumDiagramData>				m_voxelEnergy;
 	QSharedPointer<iAAccumulatedXRFData>					m_accumulatedXRF;
 
-	QMap<int, QSharedPointer<iAFilledLineFunctionDrawer> >	m_refSpectraDrawers;
+	QMap<int, QSharedPointer<iAStepFunctionDrawer> >		m_refSpectraDrawers;
 	QSharedPointer<iAReferenceSpectraLibrary>				m_refSpectraLib;
 	
 	QSharedPointer<iAMultipleFunctionDrawer>				m_spectraLinesDrawer;

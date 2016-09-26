@@ -304,7 +304,7 @@ void iARangeSliderDiagramWidget::setupSelectionDrawer()
 	if ( m_selectionDrawer )
 		RemoveDataset( m_selectionDrawer );
 
-	m_selectionDrawer = QSharedPointer<iAFilledLineFunctionDrawer>( new iAFilledLineFunctionDrawer( m_selectedData, m_selectionColor ) );
+	m_selectionDrawer = QSharedPointer<iAStepFunctionDrawer>( new iAStepFunctionDrawer( m_selectedData, m_selectionColor ) );
 	AddDataset( m_selectionDrawer );
 }
 
@@ -331,7 +331,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 	
 	if ( m_histogramDrawerList.size() )
 	{
-		QListIterator<QSharedPointer<iAFilledLineFunctionDrawer> > it( m_histogramDrawerList );
+		QListIterator<QSharedPointer<iAStepFunctionDrawer> > it( m_histogramDrawerList );
 		while ( it.hasNext() )
 			RemoveDataset( it.next() );
 
@@ -346,8 +346,8 @@ void iARangeSliderDiagramWidget::selectSlot()
 		QSharedPointer<iAAbstractDiagramData> selectedData = QSharedPointer<iAAbstractDiagramData>(
 			new iAFilteringDiagramData( GetData(), row - 1, row - 1 ) );	//-1 cause of DiagramData
 
-		QSharedPointer<iAFilledLineFunctionDrawer> selectionDrawer = QSharedPointer<iAFilledLineFunctionDrawer>(
-			new iAFilledLineFunctionDrawer( selectedData, QColor( Qt::yellow ) ) );
+		QSharedPointer<iAStepFunctionDrawer> selectionDrawer = QSharedPointer<iAStepFunctionDrawer>(
+			new iAStepFunctionDrawer( selectedData, QColor( Qt::yellow ) ) );
 
 		m_histogramDrawerList.append( selectionDrawer );
 		AddDataset( selectionDrawer );
@@ -359,7 +359,7 @@ void iARangeSliderDiagramWidget::deleteSlot()
 {
 	if ( m_histogramDrawerList.size() )
 	{
-		QListIterator<QSharedPointer<iAFilledLineFunctionDrawer> > it( m_histogramDrawerList );
+		QListIterator<QSharedPointer<iAStepFunctionDrawer> > it( m_histogramDrawerList );
 		while ( it.hasNext() )
 			RemoveDataset( it.next() );
 

@@ -74,7 +74,7 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAEnergySpectrumWidget::GetDat
 
 QSharedPointer<iAAbstractDrawableFunction> iAEnergySpectrumWidget::CreatePrimaryDrawer()
 {
-	return QSharedPointer<iAAbstractDrawableFunction>(new iAFilledLineFunctionDrawer(GetData(), QColor(70,70,70,255)));
+	return QSharedPointer<iAAbstractDrawableFunction>(new iAStepFunctionDrawer(GetData(), QColor(70,70,70,255)));
 }
 
 void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
