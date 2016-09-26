@@ -37,14 +37,14 @@ const QColor DefaultColors::SubtreeHighlightColor[MaxSelectedClusters] = {
 	QColor(240, 240, 240, 255)
 };
 const QColor DefaultColors::ClusterChartColor[MaxSelectedClusters] = {
-	QColor(255,  50,  50, 255),
-	QColor(255, 130, 130, 255),
-	QColor(255,  70,  70, 255),
-	QColor(255, 150, 150, 255),
-	QColor(255,  90,  90, 255),
-	QColor(255, 170, 170, 255),
-	QColor(255, 110, 110, 255),
-	QColor(255, 190, 190, 255)
+	QColor(255,  50,  50, 100),
+	QColor(255, 130, 130, 100),
+	QColor(255,  70,  70, 100),
+	QColor(255, 150, 150, 100),
+	QColor(255,  90,  90, 100),
+	QColor(255, 170, 170, 100),
+	QColor(255, 110, 110, 100),
+	QColor(255, 190, 190, 100)
 };
 const QColor DefaultColors::ImageChartColor          (255, 204,  51, 255);
 const QColor DefaultColors::FilteredChartColor       (185, 185, 185, 255);
