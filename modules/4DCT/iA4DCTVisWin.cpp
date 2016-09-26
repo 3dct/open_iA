@@ -26,7 +26,6 @@
 #include "dlg_regionView.h"
 #include "iA4DCTAllVisualizationsDockWidget.h"
 #include "iA4DCTBoundingBoxDockWidget.h"
-#include "iA4DCTCurrentVisualizationsDockWidget.h"
 #include "iA4DCTData.h"
 #include "iA4DCTDefectVisDockWidget.h"
 #include "iA4DCTFileData.h"
@@ -113,12 +112,8 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	// all visualizations view
 	m_dwAllVis = new iA4DCTAllVisualizationsDockWidget( this );
 	m_dwAllVis->setCollection( &m_visModules );
-	connect( m_dwAllVis, SIGNAL( addedVisualization( ) ), this, SLOT( addedVisualization( ) ) );
-	// current visualizations
-	m_dwCurrentVis = new iA4DCTCurrentVisualizationsDockWidget( this );
-	m_dwCurrentVis->setCollection( &m_visModules );
-	connect( m_dwCurrentVis, SIGNAL( selectedVisModule( iAVisModule * ) ), this, SLOT( selectedVisModule( iAVisModule * ) ) );
-	connect( m_dwCurrentVis, SIGNAL( removedVisModule( ) ), this, SLOT( updateVisualizations( ) ) );
+	connect( m_dwAllVis, SIGNAL( updateVisualizations( ) ), this, SLOT( updateVisualizations( ) ) );
+	connect( m_dwAllVis, SIGNAL( selectedVisModule( iAVisModule * ) ), this, SLOT( selectedVisModule( iAVisModule * ) ) );
 	// region visualization
 	m_dwRegionVis = new iA4DCTRegionViewDockWidget( this );
 	connect( m_dwRegionVis, SIGNAL( updateRenderWindow( ) ), this, SLOT( updateRenderWindow( ) ) );
@@ -127,7 +122,6 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	setTabPosition( Qt::LeftDockWidgetArea, QTabWidget::North );
 	setTabPosition( Qt::RightDockWidgetArea, QTabWidget::North );
 	addDockWidget( Qt::RightDockWidgetArea, m_dwAllVis );
-	addDockWidget( Qt::RightDockWidgetArea, m_dwCurrentVis );
 	addDockWidget( Qt::RightDockWidgetArea, m_dwTools );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwBoundingBox );
 	addDockWidget( Qt::LeftDockWidgetArea, m_dwFractureVis );
@@ -298,7 +292,8 @@ void iA4DCTVisWin::onStageSliderValueChanged( int val )
 {
 	m_currentStage = val;
 	m_dwAllVis->setCurrentStage( m_currentStage );
-	m_dwCurrentVis->setCurrentStage( m_currentStage );
+	m_dwAllVis->updateContext( );
+	selectedVisModule( nullptr );
 
 	updateVisualizations( );
 }
@@ -376,12 +371,6 @@ void iA4DCTVisWin::updateVisualizations( )
 		}
 	}
 	updateRenderWindow( );
-}
-
-void iA4DCTVisWin::addedVisualization( )
-{
-	updateVisualizations( );
-	m_dwCurrentVis->updateContext( );
 }
 
 void iA4DCTVisWin::selectedVisModule( iAVisModule * visModule )

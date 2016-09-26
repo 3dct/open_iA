@@ -38,7 +38,6 @@
 class QString;
 class iA4DCTAllVisualizationsDockWidget;
 class iA4DCTBoundingBoxDockWidget;
-class iA4DCTCurrentVisualizationsDockWidget;
 class iA4DCTDefectVisDockWidget;
 class iA4DCTFileData;
 class iA4DCTFractureVisDockWidget;
@@ -67,7 +66,6 @@ public:
 
 public slots:
 	void				updateRenderWindow( );
-	void				addedVisualization( );
 	void				selectedVisModule( iAVisModule * visModule );
 	void				updateVisualizations( );
 	void				changeBackground( QColor col );
@@ -90,7 +88,6 @@ private:
 	iA4DCTFractureVisDockWidget *			m_dwFractureVis;
 	iA4DCTPlaneDockWidget *					m_dwPlane;
 	iA4DCTAllVisualizationsDockWidget *		m_dwAllVis;
-	iA4DCTCurrentVisualizationsDockWidget *	m_dwCurrentVis;
 	iA4DCTRegionViewDockWidget *			m_dwRegionVis;
 	iA4DCTBoundingBoxDockWidget *			m_dwBoundingBox;
 	iA4DCTDefectVisDockWidget *				m_dwDefectVis;
