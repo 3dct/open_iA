@@ -359,6 +359,7 @@ int iAMagicLens::GetOffset(int idx) const
 void iAMagicLens::SetInterpolate(bool on)
 {
 	m_imageActor->SetInterpolate(on);
+	m_bgImageActor->SetInterpolate(on);
 }
 
 void iAMagicLens::SetOpacity(double opacity)
