@@ -338,7 +338,7 @@ SeedVector ExtractSeedVector(QString const & seedString, int width, int height, 
 	}
 	if (parseErrors.size() > 0)
 	{
-		QMessageBox::warning(0, "Segmentation Explorer", "Error(s) in seed file: \n"+parseErrors);
+		QMessageBox::warning(0, "Random Walker", "Error(s) in seed file: \n"+parseErrors);
 	}
 	return result;
 }
@@ -363,7 +363,7 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateRW()
 	SeedVector seedVector = ExtractSeedVector(seeds, extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1);
 	if (seedVector.size() < 2)
 	{
-		QMessageBox::warning(0, "Segmentation Explorer", "You must specify at least two seed points.");
+		QMessageBox::warning(0, "Random Walker", "You must specify at least two seed points.");
 		return false;
 	}
 	thread->SetParams(seedVector, beta);
