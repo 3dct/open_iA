@@ -51,3 +51,5 @@ protected:
 	FrameStyle m_frameStyle;
 	bool m_crossHair;
 };
+
+void drawBorderRectangle(QPainter & painter, QPointF const points[4], int const borderWidth);

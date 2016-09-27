@@ -22,14 +22,15 @@
 #include "pch.h"
 #include "iASlicerWidget.h"
 
+#include "iAArbitraryProfileOnSlicer.h"
+#include "iAChannelVisualizationData.h"
+#include "iAFramedQVTKWidget2.h"
+#include "iAMagicLens.h"
+#include "iAPieChartGlyph.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerProfile.h"
-#include "iAArbitraryProfileOnSlicer.h"
 #include "iASnakeSpline.h"
-#include "iAMagicLens.h"
-#include "iAChannelVisualizationData.h"
-#include "iAPieChartGlyph.h"
 
 #include <QVTKInteractorAdapter.h>
 #include <QVTKInteractor.h>
@@ -643,21 +644,6 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 	updateMagicLens();
 }
 
-
-namespace
-{
-	void drawBorder(QPainter & painter, QPointF const points[4], int const borderWidth)
-	{
-		for(int i=0; i<4; i++)
-		painter.drawLine(
-			points[i].x() + (i==0? borderWidth: (i==2? -borderWidth: 0) ),
-			points[i].y(),
-			points[(i+1)%4].x() + (i==0? -borderWidth: (i==2? borderWidth: 0) ),
-			points[(i+1)%4].y());
-	}
-}
-
-
 void iASlicerWidget::Frame()
 {
 	if(!m_isInitialized)
@@ -666,33 +652,34 @@ void iASlicerWidget::Frame()
 		return;
 	}
 
-	if(	m_magicLensExternal && m_magicLensExternal->Enabled() )
+	if(	m_magicLensExternal && m_magicLensExternal->Enabled() &&
+		(m_magicLensExternal->GetViewMode() == iAMagicLens::SIDE_BY_SIDE ||
+		m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET) &&
+		m_magicLensExternal->GetFrameWidth() > 0)
 	{
 		QPainter painter(this);
-		QPen pen( QColor(255, 255, 255, 150) );
+		QPen pen( QColor(255, 255, 255, 255) );
 		qreal magicLensFrameWidth = m_magicLensExternal->GetFrameWidth();
 		pen.setWidthF(magicLensFrameWidth);
 		painter.setPen(pen);
 		QRect vr = m_magicLensExternal->GetViewRect();
-
-		if( m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET )
+		qreal hw = pen.widthF() * 0.5;
+		int penWidth = static_cast<int>(pen.widthF());
+		const double UpperLeftFix = penWidth % 2;
+		const double HeightWidthFix = (penWidth == 1) ? 1 : 0;
+		QPointF points[4] = {
+			vr.topLeft()     + QPoint(UpperLeftFix + hw, UpperLeftFix + hw),
+			vr.topRight()    + QPoint(HeightWidthFix+1  -hw, UpperLeftFix + hw),
+			vr.bottomRight() + QPoint(HeightWidthFix + 1  -hw, HeightWidthFix + 1  -hw),
+			vr.bottomLeft()  + QPoint(UpperLeftFix + hw, HeightWidthFix + 1 -hw)
+		};
+		drawBorderRectangle(painter, points, magicLensFrameWidth);
+		if (m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET)
 		{
-			QPointF points[4] = { vr.topLeft(), vr.topRight(), vr.bottomRight(), vr.bottomLeft() };
-			drawBorder(painter, points, magicLensFrameWidth);
-			painter.drawLine(	points[1] + QPoint(magicLensFrameWidth, vr.height()*0.35),
-								points[0] + QPoint(m_magicLensExternal->GetOffset(0)+10, +10));
-			painter.drawLine(	points[2] - QPoint(-magicLensFrameWidth, vr.height()*0.35),
-								points[3] + QPoint(m_magicLensExternal->GetOffset(0)+10, -10));
-		}
-		else if( m_magicLensExternal->GetViewMode() == iAMagicLens::SIDE_BY_SIDE )
-		{
-			qreal hw = pen.widthF() * 0.5;
-			QPointF points[4] = {	vr.topLeft()		+ QPoint(-hw, -hw),
-				vr.topRight()		+ QPoint( hw+1, -hw), 
-				vr.bottomRight()	+ QPoint( hw+1,  hw+1), 
-				vr.bottomLeft()		+ QPoint(-hw,  hw+1) };
-			drawBorder(painter, points, magicLensFrameWidth);
-			
+			painter.drawLine(points[1] + QPoint(magicLensFrameWidth - hw, vr.height()*0.35),
+				points[0] + QPoint(m_magicLensExternal->GetOffset(0) + 10, +10));
+			painter.drawLine(points[2] - QPoint(-magicLensFrameWidth + hw, vr.height()*0.35),
+				points[3] + QPoint(m_magicLensExternal->GetOffset(0) + 10, -10));
 		}
 	}
 	QVTKWidget2::Frame();

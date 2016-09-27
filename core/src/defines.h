@@ -176,7 +176,7 @@ enum FilterID
 };
 
 const int DefaultMagicLensSize = 120;
-const int MinimumMagicLensSize = 10;
+const int MinimumMagicLensSize = 20;
 const int MaximumMagicLensSize = 8192;
 const int DefaultHistogramBins = 2048;
 

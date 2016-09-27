@@ -60,7 +60,7 @@ iAFramedQVTKWidget2::FrameStyle iAFramedQVTKWidget2::GetFrameStyle() const
 	
 void iAFramedQVTKWidget2::Frame()
 {
-	if(m_frameStyle != NO_FRAME)
+	if(m_frameStyle != NO_FRAME && m_penWidth > 0)
 	{
 		qreal hw = m_penWidth * 0.5;
 		const double RoundFix = 0.01;
@@ -81,21 +81,23 @@ void iAFramedQVTKWidget2::Frame()
 		switch (m_frameStyle)
 		{
 		case LEFT_SIDE:
-			painter.drawLine(points[0], points[3]);
+			pen.setColor(QColor(255, 255, 255, 255) );
+			painter.setPen(pen);
+			drawBorderRectangle(painter, points, m_penWidth);
+			pen.setColor(QColor(200, 200, 0, 125));
+			painter.setPen(pen);
+			painter.drawLine(
+				points[0]+QPointF(-1, m_penWidth-1),
+				points[3]-QPointF(1, m_penWidth+HeightWidthFix));
 			break;
 		case FRAMED:
-			for(int i=0; i<4; i++)       // to avoid double-drawing in the corners
-				painter.drawLine(
-					points[i].x()         + (i==0? m_penWidth : ((i==2)? -m_penWidth: 0)),
-					points[i].y(),
-					points[(i+1)%4].x()   + (i==0? -m_penWidth : ((i==2)? m_penWidth: 0)),
-					points[(i+1)%4].y());
+			drawBorderRectangle(painter, points, m_penWidth);
 			break;
 		}
 	}
 	if (m_crossHair)
 	{
-		double crossHairWidth = std::max(1.0, m_penWidth*0.5);
+		double crossHairWidth = 2;
 		QPainter painter(this);
 		QPen pen;
 		pen.setColor(QColor(200, 200, 0, 125));
@@ -105,6 +107,7 @@ void iAFramedQVTKWidget2::Frame()
 		painter.setPen(pen);
 		const int CrossHairBarSize = 10;
 		QPointF points[6] = {
+			// TODO: get actual mouse position (important if magic lens "stuck" on the edge)
 			QPointF(width()/2-CrossHairBarSize, height()/2),
 			QPointF(width()/2+CrossHairBarSize, height()/2),
 			QPointF(width()/2, height()/2-CrossHairBarSize),
@@ -119,4 +122,13 @@ void iAFramedQVTKWidget2::Frame()
 	}
 	QVTKWidget2::Frame();
 }
-	
+
+void drawBorderRectangle(QPainter & painter, QPointF const points[4], int const borderWidth)
+{
+	for (int i = 0; i<4; i++)       // to avoid double-drawing in the corners
+		painter.drawLine(
+			points[i].x()           + (i == 0 ? borderWidth : (i == 2 ? -borderWidth : 0)),
+			points[i].y(),
+			points[(i + 1) % 4].x() + (i == 0 ? -borderWidth : (i == 2 ? borderWidth : 0)),
+			points[(i + 1) % 4].y());
+}

@@ -32,6 +32,7 @@
 #include "iAHistogramWidget.h"
 #include "iAIOProvider.h"
 #include "iALogger.h"
+#include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iARenderer.h"
 #include "iASlicerData.h"
@@ -1123,8 +1124,9 @@ void MainWindow::prefs()
 		qssName = styleNames[looksStr];
 		applyQSS();
 
-		defaultPreferences.MagicLensSize = dlg.getValues()[6];
-		defaultPreferences.MagicLensFrameWidth = dlg.getValues()[7];
+		defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
+			static_cast<int>(dlg.getValues()[6]));
+		defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getValues()[7]));
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences, false))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
