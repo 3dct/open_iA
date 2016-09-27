@@ -512,7 +512,9 @@ int computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo &
 	typedef typename itk::OtsuMultipleThresholdsImageFilter < InputImageType, MaskImageType > multiOtsuFilterType;
 	typename multiOtsuFilterType::Pointer multiOtsufilter = multiOtsuFilterType::New();
 	multiOtsufilter->SetNumberOfThresholds( NbOfThr );
+#if (ITK_MAJOR_VERSION > 4 || ITK_MINOR_VERSION > 5)
 	multiOtsufilter->SetValleyEmphasis( ValleyEmphasis );
+#endif
 	multiOtsufilter->SetInput( duplicator->GetOutput() );
 	multiOtsufilter->Update();
 
@@ -1011,7 +1013,9 @@ int computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunInf
 	typename FilterType::Pointer otsuMultiFilter = FilterType::New();
 	otsuMultiFilter->SetInput( duplicator->GetOutput() );
 	otsuMultiFilter->SetNumberOfThresholds( 1 );
+#if (ITK_MAJOR_VERSION > 4 || ITK_MINOR_VERSION > 5)
 	otsuMultiFilter->ValleyEmphasisOn();
+#endif
 	otsuMultiFilter->Update(); 
 	typename FilterType::ThresholdVectorType thresholds = otsuMultiFilter->GetThresholds();
 	omThr = thresholds[0];

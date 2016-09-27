@@ -98,9 +98,10 @@ iAMagicLens::iAMagicLens() :
 	m_ren->AddActor2D ( m_textActor );
 	m_textActor->SetInput("");
 	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
+#if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
 	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
 	m_textActor->GetTextProperty()->SetBackgroundOpacity(0.5);
-
+#endif
 	m_ren->AddActor(m_bgImageActor);
 	m_ren->AddActor(m_imageActor);
 	
