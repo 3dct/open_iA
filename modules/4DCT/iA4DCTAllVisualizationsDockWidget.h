@@ -25,11 +25,12 @@
 #include "ui_iA4DCTAllVisualizationsDockWidget.h"
 // Qt
 #include <QDockWidget>
+#include <QStandardItemModel>
 
 class iAVisModulesCollection;
 class QStringList;
-class QStringListModel;
 class iAVisModuleItem;
+class iAVisModule;
 
 class iA4DCTAllVisualizationsDockWidget : public QDockWidget, public Ui::AllVisualizationsDockWidget
 {
@@ -43,22 +44,23 @@ public:
 
 
 signals:
-	void		addedVisualization( );
+	void		updateVisualizations( );
+	void		selectedVisModule( iAVisModule* );
 
 
 private:
 	iAVisModuleItem *			getSelectedModule( );
 
 	iAVisModulesCollection *	m_collection;
-	QStringListModel *			m_visModulesModel;
+	QStandardItemModel			m_standardItemModel;
 	QStringList					m_visModulesList;
 	int							m_currentStage;
 
 
 private slots:
-	void		onAddButtonClicked( );
+	void		selectionChanged( const QItemSelection & selected, const QItemSelection & deselected );
 	void		onDeleteButtonClicked( );
-	void		dataChanged( const QModelIndex & topLeft, const QModelIndex & bottomRight );
+	void		itemChanged( QStandardItem * item );
 };
 
 #endif // IAVISMODULESDOCKWIDGET_H

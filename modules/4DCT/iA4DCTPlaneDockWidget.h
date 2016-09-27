@@ -48,6 +48,9 @@ private slots:
 	void		setYZDir( );
 	void		hightlightDefectsButtonClicked( );
 	void		densityMapButtonClicked( );
+	void		nextSlice( );
+	void		previousSlice( );
+	void		enableHighlighting( int state );
 
 private:
 	iAPlaneVisModule *		m_visModule;

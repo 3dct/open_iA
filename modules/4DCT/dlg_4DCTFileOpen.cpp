@@ -56,8 +56,6 @@ void dlg_4DCTFileOpen::accept( )
 	if( selectedIndexes.size( ) != 1 )
 		return;
 	QModelIndex index = selectedIndexes[0];
-	//m_file = m_data->at( index.parent().row() )->Files[ index.row() ];
-	//QDialog::accept();
 	setFileAndClose( index );
 }
 
@@ -75,9 +73,7 @@ void dlg_4DCTFileOpen::setFileAndClose( const QModelIndex & index )
 {
 	int idx = index.parent( ).row( );
 	if( idx < 0 )
-	{
 		return;
-	}
 	m_file = m_data->at( idx )->Files[index.row( )];
 	QDialog::accept( );
 }

@@ -26,7 +26,6 @@
 #include "iAVisModuleItem.h"
 #include "iAVisModule.h"
 // Qt
-#include <QStringListModel>
 #include <QStringList>
 #include <QModelIndex>
 #include <QVector>
@@ -36,20 +35,20 @@ iA4DCTAllVisualizationsDockWidget::iA4DCTAllVisualizationsDockWidget( QWidget* p
 	: QDockWidget( parent )
 	, m_collection( nullptr )
 	, m_currentStage( 0 )
-	, m_visModulesModel( new QStringListModel )
 {
 	setupUi( this );
-	connect( pbAdd, SIGNAL( clicked( ) ), this, SLOT( onAddButtonClicked( ) ) );
+
+	lvVisModules->setModel( &m_standardItemModel );
+
 	connect( pbDelete, SIGNAL( clicked( ) ), this, SLOT( onDeleteButtonClicked( ) ) );
-	connect( m_visModulesModel, SIGNAL( dataChanged( QModelIndex, QModelIndex ) ), this, SLOT( dataChanged( QModelIndex, QModelIndex ) ) );
+	connect( &m_standardItemModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( itemChanged( QStandardItem * ) ) );
+	connect( lvVisModules->selectionModel( ), SIGNAL( selectionChanged( QItemSelection, QItemSelection ) ), this, SLOT( selectionChanged( QItemSelection, QItemSelection ) ) );
 }
 
 iA4DCTAllVisualizationsDockWidget::~iA4DCTAllVisualizationsDockWidget( )
-{
-	delete m_visModulesModel;
-}
+{ }
 
-void iA4DCTAllVisualizationsDockWidget::setCollection( iAVisModulesCollection* collection )
+void iA4DCTAllVisualizationsDockWidget::setCollection( iAVisModulesCollection * collection )
 {
 	m_collection = collection;
 	updateContext( );
@@ -60,25 +59,16 @@ void iA4DCTAllVisualizationsDockWidget::updateContext( )
 	if( m_collection == nullptr )
 		return;
 
-	m_visModulesList.clear( );
+	m_standardItemModel.clear( );
 	for( auto m : m_collection->getModules( ) ) {
-		m_visModulesList << m->name;
+		QStandardItem * item = new QStandardItem( m->name );
+		item->setCheckable( true );
+		if( m->stages.contains( m_currentStage ) )
+			item->setCheckState( Qt::Checked );
+		else
+			item->setCheckState( Qt::Unchecked );
+		m_standardItemModel.appendRow( item );
 	}
-	m_visModulesModel->setStringList( m_visModulesList );
-	lvVisModules->setModel( m_visModulesModel );
-}
-
-void iA4DCTAllVisualizationsDockWidget::onAddButtonClicked( )
-{
-	/*QModelIndexList indexList = lvVisModules->selectionModel()->selectedIndexes();
-	for( auto index : indexList ) {
-		iAVisModuleItem * moduleItem = m_collection->getModules().at( index.row() );
-		moduleItem->stages.append( m_currentStage );
-	}*/
-	iAVisModuleItem * moduleItem = getSelectedModule( );
-	if( moduleItem == nullptr ) return;
-	moduleItem->stages.append( m_currentStage );
-	emit addedVisualization( );
 }
 
 void iA4DCTAllVisualizationsDockWidget::setCurrentStage( int currentStage )
@@ -107,13 +97,35 @@ iAVisModuleItem * iA4DCTAllVisualizationsDockWidget::getSelectedModule( )
 	return nullptr;
 }
 
-void iA4DCTAllVisualizationsDockWidget::dataChanged( const QModelIndex & topLeft, const QModelIndex & bottomRight )
+void iA4DCTAllVisualizationsDockWidget::itemChanged( QStandardItem * item )
 {
-	// only if one column has been changed
-	if( topLeft == bottomRight )
-	{
-		int i = topLeft.row( );
-		m_collection->getModules( ).at( i )->name = m_visModulesModel->data( topLeft, Qt::DisplayRole ).toString( );
+	const QModelIndex index = item->model( )->indexFromItem( item );
+	iAVisModuleItem * module = m_collection->getModules( ).at( index.row( ) );
+	module->name = item->text( );
+	if( item->checkState( ) == Qt::Checked ) {
+		if( !module->stages.contains( m_currentStage ) )
+			module->stages.append( m_currentStage );
 	}
-	emit addedVisualization( );
+	else {
+		if( module->stages.contains( m_currentStage ) )
+			module->stages.removeOne( m_currentStage );
+	}
+	emit updateVisualizations( );
+}
+
+void iA4DCTAllVisualizationsDockWidget::selectionChanged( const QItemSelection & selected, const QItemSelection & deselected )
+{
+	if( selected.size( ) == 0 ) {
+		emit selectedVisModule( nullptr );
+	}
+	else if( selected.size( ) == 1 ) {
+		QModelIndex index = selected.indexes( )[0];
+		QStandardItem * item = m_standardItemModel.item( index.row( ), index.column( ) );
+		if( item->checkState( ) != Qt::Checked ) {
+			emit selectedVisModule( nullptr );
+		} else {
+			iAVisModule * module = m_collection->getModules( )[index.row( )]->module;
+			emit selectedVisModule( module );
+		}
+	}
 }
