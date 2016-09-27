@@ -25,9 +25,6 @@ IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
 set "TEST_CONFIG_PATH=%tmp%\ctest_config_%RANDOM%"
 if exist "%TEST_CONFIG_PATH%" goto :uniqTmpLoop
 
-:: remove binary directory to start from scratch:
-rd /s /q %TEST_BIN_DIR%
-
 ::TO PAUSE SYSTEM
 :: ping -n 10 127.0.0.1 > null
 cd %TEST_SRC_DIR%
@@ -80,8 +77,12 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 )
 
 :: CLEANUP:
+
 :: remove test configurations:
 rd /s /q %TEST_CONFIG_PATH%
+
+:: remove binary directory to start from scratch next time:
+rd /s /q %TEST_BIN_DIR%
 
 goto end
 
