@@ -72,6 +72,7 @@ void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<v
 	}
 	else
 	{
+		volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
 		volProp->SetColor(0, transfer->GetColorFunction());
 		volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
 	}
