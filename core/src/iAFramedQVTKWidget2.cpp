@@ -63,11 +63,13 @@ void iAFramedQVTKWidget2::Frame()
 	if(m_frameStyle != NO_FRAME)
 	{
 		qreal hw = m_penWidth * 0.5;
+		const double RoundFix = 0.01;
+		const double HeightWidthFix = static_cast<int>(m_penWidth) % 2;
 		QPointF points[4] = {
-			QPointF(hw, hw),
-			QPointF(width()-hw, hw ),
-			QPointF(width()-hw, height()-hw),
-			QPointF(hw,			height()-hw),
+			QPointF(1 + hw -RoundFix, 1 + hw -RoundFix),
+			QPointF(HeightWidthFix + width()-hw +RoundFix, 1 + hw -RoundFix),
+			QPointF(HeightWidthFix + width()-hw +RoundFix, HeightWidthFix + height()-hw +RoundFix),
+			QPointF(1 + hw -RoundFix, HeightWidthFix + height()-hw +RoundFix),
 		};
 		QPainter painter(this);
 		QPen pen;
@@ -82,20 +84,22 @@ void iAFramedQVTKWidget2::Frame()
 			painter.drawLine(points[0], points[3]);
 			break;
 		case FRAMED:
-			for(int i=0; i<4; i++)
-				painter.drawLine(points[i].x() + (i==0? m_penWidth : ((i==2)? -m_penWidth: 0)),
+			for(int i=0; i<4; i++)       // to avoid double-drawing in the corners
+				painter.drawLine(
+					points[i].x()         + (i==0? m_penWidth : ((i==2)? -m_penWidth: 0)),
 					points[i].y(),
-					points[(i+1)%4].x() + (i==0? -m_penWidth : ((i==2)? m_penWidth: 0)),
+					points[(i+1)%4].x()   + (i==0? -m_penWidth : ((i==2)? m_penWidth: 0)),
 					points[(i+1)%4].y());
 			break;
 		}
 	}
 	if (m_crossHair)
 	{
+		double crossHairWidth = std::max(1.0, m_penWidth*0.5);
 		QPainter painter(this);
 		QPen pen;
 		pen.setColor(QColor(200, 200, 0, 125));
-		pen.setWidthF(m_penWidth*0.5);
+		pen.setWidthF(crossHairWidth);
 		painter.setRenderHint(QPainter::Antialiasing);
 		painter.setRenderHint(QPainter::HighQualityAntialiasing);
 		painter.setPen(pen);
@@ -104,8 +108,8 @@ void iAFramedQVTKWidget2::Frame()
 			QPointF(width()/2-CrossHairBarSize, height()/2),
 			QPointF(width()/2+CrossHairBarSize, height()/2),
 			QPointF(width()/2, height()/2-CrossHairBarSize),
-			QPointF(width()/2, height()/2-m_penWidth*0.5),
-			QPointF(width()/2, height()/2+m_penWidth*0.5),
+			QPointF(width()/2, height()/2- crossHairWidth),
+			QPointF(width()/2, height()/2+ crossHairWidth),
 			QPointF(width()/2, height()/2+CrossHairBarSize),
 		};
 		painter.drawLine(points[0], points[1]);

@@ -48,7 +48,7 @@ const int iAMagicLens::OFFSET_MODE_X_OFFSET = 30;
 
 namespace
 {
-	const int CaptionFrameDistance = 0;
+	const int CaptionFrameDistance = 2;
 	const int CaptionFontSize = 13;
 }
 
