@@ -24,15 +24,14 @@
 // iA
 #include "iA4DCTVisWin.h"
 // vtk
-#include <vtkPlaneSource.h>
+#include <vtkImageCast.h>
+#include <vtkImageShiftScale.h>
+#include <vtkMatrix4x4.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkTexture.h>
-#include <vtkMatrix4x4.h>
-#include <vtkImageCast.h>
-#include <vtkProperty.h>
-#include <vtkImageShiftScale.h>
-#include <vtkRenderWindow.h>
 
 iAPlaneVisModule::iAPlaneVisModule( )
 	: iAVisModule( )
@@ -110,7 +109,7 @@ void iAPlaneVisModule::setImage( QString fileName )
 	setSlice( 0 );
 }
 
-void iAPlaneVisModule::setSlice( double slice )
+void iAPlaneVisModule::setSlice( int slice )
 {
 	// set settings
 	settings.Slice = slice;
@@ -141,15 +140,15 @@ void iAPlaneVisModule::setSlice( double slice )
 	double sliceNum;
 	switch( settings.Dir ) {
 	case iAPlaneVisSettings::Direction::XY:
-		sliceNum = slice * m_imgSize[2] * m_imgSpacing[2];
+		sliceNum = slice * m_imgSpacing[2];
 		resliceAxes->DeepCopy( axialElementsXY );
 		break;
 	case iAPlaneVisSettings::Direction::XZ:
-		sliceNum = slice * m_imgSize[1] * m_imgSpacing[1];
+		sliceNum = slice * m_imgSpacing[1];
 		resliceAxes->DeepCopy( axialElementsXZ );
 		break;
 	case iAPlaneVisSettings::Direction::YZ:
-		sliceNum = slice * m_imgSize[0] * m_imgSpacing[0];
+		sliceNum = slice * m_imgSpacing[0];
 		resliceAxes->DeepCopy( axialElementsYZ );
 		break;
 	}
@@ -162,9 +161,9 @@ void iAPlaneVisModule::setSlice( double slice )
 	m_reslice->SetResliceAxes( resliceAxes );
 	m_reslice->Update( );
 
-	setPlanePosition( slice );
-
 	m_texture->SetInputConnection( m_reslice->GetOutputPort( ) );
+
+	setPlanePosition( slice );
 }
 
 void iAPlaneVisModule::setOpacity( double opacity )
@@ -209,33 +208,13 @@ void iAPlaneVisModule::setDirYZ( )
 	setSlice( settings.Slice );
 }
 
-//void iAPlaneVisModule::highlightDefects( QVector<iA4DCTDefects::VectorDataType> defects, QVector<QColor> colors, QString labeledImg )
-//{
-//	// read the labeled image
-//	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-//	reader->SetFileName( labeledImg.toStdString().c_str( ) );
-//	reader->Update( );
-//
-//	int * dims = reader->GetOutput( )->GetDimensions( );
-//	for (int x = 0; x < dims[0]; x++)
-//	{
-//		for (int y = 0; y < dims[1]; y++)
-//		{
-//			for (int z = 0; z < dims[2]; z++)
-//			{
-//				
-//			}
-//		}
-//	}
-//}
-
-void iAPlaneVisModule::setPlanePosition( double slice )
+void iAPlaneVisModule::setPlanePosition( int slice )
 {
 	switch( settings.Dir )
 	{
 	case iAPlaneVisSettings::Direction::XY:
 	{
-		double zPos = slice * m_size[2];// / m_imgSize[2];
+		double zPos = (double)slice / m_imgSize[2] * m_size[2];
 		m_plane->SetOrigin( 0, 0, zPos * SCENE_SCALE );
 		m_plane->SetPoint1( m_size[0] * SCENE_SCALE, 0, zPos * SCENE_SCALE );
 		m_plane->SetPoint2( 0, m_size[1] * SCENE_SCALE, zPos * SCENE_SCALE );
@@ -243,7 +222,7 @@ void iAPlaneVisModule::setPlanePosition( double slice )
 	}
 	case iAPlaneVisSettings::Direction::XZ:
 	{
-		double yPos = slice * m_size[1];// / m_imgSize[1];
+		double yPos = (double)slice / m_imgSize[1] * m_size[1];
 		m_plane->SetOrigin( 0, yPos * SCENE_SCALE, 0 );
 		m_plane->SetPoint1( m_size[0] * SCENE_SCALE, yPos * SCENE_SCALE, 0 );
 		m_plane->SetPoint2( 0, yPos * SCENE_SCALE, m_size[2] * SCENE_SCALE );
@@ -251,11 +230,25 @@ void iAPlaneVisModule::setPlanePosition( double slice )
 	}
 	case iAPlaneVisSettings::Direction::YZ:
 	{
-		double xPos = slice * m_size[0];// / m_imgSize[0];
+		double xPos = (double)slice / m_imgSize[0] * m_size[0];
 		m_plane->SetOrigin( xPos * SCENE_SCALE, 0, 0 );
 		m_plane->SetPoint1( xPos * SCENE_SCALE, m_size[1] * SCENE_SCALE, 0 );
 		m_plane->SetPoint2( xPos * SCENE_SCALE, 0, m_size[2] * SCENE_SCALE );
 		break;
 	}
 	}
+}
+
+void iAPlaneVisModule::getImageSize( int * imgSize )
+{
+	imgSize[0] = m_imgSize[0]; imgSize[1] = m_imgSize[1]; imgSize[2] = m_imgSize[2];
+}
+
+void iAPlaneVisModule::enableHighlighting( bool enable )
+{
+	if( enable )
+		m_reslice->SetInputData( m_colorImg );
+	else
+		m_reslice->SetInputData( m_img );
+	m_plane->Modified( );
 }
