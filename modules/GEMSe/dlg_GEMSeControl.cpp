@@ -390,7 +390,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
-		DEBUG_LOG("Segmentation Explorer not set!");
+		DEBUG_LOG("GEMSe not initialized!");
 		return;
 	}
 	if (m_clusterer->IsAborted() || !m_clusterer->GetResult())
@@ -441,7 +441,7 @@ void dlg_GEMSeControl::StoreAll()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save all"),
 		QString(), // TODO get directory of current file
-		tr("Segmentation Explorer Analysis (*.sea );;" ) );
+		tr("GEMSe project (*.sea );;") );
 	if (fileName.isEmpty())
 	{
 		return;

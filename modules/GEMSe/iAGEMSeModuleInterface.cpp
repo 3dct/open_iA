@@ -88,7 +88,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 		tr("Load Precalculated Sampling & Clustering Data"),
 		QString() // TODO get directory of current file
 		,
-		tr("Precalculated Segmentation Explorer Analysis file (*.sea);;" ) );
+		tr("GEMSe project (*.sea );;") );
 	if (fileName != "")
 	{
 		iASEAFile seaFile(fileName);

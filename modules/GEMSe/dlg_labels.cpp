@@ -443,7 +443,7 @@ bool dlg_labels::Store(QString const & filename)
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{	
-		QMessageBox::warning(this, "Segmentation Explorer", "Seed file storing: Failed to open file '" + filename + "'!");
+		QMessageBox::warning(this, "GEMSe", "Seed file storing: Failed to open file '" + filename + "'!");
 		return false;
 	}
 	QFileInfo fileInfo(file);
@@ -493,7 +493,7 @@ void dlg_labels::Load()
 	}
 	if (!Load(fileName))
 	{
-		QMessageBox::warning(this, "Segmentation Explorer", "Loading seed file '" + fileName + "' failed!");
+		QMessageBox::warning(this, "GEMSe", "Loading seed file '" + fileName + "' failed!");
 	}
 }
 
@@ -511,7 +511,7 @@ void dlg_labels::Store()
 	}
 	if (!Store(fileName))
 	{
-		QMessageBox::warning(this, "Segmentation Explorer", "Storing seed file '" + fileName + "' failed!");
+		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
 	}
 }
 
