@@ -95,9 +95,9 @@ private slots:
 	void HistogramSelectionUpdated();
 private:
 	void JumpToNode(iAImageClusterNode * leaf, int stepLimit);
-	void UpdateComparisonChart();
-	void UpdateComparisonChartClusterPlot();
-	void UpdateComparisonChartLeafPlot();
+	void UpdateScatterPlot();
+	void UpdateScatterPlotClusterPlot();
+	void UpdateScatterPlotLeafPlot();
 
 	void UpdateFilteredChartData();
 	void UpdateClusterFilteredChartData();
@@ -110,7 +110,7 @@ private:
 		int labelCount);
 
 	vtkSmartPointer<vtkTable> GetComparisonTable(iAImageClusterNode const * node, iAChartFilter const & filter);
-	void UpdateComparisonChart(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot,
+	void UpdateScatterPlot(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot,
 		iAImageClusterNode const * node, QColor const & color, iAChartFilter const & filter);
 	
 	// data:

@@ -186,7 +186,7 @@ void dlg_GEMSe::SetTree(
 }
 
 
-void dlg_GEMSe::UpdateComparisonChart()
+void dlg_GEMSe::UpdateScatterPlot()
 {
 	iAChartFilter emptyFilter;
 	m_allTable = GetComparisonTable(m_treeView->GetTree()->m_root.data(), emptyFilter); // TODO do we need m_comparisonTable as member?
@@ -221,16 +221,16 @@ void dlg_GEMSe::UpdateComparisonChart()
 	);
 	plot->SetWidth(1.0);
 	plot->SetInputData(m_allTable, 0, 1);
-	UpdateComparisonChartClusterPlot();
-	UpdateComparisonChartLeafPlot();
+	UpdateScatterPlotClusterPlot();
+	UpdateScatterPlotLeafPlot();
 	if (!m_chartFilter.MatchesAll())
 	{
-		UpdateComparisonChart(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
+		UpdateScatterPlot(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
 		m_treeView->GetTree()->m_root->ClearFilterData();
 	}
 }
 
-void dlg_GEMSe::UpdateComparisonChart(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot, iAImageClusterNode const * node,
+void dlg_GEMSe::UpdateScatterPlot(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot, iAImageClusterNode const * node,
 	QColor const & color, iAChartFilter const & filter)
 {
 	if (plot)
@@ -260,19 +260,19 @@ void dlg_GEMSe::UpdateComparisonChart(vtkSmartPointer<vtkTable> & table, vtkSmar
 	wdComparisonCharts->show();
 }
 
-void dlg_GEMSe::UpdateComparisonChartLeafPlot()
+void dlg_GEMSe::UpdateScatterPlotLeafPlot()
 {
 	iAChartFilter emptyFilter;
-	UpdateComparisonChart(m_singleTable, m_singlePlot, m_selectedLeaf, DefaultColors::ImageChartColor, emptyFilter);
+	UpdateScatterPlot(m_singleTable, m_singlePlot, m_selectedLeaf, DefaultColors::ImageChartColor, emptyFilter);
 }
 
-void dlg_GEMSe::UpdateComparisonChartClusterPlot()
+void dlg_GEMSe::UpdateScatterPlotClusterPlot()
 {
 	iAChartFilter emptyFilter;
-	UpdateComparisonChart(m_clusterTable, m_clusterPlot, m_selectedCluster.data(), DefaultColors::ClusterChartColor[0], emptyFilter);	
+	UpdateScatterPlot(m_clusterTable, m_clusterPlot, m_selectedCluster.data(), DefaultColors::ClusterChartColor[0], emptyFilter);
 	if (!m_chartFilter.MatchesAll())
 	{
-		UpdateComparisonChart(m_clusterFilteredTable, m_clusterFilteredPlot, m_selectedCluster.data(), DefaultColors::FilteredClusterChartColor, m_chartFilter);
+		UpdateScatterPlot(m_clusterFilteredTable, m_clusterFilteredPlot, m_selectedCluster.data(), DefaultColors::FilteredClusterChartColor, m_chartFilter);
 	}
 }
 
@@ -409,8 +409,8 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageClusterNode> node)
 	m_treeView->AddSelectedNode(node, clear);
 	m_exampleView->SetSelectedNode(node);
 	UpdateClusterFilteredChartData();
-	UpdateComparisonChartClusterPlot();
-	UpdateComparisonChartLeafPlot();
+	UpdateScatterPlotClusterPlot();
+	UpdateScatterPlotLeafPlot();
 	if (node->IsLeaf())
 	{
 		iAImageClusterLeaf * leaf = dynamic_cast<iAImageClusterLeaf*>(node.data());
@@ -447,7 +447,7 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageClusterLeaf * node)
 		}
 		m_histogramContainer->SetMarker(chartID, value);
 	}
-	UpdateComparisonChartLeafPlot();
+	UpdateScatterPlotLeafPlot();
 }
 
 void dlg_GEMSe::StoreClustering(QString const & fileName)
@@ -463,7 +463,7 @@ void dlg_GEMSe::UpdateClusterChartData()
 
 void dlg_GEMSe::HistogramSelectionUpdated()
 {
-	UpdateComparisonChart();
+	UpdateScatterPlot();
 }
 
 void dlg_GEMSe::UpdateClusterFilteredChartData()
@@ -491,13 +491,12 @@ void dlg_GEMSe::UpdateFilteredData()
 	UpdateClusterFilteredChartData();
 	if (!m_chartFilter.MatchesAll())
 	{
-		UpdateComparisonChart(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
+		UpdateScatterPlot(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
 	}
-	UpdateComparisonChartClusterPlot();
+	UpdateScatterPlotClusterPlot();
 }
 
 
-// MOVE???
 void dlg_GEMSe::FilterChanged(double min, double max)
 {
 	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
@@ -727,7 +726,6 @@ QSharedPointer<iAImageClusterNode> dlg_GEMSe::GetCurrentCluster()
 }
 
 
-// MOVE???
 void dlg_GEMSe::ChartDblClicked()
 {
 	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
