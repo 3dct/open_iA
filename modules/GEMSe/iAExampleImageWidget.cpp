@@ -61,7 +61,7 @@ protected:
 };
 
 
-iAExampleImageWidget::iAExampleImageWidget(QWidget* parent, double aspectRatio, iAPreviewWidgetPool * previewPool, ClusterImageType nullImage):
+iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool * previewPool, ClusterImageType nullImage):
 	m_layout(new QGridLayout()),
 	m_aspectRatio(aspectRatio),
 	m_previewPool(previewPool),

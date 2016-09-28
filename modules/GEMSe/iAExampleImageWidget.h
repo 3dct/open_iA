@@ -44,7 +44,7 @@ class iAExampleImageWidget: public QWidget
 	Q_OBJECT
 public:
 	//! aspectRatio = height/width
-	iAExampleImageWidget(QWidget* parent, double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
+	iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
 	void SetSelectedNode(QSharedPointer<iAImageClusterNode> node);
 	void SetSelectedImage(iAImageClusterLeaf * leaf);
 	void FilterUpdated();

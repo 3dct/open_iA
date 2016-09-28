@@ -36,15 +36,14 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 class iAAttributes;
 class iACameraWidget;
 class iAColorTheme;
-class iAChartSpanSlider;
 class iADetailView;
 class iAFavoriteWidget;
+class iAHistogramContainer;
 class iAImageClusterNode;
 class iAExampleImageWidget;
 class iALabelInfo;
 class iALogger;
 class iAModalityList;
-class iAParamHistogramData;
 class iAPreviewWidgetPool;
 
 class vtkChartXY;
@@ -65,7 +64,6 @@ public:
 		iALabelInfo const & labelInfo,
 		QVector<QSharedPointer<iASamplingResults> > samplings);
 	void StoreClustering(QString const & fileName);
-	void CreateCharts();
 	QSharedPointer<iAImageClusterNode> GetCurrentCluster();
 	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
@@ -83,7 +81,6 @@ private slots:
 	void ClusterNodeImageClicked(QSharedPointer<iAImageClusterNode> node);
 	void SelectCluster(QSharedPointer<iAImageClusterNode> node);
 	void ClusterLeafSelected(iAImageClusterLeaf *);
-	void ChartSelected(bool selected);
 	void FilterChanged(double min, double max);
 	void ToggleHate();
 	void ToggleLike();
@@ -95,6 +92,7 @@ private slots:
 	void UpdateViews();
 	void UpdateClusterChartData();
 	void ChartDblClicked();
+	void HistogramSelectionUpdated();
 private:
 	void JumpToNode(iAImageClusterNode * leaf, int stepLimit);
 	void UpdateComparisonChart();
@@ -106,8 +104,6 @@ private:
 	void UpdateFilteredData();
 	void UpdateAttributeRangeAttitude();
 	void AddDiagramSubWidgetsWithProperStretch();
-
-	void RemoveAllCharts();
 	void CreateMapper();
 
 	void CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,
@@ -122,7 +118,6 @@ private:
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
-	QVector<int> m_selectedForComparison;
 	
 	QSharedPointer<iAImageClusterNode> m_selectedCluster;
 	iAImageClusterLeaf * m_selectedLeaf;
@@ -135,15 +130,12 @@ private:
 	iAExampleImageWidget * m_exampleView;
 	iACameraWidget* m_cameraWidget;
 	iAFavoriteWidget* m_favoriteWidget;
-	QVTKWidget2 * m_chartWidget;
-	vtkSmartPointer<vtkChartXY> m_comparisonChart;
-	QWidget * m_paramChartWidget, *m_derivedOutputChartWidget;
-	QWidget * m_paramChartContainer, * m_derivedOutputChartContainer;
-	QGridLayout* m_paramChartLayout;
-	QSplitter* m_chartContainer;
-	QMap<int, iAChartSpanSlider*> m_charts;
 	iAColorTheme const * m_colorTheme;
+	iAHistogramContainer * m_histogramContainer;
 
+	// Scatter Plot:
+	QVTKWidget2 * m_scatterplotWidget;
+	vtkSmartPointer<vtkChartXY> m_comparisonChart;
 	vtkSmartPointer<vtkTable> m_allTable;
 	vtkSmartPointer<vtkTable> m_clusterTable;
 	vtkSmartPointer<vtkTable> m_allFilteredTable;
@@ -154,13 +146,9 @@ private:
 	vtkSmartPointer<vtkPlot> m_clusterFilteredPlot;
 	vtkSmartPointer<vtkPlot> m_singlePlot;
 
-	QMap<int, QSharedPointer<iAParamHistogramData> > m_chartData;
-
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;
 
 	iARepresentativeType m_representativeType;
-
-	QVector< QVector<float> > m_attitudes;
 };
