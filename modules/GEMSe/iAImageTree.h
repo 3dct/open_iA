@@ -86,6 +86,7 @@ public:
 	//! median image for this cluster:
 	virtual ClusterImageType const GetRepresentativeImage(int type) const =0;
 	virtual void DiscardDetails() =0;
+	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const =0;
 	virtual void GetExampleImages(QVector<iAImageClusterLeaf *> & result, int amount) =0;
 	virtual void SetParent(QSharedPointer<iAImageClusterNode > parent);
@@ -127,6 +128,7 @@ public:
 	virtual ClusterImageType const GetRepresentativeImage(int type) const;
 	virtual void DiscardDetails();
 	virtual void DiscardFilterData();
+	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const;
 	virtual void GetExampleImages(QVector<iAImageClusterLeaf *> & result, int amount);
 	virtual QSharedPointer<iAImageClusterNode > GetChild(int idx) const;

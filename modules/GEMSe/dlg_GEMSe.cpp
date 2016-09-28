@@ -23,6 +23,7 @@
 #include "dlg_GEMSe.h"
 
 #include "iAAttributes.h"
+#include "iAAttitudes.h"
 #include "iAAttributeDescriptor.h"
 #include "iACameraWidget.h"
 #include "iAChartSpanSlider.h"
@@ -35,6 +36,7 @@
 #include "iAImageTreeView.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"
+#include "iAMeasures.h"
 #include "iAParamHistogramData.h"
 #include "iAPreviewWidgetPool.h"
 #include "iAQtCaptionWidget.h"
@@ -227,18 +229,6 @@ void dlg_GEMSe::SetTree(
 }
 
 
-void ClearFilteredRep(QSharedPointer<iAImageClusterNode> node)
-{
-	if (!node->IsLeaf())
-	{
-		((iAImageClusterInternal*)node.data())->DiscardFilterData();
-		for (int i = 0; i < node->GetChildCount(); ++i)
-		{
-			ClearFilteredRep(node->GetChild(i));
-		}
-	}}
-
-
 void dlg_GEMSe::UpdateComparisonChart()
 {
 	iAChartFilter emptyFilter;
@@ -274,7 +264,7 @@ void dlg_GEMSe::UpdateComparisonChart()
 	if (!m_chartFilter.MatchesAll())
 	{
 		UpdateComparisonChart(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
-		ClearFilteredRep(m_treeView->GetTree()->m_root);
+		m_treeView->GetTree()->m_root->ClearFilterData();
 	}
 }
 
@@ -383,10 +373,6 @@ void dlg_GEMSe::CreateMapper()
 
 void dlg_GEMSe::CreateCharts()
 {
-	/*
-	// TODO: MULTI
-	// go over all datasets, determine their attributes
-	*/
 	AddDiagramSubWidgetsWithProperStretch();
 	RemoveAllCharts();
 	int curMinDatasetID = 0;
@@ -799,70 +785,6 @@ void dlg_GEMSe::ToggleLike()
 	UpdateAttributeRangeAttitude();
 }
 
-struct AttributeHistogram
-{
-	int * data;
-	AttributeHistogram(int numBins) :
-		data(new int[numBins])
-	{
-		std::fill(data, data+numBins, 0);
-	}
-	~AttributeHistogram()
-	{
-		delete[] data;
-	}
-	AttributeHistogram(const AttributeHistogram & other) = delete;
-	AttributeHistogram & operator=(const AttributeHistogram & other) = delete;
-};
-
-void AddClusterData(AttributeHistogram & hist,
-	iAImageClusterNode const * node, int chartID, iAChartSpanSlider* chart, int numBin,
-	iAChartAttributeMapper const & chartAttrMap)
-{
-	if (node->IsLeaf())
-	{
-		iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node;
-		if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
-		{
-			return;
-		}
-		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
-		double value = node->GetAttribute(attributeID);
-		int bin = clamp(0, numBin-1, static_cast<int>(chart->mapValueToBin(value)));
-		hist.data[bin]++;
-	}
-	else
-	{
-		for (int i=0; i<node->GetChildCount(); ++i)
-		{
-			AddClusterData(hist, node->GetChild(i).data(), chartID, chart, numBin, chartAttrMap);
-		}
-	}
-}
-
-void GetHistData(AttributeHistogram & hist,
-	int chartID, iAChartSpanSlider* chart, QVector<iAImageClusterNode const *> const & nodes, int numBin,
-	iAChartAttributeMapper const & chartAttrMap)
-{
-	for (int l = 0; l < nodes.size(); ++l)
-	{
-		iAImageClusterNode const * node = nodes[l];
-		AddClusterData(hist, node, chartID, chart, numBin, chartAttrMap);
-	}
-}
-
-void FindByAttitude(iAImageClusterNode const * node, iAImageClusterNode::Attitude att, QVector<iAImageClusterNode const *> & nodeList)
-{
-	if (node->GetAttitude() == att)
-	{
-		nodeList.push_back(node);
-	}
-	for (int i=0; i<node->GetChildCount(); ++i)
-	{
-		FindByAttitude(node->GetChild(i).data(), att, nodeList);
-	}
-}
-
 void dlg_GEMSe::UpdateAttributeRangeAttitude()
 {
 	QVector<iAImageClusterNode const *> likes, hates;
@@ -1098,134 +1020,15 @@ void dlg_GEMSe::ChartDblClicked()
 	slider->SetSpanValues(min, max);
 }
 
-
-#include <itkLabelOverlapMeasuresImageFilter.h>
-
-class Matrix
-{
-private:
-	int * data;
-	int rowCount, colCount;
-public:
-	Matrix (int rowCount, int colCount):
-		rowCount(rowCount), colCount(colCount)
-	{
-		data = new int[rowCount * colCount];
-		for (int i=0; i<rowCount * colCount; ++i)
-		{
-			data[i] = 0;
-		}
-	}
-	~Matrix()
-	{
-		delete [] data;
-	}
-	int & get(int r, int c)
-	{
-		return data[r*colCount + c];
-	}
-	void inc(int r, int c)
-	{
-		get(r,c)++;
-	}
-	int RowCount() const { return rowCount; }
-	int ColCount() const { return colCount; }
-};
-
-int * rowTotals(Matrix & m)
-{
-	int * result = new int[m.RowCount()];
-	for (int r=0; r<m.RowCount(); ++r)
-	{
-		result[r] = 0;
-		for (int c=0; c<m.ColCount(); ++c)
-		{
-			result[r] += m.get(r, c);
-		}
-	}
-	return result;
-}
-int * colTotals(Matrix & m)
-{
-	int * result = new int[m.ColCount()];
-	for (int c=0; c<m.ColCount(); ++c)
-	{
-		result[c] = 0;
-		for (int r=0; r<m.RowCount(); ++r)
-		{
-			result[c] += m.get(r, c);
-		}
-	}
-	return result;
-}
-
-void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int labelCount, double & kappa, double & oa, double &precision, double &recall)
-{
-	                   // row      column
-	Matrix errorMatrix(labelCount, labelCount);
-	LabelImageType::RegionType reg = refImg->GetLargestPossibleRegion();
-	LabelImageType::SizeType size = reg.GetSize();
-	LabelImageType::IndexType idx;
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{	
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
-		{		
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
-			{
-				int refValue = refImg->GetPixel(idx);
-				int curValue = curImg->GetPixel(idx);
-				errorMatrix.inc(curValue, refValue);
-			}
-		}
-	}
-	int * actTot = rowTotals(errorMatrix);
-	int * refTot = colTotals(errorMatrix);
-
-	int diagSum = 0;
-	int totalSum = 0;
-
-	precision = 0;
-	recall    = 0;
-	
-	double chanceAgreement = 0;
-
-	for (int i=0; i<labelCount; ++i)
-	{
-		diagSum += errorMatrix.get(i, i);
-		totalSum += actTot[i];
-		precision += (actTot[i] == 0) ? 0 : errorMatrix.get(i, i) / static_cast<double>(actTot[i]); // could be equivalent to oa, have to check!
-		recall += (refTot[i] == 0) ? 0 : errorMatrix.get(i, i) / static_cast<double>(refTot[i]);
-
-		chanceAgreement = actTot[i] * refTot[i];
-	}
-	chanceAgreement /= static_cast<double>(pow(totalSum, 2));
-
-
-	oa = diagSum / static_cast<double>(totalSum);
-
-	kappa =  (oa - chanceAgreement) / (1 - chanceAgreement);
-
-	delete [] actTot;
-	delete [] refTot;
-}
-
-
 void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,
 	int labelCount)
 {
 	if (node->IsLeaf())
 	{
 		iAImageClusterLeaf * leaf = dynamic_cast<iAImageClusterLeaf*>(node.data());
-		typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType > FilterType;
-		FilterType::Pointer filter = FilterType::New();
-		filter->SetSourceImage(refImg);
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(leaf->GetDetailImage().GetPointer());
-		filter->SetTargetImage(lblImg);
-		filter->Update();
 		double measures[MeasureCount];
-		measures[0] = filter->GetMeanOverlap();
-		
-		CalculateMeasures(refImg, lblImg, labelCount, measures[1], measures[2], measures[3], measures[4]);
+		CalculateMeasures(refImg, lblImg, labelCount, measures[0], measures[1], measures[2], measures[3], measures[4]);
 		for (int i=0; i<MeasureCount; ++i)
 		{
 			int chartID = m_MeasureChartIDStart + i;

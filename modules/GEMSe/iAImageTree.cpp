@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAImageTree.h"
 
@@ -77,6 +76,11 @@ iAImageClusterNode::Attitude iAImageClusterNode::ParentAttitude() const
 void iAImageClusterNode::SetAttitude(Attitude att)
 {
 	m_attitude = att;
+}
+
+
+void iAImageClusterNode::ClearFilterData()
+{
 }
 
 // Internal Node:
@@ -520,6 +524,16 @@ CombinedProbPtr iAImageClusterInternal::UpdateProbabilities() const
 	StoreImage(m_representative[iARepresentativeType::AverageEntropy], GetCachedFileName(iARepresentativeType::AverageEntropy), true);
 	StoreImage(m_representative[iARepresentativeType::AverageLabel], GetCachedFileName(iARepresentativeType::AverageLabel), true);
 	return result;
+}
+
+
+void iAImageClusterInternal::ClearFilterData()
+{
+	DiscardFilterData();
+	for (int i = 0; i < GetChildCount(); ++i)
+	{
+		GetChild(i)->ClearFilterData();
+	}
 }
 
 
