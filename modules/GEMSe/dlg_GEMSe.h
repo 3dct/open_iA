@@ -81,7 +81,8 @@ private slots:
 	void ClusterNodeImageClicked(QSharedPointer<iAImageClusterNode> node);
 	void SelectCluster(QSharedPointer<iAImageClusterNode> node);
 	void ClusterLeafSelected(iAImageClusterLeaf *);
-	void FilterChanged(double min, double max);
+	void FilterChanged(int chartID, double min, double max);
+	void ChartDblClicked(int chartID);
 	void ToggleHate();
 	void ToggleLike();
 	void GoToCluster();
@@ -91,7 +92,6 @@ private slots:
 	void SliceNumberChanged(int sliceNr);
 	void UpdateViews();
 	void UpdateClusterChartData();
-	void ChartDblClicked();
 	void HistogramSelectionUpdated();
 private:
 	void JumpToNode(iAImageClusterNode * leaf, int stepLimit);
@@ -103,7 +103,6 @@ private:
 	void UpdateClusterFilteredChartData();
 	void UpdateFilteredData();
 	void UpdateAttributeRangeAttitude();
-	void AddDiagramSubWidgetsWithProperStretch();
 	void CreateMapper();
 
 	void CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,

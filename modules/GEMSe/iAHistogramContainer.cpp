@@ -388,3 +388,35 @@ void iAHistogramContainer::SetMarker(int chartID, double value)
 {
 	m_charts[chartID]->SetMarker(value);
 }
+
+
+void iAHistogramContainer::ChartDblClicked()
+{
+	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
+	assert(slider);
+	if (!slider)
+	{
+		DEBUG_LOG("ChartDblClicked called from non-slider widget.");
+		return;
+	}
+	int chartID = slider->GetID();
+	emit ChartDblClicked(chartID);
+}
+
+void iAHistogramContainer::FilterChanged(double min, double max)
+{
+	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
+	assert(slider);
+	if (!slider)
+	{
+		DEBUG_LOG("FilterChanged called from non-slider widget.");
+		return;
+	}
+	int chartID = slider->GetID();
+	emit FilterChanged(chartID, min, max);
+}
+
+void iAHistogramContainer::SetSpanValues(int chartID, double min, double max)
+{
+	m_charts[chartID]->SetSpanValues(min, max);
+}

@@ -176,6 +176,8 @@ void dlg_GEMSe::SetTree(
 	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
 	connect(m_favoriteWidget, SIGNAL(Clicked(iAImageClusterNode *)), this, SLOT(FavoriteClicked(iAImageClusterNode *)));
 	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));
+	connect(m_histogramContainer, SIGNAL(FilterChanged(int, double, double)), this, SLOT(FilterChanged(int, double, double)));
+	connect(m_histogramContainer, SIGNAL(ChartDblClicked(int)), this, SLOT(ChartDblClicked(int)));
 
 	// view updates:
 	connect(m_detailView,     SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
@@ -496,17 +498,8 @@ void dlg_GEMSe::UpdateFilteredData()
 	UpdateScatterPlotClusterPlot();
 }
 
-
-void dlg_GEMSe::FilterChanged(double min, double max)
+void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 {
-	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
-	assert(slider);
-	if (!slider)
-	{
-		DEBUG_LOG("FilterChanged called from non-slider widget.");
-		return;
-	}
-	int chartID = slider->GetID();
 	if (m_chartAttributes->at(chartID)->CoversWholeRange(min, max))
 	{
 		m_chartFilter.RemoveFilter(chartID);
@@ -725,20 +718,11 @@ QSharedPointer<iAImageClusterNode> dlg_GEMSe::GetCurrentCluster()
 	return m_selectedCluster;
 }
 
-
-void dlg_GEMSe::ChartDblClicked()
+void dlg_GEMSe::ChartDblClicked(int chartID)
 {
-	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
-	assert(slider);
-	if (!slider)
-	{
-		DEBUG_LOG("FilterChanged called from non-slider widget.");
-		return;
-	}
-	int chartID = slider->GetID();
 	double min, max;
 	GetClusterMinMax(m_selectedCluster.data(), chartID, min, max, m_chartAttributeMapper);
-	slider->SetSpanValues(min, max);
+	m_histogramContainer->SetSpanValues(chartID, min, max);
 }
 
 void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,

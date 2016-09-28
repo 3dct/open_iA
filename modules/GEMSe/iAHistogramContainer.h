@@ -55,10 +55,15 @@ public:
 	int GetSelectedCount();
 	int GetSelectedChartID(int selectionIdx);
 	void SetMarker(int chartID, double value);
+	void SetSpanValues(int chartID, double min, double max);
 signals:
 	void ChartSelectionUpdated();
+	void ChartDblClicked(int chartID);
+	void FilterChanged(int chartID, double min, double max);
 private slots:
 	void ChartSelected(bool selected);
+	void ChartDblClicked();
+	void FilterChanged(double min, double max);
 private:
 	void AddDiagramSubWidgetsWithProperStretch(QSharedPointer<iAAttributes> m_chartAttributes);
 	void RemoveAllCharts(QSharedPointer<iAAttributes> m_chartAttributes);
