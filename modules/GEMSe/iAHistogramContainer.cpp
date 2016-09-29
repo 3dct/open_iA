@@ -406,6 +406,8 @@ int iAHistogramContainer::GetSelectedChartID(int selectionIdx)
 
 void iAHistogramContainer::SetMarker(int chartID, double value)
 {
+	if (!ChartExists(chartID))
+		return;
 	m_charts[chartID]->SetMarker(value);
 }
 
