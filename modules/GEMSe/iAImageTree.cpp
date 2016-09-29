@@ -475,9 +475,9 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 		}
 	}
 
-	if (m_representative.size() <= iARepresentativeType::AverageEntropy)
+	if (m_representative.size() <= iARepresentativeType::AverageLabel)
 	{
-		m_representative.resize(iARepresentativeType::AverageEntropy + 1);
+		m_representative.resize(iARepresentativeType::AverageLabel + 1);
 	}
 	m_representative[iARepresentativeType::AverageEntropy] = averageEntropy;
 	m_representative[iARepresentativeType::AverageLabel] = averageLabel;
