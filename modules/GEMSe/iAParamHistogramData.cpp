@@ -25,7 +25,7 @@
 #include "iAChartFilter.h"
 #include "iAChartAttributeMapper.h"
 #include "iAConsole.h"
-#include "iAImageTree.h"
+#include "iAImageTreeLeaf.h"
 #include "iAMathUtility.h"
 
 #include <algorithm> // for std::fill

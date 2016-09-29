@@ -24,7 +24,8 @@
 #include "iAAttributes.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
-#include "iAImageTree.h"
+#include "iAImageTree.h" // for GetClusterMinMax
+#include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
 #include "iALabelInfo.h"
 #include "iANameMapper.h"

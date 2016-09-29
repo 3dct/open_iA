@@ -22,7 +22,7 @@
 
 #include "iAChartSpanSlider.h"
 #include "iAChartAttributeMapper.h"
-#include "iAImageTree.h"
+#include "iAImageTreeLeaf.h"
 #include "iAMathUtility.h"
 
 AttributeHistogram::AttributeHistogram(int numBins) :

@@ -34,6 +34,7 @@
 #include "iAGEMSeConstants.h"
 #include "iAHistogramContainer.h"
 #include "iAImagePreviewWidget.h"
+#include "iAImageTreeLeaf.h"
 #include "iAImageTreeView.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"

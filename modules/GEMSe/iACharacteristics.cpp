@@ -24,7 +24,7 @@
 
 #include "iAAttributes.h"
 #include "iAConsole.h"
-#include "iAImageTree.h"
+#include "iAImageTreeNode.h"
 #include "iASingleResult.h"
 
 

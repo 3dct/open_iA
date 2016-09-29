@@ -22,5 +22,38 @@
 
 #include "iAImageTreeNode.h"
 
-void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int labelCount,
-	double & dice, double & kappa, double & oa, double &precision, double &recall);
+class iASingleResult;
+
+class iAAttributes;
+
+class iAImageTreeLeaf : public iAImageTreeNode
+{
+public:
+	iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount);
+	virtual int GetChildCount() const;
+	virtual int GetClusterSize() const;
+	virtual int GetFilteredSize() const;
+	virtual void UpdateFilter(iAChartFilter const & filter,
+		iAChartAttributeMapper const & chartAttrMap);
+	virtual ClusterImageType const GetRepresentativeImage(int type) const;
+	virtual void DiscardDetails();
+	virtual ClusterImageType const GetDetailImage() const;
+	virtual ClusterIDType GetID() const;
+	virtual bool IsLeaf() const { return true; }
+	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount);
+	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const;
+	ClusterImageType const GetLargeImage() const;
+	virtual double GetAttribute(int) const;
+	virtual void GetMinMax(int chartID, double & min, double & max,
+		iAChartAttributeMapper const & chartAttrMap) const;
+	virtual ClusterDistanceType GetDistance() const;
+	void SetAttribute(int id, double value);
+	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
+	virtual CombinedProbPtr UpdateProbabilities() const;
+	int GetDatasetID() const;
+	QSharedPointer<iAAttributes> GetAttributes() const;
+private:
+	bool m_filtered;
+	int m_labelCount;
+	QSharedPointer<iASingleResult> m_singleResult;
+};

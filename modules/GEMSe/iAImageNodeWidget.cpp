@@ -18,13 +18,12 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAImageNodeWidget.h"
 
 #include "iAConsole.h"
 #include "iAImagePreviewWidget.h"
-#include "iAImageTree.h"
+#include "iAImageTreeNode.h"
 #include "iAPreviewWidgetPool.h"
 #include "iAGEMSeConstants.h"
 #include "iATriangleButton.h"

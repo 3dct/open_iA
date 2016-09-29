@@ -23,7 +23,7 @@
 #include "iAChartFilter.h"
 
 #include "iAChartAttributeMapper.h"
-#include "iAImageTree.h"
+#include "iAImageTreeLeaf.h"
 
 
 void iAChartFilter::RemoveFilter(int chartID)

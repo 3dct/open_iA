@@ -27,9 +27,8 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
 #include "iAGEMSeConstants.h"
-#include "iAImageTreeView.h"
-#include "iAImageNodeWidget.h"
-#include "iAGEMSeConstants.h"
+#include "iAImageTreeNode.h"
+#include "iASlicerMode.h"
 
 #include <vtkSmartPointer.h>
 
@@ -39,12 +38,15 @@ class iAColorTheme;
 class iADetailView;
 class iAFavoriteWidget;
 class iAHistogramContainer;
-class iAImageTreeNode;
+class iAImageTree;
+class iAImageTreeLeaf;
+class iAImageTreeView;
 class iAExampleImageWidget;
 class iALabelInfo;
 class iALogger;
 class iAModalityList;
 class iAPreviewWidgetPool;
+class iASamplingResults;
 
 class vtkChartXY;
 class vtkImageData;
@@ -58,7 +60,7 @@ class dlg_GEMSe: public dlg_GEMSeUI
 public:
 	dlg_GEMSe(QWidget *parent, iALogger * logger, iAColorTheme const * colorTheme);
 	~dlg_GEMSe();
-	void SetTree(QSharedPointer<iAImageTree > imageTree,
+	void SetTree(QSharedPointer<iAImageTree> imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,

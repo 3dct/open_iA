@@ -22,7 +22,7 @@
 #include "iAExampleImageWidget.h"
 
 #include "iAConsole.h"
-#include "iAImageTree.h"
+#include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
 #include "iAMathUtility.h"
 #include "iAQtCaptionWidget.h"

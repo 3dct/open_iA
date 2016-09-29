@@ -21,7 +21,7 @@
 #pragma once
 
 #include "iASlicerMode.h"
-#include "iAImageTree.h"
+#include "iAImageTreeNode.h"
 
 #include <QVector>
 //#include <QSharedPointer>
