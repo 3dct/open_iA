@@ -344,7 +344,7 @@ QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int 
 	}
 }
 
-void iADetailView::SetNode(iAImageClusterNode const * node,
+void iADetailView::SetNode(iAImageTreeNode const * node,
 	QSharedPointer<iAAttributes> allAttributes,
 	iAChartAttributeMapper const & mapper)
 {
@@ -353,7 +353,7 @@ void iADetailView::SetNode(iAImageClusterNode const * node,
 	m_showingClusterRepresentative = !node->IsLeaf();
 	m_pbGoto->setVisible(node->IsLeaf());
 	update();
-	UpdateLikeHate(node->GetAttitude() == iAImageClusterNode::Liked, node->GetAttitude() == iAImageClusterNode::Hated);
+	UpdateLikeHate(node->GetAttitude() == iAImageTreeNode::Liked, node->GetAttitude() == iAImageTreeNode::Hated);
 
 	m_detailText->clear();
 	m_detailText->append(QString("ID: ") + QString::number(node->GetID()));
@@ -362,7 +362,7 @@ void iADetailView::SetNode(iAImageClusterNode const * node,
 	m_detailText->setMinimumWidth(50);
 	if (node->IsLeaf())
 	{
-		iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node;
+		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node;
 		QSharedPointer<iAAttributes> attributes = leaf->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
 		{

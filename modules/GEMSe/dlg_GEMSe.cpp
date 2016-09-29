@@ -164,17 +164,17 @@ void dlg_GEMSe::SetTree(
 	UpdateClusterChartData();
 
 	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
-	connect(m_treeView, SIGNAL(Clicked(QSharedPointer<iAImageClusterNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageClusterNode>)));
-	connect(m_treeView, SIGNAL(ImageClicked(QSharedPointer<iAImageClusterNode>)), this, SLOT(ClusterNodeImageClicked(QSharedPointer<iAImageClusterNode>)));
-	connect(m_treeView, SIGNAL(Expanded(QSharedPointer<iAImageClusterNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageClusterNode>)));
-	connect(m_treeView, SIGNAL(JumpedTo(QSharedPointer<iAImageClusterNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageClusterNode>)));
+	connect(m_treeView, SIGNAL(Clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
+	connect(m_treeView, SIGNAL(ImageClicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode>)));
+	connect(m_treeView, SIGNAL(Expanded(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
+	connect(m_treeView, SIGNAL(JumpedTo(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
 	connect(m_treeView, SIGNAL(SelectionChanged()), this, SLOT(UpdateClusterChartData()));
-	connect(m_exampleView, SIGNAL(Selected(iAImageClusterLeaf *)), this, SLOT(ClusterLeafSelected(iAImageClusterLeaf *)));
+	connect(m_exampleView, SIGNAL(Selected(iAImageTreeLeaf *)), this, SLOT(ClusterLeafSelected(iAImageTreeLeaf *)));
 	connect(m_detailView, SIGNAL(Like()), this, SLOT(ToggleLike()));
 	connect(m_detailView, SIGNAL(Hate()), this, SLOT(ToggleHate()));
 	connect(m_detailView, SIGNAL(GoToCluster()), this, SLOT(GoToCluster()));
 	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
-	connect(m_favoriteWidget, SIGNAL(Clicked(iAImageClusterNode *)), this, SLOT(FavoriteClicked(iAImageClusterNode *)));
+	connect(m_favoriteWidget, SIGNAL(Clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
 	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));
 	connect(m_histogramContainer, SIGNAL(FilterChanged(int, double, double)), this, SLOT(FilterChanged(int, double, double)));
 	connect(m_histogramContainer, SIGNAL(ChartDblClicked(int)), this, SLOT(ChartDblClicked(int)));
@@ -232,7 +232,7 @@ void dlg_GEMSe::UpdateScatterPlot()
 	}
 }
 
-void dlg_GEMSe::UpdateScatterPlot(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot, iAImageClusterNode const * node,
+void dlg_GEMSe::UpdateScatterPlot(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot, iAImageTreeNode const * node,
 	QColor const & color, iAChartFilter const & filter)
 {
 	if (plot)
@@ -317,13 +317,13 @@ void dlg_GEMSe::CreateMapper()
 	m_MeasureChartIDStart = m_chartAttributes->size();
 }
 
-void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageClusterNode const * node, int p1, int p2, int & rowNr,
+void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageTreeNode const * node, int p1, int p2, int & rowNr,
 	iAChartFilter const & attribFilter,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	if (node->IsLeaf())
 	{
-		iAImageClusterLeaf const * leaf = dynamic_cast<iAImageClusterLeaf const *>(node);
+		iAImageTreeLeaf const * leaf = dynamic_cast<iAImageTreeLeaf const *>(node);
 		if (attribFilter.Matches(leaf, chartAttrMap))
 		{
 			int attr1Idx = chartAttrMap.GetAttributeID(p1, leaf->GetDatasetID());
@@ -344,7 +344,7 @@ void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageClusterNode const * 
 	}
 }
 
-vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageClusterNode const * node, iAChartFilter const & attribFilter)
+vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageTreeNode const * node, iAChartFilter const & attribFilter)
 {
 	if (!node || m_histogramContainer->GetSelectedCount() < 2)
 	{
@@ -371,7 +371,7 @@ vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageClusterNode const
 	return comparisonTable;
 }
 
-void dlg_GEMSe::ClusterNodeClicked(QSharedPointer<iAImageClusterNode> node)
+void dlg_GEMSe::ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node)
 {
 	if (node->GetFilteredSize() == 0)
 	{
@@ -386,7 +386,7 @@ void dlg_GEMSe::ClusterNodeClicked(QSharedPointer<iAImageClusterNode> node)
 }
 
 
-void dlg_GEMSe::ClusterNodeImageClicked(QSharedPointer<iAImageClusterNode> node)
+void dlg_GEMSe::ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node)
 {
 	if (node->GetFilteredSize() == 0)
 	{
@@ -399,7 +399,7 @@ void dlg_GEMSe::ClusterNodeImageClicked(QSharedPointer<iAImageClusterNode> node)
 	}
 }
 
-void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageClusterNode> node)
+void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageTreeNode> node)
 {
 	m_selectedCluster = node;
 	m_selectedLeaf = 0;
@@ -411,7 +411,7 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageClusterNode> node)
 	UpdateScatterPlotLeafPlot();
 	if (node->IsLeaf())
 	{
-		iAImageClusterLeaf * leaf = dynamic_cast<iAImageClusterLeaf*>(node.data());
+		iAImageTreeLeaf * leaf = dynamic_cast<iAImageTreeLeaf*>(node.data());
 		ClusterLeafSelected(leaf);
 	}
 	else
@@ -421,7 +421,7 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageClusterNode> node)
 }
 
 
-void dlg_GEMSe::ClusterLeafSelected(iAImageClusterLeaf * node)
+void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 {
 	m_selectedLeaf = node;
 	m_detailView->SetNode(node, m_chartAttributes, m_chartAttributeMapper);
@@ -455,7 +455,7 @@ void dlg_GEMSe::StoreClustering(QString const & fileName)
 
 void dlg_GEMSe::UpdateClusterChartData()
 {
-	QVector<QSharedPointer<iAImageClusterNode> > const selection =  m_treeView->CurrentSelection();
+	QVector<QSharedPointer<iAImageTreeNode> > const selection =  m_treeView->CurrentSelection();
 	m_histogramContainer->UpdateClusterChartData(m_chartAttributes, m_chartAttributeMapper, selection);
 }
 
@@ -522,14 +522,14 @@ void dlg_GEMSe::ResetFilters()
 
 void dlg_GEMSe::ToggleHate()
 {
-	iAImageClusterNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
+	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
 		m_logger->log("ToggleHate No node selected!");
 		return;
 	}
 	bool isHated = m_favoriteWidget->ToggleHate(node);
-	m_detailView->UpdateLikeHate(false, node->GetAttitude() == iAImageClusterNode::Hated);
+	m_detailView->UpdateLikeHate(false, node->GetAttitude() == iAImageTreeNode::Hated);
 	m_treeView->UpdateAutoShrink(node, isHated);
 	m_treeView->UpdateSubtreeHighlight();
 
@@ -541,14 +541,14 @@ void dlg_GEMSe::ToggleHate()
 
 void dlg_GEMSe::ToggleLike()
 {
-	iAImageClusterNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
+	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
 		m_logger->log("ToggleHate No node selected!");
 		return;
 	}
 	m_favoriteWidget->ToggleLike(node);
-	m_detailView->UpdateLikeHate(node->GetAttitude() == iAImageClusterNode::Liked, false);
+	m_detailView->UpdateLikeHate(node->GetAttitude() == iAImageTreeNode::Liked, false);
 	m_treeView->UpdateSubtreeHighlight();
 
 	wdFavorites->setVisible(m_favoriteWidget->HasAnyFavorite());
@@ -567,9 +567,9 @@ void dlg_GEMSe::UpdateAttributeRangeAttitude()
 
 void dlg_GEMSe::ExportRankings(QString const & fileName)
 {
-	QVector<iAImageClusterNode const *> likes, hates;
-	FindByAttitude(m_treeView->GetTree()->m_root.data(), iAImageClusterNode::Liked, likes);
-	FindByAttitude(m_treeView->GetTree()->m_root.data(), iAImageClusterNode::Hated, hates);
+	QVector<iAImageTreeNode const *> likes, hates;
+	FindByAttitude(m_treeView->GetTree()->m_root.data(), iAImageTreeNode::Liked, likes);
+	FindByAttitude(m_treeView->GetTree()->m_root.data(), iAImageTreeNode::Hated, hates);
 
 	QFile f(fileName);
 	if (!f.open(QIODevice::WriteOnly))
@@ -594,8 +594,8 @@ void dlg_GEMSe::ExportRankings(QString const & fileName)
 
 
 
-void SetAttitude(iAImageClusterNode * node, 
-	iAImageClusterNode::Attitude att, int id)
+void SetAttitude(iAImageTreeNode * node, 
+	iAImageTreeNode::Attitude att, int id)
 {
 	if (node->GetID() == id)
 	{
@@ -608,7 +608,7 @@ void SetAttitude(iAImageClusterNode * node,
 }
 
 
-void SetAttitude(iAImageClusterNode * root, QStringList ids, iAImageClusterNode::Attitude att)
+void SetAttitude(iAImageTreeNode * root, QStringList ids, iAImageTreeNode::Attitude att)
 {
 	for (int i = 1; i < ids.size(); ++i)
 	{
@@ -648,15 +648,15 @@ void dlg_GEMSe::ImportRankings(QString const & fileName)
 		return;
 	}
 
-	SetAttitude(m_treeView->GetTree()->m_root.data(), likeIDs, iAImageClusterNode::Liked);
-	SetAttitude(m_treeView->GetTree()->m_root.data(), hateIDs, iAImageClusterNode::Hated);
+	SetAttitude(m_treeView->GetTree()->m_root.data(), likeIDs, iAImageTreeNode::Liked);
+	SetAttitude(m_treeView->GetTree()->m_root.data(), hateIDs, iAImageTreeNode::Hated);
 
 	UpdateAttributeRangeAttitude();
 	m_treeView->UpdateSubtreeHighlight();
 	// TODO: update detail view?
 }
 
-void dlg_GEMSe::JumpToNode(iAImageClusterNode * node, int stepLimit)
+void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)
 	{
@@ -667,7 +667,7 @@ void dlg_GEMSe::JumpToNode(iAImageClusterNode * node, int stepLimit)
 	//m_exampleView->SetSelectedImage(leaf);
 }
 
-void dlg_GEMSe::FavoriteClicked(iAImageClusterNode * node)
+void dlg_GEMSe::FavoriteClicked(iAImageTreeNode * node)
 {
 	JumpToNode(node, 0);
 }
@@ -709,7 +709,7 @@ void dlg_GEMSe::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 }
 
 
-QSharedPointer<iAImageClusterNode> dlg_GEMSe::GetCurrentCluster()
+QSharedPointer<iAImageTreeNode> dlg_GEMSe::GetCurrentCluster()
 {
 	return m_selectedCluster;
 }
@@ -721,12 +721,12 @@ void dlg_GEMSe::ChartDblClicked(int chartID)
 	m_histogramContainer->SetSpanValues(chartID, min, max);
 }
 
-void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,
+void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 	int labelCount)
 {
 	if (node->IsLeaf())
 	{
-		iAImageClusterLeaf * leaf = dynamic_cast<iAImageClusterLeaf*>(node.data());
+		iAImageTreeLeaf * leaf = dynamic_cast<iAImageTreeLeaf*>(node.data());
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(leaf->GetDetailImage().GetPointer());
 		double measures[MeasureCount];
 		CalculateMeasures(refImg, lblImg, labelCount, measures[0], measures[1], measures[2], measures[3], measures[4]);

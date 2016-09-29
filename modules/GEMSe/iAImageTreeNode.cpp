@@ -18,50 +18,44 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "iAChartFilter.h"
+#include "iAImageTreeNode.h"
 
-#include "iAChartAttributeMapper.h"
-#include "iAImageTree.h"
-
-
-void iAChartFilter::RemoveFilter(int chartID)
+iAImageTreeNode::iAImageTreeNode() :
+	m_attitude(NoPreference)
 {
-	m_filters.remove(chartID);
 }
 
-void iAChartFilter::Reset()
+void iAImageTreeNode::SetParent(QSharedPointer<iAImageTreeNode > parent)
 {
-	m_filters.clear();
+	m_parent = parent;
 }
 
-void iAChartFilter::AddFilter(int chartID, double min, double max)
+QSharedPointer<iAImageTreeNode > iAImageTreeNode::GetParent() const
 {
-	m_filters.insert(chartID, std::make_pair(min, max));
+	return m_parent;
 }
 
-bool iAChartFilter::Matches(iAImageTreeLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const
+iAImageTreeNode::Attitude iAImageTreeNode::GetAttitude() const
 {
-	QList<int> chartIDs = m_filters.keys();
-	for (int chartID: chartIDs)
-	{
-		if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
-		{	// filter doesn't apply for this leaf, so don't filter it
-			return true;
-		}
-		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
-		double value = leaf->GetAttribute(attributeID);
-		std::pair<double, double> const & range = m_filters[chartID];
-		if (value < range.first || value > range.second)
-		{
-			return false;
-		}
-	}
-	return true;
+	return m_attitude;
 }
 
-bool iAChartFilter::MatchesAll() const
+iAImageTreeNode::Attitude iAImageTreeNode::ParentAttitude() const
 {
-	return m_filters.size() == 0;
+	return GetParent() ?
+		(GetParent()->GetAttitude() != NoPreference ?
+			GetParent()->GetAttitude() :
+			GetParent()->ParentAttitude()
+			) :
+		NoPreference;
+}
+
+void iAImageTreeNode::SetAttitude(Attitude att)
+{
+	m_attitude = att;
+}
+
+
+void iAImageTreeNode::ClearFilterData()
+{
 }

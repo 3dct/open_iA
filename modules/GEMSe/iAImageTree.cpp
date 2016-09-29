@@ -44,51 +44,12 @@ namespace
 	QString MergeMarker("merge");
 }
 
-iAImageClusterNode::iAImageClusterNode():
-	m_attitude(NoPreference)
-{
-}
-
-void iAImageClusterNode::SetParent(QSharedPointer<iAImageClusterNode > parent)
-{
-	m_parent = parent;
-}
-QSharedPointer<iAImageClusterNode > iAImageClusterNode::GetParent() const
-{
-	return m_parent;
-}
-
-iAImageClusterNode::Attitude iAImageClusterNode::GetAttitude() const
-{
-	return m_attitude;
-}
-
-iAImageClusterNode::Attitude iAImageClusterNode::ParentAttitude() const
-{
-	return GetParent() ?
-		(GetParent()->GetAttitude() != NoPreference ?
-			GetParent()->GetAttitude() :
-			GetParent()->ParentAttitude()
-		) :
-		NoPreference;
-}
-
-void iAImageClusterNode::SetAttitude(Attitude att)
-{
-	m_attitude = att;
-}
-
-
-void iAImageClusterNode::ClearFilterData()
-{
-}
-
 // Internal Node:
 
 
-iAImageClusterInternal::iAImageClusterInternal(
-	QSharedPointer<iAImageClusterNode > a,
-	QSharedPointer<iAImageClusterNode > b,
+iAImageTreeInternalNode::iAImageTreeInternalNode(
+	QSharedPointer<iAImageTreeNode > a,
+	QSharedPointer<iAImageTreeNode > b,
 	LabelPixelType differenceMarkerValue,
 	QString const & cachePath,
 	ClusterIDType id,
@@ -117,14 +78,14 @@ iAImageClusterInternal::iAImageClusterInternal(
 }
 
 
-int iAImageClusterInternal::GetChildCount() const
+int iAImageTreeInternalNode::GetChildCount() const
 {
 	// TODO: check if something other than binary tree makes more sense
 	return CHILD_NODE_NUMBER;
 }
 
 
-ClusterImageType iAImageClusterInternal::CalculateRepresentative(int type) const
+ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type) const
 {
 	switch (type)
 	{
@@ -169,7 +130,7 @@ ClusterImageType iAImageClusterInternal::CalculateRepresentative(int type) const
 	}
 }
 
-ClusterImageType iAImageClusterInternal::CalculateFilteredRepresentative(int type) const
+ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int type) const
 {
 	switch (type)
 	{
@@ -201,13 +162,13 @@ ClusterImageType iAImageClusterInternal::CalculateFilteredRepresentative(int typ
 	}
 }
 
-int iAImageClusterInternal::GetClusterSize() const
+int iAImageTreeInternalNode::GetClusterSize() const
 {
 	return m_clusterSize;
 }
 
 
-void iAImageClusterInternal::GetExampleImages(QVector<iAImageClusterLeaf *> & result, int amount)
+void iAImageTreeInternalNode::GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount)
 {
 	if (GetFilteredSize() == 0)
 	{
@@ -257,7 +218,7 @@ void iAImageClusterInternal::GetExampleImages(QVector<iAImageClusterLeaf *> & re
 }
 
 
-ClusterImageType const iAImageClusterInternal::GetRepresentativeImage(int type) const
+ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type) const
 {
 	if (GetFilteredSize() != GetClusterSize())
 	{
@@ -304,42 +265,42 @@ ClusterImageType const iAImageClusterInternal::GetRepresentativeImage(int type) 
 }
 
 
-void iAImageClusterInternal::DiscardDetails()
+void iAImageTreeInternalNode::DiscardDetails()
 {
 	m_representative.clear();
 }
 
 
-void iAImageClusterInternal::DiscardFilterData()
+void iAImageTreeInternalNode::DiscardFilterData()
 {
 	m_filteredRepresentative.clear();
 }
 
 
-QSharedPointer<iAImageClusterNode > iAImageClusterInternal::GetChild(int idx) const
+QSharedPointer<iAImageTreeNode > iAImageTreeInternalNode::GetChild(int idx) const
 {
 	return (idx == 0) ? m_children.first : m_children.second;
 }
 
 
-ClusterIDType iAImageClusterInternal::GetID() const
+ClusterIDType iAImageTreeInternalNode::GetID() const
 {
 	return m_ID;
 }
 
 
-double iAImageClusterInternal::GetAttribute(int id) const
+double iAImageTreeInternalNode::GetAttribute(int id) const
 {
 	assert(false);
 	return 0.0;
 }
 
-int  iAImageClusterInternal::GetFilteredSize() const
+int  iAImageTreeInternalNode::GetFilteredSize() const
 {
 	return m_filteredSize;
 }
 
-void iAImageClusterInternal::UpdateFilter(iAChartFilter const & filter,
+void iAImageTreeInternalNode::UpdateFilter(iAChartFilter const & filter,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	m_filteredSize = 0;
@@ -351,7 +312,7 @@ void iAImageClusterInternal::UpdateFilter(iAChartFilter const & filter,
 	m_filteredRepresentativeOutdated = true;
 }
 
-void iAImageClusterInternal::RecalculateFilteredRepresentative(int type) const
+void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type) const
 {
 	m_filteredRepresentativeOutdated = false;
 	if (GetFilteredSize() == GetClusterSize())
@@ -363,14 +324,14 @@ void iAImageClusterInternal::RecalculateFilteredRepresentative(int type) const
 }
 
 
-QString iAImageClusterInternal::GetCachedFileName(int type) const
+QString iAImageTreeInternalNode::GetCachedFileName(int type) const
 {
 	return m_cachePath + "/rep" + QString::number(m_ID) +
 		((type != iARepresentativeType::Difference)? "-" + QString::number(type): "") + 
 		".mhd";
 }
 
-ClusterDistanceType iAImageClusterInternal::GetDistance() const
+ClusterDistanceType iAImageTreeInternalNode::GetDistance() const
 {
 	return m_distance;
 }
@@ -378,7 +339,7 @@ ClusterDistanceType iAImageClusterInternal::GetDistance() const
 #include <itkAddImageFilter.h>
 #include <itkDivideImageFilter.h>
 
-LabelPixelHistPtr iAImageClusterInternal::UpdateLabelDistribution() const
+LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 {
 	LabelPixelHistPtr result(new LabelPixelHistogram());
 	LabelPixelHistPtr childResult1 = GetChild(0)->UpdateLabelDistribution();
@@ -440,7 +401,7 @@ LabelPixelHistPtr iAImageClusterInternal::UpdateLabelDistribution() const
 	return result;
 }
 
-CombinedProbPtr iAImageClusterInternal::UpdateProbabilities() const
+CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 {
 	/* TODO: caching? */
 	CombinedProbPtr result(new CombinedProbability());
@@ -527,7 +488,7 @@ CombinedProbPtr iAImageClusterInternal::UpdateProbabilities() const
 }
 
 
-void iAImageClusterInternal::ClearFilterData()
+void iAImageTreeInternalNode::ClearFilterData()
 {
 	DiscardFilterData();
 	for (int i = 0; i < GetChildCount(); ++i)
@@ -540,7 +501,7 @@ void iAImageClusterInternal::ClearFilterData()
 // Leaf Node:
 
 
-iAImageClusterLeaf::iAImageClusterLeaf(QSharedPointer<iASingleResult> img, int labelCount):
+iAImageTreeLeaf::iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount):
 	m_singleResult(img),
 	m_filtered(false),
 	m_labelCount(labelCount)
@@ -548,17 +509,17 @@ iAImageClusterLeaf::iAImageClusterLeaf(QSharedPointer<iASingleResult> img, int l
 }
 
 
-int iAImageClusterLeaf::GetChildCount() const
+int iAImageTreeLeaf::GetChildCount() const
 {
 	return 0;
 }
 
-int iAImageClusterLeaf::GetClusterSize() const
+int iAImageTreeLeaf::GetClusterSize() const
 {
 	return 1;
 }
 
-void iAImageClusterLeaf::GetExampleImages(QVector<iAImageClusterLeaf *> & result, int amount)
+void iAImageTreeLeaf::GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount)
 {
 	if (amount == 0)
 	{
@@ -569,7 +530,7 @@ void iAImageClusterLeaf::GetExampleImages(QVector<iAImageClusterLeaf *> & result
 
 #include "iAConnector.h"
 
-ClusterImageType const iAImageClusterLeaf::GetRepresentativeImage(int type) const
+ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int type) const
 {
 	if (m_filtered)
 	{
@@ -579,65 +540,65 @@ ClusterImageType const iAImageClusterLeaf::GetRepresentativeImage(int type) cons
 }
 
 
-void iAImageClusterLeaf::DiscardDetails()
+void iAImageTreeLeaf::DiscardDetails()
 {
 	m_singleResult->DiscardDetails();
 }
 
 
-ClusterImageType const iAImageClusterLeaf::GetDetailImage() const
+ClusterImageType const iAImageTreeLeaf::GetDetailImage() const
 {
 	return m_singleResult->GetLabelledImage();
 }
 
 
-QSharedPointer<iAImageClusterNode > iAImageClusterLeaf::GetChild(int idx) const
+QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int idx) const
 {
 	// leaf node, no children -> null pointer
-	return QSharedPointer<iAImageClusterNode >();
+	return QSharedPointer<iAImageTreeNode >();
 }
 
 
-ClusterIDType iAImageClusterLeaf::GetID() const
+ClusterIDType iAImageTreeLeaf::GetID() const
 {
 	return m_singleResult->GetID();
 }
 
 
-ClusterImageType const iAImageClusterLeaf::GetLargeImage() const
+ClusterImageType const iAImageTreeLeaf::GetLargeImage() const
 {
 	return m_singleResult->GetLabelledImage();
 }
 
 
-double iAImageClusterLeaf::GetAttribute(int id) const
+double iAImageTreeLeaf::GetAttribute(int id) const
 {
 	return m_singleResult->GetAttribute(id);
 }
 
 
-void iAImageClusterLeaf::SetAttribute(int id, double value)
+void iAImageTreeLeaf::SetAttribute(int id, double value)
 {
 	m_singleResult->SetAttribute(id, value);
 }
 
-int iAImageClusterLeaf::GetFilteredSize() const
+int iAImageTreeLeaf::GetFilteredSize() const
 {
 	return (m_filtered)? 0 : 1;
 }
 
-void iAImageClusterLeaf::UpdateFilter(iAChartFilter const & filter,
+void iAImageTreeLeaf::UpdateFilter(iAChartFilter const & filter,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	m_filtered = !filter.Matches(this, chartAttrMap);
 }
 
-ClusterDistanceType iAImageClusterLeaf::GetDistance() const
+ClusterDistanceType iAImageTreeLeaf::GetDistance() const
 {
 	return 0.0;
 }
 
-LabelPixelHistPtr iAImageClusterLeaf::UpdateLabelDistribution() const
+LabelPixelHistPtr iAImageTreeLeaf::UpdateLabelDistribution() const
 {
 	LabelPixelHistPtr result(new LabelPixelHistogram());
 	// initialize
@@ -669,7 +630,7 @@ LabelPixelHistPtr iAImageClusterLeaf::UpdateLabelDistribution() const
 
 #include "iASingleResult.h"
 
-CombinedProbPtr iAImageClusterLeaf::UpdateProbabilities() const
+CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 {
 	CombinedProbPtr result(new CombinedProbability());
 	for (int i = 0; i < m_labelCount; ++i)
@@ -681,13 +642,13 @@ CombinedProbPtr iAImageClusterLeaf::UpdateProbabilities() const
 }
 
 
-int iAImageClusterLeaf::GetDatasetID() const
+int iAImageTreeLeaf::GetDatasetID() const
 {
 	return m_singleResult->GetDatasetID();
 }
 
 
-QSharedPointer<iAAttributes> iAImageClusterLeaf::GetAttributes() const
+QSharedPointer<iAAttributes> iAImageTreeLeaf::GetAttributes() const
 {
 	return m_singleResult->GetAttributes();
 }
@@ -695,14 +656,14 @@ QSharedPointer<iAAttributes> iAImageClusterLeaf::GetAttributes() const
 
 // tree
 
-iAImageTree::iAImageTree(QSharedPointer<iAImageClusterNode > node, int labelCount):
+iAImageTree::iAImageTree(QSharedPointer<iAImageTreeNode > node, int labelCount):
 m_root(node),
 m_labelCount(labelCount)
 {
 }
 
 
-void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageClusterNode > const node, int level)
+void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode > const node, int level)
 {
 	for (int l=0; l<level; ++l)
 	{
@@ -711,7 +672,7 @@ void iAImageTree::WriteNode(QTextStream & out, QSharedPointer<iAImageClusterNode
 	out << QString::number(node->GetID()) << " ";
 	if (node->IsLeaf())
 	{
-		iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node.data();
+		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node.data();
 		out << LeafMarker << " " << leaf->GetDatasetID();
 	}
 	else
@@ -761,7 +722,7 @@ QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleR
 }
 
 
-QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
+QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 	QVector<QSharedPointer<iASamplingResults> > const & samplingResults,
 	int labelCount,
 	QString const & outputDirectory,
@@ -771,7 +732,7 @@ QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
 	{
 		assert(false);
 		DEBUG_LOG("Reading node in cluster file failed!");
-		return QSharedPointer<iAImageClusterNode>();
+		return QSharedPointer<iAImageTreeNode>();
 	}
 	QString currentLine = in.readLine().trimmed();
 	QStringList strs = currentLine.split(" ");
@@ -781,7 +742,7 @@ QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
 	if (!isNum)
 	{
 		DEBUG_LOG(QString("Reading node: Invalid (non-integer) ID in cluster file, line: '%1'").arg(currentLine));
-		return QSharedPointer<iAImageClusterNode>();
+		return QSharedPointer<iAImageTreeNode>();
 	}
 	if (isLeaf)
 	{
@@ -789,18 +750,18 @@ QSharedPointer<iAImageClusterNode> iAImageTree::ReadNode(QTextStream & in,
 		if (!isNum)
 		{
 			DEBUG_LOG(QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
-			return QSharedPointer<iAImageClusterNode>();
+			return QSharedPointer<iAImageTreeNode>();
 		}
 		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults[datasetID]->GetResults();
 		QSharedPointer<iASingleResult> result = findResultWithID(sampleResults, id);
-		return QSharedPointer<iAImageClusterNode>(new iAImageClusterLeaf(result, labelCount) );
+		return QSharedPointer<iAImageTreeNode>(new iAImageTreeLeaf(result, labelCount) );
 	}
 	else
 	{
 		float diff = strs[2].toFloat();
-		QSharedPointer<iAImageClusterNode> child1(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
-		QSharedPointer<iAImageClusterNode> child2(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
-		QSharedPointer<iAImageClusterNode> result(new iAImageClusterInternal(child1, child2,
+		QSharedPointer<iAImageTreeNode> child1(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
+		QSharedPointer<iAImageTreeNode> child2(iAImageTree::ReadNode(in, samplingResults, labelCount, outputDirectory, lastClusterID));
+		QSharedPointer<iAImageTreeNode> result(new iAImageTreeInternalNode(child1, child2,
 			labelCount,
 			outputDirectory,
 			id, diff)
@@ -846,7 +807,7 @@ int iAImageTree::GetLabelCount() const
 	return m_labelCount;
 }
 
-void iAImageClusterLeaf::GetMinMax(int chartID, double & min, double & max,
+void iAImageTreeLeaf::GetMinMax(int chartID, double & min, double & max,
 	iAChartAttributeMapper const & chartAttrMap) const
 {
 	if (m_filtered)
@@ -869,7 +830,7 @@ void iAImageClusterLeaf::GetMinMax(int chartID, double & min, double & max,
 	}
 }
 
-void iAImageClusterInternal::GetMinMax(int chartID, double & min, double & max,
+void iAImageTreeInternalNode::GetMinMax(int chartID, double & min, double & max,
 	iAChartAttributeMapper const & chartAttrMap) const
 {
 	for (int i = 0; i < GetChildCount(); ++i)
@@ -878,7 +839,7 @@ void iAImageClusterInternal::GetMinMax(int chartID, double & min, double & max,
 	}
 }
 
-void GetClusterMinMax(iAImageClusterNode const * node, int chartID, double & min, double & max,
+void GetClusterMinMax(iAImageTreeNode const * node, int chartID, double & min, double & max,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	min = std::numeric_limits<double>::max();

@@ -29,7 +29,7 @@
 #include <QThread>
 
 class iAImageTree;
-class iAImageClusterNode;
+class iAImageTreeNode;
 class iASingleResult;
 
 class iAImageClusterer: public QThread, public iADurationEstimator, public iAAbortListener
@@ -51,7 +51,7 @@ signals:
 	void Status(QString const &);
 private:
 	void run();
-	QVector<QSharedPointer<iAImageClusterNode> > m_images;
+	QVector<QSharedPointer<iAImageTreeNode> > m_images;
 	QSharedPointer<iAImageTree> m_tree;
 	int m_labelCount;
 	bool m_aborted;

@@ -39,7 +39,7 @@ class iAColorTheme;
 class iADetailView;
 class iAFavoriteWidget;
 class iAHistogramContainer;
-class iAImageClusterNode;
+class iAImageTreeNode;
 class iAExampleImageWidget;
 class iALabelInfo;
 class iALogger;
@@ -64,7 +64,7 @@ public:
 		iALabelInfo const & labelInfo,
 		QVector<QSharedPointer<iASamplingResults> > samplings);
 	void StoreClustering(QString const & fileName);
-	QSharedPointer<iAImageClusterNode> GetCurrentCluster();
+	QSharedPointer<iAImageTreeNode> GetCurrentCluster();
 	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
 	void ResetFilters();
@@ -77,16 +77,16 @@ public:
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);
 private slots:
-	void ClusterNodeClicked(QSharedPointer<iAImageClusterNode> node);
-	void ClusterNodeImageClicked(QSharedPointer<iAImageClusterNode> node);
-	void SelectCluster(QSharedPointer<iAImageClusterNode> node);
-	void ClusterLeafSelected(iAImageClusterLeaf *);
+	void ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node);
+	void ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node);
+	void SelectCluster(QSharedPointer<iAImageTreeNode> node);
+	void ClusterLeafSelected(iAImageTreeLeaf *);
 	void FilterChanged(int chartID, double min, double max);
 	void ChartDblClicked(int chartID);
 	void ToggleHate();
 	void ToggleLike();
 	void GoToCluster();
-	void FavoriteClicked(iAImageClusterNode * leaf);
+	void FavoriteClicked(iAImageTreeNode * leaf);
 	
 	void SlicerModeChanged(iASlicerMode mode, int sliceNr);
 	void SliceNumberChanged(int sliceNr);
@@ -94,7 +94,7 @@ private slots:
 	void UpdateClusterChartData();
 	void HistogramSelectionUpdated();
 private:
-	void JumpToNode(iAImageClusterNode * leaf, int stepLimit);
+	void JumpToNode(iAImageTreeNode * leaf, int stepLimit);
 	void UpdateScatterPlot();
 	void UpdateScatterPlotClusterPlot();
 	void UpdateScatterPlotLeafPlot();
@@ -105,12 +105,12 @@ private:
 	void UpdateAttributeRangeAttitude();
 	void CreateMapper();
 
-	void CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,
+	void CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 		int labelCount);
 
-	vtkSmartPointer<vtkTable> GetComparisonTable(iAImageClusterNode const * node, iAChartFilter const & filter);
+	vtkSmartPointer<vtkTable> GetComparisonTable(iAImageTreeNode const * node, iAChartFilter const & filter);
 	void UpdateScatterPlot(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot,
-		iAImageClusterNode const * node, QColor const & color, iAChartFilter const & filter);
+		iAImageTreeNode const * node, QColor const & color, iAChartFilter const & filter);
 	
 	// data:
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;
@@ -118,8 +118,8 @@ private:
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
 	
-	QSharedPointer<iAImageClusterNode> m_selectedCluster;
-	iAImageClusterLeaf * m_selectedLeaf;
+	QSharedPointer<iAImageTreeNode> m_selectedCluster;
+	iAImageTreeLeaf * m_selectedLeaf;
 
 	iAChartFilter m_chartFilter;
 

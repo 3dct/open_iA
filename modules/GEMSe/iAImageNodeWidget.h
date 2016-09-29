@@ -45,7 +45,7 @@ class iAImageNodeWidget: public QWidget
 public:
 	iAImageNodeWidget(
 		QWidget* parent,
-		QSharedPointer<iAImageClusterNode > node,
+		QSharedPointer<iAImageTreeNode > node,
 		iAPreviewWidgetPool * previewPool,
 		bool shrinkAuto,
 		int representativeType);
@@ -53,7 +53,7 @@ public:
 	bool IsExpanded() const;
 	bool IsShrinked() const;
 	void Layout(int x, int y, int width, int height);
-	QSharedPointer<iAImageClusterNode> GetClusterNode();
+	QSharedPointer<iAImageTreeNode> GetClusterNode();
 	bool UpdateShrinkStatus();
 	void ToggleButton();
 	void ExpandNode();
@@ -80,7 +80,7 @@ private:
 
 	bool m_shrinkedAuto;
 	bool m_shrinkStatus;
-	QSharedPointer<iAImageClusterNode > m_cluster;
+	QSharedPointer<iAImageTreeNode > m_cluster;
 	iAImagePreviewWidget * m_imageView;
 	iATriangleButton* m_expandButton;
 	QLabel* m_infoLabel;

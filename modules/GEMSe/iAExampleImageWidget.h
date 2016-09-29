@@ -30,8 +30,8 @@ typedef iAITKIO::ImagePointer ClusterImageType;
 #include <QVector>
 #include <QWidget>
 
-class iAImageClusterLeaf;
-class iAImageClusterNode;
+class iAImageTreeLeaf;
+class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iAPreviewWidgetPool;
 
@@ -45,25 +45,25 @@ class iAExampleImageWidget: public QWidget
 public:
 	//! aspectRatio = height/width
 	iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
-	void SetSelectedNode(QSharedPointer<iAImageClusterNode> node);
-	void SetSelectedImage(iAImageClusterLeaf * leaf);
+	void SetSelectedNode(QSharedPointer<iAImageTreeNode> node);
+	void SetSelectedImage(iAImageTreeLeaf * leaf);
 	void FilterUpdated();
 public slots:
 	void AdaptLayout();
 	void ImageUpdated();
 signals:
-	void Selected(iAImageClusterLeaf *);
-	void Hovered(iAImageClusterLeaf *);
+	void Selected(iAImageTreeLeaf *);
+	void Hovered(iAImageTreeLeaf *);
 	void ViewUpdated();
 protected:
 	virtual void resizeEvent(QResizeEvent *);
 private:
 	void UpdateImages();
-	QVector<iAImageClusterLeaf *> m_nodes;
+	QVector<iAImageTreeLeaf *> m_nodes;
 	QGridLayout* m_layout;
 	int m_width;
 	int m_height;
-	QSharedPointer<iAImageClusterNode> m_rootNode;
+	QSharedPointer<iAImageTreeNode> m_rootNode;
 	double m_aspectRatio;
 	iAPreviewWidgetPool * m_previewPool;
 	ExampleGrid* m_gridWidget;

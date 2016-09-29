@@ -470,7 +470,7 @@ void dlg_GEMSeControl::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 	m_dlgGEMSe->ShowImage(imgData);
 }
 
-void ExportClusterIDs(QSharedPointer<iAImageClusterNode> node, std::ostream & out)
+void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
 {
 	if (node->GetChildCount() > 0)
 	{
@@ -496,7 +496,7 @@ void dlg_GEMSeControl::ExportIDs()
 	{
 		return;
 	}
-	QSharedPointer<iAImageClusterNode> cluster = m_dlgGEMSe->GetCurrentCluster();
+	QSharedPointer<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
 	std::ofstream out(fileName.toStdString());
 	ExportClusterIDs(cluster, out);
 }

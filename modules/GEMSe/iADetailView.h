@@ -36,7 +36,7 @@ class iAAttributes;
 class iAChannelVisualizationData;
 class iAChartAttributeMapper;
 class iAColorTheme;
-class iAImageClusterNode;
+class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iALabelInfo;
 class iAModalityList;
@@ -53,7 +53,7 @@ public:
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
 		int representativeType);
-	void SetNode(iAImageClusterNode const * node,
+	void SetNode(iAImageTreeNode const * node,
 		QSharedPointer<iAAttributes> allAttributes,
 		iAChartAttributeMapper const & mapper);
 	int GetSliceNumber() const;
@@ -78,7 +78,7 @@ private slots:
 	void ChangeModality(int);
 	void ChangeMagicLensOpacity(int);
 private:
-	iAImageClusterNode const * m_node;
+	iAImageTreeNode const * m_node;
 	iAImagePreviewWidget* m_previewWidget;
 	QPushButton *m_pbLike, *m_pbHate, *m_pbGoto;
 	QTextEdit* m_detailText;

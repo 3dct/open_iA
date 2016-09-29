@@ -56,22 +56,22 @@ public:
 		int representativeType);
 	//void SetTree(QSharedPointer<iAImageTree> tree);
 	QSharedPointer<iAImageTree > const GetTree() const;
-	void AddSelectedNode(QSharedPointer<iAImageClusterNode> node, bool clear);
+	void AddSelectedNode(QSharedPointer<iAImageTreeNode> node, bool clear);
 	void EnableSubtreeHighlight(bool enable);
 	void FilterUpdated();
-	void JumpToNode(iAImageClusterNode const *, int stepLimit=0);
-	QVector<QSharedPointer<iAImageClusterNode> > const CurrentSelection() const;
-	void UpdateAutoShrink(iAImageClusterNode* node, bool wasSelected);
+	void JumpToNode(iAImageTreeNode const *, int stepLimit=0);
+	QVector<QSharedPointer<iAImageTreeNode> > const CurrentSelection() const;
+	void UpdateAutoShrink(iAImageTreeNode* node, bool wasSelected);
 	void UpdateSubtreeHighlight();
 	void SetAutoShrink(bool enabled);
 	bool GetAutoShrink();
 	void SetIconSize(int iconSize);
 	void SetRepresentativeType(int representativeType);
 signals:
-	void Clicked(QSharedPointer<iAImageClusterNode >);
-	void ImageClicked(QSharedPointer<iAImageClusterNode >);
-	void Expanded(QSharedPointer<iAImageClusterNode >);
-	void JumpedTo(QSharedPointer<iAImageClusterNode >);
+	void Clicked(QSharedPointer<iAImageTreeNode >);
+	void ImageClicked(QSharedPointer<iAImageTreeNode >);
+	void Expanded(QSharedPointer<iAImageTreeNode >);
+	void JumpedTo(QSharedPointer<iAImageTreeNode >);
 	void ViewUpdated();
 	void SelectionChanged();
 protected:
@@ -81,34 +81,34 @@ private slots:
 	void NodeClicked();
 	void NodeImageClicked();
 private:
-	void AddNode(QSharedPointer<iAImageClusterNode > node, bool shrinked);
+	void AddNode(QSharedPointer<iAImageTreeNode > node, bool shrinked);
 	//! return true if expand was successful
 	bool ExpandNode(iAImageNodeWidget* nodeWidget, bool expand, bool shrinked);
 	void UpdateLayout();
-	int LayoutNode(QSharedPointer<iAImageClusterNode > node, int nodeNumber, int level, int & shrinked);
+	int LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeNumber, int level, int & shrinked);
 
-	void UpdateRepresentative(QSharedPointer<iAImageClusterNode > node);
+	void UpdateRepresentative(QSharedPointer<iAImageTreeNode > node);
 	//! collapse a node and all its subclusters:
-	void CollapseNode(QSharedPointer<iAImageClusterNode > node, bool & selectionChanged);
+	void CollapseNode(QSharedPointer<iAImageTreeNode > node, bool & selectionChanged);
 
-	int getNodeWithIdx(QSharedPointer<iAImageClusterNode > node, int currentNr, 
-		int level, int searchedFor, QSharedPointer<iAImageClusterNode > &result);
+	int getNodeWithIdx(QSharedPointer<iAImageTreeNode > node, int currentNr, 
+		int level, int searchedFor, QSharedPointer<iAImageTreeNode > &result);
 
-	void InsertNodeHighlight(iAImageClusterNode* node, QColor const & color);
-	int GetExpandedChildren(iAImageClusterNode* node,
+	void InsertNodeHighlight(iAImageTreeNode* node, QColor const & color);
+	int GetExpandedChildren(iAImageTreeNode* node,
 		int curLevel, int & maxLevel, int & shrinked);
 
 	bool m_highlightSubtree;
 	QSharedPointer<iAImageTree > m_imageTree;
 	// ToDo: extract to widget for a single cluster node:
-	QMap<iAImageClusterNode*, iAImageNodeWidget* > m_nodeWidgets;
+	QMap<iAImageTreeNode*, iAImageNodeWidget* > m_nodeWidgets;
 	//! number of currently shown nodes:
 	int m_nodesShown;
 	int m_maxLevel;
 	//! whether to automatically shrink clusters:
 	bool m_autoShrink;
 	//! currently selected cluster
-	QVector<QSharedPointer<iAImageClusterNode> > m_selectedNode;
+	QVector<QSharedPointer<iAImageTreeNode> > m_selectedNode;
 	QVector<iATreeHighlight> m_highlights;
 	iAPreviewWidgetPool * m_previewPool;
 	int m_iconSize;

@@ -36,7 +36,7 @@
 #include <QVBoxLayout>
 
 iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
-	QSharedPointer<iAImageClusterNode> treeNode,
+	QSharedPointer<iAImageTreeNode> treeNode,
 	iAPreviewWidgetPool * previewPool,
 	bool shrinkAuto,
 	int representativeType)
@@ -144,7 +144,7 @@ void iAImageNodeWidget::Layout(int x, int y, int width, int height)
 	move(x, y);
 }
 
-QSharedPointer<iAImageClusterNode > iAImageNodeWidget::GetClusterNode()
+QSharedPointer<iAImageTreeNode > iAImageNodeWidget::GetClusterNode()
 {
 	return m_cluster;
 }
@@ -264,7 +264,7 @@ void iAImageNodeWidget::SetAutoShrink(bool newAutoShrink)
 {
 	if (newAutoShrink == m_shrinkedAuto)
 		return;
-	if (GetClusterNode()->GetAttitude() == iAImageClusterNode::Liked)
+	if (GetClusterNode()->GetAttitude() == iAImageTreeNode::Liked)
 	{
 		return;
 	}

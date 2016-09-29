@@ -66,42 +66,42 @@ bool iAFavoriteWidget::HasAnyFavorite() const
 	return m_favorites.size() > 0;
 }
 
-bool iAFavoriteWidget::ToggleLike(iAImageClusterNode * node)
+bool iAFavoriteWidget::ToggleLike(iAImageTreeNode * node)
 {
 	if (!node)
 	{
 		DEBUG_LOG("ERROR in favorites: ToggleLike called for NULL node.\n");
 		return false;
 	}
-	if (node->GetAttitude() == iAImageClusterNode::Liked)
+	if (node->GetAttitude() == iAImageTreeNode::Liked)
 	{
-		node->SetAttitude(iAImageClusterNode::NoPreference);
+		node->SetAttitude(iAImageTreeNode::NoPreference);
 		Remove(node);
 		return false;
 	}
 	else
 	{
-		node->SetAttitude(iAImageClusterNode::Liked);
+		node->SetAttitude(iAImageTreeNode::Liked);
 		Add(node);
 		return true;
 	}
 }
 
-bool iAFavoriteWidget::ToggleHate(iAImageClusterNode * node)
+bool iAFavoriteWidget::ToggleHate(iAImageTreeNode * node)
 {
 	if (!node)
 	{
 		DEBUG_LOG("ERROR in favorites: ToggleHate called for NULL node.\n");
 		return false;
 	}
-	if (node->GetAttitude() == iAImageClusterNode::Hated)
+	if (node->GetAttitude() == iAImageTreeNode::Hated)
 	{
-		node->SetAttitude(iAImageClusterNode::NoPreference);
+		node->SetAttitude(iAImageTreeNode::NoPreference);
 		return false;
 	}
 	else
 	{
-		if (node->GetAttitude() == iAImageClusterNode::Liked)
+		if (node->GetAttitude() == iAImageTreeNode::Liked)
 		{
 			int idx = GetIndexForNode(node);
 			if (idx == -1)
@@ -117,14 +117,14 @@ bool iAFavoriteWidget::ToggleHate(iAImageClusterNode * node)
 			}
 			m_likeLayout->removeWidget(widget);
 		}
-		node->SetAttitude(iAImageClusterNode::Hated);
+		node->SetAttitude(iAImageTreeNode::Hated);
 		return true;
 	}
 }
 
-void iAFavoriteWidget::Add(iAImageClusterNode * node)
+void iAFavoriteWidget::Add(iAImageTreeNode * node)
 {
-	if (!node || node->GetAttitude() != iAImageClusterNode::Liked)
+	if (!node || node->GetAttitude() != iAImageTreeNode::Liked)
 	{
 		return;
 	}
@@ -143,7 +143,7 @@ void iAFavoriteWidget::Add(iAImageClusterNode * node)
 }
 
 
-void iAFavoriteWidget::Remove(iAImageClusterNode const * node)
+void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 {
 	if (!node)
 	{
@@ -177,7 +177,7 @@ void iAFavoriteWidget::FavoriteClicked()
 	{
 		DEBUG_LOG("FavoriteClicked: Error: invalid sender!\n");
 	}
-	iAImageClusterNode * node = GetNodeForWidget(widget);
+	iAImageTreeNode * node = GetNodeForWidget(widget);
 	if (!node)
 	{
 		DEBUG_LOG("FavoriteClicked: Error: node not found!\n");
@@ -186,7 +186,7 @@ void iAFavoriteWidget::FavoriteClicked()
 }
 
 
-int iAFavoriteWidget::GetIndexForNode(iAImageClusterNode const* node)
+int iAFavoriteWidget::GetIndexForNode(iAImageTreeNode const* node)
 {
 	for (int i=0; i<m_favorites.size(); ++i)
 	{
@@ -198,7 +198,7 @@ int iAFavoriteWidget::GetIndexForNode(iAImageClusterNode const* node)
 	return -1;
 }
 
-iAImageClusterNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widget)
+iAImageTreeNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widget)
 {
 	for (FavoriteData const & data: m_favorites)
 	{
@@ -211,9 +211,9 @@ iAImageClusterNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* wi
 }
 
 
-QVector<iAImageClusterNode const *> iAFavoriteWidget::GetFavorites(iAImageClusterNode::Attitude att) const
+QVector<iAImageTreeNode const *> iAFavoriteWidget::GetFavorites(iAImageTreeNode::Attitude att) const
 {
-	QVector<iAImageClusterNode const *> result;
+	QVector<iAImageTreeNode const *> result;
 	for (FavoriteData const & data : m_favorites)
 	{
 		if (data.node->GetAttitude() == att)

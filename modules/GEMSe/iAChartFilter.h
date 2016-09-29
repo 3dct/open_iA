@@ -25,14 +25,14 @@
 #include <QMap>
 
 class iAChartAttributeMapper;
-class iAImageClusterLeaf;
+class iAImageTreeLeaf;
 
 class iAChartFilter
 {
 public:
 	void RemoveFilter(int chartID);
 	void AddFilter(int chartID, double min, double max);
-	bool Matches(iAImageClusterLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const;
+	bool Matches(iAImageTreeLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const;
 	bool MatchesAll() const;
 	void Reset();
 private:

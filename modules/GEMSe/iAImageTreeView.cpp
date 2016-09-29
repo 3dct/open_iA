@@ -32,7 +32,7 @@
 
 // tree utility functions:
 // {
-void FindNode(iAImageClusterNode const * searched, QList<QSharedPointer<iAImageClusterNode> > & path, QSharedPointer<iAImageClusterNode> curCluster, bool & found)
+void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTreeNode> > & path, QSharedPointer<iAImageTreeNode> curCluster, bool & found)
 {
 	path.push_back(curCluster);
 	if (curCluster.data() != searched)
@@ -52,9 +52,9 @@ void FindNode(iAImageClusterNode const * searched, QList<QSharedPointer<iAImageC
 	}
 }
 
-QSharedPointer<iAImageClusterNode> GetSibling(QSharedPointer<iAImageClusterNode> node)
+QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node)
 {
-	QSharedPointer<iAImageClusterNode> parent(node->GetParent());
+	QSharedPointer<iAImageTreeNode> parent(node->GetParent());
 	for (int i=0; i<parent->GetChildCount(); ++i)
 	{
 		if (parent->GetChild(i) != node)
@@ -62,7 +62,7 @@ QSharedPointer<iAImageClusterNode> GetSibling(QSharedPointer<iAImageClusterNode>
 			return parent->GetChild(i);
 		}
 	}
-	return QSharedPointer<iAImageClusterNode>();
+	return QSharedPointer<iAImageTreeNode>();
 }
 
 // }
@@ -93,7 +93,7 @@ QSharedPointer<iAImageTree > const iAImageTreeView::GetTree() const
 }
 
 
-void iAImageTreeView::AddSelectedNode(QSharedPointer<iAImageClusterNode> node, bool clear)
+void iAImageTreeView::AddSelectedNode(QSharedPointer<iAImageTreeNode> node, bool clear)
 {
 	if (clear)
 	{
@@ -124,7 +124,7 @@ void iAImageTreeView::EnableSubtreeHighlight(bool enable)
 }
 
 
-int iAImageTreeView::GetExpandedChildren(iAImageClusterNode* node, int curLevel, int & maxLevel, int & shrinked)
+int iAImageTreeView::GetExpandedChildren(iAImageTreeNode* node, int curLevel, int & maxLevel, int & shrinked)
 {
 	assert(m_nodeWidgets.contains(node));
 	if (!m_nodeWidgets.contains(node))
@@ -156,7 +156,7 @@ int iAImageTreeView::GetExpandedChildren(iAImageClusterNode* node, int curLevel,
 }
 
 
-void iAImageTreeView::InsertNodeHighlight(iAImageClusterNode* node, QColor const & color)
+void iAImageTreeView::InsertNodeHighlight(iAImageTreeNode* node, QColor const & color)
 {
 	QRect g(m_nodeWidgets[node]->geometry());
 	int left = g.left() - HighlightPaddingLeft;
@@ -190,7 +190,7 @@ void iAImageTreeView::UpdateSubtreeHighlight()
 	for (int i=0; i<m_selectedNode.size(); ++i)
 	{
 		// TODO ensure correct order ?
-		QSharedPointer<iAImageClusterNode> node = m_selectedNode[i];
+		QSharedPointer<iAImageTreeNode> node = m_selectedNode[i];
 		if (!m_nodeWidgets.contains(node.data()))
 		{
 			DEBUG_LOG("ERROR in UpdateSubtreeHighlight: widget for selected node doesn't exist!");
@@ -204,13 +204,13 @@ void iAImageTreeView::UpdateSubtreeHighlight()
 		InsertNodeHighlight(node.data(), DefaultColors::SubtreeHighlightColor[i]);
 
 	}
-	QList<iAImageClusterNode*> nodes = m_nodeWidgets.keys();
+	QList<iAImageTreeNode*> nodes = m_nodeWidgets.keys();
 	for (int i=0; i<nodes.size(); ++i)
 	{
-		if (nodes[i]->GetAttitude() != iAImageClusterNode::NoPreference)
+		if (nodes[i]->GetAttitude() != iAImageTreeNode::NoPreference)
 		{
 			InsertNodeHighlight(nodes[i],
-				nodes[i]-> GetAttitude() == iAImageClusterNode::Liked
+				nodes[i]-> GetAttitude() == iAImageTreeNode::Liked
 					? DefaultColors::BackgroundLikeColor
 					: DefaultColors::BackgroundHateColor );
 		}
@@ -249,7 +249,7 @@ void iAImageTreeView::UpdateLayout()
 }
 
 
-int iAImageTreeView::LayoutNode(QSharedPointer<iAImageClusterNode > node, int nodeNumber, int level, int & shrinkedNodes)
+int iAImageTreeView::LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeNumber, int level, int & shrinkedNodes)
 {
 	if (level > m_maxLevel)
 	{
@@ -295,7 +295,7 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageClusterNode > node, int no
 
 
 
-void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageClusterNode > node)
+void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageTreeNode > node)
 {
 	if (!m_nodeWidgets.contains(node.data()))
 	{
@@ -322,7 +322,7 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageClusterNode > n
 }
 
 
-void iAImageTreeView::AddNode(QSharedPointer<iAImageClusterNode > node, bool shrinked)
+void iAImageTreeView::AddNode(QSharedPointer<iAImageTreeNode > node, bool shrinked)
 {
 	iAImageNodeWidget* nodeWidget = new iAImageNodeWidget(this, node, m_previewPool, shrinked, m_representativeType);
 	connect(nodeWidget, SIGNAL(Expand(bool)), this, SLOT(ExpandNode(bool)));
@@ -335,11 +335,11 @@ void iAImageTreeView::AddNode(QSharedPointer<iAImageClusterNode > node, bool shr
 }
 
 
-void iAImageTreeView::CollapseNode(QSharedPointer<iAImageClusterNode > node, bool & selectionChanged)
+void iAImageTreeView::CollapseNode(QSharedPointer<iAImageTreeNode > node, bool & selectionChanged)
 {
 	for (int i=0; i<node->GetChildCount(); ++i)
 	{
-		QSharedPointer<iAImageClusterNode> child = node->GetChild(i);
+		QSharedPointer<iAImageTreeNode> child = node->GetChild(i);
 		if (!m_nodeWidgets.contains(child.data()))
 		{
 			DEBUG_LOG("ERROR in CollapseNode: widget for expanded child doesn't exist.");
@@ -374,12 +374,12 @@ void iAImageTreeView::ExpandNode(bool expand)
 	iAImageNodeWidget* nodeWidget = dynamic_cast<iAImageNodeWidget*>(obj);
 
 	// shrink parent node:
-	QSharedPointer<iAImageClusterNode> parent = nodeWidget->GetClusterNode()->GetParent();
+	QSharedPointer<iAImageTreeNode> parent = nodeWidget->GetClusterNode()->GetParent();
 	if (parent)
 	{
 		if (m_autoShrink)
 			m_nodeWidgets[parent.data()]->SetAutoShrink(true);
-		QSharedPointer<iAImageClusterNode> sibling =
+		QSharedPointer<iAImageTreeNode> sibling =
 			GetSibling(nodeWidget->GetClusterNode());
 		if (sibling && m_autoShrink)
 		{
@@ -406,7 +406,7 @@ void iAImageTreeView::ExpandNode(bool expand)
 bool iAImageTreeView::ExpandNode(iAImageNodeWidget* nodeWidget, bool expand, bool shrinked)
 {
 	assert(nodeWidget);
-	QSharedPointer<iAImageClusterNode> node = nodeWidget->GetClusterNode();
+	QSharedPointer<iAImageTreeNode> node = nodeWidget->GetClusterNode();
 	if (expand)
 	{
 		if (m_previewPool->Capacity() < 2)
@@ -432,11 +432,11 @@ bool iAImageTreeView::ExpandNode(iAImageNodeWidget* nodeWidget, bool expand, boo
 	return true;
 }
 
-void iAImageTreeView::JumpToNode(iAImageClusterNode const * cluster, int stepLimit)
+void iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 {
 	// Find cluster + parent path
-	QList<QSharedPointer<iAImageClusterNode> > path;
-	QSharedPointer<iAImageClusterNode> curCluster = m_imageTree->m_root;
+	QList<QSharedPointer<iAImageTreeNode> > path;
+	QSharedPointer<iAImageTreeNode> curCluster = m_imageTree->m_root;
 	bool found = false;
 	FindNode(cluster, path, curCluster, found);
 
@@ -445,13 +445,13 @@ void iAImageTreeView::JumpToNode(iAImageClusterNode const * cluster, int stepLim
 		DEBUG_LOG("JumpToNode: Couldn't find given cluster!");
 	}
 	
-	//QList<iAImageClusterNode const *> path(pathStack.toList());
+	//QList<iAImageTreeNode const *> path(pathStack.toList());
 
 	int steps = 0;
 	int curIdx = 0;
 	for (int i=0; i<path.size()-1 && (stepLimit == 0 || steps < stepLimit); ++i)
 	{
-		QSharedPointer<iAImageClusterNode> pathPtr = path[i];
+		QSharedPointer<iAImageTreeNode> pathPtr = path[i];
 		//DebugOut() << "cur Cluster ID: "<<  << "; path ID: " << pathID.toStdString() << std::endl;
 		iAImageNodeWidget* widget = m_nodeWidgets[curCluster.data()];
 		if (!widget->IsExpanded())
@@ -462,7 +462,7 @@ void iAImageTreeView::JumpToNode(iAImageClusterNode const * cluster, int stepLim
 			// todo: check if node really expanded?
 			++steps;
 		}
-		QSharedPointer<iAImageClusterNode>  nextPtr = path[i+1];
+		QSharedPointer<iAImageTreeNode>  nextPtr = path[i+1];
 		for (int c=0; c<curCluster->GetChildCount(); ++c)
 		{
 			if (curCluster->GetChild(c) == nextPtr)
@@ -478,8 +478,8 @@ void iAImageTreeView::JumpToNode(iAImageClusterNode const * cluster, int stepLim
 		}
 	}
 	m_nodeWidgets[curCluster.data()]->SetAutoShrink(false);
-	QSharedPointer<iAImageClusterNode> parent = path[curIdx];
-	QSharedPointer<iAImageClusterNode> sibling = GetSibling(curCluster);
+	QSharedPointer<iAImageTreeNode> parent = path[curIdx];
+	QSharedPointer<iAImageTreeNode> sibling = GetSibling(curCluster);
 	m_nodeWidgets[parent.data()]->SetAutoShrink(false);
 	m_nodeWidgets[sibling.data()]->SetAutoShrink(false);
 	// get parent, expand
@@ -500,7 +500,7 @@ void iAImageTreeView::paintEvent(QPaintEvent * e)
 	}
 	for (int j=0; j<m_selectedNode.size(); ++j)
 	{
-		QSharedPointer<iAImageClusterNode> node = m_selectedNode[j];
+		QSharedPointer<iAImageTreeNode> node = m_selectedNode[j];
 		p.setPen(DefaultColors::ClusterSelectPen[j]);
 		QRect sel(m_nodeWidgets[node.data()]->geometry());
 		if (m_nodeWidgets[node.data()]->IsShrinked())
@@ -539,20 +539,20 @@ void iAImageTreeView::FilterUpdated()
 }
 
 
-QVector<QSharedPointer<iAImageClusterNode> > const iAImageTreeView::CurrentSelection() const
+QVector<QSharedPointer<iAImageTreeNode> > const iAImageTreeView::CurrentSelection() const
 {
 	return m_selectedNode;
 }
 
 
-void iAImageTreeView::UpdateAutoShrink(iAImageClusterNode* node, bool wasSelected)
+void iAImageTreeView::UpdateAutoShrink(iAImageTreeNode* node, bool wasSelected)
 {
 	if (!m_nodeWidgets.contains(node))
 	{
 		return;
 	}
 	bool shrink = wasSelected && !m_nodeWidgets[node]->IsAutoShrinked() &&
-		(m_nodeWidgets[node]->GetClusterNode()->GetAttitude() != iAImageClusterNode::Liked);
+		(m_nodeWidgets[node]->GetClusterNode()->GetAttitude() != iAImageTreeNode::Liked);
 	if (m_nodeWidgets[node]->IsShrinked() != shrink)
 	{
 		m_nodeWidgets[node]->SetAutoShrink(shrink);
@@ -564,7 +564,7 @@ void iAImageTreeView::UpdateAutoShrink(iAImageClusterNode* node, bool wasSelecte
 void iAImageTreeView::SetRepresentativeType(int representativeType)
 {
 	m_representativeType = representativeType;
-	for (iAImageClusterNode* key: m_nodeWidgets.keys())
+	for (iAImageTreeNode* key: m_nodeWidgets.keys())
 	{
 		m_nodeWidgets[key]->SetRepresentativeType(representativeType);
 	}

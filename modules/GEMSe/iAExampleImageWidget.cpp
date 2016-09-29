@@ -139,7 +139,7 @@ void iAExampleImageWidget::AdaptLayout()
 	update();
 }
 
-void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageClusterNode> node)
+void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageTreeNode> node)
 {
 	m_rootNode = node;
 	UpdateImages();
@@ -206,7 +206,7 @@ void iAExampleImageWidget::ImageClicked()
 	}
 }
 
-void iAExampleImageWidget::SetSelectedImage(iAImageClusterLeaf * leaf)
+void iAExampleImageWidget::SetSelectedImage(iAImageTreeLeaf * leaf)
 {
 	int idx = m_nodes.indexOf(leaf);
 	if (idx == -1)
