@@ -39,6 +39,7 @@ public:
 	QSharedPointer<iAAttributeDescriptor> at(int idx);
 	void Add(QSharedPointer<iAAttributeDescriptor> range);
 	void Store(QTextStream & out);
+	int Find(QString const & name);
 private:
 	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
 };

@@ -295,27 +295,23 @@ void dlg_GEMSe::CreateMapper()
 			QSharedPointer<iAAttributeDescriptor> attribute = attributes->at(attributeID);
 			
 			// check if previous datasets have an attribute with the same name
-			/*
-			if (samplingIdx > 1 &&
-				attrib->GetAttribType() ==
+			if (samplingIdx > 0 &&
+				attribute->GetAttribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				// TODO: reuse existing
+				chartID = m_chartAttributes->Find(attribute->GetName());
 			}
 			if (chartID != -1)
-			{
-				// reuse existing chart, only add mapping
-				m_chartAttributeMapper->Add(datasetID, attributeID, chartID);
+			{	// reuse existing chart, only add mapping:
+				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}
 			else
-			{
-			*/
-				// add chart and mapping:
+			{	// add chart and mapping:
 				m_chartAttributes->Add(attribute);
 				chartID = nextChartID;
 				nextChartID++;
-			//}
-			m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
+				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
+			}
 		}
 	}
 	m_MeasureChartIDStart = m_chartAttributes->size();
