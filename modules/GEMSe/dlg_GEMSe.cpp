@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "dlg_GEMSe.h"
 
@@ -345,6 +344,7 @@ void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageTreeNode const * nod
 	}
 }
 
+
 vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageTreeNode const * node, iAChartFilter const & attribFilter)
 {
 	if (!node || m_histogramContainer->GetSelectedCount() < 2)
@@ -371,6 +371,7 @@ vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageTreeNode const * 
 	comparisonTable->SetNumberOfRows(rowNr);
 	return comparisonTable;
 }
+
 
 void dlg_GEMSe::ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node)
 {
@@ -505,7 +506,6 @@ void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 	{
 		m_chartFilter.AddFilter(chartID, min, max);
 	}
-	
 	UpdateFilteredData();
 }
 
@@ -533,9 +533,7 @@ void dlg_GEMSe::ToggleHate()
 	m_detailView->UpdateLikeHate(false, node->GetAttitude() == iAImageTreeNode::Hated);
 	m_treeView->UpdateAutoShrink(node, isHated);
 	m_treeView->UpdateSubtreeHighlight();
-
 	wdFavorites->setVisible(m_favoriteWidget->HasAnyFavorite());
-
 	UpdateAttributeRangeAttitude();
 }
 
@@ -551,7 +549,6 @@ void dlg_GEMSe::ToggleLike()
 	m_favoriteWidget->ToggleLike(node);
 	m_detailView->UpdateLikeHate(node->GetAttitude() == iAImageTreeNode::Liked, false);
 	m_treeView->UpdateSubtreeHighlight();
-
 	wdFavorites->setVisible(m_favoriteWidget->HasAnyFavorite());
 	UpdateAttributeRangeAttitude();
 }
@@ -568,90 +565,13 @@ void dlg_GEMSe::UpdateAttributeRangeAttitude()
 
 void dlg_GEMSe::ExportRankings(QString const & fileName)
 {
-	QVector<iAImageTreeNode const *> likes, hates;
-	FindByAttitude(m_treeView->GetTree()->m_root.data(), iAImageTreeNode::Liked, likes);
-	FindByAttitude(m_treeView->GetTree()->m_root.data(), iAImageTreeNode::Hated, hates);
-
-	QFile f(fileName);
-	if (!f.open(QIODevice::WriteOnly))
-	{
-		QMessageBox::warning(0, "GEMSe", "Couldn't open CSV file for writing attribute range rankings!");
-		return;
-	}
-	QTextStream t(&f);
-	t << "Liked";
-	for (int i = 0; i < likes.size(); ++i)
-	{
-		t << "," << likes[i]->GetID();
-	}
-	t << "\n";
-	t << "Disliked";
-	for (int i = 0; i < hates.size(); ++i)
-	{
-		t << "," << hates[i]->GetID();
-	}
-	t << "\n";
-}
-
-
-
-void SetAttitude(iAImageTreeNode * node, 
-	iAImageTreeNode::Attitude att, int id)
-{
-	if (node->GetID() == id)
-	{
-		node->SetAttitude(att);
-	}
-	for (int i = 0; i<node->GetChildCount(); ++i)
-	{
-		SetAttitude(node->GetChild(i).data(), att, id);
-	}
-}
-
-
-void SetAttitude(iAImageTreeNode * root, QStringList ids, iAImageTreeNode::Attitude att)
-{
-	for (int i = 1; i < ids.size(); ++i)
-	{
-		bool ok;
-		int id = ids[i].toInt(&ok);
-		if (!ok)
-		{
-			QMessageBox::warning(0, "GEMSe", QString("Invalid ID in rankings file (%1)!").arg(ids[i]));
-			return;
-		}
-		SetAttitude(root, att, id);
-	}
+	ExportAttitudesToRankingFile(fileName, m_treeView->GetTree()->m_root.data());
 }
 
 
 void dlg_GEMSe::ImportRankings(QString const & fileName)
 {
-	QFile f(fileName);
-	if (!f.open(QIODevice::ReadOnly))
-	{
-		QMessageBox::warning(0, "GEMSe", "Couldn't open CSV file for writing rankings!");
-		return;
-	}
-	QTextStream t(&f);
-	QString likes = t.readLine();
-	QStringList likeIDs = likes.split(",");
-	if (likeIDs.size() == 0 || likeIDs[0] != "Liked")
-	{
-		QMessageBox::warning(0, "GEMSe", "Invalid rankings file format!");
-		return;
-	}
-	QString hates = t.readLine();
-	QStringList hateIDs = hates.split(",");
-	if (hateIDs.size() == 0 || hateIDs[0] != "Disliked")
-	{
-		QMessageBox::warning(0, "GEMSe", "Invalid rankings file format!");
-		return;
-	}
-
-	SetAttitude(m_treeView->GetTree()->m_root.data(), likeIDs, iAImageTreeNode::Liked);
-	SetAttitude(m_treeView->GetTree()->m_root.data(), hateIDs, iAImageTreeNode::Hated);
-
+	SetAttitudesFromRankingFile(fileName, m_treeView->GetTree()->m_root.data());
 	UpdateAttributeRangeAttitude();
 	m_treeView->UpdateSubtreeHighlight();
 	// TODO: update detail view?

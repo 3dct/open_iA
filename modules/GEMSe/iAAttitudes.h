@@ -41,3 +41,8 @@ void GetHistData(AttributeHistogram & hist,
 	iAChartAttributeMapper const & chartAttrMap);
 
 void FindByAttitude(iAImageTreeNode const * node, iAImageTreeNode::Attitude att, QVector<iAImageTreeNode const *> & nodeList);
+
+void SetAttitude(iAImageTreeNode * root, QStringList ids, iAImageTreeNode::Attitude att);
+
+void SetAttitudesFromRankingFile(QString const & fileName, iAImageTreeNode* root);
+void ExportAttitudesToRankingFile(QString const & fileName, iAImageTreeNode const * root);
