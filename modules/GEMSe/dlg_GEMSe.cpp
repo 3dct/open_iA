@@ -31,6 +31,7 @@
 #include "iAExampleImageWidget.h"
 #include "iAFavoriteWidget.h"
 #include "iAGEMSeConstants.h"
+#include "iAGEMSeScatterplot.h"
 #include "iAHistogramContainer.h"
 #include "iAImagePreviewWidget.h"
 #include "iAImageTreeLeaf.h"
@@ -45,16 +46,7 @@
 #include "iAToolsITK.h"
 
 #include <QVTKWidget2.h>
-#include <vtkAxis.h>
-#include <vtkBrush.h>
-#include <vtkChartXY.h>
-#include <vtkContextView.h>
-#include <vtkContextScene.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkFloatArray.h>
 #include <vtkImageData.h>
-#include <vtkPlot.h>
-#include <vtkTable.h>
 
 #include <QApplication>
 #include <QFile>
@@ -67,8 +59,6 @@ dlg_GEMSe::dlg_GEMSe(
 	iAColorTheme const * colorTheme)
 :
 	dlg_GEMSeUI(parent),
-	m_singlePlot(0),
-	m_clusterPlot(0),
 	m_selectedCluster(0),
 	m_treeView(0),
 	m_detailView(0),
@@ -98,7 +88,7 @@ void dlg_GEMSe::SetTree(
 	if (m_treeView)
 	{
 		delete m_histogramContainer;
-		delete m_scatterplotWidget;
+		delete m_scatterplot;
 		delete m_favoriteWidget;
 		delete m_detailView;
 		delete m_exampleView;
@@ -148,14 +138,7 @@ void dlg_GEMSe::SetTree(
 	wdFavorites->layout()->addWidget(m_favoriteWidget);
 	wdFavorites->hide();
 
-	m_scatterplotWidget = new QVTKWidget2();
-	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
-	contextView->SetRenderWindow(m_scatterplotWidget->GetRenderWindow());
-	m_comparisonChart = vtkSmartPointer<vtkChartXY>::New();
-	m_comparisonChart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
-	contextView->GetScene()->AddItem(m_comparisonChart);
-	wdComparisonCharts->layout()->addWidget(m_scatterplotWidget);
-	wdComparisonCharts->hide();
+	m_scatterplot = new iAGEMSeScatterplot(wdComparisonCharts);
 
 	m_histogramContainer = new iAHistogramContainer();
 	wdCharts->layout()->addWidget(m_histogramContainer);
@@ -185,97 +168,6 @@ void dlg_GEMSe::SetTree(
 	connect(m_treeView,       SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
 	connect(m_exampleView,    SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
 	connect(m_favoriteWidget, SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-}
-
-
-void dlg_GEMSe::UpdateScatterPlot()
-{
-	iAChartFilter emptyFilter;
-	m_allTable = GetComparisonTable(m_treeView->GetTree()->m_root.data(), emptyFilter); // TODO do we need m_comparisonTable as member?
-	if (!m_allTable)
-	{
-		wdComparisonCharts->hide();
-		return;
-	}
-	if (m_histogramContainer->GetSelectedCount() < 2)
-	{
-		DEBUG_LOG("You must select two histograms");
-		return;
-	}
-	m_comparisonChart->ClearPlots();
-	m_singlePlot = 0;
-	m_clusterPlot = 0;
-	auto xAxis = m_comparisonChart->GetAxis(vtkAxis::BOTTOM);
-	auto yAxis = m_comparisonChart->GetAxis(vtkAxis::LEFT);
-	int idx1 = m_histogramContainer->GetSelectedChartID(0);
-	int idx2 = m_histogramContainer->GetSelectedChartID(1);
-	xAxis->SetTitle(m_chartAttributes->at(idx1)->GetName().toStdString());
-	xAxis->SetLogScale(m_chartAttributes->at(idx1)->IsLogScale() );
-	yAxis->SetTitle(m_chartAttributes->at(idx2)->GetName().toStdString());
-	yAxis->SetLogScale(m_chartAttributes->at(idx2)->IsLogScale() );
-
-	vtkPlot* plot = m_comparisonChart->AddPlot(vtkChart::POINTS);
-	plot->SetColor(
-		static_cast<unsigned char>(DefaultColors::AllDataChartColor.red()),
-		static_cast<unsigned char>(DefaultColors::AllDataChartColor.green()),
-		static_cast<unsigned char>(DefaultColors::AllDataChartColor.blue()),
-		static_cast<unsigned char>(DefaultColors::AllDataChartColor.alpha())
-	);
-	plot->SetWidth(1.0);
-	plot->SetInputData(m_allTable, 0, 1);
-	UpdateScatterPlotClusterPlot();
-	UpdateScatterPlotLeafPlot();
-	if (!m_chartFilter.MatchesAll())
-	{
-		UpdateScatterPlot(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
-		m_treeView->GetTree()->m_root->ClearFilterData();
-	}
-}
-
-void dlg_GEMSe::UpdateScatterPlot(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot, iAImageTreeNode const * node,
-	QColor const & color, iAChartFilter const & filter)
-{
-	if (plot)
-	{
-		m_comparisonChart->RemovePlotInstance(plot);
-		plot = 0;
-	}
-	if (!node)
-	{
-		return;
-	}
-	table = GetComparisonTable(node, filter);
-	if (!table)
-	{
-		return;
-	}
-	plot = m_comparisonChart->AddPlot(vtkChart::POINTS);
-	// TODO: set plot order? at the moment this is done only implicitly by callingt AddPlot in the right order
-	
-	plot->SetColor(
-		static_cast<unsigned char>(color.red()),
-		static_cast<unsigned char>(color.green()),
-		static_cast<unsigned char>(color.blue()),
-		static_cast<unsigned char>(color.alpha())
-	);
-	plot->SetInputData(table, 0, 1);
-	wdComparisonCharts->show();
-}
-
-void dlg_GEMSe::UpdateScatterPlotLeafPlot()
-{
-	iAChartFilter emptyFilter;
-	UpdateScatterPlot(m_singleTable, m_singlePlot, m_selectedLeaf, DefaultColors::ImageChartColor, emptyFilter);
-}
-
-void dlg_GEMSe::UpdateScatterPlotClusterPlot()
-{
-	iAChartFilter emptyFilter;
-	UpdateScatterPlot(m_clusterTable, m_clusterPlot, m_selectedCluster.data(), DefaultColors::ClusterChartColor[0], emptyFilter);
-	if (!m_chartFilter.MatchesAll())
-	{
-		UpdateScatterPlot(m_clusterFilteredTable, m_clusterFilteredPlot, m_selectedCluster.data(), DefaultColors::FilteredClusterChartColor, m_chartFilter);
-	}
 }
 
 
@@ -317,61 +209,6 @@ void dlg_GEMSe::CreateMapper()
 	m_MeasureChartIDStart = m_chartAttributes->size();
 }
 
-void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageTreeNode const * node, int p1, int p2, int & rowNr,
-	iAChartFilter const & attribFilter,
-	iAChartAttributeMapper const & chartAttrMap)
-{
-	if (node->IsLeaf())
-	{
-		iAImageTreeLeaf const * leaf = dynamic_cast<iAImageTreeLeaf const *>(node);
-		if (attribFilter.Matches(leaf, chartAttrMap))
-		{
-			int attr1Idx = chartAttrMap.GetAttributeID(p1, leaf->GetDatasetID());
-			int attr2Idx = chartAttrMap.GetAttributeID(p2, leaf->GetDatasetID());
-			double attr1Value = node->GetAttribute(attr1Idx);
-			double attr2Value = node->GetAttribute(attr2Idx);
-			table->SetValue(rowNr, 0, attr1Value);
-			table->SetValue(rowNr, 1, attr2Value);
-			rowNr++;
-		}
-	}
-	else
-	{
-		for (int i=0; i<node->GetChildCount(); ++i)
-		{
-			AddTableValues(table, node->GetChild(i).data(), p1, p2, rowNr, attribFilter, chartAttrMap);
-		}
-	}
-}
-
-
-vtkSmartPointer<vtkTable> dlg_GEMSe::GetComparisonTable(iAImageTreeNode const * node, iAChartFilter const & attribFilter)
-{
-	if (!node || m_histogramContainer->GetSelectedCount() < 2)
-	{
-		return vtkSmartPointer<vtkTable>();
-	}
-	vtkSmartPointer<vtkTable> comparisonTable = vtkSmartPointer<vtkTable>::New();
-
-	int numberOfSamples = node->GetClusterSize();
-	vtkSmartPointer<vtkFloatArray> arrX(vtkSmartPointer<vtkFloatArray>::New());
-	vtkSmartPointer<vtkFloatArray> arrY(vtkSmartPointer<vtkFloatArray>::New());
-	arrX->SetName(m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName().toStdString().c_str());  // TODO: get
-	arrY->SetName(m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName().toStdString().c_str());
-	comparisonTable->AddColumn(arrX);
-	comparisonTable->AddColumn(arrY);
-	// we may call SetNumberOfRows only after we've added all columns, otherwise there is an error
-	comparisonTable->SetNumberOfRows(numberOfSamples);
-
-	int rowNr = 0;
-	AddTableValues(comparisonTable, node, m_histogramContainer->GetSelectedChartID(0), m_histogramContainer->GetSelectedChartID(1), rowNr, attribFilter,
-		m_chartAttributeMapper); 
-
-	// reduce number of rows to actual number:
-	comparisonTable->SetNumberOfRows(rowNr);
-	return comparisonTable;
-}
-
 
 void dlg_GEMSe::ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node)
 {
@@ -409,12 +246,23 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageTreeNode> node)
 	m_treeView->AddSelectedNode(node, clear);
 	m_exampleView->SetSelectedNode(node);
 	UpdateClusterFilteredChartData();
-	UpdateScatterPlotClusterPlot();
-	UpdateScatterPlotLeafPlot();
+	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter,
+		m_histogramContainer->GetSelectedChartID(0),
+		m_histogramContainer->GetSelectedChartID(1),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+		m_chartAttributeMapper);
 	if (node->IsLeaf())
 	{
 		iAImageTreeLeaf * leaf = dynamic_cast<iAImageTreeLeaf*>(node.data());
 		ClusterLeafSelected(leaf);
+		m_scatterplot->UpdateLeafPlot(
+			m_selectedLeaf,
+			m_histogramContainer->GetSelectedChartID(0),
+			m_histogramContainer->GetSelectedChartID(1),
+			m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
+			m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+			m_chartAttributeMapper);
 	}
 	else
 	{
@@ -447,7 +295,12 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 		}
 		m_histogramContainer->SetMarker(chartID, value);
 	}
-	UpdateScatterPlotLeafPlot();
+	m_scatterplot->UpdateLeafPlot(m_selectedLeaf,
+		m_histogramContainer->GetSelectedChartID(0),
+		m_histogramContainer->GetSelectedChartID(1),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+		m_chartAttributeMapper);
 }
 
 void dlg_GEMSe::StoreClustering(QString const & fileName)
@@ -463,7 +316,25 @@ void dlg_GEMSe::UpdateClusterChartData()
 
 void dlg_GEMSe::HistogramSelectionUpdated()
 {
-	UpdateScatterPlot();
+	if (m_histogramContainer->GetSelectedCount() < 2)
+	{
+		DEBUG_LOG("You must select two histograms");
+		return;
+	}
+	m_scatterplot->Update(
+		m_treeView->GetTree()->m_root.data(),
+		m_histogramContainer->GetSelectedChartID(0),
+		m_histogramContainer->GetSelectedChartID(1),
+		m_chartAttributes,
+		m_chartAttributeMapper,
+		m_chartFilter,
+		m_selectedCluster.data(),
+		m_selectedLeaf
+	);
+	if (!m_chartFilter.MatchesAll())
+	{
+		m_treeView->GetTree()->m_root->ClearFilterData();
+	}
 }
 
 void dlg_GEMSe::UpdateClusterFilteredChartData()
@@ -489,11 +360,18 @@ void dlg_GEMSe::UpdateFilteredData()
 	}
 	UpdateFilteredChartData();
 	UpdateClusterFilteredChartData();
-	if (!m_chartFilter.MatchesAll())
-	{
-		UpdateScatterPlot(m_allFilteredTable, m_allFilteredPlot, m_treeView->GetTree()->m_root.data(), DefaultColors::FilteredChartColor, m_chartFilter);
-	}
-	UpdateScatterPlotClusterPlot();
+	m_scatterplot->UpdateFilteredAllPlot(m_treeView->GetTree()->m_root.data(), m_chartFilter,
+		m_histogramContainer->GetSelectedChartID(0),
+		m_histogramContainer->GetSelectedChartID(1),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+		m_chartAttributeMapper);
+	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter,
+		m_histogramContainer->GetSelectedChartID(0),
+		m_histogramContainer->GetSelectedChartID(1),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+		m_chartAttributeMapper);
 }
 
 void dlg_GEMSe::FilterChanged(int chartID, double min, double max)

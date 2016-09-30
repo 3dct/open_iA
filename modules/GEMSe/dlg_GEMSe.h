@@ -37,6 +37,7 @@ class iACameraWidget;
 class iAColorTheme;
 class iADetailView;
 class iAFavoriteWidget;
+class iAGEMSeScatterplot;
 class iAHistogramContainer;
 class iAImageTree;
 class iAImageTreeLeaf;
@@ -48,11 +49,7 @@ class iAModalityList;
 class iAPreviewWidgetPool;
 class iASamplingResults;
 
-class vtkChartXY;
 class vtkImageData;
-class vtkPlot;
-class vtkTable;
-class QVTKWidget2;
 
 class dlg_GEMSe: public dlg_GEMSeUI
 {
@@ -97,9 +94,6 @@ private slots:
 	void HistogramSelectionUpdated();
 private:
 	void JumpToNode(iAImageTreeNode * leaf, int stepLimit);
-	void UpdateScatterPlot();
-	void UpdateScatterPlotClusterPlot();
-	void UpdateScatterPlotLeafPlot();
 
 	void UpdateFilteredChartData();
 	void UpdateClusterFilteredChartData();
@@ -109,10 +103,6 @@ private:
 
 	void CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 		int labelCount);
-
-	vtkSmartPointer<vtkTable> GetComparisonTable(iAImageTreeNode const * node, iAChartFilter const & filter);
-	void UpdateScatterPlot(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot,
-		iAImageTreeNode const * node, QColor const & color, iAChartFilter const & filter);
 	
 	// data:
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;
@@ -133,19 +123,7 @@ private:
 	iAFavoriteWidget* m_favoriteWidget;
 	iAColorTheme const * m_colorTheme;
 	iAHistogramContainer * m_histogramContainer;
-
-	// Scatter Plot:
-	QVTKWidget2 * m_scatterplotWidget;
-	vtkSmartPointer<vtkChartXY> m_comparisonChart;
-	vtkSmartPointer<vtkTable> m_allTable;
-	vtkSmartPointer<vtkTable> m_clusterTable;
-	vtkSmartPointer<vtkTable> m_allFilteredTable;
-	vtkSmartPointer<vtkTable> m_clusterFilteredTable;
-	vtkSmartPointer<vtkTable> m_singleTable;
-	vtkSmartPointer<vtkPlot> m_allFilteredPlot;
-	vtkSmartPointer<vtkPlot> m_clusterPlot;
-	vtkSmartPointer<vtkPlot> m_clusterFilteredPlot;
-	vtkSmartPointer<vtkPlot> m_singlePlot;
+	iAGEMSeScatterplot * m_scatterplot;
 
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;
