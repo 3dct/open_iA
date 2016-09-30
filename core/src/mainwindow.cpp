@@ -1824,7 +1824,7 @@ void MainWindow::readSettings()
 	QSettings settings;
 	path = settings.value("Path").toString();
 
-	qssName = settings.value("qssName", ":/dark.qss").toString();
+	qssName = settings.value("qssName", ":/bright.qss").toString();
 
 	defaultLayout = settings.value("Preferences/defaultLayout", "").toString();
 	defaultPreferences.HistogramBins = settings.value("Preferences/prefHistogramBins", DefaultHistogramBins).toInt();
