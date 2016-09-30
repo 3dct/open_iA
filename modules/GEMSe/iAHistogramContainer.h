@@ -76,6 +76,7 @@ public:
 	int GetSelectedChartID(int selectionIdx);
 	void SetMarker(int chartID, double value);
 	void SetSpanValues(int chartID, double min, double max);
+	void SelectHistograms();
 signals:
 	void ChartSelectionUpdated();
 	void ChartDblClicked(int chartID);

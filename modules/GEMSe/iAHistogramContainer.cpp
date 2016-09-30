@@ -18,6 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#include "pch.h"
 #include "iAHistogramContainer.h"
 
 #include "iAAttitudes.h"
@@ -31,12 +32,15 @@
 #include "iAParamHistogramData.h"
 #include "iAQtCaptionWidget.h"
 
+#include <QCheckBox>
+#include <QDialogButtonBox>
 #include <QFile>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QSplitter>
 #include <QTextStream>
+
 
 iAHistogramContainer::iAHistogramContainer()
 {
@@ -55,8 +59,6 @@ iAHistogramContainer::iAHistogramContainer()
 	m_derivedOutputChartWidget->layout()->setMargin(0);
 	SetCaptionedContent(m_derivedOutputChartContainer, "Derived Output", m_derivedOutputChartWidget);
 }
-
-
 
 
 void iAHistogramContainer::AddDiagramSubWidgetsWithProperStretch(QSharedPointer<iAAttributes> chartAttributes)
@@ -84,8 +86,6 @@ void iAHistogramContainer::AddDiagramSubWidgetsWithProperStretch(QSharedPointer<
 	setStretchFactor(0, paramChartsShownCount);
 	setStretchFactor(1, derivedChartsShownCount);
 }
-
-
 
 
 void iAHistogramContainer::CreateCharts(
@@ -201,6 +201,7 @@ void iAHistogramContainer::UpdateClusterChartData(
 	}
 }
 
+
 void iAHistogramContainer::UpdateClusterFilteredChartData(
 	QSharedPointer<iAAttributes> chartAttributes,
 	iAChartAttributeMapper const & chartAttributeMapper,
@@ -234,6 +235,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 	}
 }
 
+
 void iAHistogramContainer::UpdateFilteredChartData(
 	QSharedPointer<iAAttributes> chartAttributes,
 	iAChartAttributeMapper const & chartAttributeMapper,
@@ -265,7 +267,6 @@ bool iAHistogramContainer::ChartExists(int chartID) const
 {
 	return m_charts.contains(chartID) && m_charts[chartID];
 }
-
 
 
 void iAHistogramContainer::RemoveAllCharts(QSharedPointer<iAAttributes> chartAttributes)
@@ -302,6 +303,7 @@ void iAHistogramContainer::ChartSelected(bool selected)
 	}
 	emit ChartSelectionUpdated();
 }
+
 
 void iAHistogramContainer::ResetFilters(QSharedPointer<iAAttributes> chartAttributes)
 {
@@ -393,10 +395,12 @@ void iAHistogramContainer::ExportAttributeRangeRanking(
 
 }
 
+
 int iAHistogramContainer::GetSelectedCount()
 {
 	return m_selected.size();
 }
+
 
 int iAHistogramContainer::GetSelectedChartID(int selectionIdx)
 {
@@ -425,6 +429,7 @@ void iAHistogramContainer::ChartDblClicked()
 	emit ChartDblClicked(chartID);
 }
 
+
 void iAHistogramContainer::FilterChanged(double min, double max)
 {
 	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
@@ -438,7 +443,25 @@ void iAHistogramContainer::FilterChanged(double min, double max)
 	emit FilterChanged(chartID, min, max);
 }
 
+
 void iAHistogramContainer::SetSpanValues(int chartID, double min, double max)
 {
 	m_charts[chartID]->SetSpanValues(min, max);
+}
+
+
+void iAHistogramContainer::SelectHistograms()
+{
+	QDialog dlg(this);
+	QVBoxLayout* layout = new QVBoxLayout();
+	layout->addWidget(new QCheckBox("Test"));
+	auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	connect(buttons, SIGNAL(accepted()), &dlg, SLOT(accept()));
+	connect(buttons, SIGNAL(rejected()), &dlg, SLOT(reject()));
+	layout->addWidget(buttons);
+	dlg.setLayout(layout);
+	if (dlg.exec() == QDialog::Accepted)
+	{
+
+	}
 }

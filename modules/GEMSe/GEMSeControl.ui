@@ -107,13 +107,6 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="4">
-     <widget class="QPushButton" name="pbModalitySPLOM">
-      <property name="text">
-       <string>Modality Corr.</string>
-      </property>
-     </widget>
-    </item>
     <item row="6" column="0">
      <widget class="QLabel" name="label_2">
       <property name="text">
@@ -246,6 +239,13 @@
       </property>
       <property name="text">
        <string>Load...</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="4">
+     <widget class="QPushButton" name="pbSelectHistograms">
+      <property name="text">
+       <string>Histograms...</string>
       </property>
      </widget>
     </item>

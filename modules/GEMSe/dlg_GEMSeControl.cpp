@@ -89,6 +89,7 @@ public:
 	}
 };
 
+
 dlg_GEMSeControl::dlg_GEMSeControl(
 	QWidget *parentWidget,
 	dlg_GEMSe* dlgGEMSe,
@@ -117,21 +118,20 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 		}
 	}
 
-	connect(pbSample,         SIGNAL(clicked()), this, SLOT(StartSampling()));
-	connect(pbSamplingLoad,   SIGNAL(clicked()), this, SLOT(LoadSampling()));
-	connect(pbClusteringCalc, SIGNAL(clicked()), this, SLOT(CalculateClustering()));
-	connect(pbClusteringLoad, SIGNAL(clicked()), this, SLOT(LoadClustering()));
-	connect(pbClusteringStore,SIGNAL(clicked()), this, SLOT(StoreClustering()));
-	connect(pbRefImgComp,     SIGNAL(clicked()), this, SLOT(CalcRefImgComp()));
-	connect(pbAllStore,       SIGNAL(clicked()), this, SLOT(StoreAll()));
-
-	connect(pbModalitySPLOM,  SIGNAL(clicked()), this, SLOT(ModalitySPLOM()));
+	connect(pbSample,           SIGNAL(clicked()), this, SLOT(StartSampling()));
+	connect(pbSamplingLoad,     SIGNAL(clicked()), this, SLOT(LoadSampling()));
+	connect(pbClusteringCalc,   SIGNAL(clicked()), this, SLOT(CalculateClustering()));
+	connect(pbClusteringLoad,   SIGNAL(clicked()), this, SLOT(LoadClustering()));
+	connect(pbClusteringStore,  SIGNAL(clicked()), this, SLOT(StoreClustering()));
+	connect(pbRefImgComp,       SIGNAL(clicked()), this, SLOT(CalcRefImgComp()));
+	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
+	connect(pbResetFilters,     SIGNAL(clicked()), m_dlgGEMSe, SLOT(ResetFilters()));
+	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgModalities,  SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ShowImage(vtkSmartPointer<vtkImageData>)));
 
-	connect(pbResetFilters,   SIGNAL(clicked()), this, SLOT(ResetFilters()));
 
 	connect(slMagicLensOpacity, SIGNAL(valueChanged(int)), this, SLOT(SetMagicLensOpacity(int)));
 	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
@@ -225,6 +225,7 @@ void dlg_GEMSeControl::LoadSampling()
 	LoadSampling(fileName, labelCount, iASamplingResults::GetNewID());
 }
 
+
 bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, int datasetID)
 {
 	m_simpleLabelInfo->SetLabelCount(labelCount);
@@ -248,6 +249,7 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, in
 	m_outputFolder = fi.absolutePath();
 	return true;
 }
+
 
 void dlg_GEMSeControl::SamplingFinished()
 {
@@ -276,6 +278,7 @@ void dlg_GEMSeControl::SamplingFinished()
 	pbResetFilters->setEnabled(true);
 }
 
+
 void dlg_GEMSeControl::LoadClustering()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
@@ -287,6 +290,7 @@ void dlg_GEMSeControl::LoadClustering()
 		LoadClustering(fileName);
 	}
 }
+
 
 bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 {
@@ -334,6 +338,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	return true;
 }
 
+
 void dlg_GEMSeControl::CalculateClustering()
 {
 	if (m_dlgSamplings->SamplingCount() == 0)
@@ -377,6 +382,7 @@ void dlg_GEMSeControl::CalculateClustering()
 	m_clusterer->start();
 }
 
+
 void dlg_GEMSeControl::ClusteringFinished()
 {
 	delete m_dlgProgress;
@@ -418,6 +424,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 
 }
 
+
 void dlg_GEMSeControl::StoreClustering()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save clustering"),
@@ -436,6 +443,7 @@ void dlg_GEMSeControl::DataAvailable()
 	pbSamplingLoad->setEnabled(m_dlgModalities->GetModalities()->size() > 0);
 }
 
+
 void dlg_GEMSeControl::StoreAll()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save all"),
@@ -447,6 +455,7 @@ void dlg_GEMSeControl::StoreAll()
 	}
 	StoreGEMSeProject(fileName);
 }
+
 
 void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 {
@@ -464,10 +473,12 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 	metaFile.Store(fileName);
 }
 
+
 void dlg_GEMSeControl::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	m_dlgGEMSe->ShowImage(imgData);
 }
+
 
 void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
 {
@@ -501,19 +512,14 @@ void dlg_GEMSeControl::ExportIDs()
 }
 
 
-void dlg_GEMSeControl::ResetFilters()
-{
-	m_dlgGEMSe->ResetFilters();
-}
-
 void dlg_GEMSeControl::CalcRefImgComp()
 {
 	QSharedPointer<iAModalityList const> mods = m_dlgModalities->GetModalities();
 	iAConnector con;
 	con.SetImage(mods->Get(mods->size() - 1)->GetImage());
-
 	m_dlgGEMSe->CalcRefImgComp(dynamic_cast<LabelImageType*>(con.GetITKImage()));
 }
+
 
 void dlg_GEMSeControl::SetMagicLensOpacity(int newValue)
 {
@@ -526,6 +532,7 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 {
 	m_dlgGEMSe->SetIconSize(newSize);
 }
+
 
 void dlg_GEMSeControl::SetColorTheme(const QString &themeName)
 {
@@ -584,4 +591,3 @@ void dlg_GEMSeControl::ImportRankings()
 		m_dlgGEMSe->ImportRankings(fileName);
 	}
 }
-

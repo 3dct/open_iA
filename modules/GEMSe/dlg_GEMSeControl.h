@@ -73,7 +73,6 @@ private slots:
 	void StoreAll();
 	void DataAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void ResetFilters();
 	void SetMagicLensOpacity(int newValue);
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);

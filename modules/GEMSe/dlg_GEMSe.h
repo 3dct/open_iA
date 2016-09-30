@@ -56,7 +56,6 @@ class dlg_GEMSe: public dlg_GEMSeUI
 	Q_OBJECT
 public:
 	dlg_GEMSe(QWidget *parent, iALogger * logger, iAColorTheme const * colorTheme);
-	~dlg_GEMSe();
 	void SetTree(QSharedPointer<iAImageTree> imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
 		QSharedPointer<iAModalityList> modalities,
@@ -66,7 +65,6 @@ public:
 	QSharedPointer<iAImageTreeNode> GetCurrentCluster();
 	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void ResetFilters();
 	void CalcRefImgComp(LabelImagePointer refImg);
 	void ToggleAutoShrink();
 	void SetMagicLensOpacity(double opacity);
@@ -75,6 +73,9 @@ public:
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);
+public slots:
+	void ResetFilters();
+	void SelectHistograms();
 private slots:
 	void ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node);
 	void ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node);

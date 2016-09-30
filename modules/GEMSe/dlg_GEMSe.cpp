@@ -73,9 +73,6 @@ dlg_GEMSe::dlg_GEMSe(
 {
 }
 
-dlg_GEMSe::~dlg_GEMSe()
-{
-}
 
 void dlg_GEMSe::SetTree(
 	QSharedPointer<iAImageTree > imageTree,
@@ -236,6 +233,7 @@ void dlg_GEMSe::ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node)
 	}
 }
 
+
 void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageTreeNode> node)
 {
 	m_selectedCluster = node;
@@ -285,16 +283,19 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 	m_scatterplot->UpdateLeafPlot(m_selectedLeaf, m_chartAttributeMapper);
 }
 
+
 void dlg_GEMSe::StoreClustering(QString const & fileName)
 {
 	m_treeView->GetTree()->Store(fileName);
 }
+
 
 void dlg_GEMSe::UpdateClusterChartData()
 {
 	QVector<QSharedPointer<iAImageTreeNode> > const selection =  m_treeView->CurrentSelection();
 	m_histogramContainer->UpdateClusterChartData(m_chartAttributes, m_chartAttributeMapper, selection);
 }
+
 
 void dlg_GEMSe::HistogramSelectionUpdated()
 {
@@ -322,10 +323,12 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 	}
 }
 
+
 void dlg_GEMSe::UpdateClusterFilteredChartData()
 {
 	m_histogramContainer->UpdateClusterFilteredChartData(m_chartAttributes, m_chartAttributeMapper, m_selectedCluster.data(), m_chartFilter);
 }
+
 
 void dlg_GEMSe::UpdateFilteredChartData()
 {
@@ -349,6 +352,7 @@ void dlg_GEMSe::UpdateFilteredData()
 	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter, m_chartAttributeMapper);
 }
 
+
 void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 {
 	if (m_chartAttributes->at(chartID)->CoversWholeRange(min, max))
@@ -362,6 +366,7 @@ void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 	UpdateFilteredData();
 }
 
+
 void dlg_GEMSe::ResetFilters()
 {
 	if (!m_chartAttributes)
@@ -371,6 +376,12 @@ void dlg_GEMSe::ResetFilters()
 	m_chartFilter.Reset();
 	m_histogramContainer->ResetFilters(m_chartAttributes);
 	UpdateFilteredData();
+}
+
+
+void dlg_GEMSe::SelectHistograms()
+{
+	m_histogramContainer->SelectHistograms();
 }
 
 
@@ -406,15 +417,18 @@ void dlg_GEMSe::ToggleLike()
 	UpdateAttributeRangeAttitude();
 }
 
+
 void dlg_GEMSe::ExportAttributeRangeRanking(QString const & fileName)
 {
 	m_histogramContainer->ExportAttributeRangeRanking(fileName, m_chartAttributes);
 }
 
+
 void dlg_GEMSe::UpdateAttributeRangeAttitude()
 {
 	m_histogramContainer->UpdateAttributeRangeAttitude(m_chartAttributes, m_chartAttributeMapper, m_treeView->GetTree()->m_root.data());
 }
+
 
 void dlg_GEMSe::ExportRankings(QString const & fileName)
 {
@@ -430,6 +444,7 @@ void dlg_GEMSe::ImportRankings(QString const & fileName)
 	// TODO: update detail view?
 }
 
+
 void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)
@@ -441,15 +456,18 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 	//m_exampleView->SetSelectedImage(leaf);
 }
 
+
 void dlg_GEMSe::FavoriteClicked(iAImageTreeNode * node)
 {
 	JumpToNode(node, 0);
 }
 
+
 void dlg_GEMSe::GoToCluster()
 {
 	JumpToNode(m_selectedLeaf, 1);
 }
+
 
 void dlg_GEMSe::SliceNumberChanged(int sliceNr)
 {
@@ -488,12 +506,14 @@ QSharedPointer<iAImageTreeNode> dlg_GEMSe::GetCurrentCluster()
 	return m_selectedCluster;
 }
 
+
 void dlg_GEMSe::ChartDblClicked(int chartID)
 {
 	double min, max;
 	GetClusterMinMax(m_selectedCluster.data(), chartID, min, max, m_chartAttributeMapper);
 	m_histogramContainer->SetSpanValues(chartID, min, max);
 }
+
 
 void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 	int labelCount)
@@ -575,10 +595,12 @@ void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const
 	m_detailView->SetLabelInfo(labelInfo);
 }
 
+
 void dlg_GEMSe::ToggleAutoShrink()
 {
 	m_treeView->SetAutoShrink(!m_treeView->GetAutoShrink());
 }
+
 
 void dlg_GEMSe::SetMagicLensOpacity(double opacity)
 {
