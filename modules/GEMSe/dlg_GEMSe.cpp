@@ -246,23 +246,12 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageTreeNode> node)
 	m_treeView->AddSelectedNode(node, clear);
 	m_exampleView->SetSelectedNode(node);
 	UpdateClusterFilteredChartData();
-	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter,
-		m_histogramContainer->GetSelectedChartID(0),
-		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
-		m_chartAttributeMapper);
+	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter, m_chartAttributeMapper);
 	if (node->IsLeaf())
 	{
 		iAImageTreeLeaf * leaf = dynamic_cast<iAImageTreeLeaf*>(node.data());
 		ClusterLeafSelected(leaf);
-		m_scatterplot->UpdateLeafPlot(
-			m_selectedLeaf,
-			m_histogramContainer->GetSelectedChartID(0),
-			m_histogramContainer->GetSelectedChartID(1),
-			m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
-			m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
-			m_chartAttributeMapper);
+		m_scatterplot->UpdateLeafPlot(m_selectedLeaf, m_chartAttributeMapper);
 	}
 	else
 	{
@@ -295,12 +284,7 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 		}
 		m_histogramContainer->SetMarker(chartID, value);
 	}
-	m_scatterplot->UpdateLeafPlot(m_selectedLeaf,
-		m_histogramContainer->GetSelectedChartID(0),
-		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
-		m_chartAttributeMapper);
+	m_scatterplot->UpdateLeafPlot(m_selectedLeaf, m_chartAttributeMapper);
 }
 
 void dlg_GEMSe::StoreClustering(QString const & fileName)
@@ -321,13 +305,16 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 		DEBUG_LOG("You must select two histograms");
 		return;
 	}
-	m_scatterplot->Update(
-		m_treeView->GetTree()->m_root.data(),
+	m_scatterplot->SetDataSource(
 		m_histogramContainer->GetSelectedChartID(0),
 		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes,
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->IsLogScale(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(2))->IsLogScale(),
 		m_chartAttributeMapper,
 		m_chartFilter,
+		m_treeView->GetTree()->m_root.data(),
 		m_selectedCluster.data(),
 		m_selectedLeaf
 	);
@@ -360,18 +347,8 @@ void dlg_GEMSe::UpdateFilteredData()
 	}
 	UpdateFilteredChartData();
 	UpdateClusterFilteredChartData();
-	m_scatterplot->UpdateFilteredAllPlot(m_treeView->GetTree()->m_root.data(), m_chartFilter,
-		m_histogramContainer->GetSelectedChartID(0),
-		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
-		m_chartAttributeMapper);
-	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter,
-		m_histogramContainer->GetSelectedChartID(0),
-		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
-		m_chartAttributeMapper);
+	m_scatterplot->UpdateFilteredAllPlot(m_treeView->GetTree()->m_root.data(), m_chartFilter, m_chartAttributeMapper);
+	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter, m_chartAttributeMapper);
 }
 
 void dlg_GEMSe::FilterChanged(int chartID, double min, double max)

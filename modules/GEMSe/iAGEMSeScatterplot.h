@@ -39,44 +39,36 @@ class iAGEMSeScatterplot : public QVTKWidget2
 {
 public:
 	iAGEMSeScatterplot(QWidget* parent);
-	void Update(
-		iAImageTreeNode const * root,
+	void SetDataSource(
 		int chart1ID, int chart2ID,
-		QSharedPointer<iAAttributes> m_chartAttributes,
-		iAChartAttributeMapper const & m_chartAttributeMapper,
+		QString const & chart1Name, QString const & chart2Name,
+		bool chart1Log, bool chart2Log,
+		iAChartAttributeMapper const & chartAttributeMapper,
 		iAChartFilter const & chartFilter,
+		iAImageTreeNode const * root,
 		iAImageTreeNode const * cluster,
 		iAImageTreeNode const * leaf);
 	void UpdateFilteredAllPlot(
 		iAImageTreeNode const * root,
 		iAChartFilter const & chartFilter,
-		int chart1ID, int chart2ID,
-		QString chart1Name, QString chart2Name,
 		iAChartAttributeMapper const & chartAttributeMapper);
 	void UpdateClusterPlot(
 		iAImageTreeNode const * selectedCluster,
 		iAChartFilter const & chartFilter,
-		int chart1ID, int chart2ID,
-		QString chart1Name, QString chart2Name,
 		iAChartAttributeMapper const & chartAttributeMapper);
-	void UpdateLeafPlot(iAImageTreeNode const * selectedLeaf,
-		int chart1ID, int chart2ID,
-		QString chart1Name, QString chart2Name,
+	void UpdateLeafPlot(
+		iAImageTreeNode const * selectedLeaf,
 		iAChartAttributeMapper const & chartAttributeMapper);
 private:
 	vtkSmartPointer<vtkTable> GetComparisonTable(
 		iAImageTreeNode const * node,
 		iAChartFilter const & filter,
-		int chart1ID, int chart2ID,
-		QString chart1Name, QString chart2Name,
 		iAChartAttributeMapper const & m_chartAttributeMapper);
 	void Update(
 		vtkSmartPointer<vtkTable> & table,
 		vtkSmartPointer<vtkPlot> & plot,
 		iAImageTreeNode const * node,
 		QColor const & color, iAChartFilter const & filter,
-		int chart1ID, int chart2ID,
-		QString chart1Name, QString chart2Name,
 		iAChartAttributeMapper const & chartAttributeMapper);
 	vtkSmartPointer<vtkChartXY> m_chart;
 	vtkSmartPointer<vtkTable> m_allTable;
@@ -89,4 +81,8 @@ private:
 	vtkSmartPointer<vtkPlot> m_clusterFilteredPlot;
 	vtkSmartPointer<vtkPlot> m_singlePlot;
 	QWidget * m_parent;
+
+	int m_chart1ID, m_chart2ID;
+	QString m_chart1Name, m_chart2Name;
+	bool m_chart1Log, m_chart2Log;
 };

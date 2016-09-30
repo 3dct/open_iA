@@ -56,14 +56,18 @@ iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
 }
 
 
-void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageTreeNode const * node, int p1, int p2, int & rowNr,
+void AddTableValues(
+	vtkSmartPointer<vtkTable> table,
+	iAImageTreeNode const * node, int p1, int p2, int & rowNr,
 	iAChartFilter const & attribFilter,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	if (node->IsLeaf())
 	{
 		iAImageTreeLeaf const * leaf = dynamic_cast<iAImageTreeLeaf const *>(node);
-		if (attribFilter.Matches(leaf, chartAttrMap))
+		if (attribFilter.Matches(leaf, chartAttrMap) &&
+			chartAttrMap.GetDatasetIDs(p1).contains(leaf->GetDatasetID()) &&
+			chartAttrMap.GetDatasetIDs(p2).contains(leaf->GetDatasetID()))
 		{
 			int attr1Idx = chartAttrMap.GetAttributeID(p1, leaf->GetDatasetID());
 			int attr2Idx = chartAttrMap.GetAttributeID(p2, leaf->GetDatasetID());
@@ -87,8 +91,6 @@ void AddTableValues(vtkSmartPointer<vtkTable> table, iAImageTreeNode const * nod
 vtkSmartPointer<vtkTable> iAGEMSeScatterplot::GetComparisonTable(
 	iAImageTreeNode const * node,
 	iAChartFilter const & attribFilter,
-	int chart1ID, int chart2ID,
-	QString chart1Name, QString chart2Name,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
 	if (!node)
@@ -100,15 +102,15 @@ vtkSmartPointer<vtkTable> iAGEMSeScatterplot::GetComparisonTable(
 	int numberOfSamples = node->GetClusterSize();
 	vtkSmartPointer<vtkFloatArray> arrX(vtkSmartPointer<vtkFloatArray>::New());
 	vtkSmartPointer<vtkFloatArray> arrY(vtkSmartPointer<vtkFloatArray>::New());
-	arrX->SetName(chart1Name.toStdString().c_str());
-	arrY->SetName(chart2Name.toStdString().c_str());
+	arrX->SetName(m_chart1Name.toStdString().c_str());
+	arrY->SetName(m_chart2Name.toStdString().c_str());
 	comparisonTable->AddColumn(arrX);
 	comparisonTable->AddColumn(arrY);
 	// we may call SetNumberOfRows only after we've added all columns, otherwise there is an error
 	comparisonTable->SetNumberOfRows(numberOfSamples);
 
 	int rowNr = 0;
-	AddTableValues(comparisonTable, node, chart1ID, chart2ID, rowNr, attribFilter,
+	AddTableValues(comparisonTable, node, m_chart1ID, m_chart2ID, rowNr, attribFilter,
 		chartAttributeMapper);
 
 	// reduce number of rows to actual number:
@@ -116,23 +118,26 @@ vtkSmartPointer<vtkTable> iAGEMSeScatterplot::GetComparisonTable(
 	return comparisonTable;
 }
 
-// histogramContainer->GetSelectedChartID(0)
-// m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName()
 
-
-void iAGEMSeScatterplot::Update(
-	iAImageTreeNode const * root,
+void iAGEMSeScatterplot::ChangeDataSource(
 	int chart1ID, int chart2ID,
-	QSharedPointer<iAAttributes> chartAttributes,
+	QString const & chart1Name, QString const & chart2Name,
+	bool chart1Log, bool chart2Log,
 	iAChartAttributeMapper const & chartAttributeMapper,
 	iAChartFilter const & chartFilter,
+	iAImageTreeNode const * root,
 	iAImageTreeNode const * cluster,
 	iAImageTreeNode const * leaf)
 {
+	m_chart1ID = chart1ID;
+	m_chart2ID = chart2ID;
+	m_chart1Name = chart1Name;
+	m_chart2Name = chart2Name;
+	m_chart1Log = chart1Log;
+	m_chart2Log = chart2Log;
 	iAChartFilter emptyFilter;
 	// TODO do we need m_comparisonTable as member?
-	m_allTable = GetComparisonTable(root, emptyFilter, chart1ID, chart2ID,
-		chartAttributes->at(chart1ID)->GetName(), chartAttributes->at(chart2ID)->GetName(),
+	m_allTable = GetComparisonTable(root, emptyFilter,
 		chartAttributeMapper);
 	if (!m_allTable)
 	{
@@ -144,10 +149,10 @@ void iAGEMSeScatterplot::Update(
 	m_clusterPlot = 0;
 	auto xAxis = m_chart->GetAxis(vtkAxis::BOTTOM);
 	auto yAxis = m_chart->GetAxis(vtkAxis::LEFT);
-	xAxis->SetTitle(chartAttributes->at(chart1ID)->GetName().toStdString());
-	xAxis->SetLogScale(chartAttributes->at(chart1ID)->IsLogScale());
-	yAxis->SetTitle(chartAttributes->at(chart2ID)->GetName().toStdString());
-	yAxis->SetLogScale(chartAttributes->at(chart2ID)->IsLogScale());
+	xAxis->SetTitle(m_chart1Name.toStdString());
+	xAxis->SetLogScale(m_chart1Log);
+	yAxis->SetTitle(m_chart2Name.toStdString());
+	yAxis->SetLogScale(m_chart2Log);
 
 	vtkPlot* plot = m_chart->AddPlot(vtkChart::POINTS);
 	plot->SetColor(
@@ -158,16 +163,13 @@ void iAGEMSeScatterplot::Update(
 	);
 	plot->SetWidth(1.0);
 	plot->SetInputData(m_allTable, 0, 1);
-	UpdateClusterPlot(cluster, chartFilter, chart1ID, chart2ID, chartAttributes->at(chart1ID)->GetName(), chartAttributes->at(chart2ID)->GetName(), chartAttributeMapper);
-	UpdateLeafPlot(leaf, chart1ID, chart2ID, chartAttributes->at(chart1ID)->GetName(), chartAttributes->at(chart2ID)->GetName(), chartAttributeMapper);
+	UpdateClusterPlot(cluster, chartFilter, chartAttributeMapper);
+	UpdateLeafPlot(leaf, chartAttributeMapper);
 	if (!chartFilter.MatchesAll())
 	{
 		Update(
 			m_allFilteredTable, m_allFilteredPlot, root,
 			DefaultColors::FilteredChartColor, chartFilter,
-			chart1ID, chart2ID,
-			chartAttributes->at(chart1ID)->GetName(),
-			chartAttributes->at(chart2ID)->GetName(),
 			chartAttributeMapper);
 	}
 }
@@ -179,8 +181,6 @@ void iAGEMSeScatterplot::Update(
 	iAImageTreeNode const * node,
 	QColor const & color,
 	iAChartFilter const & filter,
-	int chart1ID, int chart2ID,
-	QString chart1Name, QString chart2Name,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
 	if (plot)
@@ -192,7 +192,7 @@ void iAGEMSeScatterplot::Update(
 	{
 		return;
 	}
-	table = GetComparisonTable(node, filter, chart1ID, chart2ID, chart1Name, chart2Name, chartAttributeMapper);
+	table = GetComparisonTable(node, filter, chartAttributeMapper);
 	if (!table)
 	{
 		return;
@@ -212,8 +212,6 @@ void iAGEMSeScatterplot::Update(
 
 void iAGEMSeScatterplot::UpdateFilteredAllPlot(
 	iAImageTreeNode const * root, iAChartFilter const & chartFilter,
-	int chart1ID, int chart2ID,
-	QString chart1Name, QString chart2Name,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
 	if (!chartFilter.MatchesAll())
@@ -224,7 +222,7 @@ void iAGEMSeScatterplot::UpdateFilteredAllPlot(
 			root,
 			DefaultColors::FilteredChartColor,
 			chartFilter,
-			chart1ID, chart2ID, chart1Name, chart2Name, chartAttributeMapper
+			chartAttributeMapper
 		);
 	}
 }
@@ -232,20 +230,16 @@ void iAGEMSeScatterplot::UpdateFilteredAllPlot(
 
 void iAGEMSeScatterplot::UpdateLeafPlot(
 	iAImageTreeNode const * selectedLeaf,
-	int chart1ID, int chart2ID,
-	QString chart1Name, QString chart2Name,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
 	iAChartFilter emptyFilter;
 	Update(m_singleTable, m_singlePlot, selectedLeaf, DefaultColors::ImageChartColor, emptyFilter,
-		chart1ID, chart2ID, chart1Name, chart2Name, chartAttributeMapper);
+		chartAttributeMapper);
 }
 
 
 void iAGEMSeScatterplot::UpdateClusterPlot(
 	iAImageTreeNode const * selectedCluster, iAChartFilter const & chartFilter,
-	int chart1ID, int chart2ID,
-	QString chart1Name, QString chart2Name,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
 	iAChartFilter emptyFilter;
@@ -255,7 +249,7 @@ void iAGEMSeScatterplot::UpdateClusterPlot(
 		selectedCluster,
 		DefaultColors::ClusterChartColor[0],
 		emptyFilter,
-		chart1ID, chart2ID, chart1Name, chart2Name, chartAttributeMapper
+		chartAttributeMapper
 	);
 	if (!chartFilter.MatchesAll())
 	{
@@ -265,7 +259,7 @@ void iAGEMSeScatterplot::UpdateClusterPlot(
 			selectedCluster,
 			DefaultColors::FilteredClusterChartColor,
 			chartFilter,
-			chart1ID, chart2ID, chart1Name, chart2Name, chartAttributeMapper
+			chartAttributeMapper
 		);
 	}
 }
