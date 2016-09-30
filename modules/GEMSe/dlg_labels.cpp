@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "dlg_labels.h"
 
@@ -28,7 +27,7 @@
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
 #include "iAFileUtils.h"
-#include "iAVtkDraw.h"
+#include "iALabelOverlayThread.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -219,94 +218,9 @@ QList<iAImageCoordinate> dlg_labels::GetSeeds(int labelIdx) const
 	return result;
 }
 
-
-class LabelOverlayThread: public QThread
-{
-public:
-	LabelOverlayThread(vtkSmartPointer<vtkImageData>& labelOverlayImg,
-			vtkSmartPointer<vtkLookupTable>& labelOverlayLUT,
-			vtkSmartPointer<vtkPiecewiseFunction>& labelOverlayOTF,
-			QStandardItemModel* itemModel,
-			int labelCount,
-			iAColorTheme const * colorTheme,
-			int *    imageExtent,
-			double * imageSpacing
-			):
-		m_labelOverlayImg(labelOverlayImg),
-		m_labelOverlayLUT(labelOverlayLUT),
-		m_labelOverlayOTF(labelOverlayOTF),
-		m_itemModel(itemModel),
-		m_labelCount(labelCount),
-		m_colorTheme(colorTheme),
-		m_imageExtent(imageExtent),
-		m_imageSpacing(imageSpacing)
-	{}
-
-	void RebuildLabelOverlayLUT()
-	{
-		m_labelOverlayLUT = vtkSmartPointer<vtkLookupTable>::New();
-		m_labelOverlayLUT->SetNumberOfTableValues(m_labelCount+1);
-		m_labelOverlayLUT->SetRange(0.0, m_labelCount);
-		m_labelOverlayLUT->SetTableValue( 0, 0.0, 0.0, 0.0, 0.0 ); //label 0 is transparent
-	
-		m_labelOverlayOTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		m_labelOverlayOTF->AddPoint(0, 0);
-		for (int i=0; i<m_labelCount; ++i)
-		{
-			QColor c(m_colorTheme->GetColor(i));
-			m_labelOverlayLUT->SetTableValue(i+1,
-				c.red()/255.0,
-				c.green()/255.0,
-				c.blue()/255.0,
-				1);	// all other labels are opaque
-			m_labelOverlayOTF->AddPoint(i+1, 1);
-		}
-		m_labelOverlayLUT->Build();
-	}
-
-	vtkSmartPointer<vtkImageData> drawImage()
-	{
-		RebuildLabelOverlayLUT();
-		vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
-		result->SetExtent(m_imageExtent);
-		result->SetSpacing(m_imageSpacing);
-		result->AllocateScalars(VTK_INT, 1);
-		clearImage(result, 0);
-
-		for (int l=0; l<m_itemModel->rowCount(); ++l)
-		{
-			QStandardItem * labelItem = m_itemModel->item(l);
-			for (int i=0; i<labelItem->rowCount(); ++i)
-			{
-				QStandardItem* coordItem = labelItem->child(i);
-				int x = coordItem->data(Qt::UserRole + 1).toInt();
-				int y = coordItem->data(Qt::UserRole + 2).toInt();
-				int z = coordItem->data(Qt::UserRole + 3).toInt();
-				drawPixel(result, x, y, z, l+1);
-			}
-		}
-		return result;
-	}
-
-	void run()
-	{
-		m_labelOverlayImg = drawImage();
-	}
-private:
-	vtkSmartPointer<vtkImageData>& m_labelOverlayImg;
-	vtkSmartPointer<vtkLookupTable>& m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction>& m_labelOverlayOTF;
-	QStandardItemModel* m_itemModel;
-	int m_labelCount;
-	iAColorTheme const * m_colorTheme;
-	int *    m_imageExtent;
-	double * m_imageSpacing;
-};
-
-
 void dlg_labels::StartOverlayCreation()
 {
-	m_labelOverlayThread = new LabelOverlayThread(
+	m_labelOverlayThread = new iALabelOverlayThread(
 			m_labelOverlayImg,
 			m_labelOverlayLUT,
 			m_labelOverlayOTF,

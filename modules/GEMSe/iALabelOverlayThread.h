@@ -20,77 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_labels.h"
-#include <iAQTtoUIConnector.h>
-typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
-
-#include "iALabelInfo.h"
 #include <vtkSmartPointer.h>
 
-#include <QList>
+#include <QThread>
 
 class iAColorTheme;
-class MdiChild;
-
-class QStandardItemModel;
 
 class vtkImageData;
 class vtkLookupTable;
-class vtkObject;
 class vtkPiecewiseFunction;
 
-class iALabelOverlayThread;
+class QStandardItemModel;
 
-struct iAImageCoordinate;
-
-class dlg_labels : public dlg_labelUI, public iALabelInfo
+class iALabelOverlayThread : public QThread
 {
-	Q_OBJECT
 public:
-	dlg_labels(MdiChild* mdiChild, iAColorTheme const * theme);
-	int GetCurLabelRow() const;
-	int GetSeedCount(int labelIdx) const;
-	QList<iAImageCoordinate> GetSeeds(int labelIdx) const;
-	bool Load(QString const & filename);
-	bool Store(QString const & filename);
-	void SetColorTheme(iAColorTheme const *);
-	virtual int count() const;
-	virtual QString GetName(int idx) const;
-	virtual QColor GetColor(int idx) const;
-	bool AreSeedsAvailable() const;
-public slots:
-	void RendererClicked(int, int, int);
-	void SlicerClicked(int, int, int);
-	void Add();
-	void Remove();
-	void Store();
-	void Load();
-	void StoreImage();
-	void LabelOverlayReady();
-	QString const & GetFileName();
-private:
-	void AddSeed(int, int, int);
+	iALabelOverlayThread(vtkSmartPointer<vtkImageData>& labelOverlayImg,
+		vtkSmartPointer<vtkLookupTable>& labelOverlayLUT,
+		vtkSmartPointer<vtkPiecewiseFunction>& labelOverlayOTF,
+		QStandardItemModel* itemModel,
+		int labelCount,
+		iAColorTheme const * colorTheme,
+		int *    imageExtent,
+		double * imageSpacing);
 	void RebuildLabelOverlayLUT();
-	void UpdateOverlay();
-	void SetOverlayPixels(int label, int value);
-	void AddSeedItem(int label, int x, int y, int z);
-	int AddLabelItem(QString const & labelText);
 	vtkSmartPointer<vtkImageData> drawImage();
-	void StartOverlayCreation();
-	void ReColorExistingLabels();
-
+	void run();
+private:
+	vtkSmartPointer<vtkImageData>& m_labelOverlayImg;
+	vtkSmartPointer<vtkLookupTable>& m_labelOverlayLUT;
+	vtkSmartPointer<vtkPiecewiseFunction>& m_labelOverlayOTF;
 	QStandardItemModel* m_itemModel;
+	int m_labelCount;
 	iAColorTheme const * m_colorTheme;
-	int m_maxLabel;
-	QString m_fileName;
-
-	// for label overlay:
-	vtkSmartPointer<vtkImageData> m_labelOverlayImg;
-	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF; // TODO: check why this is required - manual exploration also doesn't use it!
-	MdiChild* m_mdiChild;
-	iALabelOverlayThread* m_labelOverlayThread;
-	bool m_newOverlay;
-signals:
-	void SeedsAvailable();
+	int *    m_imageExtent;
+	double * m_imageSpacing;
 };
