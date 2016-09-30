@@ -38,35 +38,18 @@ class iAHistogramContainer: public QSplitter
 {
 	Q_OBJECT
 public:
-	iAHistogramContainer(iAChartAttributeMapper const & chartAttributeMapper);
+	iAHistogramContainer(
+		QSharedPointer<iAAttributes> chartAttributes,
+		iAChartAttributeMapper const & chartAttributeMapper
+	);
 	bool ChartExists(int chartID) const;
-
-	void CreateCharts(
-		QSharedPointer<iAAttributes> chartAttributes,
-		iAImageTreeNode* rootNode);
-
-	void UpdateClusterChartData(
-		QSharedPointer<iAAttributes> chartAttributes,
-		QVector<QSharedPointer<iAImageTreeNode> > const & selection);
-
-	void UpdateFilteredChartData(
-		QSharedPointer<iAAttributes> chartAttributes,
-		iAImageTreeNode const * rootNode,
-		iAChartFilter const & chartFilter);
-
-	void UpdateClusterFilteredChartData(
-		QSharedPointer<iAAttributes> chartAttributes,
-		iAImageTreeNode const * selectedNode,
-		iAChartFilter const & chartFilter);
-
-	void UpdateAttributeRangeAttitude(
-		QSharedPointer<iAAttributes> chartAttributes,
-		iAImageTreeNode const * root);
-
-	void ResetFilters(QSharedPointer<iAAttributes> chartAttributes);
-	void ExportAttributeRangeRanking(
-		QString const & fileName,
-		QSharedPointer<iAAttributes> chartAttributes);
+	void CreateCharts(iAImageTreeNode* rootNode);
+	void UpdateClusterChartData(QVector<QSharedPointer<iAImageTreeNode> > const & selection);
+	void UpdateFilteredChartData(iAImageTreeNode const * rootNode, iAChartFilter const & chartFilter);
+	void UpdateClusterFilteredChartData(iAImageTreeNode const * selectedNode, iAChartFilter const & chartFilter);
+	void ResetFilters();
+	void UpdateAttributeRangeAttitude(iAImageTreeNode const * root);
+	void ExportAttributeRangeRanking(QString const & fileName);
 	int GetSelectedCount();
 	int GetSelectedChartID(int selectionIdx);
 	void SetMarker(int chartID, double value);
@@ -81,8 +64,8 @@ private slots:
 	void ChartDblClicked();
 	void FilterChanged(double min, double max);
 private:
-	void AddDiagramSubWidgetsWithProperStretch(QSharedPointer<iAAttributes> chartAttributes);
-	void RemoveAllCharts(QSharedPointer<iAAttributes> chartAttributes);
+	void AddDiagramSubWidgetsWithProperStretch();
+	void RemoveAllCharts();
 	QWidget * m_paramChartWidget, *m_derivedOutputChartWidget;
 	QWidget * m_paramChartContainer, *m_derivedOutputChartContainer;
 	QGridLayout* m_paramChartLayout;
@@ -90,5 +73,6 @@ private:
 	QMap<int, iAChartSpanSlider*> m_charts;
 	QVector< QVector<float> > m_attitudes;
 	QVector<int> m_selected;
+	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper const & m_chartAttributeMapper;
 };

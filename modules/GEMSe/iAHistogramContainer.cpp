@@ -42,7 +42,10 @@
 #include <QTextStream>
 
 
-iAHistogramContainer::iAHistogramContainer(iAChartAttributeMapper const & chartAttributeMapper):
+iAHistogramContainer::iAHistogramContainer(
+	QSharedPointer<iAAttributes> chartAttributes,
+	iAChartAttributeMapper const & chartAttributeMapper):
+	m_chartAttributes(chartAttributes),
 	m_chartAttributeMapper(chartAttributeMapper)
 {
 	m_paramChartContainer = new QWidget();
@@ -62,18 +65,18 @@ iAHistogramContainer::iAHistogramContainer(iAChartAttributeMapper const & chartA
 }
 
 
-void iAHistogramContainer::AddDiagramSubWidgetsWithProperStretch(QSharedPointer<iAAttributes> chartAttributes)
+void iAHistogramContainer::AddDiagramSubWidgetsWithProperStretch()
 {
 	int paramChartsShownCount = 0,
 		derivedChartsShownCount = 0;
-	for (int chartID = 0; chartID != chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		if (chartAttributes->at(chartID)->GetMin() == chartAttributes->at(chartID)->GetMax())
+		if (m_chartAttributes->at(chartID)->GetMin() == m_chartAttributes->at(chartID)->GetMax())
 		{
 			//DebugOut() << "Only one value for attribute " << id << ", not showing chart." << std::endl;
 			continue;
 		}
-		if (chartAttributes->at(chartID)->GetAttribType() == iAAttributeDescriptor::Parameter)
+		if (m_chartAttributes->at(chartID)->GetAttribType() == iAAttributeDescriptor::Parameter)
 		{
 			paramChartsShownCount++;
 		}
@@ -90,18 +93,17 @@ void iAHistogramContainer::AddDiagramSubWidgetsWithProperStretch(QSharedPointer<
 
 
 void iAHistogramContainer::CreateCharts(
-	QSharedPointer<iAAttributes> chartAttributes,
 	iAImageTreeNode* rootNode)
 {
-	RemoveAllCharts(chartAttributes);
-	AddDiagramSubWidgetsWithProperStretch(chartAttributes);
+	RemoveAllCharts();
+	AddDiagramSubWidgetsWithProperStretch();
 	int curMinDatasetID = 0;
 	int paramChartRow = 0;
 	int paramChartCol = 0;
 	double maxValue = -1;
-	for (int chartID = 0; chartID != chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		QSharedPointer<iAAttributeDescriptor> attrib = chartAttributes->at(chartID);
+		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
 		if (attrib->GetMin() == attrib->GetMax())
 		{
 			//DebugOut() << "Only one value for attribute " << id << ", not showing chart." << std::endl;
@@ -162,10 +164,10 @@ void iAHistogramContainer::CreateCharts(
 		}
 		m_charts[chartID]->update();
 	}
-	for (int i = 0; i < chartAttributes->size(); ++i)
+	for (int i = 0; i < m_chartAttributes->size(); ++i)
 	{
 		if (m_charts[i] &&
-			chartAttributes->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+			m_chartAttributes->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
 		{
 			m_charts[i]->SetMaxYAxisValue(maxValue);
 		}
@@ -173,11 +175,9 @@ void iAHistogramContainer::CreateCharts(
 }
 
 
-void iAHistogramContainer::UpdateClusterChartData(
-	QSharedPointer<iAAttributes> chartAttributes,
-	QVector<QSharedPointer<iAImageTreeNode> > const & selection)
+void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImageTreeNode> > const & selection)
 {
-	for (int chartID = 0; chartID < chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID < m_chartAttributes->size(); ++chartID)
 	{
 		if (!ChartExists(chartID))
 		{
@@ -186,7 +186,7 @@ void iAHistogramContainer::UpdateClusterChartData(
 		m_charts[chartID]->ClearClusterData();
 		foreach(QSharedPointer<iAImageTreeNode> const node, selection)
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = chartAttributes->at(chartID);
+			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->AddClusterData(iAParamHistogramData::Create(
 				node.data(), chartID,
 				attrib->GetValueType(),
@@ -202,11 +202,10 @@ void iAHistogramContainer::UpdateClusterChartData(
 
 
 void iAHistogramContainer::UpdateClusterFilteredChartData(
-	QSharedPointer<iAAttributes> chartAttributes,
 	iAImageTreeNode const * selectedNode,
 	iAChartFilter const & chartFilter)
 {
-	for (int chartID = 0; chartID < chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID < m_chartAttributes->size(); ++chartID)
 	{
 		if (!ChartExists(chartID))
 		{
@@ -219,7 +218,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 		}
 		else
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = chartAttributes->at(chartID);
+			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::Create(
 				selectedNode, chartID,
 				attrib->GetValueType(),
@@ -235,18 +234,17 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 
 
 void iAHistogramContainer::UpdateFilteredChartData(
-	QSharedPointer<iAAttributes> chartAttributes,
 	iAImageTreeNode const * rootNode,
 	iAChartFilter const & chartFilter)
 {
-	for (int chartID = 0; chartID < chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID < m_chartAttributes->size(); ++chartID)
 	{
 		if (!ChartExists(chartID))
 		{
 			continue;
 		}
 		assert(m_charts[chartID]);
-		QSharedPointer<iAAttributeDescriptor> attrib = chartAttributes->at(chartID);
+		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
 		m_charts[chartID]->SetFilteredData(iAParamHistogramData::Create(
 			rootNode, chartID,
 			attrib->GetValueType(),
@@ -266,9 +264,9 @@ bool iAHistogramContainer::ChartExists(int chartID) const
 }
 
 
-void iAHistogramContainer::RemoveAllCharts(QSharedPointer<iAAttributes> chartAttributes)
+void iAHistogramContainer::RemoveAllCharts()
 {
-	for (int chartID = 0; chartID != chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		if (ChartExists(chartID))
 		{
@@ -302,10 +300,10 @@ void iAHistogramContainer::ChartSelected(bool selected)
 }
 
 
-void iAHistogramContainer::ResetFilters(QSharedPointer<iAAttributes> chartAttributes)
+void iAHistogramContainer::ResetFilters()
 {
 
-	for (int chartID = 0; chartID != chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		if (!ChartExists(chartID))
 		{
@@ -318,14 +316,13 @@ void iAHistogramContainer::ResetFilters(QSharedPointer<iAAttributes> chartAttrib
 
 
 void iAHistogramContainer::UpdateAttributeRangeAttitude(
-	QSharedPointer<iAAttributes> chartAttributes,
 	iAImageTreeNode const * root)
 {
 	QVector<iAImageTreeNode const *> likes, hates;
 	FindByAttitude(root, iAImageTreeNode::Liked, likes);
 	FindByAttitude(root, iAImageTreeNode::Hated, hates);
 	m_attitudes.clear();
-	for (int chartID = 0; chartID != chartAttributes->size(); ++chartID)
+	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		m_attitudes.push_back(QVector<float>());
 		if (!ChartExists(chartID))
@@ -362,9 +359,7 @@ void iAHistogramContainer::UpdateAttributeRangeAttitude(
 }
 
 
-void iAHistogramContainer::ExportAttributeRangeRanking(
-	QString const &fileName,
-	QSharedPointer<iAAttributes> chartAttributes)
+void iAHistogramContainer::ExportAttributeRangeRanking(QString const &fileName)
 {
 	QFile f(fileName);
 	if (!f.open(QIODevice::WriteOnly))
@@ -375,12 +370,12 @@ void iAHistogramContainer::ExportAttributeRangeRanking(
 	QTextStream t(&f);
 	for (int i = 0; i<m_attitudes.size(); ++i)
 	{
-		t << chartAttributes->at(i)->GetName();
+		t << m_chartAttributes->at(i)->GetName();
 		if (!ChartExists(i))
 			continue;
 		size_t numBin = m_charts[i]->GetNumBin();
-		double min = chartAttributes->at(i)->GetMin();
-		double max = chartAttributes->at(i)->GetMax();
+		double min = m_chartAttributes->at(i)->GetMin();
+		double max = m_chartAttributes->at(i)->GetMax();
 		t << "," << min << "," << max << "," << numBin;
 		for (int b = 0; b < m_attitudes[i].size(); ++b)
 		{
