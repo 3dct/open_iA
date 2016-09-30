@@ -42,7 +42,8 @@
 #include <QTextStream>
 
 
-iAHistogramContainer::iAHistogramContainer()
+iAHistogramContainer::iAHistogramContainer(iAChartAttributeMapper const & chartAttributeMapper):
+	m_chartAttributeMapper(chartAttributeMapper)
 {
 	m_paramChartContainer = new QWidget();
 	m_paramChartWidget = new QWidget();
@@ -90,7 +91,6 @@ void iAHistogramContainer::AddDiagramSubWidgetsWithProperStretch(QSharedPointer<
 
 void iAHistogramContainer::CreateCharts(
 	QSharedPointer<iAAttributes> chartAttributes,
-	iAChartAttributeMapper const & chartAttributeMapper,
 	iAImageTreeNode* rootNode)
 {
 	RemoveAllCharts(chartAttributes);
@@ -123,7 +123,7 @@ void iAHistogramContainer::CreateCharts(
 			attrib->GetMin(),
 			attrib->GetMax(),
 			attrib->IsLogScale(),
-			chartAttributeMapper,
+			m_chartAttributeMapper,
 			numBin);
 		if (!data)
 		{
@@ -144,7 +144,7 @@ void iAHistogramContainer::CreateCharts(
 
 		if (attrib->GetAttribType() == iAAttributeDescriptor::Parameter)
 		{
-			QList<int> datasetIDs = chartAttributeMapper.GetDatasetIDs(chartID);
+			QList<int> datasetIDs = m_chartAttributeMapper.GetDatasetIDs(chartID);
 			if (!datasetIDs.contains(curMinDatasetID))
 			{
 				// alternative to GridLayout: Use combination of VBox and HBox layout?
@@ -175,7 +175,6 @@ void iAHistogramContainer::CreateCharts(
 
 void iAHistogramContainer::UpdateClusterChartData(
 	QSharedPointer<iAAttributes> chartAttributes,
-	iAChartAttributeMapper const & chartAttributeMapper,
 	QVector<QSharedPointer<iAImageTreeNode> > const & selection)
 {
 	for (int chartID = 0; chartID < chartAttributes->size(); ++chartID)
@@ -194,7 +193,7 @@ void iAHistogramContainer::UpdateClusterChartData(
 				attrib->GetMin(),
 				attrib->GetMax(),
 				attrib->IsLogScale(),
-				chartAttributeMapper,
+				m_chartAttributeMapper,
 				m_charts[chartID]->GetNumBin()));
 		}
 		m_charts[chartID]->UpdateChart();
@@ -204,7 +203,6 @@ void iAHistogramContainer::UpdateClusterChartData(
 
 void iAHistogramContainer::UpdateClusterFilteredChartData(
 	QSharedPointer<iAAttributes> chartAttributes,
-	iAChartAttributeMapper const & chartAttributeMapper,
 	iAImageTreeNode const * selectedNode,
 	iAChartFilter const & chartFilter)
 {
@@ -228,7 +226,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 				attrib->GetMin(),
 				attrib->GetMax(),
 				attrib->IsLogScale(),
-				chartAttributeMapper,
+				m_chartAttributeMapper,
 				chartFilter,
 				m_charts[chartID]->GetNumBin()));
 		}
@@ -238,7 +236,6 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 
 void iAHistogramContainer::UpdateFilteredChartData(
 	QSharedPointer<iAAttributes> chartAttributes,
-	iAChartAttributeMapper const & chartAttributeMapper,
 	iAImageTreeNode const * rootNode,
 	iAChartFilter const & chartFilter)
 {
@@ -256,7 +253,7 @@ void iAHistogramContainer::UpdateFilteredChartData(
 			attrib->GetMin(),
 			attrib->GetMax(),
 			attrib->IsLogScale(),
-			chartAttributeMapper,
+			m_chartAttributeMapper,
 			chartFilter,
 			m_charts[chartID]->GetNumBin()));
 	}
@@ -322,7 +319,6 @@ void iAHistogramContainer::ResetFilters(QSharedPointer<iAAttributes> chartAttrib
 
 void iAHistogramContainer::UpdateAttributeRangeAttitude(
 	QSharedPointer<iAAttributes> chartAttributes,
-	iAChartAttributeMapper const & chartAttributeMapper,
 	iAImageTreeNode const * root)
 {
 	QVector<iAImageTreeNode const *> likes, hates;
@@ -338,9 +334,9 @@ void iAHistogramContainer::UpdateAttributeRangeAttitude(
 		}
 		int numBin = m_charts[chartID]->GetNumBin();
 		AttributeHistogram likeHist(numBin);
-		GetHistData(likeHist, chartID, m_charts[chartID], likes, numBin, chartAttributeMapper);
+		GetHistData(likeHist, chartID, m_charts[chartID], likes, numBin, m_chartAttributeMapper);
 		AttributeHistogram hateHist(numBin);
-		GetHistData(hateHist, chartID, m_charts[chartID], hates, numBin, chartAttributeMapper);
+		GetHistData(hateHist, chartID, m_charts[chartID], hates, numBin, m_chartAttributeMapper);
 
 		for (int b = 0; b < numBin; ++b)
 		{

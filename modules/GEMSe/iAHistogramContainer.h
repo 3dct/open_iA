@@ -38,34 +38,29 @@ class iAHistogramContainer: public QSplitter
 {
 	Q_OBJECT
 public:
-	iAHistogramContainer();
+	iAHistogramContainer(iAChartAttributeMapper const & chartAttributeMapper);
 	bool ChartExists(int chartID) const;
 
 	void CreateCharts(
 		QSharedPointer<iAAttributes> chartAttributes,
-		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode* rootNode);
 
 	void UpdateClusterChartData(
 		QSharedPointer<iAAttributes> chartAttributes,
-		iAChartAttributeMapper const & chartAttributeMapper,
 		QVector<QSharedPointer<iAImageTreeNode> > const & selection);
 
 	void UpdateFilteredChartData(
 		QSharedPointer<iAAttributes> chartAttributes,
-		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode const * rootNode,
 		iAChartFilter const & chartFilter);
 
 	void UpdateClusterFilteredChartData(
 		QSharedPointer<iAAttributes> chartAttributes,
-		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode const * selectedNode,
 		iAChartFilter const & chartFilter);
 
 	void UpdateAttributeRangeAttitude(
 		QSharedPointer<iAAttributes> chartAttributes,
-		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode const * root);
 
 	void ResetFilters(QSharedPointer<iAAttributes> chartAttributes);
@@ -95,4 +90,5 @@ private:
 	QMap<int, iAChartSpanSlider*> m_charts;
 	QVector< QVector<float> > m_attitudes;
 	QVector<int> m_selected;
+	iAChartAttributeMapper const & m_chartAttributeMapper;
 };
