@@ -161,6 +161,7 @@ CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 		// TODO: probably very problematic regarding memory leaks!!!!!
 		result->prob.push_back(dynamic_cast<ProbabilityImageType*>(m_singleResult->GetProbabilityImg(i).GetPointer()));
 	}
+	result->count = 1;
 	return result;
 }
 
