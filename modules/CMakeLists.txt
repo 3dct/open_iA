@@ -132,7 +132,7 @@ FOREACH( indx RANGE ${len} )
 		ENDIF(MSVC)
 		
 		# Installation
-		INSTALL (TARGETS ${module_name} DESTINATION bin/plugins)
+		INSTALL (TARGETS ${module_name} DESTINATION plugins)
 	ENDIF( ${module_option} )
 ENDFOREACH()
 
