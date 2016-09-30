@@ -59,3 +59,37 @@ void iAImageTreeNode::SetAttitude(Attitude att)
 void iAImageTreeNode::ClearFilterData()
 {
 }
+
+
+void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTreeNode> > & path, QSharedPointer<iAImageTreeNode> curCluster, bool & found)
+{
+	path.push_back(curCluster);
+	if (curCluster.data() != searched)
+	{
+		for (int i = 0; i<curCluster->GetChildCount() && !found; ++i)
+		{
+			FindNode(searched, path, curCluster->GetChild(i), found);
+		}
+		if (!found)
+		{
+			path.removeLast();
+		}
+	}
+	else
+	{
+		found = true;
+	}
+}
+
+QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node)
+{
+	QSharedPointer<iAImageTreeNode> parent(node->GetParent());
+	for (int i = 0; i<parent->GetChildCount(); ++i)
+	{
+		if (parent->GetChild(i) != node)
+		{
+			return parent->GetChild(i);
+		}
+	}
+	return QSharedPointer<iAImageTreeNode>();
+}

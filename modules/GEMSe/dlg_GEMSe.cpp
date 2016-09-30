@@ -115,9 +115,7 @@ void dlg_GEMSe::SetTree(
 	m_nullImage = AllocateImage(imageTree->m_root->GetRepresentativeImage(iARepresentativeType::Difference));
 
 	m_treeView = new iAImageTreeView(wdTree, imageTree, m_previewWidgetPool, m_representativeType);
-	m_treeView->EnableSubtreeHighlight(true);
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
-	wdTree->layout()->addWidget(m_treeView);
 
 	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, labelInfo,
 		m_representativeType);

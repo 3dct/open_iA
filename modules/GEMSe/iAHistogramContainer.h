@@ -42,36 +42,36 @@ public:
 	bool ChartExists(int chartID) const;
 
 	void CreateCharts(
-		QSharedPointer<iAAttributes> m_chartAttributes,
-		iAChartAttributeMapper const & m_chartAttributeMapper,
+		QSharedPointer<iAAttributes> chartAttributes,
+		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode* rootNode);
 
 	void UpdateClusterChartData(
-		QSharedPointer<iAAttributes> m_chartAttributes,
-		iAChartAttributeMapper const & m_chartAttributeMapper,
+		QSharedPointer<iAAttributes> chartAttributes,
+		iAChartAttributeMapper const & chartAttributeMapper,
 		QVector<QSharedPointer<iAImageTreeNode> > const & selection);
 
 	void UpdateFilteredChartData(
-		QSharedPointer<iAAttributes> m_chartAttributes,
-		iAChartAttributeMapper const & m_chartAttributeMapper,
+		QSharedPointer<iAAttributes> chartAttributes,
+		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode const * rootNode,
-		iAChartFilter const & m_chartFilter);
+		iAChartFilter const & chartFilter);
 
 	void UpdateClusterFilteredChartData(
-		QSharedPointer<iAAttributes> m_chartAttributes,
-		iAChartAttributeMapper const & m_chartAttributeMapper,
+		QSharedPointer<iAAttributes> chartAttributes,
+		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode const * selectedNode,
-		iAChartFilter const & m_chartFilter);
+		iAChartFilter const & chartFilter);
 
 	void UpdateAttributeRangeAttitude(
-		QSharedPointer<iAAttributes> m_chartAttributes,
-		iAChartAttributeMapper const & m_chartAttributeMapper,
+		QSharedPointer<iAAttributes> chartAttributes,
+		iAChartAttributeMapper const & chartAttributeMapper,
 		iAImageTreeNode const * root);
 
-	void ResetFilters(QSharedPointer<iAAttributes> m_chartAttributes);
+	void ResetFilters(QSharedPointer<iAAttributes> chartAttributes);
 	void ExportAttributeRangeRanking(
 		QString const & fileName,
-		QSharedPointer<iAAttributes> m_chartAttributes);
+		QSharedPointer<iAAttributes> chartAttributes);
 	int GetSelectedCount();
 	int GetSelectedChartID(int selectionIdx);
 	void SetMarker(int chartID, double value);
@@ -85,8 +85,8 @@ private slots:
 	void ChartDblClicked();
 	void FilterChanged(double min, double max);
 private:
-	void AddDiagramSubWidgetsWithProperStretch(QSharedPointer<iAAttributes> m_chartAttributes);
-	void RemoveAllCharts(QSharedPointer<iAAttributes> m_chartAttributes);
+	void AddDiagramSubWidgetsWithProperStretch(QSharedPointer<iAAttributes> chartAttributes);
+	void RemoveAllCharts(QSharedPointer<iAAttributes> chartAttributes);
 	QWidget * m_paramChartWidget, *m_derivedOutputChartWidget;
 	QWidget * m_paramChartContainer, *m_derivedOutputChartContainer;
 	QGridLayout* m_paramChartLayout;

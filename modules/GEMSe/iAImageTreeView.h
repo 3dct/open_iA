@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAImageTree.h"
 #include "iAImageNodeWidget.h"
 #include "iASlicerMode.h"
 
@@ -29,6 +28,7 @@
 #include <QSharedPointer>
 #include <QWidget>
 
+class iAImageTree;
 class iAPreviewWidgetPool;
 class iATreeHighlight;
 
@@ -54,8 +54,7 @@ public:
 		QSharedPointer<iAImageTree > tree,
 		iAPreviewWidgetPool * previewPool,
 		int representativeType);
-	//void SetTree(QSharedPointer<iAImageTree> tree);
-	QSharedPointer<iAImageTree > const GetTree() const;
+	QSharedPointer<iAImageTree> const GetTree() const;
 	void AddSelectedNode(QSharedPointer<iAImageTreeNode> node, bool clear);
 	void EnableSubtreeHighlight(bool enable);
 	void FilterUpdated();
@@ -99,7 +98,7 @@ private:
 		int curLevel, int & maxLevel, int & shrinked);
 
 	bool m_highlightSubtree;
-	QSharedPointer<iAImageTree > m_imageTree;
+	QSharedPointer<iAImageTree> m_imageTree;
 	// ToDo: extract to widget for a single cluster node:
 	QMap<iAImageTreeNode*, iAImageNodeWidget* > m_nodeWidgets;
 	//! number of currently shown nodes:

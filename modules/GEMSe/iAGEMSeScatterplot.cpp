@@ -119,7 +119,7 @@ vtkSmartPointer<vtkTable> iAGEMSeScatterplot::GetComparisonTable(
 }
 
 
-void iAGEMSeScatterplot::ChangeDataSource(
+void iAGEMSeScatterplot::SetDataSource(
 	int chart1ID, int chart2ID,
 	QString const & chart1Name, QString const & chart2Name,
 	bool chart1Log, bool chart2Log,

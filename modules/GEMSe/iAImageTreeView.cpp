@@ -27,45 +27,9 @@
 #include "iAPreviewWidgetPool.h"
 #include "iAGEMSeConstants.h"
 
+#include <QLayout>
 #include <QMouseEvent>
 #include <QPainter>
-
-// tree utility functions:
-// {
-void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTreeNode> > & path, QSharedPointer<iAImageTreeNode> curCluster, bool & found)
-{
-	path.push_back(curCluster);
-	if (curCluster.data() != searched)
-	{
-		for (int i=0; i<curCluster->GetChildCount() && !found; ++i)
-		{
-			FindNode(searched, path, curCluster->GetChild(i), found);
-		}
-		if (!found)
-		{
-			path.removeLast();
-		}
-	}
-	else
-	{
-		found = true;
-	}
-}
-
-QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node)
-{
-	QSharedPointer<iAImageTreeNode> parent(node->GetParent());
-	for (int i=0; i<parent->GetChildCount(); ++i)
-	{
-		if (parent->GetChild(i) != node)
-		{
-			return parent->GetChild(i);
-		}
-	}
-	return QSharedPointer<iAImageTreeNode>();
-}
-
-// }
 
 
 iAImageTreeView::iAImageTreeView(
@@ -83,7 +47,9 @@ iAImageTreeView::iAImageTreeView(
 	m_representativeType(representativeType)
 {
 	AddNode(m_imageTree->m_root, false);
+	EnableSubtreeHighlight(true);
 	UpdateLayout();
+	parent->layout()->addWidget(this);
 }
 
 
@@ -171,8 +137,6 @@ void iAImageTreeView::InsertNodeHighlight(iAImageTreeNode* node, QColor const & 
 		(expandedChildren-shrinkedNodes) * (m_iconSize +TreeClusterPadding) +
 		(shrinkedNodes) * (TreeClusterShrinkedHeight+TreeClusterPadding)
 		- TreeClusterPadding + HighlightPaddingTop + HighlightPaddingBottom );
-	//DebugOut () << "Highlighted region: x=" << highlightRegion.left() << "; y=" << highlightRegion.top() <<
-	//	"; w=" << highlightRegion.width() << "; height=" << highlightRegion.height() << std::endl;
 	m_highlights.push_back(iATreeHighlight(
 		highlightRegion,
 		color
@@ -189,7 +153,6 @@ void iAImageTreeView::UpdateSubtreeHighlight()
 	}
 	for (int i=0; i<m_selectedNode.size(); ++i)
 	{
-		// TODO ensure correct order ?
 		QSharedPointer<iAImageTreeNode> node = m_selectedNode[i];
 		if (!m_nodeWidgets.contains(node.data()))
 		{
@@ -276,7 +239,6 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeN
 		m_iconSize+TreeInfoRegionWidth, // all remaining horizontal space for width
 		nodeWidget->IsShrinked() ? TreeClusterShrinkedHeight : m_iconSize);
 
-	//int nodeNumBefore = nodeNumber;
 	nodeNumber++;
 	if (nodeWidget->IsShrinked())
 	{
@@ -329,7 +291,6 @@ void iAImageTreeView::AddNode(QSharedPointer<iAImageTreeNode > node, bool shrink
 	connect(nodeWidget, SIGNAL(Clicked()), this, SLOT(NodeClicked()));
 	connect(nodeWidget, SIGNAL(ImageClicked()), this, SLOT(NodeImageClicked()));
 	connect(nodeWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
-	// connect(rootNodeWidget, SIGNAL(remove()), this, SLOT(removeNode()));
 	m_nodeWidgets.insert(node.data(), nodeWidget);
 	nodeWidget->show();
 }
@@ -456,7 +417,6 @@ void iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 		iAImageNodeWidget* widget = m_nodeWidgets[curCluster.data()];
 		if (!widget->IsExpanded())
 		{
-			//ExpandNode(widget, true);
 			widget->ToggleButton();
 			ExpandNode(widget, true, true);
 			// todo: check if node really expanded?
@@ -482,8 +442,6 @@ void iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 	QSharedPointer<iAImageTreeNode> sibling = GetSibling(curCluster);
 	m_nodeWidgets[parent.data()]->SetAutoShrink(false);
 	m_nodeWidgets[sibling.data()]->SetAutoShrink(false);
-	// get parent, expand
-	// get sibling, expand
 	UpdateLayout();
 	emit JumpedTo(curCluster);
 }
@@ -507,8 +465,6 @@ void iAImageTreeView::paintEvent(QPaintEvent * e)
 		{
 			sel.setHeight(TreeClusterShrinkedHeight);
 		}
-		//DebugOut() << "Selected cluster rect: x=" << sel.left() << "; y=" << sel.top() <<
-		//	"; w=" << sel.width() << "; height=" << sel.height() << std::endl; 
 		sel.adjust(-1, -1, +1, +1);
 		p.drawRect(sel);
 	}

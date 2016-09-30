@@ -101,3 +101,6 @@ private:
 	QSharedPointer<iAImageTreeNode > m_parent;
 	Attitude m_attitude;
 };
+
+void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTreeNode> > & path, QSharedPointer<iAImageTreeNode> curCluster, bool & found);
+QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node);
