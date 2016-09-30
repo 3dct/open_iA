@@ -135,10 +135,10 @@ void dlg_GEMSe::SetTree(
 
 	m_scatterplot = new iAGEMSeScatterplot(wdComparisonCharts);
 
-	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper);
+	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, m_treeView->GetTree()->m_root.data());
 	wdCharts->layout()->addWidget(m_histogramContainer);
 	dynamic_cast<QHBoxLayout*>(wdCharts->layout())->setSpacing(ChartSpacing);
-	m_histogramContainer->CreateCharts(m_treeView->GetTree()->m_root.data());
+	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 
 	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
@@ -332,7 +332,7 @@ void dlg_GEMSe::UpdateClusterFilteredChartData()
 
 void dlg_GEMSe::UpdateFilteredChartData()
 {
-	m_histogramContainer->UpdateFilteredChartData(m_treeView->GetTree()->m_root.data(), m_chartFilter);
+	m_histogramContainer->UpdateFilteredChartData(m_chartFilter);
 }
 
 
@@ -426,7 +426,7 @@ void dlg_GEMSe::ExportAttributeRangeRanking(QString const & fileName)
 
 void dlg_GEMSe::UpdateAttributeRangeAttitude()
 {
-	m_histogramContainer->UpdateAttributeRangeAttitude(m_treeView->GetTree()->m_root.data());
+	m_histogramContainer->UpdateAttributeRangeAttitude();
 }
 
 
@@ -583,7 +583,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
 	CalculateRefImgComp(m_treeView->GetTree()->m_root, refImg, m_treeView->GetTree()->GetLabelCount());
-	m_histogramContainer->CreateCharts(m_treeView->GetTree()->m_root.data());
+	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 }
 

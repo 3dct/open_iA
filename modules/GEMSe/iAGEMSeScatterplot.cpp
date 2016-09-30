@@ -43,7 +43,9 @@
 iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
 	m_singlePlot(0),
 	m_clusterPlot(0),
-	m_parent(parent)
+	m_parent(parent),
+	m_chart1ID(-1),
+	m_chart2ID(-1)
 {
 	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
 	contextView->SetRenderWindow(GetRenderWindow());
@@ -214,6 +216,10 @@ void iAGEMSeScatterplot::UpdateFilteredAllPlot(
 	iAImageTreeNode const * root, iAChartFilter const & chartFilter,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
+	if (m_chart1ID == -1 || m_chart2ID == -1)
+	{
+		return;
+	}
 	if (!chartFilter.MatchesAll())
 	{
 		Update(
@@ -232,6 +238,10 @@ void iAGEMSeScatterplot::UpdateLeafPlot(
 	iAImageTreeNode const * selectedLeaf,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
+	if (m_chart1ID == -1 || m_chart2ID == -1)
+	{
+		return;
+	}
 	iAChartFilter emptyFilter;
 	Update(m_singleTable, m_singlePlot, selectedLeaf, DefaultColors::ImageChartColor, emptyFilter,
 		chartAttributeMapper);
@@ -242,6 +252,10 @@ void iAGEMSeScatterplot::UpdateClusterPlot(
 	iAImageTreeNode const * selectedCluster, iAChartFilter const & chartFilter,
 	iAChartAttributeMapper const & chartAttributeMapper)
 {
+	if (m_chart1ID == -1 || m_chart2ID == -1)
+	{
+		return;
+	}
 	iAChartFilter emptyFilter;
 	Update(
 		m_clusterTable,

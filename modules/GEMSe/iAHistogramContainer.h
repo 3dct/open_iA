@@ -21,9 +21,10 @@
 #pragma once
 
 #include <QMap>
-#include <QVector>
+#include <QSet>
 #include <QSharedPointer>
 #include <QSplitter>
+#include <QVector>
 
 class iAAttributes;
 class iAChartAttributeMapper;
@@ -40,15 +41,16 @@ class iAHistogramContainer: public QSplitter
 public:
 	iAHistogramContainer(
 		QSharedPointer<iAAttributes> chartAttributes,
-		iAChartAttributeMapper const & chartAttributeMapper
+		iAChartAttributeMapper const & chartAttributeMapper,
+		iAImageTreeNode const * root
 	);
 	bool ChartExists(int chartID) const;
-	void CreateCharts(iAImageTreeNode* rootNode);
+	void CreateCharts();
 	void UpdateClusterChartData(QVector<QSharedPointer<iAImageTreeNode> > const & selection);
-	void UpdateFilteredChartData(iAImageTreeNode const * rootNode, iAChartFilter const & chartFilter);
+	void UpdateFilteredChartData(iAChartFilter const & chartFilter);
 	void UpdateClusterFilteredChartData(iAImageTreeNode const * selectedNode, iAChartFilter const & chartFilter);
 	void ResetFilters();
-	void UpdateAttributeRangeAttitude(iAImageTreeNode const * root);
+	void UpdateAttributeRangeAttitude();
 	void ExportAttributeRangeRanking(QString const & fileName);
 	int GetSelectedCount();
 	int GetSelectedChartID(int selectionIdx);
@@ -64,8 +66,8 @@ private slots:
 	void ChartDblClicked();
 	void FilterChanged(double min, double max);
 private:
-	void AddDiagramSubWidgetsWithProperStretch();
 	void RemoveAllCharts();
+	void CreateGridLayout();
 	QWidget * m_paramChartWidget, *m_derivedOutputChartWidget;
 	QWidget * m_paramChartContainer, *m_derivedOutputChartContainer;
 	QGridLayout* m_paramChartLayout;
@@ -75,4 +77,6 @@ private:
 	QVector<int> m_selected;
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper const & m_chartAttributeMapper;
+	iAImageTreeNode const * m_root;
+	QSet<int> m_disabledCharts;
 };

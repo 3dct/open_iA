@@ -44,16 +44,16 @@
 
 iAHistogramContainer::iAHistogramContainer(
 	QSharedPointer<iAAttributes> chartAttributes,
-	iAChartAttributeMapper const & chartAttributeMapper):
+	iAChartAttributeMapper const & chartAttributeMapper,
+	iAImageTreeNode const * root):
 	m_chartAttributes(chartAttributes),
-	m_chartAttributeMapper(chartAttributeMapper)
+	m_chartAttributeMapper(chartAttributeMapper),
+	m_root(root),
+	m_paramChartLayout(0)
 {
 	m_paramChartContainer = new QWidget();
 	m_paramChartWidget = new QWidget();
-	m_paramChartLayout = new QGridLayout();
-	m_paramChartLayout->setSpacing(ChartSpacing);
-	m_paramChartLayout->setMargin(0);
-	m_paramChartWidget->setLayout(m_paramChartLayout);
+	CreateGridLayout();
 	SetCaptionedContent(m_paramChartContainer, "Input Parameters", m_paramChartWidget);
 	m_chartContainer = new QSplitter();
 	m_derivedOutputChartContainer = new QWidget();
@@ -64,62 +64,48 @@ iAHistogramContainer::iAHistogramContainer(
 	SetCaptionedContent(m_derivedOutputChartContainer, "Derived Output", m_derivedOutputChartWidget);
 }
 
-
-void iAHistogramContainer::AddDiagramSubWidgetsWithProperStretch()
+void iAHistogramContainer::CreateGridLayout()
 {
-	int paramChartsShownCount = 0,
-		derivedChartsShownCount = 0;
-	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
-	{
-		if (m_chartAttributes->at(chartID)->GetMin() == m_chartAttributes->at(chartID)->GetMax())
-		{
-			//DebugOut() << "Only one value for attribute " << id << ", not showing chart." << std::endl;
-			continue;
-		}
-		if (m_chartAttributes->at(chartID)->GetAttribType() == iAAttributeDescriptor::Parameter)
-		{
-			paramChartsShownCount++;
-		}
-		else
-		{
-			derivedChartsShownCount++;
-		}
-	}
-	addWidget(m_paramChartContainer);
-	addWidget(m_derivedOutputChartContainer);
-	setStretchFactor(0, paramChartsShownCount);
-	setStretchFactor(1, derivedChartsShownCount);
+	delete m_paramChartLayout;
+	m_paramChartLayout = new QGridLayout();
+	m_paramChartLayout->setSpacing(ChartSpacing);
+	m_paramChartLayout->setMargin(0);
+	m_paramChartWidget->setLayout(m_paramChartLayout);
 }
 
 
-void iAHistogramContainer::CreateCharts(
-	iAImageTreeNode* rootNode)
+void iAHistogramContainer::CreateCharts()
 {
 	RemoveAllCharts();
-	AddDiagramSubWidgetsWithProperStretch();
+	CreateGridLayout();
+
+	addWidget(m_paramChartContainer);
+	addWidget(m_derivedOutputChartContainer);
+
 	int curMinDatasetID = 0;
 	int paramChartRow = 0;
 	int paramChartCol = 0;
+	int paramChartMaxCols = 0;
+	int derivedOutMaxCols = 0;
 	double maxValue = -1;
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-		if (attrib->GetMin() == attrib->GetMax())
+		if (attrib->GetMin() == attrib->GetMax() || m_disabledCharts.contains(chartID))
 		{
-			//DebugOut() << "Only one value for attribute " << id << ", not showing chart." << std::endl;
 			continue;
 		}
 		// maximum number of bins:
 		//		- square root of number of values (https://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width)
 		//      - adapting to width of histogram?
 		//      - if discrete or categorical values: limit by range
-		size_t maxBin = std::min(static_cast<size_t>(std::sqrt(rootNode->GetClusterSize())), HistogramBinCount);
+		size_t maxBin = std::min(static_cast<size_t>(std::sqrt(m_root->GetClusterSize())), HistogramBinCount);
 		int numBin = (attrib->GetMin() == attrib->GetMax()) ? 1 :
 			(attrib->GetValueType() == iAValueType::Discrete || attrib->GetValueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->GetMax() - attrib->GetMin() + 1), maxBin) :
 			maxBin;
 		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::Create(
-			rootNode,
+			m_root,
 			chartID,
 			attrib->GetValueType(),
 			attrib->GetMin(),
@@ -154,6 +140,7 @@ void iAHistogramContainer::CreateCharts(
 				paramChartCol = 0;
 				paramChartRow++;
 			}
+			paramChartMaxCols = std::max(paramChartCol, paramChartMaxCols);
 			m_paramChartLayout->addWidget(m_charts[chartID], paramChartRow, paramChartCol);
 			m_paramChartLayout->setColumnStretch(paramChartCol, 1);
 			paramChartCol++;
@@ -161,6 +148,7 @@ void iAHistogramContainer::CreateCharts(
 		else
 		{
 			m_derivedOutputChartWidget->layout()->addWidget(m_charts[chartID]);
+			derivedOutMaxCols++;
 		}
 		m_charts[chartID]->update();
 	}
@@ -172,6 +160,8 @@ void iAHistogramContainer::CreateCharts(
 			m_charts[i]->SetMaxYAxisValue(maxValue);
 		}
 	}
+	setStretchFactor(0, paramChartMaxCols);
+	setStretchFactor(1, derivedOutMaxCols);
 }
 
 
@@ -233,9 +223,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 }
 
 
-void iAHistogramContainer::UpdateFilteredChartData(
-	iAImageTreeNode const * rootNode,
-	iAChartFilter const & chartFilter)
+void iAHistogramContainer::UpdateFilteredChartData(iAChartFilter const & chartFilter)
 {
 	for (int chartID = 0; chartID < m_chartAttributes->size(); ++chartID)
 	{
@@ -246,7 +234,7 @@ void iAHistogramContainer::UpdateFilteredChartData(
 		assert(m_charts[chartID]);
 		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
 		m_charts[chartID]->SetFilteredData(iAParamHistogramData::Create(
-			rootNode, chartID,
+			m_root, chartID,
 			attrib->GetValueType(),
 			attrib->GetMin(),
 			attrib->GetMax(),
@@ -315,12 +303,11 @@ void iAHistogramContainer::ResetFilters()
 }
 
 
-void iAHistogramContainer::UpdateAttributeRangeAttitude(
-	iAImageTreeNode const * root)
+void iAHistogramContainer::UpdateAttributeRangeAttitude()
 {
 	QVector<iAImageTreeNode const *> likes, hates;
-	FindByAttitude(root, iAImageTreeNode::Liked, likes);
-	FindByAttitude(root, iAImageTreeNode::Hated, hates);
+	FindByAttitude(m_root, iAImageTreeNode::Liked, likes);
+	FindByAttitude(m_root, iAImageTreeNode::Hated, hates);
 	m_attitudes.clear();
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
@@ -445,7 +432,18 @@ void iAHistogramContainer::SelectHistograms()
 {
 	QDialog dlg(this);
 	QVBoxLayout* layout = new QVBoxLayout();
-	layout->addWidget(new QCheckBox("Test"));
+	QMap<int, QCheckBox*> boxes;
+	for (int i = 0; i < m_chartAttributes->size(); ++i)
+	{
+		if (m_chartAttributes->at(i)->GetMin() == m_chartAttributes->at(i)->GetMax())
+		{
+			continue;
+		}
+		auto box = new QCheckBox(m_chartAttributes->at(i)->GetName());
+		box->setChecked(!m_disabledCharts.contains(i));
+		boxes.insert(i, box);
+		layout->addWidget(box);
+	}
 	auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 	connect(buttons, SIGNAL(accepted()), &dlg, SLOT(accept()));
 	connect(buttons, SIGNAL(rejected()), &dlg, SLOT(reject()));
@@ -453,6 +451,14 @@ void iAHistogramContainer::SelectHistograms()
 	dlg.setLayout(layout);
 	if (dlg.exec() == QDialog::Accepted)
 	{
-
+		m_disabledCharts.clear();
+		for (int key : boxes.keys())
+		{
+			if (!boxes[key]->isChecked())
+			{
+				m_disabledCharts.insert(key);
+			}
+		}
+		CreateCharts();
 	}
 }

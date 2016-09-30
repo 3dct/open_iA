@@ -55,6 +55,7 @@ iAChartSpanSlider::iAChartSpanSlider(
 	QFont f(m_checkbox->font());
 	f.setPointSize(FontSize);
 	m_checkbox->setFont(f);
+	m_checkbox->setMinimumWidth(10);
 	mainLayout->addWidget(m_checkbox);
 
 	m_charts = new iAParamChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper);
