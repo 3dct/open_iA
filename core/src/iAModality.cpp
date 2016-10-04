@@ -72,6 +72,11 @@ int iAModality::GetChannel() const
 	return m_channel;
 }
 
+QString iAModality::GetTransferFileName() const
+{
+	return tfFileName;
+}
+
 void iAModality::SetName(QString const & name)
 {
 	m_name = name;
@@ -271,6 +276,14 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 }
 
 
+void iAModality::SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
+{
+	positionSettings = pos;
+	orientationSettings = ori;
+	tfFileName = tfFile;
+}
+
+
 // iAModalityList
 #include "iAFileUtils.h"
 
@@ -364,8 +377,20 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		settings.setValue(GetModalityKey(i, "Orientation"), GetOrientation(m_modalities[i]->GetRenderer()));
 		settings.setValue(GetModalityKey(i, "Position"), GetPosition(m_modalities[i]->GetRenderer()));
 		QFileInfo modFileInfo(m_modalities[i]->GetFileName());
-		//m_modalities[i]->GetTransferFileName();
-		QString absoluteTFFileName(modFileInfo.absoluteFilePath() + "_tf.xml");
+		
+		QString absoluteTFFileName(m_modalities[i]->GetTransferFileName());
+		if (absoluteTFFileName.isEmpty())
+		{
+			absoluteTFFileName = modFileInfo.absoluteFilePath() + "_tf.xml";
+			QFileInfo fi(absoluteTFFileName);
+			int i = 1;
+			while (fi.exists())
+			{
+				absoluteTFFileName = modFileInfo.absoluteFilePath() + "_tf-" + QString::number(i) + ".xml";
+				fi.setFile(absoluteTFFileName);
+				++i;
+			}
+		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
 		Settings s;
@@ -451,9 +476,7 @@ bool iAModalityList::Load(QString const & filename)
 				mod->GetImage()->SetSpacing(spacing[0] / spacingFactor[0], spacing[1] / spacingFactor[1], spacing[2] / spacingFactor[2]);
 			}
 
-			mod->orientationSettings = orientationSettings;
-			mod->positionSettings = positionSettings;
-			mod->tfFileName = tfFileName;
+			mod->SetStringSettings(positionSettings, orientationSettings, tfFileName);
 
 			m_modalities.push_back(mod);
 			emit Added(mod);

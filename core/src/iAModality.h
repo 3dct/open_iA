@@ -61,6 +61,8 @@ public:
 	QString GetFileName() const;
 	//! return the channel in the specified file that the data in this class comes from
 	int GetChannel() const;
+	//! get the name of the transfer function file
+	QString GetTransferFileName() const;
 	//! set name of the modality
 	void SetName(QString const & name);
 	//! set flag indicating location where to render
@@ -85,11 +87,7 @@ public:
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
 	void InitHistogram();
-
-	// TODO: Refactor
-	QString positionSettings;
-	QString orientationSettings;
-	QString tfFileName;
+	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 private:
 	QString m_name;
 	QString m_filename;
@@ -99,6 +97,11 @@ private:
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
 	double m_spacing[3];
+
+	// TODO: Refactor
+	QString positionSettings;
+	QString orientationSettings;
+	QString tfFileName;
 
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
 	void LoadTransferFunction();
