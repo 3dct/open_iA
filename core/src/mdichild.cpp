@@ -2222,6 +2222,9 @@ void MdiChild::showROI()
 	slicerYZ->setROIVisible(true);
 	slicerXY->setROIVisible(true);
 	slicerXZ->setROIVisible(true);
+	slicerYZ->updateROI();
+	slicerXY->updateROI();
+	slicerXZ->updateROI();
 }
 
 QString MdiChild::userFriendlyCurrentFile()

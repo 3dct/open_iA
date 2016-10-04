@@ -127,10 +127,17 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	dlg.show();
 	m_mdiChild->activate( MdiChild::cs_ROI );
 	m_mdiChild->setROI( eiIndexX, eiIndexY, eiIndexZ,
-		m_childData.imgData->GetExtent()[1], m_childData.imgData->GetExtent()[3], m_childData.imgData->GetExtent()[5] );
+		m_childData.imgData->GetExtent()[1]+1,
+		m_childData.imgData->GetExtent()[3]+1,
+		m_childData.imgData->GetExtent()[5]+1);
 	m_mdiChild->showROI();
 	MdiChild* origChild = m_mdiChild;
-	if( dlg.exec() != QDialog::Accepted )
+	int result = dlg.exec();
+	if (!m_mainWnd->isVisible())	// main window was closed in the meantime
+		return;
+	m_mdiChild->hideROI();
+	m_mdiChild->deactivate();
+	if (result != QDialog::Accepted)
 		return;
 	eiIndexX = dlg.getSpinBoxValues()[0];
 	eiIndexY = dlg.getSpinBoxValues()[1];
@@ -150,12 +157,6 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	thread->setEParameters( eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-	//only access the child if the main window has not already been closed
-	if( m_mainWnd->isVisible() )
-	{
-		origChild->hideROI();
-		origChild->deactivate();
-	}
 }
 
 
