@@ -331,7 +331,7 @@ private slots:
 	void updated(int state, QString text);
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
-
+	void updateImageProperties();
 public slots:
 	void updateProgressBar(int i);
 	void hideProgressBar();

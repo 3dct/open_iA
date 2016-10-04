@@ -193,6 +193,7 @@ void dlg_modalities::AddClicked()
 			modalities->Add(newModality);
 		}
 	}
+	emit ModalitiesChanged();
 }
 
 void dlg_modalities::MagicLens()
@@ -306,17 +307,12 @@ void dlg_modalities::EditClicked()
 		DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
 		return;
 	}
-	QString fnBefore = modalities->Get(idx)->GetFileName();
 	int renderFlagsBefore = modalities->Get(idx)->RenderFlags();
 	QSharedPointer<iAModality> editModality(modalities->Get(idx));
 	dlg_modalityProperties prop(this, editModality);
 	if (prop.exec() == QDialog::Rejected)
 	{
 		return;
-	}
-	if (fnBefore != editModality->GetFileName())
-	{
-		DEBUG_LOG("Changing file not supported!");
 	}
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
 	if (!renderer)
@@ -354,6 +350,7 @@ void dlg_modalities::EditClicked()
 		renderer->AddTo(m_magicLensWidget->getLensRenderer());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
+	emit ModalitiesChanged();
 }
 
 void dlg_modalities::EnableButtons()

@@ -153,6 +153,7 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	connect(m_dlgModalities, SIGNAL(EndPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_dlgModalities, SIGNAL(Active()), this, SIGNAL(active()));
 	connect(m_dlgModalities, SIGNAL(AutoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
@@ -388,14 +389,7 @@ void MdiChild::enableRenderWindows()
 			*/
 		}
 	}
-	if (imageData && imgProperty)
-	{
-		imgProperty->Clear();
-		for (int i = 0; i < GetModalities()->size(); ++i)
-		{
-			imgProperty->AddInfo(imageData, GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
-		}
-	}
+	updateImageProperties();
 }
 
 void MdiChild::updateProgressBar(int i)
@@ -2151,6 +2145,18 @@ bool MdiChild::addImageProperty()
 	tabifyDockWidget(logs, imgProperty);
 
 	return true;
+}
+
+void MdiChild::updateImageProperties()
+{
+	if (imageData && imgProperty)
+	{
+		imgProperty->Clear();
+		for (int i = 0; i < GetModalities()->size(); ++i)
+		{
+			imgProperty->AddInfo(imageData, GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
+		}
+	}
 }
 
 bool MdiChild::addVolumePlayer(iAVolumeStack* volumeStack)
