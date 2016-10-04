@@ -34,7 +34,6 @@ class dlg_modalityProperties : public dlg_modalityPropertiesUI
 public:
 	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality);
 public slots:
-	void FileChooserClicked();
 	void OKButtonClicked();
 private:
 	QSharedPointer<iAModality> m_modality;

@@ -2666,7 +2666,7 @@ void MainWindow::OpenTLGICTData()
 		// add modality
 		QString modName = subDirFileInfo.baseName();
 		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
-		modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), img, 0)));
+		modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
 	}
 	if (modList->size() == 0)
 	{

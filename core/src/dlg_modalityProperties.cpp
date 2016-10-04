@@ -22,10 +22,7 @@
 #include "pch.h"
 #include "dlg_modalityProperties.h"
 
-#include "iAIOProvider.h"
 #include "iAModality.h"
-
-#include <QFileDialog>
 
 dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality):
 	dlg_modalityPropertiesUI(parent),
@@ -33,10 +30,10 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 {
 	edName->setText(modality->GetName());
 	edFilename->setText(modality->GetFileName());
+	edChannel->setText(QString("%1").arg(modality->GetChannel()));
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
 	cbMainRenderer->setChecked(modality->hasRenderFlag(iAModality::MainRenderer));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
-	connect(pbChooseFile, SIGNAL(clicked()), this, SLOT(FileChooserClicked()));
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
 }
@@ -44,24 +41,10 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 void dlg_modalityProperties::OKButtonClicked()
 {
 	m_modality->SetName(edName->text());
-	m_modality->SetFileName(edFilename->text());
 	m_modality->SetRenderFlag(
 		(cbMagicLens->isChecked() ? iAModality::MagicLens : 0) |
 		(cbMainRenderer->isChecked() ? iAModality::MainRenderer : 0) |
 		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0)
 	);
-	if (m_modality->LoadData())
-	{
-		done(QDialog::Accepted);
-	}
-}
-
-void dlg_modalityProperties::FileChooserClicked()
-{
-	QFileDialog dlg;
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
-		edFilename->text(),
-		iAIOProvider::GetSupportedLoadFormats() + tr("Volume Stack (*.volstack);;" ) );
-	if (fileName != "")
-		edFilename->setText(fileName);
+	done(QDialog::Accepted);
 }

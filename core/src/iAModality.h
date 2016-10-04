@@ -29,7 +29,6 @@
 #include <QVector>
 
 class iAImageCoordConverter;
-class iASpectralVoxelData;
 class iAModalityTransfer;
 class iAVolumeRenderer;
 
@@ -41,6 +40,7 @@ class vtkVolumeProperty;
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
 
+//! class holding the data of a single image channel
 class open_iA_Core_API iAModality
 {
 public:
@@ -49,22 +49,20 @@ public:
 		NoRenderer = 0x0,
 		MainRenderer = 0x01,
 		MagicLens = 0x02,
-		BoundingBox = 0x04 // TODO: check if that is a good idea or whether that should go somewhere else!
+		BoundingBox = 0x04 // TODO: check if that is a good idea or whether that should go somewhere else (VolumeRenderer)?
 	};
-	//! create uninitialized modality
-	iAModality();
 	//! create modality from name and file
-	iAModality(QString const & name, QString const & filename, int renderFlags);
+	iAModality(QString const & name, QString const & filename, int channelNo, int renderFlags);
 	//! create modality from name, file and image data
-	iAModality(QString const & name, QString const & filename, vtkSmartPointer<vtkImageData> imgData, int renderFlags);
+	iAModality(QString const & name, QString const & filename, int channelNo, vtkSmartPointer<vtkImageData> imgData, int renderFlags);
 	//! returns name of the modality
 	QString GetName() const;
 	//! returns file holding the modality data
 	QString GetFileName() const;
+	//! return the channel in the specified file that the data in this class comes from
+	int GetChannel() const;
 	//! set name of the modality
 	void SetName(QString const & name);
-	//! set file containing the modality data
-	void SetFileName(QString const & filename);
 	//! set flag indicating location where to render
 	void SetRenderFlag(int renderFlag);
 
@@ -73,9 +71,6 @@ public:
 	int GetDepth() const;
 	double const * GetSpacing() const;
 	iAImageCoordConverter const & GetConverter() const;
-	
-	// TODO: retrieve modality image/data:
-	QSharedPointer<iASpectralVoxelData const> GetData() const;
 
 	vtkSmartPointer<vtkImageData> GetImage() const;
 
@@ -98,9 +93,8 @@ public:
 private:
 	QString m_name;
 	QString m_filename;
+	int     m_channel;     //!< in case the given file contains multiple channels, the channel no. for this
 	int     renderFlags;
-
-	QSharedPointer<iASpectralVoxelData> m_data;
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;

@@ -24,7 +24,11 @@
 
 #include <itkImageBase.h>
 
+#include <vtkSmartPointer.h>
+
 class iAConnector;
+
+class vtkImageData;
 
 class QString;
 
@@ -36,7 +40,8 @@ namespace IO
 		{
 		public:
 			Reader();
-			void read(QString const & filename, iAConnector* con);
+			void read(QString const & filename, iAConnector* con, int channel,
+				std::vector<vtkSmartPointer<vtkImageData> > * volumes);
 		};
 	}
 }

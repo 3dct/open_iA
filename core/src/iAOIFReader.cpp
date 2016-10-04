@@ -23,7 +23,7 @@
 #include "iAOIFReader.h"
 
 #include "iAConnector.h"
-#include "iAIO.h"
+#include "iAConsole.h"
 
 #include "oif_reader.h"
 
@@ -35,7 +35,8 @@ namespace OIF
 Reader::Reader()
 {}
 
-void Reader::read(QString const & filename, iAConnector* con)
+void Reader::read(QString const & filename, iAConnector* con, int channel,
+	std::vector<vtkSmartPointer<vtkImageData> > * volumes)
 {
 	OIFReader* reader = new OIFReader();
 	std::string fnStr(filename.toStdString());
@@ -45,8 +46,26 @@ void Reader::read(QString const & filename, iAConnector* con)
 	reader->SetTimeId(timeId);
 	reader->Preprocess();
 	reader->Load();
-	con->SetImage(reader->GetResult(0));
-	con->Modified();
+	if (volumes)
+	{
+		for (int i = 0; i < reader->GetChanNum(); ++i)
+		{
+			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+			iAConnector con;
+			con.SetImage(reader->GetResult(i));
+			image->DeepCopy(con.GetVTKImage());
+			volumes->push_back(image);
+		}
+	}
+	else if (channel >= 0 && channel < reader->GetChanNum())
+	{
+		con->SetImage(reader->GetResult(channel));
+		con->Modified();
+	}
+	else
+	{
+		DEBUG_LOG("OIF reader: Neither channel number nor volume vector given!");
+	}
 }
 
 }

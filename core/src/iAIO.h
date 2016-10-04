@@ -62,12 +62,12 @@ class open_iA_Core_API iAIO : public iAAlgorithms
 public:
 	static const QString VolstackExtension;
 
-	iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0, bool initVolumePlayer = false, std::vector<vtkSmartPointer<vtkImageData> > * volumes = 0, std::vector<QString> * fileNames = 0);
+	iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0, std::vector<vtkSmartPointer<vtkImageData> > * volumes = 0, std::vector<QString> * fileNames = 0);
 	iAIO(iALogger* logger, QObject *parent, std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames = 0);//TODO: QNDH for XRF volume stack loading
 	virtual ~iAIO();
 	void init(QObject *par);
 
-	bool setupIO( IOType type, QString f, bool comp = false );
+	bool setupIO( IOType type, QString f, bool comp = false, int channel=-1);
 	iAObserverProgress* getObserverProgress() { return observerProgress; };
 	void iosettingswriter();
 	void iosettingsreader();
@@ -171,4 +171,5 @@ private:
 	std::vector<QString> * m_fileNames_volstack;
 
 	QString m_additionalInfo;
+	int m_channel;
 };

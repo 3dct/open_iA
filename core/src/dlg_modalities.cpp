@@ -25,6 +25,7 @@
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAHistogramWidget.h"
+#include "iAIOProvider.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
@@ -108,15 +109,90 @@ QString GetCaption(iAModality const & mod)
 	return mod.GetName()+" ("+fi.fileName()+")";
 }
 
+#include "iAIO.h"
+#include "extension2id.h"
+
 void dlg_modalities::AddClicked()
 {
-	QSharedPointer<iAModality> newModality(new iAModality);
-	dlg_modalityProperties prop(this, newModality);
-	if (prop.exec() == QDialog::Rejected)
-	{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
+		"",
+		iAIOProvider::GetSupportedLoadFormats() + tr("Volume Stack (*.volstack);;"));
+	if (fileName.isEmpty())
 		return;
+
+	const int DefaultRenderFlags = iAModality::MainRenderer;
+
+	// TODO: unify this with mdichild::loadFile
+	if (fileName.endsWith(iAIO::VolstackExtension))
+	{
+		std::vector<vtkSmartPointer<vtkImageData> > volumes;
+		iAIO io(
+			0,
+			0,
+			&volumes
+		);
+		io.setupIO(VOLUME_STACK_VOLSTACK_READER, fileName.toLatin1().data());
+		io.start();
+		io.wait();
+		assert(volumes.size() > 0);
+		if (volumes.size() == 0)
+		{
+			DEBUG_LOG("No volume found in stack!");
+			return;
+		}
+		int channels = volumes.size();
+		QFileInfo fi(fileName);
+		for (int i = 0; i < channels; ++i)
+		{
+			QSharedPointer<iAModality> newModality(new iAModality(
+				fi.baseName(), fileName, i, volumes[i], DefaultRenderFlags) );
+			modalities->Add(newModality);
+		}
 	}
-	modalities->Add(newModality);
+	else
+	{
+		vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
+		std::vector<vtkSmartPointer<vtkImageData> > volumes;
+		iAIO io(img, 0, 0, 0, &volumes);
+
+		QFileInfo fileInfo(fileName);
+		QString extension = fileInfo.suffix();
+		extension = extension.toUpper();
+		const mapQString2int * ext2id = &extensionToId;
+		if (ext2id->find(extension) == ext2id->end())
+		{
+			DEBUG_LOG("Unknown file type!");
+			return;
+		}
+		IOType id = ext2id->find(extension).value();
+		if (!io.setupIO(id, fileName, false))
+		{
+			DEBUG_LOG("Error while setting up modality loading!");
+			return;
+		}
+		// TODO: check for errors during actual loading!
+		//connect(io, done(bool), this, )
+		io.start();
+		// TODO: VOLUME: make asynchronous!
+		io.wait();
+		QFileInfo fi(fileName);
+		if (volumes.size() > 0)
+		{
+			int channels = volumes.size();
+			for (int i = 0; i < channels; ++i)
+			{
+				QSharedPointer<iAModality> newModality(new iAModality(
+					fi.baseName(), fileName, i, volumes[i], DefaultRenderFlags));
+				modalities->Add(newModality);
+			}
+		}
+		else
+		{
+			QSharedPointer<iAModality> newModality(new iAModality(
+				fi.baseName(), fileName, -1, img, DefaultRenderFlags));
+			modalities->Add(newModality);
+		}
+	}
 }
 
 void dlg_modalities::MagicLens()
@@ -405,6 +481,6 @@ void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane
 
 void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString const & name)
 {
-	QSharedPointer<iAModality> newModality(new iAModality(name, "", img, iAModality::MainRenderer));
+	QSharedPointer<iAModality> newModality(new iAModality(name, "", -1, img, iAModality::MainRenderer));
 	modalities->Add(newModality);
 }

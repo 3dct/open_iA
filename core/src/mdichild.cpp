@@ -529,7 +529,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 
 	waitForPreviousIO();
 
-	ioThread = new iAIO(imageData, polyData, m_logger, this, isStack, volumeStack->GetVolumes(), volumeStack->GetFileNames());
+	ioThread = new iAIO(imageData, polyData, m_logger, this, volumeStack->GetVolumes(), volumeStack->GetFileNames());
 	if (!isStack) {
 		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
 	}
@@ -2094,7 +2094,7 @@ bool MdiChild::initView( QString const & title )
 		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
 		// before, which adds the renderers which this call will use
 		QSharedPointer<iAModality> mod(new iAModality(name,
-			currentFile(), imageData, iAModality::MainRenderer));
+			currentFile(), -1, imageData, iAModality::MainRenderer));
 		GetModalities()->Add(mod);
 		m_dlgModalities->AddListItemAndTransfer(mod);
 		m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
