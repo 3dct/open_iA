@@ -244,11 +244,6 @@ bool iAModality::LoadData()
 			return false;
 		}
 		IOType id = ext2id->find(extension).value();
-		if (m_channel < 0 || m_channel > volumes.size())
-		{
-			DEBUG_LOG(QString("Channel number %1 outside of valid interval [0..%2]").arg(m_channel).arg(volumes.size() - 1));
-			m_channel = 0;
-		}
 		if (!io.setupIO(id, m_filename, false, m_channel))
 		{
 			DEBUG_LOG("Error while setting up modality loading!");
@@ -310,11 +305,11 @@ iAModalityList::iAModalityList():
 	m_spacing[0] = m_spacing[1] = m_spacing[2] = 1.0;
 }
 
-bool iAModalityList::ModalityExists(QString const & filename) const
+bool iAModalityList::ModalityExists(QString const & filename, int channel) const
 {
 	foreach (QSharedPointer<iAModality> mod, m_modalities)
 	{
-		if (mod->GetFileName() == filename)
+		if (mod->GetFileName() == filename && mod->GetChannel() == channel)
 		{
 			return true;
 		}
@@ -368,11 +363,11 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 	for (int i=0; i<m_modalities.size(); ++i)
 	{
 		settings.setValue(GetModalityKey(i, "Name"), m_modalities[i]->GetName());
+		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->GetFileName()));
 		if (m_modalities[i]->GetChannel() >= 0)
 		{
 			settings.setValue(GetModalityKey(i, "Channel"), m_modalities[i]->GetChannel());
 		}
-		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->GetFileName()));
 		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalities[i]) );
 		settings.setValue(GetModalityKey(i, "Orientation"), GetOrientation(m_modalities[i]->GetRenderer()));
 		settings.setValue(GetModalityKey(i, "Position"), GetPosition(m_modalities[i]->GetRenderer()));
@@ -448,7 +443,7 @@ bool iAModalityList::Load(QString const & filename)
 		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
 		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
 		tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
-		if (ModalityExists(modalityFile))
+		if (ModalityExists(modalityFile, channel))
 		{
 			//DebugOut () << "Modality (name="<<modalityName<<", filename="<<modalityFile<<") already exists!" << std::endl;
 		}

@@ -131,7 +131,7 @@ public:
 signals:
 	void Added(QSharedPointer<iAModality> mod);
 private:
-	bool ModalityExists(QString const & filename) const;
+	bool ModalityExists(QString const & filename, int channel) const;
 
 	ModalityCollection m_modalities;
 	double m_spacing[3];
