@@ -445,7 +445,7 @@ bool iAModalityList::Load(QString const & filename)
 		tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
 		if (ModalityExists(modalityFile, channel))
 		{
-			//DebugOut () << "Modality (name="<<modalityName<<", filename="<<modalityFile<<") already exists!" << std::endl;
+			DEBUG_LOG(QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
 		}
 		else
 		{
