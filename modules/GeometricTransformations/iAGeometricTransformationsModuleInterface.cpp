@@ -49,8 +49,9 @@ void iAGeometricTransformationsModuleInterface::Initialize()
 
 void iAGeometricTransformationsModuleInterface::resampler()
 {
-	//set parameters
 	PrepareActiveChild();
+	if (!m_mdiChild)
+		return;
 	QStringList inList = (QStringList() 
 		<< tr("#OriginX") << tr("#OriginY") << tr("#OriginZ")
 		<< tr("#SpacingX") << tr("#SpacingY") << tr("#SpacingZ")
@@ -78,7 +79,7 @@ void iAGeometricTransformationsModuleInterface::resampler()
 
 	dlg_commoninput dlg( m_mainWnd, "Resampler", 10, inList, inPara, NULL );
 
-	if( dlg.exec() != QDialog::Accepted )
+	if (dlg.exec() != QDialog::Accepted)
 		return;
 	rOriginX = dlg.getValues()[0];
 	rOriginY = dlg.getValues()[1];
@@ -112,8 +113,12 @@ void iAGeometricTransformationsModuleInterface::resampler()
 
 void iAGeometricTransformationsModuleInterface::extractImage()
 {
-	//set parameters
 	PrepareActiveChild();
+	if (!m_mdiChild)
+		return;
+	MdiChild* origChild = m_mdiChild;
+	m_childClosed = false;
+	connect(origChild, SIGNAL(closed()), this, SLOT(childClosed()));
 	QStringList inList = (QStringList() << tr( "*IndexX" ) << tr( "*IndexY" ) << tr( "*IndexZ" )
 		<< tr( "*SizeX" ) << tr( "*SizeY" ) << tr( "*SizeZ" ) );
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( eiIndexX ) << tr( "%1" ).arg( eiIndexY ) << tr( "%1" ).arg( eiIndexZ )
@@ -122,21 +127,20 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[5] + 1 );
 
 	dlg_commoninput dlg( m_mainWnd, "Extract Image", 6, inList, inPara, NULL );
-	dlg.connectMdiChild( m_mdiChild );
+	dlg.connectMdiChild(origChild);
 	dlg.setModal( false );
 	dlg.show();
-	m_mdiChild->activate( MdiChild::cs_ROI );
-	m_mdiChild->setROI( eiIndexX, eiIndexY, eiIndexZ,
+	origChild->activate( MdiChild::cs_ROI );
+	origChild->setROI( eiIndexX, eiIndexY, eiIndexZ,
 		m_childData.imgData->GetExtent()[1]+1,
 		m_childData.imgData->GetExtent()[3]+1,
 		m_childData.imgData->GetExtent()[5]+1);
-	m_mdiChild->showROI();
-	MdiChild* origChild = m_mdiChild;
+	origChild->showROI();
 	int result = dlg.exec();
-	if (!m_mainWnd->isVisible())	// main window was closed in the meantime
+	if (!m_mainWnd->isVisible() || m_childClosed)	// main window  or mdi child was closed in the meantime
 		return;
-	m_mdiChild->hideROI();
-	m_mdiChild->deactivate();
+	origChild->hideROI();
+	origChild->deactivate();
 	if (result != QDialog::Accepted)
 		return;
 	eiIndexX = dlg.getSpinBoxValues()[0];
@@ -147,13 +151,19 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	eiSizeZ = dlg.getSpinBoxValues()[5];
 	//prepare
 	QString filterName = tr( "Extract Image" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
+	// TODO: handle case that active window changed in the meantime!
+	MdiChild* newChild = m_mainWnd->GetResultChild(origChild, filterName);
+	if (!newChild)
+	{
+		m_mainWnd->statusBar()->showMessage("Cannot get result child from main window!", 5000);
+		return;
+	}
+	newChild->addStatusMsg( filterName );
 	//execute
-	m_mdiChild->setUpdateSliceIndicator( true );
+	newChild->setUpdateSliceIndicator( true );
 	iAGeometricTransformations* thread = new iAGeometricTransformations( filterName, EXTRACT_IMAGE,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
+		m_childData.imgData, m_childData.polyData, newChild->getLogger(), newChild);
+	newChild->connectThreadSignalsToChildSlots( thread );
 	thread->setEParameters( eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
@@ -163,18 +173,13 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 
 void iAGeometricTransformationsModuleInterface::rescale()
 {
-	//set parameters
 	PrepareActiveChild();
-
+	if (!m_mdiChild)
+		return;	
 	QStringList inList = (QStringList() << tr("#Output Minimum") << tr("#Output Maximum") );
-
-
 	QList<QVariant> inPara; 	
 	inPara << tr("%1").arg(outputMin) << tr("%1").arg(outputMax);
-
 	dlg_commoninput dlg(m_mainWnd, "Rescale Image", 2, inList, inPara, NULL);
-	dlg.connectMdiChild(m_mdiChild);
-	dlg.setModal(false);
 	dlg.show();
 
 	MdiChild* origChild = m_mdiChild;
@@ -199,4 +204,9 @@ void iAGeometricTransformationsModuleInterface::rescale()
 
 	m_mainWnd->statusBar()->showMessage(filterName, 5000);
 
+}
+
+void iAGeometricTransformationsModuleInterface::childClosed()
+{
+	m_childClosed = true;
 }

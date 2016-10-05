@@ -36,6 +36,7 @@ public:
 	virtual ~iAModuleAttachmentToChild() {}
 	MdiChild * GetMdiChild() const { return m_childData.child; }
 Q_SIGNALS:
+	//! emit this signal if you want the attachment to be removed from the current mdichild
 	void detach();
 protected:
 	MainWindow * m_mainWnd;
