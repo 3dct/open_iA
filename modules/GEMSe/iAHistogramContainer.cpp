@@ -37,6 +37,7 @@
 #include <QFile>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMessageBox>
 #include <QSplitter>
 #include <QTextStream>
@@ -433,9 +434,29 @@ void iAHistogramContainer::SelectHistograms()
 	QDialog dlg(this);
 	QVBoxLayout* layout = new QVBoxLayout();
 	QMap<int, QCheckBox*> boxes;
+
+	QLabel *inputParams = new QLabel("Input Parameters");
+	inputParams->setAlignment(Qt::AlignLeft | Qt::AlignBottom);
+	layout->addWidget(inputParams);
 	for (int i = 0; i < m_chartAttributes->size(); ++i)
 	{
-		if (m_chartAttributes->at(i)->GetMin() == m_chartAttributes->at(i)->GetMax())
+		if (m_chartAttributes->at(i)->GetMin() == m_chartAttributes->at(i)->GetMax() ||
+			m_chartAttributes->at(i)->GetAttribType() != iAAttributeDescriptor::Parameter)
+		{
+			continue;
+		}
+		auto box = new QCheckBox(m_chartAttributes->at(i)->GetName());
+		box->setChecked(!m_disabledCharts.contains(i));
+		boxes.insert(i, box);
+		layout->addWidget(box);
+	}
+	QLabel * derivedOutput = new QLabel("Derived Output");
+	derivedOutput->setAlignment(Qt::AlignLeft | Qt::AlignBottom);
+	layout->addWidget(derivedOutput);
+	for (int i = 0; i < m_chartAttributes->size(); ++i)
+	{
+		if (m_chartAttributes->at(i)->GetMin() == m_chartAttributes->at(i)->GetMax() ||
+			m_chartAttributes->at(i)->GetAttribType() != iAAttributeDescriptor::DerivedOutput)
 		{
 			continue;
 		}
