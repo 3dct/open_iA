@@ -184,7 +184,7 @@ void MainWindow::newFile()
 }
 
 
-void MainWindow::open()
+void MainWindow::Open()
 {
 	loadFiles(
 		QFileDialog::getOpenFileNames(
@@ -209,7 +209,29 @@ void MainWindow::loadFiles(QStringList fileNames) {
 }
 
 
-void MainWindow::openImageStack()
+void MainWindow::OpenRaw()
+{
+	QString fileName = QFileDialog::getOpenFileName(
+		this,
+		tr("Open Raw File"),
+		path,
+		"Raw File (*)"
+	);
+	MdiChild *child = createMdiChild();
+	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
+	path = t;
+	if (child->loadRaw(fileName)) {
+		child->show();
+		child->showMaximized();
+	}
+	else {
+		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
+		child->close();
+	}
+}
+
+
+void MainWindow::OpenImageStack()
 {
 	loadFile(
 		QFileDialog::getOpenFileName(
@@ -222,7 +244,7 @@ void MainWindow::openImageStack()
 }
 
 
-void MainWindow::openVolumeStack()
+void MainWindow::OpenVolumeStack()
 {
 	loadFile(
 		QFileDialog::getOpenFileName(
@@ -235,7 +257,7 @@ void MainWindow::openVolumeStack()
 }
 
 
-void MainWindow::openRecentFile()
+void MainWindow::OpenRecentFile()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
 	if (!action)
@@ -259,49 +281,49 @@ void MainWindow::LoadFile(QString const & fileName)
 
 void MainWindow::loadFileInternal(QString fileName, bool isStack)
 {
-	if (!fileName.isEmpty()) {
+	if (fileName.isEmpty())
+		return;
 
-		QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
-		path = t;
-		if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
+	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
+	path = t;
+	if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
+	{
+		if (activeMdiChild())
 		{
-			if (activeMdiChild())
-			{
-				QMessageBox msgBox;
-				msgBox.setText("Active window detected.");
-				msgBox.setInformativeText("Load polydata in the active window?");
-				msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-				msgBox.setDefaultButton(QMessageBox::Yes);
+			QMessageBox msgBox;
+			msgBox.setText("Active window detected.");
+			msgBox.setInformativeText("Load polydata in the active window?");
+			msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+			msgBox.setDefaultButton(QMessageBox::Yes);
 
-				int ret = msgBox.exec();
-				if (ret == QMessageBox::Yes)
-				{
-					activeMdiChild()->loadFile(fileName, false);
-				}
-				else if (ret == QMessageBox::No)
-				{
-					MdiChild *child = createMdiChild();
-					if (child->loadFile(fileName, false)) {
-						child->show();
-						child->showMaximized();
-					} else {
-						statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
-						child->close();
-					}
-				}
-				return;
+			int ret = msgBox.exec();
+			if (ret == QMessageBox::Yes)
+			{
+				activeMdiChild()->loadFile(fileName, false);
 			}
+			else if (ret == QMessageBox::No)
+			{
+				MdiChild *child = createMdiChild();
+				if (child->loadFile(fileName, false)) {
+					child->show();
+					child->showMaximized();
+				} else {
+					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
+					child->close();
+				}
+			}
+			return;
 		}
-		// Todo: hook for plugins?
-		MdiChild *child = createMdiChild();
-		if (child->loadFile(fileName, isStack)) {
-			child->show();
-			child->showMaximized();
-		}
-		else {
-			statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
-			child->close();
-		}
+	}
+	// Todo: hook for plugins?
+	MdiChild *child = createMdiChild();
+	if (child->loadFile(fileName, isStack)) {
+		child->show();
+		child->showMaximized();
+	}
+	else {
+		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
+		child->close();
 	}
 }
 
@@ -1728,9 +1750,10 @@ MdiChild* MainWindow::createMdiChild()
 void MainWindow::connectSignalsToSlots()
 {
 	connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
-	connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
-	connect(actionOpen_Image_Stack, SIGNAL(triggered()), this, SLOT(openImageStack()));
-	connect(actionOpen_Volume_Stack, SIGNAL(triggered()), this, SLOT(openVolumeStack()));
+	connect(openAct, SIGNAL(triggered()), this, SLOT(Open()));
+	connect(actionOpen_Raw, SIGNAL(triggered()), this, SLOT(OpenRaw()));
+	connect(actionOpen_Image_Stack, SIGNAL(triggered()), this, SLOT(OpenImageStack()));
+	connect(actionOpen_Volume_Stack, SIGNAL(triggered()), this, SLOT(OpenVolumeStack()));
 	connect(actionOpen_With_DataTypeConversion, SIGNAL(triggered()), this, SLOT(OpenWithDataTypeConversion()));
 	connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 	connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
@@ -1795,7 +1818,7 @@ void MainWindow::connectSignalsToSlots()
 	
 	connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(childActivatedSlot(QMdiSubWindow*)));
 	for (int i = 0; i < MaxRecentFiles; ++i) {
-		connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
+		connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(OpenRecentFile()));
 	}
 
 	connect(actionOpen_Project, SIGNAL(triggered()), this, SLOT(LoadProject()));

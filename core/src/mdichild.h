@@ -112,6 +112,7 @@ public:
 	void newFile();
 	void showPoly();
 	bool loadFile(const QString &f, bool isStack);
+	bool loadRaw(const QString &f);
 	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
 	bool save();
 	bool saveAs();

@@ -68,6 +68,7 @@
     </property>
     <addaction name="newAct"/>
     <addaction name="openAct"/>
+    <addaction name="actionOpen_Raw"/>
     <addaction name="actionOpen_Image_Stack"/>
     <addaction name="actionOpen_Volume_Stack"/>
     <addaction name="actionOpen_With_DataTypeConversion"/>
@@ -567,17 +568,17 @@
     <string>Ctrl+Alt+L</string>
    </property>
   </action>
-   <action name="actionLink_mdis">
-     <property name="checkable">
-       <bool>true</bool>
-     </property>
-     <property name="checked">
-       <bool>false</bool>
-     </property>
-     <property name="text">
-       <string>Link MDIs</string>
-     </property>
-   </action>
+  <action name="actionLink_mdis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Link MDIs</string>
+   </property>
+  </action>
   <action name="actionTestUIChange">
    <property name="text">
     <string>TestUIChange</string>
@@ -973,6 +974,11 @@
   <action name="actionSave_Project">
    <property name="text">
     <string>Save Project...</string>
+   </property>
+  </action>
+  <action name="actionOpen_Raw">
+   <property name="text">
+    <string>Open Raw...</string>
    </property>
   </action>
  </widget>
