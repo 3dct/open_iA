@@ -102,6 +102,7 @@ public:
 	QMenu * getFileMenu();
 	MdiChild *GetResultChild( QString const & title );
 	MdiChild *GetResultChild( int childInd, QString const & title );
+	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
 	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	int SelectInputs(QString winTitel, int n, QStringList inList, int * out_inputIndxs, bool modal = true);
@@ -198,6 +199,7 @@ private:
 	void loadFileInternal(QString fileName, bool isStack);
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
+	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 
 	QSplashScreen *splashScreen;
 		

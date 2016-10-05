@@ -461,23 +461,25 @@ void iASlicerData::updateROI()
 	{
 		double* spacing = reslicer->GetOutput()->GetSpacing();
 
+		// apparently, image actor starts output at -0,5spacing, -0.5spacing (probably a side effect of BorderOn)
+		// That's why we have to subtract 0.5 from the coordinates!
 		if (m_mode == iASlicerMode::YZ)
 		{
-			roiSource->SetOrigin(roi[1]*spacing[1]                  , roi[2]*spacing[2]                  , 0);
-			roiSource->SetPoint1(roi[1]*spacing[1]+roi[4]*spacing[0], roi[2]*spacing[2]                  , 0);
-			roiSource->SetPoint2(roi[1]*spacing[1]                  , roi[2]*spacing[2]+roi[5]*spacing[2], 0);
+			roiSource->SetOrigin((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]                  , 0);
+			roiSource->SetPoint1((roi[1]-0.5)*spacing[1]+roi[4]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
+			roiSource->SetPoint2((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
 		}
 		else if (m_mode == iASlicerMode::XY)
 		{
-			roiSource->SetOrigin(roi[0]*spacing[0]                  , roi[1]*spacing[1]                  , 0);
-			roiSource->SetPoint1(roi[0]*spacing[0]+roi[3]*spacing[0], roi[1]*spacing[1]                  , 0);
-			roiSource->SetPoint2(roi[0]*spacing[0]                  , roi[1]*spacing[1]+roi[4]*spacing[1], 0);
+			roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]                  , 0);
+			roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[1]-0.5)*spacing[1]                  , 0);
+			roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]+roi[4]*spacing[1], 0);
 		}
 		else if (m_mode == iASlicerMode::XZ)
 		{
-			roiSource->SetOrigin(roi[0]*spacing[0]                  , roi[2]*spacing[2]                  , 0);
-			roiSource->SetPoint1(roi[0]*spacing[0]+roi[3]*spacing[0], roi[2]*spacing[2]                  , 0);
-			roiSource->SetPoint2(roi[0]*spacing[0]                  , roi[2]*spacing[2]+roi[5]*spacing[2], 0);
+			roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]                  , 0);
+			roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
+			roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
 		}
 
 		roiMapper->Update();

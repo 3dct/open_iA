@@ -90,6 +90,7 @@ signals:
 	void Active();
 	void AutoUpdateChanged(bool toogled);
 	void UpdateViews();
+	void ModalitiesChanged();
 	//! @}
 
 private slots:

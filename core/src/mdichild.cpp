@@ -153,6 +153,7 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	connect(m_dlgModalities, SIGNAL(EndPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_dlgModalities, SIGNAL(Active()), this, SIGNAL(active()));
 	connect(m_dlgModalities, SIGNAL(AutoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
@@ -388,14 +389,7 @@ void MdiChild::enableRenderWindows()
 			*/
 		}
 	}
-	if (imageData && imgProperty)
-	{
-		imgProperty->Clear();
-		for (int i = 0; i < GetModalities()->size(); ++i)
-		{
-			imgProperty->AddInfo(imageData, GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
-		}
-	}
+	updateImageProperties();
 }
 
 void MdiChild::updateProgressBar(int i)
@@ -529,7 +523,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 
 	waitForPreviousIO();
 
-	ioThread = new iAIO(imageData, polyData, m_logger, this, isStack, volumeStack->GetVolumes(), volumeStack->GetFileNames());
+	ioThread = new iAIO(imageData, polyData, m_logger, this, volumeStack->GetVolumes(), volumeStack->GetFileNames());
 	if (!isStack) {
 		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
 	}
@@ -2094,7 +2088,7 @@ bool MdiChild::initView( QString const & title )
 		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
 		// before, which adds the renderers which this call will use
 		QSharedPointer<iAModality> mod(new iAModality(name,
-			currentFile(), imageData, iAModality::MainRenderer));
+			currentFile(), -1, imageData, iAModality::MainRenderer));
 		GetModalities()->Add(mod);
 		m_dlgModalities->AddListItemAndTransfer(mod);
 		m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
@@ -2151,6 +2145,18 @@ bool MdiChild::addImageProperty()
 	tabifyDockWidget(logs, imgProperty);
 
 	return true;
+}
+
+void MdiChild::updateImageProperties()
+{
+	if (imageData && imgProperty)
+	{
+		imgProperty->Clear();
+		for (int i = 0; i < GetModalities()->size(); ++i)
+		{
+			imgProperty->AddInfo(imageData, GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
+		}
+	}
 }
 
 bool MdiChild::addVolumePlayer(iAVolumeStack* volumeStack)
@@ -2216,6 +2222,9 @@ void MdiChild::showROI()
 	slicerYZ->setROIVisible(true);
 	slicerXY->setROIVisible(true);
 	slicerXZ->setROIVisible(true);
+	slicerYZ->updateROI();
+	slicerXY->updateROI();
+	slicerXZ->updateROI();
 }
 
 QString MdiChild::userFriendlyCurrentFile()

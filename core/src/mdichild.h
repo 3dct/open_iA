@@ -331,7 +331,7 @@ private slots:
 	void updated(int state, QString text);
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
-
+	void updateImageProperties();
 public slots:
 	void updateProgressBar(int i);
 	void hideProgressBar();
@@ -367,7 +367,6 @@ public slots:
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
 	void UpdateProbe(int ptIndex, double * newPos);
 	void resetLayout();
-
 private:
 	void closeEvent(QCloseEvent *event);
 	bool addImageProperty( );

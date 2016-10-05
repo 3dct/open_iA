@@ -197,7 +197,7 @@ int write_image_template(  bool comp, QString f, iAProgress* p, iAConnector* ima
 }
 
 
-iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, bool initVolumePlayer, vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
+iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
 	: iAAlgorithms( i, p, logger, par ),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
@@ -321,8 +321,11 @@ void iAIO::run()
 			rv = readNRRD(); break;
 		case OIF_READER: {
 			IO::OIF::Reader r;
-			r.read(getFileName(), getConnector());
-			postImageReadActions();
+			r.read(getFileName(), getConnector(), m_channel, m_volumes);
+			if (!m_volumes)
+			{
+				postImageReadActions();
+			}
 			rv = true;
 			break;
 		}
@@ -373,9 +376,10 @@ void iAIO::run()
 /**
  * \return	true if it succeeds, false if it fails. 
  */
-bool iAIO::setupIO( IOType type, QString f, bool c)
+bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 {
 	ioID = type;
+	m_channel = channel;
 
 	f_dir = QFileInfo(f).absoluteDir();	
 	

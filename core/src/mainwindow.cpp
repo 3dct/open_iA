@@ -1471,75 +1471,66 @@ void MainWindow::raycasterLoadCameraSettings()
 }
 
 
-MdiChild * MainWindow::GetResultChild( QString const & title )
+MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 {
-	MdiChild *child = activeMdiChild();
-
-	QString filename =  child->currentFile();
-
-	if (child->getResultInNewWindow())
+	if (oldChild->getResultInNewWindow())
 	{
-		vtkSmartPointer<vtkImageData> imageData = activeMdiChild()->getImagePointer();
-		std::vector<dlg_function*> activeChildFunctions = activeMdiChild()->getFunctions();
-		child = createMdiChild();
-		child->show();
-		child->displayResult(title, imageData );
+		vtkSmartPointer<vtkImageData> imageData = oldChild->getImagePointer();
+		MdiChild* newChild = createMdiChild();
+		newChild->show();
+		newChild->displayResult(title, imageData);
+		copyFunctions(oldChild, newChild);
+		return newChild;
+	}
+	return oldChild;
+}
 
-		for ( unsigned int i = 1; i < activeChildFunctions.size(); ++i )
+
+void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
+{
+	std::vector<dlg_function*> oldChildFunctions = oldChild->getFunctions();
+	for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
+	{
+		dlg_function *curFunc = oldChildFunctions[i];
+		switch (curFunc->getType())
 		{
-			dlg_function *curFunc = activeChildFunctions[i];
-
-			switch(curFunc->getType())
-			{
-			case dlg_function::GAUSSIAN:
-				{
-					dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
-					dlg_gaussian * newGaussian = new dlg_gaussian( child->getHistogram(), PredefinedColors()[i%7] );
-
-					newGaussian->setMean(oldGaussian->getMean());
-					newGaussian->setMultiplier(oldGaussian->getMultiplier());
-					newGaussian->setSigma(oldGaussian->getSigma());
-
-					child->getFunctions().push_back(newGaussian);
-				}
-				break;
-			case dlg_function::BEZIER:
-				{
-					dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
-					dlg_bezier * newBezier = new dlg_bezier( child->getHistogram(), PredefinedColors()[i%7] );
-
-					for( unsigned int j=0; j<oldBezier->getPoints().size(); ++j )
-						newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
-
-					child->getFunctions().push_back(newBezier);
-				}
-				break;
-			default:
-				// unknown function type, do nothing
-				break;
-			}
+		case dlg_function::GAUSSIAN:
+		{
+			dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
+			dlg_gaussian * newGaussian = new dlg_gaussian(newChild->getHistogram(), PredefinedColors()[i % 7]);
+			newGaussian->setMean(oldGaussian->getMean());
+			newGaussian->setMultiplier(oldGaussian->getMultiplier());
+			newGaussian->setSigma(oldGaussian->getSigma());
+			newChild->getFunctions().push_back(newGaussian);
+		}
+		break;
+		case dlg_function::BEZIER:
+		{
+			dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
+			dlg_bezier * newBezier = new dlg_bezier(newChild->getHistogram(), PredefinedColors()[i % 7]);
+			for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
+				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
+			newChild->getFunctions().push_back(newBezier);
+		}
+		break;
+		default:	// unknown function type, do nothing
+			break;
 		}
 	}
+}
 
-	return child;
+
+MdiChild * MainWindow::GetResultChild( QString const & title )
+{
+	return GetResultChild(activeMdiChild(), title);
 }
 
 
 MdiChild * MainWindow::GetResultChild( int childInd, QString const & f )
 {
 	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
-	MdiChild *child = qobject_cast<MdiChild *>(mdiwindows.at(childInd)->widget());
-	QString filename =  child->currentFile();
-
-	if (child->getResultInNewWindow())
-	{
-		vtkSmartPointer<vtkImageData> imageData = child->getImagePointer();
-		child = createMdiChild();
-		child->show();
-		child->displayResult(f, imageData );
-	}
-
-	return child;
+	MdiChild *oldChild = qobject_cast<MdiChild *>(mdiwindows.at(childInd)->widget());
+	return GetResultChild(oldChild, f);
 }
 
 
@@ -2666,7 +2657,7 @@ void MainWindow::OpenTLGICTData()
 		// add modality
 		QString modName = subDirFileInfo.baseName();
 		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
-		modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), img, 0)));
+		modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
 	}
 	if (modList->size() == 0)
 	{

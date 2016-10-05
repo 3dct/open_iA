@@ -23,38 +23,36 @@
 #include "iAModality.h"
 
 #include "iAConsole.h"
+#include "iAIO.h"
 #include "iAImageCoordinate.h"
-#include "iAitkImagesMultiChannelAdapter.h"
 #include "iAVolumeRenderer.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
 #include "extension2id.h"
 
 #include <vtkCamera.h>
+#include <vtkImageData.h>
 #include <vtkVolume.h>
 
+#include <QFileInfo>
 #include <QSettings>
 
 #include <cassert>
 
-iAModality::iAModality():
-	m_name(""),
-	m_filename(""),
-	renderFlags(MainRenderer)
+
+iAModality::iAModality(QString const & name, QString const & filename, int channel, int renderFlags):
+	m_name(name),
+	m_filename(filename),
+	renderFlags(renderFlags),
+	m_channel(channel)
 {
 }
 
-iAModality::iAModality(QString const & name, QString const & filename, int renderFlags):
+iAModality::iAModality(QString const & name, QString const & filename, int channel, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
-	renderFlags(renderFlags)
-{
-}
-
-iAModality::iAModality(QString const & name, QString const & filename, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
-	m_name(name),
-	m_filename(filename),
-	renderFlags(renderFlags)
+	renderFlags(renderFlags),
+	m_channel(channel)
 {
 	SetData(imgData);
 }
@@ -69,25 +67,24 @@ QString iAModality::GetFileName() const
 	return m_filename;
 }
 
+int iAModality::GetChannel() const
+{
+	return m_channel;
+}
+
+QString iAModality::GetTransferFileName() const
+{
+	return tfFileName;
+}
+
 void iAModality::SetName(QString const & name)
 {
 	m_name = name;
 }
 
-void iAModality::SetFileName(QString const & filename)
-{
-	m_filename = filename;
-}
-
 void iAModality::SetRenderFlag(int renderFlags)
 {
 	this->renderFlags = renderFlags;
-}
-	
-QSharedPointer<iASpectralVoxelData const> iAModality::GetData() const
-{
-	assert(m_data);
-	return m_data;
 }
 
 int iAModality::GetWidth() const
@@ -110,7 +107,6 @@ int iAModality::GetDepth() const
 
 double const * iAModality::GetSpacing() const
 {
-	assert(m_data);
 	return m_spacing;
 }
 
@@ -134,84 +130,6 @@ bool iAModality::hasRenderFlag(RenderFlag loc) const
 int iAModality::RenderFlags() const
 {
 	return renderFlags;
-}
-
-// IO-related; possibly could be extracted to somewhere else?
-#include "iAIO.h"
-
-bool iAModality::LoadData()
-{
-	if (m_imgData)
-	{	// if already loaded, there's nothing to do!
-		return true;
-	}
-	if (m_filename.endsWith(iAIO::VolstackExtension))
-	{
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(
-			0,
-			0,
-			&volumes
-		);
-
-		io.setupIO(VOLUME_STACK_VOLSTACK_READER, m_filename.toLatin1().data());
-
-		io.start();
-		io.wait();
-		assert(volumes.size() > 0);
-		if (volumes.size() == 0)
-		{
-			DEBUG_LOG("No volume found in stack!");
-			return false;
-		}
-		int channels = volumes.size();
-		int extent[6];
-		volumes[0]->GetExtent(extent);
-		volumes[0]->GetSpacing(m_spacing);
-
-		m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
-			extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1));
-		
-		QSharedPointer<iAvtkImagesMultiChannelAdapter> data(new iAvtkImagesMultiChannelAdapter(
-			m_converter->GetWidth(), m_converter->GetHeight(), m_converter->GetDepth()));
-
-		for (int i=0; i<volumes.size(); ++i)
-		{
-			data->AddImage(volumes[i]);
-		}
-		m_data = data;
-		// TODO: make all channel images available somehow?
-		m_imgData = volumes[0];
-	}
-	else
-	{
-		// TODO: use ITK image loading?
-		vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
-		iAIO io(img, 0, 0);
-
-		QFileInfo fileInfo(m_filename);
-		QString extension = fileInfo.suffix();
-		extension = extension.toUpper();
-		const mapQString2int * ext2id = &extensionToId;
-		if (ext2id->find(extension) == ext2id->end())
-		{
-			DEBUG_LOG("Unknown file type!");
-			return false;
-		}
-		IOType id = ext2id->find(extension).value();
-		if (!io.setupIO( id, m_filename ))
-		{
-			DEBUG_LOG("Error while setting up modality loading!");
-			return false;
-		}
-		// TODO: check for errors during actual loading!
-		//connect(io, done(bool), this, )
-		io.start();
-		// TODO: VOLUME: make asynchronous!
-		io.wait();
-		SetData(img);
-	}
-	return true;
 }
 
 void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
@@ -284,19 +202,80 @@ void iAModality::InitHistogram()
 	LoadTransferFunction();
 }
 
+bool iAModality::LoadData()
+{
+	// TODO: unify this with mdichild::loadFile / dlg_modalities::AddClicked!
+	if (m_filename.endsWith(iAIO::VolstackExtension))
+	{
+		std::vector<vtkSmartPointer<vtkImageData> > volumes;
+		iAIO io(
+			0,
+			0,
+			&volumes
+		);
+		io.setupIO(VOLUME_STACK_VOLSTACK_READER, m_filename.toLatin1().data());
+		io.start();
+		io.wait();
+		if (volumes.size() == 0)
+		{
+			DEBUG_LOG("No volume found in stack!");
+			return false;
+		}
+		if (m_channel < 0 || m_channel > volumes.size())
+		{
+			DEBUG_LOG(QString("Channel number %1 outside of valid interval [0..%2]").arg(m_channel).arg(volumes.size()));
+			m_channel = 0;
+		}
+		SetData(volumes[m_channel]);
+	}
+	else
+	{
+		vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
+		std::vector<vtkSmartPointer<vtkImageData> > volumes;
+		iAIO io(img, 0, 0);
+
+		QFileInfo fileInfo(m_filename);
+		QString extension = fileInfo.suffix();
+		extension = extension.toUpper();
+		const mapQString2int * ext2id = &extensionToId;
+		if (ext2id->find(extension) == ext2id->end())
+		{
+			DEBUG_LOG("Unknown file type!");
+			return false;
+		}
+		IOType id = ext2id->find(extension).value();
+		if (!io.setupIO(id, m_filename, false, m_channel))
+		{
+			DEBUG_LOG("Error while setting up modality loading!");
+			return false;
+		}
+		// TODO: check for errors during actual loading!
+		//connect(io, done(bool), this, )
+		io.start();
+		// TODO: VOLUME: make asynchronous!
+		io.wait();
+		SetData(img);
+	}
+	return true;
+}
+
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);
 	m_imgData = imgData;
 	int extent[6];
 	imgData->GetExtent(extent);
-	imgData->GetSpacing(m_spacing);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
-		extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1));
-	QSharedPointer<iAvtkImagesMultiChannelAdapter> data(new iAvtkImagesMultiChannelAdapter(
-		m_converter->GetWidth(), m_converter->GetHeight(), m_converter->GetDepth()));
-	data->AddImage(imgData);
-	m_data = data;
+		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
+	imgData->GetSpacing(m_spacing);
+}
+
+
+void iAModality::SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
+{
+	positionSettings = pos;
+	orientationSettings = ori;
+	tfFileName = tfFile;
 }
 
 
@@ -326,11 +305,11 @@ iAModalityList::iAModalityList():
 	m_spacing[0] = m_spacing[1] = m_spacing[2] = 1.0;
 }
 
-bool iAModalityList::ModalityExists(QString const & filename) const
+bool iAModalityList::ModalityExists(QString const & filename, int channel) const
 {
 	foreach (QSharedPointer<iAModality> mod, m_modalities)
 	{
-		if (mod->GetFileName() == filename)
+		if (mod->GetFileName() == filename && mod->GetChannel() == channel)
 		{
 			return true;
 		}
@@ -385,11 +364,28 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 	{
 		settings.setValue(GetModalityKey(i, "Name"), m_modalities[i]->GetName());
 		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->GetFileName()));
+		if (m_modalities[i]->GetChannel() >= 0)
+		{
+			settings.setValue(GetModalityKey(i, "Channel"), m_modalities[i]->GetChannel());
+		}
 		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalities[i]) );
 		settings.setValue(GetModalityKey(i, "Orientation"), GetOrientation(m_modalities[i]->GetRenderer()));
 		settings.setValue(GetModalityKey(i, "Position"), GetPosition(m_modalities[i]->GetRenderer()));
 		QFileInfo modFileInfo(m_modalities[i]->GetFileName());
-		QString absoluteTFFileName(modFileInfo.absoluteFilePath() + "_tf.xml");
+		
+		QString absoluteTFFileName(m_modalities[i]->GetTransferFileName());
+		if (absoluteTFFileName.isEmpty())
+		{
+			absoluteTFFileName = modFileInfo.absoluteFilePath() + "_tf.xml";
+			QFileInfo fi(absoluteTFFileName);
+			int i = 1;
+			while (fi.exists())
+			{
+				absoluteTFFileName = modFileInfo.absoluteFilePath() + "_tf-" + QString::number(i) + ".xml";
+				fi.setFile(absoluteTFFileName);
+				++i;
+			}
+		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
 		Settings s;
@@ -440,15 +436,16 @@ bool iAModalityList::Load(QString const & filename)
 	{
 		QString modalityName = settings.value(GetModalityKey(currIdx, "Name")).toString();
 		QString modalityFile = settings.value(GetModalityKey(currIdx, "File")).toString();
+		int channel = settings.value(GetModalityKey(currIdx, "Channel"), -1).toInt();
 		QString modalityRenderFlags = settings.value(GetModalityKey(currIdx, "RenderFlags")).toString();
 		modalityFile = MakeAbsolute(fi.absolutePath(), modalityFile);
 		QString orientationSettings = settings.value(GetModalityKey(currIdx, "Orientation")).toString();
 		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
 		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
 		tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
-		if (ModalityExists(modalityFile))
+		if (ModalityExists(modalityFile, channel))
 		{
-			//DebugOut () << "Modality (name="<<modalityName<<", filename="<<modalityFile<<") already exists!" << std::endl;
+			DEBUG_LOG(QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
 		}
 		else
 		{
@@ -456,7 +453,7 @@ bool iAModalityList::Load(QString const & filename)
 				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
 				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0);
 
-			QSharedPointer<iAModality> mod(new iAModality(modalityName, modalityFile, renderFlags));
+			QSharedPointer<iAModality> mod(new iAModality(modalityName, modalityFile, channel, renderFlags));
 			if (!mod->LoadData())
 			{
 				return false;
@@ -474,9 +471,7 @@ bool iAModalityList::Load(QString const & filename)
 				mod->GetImage()->SetSpacing(spacing[0] / spacingFactor[0], spacing[1] / spacingFactor[1], spacing[2] / spacingFactor[2]);
 			}
 
-			mod->orientationSettings = orientationSettings;
-			mod->positionSettings = positionSettings;
-			mod->tfFileName = tfFileName;
+			mod->SetStringSettings(positionSettings, orientationSettings, tfFileName);
 
 			m_modalities.push_back(mod);
 			emit Added(mod);
