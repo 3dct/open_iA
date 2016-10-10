@@ -56,7 +56,7 @@ IF (WIN32)
 
 		# Apply file grouping based on regular expressions for Visual Studio IDE.
 		SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
-		
+
 		# Set up debugging/running environments	in Visual Studio to point to the correct dll files:
 		STRING(REGEX REPLACE "/" "\\\\" VTK_WIN_DIR ${VTK_DIR})
 		STRING(REGEX REPLACE "/" "\\\\" ITK_WIN_DIR ${ITK_DIR})
@@ -67,6 +67,14 @@ IF (WIN32)
 		SET (ReleaseLibraryPaths "${VTK_WIN_DIR}\\bin\\Release;${ITK_WIN_DIR}\\bin\\Release;${Qt5_WIN_DIR}\\bin")
 		SET (DebugLibraryPaths "${VTK_WIN_DIR}\\bin\\Debug;${ITK_WIN_DIR}\\bin\\Debug;${Qt5_WIN_DIR}\\bin")
 		SET (MinSizeRelLibraryPaths "${VTK_WIN_DIR}\\bin\\MinSizeRel;${ITK_WIN_DIR}\\bin\\MinSizeRel;${Qt5_WIN_DIR}\\bin")
+
+		IF (ITK_USE_SYSTEM_FFTW)
+			SET (RelWithDebInfoLibraryPaths "${ITK_FFTW_LIBDIR};${RelWithDebInfoLibraryPaths}")
+			SET (ReleaseLibraryPaths "${ITK_FFTW_LIBDIR};${ReleaseLibraryPaths}")
+			SET (DebugLibraryPaths "${ITK_FFTW_LIBDIR};${DebugLibraryPaths}")
+			SET (MinSizeRelLibraryPaths "${ITK_FFTW_LIBDIR};${MinSizeRelLibraryPaths}")
+		ENDIF(ITK_USE_SYSTEM_FFTW)
+
 		CONFIGURE_FILE(${open_iA_gui_SOURCE_DIR}/open_iA.vcxproj.user ${open_iA_gui_BINARY_DIR} @ONLY)
 
 	ENDIF (MSVC)
