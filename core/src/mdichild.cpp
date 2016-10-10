@@ -2861,7 +2861,7 @@ void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const 
 void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 {
 	bool noDataLoaded = GetModalities()->size() == 0;
-	return m_dlgModalities->SetModalities(modList);
+	m_dlgModalities->SetModalities(modList);
 
 	if (noDataLoaded && GetModalities()->size() > 0)
 	{
