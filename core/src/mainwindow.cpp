@@ -2550,7 +2550,6 @@ void MainWindow::OpenTLGICTData()
 
 	if (!dlg->exec() == QDialog::Accepted)
 	{
-		DEBUG_LOG("Data input aborted by user.");
 		return;
 	}
 
