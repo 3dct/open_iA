@@ -117,15 +117,19 @@ protected:
 private slots:
 	void timeout();
 	void newFile();
-	void open();
-	void openImageStack();
-	void openVolumeStack();
+	void Open();
+	void OpenRaw();
+	void OpenImageStack();
+	void OpenVolumeStack();
+	void OpenTLGICTData();
 	void save();
 	void saveAs();
 	void saveAsImageStack();
 	void saveScreen();
 	bool loadSettings();
 	bool saveSettings();
+	void LoadProject();
+	void SaveProject();
 	void maxXY();
 	void maxXZ();
 	void maxYZ();
@@ -157,14 +161,10 @@ private slots:
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
 	void raycasterLoadCameraSettings();
-	void openRecentFile();
+	void OpenRecentFile();
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
-	void LoadProject();
-	void LoadProject(QString const & fileName);
-	void SaveProject();
-	void OpenTLGICTData();
 
 public slots:
 	void saveLayout();
@@ -200,6 +200,7 @@ private:
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
+	void LoadProject(QString const & fileName);
 
 	QSplashScreen *splashScreen;
 		

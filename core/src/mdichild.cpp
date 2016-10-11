@@ -514,6 +514,32 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 }
 
 
+bool MdiChild::loadRaw(const QString &f)
+{
+	if (!QFile::exists(f))	return false;
+	addMsg(tr("%1  Loading sequence started... \n"
+		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
+		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	setCurrentFile(f);
+	waitForPreviousIO();
+	ioThread = new iAIO(imageData, 0, m_logger, this);
+	connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+	connectThreadSignalsToChildSlots(ioThread, false, true);
+	connect(ioThread, SIGNAL(finished()), this, SLOT(ioFinished()));
+	polyData->ReleaseData();
+	imageData->ReleaseData();
+	IOType id = RAW_READER;
+	if (!ioThread->setupIO(id, f))
+	{
+		ioFinished();
+		return false;
+	}
+	ioThread->start();
+	return true;
+}
+
+
+
 bool MdiChild::loadFile(const QString &f, bool isStack)
 {
 	if(!QFile::exists(f))	return false;
@@ -540,10 +566,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 		ioFinished();
 		return false;
 	}
-
 	ioThread->start();
-
-
 	return true;
 }
 
@@ -2838,7 +2861,7 @@ void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const 
 void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 {
 	bool noDataLoaded = GetModalities()->size() == 0;
-	return m_dlgModalities->SetModalities(modList);
+	m_dlgModalities->SetModalities(modList);
 
 	if (noDataLoaded && GetModalities()->size() > 0)
 	{
