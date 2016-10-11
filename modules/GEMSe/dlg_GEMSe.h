@@ -32,6 +32,8 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 
 #include <vtkSmartPointer.h>
 
+#include <QVector>
+
 class iAAttributes;
 class iACameraWidget;
 class iAColorTheme;
@@ -48,6 +50,7 @@ class iALogger;
 class iAModalityList;
 class iAPreviewWidgetPool;
 class iASamplingResults;
+class iASingleResult;
 
 class vtkImageData;
 
@@ -73,6 +76,7 @@ public:
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);
+	void  GetSelection(QVector<QSharedPointer<iASingleResult> > &);
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

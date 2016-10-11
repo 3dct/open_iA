@@ -445,6 +445,12 @@ void dlg_GEMSe::ImportRankings(QString const & fileName)
 }
 
 
+void dlg_GEMSe::GetSelection(QVector<QSharedPointer<iASingleResult> > & result)
+{
+
+}
+
+
 void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)

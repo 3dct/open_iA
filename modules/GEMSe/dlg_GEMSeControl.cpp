@@ -45,6 +45,8 @@
 
 #include <itkVTKImageToImageFilter.h>
 
+#include "ParametrizableLabelVotingImageFilter.h"
+
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -127,6 +129,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbResetFilters,     SIGNAL(clicked()), m_dlgGEMSe, SLOT(ResetFilters()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
+	connect(pbMajorityVoting, SIGNAL(clicked()), this, SLOT(MajorityVoting()));
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
@@ -333,7 +336,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		*m_simpleLabelInfo.data(),
 		m_dlgSamplings->GetSamplings()
 	);
-	pbClusteringStore->setEnabled(true);
+	EnableClusteringDependantButtons();
 	m_cltFile = fileName;
 	return true;
 }
@@ -391,7 +394,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->getImageData();
 
 	QSharedPointer<iAImageTree> tree = m_clusterer->GetResult();
-	pbClusteringStore->setEnabled(true);
+	EnableClusteringDependantButtons();
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
@@ -471,6 +474,15 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 		m_cltFile,
 		"");		// TODO: store current layout
 	metaFile.Store(fileName);
+}
+
+
+void dlg_GEMSeControl::EnableClusteringDependantButtons()
+{
+	pbClusteringStore->setEnabled(true);
+	pbRefImgComp->setEnabled(true);
+	pbSelectHistograms->setEnabled(true);
+	pbMajorityVoting->setEnabled(true);
 }
 
 
@@ -554,6 +566,34 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 		(reprType == "Average Label") ?         iARepresentativeType::AverageLabel:
 		/* reprType == "Average Entropy" */		iARepresentativeType::AverageEntropy;
 	m_dlgGEMSe->SetRepresentativeType(representativeType);
+}
+
+#include "iASingleResult.h"
+
+void dlg_GEMSeControl::MajorityVoting()
+{
+	typedef itk::Image<unsigned int, 3> UIntImageType;
+	typedef itk::CastImageFilter<LabelImageType, UIntImageType> CastImageFilter;
+	typedef ParametrizableLabelVotingImageFilter<UIntImageType> LabelVotingType;
+	LabelVotingType::Pointer labelVotingFilter;
+	labelVotingFilter = LabelVotingType::New();
+	labelVotingFilter->SetDecisionMinimumPercentage(
+		static_cast<double>(slMajorityVotingMinimumPercentage->value()) /
+			slMajorityVotingMinimumPercentage->maximum());
+	// iterate over currently selected cluster and add all non-filtered images
+
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	for (unsigned int i = 0; i < static_cast<unsigned int>(m_selection.size()); ++i)
+	{
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_selection[i]->GetLabelledImage().GetPointer());
+		CastImageFilter::Pointer castImageFilter = CastImageFilter::New();
+		castImageFilter->ReleaseDataFlagOff();
+		castImageFilter->SetInput(lblImg);
+		labelVotingFilter->SetInput(i, castImageFilter->GetOutput());
+	}
+	labelVotingFilter->Update();
+	// Put output somewhere!
 }
 
 

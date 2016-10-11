@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>200</height>
+    <width>347</width>
+    <height>210</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>300</width>
-    <height>200</height>
+    <width>347</width>
+    <height>210</height>
    </size>
   </property>
   <property name="features">
@@ -207,6 +207,9 @@
     </item>
     <item row="2" column="4">
      <widget class="QPushButton" name="pbRefImgComp">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>Ref-Img Comp.</string>
       </property>
@@ -232,7 +235,24 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="3" colspan="2">
+    <item row="3" column="4">
+     <widget class="QPushButton" name="pbSelectHistograms">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Histograms...</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="2">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Majority Voting</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="4">
      <widget class="QPushButton" name="pbSamplingLoad">
       <property name="enabled">
        <bool>false</bool>
@@ -242,10 +262,23 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="4">
-     <widget class="QPushButton" name="pbSelectHistograms">
+    <item row="4" column="3">
+     <widget class="QSlider" name="slMajorityVotingMinimumPercentage">
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="4">
+     <widget class="QPushButton" name="pbMajorityVoting">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
-       <string>Histograms...</string>
+       <string>Perform MV</string>
       </property>
      </widget>
     </item>

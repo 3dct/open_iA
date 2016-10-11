@@ -77,8 +77,10 @@ private slots:
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
+	void MajorityVoting();
 private:
 	void StoreGEMSeProject(QString const & fileName);
+	void EnableClusteringDependantButtons();
 	
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;

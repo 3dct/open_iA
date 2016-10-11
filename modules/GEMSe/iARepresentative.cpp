@@ -62,10 +62,13 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, int differenceMar
 
 iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, int differenceMarkerValue)
 {
-	if (imgs.size() == 0)
+	if (imgs.size() == 0) // all child images filtered out
 	{
-		DEBUG_LOG("No images given for calculating difference marker!\n");
 		return iAITKIO::ImagePointer();
+	}
+	else if (imgs.size() == 1)	// one of the childs filtered out
+	{
+		return imgs[0];
 	}
 	iAITKIO::ImagePointer result;
 	ITK_TYPED_CALL(diff_marker_tmpl, GetITKScalarPixelType(imgs[0]), imgs, differenceMarkerValue, result);
