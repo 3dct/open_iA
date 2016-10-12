@@ -393,7 +393,7 @@ bool iAImageTreeView::ExpandNode(iAImageNodeWidget* nodeWidget, bool expand, boo
 	return true;
 }
 
-void iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
+bool iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 {
 	// Find cluster + parent path
 	QList<QSharedPointer<iAImageTreeNode> > path;
@@ -404,7 +404,7 @@ void iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 	if (!found)
 	{
 		DEBUG_LOG("JumpToNode: Couldn't find given cluster!");
-		return;
+		return false;
 	}
 	
 	//QList<iAImageTreeNode const *> path(pathStack.toList());
@@ -445,6 +445,7 @@ void iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 	m_nodeWidgets[sibling.data()]->SetAutoShrink(false);
 	UpdateLayout();
 	emit JumpedTo(curCluster);
+	return true;
 }
 
 void iAImageTreeView::paintEvent(QPaintEvent * e)

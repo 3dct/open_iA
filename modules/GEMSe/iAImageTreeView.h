@@ -58,7 +58,7 @@ public:
 	void AddSelectedNode(QSharedPointer<iAImageTreeNode> node, bool clear);
 	void EnableSubtreeHighlight(bool enable);
 	void FilterUpdated();
-	void JumpToNode(iAImageTreeNode const *, int stepLimit=0);
+	bool JumpToNode(iAImageTreeNode const *, int stepLimit=0);
 	QVector<QSharedPointer<iAImageTreeNode> > const CurrentSelection() const;
 	void UpdateAutoShrink(iAImageTreeNode* node, bool wasSelected);
 	void UpdateSubtreeHighlight();

@@ -491,8 +491,10 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 		m_logger->log("JumpToNode: No node selected!");
 		return;
 	}
-	m_treeView->JumpToNode(node, stepLimit);
-	//m_exampleView->SetSelectedImage(leaf);
+	if (!m_treeView->JumpToNode(node, stepLimit))
+	{
+		m_detailView->SetNode(node, m_chartAttributes, m_chartAttributeMapper);
+	}
 }
 
 
