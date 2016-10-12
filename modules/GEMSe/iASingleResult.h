@@ -48,8 +48,6 @@ public:
 	//! (such as can be passed into Create method above)
 	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
 
-	iASingleResult(int id, iASamplingResults const & sampling);
-
 	//! retrieve labelled image
 	iAITKIO::ImagePointer const GetLabelledImage();
 
@@ -76,6 +74,8 @@ public:
 	int GetDatasetID() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
 private:
+	//! constructor; use static Create methods instead!
+	iASingleResult(int id, iASamplingResults const & sampling);
 	//! for now, value-type agnostic storage of values:
 	QVector<double> m_attributeValues;
 	iASamplingResults const & m_sampling;

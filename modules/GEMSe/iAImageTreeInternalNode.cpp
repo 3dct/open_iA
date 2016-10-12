@@ -471,3 +471,16 @@ void iAImageTreeInternalNode::GetMinMax(int chartID, double & min, double & max,
 		GetChild(i)->GetMinMax(chartID, min, max, chartAttrMap);
 	}
 }
+
+
+void iAImageTreeInternalNode::GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const
+{
+	if (m_filteredSize == 0)	// shortcut
+	{
+		return;
+	}
+	for (int i = 0; i < GetChildCount(); ++i)
+	{
+		GetChild(i)->GetSelection(result);
+	}
+}

@@ -31,7 +31,9 @@
 class iAChartAttributeMapper;
 class iAChartFilter;
 
-class iAImageTreeLeaf; // TODO: try to avoid this!
+// TODO: try to avoid this:
+class iAImageTreeLeaf;
+class iASingleResult;
 
 typedef int ClusterIDType;
 typedef float ClusterDistanceType;
@@ -97,6 +99,7 @@ public:
 	virtual Attitude ParentAttitude() const;
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const = 0;
 	virtual CombinedProbPtr UpdateProbabilities() const = 0;
+	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const = 0;
 private:
 	QSharedPointer<iAImageTreeNode > m_parent;
 	Attitude m_attitude;

@@ -77,6 +77,7 @@ public:
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);
 	void  GetSelection(QVector<QSharedPointer<iASingleResult> > &);
+	void AddMajorityVotingImage(QString const & outputPath, int id, double mvPercentage);
 public slots:
 	void ResetFilters();
 	void SelectHistograms();
@@ -99,13 +100,11 @@ private slots:
 	void HistogramSelectionUpdated();
 private:
 	void JumpToNode(iAImageTreeNode * leaf, int stepLimit);
-
 	void UpdateFilteredChartData();
 	void UpdateClusterFilteredChartData();
 	void UpdateFilteredData();
 	void UpdateAttributeRangeAttitude();
 	void CreateMapper();
-
 	void CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 		int labelCount);
 	
@@ -114,6 +113,8 @@ private:
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
+	int m_MajorityVotingSamplingID;
+	int m_MajorityVotingID;
 	
 	QSharedPointer<iAImageTreeNode> m_selectedCluster;
 	iAImageTreeLeaf * m_selectedLeaf;

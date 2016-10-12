@@ -338,6 +338,8 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	);
 	EnableClusteringDependantButtons();
 	m_cltFile = fileName;
+	QFileInfo fi(m_cltFile);
+	m_outputFolder = fi.absolutePath();
 	return true;
 }
 
@@ -355,7 +357,7 @@ void dlg_GEMSeControl::CalculateClustering()
 		DEBUG_LOG("Other operation still running?");
 		return;
 	}
-	QString m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), QString());
+	m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), QString());
 	if (m_outputFolder.isEmpty())
 	{
 		return;
@@ -572,28 +574,75 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 
 void dlg_GEMSeControl::MajorityVoting()
 {
+	static int majorityVotingID = 0;
 	typedef itk::Image<unsigned int, 3> UIntImageType;
-	typedef itk::CastImageFilter<LabelImageType, UIntImageType> CastImageFilter;
+	typedef itk::CastImageFilter<LabelImageType, UIntImageType> CastToUIntImageFilter;
+	typedef itk::CastImageFilter<UIntImageType, LabelImageType> CastToIntImageFilter;
 	typedef ParametrizableLabelVotingImageFilter<UIntImageType> LabelVotingType;
 	LabelVotingType::Pointer labelVotingFilter;
 	labelVotingFilter = LabelVotingType::New();
-	labelVotingFilter->SetDecisionMinimumPercentage(
-		static_cast<double>(slMajorityVotingMinimumPercentage->value()) /
-			slMajorityVotingMinimumPercentage->maximum());
-	// iterate over currently selected cluster and add all non-filtered images
+	double mvPercentage = static_cast<double>(slMajorityVotingMinimumPercentage->value()) /
+		slMajorityVotingMinimumPercentage->maximum();
+	labelVotingFilter->SetDecisionMinimumPercentage(mvPercentage);
 
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	for (unsigned int i = 0; i < static_cast<unsigned int>(m_selection.size()); ++i)
 	{
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_selection[i]->GetLabelledImage().GetPointer());
-		CastImageFilter::Pointer castImageFilter = CastImageFilter::New();
+		CastToUIntImageFilter::Pointer castImageFilter = CastToUIntImageFilter::New();
 		castImageFilter->ReleaseDataFlagOff();
 		castImageFilter->SetInput(lblImg);
+		castImageFilter->Update();
 		labelVotingFilter->SetInput(i, castImageFilter->GetOutput());
 	}
 	labelVotingFilter->Update();
+
+	CastToIntImageFilter::Pointer resultCast = CastToIntImageFilter::New();
+	resultCast->SetInput(labelVotingFilter->GetOutput());
+	resultCast->Update();
+
 	// Put output somewhere!
+	// Options / Design considerations:
+	//  * integrate into clustering
+	//      + image is then part of rest of analysis
+	//      ~ follow-up decision required:
+	//          - consider MJ separate algorithm?
+	//          - how to preserve creation "parameters"?
+	//		- have to re-run whole clustering? or integrate it somehow faked?
+	//	* intermediate step: add as separate result (e.g. in favorite view)
+	//      // (chance to include in clustering after renewed clustering)
+	//  * separate list of  majority-voted results
+	//		- separate from 
+	//  * detail view
+	//      + prominent display
+	//      + close to current analysis
+	//      - lots to rewrite, as it expects node with linked values
+	//      - volatile - will be gone after next cluster / example image selection
+	//  * new dock widget in same mdichild
+	//		+ closer to current analysis than separate mdi child
+	//		- lots of new implementation required
+	//		- no clear benefit - if each 
+	//  * new window (mdichild?)
+	//      - detached from current design
+	//      + completely independent of other implementation (should continue working if anything else changes)
+	//      - completely independent of other implementation (not integrated into current analysis)
+	//      +/- theoretically easier to do/practically probably also not little work to make it happen
+	
+	// store image to disk
+	QString mvOutFolder = m_outputFolder + "/majorityVoting";
+	iAITKIO::ScalarPixelType pixelType = itk::ImageIOBase::INT;
+	QString mvResultFolder = mvOutFolder + "/sample" + QString::number(majorityVotingID);
+	QDir qdir;
+	if (!qdir.mkpath(mvResultFolder))
+	{
+		DEBUG_LOG(QString("Can't create output directory %1!").arg(mvResultFolder));
+		return;
+	}
+	iAITKIO::writeFile(mvResultFolder+"/label.mhd", resultCast->GetOutput(), pixelType);
+	m_dlgGEMSe->AddMajorityVotingImage(mvOutFolder, majorityVotingID, mvPercentage);
+	majorityVotingID++;
+	//m_dlgSamplings->Add(majoritySamplingResults);
 }
 
 

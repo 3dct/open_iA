@@ -52,6 +52,7 @@ public:
 	virtual CombinedProbPtr UpdateProbabilities() const;
 	int GetDatasetID() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
+	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;
 private:
 	bool m_filtered;
 	int m_labelCount;

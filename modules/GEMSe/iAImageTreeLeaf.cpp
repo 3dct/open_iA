@@ -199,3 +199,11 @@ void iAImageTreeLeaf::GetMinMax(int chartID, double & min, double & max,
 		max = value;
 	}
 }
+
+void iAImageTreeLeaf::GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const
+{
+	if (!m_filtered)
+	{
+		result.push_back(m_singleResult);
+	}
+}

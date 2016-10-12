@@ -53,6 +53,7 @@ public:
 	virtual ClusterDistanceType GetDistance() const;
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
 	virtual CombinedProbPtr UpdateProbabilities() const;
+	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;
 private:
 	void RecalculateFilteredRepresentative(int type) const;
 	QString GetCachedFileName(int type) const;

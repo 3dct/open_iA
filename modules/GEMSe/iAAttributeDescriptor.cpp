@@ -265,7 +265,7 @@ iAAttributeDescriptor::iAAttributeDescriptor(
 	m_valueType(valueType),
 	m_logarithmic(false)
 {
-	ResetMinMax();
+	ResetMinMax();	// TODO: check why we set it in constructor when it's reset again here anyway; maybe move this to where it's actually needed?
 }
 
 iAAttributeDescriptor::iAAttributeType iAAttributeDescriptor::GetAttribType() const

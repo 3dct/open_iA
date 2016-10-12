@@ -43,6 +43,7 @@
 #include "iAPreviewWidgetPool.h"
 #include "iAQtCaptionWidget.h"
 #include "iASamplingResults.h"
+#include "iASingleResult.h"
 #include "iAToolsITK.h"
 
 #include <QVTKWidget2.h>
@@ -69,7 +70,9 @@ dlg_GEMSe::dlg_GEMSe(
 	m_selectedLeaf(0),
 	m_previewWidgetPool(0),
 	m_colorTheme(colorTheme),
-	m_representativeType(iARepresentativeType::Difference)
+	m_representativeType(iARepresentativeType::Difference),
+	m_MajorityVotingSamplingID(-1),
+	m_MajorityVotingID(0)
 {
 }
 
@@ -447,7 +450,37 @@ void dlg_GEMSe::ImportRankings(QString const & fileName)
 
 void dlg_GEMSe::GetSelection(QVector<QSharedPointer<iASingleResult> > & result)
 {
+	m_selectedCluster->GetSelection(result);
+}
 
+
+void dlg_GEMSe::AddMajorityVotingImage(QString const & outputPath, int id, double mvPercentage)
+{
+	if (m_MajorityVotingSamplingID < 0)
+	{
+		m_MajorityVotingSamplingID = m_samplings.size();
+		QSharedPointer<iAAttributes> attributes(new iAAttributes());
+		// add the id's of results that took part in this majority voting?
+		auto decisionPercentage = iAAttributeDescriptor::Create("Majority Voting	Parameter	Continuous	0	1	Linear");
+		decisionPercentage->AdjustMinMax(0);
+		decisionPercentage->AdjustMinMax(1);
+		attributes->Add(decisionPercentage);
+		QSharedPointer<iASamplingResults>majorityVotingResults(new iASamplingResults(
+			attributes, "Majority Voting Decision Percentage", outputPath, m_MajorityVotingSamplingID));
+		
+		m_samplings.push_back(majorityVotingResults);
+		int chartID = m_chartAttributes->size();
+		m_chartAttributes->Add(decisionPercentage);
+		m_chartAttributeMapper.Add(m_MajorityVotingSamplingID, 0, chartID);
+		m_histogramContainer->CreateCharts();
+	}
+	QVector<qreal> mvParameters;
+	mvParameters.push_back(mvPercentage);
+	QSharedPointer<iASingleResult> singleResult(iASingleResult::Create(m_MajorityVotingID++, *m_samplings[m_MajorityVotingSamplingID].data(), mvParameters));
+	QSharedPointer<iAImageTreeLeaf> leaf(new iAImageTreeLeaf(singleResult, m_treeView->GetTree()->GetLabelCount()));
+	//m_chartAttributes->at(chartID)->AdjustMinMax(measures[i]);
+	m_favoriteWidget->ToggleLike(leaf.data());
+	m_detailView->SetNode(leaf.data(), m_chartAttributes, m_chartAttributeMapper);
 }
 
 

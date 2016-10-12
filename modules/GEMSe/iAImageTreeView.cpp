@@ -404,6 +404,7 @@ void iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 	if (!found)
 	{
 		DEBUG_LOG("JumpToNode: Couldn't find given cluster!");
+		return;
 	}
 	
 	//QList<iAImageTreeNode const *> path(pathStack.toList());
