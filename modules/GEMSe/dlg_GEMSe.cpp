@@ -478,8 +478,10 @@ void dlg_GEMSe::AddMajorityVotingImage(QString const & outputPath, int id, doubl
 	mvParameters.push_back(mvPercentage);
 	QSharedPointer<iASingleResult> singleResult(iASingleResult::Create(m_MajorityVotingID++, *m_samplings[m_MajorityVotingSamplingID].data(), mvParameters));
 	QSharedPointer<iAImageTreeLeaf> leaf(new iAImageTreeLeaf(singleResult, m_treeView->GetTree()->GetLabelCount()));
-	//m_chartAttributes->at(chartID)->AdjustMinMax(measures[i]);
+	m_samplings[m_MajorityVotingSamplingID]->AddResult(singleResult);
+	m_majorityVotingLeafs.push_back(leaf);
 	m_favoriteWidget->ToggleLike(leaf.data());
+	wdFavorites->setVisible(true);
 	m_detailView->SetNode(leaf.data(), m_chartAttributes, m_chartAttributeMapper);
 }
 
