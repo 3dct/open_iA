@@ -519,11 +519,30 @@ void iAImageTreeView::UpdateAutoShrink(iAImageTreeNode* node, bool wasSelected)
 }
 
 
-void iAImageTreeView::SetRepresentativeType(int representativeType)
+bool iAImageTreeView::SetRepresentativeType(int representativeType)
 {
 	m_representativeType = representativeType;
-	for (iAImageTreeNode* key: m_nodeWidgets.keys())
+	for (iAImageTreeNode* key : m_nodeWidgets.keys())
 	{
-		m_nodeWidgets[key]->SetRepresentativeType(representativeType);
+		if (!m_nodeWidgets[key]->SetRepresentativeType(representativeType))
+		{
+			if (representativeType == AverageEntropy || representativeType == AverageLabel)
+			{
+				DEBUG_LOG("At least for one dataset, there are no probabilities available!");
+				SetRepresentativeType(Difference);	// just to make sure everybody is back to the a common representative type
+				return false;
+			}
+			else
+			{
+				DEBUG_LOG("Unexpected error while setting representative type!");
+			}
+		}
 	}
+	return true;
+}
+
+
+int  iAImageTreeView::GetRepresentativeType() const
+{
+	return m_representativeType;
 }

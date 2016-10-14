@@ -67,7 +67,7 @@ public:
 
 	iAITKIO::ImagePointer GetProbabilityImg(int l);
 
-	bool ProbilityAvailable() const;
+	bool ProbabilityAvailable() const;
 
 	void SetLabelImage(iAITKIO::ImagePointer labelImg);
 

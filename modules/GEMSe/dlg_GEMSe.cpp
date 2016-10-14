@@ -657,8 +657,18 @@ void dlg_GEMSe::SetIconSize(int iconSize)
 }
 
 
-void dlg_GEMSe::SetRepresentativeType(int type)
+bool dlg_GEMSe::SetRepresentativeType(int type)
 {
-	m_treeView->SetRepresentativeType(type);
+	bool result = m_treeView->SetRepresentativeType(type);
+	if (!result)
+	{	// if it failed, reset to what tree view uses
+		type = m_treeView->GetRepresentativeType();
+	}
 	m_detailView->SetRepresentativeType(type);
+	return result;
+}
+
+int dlg_GEMSe::GetRepresentativeType() const
+{
+	return m_treeView->GetRepresentativeType();
 }

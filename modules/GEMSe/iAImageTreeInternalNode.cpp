@@ -83,14 +83,22 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type) cons
 		return m_representative[iARepresentativeType::LabelDistribution];
 
 	case iARepresentativeType::AverageEntropy:
-		UpdateProbabilities();
+	{
+		CombinedProbPtr result = UpdateProbabilities();
+		if (result->prob.size() == 0)
+			return ClusterImageType();
 		//StoreImage(m_representative[iARepresentativeType::AverageEntropy], GetCachedFileName(type), true);
 		return m_representative[iARepresentativeType::AverageEntropy];
+	}
 	case iARepresentativeType::AverageLabel:
-		UpdateProbabilities();
+	{
+		CombinedProbPtr result = UpdateProbabilities();
+		if (result->prob.size() == 0)
+			return ClusterImageType();
 		return m_representative[iARepresentativeType::AverageLabel];
+	}
 	default:
-		DEBUG_LOG("Requested to calculate invalid representative type!\n");
+		DEBUG_LOG("Requested to calculate invalid representative type!");
 		return ClusterImageType();
 	}
 }
@@ -122,7 +130,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int ty
 
 
 	default:
-		DEBUG_LOG("Requested to calculate invalid filtered representative type!\n");
+		DEBUG_LOG("Requested to calculate invalid filtered representative type!");
 		return ClusterImageType();
 	}
 }
@@ -199,7 +207,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type)
 		// fine, this just means that all images were filtered out!
 		if (!m_filteredRepresentative[type])
 		{
-		DEBUG_LOG("Filtered representative is NULL!\n");
+		DEBUG_LOG("Filtered representative is NULL!");
 		}
 		*/
 		return m_filteredRepresentative[type];
@@ -224,7 +232,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type)
 	}
 	if (!m_representative[type])
 	{
-		DEBUG_LOG("Representative is NULL!\n");
+		//DEBUG_LOG("Representative is NULL!");
 	}
 	return m_representative[type];
 }
@@ -282,7 +290,7 @@ void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type) const
 	m_filteredRepresentativeOutdated = false;
 	if (GetFilteredSize() == GetClusterSize())
 	{
-		DEBUG_LOG("RecalculateFilteredRepresentative called without need (not filtered!)\n");
+		DEBUG_LOG("RecalculateFilteredRepresentative called without need (not filtered!)");
 		// return;
 	}
 	m_filteredRepresentative[type] = CalculateFilteredRepresentative(type);
@@ -372,6 +380,10 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 	CombinedProbPtr result(new CombinedProbability());
 	CombinedProbPtr childResult1 = GetChild(0)->UpdateProbabilities();
 	CombinedProbPtr childResult2 = GetChild(1)->UpdateProbabilities();
+	if (childResult1->prob.size() == 0 || childResult2->prob.size() == 0)
+	{
+		return result;
+	}
 
 	ProbabilityImagePointer img = childResult1->prob.at(0);
 	ProbabilityImageType::SizeType size = img->GetLargestPossibleRegion().GetSize();

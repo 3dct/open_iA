@@ -156,6 +156,8 @@ LabelPixelHistPtr iAImageTreeLeaf::UpdateLabelDistribution() const
 CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 {
 	CombinedProbPtr result(new CombinedProbability());
+	if (!m_singleResult->ProbabilityAvailable())
+		return result;
 	for (int i = 0; i < m_labelCount; ++i)
 	{
 		// TODO: probably very problematic regarding memory leaks!!!!!

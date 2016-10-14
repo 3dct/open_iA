@@ -74,7 +74,7 @@ void iADerivedOutputCalculator::run()
 		int objCount = relabel->GetNumberOfObjects();
 		m_result->SetAttribute(m_objCountIdx, objCount);
 
-		if (m_result->ProbilityAvailable())
+		if (m_result->ProbabilityAvailable())
 		{
 			for (int i = 0; i < m_labelCount; ++i)
 			{

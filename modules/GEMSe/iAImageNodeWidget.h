@@ -59,8 +59,8 @@ public:
 	void ExpandNode();
 	void SetAutoShrink(bool newAutoShrink);
 	bool IsAutoShrinked() const;
-	void UpdateRepresentative();
-	void SetRepresentativeType(int representativeType);
+	bool UpdateRepresentative();
+	bool SetRepresentativeType(int representativeType);
 protected:
 	virtual void paintEvent(QPaintEvent * );
 	virtual void mouseReleaseEvent(QMouseEvent * ev);

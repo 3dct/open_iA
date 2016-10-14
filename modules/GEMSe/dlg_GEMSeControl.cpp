@@ -567,7 +567,11 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 		(reprType == "Label Distribution") ?	iARepresentativeType::LabelDistribution :
 		(reprType == "Average Label") ?         iARepresentativeType::AverageLabel:
 		/* reprType == "Average Entropy" */		iARepresentativeType::AverageEntropy;
-	m_dlgGEMSe->SetRepresentativeType(representativeType);
+	if (!m_dlgGEMSe->SetRepresentativeType(representativeType))
+	{   // could not set representative, reset
+		int reprType = m_dlgGEMSe->GetRepresentativeType();
+		cbRepresentative->setCurrentIndex(reprType);
+	}
 }
 
 #include "iASingleResult.h"

@@ -196,13 +196,18 @@ iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int label)
 	}
 	if (!m_probabilityImg[label])
 	{
+		QString probFile(GetProbabilityPath(label));
+		if (!QFile::exists(probFile))
+		{
+			throw std::exception(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
+		}
 		iAITKIO::ScalarPixelType pixelType;
-		m_probabilityImg[label] = iAITKIO::readFile(GetProbabilityPath(label), pixelType, false);
+		m_probabilityImg[label] = iAITKIO::readFile(probFile, pixelType, false);
 	}
 	return m_probabilityImg[label];
 }
 
-bool iASingleResult::ProbilityAvailable() const
+bool iASingleResult::ProbabilityAvailable() const
 {
 	if (m_probabilityImg.size() > 0)
 		return true;

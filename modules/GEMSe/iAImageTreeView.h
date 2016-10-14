@@ -65,7 +65,8 @@ public:
 	void SetAutoShrink(bool enabled);
 	bool GetAutoShrink();
 	void SetIconSize(int iconSize);
-	void SetRepresentativeType(int representativeType);
+	bool SetRepresentativeType(int representativeType);
+	int  GetRepresentativeType() const;
 signals:
 	void Clicked(QSharedPointer<iAImageTreeNode >);
 	void ImageClicked(QSharedPointer<iAImageTreeNode >);

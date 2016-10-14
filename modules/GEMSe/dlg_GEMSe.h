@@ -72,7 +72,8 @@ public:
 	void ToggleAutoShrink();
 	void SetMagicLensOpacity(double opacity);
 	void SetIconSize(int iconSize);
-	void SetRepresentativeType(int type);
+	bool SetRepresentativeType(int type);
+	int GetRepresentativeType() const;
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);

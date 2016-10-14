@@ -276,25 +276,27 @@ bool iAImageNodeWidget::IsAutoShrinked() const
 	return m_shrinkedAuto;
 }
 
-void iAImageNodeWidget::UpdateRepresentative()
+bool iAImageNodeWidget::UpdateRepresentative()
 {
-	if (!m_imageView)
+	if (!m_imageView || !m_cluster->GetRepresentativeImage(m_representativeType))
 	{
-		return;
-	}
-	if (!m_cluster->GetRepresentativeImage(m_representativeType))
-	{
-		DEBUG_LOG("ImageNode: image view shown but cluster representative is NULL!\n");
-		return;
+		return false;
 	}
 	m_imageView->SetImage(m_cluster->GetRepresentativeImage(m_representativeType), false,
 		m_cluster->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 	m_imageView->update();
+	return true;
 }
 
 
-void iAImageNodeWidget::SetRepresentativeType(int representativeType)
+bool iAImageNodeWidget::SetRepresentativeType(int representativeType)
 {
+	int oldRepresentativeType = m_representativeType;
 	m_representativeType = representativeType;
-	UpdateRepresentative();
+	bool result = UpdateRepresentative();
+	if (!result)
+	{
+		m_representativeType = oldRepresentativeType;
+	}
+	return result;
 }
