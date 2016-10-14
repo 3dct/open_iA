@@ -187,6 +187,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 		case Continuous:	// intentional fall-through!
 		case Discrete:
 		{
+			result->m_logarithmic = false;
 			bool minOk = true, maxOk = true;
 			result->m_min = Converter<double>::convert(defTokens[3], &minOk);
 			result->m_max = Converter<double>::convert(defTokens[4], &maxOk);
