@@ -18,9 +18,8 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
-#include "iACharacteristics.h"
+#include "iADerivedOutputCalculator.h"
 
 #include "iAAttributes.h"
 #include "iAConsole.h"
@@ -35,7 +34,7 @@
 
 #include <QString>
 
-CharacteristicsCalculator::CharacteristicsCalculator(
+iADerivedOutputCalculator::iADerivedOutputCalculator(
 		QSharedPointer<iASingleResult> result,
 		int objCountIdx,
 		int avgUncIdx,
@@ -48,7 +47,7 @@ CharacteristicsCalculator::CharacteristicsCalculator(
 {}
 
 
-void CharacteristicsCalculator::run()
+void iADerivedOutputCalculator::run()
 {
 	try
 	{
@@ -110,7 +109,7 @@ void CharacteristicsCalculator::run()
 }
 
 
-bool CharacteristicsCalculator::success()
+bool iADerivedOutputCalculator::success()
 {
 	return m_success;
 }

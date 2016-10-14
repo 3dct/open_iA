@@ -31,6 +31,9 @@
 #include "iAToolsITK.h"
 #include "iAITKIO.h"
 
+#include <QFile>
+#include <QFileInfo>
+
 QSharedPointer<iASingleResult> iASingleResult::Create(
 	QString const & line,
 	iASamplingResults const & sampling,
@@ -147,6 +150,12 @@ iAITKIO::ImagePointer const iASingleResult::GetLabelledImage()
 bool iASingleResult::LoadLabelImage()
 {
 	iAITKIO::ScalarPixelType pixelType;
+	QFileInfo f(GetLabelPath());
+	if (!f.exists() || f.isDir())
+	{
+		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(GetLabelPath()));
+		return false;
+	}
 	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
 	return (m_labelImg);
 }

@@ -28,10 +28,10 @@ class iASingleResult;
 
 class QString;
 
-class CharacteristicsCalculator : public QThread
+class iADerivedOutputCalculator : public QThread
 {
 public:
-	CharacteristicsCalculator(
+	iADerivedOutputCalculator(
 		QSharedPointer<iASingleResult> result,
 		int objCountIdx,
 		int avgUncIdx,

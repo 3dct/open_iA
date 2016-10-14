@@ -23,7 +23,7 @@
 
 #include "iAConsole.h"
 #include "iACommandRunner.h"
-#include "iACharacteristics.h"
+#include "iADerivedOutputCalculator.h"
 #include "iAAttributes.h"
 #include "iAAttributeDescriptor.h"
 #include "iAImageCoordinate.h"
@@ -223,7 +223,7 @@ void iAImageSampler::computationFinished()
 	m_results->GetAttributes()->at(m_parameterCount+2)->AdjustMinMax(computationTime);
 
 	// TODO: calculate external programs here to calculate derived output!
-	CharacteristicsCalculator * newCharCalc = new CharacteristicsCalculator (result, m_parameterCount, m_parameterCount+1, m_labelCount);
+	iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator (result, m_parameterCount, m_parameterCount+1, m_labelCount);
 	m_runningDerivedOutput.insert(newCharCalc, result);
 	connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()) );
 	newCharCalc->start();
@@ -236,7 +236,7 @@ void iAImageSampler::computationFinished()
 
 void iAImageSampler::derivedOutputFinished()
 {
-	CharacteristicsCalculator* charactCalc = dynamic_cast<CharacteristicsCalculator*>(QObject::sender());
+	iADerivedOutputCalculator* charactCalc = dynamic_cast<iADerivedOutputCalculator*>(QObject::sender());
 	if (!charactCalc || !charactCalc->success())
 	{
 		DEBUG_LOG("ERROR: Derived output calculation was not successful! Make sure sampling results in a signed integer");

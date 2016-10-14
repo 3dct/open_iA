@@ -29,7 +29,7 @@
 #include "dlg_progress.h"
 #include "dlg_GEMSe.h"
 #include "iAAttributes.h"
-#include "iACharacteristics.h"
+#include "iADerivedOutputCalculator.h"
 #include "iAColorTheme.h"
 #include "iAConnector.h"
 #include "iAConsole.h"

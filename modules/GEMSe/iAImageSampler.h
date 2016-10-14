@@ -35,7 +35,7 @@ class iAAttributes;
 class iAModalityList;
 class iASamplingResults;
 class iASingleResult;
-class CharacteristicsCalculator;
+class iADerivedOutputCalculator;
 class iACommandRunner;
 
 class iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
@@ -94,7 +94,7 @@ private:
 	// intention: running several extended random walker's in parallel
 	// downside: seems to slow down rather than speed up overall process
 	QMap<iACommandRunner*, int > m_runningComputation;
-	QMap<CharacteristicsCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
+	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
 
 	QSharedPointer<iASamplingResults> m_results;
 	QMutex m_mutex;
