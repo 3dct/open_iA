@@ -202,6 +202,15 @@ iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int label)
 	return m_probabilityImg[label];
 }
 
+bool iASingleResult::ProbilityAvailable() const
+{
+	if (m_probabilityImg.size() > 0)
+		return true;
+
+	QString probFile(GetProbabilityPath(0));
+	return QFile::exists(probFile);
+}
+
 void iASingleResult::SetLabelImage(iAITKIO::ImagePointer labelImg)
 {
 	m_labelImg = labelImg;

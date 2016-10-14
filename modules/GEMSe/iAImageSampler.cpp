@@ -135,7 +135,7 @@ void iAImageSampler::run()
 			DEBUG_LOG(QString("Could not create output directory '%1'").arg(outputDirectory));
 			return;
 		}
-		QString outputFile = outputDirectory + "\\label.mhd";
+		QString outputFile = outputDirectory + "/label.mhd";
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
 		argumentList << outputFile;

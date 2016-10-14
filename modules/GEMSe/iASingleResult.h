@@ -67,6 +67,8 @@ public:
 
 	iAITKIO::ImagePointer GetProbabilityImg(int l);
 
+	bool ProbilityAvailable() const;
+
 	void SetLabelImage(iAITKIO::ImagePointer labelImg);
 
 	void AddProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs);
