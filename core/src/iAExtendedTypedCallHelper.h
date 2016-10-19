@@ -18,10 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
- 
-#ifndef iAExtendedTypedCallHelper_h__
-#define iAExtendedTypedCallHelper_h__
-
 #pragma once
 
 #include <QString>
@@ -132,7 +128,7 @@
 				break;														\
 				}															\
 		}																	\
-}																			
+}
 
 #define VTK_EXTENDED_TYPED_CALL(function, vtk_scalar_type, number_of_components,...)		\
 {																							\
@@ -216,5 +212,4 @@
 				break;																		\
 		}																					\
 	}																						\
-}																							
-#endif // iAExtendedTypedCallHelper_h__
+}
