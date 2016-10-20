@@ -224,7 +224,7 @@ void iADetailView::DblClicked()
 	slicer->update();
 }
 
-void iADetailView::ChangeModality(int )
+void iADetailView::ChangeModality(int offset)
 {
 	if (!m_magicLensData)
 	{
@@ -233,7 +233,7 @@ void iADetailView::ChangeModality(int )
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	iAChannelID id = ch_SE_DetailView;
 	// TODO: refactor to remove duplication between here and DblClicked above
-	m_magicLensCurrentModality = (m_magicLensCurrentModality + 1) % m_modalities->size();
+	m_magicLensCurrentModality = (m_magicLensCurrentModality + (offset>0)? 1 : -1) % m_modalities->size();
 	QSharedPointer<iAModality> mod = m_modalities->Get(m_magicLensCurrentModality);
 	vtkSmartPointer<vtkImageData> imageData = mod->GetImage();
 	m_ctf = (mod->GetName() == "Ground Truth") ?
