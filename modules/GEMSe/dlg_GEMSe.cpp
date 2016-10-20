@@ -485,6 +485,103 @@ void dlg_GEMSe::AddMajorityVotingImage(QString const & outputPath, int id, doubl
 	m_detailView->SetNode(leaf.data(), m_chartAttributes, m_chartAttributeMapper);
 }
 
+class iAFakeTreeLeaf : public iAImageTreeNode
+{
+private:
+	iAITKIO::ImagePointer m_img;
+public:
+	iAFakeTreeLeaf(iAITKIO::ImagePointer img) : iAImageTreeNode(), m_img(img) {}
+
+	virtual bool IsLeaf() const
+	{
+		return false;
+	}
+	virtual int GetChildCount() const
+	{
+		return 0;
+	}
+	virtual double GetAttribute(int) const
+	{
+		return 0;
+	}
+	virtual int GetClusterSize() const
+	{
+		return 0;
+	}
+	virtual int GetFilteredSize() const
+	{
+		return 0;
+	}
+
+	virtual ClusterImageType const GetRepresentativeImage(int type) const
+	{
+		return m_img;
+	}
+	virtual ClusterIDType GetID() const
+	{
+		return -1;
+	}
+	virtual void GetMinMax(int chartID, double & min, double & max,
+		iAChartAttributeMapper const & chartAttrMap) const
+	{}
+	virtual ClusterDistanceType GetDistance() const
+	{
+		return 0;
+	}
+	// we should never get into any of these:
+	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount)
+	{
+		assert(false);
+	}
+	virtual void SetParent(QSharedPointer<iAImageTreeNode > parent)
+	{
+		assert(false);
+	}
+	virtual QSharedPointer<iAImageTreeNode > GetParent() const
+	{
+		assert(false);
+		return QSharedPointer<iAImageTreeNode >();
+	}
+	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const
+	{
+		assert(false);
+		return QSharedPointer<iAImageTreeNode >();
+	}
+	virtual void DiscardDetails()
+	{
+		assert(false);
+	}
+	ClusterImageType const GetLargeImage() const
+	{
+		assert(false);
+		return m_img;
+	}
+	virtual LabelPixelHistPtr UpdateLabelDistribution() const
+	{
+		assert(false);
+		return LabelPixelHistPtr();
+	}
+	virtual CombinedProbPtr UpdateProbabilities() const
+	{
+		assert(false);
+		return CombinedProbPtr();
+	}
+	virtual void UpdateFilter(iAChartFilter const & filter,
+		iAChartAttributeMapper const & chartAttrMap)
+	{
+		assert(false);
+	}
+	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const
+	{
+		assert(false);
+	}
+};
+
+void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData)
+{
+	m_currentMajorityVotingResult = QSharedPointer<iAFakeTreeLeaf>(new iAFakeTreeLeaf(imgData));
+	m_detailView->SetNode(m_currentMajorityVotingResult.data(), m_chartAttributes, m_chartAttributeMapper);
+}
 
 void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {

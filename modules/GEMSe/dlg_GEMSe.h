@@ -38,6 +38,7 @@ class iAAttributes;
 class iACameraWidget;
 class iAColorTheme;
 class iADetailView;
+class iAFakeTreeLeaf;
 class iAFavoriteWidget;
 class iAGEMSeScatterplot;
 class iAHistogramContainer;
@@ -79,6 +80,7 @@ public:
 	void ImportRankings(QString const & fileName);
 	void  GetSelection(QVector<QSharedPointer<iASingleResult> > &);
 	void AddMajorityVotingImage(QString const & outputPath, int id, double mvPercentage);
+	void AddMajorityVotingImage(iAITKIO::ImagePointer imgData);
 public slots:
 	void ResetFilters();
 	void SelectHistograms();
@@ -138,4 +140,5 @@ private:
 	ClusterImageType m_nullImage;
 
 	iARepresentativeType m_representativeType;
+	QSharedPointer<iAFakeTreeLeaf> m_currentMajorityVotingResult;
 };

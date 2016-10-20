@@ -107,7 +107,8 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	m_dlgModalities(dlgModalities),
 	m_dlgLabels(dlgLabels),
 	m_dlgSamplings(dlgSamplings),
-	m_simpleLabelInfo(new iASimpleLabelInfo())
+	m_simpleLabelInfo(new iASimpleLabelInfo()),
+	m_lastMajorityVotingUpdate(0)
 {
 	dlgLabels->hide();
 	m_simpleLabelInfo->SetColorTheme(colorTheme);
@@ -130,6 +131,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbResetFilters,     SIGNAL(clicked()), m_dlgGEMSe, SLOT(ResetFilters()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
 	connect(pbMajorityVoting, SIGNAL(clicked()), this, SLOT(MajorityVoting()));
+	connect(slMajorityVotingMinimumPercentage, SIGNAL(valueChanged(int)), this, SLOT(MajorityVotingSlider(int)));
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
@@ -576,24 +578,19 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 
 #include "iASingleResult.h"
 
-void dlg_GEMSeControl::MajorityVoting()
+iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResult> > selection, double percentage)
 {
-	static int majorityVotingID = 0;
 	typedef itk::Image<unsigned int, 3> UIntImageType;
 	typedef itk::CastImageFilter<LabelImageType, UIntImageType> CastToUIntImageFilter;
 	typedef itk::CastImageFilter<UIntImageType, LabelImageType> CastToIntImageFilter;
 	typedef ParametrizableLabelVotingImageFilter<UIntImageType> LabelVotingType;
 	LabelVotingType::Pointer labelVotingFilter;
 	labelVotingFilter = LabelVotingType::New();
-	double mvPercentage = static_cast<double>(slMajorityVotingMinimumPercentage->value()) /
-		slMajorityVotingMinimumPercentage->maximum();
-	labelVotingFilter->SetDecisionMinimumPercentage(mvPercentage);
+	labelVotingFilter->SetDecisionMinimumPercentage(percentage);
 
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
-	for (unsigned int i = 0; i < static_cast<unsigned int>(m_selection.size()); ++i)
+	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
 	{
-		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(m_selection[i]->GetLabelledImage().GetPointer());
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->GetLabelledImage().GetPointer());
 		CastToUIntImageFilter::Pointer castImageFilter = CastToUIntImageFilter::New();
 		castImageFilter->ReleaseDataFlagOff();
 		castImageFilter->SetInput(lblImg);
@@ -605,7 +602,44 @@ void dlg_GEMSeControl::MajorityVoting()
 	CastToIntImageFilter::Pointer resultCast = CastToIntImageFilter::New();
 	resultCast->SetInput(labelVotingFilter->GetOutput());
 	resultCast->Update();
+	LabelImagePointer labelResult = resultCast->GetOutput();
+	// according to https://stackoverflow.com/questions/27016173/pointer-casts-for-itksmartpointer,
+	// the following does not leave a "dangling" smart pointer:
+	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(labelResult.GetPointer());
+	return result;
+}
 
+//#include "iAImageTreeNode.h"
+#include <QDateTime>
+
+void dlg_GEMSeControl::MajorityVotingSlider(int)
+{
+	const int MinMilliSecondsBetweenUpdates = 500;
+	QDateTime nowDT = QDateTime::currentDateTime();
+	qint64 now = nowDT.toMSecsSinceEpoch();
+	if (now - m_lastMajorityVotingUpdate < MinMilliSecondsBetweenUpdates)
+	{
+		return;
+	}
+	m_lastMajorityVotingUpdate = now;
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double percentage = static_cast<double>(slMajorityVotingMinimumPercentage->value()) /
+		slMajorityVotingMinimumPercentage->maximum();
+	lbMajorityVotingPercent->setText(QString::number(percentage*100, 'f', 1) + " %");
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, percentage);
+	m_dlgGEMSe->AddMajorityVotingImage(result);
+}
+
+void dlg_GEMSeControl::MajorityVoting()
+{
+
+	static int majorityVotingID = 0;
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double percentage = static_cast<double>(slMajorityVotingMinimumPercentage->value()) /
+		slMajorityVotingMinimumPercentage->maximum();
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, percentage);
 	// Put output somewhere!
 	// Options / Design considerations:
 	//  * integrate into clustering
@@ -643,8 +677,8 @@ void dlg_GEMSeControl::MajorityVoting()
 		DEBUG_LOG(QString("Can't create output directory %1!").arg(mvResultFolder));
 		return;
 	}
-	iAITKIO::writeFile(mvResultFolder+"/label.mhd", resultCast->GetOutput(), pixelType);
-	m_dlgGEMSe->AddMajorityVotingImage(mvOutFolder, majorityVotingID, mvPercentage);
+	iAITKIO::writeFile(mvResultFolder+"/label.mhd", result, pixelType);
+	m_dlgGEMSe->AddMajorityVotingImage(mvOutFolder, majorityVotingID, percentage);
 	majorityVotingID++;
 	//m_dlgSamplings->Add(majoritySamplingResults);
 }

@@ -185,7 +185,7 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 				}
 			}
 		}
-		if ((static_cast<double>(maxVotes) / this->m_TotalLabelCount) <
+		if ((static_cast<double>(maxVotes) / numberOfInputFiles) <
 			m_DecisionMinimumPercentage)
 		{
 			out.Set(this->m_LabelForUndecidedPixels);

@@ -282,6 +282,13 @@
       </property>
      </widget>
     </item>
+    <item row="3" column="3">
+     <widget class="QLabel" name="lbMajorityVotingPercent">
+      <property name="text">
+       <string>0 %</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
  </widget>

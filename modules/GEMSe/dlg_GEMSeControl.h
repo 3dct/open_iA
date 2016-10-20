@@ -78,6 +78,7 @@ private slots:
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
 	void MajorityVoting();
+	void MajorityVotingSlider(int);
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantButtons();
@@ -97,4 +98,5 @@ private:
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
+	qint64                               m_lastMajorityVotingUpdate;
 };
