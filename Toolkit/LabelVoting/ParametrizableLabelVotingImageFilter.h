@@ -120,9 +120,9 @@ public:
 
 	/** Extract some information from the image types.  Dimensionality
 	 * of the two images is assumed to be the same. */
-	itkStaticConstMacro(InputImageDimension, unsigned int,
+	itkStaticConstMacro(InputImageDimension, int,
 		TInputImage::ImageDimension);
-	itkStaticConstMacro(ImageDimension, unsigned int,
+	itkStaticConstMacro(ImageDimension, int,
 		TOutputImage::ImageDimension);
 
 	/** Image typedef support */
@@ -142,15 +142,24 @@ public:
 		  0 -> no minimum percentage
 		  1 -> all images have to agree on a label
 	*/
-	void SetDecisionMinimumPercentage(double p)
+	void SetAbsoluteMinimumPercentage(double p)
 	{
 		assert(p >= 0 && p <= 1);
-		this->m_DecisionMinimumPercentage = p;
+		this->m_AbsMinPercentage = p;
+	}
+	void SetMinimumDifferencePercentage(double p)
+	{
+		assert(p >= 0 && p <= 1);
+		this->m_MinDiffPercentage = p;
+	}
+	void SetMinimumRatio(double r)
+	{
+		this->m_MinRatio = r;
 	}
 
-	double GetDecisionMinimumPercentage()
+	double GetAbsoluteMinimumPercentage() const
 	{
-		return this->m_DecisionMinimumPercentage;
+		return this->m_AbsoluteMinimumPercentage;
 	}
 
 	/** Set label value for undecided pixels.
@@ -192,8 +201,8 @@ public:
 		(itk::Concept::Convertible< int, InputPixelType >));
 	itkConceptMacro(SameDimensionCheck,
 		(itk::Concept::SameDimension< InputImageDimension, ImageDimension >));
-	itkConceptMacro(InputUnsignedIntCheck,
-		(itk::Concept::IsUnsignedInteger< InputPixelType >));
+	itkConceptMacro(InputIntCheck,
+		(itk::Concept::IsInteger< InputPixelType >));
 	itkConceptMacro(IntConvertibleToOutputPixelType,
 		(itk::Concept::Convertible< int, OutputPixelType >));
 	itkConceptMacro(InputPlusIntCheck,
@@ -228,7 +237,9 @@ private:
 	OutputPixelType m_LabelForUndecidedPixels;
 	bool            m_HasLabelForUndecidedPixels;
 	size_t          m_TotalLabelCount;
-	double          m_DecisionMinimumPercentage;
+	double          m_AbsMinPercentage;
+	double          m_MinDiffPercentage;
+	double          m_MinRatio;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

@@ -54,7 +54,10 @@
 
 template< typename TInputImage, typename TOutputImage >
 ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
-::ParametrizableLabelVotingImageFilter()
+::ParametrizableLabelVotingImageFilter():
+	m_AbsMinPercentage(-1),
+	m_MinDiffPercentage(-1),
+	m_MinRatio(-1)
 {
 	this->m_HasLabelForUndecidedPixels = false;
 	this->m_LabelForUndecidedPixels = 0;
@@ -169,24 +172,38 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 
 		// determine the label with the most votes for this pixel
 		out.Set(0);
-		unsigned int maxVotes = votesByLabel[0];
+		unsigned int firstBestGuessVotes = votesByLabel[0];
+		unsigned int secondBestGuessVotes = votesByLabel[0];
 		for (size_t l = 1; l < this->m_TotalLabelCount; ++l)
 		{
-			if (votesByLabel[l] > maxVotes)
+			if (votesByLabel[l] > firstBestGuessVotes)
 			{
-				maxVotes = votesByLabel[l];
+				firstBestGuessVotes = votesByLabel[l];
 				out.Set(static_cast<OutputPixelType>(l));
+			}
+			else if (votesByLabel[l] > secondBestGuessVotes)
+			{
+				secondBestGuessVotes = votesByLabel[l];
 			}
 			else
 			{
-				if (votesByLabel[l] == maxVotes)
+				if (votesByLabel[l] == firstBestGuessVotes)
 				{
 					out.Set(this->m_LabelForUndecidedPixels);
 				}
 			}
 		}
-		if ((static_cast<double>(maxVotes) / numberOfInputFiles) <
-			m_DecisionMinimumPercentage)
+		double firstBestGuessPercentage = static_cast<double>(firstBestGuessVotes) / numberOfInputFiles;
+		double secondBestGuessPercentage = static_cast<double>(secondBestGuessVotes) / numberOfInputFiles;
+		if (m_AbsMinPercentage >= 0 && firstBestGuessPercentage < m_AbsMinPercentage)
+		{
+			out.Set(this->m_LabelForUndecidedPixels);
+		}
+		if (m_MinDiffPercentage >= 0 &&	(firstBestGuessPercentage - secondBestGuessPercentage) < m_MinDiffPercentage)
+		{
+			out.Set(this->m_LabelForUndecidedPixels);
+		}
+		if (m_MinRatio >= 0 && secondBestGuessVotes > 0 && (firstBestGuessVotes / secondBestGuessVotes) < m_MinRatio)
 		{
 			out.Set(this->m_LabelForUndecidedPixels);
 		}

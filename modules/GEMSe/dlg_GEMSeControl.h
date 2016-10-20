@@ -73,12 +73,13 @@ private slots:
 	void StoreAll();
 	void DataAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void SetMagicLensOpacity(int newValue);
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
-	void MajorityVoting();
-	void MajorityVotingSlider(int);
+	void MajVoteMinAbsPercentStore();
+	void MajVoteAbsMinPercentSlider(int);
+	void MajVoteMinDiffPercentSlider(int);
+	void MajVoteMinRatioSlider(int);
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantButtons();
@@ -98,5 +99,4 @@ private:
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
-	qint64                               m_lastMajorityVotingUpdate;
 };
