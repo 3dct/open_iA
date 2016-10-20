@@ -22,7 +22,7 @@
 
 #include "open_iA_Core_export.h"
 // vtk
-#include "QVTKWidget2.h"
+#include <QVTKWidget2.h>
 #include <vtkSmartPointer.h>
 
 class vtkActor2D;
