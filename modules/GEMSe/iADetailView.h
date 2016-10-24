@@ -66,6 +66,7 @@ public:
 	void SetMagicLensOpacity(double opacity);
 	void SetLabelInfo(iALabelInfo const & labelInfo);
 	void SetRepresentativeType(int representativeType);
+	int GetRepresentativeType();
 signals:
 	void Like();
 	void Hate();

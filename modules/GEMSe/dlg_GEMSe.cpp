@@ -581,6 +581,21 @@ void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData)
 {
 	m_currentMajorityVotingResult = QSharedPointer<iAFakeTreeLeaf>(new iAFakeTreeLeaf(imgData));
 	m_detailView->SetNode(m_currentMajorityVotingResult.data(), m_chartAttributes, m_chartAttributeMapper);
+	if (m_detailView->GetRepresentativeType() != Difference)
+	{
+		m_detailView->SetRepresentativeType(Difference);
+	}
+}
+
+
+void dlg_GEMSe::AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData)
+{
+	m_currentMajorityVotingResult = QSharedPointer<iAFakeTreeLeaf>(new iAFakeTreeLeaf(imgData));
+	m_detailView->SetNode(m_currentMajorityVotingResult.data(), m_chartAttributes, m_chartAttributeMapper);
+	if (m_detailView->GetRepresentativeType() != AverageEntropy)
+	{
+		m_detailView->SetRepresentativeType(AverageEntropy);
+	}
 }
 
 void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)

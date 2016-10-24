@@ -129,7 +129,9 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbResetFilters,     SIGNAL(clicked()), m_dlgGEMSe, SLOT(ResetFilters()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
-	connect(pbMajVoteMinAbsPercentStore, SIGNAL(clicked()), this, SLOT(MajorityVoting()));
+	connect(pbMajVoteMinAbsPercentStore, SIGNAL(clicked()), this, SLOT(MajVoteMinAbs()));
+	connect(pbMajVoteMinDiffPercentStore, SIGNAL(clicked()), this, SLOT(MajVoteMinDiff()));
+	connect(pbMajVoteMinRatioStore, SIGNAL(clicked()), this, SLOT(MajVoteRatio()));
 	connect(slMajVoteAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(MajVoteAbsMinPercentSlider(int)));
 	connect(slMajVoteMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MajVoteMinDiffPercentSlider(int)));
 	connect(slMajVoteMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MajVoteMinRatioSlider(int)));
@@ -486,6 +488,8 @@ void dlg_GEMSeControl::EnableClusteringDependantButtons()
 	pbRefImgComp->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
 	pbMajVoteMinAbsPercentStore->setEnabled(true);
+	pbMajVoteMinDiffPercentStore->setEnabled(true);
+	pbMajVoteMinRatioStore->setEnabled(true);
 }
 
 
@@ -624,8 +628,62 @@ void dlg_GEMSeControl::MajVoteMinRatioSlider(int)
 	lbMajVoteMinRatio->setText(QString::number(minRatio, 'f', 2));
 	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, minRatio);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
+}
+
+iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleResult> > selection,
+	double minAbsPercentage, double minDiffPercentage, double minRatio, int mode)
+{
+	typedef ParametrizableLabelVotingImageFilter<LabelImageType> LabelVotingType;
+	LabelVotingType::Pointer labelVotingFilter;
+	labelVotingFilter = LabelVotingType::New();
+	if (minAbsPercentage >= 0) labelVotingFilter->SetAbsoluteMinimumPercentage(minAbsPercentage);
+	if (minDiffPercentage >= 0) labelVotingFilter->SetMinimumDifferencePercentage(minDiffPercentage);
+	if (minRatio >= 0) labelVotingFilter->SetMinimumRatio(minRatio);
+
+	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
+	{
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->GetLabelledImage().GetPointer());
+		labelVotingFilter->SetInput(i, lblImg);
+	}
+	labelVotingFilter->Update();
+	typename LabelVotingType::NumberImg::Pointer labelResult = labelVotingFilter->GetNumbers(mode);
+	// according to https://stackoverflow.com/questions/27016173/pointer-casts-for-itksmartpointer,
+	// the following does not leave a "dangling" smart pointer:
+	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(labelResult.GetPointer());
+	return result;
+}
+
+void dlg_GEMSeControl::MajVoteMinAbs()
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double minAbs = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
+	lbMajVoteMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 1) + " %");
+	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, minAbs, -1, -1, AbsolutePercentage);
+	m_dlgGEMSe->AddMajorityVotingNumbers(result);
+}
+
+void dlg_GEMSeControl::MajVoteMinDiff()
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double minAbs = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
+	lbMajVoteMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 1) + " %");
+	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, minAbs, -1, -1, DiffPercentage);
+	m_dlgGEMSe->AddMajorityVotingNumbers(result);
+}
+
+void dlg_GEMSeControl::MajVoteRatio()
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double minAbs = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
+	lbMajVoteMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 1) + " %");
+	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, minAbs, -1, -1, Ratio);
+	m_dlgGEMSe->AddMajorityVotingNumbers(result);
 
 }
+
 
 void dlg_GEMSeControl::MajVoteMinAbsPercentStore()
 {

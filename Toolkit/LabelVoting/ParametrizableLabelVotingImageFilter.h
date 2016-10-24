@@ -96,6 +96,14 @@
   *
   * \ingroup ITKLabelVoting
   */
+
+enum OutputNumber
+{
+	AbsolutePercentage,
+	DiffPercentage,
+	Ratio
+};
+
 template< typename TInputImage, typename TOutputImage = TInputImage >
 class ParametrizableLabelVotingImageFilter :
 	public itk::ImageToImageFilter< TInputImage, TOutputImage >
@@ -193,6 +201,19 @@ public:
 		}
 	}
 
+	typedef itk::Image<double, 3> NumberImg;
+
+	NumberImg::Pointer GetNumbers(int mode)
+	{
+		switch (mode)
+		{
+		case AbsolutePercentage: return m_imgAbsMinPerc;
+		case DiffPercentage:     return m_imgMinDiffPerc;
+		default:
+		case Ratio:              return m_imgMinRatio;
+		}
+	}
+
 #ifdef ITK_USE_CONCEPT_CHECKING
 	// Begin concept checking
 	itkConceptMacro(InputConvertibleToOutputCheck,
@@ -240,6 +261,9 @@ private:
 	double          m_AbsMinPercentage;
 	double          m_MinDiffPercentage;
 	double          m_MinRatio;
+	typename NumberImg::Pointer m_imgAbsMinPerc;
+	typename NumberImg::Pointer m_imgMinDiffPerc;
+	typename NumberImg::Pointer m_imgMinRatio;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

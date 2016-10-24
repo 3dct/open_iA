@@ -76,6 +76,9 @@ private slots:
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
+	void MajVoteMinAbs();
+	void MajVoteMinDiff();
+	void MajVoteRatio();
 	void MajVoteMinAbsPercentStore();
 	void MajVoteAbsMinPercentSlider(int);
 	void MajVoteMinDiffPercentSlider(int);

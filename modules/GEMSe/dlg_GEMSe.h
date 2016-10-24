@@ -81,6 +81,7 @@ public:
 	void  GetSelection(QVector<QSharedPointer<iASingleResult> > &);
 	void AddMajorityVotingImage(QString const & outputPath, int id, double mvPercentage);
 	void AddMajorityVotingImage(iAITKIO::ImagePointer imgData);
+	void AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData);
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

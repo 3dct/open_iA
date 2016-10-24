@@ -357,7 +357,8 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	UpdateLikeHate(node->GetAttitude() == iAImageTreeNode::Liked, node->GetAttitude() == iAImageTreeNode::Hated);
 
 	m_detailText->clear();
-	m_detailText->append(QString("ID: ") + QString::number(node->GetID()));
+	if (node->IsLeaf() || node->GetChildCount() > 0)
+		m_detailText->append(QString("ID: ") + QString::number(node->GetID()));
 
 	//m_detailText->setMinimumWidth(m_detailText->document()->textWidth()+m_detailText->contentsMargins().left() + m_detailText->contentsMargins().right());
 	m_detailText->setMinimumWidth(50);
@@ -394,7 +395,8 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 				// else { } // collect list of all categorical values used!
 			}
 		}
-		m_detailText->append("Maximum distance: "+QString::number(node->GetDistance()));
+		if (node->IsLeaf() || node->GetChildCount() > 0)
+			m_detailText->append("Maximum distance: "+QString::number(node->GetDistance()));
 	}
 }
 
@@ -433,6 +435,12 @@ void iADetailView::SetRepresentativeType(int representativeType)
 {
 	m_representativeType = representativeType;
 	SetImage();
+}
+
+
+int iADetailView::GetRepresentativeType()
+{
+	return m_representativeType;
 }
 
 
