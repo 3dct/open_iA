@@ -54,7 +54,6 @@
 #include <vtkImageData.h>
 #include <vtkJPEGReader.h>
 #include <vtkJPEGWriter.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkPNGReader.h>
 #include <vtkPNGWriter.h>
 #include <vtkPolyData.h>
@@ -232,7 +231,6 @@ void iAIO::init(QObject *par)
 	ioID = 0;
 	iosettingsreader();
 
-	metaImageWriter = vtkMetaImageWriter::New();
 	stlWriter = vtkSTLWriter::New();
 	tifWriter = vtkTIFFWriter::New();
 	jpgWriter = vtkJPEGWriter::New();
@@ -253,8 +251,6 @@ iAIO::~iAIO()
 {
 	fileNameArray->Delete();	
 
-	metaImageWriter->ReleaseDataFlagOn();
-	metaImageWriter->Delete();
 	stlWriter->ReleaseDataFlagOn();
 	stlWriter->Delete();
 

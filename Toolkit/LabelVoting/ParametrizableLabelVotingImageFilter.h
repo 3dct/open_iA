@@ -201,9 +201,9 @@ public:
 		}
 	}
 
-	typedef itk::Image<double, 3> NumberImg;
+	typedef itk::Image<double, 3> DoubleImg;
 
-	NumberImg::Pointer GetNumbers(int mode)
+	DoubleImg::Pointer GetNumbers(int mode)
 	{
 		switch (mode)
 		{
@@ -261,9 +261,9 @@ private:
 	double          m_AbsMinPercentage;
 	double          m_MinDiffPercentage;
 	double          m_MinRatio;
-	typename NumberImg::Pointer m_imgAbsMinPerc;
-	typename NumberImg::Pointer m_imgMinDiffPerc;
-	typename NumberImg::Pointer m_imgMinRatio;
+	typename DoubleImg::Pointer m_imgAbsMinPerc;
+	typename DoubleImg::Pointer m_imgMinDiffPerc;
+	typename DoubleImg::Pointer m_imgMinRatio;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

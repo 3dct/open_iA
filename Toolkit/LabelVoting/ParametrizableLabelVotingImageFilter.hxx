@@ -101,6 +101,24 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	return maxLabel;
 }
 
+template <typename TInputImage, typename TOutputImage>
+typename TOutputImage::Pointer CreateImage(typename itk::SmartPointer<const TInputImage> otherImg)
+{
+	typename TOutputImage::Pointer image = TOutputImage::New();
+	typename TOutputImage::RegionType reg(
+		otherImg->GetLargestPossibleRegion().GetIndex(),
+		otherImg->GetLargestPossibleRegion().GetSize()
+	);
+	double outputOrigin[3];
+	outputOrigin[0] = outputOrigin[1] = outputOrigin[2] = 0;
+	image->SetOrigin(outputOrigin);
+	image->SetRegions(reg);
+	image->Allocate();
+	image->FillBuffer(0);
+	image->SetSpacing(otherImg->GetSpacing());
+	return image;
+}
+
 template< typename TInputImage, typename TOutputImage >
 void
 ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
@@ -125,21 +143,12 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	typename TOutputImage::Pointer output = this->GetOutput();
 	output->SetBufferedRegion(output->GetRequestedRegion());
 	output->Allocate();
-}
 
-template <typename TInputImage, typename TOutputImage>
-typename TOutputImage::Pointer CreateImage(typename itk::SmartPointer<const TInputImage> otherImg)
-{
-	typename TOutputImage::Pointer image = TOutputImage::New();
-	typename TOutputImage::RegionType reg(
-		otherImg->GetLargestPossibleRegion().GetIndex(),
-		otherImg->GetLargestPossibleRegion().GetSize()
-	);
-	image->SetRegions(reg);
-	image->Allocate();
-	image->FillBuffer(0);
-	image->SetSpacing(otherImg->GetSpacing());
-	return image;
+	// Allocate the images containing the "decision numbers"
+	itk::SmartPointer<const TInputImage> in0 = this->GetInput(0);
+	m_imgAbsMinPerc = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
+	m_imgMinDiffPerc = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
+	m_imgMinRatio = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
 }
 
 template< typename TInputImage, typename TOutputImage >
@@ -158,46 +167,23 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	// Record the number of input files.
 	const size_t numberOfInputFiles = this->GetNumberOfIndexedInputs();
 
-	//m_imgAbsMinPerc = CreateImage<TInputImage, NumberImg>(this->GetInput(0));
-	itk::SmartPointer<const TInputImage> in0 = this->GetInput(0);
-
-	m_imgAbsMinPerc = NumberImg::New();
-	typename NumberImg::RegionType reg(
-		in0->GetLargestPossibleRegion().GetIndex(),
-		in0->GetLargestPossibleRegion().GetSize()
-	);
-	m_imgAbsMinPerc->SetRegions(reg);
-	double outputOrigin[3];
-	outputOrigin[0] = outputOrigin[1] = outputOrigin[2];
-	m_imgAbsMinPerc->SetOrigin(outputOrigin);
-	m_imgAbsMinPerc->SetSpacing(in0->GetSpacing());
-	m_imgAbsMinPerc->Allocate();
-	m_imgAbsMinPerc->FillBuffer(0);
-	
-	
-	//m_imgMinDiffPerc = CreateImage<TInputImage, NumberImg>(this->GetInput(0));
-	//m_imgMinRatio = CreateImage<TInputImage, NumberImg>(this->GetInput(0));
-
-
 	//  create and initialize all input image iterators
 	IteratorType *it = new IteratorType[numberOfInputFiles];
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
-		it[i] = IteratorType(this->GetInput(i),
-			outputRegionForThread);
+		it[i] = IteratorType(this->GetInput(i),	outputRegionForThread);
 	}
-
 
 	unsigned int *votesByLabel = new unsigned int[this->m_TotalLabelCount];
 
 	OutIteratorType out = OutIteratorType(output, outputRegionForThread);
-	typedef itk::ImageRegionIterator<NumberImg> NumberOutIteratorType;
-	NumberOutIteratorType absOut = NumberOutIteratorType(m_imgAbsMinPerc, outputRegionForThread);
-	//NumberOutIteratorType diffOut(m_imgMinDiffPerc, outputRegionForThread);
-	//NumberOutIteratorType ratioOut(m_imgMinRatio, outputRegionForThread);
+	typedef itk::ImageRegionIterator<DoubleImg> DoubleOutIteratorType;
+	DoubleOutIteratorType absOut(m_imgAbsMinPerc, outputRegionForThread);
+	DoubleOutIteratorType diffOut(m_imgMinDiffPerc, outputRegionForThread);
+	DoubleOutIteratorType ratioOut(m_imgMinRatio, outputRegionForThread);
 	absOut.GoToBegin();
-	//diffOut.GoToBegin();
-	//ratioOut.GoToBegin();
+	diffOut.GoToBegin();
+	ratioOut.GoToBegin();
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		// reset number of votes per label for all labels
@@ -253,10 +239,11 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 		}
 		absOut.Set(firstBestGuessPercentage);
 		++absOut;
-		//diffOut.Set(firstBestGuessPercentage - secondBestGuessPercentage);
-		//++diffOut;	// numberOfInputFiles is max (if secondBestGuessVotes = 1), so set it to double that if no second best guess
-		//ratioOut.Set(secondBestGuessVotes > 0 ? (firstBestGuessVotes / secondBestGuessVotes) : numberOfInputFiles*2 );
-		//++ratioOut;
+		diffOut.Set(firstBestGuessPercentage - secondBestGuessPercentage);
+		++diffOut;
+		// if secondBestGuessVotes = 1 and no other votes, then ratio = numberOfInputFiles; for secondBestGuessVotes = 0 it thus should be slightly higher
+		ratioOut.Set(secondBestGuessVotes > 0 ? (firstBestGuessVotes / secondBestGuessVotes) : numberOfInputFiles+1 );
+		++ratioOut;
 		progress.CompletedPixel();
 	}
 

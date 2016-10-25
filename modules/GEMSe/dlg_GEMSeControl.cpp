@@ -646,7 +646,7 @@ iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleRe
 		labelVotingFilter->SetInput(i, lblImg);
 	}
 	labelVotingFilter->Update();
-	typename LabelVotingType::NumberImg::Pointer labelResult = labelVotingFilter->GetNumbers(mode);
+	typename LabelVotingType::DoubleImg::Pointer labelResult = labelVotingFilter->GetNumbers(mode);
 	// according to https://stackoverflow.com/questions/27016173/pointer-casts-for-itksmartpointer,
 	// the following does not leave a "dangling" smart pointer:
 	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(labelResult.GetPointer());
