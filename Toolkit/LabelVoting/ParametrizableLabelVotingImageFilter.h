@@ -153,21 +153,31 @@ public:
 	void SetAbsoluteMinimumPercentage(double p)
 	{
 		assert(p >= 0 && p <= 1);
-		this->m_AbsMinPercentage = p;
+		m_AbsMinPercentage = p;
 	}
 	void SetMinimumDifferencePercentage(double p)
 	{
 		assert(p >= 0 && p <= 1);
-		this->m_MinDiffPercentage = p;
+		m_MinDiffPercentage = p;
 	}
 	void SetMinimumRatio(double r)
 	{
-		this->m_MinRatio = r;
+		m_MinRatio = r;
 	}
 
 	double GetAbsoluteMinimumPercentage() const
 	{
-		return this->m_AbsoluteMinimumPercentage;
+		return m_AbsoluteMinimumPercentage;
+	}
+
+	void SetMinAvgEntropy(double e)
+	{
+		m_MinAvgEntropy = e;
+	}
+
+	void SetMinPixelEntropy(double e)
+	{
+		m_MinPixelEntropy = e;
 	}
 
 	/** Set label value for undecided pixels.
@@ -213,6 +223,8 @@ public:
 		case Ratio:              return m_imgMinRatio;
 		}
 	}
+
+	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> probImgs);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
 	// Begin concept checking
@@ -261,9 +273,15 @@ private:
 	double          m_AbsMinPercentage;
 	double          m_MinDiffPercentage;
 	double          m_MinRatio;
+
+	double			m_MinAvgEntropy;
+	double			m_MinPixelEntropy;
 	typename DoubleImg::Pointer m_imgAbsMinPerc;
 	typename DoubleImg::Pointer m_imgMinDiffPerc;
 	typename DoubleImg::Pointer m_imgMinRatio;
+	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
+	std::map<int, double> m_avgEntropy;
+
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

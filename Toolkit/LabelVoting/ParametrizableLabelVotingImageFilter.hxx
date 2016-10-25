@@ -152,9 +152,7 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 }
 
 template< typename TInputImage, typename TOutputImage >
-void
-ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
-::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
 	itk::ThreadIdType threadId)
 {
 	itk::ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
@@ -184,6 +182,16 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	absOut.GoToBegin();
 	diffOut.GoToBegin();
 	ratioOut.GoToBegin();
+	if (!m_avgEntropy.empty())
+	{
+		for (int i = 0; i < m_TotalLabelCount; ++i)
+		{
+			if (m_avgEntropy.count(i) == 0)
+			{
+				DEBUG_LOG(QString("ERROR! No Average Entropy defined for label %1").arg(i));
+			}
+		}
+	}
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		// reset number of votes per label for all labels
@@ -201,11 +209,25 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 		}
 
 		// determine the label with the most votes for this pixel
-		out.Set(0);
+		int startIdx = 0;
+		while (m_avgEntropy.count(startIdx) == 1 && m_avgEntropy[startIdx] < m_MinAvgEntropy)
+		{
+			startIdx++;
+		}
+		if (startIdx >= this->m_TotalLabelCount)
+		{
+			out.Set(m_LabelForUndecidedPixels);
+			continue;
+		}
+		out.Set(startIdx);
 		unsigned int firstBestGuessVotes = votesByLabel[0];
 		unsigned int secondBestGuessVotes = 0;
-		for (size_t l = 1; l < this->m_TotalLabelCount; ++l)
+		for (size_t l = startIdx+1; l < this->m_TotalLabelCount; ++l)
 		{
+			if (m_avgEntropy.count(l) == 1 && m_avgEntropy[l] < m_MinAvgEntropy)
+			{
+				continue;
+			}
 			if (votesByLabel[l] > firstBestGuessVotes)
 			{
 				firstBestGuessVotes = votesByLabel[l];
@@ -219,7 +241,7 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 			{
 				if (votesByLabel[l] == firstBestGuessVotes)
 				{
-					out.Set(this->m_LabelForUndecidedPixels);
+					out.Set(m_LabelForUndecidedPixels);
 				}
 			}
 		}
@@ -249,4 +271,30 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 
 	delete[] it;
 	delete[] votesByLabel;
+}
+
+template< typename TInputImage, typename TOutputImage >
+void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetProbabilityImages(
+	int inputIdx,
+	std::vector<typename DoubleImg::Pointer> probImgs)
+{
+	m_probImgs.insert(inputIdx, probImgs);
+
+	//  create and initialize all input image iterators
+	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
+	
+	typedef fhw::EntropyImageFilter<DoubleImg, DoubleImg> EntropyFilter;
+	typedef itk::StatisticsImageFilter<DoubleImg> MeanFilter;
+	auto entropyFilter = EntropyFilter::New();
+	for (int i = 0; i < probImgs.size(); ++i)
+	{
+		entropyFilter->SetInput(i, probImgs[i]);
+	}
+	entropyFilter->SetNormalize(true);
+	entropyFilter->Update();
+	auto meanFilter = MeanFilter::New();
+	meanFilter->SetInput(entropyFilter->GetOutput());
+	meanFilter->Update();
+	double avgEntropy = meanFilter->GetMean();
+	m_avgEntropy.insert(inputIdx, avgEntropy);
 }
