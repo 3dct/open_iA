@@ -76,6 +76,7 @@ public:
 	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
 	void SelectRow(int idx);
 	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
+	void EnableUI();
 public slots:
 	//! add modality to list, create transfer function, show histogram, add volume to renderers
 	void ModalityAdded(QSharedPointer<iAModality> mod);

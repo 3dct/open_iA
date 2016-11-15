@@ -390,6 +390,7 @@ void MdiChild::enableRenderWindows()
 		}
 	}
 	updateImageProperties();
+	m_dlgModalities->EnableUI();
 }
 
 void MdiChild::updateProgressBar(int i)

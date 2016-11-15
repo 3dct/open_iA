@@ -277,6 +277,14 @@ void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTran
 	connect(m_currentHistogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(AutoUpdateChanged(bool)));
 }
 
+
+void dlg_modalities::EnableUI()
+{
+	pbAdd->setEnabled(true);
+	cbManualRegistration->setEnabled(true);
+	cbShowMagicLens->setEnabled(true);
+}
+
 void dlg_modalities::RemoveClicked()
 {
 	int idx = lwModalities->currentRow();
