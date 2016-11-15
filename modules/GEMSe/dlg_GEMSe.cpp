@@ -313,7 +313,7 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->IsLogScale(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(2))->IsLogScale(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->IsLogScale(),
 		m_chartAttributeMapper,
 		m_chartFilter,
 		m_treeView->GetTree()->m_root.data(),
