@@ -122,7 +122,7 @@ void dlg_modalities::AddClicked()
 
 	const int DefaultRenderFlags = iAModality::MainRenderer;
 
-	// TODO: unify this with mdichild::loadFile
+	// TODO: unify this with mdichild::loadFile!
 	if (fileName.endsWith(iAIO::VolstackExtension))
 	{
 		std::vector<vtkSmartPointer<vtkImageData> > volumes;
