@@ -182,7 +182,8 @@ void dlg_modalities::AddClicked()
 			for (int i = 0; i < channels; ++i)
 			{
 				QSharedPointer<iAModality> newModality(new iAModality(
-					fi.baseName(), fileName, i, volumes[i], DefaultRenderFlags));
+					fi.baseName() + "-ch" + QString::number(i),
+					fileName, i, volumes[i], DefaultRenderFlags));
 				modalities->Add(newModality);
 			}
 		}
