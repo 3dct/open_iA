@@ -129,12 +129,18 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbResetFilters,     SIGNAL(clicked()), m_dlgGEMSe, SLOT(ResetFilters()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
-	connect(pbMajVoteMinAbsPercentStore, SIGNAL(clicked()), this, SLOT(MajVoteMinAbs()));
-	connect(pbMajVoteMinDiffPercentStore, SIGNAL(clicked()), this, SLOT(MajVoteMinDiff()));
-	connect(pbMajVoteMinRatioStore, SIGNAL(clicked()), this, SLOT(MajVoteRatio()));
+
+	connect(pbMajVoteMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MajVoteMinAbsPlot()));
+	connect(pbMajVoteMinDiffPercent_Plot, SIGNAL(clicked()), this, SLOT(MajVoteMinDiffPlot()));
+	connect(pbMajVoteMinRatio_Plot, SIGNAL(clicked()), this, SLOT(MajVoteRatioPlot()));
+	connect(pbMajVoteMinAvgEntropy_Plot, SIGNAL(clicked()), this, SLOT(MajVoteMinAvgEntropyPlot()));
+	connect(pbMajVoteMinPixelEntropy_Plot, SIGNAL(clicked()), this, SLOT(MajVoteMinPixelEntropyPlot()));
+
 	connect(slMajVoteAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(MajVoteAbsMinPercentSlider(int)));
 	connect(slMajVoteMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MajVoteMinDiffPercentSlider(int)));
 	connect(slMajVoteMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MajVoteMinRatioSlider(int)));
+	connect(slMajVoteMinAvgEntropy, SIGNAL(valueChanged(int)), this, SLOT(MajVoteMinAvgEntropySlider(int)));
+	connect(slMajVoteMinPixelEntropy, SIGNAL(valueChanged(int)), this, SLOT(MajVoteMinPixelEntropySlider(int)));
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
@@ -487,9 +493,11 @@ void dlg_GEMSeControl::EnableClusteringDependantButtons()
 	pbClusteringStore->setEnabled(true);
 	pbRefImgComp->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
-	pbMajVoteMinAbsPercentStore->setEnabled(true);
-	pbMajVoteMinDiffPercentStore->setEnabled(true);
-	pbMajVoteMinRatioStore->setEnabled(true);
+	pbMajVoteMinAbsPercent_Plot->setEnabled(true);
+	pbMajVoteMinDiffPercent_Plot->setEnabled(true);
+	pbMajVoteMinRatio_Plot->setEnabled(true);
+	pbMajVoteMinAvgEntropy_Plot->setEnabled(true);
+	pbMajVoteMinPixelEntropy_Plot->setEnabled(true);
 }
 
 
@@ -633,6 +641,26 @@ void dlg_GEMSeControl::MajVoteMinRatioSlider(int)
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
 
+void dlg_GEMSeControl::MajVoteMinAvgEntropySlider(int)
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double minAvgEntropy = static_cast<double>(slMajVoteMinAvgEntropy->value()) / slMajVoteMinAvgEntropy->maximum();
+	lbMajVoteMinAvgEntropy->setText(QString::number(minAvgEntropy, 'f', 2));
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, -1, minAvgEntropy, -1);
+	m_dlgGEMSe->AddMajorityVotingImage(result);
+}
+
+void dlg_GEMSeControl::MajVoteMinPixelEntropySlider(int)
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double minPixelEntropy = static_cast<double>(slMajVoteMinPixelEntropy->value()) / slMajVoteMinPixelEntropy->maximum();
+	lbMajVoteMinPixelEntropy->setText(QString::number(minPixelEntropy, 'f', 2));
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, -1, -1, minPixelEntropy);
+	m_dlgGEMSe->AddMajorityVotingImage(result);
+}
+
 iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double minAvgEntropy, double minPixelEntropy, int mode)
 {
@@ -643,7 +671,7 @@ iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleRe
 	if (minDiffPercentage >= 0) labelVotingFilter->SetMinimumDifferencePercentage(minDiffPercentage);
 	if (minRatio >= 0) labelVotingFilter->SetMinimumRatio(minRatio);
 	if (minAvgEntropy >= 0) labelVotingFilter->SetMinAvgEntropy(minAvgEntropy);
-	if (minPixelEntropy >= 0) labelVotingFilter->SetMinAvgEntropy(minPixelEntropy);
+	if (minPixelEntropy >= 0) labelVotingFilter->SetMinPixelEntropy(minPixelEntropy);
 
 	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
 	{
@@ -658,38 +686,53 @@ iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleRe
 	return result;
 }
 
-void dlg_GEMSeControl::MajVoteMinAbs()
+void dlg_GEMSeControl::MajVoteMinAbsPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minAbs = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
-	lbMajVoteMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 1) + " %");
 	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, minAbs, -1, -1, -1, -1, AbsolutePercentage);
 	m_dlgGEMSe->AddMajorityVotingNumbers(result);
 }
 
-void dlg_GEMSeControl::MajVoteMinDiff()
+void dlg_GEMSeControl::MajVoteMinDiffPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
-	double minAbs = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
-	lbMajVoteMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 1) + " %");
-	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, minAbs, -1, -1, -1, -1, DiffPercentage);
+	double minDiff = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
+	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, -1, minDiff, -1, -1, -1, DiffPercentage);
 	m_dlgGEMSe->AddMajorityVotingNumbers(result);
 }
 
-void dlg_GEMSeControl::MajVoteRatio()
+void dlg_GEMSeControl::MajVoteRatioPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
-	double minAbs = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
-	lbMajVoteMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 1) + " %");
-	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, minAbs, -1, -1, -1, -1, Ratio);
+	double minRatio = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
+	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, -1, -1, minRatio, -1, -1, Ratio);
 	m_dlgGEMSe->AddMajorityVotingNumbers(result);
-
 }
 
 
+void dlg_GEMSeControl::MajVoteMinAvgEntropyPlot()
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double minAvgEntropy = static_cast<double>(slMajVoteMinAvgEntropy->value()) / slMajVoteMinAvgEntropy->maximum();
+	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, -1, -1, -1, minAvgEntropy, -1, PixelEntropy);
+	m_dlgGEMSe->AddMajorityVotingNumbers(result);
+}
+
+void dlg_GEMSeControl::MajVoteMinPixelEntropyPlot()
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	double minPixelEntropy = static_cast<double>(slMajVoteAbsMinPercent->value()) / slMajVoteAbsMinPercent->maximum();
+	iAITKIO::ImagePointer result = GetMajorityVotingNumbers(m_selection, -1, -1, -1, -1, minPixelEntropy, PixelEntropy);
+	m_dlgGEMSe->AddMajorityVotingNumbers(result);
+}
+
+/*
 void dlg_GEMSeControl::MajVoteMinAbsPercentStore()
 {
 
@@ -740,6 +783,7 @@ void dlg_GEMSeControl::MajVoteMinAbsPercentStore()
 	majorityVotingID++;
 	//m_dlgSamplings->Add(majoritySamplingResults);
 }
+*/
 
 
 void dlg_GEMSeControl::ExportAttributeRangeRanking()

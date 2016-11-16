@@ -198,33 +198,41 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		std::fill_n(votesByLabel, this->m_TotalLabelCount, 0);
 
 		// count number of votes for the labels
+		int consideredFiles = 0;
 		for (unsigned int i = 0; i < numberOfInputFiles; ++i)
 		{
 			const InputPixelType label = it[i].Get();
+			++(it[i]);
+			// calculate entropy of the current pixel for each input file
+			double pixelEntropy = 0;
+			for (unsigned int i=0; i<m_TotalLabelCount; ++i)
+			{
+				m_probImgs
+
+			if (m_MinAvgEntropy >= 0 && m_avgEntropy.count(startIdx) == 1 && m_avgEntropy[startIdx] > m_MinAvgEntropy)
+			{
+				continue;
+			}
+			consideredFiles++;
 			if (itk::NumericTraits<InputPixelType>::IsNonnegative(label))
 			{
 				++votesByLabel[label];
 			}
-			++(it[i]);
 		}
-
-		// determine the label with the most votes for this pixel
-		int startIdx = 0;
-		while (m_avgEntropy.count(startIdx) == 1 && m_avgEntropy[startIdx] < m_MinAvgEntropy)
-		{
-			startIdx++;
-		}
-		if (startIdx >= this->m_TotalLabelCount)
+		if (consideredFiles == 0)
 		{
 			out.Set(m_LabelForUndecidedPixels);
 			continue;
 		}
-		out.Set(startIdx);
+
+		// determine the label with the most votes for this pixel
+
+		out.Set(0);
 		unsigned int firstBestGuessVotes = votesByLabel[0];
 		unsigned int secondBestGuessVotes = 0;
-		for (size_t l = startIdx+1; l < this->m_TotalLabelCount; ++l)
+		for (size_t l = 1; l < m_TotalLabelCount; ++l)
 		{
-			if (m_avgEntropy.count(l) == 1 && m_avgEntropy[l] < m_MinAvgEntropy)
+			if (m_avgEntropy.count(l) == 1 && m_avgEntropy[l] > m_MinAvgEntropy)
 			{
 				continue;
 			}
@@ -259,6 +267,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		{
 			out.Set(this->m_LabelForUndecidedPixels);
 		}
+		if (m_MinPixelEntropy >= 0 && m_MinPixelEntropy)
 		absOut.Set(firstBestGuessPercentage);
 		++absOut;
 		diffOut.Set(firstBestGuessPercentage - secondBestGuessPercentage);

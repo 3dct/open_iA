@@ -278,7 +278,11 @@ bool iAImageNodeWidget::IsAutoShrinked() const
 
 bool iAImageNodeWidget::UpdateRepresentative()
 {
-	if (!m_imageView || !m_cluster->GetRepresentativeImage(m_representativeType))
+	if (!m_imageView)
+	{
+		return true;
+	}
+	if (!m_cluster->GetRepresentativeImage(m_representativeType))
 	{
 		return false;
 	}

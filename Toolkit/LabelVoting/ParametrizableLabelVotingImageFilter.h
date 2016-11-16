@@ -101,7 +101,8 @@ enum OutputNumber
 {
 	AbsolutePercentage,
 	DiffPercentage,
-	Ratio
+	Ratio,
+	PixelEntropy
 };
 
 template< typename TInputImage, typename TOutputImage = TInputImage >

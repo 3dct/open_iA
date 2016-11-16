@@ -142,7 +142,7 @@
      </widget>
     </item>
     <item row="5" column="5">
-     <widget class="QPushButton" name="pbMajVoteMinDiffPercentStore">
+     <widget class="QPushButton" name="pbMajVoteMinDiffPercent_Plot">
       <property name="enabled">
        <bool>false</bool>
       </property>
@@ -196,7 +196,7 @@
      </widget>
     </item>
     <item row="4" column="5">
-     <widget class="QPushButton" name="pbMajVoteMinAbsPercentStore">
+     <widget class="QPushButton" name="pbMajVoteMinAbsPercent_Plot">
       <property name="enabled">
        <bool>false</bool>
       </property>
@@ -347,7 +347,7 @@
      </widget>
     </item>
     <item row="6" column="5">
-     <widget class="QPushButton" name="pbMajVoteMinRatioStore">
+     <widget class="QPushButton" name="pbMajVoteMinRatio_Plot">
       <property name="enabled">
        <bool>false</bool>
       </property>
@@ -403,16 +403,36 @@
      </widget>
     </item>
     <item row="7" column="4">
-     <widget class="QLabel" name="lbMajVoteMinDiffPercent_2">
+     <widget class="QLabel" name="lbMajVoteMinAvgEntropy">
       <property name="text">
        <string>0%</string>
       </property>
      </widget>
     </item>
     <item row="8" column="4">
-     <widget class="QLabel" name="lbMajVoteMinDiffPercent_3">
+     <widget class="QLabel" name="lbMajVoteMinPixelEntropy">
       <property name="text">
        <string>0%</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="5">
+     <widget class="QPushButton" name="pbMajVoteMinAvgEntropy_Plot">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Plot</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="5">
+     <widget class="QPushButton" name="pbMajVoteMinPixelEntropy_Plot">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Plot</string>
       </property>
      </widget>
     </item>

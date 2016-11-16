@@ -76,13 +76,17 @@ private slots:
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
-	void MajVoteMinAbs();
-	void MajVoteMinDiff();
-	void MajVoteRatio();
-	void MajVoteMinAbsPercentStore();
+	void MajVoteMinAbsPlot();
+	void MajVoteMinDiffPlot();
+	void MajVoteRatioPlot();
+	void MajVoteMinAvgEntropyPlot();
+	void MajVoteMinPixelEntropyPlot();
+	//void MajVoteMinAbsPercentStore();
 	void MajVoteAbsMinPercentSlider(int);
 	void MajVoteMinDiffPercentSlider(int);
 	void MajVoteMinRatioSlider(int);
+	void MajVoteMinAvgEntropySlider(int);
+	void MajVoteMinPixelEntropySlider(int);
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantButtons();
