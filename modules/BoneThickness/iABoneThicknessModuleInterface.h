@@ -32,6 +32,8 @@ class iABoneThicknessModuleInterface : public iAModuleInterface
 	~iABoneThicknessModuleInterface();
 
 	void Initialize();
+protected:
+	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 
   private slots:
 	void slotBoneThickness();

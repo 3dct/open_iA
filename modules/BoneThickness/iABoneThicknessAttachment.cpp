@@ -19,34 +19,17 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iABoneThicknessModuleInterface.h"
 #include "iABoneThicknessAttachment.h"
+
+#include "mdichild.h"
 #include "mainwindow.h"
 
-#include <QDockWidget>
-
-iABoneThicknessModuleInterface::iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
-iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
-void iABoneThicknessModuleInterface::Initialize( )
+iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow * mainWnd, iAChildData childData):
+	iAModuleAttachmentToChild(mainWnd, childData)
 {
-	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
+	m_dlg = new QDockWidget();
+	m_dlg->setWidget(new QLabel("Test"));
 
-	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "bone thickness", 0), m_mainWnd));
-	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));
-	toolsMenu->addAction(pBoneThickness);
+	childData.child->tabifyDockWidget(childData.logs, m_dlg);
 }
 
-void iABoneThicknessModuleInterface::slotBoneThickness()
-{
-	PrepareActiveChild();
-	AttachToMdiChild(m_mdiChild);
-}
-
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	return new iABoneThicknessAttachment(mainWnd, childData);
-}
