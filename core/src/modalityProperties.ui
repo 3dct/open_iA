@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>271</width>
-    <height>165</height>
+    <width>289</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,10 +29,10 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="edFilename">
-        <property name="enabled">
-         <bool>false</bool>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Position</string>
         </property>
        </widget>
       </item>
@@ -46,34 +46,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="edName"/>
-      </item>
-      <item row="5" column="1">
-       <widget class="QCheckBox" name="cbBoundingBox">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Bounding Box</string>
+         <string>Orientation</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="cbMainRenderer">
-        <property name="text">
-         <string>Main Renderer</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Show in</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="cbMagicLens">
-        <property name="text">
-         <string>Magic Lens</string>
         </property>
        </widget>
       </item>
@@ -94,10 +77,83 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="dspPositionX">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="3">
        <widget class="QLineEdit" name="edChannel">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="3">
+       <widget class="QLineEdit" name="edFilename">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="3">
+       <widget class="QLineEdit" name="edName"/>
+      </item>
+      <item row="3" column="2">
+       <widget class="QDoubleSpinBox" name="dspPositionY">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QDoubleSpinBox" name="dspPositionZ">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QDoubleSpinBox" name="dspOrientationX">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QDoubleSpinBox" name="dspOrientationY">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QDoubleSpinBox" name="dspOrientationZ">
+        <property name="decimals">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1" colspan="3">
+       <widget class="QCheckBox" name="cbMainRenderer">
+        <property name="text">
+         <string>Main Renderer</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1" colspan="3">
+       <widget class="QCheckBox" name="cbMagicLens">
+        <property name="text">
+         <string>Magic Lens</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1" colspan="3">
+       <widget class="QCheckBox" name="cbBoundingBox">
+        <property name="text">
+         <string>Bounding Box</string>
         </property>
        </widget>
       </item>

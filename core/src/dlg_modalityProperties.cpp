@@ -23,6 +23,7 @@
 #include "dlg_modalityProperties.h"
 
 #include "iAModality.h"
+#include "iAVolumeRenderer.h"
 
 dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality):
 	dlg_modalityPropertiesUI(parent),
@@ -34,6 +35,21 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
 	cbMainRenderer->setChecked(modality->hasRenderFlag(iAModality::MainRenderer));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
+
+	double * orientation = modality->GetRenderer()->GetOrientation();
+	double * position = modality->GetRenderer()->GetPosition();
+
+	double minSpacing = std::min(modality->GetSpacing()[0], std::min(modality->GetSpacing()[1], modality->GetSpacing()[2]));
+	int placesAfterComma = 1 - (std::min(static_cast<int>(std::log10(minSpacing)), 0));
+
+	dspPositionX->setValue(position[0]);
+	dspPositionY->setValue(position[1]);
+	dspPositionZ->setValue(position[2]);
+
+	dspOrientationX->setValue(orientation[0]);
+	dspOrientationY->setValue(orientation[1]);
+	dspOrientationZ->setValue(orientation[2]);
+
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
 }
@@ -46,5 +62,17 @@ void dlg_modalityProperties::OKButtonClicked()
 		(cbMainRenderer->isChecked() ? iAModality::MainRenderer : 0) |
 		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0)
 	);
+	double orientation[3];
+	double position[3];
+	position[0] = dspPositionX->value();
+	position[1] = dspPositionY->value();
+	position[2] = dspPositionZ->value();
+
+	orientation[0] = dspOrientationX->value();
+	orientation[1] = dspOrientationY->value();
+	orientation[2] = dspOrientationZ->value();
+
+	m_modality->GetRenderer()->SetOrientation(orientation);
+	m_modality->GetRenderer()->SetPosition(position);
 	done(QDialog::Accepted);
 }
