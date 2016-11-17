@@ -21,11 +21,11 @@
 #include "pch.h"
 #include "iADerivedOutputCalculator.h"
 
+#include "EntropyImageFilter.h"
 #include "iAAttributes.h"
 #include "iAConsole.h"
 #include "iAImageTreeNode.h"
 #include "iASingleResult.h"
-
 
 #include <itkImageFileWriter.h>
 #include <itkRelabelComponentImageFilter.h>
@@ -76,22 +76,24 @@ void iADerivedOutputCalculator::run()
 
 		if (m_result->ProbabilityAvailable())
 		{
+
+			typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
+
+			typedef fhw::EntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
+			typedef itk::StatisticsImageFilter<ProbabilityImageType> MeanFilter;
+			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{
 				ProbabilityImageType* probImg = dynamic_cast<ProbabilityImageType*>(m_result->GetProbabilityImg(i).GetPointer());
-				if (!probImg)
-				{
-					DEBUG_LOG(QString("Invalid probability image type!"));
-					m_success = false;
-					return;
-				}
-				probImg->ReleaseDataFlagOff();
-				typedef itk::StatisticsImageFilter<ProbabilityImageType> StatImgFilter;
-				StatImgFilter::Pointer statisticsImageFilter = StatImgFilter::New();
-				statisticsImageFilter->SetInput(probImg);
-				statisticsImageFilter->Update();
-				m_result->SetAttribute(m_avgUncIdx, statisticsImageFilter->GetMean());
+				entropyFilter->SetInput(i, probImg);
 			}
+			entropyFilter->SetNormalize(true);
+			entropyFilter->Update();
+			auto meanFilter = MeanFilter::New();
+			meanFilter->SetInput(entropyFilter->GetOutput());
+			meanFilter->Update();
+			double avgEntropy = meanFilter->GetMean();
+			m_result->SetAttribute(m_avgUncIdx, avgEntropy);
 			m_result->DiscardProbability();
 		}
 	} catch (std::exception & e)

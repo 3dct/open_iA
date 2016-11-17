@@ -27,6 +27,8 @@
 
 #include "itkMath.h"
 
+#include "iAMathUtility.h"
+
 namespace fhw
 {
 

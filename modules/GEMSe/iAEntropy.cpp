@@ -30,6 +30,8 @@
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
 
+// TODO: use EntropyImageFilter instead!
+
 vtkSmartPointer<vtkLookupTable> BuildEntropyCTF()
 {
 	const int NumberOfColors = 256;
