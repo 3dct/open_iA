@@ -79,14 +79,14 @@ private slots:
 	void MajVoteMinAbsPlot();
 	void MajVoteMinDiffPlot();
 	void MajVoteRatioPlot();
-	void MajVoteMinAvgEntropyPlot();
-	void MajVoteMinPixelEntropyPlot();
+	void MajVoteMaxAvgEntropyPlot();
+	void MajVoteMaxPixelEntropyPlot();
 	//void MajVoteMinAbsPercentStore();
 	void MajVoteAbsMinPercentSlider(int);
 	void MajVoteMinDiffPercentSlider(int);
 	void MajVoteMinRatioSlider(int);
-	void MajVoteMinAvgEntropySlider(int);
-	void MajVoteMinPixelEntropySlider(int);
+	void MajVoteMaxAvgEntropySlider(int);
+	void MajVoteMaxPixelEntropySlider(int);
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantButtons();

@@ -171,14 +171,14 @@ public:
 		return m_AbsoluteMinimumPercentage;
 	}
 
-	void SetMinAvgEntropy(double e)
+	void SetMaxAvgEntropy(double e)
 	{
-		m_MinAvgEntropy = e;
+		m_MaxAvgEntropy = e;
 	}
 
-	void SetMinPixelEntropy(double e)
+	void SetMaxPixelEntropy(double e)
 	{
-		m_MinPixelEntropy = e;
+		m_MaxPixelEntropy = e;
 	}
 
 	/** Set label value for undecided pixels.
@@ -213,6 +213,7 @@ public:
 	}
 
 	typedef itk::Image<double, 3> DoubleImg;
+	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
 
 	DoubleImg::Pointer GetNumbers(int mode)
 	{
@@ -275,11 +276,12 @@ private:
 	double          m_MinDiffPercentage;
 	double          m_MinRatio;
 
-	double			m_MinAvgEntropy;
-	double			m_MinPixelEntropy;
+	double			m_MaxAvgEntropy;
+	double			m_MaxPixelEntropy;
 	typename DoubleImg::Pointer m_imgAbsMinPerc;
 	typename DoubleImg::Pointer m_imgMinDiffPerc;
 	typename DoubleImg::Pointer m_imgMinRatio;
+	typename DoubleImg::Pointer m_imgPixelEntropy;
 	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
 	std::map<int, double> m_avgEntropy;
 

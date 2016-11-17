@@ -66,20 +66,6 @@ EntropyImageFilter< TInputImage, TOutputImage >
 ::BeforeThreadedGenerateData()
 {
 	Superclass::BeforeThreadedGenerateData();
-
-	// determine the maximum label in all input images
-	this->m_TotalLabelCount =
-		static_cast<size_t>(this->ComputeMaximumInputValue()) + 1;
-
-	if (!this->m_HasLabelForUndecidedPixels)
-	{
-		if (this->m_TotalLabelCount > itk::NumericTraits<OutputPixelType>::max())
-		{
-			itkWarningMacro("No new label for undecided pixels, using zero.");
-		}
-		this->m_LabelForUndecidedPixels = static_cast<OutputPixelType>(this->m_TotalLabelCount);
-	}
-
 	// Allocate the output image.
 	typename TOutputImage::Pointer output = this->GetOutput();
 	output->SetBufferedRegion(output->GetRequestedRegion());
@@ -110,6 +96,7 @@ void EntropyImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const O
 	double limit = -std::log(1.0 / numberOfInputFiles);
 	double normalizeFactor = m_normalize ? 1 / limit : 1;
 
+	OutIteratorType out = OutIteratorType(output, outputRegionForThread);
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		double entropy = 0.0;

@@ -359,19 +359,19 @@
     <item row="7" column="1">
      <widget class="QLabel" name="label_16">
       <property name="text">
-       <string>Min. Avg. Ent.</string>
+       <string>Max. Avg. Ent.</string>
       </property>
      </widget>
     </item>
     <item row="8" column="1">
      <widget class="QLabel" name="label_17">
       <property name="text">
-       <string>Min. Pixel Ent.</string>
+       <string>Max. Pixel Ent.</string>
       </property>
      </widget>
     </item>
     <item row="7" column="3">
-     <widget class="QSlider" name="slMajVoteMinAvgEntropy">
+     <widget class="QSlider" name="slMajVoteMaxAvgEntropy">
       <property name="minimum">
        <number>0</number>
       </property>
@@ -387,7 +387,7 @@
      </widget>
     </item>
     <item row="8" column="3">
-     <widget class="QSlider" name="slMajVoteMinPixelEntropy">
+     <widget class="QSlider" name="slMajVoteMaxPixelEntropy">
       <property name="minimum">
        <number>0</number>
       </property>
@@ -403,21 +403,21 @@
      </widget>
     </item>
     <item row="7" column="4">
-     <widget class="QLabel" name="lbMajVoteMinAvgEntropy">
+     <widget class="QLabel" name="lbMajVoteMaxAvgEntropy">
       <property name="text">
        <string>0%</string>
       </property>
      </widget>
     </item>
     <item row="8" column="4">
-     <widget class="QLabel" name="lbMajVoteMinPixelEntropy">
+     <widget class="QLabel" name="lbMajVoteMaxPixelEntropy">
       <property name="text">
        <string>0%</string>
       </property>
      </widget>
     </item>
     <item row="7" column="5">
-     <widget class="QPushButton" name="pbMajVoteMinAvgEntropy_Plot">
+     <widget class="QPushButton" name="pbMajVoteMaxAvgEntropy_Plot">
       <property name="enabled">
        <bool>false</bool>
       </property>
@@ -427,7 +427,7 @@
      </widget>
     </item>
     <item row="8" column="5">
-     <widget class="QPushButton" name="pbMajVoteMinPixelEntropy_Plot">
+     <widget class="QPushButton" name="pbMajVoteMaxPixelEntropy_Plot">
       <property name="enabled">
        <bool>false</bool>
       </property>

@@ -48,16 +48,21 @@
 #include "ParametrizableLabelVotingImageFilter.h"
 
 #include "itkImageRegionIterator.h"
-#include "itkProgressReporter.h"
-
 #include "itkMath.h"
+#include "itkProgressReporter.h"
+#include "itkStatisticsImageFilter.h"
+
+#include "EntropyImageFilter.h"
+#include "iAMathUtility.h"
 
 template< typename TInputImage, typename TOutputImage >
 ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 ::ParametrizableLabelVotingImageFilter():
 	m_AbsMinPercentage(-1),
 	m_MinDiffPercentage(-1),
-	m_MinRatio(-1)
+	m_MinRatio(-1),
+	m_MaxAvgEntropy(-1),
+	m_MaxPixelEntropy(-1)
 {
 	this->m_HasLabelForUndecidedPixels = false;
 	this->m_LabelForUndecidedPixels = 0;
@@ -149,6 +154,7 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	m_imgAbsMinPerc = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
 	m_imgMinDiffPerc = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
 	m_imgMinRatio = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
+	m_imgPixelEntropy = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
 }
 
 template< typename TInputImage, typename TOutputImage >
@@ -167,21 +173,37 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 
 	//  create and initialize all input image iterators
 	IteratorType *it = new IteratorType[numberOfInputFiles];
+	if (m_probImgs.size() == 0)
+	{
+		m_MaxPixelEntropy = -1;
+	}
+	ConstDblIt ** probIt = new ConstDblIt*[numberOfInputFiles];
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
-		it[i] = IteratorType(this->GetInput(i),	outputRegionForThread);
+		it[i] = IteratorType(GetInput(i),	outputRegionForThread);
+		if (m_MaxPixelEntropy >= 0)
+		{
+			probIt[i] = new ConstDblIt[m_TotalLabelCount];
+			for (size_t l = 0; l < m_TotalLabelCount; ++l)
+			{
+				probIt[i][l] = ConstDblIt(m_probImgs[i][l], outputRegionForThread);
+				probIt[i][l].GoToBegin();
+			}
+		}
 	}
 
-	unsigned int *votesByLabel = new unsigned int[this->m_TotalLabelCount];
+	unsigned int *votesByLabel = new unsigned int[m_TotalLabelCount];
 
 	OutIteratorType out = OutIteratorType(output, outputRegionForThread);
 	typedef itk::ImageRegionIterator<DoubleImg> DoubleOutIteratorType;
 	DoubleOutIteratorType absOut(m_imgAbsMinPerc, outputRegionForThread);
 	DoubleOutIteratorType diffOut(m_imgMinDiffPerc, outputRegionForThread);
 	DoubleOutIteratorType ratioOut(m_imgMinRatio, outputRegionForThread);
+	DoubleOutIteratorType entropyOut(m_imgPixelEntropy, outputRegionForThread);
 	absOut.GoToBegin();
 	diffOut.GoToBegin();
 	ratioOut.GoToBegin();
+	entropyOut.GoToBegin();
 	if (!m_avgEntropy.empty())
 	{
 		for (int i = 0; i < m_TotalLabelCount; ++i)
@@ -192,26 +214,53 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 			}
 		}
 	}
+	double limit = -std::log(1.0 / numberOfInputFiles);
+	double normalizeFactor = 1 / limit;
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		// reset number of votes per label for all labels
-		std::fill_n(votesByLabel, this->m_TotalLabelCount, 0);
+		std::fill_n(votesByLabel, m_TotalLabelCount, 0);
 
 		// count number of votes for the labels
 		int consideredFiles = 0;
+		double avgPixelEntropy = 0;
 		for (unsigned int i = 0; i < numberOfInputFiles; ++i)
 		{
 			const InputPixelType label = it[i].Get();
 			++(it[i]);
-			// calculate entropy of the current pixel for each input file
-			double pixelEntropy = 0;
-			for (unsigned int i=0; i<m_TotalLabelCount; ++i)
-			{
-				m_probImgs
-
-			if (m_MinAvgEntropy >= 0 && m_avgEntropy.count(startIdx) == 1 && m_avgEntropy[startIdx] > m_MinAvgEntropy)
+			if (m_MaxAvgEntropy >= 0 && m_avgEntropy.count(i) == 1 && m_avgEntropy[i] > m_MaxAvgEntropy)
 			{
 				continue;
+			}
+			// calculate entropy of the current pixel for each input file
+			if (m_MaxPixelEntropy >= 0)
+			{
+				double entropy = 0.0;
+				double probSum = 0.0;
+				for (unsigned int l = 0; l < m_TotalLabelCount; ++l)
+				{
+					if (probIt[i][l].IsAtEnd())
+					{
+						DEBUG_LOG("Prob It at end.");
+					}
+					const InputPixelType probValue = probIt[i][l].Get();
+					++(probIt[i][l]);
+					probSum += probValue;
+					if (probValue > 0)
+					{
+						entropy += (probValue * std::log(probValue));
+					}
+				}
+				entropy = -entropy;
+				assert(entropy >= -0.000000001 && entropy <= limit + 0.000000001);
+				assert(probSum >= 0.999999999 && probSum <= 1.000000001);
+				entropy = clamp(0.0, limit, entropy);
+				entropy = entropy * normalizeFactor;
+				avgPixelEntropy += entropy;
+				if (entropy > m_MaxPixelEntropy)
+				{
+					continue;
+				}
 			}
 			consideredFiles++;
 			if (itk::NumericTraits<InputPixelType>::IsNonnegative(label))
@@ -225,6 +274,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 			continue;
 		}
 
+		avgPixelEntropy = avgPixelEntropy / numberOfInputFiles;
 		// determine the label with the most votes for this pixel
 
 		out.Set(0);
@@ -232,10 +282,6 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		unsigned int secondBestGuessVotes = 0;
 		for (size_t l = 1; l < m_TotalLabelCount; ++l)
 		{
-			if (m_avgEntropy.count(l) == 1 && m_avgEntropy[l] > m_MinAvgEntropy)
-			{
-				continue;
-			}
 			if (votesByLabel[l] > firstBestGuessVotes)
 			{
 				firstBestGuessVotes = votesByLabel[l];
@@ -267,7 +313,6 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		{
 			out.Set(this->m_LabelForUndecidedPixels);
 		}
-		if (m_MinPixelEntropy >= 0 && m_MinPixelEntropy)
 		absOut.Set(firstBestGuessPercentage);
 		++absOut;
 		diffOut.Set(firstBestGuessPercentage - secondBestGuessPercentage);
@@ -275,10 +320,20 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		// if secondBestGuessVotes = 1 and no other votes, then ratio = numberOfInputFiles; for secondBestGuessVotes = 0 it thus should be slightly higher
 		ratioOut.Set(secondBestGuessVotes > 0 ? (firstBestGuessVotes / secondBestGuessVotes) : numberOfInputFiles+1 );
 		++ratioOut;
+		entropyOut.Set(avgPixelEntropy);
+		++entropyOut;
 		progress.CompletedPixel();
 	}
 
 	delete[] it;
+	if (m_MaxPixelEntropy >= 0)
+	{
+		for (int i = 0; i < numberOfInputFiles; ++i)
+		{
+			delete[] probIt[i];
+		}
+		delete[] probIt;
+	}
 	delete[] votesByLabel;
 }
 
@@ -287,7 +342,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetProbabi
 	int inputIdx,
 	std::vector<typename DoubleImg::Pointer> probImgs)
 {
-	m_probImgs.insert(inputIdx, probImgs);
+	m_probImgs.insert(std::make_pair(inputIdx, probImgs));
 
 	//  create and initialize all input image iterators
 	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
@@ -305,5 +360,5 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetProbabi
 	meanFilter->SetInput(entropyFilter->GetOutput());
 	meanFilter->Update();
 	double avgEntropy = meanFilter->GetMean();
-	m_avgEntropy.insert(inputIdx, avgEntropy);
+	m_avgEntropy.insert(std::make_pair(inputIdx, avgEntropy));
 }
