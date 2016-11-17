@@ -47,12 +47,11 @@
 
 #include "ParametrizableLabelVotingImageFilter.h"
 
-#include "itkImageRegionIterator.h"
-#include "itkMath.h"
-#include "itkProgressReporter.h"
-#include "itkStatisticsImageFilter.h"
+#include <itkImageRegionIterator.h>
+#include <itkMath.h>
+#include <itkProgressReporter.h>
+#include <itkStatisticsImageFilter.h>
 
-#include "EntropyImageFilter.h"
 #include "iAMathUtility.h"
 
 template< typename TInputImage, typename TOutputImage >
@@ -61,7 +60,6 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	m_AbsMinPercentage(-1),
 	m_MinDiffPercentage(-1),
 	m_MinRatio(-1),
-	m_MaxAvgEntropy(-1),
 	m_MaxPixelEntropy(-1)
 {
 	this->m_HasLabelForUndecidedPixels = false;
@@ -204,16 +202,6 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 	diffOut.GoToBegin();
 	ratioOut.GoToBegin();
 	entropyOut.GoToBegin();
-	if (!m_avgEntropy.empty())
-	{
-		for (int i = 0; i < m_TotalLabelCount; ++i)
-		{
-			if (m_avgEntropy.count(i) == 0)
-			{
-				DEBUG_LOG(QString("ERROR! No Average Entropy defined for label %1").arg(i));
-			}
-		}
-	}
 	double limit = -std::log(1.0 / numberOfInputFiles);
 	double normalizeFactor = 1 / limit;
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
@@ -228,10 +216,6 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		{
 			const InputPixelType label = it[i].Get();
 			++(it[i]);
-			if (m_MaxAvgEntropy >= 0 && m_avgEntropy.count(i) == 1 && m_avgEntropy[i] > m_MaxAvgEntropy)
-			{
-				continue;
-			}
 			// calculate entropy of the current pixel for each input file
 			if (m_MaxPixelEntropy >= 0)
 			{
@@ -343,22 +327,4 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetProbabi
 	std::vector<typename DoubleImg::Pointer> probImgs)
 {
 	m_probImgs.insert(std::make_pair(inputIdx, probImgs));
-
-	//  create and initialize all input image iterators
-	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
-	
-	typedef fhw::EntropyImageFilter<DoubleImg, DoubleImg> EntropyFilter;
-	typedef itk::StatisticsImageFilter<DoubleImg> MeanFilter;
-	auto entropyFilter = EntropyFilter::New();
-	for (int i = 0; i < probImgs.size(); ++i)
-	{
-		entropyFilter->SetInput(i, probImgs[i]);
-	}
-	entropyFilter->SetNormalize(true);
-	entropyFilter->Update();
-	auto meanFilter = MeanFilter::New();
-	meanFilter->SetInput(entropyFilter->GetOutput());
-	meanFilter->Update();
-	double avgEntropy = meanFilter->GetMean();
-	m_avgEntropy.insert(std::make_pair(inputIdx, avgEntropy));
 }

@@ -45,7 +45,7 @@
  *=========================================================================*/
 #pragma once
 
-#include "itkImageToImageFilter.h"
+#include <itkImageToImageFilter.h>
 
  /** \class ParametrizableLabelVotingImageFilter
   *
@@ -171,11 +171,6 @@ public:
 		return m_AbsoluteMinimumPercentage;
 	}
 
-	void SetMaxAvgEntropy(double e)
-	{
-		m_MaxAvgEntropy = e;
-	}
-
 	void SetMaxPixelEntropy(double e)
 	{
 		m_MaxPixelEntropy = e;
@@ -276,14 +271,12 @@ private:
 	double          m_MinDiffPercentage;
 	double          m_MinRatio;
 
-	double			m_MaxAvgEntropy;
 	double			m_MaxPixelEntropy;
 	typename DoubleImg::Pointer m_imgAbsMinPerc;
 	typename DoubleImg::Pointer m_imgMinDiffPerc;
 	typename DoubleImg::Pointer m_imgMinRatio;
 	typename DoubleImg::Pointer m_imgPixelEntropy;
 	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
-	std::map<int, double> m_avgEntropy;
 
 };
 

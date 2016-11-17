@@ -79,13 +79,11 @@ private slots:
 	void MajVoteMinAbsPlot();
 	void MajVoteMinDiffPlot();
 	void MajVoteRatioPlot();
-	void MajVoteMaxAvgEntropyPlot();
 	void MajVoteMaxPixelEntropyPlot();
 	//void MajVoteMinAbsPercentStore();
 	void MajVoteAbsMinPercentSlider(int);
 	void MajVoteMinDiffPercentSlider(int);
 	void MajVoteMinRatioSlider(int);
-	void MajVoteMaxAvgEntropySlider(int);
 	void MajVoteMaxPixelEntropySlider(int);
 private:
 	void StoreGEMSeProject(QString const & fileName);
