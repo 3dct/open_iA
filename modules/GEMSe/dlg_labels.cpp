@@ -135,6 +135,8 @@ void dlg_labels::Remove()
 	QModelIndexList indices = lvLabels->selectionModel()->selectedIndexes();
 	
 	QStandardItem* item = m_itemModel->itemFromIndex(indices[0]);
+	if (!item)
+		return;
 	bool updateOverlay = true;
 	if (item->parent() == nullptr)  // a label was selected
 	{

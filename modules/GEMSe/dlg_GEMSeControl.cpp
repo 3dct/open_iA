@@ -43,8 +43,6 @@
 #include "iASEAFile.h"
 #include "mdichild.h"
 
-#include <itkVTKImageToImageFilter.h>
-
 #include "ParametrizableLabelVotingImageFilter.h"
 
 #include <QFileDialog>

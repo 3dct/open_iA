@@ -28,6 +28,7 @@
 #include "iANameMapper.h"
 
 #include <QMouseEvent>
+#include <QPainter>
 #include <QToolTip>
 
 namespace
