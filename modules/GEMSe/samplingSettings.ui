@@ -279,6 +279,7 @@
  <tabstops>
   <tabstop>cbSamplingMethod</tabstop>
   <tabstop>sbNumberOfSamples</tabstop>
+  <tabstop>sbLabelCount</tabstop>
   <tabstop>leExecutable</tabstop>
   <tabstop>pbChooseExecutable</tabstop>
   <tabstop>leParamDescriptor</tabstop>

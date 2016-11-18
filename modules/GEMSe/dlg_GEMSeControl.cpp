@@ -125,7 +125,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbClusteringStore,  SIGNAL(clicked()), this, SLOT(StoreClustering()));
 	connect(pbRefImgComp,       SIGNAL(clicked()), this, SLOT(CalcRefImgComp()));
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
-	connect(pbResetFilters,     SIGNAL(clicked()), m_dlgGEMSe, SLOT(ResetFilters()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
 
 	connect(pbMajVoteMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MajVoteMinAbsPlot()));
@@ -252,7 +251,6 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, in
 	pbClusteringCalc->setEnabled(true);
 	pbClusteringLoad->setEnabled(true);
 	pbAllStore->setEnabled(true);
-	pbResetFilters->setEnabled(true);
 	QFileInfo fi(fileName);
 	m_outputFolder = fi.absolutePath();
 	return true;
@@ -283,7 +281,6 @@ void dlg_GEMSeControl::SamplingFinished()
 	pbClusteringCalc->setEnabled(true);
 	pbClusteringLoad->setEnabled(true);
 	pbAllStore->setEnabled(true);
-	pbResetFilters->setEnabled(true);
 }
 
 
