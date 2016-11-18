@@ -19,32 +19,38 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iABoneThicknessModuleInterface.h"
-#include "iABoneThicknessAttachment.h"
-#include "mainwindow.h"
+#pragma once
+// iA
+#include <QTableView>
 
-iABoneThicknessModuleInterface::iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
+#include <vtkActor.h>
+#include <vtkActorCollection.h>
+#include <vtkPoints.h>
+#include <vtkSmartPointer.h>
 
-iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
+#include <QString>
 
-void iABoneThicknessModuleInterface::Initialize( )
+class iARenderer;
+
+class iABoneThicknessTable : public QTableView
 {
-	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
+	Q_OBJECT
 
-	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "bone thickness", 0), m_mainWnd));
-	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));
-	toolsMenu->addAction(pBoneThickness);
-}
+  public:
+	explicit iABoneThicknessTable(QWidget* _pParent = nullptr);
 
-void iABoneThicknessModuleInterface::slotBoneThickness()
-{
-	PrepareActiveChild();
-	AttachToMdiChild(m_mdiChild);
-}
+	void open(const QString& _sFilename);
 
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	return new iABoneThicknessAttachment(mainWnd, childData);
-}
+	vtkSmartPointer<vtkPoints> point();
+
+	void setTable();
+	void setWindow(iARenderer* _iARenderer);
+
+	QVector<float>* thickness();
+
+private:
+	QVector<float> m_vThickness;
+
+	vtkSmartPointer<vtkPoints> m_points = nullptr;
+	vtkSmartPointer<vtkActorCollection> m_actors = nullptr;
+};

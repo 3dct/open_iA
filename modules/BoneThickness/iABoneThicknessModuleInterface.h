@@ -28,7 +28,7 @@ class iABoneThicknessModuleInterface : public iAModuleInterface
 	Q_OBJECT
 
   public:
-	iABoneThicknessModuleInterface();
+	explicit iABoneThicknessModuleInterface();
 	~iABoneThicknessModuleInterface();
 
 	void Initialize();

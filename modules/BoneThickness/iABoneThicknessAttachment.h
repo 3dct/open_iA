@@ -22,15 +22,21 @@
 
 #include "iAModuleAttachmentToChild.h"
 
-#include <QDockWidget>
+#include "iABoneThicknessTable.h"
 
 //class dlg_BoneThickness;
 
 class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
-public:
+
+	public:
 	iABoneThicknessAttachment(MainWindow * mainWnd, iAChildData childData);
+
 private:
-	QDockWidget*				  m_dlg;
+	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+
+	private slots:
+	void slotPushButtonBoneThicknessCalculate();
+	void slotPushButtonBoneThicknessOpen();
 };
