@@ -648,6 +648,29 @@ bool MdiChild::setupStackView(bool active)
 {
 	previousIndexOfVolume = 0;
 
+	if (GetModalities()->size() == 0)
+	{
+		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities (e.g. via LoadProject)
+		QString name;
+		if (!curFile.isEmpty())
+		{
+			QFileInfo i(curFile);
+			name = i.completeBaseName();
+		}
+		else
+		{
+			name = "Untitled";
+		}
+		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
+		// before, which adds the renderers which this call will use
+		QSharedPointer<iAModality> mod(new iAModality(name,
+			currentFile(), -1, imageData, iAModality::MainRenderer));
+		GetModalities()->Add(mod);
+		m_dlgModalities->AddListItemAndTransfer(mod);
+		m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
+		m_initVolumeRenderers = true;
+	}
+
 	addVolumePlayer(volumeStack.data());
 
 	int numberOfVolumes=volumeStack->getNumberOfVolumes();
@@ -667,11 +690,12 @@ bool MdiChild::setupStackView(bool active)
 	}
 
 	QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
+	/*
 	if (numberOfVolumes > 0) {
 		modTrans->GetColorFunction()->DeepCopy(volumeStack->getColorTransferFunction(0));
 		modTrans->GetOpacityFunction()->DeepCopy(volumeStack->getPiecewiseFunction(0));
 	}
-	
+	*/
 
 	setupViewInternal(active);
 
@@ -2098,7 +2122,7 @@ bool MdiChild::initView( QString const & title )
 	}
 	if (GetModalities()->size() == 0)
 	{
-		// TODO: VOLUME: resolve duplicity between here (called on loadFile) and adding modalities (e.g. via LoadProject)
+		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities (e.g. via LoadProject)
 		QString name;
 		if (!curFile.isEmpty())
 		{
