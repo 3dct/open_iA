@@ -449,7 +449,7 @@ bool iAModalityList::Load(QString const & filename)
 		}
 		else
 		{
-			int renderFlags = (modalityRenderFlags.isEmpty() || modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
+			int renderFlags = (modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
 				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
 				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0);
 
