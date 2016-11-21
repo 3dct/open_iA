@@ -22,6 +22,10 @@
 
 #include "ui_GEMSeControl.h"
 
+#include "iAImageTreeNode.h"
+
+#include <vtkSmartPointer.h>
+
 #include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
@@ -37,8 +41,6 @@ class dlg_GEMSe;
 class iAColorTheme;
 class iASimpleLabelInfo;
 class iASamplingResults;
-
-#include <vtkSmartPointer.h>
 
 class vtkImageData;
 
@@ -76,6 +78,8 @@ private slots:
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
+	void LoadRefImage();
+
 	void MajVoteMinAbsPlot();
 	void MajVoteMinDiffPlot();
 	void MajVoteRatioPlot();
@@ -85,6 +89,7 @@ private slots:
 	void MajVoteMinDiffPercentSlider(int);
 	void MajVoteMinRatioSlider(int);
 	void MajVoteMaxPixelEntropySlider(int);
+	void MajVoteSample();
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantButtons();
@@ -104,4 +109,5 @@ private:
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
+	LabelImagePointer                    m_groundTruthImage;
 };

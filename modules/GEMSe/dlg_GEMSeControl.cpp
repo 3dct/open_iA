@@ -36,6 +36,7 @@
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageSampler.h"
+#include "iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
 #include "iAImageClusterer.h"
@@ -43,7 +44,11 @@
 #include "iASEAFile.h"
 #include "mdichild.h"
 
+
 #include "ParametrizableLabelVotingImageFilter.h"
+
+#include <itkLabelOverlapMeasuresImageFilter.h>
+#include <itkLabelStatisticsImageFilter.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -126,6 +131,8 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbRefImgComp,       SIGNAL(clicked()), this, SLOT(CalcRefImgComp()));
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
+	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImage()));
+	connect(pbMajVoteSample, SIGNAL(clicked()), this, SLOT(MajVoteSample()));
 
 	connect(pbMajVoteMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MajVoteMinAbsPlot()));
 	connect(pbMajVoteMinDiffPercent_Plot, SIGNAL(clicked()), this, SLOT(MajVoteMinDiffPlot()));
@@ -572,6 +579,22 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 	}
 }
 
+void dlg_GEMSeControl::LoadRefImage()
+{
+	QString refFileName = QFileDialog::getOpenFileName(
+		this,
+		tr("Open Files"),
+		"",
+		iAIOProvider::MetaImages
+	);
+	if (refFileName.isEmpty())
+		return;
+	iAITKIO::ScalarPixelType pixelType;
+	auto img = iAITKIO::readFile(refFileName, pixelType, false);
+	// if (pixelType != itk::ImageIOBase::INT) // check not necessary as dynamic cast will just return 0
+	m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
+}
+
 #include "iASingleResult.h"
 
 iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
@@ -765,6 +788,92 @@ void dlg_GEMSeControl::MajVoteMinAbsPercentStore()
 	//m_dlgSamplings->Add(majoritySamplingResults);
 }
 */
+
+void dlg_GEMSeControl::MajVoteSample()
+{
+	if (!m_groundTruthImage)
+	{
+		QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
+		return;
+	}
+
+	const int sampleCount = 100;
+	const int ResultCount = 4;
+
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	
+	int labelCount = m_simpleLabelInfo->count();
+	double absPercMin = 1.0 / labelCount;
+	double absPercMax = 1;
+
+	/*
+	double relPercMin = 0;
+	double relPercMax = 1;
+	*/
+
+	double ratioMin = 1;
+	double ratioMax = m_selection.size();
+	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(m_selection.size()));
+
+	/*
+	double pixelUncMin = 0;
+	double pixelUncMax = 1;
+	*/
+	typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
+	typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
+
+	auto region = m_groundTruthImage->GetLargestPossibleRegion();
+	auto size = region.GetSize();
+	double pixelCount = size[0] * size[1] * size[2];
+	for (int i = 0; i < sampleCount; ++i)
+	{
+
+		// calculate current value:
+		double norm = mapToNorm(0, sampleCount, i);
+
+		double absPerc = mapNormTo(absPercMin, absPercMax, norm);
+		double relPerc = norm;
+		double ratio = mapNormTo(ratioMin, ratioMax, norm);
+		double pixelUnc = norm;
+
+		// calculate majority voting using these values:
+		iAITKIO::ImagePointer result[ResultCount];
+		
+		result[0] = GetMajorityVotingImage(m_selection, absPerc, -1, -1, -1, labelCount);
+		result[1] = GetMajorityVotingImage(m_selection, -1, relPerc, -1, -1, labelCount);
+		result[2] = GetMajorityVotingImage(m_selection, -1, -1, ratio, -1, labelCount);
+		result[3] = GetMajorityVotingImage(m_selection, -1, -1, -1, pixelUnc, labelCount);
+
+		QString out (QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
+		// calculate dice coefficient and percentage of undetermined pixels
+		// (percentage of voxels with label = difference marker = max. label + 1)
+		for (int r = 0; r < ResultCount; ++r)
+		{
+			auto diceFilter = DiceFilter::New();
+			diceFilter->SetSourceImage(m_groundTruthImage);
+			LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
+			diceFilter->SetTargetImage(labelImg);
+			diceFilter->Update();
+			auto statFilter = StatFilter::New();
+			statFilter->SetInput(labelImg);
+			statFilter->SetLabelInput(labelImg);
+			statFilter->Update();
+
+			double meanDice = diceFilter->GetMeanOverlap();
+
+			double undefinedPerc =
+				(statFilter->GetNumberOfLabels() > m_simpleLabelInfo->count())
+				? statFilter->GetCount(m_simpleLabelInfo->count()) / pixelCount
+				: 0;
+			out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
+		}
+		DEBUG_LOG(QString::number(i) + ": " + out);
+
+		// add to table
+	}
+	// plot graph for all tables
+}
 
 
 void dlg_GEMSeControl::ExportAttributeRangeRanking()

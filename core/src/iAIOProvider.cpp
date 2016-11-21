@@ -25,12 +25,13 @@
 
 const QString iAIOProvider::ProjectFileExtension(".mod");
 const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;All files (*.*)");
+const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
 
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
 		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am *.vti *.bmp *.jpg *.jpeg *.png *.tif *.tiff);;"
-		"Meta Images (*.mhd *.mha);;"
+		+ MetaImages + 
 		"STL files (*.stl);;"
 		"VGI files (*.vgi);;"
 		"RAW files (*.raw *.rec *.vol);;"
@@ -47,28 +48,26 @@ QString iAIOProvider::GetSupportedLoadFormats()
 
 QString iAIOProvider::GetSupportedSaveFormats()
 {
-	return QObject::tr(
-		"MetaImages (*.mhd *.mha );;"
+	return
+		MetaImages +
 		"STL files (*.stl);;"
-		"AmiraMesh (*.am)"
-	);
+		"AmiraMesh (*.am)";
 }
 
 QString iAIOProvider::GetSupportedImageStackFormats()
 {
 	return QString("All supported types (*.mhd *.mha *.tif *.png *.jpg *.bmp);;"
-		"MetaImages (*.mhd *.mha);;")+
+		) + MetaImages +
 		GetSupportedImageFormats();
 }
 
 QString iAIOProvider::GetSupportedVolumeStackFormats()
 {
-	return QObject::tr(
+	return
 		"All supported types (*.mhd *.raw *.volstack);;"
-		"MetaImages (*.mhd *.mha);;"
+		+ MetaImages +
 		"RAW files (*.raw);;"
-		"Volume Stack (*.volstack);;"
-	);
+		"Volume Stack (*.volstack);;";
 }
 
 QString iAIOProvider::GetSupportedImageFormats()
