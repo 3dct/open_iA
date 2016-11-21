@@ -33,6 +33,7 @@
 #include "iAColorTheme.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iADockWidgetWrapper.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageSampler.h"
@@ -46,9 +47,17 @@
 
 
 #include "ParametrizableLabelVotingImageFilter.h"
+#include "FilteringLabelOverlapMeasuresImageFilter.h"
 
-#include <itkLabelOverlapMeasuresImageFilter.h>
 #include <itkLabelStatisticsImageFilter.h>
+
+#include <vtkAxis.h>
+#include <vtkChartXY.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
+#include <vtkFloatArray.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPlot.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -789,6 +798,21 @@ void dlg_GEMSeControl::MajVoteMinAbsPercentStore()
 }
 */
 
+vtkSmartPointer<vtkTable> CreateVTKTable(int sampleCount)
+{
+	auto result = vtkSmartPointer<vtkTable>::New();
+	vtkSmartPointer<vtkFloatArray> arrX(vtkSmartPointer<vtkFloatArray>::New());
+	vtkSmartPointer<vtkFloatArray> arrY(vtkSmartPointer<vtkFloatArray>::New());
+	arrX->SetName("Accuracy (Dice)");
+	arrY->SetName("Undecided Pixels");
+	result->AddColumn(arrX);
+	result->AddColumn(arrY);
+	result->SetNumberOfRows(sampleCount);
+	return result;
+}
+
+#include <vtkFloatArray.h>
+
 void dlg_GEMSeControl::MajVoteSample()
 {
 	if (!m_groundTruthImage)
@@ -797,8 +821,16 @@ void dlg_GEMSeControl::MajVoteSample()
 		return;
 	}
 
-	const int sampleCount = 100;
+	const int SampleCount = 100;
 	const int ResultCount = 4;
+	const int UndecidedLabel = m_simpleLabelInfo->count();
+
+	vtkSmartPointer<vtkTable> tables[ResultCount];
+
+	for (int i = 0; i < ResultCount; ++i)
+	{
+		tables[i] = CreateVTKTable(SampleCount);
+	}
 
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
@@ -820,17 +852,17 @@ void dlg_GEMSeControl::MajVoteSample()
 	double pixelUncMin = 0;
 	double pixelUncMax = 1;
 	*/
-	typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
+	typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
 	typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
 
 	auto region = m_groundTruthImage->GetLargestPossibleRegion();
 	auto size = region.GetSize();
 	double pixelCount = size[0] * size[1] * size[2];
-	for (int i = 0; i < sampleCount; ++i)
+	for (int i = 0; i < SampleCount; ++i)
 	{
 
 		// calculate current value:
-		double norm = mapToNorm(0, sampleCount, i);
+		double norm = mapToNorm(0, SampleCount, i);
 
 		double absPerc = mapNormTo(absPercMin, absPercMax, norm);
 		double relPerc = norm;
@@ -850,10 +882,12 @@ void dlg_GEMSeControl::MajVoteSample()
 		// (percentage of voxels with label = difference marker = max. label + 1)
 		for (int r = 0; r < ResultCount; ++r)
 		{
+			LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
+
 			auto diceFilter = DiceFilter::New();
 			diceFilter->SetSourceImage(m_groundTruthImage);
-			LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
 			diceFilter->SetTargetImage(labelImg);
+			diceFilter->SetIgnoredLabel(UndecidedLabel);
 			diceFilter->Update();
 			auto statFilter = StatFilter::New();
 			statFilter->SetInput(labelImg);
@@ -864,15 +898,57 @@ void dlg_GEMSeControl::MajVoteSample()
 
 			double undefinedPerc =
 				(statFilter->GetNumberOfLabels() > m_simpleLabelInfo->count())
-				? statFilter->GetCount(m_simpleLabelInfo->count()) / pixelCount
+				? statFilter->GetCount(UndecidedLabel) / pixelCount
 				: 0;
 			out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
+		
+			// add values to table
+			tables[r]->SetValue(i, 0, meanDice);
+			tables[r]->SetValue(i, 1, undefinedPerc);
 		}
 		DEBUG_LOG(QString::number(i) + ": " + out);
 
-		// add to table
 	}
+
+	QString titles[ResultCount] =
+	{
+		QString("Absolute Percentage"),
+		QString("Relative Percentage"),
+		QString("Ratio"),
+		QString("Pixel Uncertainty")
+	};
+	
 	// plot graph for all tables
+	for (int r = 0; r < ResultCount; ++r)
+	{
+		auto chart = vtkSmartPointer<vtkChartXY>::New();
+
+		auto xAxis = chart->GetAxis(vtkAxis::BOTTOM);
+		auto yAxis = chart->GetAxis(vtkAxis::LEFT);
+		xAxis->SetTitle("Accuracy (Dice)");
+		xAxis->SetLogScale(false);
+		yAxis->SetTitle("Undecided Pixels");
+		yAxis->SetLogScale(false);
+
+		vtkPlot* plot = chart->AddPlot(vtkChart::POINTS);
+		plot->SetColor(
+			static_cast<unsigned char>(DefaultColors::AllDataChartColor.red()),
+			static_cast<unsigned char>(DefaultColors::AllDataChartColor.green()),
+			static_cast<unsigned char>(DefaultColors::AllDataChartColor.blue()),
+			static_cast<unsigned char>(DefaultColors::AllDataChartColor.alpha())
+		);
+		plot->SetWidth(1.0);
+		plot->SetInputData(tables[r], 0, 1);
+
+		auto vtkWidget = new QVTKWidget2();
+		auto contextView = vtkSmartPointer<vtkContextView>::New();
+		contextView->SetRenderWindow(vtkWidget->GetRenderWindow());
+		chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+		contextView->GetScene()->AddItem(chart);
+		iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, titles[r], titles[r].replace(" ", "")));
+		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+		mdiChild->splitDockWidget(this, w, Qt::Vertical);
+	}
 }
 
 
