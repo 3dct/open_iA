@@ -24,7 +24,11 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
-#include"vtkPolyData.h"
+#include<vtkCellLocator.h>
+#include<vtkMath.h>
+#include<vtkPolyData.h>
+#include<vtkPoints.h>
+#include<vtkIdList.h>
 
 #include "iADockWidgetWrapper.h"
 
@@ -43,34 +47,64 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow * mainWnd, iAChi
 	QPushButton* pPushButtonBoneThicknessOpen(new QPushButton("Open point file...", pBoneThicknessWidget));
 	pPushButtonBoneThicknessOpen->setFixedWidth(iPushButtonWidth);
 	connect(pPushButtonBoneThicknessOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonBoneThicknessOpen()));
-	/*
-	QPushButton* pPushButtonBoneThicknessCalculate(new QPushButton("Calculate thickness", pBoneThicknessWidget));
-	pPushButtonBoneThicknessCalculate->setFixedWidth(iPushButtonWidth);
-	connect(pPushButtonBoneThicknessCalculate, SIGNAL(clicked()), this, SLOT(slotPushButtonBoneThicknessCalculate()));
-	*/
+
 	QGridLayout* pBoneThicknessLayout (new QGridLayout(pBoneThicknessWidget));
-	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable            , 0, 0, 3, 0);
-	pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessOpen     , 0, 1, Qt::AlignLeft);
-	//pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessCalculate, 1, 1, Qt::AlignLeft);
+	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable);
+	pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessOpen);
 
 	childData.child->tabifyDockWidget(childData.logs, new iADockWidgetWrapper(pBoneThicknessWidget, tr("Bone thickness"), "BoneThickness"));
 }
 
-void iABoneThicknessAttachment::slotPushButtonBoneThicknessCalculate()
+void iABoneThicknessAttachment::calculate()
 {
-	QVector<float>* pvThickness (m_pBoneThicknessTable->thickness());
+	qApp->setOverrideCursor(Qt::WaitCursor);
 
-	vtkPolyData* polyData (m_childData.polyData);
-	vtkCellArray* cellArray (polyData->GetPolys());
+	vtkSmartPointer<vtkPoints> Points(m_pBoneThicknessTable->point());
+    const vtkIdType PointsNumber (Points->GetNumberOfPoints());
 
-	const vtkIdType numberCells (cellArray->GetNumberOfCells());
+	QVector<double>* pvDistance(m_pBoneThicknessTable->distance());
+	QVector<double>* pvThickness(m_pBoneThicknessTable->thickness());
 
-	for (int i (0) ; i < pvThickness->size() ; ++i)
+	vtkSmartPointer<vtkCellLocator> CellLocator(vtkCellLocator::New());
+	CellLocator->SetDataSet(m_childData.polyData);
+	CellLocator->BuildLocator();
+
+	vtkSmartPointer<vtkIdList> ptIds(vtkIdList::New());
+
+	for (int i(0); i < PointsNumber; ++i)
 	{
-		(*pvThickness)[i] = static_cast<float> (i);
+		double Point1[3];
+		Points->GetPoint(i, Point1);
+
+		vtkIdType cellId;
+		int subId;
+		double closestPointDist2 (0.0);
+		double PointClosest1[3];
+		CellLocator->FindClosestPoint(Point1, PointClosest1, cellId, subId, closestPointDist2);
+
+		(*pvDistance)[i] = sqrt(closestPointDist2);
+
+		double Point2[3] = { PointClosest1[0], PointClosest1[1] - 100.0, PointClosest1[2] };
+
+		double tol (0.0);
+		double t (0.0);
+		double x[3];
+		double pcoords[3];
+
+		const int result (CellLocator->IntersectWithLine(Point2, PointClosest1, tol, t, x, pcoords, subId));
+
+		if (result == 1)
+		{
+			(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x));
+		}
+		else
+		{
+			(*pvThickness)[i] = 0.0;
+		}
 	}
 
 	m_pBoneThicknessTable->setTable();
+	qApp->restoreOverrideCursor();
 }
 
 void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
@@ -91,4 +125,6 @@ void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
 	}
 
 	delete pFileDialog;
+
+	calculate();
 }

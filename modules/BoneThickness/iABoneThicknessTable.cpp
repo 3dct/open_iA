@@ -40,20 +40,22 @@ iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pPa
 	setFocusPolicy(Qt::NoFocus);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 
-	QStandardItemModel* pItemModel (new QStandardItemModel(0, 4, this));
+	QStandardItemModel* pItemModel (new QStandardItemModel(0, 5, this));
 	pItemModel->setHorizontalHeaderItem(0, new QStandardItem("X"));
 	pItemModel->setHorizontalHeaderItem(1, new QStandardItem("Y"));
 	pItemModel->setHorizontalHeaderItem(2, new QStandardItem("Z"));
-	pItemModel->setHorizontalHeaderItem(3, new QStandardItem("Thickness"));
+	pItemModel->setHorizontalHeaderItem(3, new QStandardItem("Surface distance"));
+	pItemModel->setHorizontalHeaderItem(4, new QStandardItem("Thickness"));
 
-	horizontalHeader()->setStretchLastSection(true);
 	horizontalHeader()->setSectionsClickable(false);
-	verticalHeader()->setDefaultSectionSize(logicalDpiY() / 3);
 	verticalHeader()->setSectionsClickable(false);
 
 	setModel(pItemModel);
+}
 
-	setFixedWidth(6 * logicalDpiX());
+QVector<double>* iABoneThicknessTable::distance()
+{
+	return &m_vDistance;
 }
 
 void iABoneThicknessTable::open(const QString& _sFilename)
@@ -66,6 +68,9 @@ void iABoneThicknessTable::open(const QString& _sFilename)
 	{
 		m_points = vtkSmartPointer<vtkPoints>::New();
 
+		m_vDistance.clear();
+		m_vThickness.clear();
+
 		QTextStream tsIn(&fFile);
 
 		int i (0);
@@ -77,9 +82,9 @@ void iABoneThicknessTable::open(const QString& _sFilename)
 
 			if (slLine.size() >= 3)
 			{
-				const double dPoint[3] = {slLine.at(0).toDouble(), slLine.at(1).toDouble(), slLine.at(2).toDouble()};
-
-				m_points->InsertNextPoint(dPoint);
+				const double Point[3] = {slLine.at(0).toDouble(), slLine.at(1).toDouble(), slLine.at(2).toDouble()};
+				m_points->InsertNextPoint(Point);
+				m_vDistance.push_back(0.0f);
 				m_vThickness.push_back(0.0f);
 				++i;
 			}
@@ -96,7 +101,7 @@ vtkSmartPointer<vtkPoints> iABoneThicknessTable::point()
 	return m_points;
 }
 
-QVector<float>* iABoneThicknessTable::thickness()
+QVector<double>* iABoneThicknessTable::thickness()
 {
 	return &m_vThickness;
 }
@@ -119,9 +124,17 @@ void iABoneThicknessTable::setTable()
 
 	}
 
-	for (int i(0); i < m_vThickness.size(); ++i)
+	for (int i(0); i < m_vDistance.size(); ++i)
 	{
 		const QModelIndex miValue(model()->index(i, 3));
+
+		model()->setData(miValue, Qt::AlignCenter, Qt::TextAlignmentRole);
+		model()->setData(miValue, m_vDistance.at(i), Qt::DisplayRole);
+	}
+
+	for (int i(0); i < m_vThickness.size(); ++i)
+	{
+		const QModelIndex miValue(model()->index(i, 4));
 
 		model()->setData(miValue, Qt::AlignCenter, Qt::TextAlignmentRole);
 		model()->setData(miValue, m_vThickness.at(i), Qt::DisplayRole);

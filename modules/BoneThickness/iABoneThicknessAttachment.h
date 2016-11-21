@@ -36,7 +36,8 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 private:
 	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 
+	void calculate();
+
 	private slots:
-	void slotPushButtonBoneThicknessCalculate();
 	void slotPushButtonBoneThicknessOpen();
 };
