@@ -266,7 +266,7 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 
 	for (int chartID=0; chartID<m_chartAttributes->size(); ++chartID)
 	{
-		if (m_histogramContainer->ChartExists(chartID))
+		if (!m_histogramContainer->ChartExists(chartID))
 		{
 			continue;
 		}
