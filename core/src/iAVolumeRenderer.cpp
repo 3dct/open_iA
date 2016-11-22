@@ -36,6 +36,13 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
+bool IsFlat(int extent[6])
+{
+	return extent[0] == extent[1] ||
+		extent[2] == extent[3] ||
+		extent[4] == extent[5];
+}
+
 iAVolumeRenderer::iAVolumeRenderer(
 	iATransferFunction * transfer,
 	vtkSmartPointer<vtkImageData> imgData)
@@ -49,21 +56,28 @@ iAVolumeRenderer::iAVolumeRenderer(
 	currentRenderer(0),
 	currentBoundingBoxRenderer(0)
 {
-	volMapper->SetBlendModeToComposite();
-	volume->SetMapper(volMapper);
-	volume->SetProperty(volProp);
-	volume->SetVisibility(true);
-	outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
-	outlineActor->GetProperty()->SetColor(0, 0, 0);
-	outlineActor->PickableOff();
-	outlineActor->SetMapper(outlineMapper);
+	m_isFlat = IsFlat(imgData->GetExtent());
+	if (!m_isFlat)
+	{
+		volMapper->SetBlendModeToComposite();
+		volume->SetMapper(volMapper);
+		volume->SetProperty(volProp);
+		volume->SetVisibility(true);
+		outlineMapper->SetInputConnection(outlineFilter->GetOutputPort());
+		outlineActor->GetProperty()->SetColor(0, 0, 0);
+		outlineActor->PickableOff();
+		outlineActor->SetMapper(outlineMapper);
 
-	SetImage(transfer, imgData);
+		SetImage(transfer, imgData);
+	}
 }
 
 
 void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData)
 {
+	m_isFlat = IsFlat(imgData->GetExtent());
+	if (m_isFlat)
+		return;
 	volMapper->SetInputData(imgData);
 	if ( imgData->GetNumberOfScalarComponents() > 1 )
 	{
@@ -83,6 +97,8 @@ void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<v
 
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
+	if (m_isFlat)
+		return;
 	volProp->SetAmbient(vs.AmbientLighting);
 	volProp->SetDiffuse(vs.DiffuseLighting);
 	volProp->SetSpecular(vs.SpecularLighting);
@@ -131,6 +147,8 @@ void iAVolumeRenderer::AddTo(vtkRenderer* w)
 			return;
 		}
 	}
+	if (m_isFlat)
+		return;
 	w->AddVolume(volume);
 	currentRenderer = w;
 }
@@ -139,7 +157,8 @@ void iAVolumeRenderer::Remove()
 {
 	if (!currentRenderer)
 	{
-		DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
+		if (!m_isFlat)
+			DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
 		return;
 	}
 	currentRenderer->RemoveVolume(volume);
@@ -188,6 +207,8 @@ vtkSmartPointer<vtkVolume> iAVolumeRenderer::GetVolume()
 
 void iAVolumeRenderer::Update()
 {
+	if (m_isFlat)
+		return;
 	volume->Update();
 	volMapper->Update();
 	outlineMapper->Update();
@@ -196,6 +217,8 @@ void iAVolumeRenderer::Update()
 
 void iAVolumeRenderer::SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3)
 {
+	if (m_isFlat)
+		return;
 	volMapper->AddClippingPlane(p1);
 	volMapper->AddClippingPlane(p2);
 	volMapper->AddClippingPlane(p3);
@@ -203,12 +226,16 @@ void iAVolumeRenderer::SetCuttingPlanes(vtkPlane* p1, vtkPlane* p2, vtkPlane* p3
 
 void iAVolumeRenderer::RemoveCuttingPlanes()
 {
+	if (m_isFlat)
+		return;
 	volMapper->RemoveAllClippingPlanes();
 }
 
 
 void iAVolumeRenderer::ShowVolume(bool visible)
 {
+	if (m_isFlat)
+		return;
 	volume->SetVisibility(visible);
 }
 
