@@ -35,10 +35,12 @@
 #include <vtkRenderer.h>
 #include <vtkSphereSource.h>
 
-iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pParent)
+iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pParent) : QTableView (_pParent), m_iARenderer (_iARenderer)
 {
+	setEditTriggers(QAbstractItemView::NoEditTriggers);
 	setFocusPolicy(Qt::NoFocus);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
+	setSelectionMode(QAbstractItemView::SingleSelection);
 
 	QStandardItemModel* pItemModel (new QStandardItemModel(0, 5, this));
 	pItemModel->setHorizontalHeaderItem(0, new QStandardItem("X"));
@@ -56,6 +58,19 @@ iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pPa
 QVector<double>* iABoneThicknessTable::distance()
 {
 	return &m_vDistance;
+}
+
+void iABoneThicknessTable::mouseReleaseEvent(QMouseEvent* e)
+{
+	const QModelIndexList ModelIndexList (selectionModel()->selectedRows());
+
+	if (ModelIndexList.size() > 0)
+	{
+		m_PointSelected = ModelIndexList.at(0).row();
+		setWindow();
+	}
+
+	QTableView::mouseReleaseEvent(e);
 }
 
 void iABoneThicknessTable::open(const QString& _sFilename)
@@ -146,7 +161,7 @@ void iABoneThicknessTable::setTable()
 	}
 }
 
-void iABoneThicknessTable::setWindow(iARenderer* _iARenderer)
+void iABoneThicknessTable::setWindow()
 {
 	if (m_actors)
 	{
@@ -154,7 +169,7 @@ void iABoneThicknessTable::setWindow(iARenderer* _iARenderer)
 
 		for (int i(0); i < ActorSize; ++i)
 		{
-			_iARenderer->GetRenderer()->RemoveActor((vtkActor*) m_actors->GetItemAsObject(i));
+			m_iARenderer->GetRenderer()->RemoveActor((vtkActor*) m_actors->GetItemAsObject(i));
 		}
 
 		for (int i(0); i < ActorSize; ++i)
@@ -178,10 +193,18 @@ void iABoneThicknessTable::setWindow(iARenderer* _iARenderer)
 
 		vtkSmartPointer<vtkActor> actor (vtkSmartPointer<vtkActor>::New());
 		actor->SetMapper(mapper);
-		actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+		if (m_PointSelected == i)
+		{
+			actor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+		}
+		else
+		{
+			actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		}
 
 		m_actors->AddItem(actor);
 
-		_iARenderer->GetRenderer()->AddActor(actor);
+		m_iARenderer->GetRenderer()->AddActor(actor);
 	}
 }

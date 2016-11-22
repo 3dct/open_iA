@@ -37,9 +37,7 @@ private:
 	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 
 	void AddPointNormalsIn(vtkPoints* PointNormals);
-
 	void Calculate();
-
 	void GetNormal(vtkPoints* Points, double* Normal);
 
 	private slots:

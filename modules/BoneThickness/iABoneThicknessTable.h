@@ -37,7 +37,7 @@ class iABoneThicknessTable : public QTableView
 	Q_OBJECT
 
   public:
-	explicit iABoneThicknessTable(QWidget* _pParent = nullptr);
+	explicit iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pParent = nullptr);
 
 	void open(const QString& _sFilename);
 
@@ -46,17 +46,24 @@ class iABoneThicknessTable : public QTableView
 	double pointRadius() const;
 
 	void setTable();
-	void setWindow(iARenderer* _iARenderer);
+	void setWindow();
 
 	QVector<double>* distance();
 	QVector<double>* thickness();
 
 private:
-	double m_dPointRadius = 0.3;
+	double m_dPointRadius = 0.5;
+
+	vtkIdType m_PointSelected = -1;
 
 	QVector<double> m_vDistance;
 	QVector<double> m_vThickness;
 
 	vtkSmartPointer<vtkPoints> m_points = nullptr;
 	vtkSmartPointer<vtkActorCollection> m_actors = nullptr;
+
+	iARenderer* m_iARenderer;
+
+protected:
+	virtual void mouseReleaseEvent(QMouseEvent* e) override;
 };

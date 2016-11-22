@@ -39,7 +39,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow * mainWnd, iAChi
 {
 	QWidget* pBoneThicknessWidget (new QWidget());
 
-	m_pBoneThicknessTable = new iABoneThicknessTable(pBoneThicknessWidget);
+	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pBoneThicknessWidget);
 
 	const int iPushButtonWidth (2 * pBoneThicknessWidget->logicalDpiX());
 
@@ -89,10 +89,12 @@ void iABoneThicknessAttachment::Calculate()
 		double Point2[3];
 		PointNormals->GetPoint(i, Point2);
 
+		double Point21[3], Point22[3];
+
 		for (int ii(0); ii < 3; ++ii)
 		{
-			Point2[ii] += PointClosest1[ii];
-			Point2[ii] *= -100.0;
+			Point21[ii] = Point2[ii] + 100.0 * PointClosest1[ii];
+			Point21[ii] = Point2[ii] - 100.0 * PointClosest1[ii];
 		}
 
 		double tol (0.0);
@@ -100,15 +102,18 @@ void iABoneThicknessAttachment::Calculate()
 		double x[3];
 		double pcoords[3];
 
-		const int result (CellLocator->IntersectWithLine(Point2, PointClosest1, tol, t, x, pcoords, subId));
-
-		if (result == 1)
+		if (CellLocator->IntersectWithLine(Point21, PointClosest1, tol, t, x, pcoords, subId)  == 1)
 		{
 			(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x));
 		}
 		else
 		{
 			(*pvThickness)[i] = 0.0;
+		}
+
+		if (CellLocator->IntersectWithLine(Point22, PointClosest1, tol, t, x, pcoords, subId) == 1)
+		{
+			(*pvThickness)[i] = vtkMath::Max((*pvThickness)[i], sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x)));
 		}
 	}
 
@@ -219,7 +224,7 @@ void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
 	if (pFileDialog->exec())
 	{
 		m_pBoneThicknessTable->open(pFileDialog->selectedFiles().first());
-		m_pBoneThicknessTable->setWindow(m_childData.child->getRaycaster());
+		m_pBoneThicknessTable->setWindow();
 	}
 
 	delete pFileDialog;
