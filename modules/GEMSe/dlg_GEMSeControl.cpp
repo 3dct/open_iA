@@ -550,10 +550,7 @@ void dlg_GEMSeControl::ExportIDs()
 
 void dlg_GEMSeControl::CalcRefImgComp()
 {
-	QSharedPointer<iAModalityList const> mods = m_dlgModalities->GetModalities();
-	iAConnector con;
-	con.SetImage(mods->Get(mods->size() - 1)->GetImage());
-	m_dlgGEMSe->CalcRefImgComp(dynamic_cast<LabelImageType*>(con.GetITKImage()));
+	m_dlgGEMSe->CalcRefImgComp(m_groundTruthImage);
 }
 
 
@@ -601,7 +598,7 @@ void dlg_GEMSeControl::LoadRefImage()
 		return;
 	iAITKIO::ScalarPixelType pixelType;
 	auto img = iAITKIO::readFile(refFileName, pixelType, false);
-	if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
+	if (pixelType == itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
 	{
 		leRefImage->setText(refFileName);
 		m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
@@ -919,10 +916,10 @@ void dlg_GEMSeControl::MajVoteSample()
 
 	QString titles[ResultCount] =
 	{
-		QString("Absolute Percentage"),
-		QString("Relative Percentage"),
+		QString("Minimum Absolute Percentage"),
+		QString("Minimum Percentage Difference"),
 		QString("Ratio"),
-		QString("Pixel Uncertainty")
+		QString("Maximum Pixel Uncertainty")
 	};
 	
 	// plot graph for all tables
