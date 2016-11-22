@@ -622,15 +622,18 @@ iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResu
 	{
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->GetLabelledImage().GetPointer());
 		labelVotingFilter->SetInput(i, lblImg);
-		typedef LabelVotingType::DoubleImg::Pointer DblImgPtr;
-		std::vector<DblImgPtr> probImgs;
-		for (int l=0; l<labelCount; ++l)
+		if (maxPixelEntropy >= 0)
 		{
-			iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
-			DblImgPtr dp = dynamic_cast<typename LabelVotingType::DoubleImg*>(p.GetPointer());
-			probImgs.push_back(dp);
+			typedef LabelVotingType::DoubleImg::Pointer DblImgPtr;
+			std::vector<DblImgPtr> probImgs;
+			for (int l = 0; l < labelCount; ++l)
+			{
+				iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
+				DblImgPtr dp = dynamic_cast<typename LabelVotingType::DoubleImg*>(p.GetPointer());
+				probImgs.push_back(dp);
+			}
+			labelVotingFilter->SetProbabilityImages(i, probImgs);
 		}
-		labelVotingFilter->SetProbabilityImages(i, probImgs);
 	}
 
 	labelVotingFilter->Update();

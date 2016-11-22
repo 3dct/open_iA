@@ -262,25 +262,27 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		// determine the label with the most votes for this pixel
 
 		out.Set(0);
+		unsigned int firstBestGuessLabel = 0;
 		unsigned int firstBestGuessVotes = votesByLabel[0];
-		unsigned int secondBestGuessVotes = 0;
 		for (size_t l = 1; l < m_TotalLabelCount; ++l)
 		{
 			if (votesByLabel[l] > firstBestGuessVotes)
 			{
 				firstBestGuessVotes = votesByLabel[l];
+				firstBestGuessLabel = l;
 				out.Set(static_cast<OutputPixelType>(l));
+			} else if (votesByLabel[l] == firstBestGuessVotes)
+			{
+				out.Set(m_LabelForUndecidedPixels);
 			}
-			else if (votesByLabel[l] > secondBestGuessVotes)
+		}
+		unsigned int secondBestGuessVotes = 0;
+		for (size_t l = 0; l < m_TotalLabelCount; ++l)
+		{
+			if (l != firstBestGuessLabel &&
+				votesByLabel[l] > secondBestGuessVotes)
 			{
 				secondBestGuessVotes = votesByLabel[l];
-			}
-			else
-			{
-				if (votesByLabel[l] == firstBestGuessVotes)
-				{
-					out.Set(m_LabelForUndecidedPixels);
-				}
 			}
 		}
 		double firstBestGuessPercentage = static_cast<double>(firstBestGuessVotes) / numberOfInputFiles;
@@ -293,7 +295,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		{
 			out.Set(this->m_LabelForUndecidedPixels);
 		}
-		if (m_MinRatio >= 0 && secondBestGuessVotes > 0 && (firstBestGuessVotes / secondBestGuessVotes) < m_MinRatio)
+		if (m_MinRatio >= 0 && secondBestGuessVotes > 0 && (static_cast<double>(firstBestGuessVotes) / secondBestGuessVotes) < m_MinRatio)
 		{
 			out.Set(this->m_LabelForUndecidedPixels);
 		}
@@ -301,8 +303,8 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		++absOut;
 		diffOut.Set(firstBestGuessPercentage - secondBestGuessPercentage);
 		++diffOut;
-		// if secondBestGuessVotes = 1 and no other votes, then ratio = numberOfInputFiles; for secondBestGuessVotes = 0 it thus should be slightly higher
-		ratioOut.Set(secondBestGuessVotes > 0 ? (firstBestGuessVotes / secondBestGuessVotes) : numberOfInputFiles+1 );
+		// if secondBestGuessVotes = 1 and no other votes, then ratio = numberOfInputFiles-1
+		ratioOut.Set(secondBestGuessVotes > 0 ? (firstBestGuessVotes / secondBestGuessVotes) : numberOfInputFiles );
 		++ratioOut;
 		entropyOut.Set(avgPixelEntropy);
 		++entropyOut;
