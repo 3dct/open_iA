@@ -803,8 +803,8 @@ vtkSmartPointer<vtkTable> CreateVTKTable(int sampleCount)
 	auto result = vtkSmartPointer<vtkTable>::New();
 	vtkSmartPointer<vtkFloatArray> arrX(vtkSmartPointer<vtkFloatArray>::New());
 	vtkSmartPointer<vtkFloatArray> arrY(vtkSmartPointer<vtkFloatArray>::New());
-	arrX->SetName("Accuracy (Dice)");
-	arrY->SetName("Undecided Pixels");
+	arrX->SetName("Dice");
+	arrY->SetName("Undec. Pix.");
 	result->AddColumn(arrX);
 	result->AddColumn(arrY);
 	result->SetNumberOfRows(sampleCount);
@@ -845,7 +845,7 @@ void dlg_GEMSeControl::MajVoteSample()
 	*/
 
 	double ratioMin = 1;
-	double ratioMax = m_selection.size();
+	double ratioMax = m_selection.size()*10;
 	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(m_selection.size()));
 
 	/*
@@ -897,8 +897,8 @@ void dlg_GEMSeControl::MajVoteSample()
 			double meanDice = diceFilter->GetMeanOverlap();
 
 			double undefinedPerc =
-				(statFilter->GetNumberOfLabels() > m_simpleLabelInfo->count())
-				? statFilter->GetCount(UndecidedLabel) / pixelCount
+				statFilter->HasLabel(UndecidedLabel)
+				? static_cast<double>(statFilter->GetCount(UndecidedLabel)) / pixelCount
 				: 0;
 			out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
 		
