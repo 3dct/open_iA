@@ -146,15 +146,44 @@ bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer
 	if (!rawData)
 		return false;
 	m_poly = QSharedPointer<QPolygon>(new QPolygon);
-	m_poly->push_back(QPoint(1, 0));
+	//m_poly->push_back(QPoint(1, 0));
 	int binWidthHalf = binWidth / 2;
+	int minBin = static_cast<int>(m_data->GetMinX());
+	int maxBin = static_cast<int>(m_data->GetMaxX()-0.01);
+	int minX = static_cast<int>(m_data->GetMinX() * binWidth);
+	int maxX = static_cast<int>(m_data->GetMaxX() * binWidth);
 	for (int j = 0; j < m_data->GetNumBin(); j++)
 	{
+		if (j < minBin || j > maxBin)
+		{
+			continue;
+		}
 		int curX = (int)(j * binWidth) + binWidthHalf;
+		if (j == minBin)
+		{
+			m_poly->push_back(QPoint(minX, 0));
+			if (j == maxBin)
+			{
+				curX = (minX + maxX) / 2;
+			}
+			else
+			{
+				curX = (minX + (int)((j + 1) * binWidth)) / 2;
+			}
+		}
+		else if (j == maxBin)
+		{
+			curX = ((int)(j*binWidth) + maxX) / 2;
+		}
 		int curY = converter->Diagram2ScreenY(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
+		if (j == maxBin)
+		{
+			m_poly->push_back(QPoint(maxX, 0));
+		}
 	}
-	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0));
+
+	//m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0));
 	return true;
 }
 

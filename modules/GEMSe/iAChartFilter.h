@@ -35,6 +35,9 @@ public:
 	bool Matches(iAImageTreeLeaf const * leaf, iAChartAttributeMapper const & chartAttrMap) const;
 	bool MatchesAll() const;
 	void Reset();
+	bool HasFilter(int chartID) const;
+	double GetMin(int chartID) const;
+	double GetMax(int chartID) const;
 private:
 	QMap<int, std::pair<double, double> > m_filters;
 };

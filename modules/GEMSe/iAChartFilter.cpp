@@ -65,3 +65,19 @@ bool iAChartFilter::MatchesAll() const
 {
 	return m_filters.size() == 0;
 }
+
+
+bool iAChartFilter::HasFilter(int chartID) const
+{
+	return m_filters.contains(chartID);
+}
+
+double iAChartFilter::GetMin(int chartID) const
+{
+	return HasFilter(chartID) ? m_filters[chartID].first : -1;
+}
+
+double iAChartFilter::GetMax(int chartID) const
+{
+	return HasFilter(chartID) ? m_filters[chartID].second : -1;
+}

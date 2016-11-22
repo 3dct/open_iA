@@ -62,6 +62,10 @@ public:
 	double mapBinToValue(double bin) const;
 	iAValueType GetRangeType() const;
 	bool IsLogarithmic() const;
+	virtual double GetMinX() const;
+	virtual double GetMaxX() const;
+	void SetMinX(double x);
+	void SetMaxX(double x);
 private:
 	iAParamHistogramData(size_t numBin,
 		double min, double max, bool log,
@@ -86,4 +90,6 @@ private:
 	DataType m_spacing;
 	iAValueType m_rangeType;
 	bool m_log;
+
+	double m_minX, m_maxX;
 };

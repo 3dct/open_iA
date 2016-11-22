@@ -171,6 +171,11 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
 	VisitNode(tree, result, chartID, chartAttrMap, attributeFilter);
+	if (attributeFilter.HasFilter(chartID))
+	{
+		result->SetMinX(result->mapValueToBin(attributeFilter.GetMin(chartID)));
+		result->SetMaxX(result->mapValueToBin(attributeFilter.GetMax(chartID)));
+	}
 	return result;
 }
 
@@ -180,7 +185,9 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	m_maxValue(std::numeric_limits<double>::lowest()),
 	m_spacing(1.0),
 	m_rangeType(rangeType),
-	m_log(log)
+	m_log(log),
+	m_minX(0),
+	m_maxX(numBin)
 {
 	assert(numBin > 0);
 	assert(!m_log || min > 0);
@@ -238,4 +245,22 @@ iAValueType iAParamHistogramData::GetRangeType() const
 bool iAParamHistogramData::IsLogarithmic() const
 {
 	return m_log;
+}
+
+
+double iAParamHistogramData::GetMinX() const
+{
+	return m_minX;
+}
+double iAParamHistogramData::GetMaxX() const
+{
+	return m_maxX;
+}
+void iAParamHistogramData::SetMinX(double x)
+{
+	m_minX = x;
+}
+void iAParamHistogramData::SetMaxX(double x)
+{
+	m_maxX = x;
 }
