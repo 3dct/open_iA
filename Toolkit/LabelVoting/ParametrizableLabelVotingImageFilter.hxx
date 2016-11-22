@@ -153,6 +153,11 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	m_imgMinDiffPerc = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
 	m_imgMinRatio = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
 	m_imgPixelEntropy = CreateImage<TInputImage, DoubleImg>(this->GetInput(0));
+	
+	if (m_probImgs.size() == 0)
+	{
+		m_MaxPixelEntropy = -1;
+	}
 }
 
 template< typename TInputImage, typename TOutputImage >
@@ -170,21 +175,17 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 	const size_t numberOfInputFiles = this->GetNumberOfIndexedInputs();
 
 	//  create and initialize all input image iterators
-	IteratorType *it = new IteratorType[numberOfInputFiles];
-	if (m_probImgs.size() == 0)
-	{
-		m_MaxPixelEntropy = -1;
-	}
-	ConstDblIt ** probIt = new ConstDblIt*[numberOfInputFiles];
+	std::vector<IteratorType> it;
+	std::vector<std::vector<ConstDblIt> > probIt;
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
-		it[i] = IteratorType(GetInput(i),	outputRegionForThread);
+		it.push_back(IteratorType(GetInput(i),	outputRegionForThread));
 		if (m_MaxPixelEntropy >= 0)
 		{
-			probIt[i] = new ConstDblIt[m_TotalLabelCount];
+			probIt.push_back(std::vector<ConstDblIt>());
 			for (size_t l = 0; l < m_TotalLabelCount; ++l)
 			{
-				probIt[i][l] = ConstDblIt(m_probImgs[i][l], outputRegionForThread);
+				probIt[i].push_back(ConstDblIt(m_probImgs[i][l], outputRegionForThread));
 				probIt[i][l].GoToBegin();
 			}
 		}
@@ -227,7 +228,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 					{
 						DEBUG_LOG("Prob It at end.");
 					}
-					const InputPixelType probValue = probIt[i][l].Get();
+					const double probValue = probIt[i][l].Get();
 					++(probIt[i][l]);
 					probSum += probValue;
 					if (probValue > 0)
@@ -236,8 +237,10 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 					}
 				}
 				entropy = -entropy;
+				/*
 				assert(entropy >= -0.000000001 && entropy <= limit + 0.000000001);
 				assert(probSum >= 0.999999999 && probSum <= 1.000000001);
+				*/
 				entropy = clamp(0.0, limit, entropy);
 				entropy = entropy * normalizeFactor;
 				avgPixelEntropy += entropy;
@@ -310,23 +313,13 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		++entropyOut;
 		progress.CompletedPixel();
 	}
-
-	delete[] it;
-	if (m_MaxPixelEntropy >= 0)
-	{
-		for (int i = 0; i < numberOfInputFiles; ++i)
-		{
-			delete[] probIt[i];
-		}
-		delete[] probIt;
-	}
 	delete[] votesByLabel;
 }
 
 template< typename TInputImage, typename TOutputImage >
 void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetProbabilityImages(
 	int inputIdx,
-	std::vector<typename DoubleImg::Pointer> probImgs)
+	std::vector<typename DoubleImg::Pointer> const & probImgs)
 {
 	m_probImgs.insert(std::make_pair(inputIdx, probImgs));
 }

@@ -501,6 +501,7 @@ void dlg_GEMSeControl::EnableClusteringDependantButtons()
 {
 	pbClusteringStore->setEnabled(true);
 	pbRefImgComp->setEnabled(true);
+	pbMajVoteSample->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
 	pbMajVoteMinAbsPercent_Plot->setEnabled(true);
 	pbMajVoteMinDiffPercent_Plot->setEnabled(true);
@@ -600,8 +601,11 @@ void dlg_GEMSeControl::LoadRefImage()
 		return;
 	iAITKIO::ScalarPixelType pixelType;
 	auto img = iAITKIO::readFile(refFileName, pixelType, false);
-	// if (pixelType != itk::ImageIOBase::INT) // check not necessary as dynamic cast will just return 0
-	m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
+	if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
+	{
+		leRefImage->setText(refFileName);
+		m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
+	}
 }
 
 #include "iASingleResult.h"

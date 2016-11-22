@@ -219,7 +219,7 @@ public:
 		}
 	}
 
-	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> probImgs);
+	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
 	// Begin concept checking
