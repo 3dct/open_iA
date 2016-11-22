@@ -845,7 +845,7 @@ void dlg_GEMSeControl::MajVoteSample()
 	*/
 
 	double ratioMin = 1;
-	double ratioMax = m_selection.size()*10;
+	double ratioMax = m_selection.size();
 	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(m_selection.size()));
 
 	/*

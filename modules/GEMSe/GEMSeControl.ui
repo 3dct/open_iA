@@ -218,7 +218,7 @@
        <number>100</number>
       </property>
       <property name="maximum">
-       <number>100000</number>
+       <number>10000</number>
       </property>
       <property name="value">
        <number>100</number>
@@ -231,7 +231,7 @@
     <item row="6" column="5">
      <widget class="QLabel" name="lbMajVoteMinRatio">
       <property name="text">
-       <string>1000</string>
+       <string>100</string>
       </property>
      </widget>
     </item>

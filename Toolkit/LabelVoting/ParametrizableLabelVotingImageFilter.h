@@ -153,12 +153,10 @@ public:
 	*/
 	void SetAbsoluteMinimumPercentage(double p)
 	{
-		assert(p >= 0 && p <= 1);
 		m_AbsMinPercentage = p;
 	}
 	void SetMinimumDifferencePercentage(double p)
 	{
-		assert(p >= 0 && p <= 1);
 		m_MinDiffPercentage = p;
 	}
 	void SetMinimumRatio(double r)
