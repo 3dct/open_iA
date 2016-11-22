@@ -101,6 +101,11 @@ vtkSmartPointer<vtkPoints> iABoneThicknessTable::point()
 	return m_points;
 }
 
+double iABoneThicknessTable::pointRadius() const
+{
+	return m_dPointRadius;
+}
+
 QVector<double>* iABoneThicknessTable::thickness()
 {
 	return &m_vThickness;
@@ -166,7 +171,7 @@ void iABoneThicknessTable::setWindow(iARenderer* _iARenderer)
 	{
 		vtkSmartPointer<vtkSphereSource> sphereSource (vtkSmartPointer<vtkSphereSource>::New());
 		sphereSource->SetCenter(m_points->GetPoint(i)[0], m_points->GetPoint(i)[1], m_points->GetPoint(i)[2]);
-		sphereSource->SetRadius(0.3);
+		sphereSource->SetRadius(m_dPointRadius);
 
 		vtkSmartPointer<vtkPolyDataMapper> mapper (vtkSmartPointer<vtkPolyDataMapper>::New());
 		mapper->SetInputConnection(sphereSource->GetOutputPort());

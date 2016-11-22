@@ -36,7 +36,11 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 private:
 	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 
-	void calculate();
+	void AddPointNormalsIn(vtkPoints* PointNormals);
+
+	void Calculate();
+
+	void GetNormal(vtkPoints* Points, double* Normal);
 
 	private slots:
 	void slotPushButtonBoneThicknessOpen();

@@ -43,6 +43,8 @@ class iABoneThicknessTable : public QTableView
 
 	vtkSmartPointer<vtkPoints> point();
 
+	double pointRadius() const;
+
 	void setTable();
 	void setWindow(iARenderer* _iARenderer);
 
@@ -50,6 +52,8 @@ class iABoneThicknessTable : public QTableView
 	QVector<double>* thickness();
 
 private:
+	double m_dPointRadius = 0.3;
+
 	QVector<double> m_vDistance;
 	QVector<double> m_vThickness;
 
