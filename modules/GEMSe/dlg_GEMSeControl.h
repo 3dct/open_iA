@@ -22,7 +22,7 @@
 
 #include "ui_GEMSeControl.h"
 
-#include "iAImageTreeNode.h"
+#include "iAImageTreeNode.h"    // for LabelImagePointer
 
 #include <vtkSmartPointer.h>
 
@@ -32,12 +32,13 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 class iAImageClusterer;
 class iAImageSampler;
 
+class dlg_GEMSe;
 class dlg_labels;
+class dlg_MajorityVoting;
 class dlg_modalities;
+class dlg_progress;
 class dlg_samplings;
 class dlg_samplingSettings;
-class dlg_progress;
-class dlg_GEMSe;
 class iAColorTheme;
 class iASimpleLabelInfo;
 class iASamplingResults;
@@ -79,20 +80,9 @@ private slots:
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
 	void LoadRefImage();
-
-	void MajVoteMinAbsPlot();
-	void MajVoteMinDiffPlot();
-	void MajVoteRatioPlot();
-	void MajVoteMaxPixelEntropyPlot();
-	//void MajVoteMinAbsPercentStore();
-	void MajVoteAbsMinPercentSlider(int);
-	void MajVoteMinDiffPercentSlider(int);
-	void MajVoteMinRatioSlider(int);
-	void MajVoteMaxPixelEntropySlider(int);
-	void MajVoteSample();
 private:
 	void StoreGEMSeProject(QString const & fileName);
-	void EnableClusteringDependantButtons();
+	void EnableClusteringDependantUI();
 	
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
@@ -100,6 +90,7 @@ private:
 	dlg_GEMSe*                           m_dlgGEMSe;
 	dlg_labels*                          m_dlgLabels;
 	dlg_samplings*                       m_dlgSamplings;
+	dlg_MajorityVoting*                  m_dlgMajorityVoting;
 
 	QSharedPointer<iAImageSampler>       m_sampler;
 	QSharedPointer<iAImageClusterer>     m_clusterer;
