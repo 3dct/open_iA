@@ -30,6 +30,8 @@
 #include <itkMaskImageFilter.h>
 #include <itkTestingComparisonImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**

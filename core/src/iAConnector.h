@@ -22,13 +22,11 @@
 
 #include "open_iA_Core_export.h"
 
-#include <itkCastImageFilter.h>
-#include <itkImage.h>
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
-#include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 
+class vtkImageData;
 class vtkImageExport;
 class vtkImageImport;
 

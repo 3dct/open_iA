@@ -66,6 +66,7 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkImageData.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>

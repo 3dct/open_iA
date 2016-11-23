@@ -26,6 +26,8 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**

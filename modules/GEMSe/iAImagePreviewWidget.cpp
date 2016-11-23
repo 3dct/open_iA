@@ -31,6 +31,7 @@
 #include "iASlicerWidget.h"
 
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkImageData.h>
 #include <vtkTransform.h>
 
 namespace

@@ -25,6 +25,8 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <vtkImageData.h>
+
 #include <QDateTime>
 #include <QLocale>
 #include <QString>

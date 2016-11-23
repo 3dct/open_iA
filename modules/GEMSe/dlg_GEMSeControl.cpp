@@ -44,6 +44,8 @@
 #include "iASEAFile.h"
 #include "mdichild.h"
 
+#include <vtkImageData.h>
+
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>

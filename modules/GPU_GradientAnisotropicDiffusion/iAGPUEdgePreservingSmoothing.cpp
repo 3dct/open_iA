@@ -31,6 +31,8 @@
 #include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)

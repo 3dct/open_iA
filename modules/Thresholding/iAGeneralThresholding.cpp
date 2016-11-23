@@ -27,6 +27,8 @@
 
 #include <itkThresholdImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**

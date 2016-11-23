@@ -26,6 +26,8 @@
 
 #include "oif_reader.h"
 
+#include <vtkImageData.h>
+
 namespace IO
 {
 namespace OIF

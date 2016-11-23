@@ -29,6 +29,8 @@
 #include <itkImageIOBase.h>
 #include <itkSubtractImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**

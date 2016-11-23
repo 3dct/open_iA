@@ -32,6 +32,8 @@
 #include <itkFlipImageFilter.h>
 #include <itkImageRegion.h>
 
+#include <vtkImageData.h>
+
 template <class TImageType>
 static typename TImageType::PointType image_center(TImageType * image)
 {

@@ -28,6 +28,8 @@
 #include <itkMedianImageFilter.h>
 #include <itkSubtractImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**

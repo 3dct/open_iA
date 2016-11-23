@@ -29,6 +29,7 @@
 #include <itkTriangleCell.h>
 
 #include <vtkCellArray.h>
+#include <vtkImageData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 

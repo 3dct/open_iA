@@ -31,6 +31,8 @@
 #include <itkNormalizedCorrelationImageFilter.h>
 #include <itkImageKernelOperator.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**
