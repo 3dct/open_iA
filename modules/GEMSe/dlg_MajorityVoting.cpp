@@ -364,8 +364,7 @@ void dlg_MajorityVoting::Sample()
 			tables[r]->SetValue(i, 0, meanDice);
 			tables[r]->SetValue(i, 1, undefinedPerc);
 		}
-		DEBUG_LOG(QString::number(i) + ": " + out);
-
+		//DEBUG_LOG(QString::number(i) + ": " + out);
 	}
 
 	QString titles[ResultCount] =
