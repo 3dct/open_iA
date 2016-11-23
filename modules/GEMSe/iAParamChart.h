@@ -72,6 +72,7 @@ private:
 
 	double m_minSliderPos, m_maxSliderPos;
 	int m_selectedHandle;
+	int m_selectionOffset;
 
 	int value2X(double value) const;
 	double x2value(int x) const;

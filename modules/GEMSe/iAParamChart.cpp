@@ -235,13 +235,15 @@ void iAParamChart::mousePressEvent( QMouseEvent *event )
 
 			int minX = value2X(m_minSliderPos);
 			int maxX = value2X(m_maxSliderPos);
-			if ( abs(x-minX) < MarkerTriangleWidthHalf)
+			if ( abs(x-minX) <= MarkerTriangleWidthHalf)
 			{
 				m_selectedHandle = 0;
+				m_selectionOffset = minX - x;
 			}
-			else if ( abs(x-maxX) < MarkerTriangleWidthHalf)
+			else if ( abs(x-maxX) <= MarkerTriangleWidthHalf)
 			{
 				m_selectedHandle = 1;
+				m_selectionOffset = maxX - x;
 			}
 		}
 	}
@@ -269,17 +271,17 @@ void iAParamChart::mouseMoveEvent( QMouseEvent *event )
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&	
 			  m_selectedHandle != -1)
 	{
-		int x = event->x() - getLeftMargin();
-		if (x < 0 || x-translationX >= static_cast<int>(getActiveWidth()*xZoom) )
+		int x = event->x() - getLeftMargin() + m_selectionOffset;
+		if (x < 0 || x-translationX > static_cast<int>(getActiveWidth()*xZoom) )
 		{
 			return;
 		}
 		double value = x2value(x);
 		switch (m_selectedHandle)
 		{
-		case 0: m_minSliderPos = value; break;
-		case 1: m_maxSliderPos = value; break;
-		default: assert(false); break;
+			case 0:	m_minSliderPos = value;	break;
+			case 1: m_maxSliderPos = value;	break;
+			default: assert(false); break;
 		}
 		QString text( tr( "%1\n(data range: [%2..%3])" )
 				  .arg( value )
