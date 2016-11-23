@@ -49,7 +49,7 @@
     <item row="3" column="2">
      <widget class="QLabel" name="lbMaxPixelEntropy">
       <property name="text">
-       <string>0%</string>
+       <string>0.00 %</string>
       </property>
      </widget>
     </item>
@@ -59,7 +59,10 @@
        <number>0</number>
       </property>
       <property name="maximum">
-       <number>1000</number>
+       <number>10000</number>
+      </property>
+      <property name="pageStep">
+       <number>100</number>
       </property>
       <property name="value">
        <number>0</number>
@@ -83,6 +86,9 @@
       </property>
       <property name="maximum">
        <number>10000</number>
+      </property>
+      <property name="pageStep">
+       <number>100</number>
       </property>
       <property name="value">
        <number>10000</number>
@@ -122,14 +128,14 @@
     <item row="0" column="2">
      <widget class="QLabel" name="lbMinAbsPercent">
       <property name="text">
-       <string>100 %</string>
+       <string>100.00 %</string>
       </property>
      </widget>
     </item>
     <item row="1" column="2">
      <widget class="QLabel" name="lbMinDiffPercent">
       <property name="text">
-       <string>100%</string>
+       <string>100.00 %</string>
       </property>
      </widget>
     </item>
@@ -153,10 +159,13 @@
     <item row="0" column="1">
      <widget class="QSlider" name="slAbsMinPercent">
       <property name="maximum">
-       <number>1000</number>
+       <number>10000</number>
+      </property>
+      <property name="pageStep">
+       <number>100</number>
       </property>
       <property name="value">
-       <number>1000</number>
+       <number>10000</number>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -166,10 +175,13 @@
     <item row="1" column="1">
      <widget class="QSlider" name="slMinDiffPercent">
       <property name="maximum">
-       <number>1000</number>
+       <number>10000</number>
+      </property>
+      <property name="pageStep">
+       <number>100</number>
       </property>
       <property name="value">
-       <number>1000</number>
+       <number>10000</number>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>

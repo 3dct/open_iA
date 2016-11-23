@@ -110,7 +110,7 @@ void dlg_MajorityVoting::AbsMinPercentSlider(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	lbMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 1) + " %");
+	lbMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 2) + " %");
 	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, minAbs, -1, -1, -1, m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
@@ -120,7 +120,7 @@ void dlg_MajorityVoting::MinDiffPercentSlider(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minDiff = static_cast<double>(slMinDiffPercent->value()) / slMinDiffPercent->maximum();
-	lbMinDiffPercent->setText(QString::number(minDiff * 100, 'f', 1) + " %");
+	lbMinDiffPercent->setText(QString::number(minDiff * 100, 'f', 2) + " %");
 	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, minDiff, -1, -1, m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
@@ -140,7 +140,7 @@ void dlg_MajorityVoting::MaxPixelEntropySlider(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
-	lbMaxPixelEntropy->setText(QString::number(maxPixelEntropy, 'f', 2));
+	lbMaxPixelEntropy->setText(QString::number(maxPixelEntropy*100, 'f', 2)+" %");
 	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, -1, maxPixelEntropy, m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
