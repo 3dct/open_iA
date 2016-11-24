@@ -25,36 +25,50 @@
 #include "mainwindow.h"
 
 #include<vtkCellLocator.h>
+#include<vtkLineSource.h>
 #include<vtkMath.h>
 #include<vtkPolyData.h>
+#include<vtkPolyDataMapper.h>
 #include<vtkPoints.h>
+#include<vtkProperty.h>
 
 #include "iADockWidgetWrapper.h"
 
-#include <QPushButton>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
+#include <QLabel>
+#include <QPushButton>
+#include <QSlider>
 
-iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow * mainWnd, iAChildData childData):
-	iAModuleAttachmentToChild(mainWnd, childData)
+iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
+	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
 {
 	QWidget* pBoneThicknessWidget (new QWidget());
 
-	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pBoneThicknessWidget);
-
-	const int iPushButtonWidth (2 * pBoneThicknessWidget->logicalDpiX());
-
 	QPushButton* pPushButtonBoneThicknessOpen(new QPushButton("Open point file...", pBoneThicknessWidget));
-	pPushButtonBoneThicknessOpen->setFixedWidth(iPushButtonWidth);
+	pPushButtonBoneThicknessOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
+	pPushButtonBoneThicknessOpen->setFixedWidth(15 * pBoneThicknessWidget->logicalDpiX() / 10);
 	connect(pPushButtonBoneThicknessOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonBoneThicknessOpen()));
 
-	QGridLayout* pBoneThicknessLayout (new QGridLayout(pBoneThicknessWidget));
-	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable);
-	pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessOpen);
+	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pBoneThicknessWidget);
 
-	childData.child->tabifyDockWidget(childData.logs, new iADockWidgetWrapper(pBoneThicknessWidget, tr("Bone thickness"), "BoneThickness"));
+	QLabel* pLabelSphereRadius(new QLabel("Sphere radius:", pBoneThicknessWidget));
+	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pBoneThicknessWidget));
+	pDoubleSpinBoxSphereRadius->setMinimum(0.1);
+	pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
+	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
+	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
+
+	QGridLayout* pBoneThicknessLayout (new QGridLayout(pBoneThicknessWidget));
+	pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessOpen, 0, 0);
+	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable, 1, 0, 1, 4);
+	pBoneThicknessLayout->addWidget(pLabelSphereRadius, 2, 0);
+	pBoneThicknessLayout->addWidget(pDoubleSpinBoxSphereRadius, 2, 1);
+
+	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pBoneThicknessWidget, tr("Bone thickness"), "BoneThickness"));
 }
 
-void iABoneThicknessAttachment::Calculate()
+void iABoneThicknessAttachment::calculate()
 {
 	qApp->setOverrideCursor(Qt::WaitCursor);
 
@@ -71,7 +85,9 @@ void iABoneThicknessAttachment::Calculate()
 	QVector<double>* pvThickness(m_pBoneThicknessTable->thickness());
 	
 	vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
-	AddPointNormalsIn(PointNormals);
+	addPointNormalsIn(PointNormals);
+
+	m_pBoneThicknessTable->clearThicknessLines();
 
 	for (int i(0); i < PointsTable ; ++i)
 	{
@@ -86,128 +102,154 @@ void iABoneThicknessAttachment::Calculate()
 
 		(*pvDistance)[i] = sqrt(closestPointDist2);
 
-		double Point2[3];
-		PointNormals->GetPoint(i, Point2);
+		double pNormal[3];
+		PointNormals->GetPoint(i, pNormal);
 
-		double Point21[3], Point22[3];
-
-		for (int ii(0); ii < 3; ++ii)
-		{
-			Point21[ii] = Point2[ii] + 100.0 * PointClosest1[ii];
-			Point21[ii] = Point2[ii] - 100.0 * PointClosest1[ii];
-		}
+		const double dLength (5.0);
+		double pPoint21[3] = { PointClosest1[0] + dLength * pNormal[0], PointClosest1[1] + dLength * pNormal[1], PointClosest1[2] + dLength * pNormal[2] };
+		double pPoint22[3] = { PointClosest1[0] - dLength * pNormal[0], PointClosest1[1] - dLength * pNormal[1], PointClosest1[2] - dLength * pNormal[2] };
 
 		double tol (0.0);
 		double t (0.0);
-		double x[3];
+		double x1[3], x2[3];
 		double pcoords[3];
 
-		if (CellLocator->IntersectWithLine(Point21, PointClosest1, tol, t, x, pcoords, subId)  == 1)
+		vtkSmartPointer<vtkLineSource> pLine(vtkSmartPointer<vtkLineSource>::New());
+		vtkSmartPointer<vtkPolyDataMapper> pMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
+		vtkSmartPointer<vtkActor> pActor(vtkSmartPointer<vtkActor>::New());
+		pActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+
+		CellLocator->IntersectWithLine(pPoint21, PointClosest1, tol, t, x1, pcoords, subId);
+		(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x1));
+
+		pLine->SetPoint1(PointClosest1);
+		pLine->SetPoint2(x1);
+		pMapper->SetInputConnection(pLine->GetOutputPort());
+		pActor->SetMapper(pMapper);
+
+		CellLocator->IntersectWithLine(pPoint22, PointClosest1, tol, t, x2, pcoords, subId);
+
+		const double dThickness (sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x2)));
+
+		if (dThickness > (*pvThickness)[i])
 		{
-			(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x));
-		}
-		else
-		{
-			(*pvThickness)[i] = 0.0;
+			(*pvThickness)[i] = dThickness;
+
+			pLine->SetPoint1(PointClosest1);
+			pLine->SetPoint2(x2);
+			pMapper->SetInputConnection(pLine->GetOutputPort());
+			pActor->SetMapper(pMapper);
 		}
 
-		if (CellLocator->IntersectWithLine(Point22, PointClosest1, tol, t, x, pcoords, subId) == 1)
-		{
-			(*pvThickness)[i] = vtkMath::Max((*pvThickness)[i], sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x)));
-		}
+		m_pBoneThicknessTable->addThicknessLine(pActor);
 	}
 
 	m_pBoneThicknessTable->setTable();
+	m_pBoneThicknessTable->setWindow();
+
 	qApp->restoreOverrideCursor();
 }
 
-void iABoneThicknessAttachment::AddPointNormalsIn(vtkPoints* PointNormals)
+void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
 {
-	vtkPolyData* PolyData(m_childData.polyData);
-	const vtkIdType PointsData (PolyData->GetNumberOfPoints());
+	vtkPolyData* pPolyData(m_childData.polyData);
+	const vtkIdType idPointsData (pPolyData->GetNumberOfPoints());
 
-	vtkSmartPointer<vtkPoints> Points(m_pBoneThicknessTable->point());
-	const vtkIdType PointsTable(Points->GetNumberOfPoints());
+	vtkSmartPointer<vtkPoints> pPoints(m_pBoneThicknessTable->point());
+	const vtkIdType idPointsTable(pPoints->GetNumberOfPoints());
 
-	const double PointRadius(m_pBoneThicknessTable->pointRadius());
+	const double dPointRadius(m_pBoneThicknessTable->sphereRadius());
 
 	QVector<vtkSmartPointer<vtkPoints>> vPoints;
-	vPoints.resize(PointsTable);
+	vPoints.resize(idPointsTable);
 
-	for (vtkIdType i(0); i < PointsTable; ++i)
+	for (vtkIdType i(0); i < idPointsTable; ++i)
 	{
 		vPoints[i] = vtkPoints::New();
 	}
 
-	for (vtkIdType j (0); j < PointsData; ++j)
+	for (vtkIdType j (0); j < idPointsData; ++j)
 	{
-		double PointData[3];
-		PolyData->GetPoint(j, PointData);
+		double pPointData[3];
+		pPolyData->GetPoint(j, pPointData);
 
-		for (vtkIdType i(0); i < PointsTable; ++i)
+		for (vtkIdType i(0); i < idPointsTable; ++i)
 		{
-			double Point1[3];
-			Points->GetPoint(i, Point1);
+			double pPoint1[3];
+			pPoints->GetPoint(i, pPoint1);
 
-			const double Distance(sqrt(vtkMath::Distance2BetweenPoints(Point1, PointData)));
+			const double Distance(sqrt(vtkMath::Distance2BetweenPoints(pPoint1, pPointData)));
 
-			if (Distance < PointRadius)
+			if (Distance < dPointRadius)
 			{
-				vPoints[i]->InsertNextPoint(PointData);
+				vPoints[i]->InsertNextPoint(pPointData);
 			}
 		}
 	}
 
-	double Normal[3];
+	double pNormal[3];
 		
-	for (vtkIdType i(0); i < PointsTable; ++i)
+	for (vtkIdType i(0); i < idPointsTable; ++i)
 	{
-		GetNormal(vPoints[i], Normal);
-		vtkMath::Normalize(Normal);
+		getNormal(vPoints[i], pNormal);
+		vtkMath::Normalize(pNormal);
 
-		PointNormals->InsertNextPoint(Normal);
+		_pPointNormals->InsertNextPoint(pNormal);
 	}
 }
 
-void iABoneThicknessAttachment::GetNormal(vtkPoints* Points, double* Normal)
+void iABoneThicknessAttachment::getNormal(vtkPoints* _pPoints, double* _pNormal)
 {
-	const vtkIdType PointsArea(Points->GetNumberOfPoints());
+	const vtkIdType idPointsArea(_pPoints->GetNumberOfPoints());
 
-	double Point1[3];
-	Points->GetPoint(0, Point1);
-
-	double sumX(Point1[0]);
-	double sumXX(Point1[0] * Point1[0]);
-	double sumXY(Point1[0] * Point1[1]);
-
-	double sumY(Point1[1]);
-	double sumYY(Point1[1] * Point1[1]);
-
-	double sumXZ(Point1[0] * Point1[2]);
-	double sumYZ(Point1[1] * Point1[2]);
-	double sumZ(Point1[2]);
-
-	for (vtkIdType i(1); i < PointsArea ; ++i)
+	if (idPointsArea > 0)
 	{
-		Points->GetPoint(i, Point1);
+		double pPoint1[3];
+		_pPoints->GetPoint(0, pPoint1);
 
-		sumX += Point1[0];
-		sumXX += Point1[0] * Point1[0];
-		sumXY += Point1[0] * Point1[1];
-		sumXZ += Point1[0] * Point1[2];
+		double dSumX(pPoint1[0]);
+		double dSumXX(pPoint1[0] * pPoint1[0]);
+		double dSumXY(pPoint1[0] * pPoint1[1]);
 
-		sumY += Point1[1];
-		sumYY += Point1[1] * Point1[1];
-		sumYZ += Point1[1] * Point1[2];
+		double dSumY(pPoint1[1]);
+		double dSumYY(pPoint1[1] * pPoint1[1]);
 
-		sumZ += Point1[2];
+		double dSumXZ(pPoint1[0] * pPoint1[2]);
+		double dSumYZ(pPoint1[1] * pPoint1[2]);
+		double dSumZ(pPoint1[2]);
+
+		for (vtkIdType i(1); i < idPointsArea; ++i)
+		{
+			_pPoints->GetPoint(i, pPoint1);
+
+			dSumX += pPoint1[0];
+			dSumXX += pPoint1[0] * pPoint1[0];
+			dSumXY += pPoint1[0] * pPoint1[1];
+			dSumXZ += pPoint1[0] * pPoint1[2];
+
+			dSumY += pPoint1[1];
+			dSumYY += pPoint1[1] * pPoint1[1];
+			dSumYZ += pPoint1[1] * pPoint1[2];
+
+			dSumZ += pPoint1[2];
+		}
+
+		const double AB(dSumXX * dSumYY - dSumXY * dSumXY);
+
+		_pNormal[2] = (dSumXZ * dSumYY - dSumYZ * dSumXY) / AB; // A
+		_pNormal[0] = (dSumXX * dSumXZ - dSumXZ * dSumXY) / AB; // B
+		_pNormal[1] = (dSumZ - _pNormal[0] * dSumX - _pNormal[1] * dSumY) / ((double)idPointsArea); // C
 	}
+	else
+	{
+		_pNormal[0] = _pNormal[1] = _pNormal[2] = 0.0;
+	}
+}
 
-	const double AB(sumXX * sumYY - sumXY * sumXY);
-
-	Normal[0] = (sumXZ * sumYY - sumYZ * sumXY) / AB; // A
-	Normal[1] = (sumXX * sumXZ - sumXZ * sumXY) / AB; // B
-	Normal[2] = (sumZ - Normal[0] * sumX - Normal[1] * sumY) / ((double)PointsArea); // C
+void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius(const double& _dValue)
+{
+	m_pBoneThicknessTable->setSphereRadius(_dValue);
+	calculate();
 }
 
 void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
@@ -224,10 +266,8 @@ void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
 	if (pFileDialog->exec())
 	{
 		m_pBoneThicknessTable->open(pFileDialog->selectedFiles().first());
-		m_pBoneThicknessTable->setWindow();
+		calculate();
 	}
 
 	delete pFileDialog;
-
-	Calculate();
 }
