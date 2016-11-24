@@ -54,9 +54,14 @@ void iAModalityExplorerModuleInterface::Initialize()
 {
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
+	
 	QAction * actionModalitySlicer = new QAction(QApplication::translate("MainWindow", "Modality Slicer", 0), m_mainWnd );
 	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySlicer, true);
 	connect(actionModalitySlicer, SIGNAL(triggered()), this, SLOT(ModalitySlicer()));
+
+	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
+	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
 }
 
 
