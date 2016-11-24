@@ -43,6 +43,7 @@
 #include <vtkFloatArray.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPlot.h>
+#include <vtkPlotLine.h>
 #include <vtkTable.h>
 #include <QVTKWidget2.h>
 
@@ -53,17 +54,54 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
-	m_chartDiceVsUndec(vtkSmartPointer<vtkChartXY>::New())
+	m_chartDiceVsUndec(vtkSmartPointer<vtkChartXY>::New()),
+	m_chartValueVsDice(vtkSmartPointer<vtkChartXY>::New()),
+	m_chartValueVsUndec(vtkSmartPointer<vtkChartXY>::New())
 {
 	QString defaultTheme("Brewer Set3 (max. 12)");
 	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);
+
 	auto vtkWidget = new QVTKWidget2();
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
 	contextView->SetRenderWindow(vtkWidget->GetRenderWindow());
 	m_chartDiceVsUndec->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	auto xAxis1 = m_chartDiceVsUndec->GetAxis(vtkAxis::BOTTOM);
+	auto yAxis1 = m_chartDiceVsUndec->GetAxis(vtkAxis::LEFT);
+	xAxis1->SetTitle("Undecided Pixels");
+	xAxis1->SetLogScale(false);
+	yAxis1->SetTitle("Accuracy (Dice)");
+	yAxis1->SetLogScale(false);
 	contextView->GetScene()->AddItem(m_chartDiceVsUndec);
 	iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, "Chart Dice vs. Undecided", "ChartDiceVsUndec"));
 	mdiChild->splitDockWidget(this, w, Qt::Vertical);
+
+	auto vtkWidget2 = new QVTKWidget2();
+	auto contextView2 = vtkSmartPointer<vtkContextView>::New();
+	contextView2->SetRenderWindow(vtkWidget2->GetRenderWindow());
+	m_chartValueVsDice->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	auto xAxis2 = m_chartValueVsDice->GetAxis(vtkAxis::BOTTOM);
+	auto yAxis2 = m_chartValueVsDice->GetAxis(vtkAxis::LEFT);
+	xAxis2->SetTitle("Threshold");
+	xAxis2->SetLogScale(false);
+	yAxis2->SetTitle("Accuracy(Dice)");
+	yAxis2->SetLogScale(false);
+	contextView2->GetScene()->AddItem(m_chartValueVsDice);
+	iADockWidgetWrapper * w2(new iADockWidgetWrapper(vtkWidget2, "Chart Threshold vs. Dice", "ChartValueVsDice"));
+	mdiChild->splitDockWidget(this, w2, Qt::Vertical);
+
+	auto vtkWidget3 = new QVTKWidget2();
+	auto contextView3 = vtkSmartPointer<vtkContextView>::New();
+	contextView3->SetRenderWindow(vtkWidget3->GetRenderWindow());
+	m_chartValueVsUndec->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	auto xAxis3 = m_chartValueVsUndec->GetAxis(vtkAxis::BOTTOM);
+	auto yAxis3 = m_chartValueVsUndec->GetAxis(vtkAxis::LEFT);
+	xAxis3->SetTitle("Threshold");
+	xAxis3->SetLogScale(false);
+	yAxis3->SetTitle("Undecided Pixels");
+	yAxis3->SetLogScale(false);
+	contextView3->GetScene()->AddItem(m_chartValueVsUndec);
+	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Chart Threshold vs. Undecided", "ChartValueVsUndec"));
+	mdiChild->splitDockWidget(this, w3, Qt::Vertical);
 
 	// repeat  for m_chartValueVsDice, m_chartValueVsUndec
 
@@ -276,25 +314,26 @@ majorityVotingID++;
 }
 */
 
-void AddPlot(vtkSmartPointer<vtkChartXY> chart, vtkSmartPointer<vtkTable> table, int col1, int col2, iAColorTheme const * colorTheme)
+vtkIdType AddPlot(int plotType, vtkSmartPointer<vtkChartXY> chart, vtkSmartPointer<vtkTable> table, int col1, int col2,
+	QColor const & color)
 {
-	auto xAxis = chart->GetAxis(vtkAxis::BOTTOM);
-	auto yAxis = chart->GetAxis(vtkAxis::LEFT);
-	xAxis->SetTitle("Accuracy (Dice)");
-	xAxis->SetLogScale(false);
-	yAxis->SetTitle("Undecided Pixels");
-	yAxis->SetLogScale(false);
-
-	int count = chart->GetNumberOfPlots();
-	vtkPlot* plot = chart->AddPlot(vtkChart::POINTS);
+	vtkSmartPointer<vtkPlot> plot;
+	switch (plotType)
+	{
+		default: // intentional fall-through
+		case vtkChart::POINTS: plot = vtkSmartPointer<vtkPlotPoints>::New(); break;
+		case vtkChart::LINE: plot = vtkSmartPointer<vtkPlotLine>::New(); break;
+	}
 	plot->SetColor(
-		static_cast<unsigned char>(colorTheme->GetColor(count).red()),
-		static_cast<unsigned char>(colorTheme->GetColor(count).green()),
-		static_cast<unsigned char>(colorTheme->GetColor(count).blue()),
-		static_cast<unsigned char>(colorTheme->GetColor(count).alpha())
+		static_cast<unsigned char>(color.red()),
+		static_cast<unsigned char>(color.green()),
+		static_cast<unsigned char>(color.blue()),
+		static_cast<unsigned char>(color.alpha())
 	);
 	plot->SetWidth(1.0);
 	plot->SetInputData(table, col1, col2);
+	vtkIdType plotID = chart->AddPlot(plot);
+	return plotID;
 }
 
 vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
@@ -404,8 +443,8 @@ void dlg_MajorityVoting::Sample()
 
 			// add values to table
 			tables[r]->SetValue(i, 0, value[r]);
-			tables[r]->SetValue(i, 1, meanDice);
-			tables[r]->SetValue(i, 2, undefinedPerc);
+			tables[r]->SetValue(i, 1, undefinedPerc);
+			tables[r]->SetValue(i, 2, meanDice);
 		}
 		//DEBUG_LOG(QString::number(i) + ": " + out);
 	}
@@ -419,14 +458,13 @@ void dlg_MajorityVoting::Sample()
 			ids += ", ";
 		}
 	}
-	AddPlot(m_chartDiceVsUndec, tables[3], 1, 2, m_colorTheme);
 
 	int startIdx = twSampleResults->rowCount();
 	twSampleResults->setRowCount(startIdx + ResultCount);
 	for (int i = 0; i < ResultCount; ++i)
 	{
 		QCheckBox * checkBox = new QCheckBox;
-		if (i == 3) checkBox->setChecked(true);
+		//if (i == 3) checkBox->setChecked(true);
 		twSampleResults->setCellWidget(startIdx + i, 0, checkBox);
 		connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(CheckBoxStateChanged(int)));
 		twSampleResults->setItem(startIdx + i, 1, new QTableWidgetItem("Maj. Vote Sampling/" + titles[i] + "/" + ids));
@@ -444,6 +482,27 @@ void dlg_MajorityVoting::CheckBoxStateChanged(int state)
 {
 	QCheckBox* sender = dynamic_cast<QCheckBox*>(QObject::sender());
 	int id = m_checkBoxResultIDMap[sender];
-	DEBUG_LOG(QString("STATE CHANGED for sampe result %1!").arg(id));
-	AddPlot(m_chartDiceVsUndec, m_results[id], 1, 2, m_colorTheme);
+	if (state == Qt::Checked)
+	{
+		static int colorCnt = 0;
+		int colorIdx = (colorCnt++) % 12;
+		QColor plotColor = m_colorTheme->GetColor(colorIdx);
+		vtkIdType plot1 = AddPlot(vtkChart::POINTS, m_chartDiceVsUndec, m_results[id], 1, 2, plotColor);
+		vtkIdType plot2 = AddPlot(vtkChart::LINE, m_chartValueVsDice,  m_results[id], 0, 2, plotColor);
+		vtkIdType plot3 = AddPlot(vtkChart::LINE, m_chartValueVsUndec, m_results[id], 0, 1, plotColor);
+		QVector<vtkIdType> plots;
+		plots.push_back(plot1);
+		plots.push_back(plot2);
+		plots.push_back(plot3);
+		m_plotMap.insert(id, plots);
+		twSampleResults->item(id, 1)->setBackgroundColor(plotColor);
+	}
+	else
+	{
+		twSampleResults->item(id, 1)->setBackgroundColor(Qt::white);
+		QVector<vtkIdType> plots = m_plotMap[id];
+		m_chartDiceVsUndec->RemovePlot(plots[0]);
+		m_chartValueVsDice->RemovePlot(plots[1]);
+		m_chartValueVsUndec->RemovePlot(plots[2]);
+	}
 }

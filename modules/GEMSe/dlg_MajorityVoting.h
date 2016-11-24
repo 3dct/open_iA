@@ -36,6 +36,7 @@ class iAQSplom;
 class MdiChild;
 
 class vtkChartXY;
+class vtkPlot;
 class vtkTable;
 
 class QCheckBox;
@@ -65,6 +66,7 @@ private:
 	int m_labelCount;
 	QVector<vtkSmartPointer<vtkTable> > m_results;
 	QMap<QCheckBox*, int> m_checkBoxResultIDMap;
+	QMap<int, QVector<vtkIdType> > m_plotMap;
 	vtkSmartPointer<vtkChartXY> m_chartDiceVsUndec;
 	vtkSmartPointer<vtkChartXY> m_chartValueVsDice;
 	vtkSmartPointer<vtkChartXY> m_chartValueVsUndec;
