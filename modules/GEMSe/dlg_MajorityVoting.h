@@ -25,12 +25,18 @@
 #include "iAImageTreeNode.h"    // for LabelImagePointer
 #include "iAQTtoUIConnector.h"
 
+#include <vtkSmartPointer.h>
+
 typedef iAQTtoUIConnector<QDockWidget, Ui_MajorityVoting>   dlg_MajorityVotingUI;
 
 class dlg_GEMSe;
+class iAColorTheme;
 class iALookupTable;
 class iAQSplom;
 class MdiChild;
+
+class vtkChartXY;
+class vtkTable;
 
 class QCheckBox;
 
@@ -57,8 +63,11 @@ private:
 	dlg_GEMSe* m_dlgGEMSe;
 	LabelImagePointer m_groundTruthImage;
 	int m_labelCount;
-	iAQSplom* m_splom;
-	iALookupTable* m_lut;
 	QVector<vtkSmartPointer<vtkTable> > m_results;
 	QMap<QCheckBox*, int> m_checkBoxResultIDMap;
+	vtkSmartPointer<vtkChartXY> m_chartDiceVsUndec;
+	vtkSmartPointer<vtkChartXY> m_chartValueVsDice;
+	vtkSmartPointer<vtkChartXY> m_chartValueVsUndec;
+
+	iAColorTheme const * m_colorTheme;
 };

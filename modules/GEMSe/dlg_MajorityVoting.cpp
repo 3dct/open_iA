@@ -22,6 +22,7 @@
 #include "dlg_MajorityVoting.h"
 
 #include "dlg_GEMSe.h"
+#include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "iAImageTreeNode.h"
@@ -35,23 +36,36 @@
 
 #include <itkLabelStatisticsImageFilter.h>
 
+#include <vtkAxis.h>
+#include <vtkChartXY.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
+#include <vtkFloatArray.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPlot.h>
+#include <vtkTable.h>
+#include <QVTKWidget2.h>
+
 #include <QCheckBox>
 #include <QMessageBox>
-#include <QTableWidget>
 
 dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
-	m_splom(new iAQSplom()),
+	m_chartDiceVsUndec(vtkSmartPointer<vtkChartXY>::New())
 {
-	m_lut->setRange(0, 1);
-	m_lut->allocate(2);
-	m_lut->setColor(0, QColor(0, 0, 0));
-	m_lut->setColor(1, QColor(255, 0, 0));
-	m_splom->setLookupTable(*m_lut, QString("test"));
-	iADockWidgetWrapper* w(new iADockWidgetWrapper(m_splom, "Charts", "Charts"));
-	mdiChild->splitDockWidget(this, w, Qt::Horizontal);
+	QString defaultTheme("Brewer Set3 (max. 12)");
+	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);
+	auto vtkWidget = new QVTKWidget2();
+	auto contextView = vtkSmartPointer<vtkContextView>::New();
+	contextView->SetRenderWindow(vtkWidget->GetRenderWindow());
+	m_chartDiceVsUndec->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	contextView->GetScene()->AddItem(m_chartDiceVsUndec);
+	iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, "Chart Dice vs. Undecided", "ChartDiceVsUndec"));
+	mdiChild->splitDockWidget(this, w, Qt::Vertical);
+
+	// repeat  for m_chartValueVsDice, m_chartValueVsUndec
 
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MinAbsPlot()));
@@ -262,6 +276,40 @@ majorityVotingID++;
 }
 */
 
+void AddPlot(vtkSmartPointer<vtkChartXY> chart, vtkSmartPointer<vtkTable> table, int col1, int col2, iAColorTheme const * colorTheme)
+{
+	auto xAxis = chart->GetAxis(vtkAxis::BOTTOM);
+	auto yAxis = chart->GetAxis(vtkAxis::LEFT);
+	xAxis->SetTitle("Accuracy (Dice)");
+	xAxis->SetLogScale(false);
+	yAxis->SetTitle("Undecided Pixels");
+	yAxis->SetLogScale(false);
+
+	int count = chart->GetNumberOfPlots();
+	vtkPlot* plot = chart->AddPlot(vtkChart::POINTS);
+	plot->SetColor(
+		static_cast<unsigned char>(colorTheme->GetColor(count).red()),
+		static_cast<unsigned char>(colorTheme->GetColor(count).green()),
+		static_cast<unsigned char>(colorTheme->GetColor(count).blue()),
+		static_cast<unsigned char>(colorTheme->GetColor(count).alpha())
+	);
+	plot->SetWidth(1.0);
+	plot->SetInputData(table, col1, col2);
+}
+
+vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
+{
+	auto result = vtkSmartPointer<vtkTable>::New();
+	for (int i = 0; i < columnNames.size(); ++i)
+	{
+		vtkSmartPointer<vtkFloatArray> arr(vtkSmartPointer<vtkFloatArray>::New());
+		arr->SetName(columnNames[i].toStdString().c_str());
+		result->AddColumn(arr);
+	}
+	result->SetNumberOfRows(rowCount);
+	return result;
+}
+
 void dlg_MajorityVoting::Sample()
 {
 	if (!m_groundTruthImage)
@@ -270,11 +318,16 @@ void dlg_MajorityVoting::Sample()
 		return;
 	}
 
+	QVector<QString> columnNames;
+	columnNames.push_back("Value");
+	columnNames.push_back("Undecided Pixels");
+	columnNames.push_back("Dice");
+
 	const int SampleCount = 100;
 	const int ResultCount = 4;
 	const int UndecidedLabel = m_labelCount;
 
-	QTableWidget * tables[ResultCount];
+	vtkSmartPointer<vtkTable> tables[ResultCount];
 	QString titles[ResultCount] =
 	{
 		QString("Minimum Absolute Percentage"),
@@ -284,12 +337,7 @@ void dlg_MajorityVoting::Sample()
 	};
 	for (int r = 0; r < ResultCount; ++r)
 	{
-		tables[r] = new QTableWidget();
-		tables[r]->setColumnCount(3);		// "value", Dice, Undecided Pixels
-		tables[r]->setRowCount(SampleCount);
-		tables[r]->setItem(0, 0, new QTableWidgetItem(titles[r]));
-		tables[r]->setItem(0, 1, new QTableWidgetItem("Dice"));
-		tables[r]->setItem(0, 2, new QTableWidgetItem("Undecided"));
+		tables[r] = CreateVTKTable(SampleCount, columnNames);
 	}
 
 	QVector<QSharedPointer<iASingleResult> > m_selection;
@@ -355,9 +403,9 @@ void dlg_MajorityVoting::Sample()
 			//out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
 
 			// add values to table
-			tables[r]->setItem(i, 0, new QTableWidgetItem(value[r]));
-			tables[r]->setItem(i, 1, new QTableWidgetItem(meanDice));
-			tables[r]->setItem(i, 2, new QTableWidgetItem(undefinedPerc));
+			tables[r]->SetValue(i, 0, value[r]);
+			tables[r]->SetValue(i, 1, meanDice);
+			tables[r]->SetValue(i, 2, undefinedPerc);
 		}
 		//DEBUG_LOG(QString::number(i) + ": " + out);
 	}
@@ -371,8 +419,8 @@ void dlg_MajorityVoting::Sample()
 			ids += ", ";
 		}
 	}
+	AddPlot(m_chartDiceVsUndec, tables[3], 1, 2, m_colorTheme);
 
-	m_splom->setData(tables[3]);
 	int startIdx = twSampleResults->rowCount();
 	twSampleResults->setRowCount(startIdx + ResultCount);
 	for (int i = 0; i < ResultCount; ++i)
@@ -380,7 +428,7 @@ void dlg_MajorityVoting::Sample()
 		QCheckBox * checkBox = new QCheckBox;
 		if (i == 3) checkBox->setChecked(true);
 		twSampleResults->setCellWidget(startIdx + i, 0, checkBox);
-		connect(checkBox, SIGNAL(stateChanged(int state)), this, SLOT(CheckBoxStateChanged(int state)));
+		connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(CheckBoxStateChanged(int)));
 		twSampleResults->setItem(startIdx + i, 1, new QTableWidgetItem("Maj. Vote Sampling/" + titles[i] + "/" + ids));
 		m_checkBoxResultIDMap.insert(checkBox, startIdx + i);
 		if (m_results.size() != startIdx + i)
@@ -389,46 +437,13 @@ void dlg_MajorityVoting::Sample()
 		}
 		m_results.push_back(tables[i]);
 	}
-	/*
-	// plot graph for all tables
-	for (int r = 0; r < ResultCount; ++r)
-	{
-		auto chart = vtkSmartPointer<vtkChartXY>::New();
 
-		auto xAxis = chart->GetAxis(vtkAxis::BOTTOM);
-		auto yAxis = chart->GetAxis(vtkAxis::LEFT);
-		xAxis->SetTitle("Accuracy (Dice)");
-		xAxis->SetLogScale(false);
-		yAxis->SetTitle("Undecided Pixels");
-		yAxis->SetLogScale(false);
-
-		vtkPlot* plot = chart->AddPlot(vtkChart::POINTS);
-		plot->SetColor(
-			static_cast<unsigned char>(DefaultColors::AllDataChartColor.red()),
-			static_cast<unsigned char>(DefaultColors::AllDataChartColor.green()),
-			static_cast<unsigned char>(DefaultColors::AllDataChartColor.blue()),
-			static_cast<unsigned char>(DefaultColors::AllDataChartColor.alpha())
-		);
-		plot->SetWidth(1.0);
-		plot->SetInputData(tables[r], 0, 1);
-
-		auto vtkWidget = new QVTKWidget2();
-		auto contextView = vtkSmartPointer<vtkContextView>::New();
-		contextView->SetRenderWindow(vtkWidget->GetRenderWindow());
-		chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
-		contextView->GetScene()->AddItem(chart);
-		iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, titles[r], titles[r].replace(" ", "")));
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		mdiChild->splitDockWidget(this, w, Qt::Vertical);
-	}
-	*/
 }
-
 
 void dlg_MajorityVoting::CheckBoxStateChanged(int state)
 {
 	QCheckBox* sender = dynamic_cast<QCheckBox*>(QObject::sender());
 	int id = m_checkBoxResultIDMap[sender];
 	DEBUG_LOG(QString("STATE CHANGED for sampe result %1!").arg(id));
-	m_splom->setData(m_results[id]);
+	AddPlot(m_chartDiceVsUndec, m_results[id], 1, 2, m_colorTheme);
 }
