@@ -25,6 +25,8 @@
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "iAImageTreeNode.h"
+#include "iALookupTable.h"
+#include "iAQSplom.h"
 #include "iASingleResult.h"
 #include "mdichild.h"
 
@@ -33,23 +35,24 @@
 
 #include <itkLabelStatisticsImageFilter.h>
 
-#include <vtkAxis.h>
-#include <vtkChartXY.h>
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkFloatArray.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkPlot.h>
-#include <vtkTable.h>
-#include <QVTKWidget2.h>
-
+#include <QCheckBox>
 #include <QMessageBox>
+#include <QTableWidget>
 
-dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount):
+dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
-	m_labelCount(labelCount)
+	m_labelCount(labelCount),
+	m_splom(new iAQSplom()),
 {
+	m_lut->setRange(0, 1);
+	m_lut->allocate(2);
+	m_lut->setColor(0, QColor(0, 0, 0));
+	m_lut->setColor(1, QColor(255, 0, 0));
+	m_splom->setLookupTable(*m_lut, QString("test"));
+	iADockWidgetWrapper* w(new iADockWidgetWrapper(m_splom, "Charts", "Charts"));
+	mdiChild->splitDockWidget(this, w, Qt::Horizontal);
+
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MinAbsPlot()));
 	connect(pbMinDiffPercent_Plot, SIGNAL(clicked()), this, SLOT(MinDiffPlot()));
@@ -259,19 +262,6 @@ majorityVotingID++;
 }
 */
 
-vtkSmartPointer<vtkTable> CreateVTKTable(int sampleCount)
-{
-	auto result = vtkSmartPointer<vtkTable>::New();
-	vtkSmartPointer<vtkFloatArray> arrX(vtkSmartPointer<vtkFloatArray>::New());
-	vtkSmartPointer<vtkFloatArray> arrY(vtkSmartPointer<vtkFloatArray>::New());
-	arrX->SetName("Dice");
-	arrY->SetName("Undec. Pix.");
-	result->AddColumn(arrX);
-	result->AddColumn(arrY);
-	result->SetNumberOfRows(sampleCount);
-	return result;
-}
-
 void dlg_MajorityVoting::Sample()
 {
 	if (!m_groundTruthImage)
@@ -284,11 +274,22 @@ void dlg_MajorityVoting::Sample()
 	const int ResultCount = 4;
 	const int UndecidedLabel = m_labelCount;
 
-	vtkSmartPointer<vtkTable> tables[ResultCount];
-
-	for (int i = 0; i < ResultCount; ++i)
+	QTableWidget * tables[ResultCount];
+	QString titles[ResultCount] =
 	{
-		tables[i] = CreateVTKTable(SampleCount);
+		QString("Minimum Absolute Percentage"),
+		QString("Minimum Percentage Difference"),
+		QString("Ratio"),
+		QString("Maximum Pixel Uncertainty")
+	};
+	for (int r = 0; r < ResultCount; ++r)
+	{
+		tables[r] = new QTableWidget();
+		tables[r]->setColumnCount(3);		// "value", Dice, Undecided Pixels
+		tables[r]->setRowCount(SampleCount);
+		tables[r]->setItem(0, 0, new QTableWidgetItem(titles[r]));
+		tables[r]->setItem(0, 1, new QTableWidgetItem("Dice"));
+		tables[r]->setItem(0, 2, new QTableWidgetItem("Undecided"));
 	}
 
 	QVector<QSharedPointer<iASingleResult> > m_selection;
@@ -297,45 +298,38 @@ void dlg_MajorityVoting::Sample()
 	double absPercMin = 1.0 / m_labelCount;
 	double absPercMax = 1;
 
-	/*
-	double relPercMin = 0;
-	double relPercMax = 1;
-	*/
-
 	double ratioMin = 1;
 	double ratioMax = m_selection.size();
 	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(m_selection.size()));
 
-	/*
-	double pixelUncMin = 0;
-	double pixelUncMax = 1;
-	*/
 	typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
 	typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
 
 	auto region = m_groundTruthImage->GetLargestPossibleRegion();
 	auto size = region.GetSize();
 	double pixelCount = size[0] * size[1] * size[2];
+
 	for (int i = 0; i < SampleCount; ++i)
 	{
-
 		// calculate current value:
 		double norm = mapToNorm(0, SampleCount, i);
 
-		double absPerc = mapNormTo(absPercMin, absPercMax, norm);
-		double relPerc = norm;
-		double ratio = mapNormTo(ratioMin, ratioMax, norm);
-		double pixelUnc = norm;
+		double value[4] = {
+			mapNormTo(absPercMin, absPercMax, norm),		// minimum absolute percentage
+			norm,											// minimum relative percentage
+			mapNormTo(ratioMin, ratioMax, norm),			// ratio
+			norm											// maximum pixel uncertainty
+		};
 
 		// calculate majority voting using these values:
 		iAITKIO::ImagePointer result[ResultCount];
 
-		result[0] = GetMajorityVotingImage(m_selection, absPerc, -1, -1, -1, m_labelCount);
-		result[1] = GetMajorityVotingImage(m_selection, -1, relPerc, -1, -1, m_labelCount);
-		result[2] = GetMajorityVotingImage(m_selection, -1, -1, ratio, -1, m_labelCount);
-		result[3] = GetMajorityVotingImage(m_selection, -1, -1, -1, pixelUnc, m_labelCount);
+		result[0] = GetMajorityVotingImage(m_selection, value[0], -1, -1, -1, m_labelCount);
+		result[1] = GetMajorityVotingImage(m_selection, -1, value[1], -1, -1, m_labelCount);
+		result[2] = GetMajorityVotingImage(m_selection, -1, -1, value[2], -1, m_labelCount);
+		result[3] = GetMajorityVotingImage(m_selection, -1, -1, -1, value[3], m_labelCount);
 
-		QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
+		//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
 		// calculate dice coefficient and percentage of undetermined pixels
 		// (percentage of voxels with label = difference marker = max. label + 1)
 		for (int r = 0; r < ResultCount; ++r)
@@ -358,23 +352,44 @@ void dlg_MajorityVoting::Sample()
 				statFilter->HasLabel(UndecidedLabel)
 				? static_cast<double>(statFilter->GetCount(UndecidedLabel)) / pixelCount
 				: 0;
-			out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
+			//out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
 
 			// add values to table
-			tables[r]->SetValue(i, 0, meanDice);
-			tables[r]->SetValue(i, 1, undefinedPerc);
+			tables[r]->setItem(i, 0, new QTableWidgetItem(value[r]));
+			tables[r]->setItem(i, 1, new QTableWidgetItem(meanDice));
+			tables[r]->setItem(i, 2, new QTableWidgetItem(undefinedPerc));
 		}
 		//DEBUG_LOG(QString::number(i) + ": " + out);
 	}
 
-	QString titles[ResultCount] =
+	QString ids;
+	for (int s = 0; s < m_selection.size(); ++s)
 	{
-		QString("Minimum Absolute Percentage"),
-		QString("Minimum Percentage Difference"),
-		QString("Ratio"),
-		QString("Maximum Pixel Uncertainty")
-	};
+		ids += QString::number(m_selection[s]->GetDatasetID()) + "-" + QString::number(m_selection[s]->GetID());
+		if (s < m_selection.size() - 1)
+		{
+			ids += ", ";
+		}
+	}
 
+	m_splom->setData(tables[3]);
+	int startIdx = twSampleResults->rowCount();
+	twSampleResults->setRowCount(startIdx + ResultCount);
+	for (int i = 0; i < ResultCount; ++i)
+	{
+		QCheckBox * checkBox = new QCheckBox;
+		if (i == 3) checkBox->setChecked(true);
+		twSampleResults->setCellWidget(startIdx + i, 0, checkBox);
+		connect(checkBox, SIGNAL(stateChanged(int state)), this, SLOT(CheckBoxStateChanged(int state)));
+		twSampleResults->setItem(startIdx + i, 1, new QTableWidgetItem("Maj. Vote Sampling/" + titles[i] + "/" + ids));
+		m_checkBoxResultIDMap.insert(checkBox, startIdx + i);
+		if (m_results.size() != startIdx + i)
+		{
+			DEBUG_LOG("Results vector and table are out of sync!");
+		}
+		m_results.push_back(tables[i]);
+	}
+	/*
 	// plot graph for all tables
 	for (int r = 0; r < ResultCount; ++r)
 	{
@@ -406,4 +421,14 @@ void dlg_MajorityVoting::Sample()
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		mdiChild->splitDockWidget(this, w, Qt::Vertical);
 	}
+	*/
+}
+
+
+void dlg_MajorityVoting::CheckBoxStateChanged(int state)
+{
+	QCheckBox* sender = dynamic_cast<QCheckBox*>(QObject::sender());
+	int id = m_checkBoxResultIDMap[sender];
+	DEBUG_LOG(QString("STATE CHANGED for sampe result %1!").arg(id));
+	m_splom->setData(m_results[id]);
 }

@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>332</width>
-    <height>123</height>
+    <height>271</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>330</width>
-    <height>123</height>
+    <height>271</height>
    </size>
   </property>
   <property name="features">
@@ -213,6 +213,31 @@
       <property name="text">
        <string>Sample Maj. Voting</string>
       </property>
+     </widget>
+    </item>
+    <item row="5" column="3">
+     <widget class="QPushButton" name="pushButton">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" rowspan="3" colspan="3">
+     <widget class="QTableWidget" name="twSampleResults">
+      <property name="rowCount">
+       <number>0</number>
+      </property>
+      <property name="columnCount">
+       <number>2</number>
+      </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>true</bool>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column/>
+      <column/>
      </widget>
     </item>
    </layout>

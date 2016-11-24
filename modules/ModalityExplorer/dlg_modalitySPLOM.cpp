@@ -186,7 +186,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	                (int)(((m_extent[3]-m_extent[2]+1) / step[1]) + 1) *
 	                (int)(((m_extent[5]-m_extent[4]+1) / step[2]) + 1);
 	
-	std::cout << "Steps: " << step[0] << ", " << step[1] << ", " << step[2] << "; tableSize: " << tableSize;
+	//std::cout << "Steps: " << step[0] << ", " << step[1] << ", " << step[2] << "; tableSize: " << tableSize;
 	
 	iATimeAdder adder;
 	adder.resume();

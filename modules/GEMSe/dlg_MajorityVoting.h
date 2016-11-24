@@ -23,12 +23,16 @@
 #include "ui_MajorityVoting.h"
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
+#include "iAQTtoUIConnector.h"
 
-#include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDockWidget, Ui_MajorityVoting>   dlg_MajorityVotingUI;
 
 class dlg_GEMSe;
+class iALookupTable;
+class iAQSplom;
 class MdiChild;
+
+class QCheckBox;
 
 class dlg_MajorityVoting : public dlg_MajorityVotingUI
 {
@@ -47,9 +51,14 @@ private slots:
 	void MinRatioSlider(int);
 	void MaxPixelEntropySlider(int);
 	void Sample();
+	void CheckBoxStateChanged(int state);
 private:
 	MdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
 	LabelImagePointer m_groundTruthImage;
 	int m_labelCount;
+	iAQSplom* m_splom;
+	iALookupTable* m_lut;
+	QVector<vtkSmartPointer<vtkTable> > m_results;
+	QMap<QCheckBox*, int> m_checkBoxResultIDMap;
 };
