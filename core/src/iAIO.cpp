@@ -986,6 +986,32 @@ void iAIO::FillFileNameArray(int * indexRange, int digitsInIndex)
 	}
 }
 
+unsigned int mapVTKByteOrderToIdx(unsigned int vtkByteOrder)
+{
+	switch (vtkByteOrder)
+	{
+	default:
+	case VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN: return 0;
+	case VTK_FILE_BYTE_ORDER_BIG_ENDIAN: return 1;
+	}
+}
+
+unsigned int mapVTKTypeToIdx(unsigned int vtkScalarType)
+{
+	switch (vtkScalarType)
+	{
+		case VTK_UNSIGNED_CHAR: return 0;
+		case VTK_CHAR: return 1;
+		default:
+		case VTK_UNSIGNED_SHORT: return 2;
+		case VTK_SHORT: return 3;
+		case VTK_UNSIGNED_INT: return 4;
+		case VTK_INT: return 5;
+		case VTK_FLOAT: return 6;
+		case VTK_DOUBLE: return 7;
+	}
+}
+
 
 bool iAIO::setupVolumeStackReader(QString f)
 {
@@ -997,16 +1023,23 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 	fileNamesBase = f;
 	extension = "." + QFileInfo(f).suffix();
-	QStringList datatype = (QStringList()<<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_CHAR")  <<  tr("VTK_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE"));
-	QStringList byteOrderStr = (QStringList() <<  tr("Little Endian") <<  tr("Big Endian"));
+	QStringList datatype = (QStringList()
+		<< tr("VTK_UNSIGNED_CHAR") << tr("VTK_CHAR")
+		<< tr("VTK_UNSIGNED_SHORT") << tr("VTK_SHORT")
+		<< tr("VTK_UNSIGNED_INT") << tr("VTK_INT")
+		<< tr("VTK_FLOAT") << tr("VTK_DOUBLE"));
+	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
+	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
+	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
 	QStringList inList		= (QStringList() 
 		<< tr("#File Names Base") << tr("#Extension") 
 		<< tr("#Number of Digits in Index")
 		<< tr("#Minimum Index")  << tr("#Maximum Index")
 		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
-		<< tr("#Spacing X")  << tr("#Spacing Y")  << tr("#Spacing Z")
-		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z")	<< tr("+Data Type")
+		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
+		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z")
 		<< tr("#Headersize")
+		<< tr("+Data Type")
 		<< tr("+Byte Order") );
 	QList<QVariant> inPara	= (QList<QVariant>() 
 		<< fileNamesBase << extension 
@@ -1014,8 +1047,9 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(rawSizeX) << tr("%1").arg(rawSizeY) << tr("%1").arg(rawSizeZ)
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << datatype
-		<< tr("%1").arg(rawHeader)
+		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2])
+		<< tr("%1").arg(rawHeaderSize)
+		<< datatype
 		<< byteOrderStr);
 
 	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, parent, "RAW file specs", 17, inList, inPara, NULL, f);
@@ -1034,8 +1068,8 @@ bool iAIO::setupVolumeStackReader(QString f)
 		spacing[0] = dlg->getValues()[8]; spacing[1]= dlg->getValues()[9]; spacing[2] = dlg->getValues()[10];
 		origin[0] = dlg->getValues()[11]; origin[1]= dlg->getValues()[12]; origin[2] = dlg->getValues()[13];
 
-		rawHeader = dlg->getValues()[15];
-		headersize = rawHeader;
+		rawHeaderSize = dlg->getValues()[15];
+		headersize = rawHeaderSize;
 		 
 		if (dlg->getComboBoxValues()[14] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
 		if (dlg->getComboBoxValues()[14] == "VTK_CHAR") scalarType = VTK_CHAR;
@@ -1045,14 +1079,14 @@ bool iAIO::setupVolumeStackReader(QString f)
 		if (dlg->getComboBoxValues()[14] == "VTK_INT") scalarType = VTK_INT;
 		if (dlg->getComboBoxValues()[14] == "VTK_FLOAT") scalarType = VTK_FLOAT;
 		if (dlg->getComboBoxValues()[14] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
-		rawScalar = scalarType;
+		rawScalarType = scalarType;
 
 		if (dlg->getComboBoxValues()[16] == "Little Endian") 
 		byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
 		else if (dlg->getComboBoxValues()[16] == "Big Endian") 
 		byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
-		rawByte = byteOrder;
+		rawByteOrder = byteOrder;
 
 		FillFileNameArray(indexRange, digitsInIndex);
 	}
@@ -1064,8 +1098,14 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 bool iAIO::setupRAWReader( QString f )
 {
-	QStringList datatype = (QStringList() <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_CHAR") <<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE"));
-	QStringList byteOrderStr = (QStringList() <<  tr("Little Endian") <<  tr("Big Endian"));
+	QStringList datatype = (QStringList()
+		<< tr("VTK_UNSIGNED_CHAR") << tr("VTK_CHAR")
+		<< tr("VTK_UNSIGNED_SHORT") << tr("VTK_SHORT")
+		<< tr("VTK_UNSIGNED_INT") << tr("VTK_INT")
+		<< tr("VTK_FLOAT") << tr("VTK_DOUBLE"));
+	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
+	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
+	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
 	QStringList inList		= (QStringList() 
 		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
 		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
@@ -1078,7 +1118,7 @@ bool iAIO::setupRAWReader( QString f )
 		<< tr("%1").arg(rawSizeX) << tr("%1").arg(rawSizeY) << tr("%1").arg(rawSizeZ)
 		<< tr("%1").arg(rawSpaceX) << tr("%1").arg(rawSpaceY) << tr("%1").arg(rawSpaceZ)
 		<< tr("%1").arg(rawOriginX) << tr("%1").arg(rawOriginY) << tr("%1").arg(rawOriginZ)
-		<< tr("%1").arg(rawHeader) 
+		<< tr("%1").arg(rawHeaderSize)
 		<< datatype
 		<< byteOrderStr);
 
@@ -1097,8 +1137,8 @@ bool iAIO::setupRAWReader( QString f )
 		rawOriginX = dlg->getValues()[6]; rawOriginY = dlg->getValues()[7]; rawOriginZ = dlg->getValues()[8];
 		origin[0] = rawOriginX; origin[1]= rawOriginY; origin[2] = rawOriginZ;
 
-		rawHeader = dlg->getValues()[9];
-		headersize = rawHeader;
+		rawHeaderSize = dlg->getValues()[9];
+		headersize = rawHeaderSize;
 		fileName = f;
 				
 		if (dlg->getComboBoxValues()[10] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
@@ -1110,13 +1150,13 @@ bool iAIO::setupRAWReader( QString f )
 		if (dlg->getComboBoxValues()[10] == "VTK_FLOAT") scalarType = VTK_FLOAT;
 		if (dlg->getComboBoxValues()[10] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
 		
-		rawScalar = scalarType;
+		rawScalarType = scalarType;
 		if (dlg->getComboBoxValues()[11] == "Little Endian") 
 			byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
 		else if (dlg->getComboBoxValues()[11] == "Big Endian") 
 			byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
-		rawByte = byteOrder;
+		rawByteOrder = byteOrder;
 	}
 	else return false;
 
@@ -1469,22 +1509,9 @@ void iAIO::iosettingswriter()
 	settings.setValue("IO/rawOriginX", rawOriginX);
 	settings.setValue("IO/rawOriginY", rawOriginY);
 	settings.setValue("IO/rawOriginZ", rawOriginZ);
-	settings.setValue("IO/rawScalar", rawScalar);
-	settings.setValue("IO/rawByte", rawByte);
-	settings.setValue("IO/rawHeader", rawHeader);
-
-	settings.setValue("IO/proSizeX", proSizeX);
-	settings.setValue("IO/proSizeY", proSizeY);
-	settings.setValue("IO/proSizeZ", proSizeZ);
-	settings.setValue("IO/proSpaceX", proSpaceX);
-	settings.setValue("IO/proSpaceY", proSpaceY);
-	settings.setValue("IO/proSpaceZ", proSpaceZ);
-	settings.setValue("IO/proOriginX", proOriginX);
-	settings.setValue("IO/proOriginY", proOriginY);
-	settings.setValue("IO/proOriginZ", proOriginZ);
-	settings.setValue("IO/proScalar", proScalar);
-	settings.setValue("IO/proByte", proByte);
-	settings.setValue("IO/proHeader", proHeader);
+	settings.setValue("IO/rawScalar", rawScalarType);
+	settings.setValue("IO/rawByte", rawByteOrder);
+	settings.setValue("IO/rawHeader", rawHeaderSize);
 }
 
 
@@ -1494,28 +1521,15 @@ void iAIO::iosettingsreader()
 	rawOriginX = settings.value("IO/rawOriginX").toDouble();
 	rawOriginY = settings.value("IO/rawOriginY").toDouble();
 	rawOriginZ = settings.value("IO/rawOriginZ").toDouble();
-	rawSpaceX = settings.value("IO/rawSpaceX").toDouble();
-	rawSpaceY = settings.value("IO/rawSpaceY").toDouble();
-	rawSpaceZ = settings.value("IO/rawSpaceZ").toDouble();
+	rawSpaceX = settings.value("IO/rawSpaceX", 1).toDouble();
+	rawSpaceY = settings.value("IO/rawSpaceY", 1).toDouble();
+	rawSpaceZ = settings.value("IO/rawSpaceZ", 1).toDouble();
 	rawSizeX = settings.value("IO/rawSizeX").toInt();
 	rawSizeY = settings.value("IO/rawSizeY").toInt();
 	rawSizeZ = settings.value("IO/rawSizeZ").toInt();
-	rawScalar = settings.value("IO/rawScalar").toInt();
-	rawByte = settings.value("IO/rawByte").toInt();
-	rawHeader = settings.value("IO/rawHeader").toInt();
-
-	proOriginX = settings.value("IO/proOriginX").toDouble();
-	proOriginY = settings.value("IO/proOriginY").toDouble();
-	proOriginZ = settings.value("IO/proOriginZ").toDouble();
-	proSpaceX = settings.value("IO/proSpaceX").toDouble();
-	proSpaceY = settings.value("IO/proSpaceY").toDouble();
-	proSpaceZ = settings.value("IO/proSpaceZ").toDouble();
-	proSizeX = settings.value("IO/proSizeX").toInt();
-	proSizeY = settings.value("IO/proSizeY").toInt();
-	proSizeZ = settings.value("IO/proSizeZ").toInt();
-	proScalar = settings.value("IO/proScalar").toInt();
-	proByte = settings.value("IO/proByte").toInt();
-	proHeader = settings.value("IO/proHeader").toInt();
+	rawScalarType = settings.value("IO/rawScalar", 2).toInt(); // default data type: unsigned char
+	rawByteOrder = settings.value("IO/rawByte", 0).toInt();    // default byte order: little endian
+	rawHeaderSize = settings.value("IO/rawHeader").toInt();
 }
 
 

@@ -163,8 +163,11 @@ private:
 	double spacing[3];
 	double origin[3];
 	bool compression;
-	int rawSizeX,rawSizeY, rawSizeZ, rawScalar, rawByte;	double rawSpaceX, rawSpaceY, rawSpaceZ;	double rawOriginX,rawOriginY, rawOriginZ; unsigned int rawHeader;
-	int proSizeX,proSizeY, proSizeZ, proScalar, proByte;	double proSpaceX, proSpaceY, proSpaceZ;	double proOriginX,proOriginY, proOriginZ; unsigned int proHeader;
+	
+	int rawSizeX,rawSizeY, rawSizeZ;
+	double rawSpaceX, rawSpaceY, rawSpaceZ;
+	double rawOriginX,rawOriginY, rawOriginZ;
+	unsigned int rawHeaderSize, rawByteOrder, rawScalarType;
 
 	int ioID;
 	std::vector<vtkSmartPointer<vtkImageData> > * m_volumes;
