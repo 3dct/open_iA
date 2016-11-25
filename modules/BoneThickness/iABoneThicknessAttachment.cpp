@@ -25,16 +25,16 @@
 #include "mainwindow.h"
 
 #include<vtkCellLocator.h>
-#include<vtkLineSource.h>
 #include<vtkMath.h>
+#include<vtkOpenGLRenderer.h>
 #include<vtkPolyData.h>
-#include<vtkPolyDataMapper.h>
 #include<vtkPoints.h>
-#include<vtkProperty.h>
 
-#include "iADockWidgetWrapper.h"
+#include <iADockWidgetWrapper.h>
+#include <iARenderer.h>
 
 #include <QDoubleSpinBox>
+#include <QGroupBox>
 #include <QFileDialog>
 #include <QLabel>
 #include <QPushButton>
@@ -43,14 +43,44 @@
 iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
 	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
 {
-	QWidget* pBoneThicknessWidget (new QWidget());
+	vtkPolyData* pPolyData(m_childData.polyData);
+	pPolyData->GetBounds(m_pBound);
+
+	m_pRange[0] = m_pBound[1] - m_pBound[0];
+	m_pRange[1] = m_pBound[3] - m_pBound[2];
+	m_pRange[2] = m_pBound[3] - m_pBound[4];
+
+	QWidget* pBoneThicknessWidget(new QWidget());
 
 	QPushButton* pPushButtonBoneThicknessOpen(new QPushButton("Open point file...", pBoneThicknessWidget));
 	pPushButtonBoneThicknessOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
-	pPushButtonBoneThicknessOpen->setFixedWidth(15 * pBoneThicknessWidget->logicalDpiX() / 10);
 	connect(pPushButtonBoneThicknessOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonBoneThicknessOpen()));
 
-	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pBoneThicknessWidget);
+	QGroupBox* pGroupBoxBound(new QGroupBox("Surface bounds", pBoneThicknessWidget));
+	QLabel* pLabelBoundXMin(new QLabel(QString("X min: %1").arg(m_pBound[0]), pGroupBoxBound));
+	QLabel* pLabelBoundXMax(new QLabel(QString("X max: %1").arg(m_pBound[1]), pGroupBoxBound));
+	QLabel* pLabelBoundXRng(new QLabel(QString("X rng: %1").arg(m_pRange[0]), pGroupBoxBound));
+	QLabel* pLabelBoundYMin(new QLabel(QString("Y min: %1").arg(m_pBound[2]), pGroupBoxBound));
+	QLabel* pLabelBoundYMax(new QLabel(QString("Y max: %1").arg(m_pBound[3]), pGroupBoxBound));
+	QLabel* pLabelBoundYRng(new QLabel(QString("Y rng: %1").arg(m_pRange[1]), pGroupBoxBound));
+	QLabel* pLabelBoundZMin(new QLabel(QString("Z min: %1").arg(m_pBound[4]), pGroupBoxBound));
+	QLabel* pLabelBoundZMax(new QLabel(QString("Z max: %1").arg(m_pBound[5]), pGroupBoxBound));
+	QLabel* pLabelBoundZRng(new QLabel(QString("Z rng: %1").arg(m_pRange[2]), pGroupBoxBound));
+
+	QGridLayout* pGridLayoutBound(new QGridLayout(pGroupBoxBound));
+	pGridLayoutBound->addWidget(pLabelBoundXMin, 0, 0);
+	pGridLayoutBound->addWidget(pLabelBoundXMax, 0, 1);
+	pGridLayoutBound->addWidget(pLabelBoundXRng, 0, 2);
+	pGridLayoutBound->addWidget(pLabelBoundYMin, 0, 3);
+	pGridLayoutBound->addWidget(pLabelBoundYMax, 0, 4);
+	pGridLayoutBound->addWidget(pLabelBoundYRng, 0, 5);
+	pGridLayoutBound->addWidget(pLabelBoundZMin, 0, 6);
+	pGridLayoutBound->addWidget(pLabelBoundZMax, 0, 7);
+	pGridLayoutBound->addWidget(pLabelBoundZRng, 0, 8);
+
+	iARenderer* pRenderer (m_childData.child->getRaycaster());
+	pRenderer->GetRenderer()->SetUseDepthPeeling(true);
+	m_pBoneThicknessTable = new iABoneThicknessTable(pRenderer, pBoneThicknessWidget);
 
 	QLabel* pLabelSphereRadius(new QLabel("Sphere radius:", pBoneThicknessWidget));
 	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pBoneThicknessWidget));
@@ -59,101 +89,20 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
 	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
 
-	QGridLayout* pBoneThicknessLayout (new QGridLayout(pBoneThicknessWidget));
+	QGridLayout* pBoneThicknessLayout(new QGridLayout(pBoneThicknessWidget));
 	pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessOpen, 0, 0);
-	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable, 1, 0, 1, 4);
-	pBoneThicknessLayout->addWidget(pLabelSphereRadius, 2, 0);
-	pBoneThicknessLayout->addWidget(pDoubleSpinBoxSphereRadius, 2, 1);
+	pBoneThicknessLayout->addWidget(pGroupBoxBound, 1, 0, 1, 4);
+	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable, 2, 0, 1, 4);
+	pBoneThicknessLayout->addWidget(pLabelSphereRadius, 3, 0);
+	pBoneThicknessLayout->addWidget(pDoubleSpinBoxSphereRadius, 3, 1);
 
 	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pBoneThicknessWidget, tr("Bone thickness"), "BoneThickness"));
-}
-
-void iABoneThicknessAttachment::calculate()
-{
-	qApp->setOverrideCursor(Qt::WaitCursor);
-
-	vtkSmartPointer<vtkCellLocator> CellLocator(vtkCellLocator::New());
-	CellLocator->SetDataSet(m_childData.polyData);
-	CellLocator->BuildLocator();
-	CellLocator->Update();
-
-	vtkSmartPointer<vtkPoints> Points(m_pBoneThicknessTable->point());
-
-	const vtkIdType PointsTable (Points->GetNumberOfPoints());
-
-	QVector<double>* pvDistance(m_pBoneThicknessTable->distance());
-	QVector<double>* pvThickness(m_pBoneThicknessTable->thickness());
-	
-	vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
-	addPointNormalsIn(PointNormals);
-
-	m_pBoneThicknessTable->clearThicknessLines();
-
-	for (int i(0); i < PointsTable ; ++i)
-	{
-		double Point1[3];
-		Points->GetPoint(i, Point1);
-
-		vtkIdType cellId;
-		int subId;
-		double closestPointDist2 (0.0);
-		double PointClosest1[3];
-		CellLocator->FindClosestPoint(Point1, PointClosest1, cellId, subId, closestPointDist2);
-
-		(*pvDistance)[i] = sqrt(closestPointDist2);
-
-		double pNormal[3];
-		PointNormals->GetPoint(i, pNormal);
-
-		const double dLength (5.0);
-		double pPoint21[3] = { PointClosest1[0] + dLength * pNormal[0], PointClosest1[1] + dLength * pNormal[1], PointClosest1[2] + dLength * pNormal[2] };
-		double pPoint22[3] = { PointClosest1[0] - dLength * pNormal[0], PointClosest1[1] - dLength * pNormal[1], PointClosest1[2] - dLength * pNormal[2] };
-
-		double tol (0.0);
-		double t (0.0);
-		double x1[3], x2[3];
-		double pcoords[3];
-
-		vtkSmartPointer<vtkLineSource> pLine(vtkSmartPointer<vtkLineSource>::New());
-		vtkSmartPointer<vtkPolyDataMapper> pMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
-		vtkSmartPointer<vtkActor> pActor(vtkSmartPointer<vtkActor>::New());
-		pActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
-
-		CellLocator->IntersectWithLine(pPoint21, PointClosest1, tol, t, x1, pcoords, subId);
-		(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x1));
-
-		pLine->SetPoint1(PointClosest1);
-		pLine->SetPoint2(x1);
-		pMapper->SetInputConnection(pLine->GetOutputPort());
-		pActor->SetMapper(pMapper);
-
-		CellLocator->IntersectWithLine(pPoint22, PointClosest1, tol, t, x2, pcoords, subId);
-
-		const double dThickness (sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x2)));
-
-		if (dThickness > (*pvThickness)[i])
-		{
-			(*pvThickness)[i] = dThickness;
-
-			pLine->SetPoint1(PointClosest1);
-			pLine->SetPoint2(x2);
-			pMapper->SetInputConnection(pLine->GetOutputPort());
-			pActor->SetMapper(pMapper);
-		}
-
-		m_pBoneThicknessTable->addThicknessLine(pActor);
-	}
-
-	m_pBoneThicknessTable->setTable();
-	m_pBoneThicknessTable->setWindow();
-
-	qApp->restoreOverrideCursor();
 }
 
 void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
 {
 	vtkPolyData* pPolyData(m_childData.polyData);
-	const vtkIdType idPointsData (pPolyData->GetNumberOfPoints());
+	const vtkIdType idPointsData(pPolyData->GetNumberOfPoints());
 
 	vtkSmartPointer<vtkPoints> pPoints(m_pBoneThicknessTable->point());
 	const vtkIdType idPointsTable(pPoints->GetNumberOfPoints());
@@ -168,7 +117,7 @@ void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
 		vPoints[i] = vtkPoints::New();
 	}
 
-	for (vtkIdType j (0); j < idPointsData; ++j)
+	for (vtkIdType j(0); j < idPointsData; ++j)
 	{
 		double pPointData[3];
 		pPolyData->GetPoint(j, pPointData);
@@ -188,7 +137,7 @@ void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
 	}
 
 	double pNormal[3];
-		
+
 	for (vtkIdType i(0); i < idPointsTable; ++i)
 	{
 		getNormal(vPoints[i], pNormal);
@@ -196,6 +145,79 @@ void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
 
 		_pPointNormals->InsertNextPoint(pNormal);
 	}
+}
+
+void iABoneThicknessAttachment::calculate()
+{
+	qApp->setOverrideCursor(Qt::WaitCursor);
+
+	vtkSmartPointer<vtkCellLocator> CellLocator(vtkCellLocator::New());
+	CellLocator->SetDataSet(m_childData.polyData);
+	CellLocator->BuildLocator();
+	CellLocator->Update();
+
+	vtkSmartPointer<vtkPoints> Points(m_pBoneThicknessTable->point());
+	QVector<vtkSmartPointer<vtkLineSource>>* Lines (m_pBoneThicknessTable->lines());
+
+	const vtkIdType idPointsTable (Points->GetNumberOfPoints());
+
+	QVector<double>* pvDistance(m_pBoneThicknessTable->distance());
+	QVector<double>* pvThickness(m_pBoneThicknessTable->thickness());
+	
+	vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
+	addPointNormalsIn(PointNormals);
+
+	for (int i(0); i < idPointsTable; ++i)
+	{
+		double Point1[3];
+		Points->GetPoint(i, Point1);
+
+		vtkIdType cellId;
+		int subId;
+		double closestPointDist2 (0.0);
+		double PointClosest1[3];
+		CellLocator->FindClosestPoint(Point1, PointClosest1, cellId, subId, closestPointDist2);
+
+		(*pvDistance)[i] = sqrt(closestPointDist2);
+
+		double pNormal[3];
+		PointNormals->GetPoint(i, pNormal);
+
+		const double dLength (vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2])));
+		double pPoint21[3] = { PointClosest1[0] + dLength * pNormal[0], PointClosest1[1] + dLength * pNormal[1], PointClosest1[2] + dLength * pNormal[2] };
+		double pPoint22[3] = { PointClosest1[0] - dLength * pNormal[0], PointClosest1[1] - dLength * pNormal[1], PointClosest1[2] - dLength * pNormal[2] };
+
+		double tol (0.0), t (0.0), x1[3], x2[3], pcoords[3];
+
+		if (CellLocator->IntersectWithLine(pPoint21, PointClosest1, tol, t, x1, pcoords, subId))
+		{
+			(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x1));
+			(*Lines)[i]->SetPoint1(PointClosest1);
+			(*Lines)[i]->SetPoint2(x1);
+		}
+		else
+		{
+			(*pvThickness)[i] = 0.0;
+			(*Lines)[i]->SetPoint1(0.0, 0.0, 0.0);
+			(*Lines)[i]->SetPoint2(0.0, 0.0, 0.0);
+		}
+
+		if (CellLocator->IntersectWithLine(pPoint22, PointClosest1, tol, t, x2, pcoords, subId))
+		{
+			const double dThickness(sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x2)));
+
+			if (dThickness > (*pvThickness)[i])
+			{
+				(*pvThickness)[i] = dThickness;
+				(*Lines)[i]->SetPoint2(x2);
+			}
+		}
+	}
+
+	m_pBoneThicknessTable->setTable();
+	m_pBoneThicknessTable->setWindow();
+
+	qApp->restoreOverrideCursor();
 }
 
 void iABoneThicknessAttachment::getNormal(vtkPoints* _pPoints, double* _pNormal)

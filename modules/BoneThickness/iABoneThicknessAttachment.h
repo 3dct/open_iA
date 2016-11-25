@@ -31,16 +31,19 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 	public:
-	iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
+		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
 
 	private:
-	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+		double m_pBound[6] = { 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 };
+		double m_pRange[3] = { 0.0 , 0.0 , 0.0 };
 
-	void addPointNormalsIn(vtkPoints* _pPointNormals);
-	void calculate();
-	void getNormal(vtkPoints* _pPoints, double* _pNormal);
+		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+
+		void addPointNormalsIn(vtkPoints* _pPointNormals);
+		void calculate();
+		void getNormal(vtkPoints* _pPoints, double* _pNormal);
 
 	private slots:
-	void slotDoubleSpinBoxSphereRadius(const double&);
-	void slotPushButtonBoneThicknessOpen();
+		void slotDoubleSpinBoxSphereRadius(const double&);
+		void slotPushButtonBoneThicknessOpen();
 };

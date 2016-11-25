@@ -38,7 +38,6 @@
 iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pParent) : QTableView (_pParent), m_iARenderer (_iARenderer)
 {
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
-	setFocusPolicy(Qt::NoFocus);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 
@@ -58,36 +57,14 @@ iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pP
 	setModel(pItemModel);
 }
 
-void iABoneThicknessTable::addThicknessLine(vtkActor* _pActor)
-{
-	m_pThicknessLines->AddItem(_pActor);
-}
-
-void iABoneThicknessTable::clearThicknessLines()
-{
-	const vtkIdType idLinesSize(m_pThicknessLines->GetNumberOfItems());
-
-	for (int i(0); i < idLinesSize; ++i)
-	{
-		m_pThicknessLines->RemoveItem(i);
-	}
-}
-
 QVector<double>* iABoneThicknessTable::distance()
 {
 	return &m_vDistance;
 }
 
-void iABoneThicknessTable::mouseReleaseEvent(QMouseEvent* e)
+QVector<vtkSmartPointer<vtkLineSource>>* iABoneThicknessTable::lines()
 {
-	QTableView::mouseReleaseEvent(e);
-
-	const QModelIndexList ModelIndexList (selectionModel()->selectedRows());
-
-	if (ModelIndexList.size() > 0)
-	{
-		setPointSelected(ModelIndexList.at(0).row());
-	}
+	return &m_pLines;
 }
 
 void iABoneThicknessTable::open(const QString& _sFilename)
@@ -99,6 +76,7 @@ void iABoneThicknessTable::open(const QString& _sFilename)
 	if (bOpened)
 	{
 		m_pPoints = vtkSmartPointer<vtkPoints>::New();
+		m_pLines.clear();
 
 		m_vDistance.clear();
 		m_vThickness.clear();
@@ -116,6 +94,7 @@ void iABoneThicknessTable::open(const QString& _sFilename)
 			{
 				const double Point[3] = {slLine.at(0).toDouble(), slLine.at(1).toDouble(), slLine.at(2).toDouble()};
 				m_pPoints->InsertNextPoint(Point);
+				m_pLines.push_back(vtkLineSource::New());
 				m_vDistance.push_back(0.0f);
 				m_vThickness.push_back(0.0f);
 				++i;
@@ -133,28 +112,15 @@ vtkSmartPointer<vtkPoints> iABoneThicknessTable::point()
 	return m_pPoints;
 }
 
-void iABoneThicknessTable::setPointSelected(const int& _iPointSelected)
+void iABoneThicknessTable::selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected)
 {
-	if (m_idPointSelected > -1)
+	QTableView::QTableView::selectionChanged(_itemSelected, _itemDeselected);
+
+	if (selectionModel()->selectedRows().size())
 	{
-		vtkActor* pActor((vtkActor*)m_pSpheres->GetItemAsObject(m_idPointSelected));
-		pActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		m_idSphereSelected = selectionModel()->selectedRows().at(0).row();
+		setWindow();
 	}
-
-	if (_iPointSelected > -1)
-	{
-		m_idPointSelected = (vtkIdType)_iPointSelected;
-
-		vtkActor* pActor((vtkActor*)m_pSpheres->GetItemAsObject(m_idPointSelected));
-		pActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
-	}
-
-	m_iARenderer->update();
-}
-
-QVector<double>* iABoneThicknessTable::thickness()
-{
-	return &m_vThickness;
 }
 
 void iABoneThicknessTable::setSphereRadius(const double& _dSphereRadius)
@@ -205,9 +171,11 @@ void iABoneThicknessTable::setWindow()
 	{
 		const vtkIdType idSpheresSize(m_pSpheres->GetNumberOfItems());
 
+		m_pSpheres->InitTraversal();
+
 		for (int i(0); i < idSpheresSize; ++i)
 		{
-			m_iARenderer->GetRenderer()->RemoveActor((vtkActor*)m_pSpheres->GetItemAsObject(i));
+			m_iARenderer->GetRenderer()->RemoveActor(m_pSpheres->GetNextActor());
 		}
 
 		for (int i(0); i < idSpheresSize; ++i)
@@ -230,7 +198,7 @@ void iABoneThicknessTable::setWindow()
 		vtkSmartPointer<vtkActor> pActor (vtkSmartPointer<vtkActor>::New());
 		pActor->SetMapper(pMapper);
 
-		if (m_idPointSelected == i)
+		if (m_idSphereSelected == i)
 		{
 			pActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
 		}
@@ -240,26 +208,47 @@ void iABoneThicknessTable::setWindow()
 		}
 
 		m_pSpheres->AddItem(pActor);
-
 		m_iARenderer->GetRenderer()->AddActor(pActor);
 	}
-	/*
+
 	if (m_pThicknessLines)
 	{
 		const vtkIdType idThicknessLinesSize(m_pThicknessLines->GetNumberOfItems());
 
+		m_pThicknessLines->InitTraversal();
+
 		for (int i(0); i < idThicknessLinesSize; ++i)
 		{
-			m_iARenderer->GetRenderer()->RemoveActor((vtkActor*)m_pThicknessLines->GetItemAsObject(i));
+			m_iARenderer->GetRenderer()->RemoveActor(m_pThicknessLines->GetNextActor());
 		}
 
 		for (int i(0); i < idThicknessLinesSize; ++i)
 		{
-			m_iARenderer->GetRenderer()->AddActor((vtkActor*)m_pThicknessLines->GetItemAsObject(i));
+			m_pThicknessLines->RemoveItem(i);
 		}
 	}
-	*/
+
+	const vtkIdType idLinesSize(m_pLines.size());
+
+	for (vtkIdType i(0); i < idLinesSize; ++i)
+	{
+		vtkSmartPointer<vtkPolyDataMapper> pMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
+		pMapper->SetInputConnection(m_pLines[i]->GetOutputPort());
+
+		vtkSmartPointer<vtkActor> pActor(vtkSmartPointer<vtkActor>::New());
+		pActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+		pActor->SetMapper(pMapper);
+
+		m_pThicknessLines->AddItem(pActor);
+		m_iARenderer->GetRenderer()->AddActor(pActor);
+	}
+
 	m_iARenderer->update();
+}
+
+QVector<double>* iABoneThicknessTable::thickness()
+{
+	return &m_vThickness;
 }
 
 double iABoneThicknessTable::sphereRadius() const

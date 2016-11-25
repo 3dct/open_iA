@@ -27,6 +27,7 @@
 
 #include <vtkActor.h>
 #include <vtkActorCollection.h>
+#include <vtkLineSource.h>
 #include <vtkPoints.h>
 #include <vtkSmartPointer.h>
 
@@ -39,16 +40,14 @@ class iABoneThicknessTable : public QTableView
   public:
 	explicit iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pParent = nullptr);
 
-	void addThicknessLine(vtkActor* _pActor);
-	void clearThicknessLines();
-
 	QVector<double>* distance();
+
+	QVector<vtkSmartPointer<vtkLineSource>>* lines();
 
 	void open(const QString& _sFilename);
 
 	vtkSmartPointer<vtkPoints> point();
 
-	void setPointSelected(const int& _iPointSelected);
 	void setSphereRadius(const double& _dSphereRadius);
 	void setTable();
 	void setWindow();
@@ -60,7 +59,7 @@ class iABoneThicknessTable : public QTableView
   private:
 	double m_dSphereRadius = 0.5;
 
-	vtkIdType m_idPointSelected = -1;
+	vtkIdType m_idSphereSelected = -1;
 
 	QVector<double> m_vDistance;
 	QVector<double> m_vThickness;
@@ -68,11 +67,13 @@ class iABoneThicknessTable : public QTableView
 	vtkActor* m_pSurface = nullptr;
 
 	vtkSmartPointer<vtkPoints> m_pPoints = nullptr;
+	QVector<vtkSmartPointer<vtkLineSource>> m_pLines;
+
 	vtkSmartPointer<vtkActorCollection> m_pSpheres = nullptr;
 	vtkSmartPointer<vtkActorCollection> m_pThicknessLines = nullptr;
 
 	iARenderer* m_iARenderer = nullptr;
 
 protected:
-	virtual void mouseReleaseEvent(QMouseEvent* e) override;
+	virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
 };
