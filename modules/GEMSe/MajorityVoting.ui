@@ -216,9 +216,9 @@
      </widget>
     </item>
     <item row="5" column="3">
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="pbClusterUncertaintyDice">
       <property name="text">
-       <string>-</string>
+       <string>Cluster Unc. vs. Dice</string>
       </property>
      </widget>
     </item>

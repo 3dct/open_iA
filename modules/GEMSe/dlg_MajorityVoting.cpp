@@ -110,15 +110,59 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	connect(pbMinDiffPercent_Plot, SIGNAL(clicked()), this, SLOT(MinDiffPlot()));
 	connect(pbMinRatio_Plot, SIGNAL(clicked()), this, SLOT(RatioPlot()));
 	connect(pbMaxPixelEntropy_Plot, SIGNAL(clicked()), this, SLOT(MaxPixelEntropyPlot()));
+	connect(pbClusterUncertaintyDice, SIGNAL(clicked()), this, SLOT(ClusterUncertaintyDice()));
 	connect(slAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(AbsMinPercentSlider(int)));
 	connect(slMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MinDiffPercentSlider(int)));
 	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
 	connect(slMaxPixelEntropy, SIGNAL(valueChanged(int)), this, SLOT(MaxPixelEntropySlider(int)));
 }
 
+vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
+{
+	auto result = vtkSmartPointer<vtkTable>::New();
+	for (int i = 0; i < columnNames.size(); ++i)
+	{
+		vtkSmartPointer<vtkFloatArray> arr(vtkSmartPointer<vtkFloatArray>::New());
+		arr->SetName(columnNames[i].toStdString().c_str());
+		result->AddColumn(arr);
+	}
+	result->SetNumberOfRows(rowCount);
+	return result;
+}
+
 void dlg_MajorityVoting::SetGroundTruthImage(LabelImagePointer groundTruthImage)
 {
 	m_groundTruthImage = groundTruthImage;
+}
+
+void dlg_MajorityVoting::ClusterUncertaintyDice()
+{
+	if (!m_groundTruthImage)
+	{
+		QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
+		return;
+	}
+	// gather Avg. Uncertainty vs. Accuracy, make it entry in row 1!
+	int diceIdx = m_dlgGEMSe->GetMeasureStartID(); // TODO: replace hard-coded values with search in attributes!
+	int avgUncIdx = diceIdx - 2;
+
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+
+	QVector<QString> columns;
+	columns.push_back("Average Uncertainty");
+	columns.push_back("Accuracy (Dice");
+
+	auto table = CreateVTKTable(m_selection.size(), columns);
+
+	for (int i = 0; i < m_selection.size(); ++i)
+	{
+		double unc = m_selection[i]->GetAttribute(avgUncIdx);
+		double dice = m_selection[i]->GetAttribute(diceIdx);
+		table->SetValue(i, 0, unc);
+		table->SetValue(i, 1, dice);
+	}
+	AddResult(table, "Selected Cluster Avg. Unc. vs. Dice");
 }
 
 iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
@@ -336,17 +380,21 @@ vtkIdType AddPlot(int plotType, vtkSmartPointer<vtkChartXY> chart, vtkSmartPoint
 	return plotID;
 }
 
-vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
+void dlg_MajorityVoting::AddResult(vtkSmartPointer<vtkTable> table, QString const & title)
 {
-	auto result = vtkSmartPointer<vtkTable>::New();
-	for (int i = 0; i < columnNames.size(); ++i)
+	int idx = twSampleResults->rowCount();
+	twSampleResults->setRowCount(idx + 1);
+	QCheckBox * checkBox = new QCheckBox;
+	//if (i == 3) checkBox->setChecked(true);
+	twSampleResults->setCellWidget(idx, 0, checkBox);
+	connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(CheckBoxStateChanged(int)));
+	twSampleResults->setItem(idx, 1, new QTableWidgetItem(title));
+	m_checkBoxResultIDMap.insert(checkBox, idx);
+	if (m_results.size() != idx)
 	{
-		vtkSmartPointer<vtkFloatArray> arr(vtkSmartPointer<vtkFloatArray>::New());
-		arr->SetName(columnNames[i].toStdString().c_str());
-		result->AddColumn(arr);
+		DEBUG_LOG("Results vector and table are out of sync!");
 	}
-	result->SetNumberOfRows(rowCount);
-	return result;
+	m_results.push_back(table);
 }
 
 void dlg_MajorityVoting::Sample()
@@ -460,20 +508,9 @@ void dlg_MajorityVoting::Sample()
 	}
 
 	int startIdx = twSampleResults->rowCount();
-	twSampleResults->setRowCount(startIdx + ResultCount);
 	for (int i = 0; i < ResultCount; ++i)
 	{
-		QCheckBox * checkBox = new QCheckBox;
-		//if (i == 3) checkBox->setChecked(true);
-		twSampleResults->setCellWidget(startIdx + i, 0, checkBox);
-		connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(CheckBoxStateChanged(int)));
-		twSampleResults->setItem(startIdx + i, 1, new QTableWidgetItem("Maj. Vote Sampling/" + titles[i] + "/" + ids));
-		m_checkBoxResultIDMap.insert(checkBox, startIdx + i);
-		if (m_results.size() != startIdx + i)
-		{
-			DEBUG_LOG("Results vector and table are out of sync!");
-		}
-		m_results.push_back(tables[i]);
+		AddResult(tables[i], "Maj. Vote Sampling/" + titles[i] + "/" + ids);
 	}
 
 }
@@ -487,13 +524,22 @@ void dlg_MajorityVoting::CheckBoxStateChanged(int state)
 		static int colorCnt = 0;
 		int colorIdx = (colorCnt++) % 12;
 		QColor plotColor = m_colorTheme->GetColor(colorIdx);
-		vtkIdType plot1 = AddPlot(vtkChart::POINTS, m_chartDiceVsUndec, m_results[id], 1, 2, plotColor);
-		vtkIdType plot2 = AddPlot(vtkChart::LINE, m_chartValueVsDice,  m_results[id], 0, 2, plotColor);
-		vtkIdType plot3 = AddPlot(vtkChart::LINE, m_chartValueVsUndec, m_results[id], 0, 1, plotColor);
+
 		QVector<vtkIdType> plots;
-		plots.push_back(plot1);
-		plots.push_back(plot2);
-		plots.push_back(plot3);
+		if (m_results[id]->GetNumberOfColumns() == 3)
+		{
+			vtkIdType plot1 = AddPlot(vtkChart::POINTS, m_chartDiceVsUndec, m_results[id], 1, 2, plotColor);
+			vtkIdType plot2 = AddPlot(vtkChart::LINE, m_chartValueVsDice, m_results[id], 0, 2, plotColor);
+			vtkIdType plot3 = AddPlot(vtkChart::LINE, m_chartValueVsUndec, m_results[id], 0, 1, plotColor);
+			plots.push_back(plot1);
+			plots.push_back(plot2);
+			plots.push_back(plot3);
+		}
+		else
+		{
+			vtkIdType plotID = AddPlot(vtkChart::POINTS, m_chartValueVsDice, m_results[id], 0, 1, plotColor);
+			plots.push_back(plotID);
+		}
 		m_plotMap.insert(id, plots);
 		twSampleResults->item(id, 1)->setBackgroundColor(plotColor);
 	}
@@ -501,8 +547,16 @@ void dlg_MajorityVoting::CheckBoxStateChanged(int state)
 	{
 		twSampleResults->item(id, 1)->setBackgroundColor(Qt::white);
 		QVector<vtkIdType> plots = m_plotMap[id];
-		m_chartDiceVsUndec->RemovePlot(plots[0]);
-		m_chartValueVsDice->RemovePlot(plots[1]);
-		m_chartValueVsUndec->RemovePlot(plots[2]);
+		if (m_results[id]->GetNumberOfColumns() == 3)
+		{
+			m_chartDiceVsUndec->RemovePlot(plots[0]);
+			m_chartValueVsDice->RemovePlot(plots[1]);
+			m_chartValueVsUndec->RemovePlot(plots[2]);
+		}
+		else
+		{
+			m_chartValueVsDice->RemovePlot(plots[0]);
+		}
+		m_plotMap.remove(id);
 	}
 }

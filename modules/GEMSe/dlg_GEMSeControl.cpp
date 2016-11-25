@@ -126,7 +126,6 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbClusteringCalc,   SIGNAL(clicked()), this, SLOT(CalculateClustering()));
 	connect(pbClusteringLoad,   SIGNAL(clicked()), this, SLOT(LoadClustering()));
 	connect(pbClusteringStore,  SIGNAL(clicked()), this, SLOT(StoreClustering()));
-	connect(pbRefImgComp,       SIGNAL(clicked()), this, SLOT(CalcRefImgComp()));
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
 	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImage()));
@@ -478,7 +477,6 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 void dlg_GEMSeControl::EnableClusteringDependantUI()
 {
 	pbClusteringStore->setEnabled(true);
-	pbRefImgComp->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
 	if (!m_dlgMajorityVoting)
 	{
@@ -526,12 +524,6 @@ void dlg_GEMSeControl::ExportIDs()
 	QSharedPointer<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
 	std::ofstream out(fileName.toStdString());
 	ExportClusterIDs(cluster, out);
-}
-
-
-void dlg_GEMSeControl::CalcRefImgComp()
-{
-	m_dlgGEMSe->CalcRefImgComp(m_groundTruthImage);
 }
 
 
@@ -583,6 +575,7 @@ void dlg_GEMSeControl::LoadRefImage()
 	{
 		leRefImage->setText(refFileName);
 		m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
+		m_dlgGEMSe->CalcRefImgComp(m_groundTruthImage);
 		if (m_dlgMajorityVoting)
 			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
 	}

@@ -82,6 +82,7 @@ public:
 	void AddMajorityVotingImage(QString const & outputPath, int id, double mvPercentage);
 	void AddMajorityVotingImage(iAITKIO::ImagePointer imgData);
 	void AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData);
+	int GetMeasureStartID() { return m_MeasureChartIDStart; }
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

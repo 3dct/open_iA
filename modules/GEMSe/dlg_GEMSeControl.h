@@ -72,7 +72,6 @@ private slots:
 	void LoadClustering();
 	void CalculateClustering();
 	void StoreClustering();
-	void CalcRefImgComp();
 	void StoreAll();
 	void DataAvailable();
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);

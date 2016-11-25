@@ -59,7 +59,10 @@ private slots:
 	void MaxPixelEntropySlider(int);
 	void Sample();
 	void CheckBoxStateChanged(int state);
+	void ClusterUncertaintyDice();
 private:
+	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
+
 	MdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
 	LabelImagePointer m_groundTruthImage;
