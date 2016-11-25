@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 
 	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
 
+	CheckSCIFIO();
+
 	mainWin.LoadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
@@ -51,8 +53,6 @@ int main(int argc, char *argv[])
 	}
 
 	mainWin.show();
-
-	CheckSCIFIO();
 
 	return app.exec();
 }
