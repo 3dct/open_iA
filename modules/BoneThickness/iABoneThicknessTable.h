@@ -48,16 +48,22 @@ class iABoneThicknessTable : public QTableView
 
 	vtkSmartPointer<vtkPoints> point();
 
+	void setSphereOpacity(const double& _dSphereOpacity);
 	void setSphereRadius(const double& _dSphereRadius);
 	void setTable();
-	void setWindow();
 
+	void setWindow();
+	void setWindowSpheres();
+	void setWindowThicknessLines();
+
+	double sphereOpacity() const;
 	double sphereRadius() const;
 
 	QVector<double>* thickness();
 
   private:
-	double m_dSphereRadius = 0.5;
+	  double m_dSphereOpacity = 1.0;
+	  double m_dSphereRadius = 0.5;
 
 	vtkIdType m_idSphereSelected = -1;
 
@@ -74,6 +80,6 @@ class iABoneThicknessTable : public QTableView
 
 	iARenderer* m_iARenderer = nullptr;
 
-protected:
+	protected:
 	virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
 };

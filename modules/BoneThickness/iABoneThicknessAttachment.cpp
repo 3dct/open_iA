@@ -78,9 +78,8 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayoutBound->addWidget(pLabelBoundZMax, 0, 7);
 	pGridLayoutBound->addWidget(pLabelBoundZRng, 0, 8);
 
-	iARenderer* pRenderer (m_childData.child->getRaycaster());
-	pRenderer->GetRenderer()->SetUseDepthPeeling(true);
-	m_pBoneThicknessTable = new iABoneThicknessTable(pRenderer, pBoneThicknessWidget);
+	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pBoneThicknessWidget);
+	m_pBoneThicknessTable->setSphereRadius(0.1 * vtkMath::Ceil(0.2 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2]))));
 
 	QLabel* pLabelSphereRadius(new QLabel("Sphere radius:", pBoneThicknessWidget));
 	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pBoneThicknessWidget));
@@ -89,12 +88,20 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
 	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
 
+	QLabel* pLabelSphereOpacity(new QLabel("Sphere opacity:", pBoneThicknessWidget));
+	QSlider* pSliderSphereopacity(new QSlider(Qt::Horizontal, pBoneThicknessWidget));
+	pSliderSphereopacity->setRange(0, 100);
+	pSliderSphereopacity->setValue(100.0 * m_pBoneThicknessTable->sphereOpacity());
+	connect(pSliderSphereopacity, SIGNAL(valueChanged(const int&)), this, SLOT(slotSliderSphereOpacity(const int&)));
+
 	QGridLayout* pBoneThicknessLayout(new QGridLayout(pBoneThicknessWidget));
 	pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessOpen, 0, 0);
 	pBoneThicknessLayout->addWidget(pGroupBoxBound, 1, 0, 1, 4);
 	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable, 2, 0, 1, 4);
 	pBoneThicknessLayout->addWidget(pLabelSphereRadius, 3, 0);
 	pBoneThicknessLayout->addWidget(pDoubleSpinBoxSphereRadius, 3, 1);
+	pBoneThicknessLayout->addWidget(pLabelSphereOpacity, 3, 2);
+	pBoneThicknessLayout->addWidget(pSliderSphereopacity, 3, 3);
 
 	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pBoneThicknessWidget, tr("Bone thickness"), "BoneThickness"));
 }
@@ -149,8 +156,6 @@ void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
 
 void iABoneThicknessAttachment::calculate()
 {
-	qApp->setOverrideCursor(Qt::WaitCursor);
-
 	vtkSmartPointer<vtkCellLocator> CellLocator(vtkCellLocator::New());
 	CellLocator->SetDataSet(m_childData.polyData);
 	CellLocator->BuildLocator();
@@ -209,6 +214,7 @@ void iABoneThicknessAttachment::calculate()
 			if (dThickness > (*pvThickness)[i])
 			{
 				(*pvThickness)[i] = dThickness;
+				(*Lines)[i]->SetPoint1(PointClosest1);
 				(*Lines)[i]->SetPoint2(x2);
 			}
 		}
@@ -216,8 +222,6 @@ void iABoneThicknessAttachment::calculate()
 
 	m_pBoneThicknessTable->setTable();
 	m_pBoneThicknessTable->setWindow();
-
-	qApp->restoreOverrideCursor();
 }
 
 void iABoneThicknessAttachment::getNormal(vtkPoints* _pPoints, double* _pNormal)
@@ -270,8 +274,10 @@ void iABoneThicknessAttachment::getNormal(vtkPoints* _pPoints, double* _pNormal)
 
 void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius(const double& _dValue)
 {
+	qApp->setOverrideCursor(Qt::WaitCursor);
 	m_pBoneThicknessTable->setSphereRadius(_dValue);
 	calculate();
+	qApp->restoreOverrideCursor();
 }
 
 void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
@@ -287,9 +293,17 @@ void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
 
 	if (pFileDialog->exec())
 	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		qApp->processEvents();
 		m_pBoneThicknessTable->open(pFileDialog->selectedFiles().first());
 		calculate();
+		qApp->restoreOverrideCursor();
 	}
 
 	delete pFileDialog;
+}
+
+void iABoneThicknessAttachment::slotSliderSphereOpacity(const int& _iValue)
+{
+	m_pBoneThicknessTable->setSphereOpacity(0.01 * (double) _iValue);
 }
