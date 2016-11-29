@@ -893,6 +893,29 @@ void MdiChild::waitForPreviousIO()
 }
 
 
+QString GetSupportedPixelTypeString(QVector<int> const & types)
+{
+	QString result;
+	for (int i = 0; i < types.size(); ++i)
+	{
+		switch (types[i])
+		{
+		case VTK_UNSIGNED_CHAR: result += "unsigned char"; break;
+		case VTK_UNSIGNED_SHORT: result += "unsigned short"; break;
+		case VTK_FLOAT: result += "float"; break;
+		}
+		if (i < types.size() - 2)
+		{
+			result += ", ";
+		}
+		else if (i < types.size() - 1)
+		{
+			result += " and ";
+		}
+	}
+	return result;
+}
+
 bool MdiChild::setupSaveIO(QString const & f)
 {
 	QFileInfo pars(f);
@@ -918,77 +941,50 @@ bool MdiChild::setupSaveIO(QString const & f)
 					t.truncate(t.lastIndexOf('/'));
 					m_mainWnd->setPath(t);
 			}
-			else if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
+			else
 			{
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR ||
-					imageData->GetScalarType() == VTK_UNSIGNED_SHORT ||
-					imageData->GetScalarType() == VTK_FLOAT)
+				QMap<QString, IOType> suffixToFormat;
+				suffixToFormat.insert("TIF", TIF_STACK_WRITER);
+				suffixToFormat.insert("TIFF", TIF_STACK_WRITER);
+				suffixToFormat.insert("JPG", JPG_STACK_WRITER);
+				suffixToFormat.insert("JPEG", JPG_STACK_WRITER);
+				suffixToFormat.insert("PNG", PNG_STACK_WRITER);
+				suffixToFormat.insert("BMP", BMP_STACK_WRITER);
+				suffixToFormat.insert("DCM", DCM_WRITER);
+				suffixToFormat.insert("AM", AM_WRITER);
+
+				QMap<IOType, QVector<int> > supportedPixelTypes;
+				QVector<int> tiffSupported;
+				tiffSupported.push_back(VTK_UNSIGNED_CHAR);
+				tiffSupported.push_back(VTK_UNSIGNED_SHORT);
+				tiffSupported.push_back(VTK_FLOAT);
+				supportedPixelTypes.insert(TIF_STACK_WRITER, tiffSupported);
+				QVector<int> pngJpgBmpSupported;
+				pngJpgBmpSupported.push_back(VTK_UNSIGNED_CHAR);
+				supportedPixelTypes.insert(BMP_STACK_WRITER, pngJpgBmpSupported);
+				supportedPixelTypes.insert(PNG_STACK_WRITER, pngJpgBmpSupported);
+				supportedPixelTypes.insert(JPG_STACK_WRITER, pngJpgBmpSupported);
+
+				QString suffix = pars.suffix().toUpper();
+				if (!suffixToFormat.contains(suffix))
 				{
-					if (!ioThread->setupIO(TIF_STACK_WRITER, pars.absoluteFilePath()))
-						return false;
-				}
-				else
-				{
-					addMsg(tr("TIFFWriter only supports unsigned char/short or float input!"));
-					addMsg(tr("   FILE I/O ABORTED!"));
 					return false;
 				}
+				IOType ioID = suffixToFormat[suffix];
+				if (supportedPixelTypes.contains(ioID) &&
+					!supportedPixelTypes[ioID].contains(imageData->GetScalarType()))
+				{
+					addMsg(QString("%1 Writer only supports %2 input!")
+						.arg(suffix)
+						.arg(GetSupportedPixelTypeString(supportedPixelTypes[ioID])));
+					return false;
+				}
+				if (!ioThread->setupIO(ioID, pars.absoluteFilePath()))
+				{
+					return false;
+				}
+
 			}
-			else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0))
-			{
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR)
-				{
-					if ( !ioThread->setupIO(JPG_STACK_WRITER, pars.absoluteFilePath() ) )
-						return false;
-				}
-				else
-				{
-					addMsg(tr("JPEGWriter only supports unsigned char input!"));
-					addMsg(tr("   FILE I/O ABORTED!"));
-					return false;
-				}
-			}
-			else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0)
-			{
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR)
-				{
-					if ( !ioThread->setupIO(PNG_STACK_WRITER, pars.absoluteFilePath() ) )
-						return false;
-				}
-				else
-				{
-					addMsg(tr("PNGWriter only supports unsigned char input!"));
-					addMsg(tr("   FILE I/O ABORTED!"));
-					return false;
-				}
-			}
-			else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0)
-			{
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR)
-				{
-					if ( !ioThread->setupIO(BMP_STACK_WRITER, pars.absoluteFilePath() ) )
-						return false;
-				}
-				else
-				{
-					addMsg(tr("BMPWriter only supports unsigned char input!"));
-					addMsg(tr("   FILE I/O ABORTED!"));
-					return false;
-				}
-			}
-			else if (QString::compare(pars.suffix(), "DCM", Qt::CaseInsensitive) == 0)
-			{
-				if (!ioThread->setupIO(DCM_WRITER, pars.absoluteFilePath()))
-					return false;
-			}	
-			else if (QString::compare(pars.suffix(), "AM", Qt::CaseInsensitive) == 0)
-			{
-				if (!ioThread->setupIO(AM_WRITER, pars.absoluteFilePath()))
-					return false;
-			}
-			else return false;
 		}
 	}
 	return true;
