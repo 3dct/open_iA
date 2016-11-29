@@ -127,11 +127,7 @@ private:
 	bool writeMetaImage( );
 	bool writeVolumeStack();
 	bool writeSTL( );
-
-	bool writeTIFImageStack( );
-	bool writePNGImageStack( );
-	bool writeJPGImageStack( );
-	bool writeBMPImageStack( );
+	bool writeImageStack( );
 	
 	void printFileInfos();
 	void printSTLFileInfos();
@@ -139,11 +135,6 @@ private:
 	vtkSTLReader* stlReader;
 
 	vtkMetaImageWriter *metaImageWriter;
-	vtkSTLWriter *stlWriter;
-	vtkTIFFWriter *tifWriter;
-	vtkJPEGWriter *jpgWriter;
-	vtkPNGWriter *pngWriter;
-	vtkBMPWriter *bmpWriter;
 	
 	iAObserverProgress* observerProgress;
 

@@ -908,35 +908,85 @@ bool MdiChild::setupSaveIO(QString const & f)
 			QMessageBox::warning(this, tr("Save File"), tr("Image contains no data. Saving aborted.")); return false;
 		} else {
 			if ((QString::compare(pars.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0)){
-					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) ) return false;
+				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0))
+			{
+					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) )
+						return false;
 					setCurrentFile(f);
 					m_mainWnd->setCurrentFile(f);	// TODO: VOLUME: do in setCurrentFile member method?
 					QString t; t = f;
 					t.truncate(t.lastIndexOf('/'));
 					m_mainWnd->setPath(t);
-			} else if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
-					if ( !ioThread->setupIO(TIF_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-			} else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
-					if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR){
-						if ( !ioThread->setupIO(JPG_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-					} else { addMsg(tr("JPEGWriter only supports unsigned char input!")); addMsg(tr("   FILE I/O ABORTED!")); return false;}
-			} else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0){
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR){
-					if ( !ioThread->setupIO(PNG_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-				} else { addMsg(tr("PNGWriter only supports unsigned char input!")); addMsg(tr("   FILE I/O ABORTED!")); return false;}
-			} else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0){
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR){
-					if ( !ioThread->setupIO(BMP_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-				} else { addMsg(tr("BMPWriter only supports unsigned char input!")); addMsg(tr("   FILE I/O ABORTED!")); return false;}
 			}
-			else if (QString::compare(pars.suffix(), "DCM", Qt::CaseInsensitive) == 0) {
-				if (!ioThread->setupIO(DCM_WRITER, pars.absoluteFilePath())) return false;
+			else if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
+				(QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
+			{
+				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR ||
+					imageData->GetScalarType() == VTK_UNSIGNED_SHORT ||
+					imageData->GetScalarType() == VTK_FLOAT)
+				{
+					if (!ioThread->setupIO(TIF_STACK_WRITER, pars.absoluteFilePath()))
+						return false;
+				}
+				else
+				{
+					addMsg(tr("TIFFWriter only supports unsigned char/short or float input!"));
+					addMsg(tr("   FILE I/O ABORTED!"));
+					return false;
+				}
+			}
+			else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) ||
+				(QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0))
+			{
+				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR)
+				{
+					if ( !ioThread->setupIO(JPG_STACK_WRITER, pars.absoluteFilePath() ) )
+						return false;
+				}
+				else
+				{
+					addMsg(tr("JPEGWriter only supports unsigned char input!"));
+					addMsg(tr("   FILE I/O ABORTED!"));
+					return false;
+				}
+			}
+			else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0)
+			{
+				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR)
+				{
+					if ( !ioThread->setupIO(PNG_STACK_WRITER, pars.absoluteFilePath() ) )
+						return false;
+				}
+				else
+				{
+					addMsg(tr("PNGWriter only supports unsigned char input!"));
+					addMsg(tr("   FILE I/O ABORTED!"));
+					return false;
+				}
+			}
+			else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0)
+			{
+				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR)
+				{
+					if ( !ioThread->setupIO(BMP_STACK_WRITER, pars.absoluteFilePath() ) )
+						return false;
+				}
+				else
+				{
+					addMsg(tr("BMPWriter only supports unsigned char input!"));
+					addMsg(tr("   FILE I/O ABORTED!"));
+					return false;
+				}
+			}
+			else if (QString::compare(pars.suffix(), "DCM", Qt::CaseInsensitive) == 0)
+			{
+				if (!ioThread->setupIO(DCM_WRITER, pars.absoluteFilePath()))
+					return false;
 			}	
-			else if (QString::compare(pars.suffix(), "AM", Qt::CaseInsensitive) == 0) {
-				if (!ioThread->setupIO(AM_WRITER, pars.absoluteFilePath())) return false;
+			else if (QString::compare(pars.suffix(), "AM", Qt::CaseInsensitive) == 0)
+			{
+				if (!ioThread->setupIO(AM_WRITER, pars.absoluteFilePath()))
+					return false;
 			}
 			else return false;
 		}
@@ -1816,11 +1866,11 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
 
-	dlg_commoninput *dlg = new dlg_commoninput (this, "Save movie options", 1, inList, inPara, NULL);
-	if (dlg->exec() == QDialog::Accepted)
+	dlg_commoninput dlg(this, "Save movie options", 1, inList, inPara, NULL);
+	if (dlg.exec() == QDialog::Accepted)
 	{
-		mode =  dlg->getComboBoxValues()[0];
-		imode = dlg->getComboBoxIndices()[0];
+		mode =  dlg.getComboBoxValues()[0];
+		imode = dlg.getComboBoxIndices()[0];
 	}
 
 
