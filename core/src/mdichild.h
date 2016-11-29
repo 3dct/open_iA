@@ -116,8 +116,7 @@ public:
 	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
 	bool save();
 	bool saveAs();
-	bool saveAsImageStack();
-	bool saveFile(const QString &f);
+	bool saveFile(const QString &f, int channelNr);
 	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
@@ -412,6 +411,9 @@ private:
 	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
+	//! if more than one modality/channel loaded, ask user to chose one of them
+	//! (currently used for determining which channel to save)
+	int chooseChannelNr();
 
 	QFileInfo fileInfo;
 

@@ -822,45 +822,65 @@ void MdiChild::updated(int i, QString text)
 	this->addMsg(tr("mdiCild: updated(i,string): %1  %2").arg(i).arg(text));
 }
 
+int MdiChild::chooseChannelNr()
+{
+	if (GetModalities()->size() == 1)
+	{
+		return 0;
+	}
+	QStringList parameters = (QStringList() << tr("+Channel"));
+	QStringList channels;
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		channels << GetModality(i)->GetName();
+	}
+	QList<QVariant> values = (QList<QVariant>() << channels);
+	dlg_commoninput channelChoice(this, "Choose Channel", 1, parameters, values, NULL);
+	if (channelChoice.exec() != QDialog::Accepted)
+	{
+		return -1;
+	}
+	return channelChoice.getComboBoxIndices()[0];
+}
+
 bool MdiChild::save()
 {
-	if (isUntitled) {
+	if (isUntitled)
+	{
 		return saveAs();
-	} else {
-		return saveFile(curFile);
+	}
+	else
+	{
+		int channelNr = chooseChannelNr();
+		if (channelNr == -1)
+		{
+			return false;
+		}
+		return saveFile(GetModality(channelNr)->GetFileName(), channelNr);
 	}
 }
 
 bool MdiChild::saveAs()
 {
-	QString filePath = currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
-
-	QString f = QFileDialog::getSaveFileName(this, tr("Save As"),
-		filePath, iAIOProvider::GetSupportedSaveFormats() );
-
-	if (f.isEmpty())
+	int channelNr = chooseChannelNr();
+	if (channelNr == -1)
+	{
 		return false;
-
-	return saveFile(f);
-}
-
-
-bool MdiChild::saveAsImageStack()
-{
-	QString filePath = currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
-
-	QString f = QFileDialog::getSaveFileName(this, tr("Save As"),
+	}
+	QString filePath = QFileInfo(GetModality(channelNr)->GetFileName()).absolutePath();
+	QString f = QFileDialog::getSaveFileName(
+		this,
+		tr("Save As"),
 		filePath,
-		tr("TIFF stacks (*.tif);; PNG stacks (*.png);; BMP stacks (*.bmp);; JPEG stacks (*.jpg);; DICOM series (*.dcm)"));
+		iAIOProvider::GetSupportedSaveFormats()+
+		tr(";;TIFF stack (*.tif);; PNG stack (*.png);; BMP stack (*.bmp);; JPEG stack (*.jpg);; DICOM serie (*.dcm)"));
 
 	if (f.isEmpty())
+	{
 		return false;
-
-	return saveFile(f);
+	}
+	return saveFile(f, channelNr);
 }
-
 
 void MdiChild::waitForPreviousIO()
 {
@@ -925,11 +945,11 @@ bool MdiChild::setupSaveIO(QString const & f)
 }
 
 
-bool MdiChild::saveFile(const QString &f)
+bool MdiChild::saveFile(const QString &f, int channelNr)
 {
 	waitForPreviousIO();
 
-	ioThread = new iAIO(imageData, polyData, m_logger, this);
+	ioThread = new iAIO(GetModality(channelNr)->GetImage(), polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
 

@@ -76,7 +76,6 @@
     <addaction name="separator"/>
     <addaction name="saveAct"/>
     <addaction name="saveAsAct"/>
-    <addaction name="actionSave_Image_Stack"/>
     <addaction name="saveScreenAct"/>
     <addaction name="separator"/>
     <addaction name="actionOpen_Project"/>
