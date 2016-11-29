@@ -28,12 +28,16 @@
 
 #include <iARenderer.h>
 
+#include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
+
+vtkStandardNewMacro(iABoneThicknessMouseInteractor);
 
 iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pParent) : QTableView (_pParent), m_iARenderer (_iARenderer)
 {
@@ -42,19 +46,33 @@ iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pP
 	setSelectionMode(QAbstractItemView::SingleSelection);
 
 	QStandardItemModel* pItemModel (new QStandardItemModel(0, 5, this));
-	pItemModel->setHorizontalHeaderItem(0, new QStandardItem("Point X"));
-	pItemModel->setHorizontalHeaderItem(1, new QStandardItem("Point Y"));
-	pItemModel->setHorizontalHeaderItem(2, new QStandardItem("Point Z"));
+	pItemModel->setHorizontalHeaderItem(0, new QStandardItem("X"));
+	pItemModel->setHorizontalHeaderItem(1, new QStandardItem("Y"));
+	pItemModel->setHorizontalHeaderItem(2, new QStandardItem("Z"));
 	pItemModel->setHorizontalHeaderItem(3, new QStandardItem("Surface distance"));
 	pItemModel->setHorizontalHeaderItem(4, new QStandardItem("Thickness"));
 
 	horizontalHeader()->setSectionsClickable(false);
 	verticalHeader()->setSectionsClickable(false);
 
+	setModel(pItemModel);
+
 	m_pThicknessLines = vtkActorCollection::New();
 	m_pSpheres = vtkActorCollection::New();
 
-	setModel(pItemModel);
+	m_iARenderer->GetPolyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
+/*
+	vtkSmartPointer<iABoneThicknessMouseInteractor> pMouseInteractor(vtkSmartPointer<iABoneThicknessMouseInteractor>::New());
+	pMouseInteractor->SetDefaultRenderer(m_iARenderer->GetRenderer());
+	pMouseInteractor->setBoneThicknessTable(this);
+	pMouseInteractor->setSphereCollection(m_pSpheres);
+
+	vtkSmartPointer<vtkRenderWindowInteractor> pWindowInteractor(vtkSmartPointer<vtkRenderWindowInteractor>::New());
+	pWindowInteractor->SetRenderWindow(m_iARenderer->GetRenderWindow());
+	pWindowInteractor->SetInteractorStyle(pMouseInteractor);
+	pWindowInteractor->Initialize();
+	pWindowInteractor->Start();
+*/
 }
 
 QVector<double>* iABoneThicknessTable::distance()
@@ -62,7 +80,7 @@ QVector<double>* iABoneThicknessTable::distance()
 	return &m_vDistance;
 }
 
-QVector<vtkSmartPointer<vtkLineSource>>* iABoneThicknessTable::lines()
+QVector<vtkSmartPointer<vtkCylinderSource>>* iABoneThicknessTable::lines()
 {
 	return &m_pLines;
 }
@@ -94,7 +112,7 @@ void iABoneThicknessTable::open(const QString& _sFilename)
 			{
 				const double Point[3] = {slLine.at(0).toDouble(), slLine.at(1).toDouble(), slLine.at(2).toDouble()};
 				m_pPoints->InsertNextPoint(Point);
-				m_pLines.push_back(vtkLineSource::New());
+				m_pLines.push_back(vtkSmartPointer<vtkCylinderSource>::New());
 				m_vDistance.push_back(0.0f);
 				m_vThickness.push_back(0.0f);
 				++i;
@@ -110,6 +128,32 @@ vtkSmartPointer<vtkPoints> iABoneThicknessTable::point()
 	return m_pPoints;
 }
 
+void iABoneThicknessTable::save(const QString& _sFilename)
+{
+	QFile fFile(_sFilename);
+
+	const bool bOpened(fFile.open(QIODevice::WriteOnly));
+
+	if (bOpened)
+	{
+		QTextStream tsOut(&fFile);
+		tsOut << "Index,X,Y,Z,Surface distance,Thickness\n";
+
+		const vtkIdType idPointsSize(m_pPoints->GetNumberOfPoints());
+
+		vtkIdType ii(1);
+
+		for (vtkIdType i(0); i < idPointsSize; ++i, ++ii)
+		{
+			const double* pPoint(m_pPoints->GetPoint(i));
+
+			tsOut << ii << "," << pPoint[0] << "," << pPoint[1] << "," << pPoint[2] << "," << m_vDistance.at(i) << "," << m_vThickness.at(i) << "," << "\n";
+		}
+
+		fFile.close();
+	}
+}
+
 void iABoneThicknessTable::selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected)
 {
 	QTableView::QTableView::selectionChanged(_itemSelected, _itemDeselected);
@@ -118,16 +162,39 @@ void iABoneThicknessTable::selectionChanged(const QItemSelection& _itemSelected,
 	{
 		m_idSphereSelected = selectionModel()->selectedRows().at(0).row();
 
-		setWindowSpheres();
+		const vtkIdType idSpheresSize(m_pSpheres->GetNumberOfItems());
+
+		m_pSpheres->InitTraversal();
+
+		for (int i(0); i < idSpheresSize; ++i)
+		{
+			if (m_idSphereSelected == i)
+			{
+				m_pSpheres->GetNextActor()->GetProperty()->SetColor(0.0, 1.0, 0.0);
+			}
+			else
+			{
+				m_pSpheres->GetNextActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
+			}
+		}
+
 		m_iARenderer->update();
 	}
+}
+
+void iABoneThicknessTable::setOpacity(const double& _dOpacity)
+{
+	setSphereOpacity(_dOpacity);
+	setSurfaceOpacity(_dOpacity);
+
+	m_iARenderer->update();
 }
 
 void iABoneThicknessTable::setSphereOpacity(const double& _dSphereOpacity)
 {
 	m_dSphereOpacity = _dSphereOpacity;
 
-	m_iARenderer->GetRenderer()->SetUseDepthPeeling(m_dSphereOpacity < 0.95);
+	setTranslucent();
 
 	const vtkIdType idSpheresSize(m_pSpheres->GetNumberOfItems());
 
@@ -137,13 +204,25 @@ void iABoneThicknessTable::setSphereOpacity(const double& _dSphereOpacity)
 	{
 		m_pSpheres->GetNextActor()->GetProperty()->SetOpacity(m_dSphereOpacity);
 	}
-
-	m_iARenderer->update();
 }
 
 void iABoneThicknessTable::setSphereRadius(const double& _dSphereRadius)
 {
 	m_dSphereRadius = _dSphereRadius;
+}
+
+void iABoneThicknessTable::setSphereSelected(const vtkIdType& _idSphereSelected)
+{
+	m_idSphereSelected = _idSphereSelected;
+	selectRow(m_idSphereSelected);
+}
+
+void iABoneThicknessTable::setSurfaceOpacity(const double& _dSurfaceOpacity)
+{
+	m_dSurfaceOpacity = _dSurfaceOpacity;
+
+	setTranslucent();
+	m_iARenderer->GetPolyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
 }
 
 void iABoneThicknessTable::setTable()
@@ -183,6 +262,31 @@ void iABoneThicknessTable::setTable()
 	}
 }
 
+void iABoneThicknessTable::setTranslucent()
+{
+	vtkOpenGLRenderer* pRenderer(m_iARenderer->GetRenderer());
+	vtkRenderWindow* pWindow (m_iARenderer->GetRenderWindow());
+
+	if ((m_dSphereOpacity < 1.0) || (m_dSurfaceOpacity < 1.0))
+	{
+		pWindow->SetAlphaBitPlanes(true);
+		pWindow->SetMultiSamples(0);
+
+		pRenderer->SetMaximumNumberOfPeels(100);
+		pRenderer->SetOcclusionRatio(0.1);
+		pRenderer->SetUseDepthPeeling(true);
+	}
+	else
+	{
+		pWindow->SetAlphaBitPlanes(false);
+		pWindow->SetMultiSamples(8);
+
+		pRenderer->SetMaximumNumberOfPeels(4);
+		pRenderer->SetOcclusionRatio(0.0);
+		pRenderer->SetUseDepthPeeling(false);
+	}
+}
+
 void iABoneThicknessTable::setWindow()
 {
 	setWindowSpheres();
@@ -204,21 +308,22 @@ void iABoneThicknessTable::setWindowSpheres()
 			m_iARenderer->GetRenderer()->RemoveActor(m_pSpheres->GetNextActor());
 		}
 
-		for (int i(0); i < idSpheresSize; ++i)
+		while (m_pSpheres->GetNumberOfItems())
 		{
-			m_pSpheres->RemoveItem(i);
+			m_pSpheres->RemoveItem(0);
 		}
 	}
 
 	const vtkIdType idPointsSize(m_pPoints->GetNumberOfPoints());
 
-	m_iARenderer->GetRenderer()->SetUseDepthPeeling(m_dSphereOpacity < 0.95);
+	setTranslucent();
 
 	for (vtkIdType i(0); i < idPointsSize; ++i)
 	{
 		vtkSmartPointer<vtkSphereSource> pSphere(vtkSmartPointer<vtkSphereSource>::New());
 		pSphere->SetCenter(m_pPoints->GetPoint(i)[0], m_pPoints->GetPoint(i)[1], m_pPoints->GetPoint(i)[2]);
 		pSphere->SetRadius(m_dSphereRadius);
+		pSphere->Update();
 
 		vtkSmartPointer<vtkPolyDataMapper> pMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
 		pMapper->SetInputConnection(pSphere->GetOutputPort());
@@ -254,9 +359,9 @@ void iABoneThicknessTable::setWindowThicknessLines()
 			m_iARenderer->GetRenderer()->RemoveActor(m_pThicknessLines->GetNextActor());
 		}
 
-		for (int i(0); i < idThicknessLinesSize; ++i)
+		while (m_pThicknessLines->GetNumberOfItems())
 		{
-			m_pThicknessLines->RemoveItem(i);
+			m_pThicknessLines->RemoveItem(0);
 		}
 	}
 
@@ -276,6 +381,11 @@ void iABoneThicknessTable::setWindowThicknessLines()
 	}
 }
 
+void iABoneThicknessTable::showEvent(QShowEvent* e)
+{
+
+}
+
 double iABoneThicknessTable::sphereOpacity() const
 {
 	return m_dSphereOpacity;
@@ -284,6 +394,11 @@ double iABoneThicknessTable::sphereOpacity() const
 double iABoneThicknessTable::sphereRadius() const
 {
 	return m_dSphereRadius;
+}
+
+double iABoneThicknessTable::surfaceOpacity() const
+{
+	return m_dSurfaceOpacity;
 }
 
 QVector<double>* iABoneThicknessTable::thickness()

@@ -45,6 +45,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 
 	private slots:
 		void slotDoubleSpinBoxSphereRadius(const double&);
-		void slotPushButtonBoneThicknessOpen();
-		void slotSliderSphereOpacity(const int& _iValue);
+		void slotPushButtonOpen();
+		void slotPushButtonSave();
+		void slotCheckBoxTransparency(const bool& _bChecked);
 };

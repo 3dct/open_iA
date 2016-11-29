@@ -27,8 +27,12 @@
 
 #include <vtkActor.h>
 #include <vtkActorCollection.h>
+#include <vtkCylinderSource.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLineSource.h>
 #include <vtkPoints.h>
+#include <vtkPropPicker.h>
+#include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 
 class iARenderer;
@@ -42,14 +46,19 @@ class iABoneThicknessTable : public QTableView
 
 	QVector<double>* distance();
 
-	QVector<vtkSmartPointer<vtkLineSource>>* lines();
+	QVector<vtkSmartPointer<vtkCylinderSource>>* lines();
 
 	void open(const QString& _sFilename);
 
 	vtkSmartPointer<vtkPoints> point();
 
+	void save(const QString& _sFilename);
+
+	void setOpacity(const double& _dOpacity);
 	void setSphereOpacity(const double& _dSphereOpacity);
 	void setSphereRadius(const double& _dSphereRadius);
+	void setSphereSelected(const vtkIdType& _idSphereSelected);
+	void setSurfaceOpacity(const double& _dSurfaceOpacity);
 	void setTable();
 
 	void setWindow();
@@ -59,27 +68,91 @@ class iABoneThicknessTable : public QTableView
 	double sphereOpacity() const;
 	double sphereRadius() const;
 
+	double surfaceOpacity() const;
+
 	QVector<double>* thickness();
 
   private:
 	  double m_dSphereOpacity = 1.0;
 	  double m_dSphereRadius = 0.5;
+	  double m_dSurfaceOpacity = 1.0;
 
 	vtkIdType m_idSphereSelected = -1;
 
 	QVector<double> m_vDistance;
 	QVector<double> m_vThickness;
 
-	vtkActor* m_pSurface = nullptr;
-
 	vtkSmartPointer<vtkPoints> m_pPoints = nullptr;
-	QVector<vtkSmartPointer<vtkLineSource>> m_pLines;
+	QVector<vtkSmartPointer<vtkCylinderSource>> m_pLines;
 
 	vtkSmartPointer<vtkActorCollection> m_pSpheres = nullptr;
 	vtkSmartPointer<vtkActorCollection> m_pThicknessLines = nullptr;
 
 	iARenderer* m_iARenderer = nullptr;
 
-	protected:
-	virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
+	void setTranslucent();
+
+  protected:
+	  virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
+	  virtual void showEvent(QShowEvent* e) override;
+};
+
+class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera
+{
+public:
+	static iABoneThicknessMouseInteractor* New();
+	vtkTypeMacro(iABoneThicknessMouseInteractor, vtkInteractorStyleTrackballCamera);
+
+	iABoneThicknessMouseInteractor()
+	{
+
+	}
+
+	~iABoneThicknessMouseInteractor()
+	{
+
+	}
+
+	void setSphereCollection(vtkActorCollection* _pSpheres)
+	{
+		m_pSpheres = _pSpheres;
+	}
+
+	void setBoneThicknessTable(iABoneThicknessTable* _pBoneThicknessTable)
+	{
+		m_pBoneThicknessTable = _pBoneThicknessTable;
+	}
+
+	virtual void OnLeftButtonDown() override
+	{
+		const int* pClickPos(GetInteractor()->GetEventPosition());
+
+		vtkSmartPointer<vtkPropPicker>  pPicker(vtkSmartPointer<vtkPropPicker>::New());
+		pPicker->Pick(pClickPos[0], pClickPos[1], 0, GetDefaultRenderer());
+
+		vtkActor* pPickedActor(pPicker->GetActor());
+
+		if (pPickedActor)
+		{
+			const vtkIdType idSpheresSize(m_pSpheres->GetNumberOfItems());
+
+			m_pSpheres->InitTraversal();
+
+			for (vtkIdType i(0); i < idSpheresSize; ++i)
+			{
+				if (pPickedActor == m_pSpheres->GetNextActor())
+				{
+					m_pBoneThicknessTable->setSphereSelected(i);
+					break;
+				}
+			}
+
+		}
+
+		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+	}
+
+private:
+	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+	vtkActorCollection* m_pSpheres = nullptr;
 };

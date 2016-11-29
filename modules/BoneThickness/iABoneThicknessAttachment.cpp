@@ -33,12 +33,12 @@
 #include <iADockWidgetWrapper.h>
 #include <iARenderer.h>
 
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QFileDialog>
 #include <QLabel>
 #include <QPushButton>
-#include <QSlider>
 
 iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
 	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
@@ -50,13 +50,17 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	m_pRange[1] = m_pBound[3] - m_pBound[2];
 	m_pRange[2] = m_pBound[3] - m_pBound[4];
 
-	QWidget* pBoneThicknessWidget(new QWidget());
+	QWidget* pWidget(new QWidget());
 
-	QPushButton* pPushButtonBoneThicknessOpen(new QPushButton("Open point file...", pBoneThicknessWidget));
-	pPushButtonBoneThicknessOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
-	connect(pPushButtonBoneThicknessOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonBoneThicknessOpen()));
+	QPushButton* pPushButtonOpen(new QPushButton("Open point file...", pWidget));
+	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
+	connect(pPushButtonOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonOpen()));
 
-	QGroupBox* pGroupBoxBound(new QGroupBox("Surface bounds", pBoneThicknessWidget));
+	QPushButton* pPushButtonSave(new QPushButton("Save table to CSV format...", pWidget));
+	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
+	connect(pPushButtonSave, SIGNAL(clicked()), this, SLOT(slotPushButtonSave()));
+
+	QGroupBox* pGroupBoxBound(new QGroupBox("Surface bounds", pWidget));
 	QLabel* pLabelBoundXMin(new QLabel(QString("X min: %1").arg(m_pBound[0]), pGroupBoxBound));
 	QLabel* pLabelBoundXMax(new QLabel(QString("X max: %1").arg(m_pBound[1]), pGroupBoxBound));
 	QLabel* pLabelBoundXRng(new QLabel(QString("X rng: %1").arg(m_pRange[0]), pGroupBoxBound));
@@ -78,32 +82,35 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayoutBound->addWidget(pLabelBoundZMax, 0, 7);
 	pGridLayoutBound->addWidget(pLabelBoundZRng, 0, 8);
 
-	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pBoneThicknessWidget);
+	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pWidget);
 	m_pBoneThicknessTable->setSphereRadius(0.1 * vtkMath::Ceil(0.2 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2]))));
 
-	QLabel* pLabelSphereRadius(new QLabel("Sphere radius:", pBoneThicknessWidget));
-	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pBoneThicknessWidget));
+	QGroupBox* pGroupBoxSettings(new QGroupBox("Settings", pWidget));
+
+	QCheckBox* pCheckBoxTransparency(new QCheckBox("Transparency", pGroupBoxSettings));
+	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
+
+	QLabel* pLabelSphereRadius(new QLabel("Spheres radius:", pGroupBoxSettings));
+	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pGroupBoxSettings));
+	pDoubleSpinBoxSphereRadius->setAlignment(Qt::AlignRight);
 	pDoubleSpinBoxSphereRadius->setMinimum(0.1);
 	pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
 	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
 	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
 
-	QLabel* pLabelSphereOpacity(new QLabel("Sphere opacity:", pBoneThicknessWidget));
-	QSlider* pSliderSphereopacity(new QSlider(Qt::Horizontal, pBoneThicknessWidget));
-	pSliderSphereopacity->setRange(0, 100);
-	pSliderSphereopacity->setValue(100.0 * m_pBoneThicknessTable->sphereOpacity());
-	connect(pSliderSphereopacity, SIGNAL(valueChanged(const int&)), this, SLOT(slotSliderSphereOpacity(const int&)));
+	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
+	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0);
+	pGridLayoutSettings->addWidget(pDoubleSpinBoxSphereRadius, 0, 1);
+	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 2);
 
-	QGridLayout* pBoneThicknessLayout(new QGridLayout(pBoneThicknessWidget));
-	pBoneThicknessLayout->addWidget(pPushButtonBoneThicknessOpen, 0, 0);
-	pBoneThicknessLayout->addWidget(pGroupBoxBound, 1, 0, 1, 4);
-	pBoneThicknessLayout->addWidget(m_pBoneThicknessTable, 2, 0, 1, 4);
-	pBoneThicknessLayout->addWidget(pLabelSphereRadius, 3, 0);
-	pBoneThicknessLayout->addWidget(pDoubleSpinBoxSphereRadius, 3, 1);
-	pBoneThicknessLayout->addWidget(pLabelSphereOpacity, 3, 2);
-	pBoneThicknessLayout->addWidget(pSliderSphereopacity, 3, 3);
+	QGridLayout* pGridLayout(new QGridLayout(pWidget));
+	pGridLayout->addWidget(pPushButtonOpen, 0, 0);
+	pGridLayout->addWidget(pPushButtonSave, 0, 1);
+	pGridLayout->addWidget(pGroupBoxBound, 1, 0, 1, 2);
+	pGridLayout->addWidget(m_pBoneThicknessTable, 2, 0, 1, 2);
+	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
-	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pBoneThicknessWidget, tr("Bone thickness"), "BoneThickness"));
+	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
 }
 
 void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
@@ -162,7 +169,7 @@ void iABoneThicknessAttachment::calculate()
 	CellLocator->Update();
 
 	vtkSmartPointer<vtkPoints> Points(m_pBoneThicknessTable->point());
-	QVector<vtkSmartPointer<vtkLineSource>>* Lines (m_pBoneThicknessTable->lines());
+	QVector<vtkSmartPointer<vtkCylinderSource>>* Lines (m_pBoneThicknessTable->lines());
 
 	const vtkIdType idPointsTable (Points->GetNumberOfPoints());
 
@@ -197,14 +204,18 @@ void iABoneThicknessAttachment::calculate()
 		if (CellLocator->IntersectWithLine(pPoint21, PointClosest1, tol, t, x1, pcoords, subId))
 		{
 			(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x1));
-			(*Lines)[i]->SetPoint1(PointClosest1);
-			(*Lines)[i]->SetPoint2(x1);
+
+			double pCenter[3] = { 0.5 * (PointClosest1[0] + x1[0]) , 0.5 * (PointClosest1[1] + x1[1]) , 0.5 * (PointClosest1[2] + x1[2]) };
+			(*Lines)[i]->SetCenter(pCenter);
+			(*Lines)[i]->SetHeight((*pvThickness)[i]);
+			(*Lines)[i]->SetRadius(0.05);
 		}
 		else
 		{
 			(*pvThickness)[i] = 0.0;
-			(*Lines)[i]->SetPoint1(0.0, 0.0, 0.0);
-			(*Lines)[i]->SetPoint2(0.0, 0.0, 0.0);
+
+			(*Lines)[i]->SetHeight(0.0);
+			(*Lines)[i]->SetRadius(0.0);
 		}
 
 		if (CellLocator->IntersectWithLine(pPoint22, PointClosest1, tol, t, x2, pcoords, subId))
@@ -214,8 +225,11 @@ void iABoneThicknessAttachment::calculate()
 			if (dThickness > (*pvThickness)[i])
 			{
 				(*pvThickness)[i] = dThickness;
-				(*Lines)[i]->SetPoint1(PointClosest1);
-				(*Lines)[i]->SetPoint2(x2);
+
+				double pCenter[3] = { 0.5 * (PointClosest1[0] + x2[0]) , 0.5 * (PointClosest1[1] + x2[1]) , 0.5 * (PointClosest1[2] + x2[2]) };
+				(*Lines)[i]->SetCenter(pCenter);
+				(*Lines)[i]->SetHeight((*pvThickness)[i]);
+				(*Lines)[i]->SetRadius(0.05);
 			}
 		}
 	}
@@ -280,7 +294,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius(const double& _dVa
 	qApp->restoreOverrideCursor();
 }
 
-void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
+void iABoneThicknessAttachment::slotPushButtonOpen()
 {
 	QPushButton* pPushButtonOpen ((QPushButton*) sender());
 
@@ -303,7 +317,36 @@ void iABoneThicknessAttachment::slotPushButtonBoneThicknessOpen()
 	delete pFileDialog;
 }
 
-void iABoneThicknessAttachment::slotSliderSphereOpacity(const int& _iValue)
+void iABoneThicknessAttachment::slotPushButtonSave()
 {
-	m_pBoneThicknessTable->setSphereOpacity(0.01 * (double) _iValue);
+	QPushButton* pPushButtonSave((QPushButton*)sender());
+
+	QFileDialog* pFileDialog(new QFileDialog());
+	pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
+	pFileDialog->setDefaultSuffix("csv");
+	pFileDialog->setFileMode(QFileDialog::ExistingFile);
+	pFileDialog->setNameFilter("CSV file (*.csv)");
+	pFileDialog->setWindowTitle(pPushButtonSave->text());
+
+	if (pFileDialog->exec())
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		qApp->processEvents();
+		m_pBoneThicknessTable->save(pFileDialog->selectedFiles().first());
+		qApp->restoreOverrideCursor();
+	}
+
+	delete pFileDialog;
+}
+
+void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
+{
+	if (_bChecked)
+	{
+		m_pBoneThicknessTable->setOpacity(0.5);
+	}
+	else
+	{
+		m_pBoneThicknessTable->setOpacity(1.0);
+	}
 }
