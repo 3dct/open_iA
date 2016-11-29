@@ -24,6 +24,8 @@
 // iA
 #include "iAVisModule.h"
 #include "iA4DCTDefects.h"
+#include "iA4DCTFileData.h"
+#include "iA4DCTFileManager.h"
 // vtk
 #include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
@@ -57,7 +59,7 @@ public:
 	void		enable( );
 	void		disable( );
 	void		setSize( double * size );
-	void		setImage( QString fileName );
+	void		setImage( iA4DCTFileData fileName );
 	void		setSlice( int slice );
 	void		setOpacity( double opacity );
 	void		enableShading( );
@@ -69,9 +71,9 @@ public:
 	void		enableHighlighting( bool enable );
 
 	template<typename T>
-	void		highlightDefects( QVector<QString> defects, QVector<QColor> colors, QString labeledImgPath );
+	void		highlightDefects( QVector<QString> defects, QVector<QColor> colors, iA4DCTFileData labeledImgFile );
 	template<typename T>
-	void		densityMap( QString defect, QColor color, QString labeledImgPath, int * size );
+	void		densityMap( QString defect, QColor color, iA4DCTFileData labeledImgFile, int * size );
 	template<typename T>
 	void		labledImageToMask( vtkImageData* img, iA4DCTDefects::VectorDataType list );
 
@@ -101,7 +103,7 @@ private:
 //==============================================
 
 template<typename T>
-void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColor> colors, QString labeledImgPath )
+void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColor> colors, iA4DCTFileData labeledImgFile )
 {
 	QVector<iA4DCTDefects::VectorDataType> defectsLists;
 	for( int i = 0; i < defects.size( ); i++ )
@@ -111,10 +113,11 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 	}
 
 	// read the labeled image
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
+	/*vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
 	reader->SetFileName( labeledImgPath.toStdString( ).c_str( ) );
 	reader->Update( );
-	vtkImageData * labeledImg = reader->GetOutput( );
+	vtkImageData * labeledImg = reader->GetOutput( );*/
+	vtkImageData * labeledImg = iA4DCTFileManager::getInstance( ).getImage( labeledImgFile );
 
 	// hash the defects
 	QVector<iA4DCTDefects::HashDataType> hashes;
@@ -166,13 +169,14 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 }
 
 template<typename T>
-void iAPlaneVisModule::densityMap( QString defect, QColor color, QString labeledImgPath, int * size )
+void iAPlaneVisModule::densityMap( QString defect, QColor color, iA4DCTFileData labeledImgFile, int * size )
 {
 	// read the labeled image
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
+	/*vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
 	reader->SetFileName( labeledImgPath.toStdString( ).c_str( ) );
 	reader->Update( );
-	vtkImageData * labeledImg = reader->GetOutput( );
+	vtkImageData * labeledImg = reader->GetOutput( );*/
+	vtkImageData * labeledImg = iA4DCTFileManager::getInstance( ).getImage( labeledImgFile );
 
 	// hash the defect
 	iA4DCTDefects::VectorDataType list = iA4DCTDefects::load( defect );

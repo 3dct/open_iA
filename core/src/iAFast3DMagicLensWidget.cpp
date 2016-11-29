@@ -72,7 +72,7 @@ void iAFast3DMagicLensWidget::updateLens()
 	if( magicLensCam->GetUseOffAxisProjection() == 0 )
 	{
 		magicLensCam->UseOffAxisProjectionOn();
-	}	
+	}
 
 	int * pos = GetInteractor()->GetEventPosition();
 

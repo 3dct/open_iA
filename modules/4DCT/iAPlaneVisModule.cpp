@@ -78,18 +78,14 @@ void iAPlaneVisModule::setSize( double * size )
 	setPlanePosition( 0 );
 }
 
-void iAPlaneVisModule::setImage( QString fileName )
+void iAPlaneVisModule::setImage( iA4DCTFileData fileName )
 {
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( fileName.toStdString( ).c_str( ) );
-	reader->Update( );
-
 	double scale = (double)0xff / 0xffff;
 	vtkSmartPointer<vtkImageShiftScale> shifter = vtkSmartPointer<vtkImageShiftScale>::New( );
 	shifter->SetShift( 0. );
 	shifter->SetScale( scale );
 	shifter->SetOutputScalarTypeToUnsignedChar( );
-	shifter->SetInputConnection( reader->GetOutputPort( ) );
+	shifter->SetInputConnection( iA4DCTFileManager::getInstance( ).getOutputPort( fileName ) );
 	shifter->ReleaseDataFlagOff( );
 	shifter->Update( );
 

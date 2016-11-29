@@ -50,6 +50,7 @@ class iADefectVisModule;
 class iAVisModule;
 class vtkOrientationMarkerWidget;
 class vtkRenderer;
+class vtkRendererCollection;
 
 const float SCENE_SCALE = 0.01;
 
@@ -75,6 +76,7 @@ private:
 	void				setToolsDockWidgetsEnabled( bool enabled );
 
 	vtkSmartPointer<vtkRenderer>			m_mainRen;	// ToDo: renderer into iAFast3DMagicLensWidget?
+	vtkSmartPointer<vtkRendererCollection>	m_renList;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow>	m_renderWindow;
 	vtkSmartPointer<vtkOrientationMarkerWidget>		m_orientWidget;
 	vtkRenderer *							m_magicLensRen;
@@ -105,6 +107,7 @@ private slots:
 	void				onLastButtonClicked( );
 	void				onPlayButtonClicked( bool checked );
 	void				onIntervalValueChanged( int val );
+	void				enableSideBySideView( bool enabled );
 
 	// camera
 	void				resetCamera( );
