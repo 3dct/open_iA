@@ -846,45 +846,65 @@ void MdiChild::updated(int i, QString text)
 	this->addMsg(tr("mdiCild: updated(i,string): %1  %2").arg(i).arg(text));
 }
 
+int MdiChild::chooseChannelNr()
+{
+	if (GetModalities()->size() == 1)
+	{
+		return 0;
+	}
+	QStringList parameters = (QStringList() << tr("+Channel"));
+	QStringList channels;
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		channels << GetModality(i)->GetName();
+	}
+	QList<QVariant> values = (QList<QVariant>() << channels);
+	dlg_commoninput channelChoice(this, "Choose Channel", 1, parameters, values, NULL);
+	if (channelChoice.exec() != QDialog::Accepted)
+	{
+		return -1;
+	}
+	return channelChoice.getComboBoxIndices()[0];
+}
+
 bool MdiChild::save()
 {
-	if (isUntitled) {
+	if (isUntitled)
+	{
 		return saveAs();
-	} else {
-		return saveFile(curFile);
+	}
+	else
+	{
+		int channelNr = chooseChannelNr();
+		if (channelNr == -1)
+		{
+			return false;
+		}
+		return saveFile(GetModality(channelNr)->GetFileName(), channelNr);
 	}
 }
 
 bool MdiChild::saveAs()
 {
-	QString filePath = currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
-
-	QString f = QFileDialog::getSaveFileName(this, tr("Save As"),
-		filePath, iAIOProvider::GetSupportedSaveFormats() );
-
-	if (f.isEmpty())
+	int channelNr = chooseChannelNr();
+	if (channelNr == -1)
+	{
 		return false;
-
-	return saveFile(f);
-}
-
-
-bool MdiChild::saveAsImageStack()
-{
-	QString filePath = currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
-
-	QString f = QFileDialog::getSaveFileName(this, tr("Save As"),
+	}
+	QString filePath = QFileInfo(GetModality(channelNr)->GetFileName()).absolutePath();
+	QString f = QFileDialog::getSaveFileName(
+		this,
+		tr("Save As"),
 		filePath,
-		tr("TIFF stacks (*.tif);; PNG stacks (*.png);; BMP stacks (*.bmp);; JPEG stacks (*.jpg);; DICOM series (*.dcm)"));
+		iAIOProvider::GetSupportedSaveFormats()+
+		tr(";;TIFF stack (*.tif);; PNG stack (*.png);; BMP stack (*.bmp);; JPEG stack (*.jpg);; DICOM serie (*.dcm)"));
 
 	if (f.isEmpty())
+	{
 		return false;
-
-	return saveFile(f);
+	}
+	return saveFile(f, channelNr);
 }
-
 
 void MdiChild::waitForPreviousIO()
 {
@@ -896,6 +916,29 @@ void MdiChild::waitForPreviousIO()
 	}
 }
 
+
+QString GetSupportedPixelTypeString(QVector<int> const & types)
+{
+	QString result;
+	for (int i = 0; i < types.size(); ++i)
+	{
+		switch (types[i])
+		{
+		case VTK_UNSIGNED_CHAR: result += "unsigned char"; break;
+		case VTK_UNSIGNED_SHORT: result += "unsigned short"; break;
+		case VTK_FLOAT: result += "float"; break;
+		}
+		if (i < types.size() - 2)
+		{
+			result += ", ";
+		}
+		else if (i < types.size() - 1)
+		{
+			result += " and ";
+		}
+	}
+	return result;
+}
 
 bool MdiChild::setupSaveIO(QString const & f)
 {
@@ -912,48 +955,71 @@ bool MdiChild::setupSaveIO(QString const & f)
 			QMessageBox::warning(this, tr("Save File"), tr("Image contains no data. Saving aborted.")); return false;
 		} else {
 			if ((QString::compare(pars.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0)){
-					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) ) return false;
+				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0))
+			{
+					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) )
+						return false;
 					setCurrentFile(f);
 					m_mainWnd->setCurrentFile(f);	// TODO: VOLUME: do in setCurrentFile member method?
 					QString t; t = f;
 					t.truncate(t.lastIndexOf('/'));
 					m_mainWnd->setPath(t);
-			} else if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
-					if ( !ioThread->setupIO(TIF_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-			} else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
-					if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR){
-						if ( !ioThread->setupIO(JPG_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-					} else { addMsg(tr("JPEGWriter only supports unsigned char input!")); addMsg(tr("   FILE I/O ABORTED!")); return false;}
-			} else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0){
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR){
-					if ( !ioThread->setupIO(PNG_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-				} else { addMsg(tr("PNGWriter only supports unsigned char input!")); addMsg(tr("   FILE I/O ABORTED!")); return false;}
-			} else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0){
-				if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR){
-					if ( !ioThread->setupIO(BMP_STACK_WRITER, pars.absoluteFilePath() ) ) return false;
-				} else { addMsg(tr("BMPWriter only supports unsigned char input!")); addMsg(tr("   FILE I/O ABORTED!")); return false;}
 			}
-			else if (QString::compare(pars.suffix(), "DCM", Qt::CaseInsensitive) == 0) {
-				if (!ioThread->setupIO(DCM_WRITER, pars.absoluteFilePath())) return false;
-			}	
-			else if (QString::compare(pars.suffix(), "AM", Qt::CaseInsensitive) == 0) {
-				if (!ioThread->setupIO(AM_WRITER, pars.absoluteFilePath())) return false;
+			else
+			{
+				QMap<QString, IOType> suffixToFormat;
+				suffixToFormat.insert("TIF", TIF_STACK_WRITER);
+				suffixToFormat.insert("TIFF", TIF_STACK_WRITER);
+				suffixToFormat.insert("JPG", JPG_STACK_WRITER);
+				suffixToFormat.insert("JPEG", JPG_STACK_WRITER);
+				suffixToFormat.insert("PNG", PNG_STACK_WRITER);
+				suffixToFormat.insert("BMP", BMP_STACK_WRITER);
+				suffixToFormat.insert("DCM", DCM_WRITER);
+				suffixToFormat.insert("AM", AM_WRITER);
+
+				QMap<IOType, QVector<int> > supportedPixelTypes;
+				QVector<int> tiffSupported;
+				tiffSupported.push_back(VTK_UNSIGNED_CHAR);
+				tiffSupported.push_back(VTK_UNSIGNED_SHORT);
+				tiffSupported.push_back(VTK_FLOAT);
+				supportedPixelTypes.insert(TIF_STACK_WRITER, tiffSupported);
+				QVector<int> pngJpgBmpSupported;
+				pngJpgBmpSupported.push_back(VTK_UNSIGNED_CHAR);
+				supportedPixelTypes.insert(BMP_STACK_WRITER, pngJpgBmpSupported);
+				supportedPixelTypes.insert(PNG_STACK_WRITER, pngJpgBmpSupported);
+				supportedPixelTypes.insert(JPG_STACK_WRITER, pngJpgBmpSupported);
+
+				QString suffix = pars.suffix().toUpper();
+				if (!suffixToFormat.contains(suffix))
+				{
+					return false;
+				}
+				IOType ioID = suffixToFormat[suffix];
+				if (supportedPixelTypes.contains(ioID) &&
+					!supportedPixelTypes[ioID].contains(imageData->GetScalarType()))
+				{
+					addMsg(QString("%1 Writer only supports %2 input!")
+						.arg(suffix)
+						.arg(GetSupportedPixelTypeString(supportedPixelTypes[ioID])));
+					return false;
+				}
+				if (!ioThread->setupIO(ioID, pars.absoluteFilePath()))
+				{
+					return false;
+				}
+
 			}
-			else return false;
 		}
 	}
 	return true;
 }
 
 
-bool MdiChild::saveFile(const QString &f)
+bool MdiChild::saveFile(const QString &f, int channelNr)
 {
 	waitForPreviousIO();
 
-	ioThread = new iAIO(imageData, polyData, m_logger, this);
+	ioThread = new iAIO(GetModality(channelNr)->GetImage(), polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
 
@@ -1820,11 +1886,11 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
 
-	dlg_commoninput *dlg = new dlg_commoninput (this, "Save movie options", 1, inList, inPara, NULL);
-	if (dlg->exec() == QDialog::Accepted)
+	dlg_commoninput dlg(this, "Save movie options", 1, inList, inPara, NULL);
+	if (dlg.exec() == QDialog::Accepted)
 	{
-		mode =  dlg->getComboBoxValues()[0];
-		imode = dlg->getComboBoxIndices()[0];
+		mode =  dlg.getComboBoxValues()[0];
+		imode = dlg.getComboBoxIndices()[0];
 	}
 
 

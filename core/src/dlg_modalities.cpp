@@ -306,6 +306,7 @@ void dlg_modalities::RemoveClicked()
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
 	EnableButtons();
+	emit ModalitiesChanged();
 }
 
 void dlg_modalities::EditClicked()

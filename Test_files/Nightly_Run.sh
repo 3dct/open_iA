@@ -62,4 +62,4 @@ done
 # CLEANUP:
 # remove test configurations:
 rm -r $TEST_CONFIG_DIR
-
+rm -r $TEST_BIN_DIR
