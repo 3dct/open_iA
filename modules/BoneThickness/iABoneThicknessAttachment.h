@@ -39,9 +39,9 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 
-		void addPointNormalsIn(vtkPoints* _pPointNormals);
+		void addNormalsInPoint(vtkPoints* _pPointNormals);
 		void calculate();
-		void getNormal(vtkPoints* _pPoints, double* _pNormal);
+		bool getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter);
 
 	private slots:
 		void slotDoubleSpinBoxSphereRadius(const double&);

@@ -27,7 +27,6 @@
 
 #include <vtkActor.h>
 #include <vtkActorCollection.h>
-#include <vtkCylinderSource.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLineSource.h>
 #include <vtkPoints.h>
@@ -46,7 +45,7 @@ class iABoneThicknessTable : public QTableView
 
 	QVector<double>* distance();
 
-	QVector<vtkSmartPointer<vtkCylinderSource>>* lines();
+	QVector<vtkSmartPointer<vtkLineSource>>* lines();
 
 	void open(const QString& _sFilename);
 
@@ -83,7 +82,7 @@ class iABoneThicknessTable : public QTableView
 	QVector<double> m_vThickness;
 
 	vtkSmartPointer<vtkPoints> m_pPoints = nullptr;
-	QVector<vtkSmartPointer<vtkCylinderSource>> m_pLines;
+	QVector<vtkSmartPointer<vtkLineSource>> m_pLines;
 
 	vtkSmartPointer<vtkActorCollection> m_pSpheres = nullptr;
 	vtkSmartPointer<vtkActorCollection> m_pThicknessLines = nullptr;
@@ -94,7 +93,6 @@ class iABoneThicknessTable : public QTableView
 
   protected:
 	  virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
-	  virtual void showEvent(QShowEvent* e) override;
 };
 
 class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera

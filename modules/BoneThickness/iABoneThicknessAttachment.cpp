@@ -33,8 +33,10 @@
 #include <iADockWidgetWrapper.h>
 #include <iARenderer.h>
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QFileDialog>
 #include <QLabel>
@@ -48,7 +50,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 
 	m_pRange[0] = m_pBound[1] - m_pBound[0];
 	m_pRange[1] = m_pBound[3] - m_pBound[2];
-	m_pRange[2] = m_pBound[3] - m_pBound[4];
+	m_pRange[2] = m_pBound[5] - m_pBound[4];
 
 	QWidget* pWidget(new QWidget());
 
@@ -63,13 +65,13 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QGroupBox* pGroupBoxBound(new QGroupBox("Surface bounds", pWidget));
 	QLabel* pLabelBoundXMin(new QLabel(QString("X min: %1").arg(m_pBound[0]), pGroupBoxBound));
 	QLabel* pLabelBoundXMax(new QLabel(QString("X max: %1").arg(m_pBound[1]), pGroupBoxBound));
-	QLabel* pLabelBoundXRng(new QLabel(QString("X rng: %1").arg(m_pRange[0]), pGroupBoxBound));
+	QLabel* pLabelBoundXRng(new QLabel(QString("X range: %1").arg(m_pRange[0]), pGroupBoxBound));
 	QLabel* pLabelBoundYMin(new QLabel(QString("Y min: %1").arg(m_pBound[2]), pGroupBoxBound));
 	QLabel* pLabelBoundYMax(new QLabel(QString("Y max: %1").arg(m_pBound[3]), pGroupBoxBound));
-	QLabel* pLabelBoundYRng(new QLabel(QString("Y rng: %1").arg(m_pRange[1]), pGroupBoxBound));
+	QLabel* pLabelBoundYRng(new QLabel(QString("Y range: %1").arg(m_pRange[1]), pGroupBoxBound));
 	QLabel* pLabelBoundZMin(new QLabel(QString("Z min: %1").arg(m_pBound[4]), pGroupBoxBound));
 	QLabel* pLabelBoundZMax(new QLabel(QString("Z max: %1").arg(m_pBound[5]), pGroupBoxBound));
-	QLabel* pLabelBoundZRng(new QLabel(QString("Z rng: %1").arg(m_pRange[2]), pGroupBoxBound));
+	QLabel* pLabelBoundZRng(new QLabel(QString("Z range: %1").arg(m_pRange[2]), pGroupBoxBound));
 
 	QGridLayout* pGridLayoutBound(new QGridLayout(pGroupBoxBound));
 	pGridLayoutBound->addWidget(pLabelBoundXMin, 0, 0);
@@ -83,17 +85,18 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayoutBound->addWidget(pLabelBoundZRng, 0, 8);
 
 	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pWidget);
-	m_pBoneThicknessTable->setSphereRadius(0.1 * vtkMath::Ceil(0.2 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2]))));
+	m_pBoneThicknessTable->setSphereRadius(0.2 * vtkMath::Ceil(0.2 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2]))));
 
 	QGroupBox* pGroupBoxSettings(new QGroupBox("Settings", pWidget));
 
-	QCheckBox* pCheckBoxTransparency(new QCheckBox("Transparency", pGroupBoxSettings));
+	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
 	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
 
 	QLabel* pLabelSphereRadius(new QLabel("Spheres radius:", pGroupBoxSettings));
 	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pGroupBoxSettings));
 	pDoubleSpinBoxSphereRadius->setAlignment(Qt::AlignRight);
-	pDoubleSpinBoxSphereRadius->setMinimum(0.1);
+	pDoubleSpinBoxSphereRadius->setMinimum(0.01);
+	pDoubleSpinBoxSphereRadius->setMaximum(1.0E+6);
 	pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
 	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
 	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
@@ -113,49 +116,65 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
 }
 
-void iABoneThicknessAttachment::addPointNormalsIn(vtkPoints* _pPointNormals)
+void iABoneThicknessAttachment::addNormalsInPoint(vtkPoints* _pPointNormals)
 {
 	vtkPolyData* pPolyData(m_childData.polyData);
-	const vtkIdType idPointsData(pPolyData->GetNumberOfPoints());
+	const vtkIdType idPolyPoints(pPolyData->GetNumberOfPoints());
 
 	vtkSmartPointer<vtkPoints> pPoints(m_pBoneThicknessTable->point());
-	const vtkIdType idPointsTable(pPoints->GetNumberOfPoints());
+	const vtkIdType idPoints(pPoints->GetNumberOfPoints());
 
 	const double dPointRadius(m_pBoneThicknessTable->sphereRadius());
 
 	QVector<vtkSmartPointer<vtkPoints>> vPoints;
-	vPoints.resize(idPointsTable);
+	vPoints.resize(idPoints);
 
-	for (vtkIdType i(0); i < idPointsTable; ++i)
+	for (vtkIdType i(0); i < idPoints; ++i)
 	{
 		vPoints[i] = vtkPoints::New();
 	}
 
-	for (vtkIdType j(0); j < idPointsData; ++j)
+	for (vtkIdType j(0); j < idPolyPoints; ++j)
 	{
-		double pPointData[3];
-		pPolyData->GetPoint(j, pPointData);
+		double pPolyPoint[3];
+		pPolyData->GetPoint(j, pPolyPoint);
 
-		for (vtkIdType i(0); i < idPointsTable; ++i)
+		for (vtkIdType i(0); i < idPoints; ++i)
 		{
-			double pPoint1[3];
-			pPoints->GetPoint(i, pPoint1);
+			double pPoint[3];
+			pPoints->GetPoint(i, pPoint);
 
-			const double Distance(sqrt(vtkMath::Distance2BetweenPoints(pPoint1, pPointData)));
+			const double Distance(sqrt(vtkMath::Distance2BetweenPoints(pPoint, pPolyPoint)));
 
 			if (Distance < dPointRadius)
 			{
-				vPoints[i]->InsertNextPoint(pPointData);
+				vPoints[i]->InsertNextPoint(pPolyPoint);
 			}
 		}
 	}
 
-	double pNormal[3];
+	double pNormal[3] = { 0.0 , 0.0 , 0.0 };
 
-	for (vtkIdType i(0); i < idPointsTable; ++i)
+	for (vtkIdType i(0); i < idPoints; ++i)
 	{
-		getNormal(vPoints[i], pNormal);
-		vtkMath::Normalize(pNormal);
+		double pCenter[3] = { 0.0 , 0.0 , 0.0 };
+
+		if (getCenterFromPoints(vPoints[i], pCenter))
+		{
+			double pPoint[3];
+			pPoints->GetPoint(i, pPoint);
+
+			pNormal[0] = pPoint[0] - pCenter[0];
+			pNormal[1] = pPoint[1] - pCenter[1];
+			pNormal[2] = pPoint[2] - pCenter[2];
+			vtkMath::Normalize(pNormal);
+		}
+		else
+		{
+			pNormal[0] = 0.0;
+			pNormal[1] = 0.0;
+			pNormal[2] = 0.0;
+		}
 
 		_pPointNormals->InsertNextPoint(pNormal);
 	}
@@ -169,67 +188,79 @@ void iABoneThicknessAttachment::calculate()
 	CellLocator->Update();
 
 	vtkSmartPointer<vtkPoints> Points(m_pBoneThicknessTable->point());
-	QVector<vtkSmartPointer<vtkCylinderSource>>* Lines (m_pBoneThicknessTable->lines());
+	QVector<vtkSmartPointer<vtkLineSource>>* Lines (m_pBoneThicknessTable->lines());
 
-	const vtkIdType idPointsTable (Points->GetNumberOfPoints());
+	const vtkIdType idPoints (Points->GetNumberOfPoints());
 
 	QVector<double>* pvDistance(m_pBoneThicknessTable->distance());
 	QVector<double>* pvThickness(m_pBoneThicknessTable->thickness());
-	
-	vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
-	addPointNormalsIn(PointNormals);
 
-	for (int i(0); i < idPointsTable; ++i)
+	vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
+	addNormalsInPoint(PointNormals);
+
+	const double dLength(0.5 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2])));
+
+	double tol(0.0), t(0.0), pcoords[3];
+
+	for (int i(0); i < idPoints; ++i)
 	{
-		double Point1[3];
-		Points->GetPoint(i, Point1);
+		double pPoint[3];
+		Points->GetPoint(i, pPoint);
 
 		vtkIdType cellId;
 		int subId;
 		double closestPointDist2 (0.0);
 		double PointClosest1[3];
-		CellLocator->FindClosestPoint(Point1, PointClosest1, cellId, subId, closestPointDist2);
+		CellLocator->FindClosestPoint(pPoint, PointClosest1, cellId, subId, closestPointDist2);
 
 		(*pvDistance)[i] = sqrt(closestPointDist2);
 
 		double pNormal[3];
 		PointNormals->GetPoint(i, pNormal);
-
-		const double dLength (vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2])));
-		double pPoint21[3] = { PointClosest1[0] + dLength * pNormal[0], PointClosest1[1] + dLength * pNormal[1], PointClosest1[2] + dLength * pNormal[2] };
-		double pPoint22[3] = { PointClosest1[0] - dLength * pNormal[0], PointClosest1[1] - dLength * pNormal[1], PointClosest1[2] - dLength * pNormal[2] };
-
-		double tol (0.0), t (0.0), x1[3], x2[3], pcoords[3];
-
-		if (CellLocator->IntersectWithLine(pPoint21, PointClosest1, tol, t, x1, pcoords, subId))
-		{
-			(*pvThickness)[i] = sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x1));
-
-			double pCenter[3] = { 0.5 * (PointClosest1[0] + x1[0]) , 0.5 * (PointClosest1[1] + x1[1]) , 0.5 * (PointClosest1[2] + x1[2]) };
-			(*Lines)[i]->SetCenter(pCenter);
-			(*Lines)[i]->SetHeight((*pvThickness)[i]);
-			(*Lines)[i]->SetRadius(0.05);
-		}
-		else
+		if ((pNormal[0] == 0.0) && (pNormal[1] == 0.0) && (pNormal[2] == 0.0))
 		{
 			(*pvThickness)[i] = 0.0;
 
-			(*Lines)[i]->SetHeight(0.0);
-			(*Lines)[i]->SetRadius(0.0);
+			(*Lines)[i]->SetPoint1(pNormal);
+			(*Lines)[i]->SetPoint2(pNormal);
+
+			continue;
 		}
 
-		if (CellLocator->IntersectWithLine(pPoint22, PointClosest1, tol, t, x2, pcoords, subId))
+		double pPoint21[3] = { PointClosest1[0] + dLength * pNormal[0], PointClosest1[1] + dLength * pNormal[1], PointClosest1[2] + dLength * pNormal[2] };
+		double pPoint22[3] = { PointClosest1[0] - dLength * pNormal[0], PointClosest1[1] - dLength * pNormal[1], PointClosest1[2] - dLength * pNormal[2] };
+
+		double x1[3] = { 0.0, 0.0, 0.0 };
+
+		double dThickness1(0.0);
+
+		if (CellLocator->IntersectWithLine(pPoint21, pPoint, tol, t, x1, pcoords, subId))
 		{
-			const double dThickness(sqrt(vtkMath::Distance2BetweenPoints(PointClosest1, x2)));
+			dThickness1 = sqrt(vtkMath::Distance2BetweenPoints(pPoint, x1));
 
-			if (dThickness > (*pvThickness)[i])
+			(*pvThickness)[i] = dThickness1;
+
+			(*Lines)[i]->SetPoint1(pPoint);
+			(*Lines)[i]->SetPoint2(x1);
+		}
+		else
+		{
+			(*Lines)[i]->SetPoint1(x1);
+			(*Lines)[i]->SetPoint2(x1);
+		}
+
+		double x2[3] = { 0.0, 0.0, 0.0 };
+
+		if (CellLocator->IntersectWithLine(pPoint22, pPoint, tol, t, x2, pcoords, subId))
+		{
+			const double dThickness2(sqrt(vtkMath::Distance2BetweenPoints(pPoint, x2)));
+
+			if (dThickness2 > dThickness1)
 			{
-				(*pvThickness)[i] = dThickness;
+				(*pvThickness)[i] = dThickness2;
 
-				double pCenter[3] = { 0.5 * (PointClosest1[0] + x2[0]) , 0.5 * (PointClosest1[1] + x2[1]) , 0.5 * (PointClosest1[2] + x2[2]) };
-				(*Lines)[i]->SetCenter(pCenter);
-				(*Lines)[i]->SetHeight((*pvThickness)[i]);
-				(*Lines)[i]->SetRadius(0.05);
+				(*Lines)[i]->SetPoint1(pPoint);
+				(*Lines)[i]->SetPoint2(x2);
 			}
 		}
 	}
@@ -238,51 +269,35 @@ void iABoneThicknessAttachment::calculate()
 	m_pBoneThicknessTable->setWindow();
 }
 
-void iABoneThicknessAttachment::getNormal(vtkPoints* _pPoints, double* _pNormal)
+bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter)
 {
-	const vtkIdType idPointsArea(_pPoints->GetNumberOfPoints());
+	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
 
-	if (idPointsArea > 0)
+	if (idPoints > 1)
 	{
-		double pPoint1[3];
-		_pPoints->GetPoint(0, pPoint1);
+		_pPoints->GetPoint(0, _pCenter);
 
-		double dSumX(pPoint1[0]);
-		double dSumXX(pPoint1[0] * pPoint1[0]);
-		double dSumXY(pPoint1[0] * pPoint1[1]);
-
-		double dSumY(pPoint1[1]);
-		double dSumYY(pPoint1[1] * pPoint1[1]);
-
-		double dSumXZ(pPoint1[0] * pPoint1[2]);
-		double dSumYZ(pPoint1[1] * pPoint1[2]);
-		double dSumZ(pPoint1[2]);
-
-		for (vtkIdType i(1); i < idPointsArea; ++i)
+		for (vtkIdType i (1) ; i < idPoints; ++i)
 		{
-			_pPoints->GetPoint(i, pPoint1);
+			double pPoint[3];
+			_pPoints->GetPoint(i, pPoint);
 
-			dSumX += pPoint1[0];
-			dSumXX += pPoint1[0] * pPoint1[0];
-			dSumXY += pPoint1[0] * pPoint1[1];
-			dSumXZ += pPoint1[0] * pPoint1[2];
-
-			dSumY += pPoint1[1];
-			dSumYY += pPoint1[1] * pPoint1[1];
-			dSumYZ += pPoint1[1] * pPoint1[2];
-
-			dSumZ += pPoint1[2];
+			_pCenter[0] += pPoint[0];
+			_pCenter[1] += pPoint[1];
+			_pCenter[2] += pPoint[2];
 		}
 
-		const double AB(dSumXX * dSumYY - dSumXY * dSumXY);
+		const double dPoints ((double) idPoints);
 
-		_pNormal[2] = (dSumXZ * dSumYY - dSumYZ * dSumXY) / AB; // A
-		_pNormal[0] = (dSumXX * dSumXZ - dSumXZ * dSumXY) / AB; // B
-		_pNormal[1] = (dSumZ - _pNormal[0] * dSumX - _pNormal[1] * dSumY) / ((double)idPointsArea); // C
+		_pCenter[0] /= dPoints;
+		_pCenter[1] /= dPoints;
+		_pCenter[2] /= dPoints;
+
+		return true;
 	}
 	else
 	{
-		_pNormal[0] = _pNormal[1] = _pNormal[2] = 0.0;
+		return false;
 	}
 }
 

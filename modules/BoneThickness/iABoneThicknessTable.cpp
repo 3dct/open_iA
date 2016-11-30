@@ -80,7 +80,7 @@ QVector<double>* iABoneThicknessTable::distance()
 	return &m_vDistance;
 }
 
-QVector<vtkSmartPointer<vtkCylinderSource>>* iABoneThicknessTable::lines()
+QVector<vtkSmartPointer<vtkLineSource>>* iABoneThicknessTable::lines()
 {
 	return &m_pLines;
 }
@@ -112,7 +112,7 @@ void iABoneThicknessTable::open(const QString& _sFilename)
 			{
 				const double Point[3] = {slLine.at(0).toDouble(), slLine.at(1).toDouble(), slLine.at(2).toDouble()};
 				m_pPoints->InsertNextPoint(Point);
-				m_pLines.push_back(vtkSmartPointer<vtkCylinderSource>::New());
+				m_pLines.push_back(vtkSmartPointer<vtkLineSource>::New());
 				m_vDistance.push_back(0.0f);
 				m_vThickness.push_back(0.0f);
 				++i;
@@ -184,7 +184,7 @@ void iABoneThicknessTable::selectionChanged(const QItemSelection& _itemSelected,
 
 void iABoneThicknessTable::setOpacity(const double& _dOpacity)
 {
-	setSphereOpacity(_dOpacity);
+	setSphereOpacity(0.5 * _dOpacity);
 	setSurfaceOpacity(_dOpacity);
 
 	m_iARenderer->update();
@@ -379,11 +379,6 @@ void iABoneThicknessTable::setWindowThicknessLines()
 		m_pThicknessLines->AddItem(pActor);
 		m_iARenderer->GetRenderer()->AddActor(pActor);
 	}
-}
-
-void iABoneThicknessTable::showEvent(QShowEvent* e)
-{
-
 }
 
 double iABoneThicknessTable::sphereOpacity() const
