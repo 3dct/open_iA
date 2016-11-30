@@ -245,7 +245,7 @@ QString iAAttributeDescriptor::ToString() const
 				}
 				break;
 			}
-			for (int i = 0; i < m_nameMapper->size(); ++i)
+			for (int i = GetMin(); i <= GetMax(); ++i)
 			{
 				result += m_nameMapper->GetName(i);
 				if (i < m_nameMapper->size() - 1)
