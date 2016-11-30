@@ -401,9 +401,8 @@ void MdiChild::updateProgressBar(int i)
 
 void MdiChild::updateRenderers(int x, int y, int z, int mode)
 {
-		double spacing[3];
-		imageData->GetSpacing(spacing);
-
+	double spacing[3];
+	imageData->GetSpacing(spacing);
 //TODO: improve using iASlicer stuff
 	if (slicerSettings.LinkViews) {
 		xCoord = x; yCoord = y; zCoord = z;
@@ -2188,22 +2187,22 @@ void MdiChild::HideHistogram()
 
 bool MdiChild::addImageProperty()
 {
-	imgProperty = new dlg_imageproperty(this, imageData,
-		GetModality(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath());
+	imgProperty = new dlg_imageproperty(this);
 	tabifyDockWidget(logs, imgProperty);
-
+	updateImageProperties();
 	return true;
 }
 
 void MdiChild::updateImageProperties()
 {
-	if (imageData && imgProperty)
+	if (!imgProperty)
 	{
-		imgProperty->Clear();
-		for (int i = 0; i < GetModalities()->size(); ++i)
-		{
-			imgProperty->AddInfo(imageData, GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
-		}
+		return;
+	}
+	imgProperty->Clear();
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		imgProperty->AddInfo(GetModality(i)->GetImage(), GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
 	}
 }
 

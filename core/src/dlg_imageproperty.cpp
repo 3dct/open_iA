@@ -25,10 +25,9 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 
-dlg_imageproperty::dlg_imageproperty(QWidget *parent, vtkImageData* src, vtkImageAccumulate* accum, QString const & Filename) : QDockWidget(parent)
+dlg_imageproperty::dlg_imageproperty(QWidget *parent) : QDockWidget(parent)
 {
 	setupUi(this);
-	AddInfo(src, accum, QString("Filename: %1 ").arg(Filename));
 }
 
 void dlg_imageproperty::EnterMsg(QString txt)

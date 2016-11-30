@@ -107,7 +107,22 @@ int iAModality::GetDepth() const
 
 double const * iAModality::GetSpacing() const
 {
-	return m_spacing;
+	return m_imgData->GetSpacing();
+}
+
+double const * iAModality::GetOrigin() const
+{
+	return m_imgData->GetOrigin();
+}
+
+void iAModality::SetSpacing(double spacing[3])
+{
+	m_imgData->SetSpacing(spacing);
+}
+
+void iAModality::SetOrigin(double origin[3])
+{
+	m_imgData->SetOrigin(origin);
 }
 
 iAImageCoordConverter const & iAModality::GetConverter() const
@@ -266,7 +281,6 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	imgData->GetExtent(extent);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
 		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
-	imgData->GetSpacing(m_spacing);
 }
 
 
@@ -301,7 +315,6 @@ namespace
 iAModalityList::iAModalityList():
 	m_camSettingsAvailable(false)
 {
-	m_spacing[0] = m_spacing[1] = m_spacing[2] = 1.0;
 }
 
 bool iAModalityList::ModalityExists(QString const & filename, int channel) const

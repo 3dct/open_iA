@@ -36,19 +36,30 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	cbMainRenderer->setChecked(modality->hasRenderFlag(iAModality::MainRenderer));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
 
-	double * orientation = modality->GetRenderer()->GetOrientation();
-	double * position = modality->GetRenderer()->GetPosition();
+	double const * orientation = modality->GetRenderer()->GetOrientation();
+	double const * position = modality->GetRenderer()->GetPosition();
+
+	double const * spacing = modality->GetSpacing();
+	double const * origin = modality->GetOrigin();
 
 	double minSpacing = std::min(modality->GetSpacing()[0], std::min(modality->GetSpacing()[1], modality->GetSpacing()[2]));
 	int placesAfterComma = 1 - (std::min(static_cast<int>(std::log10(minSpacing)), 0));
 
-	dspPositionX->setValue(position[0]);
-	dspPositionY->setValue(position[1]);
-	dspPositionZ->setValue(position[2]);
+	dsbPositionX->setValue(position[0]);
+	dsbPositionY->setValue(position[1]);
+	dsbPositionZ->setValue(position[2]);
 
-	dspOrientationX->setValue(orientation[0]);
-	dspOrientationY->setValue(orientation[1]);
-	dspOrientationZ->setValue(orientation[2]);
+	dsbOrientationX->setValue(orientation[0]);
+	dsbOrientationY->setValue(orientation[1]);
+	dsbOrientationZ->setValue(orientation[2]);
+
+	dsbOriginX->setValue(origin[0]);
+	dsbOriginY->setValue(origin[1]);
+	dsbOriginZ->setValue(origin[2]);
+
+	dsbSpacingX->setValue(spacing[0]);
+	dsbSpacingY->setValue(spacing[1]);
+	dsbSpacingZ->setValue(spacing[2]);
 
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
@@ -64,14 +75,26 @@ void dlg_modalityProperties::OKButtonClicked()
 	);
 	double orientation[3];
 	double position[3];
-	position[0] = dspPositionX->value();
-	position[1] = dspPositionY->value();
-	position[2] = dspPositionZ->value();
+	double spacing[3];
+	double origin[3];
+	position[0] = dsbPositionX->value();
+	position[1] = dsbPositionY->value();
+	position[2] = dsbPositionZ->value();
 
-	orientation[0] = dspOrientationX->value();
-	orientation[1] = dspOrientationY->value();
-	orientation[2] = dspOrientationZ->value();
+	orientation[0] = dsbOrientationX->value();
+	orientation[1] = dsbOrientationY->value();
+	orientation[2] = dsbOrientationZ->value();
 
+	spacing[0] = dsbSpacingX->value();
+	spacing[1] = dsbSpacingY->value();
+	spacing[2] = dsbSpacingZ->value();
+
+	origin[0] = dsbOriginX->value();
+	origin[1] = dsbOriginY->value();
+	origin[2] = dsbOriginZ->value();
+
+	m_modality->SetOrigin(origin);
+	m_modality->SetSpacing(spacing);
 	m_modality->GetRenderer()->SetOrientation(orientation);
 	m_modality->GetRenderer()->SetPosition(position);
 	done(QDialog::Accepted);

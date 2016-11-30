@@ -451,7 +451,7 @@ private:
 	void setupViewInternal(bool active);
 	bool IsOnlyPolyDataLoaded();
 
-	vtkSmartPointer<vtkImageData> imageData;
+	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
 	vtkTransform* axesTransform;
 	vtkTransform* slicerTransform;

@@ -72,6 +72,9 @@ public:
 	int GetHeight() const;
 	int GetDepth() const;
 	double const * GetSpacing() const;
+	double const * GetOrigin() const;
+	void SetSpacing(double spacing[3]);
+	void SetOrigin(double origin[3]);
 	iAImageCoordConverter const & GetConverter() const;
 
 	vtkSmartPointer<vtkImageData> GetImage() const;
@@ -96,7 +99,6 @@ private:
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
-	double m_spacing[3];
 
 	// TODO: Refactor
 	QString positionSettings;
@@ -134,7 +136,6 @@ private:
 	bool ModalityExists(QString const & filename, int channel) const;
 
 	ModalityCollection m_modalities;
-	double m_spacing[3];
 	QString m_fileName;
 	bool m_camSettingsAvailable;
 	double camPosition[3], camFocalPoint[3], camViewUp[3];
