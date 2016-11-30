@@ -940,7 +940,7 @@ QString GetSupportedPixelTypeString(QVector<int> const & types)
 	return result;
 }
 
-bool MdiChild::setupSaveIO(QString const & f)
+bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 {
 	QFileInfo pars(f);
 	if (QString::compare(pars.suffix(), "STL", Qt::CaseInsensitive) == 0) {
@@ -967,16 +967,6 @@ bool MdiChild::setupSaveIO(QString const & f)
 			}
 			else
 			{
-				QMap<QString, IOType> suffixToFormat;
-				suffixToFormat.insert("TIF", TIF_STACK_WRITER);
-				suffixToFormat.insert("TIFF", TIF_STACK_WRITER);
-				suffixToFormat.insert("JPG", JPG_STACK_WRITER);
-				suffixToFormat.insert("JPEG", JPG_STACK_WRITER);
-				suffixToFormat.insert("PNG", PNG_STACK_WRITER);
-				suffixToFormat.insert("BMP", BMP_STACK_WRITER);
-				suffixToFormat.insert("DCM", DCM_WRITER);
-				suffixToFormat.insert("AM", AM_WRITER);
-
 				QMap<IOType, QVector<int> > supportedPixelTypes;
 				QVector<int> tiffSupported;
 				tiffSupported.push_back(VTK_UNSIGNED_CHAR);
@@ -990,11 +980,11 @@ bool MdiChild::setupSaveIO(QString const & f)
 				supportedPixelTypes.insert(JPG_STACK_WRITER, pngJpgBmpSupported);
 
 				QString suffix = pars.suffix().toUpper();
-				if (!suffixToFormat.contains(suffix))
+				if (!extensionToSaveId.contains(suffix))
 				{
 					return false;
 				}
-				IOType ioID = suffixToFormat[suffix];
+				IOType ioID = extensionToSaveId[suffix];
 				if (supportedPixelTypes.contains(ioID) &&
 					!supportedPixelTypes[ioID].contains(imageData->GetScalarType()))
 				{
@@ -1019,11 +1009,12 @@ bool MdiChild::saveFile(const QString &f, int channelNr)
 {
 	waitForPreviousIO();
 
-	ioThread = new iAIO(GetModality(channelNr)->GetImage(), polyData, m_logger, this);
+	vtkSmartPointer<vtkImageData> img = GetModality(channelNr)->GetImage();
+	ioThread = new iAIO(img, polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
 
-	if (!setupSaveIO(f)) {
+	if (!setupSaveIO(f, img)) {
 		ioFinished();
 		return false;
 	}

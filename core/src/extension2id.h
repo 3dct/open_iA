@@ -75,3 +75,18 @@ static mapQString2int fill_extensionToIdStack()
 	return m;
 }
 const mapQString2int extensionToIdStack = fill_extensionToIdStack();
+
+static mapQString2int fill_extensionToSaveId()
+{
+	mapQString2int m;
+	m["TIF"] = TIF_STACK_WRITER;
+	m["TIFF"] = TIF_STACK_WRITER;
+	m["JPG"] = JPG_STACK_WRITER;
+	m["JPEG"] = JPG_STACK_WRITER;
+	m["PNG"] = PNG_STACK_WRITER;
+	m["BMP"] = BMP_STACK_WRITER;
+	m["DCM"] = DCM_WRITER;
+	m["AM"] = AM_WRITER;
+	return m;
+}
+const mapQString2int extensionToSaveId = fill_extensionToSaveId();
