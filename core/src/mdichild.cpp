@@ -916,7 +916,7 @@ QString GetSupportedPixelTypeString(QVector<int> const & types)
 	return result;
 }
 
-bool MdiChild::setupSaveIO(QString const & f)
+bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 {
 	QFileInfo pars(f);
 	if (QString::compare(pars.suffix(), "STL", Qt::CaseInsensitive) == 0) {
@@ -995,11 +995,12 @@ bool MdiChild::saveFile(const QString &f, int channelNr)
 {
 	waitForPreviousIO();
 
-	ioThread = new iAIO(GetModality(channelNr)->GetImage(), polyData, m_logger, this);
+	vtkSmartPointer<vtkImageData> img = GetModality(channelNr)->GetImage();
+	ioThread = new iAIO(img, polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
 
-	if (!setupSaveIO(f)) {
+	if (!setupSaveIO(f, img)) {
 		ioFinished();
 		return false;
 	}

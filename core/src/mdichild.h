@@ -405,7 +405,7 @@ private:
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//!
 	//! \return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f);
+	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
 	//!
