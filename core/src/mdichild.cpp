@@ -243,6 +243,8 @@ void MdiChild::connectSignalsToSlots()
 	connect(sYZ->pushMovYZ, SIGNAL(clicked()), this, SLOT(saveMovYZ()));
 	connect(r->pushMovRC, SIGNAL(clicked()), this, SLOT(saveMovRC()));
 
+	connect(logs->pushClearLogs, SIGNAL(clicked()), this, SLOT(clearLogs()));
+
 	connect(r->spinBoxRC, SIGNAL(valueChanged(int)), this, SLOT(setChannel(int)));
 
 	connect(sXY->spinBoxXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYSpinBox(int)));
@@ -943,6 +945,13 @@ int MdiChild::getVisibility() const
 	int vis = RC | YZ | XZ | XY;
 	return vis;
 }
+
+
+void MdiChild::clearLogs()
+{
+	logs->listWidget->clear();
+}
+
 
 void MdiChild::maximizeXY()
 {

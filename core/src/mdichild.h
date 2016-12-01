@@ -101,6 +101,7 @@ public:
 	dlg_logs * logs;
 	QProgressBar * pbar;
 
+
 	enum ConnectionState {cs_NONE, cs_ROI};
 
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
@@ -331,6 +332,7 @@ private slots:
 	void updated(int state, QString text);
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
+	void clearLogs();
 
 public slots:
 	void updateProgressBar(int i);

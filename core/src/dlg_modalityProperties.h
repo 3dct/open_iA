@@ -36,6 +36,7 @@ public:
 public slots:
 	void FileChooserClicked();
 	void OKButtonClicked();
+
 private:
 	QSharedPointer<iAModality> m_modality;
 };

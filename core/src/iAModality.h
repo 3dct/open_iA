@@ -49,7 +49,8 @@ public:
 		NoRenderer = 0x0,
 		MainRenderer = 0x01,
 		MagicLens = 0x02,
-		BoundingBox = 0x04 // TODO: check if that is a good idea or whether that should go somewhere else!
+		BoundingBox = 0x04, // TODO: check if that is a good idea or whether that should go somewhere else!
+		
 	};
 	//! create uninitialized modality
 	iAModality();
