@@ -24,7 +24,6 @@
 
 
 #include "ui_Segm3DView.h"
-#include "QVTKWidgetMouseReleaseWorkaround.h"
 #include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDockWidget, Ui_Segm3DView>   Segm3DViewContainer;
 

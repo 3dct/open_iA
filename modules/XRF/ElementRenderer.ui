@@ -34,7 +34,7 @@
      <number>1</number>
     </property>
     <item row="0" column="0">
-     <widget class="QVTKWidgetMouseReleaseWorkaround" name="renContainer" native="true">
+     <widget class="iAFast3DMagicLensWidget" name="renContainer" native="true">
       <property name="minimumSize">
        <size>
         <width>200</width>
@@ -48,9 +48,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QVTKWidgetMouseReleaseWorkaround</class>
+   <class>iAFast3DMagicLensWidget</class>
    <extends></extends>
-   <header>QVTKWidgetMouseReleaseWorkaround.h</header>
+   <header>iAFast3DMagicLensWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
