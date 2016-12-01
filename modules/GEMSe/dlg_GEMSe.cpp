@@ -677,9 +677,9 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 	{
 		iAImageTreeLeaf * leaf = dynamic_cast<iAImageTreeLeaf*>(node.data());
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(leaf->GetDetailImage().GetPointer());
-		double measures[MeasureCount];
-		CalculateMeasures(refImg, lblImg, labelCount, measures[0], measures[1], measures[2], measures[3], measures[4]);
-		for (int i=0; i<MeasureCount; ++i)
+		QVector<double> measures;
+		CalculateMeasures(refImg, lblImg, labelCount, measures);
+		for (int i=0; i<measures.size(); ++i)
 		{
 			int chartID = m_MeasureChartIDStart + i;
 			int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, leaf->GetDatasetID());
@@ -704,6 +704,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		DEBUG_LOG("Reference image comparison calculate: NULL reference image (maybe wrong image type?)!");
 		return;
 	}
+	int labelCount = m_treeView->GetTree()->GetLabelCount();
 	if (m_chartAttributes->size() == m_MeasureChartIDStart)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
@@ -717,6 +718,11 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 			"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 			"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		for (int i=0; i<labelCount; ++i)
+		{
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
+		}
 
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
@@ -733,11 +739,11 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 			}
 		}
 	}
-	for (int i= m_MeasureChartIDStart; i<m_MeasureChartIDStart+MeasureCount; ++i)
+	for (int i= m_MeasureChartIDStart; i<m_MeasureChartIDStart + /* TODO: link "magic number" to measures defined above! */ 5 +labelCount; ++i)
 	{
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
-	CalculateRefImgComp(m_treeView->GetTree()->m_root, refImg, m_treeView->GetTree()->GetLabelCount());
+	CalculateRefImgComp(m_treeView->GetTree()->m_root, refImg, labelCount);
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 }

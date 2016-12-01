@@ -20,7 +20,11 @@
 * ************************************************************************************/
 #include "iAMeasures.h"
 
+#include "iAConsole.h"
+
 #include <itkLabelOverlapMeasuresImageFilter.h>
+
+#include <itkImageRegionConstIterator.h>
 
 class Matrix
 {
@@ -81,32 +85,34 @@ int * colTotals(Matrix & m)
 }
 
 void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int labelCount,
-	double & dice, double & kappa, double & oa, double &precision, double &recall)
+	QVector<double> & measures)
 {
 	typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType > FilterType;
 	FilterType::Pointer filter = FilterType::New();
 	filter->SetSourceImage(refImg);
 	filter->SetTargetImage(curImg);
 	filter->Update();
-	dice = filter->GetMeanOverlap();
+	measures.push_back(filter->GetDiceCoefficient());
 
 
 	// row      column
 	Matrix errorMatrix(labelCount, labelCount);
-	LabelImageType::RegionType reg = refImg->GetLargestPossibleRegion();
-	LabelImageType::SizeType size = reg.GetSize();
-	LabelImageType::IndexType idx;
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+
+	typedef itk::ImageRegionConstIterator<LabelImageType> ImgConstIter;
+	ImgConstIter sampleIt(curImg, curImg->GetLargestPossibleRegion());
+	ImgConstIter gtIt(refImg, refImg->GetLargestPossibleRegion());
+	sampleIt.GoToBegin();
+	gtIt.GoToBegin();
+	while (!gtIt.IsAtEnd())
 	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+		int refValue = gtIt.Get();
+		if (refValue != -1)
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
-			{
-				int refValue = refImg->GetPixel(idx);
-				int curValue = curImg->GetPixel(idx);
-				errorMatrix.inc(curValue, refValue);
-			}
+			int sampleValue = sampleIt.Get();
+			errorMatrix.inc(sampleValue, refValue);
 		}
+		++sampleIt;
+		++gtIt;
 	}
 	int * actTot = rowTotals(errorMatrix);
 	int * refTot = colTotals(errorMatrix);
@@ -114,8 +120,8 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 	int diagSum = 0;
 	int totalSum = 0;
 
-	precision = 0;
-	recall = 0;
+	double precision = 0;
+	double recall = 0;
 
 	double chanceAgreement = 0;
 
@@ -129,80 +135,17 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 		chanceAgreement = actTot[i] * refTot[i];
 	}
 	chanceAgreement /= static_cast<double>(pow(totalSum, 2));
+	double oa = diagSum / static_cast<double>(totalSum);
+	double kappa = (oa - chanceAgreement) / (1 - chanceAgreement);
 
-
-	oa = diagSum / static_cast<double>(totalSum);
-
-	kappa = (oa - chanceAgreement) / (1 - chanceAgreement);
-
-	/*
-
-	typedef itk::ImageFileReader<DoubleImageType> DoubleReaderType;
-	DoubleReaderType::Pointer DoubleReader = DoubleReaderType::New();
-	DoubleReader->SetFileName(patientMHAs[nrModals].c_str());	// ground_truth
-	DoubleReader->Update();
-	DoubleImageType::Pointer m_gtImage = dynamic_cast<DoubleImageType *>(DoubleReader->GetOutput());
-
-	cout << "1.1" << endl;
-
-	std::string output;
-	int nrOferrorOverall = 0, nrOfVoxelsOverall = 0;
-	LabelImageType* m_LabelImage = dynamic_cast<LabelImageType*>(m_result->GetLabelledImage().GetPointer());
-
-	cout << "1.2" << endl;
-
-	itk::ImageRegionIterator<LabelImageType> sampleIter(m_LabelImage, m_LabelImage->GetLargestPossibleRegion());
-	itk::ImageRegionIterator<DoubleImageType> gtIter(m_gtImage, m_gtImage->GetLargestPossibleRegion());
-	sampleIter.GoToBegin();
-	gtIter.GoToBegin();
-
-	cout << "1.3" << endl;
-
-	while (!gtIter.IsAtEnd())
+	measures.push_back(kappa);
+	measures.push_back(oa);
+	measures.push_back(precision);
+	measures.push_back(recall);
+	for (int l = 0; l < labelCount; ++l)
 	{
-		if (gtIter.Get() != -1) {
-			if (gtIter.Get() != sampleIter.Get()) {
-				nrOferrorOverall++;
-			}
-			nrOfVoxelsOverall++;
-		}
-		++sampleIter;
-		++gtIter;
+		measures.push_back(filter->GetDiceCoefficient(l));
 	}
-
-	cout << "1.4" << endl;
-
-	double successRate = 100.0 - (nrOferrorOverall / (nrOfVoxelsOverall / 100.0));
-
-	cout << "1.5" << endl;
-
-	typedef itk::CastImageFilter< DoubleImageType, IntImageType > CastFilterType;
-	CastFilterType::Pointer castFilterGroundTruth = CastFilterType::New();
-	castFilterGroundTruth->SetInput(m_gtImage);
-
-	cout << "1.6" << endl;
-
-	typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType> DiceType;
-	DiceType::Pointer DiceCompare = DiceType::New();
-	DiceCompare->SetSourceImage(m_LabelImage);
-	DiceCompare->SetTargetImage(castFilterGroundTruth->GetOutput());
-	DiceCompare->Update();
-
-	cout << "1.7" << endl;
-
-	double diceValue = DiceCompare->GetDiceCoefficient();
-
-	m_result->SetAttribute(m_objCountIdx + 2, successRate);
-	m_result->SetAttribute(m_objCountIdx + 3, diceValue);
-	m_result->SetAttribute(m_objCountIdx + 4, DiceCompare->GetDiceCoefficient(0));
-	m_result->SetAttribute(m_objCountIdx + 5, DiceCompare->GetDiceCoefficient(1));
-	m_result->SetAttribute(m_objCountIdx + 6, DiceCompare->GetDiceCoefficient(2));
-	m_result->SetAttribute(m_objCountIdx + 7, DiceCompare->GetDiceCoefficient(3));
-	m_result->SetAttribute(m_objCountIdx + 8, DiceCompare->GetDiceCoefficient(4));
-
-	*/
-
-
 	delete[] actTot;
 	delete[] refTot;
 }

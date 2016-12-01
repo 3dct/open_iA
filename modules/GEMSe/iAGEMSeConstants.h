@@ -109,8 +109,6 @@ const int CameraSpacing   = ExampleViewSpacing;
 const int FavoriteBarWidth = 80;
 const int FavoriteWidth    = FavoriteBarWidth - (2 * ExampleViewSpacing);
 
-const int MeasureCount = 5;
-
 enum DerivedOutput
 {
 	objectCount,
