@@ -60,7 +60,8 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	m_AbsMinPercentage(-1),
 	m_MinDiffPercentage(-1),
 	m_MinRatio(-1),
-	m_MaxPixelEntropy(-1)
+	m_MaxPixelEntropy(-1),
+	m_weightType(Equal)
 {
 	this->m_HasLabelForUndecidedPixels = false;
 	this->m_LabelForUndecidedPixels = 0;
@@ -137,7 +138,7 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	{
 		if (this->m_TotalLabelCount > itk::NumericTraits<OutputPixelType>::max())
 		{
-			itkWarningMacro("No new label for undecided pixels, using zero.");
+			DEBUG_LOG("No new label for undecided pixels, using zero.");
 		}
 		this->m_LabelForUndecidedPixels = static_cast<OutputPixelType>(this->m_TotalLabelCount);
 	}
@@ -157,6 +158,17 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	if (m_probImgs.size() == 0)
 	{
 		m_MaxPixelEntropy = -1;
+		if (m_weightType == Certainty || m_weightType == FBGSBGDiff)
+		{
+			DEBUG_LOG("Weight Type set to Certainty/FBGSBGDiff, but no probability images given! Using equal weights.");
+			m_weightType = Equal;
+		}
+	}
+
+	if (m_inputLabelWeightMap.empty() && m_weightType == LabelBased)
+	{
+		DEBUG_LOG("Weight Type is set to LabelBased, but no input/label to weight map given! Using equal weights.");
+		m_weightType = Equal;
 	}
 }
 
@@ -168,6 +180,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 
 	typedef itk::ImageRegionConstIterator< TInputImage > IteratorType;
 	typedef itk::ImageRegionIterator< TOutputImage >     OutIteratorType;
+	typedef itk::ImageRegionIterator<DoubleImg> DoubleOutIteratorType;
 
 	typename TOutputImage::Pointer output = this->GetOutput();
 
@@ -191,10 +204,9 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		}
 	}
 
-	unsigned int *votesByLabel = new unsigned int[m_TotalLabelCount];
+	float *votesByLabel = new float[m_TotalLabelCount];
 
 	OutIteratorType out = OutIteratorType(output, outputRegionForThread);
-	typedef itk::ImageRegionIterator<DoubleImg> DoubleOutIteratorType;
 	DoubleOutIteratorType absOut(m_imgAbsMinPerc, outputRegionForThread);
 	DoubleOutIteratorType diffOut(m_imgMinDiffPerc, outputRegionForThread);
 	DoubleOutIteratorType ratioOut(m_imgMinRatio, outputRegionForThread);
@@ -208,7 +220,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		// reset number of votes per label for all labels
-		std::fill_n(votesByLabel, m_TotalLabelCount, 0);
+		std::fill_n(votesByLabel, m_TotalLabelCount, 0.0);
 
 		// count number of votes for the labels
 		int consideredFiles = 0;
@@ -223,10 +235,11 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 			{
 				continue;
 			}
+			double entropy = 0.0;
 			// calculate entropy of the current pixel for each input file
+			double pixelFBG = 0, pixelSBG = 0;
 			if (m_MaxPixelEntropy >= 0)
 			{
-				double entropy = 0.0;
 				double probSum = 0.0;
 				for (unsigned int l = 0; l < m_TotalLabelCount; ++l)
 				{
@@ -240,6 +253,15 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 					if (probValue > 0)
 					{
 						entropy += (probValue * std::log(probValue));
+					}
+					if (probValue > pixelFBG)
+					{
+						pixelSBG = pixelFBG;
+						pixelFBG = probValue;
+					}
+					else if (probValue > pixelSBG)
+					{
+						pixelSBG = probValue;
 					}
 				}
 				entropy = -entropy;
@@ -258,7 +280,14 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 			consideredFiles++;
 			if (itk::NumericTraits<InputPixelType>::IsNonnegative(label))
 			{
-				++votesByLabel[label];
+				switch (m_weightType)
+				{
+					case Equal: votesByLabel[label] += 1.0; break;
+					case LabelBased: votesByLabel[label] += m_inputLabelWeightMap[std::make_pair(label, i)]; break;
+					case Certainty: votesByLabel[label] += (1.0 - entropy);
+					case FBGSBGDiff: votesByLabel[label] += (pixelFBG - pixelSBG);
+				}
+				
 			}
 		}
 		if (consideredFiles == 0)
@@ -272,7 +301,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 
 		out.Set(0);
 		unsigned int firstBestGuessLabel = 0;
-		unsigned int firstBestGuessVotes = votesByLabel[0];
+		float firstBestGuessVotes = votesByLabel[0];
 		for (size_t l = 1; l < m_TotalLabelCount; ++l)
 		{
 			if (votesByLabel[l] > firstBestGuessVotes)
@@ -285,7 +314,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 				out.Set(m_LabelForUndecidedPixels);
 			}
 		}
-		unsigned int secondBestGuessVotes = 0;
+		float secondBestGuessVotes = 0;
 		for (size_t l = 0; l < m_TotalLabelCount; ++l)
 		{
 			if (l != firstBestGuessLabel &&
@@ -320,19 +349,4 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		progress.CompletedPixel();
 	}
 	delete[] votesByLabel;
-}
-
-template< typename TInputImage, typename TOutputImage >
-void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetProbabilityImages(
-	int inputIdx,
-	std::vector<typename DoubleImg::Pointer> const & probImgs)
-{
-	m_probImgs.insert(std::make_pair(inputIdx, probImgs));
-}
-
-template< typename TInputImage, typename TOutputImage >
-void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetInputLabelVotersSet(
-	std::set<std::pair<int, int> > inputLabelVotersSet)
-{
-	m_inputLabelVotersSet = inputLabelVotersSet;
 }

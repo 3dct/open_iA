@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>302</width>
-    <height>275</height>
+    <height>290</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>302</width>
-    <height>275</height>
+    <height>290</height>
    </size>
   </property>
   <property name="features">
@@ -39,6 +39,33 @@
     <property name="spacing">
      <number>2</number>
     </property>
+    <item row="5" column="1" colspan="2">
+     <widget class="QRadioButton" name="rbWeightEqual">
+      <property name="text">
+       <string>Equal</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Weight</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="1" colspan="2">
+     <widget class="QRadioButton" name="rbWeightDiffFBGSBG">
+      <property name="text">
+       <string>Difference FBG/SBG</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="3">
      <widget class="QPushButton" name="pbMinDiffPercent_Plot">
       <property name="enabled">
@@ -56,7 +83,7 @@
       </property>
      </widget>
     </item>
-    <item row="9" column="3">
+    <item row="10" column="3">
      <widget class="QPushButton" name="pbSample">
       <property name="enabled">
        <bool>true</bool>
@@ -66,7 +93,7 @@
       </property>
      </widget>
     </item>
-    <item row="10" column="3">
+    <item row="12" column="3">
      <widget class="QPushButton" name="pbClusterUncertaintyDice">
       <property name="text">
        <string>Cluster</string>
@@ -252,7 +279,7 @@
       </property>
      </widget>
     </item>
-    <item row="9" column="0" rowspan="3" colspan="3">
+    <item row="10" column="0" rowspan="4" colspan="3">
      <widget class="QTableWidget" name="twSampleResults">
       <property name="rowCount">
        <number>0</number>
@@ -268,6 +295,39 @@
       </attribute>
       <column/>
       <column/>
+     </widget>
+    </item>
+    <item row="6" column="1" colspan="2">
+     <widget class="QRadioButton" name="rbWeightLabelDice">
+      <property name="text">
+       <string>Label Dice</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1" colspan="2">
+     <widget class="QRadioButton" name="rbWeightCertainty">
+      <property name="text">
+       <string>Certainty</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="3">
+     <widget class="QSpinBox" name="sbSampleCount">
+      <property name="minimum">
+       <number>2</number>
+      </property>
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
      </widget>
     </item>
    </layout>

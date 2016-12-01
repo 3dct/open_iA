@@ -105,6 +105,16 @@ enum OutputNumber
 	PixelEntropy
 };
 
+enum WeightType
+{
+	Equal,			//! every considered input gets equal vote
+	LabelBased,     //! an input gets for each pixel a weight based on input idx and label at that pixel
+	                //! (these weights need to be passed in via SetInputLabelWeights() method)
+	Certainty,      //! an input is weighted based on the certainty (= inverse entropy) at that pixel
+	                //! (requires probabilities to be set via
+	FBGSBGDiff		//! an input is weighted based on the difference between first and second best guess
+};
+
 template< typename TInputImage, typename TOutputImage = TInputImage >
 class ParametrizableLabelVotingImageFilter :
 	public itk::ImageToImageFilter< TInputImage, TOutputImage >
@@ -134,16 +144,15 @@ public:
 	itkStaticConstMacro(ImageDimension, int,
 		TOutputImage::ImageDimension);
 
-	/** Image typedef support */
+	/** Typedefs */
 	typedef TInputImage                           InputImageType;
 	typedef TOutputImage                          OutputImageType;
 	typedef typename InputImageType::ConstPointer InputImagePointer;
 	typedef typename OutputImageType::Pointer     OutputImagePointer;
-
 	typedef unsigned long                         LabelCountType;
-
-	/** Superclass typedefs. */
 	typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+	typedef itk::Image<double, 3>                 DoubleImg;
+	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
 
 	/** Sets the percentage that has to be achieved as a minimum for the
 	  majority vote to be accepted as majority
@@ -155,27 +164,26 @@ public:
 	{
 		m_AbsMinPercentage = p;
 	}
+
+	//! set a minimum threshold for the percentage difference between first and second best guess
 	void SetMinimumDifferencePercentage(double p)
 	{
 		m_MinDiffPercentage = p;
 	}
+
+	//! set a minimum threshold on the ratio between first and second best guess
 	void SetMinimumRatio(double r)
 	{
 		m_MinRatio = r;
 	}
 
-	double GetAbsoluteMinimumPercentage() const
-	{
-		return m_AbsoluteMinimumPercentage;
-	}
-
+	//! set a maximum threshold for the pixel entropy
 	void SetMaxPixelEntropy(double e)
 	{
 		m_MaxPixelEntropy = e;
 	}
 
-	/** Set label value for undecided pixels.
-	  */
+	//! Set label value for undecided pixels.
 	void SetLabelForUndecidedPixels(const OutputPixelType l)
 	{
 		m_LabelForUndecidedPixels = l;
@@ -194,8 +202,38 @@ public:
 		return m_LabelForUndecidedPixels;
 	}
 
-	/** Unset label value for undecided pixels and turn on automatic selection.
-	  */
+	//! determine the type of weight given each input in the voting process
+	//! see WeightType for more details
+	void SetWeightType(WeightType weightType)
+	{
+		m_weightType = weightType;
+	}
+
+	//! set probabilities for each label for one input
+	//! in order for probability-related functionality to work, this method needs to be
+	//! called once with each input idx
+	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
+	{
+		m_probImgs.insert(std::make_pair(inputIdx, probImgs));
+	}
+
+	//! sets the data determining which input is considered for voting on which label
+	//! At each pixel the label value is checked, and an input is only considered if
+	//! this input is considered a suitable voter for this label (i.e., if the pair
+	//! <label, input index> is contained in the set given here)
+	void SetInputLabelVotersSet(std::set<std::pair<int, int> > inputLabelVotersSet)
+	{
+		m_inputLabelVotersSet = inputLabelVotersSet;
+	}
+
+	//! set a weight for a pair of <label, input index>
+	//! only used if WeightType LabelBased is used (see WeightType, SetWeightType)
+	void SetInputLabelWeightMap(std::map<std::pair<int, int>, double> inputLabelWeightMap)
+	{
+		m_inputLabelWeightMap = inputLabelWeightMap;
+	}
+
+	//! Unset label value for undecided pixels and turn on automatic selection.
 	void UnsetLabelForUndecidedPixels()
 	{
 		if (m_HasLabelForUndecidedPixels)
@@ -204,9 +242,6 @@ public:
 			Modified();
 		}
 	}
-
-	typedef itk::Image<double, 3> DoubleImg;
-	typedef itk::ImageRegionConstIterator<DoubleImg> ConstDblIt;
 
 	DoubleImg::Pointer GetNumbers(int mode)
 	{
@@ -218,15 +253,6 @@ public:
 		case Ratio:              return m_imgMinRatio;
 		}
 	}
-
-	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs);
-	
-	//! sets the data determining which input is considered for voting on which label
-	//! 
-	//! At each pixel the label value is checked, and an input is only considered if
-	//! this input is considered a suitable voter for this label (i.e., if the pair
-	//! <label, inputIdx> is contained in the set given here)
-	void SetInputLabelVotersSet(std::set<std::pair<int, int> > inputLabelVotersSet);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
 	// Begin concept checking
@@ -272,18 +298,21 @@ private:
 	OutputPixelType m_LabelForUndecidedPixels;
 	bool            m_HasLabelForUndecidedPixels;
 	size_t          m_TotalLabelCount;
+
+	//! @{
+	//! various parameters for influencing label voting result
 	double          m_AbsMinPercentage;
 	double          m_MinDiffPercentage;
 	double          m_MinRatio;
-
 	double			m_MaxPixelEntropy;
 	typename DoubleImg::Pointer m_imgAbsMinPerc;
 	typename DoubleImg::Pointer m_imgMinDiffPerc;
 	typename DoubleImg::Pointer m_imgMinRatio;
 	typename DoubleImg::Pointer m_imgPixelEntropy;
 	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
-	
 	std::set<std::pair<int, int> > m_inputLabelVotersSet;
+	std::map<std::pair<int, int>, double> m_inputLabelWeightMap;
+	WeightType       m_weightType;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

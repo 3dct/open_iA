@@ -63,6 +63,7 @@ private slots:
 	void ClusterUncertaintyDice();
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
+	int dlg_MajorityVoting::GetWeightType();
 
 	MdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
