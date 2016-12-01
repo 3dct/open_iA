@@ -44,8 +44,11 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 		bool getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter);
 
 	private slots:
-		void slotDoubleSpinBoxSphereRadius(const double&);
+	    void slotDoubleSpinBoxSphereRadius(const double&);
+		void slotDoubleSpinBoxThicknessMaximum(const double&);
 		void slotPushButtonOpen();
 		void slotPushButtonSave();
+		void slotCheckBoxShowLines(const bool& _bChecked);
+		void slotCheckBoxShowThickness(const bool& _bChecked);
 		void slotCheckBoxTransparency(const bool& _bChecked);
 };

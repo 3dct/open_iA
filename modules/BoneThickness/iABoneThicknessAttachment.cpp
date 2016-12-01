@@ -84,15 +84,26 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayoutBound->addWidget(pLabelBoundZMax, 0, 7);
 	pGridLayoutBound->addWidget(pLabelBoundZRng, 0, 8);
 
+	const double dRangeMax(vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2])));
+	const double dRangeMin(vtkMath::Min(m_pRange[0], vtkMath::Min(m_pRange[1], m_pRange[2])));
+
 	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pWidget);
-	m_pBoneThicknessTable->setSphereRadius(0.2 * vtkMath::Ceil(0.2 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2]))));
+	m_pBoneThicknessTable->setSphereRadius(0.2 * vtkMath::Ceil(0.2 * dRangeMax));
+	m_pBoneThicknessTable->setThicknessMaximum(vtkMath::Ceil(dRangeMin));
 
 	QGroupBox* pGroupBoxSettings(new QGroupBox("Settings", pWidget));
 
-	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
+	QCheckBox* pCheckBoxTransparency(new QCheckBox("Transparency", pGroupBoxSettings));
 	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
 
-	QLabel* pLabelSphereRadius(new QLabel("Spheres radius:", pGroupBoxSettings));
+	QCheckBox* pCheckBoxShowThickness(new QCheckBox("Thickness representation", pGroupBoxSettings));
+	pCheckBoxShowThickness->setChecked(m_pBoneThicknessTable->showThickness());
+	connect(pCheckBoxShowThickness, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowThickness(const bool&)));
+
+	QCheckBox* pCheckBoxShowLines(new QCheckBox("Show lines", pGroupBoxSettings));
+	connect(pCheckBoxShowLines, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowLines(const bool&)));
+
+	QLabel* pLabelSphereRadius(new QLabel("Radius:", pGroupBoxSettings));
 	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pGroupBoxSettings));
 	pDoubleSpinBoxSphereRadius->setAlignment(Qt::AlignRight);
 	pDoubleSpinBoxSphereRadius->setMinimum(0.01);
@@ -101,10 +112,22 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
 	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
 
+	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
+	QDoubleSpinBox* pDoubleSpinBoxThicknessMaximum(new QDoubleSpinBox(pGroupBoxSettings));
+	pDoubleSpinBoxThicknessMaximum->setAlignment(Qt::AlignRight);
+	pDoubleSpinBoxThicknessMaximum->setMinimum(0.0);
+	pDoubleSpinBoxThicknessMaximum->setSingleStep(1.0);
+	pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThicknessTable->thicknessMaximum());
+	connect(pDoubleSpinBoxThicknessMaximum, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxThicknessMaximum(const double&)));
+
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
 	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0);
 	pGridLayoutSettings->addWidget(pDoubleSpinBoxSphereRadius, 0, 1);
-	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 2);
+	pGridLayoutSettings->addWidget(pLabelThicknessMaximum, 0, 2);
+	pGridLayoutSettings->addWidget(pDoubleSpinBoxThicknessMaximum, 0, 3);
+	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 4);
+	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 5);
+	pGridLayoutSettings->addWidget(pCheckBoxShowLines, 0, 6);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pPushButtonOpen, 0, 0);
@@ -193,7 +216,6 @@ void iABoneThicknessAttachment::calculate()
 	const vtkIdType idPoints (Points->GetNumberOfPoints());
 
 	QVector<double>* pvDistance(m_pBoneThicknessTable->distance());
-	QVector<double>* pvThickness(m_pBoneThicknessTable->thickness());
 
 	vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
 	addNormalsInPoint(PointNormals);
@@ -219,7 +241,7 @@ void iABoneThicknessAttachment::calculate()
 		PointNormals->GetPoint(i, pNormal);
 		if ((pNormal[0] == 0.0) && (pNormal[1] == 0.0) && (pNormal[2] == 0.0))
 		{
-			(*pvThickness)[i] = 0.0;
+			m_pBoneThicknessTable->setThickness(i, 0.0);
 
 			(*Lines)[i]->SetPoint1(pNormal);
 			(*Lines)[i]->SetPoint2(pNormal);
@@ -238,7 +260,7 @@ void iABoneThicknessAttachment::calculate()
 		{
 			dThickness1 = sqrt(vtkMath::Distance2BetweenPoints(pPoint, x1));
 
-			(*pvThickness)[i] = dThickness1;
+			m_pBoneThicknessTable->setThickness(i, dThickness1);
 
 			(*Lines)[i]->SetPoint1(pPoint);
 			(*Lines)[i]->SetPoint2(x1);
@@ -257,7 +279,7 @@ void iABoneThicknessAttachment::calculate()
 
 			if (dThickness2 > dThickness1)
 			{
-				(*pvThickness)[i] = dThickness2;
+				m_pBoneThicknessTable->setThickness(i, dThickness2);
 
 				(*Lines)[i]->SetPoint1(pPoint);
 				(*Lines)[i]->SetPoint2(x2);
@@ -309,6 +331,14 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius(const double& _dVa
 	qApp->restoreOverrideCursor();
 }
 
+void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum(const double& _dValue)
+{
+	qApp->setOverrideCursor(Qt::WaitCursor);
+	m_pBoneThicknessTable->setThicknessMaximum(_dValue);
+	calculate();
+	qApp->restoreOverrideCursor();
+}
+
 void iABoneThicknessAttachment::slotPushButtonOpen()
 {
 	QPushButton* pPushButtonOpen ((QPushButton*) sender());
@@ -354,14 +384,21 @@ void iABoneThicknessAttachment::slotPushButtonSave()
 	delete pFileDialog;
 }
 
+void iABoneThicknessAttachment::slotCheckBoxShowThickness(const bool& _bChecked)
+{
+	m_pBoneThicknessTable->setShowThickness(_bChecked);
+	m_pBoneThicknessTable->setWindowSpheres();
+	m_childData.child->getRaycaster()->update();
+}
+
+void iABoneThicknessAttachment::slotCheckBoxShowLines(const bool& _bChecked)
+{
+	m_pBoneThicknessTable->setShowThicknessLines(_bChecked);
+	m_pBoneThicknessTable->setWindowThicknessLines();
+	m_childData.child->getRaycaster()->update();
+}
+
 void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
 {
-	if (_bChecked)
-	{
-		m_pBoneThicknessTable->setOpacity(0.5);
-	}
-	else
-	{
-		m_pBoneThicknessTable->setOpacity(1.0);
-	}
+	m_pBoneThicknessTable->setTransparency(_bChecked);
 }

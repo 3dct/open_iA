@@ -23,6 +23,7 @@
 // iA
 #include <QTableView>
 
+#include <QMouseEvent>
 #include <QString>
 
 #include <vtkActor.h>
@@ -53,28 +54,38 @@ class iABoneThicknessTable : public QTableView
 
 	void save(const QString& _sFilename);
 
-	void setOpacity(const double& _dOpacity);
+	void setShowThickness(const bool& _bShowThickness);
+	void setShowThicknessLines(const bool& _bShowThicknessLines);
 	void setSphereOpacity(const double& _dSphereOpacity);
 	void setSphereRadius(const double& _dSphereRadius);
 	void setSphereSelected(const vtkIdType& _idSphereSelected);
 	void setSurfaceOpacity(const double& _dSurfaceOpacity);
 	void setTable();
+	void setTransparency(const bool& _bTransparency);
+	void setThickness(const int& _iPoint, const double& _dThickness);
+	void setThicknessMaximum(const double& _dThicknessMaximum);
 
 	void setWindow();
 	void setWindowSpheres();
 	void setWindowThicknessLines();
 
+	bool showThickness() const;
+		
 	double sphereOpacity() const;
 	double sphereRadius() const;
 
 	double surfaceOpacity() const;
 
-	QVector<double>* thickness();
+	double thicknessMaximum() const;
 
   private:
+	  bool m_bShowThickness = true;
+	  bool m_bShowThicknessLines = false;
+
 	  double m_dSphereOpacity = 1.0;
 	  double m_dSphereRadius = 0.5;
 	  double m_dSurfaceOpacity = 1.0;
+	  double m_dThicknessMaximum = 0.0;
 
 	vtkIdType m_idSphereSelected = -1;
 
@@ -91,8 +102,9 @@ class iABoneThicknessTable : public QTableView
 
 	void setTranslucent();
 
-  protected:
-	  virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
+    protected:
+	    virtual void mousePressEvent(QMouseEvent* e) override;
+	    virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
 };
 
 class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera
