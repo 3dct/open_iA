@@ -217,6 +217,12 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		{
 			const InputPixelType label = it[i].Get();
 			++(it[i]);
+
+			if (!m_inputLabelVotersSet.empty() &&
+				m_inputLabelVotersSet.count(std::make_pair(label, i)) == 0)
+			{
+				continue;
+			}
 			// calculate entropy of the current pixel for each input file
 			if (m_MaxPixelEntropy >= 0)
 			{
@@ -322,4 +328,11 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetProbabi
 	std::vector<typename DoubleImg::Pointer> const & probImgs)
 {
 	m_probImgs.insert(std::make_pair(inputIdx, probImgs));
+}
+
+template< typename TInputImage, typename TOutputImage >
+void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::SetInputLabelVotersSet(
+	std::set<std::pair<int, int> > inputLabelVotersSet)
+{
+	m_inputLabelVotersSet = inputLabelVotersSet;
 }

@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>332</width>
-    <height>271</height>
+    <width>302</width>
+    <height>275</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>330</width>
-    <height>271</height>
+    <width>302</width>
+    <height>275</height>
    </size>
   </property>
   <property name="features">
@@ -39,6 +39,63 @@
     <property name="spacing">
      <number>2</number>
     </property>
+    <item row="1" column="3">
+     <widget class="QPushButton" name="pbMinDiffPercent_Plot">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+       <string>Plot</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Abs. Min. %</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="3">
+     <widget class="QPushButton" name="pbSample">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+       <string>Sample</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="3">
+     <widget class="QPushButton" name="pbClusterUncertaintyDice">
+      <property name="text">
+       <string>Cluster</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="QLabel" name="lbLabelVoters">
+      <property name="text">
+       <string>100</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QSlider" name="slLabelVoters">
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label_13">
       <property name="text">
@@ -152,7 +209,7 @@
     <item row="3" column="0">
      <widget class="QLabel" name="label_17">
       <property name="text">
-       <string>Max. Pixel Ent.</string>
+       <string>Max.Pixel Ent.</string>
       </property>
      </widget>
     </item>
@@ -188,41 +245,14 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="3">
-     <widget class="QPushButton" name="pbMinDiffPercent_Plot">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>Plot</string>
+       <string>Label Voters</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Abs. Min. %</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="3">
-     <widget class="QPushButton" name="pbSample">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string>Sample Maj. Voting</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="3">
-     <widget class="QPushButton" name="pbClusterUncertaintyDice">
-      <property name="text">
-       <string>Cluster Unc. vs. Dice</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0" rowspan="3" colspan="3">
+    <item row="9" column="0" rowspan="3" colspan="3">
      <widget class="QTableWidget" name="twSampleResults">
       <property name="rowCount">
        <number>0</number>

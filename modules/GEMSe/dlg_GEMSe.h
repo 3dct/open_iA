@@ -67,6 +67,7 @@ public:
 		QVector<QSharedPointer<iASamplingResults> > samplings);
 	void StoreClustering(QString const & fileName);
 	QSharedPointer<iAImageTreeNode> GetCurrentCluster();
+	QSharedPointer<iAImageTreeNode> GetRoot();
 	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
 	void CalcRefImgComp(LabelImagePointer refImg);

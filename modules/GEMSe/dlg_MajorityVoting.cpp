@@ -103,7 +103,10 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Chart Threshold vs. Undecided", "ChartValueVsUndec"));
 	mdiChild->splitDockWidget(this, w3, Qt::Vertical);
 
-	// repeat  for m_chartValueVsDice, m_chartValueVsUndec
+	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
+	int ensembleSize = root->GetClusterSize();
+	slMinRatio->setMaximum(ensembleSize);
+	slLabelVoters->setMaximum(ensembleSize);
 
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MinAbsPlot()));
@@ -115,6 +118,7 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	connect(slMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MinDiffPercentSlider(int)));
 	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
 	connect(slMaxPixelEntropy, SIGNAL(valueChanged(int)), this, SLOT(MaxPixelEntropySlider(int)));
+	connect(slLabelVoters, SIGNAL(valueChanged(int)), this, SLOT(LabelVoters(int)));
 }
 
 vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
@@ -134,6 +138,8 @@ void dlg_MajorityVoting::SetGroundTruthImage(LabelImagePointer groundTruthImage)
 {
 	m_groundTruthImage = groundTruthImage;
 }
+
+#include "iAAttributes.h"
 
 void dlg_MajorityVoting::ClusterUncertaintyDice()
 {
@@ -167,7 +173,7 @@ void dlg_MajorityVoting::ClusterUncertaintyDice()
 
 iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
-	int labelCount)
+	int labelVoters, int labelCount)
 {
 	typedef ParametrizableLabelVotingImageFilter<LabelImageType> LabelVotingType;
 	LabelVotingType::Pointer labelVotingFilter;
@@ -176,6 +182,38 @@ iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResu
 	labelVotingFilter->SetMinimumDifferencePercentage(minDiffPercentage);
 	labelVotingFilter->SetMinimumRatio(minRatio);
 	labelVotingFilter->SetMaxPixelEntropy(maxPixelEntropy);
+	if (labelVoters > 0)
+	{
+		labelVoters = std::min(selection.size(), labelVoters);
+		std::set<std::pair<int, int> > inputLabelVotersSet;
+
+		for (int l=0; l<labelCount; ++l)
+		{
+			std::vector<std::pair<int, double> > memberDice;
+			for (int m = 0; m < selection.size(); ++m)
+			{
+				int attributeID = selection[m]->GetAttributes()->Find(QString("Dice %1").arg(l));
+				if (attributeID == -1)
+				{
+					DEBUG_LOG(QString("Attribute 'Dice %1' not found, aborting!").arg(l));
+					return iAITKIO::ImagePointer();
+				}
+				memberDice.push_back(std::make_pair(m, selection[m]->GetAttribute(attributeID)));
+			}
+			// sort in descending order by metric
+			sort(memberDice.begin(), memberDice.end(),
+				[](const std::pair<int, double> a, const std::pair<int, double> b)
+				{
+					return a.second > b.second; // > because we want to order descending
+				}
+			);
+			for (int m = 0; m < labelVoters; ++m)
+			{
+				inputLabelVotersSet.insert(std::make_pair(l, memberDice[m].first));
+			}
+		}
+		labelVotingFilter->SetInputLabelVotersSet(inputLabelVotersSet);
+	}
 
 	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
 	{
@@ -210,7 +248,7 @@ void dlg_MajorityVoting::AbsMinPercentSlider(int)
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
 	lbMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 2) + " %");
-	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, minAbs, -1, -1, -1, m_labelCount);
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, minAbs, -1, -1, -1, -1, m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
 
@@ -220,7 +258,7 @@ void dlg_MajorityVoting::MinDiffPercentSlider(int)
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minDiff = static_cast<double>(slMinDiffPercent->value()) / slMinDiffPercent->maximum();
 	lbMinDiffPercent->setText(QString::number(minDiff * 100, 'f', 2) + " %");
-	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, minDiff, -1, -1, m_labelCount);
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, minDiff, -1, -1, -1, m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
 
@@ -230,7 +268,7 @@ void dlg_MajorityVoting::MinRatioSlider(int)
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minRatio = static_cast<double>(slMinRatio->value()) / 100;
 	lbMinRatio->setText(QString::number(minRatio, 'f', 2));
-	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, minRatio, -1, m_labelCount);
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, minRatio, -1, -1, m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
 
@@ -240,7 +278,17 @@ void dlg_MajorityVoting::MaxPixelEntropySlider(int)
 	m_dlgGEMSe->GetSelection(m_selection);
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
 	lbMaxPixelEntropy->setText(QString::number(maxPixelEntropy*100, 'f', 2)+" %");
-	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, -1, maxPixelEntropy, m_labelCount);
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, -1, maxPixelEntropy, -1, m_labelCount);
+	m_dlgGEMSe->AddMajorityVotingImage(result);
+}
+
+void dlg_MajorityVoting::LabelVoters(int)
+{
+	QVector<QSharedPointer<iASingleResult> > m_selection;
+	m_dlgGEMSe->GetSelection(m_selection);
+	int labelVoters = slLabelVoters->value();
+	lbLabelVoters->setText(QString::number(labelVoters));
+	iAITKIO::ImagePointer result = GetMajorityVotingImage(m_selection, -1, -1, -1, -1, labelVoters, m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(result);
 }
 
@@ -411,16 +459,17 @@ void dlg_MajorityVoting::Sample()
 	columnNames.push_back("Dice");
 
 	const int SampleCount = 100;
-	const int ResultCount = 4;
+	const int ResultCount = 5;
 	const int UndecidedLabel = m_labelCount;
 
 	vtkSmartPointer<vtkTable> tables[ResultCount];
 	QString titles[ResultCount] =
 	{
-		QString("Minimum Absolute Percentage"),
-		QString("Minimum Percentage Difference"),
+		QString("Min. Absolute Percentage"),
+		QString("Min. Percentage Difference"),
 		QString("Ratio"),
-		QString("Maximum Pixel Uncertainty")
+		QString("Max. Pixel Uncertainty"),
+		QString("Max. Label Voters")
 	};
 	for (int r = 0; r < ResultCount; ++r)
 	{
@@ -435,6 +484,9 @@ void dlg_MajorityVoting::Sample()
 
 	double ratioMin = 1;
 	double ratioMax = m_selection.size();
+
+	double labelVoterMin = 1;
+	double labelVoterMax = m_selection.size();
 	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(m_selection.size()));
 
 	typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
@@ -449,20 +501,22 @@ void dlg_MajorityVoting::Sample()
 		// calculate current value:
 		double norm = mapToNorm(0, SampleCount, i);
 
-		double value[4] = {
+		double value[ResultCount] = {
 			mapNormTo(absPercMin, absPercMax, norm),		// minimum absolute percentage
 			norm,											// minimum relative percentage
 			mapNormTo(ratioMin, ratioMax, norm),			// ratio
-			norm											// maximum pixel uncertainty
+			norm,											// maximum pixel uncertainty
+			mapNormTo(labelVoterMin, labelVoterMax, norm)
 		};
 
 		// calculate majority voting using these values:
 		iAITKIO::ImagePointer result[ResultCount];
 
-		result[0] = GetMajorityVotingImage(m_selection, value[0], -1, -1, -1, m_labelCount);
-		result[1] = GetMajorityVotingImage(m_selection, -1, value[1], -1, -1, m_labelCount);
-		result[2] = GetMajorityVotingImage(m_selection, -1, -1, value[2], -1, m_labelCount);
-		result[3] = GetMajorityVotingImage(m_selection, -1, -1, -1, value[3], m_labelCount);
+		result[0] = GetMajorityVotingImage(m_selection, value[0], -1, -1, -1, -1, m_labelCount);
+		result[1] = GetMajorityVotingImage(m_selection, -1, value[1], -1, -1, -1, m_labelCount);
+		result[2] = GetMajorityVotingImage(m_selection, -1, -1, value[2], -1, -1, m_labelCount);
+		result[3] = GetMajorityVotingImage(m_selection, -1, -1, -1, value[3], -1, m_labelCount);
+		result[4] = GetMajorityVotingImage(m_selection, -1, -1, -1, -1, value[4], m_labelCount);
 
 		//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
 		// calculate dice coefficient and percentage of undetermined pixels

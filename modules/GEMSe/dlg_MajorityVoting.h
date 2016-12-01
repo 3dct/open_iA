@@ -57,6 +57,7 @@ private slots:
 	void MinDiffPercentSlider(int);
 	void MinRatioSlider(int);
 	void MaxPixelEntropySlider(int);
+	void LabelVoters(int);
 	void Sample();
 	void CheckBoxStateChanged(int state);
 	void ClusterUncertaintyDice();

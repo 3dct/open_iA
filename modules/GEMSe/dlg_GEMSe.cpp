@@ -138,7 +138,7 @@ void dlg_GEMSe::SetTree(
 
 	m_scatterplot = new iAGEMSeScatterplot(wdComparisonCharts);
 
-	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, m_treeView->GetTree()->m_root.data());
+	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, GetRoot().data());
 	wdCharts->layout()->addWidget(m_histogramContainer);
 	dynamic_cast<QHBoxLayout*>(wdCharts->layout())->setSpacing(ChartSpacing);
 	m_histogramContainer->CreateCharts();
@@ -316,13 +316,13 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->IsLogScale(),
 		m_chartAttributeMapper,
 		m_chartFilter,
-		m_treeView->GetTree()->m_root.data(),
+		GetRoot().data(),
 		m_selectedCluster.data(),
 		m_selectedLeaf
 	);
 	if (!m_chartFilter.MatchesAll())
 	{
-		m_treeView->GetTree()->m_root->ClearFilterData();
+		GetRoot()->ClearFilterData();
 	}
 }
 
@@ -341,7 +341,7 @@ void dlg_GEMSe::UpdateFilteredChartData()
 
 void dlg_GEMSe::UpdateFilteredData()
 {
-	m_treeView->GetTree()->m_root->UpdateFilter(m_chartFilter, m_chartAttributeMapper);
+	GetRoot()->UpdateFilter(m_chartFilter, m_chartAttributeMapper);
 	m_treeView->FilterUpdated();
 	m_exampleView->FilterUpdated();
 
@@ -351,7 +351,7 @@ void dlg_GEMSe::UpdateFilteredData()
 	}
 	UpdateFilteredChartData();
 	UpdateClusterFilteredChartData();
-	m_scatterplot->UpdateFilteredAllPlot(m_treeView->GetTree()->m_root.data(), m_chartFilter, m_chartAttributeMapper);
+	m_scatterplot->UpdateFilteredAllPlot(GetRoot().data(), m_chartFilter, m_chartAttributeMapper);
 	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter, m_chartAttributeMapper);
 }
 
@@ -435,13 +435,13 @@ void dlg_GEMSe::UpdateAttributeRangeAttitude()
 
 void dlg_GEMSe::ExportRankings(QString const & fileName)
 {
-	ExportAttitudesToRankingFile(fileName, m_treeView->GetTree()->m_root.data());
+	ExportAttitudesToRankingFile(fileName, GetRoot().data());
 }
 
 
 void dlg_GEMSe::ImportRankings(QString const & fileName)
 {
-	SetAttitudesFromRankingFile(fileName, m_treeView->GetTree()->m_root.data());
+	SetAttitudesFromRankingFile(fileName, GetRoot().data());
 	UpdateAttributeRangeAttitude();
 	m_treeView->UpdateSubtreeHighlight();
 	// TODO: update detail view?
@@ -661,6 +661,10 @@ QSharedPointer<iAImageTreeNode> dlg_GEMSe::GetCurrentCluster()
 	return m_selectedCluster;
 }
 
+QSharedPointer<iAImageTreeNode> dlg_GEMSe::GetRoot()
+{
+	return m_treeView->GetTree()->m_root;
+}
 
 void dlg_GEMSe::ChartDblClicked(int chartID)
 {
@@ -743,7 +747,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 	{
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
-	CalculateRefImgComp(m_treeView->GetTree()->m_root, refImg, labelCount);
+	CalculateRefImgComp(GetRoot(), refImg, labelCount);
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 }

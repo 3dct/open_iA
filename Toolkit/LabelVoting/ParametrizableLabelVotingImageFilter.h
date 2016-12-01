@@ -178,9 +178,9 @@ public:
 	  */
 	void SetLabelForUndecidedPixels(const OutputPixelType l)
 	{
-		this->m_LabelForUndecidedPixels = l;
-		this->m_HasLabelForUndecidedPixels = true;
-		this->Modified();
+		m_LabelForUndecidedPixels = l;
+		m_HasLabelForUndecidedPixels = true;
+		Modified();
 	}
 
 	/** Get label value used for undecided pixels.
@@ -191,17 +191,17 @@ public:
 	 */
 	OutputPixelType GetLabelForUndecidedPixels() const
 	{
-		return this->m_LabelForUndecidedPixels;
+		return m_LabelForUndecidedPixels;
 	}
 
 	/** Unset label value for undecided pixels and turn on automatic selection.
 	  */
 	void UnsetLabelForUndecidedPixels()
 	{
-		if (this->m_HasLabelForUndecidedPixels)
+		if (m_HasLabelForUndecidedPixels)
 		{
-			this->m_HasLabelForUndecidedPixels = false;
-			this->Modified();
+			m_HasLabelForUndecidedPixels = false;
+			Modified();
 		}
 	}
 
@@ -220,6 +220,13 @@ public:
 	}
 
 	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs);
+	
+	//! sets the data determining which input is considered for voting on which label
+	//! 
+	//! At each pixel the label value is checked, and an input is only considered if
+	//! this input is considered a suitable voter for this label (i.e., if the pair
+	//! <label, inputIdx> is contained in the set given here)
+	void SetInputLabelVotersSet(std::set<std::pair<int, int> > inputLabelVotersSet);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
 	// Begin concept checking
@@ -275,7 +282,8 @@ private:
 	typename DoubleImg::Pointer m_imgMinRatio;
 	typename DoubleImg::Pointer m_imgPixelEntropy;
 	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
-
+	
+	std::set<std::pair<int, int> > m_inputLabelVotersSet;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
