@@ -496,7 +496,7 @@ bool iAQSplom::drawPopup( QPainter& painter )
 
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
- 	ctx.palette.setColor( QPalette::Text, col );
+	ctx.palette.setColor( QPalette::Text, col );
 	ctx.palette.setColor( QPalette::Text, settings.popupTextColor );
 	doc.documentLayout()->draw( &painter, ctx ); //doc.drawContents( &painter );
 	

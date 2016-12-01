@@ -26,7 +26,6 @@
 #include <QImage>
 
 class QWidget;
-class QGLWidget;
 class QVTKWidget2;
 
 class vtkCamera;
