@@ -124,7 +124,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pCheckBoxShowThickness->setChecked(m_pBoneThicknessTable->showThickness());
 	connect(pCheckBoxShowThickness, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowThickness(const bool&)));
 
-	QCheckBox* pCheckBoxShowLines(new QCheckBox("Show lines", pGroupBoxSettings));
+	QCheckBox* pCheckBoxShowLines(new QCheckBox("Show thickness lines", pGroupBoxSettings));
 	connect(pCheckBoxShowLines, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowLines(const bool&)));
 
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));

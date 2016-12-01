@@ -28,7 +28,6 @@
 
 #include <iARenderer.h>
 
-#include <vtkDepthSortPolyData.h>
 #include <vtkMath.h>
 #include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
@@ -38,6 +37,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
+#include <vtkTubeFilter.h>
 
 
 vtkStandardNewMacro(iABoneThicknessMouseInteractor);
@@ -440,15 +440,21 @@ void iABoneThicknessTable::setWindowThicknessLines()
 		{
 			if (m_vThickness.at(i))
 			{
-				vtkSmartPointer<vtkPolyDataMapper> pMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
-				pMapper->SetInputConnection(m_pLines[i]->GetOutputPort());
+				vtkSmartPointer<vtkTubeFilter> pTubeFilter (vtkSmartPointer<vtkTubeFilter>::New());
+				pTubeFilter->SetInputConnection(m_pLines[i]->GetOutputPort());
+				pTubeFilter->SetRadius(.05);
+				pTubeFilter->SetNumberOfSides(50);
+				pTubeFilter->Update();
 
-				vtkSmartPointer<vtkActor> pActor(vtkSmartPointer<vtkActor>::New());
-				pActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
-				pActor->SetMapper(pMapper);
+				vtkSmartPointer<vtkPolyDataMapper> pTubeMapper (vtkSmartPointer<vtkPolyDataMapper>::New());
+				pTubeMapper->SetInputConnection(pTubeFilter->GetOutputPort());
 
-				m_pThicknessLines->AddItem(pActor);
-				m_iARenderer->GetRenderer()->AddActor(pActor);
+				vtkSmartPointer<vtkActor> pTubeActor(vtkSmartPointer<vtkActor>::New());
+				pTubeActor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+				pTubeActor->SetMapper(pTubeMapper);
+
+				m_pThicknessLines->AddItem(pTubeActor);
+				m_iARenderer->GetRenderer()->AddActor(pTubeActor);
 			}
 		}
 	}
