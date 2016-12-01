@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+ï»¿/*********************************  open_iA 2016 06  ******************************** *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. WeissenbÃ¶ck, *
+*                     Artem & Alexander Amirkhanov, B. FrÃ¶hler                        *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iABoneThicknessAttachment.h"
@@ -35,6 +35,7 @@
 
 #include <QApplication>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -89,21 +90,11 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 
 	m_pBoneThicknessTable = new iABoneThicknessTable(m_childData.child->getRaycaster(), pWidget);
 	m_pBoneThicknessTable->setSphereRadius(0.2 * vtkMath::Ceil(0.2 * dRangeMax));
-	m_pBoneThicknessTable->setThicknessMaximum(vtkMath::Ceil(dRangeMin));
+	m_pBoneThicknessTable->setThicknessMaximum(0.5 * vtkMath::Ceil(dRangeMin));
 
 	QGroupBox* pGroupBoxSettings(new QGroupBox("Settings", pWidget));
 
-	QCheckBox* pCheckBoxTransparency(new QCheckBox("Transparency", pGroupBoxSettings));
-	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
-
-	QCheckBox* pCheckBoxShowThickness(new QCheckBox("Thickness representation", pGroupBoxSettings));
-	pCheckBoxShowThickness->setChecked(m_pBoneThicknessTable->showThickness());
-	connect(pCheckBoxShowThickness, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowThickness(const bool&)));
-
-	QCheckBox* pCheckBoxShowLines(new QCheckBox("Show lines", pGroupBoxSettings));
-	connect(pCheckBoxShowLines, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowLines(const bool&)));
-
-	QLabel* pLabelSphereRadius(new QLabel("Radius:", pGroupBoxSettings));
+	QLabel* pLabelSphereRadius(new QLabel("Calculation radius:", pGroupBoxSettings));
 	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pGroupBoxSettings));
 	pDoubleSpinBoxSphereRadius->setAlignment(Qt::AlignRight);
 	pDoubleSpinBoxSphereRadius->setMinimum(0.01);
@@ -111,6 +102,12 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
 	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
 	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
+
+	QLabel* pLabelMethod(new QLabel("Calculation method:", pGroupBoxSettings));
+	QComboBox* pComboBoxMethod(new QComboBox(pGroupBoxSettings));
+	pComboBoxMethod->addItem("Centroid", 0);
+	pComboBoxMethod->addItem("Plane fitting from XY", 1);
+	connect(pComboBoxMethod, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBoxMethod(const int&)));
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
 	QDoubleSpinBox* pDoubleSpinBoxThicknessMaximum(new QDoubleSpinBox(pGroupBoxSettings));
@@ -120,14 +117,26 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThicknessTable->thicknessMaximum());
 	connect(pDoubleSpinBoxThicknessMaximum, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxThicknessMaximum(const double&)));
 
+	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
+	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
+
+	QCheckBox* pCheckBoxShowThickness(new QCheckBox("Thickness representation", pGroupBoxSettings));
+	pCheckBoxShowThickness->setChecked(m_pBoneThicknessTable->showThickness());
+	connect(pCheckBoxShowThickness, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowThickness(const bool&)));
+
+	QCheckBox* pCheckBoxShowLines(new QCheckBox("Show lines", pGroupBoxSettings));
+	connect(pCheckBoxShowLines, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowLines(const bool&)));
+
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
-	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0);
-	pGridLayoutSettings->addWidget(pDoubleSpinBoxSphereRadius, 0, 1);
-	pGridLayoutSettings->addWidget(pLabelThicknessMaximum, 0, 2);
-	pGridLayoutSettings->addWidget(pDoubleSpinBoxThicknessMaximum, 0, 3);
-	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 4);
-	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 5);
-	pGridLayoutSettings->addWidget(pCheckBoxShowLines, 0, 6);
+	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0, Qt::AlignRight);
+	pGridLayoutSettings->addWidget(pDoubleSpinBoxSphereRadius, 0, 1, Qt::AlignLeft);
+	pGridLayoutSettings->addWidget(pLabelMethod, 0, 2, Qt::AlignRight);
+	pGridLayoutSettings->addWidget(pComboBoxMethod, 0, 3, Qt::AlignLeft);
+	pGridLayoutSettings->addWidget(pLabelThicknessMaximum, 0, 4, Qt::AlignRight);
+	pGridLayoutSettings->addWidget(pDoubleSpinBoxThicknessMaximum, 0, 5, Qt::AlignLeft);
+	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 6);
+	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 7);
+	pGridLayoutSettings->addWidget(pCheckBoxShowLines, 0, 8);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pPushButtonOpen, 0, 0);
@@ -178,28 +187,45 @@ void iABoneThicknessAttachment::addNormalsInPoint(vtkPoints* _pPointNormals)
 
 	double pNormal[3] = { 0.0 , 0.0 , 0.0 };
 
-	for (vtkIdType i(0); i < idPoints; ++i)
+	if (m_eMethod == eCentroid)
 	{
-		double pCenter[3] = { 0.0 , 0.0 , 0.0 };
-
-		if (getCenterFromPoints(vPoints[i], pCenter))
+		for (vtkIdType i(0); i < idPoints; ++i)
 		{
-			double pPoint[3];
-			pPoints->GetPoint(i, pPoint);
+			double pCenter[3] = { 0.0 , 0.0 , 0.0 };
 
-			pNormal[0] = pPoint[0] - pCenter[0];
-			pNormal[1] = pPoint[1] - pCenter[1];
-			pNormal[2] = pPoint[2] - pCenter[2];
-			vtkMath::Normalize(pNormal);
+			if (getCenterFromPoints(vPoints[i], pCenter))
+			{
+				double pPoint[3];
+				pPoints->GetPoint(i, pPoint);
+
+				pNormal[0] = pPoint[0] - pCenter[0];
+				pNormal[1] = pPoint[1] - pCenter[1];
+				pNormal[2] = pPoint[2] - pCenter[2];
+				vtkMath::Normalize(pNormal);
+			}
+			else
+			{
+				pNormal[0] = pNormal[1] = pNormal[2] = 0.0;
+			}
+
+			_pPointNormals->InsertNextPoint(pNormal);
 		}
-		else
+	}
+	else
+	{
+		for (vtkIdType i(0); i < idPoints; ++i)
 		{
-			pNormal[0] = 0.0;
-			pNormal[1] = 0.0;
-			pNormal[2] = 0.0;
-		}
+			if (getNormalFromPoints(vPoints[i], pNormal))
+			{
+				vtkMath::Normalize(pNormal);
+			}
+			else
+			{
+				pNormal[0] = pNormal[1] = pNormal[2] = 0.0;
+			}
 
-		_pPointNormals->InsertNextPoint(pNormal);
+			_pPointNormals->InsertNextPoint(pNormal);
+		}
 	}
 }
 
@@ -323,6 +349,59 @@ bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double*
 	}
 }
 
+bool iABoneThicknessAttachment::getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal)
+{
+	double pCenter[3];
+
+	if (getCenterFromPoints(_pPoints, pCenter))
+	{
+		const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
+
+		if (idPoints > 3)
+		{
+			// With coordinates from centroid, Plane: Z = a * X + b * Y + D
+
+			double pPoint[3];
+			_pPoints->GetPoint(0, pPoint);
+
+			double pPoint0[3] = { pPoint[0] - pCenter[0], pPoint[1] - pCenter[1], pPoint[2] - pCenter[2] };
+
+			double dSumXX(pPoint0[0] * pPoint0[0]);
+			double dSumXY(pPoint0[0] * pPoint0[1]);
+			double dSumXZ(pPoint0[0] * pPoint0[2]);
+			double dSumYY(pPoint0[1] * pPoint0[1]);
+			double dSumYZ(pPoint0[1] * pPoint0[2]);
+
+			for (vtkIdType i(0); i < idPoints; ++i)
+			{
+				_pPoints->GetPoint(i, pPoint);
+
+				pPoint0[0] = pPoint[0] - pCenter[0];
+				pPoint0[1] = pPoint[1] - pCenter[1];
+				pPoint0[2] = pPoint[2] - pCenter[2];
+
+				dSumXX += pPoint0[0] * pPoint0[0];
+				dSumXY += pPoint0[0] * pPoint0[1];
+				dSumXZ += pPoint0[0] * pPoint0[2];
+				dSumYY += pPoint0[1] * pPoint0[1];
+				dSumYZ += pPoint0[1] * pPoint0[2];
+			}
+
+			const double D(dSumXX * dSumYY - dSumXY * dSumXY);
+			const double a((dSumYZ * dSumXY - dSumXZ * dSumYY) / D);
+			const double b((dSumXY * dSumXZ - dSumXX * dSumYZ) / D);
+
+			_pNormal[0] = a;
+			_pNormal[1] = b;
+			_pNormal[2] = -1.0;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius(const double& _dValue)
 {
 	qApp->setOverrideCursor(Qt::WaitCursor);
@@ -401,4 +480,13 @@ void iABoneThicknessAttachment::slotCheckBoxShowLines(const bool& _bChecked)
 void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
 {
 	m_pBoneThicknessTable->setTransparency(_bChecked);
+}
+
+void iABoneThicknessAttachment::slotComboBoxMethod(const int& _iIndex)
+{
+	qApp->setOverrideCursor(Qt::WaitCursor);
+	qApp->processEvents();
+	m_eMethod = (EMethod) _iIndex;
+	calculate();
+	qApp->restoreOverrideCursor();
 }

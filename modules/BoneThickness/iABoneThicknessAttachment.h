@@ -30,10 +30,14 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 
+		enum EMethod {eCentroid , ePlaneZ};
+
 	public:
 		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
 
 	private:
+		EMethod m_eMethod = eCentroid;
+
 		double m_pBound[6] = { 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 };
 		double m_pRange[3] = { 0.0 , 0.0 , 0.0 };
 
@@ -42,8 +46,10 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 		void addNormalsInPoint(vtkPoints* _pPointNormals);
 		void calculate();
 		bool getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter);
+		bool getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal);
 
 	private slots:
+		void slotComboBoxMethod(const int& _iIndex);
 	    void slotDoubleSpinBoxSphereRadius(const double&);
 		void slotDoubleSpinBoxThicknessMaximum(const double&);
 		void slotPushButtonOpen();
