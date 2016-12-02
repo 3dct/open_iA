@@ -80,12 +80,15 @@ iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pP
 
 void iABoneThicknessTable::deSelect()
 {
-	vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
-	pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
+	if (m_idSphereSelected > -1)
+	{
+		vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
+		pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
-	m_idSphereSelected = -1;
+		m_idSphereSelected = -1;
 
-	m_iARenderer->update();
+		m_iARenderer->update();
+	}
 }
 
 QVector<double>* iABoneThicknessTable::distance()
