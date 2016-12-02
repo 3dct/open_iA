@@ -39,6 +39,7 @@
 #include <vtkSphereSource.h>
 #include <vtkTubeFilter.h>
 
+#include "iABoneThicknessMouseInteractor.h"
 
 vtkStandardNewMacro(iABoneThicknessMouseInteractor);
 
@@ -64,18 +65,17 @@ iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pP
 	m_pSpheres = vtkActorCollection::New();
 
 	m_iARenderer->GetPolyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
-/*
+
 	vtkSmartPointer<iABoneThicknessMouseInteractor> pMouseInteractor(vtkSmartPointer<iABoneThicknessMouseInteractor>::New());
 	pMouseInteractor->SetDefaultRenderer(m_iARenderer->GetRenderer());
 	pMouseInteractor->setBoneThicknessTable(this);
 	pMouseInteractor->setSphereCollection(m_pSpheres);
 
-	vtkSmartPointer<vtkRenderWindowInteractor> pWindowInteractor(vtkSmartPointer<vtkRenderWindowInteractor>::New());
-	pWindowInteractor->SetRenderWindow(m_iARenderer->GetRenderWindow());
+	vtkRenderWindowInteractor* pWindowInteractor(m_iARenderer->GetInteractor());
 	pWindowInteractor->SetInteractorStyle(pMouseInteractor);
+
 	pWindowInteractor->Initialize();
 	pWindowInteractor->Start();
-*/
 }
 
 QVector<double>* iABoneThicknessTable::distance()
@@ -238,8 +238,7 @@ void iABoneThicknessTable::setSphereRadius(const double& _dSphereRadius)
 
 void iABoneThicknessTable::setSphereSelected(const vtkIdType& _idSphereSelected)
 {
-	m_idSphereSelected = _idSphereSelected;
-	selectRow(m_idSphereSelected);
+	selectRow(_idSphereSelected);
 }
 
 void iABoneThicknessTable::setSurfaceOpacity(const double& _dSurfaceOpacity)

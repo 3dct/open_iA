@@ -28,10 +28,8 @@
 
 #include <vtkActor.h>
 #include <vtkActorCollection.h>
-#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLineSource.h>
 #include <vtkPoints.h>
-#include <vtkPropPicker.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 
@@ -64,7 +62,6 @@ class iABoneThicknessTable : public QTableView
 	void setTransparency(const bool& _bTransparency);
 	void setThickness(const int& _iPoint, const double& _dThickness);
 	void setThicknessMaximum(const double& _dThicknessMaximum);
-
 	void setWindow();
 	void setWindowSpheres();
 	void setWindowThicknessLines();
@@ -105,64 +102,4 @@ class iABoneThicknessTable : public QTableView
     protected:
 	    virtual void mousePressEvent(QMouseEvent* e) override;
 	    virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
-};
-
-class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera
-{
-public:
-	static iABoneThicknessMouseInteractor* New();
-	vtkTypeMacro(iABoneThicknessMouseInteractor, vtkInteractorStyleTrackballCamera);
-
-	iABoneThicknessMouseInteractor()
-	{
-
-	}
-
-	~iABoneThicknessMouseInteractor()
-	{
-
-	}
-
-	void setSphereCollection(vtkActorCollection* _pSpheres)
-	{
-		m_pSpheres = _pSpheres;
-	}
-
-	void setBoneThicknessTable(iABoneThicknessTable* _pBoneThicknessTable)
-	{
-		m_pBoneThicknessTable = _pBoneThicknessTable;
-	}
-
-	virtual void OnLeftButtonDown() override
-	{
-		const int* pClickPos(GetInteractor()->GetEventPosition());
-
-		vtkSmartPointer<vtkPropPicker>  pPicker(vtkSmartPointer<vtkPropPicker>::New());
-		pPicker->Pick(pClickPos[0], pClickPos[1], 0, GetDefaultRenderer());
-
-		vtkActor* pPickedActor(pPicker->GetActor());
-
-		if (pPickedActor)
-		{
-			const vtkIdType idSpheresSize(m_pSpheres->GetNumberOfItems());
-
-			m_pSpheres->InitTraversal();
-
-			for (vtkIdType i(0); i < idSpheresSize; ++i)
-			{
-				if (pPickedActor == m_pSpheres->GetNextActor())
-				{
-					m_pBoneThicknessTable->setSphereSelected(i);
-					break;
-				}
-			}
-
-		}
-
-		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-	}
-
-private:
-	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-	vtkActorCollection* m_pSpheres = nullptr;
 };
