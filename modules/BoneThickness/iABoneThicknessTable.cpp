@@ -78,6 +78,16 @@ iABoneThicknessTable::iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pP
 	pWindowInteractor->Start();
 }
 
+void iABoneThicknessTable::deSelect()
+{
+	vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
+	pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+	m_idSphereSelected = -1;
+
+	m_iARenderer->update();
+}
+
 QVector<double>* iABoneThicknessTable::distance()
 {
 	return &m_vDistance;
@@ -103,12 +113,7 @@ void iABoneThicknessTable::mousePressEvent(QMouseEvent* e)
 
 		if (e->x() > iWidthSum)
 		{
-			vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
-			pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
-
-			m_idSphereSelected = -1;
-
-			m_iARenderer->update();
+			deSelect();
 		}
 	}
 

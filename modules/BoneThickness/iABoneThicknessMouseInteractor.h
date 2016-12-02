@@ -73,12 +73,14 @@ public:
 				if (pPickedActor == m_pSpheres->GetNextActor())
 				{
 					m_pBoneThicknessTable->setSphereSelected(i);
-					break;
+
+					vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+					return;
 				}
 			}
-
 		}
 
+		m_pBoneThicknessTable->deSelect();
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 

@@ -124,9 +124,6 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pCheckBoxShowThickness->setChecked(m_pBoneThicknessTable->showThickness());
 	connect(pCheckBoxShowThickness, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowThickness(const bool&)));
 
-	QCheckBox* pCheckBoxShowLines(new QCheckBox("Show thickness lines", pGroupBoxSettings));
-	connect(pCheckBoxShowLines, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowLines(const bool&)));
-
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
 	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0, Qt::AlignRight);
 	pGridLayoutSettings->addWidget(pDoubleSpinBoxSphereRadius, 0, 1, Qt::AlignLeft);
@@ -136,7 +133,6 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayoutSettings->addWidget(pDoubleSpinBoxThicknessMaximum, 0, 5, Qt::AlignLeft);
 	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 6);
 	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 7);
-	pGridLayoutSettings->addWidget(pCheckBoxShowLines, 0, 8);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pPushButtonOpen, 0, 0);

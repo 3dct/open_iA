@@ -42,6 +42,8 @@ class iABoneThicknessTable : public QTableView
   public:
 	explicit iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pParent = nullptr);
 
+	void deSelect();
+
 	QVector<double>* distance();
 
 	QVector<vtkSmartPointer<vtkLineSource>>* lines();
@@ -77,7 +79,7 @@ class iABoneThicknessTable : public QTableView
 
   private:
 	  bool m_bShowThickness = true;
-	  bool m_bShowThicknessLines = false;
+	  bool m_bShowThicknessLines = true;
 
 	  double m_dSphereOpacity = 1.0;
 	  double m_dSphereRadius = 0.5;
