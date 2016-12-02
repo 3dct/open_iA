@@ -291,6 +291,8 @@ void iABoneThicknessAttachment::calculate()
 		}
 		else
 		{
+			m_pBoneThicknessTable->setThickness(i, 0.0);
+
 			(*Lines)[i]->SetPoint1(x1);
 			(*Lines)[i]->SetPoint2(x1);
 		}
