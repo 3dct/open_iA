@@ -481,7 +481,7 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 	if (!m_dlgMajorityVoting)
 	{
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		m_dlgMajorityVoting = new dlg_MajorityVoting(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count());
+		m_dlgMajorityVoting = new dlg_MajorityVoting(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder);
 		if (m_groundTruthImage)
 			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
 		mdiChild->splitDockWidget(this, m_dlgMajorityVoting, Qt::Vertical);

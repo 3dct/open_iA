@@ -79,8 +79,8 @@ public:
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);
-	void  GetSelection(QVector<QSharedPointer<iASingleResult> > &);
-	void AddMajorityVotingImage(QString const & outputPath, int id, double mvPercentage);
+	void GetSelection(QVector<QSharedPointer<iASingleResult> > &);
+	QSharedPointer<iAImageTreeNode> GetSelectedCluster();
 	void AddMajorityVotingImage(iAITKIO::ImagePointer imgData);
 	void AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData);
 	int GetMeasureStartID() { return m_MeasureChartIDStart; }

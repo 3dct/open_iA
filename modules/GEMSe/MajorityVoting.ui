@@ -330,6 +330,13 @@
       </property>
      </widget>
     </item>
+    <item row="8" column="3">
+     <widget class="QPushButton" name="pbStore">
+      <property name="text">
+       <string>Store</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
  </widget>

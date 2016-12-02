@@ -193,7 +193,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
 		it.push_back(IteratorType(GetInput(i),	outputRegionForThread));
-		if (m_MaxPixelEntropy >= 0)
+		if (m_MaxPixelEntropy >= 0 || m_weightType == Certainty || m_weightType == FBGSBGDiff)
 		{
 			probIt.push_back(std::vector<ConstDblIt>());
 			for (size_t l = 0; l < m_TotalLabelCount; ++l)

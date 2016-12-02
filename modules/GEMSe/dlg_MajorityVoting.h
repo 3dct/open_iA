@@ -45,7 +45,7 @@ class dlg_MajorityVoting : public dlg_MajorityVotingUI
 {
 	Q_OBJECT
 public:
-	dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount);
+	dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder);
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
 	void EnableUI();
 private slots:
@@ -53,14 +53,15 @@ private slots:
 	void MinDiffPlot();
 	void RatioPlot();
 	void MaxPixelEntropyPlot();
+	void Sample();
+	void ClusterUncertaintyDice();
+	void StoreResult();
 	void AbsMinPercentSlider(int);
 	void MinDiffPercentSlider(int);
 	void MinRatioSlider(int);
 	void MaxPixelEntropySlider(int);
 	void LabelVoters(int);
-	void Sample();
-	void CheckBoxStateChanged(int state);
-	void ClusterUncertaintyDice();
+	void CheckBoxStateChanged(int);
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int dlg_MajorityVoting::GetWeightType();
@@ -77,4 +78,6 @@ private:
 	vtkSmartPointer<vtkChartXY> m_chartValueVsUndec;
 
 	iAColorTheme const * m_colorTheme;
+	iAITKIO::ImagePointer m_lastMVResult;
+	QString const & m_folder;
 };
