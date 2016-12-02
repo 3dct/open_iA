@@ -30,7 +30,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 
-		enum EMethod {eCentroid , ePlaneZ};
+		enum EMethod {eCentroid, ePlaneX, ePlaneY, ePlaneZ};
 
 	public:
 		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);

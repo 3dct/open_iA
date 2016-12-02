@@ -106,7 +106,9 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QLabel* pLabelMethod(new QLabel("Calculation method:", pGroupBoxSettings));
 	QComboBox* pComboBoxMethod(new QComboBox(pGroupBoxSettings));
 	pComboBoxMethod->addItem("Centroid", 0);
-	pComboBoxMethod->addItem("Plane fitting from XY", 1);
+	pComboBoxMethod->addItem("Plane fitting from YZ", 1);
+	pComboBoxMethod->addItem("Plane fitting from XZ", 2);
+	pComboBoxMethod->addItem("Plane fitting from XY", 3);
 	connect(pComboBoxMethod, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBoxMethod(const int&)));
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
@@ -347,12 +349,18 @@ bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double*
 
 bool iABoneThicknessAttachment::getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal)
 {
+	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
+
+	for (vtkIdType i(0); i < idPoints; ++i)
+	{
+		double pPoint[3];
+		_pPoints->GetPoint(i, pPoint);
+	}
+
 	double pCenter[3];
 
 	if (getCenterFromPoints(_pPoints, pCenter))
 	{
-		const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
-
 		if (idPoints > 3)
 		{
 			// With coordinates from centroid, Plane: Z = a * X + b * Y + D
@@ -372,9 +380,32 @@ bool iABoneThicknessAttachment::getNormalFromPoints(vtkPoints* _pPoints, double*
 			{
 				_pPoints->GetPoint(i, pPoint);
 
-				pPoint0[0] = pPoint[0] - pCenter[0];
-				pPoint0[1] = pPoint[1] - pCenter[1];
-				pPoint0[2] = pPoint[2] - pCenter[2];
+				switch (m_eMethod)
+				{
+					case ePlaneX:
+					{
+						pPoint0[2] = pPoint[0] - pCenter[0];
+						pPoint0[0] = pPoint[1] - pCenter[1];
+						pPoint0[1] = pPoint[2] - pCenter[2];
+					}
+					break;
+
+					case ePlaneY:
+				    {
+						pPoint0[1] = pPoint[0] - pCenter[0];
+						pPoint0[2] = pPoint[1] - pCenter[1];
+						pPoint0[0] = pPoint[2] - pCenter[2];
+					}
+					break;
+
+					default:
+					{
+						pPoint0[0] = pPoint[0] - pCenter[0];
+						pPoint0[1] = pPoint[1] - pCenter[1];
+						pPoint0[2] = pPoint[2] - pCenter[2];
+					}
+					break;
+				}
 
 				dSumXX += pPoint0[0] * pPoint0[0];
 				dSumXY += pPoint0[0] * pPoint0[1];
@@ -387,9 +418,32 @@ bool iABoneThicknessAttachment::getNormalFromPoints(vtkPoints* _pPoints, double*
 			const double a((dSumYZ * dSumXY - dSumXZ * dSumYY) / D);
 			const double b((dSumXY * dSumXZ - dSumXX * dSumYZ) / D);
 
-			_pNormal[0] = a;
-			_pNormal[1] = b;
-			_pNormal[2] = -1.0;
+			switch (m_eMethod)
+			{
+				case ePlaneX:
+				{
+					_pNormal[1] = a;
+					_pNormal[2] = b;
+					_pNormal[0] = 1.0;
+				}
+				break;
+
+				case ePlaneY:
+				{
+					_pNormal[2] = a;
+					_pNormal[0] = b;
+					_pNormal[1] = 1.0;
+				}
+				break;
+
+				default:
+				{
+					_pNormal[0] = a;
+					_pNormal[1] = b;
+					_pNormal[2] = 1.0;
+				}
+				break;
+			}
 
 			return true;
 		}
