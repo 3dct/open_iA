@@ -46,6 +46,7 @@ namespace
 	const QString SamplingDataKey = "SamplingData";
 	const QString ClusteringDataKey = "ClusteringData";
 	const QString LayoutKey = "Layout";
+	const QString ReferenceImageKey = "ReferenceImage";
 
 	void AppendToString(QString & result, QString const & append)
 	{
@@ -135,6 +136,10 @@ iASEAFile::iASEAFile(QString const & fileName):
 	}
 	m_ClusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
+	if (metaFile.contains(ReferenceImageKey))
+	{
+		m_ReferenceImageName = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
+	}
 	m_good = true;
 }
 
@@ -208,4 +213,9 @@ QString const & iASEAFile::GetClusteringFileName() const
 QString const & iASEAFile::GetLayoutName() const
 {
 	return m_LayoutName;
+}
+
+QString const & iASEAFile::GetReferenceImageName() const
+{
+	return m_ReferenceImageName;
 }

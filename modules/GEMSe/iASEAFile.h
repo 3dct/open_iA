@@ -48,6 +48,7 @@ public:
 	QMap<int, QString> const & GetSamplings() const;
 	QString const & GetClusteringFileName() const;
 	QString const & GetLayoutName() const;
+	QString const & GetReferenceImageName() const;
 
 	bool good() const;
 	// QString const & GetSEAFileName();
@@ -58,6 +59,7 @@ private:
 	QString m_ClusteringFileName;
 	QString m_LayoutName;
 	QString m_SEAFileName;
+	QString m_ReferenceImageName;
 
 	bool m_good;
 };

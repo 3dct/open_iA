@@ -129,6 +129,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
 	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImage()));
+	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(LoadRefImage()));
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
@@ -570,18 +571,24 @@ void dlg_GEMSeControl::LoadRefImage()
 	);
 	if (refFileName.isEmpty())
 		return;
+	LoadReferenceImage(refFileName);
+}
+
+bool dlg_GEMSeControl::LoadReferenceImage(QString const & referenceImageName)
+{
 	iAITKIO::ScalarPixelType pixelType;
-	auto img = iAITKIO::readFile(refFileName, pixelType, false);
+	auto img = iAITKIO::readFile(referenceImageName, pixelType, false);
 	if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
 	{
 		DEBUG_LOG("Invalid pixel type, reference image must be of INT type!");
-		return;
+		return false;
 	}
-	leRefImage->setText(refFileName);
+	leRefImage->setText(referenceImageName);
 	m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
 	m_dlgGEMSe->CalcRefImgComp(m_groundTruthImage);
 	if (m_dlgMajorityVoting)
 		m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
+	return true;
 }
 
 void dlg_GEMSeControl::ExportAttributeRangeRanking()

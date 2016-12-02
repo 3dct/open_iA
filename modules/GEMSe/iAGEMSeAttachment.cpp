@@ -102,6 +102,11 @@ bool iAGEMSeAttachment::LoadSeeds(QString const & seedsFileName)
 	return m_dlgLabels->Load(seedsFileName);
 }
 
+bool iAGEMSeAttachment::LoadReferenceImage(QString const & referenceImageName)
+{
+	return m_dlgGEMSeControl->LoadReferenceImage(referenceImageName);
+}
+
 void iAGEMSeAttachment::ResetFilter()
 {
 	m_dlgGEMSe->ResetFilters();

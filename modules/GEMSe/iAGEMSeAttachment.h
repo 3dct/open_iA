@@ -44,6 +44,7 @@ public:
 	bool LoadClustering(QString const & fileName);
 	bool LoadPriors(QString const & priorsFileName);
 	bool LoadSeeds(QString const & seedsFileName);
+	bool LoadReferenceImage(QString const & referenceImageName);
 
 	void ResetFilter();
 	void ToggleAutoShrink();

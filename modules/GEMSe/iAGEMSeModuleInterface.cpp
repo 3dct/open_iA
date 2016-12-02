@@ -132,6 +132,10 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	{
 		child->LoadLayout(seaFile.GetLayoutName());
 	}
+	if (seaFile.GetReferenceImageName() != "")
+	{
+		gemseAttach->LoadReferenceImage(seaFile.GetReferenceImageName());
+	}
 }
 
 #include <QToolBar>

@@ -59,6 +59,7 @@ public:
 	);
 	bool LoadSampling(QString const & fileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
+	bool LoadReferenceImage(QString const & referenceImageName);
 	void ExportAttributeRangeRanking();
 	void ExportRankings();
 	void ImportRankings();
