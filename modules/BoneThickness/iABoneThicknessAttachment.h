@@ -36,7 +36,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
 
 	private:
-		EMethod m_eMethod = eCentroid;
+		EMethod m_eMethod = ePCA;
 
 		double m_pBound[6] = { 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 };
 		double m_pRange[3] = { 0.0 , 0.0 , 0.0 };

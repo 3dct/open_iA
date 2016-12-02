@@ -111,6 +111,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pComboBoxMethod->addItem("Plane fitting from YZ", 2);
 	pComboBoxMethod->addItem("Plane fitting from XZ", 3);
 	pComboBoxMethod->addItem("Plane fitting from XY", 4);
+	pComboBoxMethod->setCurrentIndex((int) m_eMethod);
 	connect(pComboBoxMethod, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBoxMethod(const int&)));
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
@@ -408,17 +409,16 @@ bool iABoneThicknessAttachment::getNormalFromPCA(vtkPoints* _pPoints, double* _p
 		pcaStatistics->SetColumnStatus("x", 1);
 		pcaStatistics->SetColumnStatus("y", 1);
 		pcaStatistics->SetColumnStatus("z", 1);
-
 		pcaStatistics->RequestSelectedColumns();
 		pcaStatistics->SetDeriveOption(true);
 		pcaStatistics->Update();
 
-		vtkSmartPointer<vtkDoubleArray> eigenvalues (vtkSmartPointer<vtkDoubleArray>::New());
-		pcaStatistics->GetEigenvalues(eigenvalues);
+		vtkSmartPointer<vtkDoubleArray> eigenVector(vtkSmartPointer<vtkDoubleArray>::New());
+		pcaStatistics->GetEigenvector(2, eigenVector);
 
 		for (vtkIdType i (0) ; i < 3; i++)
 		{
-			_pNormal[i] = eigenvalues->GetValue(i);
+			_pNormal[i] = eigenVector->GetValue(i);
 		}
 
 		return true;
