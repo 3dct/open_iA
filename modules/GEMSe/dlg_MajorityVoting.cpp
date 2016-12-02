@@ -108,7 +108,7 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 
 	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
 	int ensembleSize = root->GetClusterSize();
-	slMinRatio->setMaximum(ensembleSize);
+	slMinRatio->setMaximum(ensembleSize*100);
 	slLabelVoters->setMaximum(ensembleSize);
 
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
@@ -336,6 +336,11 @@ void dlg_MajorityVoting::MaxPixelEntropySlider(int)
 
 void dlg_MajorityVoting::LabelVoters(int)
 {
+	if (!m_groundTruthImage)
+	{
+		DEBUG_LOG("Please load a reference image first!");
+		return;
+	}
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	int labelVoters = slLabelVoters->value();
@@ -462,6 +467,7 @@ void dlg_MajorityVoting::AddResult(vtkSmartPointer<vtkTable> table, QString cons
 	if (m_results.size() != idx)
 	{
 		DEBUG_LOG("Results vector and table are out of sync!");
+		return;
 	}
 	m_results.push_back(table);
 }
