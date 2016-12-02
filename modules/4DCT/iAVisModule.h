@@ -33,13 +33,17 @@ public:
 	bool				isAttached( );
 	bool				isEnabled( );
 	virtual void		reset( );
-	virtual void		enable( ) = 0;
-	virtual void		disable( ) = 0;
+	virtual void		enable( );
+	virtual void		disable( );
+
 
 protected:
 	vtkRenderer *		m_renderer;
 
+
 private:
+	virtual void		show( ) = 0;
+	virtual void		hide( ) = 0;
 	bool				m_enabled;
 };
 

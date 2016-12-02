@@ -44,6 +44,7 @@
 #include "iARegionVisModule.h"
 #include "iAVisModule.h"
 #include "iAVisModuleItem.h"
+#include "iA4DCTRegionMarkerModule.h"
 // Qt
 #include <QFileDialog>
 #include <QSettings>
@@ -64,6 +65,7 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkLegendScaleActor.h>
 
 iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	: QMainWindow( parent )
@@ -160,6 +162,15 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	connect( actionOrientationMarker, SIGNAL( toggled( bool ) ), this, SLOT( setOrientationWidgetEnabled( bool ) ) );
 	connect( actionOrientationMarker, SIGNAL( toggled( bool ) ), this, SLOT( updateRenderWindow( ) ) );
 	connect( actionSideBySideView, SIGNAL( toggled( bool ) ), this, SLOT( enableSideBySideView( bool ) ) );
+
+	iA4DCTRegionMarkerModule* regionMarker = new iA4DCTRegionMarkerModule;
+	regionMarker->attachTo( m_mainRen );
+	regionMarker->enable( );
+	m_visModules.addModule( regionMarker, "Region marker" );
+	m_dwAllVis->updateContext( );
+
+	vtkSmartPointer<vtkLegendScaleActor> legendScaleActor = vtkSmartPointer<vtkLegendScaleActor>::New();
+	m_mainRen->AddActor( legendScaleActor );
 }
 
 iA4DCTVisWin::~iA4DCTVisWin( )

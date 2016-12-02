@@ -63,17 +63,13 @@ iARegionVisModule::iARegionVisModule( )
 	setSilhoetteLineWidth( 2.5 );
 }
 
-void iARegionVisModule::enable( )
+void iARegionVisModule::show( )
 {
-	if( !isAttached( ) ) return;
-	if( !isEnabled( ) ) {
-		m_renderer->AddActor( m_regionActor );
-		m_renderer->AddActor( m_silhouetteActor );
-	}
-	iAVisModule::enable( );
+	m_renderer->AddActor( m_regionActor );
+	m_renderer->AddActor( m_silhouetteActor );
 }
 
-void iARegionVisModule::disable( )
+void iARegionVisModule::hide( )
 {
 	if( !isAttached( ) ) return;
 	if( isEnabled( ) ) {

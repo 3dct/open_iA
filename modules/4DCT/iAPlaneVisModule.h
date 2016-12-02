@@ -45,9 +45,11 @@ class vtkTexture;
 
 struct iAPlaneVisSettings
 {
+	iAPlaneVisSettings( ) { Slice[0] = 0; Slice[1] = 0; Slice[2] = 0; }
+
 	enum Direction { XY, XZ, YZ };
 	Direction Dir;
-	int Slice;
+	int Slice[3];
 	double Opacity;
 	bool Shading;
 };
@@ -56,8 +58,8 @@ class iAPlaneVisModule : public iAVisModule
 {
 public:
 				iAPlaneVisModule( );
-	void		enable( );
-	void		disable( );
+	void		show( );
+	void		hide( );
 	void		setSize( double * size );
 	void		setImage( iA4DCTFileData fileName );
 	void		setSlice( int slice );
