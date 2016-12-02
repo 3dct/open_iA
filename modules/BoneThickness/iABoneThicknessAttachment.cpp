@@ -24,12 +24,13 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
-#include<vtkCellLocator.h>
-#include<vtkMath.h>
-#include<vtkOpenGLRenderer.h>
-#include<vtkPolyData.h>
-#include<vtkPoints.h>
-
+#include <vtkCellLocator.h>
+#include <vtkDoubleArray.h>
+#include <vtkMath.h>
+#include <vtkOpenGLRenderer.h>
+#include <vtkPolyData.h>
+#include <vtkPoints.h>
+#include <vtkPCAStatistics.h>
 #include <iADockWidgetWrapper.h>
 #include <iARenderer.h>
 
@@ -106,9 +107,10 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QLabel* pLabelMethod(new QLabel("Calculation method:", pGroupBoxSettings));
 	QComboBox* pComboBoxMethod(new QComboBox(pGroupBoxSettings));
 	pComboBoxMethod->addItem("Centroid", 0);
-	pComboBoxMethod->addItem("Plane fitting from YZ", 1);
-	pComboBoxMethod->addItem("Plane fitting from XZ", 2);
-	pComboBoxMethod->addItem("Plane fitting from XY", 3);
+	pComboBoxMethod->addItem("PCA", 1);
+	pComboBoxMethod->addItem("Plane fitting from YZ", 2);
+	pComboBoxMethod->addItem("Plane fitting from XZ", 3);
+	pComboBoxMethod->addItem("Plane fitting from XY", 4);
 	connect(pComboBoxMethod, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBoxMethod(const int&)));
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
@@ -209,6 +211,22 @@ void iABoneThicknessAttachment::addNormalsInPoint(vtkPoints* _pPointNormals)
 			_pPointNormals->InsertNextPoint(pNormal);
 		}
 	}
+	else if (m_eMethod == ePCA)
+	{
+		for (vtkIdType i(0); i < idPoints; ++i)
+		{
+			if (getNormalFromPCA(vPoints[i], pNormal))
+			{
+				vtkMath::Normalize(pNormal);
+			}
+			else
+			{
+				pNormal[0] = pNormal[1] = pNormal[2] = 0.0;
+			}
+
+			_pPointNormals->InsertNextPoint(pNormal);
+		}
+	}
 	else
 	{
 		for (vtkIdType i(0); i < idPoints; ++i)
@@ -263,6 +281,7 @@ void iABoneThicknessAttachment::calculate()
 
 		double pNormal[3];
 		PointNormals->GetPoint(i, pNormal);
+
 		if ((pNormal[0] == 0.0) && (pNormal[1] == 0.0) && (pNormal[2] == 0.0))
 		{
 			m_pBoneThicknessTable->setThickness(i, 0.0);
@@ -349,15 +368,68 @@ bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double*
 	}
 }
 
-bool iABoneThicknessAttachment::getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal)
+bool iABoneThicknessAttachment::getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal)
 {
 	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
 
-	for (vtkIdType i(0); i < idPoints; ++i)
+	if (idPoints > 3)
 	{
+		vtkSmartPointer<vtkDoubleArray> xArray (vtkSmartPointer<vtkDoubleArray>::New());
+		xArray->SetNumberOfComponents(1);
+		xArray->SetName("x");
+
+		vtkSmartPointer<vtkDoubleArray> yArray(vtkSmartPointer<vtkDoubleArray>::New());
+		yArray->SetNumberOfComponents(1);
+		yArray->SetName("y");
+
+		vtkSmartPointer<vtkDoubleArray> zArray(vtkSmartPointer<vtkDoubleArray>::New());
+		zArray->SetNumberOfComponents(1);
+		zArray->SetName("z");
+
 		double pPoint[3];
-		_pPoints->GetPoint(i, pPoint);
+
+		for (vtkIdType i = 0; i < idPoints ; i++)
+		{
+			_pPoints->GetPoint(i, pPoint);
+
+			xArray->InsertNextValue(pPoint[0]);
+			yArray->InsertNextValue(pPoint[1]);
+			zArray->InsertNextValue(pPoint[2]);
+		}
+
+		vtkSmartPointer<vtkTable> datasetTable (vtkSmartPointer<vtkTable>::New());
+		datasetTable->AddColumn(xArray);
+		datasetTable->AddColumn(yArray);
+		datasetTable->AddColumn(zArray);
+
+		vtkSmartPointer<vtkPCAStatistics> pcaStatistics (vtkSmartPointer<vtkPCAStatistics>::New());
+		pcaStatistics->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, datasetTable);
+
+		pcaStatistics->SetColumnStatus("x", 1);
+		pcaStatistics->SetColumnStatus("y", 1);
+		pcaStatistics->SetColumnStatus("z", 1);
+
+		pcaStatistics->RequestSelectedColumns();
+		pcaStatistics->SetDeriveOption(true);
+		pcaStatistics->Update();
+
+		vtkSmartPointer<vtkDoubleArray> eigenvalues (vtkSmartPointer<vtkDoubleArray>::New());
+		pcaStatistics->GetEigenvalues(eigenvalues);
+
+		for (vtkIdType i (0) ; i < 3; i++)
+		{
+			_pNormal[i] = eigenvalues->GetValue(i);
+		}
+
+		return true;
 	}
+
+	return false;
+}
+
+bool iABoneThicknessAttachment::getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal)
+{
+	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
 
 	double pCenter[3];
 

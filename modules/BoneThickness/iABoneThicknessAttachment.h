@@ -30,7 +30,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 
-		enum EMethod {eCentroid, ePlaneX, ePlaneY, ePlaneZ};
+		enum EMethod {eCentroid, ePCA, ePlaneX, ePlaneY, ePlaneZ};
 
 	public:
 		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
@@ -46,6 +46,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 		void addNormalsInPoint(vtkPoints* _pPointNormals);
 		void calculate();
 		bool getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter);
+		bool getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal);
 		bool getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal);
 
 	private slots:
