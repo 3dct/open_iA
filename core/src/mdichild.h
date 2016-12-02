@@ -273,6 +273,9 @@ public:
 	void ApplyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
 	void ApplyVolumeSettings();
+
+	QString GetLayoutName() const;
+	void LoadLayout(QString const & layout);
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -492,6 +495,7 @@ private:
 	bool raycasterInitialized;
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
+	QString m_layout;
 
 	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;

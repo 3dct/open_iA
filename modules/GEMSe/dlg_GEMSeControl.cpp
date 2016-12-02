@@ -464,12 +464,13 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 	{
 		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
 	}
+	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	iASEAFile metaFile(
 		m_dlgModalities->GetModalities()->GetFileName(),
 		m_simpleLabelInfo->count(),
 		samplingFilenames,
 		m_cltFile,
-		"");		// TODO: store current layout
+		mdiChild->GetLayoutName());
 	metaFile.Store(fileName);
 }
 

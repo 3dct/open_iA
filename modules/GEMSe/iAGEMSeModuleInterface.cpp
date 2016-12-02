@@ -128,10 +128,9 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	{
 		DEBUG_LOG("Precomputed Data Loading failed!\n");
 	}
-
 	if (seaFile.GetLayoutName() != "")
 	{
-		m_mainWnd->loadLayout(child, seaFile.GetLayoutName());
+		child->LoadLayout(seaFile.GetLayoutName());
 	}
 }
 

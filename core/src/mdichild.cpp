@@ -79,11 +79,13 @@
 
 // TODO: VOLUME: check all places using GetModality(0)->GetTransfer() !
 
+#include <QByteArray>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QProgressBar>
+#include <QSettings>
 #include <QSpinBox>
 #include <QToolButton>
 
@@ -1589,6 +1591,36 @@ void MdiChild::ApplyVolumeSettings()
 	m_dlgModalities->ChangeRenderSettings(volumeSettings);
 }
 
+
+QString MdiChild::GetLayoutName() const
+{
+	return m_layout;
+}
+
+
+void MdiChild::updateLayout()
+{
+	m_mainWnd->loadLayout();
+}
+
+
+void MdiChild::LoadLayout(QString const & layout)
+{
+	m_layout = layout;
+	QSettings settings;
+	QByteArray state = settings.value("Layout/state" + layout).value<QByteArray>();
+	hide();
+	restoreState(state, 0);
+	show();
+}
+
+
+void MdiChild::resetLayout()
+{
+	restoreState(m_initialLayoutState);
+}
+
+
 int MdiChild::GetRenderMode()
 {
 	return volumeSettings.Mode;
@@ -2232,11 +2264,6 @@ bool MdiChild::initView( QString const & title )
 	return true;
 }
 
-void MdiChild::resetLayout()
-{
-	restoreState(m_initialLayoutState);
-}
-
 void MdiChild::HideHistogram()
 {
 	histogramContainer->hide();
@@ -2830,16 +2857,11 @@ void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> img
 }
 
 
-
 vtkImageAccumulate * MdiChild::getImageAccumulate()
 {
 	return GetModality(m_dlgModalities->GetSelected())->GetTransfer()->GetAccumulate();
 }
 
-void MdiChild::updateLayout()
-{
-	m_mainWnd->loadLayout();
-}
 
 void MdiChild::updateChannelMappers()
 {
