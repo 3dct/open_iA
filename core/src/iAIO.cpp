@@ -1209,14 +1209,14 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<T, DIM-1> OutputImageType;
 	typedef itk::ImageSeriesWriter<InputImageType, OutputImageType> SeriesWriterType;
-	SeriesWriterType::Pointer writer = SeriesWriterType::New();
+	typename SeriesWriterType::Pointer writer = SeriesWriterType::New();
 
 	typedef itk::NumericSeriesFileNames    NameGeneratorType;
-	NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
+	typename NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
 
-	InputImageType::RegionType region = dynamic_cast<InputImageType*>(con->GetITKImage())->GetLargestPossibleRegion();
-	InputImageType::IndexType start = region.GetIndex();
-	InputImageType::SizeType size = region.GetSize();
+	typename InputImageType::RegionType region = dynamic_cast<InputImageType*>(con->GetITKImage())->GetLargestPossibleRegion();
+	typename InputImageType::IndexType start = region.GetIndex();
+	typename InputImageType::SizeType size = region.GetSize();
 	nameGenerator->SetStartIndex(start[2]);
 	nameGenerator->SetEndIndex(start[2] + size[2] - 1);
 	nameGenerator->SetIncrementIndex(1);
