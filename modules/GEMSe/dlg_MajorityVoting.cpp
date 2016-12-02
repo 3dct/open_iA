@@ -69,10 +69,10 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	auto yAxis1 = m_chartDiceVsUndec->GetAxis(vtkAxis::LEFT);
 	xAxis1->SetTitle("Undecided Pixels");
 	xAxis1->SetLogScale(false);
-	yAxis1->SetTitle("Accuracy (Dice)");
+	yAxis1->SetTitle("Mean Dice");
 	yAxis1->SetLogScale(false);
 	contextView->GetScene()->AddItem(m_chartDiceVsUndec);
-	iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, "Chart Dice vs. Undecided", "ChartDiceVsUndec"));
+	iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, "Mean Dice vs. Undecided", "ChartDiceVsUndec"));
 	mdiChild->splitDockWidget(this, w, Qt::Vertical);
 
 	auto vtkWidget2 = new QVTKWidget2();
@@ -83,10 +83,10 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	auto yAxis2 = m_chartValueVsDice->GetAxis(vtkAxis::LEFT);
 	xAxis2->SetTitle("Threshold");
 	xAxis2->SetLogScale(false);
-	yAxis2->SetTitle("Accuracy(Dice)");
+	yAxis2->SetTitle("Mean Dice");
 	yAxis2->SetLogScale(false);
 	contextView2->GetScene()->AddItem(m_chartValueVsDice);
-	iADockWidgetWrapper * w2(new iADockWidgetWrapper(vtkWidget2, "Chart Threshold vs. Dice", "ChartValueVsDice"));
+	iADockWidgetWrapper * w2(new iADockWidgetWrapper(vtkWidget2, "Threshold vs. Dice", "ChartValueVsDice"));
 	mdiChild->splitDockWidget(this, w2, Qt::Vertical);
 
 	auto vtkWidget3 = new QVTKWidget2();
@@ -100,7 +100,7 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	yAxis3->SetTitle("Undecided Pixels");
 	yAxis3->SetLogScale(false);
 	contextView3->GetScene()->AddItem(m_chartValueVsUndec);
-	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Chart Threshold vs. Undecided", "ChartValueVsUndec"));
+	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Threshold vs. Undecided", "ChartValueVsUndec"));
 	mdiChild->splitDockWidget(this, w3, Qt::Vertical);
 
 	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
@@ -157,7 +157,7 @@ void dlg_MajorityVoting::ClusterUncertaintyDice()
 
 	QVector<QString> columns;
 	columns.push_back("Average Uncertainty");
-	columns.push_back("Accuracy (Dice");
+	columns.push_back("Mean Dice");
 
 	auto table = CreateVTKTable(m_selection.size(), columns);
 
@@ -168,7 +168,7 @@ void dlg_MajorityVoting::ClusterUncertaintyDice()
 		table->SetValue(i, 0, unc);
 		table->SetValue(i, 1, dice);
 	}
-	AddResult(table, "Selected Cluster Avg. Unc. vs. Dice");
+	AddResult(table, "Selected Cluster Avg. Unc. vs. Mean Dice");
 }
 
 iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
@@ -429,7 +429,10 @@ majorityVotingID++;
 }
 */
 
-vtkIdType AddPlot(int plotType, vtkSmartPointer<vtkChartXY> chart, vtkSmartPointer<vtkTable> table, int col1, int col2,
+vtkIdType AddPlot(int plotType,
+	vtkSmartPointer<vtkChartXY> chart,
+	vtkSmartPointer<vtkTable> table,
+	int col1, int col2,
 	QColor const & color)
 {
 	vtkSmartPointer<vtkPlot> plot;
@@ -445,6 +448,7 @@ vtkIdType AddPlot(int plotType, vtkSmartPointer<vtkChartXY> chart, vtkSmartPoint
 		static_cast<unsigned char>(color.blue()),
 		static_cast<unsigned char>(color.alpha())
 	);
+	plot->SetTooltipLabelFormat("%x, %l: %y");
 	plot->SetWidth(1.0);
 	plot->SetInputData(table, col1, col2);
 	vtkIdType plotID = chart->AddPlot(plot);
@@ -470,10 +474,10 @@ void dlg_MajorityVoting::AddResult(vtkSmartPointer<vtkTable> table, QString cons
 
 int dlg_MajorityVoting::GetWeightType()
 {
-	if (rbWeightEqual->isChecked())      return Equal;
 	if (rbWeightLabelDice->isChecked())  return LabelBased;
 	if (rbWeightCertainty->isChecked())  return Certainty;
 	if (rbWeightDiffFBGSBG->isChecked()) return FBGSBGDiff;
+	else return Equal;
 }
 
 void dlg_MajorityVoting::Sample()
@@ -487,7 +491,7 @@ void dlg_MajorityVoting::Sample()
 	QVector<QString> columnNames;
 	columnNames.push_back("Value");
 	columnNames.push_back("Undecided Pixels");
-	columnNames.push_back("Dice");
+	columnNames.push_back("Mean Dice");
 
 	const int SampleCount = sbSampleCount->value();
 	const int ResultCount = 5;

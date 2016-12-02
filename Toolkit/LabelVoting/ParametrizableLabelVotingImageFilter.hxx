@@ -238,7 +238,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 			double entropy = 0.0;
 			// calculate entropy of the current pixel for each input file
 			double pixelFBG = 0, pixelSBG = 0;
-			if (m_MaxPixelEntropy >= 0)
+			if (m_MaxPixelEntropy >= 0 || m_weightType == Certainty || m_weightType == FBGSBGDiff)
 			{
 				double probSum = 0.0;
 				for (unsigned int l = 0; l < m_TotalLabelCount; ++l)
@@ -272,7 +272,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 				entropy = clamp(0.0, limit, entropy);
 				entropy = entropy * normalizeFactor;
 				avgPixelEntropy += entropy;
-				if (entropy > m_MaxPixelEntropy)
+				if (m_MaxPixelEntropy >= 0 && entropy > m_MaxPixelEntropy)
 				{
 					continue;
 				}
