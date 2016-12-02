@@ -133,6 +133,16 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="pbStoreBest">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Store Best</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>

@@ -299,7 +299,8 @@ void dlg_MajorityVoting::AbsMinPercentSlider(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	lbMinAbsPercent->setText(QString::number(minAbs * 100, 'f', 2) + " %");
+	lbValue->setText("Value: Abs. Min % = "+QString::number(minAbs * 100, 'f', 2) + " %");
+	UpdateWeightPlot();
 	m_lastMVResult = GetMajorityVotingImage(m_selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
@@ -309,7 +310,8 @@ void dlg_MajorityVoting::MinDiffPercentSlider(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minDiff = static_cast<double>(slMinDiffPercent->value()) / slMinDiffPercent->maximum();
-	lbMinDiffPercent->setText(QString::number(minDiff * 100, 'f', 2) + " %");
+	lbValue->setText("Value: Min. Diff. % = "+QString::number(minDiff * 100, 'f', 2) + " %");
+	UpdateWeightPlot();
 	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
@@ -319,7 +321,8 @@ void dlg_MajorityVoting::MinRatioSlider(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double minRatio = static_cast<double>(slMinRatio->value()) / 100;
-	lbMinRatio->setText(QString::number(minRatio, 'f', 2));
+	lbValue->setText("Value: Ratio = "+QString::number(minRatio, 'f', 2));
+	UpdateWeightPlot();
 	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
@@ -329,7 +332,8 @@ void dlg_MajorityVoting::MaxPixelEntropySlider(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
-	lbMaxPixelEntropy->setText(QString::number(maxPixelEntropy*100, 'f', 2)+" %");
+	lbValue->setText("Value: Max. Pixel Ent. = " + QString::number(maxPixelEntropy*100, 'f', 2)+" %");
+	UpdateWeightPlot();
 	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
@@ -344,7 +348,8 @@ void dlg_MajorityVoting::LabelVoters(int)
 	QVector<QSharedPointer<iASingleResult> > m_selection;
 	m_dlgGEMSe->GetSelection(m_selection);
 	int labelVoters = slLabelVoters->value();
-	lbLabelVoters->setText(QString::number(labelVoters));
+	lbValue->setText("Value: Label Voters = " + QString::number(labelVoters));
+	UpdateWeightPlot();
 	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
@@ -489,6 +494,12 @@ QString GetWeightName(int weightType)
 		case FBGSBGDiff: return "FBG-SBG";
 		default:         return "Equal";
 	}
+}
+
+
+void dlg_MajorityVoting::UpdateWeightPlot()
+{
+	lbWeight->setText("Weight " + GetWeightName(GetWeightType()));
 }
 
 void dlg_MajorityVoting::Sample()

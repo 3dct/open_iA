@@ -64,7 +64,8 @@ private slots:
 	void CheckBoxStateChanged(int);
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
-	int dlg_MajorityVoting::GetWeightType();
+	int GetWeightType();
+	void UpdateWeightPlot();
 
 	MdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
