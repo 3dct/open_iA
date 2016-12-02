@@ -43,6 +43,7 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>

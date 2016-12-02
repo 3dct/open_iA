@@ -25,7 +25,6 @@
 
 #include "ui_Segm3DView.h"
 #include <iAQTtoUIConnector.h>
-typedef iAQTtoUIConnector<QDockWidget, Ui_Segm3DView>   Segm3DViewContainer;
 
 #include <vtkSmartPointer.h>
 
@@ -34,15 +33,18 @@ class iARenderer;
 class iARendererManager;
 class iAVolumeRenderer;
 
+class vtkActor;
 class vtkColorTransferFunction;
 class vtkImageData;
+class vtkLookupTable;
 class vtkPiecewiseFunction;
 class vtkPolyData;
-class vtkTransform;
-class vtkScalarBarWidget;
 class vtkPolyDataMapper;
-class vtkActor;
-class vtkLookupTable;
+class vtkRenderer;
+class vtkScalarBarWidget;
+class vtkTransform;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_Segm3DView>   Segm3DViewContainer;
 
 class iASegm3DViewData
 {
