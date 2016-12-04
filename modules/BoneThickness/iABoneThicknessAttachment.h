@@ -24,6 +24,8 @@
 
 #include "iABoneThicknessTable.h"
 
+#include <QDoubleSpinBox>
+
 //class dlg_BoneThickness;
 
 class iABoneThicknessAttachment : public iAModuleAttachmentToChild
@@ -43,16 +45,22 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 
+		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
+		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
+
 		void addNormalsInPoint(vtkPoints* _pPointNormals);
 		void calculate();
+		void findPoints(QVector<vtkSmartPointer<vtkPoints>>& _vPoints);
 		bool getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter);
+		void getClosestPoints(vtkIdList* _idListClosest);
+		void getConnectedPoints(const vtkIdType& _idPoint, vtkPoints* _pPoints);
 		bool getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal);
 		bool getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal);
 
 	private slots:
 		void slotComboBoxMethod(const int& _iIndex);
-	    void slotDoubleSpinBoxSphereRadius(const double&);
-		void slotDoubleSpinBoxThicknessMaximum(const double&);
+	    void slotDoubleSpinBoxSphereRadius();
+		void slotDoubleSpinBoxThicknessMaximum();
 		void slotPushButtonOpen();
 		void slotPushButtonSave();
 		void slotCheckBoxShowLines(const bool& _bChecked);

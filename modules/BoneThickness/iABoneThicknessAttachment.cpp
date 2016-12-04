@@ -30,6 +30,7 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
+#include <vtkPointLocator.h>
 #include <vtkPCAStatistics.h>
 #include <iADockWidgetWrapper.h>
 #include <iARenderer.h>
@@ -37,7 +38,6 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QFileDialog>
@@ -96,13 +96,13 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QGroupBox* pGroupBoxSettings(new QGroupBox("Settings", pWidget));
 
 	QLabel* pLabelSphereRadius(new QLabel("Calculation radius:", pGroupBoxSettings));
-	QDoubleSpinBox* pDoubleSpinBoxSphereRadius(new QDoubleSpinBox(pGroupBoxSettings));
-	pDoubleSpinBoxSphereRadius->setAlignment(Qt::AlignRight);
-	pDoubleSpinBoxSphereRadius->setMinimum(0.01);
-	pDoubleSpinBoxSphereRadius->setMaximum(1.0E+6);
-	pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
-	pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
-	connect(pDoubleSpinBoxSphereRadius, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxSphereRadius(const double&)));
+	m_pDoubleSpinBoxSphereRadius = new QDoubleSpinBox(pGroupBoxSettings);
+	m_pDoubleSpinBoxSphereRadius->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxSphereRadius->setMinimum(0.01);
+	m_pDoubleSpinBoxSphereRadius->setMaximum(1.0E+6);
+	m_pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
+	m_pDoubleSpinBoxSphereRadius->setValue(m_pBoneThicknessTable->sphereRadius());
+	connect(m_pDoubleSpinBoxSphereRadius, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxSphereRadius()));
 
 	QLabel* pLabelMethod(new QLabel("Calculation method:", pGroupBoxSettings));
 	QComboBox* pComboBoxMethod(new QComboBox(pGroupBoxSettings));
@@ -115,12 +115,12 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	connect(pComboBoxMethod, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBoxMethod(const int&)));
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
-	QDoubleSpinBox* pDoubleSpinBoxThicknessMaximum(new QDoubleSpinBox(pGroupBoxSettings));
-	pDoubleSpinBoxThicknessMaximum->setAlignment(Qt::AlignRight);
-	pDoubleSpinBoxThicknessMaximum->setMinimum(0.0);
-	pDoubleSpinBoxThicknessMaximum->setSingleStep(1.0);
-	pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThicknessTable->thicknessMaximum());
-	connect(pDoubleSpinBoxThicknessMaximum, SIGNAL(valueChanged(const double&)), this, SLOT(slotDoubleSpinBoxThicknessMaximum(const double&)));
+	m_pDoubleSpinBoxThicknessMaximum = new QDoubleSpinBox(pGroupBoxSettings);
+	m_pDoubleSpinBoxThicknessMaximum->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxThicknessMaximum->setMinimum(0.0);
+	m_pDoubleSpinBoxThicknessMaximum->setSingleStep(1.0);
+	m_pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThicknessTable->thicknessMaximum());
+	connect(m_pDoubleSpinBoxThicknessMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxThicknessMaximum()));
 
 	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
 	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
@@ -131,11 +131,11 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
 	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0, Qt::AlignRight);
-	pGridLayoutSettings->addWidget(pDoubleSpinBoxSphereRadius, 0, 1, Qt::AlignLeft);
+	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxSphereRadius, 0, 1, Qt::AlignLeft);
 	pGridLayoutSettings->addWidget(pLabelMethod, 0, 2, Qt::AlignRight);
 	pGridLayoutSettings->addWidget(pComboBoxMethod, 0, 3, Qt::AlignLeft);
 	pGridLayoutSettings->addWidget(pLabelThicknessMaximum, 0, 4, Qt::AlignRight);
-	pGridLayoutSettings->addWidget(pDoubleSpinBoxThicknessMaximum, 0, 5, Qt::AlignLeft);
+	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxThicknessMaximum, 0, 5, Qt::AlignLeft);
 	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 6);
 	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 7);
 
@@ -151,13 +151,8 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 
 void iABoneThicknessAttachment::addNormalsInPoint(vtkPoints* _pPointNormals)
 {
-	vtkPolyData* pPolyData(m_childData.polyData);
-	const vtkIdType idPolyPoints(pPolyData->GetNumberOfPoints());
-
 	vtkSmartPointer<vtkPoints> pPoints(m_pBoneThicknessTable->point());
 	const vtkIdType idPoints(pPoints->GetNumberOfPoints());
-
-	const double dPointRadius(m_pBoneThicknessTable->sphereRadius());
 
 	QVector<vtkSmartPointer<vtkPoints>> vPoints;
 	vPoints.resize(idPoints);
@@ -167,24 +162,7 @@ void iABoneThicknessAttachment::addNormalsInPoint(vtkPoints* _pPointNormals)
 		vPoints[i] = vtkPoints::New();
 	}
 
-	for (vtkIdType j(0); j < idPolyPoints; ++j)
-	{
-		double pPolyPoint[3];
-		pPolyData->GetPoint(j, pPolyPoint);
-
-		for (vtkIdType i(0); i < idPoints; ++i)
-		{
-			double pPoint[3];
-			pPoints->GetPoint(i, pPoint);
-
-			const double Distance(sqrt(vtkMath::Distance2BetweenPoints(pPoint, pPolyPoint)));
-
-			if (Distance < dPointRadius)
-			{
-				vPoints[i]->InsertNextPoint(pPolyPoint);
-			}
-		}
-	}
+	findPoints(vPoints);
 
 	double pNormal[3] = { 0.0 , 0.0 , 0.0 };
 
@@ -248,37 +226,32 @@ void iABoneThicknessAttachment::addNormalsInPoint(vtkPoints* _pPointNormals)
 
 void iABoneThicknessAttachment::calculate()
 {
-	vtkSmartPointer<vtkCellLocator> CellLocator(vtkCellLocator::New());
-	CellLocator->SetDataSet(m_childData.polyData);
-	CellLocator->BuildLocator();
-	CellLocator->Update();
-
-	vtkSmartPointer<vtkPoints> Points(m_pBoneThicknessTable->point());
+	vtkSmartPointer<vtkPoints> PointsTable(m_pBoneThicknessTable->point());
 	QVector<vtkSmartPointer<vtkLineSource>>* Lines (m_pBoneThicknessTable->lines());
 
-	const vtkIdType idPoints (Points->GetNumberOfPoints());
+	const vtkIdType idPointsTable (PointsTable->GetNumberOfPoints());
 
 	QVector<double>* pvDistance(m_pBoneThicknessTable->distance());
 
 	vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
 	addNormalsInPoint(PointNormals);
 
+	vtkSmartPointer<vtkCellLocator> CellLocator(vtkCellLocator::New());
+	CellLocator->SetDataSet(m_childData.polyData);
+	CellLocator->BuildLocator();
+	CellLocator->Update();
+
+	vtkSmartPointer<vtkIdList> idListClosest (vtkSmartPointer<vtkIdList>::New());
+	getClosestPoints(idListClosest);
+
 	const double dLength(0.5 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2])));
-
 	double tol(0.0), t(0.0), pcoords[3];
+	int subId;
 
-	for (int i(0); i < idPoints; ++i)
+	for (int i(0); i < idPointsTable; ++i)
 	{
 		double pPoint[3];
-		Points->GetPoint(i, pPoint);
-
-		vtkIdType cellId;
-		int subId;
-		double closestPointDist2 (0.0);
-		double PointClosest1[3];
-		CellLocator->FindClosestPoint(pPoint, PointClosest1, cellId, subId, closestPointDist2);
-
-		(*pvDistance)[i] = sqrt(closestPointDist2);
+		PointsTable->GetPoint(i, pPoint);
 
 		double pNormal[3];
 		PointNormals->GetPoint(i, pNormal);
@@ -293,12 +266,12 @@ void iABoneThicknessAttachment::calculate()
 			continue;
 		}
 
-		double pPoint21[3] = { PointClosest1[0] + dLength * pNormal[0], PointClosest1[1] + dLength * pNormal[1], PointClosest1[2] + dLength * pNormal[2] };
-		double pPoint22[3] = { PointClosest1[0] - dLength * pNormal[0], PointClosest1[1] - dLength * pNormal[1], PointClosest1[2] - dLength * pNormal[2] };
-
-		double x1[3] = { 0.0, 0.0, 0.0 };
+		double pPoint21[3] = { pPoint[0] + dLength * pNormal[0], pPoint[1] + dLength * pNormal[1], pPoint[2] + dLength * pNormal[2] };
+		double pPoint22[3] = { pPoint[0] - dLength * pNormal[0], pPoint[1] - dLength * pNormal[1], pPoint[2] - dLength * pNormal[2] };
 
 		double dThickness1(0.0);
+
+		double x1[3] = { 0.0, 0.0, 0.0 };
 
 		if (CellLocator->IntersectWithLine(pPoint21, pPoint, tol, t, x1, pcoords, subId))
 		{
@@ -337,6 +310,40 @@ void iABoneThicknessAttachment::calculate()
 	m_pBoneThicknessTable->setWindow();
 }
 
+void iABoneThicknessAttachment::findPoints(QVector<vtkSmartPointer<vtkPoints>>& _vPoints)
+{
+	vtkPolyData* pPolyData(m_childData.polyData);
+	const vtkIdType idPolyPoints(pPolyData->GetNumberOfPoints());
+
+	vtkSmartPointer<vtkPoints> pPointsTable(m_pBoneThicknessTable->point());
+	const vtkIdType idPointsTable(pPointsTable->GetNumberOfPoints());
+
+	const double dPointRadius(m_pBoneThicknessTable->sphereRadius());
+
+	vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
+	pPointLocator->SetDataSet(pPolyData);
+	pPointLocator->BuildLocator();
+
+	for (vtkIdType i(0); i < idPointsTable; ++i)
+	{
+		double pPoint[3];
+		pPointsTable->GetPoint(i, pPoint);
+
+		vtkSmartPointer<vtkIdList> idListPointsWithinRadius(vtkSmartPointer<vtkIdList>::New());
+		pPointLocator->FindPointsWithinRadius(dPointRadius, pPoint, idListPointsWithinRadius);
+
+		const vtkIdType idPointsWithinRadius(idListPointsWithinRadius->GetNumberOfIds());
+
+		for (vtkIdType ii(0); ii < idPointsWithinRadius; ++ii)
+		{
+			double pPointFromlist[3];
+			pPolyData->GetPoint(ii, pPointFromlist);
+
+			_vPoints[i]->InsertNextPoint(pPointFromlist);
+		}
+	}
+}
+
 bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter)
 {
 	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
@@ -345,7 +352,7 @@ bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double*
 	{
 		_pPoints->GetPoint(0, _pCenter);
 
-		for (vtkIdType i (1) ; i < idPoints; ++i)
+		for (vtkIdType i(1); i < idPoints; ++i)
 		{
 			double pPoint[3];
 			_pPoints->GetPoint(i, pPoint);
@@ -355,7 +362,7 @@ bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double*
 			_pCenter[2] += pPoint[2];
 		}
 
-		const double dPoints ((double) idPoints);
+		const double dPoints((double)idPoints);
 
 		_pCenter[0] /= dPoints;
 		_pCenter[1] /= dPoints;
@@ -366,6 +373,64 @@ bool iABoneThicknessAttachment::getCenterFromPoints(vtkPoints* _pPoints, double*
 	else
 	{
 		return false;
+	}
+}
+
+void iABoneThicknessAttachment::getClosestPoints(vtkIdList* _idListClosest)
+{
+	QVector<double>* pvDistance(m_pBoneThicknessTable->distance());
+
+	vtkPolyData* pPolyData(m_childData.polyData);
+	const vtkIdType idPolyPoints(pPolyData->GetNumberOfPoints());
+
+	vtkSmartPointer<vtkPoints> pPointsTable(m_pBoneThicknessTable->point());
+	const vtkIdType idPointsTable(pPointsTable->GetNumberOfPoints());
+
+	vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
+	pPointLocator->SetDataSet(pPolyData);
+	pPointLocator->BuildLocator();
+
+	for (int i(0); i < idPointsTable; ++i)
+	{
+		double pPoint[3];
+		pPointsTable->GetPoint(i, pPoint);
+
+		const vtkIdType idPointClosest(pPointLocator->FindClosestPoint(pPoint));
+
+		_idListClosest->InsertNextId(idPointClosest);
+
+		double pPointClosest[3];
+		pPolyData->GetPoint(idPointClosest, pPointClosest);
+
+		(*pvDistance)[i] = vtkMath::Distance2BetweenPoints(pPoint, pPointClosest);
+	}
+}
+
+void iABoneThicknessAttachment::getConnectedPoints(const vtkIdType& _idPoint, vtkPoints* _pPoints)
+{
+	vtkPolyData* pPolyData(m_childData.polyData);
+	const vtkIdType idPolyPoints(pPolyData->GetNumberOfPoints());
+
+	vtkSmartPointer<vtkIdList> cellIdList (vtkSmartPointer<vtkIdList>::New());
+	pPolyData->GetPointCells(_idPoint, cellIdList);
+
+	const vtkIdType idCellIdList (cellIdList->GetNumberOfIds());
+
+	for (vtkIdType i (0) ; i < idCellIdList ; ++i)
+	{
+		vtkSmartPointer<vtkIdList> pointIdList (vtkSmartPointer<vtkIdList>::New());
+		pPolyData->GetCellPoints(cellIdList->GetId(i), pointIdList);
+
+		const vtkIdType idCellPoint0(pointIdList->GetId(0));
+
+		if (idCellPoint0 == _idPoint)
+		{
+			_pPoints->InsertNextPoint(pPolyData->GetPoint(pointIdList->GetId(1)));
+		}
+		else
+		{
+			_pPoints->InsertNextPoint(pPolyData->GetPoint(idCellPoint0));
+		}
 	}
 }
 
@@ -526,20 +591,58 @@ bool iABoneThicknessAttachment::getNormalFromPoints(vtkPoints* _pPoints, double*
 	return false;
 }
 
-void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius(const double& _dValue)
+void iABoneThicknessAttachment::slotCheckBoxShowThickness(const bool& _bChecked)
+{
+	m_pBoneThicknessTable->setShowThickness(_bChecked);
+	m_pBoneThicknessTable->setWindowSpheres();
+	m_childData.child->getRaycaster()->update();
+}
+
+void iABoneThicknessAttachment::slotCheckBoxShowLines(const bool& _bChecked)
+{
+	m_pBoneThicknessTable->setShowThicknessLines(_bChecked);
+	m_pBoneThicknessTable->setWindowThicknessLines();
+	m_childData.child->getRaycaster()->update();
+}
+
+void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
+{
+	m_pBoneThicknessTable->setTransparency(_bChecked);
+}
+
+void iABoneThicknessAttachment::slotComboBoxMethod(const int& _iIndex)
 {
 	qApp->setOverrideCursor(Qt::WaitCursor);
-	m_pBoneThicknessTable->setSphereRadius(_dValue);
+	qApp->processEvents();
+	m_eMethod = (EMethod)_iIndex;
 	calculate();
 	qApp->restoreOverrideCursor();
 }
 
-void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum(const double& _dValue)
+void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 {
-	qApp->setOverrideCursor(Qt::WaitCursor);
-	m_pBoneThicknessTable->setThicknessMaximum(_dValue);
-	calculate();
-	qApp->restoreOverrideCursor();
+	const double dSphereRadius(m_pDoubleSpinBoxSphereRadius->value());
+
+	if (m_pBoneThicknessTable->sphereRadius() != dSphereRadius)
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		m_pBoneThicknessTable->setSphereRadius(dSphereRadius);
+		calculate();
+		qApp->restoreOverrideCursor();
+	}
+}
+
+void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum()
+{
+	const double dThicknessMaximum(m_pDoubleSpinBoxThicknessMaximum->value());
+
+	if (m_pBoneThicknessTable->thicknessMaximum() != dThicknessMaximum)
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		m_pBoneThicknessTable->setThicknessMaximum(dThicknessMaximum);
+		calculate();
+		qApp->restoreOverrideCursor();
+	}
 }
 
 void iABoneThicknessAttachment::slotPushButtonOpen()
@@ -585,32 +688,4 @@ void iABoneThicknessAttachment::slotPushButtonSave()
 	}
 
 	delete pFileDialog;
-}
-
-void iABoneThicknessAttachment::slotCheckBoxShowThickness(const bool& _bChecked)
-{
-	m_pBoneThicknessTable->setShowThickness(_bChecked);
-	m_pBoneThicknessTable->setWindowSpheres();
-	m_childData.child->getRaycaster()->update();
-}
-
-void iABoneThicknessAttachment::slotCheckBoxShowLines(const bool& _bChecked)
-{
-	m_pBoneThicknessTable->setShowThicknessLines(_bChecked);
-	m_pBoneThicknessTable->setWindowThicknessLines();
-	m_childData.child->getRaycaster()->update();
-}
-
-void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
-{
-	m_pBoneThicknessTable->setTransparency(_bChecked);
-}
-
-void iABoneThicknessAttachment::slotComboBoxMethod(const int& _iIndex)
-{
-	qApp->setOverrideCursor(Qt::WaitCursor);
-	qApp->processEvents();
-	m_eMethod = (EMethod) _iIndex;
-	calculate();
-	qApp->restoreOverrideCursor();
 }
