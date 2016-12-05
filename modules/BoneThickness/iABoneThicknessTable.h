@@ -23,85 +23,21 @@
 // iA
 #include <QTableView>
 
-#include <QMouseEvent>
-#include <QString>
-
-#include <vtkActor.h>
-#include <vtkActorCollection.h>
-#include <vtkLineSource.h>
-#include <vtkPoints.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-
-class iARenderer;
+class iABoneThickness;
 
 class iABoneThicknessTable : public QTableView
 {
-	Q_OBJECT
+		Q_OBJECT
 
-  public:
-	explicit iABoneThicknessTable(iARenderer* _iARenderer, QWidget* _pParent = nullptr);
+	public:
+		explicit iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWidget* _pParent = nullptr);
 
-	void deSelect();
+		void setSphereSelected();
 
-	QVector<double>* distance();
+private:
+		iABoneThickness* m_pBoneThickness = nullptr;
 
-	QVector<vtkSmartPointer<vtkLineSource>>* lines();
-
-	void open(const QString& _sFilename);
-
-	vtkSmartPointer<vtkPoints> point();
-
-	void save(const QString& _sFilename);
-
-	void setShowThickness(const bool& _bShowThickness);
-	void setShowThicknessLines(const bool& _bShowThicknessLines);
-	void setSphereOpacity(const double& _dSphereOpacity);
-	void setSphereRadius(const double& _dSphereRadius);
-	void setSphereSelected(const vtkIdType& _idSphereSelected);
-	void setSurfaceOpacity(const double& _dSurfaceOpacity);
-	void setTable();
-	void setTransparency(const bool& _bTransparency);
-	void setThickness(const int& _iPoint, const double& _dThickness);
-	void setThicknessMaximum(const double& _dThicknessMaximum);
-	void setWindow();
-	void setWindowSpheres();
-	void setWindowThicknessLines();
-
-	bool showThickness() const;
-		
-	double sphereOpacity() const;
-	double sphereRadius() const;
-
-	double surfaceOpacity() const;
-
-	double thicknessMaximum() const;
-
-  private:
-	  bool m_bShowThickness = true;
-	  bool m_bShowThicknessLines = true;
-
-	  double m_dSphereOpacity = 1.0;
-	  double m_dSphereRadius = 0.5;
-	  double m_dSurfaceOpacity = 1.0;
-	  double m_dThicknessMaximum = 0.0;
-
-	vtkIdType m_idSphereSelected = -1;
-
-	QVector<double> m_vDistance;
-	QVector<double> m_vThickness;
-
-	vtkSmartPointer<vtkPoints> m_pPoints = nullptr;
-	QVector<vtkSmartPointer<vtkLineSource>> m_pLines;
-
-	vtkSmartPointer<vtkActorCollection> m_pSpheres = nullptr;
-	vtkSmartPointer<vtkActorCollection> m_pThicknessLines = nullptr;
-
-	iARenderer* m_iARenderer = nullptr;
-
-	void setTranslucent();
-
-    protected:
-	    virtual void mousePressEvent(QMouseEvent* e) override;
-	    virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
+	protected:
+		virtual void mousePressEvent(QMouseEvent* e) override;
+		virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
 };

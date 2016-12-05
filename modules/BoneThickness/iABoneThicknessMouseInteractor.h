@@ -27,30 +27,21 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 
+#include "iABoneThickness.h"
+#include "iABoneThicknessTable.h"
+
 class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera
 {
 public:
 	static iABoneThicknessMouseInteractor* New();
 	vtkTypeMacro(iABoneThicknessMouseInteractor, vtkInteractorStyleTrackballCamera);
 
-	iABoneThicknessMouseInteractor()
+	void set(iABoneThickness* _pBoneThickness, iABoneThicknessTable* _pBoneThicknessTable, vtkActorCollection* _pSpheres)
 	{
-
-	}
-
-	~iABoneThicknessMouseInteractor()
-	{
-
-	}
-
-	void setSphereCollection(vtkActorCollection* _pSpheres)
-	{
-		m_pSpheres = _pSpheres;
-	}
-
-	void setBoneThicknessTable(iABoneThicknessTable* _pBoneThicknessTable)
-	{
+		m_pBoneThickness = _pBoneThickness;
 		m_pBoneThicknessTable = _pBoneThicknessTable;
+
+		m_pSpheres = _pSpheres;
 	}
 
 	virtual void OnLeftButtonDown() override
@@ -64,27 +55,31 @@ public:
 
 		if (pPickedActor)
 		{
-			const vtkIdType idSpheresSize(m_pSpheres->GetNumberOfItems());
+			const vtkIdType idPickedActor(m_pSpheres->IsItemPresent(pPickedActor) - 1);
 
-			m_pSpheres->InitTraversal();
-
-			for (vtkIdType i(0); i < idSpheresSize; ++i)
+			if (idPickedActor > -1)
 			{
-				if (pPickedActor == m_pSpheres->GetNextActor())
-				{
-					m_pBoneThicknessTable->setSphereSelected(i);
+				m_pBoneThicknessTable->selectRow(idPickedActor);
 
-					vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-					return;
+				if (m_pBoneThicknessTable->selectionModel()->selectedRows().size())
+				{
+					if (idPickedActor == m_pBoneThicknessTable->selectionModel()->selectedRows().at(0).row())
+					{
+						m_pBoneThicknessTable->setSphereSelected();
+					}
 				}
+
+				vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+				return;
 			}
 		}
 
-		m_pBoneThicknessTable->deSelect();
+		m_pBoneThickness->deSelect();
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 
-private:
-	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-	vtkActorCollection* m_pSpheres = nullptr;
+	private:
+		iABoneThickness* m_pBoneThickness = nullptr;
+		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+		vtkActorCollection* m_pSpheres = nullptr;
 };
