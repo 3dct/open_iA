@@ -39,7 +39,7 @@ public:
 	static QSharedPointer<iASamplingResults> Load(QString const & metaFileName, int datasetID);
 	bool Store(QString const & smpFileName,
 		QString const & parameterSetFileName,
-		QString const & characteristicsFileName);
+		QString const & derivedOutputFileName);
 	int size() const;
 	QSharedPointer<iASingleResult> Get(int i) const;
 	void AddResult(QSharedPointer<iASingleResult> result);
@@ -49,6 +49,7 @@ public:
 	QString GetPath(int id) const;
 	int GetID() const;
 	static int GetNewID();
+	bool StoreAttributes(int type, QString const & fileName, bool id);
 private:
 	QSharedPointer<iAAttributes> m_attributes;
 	QVector<QSharedPointer<iASingleResult> > m_results;
@@ -57,7 +58,6 @@ private:
 	QString m_path;           //!< base filename for the sampling results
 	int m_id;
 
-	bool LoadInternal(QString const & parameterSetFileName, QString const & characteristicsFileName);
-	bool StoreAttributes(int type, QString const & fileName, bool id);
+	bool LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName);
 	static int NewID;
 };

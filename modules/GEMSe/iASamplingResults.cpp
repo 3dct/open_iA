@@ -89,9 +89,9 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 			.arg(currentLine)
 			.arg(SMPFileFormatVersion));
 	}
-	QString parameterSetFileName, characteristicsFileName, samplingMethod;
+	QString parameterSetFileName, derivedOutputFileName, samplingMethod;
 	if (!GetNameValue("ParameterSet", parameterSetFileName, in) ||
-		!GetNameValue("DerivedOutput", characteristicsFileName, in) ||
+		!GetNameValue("DerivedOutput", derivedOutputFileName, in) ||
 		!GetNameValue("SamplingMethod", samplingMethod, in))
 	{
 		DEBUG_LOG("Invalid Sampling descriptor!");
@@ -103,7 +103,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 		attributes, samplingMethod, fileInfo.absolutePath(), datasetID));
 	file.close();
 	if (result->LoadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
-		MakeAbsolute(fileInfo.absolutePath(), characteristicsFileName)))
+		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))
 	{
 		result->m_fileName = smpFileName;
 		return result;
@@ -115,7 +115,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 
 bool iASamplingResults::Store(QString const & fileName,
 	QString const & parameterSetFileName,
-	QString const & characteristicsFileName)
+	QString const & derivedOutputFileName)
 {
 	// write parameter ranges:
 	QFile paramRangeFile(fileName);
@@ -128,7 +128,7 @@ bool iASamplingResults::Store(QString const & fileName,
 	QFileInfo fi(paramRangeFile);
 	out << SMPFileFormatVersion << endl;
 	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << endl;
-	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), characteristicsFileName) << endl;
+	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << endl;
 	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << endl;
 	m_attributes->Store(out);
 	paramRangeFile.close();
@@ -136,7 +136,7 @@ bool iASamplingResults::Store(QString const & fileName,
 	m_fileName = fileName;
 	
 	return StoreAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
-		StoreAttributes(iAAttributeDescriptor::DerivedOutput, characteristicsFileName, false);
+		StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
 	
 
 	return true;
@@ -163,7 +163,7 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 	return true;
 }
 
-bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QString const & characteristicsFileName)
+bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName)
 {
 	QFile paramFile(parameterSetFileName);
 	if (!paramFile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -171,12 +171,12 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 		DEBUG_LOG(QString("Could not open sample parameter set file '%1' for reading!").arg(parameterSetFileName));
 		return false;
 	}
-	QFile characFile(characteristicsFileName);
+	QFile characFile(derivedOutputFileName);
 	bool charac = true;
 	if (!characFile.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 
-		DEBUG_LOG(QString("Could not open sample characteristics file '%1' for reading!").arg(characteristicsFileName));
+		DEBUG_LOG(QString("Could not open sample derived output file '%1' for reading!").arg(derivedOutputFileName));
 		charac = false;
 	}
 	QTextStream paramIn(&paramFile);

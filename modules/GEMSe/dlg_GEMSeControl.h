@@ -80,9 +80,15 @@ private slots:
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
 	void LoadRefImage();
+	void StoreDerivedOutput();
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantUI();
+	void StoreDerivedOutput(
+		QString const & derivedOutputFileName,
+		QString const & attributeDescriptorOutputFileName,
+		QSharedPointer<iASamplingResults> results);
+
 	
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;

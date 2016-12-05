@@ -30,6 +30,7 @@
 #include "dlg_samplings.h"
 #include "dlg_samplingSettings.h"
 #include "iAAttributes.h"
+#include "iAAttributeDescriptor.h"
 #include "iAColorTheme.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
@@ -129,7 +130,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
 	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImage()));
-	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(LoadRefImage()));
+	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(StoreDerivedOutput()));
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
@@ -201,9 +202,9 @@ void dlg_GEMSeControl::StartSampling()
 
 void dlg_GEMSeControl::LoadSampling()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Sampling"),
 		QString(), // TODO get directory of current file
-		tr("Sampling data file (*.smp );;" ) );
+		tr("Attribute Descriptor file (*.smp );;" ) );
 	if (fileName.isEmpty())
 	{
 		return;
@@ -590,6 +591,49 @@ bool dlg_GEMSeControl::LoadReferenceImage(QString const & referenceImageName)
 		m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
 	return true;
 }
+
+void dlg_GEMSeControl::StoreDerivedOutput()
+{
+	QVector<QSharedPointer<iASamplingResults> > const & samplings = m_dlgSamplings->GetSamplings();
+	for (int i = 0; i < samplings.size(); ++i)
+	{
+		QString derivedOutputFileName = QFileDialog::getSaveFileName(this, tr("Save Derived Output"),
+			QString(), // TODO get directory of current file
+			tr("Derived Output (*.chr );;"));
+		QString attributeDescriptorOutputFileName = QFileDialog::getSaveFileName(this, tr("Save Attribute Descriptor"),
+			QString(), // TODO get directory of current file
+			tr("Attribute Descriptor file (*.smp );;")
+		);
+		if (derivedOutputFileName.isEmpty() || attributeDescriptorOutputFileName.isEmpty())
+		{
+			return;
+		}
+		StoreDerivedOutput(derivedOutputFileName, attributeDescriptorOutputFileName, samplings[i]);
+	}
+}
+
+
+void dlg_GEMSeControl::StoreDerivedOutput(
+	QString const & derivedOutputFileName,
+	QString const & attributeDescriptorOutputFileName,
+	QSharedPointer<iASamplingResults> results)
+{
+
+	// TODO: update smp file with all attribute descriptors
+	// for now: write to separate descriptor file:
+	QFile paramRangeFile(attributeDescriptorOutputFileName);
+	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		DEBUG_LOG(QString("Could not open parameter descriptor file '%1' for writing!").arg(attributeDescriptorOutputFileName));
+		return;
+	}
+	QTextStream out(&paramRangeFile);
+	results->GetAttributes()->Store(out);
+
+	// store derived output:
+	results->StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
+}
+
 
 void dlg_GEMSeControl::ExportAttributeRangeRanking()
 {

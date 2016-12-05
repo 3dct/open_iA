@@ -56,6 +56,7 @@ private slots:
 	void Sample();
 	void ClusterUncertaintyDice();
 	void StoreResult();
+	void StoreConfig();
 	void AbsMinPercentSlider(int);
 	void MinDiffPercentSlider(int);
 	void MinRatioSlider(int);

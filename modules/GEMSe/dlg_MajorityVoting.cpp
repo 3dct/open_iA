@@ -118,6 +118,7 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	connect(pbMaxPixelEntropy_Plot, SIGNAL(clicked()), this, SLOT(MaxPixelEntropyPlot()));
 	connect(pbClusterUncertaintyDice, SIGNAL(clicked()), this, SLOT(ClusterUncertaintyDice()));
 	connect(pbStore, SIGNAL(clicked()), this, SLOT(StoreResult()));
+	connect(pbStoreConfig, SIGNAL(clicked()), this, SLOT(StoreConfig()));
 	connect(slAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(AbsMinPercentSlider(int)));
 	connect(slMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MinDiffPercentSlider(int)));
 	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
@@ -400,6 +401,11 @@ void dlg_MajorityVoting::StoreResult()
 		iAIOProvider::GetSupportedSaveFormats()
 	);
 	iAITKIO::writeFile(fileName, m_lastMVResult, pixelType);
+}
+
+void dlg_MajorityVoting::StoreConfig()
+{
+
 }
 
 // Where to put temporary output

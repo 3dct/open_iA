@@ -571,6 +571,7 @@ void dlg_GEMSe::AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData)
 	}
 }
 
+
 void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)

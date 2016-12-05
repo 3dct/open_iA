@@ -50,7 +50,7 @@ iAImageSampler::iAImageSampler(
 		QString const & outputBaseDir,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
-		QString const & characteristicsFile,
+		QString const & derivedOutputFile,
 		QString const & computationExecutable,
 		QString const & additionalArguments) :
 	m_modalities(modalities),
@@ -64,9 +64,9 @@ iAImageSampler::iAImageSampler(
 	m_additionalArguments(additionalArguments),
 	m_outputBaseDir(outputBaseDir),
 	m_aborted(false),
-	m_parameterRangeFile (parameterRangeFile),
-	m_parameterSetFile   (parameterSetFile),
-	m_characteristicsFile(characteristicsFile),
+	m_parameterRangeFile(parameterRangeFile),
+	m_parameterSetFile  (parameterSetFile),
+	m_derivedOutputFile (derivedOutputFile),
 	m_runningOperations(0),
 	m_computationDuration(0),
 	m_derivedOutputDuration(0)
@@ -209,7 +209,7 @@ void iAImageSampler::computationFinished()
 		DEBUG_LOG(QString("Computation was NOT successful!"));
 		m_aborted = true;
 
-		// we don't start characteristics calculation (at which's end we would do this otherwise):
+		// we don't start derived output calculation (at which's end we would do this otherwise):
 		m_mutex.lock();
 		m_runningOperations--;
 		m_mutex.unlock();
@@ -255,10 +255,10 @@ void iAImageSampler::derivedOutputFinished()
 	// TODO: pass in from somewhere! Or don't store here at all? but what in case of a power outage/error?
 	QString sampleMetaFile      = m_outputBaseDir + "/" + m_parameterRangeFile;
 	QString parameterSetFile    = m_outputBaseDir + "/" + m_parameterSetFile;
-	QString characteristicsFile = m_outputBaseDir + "/" + m_characteristicsFile;
+	QString derivedOutputFile = m_outputBaseDir + "/" + m_derivedOutputFile;
 	m_results->AddResult(result);
 	emit Progress((100*m_results->size()) / m_parameterSets->size());
-	if (!m_results->Store(sampleMetaFile, parameterSetFile, characteristicsFile))
+	if (!m_results->Store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 	{
 		DEBUG_LOG("Error writing parameter file.");
 	}

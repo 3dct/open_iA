@@ -51,7 +51,7 @@ public:
 		QString const & outputBaseDir,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
-		QString const & characteristicsFile,
+		QString const & derivedOutputFile,
 		QString const & computationExecutable,
 		QString const & additionalArguments);
 	QSharedPointer<iASamplingResults> GetResults();
@@ -78,7 +78,7 @@ private:
 
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
-	QString m_characteristicsFile;
+	QString m_derivedOutputFile;
 	//! @}
 
 	size_t m_curLoop;
