@@ -59,16 +59,15 @@ public:
 
 			if (idPickedActor > -1)
 			{
-				m_pBoneThicknessTable->selectRow(idPickedActor);
-
-				if (m_pBoneThicknessTable->selectionModel()->selectedRows().size())
+				if (idPickedActor == m_pBoneThicknessTable->selectedRow())
 				{
-					if (idPickedActor == m_pBoneThicknessTable->selectionModel()->selectedRows().at(0).row())
-					{
-						m_pBoneThicknessTable->setSphereSelected();
-					}
+					m_pBoneThicknessTable->setSphereSelected();
 				}
-
+				else
+				{
+					m_pBoneThicknessTable->selectRow(idPickedActor);
+				}
+					
 				vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 				return;
 			}

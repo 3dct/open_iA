@@ -634,7 +634,6 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 	m_dRangeMin = vtkMath::Min(m_pRange[0], vtkMath::Min(m_pRange[1], m_pRange[2]));
 
 	m_dCalculateSphereRadius = 0.2 * vtkMath::Ceil(0.2 * m_dRangeMax);
-	m_dCalculateThicknessMaximum = 0.5 * vtkMath::Ceil(m_dRangeMin);
 
 	m_pThicknessLines = vtkActorCollection::New();
 	m_pSpheres = vtkActorCollection::New();
@@ -657,13 +656,13 @@ void iABoneThickness::setCalculateSphereRadius(const double& _dCalculateSphereRa
 
 void iABoneThickness::setCalculateThickness(const int& _iPoint, const double& _dCalculateThickness)
 {
-	if (_dCalculateThickness > m_dCalculateThicknessMaximum)
+	if ((m_dCalculateThicknessMaximum == 0.0) || (_dCalculateThickness < m_dCalculateThicknessMaximum))
 	{
-		m_vCalculateThickness[_iPoint] = 0.0;
+		m_vCalculateThickness[_iPoint] = _dCalculateThickness;
 	}
 	else
 	{
-		m_vCalculateThickness[_iPoint] = _dCalculateThickness;
+		m_vCalculateThickness[_iPoint] = 0.0;
 	}
 }
 
@@ -705,18 +704,24 @@ void iABoneThickness::setSphereOpacity(const double& _dSphereOpacity)
 
 void iABoneThickness::setSphereSelected(const vtkIdType& _idSphereSelected, iABoneThicknessTable* _pBoneThicknessTable)
 {
-	if (m_idSphereSelected > -1)
+	if (m_pSpheres)
 	{
-		vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
-		pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		if (m_idSphereSelected > -1)
+		{
+			vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
+			pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		}
+
+		m_idSphereSelected = _idSphereSelected;
+
+		if (m_idSphereSelected > -1)
+		{
+			vtkActor* pActor2((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
+			pActor2->GetProperty()->SetColor(0.0, 1.0, 0.0);
+		}
+
+		m_iARenderer->update();
 	}
-
-	m_idSphereSelected = _idSphereSelected;
-
-	vtkActor* pActor2((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
-	pActor2->GetProperty()->SetColor(0.0, 1.0, 0.0);
-
-	m_iARenderer->update();
 }
 
 void iABoneThickness::setSurfaceOpacity(const double& _dSurfaceOpacity)

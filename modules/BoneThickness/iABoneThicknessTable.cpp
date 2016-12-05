@@ -51,6 +51,20 @@ void iABoneThicknessTable::mousePressEvent(QMouseEvent* e)
 	QTableView::mousePressEvent(e);
 }
 
+int iABoneThicknessTable::selectedRow() const
+{
+	const QModelIndexList listRows(selectionModel()->selectedRows());
+
+	if (listRows.size())
+	{
+		return listRows.at(0).row();
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 void iABoneThicknessTable::selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected)
 {
 	setSphereSelected();
@@ -59,12 +73,5 @@ void iABoneThicknessTable::selectionChanged(const QItemSelection& _itemSelected,
 
 void iABoneThicknessTable::setSphereSelected()
 {
-	if (selectionModel()->selectedRows().size())
-	{
-		m_pBoneThickness->setSphereSelected(selectionModel()->selectedRows().at(0).row());
-	}
-	else
-	{
-		m_pBoneThickness->deSelect();
-	}
+	m_pBoneThickness->setSphereSelected(selectedRow());
 }

@@ -32,6 +32,8 @@ class iABoneThicknessTable : public QTableView
 	public:
 		explicit iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWidget* _pParent = nullptr);
 
+		int selectedRow() const;
+
 		void setSphereSelected();
 
 private:

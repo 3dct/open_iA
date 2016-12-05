@@ -96,7 +96,7 @@ class iABoneThickness : public vtkObject
 		bool m_bShowThicknessLines = true;
 
 		double m_dCalculateSphereRadius = 0.5;
-		double m_dCalculateThicknessMaximum = 1.0;
+		double m_dCalculateThicknessMaximum = 0.0;
 		double m_dRangeMax = 1.0;
 		double m_dRangeMin = 0.0;
 		double m_dSphereOpacity = 1.0;
