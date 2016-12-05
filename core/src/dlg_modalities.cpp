@@ -70,6 +70,9 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(ListClicked(QListWidgetItem*)));
 
+	connect(lwModalities, SIGNAL(itemChanged(QListWidgetItem*)),
+		this, SLOT(ShowChecked(QListWidgetItem*)));
+
 	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
 }
 
@@ -242,6 +245,8 @@ void dlg_modalities::AddToList(QSharedPointer<iAModality> mod)
 	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
 	lwModalities->addItem(listItem);
 	lwModalities->setCurrentItem(listItem);
+	listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
+	listItem->setCheckState(Qt::Checked);
 }
 
 void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
@@ -297,6 +302,8 @@ void dlg_modalities::RemoveClicked()
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
 	EnableButtons();
+
+	m_mainRenderer->GetRenderWindow()->Render();
 	emit ModalitiesChanged();
 }
 
@@ -389,6 +396,20 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
 	SwitchHistogram(modTransfer);
 	emit ShowImage(currentData->GetImage());
+}
+
+void dlg_modalities::ShowChecked(QListWidgetItem* item)
+{
+	int i = lwModalities->row(item);
+	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
+	if (!renderer)
+	{
+		DEBUG_LOG("No Renderer set!");
+		return;
+	}
+	bool isChecked = item->checkState() == Qt::Checked;
+	renderer->ShowVolume(isChecked);
+	m_mainRenderer->GetRenderWindow()->Render();
 }
 
 QSharedPointer<iAModalityList const> dlg_modalities::GetModalities() const

@@ -104,6 +104,7 @@ private slots:
 
 	void EnableButtons();
 	void ListClicked(QListWidgetItem* item);
+	void ShowChecked(QListWidgetItem* item);
 
 private:
 	QSharedPointer<iAModalityList> modalities;
