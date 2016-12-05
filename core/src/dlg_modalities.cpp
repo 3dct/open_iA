@@ -243,10 +243,10 @@ void dlg_modalities::InitDisplay(QSharedPointer<iAModality> mod)
 void dlg_modalities::AddToList(QSharedPointer<iAModality> mod)
 {
 	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
+	lwModalities->addItem(listItem);
 	lwModalities->setCurrentItem(listItem);
 	listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
 	listItem->setCheckState(Qt::Checked);
-	lwModalities->addItem(listItem);
 }
 
 void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
