@@ -56,24 +56,10 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="cbMainRenderer">
-        <property name="text">
-         <string>Main Renderer</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Show in</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="cbMagicLens">
-        <property name="text">
-         <string>Magic Lens</string>
         </property>
        </widget>
       </item>
@@ -98,6 +84,13 @@
        <widget class="QLineEdit" name="edChannel">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QCheckBox" name="cbMagicLens">
+        <property name="text">
+         <string>Magic Lens</string>
         </property>
        </widget>
       </item>
