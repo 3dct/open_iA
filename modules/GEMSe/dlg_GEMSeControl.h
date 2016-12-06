@@ -84,6 +84,7 @@ private slots:
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantUI();
+	void EnableSamplingDependantUI();
 	void StoreDerivedOutput(
 		QString const & derivedOutputFileName,
 		QString const & attributeDescriptorOutputFileName,

@@ -243,9 +243,7 @@ bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, in
 		return false;
 	}
 	m_dlgSamplings->Add(samplingResults);
-	pbClusteringCalc->setEnabled(true);
-	pbClusteringLoad->setEnabled(true);
-	pbAllStore->setEnabled(true);
+	EnableSamplingDependantUI();
 	QFileInfo fi(fileName);
 	m_outputFolder = fi.absolutePath();
 	return true;
@@ -267,15 +265,11 @@ void dlg_GEMSeControl::SamplingFinished()
 	}
 	m_sampler.clear();
 	m_dlgSamplings->Add(samplingResults);
-
 	samplingResults->Store(
 		m_outputFolder + "/" + iASEAFile::DefaultSMPFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultSPSFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultCHRFileName);
-
-	pbClusteringCalc->setEnabled(true);
-	pbClusteringLoad->setEnabled(true);
-	pbAllStore->setEnabled(true);
+	EnableSamplingDependantUI();
 }
 
 
@@ -490,6 +484,14 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
 		mdiChild->splitDockWidget(this, m_dlgMajorityVoting, Qt::Vertical);
 	}
+}
+
+void dlg_GEMSeControl::EnableSamplingDependantUI()
+{
+	pbClusteringCalc->setEnabled(true);
+	pbClusteringLoad->setEnabled(true);
+	pbAllStore->setEnabled(true);
+	pbStoreDerivedOutput->setEnabled(true);
 }
 
 
