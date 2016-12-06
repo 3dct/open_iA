@@ -18,40 +18,12 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "iABoneThicknessSplitter.h"
 
-#include <QDoubleSpinBox>
-
-#include <vtkSmartPointer.h>
-
-#include "iABoneThickness.h"
-
-class iABoneThicknessChart;
-class iABoneThicknessTable;
-
-class iABoneThicknessAttachment : public iAModuleAttachmentToChild
+iABoneThicknessSplitter::iABoneThicknessSplitter(QWidget* _pParent) : QSplitter(_pParent)
 {
-	Q_OBJECT
+	const QColor cColor(palette().color(QPalette::WindowText));
 
-	public:
-		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
-
-	private:
-		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
-
-		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
-		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
-
-		vtkSmartPointer<iABoneThickness> m_pBoneThickness = nullptr;
-
-	private slots:
-	    void slotDoubleSpinBoxSphereRadius();
-		void slotDoubleSpinBoxThicknessMaximum();
-		void slotPushButtonOpen();
-		void slotPushButtonSave();
-		void slotCheckBoxShowThickness(const bool& _bChecked);
-		void slotCheckBoxTransparency(const bool& _bChecked);
-};
+	setStyleSheet("QSplitter::handle{background: " + cColor.name() + ";}");
+}

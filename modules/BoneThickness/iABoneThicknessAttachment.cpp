@@ -32,19 +32,27 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QPushButton>
+#include <QSplitter>
 
 #include <vtkObjectFactory.h>
+
 #include <iADockWidgetWrapper.h>
+
+#include "iABoneThicknessChart.h"
+#include "iABoneThicknessSplitter.h"
+#include "iABoneThicknessTable.h"
 
 vtkStandardNewMacro(iABoneThickness);
 
 iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
 	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
 {
+	QWidget* pWidget(new QWidget());
+
 	m_pBoneThickness = vtkSmartPointer<iABoneThickness>::New();
 
-	QWidget* pWidget(new QWidget());
 	m_pBoneThicknessTable = new iABoneThicknessTable(m_pBoneThickness, pWidget);
+	m_pBoneThicknessChart = new iABoneThicknessChart(pWidget);
 
 	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessTable);
 
@@ -57,6 +65,8 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	connect(pPushButtonSave, SIGNAL(clicked()), this, SLOT(slotPushButtonSave()));
 
 	QGroupBox* pGroupBoxBound(new QGroupBox("Surface bounds", pWidget));
+	pGroupBoxBound->setFixedHeight(pGroupBoxBound->logicalDpiY() / 2);
+
 	QLabel* pLabelBoundXMin(new QLabel(QString("X min: %1").arg(m_pBoneThickness->axisXMin()), pGroupBoxBound));
 	QLabel* pLabelBoundXMax(new QLabel(QString("X max: %1").arg(m_pBoneThickness->axisXMax()), pGroupBoxBound));
 	QLabel* pLabelBoundXRng(new QLabel(QString("X range: %1").arg(m_pBoneThickness->rangeX()), pGroupBoxBound));
@@ -78,7 +88,12 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayoutBound->addWidget(pLabelBoundZMax, 0, 7);
 	pGridLayoutBound->addWidget(pLabelBoundZRng, 0, 8);
 
+	iABoneThicknessSplitter* pBoneThicknessSplitter(new iABoneThicknessSplitter(pWidget));
+	pBoneThicknessSplitter->addWidget(m_pBoneThicknessTable);
+	pBoneThicknessSplitter->addWidget(m_pBoneThicknessChart);
+
 	QGroupBox* pGroupBoxSettings(new QGroupBox("Settings", pWidget));
+	pGroupBoxSettings->setFixedHeight(pGroupBoxSettings->logicalDpiY() / 2);
 
 	QLabel* pLabelSphereRadius(new QLabel("Calculation radius:", pGroupBoxSettings));
 	m_pDoubleSpinBoxSphereRadius = new QDoubleSpinBox(pGroupBoxSettings);
@@ -116,7 +131,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayout->addWidget(pPushButtonOpen, 0, 0);
 	pGridLayout->addWidget(pPushButtonSave, 0, 1);
 	pGridLayout->addWidget(pGroupBoxBound, 1, 0, 1, 2);
-	pGridLayout->addWidget(m_pBoneThicknessTable, 2, 0, 1, 2);
+	pGridLayout->addWidget(pBoneThicknessSplitter, 2, 0, 1, 2);
 	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
 	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));

@@ -18,40 +18,19 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #pragma once
+// iA
 
-#include "iAModuleAttachmentToChild.h"
+#include <QSplitter>
 
-#include <QDoubleSpinBox>
+#include <QShowEvent>
 
-#include <vtkSmartPointer.h>
-
-#include "iABoneThickness.h"
-
-class iABoneThicknessChart;
-class iABoneThicknessTable;
-
-class iABoneThicknessAttachment : public iAModuleAttachmentToChild
+class iABoneThicknessSplitter : public QSplitter
 {
-	Q_OBJECT
+		Q_OBJECT
 
 	public:
-		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
+		explicit iABoneThicknessSplitter(QWidget* _pParent = nullptr);
 
-	private:
-		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
-
-		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
-		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
-
-		vtkSmartPointer<iABoneThickness> m_pBoneThickness = nullptr;
-
-	private slots:
-	    void slotDoubleSpinBoxSphereRadius();
-		void slotDoubleSpinBoxThicknessMaximum();
-		void slotPushButtonOpen();
-		void slotPushButtonSave();
-		void slotCheckBoxShowThickness(const bool& _bChecked);
-		void slotCheckBoxTransparency(const bool& _bChecked);
 };

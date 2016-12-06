@@ -18,40 +18,29 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "iABoneThicknessChart.h"
 
-#include <QDoubleSpinBox>
-
+#include <vtkAxis.h>
+#include <vtkChartXY.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
 #include <vtkSmartPointer.h>
 
-#include "iABoneThickness.h"
-
-class iABoneThicknessChart;
-class iABoneThicknessTable;
-
-class iABoneThicknessAttachment : public iAModuleAttachmentToChild
+iABoneThicknessChart::iABoneThicknessChart(QWidget* _pParent) : QVTKWidget2(_pParent)
 {
-	Q_OBJECT
+	vtkSmartPointer<vtkChartXY> pChart (vtkSmartPointer<vtkChartXY>::New());
+	pChart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	
+	vtkAxis* pAxis1(pChart->GetAxis(vtkAxis::BOTTOM));
+	pAxis1->SetTitle("Points");
 
-	public:
-		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
+	vtkAxis* pAxis2(pChart->GetAxis(vtkAxis::LEFT));
+	pAxis2->SetTitle("Thickness");
 
-	private:
-		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
+	vtkPlot* pPlot (pChart->AddPlot(vtkChart::BAR));
 
-		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
-		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
-
-		vtkSmartPointer<iABoneThickness> m_pBoneThickness = nullptr;
-
-	private slots:
-	    void slotDoubleSpinBoxSphereRadius();
-		void slotDoubleSpinBoxThicknessMaximum();
-		void slotPushButtonOpen();
-		void slotPushButtonSave();
-		void slotCheckBoxShowThickness(const bool& _bChecked);
-		void slotCheckBoxTransparency(const bool& _bChecked);
-};
+	vtkSmartPointer<vtkContextView> pContextView = vtkSmartPointer<vtkContextView>::New();
+	pContextView->SetRenderWindow((vtkRenderWindow*) GetRenderWindow());
+	pContextView->GetScene()->AddItem(pChart);
+}

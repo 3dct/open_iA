@@ -561,7 +561,7 @@ void iABoneThickness::setTransparency(const bool& _bTransparency)
 {
 	if (_bTransparency)
 	{
-		setSphereOpacity(0.3);
+		setSphereOpacity(0.4);
 		setSurfaceOpacity(0.6);
 	}
 	else
