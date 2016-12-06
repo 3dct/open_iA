@@ -472,7 +472,8 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 		m_simpleLabelInfo->count(),
 		samplingFilenames,
 		m_cltFile,
-		mdiChild->GetLayoutName());
+		mdiChild->GetLayoutName(),
+		leRefImage->text());
 	metaFile.Store(fileName);
 }
 

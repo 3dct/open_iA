@@ -138,7 +138,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
 	if (metaFile.contains(ReferenceImageKey))
 	{
-		m_ReferenceImageName = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
+		m_ReferenceImage = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
 	}
 	m_good = true;
 }
@@ -149,12 +149,14 @@ iASEAFile::iASEAFile(
 		int labelCount,
 		QMap<int, QString> const & samplings,
 		QString const & clusterFile,
-		QString const & layout):
+		QString const & layout,
+		QString const & referenceImage):
 	m_ModalityFileName(modalityFile),
 	m_LabelCount(labelCount),
 	m_Samplings(samplings),
 	m_ClusteringFileName(clusterFile),
 	m_LayoutName(layout),
+	m_ReferenceImage(referenceImage),
 	m_good(true)
 {
 	
@@ -175,7 +177,11 @@ void iASEAFile::Store(QString const & fileName)
 		metaFile.setValue(SamplingDataKey + QString::number(key), MakeRelative(path, m_Samplings[key]));
 	}
 	metaFile.setValue(ClusteringDataKey, MakeRelative(path, m_ClusteringFileName));
-	metaFile.setValue(LayoutKey        , MakeRelative(path, m_LayoutName));
+	metaFile.setValue(LayoutKey        , m_LayoutName);
+	if (!m_ReferenceImage.isEmpty())
+	{
+		metaFile.setValue(ReferenceImageKey, MakeRelative(path, m_ReferenceImage));
+	}
 	
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
@@ -215,7 +221,7 @@ QString const & iASEAFile::GetLayoutName() const
 	return m_LayoutName;
 }
 
-QString const & iASEAFile::GetReferenceImageName() const
+QString const & iASEAFile::GetReferenceImage() const
 {
-	return m_ReferenceImageName;
+	return m_ReferenceImage;
 }

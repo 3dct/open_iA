@@ -132,9 +132,9 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	{
 		child->LoadLayout(seaFile.GetLayoutName());
 	}
-	if (seaFile.GetReferenceImageName() != "")
+	if (seaFile.GetReferenceImage() != "")
 	{
-		gemseAttach->LoadReferenceImage(seaFile.GetReferenceImageName());
+		gemseAttach->LoadReferenceImage(seaFile.GetReferenceImage());
 	}
 }
 
