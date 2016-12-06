@@ -29,6 +29,7 @@
 iABoneThicknessTable::iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWidget* _pParent) : QTableView (_pParent), m_pBoneThickness (_pBoneThickness)
 {
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
+	setFocusPolicy(Qt::NoFocus);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 

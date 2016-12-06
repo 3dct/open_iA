@@ -26,9 +26,7 @@
 #include <QTextStream>
 
 #include <vtkCellLocator.h>
-#include <vtkDoubleArray.h>
 #include <vtkMath.h>
-#include <vtkLineSource.h>
 #include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPCAStatistics.h>
@@ -40,6 +38,7 @@
 #include <vtkTubeFilter.h>
 
 #include "iABoneThicknessMouseInteractor.h"
+
 vtkStandardNewMacro(iABoneThicknessMouseInteractor);
 
 double iABoneThickness::axisXMax() const
@@ -72,147 +71,58 @@ double iABoneThickness::axisZMin() const
 	return m_pBound[4];
 }
 
-void iABoneThickness::addNormalsInPoint(vtkPoints* _pPointNormals)
-{
-	if (m_pPoints)
-	{
-		const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
-
-		QVector<vtkSmartPointer<vtkPoints>> vPoints;
-		vPoints.resize(idPoints);
-
-		for (vtkIdType i(0); i < idPoints; ++i)
-		{
-			vPoints[i] = vtkPoints::New();
-		}
-
-		findPoints(vPoints);
-
-		double pNormal[3] = { 0.0 , 0.0 , 0.0 };
-
-		if (m_eMethod == eCentroid)
-		{
-			for (vtkIdType i(0); i < idPoints; ++i)
-			{
-				double pCenter[3] = { 0.0 , 0.0 , 0.0 };
-
-				if (getCenterFromPoints(vPoints[i], pCenter))
-				{
-					double pPoint[3];
-					m_pPoints->GetPoint(i, pPoint);
-
-					pNormal[0] = pPoint[0] - pCenter[0];
-					pNormal[1] = pPoint[1] - pCenter[1];
-					pNormal[2] = pPoint[2] - pCenter[2];
-					vtkMath::Normalize(pNormal);
-				}
-				else
-				{
-					pNormal[0] = pNormal[1] = pNormal[2] = 0.0;
-				}
-
-				_pPointNormals->InsertNextPoint(pNormal);
-			}
-		}
-		else if (m_eMethod == ePCA)
-		{
-			for (vtkIdType i(0); i < idPoints; ++i)
-			{
-				if (getNormalFromPCA(vPoints[i], pNormal))
-				{
-					vtkMath::Normalize(pNormal);
-				}
-				else
-				{
-					pNormal[0] = pNormal[1] = pNormal[2] = 0.0;
-				}
-
-				_pPointNormals->InsertNextPoint(pNormal);
-			}
-		}
-		else
-		{
-			for (vtkIdType i(0); i < idPoints; ++i)
-			{
-				if (getNormalFromPoints(vPoints[i], pNormal))
-				{
-					vtkMath::Normalize(pNormal);
-				}
-				else
-				{
-					pNormal[0] = pNormal[1] = pNormal[2] = 0.0;
-				}
-
-				_pPointNormals->InsertNextPoint(pNormal);
-			}
-		}
-	}
-}
-
 void iABoneThickness::calculate()
 {
 	if (m_pPoints)
 	{
-		const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
-
-		vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
-		addNormalsInPoint(PointNormals);
+		getDistance();
 
 		vtkSmartPointer<vtkCellLocator> CellLocator(vtkCellLocator::New());
 		CellLocator->SetDataSet(m_pPolyData);
 		CellLocator->BuildLocator();
 		CellLocator->Update();
 
-		vtkSmartPointer<vtkIdList> idListClosest(vtkSmartPointer<vtkIdList>::New());
-		getClosestPoints(idListClosest);
+		vtkSmartPointer<vtkPoints> PointNormals(vtkPoints::New());
+		getNormalsInPoint(PointNormals);
+
+		const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
 
 		const double dLength(0.5 * vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2])));
-		double tol(0.0), t(0.0), pcoords[3];
-		int subId;
+
+		double tol(0.0);
+		double t(0.0);
+		double pcoords[3];
+		double x1[3];
+		double x2[3];
+
+		int subId (0);
 
 		for (int i(0); i < idPoints; ++i)
 		{
-			double pPoint[3];
-			m_pPoints->GetPoint(i, pPoint);
-
-			double pNormal[3];
-			PointNormals->GetPoint(i, pNormal);
-
-			if ((pNormal[0] == 0.0) && (pNormal[1] == 0.0) && (pNormal[2] == 0.0))
-			{
-				setCalculateThickness(i, 0.0);
-
-				m_pLines[i]->SetPoint1(pNormal);
-				m_pLines[i]->SetPoint2(pNormal);
-
-				continue;
-			}
-
+			double* pPoint (m_pPoints->GetPoint(i));
+			
+			const double* pNormal (PointNormals->GetPoint(i));
 			double pPoint21[3] = { pPoint[0] + dLength * pNormal[0], pPoint[1] + dLength * pNormal[1], pPoint[2] + dLength * pNormal[2] };
 			double pPoint22[3] = { pPoint[0] - dLength * pNormal[0], pPoint[1] - dLength * pNormal[1], pPoint[2] - dLength * pNormal[2] };
 
 			double dThickness1(0.0);
 
-			double x1[3] = { 0.0, 0.0, 0.0 };
-
 			if (CellLocator->IntersectWithLine(pPoint21, pPoint, tol, t, x1, pcoords, subId))
 			{
 				dThickness1 = sqrt(vtkMath::Distance2BetweenPoints(pPoint, x1));
 
-				setCalculateThickness(i, dThickness1);
+				setThickness(i, dThickness1);
 
 				m_pLines[i]->SetPoint1(pPoint);
 				m_pLines[i]->SetPoint2(x1);
 			}
 			else
 			{
-				setCalculateThickness(i, 0.0);
+				setThickness(i, 0.0);
 
 				m_pLines[i]->SetPoint1(x1);
 				m_pLines[i]->SetPoint2(x1);
 			}
-
-			double x2[3] = { 0.0, 0.0, 0.0 };
 
 			if (CellLocator->IntersectWithLine(pPoint22, pPoint, tol, t, x2, pcoords, subId))
 			{
@@ -220,7 +130,7 @@ void iABoneThickness::calculate()
 
 				if (dThickness2 > dThickness1)
 				{
-					setCalculateThickness(i, dThickness2);
+					setThickness(i, dThickness2);
 
 					m_pLines[i]->SetPoint1(pPoint);
 					m_pLines[i]->SetPoint2(x2);
@@ -228,16 +138,6 @@ void iABoneThickness::calculate()
 			}
 		}
 	}
-}
-
-double iABoneThickness::calculateSphereRadius() const
-{
-	return m_dCalculateSphereRadius;
-}
-
-double iABoneThickness::calculateThicknessMaximum() const
-{
-	return m_dCalculateThicknessMaximum;
 }
 
 void iABoneThickness::deSelect()
@@ -255,114 +155,44 @@ void iABoneThickness::deSelect()
 
 void iABoneThickness::findPoints(QVector<vtkSmartPointer<vtkPoints>>& _vPoints)
 {
-	const vtkIdType idPolyDataPoints(m_pPolyData->GetNumberOfPoints());
-
-	const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
-
 	vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
 	pPointLocator->SetDataSet(m_pPolyData);
 	pPointLocator->BuildLocator();
 
+	const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
+
 	for (vtkIdType i(0); i < idPoints; ++i)
 	{
-		double pPoint[3];
-		m_pPoints->GetPoint(i, pPoint);
+		const double* pPoint (m_pPoints->GetPoint(i));
 
 		vtkSmartPointer<vtkIdList> idListPointsWithinRadius(vtkSmartPointer<vtkIdList>::New());
-		pPointLocator->FindPointsWithinRadius(m_dCalculateSphereRadius, pPoint, idListPointsWithinRadius);
+		pPointLocator->FindPointsWithinRadius(m_dSphereRadius, pPoint, idListPointsWithinRadius);
 
 		const vtkIdType idPointsWithinRadius(idListPointsWithinRadius->GetNumberOfIds());
 
 		for (vtkIdType ii(0); ii < idPointsWithinRadius; ++ii)
 		{
-			double pPointFromlist[3];
-			m_pPolyData->GetPoint(ii, pPointFromlist);
+			const double* pPointFromlist (m_pPolyData->GetPoint(ii));
 
 			_vPoints[i]->InsertNextPoint(pPointFromlist);
 		}
 	}
 }
 
-bool iABoneThickness::getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter)
+void iABoneThickness::getDistance()
 {
-	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
-
-	if (idPoints > 1)
-	{
-		_pPoints->GetPoint(0, _pCenter);
-
-		for (vtkIdType i(1); i < idPoints; ++i)
-		{
-			double pPoint[3];
-			_pPoints->GetPoint(i, pPoint);
-
-			_pCenter[0] += pPoint[0];
-			_pCenter[1] += pPoint[1];
-			_pCenter[2] += pPoint[2];
-		}
-
-		const double dPoints((double)idPoints);
-
-		_pCenter[0] /= dPoints;
-		_pCenter[1] /= dPoints;
-		_pCenter[2] /= dPoints;
-
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-void iABoneThickness::getClosestPoints(vtkIdList* _idListClosest)
-{
-	const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
-
 	vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
 	pPointLocator->SetDataSet(m_pPolyData);
 	pPointLocator->BuildLocator();
 
+	const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
+
 	for (int i(0); i < idPoints; ++i)
 	{
-		double pPoint[3];
-		m_pPoints->GetPoint(i, pPoint);
+		const double* pPoint(m_pPoints->GetPoint(i));
+		const double* pPointClosest (m_pPolyData->GetPoint(pPointLocator->FindClosestPoint(pPoint)));
 
-		const vtkIdType idPointClosest(pPointLocator->FindClosestPoint(pPoint));
-
-		_idListClosest->InsertNextId(idPointClosest);
-
-		double pPointClosest[3];
-		m_pPolyData->GetPoint(idPointClosest, pPointClosest);
-
-		m_vCalculateDistance[i] = vtkMath::Distance2BetweenPoints(pPoint, pPointClosest);
-	}
-}
-
-void iABoneThickness::getConnectedPoints(const vtkIdType& _idPoint, vtkPoints* _pPoints)
-{
-	const vtkIdType idPolyPoints(m_pPolyData->GetNumberOfPoints());
-
-	vtkSmartPointer<vtkIdList> cellIdList(vtkSmartPointer<vtkIdList>::New());
-	m_pPolyData->GetPointCells(_idPoint, cellIdList);
-
-	const vtkIdType idCellIdList(cellIdList->GetNumberOfIds());
-
-	for (vtkIdType i(0); i < idCellIdList; ++i)
-	{
-		vtkSmartPointer<vtkIdList> pointIdList(vtkSmartPointer<vtkIdList>::New());
-		m_pPolyData->GetCellPoints(cellIdList->GetId(i), pointIdList);
-
-		const vtkIdType idCellPoint0(pointIdList->GetId(0));
-
-		if (idCellPoint0 == _idPoint)
-		{
-			_pPoints->InsertNextPoint(m_pPolyData->GetPoint(pointIdList->GetId(1)));
-		}
-		else
-		{
-			_pPoints->InsertNextPoint(m_pPolyData->GetPoint(idCellPoint0));
-		}
+		m_daDistance->SetTuple1(i, vtkMath::Distance2BetweenPoints(pPoint, pPointClosest));
 	}
 }
 
@@ -370,7 +200,7 @@ bool iABoneThickness::getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal)
 {
 	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
 
-	if (idPoints > 3)
+	if (idPoints > 2)
 	{
 		vtkSmartPointer<vtkDoubleArray> xArray(vtkSmartPointer<vtkDoubleArray>::New());
 		xArray->SetNumberOfComponents(1);
@@ -386,7 +216,7 @@ bool iABoneThickness::getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal)
 
 		double pPoint[3];
 
-		for (vtkIdType i = 0; i < idPoints; i++)
+		for (vtkIdType i (0); i < idPoints; i++)
 		{
 			_pPoints->GetPoint(i, pPoint);
 
@@ -424,108 +254,38 @@ bool iABoneThickness::getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal)
 	return false;
 }
 
-bool iABoneThickness::getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal)
+void iABoneThickness::getNormalsInPoint(vtkPoints* _pPointNormals)
 {
-	const vtkIdType idPoints(_pPoints->GetNumberOfPoints());
-
-	double pCenter[3];
-
-	if (getCenterFromPoints(_pPoints, pCenter))
+	if (m_pPoints)
 	{
-		if (idPoints > 3)
+		const vtkIdType idPoints(m_pPoints->GetNumberOfPoints());
+
+		QVector<vtkSmartPointer<vtkPoints>> vPoints;
+		vPoints.resize(idPoints);
+
+		for (vtkIdType i(0); i < idPoints; ++i)
 		{
-			// With coordinates from centroid, Plane: Z = a * X + b * Y + D
+			vPoints[i] = vtkPoints::New();
+		}
 
-			double pPoint[3];
-			_pPoints->GetPoint(0, pPoint);
+		findPoints(vPoints);
 
-			double pPoint0[3] = { pPoint[0] - pCenter[0], pPoint[1] - pCenter[1], pPoint[2] - pCenter[2] };
+		double pNormal[3];
 
-			double dSumXX(pPoint0[0] * pPoint0[0]);
-			double dSumXY(pPoint0[0] * pPoint0[1]);
-			double dSumXZ(pPoint0[0] * pPoint0[2]);
-			double dSumYY(pPoint0[1] * pPoint0[1]);
-			double dSumYZ(pPoint0[1] * pPoint0[2]);
-
-			for (vtkIdType i(0); i < idPoints; ++i)
+		for (vtkIdType i(0); i < idPoints; ++i)
+		{
+			if (getNormalFromPCA(vPoints[i], pNormal))
 			{
-				_pPoints->GetPoint(i, pPoint);
-
-				switch (m_eMethod)
-				{
-				case ePlaneX:
-				{
-					pPoint0[2] = pPoint[0] - pCenter[0];
-					pPoint0[0] = pPoint[1] - pCenter[1];
-					pPoint0[1] = pPoint[2] - pCenter[2];
-				}
-				break;
-
-				case ePlaneY:
-				{
-					pPoint0[1] = pPoint[0] - pCenter[0];
-					pPoint0[2] = pPoint[1] - pCenter[1];
-					pPoint0[0] = pPoint[2] - pCenter[2];
-				}
-				break;
-
-				default:
-				{
-					pPoint0[0] = pPoint[0] - pCenter[0];
-					pPoint0[1] = pPoint[1] - pCenter[1];
-					pPoint0[2] = pPoint[2] - pCenter[2];
-				}
-				break;
-				}
-
-				dSumXX += pPoint0[0] * pPoint0[0];
-				dSumXY += pPoint0[0] * pPoint0[1];
-				dSumXZ += pPoint0[0] * pPoint0[2];
-				dSumYY += pPoint0[1] * pPoint0[1];
-				dSumYZ += pPoint0[1] * pPoint0[2];
+				vtkMath::Normalize(pNormal);
+			}
+			else
+			{
+				pNormal[0] = pNormal[1] = pNormal[2] = 0.0;
 			}
 
-			const double D(dSumXX * dSumYY - dSumXY * dSumXY);
-			const double a((dSumYZ * dSumXY - dSumXZ * dSumYY) / D);
-			const double b((dSumXY * dSumXZ - dSumXX * dSumYZ) / D);
-
-			switch (m_eMethod)
-			{
-			case ePlaneX:
-			{
-				_pNormal[1] = a;
-				_pNormal[2] = b;
-				_pNormal[0] = 1.0;
-			}
-			break;
-
-			case ePlaneY:
-			{
-				_pNormal[2] = a;
-				_pNormal[0] = b;
-				_pNormal[1] = 1.0;
-			}
-			break;
-
-			default:
-			{
-				_pNormal[0] = a;
-				_pNormal[1] = b;
-				_pNormal[2] = 1.0;
-			}
-			break;
-			}
-
-			return true;
+			_pPointNormals->InsertNextPoint(pNormal);
 		}
 	}
-
-	return false;
-}
-
-iABoneThickness::EMethod iABoneThickness::method() const
-{
-	return m_eMethod;
 }
 
 void iABoneThickness::open(const QString& _sFilename)
@@ -539,12 +299,12 @@ void iABoneThickness::open(const QString& _sFilename)
 		m_pPoints = vtkSmartPointer<vtkPoints>::New();
 		m_pLines.clear();
 
-		m_vCalculateDistance.clear();
-		m_vCalculateThickness.clear();
+		m_daDistance = vtkSmartPointer<vtkDoubleArray>::New();
+		m_daThickness = vtkSmartPointer<vtkDoubleArray>::New();
 
 		QTextStream tsIn(&fFile);
 
-		int i(0);
+		const double dZero(0.0);
 
 		while (!tsIn.atEnd())
 		{
@@ -555,10 +315,11 @@ void iABoneThickness::open(const QString& _sFilename)
 			{
 				const double Point[3] = { slLine.at(0).toDouble(), slLine.at(1).toDouble(), slLine.at(2).toDouble() };
 				m_pPoints->InsertNextPoint(Point);
+
 				m_pLines.push_back(vtkSmartPointer<vtkLineSource>::New());
-				m_vCalculateDistance.push_back(0.0f);
-				m_vCalculateThickness.push_back(0.0f);
-				++i;
+
+				m_daDistance->InsertNextTuple(&dZero);
+				m_daThickness->InsertNextTuple(&dZero);
 			}
 		}
 
@@ -610,12 +371,13 @@ void iABoneThickness::save(const QString& _sFilename) const
 		{
 			const double* pPoint(m_pPoints->GetPoint(i));
 
-			tsOut << ii << "," << pPoint[0] << "," << pPoint[1] << "," << pPoint[2] << "," << m_vCalculateDistance.at(i) << "," << m_vCalculateThickness.at(i) << "," << "\n";
+			tsOut << ii << "," << pPoint[0] << "," << pPoint[1] << "," << pPoint[2]
+				        << "," << m_daDistance->GetTuple1(i) << "," << m_daThickness->GetTuple1(i)
+				        << "," << "\n";
 		}
 
 		fFile.close();
 	}
-
 }
 
 void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessTable* _pBoneThicknessTable)
@@ -633,7 +395,7 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 	m_dRangeMax = vtkMath::Max(m_pRange[0], vtkMath::Max(m_pRange[1], m_pRange[2]));
 	m_dRangeMin = vtkMath::Min(m_pRange[0], vtkMath::Min(m_pRange[1], m_pRange[2]));
 
-	m_dCalculateSphereRadius = 0.2 * vtkMath::Ceil(0.2 * m_dRangeMax);
+	m_dSphereRadius = 0.2 * vtkMath::Ceil(0.2 * m_dRangeMax);
 
 	m_pThicknessLines = vtkActorCollection::New();
 	m_pSpheres = vtkActorCollection::New();
@@ -647,33 +409,6 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 
 	pWindowInteractor->Initialize();
 	pWindowInteractor->Start();
-}
-
-void iABoneThickness::setCalculateSphereRadius(const double& _dCalculateSphereRadius)
-{
-	m_dCalculateSphereRadius = _dCalculateSphereRadius;
-}
-
-void iABoneThickness::setCalculateThickness(const int& _iPoint, const double& _dCalculateThickness)
-{
-	if ((m_dCalculateThicknessMaximum == 0.0) || (_dCalculateThickness < m_dCalculateThicknessMaximum))
-	{
-		m_vCalculateThickness[_iPoint] = _dCalculateThickness;
-	}
-	else
-	{
-		m_vCalculateThickness[_iPoint] = 0.0;
-	}
-}
-
-void iABoneThickness::setCalculateThicknessMaximum(const double& _dCalculateThicknessMaximum)
-{
-	m_dCalculateThicknessMaximum = _dCalculateThicknessMaximum;
-}
-
-void iABoneThickness::setMethod(const EMethod& _eMethod)
-{
-	m_eMethod = _eMethod;
 }
 
 void iABoneThickness::setShowThickness(const bool& _bShowThickness)
@@ -692,14 +427,19 @@ void iABoneThickness::setSphereOpacity(const double& _dSphereOpacity)
 
 	setTranslucent();
 
-	const vtkIdType idSpheresSize(m_pSpheres->GetNumberOfItems());
+	const vtkIdType idSpheres(m_pSpheres->GetNumberOfItems());
 
 	m_pSpheres->InitTraversal();
 
-	for (int i(0); i < idSpheresSize; ++i)
+	for (int i(0); i < idSpheres; ++i)
 	{
 		m_pSpheres->GetNextActor()->GetProperty()->SetOpacity(m_dSphereOpacity);
 	}
+}
+
+void iABoneThickness::setSphereRadius(const double& _dSphereRadius)
+{
+	m_dSphereRadius = _dSphereRadius;
 }
 
 void iABoneThickness::setSphereSelected(const vtkIdType& _idSphereSelected, iABoneThicknessTable* _pBoneThicknessTable)
@@ -734,7 +474,7 @@ void iABoneThickness::setSurfaceOpacity(const double& _dSurfaceOpacity)
 
 void iABoneThickness::setTable(iABoneThicknessTable* _iABoneThicknessTable)
 {
-	QStandardItemModel* pModel ((QStandardItemModel*) _iABoneThicknessTable->model());
+	QStandardItemModel* pModel((QStandardItemModel*)_iABoneThicknessTable->model());
 
 	pModel->removeRows(0, pModel->rowCount());
 
@@ -754,21 +494,42 @@ void iABoneThickness::setTable(iABoneThicknessTable* _iABoneThicknessTable)
 
 	}
 
-	for (int i(0); i < m_vCalculateDistance.size(); ++i)
+	const vtkIdType idDistance(m_daDistance->GetNumberOfTuples());
+
+	for (int i(0); i < idDistance ; ++i)
 	{
 		const QModelIndex miValue(pModel->index(i, 3));
 
 		pModel->setData(miValue, Qt::AlignCenter, Qt::TextAlignmentRole);
-		pModel->setData(miValue, m_vCalculateDistance.at(i), Qt::DisplayRole);
+		pModel->setData(miValue, m_daDistance->GetTuple1(i), Qt::DisplayRole);
 	}
 
-	for (int i(0); i < m_vCalculateThickness.size(); ++i)
+	const vtkIdType idThickness(m_daThickness->GetNumberOfTuples());
+
+	for (int i(0); i < idThickness ; ++i)
 	{
 		const QModelIndex miValue(pModel->index(i, 4));
 
 		pModel->setData(miValue, Qt::AlignCenter, Qt::TextAlignmentRole);
-		pModel->setData(miValue, m_vCalculateThickness.at(i), Qt::DisplayRole);
+		pModel->setData(miValue, m_daThickness->GetTuple1(i), Qt::DisplayRole);
 	}
+}
+
+void iABoneThickness::setThickness(const int& _iPoint, const double& _dThickness)
+{
+	if ((m_dThicknessMaximum == 0.0) || (_dThickness < m_dThicknessMaximum))
+	{
+		m_daThickness->SetTuple1(_iPoint, _dThickness);
+	}
+	else
+	{
+		m_daThickness->SetTuple1(_iPoint, 0.0);
+	}
+}
+
+void iABoneThickness::setThicknessMaximum(const double& _dThicknessMaximum)
+{
+	m_dThicknessMaximum = _dThicknessMaximum;
 }
 
 void iABoneThickness::setTranslucent()
@@ -843,23 +604,24 @@ void iABoneThickness::setWindowSpheres()
 
 	setTranslucent();
 
-	double pColorSelected[3] = { 0.0, 1.0, 0.0 };
 	double pColorDeselected[3] = { 1.0, 0.0, 0.0 };
-
+	double pColorSelected[3] = { 0.0, 1.0, 0.0 };
+		
 	for (vtkIdType i(0); i < idPointsSize; ++i)
 	{
 		vtkSmartPointer<vtkSphereSource> pSphere(vtkSmartPointer<vtkSphereSource>::New());
 		pSphere->SetCenter(m_pPoints->GetPoint(i)[0], m_pPoints->GetPoint(i)[1], m_pPoints->GetPoint(i)[2]);
-		pSphere->SetRadius((m_bShowThickness) ? 0.5 * m_vCalculateThickness.at(i) : m_dCalculateSphereRadius);
+		pSphere->SetRadius((m_bShowThickness) ? vtkMath::Max(0.1, 0.5 * m_daThickness->GetTuple1(i)) : m_dSphereRadius);
 		pSphere->Update();
 
 		vtkSmartPointer<vtkPolyDataMapper> pMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
 		pMapper->SetInputConnection(pSphere->GetOutputPort());
 
 		vtkSmartPointer<vtkActor> pActor(vtkSmartPointer<vtkActor>::New());
-		pActor->SetMapper(pMapper);
 		pActor->GetProperty()->SetColor((m_idSphereSelected == i) ? pColorSelected : pColorDeselected);
 		pActor->GetProperty()->SetOpacity(m_dSphereOpacity);
+		pActor->SetMapper(pMapper);
+
 		m_pSpheres->AddItem(pActor);
 		m_iARenderer->GetRenderer()->AddActor(pActor);
 	}
@@ -890,11 +652,11 @@ void iABoneThickness::setWindowThicknessLines()
 
 		for (vtkIdType i(0); i < idLinesSize; ++i)
 		{
-			if (m_vCalculateThickness.at(i) > 0.0)
+			if (m_daThickness->GetTuple1(i) > 0.01)
 			{
 				vtkSmartPointer<vtkTubeFilter> pTubeFilter(vtkSmartPointer<vtkTubeFilter>::New());
 				pTubeFilter->SetInputConnection(m_pLines[i]->GetOutputPort());
-				pTubeFilter->SetRadius(.05);
+				pTubeFilter->SetRadius(0.05);
 				pTubeFilter->SetNumberOfSides(50);
 				pTubeFilter->Update();
 
@@ -922,7 +684,17 @@ double iABoneThickness::sphereOpacity() const
 	return m_dSphereOpacity;
 }
 
+double iABoneThickness::sphereRadius() const
+{
+	return m_dSphereRadius;
+}
+
 double iABoneThickness::surfaceOpacity() const
 {
 	return m_dSurfaceOpacity;
+}
+
+double iABoneThickness::thicknessMaximum() const
+{
+	return m_dThicknessMaximum;
 }

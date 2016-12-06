@@ -27,6 +27,7 @@
 #include <QVector>
 
 #include <vtkActorCollection.h>
+#include <vtkDoubleArray.h>
 #include <vtkLineSource.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
@@ -38,9 +39,6 @@
 
 class iABoneThickness : public vtkObject
 {
-	public:
-		enum EMethod { eCentroid, ePCA, ePlaneX, ePlaneY, ePlaneZ };
-
 	public:
 		static iABoneThickness* New();
 		vtkTypeMacro(iABoneThickness, vtkObject);
@@ -54,12 +52,7 @@ class iABoneThickness : public vtkObject
 
 		void calculate();
 
-		double calculateSphereRadius() const;
-		double calculateThicknessMaximum() const;
-		
 		void deSelect();
-
-		EMethod method() const;
 
 		void open(const QString& _sFilename);
 
@@ -72,15 +65,12 @@ class iABoneThickness : public vtkObject
 		void save(const QString& _sFilename) const;
 
 		void set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessTable* _pBoneThicknessTable);
-		void setCalculateSphereRadius(const double& _dCalculateSphereRadius);
-		void setCalculateThicknessMaximum(const double& _dCalculateThicknessMaximum);
-		void setMethod(const EMethod& _eMethod);
 		void setShowThickness(const bool& _bShowThickness);
 		void setShowThicknessLines(const bool& _bShowThicknessLines);
-		void setSphereOpacity(const double& _dSphereOpacity);
+		void setSphereRadius(const double& _dSphereRadius);
 		void setSphereSelected(const vtkIdType& _idSphereSelected, iABoneThicknessTable* _pBoneThicknessTable = nullptr);
-		void setSurfaceOpacity(const double& _dSurfaceOpacity);
 		void setTable(iABoneThicknessTable* _iABoneThicknessTable);
+		void setThicknessMaximum(const double& _dThicknessMaximum);
 		void setTransparency(const bool& _bTransparency);
 		void setWindow();
 		void setWindowSpheres();
@@ -89,18 +79,20 @@ class iABoneThickness : public vtkObject
 		bool showThickness() const;
 
 		double sphereOpacity() const;
+		double sphereRadius() const;
 		double surfaceOpacity() const;
+		double thicknessMaximum() const;
 
 	private:
 		bool m_bShowThickness = true;
 		bool m_bShowThicknessLines = true;
 
-		double m_dCalculateSphereRadius = 0.5;
-		double m_dCalculateThicknessMaximum = 0.0;
 		double m_dRangeMax = 1.0;
 		double m_dRangeMin = 0.0;
 		double m_dSphereOpacity = 1.0;
+		double m_dSphereRadius = 0.5;
 		double m_dSurfaceOpacity = 1.0;
+		double m_dThicknessMaximum = 0.0;
 
 		double m_pBound[6] = { 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 };
 		double m_pRange[3] = { 0.0 , 0.0 , 0.0 };
@@ -109,10 +101,8 @@ class iABoneThickness : public vtkObject
 
 		vtkPolyData* m_pPolyData = nullptr;
 
-		EMethod m_eMethod = ePCA;
-
-		QVector<double> m_vCalculateDistance;
-		QVector<double> m_vCalculateThickness;
+		vtkSmartPointer<vtkDoubleArray> m_daDistance;
+		vtkSmartPointer<vtkDoubleArray> m_daThickness;
 
 		vtkSmartPointer<vtkPoints> m_pPoints = nullptr;
 		QVector<vtkSmartPointer<vtkLineSource>> m_pLines;
@@ -122,14 +112,14 @@ class iABoneThickness : public vtkObject
 
 		iARenderer* m_iARenderer = nullptr;
 
-		void addNormalsInPoint(vtkPoints* _pPointNormals);
 		void findPoints(QVector<vtkSmartPointer<vtkPoints>>& _vPoints);
-		bool getCenterFromPoints(vtkPoints* _pPoints, double* _pCenter);
-		void getClosestPoints(vtkIdList* _idListClosest);
-		void getConnectedPoints(const vtkIdType& _idPoint, vtkPoints* _pPoints);
+		void getDistance();
 		bool getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal);
-		bool getNormalFromPoints(vtkPoints* _pPoints, double* _pNormal);
+		void getNormalsInPoint(vtkPoints* _pPointNormals);
 
-		void setCalculateThickness(const int& _iPoint, const double& _dThickness);
+		void setSphereOpacity(const double& _dSphereOpacity);
+		void setSurfaceOpacity(const double& _dSurfaceOpacity);
+
+		void setThickness(const int& _iPoint, const double& _dThickness);
 		void setTranslucent();
 };

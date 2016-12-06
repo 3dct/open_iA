@@ -33,17 +33,8 @@
 #include <QLabel>
 #include <QPushButton>
 
-#include <vtkCellLocator.h>
-#include <vtkDoubleArray.h>
-#include <vtkMath.h>
 #include <vtkObjectFactory.h>
-#include <vtkOpenGLRenderer.h>
-#include <vtkPolyData.h>
-#include <vtkPoints.h>
-#include <vtkPointLocator.h>
-#include <vtkPCAStatistics.h>
 #include <iADockWidgetWrapper.h>
-#include <iARenderer.h>
 
 vtkStandardNewMacro(iABoneThickness);
 
@@ -95,26 +86,15 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	m_pDoubleSpinBoxSphereRadius->setMinimum(0.01);
 	m_pDoubleSpinBoxSphereRadius->setMaximum(1.0E+6);
 	m_pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
-	m_pDoubleSpinBoxSphereRadius->setValue(m_pBoneThickness->calculateSphereRadius());
+	m_pDoubleSpinBoxSphereRadius->setValue(m_pBoneThickness->sphereRadius());
 	connect(m_pDoubleSpinBoxSphereRadius, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxSphereRadius()));
-
-	QLabel* pLabelMethod(new QLabel("Calculation method:", pGroupBoxSettings));
-	QComboBox* pComboBoxMethod(new QComboBox(pGroupBoxSettings));
-	pComboBoxMethod->addItem("Centroid", 0);
-	pComboBoxMethod->addItem("PCA", 1);
-	pComboBoxMethod->addItem("Plane fitting from YZ", 2);
-	pComboBoxMethod->addItem("Plane fitting from XZ", 3);
-	pComboBoxMethod->addItem("Plane fitting from XY", 4);
-	pComboBoxMethod->setCurrentIndex((int) m_pBoneThickness->method());
-	connect(pComboBoxMethod, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBoxMethod(const int&)));
-	pComboBoxMethod->setEnabled(false);
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
 	m_pDoubleSpinBoxThicknessMaximum = new QDoubleSpinBox(pGroupBoxSettings);
 	m_pDoubleSpinBoxThicknessMaximum->setAlignment(Qt::AlignRight);
 	m_pDoubleSpinBoxThicknessMaximum->setMinimum(0.0);
 	m_pDoubleSpinBoxThicknessMaximum->setSingleStep(1.0);
-	m_pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThickness->calculateThicknessMaximum());
+	m_pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThickness->thicknessMaximum());
 	connect(m_pDoubleSpinBoxThicknessMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxThicknessMaximum()));
 
 	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
@@ -127,12 +107,10 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
 	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0, Qt::AlignRight);
 	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxSphereRadius, 0, 1, Qt::AlignLeft);
-	pGridLayoutSettings->addWidget(pLabelMethod, 0, 2, Qt::AlignRight);
-	pGridLayoutSettings->addWidget(pComboBoxMethod, 0, 3, Qt::AlignLeft);
-	pGridLayoutSettings->addWidget(pLabelThicknessMaximum, 0, 4, Qt::AlignRight);
-	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxThicknessMaximum, 0, 5, Qt::AlignLeft);
-	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 6);
-	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 7);
+	pGridLayoutSettings->addWidget(pLabelThicknessMaximum, 0, 2, Qt::AlignRight);
+	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxThicknessMaximum, 0, 3, Qt::AlignLeft);
+	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 4);
+	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 5);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pPushButtonOpen, 0, 0);
@@ -156,25 +134,14 @@ void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
 	m_pBoneThickness->setTransparency(_bChecked);
 }
 
-void iABoneThicknessAttachment::slotComboBoxMethod(const int& _iIndex)
-{
-	qApp->setOverrideCursor(Qt::WaitCursor);
-	qApp->processEvents();
-	m_pBoneThickness->setMethod((iABoneThickness::EMethod)_iIndex);
-	m_pBoneThickness->calculate();
-	m_pBoneThickness->setTable(m_pBoneThicknessTable);
-	m_pBoneThickness->setWindow();
-	qApp->restoreOverrideCursor();
-}
-
 void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 {
-	const double dCalculateSphereRadius(m_pDoubleSpinBoxSphereRadius->value());
+	const double dSphereRadius(m_pDoubleSpinBoxSphereRadius->value());
 
-	if (m_pBoneThickness->calculateSphereRadius() != dCalculateSphereRadius)
+	if (m_pBoneThickness->sphereRadius() != dSphereRadius)
 	{
 		qApp->setOverrideCursor(Qt::WaitCursor);
-		m_pBoneThickness->setCalculateSphereRadius(dCalculateSphereRadius);
+		m_pBoneThickness->setSphereRadius(dSphereRadius);
 		m_pBoneThickness->calculate();
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindowSpheres();
@@ -185,12 +152,12 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 
 void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum()
 {
-	const double dCalculateThicknessMaximum(m_pDoubleSpinBoxThicknessMaximum->value());
+	const double dThicknessMaximum(m_pDoubleSpinBoxThicknessMaximum->value());
 
-	if (m_pBoneThickness->calculateThicknessMaximum() != dCalculateThicknessMaximum)
+	if (m_pBoneThickness->thicknessMaximum() != dThicknessMaximum)
 	{
 		qApp->setOverrideCursor(Qt::WaitCursor);
-		m_pBoneThickness->setCalculateThicknessMaximum(dCalculateThicknessMaximum);
+		m_pBoneThickness->setThicknessMaximum(dThicknessMaximum);
 		m_pBoneThickness->calculate();
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();

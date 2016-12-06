@@ -29,8 +29,6 @@
 #include "iABoneThickness.h"
 #include "iABoneThicknessTable.h"
 
-//class dlg_BoneThickness;
-
 class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
@@ -47,7 +45,6 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 		vtkSmartPointer<iABoneThickness> m_pBoneThickness = nullptr;
 
 	private slots:
-		void slotComboBoxMethod(const int& _iIndex);
 	    void slotDoubleSpinBoxSphereRadius();
 		void slotDoubleSpinBoxThicknessMaximum();
 		void slotPushButtonOpen();

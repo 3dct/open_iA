@@ -67,13 +67,17 @@ public:
 				{
 					m_pBoneThicknessTable->selectRow(idPickedActor);
 				}
-					
-				vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-				return;
+			}
+			else
+			{
+				m_pBoneThickness->deSelect();
 			}
 		}
+		else
+		{
+			m_pBoneThickness->deSelect();
+		}
 
-		m_pBoneThickness->deSelect();
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 
