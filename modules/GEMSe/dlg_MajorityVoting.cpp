@@ -394,12 +394,21 @@ void dlg_MajorityVoting::MaxPixelEntropyPlot()
 
 void dlg_MajorityVoting::StoreResult()
 {
+	if (!m_lastMVResult)
+	{
+		DEBUG_LOG("You need to perform Majority Voting at least once, before last Majority Voting result can be stored!");
+		return;
+	}
 	iAITKIO::ScalarPixelType pixelType = itk::ImageIOBase::INT;
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Store Last Majority Voting Result"),
 		m_folder,
 		iAIOProvider::GetSupportedSaveFormats()
 	);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
 	iAITKIO::writeFile(fileName, m_lastMVResult, pixelType);
 }
 
