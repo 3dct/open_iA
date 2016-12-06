@@ -28,12 +28,12 @@
 dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality):
 	dlg_modalityPropertiesUI(parent),
 	m_modality(modality)
+
 {
 	edName->setText(modality->GetName());
 	edFilename->setText(modality->GetFileName());
 	edChannel->setText(QString("%1").arg(modality->GetChannel()));
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
-	cbMainRenderer->setChecked(modality->hasRenderFlag(iAModality::MainRenderer));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
 
 	double const * orientation = modality->GetRenderer()->GetOrientation();
@@ -63,6 +63,7 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
+
 }
 
 void dlg_modalityProperties::OKButtonClicked()
@@ -70,7 +71,7 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_modality->SetName(edName->text());
 	m_modality->SetRenderFlag(
 		(cbMagicLens->isChecked() ? iAModality::MagicLens : 0) |
-		(cbMainRenderer->isChecked() ? iAModality::MainRenderer : 0) |
+		iAModality::MainRenderer |  
 		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0)
 	);
 	double orientation[3];

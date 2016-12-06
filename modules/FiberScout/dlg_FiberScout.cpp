@@ -1661,7 +1661,11 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 			cubeAxesActor->SetFlyModeToOuterEdges();
 			cubeAxesActor->SetTickLocationToOutside();
 			cubeAxesActor->SetScreenSize( 10.0 );	//changes axes font size
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+			cubeAxesActor->SetGridLineLocation( vtkCubeAxesActor::VTK_GRID_LINES_FURTHEST );
+#else
 			cubeAxesActor->SetGridLineLocation( VTK_GRID_LINES_FURTHEST );
+#endif
 			cubeAxesActor->DrawXGridlinesOn(); 
 			cubeAxesActor->DrawYGridlinesOn();
 			cubeAxesActor->DrawZGridlinesOn();
@@ -1886,7 +1890,11 @@ void dlg_FiberScout::RenderingOrientation()
 			unsigned char color[3];
 			for ( unsigned int j = 0; j < 3; j++ )
 				color[j] = static_cast<unsigned char>( 255.0 * p[j] );
-			colors->InsertNextTupleValue( color );
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+			colors->InsertNextTypedTuple( color );
+#else
+			colors->InsertNextTupleValue(color);
+#endif
 		}
 	}
 
@@ -4234,7 +4242,11 @@ void dlg_FiberScout::setupPolarPlotView( vtkTable *it )
 			for ( unsigned int j = 0; j < 3; j++ )
 				color[j] = static_cast<unsigned char>( 255.0 * dcolor[j] );
 
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+			colors->InsertNextTypedTuple( color );
+#else
 			colors->InsertNextTupleValue( color );
+#endif
 		}
 	}
 
@@ -4333,7 +4345,11 @@ void dlg_FiberScout::updatePolarPlotColorScalar( vtkTable *it )
 			for ( unsigned int j = 0; j < 3; j++ )
 				color[j] = static_cast<unsigned char>( 255.0 * dcolor[j] );
 
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+			colors->InsertNextTypedTuple( color );
+#else
 			colors->InsertNextTupleValue( color );
+#endif
 		}
 	}
 
