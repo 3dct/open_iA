@@ -107,6 +107,11 @@ bool iAGEMSeAttachment::LoadReferenceImage(QString const & referenceImageName)
 	return m_dlgGEMSeControl->LoadReferenceImage(referenceImageName);
 }
 
+void iAGEMSeAttachment::SetSerializedHiddenCharts(QString const & hiddenCharts)
+{
+	return m_dlgGEMSeControl->SetSerializedHiddenCharts(hiddenCharts);
+}
+
 void iAGEMSeAttachment::ResetFilter()
 {
 	m_dlgGEMSe->ResetFilters();

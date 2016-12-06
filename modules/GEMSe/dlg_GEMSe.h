@@ -84,6 +84,8 @@ public:
 	void AddMajorityVotingImage(iAITKIO::ImagePointer imgData);
 	void AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData);
 	int GetMeasureStartID() { return m_MeasureChartIDStart; }
+	QString GetSerializedHiddenCharts() const;
+	void SetSerializedHiddenCharts(QString const & hiddenCharts);
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

@@ -768,3 +768,14 @@ int dlg_GEMSe::GetRepresentativeType() const
 {
 	return m_treeView->GetRepresentativeType();
 }
+
+
+QString dlg_GEMSe::GetSerializedHiddenCharts() const
+{
+	return m_histogramContainer->GetSerializedHiddenCharts();
+}
+
+void dlg_GEMSe::SetSerializedHiddenCharts(QString const & hiddenCharts)
+{
+	m_histogramContainer->SetSerializedHiddenCharts(hiddenCharts);
+}

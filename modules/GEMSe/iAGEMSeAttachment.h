@@ -45,6 +45,7 @@ public:
 	bool LoadPriors(QString const & priorsFileName);
 	bool LoadSeeds(QString const & seedsFileName);
 	bool LoadReferenceImage(QString const & referenceImageName);
+	void SetSerializedHiddenCharts(QString const & hiddenCharts);
 
 	void ResetFilter();
 	void ToggleAutoShrink();

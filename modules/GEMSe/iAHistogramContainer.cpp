@@ -429,6 +429,34 @@ void iAHistogramContainer::SetSpanValues(int chartID, double min, double max)
 }
 
 
+QString iAHistogramContainer::GetSerializedHiddenCharts() const
+{
+	QStringList resultList;
+	for (int id : m_disabledCharts)
+	{
+		resultList << QString::number(id);
+	}
+	return resultList.join(",");
+}
+
+
+void iAHistogramContainer::SetSerializedHiddenCharts(QString const & hiddenCharts)
+{
+	QStringList chartIDs = hiddenCharts.split(",");
+	m_disabledCharts.clear();
+	for (QString idStr : chartIDs)
+	{
+		bool ok;
+		int id = idStr.toInt(&ok);
+		if (ok)
+		{
+			m_disabledCharts.insert(id);
+		}
+	}
+	CreateCharts();
+}
+
+
 void iAHistogramContainer::SelectHistograms()
 {
 	QDialog dlg(this);

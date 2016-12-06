@@ -47,6 +47,7 @@ namespace
 	const QString ClusteringDataKey = "ClusteringData";
 	const QString LayoutKey = "Layout";
 	const QString ReferenceImageKey = "ReferenceImage";
+	const QString HiddenChartsKey = "HiddenCharts";
 
 	void AppendToString(QString & result, QString const & append)
 	{
@@ -140,6 +141,10 @@ iASEAFile::iASEAFile(QString const & fileName):
 	{
 		m_ReferenceImage = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
 	}
+	if (metaFile.contains(HiddenChartsKey))
+	{
+		m_HiddenCharts = metaFile.value(HiddenChartsKey).toString();
+	}
 	m_good = true;
 }
 
@@ -150,13 +155,15 @@ iASEAFile::iASEAFile(
 		QMap<int, QString> const & samplings,
 		QString const & clusterFile,
 		QString const & layout,
-		QString const & referenceImage):
+		QString const & referenceImage,
+		QString const & hiddenCharts):
 	m_ModalityFileName(modalityFile),
 	m_LabelCount(labelCount),
 	m_Samplings(samplings),
 	m_ClusteringFileName(clusterFile),
 	m_LayoutName(layout),
 	m_ReferenceImage(referenceImage),
+	m_HiddenCharts(hiddenCharts),
 	m_good(true)
 {
 	
@@ -181,6 +188,10 @@ void iASEAFile::Store(QString const & fileName)
 	if (!m_ReferenceImage.isEmpty())
 	{
 		metaFile.setValue(ReferenceImageKey, MakeRelative(path, m_ReferenceImage));
+	}
+	if (!m_HiddenCharts.isEmpty())
+	{
+		metaFile.setValue(HiddenChartsKey, m_HiddenCharts);
 	}
 	
 	metaFile.sync();
@@ -224,4 +235,9 @@ QString const & iASEAFile::GetLayoutName() const
 QString const & iASEAFile::GetReferenceImage() const
 {
 	return m_ReferenceImage;
+}
+
+QString const & iASEAFile::GetHiddenCharts() const
+{
+	return m_HiddenCharts;
 }

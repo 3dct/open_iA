@@ -467,7 +467,8 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 		samplingFilenames,
 		m_cltFile,
 		mdiChild->GetLayoutName(),
-		leRefImage->text());
+		leRefImage->text(),
+		m_dlgGEMSe->GetSerializedHiddenCharts());
 	metaFile.Store(fileName);
 }
 
@@ -671,4 +672,9 @@ void dlg_GEMSeControl::ImportRankings()
 	{
 		m_dlgGEMSe->ImportRankings(fileName);
 	}
+}
+
+void dlg_GEMSeControl::SetSerializedHiddenCharts(QString const & hiddenCharts)
+{
+	m_dlgGEMSe->SetSerializedHiddenCharts(hiddenCharts);
 }

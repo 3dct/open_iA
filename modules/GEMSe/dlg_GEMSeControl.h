@@ -63,6 +63,7 @@ public:
 	void ExportAttributeRangeRanking();
 	void ExportRankings();
 	void ImportRankings();
+	void SetSerializedHiddenCharts(QString const & hiddenCharts);
 public slots:
 	void ExportIDs();
 private slots:
