@@ -31,15 +31,16 @@
 // vtk
 #include <vtkActor.h>
 #include <vtkCellArray.h>
+#include <vtkDepthSortPolyData.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkTriangle.h>
-#include <vtkProperty.h>
-#include <vtkDepthSortPolyData.h>
+#include <vtkVersion.h>
 // Qt
 #include <QVector>
 
