@@ -147,19 +147,6 @@ void iABoneThickness::calculate()
 	}
 }
 
-void iABoneThickness::deSelect()
-{
-	if (m_idSphereSelected > -1)
-	{
-		vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
-		pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
-
-		m_idSphereSelected = -1;
-
-		m_iARenderer->update();
-	}
-}
-
 void iABoneThickness::findPoints(QVector<vtkSmartPointer<vtkPoints>>& _vPoints)
 {
 	vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
@@ -387,7 +374,7 @@ void iABoneThickness::save(const QString& _sFilename) const
 	}
 }
 
-void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessTable* _pBoneThicknessTable)
+void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChart* _pBoneThicknessChart, iABoneThicknessTable* _pBoneThicknessTable)
 {
 	m_iARenderer = _iARenderer;
 	m_iARenderer->GetPolyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
@@ -409,7 +396,7 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 
 	vtkSmartPointer<iABoneThicknessMouseInteractor> pMouseInteractor(vtkSmartPointer<iABoneThicknessMouseInteractor>::New());
 	pMouseInteractor->SetDefaultRenderer(m_iARenderer->GetRenderer());
-	pMouseInteractor->set(this, _pBoneThicknessTable, m_pSpheres);
+	pMouseInteractor->set(this, _pBoneThicknessChart, _pBoneThicknessTable, m_pSpheres);
 
 	vtkRenderWindowInteractor* pWindowInteractor(m_iARenderer->GetInteractor());
 	pWindowInteractor->SetInteractorStyle(pMouseInteractor);
@@ -421,6 +408,28 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 void iABoneThickness::setChart(iABoneThicknessChart* _pBoneThicknessChart)
 {
 	_pBoneThicknessChart->setData(m_daThickness);
+}
+
+void iABoneThickness::setSelected(const vtkIdType& _idSelected)
+{
+	if (m_pSpheres)
+	{
+		if (m_idSelected > -1)
+		{
+			vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSelected));
+			pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		}
+
+		m_idSelected = _idSelected;
+
+		if (m_idSelected > -1)
+		{
+			vtkActor* pActor2((vtkActor*)m_pSpheres->GetItemAsObject(m_idSelected));
+			pActor2->GetProperty()->SetColor(0.0, 1.0, 0.0);
+		}
+
+		m_iARenderer->update();
+	}
 }
 
 void iABoneThickness::setShowThickness(const bool& _bShowThickness)
@@ -452,28 +461,6 @@ void iABoneThickness::setSphereOpacity(const double& _dSphereOpacity)
 void iABoneThickness::setSphereRadius(const double& _dSphereRadius)
 {
 	m_dSphereRadius = _dSphereRadius;
-}
-
-void iABoneThickness::setSphereSelected(const vtkIdType& _idSphereSelected, iABoneThicknessTable* _pBoneThicknessTable)
-{
-	if (m_pSpheres)
-	{
-		if (m_idSphereSelected > -1)
-		{
-			vtkActor* pActor1((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
-			pActor1->GetProperty()->SetColor(1.0, 0.0, 0.0);
-		}
-
-		m_idSphereSelected = _idSphereSelected;
-
-		if (m_idSphereSelected > -1)
-		{
-			vtkActor* pActor2((vtkActor*)m_pSpheres->GetItemAsObject(m_idSphereSelected));
-			pActor2->GetProperty()->SetColor(0.0, 1.0, 0.0);
-		}
-
-		m_iARenderer->update();
-	}
 }
 
 void iABoneThickness::setSurfaceOpacity(const double& _dSurfaceOpacity)
@@ -630,7 +617,7 @@ void iABoneThickness::setWindowSpheres()
 		pMapper->SetInputConnection(pSphere->GetOutputPort());
 
 		vtkSmartPointer<vtkActor> pActor(vtkSmartPointer<vtkActor>::New());
-		pActor->GetProperty()->SetColor((m_idSphereSelected == i) ? pColorSelected : pColorDeselected);
+		pActor->GetProperty()->SetColor((m_idSelected == i) ? pColorSelected : pColorDeselected);
 		pActor->GetProperty()->SetOpacity(m_dSphereOpacity);
 		pActor->SetMapper(pMapper);
 

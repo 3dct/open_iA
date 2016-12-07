@@ -23,6 +23,8 @@
 // iA
 #include <QTableView>
 
+#include <vtkType.h>
+
 class iABoneThickness;
 
 class iABoneThicknessTable : public QTableView
@@ -34,12 +36,9 @@ class iABoneThicknessTable : public QTableView
 
 		int selectedRow() const;
 
-		void setSphereSelected();
+		void setSelected(const vtkIdType& _idSelected);
 
-private:
+	private:
 		iABoneThickness* m_pBoneThickness = nullptr;
 
-	protected:
-		virtual void mousePressEvent(QMouseEvent* e) override;
-		virtual void selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected) override;
 };

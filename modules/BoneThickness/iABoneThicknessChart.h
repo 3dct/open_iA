@@ -25,7 +25,9 @@
 #include <QVTKWidget2.h>
 
 class vtkChartXY;
+class vtkContextView;
 class vtkDoubleArray;
+class vtkPlot;
 class vtkTable;
 
 class iABoneThicknessChart : public QVTKWidget2
@@ -36,8 +38,11 @@ class iABoneThicknessChart : public QVTKWidget2
 		explicit iABoneThicknessChart(QWidget* _pParent = nullptr);
 
 		void setData(vtkDoubleArray* _daThickness);
+		void setSelected(const vtkIdType& _idSelected);
 
 	private:
 		vtkSmartPointer<vtkChartXY> m_pChart = nullptr;
+		vtkSmartPointer<vtkContextView> m_pContextView = nullptr;
+		vtkPlot* m_pPlot = nullptr;
 		vtkSmartPointer<vtkTable> m_pTable = nullptr;
 };

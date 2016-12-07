@@ -29,7 +29,6 @@
 iABoneThicknessTable::iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWidget* _pParent) : QTableView (_pParent), m_pBoneThickness (_pBoneThickness)
 {
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
-	setFocusPolicy(Qt::NoFocus);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 
@@ -46,12 +45,6 @@ iABoneThicknessTable::iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWi
 	setModel(pItemModel);
 }
 
-void iABoneThicknessTable::mousePressEvent(QMouseEvent* e)
-{
-	setSphereSelected();
-	QTableView::mousePressEvent(e);
-}
-
 int iABoneThicknessTable::selectedRow() const
 {
 	const QModelIndexList listRows(selectionModel()->selectedRows());
@@ -66,13 +59,7 @@ int iABoneThicknessTable::selectedRow() const
 	}
 }
 
-void iABoneThicknessTable::selectionChanged(const QItemSelection& _itemSelected, const QItemSelection& _itemDeselected)
+void iABoneThicknessTable::setSelected(const vtkIdType& _idSelected)
 {
-	setSphereSelected();
-	QTableView::QTableView::selectionChanged(_itemSelected, _itemDeselected);
-}
-
-void iABoneThicknessTable::setSphereSelected()
-{
-	m_pBoneThickness->setSphereSelected(selectedRow());
+	selectRow(_idSelected);
 }

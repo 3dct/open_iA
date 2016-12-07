@@ -52,11 +52,10 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QWidget* pWidget(new QWidget());
 
 	m_pBoneThickness = vtkSmartPointer<iABoneThickness>::New();
-
-	m_pBoneThicknessTable = new iABoneThicknessTable(m_pBoneThickness, pWidget);
 	m_pBoneThicknessChart = new iABoneThicknessChart(pWidget);
+	m_pBoneThicknessTable = new iABoneThicknessTable(m_pBoneThickness, pWidget);
 
-	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessTable);
+	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessChart, m_pBoneThicknessTable);
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open control points file...", pWidget));
 	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));

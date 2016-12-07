@@ -28,6 +28,7 @@
 #include <vtkSmartPointer.h>
 
 #include "iABoneThickness.h"
+#include "iABoneThicknessChart.h"
 #include "iABoneThicknessTable.h"
 
 class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera
@@ -36,9 +37,13 @@ public:
 	static iABoneThicknessMouseInteractor* New();
 	vtkTypeMacro(iABoneThicknessMouseInteractor, vtkInteractorStyleTrackballCamera);
 
-	void set(iABoneThickness* _pBoneThickness, iABoneThicknessTable* _pBoneThicknessTable, vtkActorCollection* _pSpheres)
+	void set ( iABoneThickness* _pBoneThickness
+			 , iABoneThicknessChart* _pBoneThicknessChart, iABoneThicknessTable* _pBoneThicknessTable
+			 , vtkActorCollection* _pSpheres
+			 )
 	{
 		m_pBoneThickness = _pBoneThickness;
+		m_pBoneThicknessChart = _pBoneThicknessChart;
 		m_pBoneThicknessTable = _pBoneThicknessTable;
 
 		m_pSpheres = _pSpheres;
@@ -53,36 +58,18 @@ public:
 
 		vtkActor* pPickedActor(pPicker->GetActor());
 
-		if (pPickedActor)
-		{
-			const vtkIdType idPickedActor(m_pSpheres->IsItemPresent(pPickedActor) - 1);
+		const vtkIdType idPickedActor(m_pSpheres->IsItemPresent(pPickedActor) - 1);
 
-			if (idPickedActor > -1)
-			{
-				if (idPickedActor == m_pBoneThicknessTable->selectedRow())
-				{
-					m_pBoneThicknessTable->setSphereSelected();
-				}
-				else
-				{
-					m_pBoneThicknessTable->selectRow(idPickedActor);
-				}
-			}
-			else
-			{
-				m_pBoneThickness->deSelect();
-			}
-		}
-		else
-		{
-			m_pBoneThickness->deSelect();
-		}
+		m_pBoneThickness->setSelected(idPickedActor);
+		m_pBoneThicknessChart->setSelected(idPickedActor);
+		m_pBoneThicknessTable->setSelected(idPickedActor);
 
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 
 	private:
 		iABoneThickness* m_pBoneThickness = nullptr;
+		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 		vtkActorCollection* m_pSpheres = nullptr;
 };
