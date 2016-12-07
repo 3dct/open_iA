@@ -25,9 +25,10 @@
 #include "iAConsole.h"
 #include "iAIO.h"
 #include "iAImageCoordinate.h"
-#include "iAVolumeRenderer.h"
+#include "iAMathUtility.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
+#include "iAVolumeRenderer.h"
 #include "extension2id.h"
 
 #include <vtkCamera.h>
@@ -39,7 +40,7 @@
 
 #include <cassert>
 
-
+/*
 iAModality::iAModality(QString const & name, QString const & filename, int channel, int renderFlags):
 	m_name(name),
 	m_filename(filename),
@@ -48,6 +49,7 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	m_componentCount(1)
 {
 }
+*/
 
 iAModality::iAModality(QString const & name, QString const & filename, int channel, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
@@ -56,6 +58,17 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	m_channel(channel)
 {
 	SetData(imgData);
+}
+
+
+iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
+	m_name(name),
+	m_filename(filename),
+	renderFlags(renderFlags),
+	m_channel(-1),
+	m_imgs(imgs)
+{
+	SetData(imgs[0]);
 }
 
 QString iAModality::GetName() const
@@ -73,12 +86,15 @@ int iAModality::GetChannel() const
 	return m_channel;
 }
 
-
 int iAModality::ComponentCount() const
 {
 	return m_componentCount;
 }
 
+vtkSmartPointer<vtkImageData> iAModality::GetComponent(int componentIdx) const
+{
+	return m_imgs[componentIdx];
+}
 
 void iAModality::SetComponentCount(int componentCount)
 {
@@ -147,6 +163,16 @@ iAImageCoordConverter const & iAModality::GetConverter() const
 vtkSmartPointer<vtkImageData> iAModality::GetImage() const
 {
 	return m_imgData;
+}
+
+QString iAModality::GetImageName(int componentIdx)
+{
+	QString name(GetName());
+	if (ComponentCount() > 1)
+	{
+		return QString("%1-%2").arg(name).arg(componentIdx);
+	}
+	return name;
 }
 
 bool iAModality::hasRenderFlag(RenderFlag loc) const
@@ -503,7 +529,6 @@ int iAModalityList::size() const
 	return m_modalities.size();
 }
 
-
 ModalityCollection iAModalityList::Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags)
 {
 	// TODO: unify this with mdichild::loadFile
@@ -535,11 +560,6 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 	}
 	io.start();
 	io.wait();
-	if (volumes.size() == 0)
-	{
-		DEBUG_LOG("No volume found in stack!");
-		return result;
-	}
 	QString nameBase = name.isEmpty() ? fileInfo.baseName() : name;
 	if (volumes.size() > 1 && (channel < 0 || channel > volumes.size()))
 	{
@@ -557,19 +577,21 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 		else       // load modality with multiple components
 		{
 			QSharedPointer<iAModality> newModality(new iAModality(
-				nameBase, filename, -1, volumes[0], renderFlags));
+				nameBase, filename, volumes, renderFlags));
 			newModality->SetComponentCount(volumes.size());
+			result.push_back(newModality);
 		}
 	}
 	else           // load single modality
 	{
-		if (channel < 0 || channel > volumes.size())
-		{	// warn?
-			channel = 0;
+		if (volumes.size() > 0)
+		{
+			channel = clamp(0, static_cast<int>(volumes.size() - 1), channel);
+			img = volumes[channel];
 		}
 		QSharedPointer<iAModality> newModality(new iAModality(
-			nameBase, filename, channel, volumes[channel], renderFlags));
-		
+			nameBase, filename, channel, img, renderFlags));
+		result.push_back(newModality);
 	}
 	return result;
 }

@@ -28,11 +28,19 @@
 dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality):
 	dlg_modalityPropertiesUI(parent),
 	m_modality(modality)
-
 {
+
 	edName->setText(modality->GetName());
 	edFilename->setText(modality->GetFileName());
-	edChannel->setText(QString("%1").arg(modality->GetChannel()));
+	if (modality->ComponentCount() > 1)
+	{
+		lbChannel->setText("Components");
+		edChannel->setText(QString("%1").arg(modality->ComponentCount()));
+	}
+	else
+	{
+		edChannel->setText(QString("%1").arg(modality->GetChannel()));
+	}
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
 
@@ -63,7 +71,6 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
-
 }
 
 void dlg_modalityProperties::OKButtonClicked()

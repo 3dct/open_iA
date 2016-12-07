@@ -503,6 +503,7 @@ private:
 	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
+	int m_currentComponent;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
 private slots:
 	void ChangeModality(int chg);

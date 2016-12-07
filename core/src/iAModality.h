@@ -28,6 +28,8 @@
 #include <QString>
 #include <QVector>
 
+#include <vector>
+
 class iAImageCoordConverter;
 class iAModalityTransfer;
 class iAVolumeRenderer;
@@ -51,10 +53,10 @@ public:
 		MagicLens = 0x02,
 		BoundingBox = 0x04 // TODO: check if that is a good idea or whether that should go somewhere else (VolumeRenderer)?
 	};
-	//! create modality from name and file
-	iAModality(QString const & name, QString const & filename, int channelNo, int renderFlags);
 	//! create modality from name, file and image data
 	iAModality(QString const & name, QString const & filename, int channelNo, vtkSmartPointer<vtkImageData> imgData, int renderFlags);
+	//! create modality from name, file and image data
+	iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags);
 	//! returns name of the modality
 	QString GetName() const;
 	//! returns file holding the modality data
@@ -76,6 +78,9 @@ public:
 	//! get the main image of this modality (typically only the one is available,
 	//! unless there are multiple components, see ComponentCount() and GetComponent()
 	vtkSmartPointer<vtkImageData> GetImage() const;
+	//! return the name of the given component
+	QString GetImageName(int componentIdx);
+
 
 	int GetWidth() const;
 	int GetHeight() const;
@@ -115,6 +120,7 @@ private:
 	void LoadTransferFunction();
 	
 	vtkSmartPointer<vtkImageData> m_imgData;
+	std::vector<vtkSmartPointer<vtkImageData> > m_imgs;	// TODO: implement lazy loading
 };
 
 

@@ -95,7 +95,9 @@ MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
 	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
-	m_initVolumeRenderers(false)
+	m_initVolumeRenderers(false),
+	m_currentModality(0),
+	m_currentComponent(0)
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);
@@ -884,6 +886,12 @@ bool MdiChild::save()
 		{
 			return false;
 		}
+		/*// choice: save single modality, or modality stack!
+		if (GetModality(channelNr)->ComponentCount() > 1)
+		{
+			
+		}
+		*/
 		return saveFile(GetModality(channelNr)->GetFileName(), channelNr);
 	}
 }
@@ -2042,13 +2050,17 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 			InsertChannelData(ch_ModalityLens, chData);
 		}
 		m_currentModality = m_dlgModalities->GetSelected();
-		vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetImage();
+		if (m_currentModality == -1)
+		{
+			m_currentModality = 0;
+		}
+		vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
 		chData->SetImage(img);
 		chData->SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
 		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
 		chData->SetOpacity(0.5);
 		InitChannelRenderer(ch_ModalityLens, false, false);
-		SetMagicLensInput(ch_ModalityLens, true, GetModality(m_currentModality)->GetName().toStdString());
+		SetMagicLensInput(ch_ModalityLens, true, GetModality(m_currentModality)->GetImageName(m_currentComponent).toStdString());
 	}
 	SetMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2904,18 +2916,20 @@ bool MdiChild::IsOnlyPolyDataLoaded()
 
 void MdiChild::ChangeModality(int chg)
 {
-	SetCurrentModality(
-		(GetCurrentModality() + chg + GetModalities()->size())
-		% (GetModalities()->size())
-	);
-	int curModIdx = GetCurrentModality();
-	if (curModIdx < 0 || curModIdx >= GetModalities()->size())
+	m_currentComponent = (m_currentComponent + chg);
+	if (m_currentComponent < 0 || m_currentComponent >= GetModality(m_currentModality)->ComponentCount())
+	{
+		m_currentComponent = 0;
+		m_currentModality = (m_currentModality + chg + GetModalities()->size()) % (GetModalities()->size());
+	}
+	if (m_currentModality < 0 || m_currentModality >= GetModalities()->size())
 	{
 		DEBUG_LOG("Invalid modality index!");
+		m_currentModality = 0;
 		return;
 	}
-	ChangeImage(GetModalities()->Get(curModIdx)->GetImage(),
-		GetModalities()->Get(curModIdx)->GetName().toStdString());
+	ChangeImage(GetModality(m_currentModality)->GetComponent(m_currentComponent),
+		GetModality(m_currentModality)->GetImageName(m_currentComponent).toStdString());
 }
 
 void MdiChild::ChangeMagicLensOpacity(int chg)
@@ -2936,19 +2950,13 @@ int MdiChild::GetCurrentModality() const
 }
 
 
-void MdiChild::SetCurrentModality(int modality)
-{
-	m_currentModality = modality;
-}
-
-
 void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
-{
+{	// TODO: check if name and image match?
 	int selected = m_dlgModalities->GetSelected();
 	if (selected != -1)
 	{
 		m_currentModality = selected;
-		ChangeImage(img, GetModality(selected)->GetName().toStdString());
+		ChangeImage(img, GetModality(selected)->GetImageName(m_currentComponent).toStdString());
 		/*
 		// change slicer image as well?
 		slicerXY->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
