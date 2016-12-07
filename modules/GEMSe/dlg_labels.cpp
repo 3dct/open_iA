@@ -135,7 +135,8 @@ void dlg_labels::Add()
 void dlg_labels::Remove()
 {
 	QModelIndexList indices = lvLabels->selectionModel()->selectedIndexes();
-	
+	if (indices.size() == 0)
+		return;
 	QStandardItem* item = m_itemModel->itemFromIndex(indices[0]);
 	if (!item)
 		return;
