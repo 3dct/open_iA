@@ -220,7 +220,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		// reset number of votes per label for all labels
-		std::fill_n(votesByLabel, m_TotalLabelCount, 0.0);
+		std::fill_n(votesByLabel, m_TotalLabelCount, 0.0f);
 
 		// count number of votes for the labels
 		int consideredFiles = 0;
