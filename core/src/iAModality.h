@@ -61,12 +61,21 @@ public:
 	QString GetFileName() const;
 	//! return the channel in the specified file that the data in this class comes from
 	int GetChannel() const;
+	//! return the number of components in this modality
+	int ComponentCount() const;
+	//! set the number of components contained in the modality file (typically set only during setup)
+	void SetComponentCount(int componentCount);
+	//! return a specific component of this modality
+	vtkSmartPointer<vtkImageData> GetComponent(int idx) const;
 	//! get the name of the transfer function file
 	QString GetTransferFileName() const;
 	//! set name of the modality
 	void SetName(QString const & name);
 	//! set flag indicating location where to render
 	void SetRenderFlag(int renderFlag);
+	//! get the main image of this modality (typically only the one is available,
+	//! unless there are multiple components, see ComponentCount() and GetComponent()
+	vtkSmartPointer<vtkImageData> GetImage() const;
 
 	int GetWidth() const;
 	int GetHeight() const;
@@ -77,12 +86,8 @@ public:
 	void SetOrigin(double origin[3]);
 	iAImageCoordConverter const & GetConverter() const;
 
-	vtkSmartPointer<vtkImageData> GetImage() const;
-
 	bool hasRenderFlag(RenderFlag flag) const;
 	int RenderFlags() const;
-
-	bool LoadData();
 
 	void SetTransfer(QSharedPointer<iAModalityTransfer> transfer);
 	QSharedPointer<iAModalityTransfer> GetTransfer();
@@ -94,7 +99,8 @@ public:
 private:
 	QString m_name;
 	QString m_filename;
-	int     m_channel;     //!< in case the given file contains multiple channels, the channel no. for this
+	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality
+	int     m_componentCount; //!< in case the given file contains multiple channels and this modality holds all, the count
 	int     renderFlags;
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
@@ -130,6 +136,7 @@ public:
 	void Add(QSharedPointer<iAModality> mod);
 	void Remove(int idx);
 	QString const & GetFileName() const;
+	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
 signals:
 	void Added(QSharedPointer<iAModality> mod);
 private:

@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "dlg_modalities.h"
 
+#include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
@@ -115,6 +116,11 @@ QString GetCaption(iAModality const & mod)
 #include "iAIO.h"
 #include "extension2id.h"
 
+bool CanHaveMultipleChannels(QString const & fileName)
+{
+	return fileName.endsWith(iAIO::VolstackExtension) || fileName.endsWith(".oif");
+}
+
 void dlg_modalities::AddClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
@@ -124,78 +130,25 @@ void dlg_modalities::AddClicked()
 		return;
 
 	const int DefaultRenderFlags = iAModality::MainRenderer;
-
-	// TODO: unify this with mdichild::loadFile!
-	if (fileName.endsWith(iAIO::VolstackExtension))
+	bool split = false;
+	if (CanHaveMultipleChannels(fileName))
 	{
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(
-			0,
-			0,
-			&volumes
-		);
-		io.setupIO(VOLUME_STACK_VOLSTACK_READER, fileName.toLatin1().data());
-		io.start();
-		io.wait();
-		assert(volumes.size() > 0);
-		if (volumes.size() == 0)
+		QStringList inList;
+		inList << tr("$Split Channels (input file potentially has multiple channels. Should they be split into separate datasets, or kept as one dataset with multiple components?)");
+		QList<QVariant> inPara;
+		inPara << tr("%1").arg(true);
+		dlg_commoninput splitInput(this, "Seed File Format", 1, inList, inPara, nullptr);
+		if (splitInput.exec() != QDialog::Accepted)
 		{
-			DEBUG_LOG("No volume found in stack!");
+			DEBUG_LOG("Aborted by user.");
 			return;
 		}
-		int channels = volumes.size();
-		QFileInfo fi(fileName);
-		for (int i = 0; i < channels; ++i)
-		{
-			QSharedPointer<iAModality> newModality(new iAModality(
-				fi.baseName(), fileName, i, volumes[i], DefaultRenderFlags) );
-			modalities->Add(newModality);
-		}
+		split = splitInput.getCheckValues()[0];
 	}
-	else
+	ModalityCollection mods = iAModalityList::Load(fileName, "", -1, split, DefaultRenderFlags);
+	for (auto mod : mods)
 	{
-		vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(img, 0, 0, 0, &volumes);
-
-		QFileInfo fileInfo(fileName);
-		QString extension = fileInfo.suffix();
-		extension = extension.toUpper();
-		const mapQString2int * ext2id = &extensionToId;
-		if (ext2id->find(extension) == ext2id->end())
-		{
-			DEBUG_LOG("Unknown file type!");
-			return;
-		}
-		IOType id = ext2id->find(extension).value();
-		if (!io.setupIO(id, fileName, false))
-		{
-			DEBUG_LOG("Error while setting up modality loading!");
-			return;
-		}
-		// TODO: check for errors during actual loading!
-		//connect(io, done(bool), this, )
-		io.start();
-		// TODO: VOLUME: make asynchronous!
-		io.wait();
-		QFileInfo fi(fileName);
-		if (volumes.size() > 0)
-		{
-			int channels = volumes.size();
-			for (int i = 0; i < channels; ++i)
-			{
-				QSharedPointer<iAModality> newModality(new iAModality(
-					fi.baseName() + "-ch" + QString::number(i),
-					fileName, i, volumes[i], DefaultRenderFlags));
-				modalities->Add(newModality);
-			}
-		}
-		else
-		{
-			QSharedPointer<iAModality> newModality(new iAModality(
-				fi.baseName(), fileName, -1, img, DefaultRenderFlags));
-			modalities->Add(newModality);
-		}
+		modalities->Add(mod);
 	}
 	emit ModalitiesChanged();
 }
