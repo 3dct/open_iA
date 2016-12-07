@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "dlg_labels.h"
 
+#include "dlg_commoninput.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iAImageCoordinate.h"
@@ -28,6 +29,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAFileUtils.h"
 #include "iALabelOverlayThread.h"
+#include "iAModality.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -354,7 +356,7 @@ bool dlg_labels::Load(QString const & filename)
 	return true;
 }
 
-bool dlg_labels::Store(QString const & filename)
+bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 {
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -368,7 +370,8 @@ bool dlg_labels::Store(QString const & filename)
 	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
 	stream.writeStartElement("Labels");
-	
+
+	auto modalities = m_mdiChild->GetModalities();
 	for (int l=0; l<m_itemModel->rowCount(); ++l)
 	{
 		QStandardItem * labelItem = m_itemModel->item(l);
@@ -385,6 +388,19 @@ bool dlg_labels::Store(QString const & filename)
 			stream.writeAttribute("x", QString::number(x));
 			stream.writeAttribute("y", QString::number(y));
 			stream.writeAttribute("z", QString::number(z));
+			if (extendedFormat)
+			{
+				for (int m = 0; m < modalities->size(); ++m)
+				{
+					// TODO: store each channel value for multi-channel data!
+					auto mod = modalities->Get(m);
+					double value = mod->GetImage()->GetScalarComponentAsDouble(x, y, z, 0);
+					stream.writeStartElement("Value");
+					stream.writeAttribute("id", QString::number(m));
+					stream.writeAttribute("value", QString::number(value, 'g', 16));
+					stream.writeEndElement();
+				}
+			}
 			stream.writeEndElement();
 		}
 		stream.writeEndElement();
@@ -425,7 +441,17 @@ void dlg_labels::Store()
 	{
 		return;
 	}
-	if (!Store(fileName))
+	QStringList inList;
+	inList << tr("$Extended Format (also write pixel values, not only positions)");
+	QList<QVariant> inPara;
+	inPara << tr("%1").arg(true);
+	dlg_commoninput extendedFormatInput(this, "Seed File Format", 1, inList, inPara, nullptr);
+	if (extendedFormatInput.exec() != QDialog::Accepted)
+	{
+		DEBUG_LOG("Selection of format aborted, aborting seed file storing");
+		return;
+	}
+	if (!Store(fileName, extendedFormatInput.getCheckValues()[0]))
 	{
 		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
 	}

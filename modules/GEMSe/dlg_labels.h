@@ -52,7 +52,7 @@ public:
 	int GetSeedCount(int labelIdx) const;
 	QList<iAImageCoordinate> GetSeeds(int labelIdx) const;
 	bool Load(QString const & filename);
-	bool Store(QString const & filename);
+	bool Store(QString const & filename, bool extendedFormat);
 	void SetColorTheme(iAColorTheme const *);
 	virtual int count() const;
 	virtual QString GetName(int idx) const;
