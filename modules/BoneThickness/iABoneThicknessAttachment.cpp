@@ -52,8 +52,11 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QWidget* pWidget(new QWidget());
 
 	m_pBoneThickness = vtkSmartPointer<iABoneThickness>::New();
+	
 	m_pBoneThicknessChart = new iABoneThicknessChart(pWidget);
-	m_pBoneThicknessTable = new iABoneThicknessTable(m_pBoneThickness, pWidget);
+	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
+	
+	m_pBoneThicknessTable->set(m_pBoneThickness, m_pBoneThicknessChart);
 
 	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessChart, m_pBoneThicknessTable);
 

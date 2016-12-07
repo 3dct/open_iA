@@ -26,19 +26,25 @@
 #include <vtkType.h>
 
 class iABoneThickness;
+class iABoneThicknessChart;
 
 class iABoneThicknessTable : public QTableView
 {
 		Q_OBJECT
 
 	public:
-		explicit iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWidget* _pParent = nullptr);
+		explicit iABoneThicknessTable(QWidget* _pParent = nullptr);
 
-		int selectedRow() const;
-
+		void set(iABoneThickness* _pBoneThickness, iABoneThicknessChart* _pBoneThicknessChart);
 		void setSelected(const vtkIdType& _idSelected);
 
 	private:
 		iABoneThickness* m_pBoneThickness = nullptr;
+		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
+
+		int selected() const;
+
+protected:
+		virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
 
 };

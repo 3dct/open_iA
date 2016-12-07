@@ -25,8 +25,9 @@
 #include <QStandardItemModel>
 
 #include "iABoneThickness.h"
+#include "iABoneThicknessChart.h"
 
-iABoneThicknessTable::iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWidget* _pParent) : QTableView (_pParent), m_pBoneThickness (_pBoneThickness)
+iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pParent)
 {
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -45,7 +46,17 @@ iABoneThicknessTable::iABoneThicknessTable(iABoneThickness* _pBoneThickness, QWi
 	setModel(pItemModel);
 }
 
-int iABoneThicknessTable::selectedRow() const
+void iABoneThicknessTable::selectionChanged(const QItemSelection& _Selected, const QItemSelection& _Deselected)
+{
+	const int iSelected(selected());
+
+	if (m_pBoneThickness) m_pBoneThickness->setSelected(iSelected);
+	if (m_pBoneThicknessChart) m_pBoneThicknessChart->setSelected(iSelected);
+
+	QTableView::selectionChanged(_Selected, _Deselected);
+}
+
+int iABoneThicknessTable::selected() const
 {
 	const QModelIndexList listRows(selectionModel()->selectedRows());
 
@@ -57,6 +68,12 @@ int iABoneThicknessTable::selectedRow() const
 	{
 		return -1;
 	}
+}
+
+void iABoneThicknessTable::set(iABoneThickness* _pBoneThickness, iABoneThicknessChart* _pBoneThicknessChart)
+{
+	m_pBoneThickness = _pBoneThickness;
+	m_pBoneThicknessChart = _pBoneThicknessChart;
 }
 
 void iABoneThicknessTable::setSelected(const vtkIdType& _idSelected)

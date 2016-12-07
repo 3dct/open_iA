@@ -61,9 +61,9 @@ iABoneThicknessChart::iABoneThicknessChart(QWidget* _pParent) : QVTKWidget2(_pPa
 	pDoubleArray3->SetName("Average");
 	m_pTable->AddColumn(pDoubleArray3);
 
-	m_pContextView = vtkSmartPointer<vtkContextView>::New();
-	m_pContextView->GetScene()->AddItem(m_pChart);
-	m_pContextView->SetRenderWindow((vtkRenderWindow*)GetRenderWindow());
+	vtkSmartPointer<vtkContextView> pContextView (vtkSmartPointer<vtkContextView>::New());
+	pContextView->GetScene()->AddItem(m_pChart);
+	pContextView->SetRenderWindow((vtkRenderWindow*)GetRenderWindow());
 }
 
 void iABoneThicknessChart::setData(vtkDoubleArray* _daThickness)
