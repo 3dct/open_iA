@@ -392,13 +392,16 @@ bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 			{
 				for (int m = 0; m < modalities->size(); ++m)
 				{
-					// TODO: store each channel value for multi-channel data!
 					auto mod = modalities->Get(m);
-					double value = mod->GetImage()->GetScalarComponentAsDouble(x, y, z, 0);
-					stream.writeStartElement("Value");
-					stream.writeAttribute("id", QString::number(m));
-					stream.writeAttribute("value", QString::number(value, 'g', 16));
-					stream.writeEndElement();
+					for (int c = 0; c < mod->ComponentCount(); ++c)
+					{
+						double value = mod->GetComponent(c)->GetScalarComponentAsDouble(x, y, z, 0);
+						stream.writeStartElement("Value");
+						stream.writeAttribute("modality", QString::number(m));
+						stream.writeAttribute("component", QString::number(c));
+						stream.writeAttribute("value", QString::number(value, 'g', 16));
+						stream.writeEndElement();
+					}
 				}
 			}
 			stream.writeEndElement();
