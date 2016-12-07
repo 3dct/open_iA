@@ -23,6 +23,7 @@
 #include "dlg_eventExplorer.h"
 
 #include "dlg_trackingGraph.h"
+#include "iAConsole.h"
 #include "iAFeatureTracking.h"
 #include "iAVolumeStack.h"
 #include "mdichild.h"
@@ -33,11 +34,17 @@
 #include <vtkEventQtSlotConnect.h>
 #include <vtkStringArray.h>
 
-
+#include <sstream>
 
 #define VTK_CREATE(type, name) \
 	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
+QString toqstr(vtkVariant const & var)
+{
+	ostringstream oss;
+	oss << var;
+	return QString(oss.str().c_str());
+}
 
 dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
 {
@@ -59,16 +66,11 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 	m_rgb[3][0] = 139; m_rgb[3][1] = 224; m_rgb[3][2] = 164;
 	m_rgb[4][0] = 228; m_rgb[4][1] = 179; m_rgb[4][2] = 111;
 
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen("CON", "w", stdout);
-
 	for (int c = 0; c < 3; c++)
 	{
 		for (int r = 0; r < 5; r++)
 		{
-			cout << "rgb[" << r << "][" << c << "] = " << m_rgb[r][c] << endl;
+			DEBUG_LOG(QString("rgb[%1][%2] = %3").arg(r).arg(c).arg(m_rgb[r][c]));
 		}
 	}
 
@@ -360,12 +362,6 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		m_tables.at(tableId)->AddColumn(arrEvent);
 		tableId++;
 	}
-
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen("CON", "w", stdout);
-
 	iAFeatureTracking *ftF;
 	iAFeatureTracking *ftB;
 
@@ -377,8 +373,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		vtkTable *u = ftB->getU();
 		vtkTable *v = ftF->getV();
 
-		cout << t << ":   " << u->GetNumberOfRows() << " rows in u" << endl;
-		cout << t << ":   " << v->GetNumberOfRows() << " rows in v" << endl << endl;
+		DEBUG_LOG(QString("%1:   %2 rows in u, %3 rows in v").arg(t).arg(u->GetNumberOfRows()).arg(v->GetNumberOfRows()));
 
 		/*for (int i = 1; i <= numberOfRows; i++)
 		{
@@ -402,7 +397,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		else
 			numberOfRows = v->GetNumberOfRows();
 
-		cout << numberOfRows << " rows" << endl << endl;
+		DEBUG_LOG(QString("%1 rows\n").arg(numberOfRows));
 
 		for (int i = 0; i < numberOfRows; i++) //ft->getNumberOfEventsInV()
 		{
@@ -417,8 +412,10 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 
 			for (vector<iAFeatureTrackingCorrespondence>::iterator c = correspondences.begin(); c != correspondences.end(); c++)
 			{
-				cout << "i: " << i << "   c->id: " << c->id << ", event: " << c->featureEvent << ", overlap: " << c->overlap << ", volumeRatio: " << c->volumeRatio << "   " <<
-					v->GetValue(i, 4) << ", " << v->GetValue(i, 5) << ", " << v->GetValue(i, 6) << ", " << v->GetValue(i, 7) << ", " << endl;
+				DEBUG_LOG(QString("i: %1   c->id: %2, event: %3, overlap: %4, volumeRatio: %5   %6, %7, %8, %9")
+					.arg(i).arg(c->id).arg(c->featureEvent).arg(c->overlap).arg(c->volumeRatio)
+					.arg(toqstr(v->GetValue(i, 4))).arg(toqstr(v->GetValue(i, 5)))
+					.arg(toqstr(v->GetValue(i, 6))).arg(toqstr(v->GetValue(i, 7))));
 
 				vtkSmartPointer<vtkVariantArray> arr = vtkSmartPointer<vtkVariantArray>::New();
 				arr->SetNumberOfValues(12);
@@ -745,11 +742,9 @@ void dlg_eventExplorer::updateOpacityGrid(int v)
 
 void dlg_eventExplorer::updateCheckBoxCreation(int c)
 {
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen( "CON", "w", stdout ) ;
-	cout << "BEFORE   " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
+	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 
 	if(!creationCheckBox->isChecked())
 	{
@@ -790,18 +785,16 @@ void dlg_eventExplorer::updateCheckBoxCreation(int c)
 	}
 	creationCheckBox->update();
 	creationSlider->update();
-
-	cout << "AFTER    " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
+	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxContinuation(int c)
 {
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen( "CON", "w", stdout ) ;
-	cout << "BEFORE   " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
-
+	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!continuationCheckBox->isChecked())
 	{
 		for(int i=0; i<m_numberOfCharts; i++)
@@ -840,17 +833,16 @@ void dlg_eventExplorer::updateCheckBoxContinuation(int c)
 	}
 	continuationCheckBox->update();
 	continuationSlider->update();
-
-	cout << "AFTER    " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
+	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxSplit(int c)
 {
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen( "CON", "w", stdout ) ;
-	cout << "BEFORE   " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
+	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!splitCheckBox->isChecked())
 	{
 		for(int i=0; i<m_numberOfCharts; i++)
@@ -889,18 +881,16 @@ void dlg_eventExplorer::updateCheckBoxSplit(int c)
 	}
 	splitCheckBox->update();
 	splitSlider->update();
-
-	cout << "AFTER    " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
+	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxMerge(int c)
 {
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen( "CON", "w", stdout ) ;
-	cout << "BEFORE   " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
-
+	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!mergeCheckBox->isChecked())
 	{
 		for(int i=0; i<m_numberOfCharts; i++)
@@ -939,18 +929,16 @@ void dlg_eventExplorer::updateCheckBoxMerge(int c)
 	}
 	mergeCheckBox->update();
 	mergeSlider->update();
-
-	cout << "AFTER    " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
+	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxDissipation(int c)
 {
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen( "CON", "w", stdout ) ;
-	cout << "BEFORE   " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
-
+	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!dissipationCheckBox->isChecked())
 	{
 		for(int i=0; i<m_numberOfCharts; i++)
@@ -989,8 +977,9 @@ void dlg_eventExplorer::updateCheckBoxDissipation(int c)
 	}
 	dissipationCheckBox->update();
 	dissipationSlider->update();
-
-	cout << "AFTER    " << m_plotPositionInVector[0] << " " << m_plotPositionInVector[1] << " " << m_plotPositionInVector[2] << " " << m_plotPositionInVector[3] << " " << m_plotPositionInVector[4] << "   -   " << m_numberOfActivePlots << endl;
+	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
+		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxLogX(int c)
@@ -1145,11 +1134,6 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 
 void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 {
-#ifdef _MSC_VER
-	AllocConsole();
-#endif
-	freopen("CON", "w", stdout);
-
 	//clear graph TODO
 	m_graph = vtkMutableDirectedGraph::New();
 	m_labels = vtkStringArray::New();
@@ -1174,14 +1158,14 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 		m_nodes.push_back(vector<int>());
 	}
 
-	cout << endl << endl << "SELECTION" << endl;
+	DEBUG_LOG("\n\nSELECTION");
 
 	vtkColorTransferFunction *cTF;
 	vtkPiecewiseFunction *oTF;
 
 	for (int i = 0; i < m_numberOfCharts; i++)
 	{
-		cout << endl << "Chart[" << i << "]" << endl;
+		DEBUG_LOG(QString("\nChart[%1]").arg(i));
 
 		cTF = m_volumeStack->getColorTransferFunction(i);
 		oTF = m_volumeStack->getPiecewiseFunction(i);
@@ -1215,7 +1199,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 
 				if (ids != 0)
 				{
-					cout << "  Plot[" << j << "] is active. " << ids->GetNumberOfTuples() << " selected." << endl;
+					DEBUG_LOG(QString("  Plot[%1] is active. %2 selected.").arg(j).arg(ids->GetNumberOfTuples()));
 
 					for (int k = 0; k < m_numberOfEventTypes; k++)
 					{
@@ -1225,23 +1209,23 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 							switch (k)
 							{
 							case 0:
-								cout << "   Creation Events" << endl;
+								DEBUG_LOG("   Creation Events");
 								//plots.at(numberOfCharts * 0)->GetColor(rgb);
 								break;
 							case 1:
-								cout << "   Continuation Events" << endl;
+								DEBUG_LOG("   Continuation Events");
 								//plots.at(numberOfCharts * 1)->GetColor(rgb);
 								break;
 							case 2:
-								cout << "   Split Events" << endl;
+								DEBUG_LOG("   Split Events");
 								//plots.at(numberOfCharts * 2)->GetColor(rgb);
 								break;
 							case 3:
-								cout << "   Merge Events" << endl;
+								DEBUG_LOG("   Merge Events");
 								//plots.at(numberOfCharts * 3)->GetColor(rgb);
 								break;
 							case 4:
-								cout << "   Dissipation Events" << endl;
+								DEBUG_LOG("   Dissipation Events");
 								//plots.at(numberOfCharts * 4)->GetColor(rgb);
 								break;
 							}
@@ -1249,7 +1233,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 							for (int l = 0; l < ids->GetNumberOfTuples(); l++)
 							{
 								double id = m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(0).ToDouble();
-								cout << "    " << ids->GetValue(l) << " --> table id: " << id << endl;
+								DEBUG_LOG(QString("    %1 --> table id: %2").arg(ids->GetValue(l)).arg(id));
 
 								buildGraph(id, i, k, m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(7).ToDouble());
 							}
@@ -1260,10 +1244,10 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 			}
 			else
 			{
-				cout << "  Plot[" << j << "] is deactivated" << endl;
+				DEBUG_LOG(QString("  Plot[%1] is deactivated").arg(j));
 			}
 		}
-		cout << "   cTF range: " << cTF->GetRange()[0] << ", " << cTF->GetRange()[1] << endl;
+		DEBUG_LOG(QString("   cTF range: %1, %2").arg(cTF->GetRange()[0]).arg(cTF->GetRange()[1]));
 	}
 	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->getNumberOfVolumes(), m_nodesToLayers, m_graphToTableId);
 }
@@ -1373,7 +1357,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 					{
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer - 1][c.id]);
-						cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer - 1 << "]" << endl;
+						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer - 1));
 						
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer - 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
@@ -1444,7 +1428,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 					{
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer + 1][c.id]);
-						cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer + 1 << "]" << endl;
+						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer + 1));
 							
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer + 1][c.id], tableToGraphId[layer][id]) != -1)
 						{

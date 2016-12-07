@@ -248,10 +248,7 @@ bool iAModality::LoadData()
 			DEBUG_LOG("Error while setting up modality loading!");
 			return false;
 		}
-		// TODO: check for errors during actual loading!
-		//connect(io, done(bool), this, )
 		io.start();
-		// TODO: VOLUME: make asynchronous!
 		io.wait();
 		SetData(img);
 	}

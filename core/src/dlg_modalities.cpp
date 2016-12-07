@@ -125,7 +125,7 @@ void dlg_modalities::AddClicked()
 
 	const int DefaultRenderFlags = iAModality::MainRenderer;
 
-	// TODO: unify this with mdichild::loadFile
+	// TODO: unify this with mdichild::loadFile / iAModality::loadData!
 	if (fileName.endsWith(iAIO::VolstackExtension))
 	{
 		std::vector<vtkSmartPointer<vtkImageData> > volumes;
@@ -173,10 +173,7 @@ void dlg_modalities::AddClicked()
 			DEBUG_LOG("Error while setting up modality loading!");
 			return;
 		}
-		// TODO: check for errors during actual loading!
-		//connect(io, done(bool), this, )
 		io.start();
-		// TODO: VOLUME: make asynchronous!
 		io.wait();
 		QFileInfo fi(fileName);
 		if (volumes.size() > 0)
