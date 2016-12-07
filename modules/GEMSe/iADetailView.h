@@ -92,6 +92,7 @@ private:
 	int m_representativeType;
 	iAChannelVisualizationData* m_magicLensData;
 	int m_magicLensCurrentModality;
+	int m_magicLensCurrentComponent;
 
 	void UpdateGeometry();
 	void SetImage();
