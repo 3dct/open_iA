@@ -37,7 +37,9 @@
 #include <vtkObjectFactory.h>
 
 #include <iADockWidgetWrapper.h>
+#include <iARenderer.h>
 
+#include "iABoneThickness.h"
 #include "iABoneThicknessChart.h"
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
@@ -158,6 +160,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setSphereRadius(dSphereRadius);
 		m_pBoneThickness->calculate();
+		m_pBoneThickness->setChart(m_pBoneThicknessChart);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindowSpheres();
 		m_childData.child->getRaycaster()->update();
@@ -174,6 +177,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setThicknessMaximum(dThicknessMaximum);
 		m_pBoneThickness->calculate();
+		m_pBoneThickness->setChart(m_pBoneThicknessChart);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
 		qApp->restoreOverrideCursor();
@@ -197,6 +201,7 @@ void iABoneThicknessAttachment::slotPushButtonOpen()
 		qApp->processEvents();
 		m_pBoneThickness->open(pFileDialog->selectedFiles().first());
 		m_pBoneThickness->calculate();
+		m_pBoneThickness->setChart(m_pBoneThicknessChart);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
 		qApp->restoreOverrideCursor();

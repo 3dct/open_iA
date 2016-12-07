@@ -24,10 +24,20 @@
 
 #include <QVTKWidget2.h>
 
+class vtkChartXY;
+class vtkDoubleArray;
+class vtkTable;
+
 class iABoneThicknessChart : public QVTKWidget2
 {
 		Q_OBJECT
 
 	public:
 		explicit iABoneThicknessChart(QWidget* _pParent = nullptr);
+
+		void setData(vtkDoubleArray* _daThickness);
+
+	private:
+		vtkSmartPointer<vtkChartXY> m_pChart = nullptr;
+		vtkSmartPointer<vtkTable> m_pTable = nullptr;
 };

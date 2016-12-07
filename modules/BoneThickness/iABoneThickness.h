@@ -27,15 +27,17 @@
 #include <QVector>
 
 #include <vtkActorCollection.h>
-#include <vtkDoubleArray.h>
-#include <vtkLineSource.h>
 #include <vtkPoints.h>
-#include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-#include <iARenderer.h>
+class vtkDoubleArray;
+class vtkLineSource;
+class vtkPolyData;
 
-#include "iABoneThicknessTable.h"
+class iARenderer;
+
+class iABoneThicknessChart;
+class iABoneThicknessTable;
 
 class iABoneThickness : public vtkObject
 {
@@ -65,6 +67,7 @@ class iABoneThickness : public vtkObject
 		void save(const QString& _sFilename) const;
 
 		void set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessTable* _pBoneThicknessTable);
+		void setChart(iABoneThicknessChart* _pBoneThicknessChart);
 		void setShowThickness(const bool& _bShowThickness);
 		void setShowThicknessLines(const bool& _bShowThicknessLines);
 		void setSphereRadius(const double& _dSphereRadius);

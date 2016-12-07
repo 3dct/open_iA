@@ -25,22 +25,58 @@
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
+#include <vtkDoubleArray.h>
+#include <vtkIntArray.h>
+#include <vtkPlot.h>
 #include <vtkSmartPointer.h>
+#include <vtkTable.h>
 
 iABoneThicknessChart::iABoneThicknessChart(QWidget* _pParent) : QVTKWidget2(_pParent)
 {
-	vtkSmartPointer<vtkChartXY> pChart (vtkSmartPointer<vtkChartXY>::New());
-	pChart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
-	
-	vtkAxis* pAxis1(pChart->GetAxis(vtkAxis::BOTTOM));
-	pAxis1->SetTitle("Points");
+	m_pChart = vtkSmartPointer<vtkChartXY>::New();
+	m_pChart->SetForceAxesToBounds(true);
+	m_pChart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	m_pChart->SetZoomWithMouseWheel(false);
 
-	vtkAxis* pAxis2(pChart->GetAxis(vtkAxis::LEFT));
+	vtkAxis* pAxis1(m_pChart->GetAxis(vtkAxis::BOTTOM));
+	pAxis1->SetTitle("");
+
+	vtkAxis* pAxis2(m_pChart->GetAxis(vtkAxis::LEFT));
 	pAxis2->SetTitle("Thickness");
 
-	vtkPlot* pPlot (pChart->AddPlot(vtkChart::BAR));
+	m_pTable = vtkSmartPointer<vtkTable>::New();
 
-	vtkSmartPointer<vtkContextView> pContextView = vtkSmartPointer<vtkContextView>::New();
-	pContextView->SetRenderWindow((vtkRenderWindow*) GetRenderWindow());
-	pContextView->GetScene()->AddItem(pChart);
+	vtkSmartPointer<vtkIntArray> pIntArray(vtkSmartPointer<vtkIntArray>::New());
+	pIntArray->SetName("Index");
+	m_pTable->AddColumn(pIntArray);
+
+	vtkSmartPointer<vtkDoubleArray> pDoubleArray(vtkSmartPointer<vtkDoubleArray>::New());
+	pDoubleArray->SetName("Thickness");
+	m_pTable->AddColumn(pDoubleArray);
+
+	vtkSmartPointer<vtkContextView> pContextView (vtkSmartPointer<vtkContextView>::New());
+	pContextView->SetRenderWindow((vtkRenderWindow*)GetRenderWindow());
+	pContextView->GetScene()->AddItem(m_pChart);
+}
+
+void iABoneThicknessChart::setData(vtkDoubleArray* _daThickness)
+{
+	const vtkIdType n (_daThickness->GetNumberOfTuples());
+
+	m_pTable->SetNumberOfRows(n);
+
+	for (vtkIdType i(0); i < n; i++)
+	{
+		m_pTable->SetValue(i, 0, i + 1);
+		m_pTable->SetValue(i, 1, _daThickness->GetTuple1(i));
+	}
+
+	while (m_pChart->GetNumberOfPlots())
+	{
+		m_pChart->RemovePlot(0);
+	}
+
+	vtkPlot* pPlot (m_pChart->AddPlot(vtkChart::BAR));
+	pPlot->SetColor(255, 0, 0, 255);
+	pPlot->SetInputData(m_pTable, 0, 1);
 }

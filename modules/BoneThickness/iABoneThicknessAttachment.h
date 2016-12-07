@@ -26,8 +26,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include "iABoneThickness.h"
-
+class iABoneThickness;
 class iABoneThicknessChart;
 class iABoneThicknessTable;
 

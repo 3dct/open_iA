@@ -26,17 +26,24 @@
 #include <QTextStream>
 
 #include <vtkCellLocator.h>
+#include <vtkDoubleArray.h>
+#include <vtkLineSource.h>
 #include <vtkMath.h>
 #include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPCAStatistics.h>
-#include <vtkProperty.h>
-#include <vtkPointLocator.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPointLocator.h>
+#include <vtkProperty.h>
 #include <vtkSphereSource.h>
 #include <vtkTable.h>
 #include <vtkTubeFilter.h>
 
+#include <iARenderer.h>
+
+#include "iABoneThicknessChart.h"
+#include "iABoneThicknessTable.h"
 #include "iABoneThicknessMouseInteractor.h"
 
 vtkStandardNewMacro(iABoneThicknessMouseInteractor);
@@ -409,6 +416,11 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 
 	pWindowInteractor->Initialize();
 	pWindowInteractor->Start();
+}
+
+void iABoneThickness::setChart(iABoneThicknessChart* _pBoneThicknessChart)
+{
+	_pBoneThicknessChart->setData(m_daThickness);
 }
 
 void iABoneThickness::setShowThickness(const bool& _bShowThickness)
