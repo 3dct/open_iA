@@ -73,7 +73,7 @@ QString iAIOProvider::GetSupportedVolumeStackFormats()
 QString iAIOProvider::GetSupportedImageFormats()
 {
 	return QObject::tr(
-		"BMP (*.bmp)"
+		"BMP (*.bmp);;"
 		"JPEG (*.jpg);;"
 		"PNG (*.png);;"
 		"TIFF (*.tif);;"

@@ -40,17 +40,6 @@
 
 #include <cassert>
 
-/*
-iAModality::iAModality(QString const & name, QString const & filename, int channel, int renderFlags):
-	m_name(name),
-	m_filename(filename),
-	renderFlags(renderFlags),
-	m_channel(channel),
-	m_componentCount(1)
-{
-}
-*/
-
 iAModality::iAModality(QString const & name, QString const & filename, int channel, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
 	m_filename(filename),

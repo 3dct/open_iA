@@ -35,8 +35,9 @@ QString MakeAbsolute(QString const & baseDir, QString const & fileName)
 	{
 		return fileName;
 	}
+	QDir dir(baseDir);
 	// TODO : use canonicalFilePath here? drawback: empty if file doesn't exist!
-	return baseDir + "/" + fileName;
+	return dir.absoluteFilePath(fileName);
 }
 
 QString MakeRelative(QString const & baseDir,  QString const & fileName)
