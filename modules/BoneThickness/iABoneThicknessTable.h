@@ -44,7 +44,8 @@ class iABoneThicknessTable : public QTableView
 
 		int selected() const;
 
-protected:
+	protected:
+		virtual void mousePressEvent(QMouseEvent* e) override;
 		virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
 
 };

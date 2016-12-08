@@ -374,6 +374,11 @@ void iABoneThickness::save(const QString& _sFilename) const
 	}
 }
 
+vtkIdType iABoneThickness::selected() const
+{
+	return m_idSelected;
+}
+
 void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChart* _pBoneThicknessChart, iABoneThicknessTable* _pBoneThicknessTable)
 {
 	m_iARenderer = _iARenderer;

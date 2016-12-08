@@ -34,8 +34,6 @@
 #include <QPushButton>
 #include <QSplitter>
 
-#include <vtkObjectFactory.h>
-
 #include <iADockWidgetWrapper.h>
 #include <iARenderer.h>
 
@@ -44,6 +42,7 @@
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
 
+#include <vtkObjectFactory.h>
 vtkStandardNewMacro(iABoneThickness);
 
 iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
@@ -56,6 +55,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	m_pBoneThicknessChart = new iABoneThicknessChart(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
 	
+	m_pBoneThicknessChart->set(m_pBoneThickness, m_pBoneThicknessTable);
 	m_pBoneThicknessTable->set(m_pBoneThickness, m_pBoneThicknessChart);
 
 	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessChart, m_pBoneThicknessTable);

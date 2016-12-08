@@ -64,6 +64,8 @@ class iABoneThickness : public vtkObject
 
 		void save(const QString& _sFilename) const;
 
+		vtkIdType selected() const;
+
 		void set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChart* _pBoneThicknessChart, iABoneThicknessTable* _pBoneThicknessTable);
 		void setChart(iABoneThicknessChart* _pBoneThicknessChart);
 		void setShowThickness(const bool& _bShowThickness);

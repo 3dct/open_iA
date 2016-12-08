@@ -21,10 +21,10 @@
 
 #include "iABoneThicknessChart.h"
 
+#include <QMouseEvent>
+
 #include <vtkAxis.h>
 #include <vtkBrush.h>
-#include <vtkChartXY.h>
-#include <vtkContextMouseEvent.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkDoubleArray.h>
@@ -33,12 +33,19 @@
 #include <vtkPlot.h>
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
+#include <vtkVector.h>
+
+#include "iABoneThickness.h"
+#include "iABoneThicknessChartXY.h"
+#include "iABoneThicknessTable.h"
+
+#include <vtkObjectFactory.h>
+vtkStandardNewMacro(iABoneThicknessChartXY);
 
 iABoneThicknessChart::iABoneThicknessChart(QWidget* _pParent) : QVTKWidget2(_pParent)
 {
-	m_pChart = vtkSmartPointer<vtkChartXY>::New();
-	m_pChart->SetInteractive(false);
-
+	m_pChart = vtkSmartPointer<iABoneThicknessChartXY>::New();
+		
 	vtkAxis* pAxis1(m_pChart->GetAxis(vtkAxis::BOTTOM));
 	pAxis1->SetLabelsVisible(false);
 	pAxis1->SetTicksVisible(false);
@@ -66,6 +73,11 @@ iABoneThicknessChart::iABoneThicknessChart(QWidget* _pParent) : QVTKWidget2(_pPa
 	pContextView->SetRenderWindow((vtkRenderWindow*)GetRenderWindow());
 }
 
+void iABoneThicknessChart::set(iABoneThickness* _pBoneThickness, iABoneThicknessTable* _pBoneThicknessTable)
+{
+	m_pChart->set(_pBoneThickness, _pBoneThicknessTable);
+}
+
 void iABoneThicknessChart::setData(vtkDoubleArray* _daThickness)
 {
 	const vtkIdType n (_daThickness->GetNumberOfTuples());
@@ -86,21 +98,17 @@ void iABoneThicknessChart::setData(vtkDoubleArray* _daThickness)
 
 	dAverage /= (double) n;
 
-	double pRange[2];
-	_daThickness->GetRange(pRange);
-
-	vtkAxis* pAxis1(m_pChart->GetAxis(vtkAxis::BOTTOM));
-	pAxis1->SetTitle("Minimum: " + std::to_string(pRange[0]) + "   Mean: " + std::to_string(dAverage) + "   Maximum: " + std::to_string(pRange[1]));
-
 	for (vtkIdType i(0); i < n; i++)
 	{
 		m_pTable->SetValue(i, 2, dAverage);
 	}
 
-	while (m_pChart->GetNumberOfPlots())
-	{
-		m_pChart->RemovePlot(0);
-	}
+	double pRange[2];
+	_daThickness->GetRange(pRange);
+	vtkAxis* pAxis1(m_pChart->GetAxis(vtkAxis::BOTTOM));
+	pAxis1->SetTitle("Minimum: " + std::to_string(pRange[0]) + "   Mean: " + std::to_string(dAverage) + "   Maximum: " + std::to_string(pRange[1]));
+
+	m_pChart->ClearPlots();
 
 	vtkPlot* pPlot(m_pChart->AddPlot(vtkChart::LINE));
 	pPlot->SetColor(0, 0, 255, 255);

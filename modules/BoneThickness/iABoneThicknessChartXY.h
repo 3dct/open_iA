@@ -22,30 +22,31 @@
 #pragma once
 // iA
 
-#include <QVTKWidget2.h>
+#include <vtkChartXY.h>
 
-class vtkDoubleArray;
-class vtkPlot;
-class vtkTable;
+#include <vtkObject.h>
+
+class vtkContextMouseEvent;
 
 class iABoneThickness;
-class iABoneThicknessChartXY;
 class iABoneThicknessTable;
 
-class iABoneThicknessChart : public QVTKWidget2
+class iABoneThicknessChartXY : public vtkChartXY
 {
-		Q_OBJECT
-
 	public:
-		explicit iABoneThicknessChart(QWidget* _pParent = nullptr);
+		static iABoneThicknessChartXY* New();
+		vtkTypeMacro(iABoneThicknessChartXY, vtkChartXY);
+
+		iABoneThicknessChartXY();
 
 		void set(iABoneThickness* _pBoneThickness, iABoneThicknessTable* _pBoneThicknessTable);
 
-		void setData(vtkDoubleArray* _daThickness);
-		void setSelected(const vtkIdType& _idSelected);
-
 	private:
-		vtkSmartPointer<iABoneThicknessChartXY> m_pChart = nullptr;
-		vtkPlot* m_pPlot = nullptr;
-		vtkSmartPointer<vtkTable> m_pTable = nullptr;
+		iABoneThickness* m_pBoneThickness = nullptr;
+		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+
+		int selected(const int& _iX);
+
+	protected:
+		virtual bool MouseButtonPressEvent(const vtkContextMouseEvent& e) override;
 };

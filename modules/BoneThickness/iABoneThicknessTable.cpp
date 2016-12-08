@@ -46,6 +46,16 @@ iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pPa
 	setModel(pItemModel);
 }
 
+void iABoneThicknessTable::mousePressEvent(QMouseEvent* e)
+{
+	const int iSelected(selected());
+
+	if (m_pBoneThickness) m_pBoneThickness->setSelected(iSelected);
+	if (m_pBoneThicknessChart) m_pBoneThicknessChart->setSelected(iSelected);
+
+	QTableView::mousePressEvent(e);
+}
+
 void iABoneThicknessTable::selectionChanged(const QItemSelection& _Selected, const QItemSelection& _Deselected)
 {
 	const int iSelected(selected());
