@@ -82,7 +82,7 @@ void dlg_GEMSe::SetTree(
 	vtkSmartPointer<vtkImageData> originalImage,
 	QSharedPointer<iAModalityList> modalities,
 	iALabelInfo const & labelInfo,
-	QVector<QSharedPointer<iASamplingResults> > samplings)
+	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings)
 {
 	// reset previous
 	if (m_treeView)
@@ -174,9 +174,9 @@ void dlg_GEMSe::CreateMapper()
 	m_chartAttributes = QSharedPointer<iAAttributes>(new iAAttributes());
 	m_chartAttributeMapper.Clear();
 	int nextChartID = 0;
-	for (int samplingIdx=0; samplingIdx<m_samplings.size(); ++samplingIdx)
+	for (int samplingIdx=0; samplingIdx<m_samplings->size(); ++samplingIdx)
 	{
-		QSharedPointer<iASamplingResults> sampling = m_samplings[samplingIdx];
+		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
 		int datasetID = sampling->GetID();
 		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
@@ -707,11 +707,11 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 			int chartID = m_chartAttributes->size();
 			m_chartAttributes->Add(measure);
 			// add mappings:
-			for (int sampleIdx = 0; sampleIdx < m_samplings.size(); ++sampleIdx)
+			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
-				QSharedPointer<iAAttributes> attribs = m_samplings[sampleIdx]->GetAttributes();
+				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->GetAttributes();
 				int attributeID = attribs->size();
-				int datasetID = m_samplings[sampleIdx]->GetID();
+				int datasetID = m_samplings->at(sampleIdx)->GetID();
 				attribs->Add(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}

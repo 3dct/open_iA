@@ -26,7 +26,8 @@
 #include <QStandardItemModel>
 
 dlg_samplings::dlg_samplings():
-	m_itemModel(new QStandardItemModel())
+	m_itemModel(new QStandardItemModel()),
+	m_samplings(new QVector<SamplingResultPtr>())
 {
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Samplings"));
@@ -35,13 +36,13 @@ dlg_samplings::dlg_samplings():
 
 QSharedPointer<iASamplingResults> dlg_samplings::GetSampling(int idx)
 {
-	return m_samplings[idx];
+	return m_samplings->at(idx);
 }
 
 void dlg_samplings::Add(QSharedPointer<iASamplingResults> samplingResults)
 {
 	QStandardItem* newItem = new QStandardItem(samplingResults->GetFileName());
-	m_samplings.push_back(samplingResults);
+	m_samplings->push_back(samplingResults);
 	m_itemModel->appendRow(newItem);
 }
 
@@ -59,15 +60,15 @@ void dlg_samplings::Remove()
 		return;
 	}
 	m_itemModel->removeRow(curRow);
-	m_samplings.erase(m_samplings.begin() + curRow);
+	m_samplings->erase(m_samplings->begin() + curRow);
 }
 
 int dlg_samplings::SamplingCount() const
 {
-	return m_samplings.size();
+	return m_samplings->size();
 }
 
-QVector<dlg_samplings::SamplingResultPointer> const & dlg_samplings::GetSamplings()
+QSharedPointer<QVector<dlg_samplings::SamplingResultPtr> > dlg_samplings::GetSamplings()
 {
 	return m_samplings;
 }

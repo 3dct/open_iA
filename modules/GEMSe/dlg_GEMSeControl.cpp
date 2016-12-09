@@ -456,7 +456,7 @@ void dlg_GEMSeControl::StoreAll()
 void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 {
 	QMap<int, QString> samplingFilenames;
-	for (QSharedPointer<iASamplingResults> sampling : m_dlgSamplings->GetSamplings())
+	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
 		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
 	}
@@ -598,8 +598,8 @@ bool dlg_GEMSeControl::LoadReferenceImage(QString const & referenceImageName)
 
 void dlg_GEMSeControl::StoreDerivedOutput()
 {
-	QVector<QSharedPointer<iASamplingResults> > const & samplings = m_dlgSamplings->GetSamplings();
-	for (int i = 0; i < samplings.size(); ++i)
+	SamplingVectorPtr samplings = m_dlgSamplings->GetSamplings();
+	for (int i = 0; i < samplings->size(); ++i)
 	{
 		QString derivedOutputFileName = QFileDialog::getSaveFileName(this, tr("Save Derived Output"),
 			QString(), // TODO get directory of current file
@@ -612,7 +612,7 @@ void dlg_GEMSeControl::StoreDerivedOutput()
 		{
 			return;
 		}
-		StoreDerivedOutput(derivedOutputFileName, attributeDescriptorOutputFileName, samplings[i]);
+		StoreDerivedOutput(derivedOutputFileName, attributeDescriptorOutputFileName, samplings->at(i));
 	}
 }
 

@@ -108,7 +108,7 @@ QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleR
 
 
 QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
-	QVector<QSharedPointer<iASamplingResults> > const & samplingResults,
+	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > >samplingResults,
 	int labelCount,
 	QString const & outputDirectory,
 	int & lastClusterID)
@@ -137,7 +137,7 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 			DEBUG_LOG(QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
 			return QSharedPointer<iAImageTreeNode>();
 		}
-		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults[datasetID]->GetResults();
+		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults->at(datasetID)->GetResults();
 		QSharedPointer<iASingleResult> result = findResultWithID(sampleResults, id);
 		return QSharedPointer<iAImageTreeNode>(new iAImageTreeLeaf(result, labelCount) );
 	}
@@ -159,7 +159,8 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 
 
 QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
-	QVector<QSharedPointer<iASamplingResults> > const & samplingResults, int labelCount)
+	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplingResults,
+	int labelCount)
 {
 	QFile file(fileName);
 	QSharedPointer<iAImageTree> result;
@@ -177,9 +178,9 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
 		DEBUG_LOG("Can't create representative directory!");
 	}
 	int lastClusterID = -1;
-	for (int i=0; i<samplingResults.size(); ++i)
+	for (int i=0; i<samplingResults->size(); ++i)
 	{
-		lastClusterID = std::max(lastClusterID, samplingResults[i]->size());
+		lastClusterID = std::max(lastClusterID, samplingResults->at(i)->size());
 	}
 	result =  QSharedPointer<iAImageTree>(new iAImageTree(ReadNode(in, samplingResults, labelCount,
 		dir, lastClusterID), labelCount));

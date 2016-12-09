@@ -34,7 +34,7 @@ class iAImageTree
 public:
 	static QSharedPointer<iAImageTree> Create(
 		QString const & fileName,
-		QVector<QSharedPointer<iASamplingResults> > const & samplings,
+		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings,
 		int labelCount);
 	iAImageTree(QSharedPointer<iAImageTreeNode >, int labelCount);
 	QSharedPointer<iAImageTreeNode > m_root;
@@ -44,7 +44,7 @@ private:
 	static void WriteNode(QTextStream & out, QSharedPointer<iAImageTreeNode >, int level);
 	static QSharedPointer<iAImageTreeNode> ReadNode(
 		QTextStream & in,
-		QVector<QSharedPointer<iASamplingResults> > const & samplings,
+		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings,
 		int labelCount,
 		QString const & outputDirectory,
 		int & lastClusterID);

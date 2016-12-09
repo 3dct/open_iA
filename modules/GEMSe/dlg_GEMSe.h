@@ -64,7 +64,7 @@ public:
 		vtkSmartPointer<vtkImageData> originalImage,
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
-		QVector<QSharedPointer<iASamplingResults> > samplings);
+		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings);
 	void StoreClustering(QString const & fileName);
 	QSharedPointer<iAImageTreeNode> GetCurrentCluster();
 	QSharedPointer<iAImageTreeNode> GetRoot();
@@ -117,7 +117,7 @@ private:
 		int labelCount);
 	
 	// data:
-	QVector<QSharedPointer<iASamplingResults> > m_samplings;
+	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > m_samplings;
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;

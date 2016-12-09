@@ -61,3 +61,6 @@ private:
 	bool LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName);
 	static int NewID;
 };
+
+typedef QSharedPointer<iASamplingResults> SamplingResultPtr;
+typedef QSharedPointer<QVector<SamplingResultPtr> > SamplingVectorPtr;
