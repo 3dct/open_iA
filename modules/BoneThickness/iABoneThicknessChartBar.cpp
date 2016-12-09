@@ -93,45 +93,48 @@ void iABoneThicknessChartBar::draw()
 	pPainter->setFont(m_foTitle);
 	pPainter->drawText(iRectX, 0, iRectW, iRectY, Qt::AlignCenter, m_sTitle);
 
-	m_iAxisX1 = iRectX + m_iMarginX;
-	m_iAxisX2 = iRectX + iRectW - m_iMarginX;
+	if (m_daThickness)
+	{
+		m_iAxisX1 = iRectX + m_iMarginX;
+		m_iAxisX2 = iRectX + iRectW - m_iMarginX;
 
-	const int iTickXY1(iRectY + iRectH);
-	const int iTickXY2(iTickXY1 + m_iTickY);
+		const int iTickXY1(iRectY + iRectH);
+		const int iTickXY2(iTickXY1 + m_iTickY);
 
-	pPainter->drawLine(m_iAxisX1, iTickXY1, m_iAxisX1, iTickXY2);
-	pPainter->drawLine(m_iAxisX2, iTickXY1, m_iAxisX2, iTickXY2);
+		pPainter->drawLine(m_iAxisX1, iTickXY1, m_iAxisX1, iTickXY2);
+		pPainter->drawLine(m_iAxisX2, iTickXY1, m_iAxisX2, iTickXY2);
 
-	const int iFlagAxisX(Qt::AlignTop | Qt::AlignHCenter | Qt::TextDontClip);
+		const int iFlagAxisX(Qt::AlignTop | Qt::AlignHCenter | Qt::TextDontClip);
 
-	pPainter->setFont(m_foAxis);
-	pPainter->drawText(m_iAxisX2, iTickXY2, 0, 0, iFlagAxisX, QString("%1").arg(m_dAxisX2));
+		pPainter->setFont(m_foAxis);
+		pPainter->drawText(m_iAxisX2, iTickXY2, 0, 0, iFlagAxisX, QString("%1").arg(m_dAxisX2));
 
-	m_iAxisY1 = iRectY + iRectH - m_iMarginY;
-	m_iAxisY2 = iRectY + m_iMarginY;
+		m_iAxisY1 = iRectY + iRectH - m_iMarginY;
+		m_iAxisY2 = iRectY + m_iMarginY;
 
-	const int iTickYX1(iRectX - m_iTickX);
-	const int iTickYX2(iTickYX1 + m_iTickX);
+		const int iTickYX1(iRectX - m_iTickX);
+		const int iTickYX2(iTickYX1 + m_iTickX);
 
-	pPainter->drawLine(iTickYX1, m_iAxisY1, iTickYX2, m_iAxisY1);
-	const int iThickness1(valueToScreenY(m_dThickness1));
-	pPainter->drawLine(iTickYX1, iThickness1, iTickYX2, iThickness1);
-	const int iThicknessMean(valueToScreenY(m_dThicknessMean));
-	pPainter->drawLine(iTickYX1, iThicknessMean, iTickYX2, iThicknessMean);
-	const int iThickness2(valueToScreenY(m_dThickness2));
-	pPainter->drawLine(iTickYX1, iThickness2, iTickYX2, iThickness2);
-	pPainter->drawLine(iTickYX1, m_iAxisY2, iTickYX2, m_iAxisY2);
+		pPainter->drawLine(iTickYX1, m_iAxisY1, iTickYX2, m_iAxisY1);
+		const int iThickness1(valueToScreenY(m_dThickness1));
+		pPainter->drawLine(iTickYX1, iThickness1, iTickYX2, iThickness1);
+		const int iThicknessMean(valueToScreenY(m_dThicknessMean));
+		pPainter->drawLine(iTickYX1, iThicknessMean, iTickYX2, iThicknessMean);
+		const int iThickness2(valueToScreenY(m_dThickness2));
+		pPainter->drawLine(iTickYX1, iThickness2, iTickYX2, iThickness2);
+		pPainter->drawLine(iTickYX1, m_iAxisY2, iTickYX2, m_iAxisY2);
 
-	const int iFlagAxisY(Qt::AlignRight | Qt::AlignVCenter | Qt::TextDontClip);
+		const int iFlagAxisY(Qt::AlignRight | Qt::AlignVCenter | Qt::TextDontClip);
 
-	pPainter->drawText(iTickYX1, iThickness1, 0, 0, iFlagAxisY, vAxisYString.at(1));
-	pPainter->drawText(iTickYX1, iThicknessMean, 0, 0, iFlagAxisY, vAxisYString.at(2));
-	pPainter->drawText(iTickYX1, iThickness2, 0, 0, iFlagAxisY, vAxisYString.at(3));
+		pPainter->drawText(iTickYX1, iThickness1, 0, 0, iFlagAxisY, vAxisYString.at(1));
+		pPainter->drawText(iTickYX1, iThicknessMean, 0, 0, iFlagAxisY, vAxisYString.at(2));
+		pPainter->drawText(iTickYX1, iThickness2, 0, 0, iFlagAxisY, vAxisYString.at(3));
 
-	pPainter->setPen(m_cPen2);
-	pPainter->drawLine(iRectX, iThickness1, iRectX + iRectW, iThickness1);
-	pPainter->drawLine(iRectX, iThicknessMean, iRectX + iRectW, iThicknessMean);
-	pPainter->drawLine(iRectX, iThickness2, iRectX + iRectW, iThickness2);
+		pPainter->setPen(m_cPen2);
+		pPainter->drawLine(iRectX, iThickness1, iRectX + iRectW, iThickness1);
+		pPainter->drawLine(iRectX, iThicknessMean, iRectX + iRectW, iThicknessMean);
+		pPainter->drawLine(iRectX, iThickness2, iRectX + iRectW, iThickness2);
+	}
 
 	pPainter->setBrush(Qt::NoBrush);
 	pPainter->setPen(m_cPen1);
