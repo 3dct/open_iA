@@ -779,3 +779,8 @@ void dlg_GEMSe::SetSerializedHiddenCharts(QString const & hiddenCharts)
 {
 	m_histogramContainer->SetSerializedHiddenCharts(hiddenCharts);
 }
+
+QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > dlg_GEMSe::GetSamplings()
+{
+	return m_samplings;
+}

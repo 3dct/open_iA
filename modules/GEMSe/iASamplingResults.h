@@ -34,6 +34,8 @@ public:
 		QSharedPointer<iAAttributes> attr,
 		QString const & samplingMethod,
 		QString const & path,
+		QString const & executable,
+		QString const & additionalArguments,
 		int id
 	);
 	static QSharedPointer<iASamplingResults> Load(QString const & metaFileName, int datasetID);
@@ -56,6 +58,8 @@ private:
 	QString m_samplingMethod; //!< the name of the applied sampling method (Latin Hypercube, Random, ...)
 	QString m_fileName;       //!< smp fileName
 	QString m_path;           //!< base filename for the sampling results
+	QString m_executable;     //!< executable used to create this sampling
+	QString m_additionalArguments; //!< additional parameters passed to the executable
 	int m_id;
 
 	bool LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName);

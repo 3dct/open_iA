@@ -60,7 +60,7 @@ iAImageSampler::iAImageSampler(
 	m_labelCount(labelCount),
 	m_curLoop(0),
 	m_parameterSets(0),
-	m_computationExecutable(computationExecutable),
+	m_executable(computationExecutable),
 	m_additionalArguments(additionalArguments),
 	m_outputBaseDir(outputBaseDir),
 	m_aborted(false),
@@ -114,6 +114,8 @@ void iAImageSampler::run()
 		m_parameters,
 		m_sampleGenerator->GetName(),
 		m_outputBaseDir,
+		m_executable,
+		m_additionalArguments,
 		iASamplingResults::GetNewID()));
 
 	for (m_curLoop=0; !m_aborted && m_curLoop<m_parameterSets->size(); ++m_curLoop)
@@ -163,7 +165,7 @@ void iAImageSampler::run()
 			}
 			argumentList << value;
 		}
-		iACommandRunner* cmd = new iACommandRunner(m_computationExecutable, argumentList);
+		iACommandRunner* cmd = new iACommandRunner(m_executable, argumentList);
 		
 		QSharedPointer<iAModality const> mod0 = m_modalities->Get(0);
 		

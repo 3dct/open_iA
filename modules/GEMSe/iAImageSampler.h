@@ -72,7 +72,7 @@ private:
 	int m_sampleCount;
 	int m_labelCount;
 	ParameterSetsPointer m_parameterSets;
-	QString m_computationExecutable;
+	QString m_executable;
 	QString m_additionalArguments;
 	QString m_outputBaseDir;
 

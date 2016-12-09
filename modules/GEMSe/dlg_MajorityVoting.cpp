@@ -195,11 +195,11 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 	if (labelVoters > 0)
 	{
 		labelVoters = std::min(selection.size(), labelVoters);
+		typedef std::pair<int, double> InputDice;
 		std::set<std::pair<int, int> > inputLabelVotersSet;
-
 		for (int l = 0; l<labelCount; ++l)
 		{
-			std::vector<std::pair<int, double> > memberDice;
+			std::vector<InputDice> memberDice;
 			for (int m = 0; m < selection.size(); ++m)
 			{
 				int attributeID = selection[m]->GetAttributes()->Find(QString("Dice %1").arg(l));
@@ -211,12 +211,10 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 				memberDice.push_back(std::make_pair(m, selection[m]->GetAttribute(attributeID)));
 			}
 			// sort in descending order by metric
-			sort(memberDice.begin(), memberDice.end(),
-				[](const std::pair<int, double> a, const std::pair<int, double> b)
+			sort(memberDice.begin(), memberDice.end(), [](InputDice const & a, InputDice const & b)
 			{
 				return a.second > b.second; // > because we want to order descending
-			}
-			);
+			});
 			for (int m = 0; m < labelVoters; ++m)
 			{
 				inputLabelVotersSet.insert(std::make_pair(l, memberDice[m].first));
@@ -426,7 +424,7 @@ void dlg_MajorityVoting::StoreConfig()
 //      - lots to rewrite, as it expects node with linked values
 //      - volatile - will be gone after next cluster / example image selection
 
-// Options / Design considerations:
+// possibly best future option:
 //  * integrate into clustering
 //      + image is then part of rest of analysis
 //      ~ follow-up decision required:
@@ -434,17 +432,20 @@ void dlg_MajorityVoting::StoreConfig()
 //          - how to preserve creation "parameters"?
 //		- have to re-run whole clustering? or integrate it somehow faked?
 //	* intermediate step: add as separate result (e.g. in favorite view)
-//      // (chance to include in clustering after renewed clustering)
+//      // (with a chance to include in clustering after renewed clustering)
+
+// other options:
 //  * separate list of  majority-voted results
-//		- separate from
+//		- separate from other analysis
 //  * new dock widget in same mdichild
 //		+ closer to current analysis than separate mdi child
 //		- lots of new implementation required
-//		- no clear benefit - if each
+//		- no clear benefit
+//      - could get pretty crowded
 //  * new window (mdichild?)
-//      - detached from current design
 //      + completely independent of other implementation (should continue working if anything else changes)
 //      - completely independent of other implementation (not integrated into current analysis)
+//      - detached from current design
 //      +/- theoretically easier to do/practically probably also not little work to make it happen
 
 

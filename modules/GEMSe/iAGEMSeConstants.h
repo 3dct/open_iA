@@ -161,7 +161,7 @@ struct Output
 };
 
 
-const QString SMPFileVersion("v6");
+const QString SMPFileVersion("v7");
 const QString SMPFileFormatVersion("SamplingParameters File " + SMPFileVersion);
 
 const QString AttributeSplitString("\t");

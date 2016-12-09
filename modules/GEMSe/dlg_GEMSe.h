@@ -86,6 +86,7 @@ public:
 	int GetMeasureStartID() { return m_MeasureChartIDStart; }
 	QString GetSerializedHiddenCharts() const;
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
+	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > GetSamplings();
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

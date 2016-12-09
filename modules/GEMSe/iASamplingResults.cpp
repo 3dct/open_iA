@@ -38,11 +38,15 @@ iASamplingResults::iASamplingResults(
 	QSharedPointer<iAAttributes> attr,
 	QString const & samplingMethod,
 	QString const & path,
+	QString const & executable,
+	QString const & additionalArguments,
 	int id
 ):
 	m_attributes(attr),
 	m_samplingMethod(samplingMethod),
 	m_path(path),
+	m_executable(executable),
+	m_additionalArguments(additionalArguments),
 	m_id(id)
 {
 	NewID = (id >= NewID)? id + 1: NewID;
@@ -78,7 +82,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 	QFileInfo fileInfo(file);
 	if (in.atEnd())
 	{
-		DEBUG_LOG("Invalid Sampling descriptor!\n");
+		DEBUG_LOG("Invalid sampling descriptor!\n");
 		return QSharedPointer<iASamplingResults>();
 	}
 
@@ -94,13 +98,19 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 		!GetNameValue("DerivedOutput", derivedOutputFileName, in) ||
 		!GetNameValue("SamplingMethod", samplingMethod, in))
 	{
-		DEBUG_LOG("Invalid Sampling descriptor!");
+		DEBUG_LOG("Invalid sampling descriptor!");
 		return QSharedPointer<iASamplingResults>();
+	}
+	QString executable, additionalArguments;
+	if (!GetNameValue("Executable", executable, in) ||
+		!GetNameValue("AdditionalArguments", executable, in))
+	{
+		DEBUG_LOG("Executable and/or AdditionalArguments missing in sampling descriptor!");
 	}
 
 	QSharedPointer<iAAttributes> attributes = iAAttributes::Create(in);
 	QSharedPointer<iASamplingResults> result(new iASamplingResults(
-		attributes, samplingMethod, fileInfo.absolutePath(), datasetID));
+		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, datasetID));
 	file.close();
 	if (result->LoadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))
@@ -130,6 +140,8 @@ bool iASamplingResults::Store(QString const & fileName,
 	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << endl;
 	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << endl;
 	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << endl;
+	out << "Executable" << Output::NameSeparator << m_executable << endl;
+	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << endl;
 	m_attributes->Store(out);
 	paramRangeFile.close();
 
