@@ -36,7 +36,7 @@ class vtkPolyData;
 
 class iARenderer;
 
-class iABoneThicknessChart;
+class iABoneThicknessChartBar;
 class iABoneThicknessTable;
 
 class iABoneThickness : public vtkObject
@@ -54,6 +54,8 @@ class iABoneThickness : public vtkObject
 
 		void calculate();
 
+		vtkDoubleArray* thickness();
+
 		void open(const QString& _sFilename);
 
 		double rangeMax() const;
@@ -66,13 +68,13 @@ class iABoneThickness : public vtkObject
 
 		vtkIdType selected() const;
 
-		void set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChart* _pBoneThicknessChart, iABoneThicknessTable* _pBoneThicknessTable);
-		void setChart(iABoneThicknessChart* _pBoneThicknessChart);
+		void set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable);
+		void setChart(iABoneThicknessChartBar* _pBoneThicknessChartBar);
 		void setShowThickness(const bool& _bShowThickness);
 		void setShowThicknessLines(const bool& _bShowThicknessLines);
 		void setSelected(const vtkIdType& _idSelected);
 		void setSphereRadius(const double& _dSphereRadius);
-		void setTable(iABoneThicknessTable* _iABoneThicknessTable);
+		void setTable(iABoneThicknessTable* _pBoneThicknessTable);
 		void setThicknessMaximum(const double& _dThicknessMaximum);
 		void setTransparency(const bool& _bTransparency);
 		void setWindow();

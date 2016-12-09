@@ -38,7 +38,7 @@
 #include <iARenderer.h>
 
 #include "iABoneThickness.h"
-#include "iABoneThicknessChart.h"
+#include "iABoneThicknessChartBar.h"
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
 
@@ -51,14 +51,12 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	QWidget* pWidget(new QWidget());
 
 	m_pBoneThickness = vtkSmartPointer<iABoneThickness>::New();
-	
-	m_pBoneThicknessChart = new iABoneThicknessChart(pWidget);
+	m_pBoneThicknessChartBar = new iABoneThicknessChartBar(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
 	
-	m_pBoneThicknessChart->set(m_pBoneThickness, m_pBoneThicknessTable);
-	m_pBoneThicknessTable->set(m_pBoneThickness, m_pBoneThicknessChart);
-
-	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessChart, m_pBoneThicknessTable);
+	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessChartBar, m_pBoneThicknessTable);
+	m_pBoneThicknessChartBar->set(m_pBoneThickness, m_pBoneThicknessTable);
+	m_pBoneThicknessTable->set(m_pBoneThickness, m_pBoneThicknessChartBar);
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open control points file...", pWidget));
 	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
@@ -94,7 +92,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 
 	iABoneThicknessSplitter* pBoneThicknessSplitter(new iABoneThicknessSplitter(pWidget));
 	pBoneThicknessSplitter->addWidget(m_pBoneThicknessTable);
-	pBoneThicknessSplitter->addWidget(m_pBoneThicknessChart);
+	pBoneThicknessSplitter->addWidget(m_pBoneThicknessChartBar);
 
 	QGroupBox* pGroupBoxSettings(new QGroupBox("Settings", pWidget));
 	pGroupBoxSettings->setFixedHeight(pGroupBoxSettings->logicalDpiY() / 2);
@@ -162,7 +160,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setSphereRadius(dSphereRadius);
 		m_pBoneThickness->calculate();
-		m_pBoneThickness->setChart(m_pBoneThicknessChart);
+		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindowSpheres();
 		m_childData.child->getRaycaster()->update();
@@ -179,7 +177,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setThicknessMaximum(dThicknessMaximum);
 		m_pBoneThickness->calculate();
-		m_pBoneThickness->setChart(m_pBoneThicknessChart);
+		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
 		qApp->restoreOverrideCursor();
@@ -203,7 +201,7 @@ void iABoneThicknessAttachment::slotPushButtonOpen()
 		qApp->processEvents();
 		m_pBoneThickness->open(pFileDialog->selectedFiles().first());
 		m_pBoneThickness->calculate();
-		m_pBoneThickness->setChart(m_pBoneThicknessChart);
+		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
 		qApp->restoreOverrideCursor();

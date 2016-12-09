@@ -42,7 +42,7 @@
 
 #include <iARenderer.h>
 
-#include "iABoneThicknessChart.h"
+#include "iABoneThicknessChartBar.h"
 #include "iABoneThicknessTable.h"
 #include "iABoneThicknessMouseInteractor.h"
 
@@ -379,7 +379,7 @@ vtkIdType iABoneThickness::selected() const
 	return m_idSelected;
 }
 
-void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChart* _pBoneThicknessChart, iABoneThicknessTable* _pBoneThicknessTable)
+void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable)
 {
 	m_iARenderer = _iARenderer;
 	m_iARenderer->GetPolyActor()->GetProperty()->SetOpacity(m_dSurfaceOpacity);
@@ -401,7 +401,7 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 
 	vtkSmartPointer<iABoneThicknessMouseInteractor> pMouseInteractor(vtkSmartPointer<iABoneThicknessMouseInteractor>::New());
 	pMouseInteractor->SetDefaultRenderer(m_iARenderer->GetRenderer());
-	pMouseInteractor->set(this, _pBoneThicknessChart, _pBoneThicknessTable, m_pSpheres);
+	pMouseInteractor->set(this, _pBoneThicknessChartBar, _pBoneThicknessTable, m_pSpheres);
 
 	vtkRenderWindowInteractor* pWindowInteractor(m_iARenderer->GetInteractor());
 	pWindowInteractor->SetInteractorStyle(pMouseInteractor);
@@ -410,9 +410,9 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 	pWindowInteractor->Start();
 }
 
-void iABoneThickness::setChart(iABoneThicknessChart* _pBoneThicknessChart)
+void iABoneThickness::setChart(iABoneThicknessChartBar* _pBoneThicknessChartBar)
 {
-	_pBoneThicknessChart->setData(m_daThickness);
+	_pBoneThicknessChartBar->setData(m_daThickness);
 }
 
 void iABoneThickness::setSelected(const vtkIdType& _idSelected)
@@ -696,6 +696,11 @@ double iABoneThickness::sphereRadius() const
 double iABoneThickness::surfaceOpacity() const
 {
 	return m_dSurfaceOpacity;
+}
+
+vtkDoubleArray* iABoneThickness::thickness()
+{
+	return m_daThickness.GetPointer();
 }
 
 double iABoneThickness::thicknessMaximum() const

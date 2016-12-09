@@ -26,7 +26,7 @@
 #include <vtkType.h>
 
 class iABoneThickness;
-class iABoneThicknessChart;
+class iABoneThicknessChartBar;
 
 class iABoneThicknessTable : public QTableView
 {
@@ -35,16 +35,17 @@ class iABoneThicknessTable : public QTableView
 	public:
 		explicit iABoneThicknessTable(QWidget* _pParent = nullptr);
 
-		void set(iABoneThickness* _pBoneThickness, iABoneThicknessChart* _pBoneThicknessChart);
+		int selected() const;
+
+		void set(iABoneThickness* _pBoneThickness, iABoneThicknessChartBar* _pBoneThicknessChartBar);
 		void setSelected(const vtkIdType& _idSelected);
 
 	private:
 		iABoneThickness* m_pBoneThickness = nullptr;
-		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
-
-		int selected() const;
+		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
 
 	protected:
+		virtual QSize minimumSizeHint() const override;
 		virtual void mousePressEvent(QMouseEvent* e) override;
 		virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
 

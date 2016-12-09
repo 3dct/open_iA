@@ -27,7 +27,7 @@
 #include <vtkSmartPointer.h>
 
 class iABoneThickness;
-class iABoneThicknessChart;
+class iABoneThicknessChartBar;
 class iABoneThicknessTable;
 
 class iABoneThicknessAttachment : public iAModuleAttachmentToChild
@@ -39,7 +39,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 
 	private:
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
+		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
 
 		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
 		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;

@@ -22,31 +22,84 @@
 #pragma once
 // iA
 
-#include <vtkChartXY.h>
+#include <QWidget>
 
-#include <vtkObject.h>
+#include <memory>
 
-class vtkContextMouseEvent;
+#include <vtkType.h>
+
+class vtkDoubleArray;
 
 class iABoneThickness;
 class iABoneThicknessTable;
 
-class iABoneThicknessChartXY : public vtkChartXY
+class iABoneThicknessChartBar : public QWidget
 {
-	public:
-		static iABoneThicknessChartXY* New();
-		vtkTypeMacro(iABoneThicknessChartXY, vtkChartXY);
+		Q_OBJECT
 
-		iABoneThicknessChartXY();
+	public:
+		explicit iABoneThicknessChartBar(QWidget* _pParent = nullptr);
 
 		void set(iABoneThickness* _pBoneThickness, iABoneThicknessTable* _pBoneThicknessTable);
 
+		void setData(vtkDoubleArray* _daThickness);
+
+		void setSelected(const vtkIdType& _idSelected);
+
 	private:
+		std::unique_ptr<QImage> m_pImage = nullptr;
+
+		double m_dAxisX1 = 0.0;
+		double m_dAxisX2 = 10.0;
+		double m_dAxisY1 = 0.0;
+		double m_dAxisY2 = 10.0;
+		double m_dThicknessMean = 5.0;
+		double m_dThickness1 = 1.0;
+		double m_dThickness2 = 9.0;
+
 		iABoneThickness* m_pBoneThickness = nullptr;
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 
-		int selected(const int& _iX);
+		int m_iMarginX = 0;
+		int m_iMarginY = 0;
+		int m_iAxisH = 0;
+		int m_iAxisX1 = 0;
+		int m_iAxisX2 = 0;
+		int m_iAxisY1 = 0;
+		int m_iAxisY2 = 0;
+		int m_iTitle = 0;
+		int m_iTickX = 0;
+		int m_iTickY = 0;
 
-	protected:
-		virtual bool MouseButtonPressEvent(const vtkContextMouseEvent& e) override;
+		QColor m_cBar1;
+		QColor m_cBar2;
+		QColor m_cBrush;
+		QColor m_cPen1;
+		QColor m_cPen2;
+
+		QFont m_foAxis;
+		QFont m_foTitle;
+
+		QString m_sTitle = "";
+
+		vtkDoubleArray* m_daThickness = nullptr;
+
+		vtkIdType m_idSelected = -1;
+
+		void draw();
+		void drawData(QPainter* _pPainter);
+
+		double screenToValueX(const int& _iValueX) const;
+		double screenToValueY(const int& _iValueY) const;
+
+		int selected(const int& _iX, const int& _iY) const;
+
+		int valueToScreenX(const double& _dValueX) const;
+		int valueToScreenY(const double& _dValueY) const;
+
+protected:
+		virtual QSize minimumSizeHint() const override;
+		virtual void mousePressEvent(QMouseEvent* e) override;
+		virtual void paintEvent(QPaintEvent* e) override;
+		virtual void resizeEvent(QResizeEvent* e) override;
 };

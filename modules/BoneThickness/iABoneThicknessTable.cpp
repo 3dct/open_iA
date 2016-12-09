@@ -25,7 +25,7 @@
 #include <QStandardItemModel>
 
 #include "iABoneThickness.h"
-#include "iABoneThicknessChart.h"
+#include "iABoneThicknessChartBar.h"
 
 iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pParent)
 {
@@ -46,12 +46,17 @@ iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pPa
 	setModel(pItemModel);
 }
 
+QSize iABoneThicknessTable::minimumSizeHint() const
+{
+	return QSize(2 * logicalDpiX(), 2 * logicalDpiY());
+}
+
 void iABoneThicknessTable::mousePressEvent(QMouseEvent* e)
 {
 	const int iSelected(selected());
 
-	if (m_pBoneThickness) m_pBoneThickness->setSelected(iSelected);
-	if (m_pBoneThicknessChart) m_pBoneThicknessChart->setSelected(iSelected);
+	m_pBoneThickness->setSelected(iSelected);
+	m_pBoneThicknessChartBar->setSelected(iSelected);
 
 	QTableView::mousePressEvent(e);
 }
@@ -61,7 +66,7 @@ void iABoneThicknessTable::selectionChanged(const QItemSelection& _Selected, con
 	const int iSelected(selected());
 
 	if (m_pBoneThickness) m_pBoneThickness->setSelected(iSelected);
-	if (m_pBoneThicknessChart) m_pBoneThicknessChart->setSelected(iSelected);
+	if (m_pBoneThicknessChartBar) m_pBoneThicknessChartBar->setSelected(iSelected);
 
 	QTableView::selectionChanged(_Selected, _Deselected);
 }
@@ -80,10 +85,10 @@ int iABoneThicknessTable::selected() const
 	}
 }
 
-void iABoneThicknessTable::set(iABoneThickness* _pBoneThickness, iABoneThicknessChart* _pBoneThicknessChart)
+void iABoneThicknessTable::set(iABoneThickness* _pBoneThickness, iABoneThicknessChartBar* _pBoneThicknessChartBar)
 {
 	m_pBoneThickness = _pBoneThickness;
-	m_pBoneThicknessChart = _pBoneThicknessChart;
+	m_pBoneThicknessChartBar = _pBoneThicknessChartBar;
 }
 
 void iABoneThicknessTable::setSelected(const vtkIdType& _idSelected)

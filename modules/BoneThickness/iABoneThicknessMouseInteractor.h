@@ -28,7 +28,7 @@
 #include <vtkSmartPointer.h>
 
 #include "iABoneThickness.h"
-#include "iABoneThicknessChart.h"
+#include "iABoneThicknessChartBar.h"
 #include "iABoneThicknessTable.h"
 
 class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera
@@ -38,14 +38,16 @@ public:
 	vtkTypeMacro(iABoneThicknessMouseInteractor, vtkInteractorStyleTrackballCamera);
 
 	void set ( iABoneThickness* _pBoneThickness
-			 , iABoneThicknessChart* _pBoneThicknessChart, iABoneThicknessTable* _pBoneThicknessTable
+			 , iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable
 			 , vtkActorCollection* _pSpheres
 			 )
 	{
 		m_pBoneThickness = _pBoneThickness;
-		m_pBoneThicknessChart = _pBoneThicknessChart;
+		m_pBoneThicknessChartBar = _pBoneThicknessChartBar;
 		m_pBoneThicknessTable = _pBoneThicknessTable;
 
+		m_pPicker = vtkSmartPointer<vtkPropPicker>::New();
+		m_pRenderer = GetDefaultRenderer();
 		m_pSpheres = _pSpheres;
 	}
 
@@ -53,23 +55,29 @@ public:
 	{
 		const int* pClickPos(GetInteractor()->GetEventPosition());
 
-		vtkSmartPointer<vtkPropPicker>  pPicker(vtkSmartPointer<vtkPropPicker>::New());
-		pPicker->Pick(pClickPos[0], pClickPos[1], 0, GetDefaultRenderer());
+		m_pPicker->Pick(pClickPos[0], pClickPos[1], 0.0, m_pRenderer);
 
-		vtkActor* pPickedActor(pPicker->GetActor());
+		const vtkIdType idPickedActor(m_pSpheres->IsItemPresent((vtkActor*)m_pPicker->GetActor()) - 1);
 
-		const vtkIdType idPickedActor(m_pSpheres->IsItemPresent(pPickedActor) - 1);
-
-		m_pBoneThickness->setSelected(idPickedActor);
-		m_pBoneThicknessChart->setSelected(idPickedActor);
-		m_pBoneThicknessTable->setSelected(idPickedActor);
+		if ((idPickedActor == m_pBoneThicknessTable->selected()) || (idPickedActor < 0))
+		{
+			m_pBoneThickness->setSelected(idPickedActor);
+			m_pBoneThicknessChartBar->setSelected(idPickedActor);
+		}
+		else
+		{
+			m_pBoneThicknessTable->setSelected(idPickedActor);
+		}
 
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 
 	private:
 		iABoneThickness* m_pBoneThickness = nullptr;
-		iABoneThicknessChart* m_pBoneThicknessChart = nullptr;
+		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+
+		vtkSmartPointer<vtkPropPicker> m_pPicker = nullptr;
+		vtkRenderer* m_pRenderer = nullptr;
 		vtkActorCollection* m_pSpheres = nullptr;
 };
