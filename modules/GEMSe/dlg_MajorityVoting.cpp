@@ -119,6 +119,7 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	connect(pbClusterUncertaintyDice, SIGNAL(clicked()), this, SLOT(ClusterUncertaintyDice()));
 	connect(pbStore, SIGNAL(clicked()), this, SLOT(StoreResult()));
 	connect(pbStoreConfig, SIGNAL(clicked()), this, SLOT(StoreConfig()));
+	connect(pbLoadConfig, SIGNAL(clicked()), this, SLOT(LoadConfig()));
 	connect(slAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(AbsMinPercentSlider(int)));
 	connect(slMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MinDiffPercentSlider(int)));
 	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
@@ -444,7 +445,7 @@ void dlg_MajorityVoting::StoreConfig()
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Store Algorithm Comparison Configuration"),
 		m_folder,
-		"Algorithm Comparison Configuration (.acc);;"
+		"Algorithm Comparison Configuration (.acc)"
 	);
 
 	if (fileName.isEmpty())
@@ -495,10 +496,10 @@ void dlg_MajorityVoting::StoreConfig()
 	QStringList parameterSets;
 	for (int i = 0; i < selection.size(); ++i)
 	{
-		parameterSets.append(QString::number(selection[i]->GetDatasetID()) + QString::number(selection[i]->GetID()));
+		parameterSets.append(QString::number(selection[i]->GetDatasetID()) + "-"+QString::number(selection[i]->GetID()));
 	}
 	int weightType = GetWeightType();
-	s.setValue("MajorityVoting/ParameterSets", parameterSets.join("/"));
+	s.setValue("MajorityVoting/ParameterSets", parameterSets.join(","));
 	s.setValue("MajorityVoting/WeightType", GetWeightName(weightType));
 	if (weightType == LabelBased)
 	{
@@ -519,6 +520,10 @@ void dlg_MajorityVoting::StoreConfig()
 		}
 	}
 }
+
+
+void dlg_MajorityVoting::LoadConfig()
+{}
 
 // Where to put temporary output
 
@@ -600,7 +605,7 @@ void dlg_MajorityVoting::AddResult(vtkSmartPointer<vtkTable> table, QString cons
 
 void dlg_MajorityVoting::UpdateWeightPlot()
 {
-	lbWeight->setText("Weight " + GetWeightName(GetWeightType()));
+	lbWeight->setText("Weight: " + GetWeightName(GetWeightType()));
 }
 
 void dlg_MajorityVoting::Sample()

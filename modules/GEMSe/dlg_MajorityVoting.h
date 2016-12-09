@@ -47,7 +47,6 @@ class dlg_MajorityVoting : public dlg_MajorityVotingUI
 public:
 	dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder);
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
-	void EnableUI();
 private slots:
 	void MinAbsPlot();
 	void MinDiffPlot();
@@ -57,6 +56,7 @@ private slots:
 	void ClusterUncertaintyDice();
 	void StoreResult();
 	void StoreConfig();
+	void LoadConfig();
 	void AbsMinPercentSlider(int);
 	void MinDiffPercentSlider(int);
 	void MinRatioSlider(int);

@@ -39,81 +39,6 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="15" column="3">
-     <widget class="QSpinBox" name="sbSampleCount">
-      <property name="minimum">
-       <number>2</number>
-      </property>
-      <property name="maximum">
-       <number>10000</number>
-      </property>
-      <property name="value">
-       <number>100</number>
-      </property>
-     </widget>
-    </item>
-    <item row="14" column="0" rowspan="4" colspan="3">
-     <widget class="QTableWidget" name="twSampleResults">
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>2</number>
-      </property>
-      <attribute name="horizontalHeaderVisible">
-       <bool>true</bool>
-      </attribute>
-      <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>50</number>
-      </attribute>
-      <attribute name="verticalHeaderVisible">
-       <bool>false</bool>
-      </attribute>
-      <column/>
-      <column/>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Weight</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="3">
-     <widget class="QPushButton" name="pbMinDiffPercent_Plot">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string>Plot</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Abs. Min. %</string>
-      </property>
-     </widget>
-    </item>
-    <item row="14" column="3">
-     <widget class="QPushButton" name="pbSample">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string>Sample</string>
-      </property>
-     </widget>
-    </item>
-    <item row="16" column="3">
-     <widget class="QPushButton" name="pbClusterUncertaintyDice">
-      <property name="text">
-       <string>Cluster</string>
-      </property>
-     </widget>
-    </item>
     <item row="4" column="1">
      <widget class="QSlider" name="slLabelVoters">
       <property name="minimum">
@@ -127,13 +52,6 @@
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_13">
-      <property name="text">
-       <string>Min. Diff. %</string>
       </property>
      </widget>
     </item>
@@ -156,34 +74,15 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_15">
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_13">
       <property name="text">
-       <string>Min. Ratio</string>
+       <string>Min. Diff. %</string>
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QSlider" name="slMinRatio">
-      <property name="minimum">
-       <number>100</number>
-      </property>
-      <property name="maximum">
-       <number>10000</number>
-      </property>
-      <property name="pageStep">
-       <number>100</number>
-      </property>
-      <property name="value">
-       <number>10000</number>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3">
-     <widget class="QPushButton" name="pbMinAbsPercent_Plot">
+    <item row="2" column="3">
+     <widget class="QPushButton" name="pbMinRatio_Plot">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -202,8 +101,8 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="3">
-     <widget class="QPushButton" name="pbMinRatio_Plot">
+    <item row="0" column="3">
+     <widget class="QPushButton" name="pbMinAbsPercent_Plot">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -212,15 +111,18 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_17">
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_15">
       <property name="text">
-       <string>Max.Pixel Ent.</string>
+       <string>Min. Ratio</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QSlider" name="slAbsMinPercent">
+    <item row="2" column="1">
+     <widget class="QSlider" name="slMinRatio">
+      <property name="minimum">
+       <number>100</number>
+      </property>
       <property name="maximum">
        <number>10000</number>
       </property>
@@ -251,6 +153,53 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="1">
+     <widget class="QSlider" name="slAbsMinPercent">
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="pageStep">
+       <number>100</number>
+      </property>
+      <property name="value">
+       <number>10000</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_17">
+      <property name="text">
+       <string>Max.Pixel Ent.</string>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="3">
+     <widget class="QPushButton" name="pbClusterUncertaintyDice">
+      <property name="text">
+       <string>Cluster</string>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="3">
+     <widget class="QPushButton" name="pbSample">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+       <string>Sample</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Abs. Min. %</string>
+      </property>
+     </widget>
+    </item>
     <item row="4" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
@@ -269,13 +218,6 @@
      <widget class="QLabel" name="label_3">
       <property name="text">
        <string>Current</string>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="3">
-     <widget class="QPushButton" name="pbStoreConfig">
-      <property name="text">
-       <string>Store Config</string>
       </property>
      </widget>
     </item>
@@ -330,6 +272,71 @@
       </property>
       <property name="checked">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QPushButton" name="pbMinDiffPercent_Plot">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+       <string>Plot</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Weight</string>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="0" rowspan="4" colspan="3">
+     <widget class="QTableWidget" name="twSampleResults">
+      <property name="rowCount">
+       <number>0</number>
+      </property>
+      <property name="columnCount">
+       <number>2</number>
+      </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>true</bool>
+      </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>50</number>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column/>
+      <column/>
+     </widget>
+    </item>
+    <item row="15" column="3">
+     <widget class="QSpinBox" name="sbSampleCount">
+      <property name="minimum">
+       <number>2</number>
+      </property>
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="1">
+     <widget class="QPushButton" name="pbLoadConfig">
+      <property name="text">
+       <string>Load Config</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="3">
+     <widget class="QPushButton" name="pbStoreConfig">
+      <property name="text">
+       <string>Store Config</string>
       </property>
      </widget>
     </item>
