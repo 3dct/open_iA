@@ -126,17 +126,41 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	connect(slLabelVoters, SIGNAL(valueChanged(int)), this, SLOT(LabelVoters(int)));
 }
 
-vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
+int dlg_MajorityVoting::GetWeightType()
 {
-	auto result = vtkSmartPointer<vtkTable>::New();
-	for (int i = 0; i < columnNames.size(); ++i)
+	if (rbWeightLabelDice->isChecked())  return LabelBased;
+	if (rbWeightCertainty->isChecked())  return Certainty;
+	if (rbWeightDiffFBGSBG->isChecked()) return FBGSBGDiff;
+	else return Equal;
+}
+
+namespace
+{
+
+	QString GetWeightName(int weightType)
 	{
-		vtkSmartPointer<vtkFloatArray> arr(vtkSmartPointer<vtkFloatArray>::New());
-		arr->SetName(columnNames[i].toStdString().c_str());
-		result->AddColumn(arr);
+		switch (weightType)
+		{
+		case LabelBased: return "LabelDice";
+		case Certainty:  return "Certainty";
+		case FBGSBGDiff: return "FBG-SBG";
+		default:         return "Equal";
+		}
 	}
-	result->SetNumberOfRows(rowCount);
-	return result;
+
+	vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
+	{
+		auto result = vtkSmartPointer<vtkTable>::New();
+		for (int i = 0; i < columnNames.size(); ++i)
+		{
+			vtkSmartPointer<vtkFloatArray> arr(vtkSmartPointer<vtkFloatArray>::New());
+			arr->SetName(columnNames[i].toStdString().c_str());
+			result->AddColumn(arr);
+		}
+		result->SetNumberOfRows(rowCount);
+		return result;
+	}
+
 }
 
 void dlg_MajorityVoting::SetGroundTruthImage(LabelImagePointer groundTruthImage)
@@ -157,20 +181,20 @@ void dlg_MajorityVoting::ClusterUncertaintyDice()
 	int diceIdx = m_dlgGEMSe->GetMeasureStartID(); // TODO: replace hard-coded values with search in attributes!
 	int avgUncIdx = diceIdx - 2;
 
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	QSharedPointer<iAImageTreeNode> node = m_dlgGEMSe->GetSelectedCluster();
 
 	QVector<QString> columns;
 	columns.push_back("Average Uncertainty");
 	columns.push_back("Mean Dice");
 
-	auto table = CreateVTKTable(m_selection.size(), columns);
+	auto table = CreateVTKTable(selection.size(), columns);
 
-	for (int i = 0; i < m_selection.size(); ++i)
+	for (int i = 0; i < selection.size(); ++i)
 	{
-		double unc = m_selection[i]->GetAttribute(avgUncIdx);
-		double dice = m_selection[i]->GetAttribute(diceIdx);
+		double unc = selection[i]->GetAttribute(avgUncIdx);
+		double dice = selection[i]->GetAttribute(diceIdx);
 		table->SetValue(i, 0, unc);
 		table->SetValue(i, 1, dice);
 	}
@@ -295,45 +319,45 @@ iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleRe
 
 void dlg_MajorityVoting::AbsMinPercentSlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
 	lbValue->setText("Value: Abs. Min % = "+QString::number(minAbs * 100, 'f', 2) + " %");
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(m_selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetMajorityVotingImage(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
 
 void dlg_MajorityVoting::MinDiffPercentSlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double minDiff = static_cast<double>(slMinDiffPercent->value()) / slMinDiffPercent->maximum();
 	lbValue->setText("Value: Min. Diff. % = "+QString::number(minDiff * 100, 'f', 2) + " %");
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetMajorityVotingImage(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
 
 void dlg_MajorityVoting::MinRatioSlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double minRatio = static_cast<double>(slMinRatio->value()) / 100;
 	lbValue->setText("Value: Ratio = "+QString::number(minRatio, 'f', 2));
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetMajorityVotingImage(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
 
 void dlg_MajorityVoting::MaxPixelEntropySlider(int)
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
 	lbValue->setText("Value: Max. Pixel Ent. = " + QString::number(maxPixelEntropy*100, 'f', 2)+" %");
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetMajorityVotingImage(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
 
@@ -344,49 +368,49 @@ void dlg_MajorityVoting::LabelVoters(int)
 		DEBUG_LOG("Please load a reference image first!");
 		return;
 	}
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	int labelVoters = slLabelVoters->value();
 	lbValue->setText("Value: Label Voters = " + QString::number(labelVoters));
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(m_selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetMajorityVotingImage(selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
 }
 
 void dlg_MajorityVoting::MinAbsPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(m_selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount, AbsolutePercentage);
+	m_lastMVResult = GetMajorityVotingNumbers(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount, AbsolutePercentage);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult);
 }
 
 void dlg_MajorityVoting::MinDiffPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double minDiff = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(m_selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount, DiffPercentage);
+	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount, DiffPercentage);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult);
 }
 
 void dlg_MajorityVoting::RatioPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double minRatio = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(m_selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount, Ratio);
+	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount, Ratio);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult);
 }
 
 
 void dlg_MajorityVoting::MaxPixelEntropyPlot()
 {
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(m_selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount, PixelEntropy);
+	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount, PixelEntropy);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult);
 }
 
@@ -410,9 +434,90 @@ void dlg_MajorityVoting::StoreResult()
 	iAITKIO::writeFile(fileName, m_lastMVResult, pixelType);
 }
 
+#include "iAFileUtils.h"
+#include "iASamplingResults.h"
+
+#include <QSettings>
+
 void dlg_MajorityVoting::StoreConfig()
 {
+	QString fileName = QFileDialog::getSaveFileName(this,
+		tr("Store Algorithm Comparison Configuration"),
+		m_folder,
+		"Algorithm Comparison Configuration (.acc);;"
+	);
 
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	QFileInfo fi(fileName);
+	QString basePath(fi.absolutePath());
+	QSettings s(fileName, QSettings::IniFormat);
+	s.setValue("FileFormat", "v1");
+	s.setValue("Labels", m_labelCount);
+
+	QString derivedOutputName = "Dice";
+	// fetch best n results by dice
+	auto samplings = m_dlgGEMSe->GetSamplings();
+	typedef std::tuple<int, int, double> OneRunDice;
+	std::vector<OneRunDice> runs;
+
+	for (int d = 0; d < samplings->size(); ++d)
+	{
+		auto sampling = samplings->at(d);
+		s.setValue(QString("SamplingData%1").arg(d), MakeRelative(basePath, sampling->GetFileName()) );
+		for (int s = 0; s < sampling->size(); ++s)
+		{
+			auto r = sampling->Get(s);
+			int derivedOutID = r->GetAttributes()->Find(derivedOutputName);
+			runs.push_back(std::make_tuple(r->GetDatasetID(), r->GetID(), r->GetAttribute(derivedOutID)));
+		}
+	}
+	std::sort(runs.begin(), runs.end(), [](const OneRunDice & a, const OneRunDice & b)
+	{
+		return std::get<2>(a) > std::get<2>(b); // > because we want to order descending
+	});
+
+	const size_t NumberOfBestSets = 10;
+	QStringList bestParameterSets, bestDice;
+	for (int b = 0; b < std::min(runs.size(), NumberOfBestSets); ++b)
+	{
+		bestParameterSets.append(QString::number(std::get<0>(runs[b])) + "-" + QString::number(std::get<1>(runs[b])));
+		bestDice.append(QString::number(std::get<2>(runs[b])));
+	}
+	s.setValue("BestSingle/ParameterSets", bestParameterSets.join(","));
+	s.setValue("BestSingle/Dice", bestDice.join(","));
+
+	// fetch config for (last?) majority voting (sampling?)
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
+	QStringList parameterSets;
+	for (int i = 0; i < selection.size(); ++i)
+	{
+		parameterSets.append(QString::number(selection[i]->GetDatasetID()) + QString::number(selection[i]->GetID()));
+	}
+	int weightType = GetWeightType();
+	s.setValue("MajorityVoting/ParameterSets", parameterSets.join("/"));
+	s.setValue("MajorityVoting/WeightType", GetWeightName(weightType));
+	if (weightType == LabelBased)
+	{
+		for (int l = 0; l < m_labelCount; ++l)
+		{
+			QStringList inputWeights;
+			for (int m = 0; m < selection.size(); ++m)
+			{
+				int attributeID = selection[m]->GetAttributes()->Find(QString("Dice %1").arg(l));
+				if (attributeID == -1)
+				{
+					DEBUG_LOG(QString("Attribute 'Dice %1' not found!").arg(l));
+				}
+				double labelDice = selection[m]->GetAttribute(attributeID);
+				inputWeights.append(QString::number(labelDice));
+			}
+			s.setValue(QString("MajorityVoting/InputWeightLabel%1").arg(l), inputWeights.join(","));
+		}
+	}
 }
 
 // Where to put temporary output
@@ -493,26 +598,6 @@ void dlg_MajorityVoting::AddResult(vtkSmartPointer<vtkTable> table, QString cons
 	m_results.push_back(table);
 }
 
-int dlg_MajorityVoting::GetWeightType()
-{
-	if (rbWeightLabelDice->isChecked())  return LabelBased;
-	if (rbWeightCertainty->isChecked())  return Certainty;
-	if (rbWeightDiffFBGSBG->isChecked()) return FBGSBGDiff;
-	else return Equal;
-}
-
-QString GetWeightName(int weightType)
-{
-	switch (weightType)
-	{
-		case LabelBased: return "LabelDice";
-		case Certainty:  return "Certainty";
-		case FBGSBGDiff: return "FBG-SBG";
-		default:         return "Equal";
-	}
-}
-
-
 void dlg_MajorityVoting::UpdateWeightPlot()
 {
 	lbWeight->setText("Weight " + GetWeightName(GetWeightType()));
@@ -549,18 +634,18 @@ void dlg_MajorityVoting::Sample()
 		tables[r] = CreateVTKTable(SampleCount, columnNames);
 	}
 
-	QVector<QSharedPointer<iASingleResult> > m_selection;
-	m_dlgGEMSe->GetSelection(m_selection);
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
 
 	double absPercMin = 1.0 / m_labelCount;
 	double absPercMax = 1;
 
 	double ratioMin = 1;
-	double ratioMax = m_selection.size();
+	double ratioMax = selection.size();
 
 	double labelVoterMin = 1;
-	double labelVoterMax = m_selection.size();
-	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(m_selection.size()));
+	double labelVoterMax = selection.size();
+	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(selection.size()));
 
 	typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
 	typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
@@ -585,11 +670,11 @@ void dlg_MajorityVoting::Sample()
 		// calculate majority voting using these values:
 		iAITKIO::ImagePointer result[ResultCount];
 
-		result[0] = GetMajorityVotingImage(m_selection, value[0], -1, -1, -1, -1, GetWeightType(), m_labelCount);
-		result[1] = GetMajorityVotingImage(m_selection, -1, value[1], -1, -1, -1, GetWeightType(), m_labelCount);
-		result[2] = GetMajorityVotingImage(m_selection, -1, -1, value[2], -1, -1, GetWeightType(), m_labelCount);
-		result[3] = GetMajorityVotingImage(m_selection, -1, -1, -1, value[3], -1, GetWeightType(), m_labelCount);
-		result[4] = GetMajorityVotingImage(m_selection, -1, -1, -1, -1, value[4], GetWeightType(), m_labelCount);
+		result[0] = GetMajorityVotingImage(selection, value[0], -1, -1, -1, -1, GetWeightType(), m_labelCount);
+		result[1] = GetMajorityVotingImage(selection, -1, value[1], -1, -1, -1, GetWeightType(), m_labelCount);
+		result[2] = GetMajorityVotingImage(selection, -1, -1, value[2], -1, -1, GetWeightType(), m_labelCount);
+		result[3] = GetMajorityVotingImage(selection, -1, -1, -1, value[3], -1, GetWeightType(), m_labelCount);
+		result[4] = GetMajorityVotingImage(selection, -1, -1, -1, -1, value[4], GetWeightType(), m_labelCount);
 
 		//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
 		// calculate dice coefficient and percentage of undetermined pixels
@@ -625,10 +710,10 @@ void dlg_MajorityVoting::Sample()
 	}
 
 	QString ids;
-	for (int s = 0; s < m_selection.size(); ++s)
+	for (int s = 0; s < selection.size(); ++s)
 	{
-		ids += QString::number(m_selection[s]->GetDatasetID()) + "-" + QString::number(m_selection[s]->GetID());
-		if (s < m_selection.size() - 1)
+		ids += QString::number(selection[s]->GetDatasetID()) + "-" + QString::number(selection[s]->GetID());
+		if (s < selection.size() - 1)
 		{
 			ids += ", ";
 		}
