@@ -395,9 +395,10 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 					if (min != std::numeric_limits<double>::max() ||
 						max != std::numeric_limits<double>::lowest())
 					{
-						m_detailText->append(allAttributes->at(chartID)->GetName() + ": [" +
-							attrValueStr(min, allAttributes, chartID) + ".." +
-							attrValueStr(max, allAttributes, chartID) + "]");
+						QString minStr = attrValueStr(min, allAttributes, chartID);
+						QString maxStr = attrValueStr(max, allAttributes, chartID);
+						QString rangeStr = (minStr == maxStr) ? minStr : "[" + minStr + ".." + maxStr + "]";
+						m_detailText->append(allAttributes->at(chartID)->GetName() + ": " + rangeStr);
 					}
 				}
 				// else { } // collect list of all categorical values used!
