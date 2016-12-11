@@ -49,6 +49,8 @@ class iABoneThicknessChartBar : public QWidget
 		void setSelected(const vtkIdType& _idSelected);
 
 	private:
+		const QString m_sTitle = "Bone thickness";
+
 		std::unique_ptr<QImage> m_pImage = nullptr;
 
 		double m_dAxisX1 = 0.0;
@@ -64,12 +66,10 @@ class iABoneThicknessChartBar : public QWidget
 
 		int m_iMarginX = 0;
 		int m_iMarginY = 0;
-		int m_iAxisH = 0;
 		int m_iAxisX1 = 0;
 		int m_iAxisX2 = 0;
 		int m_iAxisY1 = 0;
 		int m_iAxisY2 = 0;
-		int m_iTitle = 0;
 		int m_iTickX = 0;
 		int m_iTickY = 0;
 
@@ -81,8 +81,6 @@ class iABoneThicknessChartBar : public QWidget
 
 		QFont m_foAxis;
 		QFont m_foTitle;
-
-		QString m_sTitle = "";
 
 		vtkDoubleArray* m_daThickness = nullptr;
 
