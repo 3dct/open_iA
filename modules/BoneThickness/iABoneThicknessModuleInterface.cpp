@@ -23,6 +23,8 @@
 #include "iABoneThicknessAttachment.h"
 #include "mainwindow.h"
 
+#include <mdichild.h>
+
 iABoneThicknessModuleInterface::iABoneThicknessModuleInterface( )
 { /* not implemented */ }
 
@@ -31,7 +33,7 @@ iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
 
 void iABoneThicknessModuleInterface::Initialize( )
 {
-	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
+	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
 
 	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "bone thickness", 0), m_mainWnd));
 	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));

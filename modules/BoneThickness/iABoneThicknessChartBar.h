@@ -37,6 +37,8 @@ class iABoneThicknessChartBar : public QWidget
 {
 		Q_OBJECT
 
+		#define FloatTolerance 0.00001
+
 	public:
 		explicit iABoneThicknessChartBar(QWidget* _pParent = nullptr);
 
@@ -50,12 +52,12 @@ class iABoneThicknessChartBar : public QWidget
 		std::unique_ptr<QImage> m_pImage = nullptr;
 
 		double m_dAxisX1 = 0.0;
-		double m_dAxisX2 = 10.0;
+		double m_dAxisX2 = 0.0;
 		double m_dAxisY1 = 0.0;
-		double m_dAxisY2 = 10.0;
-		double m_dThicknessMean = 5.0;
-		double m_dThickness1 = 1.0;
-		double m_dThickness2 = 9.0;
+		double m_dAxisY2 = 0.0;
+		double m_dThicknessMean = 0.0;
+		double m_dThickness1 = 0.0;
+		double m_dThickness2 = 0.0;
 
 		iABoneThickness* m_pBoneThickness = nullptr;
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
@@ -71,11 +73,11 @@ class iABoneThicknessChartBar : public QWidget
 		int m_iTickX = 0;
 		int m_iTickY = 0;
 
-		QColor m_cBar1;
-		QColor m_cBar2;
-		QColor m_cBrush;
-		QColor m_cPen1;
-		QColor m_cPen2;
+		QColor m_cBar1 = Qt::red;
+		QColor m_cBar2 = Qt::green;
+		QColor m_cBrush = Qt::white;
+		QColor m_cPen1 = Qt::black;
+		QColor m_cPen2 = Qt::gray;
 
 		QFont m_foAxis;
 		QFont m_foTitle;

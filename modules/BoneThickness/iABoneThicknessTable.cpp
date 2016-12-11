@@ -29,6 +29,8 @@
 
 iABoneThicknessTable::iABoneThicknessTable(QWidget* _pParent) : QTableView (_pParent)
 {
+	setCursor(Qt::PointingHandCursor);
+
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setSelectionMode(QAbstractItemView::SingleSelection);

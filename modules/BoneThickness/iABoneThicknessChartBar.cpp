@@ -31,8 +31,8 @@
 
 iABoneThicknessChartBar::iABoneThicknessChartBar(QWidget* _pParent) : QWidget(_pParent)
 {
-	m_cBar1 = Qt::red;
-	m_cBar2 = Qt::green;
+	setCursor(Qt::PointingHandCursor);
+
 	m_cBrush = palette().color(QPalette::Base);
 	m_cPen1 = palette().color(QPalette::WindowText);
 	m_cPen2 = palette().color(QPalette::Window);
@@ -272,7 +272,7 @@ void iABoneThicknessChartBar::setData(vtkDoubleArray* _daThickness)
 	m_dThickness2 = pRange[1];
 
 	m_dAxisX2 = dIdThickness;
-	m_dAxisY2 = 1.1 * m_dThickness2;
+	m_dAxisY2 = (m_dThickness2 < FloatTolerance) ? 1.0 : 1.1 * m_dThickness2;
 
 	draw();
 	update();

@@ -32,6 +32,7 @@
 
 class vtkDoubleArray;
 class vtkLineSource;
+class vtkPointLocator;
 class vtkPolyData;
 
 class iARenderer;
@@ -41,6 +42,7 @@ class iABoneThicknessTable;
 
 class iABoneThickness : public vtkObject
 {
+		#define FloatTolerance 0.00001
 	public:
 		static iABoneThickness* New();
 		vtkTypeMacro(iABoneThickness, vtkObject);
@@ -89,6 +91,10 @@ class iABoneThickness : public vtkObject
 		double thicknessMaximum() const;
 
 	private:
+		double m_pColorNormal[3] = { 1.0 , 0.0 , 0.0 };
+		double m_pColorSelected[3] = { 0.0 , 1.0 , 0.0 };
+		double m_pColorMark[3] = { 0.0 , 0.0 , 1.0 };
+
 		bool m_bShowThickness = true;
 		bool m_bShowThicknessLines = true;
 
@@ -117,10 +123,9 @@ class iABoneThickness : public vtkObject
 
 		iARenderer* m_iARenderer = nullptr;
 
-		void findPoints(QVector<vtkSmartPointer<vtkPoints>>& _vPoints);
-		void getDistance();
-		bool getNormalFromPCA(vtkPoints* _pPoints, double* _pNormal);
-		void getNormalsInPoint(vtkPoints* _pPointNormals);
+		bool getNormalFromPCA(vtkIdList* _pIdList, double* _pNormal);
+		void getNormalInPoint(vtkPointLocator* _pPointLocator, double* _pPoint, double* _pNormal);
+		void getSphereColor(const vtkIdType& _id, const double& _dRadius, double* pColor);
 
 		void setSphereOpacity(const double& _dSphereOpacity);
 		void setSurfaceOpacity(const double& _dSurfaceOpacity);
