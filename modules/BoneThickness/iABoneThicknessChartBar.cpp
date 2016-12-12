@@ -151,34 +151,22 @@ void iABoneThicknessChartBar::drawData(QPainter* _pPainter)
 
 		const vtkIdType idThickness(m_daThickness->GetNumberOfTuples());
 
-		if (iAxisXW > 2 * idThickness)
+		const bool bPen (iAxisXW > 2 * idThickness);
+
+		int ii(1);
+		for (vtkIdType i(0); i < idThickness; ++i, ++ii)
 		{
-			vtkIdType ii(1);
-			for (vtkIdType i(0); i < idThickness; ++i, ++ii)
-			{
-				const int iRectX((vtkIdType)iAxisXW * i / idThickness);
-				const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
+			const int iRectX((vtkIdType)iAxisXW * i / idThickness);
+			const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
 
-				const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
-				const int iRectH(m_iAxisY1 - iRectY);
+			const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
+			const int iRectH(m_iAxisY1 - iRectY);
 
-				_pPainter->setBrush((m_idSelected != i) ? m_cBar1 : m_cBar2);
-				_pPainter->drawRect(m_iAxisX1 + iRectX, iRectY, iRectW, iRectH);
-			}
-		}
-		else
-		{
-			for (vtkIdType i(0); i < idThickness; ++i)
-			{
-				const int iRectX((vtkIdType)iAxisXW * i / idThickness);
-				const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
-				const int iRectH(m_iAxisY1 - iRectY);
+			const QColor cBrush((m_idSelected != i) ? m_cBar1 : m_cBar2);
 
-				const int iX(m_iAxisX1 + iRectX);
-
-				_pPainter->setPen((m_idSelected != i) ? m_cBar1 : m_cBar2);
-				_pPainter->drawLine(iX, iRectY, iX, iRectY + iRectH);
-			}
+			_pPainter->setBrush(cBrush);
+			_pPainter->setPen((bPen) ? m_cPen1  : cBrush);
+			_pPainter->drawRect(m_iAxisX1 + iRectX, iRectY, iRectW, iRectH);
 		}
 	}
 }
