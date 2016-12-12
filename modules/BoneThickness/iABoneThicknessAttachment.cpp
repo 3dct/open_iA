@@ -136,7 +136,11 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayout->addWidget(pBoneThicknessSplitter, 2, 0, 1, 2);
 	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
-	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
+	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
+	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, pDockWidgetWrapper);
+
+	pDockWidgetWrapper->adjustSize();
+	m_pBoneThicknessChartBar->resize(pBoneThicknessSplitter->width() / 2, pBoneThicknessSplitter->height());
 }
 
 void iABoneThicknessAttachment::slotCheckBoxShowThickness(const bool& _bChecked)
