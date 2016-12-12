@@ -43,7 +43,11 @@ void iABoneThicknessModuleInterface::Initialize( )
 void iABoneThicknessModuleInterface::slotBoneThickness()
 {
 	PrepareActiveChild();
-	AttachToMdiChild(m_mdiChild);
+
+	if (m_mdiChild)
+	{
+		AttachToMdiChild(m_mdiChild);
+	}
 }
 
 iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)

@@ -63,11 +63,9 @@ void iABoneThicknessChartBar::draw()
 	std::unique_ptr<QPainter> pPainter(new QPainter(m_pImage.get()));
 
 	QVector<QString> vAxisYString;
-	vAxisYString.push_back(QString("%1").arg(m_dAxisY1));
 	vAxisYString.push_back(QString("%1").arg(m_dThickness1));
 	vAxisYString.push_back(QString("%1").arg(m_dThicknessMean));
 	vAxisYString.push_back(QString("%1").arg(m_dThickness2));
-	vAxisYString.push_back(QString("%1").arg(m_dAxisY2));
 
 	const QFontMetrics fomAxis(m_foAxis);
 	const int iAxisH(fomAxis.height());
@@ -120,13 +118,12 @@ void iABoneThicknessChartBar::draw()
 		pPainter->drawLine(iTickYX1, iThicknessMean, iTickYX2, iThicknessMean);
 		const int iThickness2(valueToScreenY(m_dThickness2));
 		pPainter->drawLine(iTickYX1, iThickness2, iTickYX2, iThickness2);
-		pPainter->drawLine(iTickYX1, m_iAxisY2, iTickYX2, m_iAxisY2);
 
 		const int iFlagAxisY(Qt::AlignRight | Qt::AlignVCenter | Qt::TextDontClip);
 
-		pPainter->drawText(iTickYX1, iThickness1, 0, 0, iFlagAxisY, vAxisYString.at(1));
-		pPainter->drawText(iTickYX1, iThicknessMean, 0, 0, iFlagAxisY, vAxisYString.at(2));
-		pPainter->drawText(iTickYX1, iThickness2, 0, 0, iFlagAxisY, vAxisYString.at(3));
+		pPainter->drawText(iTickYX1, iThickness1, 0, 0, iFlagAxisY, vAxisYString.at(0));
+		pPainter->drawText(iTickYX1, iThicknessMean, 0, 0, iFlagAxisY, vAxisYString.at(1));
+		pPainter->drawText(iTickYX1, iThickness2, 0, 0, iFlagAxisY, vAxisYString.at(2));
 
 		pPainter->setPen(m_cPen2);
 		pPainter->drawLine(iRectX, iThickness1, iRectX + iRectW, iThickness1);
@@ -145,16 +142,19 @@ void iABoneThicknessChartBar::drawData(QPainter* _pPainter)
 {
 	if (m_daThickness)
 	{
-		_pPainter->setPen(m_cPen1);
-
 		const int iAxisXW(m_iAxisX2 - m_iAxisX1);
 
 		const vtkIdType idThickness(m_daThickness->GetNumberOfTuples());
 
-		const bool bPen (iAxisXW > 2 * idThickness);
+		const bool bPen(iAxisXW > 2 * idThickness);
 
-		int ii(1);
-		for (vtkIdType i(0); i < idThickness; ++i, ++ii)
+		_pPainter->setBrush(m_cBar1);
+		_pPainter->setPen((bPen) ? m_cPen1 : _pPainter->brush().color());
+
+		vtkIdType i(0);
+		vtkIdType ii(1);
+
+		for (; i < m_idSelected; ++i, ++ii)
 		{
 			const int iRectX((vtkIdType)iAxisXW * i / idThickness);
 			const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
@@ -162,10 +162,37 @@ void iABoneThicknessChartBar::drawData(QPainter* _pPainter)
 			const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
 			const int iRectH(m_iAxisY1 - iRectY);
 
-			const QColor cBrush((m_idSelected != i) ? m_cBar1 : m_cBar2);
+			_pPainter->drawRect(m_iAxisX1 + iRectX, iRectY, iRectW, iRectH);
+		}
 
-			_pPainter->setBrush(cBrush);
-			_pPainter->setPen((bPen) ? m_cPen1  : cBrush);
+		if (m_idSelected > -1)
+		{
+			_pPainter->setBrush(m_cBar2);
+			_pPainter->setPen((bPen) ? m_cPen1 : _pPainter->brush().color());
+
+			const int iRectX((vtkIdType)iAxisXW * i / idThickness);
+			const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
+
+			const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
+			const int iRectH(m_iAxisY1 - iRectY);
+
+			_pPainter->drawRect(m_iAxisX1 + iRectX, iRectY, iRectW, iRectH);
+
+			++i;
+			++ii;
+
+			_pPainter->setBrush(m_cBar1);
+			_pPainter->setPen((bPen) ? m_cPen1 : _pPainter->brush().color());
+		}
+
+		for (; i < idThickness; ++i, ++ii)
+		{
+			const int iRectX((vtkIdType)iAxisXW * i / idThickness);
+			const int iRectW((vtkIdType)iAxisXW * ii / idThickness - iRectX);
+
+			const int iRectY(valueToScreenY(m_daThickness->GetValue(i)));
+			const int iRectH(m_iAxisY1 - iRectY);
+
 			_pPainter->drawRect(m_iAxisX1 + iRectX, iRectY, iRectW, iRectH);
 		}
 	}
@@ -275,7 +302,7 @@ void iABoneThicknessChartBar::setData(vtkDoubleArray* _daThickness)
 	m_dThickness2 = pRange[1];
 
 	m_dAxisX2 = dIdThickness;
-	m_dAxisY2 = (m_dThickness2 < FloatTolerance) ? 1.0 : 1.1 * m_dThickness2;
+	m_dAxisY2 = (m_dThickness2 < FloatTolerance) ? 1.0 : m_dThickness2;
 
 	draw();
 	update();
