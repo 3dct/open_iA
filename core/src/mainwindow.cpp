@@ -347,12 +347,6 @@ void MainWindow::saveAs()
 		statusBar()->showMessage(tr("File saved"), 5000);
 }
 
-void MainWindow::saveAsImageStack()
-{
-	if (activeMdiChild() && activeMdiChild()->saveAsImageStack())
-		statusBar()->showMessage(tr("Image stack saved"), 5000);
-}
-
 
 void MainWindow::saveScreen()
 {
@@ -1757,7 +1751,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionOpen_With_DataTypeConversion, SIGNAL(triggered()), this, SLOT(OpenWithDataTypeConversion()));
 	connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 	connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-	connect(actionSave_Image_Stack, SIGNAL(triggered()), this, SLOT(saveAsImageStack()));
 	connect(saveScreenAct, SIGNAL(triggered()), this, SLOT(saveScreen()));
 	connect(loadSettingsAct, SIGNAL(triggered()), this, SLOT(loadSettings()));
 	connect(saveSettingsAct, SIGNAL(triggered()), this, SLOT(saveSettings()));

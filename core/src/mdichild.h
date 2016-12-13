@@ -101,6 +101,7 @@ public:
 	dlg_logs * logs;
 	QProgressBar * pbar;
 
+
 	enum ConnectionState {cs_NONE, cs_ROI};
 
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
@@ -116,8 +117,7 @@ public:
 	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
 	bool save();
 	bool saveAs();
-	bool saveAsImageStack();
-	bool saveFile(const QString &f);
+	bool saveFile(const QString &f, int channelNr);
 	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
@@ -333,6 +333,8 @@ private slots:
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
+	void clearLogs();
+
 public slots:
 	void updateProgressBar(int i);
 	void hideProgressBar();
@@ -406,12 +408,15 @@ private:
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//!
 	//! \return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f);
+	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
 	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
+	//! if more than one modality/channel loaded, ask user to chose one of them
+	//! (currently used for determining which channel to save)
+	int chooseChannelNr();
 
 	QFileInfo fileInfo;
 

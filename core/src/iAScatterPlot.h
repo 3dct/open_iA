@@ -22,7 +22,6 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QGLWidget>
 #include <QWidget>
 #include <QScopedPointer>
 #include <QOpenGLFramebufferObject>

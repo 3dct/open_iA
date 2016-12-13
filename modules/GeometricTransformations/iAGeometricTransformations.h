@@ -36,7 +36,6 @@
 class iAGeometricTransformations : public iAFilter
 {
 public:
-
 	static const QString InterpLinear;
 	static const QString InterpNearestNeighbour;
 	static const QString InterpBSpline;
@@ -45,9 +44,10 @@ public:
 	iAGeometricTransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 	~iAGeometricTransformations();
 
-	void extractImage( );
-	void resampler( );
-	void rescaleImage(); 
+	void extractImage();
+	void resampler();
+	void rescaleImage();
+	void flipImage();
 
 	/**
 	 * Sets a r parameters. 
@@ -77,7 +77,7 @@ public:
 		sizeY = sY;
 		sizeZ = sZ;
 		interpolator = interp;
-	};
+	}
 
 	/**
 	 * Sets an e parameters. 
@@ -100,14 +100,21 @@ public:
 		sizeY = sY;
 		sizeZ = sZ;
 		dim = d; 
-	};
+	}
 
 	void setRescaleParameters(double outMin, double outMax )
 	{
 		outputMin = outMin; 
 		outputMax = outMax; 
-	};
+	}
 
+	void setFlipParameters(bool flipAxes[DIM])
+	{
+		for (int i = 0; i < DIM; ++i)
+		{
+			m_flipAxes[i] = flipAxes[i];
+		}
+	}
 
 protected:
 	void run();
@@ -117,4 +124,5 @@ private:
 	QString interpolator;
 	unsigned int dim;
 	double outputMin, outputMax;
+	bool m_flipAxes[DIM];
 };

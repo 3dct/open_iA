@@ -31,15 +31,16 @@
 // vtk
 #include <vtkActor.h>
 #include <vtkCellArray.h>
+#include <vtkDepthSortPolyData.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkTriangle.h>
-#include <vtkProperty.h>
-#include <vtkDepthSortPolyData.h>
+#include <vtkVersion.h>
 // Qt
 #include <QVector>
 
@@ -358,7 +359,11 @@ void iAFractureVisModule::calculateColors( vtkUnsignedCharArray* colors, MapType
 			col[0] = interpolate( m_lowIntensity.red( ), m_highIntensity.red( ), coeff );
 			col[1] = interpolate( m_lowIntensity.green( ), m_highIntensity.green( ), coeff );
 			col[2] = interpolate( m_lowIntensity.blue( ), m_highIntensity.blue( ), coeff );
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+			colors->InsertNextTypedTuple( col );
+#else
 			colors->InsertNextTupleValue( col );
+#endif
 		}
 	}
 }

@@ -48,22 +48,17 @@
 #include <itkRawImageIO.h>
 
 #include <vtkBMPReader.h>
-#include <vtkBMPWriter.h>
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
 #include <vtkImageData.h>
 #include <vtkJPEGReader.h>
-#include <vtkJPEGWriter.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkPNGReader.h>
-#include <vtkPNGWriter.h>
 #include <vtkPolyData.h>
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkTIFFReader.h>
-#include <vtkTIFFWriter.h>
 #include <vtkVersion.h>
 #include <vtkXMLImageDataReader.h>
 
@@ -232,13 +227,6 @@ void iAIO::init(QObject *par)
 	ioID = 0;
 	iosettingsreader();
 
-	metaImageWriter = vtkMetaImageWriter::New();
-	stlWriter = vtkSTLWriter::New();
-	tifWriter = vtkTIFFWriter::New();
-	jpgWriter = vtkJPEGWriter::New();
-	pngWriter = vtkPNGWriter::New();
-	bmpWriter = vtkBMPWriter::New();
-
 	stlReader = vtkSTLReader::New();
 	observerProgress = iAObserverProgress::New();
 
@@ -251,21 +239,7 @@ void iAIO::init(QObject *par)
 
 iAIO::~iAIO()
 {
-	fileNameArray->Delete();	
-
-	metaImageWriter->ReleaseDataFlagOn();
-	metaImageWriter->Delete();
-	stlWriter->ReleaseDataFlagOn();
-	stlWriter->Delete();
-
-	tifWriter->ReleaseDataFlagOn();
-	tifWriter->Delete();
-	jpgWriter->ReleaseDataFlagOn();
-	jpgWriter->Delete();
-	pngWriter->ReleaseDataFlagOn();
-	pngWriter->Delete();
-	bmpWriter->ReleaseDataFlagOn();
-	bmpWriter->Delete();
+	fileNameArray->Delete();
 	stlReader->ReleaseDataFlagOn();
 	stlReader->Delete();
 	if (observerProgress) observerProgress->Delete();
@@ -286,17 +260,15 @@ void iAIO::run()
 			rv = writeVolumeStack(); break;
 		case STL_WRITER:
 			rv = writeSTL(); break;
-		case TIF_STACK_WRITER: 
-			rv = writeTIFImageStack(); break;
-		case JPG_STACK_WRITER: 
-			rv = writeJPGImageStack(); break;
-		case PNG_STACK_WRITER: 
-			rv = writePNGImageStack(); break;
+		case TIF_STACK_WRITER:
+		case JPG_STACK_WRITER:
+		case PNG_STACK_WRITER:
 		case BMP_STACK_WRITER:
-			rv = writeBMPImageStack(); break;
-		case MHD_READER: 
+		case DCM_WRITER:
+			rv = writeImageStack(); break;
+		case MHD_READER:
 			rv = readMetaImage(); break;
-		case STL_READER: 
+		case STL_READER:
 			rv = readSTL(); break;
 		case RAW_READER:
 		case PRO_READER:
@@ -313,11 +285,9 @@ void iAIO::run()
 		case PNG_STACK_READER:
 		case BMP_STACK_READER:
 			rv = readImageStack(); break;
-		case DCM_READER: 
-			rv = readDCM(); break; 
-		case DCM_WRITER: 
-			rv = writeDCM(); break; 
-		case NRRD_READER: 
+		case DCM_READER:
+			rv = readDCM(); break;
+		case NRRD_READER:
 			rv = readNRRD(); break;
 		case OIF_READER: {
 			IO::OIF::Reader r;
@@ -392,18 +362,18 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case STL_READER:
 			fileName = f; compression = c; break;
 		case RAW_READER:
-			return setupRAWReader(f); 
-		case PRO_READER: 
-			return setupPROReader(f); 
-		case PARS_READER: 
+			return setupRAWReader(f);
+		case PRO_READER:
+			return setupPROReader(f);
+		case PARS_READER:
 			return setupPARSReader(f);
-		case VGI_READER: 
-			return setupVGIReader(f); 
-		case TIF_STACK_READER: 
-		case JPG_STACK_READER: 
-		case PNG_STACK_READER: 
-		case BMP_STACK_READER: 
-			return setupStackReader(f); 
+		case VGI_READER:
+			return setupVGIReader(f);
+		case TIF_STACK_READER:
+		case JPG_STACK_READER:
+		case PNG_STACK_READER:
+		case BMP_STACK_READER:
+			return setupStackReader(f);
 		case VOLUME_STACK_READER:
 			return setupVolumeStackReader(f);
 		case VOLUME_STACK_MHD_READER:
@@ -484,7 +454,7 @@ bool iAIO::readDCM()
 	ImageIOType::Pointer dicomIO = ImageIOType::New();	
 	reader->SetImageIO( dicomIO );
 
-	typedef itk::GDCMSeriesFileNames NamesGeneratorType; 
+	typedef itk::GDCMSeriesFileNames NamesGeneratorType;
 	NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
 
 	nameGenerator->SetUseSeriesDetails(true);
@@ -535,76 +505,6 @@ bool iAIO::readDCM()
 }
 
 
-/**
-* \brief	This function writes the loaded image as a series of DICOM images.
-*/
-bool iAIO::writeDCM() 
-{
-	typedef itk::Image<unsigned short, DIM> ImageType; 
-	typedef itk::Image<unsigned short, DIM-1> ImageType2D;
-
-	typedef itk::ImageSeriesWriter<ImageType, ImageType2D> SeriesWriterType;
-	SeriesWriterType::Pointer seriesWriter = SeriesWriterType::New(); 
-
-	typedef itk::GDCMImageIO ImageIOType;
-	//typedef itk::GDCMSeriesFileNames NamesGeneratorType;
-	typedef itk::NumericSeriesFileNames NamesGeneratorType; 
-
-	std::string path = f_dir.canonicalPath().toStdString(); 
-
-	NamesGeneratorType::Pointer namesGenerator = NamesGeneratorType::New(); 
-	ImageIOType::Pointer gdcmIO = ImageIOType::New();
-	
-	itksys::SystemTools::MakeDirectory( path.data() );
-	itk::MetaDataDictionary & dict = gdcmIO->GetMetaDataDictionary(); 
-
-	std::string tagkey, value; 
-	tagkey = "0008|0060";	//Modality
-	value = "CT";			//Computed Tomography (https://wiki.nci.nih.gov/display/CIP/Key+to+two-letter+Modality+Acronyms+in+DICOM)
-	itk::EncapsulateMetaData<std::string>(dict, tagkey, value); 
-
-	tagkey = "0008|0008";	//Image Type
-	value = "ORIGINAL";		//Original image
-	itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
-
-	tagkey = "0008|0064";	//Conversion Type
-	value = "SI";			//Scanned Image
-	itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
-
-	//http://www.itk.org/pipermail/insight-users/2009-July/031580.html
-	//ImageType::Pointer img = dynamic_cast<ImageType*>(getConnector()->GetITKImage()); 
-
-	seriesWriter->SetInput(dynamic_cast<ImageType*>(getConnector()->GetITKImage()));
-	seriesWriter->SetImageIO(gdcmIO);  
-
-	ImageType::RegionType region = dynamic_cast<ImageType*>(getConnector()->GetITKImage())->GetLargestPossibleRegion();
-	ImageType::IndexType start = region.GetIndex(); 
-	ImageType::SizeType size = region.GetSize(); 
-
-	std::string format = path; 
-	format += "/image%03d.dcm"; 
-	namesGenerator->SetSeriesFormat(format.c_str());
-	namesGenerator->SetStartIndex(start[2]); 
-	namesGenerator->SetEndIndex(start[2] + size[2] - 1 );
-	namesGenerator->SetIncrementIndex(1);
-
-	seriesWriter->SetFileNames(namesGenerator->GetFileNames());
-
-	try
-	{
-		seriesWriter->Update();
-	}
-	catch (itk::ExceptionObject & excp)
-	{
-		std::cerr << "Exception thrown while writing the series " << std::endl;
-		std::cerr << excp << std::endl;
-		return false;
-	}
-
-	return true; 
-}
-
-
 bool iAIO::loadMetaImageFile(QString const & fileName)
 {
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
@@ -638,7 +538,8 @@ bool iAIO::loadMetaImageFile(QString const & fileName)
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 			.arg(getFilterName())
 			.arg(Stop()));
 		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
@@ -986,6 +887,32 @@ void iAIO::FillFileNameArray(int * indexRange, int digitsInIndex)
 	}
 }
 
+unsigned int mapVTKByteOrderToIdx(unsigned int vtkByteOrder)
+{
+	switch (vtkByteOrder)
+	{
+	default:
+	case VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN: return 0;
+	case VTK_FILE_BYTE_ORDER_BIG_ENDIAN: return 1;
+	}
+}
+
+unsigned int mapVTKTypeToIdx(unsigned int vtkScalarType)
+{
+	switch (vtkScalarType)
+	{
+		case VTK_UNSIGNED_CHAR: return 0;
+		case VTK_CHAR: return 1;
+		default:
+		case VTK_UNSIGNED_SHORT: return 2;
+		case VTK_SHORT: return 3;
+		case VTK_UNSIGNED_INT: return 4;
+		case VTK_INT: return 5;
+		case VTK_FLOAT: return 6;
+		case VTK_DOUBLE: return 7;
+	}
+}
+
 
 bool iAIO::setupVolumeStackReader(QString f)
 {
@@ -997,16 +924,23 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 	fileNamesBase = f;
 	extension = "." + QFileInfo(f).suffix();
-	QStringList datatype = (QStringList()<<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_CHAR")  <<  tr("VTK_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE"));
-	QStringList byteOrderStr = (QStringList() <<  tr("Little Endian") <<  tr("Big Endian"));
+	QStringList datatype = (QStringList()
+		<< tr("VTK_UNSIGNED_CHAR") << tr("VTK_CHAR")
+		<< tr("VTK_UNSIGNED_SHORT") << tr("VTK_SHORT")
+		<< tr("VTK_UNSIGNED_INT") << tr("VTK_INT")
+		<< tr("VTK_FLOAT") << tr("VTK_DOUBLE"));
+	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
+	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
+	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
 	QStringList inList		= (QStringList() 
 		<< tr("#File Names Base") << tr("#Extension") 
 		<< tr("#Number of Digits in Index")
 		<< tr("#Minimum Index")  << tr("#Maximum Index")
 		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
-		<< tr("#Spacing X")  << tr("#Spacing Y")  << tr("#Spacing Z")
-		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z")	<< tr("+Data Type")
+		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
+		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z")
 		<< tr("#Headersize")
+		<< tr("+Data Type")
 		<< tr("+Byte Order") );
 	QList<QVariant> inPara	= (QList<QVariant>() 
 		<< fileNamesBase << extension 
@@ -1014,8 +948,9 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(rawSizeX) << tr("%1").arg(rawSizeY) << tr("%1").arg(rawSizeZ)
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << datatype
-		<< tr("%1").arg(rawHeader)
+		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2])
+		<< tr("%1").arg(rawHeaderSize)
+		<< datatype
 		<< byteOrderStr);
 
 	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, parent, "RAW file specs", 17, inList, inPara, NULL, f);
@@ -1034,8 +969,8 @@ bool iAIO::setupVolumeStackReader(QString f)
 		spacing[0] = dlg->getValues()[8]; spacing[1]= dlg->getValues()[9]; spacing[2] = dlg->getValues()[10];
 		origin[0] = dlg->getValues()[11]; origin[1]= dlg->getValues()[12]; origin[2] = dlg->getValues()[13];
 
-		rawHeader = dlg->getValues()[15];
-		headersize = rawHeader;
+		rawHeaderSize = dlg->getValues()[15];
+		headersize = rawHeaderSize;
 		 
 		if (dlg->getComboBoxValues()[14] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
 		if (dlg->getComboBoxValues()[14] == "VTK_CHAR") scalarType = VTK_CHAR;
@@ -1045,14 +980,14 @@ bool iAIO::setupVolumeStackReader(QString f)
 		if (dlg->getComboBoxValues()[14] == "VTK_INT") scalarType = VTK_INT;
 		if (dlg->getComboBoxValues()[14] == "VTK_FLOAT") scalarType = VTK_FLOAT;
 		if (dlg->getComboBoxValues()[14] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
-		rawScalar = scalarType;
+		rawScalarType = scalarType;
 
 		if (dlg->getComboBoxValues()[16] == "Little Endian") 
 		byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
 		else if (dlg->getComboBoxValues()[16] == "Big Endian") 
 		byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
-		rawByte = byteOrder;
+		rawByteOrder = byteOrder;
 
 		FillFileNameArray(indexRange, digitsInIndex);
 	}
@@ -1064,8 +999,14 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 bool iAIO::setupRAWReader( QString f )
 {
-	QStringList datatype = (QStringList() <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_CHAR") <<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE"));
-	QStringList byteOrderStr = (QStringList() <<  tr("Little Endian") <<  tr("Big Endian"));
+	QStringList datatype = (QStringList()
+		<< tr("VTK_UNSIGNED_CHAR") << tr("VTK_CHAR")
+		<< tr("VTK_UNSIGNED_SHORT") << tr("VTK_SHORT")
+		<< tr("VTK_UNSIGNED_INT") << tr("VTK_INT")
+		<< tr("VTK_FLOAT") << tr("VTK_DOUBLE"));
+	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
+	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
+	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
 	QStringList inList		= (QStringList() 
 		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
 		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
@@ -1078,7 +1019,7 @@ bool iAIO::setupRAWReader( QString f )
 		<< tr("%1").arg(rawSizeX) << tr("%1").arg(rawSizeY) << tr("%1").arg(rawSizeZ)
 		<< tr("%1").arg(rawSpaceX) << tr("%1").arg(rawSpaceY) << tr("%1").arg(rawSpaceZ)
 		<< tr("%1").arg(rawOriginX) << tr("%1").arg(rawOriginY) << tr("%1").arg(rawOriginZ)
-		<< tr("%1").arg(rawHeader) 
+		<< tr("%1").arg(rawHeaderSize)
 		<< datatype
 		<< byteOrderStr);
 
@@ -1097,8 +1038,8 @@ bool iAIO::setupRAWReader( QString f )
 		rawOriginX = dlg->getValues()[6]; rawOriginY = dlg->getValues()[7]; rawOriginZ = dlg->getValues()[8];
 		origin[0] = rawOriginX; origin[1]= rawOriginY; origin[2] = rawOriginZ;
 
-		rawHeader = dlg->getValues()[9];
-		headersize = rawHeader;
+		rawHeaderSize = dlg->getValues()[9];
+		headersize = rawHeaderSize;
 		fileName = f;
 				
 		if (dlg->getComboBoxValues()[10] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
@@ -1110,13 +1051,13 @@ bool iAIO::setupRAWReader( QString f )
 		if (dlg->getComboBoxValues()[10] == "VTK_FLOAT") scalarType = VTK_FLOAT;
 		if (dlg->getComboBoxValues()[10] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
 		
-		rawScalar = scalarType;
+		rawScalarType = scalarType;
 		if (dlg->getComboBoxValues()[11] == "Little Endian") 
 			byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
 		else if (dlg->getComboBoxValues()[11] == "Big Endian") 
 			byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
-		rawByte = byteOrder;
+		rawByteOrder = byteOrder;
 	}
 	else return false;
 
@@ -1239,7 +1180,7 @@ bool iAIO::writeMetaImage( )
 			.arg(excep.GetFile())
 			.arg(excep.GetLine()));
 		return false;
-	}	
+	}
 	emit msg(tr("%1  File saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	emit msg("  File: "+ fileName );
 
@@ -1249,95 +1190,95 @@ bool iAIO::writeMetaImage( )
 
 bool iAIO::writeSTL( )
 {
+	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriter->AddObserver(vtkCommand::ProgressEvent, observerProgress);
 	stlWriter->SetFileName(fileName.toLatin1());
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
 	stlWriter->Write();
-
 	emit msg(tr("%1  File saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	emit msg("  File: "+ fileName );
-	
 	stlWriter->ReleaseDataFlagOn();
-
 	return true;
 }
 
 
-bool iAIO::writeTIFImageStack( )
+template <typename T>
+void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnector* con, bool comp)
 {
-	QFileInfo pars(fileName);
-	
-	tifWriter->AddObserver(vtkCommand::ProgressEvent, observerProgress);
-	tifWriter->SetInputData(getVtkImageData());
-	tifWriter->SetFileDimensionality(2);
-	tifWriter->SetFilePrefix( (pars.absolutePath() + "/" + pars.baseName()).toLatin1() );
-	tifWriter->SetFilePattern( "%s%d." + pars.completeSuffix().toLatin1());
-	tifWriter->Write();
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<T, DIM-1> OutputImageType;
+	typedef itk::ImageSeriesWriter<InputImageType, OutputImageType> SeriesWriterType;
+	typename SeriesWriterType::Pointer writer = SeriesWriterType::New();
 
-	emit msg(tr("%1  TIFF stack saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	typedef itk::NumericSeriesFileNames    NameGeneratorType;
+	typename NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
 
-	tifWriter->ReleaseDataFlagOn();
+	typename InputImageType::RegionType region = dynamic_cast<InputImageType*>(con->GetITKImage())->GetLargestPossibleRegion();
+	typename InputImageType::IndexType start = region.GetIndex();
+	typename InputImageType::SizeType size = region.GetSize();
+	nameGenerator->SetStartIndex(start[2]);
+	nameGenerator->SetEndIndex(start[2] + size[2] - 1);
+	nameGenerator->SetIncrementIndex(1);
 
-	return true;
+	QFileInfo fi(fileName);
+
+	if (fi.completeSuffix() == "DCM")	// should be equal to if (ioID == DCM_WRITER)
+	{
+		typedef itk::GDCMImageIO ImageIOType;
+		ImageIOType::Pointer gdcmIO = ImageIOType::New();
+		itk::MetaDataDictionary & dict = gdcmIO->GetMetaDataDictionary();
+		std::string tagkey, value;
+		tagkey = "0008|0060";	//Modality
+		value = "CT";			//Computed Tomography (https://wiki.nci.nih.gov/display/CIP/Key+to+two-letter+Modality+Acronyms+in+DICOM)
+		itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
+		tagkey = "0008|0008";	//Image Type
+		value = "ORIGINAL";		//Original image
+		itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
+		tagkey = "0008|0064";	//Conversion Type
+		value = "SI";			//Scanned Image
+		itk::EncapsulateMetaData<std::string>(dict, tagkey, value);
+		writer->SetImageIO(gdcmIO);
+	}
+
+	QString format(fi.absolutePath() + "/" + fi.baseName() + "%d." + fi.completeSuffix());
+	nameGenerator->SetSeriesFormat(format.toStdString().c_str());
+	writer->SetFileNames(nameGenerator->GetFileNames());
+	writer->SetInput(dynamic_cast< InputImageType * > (con->GetITKImage()));
+	writer->SetUseCompression(comp);
+	p->Observe(writer);
+	writer->Update();
 }
 
-
-bool iAIO::writeBMPImageStack( )
+bool iAIO::writeImageStack( )
 {
-	QFileInfo pars(fileName);
-
-	bmpWriter->AddObserver(vtkCommand::ProgressEvent, observerProgress);
-	bmpWriter->SetInputData(getVtkImageData());
-	bmpWriter->SetFileDimensionality(2);
-	bmpWriter->SetFilePrefix( (pars.absolutePath() + "/" + pars.baseName()).toLatin1() );
-	bmpWriter->SetFilePattern( "%s%d." + pars.completeSuffix().toLatin1());
-	bmpWriter->Write();
-
-	emit msg(tr("%1  BMP stack saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-
-	bmpWriter->ReleaseDataFlagOn();
-
+	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
+	typedef itk::ImageIOBase::IOPixelType PixelType;
+	try
+	{
+		getConnector()->SetImage(getVtkImageData());
+		const ScalarPixelType pixelType = getConnector()->GetITKScalarPixelType();
+		const PixelType imagePixelType = getConnector()->GetITKPixelType();
+		ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
+			fileName, getItkProgress(), getConnector(), compression);
+	}
+	catch (itk::ExceptionObject &excep)
+	{
+		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+			.arg(getFilterName())
+			.arg(Stop()));
+		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
+			.arg(excep.GetFile())
+			.arg(excep.GetLine()));
+		return false;
+	}
+	emit msg(tr("%1  %2 Image Stack saved.")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(QFileInfo(fileName).completeSuffix().toUpper()));
+	emit msg("  Base Filename: " + fileName);
 	return true;
 }
-
-
-bool iAIO::writePNGImageStack( )
-{
-	QFileInfo pars(fileName);
-
-	pngWriter->AddObserver(vtkCommand::ProgressEvent, observerProgress);
-	pngWriter->SetInputData(getVtkImageData());
-	pngWriter->SetFileDimensionality(2);
-	pngWriter->SetFilePrefix( (pars.absolutePath() + "/" + pars.baseName()).toLatin1()  );
-	pngWriter->SetFilePattern( "%s%d." + pars.completeSuffix().toLatin1());
-	pngWriter->Write();
-
-	emit msg(tr("%1  PNG stack saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-
-	pngWriter->ReleaseDataFlagOn();
-
-	return true;
-}
-
-bool iAIO::writeJPGImageStack( )
-{
-	QFileInfo pars(fileName);
-
-	jpgWriter->AddObserver(vtkCommand::ProgressEvent, observerProgress);
-	jpgWriter->SetInputData(getVtkImageData());
-	jpgWriter->SetFileDimensionality(2);
-	jpgWriter->SetFilePrefix( (pars.absolutePath() + "/" + pars.baseName()).toLatin1() );
-	jpgWriter->SetFilePattern( "%s%d." + pars.completeSuffix().toLatin1());
-	jpgWriter->Write();
-
-	emit msg(tr("%1  JPEG stack saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-
-	jpgWriter->ReleaseDataFlagOn();
-
-	return true;
-}
-
 
 //****************************************************
 //*                                                  *
@@ -1469,22 +1410,9 @@ void iAIO::iosettingswriter()
 	settings.setValue("IO/rawOriginX", rawOriginX);
 	settings.setValue("IO/rawOriginY", rawOriginY);
 	settings.setValue("IO/rawOriginZ", rawOriginZ);
-	settings.setValue("IO/rawScalar", rawScalar);
-	settings.setValue("IO/rawByte", rawByte);
-	settings.setValue("IO/rawHeader", rawHeader);
-
-	settings.setValue("IO/proSizeX", proSizeX);
-	settings.setValue("IO/proSizeY", proSizeY);
-	settings.setValue("IO/proSizeZ", proSizeZ);
-	settings.setValue("IO/proSpaceX", proSpaceX);
-	settings.setValue("IO/proSpaceY", proSpaceY);
-	settings.setValue("IO/proSpaceZ", proSpaceZ);
-	settings.setValue("IO/proOriginX", proOriginX);
-	settings.setValue("IO/proOriginY", proOriginY);
-	settings.setValue("IO/proOriginZ", proOriginZ);
-	settings.setValue("IO/proScalar", proScalar);
-	settings.setValue("IO/proByte", proByte);
-	settings.setValue("IO/proHeader", proHeader);
+	settings.setValue("IO/rawScalar", rawScalarType);
+	settings.setValue("IO/rawByte", rawByteOrder);
+	settings.setValue("IO/rawHeader", rawHeaderSize);
 }
 
 
@@ -1494,28 +1422,15 @@ void iAIO::iosettingsreader()
 	rawOriginX = settings.value("IO/rawOriginX").toDouble();
 	rawOriginY = settings.value("IO/rawOriginY").toDouble();
 	rawOriginZ = settings.value("IO/rawOriginZ").toDouble();
-	rawSpaceX = settings.value("IO/rawSpaceX").toDouble();
-	rawSpaceY = settings.value("IO/rawSpaceY").toDouble();
-	rawSpaceZ = settings.value("IO/rawSpaceZ").toDouble();
+	rawSpaceX = settings.value("IO/rawSpaceX", 1).toDouble();
+	rawSpaceY = settings.value("IO/rawSpaceY", 1).toDouble();
+	rawSpaceZ = settings.value("IO/rawSpaceZ", 1).toDouble();
 	rawSizeX = settings.value("IO/rawSizeX").toInt();
 	rawSizeY = settings.value("IO/rawSizeY").toInt();
 	rawSizeZ = settings.value("IO/rawSizeZ").toInt();
-	rawScalar = settings.value("IO/rawScalar").toInt();
-	rawByte = settings.value("IO/rawByte").toInt();
-	rawHeader = settings.value("IO/rawHeader").toInt();
-
-	proOriginX = settings.value("IO/proOriginX").toDouble();
-	proOriginY = settings.value("IO/proOriginY").toDouble();
-	proOriginZ = settings.value("IO/proOriginZ").toDouble();
-	proSpaceX = settings.value("IO/proSpaceX").toDouble();
-	proSpaceY = settings.value("IO/proSpaceY").toDouble();
-	proSpaceZ = settings.value("IO/proSpaceZ").toDouble();
-	proSizeX = settings.value("IO/proSizeX").toInt();
-	proSizeY = settings.value("IO/proSizeY").toInt();
-	proSizeZ = settings.value("IO/proSizeZ").toInt();
-	proScalar = settings.value("IO/proScalar").toInt();
-	proByte = settings.value("IO/proByte").toInt();
-	proHeader = settings.value("IO/proHeader").toInt();
+	rawScalarType = settings.value("IO/rawScalar", 2).toInt(); // default data type: unsigned char
+	rawByteOrder = settings.value("IO/rawByte", 0).toInt();    // default byte order: little endian
+	rawHeaderSize = settings.value("IO/rawHeader").toInt();
 }
 
 

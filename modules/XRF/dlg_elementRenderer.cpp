@@ -43,7 +43,7 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_tag(0),
 	m_indexInReferenceLib(-1)
 {
-	renContainer->SetRenderWindow(m_renderer->GetRenderWindow());
+	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->GetRenderWindow()));
 	m_renderer->GetRenderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
 
@@ -53,7 +53,6 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 
 
 void dlg_elementRenderer::removeObserver()
-
 {
 	//is m_renderer deleted by Qt?
 	if(m_observedRenderer)
@@ -62,7 +61,6 @@ void dlg_elementRenderer::removeObserver()
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
-	// TODO: VOLUME: check if working!
 	iASimpleTransferFunction transferFunction(ctf, otf);
 	if(!m_rendInitialized)
 	{
@@ -73,7 +71,6 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	}
 	else
 	{
-		// TODO: VOLUME: check if recreation of volume renderer is necessary!
 		m_volumeRenderer->Remove();
 		m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));

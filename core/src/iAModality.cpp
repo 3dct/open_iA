@@ -147,7 +147,6 @@ void iAModality::LoadTransferFunction()
 	}
 	Settings s(tfFileName);
 	s.LoadTransferFunction(GetTransfer().data(), GetImage()->GetScalarRange());
-	tfFileName = "";
 }
 
 QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
@@ -249,10 +248,7 @@ bool iAModality::LoadData()
 			DEBUG_LOG("Error while setting up modality loading!");
 			return false;
 		}
-		// TODO: check for errors during actual loading!
-		//connect(io, done(bool), this, )
 		io.start();
-		// TODO: VOLUME: make asynchronous!
 		io.wait();
 		SetData(img);
 	}
@@ -372,16 +368,15 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		settings.setValue(GetModalityKey(i, "Orientation"), GetOrientation(m_modalities[i]->GetRenderer()));
 		settings.setValue(GetModalityKey(i, "Position"), GetPosition(m_modalities[i]->GetRenderer()));
 		QFileInfo modFileInfo(m_modalities[i]->GetFileName());
-		
 		QString absoluteTFFileName(m_modalities[i]->GetTransferFileName());
 		if (absoluteTFFileName.isEmpty())
 		{
-			absoluteTFFileName = modFileInfo.absoluteFilePath() + "_tf.xml";
+			absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf.xml");
 			QFileInfo fi(absoluteTFFileName);
 			int i = 1;
 			while (fi.exists())
 			{
-				absoluteTFFileName = modFileInfo.absoluteFilePath() + "_tf-" + QString::number(i) + ".xml";
+				absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf-" + QString::number(i) + ".xml");
 				fi.setFile(absoluteTFFileName);
 				++i;
 			}
@@ -442,7 +437,10 @@ bool iAModalityList::Load(QString const & filename)
 		QString orientationSettings = settings.value(GetModalityKey(currIdx, "Orientation")).toString();
 		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
 		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
-		tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
+		if (!tfFileName.isEmpty())
+		{
+			tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
+		}
 		if (ModalityExists(modalityFile, channel))
 		{
 			DEBUG_LOG(QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
