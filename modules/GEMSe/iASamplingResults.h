@@ -49,12 +49,16 @@ public:
 	QSharedPointer<iAAttributes> GetAttributes() const;
 	QString GetFileName() const;
 	QString GetPath(int id) const;
+	QString GetExecutable() const;
+	QString GetAdditionalArguments() const;
 	int GetID() const;
 	static int GetNewID();
 	bool StoreAttributes(int type, QString const & fileName, bool id);
 private:
 	QSharedPointer<iAAttributes> m_attributes;
 	QVector<QSharedPointer<iASingleResult> > m_results;
+	QString m_parameterSetFile;//!<the name of the file containing the parameter sets
+	QString m_derivedOutputFile;//!<the name of the file containing the derived outputs
 	QString m_samplingMethod; //!< the name of the applied sampling method (Latin Hypercube, Random, ...)
 	QString m_fileName;       //!< smp fileName
 	QString m_path;           //!< base filename for the sampling results

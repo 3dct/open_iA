@@ -93,8 +93,6 @@ void iAImageSampler::run()
 		return;
 	}
 
-	QMap<std::pair<int, int>, QSharedPointer<iASpectralVoxelData const> > m_pcaReducedSpectralData;
-
 	m_parameterCount = m_parameters->size();
 
 	QStringList additionalArgumentList = SplitPossiblyQuotedString(m_additionalArguments);
@@ -176,8 +174,6 @@ void iAImageSampler::run()
 		m_runningOperations++;
 		m_mutex.unlock();
 		cmd->start();
-		// use threadpool:
-		//QThreadPool::globalInstance()->start(extendedRandomWalker);
 	}
 	if (m_aborted)
 	{
@@ -224,7 +220,7 @@ void iAImageSampler::computationFinished()
 	result->SetAttribute(m_parameterCount+2, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+2)->AdjustMinMax(computationTime);
 
-	// TODO: calculate external programs here to calculate derived output!
+	// TODO: use external programs to calculate derived output!
 	iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator (result, m_parameterCount, m_parameterCount+1, m_labelCount);
 	m_runningDerivedOutput.insert(newCharCalc, result);
 	connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()) );
@@ -241,7 +237,8 @@ void iAImageSampler::derivedOutputFinished()
 	iADerivedOutputCalculator* charactCalc = dynamic_cast<iADerivedOutputCalculator*>(QObject::sender());
 	if (!charactCalc || !charactCalc->success())
 	{
-		DEBUG_LOG("ERROR: Derived output calculation was not successful! Make sure sampling results in a signed integer");
+		DEBUG_LOG("ERROR: Derived output calculation was not successful! Possible reasons include that sampling did not produce a result,"
+			" or that the result did not have the expected data type '(signed) integer'.");
 		m_mutex.lock();
 		m_runningOperations--;
 		m_mutex.unlock();

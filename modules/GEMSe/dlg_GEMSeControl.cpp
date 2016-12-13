@@ -387,7 +387,6 @@ void dlg_GEMSeControl::ClusteringFinished()
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->getImageData();
 
 	QSharedPointer<iAImageTree> tree = m_clusterer->GetResult();
-	EnableClusteringDependantUI();
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
@@ -399,17 +398,6 @@ void dlg_GEMSeControl::ClusteringFinished()
 		DEBUG_LOG("Clusterer aborted / missing Clustering Result!");
 		return;
 	}
-	if (!m_outputFolder.isEmpty())
-	{
-		m_cltFile = m_outputFolder+"/"+iASEAFile::DefaultCLTFileName;
-		m_clusterer->GetResult()->Store(m_cltFile);
-
-		if (m_dlgModalities->GetModalities()->GetFileName().isEmpty())
-		{
-			m_dlgModalities->Store(m_outputFolder+"/"+iASEAFile::DefaultModalityFileName);
-		}
-		StoreGEMSeProject(m_outputFolder + "/sampling.sea");
-	}
 	m_dlgGEMSe->SetTree(
 		m_clusterer->GetResult(),
 		originalImage,
@@ -417,7 +405,18 @@ void dlg_GEMSeControl::ClusteringFinished()
 		*m_simpleLabelInfo.data(),
 		m_dlgSamplings->GetSamplings()
 	);
+	if (!m_outputFolder.isEmpty())
+	{
+		m_cltFile = m_outputFolder + "/" + iASEAFile::DefaultCLTFileName;
+		m_clusterer->GetResult()->Store(m_cltFile);
 
+		if (m_dlgModalities->GetModalities()->GetFileName().isEmpty())
+		{
+			m_dlgModalities->Store(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
+		}
+		StoreGEMSeProject(m_outputFolder + "/sampling.sea");
+	}
+	EnableClusteringDependantUI();
 }
 
 
@@ -481,6 +480,8 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 	{
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		m_dlgMajorityVoting = new dlg_MajorityVoting(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder);
+		connect(m_dlgMajorityVoting, SIGNAL(SamplingAdded(QSharedPointer<iASamplingResults>)),
+			this, SLOT(SamplingAdded(QSharedPointer<iASamplingResults>)));
 		if (m_groundTruthImage)
 			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
 		mdiChild->splitDockWidget(this, m_dlgMajorityVoting, Qt::Vertical);
@@ -677,4 +678,9 @@ void dlg_GEMSeControl::ImportRankings()
 void dlg_GEMSeControl::SetSerializedHiddenCharts(QString const & hiddenCharts)
 {
 	m_dlgGEMSe->SetSerializedHiddenCharts(hiddenCharts);
+}
+
+void dlg_GEMSeControl::SamplingAdded(QSharedPointer<iASamplingResults> results)
+{
+	m_dlgSamplings->Add(results);
 }

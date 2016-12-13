@@ -103,7 +103,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 	}
 	QString executable, additionalArguments;
 	if (!GetNameValue("Executable", executable, in) ||
-		!GetNameValue("AdditionalArguments", executable, in))
+		!GetNameValue("AdditionalArguments", additionalArguments, in))
 	{
 		DEBUG_LOG("Executable and/or AdditionalArguments missing in sampling descriptor!");
 	}
@@ -127,6 +127,8 @@ bool iASamplingResults::Store(QString const & fileName,
 	QString const & parameterSetFileName,
 	QString const & derivedOutputFileName)
 {
+	m_parameterSetFile = parameterSetFileName;
+	m_derivedOutputFile = derivedOutputFileName;
 	// write parameter ranges:
 	QFile paramRangeFile(fileName);
 	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -177,12 +179,14 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 
 bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName)
 {
+	m_parameterSetFile = parameterSetFileName;
 	QFile paramFile(parameterSetFileName);
 	if (!paramFile.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		DEBUG_LOG(QString("Could not open sample parameter set file '%1' for reading!").arg(parameterSetFileName));
 		return false;
 	}
+	m_derivedOutputFile = derivedOutputFileName;
 	QFile characFile(derivedOutputFileName);
 	bool charac = true;
 	if (!characFile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -268,6 +272,16 @@ QString iASamplingResults::GetFileName() const
 QString iASamplingResults::GetPath(int id) const
 {
 	return m_path + "/sample" + QString::number(id);
+}
+
+QString iASamplingResults::GetExecutable() const
+{
+	return m_executable;
+}
+
+QString iASamplingResults::GetAdditionalArguments() const
+{
+	return m_additionalArguments;
 }
 
 int iASamplingResults::GetID() const

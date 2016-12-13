@@ -52,6 +52,41 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+
+// Where to put temporary output
+
+// currently chosen option:
+//  * detail view
+//      + prominent display
+//      + close to current analysis
+//      - lots to rewrite, as it expects node with linked values
+//      - volatile - will be gone after next cluster / example image selection
+
+// possibly best future option:
+//  * integrate into clustering
+//      + image is then part of rest of analysis
+//      ~ follow-up decision required:
+//          - consider MV separate algorithm?
+//          - how to preserve creation "parameters"?
+//		- have to re-run whole clustering? or integrate it somehow faked?
+//	* intermediate step: add as separate result (e.g. in favorite view)
+//      // (with a chance to include in clustering after renewed clustering)
+
+// other options:
+//  * separate list of  majority-voted results
+//		- separate from other analysis
+//  * new dock widget in same mdichild
+//		+ closer to current analysis than separate mdi child
+//		- lots of new implementation required
+//		- no clear benefit
+//      - could get pretty crowded
+//  * new window (mdichild?)
+//      + completely independent of other implementation (should continue working if anything else changes)
+//      - completely independent of other implementation (not integrated into current analysis)
+//      - detached from current design
+//      +/- theoretically easier to do/practically probably also not little work to make it happen
+
+
 dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
@@ -149,6 +184,15 @@ namespace
 		}
 	}
 
+	int GetWeightType(QString const & name)
+	{
+		if (name == "LabelDice") return LabelBased;
+		else if (name == "Certainty") return Certainty;
+		else if (name == "FBG-SBG") return FBGSBGDiff;
+		else if (name == "Equal")  return Equal;
+		else return -1;
+	}
+
 	vtkSmartPointer<vtkTable> CreateVTKTable(int rowCount, QVector<QString> const & columnNames)
 	{
 		auto result = vtkSmartPointer<vtkTable>::New();
@@ -173,19 +217,22 @@ void dlg_MajorityVoting::SetGroundTruthImage(LabelImagePointer groundTruthImage)
 
 void dlg_MajorityVoting::ClusterUncertaintyDice()
 {
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
+	QSharedPointer<iAImageTreeNode> node = m_dlgGEMSe->GetSelectedCluster();
+	"Cluster (id=" + QString::number(node->GetID()) + ")";
+}
+
+void dlg_MajorityVoting::SelectionUncertaintyDice(
+	QVector<QSharedPointer<iASingleResult> > const & selection,
+	QString const & name)
+{
 	if (!m_groundTruthImage)
 	{
 		QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
 		return;
 	}
 	// gather Avg. Uncertainty vs. Accuracy, make it entry in row 1!
-	int diceIdx = m_dlgGEMSe->GetMeasureStartID(); // TODO: replace hard-coded values with search in attributes!
-	int avgUncIdx = diceIdx - 2;
-
-	QVector<QSharedPointer<iASingleResult> > selection;
-	m_dlgGEMSe->GetSelection(selection);
-	QSharedPointer<iAImageTreeNode> node = m_dlgGEMSe->GetSelectedCluster();
-
 	QVector<QString> columns;
 	columns.push_back("Average Uncertainty");
 	columns.push_back("Mean Dice");
@@ -194,12 +241,14 @@ void dlg_MajorityVoting::ClusterUncertaintyDice()
 
 	for (int i = 0; i < selection.size(); ++i)
 	{
+		int avgUncIdx = selection[i]->GetAttributes()->Find("Average Uncertainty");
+		int diceIdx = selection[i]->GetAttributes()->Find("Dice");
 		double unc = selection[i]->GetAttribute(avgUncIdx);
 		double dice = selection[i]->GetAttribute(diceIdx);
 		table->SetValue(i, 0, unc);
 		table->SetValue(i, 1, dice);
 	}
-	AddResult(table, "Cluster (id=" + QString::number(node->GetID()) + ") Avg. Unc. vs. Mean Dice");
+	AddResult(table, QString("%1 Avg. Unc. vs. Mean Dice").arg(name));
 }
 
 
@@ -440,14 +489,21 @@ void dlg_MajorityVoting::StoreResult()
 
 #include <QSettings>
 
+namespace
+{
+	static const QString FileFormatKey("FileFormat");
+	static const QString FileVersion("v1");
+	static const QString LabelsKey("Labels");
+	static const QString DerivedOutputName = "Dice";
+}
+
 void dlg_MajorityVoting::StoreConfig()
 {
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Store Algorithm Comparison Configuration"),
 		m_folder,
-		"Algorithm Comparison Configuration (.acc)"
+		"Algorithm Comparison Configuration (*.acc)"
 	);
-
 	if (fileName.isEmpty())
 	{
 		return;
@@ -455,10 +511,9 @@ void dlg_MajorityVoting::StoreConfig()
 	QFileInfo fi(fileName);
 	QString basePath(fi.absolutePath());
 	QSettings s(fileName, QSettings::IniFormat);
-	s.setValue("FileFormat", "v1");
-	s.setValue("Labels", m_labelCount);
+	s.setValue(FileFormatKey, FileVersion);
+	s.setValue(LabelsKey, m_labelCount);
 
-	QString derivedOutputName = "Dice";
 	// fetch best n results by dice
 	auto samplings = m_dlgGEMSe->GetSamplings();
 	typedef std::tuple<int, int, double> OneRunDice;
@@ -471,7 +526,7 @@ void dlg_MajorityVoting::StoreConfig()
 		for (int s = 0; s < sampling->size(); ++s)
 		{
 			auto r = sampling->Get(s);
-			int derivedOutID = r->GetAttributes()->Find(derivedOutputName);
+			int derivedOutID = r->GetAttributes()->Find(DerivedOutputName);
 			runs.push_back(std::make_tuple(r->GetDatasetID(), r->GetID(), r->GetAttribute(derivedOutID)));
 		}
 	}
@@ -488,7 +543,7 @@ void dlg_MajorityVoting::StoreConfig()
 		bestDice.append(QString::number(std::get<2>(runs[b])));
 	}
 	s.setValue("BestSingle/ParameterSets", bestParameterSets.join(","));
-	s.setValue("BestSingle/Dice", bestDice.join(","));
+	s.setValue(QString("BestSingle/%1").arg(DerivedOutputName), bestDice.join(","));
 
 	// fetch config for (last?) majority voting (sampling?)
 	QVector<QSharedPointer<iASingleResult> > selection;
@@ -508,10 +563,11 @@ void dlg_MajorityVoting::StoreConfig()
 			QStringList inputWeights;
 			for (int m = 0; m < selection.size(); ++m)
 			{
-				int attributeID = selection[m]->GetAttributes()->Find(QString("Dice %1").arg(l));
+				QString derivedOutName(QString("%1 %2").arg(DerivedOutputName).arg(l));
+				int attributeID = selection[m]->GetAttributes()->Find(derivedOutName);
 				if (attributeID == -1)
 				{
-					DEBUG_LOG(QString("Attribute 'Dice %1' not found!").arg(l));
+					DEBUG_LOG(QString("Attribute '%1' not found!").arg(derivedOutName));
 				}
 				double labelDice = selection[m]->GetAttribute(attributeID);
 				inputWeights.append(QString::number(labelDice));
@@ -521,43 +577,278 @@ void dlg_MajorityVoting::StoreConfig()
 	}
 }
 
+namespace
+{
+	void AddParameterSets(QVector<QSet<int> > & ids, QStringList const & fullIDStrList)
+	{
+		bool sizeOK, conv1ok, conv2ok;
+		int datasetID, parameterSetID;
+		for (QString fullID: fullIDStrList)
+		{
+			QStringList spl = fullID.split("-");
+			sizeOK = spl.size() == 2;
+			if (sizeOK)
+			{
+				datasetID = spl[0].toInt(&conv1ok);
+				parameterSetID = spl[1].toInt(&conv2ok);
+			}
+			if (sizeOK && conv1ok && conv2ok)
+			{
+				ids[datasetID].insert(parameterSetID);
+			}
+			else
+			{
+				DEBUG_LOG(QString("Error in converting full ID '%1'!").arg(fullID));
+			}
+		}
+	}
+}
+
+#include "dlg_progress.h"
+#include "iAAttributeDescriptor.h"
+#include "iAImageSampler.h"
+#include "iAMeasures.h"
+#include "iAParameterGeneratorImpl.h"
+#include "iASEAFile.h"
 
 void dlg_MajorityVoting::LoadConfig()
-{}
+{
+	if (!m_groundTruthImage)
+	{
+		QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
+		return;
+	}
+	// load config
+	QString fileName = QFileDialog::getOpenFileName(this,
+		tr("Load Algorithm Comparison Configuration"),
+		m_folder,
+		"Algorithm Comparison Configuration (*.acc)"
+	);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	QFileInfo fi(fileName);
+	QSettings s(fileName, QSettings::IniFormat);
+	if (s.value(FileFormatKey) != FileVersion)
+	{
+		QMessageBox::warning(this, "GEMSe",
+			QString("Loaded File has the wrong file format, expected %1, got %2 as format identifier!")
+			.arg(FileVersion).arg(s.value(FileFormatKey).toString()));
+		return;
+	}
+	/*
+	// only applicable if weight set by label
+	if (s.value(LabelsKey).toInt() != m_labelCount)
+	{
+		QMessageBox::warning(this, "GEMSe",
+			QString("Label count does not match: expected %1, got %2 as number of labels!")
+			.arg(m_labelCount).arg(s.value(LabelsKey).toInt()));
+		return;
+	}
+	*/
+	// load datasets:
+	QStringList samplings;
+	int curSamplingIdx = 0;
+	while (s.contains(QString("SamplingData%1").arg(curSamplingIdx)))
+	{
+		samplings.push_back(
+			MakeAbsolute(fi.absolutePath(),
+			s.value(QString("SamplingData%1").arg(curSamplingIdx)).toString()
+		));
+		++curSamplingIdx;
+	}
 
-// Where to put temporary output
+	QStringList bestParameterSetsList = s.value("BestSingle/ParameterSets").toString().split(",");
+	QStringList derivedOuts = s.value(QString("BestSingle/%1").arg(DerivedOutputName)).toString().split(",");
 
-// currently chosen option:
-//  * detail view
-//      + prominent display
-//      + close to current analysis
-//      - lots to rewrite, as it expects node with linked values
-//      - volatile - will be gone after next cluster / example image selection
+	QStringList mvParamSetsList = s.value("MajorityVoting/ParameterSets").toString().split(",");
+	int weightType = ::GetWeightType(s.value("MajorityVoting/WeightType").toString());
 
-// possibly best future option:
-//  * integrate into clustering
-//      + image is then part of rest of analysis
-//      ~ follow-up decision required:
-//          - consider MJ separate algorithm?
-//          - how to preserve creation "parameters"?
-//		- have to re-run whole clustering? or integrate it somehow faked?
-//	* intermediate step: add as separate result (e.g. in favorite view)
-//      // (with a chance to include in clustering after renewed clustering)
+	std::map<std::pair<int, int>, double> inputLabelWeightMap;
+	if (weightType == LabelBased)
+	{
+		bool ok;
+		for (int l = 0; l < m_labelCount; ++l)
+		{
+			QStringList inputWeights = s.value(QString("MajorityVoting/InputWeightLabel%1").arg(l)).toString().split(",");
+			for (int m = 0; m < mvParamSetsList.size(); ++m)
+			{
+				double labelWeight = inputWeights[m].toDouble(&ok);
+				if (!ok)
+				{
+					DEBUG_LOG(QString("Error in label weights for label %1, entry %2('%3')").arg(l).arg(m).arg(inputWeights[m]));
+				}
+				inputLabelWeightMap.insert(
+					std::make_pair(std::make_pair(l, m), labelWeight));
+			}
+		}
+	}
+	QVector<QSet<int> > bestParameterSetIDs(samplings.size()),
+		mvParameterSetIDs(samplings.size());
+	AddParameterSets(bestParameterSetIDs, bestParameterSetsList);
+	AddParameterSets(mvParameterSetIDs, mvParamSetsList);
+	
+	// run segmentations with loaded parameter sets
+	m_comparisonSamplingResults.clear();
+	m_comparisonBestIDs.clear();
+	m_comparisonMVIDs.clear();
+	for (int s = 0; s < samplings.size(); ++s)
+	{
+		m_comparisonBestIDs.push_back(QVector<int>());
+		m_comparisonMVIDs.push_back(QVector<int>());
+		// find all IDs from this data that need to be sampled:
+		QString smpFileName = samplings[s];
+		QString outputFolder = QFileDialog::getExistingDirectory(this,
+			QString("Output folder for Algorithm %1").arg(s),
+			m_folder);
 
-// other options:
-//  * separate list of  majority-voted results
-//		- separate from other analysis
-//  * new dock widget in same mdichild
-//		+ closer to current analysis than separate mdi child
-//		- lots of new implementation required
-//		- no clear benefit
-//      - could get pretty crowded
-//  * new window (mdichild?)
-//      + completely independent of other implementation (should continue working if anything else changes)
-//      - completely independent of other implementation (not integrated into current analysis)
-//      - detached from current design
-//      +/- theoretically easier to do/practically probably also not little work to make it happen
+		auto samplingResults = iASamplingResults::Load(smpFileName, s);
+		//m_comparisonSamplingInput.push_back(samplingResults);
+		// after sampling, we shouldn't need these anymore
+		// and as long as we don't access the images, they shouldn't get loaded...
 
+		ParameterSetsPointer parameterSets(new QVector<ParameterSet>());
+		for (int i = 0; i < samplingResults->size(); ++i)
+		{
+			if (bestParameterSetIDs[s].contains(i) || mvParameterSetIDs[s].contains(i))
+			{
+				if (bestParameterSetIDs[s].contains(i))
+				{
+					m_comparisonBestIDs[s].push_back(parameterSets->size());
+				}
+				if (mvParameterSetIDs[s].contains(i))
+				{
+					//assert(mvParameterSetIDs[s].contains(i))
+					m_comparisonMVIDs[s].push_back(parameterSets->size());
+				}
+				QVector<double> singleParameterSet;
+				for (int p = 0; p < samplingResults->GetAttributes()->size(); ++p)
+				{
+					singleParameterSet.push_back(samplingResults->Get(i)->GetAttribute(p));
+				}
+				parameterSets->push_back(singleParameterSet);
+			}
+		}
+
+		QSharedPointer<iASelectionParameterGenerator> generator(
+			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
+				parameterSets));
+
+		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
+			m_mdiChild->GetModalities(),
+			samplingResults->GetAttributes(),
+			generator,
+			0,
+			m_labelCount,
+			outputFolder,
+			iASEAFile::DefaultSMPFileName,
+			iASEAFile::DefaultSPSFileName,
+			iASEAFile::DefaultCHRFileName,
+			samplingResults->GetExecutable(),
+			samplingResults->GetAdditionalArguments()
+		));
+		if (s == 0)
+		{
+			m_dlgProgress = new dlg_progress(this, sampler, sampler, "Sampling Progress");
+			m_mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
+			connect(sampler.data(), SIGNAL(finished()), this, SLOT(SamplerFinished()));
+			connect(sampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
+			connect(sampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
+			sampler->start();
+		}
+		else
+		{
+			m_sampler.push_back(sampler);
+		}
+	}
+}
+
+void dlg_MajorityVoting::SamplerFinished()
+{
+	// insert result in sampling list?
+	iAImageSampler* sender = qobject_cast<iAImageSampler*> (QObject::sender());
+	if (!sender)
+	{
+		DEBUG_LOG("Invalid SamplingFinished: No iAImageSampler sender!");
+		return;
+	}
+	auto results = sender->GetResults();
+	m_comparisonSamplingResults.push_back(results);
+	emit SamplingAdded(results);
+	if (m_sampler.size() > 0)
+	{
+		auto sampler = m_sampler.takeFirst();
+		connect(sampler.data(), SIGNAL(finished()), this, SLOT(SamplerFinished()));
+		connect(sampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
+		connect(sampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
+		sampler->start();
+	}
+	else
+	{
+		m_comparisonMVSelection.clear();
+		m_comparisonBestSelection.clear();
+		for (int s = 0; s < m_comparisonSamplingResults.size(); ++s)
+		{
+			auto attributes = m_comparisonSamplingResults[s]->GetAttributes();
+			// do ref img comparison / measure calculation for the new samplings:
+			// TODO: remove duplication between here and dlg_GEMSe::CalcRefImgComp
+			QVector<QSharedPointer<iAAttributeDescriptor> > measures;
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+				"Dice", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+				"Kappa", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+				"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+				"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+				"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			for (int i = 0; i<m_labelCount; ++i)
+			{
+				measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+					QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
+			}
+			for (QSharedPointer<iAAttributeDescriptor> measure : measures)
+			{
+				measure->ResetMinMax();
+				attributes->Add(measure);
+			}
+			for (int m = 0; m < m_comparisonSamplingResults[s]->size(); ++m)
+			{
+				// create selections:
+				if (m_comparisonBestIDs[s].contains(m))
+				{
+					m_comparisonBestSelection.push_back(m_comparisonSamplingResults[s]->Get(m));
+				}
+				if (m_comparisonMVIDs[s].contains(m))
+				{
+					m_comparisonMVSelection.push_back(m_comparisonSamplingResults[s]->Get(m));
+				}
+
+				QVector<double> measureValues;
+				CalculateMeasures(m_groundTruthImage,
+					dynamic_cast<LabelImageType*>(m_comparisonSamplingResults[s]->Get(m)->GetLabelledImage().GetPointer()),
+					m_labelCount, measureValues);
+				for (int i = 0; i<measures.size(); ++i)
+				{
+					int attributeID = attributes->Find(measures[i]->GetName());
+					m_comparisonSamplingResults[s]->Get(m)->SetAttribute(attributeID, measureValues[i]);
+					attributes->at(attributeID)->AdjustMinMax(measureValues[i]);
+				}
+			}
+		}
+
+		// create charts for these selection:
+		SelectionUncertaintyDice(m_comparisonBestSelection, "Best Parameter Sets from Comparison dataset");
+		Sample(m_comparisonMVSelection);
+
+		// ignore label based input weight for now
+		// labelVotingFilter->SetInputLabelWeightMap(inputLabelWeightMap);
+
+		// perform majority voting (sampling?) & do ref img comparisons
+	}
+}
 
 vtkIdType AddPlot(int plotType,
 	vtkSmartPointer<vtkChartXY> chart,
@@ -610,6 +901,13 @@ void dlg_MajorityVoting::UpdateWeightPlot()
 
 void dlg_MajorityVoting::Sample()
 {
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
+	Sample(selection);
+}
+
+void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const & selection)
+{
 	if (!m_groundTruthImage)
 	{
 		QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
@@ -638,9 +936,6 @@ void dlg_MajorityVoting::Sample()
 	{
 		tables[r] = CreateVTKTable(SampleCount, columnNames);
 	}
-
-	QVector<QSharedPointer<iASingleResult> > selection;
-	m_dlgGEMSe->GetSelection(selection);
 
 	double absPercMin = 1.0 / m_labelCount;
 	double absPercMax = 1;
@@ -711,7 +1006,6 @@ void dlg_MajorityVoting::Sample()
 			tables[r]->SetValue(i, 1, undefinedPerc);
 			tables[r]->SetValue(i, 2, meanDice);
 		}
-		//DEBUG_LOG(QString::number(i) + ": " + out);
 	}
 
 	QString ids;
@@ -727,9 +1021,8 @@ void dlg_MajorityVoting::Sample()
 	int startIdx = twSampleResults->rowCount();
 	for (int i = 0; i < ResultCount; ++i)
 	{
-		AddResult(tables[i], "Sampling(w="+ GetWeightName(GetWeightType())+ ",value=" + titles[i] + ",ids=" + ids);
+		AddResult(tables[i], "Sampling(w=" + GetWeightName(GetWeightType()) + ",value=" + titles[i] + ",ids=" + ids);
 	}
-
 }
 
 void dlg_MajorityVoting::CheckBoxStateChanged(int state)

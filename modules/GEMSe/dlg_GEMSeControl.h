@@ -82,6 +82,7 @@ private slots:
 	void SetRepresentative(const QString &);
 	void LoadRefImage();
 	void StoreDerivedOutput();
+	void SamplingAdded(QSharedPointer<iASamplingResults>);
 private:
 	void StoreGEMSeProject(QString const & fileName);
 	void EnableClusteringDependantUI();

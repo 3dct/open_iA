@@ -49,7 +49,7 @@ void dlg_samplings::Add(QSharedPointer<iASamplingResults> samplingResults)
 void dlg_samplings::Remove()
 {
 	QModelIndexList indices = lvSamplings->selectionModel()->selectedIndexes();
-	if (indices.size() < 0)
+	if (indices.size() == 0)
 	{
 		return;
 	}

@@ -420,3 +420,21 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 	}
 	return parameterGenerators;
 }
+
+
+iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets):
+	m_name(name),
+	m_parameterSets(parameterSets)
+{
+
+}
+
+ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+{
+	return m_parameterSets;
+}
+
+QString iASelectionParameterGenerator::GetName() const
+{
+	return m_name;
+}

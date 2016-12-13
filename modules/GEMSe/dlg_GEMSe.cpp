@@ -140,7 +140,7 @@ void dlg_GEMSe::SetTree(
 
 	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, GetRoot().data());
 	wdCharts->layout()->addWidget(m_histogramContainer);
-	dynamic_cast<QHBoxLayout*>(wdCharts->layout())->setSpacing(ChartSpacing);
+	qobject_cast<QHBoxLayout*>(wdCharts->layout())->setSpacing(ChartSpacing);
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 

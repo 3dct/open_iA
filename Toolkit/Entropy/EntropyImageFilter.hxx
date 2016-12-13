@@ -114,8 +114,8 @@ void EntropyImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const O
 			++(it[i]);
 		}
 		entropy = -entropy;
-		assert(entropy >= -0.000000001 && entropy <= limit + 0.000000001);
-		assert(probSum >= 0.999999999 && probSum <= 1.000000001);
+		//assert(entropy >= -0.000000001 && entropy <= limit + 0.000000001);
+		//assert(probSum >= 0.999999999 && probSum <= 1.000000001);
 		entropy = clamp(0.0, limit, entropy);
 		entropy = entropy * normalizeFactor;
 		out.Set(entropy);

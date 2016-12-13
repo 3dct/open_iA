@@ -30,9 +30,11 @@
 typedef iAQTtoUIConnector<QDockWidget, Ui_MajorityVoting>   dlg_MajorityVotingUI;
 
 class dlg_GEMSe;
+class dlg_progress;
 class iAColorTheme;
+class iAImageSampler;
 class iALookupTable;
-class iAQSplom;
+class iASamplingResults;
 class MdiChild;
 
 class vtkChartXY;
@@ -63,10 +65,17 @@ private slots:
 	void MaxPixelEntropySlider(int);
 	void LabelVoters(int);
 	void CheckBoxStateChanged(int);
+	void SamplerFinished();
+signals:
+	void SamplingAdded(QSharedPointer<iASamplingResults>);
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
 	void UpdateWeightPlot();
+	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection);
+	void SelectionUncertaintyDice(
+		QVector<QSharedPointer<iASingleResult> > const & selection,
+		QString const & name);
 
 	MdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
@@ -82,4 +91,13 @@ private:
 	iAColorTheme const * m_colorTheme;
 	iAITKIO::ImagePointer m_lastMVResult;
 	QString const & m_folder;
+
+	// for hold-out validation:
+	QVector<QSharedPointer<iAImageSampler> > m_sampler;
+	dlg_progress * m_dlgProgress;
+	QVector<QSharedPointer<iASamplingResults> > m_comparisonSamplingResults;
+	QVector<QVector<int> > m_comparisonBestIDs;
+	QVector<QVector<int> > m_comparisonMVIDs;
+	QVector<QSharedPointer<iASingleResult> > m_comparisonBestSelection;
+	QVector<QSharedPointer<iASingleResult> > m_comparisonMVSelection;
 };
