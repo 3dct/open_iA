@@ -44,7 +44,8 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	m_name(name),
 	m_filename(filename),
 	renderFlags(renderFlags),
-	m_channel(channel)
+	m_channel(channel),
+	m_imgs(1)
 {
 	SetData(imgData);
 }
@@ -77,17 +78,12 @@ int iAModality::GetChannel() const
 
 int iAModality::ComponentCount() const
 {
-	return m_componentCount;
+	return m_imgs.size();
 }
 
 vtkSmartPointer<vtkImageData> iAModality::GetComponent(int componentIdx) const
 {
 	return m_imgs[componentIdx];
-}
-
-void iAModality::SetComponentCount(int componentCount)
-{
-	m_componentCount = componentCount;
 }
 
 QString iAModality::GetTransferFileName() const
@@ -125,22 +121,22 @@ int iAModality::GetDepth() const
 
 double const * iAModality::GetSpacing() const
 {
-	return m_imgData->GetSpacing();
+	return m_imgs[0]->GetSpacing();
 }
 
 double const * iAModality::GetOrigin() const
 {
-	return m_imgData->GetOrigin();
+	return m_imgs[0]->GetOrigin();
 }
 
 void iAModality::SetSpacing(double spacing[3])
 {
-	m_imgData->SetSpacing(spacing);
+	m_imgs[0]->SetSpacing(spacing);
 }
 
 void iAModality::SetOrigin(double origin[3])
 {
-	m_imgData->SetOrigin(origin);
+	m_imgs[0]->SetOrigin(origin);
 }
 
 iAImageCoordConverter const & iAModality::GetConverter() const
@@ -151,7 +147,7 @@ iAImageCoordConverter const & iAModality::GetConverter() const
 
 vtkSmartPointer<vtkImageData> iAModality::GetImage() const
 {
-	return m_imgData;
+	return m_imgs[0];
 }
 
 QString iAModality::GetImageName(int componentIdx)
@@ -247,7 +243,7 @@ void iAModality::InitHistogram()
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);
-	m_imgData = imgData;
+	m_imgs[0] = imgData;
 	int extent[6];
 	imgData->GetExtent(extent);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
@@ -567,7 +563,6 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 		{
 			QSharedPointer<iAModality> newModality(new iAModality(
 				nameBase, filename, volumes, renderFlags));
-			newModality->SetComponentCount(volumes.size());
 			result.push_back(newModality);
 		}
 	}

@@ -65,8 +65,6 @@ public:
 	int GetChannel() const;
 	//! return the number of components in this modality
 	int ComponentCount() const;
-	//! set the number of components contained in the modality file (typically set only during setup)
-	void SetComponentCount(int componentCount);
 	//! return a specific component of this modality
 	vtkSmartPointer<vtkImageData> GetComponent(int idx) const;
 	//! get the name of the transfer function file
@@ -102,25 +100,22 @@ public:
 	void InitHistogram();
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 private:
+	void SetData(vtkSmartPointer<vtkImageData> imgData);
+	void LoadTransferFunction();
+
 	QString m_name;
 	QString m_filename;
 	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality
-	int     m_componentCount; //!< in case the given file contains multiple channels and this modality holds all, the count
 	int     renderFlags;
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
+	std::vector<vtkSmartPointer<vtkImageData> > m_imgs;	// TODO: implement lazy loading
 
 	// TODO: Refactor
 	QString positionSettings;
 	QString orientationSettings;
 	QString tfFileName;
-
-	void SetData(vtkSmartPointer<vtkImageData> imgData);
-	void LoadTransferFunction();
-	
-	vtkSmartPointer<vtkImageData> m_imgData;
-	std::vector<vtkSmartPointer<vtkImageData> > m_imgs;	// TODO: implement lazy loading
 };
 
 
