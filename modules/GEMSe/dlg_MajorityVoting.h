@@ -72,7 +72,7 @@ private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
 	void UpdateWeightPlot();
-	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection);
+	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType);
 	void SelectionUncertaintyDice(
 		QVector<QSharedPointer<iASingleResult> > const & selection,
 		QString const & name);
@@ -100,4 +100,5 @@ private:
 	QVector<QVector<int> > m_comparisonMVIDs;
 	QVector<QSharedPointer<iASingleResult> > m_comparisonBestSelection;
 	QVector<QSharedPointer<iASingleResult> > m_comparisonMVSelection;
+	int m_comparisonWeightType;
 };

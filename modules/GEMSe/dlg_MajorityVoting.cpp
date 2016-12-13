@@ -663,10 +663,10 @@ void dlg_MajorityVoting::LoadConfig()
 	QStringList derivedOuts = s.value(QString("BestSingle/%1").arg(DerivedOutputName)).toString().split(",");
 
 	QStringList mvParamSetsList = s.value("MajorityVoting/ParameterSets").toString().split(",");
-	int weightType = ::GetWeightType(s.value("MajorityVoting/WeightType").toString());
+	m_comparisonWeightType = ::GetWeightType(s.value("MajorityVoting/WeightType").toString());
 
 	std::map<std::pair<int, int>, double> inputLabelWeightMap;
-	if (weightType == LabelBased)
+	if (m_comparisonWeightType == LabelBased)
 	{
 		bool ok;
 		for (int l = 0; l < m_labelCount; ++l)
@@ -841,12 +841,15 @@ void dlg_MajorityVoting::SamplerFinished()
 
 		// create charts for these selection:
 		SelectionUncertaintyDice(m_comparisonBestSelection, "Best Parameter Sets from Comparison dataset");
-		Sample(m_comparisonMVSelection);
+		Sample(m_comparisonMVSelection, m_comparisonWeightType);
 
 		// ignore label based input weight for now
 		// labelVotingFilter->SetInputLabelWeightMap(inputLabelWeightMap);
 
 		// perform majority voting (sampling?) & do ref img comparisons
+
+		delete m_dlgProgress;
+		m_dlgProgress = 0;
 	}
 }
 
@@ -903,10 +906,10 @@ void dlg_MajorityVoting::Sample()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
-	Sample(selection);
+	Sample(selection, GetWeightType());
 }
 
-void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const & selection)
+void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType)
 {
 	if (!m_groundTruthImage)
 	{
@@ -970,11 +973,11 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 		// calculate majority voting using these values:
 		iAITKIO::ImagePointer result[ResultCount];
 
-		result[0] = GetMajorityVotingImage(selection, value[0], -1, -1, -1, -1, GetWeightType(), m_labelCount);
-		result[1] = GetMajorityVotingImage(selection, -1, value[1], -1, -1, -1, GetWeightType(), m_labelCount);
-		result[2] = GetMajorityVotingImage(selection, -1, -1, value[2], -1, -1, GetWeightType(), m_labelCount);
-		result[3] = GetMajorityVotingImage(selection, -1, -1, -1, value[3], -1, GetWeightType(), m_labelCount);
-		result[4] = GetMajorityVotingImage(selection, -1, -1, -1, -1, value[4], GetWeightType(), m_labelCount);
+		result[0] = GetMajorityVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount);
+		result[1] = GetMajorityVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount);
+		result[2] = GetMajorityVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount);
+		result[3] = GetMajorityVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount);
+		result[4] = GetMajorityVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount);
 
 		//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
 		// calculate dice coefficient and percentage of undetermined pixels
@@ -1021,7 +1024,7 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 	int startIdx = twSampleResults->rowCount();
 	for (int i = 0; i < ResultCount; ++i)
 	{
-		AddResult(tables[i], "Sampling(w=" + GetWeightName(GetWeightType()) + ",value=" + titles[i] + ",ids=" + ids);
+		AddResult(tables[i], "Sampling(w=" + GetWeightName(weightType) + ",value=" + titles[i] + ",ids=" + ids);
 	}
 }
 
