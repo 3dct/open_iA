@@ -571,7 +571,7 @@ void iABoneThickness::setWindowSpheres()
 		vtkSmartPointer<vtkSphereSource> pSphere(vtkSmartPointer<vtkSphereSource>::New());
 		const double* pPoint(m_pPoints->GetPoint(id));
 		pSphere->SetCenter(pPoint[0], pPoint[1], pPoint[2]);
-		pSphere->SetRadius(vtkMath::Max(0.1, dRadius));
+		pSphere->SetRadius((dRadius < FloatTolerance) ? 0.5 : dRadius);
 		pSphere->Update();
 
 		vtkSmartPointer<vtkPolyDataMapper> pMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
