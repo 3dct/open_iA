@@ -948,7 +948,6 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 
 	double labelVoterMin = 1;
 	double labelVoterMax = selection.size();
-	DEBUG_LOG(QString("Majority Voting evaluation for a selection of %1 images").arg(selection.size()));
 
 	typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
 	typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
