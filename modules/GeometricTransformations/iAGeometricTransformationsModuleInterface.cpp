@@ -45,12 +45,6 @@ void iAGeometricTransformationsModuleInterface::Initialize()
 	QAction * actionRescale_Image = new QAction(QApplication::translate("MainWindow", "Rescale Image", 0), m_mainWnd);
 	menuGeometric_Transformations->addAction(actionRescale_Image);
 	connect(actionRescale_Image, SIGNAL(triggered()), this, SLOT(rescale()));
-
-	QAction * actionFlip_Image = new QAction(QApplication::translate("MainWindow", "Flip Image", 0), m_mainWnd);
-	menuGeometric_Transformations->addAction(actionFlip_Image);
-	connect(actionFlip_Image, SIGNAL(triggered()), this, SLOT(flip()));
-
-	flipAxes[0] = flipAxes[1] = flipAxes[2] = false;
 }
 
 void iAGeometricTransformationsModuleInterface::resampler()
@@ -208,39 +202,6 @@ void iAGeometricTransformationsModuleInterface::rescale()
 
 	m_mainWnd->statusBar()->showMessage(filterName, 5000);
 
-}
-
-void iAGeometricTransformationsModuleInterface::flip()
-{
-	PrepareActiveChild();
-	if (!m_mdiChild)
-		return;
-	QStringList inList = QStringList() << tr("$X Axis") << tr("$Y Axis") << tr("$Z Axis");
-	QList<QVariant> inPara;
-	inPara << tr("%1").arg(flipAxes[0]) << tr("%1").arg(flipAxes[1]) << tr("%1").arg(flipAxes[2]);
-	dlg_commoninput dlg(m_mainWnd, "Flip Image", 3, inList, inPara, NULL);
-	dlg.show();
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-	for (int i = 0; i < 3; ++i)
-	{
-		flipAxes[i] = dlg.getCheckValues()[i];
-	}
-
-	//prepare
-	QString filterName = tr("Flip Image");
-	PrepareResultChild(filterName);
-	m_mdiChild->addStatusMsg(filterName);
-	//execute
-
-	iAGeometricTransformations* thread = new iAGeometricTransformations(filterName, FLIP_IMAGE,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-
-	thread->setFlipParameters(flipAxes);
-	thread->start();
-
-	m_mainWnd->statusBar()->showMessage(filterName, 5000);
 }
 
 void iAGeometricTransformationsModuleInterface::childClosed()

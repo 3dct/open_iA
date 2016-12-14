@@ -47,7 +47,6 @@ public:
 	void extractImage();
 	void resampler();
 	void rescaleImage();
-	void flipImage();
 
 	/**
 	 * Sets a r parameters. 
@@ -108,14 +107,6 @@ public:
 		outputMax = outMax; 
 	}
 
-	void setFlipParameters(bool flipAxes[DIM])
-	{
-		for (int i = 0; i < DIM; ++i)
-		{
-			m_flipAxes[i] = flipAxes[i];
-		}
-	}
-
 protected:
 	void run();
 
@@ -124,5 +115,4 @@ private:
 	QString interpolator;
 	unsigned int dim;
 	double outputMin, outputMax;
-	bool m_flipAxes[DIM];
 };

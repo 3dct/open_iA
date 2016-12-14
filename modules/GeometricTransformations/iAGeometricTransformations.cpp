@@ -25,7 +25,6 @@
 #include "iATypedCallHelper.h"
 
 #include <itkBSplineInterpolateImageFunction.h>
-#include <itkFlipImageFilter.h>
 #include <itkImageIOBase.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
@@ -223,29 +222,6 @@ int rescaleImage_template(double outMin, double outMax, iAProgress* p, iAConnect
 	return EXIT_SUCCESS;
 }
 
-template<class T>
-int flipImage_template(bool axesToFlip[DIM], iAProgress* p, iAConnector* image)
-{
-	typedef itk::Image< T, DIM > ImageType;
-	typedef itk::FlipImageFilter<ImageType> FlipType;
-	typename FlipType::Pointer filter = FlipType::New();
-
-	itk::FixedArray<bool, DIM> flipAxesArray;
-	for (int i = 0; i < DIM; ++i)
-	{
-		flipAxesArray[i] = axesToFlip[i];
-	}
-	filter->SetInput(dynamic_cast<ImageType* >(image->GetITKImage()));
-	filter->SetFlipAxes(flipAxesArray);
-	p->Observe(filter);
-	filter->Update();
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
-}
-
 iAGeometricTransformations::iAGeometricTransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
 	: iAFilter( fn, fid, i, p, logger, parent )
 {
@@ -265,8 +241,6 @@ void iAGeometricTransformations::run()
 		resampler( ); break;
 	case RESCALE_IMAGE: 
 		rescaleImage(); break;
-	case FLIP_IMAGE:
-		flipImage(); break;
 	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
@@ -346,36 +320,6 @@ void iAGeometricTransformations::rescaleImage()
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 		ITK_TYPED_CALL(rescaleImage_template, itkType,
 			outputMin, outputMax, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-
-void iAGeometricTransformations::flipImage()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(flipImage_template, itkType,
-			m_flipAxes, getItkProgress(), getConnector());
 	}
 	catch (itk::ExceptionObject &excep)
 	{

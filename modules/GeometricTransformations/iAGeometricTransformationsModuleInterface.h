@@ -33,7 +33,6 @@ private slots:
 	void resampler();
 	void extractImage();
 	void rescale();
-	void flip();
 	void childClosed();
 protected:
 	//settings
@@ -41,6 +40,5 @@ protected:
 	QString rInterpolator;
 	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
 	double outputMin, outputMax;
-	bool flipAxes[3];
 	bool m_childClosed;
 };
