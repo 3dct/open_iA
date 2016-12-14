@@ -47,9 +47,11 @@ void iASegmentationModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
-	QMenu * menuRegion_Growing = getMenuWithTitle( menuSegmentation, QString( "Region Growing" ) );
+	QMenu * menuGlobalThresholding = getMenuWithTitle(menuSegmentation, QString("Global Threshold"));
+	QMenu * menuLocalThresholding = getMenuWithTitle(menuSegmentation, QString("Local Threshold"));
 	QMenu * menuSegmentation_based_on_Watersheds = getMenuWithTitle( menuSegmentation, QString( "Segmentation based on Watersheds" ) );
-	menuSegmentation->addAction( menuRegion_Growing->menuAction() );
+	menuSegmentation->addAction(menuGlobalThresholding->menuAction() );
+	menuSegmentation->addAction(menuLocalThresholding->menuAction());
 	menuSegmentation->addAction( menuSegmentation_based_on_Watersheds->menuAction() );
 
 	QAction * actionOtsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Otsu threshold filter", 0), m_mainWnd );
@@ -60,11 +62,11 @@ void iASegmentationModuleInterface::Initialize()
 	QAction * actionRats_threshold_filter = new QAction(QApplication::translate("MainWindow", "Rats threshold filter", 0), m_mainWnd );
 	QAction * actionOtsu_Multiple_Threshold_Filter = new QAction(QApplication::translate("MainWindow", "Otsu multiple threshold filter", 0), m_mainWnd );
 
-	menuRegion_Growing->addAction( actionOtsu_threshold_filter );
-	menuRegion_Growing->addAction( actionAdaptive_otsu_threshold_filter );
-	menuRegion_Growing->addAction( actionRats_threshold_filter );
-	menuRegion_Growing->addAction( actionOtsu_Multiple_Threshold_Filter );
-	menuSegmentation->addAction( actionMaximum_distance_filter );
+	menuGlobalThresholding->addAction( actionOtsu_threshold_filter );
+	menuGlobalThresholding->addAction( actionOtsu_Multiple_Threshold_Filter );
+	menuGlobalThresholding->addAction( actionMaximum_distance_filter );
+	menuLocalThresholding->addAction( actionAdaptive_otsu_threshold_filter );
+	menuLocalThresholding->addAction( actionRats_threshold_filter );
 	menuSegmentation_based_on_Watersheds->addAction( actionWatershed_Segmentation_Filter );
 	menuSegmentation_based_on_Watersheds->addAction( actionMorphological_Watershed_Segmentation_Filter );
 
@@ -72,7 +74,7 @@ void iASegmentationModuleInterface::Initialize()
 	connect( actionMaximum_distance_filter, SIGNAL( triggered() ), this, SLOT( maximum_Distance_Filter() ) );
 	connect( actionWatershed_Segmentation_Filter, SIGNAL( triggered() ), this, SLOT( watershed_seg() ) );
 	connect( actionMorphological_Watershed_Segmentation_Filter, SIGNAL( triggered() ), this, SLOT( morph_watershed_seg() ) );
-	connect( actionAdaptive_otsu_threshold_filter, SIGNAL( triggered() ), this, SLOT( adaptive_Otsu_Threshold_Filter() ) );
+	connect( actionAdaptive_otsu_threshold_filter, SIGNAL( triggered() ), this, SLOT(adaptive_Otsu_Threshold_Filter() ) );
 	connect( actionRats_threshold_filter, SIGNAL( triggered() ), this, SLOT( rats_Threshold_Filter() ) );
 	connect( actionOtsu_Multiple_Threshold_Filter, SIGNAL( triggered() ), this, SLOT( otsu_Multiple_Threshold_Filter() ) );
 
