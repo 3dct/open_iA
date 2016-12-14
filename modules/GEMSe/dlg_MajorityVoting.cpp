@@ -725,7 +725,10 @@ void dlg_MajorityVoting::LoadConfig()
 				QVector<double> singleParameterSet;
 				for (int p = 0; p < samplingResults->GetAttributes()->size(); ++p)
 				{
-					singleParameterSet.push_back(samplingResults->Get(i)->GetAttribute(p));
+					if (samplingResults->GetAttributes()->at(p)->GetAttribType() == iAAttributeDescriptor::Parameter)
+					{
+						singleParameterSet.push_back(samplingResults->Get(i)->GetAttribute(p));
+					}
 				}
 				parameterSets->push_back(singleParameterSet);
 			}
