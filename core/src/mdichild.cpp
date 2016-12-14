@@ -2851,9 +2851,11 @@ iALogger * MdiChild::getLogger()
 
 bool MdiChild::IsVolumeDataLoaded() const
 {
-	return QString::compare(getFileInfo().suffix(), "STL", Qt::CaseInsensitive) == 0 &&
-		QString::compare(getFileInfo().suffix(), "FEM", Qt::CaseInsensitive) == 0 &&
-		imageData->GetExtent()[1] >= 0 && imageData->GetExtent()[3] >= 0 && imageData->GetExtent()[5] >= 0;
+	QString suffix = getFileInfo().suffix();
+	int * extent = imageData->GetExtent();
+	return QString::compare(suffix, "STL", Qt::CaseInsensitive) != 0 &&
+		QString::compare(suffix, "FEM", Qt::CaseInsensitive) != 0 &&
+		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
 }
 
 
