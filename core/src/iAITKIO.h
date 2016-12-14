@@ -72,6 +72,7 @@ namespace iAITKIO
 		return EXIT_SUCCESS;
 	}
 
+	// TODO: unify with mdichild::loadfile / iAIO!
 	inline ImagePointer readFile (QString const & fileName, ScalarPixelType & pixelType, bool releaseFlag)
 	{
 		itk::ImageIOBase::Pointer imageIO =
@@ -85,7 +86,7 @@ namespace iAITKIO
 		
 		imageIO->SetFileName(fileName.toLatin1());
 		imageIO->ReadImageInformation();
-		pixelType = imageIO->GetComponentType();    
+		pixelType = imageIO->GetComponentType();
 		ImagePointer image;
 		ITK_TYPED_CALL( read_image_template, pixelType, fileName, image, releaseFlag);
 

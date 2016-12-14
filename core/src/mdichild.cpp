@@ -324,7 +324,7 @@ void MdiChild::disableRenderWindows(int ch)
 
 void MdiChild::enableRenderWindows()
 {
-	if (!IsOnlyPolyDataLoaded() && reInitializeRenderWindows)
+	if (IsVolumeDataLoaded() && reInitializeRenderWindows)
 	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
@@ -349,7 +349,7 @@ void MdiChild::enableRenderWindows()
 
 	Raycaster->reInitialize(imageData, polyData);
 
-	if (IsOnlyPolyDataLoaded())
+	if (!IsVolumeDataLoaded())
 	{
 		return;
 	}
@@ -441,8 +441,7 @@ void MdiChild::newFile()
 void MdiChild::showPoly()
 {
 	hideVolumeWidgets();
-	visibilityBlock(QList<QSpacerItem*>(),
-		QList<QWidget*>() << r->stackedWidgetRC << r->pushSaveRC << r->pushMaxRC << r->pushStopRC, true);
+	setVisibility(QList<QWidget*>() << r->stackedWidgetRC << r->pushSaveRC << r->pushMaxRC << r->pushStopRC, true);
 
 	r->vtkWidgetRC->setGeometry(0, 0, 300, 200);
 	r->vtkWidgetRC->setMaximumSize(QSize(16777215, 16777215));
@@ -929,7 +928,7 @@ bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 			if ( !ioThread->setupIO(STL_WRITER, pars.absoluteFilePath() ) ) return false;
 		}
 	} else {
-		if ((imageData->GetExtent()[1] <= 1) && (imageData->GetExtent()[3] <= 1) && (imageData->GetExtent()[5] <= 1) )	{
+		if (!IsVolumeDataLoaded()) {
 			QMessageBox::warning(this, tr("Save File"), tr("Image contains no data. Saving aborted.")); return false;
 		} else {
 			if ((QString::compare(pars.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
@@ -2161,7 +2160,7 @@ bool MdiChild::initView( QString const & title )
 
 		raycasterInitialized = true;
 	}
-	if (GetModalities()->size() == 0)
+	if (GetModalities()->size() == 0 && IsVolumeDataLoaded())
 	{
 		// TODO: VOLUME: resolve duplicity between here (called on loadFile) and adding modalities (e.g. via LoadProject)
 		QString name;
@@ -2183,28 +2182,27 @@ bool MdiChild::initView( QString const & title )
 		m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
 		m_initVolumeRenderers = true;
 	}
-	slicerXZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
-	slicerXY->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
-	slicerYZ->initializeData(imageData, slicerTransform, GetModality(0)->GetTransfer()->GetColorFunction());
+	vtkColorTransferFunction* colorFunction = (GetModalities()->size() > 0) ? GetModality(0)->GetTransfer()->GetColorFunction() : vtkColorTransferFunction::New();
+	slicerXZ->initializeData(imageData, slicerTransform, colorFunction);
+	slicerXY->initializeData(imageData, slicerTransform, colorFunction);
+	slicerYZ->initializeData(imageData, slicerTransform, colorFunction);
 
 	r->stackedWidgetRC->setCurrentIndex(0);
 
 	updateSliceIndicators();
 
-	int *extent = imageData->GetExtent();
-	if (extent[0] == 0 && extent[1] == -1 &&
-		extent[2] == 0 && extent[3] == -1 &&
-		extent[4] == 0 && extent[5] == -1) //Polygonal mesh is loaded
-		showPoly();
-
-	tabifyDockWidget(logs, histogramContainer);
-	this->addImageProperty();
-	if ( imageData->GetNumberOfScalarComponents() == 1 ) //No histogram for rgb, rgba or vector pixel type images
+	if (IsVolumeDataLoaded())
 	{
-		this->addProfile();
+		this->addImageProperty();
+		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram for rgb, rgba or vector pixel type images
+		{
+			tabifyDockWidget(logs, histogramContainer);
+			this->addProfile();
+		}
 	}
 	else
-	{
+	{	//Polygonal mesh is loaded
+		showPoly();
 		HideHistogram();
 	}
 
@@ -2347,7 +2345,7 @@ QString MdiChild::strippedName(const QString &f)
 	return QFileInfo(f).fileName();
 }
 
-
+// TODO: unify with setVisibility / check if one of the two calls redundant!
 void MdiChild::changeVisibility(unsigned char mode)
 {
 	visibility = mode;
@@ -2363,18 +2361,20 @@ void MdiChild::changeVisibility(unsigned char mode)
 	sXZ->setVisible(xz);
 
 	logs->setVisible(tab);
-	histogramContainer->setVisible(tab);	// TODO: VOLUME: determine whether any volume data is loaded here
+	if (IsVolumeDataLoaded())
+	{	// TODO: check redundancy with HideHistogram calls?
+		histogramContainer->setVisible(tab);
+	}
 }
 
 void MdiChild::hideVolumeWidgets()
 {
-	visibilityBlock(QList<QSpacerItem*>(),
-		QList<QWidget*>() << sXY << sXZ << sYZ << r, false);
+	setVisibility(QList<QWidget*>() << sXY << sXZ << sYZ << r, false);
 	this->update();
 }
 
 
-void MdiChild::visibilityBlock(QList<QSpacerItem*> spacerItems, QList<QWidget*> widgets, bool show)
+void MdiChild::setVisibility(QList<QWidget*> widgets, bool show)
 {
 	for (int i = 0; i < widgets.size(); i++)
 		show ? widgets[i]->show() : widgets[i]->hide();
@@ -2849,10 +2849,11 @@ iALogger * MdiChild::getLogger()
 }
 
 
-bool MdiChild::IsOnlyPolyDataLoaded()
+bool MdiChild::IsVolumeDataLoaded() const
 {
-	return QString::compare(getFileInfo().suffix(), "STL", Qt::CaseInsensitive) == 0 ||
-		QString::compare(getFileInfo().suffix(), "FEM", Qt::CaseInsensitive) == 0 && !(imageData->GetExtent()[1] > 0);
+	return QString::compare(getFileInfo().suffix(), "STL", Qt::CaseInsensitive) == 0 &&
+		QString::compare(getFileInfo().suffix(), "FEM", Qt::CaseInsensitive) == 0 &&
+		imageData->GetExtent()[1] >= 0 && imageData->GetExtent()[3] >= 0 && imageData->GetExtent()[5] >= 0;
 }
 
 
