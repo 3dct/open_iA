@@ -325,12 +325,13 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 		labelVotingFilter->SetInput(i, lblImg);
 		if (maxPixelEntropy >= 0 || weightType == Certainty || weightType == FBGSBGDiff)
 		{
-			typedef LabelVotingType::DoubleImg::Pointer DblImgPtr;
+			typedef LabelVotingType::DoubleImg DblImg;
+			typedef DblImg::Pointer DblImgPtr;
 			std::vector<DblImgPtr> probImgs;
 			for (int l = 0; l < labelCount; ++l)
 			{
 				iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
-				DblImgPtr dp = dynamic_cast<typename LabelVotingType::DoubleImg*>(p.GetPointer());
+				DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
 				probImgs.push_back(dp);
 			}
 			labelVotingFilter->SetProbabilityImages(i, probImgs);
@@ -361,7 +362,8 @@ iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleRe
 		selection, minAbsPercentage, minDiffPercentage, minRatio, maxPixelEntropy, labelVoters, weightType, labelCount);
 	if (!labelVotingFilter)
 		return iAITKIO::ImagePointer();
-	typename LabelVotingType::DoubleImg::Pointer labelResult = labelVotingFilter->GetNumbers(mode);
+	typedef LabelVotingType::DoubleImg::Pointer DblImgPtr;
+	DblImgPtr labelResult = labelVotingFilter->GetNumbers(mode);
 	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(labelResult.GetPointer());
 	return result;
 }
