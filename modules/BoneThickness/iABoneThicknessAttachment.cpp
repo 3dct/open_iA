@@ -37,7 +37,6 @@
 #include <iADockWidgetWrapper.h>
 #include <iARenderer.h>
 
-#include "iABoneThickness.h"
 #include "iABoneThicknessChartBar.h"
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
