@@ -40,6 +40,7 @@ iASamplingResults::iASamplingResults(
 	QString const & path,
 	QString const & executable,
 	QString const & additionalArguments,
+	QString const & name,
 	int id
 ):
 	m_attributes(attr),
@@ -47,6 +48,7 @@ iASamplingResults::iASamplingResults(
 	m_path(path),
 	m_executable(executable),
 	m_additionalArguments(additionalArguments),
+	m_name(name),
 	m_id(id)
 {
 	NewID = (id >= NewID)? id + 1: NewID;
@@ -93,8 +95,9 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 			.arg(currentLine)
 			.arg(SMPFileFormatVersion));
 	}
-	QString parameterSetFileName, derivedOutputFileName, samplingMethod;
-	if (!GetNameValue("ParameterSet", parameterSetFileName, in) ||
+	QString name, parameterSetFileName, derivedOutputFileName, samplingMethod;
+	if (!GetNameValue("Name", name, in) ||
+		!GetNameValue("ParameterSet", parameterSetFileName, in) ||
 		!GetNameValue("DerivedOutput", derivedOutputFileName, in) ||
 		!GetNameValue("SamplingMethod", samplingMethod, in))
 	{
@@ -110,7 +113,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 
 	QSharedPointer<iAAttributes> attributes = iAAttributes::Create(in);
 	QSharedPointer<iASamplingResults> result(new iASamplingResults(
-		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, datasetID));
+		attributes, samplingMethod, fileInfo.absolutePath(), executable, additionalArguments, name, datasetID));
 	file.close();
 	if (result->LoadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))
@@ -260,6 +263,12 @@ QVector<QSharedPointer<iASingleResult> > const & iASamplingResults::GetResults()
 QSharedPointer<iAAttributes> iASamplingResults::GetAttributes() const
 {
 	return m_attributes;
+}
+
+
+QString iASamplingResults::GetName() const
+{
+	return m_name;
 }
 
 

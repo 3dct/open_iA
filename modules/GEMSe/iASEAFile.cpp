@@ -130,7 +130,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Load Precalculated Data: Invalid Dataset identifier: %1").arg(keyStr));
+			DEBUG_LOG(QString("Load Precalculated Data: Invalid Dataset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
 			return;
 		}
 		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));

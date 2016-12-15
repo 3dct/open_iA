@@ -749,7 +749,8 @@ void dlg_MajorityVoting::LoadConfig()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			samplingResults->GetExecutable(),
-			samplingResults->GetAdditionalArguments()
+			samplingResults->GetAdditionalArguments(),
+			samplingResults->GetName()
 		));
 		if (s == 0)
 		{

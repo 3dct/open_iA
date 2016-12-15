@@ -42,7 +42,8 @@ public:
 	iAHistogramContainer(
 		QSharedPointer<iAAttributes> chartAttributes,
 		iAChartAttributeMapper const & chartAttributeMapper,
-		iAImageTreeNode const * root
+		iAImageTreeNode const * root,
+		QStringList const & pipelineNames
 	);
 	bool ChartExists(int chartID) const;
 	void CreateCharts();
@@ -81,4 +82,5 @@ private:
 	iAChartAttributeMapper const & m_chartAttributeMapper;
 	iAImageTreeNode const * m_root;
 	QSet<int> m_disabledCharts;
+	QStringList m_pipelineNames;
 };

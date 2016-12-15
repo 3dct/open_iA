@@ -36,6 +36,7 @@ public:
 		QString const & path,
 		QString const & executable,
 		QString const & additionalArguments,
+		QString const & name,
 		int id
 	);
 	static QSharedPointer<iASamplingResults> Load(QString const & metaFileName, int datasetID);
@@ -47,6 +48,7 @@ public:
 	void AddResult(QSharedPointer<iASingleResult> result);
 	QVector<QSharedPointer<iASingleResult> > const & GetResults() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
+	QString GetName() const;
 	QString GetFileName() const;
 	QString GetPath(int id) const;
 	QString GetExecutable() const;
@@ -57,6 +59,7 @@ public:
 private:
 	QSharedPointer<iAAttributes> m_attributes;
 	QVector<QSharedPointer<iASingleResult> > m_results;
+	QString m_name;           //!< name of this sampling
 	QString m_parameterSetFile;//!<the name of the file containing the parameter sets
 	QString m_derivedOutputFile;//!<the name of the file containing the derived outputs
 	QString m_samplingMethod; //!< the name of the applied sampling method (Latin Hypercube, Random, ...)

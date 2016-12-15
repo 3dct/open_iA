@@ -46,11 +46,13 @@
 iAHistogramContainer::iAHistogramContainer(
 	QSharedPointer<iAAttributes> chartAttributes,
 	iAChartAttributeMapper const & chartAttributeMapper,
-	iAImageTreeNode const * root):
+	iAImageTreeNode const * root,
+	QStringList const & pipelineNames):
 	m_chartAttributes(chartAttributes),
 	m_chartAttributeMapper(chartAttributeMapper),
 	m_root(root),
-	m_paramChartLayout(0)
+	m_paramChartLayout(0),
+	m_pipelineNames(pipelineNames)
 {
 	m_paramChartContainer = new QWidget();
 	m_paramChartWidget = new QWidget();
@@ -85,7 +87,8 @@ void iAHistogramContainer::CreateCharts()
 
 	int curMinDatasetID = 0;
 	int paramChartRow = 0;
-	int paramChartCol = 0;
+	int paramChartCol = 1;
+	m_paramChartLayout->addWidget(new QLabel(m_pipelineNames[paramChartRow]), paramChartRow, 0);
 	int paramChartMaxCols = 0;
 	int derivedOutMaxCols = 0;
 	double maxValue = -1;
@@ -138,8 +141,9 @@ void iAHistogramContainer::CreateCharts()
 			{
 				// alternative to GridLayout: Use combination of VBox and HBox layout?
 				curMinDatasetID = datasetIDs[0];
-				paramChartCol = 0;
+				paramChartCol = 1;
 				paramChartRow++;
+				m_paramChartLayout->addWidget(new QLabel(m_pipelineNames[paramChartRow]), paramChartRow, 0);
 			}
 			paramChartMaxCols = std::max(paramChartCol, paramChartMaxCols);
 			m_paramChartLayout->addWidget(m_charts[chartID], paramChartRow, paramChartCol);

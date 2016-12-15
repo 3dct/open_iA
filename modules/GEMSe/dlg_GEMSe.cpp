@@ -138,7 +138,12 @@ void dlg_GEMSe::SetTree(
 
 	m_scatterplot = new iAGEMSeScatterplot(wdComparisonCharts);
 
-	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, GetRoot().data());
+	if (m_pipelineNames.size() != m_samplings->size())
+	{
+		DEBUG_LOG("Insufficient number of pipeline names specified!");
+		return;
+	}
+	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, GetRoot().data(), m_pipelineNames);
 	wdCharts->layout()->addWidget(m_histogramContainer);
 	qobject_cast<QHBoxLayout*>(wdCharts->layout())->setSpacing(ChartSpacing);
 	m_histogramContainer->CreateCharts();
@@ -174,9 +179,11 @@ void dlg_GEMSe::CreateMapper()
 	m_chartAttributes = QSharedPointer<iAAttributes>(new iAAttributes());
 	m_chartAttributeMapper.Clear();
 	int nextChartID = 0;
+	m_pipelineNames.clear();
 	for (int samplingIdx=0; samplingIdx<m_samplings->size(); ++samplingIdx)
 	{
 		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
+		m_pipelineNames.push_back(sampling->GetName());
 		int datasetID = sampling->GetID();
 		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)

@@ -264,6 +264,11 @@ QString dlg_samplingSettings::GetAdditionalArguments() const
 	return leAdditionalArguments->text();
 }
 
+QString dlg_samplingSettings::GetPipelineName() const
+{
+	return lePipelineName->text();
+}
+
 QString dlg_samplingSettings::GetExecutable() const
 {
 	return leExecutable->text();

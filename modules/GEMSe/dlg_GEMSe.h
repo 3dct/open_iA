@@ -119,6 +119,7 @@ private:
 	
 	// data:
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > m_samplings;
+	QStringList m_pipelineNames;
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;

@@ -57,6 +57,7 @@ public:
 	QString GetOutputFolder() const;
 	QString GetExecutable() const;
 	QString GetAdditionalArguments() const;
+	QString GetPipelineName() const;
 	int GetSampleCount() const;
 	int GetLabelCount() const;
 private slots:

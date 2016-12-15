@@ -183,7 +183,8 @@ void dlg_GEMSeControl::StartSampling()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			m_dlgSamplingSettings->GetExecutable(),
-			m_dlgSamplingSettings->GetAdditionalArguments()
+			m_dlgSamplingSettings->GetAdditionalArguments(),
+			m_dlgSamplingSettings->GetPipelineName()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());

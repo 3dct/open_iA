@@ -14,7 +14,7 @@
    <string>Sampling Settings</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="17" column="2">
+   <item row="18" column="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -27,7 +27,7 @@
      </property>
     </spacer>
    </item>
-   <item row="18" column="0">
+   <item row="19" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Parameter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -37,14 +37,14 @@
      </property>
     </widget>
    </item>
-   <item row="13" column="0">
+   <item row="14" column="0">
     <widget class="QLabel" name="label_12">
      <property name="text">
       <string>Estimated Runtime</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
+   <item row="9" column="0">
     <widget class="QLabel" name="label_8">
      <property name="text">
       <string>Output Folder</string>
@@ -58,14 +58,14 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>Executable</string>
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Parameter Descriptor</string>
@@ -79,49 +79,49 @@
      </property>
     </widget>
    </item>
-   <item row="18" column="1">
+   <item row="19" column="1">
     <widget class="QLabel" name="label_5">
      <property name="text">
       <string>From</string>
      </property>
     </widget>
    </item>
-   <item row="18" column="2">
+   <item row="19" column="2">
     <widget class="QLabel" name="label_6">
      <property name="text">
       <string>To</string>
      </property>
     </widget>
    </item>
-   <item row="18" column="3">
+   <item row="19" column="3">
     <widget class="QLabel" name="label_9">
      <property name="text">
       <string>Scale</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="1" colspan="2">
+   <item row="9" column="1" colspan="2">
     <widget class="QLineEdit" name="leOutputFolder">
      <property name="text">
       <string>D:/sampling</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="3">
+   <item row="9" column="3">
     <widget class="QPushButton" name="pbChooseOutputFolder">
      <property name="text">
       <string>...</string>
      </property>
     </widget>
    </item>
-   <item row="6" column="1" colspan="2">
+   <item row="7" column="1" colspan="2">
     <widget class="QLineEdit" name="leParamDescriptor">
      <property name="text">
       <string/>
      </property>
     </widget>
    </item>
-   <item row="6" column="3">
+   <item row="7" column="3">
     <widget class="QPushButton" name="pbChooseParameterDescriptor">
      <property name="text">
       <string>...</string>
@@ -161,14 +161,14 @@
      </item>
     </widget>
    </item>
-   <item row="13" column="3">
+   <item row="14" column="3">
     <widget class="QLabel" name="label_13">
      <property name="text">
       <string>hours</string>
      </property>
     </widget>
    </item>
-   <item row="13" column="1" colspan="2">
+   <item row="14" column="1" colspan="2">
     <widget class="QLabel" name="lbEstimate">
      <property name="text">
       <string>0</string>
@@ -178,21 +178,52 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1" colspan="2">
+   <item row="6" column="1" colspan="2">
     <widget class="QLineEdit" name="leExecutable">
      <property name="text">
       <string/>
      </property>
     </widget>
    </item>
-   <item row="5" column="3">
+   <item row="6" column="3">
     <widget class="QPushButton" name="pbChooseExecutable">
      <property name="text">
       <string>...</string>
      </property>
     </widget>
    </item>
-   <item row="24" column="0" colspan="4">
+   <item row="10" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Additional Arguments</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1" colspan="3">
+    <widget class="QLineEdit" name="leAdditionalArguments">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string># of Labels</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1" colspan="3">
+    <widget class="QSpinBox" name="sbLabelCount">
+     <property name="minimum">
+      <number>2</number>
+     </property>
+     <property name="maximum">
+      <number>99999999</number>
+     </property>
+    </widget>
+   </item>
+   <item row="25" column="0" colspan="4">
     <widget class="QWidget" name="wdButtonBar" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
@@ -243,34 +274,17 @@
      </layout>
     </widget>
    </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_7">
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_14">
      <property name="text">
-      <string>Additional Arguments</string>
+      <string>Pipeline Name</string>
      </property>
     </widget>
    </item>
-   <item row="9" column="1" colspan="3">
-    <widget class="QLineEdit" name="leAdditionalArguments">
+   <item row="5" column="1" colspan="3">
+    <widget class="QLineEdit" name="lePipelineName">
      <property name="text">
       <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_10">
-     <property name="text">
-      <string># of Labels</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1" colspan="3">
-    <widget class="QSpinBox" name="sbLabelCount">
-     <property name="minimum">
-      <number>2</number>
-     </property>
-     <property name="maximum">
-      <number>99999999</number>
      </property>
     </widget>
    </item>

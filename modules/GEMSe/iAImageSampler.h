@@ -53,7 +53,8 @@ public:
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
 		QString const & computationExecutable,
-		QString const & additionalArguments);
+		QString const & additionalArguments,
+		QString const & pipelineName);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
 	virtual double elapsed() const;
@@ -75,6 +76,7 @@ private:
 	QString m_executable;
 	QString m_additionalArguments;
 	QString m_outputBaseDir;
+	QString m_pipelineName;
 
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
