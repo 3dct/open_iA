@@ -78,8 +78,8 @@ iAImageSampler::iAImageSampler(
 void iAImageSampler::StatusMsg(QString const & msg)
 {
 	QString statusMsg(msg);
-	if (statusMsg.length() > 105);
-	statusMsg = statusMsg.left(100) + "...";
+	if (statusMsg.length() > 105)
+		statusMsg = statusMsg.left(100) + "...";
 	emit Status(statusMsg);
 	DEBUG_LOG(msg);
 }
