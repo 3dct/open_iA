@@ -42,21 +42,18 @@
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
 
-#include <vtkObjectFactory.h>
-vtkStandardNewMacro(iABoneThickness);
-
 iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
 	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
 {
 	QWidget* pWidget(new QWidget());
 
-	m_pBoneThickness = vtkSmartPointer<iABoneThickness>::New();
+	m_pBoneThickness.reset(new iABoneThickness());
 	m_pBoneThicknessChartBar = new iABoneThicknessChartBar(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
 	
 	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessChartBar, m_pBoneThicknessTable);
-	m_pBoneThicknessChartBar->set(m_pBoneThickness, m_pBoneThicknessTable);
-	m_pBoneThicknessTable->set(m_pBoneThickness, m_pBoneThicknessChartBar);
+	m_pBoneThicknessChartBar->set(m_pBoneThickness.data(), m_pBoneThicknessTable);
+	m_pBoneThicknessTable->set(m_pBoneThickness.data(), m_pBoneThicknessChartBar);
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open control points file...", pWidget));
 	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));

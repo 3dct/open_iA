@@ -22,8 +22,6 @@
 #pragma once
 // iA
 
-#include <vtkObject.h>
-
 #include <QVector>
 
 #include <vtkActorCollection.h>
@@ -40,13 +38,11 @@ class iARenderer;
 class iABoneThicknessChartBar;
 class iABoneThicknessTable;
 
-class iABoneThickness : public vtkObject
+class iABoneThickness
 {
 		#define FloatTolerance 0.00001
-	public:
-		static iABoneThickness* New();
-		vtkTypeMacro(iABoneThickness, vtkObject);
 
+	public:
 		double axisXMax() const;
 		double axisXMin() const;
 		double axisYMax() const;

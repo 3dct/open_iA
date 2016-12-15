@@ -23,8 +23,7 @@
 #include "iAModuleAttachmentToChild.h"
 
 #include <QDoubleSpinBox>
-
-#include <vtkSmartPointer.h>
+#include <QScopedPointer>
 
 class iABoneThickness;
 class iABoneThicknessChartBar;
@@ -44,7 +43,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
 		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
 
-		vtkSmartPointer<iABoneThickness> m_pBoneThickness = nullptr;
+		QScopedPointer<iABoneThickness> m_pBoneThickness;
 
 	private slots:
 	    void slotDoubleSpinBoxSphereRadius();
