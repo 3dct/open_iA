@@ -18,27 +18,19 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #pragma once
+// iA
 
-#include "iAModuleInterface.h"
+#include <QSplitter>
 
-class MdiChild;
+#include <QShowEvent>
 
-class iAGeometricTransformationsModuleInterface : public iAModuleInterface
+class iABoneThicknessSplitter : public QSplitter
 {
-	Q_OBJECT
-public:
-	void Initialize();
-private slots:
-	void resampler();
-	void extractImage();
-	void rescale();
-	void childClosed();
-protected:
-	//settings
-	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
-	QString rInterpolator;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	double outputMin, outputMax;
-	bool m_childClosed;
+		Q_OBJECT
+
+	public:
+		explicit iABoneThicknessSplitter(QWidget* _pParent = nullptr);
+
 };

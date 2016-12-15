@@ -18,27 +18,39 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "iAModuleInterface.h"
+#include "iABoneThicknessModuleInterface.h"
+#include "iABoneThicknessAttachment.h"
+#include "mainwindow.h"
 
-class MdiChild;
+#include <mdichild.h>
 
-class iAGeometricTransformationsModuleInterface : public iAModuleInterface
+iABoneThicknessModuleInterface::iABoneThicknessModuleInterface( )
+{ /* not implemented */ }
+
+iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
+{ /* not implemented */ }
+
+void iABoneThicknessModuleInterface::Initialize( )
 {
-	Q_OBJECT
-public:
-	void Initialize();
-private slots:
-	void resampler();
-	void extractImage();
-	void rescale();
-	void childClosed();
-protected:
-	//settings
-	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
-	QString rInterpolator;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	double outputMin, outputMax;
-	bool m_childClosed;
-};
+	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
+
+	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));
+	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));
+	AddActionToMenuAlphabeticallySorted(toolsMenu, pBoneThickness);
+}
+
+void iABoneThicknessModuleInterface::slotBoneThickness()
+{
+	PrepareActiveChild();
+
+	if (m_mdiChild)
+	{
+		AttachToMdiChild(m_mdiChild);
+	}
+}
+
+iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+{
+	return new iABoneThicknessAttachment(mainWnd, childData);
+}

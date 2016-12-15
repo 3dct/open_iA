@@ -18,27 +18,12 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "iAModuleInterface.h"
+#include "iABoneThicknessSplitter.h"
 
-class MdiChild;
-
-class iAGeometricTransformationsModuleInterface : public iAModuleInterface
+iABoneThicknessSplitter::iABoneThicknessSplitter(QWidget* _pParent) : QSplitter(_pParent)
 {
-	Q_OBJECT
-public:
-	void Initialize();
-private slots:
-	void resampler();
-	void extractImage();
-	void rescale();
-	void childClosed();
-protected:
-	//settings
-	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
-	QString rInterpolator;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	double outputMin, outputMax;
-	bool m_childClosed;
-};
+	const QColor cColor(palette().color(QPalette::WindowText));
+
+	setStyleSheet("QSplitter::handle{background: " + cColor.name() + ";}");
+}

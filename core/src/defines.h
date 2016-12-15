@@ -173,7 +173,6 @@ enum FilterID
 	SURROUNDING_FILTER,
 	MORPH_WATERSHED,
 	FCP2_AUTOMATIC,
-	FLIP_IMAGE
 };
 
 const int DefaultMagicLensSize = 120;

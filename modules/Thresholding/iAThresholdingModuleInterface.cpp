@@ -34,14 +34,14 @@ void iAThresholdingModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString("Segmentation"));
-	QMenu * menuThresholding = getMenuWithTitle(menuSegmentation, QString( "Thresholding" ) );
+	QMenu * menuGlobalThresholding = getMenuWithTitle(menuSegmentation, QString("Global Threshold"));
 
 	QAction * actionBinary_threshold_filter = new QAction(QApplication::translate( "MainWindow", "Binary threshold filter", 0 ), m_mainWnd);
-	menuThresholding->addAction( actionBinary_threshold_filter );
+	menuGlobalThresholding->addAction( actionBinary_threshold_filter );
 	connect( actionBinary_threshold_filter, SIGNAL( triggered() ), this, SLOT( binary_threshold() ) );
 
 	QAction * actionGeneral_threshold_filter = new QAction(QApplication::translate( "MainWindow", "General threshold filter", 0 ), m_mainWnd);
-	menuThresholding->addAction( actionGeneral_threshold_filter );
+	menuGlobalThresholding->addAction( actionGeneral_threshold_filter );
 	connect( actionGeneral_threshold_filter, SIGNAL( triggered() ), this, SLOT( general_threshold() ) );
 }
 

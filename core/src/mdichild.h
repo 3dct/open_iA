@@ -389,7 +389,7 @@ private:
 	void changeVisibility(unsigned char mode);
 	int getVisibility() const;
 	void hideVolumeWidgets();
-	void visibilityBlock(QList<QSpacerItem*> spacerItems, QList<QWidget*> widgets, bool show);
+	void setVisibility(QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
 	virtual void resizeEvent ( QResizeEvent * event );
 
@@ -457,7 +457,7 @@ private:
 	
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
-	bool IsOnlyPolyDataLoaded();
+	bool IsVolumeDataLoaded() const;
 
 	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;

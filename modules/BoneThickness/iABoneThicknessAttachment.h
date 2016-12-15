@@ -20,25 +20,37 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAModuleAttachmentToChild.h"
 
-class MdiChild;
+#include <QDoubleSpinBox>
+#include <QScopedPointer>
 
-class iAGeometricTransformationsModuleInterface : public iAModuleInterface
+#include "iABoneThickness.h"
+
+class iABoneThicknessChartBar;
+class iABoneThicknessTable;
+
+class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
-public:
-	void Initialize();
-private slots:
-	void resampler();
-	void extractImage();
-	void rescale();
-	void childClosed();
-protected:
-	//settings
-	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
-	QString rInterpolator;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	double outputMin, outputMax;
-	bool m_childClosed;
+
+	public:
+		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
+
+	private:
+		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
+		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
+
+		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
+		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
+
+		QScopedPointer<iABoneThickness> m_pBoneThickness;
+
+	private slots:
+	    void slotDoubleSpinBoxSphereRadius();
+		void slotDoubleSpinBoxThicknessMaximum();
+		void slotPushButtonOpen();
+		void slotPushButtonSave();
+		void slotCheckBoxShowThickness(const bool& _bChecked);
+		void slotCheckBoxTransparency(const bool& _bChecked);
 };

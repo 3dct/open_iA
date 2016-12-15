@@ -18,27 +18,35 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #pragma once
+// iA
+#include <QTableView>
 
-#include "iAModuleInterface.h"
+#include <vtkType.h>
 
-class MdiChild;
+class iABoneThickness;
+class iABoneThicknessChartBar;
 
-class iAGeometricTransformationsModuleInterface : public iAModuleInterface
+class iABoneThicknessTable : public QTableView
 {
-	Q_OBJECT
-public:
-	void Initialize();
-private slots:
-	void resampler();
-	void extractImage();
-	void rescale();
-	void childClosed();
-protected:
-	//settings
-	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
-	QString rInterpolator;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	double outputMin, outputMax;
-	bool m_childClosed;
+		Q_OBJECT
+
+	public:
+		explicit iABoneThicknessTable(QWidget* _pParent = nullptr);
+
+		int selected() const;
+
+		void set(iABoneThickness* _pBoneThickness, iABoneThicknessChartBar* _pBoneThicknessChartBar);
+		void setSelected(const vtkIdType& _idSelected);
+
+	private:
+		iABoneThickness* m_pBoneThickness = nullptr;
+		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
+
+	protected:
+		virtual QSize minimumSizeHint() const override;
+		virtual void mousePressEvent(QMouseEvent* e) override;
+		virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
+
 };

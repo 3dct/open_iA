@@ -44,7 +44,7 @@ iAImageCoordConverter::iAImageCoordConverter(
 		m_depth(depth),
 		m_ordering(ordering)
 {
-	assert(m_width > 0 && m_height > 0 && m_depth > 0);
+	assert(m_width >= 0 && m_height >= 0 && m_depth >= 0);
 }
 
 iAVoxelIndexType iAImageCoordConverter::GetVertexCount() const
