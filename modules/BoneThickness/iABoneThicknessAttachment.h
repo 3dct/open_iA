@@ -25,7 +25,8 @@
 #include <QDoubleSpinBox>
 #include <QScopedPointer>
 
-class iABoneThickness;
+#include "iABoneThickness.h"
+
 class iABoneThicknessChartBar;
 class iABoneThicknessTable;
 
