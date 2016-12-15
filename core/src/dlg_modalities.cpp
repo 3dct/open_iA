@@ -366,7 +366,6 @@ void dlg_modalities::ShowChecked(QListWidgetItem* item)
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
 	if (!renderer)
 	{
-		DEBUG_LOG("No Renderer set!");
 		return;
 	}
 	bool isChecked = item->checkState() == Qt::Checked;
