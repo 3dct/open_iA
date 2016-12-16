@@ -87,13 +87,16 @@
 #include <QSpinBox>
 #include <QToolButton>
 
-MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack(new iAVolumeStack),
+MdiChild::MdiChild(MainWindow * mainWnd, bool unsavedChanges) :
+	m_isSmthMaximized(false),
+	volumeStack(new iAVolumeStack),
 	isMagicLensEnabled(false),
 	ioThread(0),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
 	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
-	m_initVolumeRenderers(false)
+	m_initVolumeRenderers(false),
+	m_unsavedChanges(unsavedChanges)
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);
@@ -990,6 +993,7 @@ bool MdiChild::saveFile(const QString &f, int channelNr)
 	ioThread = new iAIO(img, polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
+	connect(ioThread, SIGNAL( done()), this, SLOT(SetAsNotChanged()));
 
 	if (!setupSaveIO(f, img)) {
 		ioFinished();
@@ -1572,6 +1576,19 @@ void MdiChild::ApplyVolumeSettings()
 	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
 	m_dlgModalities->ChangeRenderSettings(volumeSettings);
 }
+
+
+bool MdiChild::HasUnsavedChanges() const
+{
+	return m_unsavedChanges;
+}
+
+
+void MdiChild::SetUnsavedChanges(bool b)
+{
+	m_unsavedChanges = b;
+}
+
 
 int MdiChild::GetRenderMode()
 {
@@ -2325,6 +2342,17 @@ void MdiChild::closeEvent(QCloseEvent *event)
 		addStatusMsg("Cannot close window while I/O operation is in progress!");
 		event->ignore();
 	} else {
+		if (m_unsavedChanges)
+		{
+			auto reply = QMessageBox::question(this, "Unsaved changes",
+				"You have unsaved changes. Are you sure you want to close this window?",
+				QMessageBox::Yes | QMessageBox::No);
+			if (reply != QMessageBox::Yes)
+			{
+				event->ignore();
+				return;
+			}
+		}
 		emit closed();
 		event->accept();
 	}
@@ -3026,4 +3054,9 @@ vtkPiecewiseFunction * MdiChild::getPiecewiseFunction()
 vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 {
 	return GetModality(0)->GetTransfer()->GetColorFunction();
+}
+
+void MdiChild::SetAsNotChanged()
+{
+	m_unsavedChanges = false;
 }

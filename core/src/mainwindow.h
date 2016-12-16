@@ -176,7 +176,7 @@ public slots:
 	void about();
 	void updateMenus();
 	void updateWindowMenu();
-	MdiChild *createMdiChild();
+	MdiChild *createMdiChild(bool unsavedChanges);
 	void switchLayoutDirection();
 	void setActiveSubWindow(QWidget *window);
 	void pointSelected();

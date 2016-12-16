@@ -98,7 +98,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 
 void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 {
-	MdiChild *child = m_mainWnd->createMdiChild();
+	MdiChild *child = m_mainWnd->createMdiChild(true);
 	if (!seaFile.good())
 	{
 		DEBUG_LOG("Given precalculated data file could not be read.\n");

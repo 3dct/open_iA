@@ -165,6 +165,29 @@ void MainWindow::timeout()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+	bool childHasChanges = false;
+	foreach(QMdiSubWindow *window, MdiChildList()) {
+		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+		childHasChanges |= mdiChild->HasUnsavedChanges();
+	}
+	if (childHasChanges)
+	{
+		auto reply = QMessageBox::question(this, "Unsaved changes",
+			"One or more windows have unsaved changes. Are you sure you want to close the application?",
+			QMessageBox::Yes | QMessageBox::No);
+		if (reply != QMessageBox::Yes)
+		{
+			event->ignore();
+			return;
+		}
+		else
+		{ // remove m_unsavedChanges flag to avoid individual questions for each window
+			foreach(QMdiSubWindow *window, MdiChildList()) {
+				MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+				mdiChild->SetUnsavedChanges(false);
+			}
+		}
+	}
 	mdiArea->closeAllSubWindows();
 	if (activeMdiChild()) {
 		event->ignore();
@@ -178,7 +201,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::newFile()
 {
-	MdiChild *child = createMdiChild();
+	MdiChild *child = createMdiChild(true);
 	child->newFile();
 	child->show();
 }
@@ -217,7 +240,7 @@ void MainWindow::OpenRaw()
 		path,
 		"Raw File (*)"
 	);
-	MdiChild *child = createMdiChild();
+	MdiChild *child = createMdiChild(false);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	path = t;
 	if (child->loadRaw(fileName)) {
@@ -303,7 +326,7 @@ void MainWindow::loadFileInternal(QString fileName, bool isStack)
 			}
 			else if (ret == QMessageBox::No)
 			{
-				MdiChild *child = createMdiChild();
+				MdiChild *child = createMdiChild(false);
 				if (child->loadFile(fileName, false)) {
 					child->show();
 					child->showMaximized();
@@ -316,7 +339,7 @@ void MainWindow::loadFileInternal(QString fileName, bool isStack)
 		}
 	}
 	// Todo: hook for plugins?
-	MdiChild *child = createMdiChild();
+	MdiChild *child = createMdiChild(false);
 	if (child->loadFile(fileName, isStack)) {
 		child->show();
 		child->showMaximized();
@@ -1492,7 +1515,7 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 	if (oldChild->getResultInNewWindow())
 	{
 		vtkSmartPointer<vtkImageData> imageData = oldChild->getImagePointer();
-		MdiChild* newChild = createMdiChild();
+		MdiChild* newChild = createMdiChild(true);
 		newChild->show();
 		newChild->displayResult(title, imageData);
 		copyFunctions(oldChild, newChild);
@@ -1717,9 +1740,9 @@ void MainWindow::updateWindowMenu()
 }
 
 
-MdiChild* MainWindow::createMdiChild()
+MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 {
-	MdiChild *child = new MdiChild(this);
+	MdiChild *child = new MdiChild(this, unsavedChanges);
 	mdiArea->addSubWindow(child);
 
 	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
@@ -2457,7 +2480,7 @@ void MainWindow::LoadProject(QString const & fileName)
 {
 	if (fileName.isEmpty())
 		return;
-	MdiChild* child = createMdiChild();
+	MdiChild* child = createMdiChild(false);
 	child->newFile();
 	if (child->LoadProject(fileName))
 	{
@@ -2680,7 +2703,7 @@ void MainWindow::OpenTLGICTData()
 		return;
 	}
 
-	MdiChild* child = createMdiChild();
+	MdiChild* child = createMdiChild(false);
 	child->newFile();
 	child->show();
 	child->SetModalities(modList);

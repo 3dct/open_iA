@@ -107,7 +107,7 @@ public:
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
 	void waitForPreviousIO();
 
-	MdiChild(MainWindow * mainWnd);
+	MdiChild(MainWindow * mainWnd, bool unsavedChanges);
 	~MdiChild();
 
 	void newFile();
@@ -274,6 +274,8 @@ public:
 	void ApplyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
 	void ApplyVolumeSettings();
+	bool HasUnsavedChanges() const;
+	void SetUnsavedChanges(bool b);
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -500,10 +502,12 @@ private:
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
+	bool m_unsavedChanges;
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ChangeImage(vtkSmartPointer<vtkImageData> img);
+	void SetAsNotChanged();
 private:
 	int GetCurrentModality() const;
 	void SetCurrentModality(int modality);
