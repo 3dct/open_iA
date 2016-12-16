@@ -240,7 +240,7 @@ int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double 
 }
 
 iARegionGrowing::iARegionGrowing( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iASegmentation( fn, fid, i, p, logger, parent )
+	: iAAlgorithms( fn, fid, i, p, logger, parent )
 {
 }
 

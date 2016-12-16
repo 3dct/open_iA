@@ -24,7 +24,6 @@
 
 #include "iAMaximumDistance.h"
 #include "iARegionGrowing.h"
-#include "iASegmentation.h"
 #include "iAWatershedSegmentation.h"
 
 #include "dlg_commoninput.h"

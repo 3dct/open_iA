@@ -26,7 +26,6 @@
 #include "itkRobustAutomaticThresholdImageFilter.h"
 #include "itkRemovePeaksOtsuThresholdImageFilter.h"
 #include "itkGradientMagnitudeImageFilter.h"
-#include "iASegmentation.h"
 #include "iAAlgorithms.h"
 
 /**
@@ -37,7 +36,7 @@
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iARegionGrowing : public iASegmentation
+class iARegionGrowing : public iAAlgorithms
 {
 public:
 	iARegionGrowing( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* l, QObject *parent = 0 );
