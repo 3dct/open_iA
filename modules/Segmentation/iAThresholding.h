@@ -20,54 +20,41 @@
 * ************************************************************************************/
 #pragma once
 
-#include "itkOtsuThresholdImageFilter.h"
-#include "itkOtsuMultipleThresholdsImageFilter.h"
-#include "itkAdaptiveOtsuThresholdImageFilter.h"
-#include "itkRobustAutomaticThresholdImageFilter.h"
-#include "itkRemovePeaksOtsuThresholdImageFilter.h"
-#include "itkGradientMagnitudeImageFilter.h"
 #include "iAAlgorithms.h"
 
 /**
- * Implementation of itkOtsuThresholdImageFilter, itkAdaptiveOtsuThresholdImageFilter and itkRobustAutomaticThresholdImageFilter threhold.
+ * Implementation of itkBinaryThresholdImageFilter, itkOtsuThresholdImageFilter, itkAdaptiveOtsuThresholdImageFilter and itkRobustAutomaticThresholdImageFilter threhold.
+ * For itkBinaryThresholdImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html
  * For itkOtsuThresholdImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html
  * For itkAdaptiveOtsuThresholdImageFilter refer to FH Wels software team.
  * For itkRobustAutomaticThresholdImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html
  * \remarks	Kana, 01/12/2010. 
  */
-
-class iARegionGrowing : public iAAlgorithms
+class iAThresholding : public iAAlgorithms
 {
 public:
-	iARegionGrowing( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* l, QObject *parent = 0 );
-	~iARegionGrowing( );
-
-	void otsuMultipleThresh();
-	void otsuThresh(  );
-	void adaptiveOtsuThresh( );
-	void ratsThresh(  );
+	iAThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* l, QObject *parent = 0 );
+	~iAThresholding( );
 
 	/**
-	 * Sets an otsu multiple parameters. 
+	 * Sets otsu multiple parameters.
 	 * \param	b					SetNumberOfHistogramBins. 
 	 * \param	t					SetNumberOfThresholds. 
 	 */
-
 	void setOMTParameters( double b, double t ) 
 					{ bins = b; threshs = t; };
 
 	/**
-	 * Sets an otsu parameters. 
+	 * Sets otsu parameters.
 	 * \param	b					SetNumberOfHistogramBins. 
 	 * \param	o					SetOutsideValue. 
 	 * \param	i					SetInsideValue. 
 	 * \param	removepeaks			true to removepeaks. 
 	 */
-
 	void setOTParameters( double b, double o, double i, bool r ) 
 					{ bins = b; outer = o; inner = i; removepeaks = r; };
 	/**
-	 * Sets a Adaptive otsu parameters. 
+	 * Sets Adaptive otsu parameters.
 	 * \param	r		SetRadius. 
 	 * \param	s		SetNumberOfSamples. 
 	 * \param	l		SetNumberOfLevels. 
@@ -76,26 +63,34 @@ public:
 	 * \param	o		SetOutsideValue. 
 	 * \param	i		SetInsideValue. 
 	 */
-
 	void setAOTParameters( double r, unsigned int s, unsigned int l, unsigned int c, double b, double o, double i ) 
 					{ radius = r; samples = s; levels = l; controlPoints = c; bins = b; outer = o; inner = i; };
 	/**
-	 * Sets a RAT parameters. 
+	 * Sets RAT parameters.
 	 * \param	pow					SetPower. 
 	 * \param	o					SetOutsideValue. 
 	 * \param	i					SetInsideValue. 
 	 */
-
 	void setRTParameters( double p, double o, double i ) 
 					{ power = p; outer = o; inner = i; };
+
+	/**
+	 * Sets binary thresholding parameters.
+	 */
+	void setBTParameters(double l, double u, double o, double i) { lower = l; upper = u; outer = o; inner = i; };
 
 protected:
 	void run();
 
 private:
-	double threshs, bins, inner, outer, radius, power, rthresh, othresh;
+	double lower, upper, threshs, bins, inner, outer, radius, power, rthresh, othresh;
 	bool removepeaks;
 	unsigned int controlPoints, levels, samples;
 	std::vector<double> omthreshs;
 
+	void otsuMultipleThresh();
+	void otsuThresh();
+	void adaptiveOtsuThresh();
+	void ratsThresh();
+	void binaryThresh();
 };

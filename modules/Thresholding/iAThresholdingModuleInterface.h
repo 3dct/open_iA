@@ -32,10 +32,8 @@ public:
 	void Initialize();
 
 private slots:
-	void binary_threshold();
 	void general_threshold();
 protected:
 	//settings
-	double btlower, btupper, btoutside, btinside; //binary threshold 
 	double gtlower, gtupper, gtoutside; //general threshold
 };
