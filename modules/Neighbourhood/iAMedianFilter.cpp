@@ -88,7 +88,6 @@ void iAMedianFilter::run()
 	{
 	case MEDIAN: 
 		median(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

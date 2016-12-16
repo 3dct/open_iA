@@ -104,7 +104,6 @@ void iAAdaptiveHistogramEqualization::run()
 	{
 	case ADAPTIVE_HISTOGRAM_EQUALIZATION:
 		compute_iAAdaptiveHistogramEqualization(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

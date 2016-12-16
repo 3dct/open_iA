@@ -103,7 +103,6 @@ void iAEdgeDetectionFilters::run()
 	{
 	case CANNY_EDGE_DETECTION:
 		cannyEdgeDetection(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

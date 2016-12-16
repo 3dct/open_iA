@@ -118,7 +118,6 @@ void iAGPUEdgePreservingSmoothing::run()
 	{
 	case GPU_GRADIENT_ANISOTROPIC_DIFFUSION:
 		gpuGradientAnisotropicDiffusion(); break;
-	case UNKNOWN_FILTER:
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

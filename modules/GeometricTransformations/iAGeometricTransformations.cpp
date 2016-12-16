@@ -241,7 +241,6 @@ void iAGeometricTransformations::run()
 		resampler( ); break;
 	case RESCALE_IMAGE: 
 		rescaleImage(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

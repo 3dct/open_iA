@@ -91,7 +91,6 @@ void iAMaximumDistance::run()
 	{
 	case MAXIMUM_DISTANCE_THRESHOLD: 
 		maximumDistance(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("unknown filter type"));
 	}

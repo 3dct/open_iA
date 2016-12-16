@@ -180,7 +180,6 @@ void iAConnectedComponentFilters::run()
 		ScalarConnectedComponentFilter(); break;
 	case SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER: 
 		SimpleRelabelComponentImageFilter(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("unknown filter type"));
 	}

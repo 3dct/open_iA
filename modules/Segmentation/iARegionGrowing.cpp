@@ -260,7 +260,6 @@ void iARegionGrowing::run()
 		adaptiveOtsuThresh(); break;
 	case RATS_THRESHOLD:
 		ratsThresh(); break;
-	case UNKNOWN_FILTER:
 	default:
 		addMsg(tr("unknown filter type"));
 	}

@@ -140,7 +140,6 @@ void iAWatershedSegmentation::run()
 		watershed(); break;
 	case MORPH_WATERSHED:
 		morph_watershed(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

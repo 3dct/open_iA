@@ -83,9 +83,8 @@ void iAThresholding::run()
 {
 	switch (getFilterID())
 	{
-	case BINARY_THRESHOLD: 
+	case BINARY_THRESHOLD:
 		binaryThresh(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

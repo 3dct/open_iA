@@ -176,7 +176,6 @@ void iAGradients::run()
 	case HIGHER_ORDER_ACCURATE_DERIVATIVE:
 		hoa_derivative();
 		break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

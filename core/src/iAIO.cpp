@@ -1464,8 +1464,6 @@ bool iAIO::loadCSVFile(vtkTable *table, FilterID fid, const QString &fileName)
 		case INDIVIDUAL_PORE_VISUALIZATION: 
 			ok = loadPoreCSV(table, fileName); 
 			break;
-
-		case UNKNOWN_FILTER: 
 		default:
 			ok = false;
 			break;

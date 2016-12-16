@@ -106,7 +106,7 @@ template<class T> int particalCharacterization_template( int param1, iAProgress*
 
 	  adaptiveHistogramEqualizationImageFilter->ReleaseDataFlagOn();
 
- 	return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 iAParticleCharacterization::iAParticleCharacterization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
@@ -125,7 +125,6 @@ void iAParticleCharacterization::run()
 	{
 	case COMPUTEPARTICLETEST:
 		compute_particletest(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}
