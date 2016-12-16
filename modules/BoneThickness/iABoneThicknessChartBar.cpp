@@ -258,19 +258,20 @@ double iABoneThicknessChartBar::screenToValueY(const int& _iValueY) const
 
 int iABoneThicknessChartBar::selected(const int& _iX, const int& _iY) const
 {
-	const double dX(screenToValueX(_iX));
-	const double dY(screenToValueY(_iY));
-
-	const vtkIdType idSelected(floor(dX));
-
-	if ((dY > m_dAxisY1) && (dY < m_daThickness->GetValue(idSelected)))
+	if ((_iX > m_iAxisX1) && (_iX < m_iAxisX2))
 	{
-		return idSelected;
+		const double dX(screenToValueX(_iX));
+		const double dY(screenToValueY(_iY));
+
+		const vtkIdType idSelected(floor(dX));
+
+		if ((dY > m_dAxisY1) && (dY < m_daThickness->GetValue(idSelected)))
+		{
+			return idSelected;
+		}
 	}
-	else
-	{
-		return -1;
-	}
+
+	return -1;
 }
 
 void iABoneThicknessChartBar::set(iABoneThickness* _pBoneThickness, iABoneThicknessTable* _pBoneThicknessTable)
