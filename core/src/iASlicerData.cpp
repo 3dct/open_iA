@@ -32,11 +32,11 @@
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
 #include "iASlicerSettings.h"
+#include "iAToolsVTK.h"
 #include "mdichild.h"
 
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
-#include <vtkBMPWriter.h>
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkDataSetMapper.h>
@@ -53,14 +53,12 @@
 #include <vtkImageReslice.h>
 #include <vtkImageData.h>
 #include <vtkInteractorStyleImage.h>
-#include <vtkJPEGWriter.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
 #include <vtkLookupTable.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkPlaneSource.h>
-#include <vtkPNGWriter.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPointPicker.h>
 #include <vtkProperty.h>
@@ -73,7 +71,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkTextMapper.h>
 #include <vtkTextProperty.h>
-#include <vtkTIFFWriter.h>
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
@@ -702,95 +699,45 @@ void iASlicerData::saveAsImage() const
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (!mdi_parent)
 		return;
-	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image"),
+	QString fileName = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image"),
 		"", iAIOProvider::GetSupportedImageFormats());
-	if (file.isEmpty())
+	if (fileName.isEmpty())
 		return;
-
-	QStringList inList = ( QStringList() << tr("$Save native image") );
-	bool saveNative = true;
-	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false")) );
-
-	dlg_commoninput *dlg = new dlg_commoninput (mdi_parent, "Save options", 1, inList, inPara, NULL);
-	if (dlg->exec() == QDialog::Accepted)
+	vtkImageData *img = reslicer->GetOutput();
+	bool saveNative = false;
+	if (img->GetScalarType() != VTK_DOUBLE &&
+		img->GetScalarType() != VTK_FLOAT)
 	{
+		QStringList inList = (QStringList() << tr("$Save native image"));
+		QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")));
+		dlg_commoninput *dlg = new dlg_commoninput(mdi_parent, "Save options", 1, inList, inPara, NULL);
+		if (dlg->exec() != QDialog::Accepted)
+		{
+			return;
+		}
 		saveNative = dlg->getCheckValues()[0];
-
-		vtkImageData *imageData;
-		vtkWindowToImageFilter *wtif = vtkWindowToImageFilter::New();
-
-		if (saveNative)
-		{
-			imageData = reslicer->GetOutput();
-		}
-		else
-		{
-			wtif->SetInput(renWin);
-			wtif->Update();
-			imageData = wtif->GetOutput();
-		}
-
-		QFileInfo pars(file);
-		if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
-			vtkTIFFWriter *writer = vtkTIFFWriter::New();
-			writer->SetFileName(file.toLatin1());
-			writer->SetInputData(imageData);
-			writer->Write();
-			writer->Delete();	
-		} else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
-			vtkPNGWriter *writer = vtkPNGWriter::New();
-			writer->SetFileName(file.toLatin1());
-			writer->SetInputData(imageData);
-			writer->Write();
-			writer->Delete();
-		} else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
-			if ( saveNative )
-			{
-				vtkImageCast* castfilter = vtkImageCast::New();
-				castfilter->SetInputData(imageData);
-				castfilter->SetOutputScalarTypeToUnsignedChar();
-				castfilter->Update();
-
-				vtkJPEGWriter *writer = vtkJPEGWriter::New();
-				writer->SetFileName(file.toLatin1());
-				writer->SetInputConnection(castfilter->GetOutputPort());
-				writer->Write();
-				writer->Delete();
-			}
-			else
-			{
-				vtkJPEGWriter *writer = vtkJPEGWriter::New();
-				writer->SetFileName(file.toLatin1());
-				writer->SetInputData(imageData);
-				writer->Write();
-				writer->Delete();
-			}
-		} else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
-			if ( saveNative )
-			{
-				vtkImageCast* castfilter = vtkImageCast::New();
-				castfilter->SetInputData(imageData);
-				castfilter->SetOutputScalarTypeToUnsignedChar();
-				castfilter->Update();
-
-				vtkBMPWriter *writer = vtkBMPWriter::New();
-				writer->SetFileName(file.toLatin1());
-				writer->SetInputConnection(castfilter->GetOutputPort());
-				writer->Write();
-				writer->Delete();
-			}
-			else
-			{
-				vtkBMPWriter *writer = vtkBMPWriter::New();
-				writer->SetFileName(file.toLatin1());
-				writer->SetInputData(imageData);
-				writer->Write();
-				writer->Delete();
-			}
-		}
-
-		wtif->Delete();
 	}
+	vtkSmartPointer<vtkImageCast> castfilter = vtkSmartPointer<vtkImageCast>::New();
+	vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	if (saveNative)
+	{
+		QFileInfo fi(fileName);
+		if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) != 0) &&
+			(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) != 0))
+		{ // TODO: rescale intensity
+			castfilter->SetInputData(reslicer->GetOutput());
+			castfilter->SetOutputScalarTypeToUnsignedChar();
+			castfilter->Update();
+			img = castfilter->GetOutput();
+		}
+	}
+	else
+	{
+		wtif->SetInput(renWin);
+		wtif->Update();
+		img = wtif->GetOutput();
+	}
+	WriteSingleSliceImage(fileName, img);
 }
 
 
@@ -799,7 +746,7 @@ void iASlicerData::saveImageStack()
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if(!mdi_parent)
 		return;
-	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image"), 
+	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image Stack"),
 		"", iAIOProvider::GetSupportedImageFormats() );
 	if (file.isEmpty())
 		return;
@@ -817,9 +764,8 @@ void iASlicerData::saveImageStack()
 	int arr[3]; 
 	imageData->GetDimensions(arr); 
 
-
 	//Determine index of number of slice in array
-	int nums[3] = {0, 1, 2};
+	int nums[3] = {0, 2, 1};
 	int num = nums[m_mode];
 
 	//Set slice range
@@ -830,168 +776,108 @@ void iASlicerData::saveImageStack()
 	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1").arg(sliceFirst) <<tr("%1").arg(sliceLast)  );
 	dlg_commoninput *dlg = new dlg_commoninput (mdi_parent, "Save options", 3, inList, inPara, NULL);
 
-	if (dlg->exec() == QDialog::Accepted)
+	if (dlg->exec() != QDialog::Accepted)
 	{
-		saveNative = dlg->getCheckValues()[0];
-		sliceFirst = dlg->getValues()[1];
-		sliceLast = dlg->getValues()[2];
-
-		if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num]){
-			QMessageBox msgBox;
-			msgBox.setText("Invalid Input.");
-			msgBox.exec();
-		}
-
-		else{
-			//Determine extension
-			QFileInfo pars(file);
-			int ext;
-			if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
-				ext = 1;
-			} else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
-				ext = 2;
-			} else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
-				ext = 3;
-			} else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
-				ext = 4;
-			}
-
-
-			//Determine condition of saving
-			bool valid = false;
-			if (imageData->GetScalarType() == VTK_UNSIGNED_CHAR || imageData->GetScalarType() == VTK_CHAR){
-				valid = true;
-			}
-			else if (imageData->GetScalarType() == VTK_UNSIGNED_SHORT || imageData->GetScalarType() == VTK_SHORT){
-				if (ext==1 || ext==2){ valid =true; }
-				else if (ext==3 || ext==4){ valid = false; }
-			}
-			else if (imageData->GetScalarType() == VTK_UNSIGNED_INT || imageData->GetScalarType() == VTK_INT){
-				valid = false;
-			}
-			else if (imageData->GetScalarType() == VTK_FLOAT){
-				valid = false;
-			}
-			else if (imageData->GetScalarType() == VTK_DOUBLE){
-				valid = false;
-			}
-
-
-			//Valid Save Check
-			if (valid == false){
-				QMessageBox msgBox;
-				msgBox.setText("Invalid data type or format selected.");
-				msgBox.exec();
-
-			}
-
-			else {
-				for(int slice=sliceFirst; slice<=sliceLast; slice++){// loop based on the number of slice
-
-					vtkWindowToImageFilter *wtif = vtkWindowToImageFilter::New();
-					//Determine which axis
-					if(m_mode==0){ //yz
-						setResliceAxesOrigin(slice, 0, 0);
-					} else if(m_mode==1){  //xy 
-						setResliceAxesOrigin(0, 0, slice);
-					} else if(m_mode==2){  //xz
-						setResliceAxesOrigin(0, slice, 0);
-					}
-
-					//Determine Native
-					if (saveNative)
-					{
-						imageData = reslicer->GetOutput();
-					}
-					else
-					{
-						wtif->SetInput(renWin);
-						wtif->Update();
-						imageData = wtif->GetOutput();
-					}
-
-
-					//append slice number to filename
-					std::stringstream ss;
-					ss << slice;
-					std::string appendFile(ss.str());
-					std::string newFileName(current_file);
-					newFileName.append(appendFile);
-
-
-					//Determine extension
-					if (ext==1){
-						newFileName.append(".tif");
-						vtkTIFFWriter *writer = vtkTIFFWriter::New();
-						writer->SetFileName(newFileName.c_str());
-						writer->SetInputData(imageData);
-						writer->Write();
-						writer->Delete();	
-					} else if (ext==2) {
-						newFileName.append(".png");
-						vtkPNGWriter *writer = vtkPNGWriter::New();
-						writer->SetFileName(newFileName.c_str());
-						writer->SetInputData(imageData);
-						writer->Write();
-						writer->Delete();
-					} else if (ext==3){
-						newFileName.append(".jpg");
-						if ( saveNative )
-						{
-
-							vtkImageCast* castfilter = vtkImageCast::New();
-							castfilter->SetInputData(imageData);
-							castfilter->SetOutputScalarTypeToUnsignedChar();
-							castfilter->Update();
-
-							vtkJPEGWriter *writer = vtkJPEGWriter::New();
-							writer->SetFileName(newFileName.c_str());
-							writer->SetInputConnection(castfilter->GetOutputPort());
-							writer->Write();
-							writer->Delete();
-						}
-						else
-						{
-							vtkJPEGWriter *writer = vtkJPEGWriter::New();
-							writer->SetFileName(newFileName.c_str());
-							writer->SetInputData(imageData);
-							writer->Write();
-							writer->Delete();
-						}
-					} else if (ext==4) {
-						newFileName.append(".bmp");
-						if ( saveNative )
-						{
-							vtkImageCast* castfilter = vtkImageCast::New();
-							castfilter->SetInputData(imageData);
-							castfilter->SetOutputScalarTypeToUnsignedChar();
-							castfilter->Update();
-
-							vtkBMPWriter *writer = vtkBMPWriter::New();
-							writer->SetFileName(newFileName.c_str());
-							writer->SetInputConnection(castfilter->GetOutputPort());
-							writer->Write();
-							writer->Delete();
-						}
-						else
-						{
-							vtkBMPWriter *writer = vtkBMPWriter::New();
-							writer->SetFileName(newFileName.c_str());
-							writer->SetInputData(imageData);
-							writer->Write();
-							writer->Delete();
-						}
-					}
-
-					wtif->Delete();
-				}
-
-				QMessageBox msgBox;
-				msgBox.setText("Saving image stack completed.");
-				msgBox.exec();
-			}
-		}
+		return;
 	}
+	saveNative = dlg->getCheckValues()[0];
+	sliceFirst = dlg->getValues()[1];
+	sliceLast = dlg->getValues()[2];
+
+	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num]){
+		QMessageBox msgBox;
+		msgBox.setText("Invalid Input.");
+		msgBox.exec();
+		return;
+	}
+	//Determine extension
+	QFileInfo pars(file);
+	int ext;
+	if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
+		ext = 1;
+	} else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
+		ext = 2;
+	} else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
+		ext = 3;
+	} else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
+		ext = 4;
+	}
+
+	//Determine condition of saving
+	bool valid = false;
+	valid = (imageData->GetScalarType() == VTK_UNSIGNED_CHAR || imageData->GetScalarType() == VTK_CHAR)
+		 || ((imageData->GetScalarType() == VTK_UNSIGNED_SHORT || imageData->GetScalarType() == VTK_SHORT ) &&  (ext == 1));
+	if (!valid){
+		QMessageBox msgBox;
+		msgBox.setText("Invalid data type or format selected.");
+		msgBox.exec();
+		return;
+	}
+
+	interactor->Disable();
+	vtkImageData* img;
+	for(int slice=sliceFirst; slice<=sliceLast; slice++)
+	{
+		//Determine which axis
+		if(m_mode==0){ //yz
+			setResliceAxesOrigin(slice, 0, 0);
+		} else if(m_mode==1){  //xy
+			setResliceAxesOrigin(0, 0, slice);
+		} else if(m_mode==2){  //xz
+			setResliceAxesOrigin(0, slice, 0);
+		}
+		update();
+
+		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
+		vtkSmartPointer<vtkImageCast> castfilter = vtkSmartPointer<vtkImageCast>::New();
+		//Determine Native
+		if (saveNative)
+		{
+			/*
+			if (ext != 1)
+			{
+			castfilter->SetInputData(img);
+			castfilter->SetOutputScalarTypeToUnsignedChar();
+			castfilter->Update();
+			img = castfilter->GetOutput();
+			}
+			else
+			{
+			*/
+				img = reslicer->GetOutput();
+			//}
+		}
+		else
+		{
+			wtif->SetInput(renWin);
+			wtif->ReadFrontBufferOff();
+			wtif->Update();
+			img = wtif->GetOutput();
+		}
+
+		//append slice number to filename
+		std::stringstream ss;
+		ss << slice;
+		std::string appendFile(ss.str());
+		std::string newFileName(current_file);
+		newFileName.append(appendFile);
+
+		//Determine extension
+		if (ext==1){
+			newFileName.append(".tif");
+		} else if (ext==2) {
+			newFileName.append(".png");
+		} else if (ext==3){
+			newFileName.append(".jpg");
+		} else if (ext==4) {
+			newFileName.append(".bmp");
+		}
+		WriteSingleSliceImage(newFileName.c_str(), img);
+	}
+	interactor->Enable();
+	QMessageBox msgBox;
+	msgBox.setText("Saving image stack completed.");
+	msgBox.exec();
 }
 
 

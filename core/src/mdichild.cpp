@@ -51,6 +51,7 @@
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
+#include "iAToolsVTK.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
 #include "iAWidgetAddHelper.h"
@@ -71,10 +72,6 @@
 #include <vtkWindowToImageFilter.h>
 
 // TODO: refactor methods using the following out of mdichild!
-#include <vtkBMPWriter.h>
-#include <vtkPNGWriter.h>
-#include <vtkJPEGWriter.h>
-#include <vtkTIFFWriter.h>
 #include <vtkTransform.h>
 
 // TODO: VOLUME: check all places using GetModality(0)->GetTransfer() !
@@ -1056,7 +1053,15 @@ void MdiChild::maximizeRC()
 
 void MdiChild::saveRC()
 {
-	saveRenderWindow(Raycaster->GetRenderWindow());
+	QString file = QFileDialog::getSaveFileName(this, tr("Save Image"),
+		"",
+		iAIOProvider::GetSupportedImageFormats());
+	if (file.isEmpty())
+		return;
+	vtkSmartPointer<vtkWindowToImageFilter> filter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	filter->SetInput(Raycaster->GetRenderWindow());
+	filter->Update();
+	WriteSingleSliceImage(file, filter->GetOutput());
 }
 
 
@@ -1808,50 +1813,6 @@ iAHistogramWidget * MdiChild::getHistogram()
 }
 
 // }
-
-
-void MdiChild::saveRenderWindow(vtkRenderWindow *renderWindow)
-{
-	QString file = QFileDialog::getSaveFileName(this, tr("Save Image"),
-		"",
-		iAIOProvider::GetSupportedImageFormats());
-
-	if (file.isEmpty())
-		return;
-
-	vtkWindowToImageFilter *filter = vtkWindowToImageFilter::New();
-	filter->SetInput(renderWindow);
-	filter->Update();
-
-	QFileInfo pars(file);
-	if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
-		vtkTIFFWriter *writer = vtkTIFFWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	} else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
-		vtkPNGWriter *writer = vtkPNGWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	} else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
-		vtkJPEGWriter *writer = vtkJPEGWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	} else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
-		vtkBMPWriter *writer = vtkBMPWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	}
-
-	filter->Delete();
-}
 
 
 void MdiChild::saveMovie(iASlicer * slicer)

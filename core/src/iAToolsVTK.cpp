@@ -41,3 +41,33 @@ vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFl
 	con.SetImage(img);
 	return con.GetVTKImage();
 }
+
+#include <vtkImageWriter.h>
+
+#include <vtkBMPWriter.h>
+#include <vtkJPEGWriter.h>
+#include <vtkPNGWriter.h>
+#include <vtkTIFFWriter.h>
+
+#include <QFileInfo>
+
+void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)
+{
+	QFileInfo fi(filename);
+	vtkSmartPointer<vtkImageWriter> writer;
+	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0)) {
+		writer = vtkSmartPointer<vtkTIFFWriter>::New();
+	}
+	else if (QString::compare(fi.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
+		writer = vtkSmartPointer<vtkPNGWriter>::New();
+	}
+	else if ((QString::compare(fi.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "JPEG", Qt::CaseInsensitive) == 0)) {
+		vtkJPEGWriter *writer = vtkJPEGWriter::New();
+	}
+	else if (QString::compare(fi.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
+		vtkBMPWriter *writer = vtkBMPWriter::New();
+	}
+	writer->SetFileName(filename.toLatin1());
+	writer->SetInputData(imageData);
+	writer->Write();
+}

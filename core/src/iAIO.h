@@ -34,21 +34,13 @@
 
 #include <vector>
 
-class vtkBMPReader;
-class vtkBMPWriter;
 class vtkImageData;
-class vtkJPEGReader;
-class vtkJPEGWriter;
 class vtkMetaImageWriter;
-class vtkPNGReader;
-class vtkPNGWriter;
 class vtkPolyData;
 class vtkSTLReader;
 class vtkSTLWriter;
 class vtkStringArray;
 class vtkTable;
-class vtkTIFFReader;
-class vtkTIFFWriter;
 
 class iAObserverProgress;
 class iASimReader;
