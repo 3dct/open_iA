@@ -1,7 +1,5 @@
 # Modules which are used by the given module
 SET( DEPENDENCIES_MODULES
-	Smoothing
-	Thresholding
 )
 
 # Cmake defines which are used by the given module

@@ -24,7 +24,7 @@
 
 class MdiChild;
 
-class iAThresholdingModuleInterface : public iAModuleInterface
+class iAMaskingModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 

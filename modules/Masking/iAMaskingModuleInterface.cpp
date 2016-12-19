@@ -18,9 +18,8 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
-#include "iAThresholdingModuleInterface.h"
+#include "iAMaskingModuleInterface.h"
 
 #include "dlg_commoninput.h"
 #include "iAGeneralThresholding.h"
@@ -29,7 +28,7 @@
 
 #include <QSettings>
 
-void iAThresholdingModuleInterface::Initialize()
+void iAMaskingModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuMask = getMenuWithTitle(filtersMenu, QString("Mask"));
@@ -39,7 +38,7 @@ void iAThresholdingModuleInterface::Initialize()
 	connect( actionGeneral_threshold_filter, SIGNAL( triggered() ), this, SLOT( general_threshold() ) );
 }
 
-void iAThresholdingModuleInterface::general_threshold()
+void iAMaskingModuleInterface::general_threshold()
 {
 	//set parameters
 	QSettings settings;
