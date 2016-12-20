@@ -237,7 +237,7 @@ void iADetailView::ChangeModality(int offset)
 	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->Get(m_magicLensCurrentModality)->ComponentCount())
 	{
 		m_magicLensCurrentComponent = 0;
-		m_magicLensCurrentModality = (m_magicLensCurrentModality + (offset>0) ? 1 : -1) % m_modalities->size();
+		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();
 	}
 
 	// TODO: refactor to remove duplication between here and DblClicked above
