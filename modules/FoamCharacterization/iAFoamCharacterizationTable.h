@@ -22,6 +22,8 @@
 
 #include <QTableWidget>
 
+class QDropEvent;
+
 class iAFoamCharacterizationTable : public QTableWidget
 {
 		Q_OBJECT
@@ -30,7 +32,13 @@ class iAFoamCharacterizationTable : public QTableWidget
 		explicit iAFoamCharacterizationTable(QWidget* _pParent = nullptr);
 
 	private:
+		int m_iRowDrag = -1;
+		int m_iRowDrop = -1;
+
+		void dragDropSort(QTableWidgetItem** _pItem, const int& _iCount);
 
 	protected:
+		virtual void dropEvent(QDropEvent* e) override;
+		virtual void mousePressEvent(QMouseEvent* e) override;
 		virtual void resizeEvent(QResizeEvent* e) override;
 };

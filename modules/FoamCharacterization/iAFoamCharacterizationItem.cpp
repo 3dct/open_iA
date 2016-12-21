@@ -23,8 +23,12 @@
 
 iAFoamCharacterizationItem::iAFoamCharacterizationItem(const EItemType& _eItemType) : QTableWidgetItem(), m_eItemType (_eItemType)
 {
+	QFont f(font());
+	f.setBold(true);
 
+	setFont(f);
 }
+
 
 iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 {

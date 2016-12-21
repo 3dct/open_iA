@@ -25,3 +25,8 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter() : iAFoamCha
 {
 	setText("Filter");
 }
+
+void iAFoamCharacterizationItemFilter::execute()
+{
+
+}

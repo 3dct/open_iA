@@ -27,5 +27,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 	public:
 		explicit iAFoamCharacterizationItemFilter();
 
+		virtual void execute() override;
+
 	private:
 };

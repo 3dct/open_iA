@@ -27,5 +27,7 @@ class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 	public:
 		explicit iAFoamCharacterizationItemWatershed();
 
+		virtual void execute() override;
+
 	private:
 };

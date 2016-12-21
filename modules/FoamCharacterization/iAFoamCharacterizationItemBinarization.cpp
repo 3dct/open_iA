@@ -25,3 +25,8 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization()
 {
 	setText("Binarization");
 }
+
+void iAFoamCharacterizationItemBinarization::execute()
+{
+
+}

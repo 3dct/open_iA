@@ -27,5 +27,7 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 	public:
 		explicit iAFoamCharacterizationItemBinarization();
 
+		virtual void execute() override;
+
 	private:
 };
