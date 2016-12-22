@@ -84,7 +84,7 @@ private slots:
 	void StoreDerivedOutput();
 	void SamplingAdded(QSharedPointer<iASamplingResults>);
 private:
-	void StoreGEMSeProject(QString const & fileName);
+	void StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts);
 	void EnableClusteringDependantUI();
 	void EnableSamplingDependantUI();
 	void StoreDerivedOutput(

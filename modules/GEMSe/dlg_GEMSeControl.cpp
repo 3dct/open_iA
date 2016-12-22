@@ -399,13 +399,6 @@ void dlg_GEMSeControl::ClusteringFinished()
 		DEBUG_LOG("Clusterer aborted / missing Clustering Result!");
 		return;
 	}
-	m_dlgGEMSe->SetTree(
-		m_clusterer->GetResult(),
-		originalImage,
-		m_dlgModalities->GetModalities(),
-		*m_simpleLabelInfo.data(),
-		m_dlgSamplings->GetSamplings()
-	);
 	if (!m_outputFolder.isEmpty())
 	{
 		m_cltFile = m_outputFolder + "/" + iASEAFile::DefaultCLTFileName;
@@ -415,8 +408,15 @@ void dlg_GEMSeControl::ClusteringFinished()
 		{
 			m_dlgModalities->Store(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
 		}
-		StoreGEMSeProject(m_outputFolder + "/sampling.sea");
+		StoreGEMSeProject(m_outputFolder + "/sampling.sea", "");
 	}
+	m_dlgGEMSe->SetTree(
+		m_clusterer->GetResult(),
+		originalImage,
+		m_dlgModalities->GetModalities(),
+		*m_simpleLabelInfo.data(),
+		m_dlgSamplings->GetSamplings()
+	);
 	EnableClusteringDependantUI();
 }
 
@@ -449,11 +449,11 @@ void dlg_GEMSeControl::StoreAll()
 	{
 		return;
 	}
-	StoreGEMSeProject(fileName);
+	StoreGEMSeProject(fileName, m_dlgGEMSe->GetSerializedHiddenCharts());
 }
 
 
-void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
+void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts)
 {
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
@@ -468,7 +468,7 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName)
 		m_cltFile,
 		mdiChild->GetLayoutName(),
 		leRefImage->text(),
-		m_dlgGEMSe->GetSerializedHiddenCharts());
+		hiddenCharts);
 	metaFile.Store(fileName);
 }
 

@@ -779,6 +779,8 @@ int dlg_GEMSe::GetRepresentativeType() const
 
 QString dlg_GEMSe::GetSerializedHiddenCharts() const
 {
+	if (!m_histogramContainer)
+		return QString();
 	return m_histogramContainer->GetSerializedHiddenCharts();
 }
 

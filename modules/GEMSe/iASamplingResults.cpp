@@ -142,6 +142,7 @@ bool iASamplingResults::Store(QString const & fileName,
 	QTextStream out(&paramRangeFile);
 	QFileInfo fi(paramRangeFile);
 	out << SMPFileFormatVersion << endl;
+	out << "Name" << Output::NameSeparator << m_name << endl;
 	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << endl;
 	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << endl;
 	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << endl;
