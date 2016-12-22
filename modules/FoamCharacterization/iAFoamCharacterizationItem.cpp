@@ -34,3 +34,8 @@ iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 {
 
 }
+
+iAFoamCharacterizationItem::EItemType iAFoamCharacterizationItem::itemType() const
+{
+	return m_eItemType;
+}

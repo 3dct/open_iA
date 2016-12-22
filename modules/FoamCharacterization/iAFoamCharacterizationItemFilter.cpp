@@ -21,9 +21,43 @@
 
 #include "iAFoamCharacterizationItemFilter.h"
 
-iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter() : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
+#include <QPainter>
+
+iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter()
+	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
 {
+	QScopedPointer<QImage> pImage(new QImage(32,32,QImage::Format_ARGB32));
+	pImage->fill(0);
+
+	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
+	pPainter->setBrush(Qt::red);
+	pPainter->setPen(Qt::red);
+	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
+
+	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+
 	setText("Filter");
+}
+
+iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter)
+	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
+{
+	QScopedPointer<QImage> pImage(new QImage(32, 32, QImage::Format_ARGB32));
+	pImage->fill(0);
+
+	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
+	pPainter->setBrush(Qt::red);
+	pPainter->setPen(Qt::red);
+	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
+
+	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+
+	setText(_pFilter->text());
+}
+
+void iAFoamCharacterizationItemFilter::dialog()
+{
+
 }
 
 void iAFoamCharacterizationItemFilter::execute()

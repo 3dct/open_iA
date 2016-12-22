@@ -31,14 +31,24 @@ class iAFoamCharacterizationTable : public QTableWidget
 	public:
 		explicit iAFoamCharacterizationTable(QWidget* _pParent = nullptr);
 
+		void addBinarization();
+		void addFilter();
+		void addWatershed();
+
+		void execute();
+
 	private:
 		int m_iRowDrag = -1;
 		int m_iRowDrop = -1;
 
-		void dragDropSort(QTableWidgetItem** _pItem, const int& _iCount);
+		int m_iCountBinarization = 0;
+		int m_iCountFilter = 0;
+		int m_iCountWatershed = 0;
 
-	protected:
+protected:
 		virtual void dropEvent(QDropEvent* e) override;
+		virtual void keyPressEvent(QKeyEvent* e) override;
+		virtual void mouseDoubleClickEvent(QMouseEvent*) override;
 		virtual void mousePressEvent(QMouseEvent* e) override;
 		virtual void resizeEvent(QResizeEvent* e) override;
 };

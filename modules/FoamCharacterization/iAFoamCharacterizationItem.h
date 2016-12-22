@@ -31,6 +31,9 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		explicit iAFoamCharacterizationItem(const EItemType& _eItemType = itFilter);
 		virtual ~iAFoamCharacterizationItem();
 
+		EItemType itemType() const;
+
+		virtual void dialog() = 0;
 		virtual void execute() = 0;
 
 	protected:

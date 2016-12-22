@@ -23,6 +23,7 @@
 
 #include <QHeaderView>
 #include <QDropEvent>
+#include <QMessageBox>
 
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationItemFilter.h"
@@ -35,7 +36,6 @@ iAFoamCharacterizationTable::iAFoamCharacterizationTable(QWidget* _pParent) : QT
 	setDragDropMode(QAbstractItemView::InternalMove);
 	setDragDropOverwriteMode(false);
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
-	setFocusPolicy(Qt::NoFocus);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 
 	horizontalHeader()->setSectionsClickable(false);
@@ -45,49 +45,45 @@ iAFoamCharacterizationTable::iAFoamCharacterizationTable(QWidget* _pParent) : QT
 
 	const QStringList slLabels("Foam characterization protocol");
 	setHorizontalHeaderLabels(slLabels);
-
-	setRowCount(5);
-
-	iAFoamCharacterizationItemFilter* pItem1(new iAFoamCharacterizationItemFilter());
-	setItem(0, 0, pItem1);
-
-	iAFoamCharacterizationItemFilter* pItem2(new iAFoamCharacterizationItemFilter());
-	setItem(1, 0, pItem2);
-
-	iAFoamCharacterizationItemFilter* pItem3(new iAFoamCharacterizationItemFilter());
-	setItem(2, 0, pItem3);
-
-	iAFoamCharacterizationItemBinarization* pItem4(new iAFoamCharacterizationItemBinarization());
-	setItem(3, 0, pItem4);
-
-	iAFoamCharacterizationItemWatershed* pItem5(new iAFoamCharacterizationItemWatershed());
-	setItem(4, 0, pItem5);
 }
 
-void iAFoamCharacterizationTable::dragDropSort(QTableWidgetItem** _pItem, const int& _iCount)
+void iAFoamCharacterizationTable::addBinarization()
 {
-	if (m_iRowDrag < m_iRowDrop)
-	{
-		QTableWidgetItem* pItemDrag(_pItem[m_iRowDrag]);
+	const int n(rowCount());
 
-		for (int i(m_iRowDrag); i < m_iRowDrop; ++i)
-		{
-			_pItem[i] = _pItem[i + 1];
-		}
+	setRowCount(n + 1);
 
-		_pItem[m_iRowDrop] = pItemDrag;
-	}
-	else
-	{
-		QTableWidgetItem* pItemDrag(_pItem[m_iRowDrag]);
+	++m_iCountBinarization;
 
-		for (int i(m_iRowDrag); i > m_iRowDrop; --i)
-		{
-			_pItem[i] = _pItem[i - 1];
-		}
+	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization());
+	pItem->setText(pItem->text() + QString(" %1").arg(m_iCountBinarization));
+	setItem(n, 0, pItem);
+}
 
-		_pItem[m_iRowDrop] = pItemDrag;
-	}
+void iAFoamCharacterizationTable::addFilter()
+{
+	const int n(rowCount());
+
+	setRowCount(n + 1);
+
+	++m_iCountFilter;
+
+	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter());
+	pItem->setText(pItem->text() + QString(" %1").arg(m_iCountFilter));
+	setItem(n, 0, pItem);
+}
+
+void iAFoamCharacterizationTable::addWatershed()
+{
+	const int n(rowCount());
+
+	setRowCount(n + 1);
+
+	++m_iCountWatershed;
+
+	iAFoamCharacterizationItemWatershed* pItem(new iAFoamCharacterizationItemWatershed());
+	pItem->setText(pItem->text() + QString(" %1").arg(m_iCountWatershed));
+	setItem(n, 0, pItem);
 }
 
 void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
@@ -98,24 +94,90 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 
 		if ((m_iRowDrop > -1) && (m_iRowDrag != m_iRowDrop))
 		{
-			const int n (rowCount());
+			iAFoamCharacterizationItem* pItemDrag((iAFoamCharacterizationItem*) item(m_iRowDrag, 0));
 
-			QTableWidgetItem** pItem;
-			pItem = new QTableWidgetItem*[n];
-
-			for (int i(0); i < n; ++i)
+			if (pItemDrag->itemType() == iAFoamCharacterizationItem::itBinarization)
 			{
-				pItem[i] = new QTableWidgetItem(*item(i, 0));
-				takeItem(i, 0);
+				pItemDrag =
+					new iAFoamCharacterizationItemBinarization((iAFoamCharacterizationItemBinarization*) takeItem(m_iRowDrag, 0));
+			}
+			else if (pItemDrag->itemType() == iAFoamCharacterizationItem::itFilter)
+			{
+				pItemDrag = new iAFoamCharacterizationItemFilter((iAFoamCharacterizationItemFilter*) takeItem(m_iRowDrag, 0));
+			}
+			else
+			{
+				pItemDrag =
+					      new iAFoamCharacterizationItemWatershed((iAFoamCharacterizationItemWatershed*) takeItem(m_iRowDrag, 0));
 			}
 
-			dragDropSort(pItem, n);
-
-			for (int i(0); i < n; ++i)
+			if (m_iRowDrag < m_iRowDrop)
 			{
-				setItem(i, 0, pItem[i]);
+				int ii(m_iRowDrag + 1);
+
+				for (int i(m_iRowDrag); i < m_iRowDrop; ++i, ++ii)
+				{
+					setItem(i, 0, (iAFoamCharacterizationItem*) takeItem(ii, 0));
+				}
+			}
+			else
+			{
+				int ii(m_iRowDrag - 1);
+
+				for (int i(m_iRowDrag); i > m_iRowDrop; --i, --ii)
+				{
+					setItem(i, 0, (iAFoamCharacterizationItem*) takeItem(ii, 0));
+				}
+			}
+
+			setItem(m_iRowDrop, 0, pItemDrag);
+		}
+	}
+}
+
+void iAFoamCharacterizationTable::execute()
+{
+	const int n(rowCount());
+
+	for (int i (0) ; i < n ; ++i)
+	{
+		((iAFoamCharacterizationItem*) item(i, 0))->execute();
+	}
+}
+
+void iAFoamCharacterizationTable::keyPressEvent(QKeyEvent* e)
+{
+	if (e->key() == Qt::Key_Delete)
+	{
+		QModelIndexList mlIndex(selectedIndexes());
+
+		if (mlIndex.size())
+		{
+			const int iRowSelected(mlIndex.at(0).row());
+
+			if (QMessageBox::information(this, "Information", "Delete " + item(iRowSelected, 0)->text() + "?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+			{
+				removeRow(iRowSelected);
 			}
 		}
+
+		e->accept();
+	}
+	else
+	{
+		QTableWidget::keyPressEvent(e);
+	}
+}
+
+void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent*)
+{
+	QModelIndexList mlIndex(selectedIndexes());
+
+	if (mlIndex.size())
+	{
+		iAFoamCharacterizationItem* pItem ((iAFoamCharacterizationItem*) item(mlIndex.at(0).row(), 0));
+
+		pItem->dialog();
 	}
 }
 

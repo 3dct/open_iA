@@ -26,6 +26,7 @@
 
 #include <iADockWidgetWrapper.h>
 
+#include <QPushButton>
 #include <QGroupBox>
 #include <QGridlayout>
 
@@ -40,14 +41,50 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 
 	QGroupBox* pGroupBox1(new QGroupBox("Foam characterization", pWidget));
 
+	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
+	connect(pPushButtonFilter, SIGNAL(clicked()), this, SLOT(slotPushButtonFilter()));
+
+	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
+	connect(pPushButtonBinarization, SIGNAL(clicked()), this, SLOT(slotPushButtonBinarization()));
+
+	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
+	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
+
 	m_pTable = new iAFoamCharacterizationTable(pWidget);
 
+	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
+	connect(pPushButtonExecute, SIGNAL(clicked()), this, SLOT(slotPushButtonExecute()));
+
 	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
-	pGridLayout1->addWidget(m_pTable);
+	pGridLayout1->addWidget(pPushButtonFilter, 0 ,0);
+	pGridLayout1->addWidget(pPushButtonBinarization, 0, 1);
+	pGridLayout1->addWidget(pPushButtonWatershed, 0, 2);
+	pGridLayout1->addWidget(m_pTable, 1, 0, 1, 3);
+	pGridLayout1->addWidget(pPushButtonExecute, 2, 1);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pGroupBox1);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Foam characterization"), "FoamCharacterization"));
 	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, pDockWidgetWrapper);
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonBinarization()
+{
+	m_pTable->addBinarization();
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonExecute()
+{
+
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonFilter()
+{
+	m_pTable->addFilter();
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonWatershed()
+{
+	m_pTable->addWatershed();
 }

@@ -26,7 +26,9 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 {
 	public:
 		explicit iAFoamCharacterizationItemBinarization();
+		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationItemBinarization* _pBinarization);
 
+		virtual void dialog() override;
 		virtual void execute() override;
 
 	private:

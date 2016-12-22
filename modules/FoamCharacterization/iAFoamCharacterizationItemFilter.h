@@ -26,7 +26,9 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
 	public:
 		explicit iAFoamCharacterizationItemFilter();
+		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
 
+		virtual void dialog() override;
 		virtual void execute() override;
 
 	private:
