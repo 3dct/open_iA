@@ -20,23 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QTableWidgetItem>
+#include "iAFoamCharacterizationDialog.h"
 
-class iAFoamCharacterizationItem : public QTableWidgetItem
+#include "iAFoamCharacterizationItemBinarization.h"
+
+class iAFoamCharacterizationDialogBinarization : public iAFoamCharacterizationDialog
 {
-	public:
-		enum EItemType { itBinarization, itFilter, itWatershed};
+		Q_OBJECT
 
 	public:
-		explicit iAFoamCharacterizationItem(const EItemType& _eItemType = itFilter);
-		virtual ~iAFoamCharacterizationItem();
+		explicit iAFoamCharacterizationDialogBinarization
+		                                            (iAFoamCharacterizationItemBinarization* _pItem, QWidget* _pParent = nullptr);
 
-		EItemType itemType() const;
-		QString itemTypeStr() const;
-
-		virtual void dialog() = 0;
-		virtual void execute() = 0;
-
-	protected:
-		EItemType m_eItemType = itFilter;
+	protected slots:
+		virtual void slotPushButtonOk() override;
 };

@@ -21,6 +21,10 @@
 
 #include "iAFoamCharacterizationItem.h"
 
+#include <QApplication>
+
+#include "iAFoamCharacterizationDialog.h"
+
 iAFoamCharacterizationItem::iAFoamCharacterizationItem(const EItemType& _eItemType) : QTableWidgetItem(), m_eItemType (_eItemType)
 {
 	QFont f(font());
@@ -38,4 +42,22 @@ iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 iAFoamCharacterizationItem::EItemType iAFoamCharacterizationItem::itemType() const
 {
 	return m_eItemType;
+}
+
+QString iAFoamCharacterizationItem::itemTypeStr() const
+{
+	switch (m_eItemType)
+	{
+		case itBinarization:
+		return "Binarization";
+		break;
+
+		case itFilter:
+		return "Filter";
+		break;
+
+		default:
+		return "Watershed";
+		break;
+	}
 }

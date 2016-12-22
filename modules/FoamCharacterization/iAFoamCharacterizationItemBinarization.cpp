@@ -21,7 +21,10 @@
 
 #include "iAFoamCharacterizationItemBinarization.h"
 
+#include <QApplication>
 #include <QPainter>
+
+#include "iAFoamCharacterizationDialogBinarization.h"
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization()
 	                                                      : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itBinarization)
@@ -58,7 +61,9 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 
 void iAFoamCharacterizationItemBinarization::dialog()
 {
-
+	QScopedPointer<iAFoamCharacterizationDialogBinarization> pDialog
+	                                                    (new iAFoamCharacterizationDialogBinarization(this, qApp->focusWidget()));
+	pDialog->exec();
 }
 
 void iAFoamCharacterizationItemBinarization::execute()

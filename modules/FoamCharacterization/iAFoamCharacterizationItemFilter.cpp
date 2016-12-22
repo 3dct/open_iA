@@ -21,7 +21,10 @@
 
 #include "iAFoamCharacterizationItemFilter.h"
 
+#include <QApplication>
 #include <QPainter>
+
+#include "iAFoamCharacterizationDialogFilter.h"
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter()
 	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
@@ -57,7 +60,8 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharact
 
 void iAFoamCharacterizationItemFilter::dialog()
 {
-
+	QScopedPointer<iAFoamCharacterizationDialogFilter> pDialog(new iAFoamCharacterizationDialogFilter(this, qApp->focusWidget()));
+	pDialog->exec();
 }
 
 void iAFoamCharacterizationItemFilter::execute()

@@ -20,23 +20,30 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QTableWidgetItem>
+#include <QDialog>
 
-class iAFoamCharacterizationItem : public QTableWidgetItem
+#include<QLineEdit>
+
+#include "iAFoamCharacterizationItem.h"
+
+class iAFoamCharacterizationDialog : public QDialog
 {
-	public:
-		enum EItemType { itBinarization, itFilter, itWatershed};
+		Q_OBJECT
 
 	public:
-		explicit iAFoamCharacterizationItem(const EItemType& _eItemType = itFilter);
-		virtual ~iAFoamCharacterizationItem();
+		explicit iAFoamCharacterizationDialog(iAFoamCharacterizationItem* _pItem, QWidget* _pParent = nullptr);
+		virtual ~iAFoamCharacterizationDialog();
 
-		EItemType itemType() const;
-		QString itemTypeStr() const;
+	private:
+		QLineEdit* m_pLineEdit1 = nullptr;
 
-		virtual void dialog() = 0;
-		virtual void execute() = 0;
+	private slots:
+		void slotPushButtonCancel();
 
 	protected:
-		EItemType m_eItemType = itFilter;
+		iAFoamCharacterizationItem* m_pItem = nullptr;
+
+	protected slots:
+		virtual void slotPushButtonOk() = 0;
+
 };

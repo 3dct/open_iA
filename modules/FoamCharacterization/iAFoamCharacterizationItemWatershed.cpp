@@ -21,7 +21,10 @@
 
 #include "iAFoamCharacterizationItemWatershed.h"
 
+#include <QApplication>
 #include <QPainter>
+
+#include "iAFoamCharacterizationDialogWatershed.h"
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed()
 	                                                         : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itWatershed)
@@ -57,7 +60,9 @@ iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamC
 
 void iAFoamCharacterizationItemWatershed::dialog()
 {
-
+	QScopedPointer<iAFoamCharacterizationDialogWatershed> pDialog
+	                                                      (new iAFoamCharacterizationDialogWatershed(this, qApp->focusWidget()));
+	pDialog->exec();
 }
 
 void iAFoamCharacterizationItemWatershed::execute()
