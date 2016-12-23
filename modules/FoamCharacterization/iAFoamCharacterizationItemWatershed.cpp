@@ -29,15 +29,7 @@
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed()
 	                                                         : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itWatershed)
 {
-	QScopedPointer<QImage> pImage(new QImage(32, 32, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush(Qt::blue);
-	pPainter->setPen(Qt::blue);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+	setItemIcon();
 
 	setText("Watershed");
 }
@@ -45,15 +37,7 @@ iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed()
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed)
 	                                                         : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itWatershed)
 {
-	QScopedPointer<QImage> pImage(new QImage(32, 32, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush(Qt::blue);
-	pPainter->setPen(Qt::blue);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+	setItemIcon();
 
 	setText(_pWatershed->text());
 }
@@ -68,4 +52,19 @@ void iAFoamCharacterizationItemWatershed::dialog()
 void iAFoamCharacterizationItemWatershed::execute()
 {
 
+}
+
+void iAFoamCharacterizationItemWatershed::setItemIcon()
+{
+	const int iImageLength(qMax(font().pixelSize(), font().pointSize()));
+
+	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
+	pImage->fill(0);
+
+	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
+	pPainter->setBrush((m_bItemEnabled) ? QBrush(Qt::blue) : Qt::NoBrush);
+	pPainter->setPen(Qt::blue);
+	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
+
+	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
 }

@@ -29,7 +29,8 @@
 #include "iAFoamCharacterizationItemFilter.h"
 #include "iAFoamCharacterizationItemWatershed.h"
 
-iAFoamCharacterizationTable::iAFoamCharacterizationTable(QWidget* _pParent) : QTableWidget(_pParent)
+iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent) : QTableWidget(_pParent)
+																									   , m_pImageData (_pImageData)
 {
 	setCursor(Qt::PointingHandCursor);
 
@@ -68,7 +69,7 @@ void iAFoamCharacterizationTable::addFilter()
 
 	++m_iCountFilter;
 
-	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter());
+	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter(m_pImageData));
 	pItem->setText(pItem->text() + QString(" %1").arg(m_iCountFilter));
 	setItem(n, 0, pItem);
 }
@@ -147,26 +148,33 @@ void iAFoamCharacterizationTable::execute()
 
 void iAFoamCharacterizationTable::keyPressEvent(QKeyEvent* e)
 {
-	if (e->key() == Qt::Key_Delete)
+	QModelIndexList mlIndex(selectedIndexes());
+
+	if (mlIndex.size())
 	{
-		QModelIndexList mlIndex(selectedIndexes());
+		const int iRowSelected(mlIndex.at(0).row());
 
-		if (mlIndex.size())
+		if (e->key() == Qt::Key_Delete)
 		{
-			const int iRowSelected(mlIndex.at(0).row());
-
-			if (QMessageBox::information(this, "Information", "Delete " + item(iRowSelected, 0)->text() + "?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+			if ( QMessageBox::information ( this, "Information", "Delete " + item(iRowSelected, 0)->text() + "?"
+				                          , QMessageBox::Yes, QMessageBox::No
+			                              ) == QMessageBox::Yes
+			   )
 			{
 				removeRow(iRowSelected);
 			}
-		}
 
-		e->accept();
+			e->accept();
+		}
+		else if ((e->key() == Qt::Key_Enter) || (e->key() == Qt::Key_Return))
+		{
+			((iAFoamCharacterizationItem*)item(mlIndex.at(0).row(), 0))->dialog();
+
+			e->accept();
+		}
 	}
-	else
-	{
-		QTableWidget::keyPressEvent(e);
-	}
+
+	QTableWidget::keyPressEvent(e);
 }
 
 void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent*)
@@ -175,7 +183,7 @@ void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent*)
 
 	if (mlIndex.size())
 	{
-		iAFoamCharacterizationItem* pItem ((iAFoamCharacterizationItem*) item(mlIndex.at(0).row(), 0));
+		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(mlIndex.at(0).row(), 0));
 
 		pItem->dialog();
 	}
@@ -183,14 +191,24 @@ void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent*)
 
 void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 {
-	m_iRowDrag = indexAt(e->pos()).row();
+	const QPoint ptMouse (e->pos());
+
+	m_iRowDrag = indexAt(ptMouse).row();
+
+	if (m_iRowDrag > -1)
+	{
+		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(m_iRowDrag, 0));
+
+		if (ptMouse.x() < logicalDpiX() / 7)
+		{
+			pItem->setItemEnabled(!pItem->itemEnabled());
+		}
+	}
 
 	QTableWidget::mousePressEvent(e);
 }
 
-void iAFoamCharacterizationTable::resizeEvent(QResizeEvent* e)
+void iAFoamCharacterizationTable::resizeEvent(QResizeEvent*)
 {
 	setColumnWidth(0, viewport()->width());
-
-	QTableWidget::resizeEvent(e);
 }

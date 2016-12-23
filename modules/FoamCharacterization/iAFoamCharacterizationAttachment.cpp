@@ -34,8 +34,9 @@
 
 #include "iAFoamCharacterizationTable.h"
 
-iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData) : iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
-																													, m_pImageData (_iaChildData.imgData)
+iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData)
+																			  : iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
+																			  , m_pImageData (_iaChildData.imgData)
 {
 	QWidget* pWidget(new QWidget());
 
@@ -50,7 +51,7 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
 	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
 
-	m_pTable = new iAFoamCharacterizationTable(pWidget);
+	m_pTable = new iAFoamCharacterizationTable(m_pImageData, pWidget);
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
 	connect(pPushButtonExecute, SIGNAL(clicked()), this, SLOT(slotPushButtonExecute()));

@@ -29,15 +29,7 @@
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization()
 	                                                      : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itBinarization)
 {
-	QScopedPointer<QImage> pImage(new QImage(32, 32, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush(Qt::green);
-	pPainter->setPen(Qt::green);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+	setItemIcon();
 
 	setText("Binarization");
 }
@@ -46,15 +38,7 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
                                                                           (iAFoamCharacterizationItemBinarization* _pBinarization)
 	                                                      : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itBinarization)
 {
-	QScopedPointer<QImage> pImage(new QImage(32, 32, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush(Qt::green);
-	pPainter->setPen(Qt::green);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+	setItemIcon();
 
 	setText(_pBinarization->text());
 }
@@ -69,4 +53,19 @@ void iAFoamCharacterizationItemBinarization::dialog()
 void iAFoamCharacterizationItemBinarization::execute()
 {
 
+}
+
+void iAFoamCharacterizationItemBinarization::setItemIcon()
+{
+	const int iImageLength(qMax(font().pixelSize(), font().pointSize()));
+
+	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
+	pImage->fill(0);
+
+	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
+	pPainter->setBrush((m_bItemEnabled) ? QBrush(Qt::green) : Qt::NoBrush);
+	pPainter->setPen(Qt::green);
+	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
+
+	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
 }

@@ -23,13 +23,14 @@
 #include <QTableWidget>
 
 class QDropEvent;
+class vtkImageData;
 
 class iAFoamCharacterizationTable : public QTableWidget
 {
 		Q_OBJECT
 
 	public:
-		explicit iAFoamCharacterizationTable(QWidget* _pParent = nullptr);
+		explicit iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
 
 		void addBinarization();
 		void addFilter();
@@ -45,10 +46,12 @@ class iAFoamCharacterizationTable : public QTableWidget
 		int m_iCountFilter = 0;
 		int m_iCountWatershed = 0;
 
-protected:
+		vtkImageData* m_pImageData = nullptr;
+
+	protected:
 		virtual void dropEvent(QDropEvent* e) override;
 		virtual void keyPressEvent(QKeyEvent* e) override;
 		virtual void mouseDoubleClickEvent(QMouseEvent*) override;
 		virtual void mousePressEvent(QMouseEvent* e) override;
-		virtual void resizeEvent(QResizeEvent* e) override;
+		virtual void resizeEvent(QResizeEvent*) override;
 };

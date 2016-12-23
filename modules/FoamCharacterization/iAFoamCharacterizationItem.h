@@ -31,12 +31,20 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		explicit iAFoamCharacterizationItem(const EItemType& _eItemType = itFilter);
 		virtual ~iAFoamCharacterizationItem();
 
+		bool itemEnabled() const;
+
 		EItemType itemType() const;
 		QString itemTypeStr() const;
+
+		void setItemEnabled(const bool& _bEnabled);
 
 		virtual void dialog() = 0;
 		virtual void execute() = 0;
 
 	protected:
+		bool m_bItemEnabled = true;
+
 		EItemType m_eItemType = itFilter;
+
+		virtual void setItemIcon() = 0;
 };

@@ -26,18 +26,11 @@
 
 #include "iAFoamCharacterizationDialogFilter.h"
 
-iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter()
+iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(vtkImageData* _pImageData)
 	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
+																, m_pImageData (_pImageData)
 {
-	QScopedPointer<QImage> pImage(new QImage(32,32,QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush(Qt::red);
-	pPainter->setPen(Qt::red);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+	setItemIcon();
 
 	setText("Filter");
 }
@@ -45,17 +38,11 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter()
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter)
 	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
 {
-	QScopedPointer<QImage> pImage(new QImage(32, 32, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush(Qt::red);
-	pPainter->setPen(Qt::red);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+	setItemIcon();
 
 	setText(_pFilter->text());
+
+	m_pImageData = _pFilter->imageData();
 }
 
 void iAFoamCharacterizationItemFilter::dialog()
@@ -67,4 +54,24 @@ void iAFoamCharacterizationItemFilter::dialog()
 void iAFoamCharacterizationItemFilter::execute()
 {
 
+}
+
+vtkImageData* iAFoamCharacterizationItemFilter::imageData() const
+{
+	return m_pImageData;
+}
+
+void iAFoamCharacterizationItemFilter::setItemIcon()
+{
+	const int iImageLength(qMax(font().pixelSize(), font().pointSize()));
+
+	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
+	pImage->fill(0);
+
+	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
+	pPainter->setBrush((m_bItemEnabled) ? QBrush(Qt::red) : Qt::NoBrush);
+	pPainter->setPen(Qt::red);
+	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
+
+	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
 }

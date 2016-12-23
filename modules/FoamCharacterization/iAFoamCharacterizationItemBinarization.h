@@ -30,6 +30,6 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 
 		virtual void dialog() override;
 		virtual void execute() override;
+		virtual void setItemIcon() override;
 
-	private:
 };

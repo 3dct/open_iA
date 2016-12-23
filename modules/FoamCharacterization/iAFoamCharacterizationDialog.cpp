@@ -44,6 +44,9 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 	pGridLayout1->addWidget(pLabel1, 0, 0);
 	pGridLayout1->addWidget(m_pLineEdit1, 0, 1);
 
+	m_pCheckBoxEnabled = new QCheckBox("Enabled", this);
+	m_pCheckBoxEnabled->setChecked(m_pItem->itemEnabled());
+	
 	QDialogButtonBox* pDialogButtonBox(new QDialogButtonBox(this));
 
 	QPushButton* pPushButtonCancel(new QPushButton("Cancel", pDialogButtonBox));
@@ -58,8 +61,9 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 	pDialogButtonBox->addButton(pPushButtonOk, QDialogButtonBox::AcceptRole);
 
 	QGridLayout* pGridLayout(new QGridLayout(this));
-	pGridLayout->addWidget(pGroupBox1);
-	pGridLayout->addWidget(pDialogButtonBox);
+	pGridLayout->addWidget(  pGroupBox1);
+	pGridLayout->addWidget(m_pCheckBoxEnabled);
+	pGridLayout->addWidget(  pDialogButtonBox);
 }
 
 iAFoamCharacterizationDialog::~iAFoamCharacterizationDialog()
@@ -75,6 +79,8 @@ void iAFoamCharacterizationDialog::slotPushButtonCancel()
 void iAFoamCharacterizationDialog::slotPushButtonOk()
 {
 	m_pItem->setText(m_pLineEdit1->text());
+
+	m_pItem->setItemEnabled(m_pCheckBoxEnabled->isChecked());
 
 	accept();
 }

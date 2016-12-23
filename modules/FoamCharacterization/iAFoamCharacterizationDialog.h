@@ -22,6 +22,7 @@
 
 #include <QDialog>
 
+#include<QCheckBox>
 #include<QLineEdit>
 
 #include "iAFoamCharacterizationItem.h"
@@ -35,6 +36,7 @@ class iAFoamCharacterizationDialog : public QDialog
 		virtual ~iAFoamCharacterizationDialog();
 
 	private:
+		QCheckBox* m_pCheckBoxEnabled = nullptr;
 		QLineEdit* m_pLineEdit1 = nullptr;
 
 	private slots:

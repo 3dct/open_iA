@@ -39,6 +39,11 @@ iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 
 }
 
+bool iAFoamCharacterizationItem::itemEnabled() const
+{
+	return m_bItemEnabled;
+}
+
 iAFoamCharacterizationItem::EItemType iAFoamCharacterizationItem::itemType() const
 {
 	return m_eItemType;
@@ -60,4 +65,11 @@ QString iAFoamCharacterizationItem::itemTypeStr() const
 		return "Watershed";
 		break;
 	}
+}
+
+void iAFoamCharacterizationItem::setItemEnabled(const bool& _bItemEnabled)
+{
+	m_bItemEnabled = _bItemEnabled;
+
+	setItemIcon();
 }

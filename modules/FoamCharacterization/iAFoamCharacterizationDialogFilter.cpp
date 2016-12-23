@@ -30,5 +30,7 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 
 void iAFoamCharacterizationDialogFilter::slotPushButtonOk()
 {
+
+
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

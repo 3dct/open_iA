@@ -22,14 +22,21 @@
 
 #include "iAFoamCharacterizationItem.h"
 
+class vtkImageData;
+
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
 	public:
-		explicit iAFoamCharacterizationItemFilter();
+		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
+
+		vtkImageData* imageData() const;
 
 		virtual void dialog() override;
 		virtual void execute() override;
+		virtual void setItemIcon() override;
 
 	private:
+		vtkImageData* m_pImageData = nullptr;
+
 };
