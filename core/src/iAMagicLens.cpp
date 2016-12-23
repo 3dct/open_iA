@@ -52,35 +52,70 @@ namespace
 	const int CaptionFontSize = 13;
 }
 
-iAMagicLens::iAMagicLens() :
-		m_qvtkWidget(0), 
-		m_isEnabled(false), 
-		m_splitPosition(0.65f),
-		m_isInitialized(false),
-		m_size(DEFAULT_SIZE)
+
+LensData::LensData()
+{}
+
+LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate):
+	m_qvtkWidget(new iAFramedQVTKWidget2(parent, shareWidget, f)),
+	m_ren(vtkSmartPointer<vtkRenderer>::New()),
+	m_cam(vtkSmartPointer<vtkCamera>::New()),
+	m_renWnd(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
+	m_imageToColors(vtkSmartPointer<vtkImageMapToColors>::New()),
+	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
+	m_bgImageToColors(vtkSmartPointer<vtkImageMapToColors>::New()),
+	m_bgImageActor(vtkSmartPointer<vtkImageActor>::New()),
+	m_textActor(vtkSmartPointer<vtkTextActor>::New())
 {
-	SetViewMode(CENTERED);
-	m_ren = vtkSmartPointer<vtkRenderer>::New();
-	m_cam = vtkSmartPointer<vtkCamera>::New();
-	m_renWnd = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	m_w2i = vtkSmartPointer<vtkWindowToImageFilter>::New();
-	m_imageToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-	m_bgImageToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+	m_bgImageActor->SetInputData(m_bgImageToColors->GetOutput());
+	m_bgImageActor->GetMapper()->BorderOn();
+	m_bgImageActor->SetOpacity(1.0);
+	m_bgImageActor->SetInterpolate(interpolate);
+
+	m_imageActor->SetInputData(m_imageToColors->GetOutput());
+	m_imageActor->GetMapper()->BorderOn();
+	m_imageActor->SetOpacity(1.0);
+	m_imageActor->SetInterpolate(interpolate);
+
+	m_textActor->SetInput("");
+	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
+#if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
+	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
+	m_textActor->GetTextProperty()->SetBackgroundOpacity(0.5);
+#endif
+	m_textActor->GetTextProperty()->SetFontSize(CaptionFontSize);
+	double textMargin = m_qvtkWidget->GetFrameWidth() + CaptionFrameDistance;
+	m_textActor->SetPosition(textMargin, textMargin);
 
 	m_cam->ParallelProjectionOn();
 
 	m_ren->SetActiveCamera(m_cam);
 	m_ren->ResetCamera();
 	m_ren->InteractiveOff();
+	m_ren->AddActor2D(m_textActor);
+	m_ren->AddActor(m_bgImageActor);
+	m_ren->AddActor(m_imageActor);
 
-	m_bgImageActor = vtkSmartPointer<vtkImageActor>::New();
-	m_bgImageActor->SetInputData(m_bgImageToColors->GetOutput());
-	m_bgImageActor->GetMapper()->BorderOn();
+	m_renWnd->AddRenderer(m_ren);
+	m_renWnd->DoubleBufferOn();
 
-	m_imageActor = vtkSmartPointer<vtkImageActor>::New();
-	m_imageActor->SetInputData(m_imageToColors->GetOutput());
-	m_imageActor->GetMapper()->BorderOn();
-	m_imageActor->SetOpacity(1.0);
+	m_qvtkWidget->SetRenderWindow(m_renWnd);
+	m_qvtkWidget->SetCrossHair(false);
+	m_qvtkWidget->SetFrameStyle(iAFramedQVTKWidget2::FRAMED);
+
+	m_renWnd->GetInteractor()->Disable();
+}
+
+iAMagicLens::iAMagicLens() :
+	m_isEnabled(false), 
+	m_splitPosition(0.65f),
+	m_isInitialized(false),
+	m_size(DEFAULT_SIZE),
+	m_lensCount(1),
+	m_lenses(1),
+	m_interpolate(false)
+{
+	m_viewMode = CENTERED;
 /*
 	// ORIENTATION / ROTATION FIX:
 	// make orientation the same as in other image viewers:
@@ -91,42 +126,33 @@ iAMagicLens::iAMagicLens() :
 	};
 	m_imageActor->SetOrientation(orientation);
 */
-
-	m_textActor = vtkSmartPointer<vtkTextActor>::New();
-	m_textActor->GetTextProperty()->SetFontSize ( CaptionFontSize );
-	m_textActor->SetPosition( GetFrameWidth() + CaptionFrameDistance, GetFrameWidth() + CaptionFrameDistance);
-	m_ren->AddActor2D ( m_textActor );
-	m_textActor->SetInput("");
-	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
-#if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
-	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
-	m_textActor->GetTextProperty()->SetBackgroundOpacity(0.5);
-#endif
-	m_ren->AddActor(m_bgImageActor);
-	m_ren->AddActor(m_imageActor);
-	
-	m_renWnd->AddRenderer(m_ren);
-	m_renWnd->DoubleBufferOn();
 }
 
 
 void iAMagicLens::SetCaption(std::string const & caption)
 {
-	m_textActor->SetInput(caption.c_str() );
+	// TODO: store in channel ?
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	{
+		m_lenses.at(i).m_textActor->SetInput(caption.c_str());
+	}
 }
 
 
 void iAMagicLens::SetFrameWidth(qreal frameWidth)
 {
-	m_qvtkWidget->SetFrameWidth(frameWidth);
-	m_textActor->SetPosition(GetFrameWidth() + CaptionFrameDistance, GetFrameWidth() + CaptionFrameDistance);
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	{
+		m_lenses.at(i).m_qvtkWidget->SetFrameWidth(frameWidth);
+		m_lenses.at(i).m_textActor->SetPosition(GetFrameWidth() + CaptionFrameDistance, GetFrameWidth() + CaptionFrameDistance);
+	}
 }
 
 qreal iAMagicLens::GetFrameWidth() const
 {
-	if (m_qvtkWidget)
+	if (m_lenses.size() > 0)
 	{
-		return m_qvtkWidget->GetFrameWidth();
+		return m_lenses.at(m_lenses.firstIndex()).m_qvtkWidget->GetFrameWidth();
 	}
 	else
 	{
@@ -141,53 +167,48 @@ iAMagicLens::~iAMagicLens()
 void iAMagicLens::Render()
 {
 	if(m_isInitialized)
-		m_renWnd->Render();
+		for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+		{
+			m_lenses.at(i).m_renWnd->Render();
+		}
 }
 
 void iAMagicLens::SetEnabled( bool isEnabled )
 {
 	m_isEnabled = isEnabled;
-	if(m_isEnabled)
-		m_qvtkWidget->show();
-	else
-		m_qvtkWidget->hide();
-}
-
-void iAMagicLens::SetRenderWindow( vtkGenericOpenGLRenderWindow * renWnd )
-{
-	m_qvtkWidget->SetRenderWindow(renWnd);
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	{
+		if (m_isEnabled)
+			m_lenses.at(i).m_qvtkWidget->show();
+		else
+			m_lenses.at(i).m_qvtkWidget->hide();
+	}
 }
 
 void iAMagicLens::SetGeometry( QRect & rect )
 {
 	m_viewedRect = rect;
-	QRect offsetRect = QRect(	rect.x() + m_offset[0], 
-								rect.y() + m_offset[1],
-								rect.width(), rect.height());
-	
-	if(m_viewMode == SIDE_BY_SIDE)
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
 	{
-		int splitOffset = GetSplitOffset();
-		offsetRect = QRect(	offsetRect.x()	+ splitOffset, offsetRect.y(),
-							rect.width()	- splitOffset, rect.height());
+		QRect offsetRect = QRect(rect.x() + m_lenses.at(i).m_offset[0],
+			rect.y() + m_lenses.at(i).m_offset[1],
+			rect.width(), rect.height());
+
+		if (m_viewMode == SIDE_BY_SIDE)
+		{
+			int splitOffset = GetSplitOffset();
+			offsetRect = QRect(offsetRect.x() + splitOffset, offsetRect.y(),
+				rect.width() - splitOffset, rect.height());
+		}
+		m_lenses.at(i).m_qvtkWidget->setGeometry(offsetRect);
 	}
-	m_qvtkWidget->setGeometry(offsetRect);
 }
 
-void iAMagicLens::InitWidget( QWidget * parent /*= NULL*/, const QGLWidget * shareWidget/*=0*/, Qt::WindowFlags f /*= 0*/ )
+void iAMagicLens::InitWidget( QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
 {
-	if(m_qvtkWidget)
-		delete m_qvtkWidget;
-	m_qvtkWidget = new iAFramedQVTKWidget2(parent, shareWidget, f);
-	m_qvtkWidget->hide();
-	m_qvtkWidget->setEnabled(false);
-	m_qvtkWidget->SetRenderWindow(m_renWnd);
-	m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
-	QRect rect = QRect(0, 0, 100, 100);
-	SetGeometry( rect );
-	m_renWnd->GetInteractor()->Disable();
-	//m_renWnd->OffScreenRenderingOn();
-	m_w2i->SetInput(m_renWnd);
+	m_parent = parent;
+	m_shareWidget = shareWidget;
+	m_flags = f;
 }
 
 void iAMagicLens::SetScaleCoefficient( double scaleCoefficient )
@@ -197,32 +218,29 @@ void iAMagicLens::SetScaleCoefficient( double scaleCoefficient )
 
 void iAMagicLens::UpdateCamera( double focalPt[3], vtkCamera * cam )
 {
-	//set focal point and corresponding scale
-	m_cam->SetFocalPoint(focalPt);
-	m_cam->SetParallelScale(cam->GetParallelScale()*m_scaleCoefficient);
-	m_cam->SetRoll(cam->GetRoll());
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	{
+		//set focal point and corresponding scale
+		m_lenses.at(i).m_cam->SetFocalPoint(focalPt);
+		m_lenses.at(i).m_cam->SetParallelScale(cam->GetParallelScale()*m_scaleCoefficient);
+		m_lenses.at(i).m_cam->SetRoll(cam->GetRoll());
 
-	//set camera position
-	double dir[3]; cam->GetDirectionOfProjection(dir);
-	//vtkMath::MultiplyScalar(dir, cam->GetDistance());	//causes display error
-	double res[3];
-	vtkMath::Subtract(focalPt, dir, res);
-	m_cam->SetPosition(res);
+		//set camera position
+		double dir[3]; cam->GetDirectionOfProjection(dir);
+		double res[3];
+		vtkMath::Subtract(focalPt, dir, res);
+		m_lenses.at(i).m_cam->SetPosition(res);
+	}
 }
 
 void iAMagicLens::Repaint()
 {
-	m_qvtkWidget->repaint();
-}
-
-const QObject * iAMagicLens::GetQObject() const
-{
-	return m_qvtkWidget;
+	m_lenses.at(0).m_qvtkWidget->repaint();
 }
 
 void iAMagicLens::Frame()
 {
-	m_renWnd->Frame();
+	m_lenses.at(0).m_renWnd->Frame();
 }
 
 bool iAMagicLens::Enabled()
@@ -232,15 +250,20 @@ bool iAMagicLens::Enabled()
 
 void iAMagicLens::SetPaintingLocked( bool isLocked )
 {
-	m_qvtkWidget->setAttribute(Qt::WA_PaintOnScreen, isLocked);
+	m_lenses.at(0).m_qvtkWidget->setAttribute(Qt::WA_PaintOnScreen, isLocked);
 }
 
 void iAMagicLens::SetViewMode( ViewMode mode )
 {
+	if (m_lensCount > 1)
+		mode = OFFSET;
 	m_viewMode = mode;
-	if (m_qvtkWidget)
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
 	{
-		m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
+		if (m_lenses.at(i).m_qvtkWidget)
+		{
+			m_lenses.at(i).m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
+		}
 	}
 	UpdateOffset();
 	UpdateShowFrame();
@@ -248,17 +271,41 @@ void iAMagicLens::SetViewMode( ViewMode mode )
 
 void iAMagicLens::UpdateOffset()
 {
-	switch (m_viewMode)
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
 	{
-	case CENTERED:
-		m_offset[0] = m_offset[1] = 0; 
-		break;
-	case OFFSET:
-		m_offset[0] = GetOffset(0);	m_offset[1] = GetOffset(1);
-		break;
-	case SIDE_BY_SIDE:
-		m_offset[0] = m_offset[1] = 0;
-		break;
+		switch (m_viewMode)
+		{
+		case CENTERED:
+		case SIDE_BY_SIDE:
+			m_lenses[i].m_offset[0] = m_lenses[i].m_offset[1] = 0;
+			break;
+		case OFFSET:
+			switch (i - m_lenses.firstIndex())
+			{	// current pattern: 8 neighbours around middle, starting at right middle
+			case 0:	case 1:	case 7:
+				m_lenses[i].m_offset[0] = m_size + OFFSET_MODE_X_OFFSET;
+				break;
+			case 2:	case 6:
+				m_lenses[i].m_offset[0] = 0;
+				break;
+			case 3:	case 4:	case 5:
+				m_lenses[i].m_offset[0] = - (m_size + OFFSET_MODE_X_OFFSET);
+				break;
+			}
+			switch (i - m_lenses.firstIndex())
+			{
+			case 0:	case 4:
+				m_lenses[i].m_offset[1] = 0;
+				break;
+			case 1:	case 2: case 3:
+				m_lenses[i].m_offset[1] = -(m_size + OFFSET_MODE_X_OFFSET);
+				break;
+			case 5:	case 6:	case 7:
+				m_lenses[i].m_offset[1] = m_size + OFFSET_MODE_X_OFFSET;
+				break;
+			}
+			break;
+		}
 	}
 }
 
@@ -286,8 +333,10 @@ QRect iAMagicLens::GetViewRect() const
 
 void iAMagicLens::SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle )
 {
-	if(m_qvtkWidget)
-		m_qvtkWidget->SetFrameStyle(frameStyle);
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	{
+		m_lenses.at(i).m_qvtkWidget->SetFrameStyle(frameStyle);
+	}
 }
 
 int iAMagicLens::GetSplitOffset() const
@@ -300,23 +349,40 @@ int iAMagicLens::GetCenterSplitOffset() const
 	return qRound( 0.5 * m_viewedRect.width() * (1.f - m_splitPosition) );
 }
 
-void iAMagicLens::SetInput( vtkImageReslice * reslicer, vtkScalarsToColors * cTF,
+void iAMagicLens::AddInput( vtkImageReslice * reslicer, vtkScalarsToColors * cTF,
 	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF )
 {
 	if (!reslicer->GetInput())
 	{
 		return;
 	}
+	LensData l(m_parent, m_shareWidget, m_flags, m_interpolate);
+	l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
 
-	m_imageToColors->SetInputConnection( reslicer->GetOutputPort() );
-	m_imageToColors->SetLookupTable( cTF );
-	m_imageToColors->Update();
+	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
+	l.m_imageToColors->SetLookupTable(cTF);
+	l.m_imageToColors->Update();
 
-	m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
-	m_bgImageToColors->SetLookupTable( bgCTF);
-	m_bgImageToColors->Update();
+	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
+	l.m_bgImageToColors->SetLookupTable(bgCTF);
+	l.m_bgImageToColors->Update();
+
+	m_lensCount = m_lenses.size()+1;
+	m_lenses.setCapacity(m_lensCount);
+	m_lenses.append(l);
 
 	m_isInitialized = true;
+	UpdateOffset();
+	UpdateShowFrame();
+}
+
+
+void iAMagicLens::SetLensCount(int count)
+{
+	m_lensCount = count;
+	SetViewMode(OFFSET);
+	if (m_lenses.size() == 0)
+		return;
 }
 
 
@@ -324,8 +390,11 @@ void iAMagicLens::UpdateColors()
 {
 	if (m_isInitialized)
 	{
-		m_imageToColors->Update();
-		m_bgImageToColors->Update();
+		for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+		{
+			m_lenses.at(i).m_imageToColors->Update();
+			m_lenses.at(i).m_bgImageToColors->Update();
+		}
 	}
 }
 
@@ -346,29 +415,32 @@ void iAMagicLens::SetSize(int newSize)
 	UpdateOffset();
 }
 
-int iAMagicLens::GetOffset(int idx) const
+int iAMagicLens::GetOffset() const
 {
-	switch(idx)
-	{
-	case 0:
-		return m_size + OFFSET_MODE_X_OFFSET;
-	default:
-		return 0;
-	}
+	return m_size + OFFSET_MODE_X_OFFSET;
 }
 
 void iAMagicLens::SetInterpolate(bool on)
 {
-	m_imageActor->SetInterpolate(on);
-	m_bgImageActor->SetInterpolate(on);
+	m_interpolate = on;
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	{
+		m_lenses.at(i).m_imageActor->SetInterpolate(on);
+		m_lenses.at(i).m_bgImageActor->SetInterpolate(on);
+	}
 }
 
 void iAMagicLens::SetOpacity(double opacity)
 {
-	m_imageActor->SetOpacity(opacity);
+	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	{
+		m_lenses.at(i).m_imageActor->SetOpacity(opacity);
+	}
 }
 
 double iAMagicLens::GetOpacity()
 {
-	return m_imageActor->GetOpacity();
+	if (m_lenses.size() == 0)
+		return 0;
+	return m_lenses.at(m_lenses.firstIndex()).m_imageActor->GetOpacity();
 }

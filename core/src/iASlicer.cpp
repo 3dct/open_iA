@@ -316,6 +316,7 @@ void iASlicer::SetMagicLensSize(int newSize)
 		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
+	newSize = (std::min)(newSize, (std::min)(widget()->geometry().width(), widget()->geometry().height()));
 	m_magicLens->SetSize(newSize);
 	m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / widget()->height());
 	widget()->updateMagicLens();

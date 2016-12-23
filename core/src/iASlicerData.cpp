@@ -1706,7 +1706,7 @@ void iASlicerData::setMagicLensInput(iAChannelID id)
 	}
 	if (m_magicLensExternal)
 	{
-		m_magicLensExternal->SetInput(data->reslicer, data->GetLookupTable(),
+		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(),
 			reslicer, colorTransferFunction);
 	}
 }
