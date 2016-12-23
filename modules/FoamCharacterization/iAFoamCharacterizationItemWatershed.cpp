@@ -22,23 +22,19 @@
 #include "iAFoamCharacterizationItemWatershed.h"
 
 #include <QApplication>
-#include <QPainter>
+#include <QFile>
 
 #include "iAFoamCharacterizationDialogWatershed.h"
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed()
 	                                                         : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itWatershed)
 {
-	setItemIcon();
-
 	setText("Watershed");
 }
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed)
 	                                                         : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itWatershed)
 {
-	setItemIcon();
-
 	setText(_pWatershed->text());
 }
 
@@ -54,17 +50,12 @@ void iAFoamCharacterizationItemWatershed::execute()
 
 }
 
-void iAFoamCharacterizationItemWatershed::setItemIcon()
+void iAFoamCharacterizationItemWatershed::open(QFile* _pFileOpen)
 {
-	const int iImageLength(qMax(font().pixelSize(), font().pointSize()));
+	iAFoamCharacterizationItem::open(_pFileOpen);
+}
 
-	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush((m_bItemEnabled) ? QBrush(Qt::blue) : Qt::NoBrush);
-	pPainter->setPen(Qt::blue);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+void iAFoamCharacterizationItemWatershed::save(QFile* _pFileSave)
+{
+	iAFoamCharacterizationItem::save(_pFileSave);
 }

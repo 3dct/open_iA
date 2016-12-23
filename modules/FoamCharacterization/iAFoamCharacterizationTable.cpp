@@ -87,6 +87,14 @@ void iAFoamCharacterizationTable::addWatershed()
 	setItem(n, 0, pItem);
 }
 
+void iAFoamCharacterizationTable::clear()
+{
+	while (rowCount())
+	{
+		removeRow(0);
+	}
+}
+
 void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 {
 	if ((e->source() == this) && (m_iRowDrag > -1))
@@ -208,7 +216,64 @@ void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 	QTableWidget::mousePressEvent(e);
 }
 
+void iAFoamCharacterizationTable::open(const QString& _sFilename)
+{
+	QScopedPointer<QFile> pFileOpen(new QFile(_sFilename));
+
+	if (pFileOpen->open(QIODevice::ReadOnly))
+	{
+		clear();
+
+		int n (0);
+		pFileOpen->read((char*)&n, sizeof(n));
+
+		for (int i(0); i < n; ++i)
+		{
+			iAFoamCharacterizationItem::EItemType eItemType;
+			pFileOpen->read((char*) &eItemType, sizeof(eItemType));
+
+			switch (eItemType)
+			{
+				case iAFoamCharacterizationItem::itBinarization:
+				addBinarization();
+				break;
+
+				case iAFoamCharacterizationItem::itFilter:
+				addFilter();
+				break;
+
+				default:
+				addWatershed();
+				break;
+			}
+
+			((iAFoamCharacterizationItem*)item(i, 0))->open(pFileOpen.data());
+		}
+
+		pFileOpen->close();
+	}
+}
+
 void iAFoamCharacterizationTable::resizeEvent(QResizeEvent*)
 {
 	setColumnWidth(0, viewport()->width());
+}
+
+void iAFoamCharacterizationTable::save(const QString& _sFilename)
+{
+	QScopedPointer<QFile> pFileSave(new QFile(_sFilename));
+
+	if (pFileSave->open(QIODevice::WriteOnly))
+	{
+		const int n(rowCount());
+
+		pFileSave->write((char*) &n, sizeof(n));
+
+		for (int i(0); i < n; ++i)
+		{
+			((iAFoamCharacterizationItem*)item(i, 0))->save(pFileSave.data());
+		}
+
+		pFileSave->close();
+	}
 }

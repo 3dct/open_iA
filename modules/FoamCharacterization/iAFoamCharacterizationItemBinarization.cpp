@@ -22,15 +22,13 @@
 #include "iAFoamCharacterizationItemBinarization.h"
 
 #include <QApplication>
-#include <QPainter>
+#include <QFile>
 
 #include "iAFoamCharacterizationDialogBinarization.h"
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization()
 	                                                      : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itBinarization)
 {
-	setItemIcon();
-
 	setText("Binarization");
 }
 
@@ -38,8 +36,6 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
                                                                           (iAFoamCharacterizationItemBinarization* _pBinarization)
 	                                                      : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itBinarization)
 {
-	setItemIcon();
-
 	setText(_pBinarization->text());
 }
 
@@ -55,17 +51,12 @@ void iAFoamCharacterizationItemBinarization::execute()
 
 }
 
-void iAFoamCharacterizationItemBinarization::setItemIcon()
+void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 {
-	const int iImageLength(qMax(font().pixelSize(), font().pointSize()));
+	iAFoamCharacterizationItem::open(_pFileOpen);
+}
 
-	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush((m_bItemEnabled) ? QBrush(Qt::green) : Qt::NoBrush);
-	pPainter->setPen(Qt::green);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+void iAFoamCharacterizationItemBinarization::save(QFile* _pFileSave)
+{
+	iAFoamCharacterizationItem::save(_pFileSave);
 }

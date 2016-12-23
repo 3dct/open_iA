@@ -22,6 +22,8 @@
 
 #include "iAFoamCharacterizationItem.h"
 
+class QFile;
+
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
 	public:
@@ -30,6 +32,6 @@ class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 
 		virtual void dialog() override;
 		virtual void execute() override;
-		virtual void setItemIcon() override;
-
+		virtual void open(QFile* _pFileOpen) override;
+		virtual void save(QFile* _pFileSave) override;
 };

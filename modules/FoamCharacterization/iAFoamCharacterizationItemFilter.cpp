@@ -22,7 +22,7 @@
 #include "iAFoamCharacterizationItemFilter.h"
 
 #include <QApplication>
-#include <QPainter>
+#include <QFile>
 
 #include "iAFoamCharacterizationDialogFilter.h"
 
@@ -30,16 +30,12 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(vtkImageData*
 	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
 																, m_pImageData (_pImageData)
 {
-	setItemIcon();
-
 	setText("Filter");
 }
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter)
 	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
 {
-	setItemIcon();
-
 	setText(_pFilter->text());
 
 	m_pImageData = _pFilter->imageData();
@@ -61,17 +57,12 @@ vtkImageData* iAFoamCharacterizationItemFilter::imageData() const
 	return m_pImageData;
 }
 
-void iAFoamCharacterizationItemFilter::setItemIcon()
+void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 {
-	const int iImageLength(qMax(font().pixelSize(), font().pointSize()));
+	iAFoamCharacterizationItem::open(_pFileOpen);
+}
 
-	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
-	pImage->fill(0);
-
-	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
-	pPainter->setBrush((m_bItemEnabled) ? QBrush(Qt::red) : Qt::NoBrush);
-	pPainter->setPen(Qt::red);
-	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-
-	setIcon(QIcon(QPixmap::fromImage(*pImage.data())));
+void iAFoamCharacterizationItemFilter::save(QFile* _pFileSave)
+{
+	iAFoamCharacterizationItem::save(_pFileSave);
 }

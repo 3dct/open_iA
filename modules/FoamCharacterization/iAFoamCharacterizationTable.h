@@ -36,7 +36,12 @@ class iAFoamCharacterizationTable : public QTableWidget
 		void addFilter();
 		void addWatershed();
 
+		void clear();
+
 		void execute();
+
+		void open(const QString& _sFilename);
+		void save(const QString& _sFilename);
 
 	private:
 		int m_iRowDrag = -1;

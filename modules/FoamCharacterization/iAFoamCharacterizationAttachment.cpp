@@ -26,12 +26,18 @@
 
 #include <iADockWidgetWrapper.h>
 
+#include <QApplication>
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QGroupBox>
 #include <QGridlayout>
 
 #include <vtkImageData.h>
 
+#include "iAFoamCharacterizationItemBinarization.h"
+#include "iAFoamCharacterizationItemFilter.h"
+#include "iAFoamCharacterizationItemWatershed.h"
 #include "iAFoamCharacterizationTable.h"
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData)
@@ -42,26 +48,48 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 
 	QGroupBox* pGroupBox1(new QGroupBox("Foam characterization", pWidget));
 
+	QPushButton* pPushButtonOpen(new QPushButton("Open table...", pWidget));
+	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
+	connect(pPushButtonOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonOpen()));
+
+	QPushButton* pPushButtonSave(new QPushButton("Save table...", pWidget));
+	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
+	connect(pPushButtonSave, SIGNAL(clicked()), this, SLOT(slotPushButtonSave()));
+
+	QPushButton* pPushButtonClear(new QPushButton("Clear table...", pWidget));
+	pPushButtonClear->setIcon(qApp->style()->standardIcon(QStyle::SP_FileIcon));
+	connect(pPushButtonClear, SIGNAL(clicked()), this, SLOT(slotPushButtonClear()));
+
 	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
+	iAFoamCharacterizationItemFilter itemFilter;
+	pPushButtonFilter->setIcon(itemFilter.itemButtonIcon());
 	connect(pPushButtonFilter, SIGNAL(clicked()), this, SLOT(slotPushButtonFilter()));
 
 	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
+	iAFoamCharacterizationItemBinarization itemBinarization;
+	pPushButtonBinarization->setIcon(itemBinarization.itemButtonIcon());
 	connect(pPushButtonBinarization, SIGNAL(clicked()), this, SLOT(slotPushButtonBinarization()));
 
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
+	iAFoamCharacterizationItemWatershed itemWatershed;
+	pPushButtonWatershed->setIcon(itemWatershed.itemButtonIcon());
 	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
 
 	m_pTable = new iAFoamCharacterizationTable(m_pImageData, pWidget);
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
+	pPushButtonExecute->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton));
 	connect(pPushButtonExecute, SIGNAL(clicked()), this, SLOT(slotPushButtonExecute()));
 
 	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
-	pGridLayout1->addWidget(pPushButtonFilter, 0 ,0);
-	pGridLayout1->addWidget(pPushButtonBinarization, 0, 1);
-	pGridLayout1->addWidget(pPushButtonWatershed, 0, 2);
-	pGridLayout1->addWidget(m_pTable, 1, 0, 1, 3);
-	pGridLayout1->addWidget(pPushButtonExecute, 2, 1);
+	pGridLayout1->addWidget(pPushButtonOpen, 0, 0);
+	pGridLayout1->addWidget(pPushButtonSave, 0, 1);
+	pGridLayout1->addWidget(pPushButtonClear, 0, 2);
+	pGridLayout1->addWidget(pPushButtonFilter, 0, 3);
+	pGridLayout1->addWidget(pPushButtonBinarization, 0, 4);
+	pGridLayout1->addWidget(pPushButtonWatershed, 0, 5);
+	pGridLayout1->addWidget(m_pTable, 1, 0, 1, 6);
+	pGridLayout1->addWidget(pPushButtonExecute, 2, 2, 1, 2);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pGroupBox1);
@@ -75,6 +103,17 @@ void iAFoamCharacterizationAttachment::slotPushButtonBinarization()
 	m_pTable->addBinarization();
 }
 
+void iAFoamCharacterizationAttachment::slotPushButtonClear()
+{
+	if ( QMessageBox::information (m_childData.child, "Information", "Clear table? All items will be removed."
+								  , QMessageBox::Yes, QMessageBox::No
+								  ) == QMessageBox::Yes
+	   )
+	{
+		m_pTable->clear();
+	}
+}
+
 void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 {
 
@@ -83,6 +122,45 @@ void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 void iAFoamCharacterizationAttachment::slotPushButtonFilter()
 {
 	m_pTable->addFilter();
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonOpen()
+{
+	QPushButton* pPushButtonOpen((QPushButton*)sender());
+
+	QScopedPointer<QFileDialog> pFileDialog(new QFileDialog());
+	pFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
+	pFileDialog->setDefaultSuffix("fch");
+	pFileDialog->setFileMode(QFileDialog::ExistingFile);
+	pFileDialog->setNameFilter("Foam characterization table file (*.fch)");
+	pFileDialog->setWindowTitle(pPushButtonOpen->text());
+
+	if (pFileDialog->exec())
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		qApp->processEvents();
+		m_pTable->open(pFileDialog->selectedFiles().first());
+		qApp->restoreOverrideCursor();
+	}
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonSave()
+{
+	QPushButton* pPushButtonSave((QPushButton*)sender());
+
+	QFileDialog* pFileDialog(new QFileDialog());
+	pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
+	pFileDialog->setDefaultSuffix("fch");
+	pFileDialog->setNameFilter("Foam characterization table file (*.fch)");
+	pFileDialog->setWindowTitle(pPushButtonSave->text());
+
+	if (pFileDialog->exec())
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		qApp->processEvents();
+		m_pTable->save(pFileDialog->selectedFiles().first());
+		qApp->restoreOverrideCursor();
+	}
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonWatershed()

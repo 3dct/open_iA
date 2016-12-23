@@ -22,19 +22,22 @@
 
 #include "iAFoamCharacterizationItem.h"
 
+class QFile;
+
 class vtkImageData;
 
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
 	public:
-		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData);
+		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData = nullptr);
 		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
 
 		vtkImageData* imageData() const;
 
 		virtual void dialog() override;
 		virtual void execute() override;
-		virtual void setItemIcon() override;
+		virtual void open(QFile* _pFileOpen) override;
+		virtual void save(QFile* _pFileSave) override;
 
 	private:
 		vtkImageData* m_pImageData = nullptr;

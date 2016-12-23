@@ -22,6 +22,8 @@
 
 #include <QTableWidgetItem>
 
+class QFile;
+
 class iAFoamCharacterizationItem : public QTableWidgetItem
 {
 	public:
@@ -30,6 +32,8 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 	public:
 		explicit iAFoamCharacterizationItem(const EItemType& _eItemType = itFilter);
 		virtual ~iAFoamCharacterizationItem();
+
+		QIcon itemButtonIcon() const;
 
 		bool itemEnabled() const;
 
@@ -40,11 +44,20 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 		virtual void dialog() = 0;
 		virtual void execute() = 0;
+		virtual void open(QFile* _pFileOpen) = 0;
+		virtual void save(QFile* _pFileSave) = 0;
+
+	private:
+		QColor m_cItemIcon = Qt::black;
+
+		QString fileRead(QFile* _pFileOpen);
+		void fileWrite(QFile* _pFileSave, const QString& _sText);
+
+		void setItemIcon();
+		void setItemIconColor();
 
 	protected:
 		bool m_bItemEnabled = true;
 
 		EItemType m_eItemType = itFilter;
-
-		virtual void setItemIcon() = 0;
 };
