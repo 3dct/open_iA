@@ -22,6 +22,8 @@
 
 #include "iAModuleAttachmentToChild.h"
 
+#include <vtkSmartPointer.h>
+
 class iAFoamCharacterizationTable;
 class vtkImageData;
 
@@ -33,7 +35,8 @@ class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
 		iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
 
 	private:
-		vtkImageData* m_pImageData;
+		vtkImageData* m_pImageData = nullptr;
+		vtkSmartPointer<vtkImageData> m_pImageRestore = nullptr;
 
 		iAFoamCharacterizationTable* m_pTable = nullptr;
 
@@ -43,6 +46,7 @@ class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
 		void slotPushButtonExecute();
 		void slotPushButtonFilter();
 		void slotPushButtonOpen();
+		void slotPushButtonRestore();
 		void slotPushButtonSave();
 		void slotPushButtonWatershed();
 };

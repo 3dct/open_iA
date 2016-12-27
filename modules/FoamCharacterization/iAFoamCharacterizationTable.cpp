@@ -35,8 +35,8 @@ iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageDa
 	setCursor(Qt::PointingHandCursor);
 
 	setDragDropMode(QAbstractItemView::InternalMove);
-	setDragDropOverwriteMode(false);
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
+	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 
 	horizontalHeader()->setSectionsClickable(false);
@@ -146,10 +146,15 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 
 void iAFoamCharacterizationTable::execute()
 {
+	setFocus();
+
 	const int n(rowCount());
 
 	for (int i (0) ; i < n ; ++i)
 	{
+		selectRow(i);
+		repaint();
+
 		((iAFoamCharacterizationItem*) item(i, 0))->execute();
 	}
 }
@@ -185,8 +190,10 @@ void iAFoamCharacterizationTable::keyPressEvent(QKeyEvent* e)
 	QTableWidget::keyPressEvent(e);
 }
 
-void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent*)
+void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent* e)
 {
+	QTableWidget::mouseDoubleClickEvent(e);
+
 	QModelIndexList mlIndex(selectedIndexes());
 
 	if (mlIndex.size())

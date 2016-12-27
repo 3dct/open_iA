@@ -33,7 +33,11 @@
 #include <QGroupBox>
 #include <QGridlayout>
 
+#include <itkGradientAnisotropicDiffusionImageFilter.h>
+#include <itkMedianImageFilter.h>
 #include <vtkImageData.h>
+
+#include "iAConnector.h"
 
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationItemFilter.h"
@@ -42,8 +46,11 @@
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData)
 																			  : iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
-																			  , m_pImageData (_iaChildData.imgData)
+																			  , m_pImageData(_iaChildData.imgData)
 {
+	m_pImageRestore = vtkImageData::New();
+	m_pImageRestore->DeepCopy(m_pImageData);
+
 	QWidget* pWidget(new QWidget());
 
 	QGroupBox* pGroupBox1(new QGroupBox("Foam characterization", pWidget));
@@ -81,6 +88,10 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	pPushButtonExecute->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton));
 	connect(pPushButtonExecute, SIGNAL(clicked()), this, SLOT(slotPushButtonExecute()));
 
+	QPushButton* pPushButtonRestore(new QPushButton("Restore image", pWidget));
+	pPushButtonRestore->setIcon(qApp->style()->standardIcon(QStyle::SP_DriveHDIcon));
+	connect(pPushButtonRestore, SIGNAL(clicked()), this, SLOT(slotPushButtonRestore()));
+
 	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
 	pGridLayout1->addWidget(pPushButtonOpen, 0, 0);
 	pGridLayout1->addWidget(pPushButtonSave, 0, 1);
@@ -89,7 +100,8 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	pGridLayout1->addWidget(pPushButtonBinarization, 0, 4);
 	pGridLayout1->addWidget(pPushButtonWatershed, 0, 5);
 	pGridLayout1->addWidget(m_pTable, 1, 0, 1, 6);
-	pGridLayout1->addWidget(pPushButtonExecute, 2, 2, 1, 2);
+	pGridLayout1->addWidget(pPushButtonExecute, 2, 0);
+	pGridLayout1->addWidget(pPushButtonRestore, 2, 5);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pGroupBox1);
@@ -105,9 +117,9 @@ void iAFoamCharacterizationAttachment::slotPushButtonBinarization()
 
 void iAFoamCharacterizationAttachment::slotPushButtonClear()
 {
-	if ( QMessageBox::information (m_childData.child, "Information", "Clear table? All items will be removed."
-								  , QMessageBox::Yes, QMessageBox::No
-								  ) == QMessageBox::Yes
+	if ( QMessageBox::question ( m_childData.child, "Question", "Clear table? All items will be removed."
+							   , QMessageBox::Yes, QMessageBox::No
+							   ) == QMessageBox::Yes
 	   )
 	{
 		m_pTable->clear();
@@ -116,7 +128,31 @@ void iAFoamCharacterizationAttachment::slotPushButtonClear()
 
 void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 {
+	qApp->setOverrideCursor(Qt::WaitCursor);
+	//m_pTable->execute();
 
+	int* pDimension (m_pImageData->GetDimensions());
+	unsigned short* pData((unsigned short*) m_pImageData->GetScalarPointer());
+	memset(pData, 65535, pDimension[0] * pDimension[1] * pDimension[2] * sizeof(unsigned short));
+	m_pImageData->Modified();
+/*
+	typedef itk::MedianImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter (itkFilter::New());
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->Update();
+	
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+*/
+	m_childData.child->updateViews();
+	qApp->restoreOverrideCursor();
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonFilter()
@@ -140,6 +176,20 @@ void iAFoamCharacterizationAttachment::slotPushButtonOpen()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		qApp->processEvents();
 		m_pTable->open(pFileDialog->selectedFiles().first());
+		qApp->restoreOverrideCursor();
+	}
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonRestore()
+{
+	if ( QMessageBox::question(m_childData.child, "Question", "Restore original image?", QMessageBox::Yes, QMessageBox::No)
+		 == QMessageBox::Yes
+	   )
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		qApp->processEvents();
+		m_pImageData->DeepCopy(m_pImageRestore);
+		m_childData.child->updateViews();
 		qApp->restoreOverrideCursor();
 	}
 }
