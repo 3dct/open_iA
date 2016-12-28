@@ -26,9 +26,14 @@
 #include <QFile>
 #include <QTextStream>
 
+#include <vtkImageData.h>
+
 #include "iAFoamCharacterizationDialog.h"
 
-iAFoamCharacterizationItem::iAFoamCharacterizationItem(const EItemType& _eItemType) : QTableWidgetItem(), m_eItemType (_eItemType)
+iAFoamCharacterizationItem::iAFoamCharacterizationItem(vtkImageData* _pImageData, const EItemType& _eItemType)
+	                                                                                                   : QTableWidgetItem()
+																									   , m_eItemType(_eItemType)
+																									   , m_pImageData(_pImageData)
 {
 	QFont f(font());
 	f.setBold(true);
@@ -37,12 +42,38 @@ iAFoamCharacterizationItem::iAFoamCharacterizationItem(const EItemType& _eItemTy
 
 	setItemIconColor();
 	setItemIcon();
+
+	m_sName = itemTypeStr();
+
+	setText(m_sName);
 }
 
 
 iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 {
 
+}
+
+QString iAFoamCharacterizationItem::executeTimeString() const
+{
+	const int iSecond((int) m_dExecute);
+
+	const int iH(iSecond / 3600);
+	const int iM((iSecond - 3600 * iH) / 60);
+	const int iS(iSecond - 3600 * iH - 60 * iM);
+
+	if (iH)
+	{
+		return QString("%1 h %2 m %3 s").arg(iH).arg(iM).arg(iS);
+	}
+	else if (iM)
+	{
+		return QString("%1 m %2 s").arg(iM).arg(iS);
+	}
+	else
+	{
+		return QString("%1 s").arg(m_dExecute);
+	}
 }
 
 QString iAFoamCharacterizationItem::fileRead(QFile* _pFileOpen)
@@ -62,6 +93,11 @@ void iAFoamCharacterizationItem::fileWrite(QFile* _pFileSave, const QString& _sT
 	_pFileSave->write((char*)&iText, sizeof(iText));
 
 	_pFileSave->write((char*)_sText.toStdString().c_str(), iText);
+}
+
+vtkImageData* iAFoamCharacterizationItem::imageData() const
+{
+	return m_pImageData;
 }
 
 QIcon iAFoamCharacterizationItem::itemButtonIcon() const
@@ -110,13 +146,18 @@ QString iAFoamCharacterizationItem::itemTypeStr() const
 	}
 }
 
+QString iAFoamCharacterizationItem::name() const
+{
+	return m_sName;
+}
+
 void iAFoamCharacterizationItem::open(QFile* _pFileOpen)
 {
 	bool bItemEnabled;
 	_pFileOpen->read((char*)& bItemEnabled, sizeof(bItemEnabled));
 	setItemEnabled(bItemEnabled);
 
-	setText(fileRead(_pFileOpen));
+	setName(fileRead(_pFileOpen));
 }
 
 void iAFoamCharacterizationItem::save(QFile* _pFileSave)
@@ -124,7 +165,7 @@ void iAFoamCharacterizationItem::save(QFile* _pFileSave)
 	_pFileSave->write((char*)&m_eItemType, sizeof(m_eItemType));
 	_pFileSave->write((char*)&m_bItemEnabled, sizeof(m_bItemEnabled));
 
-	fileWrite(_pFileSave, text());
+	fileWrite(_pFileSave, m_sName);
 }
 
 void iAFoamCharacterizationItem::setItemIcon()
@@ -165,4 +206,38 @@ void iAFoamCharacterizationItem::setItemEnabled(const bool& _bItemEnabled)
 	m_bItemEnabled = _bItemEnabled;
 
 	setItemIcon();
+}
+
+void iAFoamCharacterizationItem::setItemText()
+{
+	if (m_dExecute > 0.0)
+	{
+		setText(m_sName + QString(" (%1)").arg(executeTimeString()));
+	}
+	else
+	{
+		setText(m_sName);
+	}
+}
+
+void iAFoamCharacterizationItem::setName(const QString& _sName)
+{
+	m_sName = _sName;
+
+	setItemText();
+}
+
+void iAFoamCharacterizationItem::setNameTime(const QString& _sName)
+{
+	m_sName = _sName;
+	m_dExecute = 0.0;
+
+	setItemText();
+}
+
+void iAFoamCharacterizationItem::setTime(const int& _iMiliSeconds)
+{
+	m_dExecute = 0.001 * (double)_iMiliSeconds;
+
+	setItemText();
 }

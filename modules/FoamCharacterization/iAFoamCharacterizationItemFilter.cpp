@@ -23,22 +23,31 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QTime>
+
+#include <itkDiscreteGaussianImageFilter.h>
+#include <itkGradientAnisotropicDiffusionImageFilter.h>
+#include <itkMedianImageFilter.h>
+
+#include "iAConnector.h"
 
 #include "iAFoamCharacterizationDialogFilter.h"
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(vtkImageData* _pImageData)
-	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
-																, m_pImageData (_pImageData)
+	                                               : iAFoamCharacterizationItem(_pImageData, iAFoamCharacterizationItem::itFilter)
 {
-	setText("Filter");
+
 }
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter)
-	                                                            : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itFilter)
+	                                     : iAFoamCharacterizationItem(_pFilter->imageData(), iAFoamCharacterizationItem::itFilter)
 {
 	setText(_pFilter->text());
+}
 
-	m_pImageData = _pFilter->imageData();
+int iAFoamCharacterizationItemFilter::boxRadius() const
+{
+	return m_iBoxRadius;
 }
 
 void iAFoamCharacterizationItemFilter::dialog()
@@ -49,12 +58,79 @@ void iAFoamCharacterizationItemFilter::dialog()
 
 void iAFoamCharacterizationItemFilter::execute()
 {
+	QTime t;
+	t.start();
 
+	switch (m_eItemFilterType)
+	{
+		case iftGauss:
+		executeGauss();
+		break;
+
+		default:
+		executeMedian();
+		break;
+	}
+
+	setTime(t.elapsed());
 }
 
-vtkImageData* iAFoamCharacterizationItemFilter::imageData() const
+void iAFoamCharacterizationItemFilter::executeGauss()
 {
-	return m_pImageData;
+	typedef itk::DiscreteGaussianImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter(itkFilter::New());
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->Update();
+
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+}
+
+void iAFoamCharacterizationItemFilter::executeMedian()
+{
+	typedef itk::MedianImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter(itkFilter::New());
+
+	itkFilter::InputSizeType radius;
+	radius.Fill(m_iBoxRadius);
+	pFilter->SetRadius(radius);
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->Update();
+
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+}
+
+iAFoamCharacterizationItemFilter::EItemFilterType iAFoamCharacterizationItemFilter::itemFilterType() const
+{
+	return m_eItemFilterType;
+}
+
+QString iAFoamCharacterizationItemFilter::itemFilterTypeString() const
+{
+	switch (m_eItemFilterType)
+	{
+		case iftGauss:
+		return "G";
+		break;
+
+		default:
+		return "M";
+	}
 }
 
 void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
@@ -65,4 +141,26 @@ void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 void iAFoamCharacterizationItemFilter::save(QFile* _pFileSave)
 {
 	iAFoamCharacterizationItem::save(_pFileSave);
+}
+
+void iAFoamCharacterizationItemFilter::setBoxRadius(const int& _iBoxRadius)
+{
+	m_iBoxRadius = _iBoxRadius;
+}
+
+void iAFoamCharacterizationItemFilter::setItemFilterType(const iAFoamCharacterizationItemFilter::EItemFilterType& _eItemFilterType)
+{
+	m_eItemFilterType = _eItemFilterType;
+}
+
+void iAFoamCharacterizationItemFilter::setItemText()
+{
+	if (m_dExecute > 0.0)
+	{
+		setText(m_sName + QString(" [%1] (%2)").arg(itemFilterTypeString()).arg(executeTimeString()));
+	}
+	else
+	{
+		setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
+	}
 }

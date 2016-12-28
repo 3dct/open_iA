@@ -22,14 +22,24 @@
 
 #include "iAFoamCharacterizationDialog.h"
 
-#include "iAFoamCharacterizationItemFilter.h"
+class QComboBox;
+class QSpinBox;
+
+class iAFoamCharacterizationItemFilter;
 
 class iAFoamCharacterizationDialogFilter : public iAFoamCharacterizationDialog
 {
 		Q_OBJECT
 
 	public:
-		explicit iAFoamCharacterizationDialogFilter(iAFoamCharacterizationItemFilter* _pItem, QWidget* _pParent = nullptr);
+		explicit iAFoamCharacterizationDialogFilter(iAFoamCharacterizationItemFilter* _pItemFilter, QWidget* _pParent = nullptr);
+
+	private:
+		QComboBox* m_pComboBox2 = nullptr;
+		QSpinBox* m_pSpinBox2 = nullptr;
+
+	protected:
+		iAFoamCharacterizationItemFilter* m_pItemFilter = nullptr;
 
 	protected slots:
 		virtual void slotPushButtonOk() override;

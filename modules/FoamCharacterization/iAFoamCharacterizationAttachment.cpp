@@ -33,11 +33,7 @@
 #include <QGroupBox>
 #include <QGridlayout>
 
-#include <itkGradientAnisotropicDiffusionImageFilter.h>
-#include <itkMedianImageFilter.h>
 #include <vtkImageData.h>
-
-#include "iAConnector.h"
 
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationItemFilter.h"
@@ -68,17 +64,17 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	connect(pPushButtonClear, SIGNAL(clicked()), this, SLOT(slotPushButtonClear()));
 
 	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
-	iAFoamCharacterizationItemFilter itemFilter;
+	iAFoamCharacterizationItemFilter itemFilter(m_pImageData);
 	pPushButtonFilter->setIcon(itemFilter.itemButtonIcon());
 	connect(pPushButtonFilter, SIGNAL(clicked()), this, SLOT(slotPushButtonFilter()));
 
 	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
-	iAFoamCharacterizationItemBinarization itemBinarization;
+	iAFoamCharacterizationItemBinarization itemBinarization (m_pImageData);
 	pPushButtonBinarization->setIcon(itemBinarization.itemButtonIcon());
 	connect(pPushButtonBinarization, SIGNAL(clicked()), this, SLOT(slotPushButtonBinarization()));
 
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
-	iAFoamCharacterizationItemWatershed itemWatershed;
+	iAFoamCharacterizationItemWatershed itemWatershed (m_pImageData);
 	pPushButtonWatershed->setIcon(itemWatershed.itemButtonIcon());
 	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
 
@@ -128,31 +124,16 @@ void iAFoamCharacterizationAttachment::slotPushButtonClear()
 
 void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 {
-	qApp->setOverrideCursor(Qt::WaitCursor);
-	//m_pTable->execute();
-
-	int* pDimension (m_pImageData->GetDimensions());
-	unsigned short* pData((unsigned short*) m_pImageData->GetScalarPointer());
-	memset(pData, 65535, pDimension[0] * pDimension[1] * pDimension[2] * sizeof(unsigned short));
-	m_pImageData->Modified();
-/*
-	typedef itk::MedianImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
-
-	itkFilter::Pointer pFilter (itkFilter::New());
-
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
-
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
-	pFilter->Update();
-	
-	iAConnector connector2;
-	connector2.SetImage(pFilter->GetOutput());
-
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
-*/
-	m_childData.child->updateViews();
-	qApp->restoreOverrideCursor();
+	if (QMessageBox::question(m_childData.child, "Question", "Execute table protocol?", QMessageBox::Yes, QMessageBox::No)
+		== QMessageBox::Yes
+		)
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		qApp->processEvents();
+		m_pTable->execute();
+		m_childData.child->updateViews();
+		qApp->restoreOverrideCursor();
+	}
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonFilter()
@@ -190,6 +171,8 @@ void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 		qApp->processEvents();
 		m_pImageData->DeepCopy(m_pImageRestore);
 		m_childData.child->updateViews();
+
+		m_pTable->reset();
 		qApp->restoreOverrideCursor();
 	}
 }

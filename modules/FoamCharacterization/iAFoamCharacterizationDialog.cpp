@@ -22,9 +22,7 @@
 #include "iAFoamCharacterizationDialog.h"
 
 #include<QApplication>
-#include<QDialogButtonBox>
 #include<QGridLayout>
-#include<QGroupBox>
 #include<QLabel>
 #include<QStyle>
 #include<QPushButton>
@@ -35,40 +33,47 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 {
 	setWindowTitle(m_pItem->itemTypeStr());
 
-	QGroupBox* pGroupBox1(new QGroupBox(this));
+	m_pGroupBox1 = new QGroupBox(this);
 
-	QLabel* pLabel1(new QLabel("Name:", pGroupBox1));
-	m_pLineEdit1 = new QLineEdit(m_pItem->text(), pGroupBox1);
+	QLabel* pLabel1(new QLabel("Name:", m_pGroupBox1));
+	m_pLineEdit1 = new QLineEdit(m_pItem->name(), m_pGroupBox1);
 
-	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
+	QGridLayout* pGridLayout1(new QGridLayout(m_pGroupBox1));
 	pGridLayout1->addWidget(pLabel1, 0, 0);
 	pGridLayout1->addWidget(m_pLineEdit1, 0, 1);
 
 	m_pCheckBoxEnabled = new QCheckBox("Enabled", this);
 	m_pCheckBoxEnabled->setChecked(m_pItem->itemEnabled());
 	
-	QDialogButtonBox* pDialogButtonBox(new QDialogButtonBox(this));
+	m_pDialogButtonBox = new QDialogButtonBox(this);
 
-	QPushButton* pPushButtonCancel(new QPushButton("Cancel", pDialogButtonBox));
+	QPushButton* pPushButtonCancel(new QPushButton("Cancel", m_pDialogButtonBox));
 	pPushButtonCancel->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogCancelButton));
 	connect(pPushButtonCancel, SIGNAL(clicked()), this, SLOT(slotPushButtonCancel()));
 
-	QPushButton* pPushButtonOk(new QPushButton("Ok", pDialogButtonBox));
+	QPushButton* pPushButtonOk(new QPushButton("Ok", m_pDialogButtonBox));
 	pPushButtonOk->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOkButton));
 	connect(pPushButtonOk, SIGNAL(clicked()), this, SLOT(slotPushButtonOk()));
 
-	pDialogButtonBox->addButton(pPushButtonCancel, QDialogButtonBox::RejectRole);
-	pDialogButtonBox->addButton(pPushButtonOk, QDialogButtonBox::AcceptRole);
-
-	QGridLayout* pGridLayout(new QGridLayout(this));
-	pGridLayout->addWidget(  pGroupBox1);
-	pGridLayout->addWidget(m_pCheckBoxEnabled);
-	pGridLayout->addWidget(  pDialogButtonBox);
+	m_pDialogButtonBox->addButton(pPushButtonCancel, QDialogButtonBox::RejectRole);
+	m_pDialogButtonBox->addButton(pPushButtonOk, QDialogButtonBox::AcceptRole);
 }
 
 iAFoamCharacterizationDialog::~iAFoamCharacterizationDialog()
 {
 
+}
+
+void iAFoamCharacterizationDialog::setLayout()
+{
+	QGridLayout* pGridLayout(new QGridLayout(this));
+	pGridLayout->addWidget(m_pGroupBox1);
+	if (m_pGroupBox2)
+	{
+		pGridLayout->addWidget(m_pGroupBox2);
+	}
+	pGridLayout->addWidget(m_pCheckBoxEnabled);
+	pGridLayout->addWidget(m_pDialogButtonBox);
 }
 
 void iAFoamCharacterizationDialog::slotPushButtonCancel()
@@ -78,8 +83,7 @@ void iAFoamCharacterizationDialog::slotPushButtonCancel()
 
 void iAFoamCharacterizationDialog::slotPushButtonOk()
 {
-	m_pItem->setText(m_pLineEdit1->text());
-
+	m_pItem->setNameTime(m_pLineEdit1->text());
 	m_pItem->setItemEnabled(m_pCheckBoxEnabled->isChecked());
 
 	accept();

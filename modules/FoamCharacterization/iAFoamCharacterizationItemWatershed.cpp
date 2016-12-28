@@ -23,17 +23,18 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QTime>
 
 #include "iAFoamCharacterizationDialogWatershed.h"
 
-iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed()
-	                                                         : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itWatershed)
+iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData)
+	                                            : iAFoamCharacterizationItem(_pImageData, iAFoamCharacterizationItem::itWatershed)
 {
-	setText("Watershed");
+
 }
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed)
-	                                                         : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itWatershed)
+	                               : iAFoamCharacterizationItem(_pWatershed->imageData(), iAFoamCharacterizationItem::itWatershed)
 {
 	setText(_pWatershed->text());
 }
@@ -47,7 +48,10 @@ void iAFoamCharacterizationItemWatershed::dialog()
 
 void iAFoamCharacterizationItemWatershed::execute()
 {
+	QTime t;
+	t.start();
 
+	setTime(t.elapsed());
 }
 
 void iAFoamCharacterizationItemWatershed::open(QFile* _pFileOpen)

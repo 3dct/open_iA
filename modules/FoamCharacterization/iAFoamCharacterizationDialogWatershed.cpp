@@ -25,7 +25,7 @@ iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed
                                                                   (iAFoamCharacterizationItemWatershed* _pItem, QWidget* _pParent)
 	                                                                              : iAFoamCharacterizationDialog(_pItem, _pParent)
 {
-
+	setLayout();
 }
 
 void iAFoamCharacterizationDialogWatershed::slotPushButtonOk()

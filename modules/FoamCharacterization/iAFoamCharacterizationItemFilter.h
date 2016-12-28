@@ -29,10 +29,17 @@ class vtkImageData;
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
 	public:
-		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData = nullptr);
+		enum EItemFilterType { iftGauss , iftMedian};
+
+	public:
+		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
 
-		vtkImageData* imageData() const;
+		int boxRadius() const;
+		EItemFilterType itemFilterType() const;
+
+		void setBoxRadius(const int& _iBoxRadius);
+		void setItemFilterType(const EItemFilterType& _eItemFilterType);
 
 		virtual void dialog() override;
 		virtual void execute() override;
@@ -40,6 +47,15 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		virtual void save(QFile* _pFileSave) override;
 
 	private:
-		vtkImageData* m_pImageData = nullptr;
+		EItemFilterType m_eItemFilterType = iftGauss;
 
+		int m_iBoxRadius = 1;
+
+		void executeGauss();
+		void executeMedian();
+
+		QString itemFilterTypeString() const;
+
+	protected:
+		virtual void setItemText() override;
 };

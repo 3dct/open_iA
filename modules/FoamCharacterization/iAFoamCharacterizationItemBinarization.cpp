@@ -23,18 +23,19 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QTime>
 
 #include "iAFoamCharacterizationDialogBinarization.h"
 
-iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization()
-	                                                      : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itBinarization)
+iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization(vtkImageData* _pImageData)
+	                                         : iAFoamCharacterizationItem(_pImageData, iAFoamCharacterizationItem::itBinarization)
 {
-	setText("Binarization");
+
 }
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
                                                                           (iAFoamCharacterizationItemBinarization* _pBinarization)
-	                                                      : iAFoamCharacterizationItem(iAFoamCharacterizationItem::itBinarization)
+	                         : iAFoamCharacterizationItem(_pBinarization->imageData(), iAFoamCharacterizationItem::itBinarization)
 {
 	setText(_pBinarization->text());
 }
@@ -48,7 +49,10 @@ void iAFoamCharacterizationItemBinarization::dialog()
 
 void iAFoamCharacterizationItemBinarization::execute()
 {
+	QTime t;
+	t.start();
 
+	setTime(t.elapsed());
 }
 
 void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)

@@ -25,12 +25,14 @@
 #include <QDropEvent>
 #include <QMessageBox>
 
+#include <vtkImagedata.h>
+
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationItemFilter.h"
 #include "iAFoamCharacterizationItemWatershed.h"
 
 iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent) : QTableWidget(_pParent)
-																									   , m_pImageData (_pImageData)
+												                                                      , m_pImageData (_pImageData)
 {
 	setCursor(Qt::PointingHandCursor);
 
@@ -56,8 +58,8 @@ void iAFoamCharacterizationTable::addBinarization()
 
 	++m_iCountBinarization;
 
-	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization());
-	pItem->setText(pItem->text() + QString(" %1").arg(m_iCountBinarization));
+	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization(m_pImageData));
+	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountBinarization));
 	setItem(n, 0, pItem);
 }
 
@@ -70,7 +72,7 @@ void iAFoamCharacterizationTable::addFilter()
 	++m_iCountFilter;
 
 	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter(m_pImageData));
-	pItem->setText(pItem->text() + QString(" %1").arg(m_iCountFilter));
+	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountFilter));
 	setItem(n, 0, pItem);
 }
 
@@ -82,8 +84,8 @@ void iAFoamCharacterizationTable::addWatershed()
 
 	++m_iCountWatershed;
 
-	iAFoamCharacterizationItemWatershed* pItem(new iAFoamCharacterizationItemWatershed());
-	pItem->setText(pItem->text() + QString(" %1").arg(m_iCountWatershed));
+	iAFoamCharacterizationItemWatershed* pItem(new iAFoamCharacterizationItemWatershed(m_pImageData));
+	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountWatershed));
 	setItem(n, 0, pItem);
 }
 
@@ -258,6 +260,16 @@ void iAFoamCharacterizationTable::open(const QString& _sFilename)
 		}
 
 		pFileOpen->close();
+	}
+}
+
+void iAFoamCharacterizationTable::reset()
+{
+	const int n(rowCount());
+
+	for (int i(0); i < n; ++i)
+	{
+		((iAFoamCharacterizationItem*)item(i, 0))->setTime(0);
 	}
 }
 

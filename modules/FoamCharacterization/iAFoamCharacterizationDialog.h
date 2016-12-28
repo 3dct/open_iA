@@ -23,6 +23,8 @@
 #include <QDialog>
 
 #include<QCheckBox>
+#include<QDialogButtonBox>
+#include<QGroupBox>
 #include<QLineEdit>
 
 #include "iAFoamCharacterizationItem.h"
@@ -36,14 +38,21 @@ class iAFoamCharacterizationDialog : public QDialog
 		virtual ~iAFoamCharacterizationDialog();
 
 	private:
+		QGroupBox* m_pGroupBox1 = nullptr;
 		QCheckBox* m_pCheckBoxEnabled = nullptr;
-		QLineEdit* m_pLineEdit1 = nullptr;
+		QDialogButtonBox* m_pDialogButtonBox = nullptr;
 
+		QLineEdit* m_pLineEdit1 = nullptr;
+		
 	private slots:
 		void slotPushButtonCancel();
 
 	protected:
+		QGroupBox* m_pGroupBox2 = nullptr;
+
 		iAFoamCharacterizationItem* m_pItem = nullptr;
+
+		void setLayout();
 
 	protected slots:
 		virtual void slotPushButtonOk() = 0;

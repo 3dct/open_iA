@@ -27,7 +27,7 @@ class QFile;
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
 	public:
-		explicit iAFoamCharacterizationItemWatershed();
+		explicit iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
 
 		virtual void dialog() override;

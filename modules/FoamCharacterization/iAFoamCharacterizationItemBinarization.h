@@ -27,7 +27,7 @@ class QFile;
 class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 {
 	public:
-		explicit iAFoamCharacterizationItemBinarization();
+		explicit iAFoamCharacterizationItemBinarization(vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationItemBinarization* _pBinarization);
 
 		virtual void dialog() override;

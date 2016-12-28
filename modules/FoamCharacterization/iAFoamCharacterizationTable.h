@@ -37,10 +37,9 @@ class iAFoamCharacterizationTable : public QTableWidget
 		void addWatershed();
 
 		void clear();
-
 		void execute();
-
 		void open(const QString& _sFilename);
+		void reset();
 		void save(const QString& _sFilename);
 
 	private:

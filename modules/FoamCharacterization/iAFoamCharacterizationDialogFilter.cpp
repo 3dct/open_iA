@@ -21,16 +21,48 @@
 
 #include "iAFoamCharacterizationDialogFilter.h"
 
-iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
-                                                                     (iAFoamCharacterizationItemFilter* _pItem, QWidget* _pParent)
-	                                                                              : iAFoamCharacterizationDialog(_pItem, _pParent)
-{
+#include <QComboBox>
+#include <QGroupBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <QSpinBox>
 
+#include "iAFoamCharacterizationItemFilter.h"
+
+iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
+                                                               (iAFoamCharacterizationItemFilter* _pItemFilter, QWidget* _pParent)
+	                                                                        : iAFoamCharacterizationDialog(_pItemFilter, _pParent)
+	                                                                        , m_pItemFilter(_pItemFilter)
+{
+	m_pGroupBox2 = new QGroupBox(this);
+
+	QLabel* pLabel21(new QLabel("Type:", m_pGroupBox2));
+
+	m_pComboBox2 = new QComboBox(m_pGroupBox2);
+	m_pComboBox2->addItem("Gauss", 0);
+	m_pComboBox2->addItem("Median", 1);
+	m_pComboBox2->setCurrentIndex((int) m_pItemFilter->itemFilterType());
+
+	QLabel* pLabel22(new QLabel("Box radius:", m_pGroupBox2));
+
+	m_pSpinBox2 = new QSpinBox(m_pGroupBox2);
+	m_pSpinBox2->setAlignment(Qt::AlignRight);
+	m_pSpinBox2->setRange(1, 100);
+	m_pSpinBox2->setValue(m_pItemFilter->boxRadius());
+
+	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
+	pGridLayout2->addWidget(pLabel21, 0, 0);
+	pGridLayout2->addWidget(m_pComboBox2, 0, 1);
+	pGridLayout2->addWidget(pLabel22, 1, 0);
+	pGridLayout2->addWidget(m_pSpinBox2, 1, 1);
+
+	setLayout();
 }
 
 void iAFoamCharacterizationDialogFilter::slotPushButtonOk()
 {
-
+	m_pItemFilter->setItemFilterType((iAFoamCharacterizationItemFilter::EItemFilterType) m_pComboBox2->currentIndex());
+	m_pItemFilter->setBoxRadius(m_pSpinBox2->value());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

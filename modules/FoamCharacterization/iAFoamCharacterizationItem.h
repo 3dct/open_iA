@@ -24,14 +24,18 @@
 
 class QFile;
 
+class vtkImageData;
+
 class iAFoamCharacterizationItem : public QTableWidgetItem
 {
 	public:
 		enum EItemType { itBinarization, itFilter, itWatershed};
 
 	public:
-		explicit iAFoamCharacterizationItem(const EItemType& _eItemType = itFilter);
+		explicit iAFoamCharacterizationItem(vtkImageData* m_pImageData, const EItemType& _eItemType);
 		virtual ~iAFoamCharacterizationItem();
+
+		vtkImageData* imageData() const;
 
 		QIcon itemButtonIcon() const;
 
@@ -40,7 +44,14 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		EItemType itemType() const;
 		QString itemTypeStr() const;
 
+		QString name() const;
+
 		void setItemEnabled(const bool& _bEnabled);
+
+		void setName(const QString& _sName);
+		void setNameTime(const QString& _sName);
+
+		void setTime(const int& _iMiliSeconds);
 
 		virtual void dialog() = 0;
 		virtual void execute() = 0;
@@ -59,5 +70,15 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 	protected:
 		bool m_bItemEnabled = true;
 
+		double m_dExecute = 0.0;
+
 		EItemType m_eItemType = itFilter;
+
+		QString m_sName;
+
+		vtkImageData* m_pImageData = nullptr;
+
+		QString executeTimeString() const;
+
+		virtual void setItemText();
 };

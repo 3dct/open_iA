@@ -25,7 +25,7 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
                                                                (iAFoamCharacterizationItemBinarization* _pItem, QWidget* _pParent)
 	                                                                              : iAFoamCharacterizationDialog(_pItem, _pParent)
 {
-
+	setLayout();
 }
 
 void iAFoamCharacterizationDialogBinarization::slotPushButtonOk()
