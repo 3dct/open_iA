@@ -85,6 +85,7 @@ void iAFoamCharacterizationItemFilter::executeGauss()
 	connector1.SetImage(m_pImageData);
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetVariance(m_dVariance);
 	pFilter->Update();
 
 	iAConnector connector2;
@@ -136,11 +137,21 @@ QString iAFoamCharacterizationItemFilter::itemFilterTypeString() const
 void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
+
+	_pFileOpen->read((char*) &m_eItemFilterType, sizeof(m_eItemFilterType));
+	_pFileOpen->read((char*) &m_dVariance, sizeof(m_dVariance));
+	_pFileOpen->read((char*) &m_iBoxRadius, sizeof(m_iBoxRadius));
+
+	setItemText();
 }
 
 void iAFoamCharacterizationItemFilter::save(QFile* _pFileSave)
 {
 	iAFoamCharacterizationItem::save(_pFileSave);
+
+	_pFileSave->write((char*) &m_eItemFilterType, sizeof(m_eItemFilterType));
+	_pFileSave->write((char*) &m_dVariance, sizeof(m_dVariance));
+	_pFileSave->write((char*) &m_iBoxRadius, sizeof(m_iBoxRadius));
 }
 
 void iAFoamCharacterizationItemFilter::setBoxRadius(const int& _iBoxRadius)
@@ -163,4 +174,14 @@ void iAFoamCharacterizationItemFilter::setItemText()
 	{
 		setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
 	}
+}
+
+void iAFoamCharacterizationItemFilter::setVariance(const double& _dVariance)
+{
+	m_dVariance = _dVariance;
+}
+
+double iAFoamCharacterizationItemFilter::variance() const
+{
+	return m_dVariance;
 }

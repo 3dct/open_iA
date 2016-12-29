@@ -22,6 +22,7 @@
 #include "iAFoamCharacterizationDialogFilter.h"
 
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -36,33 +37,71 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 {
 	m_pGroupBox2 = new QGroupBox(this);
 
-	QLabel* pLabel21(new QLabel("Type:", m_pGroupBox2));
+	QLabel* pLabel2(new QLabel("Type:", m_pGroupBox2));
 
 	m_pComboBox2 = new QComboBox(m_pGroupBox2);
 	m_pComboBox2->addItem("Gauss", 0);
 	m_pComboBox2->addItem("Median", 1);
-	m_pComboBox2->setCurrentIndex((int) m_pItemFilter->itemFilterType());
 
-	QLabel* pLabel22(new QLabel("Box radius:", m_pGroupBox2));
+	m_pWidgetGauss = new QWidget(m_pGroupBox2);
 
-	m_pSpinBox2 = new QSpinBox(m_pGroupBox2);
-	m_pSpinBox2->setAlignment(Qt::AlignRight);
-	m_pSpinBox2->setRange(1, 100);
-	m_pSpinBox2->setValue(m_pItemFilter->boxRadius());
+	QLabel* pLabelGauss(new QLabel("Variance:", m_pWidgetGauss));
+
+	m_pDoubleSpinBoxGauss = new QDoubleSpinBox(m_pWidgetMedian);
+	m_pDoubleSpinBoxGauss->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxGauss->setRange(0.0, 100.0);
+	m_pDoubleSpinBoxGauss->setValue(m_pItemFilter->variance());
+
+	QGridLayout* pGridLayoutGauss(new QGridLayout(m_pWidgetGauss));
+	pGridLayoutGauss->addWidget(pLabelGauss, 0, 0);
+	pGridLayoutGauss->addWidget(m_pDoubleSpinBoxGauss, 0, 1);
+
+	m_pWidgetMedian = new QWidget(m_pGroupBox2);
+	m_pWidgetMedian->setVisible(false);
+
+	QLabel* pLabelMedian(new QLabel("Box radius:", m_pWidgetMedian));
+
+	m_pSpinBoxMedian = new QSpinBox(m_pWidgetMedian);
+	m_pSpinBoxMedian->setAlignment(Qt::AlignRight);
+	m_pSpinBoxMedian->setRange(1, 100);
+	m_pSpinBoxMedian->setValue(m_pItemFilter->boxRadius());
+
+	QGridLayout* pGridLayoutMedian(new QGridLayout(m_pWidgetMedian));
+	pGridLayoutMedian->addWidget(pLabelMedian, 0, 0);
+	pGridLayoutMedian->addWidget(m_pSpinBoxMedian, 0, 1);
 
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
-	pGridLayout2->addWidget(pLabel21, 0, 0);
+	pGridLayout2->addWidget(pLabel2, 0, 0);
 	pGridLayout2->addWidget(m_pComboBox2, 0, 1);
-	pGridLayout2->addWidget(pLabel22, 1, 0);
-	pGridLayout2->addWidget(m_pSpinBox2, 1, 1);
+	pGridLayout2->addWidget(m_pWidgetGauss, 1, 0, 1, 2);
+	pGridLayout2->addWidget(m_pWidgetMedian, 1, 0, 1, 2);
 
 	setLayout();
+
+	connect(m_pComboBox2, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBox2(const int&)));
+
+	m_pComboBox2->setCurrentIndex((int)m_pItemFilter->itemFilterType());
+}
+
+void iAFoamCharacterizationDialogFilter::slotComboBox2(const int& _iIndex)
+{
+	if (_iIndex == 0)
+	{
+		m_pWidgetGauss->setVisible(true);
+		m_pWidgetMedian->setVisible(false);
+	}
+	else
+	{
+		m_pWidgetGauss->setVisible(false);
+		m_pWidgetMedian->setVisible(true);
+	}
 }
 
 void iAFoamCharacterizationDialogFilter::slotPushButtonOk()
 {
 	m_pItemFilter->setItemFilterType((iAFoamCharacterizationItemFilter::EItemFilterType) m_pComboBox2->currentIndex());
-	m_pItemFilter->setBoxRadius(m_pSpinBox2->value());
+	m_pItemFilter->setVariance(m_pDoubleSpinBoxGauss->value());
+	m_pItemFilter->setBoxRadius(m_pSpinBoxMedian->value());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

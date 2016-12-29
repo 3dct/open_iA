@@ -61,9 +61,6 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 	private:
 		QColor m_cItemIcon = Qt::black;
 
-		QString fileRead(QFile* _pFileOpen);
-		void fileWrite(QFile* _pFileSave, const QString& _sText);
-
 		void setItemIcon();
 		void setItemIconColor();
 
@@ -79,6 +76,9 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		vtkImageData* m_pImageData = nullptr;
 
 		QString executeTimeString() const;
+
+		QString fileRead(QFile* _pFileOpen);
+		void fileWrite(QFile* _pFileSave, const QString& _sText);
 
 		virtual void setItemText();
 };

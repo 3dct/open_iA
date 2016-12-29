@@ -57,6 +57,8 @@ void iAFoamCharacterizationItemWatershed::execute()
 void iAFoamCharacterizationItemWatershed::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
+
+	setItemText();
 }
 
 void iAFoamCharacterizationItemWatershed::save(QFile* _pFileSave)

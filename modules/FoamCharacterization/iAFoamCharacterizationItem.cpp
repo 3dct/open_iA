@@ -153,19 +153,18 @@ QString iAFoamCharacterizationItem::name() const
 
 void iAFoamCharacterizationItem::open(QFile* _pFileOpen)
 {
-	bool bItemEnabled;
-	_pFileOpen->read((char*)& bItemEnabled, sizeof(bItemEnabled));
-	setItemEnabled(bItemEnabled);
+	m_sName = fileRead(_pFileOpen);
 
-	setName(fileRead(_pFileOpen));
+	_pFileOpen->read((char*) &m_bItemEnabled, sizeof(m_bItemEnabled));
+	setItemIcon();
 }
 
 void iAFoamCharacterizationItem::save(QFile* _pFileSave)
 {
 	_pFileSave->write((char*)&m_eItemType, sizeof(m_eItemType));
-	_pFileSave->write((char*)&m_bItemEnabled, sizeof(m_bItemEnabled));
 
 	fileWrite(_pFileSave, m_sName);
+	_pFileSave->write((char*)&m_bItemEnabled, sizeof(m_bItemEnabled));
 }
 
 void iAFoamCharacterizationItem::setItemIcon()

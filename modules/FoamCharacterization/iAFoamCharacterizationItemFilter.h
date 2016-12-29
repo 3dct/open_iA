@@ -40,6 +40,9 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 
 		void setBoxRadius(const int& _iBoxRadius);
 		void setItemFilterType(const EItemFilterType& _eItemFilterType);
+		void setVariance(const double& _dVariance);
+
+		double variance() const;
 
 		virtual void dialog() override;
 		virtual void execute() override;
@@ -47,9 +50,11 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		virtual void save(QFile* _pFileSave) override;
 
 	private:
+		double m_dVariance = 4.0;
+
 		EItemFilterType m_eItemFilterType = iftGauss;
 
-		int m_iBoxRadius = 1;
+		int m_iBoxRadius = 2;
 
 		void executeGauss();
 		void executeMedian();

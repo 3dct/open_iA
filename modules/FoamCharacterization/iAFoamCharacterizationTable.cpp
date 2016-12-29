@@ -21,6 +21,7 @@
 
 #include "iAFoamCharacterizationTable.h"
 
+#include <QApplication>
 #include <QHeaderView>
 #include <QDropEvent>
 #include <QMessageBox>
@@ -155,7 +156,7 @@ void iAFoamCharacterizationTable::execute()
 	for (int i (0) ; i < n ; ++i)
 	{
 		selectRow(i);
-		repaint();
+		qApp->processEvents();
 
 		((iAFoamCharacterizationItem*) item(i, 0))->execute();
 	}
@@ -196,13 +197,18 @@ void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent* e)
 {
 	QTableWidget::mouseDoubleClickEvent(e);
 
-	QModelIndexList mlIndex(selectedIndexes());
+	const int iIconMargin(logicalDpiX() / 7);
 
-	if (mlIndex.size())
+	if (e->x() > iIconMargin)
 	{
-		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(mlIndex.at(0).row(), 0));
+		QModelIndexList mlIndex(selectedIndexes());
 
-		pItem->dialog();
+		if (mlIndex.size())
+		{
+			iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(mlIndex.at(0).row(), 0));
+
+			pItem->dialog();
+		}
 	}
 }
 
@@ -216,7 +222,9 @@ void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 	{
 		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(m_iRowDrag, 0));
 
-		if (ptMouse.x() < logicalDpiX() / 7)
+		const int iIconMargin(logicalDpiX() / 7);
+
+		if (ptMouse.x() < iIconMargin)
 		{
 			pItem->setItemEnabled(!pItem->itemEnabled());
 		}

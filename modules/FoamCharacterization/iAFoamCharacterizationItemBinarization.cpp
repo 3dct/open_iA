@@ -58,6 +58,8 @@ void iAFoamCharacterizationItemBinarization::execute()
 void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
+
+	setItemText();
 }
 
 void iAFoamCharacterizationItemBinarization::save(QFile* _pFileSave)

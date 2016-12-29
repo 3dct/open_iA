@@ -23,6 +23,7 @@
 #include "iAFoamCharacterizationDialog.h"
 
 class QComboBox;
+class QDoubleSpinBox;
 class QSpinBox;
 
 class iAFoamCharacterizationItemFilter;
@@ -36,7 +37,15 @@ class iAFoamCharacterizationDialogFilter : public iAFoamCharacterizationDialog
 
 	private:
 		QComboBox* m_pComboBox2 = nullptr;
-		QSpinBox* m_pSpinBox2 = nullptr;
+		
+		QWidget* m_pWidgetGauss = nullptr;
+		QDoubleSpinBox* m_pDoubleSpinBoxGauss = nullptr;
+
+		QWidget* m_pWidgetMedian = nullptr;
+		QSpinBox* m_pSpinBoxMedian = nullptr;
+
+	private slots:
+		void slotComboBox2(const int& _iIndex);
 
 	protected:
 		iAFoamCharacterizationItemFilter* m_pItemFilter = nullptr;
