@@ -35,9 +35,9 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization(v
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
                                                                           (iAFoamCharacterizationItemBinarization* _pBinarization)
-	                         : iAFoamCharacterizationItem(_pBinarization->imageData(), iAFoamCharacterizationItem::itBinarization)
+	                                                                                  : iAFoamCharacterizationItem(_pBinarization)
 {
-	setText(_pBinarization->text());
+	setName(_pBinarization->name());
 }
 
 void iAFoamCharacterizationItemBinarization::dialog()

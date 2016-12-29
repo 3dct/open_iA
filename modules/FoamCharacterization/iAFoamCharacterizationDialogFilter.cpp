@@ -40,39 +40,69 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 	QLabel* pLabel2(new QLabel("Type:", m_pGroupBox2));
 
 	m_pComboBox2 = new QComboBox(m_pGroupBox2);
-	m_pComboBox2->addItem("Gauss", 0);
-	m_pComboBox2->addItem("Median", 1);
+	m_pComboBox2->addItem("Anisotropic diffusion", 0);
+	m_pComboBox2->addItem("Gauss", 1);
+	m_pComboBox2->addItem("Median", 2);
+
+	m_pWidgetAnisotropic = new QWidget(m_pGroupBox2);
+
+	QLabel* pLabelAnisotropicIteration (new QLabel("Iteration:", m_pWidgetAnisotropic));
+	m_pSpinBoxAnisotropicIteration = new QSpinBox(m_pWidgetAnisotropic);
+	m_pSpinBoxAnisotropicIteration->setAlignment(Qt::AlignRight);
+	m_pSpinBoxAnisotropicIteration->setRange(1, 1000);
+	m_pSpinBoxAnisotropicIteration->setValue(m_pItemFilter->anisotropicIteration());
+
+	QLabel* pLabelAnisotropicTimeStep(new QLabel("Time step:", m_pWidgetAnisotropic));
+	m_pDoubleSpinBoxAnisotropicTimeStep = new QDoubleSpinBox(m_pWidgetAnisotropic);
+	m_pDoubleSpinBoxAnisotropicTimeStep->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxAnisotropicTimeStep->setRange(0.0, 100.0);
+	m_pDoubleSpinBoxAnisotropicTimeStep->setSingleStep(0.1);
+	m_pDoubleSpinBoxAnisotropicTimeStep->setValue(m_pItemFilter->anisotropicTimeStep());
+
+	QLabel* pLabelAnisotropicConductance(new QLabel("Conductance:", m_pWidgetAnisotropic));
+	m_pDoubleSpinBoxAnisotropicConductance = new QDoubleSpinBox(m_pWidgetAnisotropic);
+	m_pDoubleSpinBoxAnisotropicConductance->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxAnisotropicConductance->setRange(0.0, 1000.0);
+	m_pDoubleSpinBoxAnisotropicConductance->setValue(m_pItemFilter->anisotropicConductance());
+
+	QGridLayout* pGridLayoutAnisotropic(new QGridLayout(m_pWidgetAnisotropic));
+	pGridLayoutAnisotropic->addWidget(pLabelAnisotropicIteration, 0, 0);
+	pGridLayoutAnisotropic->addWidget(m_pSpinBoxAnisotropicIteration, 0, 1);
+	pGridLayoutAnisotropic->addWidget(pLabelAnisotropicTimeStep, 1, 0);
+	pGridLayoutAnisotropic->addWidget(m_pDoubleSpinBoxAnisotropicTimeStep, 1, 1);
+	pGridLayoutAnisotropic->addWidget(pLabelAnisotropicConductance, 2, 0);
+	pGridLayoutAnisotropic->addWidget(m_pDoubleSpinBoxAnisotropicConductance, 2, 1);
 
 	m_pWidgetGauss = new QWidget(m_pGroupBox2);
+	m_pWidgetGauss->setVisible(false);
 
-	QLabel* pLabelGauss(new QLabel("Variance:", m_pWidgetGauss));
-
-	m_pDoubleSpinBoxGauss = new QDoubleSpinBox(m_pWidgetMedian);
-	m_pDoubleSpinBoxGauss->setAlignment(Qt::AlignRight);
-	m_pDoubleSpinBoxGauss->setRange(0.0, 100.0);
-	m_pDoubleSpinBoxGauss->setValue(m_pItemFilter->variance());
+	QLabel* pLabelGaussVariance(new QLabel("Variance:", m_pWidgetGauss));
+	m_pDoubleSpinBoxGaussVariance = new QDoubleSpinBox(m_pWidgetMedian);
+	m_pDoubleSpinBoxGaussVariance->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxGaussVariance->setRange(0.0, 100.0);
+	m_pDoubleSpinBoxGaussVariance->setValue(m_pItemFilter->gaussVariance());
 
 	QGridLayout* pGridLayoutGauss(new QGridLayout(m_pWidgetGauss));
-	pGridLayoutGauss->addWidget(pLabelGauss, 0, 0);
-	pGridLayoutGauss->addWidget(m_pDoubleSpinBoxGauss, 0, 1);
+	pGridLayoutGauss->addWidget(pLabelGaussVariance, 0, 0);
+	pGridLayoutGauss->addWidget(m_pDoubleSpinBoxGaussVariance, 0, 1);
 
 	m_pWidgetMedian = new QWidget(m_pGroupBox2);
 	m_pWidgetMedian->setVisible(false);
 
-	QLabel* pLabelMedian(new QLabel("Box radius:", m_pWidgetMedian));
-
-	m_pSpinBoxMedian = new QSpinBox(m_pWidgetMedian);
-	m_pSpinBoxMedian->setAlignment(Qt::AlignRight);
-	m_pSpinBoxMedian->setRange(1, 100);
-	m_pSpinBoxMedian->setValue(m_pItemFilter->boxRadius());
+	QLabel* pLabelMedianBoxRadius(new QLabel("Box radius:", m_pWidgetMedian));
+	m_pSpinBoxMedianBoxRadius = new QSpinBox(m_pWidgetMedian);
+	m_pSpinBoxMedianBoxRadius->setAlignment(Qt::AlignRight);
+	m_pSpinBoxMedianBoxRadius->setRange(1, 100);
+	m_pSpinBoxMedianBoxRadius->setValue(m_pItemFilter->medianBoxRadius());
 
 	QGridLayout* pGridLayoutMedian(new QGridLayout(m_pWidgetMedian));
-	pGridLayoutMedian->addWidget(pLabelMedian, 0, 0);
-	pGridLayoutMedian->addWidget(m_pSpinBoxMedian, 0, 1);
+	pGridLayoutMedian->addWidget(pLabelMedianBoxRadius, 0, 0);
+	pGridLayoutMedian->addWidget(m_pSpinBoxMedianBoxRadius, 0, 1);
 
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
 	pGridLayout2->addWidget(pLabel2, 0, 0);
 	pGridLayout2->addWidget(m_pComboBox2, 0, 1);
+	pGridLayout2->addWidget(m_pWidgetAnisotropic, 1, 0, 1, 2);
 	pGridLayout2->addWidget(m_pWidgetGauss, 1, 0, 1, 2);
 	pGridLayout2->addWidget(m_pWidgetMedian, 1, 0, 1, 2);
 
@@ -87,11 +117,19 @@ void iAFoamCharacterizationDialogFilter::slotComboBox2(const int& _iIndex)
 {
 	if (_iIndex == 0)
 	{
+		m_pWidgetAnisotropic->setVisible(true);
+		m_pWidgetGauss->setVisible(false);
+		m_pWidgetMedian->setVisible(false);
+	}
+	else if (_iIndex == 1)
+	{
+		m_pWidgetAnisotropic->setVisible(false);
 		m_pWidgetGauss->setVisible(true);
 		m_pWidgetMedian->setVisible(false);
 	}
 	else
 	{
+		m_pWidgetAnisotropic->setVisible(false);
 		m_pWidgetGauss->setVisible(false);
 		m_pWidgetMedian->setVisible(true);
 	}
@@ -100,8 +138,12 @@ void iAFoamCharacterizationDialogFilter::slotComboBox2(const int& _iIndex)
 void iAFoamCharacterizationDialogFilter::slotPushButtonOk()
 {
 	m_pItemFilter->setItemFilterType((iAFoamCharacterizationItemFilter::EItemFilterType) m_pComboBox2->currentIndex());
-	m_pItemFilter->setVariance(m_pDoubleSpinBoxGauss->value());
-	m_pItemFilter->setBoxRadius(m_pSpinBoxMedian->value());
+
+	m_pItemFilter->setAnisotropicConductance(m_pDoubleSpinBoxAnisotropicConductance->value());
+	m_pItemFilter->setAnisotropicIteration(m_pSpinBoxAnisotropicIteration->value());
+	m_pItemFilter->setAnisotropicTimeStep(m_pDoubleSpinBoxAnisotropicTimeStep->value());
+	m_pItemFilter->setGaussVariance(m_pDoubleSpinBoxGaussVariance->value());
+	m_pItemFilter->setMedianBoxRadius(m_pSpinBoxMedianBoxRadius->value());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

@@ -29,20 +29,28 @@ class vtkImageData;
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
 	public:
-		enum EItemFilterType { iftGauss , iftMedian};
+		enum EItemFilterType { iftAnisotropic, iftGauss , iftMedian};
 
 	public:
 		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
 
-		int boxRadius() const;
+		double anisotropicConductance() const;
+		int anisotropicIteration() const;
+		double anisotropicTimeStep() const;
+
+		double gaussVariance() const;
+
 		EItemFilterType itemFilterType() const;
 
-		void setBoxRadius(const int& _iBoxRadius);
-		void setItemFilterType(const EItemFilterType& _eItemFilterType);
-		void setVariance(const double& _dVariance);
+		int medianBoxRadius() const;
 
-		double variance() const;
+		void setAnisotropicConductance(const double& _dAnisotropicConductance);
+		void setAnisotropicIteration(const int& _iAnisotropicIteration);
+		void setAnisotropicTimeStep(const double& _dAnisotropicTimeStep);
+		void setGaussVariance(const double& _dVariance);
+		void setItemFilterType(const EItemFilterType& _eItemFilterType);
+		void setMedianBoxRadius(const int& _iBoxRadius);
 
 		virtual void dialog() override;
 		virtual void execute() override;
@@ -50,12 +58,16 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		virtual void save(QFile* _pFileSave) override;
 
 	private:
-		double m_dVariance = 4.0;
+		double m_dAnisotropicConductance = 1.0;
+		double m_dAnisotropicTimeStep= 0.1;
+		double m_dGaussVariance = 4.0;
 
 		EItemFilterType m_eItemFilterType = iftGauss;
 
-		int m_iBoxRadius = 2;
+		int m_iAnisotropicIteration = 2;
+		int m_iMedianBoxRadius = 2;
 
+		void executeAnisotropic();
 		void executeGauss();
 		void executeMedian();
 

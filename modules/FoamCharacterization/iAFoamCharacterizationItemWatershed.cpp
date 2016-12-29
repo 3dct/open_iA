@@ -34,9 +34,9 @@ iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(vtkImag
 }
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed)
-	                               : iAFoamCharacterizationItem(_pWatershed->imageData(), iAFoamCharacterizationItem::itWatershed)
+	                                                                                     : iAFoamCharacterizationItem(_pWatershed)
 {
-	setText(_pWatershed->text());
+	setName(_pWatershed->name());
 }
 
 void iAFoamCharacterizationItemWatershed::dialog()

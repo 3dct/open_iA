@@ -40,19 +40,45 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(vtkImageData*
 }
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter)
-	                                     : iAFoamCharacterizationItem(_pFilter->imageData(), iAFoamCharacterizationItem::itFilter)
+	                                                                                        : iAFoamCharacterizationItem(_pFilter)
 {
-	setText(_pFilter->text());
+	m_eItemFilterType = _pFilter->itemFilterType();
+
+	setName(_pFilter->name());
+
+	m_dAnisotropicConductance = _pFilter->anisotropicConductance();
+	m_iAnisotropicIteration = _pFilter->anisotropicIteration();
+	m_dAnisotropicTimeStep = _pFilter->anisotropicTimeStep();
+
+	m_dGaussVariance = _pFilter->gaussVariance();
+
+	m_iMedianBoxRadius = _pFilter->medianBoxRadius();
 }
 
-int iAFoamCharacterizationItemFilter::boxRadius() const
+double iAFoamCharacterizationItemFilter::anisotropicConductance() const
 {
-	return m_iBoxRadius;
+	return m_dAnisotropicConductance;
+}
+
+int iAFoamCharacterizationItemFilter::anisotropicIteration() const
+{
+	return m_iAnisotropicIteration;
+}
+
+double iAFoamCharacterizationItemFilter::anisotropicTimeStep() const
+{
+	return m_dAnisotropicTimeStep;
+}
+
+int iAFoamCharacterizationItemFilter::medianBoxRadius() const
+{
+	return m_iMedianBoxRadius;
 }
 
 void iAFoamCharacterizationItemFilter::dialog()
 {
 	QScopedPointer<iAFoamCharacterizationDialogFilter> pDialog(new iAFoamCharacterizationDialogFilter(this, qApp->focusWidget()));
+
 	pDialog->exec();
 }
 
@@ -63,6 +89,10 @@ void iAFoamCharacterizationItemFilter::execute()
 
 	switch (m_eItemFilterType)
 	{
+		case iftAnisotropic:
+		executeAnisotropic();
+		break;
+
 		case iftGauss:
 		executeGauss();
 		break;
@@ -75,6 +105,27 @@ void iAFoamCharacterizationItemFilter::execute()
 	setTime(t.elapsed());
 }
 
+void iAFoamCharacterizationItemFilter::executeAnisotropic()
+{
+	typedef itk::GradientAnisotropicDiffusionImageFilter <itk::Image<unsigned short, 3>, itk::Image<float, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter(itkFilter::New());
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetConductanceParameter(m_dAnisotropicConductance);
+	pFilter->SetNumberOfIterations(m_iAnisotropicIteration);
+	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
+	pFilter->Update();
+
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+}
+
 void iAFoamCharacterizationItemFilter::executeGauss()
 {
 	typedef itk::DiscreteGaussianImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
@@ -85,7 +136,7 @@ void iAFoamCharacterizationItemFilter::executeGauss()
 	connector1.SetImage(m_pImageData);
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
-	pFilter->SetVariance(m_dVariance);
+	pFilter->SetVariance(m_dGaussVariance);
 	pFilter->Update();
 
 	iAConnector connector2;
@@ -101,7 +152,7 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	itkFilter::Pointer pFilter(itkFilter::New());
 
 	itkFilter::InputSizeType radius;
-	radius.Fill(m_iBoxRadius);
+	radius.Fill(m_iMedianBoxRadius);
 	pFilter->SetRadius(radius);
 
 	iAConnector connector1;
@@ -116,6 +167,11 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	m_pImageData->DeepCopy(connector2.GetVTKImage());
 }
 
+double iAFoamCharacterizationItemFilter::gaussVariance() const
+{
+	return m_dGaussVariance;
+}
+
 iAFoamCharacterizationItemFilter::EItemFilterType iAFoamCharacterizationItemFilter::itemFilterType() const
 {
 	return m_eItemFilterType;
@@ -125,7 +181,11 @@ QString iAFoamCharacterizationItemFilter::itemFilterTypeString() const
 {
 	switch (m_eItemFilterType)
 	{
-		case iftGauss:
+		case iftAnisotropic:
+		return "A";
+		break;
+
+     	case iftGauss:
 		return "G";
 		break;
 
@@ -139,8 +199,11 @@ void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 	iAFoamCharacterizationItem::open(_pFileOpen);
 
 	_pFileOpen->read((char*) &m_eItemFilterType, sizeof(m_eItemFilterType));
-	_pFileOpen->read((char*) &m_dVariance, sizeof(m_dVariance));
-	_pFileOpen->read((char*) &m_iBoxRadius, sizeof(m_iBoxRadius));
+	_pFileOpen->read((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
+	_pFileOpen->read((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
+	_pFileOpen->read((char*) &m_iAnisotropicIteration, sizeof(m_iAnisotropicIteration));
+	_pFileOpen->read((char*) &m_dGaussVariance, sizeof(m_dGaussVariance));
+	_pFileOpen->read((char*) &m_iMedianBoxRadius, sizeof(m_iMedianBoxRadius));
 
 	setItemText();
 }
@@ -150,13 +213,31 @@ void iAFoamCharacterizationItemFilter::save(QFile* _pFileSave)
 	iAFoamCharacterizationItem::save(_pFileSave);
 
 	_pFileSave->write((char*) &m_eItemFilterType, sizeof(m_eItemFilterType));
-	_pFileSave->write((char*) &m_dVariance, sizeof(m_dVariance));
-	_pFileSave->write((char*) &m_iBoxRadius, sizeof(m_iBoxRadius));
+	_pFileSave->write((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
+	_pFileSave->write((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
+	_pFileSave->write((char*) &m_iAnisotropicIteration, sizeof(m_iAnisotropicIteration));
+	_pFileSave->write((char*) &m_dGaussVariance, sizeof(m_dGaussVariance));
+	_pFileSave->write((char*) &m_iMedianBoxRadius, sizeof(m_iMedianBoxRadius));
 }
 
-void iAFoamCharacterizationItemFilter::setBoxRadius(const int& _iBoxRadius)
+void iAFoamCharacterizationItemFilter::setAnisotropicConductance(const double& _dAnisotropicConductance)
 {
-	m_iBoxRadius = _iBoxRadius;
+	m_dAnisotropicConductance = _dAnisotropicConductance;
+}
+
+void iAFoamCharacterizationItemFilter::setAnisotropicIteration(const int& _iAnisotropicIteration)
+{
+	m_iAnisotropicIteration = _iAnisotropicIteration;
+}
+
+void iAFoamCharacterizationItemFilter::setAnisotropicTimeStep(const double& _dAnisotropicTimeStep)
+{
+	m_dAnisotropicTimeStep = _dAnisotropicTimeStep;
+}
+
+void iAFoamCharacterizationItemFilter::setGaussVariance(const double& _dGaussVariance)
+{
+	m_dGaussVariance = _dGaussVariance;
 }
 
 void iAFoamCharacterizationItemFilter::setItemFilterType(const iAFoamCharacterizationItemFilter::EItemFilterType& _eItemFilterType)
@@ -176,12 +257,7 @@ void iAFoamCharacterizationItemFilter::setItemText()
 	}
 }
 
-void iAFoamCharacterizationItemFilter::setVariance(const double& _dVariance)
+void iAFoamCharacterizationItemFilter::setMedianBoxRadius(const int& _iMedianBoxRadius)
 {
-	m_dVariance = _dVariance;
-}
-
-double iAFoamCharacterizationItemFilter::variance() const
-{
-	return m_dVariance;
+	m_iMedianBoxRadius = _iMedianBoxRadius;
 }

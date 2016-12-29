@@ -33,6 +33,7 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 	public:
 		explicit iAFoamCharacterizationItem(vtkImageData* m_pImageData, const EItemType& _eItemType);
+		explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
 		virtual ~iAFoamCharacterizationItem();
 
 		vtkImageData* imageData() const;

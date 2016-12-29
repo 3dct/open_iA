@@ -31,7 +31,7 @@
 #include "iAFoamCharacterizationDialog.h"
 
 iAFoamCharacterizationItem::iAFoamCharacterizationItem(vtkImageData* _pImageData, const EItemType& _eItemType)
-	                                                                                                   : QTableWidgetItem()
+																									   : QTableWidgetItem()
 																									   , m_eItemType(_eItemType)
 																									   , m_pImageData(_pImageData)
 {
@@ -43,11 +43,23 @@ iAFoamCharacterizationItem::iAFoamCharacterizationItem(vtkImageData* _pImageData
 	setItemIconColor();
 	setItemIcon();
 
-	m_sName = itemTypeStr();
-
-	setText(m_sName);
+	setName(itemTypeStr());
 }
 
+iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem) : QTableWidgetItem() 
+                                                                                           , m_eItemType(_pItem->itemType())
+                                                                                           , m_pImageData(_pItem->imageData())
+{
+	QFont f(font());
+	f.setBold(true);
+
+	setFont(f);
+
+	setItemIconColor();
+	setItemIcon();
+
+	setItemEnabled(_pItem->itemEnabled());
+}
 
 iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 {
