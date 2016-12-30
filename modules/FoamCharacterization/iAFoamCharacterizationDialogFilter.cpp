@@ -41,8 +41,10 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 
 	m_pComboBox2 = new QComboBox(m_pGroupBox2);
 	m_pComboBox2->addItem("Anisotropic diffusion", 0);
-	m_pComboBox2->addItem("Gauss", 1);
+	m_pComboBox2->addItem("Gaussian", 1);
 	m_pComboBox2->addItem("Median", 2);
+	m_pComboBox2->addItem("Non-local means", 3);
+	connect(m_pComboBox2, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBox2(const int&)));
 
 	m_pWidgetAnisotropic = new QWidget(m_pGroupBox2);
 
@@ -80,7 +82,7 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 	m_pDoubleSpinBoxGaussVariance = new QDoubleSpinBox(m_pWidgetMedian);
 	m_pDoubleSpinBoxGaussVariance->setAlignment(Qt::AlignRight);
 	m_pDoubleSpinBoxGaussVariance->setRange(0.0, 100.0);
-	m_pDoubleSpinBoxGaussVariance->setValue(m_pItemFilter->gaussVariance());
+	m_pDoubleSpinBoxGaussVariance->setValue(m_pItemFilter->gaussianVariance());
 
 	QGridLayout* pGridLayoutGauss(new QGridLayout(m_pWidgetGauss));
 	pGridLayoutGauss->addWidget(pLabelGaussVariance, 0, 0);
@@ -108,8 +110,6 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 
 	setLayout();
 
-	connect(m_pComboBox2, SIGNAL(currentIndexChanged(const int&)), this, SLOT(slotComboBox2(const int&)));
-
 	m_pComboBox2->setCurrentIndex((int)m_pItemFilter->itemFilterType());
 }
 
@@ -127,11 +127,17 @@ void iAFoamCharacterizationDialogFilter::slotComboBox2(const int& _iIndex)
 		m_pWidgetGauss->setVisible(true);
 		m_pWidgetMedian->setVisible(false);
 	}
-	else
+	else if (_iIndex == 2)
 	{
 		m_pWidgetAnisotropic->setVisible(false);
 		m_pWidgetGauss->setVisible(false);
 		m_pWidgetMedian->setVisible(true);
+	}
+	else
+	{
+		m_pWidgetAnisotropic->setVisible(false);
+		m_pWidgetGauss->setVisible(false);
+		m_pWidgetMedian->setVisible(false);
 	}
 }
 
@@ -142,7 +148,9 @@ void iAFoamCharacterizationDialogFilter::slotPushButtonOk()
 	m_pItemFilter->setAnisotropicConductance(m_pDoubleSpinBoxAnisotropicConductance->value());
 	m_pItemFilter->setAnisotropicIteration(m_pSpinBoxAnisotropicIteration->value());
 	m_pItemFilter->setAnisotropicTimeStep(m_pDoubleSpinBoxAnisotropicTimeStep->value());
-	m_pItemFilter->setGaussVariance(m_pDoubleSpinBoxGaussVariance->value());
+
+	m_pItemFilter->setGaussianVariance(m_pDoubleSpinBoxGaussVariance->value());
+
 	m_pItemFilter->setMedianBoxRadius(m_pSpinBoxMedianBoxRadius->value());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();

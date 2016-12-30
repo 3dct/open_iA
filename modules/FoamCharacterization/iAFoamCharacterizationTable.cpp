@@ -158,7 +158,12 @@ void iAFoamCharacterizationTable::execute()
 		selectRow(i);
 		qApp->processEvents();
 
-		((iAFoamCharacterizationItem*) item(i, 0))->execute();
+		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(i, 0));
+
+		if (pItem->itemEnabled())
+		{
+			pItem->execute();
+		}
 	}
 }
 
@@ -197,7 +202,7 @@ void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent* e)
 {
 	QTableWidget::mouseDoubleClickEvent(e);
 
-	const int iIconMargin(logicalDpiX() / 7);
+	const int iIconMargin(logicalDpiX() / 5);
 
 	if (e->x() > iIconMargin)
 	{
@@ -222,7 +227,7 @@ void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 	{
 		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(m_iRowDrag, 0));
 
-		const int iIconMargin(logicalDpiX() / 7);
+		const int iIconMargin(logicalDpiX() / 5);
 
 		if (ptMouse.x() < iIconMargin)
 		{

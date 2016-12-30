@@ -22,7 +22,10 @@
 
 #include "iAFoamCharacterizationDialog.h"
 
-#include "iAFoamCharacterizationItemBinarization.h"
+class QCheckBox;
+class QSpinBox;
+
+class iAFoamCharacterizationItemBinarization;
 
 class iAFoamCharacterizationDialogBinarization : public iAFoamCharacterizationDialog
 {
@@ -30,7 +33,15 @@ class iAFoamCharacterizationDialogBinarization : public iAFoamCharacterizationDi
 
 	public:
 		explicit iAFoamCharacterizationDialogBinarization
-		                                            (iAFoamCharacterizationItemBinarization* _pItem, QWidget* _pParent = nullptr);
+		                                (iAFoamCharacterizationItemBinarization* _pItemBinarization, QWidget* _pParent = nullptr);
+
+	private:
+		iAFoamCharacterizationItemBinarization* m_pItemBinarization = nullptr;
+
+		QCheckBox* m_pCheckBoxOtzu = nullptr;
+
+		QSpinBox* m_pSpinBoxpBinarizationLower = nullptr;
+		QSpinBox* m_pSpinBoxpBinarizationUpper = nullptr;
 
 	protected slots:
 		virtual void slotPushButtonOk() override;

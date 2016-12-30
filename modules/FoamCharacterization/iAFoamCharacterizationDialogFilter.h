@@ -36,25 +36,23 @@ class iAFoamCharacterizationDialogFilter : public iAFoamCharacterizationDialog
 		explicit iAFoamCharacterizationDialogFilter(iAFoamCharacterizationItemFilter* _pItemFilter, QWidget* _pParent = nullptr);
 
 	private:
+		iAFoamCharacterizationItemFilter* m_pItemFilter = nullptr;
+
 		QComboBox* m_pComboBox2 = nullptr;
 		
+		QWidget* m_pWidgetAnisotropic = nullptr;
 		QWidget* m_pWidgetGauss = nullptr;
+		QWidget* m_pWidgetMedian = nullptr;
 
 		QDoubleSpinBox* m_pDoubleSpinBoxAnisotropicConductance = nullptr;
 		QDoubleSpinBox* m_pDoubleSpinBoxAnisotropicTimeStep = nullptr;
 		QDoubleSpinBox* m_pDoubleSpinBoxGaussVariance = nullptr;
-
-		QWidget* m_pWidgetAnisotropic = nullptr;
-		QWidget* m_pWidgetMedian = nullptr;
 
 		QSpinBox* m_pSpinBoxAnisotropicIteration = nullptr;
 		QSpinBox* m_pSpinBoxMedianBoxRadius = nullptr;
 
 	private slots:
 		void slotComboBox2(const int& _iIndex);
-
-	protected:
-		iAFoamCharacterizationItemFilter* m_pItemFilter = nullptr;
 
 	protected slots:
 		virtual void slotPushButtonOk() override;

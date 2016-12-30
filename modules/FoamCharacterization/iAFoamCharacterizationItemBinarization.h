@@ -27,11 +27,37 @@ class QFile;
 class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 {
 	public:
+		enum EItemFilterType { iftBinarization, iftOtzu};
+
+	public:
 		explicit iAFoamCharacterizationItemBinarization(vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationItemBinarization* _pBinarization);
+
+		EItemFilterType itemFilterType() const;
+
+		unsigned short lowerThreshold() const;
+		void setLowerThreshold(const unsigned short& _usLowerThreshold);
+		void setUpperThreshold(const unsigned short& _usUpperThreshold);
+		unsigned short upperThreshold() const;
+
+		void setItemFilterType(const EItemFilterType& _eItemFilterType);
 
 		virtual void dialog() override;
 		virtual void execute() override;
 		virtual void open(QFile* _pFileOpen) override;
 		virtual void save(QFile* _pFileSave) override;
+
+	private:
+		EItemFilterType m_eItemFilterType = iftOtzu;
+
+		unsigned short m_usLowerThreshold = 0;
+		unsigned short m_usUpperThreshold = 65535;
+
+		void executeBinarization();
+		void executeOtzu();
+
+		QString itemFilterTypeString() const;
+
+	protected:
+		virtual void setItemText() override;
 };

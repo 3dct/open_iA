@@ -29,7 +29,7 @@ class vtkImageData;
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
 	public:
-		enum EItemFilterType { iftAnisotropic, iftGauss , iftMedian};
+		enum EItemFilterType { iftAnisotropic, iftGauss , iftMedian, iftNonLocalMeans};
 
 	public:
 		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData);
@@ -39,7 +39,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		int anisotropicIteration() const;
 		double anisotropicTimeStep() const;
 
-		double gaussVariance() const;
+		double gaussianVariance() const;
 
 		EItemFilterType itemFilterType() const;
 
@@ -48,7 +48,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		void setAnisotropicConductance(const double& _dAnisotropicConductance);
 		void setAnisotropicIteration(const int& _iAnisotropicIteration);
 		void setAnisotropicTimeStep(const double& _dAnisotropicTimeStep);
-		void setGaussVariance(const double& _dVariance);
+		void setGaussianVariance(const double& _dGaussianVariance);
 		void setItemFilterType(const EItemFilterType& _eItemFilterType);
 		void setMedianBoxRadius(const int& _iBoxRadius);
 
@@ -60,7 +60,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 	private:
 		double m_dAnisotropicConductance = 1.0;
 		double m_dAnisotropicTimeStep= 0.1;
-		double m_dGaussVariance = 4.0;
+		double m_dGaussianVariance = 4.0;
 
 		EItemFilterType m_eItemFilterType = iftGauss;
 
@@ -68,8 +68,9 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		int m_iMedianBoxRadius = 2;
 
 		void executeAnisotropic();
-		void executeGauss();
+		void executeGaussian();
 		void executeMedian();
+		void executeNonLocalMeans();
 
 		QString itemFilterTypeString() const;
 

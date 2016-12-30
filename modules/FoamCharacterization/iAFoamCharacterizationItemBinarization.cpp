@@ -25,6 +25,11 @@
 #include <QFile>
 #include <QTime>
 
+#include <itkBinaryThresholdImageFilter.h>
+#include <itkOtsuThresholdImageFilter.h>
+
+#include "iAConnector.h"
+
 #include "iAFoamCharacterizationDialogBinarization.h"
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization(vtkImageData* _pImageData)
@@ -52,12 +57,90 @@ void iAFoamCharacterizationItemBinarization::execute()
 	QTime t;
 	t.start();
 
+	switch (m_eItemFilterType)
+	{
+		case iftBinarization:
+		executeBinarization();
+		break;
+
+		default:
+		executeOtzu(); 
+		break;
+	}
+
 	setTime(t.elapsed());
+}
+
+void iAFoamCharacterizationItemBinarization::executeBinarization()
+{
+	typedef itk::BinaryThresholdImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter(itkFilter::New());
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetLowerThreshold(m_usLowerThreshold);
+	pFilter->SetUpperThreshold(m_usUpperThreshold);
+	pFilter->Update();
+
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+}
+
+void iAFoamCharacterizationItemBinarization::executeOtzu()
+{
+	typedef itk::OtsuThresholdImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter(itkFilter::New());
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->Update();
+
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+}
+
+iAFoamCharacterizationItemBinarization::EItemFilterType iAFoamCharacterizationItemBinarization::itemFilterType() const
+{
+	return m_eItemFilterType;
+}
+
+QString iAFoamCharacterizationItemBinarization::itemFilterTypeString() const
+{
+	switch (m_eItemFilterType)
+	{
+		case iftBinarization:
+		return "B";
+		break;
+
+		default:
+		return "O";
+		break;
+	}
+}
+
+
+unsigned short iAFoamCharacterizationItemBinarization::lowerThreshold() const
+{
+	return m_usLowerThreshold;
 }
 
 void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
+
+	_pFileOpen->read((char*)&m_eItemFilterType, sizeof(m_eItemFilterType));
+	_pFileOpen->read((char*)&m_usLowerThreshold, sizeof(m_usLowerThreshold));
+	_pFileOpen->read((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
 
 	setItemText();
 }
@@ -65,4 +148,41 @@ void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 void iAFoamCharacterizationItemBinarization::save(QFile* _pFileSave)
 {
 	iAFoamCharacterizationItem::save(_pFileSave);
+
+	_pFileSave->write((char*)&m_eItemFilterType, sizeof(m_eItemFilterType));
+	_pFileSave->write((char*)&m_usLowerThreshold, sizeof(m_usLowerThreshold));
+	_pFileSave->write((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
+}
+
+void iAFoamCharacterizationItemBinarization::setItemFilterType
+                                                 (const iAFoamCharacterizationItemBinarization::EItemFilterType& _eItemFilterType)
+{
+	m_eItemFilterType = _eItemFilterType;
+}
+
+void iAFoamCharacterizationItemBinarization::setItemText()
+{
+	if (m_dExecute > 0.0)
+	{
+		setText(m_sName + QString(" [%1] (%2)").arg(itemFilterTypeString()).arg(executeTimeString()));
+	}
+	else
+	{
+		setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
+	}
+}
+
+void iAFoamCharacterizationItemBinarization::setLowerThreshold(const unsigned short& _usLowerThreshold)
+{
+	m_usLowerThreshold = _usLowerThreshold;
+}
+
+void iAFoamCharacterizationItemBinarization::setUpperThreshold(const unsigned short& _usUpperThreshold)
+{
+	m_usUpperThreshold = _usUpperThreshold;
+}
+
+unsigned short iAFoamCharacterizationItemBinarization::upperThreshold() const
+{
+	return m_usUpperThreshold;
 }

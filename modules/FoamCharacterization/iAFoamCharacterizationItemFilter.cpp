@@ -28,6 +28,7 @@
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkMedianImageFilter.h>
+#include <itkPatchBasedDenoisingImageFilter.h>
 
 #include "iAConnector.h"
 
@@ -50,7 +51,7 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharact
 	m_iAnisotropicIteration = _pFilter->anisotropicIteration();
 	m_dAnisotropicTimeStep = _pFilter->anisotropicTimeStep();
 
-	m_dGaussVariance = _pFilter->gaussVariance();
+	m_dGaussianVariance = _pFilter->gaussianVariance();
 
 	m_iMedianBoxRadius = _pFilter->medianBoxRadius();
 }
@@ -94,11 +95,15 @@ void iAFoamCharacterizationItemFilter::execute()
 		break;
 
 		case iftGauss:
-		executeGauss();
+		executeGaussian();
+		break;
+
+		case iftMedian:
+		executeMedian();
 		break;
 
 		default:
-		executeMedian();
+		executeNonLocalMeans();
 		break;
 	}
 
@@ -126,7 +131,7 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 	m_pImageData->DeepCopy(connector2.GetVTKImage());
 }
 
-void iAFoamCharacterizationItemFilter::executeGauss()
+void iAFoamCharacterizationItemFilter::executeGaussian()
 {
 	typedef itk::DiscreteGaussianImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 
@@ -136,7 +141,7 @@ void iAFoamCharacterizationItemFilter::executeGauss()
 	connector1.SetImage(m_pImageData);
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
-	pFilter->SetVariance(m_dGaussVariance);
+	pFilter->SetVariance(m_dGaussianVariance);
 	pFilter->Update();
 
 	iAConnector connector2;
@@ -167,9 +172,27 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	m_pImageData->DeepCopy(connector2.GetVTKImage());
 }
 
-double iAFoamCharacterizationItemFilter::gaussVariance() const
+void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 {
-	return m_dGaussVariance;
+	typedef itk::PatchBasedDenoisingImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter(itkFilter::New());
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->Update();
+
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+}
+
+double iAFoamCharacterizationItemFilter::gaussianVariance() const
+{
+	return m_dGaussianVariance;
 }
 
 iAFoamCharacterizationItemFilter::EItemFilterType iAFoamCharacterizationItemFilter::itemFilterType() const
@@ -189,8 +212,13 @@ QString iAFoamCharacterizationItemFilter::itemFilterTypeString() const
 		return "G";
 		break;
 
-		default:
+		case iftMedian:
 		return "M";
+		break;
+
+		default:
+		return "N";
+		break;
 	}
 }
 
@@ -202,7 +230,7 @@ void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
 	_pFileOpen->read((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
 	_pFileOpen->read((char*) &m_iAnisotropicIteration, sizeof(m_iAnisotropicIteration));
-	_pFileOpen->read((char*) &m_dGaussVariance, sizeof(m_dGaussVariance));
+	_pFileOpen->read((char*) &m_dGaussianVariance, sizeof(m_dGaussianVariance));
 	_pFileOpen->read((char*) &m_iMedianBoxRadius, sizeof(m_iMedianBoxRadius));
 
 	setItemText();
@@ -216,7 +244,7 @@ void iAFoamCharacterizationItemFilter::save(QFile* _pFileSave)
 	_pFileSave->write((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
 	_pFileSave->write((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
 	_pFileSave->write((char*) &m_iAnisotropicIteration, sizeof(m_iAnisotropicIteration));
-	_pFileSave->write((char*) &m_dGaussVariance, sizeof(m_dGaussVariance));
+	_pFileSave->write((char*) &m_dGaussianVariance, sizeof(m_dGaussianVariance));
 	_pFileSave->write((char*) &m_iMedianBoxRadius, sizeof(m_iMedianBoxRadius));
 }
 
@@ -235,9 +263,9 @@ void iAFoamCharacterizationItemFilter::setAnisotropicTimeStep(const double& _dAn
 	m_dAnisotropicTimeStep = _dAnisotropicTimeStep;
 }
 
-void iAFoamCharacterizationItemFilter::setGaussVariance(const double& _dGaussVariance)
+void iAFoamCharacterizationItemFilter::setGaussianVariance(const double& _dGaussianVariance)
 {
-	m_dGaussVariance = _dGaussVariance;
+	m_dGaussianVariance = _dGaussianVariance;
 }
 
 void iAFoamCharacterizationItemFilter::setItemFilterType(const iAFoamCharacterizationItemFilter::EItemFilterType& _eItemFilterType)

@@ -114,18 +114,24 @@ vtkImageData* iAFoamCharacterizationItem::imageData() const
 
 QIcon iAFoamCharacterizationItem::itemButtonIcon() const
 {
-	const int iImageLength(18 * qMax(font().pixelSize(), font().pointSize()) / 10);
-	const int iImageLength2(iImageLength / 2);
+	QScopedPointer<QImage> pImage(new QImage(1, 1, QImage::Format_ARGB32));
 
-	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
+	const int iImageLengthX(pImage->logicalDpiX() / 6);
+	const int iImageLengthY(pImage->logicalDpiY() / 6);
+
+	const int iImageLengthX2(iImageLengthX / 2);
+	const int iImageLengthY2(iImageLengthY / 2);
+
+	*pImage.data() = pImage->scaled(iImageLengthX, iImageLengthY);
+
 	pImage->fill(0);
 
 	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
 	pPainter->setBrush(Qt::NoBrush);
 	pPainter->setPen(m_cItemIcon);
 	pPainter->drawEllipse(pImage->rect().adjusted(0, 0, -1, -1));
-	pPainter->drawLine(2, iImageLength2, iImageLength - 3, iImageLength2);
-	pPainter->drawLine(iImageLength2, 2, iImageLength2, iImageLength - 3);
+	pPainter->drawLine(2, iImageLengthY2, iImageLengthX - 3, iImageLengthY2);
+	pPainter->drawLine(iImageLengthX2, 2, iImageLengthX2, iImageLengthY - 3);
 
 	return QIcon(QPixmap::fromImage(*pImage.data()));
 }
@@ -181,9 +187,10 @@ void iAFoamCharacterizationItem::save(QFile* _pFileSave)
 
 void iAFoamCharacterizationItem::setItemIcon()
 {
-	const int iImageLength(qMax(font().pixelSize(), font().pointSize()));
+	QScopedPointer<QImage> pImage(new QImage(1, 1, QImage::Format_ARGB32));
 
-	QScopedPointer<QImage> pImage(new QImage(iImageLength, iImageLength, QImage::Format_ARGB32));
+	*pImage.data() = pImage->scaled(pImage->logicalDpiX() / 6, pImage->logicalDpiY() / 6);
+
 	pImage->fill(0);
 
 	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
