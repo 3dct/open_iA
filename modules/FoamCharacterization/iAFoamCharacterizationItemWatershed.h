@@ -30,8 +30,18 @@ class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 		explicit iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
 
+		double level() const;
+		double threshold() const;
+
+		void setLevel(const double& _dLevel);
+		void setThreshold(const double& _dThreshold);
+
 		virtual void dialog() override;
 		virtual void execute() override;
 		virtual void open(QFile* _pFileOpen) override;
 		virtual void save(QFile* _pFileSave) override;
+
+	private:
+		double m_dLevel = 0.5;
+		double m_dThreshold = 0.5;
 };

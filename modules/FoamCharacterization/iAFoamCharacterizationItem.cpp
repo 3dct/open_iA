@@ -119,12 +119,12 @@ QIcon iAFoamCharacterizationItem::itemButtonIcon() const
 	const int iImageLengthX(pImage->logicalDpiX() / 6);
 	const int iImageLengthY(pImage->logicalDpiY() / 6);
 
-	const int iImageLengthX2(iImageLengthX / 2);
-	const int iImageLengthY2(iImageLengthY / 2);
-
 	*pImage.data() = pImage->scaled(iImageLengthX, iImageLengthY);
 
 	pImage->fill(0);
+
+	const int iImageLengthX2(iImageLengthX / 2);
+	const int iImageLengthY2(iImageLengthY / 2);
 
 	QScopedPointer<QPainter> pPainter(new QPainter(pImage.data()));
 	pPainter->setBrush(Qt::NoBrush);

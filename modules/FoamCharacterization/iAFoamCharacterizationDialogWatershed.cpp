@@ -21,14 +21,45 @@
 
 #include "iAFoamCharacterizationDialogWatershed.h"
 
+#include <QGridLayout>
+#include <QLabel>
+#include <QDoubleSpinBox>
+
+#include "iAFoamCharacterizationItemWatershed.h"
+
+
 iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed
-                                                                  (iAFoamCharacterizationItemWatershed* _pItem, QWidget* _pParent)
-	                                                                              : iAFoamCharacterizationDialog(_pItem, _pParent)
+                                                         (iAFoamCharacterizationItemWatershed* _pItemWatershed, QWidget* _pParent)
+	                                                                     : iAFoamCharacterizationDialog(_pItemWatershed, _pParent)
+																		 , m_pItemWatershed(_pItemWatershed)
 {
+	m_pGroupBox2 = new QGroupBox(this);
+
+	QLabel* pLabelLevel (new QLabel("Level:", m_pGroupBox2));
+	m_pDoubleSpinBoxLevel = new QDoubleSpinBox(m_pGroupBox2);
+	m_pDoubleSpinBoxLevel->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxLevel->setValue(m_pItemWatershed->level());
+
+	QLabel* pLabelThreshold(new QLabel("Threshold [%]:", m_pGroupBox2));
+	m_pDoubleSpinBoxTreshold = new QDoubleSpinBox(m_pGroupBox2);
+	m_pDoubleSpinBoxTreshold->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxTreshold->setRange(0.0, 1.0);
+	m_pDoubleSpinBoxTreshold->setSingleStep(0.1);
+	m_pDoubleSpinBoxTreshold->setValue(m_pItemWatershed->threshold());
+
+	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
+	pGridLayout2->addWidget(pLabelLevel, 0, 0);
+	pGridLayout2->addWidget(m_pDoubleSpinBoxLevel, 0, 1);
+	pGridLayout2->addWidget(pLabelThreshold, 1, 0);
+	pGridLayout2->addWidget(m_pDoubleSpinBoxTreshold, 1, 1);
+
 	setLayout();
 }
 
 void iAFoamCharacterizationDialogWatershed::slotPushButtonOk()
 {
+	m_pItemWatershed->setLevel(m_pDoubleSpinBoxLevel->value());
+	m_pItemWatershed->setThreshold(m_pDoubleSpinBoxTreshold->value());
+
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

@@ -48,12 +48,13 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharact
 	setName(_pFilter->name());
 
 	m_dAnisotropicConductance = _pFilter->anisotropicConductance();
-	m_iAnisotropicIteration = _pFilter->anisotropicIteration();
+	m_uiAnisotropicIteration = _pFilter->anisotropicIteration();
 	m_dAnisotropicTimeStep = _pFilter->anisotropicTimeStep();
 
 	m_dGaussianVariance = _pFilter->gaussianVariance();
 
-	m_iMedianBoxRadius = _pFilter->medianBoxRadius();
+	m_uiMedianRadius = _pFilter->medianRadius();
+	m_uiNonLocalMeansRadius = _pFilter->nonLocalMeansRadius();
 }
 
 double iAFoamCharacterizationItemFilter::anisotropicConductance() const
@@ -61,9 +62,9 @@ double iAFoamCharacterizationItemFilter::anisotropicConductance() const
 	return m_dAnisotropicConductance;
 }
 
-int iAFoamCharacterizationItemFilter::anisotropicIteration() const
+unsigned int iAFoamCharacterizationItemFilter::anisotropicIteration() const
 {
-	return m_iAnisotropicIteration;
+	return m_uiAnisotropicIteration;
 }
 
 double iAFoamCharacterizationItemFilter::anisotropicTimeStep() const
@@ -71,16 +72,11 @@ double iAFoamCharacterizationItemFilter::anisotropicTimeStep() const
 	return m_dAnisotropicTimeStep;
 }
 
-int iAFoamCharacterizationItemFilter::medianBoxRadius() const
-{
-	return m_iMedianBoxRadius;
-}
-
 void iAFoamCharacterizationItemFilter::dialog()
 {
 	QScopedPointer<iAFoamCharacterizationDialogFilter> pDialog(new iAFoamCharacterizationDialogFilter(this, qApp->focusWidget()));
-
 	pDialog->exec();
+	pDialog.reset();
 }
 
 void iAFoamCharacterizationItemFilter::execute()
@@ -121,7 +117,7 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
 	pFilter->SetConductanceParameter(m_dAnisotropicConductance);
-	pFilter->SetNumberOfIterations(m_iAnisotropicIteration);
+	pFilter->SetNumberOfIterations(m_uiAnisotropicIteration);
 	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
 	pFilter->Update();
 
@@ -157,7 +153,7 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	itkFilter::Pointer pFilter(itkFilter::New());
 
 	itkFilter::InputSizeType radius;
-	radius.Fill(m_iMedianBoxRadius);
+	radius.Fill(m_uiMedianRadius);
 	pFilter->SetRadius(radius);
 
 	iAConnector connector1;
@@ -182,6 +178,8 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 	connector1.SetImage(m_pImageData);
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetNumberOfIterations(m_uiNonLocalMeansIteration);
+	pFilter->SetPatchRadius(m_uiNonLocalMeansRadius);
 	pFilter->Update();
 
 	iAConnector connector2;
@@ -222,6 +220,21 @@ QString iAFoamCharacterizationItemFilter::itemFilterTypeString() const
 	}
 }
 
+unsigned int iAFoamCharacterizationItemFilter::medianRadius() const
+{
+	return m_uiMedianRadius;
+}
+
+unsigned int iAFoamCharacterizationItemFilter::nonLocalMeansIteration() const
+{
+	return m_uiNonLocalMeansIteration;
+}
+
+unsigned int iAFoamCharacterizationItemFilter::nonLocalMeansRadius() const
+{
+	return m_uiNonLocalMeansRadius;
+}
+
 void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
@@ -229,9 +242,11 @@ void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*) &m_eItemFilterType, sizeof(m_eItemFilterType));
 	_pFileOpen->read((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
 	_pFileOpen->read((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
-	_pFileOpen->read((char*) &m_iAnisotropicIteration, sizeof(m_iAnisotropicIteration));
+	_pFileOpen->read((char*) &m_uiAnisotropicIteration, sizeof(m_uiAnisotropicIteration));
 	_pFileOpen->read((char*) &m_dGaussianVariance, sizeof(m_dGaussianVariance));
-	_pFileOpen->read((char*) &m_iMedianBoxRadius, sizeof(m_iMedianBoxRadius));
+	_pFileOpen->read((char*)&m_uiMedianRadius, sizeof(m_uiMedianRadius));
+	_pFileOpen->read((char*)&m_uiNonLocalMeansIteration, sizeof(m_uiNonLocalMeansIteration));
+	_pFileOpen->read((char*)&m_uiNonLocalMeansRadius, sizeof(m_uiNonLocalMeansRadius));
 
 	setItemText();
 }
@@ -243,9 +258,11 @@ void iAFoamCharacterizationItemFilter::save(QFile* _pFileSave)
 	_pFileSave->write((char*) &m_eItemFilterType, sizeof(m_eItemFilterType));
 	_pFileSave->write((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
 	_pFileSave->write((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
-	_pFileSave->write((char*) &m_iAnisotropicIteration, sizeof(m_iAnisotropicIteration));
+	_pFileSave->write((char*) &m_uiAnisotropicIteration, sizeof(m_uiAnisotropicIteration));
 	_pFileSave->write((char*) &m_dGaussianVariance, sizeof(m_dGaussianVariance));
-	_pFileSave->write((char*) &m_iMedianBoxRadius, sizeof(m_iMedianBoxRadius));
+	_pFileSave->write((char*) &m_uiMedianRadius, sizeof(m_uiMedianRadius));
+	_pFileSave->write((char*)&m_uiNonLocalMeansIteration, sizeof(m_uiNonLocalMeansIteration));
+	_pFileSave->write((char*)&m_uiNonLocalMeansRadius, sizeof(m_uiNonLocalMeansRadius));
 }
 
 void iAFoamCharacterizationItemFilter::setAnisotropicConductance(const double& _dAnisotropicConductance)
@@ -253,9 +270,9 @@ void iAFoamCharacterizationItemFilter::setAnisotropicConductance(const double& _
 	m_dAnisotropicConductance = _dAnisotropicConductance;
 }
 
-void iAFoamCharacterizationItemFilter::setAnisotropicIteration(const int& _iAnisotropicIteration)
+void iAFoamCharacterizationItemFilter::setAnisotropicIteration(const unsigned int& _uiAnisotropicIteration)
 {
-	m_iAnisotropicIteration = _iAnisotropicIteration;
+	m_uiAnisotropicIteration = _uiAnisotropicIteration;
 }
 
 void iAFoamCharacterizationItemFilter::setAnisotropicTimeStep(const double& _dAnisotropicTimeStep)
@@ -285,7 +302,17 @@ void iAFoamCharacterizationItemFilter::setItemText()
 	}
 }
 
-void iAFoamCharacterizationItemFilter::setMedianBoxRadius(const int& _iMedianBoxRadius)
+void iAFoamCharacterizationItemFilter::setMedianRadius(const unsigned int& _uiMedianRadius)
 {
-	m_iMedianBoxRadius = _iMedianBoxRadius;
+	m_uiMedianRadius = _uiMedianRadius;
+}
+
+void iAFoamCharacterizationItemFilter::setNonLocalMeansIteration(const unsigned int& _uiNonLocalMeansIteration)
+{
+	m_uiNonLocalMeansIteration = _uiNonLocalMeansIteration;
+}
+
+void iAFoamCharacterizationItemFilter::setNonLocalMeansRadius(const unsigned int& _uiNonLocalMeansRadius)
+{
+	m_uiNonLocalMeansRadius = _uiNonLocalMeansRadius;
 }

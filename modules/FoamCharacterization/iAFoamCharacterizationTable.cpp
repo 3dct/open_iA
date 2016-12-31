@@ -96,6 +96,10 @@ void iAFoamCharacterizationTable::clear()
 	{
 		removeRow(0);
 	}
+
+	m_iCountBinarization = 0;
+	m_iCountFilter = 0;
+	m_iCountWatershed = 0;
 }
 
 void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)

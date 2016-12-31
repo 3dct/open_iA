@@ -43,6 +43,7 @@ class iAFoamCharacterizationDialogFilter : public iAFoamCharacterizationDialog
 		QWidget* m_pWidgetAnisotropic = nullptr;
 		QWidget* m_pWidgetGauss = nullptr;
 		QWidget* m_pWidgetMedian = nullptr;
+		QWidget* m_pWidgetNonLocalMeans= nullptr;
 
 		QDoubleSpinBox* m_pDoubleSpinBoxAnisotropicConductance = nullptr;
 		QDoubleSpinBox* m_pDoubleSpinBoxAnisotropicTimeStep = nullptr;
@@ -50,6 +51,8 @@ class iAFoamCharacterizationDialogFilter : public iAFoamCharacterizationDialog
 
 		QSpinBox* m_pSpinBoxAnisotropicIteration = nullptr;
 		QSpinBox* m_pSpinBoxMedianBoxRadius = nullptr;
+		QSpinBox* m_pSpinBoxNonLocalMeansIteration = nullptr;
+		QSpinBox* m_pSpinBoxNonLocalMeansRadius = nullptr;
 
 	private slots:
 		void slotComboBox2(const int& _iIndex);

@@ -25,6 +25,10 @@
 #include <QFile>
 #include <QTime>
 
+#include <itkWatershedImageFilter.h>
+
+#include "iAConnector.h"
+
 #include "iAFoamCharacterizationDialogWatershed.h"
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData)
@@ -44,6 +48,7 @@ void iAFoamCharacterizationItemWatershed::dialog()
 	QScopedPointer<iAFoamCharacterizationDialogWatershed> pDialog
 	                                                      (new iAFoamCharacterizationDialogWatershed(this, qApp->focusWidget()));
 	pDialog->exec();
+	pDialog.reset();
 }
 
 void iAFoamCharacterizationItemWatershed::execute()
@@ -51,12 +56,42 @@ void iAFoamCharacterizationItemWatershed::execute()
 	QTime t;
 	t.start();
 
+	typedef itk::WatershedImageFilter <itk::Image<unsigned short, 3>> itkFilter;
+
+	itkFilter::Pointer pFilter(itkFilter::New());
+
+	iAConnector connector1;
+	connector1.SetImage(m_pImageData);
+
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetLevel(m_dLevel);
+	pFilter->SetThreshold(m_dThreshold);
+	pFilter->Update();
+
+	iAConnector connector2;
+	connector2.SetImage(pFilter->GetOutput());
+
+	m_pImageData->DeepCopy(connector2.GetVTKImage());
+
 	setTime(t.elapsed());
+}
+
+double iAFoamCharacterizationItemWatershed::level() const
+{
+	return m_dLevel;
+}
+
+double iAFoamCharacterizationItemWatershed::threshold() const
+{
+	return m_dThreshold;
 }
 
 void iAFoamCharacterizationItemWatershed::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
+
+	_pFileOpen->read((char*)&m_dLevel, sizeof(m_dLevel));
+	_pFileOpen->read((char*)&m_dThreshold, sizeof(m_dThreshold));
 
 	setItemText();
 }
@@ -64,4 +99,17 @@ void iAFoamCharacterizationItemWatershed::open(QFile* _pFileOpen)
 void iAFoamCharacterizationItemWatershed::save(QFile* _pFileSave)
 {
 	iAFoamCharacterizationItem::save(_pFileSave);
+
+	_pFileSave->write((char*)&m_dLevel, sizeof(m_dLevel));
+	_pFileSave->write((char*)&m_dThreshold, sizeof(m_dThreshold));
+}
+
+void iAFoamCharacterizationItemWatershed::setLevel(const double& _dLevel)
+{
+	m_dLevel = _dLevel;
+}
+
+void iAFoamCharacterizationItemWatershed::setThreshold(const double& _dThreshold)
+{
+	m_dThreshold = _dThreshold;
 }

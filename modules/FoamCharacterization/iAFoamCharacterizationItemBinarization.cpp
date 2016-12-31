@@ -50,6 +50,7 @@ void iAFoamCharacterizationItemBinarization::dialog()
 	QScopedPointer<iAFoamCharacterizationDialogBinarization> pDialog
 	                                                    (new iAFoamCharacterizationDialogBinarization(this, qApp->focusWidget()));
 	pDialog->exec();
+	pDialog.reset();
 }
 
 void iAFoamCharacterizationItemBinarization::execute()

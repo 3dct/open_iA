@@ -36,21 +36,25 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
 
 		double anisotropicConductance() const;
-		int anisotropicIteration() const;
+		unsigned int anisotropicIteration() const;
 		double anisotropicTimeStep() const;
 
 		double gaussianVariance() const;
 
 		EItemFilterType itemFilterType() const;
 
-		int medianBoxRadius() const;
+		unsigned int medianRadius() const;
+		unsigned int nonLocalMeansIteration() const;
+		unsigned int nonLocalMeansRadius() const;
 
 		void setAnisotropicConductance(const double& _dAnisotropicConductance);
-		void setAnisotropicIteration(const int& _iAnisotropicIteration);
+		void setAnisotropicIteration(const unsigned int& _uiAnisotropicIteration);
 		void setAnisotropicTimeStep(const double& _dAnisotropicTimeStep);
 		void setGaussianVariance(const double& _dGaussianVariance);
 		void setItemFilterType(const EItemFilterType& _eItemFilterType);
-		void setMedianBoxRadius(const int& _iBoxRadius);
+		void setMedianRadius(const unsigned int& _uiMedianRadius);
+		void setNonLocalMeansIteration(const unsigned int& _uiNonLocalMeansIteration);
+		void setNonLocalMeansRadius(const unsigned int& _uiNonLocalMeansRadius);
 
 		virtual void dialog() override;
 		virtual void execute() override;
@@ -60,12 +64,14 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 	private:
 		double m_dAnisotropicConductance = 1.0;
 		double m_dAnisotropicTimeStep= 0.1;
-		double m_dGaussianVariance = 4.0;
+		double m_dGaussianVariance = 1.0;
 
-		EItemFilterType m_eItemFilterType = iftGauss;
+		EItemFilterType m_eItemFilterType = iftMedian;
 
-		int m_iAnisotropicIteration = 2;
-		int m_iMedianBoxRadius = 2;
+		unsigned int m_uiAnisotropicIteration = 2;
+		unsigned int m_uiMedianRadius = 2;
+		unsigned int m_uiNonLocalMeansIteration = 2;
+		unsigned int m_uiNonLocalMeansRadius = 2;
 
 		void executeAnisotropic();
 		void executeGaussian();

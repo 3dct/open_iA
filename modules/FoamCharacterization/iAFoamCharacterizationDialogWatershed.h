@@ -22,7 +22,9 @@
 
 #include "iAFoamCharacterizationDialog.h"
 
-#include "iAFoamCharacterizationItemWatershed.h"
+class QDoubleSpinBox;
+
+class iAFoamCharacterizationItemWatershed;
 
 class iAFoamCharacterizationDialogWatershed : public iAFoamCharacterizationDialog
 {
@@ -30,6 +32,12 @@ class iAFoamCharacterizationDialogWatershed : public iAFoamCharacterizationDialo
 
 	public:
 		explicit iAFoamCharacterizationDialogWatershed(iAFoamCharacterizationItemWatershed* _pItem, QWidget* _pParent = nullptr);
+
+	private:
+		iAFoamCharacterizationItemWatershed* m_pItemWatershed = nullptr;
+
+		QDoubleSpinBox* m_pDoubleSpinBoxLevel = nullptr;
+		QDoubleSpinBox* m_pDoubleSpinBoxTreshold = nullptr;
 
 	protected slots:
 		virtual void slotPushButtonOk() override;

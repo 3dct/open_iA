@@ -91,15 +91,36 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 	m_pWidgetMedian = new QWidget(m_pGroupBox2);
 	m_pWidgetMedian->setVisible(false);
 
-	QLabel* pLabelMedianBoxRadius(new QLabel("Box radius:", m_pWidgetMedian));
+	QLabel* pLabelMedianBoxRadius(new QLabel("Radius:", m_pWidgetMedian));
 	m_pSpinBoxMedianBoxRadius = new QSpinBox(m_pWidgetMedian);
 	m_pSpinBoxMedianBoxRadius->setAlignment(Qt::AlignRight);
 	m_pSpinBoxMedianBoxRadius->setRange(1, 100);
-	m_pSpinBoxMedianBoxRadius->setValue(m_pItemFilter->medianBoxRadius());
+	m_pSpinBoxMedianBoxRadius->setValue(m_pItemFilter->medianRadius());
 
 	QGridLayout* pGridLayoutMedian(new QGridLayout(m_pWidgetMedian));
 	pGridLayoutMedian->addWidget(pLabelMedianBoxRadius, 0, 0);
 	pGridLayoutMedian->addWidget(m_pSpinBoxMedianBoxRadius, 0, 1);
+
+	m_pWidgetNonLocalMeans = new QWidget(m_pGroupBox2);
+	m_pWidgetNonLocalMeans->setVisible(false);
+
+	QLabel* pLabelNonLocalMeansIteration(new QLabel("Iteration:", m_pWidgetNonLocalMeans));
+	m_pSpinBoxNonLocalMeansIteration = new QSpinBox(m_pWidgetNonLocalMeans);
+	m_pSpinBoxNonLocalMeansIteration->setAlignment(Qt::AlignRight);
+	m_pSpinBoxNonLocalMeansIteration->setRange(1, 100);
+	m_pSpinBoxNonLocalMeansIteration->setValue(m_pItemFilter->nonLocalMeansIteration());
+
+	QLabel* pLabelNonLocalMeansRadius(new QLabel("Radius:", m_pWidgetNonLocalMeans));
+	m_pSpinBoxNonLocalMeansRadius = new QSpinBox(m_pWidgetNonLocalMeans);
+	m_pSpinBoxNonLocalMeansRadius->setAlignment(Qt::AlignRight);
+	m_pSpinBoxNonLocalMeansRadius->setRange(1, 100);
+	m_pSpinBoxNonLocalMeansRadius->setValue(m_pItemFilter->nonLocalMeansRadius());
+
+	QGridLayout* pGridLayoutNonLocalMeans(new QGridLayout(m_pWidgetNonLocalMeans));
+	pGridLayoutNonLocalMeans->addWidget(pLabelNonLocalMeansIteration, 0, 0);
+	pGridLayoutNonLocalMeans->addWidget(m_pSpinBoxNonLocalMeansIteration, 0, 1);
+	pGridLayoutNonLocalMeans->addWidget(pLabelNonLocalMeansRadius, 1, 0);
+	pGridLayoutNonLocalMeans->addWidget(m_pSpinBoxNonLocalMeansRadius, 1, 1);
 
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
 	pGridLayout2->addWidget(pLabel2, 0, 0);
@@ -107,6 +128,7 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 	pGridLayout2->addWidget(m_pWidgetAnisotropic, 1, 0, 1, 2);
 	pGridLayout2->addWidget(m_pWidgetGauss, 1, 0, 1, 2);
 	pGridLayout2->addWidget(m_pWidgetMedian, 1, 0, 1, 2);
+	pGridLayout2->addWidget(m_pWidgetNonLocalMeans, 1, 0, 1, 2);
 
 	setLayout();
 
@@ -120,24 +142,28 @@ void iAFoamCharacterizationDialogFilter::slotComboBox2(const int& _iIndex)
 		m_pWidgetAnisotropic->setVisible(true);
 		m_pWidgetGauss->setVisible(false);
 		m_pWidgetMedian->setVisible(false);
+		m_pWidgetNonLocalMeans->setVisible(false);
 	}
 	else if (_iIndex == 1)
 	{
 		m_pWidgetAnisotropic->setVisible(false);
 		m_pWidgetGauss->setVisible(true);
 		m_pWidgetMedian->setVisible(false);
+		m_pWidgetNonLocalMeans->setVisible(false);
 	}
 	else if (_iIndex == 2)
 	{
 		m_pWidgetAnisotropic->setVisible(false);
 		m_pWidgetGauss->setVisible(false);
 		m_pWidgetMedian->setVisible(true);
+		m_pWidgetNonLocalMeans->setVisible(false);
 	}
 	else
 	{
 		m_pWidgetAnisotropic->setVisible(false);
 		m_pWidgetGauss->setVisible(false);
 		m_pWidgetMedian->setVisible(false);
+		m_pWidgetNonLocalMeans->setVisible(true);
 	}
 }
 
@@ -151,7 +177,10 @@ void iAFoamCharacterizationDialogFilter::slotPushButtonOk()
 
 	m_pItemFilter->setGaussianVariance(m_pDoubleSpinBoxGaussVariance->value());
 
-	m_pItemFilter->setMedianBoxRadius(m_pSpinBoxMedianBoxRadius->value());
+	m_pItemFilter->setMedianRadius(m_pSpinBoxMedianBoxRadius->value());
+
+	m_pItemFilter->setNonLocalMeansIteration(m_pSpinBoxNonLocalMeansIteration->value());
+	m_pItemFilter->setNonLocalMeansRadius(m_pSpinBoxNonLocalMeansRadius->value());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }
