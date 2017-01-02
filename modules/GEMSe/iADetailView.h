@@ -64,6 +64,7 @@ public:
 	void SetSliceNumber(int sliceNr);
 	void SetSlicerMode(int mode,int sliceNr);
 	void SetMagicLensOpacity(double opacity);
+	void SetMagicLensCount(int count);
 	void SetLabelInfo(iALabelInfo const & labelInfo);
 	void SetRepresentativeType(int representativeType);
 	int GetRepresentativeType();
@@ -96,4 +97,6 @@ private:
 
 	void UpdateGeometry();
 	void SetImage();
+
+	int m_nextChannelID;
 };

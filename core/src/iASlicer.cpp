@@ -316,7 +316,6 @@ void iASlicer::SetMagicLensSize(int newSize)
 		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	newSize = (std::min)(newSize, (std::min)(widget()->geometry().width(), widget()->geometry().height()));
 	m_magicLens->SetSize(newSize);
 	m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / widget()->height());
 	widget()->updateMagicLens();
@@ -333,17 +332,22 @@ void iASlicer::SetMagicLensFrameWidth(int newWidth)
 	widget()->updateMagicLens();
 }
 
+void iASlicer::SetMagicLensCount(int count)
+{
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensCount called on slicer which doesn't have a magic lens!");
+		return;
+	}
+	m_magicLens->SetLensCount(count);
+	widget()->updateMagicLens();
+}
+
 void iASlicer::SetMagicLensInput(iAChannelID id)
 {
 	m_data->setMagicLensInput(id);
 	m_magicLensInput = id;
 }
-
-void iASlicer::SetMagicLensCaption(std::string const & caption)
-{
-	m_data->setMagicLensCaption(caption);
-}
-
 
 void iASlicer::SetMagicLensOpacity(double opacity)
 {

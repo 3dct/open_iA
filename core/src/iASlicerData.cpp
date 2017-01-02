@@ -1707,17 +1707,8 @@ void iASlicerData::setMagicLensInput(iAChannelID id)
 	if (m_magicLensExternal)
 	{
 		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(),
-			reslicer, colorTransferFunction);
+			reslicer, colorTransferFunction, data->GetName());
 	}
-}
-
-void iASlicerData::setMagicLensCaption(std::string const & caption)
-{
-	if (!m_magicLensExternal)
-	{
-		return;
-	}
-	m_magicLensExternal->SetCaption(caption);
 }
 
 
@@ -1813,8 +1804,8 @@ void iASlicerData::switchContourSourceToChannel( iAChannelID id )
 	{
 		return;
 	}
-	iAChannelSlicerData * chan =  &GetOrCreateChannel( id );
-	cFilter->SetInputConnection( chan->reslicer->GetOutputPort() );
+	iAChannelSlicerData & chan =  GetOrCreateChannel( id );
+	cFilter->SetInputConnection( chan.reslicer->GetOutputPort() );
 }
 
 void iASlicerData::setContours( int n, double mi, double ma )

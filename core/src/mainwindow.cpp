@@ -869,6 +869,7 @@ void MainWindow::savePreferences(QDomDocument &doc)
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(defaultPreferences.MagicLensFrameWidth));
+	preferencesElement.setAttribute("magicLensCount", tr("%1").arg(defaultPreferences.MagicLensCount));
 	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::GetInstance().IsLogToFileOn()));
 
 	doc.documentElement().appendChild(preferencesElement);
@@ -884,6 +885,7 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 	defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
 	defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
 	defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
+	defaultPreferences.MagicLensCount = attributes.namedItem("magicLensCount").nodeValue().toInt();
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
 
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
@@ -1098,7 +1100,8 @@ void MainWindow::prefs()
 		<< tr("$Log to file")
 		<< tr("+Looks")
 		<< tr("#Magic lens size")
-		<< tr("#Magic lens frame width"));
+		<< tr("#Magic lens frame width")
+		<< tr("#Magic lens count"));
 	QStringList looks;
 	QMap<QString, QString> styleNames;
 	styleNames.insert(tr("Dark")      , ":/dark.qss");
@@ -1125,9 +1128,10 @@ void MainWindow::prefs()
 		<< (iAConsole::GetInstance().IsLogToFileOn() ? tr("true") : tr("false"))
 		<< looks
 		<< tr("%1").arg(p.MagicLensSize)
-		<< tr("%1").arg(p.MagicLensFrameWidth);
+		<< tr("%1").arg(p.MagicLensFrameWidth)
+		<< tr("%1").arg(p.MagicLensCount);
 
-	dlg_commoninput dlg(this, "Preferences", 8, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Preferences", 9, inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -1143,6 +1147,8 @@ void MainWindow::prefs()
 		defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
 			static_cast<int>(dlg.getValues()[6]));
 		defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getValues()[7]));
+											// count of lenses must be between 1 and 8:
+		defaultPreferences.MagicLensCount = std::min(8, std::max(1, static_cast<int>(dlg.getValues()[8])));
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences, false))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
@@ -1840,6 +1846,7 @@ void MainWindow::readSettings()
 	defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", true).toBool();
 	defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", DefaultMagicLensSize).toInt();
 	defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
+	defaultPreferences.MagicLensCount = settings.value("Preferences/prefMagicLensCount", 3).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
@@ -1935,6 +1942,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefResultInNewWindow", defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/prefMagicLensSize", defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", defaultPreferences.MagicLensFrameWidth);
+	settings.setValue("Preferences/prefMagicLensCount", defaultPreferences.MagicLensCount);
 	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance().IsLogToFileOn());
 
 	settings.setValue("Renderer/rsShowSlicers", defaultRenderSettings.ShowSlicers);

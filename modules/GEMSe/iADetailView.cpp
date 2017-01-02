@@ -58,7 +58,8 @@ iADetailView::iADetailView(
 	m_magicLensData(0),
 	m_magicLensCurrentModality(0),
 	m_magicLensCurrentComponent(0),
-	m_representativeType(representativeType)
+	m_representativeType(representativeType), 
+	m_nextChannelID(0)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -178,7 +179,8 @@ vtkSmartPointer<vtkPiecewiseFunction> GetDefaultOTF(vtkSmartPointer<vtkImageData
 void iADetailView::DblClicked()
 {
 	iASlicer* slicer = m_previewWidget->GetSlicer();
-	iAChannelID id = ch_SE_DetailView;
+	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
+	m_nextChannelID = (m_nextChannelID + 1) % 8;
 
 	if (m_magicLensData)
 	{
@@ -201,7 +203,7 @@ void iADetailView::DblClicked()
 		GetDefaultOTF(imageData).GetPointer() :
 		mod->GetTransfer()->GetOpacityFunction();
 	ResetChannel(m_magicLensData, imageData, m_ctf, m_otf);
-	slicer->SetMagicLensCaption(mod->GetImageName(m_magicLensCurrentComponent).toStdString());
+	m_magicLensData->SetName(mod->GetImageName(m_magicLensCurrentComponent));
 	slicer->initializeChannel(id, m_magicLensData);
 	m_magicLensData->SetEnabled(false);
 	slicer->widget()->SetMagicLensFrameWidth(4.0);
@@ -231,7 +233,8 @@ void iADetailView::ChangeModality(int offset)
 	{
 		return;
 	}
-	iAChannelID id = ch_SE_DetailView;
+	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
+	m_nextChannelID = (m_nextChannelID + 1) % 8;
 	// TOOD: refactor to remove duplication between here and MdiChild::ChangeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
 	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->Get(m_magicLensCurrentModality)->ComponentCount())
@@ -251,8 +254,10 @@ void iADetailView::ChangeModality(int offset)
 		GetDefaultOTF(imageData).GetPointer() :
 		mod->GetTransfer()->GetOpacityFunction();
 	ResetChannel(m_magicLensData, imageData, m_ctf, m_otf);
-	slicer->SetMagicLensCaption(mod->GetImageName(m_magicLensCurrentComponent).toStdString());
-	slicer->reInitializeChannel(id, m_magicLensData);
+	QString name(mod->GetImageName(m_magicLensCurrentComponent));
+	m_magicLensData->SetName(name);
+	//slicer->reInitializeChannel(id, m_magicLensData);
+	slicer->initializeChannel(id, m_magicLensData);
 	int sliceNr = m_previewWidget->GetSliceNumber();
 	switch(slicer->GetMode())
 	{
@@ -459,4 +464,11 @@ void iADetailView::SetImage()
 		m_node->GetRepresentativeImage(m_representativeType) : m_nullImage,
 		!m_node->GetRepresentativeImage(m_representativeType),
 		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
+}
+
+void iADetailView::SetMagicLensCount(int count)
+{
+	m_activeLensChannelIDs.setCapacity(count);
+	iASlicer* slicer = m_previewWidget->GetSlicer();
+	slicer->SetMagicLensCount(count);
 }

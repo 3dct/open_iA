@@ -77,8 +77,9 @@ public:
 	void SetMagicLensEnabled( bool isEnabled );
 	void SetMagicLensSize(int newSize);
 	void SetMagicLensFrameWidth(int newWidth);
-	void SetMagicLensCaption(std::string const & caption);
+	void SetMagicLensCount(int count);
 	void SetMagicLensInput( iAChannelID id );
+	void AddMagicLensInput(iAChannelID id);
 	void SetMagicLensOpacity(double opacity);
 	
 	//iASlicerData: wrapping methods--------------------------

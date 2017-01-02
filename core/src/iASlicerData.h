@@ -136,7 +136,6 @@ public:
 	virtual void Execute(vtkObject * caller, unsigned long eventId, void * callData);
 
 	void setMagicLensInput(iAChannelID id);
-	void setMagicLensCaption(std::string const & caption);
 	
 	iAChannelSlicerData * GetChannel(iAChannelID id);
 	size_t GetEnabledChannels();

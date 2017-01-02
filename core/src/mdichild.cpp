@@ -264,12 +264,12 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
-	connect(getSlicerXY()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(getSlicerXZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(getSlicerYZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(getSlicerXY()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(getSlicerXZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(getSlicerYZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(slicerXY->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerXZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerYZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerXY->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(slicerXZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(slicerYZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 
 	connect(m_dlgModalities, SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
 }
@@ -1573,6 +1573,9 @@ bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
 	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
 	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
 	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
+	slicerXY->SetMagicLensCount(preferences.MagicLensCount);
+	slicerXZ->SetMagicLensCount(preferences.MagicLensCount);
+	slicerYZ->SetMagicLensCount(preferences.MagicLensCount);
 	r->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
 
 	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
@@ -2821,17 +2824,17 @@ void MdiChild::check2DMode()
 
 void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice, std::string const & caption)
 {
+	iAChannelVisualizationData * chData = GetChannelData(id);
+	chData->SetName(caption.c_str());
 	slicerXY->SetMagicLensInput(id);
 	slicerXZ->SetMagicLensInput(id);
 	slicerYZ->SetMagicLensInput(id);
-
 	if (initReslice)
 	{
 		slicerYZ->setResliceChannelAxesOrigin(id, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
 		slicerXZ->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
 		slicerXY->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	}
-	SetMagicLensCaption(caption);
 }
 
 
@@ -2842,13 +2845,6 @@ void MdiChild::SetMagicLensEnabled(bool isOn)
 	slicerXY->SetMagicLensEnabled( isOn );
 }
 
-
-void MdiChild::SetMagicLensCaption(std::string const & caption)
-{
-	slicerXZ->SetMagicLensCaption(caption);
-	slicerYZ->SetMagicLensCaption(caption);
-	slicerXY->SetMagicLensCaption(caption);
-}
 
 void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {

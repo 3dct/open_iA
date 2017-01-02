@@ -53,10 +53,11 @@ namespace
 }
 
 
-LensData::LensData()
+LensData::LensData():
+	m_qvtkWidget(0)
 {}
 
-LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate):
+LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled):
 	m_qvtkWidget(new iAFramedQVTKWidget2(parent, shareWidget, f)),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
@@ -102,8 +103,15 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 	m_qvtkWidget->SetRenderWindow(m_renWnd);
 	m_qvtkWidget->SetCrossHair(false);
 	m_qvtkWidget->SetFrameStyle(iAFramedQVTKWidget2::FRAMED);
+	m_qvtkWidget->setEnabled(enabled);
 
 	m_renWnd->GetInteractor()->Disable();
+}
+
+
+LensData::~LensData()
+{
+	//delete m_qvtkWidget;
 }
 
 iAMagicLens::iAMagicLens() :
@@ -127,17 +135,6 @@ iAMagicLens::iAMagicLens() :
 	m_imageActor->SetOrientation(orientation);
 */
 }
-
-
-void iAMagicLens::SetCaption(std::string const & caption)
-{
-	// TODO: store in channel ?
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
-	{
-		m_lenses.at(i).m_textActor->SetInput(caption.c_str());
-	}
-}
-
 
 void iAMagicLens::SetFrameWidth(qreal frameWidth)
 {
@@ -349,14 +346,23 @@ int iAMagicLens::GetCenterSplitOffset() const
 	return qRound( 0.5 * m_viewedRect.width() * (1.f - m_splitPosition) );
 }
 
-void iAMagicLens::AddInput( vtkImageReslice * reslicer, vtkScalarsToColors * cTF,
-	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF )
+void iAMagicLens::AddInput(
+	vtkImageReslice * reslicer,  vtkScalarsToColors* cTF,
+	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF,
+	QString const & name)
 {
 	if (!reslicer->GetInput())
 	{
 		return;
 	}
-	LensData l(m_parent, m_shareWidget, m_flags, m_interpolate);
+	// { enlarge capacity
+	/*
+	m_viewMode = OFFSET;
+	m_lensCount = m_lenses.size() + 1;
+	m_lenses.setCapacity(m_lensCount);
+	*/
+	// }
+	LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled);
 	l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
 
 	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
@@ -366,9 +372,8 @@ void iAMagicLens::AddInput( vtkImageReslice * reslicer, vtkScalarsToColors * cTF
 	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
 	l.m_bgImageToColors->SetLookupTable(bgCTF);
 	l.m_bgImageToColors->Update();
+	l.m_textActor->SetInput(name.toStdString().c_str());
 
-	m_lensCount = m_lenses.size()+1;
-	m_lenses.setCapacity(m_lensCount);
 	m_lenses.append(l);
 
 	m_isInitialized = true;
@@ -379,6 +384,7 @@ void iAMagicLens::AddInput( vtkImageReslice * reslicer, vtkScalarsToColors * cTF
 
 void iAMagicLens::SetLensCount(int count)
 {
+	m_lenses.setCapacity(count);
 	m_lensCount = count;
 	SetViewMode(OFFSET);
 	if (m_lenses.size() == 0)

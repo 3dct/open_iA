@@ -83,6 +83,7 @@ private slots:
 	void LoadRefImage();
 	void StoreDerivedOutput();
 	void SamplingAdded(QSharedPointer<iASamplingResults>);
+	void SetMagicLensCount(int);
 private:
 	void StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts);
 	void EnableClusteringDependantUI();

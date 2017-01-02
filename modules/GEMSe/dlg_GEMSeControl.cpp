@@ -137,6 +137,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgModalities,  SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ShowImage(vtkSmartPointer<vtkImageData>)));
 
 	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
+	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(SetMagicLensCount(int)));
 	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
 	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
 	
@@ -684,4 +685,10 @@ void dlg_GEMSeControl::SetSerializedHiddenCharts(QString const & hiddenCharts)
 void dlg_GEMSeControl::SamplingAdded(QSharedPointer<iASamplingResults> results)
 {
 	m_dlgSamplings->Add(results);
+}
+
+
+void dlg_GEMSeControl::SetMagicLensCount(int count)
+{
+	m_dlgGEMSe->SetMagicLensCount(count);
 }

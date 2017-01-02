@@ -793,3 +793,8 @@ QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > dlg_GEMSe::GetSampl
 {
 	return m_samplings;
 }
+
+void dlg_GEMSe::SetMagicLensCount(int count)
+{
+	m_detailView->SetMagicLensCount(count);
+}

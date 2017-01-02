@@ -256,7 +256,6 @@ public:
 	bool isMagicLensToggled(void) const;
 	void SetMagicLensInput(iAChannelID id, bool initReslicer, std::string const & caption);
 	void SetMagicLensEnabled(bool isOn);
-	void SetMagicLensCaption(std::string const & caption);
 	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption);
 	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
 	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }

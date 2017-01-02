@@ -126,6 +126,7 @@ void iAChannelSlicerData::Init(iAChannelVisualizationData * chData, int mode)
 {
 	m_isInitialized = true;
 	Assign(chData->GetImage(), chData->GetColor());
+	m_name = chData->GetName();
 
 	reslicer->SetOutputDimensionality( 2 );
 	reslicer->SetInterpolationModeToCubic();
@@ -158,6 +159,7 @@ void iAChannelSlicerData::UpdateResliceAxesDirectionCosines( int mode )
 void iAChannelSlicerData::ReInit(iAChannelVisualizationData * chData)
 {
 	Assign(chData->GetImage(), chData->GetColor());
+	m_name = chData->GetName();
 
 	reslicer->UpdateWholeExtent();
 	reslicer->Update();
@@ -239,6 +241,14 @@ void iAChannelSlicerData::SetContoursOpacity( double opacity )
 	cActor->GetProperty()->SetOpacity( opacity );
 }
 
+
+QString iAChannelSlicerData::GetName() const
+{
+	return m_name;
+}
+
+
+
 iAChannelVisualizationData::iAChannelVisualizationData():
 	piecewiseFunction(NULL),
 	colorTransferFunction(NULL),
@@ -303,6 +313,12 @@ void iAChannelVisualizationData::SetOpacityTF(vtkPiecewiseFunction* oTF)
 	piecewiseFunction = oTF;
 }
 
+
+void iAChannelVisualizationData::SetName(QString name)
+{
+	m_name = name;
+}
+
 void iAChannelVisualizationData::SetColor(QColor const & col)
 {
 	color = col;
@@ -343,4 +359,9 @@ void ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageDa
 	chData->SetImage(image);
 	chData->SetColorTF(ctf);
 	chData->SetOpacityTF(otf);
+}
+
+QString iAChannelVisualizationData::GetName() const
+{
+	return m_name;
 }

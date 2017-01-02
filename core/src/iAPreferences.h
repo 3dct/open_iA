@@ -28,15 +28,17 @@ public:
 	int HistogramBins,
 		StatisticalExtent,
 		MagicLensSize,
-		MagicLensFrameWidth;
+		MagicLensFrameWidth,
+		MagicLensCount;
 	bool Compression,
 		ResultInNewWindow;
 		//LogToFile;
 	iAPreferences():
 		HistogramBins(DefaultHistogramBins),
+		StatisticalExtent(3),
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
-		StatisticalExtent(3),
+		MagicLensCount(1),
 		Compression(true),
 		ResultInNewWindow(true)
 	{}
