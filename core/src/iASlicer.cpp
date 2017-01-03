@@ -374,6 +374,11 @@ void iASlicer::initializeChannel(iAChannelID id,  iAChannelVisualizationData * c
 	m_data->initializeChannel(id, chData);
 }
 
+void iASlicer::removeChannel(iAChannelID id)
+{
+	m_data->removeChannel(id);
+}
+
 iAChannelID iASlicer::getMagicLensInput() const
 {
 	return m_magicLensInput;

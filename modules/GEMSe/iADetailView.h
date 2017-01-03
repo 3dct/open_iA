@@ -91,9 +91,11 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	QStandardItemModel* m_labelItemModel;
 	int m_representativeType;
-	iAChannelVisualizationData* m_magicLensData;
+
 	int m_magicLensCurrentModality;
 	int m_magicLensCurrentComponent;
+	bool m_magicLensEnabled;
+	int m_magicLensCount;
 
 	void UpdateGeometry();
 	void SetImage();

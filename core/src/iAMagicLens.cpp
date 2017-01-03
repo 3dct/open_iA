@@ -19,9 +19,9 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "defines.h"
 #include "iAMagicLens.h"
 
+#include "defines.h"
 #include "iAFramedQVTKWidget2.h"
 
 #include <QVTKInteractor.h>
@@ -44,7 +44,7 @@
 #include <vtkWindowToImageFilter.h>
 
 const int iAMagicLens::DEFAULT_SIZE = 120;
-const int iAMagicLens::OFFSET_MODE_X_OFFSET = 30;
+const int iAMagicLens::OFFSET_MODE_X_OFFSET = 10;
 
 namespace
 {
@@ -53,9 +53,9 @@ namespace
 }
 
 
-LensData::LensData():
-	m_qvtkWidget(0)
+LensData::LensData()
 {}
+
 
 LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled):
 	m_qvtkWidget(new iAFramedQVTKWidget2(parent, shareWidget, f)),
@@ -77,7 +77,11 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 	m_imageActor->GetMapper()->BorderOn();
 	m_imageActor->SetOpacity(1.0);
 	m_imageActor->SetInterpolate(interpolate);
-
+/*
+	// ORIENTATION / ROTATION FIX:
+	double orientation[3] = {180, 0, 0};
+	m_imageActor->SetOrientation(orientation);
+*/
 	m_textActor->SetInput("");
 	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
 #if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
@@ -108,40 +112,23 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 	m_renWnd->GetInteractor()->Disable();
 }
 
-
-LensData::~LensData()
-{
-	//delete m_qvtkWidget;
-}
-
 iAMagicLens::iAMagicLens() :
 	m_isEnabled(false), 
 	m_splitPosition(0.65f),
 	m_isInitialized(false),
 	m_size(DEFAULT_SIZE),
-	m_lensCount(1),
-	m_lenses(1),
+	m_maxLensCount(1),
 	m_interpolate(false)
 {
 	m_viewMode = CENTERED;
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	double orientation[3] = {
-		180,
-		0,
-		0
-	};
-	m_imageActor->SetOrientation(orientation);
-*/
 }
 
 void iAMagicLens::SetFrameWidth(qreal frameWidth)
 {
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (LensData & l : m_lenses)
 	{
-		m_lenses.at(i).m_qvtkWidget->SetFrameWidth(frameWidth);
-		m_lenses.at(i).m_textActor->SetPosition(GetFrameWidth() + CaptionFrameDistance, GetFrameWidth() + CaptionFrameDistance);
+		l.m_qvtkWidget->SetFrameWidth(frameWidth);
+		l.m_textActor->SetPosition(GetFrameWidth() + CaptionFrameDistance, GetFrameWidth() + CaptionFrameDistance);
 	}
 }
 
@@ -149,7 +136,7 @@ qreal iAMagicLens::GetFrameWidth() const
 {
 	if (m_lenses.size() > 0)
 	{
-		return m_lenses.at(m_lenses.firstIndex()).m_qvtkWidget->GetFrameWidth();
+		return m_lenses[0].m_qvtkWidget->GetFrameWidth();
 	}
 	else
 	{
@@ -164,31 +151,31 @@ iAMagicLens::~iAMagicLens()
 void iAMagicLens::Render()
 {
 	if(m_isInitialized)
-		for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+		for (LensData & l : m_lenses)
 		{
-			m_lenses.at(i).m_renWnd->Render();
+			l.m_renWnd->Render();
 		}
 }
 
 void iAMagicLens::SetEnabled( bool isEnabled )
 {
 	m_isEnabled = isEnabled;
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (LensData & l: m_lenses)
 	{
 		if (m_isEnabled)
-			m_lenses.at(i).m_qvtkWidget->show();
+			l.m_qvtkWidget->show();
 		else
-			m_lenses.at(i).m_qvtkWidget->hide();
+			l.m_qvtkWidget->hide();
 	}
 }
 
 void iAMagicLens::SetGeometry( QRect & rect )
 {
 	m_viewedRect = rect;
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (LensData & l : m_lenses)
 	{
-		QRect offsetRect = QRect(rect.x() + m_lenses.at(i).m_offset[0],
-			rect.y() + m_lenses.at(i).m_offset[1],
+		QRect offsetRect = QRect(rect.x() + l.m_offset[0],
+			rect.y() + l.m_offset[1],
 			rect.width(), rect.height());
 
 		if (m_viewMode == SIDE_BY_SIDE)
@@ -197,7 +184,7 @@ void iAMagicLens::SetGeometry( QRect & rect )
 			offsetRect = QRect(offsetRect.x() + splitOffset, offsetRect.y(),
 				rect.width() - splitOffset, rect.height());
 		}
-		m_lenses.at(i).m_qvtkWidget->setGeometry(offsetRect);
+		l.m_qvtkWidget->setGeometry(offsetRect);
 	}
 }
 
@@ -215,29 +202,35 @@ void iAMagicLens::SetScaleCoefficient( double scaleCoefficient )
 
 void iAMagicLens::UpdateCamera( double focalPt[3], vtkCamera * cam )
 {
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (LensData & l : m_lenses)
 	{
 		//set focal point and corresponding scale
-		m_lenses.at(i).m_cam->SetFocalPoint(focalPt);
-		m_lenses.at(i).m_cam->SetParallelScale(cam->GetParallelScale()*m_scaleCoefficient);
-		m_lenses.at(i).m_cam->SetRoll(cam->GetRoll());
+		l.m_cam->SetFocalPoint(focalPt);
+		l.m_cam->SetParallelScale(cam->GetParallelScale()*m_scaleCoefficient);
+		l.m_cam->SetRoll(cam->GetRoll());
 
 		//set camera position
 		double dir[3]; cam->GetDirectionOfProjection(dir);
 		double res[3];
 		vtkMath::Subtract(focalPt, dir, res);
-		m_lenses.at(i).m_cam->SetPosition(res);
+		l.m_cam->SetPosition(res);
 	}
 }
 
 void iAMagicLens::Repaint()
 {
-	m_lenses.at(0).m_qvtkWidget->repaint();
+	for (LensData & l : m_lenses)
+	{
+		l.m_qvtkWidget->repaint();
+	}
 }
 
 void iAMagicLens::Frame()
 {
-	m_lenses.at(0).m_renWnd->Frame();
+	for (LensData & l : m_lenses)
+	{
+		l.m_renWnd->Frame();
+	}
 }
 
 bool iAMagicLens::Enabled()
@@ -245,21 +238,18 @@ bool iAMagicLens::Enabled()
 	return m_isEnabled;
 }
 
-void iAMagicLens::SetPaintingLocked( bool isLocked )
-{
-	m_lenses.at(0).m_qvtkWidget->setAttribute(Qt::WA_PaintOnScreen, isLocked);
-}
-
 void iAMagicLens::SetViewMode( ViewMode mode )
 {
-	if (m_lensCount > 1)
-		mode = OFFSET;
-	m_viewMode = mode;
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	if (mode != OFFSET && m_maxLensCount > 1)
 	{
-		if (m_lenses.at(i).m_qvtkWidget)
+		SetLensCount(1);
+	}
+	m_viewMode = mode;
+	for (LensData & l : m_lenses)
+	{
+		if (l.m_qvtkWidget)
 		{
-			m_lenses.at(i).m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
+			l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
 		}
 	}
 	UpdateOffset();
@@ -268,7 +258,7 @@ void iAMagicLens::SetViewMode( ViewMode mode )
 
 void iAMagicLens::UpdateOffset()
 {
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (int i = 0; i < m_lenses.size(); ++i)
 	{
 		switch (m_viewMode)
 		{
@@ -277,7 +267,7 @@ void iAMagicLens::UpdateOffset()
 			m_lenses[i].m_offset[0] = m_lenses[i].m_offset[1] = 0;
 			break;
 		case OFFSET:
-			switch (i - m_lenses.firstIndex())
+			switch (i)
 			{	// current pattern: 8 neighbours around middle, starting at right middle
 			case 0:	case 1:	case 7:
 				m_lenses[i].m_offset[0] = m_size + OFFSET_MODE_X_OFFSET;
@@ -289,7 +279,7 @@ void iAMagicLens::UpdateOffset()
 				m_lenses[i].m_offset[0] = - (m_size + OFFSET_MODE_X_OFFSET);
 				break;
 			}
-			switch (i - m_lenses.firstIndex())
+			switch (i)
 			{
 			case 0:	case 4:
 				m_lenses[i].m_offset[1] = 0;
@@ -330,9 +320,9 @@ QRect iAMagicLens::GetViewRect() const
 
 void iAMagicLens::SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle )
 {
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (LensData & l : m_lenses)
 	{
-		m_lenses.at(i).m_qvtkWidget->SetFrameStyle(frameStyle);
+		l.m_qvtkWidget->SetFrameStyle(frameStyle);
 	}
 }
 
@@ -351,24 +341,19 @@ void iAMagicLens::AddInput(
 	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF,
 	QString const & name)
 {
+	if (m_lenses.size() == m_maxLensCount)
+	{
+		m_lenses.remove(0);
+	}
 	if (!reslicer->GetInput())
 	{
 		return;
 	}
-	// { enlarge capacity
-	/*
-	m_viewMode = OFFSET;
-	m_lensCount = m_lenses.size() + 1;
-	m_lenses.setCapacity(m_lensCount);
-	*/
-	// }
 	LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled);
 	l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
-
 	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
 	l.m_imageToColors->SetLookupTable(cTF);
 	l.m_imageToColors->Update();
-
 	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
 	l.m_bgImageToColors->SetLookupTable(bgCTF);
 	l.m_bgImageToColors->Update();
@@ -384,11 +369,16 @@ void iAMagicLens::AddInput(
 
 void iAMagicLens::SetLensCount(int count)
 {
-	m_lenses.setCapacity(count);
-	m_lensCount = count;
-	SetViewMode(OFFSET);
-	if (m_lenses.size() == 0)
-		return;
+	m_maxLensCount = count;
+	while (count < m_lenses.size())
+	{
+		m_lenses.remove(0);
+	}
+	m_lenses.reserve(count);
+	if (count > 1 && m_viewMode != OFFSET)
+	{
+		SetViewMode(OFFSET);
+	}
 }
 
 
@@ -396,10 +386,10 @@ void iAMagicLens::UpdateColors()
 {
 	if (m_isInitialized)
 	{
-		for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+		for (LensData & l : m_lenses)
 		{
-			m_lenses.at(i).m_imageToColors->Update();
-			m_lenses.at(i).m_bgImageToColors->Update();
+			l.m_imageToColors->Update();
+			l.m_bgImageToColors->Update();
 		}
 	}
 }
@@ -429,24 +419,22 @@ int iAMagicLens::GetOffset() const
 void iAMagicLens::SetInterpolate(bool on)
 {
 	m_interpolate = on;
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (LensData & l : m_lenses)
 	{
-		m_lenses.at(i).m_imageActor->SetInterpolate(on);
-		m_lenses.at(i).m_bgImageActor->SetInterpolate(on);
+		l.m_imageActor->SetInterpolate(on);
+		l.m_bgImageActor->SetInterpolate(on);
 	}
 }
 
 void iAMagicLens::SetOpacity(double opacity)
 {
-	for (int i = m_lenses.firstIndex(); i <= m_lenses.lastIndex(); ++i)
+	for (LensData & l : m_lenses)
 	{
-		m_lenses.at(i).m_imageActor->SetOpacity(opacity);
+		l.m_imageActor->SetOpacity(opacity);
 	}
 }
 
 double iAMagicLens::GetOpacity()
 {
-	if (m_lenses.size() == 0)
-		return 0;
-	return m_lenses.at(m_lenses.firstIndex()).m_imageActor->GetOpacity();
+	return (m_lenses.size() == 0) ? 0 : m_lenses[0].m_imageActor->GetOpacity();
 }

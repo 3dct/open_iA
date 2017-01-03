@@ -1573,9 +1573,6 @@ bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
 	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
 	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
 	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
-	slicerXY->SetMagicLensCount(preferences.MagicLensCount);
-	slicerXZ->SetMagicLensCount(preferences.MagicLensCount);
-	slicerYZ->SetMagicLensCount(preferences.MagicLensCount);
 	r->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
 
 	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
@@ -2950,19 +2947,12 @@ int MdiChild::GetCurrentModality() const
 
 
 void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
-{	// TODO: check if name and image match?
+{
 	int selected = m_dlgModalities->GetSelected();
 	if (selected != -1)
 	{
 		m_currentModality = selected;
 		ChangeImage(img, GetModality(selected)->GetImageName(m_currentComponent).toStdString());
-		/*
-		// change slicer image as well?
-		slicerXY->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
-		slicerXZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
-		slicerYZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
-		updateSlicers();
-		*/
 	}
 }
 

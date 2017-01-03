@@ -1628,6 +1628,13 @@ void iASlicerData::initializeChannel( iAChannelID id, iAChannelVisualizationData
 	GetOrCreateChannel(id).Init(chData, m_mode);
 }
 
+
+void iASlicerData::removeChannel(iAChannelID id)
+{
+	m_channels.remove(id);
+}
+
+
 void iASlicerData::setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z )
 {
 	if (interactor->GetEnabled())

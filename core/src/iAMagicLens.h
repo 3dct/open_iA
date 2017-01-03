@@ -45,10 +45,9 @@ class LensData
 {
 public:
 	LensData();
-	~LensData();
 	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled);
 
-	iAFramedQVTKWidget2 * m_qvtkWidget;
+	QSharedPointer<iAFramedQVTKWidget2> m_qvtkWidget;
 	vtkSmartPointer<vtkImageMapToColors> m_imageToColors;
 	vtkSmartPointer<vtkImageActor> m_imageActor;
 	vtkSmartPointer<vtkImageMapToColors> m_bgImageToColors;
@@ -59,7 +58,6 @@ public:
 	vtkSmartPointer<vtkTextActor> m_textActor;
 	int m_offset[2];
 	QRect m_viewedRect;	//rect of the area of data actually displayed using m-lens
-	int m_idx;
 };
 
 class open_iA_Core_API iAMagicLens
@@ -84,7 +82,6 @@ public:
 	void SetScaleCoefficient(double scaleCoefficient);
 	void UpdateCamera(double * focalPt, vtkCamera * cam);
 	void Repaint();
-	void SetPaintingLocked(bool isLocked);
 	void SetViewMode(ViewMode mode);
 	ViewMode GetViewMode() const;
 	QRect GetViewRect() const;
@@ -103,16 +100,15 @@ public:
 	qreal GetFrameWidth() const;
 	void SetOpacity(double opacity);
 	double GetOpacity();
-
 protected:
-	QContiguousCache<LensData> m_lenses;
+	QVector<LensData> m_lenses;
 	double m_scaleCoefficient;
 	bool m_isEnabled;
 	ViewMode m_viewMode;
 	QRect m_viewedRect;	//rect of the area of data actually displayed using m-lens
 	float m_splitPosition; //position of the split line in the SIDE_BY_SIDE mode, [0,1]
 	bool m_isInitialized;
-	int m_lensCount;
+	int m_maxLensCount;
 protected:
 	void SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle );
 private:

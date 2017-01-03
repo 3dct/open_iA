@@ -28,8 +28,7 @@ public:
 	int HistogramBins,
 		StatisticalExtent,
 		MagicLensSize,
-		MagicLensFrameWidth,
-		MagicLensCount;
+		MagicLensFrameWidth;
 	bool Compression,
 		ResultInNewWindow;
 		//LogToFile;
@@ -38,7 +37,6 @@ public:
 		StatisticalExtent(3),
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
-		MagicLensCount(1),
 		Compression(true),
 		ResultInNewWindow(true)
 	{}

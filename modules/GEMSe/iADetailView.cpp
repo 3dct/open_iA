@@ -55,11 +55,12 @@ iADetailView::iADetailView(
 	m_pbGoto(new QPushButton("")),
 	m_nullImage(nullImage),
 	m_modalities(modalities),
-	m_magicLensData(0),
 	m_magicLensCurrentModality(0),
 	m_magicLensCurrentComponent(0),
 	m_representativeType(representativeType), 
-	m_nextChannelID(0)
+	m_nextChannelID(0),
+	m_magicLensEnabled(false),
+	m_magicLensCount(1)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -178,61 +179,20 @@ vtkSmartPointer<vtkPiecewiseFunction> GetDefaultOTF(vtkSmartPointer<vtkImageData
 
 void iADetailView::DblClicked()
 {
+	m_magicLensEnabled = !m_magicLensEnabled;
+	if (m_magicLensEnabled)
+	{
+		ChangeModality(0);
+	}
 	iASlicer* slicer = m_previewWidget->GetSlicer();
-	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
-	m_nextChannelID = (m_nextChannelID + 1) % 8;
-
-	if (m_magicLensData)
-	{
-		slicer->SetMagicLensEnabled(false);
-		delete m_magicLensData;
-		m_magicLensData = 0;
-		return;
-	}
-
-	QSharedPointer<iAModality> mod = m_modalities->Get(m_magicLensCurrentModality);
-	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
-
-	m_magicLensData = new iAChannelVisualizationData();
-	QColor color(255, 0, 0);
-	m_magicLensData->SetColor(color);
-	m_ctf = (mod->GetName() == "Ground Truth") ?
-		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->GetColorFunction();
-	m_otf = (mod->GetName() == "Ground Truth") ?
-		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->GetOpacityFunction();
-	ResetChannel(m_magicLensData, imageData, m_ctf, m_otf);
-	m_magicLensData->SetName(mod->GetImageName(m_magicLensCurrentComponent));
-	slicer->initializeChannel(id, m_magicLensData);
-	m_magicLensData->SetEnabled(false);
-	slicer->widget()->SetMagicLensFrameWidth(4.0);
-
-	int sliceNr = m_previewWidget->GetSliceNumber();
-	switch(slicer->GetMode())
-	{
-		case YZ: slicer->enableChannel(id, false, static_cast<double>(sliceNr) * imageData->GetSpacing()[0], 0, 0); break;
-		case XY: slicer->enableChannel(id, false, 0, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[2]); break;
-		case XZ: slicer->enableChannel(id, false, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
-	}
-	switch(slicer->GetMode())
-	{
-		case YZ: slicer->setResliceChannelAxesOrigin(id, static_cast<double>(sliceNr) * imageData->GetSpacing()[0], 0, 0); break;
-		case XY: slicer->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[2]); break;
-		case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
-	}
-
-	slicer->SetMagicLensInput(id);
-	slicer->SetMagicLensEnabled(true);
-	slicer->update();
+	slicer->SetMagicLensEnabled(m_magicLensEnabled);
 }
+
 
 void iADetailView::ChangeModality(int offset)
 {
-	if (!m_magicLensData)
-	{
-		return;
-	}
+	iAChannelID removedID = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID - m_magicLensCount);
+
 	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
 	m_nextChannelID = (m_nextChannelID + 1) % 8;
 	// TOOD: refactor to remove duplication between here and MdiChild::ChangeModality!
@@ -242,8 +202,7 @@ void iADetailView::ChangeModality(int offset)
 		m_magicLensCurrentComponent = 0;
 		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();
 	}
-
-	// TODO: refactor to remove duplication between here and DblClicked above
+	iAChannelVisualizationData magicLensData;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	QSharedPointer<iAModality> mod = m_modalities->Get(m_magicLensCurrentModality);
 	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
@@ -253,11 +212,11 @@ void iADetailView::ChangeModality(int offset)
 	m_otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
 		mod->GetTransfer()->GetOpacityFunction();
-	ResetChannel(m_magicLensData, imageData, m_ctf, m_otf);
+	ResetChannel(&magicLensData, imageData, m_ctf, m_otf);
 	QString name(mod->GetImageName(m_magicLensCurrentComponent));
-	m_magicLensData->SetName(name);
-	//slicer->reInitializeChannel(id, m_magicLensData);
-	slicer->initializeChannel(id, m_magicLensData);
+	magicLensData.SetName(name);
+	slicer->removeChannel(removedID);
+	slicer->initializeChannel(id, &magicLensData);
 	int sliceNr = m_previewWidget->GetSliceNumber();
 	switch(slicer->GetMode())
 	{
@@ -284,10 +243,7 @@ void iADetailView::ChangeMagicLensOpacity(int chg)
 
 void iADetailView::SetSliceNumber(int sliceNr)
 {
-	if (!m_magicLensData)
-	{
-		return;
-	}
+	/*
 	iAChannelID id = ch_SE_DetailView;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	vtkSmartPointer<vtkImageData> imageData = m_modalities->Get(m_magicLensCurrentModality)->GetImage();
@@ -298,14 +254,12 @@ void iADetailView::SetSliceNumber(int sliceNr)
 		case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
 	}
 	slicer->update();
+	*/
 }
 
 void iADetailView::SetSlicerMode(int mode,int sliceNr)
 {
-	if (!m_magicLensData)
-	{
-		return;
-	}
+	/*
 	iAChannelID id = ch_SE_DetailView;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	vtkSmartPointer<vtkImageData> imageData = m_modalities->Get(m_magicLensCurrentModality)->GetImage();
@@ -316,6 +270,7 @@ void iADetailView::SetSlicerMode(int mode,int sliceNr)
 		case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
 	}
 	slicer->update();
+	*/
 }
 
 void iADetailView::paintEvent(QPaintEvent * )
@@ -468,7 +423,7 @@ void iADetailView::SetImage()
 
 void iADetailView::SetMagicLensCount(int count)
 {
-	m_activeLensChannelIDs.setCapacity(count);
+	m_magicLensCount = count;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->SetMagicLensCount(count);
 }

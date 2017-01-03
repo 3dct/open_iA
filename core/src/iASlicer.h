@@ -93,6 +93,7 @@ public:
 						bool sp = false );
 
 	void initializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
+	void removeChannel(iAChannelID id);
 	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );	
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
 	iAChannelID getMagicLensInput() const;
