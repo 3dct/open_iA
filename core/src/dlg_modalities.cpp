@@ -357,7 +357,7 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
 	QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
 	SwitchHistogram(modTransfer);
-	emit ShowImage(currentData->GetImage());
+	emit ModalitySelected(selectedRow);
 }
 
 void dlg_modalities::ShowChecked(QListWidgetItem* item)

@@ -263,8 +263,6 @@ void dlg_labels::LabelOverlayReady()
 ///	assert(chData);										// TODO: check/refactor the need for OTF. shouldn't be needed for slicer overlay alone!
 	m_mdiChild->reInitChannel(ch_LabelOverlay, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
 	m_mdiChild->InitChannelRenderer(ch_LabelOverlay, false);
-	// m_mdiChild->UpdateChannelSlicerOpacity(ch_LabelOverlay, 1);
-	//m_mdiChild->updateSlicers();
 	m_mdiChild->updateViews();
 	if (m_newOverlay)
 	{

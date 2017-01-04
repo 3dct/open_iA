@@ -248,7 +248,6 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-
 void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	QVTKWidget2::mouseMoveEvent(event);

@@ -225,7 +225,6 @@ void iADetailView::ChangeModality(int offset)
 		case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
 	}
 	slicer->SetMagicLensInput(id);
-	slicer->SetMagicLensEnabled(true);
 	slicer->update();
 }
 

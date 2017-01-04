@@ -82,7 +82,7 @@ public slots:
 	void ModalityAdded(QSharedPointer<iAModality> mod);
 signals:
 	void ModalityAvailable();
-	void ShowImage(vtkSmartPointer<vtkImageData> img);
+	void ModalitySelected(int modalityIdx);
 
 	//! @{ for histogram:
 	void PointSelected();

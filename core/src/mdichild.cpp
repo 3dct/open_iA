@@ -271,7 +271,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(slicerXZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(slicerYZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 
-	connect(m_dlgModalities, SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
+	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool providesProgress, bool usesDoneSignal )
@@ -2042,24 +2042,7 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 
 	if (isEnabled)
 	{
-		iAChannelVisualizationData * chData = GetChannelData(ch_ModalityLens);
-		if (!chData)
-		{
-			chData = new iAChannelVisualizationData();
-			InsertChannelData(ch_ModalityLens, chData);
-		}
-		m_currentModality = m_dlgModalities->GetSelected();
-		if (m_currentModality == -1)
-		{
-			m_currentModality = 0;
-		}
-		vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
-		chData->SetImage(img);
-		chData->SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
-		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
-		chData->SetOpacity(0.5);
-		InitChannelRenderer(ch_ModalityLens, false, false);
-		SetMagicLensInput(ch_ModalityLens, true, GetModality(m_currentModality)->GetImageName(m_currentComponent).toStdString());
+		ChangeModality(0);
 	}
 	SetMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2819,10 +2802,8 @@ void MdiChild::check2DMode()
 	}
 }
 
-void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice, std::string const & caption)
+void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
 {
-	iAChannelVisualizationData * chData = GetChannelData(id);
-	chData->SetName(caption.c_str());
 	slicerXY->SetMagicLensInput(id);
 	slicerXZ->SetMagicLensInput(id);
 	slicerYZ->SetMagicLensInput(id);
@@ -2855,18 +2836,24 @@ void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgDa
 	chData->SetOpacityTF( otf );
 	slicerXZ->reInitializeChannel( id, chData );
 	slicerXY->reInitializeChannel( id, chData );
-	slicerYZ->reInitializeChannel( id, chData );	
+	slicerYZ->reInitializeChannel( id, chData );
 }
 
 
-void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption)
+void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
 	if (!isMagicLensEnabled)
 	{
 		return;
 	}
-	reInitChannel(id, imgData, ctf, otf);
-	SetMagicLensInput( id, true, caption);
+	iAChannelVisualizationData chData;
+	chData.SetImage(imgData);
+	chData.SetColorTF(ctf);
+	chData.SetOpacityTF(otf);
+	slicerXZ->reInitializeChannel(id, &chData);
+	slicerXY->reInitializeChannel(id, &chData);
+	slicerYZ->reInitializeChannel(id, &chData);
+	SetMagicLensInput( id, true);
 	updateSlicers();
 }
 
@@ -2912,6 +2899,9 @@ bool MdiChild::IsVolumeDataLoaded() const
 
 void MdiChild::ChangeModality(int chg)
 {
+	//slicerXY->removeChannel(ch_SlicerMagicLens);
+	//slicerXZ->removeChannel(ch_SlicerMagicLens);
+	//slicerYZ->removeChannel(ch_SlicerMagicLens);
 	m_currentComponent = (m_currentComponent + chg);
 	if (m_currentComponent < 0 || m_currentComponent >= GetModality(m_currentModality)->ComponentCount())
 	{
@@ -2924,8 +2914,19 @@ void MdiChild::ChangeModality(int chg)
 		m_currentModality = 0;
 		return;
 	}
-	ChangeImage(GetModality(m_currentModality)->GetComponent(m_currentComponent),
-		GetModality(m_currentModality)->GetImageName(m_currentComponent).toStdString());
+
+	iAChannelVisualizationData chData;
+	vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
+	chData.SetImage(img);
+	chData.SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
+	chData.SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
+	chData.SetOpacity(0.5);
+	QString name(GetModality(m_currentModality)->GetImageName(m_currentComponent));
+	chData.SetName(name);
+	slicerXY->initializeChannel(ch_SlicerMagicLens, &chData);
+	slicerXZ->initializeChannel(ch_SlicerMagicLens, &chData);
+	slicerYZ->initializeChannel(ch_SlicerMagicLens, &chData);
+	SetMagicLensInput(ch_SlicerMagicLens, true);
 }
 
 void MdiChild::ChangeMagicLensOpacity(int chg)
@@ -2946,26 +2947,13 @@ int MdiChild::GetCurrentModality() const
 }
 
 
-void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
+void MdiChild::ShowModality(int modIdx)
 {
-	int selected = m_dlgModalities->GetSelected();
-	if (selected != -1)
-	{
-		m_currentModality = selected;
-		ChangeImage(img, GetModality(selected)->GetImageName(m_currentComponent).toStdString());
-	}
+	m_currentModality = modIdx;
+	m_currentComponent = 0;
+	ChangeModality(0);
 }
 
-void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption)
-{
-	if (!isMagicLensToggled())
-	{
-		return;
-	}
-	reInitMagicLens(ch_ModalityLens, img,
-		m_dlgModalities->GetCTF(m_currentModality),
-		m_dlgModalities->GetOTF(m_currentModality), caption);
-}
 
 void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 {

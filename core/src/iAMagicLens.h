@@ -45,9 +45,9 @@ class LensData
 {
 public:
 	LensData();
-	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled);
+	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled, QString const & name);
 
-	QSharedPointer<iAFramedQVTKWidget2> m_qvtkWidget;
+	iAFramedQVTKWidget2* m_qvtkWidget;
 	vtkSmartPointer<vtkImageMapToColors> m_imageToColors;
 	vtkSmartPointer<vtkImageActor> m_imageActor;
 	vtkSmartPointer<vtkImageMapToColors> m_bgImageToColors;

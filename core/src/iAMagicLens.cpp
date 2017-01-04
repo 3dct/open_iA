@@ -57,7 +57,7 @@ LensData::LensData()
 {}
 
 
-LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled):
+LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled, QString const & name):
 	m_qvtkWidget(new iAFramedQVTKWidget2(parent, shareWidget, f)),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
@@ -82,7 +82,7 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 	double orientation[3] = {180, 0, 0};
 	m_imageActor->SetOrientation(orientation);
 */
-	m_textActor->SetInput("");
+	m_textActor->SetInput(name.toStdString().c_str());
 	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
 #if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
 	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
@@ -108,6 +108,8 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 	m_qvtkWidget->SetCrossHair(false);
 	m_qvtkWidget->SetFrameStyle(iAFramedQVTKWidget2::FRAMED);
 	m_qvtkWidget->setEnabled(enabled);
+	if (enabled)
+		m_qvtkWidget->show();
 
 	m_renWnd->GetInteractor()->Disable();
 }
@@ -341,15 +343,16 @@ void iAMagicLens::AddInput(
 	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF,
 	QString const & name)
 {
-	if (m_lenses.size() == m_maxLensCount)
-	{
-		m_lenses.remove(0);
-	}
 	if (!reslicer->GetInput())
 	{
 		return;
 	}
-	LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled);
+	if (m_lenses.size() == m_maxLensCount)
+	{
+		delete m_lenses[0].m_qvtkWidget;
+		m_lenses.remove(0);
+	}
+	LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled, name);
 	l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
 	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
 	l.m_imageToColors->SetLookupTable(cTF);
@@ -357,8 +360,6 @@ void iAMagicLens::AddInput(
 	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
 	l.m_bgImageToColors->SetLookupTable(bgCTF);
 	l.m_bgImageToColors->Update();
-	l.m_textActor->SetInput(name.toStdString().c_str());
-
 	m_lenses.append(l);
 
 	m_isInitialized = true;
@@ -372,6 +373,7 @@ void iAMagicLens::SetLensCount(int count)
 	m_maxLensCount = count;
 	while (count < m_lenses.size())
 	{
+		delete m_lenses[0].m_qvtkWidget;
 		m_lenses.remove(0);
 	}
 	m_lenses.reserve(count);

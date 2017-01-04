@@ -254,9 +254,9 @@ public:
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
-	void SetMagicLensInput(iAChannelID id, bool initReslicer, std::string const & caption);
+	void SetMagicLensInput(iAChannelID id, bool initReslicer);
 	void SetMagicLensEnabled(bool isOn);
-	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption);
+	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
 	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
@@ -507,11 +507,9 @@ private:
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
-	void ChangeImage(vtkSmartPointer<vtkImageData> img);
+	void ShowModality(int modIdx);
 private:
 	int GetCurrentModality() const;
-	void SetCurrentModality(int modality);
-	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
 	void InitModalities();
 	void InitVolumeRenderers();
 public:
