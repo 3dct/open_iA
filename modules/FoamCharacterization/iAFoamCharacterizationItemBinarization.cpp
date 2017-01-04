@@ -76,40 +76,38 @@ void iAFoamCharacterizationItemBinarization::execute()
 
 void iAFoamCharacterizationItemBinarization::executeBinarization()
 {
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
+	QScopedPointer<iAConnector> pConnector(new iAConnector());
+	pConnector->SetImage(m_pImageData);
 
 	typedef itk::BinaryThresholdImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
 
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetLowerThreshold(m_usLowerThreshold);
 	pFilter->SetUpperThreshold(m_usUpperThreshold);
 	pFilter->Update();
 
-	iAConnector connector2;
-	connector2.SetImage(pFilter->GetOutput());
+	pConnector->SetImage(pFilter->GetOutput());
 
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
 void iAFoamCharacterizationItemBinarization::executeOtzu()
 {
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
+	QScopedPointer<iAConnector> pConnector(new iAConnector());
+	pConnector->SetImage(m_pImageData);
 
 	typedef itk::OtsuThresholdImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
 
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->Update();
 
-	iAConnector connector2;
-	connector2.SetImage(pFilter->GetOutput());
+	pConnector->SetImage(pFilter->GetOutput());
 
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
 iAFoamCharacterizationItemBinarization::EItemFilterType iAFoamCharacterizationItemBinarization::itemFilterType() const

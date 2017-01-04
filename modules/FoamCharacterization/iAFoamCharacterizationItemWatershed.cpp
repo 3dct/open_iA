@@ -57,49 +57,32 @@ void iAFoamCharacterizationItemWatershed::execute()
 	QTime t;
 	t.start();
 
-	QScopedPointer<iAConnector> pConnector1 (new iAConnector());
-	pConnector1->SetImage(m_pImageData);
-	pConnector1->Modified();
+	QScopedPointer<iAConnector> pConnector (new iAConnector());
+	pConnector->SetImage(m_pImageData);
 
 	typedef itk::GradientMagnitudeImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkGradient;
 
 	itkGradient::Pointer pGradient (itkGradient::New());
-	pGradient->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector1->GetITKImage()));
+	pGradient->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pGradient->Update();
-
-	pConnector1->SetImage(pGradient->GetOutput());
-	pConnector1->Modified();
-
-	pGradient->ReleaseDataFlagOn();
-
-	m_pImageData->DeepCopy(pConnector1->GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector1->GetVTKImage()->GetInformation());
-
-	QScopedPointer<iAConnector> pConnector2(new iAConnector());
-	pConnector2->SetImage(m_pImageData);
-	pConnector2->Modified();
 
 	typedef itk::WatershedImageFilter<itk::Image<unsigned short, 3>> itkWatershed;
 
 	itkWatershed::Pointer pWatershed (itkWatershed::New());
-	pWatershed->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector2->GetITKImage()));
+	pWatershed->SetInput(pGradient->GetOutput());
 	pWatershed->SetLevel(m_dLevel);
 	pWatershed->SetThreshold(m_dThreshold);
 	pWatershed->Update();
 
-	typedef itk::Image<typename itkWatershed::OutputImagePixelType, 3> IntImageType;
+	typedef itk::Image<itkWatershed::OutputImagePixelType, 3> IntImageType;
 	typedef itk::CastImageFilter<IntImageType, itk::Image<unsigned short, 3>> itkCaster;
 	itkCaster::Pointer pCaster(itkCaster::New());
 	pCaster->SetInput(0, pWatershed->GetOutput());
 
-	pConnector2->SetImage(pCaster->GetOutput());
-	pConnector2->Modified();
+	pConnector->SetImage(pCaster->GetOutput());
 
-	m_pImageData->DeepCopy(pConnector2->GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector2->GetVTKImage()->GetInformation());
-
-	pWatershed->ReleaseDataFlagOn();
-	pCaster->ReleaseDataFlagOn();
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
 

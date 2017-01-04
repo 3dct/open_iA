@@ -110,13 +110,13 @@ void iAFoamCharacterizationItemFilter::execute()
 
 void iAFoamCharacterizationItemFilter::executeAnisotropic()
 {
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
+	QScopedPointer<iAConnector> pConnector(new iAConnector());
+	pConnector->SetImage(m_pImageData);
 
 	typedef itk::GradientAnisotropicDiffusionImageFilter<itk::Image<unsigned short, 3>, itk::Image<float, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
 
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetConductanceParameter(m_dAnisotropicConductance);
 	pFilter->SetNumberOfIterations(m_uiAnisotropicIteration);
 	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
@@ -127,36 +127,34 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 	itkCaster::Pointer pCaster(itkCaster::New());
 	pCaster->SetInput(0, pFilter->GetOutput());
 
-	iAConnector connector2;
-	connector2.SetImage(pCaster->GetOutput());
+	pConnector->SetImage(pCaster->GetOutput());
 
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
 void iAFoamCharacterizationItemFilter::executeGaussian()
 {
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
+	QScopedPointer<iAConnector> pConnector(new iAConnector());
+	pConnector->SetImage(m_pImageData);
 
 	typedef itk::DiscreteGaussianImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
 
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetVariance(m_dGaussianVariance);
 	pFilter->Update();
 
-	iAConnector connector2;
-	connector2.SetImage(pFilter->GetOutput());
+	pConnector->SetImage(pFilter->GetOutput());
 
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
 void iAFoamCharacterizationItemFilter::executeMedian()
 {
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
+	QScopedPointer<iAConnector> pConnector(new iAConnector());
+	pConnector->SetImage(m_pImageData);
 
 	typedef itk::MedianImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
@@ -165,34 +163,32 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	radius.Fill(m_uiMedianRadius);
 	pFilter->SetRadius(radius);
 
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->Update();
 
-	iAConnector connector2;
-	connector2.SetImage(pFilter->GetOutput());
+	pConnector->SetImage(pFilter->GetOutput());
 
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
 void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 {
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
+	QScopedPointer<iAConnector> pConnector(new iAConnector());
+	pConnector->SetImage(m_pImageData);
 
 	typedef itk::PatchBasedDenoisingImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
 
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
+	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetNumberOfIterations(m_uiNonLocalMeansIteration);
 	pFilter->SetPatchRadius(m_uiNonLocalMeansRadius);
 	pFilter->Update();
 
-	iAConnector connector2;
-	connector2.SetImage(pFilter->GetOutput());
+	pConnector->SetImage(pFilter->GetOutput());
 
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
 double iAFoamCharacterizationItemFilter::gaussianVariance() const
