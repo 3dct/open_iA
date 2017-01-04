@@ -68,23 +68,23 @@ iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 
 QString iAFoamCharacterizationItem::executeTimeString() const
 {
-	const int iSecond((int) m_dExecute);
+	const unsigned int iSecond((int)m_dExecuteTime);
 
-	const int iH(iSecond / 3600);
-	const int iM((iSecond - 3600 * iH) / 60);
-	const int iS(iSecond - 3600 * iH - 60 * iM);
+	const unsigned int iH(iSecond / 3600);
+	const unsigned int iM(iSecond / 60 - 60 * iH);
+	const double dS(m_dExecuteTime - (double) (3600 * iH + 60 * iM));
 
 	if (iH)
 	{
-		return QString("%1 h %2 m %3 s").arg(iH).arg(iM).arg(iS);
+		return QString("%1 h %2 m %3 s").arg(iH).arg(iM).arg(dS);
 	}
 	else if (iM)
 	{
-		return QString("%1 m %2 s").arg(iM).arg(iS);
+		return QString("%1 m %2 s").arg(iM).arg(dS);
 	}
 	else
 	{
-		return QString("%1 s").arg(m_dExecute);
+		return QString("%1 s").arg(dS);
 	}
 }
 
@@ -177,6 +177,13 @@ void iAFoamCharacterizationItem::open(QFile* _pFileOpen)
 	setItemIcon();
 }
 
+void iAFoamCharacterizationItem::reset()
+{
+	m_dExecuteTime = 0.0;
+
+	setItemText();
+}
+
 void iAFoamCharacterizationItem::save(QFile* _pFileSave)
 {
 	_pFileSave->write((char*)&m_eItemType, sizeof(m_eItemType));
@@ -228,7 +235,7 @@ void iAFoamCharacterizationItem::setItemEnabled(const bool& _bItemEnabled)
 
 void iAFoamCharacterizationItem::setItemText()
 {
-	if (m_dExecute > 0.0)
+	if (m_dExecuteTime > 0.0)
 	{
 		setText(m_sName + QString(" (%1)").arg(executeTimeString()));
 	}
@@ -241,21 +248,6 @@ void iAFoamCharacterizationItem::setItemText()
 void iAFoamCharacterizationItem::setName(const QString& _sName)
 {
 	m_sName = _sName;
-
-	setItemText();
-}
-
-void iAFoamCharacterizationItem::setNameTime(const QString& _sName)
-{
-	m_sName = _sName;
-	m_dExecute = 0.0;
-
-	setItemText();
-}
-
-void iAFoamCharacterizationItem::setTime(const int& _iMiliSeconds)
-{
-	m_dExecute = 0.001 * (double)_iMiliSeconds;
 
 	setItemText();
 }

@@ -47,12 +47,11 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 		QString name() const;
 
+		void reset();
+
 		void setItemEnabled(const bool& _bEnabled);
 
 		void setName(const QString& _sName);
-		void setNameTime(const QString& _sName);
-
-		void setTime(const int& _iMiliSeconds);
 
 		virtual void dialog() = 0;
 		virtual void execute() = 0;
@@ -68,7 +67,7 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 	protected:
 		bool m_bItemEnabled = true;
 
-		double m_dExecute = 0.0;
+		double m_dExecuteTime = 0.0;
 
 		EItemType m_eItemType = itFilter;
 

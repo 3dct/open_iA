@@ -35,9 +35,11 @@ iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed
 {
 	m_pGroupBox2 = new QGroupBox(this);
 
-	QLabel* pLabelLevel (new QLabel("Level:", m_pGroupBox2));
+	QLabel* pLabelLevel (new QLabel("Level [%]:", m_pGroupBox2));
 	m_pDoubleSpinBoxLevel = new QDoubleSpinBox(m_pGroupBox2);
 	m_pDoubleSpinBoxLevel->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxLevel->setRange(0.0, 1.0);
+	m_pDoubleSpinBoxLevel->setSingleStep(0.1);
 	m_pDoubleSpinBoxLevel->setValue(m_pItemWatershed->level());
 
 	QLabel* pLabelThreshold(new QLabel("Threshold [%]:", m_pGroupBox2));

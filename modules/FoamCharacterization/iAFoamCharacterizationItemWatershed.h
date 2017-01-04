@@ -24,6 +24,8 @@
 
 class QFile;
 
+class iAConnector;
+
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
 	public:
@@ -42,6 +44,6 @@ class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 		virtual void save(QFile* _pFileSave) override;
 
 	private:
-		double m_dLevel = 0.5;
-		double m_dThreshold = 0.5;
+		double m_dLevel = 0.4;
+		double m_dThreshold = 0.1;
 };

@@ -25,6 +25,7 @@
 #include <QFile>
 #include <QTime>
 
+#include <itkGradientMagnitudeImageFilter.h>
 #include <itkWatershedImageFilter.h>
 
 #include "iAConnector.h"
@@ -56,24 +57,53 @@ void iAFoamCharacterizationItemWatershed::execute()
 	QTime t;
 	t.start();
 
-	typedef itk::WatershedImageFilter <itk::Image<unsigned short, 3>> itkFilter;
+	QScopedPointer<iAConnector> pConnector1 (new iAConnector());
+	pConnector1->SetImage(m_pImageData);
+	pConnector1->Modified();
 
-	itkFilter::Pointer pFilter(itkFilter::New());
+	typedef itk::GradientMagnitudeImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkGradient;
 
-	iAConnector connector1;
-	connector1.SetImage(m_pImageData);
+	itkGradient::Pointer pGradient (itkGradient::New());
+	pGradient->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector1->GetITKImage()));
+	pGradient->Update();
 
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
-	pFilter->SetLevel(m_dLevel);
-	pFilter->SetThreshold(m_dThreshold);
-	pFilter->Update();
+	pConnector1->SetImage(pGradient->GetOutput());
+	pConnector1->Modified();
 
-	iAConnector connector2;
-	connector2.SetImage(pFilter->GetOutput());
+	pGradient->ReleaseDataFlagOn();
 
-	m_pImageData->DeepCopy(connector2.GetVTKImage());
+	m_pImageData->DeepCopy(pConnector1->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector1->GetVTKImage()->GetInformation());
 
-	setTime(t.elapsed());
+	QScopedPointer<iAConnector> pConnector2(new iAConnector());
+	pConnector2->SetImage(m_pImageData);
+	pConnector2->Modified();
+
+	typedef itk::WatershedImageFilter<itk::Image<unsigned short, 3>> itkWatershed;
+
+	itkWatershed::Pointer pWatershed (itkWatershed::New());
+	pWatershed->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector2->GetITKImage()));
+	pWatershed->SetLevel(m_dLevel);
+	pWatershed->SetThreshold(m_dThreshold);
+	pWatershed->Update();
+
+	typedef itk::Image<typename itkWatershed::OutputImagePixelType, 3> IntImageType;
+	typedef itk::CastImageFilter<IntImageType, itk::Image<unsigned short, 3>> itkCaster;
+	itkCaster::Pointer pCaster(itkCaster::New());
+	pCaster->SetInput(0, pWatershed->GetOutput());
+
+	pConnector2->SetImage(pCaster->GetOutput());
+	pConnector2->Modified();
+
+	m_pImageData->DeepCopy(pConnector2->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector2->GetVTKImage()->GetInformation());
+
+	pWatershed->ReleaseDataFlagOn();
+	pCaster->ReleaseDataFlagOn();
+
+	m_dExecuteTime = 0.001 * (double) t.elapsed();
+
+	setItemText();
 }
 
 double iAFoamCharacterizationItemWatershed::level() const

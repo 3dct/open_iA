@@ -286,7 +286,7 @@ void iAFoamCharacterizationTable::reset()
 
 	for (int i(0); i < n; ++i)
 	{
-		((iAFoamCharacterizationItem*)item(i, 0))->setTime(0);
+		((iAFoamCharacterizationItem*)item(i, 0))->reset();
 	}
 }
 

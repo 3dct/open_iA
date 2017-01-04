@@ -69,17 +69,18 @@ void iAFoamCharacterizationItemBinarization::execute()
 		break;
 	}
 
-	setTime(t.elapsed());
+	m_dExecuteTime = 0.001 * (double)t.elapsed();
+
+	setItemText();
 }
 
 void iAFoamCharacterizationItemBinarization::executeBinarization()
 {
-	typedef itk::BinaryThresholdImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
-
-	itkFilter::Pointer pFilter(itkFilter::New());
-
 	iAConnector connector1;
 	connector1.SetImage(m_pImageData);
+
+	typedef itk::BinaryThresholdImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+	itkFilter::Pointer pFilter(itkFilter::New());
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
 	pFilter->SetLowerThreshold(m_usLowerThreshold);
@@ -90,16 +91,16 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	connector2.SetImage(pFilter->GetOutput());
 
 	m_pImageData->DeepCopy(connector2.GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
 }
 
 void iAFoamCharacterizationItemBinarization::executeOtzu()
 {
-	typedef itk::OtsuThresholdImageFilter <itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
-
-	itkFilter::Pointer pFilter(itkFilter::New());
-
 	iAConnector connector1;
 	connector1.SetImage(m_pImageData);
+
+	typedef itk::OtsuThresholdImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
+	itkFilter::Pointer pFilter(itkFilter::New());
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (connector1.GetITKImage()));
 	pFilter->Update();
@@ -108,6 +109,7 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	connector2.SetImage(pFilter->GetOutput());
 
 	m_pImageData->DeepCopy(connector2.GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(connector2.GetVTKImage()->GetInformation());
 }
 
 iAFoamCharacterizationItemBinarization::EItemFilterType iAFoamCharacterizationItemBinarization::itemFilterType() const
@@ -163,7 +165,7 @@ void iAFoamCharacterizationItemBinarization::setItemFilterType
 
 void iAFoamCharacterizationItemBinarization::setItemText()
 {
-	if (m_dExecute > 0.0)
+	if (m_dExecuteTime > 0.0)
 	{
 		setText(m_sName + QString(" [%1] (%2)").arg(itemFilterTypeString()).arg(executeTimeString()));
 	}
