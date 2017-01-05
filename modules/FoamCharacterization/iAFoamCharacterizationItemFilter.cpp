@@ -295,14 +295,7 @@ void iAFoamCharacterizationItemFilter::setItemFilterType(const iAFoamCharacteriz
 
 void iAFoamCharacterizationItemFilter::setItemText()
 {
-	if (m_dExecuteTime > 0.0)
-	{
-		setText(m_sName + QString(" [%1] (%2)").arg(itemFilterTypeString()).arg(executeTimeString()));
-	}
-	else
-	{
-		setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
-	}
+	setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
 }
 
 void iAFoamCharacterizationItemFilter::setMedianRadius(const unsigned int& _uiMedianRadius)

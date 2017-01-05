@@ -36,6 +36,8 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
 		virtual ~iAFoamCharacterizationItem();
 
+		QString executeTimeString() const;
+
 		vtkImageData* imageData() const;
 
 		QIcon itemButtonIcon() const;
@@ -74,8 +76,6 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		QString m_sName;
 
 		vtkImageData* m_pImageData = nullptr;
-
-		QString executeTimeString() const;
 
 		QString fileRead(QFile* _pFileOpen);
 		void fileWrite(QFile* _pFileSave, const QString& _sText);

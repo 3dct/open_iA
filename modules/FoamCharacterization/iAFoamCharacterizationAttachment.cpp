@@ -171,7 +171,6 @@ void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 		qApp->processEvents();
 		m_pImageData->DeepCopy(m_pImageRestore);
 		m_childData.child->updateViews();
-
 		m_pTable->reset();
 		qApp->restoreOverrideCursor();
 	}

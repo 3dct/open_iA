@@ -163,14 +163,7 @@ void iAFoamCharacterizationItemBinarization::setItemFilterType
 
 void iAFoamCharacterizationItemBinarization::setItemText()
 {
-	if (m_dExecuteTime > 0.0)
-	{
-		setText(m_sName + QString(" [%1] (%2)").arg(itemFilterTypeString()).arg(executeTimeString()));
-	}
-	else
-	{
-		setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
-	}
+	setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
 }
 
 void iAFoamCharacterizationItemBinarization::setLowerThreshold(const unsigned short& _usLowerThreshold)

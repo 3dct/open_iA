@@ -22,8 +22,8 @@
 #include "iAFoamCharacterizationTable.h"
 
 #include <QApplication>
-#include <QHeaderView>
 #include <QDropEvent>
+#include <QHeaderView>
 #include <QMessageBox>
 
 #include <vtkImagedata.h>
@@ -35,6 +35,7 @@
 iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent) : QTableWidget(_pParent)
 												                                                      , m_pImageData (_pImageData)
 {
+	setAutoFillBackground(false);
 	setCursor(Qt::PointingHandCursor);
 
 	setDragDropMode(QAbstractItemView::InternalMove);
@@ -49,6 +50,8 @@ iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageDa
 
 	const QStringList slLabels("Foam characterization protocol");
 	setHorizontalHeaderLabels(slLabels);
+
+	setItemDelegate(new iAFoamCharacterizationTableDelegate(this, this));
 }
 
 void iAFoamCharacterizationTable::addBinarization()
@@ -169,6 +172,8 @@ void iAFoamCharacterizationTable::execute()
 			pItem->execute();
 		}
 	}
+
+	viewport()->update();
 }
 
 void iAFoamCharacterizationTable::keyPressEvent(QKeyEvent* e)
@@ -206,9 +211,9 @@ void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent* e)
 {
 	QTableWidget::mouseDoubleClickEvent(e);
 
-	const int iIconMargin(logicalDpiX() / 5);
+	const int iMargin(100 * logicalDpiX() / 254);
 
-	if (e->x() > iIconMargin)
+	if (e->x() > iMargin)
 	{
 		QModelIndexList mlIndex(selectedIndexes());
 
@@ -231,9 +236,9 @@ void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 	{
 		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(m_iRowDrag, 0));
 
-		const int iIconMargin(logicalDpiX() / 5);
+		const int iMargin(100 * logicalDpiX() / 254);
 
-		if (ptMouse.x() < iIconMargin)
+		if (ptMouse.x() < iMargin)
 		{
 			pItem->setItemEnabled(!pItem->itemEnabled());
 		}
@@ -288,6 +293,8 @@ void iAFoamCharacterizationTable::reset()
 	{
 		((iAFoamCharacterizationItem*)item(i, 0))->reset();
 	}
+
+	viewport()->update();
 }
 
 void iAFoamCharacterizationTable::resizeEvent(QResizeEvent*)
