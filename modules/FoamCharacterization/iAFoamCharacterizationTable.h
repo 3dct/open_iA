@@ -41,13 +41,13 @@ class iAFoamCharacterizationTable : public QTableWidget
 																										: QItemDelegate(_pParent)
 																										, m_pTable(_pTable)
 			{
-
+				m_iMargin = 100 * m_pTable->logicalDpiX() / 254;
 			}
 
 			void paint(QPainter* _pPainter, const QStyleOptionViewItem& _sovItem, const QModelIndex& _miItem) const
 			{
 				const int iRow(_miItem.row());
-				
+
 				QModelIndexList mlIndex(m_pTable->selectedIndexes());
 
 				if ((mlIndex.size()) && (m_pTable->hasFocus()))
@@ -56,32 +56,27 @@ class iAFoamCharacterizationTable : public QTableWidget
 
 					if (iRow == iRowSelected)
 					{
-						const QColor cItemSelected(m_pTable->palette().color(QPalette::Highlight));
-
-						_pPainter->fillRect(_sovItem.rect, cItemSelected);
+						drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Highlight));
+						
 						_pPainter->setPen(m_pTable->palette().color(QPalette::BrightText));
 					}
 					else
 					{
-						const QColor cItem (m_pTable->palette().color(QPalette::Window));
+						drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Window));
 
-						_pPainter->fillRect(_sovItem.rect, cItem);
 						_pPainter->setPen(m_pTable->palette().color(QPalette::WindowText));
 					}
 				}
 				else
 				{
-					const QColor cItem(m_pTable->palette().color(QPalette::Window));
+					drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Window));
 
-					_pPainter->fillRect(_sovItem.rect, cItem);
 					_pPainter->setPen(m_pTable->palette().color(QPalette::WindowText));
 				}
 
 				iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)m_pTable->item(iRow, 0));
 
-				const int iMargin(100 * m_pTable->logicalDpiX() / 254);
-
-				const QRect rText(_sovItem.rect.adjusted(iMargin, 0, -iMargin, 0));
+				const QRect rText(_sovItem.rect.adjusted(m_iMargin, 0, -m_iMargin, 0));
 
 				QIcon iItemIcon (pItem->icon());
 				const QSize sItemIcon (_sovItem.decorationSize);
@@ -92,14 +87,30 @@ class iAFoamCharacterizationTable : public QTableWidget
 									  );
 
 				_pPainter->setFont(pItem->font());
-				_pPainter->drawText(rText, Qt::AlignLeft | Qt::AlignVCenter, _miItem.data().toString());
+
+				_pPainter->drawText
+				            (rText.adjusted(m_iMargin / 4, 0, 0, 0), Qt::AlignLeft | Qt::AlignVCenter, _miItem.data().toString());
 				
-				_pPainter->setPen((pItem->modified()) ? QPen(Qt::red) : _pPainter->pen());
+				_pPainter->setPen((pItem->modified()) ? colorModified(_pPainter->pen().color()) : _pPainter->pen().color());
+
 				_pPainter->drawText(rText, Qt::AlignRight | Qt::AlignVCenter, pItem->executeTimeString());
 			}
 
 		private:
+			int m_iMargin = 0;
+
 			iAFoamCharacterizationTable* m_pTable = nullptr;
+
+			QColor colorModified(const QColor& _cColor) const
+			{
+				return ((_cColor.lightness() > 200) ? _cColor.darker(125) : Qt::gray);
+			}
+
+			void drawItemRect(QPainter* _pPainter, const QRect& _rItem, const QColor& _cColor) const
+			{
+				_pPainter->fillRect(_rItem.adjusted(0, 0, m_iMargin - _rItem.width(), 0), colorModified(_cColor));
+				_pPainter->fillRect(_rItem.adjusted(m_iMargin, 0, 0, 0), _cColor);
+			}
 
 		protected:
 			virtual QSize sizeHint(const QStyleOptionViewItem& _sovItem, const QModelIndex& _miItem) const override
