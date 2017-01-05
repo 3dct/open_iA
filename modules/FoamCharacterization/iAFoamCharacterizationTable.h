@@ -57,20 +57,17 @@ class iAFoamCharacterizationTable : public QTableWidget
 					if (iRow == iRowSelected)
 					{
 						drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Highlight));
-						
 						_pPainter->setPen(m_pTable->palette().color(QPalette::BrightText));
 					}
 					else
 					{
 						drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Window));
-
 						_pPainter->setPen(m_pTable->palette().color(QPalette::WindowText));
 					}
 				}
 				else
 				{
 					drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Window));
-
 					_pPainter->setPen(m_pTable->palette().color(QPalette::WindowText));
 				}
 
@@ -92,7 +89,6 @@ class iAFoamCharacterizationTable : public QTableWidget
 				            (rText.adjusted(m_iMargin / 4, 0, 0, 0), Qt::AlignLeft | Qt::AlignVCenter, _miItem.data().toString());
 				
 				_pPainter->setPen((pItem->modified()) ? colorModified(_pPainter->pen().color()) : _pPainter->pen().color());
-
 				_pPainter->drawText(rText, Qt::AlignRight | Qt::AlignVCenter, pItem->executeTimeString());
 			}
 
@@ -108,7 +104,10 @@ class iAFoamCharacterizationTable : public QTableWidget
 
 			void drawItemRect(QPainter* _pPainter, const QRect& _rItem, const QColor& _cColor) const
 			{
-				_pPainter->fillRect(_rItem.adjusted(0, 0, m_iMargin - _rItem.width(), 0), colorModified(_cColor));
+				_pPainter->setBrush(colorModified(_cColor));
+				_pPainter->setPen(_cColor);
+				_pPainter->drawRect(_rItem.adjusted(0, 0, m_iMargin - _rItem.width(), -1));
+
 				_pPainter->fillRect(_rItem.adjusted(m_iMargin, 0, 0, 0), _cColor);
 			}
 

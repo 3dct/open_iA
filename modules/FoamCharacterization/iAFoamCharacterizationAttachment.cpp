@@ -131,7 +131,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		qApp->processEvents();
 		m_pTable->execute();
-		m_childData.child->updateViews();
+		m_childData.child->enableRenderWindows();
 		qApp->restoreOverrideCursor();
 	}
 }
@@ -171,7 +171,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 		qApp->processEvents();
 		m_pImageData->DeepCopy(m_pImageRestore);
 		m_pTable->reset();
-		m_childData.child->updateViews();
+		m_childData.child->enableRenderWindows();
 		qApp->restoreOverrideCursor();
 	}
 }

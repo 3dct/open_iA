@@ -158,8 +158,6 @@ void iAFoamCharacterizationTable::execute()
 {
 	reset();
 
-	setFocus();
-
 	const int n(rowCount());
 
 	for (int i (0) ; i < n ; ++i)
