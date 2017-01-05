@@ -93,6 +93,8 @@ class iAFoamCharacterizationTable : public QTableWidget
 
 				_pPainter->setFont(pItem->font());
 				_pPainter->drawText(rText, Qt::AlignLeft | Qt::AlignVCenter, _miItem.data().toString());
+				
+				_pPainter->setPen((pItem->modified()) ? QPen(Qt::red) : _pPainter->pen());
 				_pPainter->drawText(rText, Qt::AlignRight | Qt::AlignVCenter, pItem->executeTimeString());
 			}
 

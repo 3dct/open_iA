@@ -84,9 +84,9 @@ void iAFoamCharacterizationDialog::slotPushButtonCancel()
 void iAFoamCharacterizationDialog::slotPushButtonOk()
 {
 	m_pItem->setName(m_pLineEdit1->text());
-	m_pItem->reset();
-
 	m_pItem->setItemEnabled(m_pCheckBoxEnabled->isChecked());
+
+	m_pItem->setModified(true);
 
 	accept();
 }

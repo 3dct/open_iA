@@ -47,8 +47,10 @@ iAFoamCharacterizationItem::iAFoamCharacterizationItem(vtkImageData* _pImageData
 }
 
 iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem) : QTableWidgetItem() 
-                                                                                           , m_eItemType(_pItem->itemType())
-                                                                                           , m_pImageData(_pItem->imageData())
+																						, m_bModified(_pItem->modified())
+																						, m_dExecuteTime(_pItem->executeTime())
+																						, m_eItemType(_pItem->itemType())
+																						, m_pImageData(_pItem->imageData())
 {
 	QFont f(font());
 	f.setBold(true);
@@ -64,6 +66,11 @@ iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationIte
 iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 {
 
+}
+
+double iAFoamCharacterizationItem::executeTime() const
+{
+	return m_dExecuteTime;
 }
 
 QString iAFoamCharacterizationItem::executeTimeString() const
@@ -171,6 +178,11 @@ QString iAFoamCharacterizationItem::itemTypeStr() const
 	}
 }
 
+bool iAFoamCharacterizationItem::modified() const
+{
+	return m_bModified;
+}
+
 QString iAFoamCharacterizationItem::name() const
 {
 	return m_sName;
@@ -186,6 +198,7 @@ void iAFoamCharacterizationItem::open(QFile* _pFileOpen)
 
 void iAFoamCharacterizationItem::reset()
 {
+	m_bModified = false;
 	m_dExecuteTime = 0.0;
 }
 
@@ -241,6 +254,11 @@ void iAFoamCharacterizationItem::setItemEnabled(const bool& _bItemEnabled)
 void iAFoamCharacterizationItem::setItemText()
 {
 	setText(m_sName);
+}
+
+void iAFoamCharacterizationItem::setModified(const bool& _bModified)
+{
+	m_bModified = _bModified;
 }
 
 void iAFoamCharacterizationItem::setName(const QString& _sName)

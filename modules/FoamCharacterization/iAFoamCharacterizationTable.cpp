@@ -156,6 +156,8 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 
 void iAFoamCharacterizationTable::execute()
 {
+	reset();
+
 	setFocus();
 
 	const int n(rowCount());
@@ -173,7 +175,7 @@ void iAFoamCharacterizationTable::execute()
 		}
 	}
 
-	viewport()->update();
+	viewport()->repaint();
 }
 
 void iAFoamCharacterizationTable::keyPressEvent(QKeyEvent* e)
@@ -294,7 +296,7 @@ void iAFoamCharacterizationTable::reset()
 		((iAFoamCharacterizationItem*)item(i, 0))->reset();
 	}
 
-	viewport()->update();
+	viewport()->repaint();
 }
 
 void iAFoamCharacterizationTable::resizeEvent(QResizeEvent*)

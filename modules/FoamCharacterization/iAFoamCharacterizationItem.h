@@ -36,6 +36,8 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
 		virtual ~iAFoamCharacterizationItem();
 
+		double executeTime() const;
+
 		QString executeTimeString() const;
 
 		vtkImageData* imageData() const;
@@ -47,11 +49,15 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		EItemType itemType() const;
 		QString itemTypeStr() const;
 
+		bool modified() const;
+
 		QString name() const;
 
 		void reset();
 
 		void setItemEnabled(const bool& _bEnabled);
+
+		void setModified(const bool& _bModified);
 
 		void setName(const QString& _sName);
 
@@ -68,6 +74,8 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 	protected:
 		bool m_bItemEnabled = true;
+
+		bool m_bModified = false;
 
 		double m_dExecuteTime = 0.0;
 
