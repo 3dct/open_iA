@@ -21,7 +21,6 @@
 
 #include "iAFoamCharacterizationTable.h"
 
-#include <QApplication>
 #include <QDropEvent>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -158,12 +157,14 @@ void iAFoamCharacterizationTable::execute()
 {
 	reset();
 
+	setFocus();
+
 	const int n(rowCount());
 
 	for (int i (0) ; i < n ; ++i)
 	{
 		selectRow(i);
-		qApp->processEvents();
+		viewport()->repaint();
 
 		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(i, 0));
 
