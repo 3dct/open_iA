@@ -350,16 +350,17 @@ void dlg_GEMSeControl::CalculateClustering()
 		DEBUG_LOG("Other operation still running?");
 		return;
 	}
-	m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), QString());
+	m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), m_outputFolder);
 	if (m_outputFolder.isEmpty())
 	{
 		return;
 	}
+	DEBUG_LOG(QString("Clustering and writing results to %1").arg(m_outputFolder));
 	QString cacheDir = m_outputFolder + "/representatives";
 	QDir qdir;
 	if (!qdir.mkpath(cacheDir))
 	{
-		DEBUG_LOG("Can't create representative directory!");
+		DEBUG_LOG(QString("Can't create representative directory %1!").arg(cacheDir));
 		return;
 	}
 	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir));
