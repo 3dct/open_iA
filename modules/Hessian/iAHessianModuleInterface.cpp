@@ -64,7 +64,7 @@ void iAHessianModuleInterface::computeHessianEigenanalysis( int nr )
 
 	chefSigma = dlg.getValues()[0];
 	//prepare
-	QString filterName = tr( "Computing Hessian and Eigenanalyis" );
+	QString filterName = "Hessian and Eigenanalyis";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -115,7 +115,7 @@ void iAHessianModuleInterface::computeLaplacian()
 	chefSigma = dlg.getValues()[0];
 
 	//prepare
-	QString filterName = tr("Computing Laplacian of Gaussian");
+	QString filterName = "Laplacian of Gaussian";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 

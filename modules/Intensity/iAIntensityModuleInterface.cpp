@@ -71,7 +71,7 @@ void iAIntensityModuleInterface::difference_Image_Filter()
 		return;
 	}
 	//prepare
-	QString filterName = tr( "Difference Image Filter" );
+	QString filterName = "Difference Image between " + child2->windowTitle() + " and";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -92,7 +92,7 @@ void iAIntensityModuleInterface::subtractimage_Filter()
 		return;
 	}
 	//prepare
-	QString filterName = tr( "Subtract Image" );
+	QString filterName = "Subtract Image " + child2->windowTitle() + " from";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -107,7 +107,7 @@ void iAIntensityModuleInterface::subtractimage_Filter()
 void iAIntensityModuleInterface::invert_intensity()
 {
 	//prepare
-	QString filterName = tr( "Invert Intensity" );
+	QString filterName = "Invert Intensity";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -126,7 +126,7 @@ void iAIntensityModuleInterface::mask()
 		return;
 	}
 	//prepare
-	QString filterName = tr( "Mask Image Filter" );
+	QString filterName = "Mask Image " + child2->windowTitle();
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -157,7 +157,7 @@ void iAIntensityModuleInterface::intensity_windowing()
 	outputMaximum = dlg.getValues()[3];
 
 	//prepare
-	QString filterName = tr( "Intensity Windowing Image Filter" );
+	QString filterName = "Intensity Windowing";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

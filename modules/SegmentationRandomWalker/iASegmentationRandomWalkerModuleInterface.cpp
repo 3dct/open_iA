@@ -271,8 +271,10 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 			priorImg[currInsert++] = qobject_cast<MdiChild *>(mdiwindows[i]->widget())->getImagePointer();
 		}
 	}
-	PrepareResultChild(fileIndices[0], "Extended Random Walker");
-	iAERWFilter * thread = new iAERWFilter("Extended Random Walker", EXTENDED_RANDOM_WALKER,
+
+	QString filterName = "Extended Random Walker";
+	PrepareResultChild(fileIndices[0], filterName);
+	iAERWFilter * thread = new iAERWFilter(filterName, EXTENDED_RANDOM_WALKER,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	thread->SetPriors(priorImg);
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -355,8 +357,9 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateRW()
 	QString seeds = dlgRWSeeds.GetSeeds();
 	double beta = dlgRWSeeds.GetBeta();
 
-	PrepareResultChild("Random Walker");
-	iARWFilter * thread = new iARWFilter("Random Walker", RANDOM_WALKER,
+	QString filterName = "Random Walker";
+	PrepareResultChild(filterName);
+	iARWFilter * thread = new iARWFilter(filterName, RANDOM_WALKER,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	int extent[6];
 	m_childData.imgData->GetExtent(extent);

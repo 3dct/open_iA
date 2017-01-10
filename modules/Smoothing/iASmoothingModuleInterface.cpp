@@ -64,7 +64,7 @@ void iASmoothingModuleInterface::grad_aniso_diffusion()
 		return;
 	gadIterations = dlg.getValues()[0]; gadTimeStep = dlg.getValues()[1]; gadConductance = dlg.getValues()[2];
 	//prepare
-	QString filterName = tr( "Gradient anisotropic diffusion filter" );
+	QString filterName = "Gradient anisotropic diffusion";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -89,7 +89,7 @@ void iASmoothingModuleInterface::discrete_Gaussian_Filter()
 	dgfOutput = dlg.getCheckValues()[2];
 
 	//prepare
-	QString filterName = tr( "Discrete Gaussian filter" );
+	QString filterName = "Discrete Gaussian";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -112,7 +112,7 @@ void iASmoothingModuleInterface::curv_aniso_diffusion()
 		return;
 	cadIterations = dlg.getValues()[0]; cadTimeStep = dlg.getValues()[1]; cadConductance = dlg.getValues()[2];
 	//prepare
-	QString filterName = tr( "Curvature anisotropic diffusion filter" );
+	QString filterName = "Curvature anisotropic diffusion";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -134,7 +134,7 @@ void iASmoothingModuleInterface::bilat_filter()
 		return;
 	bilRangeSigma = dlg.getValues()[0]; bilDomainSigma = dlg.getValues()[1];
 	//prepare
-	QString filterName = tr( "Bilateral image filter" );
+	QString filterName = "Bilateral filtered";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

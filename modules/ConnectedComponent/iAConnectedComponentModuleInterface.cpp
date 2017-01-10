@@ -38,17 +38,16 @@ void iAConnectedComponentModuleInterface::Initialize()
 	QAction * actionSimple_Connected_Component_Filter = new QAction( m_mainWnd );
 	actionSimple_Connected_Component_Filter->setText( QApplication::translate( "MainWindow", "Simple Connected Component Filter", 0 ) );
 	menuConnected_Component_Filters->addAction( actionSimple_Connected_Component_Filter );
+	connect(actionSimple_Connected_Component_Filter, SIGNAL(triggered()), this, SLOT(simple_connected_component()));
 
 	QAction * actionScalar_Connected_Component_Filter = new QAction( m_mainWnd );
 	actionScalar_Connected_Component_Filter->setText( QApplication::translate( "MainWindow", "Scalar Connected Component Filter", 0 ) );
 	menuConnected_Component_Filters->addAction( actionScalar_Connected_Component_Filter );
+	connect(actionScalar_Connected_Component_Filter, SIGNAL(triggered()), this, SLOT(scalar_connected_component()));
 	
 	QAction * actionSimple_Relabel_Connected_Component_Filter = new QAction( m_mainWnd );
 	actionSimple_Relabel_Connected_Component_Filter->setText( QApplication::translate( "MainWindow", "Simple Relabel Connected Component Filter", 0 ) );
 	menuConnected_Component_Filters->addAction( actionSimple_Relabel_Connected_Component_Filter );
-
-	connect( actionSimple_Connected_Component_Filter, SIGNAL( triggered() ), this, SLOT( simple_connected_component() ) );
-	connect( actionScalar_Connected_Component_Filter, SIGNAL( triggered() ), this, SLOT( scalar_connected_component() ) );
 	connect( actionSimple_Relabel_Connected_Component_Filter, SIGNAL( triggered() ), this, SLOT( simple_relabel_connected_component() ) );
 }
 
@@ -62,7 +61,7 @@ void iAConnectedComponentModuleInterface::simple_connected_component()
 		return;
 	sccff = dlg.getCheckValues()[0];
 	//prepare
-	QString filterName = tr( "Simple Connected Component Filter" );
+	QString filterName = "Simple Connected Component";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -84,7 +83,7 @@ void iAConnectedComponentModuleInterface::scalar_connected_component()
 		return;
 	scalccDistThresh = dlg.getDoubleSpinBoxValues()[0];
 	//prepare
-	QString filterName = tr( "Scalar Connected Component Filter" );
+	QString filterName = "Scalar Connected Component";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -120,7 +119,7 @@ void iAConnectedComponentModuleInterface::simple_relabel_connected_component()
 	srcifw = dlg.getCheckValues()[1];
 
 	//prepare
-	QString filterName = tr( "Simple Relabel Connected Component Filter" );
+	QString filterName = "Simple Relabel Connected Component";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	QString filepatch = m_mainWnd->getPath(); //default

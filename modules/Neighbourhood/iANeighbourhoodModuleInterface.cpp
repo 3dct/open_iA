@@ -60,7 +60,7 @@ void iANeighbourhoodModuleInterface::median_Filter()
 	medR_z = dlg.getValues()[2];
 
 	//prepare
-	QString filterName = tr( "Median image filter" );
+	QString filterName = "Median Filtered";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
