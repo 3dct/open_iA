@@ -1422,9 +1422,9 @@ void iAIO::iosettingsreader()
 	rawOriginX = settings.value("IO/rawOriginX").toDouble();
 	rawOriginY = settings.value("IO/rawOriginY").toDouble();
 	rawOriginZ = settings.value("IO/rawOriginZ").toDouble();
-	rawSpaceX = settings.value("IO/rawSpaceX", 1).toDouble();
-	rawSpaceY = settings.value("IO/rawSpaceY", 1).toDouble();
-	rawSpaceZ = settings.value("IO/rawSpaceZ", 1).toDouble();
+	rawSpaceX = settings.value("IO/rawSpaceX", 1).toDouble();	if (rawSpaceX == 0) rawSpaceX = 1;
+	rawSpaceY = settings.value("IO/rawSpaceY", 1).toDouble();	if (rawSpaceY == 0) rawSpaceY = 1;
+	rawSpaceZ = settings.value("IO/rawSpaceZ", 1).toDouble();	if (rawSpaceZ == 0) rawSpaceZ = 1;
 	rawSizeX = settings.value("IO/rawSizeX").toInt();
 	rawSizeY = settings.value("IO/rawSizeY").toInt();
 	rawSizeZ = settings.value("IO/rawSizeZ").toInt();

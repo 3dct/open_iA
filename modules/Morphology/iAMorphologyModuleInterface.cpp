@@ -57,7 +57,7 @@ void iAMorphologyModuleInterface::dilation_filter()
 	
 	dilrad = dlg.getValues()[0];
 	//prepare
-	QString filterName = tr( "Dilation Filter" );
+	QString filterName = "Dilated " + QString::number(dilrad);
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -83,7 +83,7 @@ void iAMorphologyModuleInterface::erosion_filter()
 	errad = dlg.getValues()[0];
 
 	//prepare
-	QString filterName = tr( "Erosion Filter" );
+	QString filterName = "Eroded " + QString::number(errad);
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 
@@ -109,7 +109,7 @@ void iAMorphologyModuleInterface::vessel_enhancement_filter()
 	
 	sigmaenh = dlg.getValues()[0];
 	//prepare
-	QString filterName = tr( "Enhancement Filter" );
+	QString filterName = "Vessel Enhancement";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

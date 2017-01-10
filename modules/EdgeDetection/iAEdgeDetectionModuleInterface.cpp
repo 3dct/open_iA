@@ -49,7 +49,7 @@ void iAEdgeDetectionModuleInterface::canny_Edge_Detection()
 	cedfUpper = dlg.getValues()[2];
 	cedfLower = dlg.getValues()[3];
 	//prepare
-	QString filterName = tr( "Canny edge detection filter" );
+	QString filterName = "Canny edge detection";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

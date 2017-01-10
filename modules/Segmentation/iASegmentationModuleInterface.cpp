@@ -262,7 +262,7 @@ void iASegmentationModuleInterface::binary_threshold()
 	settings.setValue("Filters/Segmentations/BinaryThresholding/btinside", btinside);
 
 	//prepare
-	QString filterName = tr("Binary threshold filter");
+	QString filterName = "Binary threshold";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -287,7 +287,7 @@ void iASegmentationModuleInterface::otsu_Threshold_Filter()
 	otBins = dlg.getValues()[0]; otoutside = dlg.getValues()[1]; otinside = dlg.getValues()[2]; otremovepeaks = dlg.getCheckValues()[3];
 
 	//prepare
-	QString filterName = tr( "Otsu threshold filter" );
+	QString filterName = "Otsu threshold";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -312,7 +312,7 @@ void iASegmentationModuleInterface::maximum_Distance_Filter()
 	mdfbins = dlg.getValues()[0]; mdfli = dlg.getValues()[1]; mdfuli = dlg.getCheckValues()[2];
 
 	//prepare
-	QString filterName = tr( "Maximum distance filter" );
+	QString filterName = "Maximum distance";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -335,7 +335,7 @@ void iASegmentationModuleInterface::watershed_seg()
 	wsLevel = dlg.getValues()[0]; wsThreshold = dlg.getValues()[1];
 
 	//prepare
-	QString filterName = tr( "Watershed segmentation" );
+	QString filterName = "Watershed segmentation";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -380,7 +380,7 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
 
 	//prepare
-	QString filterName = tr( "Morphological Watershed Segmentation" );
+	QString filterName = "Morphological watershed segmentation";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -405,7 +405,7 @@ void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
 	aotBins = dlg.getValues()[0]; aotOutside = dlg.getValues()[1]; aotInside = dlg.getValues()[2]; aotRadius = dlg.getValues()[3];
 	aotSamples = dlg.getValues()[4]; aotLevels = dlg.getValues()[5]; aotControlpoints = dlg.getValues()[6];
 	//prepare
-	QString filterName = tr( "Adaptive otsu threshold filter" );
+	QString filterName = "Adaptive otsu threshold";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -429,7 +429,7 @@ void iASegmentationModuleInterface::rats_Threshold_Filter()
 	
 	rtPow = dlg.getValues()[0]; rtOutside = dlg.getValues()[1]; rtInside = dlg.getValues()[2];
 	//prepare
-	QString filterName = tr( "Rats threshold filter" );
+	QString filterName = "Rats threshold filter";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -453,7 +453,7 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 
 	omtBins = dlg.getValues()[0]; omtThreshs = dlg.getValues()[1];;
 	//prepare
-	QString filterName = tr( "Otsu multiple threshold filter" );
+	QString filterName = "Otsu multiple threshold";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

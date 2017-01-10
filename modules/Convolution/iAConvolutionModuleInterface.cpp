@@ -83,7 +83,7 @@ void iAConvolutionModuleInterface::convolve()
 		return;
 	
 	//prepare
-	QString filterName = tr("Convolution Filter");
+	QString filterName = "Convolution";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -117,7 +117,7 @@ void iAConvolutionModuleInterface::correlate()
 		return;
 
 	//prepare
-	QString filterName = tr("Correlation Filter");
+	QString filterName = "Correlation";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -151,7 +151,7 @@ void iAConvolutionModuleInterface::FFT_correlate()
 		return;
 
 	//prepare
-	QString filterName = tr("FFT Correlation Filter");
+	QString filterName = "FFT Correlation";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -185,7 +185,7 @@ void iAConvolutionModuleInterface::FFT_convolve()
 		return;
 
 	//prepare
-	QString filterName = tr("FFT Convolution Filter");
+	QString filterName = "FFT Convolution";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -219,7 +219,7 @@ void iAConvolutionModuleInterface::FFT_CPP_correlate()
 		return;
 
 	//prepare
-	QString filterName = tr("FFT CPP correlation filter");
+	QString filterName = "FFT CPP correlation";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute

@@ -57,7 +57,7 @@ void iAAdaptHistoEqualModuleInterface::adaptive_Histogram_Equalization()
 	aheAlpha = dlg.getValues()[0];
 	aheBeta = dlg.getValues()[1];
 	//prepare
-	QString filterName = tr( "Computing Adaptive Histogram Equalization" );
+	QString filterName = "Adaptive Histogram Equalization";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

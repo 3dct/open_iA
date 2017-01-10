@@ -46,20 +46,20 @@ void iACastingDataconversionModuleInterface::castimage_Filter()
 		<< tr( "VTK_UNSIGNED__INT64" ) << ( "Label image to color-coded RGBA image" ) );
 	QStringList inList = (QStringList() << tr( "+Output Data Type" ));
 	QList<QVariant> inPara; 	inPara << datatype;
-	dlg_commoninput dlg( m_mainWnd, "FHW CastImage Filter", 1, inList, inPara, NULL );
-	QString fhwcifdt;
+	dlg_commoninput dlg( m_mainWnd, "Cast Image Filter", 1, inList, inPara, NULL );
+	QString datatypeStr;
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	fhwcifdt = dlg.getComboBoxValues()[0];
+	datatypeStr = dlg.getComboBoxValues()[0];
 	//prepare
-	QString filterName = tr( "FHW CastImage Filter" );
+	QString filterName = "Cast to " + datatypeStr;
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
 	iACastImageFilter* thread = new iACastImageFilter( filterName, FHW_CAST_IMAGE,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setODTParameters( fhwcifdt.toStdString() );
+	thread->setODTParameters( datatypeStr.toStdString() );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

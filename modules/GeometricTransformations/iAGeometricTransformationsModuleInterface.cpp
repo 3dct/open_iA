@@ -93,7 +93,7 @@ void iAGeometricTransformationsModuleInterface::resampler()
 	rInterpolator = dlg.getComboBoxValues()[9];
 
 	//prepare
-	QString filterName = tr( "Resampler" );
+	QString filterName = "Resampled";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -150,7 +150,7 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	eiSizeY = dlg.getSpinBoxValues()[4];
 	eiSizeZ = dlg.getSpinBoxValues()[5];
 	//prepare
-	QString filterName = tr( "Extract Image" );
+	QString filterName = "Extracted";
 	// TODO: handle case that active window changed in the meantime!
 	MdiChild* newChild = m_mainWnd->GetResultChild(origChild, filterName);
 	if (!newChild)
@@ -188,7 +188,7 @@ void iAGeometricTransformationsModuleInterface::rescale()
 	outputMax = dlg.getValues()[1];
 
 	//prepare
-	QString filterName = tr("Rescale Image");
+	QString filterName = "Rescaled";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute

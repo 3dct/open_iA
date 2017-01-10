@@ -49,7 +49,7 @@ void iADistanceMapModuleInterface::signed_maurer_distance_map()
 	smdmp = dlg.getCheckValues()[2]; 
 	smdmn = dlg.getCheckValues()[3];
 	//prepare
-	QString filterName = tr( "Signed Maurer Distance Map" );
+	QString filterName = "Signed Maurer Distance Map";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

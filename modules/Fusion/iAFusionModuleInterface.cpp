@@ -50,7 +50,7 @@ void iAFusionModuleInterface::addImages()
 		return;
 	vtkImageData * secondChildImgData = qobject_cast<MdiChild *>(mdiwindows.at(inputIndxs[1])->widget())->getImageData();
 	//prepare
-	QString filterName = tr("Add Images Fusion");
+	QString filterName = "Add Images Fusion";
 	PrepareResultChild(inputIndxs[0], filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute

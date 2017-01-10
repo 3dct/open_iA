@@ -47,7 +47,7 @@ void iAGradientsModuleInterface::Initialize()
 void iAGradientsModuleInterface::gradientMagnitude()
 {
 	//prepare
-	QString filterName = tr( "Gradient Magnitude" );
+	QString filterName = "Gradient Magnitude";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -72,7 +72,7 @@ void iAGradientsModuleInterface::derivative_Filter()
 	dfDirection = dlg.getValues()[1];
 
 	//prepare
-	QString filterName = tr( "Derivative image filter" );
+	QString filterName = "Derivative image";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -106,7 +106,7 @@ void iAGradientsModuleInterface::higherOrderDerivative()
 	HOAGDSettings.orderOfAcc = dlg.getValues()[2];
 
 	//prepare
-	QString filterName = tr("Higher Order Accurate Gradient Derivative Filter");
+	QString filterName = "Higher Order Accurate Gradient Derivative";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute

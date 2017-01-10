@@ -163,7 +163,7 @@ void iATransformationsModuleInterface::rotate()
 	qreal cy = values[k++];
 	qreal cz = values[k++];
 
-	QString filterName = tr("Transformations: Rotate");
+	QString filterName = "Rotated";
 	vtkImageData * inpImage = prepare(filterName);
 	if (inpImage != NULL)
 	{
@@ -202,7 +202,8 @@ void iATransformationsModuleInterface::translate()
 	qreal ty = -values[k++];
 	qreal tz = -values[k++];
 
-	QString filterName = tr("Transformations: Translate");
+
+	QString filterName = "Translated";
 	vtkImageData * inpImage = prepare(filterName);
 	if (inpImage != NULL)
 	{
@@ -224,7 +225,8 @@ void iATransformationsModuleInterface::flip()
 	if (action == NULL)
 		return;
 	QChar flipAxes = action->data().toChar();
-	QString filterName = tr("Transformations: Flip axes ") + flipAxes;
+
+	QString filterName = "Flipped axis " + QString(flipAxes);
 	vtkImageData * inpImage = prepare(filterName);
 	if (inpImage != NULL)
 	{
@@ -245,7 +247,7 @@ void iATransformationsModuleInterface::permute()
 	if (action == NULL)
 		return;
 	QString order = action->data().toString();
-	QString filterName = tr("Transformations: Change coordinate ") + order;
+	QString filterName = "Changed coordinate " + order;
 	vtkImageData * inpImage = prepare(filterName);
 	if (inpImage != NULL)
 	{
