@@ -304,7 +304,6 @@ void iACastImageFilter::run()
 			fhwCastImage(); break;
 		case DATATYPE_CONVERSION:
 			DataTypeConversion(); break;
-		case UNKNOWN_FILTER:
 		default:
 			addMsg( tr( "unknown filter type" ) );
 	}

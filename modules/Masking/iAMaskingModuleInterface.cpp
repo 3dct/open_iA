@@ -18,71 +18,27 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
-#include "iAThresholdingModuleInterface.h"
+#include "iAMaskingModuleInterface.h"
 
 #include "dlg_commoninput.h"
 #include "iAGeneralThresholding.h"
-#include "iAThresholding.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
 #include <QSettings>
 
-void iAThresholdingModuleInterface::Initialize()
+void iAMaskingModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString("Segmentation"));
-	QMenu * menuGlobalThresholding = getMenuWithTitle(menuSegmentation, QString("Global Threshold"));
-
-	QAction * actionBinary_threshold_filter = new QAction(QApplication::translate( "MainWindow", "Binary threshold filter", 0 ), m_mainWnd);
-	menuGlobalThresholding->addAction( actionBinary_threshold_filter );
-	connect( actionBinary_threshold_filter, SIGNAL( triggered() ), this, SLOT( binary_threshold() ) );
+	QMenu * menuMask = getMenuWithTitle(filtersMenu, QString("Mask"));
 
 	QAction * actionGeneral_threshold_filter = new QAction(QApplication::translate( "MainWindow", "General threshold filter", 0 ), m_mainWnd);
-	menuGlobalThresholding->addAction( actionGeneral_threshold_filter );
+	AddActionToMenuAlphabeticallySorted(menuMask, actionGeneral_threshold_filter);
 	connect( actionGeneral_threshold_filter, SIGNAL( triggered() ), this, SLOT( general_threshold() ) );
 }
 
-void iAThresholdingModuleInterface::binary_threshold()
-{
-	//set parameters
-	QSettings settings;
-	btlower = settings.value( "Filters/Segmentations/BinaryThresholding/btlower" ).toDouble();
-	btupper = settings.value( "Filters/Segmentations/BinaryThresholding/btupper" ).toDouble();
-	btoutside = settings.value( "Filters/Segmentations/BinaryThresholding/btoutside" ).toDouble();
-	btinside = settings.value( "Filters/Segmentations/BinaryThresholding/btinside" ).toDouble();
-	
-	QStringList inList = (QStringList() << tr( "#Lower Threshold" ) << tr( "#Upper Threshold" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( btlower ) << tr( "%1" ).arg( btupper ) << tr( "%1" ).arg( btoutside ) << tr( "%1" ).arg( btinside );
-	dlg_commoninput dlg( m_mainWnd, "Binary Threshold", 4, inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	btlower = dlg.getValues()[0];
-	btupper = dlg.getValues()[1];
-	btoutside = dlg.getValues()[2];
-	btinside = dlg.getValues()[3];
-											  
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btlower", btlower );
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btupper", btupper );
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btoutside", btoutside );
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btinside", btinside );
-	
-	//prepare
-	QString filterName = tr( "Binary threshold filter" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAThresholding * thread = new iAThresholding( filterName, BINARY_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setBTParameters( btlower, btupper, btoutside, btinside );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iAThresholdingModuleInterface::general_threshold()
+void iAMaskingModuleInterface::general_threshold()
 {
 	//set parameters
 	QSettings settings;

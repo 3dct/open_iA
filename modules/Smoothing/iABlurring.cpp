@@ -97,9 +97,8 @@ void iABlurring::run()
 {
 	switch (getFilterID())
 	{
-	case DISCRETE_GAUSSIAN: 
+	case DISCRETE_GAUSSIAN:
 		discreteGaussian(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

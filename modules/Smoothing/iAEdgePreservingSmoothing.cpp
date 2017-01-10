@@ -155,7 +155,6 @@ void iAEdgePreservingSmoothing::run()
 		curvatureAnisotropicDiffusion(); break;
 	case BILATERAL: 
 		bilateral(); break;
-	case UNKNOWN_FILTER:
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

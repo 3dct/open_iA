@@ -124,7 +124,6 @@ void iADistanceMap::run()
 	{
 	case SIGNED_MAURER_DISTANCE_MAP: 
 		signedmaurerdistancemap(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("unknown filter type"));
 	}

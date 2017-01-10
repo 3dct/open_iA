@@ -107,7 +107,7 @@ public:
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
 	void waitForPreviousIO();
 
-	MdiChild(MainWindow * mainWnd);
+	MdiChild(MainWindow * mainWnd, bool unsavedChanges);
 	~MdiChild();
 
 	void newFile();
@@ -273,7 +273,8 @@ public:
 	void ApplyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
 	void ApplyVolumeSettings();
-
+	bool HasUnsavedChanges() const;
+	void SetUnsavedChanges(bool b);
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
 Q_SIGNALS:
@@ -504,10 +505,12 @@ private:
 	int m_currentModality;
 	int m_currentComponent;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
+	bool m_unsavedChanges;
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ShowModality(int modIdx);
+	void SetAsNotChanged();
 private:
 	int GetCurrentModality() const;
 	void InitModalities();

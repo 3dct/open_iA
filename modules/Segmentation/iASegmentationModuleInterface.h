@@ -32,6 +32,7 @@ public:
 	void Initialize();
 
 private slots:
+	void binary_threshold();
 	void otsu_Threshold_Filter();
 	void maximum_Distance_Filter();
 	void watershed_seg();
@@ -43,6 +44,7 @@ private slots:
 
 private:
 	//settings
+	double btlower, btupper, btoutside, btinside; //binary threshold
 	double otBins, otinside, otoutside;
 	bool otremovepeaks;
 	double mdfli, mdfbins; int mdfuli; //maximum distance filter parameters

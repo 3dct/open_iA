@@ -81,7 +81,6 @@ void iASubtractImageFilter::run()
 	{
 	case SUBTRACT_IMAGE: 
 		subtractImage(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("unknown filter type"));
 	}

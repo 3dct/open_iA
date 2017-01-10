@@ -122,7 +122,7 @@ int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFull
 }
 
 iAWatershedSegmentation::iAWatershedSegmentation( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent ) 
-	: iASegmentation( fn, fid, i, p, logger, parent )
+	: iAAlgorithms( fn, fid, i, p, logger, parent )
 {
 	imageDataNew = vtkImageData::New();
 }
@@ -140,7 +140,6 @@ void iAWatershedSegmentation::run()
 		watershed(); break;
 	case MORPH_WATERSHED:
 		morph_watershed(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

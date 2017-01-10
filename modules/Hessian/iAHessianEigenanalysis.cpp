@@ -232,9 +232,8 @@ void iAHessianEigenanalysis::run()
 	{
 	case COMPUTEHESSIANEIGENANALYSIS:
 		computeHessian(); break;
-	case COMPUTE_LAPLACIAN: 
-		computeLaplacian(); break; 
-	case UNKNOWN_FILTER: 
+	case COMPUTE_LAPLACIAN:
+		computeLaplacian(); break;
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

@@ -80,7 +80,6 @@ void iAGeneralThresholding::run()
 	{
 	case GENERAL_THRESHOLD: 
 		thresholding(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("unknown filter type"));
 	}

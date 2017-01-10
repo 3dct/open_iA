@@ -82,7 +82,7 @@ vtkImageData * iATransformationsModuleInterface::prepare(const QString & caption
 	//prepare
 	if (actChild->getResultInNewWindow())
 	{
-		m_mdiChild = m_mainWnd->createMdiChild();
+		m_mdiChild = m_mainWnd->createMdiChild(true);
 		m_mdiChild->newFile();
 		m_mdiChild->show();
 

@@ -162,7 +162,6 @@ void iAMorphologyFilters::run()
 		ErosionFilter(); break;
 	case VESSEL_ENHANCEMENT_FILTER: 
 		VesselEnhancementFilter(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("unknown filter type"));
 	}

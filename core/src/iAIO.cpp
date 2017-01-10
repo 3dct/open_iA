@@ -1436,6 +1436,7 @@ void iAIO::iosettingsreader()
 
 void iAIO::printSTLFileInfos()
 {
+	// TODO: show this information in img properties instead of log
 	emit msg(tr("  Cells: %1").arg(getVtkPolyData()->GetNumberOfCells()));
 	emit msg(tr("  Points: %1").arg(getVtkPolyData()->GetNumberOfPoints()));
 	emit msg(tr("  Polygons: %1").arg(getVtkPolyData()->GetNumberOfPolys()));
@@ -1464,8 +1465,6 @@ bool iAIO::loadCSVFile(vtkTable *table, FilterID fid, const QString &fileName)
 		case INDIVIDUAL_PORE_VISUALIZATION: 
 			ok = loadPoreCSV(table, fileName); 
 			break;
-
-		case UNKNOWN_FILTER: 
 		default:
 			ok = false;
 			break;

@@ -40,7 +40,6 @@ void iAFilter::run()
 {
 	switch (getFilterID())
 	{
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

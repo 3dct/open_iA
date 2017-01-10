@@ -51,6 +51,7 @@
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
+#include "iAToolsVTK.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
 #include "iAWidgetAddHelper.h"
@@ -71,10 +72,6 @@
 #include <vtkWindowToImageFilter.h>
 
 // TODO: refactor methods using the following out of mdichild!
-#include <vtkBMPWriter.h>
-#include <vtkPNGWriter.h>
-#include <vtkJPEGWriter.h>
-#include <vtkTIFFWriter.h>
 #include <vtkTransform.h>
 
 // TODO: VOLUME: check all places using GetModality(0)->GetTransfer() !
@@ -89,13 +86,16 @@
 #include <QSpinBox>
 #include <QToolButton>
 
-MdiChild::MdiChild(MainWindow * mainWnd) : m_isSmthMaximized(false), volumeStack(new iAVolumeStack),
+MdiChild::MdiChild(MainWindow * mainWnd, bool unsavedChanges) :
+	m_isSmthMaximized(false),
+	volumeStack(new iAVolumeStack),
 	isMagicLensEnabled(false),
 	ioThread(0),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
 	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
+	m_unsavedChanges(unsavedChanges),
 	m_currentModality(0),
 	m_currentComponent(0)
 {
@@ -1024,6 +1024,7 @@ bool MdiChild::saveFile(const QString &f, int channelNr)
 	ioThread = new iAIO(img, polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
+	connect(ioThread, SIGNAL( done()), this, SLOT(SetAsNotChanged()));
 
 	if (!setupSaveIO(f, img)) {
 		ioFinished();
@@ -1086,7 +1087,15 @@ void MdiChild::maximizeRC()
 
 void MdiChild::saveRC()
 {
-	saveRenderWindow(Raycaster->GetRenderWindow());
+	QString file = QFileDialog::getSaveFileName(this, tr("Save Image"),
+		"",
+		iAIOProvider::GetSupportedImageFormats());
+	if (file.isEmpty())
+		return;
+	vtkSmartPointer<vtkWindowToImageFilter> filter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	filter->SetInput(Raycaster->GetRenderWindow());
+	filter->Update();
+	WriteSingleSliceImage(file, filter->GetOutput());
 }
 
 
@@ -1608,6 +1617,18 @@ void MdiChild::ApplyVolumeSettings()
 }
 
 
+bool MdiChild::HasUnsavedChanges() const
+{
+	return m_unsavedChanges;
+}
+
+
+void MdiChild::SetUnsavedChanges(bool b)
+{
+	m_unsavedChanges = b;
+}
+
+
 QString MdiChild::GetLayoutName() const
 {
 	return m_layout;
@@ -1855,50 +1876,6 @@ iAHistogramWidget * MdiChild::getHistogram()
 }
 
 // }
-
-
-void MdiChild::saveRenderWindow(vtkRenderWindow *renderWindow)
-{
-	QString file = QFileDialog::getSaveFileName(this, tr("Save Image"),
-		"",
-		iAIOProvider::GetSupportedImageFormats());
-
-	if (file.isEmpty())
-		return;
-
-	vtkWindowToImageFilter *filter = vtkWindowToImageFilter::New();
-	filter->SetInput(renderWindow);
-	filter->Update();
-
-	QFileInfo pars(file);
-	if ((QString::compare(pars.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
-		vtkTIFFWriter *writer = vtkTIFFWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	} else if (QString::compare(pars.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
-		vtkPNGWriter *writer = vtkPNGWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	} else if ((QString::compare(pars.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
-		vtkJPEGWriter *writer = vtkJPEGWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	} else if (QString::compare(pars.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
-		vtkBMPWriter *writer = vtkBMPWriter::New();
-		writer->SetFileName(file.toLatin1());
-		writer->SetInputData(imageData);
-		writer->Write();
-		writer->Delete();
-	}
-
-	filter->Delete();
-}
 
 
 void MdiChild::saveMovie(iASlicer * slicer)
@@ -2371,6 +2348,17 @@ void MdiChild::closeEvent(QCloseEvent *event)
 		addStatusMsg("Cannot close window while I/O operation is in progress!");
 		event->ignore();
 	} else {
+		if (m_unsavedChanges)
+		{
+			auto reply = QMessageBox::question(this, "Unsaved changes",
+				"You have unsaved changes. Are you sure you want to close this window?",
+				QMessageBox::Yes | QMessageBox::No);
+			if (reply != QMessageBox::Yes)
+			{
+				event->ignore();
+				return;
+			}
+		}
 		emit closed();
 		event->accept();
 	}
@@ -3054,4 +3042,9 @@ vtkPiecewiseFunction * MdiChild::getPiecewiseFunction()
 vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 {
 	return GetModality(0)->GetTransfer()->GetColorFunction();
+}
+
+void MdiChild::SetAsNotChanged()
+{
+	m_unsavedChanges = false;
 }

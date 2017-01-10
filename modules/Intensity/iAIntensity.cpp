@@ -186,7 +186,6 @@ void iAIntensity::run()
 		mask(); break;
 	case INTENSITY_WINDOWING:
 		intensity_windowing(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

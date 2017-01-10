@@ -24,7 +24,6 @@
 // iA
 #include "iAFiberCharacteristics.h"
 #include "iAModuleInterface.h"
-#include "iAThresholding.h"
 #include "iAvec3.h"
 
 class vtkImageData;

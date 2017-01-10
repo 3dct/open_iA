@@ -74,7 +74,6 @@ void iASimpleFusion::run()
 	{
 	case ADD_IMAGES_FUSION:
 		addImagesFusion(); break;
-	case UNKNOWN_FILTER: 
 	default:
 		addMsg(tr("  unknown filter type"));
 	}

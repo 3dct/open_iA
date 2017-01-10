@@ -36,3 +36,5 @@ vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], doub
 // image I/O (using ITK methods of iAITKIO)
 void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
 vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
+
+void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
