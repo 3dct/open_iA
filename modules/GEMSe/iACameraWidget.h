@@ -30,6 +30,7 @@ class vtkCamera;
 class vtkImageData;
 class iAImagePreviewWidget;
 
+class QLabel;
 class QScrollBar;
 
 class iACameraWidget: public QWidget
@@ -51,12 +52,14 @@ signals:
 	void ViewUpdated();
 private:
 	void UpdateScrollBar(int sliceNumber);
+	void UpdateSliceLabel(int sliceNumber);
 	static const int SLICE_VIEW_COUNT = 3;
 	iAImagePreviewWidget* m_mainView;
 	iAImagePreviewWidget* m_sliceViews[SLICE_VIEW_COUNT];
 	vtkCamera*            m_commonCamera;
 	QScrollBar*           m_sliceScrollBar;
 	iASlicerMode          m_slicerMode;
+	QLabel*               m_sliceLabel;
 private slots:
 	void MiniSlicerClicked();
 	void MiniSlicerUpdated();
