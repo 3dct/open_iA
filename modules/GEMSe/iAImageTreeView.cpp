@@ -546,3 +546,23 @@ int  iAImageTreeView::GetRepresentativeType() const
 {
 	return m_representativeType;
 }
+
+
+void iAImageTreeView::FreeMemory(QSharedPointer<iAImageTreeNode> & node, bool overrideFree)
+{
+	if (overrideFree ||
+		!m_nodeWidgets[node.data()] ||
+		m_nodeWidgets[node.data()]->IsShrinked() ||
+		!m_nodeWidgets[node.data()]->isVisible())
+	{
+		node->DiscardDetails();
+	}
+	for (int i = 0; i<node->GetChildCount(); ++i)
+	{
+		FreeMemory(node->GetChild(i),
+			overrideFree ||
+			!m_nodeWidgets[node.data()] ||
+			!m_nodeWidgets[node.data()]->IsExpanded()
+		);
+	}
+}

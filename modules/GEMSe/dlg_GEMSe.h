@@ -88,6 +88,7 @@ public:
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > GetSamplings();
 	void SetMagicLensCount(int count);
+	void FreeMemory();
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

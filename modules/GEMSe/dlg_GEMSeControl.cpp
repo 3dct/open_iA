@@ -131,6 +131,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
 	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImage()));
 	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(StoreDerivedOutput()));
+	connect(pbFreeMemory, SIGNAL(clicked()), this, SLOT(FreeMemory()));
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
@@ -692,4 +693,10 @@ void dlg_GEMSeControl::SamplingAdded(QSharedPointer<iASamplingResults> results)
 void dlg_GEMSeControl::SetMagicLensCount(int count)
 {
 	m_dlgGEMSe->SetMagicLensCount(count);
+}
+
+
+void dlg_GEMSeControl::FreeMemory()
+{
+	m_dlgGEMSe->FreeMemory();
 }
