@@ -162,7 +162,7 @@ void iAParamChart::SetMarker(double value)
 
 void iAParamChart::RemoveMarker()
 {
-	m_markedLocation = InvalidMarker;
+	SetMarker(InvalidMarker);
 }
 
 iAValueType iAParamChart::GetRangeType() const

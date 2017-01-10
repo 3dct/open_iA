@@ -145,6 +145,11 @@ void iAChartSpanSlider::SetMarker(double xPos)
 	m_charts->SetMarker(xPos);
 }
 
+void iAChartSpanSlider::RemoveMarker()
+{
+	m_charts->RemoveMarker();
+}
+
 void iAChartSpanSlider::SelectionChanged()
 {
 	double minValue = m_charts->GetMinSliderPos();

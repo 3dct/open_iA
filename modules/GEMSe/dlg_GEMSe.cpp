@@ -282,6 +282,7 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 		}
 		if (!m_chartAttributeMapper.GetDatasetIDs(chartID).contains(node->GetDatasetID()))
 		{
+			m_histogramContainer->RemoveMarker(chartID);
 			continue;
 		}
 		int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, node->GetDatasetID());

@@ -49,6 +49,7 @@ public:
 	void AddClusterData(QSharedPointer<iAParamHistogramData> data);
 	void ClearClusterData();
 	void SetMarker(double xPos);
+	void RemoveMarker();
 	size_t GetNumBin() const;
 	int GetID() const;
 	iAValueType GetRangeType() const;

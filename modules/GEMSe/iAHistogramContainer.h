@@ -57,6 +57,7 @@ public:
 	int GetSelectedCount();
 	int GetSelectedChartID(int selectionIdx);
 	void SetMarker(int chartID, double value);
+	void RemoveMarker(int chartID);
 	void SetSpanValues(int chartID, double min, double max);
 	void SelectHistograms();
 	QString GetSerializedHiddenCharts() const;

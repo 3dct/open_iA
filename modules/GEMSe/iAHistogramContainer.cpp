@@ -408,6 +408,14 @@ void iAHistogramContainer::SetMarker(int chartID, double value)
 }
 
 
+void iAHistogramContainer::RemoveMarker(int chartID)
+{
+	if (!ChartExists(chartID))
+		return;
+	m_charts[chartID]->RemoveMarker();
+}
+
+
 void iAHistogramContainer::ChartDblClicked()
 {
 	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
