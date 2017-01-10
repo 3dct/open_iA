@@ -31,6 +31,7 @@
 
 #include <QGridLayout>
 #include <QPainter>
+#include <QPushButton>
 #include <QTimerEvent>
 
 namespace
@@ -73,9 +74,19 @@ iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPo
 	m_layout->setSpacing(ExampleViewSpacing);
 	m_layout->setContentsMargins(ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing);
 	m_gridWidget->setLayout(m_layout);
+
+	QWidget* container = new QWidget();
+	QPushButton* refreshButton = new QPushButton(">");
+	refreshButton->setFixedWidth(30);
+	connect(refreshButton, SIGNAL(clicked()), this, SLOT(UpdateImages()));
+	m_gridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	container->setLayout(new QHBoxLayout());
+	container->layout()->addWidget(m_gridWidget);
+	container->layout()->addWidget(refreshButton);
 	
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	SetCaptionedContent(this, "Examples", m_gridWidget);
+	SetCaptionedContent(this, "Examples", container);
 
 	AdaptLayout();
 }
@@ -86,13 +97,10 @@ void iAExampleImageWidget::AdaptLayout()
 	double aspectRatio  = 1;
 	if (m_gridWidget->m_previews.size() > 0)
 	{
-		aspectRatio = m_gridWidget->m_previews[0]->GetAspectRatio();
+		aspectRatio = clamp(0.5, 2.0, m_gridWidget->m_previews[0]->GetAspectRatio());
 	}
-	
 	int widthFromHeight = (geometry().width() / static_cast<double>(geometry().height()) ) * aspectRatio;
-
 	int newWidth = clamp(1, 12, widthFromHeight);
-
 	if (newWidth == m_width)
 	{
 		return;
@@ -109,7 +117,7 @@ void iAExampleImageWidget::AdaptLayout()
 		m_previewPool->ReturnWidget(m_gridWidget->m_previews[i]);
 	}
 	m_gridWidget->m_previews.clear();
-	// in case not all widgets were created yet:
+	// get new widgets:
 	for (int i=0; i<m_width*m_height; ++i)
 	{
 		iAImagePreviewWidget * imgWidget = m_previewPool->GetWidget(this);
@@ -136,7 +144,6 @@ void iAExampleImageWidget::AdaptLayout()
 		}
 	}
 	UpdateImages();
-	update();
 }
 
 void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageTreeNode> node)

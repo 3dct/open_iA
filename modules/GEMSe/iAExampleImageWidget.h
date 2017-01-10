@@ -51,6 +51,8 @@ public:
 public slots:
 	void AdaptLayout();
 	void ImageUpdated();
+private slots:
+	void UpdateImages();
 signals:
 	void Selected(iAImageTreeLeaf *);
 	void Hovered(iAImageTreeLeaf *);
@@ -58,7 +60,6 @@ signals:
 protected:
 	virtual void resizeEvent(QResizeEvent *);
 private:
-	void UpdateImages();
 	QVector<iAImageTreeLeaf *> m_nodes;
 	QGridLayout* m_layout;
 	int m_width;
