@@ -175,6 +175,11 @@ void iAImageNodeWidget::ExpandButtonClicked()
 	{
 		return;
 	}
+	if (m_cluster->GetDistance() == 0)
+	{
+		DEBUG_LOG("Cluster only holds exactly equal results, skipping expansion!");
+		return;
+	}
 	emit Expand(IsExpanded());
 }
 

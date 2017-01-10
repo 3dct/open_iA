@@ -154,13 +154,19 @@ void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageTreeNode> node)
 
 void iAExampleImageWidget::UpdateImages()
 {
-	if (!m_rootNode || m_width*m_height == 0)
+	int numOfImages = m_width*m_height;
+	if (!m_rootNode || numOfImages == 0)
 	{
 		return;
 	}
+	if (m_rootNode->GetDistance() == 0)
+	{
+		numOfImages = 1;
+	}
 	m_gridWidget->m_selectedIndex = NoImageSelected;
 	m_nodes.clear();
-	m_rootNode->GetExampleImages(m_nodes, m_width*m_height);
+
+	m_rootNode->GetExampleImages(m_nodes, numOfImages);
 
 	if (m_nodes.size() > m_rootNode->GetFilteredSize() )
 	{
@@ -175,7 +181,6 @@ void iAExampleImageWidget::UpdateImages()
 			int idx = y*m_width+x;
 			if (idx < m_nodes.size())
 			{
-				
 				m_gridWidget->m_previews[idx]->SetImage(m_nodes[idx]->GetLargeImage(), false, true);
 			}
 			else
