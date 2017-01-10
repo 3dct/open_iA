@@ -33,6 +33,7 @@ class iAChartSpanSlider;
 class iAImageTreeNode;
 
 class QGridLayout;
+class QLabel;
 class QSplitter;
 
 class iAHistogramContainer: public QSplitter
@@ -77,6 +78,7 @@ private:
 	QSplitter* m_chartContainer;
 	QMap<int, iAChartSpanSlider*> m_charts;
 	QVector< QVector<float> > m_attitudes;
+	QVector<QLabel*> m_labels;
 	QVector<int> m_selected;
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper const & m_chartAttributeMapper;

@@ -88,7 +88,9 @@ void iAHistogramContainer::CreateCharts()
 	int curMinDatasetID = 0;
 	int paramChartRow = 0;
 	int paramChartCol = 1;
-	m_paramChartLayout->addWidget(new QLabel(m_pipelineNames[paramChartRow]), paramChartRow, 0);
+	QLabel* label = new QLabel(m_pipelineNames[paramChartRow]);
+	m_labels.push_back(label);
+	m_paramChartLayout->addWidget(label, paramChartRow, 0);
 	int paramChartMaxCols = 0;
 	int derivedOutMaxCols = 0;
 	double maxValue = -1;
@@ -143,7 +145,9 @@ void iAHistogramContainer::CreateCharts()
 				curMinDatasetID = datasetIDs[0];
 				paramChartCol = 1;
 				paramChartRow++;
-				m_paramChartLayout->addWidget(new QLabel(m_pipelineNames[paramChartRow]), paramChartRow, 0);
+				QLabel* label = new QLabel(m_pipelineNames[paramChartRow]);
+				m_labels.push_back(label);
+				m_paramChartLayout->addWidget(label, paramChartRow, 0);
 			}
 			paramChartMaxCols = std::max(paramChartCol, paramChartMaxCols);
 			m_paramChartLayout->addWidget(m_charts[chartID], paramChartRow, paramChartCol);
@@ -268,6 +272,11 @@ void iAHistogramContainer::RemoveAllCharts()
 		}
 	}
 	m_charts.clear();
+	for (QLabel* l : m_labels)
+	{
+		delete l;
+	}
+	m_labels.clear();
 }
 
 
