@@ -201,6 +201,9 @@ void dlg_GEMSe::CreateMapper()
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
+				// and update min/max:
+				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->GetMin());
+				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->GetMax());
 			}
 			else
 			{	// add chart and mapping:
