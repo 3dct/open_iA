@@ -277,6 +277,16 @@ void iAParamChart::mouseMoveEvent( QMouseEvent *event )
 			return;
 		}
 		double value = x2value(x);
+
+		// snap to next valid value
+		if (GetRangeType() == Categorical)
+		{
+			value = mapBinToValue(std::round(mapValueToBin(value)));
+		}
+		if (GetRangeType() == Discrete)
+		{
+			value = std::round(value);
+		}
 		switch (m_selectedHandle)
 		{
 			case 0:	m_minSliderPos = value;	break;
