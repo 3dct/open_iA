@@ -20,33 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFoamCharacterizationItem.h"
+#include "iAFoamCharacterizationDialog.h"
 
-class QFile;
+class QDoubleSpinBox;
 
-class iAConnector;
+class iAFoamCharacterizationItemDistanceTransform;
 
-class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
+class iAFoamCharacterizationDialogDistanceTransform : public iAFoamCharacterizationDialog
 {
+		Q_OBJECT
+
 	public:
-		explicit iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData);
-		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
-
-		void executeFloat(iAConnector* _pConnector);
-		void executeUnsignedShort(iAConnector* _pConnector);
-
-		double level() const;
-		double threshold() const;
-
-		void setLevel(const double& _dLevel);
-		void setThreshold(const double& _dThreshold);
-
-		virtual void dialog() override;
-		virtual void execute() override;
-		virtual void open(QFile* _pFileOpen) override;
-		virtual void save(QFile* _pFileSave) override;
+		explicit iAFoamCharacterizationDialogDistanceTransform
+		                                       (iAFoamCharacterizationItemDistanceTransform* _pItem, QWidget* _pParent = nullptr);
 
 	private:
-		double m_dLevel = 0.4;
-		double m_dThreshold = 0.1;
+		iAFoamCharacterizationItemDistanceTransform* m_pItemDistanceTransform = nullptr;
+
+	protected slots:
+		virtual void slotPushButtonOk() override;
 };

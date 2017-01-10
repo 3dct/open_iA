@@ -32,7 +32,7 @@ class vtkImageData;
 
 class iAFoamCharacterizationTable : public QTableWidget
 {
-		Q_OBJECT
+	Q_OBJECT
 
 	class iAFoamCharacterizationTableDelegate : public QItemDelegate
 	{
@@ -122,6 +122,7 @@ class iAFoamCharacterizationTable : public QTableWidget
 		explicit iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
 
 		void addBinarization();
+		void addDistanceTransform();
 		void addFilter();
 		void addWatershed();
 
@@ -136,6 +137,7 @@ class iAFoamCharacterizationTable : public QTableWidget
 		int m_iRowDrop = -1;
 
 		int m_iCountBinarization = 0;
+		int m_iCountDistanceTransform = 0;
 		int m_iCountFilter = 0;
 		int m_iCountWatershed = 0;
 

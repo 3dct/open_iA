@@ -85,6 +85,8 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetLowerThreshold(m_usLowerThreshold);
 	pFilter->SetUpperThreshold(m_usUpperThreshold);
+	pFilter->SetInsideValue(0);
+	pFilter->SetOutsideValue(1);
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());
@@ -102,6 +104,8 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	itkFilter::Pointer pFilter(itkFilter::New());
 
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
+	pFilter->SetInsideValue(0);
+	pFilter->SetOutsideValue(1);
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());

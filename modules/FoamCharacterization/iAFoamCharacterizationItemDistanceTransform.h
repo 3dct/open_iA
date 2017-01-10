@@ -24,29 +24,14 @@
 
 class QFile;
 
-class iAConnector;
-
-class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
+class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizationItem
 {
 	public:
-		explicit iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData);
-		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
-
-		void executeFloat(iAConnector* _pConnector);
-		void executeUnsignedShort(iAConnector* _pConnector);
-
-		double level() const;
-		double threshold() const;
-
-		void setLevel(const double& _dLevel);
-		void setThreshold(const double& _dThreshold);
+		explicit iAFoamCharacterizationItemDistanceTransform(vtkImageData* _pImageData);
+		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
 
 		virtual void dialog() override;
 		virtual void execute() override;
 		virtual void open(QFile* _pFileOpen) override;
 		virtual void save(QFile* _pFileSave) override;
-
-	private:
-		double m_dLevel = 0.4;
-		double m_dThreshold = 0.1;
 };

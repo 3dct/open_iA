@@ -28,6 +28,7 @@
 #include <vtkImagedata.h>
 
 #include "iAFoamCharacterizationItemBinarization.h"
+#include "iAFoamCharacterizationItemDistanceTransform.h"
 #include "iAFoamCharacterizationItemFilter.h"
 #include "iAFoamCharacterizationItemWatershed.h"
 
@@ -47,7 +48,7 @@ iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageDa
 	
 	setColumnCount(1);
 
-	const QStringList slLabels("Foam characterization protocol");
+	const QStringList slLabels("Foam characterization pipeline");
 	setHorizontalHeaderLabels(slLabels);
 
 	setItemDelegate(new iAFoamCharacterizationTableDelegate(this, this));
@@ -63,6 +64,19 @@ void iAFoamCharacterizationTable::addBinarization()
 
 	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization(m_pImageData));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountBinarization));
+	setItem(n, 0, pItem);
+}
+
+void iAFoamCharacterizationTable::addDistanceTransform()
+{
+	const int n(rowCount());
+
+	setRowCount(n + 1);
+
+	++m_iCountDistanceTransform;
+
+	iAFoamCharacterizationItemDistanceTransform* pItem(new iAFoamCharacterizationItemDistanceTransform(m_pImageData));
+	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountDistanceTransform));
 	setItem(n, 0, pItem);
 }
 
@@ -119,9 +133,14 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 				pItemDrag =
 					new iAFoamCharacterizationItemBinarization((iAFoamCharacterizationItemBinarization*) takeItem(m_iRowDrag, 0));
 			}
+			else if (pItemDrag->itemType() == iAFoamCharacterizationItem::itDistanceTransform)
+			{
+				pItemDrag = new iAFoamCharacterizationItemDistanceTransform
+				                                          ((iAFoamCharacterizationItemDistanceTransform*)takeItem(m_iRowDrag, 0));
+			}
 			else if (pItemDrag->itemType() == iAFoamCharacterizationItem::itFilter)
 			{
-				pItemDrag = new iAFoamCharacterizationItemFilter((iAFoamCharacterizationItemFilter*) takeItem(m_iRowDrag, 0));
+				pItemDrag = new iAFoamCharacterizationItemFilter((iAFoamCharacterizationItemFilter*)takeItem(m_iRowDrag, 0));
 			}
 			else
 			{
@@ -246,6 +265,8 @@ void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 	}
 
 	QTableWidget::mousePressEvent(e);
+
+	viewport()->repaint();
 }
 
 void iAFoamCharacterizationTable::open(const QString& _sFilename)

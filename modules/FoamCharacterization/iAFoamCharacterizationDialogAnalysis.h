@@ -20,33 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFoamCharacterizationItem.h"
+#include <QDialog>
 
-class QFile;
+class QLabel;
 
-class iAConnector;
+class vtkImageData;
 
-class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
+class iAFoamCharacterizationDialogAnalysis : public QDialog
 {
+		Q_OBJECT
+
 	public:
-		explicit iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData);
-		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
-
-		void executeFloat(iAConnector* _pConnector);
-		void executeUnsignedShort(iAConnector* _pConnector);
-
-		double level() const;
-		double threshold() const;
-
-		void setLevel(const double& _dLevel);
-		void setThreshold(const double& _dThreshold);
-
-		virtual void dialog() override;
-		virtual void execute() override;
-		virtual void open(QFile* _pFileOpen) override;
-		virtual void save(QFile* _pFileSave) override;
+		explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
 
 	private:
-		double m_dLevel = 0.4;
-		double m_dThreshold = 0.1;
+		int m_iBubbles = 0;
+
+		vtkImageData* m_pImageData = nullptr;
+
+		QLabel* m_pLabel12 = nullptr;
+
+		void analyse();
+
+	private slots:
+		void slotPushButtonOk();
+
 };

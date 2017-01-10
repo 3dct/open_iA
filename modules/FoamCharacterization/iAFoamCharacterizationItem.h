@@ -29,7 +29,7 @@ class vtkImageData;
 class iAFoamCharacterizationItem : public QTableWidgetItem
 {
 	public:
-		enum EItemType { itBinarization, itFilter, itWatershed};
+		enum EItemType { itBinarization, itDistanceTransform, itFilter, itWatershed};
 
 	public:
 		explicit iAFoamCharacterizationItem(vtkImageData* m_pImageData, const EItemType& _eItemType);

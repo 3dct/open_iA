@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+ï»¿/*********************************  open_iA 2016 06  ******************************** *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. WeissenbÃ¶ck, *
+*                     Artem & Alexander Amirkhanov, B. FrÃ¶hler                        *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,38 +15,27 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "iAFoamCharacterizationItem.h"
+#include "iAFoamCharacterizationDialogDistanceTransform.h"
 
-class QFile;
+#include <QGridLayout>
+#include <QLabel>
+#include <QDoubleSpinBox>
 
-class iAConnector;
+#include "iAFoamCharacterizationItemDistanceTransform.h"
 
-class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
+iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDistanceTransform
+										(iAFoamCharacterizationItemDistanceTransform* _pItemDistanceTransform, QWidget* _pParent)
+	                                                             : iAFoamCharacterizationDialog(_pItemDistanceTransform, _pParent)
+																		      , m_pItemDistanceTransform (_pItemDistanceTransform)
 {
-	public:
-		explicit iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData);
-		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
+	setLayout();
+}
 
-		void executeFloat(iAConnector* _pConnector);
-		void executeUnsignedShort(iAConnector* _pConnector);
-
-		double level() const;
-		double threshold() const;
-
-		void setLevel(const double& _dLevel);
-		void setThreshold(const double& _dThreshold);
-
-		virtual void dialog() override;
-		virtual void execute() override;
-		virtual void open(QFile* _pFileOpen) override;
-		virtual void save(QFile* _pFileSave) override;
-
-	private:
-		double m_dLevel = 0.4;
-		double m_dThreshold = 0.1;
-};
+void iAFoamCharacterizationDialogDistanceTransform::slotPushButtonOk()
+{
+	iAFoamCharacterizationDialog::slotPushButtonOk();
+}

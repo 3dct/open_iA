@@ -35,7 +35,9 @@
 
 #include <vtkImageData.h>
 
+#include <iAFoamCharacterizationDialogAnalysis.h>
 #include "iAFoamCharacterizationItemBinarization.h"
+#include "iAFoamCharacterizationItemDistanceTransform.h"
 #include "iAFoamCharacterizationItemFilter.h"
 #include "iAFoamCharacterizationItemWatershed.h"
 #include "iAFoamCharacterizationTable.h"
@@ -69,9 +71,14 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	connect(pPushButtonFilter, SIGNAL(clicked()), this, SLOT(slotPushButtonFilter()));
 
 	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
-	iAFoamCharacterizationItemBinarization itemBinarization (m_pImageData);
+	iAFoamCharacterizationItemBinarization itemBinarization(m_pImageData);
 	pPushButtonBinarization->setIcon(itemBinarization.itemButtonIcon());
 	connect(pPushButtonBinarization, SIGNAL(clicked()), this, SLOT(slotPushButtonBinarization()));
+
+	QPushButton* pPushButtonDistanceTransform(new QPushButton("Add distance transform", pWidget));
+	iAFoamCharacterizationItemDistanceTransform itemDistanceTransform(m_pImageData);
+	pPushButtonDistanceTransform->setIcon(itemDistanceTransform.itemButtonIcon());
+	connect(pPushButtonDistanceTransform, SIGNAL(clicked()), this, SLOT(slotPushButtonDistanceTransform()));
 
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
 	iAFoamCharacterizationItemWatershed itemWatershed (m_pImageData);
@@ -84,6 +91,10 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	pPushButtonExecute->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton));
 	connect(pPushButtonExecute, SIGNAL(clicked()), this, SLOT(slotPushButtonExecute()));
 
+	QPushButton* pPushButtonAnalysis (new QPushButton("Analysis", pWidget));
+	pPushButtonAnalysis->setIcon(qApp->style()->standardIcon(QStyle::SP_FileDialogStart));
+	connect(pPushButtonAnalysis, SIGNAL(clicked()), this, SLOT(slotPushButtonAnalysis()));
+
 	QPushButton* pPushButtonRestore(new QPushButton("Restore image", pWidget));
 	pPushButtonRestore->setIcon(qApp->style()->standardIcon(QStyle::SP_DriveHDIcon));
 	connect(pPushButtonRestore, SIGNAL(clicked()), this, SLOT(slotPushButtonRestore()));
@@ -94,16 +105,27 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	pGridLayout1->addWidget(pPushButtonClear, 0, 2);
 	pGridLayout1->addWidget(pPushButtonFilter, 0, 3);
 	pGridLayout1->addWidget(pPushButtonBinarization, 0, 4);
-	pGridLayout1->addWidget(pPushButtonWatershed, 0, 5);
-	pGridLayout1->addWidget(m_pTable, 1, 0, 1, 6);
+	pGridLayout1->addWidget(pPushButtonDistanceTransform, 0, 5);
+	pGridLayout1->addWidget(pPushButtonWatershed, 0, 6);
+	pGridLayout1->addWidget(m_pTable, 1, 0, 1, 7);
 	pGridLayout1->addWidget(pPushButtonExecute, 2, 0);
-	pGridLayout1->addWidget(pPushButtonRestore, 2, 5);
+	pGridLayout1->addWidget(pPushButtonAnalysis, 2, 1);
+	pGridLayout1->addWidget(pPushButtonRestore, 2, 6);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pGroupBox1);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Foam characterization"), "FoamCharacterization"));
 	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, pDockWidgetWrapper);
+}
+
+void iAFoamCharacterizationAttachment::slotPushButtonAnalysis()
+{
+	iAFoamCharacterizationDialogAnalysis* pDialogAnalysis(new iAFoamCharacterizationDialogAnalysis(m_pImageData, m_mainWnd));
+	pDialogAnalysis->exec();
+	delete pDialogAnalysis;
+
+	m_childData.child->enableRenderWindows();
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonBinarization()
@@ -122,11 +144,16 @@ void iAFoamCharacterizationAttachment::slotPushButtonClear()
 	}
 }
 
+void iAFoamCharacterizationAttachment::slotPushButtonDistanceTransform()
+{
+	m_pTable->addDistanceTransform();
+}
+
 void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 {
-	if (QMessageBox::question(m_childData.child, "Question", "Execute table protocol?", QMessageBox::Yes, QMessageBox::No)
-		== QMessageBox::Yes
-		)
+	if ( QMessageBox::question(m_childData.child, "Question", "Execute table pipeline?", QMessageBox::Yes, QMessageBox::No)
+	     == QMessageBox::Yes
+	   )
 	{
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		qApp->processEvents();

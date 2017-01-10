@@ -168,6 +168,10 @@ QString iAFoamCharacterizationItem::itemTypeStr() const
 		return "Binarization";
 		break;
 
+		case itDistanceTransform:
+		return "Distance transform";
+		break;
+
 		case itFilter:
 		return "Filter";
 		break;
@@ -232,6 +236,10 @@ void iAFoamCharacterizationItem::setItemIconColor()
 	{
 		case itBinarization:
 		m_cItemIcon = Qt::green;
+		break;
+
+		case itDistanceTransform:
+		m_cItemIcon = Qt::cyan;
 		break;
 
 		case itFilter:

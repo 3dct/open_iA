@@ -41,8 +41,10 @@ class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
 		iAFoamCharacterizationTable* m_pTable = nullptr;
 
 	private slots:
+		void slotPushButtonAnalysis();
 		void slotPushButtonBinarization();
 		void slotPushButtonClear();
+		void slotPushButtonDistanceTransform();
 		void slotPushButtonExecute();
 		void slotPushButtonFilter();
 		void slotPushButtonOpen();

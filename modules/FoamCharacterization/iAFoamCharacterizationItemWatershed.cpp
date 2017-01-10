@@ -28,6 +28,8 @@
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkWatershedImageFilter.h>
 
+#include "itkImageIOBase.h"
+
 #include "iAConnector.h"
 
 #include "iAFoamCharacterizationDialogWatershed.h"
@@ -57,19 +59,31 @@ void iAFoamCharacterizationItemWatershed::execute()
 	QTime t;
 	t.start();
 
-	QScopedPointer<iAConnector> pConnector (new iAConnector());
+	QScopedPointer<iAConnector> pConnector(new iAConnector());
 	pConnector->SetImage(m_pImageData);
 
-	typedef itk::GradientMagnitudeImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkGradient;
+	if (pConnector->GetITKScalarPixelType() == itk::ImageIOBase::FLOAT)
+	{
+		executeFloat(pConnector.data());
+	}
+	else
+	{
+		executeUnsignedShort(pConnector.data());
+	}
 
-	itkGradient::Pointer pGradient (itkGradient::New());
-	pGradient->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
-	pGradient->Update();
+	m_pImageData->DeepCopy(pConnector->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 
-	typedef itk::WatershedImageFilter<itk::Image<unsigned short, 3>> itkWatershed;
+	m_dExecuteTime = 0.001 * (double) t.elapsed();
 
-	itkWatershed::Pointer pWatershed (itkWatershed::New());
-	pWatershed->SetInput(pGradient->GetOutput());
+	setItemText();
+}
+
+void iAFoamCharacterizationItemWatershed::executeFloat(iAConnector* _pConnector)
+{
+	typedef itk::WatershedImageFilter<itk::Image<float, 3>> itkWatershed;
+	itkWatershed::Pointer pWatershed(itkWatershed::New());
+	pWatershed->SetInput(dynamic_cast<itk::Image<float, 3>*> (_pConnector->GetITKImage()));
 	pWatershed->SetLevel(m_dLevel);
 	pWatershed->SetThreshold(m_dThreshold);
 	pWatershed->Update();
@@ -79,14 +93,19 @@ void iAFoamCharacterizationItemWatershed::execute()
 	itkCaster::Pointer pCaster(itkCaster::New());
 	pCaster->SetInput(0, pWatershed->GetOutput());
 
-	pConnector->SetImage(pCaster->GetOutput());
+	_pConnector->SetImage(pCaster->GetOutput());
+}
 
-	m_pImageData->DeepCopy(pConnector->GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
+void iAFoamCharacterizationItemWatershed::executeUnsignedShort(iAConnector* _pConnector)
+{
+	typedef itk::WatershedImageFilter<itk::Image<unsigned short, 3>> itkWatershed;
+	itkWatershed::Pointer pWatershed(itkWatershed::New());
+	pWatershed->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (_pConnector->GetITKImage()));
+	pWatershed->SetLevel(m_dLevel);
+	pWatershed->SetThreshold(m_dThreshold);
+	pWatershed->Update();
 
-	m_dExecuteTime = 0.001 * (double) t.elapsed();
-
-	setItemText();
+	_pConnector->SetImage(pWatershed->GetOutput());
 }
 
 double iAFoamCharacterizationItemWatershed::level() const
