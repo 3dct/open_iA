@@ -197,6 +197,8 @@ iAProgress* iAAlgorithms::getItkProgress()
 
 void iAAlgorithms::updateVtkImageData(int ch)
 {
+	// some remainder from working with multichannel images?
+	// seems redundant to the m_image initialization in the constructor!
 	m_image->ReleaseData();
 	m_image->Initialize();
 	m_image->DeepCopy(m_connectors[ch]->GetVTKImage());
