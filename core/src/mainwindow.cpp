@@ -163,7 +163,7 @@ void MainWindow::timeout()
 }
 
 
-void MainWindow::closeEvent(QCloseEvent *event)
+bool MainWindow::KeepOpen()
 {
 	bool childHasChanges = false;
 	foreach(QMdiSubWindow *window, MdiChildList()) {
@@ -173,12 +173,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	if (childHasChanges)
 	{
 		auto reply = QMessageBox::question(this, "Unsaved changes",
-			"One or more windows have unsaved changes. Are you sure you want to close the application?",
+			"One or more windows have unsaved changes. Are you sure you want to close?",
 			QMessageBox::Yes | QMessageBox::No);
 		if (reply != QMessageBox::Yes)
 		{
-			event->ignore();
-			return;
+			return true;
 		}
 		else
 		{ // remove m_unsavedChanges flag to avoid individual questions for each window
@@ -188,6 +187,17 @@ void MainWindow::closeEvent(QCloseEvent *event)
 			}
 		}
 	}
+	return false;
+}
+
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	if (KeepOpen())
+	{
+		event->ignore();
+		return;
+	}
 	mdiArea->closeAllSubWindows();
 	if (activeMdiChild()) {
 		event->ignore();
@@ -195,6 +205,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		writeSettings();
 		iAConsole::Close();
 		event->accept();
+	}
+}
+
+
+void MainWindow::CloseAllSubWindows()
+{
+	if (!KeepOpen())
+	{
+		mdiArea->closeAllSubWindows();
 	}
 }
 
@@ -1780,7 +1799,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(switchAct, SIGNAL(triggered()), this, SLOT(switchLayoutDirection()));
 	connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 	connect(closeAct, SIGNAL(triggered()), mdiArea, SLOT(closeActiveSubWindow()));
-	connect(closeAllAct, SIGNAL(triggered()), mdiArea, SLOT(closeAllSubWindows()));
+	connect(closeAllAct, SIGNAL(triggered()), this, SLOT(CloseAllSubWindows()));
 	connect(tileAct, SIGNAL(triggered()), mdiArea, SLOT(tileSubWindows()));
 	connect(cascadeAct, SIGNAL(triggered()), mdiArea, SLOT(cascadeSubWindows()));
 	connect(nextAct, SIGNAL(triggered()), mdiArea, SLOT(activateNextSubWindow()));
