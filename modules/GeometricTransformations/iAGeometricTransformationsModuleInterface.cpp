@@ -151,19 +151,20 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	eiSizeZ = dlg.getSpinBoxValues()[5];
 	//prepare
 	QString filterName = "Extracted";
-	// TODO: handle case that active window changed in the meantime!
-	MdiChild* newChild = m_mainWnd->GetResultChild(origChild, filterName);
-	if (!newChild)
+	// at the moment, PrepareResultChild always takes the active child, but that might have changed
+	m_mdiChild = m_mainWnd->GetResultChild(origChild, filterName+" "+origChild->windowTitle());
+	if (!m_mdiChild)
 	{
 		m_mainWnd->statusBar()->showMessage("Cannot get result child from main window!", 5000);
 		return;
 	}
-	newChild->addStatusMsg( filterName );
+	m_mdiChild->addStatusMsg( filterName );
+	UpdateChildData();
 	//execute
-	newChild->setUpdateSliceIndicator( true );
+	m_mdiChild->setUpdateSliceIndicator( true );
 	iAGeometricTransformations* thread = new iAGeometricTransformations( filterName, EXTRACT_IMAGE,
-		m_childData.imgData, m_childData.polyData, newChild->getLogger(), newChild);
-	newChild->connectThreadSignalsToChildSlots( thread );
+		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
+	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setEParameters( eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );

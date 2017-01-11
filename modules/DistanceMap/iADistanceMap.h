@@ -24,7 +24,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkImage.h"
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /**
  * An itk distance map. Basic filter itkSignedMaurerDistanceMapImageFilter.
@@ -33,7 +33,7 @@
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iADistanceMap : public iAFilter
+class iADistanceMap : public iAAlgorithm
 {
 public:
 	iADistanceMap( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

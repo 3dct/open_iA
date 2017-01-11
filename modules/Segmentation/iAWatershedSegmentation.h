@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithms.h"
+#include "iAAlgorithm.h"
 
 
 #ifdef __GNUC__
@@ -35,7 +35,7 @@ typedef int64_t __int64;
  * http://www.itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html
  */
 
-class iAWatershedSegmentation : public iAAlgorithms
+class iAWatershedSegmentation : public iAAlgorithm
 {
 
 public:

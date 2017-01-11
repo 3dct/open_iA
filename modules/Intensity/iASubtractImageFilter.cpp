@@ -66,7 +66,7 @@ int subtract_image_template( iAProgress* p, iAConnector** images  )
 }
 
 iASubtractImageFilter::iASubtractImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 
 }

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /**
  * Implementation of DifferenceImageFilter and InvertIntensityImageFilter.
@@ -29,7 +29,7 @@
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iAIntensity : public iAFilter
+class iAIntensity : public iAAlgorithm
 {
 public:
 	iAIntensity( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

@@ -80,7 +80,7 @@ int canny_edge_detection_template( double variance, double maximumError, double 
 */
 
 iAEdgeDetectionFilters::iAEdgeDetectionFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 
 }

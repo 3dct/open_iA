@@ -102,7 +102,7 @@ int signed_maurer_distancemap_template( int i, int s, int pos,  int n, iAProgres
 */
 
 iADistanceMap::iADistanceMap( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /**
  * An itk general thresholding. Basic filter is itkThresholdImageFilter.
@@ -29,7 +29,7 @@
  * \remarks	CH, 01/12/2010. 
  */
 
-class iAGeneralThresholding: public iAFilter
+class iAGeneralThresholding: public iAAlgorithm
 {
 public:
 	iAGeneralThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);

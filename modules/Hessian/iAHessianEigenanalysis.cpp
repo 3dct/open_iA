@@ -215,7 +215,7 @@ template<class T> int computeLaplacian_template(unsigned int sigma, iAProgress* 
 
 
 iAHessianEigenanalysis::iAHessianEigenanalysis( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 
 }

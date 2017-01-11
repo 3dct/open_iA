@@ -70,7 +70,7 @@ class dlg_modalities;
 class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
-class iAAlgorithms;
+class iAAlgorithm;
 class iAChannelVisualizationData;
 class iAHistogramWidget;
 class iAIO;
@@ -168,7 +168,7 @@ public:
 	iAPreferences    const & GetPreferences()    const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
-	void connectThreadSignalsToChildSlots(iAAlgorithms* thread, bool providesProgress = true, bool usesDoneSignal = false);
+	void connectThreadSignalsToChildSlots(iAAlgorithm* thread, bool providesProgress = true, bool usesDoneSignal = false);
 	bool isHessianComputed() { return hessianComputed; }
 	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
 	vtkPiecewiseFunction * getPiecewiseFunction();
@@ -483,7 +483,7 @@ private:
 	// <---------- end
 
 	bool saveNative;
-	std::vector<iAAlgorithms*> workingAlgorithms;
+	std::vector<iAAlgorithm*> workingAlgorithms;
 
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;
 

@@ -18,33 +18,34 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "pch.h"
 #include "iACastImageFilter.h"
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include <itkFHWRescaleIntensityImageFilter.h>
 
 #include <vtkImageData.h>
 
-#include <itkLabelToRGBImageFilter.h>
+#include <itkCastImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
+#include <itkLabelToRGBImageFilter.h>
 #include <itkRGBPixel.h>
 #include <itkRGBAPixel.h>
 
 #include <QLocale>
 #include <exception>
 
-class myRGBATypeException : public exception
+class myRGBATypeException : public std::exception
 {
 	virtual const char* what() const throw()
 	{
-		return "RGBA Converion Error: LONG type needed.";
+		return "RGBA Conversion Error: LONG type needed.";
 	}
 } myRGBATypeExcep;
 
-template<class T> int FHW_CastImage_template( string m_odt, iAProgress* p, iAConnector* image )
+template<class T> int FHW_CastImage_template(std::string m_odt, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 
@@ -288,67 +289,61 @@ template<class T> int FHW_CastImage_template( string m_odt, iAProgress* p, iACon
 }
 
 iACastImageFilter::iACastImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 
-iACastImageFilter::~iACastImageFilter()
-{
-}
 
 void iACastImageFilter::run()
 {
-	switch ( getFilterID() )
+	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
+			.arg( getFilterName() ) );
+	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
+	try
 	{
-		case FHW_CAST_IMAGE:
-			fhwCastImage(); break;
-		case DATATYPE_CONVERSION:
-			DataTypeConversion(); break;
-		default:
-			addMsg( tr( "unknown filter type" ) );
+		switch ( getFilterID() )
+		{
+			case FHW_CAST_IMAGE:
+				fhwCastImage(); break;
+			case DATATYPE_CONVERSION:
+				DataTypeConversion(); break;
+			default:
+				addMsg( tr( "unknown filter type" ) );
+		}
 	}
+	catch (itk::ExceptionObject &excep)
+	{
+		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+			.arg(getFilterName())
+			.arg(Stop()));
+		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
+			.arg(excep.GetFile())
+			.arg(excep.GetLine()));
+		return;
+	}
+	catch (const std::exception& e)
+	{
+		addMsg(tr("%1  %2 could not continue. %3").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+			.arg(getFilterName())
+			.arg(e.what()));
+		return;
+	}
+	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(getFilterName())
+		.arg(Stop()));
+	emit startUpdate();
 }
 
 void iACastImageFilter::fhwCastImage()
 {
 
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( FHW_CastImage_template, itkType,
-						m_odt, getItkProgress(), getConnector() );
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-	catch ( const exception& e )
-	{
-		addMsg( tr( "%1  %2 could not continue. %3" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( e.what() ) );
-		return;
-	}
-
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-	emit startUpdate();
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+	ITK_TYPED_CALL( FHW_CastImage_template, itkType,
+					m_odt, getItkProgress(), getConnector() );
 }
 
 template<class T>
-int DataTypeConversion_template( string m_odt, float m_min, float m_max, double m_outmin, double m_outmax, int dov, iAProgress* p, iAConnector* image )
+int DataTypeConversion_template(std::string m_odt, float m_min, float m_max, double m_outmin, double m_outmax, int dov, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
@@ -569,30 +564,7 @@ int DataTypeConversion_template( string m_odt, float m_min, float m_max, double 
 
 void iACastImageFilter::DataTypeConversion()
 {
-
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( DataTypeConversion_template, itkType,
-						m_type, m_min, m_max, m_outmin, m_outmax, m_dov, getItkProgress(), getConnector() );
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-	emit startUpdate();
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+	ITK_TYPED_CALL( DataTypeConversion_template, itkType,
+					m_type, m_min, m_max, m_outmin, m_outmax, m_dov, getItkProgress(), getConnector() );
 }

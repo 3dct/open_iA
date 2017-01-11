@@ -193,7 +193,7 @@ int write_image_template(  bool comp, QString f, iAProgress* p, iAConnector* ima
 
 
 iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
-	: iAAlgorithms( i, p, logger, par ),
+	: iAAlgorithm( i, p, logger, par ),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {
@@ -202,7 +202,7 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, vect
 
 
 iAIO::iAIO( iALogger* logger, QObject *parent /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/, vector<QString> * fileNames /*= 0*/ )
-	: iAAlgorithms( 0, 0, logger, parent),
+	: iAAlgorithm( 0, 0, logger, parent),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {

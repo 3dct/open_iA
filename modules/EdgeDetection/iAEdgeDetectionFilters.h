@@ -21,7 +21,7 @@
 #pragma once
 
 #include "itkCannyEdgeDetectionImageFilter.h"
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 #include "itkCastImageFilter.h"
 
 /**
@@ -30,7 +30,7 @@
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iAEdgeDetectionFilters : public iAFilter
+class iAEdgeDetectionFilters : public iAAlgorithm
 {
 
 public:

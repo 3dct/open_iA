@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithms.h"
+#include "iAAlgorithm.h"
 #include "open_iA_Core_export.h"
 
 #include <itkVersorRigid3DTransform.h>
@@ -48,7 +48,7 @@ class iASimReader;
 typedef itk::VersorRigid3DTransform<double> VersorRigid3DTransformType;
 
 
-class open_iA_Core_API iAIO : public iAAlgorithms
+class open_iA_Core_API iAIO : public iAAlgorithm
 {
 	Q_OBJECT
 public:

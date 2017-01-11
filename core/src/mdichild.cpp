@@ -32,8 +32,7 @@
 #include "iAChildData.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "iAAlgorithms.h"
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 #include "iAIO.h"
 #include "iAIOProvider.h"
 #include "iALogger.h"
@@ -274,7 +273,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
 }
 
-void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithms* thread, bool providesProgress, bool usesDoneSignal )
+void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread, bool providesProgress, bool usesDoneSignal )
 {
 	// TODO: make more specific for each filter! iAIO saving for example would not require an update to the render windows!!!
 	connect(thread, SIGNAL( startUpdate(int) ), this, SLOT( updateRenderWindows(int) ));

@@ -163,6 +163,7 @@ private slots:
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
+	void CloseAllSubWindows();
 
 public slots:
 	void saveLayout();
@@ -199,6 +200,7 @@ private:
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void LoadProject(QString const & fileName);
+	bool KeepOpen();
 
 	QSplashScreen *splashScreen;
 		

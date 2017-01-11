@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iATransformations.h"
 
@@ -84,8 +83,8 @@ static int flip_template(iATransformations * caller)
 
 	ImageType * outImage = filter->GetOutput();
 	outImage->SetOrigin(origin);
-	caller->getFixedConnector()->SetImage(outImage);
-	caller->displayResult(caller->getFixedConnector()->GetVTKImage());
+	caller->getConnector()->SetImage(outImage);
+	caller->getConnector()->Modified();
 
 	filter->ReleaseDataFlagOn();
 
@@ -118,8 +117,8 @@ static void affine_template(iATransformations * caller,
 	caller->getItkProgress()->Observe(resample);
 	resample->Update();
 
-	caller->getFixedConnector()->SetImage(resample->GetOutput());
-	caller->displayResult(caller->getFixedConnector()->GetVTKImage());
+	caller->getConnector()->SetImage(resample->GetOutput());
+	caller->getConnector()->Modified();
 
 	resample->ReleaseDataFlagOn();
 }
@@ -216,8 +215,8 @@ static int permute_template(iATransformations * caller)
 	caller->getItkProgress()->Observe(filter);
 	filter->Update();
 
-	caller->getFixedConnector()->SetImage(filter->GetOutput());
-	caller->displayResult(caller->getFixedConnector()->GetVTKImage());
+	caller->getConnector()->SetImage(filter->GetOutput());
+	caller->getConnector()->Modified();
 
 	filter->ReleaseDataFlagOn();
 
@@ -245,7 +244,7 @@ static int transform_template(iATransformations * caller)
 }
 
 iATransformations::iATransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 	for (int k = 0; k < Dim; k++)
 	{
@@ -258,8 +257,6 @@ iATransformations::iATransformations( QString fn, FilterID fid, vtkImageData* i,
 	m_rotCenterType = iATransformations::RCCenter;
 	m_rotAxesType = iATransformations::RotateAlongX;
 	m_flipAxesType = iATransformations::FlipAxesNone;
-
-	connect(this, SIGNAL(resultReady(vtkImageData *)), this, SLOT(pushResult(vtkImageData *)), Qt::BlockingQueuedConnection);
 }
 
 iATransformations::~iATransformations()
@@ -415,22 +412,6 @@ void iATransformations::transform()
 	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(getFilterName())
 		.arg(Stop()));
-}
-
-void iATransformations::displayResult(vtkImageData * img)
-{
-	//this is called from different thred
-	//convert to signal-slot mechanism
-	emit resultReady(img);
-}
-
-void iATransformations::pushResult(vtkImageData * img)
-{
-	MdiChild * resultWnd = qobject_cast<MdiChild *>(parent());
-	if (resultWnd != NULL)
-	{
-		if (!resultWnd->isVisible())
-			resultWnd->show();
-		resultWnd->displayResult(getFilterName(), img);
-	}
+	
+	emit startUpdate();
 }

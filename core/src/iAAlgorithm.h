@@ -47,13 +47,13 @@ typedef itk::DefaultStaticMeshTraits< double, 3, 2, double, double >  MeshTraits
 typedef itk::Mesh< double, 3, MeshTraits > MeshType;
 typedef itk::PointSet< double, 3, MeshTraits > PointSetType;
 
-class open_iA_Core_API iAAlgorithms : public QThread
+class open_iA_Core_API iAAlgorithm : public QThread
 {
 	Q_OBJECT
 public:
-	iAAlgorithms( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
-	iAAlgorithms( vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
-	virtual ~iAAlgorithms();
+	iAAlgorithm( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
+	iAAlgorithm( vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
+	virtual ~iAAlgorithm();
 
 	QDateTime Start(); //< Start counting the running time and set the start time
 	int Stop();	//Calculate and get the elapsed time

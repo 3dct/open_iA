@@ -64,7 +64,7 @@ int addImages_template(iAProgress* p, iAConnector* image2, iAConnector* image)
 }
 
 iASimpleFusion::iASimpleFusion( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {}
 
 void iASimpleFusion::run()
