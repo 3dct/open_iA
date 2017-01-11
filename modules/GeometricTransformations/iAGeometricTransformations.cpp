@@ -227,9 +227,6 @@ iAGeometricTransformations::iAGeometricTransformations( QString fn, FilterID fid
 {
 }
 
-iAGeometricTransformations::~iAGeometricTransformations()
-{
-}
 
 void iAGeometricTransformations::run()
 {

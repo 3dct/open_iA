@@ -42,7 +42,6 @@ public:
 	static const QString InterpWindowedSinc;
 
 	iAGeometricTransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAGeometricTransformations();
 
 	void extractImage();
 	void resampler();
