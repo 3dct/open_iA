@@ -135,7 +135,7 @@ int bilateral_template( double r, double d, iAProgress* p, iAConnector* image  )
 }
 
 iAEdgePreservingSmoothing::iAEdgePreservingSmoothing( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

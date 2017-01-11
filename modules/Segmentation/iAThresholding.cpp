@@ -180,7 +180,7 @@ int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double 
 
 
 iAThresholding::iAThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithms( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

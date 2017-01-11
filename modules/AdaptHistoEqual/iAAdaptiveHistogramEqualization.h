@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /** A implementation of the computation of adpative histogram equalization */
 
-class iAAdaptiveHistogramEqualization : public iAFilter
+class iAAdaptiveHistogramEqualization : public iAAlgorithm
 {
 public:
 	iAAdaptiveHistogramEqualization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

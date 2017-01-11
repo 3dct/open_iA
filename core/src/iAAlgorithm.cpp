@@ -20,7 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "iAAlgorithms.h"
+#include "iAAlgorithm.h"
 
 #include "iAConnector.h"
 #include "iALogger.h"
@@ -34,7 +34,7 @@
 
 #include <QMessageBox>
 
-iAAlgorithms::iAAlgorithms( QString fn, FilterID fid, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
+iAAlgorithm::iAAlgorithm( QString fn, FilterID fid, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
 	: QThread( parent )
 {
 	m_elapsed = 0;
@@ -52,7 +52,7 @@ iAAlgorithms::iAAlgorithms( QString fn, FilterID fid, vtkImageData* idata, vtkPo
 	connect(m_itkProgress, SIGNAL( pprogress(int) ), this, SIGNAL( aprogress(int) ));
 }
 
-iAAlgorithms::iAAlgorithms( vtkImageData* idata, vtkPolyData* p, iALogger* logger, QObject *parent )
+iAAlgorithm::iAAlgorithm( vtkImageData* idata, vtkPolyData* p, iALogger* logger, QObject *parent )
 : QThread( parent )
 {
 	m_image = idata;
@@ -64,7 +64,7 @@ iAAlgorithms::iAAlgorithms( vtkImageData* idata, vtkPolyData* p, iALogger* logge
 }
 
 
-iAAlgorithms::~iAAlgorithms()
+iAAlgorithm::~iAAlgorithm()
 {
 	foreach(iAConnector* c, m_connectors)
 		delete c;
@@ -73,18 +73,18 @@ iAAlgorithms::~iAAlgorithms()
 }
 
 
-void iAAlgorithms::run()
+void iAAlgorithm::run()
 {
 	addMsg(tr("  unknown filter type"));
 }
 
 
-void iAAlgorithms::setImageData(vtkImageData* imgData)
+void iAAlgorithm::setImageData(vtkImageData* imgData)
 {
 	m_image = imgData;
 }
 
-QDateTime iAAlgorithms::Start()
+QDateTime iAAlgorithm::Start()
 {
 	m_elapsed = 0; 
 	m_time.start();
@@ -93,7 +93,7 @@ QDateTime iAAlgorithms::Start()
 }
 
 
-int iAAlgorithms::Stop()
+int iAAlgorithm::Stop()
 {
 	if (m_isRunning) 
 	{	
@@ -104,7 +104,7 @@ int iAAlgorithms::Stop()
 }
 
 
-void iAAlgorithms::setup(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger * l)
+void iAAlgorithm::setup(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger * l)
 {
 	m_filterName = fn; 
 	m_filterID = fid; 
@@ -113,7 +113,7 @@ void iAAlgorithms::setup(QString fn, FilterID fid, vtkImageData* i, vtkPolyData*
 	m_logger = l;
 }
 
-void iAAlgorithms::addMsg(QString txt)
+void iAAlgorithm::addMsg(QString txt)
 {
 	if (m_logger)
 	{
@@ -122,27 +122,27 @@ void iAAlgorithms::addMsg(QString txt)
 }
 
 
-iALogger* iAAlgorithms::getLogger() const
+iALogger* iAAlgorithm::getLogger() const
 {
 	return m_logger;
 }
 
-QString iAAlgorithms::getFilterName() const
+QString iAAlgorithm::getFilterName() const
 {
 	return m_filterName;
 }
 
-vtkImageData* iAAlgorithms::getVtkImageData()
+vtkImageData* iAAlgorithm::getVtkImageData()
 {
 	return m_image;
 }
 
-vtkPolyData* iAAlgorithms::getVtkPolyData()
+vtkPolyData* iAAlgorithm::getVtkPolyData()
 {
 	return m_polyData;
 }
 
-iAConnector *iAAlgorithms::getConnector(int c)
+iAConnector *iAAlgorithm::getConnector(int c)
 {
 	while (m_connectors.size() <= c)
 		m_connectors.push_back(new iAConnector());
@@ -150,27 +150,27 @@ iAConnector *iAAlgorithms::getConnector(int c)
 }
 
 
-iAConnector* iAAlgorithms::getConnector() const
+iAConnector* iAAlgorithm::getConnector() const
 {
 	return m_connectors[0];
 }
 
-iAConnector *const * iAAlgorithms::getConnectorArray() const
+iAConnector *const * iAAlgorithm::getConnectorArray() const
 {
 	return m_connectors.data();
 }
 
-iAConnector ** iAAlgorithms::getConnectorArray()
+iAConnector ** iAAlgorithm::getConnectorArray()
 {
 	return m_connectors.data();
 }
 
-iAConnector* iAAlgorithms::getFixedConnector() const
+iAConnector* iAAlgorithm::getFixedConnector() const
 {
 	return m_connectors[1];
 }
 
-bool iAAlgorithms::deleteConnector(iAConnector* c)
+bool iAAlgorithm::deleteConnector(iAConnector* c)
 {
 	bool isDeleted = false;
 	int ind = m_connectors.indexOf(c);
@@ -183,19 +183,19 @@ bool iAAlgorithms::deleteConnector(iAConnector* c)
 	return isDeleted;
 }
 
-void iAAlgorithms::allocConnectors(int size)
+void iAAlgorithm::allocConnectors(int size)
 {
 	while (m_connectors.size() < size)
 		m_connectors.push_back(new iAConnector());
 }
 
 
-iAProgress* iAAlgorithms::getItkProgress()
+iAProgress* iAAlgorithm::getItkProgress()
 {
 	return m_itkProgress;
 }
 
-void iAAlgorithms::updateVtkImageData(int ch)
+void iAAlgorithm::updateVtkImageData(int ch)
 {
 	// some remainder from working with multichannel images?
 	// seems redundant to the m_image initialization in the constructor!
@@ -207,7 +207,7 @@ void iAAlgorithms::updateVtkImageData(int ch)
 }
 
 
-void iAAlgorithms::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData )
+void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData )
 {
 	int numPoints =  mesh->GetNumberOfPoints();
 
@@ -279,12 +279,12 @@ void iAAlgorithms::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* pol
 }
 
 
-int iAAlgorithms::getFilterID() const
+int iAAlgorithm::getFilterID() const
 {
 	return m_filterID;
 }
 
-void iAAlgorithms::vtkPolydata_itkMesh(vtkPolyData* polyData, MeshType::Pointer mesh)
+void iAAlgorithm::vtkPolydata_itkMesh(vtkPolyData* polyData, MeshType::Pointer mesh)
 {
 	// Transfer the points from the vtkPolyData into the itk::Mesh
 	const unsigned long numberOfPoints = polyData->GetNumberOfPoints();
@@ -373,7 +373,7 @@ void iAAlgorithms::vtkPolydata_itkMesh(vtkPolyData* polyData, MeshType::Pointer 
 }
 
 
-void iAAlgorithms::SafeTerminate()
+void iAAlgorithm::SafeTerminate()
 {
 	if(isRunning())
 	{

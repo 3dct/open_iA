@@ -83,7 +83,7 @@ int discrete_gaussian_template( double v, double me, int outimg, iAProgress* p, 
 }
 
 iABlurring::iABlurring( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

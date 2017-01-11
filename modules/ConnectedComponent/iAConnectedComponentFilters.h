@@ -25,7 +25,7 @@
 #include <itkRelabelComponentImageFilter.h>
 #include <itkImage.h>
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -38,7 +38,7 @@ using namespace std;
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iAConnectedComponentFilters : public iAFilter
+class iAConnectedComponentFilters : public iAAlgorithm
 {
 public:
 	iAConnectedComponentFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

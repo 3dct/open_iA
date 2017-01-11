@@ -63,7 +63,7 @@ int general_threshold_template( double l, double u, double o, iAProgress* p, iAC
 }
 
 iAGeneralThresholding::iAGeneralThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 
 }

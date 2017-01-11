@@ -154,7 +154,7 @@ int SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAProg
 */
 
 iAConnectedComponentFilters::iAConnectedComponentFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

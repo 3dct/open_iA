@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 #include <itkCastImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
@@ -33,7 +33,7 @@
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iABlurring : public iAFilter
+class iABlurring : public iAAlgorithm
 {
 public:
 	iABlurring( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

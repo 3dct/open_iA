@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 #include "itkGradientMagnitudeImageFilter.h"
 #include <itkCastImageFilter.h>
 
@@ -30,7 +30,7 @@
  *  * \remarks	JW, 10/10/2012. 
  */
 
-class iAMedianFilter : public iAFilter
+class iAMedianFilter : public iAAlgorithm
 {
 public:
 	iAMedianFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

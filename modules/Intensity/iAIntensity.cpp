@@ -164,7 +164,7 @@ template<class T> int invert_intensity_template(  iAProgress* p, iAConnector* im
 }
 
 iAIntensity::iAIntensity( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

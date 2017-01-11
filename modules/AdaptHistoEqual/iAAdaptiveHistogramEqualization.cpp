@@ -81,7 +81,7 @@ template<class T> int iAAdaptiveHistogramEqualization_template( double aheAlpha,
 */
 
 iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 
 }

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
-class iAGPUEdgePreservingSmoothing : public iAFilter
+class iAGPUEdgePreservingSmoothing : public iAAlgorithm
 {
 public:
 	iAGPUEdgePreservingSmoothing(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);

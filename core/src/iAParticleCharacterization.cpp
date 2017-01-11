@@ -110,7 +110,7 @@ template<class T> int particalCharacterization_template( int param1, iAProgress*
 }
 
 iAParticleCharacterization::iAParticleCharacterization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 	
 }

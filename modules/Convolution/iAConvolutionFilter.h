@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
-class iAConvolutionFilter : public iAFilter
+class iAConvolutionFilter : public iAAlgorithm
 {
 public: 
 	iAConvolutionFilter(QString fn, FilterID fid, vtkImageData* i = 0, vtkPolyData* p = 0, iALogger* logger = 0, QObject *parent = 0);

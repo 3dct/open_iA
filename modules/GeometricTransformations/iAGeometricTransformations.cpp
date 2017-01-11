@@ -223,7 +223,7 @@ int rescaleImage_template(double outMin, double outMax, iAProgress* p, iAConnect
 }
 
 iAGeometricTransformations::iAGeometricTransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

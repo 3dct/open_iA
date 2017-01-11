@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 #include "itkChangeInformationImageFilter.h"
 
 /**
@@ -33,7 +33,7 @@
  * refer to http://itk.org/ITKExamples/src/Filtering/ImageIntensity/RescaleAnImage/Documentation.html
  */
 
-class iAGeometricTransformations : public iAFilter
+class iAGeometricTransformations : public iAAlgorithm
 {
 public:
 	static const QString InterpLinear;

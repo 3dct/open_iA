@@ -74,7 +74,7 @@ int median_template( unsigned int r_x, unsigned int r_y, unsigned int r_z, iAPro
 }
 
 iAMedianFilter::iAMedianFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

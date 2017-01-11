@@ -25,7 +25,7 @@
 #include "itkBinaryBallStructuringElement.h"
 #include "itkImage.h"
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 #include <itkHessian3DToVesselnessMeasureImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>
@@ -40,7 +40,7 @@
  * \remarks	MA, 18/01/2013. 
  */
 
-class iAMorphologyFilters : public iAFilter
+class iAMorphologyFilters : public iAAlgorithm
 {
 public:
 	iAMorphologyFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

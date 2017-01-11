@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 #include "itkGradientMagnitudeImageFilter.h"
 #include "itkImage.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
@@ -55,7 +55,7 @@
  * \remarks	Arikan, 10/08/2012. 
  */
 
-class iAParticleCharacterization : public iAFilter
+class iAParticleCharacterization : public iAAlgorithm
 {
 public:
 	iAParticleCharacterization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

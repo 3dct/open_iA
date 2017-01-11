@@ -142,7 +142,7 @@ template<class T> int EnhancementFilter_template(int s, iAProgress* p, iAConnect
 }
 
 iAMorphologyFilters::iAMorphologyFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 

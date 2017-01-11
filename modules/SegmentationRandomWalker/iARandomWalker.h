@@ -23,7 +23,7 @@
 #include "iAImageGraphTypes.h"
 #include "iASeedType.h"
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 #include <QSharedPointer>
 #include <QVector>

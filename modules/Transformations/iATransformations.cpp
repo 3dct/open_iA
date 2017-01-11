@@ -242,7 +242,7 @@ static int transform_template(iATransformations * caller)
 }
 
 iATransformations::iATransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 	for (int k = 0; k < Dim; k++)
 	{

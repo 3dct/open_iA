@@ -22,7 +22,7 @@
 
 #include <string>
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /**
  * An itk cast image filter. Basic filter is itkCastImageFilter.
@@ -30,7 +30,7 @@
  * \remarks	Kana, 01/12/2010.
  */
 
-class iACastImageFilter : public iAFilter
+class iACastImageFilter : public iAAlgorithm
 {
 public:
 	iACastImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

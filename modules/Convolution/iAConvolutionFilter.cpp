@@ -62,7 +62,7 @@
 #include <QLocale>
 
 iAConvolutionFilter::iAConvolutionFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p , iALogger* logger, QObject *parent )
-	: iAFilter(fn, fid, i, p, logger, parent) {
+	: iAAlgorithm(fn, fid, i, p, logger, parent) {
 
 	pData = vtkPolyData::New(); 
 	pData = p; 

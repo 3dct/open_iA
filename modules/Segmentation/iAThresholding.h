@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithms.h"
+#include "iAAlgorithm.h"
 
 /**
  * Implementation of itkBinaryThresholdImageFilter, itkOtsuThresholdImageFilter, itkAdaptiveOtsuThresholdImageFilter and itkRobustAutomaticThresholdImageFilter threhold.
@@ -30,7 +30,7 @@
  * For itkRobustAutomaticThresholdImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html
  * \remarks	Kana, 01/12/2010. 
  */
-class iAThresholding : public iAAlgorithms
+class iAThresholding : public iAAlgorithm
 {
 public:
 	iAThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* l, QObject *parent = 0 );

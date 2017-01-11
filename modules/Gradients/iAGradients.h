@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 #include "itkGradientMagnitudeImageFilter.h"
 #include <itkCastImageFilter.h>
 
@@ -35,7 +35,7 @@ struct HOAccGradientDerrivativeSettings
  * For itkGradientMagnitudeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html
  * \remarks	Kana, 01/12/2010. 
  */
-class iAGradients : public iAFilter
+class iAGradients : public iAAlgorithm
 {
 public:
 	iAGradients( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

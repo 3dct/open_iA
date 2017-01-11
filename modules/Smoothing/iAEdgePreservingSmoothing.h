@@ -24,7 +24,7 @@
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
 #include <itkBilateralImageFilter.h>
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /**
  * Application of two edge preserving smoothing methods (itkGradientAnisotropicDiffusionImageFilter and itkCurvatureAnisotropicDiffusionImageFilter).
@@ -34,7 +34,7 @@
  *  
  */
 
-class iAEdgePreservingSmoothing : public iAFilter
+class iAEdgePreservingSmoothing : public iAAlgorithm
 {
 public:
 	iAEdgePreservingSmoothing( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 #include "iAConnector.h"
 
-class iATransformations: public iAFilter
+class iATransformations: public iAAlgorithm
 {
 	Q_OBJECT
 public:

@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /**
  * an itk maximum distance threshold based on histogram for voids segmentation. 
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iAMaximumDistance : public iAFilter
+class iAMaximumDistance : public iAAlgorithm
 {
 	public:
 	iAMaximumDistance(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );

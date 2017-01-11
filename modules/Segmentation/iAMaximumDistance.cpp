@@ -76,7 +76,7 @@ int maximum_distance_template( int* mdfHighInt_ptr, int* mdfLowInt_ptr, int* mdf
 }
 
 iAMaximumDistance::iAMaximumDistance( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 
 }

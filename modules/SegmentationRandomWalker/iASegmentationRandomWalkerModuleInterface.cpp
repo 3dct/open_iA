@@ -126,11 +126,11 @@ void CalculateERW_template(
 	}
 }
 
-class iAERWFilter: public iAFilter
+class iAERWFilter: public iAAlgorithm
 {
 public:
 	iAERWFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAFilter(fn, fid, i, p, logger, parent),
+		iAAlgorithm(fn, fid, i, p, logger, parent),
 		m_priorCount(0)
 	{}
 	void SetPriors(QVector<vtkSmartPointer<vtkImageData> > priors)
@@ -169,11 +169,11 @@ private:
 	}
 };
 
-class iARWFilter: public iAFilter
+class iARWFilter: public iAAlgorithm
 {
 public:
 	iARWFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAFilter(fn, fid, i, p, logger, parent),
+		iAAlgorithm(fn, fid, i, p, logger, parent),
 		m_beta(0)
 	{}
 	void SetParams(SeedVector const & seeds, double beta)

@@ -24,7 +24,7 @@
 #include <string>
 using namespace std;
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 /**
  * an itk subtract image filter is used to subtract 2 images. Basic filter is itkSubtractImageFilter.
@@ -32,7 +32,7 @@ using namespace std;
  * \remarks	Kana, 01/12/2010. 
  */
 
-class iASubtractImageFilter : public iAFilter
+class iASubtractImageFilter : public iAAlgorithm
 {
 public:
 	iASubtractImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
