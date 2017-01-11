@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iATransformationsModuleInterface.h"
 
@@ -77,62 +76,10 @@ vtkImageData * iATransformationsModuleInterface::prepare(const QString & caption
 	MdiChild * actChild = m_mainWnd->activeMdiChild();
 	if (actChild == NULL)
 		return NULL;
-	vtkImageData * inpImage = actChild->getImageData();
-
-	//prepare
-	if (actChild->getResultInNewWindow())
-	{
-		m_mdiChild = m_mainWnd->createMdiChild(true);
-		m_mdiChild->newFile();
-		m_mdiChild->show();
-
-		//copy functions
-		//taken from MainWindow::GetResultChild()
-		//e80024
-		std::vector<dlg_function*> activeChildFunctions = actChild->getFunctions();
-		for (unsigned int i = 1; i < activeChildFunctions.size(); ++i)
-		{
-			dlg_function *curFunc = activeChildFunctions[i];
-
-			switch (curFunc->getType())
-			{
-			case dlg_function::GAUSSIAN:
-			{
-				dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
-				dlg_gaussian * newGaussian = new dlg_gaussian(m_mdiChild->getHistogram(), PredefinedColors()[i % 7]);
-
-				newGaussian->setMean(oldGaussian->getMean());
-				newGaussian->setMultiplier(oldGaussian->getMultiplier());
-				newGaussian->setSigma(oldGaussian->getSigma());
-
-				m_mdiChild->getFunctions().push_back(newGaussian);
-			}
-				break;
-			case dlg_function::BEZIER:
-			{
-				dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
-				dlg_bezier * newBezier = new dlg_bezier(m_mdiChild->getHistogram(), PredefinedColors()[i % 7]);
-
-				for (unsigned int j = 0; j<oldBezier->getPoints().size(); ++j)
-					newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
-
-				m_mdiChild->getFunctions().push_back(newBezier);
-			}
-				break;
-			default:
-				// unknown function type, do nothing
-				break;
-			}
-		}
-
-	}
-	else
-	{
-		m_mdiChild = actChild;
-	}
+	PrepareResultChild(caption);
 	m_mdiChild->addStatusMsg(caption);
-
-	return inpImage;
+	m_mainWnd->statusBar()->showMessage(caption, 5000);
+	return m_childData.imgData;
 }
 
 void iATransformationsModuleInterface::rotate()
@@ -165,21 +112,19 @@ void iATransformationsModuleInterface::rotate()
 
 	QString filterName = "Rotated";
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-		
-		thread->setTransformationType(iATransformations::Rotation);
-		thread->setRotationCenterCoordinate(cx, cy, cz);
-		thread->setRotationAngle(rotAngle);
-		thread->setRotationAxes(axes[rotAxesIdx]);
-		thread->setRotationCenter(center[rotCenterIdx]);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setTransformationType(iATransformations::Rotation);
+	thread->setRotationCenterCoordinate(cx, cy, cz);
+	thread->setRotationAngle(rotAngle);
+	thread->setRotationAxes(axes[rotAxesIdx]);
+	thread->setRotationCenter(center[rotCenterIdx]);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }
 
 void iATransformationsModuleInterface::translate()
@@ -205,18 +150,16 @@ void iATransformationsModuleInterface::translate()
 
 	QString filterName = "Translated";
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-
-		thread->setTransformationType(iATransformations::Translation);
-		thread->setTranslation(tx, ty, tz);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setTransformationType(iATransformations::Translation);
+	thread->setTranslation(tx, ty, tz);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }
 
 void iATransformationsModuleInterface::flip()
@@ -228,17 +171,16 @@ void iATransformationsModuleInterface::flip()
 
 	QString filterName = "Flipped axis " + QString(flipAxes);
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-		thread->setFlipAxes(flipAxes);
-		thread->setTransformationType(iATransformations::Flip);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setFlipAxes(flipAxes);
+	thread->setTransformationType(iATransformations::Flip);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }
 
 void iATransformationsModuleInterface::permute()
@@ -249,15 +191,14 @@ void iATransformationsModuleInterface::permute()
 	QString order = action->data().toString();
 	QString filterName = "Changed coordinate " + order;
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-		thread->setPermuteAxesOrder(order);
-		thread->setTransformationType(iATransformations::PermuteAxes);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setPermuteAxesOrder(order);
+	thread->setTransformationType(iATransformations::PermuteAxes);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }

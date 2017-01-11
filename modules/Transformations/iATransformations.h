@@ -55,13 +55,6 @@ public:
 	void setPermuteAxesOrder(int ox, int oy, int oz);
 	void setPermuteAxesOrder(const QString & order);
 
-	void displayResult(vtkImageData * img);
-signals:
-	void resultReady(vtkImageData * img);
-
-private slots:
-	void pushResult(vtkImageData * img);
-
 protected:
 	void run();
 	void transform();
