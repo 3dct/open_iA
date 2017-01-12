@@ -3000,7 +3000,7 @@ void MdiChild::StoreProject(QString const & fileName)
 	m_dlgModalities->Store(fileName);
 }
 
-MainWindow* MdiChild::getM_mainWnd()
+MainWindow* MdiChild::getMainWnd()
 {
 	return m_mainWnd;
 }

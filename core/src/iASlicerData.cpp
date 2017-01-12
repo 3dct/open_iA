@@ -1046,7 +1046,22 @@ void iASlicerData::GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, doubl
 
 }
 
-#define FmtStr(str_out, strm) { std::ostringstream oss; oss << strm; str_out = oss.str(); }
+QString GetFilePixel(MdiChild* tmpChild, iASlicerData* data, int cX, int cY)
+{
+	vtkImageData* img = data->GetReslicer()->GetOutput();
+	int const * dim = img->GetDimensions();
+	bool inRange = cX < dim[0] && cY < dim[1];
+	double tmpPix;
+	if (inRange)
+	{
+		tmpPix = data->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+	}
+	QString file = tmpChild->getFileInfo().fileName();
+	return QString("%1\t\t\t: %2\n")
+		.arg(file)
+		.arg(inRange? QString::number(tmpPix) : "out of image dimensions");
+	
+}
 
 void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, double* result)
 {
@@ -1074,30 +1089,21 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 
 
 	// get index, coords and value to display
-	std::string tmp;
+	QString tmp;
 
-	FmtStr(m_strDetails,
-		"index     [ " << xCoord << ", " << yCoord << ", " << zCoord << " ]\n" <<
-		"datavalue [" );
+	QString strDetails(QString("index     [ %1, %2, %3 ]\ndatavalue [")
+		.arg(xCoord).arg(yCoord).arg(zCoord));
 
 	for (int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
 		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, i);
-		FmtStr(tmp, " " << Pix); m_strDetails += tmp;
+		strDetails += " " + QString::number(Pix);
 	}
-	FmtStr(tmp, " ]\n"); m_strDetails += tmp;
-	std::ostringstream ss;
-	double tmpPix;
-	std::string modAbb;
-	bool longName = true;
-	std::string file;
-	std::string path;
-
+	strDetails += " ]\n";
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (mdi_parent &&
-		mdi_parent == mdi_parent->getM_mainWnd()->activeMdiChild() &&
 		mdi_parent->getLinkedMDIs())
 	{
-		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getM_mainWnd()->MdiChildList();
+		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++) {
 			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
 			if (tmpChild != mdi_parent) {
@@ -1114,19 +1120,9 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpChild->getSlicerDataXY()->update();
 					tmpChild->getSlicerXY()->update();
 					tmpChild->getSlicerDlgYZ()->update();
-
 					tmpChild->update();
-					
-					tmpPix = tmpChild->getSlicerDataXY()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
-					ss << tmpPix;
 
-					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
-					foundSlash = path.find_last_of("/");
-					file = path.substr(foundSlash + 1);
-
-					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
-					ss.str("");
-					ss.clear();
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), cX, cY);
 					break;
 				case iASlicerMode::YZ://YZ
 					tmpChild->getSlicerDataYZ()->setPlaneCenter(yCoord*spacing[1], zCoord*spacing[2], 1);
@@ -1136,19 +1132,9 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpChild->getSlicerDataYZ()->update();
 					tmpChild->getSlicerYZ()->update();
 					tmpChild->getSlicerDlgYZ()->update();
-
 					tmpChild->update();
 
-					tmpPix = tmpChild->getSlicerDataYZ()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
-					ss << tmpPix;
-
-					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
-					foundSlash = path.find_last_of("/");
-					file = path.substr(foundSlash + 1);
-
-					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
-					ss.str("");
-					ss.clear();
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), cX, cY);
 					break;
 				case iASlicerMode::XZ://XZ
 					tmpChild->getSlicerDataXZ()->setPlaneCenter(xCoord*spacing[0], zCoord*spacing[2], 1);
@@ -1158,19 +1144,9 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					tmpChild->getSlicerDataXZ()->update();
 					tmpChild->getSlicerXZ()->update();
 					tmpChild->getSlicerDlgXZ()->update();
-					
 					tmpChild->update();
 
-					tmpPix = tmpChild->getSlicerDataXZ()->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
-					ss << tmpPix;
-
-					path = tmpChild->getFileInfo().absoluteFilePath().toStdString();
-					foundSlash = path.find_last_of("/");
-					file = path.substr(foundSlash + 1);
-
-					m_strDetails += file + "\t\t\t, " + ss.str() + "\n";
-					ss.str("");
-					ss.clear();
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), cX, cY);
 					break;
 				default://ERROR
 					break;
@@ -1185,12 +1161,12 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 						pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) 
 					  + pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2)
 					);
-		FmtStr(tmp, "distance [" << distance << " ]\n"); m_strDetails += tmp;
+		strDetails += QString("distance [ %1 ]\n").arg(distance);
 	}
 
 	// Update the info text with pixel coordinates/value if requested.
 	textInfo->GetActor()->SetPosition(interactor->GetEventPosition()[0]+10, interactor->GetEventPosition()[1]+10);
-	textInfo->GetTextMapper()->SetInput(m_strDetails.c_str());
+	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
 
 /*
 	// ORIENTATION / ROTATION FIX:
@@ -1243,9 +1219,9 @@ void iASlicerData::defaultOutput()
 	{
 		return;
 	}
-	FmtStr(m_strDetails, " " );
+	QString strDetails(" ");
 	textInfo->GetActor()->SetPosition(20, 20);
-	textInfo->GetTextMapper()->SetInput(m_strDetails.c_str());
+	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
 
 	m_planeSrc->SetCenter(0, 0, -10000);
 	interactor->ReInitialize();

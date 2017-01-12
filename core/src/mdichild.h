@@ -268,7 +268,7 @@ public:
 	int getYCoord() const { return yCoord; }
 	int getZCoord() const { return zCoord; }
 
-	MainWindow* getM_mainWnd();
+	MainWindow* getMainWnd();
 	void HideHistogram();
 	//! apply current rendering settings of this mdi child to the given iARenderer
 	void ApplyRenderSettings(iARenderer* raycaster);
