@@ -267,7 +267,6 @@ private:
 
 	//mouse move
 	double m_ptMapped[3];
-	std::string m_strDetails;
 	double m_startMeasurePoint[2];
 
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
