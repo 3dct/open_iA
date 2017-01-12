@@ -87,3 +87,17 @@ int iAAttributes::Find(QString const & name)
 	}
 	return -1;
 }
+
+
+int iAAttributes::Count(iAAttributeDescriptor::iAAttributeType type) const
+{
+	int count = 0;
+	for (int i = 0; i < m_attributes.size(); ++i)
+	{
+		if (type == iAAttributeDescriptor::None	|| m_attributes[i]->GetAttribType() == type)
+		{
+			count++;
+		}
+	}
+	return count;
+}

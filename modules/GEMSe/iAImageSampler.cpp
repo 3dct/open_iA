@@ -95,20 +95,22 @@ void iAImageSampler::run()
 		return;
 	}
 
-	m_parameterCount = m_parameters->size();
+	m_parameterCount = m_parameters->Count(iAAttributeDescriptor::Parameter);
 
 	QStringList additionalArgumentList = SplitPossiblyQuotedString(m_additionalArguments);
-
-	// add derived output to the attributes (which we want to set during sampling):
-	QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
-		"Object Count", iAAttributeDescriptor::DerivedOutput, Discrete));
-	QSharedPointer<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
-		"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, Continuous));
-	QSharedPointer<iAAttributeDescriptor> timeAttr(new iAAttributeDescriptor(
-		"Performance", iAAttributeDescriptor::DerivedOutput, Continuous));
-	m_parameters->Add(objectCountAttr);
-	m_parameters->Add(avgUncertaintyAttr);
-	m_parameters->Add(timeAttr);
+	if (!m_parameters->Find("Object Count"))
+	{
+		// add derived output to the attributes (which we want to set during sampling):
+		QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
+			"Object Count", iAAttributeDescriptor::DerivedOutput, Discrete));
+		QSharedPointer<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
+			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, Continuous));
+		QSharedPointer<iAAttributeDescriptor> timeAttr(new iAAttributeDescriptor(
+			"Performance", iAAttributeDescriptor::DerivedOutput, Continuous));
+		m_parameters->Add(objectCountAttr);
+		m_parameters->Add(avgUncertaintyAttr);
+		m_parameters->Add(timeAttr);
+	}
 
 	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
 		m_parameters,

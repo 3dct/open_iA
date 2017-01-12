@@ -69,7 +69,7 @@ iAAttributeDescriptor::iAAttributeType Str2AttribType(QString const & str)
 	else
 	{
 		DEBUG_LOG(QString("Unknown attribute descriptor '%1'\n").arg(str));
-		return iAAttributeDescriptor::Invalid;
+		return iAAttributeDescriptor::None;
 	}
 }
 
