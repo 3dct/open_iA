@@ -121,11 +121,8 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 
 void iAFoamCharacterizationAttachment::slotPushButtonAnalysis()
 {
-	iAFoamCharacterizationDialogAnalysis* pDialogAnalysis(new iAFoamCharacterizationDialogAnalysis(m_pImageData, m_mainWnd));
-	pDialogAnalysis->exec();
-	delete pDialogAnalysis;
-
-	m_childData.child->enableRenderWindows();
+	iAFoamCharacterizationDialogAnalysis* pDialogAnalysis (new iAFoamCharacterizationDialogAnalysis(m_pImageData, m_mainWnd));
+	pDialogAnalysis->show();
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonBinarization()

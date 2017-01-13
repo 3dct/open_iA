@@ -28,9 +28,9 @@
 #include "iAFoamCharacterizationItemDistanceTransform.h"
 
 iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDistanceTransform
-										(iAFoamCharacterizationItemDistanceTransform* _pItemDistanceTransform, QWidget* _pParent)
+									     (iAFoamCharacterizationItemDistanceTransform* _pItemDistanceTransform, QWidget* _pParent)
 	                                                             : iAFoamCharacterizationDialog(_pItemDistanceTransform, _pParent)
-																		      , m_pItemDistanceTransform (_pItemDistanceTransform)
+															     , m_pItemDistanceTransform (_pItemDistanceTransform)
 {
 	setLayout();
 }

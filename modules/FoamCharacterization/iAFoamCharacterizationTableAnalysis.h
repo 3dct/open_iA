@@ -20,37 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDialog>
+#include <QTableView>
 
-class QLabel;
+#include "itkFixedArray.h"
+#include "itkIndex.h"
 
-class vtkImageData;
-
-class iAFoamCharacterizationTableAnalysis;
-
-class iAFoamCharacterizationDialogAnalysis : public QDialog
+class iAFoamCharacterizationTableAnalysis : public QTableView
 {
-		Q_OBJECT
-
-	#ifndef M_PI
-	#define M_PI 3.14159265359
-	#endif
+	Q_OBJECT
 
 	public:
-		explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
+		explicit iAFoamCharacterizationTableAnalysis(QWidget* _pParent = nullptr);
 
-	private:
-		vtkImageData* m_pImageData = nullptr;
-
-		QLabel* m_pLabel12 = nullptr;
-
-		iAFoamCharacterizationTableAnalysis* m_pTable = nullptr;
-
-		void analyse();
-
-	private slots:
-		void slotPushButtonOk();
-
-	protected:
-		virtual QSize sizeHint() const override;
+		void setRow ( const int& _iRow, const long& _lLabel
+				    , const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
+					, const double& _dVolume, const double& _dDiameter
+					, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox
+					);
 };

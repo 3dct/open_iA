@@ -21,44 +21,39 @@
 
 #include "iAFoamCharacterizationDialogAnalysis.h"
 
-#include<QApplication>
-#include<QGroupBox>
-#include<QGridLayout>
-#include<QLabel>
-#include<QStyle>
-#include<QTime>
-#include<QPushButton>
+#include <QApplication>
+#include <QGridLayout>
+#include <QStyle>
+#include <QTime>
+#include <QPushButton>
+#include <QStandardItemModel>
+
+#include <QtMath>
 
 #include "iAConnector.h"
+#include "iAFoamCharacterizationTableAnalysis.h"
 
+#include "itkLabelMap.h"
 #include "itkLabelGeometryImageFilter.h"
+#include "itkLabelImageToShapeLabelMapFilter.h"
+#include "itkShapeLabelObject.h"
+
 #include "vtkImageData.h"
 
 iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent)
-	                                                           : QDialog(_pParent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint)
-															   , m_pImageData (_pImageData)
+																									  : QDialog(_pParent)
+																									  , m_pImageData (_pImageData)
 {
+	setAttribute(Qt::WA_DeleteOnClose);
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::WindowMaximizeButtonHint);
 	setWindowTitle("Analysis");
+
+	m_pTable = new iAFoamCharacterizationTableAnalysis(this);
 
 	analyse();
 
-	QGroupBox* pGroupBox1(new QGroupBox(this));
-
-	QLabel* pLabel11(new QLabel("Number of bubbles:", pGroupBox1));
-	
-	m_pLabel12 = new QLabel(QString("%1").arg(m_iBubbles), pGroupBox1);
-
-	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
-	pGridLayout1->addWidget(  pLabel11, 0, 0);
-	pGridLayout1->addWidget(m_pLabel12, 0, 1);
-
-	QPushButton* pPushButtonOk(new QPushButton("Ok", this));
-	pPushButtonOk->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOkButton));
-	connect(pPushButtonOk, SIGNAL(clicked()), this, SLOT(slotPushButtonOk()));
-
 	QGridLayout* pGridLayout(new QGridLayout(this));
-	pGridLayout->addWidget(pGroupBox1);
-	pGridLayout->addWidget(pPushButtonOk);
+	pGridLayout->addWidget(m_pTable);
 }
 
 void iAFoamCharacterizationDialogAnalysis::analyse()
@@ -74,9 +69,47 @@ void iAFoamCharacterizationDialogAnalysis::analyse()
 	pLabelGeometryImageFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pLabelGeometryImageFilter->Update();
 
-	m_iBubbles = pLabelGeometryImageFilter->GetNumberOfLabels();
+	QStandardItemModel* pModel ((QStandardItemModel*) m_pTable->model());
+
+	const int iLabels(pLabelGeometryImageFilter->GetNumberOfLabels());
+
+	pModel->setRowCount(iLabels - 1);
+
+	itkLabelGeometryImageFilterType::LabelsType ltLabels (pLabelGeometryImageFilter->GetLabels());
+
+	int i (0);
+
+	for ( itkLabelGeometryImageFilterType::LabelsType::iterator ltLabelsIt (ltLabels.begin())
+		; ltLabelsIt != ltLabels.end() ; ++ltLabelsIt
+		)
+	{
+		itkLabelGeometryImageFilterType::LabelPixelType ltLabel (*ltLabelsIt);
+
+		if (ltLabel > 1)
+		{
+			const itkLabelGeometryImageFilterType::LabelPointType lptCenter(pLabelGeometryImageFilter->GetCentroid(ltLabel));
+			const double* pCenter((double*)lptCenter.GetDataPointer());
+
+			const double dVolume ((double)pLabelGeometryImageFilter->GetVolume(ltLabel));
+			const double dDiameter (2.0 * qPow(3.0 * dVolume / M_PI / 4.0, 1.0 / 3.0));
+
+			const itk::FixedArray<itk::Index<3>::IndexValueType, 6> pBoundingBox
+																			 (pLabelGeometryImageFilter->GetBoundingBox(ltLabel));
+			m_pTable->setRow ( i++
+				             , ltLabel
+				             , pCenter[0], pCenter[1], pCenter[2]
+				             , dVolume, dDiameter
+							 , pBoundingBox
+							 );
+		}
+	}
 
 	qApp->restoreOverrideCursor();
+}
+
+QSize iAFoamCharacterizationDialogAnalysis::sizeHint() const
+{
+	return QSize(6 * logicalDpiX(), 6 * logicalDpiY());
 }
 
 void iAFoamCharacterizationDialogAnalysis::slotPushButtonOk()
