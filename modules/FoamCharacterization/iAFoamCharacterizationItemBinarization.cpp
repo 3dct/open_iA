@@ -102,10 +102,10 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 
 	typedef itk::OtsuThresholdImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetInsideValue(0);
 	pFilter->SetOutsideValue(1);
+	pFilter->SetNumberOfHistogramBins(m_uiOtzuHistogramBins);
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());
@@ -133,7 +133,6 @@ QString iAFoamCharacterizationItemBinarization::itemFilterTypeString() const
 	}
 }
 
-
 unsigned short iAFoamCharacterizationItemBinarization::lowerThreshold() const
 {
 	return m_usLowerThreshold;
@@ -148,6 +147,11 @@ void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
 
 	setItemText();
+}
+
+unsigned int iAFoamCharacterizationItemBinarization::otzuHistogramBins() const
+{
+	return m_uiOtzuHistogramBins;
 }
 
 void iAFoamCharacterizationItemBinarization::save(QFile* _pFileSave)
@@ -173,6 +177,11 @@ void iAFoamCharacterizationItemBinarization::setItemText()
 void iAFoamCharacterizationItemBinarization::setLowerThreshold(const unsigned short& _usLowerThreshold)
 {
 	m_usLowerThreshold = _usLowerThreshold;
+}
+
+void iAFoamCharacterizationItemBinarization::setOtzuHistogramBins(const unsigned int& _uiOtzuHistogramBins)
+{
+	m_uiOtzuHistogramBins = _uiOtzuHistogramBins;
 }
 
 void iAFoamCharacterizationItemBinarization::setUpperThreshold(const unsigned short& _usUpperThreshold)

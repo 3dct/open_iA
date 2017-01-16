@@ -36,8 +36,13 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 		EItemFilterType itemFilterType() const;
 
 		unsigned short lowerThreshold() const;
+
+		unsigned int otzuHistogramBins() const;
+
 		void setLowerThreshold(const unsigned short& _usLowerThreshold);
+		void setOtzuHistogramBins(const unsigned int& _uiOtzuHistogramBins);
 		void setUpperThreshold(const unsigned short& _usUpperThreshold);
+
 		unsigned short upperThreshold() const;
 
 		void setItemFilterType(const EItemFilterType& _eItemFilterType);
@@ -52,6 +57,7 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 
 		unsigned short m_usLowerThreshold = 0;
 		unsigned short m_usUpperThreshold = 65535;
+		unsigned int m_uiOtzuHistogramBins = 500;
 
 		void executeBinarization();
 		void executeOtzu();

@@ -36,29 +36,43 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
 	m_pGroupBox2 = new QGroupBox(this);
 
 	QLabel* pLabelBinarizationLower(new QLabel("Lower threshold:", m_pGroupBox2));
-	m_pSpinBoxpBinarizationLower = new QSpinBox(m_pGroupBox2);
-	m_pSpinBoxpBinarizationLower->setAlignment(Qt::AlignRight);
-	m_pSpinBoxpBinarizationLower->setRange(0, 65535);
-	m_pSpinBoxpBinarizationLower->setValue(m_pItemBinarization->lowerThreshold());
+	m_pSpinBoxBinarizationLower = new QSpinBox(m_pGroupBox2);
+	m_pSpinBoxBinarizationLower->setAlignment(Qt::AlignRight);
+	m_pSpinBoxBinarizationLower->setRange(0, 65535);
+	m_pSpinBoxBinarizationLower->setValue(m_pItemBinarization->lowerThreshold());
 
 	QLabel* pLabelBinarizationUpper(new QLabel("Upper threshold:", m_pGroupBox2));
-	m_pSpinBoxpBinarizationUpper = new QSpinBox(m_pGroupBox2);
-	m_pSpinBoxpBinarizationUpper->setAlignment(Qt::AlignRight);
-	m_pSpinBoxpBinarizationUpper->setRange(0, 65535);
-	m_pSpinBoxpBinarizationUpper->setValue(m_pItemBinarization->upperThreshold());
+	m_pSpinBoxBinarizationUpper = new QSpinBox(m_pGroupBox2);
+	m_pSpinBoxBinarizationUpper->setAlignment(Qt::AlignRight);
+	m_pSpinBoxBinarizationUpper->setRange(0, 65535);
+	m_pSpinBoxBinarizationUpper->setValue(m_pItemBinarization->upperThreshold());
 
 	m_pCheckBoxOtzu = new QCheckBox("Use Otsu thresholding", m_pGroupBox2);
+	connect(m_pCheckBoxOtzu, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxOtzu(const bool&)));
+
+	QLabel* pLabelOtzuHistogramBins(new QLabel("Otzu's histogram bins:", m_pGroupBox2));
+	m_pSpinBoxOtzuHistogramBins = new QSpinBox(m_pGroupBox2);
+	m_pSpinBoxOtzuHistogramBins->setAlignment(Qt::AlignRight);
+	m_pSpinBoxOtzuHistogramBins->setRange(0, INT_MAX);
+	m_pSpinBoxOtzuHistogramBins->setValue(m_pItemBinarization->otzuHistogramBins());
 
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
 	pGridLayout2->addWidget(pLabelBinarizationLower, 0, 0);
-	pGridLayout2->addWidget(m_pSpinBoxpBinarizationLower, 0, 1);
+	pGridLayout2->addWidget(m_pSpinBoxBinarizationLower, 0, 1);
 	pGridLayout2->addWidget(pLabelBinarizationUpper, 1, 0);
-	pGridLayout2->addWidget(m_pSpinBoxpBinarizationUpper, 1, 1);
+	pGridLayout2->addWidget(m_pSpinBoxBinarizationUpper, 1, 1);
 	pGridLayout2->addWidget(m_pCheckBoxOtzu, 2, 0);
-
-	setLayout();
+	pGridLayout2->addWidget(pLabelOtzuHistogramBins, 3, 0);
+	pGridLayout2->addWidget(m_pSpinBoxOtzuHistogramBins, 3, 1);
 
 	m_pCheckBoxOtzu->setChecked(m_pItemBinarization->itemFilterType() == iAFoamCharacterizationItemBinarization::iftOtzu);
+
+	setLayout();
+}
+
+void iAFoamCharacterizationDialogBinarization::slotCheckBoxOtzu(const bool& _bChecked)
+{
+	m_pSpinBoxOtzuHistogramBins->setEnabled(_bChecked);
 }
 
 void iAFoamCharacterizationDialogBinarization::slotPushButtonOk()
@@ -68,8 +82,10 @@ void iAFoamCharacterizationDialogBinarization::slotPushButtonOk()
 		                                                                 : iAFoamCharacterizationItemBinarization::iftBinarization
 	                                       );
 
-	m_pItemBinarization->setLowerThreshold(m_pSpinBoxpBinarizationLower->value());
-	m_pItemBinarization->setUpperThreshold(m_pSpinBoxpBinarizationUpper->value());
+	m_pItemBinarization->setLowerThreshold(m_pSpinBoxBinarizationLower->value());
+	m_pItemBinarization->setUpperThreshold(m_pSpinBoxBinarizationUpper->value());
+
+	m_pItemBinarization->setOtzuHistogramBins(m_pSpinBoxOtzuHistogramBins->value());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }
