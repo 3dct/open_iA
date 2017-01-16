@@ -48,7 +48,7 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
 	m_pSpinBoxBinarizationUpper->setValue(m_pItemBinarization->upperThreshold());
 
 	m_pCheckBoxOtzu = new QCheckBox("Use Otsu thresholding", m_pGroupBox2);
-	connect(m_pCheckBoxOtzu, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxOtzu(const bool&)));
+	m_pCheckBoxOtzu->setChecked(m_pItemBinarization->itemFilterType() == iAFoamCharacterizationItemBinarization::iftOtzu);
 
 	QLabel* pLabelOtzuHistogramBins(new QLabel("Otzu's histogram bins:", m_pGroupBox2));
 	m_pSpinBoxOtzuHistogramBins = new QSpinBox(m_pGroupBox2);
@@ -65,14 +65,7 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
 	pGridLayout2->addWidget(pLabelOtzuHistogramBins, 3, 0);
 	pGridLayout2->addWidget(m_pSpinBoxOtzuHistogramBins, 3, 1);
 
-	m_pCheckBoxOtzu->setChecked(m_pItemBinarization->itemFilterType() == iAFoamCharacterizationItemBinarization::iftOtzu);
-
 	setLayout();
-}
-
-void iAFoamCharacterizationDialogBinarization::slotCheckBoxOtzu(const bool& _bChecked)
-{
-	m_pSpinBoxOtzuHistogramBins->setEnabled(_bChecked);
 }
 
 void iAFoamCharacterizationDialogBinarization::slotPushButtonOk()

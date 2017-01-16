@@ -23,7 +23,10 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QThreadPool>
 #include <QTime>
+
+#include <QtMath>
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
@@ -76,7 +79,6 @@ void iAFoamCharacterizationItemFilter::dialog()
 {
 	QScopedPointer<iAFoamCharacterizationDialogFilter> pDialog(new iAFoamCharacterizationDialogFilter(this, qApp->focusWidget()));
 	pDialog->exec();
-	pDialog.reset();
 }
 
 void iAFoamCharacterizationItemFilter::execute()
@@ -170,6 +172,120 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 
 	m_pImageData->DeepCopy(pConnector->GetVTKImage());
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
+}
+
+void iAFoamCharacterizationItemFilter::executeMedianFX()
+{
+	unsigned short* pDataWrite((unsigned short*)m_pImageData->GetScalarPointer());
+
+	const int* pDim(m_pImageData->GetDimensions());
+
+	const unsigned int nk((unsigned int)pDim[2]);
+
+	QThreadPool* pThreadPool(new QThreadPool());
+
+	const unsigned int uiThread (QThread::idealThreadCount());
+
+	QVector<QtRunnableMedian*> vRunnableMedian (uiThread);
+
+	for (unsigned int ui(0), uii(1); ui < uiThread ; ++ui, ++uii)
+	{
+		vRunnableMedian[ui] = new QtRunnableMedian(this, nk * ui / uiThread, nk * uii / uiThread);
+
+		pThreadPool->start(vRunnableMedian[ui]);
+	}
+
+	pThreadPool->waitForDone();
+
+	for (auto& pRunnableMedian : vRunnableMedian)
+	{
+		delete pRunnableMedian;
+	}
+
+	delete pThreadPool;
+
+	m_pImageData->Modified();
+}
+
+void iAFoamCharacterizationItemFilter::executeMedianFX(const unsigned int& _uiK1, const unsigned int& _uiK2)
+{
+	vtkSmartPointer<vtkImageData> pImageData1(vtkImageData::New());
+	pImageData1->DeepCopy(m_pImageData);
+
+	const int* pDim(m_pImageData->GetDimensions());
+
+	const unsigned int ni((unsigned int)pDim[0]);
+	const unsigned int nj((unsigned int)pDim[1]);
+	const unsigned int nk((unsigned int)pDim[2]);
+
+	const unsigned int uiStrideJ(ni);
+	const unsigned int uiStrideK(ni * nj);
+
+	unsigned short* pDataRead ((unsigned short*) pImageData1->GetScalarPointer());
+    unsigned short* pDataWrite ((unsigned short*) m_pImageData->GetScalarPointer() + _uiK1 * uiStrideK);
+
+	for (unsigned int k(_uiK1) ; k < _uiK2 ; ++k)
+	{
+		const int k1 (qMax(0u, k - m_uiMedianRadius));
+		const int k2 (qMin(    k + m_uiMedianRadius, nk - 1u));
+
+		const unsigned int uiBoxSizeK (k2 - k1 + 1);
+
+		for (unsigned int j(0) ; j < nj ; ++j)
+		{
+			const unsigned int j1 (qMax(0u, j - m_uiMedianRadius));
+			const unsigned int j2 (qMin(    j + m_uiMedianRadius, nj - 1u));
+
+			const unsigned int uiBoxSizeJK ((j2 - j1 + 1) * uiBoxSizeK);
+
+			for (unsigned int i(0) ; i < ni ; ++i)
+			{
+				const unsigned int i1 (qMax(0u, i - m_uiMedianRadius));
+				const unsigned int i2 (qMin(    i + m_uiMedianRadius, ni - 1u));
+
+				const unsigned int uiBoxSizeI (i2 - i1 + 1);
+
+				*pDataWrite++ = executeMedianFXValue ( pDataRead, i1, i2, j1, j2, k1, k2, uiStrideJ, uiStrideK
+													 , uiBoxSizeI * uiBoxSizeJK
+													 );
+			}
+		}
+	}
+}
+
+unsigned short iAFoamCharacterizationItemFilter::executeMedianFXValue	( unsigned short* _pDataRead
+															, const unsigned int& _i1, const unsigned int& _i2
+															, const unsigned int& _j1, const unsigned int& _j2
+															, const unsigned int& _k1, const unsigned int& _k2
+															, const unsigned int& _uiStrideJ
+															, const unsigned int& _uiStrideK
+															, const unsigned int& _uiBoxSize
+															)
+{
+	std::vector<unsigned short> vValue (_uiBoxSize);
+
+	unsigned int l (0);
+
+	unsigned short* pDataReadK (_pDataRead + _k1 * _uiStrideK);
+
+	for (unsigned int k(_k1); k <= _k2 ; ++k, pDataReadK += _uiStrideK)
+	{
+		unsigned short* pDataReadJ(pDataReadK + _j1 * _uiStrideJ);
+
+		for (unsigned int j (_j1); j <= _j2 ; ++j, pDataReadJ += _uiStrideJ)
+		{
+			for (unsigned int i (_i1); i <= _i2 ; ++i)
+			{
+				vValue[l++] = pDataReadJ[i];
+			}
+		}
+	}
+
+	const unsigned int uiBoxSize2(_uiBoxSize / 2);
+
+	std::nth_element(vValue.begin(), vValue.begin() + uiBoxSize2, vValue.end());
+
+	return vValue[uiBoxSize2];
 }
 
 void iAFoamCharacterizationItemFilter::executeNonLocalMeans()

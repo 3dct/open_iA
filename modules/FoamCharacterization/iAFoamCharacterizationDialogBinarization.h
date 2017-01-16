@@ -45,9 +45,6 @@ class iAFoamCharacterizationDialogBinarization : public iAFoamCharacterizationDi
 
 		QSpinBox* m_pSpinBoxOtzuHistogramBins = nullptr;
 
-	private slots:
-		void slotCheckBoxOtzu(const bool& _bChecked);
-
 	protected slots:
 		virtual void slotPushButtonOk() override;
 };

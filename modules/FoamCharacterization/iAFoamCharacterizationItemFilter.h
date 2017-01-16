@@ -22,12 +22,40 @@
 
 #include "iAFoamCharacterizationItem.h"
 
+#include <QRunnable>
+
 class QFile;
 
 class vtkImageData;
 
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
+	class QtRunnableMedian : public QRunnable
+	{
+		public:
+			explicit QtRunnableMedian ( iAFoamCharacterizationItemFilter* _pFilter
+									  , const unsigned int& _uiK1
+									  , const unsigned int& _uiK2
+									  ) : QRunnable()
+										, m_pFilter (_pFilter)
+										, m_uiK1 (_uiK1)
+										, m_uiK2 (_uiK2)
+			{
+				setAutoDelete(false);
+			}
+
+			virtual void run() override
+			{
+				m_pFilter->executeMedianFX(m_uiK1, m_uiK2);
+			}
+
+		private:
+			iAFoamCharacterizationItemFilter* m_pFilter = nullptr;
+
+			unsigned int m_uiK1 = 0;
+			unsigned int m_uiK2 = 0;
+	};
+
 	public:
 		enum EItemFilterType { iftAnisotropic, iftGauss , iftMedian, iftNonLocalMeans};
 
@@ -38,6 +66,8 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		double anisotropicConductance() const;
 		unsigned int anisotropicIteration() const;
 		double anisotropicTimeStep() const;
+
+		void executeMedianFX(const unsigned int& _uiK1, const unsigned int& _uiK2);
 
 		double gaussianVariance() const;
 
@@ -76,6 +106,17 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		void executeAnisotropic();
 		void executeGaussian();
 		void executeMedian();
+		void executeMedianFX();
+
+		unsigned short executeMedianFXValue ( unsigned short* _pDataRead
+			                      , const unsigned int& _i1, const unsigned int& _i2
+								  , const unsigned int& _j1, const unsigned int& _j2
+								  , const unsigned int& _k1, const unsigned int& _k2
+								  , const unsigned int& _uiStrideJ
+								  , const unsigned int& _uiStrideK
+								  , const unsigned int& _uiBoxSize
+								  );
+
 		void executeNonLocalMeans();
 
 		QString itemFilterTypeString() const;
