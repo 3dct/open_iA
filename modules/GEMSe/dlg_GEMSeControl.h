@@ -84,7 +84,6 @@ private slots:
 	void SetRepresentative(const QString &);
 	void LoadRefImage();
 	void StoreDerivedOutput();
-	void SamplingAdded(QSharedPointer<iASamplingResults>);
 	void SetMagicLensCount(int);
 	void FreeMemory();
 private:

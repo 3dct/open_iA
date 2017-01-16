@@ -22,6 +22,7 @@
 #include "dlg_MajorityVoting.h"
 
 #include "dlg_GEMSe.h"
+#include "dlg_samplings.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
@@ -51,6 +52,7 @@
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QVector>
 
 
 // Where to put temporary output
@@ -87,14 +89,15 @@
 //      +/- theoretically easier to do/practically probably also not little work to make it happen
 
 
-dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder) :
+dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
 	m_chartDiceVsUndec(vtkSmartPointer<vtkChartXY>::New()),
 	m_chartValueVsDice(vtkSmartPointer<vtkChartXY>::New()),
 	m_chartValueVsUndec(vtkSmartPointer<vtkChartXY>::New()),
-	m_folder(folder)
+	m_folder(folder),
+	m_dlgSamplings(dlgSamplings)
 {
 	QString defaultTheme("Brewer Set3 (max. 12)");
 	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);
@@ -680,12 +683,15 @@ void dlg_MajorityVoting::LoadConfig()
 				if (!ok)
 				{
 					DEBUG_LOG(QString("Error in label weights for label %1, entry %2('%3')").arg(l).arg(m).arg(inputWeights[m]));
+					return;
 				}
 				inputLabelWeightMap.insert(
 					std::make_pair(std::make_pair(l, m), labelWeight));
 			}
 		}
 	}
+
+	int lastSamplingID = m_dlgSamplings->GetSamplings()->size();
 	QVector<QSet<int> > bestParameterSetIDs(samplings.size()),
 		mvParameterSetIDs(samplings.size());
 	AddParameterSets(bestParameterSetIDs, bestParameterSetsList);
@@ -752,7 +758,8 @@ void dlg_MajorityVoting::LoadConfig()
 			iASEAFile::DefaultCHRFileName,
 			samplingResults->GetExecutable(),
 			samplingResults->GetAdditionalArguments(),
-			samplingResults->GetName()
+			samplingResults->GetName(),
+			lastSamplingID+s
 		));
 		if (s == 0)
 		{
@@ -781,7 +788,7 @@ void dlg_MajorityVoting::SamplerFinished()
 	}
 	auto results = sender->GetResults();
 	m_comparisonSamplingResults.push_back(results);
-	emit SamplingAdded(results);
+	m_dlgSamplings->Add(results);
 	if (m_sampler.size() > 0)
 	{
 		auto sampler = m_sampler.takeFirst();

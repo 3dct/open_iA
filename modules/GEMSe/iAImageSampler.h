@@ -54,7 +54,8 @@ public:
 		QString const & derivedOutputFile,
 		QString const & computationExecutable,
 		QString const & additionalArguments,
-		QString const & pipelineName);
+		QString const & pipelineName,
+		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
 	virtual double elapsed() const;
@@ -102,6 +103,7 @@ private:
 	QMutex m_mutex;
 	int m_runningOperations;
 	int m_parameterCount;
+	int m_samplingID;
 
 	void StatusMsg(QString const & msg);
 private slots:

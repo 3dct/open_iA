@@ -186,7 +186,8 @@ void dlg_GEMSeControl::StartSampling()
 			iASEAFile::DefaultCHRFileName,
 			m_dlgSamplingSettings->GetExecutable(),
 			m_dlgSamplingSettings->GetAdditionalArguments(),
-			m_dlgSamplingSettings->GetPipelineName()
+			m_dlgSamplingSettings->GetPipelineName(),
+			m_dlgSamplings->GetSamplings()->size()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -228,7 +229,7 @@ void dlg_GEMSeControl::LoadSampling()
 		}
 		labelCount = lblCountInput.getSpinBoxValues()[0];
 	}
-	LoadSampling(fileName, labelCount, iASamplingResults::GetNewID());
+	LoadSampling(fileName, labelCount, m_dlgSamplings->GetSamplings()->size());
 }
 
 
@@ -484,9 +485,8 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 	if (!m_dlgMajorityVoting)
 	{
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		m_dlgMajorityVoting = new dlg_MajorityVoting(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder);
-		connect(m_dlgMajorityVoting, SIGNAL(SamplingAdded(QSharedPointer<iASamplingResults>)),
-			this, SLOT(SamplingAdded(QSharedPointer<iASamplingResults>)));
+		m_dlgMajorityVoting = new dlg_MajorityVoting(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
+			m_dlgSamplings);
 		if (m_groundTruthImage)
 			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
 		mdiChild->splitDockWidget(this, m_dlgMajorityVoting, Qt::Vertical);
@@ -683,11 +683,6 @@ void dlg_GEMSeControl::ImportRankings()
 void dlg_GEMSeControl::SetSerializedHiddenCharts(QString const & hiddenCharts)
 {
 	m_dlgGEMSe->SetSerializedHiddenCharts(hiddenCharts);
-}
-
-void dlg_GEMSeControl::SamplingAdded(QSharedPointer<iASamplingResults> results)
-{
-	m_dlgSamplings->Add(results);
 }
 
 

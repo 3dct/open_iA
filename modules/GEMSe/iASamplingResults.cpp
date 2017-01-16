@@ -51,7 +51,6 @@ iASamplingResults::iASamplingResults(
 	m_name(name),
 	m_id(id)
 {
-	NewID = (id >= NewID)? id + 1: NewID;
 }
 
 // TODO: replace with QSettings?
@@ -297,11 +296,4 @@ QString iASamplingResults::GetAdditionalArguments() const
 int iASamplingResults::GetID() const
 {
 	return m_id;
-}
-
-int iASamplingResults::NewID = 0;
-
-int iASamplingResults::GetNewID()
-{
-	return NewID;
 }

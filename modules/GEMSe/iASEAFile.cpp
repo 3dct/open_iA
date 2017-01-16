@@ -135,6 +135,13 @@ iASEAFile::iASEAFile(QString const & fileName):
 		}
 		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
 	}
+	QList<int> keys = m_Samplings.keys();
+	qSort(keys.begin(), keys.end());
+	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
+	{
+		DEBUG_LOG(QString("Incoherent sampling indices, or not starting at 0: [%1..%2]").arg(keys[0]).arg(keys[keys.size() - 1]));
+		return;
+	}
 	m_ClusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
 	if (metaFile.contains(ReferenceImageKey))

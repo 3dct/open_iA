@@ -53,7 +53,8 @@ iAImageSampler::iAImageSampler(
 		QString const & derivedOutputFile,
 		QString const & computationExecutable,
 		QString const & additionalArguments,
-		QString const & pipelineName) :
+		QString const & pipelineName,
+		int samplingID) :
 	m_modalities(modalities),
 	m_parameters(parameters),
 	m_sampleGenerator(sampleGenerator),
@@ -71,7 +72,8 @@ iAImageSampler::iAImageSampler(
 	m_derivedOutputFile (derivedOutputFile),
 	m_runningOperations(0),
 	m_computationDuration(0),
-	m_derivedOutputDuration(0)
+	m_derivedOutputDuration(0),
+	m_samplingID(samplingID)
 {
 }
 
@@ -119,7 +121,7 @@ void iAImageSampler::run()
 		m_executable,
 		m_additionalArguments,
 		m_pipelineName,
-		iASamplingResults::GetNewID()));
+		m_samplingID));
 
 	for (m_curLoop=0; !m_aborted && m_curLoop<m_parameterSets->size(); ++m_curLoop)
 	{

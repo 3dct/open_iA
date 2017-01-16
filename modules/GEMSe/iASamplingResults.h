@@ -54,7 +54,6 @@ public:
 	QString GetExecutable() const;
 	QString GetAdditionalArguments() const;
 	int GetID() const;
-	static int GetNewID();
 	bool StoreAttributes(int type, QString const & fileName, bool id);
 private:
 	QSharedPointer<iAAttributes> m_attributes;
@@ -70,7 +69,6 @@ private:
 	int m_id;
 
 	bool LoadInternal(QString const & parameterSetFileName, QString const & derivedOutputFileName);
-	static int NewID;
 };
 
 typedef QSharedPointer<iASamplingResults> SamplingResultPtr;

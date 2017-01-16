@@ -31,6 +31,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_MajorityVoting>   dlg_MajorityVotingUI
 
 class dlg_GEMSe;
 class dlg_progress;
+class dlg_samplings;
 class iAColorTheme;
 class iAImageSampler;
 class iALookupTable;
@@ -47,7 +48,7 @@ class dlg_MajorityVoting : public dlg_MajorityVotingUI
 {
 	Q_OBJECT
 public:
-	dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder);
+	dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings);
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
 private slots:
 	void MinAbsPlot();
@@ -66,8 +67,6 @@ private slots:
 	void LabelVoters(int);
 	void CheckBoxStateChanged(int);
 	void SamplerFinished();
-signals:
-	void SamplingAdded(QSharedPointer<iASamplingResults>);
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
@@ -101,4 +100,5 @@ private:
 	QVector<QSharedPointer<iASingleResult> > m_comparisonBestSelection;
 	QVector<QSharedPointer<iASingleResult> > m_comparisonMVSelection;
 	int m_comparisonWeightType;
+	dlg_samplings * m_dlgSamplings;
 };
