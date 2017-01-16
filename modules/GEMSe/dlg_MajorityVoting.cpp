@@ -23,6 +23,7 @@
 
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
+#include "dlg_commoninput.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
@@ -742,6 +743,18 @@ void dlg_MajorityVoting::LoadConfig()
 			}
 		}
 
+		QStringList parameters;	parameters
+			<< "#Executable"
+			<< "#Additional Parameters";
+		QList<QVariant> values; values
+			<< samplingResults->GetExecutable()
+			<< samplingResults->GetAdditionalArguments();
+		dlg_commoninput checkAlgoParams(m_mdiChild, "Check Algorithm Parameters", 2, parameters, values, NULL);
+		
+		QStringList changedValues = checkAlgoParams.getText();
+		QString executable = changedValues[0];
+		QString additionalParameters = changedValues[1];
+
 		QSharedPointer<iASelectionParameterGenerator> generator(
 			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));
@@ -756,8 +769,8 @@ void dlg_MajorityVoting::LoadConfig()
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			samplingResults->GetExecutable(),
-			samplingResults->GetAdditionalArguments(),
+			executable,
+			additionalParameters,
 			samplingResults->GetName(),
 			lastSamplingID+s
 		));
