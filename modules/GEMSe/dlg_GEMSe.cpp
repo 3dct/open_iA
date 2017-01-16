@@ -693,6 +693,10 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		DEBUG_LOG("Reference image comparison calculate: NULL reference image (maybe wrong image type?)!");
 		return;
 	}
+	if (!m_treeView)
+	{
+		return;
+	}
 	int labelCount = m_treeView->GetTree()->GetLabelCount();
 	if (m_chartAttributes->size() == m_MeasureChartIDStart)
 	{
