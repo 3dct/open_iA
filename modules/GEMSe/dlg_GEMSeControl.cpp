@@ -159,7 +159,7 @@ void dlg_GEMSeControl::StartSampling()
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
-	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->GetModalities());
+	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->GetModalities(), m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
 		// get parameter ranges
@@ -197,6 +197,7 @@ void dlg_GEMSeControl::StartSampling()
 		
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
+		m_dlgSamplingSettings->GetValues(m_samplingSettings);
 	}
 	delete m_dlgSamplingSettings;
 	m_dlgSamplingSettings = 0;

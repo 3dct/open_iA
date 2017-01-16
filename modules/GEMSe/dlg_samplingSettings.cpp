@@ -38,9 +38,9 @@
 #include <cassert>
 
 
-
 dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
-	QSharedPointer<iAModalityList const> modalities):
+	QSharedPointer<iAModalityList const> modalities,
+	QMap<QString, QString> const & values):
 	dlg_samplingSettingsUI(parentWidget)
 {
 	assert(modalities->size() > 0);
@@ -63,13 +63,100 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	}
 	cbSamplingMethod->setCurrentIndex(1);
 
+	SetInputsFromMap(values);
+
 	connect(leParamDescriptor, SIGNAL(editingFinished()), this, SLOT(ParameterDescriptorChanged()));
 	connect(pbChooseOutputFolder, SIGNAL(clicked()), this, SLOT(ChooseOutputFolder()));
 	connect(pbChooseParameterDescriptor, SIGNAL(clicked()), this, SLOT(ChooseParameterDescriptor()));
 	connect(pbChooseExecutable, SIGNAL(clicked()), this, SLOT(ChooseExecutable()));
 	connect (pbRun, SIGNAL(clicked()), this, SLOT(accept()));
 	connect (pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
+};
+
+
+// methods for storing and loading all settings values:
+// {
+
+bool SetTextValue(QMap<QString, QString> values, QString name, QLineEdit* edit)
+{
+	if (values.contains(name))
+	{
+		edit->setText(values[name]);
+		return true;
+	}
+	return false;
 }
+
+void SetSpinBoxValue(QMap<QString, QString> values, QString name, QSpinBox* edit)
+{
+	if (values.contains(name))
+	{
+		bool ok;
+		edit->setValue(values[name].toInt(&ok));
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name]).arg(name));
+		}
+	}
+}
+
+void SetCheckValue(QMap<QString, QString> values, QString name, QCheckBox* checkBox)
+{
+	if (values.contains(name))
+	{
+		checkBox->setChecked(values[name] == "true");
+	}
+}
+
+void dlg_samplingSettings::SetInputsFromMap(QMap<QString, QString> const & values)
+{
+	SetTextValue(values, "Executable", leExecutable);
+	SetTextValue(values, "AdditionalArguments", leAdditionalArguments);
+	SetTextValue(values, "OutputFolder", leOutputFolder);
+	SetTextValue(values, "PipelineName", lePipelineName);
+	SetSpinBoxValue(values, "PipelineName", sbLabelCount);
+	SetSpinBoxValue(values, "PipelineName", sbNumberOfSamples);
+	if (SetTextValue(values, "ParameterDescriptor", leParamDescriptor))
+	{
+		ParameterDescriptorChanged();
+		for (int i = 0; i < m_paramInputs.size(); ++i)
+		{
+			QString name(m_paramInputs[i].label->text());
+			SetTextValue(values, QString("%1From").arg(name), m_paramInputs[i].from);
+			SetTextValue(values, QString("%1To").arg(name), m_paramInputs[i].to);
+			if (m_paramInputs[i].logScale)
+			{
+				SetCheckValue(values, QString("%1Log").arg(name), m_paramInputs[i].logScale);
+			}
+		}
+	}
+}
+
+
+void dlg_samplingSettings::GetValues(QMap<QString, QString> & values) const
+{
+	values.clear();
+	values.insert("Executable", leExecutable->text());
+	values.insert("AdditionalArguments", leAdditionalArguments->text());
+	values.insert("OutputFolder", leOutputFolder->text());
+	values.insert("PipelineName", lePipelineName->text());
+	values.insert( "LabelCount", sbLabelCount->text());
+	values.insert( "NumberOfSamples", sbNumberOfSamples->text());
+	values.insert("ParameterDescriptor", leParamDescriptor->text());
+	for (int i = 0; i < m_paramInputs.size(); ++i)
+	{
+		QString name(m_paramInputs[i].label->text());
+		values.insert(QString("%1From").arg(name), m_paramInputs[i].from->text());
+		values.insert(QString("%1To").arg(name), m_paramInputs[i].to->text());
+		if (m_paramInputs[i].logScale)
+		{
+			values.insert(QString("%1Log").arg(name), m_paramInputs[i].logScale->isChecked() ? "true" : "false");
+		}
+	}
+}
+
+
+// }
 
 QSharedPointer<iAParameterGenerator> dlg_samplingSettings::GetGenerator()
 {

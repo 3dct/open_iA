@@ -22,7 +22,8 @@
 
 #include "ui_samplingSettings.h"
 #include <iAQTtoUIConnector.h>
-typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
+
+#include <QMap>
 
 class iAAttributes;
 class iAAttributeDescriptor;
@@ -47,11 +48,15 @@ struct ParameterInputs
 	{}
 };
 
+typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
+
 class dlg_samplingSettings : public dlg_samplingSettingsUI
 {
 	Q_OBJECT
 public:
-	dlg_samplingSettings(QWidget *parentWidget, QSharedPointer<iAModalityList const> modalities);
+	dlg_samplingSettings(QWidget *parentWidget,
+		QSharedPointer<iAModalityList const> modalities,
+		QMap<QString, QString> const & values);
 	QSharedPointer<iAParameterGenerator> GetGenerator();
 	QSharedPointer<iAAttributes> GetAttributes();
 	QString GetOutputFolder() const;
@@ -60,12 +65,14 @@ public:
 	QString GetPipelineName() const;
 	int GetSampleCount() const;
 	int GetLabelCount() const;
+	void GetValues(QMap<QString, QString> & values) const;
 private slots:
 	void ChooseOutputFolder();
 	void ChooseParameterDescriptor();
 	void ChooseExecutable();
 	void ParameterDescriptorChanged();
 private:
+	void SetInputsFromMap(QMap<QString, QString> const & values);
 	int m_nbOfSamples;
 	double m_imagePixelCount;
 	int m_startLine;

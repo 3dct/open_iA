@@ -26,6 +26,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QMap>
+
 #include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
@@ -112,4 +114,5 @@ private:
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
 	LabelImagePointer                    m_groundTruthImage;
+	QMap<QString, QString>               m_samplingSettings;
 };
