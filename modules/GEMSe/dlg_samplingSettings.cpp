@@ -69,6 +69,9 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	connect(pbChooseOutputFolder, SIGNAL(clicked()), this, SLOT(ChooseOutputFolder()));
 	connect(pbChooseParameterDescriptor, SIGNAL(clicked()), this, SLOT(ChooseParameterDescriptor()));
 	connect(pbChooseExecutable, SIGNAL(clicked()), this, SLOT(ChooseExecutable()));
+	connect(pbSaveSettings, SIGNAL(clicked()), this, SLOT(SaveSettings()));
+	connect(pbLoadSettings, SIGNAL(clicked()), this, SLOT(LoadSettings()));
+
 	connect (pbRun, SIGNAL(clicked()), this, SLOT(accept()));
 	connect (pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
 };
@@ -92,11 +95,13 @@ void SetSpinBoxValue(QMap<QString, QString> values, QString name, QSpinBox* edit
 	if (values.contains(name))
 	{
 		bool ok;
-		edit->setValue(values[name].toInt(&ok));
+		int value = values[name].toInt(&ok);
 		if (!ok)
 		{
 			DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name]).arg(name));
+			return;
 		}
+		edit->setValue(value);
 	}
 }
 
@@ -108,25 +113,41 @@ void SetCheckValue(QMap<QString, QString> values, QString name, QCheckBox* check
 	}
 }
 
+void SetComboBoxValue(QMap<QString, QString> values, QString name, QComboBox* comboBox)
+{
+	if (values.contains(name))
+	{
+		bool ok;
+		int idx = values[name].toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(values[name]).arg(name));
+			return;
+		}
+		comboBox->setCurrentIndex(idx);
+	}
+}
+
 void dlg_samplingSettings::SetInputsFromMap(QMap<QString, QString> const & values)
 {
 	SetTextValue(values, "Executable", leExecutable);
 	SetTextValue(values, "AdditionalArguments", leAdditionalArguments);
 	SetTextValue(values, "OutputFolder", leOutputFolder);
 	SetTextValue(values, "PipelineName", lePipelineName);
-	SetSpinBoxValue(values, "PipelineName", sbLabelCount);
-	SetSpinBoxValue(values, "PipelineName", sbNumberOfSamples);
+	SetSpinBoxValue(values, "LabelCount", sbLabelCount);
+	SetSpinBoxValue(values, "NumberOfSamples", sbNumberOfSamples);
+	SetComboBoxValue(values, "SamplingMethod", cbSamplingMethod);
 	if (SetTextValue(values, "ParameterDescriptor", leParamDescriptor))
 	{
 		ParameterDescriptorChanged();
 		for (int i = 0; i < m_paramInputs.size(); ++i)
 		{
 			QString name(m_paramInputs[i].label->text());
-			SetTextValue(values, QString("%1From").arg(name), m_paramInputs[i].from);
-			SetTextValue(values, QString("%1To").arg(name), m_paramInputs[i].to);
+			SetTextValue(values, QString("%1 From").arg(name), m_paramInputs[i].from);
+			SetTextValue(values, QString("%1 To").arg(name), m_paramInputs[i].to);
 			if (m_paramInputs[i].logScale)
 			{
-				SetCheckValue(values, QString("%1Log").arg(name), m_paramInputs[i].logScale);
+				SetCheckValue(values, QString("%1 Log").arg(name), m_paramInputs[i].logScale);
 			}
 		}
 	}
@@ -140,19 +161,85 @@ void dlg_samplingSettings::GetValues(QMap<QString, QString> & values) const
 	values.insert("AdditionalArguments", leAdditionalArguments->text());
 	values.insert("OutputFolder", leOutputFolder->text());
 	values.insert("PipelineName", lePipelineName->text());
-	values.insert( "LabelCount", sbLabelCount->text());
-	values.insert( "NumberOfSamples", sbNumberOfSamples->text());
+	values.insert("LabelCount", sbLabelCount->text());
+	values.insert("NumberOfSamples", sbNumberOfSamples->text());
 	values.insert("ParameterDescriptor", leParamDescriptor->text());
+	values.insert("SamplingMethod", QString("%1").arg(cbSamplingMethod->currentIndex()));
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
 		QString name(m_paramInputs[i].label->text());
-		values.insert(QString("%1From").arg(name), m_paramInputs[i].from->text());
-		values.insert(QString("%1To").arg(name), m_paramInputs[i].to->text());
+		values.insert(QString("%1 From").arg(name), m_paramInputs[i].from->text());
+		values.insert(QString("%1 To").arg(name), m_paramInputs[i].to->text());
 		if (m_paramInputs[i].logScale)
 		{
-			values.insert(QString("%1Log").arg(name), m_paramInputs[i].logScale->isChecked() ? "true" : "false");
+			values.insert(QString("%1 Log").arg(name), m_paramInputs[i].logScale->isChecked() ? "true" : "false");
 		}
 	}
+}
+
+
+namespace
+{
+	QString const KeyValueSeparator(": ");
+}
+
+
+void dlg_samplingSettings::SaveSettings()
+{
+	QString fileName = QFileDialog::getSaveFileName(
+		this,
+		"Store Sampling Settings",
+		QString(),
+		"Sampling Settings File (*.ssf);;");
+	if (fileName.isEmpty())
+		return;
+	QMap<QString, QString> settings;
+	GetValues(settings);
+
+
+	QFile file(fileName);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		DEBUG_LOG(QString("Cannot open file '%1' for writing!").arg(fileName));
+		return;
+	}
+	QTextStream stream(&file);
+	for (QString key : settings.keys())
+	{
+		stream << key << KeyValueSeparator << settings[key] << endl;
+	}
+}
+
+void dlg_samplingSettings::LoadSettings()
+{
+	QString fileName = QFileDialog::getOpenFileName(
+		this,
+		"Store Sampling Settings",
+		QString(),
+		"Sampling Settings File (*.ssf);;");
+	if (fileName.isEmpty())
+		return;
+	QMap<QString, QString> settings;
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		DEBUG_LOG(QString("Cannot open file '%1' for reading!").arg(fileName));
+		return;
+	}
+	QTextStream in(&file);
+	while (!in.atEnd())
+	{
+		QString line = in.readLine();
+		int sepPos = line.indexOf(KeyValueSeparator);
+		if (sepPos == -1)
+		{
+			DEBUG_LOG(QString("Invalid line '%1'").arg(line));
+		}
+		QString key = line.left(sepPos);
+		QString value = line.right(line.length() - (sepPos + KeyValueSeparator.length()));
+		settings.insert(key, value);
+	}
+	SetInputsFromMap(settings);
 }
 
 

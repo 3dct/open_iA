@@ -71,6 +71,8 @@ private slots:
 	void ChooseParameterDescriptor();
 	void ChooseExecutable();
 	void ParameterDescriptorChanged();
+	void SaveSettings();
+	void LoadSettings();
 private:
 	void SetInputsFromMap(QMap<QString, QString> const & values);
 	int m_nbOfSamples;
