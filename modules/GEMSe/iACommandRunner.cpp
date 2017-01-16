@@ -51,9 +51,12 @@ void iACommandRunner::run()
 	}
 	else
 	{
-		DEBUG_LOG(QString("Program exited with status code %1").arg(myProcess.exitCode()));
 		int statusCode = myProcess.exitCode();
 		m_success = (statusCode == 0);
+		if (!m_success)
+		{
+			DEBUG_LOG(QString("Program exited with status code %1").arg(myProcess.exitCode()));
+		}
 	}
 	m_output = myProcess.readAllStandardOutput();
 	m_output.replace("\r", "");
