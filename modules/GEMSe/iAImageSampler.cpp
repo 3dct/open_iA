@@ -98,7 +98,7 @@ void iAImageSampler::run()
 	m_parameterCount = m_parameters->Count(iAAttributeDescriptor::Parameter);
 
 	QStringList additionalArgumentList = SplitPossiblyQuotedString(m_additionalArguments);
-	if (!m_parameters->Find("Object Count"))
+	if (m_parameters->Find("Object Count") == -1)
 	{
 		// add derived output to the attributes (which we want to set during sampling):
 		QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
