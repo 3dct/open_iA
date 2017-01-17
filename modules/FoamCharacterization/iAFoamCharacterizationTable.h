@@ -38,8 +38,8 @@ class iAFoamCharacterizationTable : public QTableWidget
 	{
 		public:
 			explicit iAFoamCharacterizationTableDelegate(iAFoamCharacterizationTable* _pTable, QObject* _pParent = nullptr) 
-																										: QItemDelegate(_pParent)
-																										, m_pTable(_pTable)
+																										 : QItemDelegate(_pParent)
+																										 , m_pTable(_pTable)
 			{
 				m_iMargin = 100 * m_pTable->logicalDpiX() / 254;
 			}
@@ -71,11 +71,12 @@ class iAFoamCharacterizationTable : public QTableWidget
 					_pPainter->setPen(m_pTable->palette().color(QPalette::WindowText));
 				}
 
-				iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)m_pTable->item(iRow, 0));
+				iAFoamCharacterizationItem* pItem ((iAFoamCharacterizationItem*) m_pTable->item(iRow, 0));
 
 				const QRect rText(_sovItem.rect.adjusted(m_iMargin, 0, -m_iMargin, 0));
 
 				QIcon iItemIcon (pItem->icon());
+
 				const QSize sItemIcon (_sovItem.decorationSize);
 
 				_pPainter->drawPixmap ( (rText.left() - sItemIcon.width()) / 2
@@ -87,9 +88,24 @@ class iAFoamCharacterizationTable : public QTableWidget
 
 				_pPainter->drawText
 				            (rText.adjusted(m_iMargin / 4, 0, 0, 0), Qt::AlignLeft | Qt::AlignVCenter, _miItem.data().toString());
-				
-				_pPainter->setPen((pItem->modified()) ? colorModified(_pPainter->pen().color()) : _pPainter->pen().color());
-				_pPainter->drawText(rText, Qt::AlignRight | Qt::AlignVCenter, pItem->executeTimeString());
+
+				if (pItem->executing())
+				{
+					const QRect rProgress ( _sovItem.rect.width() - 3 * m_iMargin
+						                  , _sovItem.rect.height() / 4
+										  , 2 * m_iMargin
+						                  , _sovItem.rect.height() / 2
+										  );
+
+					_pPainter->drawRect(rProgress);
+				}
+				else
+				{
+					const QString sTime(pItem->executeTimeString());
+
+					_pPainter->setPen((pItem->modified()) ? colorModified(_pPainter->pen().color()) : _pPainter->pen().color());
+					_pPainter->drawText(rText, Qt::AlignRight | Qt::AlignVCenter, sTime);
+				}
 			}
 
 		private:
@@ -109,12 +125,6 @@ class iAFoamCharacterizationTable : public QTableWidget
 				_pPainter->drawRect(_rItem.adjusted(0, 0, m_iMargin - _rItem.width(), -1));
 
 				_pPainter->fillRect(_rItem.adjusted(m_iMargin, 0, 0, 0), _cColor);
-			}
-
-		protected:
-			virtual QSize sizeHint(const QStyleOptionViewItem& _sovItem, const QModelIndex& _miItem) const override
-			{
-				return _sovItem.rect.size();
 			}
 	};
 

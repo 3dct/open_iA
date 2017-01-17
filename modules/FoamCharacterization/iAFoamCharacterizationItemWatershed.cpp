@@ -34,8 +34,9 @@
 
 #include "iAFoamCharacterizationDialogWatershed.h"
 
-iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData)
-	                                            : iAFoamCharacterizationItem(_pImageData, iAFoamCharacterizationItem::itWatershed)
+iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed
+																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
+	                                   : iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itWatershed)
 {
 
 }
@@ -75,8 +76,6 @@ void iAFoamCharacterizationItemWatershed::execute()
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
-
-	setItemText();
 }
 
 void iAFoamCharacterizationItemWatershed::executeFloat(iAConnector* _pConnector)

@@ -32,8 +32,8 @@
 #include "iAFoamCharacterizationItemFilter.h"
 #include "iAFoamCharacterizationItemWatershed.h"
 
-iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent) : QTableWidget(_pParent)
-												                                                      , m_pImageData (_pImageData)
+iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent)
+																			  : QTableWidget(_pParent), m_pImageData (_pImageData)
 {
 	setAutoFillBackground(false);
 	setCursor(Qt::PointingHandCursor);
@@ -44,8 +44,10 @@ iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageDa
 	setSelectionMode(QAbstractItemView::SingleSelection);
 
 	horizontalHeader()->setSectionsClickable(false);
+
 	verticalHeader()->setSectionsClickable(false);
-	
+	verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+
 	setColumnCount(1);
 
 	const QStringList slLabels("Foam characterization pipeline");
@@ -62,7 +64,7 @@ void iAFoamCharacterizationTable::addBinarization()
 
 	++m_iCountBinarization;
 
-	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization(m_pImageData));
+	iAFoamCharacterizationItemBinarization* pItem(new iAFoamCharacterizationItemBinarization(this, m_pImageData));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountBinarization));
 	setItem(n, 0, pItem);
 }
@@ -75,7 +77,7 @@ void iAFoamCharacterizationTable::addDistanceTransform()
 
 	++m_iCountDistanceTransform;
 
-	iAFoamCharacterizationItemDistanceTransform* pItem(new iAFoamCharacterizationItemDistanceTransform(m_pImageData));
+	iAFoamCharacterizationItemDistanceTransform* pItem(new iAFoamCharacterizationItemDistanceTransform(this, m_pImageData));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountDistanceTransform));
 	setItem(n, 0, pItem);
 }
@@ -88,7 +90,7 @@ void iAFoamCharacterizationTable::addFilter()
 
 	++m_iCountFilter;
 
-	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter(m_pImageData));
+	iAFoamCharacterizationItemFilter* pItem(new iAFoamCharacterizationItemFilter(this, m_pImageData));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountFilter));
 	setItem(n, 0, pItem);
 }
@@ -101,7 +103,7 @@ void iAFoamCharacterizationTable::addWatershed()
 
 	++m_iCountWatershed;
 
-	iAFoamCharacterizationItemWatershed* pItem(new iAFoamCharacterizationItemWatershed(m_pImageData));
+	iAFoamCharacterizationItemWatershed* pItem(new iAFoamCharacterizationItemWatershed(this, m_pImageData));
 	pItem->setName(pItem->text() + QString(" %1").arg(m_iCountWatershed));
 	setItem(n, 0, pItem);
 }

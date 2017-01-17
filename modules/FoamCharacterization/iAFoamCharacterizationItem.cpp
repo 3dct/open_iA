@@ -29,11 +29,14 @@
 #include <vtkImageData.h>
 
 #include "iAFoamCharacterizationDialog.h"
+#include "iAFoamCharacterizationTable.h"
 
-iAFoamCharacterizationItem::iAFoamCharacterizationItem(vtkImageData* _pImageData, const EItemType& _eItemType)
-																									   : QTableWidgetItem()
-																									   , m_eItemType(_eItemType)
-																									   , m_pImageData(_pImageData)
+iAFoamCharacterizationItem::iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
+													   , vtkImageData* _pImageData, const EItemType& _eItemType
+													   ) : QTableWidgetItem()
+	                                                     , m_pTable (_pTable)
+														 , m_eItemType(_eItemType)
+														 , m_pImageData(_pImageData)
 {
 	QFont f(font());
 	f.setBold(true);
@@ -49,6 +52,7 @@ iAFoamCharacterizationItem::iAFoamCharacterizationItem(vtkImageData* _pImageData
 iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem) : QTableWidgetItem() 
 																						, m_bModified(_pItem->modified())
 																						, m_dExecuteTime(_pItem->executeTime())
+																						, m_pTable(_pItem->table())
 																						, m_eItemType(_pItem->itemType())
 																						, m_pImageData(_pItem->imageData())
 {
@@ -71,6 +75,11 @@ iAFoamCharacterizationItem::~iAFoamCharacterizationItem()
 double iAFoamCharacterizationItem::executeTime() const
 {
 	return m_dExecuteTime;
+}
+
+bool iAFoamCharacterizationItem::executing() const
+{
+	return m_bExecuting;
 }
 
 QString iAFoamCharacterizationItem::executeTimeString() const
@@ -214,6 +223,13 @@ void iAFoamCharacterizationItem::save(QFile* _pFileSave)
 	_pFileSave->write((char*)&m_bItemEnabled, sizeof(m_bItemEnabled));
 }
 
+void iAFoamCharacterizationItem::setExecuting(const bool& _bExecuting)
+{
+	m_bExecuting = _bExecuting;
+
+	m_pTable->viewport()->repaint();
+}
+
 void iAFoamCharacterizationItem::setItemIcon()
 {
 	QScopedPointer<QImage> pImage(new QImage(1, 1, QImage::Format_ARGB32));
@@ -274,4 +290,9 @@ void iAFoamCharacterizationItem::setName(const QString& _sName)
 	m_sName = _sName;
 
 	setItemText();
+}
+
+iAFoamCharacterizationTable* iAFoamCharacterizationItem::table()
+{
+	return m_pTable;
 }

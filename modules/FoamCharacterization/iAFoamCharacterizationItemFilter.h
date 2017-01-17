@@ -33,12 +33,26 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 	class QtRunnableMedian : public QRunnable
 	{
 		public:
-			explicit QtRunnableMedian ( iAFoamCharacterizationItemFilter* _pFilter
+			explicit QtRunnableMedian ( iAFoamCharacterizationItemFilter* _pItemFilter
+									  , unsigned short* _pDataRead
+									  , unsigned short* _pDataWrite
+									  , const unsigned int& _uiNi
+									  , const unsigned int& _uiNj
+									  , const unsigned int& _uiNk
+									  , const unsigned int& _uiStrideJ
+									  , const unsigned int& _uiStrideK
 									  , const unsigned int& _uiK1
 									  , const unsigned int& _uiK2
 									  ) : QRunnable()
-										, m_pFilter (_pFilter)
-										, m_uiK1 (_uiK1)
+										, m_pItemFilter (_pItemFilter)
+										, m_pDataRead (_pDataRead)
+										, m_pDataWrite (_pDataWrite)
+										, m_uiNi(_uiNi)
+				                        , m_uiNj(_uiNj)
+				                        , m_uiNk(_uiNk)
+										, m_uiStrideJ(_uiStrideJ)
+										, m_uiStrideK(_uiStrideK)
+										, m_uiK1(_uiK1)
 										, m_uiK2 (_uiK2)
 			{
 				setAutoDelete(false);
@@ -46,28 +60,44 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 
 			virtual void run() override
 			{
-				m_pFilter->executeMedianFX(m_uiK1, m_uiK2);
+				m_pItemFilter->executeMedianFX ( m_pDataRead, m_pDataWrite
+					                           , m_uiNi, m_uiNj, m_uiNk, m_uiStrideJ, m_uiStrideK, m_uiK1, m_uiK2
+										       );
 			}
 
 		private:
-			iAFoamCharacterizationItemFilter* m_pFilter = nullptr;
+			iAFoamCharacterizationItemFilter* m_pItemFilter = nullptr;
+
+			unsigned short* m_pDataRead = nullptr;
+			unsigned short* m_pDataWrite = nullptr;
+
+			unsigned int m_uiNi = 0;
+			unsigned int m_uiNj = 0;
+			unsigned int m_uiNk = 0;
+
+			unsigned int m_uiStrideJ = 0;
+			unsigned int m_uiStrideK = 0;
 
 			unsigned int m_uiK1 = 0;
 			unsigned int m_uiK2 = 0;
 	};
 
 	public:
-		enum EItemFilterType { iftAnisotropic, iftGauss , iftMedian, iftNonLocalMeans};
+		enum EItemFilterType {iftAnisotropic, iftGauss , iftMedian, iftNonLocalMeans};
 
 	public:
-		explicit iAFoamCharacterizationItemFilter(vtkImageData* _pImageData);
+		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationItemFilter* _pFilter);
 
 		double anisotropicConductance() const;
 		unsigned int anisotropicIteration() const;
 		double anisotropicTimeStep() const;
 
-		void executeMedianFX(const unsigned int& _uiK1, const unsigned int& _uiK2);
+		void executeMedianFX ( unsigned short* _pDataRead, unsigned short* _pDataWrite
+							 , const unsigned int& _uiNi, const unsigned int& _uiNj, const unsigned int& _uiNk
+							 , const unsigned int& _uiStrideJ, const unsigned int& _uiStrideK
+							 , const unsigned int& _uiK1, const unsigned int& _uiK2
+							 );
 
 		double gaussianVariance() const;
 

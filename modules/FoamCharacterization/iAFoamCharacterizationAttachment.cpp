@@ -66,22 +66,22 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	connect(pPushButtonClear, SIGNAL(clicked()), this, SLOT(slotPushButtonClear()));
 
 	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
-	iAFoamCharacterizationItemFilter itemFilter(m_pImageData);
+	iAFoamCharacterizationItemFilter itemFilter(0, m_pImageData);
 	pPushButtonFilter->setIcon(itemFilter.itemButtonIcon());
 	connect(pPushButtonFilter, SIGNAL(clicked()), this, SLOT(slotPushButtonFilter()));
 
 	QPushButton* pPushButtonBinarization(new QPushButton("Add binarization", pWidget));
-	iAFoamCharacterizationItemBinarization itemBinarization(m_pImageData);
+	iAFoamCharacterizationItemBinarization itemBinarization(0, m_pImageData);
 	pPushButtonBinarization->setIcon(itemBinarization.itemButtonIcon());
 	connect(pPushButtonBinarization, SIGNAL(clicked()), this, SLOT(slotPushButtonBinarization()));
 
 	QPushButton* pPushButtonDistanceTransform(new QPushButton("Add distance transform", pWidget));
-	iAFoamCharacterizationItemDistanceTransform itemDistanceTransform(m_pImageData);
+	iAFoamCharacterizationItemDistanceTransform itemDistanceTransform(0, m_pImageData);
 	pPushButtonDistanceTransform->setIcon(itemDistanceTransform.itemButtonIcon());
 	connect(pPushButtonDistanceTransform, SIGNAL(clicked()), this, SLOT(slotPushButtonDistanceTransform()));
 
 	QPushButton* pPushButtonWatershed(new QPushButton("Add watershed", pWidget));
-	iAFoamCharacterizationItemWatershed itemWatershed (m_pImageData);
+	iAFoamCharacterizationItemWatershed itemWatershed(0, m_pImageData);
 	pPushButtonWatershed->setIcon(itemWatershed.itemButtonIcon());
 	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
 

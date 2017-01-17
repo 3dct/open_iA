@@ -26,17 +26,24 @@ class QFile;
 
 class vtkImageData;
 
+class iAFoamCharacterizationTable;
+
 class iAFoamCharacterizationItem : public QTableWidgetItem
 {
 	public:
 		enum EItemType { itBinarization, itDistanceTransform, itFilter, itWatershed};
 
 	public:
-		explicit iAFoamCharacterizationItem(vtkImageData* m_pImageData, const EItemType& _eItemType);
+		explicit iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
+										    , vtkImageData* m_pImageData, const EItemType& _eItemType
+											);
+
 		explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
 		virtual ~iAFoamCharacterizationItem();
 
 		double executeTime() const;
+
+		bool executing() const;
 
 		QString executeTimeString() const;
 
@@ -61,12 +68,16 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 		void setName(const QString& _sName);
 
+		iAFoamCharacterizationTable* table();
+
 		virtual void dialog() = 0;
 		virtual void execute() = 0;
 		virtual void open(QFile* _pFileOpen) = 0;
 		virtual void save(QFile* _pFileSave) = 0;
 
 	private:
+		bool m_bExecuting = false;
+
 		QColor m_cItemIcon = Qt::black;
 
 		void setItemIcon();
@@ -74,10 +85,11 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 	protected:
 		bool m_bItemEnabled = true;
-
 		bool m_bModified = false;
 
 		double m_dExecuteTime = 0.0;
+
+		iAFoamCharacterizationTable* m_pTable = nullptr;
 
 		EItemType m_eItemType = itFilter;
 
@@ -87,6 +99,8 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 		QString fileRead(QFile* _pFileOpen);
 		void fileWrite(QFile* _pFileSave, const QString& _sText);
+
+		void setExecuting(const bool& _bExecuting);
 
 		virtual void setItemText();
 };

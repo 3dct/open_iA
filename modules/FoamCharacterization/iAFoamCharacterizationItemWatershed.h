@@ -29,7 +29,7 @@ class iAConnector;
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
 	public:
-		explicit iAFoamCharacterizationItemWatershed(vtkImageData* _pImageData);
+		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
 
 		void executeFloat(iAConnector* _pConnector);

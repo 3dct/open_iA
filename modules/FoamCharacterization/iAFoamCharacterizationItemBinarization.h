@@ -30,7 +30,7 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 		enum EItemFilterType { iftBinarization, iftOtzu};
 
 	public:
-		explicit iAFoamCharacterizationItemBinarization(vtkImageData* _pImageData);
+		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationTable* _pTable ,vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationItemBinarization* _pBinarization);
 
 		EItemFilterType itemFilterType() const;

@@ -32,8 +32,9 @@
 
 #include "iAFoamCharacterizationDialogBinarization.h"
 
-iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization(vtkImageData* _pImageData)
-	                                         : iAFoamCharacterizationItem(_pImageData, iAFoamCharacterizationItem::itBinarization)
+iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
+																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
+	                                : iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itBinarization)
 {
 
 }
@@ -70,8 +71,6 @@ void iAFoamCharacterizationItemBinarization::execute()
 	}
 
 	m_dExecuteTime = 0.001 * (double)t.elapsed();
-
-	setItemText();
 }
 
 void iAFoamCharacterizationItemBinarization::executeBinarization()

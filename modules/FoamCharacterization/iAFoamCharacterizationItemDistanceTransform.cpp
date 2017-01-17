@@ -31,8 +31,9 @@
 
 #include "iAConnector.h"
 
-iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform(vtkImageData* _pImageData)
-										: iAFoamCharacterizationItem(_pImageData, iAFoamCharacterizationItem::itDistanceTransform)
+iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
+																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
+							   : iAFoamCharacterizationItem(_pTable ,_pImageData, iAFoamCharacterizationItem::itDistanceTransform)
 {
 
 }
@@ -80,8 +81,6 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
-
-	setItemText();
 }
 
 void iAFoamCharacterizationItemDistanceTransform::open(QFile* _pFileOpen)

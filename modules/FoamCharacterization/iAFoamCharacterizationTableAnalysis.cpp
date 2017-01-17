@@ -43,7 +43,9 @@ iAFoamCharacterizationTableAnalysis::iAFoamCharacterizationTableAnalysis(QWidget
 	pItemModel->setHorizontalHeaderItem(6, new QStandardItem("Bounding box"));
 
 	horizontalHeader()->setSectionsClickable(false);
+
 	verticalHeader()->setSectionsClickable(false);
+	verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 
 	setModel(pItemModel);
 }
