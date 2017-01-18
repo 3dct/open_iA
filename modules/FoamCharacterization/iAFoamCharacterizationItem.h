@@ -60,12 +60,11 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 
 		QString name() const;
 
+		int progress() const;
+
 		void reset();
-
 		void setItemEnabled(const bool& _bEnabled);
-
 		void setModified(const bool& _bModified);
-
 		void setName(const QString& _sName);
 
 		iAFoamCharacterizationTable* table();
@@ -79,6 +78,8 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		bool m_bExecuting = false;
 
 		QColor m_cItemIcon = Qt::black;
+
+		int m_iProgress = 0;
 
 		void setItemIcon();
 		void setItemIconColor();
@@ -101,6 +102,7 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		void fileWrite(QFile* _pFileSave, const QString& _sText);
 
 		void setExecuting(const bool& _bExecuting);
+		void setProgress(const unsigned int& _uiProgress);
 
 		virtual void setItemText();
 };

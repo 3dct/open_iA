@@ -52,6 +52,8 @@ void iAFoamCharacterizationItemDistanceTransform::dialog()
 
 void iAFoamCharacterizationItemDistanceTransform::execute()
 {
+	setExecuting(true);
+
 	QTime t;
 	t.start();
 
@@ -81,6 +83,8 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
+
+	setExecuting(false);
 }
 
 void iAFoamCharacterizationItemDistanceTransform::open(QFile* _pFileOpen)

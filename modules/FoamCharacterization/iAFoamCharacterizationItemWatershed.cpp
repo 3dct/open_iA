@@ -57,6 +57,8 @@ void iAFoamCharacterizationItemWatershed::dialog()
 
 void iAFoamCharacterizationItemWatershed::execute()
 {
+	setExecuting(true);
+
 	QTime t;
 	t.start();
 
@@ -76,6 +78,8 @@ void iAFoamCharacterizationItemWatershed::execute()
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 
 	m_dExecuteTime = 0.001 * (double) t.elapsed();
+
+	setExecuting(false);
 }
 
 void iAFoamCharacterizationItemWatershed::executeFloat(iAConnector* _pConnector)

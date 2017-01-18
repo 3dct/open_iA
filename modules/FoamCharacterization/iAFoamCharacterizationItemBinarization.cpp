@@ -56,6 +56,8 @@ void iAFoamCharacterizationItemBinarization::dialog()
 
 void iAFoamCharacterizationItemBinarization::execute()
 {
+	setExecuting(true);
+
 	QTime t;
 	t.start();
 
@@ -71,6 +73,8 @@ void iAFoamCharacterizationItemBinarization::execute()
 	}
 
 	m_dExecuteTime = 0.001 * (double)t.elapsed();
+
+	setExecuting(false);
 }
 
 void iAFoamCharacterizationItemBinarization::executeBinarization()

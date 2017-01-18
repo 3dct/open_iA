@@ -123,10 +123,12 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 
 	private:
 		double m_dAnisotropicConductance = 1.0;
-		double m_dAnisotropicTimeStep= 0.1;
+		double m_dAnisotropicTimeStep = 0.1;
 		double m_dGaussianVariance = 1.0;
 
 		EItemFilterType m_eItemFilterType = iftMedian;
+
+		int m_uiMedianFXSlice = 0;
 
 		unsigned int m_uiAnisotropicIteration = 2;
 		unsigned int m_uiMedianRadius = 2;
@@ -138,14 +140,26 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		void executeMedian();
 		void executeMedianFX();
 
-		unsigned short executeMedianFXValue ( unsigned short* _pDataRead
-			                      , const unsigned int& _i1, const unsigned int& _i2
-								  , const unsigned int& _j1, const unsigned int& _j2
-								  , const unsigned int& _k1, const unsigned int& _k2
-								  , const unsigned int& _uiStrideJ
-								  , const unsigned int& _uiStrideK
-								  , const unsigned int& _uiBoxSize
-								  );
+		void executeMedianFX1(unsigned short* _pDataRead, unsigned short* _pDataWrite
+			, const unsigned int& _uiNi, const unsigned int& _uiNj, const unsigned int& _uiNk
+			, const unsigned int& _uiStrideJ, const unsigned int& _uiStrideK
+			, const unsigned int& _uiK1, const unsigned int& _uiK2
+		);
+
+		void executeMedianFXSlice(unsigned short* _pDataRead, unsigned short* _pDataWrite
+			, const unsigned int& _uiNi, const unsigned int& _uiNj, const unsigned int& _uiNk
+			, const unsigned int& _uiStrideJ, const unsigned int& _uiStrideK
+			, const unsigned int& _uiK
+		);
+
+		unsigned short executeMedianFXValue(unsigned short* _pDataRead
+			, const unsigned int& _i1, const unsigned int& _i2
+			, const unsigned int& _j1, const unsigned int& _j2
+			, const unsigned int& _k1, const unsigned int& _k2
+			, const unsigned int& _uiStrideJ
+			, const unsigned int& _uiStrideK
+			, const unsigned int& _uiBoxSize
+		);
 
 		void executeNonLocalMeans();
 

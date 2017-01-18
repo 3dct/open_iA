@@ -36,6 +36,7 @@
 #include "iAConnector.h"
 
 #include "iAFoamCharacterizationDialogFilter.h"
+#include "iAFoamCharacterizationTable.h"
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
@@ -84,6 +85,8 @@ void iAFoamCharacterizationItemFilter::dialog()
 
 void iAFoamCharacterizationItemFilter::execute()
 {
+	setExecuting(true);
+
 	QTime t;
 	t.start();
 
@@ -107,6 +110,8 @@ void iAFoamCharacterizationItemFilter::execute()
 	}
 
 	m_dExecuteTime = 0.001 * (double)t.elapsed();
+
+	setExecuting(false);
 }
 
 void iAFoamCharacterizationItemFilter::executeAnisotropic()
@@ -175,6 +180,8 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 
 void iAFoamCharacterizationItemFilter::executeMedianFX()
 {
+	m_uiMedianFXSlice = 0;
+
 	vtkSmartPointer<vtkImageData> pImageDataRead(vtkImageData::New());
 	pImageDataRead->DeepCopy(m_pImageData);
 
@@ -189,15 +196,17 @@ void iAFoamCharacterizationItemFilter::executeMedianFX()
 
 	QScopedPointer<QThreadPool> pThreadPool (new QThreadPool(qApp));
 
-	const unsigned int uiThread (QThread::idealThreadCount());
+	const unsigned int uiThread(QThread::idealThreadCount());
+	const unsigned int uiThread_1 (uiThread - 1);
 
 	QVector<QSharedPointer<QtRunnableMedian>> vRunnableMedian (uiThread);
 
-	for (unsigned int ui(0), uii(1); ui < uiThread ; ++ui, ++uii)
+	unsigned short* pDataRead ((unsigned short*) pImageDataRead->GetScalarPointer());
+	unsigned short* pDataWrite ((unsigned short*) m_pImageData->GetScalarPointer());
+
+	for (unsigned int ui(0), uii(1); ui < uiThread_1; ++ui, ++uii)
 	{
-		vRunnableMedian[ui].reset ( new QtRunnableMedian ( this
-														 , (unsigned short*) pImageDataRead->GetScalarPointer()
-														 , (unsigned short*) m_pImageData->GetScalarPointer()
+		vRunnableMedian[ui].reset ( new QtRunnableMedian ( this, pDataRead, pDataWrite
 														 , ni, nj, nk, uiStrideJ, uiStrideK
 														 , nk * ui / uiThread, nk * uii / uiThread
 		                                                 )
@@ -206,154 +215,172 @@ void iAFoamCharacterizationItemFilter::executeMedianFX()
 		pThreadPool->start(vRunnableMedian[ui].data());
 	}
 
+	executeMedianFX1(pDataRead, pDataWrite, ni, nj, nk, uiStrideJ, uiStrideK, nk * uiThread_1 / uiThread, nk);
+
 	pThreadPool->waitForDone();
 
 	m_pImageData->Modified();
 }
 
-void iAFoamCharacterizationItemFilter::executeMedianFX ( unsigned short* _pDataRead
-	                                                   , unsigned short* _pDataWrite
-													   , const unsigned int& _uiNi
-													   , const unsigned int& _uiNj
-													   , const unsigned int& _uiNk
-													   , const unsigned int& _uiStrideJ
-													   , const unsigned int& _uiStrideK
-													   , const unsigned int& _uiK1
-													   , const unsigned int& _uiK2
-													   )
+void iAFoamCharacterizationItemFilter::executeMedianFX(unsigned short* _pDataRead, unsigned short* _pDataWrite
+	, const unsigned int& _uiNi, const unsigned int& _uiNj, const unsigned int& _uiNk
+	, const unsigned int& _uiStrideJ, const unsigned int& _uiStrideK
+	, const unsigned int& _uiK1, const unsigned int& _uiK2
+)
 {
-	unsigned short* pDataWrite (_pDataWrite + _uiK1 * _uiStrideK);
+	for (unsigned int uiK(_uiK1); uiK < _uiK2; ++uiK, ++m_uiMedianFXSlice)
+	{
+		executeMedianFXSlice(_pDataRead, _pDataWrite + uiK * _uiStrideK, _uiNi, _uiNj, _uiNk, _uiStrideJ, _uiStrideK, uiK);
+	}
+}
 
+void iAFoamCharacterizationItemFilter::executeMedianFX1(unsigned short* _pDataRead, unsigned short* _pDataWrite
+	, const unsigned int& _uiNi, const unsigned int& _uiNj, const unsigned int& _uiNk
+	, const unsigned int& _uiStrideJ, const unsigned int& _uiStrideK
+	, const unsigned int& _uiK1, const unsigned int& _uiK2
+)
+{
+	for (unsigned int uiK (_uiK1); uiK < _uiK2; ++uiK)
+	{
+		executeMedianFXSlice(_pDataRead, _pDataWrite + uiK * _uiStrideK, _uiNi, _uiNj, _uiNk, _uiStrideJ, _uiStrideK, uiK);
+
+		setProgress(100u * m_uiMedianFXSlice++ / _uiNk);
+	}
+}
+
+void iAFoamCharacterizationItemFilter::executeMedianFXSlice(unsigned short* _pDataRead, unsigned short* _pDataWrite
+	, const unsigned int& _uiNi, const unsigned int& _uiNj, const unsigned int& _uiNk
+	, const unsigned int& _uiStrideJ, const unsigned int& _uiStrideK
+	, const unsigned int& _uiK
+)
+{
 	const unsigned int iuNi_MedianRadius(_uiNi - m_uiMedianRadius);
 	const unsigned int iuNj_MedianRadius(_uiNj - m_uiMedianRadius);
 
-	for (unsigned int k (_uiK1) ; k < _uiK2 ; ++k)
+	const unsigned int k1(_uiK - qMin(_uiK, m_uiMedianRadius));
+	const unsigned int k2(qMin(_uiK + m_uiMedianRadius, _uiNk - 1));
+
+	const unsigned int uiBoxSizeK(k2 - k1 + 1);
+
+	unsigned int j(0);
+
+	for (; j < m_uiMedianRadius; ++j)
 	{
-		const unsigned int k1 (k - qMin(k, m_uiMedianRadius));
-		const unsigned int k2 (qMin(k + m_uiMedianRadius, _uiNk - 1));
+		const unsigned int j1(0);
+		const unsigned int j2(qMin(j + m_uiMedianRadius, _uiNj - 1));
 
-		const unsigned int uiBoxSizeK (k2 - k1 + 1);
+		const unsigned int uiBoxSizeJK((j2 - j1 + 1) * uiBoxSizeK);
 
-		unsigned int j(0);
+		unsigned int i(0);
 
-		for ( ; j < m_uiMedianRadius ; ++j)
+		for (; i < m_uiMedianRadius; ++i)
 		{
-			const unsigned int j1(0);
-			const unsigned int j2(qMin(j + m_uiMedianRadius, _uiNj - 1));
+			const unsigned int i1(0);
+			const unsigned int i2(qMin(i + m_uiMedianRadius, _uiNi - 1));
 
-			const unsigned int uiBoxSizeJK((j2 - j1 + 1) * uiBoxSizeK);
-
-			unsigned int i(0);
-
-			for ( ; i < m_uiMedianRadius; ++i)
-			{
-				const unsigned int i1(0);
-				const unsigned int i2(qMin(i + m_uiMedianRadius, _uiNi - 1));
-
-				*pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2
-					, k1, k2, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
-				);
-			}
-
-			for ( ; i < iuNi_MedianRadius ; ++i)
-			{
-				const unsigned int i1(i - m_uiMedianRadius);
-				const unsigned int i2(i + m_uiMedianRadius);
-
-				*pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
-					, _uiStrideJ, _uiStrideK, (2 * m_uiMedianRadius + 1) * uiBoxSizeJK
-				);
-			}
-
-			for ( ; i < _uiNi; ++i)
-			{
-				const unsigned int i1(i - qMin(i, m_uiMedianRadius));
-				const unsigned int i2(_uiNi - 1);
-
-				*pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
-					, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
-				);
-			}
-		}
-		
-		for ( ; j < iuNj_MedianRadius ; ++j)
-		{
-			const unsigned int j1 (j - m_uiMedianRadius);
-			const unsigned int j2 (j + m_uiMedianRadius);
-
-			const unsigned int uiBoxSizeJK ((2 * m_uiMedianRadius + 1) * uiBoxSizeK);
-
-			unsigned int i(0);
-
-			for ( ; i < m_uiMedianRadius; ++i)
-			{
-				const unsigned int i1(0);
-				const unsigned int i2(qMin(i + m_uiMedianRadius, _uiNi - 1));
-
-				*pDataWrite++ = executeMedianFXValue ( _pDataRead, i1, i2, j1, j2
-													 , k1, k2, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
-													 );
-			}
-
-			for ( ; i < iuNi_MedianRadius ; ++i)
-			{
-				const unsigned int i1 (i - m_uiMedianRadius);
-				const unsigned int i2 (i + m_uiMedianRadius);
-
-				*pDataWrite++ = executeMedianFXValue ( _pDataRead, i1, i2, j1, j2, k1, k2
-													 , _uiStrideJ, _uiStrideK, (2 * m_uiMedianRadius + 1) * uiBoxSizeJK
-													 );
-			}
-
-			for ( ; i < _uiNi; ++i)
-			{
-				const unsigned int i1(i - qMin(i, m_uiMedianRadius));
-				const unsigned int i2(_uiNi - 1);
-
-				*pDataWrite++ = executeMedianFXValue ( _pDataRead, i1, i2, j1, j2, k1, k2
-													 , _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
-													 );
-			}
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2
+				, k1, k2, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
+			);
 		}
 
-		for ( ; j < _uiNj; ++j)
+		for (; i < iuNi_MedianRadius; ++i)
 		{
-			const unsigned int j1 (j - qMin(j, m_uiMedianRadius));
-			const unsigned int j2 (_uiNj - 1);
+			const unsigned int i1(i - m_uiMedianRadius);
+			const unsigned int i2(i + m_uiMedianRadius);
 
-			const unsigned int uiBoxSizeJK((j2 - j1 + 1) * uiBoxSizeK);
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
+				, _uiStrideJ, _uiStrideK, (2 * m_uiMedianRadius + 1) * uiBoxSizeJK
+			);
+		}
 
-			unsigned int i(0);
+		for (; i < _uiNi; ++i)
+		{
+			const unsigned int i1(i - qMin(i, m_uiMedianRadius));
+			const unsigned int i2(_uiNi - 1);
 
-			for ( ; i < m_uiMedianRadius; ++i)
-			{
-				const unsigned int i1(0);
-				const unsigned int i2(qMin(i + m_uiMedianRadius, _uiNi - 1));
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
+				, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
+			);
+		}
+	}
 
-				*pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2
-					, k1, k2, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
-				);
-			}
+	for (; j < iuNj_MedianRadius; ++j)
+	{
+		const unsigned int j1(j - m_uiMedianRadius);
+		const unsigned int j2(j + m_uiMedianRadius);
 
-			for ( ; i < iuNi_MedianRadius ; ++i)
-			{
-				const unsigned int i1(i - m_uiMedianRadius);
-				const unsigned int i2(i + m_uiMedianRadius);
+		const unsigned int uiBoxSizeJK((2 * m_uiMedianRadius + 1) * uiBoxSizeK);
 
-				*pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
-					, _uiStrideJ, _uiStrideK, (2 * m_uiMedianRadius + 1) * uiBoxSizeJK
-				);
-			}
+		unsigned int i(0);
 
-			for ( ; i < _uiNi ; ++i)
-			{
-				const unsigned int i1(i - qMin(i, m_uiMedianRadius));
-				const unsigned int i2(_uiNi - 1);
+		for (; i < m_uiMedianRadius; ++i)
+		{
+			const unsigned int i1(0);
+			const unsigned int i2(qMin(i + m_uiMedianRadius, _uiNi - 1));
 
-				*pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
-					, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
-				);
-			}
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2
+				, k1, k2, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
+			);
+		}
+
+		for (; i < iuNi_MedianRadius; ++i)
+		{
+			const unsigned int i1(i - m_uiMedianRadius);
+			const unsigned int i2(i + m_uiMedianRadius);
+
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
+				, _uiStrideJ, _uiStrideK, (2 * m_uiMedianRadius + 1) * uiBoxSizeJK
+			);
+		}
+
+		for (; i < _uiNi; ++i)
+		{
+			const unsigned int i1(i - qMin(i, m_uiMedianRadius));
+			const unsigned int i2(_uiNi - 1);
+
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
+				, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
+			);
+		}
+	}
+
+	for (; j < _uiNj; ++j)
+	{
+		const unsigned int j1(j - qMin(j, m_uiMedianRadius));
+		const unsigned int j2(_uiNj - 1);
+
+		const unsigned int uiBoxSizeJK((j2 - j1 + 1) * uiBoxSizeK);
+
+		unsigned int i(0);
+
+		for (; i < m_uiMedianRadius; ++i)
+		{
+			const unsigned int i1(0);
+			const unsigned int i2(qMin(i + m_uiMedianRadius, _uiNi - 1));
+
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2
+				, k1, k2, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
+			);
+		}
+
+		for (; i < iuNi_MedianRadius; ++i)
+		{
+			const unsigned int i1(i - m_uiMedianRadius);
+			const unsigned int i2(i + m_uiMedianRadius);
+
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
+				, _uiStrideJ, _uiStrideK, (2 * m_uiMedianRadius + 1) * uiBoxSizeJK
+			);
+		}
+
+		for (; i < _uiNi; ++i)
+		{
+			const unsigned int i1(i - qMin(i, m_uiMedianRadius));
+			const unsigned int i2(_uiNi - 1);
+
+			*_pDataWrite++ = executeMedianFXValue(_pDataRead, i1, i2, j1, j2, k1, k2
+				, _uiStrideJ, _uiStrideK, (i2 - i1 + 1) * uiBoxSizeJK
+			);
 		}
 	}
 }

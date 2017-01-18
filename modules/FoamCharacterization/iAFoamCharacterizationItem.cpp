@@ -206,12 +206,19 @@ void iAFoamCharacterizationItem::open(QFile* _pFileOpen)
 	m_sName = fileRead(_pFileOpen);
 
 	_pFileOpen->read((char*) &m_bItemEnabled, sizeof(m_bItemEnabled));
+
 	setItemIcon();
+}
+
+int iAFoamCharacterizationItem::progress() const
+{
+	return m_iProgress;
 }
 
 void iAFoamCharacterizationItem::reset()
 {
 	m_bModified = false;
+
 	m_dExecuteTime = 0.0;
 }
 
@@ -220,12 +227,15 @@ void iAFoamCharacterizationItem::save(QFile* _pFileSave)
 	_pFileSave->write((char*)&m_eItemType, sizeof(m_eItemType));
 
 	fileWrite(_pFileSave, m_sName);
+
 	_pFileSave->write((char*)&m_bItemEnabled, sizeof(m_bItemEnabled));
 }
 
 void iAFoamCharacterizationItem::setExecuting(const bool& _bExecuting)
 {
 	m_bExecuting = _bExecuting;
+
+	m_iProgress = 0;
 
 	m_pTable->viewport()->repaint();
 }
@@ -290,6 +300,13 @@ void iAFoamCharacterizationItem::setName(const QString& _sName)
 	m_sName = _sName;
 
 	setItemText();
+}
+
+void iAFoamCharacterizationItem::setProgress(const unsigned int& _uiProgress)
+{
+	m_iProgress = _uiProgress;
+
+	m_pTable->viewport()->repaint();
 }
 
 iAFoamCharacterizationTable* iAFoamCharacterizationItem::table()

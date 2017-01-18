@@ -241,7 +241,7 @@ void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent* e)
 
 		if (mlIndex.size())
 		{
-			iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(mlIndex.at(0).row(), 0));
+			iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*) item(mlIndex.at(0).row(), 0));
 
 			pItem->dialog();
 		}
@@ -256,7 +256,7 @@ void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 
 	if (m_iRowDrag > -1)
 	{
-		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(m_iRowDrag, 0));
+		iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*) item(m_iRowDrag, 0));
 
 		const int iMargin(100 * logicalDpiX() / 254);
 
