@@ -30,6 +30,8 @@ class vtkImageData;
 
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
+		Q_OBJECT
+		
 	class QtRunnableMedian : public QRunnable
 	{
 		public:

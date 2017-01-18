@@ -29,6 +29,7 @@
 #include <itkOtsuThresholdImageFilter.h>
 
 #include "iAConnector.h"
+#include "iAProgress.h"
 
 #include "iAFoamCharacterizationDialogBinarization.h"
 
@@ -90,6 +91,11 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	pFilter->SetUpperThreshold(m_usUpperThreshold);
 	pFilter->SetInsideValue(0);
 	pFilter->SetOutsideValue(1);
+	
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	pObserver->Observe(pFilter);
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());
@@ -109,6 +115,11 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	pFilter->SetInsideValue(0);
 	pFilter->SetOutsideValue(1);
 	pFilter->SetNumberOfHistogramBins(m_uiOtzuHistogramBins);
+	
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	pObserver->Observe(pFilter);
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());

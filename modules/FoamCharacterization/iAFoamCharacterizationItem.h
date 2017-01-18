@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QObject>
 #include <QTableWidgetItem>
 
 class QFile;
@@ -28,21 +29,22 @@ class vtkImageData;
 
 class iAFoamCharacterizationTable;
 
-class iAFoamCharacterizationItem : public QTableWidgetItem
+class iAFoamCharacterizationItem : public QObject, public QTableWidgetItem
 {
+		Q_OBJECT
+
 	public:
 		enum EItemType { itBinarization, itDistanceTransform, itFilter, itWatershed};
 
 	public:
 		explicit iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
-										    , vtkImageData* m_pImageData, const EItemType& _eItemType
+										    , vtkImageData* _pImageData, const EItemType& _eItemType
 											);
 
 		explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
 		virtual ~iAFoamCharacterizationItem();
 
 		double executeTime() const;
-
 		bool executing() const;
 
 		QString executeTimeString() const;
@@ -105,4 +107,7 @@ class iAFoamCharacterizationItem : public QTableWidgetItem
 		void setProgress(const unsigned int& _uiProgress);
 
 		virtual void setItemText();
+
+	protected slots:
+		void slotObserver(const int&);
 };

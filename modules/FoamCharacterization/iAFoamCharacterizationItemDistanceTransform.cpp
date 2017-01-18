@@ -30,6 +30,7 @@
 #include "itkMinimumMaximumImageCalculator.h"
 
 #include "iAConnector.h"
+#include "iAProgress.h"
 
 iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
@@ -64,6 +65,11 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	itkFilter::Pointer pFilter(itkFilter::New());
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->InputIsBinaryOn();
+	
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	pObserver->Observe(pFilter);
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+	
 	pFilter->Update();
 
 	typedef itk::MinimumMaximumImageCalculator<itk::Image<float, 3>> itkCalculator;
@@ -74,7 +80,7 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	typedef itk::InvertIntensityImageFilter<itk::Image<float, 3>, itk::Image<float, 3>> itkInvert;
 	itkInvert::Pointer pInvert (itkInvert::New());
 	pInvert->SetInput(pFilter->GetOutput());
-	pInvert->SetMaximum(255.0);// pCalculator->GetMaximum());
+	pInvert->SetMaximum(pCalculator->GetMaximum());
 	pInvert->Update();
 
 	pConnector->SetImage(pInvert->GetOutput());

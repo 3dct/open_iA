@@ -26,6 +26,8 @@ class QFile;
 
 class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizationItem
 {
+		Q_OBJECT
+
 	public:
 		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);

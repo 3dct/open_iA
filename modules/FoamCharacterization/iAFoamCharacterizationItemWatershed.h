@@ -28,6 +28,8 @@ class iAConnector;
 
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
+		Q_OBJECT
+
 	public:
 		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);

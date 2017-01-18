@@ -34,6 +34,7 @@
 #include <itkPatchBasedDenoisingImageFilter.h>
 
 #include "iAConnector.h"
+#include "iAProgress.h"
 
 #include "iAFoamCharacterizationDialogFilter.h"
 #include "iAFoamCharacterizationTable.h"
@@ -101,7 +102,7 @@ void iAFoamCharacterizationItemFilter::execute()
 		break;
 
 		case iftMedian:
-		executeMedianFX();
+		executeMedian();
 		break;
 
 		default:
@@ -121,11 +122,15 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 
 	typedef itk::GradientAnisotropicDiffusionImageFilter<itk::Image<unsigned short, 3>, itk::Image<float, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetConductanceParameter(m_dAnisotropicConductance);
 	pFilter->SetNumberOfIterations(m_uiAnisotropicIteration);
 	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
+	
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	pObserver->Observe(pFilter);
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+	
 	pFilter->Update();
 
 	typedef itk::Image<typename itkFilter::OutputImagePixelType, 3> IntImageType;
@@ -146,9 +151,13 @@ void iAFoamCharacterizationItemFilter::executeGaussian()
 
 	typedef itk::DiscreteGaussianImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetVariance(m_dGaussianVariance);
+
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	pObserver->Observe(pFilter);
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());
@@ -164,12 +173,15 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 
 	typedef itk::MedianImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-
 	itkFilter::InputSizeType radius;
 	radius.Fill(m_uiMedianRadius);
 	pFilter->SetRadius(radius);
-
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
+	
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	pObserver->Observe(pFilter);
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());
@@ -427,10 +439,14 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 
 	typedef itk::PatchBasedDenoisingImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
-
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetNumberOfIterations(m_uiNonLocalMeansIteration);
 	pFilter->SetPatchRadius(m_uiNonLocalMeansRadius);
+
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	pObserver->Observe(pFilter);
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+
 	pFilter->Update();
 
 	pConnector->SetImage(pFilter->GetOutput());

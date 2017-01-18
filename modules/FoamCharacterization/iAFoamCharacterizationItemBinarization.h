@@ -26,6 +26,8 @@ class QFile;
 
 class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 {
+		Q_OBJECT
+
 	public:
 		enum EItemFilterType { iftBinarization, iftOtzu};
 

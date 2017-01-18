@@ -33,7 +33,8 @@
 
 iAFoamCharacterizationItem::iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
 													   , vtkImageData* _pImageData, const EItemType& _eItemType
-													   ) : QTableWidgetItem()
+													   ) : QObject(_pTable)
+														 , QTableWidgetItem()
 	                                                     , m_pTable (_pTable)
 														 , m_eItemType(_eItemType)
 														 , m_pImageData(_pImageData)
@@ -49,7 +50,8 @@ iAFoamCharacterizationItem::iAFoamCharacterizationItem ( iAFoamCharacterizationT
 	setName(itemTypeStr());
 }
 
-iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem) : QTableWidgetItem() 
+iAFoamCharacterizationItem::iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem) : QObject(_pItem->table())
+																						, QTableWidgetItem()
 																						, m_bModified(_pItem->modified())
 																						, m_dExecuteTime(_pItem->executeTime())
 																						, m_pTable(_pItem->table())
@@ -307,6 +309,11 @@ void iAFoamCharacterizationItem::setProgress(const unsigned int& _uiProgress)
 	m_iProgress = _uiProgress;
 
 	m_pTable->viewport()->repaint();
+}
+
+void iAFoamCharacterizationItem::slotObserver(const int& _iValue)
+{
+	setProgress(_iValue);
 }
 
 iAFoamCharacterizationTable* iAFoamCharacterizationItem::table()
