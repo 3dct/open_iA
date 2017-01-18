@@ -95,15 +95,14 @@ class iAFoamCharacterizationTable : public QTableWidget
 
 					if (iProgress > 0)
 					{
-						const QRect rProgress(_sovItem.rect.width() - 3 * m_iMargin
-							, _sovItem.rect.top() + _sovItem.rect.height() / 4
-							, 2 * m_iMargin
-							, _sovItem.rect.height() / 2
-						);
+						const QRect rProgress ( _sovItem.rect.width() - 3 * m_iMargin
+							                  , _sovItem.rect.top() + _sovItem.rect.height() / 4
+										      , 2 * m_iMargin, _sovItem.rect.height() / 2
+											  );
 
 						_pPainter->drawRect(rProgress);
 
-						QRect rBar (rProgress.adjusted(1, 1, 0, -1));
+						QRect rBar (rProgress.adjusted(1, 1, 0, 0));
 						rBar.setWidth(rBar.width() * iProgress / 100);
 
 						_pPainter->fillRect(rBar, Qt::darkBlue);
