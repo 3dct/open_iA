@@ -105,7 +105,11 @@ class iAFoamCharacterizationTable : public QTableWidget
 						QRect rBar (rProgress.adjusted(1, 1, 0, 0));
 						rBar.setWidth(rBar.width() * iProgress / 100);
 
-						_pPainter->fillRect(rBar, Qt::darkBlue);
+						QLinearGradient lg (rBar.topLeft(), rBar.topRight());
+						lg.setColorAt(0.0, Qt::black);
+						lg.setColorAt(1.0, pItem->itemIconColor());
+
+						_pPainter->fillRect(rBar, QBrush(lg));
 					}
 				}
 				else

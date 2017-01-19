@@ -55,6 +55,8 @@ class iAFoamCharacterizationItem : public QObject, public QTableWidgetItem
 
 		bool itemEnabled() const;
 
+		QColor itemIconColor() const;
+
 		EItemType itemType() const;
 		QString itemTypeStr() const;
 

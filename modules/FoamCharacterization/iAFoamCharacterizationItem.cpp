@@ -166,6 +166,11 @@ bool iAFoamCharacterizationItem::itemEnabled() const
 	return m_bItemEnabled;
 }
 
+QColor iAFoamCharacterizationItem::itemIconColor() const
+{
+	return m_cItemIcon;
+}
+
 iAFoamCharacterizationItem::EItemType iAFoamCharacterizationItem::itemType() const
 {
 	return m_eItemType;
