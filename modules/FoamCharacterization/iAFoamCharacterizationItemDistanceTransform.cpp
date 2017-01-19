@@ -29,6 +29,8 @@
 #include "itkInvertIntensityImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 
+#include "iAFoamCharacterizationDialogDistanceTransform.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 
@@ -48,7 +50,9 @@ iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceT
 
 void iAFoamCharacterizationItemDistanceTransform::dialog()
 {
-
+	QScopedPointer<iAFoamCharacterizationDialogDistanceTransform> pDialog
+											       (new iAFoamCharacterizationDialogDistanceTransform(this, qApp->focusWidget()));
+	pDialog->exec();
 }
 
 void iAFoamCharacterizationItemDistanceTransform::execute()
