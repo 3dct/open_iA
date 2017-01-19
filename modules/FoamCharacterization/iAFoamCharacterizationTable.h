@@ -171,5 +171,6 @@ class iAFoamCharacterizationTable : public QTableWidget
 		virtual void keyPressEvent(QKeyEvent* e) override;
 		virtual void mouseDoubleClickEvent(QMouseEvent* e) override;
 		virtual void mousePressEvent(QMouseEvent* e) override;
+		virtual void mouseReleaseEvent(QMouseEvent* e) override;
 		virtual void resizeEvent(QResizeEvent*) override;
 };

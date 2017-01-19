@@ -267,6 +267,11 @@ void iAFoamCharacterizationTable::mousePressEvent(QMouseEvent* e)
 	}
 
 	QTableWidget::mousePressEvent(e);
+}
+
+void iAFoamCharacterizationTable::mouseReleaseEvent(QMouseEvent* e)
+{
+	QTableWidget::mouseReleaseEvent(e);
 
 	viewport()->repaint();
 }
