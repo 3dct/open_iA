@@ -148,7 +148,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonDistanceTransform()
 
 void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 {
-	if ( QMessageBox::question(m_childData.child, "Question", "Execute table pipeline?", QMessageBox::Yes, QMessageBox::No)
+	if ( QMessageBox::question(m_childData.child, "Question", "Execute foam characterization pipeline?", QMessageBox::Yes, QMessageBox::No)
 	     == QMessageBox::Yes
 	   )
 	{

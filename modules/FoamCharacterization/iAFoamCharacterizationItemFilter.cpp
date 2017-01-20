@@ -153,6 +153,7 @@ void iAFoamCharacterizationItemFilter::executeGaussian()
 	itkFilter::Pointer pFilter(itkFilter::New());
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetVariance(m_dGaussianVariance);
+	pFilter->SetUseImageSpacing(m_bGaussianImageSpacing);
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->Observe(pFilter);
@@ -455,6 +456,11 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
+bool iAFoamCharacterizationItemFilter::gaussianimageSpacing() const
+{
+	return m_bGaussianImageSpacing;
+}
+
 double iAFoamCharacterizationItemFilter::gaussianVariance() const
 {
 	return m_dGaussianVariance;
@@ -545,6 +551,11 @@ void iAFoamCharacterizationItemFilter::setAnisotropicIteration(const unsigned in
 void iAFoamCharacterizationItemFilter::setAnisotropicTimeStep(const double& _dAnisotropicTimeStep)
 {
 	m_dAnisotropicTimeStep = _dAnisotropicTimeStep;
+}
+
+void iAFoamCharacterizationItemFilter::setGaussianImageSpacing(const bool& _bGaussianImageSpacing)
+{
+	m_bGaussianImageSpacing = _bGaussianImageSpacing;
 }
 
 void iAFoamCharacterizationItemFilter::setGaussianVariance(const double& _dGaussianVariance)

@@ -41,6 +41,23 @@ iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed
 	m_pDoubleSpinBoxLevel->setRange(0.0, 1.0);
 	m_pDoubleSpinBoxLevel->setSingleStep(0.1);
 	m_pDoubleSpinBoxLevel->setValue(m_pItemWatershed->level());
+	m_pDoubleSpinBoxLevel->setWhatsThis("The Level parameter controls the depth of metaphorical flooding of the image. "
+		"That is, it sets the maximum saliency value of interest in the result. Raising "
+		"and lowering the Level influences the number of segments in the basic segmentation "
+		"that are merged to produce the final output. A level of 1.0 is analogous to "
+		"flooding the image up to a depth that is 100 percent of the maximum value in the "
+		"image. A level of 0.0 produces the basic segmentation, which will typically be "
+		"very oversegmented. Level values of interest are typically low (i.e. less than "
+		"about 0.40 or 40% ), since higher values quickly start to undersegment the image."
+		"The Level parameter can be used to create a hierarchy of output images in "
+		"constant time once an initial segmentation is done.A typical scenario might go "
+		"like this: For the initial execution of the filter, set the Level to the maximum "
+		"saliency value that you anticipate might be of interest.Once the initial Update() "
+		"of this process object has finished, the Level can be manipulated anywhere below "
+		"the initial setting without triggering a full update of the segmentation "
+		"mini - pipeline.All that is now be required to produce the new output is a simple "
+		"relabeling of the output image."
+	);
 
 	QLabel* pLabelThreshold(new QLabel("Threshold [%]:", m_pGroupBox2));
 	m_pDoubleSpinBoxTreshold = new QDoubleSpinBox(m_pGroupBox2);
@@ -48,6 +65,12 @@ iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed
 	m_pDoubleSpinBoxTreshold->setRange(0.0, 1.0);
 	m_pDoubleSpinBoxTreshold->setSingleStep(0.1);
 	m_pDoubleSpinBoxTreshold->setValue(m_pItemWatershed->threshold());
+	m_pDoubleSpinBoxTreshold->setWhatsThis ( "Threshold is used to set the absolute minimum height value used during processing. "
+		                                     "Raising this threshold percentage effectively decreases the number of local minima "
+		                                     "in the input, resulting in an initial segmentation with fewer regions. The "
+		                                     "assumption is that the shallow regions that thresholding removes are of of less "
+		                                     "interest."
+	                                       );
 
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
 	pGridLayout2->addWidget(pLabelLevel, 0, 0);

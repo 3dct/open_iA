@@ -22,6 +22,7 @@
 
 #include "iAFoamCharacterizationDialog.h"
 
+class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QSpinBox;
@@ -44,6 +45,8 @@ class iAFoamCharacterizationDialogFilter : public iAFoamCharacterizationDialog
 		QWidget* m_pWidgetGauss = nullptr;
 		QWidget* m_pWidgetMedian = nullptr;
 		QWidget* m_pWidgetNonLocalMeans= nullptr;
+
+		QCheckBox* m_pCheckBoxImageSpacing = nullptr;
 
 		QDoubleSpinBox* m_pDoubleSpinBoxAnisotropicConductance = nullptr;
 		QDoubleSpinBox* m_pDoubleSpinBoxAnisotropicTimeStep = nullptr;

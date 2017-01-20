@@ -39,12 +39,18 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
 	m_pSpinBoxBinarizationLower = new QSpinBox(m_pGroupBox2);
 	m_pSpinBoxBinarizationLower->setAlignment(Qt::AlignRight);
 	m_pSpinBoxBinarizationLower->setRange(0, 65535);
+	m_pSpinBoxBinarizationLower->setWhatsThis( "Set lower threshold. An exception is thrown if the lower threshold is greater "
+		                                       " than the upper threshold."
+	                                         );
 	m_pSpinBoxBinarizationLower->setValue(m_pItemBinarization->lowerThreshold());
 
 	QLabel* pLabelBinarizationUpper(new QLabel("Upper threshold:", m_pGroupBox2));
 	m_pSpinBoxBinarizationUpper = new QSpinBox(m_pGroupBox2);
 	m_pSpinBoxBinarizationUpper->setAlignment(Qt::AlignRight);
 	m_pSpinBoxBinarizationUpper->setRange(0, 65535);
+	m_pSpinBoxBinarizationUpper->setWhatsThis( "Set upper threshold. An exception is thrown if the lower threshold is greater "
+					                           " than the upper threshold."
+                                             );
 	m_pSpinBoxBinarizationUpper->setValue(m_pItemBinarization->upperThreshold());
 
 	m_pCheckBoxOtzu = new QCheckBox("Use Otsu thresholding", m_pGroupBox2);
@@ -54,6 +60,7 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
 	m_pSpinBoxOtzuHistogramBins = new QSpinBox(m_pGroupBox2);
 	m_pSpinBoxOtzuHistogramBins->setAlignment(Qt::AlignRight);
 	m_pSpinBoxOtzuHistogramBins->setRange(0, INT_MAX);
+	m_pSpinBoxOtzuHistogramBins->setWhatsThis("Set the number of histogram bins.");
 	m_pSpinBoxOtzuHistogramBins->setValue(m_pItemBinarization->otzuHistogramBins());
 
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));

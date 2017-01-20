@@ -28,8 +28,7 @@
 #include<QPushButton>
 
 iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizationItem* _pItem, QWidget* _pParent)
-	                                                           : QDialog(_pParent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint)
-															   , m_pItem (_pItem)
+																							 : QDialog(_pParent), m_pItem (_pItem)
 {
 	setWindowTitle(m_pItem->itemTypeStr());
 
@@ -37,6 +36,7 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 
 	QLabel* pLabel1(new QLabel("Name:", m_pGroupBox1));
 	m_pLineEdit1 = new QLineEdit(m_pItem->name(), m_pGroupBox1);
+	m_pLineEdit1->setWhatsThis("Set the name of the item.");
 
 	QGridLayout* pGridLayout1(new QGridLayout(m_pGroupBox1));
 	pGridLayout1->addWidget(pLabel1, 0, 0);
@@ -44,6 +44,7 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 
 	m_pCheckBoxEnabled = new QCheckBox("Enabled", this);
 	m_pCheckBoxEnabled->setChecked(m_pItem->itemEnabled());
+	m_pCheckBoxEnabled->setWhatsThis("Enable / disable the item.");
 	
 	m_pDialogButtonBox = new QDialogButtonBox(this);
 

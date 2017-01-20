@@ -101,6 +101,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 							 , const unsigned int& _uiK1, const unsigned int& _uiK2
 							 );
 
+		bool gaussianimageSpacing() const;
 		double gaussianVariance() const;
 
 		EItemFilterType itemFilterType() const;
@@ -112,6 +113,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		void setAnisotropicConductance(const double& _dAnisotropicConductance);
 		void setAnisotropicIteration(const unsigned int& _uiAnisotropicIteration);
 		void setAnisotropicTimeStep(const double& _dAnisotropicTimeStep);
+		void setGaussianImageSpacing(const bool& _bGaussianImageSpacing);
 		void setGaussianVariance(const double& _dGaussianVariance);
 		void setItemFilterType(const EItemFilterType& _eItemFilterType);
 		void setMedianRadius(const unsigned int& _uiMedianRadius);
@@ -124,6 +126,8 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		virtual void save(QFile* _pFileSave) override;
 
 	private:
+		bool m_bGaussianImageSpacing = true;
+
 		double m_dAnisotropicConductance = 1.0;
 		double m_dAnisotropicTimeStep = 0.1;
 		double m_dGaussianVariance = 1.0;
@@ -134,7 +138,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 
 		unsigned int m_uiAnisotropicIteration = 2;
 		unsigned int m_uiMedianRadius = 2;
-		unsigned int m_uiNonLocalMeansIteration = 2;
+		unsigned int m_uiNonLocalMeansIteration = 1;
 		unsigned int m_uiNonLocalMeansRadius = 2;
 
 		void executeAnisotropic();
