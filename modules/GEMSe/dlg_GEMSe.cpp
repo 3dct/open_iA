@@ -745,8 +745,14 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo)
 {
 	m_colorTheme = colorTheme;
-	m_previewWidgetPool->SetColorTheme(colorTheme);
-	m_detailView->SetLabelInfo(labelInfo);
+	if (m_previewWidgetPool)
+	{
+		m_previewWidgetPool->SetColorTheme(colorTheme);
+	}
+	if (m_detailView)
+	{
+		m_detailView->SetLabelInfo(labelInfo);
+	}
 }
 
 
