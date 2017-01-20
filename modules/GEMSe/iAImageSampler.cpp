@@ -204,8 +204,7 @@ void iAImageSampler::computationFinished()
 	}
 	int id = m_runningComputation[cmd];
 	iAPerformanceTimer::DurationType computationTime = cmd->duration();
-	StatusMsg(QString("Finished in %2 seconds. Output: %3\n")
-		.arg(QString::number(id))
+	StatusMsg(QString("Finished in %1 seconds. Output: %2\n")
 		.arg(QString::number(computationTime))
 		.arg(cmd->output()));
 	m_computationDuration += computationTime;
