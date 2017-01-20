@@ -942,119 +942,126 @@ void dlg_MajorityVoting::Sample()
 
 void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType)
 {
-	if (!m_groundTruthImage)
+	try
 	{
-		QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
-		return;
-	}
+		if (!m_groundTruthImage)
+		{
+			QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
+			return;
+		}
 
-	QVector<QString> columnNames;
-	columnNames.push_back("Value");
-	columnNames.push_back("Undecided Pixels");
-	columnNames.push_back("Mean Dice");
+		QVector<QString> columnNames;
+		columnNames.push_back("Value");
+		columnNames.push_back("Undecided Pixels");
+		columnNames.push_back("Mean Dice");
 
-	const int SampleCount = sbSampleCount->value();
-	const int ResultCount = 5;
-	const int UndecidedLabel = m_labelCount;
+		const int SampleCount = sbSampleCount->value();
+		const int ResultCount = 5;
+		const int UndecidedLabel = m_labelCount;
 
-	vtkSmartPointer<vtkTable> tables[ResultCount];
-	QString titles[ResultCount] =
-	{
-		QString("Min. Absolute Percentage"),
-		QString("Min. Percentage Difference"),
-		QString("Ratio"),
-		QString("Max. Pixel Uncertainty"),
-		QString("Max. Label Voters")
-	};
-	for (int r = 0; r < ResultCount; ++r)
-	{
-		tables[r] = CreateVTKTable(SampleCount, columnNames);
-	}
-
-	double absPercMin = 1.0 / m_labelCount;
-	double absPercMax = 1;
-
-	double ratioMin = 1;
-	double ratioMax = selection.size();
-
-	double labelVoterMin = 1;
-	double labelVoterMax = selection.size();
-
-	typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
-	typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
-
-	auto region = m_groundTruthImage->GetLargestPossibleRegion();
-	auto size = region.GetSize();
-	double pixelCount = size[0] * size[1] * size[2];
-
-	for (int i = 0; i < SampleCount; ++i)
-	{
-		// calculate current value:
-		double norm = mapToNorm(0, SampleCount, i);
-
-		double value[ResultCount] = {
-			mapNormTo(absPercMin, absPercMax, norm),		// minimum absolute percentage
-			norm,											// minimum relative percentage
-			mapNormTo(ratioMin, ratioMax, norm),			// ratio
-			norm,											// maximum pixel uncertainty
-			mapNormTo(labelVoterMin, labelVoterMax, norm)
+		vtkSmartPointer<vtkTable> tables[ResultCount];
+		QString titles[ResultCount] =
+		{
+			QString("Min. Absolute Percentage"),
+			QString("Min. Percentage Difference"),
+			QString("Ratio"),
+			QString("Max. Pixel Uncertainty"),
+			QString("Max. Label Voters")
 		};
-
-		// calculate majority voting using these values:
-		iAITKIO::ImagePointer result[ResultCount];
-
-		result[0] = GetMajorityVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount);
-		result[1] = GetMajorityVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount);
-		result[2] = GetMajorityVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount);
-		result[3] = GetMajorityVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount);
-		result[4] = GetMajorityVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount);
-
-		//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
-		// calculate dice coefficient and percentage of undetermined pixels
-		// (percentage of voxels with label = difference marker = max. label + 1)
 		for (int r = 0; r < ResultCount; ++r)
 		{
-			LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
-
-			auto diceFilter = DiceFilter::New();
-			diceFilter->SetSourceImage(m_groundTruthImage);
-			diceFilter->SetTargetImage(labelImg);
-			diceFilter->SetIgnoredLabel(UndecidedLabel);
-			diceFilter->Update();
-			auto statFilter = StatFilter::New();
-			statFilter->SetInput(labelImg);
-			statFilter->SetLabelInput(labelImg);
-			statFilter->Update();
-
-			double meanDice = diceFilter->GetMeanOverlap();
-
-			double undefinedPerc =
-				statFilter->HasLabel(UndecidedLabel)
-				? static_cast<double>(statFilter->GetCount(UndecidedLabel)) / pixelCount
-				: 0;
-			//out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
-
-			// add values to table
-			tables[r]->SetValue(i, 0, value[r]);
-			tables[r]->SetValue(i, 1, undefinedPerc);
-			tables[r]->SetValue(i, 2, meanDice);
+			tables[r] = CreateVTKTable(SampleCount, columnNames);
 		}
-	}
 
-	QString ids;
-	for (int s = 0; s < selection.size(); ++s)
-	{
-		ids += QString::number(selection[s]->GetDatasetID()) + "-" + QString::number(selection[s]->GetID());
-		if (s < selection.size() - 1)
+		double absPercMin = 1.0 / m_labelCount;
+		double absPercMax = 1;
+
+		double ratioMin = 1;
+		double ratioMax = selection.size();
+
+		double labelVoterMin = 1;
+		double labelVoterMax = selection.size();
+
+		typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
+		typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
+
+		auto region = m_groundTruthImage->GetLargestPossibleRegion();
+		auto size = region.GetSize();
+		double pixelCount = size[0] * size[1] * size[2];
+
+		for (int i = 0; i < SampleCount; ++i)
 		{
-			ids += ", ";
+			// calculate current value:
+			double norm = mapToNorm(0, SampleCount, i);
+
+			double value[ResultCount] = {
+				mapNormTo(absPercMin, absPercMax, norm),		// minimum absolute percentage
+				norm,											// minimum relative percentage
+				mapNormTo(ratioMin, ratioMax, norm),			// ratio
+				norm,											// maximum pixel uncertainty
+				mapNormTo(labelVoterMin, labelVoterMax, norm)
+			};
+
+			// calculate majority voting using these values:
+			iAITKIO::ImagePointer result[ResultCount];
+
+			result[0] = GetMajorityVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount);
+			result[1] = GetMajorityVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount);
+			result[2] = GetMajorityVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount);
+			result[3] = GetMajorityVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount);
+			result[4] = GetMajorityVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount);
+
+			//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
+			// calculate dice coefficient and percentage of undetermined pixels
+			// (percentage of voxels with label = difference marker = max. label + 1)
+			for (int r = 0; r < ResultCount; ++r)
+			{
+				LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
+
+				auto diceFilter = DiceFilter::New();
+				diceFilter->SetSourceImage(m_groundTruthImage);
+				diceFilter->SetTargetImage(labelImg);
+				diceFilter->SetIgnoredLabel(UndecidedLabel);
+				diceFilter->Update();
+				auto statFilter = StatFilter::New();
+				statFilter->SetInput(labelImg);
+				statFilter->SetLabelInput(labelImg);
+				statFilter->Update();
+
+				double meanDice = diceFilter->GetMeanOverlap();
+
+				double undefinedPerc =
+					statFilter->HasLabel(UndecidedLabel)
+					? static_cast<double>(statFilter->GetCount(UndecidedLabel)) / pixelCount
+					: 0;
+				//out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
+
+				// add values to table
+				tables[r]->SetValue(i, 0, value[r]);
+				tables[r]->SetValue(i, 1, undefinedPerc);
+				tables[r]->SetValue(i, 2, meanDice);
+			}
+		}
+
+		QString ids;
+		for (int s = 0; s < selection.size(); ++s)
+		{
+			ids += QString::number(selection[s]->GetDatasetID()) + "-" + QString::number(selection[s]->GetID());
+			if (s < selection.size() - 1)
+			{
+				ids += ", ";
+			}
+		}
+
+		int startIdx = twSampleResults->rowCount();
+		for (int i = 0; i < ResultCount; ++i)
+		{
+			AddResult(tables[i], "Sampling(w=" + GetWeightName(weightType) + ",value=" + titles[i] + ",ids=" + ids);
 		}
 	}
-
-	int startIdx = twSampleResults->rowCount();
-	for (int i = 0; i < ResultCount; ++i)
+	catch (std::exception & e)
 	{
-		AddResult(tables[i], "Sampling(w=" + GetWeightName(weightType) + ",value=" + titles[i] + ",ids=" + ids);
+		DEBUG_LOG(QString("Exception occured while sampling loaded config: %1").arg(e.what()));
 	}
 }
 
