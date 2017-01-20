@@ -32,8 +32,15 @@ class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizatio
 		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
 
+		void setUseImageSpacing(const bool& _bImageSpacing);
+
+		bool useImageSpacing() const;
+
 		virtual void dialog() override;
 		virtual void execute() override;
 		virtual void open(QFile* _pFileOpen) override;
 		virtual void save(QFile* _pFileSave) override;
+
+	private:
+		bool m_bImageSpacing = true;
 };

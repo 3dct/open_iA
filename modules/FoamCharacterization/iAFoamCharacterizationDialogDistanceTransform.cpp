@@ -21,9 +21,10 @@
 
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
 
+#include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
-#include <QDoubleSpinBox>
 
 #include "iAFoamCharacterizationItemDistanceTransform.h"
 
@@ -32,10 +33,21 @@ iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDista
 	                                                             : iAFoamCharacterizationDialog(_pItemDistanceTransform, _pParent)
 															     , m_pItemDistanceTransform (_pItemDistanceTransform)
 {
+	m_pGroupBox2 = new QGroupBox(this);
+
+	m_pCheckBoxImageSpacing = new QCheckBox("Use image spacing", m_pGroupBox2);
+	m_pCheckBoxImageSpacing->setChecked(m_pItemDistanceTransform->useImageSpacing());
+	m_pCheckBoxImageSpacing->setWhatsThis("Set if image spacing should be used in computing distances.");
+
+	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
+	pGridLayout2->addWidget(m_pCheckBoxImageSpacing);
+
 	setLayout();
 }
 
 void iAFoamCharacterizationDialogDistanceTransform::slotPushButtonOk()
 {
+	m_pItemDistanceTransform->setUseImageSpacing(m_pCheckBoxImageSpacing->isChecked());
+
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

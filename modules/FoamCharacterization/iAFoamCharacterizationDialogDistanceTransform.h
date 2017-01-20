@@ -22,7 +22,7 @@
 
 #include "iAFoamCharacterizationDialog.h"
 
-class QDoubleSpinBox;
+class QCheckBox;
 
 class iAFoamCharacterizationItemDistanceTransform;
 
@@ -36,6 +36,8 @@ class iAFoamCharacterizationDialogDistanceTransform : public iAFoamCharacterizat
 
 	private:
 		iAFoamCharacterizationItemDistanceTransform* m_pItemDistanceTransform = nullptr;
+
+		QCheckBox* m_pCheckBoxImageSpacing = nullptr;
 
 	protected slots:
 		virtual void slotPushButtonOk() override;

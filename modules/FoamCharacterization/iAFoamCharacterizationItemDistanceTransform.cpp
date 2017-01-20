@@ -68,6 +68,7 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	typedef itk::DanielssonDistanceMapImageFilter<itk::Image<unsigned short, 3>, itk::Image<float, 3>> itkFilter;
 	itkFilter::Pointer pFilter(itkFilter::New());
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
+	pFilter->SetUseImageSpacing(m_bImageSpacing);
 	pFilter->InputIsBinaryOn();
 	
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
@@ -107,4 +108,14 @@ void iAFoamCharacterizationItemDistanceTransform::open(QFile* _pFileOpen)
 void iAFoamCharacterizationItemDistanceTransform::save(QFile* _pFileSave)
 {
 	iAFoamCharacterizationItem::save(_pFileSave);
+}
+
+void iAFoamCharacterizationItemDistanceTransform::setUseImageSpacing(const bool& _bImageSpacing)
+{
+	m_bImageSpacing = _bImageSpacing;
+}
+
+bool iAFoamCharacterizationItemDistanceTransform::useImageSpacing() const
+{
+	return m_bImageSpacing;
 }
