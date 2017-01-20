@@ -749,7 +749,12 @@ void dlg_MajorityVoting::LoadConfig()
 		QList<QVariant> values; values
 			<< samplingResults->GetExecutable()
 			<< samplingResults->GetAdditionalArguments();
-		dlg_commoninput checkAlgoParams(m_mdiChild, "Check Algorithm Parameters", 2, parameters, values, NULL);
+		dlg_commoninput checkAlgoParams(m_mdiChild, "Check/Correct Algorithm Parameters", 2, parameters, values, NULL);
+
+		if (checkAlgoParams.exec() != QDialog::Accepted)
+		{
+			return;
+		}
 		
 		QStringList changedValues = checkAlgoParams.getText();
 		QString executable = changedValues[0];
