@@ -78,7 +78,7 @@ private slots:
 	void StoreClustering();
 	void StoreAll();
 	void DataAvailable();
-	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
+	void ModalitySelected(int modalityIdx);
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);

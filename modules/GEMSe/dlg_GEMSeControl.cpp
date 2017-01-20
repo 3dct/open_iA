@@ -135,7 +135,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 
 	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
 	connect(m_dlgLabels,      SIGNAL(SeedsAvailable()), this, SLOT(DataAvailable()));
-	connect(m_dlgModalities,  SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ShowImage(vtkSmartPointer<vtkImageData>)));
+	connect(m_dlgModalities,  SIGNAL(ModalitySelected(int)), this, SLOT(ModalitySelected(int)));
 
 	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
 	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(SetMagicLensCount(int)));
@@ -502,8 +502,9 @@ void dlg_GEMSeControl::EnableSamplingDependantUI()
 }
 
 
-void dlg_GEMSeControl::ShowImage(vtkSmartPointer<vtkImageData> imgData)
+void dlg_GEMSeControl::ModalitySelected(int modalityIdx)
 {
+	vtkSmartPointer<vtkImageData> imgData = m_dlgModalities->GetModalities()->Get(modalityIdx)->GetImage();
 	m_dlgGEMSe->ShowImage(imgData);
 }
 
