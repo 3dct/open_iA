@@ -109,7 +109,7 @@ iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
 												);
 
 	m_pCheckBoxImageSpacing = new QCheckBox("Use image spacing", m_pWidgetGauss);
-	m_pCheckBoxImageSpacing->setChecked(m_pItemFilter->gaussianimageSpacing());
+	m_pCheckBoxImageSpacing->setChecked(m_pItemFilter->gaussianImageSpacing());
 
 	QGridLayout* pGridLayoutGauss(new QGridLayout(m_pWidgetGauss));
 	pGridLayoutGauss->addWidget(pLabelGaussVariance, 0, 0);

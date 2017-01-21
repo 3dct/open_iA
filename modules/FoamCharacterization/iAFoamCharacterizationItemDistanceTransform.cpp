@@ -46,6 +46,8 @@ iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceT
 																: iAFoamCharacterizationItem(_pDistanceTransform)
 {
 	setName(_pDistanceTransform->name());
+
+	m_bImageSpacing = _pDistanceTransform->useImageSpacing();
 }
 
 void iAFoamCharacterizationItemDistanceTransform::dialog()
@@ -102,12 +104,16 @@ void iAFoamCharacterizationItemDistanceTransform::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
 
+	_pFileOpen->read((char*)&m_bImageSpacing, sizeof(m_bImageSpacing));
+
 	setItemText();
 }
 
 void iAFoamCharacterizationItemDistanceTransform::save(QFile* _pFileSave)
 {
 	iAFoamCharacterizationItem::save(_pFileSave);
+
+	_pFileSave->write((char*)&m_bImageSpacing, sizeof(m_bImageSpacing));
 }
 
 void iAFoamCharacterizationItemDistanceTransform::setUseImageSpacing(const bool& _bImageSpacing)

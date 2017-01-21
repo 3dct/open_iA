@@ -57,6 +57,7 @@ iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter(iAFoamCharact
 	m_uiAnisotropicIteration = _pFilter->anisotropicIteration();
 	m_dAnisotropicTimeStep = _pFilter->anisotropicTimeStep();
 
+	m_bGaussianImageSpacing = _pFilter->gaussianImageSpacing();
 	m_dGaussianVariance = _pFilter->gaussianVariance();
 
 	m_uiMedianRadius = _pFilter->medianRadius();
@@ -456,7 +457,7 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 }
 
-bool iAFoamCharacterizationItemFilter::gaussianimageSpacing() const
+bool iAFoamCharacterizationItemFilter::gaussianImageSpacing() const
 {
 	return m_bGaussianImageSpacing;
 }
@@ -516,10 +517,11 @@ void iAFoamCharacterizationItemFilter::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
 	_pFileOpen->read((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
 	_pFileOpen->read((char*) &m_uiAnisotropicIteration, sizeof(m_uiAnisotropicIteration));
+	_pFileOpen->read((char*) &m_bGaussianImageSpacing, sizeof(m_dGaussianVariance));
 	_pFileOpen->read((char*) &m_dGaussianVariance, sizeof(m_dGaussianVariance));
-	_pFileOpen->read((char*)&m_uiMedianRadius, sizeof(m_uiMedianRadius));
-	_pFileOpen->read((char*)&m_uiNonLocalMeansIteration, sizeof(m_uiNonLocalMeansIteration));
-	_pFileOpen->read((char*)&m_uiNonLocalMeansRadius, sizeof(m_uiNonLocalMeansRadius));
+	_pFileOpen->read((char*) &m_uiMedianRadius, sizeof(m_uiMedianRadius));
+	_pFileOpen->read((char*) &m_uiNonLocalMeansIteration, sizeof(m_uiNonLocalMeansIteration));
+	_pFileOpen->read((char*) &m_uiNonLocalMeansRadius, sizeof(m_uiNonLocalMeansRadius));
 
 	setItemText();
 }
@@ -532,10 +534,11 @@ void iAFoamCharacterizationItemFilter::save(QFile* _pFileSave)
 	_pFileSave->write((char*) &m_dAnisotropicConductance, sizeof(m_dAnisotropicConductance));
 	_pFileSave->write((char*) &m_dAnisotropicTimeStep, sizeof(m_dAnisotropicTimeStep));
 	_pFileSave->write((char*) &m_uiAnisotropicIteration, sizeof(m_uiAnisotropicIteration));
+	_pFileSave->write((char*) &m_bGaussianImageSpacing, sizeof(m_dGaussianVariance));
 	_pFileSave->write((char*) &m_dGaussianVariance, sizeof(m_dGaussianVariance));
 	_pFileSave->write((char*) &m_uiMedianRadius, sizeof(m_uiMedianRadius));
-	_pFileSave->write((char*)&m_uiNonLocalMeansIteration, sizeof(m_uiNonLocalMeansIteration));
-	_pFileSave->write((char*)&m_uiNonLocalMeansRadius, sizeof(m_uiNonLocalMeansRadius));
+	_pFileSave->write((char*) &m_uiNonLocalMeansIteration, sizeof(m_uiNonLocalMeansIteration));
+	_pFileSave->write((char*) &m_uiNonLocalMeansRadius, sizeof(m_uiNonLocalMeansRadius));
 }
 
 void iAFoamCharacterizationItemFilter::setAnisotropicConductance(const double& _dAnisotropicConductance)

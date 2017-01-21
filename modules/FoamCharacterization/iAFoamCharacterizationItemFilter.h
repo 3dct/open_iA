@@ -101,7 +101,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 							 , const unsigned int& _uiK1, const unsigned int& _uiK2
 							 );
 
-		bool gaussianimageSpacing() const;
+		bool gaussianImageSpacing() const;
 		double gaussianVariance() const;
 
 		EItemFilterType itemFilterType() const;
