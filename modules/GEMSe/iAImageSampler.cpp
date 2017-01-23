@@ -134,7 +134,7 @@ void iAImageSampler::run()
 		{
 			break;
 		}
-		StatusMsg(QString("Sampling run %1:").arg(m_curLoop));
+		StatusMsg(QString("Sampling run %1.").arg(m_curLoop));
 		QString outputDirectory = m_outputBaseDir + "/sample" + QString::number(m_curLoop);
 		QDir d(QDir::root());
 		if (!d.mkpath(outputDirectory))

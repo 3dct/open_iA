@@ -361,6 +361,7 @@ void dlg_GEMSe::UpdateFilteredData()
 		m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
 	}
 	UpdateFilteredChartData();
+	UpdateClusterChartData();
 	UpdateClusterFilteredChartData();
 	m_scatterplot->UpdateFilteredAllPlot(GetRoot().data(), m_chartFilter, m_chartAttributeMapper);
 	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter, m_chartAttributeMapper);
@@ -396,6 +397,17 @@ void dlg_GEMSe::ResetFilters()
 void dlg_GEMSe::SelectHistograms()
 {
 	m_histogramContainer->SelectHistograms();
+	QVector<QSharedPointer<iAImageTreeNode> > const selection = m_treeView->CurrentSelection();
+	// order is important (to get the correct drawing order)
+	if (!m_chartFilter.MatchesAll())
+	{
+		UpdateFilteredChartData();
+	}
+	m_histogramContainer->UpdateClusterChartData(selection);
+	if (!m_chartFilter.MatchesAll())
+	{
+		UpdateClusterFilteredChartData();
+	}
 }
 
 
