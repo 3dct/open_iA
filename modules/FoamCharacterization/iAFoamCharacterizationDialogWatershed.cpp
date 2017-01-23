@@ -52,11 +52,7 @@ iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed
 		"The Level parameter can be used to create a hierarchy of output images in "
 		"constant time once an initial segmentation is done.A typical scenario might go "
 		"like this: For the initial execution of the filter, set the Level to the maximum "
-		"saliency value that you anticipate might be of interest.Once the initial Update() "
-		"of this process object has finished, the Level can be manipulated anywhere below "
-		"the initial setting without triggering a full update of the segmentation "
-		"mini - pipeline.All that is now be required to produce the new output is a simple "
-		"relabeling of the output image."
+		"saliency value that you anticipate might be of interest."
 	);
 
 	QLabel* pLabelThreshold(new QLabel("Threshold [%]:", m_pGroupBox2));
