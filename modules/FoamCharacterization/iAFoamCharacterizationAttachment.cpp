@@ -86,14 +86,19 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
 
 	m_pTable = new iAFoamCharacterizationTable(m_pImageData, pWidget);
+	m_pTable->addFilter();
+	m_pTable->addBinarization();
+	m_pTable->addDistanceTransform();
+	m_pTable->addWatershed();
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
 	pPushButtonExecute->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton));
 	connect(pPushButtonExecute, SIGNAL(clicked()), this, SLOT(slotPushButtonExecute()));
 
-	QPushButton* pPushButtonAnalysis (new QPushButton("Analysis", pWidget));
-	pPushButtonAnalysis->setIcon(qApp->style()->standardIcon(QStyle::SP_FileDialogStart));
-	connect(pPushButtonAnalysis, SIGNAL(clicked()), this, SLOT(slotPushButtonAnalysis()));
+	m_pPushButtonAnalysis = new QPushButton("Analysis", pWidget);
+	m_pPushButtonAnalysis->setIcon(qApp->style()->standardIcon(QStyle::SP_FileDialogStart));
+	m_pPushButtonAnalysis->setEnabled(false);
+	connect(m_pPushButtonAnalysis, SIGNAL(clicked()), this, SLOT(slotPushButtonAnalysis()));
 
 	QPushButton* pPushButtonRestore(new QPushButton("Restore image", pWidget));
 	pPushButtonRestore->setIcon(qApp->style()->standardIcon(QStyle::SP_DriveHDIcon));
@@ -108,9 +113,9 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	pGridLayout1->addWidget(pPushButtonDistanceTransform, 0, 5);
 	pGridLayout1->addWidget(pPushButtonWatershed, 0, 6);
 	pGridLayout1->addWidget(m_pTable, 1, 0, 1, 7);
-	pGridLayout1->addWidget(pPushButtonExecute, 2, 0);
-	pGridLayout1->addWidget(pPushButtonAnalysis, 2, 1);
-	pGridLayout1->addWidget(pPushButtonRestore, 2, 6);
+	pGridLayout1->addWidget(  pPushButtonExecute, 2, 0);
+	pGridLayout1->addWidget(m_pPushButtonAnalysis, 2, 1);
+	pGridLayout1->addWidget(  pPushButtonRestore, 2, 6);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pGroupBox1);
@@ -157,6 +162,8 @@ void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 		m_pTable->execute();
 		m_childData.child->enableRenderWindows();
 		qApp->restoreOverrideCursor();
+
+		m_pPushButtonAnalysis->setEnabled(true);
 	}
 }
 

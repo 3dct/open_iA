@@ -29,12 +29,93 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 {
 	Q_OBJECT
 
+	class CTableAnalysisRow
+	{
+		public:
+			CTableAnalysisRow()
+			{
+			
+			}
+
+			void set(const long& _lLabel
+				, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
+				, const double& _dVolume, const double& _dDiameter
+				, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox)
+			{
+				m_lLabel = _lLabel;
+
+				m_dCenterX = _dCenterX;
+				m_dCenterY = _dCenterY;
+				m_dCenterZ = _dCenterZ;
+
+				m_dVolume = _dVolume;
+				m_dDiameter = _dDiameter;
+					
+				for (int i(0); i < 6; ++i)
+				{
+					m_pBoundingBox[i] = _faBoundingBox[i];
+				}
+			}
+
+			long label() const
+			{
+				return m_lLabel;
+			}
+
+			double centerX() const
+			{
+				return m_dCenterX;
+			}
+
+			double centerY() const
+			{
+				return m_dCenterY;
+			}
+
+			double centerZ() const
+			{
+				return m_dCenterZ;
+			}
+
+			double volume() const
+			{
+				return m_dVolume;
+			}
+
+			double diameter() const
+			{
+				return m_dDiameter;
+			}
+
+			double* boundingBox()
+			{
+				return m_pBoundingBox;
+			}
+
+		private:
+			long m_lLabel = 0;
+
+			double m_dCenterX = 0.0;
+			double m_dCenterY = 0.0;
+			double m_dCenterZ = 0.0;
+
+			double m_dVolume = 0.0;
+			double m_dDiameter = 0.0;
+
+			double m_pBoundingBox[6] = { 0.0 };
+	};
+
 	public:
 		explicit iAFoamCharacterizationTableAnalysis(QWidget* _pParent = nullptr);
 
+		void setRowCount(const int& _iRowCount);
+		
 		void setRow ( const int& _iRow, const long& _lLabel
 				    , const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
 					, const double& _dVolume, const double& _dDiameter
 					, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox
 					);
+
+	private:
+		QVector<CTableAnalysisRow> m_vData;
 };

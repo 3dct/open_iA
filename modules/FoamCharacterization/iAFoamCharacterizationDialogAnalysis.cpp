@@ -69,11 +69,9 @@ void iAFoamCharacterizationDialogAnalysis::analyse()
 	pLabelGeometryImageFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pLabelGeometryImageFilter->Update();
 
-	QStandardItemModel* pModel ((QStandardItemModel*) m_pTable->model());
-
 	const int iLabels(pLabelGeometryImageFilter->GetNumberOfLabels());
 
-	pModel->setRowCount(iLabels - 1);
+	m_pTable->setRowCount(iLabels - 1);
 
 	itkLabelGeometryImageFilterType::LabelsType ltLabels (pLabelGeometryImageFilter->GetLabels());
 

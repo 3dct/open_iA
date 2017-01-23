@@ -57,6 +57,8 @@ void iAFoamCharacterizationTableAnalysis::setRow ( const int& _iRow
 												 , const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox
 												 )
 {
+	m_vData[_iRow].set(_lLabel, _dCenterX, _dCenterY, _dCenterZ, _dVolume, _dDiameter, _faBoundingBox);
+
 	QStandardItemModel* pModel ((QStandardItemModel*) model());
 
 	const QModelIndex miValue0(pModel->index(_iRow, 0));
@@ -95,4 +97,11 @@ void iAFoamCharacterizationTableAnalysis::setRow ( const int& _iRow
 	pModel->setData(miValue6, Qt::AlignCenter, Qt::TextAlignmentRole);
 	pModel->setData(miValue6, sBoundingBox, Qt::DisplayRole);
 
+}
+
+void iAFoamCharacterizationTableAnalysis::setRowCount(const int& _iRowCount)
+{
+	((QStandardItemModel*) model())->setRowCount(_iRowCount);
+
+	m_vData.resize(_iRowCount);
 }

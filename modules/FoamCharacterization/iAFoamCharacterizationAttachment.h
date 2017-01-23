@@ -24,6 +24,8 @@
 
 #include <vtkSmartPointer.h>
 
+class QPushButton;
+
 class iAFoamCharacterizationTable;
 class vtkImageData;
 
@@ -39,6 +41,8 @@ class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
 		vtkSmartPointer<vtkImageData> m_pImageRestore = nullptr;
 
 		iAFoamCharacterizationTable* m_pTable = nullptr;
+
+		QPushButton* m_pPushButtonAnalysis = nullptr;
 
 	private slots:
 		void slotPushButtonAnalysis();
