@@ -116,6 +116,7 @@ void iAFoamCharacterizationTable::clear()
 	}
 
 	m_iCountBinarization = 0;
+	m_iCountDistanceTransform = 0;
 	m_iCountFilter = 0;
 	m_iCountWatershed = 0;
 }
