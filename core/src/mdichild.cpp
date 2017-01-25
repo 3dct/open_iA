@@ -283,8 +283,8 @@ void MdiChild::connectIOThreadSignals(iAIO * thread)
 {
 	connect(thread, SIGNAL(started()), this, SLOT(initProgressBar()));
 	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
-	connect(ioThread, SIGNAL(finished()), this, SLOT(ioFinished()));
-	connect(ioThread->getObserverProgress(), SIGNAL(oprogress(int)), this, SLOT(updateProgressBar(int)));
+	connect(thread, SIGNAL(finished()), this, SLOT(ioFinished()));
+	connect(thread->getObserverProgress(), SIGNAL(oprogress(int)), this, SLOT(updateProgressBar(int)));
 	addAlgorithm(thread);
 }
 
