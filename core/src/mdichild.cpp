@@ -269,26 +269,29 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dlgModalities, SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
 }
 
-void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread, bool providesProgress, bool usesDoneSignal )
+void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
 {
-	// TODO: make more specific for each filter! iAIO saving for example would not require an update to the render windows!!!
 	connect(thread, SIGNAL( startUpdate(int) ), this, SLOT( updateRenderWindows(int) ));
-	if (usesDoneSignal)
-	{
-		connect(thread, SIGNAL( done() ), this, SLOT( enableRenderWindows() ));
-	}
-	else
-	{
-		connect(thread, SIGNAL( finished() ), this, SLOT( enableRenderWindows() ));
-	}
+	connect(thread, SIGNAL( finished() ), this, SLOT( enableRenderWindows() ));
 	connect(thread, SIGNAL( aprogress(int) ), this, SLOT( updateProgressBar(int) ));
-
-	workingAlgorithms.push_back(thread);
-	connect(thread, SIGNAL( finished() ), this, SLOT( removeFinishedAlgorithms() ));
-	if(!providesProgress)
-		pbar->setMaximum(0);
 	connect(thread, SIGNAL( started() ), this, SLOT( initProgressBar() ));
 	connect(thread, SIGNAL( finished() ), this, SLOT( hideProgressBar() ));
+	addAlgorithm(thread);
+}
+
+void MdiChild::connectIOThreadSignals(iAIO * thread)
+{
+	connect(thread, SIGNAL(started()), this, SLOT(initProgressBar()));
+	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
+	connect(ioThread, SIGNAL(finished()), this, SLOT(ioFinished()));
+	connect(ioThread->getObserverProgress(), SIGNAL(oprogress(int)), this, SLOT(updateProgressBar(int)));
+	addAlgorithm(thread);
+}
+
+void MdiChild::addAlgorithm(iAAlgorithm* thread)
+{
+	workingAlgorithms.push_back(thread);
+	connect(thread, SIGNAL(finished()), this, SLOT(removeFinishedAlgorithms()));
 }
 
 void MdiChild::SetRenderWindows()
@@ -524,8 +527,8 @@ bool MdiChild::loadRaw(const QString &f)
 	waitForPreviousIO();
 	ioThread = new iAIO(imageData, 0, m_logger, this);
 	connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
-	connectThreadSignalsToChildSlots(ioThread, false, true);
-	connect(ioThread, SIGNAL(finished()), this, SLOT(ioFinished()));
+	connectIOThreadSignals(ioThread);
+	connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	polyData->ReleaseData();
 	imageData->ReleaseData();
 	IOType id = RAW_READER;
@@ -556,8 +559,8 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	else {
 		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
 	}
-	connectThreadSignalsToChildSlots(ioThread, false, true);
-	connect( ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ) );
+	connectIOThreadSignals(ioThread);
+	connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	
 	polyData->ReleaseData();
 
@@ -992,8 +995,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr)
 
 	vtkSmartPointer<vtkImageData> img = GetModality(modalityNr)->GetImage();
 	ioThread = new iAIO(img, polyData, m_logger, this);
-	connectThreadSignalsToChildSlots(ioThread, false);
-	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
+	connectIOThreadSignals(ioThread);
 	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
 	m_storedModalityNr = modalityNr;
 	if (!setupSaveIO(f, img)) {
@@ -2589,7 +2591,6 @@ bool MdiChild::LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileNam
 	}
 
 	iAIO* ioThread(new iAIO(imageData, polyData, m_logger, this));
-
 	bool result = ioThread->loadCSVFile(table, fid, fileName);
 	delete ioThread;
 	return result;

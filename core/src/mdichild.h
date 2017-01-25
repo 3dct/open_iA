@@ -168,7 +168,8 @@ public:
 	iAPreferences    const & GetPreferences()    const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
-	void connectThreadSignalsToChildSlots(iAAlgorithm* thread, bool providesProgress = true, bool usesDoneSignal = false);
+	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
+	void connectIOThreadSignals(iAIO* thread);
 	bool isHessianComputed() { return hessianComputed; }
 	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
 	vtkPiecewiseFunction * getPiecewiseFunction();
@@ -419,6 +420,7 @@ private:
 	//! if more than one modality loaded, ask user to chose one of them
 	//! (currently used for determining which modality to save)
 	int chooseModalityNr();
+	void addAlgorithm(iAAlgorithm* thread);
 
 	QFileInfo fileInfo;
 
