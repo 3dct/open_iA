@@ -650,22 +650,17 @@ bool MdiChild::setupStackView(bool active)
 {
 	previousIndexOfVolume = 0;
 
-	addVolumePlayer(volumeStack.data());
-
 	int numberOfVolumes=volumeStack->getNumberOfVolumes();
 
 	int currentIndexOfVolume=0;
 
 	imageData->DeepCopy(volumeStack->getVolume(currentIndexOfVolume));
-
+	setupViewInternal(active);
 	for (int i=0; i<numberOfVolumes; i++) {
-		vtkColorTransferFunction* cTF = GetDefaultColorTransferFunction(imageData);
-		vtkPiecewiseFunction* pWF = GetDefaultPiecewiseFunction(imageData);
-
+		vtkSmartPointer<vtkColorTransferFunction> cTF = GetDefaultColorTransferFunction(imageData);
+		vtkSmartPointer<vtkPiecewiseFunction> pWF = GetDefaultPiecewiseFunction(imageData);
 		volumeStack->addColorTransferFunction(cTF);
 		volumeStack->addPiecewiseFunction(pWF);
-
-		cTF->Delete(); pWF->Delete();
 	}
 
 	QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
@@ -673,9 +668,7 @@ bool MdiChild::setupStackView(bool active)
 		modTrans->GetColorFunction()->DeepCopy(volumeStack->getColorTransferFunction(0));
 		modTrans->GetOpacityFunction()->DeepCopy(volumeStack->getPiecewiseFunction(0));
 	}
-	
-
-	setupViewInternal(active);
+	addVolumePlayer(volumeStack.data());
 
 	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());

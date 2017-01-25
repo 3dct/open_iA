@@ -38,8 +38,6 @@ public:
 	void manualProgressUpdate(int progress);
 
 Q_SIGNALS:
-	// TODO: check why we use different signals:
-	// -> oprogress here and aprogress in iAAlgorithm
 	void oprogress( int progress);
 
 private:
