@@ -82,6 +82,11 @@ void iAModality::SetName(QString const & name)
 	m_name = name;
 }
 
+void iAModality::SetFileName(QString const & fileName)
+{
+	m_filename = fileName;
+}
+
 void iAModality::SetRenderFlag(int renderFlags)
 {
 	this->renderFlags = renderFlags;

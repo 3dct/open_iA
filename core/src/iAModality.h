@@ -65,6 +65,8 @@ public:
 	QString GetTransferFileName() const;
 	//! set name of the modality
 	void SetName(QString const & name);
+	//! set the filename (to be used if it has changed externally; does not save the file!)
+	void SetFileName(QString const & fileName);
 	//! set flag indicating location where to render
 	void SetRenderFlag(int renderFlag);
 

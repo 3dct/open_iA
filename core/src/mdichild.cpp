@@ -981,7 +981,7 @@ bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 }
 
 
-bool MdiChild::saveFile(const QString &f, int channelNr)
+bool MdiChild::saveFile(const QString &f, int modalityNr)
 {
 	waitForPreviousIO();
 
@@ -989,7 +989,8 @@ bool MdiChild::saveFile(const QString &f, int channelNr)
 	ioThread = new iAIO(img, polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
-	connect(ioThread, SIGNAL( done()), this, SLOT(SetAsNotChanged()));
+	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
+	m_storedModalityNr = modalityNr;
 
 	if (!setupSaveIO(f, img)) {
 		ioFinished();
@@ -3016,7 +3017,8 @@ vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 	return GetModality(0)->GetTransfer()->GetColorFunction();
 }
 
-void MdiChild::SetAsNotChanged()
+void MdiChild::SaveFinished()
 {
 	m_unsavedChanges = false;
+	GetModality(m_storedModalityNr)->SetFileName(ioThread->getFileName());
 }

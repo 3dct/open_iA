@@ -503,11 +503,12 @@ private:
 	int m_currentModality;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
 	bool m_unsavedChanges;
+	int m_storedModalityNr;		// modality nr being stored
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ChangeImage(vtkSmartPointer<vtkImageData> img);
-	void SetAsNotChanged();
+	void SaveFinished();
 private:
 	int GetCurrentModality() const;
 	void SetCurrentModality(int modality);
