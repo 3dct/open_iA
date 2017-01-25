@@ -822,25 +822,25 @@ void MdiChild::updated(int i, QString text)
 	this->addMsg(tr("mdiCild: updated(i,string): %1  %2").arg(i).arg(text));
 }
 
-int MdiChild::chooseChannelNr()
+int MdiChild::chooseModalityNr()
 {
 	if (GetModalities()->size() == 1)
 	{
 		return 0;
 	}
 	QStringList parameters = (QStringList() << tr("+Channel"));
-	QStringList channels;
+	QStringList modalities;
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
-		channels << GetModality(i)->GetName();
+		modalities << GetModality(i)->GetName();
 	}
-	QList<QVariant> values = (QList<QVariant>() << channels);
-	dlg_commoninput channelChoice(this, "Choose Channel", 1, parameters, values, NULL);
-	if (channelChoice.exec() != QDialog::Accepted)
+	QList<QVariant> values = (QList<QVariant>() << modalities);
+	dlg_commoninput modalityChoice(this, "Choose Channel", 1, parameters, values, NULL);
+	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
 	}
-	return channelChoice.getComboBoxIndices()[0];
+	return modalityChoice.getComboBoxIndices()[0];
 }
 
 bool MdiChild::save()
@@ -851,23 +851,28 @@ bool MdiChild::save()
 	}
 	else
 	{
-		int channelNr = chooseChannelNr();
-		if (channelNr == -1)
+		int modalityNr = chooseModalityNr();
+		if (modalityNr == -1)
 		{
 			return false;
 		}
-		return saveFile(GetModality(channelNr)->GetFileName(), channelNr);
+		/*// choice: save single modality, or modality stack!
+		if (GetModality(modalityNr)->ComponentCount() > 1)
+		{
+		}
+		*/
+		return saveFile(GetModality(modalityNr)->GetFileName(), modalityNr);
 	}
 }
 
 bool MdiChild::saveAs()
 {
-	int channelNr = chooseChannelNr();
-	if (channelNr == -1)
+	int modalityNr = chooseModalityNr();
+	if (modalityNr == -1)
 	{
 		return false;
 	}
-	QString filePath = QFileInfo(GetModality(channelNr)->GetFileName()).absolutePath();
+	QString filePath = QFileInfo(GetModality(modalityNr)->GetFileName()).absolutePath();
 	QString f = QFileDialog::getSaveFileName(
 		this,
 		tr("Save As"),
@@ -879,7 +884,7 @@ bool MdiChild::saveAs()
 	{
 		return false;
 	}
-	return saveFile(f, channelNr);
+	return saveFile(f, modalityNr);
 }
 
 void MdiChild::waitForPreviousIO()
@@ -985,13 +990,12 @@ bool MdiChild::saveFile(const QString &f, int modalityNr)
 {
 	waitForPreviousIO();
 
-	vtkSmartPointer<vtkImageData> img = GetModality(channelNr)->GetImage();
+	vtkSmartPointer<vtkImageData> img = GetModality(modalityNr)->GetImage();
 	ioThread = new iAIO(img, polyData, m_logger, this);
 	connectThreadSignalsToChildSlots(ioThread, false);
 	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
 	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
 	m_storedModalityNr = modalityNr;
-
 	if (!setupSaveIO(f, img)) {
 		ioFinished();
 		return false;
