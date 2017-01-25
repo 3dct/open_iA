@@ -149,6 +149,8 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	int ensembleSize = root->GetClusterSize();
 	slMinRatio->setMaximum(ensembleSize*100);
 	slLabelVoters->setMaximum(ensembleSize);
+	twSampleResults->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+	twSampleResults->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MinAbsPlot()));
