@@ -117,7 +117,7 @@ public:
 	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
 	bool save();
 	bool saveAs();
-	bool saveFile(const QString &f, int channelNr);
+	bool saveFile(const QString &f, int modalityNr);
 	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
@@ -168,7 +168,8 @@ public:
 	iAPreferences    const & GetPreferences()    const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
-	void connectThreadSignalsToChildSlots(iAAlgorithm* thread, bool providesProgress = true, bool usesDoneSignal = false);
+	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
+	void connectIOThreadSignals(iAIO* thread);
 	bool isHessianComputed() { return hessianComputed; }
 	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
 	vtkPiecewiseFunction * getPiecewiseFunction();
@@ -417,9 +418,10 @@ private:
 	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
-	//! if more than one modality/channel loaded, ask user to chose one of them
-	//! (currently used for determining which channel to save)
-	int chooseChannelNr();
+	//! if more than one modality loaded, ask user to chose one of them
+	//! (currently used for determining which modality to save)
+	int chooseModalityNr();
+	void addAlgorithm(iAAlgorithm* thread);
 
 	QFileInfo fileInfo;
 
@@ -506,11 +508,12 @@ private:
 	int m_currentComponent;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
 	bool m_unsavedChanges;
+	int m_storedModalityNr;		// modality nr being stored
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ShowModality(int modIdx);
-	void SetAsNotChanged();
+	void SaveFinished();
 private:
 	int GetCurrentModality() const;
 	void InitModalities();

@@ -237,9 +237,6 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_refSpectra->cb_showRefSpectra->setEnabled(true);
 	m_refSpectra->cb_showRefLines->setEnabled(true);
 	pb_decompose->setEnabled(true);
-
-	// only required if spectra are loaded:
-	connect ( cb_spectrumProbing, SIGNAL( stateChanged(int) ), this, SLOT( showVoxelSpectrum(int) ) );
 }
 
 void dlg_XRF::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */iAWidgetAddHelper & widgetAddHelper)

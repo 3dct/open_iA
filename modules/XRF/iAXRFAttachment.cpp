@@ -83,9 +83,8 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) 
 
 	ioThread = new iAIO( mdiChild->getLogger(), mdiChild, dlgXRF->GetXRFData()->GetDataPtr() );
 	mdiChild->setReInitializeRenderWindows( false );
-	mdiChild->connectThreadSignalsToChildSlots( ioThread );
+	mdiChild->connectIOThreadSignals( ioThread );
 	connect( ioThread, SIGNAL( done() ), this, SLOT( xrfLoadingDone() ) );
-	connect( ioThread->getObserverProgress(), SIGNAL( oprogress( int ) ), mdiChild, SLOT( updateProgressBar( int ) ) );
 	connect( ioThread, SIGNAL( failed() ), this, SLOT( xrfLoadingFailed() ) );
 	connect( ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ) );
 

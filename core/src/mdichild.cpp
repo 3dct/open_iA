@@ -273,26 +273,29 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
 }
 
-void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread, bool providesProgress, bool usesDoneSignal )
+void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
 {
-	// TODO: make more specific for each filter! iAIO saving for example would not require an update to the render windows!!!
 	connect(thread, SIGNAL( startUpdate(int) ), this, SLOT( updateRenderWindows(int) ));
-	if (usesDoneSignal)
-	{
-		connect(thread, SIGNAL( done() ), this, SLOT( enableRenderWindows() ));
-	}
-	else
-	{
-		connect(thread, SIGNAL( finished() ), this, SLOT( enableRenderWindows() ));
-	}
+	connect(thread, SIGNAL( finished() ), this, SLOT( enableRenderWindows() ));
 	connect(thread, SIGNAL( aprogress(int) ), this, SLOT( updateProgressBar(int) ));
-
-	workingAlgorithms.push_back(thread);
-	connect(thread, SIGNAL( finished() ), this, SLOT( removeFinishedAlgorithms() ));
-	if(!providesProgress)
-		pbar->setMaximum(0);
 	connect(thread, SIGNAL( started() ), this, SLOT( initProgressBar() ));
 	connect(thread, SIGNAL( finished() ), this, SLOT( hideProgressBar() ));
+	addAlgorithm(thread);
+}
+
+void MdiChild::connectIOThreadSignals(iAIO * thread)
+{
+	connect(thread, SIGNAL(started()), this, SLOT(initProgressBar()));
+	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
+	connect(thread, SIGNAL(finished()), this, SLOT(ioFinished()));
+	connect(thread->getObserverProgress(), SIGNAL(oprogress(int)), this, SLOT(updateProgressBar(int)));
+	addAlgorithm(thread);
+}
+
+void MdiChild::addAlgorithm(iAAlgorithm* thread)
+{
+	workingAlgorithms.push_back(thread);
+	connect(thread, SIGNAL(finished()), this, SLOT(removeFinishedAlgorithms()));
 }
 
 void MdiChild::SetRenderWindows()
@@ -528,8 +531,8 @@ bool MdiChild::loadRaw(const QString &f)
 	waitForPreviousIO();
 	ioThread = new iAIO(imageData, 0, m_logger, this);
 	connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
-	connectThreadSignalsToChildSlots(ioThread, false, true);
-	connect(ioThread, SIGNAL(finished()), this, SLOT(ioFinished()));
+	connectIOThreadSignals(ioThread);
+	connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	polyData->ReleaseData();
 	imageData->ReleaseData();
 	IOType id = RAW_READER;
@@ -560,8 +563,8 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	else {
 		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
 	}
-	connectThreadSignalsToChildSlots(ioThread, false, true);
-	connect( ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ) );
+	connectIOThreadSignals(ioThread);
+	connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	
 	polyData->ReleaseData();
 
@@ -651,56 +654,25 @@ bool MdiChild::setupStackView(bool active)
 {
 	previousIndexOfVolume = 0;
 
-	if (GetModalities()->size() == 0)
-	{
-		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities (e.g. via LoadProject)
-		QString name;
-		if (!curFile.isEmpty())
-		{
-			QFileInfo i(curFile);
-			name = i.completeBaseName();
-		}
-		else
-		{
-			name = "Untitled";
-		}
-		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
-		// before, which adds the renderers which this call will use
-		QSharedPointer<iAModality> mod(new iAModality(name,
-			currentFile(), -1, imageData, iAModality::MainRenderer));
-		GetModalities()->Add(mod);
-		m_dlgModalities->AddListItemAndTransfer(mod);
-		m_dlgModalities->SwitchHistogram(GetModality(0)->GetTransfer());
-		m_initVolumeRenderers = true;
-	}
-
-	addVolumePlayer(volumeStack.data());
-
 	int numberOfVolumes=volumeStack->getNumberOfVolumes();
 
 	int currentIndexOfVolume=0;
 
 	imageData->DeepCopy(volumeStack->getVolume(currentIndexOfVolume));
-
+	setupViewInternal(active);
 	for (int i=0; i<numberOfVolumes; i++) {
-		vtkColorTransferFunction* cTF = GetDefaultColorTransferFunction(imageData);
-		vtkPiecewiseFunction* pWF = GetDefaultPiecewiseFunction(imageData);
-
+		vtkSmartPointer<vtkColorTransferFunction> cTF = GetDefaultColorTransferFunction(imageData);
+		vtkSmartPointer<vtkPiecewiseFunction> pWF = GetDefaultPiecewiseFunction(imageData);
 		volumeStack->addColorTransferFunction(cTF);
 		volumeStack->addPiecewiseFunction(pWF);
-
-		cTF->Delete(); pWF->Delete();
 	}
 
 	QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
-	/*
 	if (numberOfVolumes > 0) {
 		modTrans->GetColorFunction()->DeepCopy(volumeStack->getColorTransferFunction(0));
 		modTrans->GetOpacityFunction()->DeepCopy(volumeStack->getPiecewiseFunction(0));
 	}
-	*/
-
-	setupViewInternal(active);
+	addVolumePlayer(volumeStack.data());
 
 	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
@@ -850,25 +822,25 @@ void MdiChild::updated(int i, QString text)
 	this->addMsg(tr("mdiCild: updated(i,string): %1  %2").arg(i).arg(text));
 }
 
-int MdiChild::chooseChannelNr()
+int MdiChild::chooseModalityNr()
 {
 	if (GetModalities()->size() == 1)
 	{
 		return 0;
 	}
 	QStringList parameters = (QStringList() << tr("+Channel"));
-	QStringList channels;
+	QStringList modalities;
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
-		channels << GetModality(i)->GetName();
+		modalities << GetModality(i)->GetName();
 	}
-	QList<QVariant> values = (QList<QVariant>() << channels);
-	dlg_commoninput channelChoice(this, "Choose Channel", 1, parameters, values, NULL);
-	if (channelChoice.exec() != QDialog::Accepted)
+	QList<QVariant> values = (QList<QVariant>() << modalities);
+	dlg_commoninput modalityChoice(this, "Choose Channel", 1, parameters, values, NULL);
+	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
 	}
-	return channelChoice.getComboBoxIndices()[0];
+	return modalityChoice.getComboBoxIndices()[0];
 }
 
 bool MdiChild::save()
@@ -879,29 +851,28 @@ bool MdiChild::save()
 	}
 	else
 	{
-		int channelNr = chooseChannelNr();
-		if (channelNr == -1)
+		int modalityNr = chooseModalityNr();
+		if (modalityNr == -1)
 		{
 			return false;
 		}
 		/*// choice: save single modality, or modality stack!
-		if (GetModality(channelNr)->ComponentCount() > 1)
+		if (GetModality(modalityNr)->ComponentCount() > 1)
 		{
-			
 		}
 		*/
-		return saveFile(GetModality(channelNr)->GetFileName(), channelNr);
+		return saveFile(GetModality(modalityNr)->GetFileName(), modalityNr);
 	}
 }
 
 bool MdiChild::saveAs()
 {
-	int channelNr = chooseChannelNr();
-	if (channelNr == -1)
+	int modalityNr = chooseModalityNr();
+	if (modalityNr == -1)
 	{
 		return false;
 	}
-	QString filePath = QFileInfo(GetModality(channelNr)->GetFileName()).absolutePath();
+	QString filePath = QFileInfo(GetModality(modalityNr)->GetFileName()).absolutePath();
 	QString f = QFileDialog::getSaveFileName(
 		this,
 		tr("Save As"),
@@ -913,7 +884,7 @@ bool MdiChild::saveAs()
 	{
 		return false;
 	}
-	return saveFile(f, channelNr);
+	return saveFile(f, modalityNr);
 }
 
 void MdiChild::waitForPreviousIO()
@@ -1015,16 +986,15 @@ bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 }
 
 
-bool MdiChild::saveFile(const QString &f, int channelNr)
+bool MdiChild::saveFile(const QString &f, int modalityNr)
 {
 	waitForPreviousIO();
 
-	vtkSmartPointer<vtkImageData> img = GetModality(channelNr)->GetImage();
+	vtkSmartPointer<vtkImageData> img = GetModality(modalityNr)->GetImage();
 	ioThread = new iAIO(img, polyData, m_logger, this);
-	connectThreadSignalsToChildSlots(ioThread, false);
-	connect(ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ));
-	connect(ioThread, SIGNAL( done()), this, SLOT(SetAsNotChanged()));
-
+	connectIOThreadSignals(ioThread);
+	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
+	m_storedModalityNr = modalityNr;
 	if (!setupSaveIO(f, img)) {
 		ioFinished();
 		return false;
@@ -2629,7 +2599,6 @@ bool MdiChild::LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileNam
 	}
 
 	iAIO* ioThread(new iAIO(imageData, polyData, m_logger, this));
-
 	bool result = ioThread->loadCSVFile(table, fid, fileName);
 	delete ioThread;
 	return result;
@@ -3043,7 +3012,8 @@ vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 	return GetModality(0)->GetTransfer()->GetColorFunction();
 }
 
-void MdiChild::SetAsNotChanged()
+void MdiChild::SaveFinished()
 {
 	m_unsavedChanges = false;
+	GetModality(m_storedModalityNr)->SetFileName(ioThread->getFileName());
 }
