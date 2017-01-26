@@ -454,3 +454,12 @@ void iASlicer::SetCamera(vtkCamera* camera, bool owner /*=true*/ )
 {
 	m_data->SetCamera(camera, owner);
 }
+
+// declaration in iASlicerMode.h
+const char* GetSlicerModeString(int mode)
+{
+	return (mode == YZ) ? "YZ"
+		: (mode == XY) ? "XY"
+		: (mode == XZ) ? "XZ"
+		: "??";
+}

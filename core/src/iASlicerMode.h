@@ -20,9 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 enum iASlicerMode{
 	YZ,
 	XY,
 	XZ,
 	SlicerModeCount
 };
+
+open_iA_Core_API const char* GetSlicerModeString(int mode);

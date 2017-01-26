@@ -76,7 +76,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		char const * caption = ((i==0)?"YZ":(i==1)?"XY":"XZ");
+		char const * caption = GetSlicerModeString(i);
 		m_sliceViews[i] = new iAImagePreviewWidget(QString("CameraView")+caption,
 			0, false, 0, static_cast<iASlicerMode>(i), labelCount, iAColorTheme::NullTheme());
 		m_sliceViews[i]->SetImage(originalData, false, false);
@@ -152,7 +152,7 @@ void iACameraWidget::ScrollBarChanged(int value)
 void iACameraWidget::UpdateSliceLabel(int sliceNumber)
 {
 	m_sliceLabel->setText(QString("Selected Axis: %1\nSlice: %2")
-		.arg((m_slicerMode == YZ) ? "YZ" : ((m_slicerMode == XY) ? "XY" : "XZ"))
+		.arg(GetSlicerModeString(m_slicerMode))
 		.arg(sliceNumber));
 }
 
