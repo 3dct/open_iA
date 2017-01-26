@@ -73,6 +73,7 @@ signals:
 	void Hate();
 	void GoToCluster();
 	void ViewUpdated();
+	void SlicerHover(int, int, int, int);
 protected:
 	virtual void paintEvent(QPaintEvent * );
 private slots:

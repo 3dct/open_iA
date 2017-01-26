@@ -50,6 +50,7 @@ class iALabelInfo;
 class iALogger;
 class iAModalityList;
 class iAPreviewWidgetPool;
+class iAProbingWidget;
 class iASamplingResults;
 class iASingleResult;
 
@@ -143,6 +144,7 @@ private:
 	iAColorTheme const * m_colorTheme;
 	iAHistogramContainer * m_histogramContainer;
 	iAGEMSeScatterplot * m_scatterplot;
+	iAProbingWidget * m_probingWidget;
 
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;

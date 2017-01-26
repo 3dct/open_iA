@@ -41,6 +41,7 @@
 #include "iAMeasures.h"
 #include "iAParamHistogramData.h"
 #include "iAPreviewWidgetPool.h"
+#include "iAProbingWidget.h"
 #include "iAQtCaptionWidget.h"
 #include "iASamplingResults.h"
 #include "iASingleResult.h"
@@ -149,6 +150,8 @@ void dlg_GEMSe::SetTree(
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 
+	m_probingWidget = new iAProbingWidget();
+
 	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
 	connect(m_treeView, SIGNAL(Clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
 	connect(m_treeView, SIGNAL(ImageClicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode>)));
@@ -159,6 +162,7 @@ void dlg_GEMSe::SetTree(
 	connect(m_detailView, SIGNAL(Like()), this, SLOT(ToggleLike()));
 	connect(m_detailView, SIGNAL(Hate()), this, SLOT(ToggleHate()));
 	connect(m_detailView, SIGNAL(GoToCluster()), this, SLOT(GoToCluster()));
+	connect(m_detailView, SIGNAL(SlicerHover(int, int, int, int)), m_probingWidget, SLOT(ProbeUpdate(int, int, int, int)));
 	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
 	connect(m_favoriteWidget, SIGNAL(Clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
 	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));

@@ -31,6 +31,7 @@
 #include "iANameMapper.h"
 #include "iAAttributeDescriptor.h"
 #include "iASlicerWidget.h"
+#include "iASlicerData.h"
 
 #include <QLabel>
 #include <QListView>
@@ -148,6 +149,7 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(DblClicked()), this, SLOT(DblClicked()));
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
 }
 
 #include "iAChannelVisualizationData.h"
