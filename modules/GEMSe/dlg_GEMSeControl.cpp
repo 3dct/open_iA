@@ -36,6 +36,7 @@
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
+#include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
 #include "iAIOProvider.h"
 #include "iALabelInfo.h"
@@ -511,18 +512,11 @@ void dlg_GEMSeControl::ModalitySelected(int modalityIdx)
 
 void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
 {
-	if (node->GetChildCount() > 0)
-	{
-		for (int i = 0; i < node->GetChildCount(); ++i)
-		{
-			ExportClusterIDs(node->GetChild(i), out);
-		}
-	}
-	else
+	VisitLeafs(node.data(), [&](iAImageTreeLeaf const * leaf)
 	{
 		static int curr = 0;
-		out << node->GetID() << "\n";
-	}
+		out << leaf->GetID() << "\n";
+	});
 }
 
 

@@ -45,25 +45,17 @@ void AddClusterData(AttributeHistogram & hist,
 	iAImageTreeNode const * node, int chartID, iAChartSpanSlider* chart, int numBin,
 	iAChartAttributeMapper const & chartAttrMap)
 {
-	if (node->IsLeaf())
+	VisitLeafs(node, [&](iAImageTreeLeaf const* leaf)
 	{
-		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node;
 		if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
 		{
 			return;
 		}
 		int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
-		double value = node->GetAttribute(attributeID);
+		double value = leaf->GetAttribute(attributeID);
 		int bin = clamp(0, numBin - 1, static_cast<int>(chart->mapValueToBin(value)));
 		hist.data[bin]++;
-	}
-	else
-	{
-		for (int i = 0; i<node->GetChildCount(); ++i)
-		{
-			AddClusterData(hist, node->GetChild(i).data(), chartID, chart, numBin, chartAttrMap);
-		}
-	}
+	});
 }
 
 // re-use existing histograms?
@@ -80,14 +72,13 @@ void GetHistData(AttributeHistogram & hist,
 
 void FindByAttitude(iAImageTreeNode const * node, iAImageTreeNode::Attitude att, QVector<iAImageTreeNode const *> & nodeList)
 {
-	if (node->GetAttitude() == att)
+	VisitNodes(node, [&](iAImageTreeNode const * leaf)
 	{
-		nodeList.push_back(node);
-	}
-	for (int i = 0; i<node->GetChildCount(); ++i)
-	{
-		FindByAttitude(node->GetChild(i).data(), att, nodeList);
-	}
+		if (leaf->GetAttitude() == att)
+		{
+			nodeList.push_back(leaf);
+		}
+	});
 }
 
 

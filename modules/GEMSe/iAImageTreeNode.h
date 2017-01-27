@@ -107,3 +107,14 @@ private:
 
 void FindNode(iAImageTreeNode const * searched, QList<QSharedPointer<iAImageTreeNode> > & path, QSharedPointer<iAImageTreeNode> curCluster, bool & found);
 QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node);
+
+
+template<typename VisitorFn>
+void VisitNodes(iAImageTreeNode const * node, VisitorFn visitor)
+{
+	visitor(node);
+	for (int i = 0; i<node->GetChildCount(); ++i)
+	{
+		VisitNodes(node->GetChild(i).data(), visitor);
+	}
+}

@@ -64,17 +64,16 @@ double iAParamHistogramData::MapBinToValue(double bin) const
 }
 
 
-void iAParamHistogramData::CountNodeBin(iAImageTreeNode const * node,
+void iAParamHistogramData::CountNodeBin(iAImageTreeLeaf const* leaf,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
 {
-	iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node;
 	if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
 	{
 		return;
 	}
 	int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
-	double value = node->GetAttribute(attributeID);
+	double value = leaf->GetAttribute(attributeID);
 	data->AddValue(value);
 }
 
@@ -83,17 +82,10 @@ void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
 {
-	if (!node->IsLeaf())
+	VisitLeafs(node, [&](iAImageTreeLeaf const * leaf)
 	{
-		for (int i=0; i<node->GetChildCount(); ++i)
-		{
-			VisitNode(node->GetChild(i).data(), data, chartID, chartAttrMap);
-		}
-	}
-	else
-	{
-		CountNodeBin(node, data, chartID, chartAttrMap);
-	}
+		CountNodeBin(leaf, data, chartID, chartAttrMap);
+	});
 }
 
 
@@ -102,23 +94,14 @@ void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 	iAChartAttributeMapper const & chartAttrMap,
 	iAChartFilter const & attributeFilter)
 {
-	if (!node->IsLeaf())
+	VisitLeafs(node, [&](iAImageTreeLeaf const * leaf)
 	{
-		for (int i=0; i<node->GetChildCount(); ++i)
-		{
-			VisitNode(node->GetChild(i).data(), data, chartID, chartAttrMap, attributeFilter);
-		}
-	}
-	else
-	{
-		iAImageTreeLeaf const * leaf = dynamic_cast<iAImageTreeLeaf const *> (node);
-		assert(leaf);
 		if (!attributeFilter.Matches(leaf, chartAttrMap))
 		{
 			return;
 		}
-		CountNodeBin(node, data, chartID, chartAttrMap);
-	}
+		CountNodeBin(leaf, data, chartID, chartAttrMap);
+	});
 }
 
 

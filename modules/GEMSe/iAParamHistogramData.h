@@ -30,6 +30,7 @@
 class iAChartFilter;
 class iAChartAttributeMapper;
 class iAImageTreeNode;
+class iAImageTreeLeaf;
 
 class iAParamHistogramData: public iAAbstractDiagramRangedData
 {
@@ -81,7 +82,7 @@ private:
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter);
-	static void CountNodeBin(iAImageTreeNode const * node,
+	static void CountNodeBin(iAImageTreeLeaf const * node,
 		QSharedPointer<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);

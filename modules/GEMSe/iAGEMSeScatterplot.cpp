@@ -64,29 +64,21 @@ void AddTableValues(
 	iAChartFilter const & attribFilter,
 	iAChartAttributeMapper const & chartAttrMap)
 {
-	if (node->IsLeaf())
+	VisitLeafs(node, [&](iAImageTreeLeaf const * leaf)
 	{
-		iAImageTreeLeaf const * leaf = dynamic_cast<iAImageTreeLeaf const *>(node);
 		if (attribFilter.Matches(leaf, chartAttrMap) &&
 			chartAttrMap.GetDatasetIDs(p1).contains(leaf->GetDatasetID()) &&
 			chartAttrMap.GetDatasetIDs(p2).contains(leaf->GetDatasetID()))
 		{
 			int attr1Idx = chartAttrMap.GetAttributeID(p1, leaf->GetDatasetID());
 			int attr2Idx = chartAttrMap.GetAttributeID(p2, leaf->GetDatasetID());
-			double attr1Value = node->GetAttribute(attr1Idx);
-			double attr2Value = node->GetAttribute(attr2Idx);
+			double attr1Value = leaf->GetAttribute(attr1Idx);
+			double attr2Value = leaf->GetAttribute(attr2Idx);
 			table->SetValue(rowNr, 0, attr1Value);
 			table->SetValue(rowNr, 1, attr2Value);
 			rowNr++;
 		}
-	}
-	else
-	{
-		for (int i = 0; i<node->GetChildCount(); ++i)
-		{
-			AddTableValues(table, node->GetChild(i).data(), p1, p2, rowNr, attribFilter, chartAttrMap);
-		}
-	}
+	});
 }
 
 
