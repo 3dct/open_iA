@@ -168,6 +168,16 @@ CombinedProbPtr iAImageTreeLeaf::UpdateProbabilities() const
 }
 
 
+double iAImageTreeLeaf::GetProbabilityValue(int l, int x, int y, int z) const
+{
+	if (!m_singleResult->ProbabilityAvailable())
+		return 0;
+	itk::Index<3> idx; idx[0] = x; idx[1] = y; idx[2] = z;
+	// probably very inefficient - dynamic cast involved!
+	return dynamic_cast<ProbabilityImageType*>(m_singleResult->GetProbabilityImg(l).GetPointer())->GetPixel(idx);
+}
+
+
 int iAImageTreeLeaf::GetDatasetID() const
 {
 	return m_singleResult->GetDatasetID();
