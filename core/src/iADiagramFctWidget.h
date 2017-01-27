@@ -87,6 +87,7 @@ public:
 	iAAbstractDiagramData::DataType GetMaxYValue() const;
 	iAAbstractDiagramData::DataType GetMaxYAxisValue() const;
 	void SetMaxYAxisValue(iAAbstractDiagramData::DataType val);
+	void ResetMaxYAxisValue();
 
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData() =0;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const =0;

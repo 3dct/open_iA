@@ -61,6 +61,7 @@ public:
 	double mapValueToBin(double value) const;
 	void SetBinColor(int bin, QColor const & color);
 	void UpdateChart();
+	void ResetMaxYAxisValue();
 signals:
 	void Toggled(bool);
 	void FilterChanged(double min, double max);

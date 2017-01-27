@@ -222,3 +222,8 @@ void iAChartSpanSlider::UpdateChart()
 {
 	m_charts->redraw();
 }
+
+void iAChartSpanSlider::ResetMaxYAxisValue()
+{
+	m_charts->ResetMaxYAxisValue();
+}

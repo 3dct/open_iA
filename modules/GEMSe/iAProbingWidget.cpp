@@ -44,8 +44,8 @@ iAProbingWidget::iAProbingWidget(int labelCount):
 	setLayout(layout);
 	for (int l = 0; l < m_labelCount; ++l)
 	{
-		QSharedPointer<iAParamHistogramData> data = CreateEmptyProbData();
-		m_charts.push_back(new iAChartSpanSlider(QString("Probability %1").arg(l), l, data,	0, false));
+		m_chartData.push_back(CreateEmptyProbData());
+		m_charts.push_back(new iAChartSpanSlider(QString("Probability %1").arg(l), l, m_chartData[l],	0, false));
 		layout->addWidget(m_charts[l]);
 	}
 }
@@ -57,17 +57,16 @@ void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
 
 void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 {
-	m_chartData.clear();
 	DEBUG_LOG(QString("Updating probabilities for slicer mode %1, coord(%2, %3, %4)").arg(GetSlicerModeString(mode)).arg(x).arg(y).arg(z));
+	// get actual x,y,z coordinates !!!
 	for (int l = 0; l < m_labelCount; ++l)
 	{
-		m_chartData.push_back(CreateEmptyProbData());
+		m_chartData[l]->Reset();
 		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 		{
 			m_chartData[l]->AddValue(leaf->GetProbabilityValue(l, x, y, z));
-			m_charts[l]->ClearClusterData();
-			m_charts[l]->AddClusterData(m_chartData[l]);
-			m_charts[l]->UpdateChart();
 		});
+		m_charts[l]->ResetMaxYAxisValue();
+		m_charts[l]->UpdateChart();
 	}
 }

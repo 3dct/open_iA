@@ -53,6 +53,7 @@ public:
 	iAParamHistogramData(size_t numBin,
 		double min, double max, bool log,
 		iAValueType rangeType);
+	void Reset();
 	virtual ~iAParamHistogramData();
 	virtual DataType const * GetData() const;
 	virtual size_t GetNumBin() const;

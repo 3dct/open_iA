@@ -197,6 +197,13 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	m_spacing = (max - min) / m_numBin;
 }
 
+
+void iAParamHistogramData::Reset()
+{
+	m_maxValue = std::numeric_limits<double>::lowest();
+	std::fill(m_data, m_data + m_numBin, 0.0);
+}
+
 iAParamHistogramData::~iAParamHistogramData()
 {
 	delete [] m_data;
