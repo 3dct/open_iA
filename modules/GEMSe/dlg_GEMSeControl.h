@@ -86,6 +86,7 @@ private slots:
 	void StoreDerivedOutput();
 	void SetMagicLensCount(int);
 	void FreeMemory();
+	void SetProbabilityProbing(int);
 private:
 	void StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts);
 	void EnableClusteringDependantUI();

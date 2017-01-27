@@ -90,6 +90,7 @@ public:
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > GetSamplings();
 	void SetMagicLensCount(int count);
 	void FreeMemory();
+	void SetProbabilityProbing(bool enabled);
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

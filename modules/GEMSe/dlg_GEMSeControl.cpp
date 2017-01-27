@@ -142,6 +142,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(sbMagicLensCount, SIGNAL(valueChanged(int)), this, SLOT(SetMagicLensCount(int)));
 	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
 	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
+	connect(cbProbabilityProbing, SIGNAL(stateChanged(int)), this, SLOT(SetProbabilityProbing(int)));
 	
 	DataAvailable();
 }
@@ -697,4 +698,10 @@ void dlg_GEMSeControl::SetMagicLensCount(int count)
 void dlg_GEMSeControl::FreeMemory()
 {
 	m_dlgGEMSe->FreeMemory();
+}
+
+
+void dlg_GEMSeControl::SetProbabilityProbing(int state)
+{
+	m_dlgGEMSe->SetProbabilityProbing(state == Qt::Checked);
 }
