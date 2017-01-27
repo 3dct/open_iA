@@ -21,13 +21,23 @@
 #pragma once
 
 #include <QDockWidget>
+#include <QSharedPointer>
+#include <QVector>
 
-class iAProbingWidget : public QDockWidget
+class iAChartSpanSlider;
+class iAImageTreeNode;
+class iAParamHistogramData;
+
+class iAProbingWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	iAProbingWidget();
+	iAProbingWidget(int labelCount);
+	void SetSelectedNode(iAImageTreeNode const * node);
 public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
-	//void NodeSelected();
+private:
+	int m_labelCount;
+	QVector<iAChartSpanSlider *> m_charts;
+	iAImageTreeNode const * m_selectedNode;
 };

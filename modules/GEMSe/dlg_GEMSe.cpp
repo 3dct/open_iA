@@ -150,7 +150,9 @@ void dlg_GEMSe::SetTree(
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 
-	m_probingWidget = new iAProbingWidget();
+	m_probingWidget = new iAProbingWidget(imageTree->GetLabelCount());
+	m_probingWidget->SetSelectedNode(m_selectedCluster.data());
+	wdProbing->layout()->addWidget(m_probingWidget);
 
 	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
 	connect(m_treeView, SIGNAL(Clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
@@ -258,6 +260,7 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageTreeNode> node)
 	bool clear = !QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
 	m_treeView->AddSelectedNode(node, clear);
 	m_exampleView->SetSelectedNode(node);
+	m_probingWidget->SetSelectedNode(node.data());
 	UpdateClusterFilteredChartData();
 	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter, m_chartAttributeMapper);
 	if (node->IsLeaf())
@@ -297,6 +300,7 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 			value += 0.5;
 		}
 		m_histogramContainer->SetMarker(chartID, value);
+		m_probingWidget->SetSelectedNode(node);
 	}
 	m_scatterplot->UpdateLeafPlot(m_selectedLeaf, m_chartAttributeMapper);
 }

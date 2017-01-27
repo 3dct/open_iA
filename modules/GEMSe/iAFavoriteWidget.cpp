@@ -36,7 +36,7 @@ typedef QVBoxLayout LikeLayoutType;
 iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	m_previewPool(previewPool)
 {
-	QWidget* favListWdgt = new QWidget();
+	QWidget* favListWdgt = this;
 	QHBoxLayout* favListLayout = new QHBoxLayout();
 	favListLayout->setSpacing(0);
 	favListLayout->setMargin(0);
@@ -49,7 +49,6 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	m_likeLayout->setSpacing(ExampleViewSpacing);
 	m_likeLayout->setContentsMargins(ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing);
 	m_likeLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	//m_likeLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 	likes->setLayout(m_likeLayout);
 	likes->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	likes->setStyleSheet("background-color: #DFD;");
@@ -57,8 +56,6 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	favListLayout->addWidget(likes);
 	
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	SetCaptionedContent(this, "Favorites", favListWdgt);
-	setFixedWidth(FavoriteBarWidth);
 }
 
 bool iAFavoriteWidget::HasAnyFavorite() const
