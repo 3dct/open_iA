@@ -42,7 +42,7 @@ class iAChartSpanSlider: public QWidget
 	Q_OBJECT
 public:
 	iAChartSpanSlider(QString const & caption, int id, QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper);
+		QSharedPointer<iANameMapper> nameMapper, bool checkbox = true);
 	void SetFilteredData(QSharedPointer<iAParamHistogramData> data);
 	void SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data);
 	void RemoveFilterData();

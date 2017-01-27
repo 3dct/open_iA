@@ -39,7 +39,8 @@ iAChartSpanSlider::iAChartSpanSlider(
 	QString const & caption,
 	int id,
 	QSharedPointer<iAParamHistogramData> data,
-	QSharedPointer<iANameMapper> nameMapper):
+	QSharedPointer<iANameMapper> nameMapper,
+	bool checkbox):
 	m_ID(id),
 	m_oldMin(-1),
 	m_oldMax(-1)
@@ -51,12 +52,16 @@ iAChartSpanSlider::iAChartSpanSlider(
 	mainLayout->setMargin(0);
 	mainLayout->setSpacing(5);
 
-	m_checkbox = new QCheckBox(caption);
-	QFont f(m_checkbox->font());
-	f.setPointSize(FontSize);
-	m_checkbox->setFont(f);
-	m_checkbox->setMinimumWidth(10);
-	mainLayout->addWidget(m_checkbox);
+	if (checkbox)
+	{
+		m_checkbox = new QCheckBox(caption);
+		QFont f(m_checkbox->font());
+		f.setPointSize(FontSize);
+		m_checkbox->setFont(f);
+		m_checkbox->setMinimumWidth(10);
+		mainLayout->addWidget(m_checkbox);
+		connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
+	}
 
 	m_charts = new iAParamChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -64,7 +69,6 @@ iAChartSpanSlider::iAChartSpanSlider(
 
 	setLayout(mainLayout);
 
-	connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
 	connect(m_charts, SIGNAL(DblClicked()), this,  SIGNAL(ChartDblClicked()));
 	connect(m_charts, SIGNAL(SelectionChanged()), this, SLOT(SelectionChanged()));
 }

@@ -30,7 +30,7 @@
 
 #include <algorithm> // for std::fill
 
-double iAParamHistogramData::mapValueToBin(double value) const
+double iAParamHistogramData::MapValueToBin(double value) const
 {
 	if (m_log)
 	{
@@ -47,7 +47,7 @@ double iAParamHistogramData::mapValueToBin(double value) const
 	return mapValue(GetDataRange(0), GetDataRange(1), 0.0, static_cast<double>(GetNumBin()), value);
 }
 
-double iAParamHistogramData::mapBinToValue(double bin) const
+double iAParamHistogramData::MapBinToValue(double bin) const
 {
 	if (m_log)
 	{
@@ -75,12 +75,7 @@ void iAParamHistogramData::CountNodeBin(iAImageTreeNode const * node,
 	}
 	int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
 	double value = node->GetAttribute(attributeID);
-	int binIdx = clamp(0, static_cast<int>(data->m_numBin-1), static_cast<int>(data->mapValueToBin(value)));
-	data->m_data[binIdx]++;
-	if (data->m_data[binIdx] > data->m_maxValue)
-	{
-		data->m_maxValue = data->m_data[binIdx];
-	}
+	data->AddValue(value);
 }
 
 
@@ -173,8 +168,8 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	VisitNode(tree, result, chartID, chartAttrMap, attributeFilter);
 	if (attributeFilter.HasFilter(chartID))
 	{
-		result->SetMinX(result->mapValueToBin(attributeFilter.GetMin(chartID)));
-		result->SetMaxX(result->mapValueToBin(attributeFilter.GetMax(chartID)));
+		result->SetMinX(result->MapValueToBin(attributeFilter.GetMin(chartID)));
+		result->SetMaxX(result->MapValueToBin(attributeFilter.GetMax(chartID)));
 	}
 	return result;
 }
@@ -263,4 +258,14 @@ void iAParamHistogramData::SetMinX(double x)
 void iAParamHistogramData::SetMaxX(double x)
 {
 	m_maxX = x;
+}
+
+void iAParamHistogramData::AddValue(double value)
+{
+	int binIdx = clamp(0, static_cast<int>(m_numBin - 1), static_cast<int>(MapValueToBin(value)));
+	m_data[binIdx]++;
+	if (m_data[binIdx] > m_maxValue)
+	{
+		m_maxValue = m_data[binIdx];
+	}
 }

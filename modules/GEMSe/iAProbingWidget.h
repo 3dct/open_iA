@@ -39,5 +39,6 @@ public slots:
 private:
 	int m_labelCount;
 	QVector<iAChartSpanSlider *> m_charts;
+	QVector<QSharedPointer<iAParamHistogramData> > m_chartData;
 	iAImageTreeNode const * m_selectedNode;
 };

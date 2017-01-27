@@ -59,3 +59,20 @@ private:
 	int m_labelCount;
 	QSharedPointer<iASingleResult> m_singleResult;
 };
+
+template<typename VisitorFn>
+void VisitLeafs(iAImageTreeNode const * node, VisitorFn visitor)
+{
+	if (!node->IsLeaf())
+	{
+		for (int i = 0; i<node->GetChildCount(); ++i)
+		{
+			VisitLeafs(node->GetChild(i).data(), visitor);
+		}
+	}
+	else
+	{
+		iAImageTreeLeaf const * leaf = dynamic_cast<iAImageTreeLeaf const *> (node);
+		visitor(leaf);
+	}
+}

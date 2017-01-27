@@ -50,6 +50,9 @@ public:
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter,
 		int numBin);
+	iAParamHistogramData(size_t numBin,
+		double min, double max, bool log,
+		iAValueType rangeType);
 	virtual ~iAParamHistogramData();
 	virtual DataType const * GetData() const;
 	virtual size_t GetNumBin() const;
@@ -58,18 +61,16 @@ public:
 	virtual double GetDataRange(int idx) const;
 	virtual DataType GetMaxValue() const;
 	virtual double GetBinStart(int binNr) const;
-	double mapValueToBin(double value) const;
-	double mapBinToValue(double bin) const;
+	double MapValueToBin(double value) const;
+	double MapBinToValue(double bin) const;
 	iAValueType GetRangeType() const;
 	bool IsLogarithmic() const;
 	virtual double GetMinX() const;
 	virtual double GetMaxX() const;
 	void SetMinX(double x);
 	void SetMaxX(double x);
+	void AddValue(double value);
 private:
-	iAParamHistogramData(size_t numBin,
-		double min, double max, bool log,
-		iAValueType rangeType);
 	static void VisitNode(iAImageTreeNode const * node,
 		QSharedPointer<iAParamHistogramData> data,
 		int chartID,

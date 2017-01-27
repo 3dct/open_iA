@@ -49,8 +49,8 @@ iAParamChart::iAParamChart(QWidget* parent,
 	m_nameMapper(nameMapper),
 	m_selectedHandle(-1)
 {
-	m_minSliderPos = m_data->mapBinToValue(0);
-	m_maxSliderPos = m_data->mapBinToValue(m_data->GetNumBin());
+	m_minSliderPos = m_data->MapBinToValue(0);
+	m_maxSliderPos = m_data->MapBinToValue(m_data->GetNumBin());
 	m_captionPosition = Qt::AlignLeft | Qt::AlignTop;
 	m_showXAxisLabel = false;
 	m_showFunctions = false;
@@ -73,12 +73,12 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAParamChart::GetData() const
 
 double iAParamChart::mapBinToValue(double bin) const
 {
-	return m_data->mapBinToValue(bin);
+	return m_data->MapBinToValue(bin);
 }
 
 double iAParamChart::mapValueToBin(double value) const
 {
-	return m_data->mapValueToBin(value);
+	return m_data->MapValueToBin(value);
 }
 
 QSharedPointer<iAAbstractDrawableFunction> iAParamChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)

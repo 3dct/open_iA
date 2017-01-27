@@ -20,14 +20,54 @@
 * ************************************************************************************/
 #include "iAProbingWidget.h"
 
+#include "iAChartSpanSlider.h"
 #include "iAConsole.h"
+#include "iAImageTreeLeaf.h"
+#include "iAParamHistogramData.h"
 #include "iASlicerMode.h"
 
+#include <QVBoxLayout>
 
-iAProbingWidget::iAProbingWidget()
-{}
+int ProbabilityHistogramBinCount = 100;
+
+QSharedPointer<iAParamHistogramData> CreateEmptyProbData()
+{
+	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(ProbabilityHistogramBinCount, 0, 1, false, Continuous));
+	result->AddValue(0);	// dummy value
+	return result;
+}
+
+iAProbingWidget::iAProbingWidget(int labelCount):
+	m_labelCount(labelCount)
+{
+	QVBoxLayout* layout = new QVBoxLayout();
+	setLayout(layout);
+	for (int l = 0; l < m_labelCount; ++l)
+	{
+		QSharedPointer<iAParamHistogramData> data = CreateEmptyProbData();
+		m_charts.push_back(new iAChartSpanSlider(QString("Probability %1").arg(l), l, data,	0, false));
+		layout->addWidget(m_charts[l]);
+	}
+}
+
+void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
+{
+	m_selectedNode = node;
+}
 
 void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 {
+	m_chartData.clear();
 	DEBUG_LOG(QString("Updating probabilities for slicer mode %1, coord(%2, %3, %4)").arg(GetSlicerModeString(mode)).arg(x).arg(y).arg(z));
+	for (int l = 0; l < m_labelCount; ++l)
+	{
+		m_chartData.push_back(CreateEmptyProbData());
+		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
+		{
+			m_chartData[l]->AddValue(leaf->GetProbabilityValue(l, x, y, z));
+			m_charts[l]->ClearClusterData();
+			m_charts[l]->AddClusterData(m_chartData[l]);
+			m_charts[l]->UpdateChart();
+		});
+	}
 }
