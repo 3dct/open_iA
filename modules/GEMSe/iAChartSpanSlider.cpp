@@ -40,7 +40,8 @@ iAChartSpanSlider::iAChartSpanSlider(
 	int id,
 	QSharedPointer<iAParamHistogramData> data,
 	QSharedPointer<iANameMapper> nameMapper,
-	bool checkbox):
+	bool checkbox,
+	bool showCaption):
 	m_ID(id),
 	m_oldMin(-1),
 	m_oldMax(-1)
@@ -63,7 +64,7 @@ iAChartSpanSlider::iAChartSpanSlider(
 		connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
 	}
 
-	m_charts = new iAParamChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper);
+	m_charts = new iAParamChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper, showCaption);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	mainLayout->addWidget(m_charts);
 

@@ -36,7 +36,8 @@ public:
 		vtkColorTransferFunction* ctf,
 		QString const & caption,
 		QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper);
+		QSharedPointer<iANameMapper> nameMapper,
+		bool showCaption = false);
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 	double mapBinToValue(double bin) const;

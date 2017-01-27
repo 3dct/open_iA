@@ -23,17 +23,19 @@
 #include "iAChartSpanSlider.h"
 #include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
+#include "iAMathUtility.h"
 #include "iAParamHistogramData.h"
 #include "iASlicerMode.h"
 
 #include <QVBoxLayout>
 
-int ProbabilityHistogramBinCount = 100;
+int ProbabilityHistogramBinCount = 40;
 
-QSharedPointer<iAParamHistogramData> CreateEmptyProbData()
+QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, double min, double max)
 {
-	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(ProbabilityHistogramBinCount, 0, 1, false, Continuous));
-	result->AddValue(0);	// dummy value
+	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(
+		type == Discrete ? (max-min) : ProbabilityHistogramBinCount,
+		min, max, false, type));
 	return result;
 }
 
@@ -44,9 +46,16 @@ iAProbingWidget::iAProbingWidget(int labelCount):
 	setLayout(layout);
 	for (int l = 0; l < m_labelCount; ++l)
 	{
-		m_chartData.push_back(CreateEmptyProbData());
-		m_charts.push_back(new iAChartSpanSlider(QString("Probability %1").arg(l), l, m_chartData[l],	0, false));
-		layout->addWidget(m_charts[l]);
+		m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
+		m_charts.push_back(new iAChartSpanSlider(QString("Probability %1").arg(l), l, m_chartData[l],	0, false, true));
+	}
+	m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
+	m_charts.push_back(new iAChartSpanSlider("Entropy", m_labelCount, m_chartData[m_labelCount], 0, false, true));
+	m_chartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelCount));
+	m_charts.push_back(new iAChartSpanSlider("Label Distribution", m_labelCount+1, m_chartData[m_labelCount+1], 0, false, true));
+	for (int c = 0; c < m_charts.size(); ++c)
+	{
+		layout->addWidget(m_charts[c]);
 	}
 }
 
@@ -57,14 +66,48 @@ void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
 
 void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 {
-	for (int l = 0; l < m_labelCount; ++l)
+	for (int i = 0; i < m_chartData.size(); ++i)
 	{
-		m_chartData[l]->Reset();
+		m_chartData[i]->Reset();
+	}
+
+	for (int l = 0; l < m_labelCount; ++l)
+		{
 		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 		{
 			m_chartData[l]->AddValue(leaf->GetProbabilityValue(l, x, y, z));
 		});
-		m_charts[l]->ResetMaxYAxisValue();
-		m_charts[l]->UpdateChart();
+	}
+
+	double limit = -std::log(1.0 / m_labelCount);
+	double normalizeFactor = 1 / limit;
+	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
+	{
+		double entropy = 0.0;
+		//double probSum = 0.0;
+		for (int l = 0; l < m_labelCount; ++l)
+		{
+			double value = leaf->GetProbabilityValue(l, x, y, z);
+			//probSum += value;
+			if (value > 0)
+			{
+				entropy += (value * std::log(value));
+			}
+		}
+		entropy = clamp(0.0, 1.0, -entropy * normalizeFactor);
+		m_chartData[m_labelCount]->AddValue(entropy);
+	});
+
+	itk::Index<3> idx;
+	idx[0] = x; idx[1] = y; idx[2] = z;
+	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
+	{
+		m_chartData[m_labelCount+1]->AddValue(dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer())->GetPixel(idx));
+	});
+
+	for (int i = 0; i < m_charts.size(); ++i)
+	{
+		m_charts[i]->ResetMaxYAxisValue();
+		m_charts[i]->UpdateChart();
 	}
 }

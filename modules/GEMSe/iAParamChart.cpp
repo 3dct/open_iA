@@ -41,7 +41,8 @@ iAParamChart::iAParamChart(QWidget* parent,
 	vtkColorTransferFunction* ctf,
 	QString const & caption,
 	QSharedPointer<iAParamHistogramData> data,
-	QSharedPointer<iANameMapper> nameMapper)
+	QSharedPointer<iANameMapper> nameMapper,
+	bool showCaption)
 :
 	iADiagramFctWidget(parent, 0, otf, ctf, caption),
 	m_data(data),
@@ -52,7 +53,7 @@ iAParamChart::iAParamChart(QWidget* parent,
 	m_minSliderPos = m_data->MapBinToValue(0);
 	m_maxSliderPos = m_data->MapBinToValue(m_data->GetNumBin());
 	m_captionPosition = Qt::AlignLeft | Qt::AlignTop;
-	m_showXAxisLabel = false;
+	m_showXAxisLabel = showCaption;
 	m_showFunctions = false;
 	SetXAxisSteps(std::min(static_cast<int>(m_data->GetNumBin()), 20));
 	for (int i = 0; i < m_data->GetNumBin(); ++i)
