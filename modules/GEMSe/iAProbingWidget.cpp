@@ -57,8 +57,6 @@ void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
 
 void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 {
-	DEBUG_LOG(QString("Updating probabilities for slicer mode %1, coord(%2, %3, %4)").arg(GetSlicerModeString(mode)).arg(x).arg(y).arg(z));
-	// get actual x,y,z coordinates !!!
 	for (int l = 0; l < m_labelCount; ++l)
 	{
 		m_chartData[l]->Reset();
