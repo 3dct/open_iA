@@ -579,7 +579,7 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 			channel = clamp(0, static_cast<int>(volumes.size() - 1), channel);
 			img = volumes[channel];
 		}
-		if (!img || img->GetDimensions()[0] == 0 || img->GetDimensions()[1])
+		if (!img || img->GetDimensions()[0] == 0 || img->GetDimensions()[1] == 0)
 		{
 			DEBUG_LOG(QString("File '%1' could not be loaded!").arg(filename));
 			return result;
