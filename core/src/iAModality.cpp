@@ -439,6 +439,7 @@ bool iAModalityList::Load(QString const & filename)
 			ModalityCollection mod = iAModalityList::Load(modalityFile, modalityName, channel, false, renderFlags);
 			if (mod.size() != 1) // we expect to load exactly one modality
 			{
+				DEBUG_LOG(QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
 				return false;
 			}
 			mod[0]->SetStringSettings(positionSettings, orientationSettings, tfFileName);
@@ -577,6 +578,11 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 		{
 			channel = clamp(0, static_cast<int>(volumes.size() - 1), channel);
 			img = volumes[channel];
+		}
+		if (!img || img->GetDimensions()[0] == 0 || img->GetDimensions()[1])
+		{
+			DEBUG_LOG(QString("File '%1' could not be loaded!").arg(filename));
+			return result;
 		}
 		QSharedPointer<iAModality> newModality(new iAModality(
 			nameBase, filename, channel, img, renderFlags));

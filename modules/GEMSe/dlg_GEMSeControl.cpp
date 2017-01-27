@@ -588,18 +588,25 @@ void dlg_GEMSeControl::LoadRefImage()
 
 bool dlg_GEMSeControl::LoadReferenceImage(QString const & referenceImageName)
 {
-	iAITKIO::ScalarPixelType pixelType;
-	auto img = iAITKIO::readFile(referenceImageName, pixelType, false);
-	if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
+	try
 	{
-		DEBUG_LOG("Invalid pixel type, reference image must be of INT type!");
-		return false;
+		iAITKIO::ScalarPixelType pixelType;
+		auto img = iAITKIO::readFile(referenceImageName, pixelType, false);
+		if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
+		{
+			DEBUG_LOG("Invalid pixel type, reference image must be of INT type!");
+			return false;
+		}
+		leRefImage->setText(referenceImageName);
+		m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
+		m_dlgGEMSe->CalcRefImgComp(m_groundTruthImage);
+		if (m_dlgMajorityVoting)
+			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
 	}
-	leRefImage->setText(referenceImageName);
-	m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
-	m_dlgGEMSe->CalcRefImgComp(m_groundTruthImage);
-	if (m_dlgMajorityVoting)
-		m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
+	catch (std::exception & e)
+	{
+		DEBUG_LOG(QString("Could not load reference image, problem: %1").arg(e.what()));
+	}
 	return true;
 }
 

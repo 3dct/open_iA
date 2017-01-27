@@ -101,10 +101,14 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	MdiChild *child = m_mainWnd->createMdiChild(false);
 	if (!seaFile.good())
 	{
-		DEBUG_LOG("Given precalculated data file could not be read.\n");
+		DEBUG_LOG("Given precalculated data file could not be read.");
 		return;
 	}
-	child->LoadProject(seaFile.GetModalityFileName());
+	if (!child->LoadProject(seaFile.GetModalityFileName()))
+	{
+		DEBUG_LOG(QString("Failed loading project '%1'").arg(seaFile.GetModalityFileName()));
+		return;
+	}
 	m_mdiChild = child;
 	UpdateChildData();
 
@@ -126,7 +130,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	}
 	if (!result || !gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
 	{
-		DEBUG_LOG("Precomputed Data Loading failed!\n");
+		DEBUG_LOG("Precomputed Data Loading failed!");
 	}
 	if (seaFile.GetLayoutName() != "")
 	{
