@@ -38,6 +38,7 @@ class iAFoamCharacterizationDialogBinarization : public iAFoamCharacterizationDi
 	private:
 		iAFoamCharacterizationItemBinarization* m_pItemBinarization = nullptr;
 
+		QCheckBox* m_pCheckBoxMask = nullptr;
 		QCheckBox* m_pCheckBoxOtzu = nullptr;
 
 		QSpinBox* m_pSpinBoxBinarizationLower = nullptr;

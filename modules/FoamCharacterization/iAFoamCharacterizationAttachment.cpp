@@ -86,10 +86,6 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	connect(pPushButtonWatershed, SIGNAL(clicked()), this, SLOT(slotPushButtonWatershed()));
 
 	m_pTable = new iAFoamCharacterizationTable(m_pImageData, pWidget);
-	m_pTable->addFilter();
-	m_pTable->addBinarization();
-	m_pTable->addDistanceTransform();
-	m_pTable->addWatershed();
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
 	pPushButtonExecute->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton));

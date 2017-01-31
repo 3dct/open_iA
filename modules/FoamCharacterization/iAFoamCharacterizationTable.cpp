@@ -171,6 +171,38 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 			}
 
 			setItem(m_iRowDrop, 0, pItemDrag);
+
+			if (pItemDrag->itemType() == iAFoamCharacterizationItem::itBinarization)
+			{
+				const int n(rowCount());
+
+				for (int i(0); i < n; ++i)
+				{
+					iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)item(i, 0));
+
+					if (pItem->itemType() == iAFoamCharacterizationItem::itDistanceTransform)
+					{
+						iAFoamCharacterizationItemDistanceTransform* pDistanceTransform
+						                                                   ((iAFoamCharacterizationItemDistanceTransform*) pItem);
+
+						if (pDistanceTransform->itemMask() == m_iRowDrag)
+						{
+							pDistanceTransform->setItemMask(m_iRowDrop);
+						}
+					}
+
+					if (pItem->itemType() == iAFoamCharacterizationItem::itWatershed)
+					{
+						iAFoamCharacterizationItemWatershed* pWatershed ((iAFoamCharacterizationItemWatershed*)pItem);
+
+						if (pWatershed->itemMask() == m_iRowDrag)
+						{
+							pWatershed->setItemMask(m_iRowDrop);
+						}
+					}
+				}
+			}
+
 		}
 	}
 }
@@ -303,6 +335,10 @@ void iAFoamCharacterizationTable::open(const QString& _sFilename)
 				addFilter();
 				break;
 
+				case iAFoamCharacterizationItem::itDistanceTransform:
+				addDistanceTransform();
+				break;
+
 				default:
 				addWatershed();
 				break;
@@ -327,9 +363,11 @@ void iAFoamCharacterizationTable::reset()
 	viewport()->repaint();
 }
 
-void iAFoamCharacterizationTable::resizeEvent(QResizeEvent*)
+void iAFoamCharacterizationTable::resizeEvent(QResizeEvent* e)
 {
 	setColumnWidth(0, viewport()->width());
+
+	QTableWidget::resizeEvent(e);
 }
 
 void iAFoamCharacterizationTable::save(const QString& _sFilename)

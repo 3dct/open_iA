@@ -26,6 +26,8 @@ class QFile;
 
 class iAConnector;
 
+class iAFoamCharacterizationItemBinarization;
+
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
 		Q_OBJECT
@@ -37,9 +39,12 @@ class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 		void executeFloat(iAConnector* _pConnector);
 		void executeUnsignedShort(iAConnector* _pConnector);
 
+		int itemMask() const;
+
 		double level() const;
 		double threshold() const;
 
+		void setItemMask(const int& _iItemMask);
 		void setLevel(const double& _dLevel);
 		void setThreshold(const double& _dThreshold);
 
@@ -51,4 +56,6 @@ class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 	private:
 		double m_dLevel = 0.4;
 		double m_dThreshold = 0.1;
+
+		int m_iItemMask = -1;
 };

@@ -111,7 +111,7 @@ void iAFoamCharacterizationItemFilter::execute()
 		break;
 	}
 
-	m_dExecuteTime = 0.001 * (double)t.elapsed();
+	m_dExecuteTime = 0.001 * (double) t.elapsed();
 
 	setExecuting(false);
 }
@@ -443,6 +443,7 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 	itkFilter::Pointer pFilter(itkFilter::New());
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
 	pFilter->SetNumberOfIterations(m_uiNonLocalMeansIteration);
+	pFilter->SetKernelBandwidthEstimation(false);
 	pFilter->SetPatchRadius(m_uiNonLocalMeansRadius);
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());

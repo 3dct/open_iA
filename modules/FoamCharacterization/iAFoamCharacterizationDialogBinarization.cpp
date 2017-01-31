@@ -63,6 +63,10 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
 	m_pSpinBoxOtzuHistogramBins->setWhatsThis("Set the number of histogram bins.");
 	m_pSpinBoxOtzuHistogramBins->setValue(m_pItemBinarization->otzuHistogramBins());
 
+	m_pCheckBoxMask = new QCheckBox("Use as mask", m_pGroupBox2);
+	m_pCheckBoxMask->setChecked(m_pItemBinarization->isMask());
+	m_pCheckBoxMask->setWhatsThis("The result of the binarization will be used as mask.");
+
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
 	pGridLayout2->addWidget(pLabelBinarizationLower, 0, 0);
 	pGridLayout2->addWidget(m_pSpinBoxBinarizationLower, 0, 1);
@@ -71,21 +75,24 @@ iAFoamCharacterizationDialogBinarization::iAFoamCharacterizationDialogBinarizati
 	pGridLayout2->addWidget(m_pCheckBoxOtzu, 2, 0);
 	pGridLayout2->addWidget(pLabelOtzuHistogramBins, 3, 0);
 	pGridLayout2->addWidget(m_pSpinBoxOtzuHistogramBins, 3, 1);
+	pGridLayout2->addWidget(m_pCheckBoxMask, 4, 0);
 
 	setLayout();
 }
 
 void iAFoamCharacterizationDialogBinarization::slotPushButtonOk()
 {
+	m_pItemBinarization->setLowerThreshold(m_pSpinBoxBinarizationLower->value());
+	m_pItemBinarization->setUpperThreshold(m_pSpinBoxBinarizationUpper->value());
+
 	m_pItemBinarization->setItemFilterType ( (m_pCheckBoxOtzu->isChecked())
 		                                                                 ? iAFoamCharacterizationItemBinarization::iftOtzu
 		                                                                 : iAFoamCharacterizationItemBinarization::iftBinarization
 	                                       );
 
-	m_pItemBinarization->setLowerThreshold(m_pSpinBoxBinarizationLower->value());
-	m_pItemBinarization->setUpperThreshold(m_pSpinBoxBinarizationUpper->value());
-
 	m_pItemBinarization->setOtzuHistogramBins(m_pSpinBoxOtzuHistogramBins->value());
+
+	m_pItemBinarization->setIsMask(m_pCheckBoxMask->isChecked());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

@@ -22,10 +22,12 @@
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 
+#include "iAFoamCharacterizationComboBoxMask.h"
 #include "iAFoamCharacterizationItemDistanceTransform.h"
 
 iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDistanceTransform
@@ -39,8 +41,15 @@ iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDista
 	m_pCheckBoxImageSpacing->setChecked(m_pItemDistanceTransform->useImageSpacing());
 	m_pCheckBoxImageSpacing->setWhatsThis("Set if image spacing should be used in computing distances.");
 
+	QLabel* pLabelMask (new QLabel("Mask with:", m_pGroupBox2));
+
+	//m_pComboBoxMask = new iAFoamCharacterizationComboBoxMask(m_pItemDistanceTransform->table(), m_pGroupBox2);
+	//m_pComboBoxMask->setItemMask(m_pItemDistanceTransform->itemMask());
+
 	QGridLayout* pGridLayout2(new QGridLayout(m_pGroupBox2));
 	pGridLayout2->addWidget(m_pCheckBoxImageSpacing);
+	pGridLayout2->addWidget(pLabelMask, 1, 0);
+	//pGridLayout2->addWidget(m_pComboBoxMask, 1, 1);
 
 	setLayout();
 }
@@ -48,6 +57,8 @@ iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDista
 void iAFoamCharacterizationDialogDistanceTransform::slotPushButtonOk()
 {
 	m_pItemDistanceTransform->setUseImageSpacing(m_pCheckBoxImageSpacing->isChecked());
+
+	//m_pItemDistanceTransform->setItemMask(m_pComboBoxMask->itemMask());
 
 	iAFoamCharacterizationDialog::slotPushButtonOk();
 }

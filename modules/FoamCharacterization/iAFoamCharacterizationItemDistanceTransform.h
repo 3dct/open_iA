@@ -24,6 +24,8 @@
 
 class QFile;
 
+class iAFoamCharacterizationItemBinarization;
+
 class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizationItem
 {
 		Q_OBJECT
@@ -32,6 +34,9 @@ class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizatio
 		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
 
+		int itemMask() const;
+
+		void setItemMask(const int& _iItemMask);
 		void setUseImageSpacing(const bool& _bImageSpacing);
 
 		bool useImageSpacing() const;
@@ -43,4 +48,6 @@ class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizatio
 
 	private:
 		bool m_bImageSpacing = true;
+
+		int m_iItemMask = -1;
 };

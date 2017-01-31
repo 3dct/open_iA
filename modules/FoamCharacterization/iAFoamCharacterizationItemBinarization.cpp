@@ -37,7 +37,7 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
 	                                : iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itBinarization)
 {
-
+	m_pImageDataMask = vtkSmartPointer<vtkImageData>::New();
 }
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
@@ -45,6 +45,18 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 	                                                                                  : iAFoamCharacterizationItem(_pBinarization)
 {
 	setName(_pBinarization->name());
+
+	m_eItemFilterType = _pBinarization->itemFilterType();
+
+	m_usLowerThreshold = _pBinarization->lowerThreshold();
+	m_usUpperThreshold = _pBinarization->upperThreshold();
+	m_uiOtzuHistogramBins = _pBinarization->otzuHistogramBins();
+
+	m_bIsMask = _pBinarization->isMask();
+
+	m_pImageDataMask = vtkSmartPointer<vtkImageData>::New();
+	m_pImageDataMask->DeepCopy(_pBinarization->imageDataMask());
+	m_pImageDataMask->CopyInformationFromPipeline(_pBinarization->imageDataMask()->GetInformation());
 }
 
 void iAFoamCharacterizationItemBinarization::dialog()
@@ -70,6 +82,12 @@ void iAFoamCharacterizationItemBinarization::execute()
 		default:
 		executeOtzu(); 
 		break;
+	}
+
+	if (m_bIsMask)
+	{
+		m_pImageDataMask->DeepCopy(m_pImageData);
+		m_pImageDataMask->CopyInformationFromPipeline(m_pImageData->GetInformation());
 	}
 
 	m_dExecuteTime = 0.001 * (double)t.elapsed();
@@ -146,6 +164,16 @@ QString iAFoamCharacterizationItemBinarization::itemFilterTypeString() const
 	}
 }
 
+vtkImageData* iAFoamCharacterizationItemBinarization::imageDataMask()
+{
+	return m_pImageDataMask.Get();
+}
+
+bool iAFoamCharacterizationItemBinarization::isMask() const
+{
+	return m_bIsMask;
+}
+
 unsigned short iAFoamCharacterizationItemBinarization::lowerThreshold() const
 {
 	return m_usLowerThreshold;
@@ -158,7 +186,9 @@ void iAFoamCharacterizationItemBinarization::open(QFile* _pFileOpen)
 	_pFileOpen->read((char*)&m_eItemFilterType, sizeof(m_eItemFilterType));
 	_pFileOpen->read((char*)&m_usLowerThreshold, sizeof(m_usLowerThreshold));
 	_pFileOpen->read((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
-
+	_pFileOpen->read((char*)&m_uiOtzuHistogramBins, sizeof(m_uiOtzuHistogramBins));
+	_pFileOpen->read((char*)&m_bIsMask, sizeof(m_bIsMask));
+	
 	setItemText();
 }
 
@@ -174,6 +204,8 @@ void iAFoamCharacterizationItemBinarization::save(QFile* _pFileSave)
 	_pFileSave->write((char*)&m_eItemFilterType, sizeof(m_eItemFilterType));
 	_pFileSave->write((char*)&m_usLowerThreshold, sizeof(m_usLowerThreshold));
 	_pFileSave->write((char*)&m_usUpperThreshold, sizeof(m_usUpperThreshold));
+	_pFileSave->write((char*)&m_uiOtzuHistogramBins, sizeof(m_uiOtzuHistogramBins));
+	_pFileSave->write((char*)&m_bIsMask, sizeof(m_bIsMask));
 }
 
 void iAFoamCharacterizationItemBinarization::setItemFilterType
@@ -185,6 +217,11 @@ void iAFoamCharacterizationItemBinarization::setItemFilterType
 void iAFoamCharacterizationItemBinarization::setItemText()
 {
 	setText(m_sName + QString(" [%1]").arg(itemFilterTypeString()));
+}
+
+void iAFoamCharacterizationItemBinarization::setIsMask(const bool& _bIsMask)
+{
+	m_bIsMask = _bIsMask;
 }
 
 void iAFoamCharacterizationItemBinarization::setLowerThreshold(const unsigned short& _usLowerThreshold)

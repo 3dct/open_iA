@@ -22,6 +22,8 @@
 
 #include "iAFoamCharacterizationItem.h"
 
+#include <vtkSmartPointer.h>
+
 class QFile;
 
 class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
@@ -32,15 +34,20 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 		enum EItemFilterType { iftBinarization, iftOtzu};
 
 	public:
-		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationTable* _pTable ,vtkImageData* _pImageData);
+		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationTable* _pTable , vtkImageData* _pImageData);
 		explicit iAFoamCharacterizationItemBinarization(iAFoamCharacterizationItemBinarization* _pBinarization);
 
+		vtkImageData* imageDataMask();
+
 		EItemFilterType itemFilterType() const;
+
+		bool isMask() const;
 
 		unsigned short lowerThreshold() const;
 
 		unsigned int otzuHistogramBins() const;
 
+		void setIsMask(const bool& _bIsMask);
 		void setLowerThreshold(const unsigned short& _usLowerThreshold);
 		void setOtzuHistogramBins(const unsigned int& _uiOtzuHistogramBins);
 		void setUpperThreshold(const unsigned short& _usUpperThreshold);
@@ -55,11 +62,15 @@ class iAFoamCharacterizationItemBinarization : public iAFoamCharacterizationItem
 		virtual void save(QFile* _pFileSave) override;
 
 	private:
+		bool m_bIsMask = false;
+		
 		EItemFilterType m_eItemFilterType = iftOtzu;
 
 		unsigned short m_usLowerThreshold = 0;
 		unsigned short m_usUpperThreshold = 65535;
 		unsigned int m_uiOtzuHistogramBins = 500;
+
+		vtkSmartPointer<vtkImageData> m_pImageDataMask = nullptr;
 
 		void executeBinarization();
 		void executeOtzu();

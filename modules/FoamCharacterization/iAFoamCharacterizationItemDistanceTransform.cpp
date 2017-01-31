@@ -29,6 +29,7 @@
 #include "itkInvertIntensityImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 
+#include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
 
 #include "iAConnector.h"
@@ -48,6 +49,8 @@ iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceT
 	setName(_pDistanceTransform->name());
 
 	m_bImageSpacing = _pDistanceTransform->useImageSpacing();
+
+	m_iItemMask = _pDistanceTransform->itemMask();
 }
 
 void iAFoamCharacterizationItemDistanceTransform::dialog()
@@ -92,6 +95,14 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 
 	pConnector->SetImage(pInvert->GetOutput());
 
+	if (m_iItemMask > -1)
+	{
+		//if (m_pItemMask->isMask())
+		{
+
+		}
+	}
+
 	m_pImageData->DeepCopy(pConnector->GetVTKImage());
 	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
 
@@ -100,11 +111,17 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	setExecuting(false);
 }
 
+int iAFoamCharacterizationItemDistanceTransform::itemMask() const
+{
+	return m_iItemMask;
+}
+
 void iAFoamCharacterizationItemDistanceTransform::open(QFile* _pFileOpen)
 {
 	iAFoamCharacterizationItem::open(_pFileOpen);
 
 	_pFileOpen->read((char*)&m_bImageSpacing, sizeof(m_bImageSpacing));
+	_pFileOpen->read((char*)&m_iItemMask, sizeof(m_iItemMask));
 
 	setItemText();
 }
@@ -114,6 +131,12 @@ void iAFoamCharacterizationItemDistanceTransform::save(QFile* _pFileSave)
 	iAFoamCharacterizationItem::save(_pFileSave);
 
 	_pFileSave->write((char*)&m_bImageSpacing, sizeof(m_bImageSpacing));
+	_pFileSave->write((char*)&m_iItemMask, sizeof(m_iItemMask));
+}
+
+void iAFoamCharacterizationItemDistanceTransform::setItemMask(const int& _iItemMask)
+{
+	m_iItemMask = _iItemMask;
 }
 
 void iAFoamCharacterizationItemDistanceTransform::setUseImageSpacing(const bool& _bImageSpacing)

@@ -46,6 +46,11 @@ iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamC
 	                                                                                     : iAFoamCharacterizationItem(_pWatershed)
 {
 	setName(_pWatershed->name());
+
+	m_dLevel = _pWatershed->level();
+	m_dThreshold = _pWatershed->threshold();
+
+	m_iItemMask = _pWatershed->itemMask();
 }
 
 void iAFoamCharacterizationItemWatershed::dialog()
@@ -72,6 +77,14 @@ void iAFoamCharacterizationItemWatershed::execute()
 	else
 	{
 		executeUnsignedShort(pConnector.data());
+	}
+
+	if (m_iItemMask > -1)
+	{
+		//if (m_pItemMask->isMask())
+		{
+
+		}
 	}
 
 	m_pImageData->DeepCopy(pConnector->GetVTKImage());
@@ -121,6 +134,12 @@ void iAFoamCharacterizationItemWatershed::executeUnsignedShort(iAConnector* _pCo
 	_pConnector->SetImage(pFilter->GetOutput());
 }
 
+int iAFoamCharacterizationItemWatershed::itemMask() const
+{
+	return m_iItemMask;
+}
+
+
 double iAFoamCharacterizationItemWatershed::level() const
 {
 	return m_dLevel;
@@ -137,6 +156,7 @@ void iAFoamCharacterizationItemWatershed::open(QFile* _pFileOpen)
 
 	_pFileOpen->read((char*)&m_dLevel, sizeof(m_dLevel));
 	_pFileOpen->read((char*)&m_dThreshold, sizeof(m_dThreshold));
+	_pFileOpen->read((char*)&m_iItemMask, sizeof(m_iItemMask));
 
 	setItemText();
 }
@@ -147,6 +167,12 @@ void iAFoamCharacterizationItemWatershed::save(QFile* _pFileSave)
 
 	_pFileSave->write((char*)&m_dLevel, sizeof(m_dLevel));
 	_pFileSave->write((char*)&m_dThreshold, sizeof(m_dThreshold));
+	_pFileSave->write((char*)&m_iItemMask, sizeof(m_iItemMask));
+}
+
+void iAFoamCharacterizationItemWatershed::setItemMask(const int& _iItemMask)
+{
+	m_iItemMask = _iItemMask;
 }
 
 void iAFoamCharacterizationItemWatershed::setLevel(const double& _dLevel)

@@ -23,6 +23,7 @@
 #include "iAFoamCharacterizationDialog.h"
 
 class QCheckBox;
+class iAFoamCharacterizationComboBoxMask;
 
 class iAFoamCharacterizationItemDistanceTransform;
 
@@ -38,6 +39,7 @@ class iAFoamCharacterizationDialogDistanceTransform : public iAFoamCharacterizat
 		iAFoamCharacterizationItemDistanceTransform* m_pItemDistanceTransform = nullptr;
 
 		QCheckBox* m_pCheckBoxImageSpacing = nullptr;
+		iAFoamCharacterizationComboBoxMask* m_pComboBoxMask = nullptr;
 
 	protected slots:
 		virtual void slotPushButtonOk() override;

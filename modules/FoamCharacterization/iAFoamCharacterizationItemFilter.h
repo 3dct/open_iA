@@ -28,9 +28,14 @@ class QFile;
 
 class vtkImageData;
 
+#include <itkPatchBasedDenoisingBaseImageFilter.h>
+
 class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 {
-		Q_OBJECT
+	Q_OBJECT
+
+	//typedef itk::PatchBasedDenoisingBaseImageFilter
+		//<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>>::NoiseModelType ENoiseModelType;
 		
 	class QtRunnableMedian : public QRunnable
 	{
@@ -85,7 +90,7 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 	};
 
 	public:
-		enum EItemFilterType {iftAnisotropic, iftGauss , iftMedian, iftNonLocalMeans};
+		enum EItemFilterType { iftAnisotropic, iftGauss, iftMedian, iftNonLocalMeans };
 
 	public:
 		explicit iAFoamCharacterizationItemFilter(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
@@ -133,6 +138,8 @@ class iAFoamCharacterizationItemFilter : public iAFoamCharacterizationItem
 		double m_dGaussianVariance = 1.0;
 
 		EItemFilterType m_eItemFilterType = iftMedian;
+
+		//ENoiseModelType m_nmtNonLocalMeans = ENoiseModelType::POISSON;
 
 		int m_uiMedianFXSlice = 0;
 
