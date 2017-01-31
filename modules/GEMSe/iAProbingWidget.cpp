@@ -42,8 +42,14 @@ QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, doubl
 iAProbingWidget::iAProbingWidget(int labelCount):
 	m_labelCount(labelCount)
 {
+	QWidget* contentWidget = new QWidget();
+	setFrameShape(QFrame::NoFrame);
+	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	setWidgetResizable(true);
 	QVBoxLayout* layout = new QVBoxLayout();
-	setLayout(layout);
+	layout->setSpacing(0);
+	contentWidget->setLayout(layout);
 	for (int l = 0; l < m_labelCount; ++l)
 	{
 		m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
@@ -57,6 +63,8 @@ iAProbingWidget::iAProbingWidget(int labelCount):
 	{
 		layout->addWidget(m_charts[c]);
 	}
+	contentWidget->setMinimumHeight((m_labelCount+2) * 100);
+	this->setWidget(contentWidget);
 }
 
 void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)

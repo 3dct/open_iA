@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
+#include <QScrollArea>
 #include <QSharedPointer>
 #include <QVector>
 
@@ -28,7 +28,7 @@ class iAChartSpanSlider;
 class iAImageTreeNode;
 class iAParamHistogramData;
 
-class iAProbingWidget : public QWidget
+class iAProbingWidget : public QScrollArea
 {
 	Q_OBJECT
 public:
