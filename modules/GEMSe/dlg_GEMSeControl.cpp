@@ -516,7 +516,7 @@ void ExportClusterIDs(QSharedPointer<iAImageTreeNode> node, std::ostream & out)
 	VisitLeafs(node.data(), [&](iAImageTreeLeaf const * leaf)
 	{
 		static int curr = 0;
-		out << leaf->GetID() << "\n";
+		out << leaf->GetDatasetID() << "\t" << leaf->GetID() << "\n";
 	});
 }
 
