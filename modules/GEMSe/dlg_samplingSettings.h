@@ -33,19 +33,52 @@ class iAParameterGenerator;
 class QCheckBox;
 class QShortcut;
 
-struct ParameterInputs
+class ParameterInputs
 {
+public:
+	virtual ~ParameterInputs() {}
 	QLabel* label;
+	QSharedPointer<iAAttributeDescriptor> descriptor;
+	ParameterInputs():
+		label(0)
+	{}
+	virtual void RetrieveInputValues(QMap<QString, QString> & values) =0;
+	virtual void ChangeInputValues(QMap<QString, QString> const & values) =0;
+	void DeleteGUI();
+	virtual QSharedPointer<iAAttributeDescriptor> GetCurrentDescriptor() = 0;
+private:
+	virtual void DeleteGUIComponents() = 0;
+};
+
+class NumberParameterInputs: public ParameterInputs
+{
+public:
 	QLineEdit* from;
 	QLineEdit* to;
 	QCheckBox* logScale;
-	QSharedPointer<iAAttributeDescriptor> descriptor;
-	ParameterInputs():
-		label(0),
+	NumberParameterInputs():
+		ParameterInputs(),
 		from(0),
 		to(0),
 		logScale(0)
 	{}
+	virtual void RetrieveInputValues(QMap<QString, QString> & values);
+	virtual void ChangeInputValues(QMap<QString, QString> const & values);
+	virtual QSharedPointer<iAAttributeDescriptor> GetCurrentDescriptor();
+private:
+	virtual void DeleteGUIComponents();
+};
+
+class CategoryParameterInputs : public ParameterInputs
+{
+public:
+	QVector<QCheckBox*> m_features;
+	QString GetFeatureString();
+	virtual void RetrieveInputValues(QMap<QString, QString> & values);
+	virtual void ChangeInputValues(QMap<QString, QString> const & values);
+	virtual QSharedPointer<iAAttributeDescriptor> GetCurrentDescriptor();
+private:
+	virtual void DeleteGUIComponents();
 };
 
 typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
@@ -81,7 +114,7 @@ private:
 	int m_modalityCount;
 	QSharedPointer<iAAttributes> m_descriptor;
 	QString m_descriptorFileName;
-	QVector<ParameterInputs> m_paramInputs;
+	QVector<QSharedPointer<ParameterInputs> > m_paramInputs;
 
 	void LoadDescriptor(QString const & fileName);
 };
