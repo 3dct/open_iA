@@ -91,6 +91,7 @@ public:
 	void SetMagicLensCount(int count);
 	void FreeMemory();
 	void SetProbabilityProbing(bool enabled);
+	void DataTFChanged();
 public slots:
 	void ResetFilters();
 	void SelectHistograms();

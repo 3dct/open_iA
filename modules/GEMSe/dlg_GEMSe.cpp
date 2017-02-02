@@ -848,3 +848,8 @@ void dlg_GEMSe::SetProbabilityProbing(bool enabled)
 		disconnect(m_detailView, SIGNAL(SlicerHover(int, int, int, int)), m_probingWidget, SLOT(ProbeUpdate(int, int, int, int)));
 	}
 }
+
+void dlg_GEMSe::DataTFChanged()
+{
+	m_detailView->UpdateMagicLensColors();
+}

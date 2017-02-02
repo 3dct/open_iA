@@ -143,6 +143,9 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(cbColorThemes, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
 	connect(cbRepresentative, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetRepresentative(const QString &)));
 	connect(cbProbabilityProbing, SIGNAL(stateChanged(int)), this, SLOT(SetProbabilityProbing(int)));
+
+	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	connect(mdiChild, SIGNAL(TransferFunctionChanged()), this, SLOT(DataTFChanged()));
 	
 	DataAvailable();
 }
@@ -703,5 +706,14 @@ void dlg_GEMSeControl::FreeMemory()
 
 void dlg_GEMSeControl::SetProbabilityProbing(int state)
 {
+	if (!m_dlgGEMSe)
+		return;
 	m_dlgGEMSe->SetProbabilityProbing(state == Qt::Checked);
+}
+
+void dlg_GEMSeControl::DataTFChanged()
+{
+	if (!m_dlgGEMSe)
+		return;
+	m_dlgGEMSe->DataTFChanged();
 }

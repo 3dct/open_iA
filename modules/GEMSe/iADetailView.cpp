@@ -232,7 +232,6 @@ void iADetailView::ChangeModality(int offset)
 
 void iADetailView::ChangeMagicLensOpacity(int chg)
 {
-	//iASlicer* slicer = m_previewWidget->GetSlicer();
 	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
 	if (!sliceWidget)
 	{
@@ -244,34 +243,20 @@ void iADetailView::ChangeMagicLensOpacity(int chg)
 
 void iADetailView::SetSliceNumber(int sliceNr)
 {
-	/*
-	iAChannelID id = ch_SE_DetailView;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
-	vtkSmartPointer<vtkImageData> imageData = m_modalities->Get(m_magicLensCurrentModality)->GetImage();
-	switch(slicer->GetMode())
-	{
-		case YZ: slicer->setResliceChannelAxesOrigin(id, static_cast<double>(sliceNr) * imageData->GetSpacing()[0], 0, 0); break;
-		case XY: slicer->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[2]); break;
-		case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
-	}
 	slicer->update();
-	*/
 }
 
 void iADetailView::SetSlicerMode(int mode,int sliceNr)
 {
-	/*
-	iAChannelID id = ch_SE_DetailView;
-	iASlicer* slicer = m_previewWidget->GetSlicer();
-	vtkSmartPointer<vtkImageData> imageData = m_modalities->Get(m_magicLensCurrentModality)->GetImage();
-	switch(mode)
-	{
-		case YZ: slicer->setResliceChannelAxesOrigin(id, static_cast<double>(sliceNr) * imageData->GetSpacing()[0], 0, 0); break;
-		case XY: slicer->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[2]); break;
-		case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
-	}
-	slicer->update();
-	*/
+}
+
+void iADetailView::UpdateMagicLensColors()
+{
+	m_previewWidget->GetSlicer()->GetSlicerData()->updateChannelMappers();
+	m_previewWidget->GetSlicer()->UpdateMagicLensColors();
+	m_previewWidget->GetSlicer()->update();
+
 }
 
 void iADetailView::paintEvent(QPaintEvent * )
@@ -328,8 +313,6 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	m_detailText->clear();
 	if (node->IsLeaf() || node->GetChildCount() > 0)
 		m_detailText->append(QString("ID: ") + QString::number(node->GetID()));
-
-	//m_detailText->setMinimumWidth(m_detailText->document()->textWidth()+m_detailText->contentsMargins().left() + m_detailText->contentsMargins().right());
 	m_detailText->setMinimumWidth(50);
 	if (node->IsLeaf())
 	{
