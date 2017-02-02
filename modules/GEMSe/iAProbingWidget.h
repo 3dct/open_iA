@@ -26,14 +26,16 @@
 
 class iAFilterChart;
 class iAImageTreeNode;
+class iALabelInfo;
 class iAParamHistogramData;
 
 class iAProbingWidget : public QScrollArea
 {
 	Q_OBJECT
 public:
-	iAProbingWidget(int labelCount);
+	iAProbingWidget(iALabelInfo const & labelInfo);
 	void SetSelectedNode(iAImageTreeNode const * node);
+	void SetLabelInfo(iALabelInfo const & labelInfo);
 public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
 private:

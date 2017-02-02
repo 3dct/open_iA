@@ -23,6 +23,7 @@
 #include "iAFilterChart.h"
 #include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
+#include "iALabelInfo.h"
 #include "iAMathUtility.h"
 #include "iAParamHistogramData.h"
 #include "iASlicerMode.h"
@@ -39,8 +40,8 @@ QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, doubl
 	return result;
 }
 
-iAProbingWidget::iAProbingWidget(int labelCount):
-	m_labelCount(labelCount)
+iAProbingWidget::iAProbingWidget(iALabelInfo const & labelInfo):
+	m_labelCount(labelInfo.count())
 {
 	QWidget* contentWidget = new QWidget();
 	setFrameShape(QFrame::NoFrame);
@@ -56,6 +57,7 @@ iAProbingWidget::iAProbingWidget(int labelCount):
 		m_charts.push_back(new iAFilterChart(this, QString("Probability %1").arg(l), m_chartData[l],
 			QSharedPointer<iANameMapper>(), true));
 	}
+	SetLabelInfo(labelInfo);
 	m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
 	m_charts.push_back(new iAFilterChart(this, "Entropy", m_chartData[m_labelCount],
 		QSharedPointer<iANameMapper>(), true));
@@ -68,6 +70,14 @@ iAProbingWidget::iAProbingWidget(int labelCount):
 	}
 	contentWidget->setMinimumHeight((m_labelCount+2) * 100);
 	this->setWidget(contentWidget);
+}
+
+void iAProbingWidget::SetLabelInfo(iALabelInfo const & labelInfo)
+{
+	for (int l = 0; l < m_labelCount; ++l)
+	{
+		m_charts[l]->GetPrimaryDrawer()->setColor(labelInfo.GetColor(l));
+	}
 }
 
 void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
@@ -83,7 +93,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 	}
 
 	for (int l = 0; l < m_labelCount; ++l)
-		{
+	{
 		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 		{
 			m_chartData[l]->AddValue(leaf->GetProbabilityValue(l, x, y, z));

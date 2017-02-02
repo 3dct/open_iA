@@ -150,7 +150,7 @@ void dlg_GEMSe::SetTree(
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 
-	m_probingWidget = new iAProbingWidget(imageTree->GetLabelCount());
+	m_probingWidget = new iAProbingWidget(labelInfo);
 	m_probingWidget->SetSelectedNode(m_selectedCluster.data());
 	wdProbing->layout()->addWidget(m_probingWidget);
 
@@ -771,6 +771,10 @@ void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const
 	if (m_detailView)
 	{
 		m_detailView->SetLabelInfo(labelInfo);
+	}
+	if (m_probingWidget)
+	{
+		m_probingWidget->SetLabelInfo(labelInfo);
 	}
 }
 
