@@ -120,6 +120,7 @@ public:
 	virtual int getBottomMargin() const;
 
 	bool IsDrawnDiscrete() const;
+	void SetXCaption(QString const & caption);
 
 protected:
 	void paintEvent(QPaintEvent * );

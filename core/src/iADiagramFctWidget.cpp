@@ -1272,3 +1272,9 @@ bool iADiagramFctWidget::IsDrawnDiscrete() const
 		((GetData()->GetDataRange()[1]-GetData()->GetDataRange()[0]) <= GetData()->GetNumBin()))
 		|| GetData()->GetRangeType() == Categorical);
 }
+
+
+void iADiagramFctWidget::SetXCaption(QString const & caption)
+{
+	xCaption = caption;
+}
