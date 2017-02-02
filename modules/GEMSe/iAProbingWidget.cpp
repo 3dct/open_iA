@@ -50,8 +50,8 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 {
 	QWidget* contentWidget = new QWidget();
 	setFrameShape(QFrame::NoFrame);
-	setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 	setWidgetResizable(true);
 	QVBoxLayout* layout = new QVBoxLayout();
 	layout->setSpacing(0);
