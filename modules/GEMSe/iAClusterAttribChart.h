@@ -37,11 +37,11 @@ class vtkPiecewiseFunction;
 class QCheckBox;
 class QLabel;
 
-class iAChartSpanSlider: public QWidget
+class iAClusterAttribChart: public QWidget
 {
 	Q_OBJECT
 public:
-	iAChartSpanSlider(QString const & caption, int id, QSharedPointer<iAParamHistogramData> data,
+	iAClusterAttribChart(QString const & caption, int id, QSharedPointer<iAParamHistogramData> data,
 		QSharedPointer<iANameMapper> nameMapper,
 		bool checkbox = true,
 		bool showCaption = false);

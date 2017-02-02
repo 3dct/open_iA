@@ -26,7 +26,7 @@
 #include "iAAttributeDescriptor.h"
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
-#include "iAChartSpanSlider.h"
+#include "iAClusterAttribChart.h"
 #include "iAConsole.h"
 #include "iAImageTree.h"
 #include "iAParamHistogramData.h"
@@ -129,7 +129,7 @@ void iAHistogramContainer::CreateCharts()
 		{
 			maxValue = std::max(data->GetMaxValue(), maxValue);
 		}
-		m_charts.insert(chartID, new iAChartSpanSlider(attrib->GetName(), chartID, data,
+		m_charts.insert(chartID, new iAClusterAttribChart(attrib->GetName(), chartID, data,
 			attrib->GetNameMapper()));
 
 		connect(m_charts[chartID], SIGNAL(Toggled(bool)), this, SLOT(ChartSelected(bool)));
@@ -282,7 +282,7 @@ void iAHistogramContainer::RemoveAllCharts()
 
 void iAHistogramContainer::ChartSelected(bool selected)
 {
-	iAChartSpanSlider* chart = dynamic_cast<iAChartSpanSlider*>(sender());
+	iAClusterAttribChart* chart = dynamic_cast<iAClusterAttribChart*>(sender());
 
 	int id = m_charts.key(chart);
 	if (selected)
@@ -418,7 +418,7 @@ void iAHistogramContainer::RemoveMarker(int chartID)
 
 void iAHistogramContainer::ChartDblClicked()
 {
-	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
+	iAClusterAttribChart* slider = dynamic_cast<iAClusterAttribChart*>(sender());
 	assert(slider);
 	if (!slider)
 	{
@@ -432,7 +432,7 @@ void iAHistogramContainer::ChartDblClicked()
 
 void iAHistogramContainer::FilterChanged(double min, double max)
 {
-	iAChartSpanSlider* slider = dynamic_cast<iAChartSpanSlider*>(sender());
+	iAClusterAttribChart* slider = dynamic_cast<iAClusterAttribChart*>(sender());
 	assert(slider);
 	if (!slider)
 	{

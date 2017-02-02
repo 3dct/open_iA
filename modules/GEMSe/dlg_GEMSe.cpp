@@ -25,7 +25,7 @@
 #include "iAAttitudes.h"
 #include "iAAttributeDescriptor.h"
 #include "iACameraWidget.h"
-#include "iAChartSpanSlider.h"
+#include "iAClusterAttribChart.h"
 #include "iAConsole.h"
 #include "iADetailView.h"
 #include "iAExampleImageWidget.h"

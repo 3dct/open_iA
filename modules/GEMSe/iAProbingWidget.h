@@ -24,7 +24,7 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class iAChartSpanSlider;
+class iAClusterAttribChart;
 class iAImageTreeNode;
 class iAParamHistogramData;
 
@@ -38,7 +38,7 @@ public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
 private:
 	int m_labelCount;
-	QVector<iAChartSpanSlider *> m_charts;
+	QVector<iAClusterAttribChart *> m_charts;
 	QVector<QSharedPointer<iAParamHistogramData> > m_chartData;
 	iAImageTreeNode const * m_selectedNode;
 };

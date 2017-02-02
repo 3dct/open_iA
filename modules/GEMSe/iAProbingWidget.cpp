@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAProbingWidget.h"
 
-#include "iAChartSpanSlider.h"
+#include "iAClusterAttribChart.h"
 #include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
 #include "iAMathUtility.h"
@@ -53,14 +53,14 @@ iAProbingWidget::iAProbingWidget(int labelCount):
 	for (int l = 0; l < m_labelCount; ++l)
 	{
 		m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-		m_charts.push_back(new iAChartSpanSlider(QString("Probability %1").arg(l), l, m_chartData[l],
+		m_charts.push_back(new iAClusterAttribChart(QString("Probability %1").arg(l), l, m_chartData[l],
 			QSharedPointer<iANameMapper>(), false, true));
 	}
 	m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-	m_charts.push_back(new iAChartSpanSlider("Entropy", m_labelCount, m_chartData[m_labelCount],
+	m_charts.push_back(new iAClusterAttribChart("Entropy", m_labelCount, m_chartData[m_labelCount],
 		QSharedPointer<iANameMapper>(), false, true));
 	m_chartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelCount));
-	m_charts.push_back(new iAChartSpanSlider("Label Distribution", m_labelCount+1, m_chartData[m_labelCount+1],
+	m_charts.push_back(new iAClusterAttribChart("Label Distribution", m_labelCount+1, m_chartData[m_labelCount+1],
 		QSharedPointer<iANameMapper>(), false, true));
 	for (int c = 0; c < m_charts.size(); ++c)
 	{

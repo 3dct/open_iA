@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAAttitudes.h"
 
-#include "iAChartSpanSlider.h"
+#include "iAClusterAttribChart.h"
 #include "iAChartAttributeMapper.h"
 #include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
@@ -42,7 +42,7 @@ AttributeHistogram::~AttributeHistogram()
 
 
 void AddClusterData(AttributeHistogram & hist,
-	iAImageTreeNode const * node, int chartID, iAChartSpanSlider* chart, int numBin,
+	iAImageTreeNode const * node, int chartID, iAClusterAttribChart* chart, int numBin,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	VisitLeafs(node, [&](iAImageTreeLeaf const* leaf)
@@ -60,7 +60,7 @@ void AddClusterData(AttributeHistogram & hist,
 
 // re-use existing histograms?
 void GetHistData(AttributeHistogram & hist,
-	int chartID, iAChartSpanSlider* chart, QVector<iAImageTreeNode const *> const & nodes, int numBin,
+	int chartID, iAClusterAttribChart* chart, QVector<iAImageTreeNode const *> const & nodes, int numBin,
 	iAChartAttributeMapper const & chartAttrMap)
 {
 	for (int l = 0; l < nodes.size(); ++l)

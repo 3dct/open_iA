@@ -29,7 +29,7 @@
 class iAAttributes;
 class iAChartAttributeMapper;
 class iAChartFilter;
-class iAChartSpanSlider;
+class iAClusterAttribChart;
 class iAImageTreeNode;
 
 class QGridLayout;
@@ -77,7 +77,7 @@ private:
 	QWidget * m_paramChartContainer, *m_derivedOutputChartContainer;
 	QGridLayout* m_paramChartLayout;
 	QSplitter* m_chartContainer;
-	QMap<int, iAChartSpanSlider*> m_charts;
+	QMap<int, iAClusterAttribChart*> m_charts;
 	QVector< QVector<float> > m_attitudes;
 	QVector<QLabel*> m_labels;
 	QVector<int> m_selected;

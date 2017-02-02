@@ -24,7 +24,7 @@
 
 #include <QVector>
 
-class iAChartSpanSlider;
+class iAClusterAttribChart;
 class iAChartAttributeMapper;
 
 struct AttributeHistogram
@@ -37,7 +37,7 @@ struct AttributeHistogram
 };
 
 void GetHistData(AttributeHistogram & hist,
-	int chartID, iAChartSpanSlider* chart, QVector<iAImageTreeNode const *> const & nodes, int numBin,
+	int chartID, iAClusterAttribChart* chart, QVector<iAImageTreeNode const *> const & nodes, int numBin,
 	iAChartAttributeMapper const & chartAttrMap);
 
 void FindByAttitude(iAImageTreeNode const * node, iAImageTreeNode::Attitude att, QVector<iAImageTreeNode const *> & nodeList);
