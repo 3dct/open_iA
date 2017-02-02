@@ -28,8 +28,13 @@
 
 #include <cmath>
 
+
+iAAbstractDrawableFunction::iAAbstractDrawableFunction(QColor const & color):
+	iAColorable(color)
+{}
+
 iASelectedBinDrawer::iASelectedBinDrawer( int position /*= 0*/, QColor const & color /*= Qt::red */ )
-: iAColorable( color ), m_position( position )
+: iAAbstractDrawableFunction( color ), m_position( position )
 {}
 
 void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter ) const
@@ -45,13 +50,10 @@ void iASelectedBinDrawer::setPosition( int position )
 	m_position = position;
 }
 
-iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data):
-	m_data(data),
-	m_cachedBinWidth(0.0)
-{}
+
 
 iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
-	iAColorable(color),
+	iAAbstractDrawableFunction(color),
 	m_data(data),
 	m_cachedBinWidth(0.0),
 	m_cachedCoordConv(0)
@@ -79,10 +81,6 @@ void iAPolygonBasedFunctionDrawer::update()
 }
 
 
-iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data):
-	iAPolygonBasedFunctionDrawer(data)
-{
-}
 
 iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
 	iAPolygonBasedFunctionDrawer(data, color)
@@ -117,10 +115,6 @@ bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 }
 
 
-iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data):
-	iAPolygonBasedFunctionDrawer(data, Qt::blue)
-{
-}
 
 iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
 	iAPolygonBasedFunctionDrawer(data, color)
@@ -189,11 +183,6 @@ bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer
 
 
 
-iAStepFunctionDrawer::iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data) :
-	iAPolygonBasedFunctionDrawer(data, Qt::blue)
-{
-}
-
 iAStepFunctionDrawer::iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color) :
 	iAPolygonBasedFunctionDrawer(data, color)
 {
@@ -234,15 +223,8 @@ bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 
 
 
-iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAAbstractDiagramData> data):
-	iAColorable(QColor(70,70,70,255)),
-	m_data(data),
-	m_margin(0)
-{
-}
-
 iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, int margin):
-	iAColorable(color),
+	iAAbstractDrawableFunction(color),
 	m_data(data),
 	m_margin(margin)
 {
@@ -272,7 +254,9 @@ void iABarGraphDrawer::update()
 	// nothing to do here, no caching implemented for this drawer
 }
 
-
+iAMultipleFunctionDrawer::iAMultipleFunctionDrawer():
+	iAAbstractDrawableFunction(QColor())
+{}
 
 void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const
 {
@@ -280,19 +264,17 @@ void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedP
 	QPen pen = painter.pen();
 	pen.setWidthF(3.0f);
 	painter.setPen(pen);
-	QVector<QSharedPointer<iAAbstractDrawableFunction> >::const_iterator it = lines.constBegin();
-	while (it != lines.constEnd())
+	for(auto drawer: m_drawers)
 	{
-		(*it)->draw(painter, binWidth, converter);
-		++it;
+		drawer->draw(painter, binWidth, converter);
 	}
 	pen.setWidthF(oldPenWidth);
 	painter.setPen(pen);
 }
 
-void iAMultipleFunctionDrawer::add(QSharedPointer<iAAbstractDrawableFunction> line)
+void iAMultipleFunctionDrawer::add(QSharedPointer<iAAbstractDrawableFunction> drawer)
 {
-	lines.push_back(line);
+	m_drawers.push_back(drawer);
 }
 
 void iAMultipleFunctionDrawer::update()
@@ -301,5 +283,15 @@ void iAMultipleFunctionDrawer::update()
 }
 void iAMultipleFunctionDrawer::clear()
 {
-	lines.clear();
+	m_drawers.clear();
+}
+
+
+void iAMultipleFunctionDrawer::setColor(QColor const & color)
+{
+	iAColorable::setColor(color);
+	for (auto drawer : m_drawers)
+	{
+		drawer->setColor(color);
+	}
 }
