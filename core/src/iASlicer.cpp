@@ -225,6 +225,7 @@ void iASlicer::setResliceAxesOrigin( double x, double y, double z )
 void iASlicer::setSliceNumber( int sliceNumber )
 {
 	m_data->setSliceNumber(sliceNumber);
+	UpdateMagicLensColors();
 	m_widget->computeGlyphs();
 	update();
 }
@@ -374,7 +375,7 @@ iAChannelID iASlicer::getMagicLensInput() const
 	return m_magicLensInput;
 }
 
-void iASlicer::UpdateMagicLens()
+void iASlicer::UpdateMagicLensColors()
 {
 	if (m_magicLens)
 	{

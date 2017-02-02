@@ -404,9 +404,9 @@ void MdiChild::enableRenderWindows()
 void MdiChild::ModalityTFChanged(int modalityIdx)
 {
 	updateChannelMappers();
-	slicerXZ->UpdateMagicLens();
-	slicerXY->UpdateMagicLens();
-	slicerYZ->UpdateMagicLens();
+	slicerXZ->UpdateMagicLensColors();
+	slicerXY->UpdateMagicLensColors();
+	slicerYZ->UpdateMagicLensColors();
 	emit TransferFunctionChanged();
 }
 
@@ -1373,21 +1373,6 @@ void MdiChild::setSliceXY(int s)
 	else
 	{
 		this->zCoord = s;
-		/*
-		//should happen automatically inside slicers (see setSliceNumber and there call to iASlicerData::setSliceNumber)
-		QList<iAChannelID> keys = m_channels.keys();
-		for (QList<iAChannelID>::iterator it = keys.begin();
-			it != keys.end();
-			++it)
-		{
-			iAChannelID key = *it;
-			if (m_channels.value(key)->IsEnabled()
-				|| (isMagicLensEnabled && key == slicerXY->getMagicLensInput()))
-			{
-				slicerXY->setResliceChannelAxesOrigin(key, 0, 0, (double)s * imageData->GetSpacing()[2]);
-			}
-		}
-		*/
 		slicerXY->setSliceNumber(s);
 		if (renderSettings.ShowSlicers)
 		{
@@ -1425,20 +1410,6 @@ void MdiChild::setSliceYZ(int s)
 	else
 	{
 		this->xCoord = s;
-		/*
-		//should happen automatically inside slicers (see setSliceNumber and there call to iASlicerData::setSliceNumber)
-		QList<iAChannelID> keys = m_channels.keys();
-		for (QList<iAChannelID>::iterator it = keys.begin();
-			it != keys.end(); ++it)
-		{
-			iAChannelID key = *it;
-			if (m_channels.value(key)->IsEnabled()
-				|| (isMagicLensEnabled && key == slicerYZ->getMagicLensInput()))
-			{
-				slicerYZ->setResliceChannelAxesOrigin(key, (double)s * imageData->GetSpacing()[0], 0, 0);
-			}
-		}
-		*/
 		slicerYZ->setSliceNumber(s);
 		if (renderSettings.ShowSlicers)
 		{
@@ -1475,20 +1446,6 @@ void MdiChild::setSliceXZ(int s)
 	else
 	{
 		this->yCoord = s;
-		/*
-		//should happen automatically inside slicers (see setSliceNumber and there call to iASlicerData::setSliceNumber)
-		QList<iAChannelID> keys = m_channels.keys();
-		for (QList<iAChannelID>::iterator it = keys.begin();
-			it != keys.end(); ++it)
-		{
-			iAChannelID key = *it;
-			if (m_channels.value(key)->IsEnabled()
-				|| (isMagicLensEnabled && key == slicerXZ->getMagicLensInput()))
-			{
-				slicerXZ->setResliceChannelAxesOrigin(key, 0, (double)s * imageData->GetSpacing()[1], 0);
-			}
-		}
-		*/
 		slicerXZ->setSliceNumber(s);
 		if (renderSettings.ShowSlicers)
 		{
