@@ -25,6 +25,7 @@
 #include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
 #include "dlg_renderer.h"
+#include "dlg_transfer.h"
 #include "iAAccumulatedXRFData.h"
 #include "iAChannelVisualizationData.h"
 #include "iACharacteristicEnergy.h"
@@ -191,7 +192,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
 
-	m_spectrumDiagram->setColorTransferFunctionChangeListener(this);
+	connect((dlg_transfer*)(m_spectrumDiagram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(SpectrumTFChanged()));
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
@@ -389,7 +390,7 @@ QSharedPointer<iAAbstractDiagramData> dlg_XRF::GetVoxelSpectrum()
 }
 
 
-void dlg_XRF::onFunctionChanged()
+void dlg_XRF::SpectrumTFChanged()
 {
 	m_ctfChanged = true;
 }

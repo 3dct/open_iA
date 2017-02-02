@@ -1111,11 +1111,6 @@ void iADiagramFctWidget::SetMaxYAxisValue(iAAbstractDiagramData::DataType val)
 	}
 }
 
-void iADiagramFctWidget::setColorTransferFunctionChangeListener(iAFunctionChangeListener* listener)
-{
-	(dynamic_cast<dlg_transfer*>(functions[0]))->setChangeListener(listener);
-}
-
 void iADiagramFctWidget::AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset)
 {
 	assert(dataset);

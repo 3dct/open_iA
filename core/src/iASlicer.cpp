@@ -374,6 +374,14 @@ iAChannelID iASlicer::getMagicLensInput() const
 	return m_magicLensInput;
 }
 
+void iASlicer::UpdateMagicLens()
+{
+	if (m_magicLens)
+	{
+		m_magicLens->UpdateColors();
+	}
+}
+
 void iASlicer::setPieGlyphsOn( bool isOn )
 {
 	m_widget->setPieGlyphsOn(isOn);

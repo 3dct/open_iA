@@ -60,6 +60,7 @@ public:
 	void UpdateResliceAxesDirectionCosines( int mode );
 	void assignTransform( vtkTransform * transform );
 	void updateReslicer();
+	void UpdateLUT();
 
 	vtkImageActor*						imageActor;
 	vtkSmartPointer<vtkImageData>		image;
@@ -86,6 +87,9 @@ private:
 	bool								m_isInitialized;
 	QColor								color;
 	vtkSmartPointer<vtkLookupTable>		m_lut;
+
+	vtkScalarsToColors*					m_ctf;
+	vtkPiecewiseFunction*				m_otf;
 };
 
 

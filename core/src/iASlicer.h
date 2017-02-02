@@ -80,6 +80,7 @@ public:
 	void SetMagicLensCaption(std::string const & caption);
 	void SetMagicLensInput( iAChannelID id );
 	void SetMagicLensOpacity(double opacity);
+	void UpdateMagicLens();
 	
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor(); 

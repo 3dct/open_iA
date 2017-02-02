@@ -24,7 +24,6 @@
 
 #include "iAConsole.h"
 #include "iADiagramFctWidget.h"
-#include "iAFunctionChangeListener.h"
 #include "iAMathUtility.h"
 #include "mdichild.h"
 
@@ -41,8 +40,7 @@
 
 dlg_transfer::dlg_transfer(iADiagramFctWidget *fctDiagram, QColor color):
 	dlg_function(fctDiagram),
-	m_rangeSliderHandles(false),
-	m_changeListener(NULL)
+	m_rangeSliderHandles(false)
 {
 	this->color = color;
 	
@@ -357,6 +355,8 @@ void dlg_transfer::moveSelectedPoint(int x, int y)
 	}
 	else
 		setPointY(selectedPoint, y);
+
+	triggerOnChange();
 }
 
 void dlg_transfer::changeColor(QMouseEvent *event)
@@ -566,19 +566,9 @@ int dlg_transfer::d2iY(double y)
 	return d2vY(y);
 }
 
-
-void dlg_transfer::setChangeListener(iAFunctionChangeListener* listener)
-{
-	m_changeListener = listener;
-}
-
-
 void dlg_transfer::triggerOnChange()
 {
-	if (m_changeListener)
-	{
-		m_changeListener->onFunctionChanged();
-	}
+	emit Changed();
 }
 
 void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double range[2])

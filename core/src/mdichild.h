@@ -291,6 +291,7 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
+	void TransferFunctionChanged();
 
 private slots:
 	void maximizeRC();
@@ -337,6 +338,7 @@ private slots:
 	void ioFinished();
 	void updateImageProperties();
 	void clearLogs();
+	void ModalityTFChanged(int modalityIdx);
 
 public slots:
 	void updateProgressBar(int i);

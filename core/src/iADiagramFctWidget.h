@@ -40,7 +40,6 @@ class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
 class dlg_function;
-class iAFunctionChangeListener;
 class MdiChild;
 
 class open_iA_Core_API iADiagramFctWidget : public iADiagramWidget
@@ -93,8 +92,6 @@ public:
 	
 	void GetDataRange(double* range);
 	double GetDataRange();
-
-	void setColorTransferFunctionChangeListener(iAFunctionChangeListener* listener);
 
 	void AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset);
 	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);

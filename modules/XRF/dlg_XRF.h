@@ -31,7 +31,6 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
 #include <vtkSmartPointer.h>
 
-#include "iAFunctionChangeListener.h"
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
 #include "iARendererManager.h"
@@ -67,7 +66,7 @@ class iASelectedBinDrawer;
 class iAWidgetAddHelper;
 class iAPeriodicTableListener;
 
-class dlg_XRF : public dlg_xrfContainer, public iAFunctionChangeListener, public iASpectrumFilterListener
+class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 {
 	Q_OBJECT
 public:
@@ -88,8 +87,6 @@ public:
 	void UpdateVoxelSpectrum(int x, int y, int z);
 	void UpdateConcentrationViews(int x, int y, int z);
 	bool IsInitialized();
-
-	void onFunctionChanged();
 	
 	void OnSelectionUpdate(QVector<iASpectrumFilter> const & filter);
 	bool isDecompositionLoaded() {return m_decompositionLoaded;}
@@ -137,6 +134,7 @@ private slots:
 	void setLinDrawMode(bool);
 	void decompositionSuccess();
 	void decompositionFinished();
+	void SpectrumTFChanged();
 
 	void computeSimilarityMap();
 

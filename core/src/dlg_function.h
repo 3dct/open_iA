@@ -20,13 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QObject>
+
 class QColor;
 class QMouseEvent;
 class QPainter;
 class iADiagramFctWidget;
 
-class dlg_function
+class dlg_function: public QObject
 {
+	Q_OBJECT
 public:
 	static const int TRANSFER = 0;
 	static const int GAUSSIAN = 1;

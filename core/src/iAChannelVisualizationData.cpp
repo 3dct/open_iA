@@ -96,30 +96,33 @@ void iAChannelSlicerData::Assign(vtkSmartPointer<vtkImageData> imageData, QColor
 
 void iAChannelSlicerData::SetupOutput( vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf )
 {
-	double rgb[3];
-	double range[2]; image->GetScalarRange( range );
-	m_lut->SetRange( range );
-	const int numCols = 1024;
-	m_lut->SetNumberOfColors( numCols );
-	double alpha;// = otf->GetValue( image->GetScalarRange()[0] );
-	//double deltaAlpha = (otf->GetValue(image->GetScalarRange()[1] ) - alpha) / (numCols - 1);
-	double scalVal = range[0];
-	double scalValDelta = (range[1] - range[0]) / (numCols - 1);
-	for( int i = 0; i < numCols; ++i )
-	{
-		ctf->GetColor( scalVal, rgb );
-		alpha = otf->GetValue( scalVal );
-		m_lut->SetTableValue( i, rgb[0], rgb[1], rgb[2], alpha );//m_lut->SetTableValue( i, rgb[0], rgb[1], rgb[2], 1 );
-		//alpha += deltaAlpha;
-		scalVal += scalValDelta;
-	}
-	m_lut->Build();
-	
+	m_ctf = ctf;
+	m_otf = otf;
+	UpdateLUT();
 	colormapper->SetLookupTable( m_lut );//colormapper->SetLookupTable( ctf );
 	colormapper->PassAlphaToOutputOn();
 	colormapper->SetInputConnection(reslicer->GetOutputPort() );
 	colormapper->Update();
 	imageActor->SetInputData( colormapper->GetOutput() );
+}
+
+void iAChannelSlicerData::UpdateLUT()
+{
+	double rgb[3];
+	double range[2]; image->GetScalarRange(range);
+	m_lut->SetRange(range);
+	const int numCols = 1024;
+	m_lut->SetNumberOfTableValues(numCols);
+	double scalVal = range[0];
+	double scalValDelta = (range[1] - range[0]) / (numCols - 1);
+	for (int i = 0; i < numCols; ++i)
+	{
+		m_ctf->GetColor(scalVal, rgb);
+		double alpha = m_otf->GetValue(scalVal);
+		m_lut->SetTableValue(i, rgb[0], rgb[1], rgb[2], alpha);
+		scalVal += scalValDelta;
+	}
+	m_lut->Build();
 }
 
 void iAChannelSlicerData::Init(iAChannelVisualizationData * chData, int mode)
