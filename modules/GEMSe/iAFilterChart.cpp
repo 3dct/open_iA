@@ -20,7 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "iAParamChart.h"
+#include "iAFilterChart.h"
 
 #include "iAParamHistogramData.h"
 #include "iAFunctionDrawers.h"
@@ -36,7 +36,7 @@ namespace
 	const double InvalidMarker = std::numeric_limits<double>::lowest();
 }
 
-iAParamChart::iAParamChart(QWidget* parent,
+iAFilterChart::iAFilterChart(QWidget* parent,
 	vtkPiecewiseFunction* otf,
 	vtkColorTransferFunction* ctf,
 	QString const & caption,
@@ -62,27 +62,27 @@ iAParamChart::iAParamChart(QWidget* parent,
 	}
 }
 
-QSharedPointer<iAAbstractDiagramRangedData> iAParamChart::GetData()
+QSharedPointer<iAAbstractDiagramRangedData> iAFilterChart::GetData()
 {
 	return m_data;
 }
 
-QSharedPointer<iAAbstractDiagramRangedData> const iAParamChart::GetData() const
+QSharedPointer<iAAbstractDiagramRangedData> const iAFilterChart::GetData() const
 {
 	return m_data;
 }
 
-double iAParamChart::mapBinToValue(double bin) const
+double iAFilterChart::mapBinToValue(double bin) const
 {
 	return m_data->MapBinToValue(bin);
 }
 
-double iAParamChart::mapValueToBin(double value) const
+double iAFilterChart::mapValueToBin(double value) const
 {
 	return m_data->MapValueToBin(value);
 }
 
-QSharedPointer<iAAbstractDrawableFunction> iAParamChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
+QSharedPointer<iAAbstractDrawableFunction> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
 {
 	return
 		IsDrawnDiscrete() ?
@@ -92,12 +92,12 @@ QSharedPointer<iAAbstractDrawableFunction> iAParamChart::GetDrawer(QSharedPointe
 		;
 }
 
-QSharedPointer<iAAbstractDrawableFunction> iAParamChart::CreatePrimaryDrawer()
+QSharedPointer<iAAbstractDrawableFunction> iAFilterChart::CreatePrimaryDrawer()
 {
 	return GetDrawer(m_data, DefaultColors::AllDataChartColor);
 }
 
-void iAParamChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
+void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
 {
 	double diagX = value2X(markerLocation)-translationX;
 	QPolygon poly;
@@ -117,7 +117,7 @@ void iAParamChart::drawMarker(QPainter & painter, double markerLocation, QPen co
 	*/
 }
 
-void iAParamChart::drawAxes(QPainter& painter)
+void iAFilterChart::drawAxes(QPainter& painter)
 {
 	// draw bin colors: m_binColors
 	{
@@ -148,43 +148,43 @@ void iAParamChart::drawAxes(QPainter& painter)
 }
 
 
-void iAParamChart::SetBinColor(int bin, QColor const & color)
+void iAFilterChart::SetBinColor(int bin, QColor const & color)
 {
 	assert(bin >= 0 && bin < m_data->GetNumBin());
 	m_binColors[bin] = color;
 }
 
 
-void iAParamChart::SetMarker(double value)
+void iAFilterChart::SetMarker(double value)
 {
 	m_markedLocation = value;
 	redraw();
 }
 
-void iAParamChart::RemoveMarker()
+void iAFilterChart::RemoveMarker()
 {
 	SetMarker(InvalidMarker);
 }
 
-iAValueType iAParamChart::GetRangeType() const
+iAValueType iAFilterChart::GetRangeType() const
 {
 	return m_data->GetRangeType();
 }
 
 
-double iAParamChart::GetMinVisibleBin() const
+double iAFilterChart::GetMinVisibleBin() const
 {
 	double minVisXBin = mapValue(0.0, getActiveWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(-translationX));
 	return minVisXBin;
 }
 
-double iAParamChart::GetMaxVisibleBin() const
+double iAFilterChart::GetMaxVisibleBin() const
 {
 	double maxVisXBin = mapValue(0.0, getActiveWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(getActiveWidth()-translationX));
 	return maxVisXBin;
 }
 
-QString iAParamChart::GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma)
+QString iAFilterChart::GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma)
 {
 	if (GetData()->GetRangeType() == Categorical)
 	{
@@ -195,27 +195,27 @@ QString iAParamChart::GetXAxisCaption(double value, int placesBeforeComma, int r
 	return iADiagramFctWidget::GetXAxisCaption(value, placesBeforeComma, requiredPlacesAfterComma);
 }
 
-void iAParamChart::contextMenuEvent(QContextMenuEvent *event)
+void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
 {
 	// disable context menu
 }
 
 
-int iAParamChart::value2X(double value) const
+int iAFilterChart::value2X(double value) const
 {
 	double bin = mapValueToBin(value);
 	int xPos = mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0, static_cast<int>(getActiveWidth()*xZoom), bin) + translationX;
 	return xPos;
 }
 
-double iAParamChart::x2value(int x) const
+double iAFilterChart::x2value(int x) const
 {
 	double bin = mapValue(0, static_cast<int>(getActiveWidth()*xZoom), 0.0, static_cast<double>(m_data->GetNumBin()), x-translationX);
 	double value = mapBinToValue(bin);
 	return value;
 }
 
-void iAParamChart::mousePressEvent( QMouseEvent *event )
+void iAFilterChart::mousePressEvent( QMouseEvent *event )
 {
 	if ( event->button() == Qt::LeftButton )
 	{
@@ -251,7 +251,7 @@ void iAParamChart::mousePressEvent( QMouseEvent *event )
 	iADiagramFctWidget::mousePressEvent(event);
 }
 
-void iAParamChart::mouseReleaseEvent( QMouseEvent *event )
+void iAFilterChart::mouseReleaseEvent( QMouseEvent *event )
 {
 	if ( event->button() == Qt::LeftButton )
 	{
@@ -265,7 +265,7 @@ void iAParamChart::mouseReleaseEvent( QMouseEvent *event )
 	iADiagramFctWidget::mouseReleaseEvent( event );
 }
 
-void iAParamChart::mouseMoveEvent( QMouseEvent *event )
+void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 {
 	if (	( event->buttons() == Qt::LeftButton ) &&
 			( event->y() > geometry().height() - getBottomMargin() - translationY			// mouse event below X-axis
@@ -310,19 +310,19 @@ void iAParamChart::mouseMoveEvent( QMouseEvent *event )
 }
 
 
-void iAParamChart::SetMinMaxSlider(double min, double max)
+void iAFilterChart::SetMinMaxSlider(double min, double max)
 {
 	m_minSliderPos = min;
 	m_maxSliderPos = max;
 	redraw();
 }
 
-double iAParamChart::GetMinSliderPos()
+double iAFilterChart::GetMinSliderPos()
 {
 	return m_minSliderPos;
 }
 
-double iAParamChart::GetMaxSliderPos()
+double iAFilterChart::GetMaxSliderPos()
 {
 	return m_maxSliderPos;
 }

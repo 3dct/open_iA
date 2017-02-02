@@ -23,7 +23,7 @@
 
 #include "iAFunctionDrawers.h"
 #include "iAMathUtility.h"
-#include "iAParamChart.h"
+#include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
 
 #include <vtkPiecewiseFunction.h>
@@ -64,7 +64,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 		connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
 	}
 
-	m_charts = new iAParamChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper, showCaption);
+	m_charts = new iAFilterChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper, showCaption);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	mainLayout->addWidget(m_charts);
 

@@ -27,11 +27,11 @@
 class iAParamHistogramData;
 class iANameMapper;
 
-class iAParamChart: public iADiagramFctWidget
+class iAFilterChart: public iADiagramFctWidget
 {
 	Q_OBJECT
 public:
-	iAParamChart(QWidget* parent,
+	iAFilterChart(QWidget* parent,
 		vtkPiecewiseFunction* otf,
 		vtkColorTransferFunction* ctf,
 		QString const & caption,

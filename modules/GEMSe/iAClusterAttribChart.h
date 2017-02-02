@@ -28,7 +28,7 @@
 
 class iAAbstractDrawableFunction;
 class iANameMapper;
-class iAParamChart;
+class iAFilterChart;
 class iAParamHistogramData;
 
 class vtkColorTransferFunction;
@@ -74,7 +74,7 @@ private:
 	void SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFunction>& drawer, QSharedPointer<iAAbstractDrawableFunction> newDrawer);
 	QColor GetClusterColor(int nr) const;
 	
-	iAParamChart*  m_charts;
+	iAFilterChart*  m_charts;
 	QCheckBox*     m_checkbox;
 	int    m_ID;
 	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_clusterDrawer;
