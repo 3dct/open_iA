@@ -82,7 +82,7 @@ void dlg_GEMSe::SetTree(
 	QSharedPointer<iAImageTree > imageTree,
 	vtkSmartPointer<vtkImageData> originalImage,
 	QSharedPointer<iAModalityList> modalities,
-	iALabelInfo const & labelInfo,
+	iALabelInfo const * labelInfo,
 	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings)
 {
 	// reset previous
@@ -118,7 +118,7 @@ void dlg_GEMSe::SetTree(
 	m_treeView = new iAImageTreeView(wdTree, imageTree, m_previewWidgetPool, m_representativeType);
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
 
-	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, labelInfo,
+	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, *labelInfo,
 		m_representativeType);
 	m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
 	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
@@ -761,7 +761,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 }
 
 
-void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo)
+void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo)
 {
 	m_colorTheme = colorTheme;
 	if (m_previewWidgetPool)
@@ -770,7 +770,7 @@ void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const
 	}
 	if (m_detailView)
 	{
-		m_detailView->SetLabelInfo(labelInfo);
+		m_detailView->SetLabelInfo(*labelInfo);
 	}
 	if (m_probingWidget)
 	{

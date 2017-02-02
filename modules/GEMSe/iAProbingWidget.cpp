@@ -40,8 +40,13 @@ QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, doubl
 	return result;
 }
 
-iAProbingWidget::iAProbingWidget(iALabelInfo const & labelInfo):
-	m_labelCount(labelInfo.count())
+namespace
+{
+	const int NumOfChartsShown = 5;
+}
+
+iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
+	m_labelCount(labelInfo->count())
 {
 	QWidget* contentWidget = new QWidget();
 	setFrameShape(QFrame::NoFrame);
@@ -51,34 +56,30 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const & labelInfo):
 	QVBoxLayout* layout = new QVBoxLayout();
 	layout->setSpacing(0);
 	contentWidget->setLayout(layout);
-	for (int l = 0; l < m_labelCount; ++l)
+	for (int l = 0; l < NumOfChartsShown; ++l)
 	{
 		m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
 		m_charts.push_back(new iAFilterChart(this, QString("Probability %1").arg(l), m_chartData[l],
 			QSharedPointer<iANameMapper>(), true));
 	}
-	SetLabelInfo(labelInfo);
+	m_labelInfo = labelInfo;
 	m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-	m_charts.push_back(new iAFilterChart(this, "Entropy", m_chartData[m_labelCount],
+	m_charts.push_back(new iAFilterChart(this, "Entropy", m_chartData[NumOfChartsShown],
 		QSharedPointer<iANameMapper>(), true));
 	m_chartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelCount));
-	m_charts.push_back(new iAFilterChart(this, "Label Distribution", m_chartData[m_labelCount+1],
+	m_charts.push_back(new iAFilterChart(this, "Label Distribution", m_chartData[NumOfChartsShown +1],
 		QSharedPointer<iANameMapper>(), true));
 	for (int c = 0; c < m_charts.size(); ++c)
 	{
 		layout->addWidget(m_charts[c]);
 	}
-	contentWidget->setMinimumHeight((m_labelCount+2) * 100);
+	contentWidget->setMinimumHeight((NumOfChartsShown +2) * 100);
 	this->setWidget(contentWidget);
 }
 
-void iAProbingWidget::SetLabelInfo(iALabelInfo const & labelInfo)
+void iAProbingWidget::SetLabelInfo(iALabelInfo const * labelInfo)
 {
-	for (int l = 0; l < m_labelCount; ++l)
-	{
-		m_charts[l]->GetPrimaryDrawer()->setColor(labelInfo.GetColor(l));
-		m_charts[l]->redraw();
-	}
+	m_labelInfo = labelInfo;
 }
 
 void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
@@ -92,39 +93,56 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 	{
 		m_chartData[i]->Reset();
 	}
-
+	std::vector<std::pair<double, int> > probSumOfCharts;
 	for (int l = 0; l < m_labelCount; ++l)
 	{
+		double probSum = 0;
 		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 		{
-			m_chartData[l]->AddValue(leaf->GetProbabilityValue(l, x, y, z));
+			double probValue = leaf->GetProbabilityValue(l, x, y, z);
+			probSum += probValue;
 		});
+		probSumOfCharts.push_back(std::make_pair(probSum, l));
 	}
-
+	std::sort(probSumOfCharts.begin(), probSumOfCharts.end(),
+		[](std::pair<double, int> const & first, std::pair<double, int> second)
+		{
+			return first.first > second.first;
+		}
+	);
+	for (int i = 0; i < NumOfChartsShown; ++i)
+	{
+		int labelValue = probSumOfCharts[i].second;
+		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
+		{
+			double probValue = leaf->GetProbabilityValue(labelValue, x, y, z);
+			m_chartData[i]->AddValue(probValue);
+		});
+		m_charts[i]->SetXCaption(QString("Probability %1").arg(labelValue));
+		m_charts[i]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(labelValue));
+	}
 	double limit = -std::log(1.0 / m_labelCount);
 	double normalizeFactor = 1 / limit;
 	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 	{
 		double entropy = 0.0;
-		//double probSum = 0.0;
 		for (int l = 0; l < m_labelCount; ++l)
 		{
 			double value = leaf->GetProbabilityValue(l, x, y, z);
-			//probSum += value;
 			if (value > 0)
 			{
 				entropy += (value * std::log(value));
 			}
 		}
 		entropy = clamp(0.0, 1.0, -entropy * normalizeFactor);
-		m_chartData[m_labelCount]->AddValue(entropy);
+		m_chartData[NumOfChartsShown]->AddValue(entropy);
 	});
 
 	itk::Index<3> idx;
 	idx[0] = x; idx[1] = y; idx[2] = z;
 	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 	{
-		m_chartData[m_labelCount+1]->AddValue(dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer())->GetPixel(idx));
+		m_chartData[NumOfChartsShown +1]->AddValue(dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer())->GetPixel(idx));
 	});
 
 	for (int i = 0; i < m_charts.size(); ++i)

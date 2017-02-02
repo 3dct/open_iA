@@ -33,12 +33,13 @@ class iAProbingWidget : public QScrollArea
 {
 	Q_OBJECT
 public:
-	iAProbingWidget(iALabelInfo const & labelInfo);
+	iAProbingWidget(iALabelInfo const * labelInfo);
 	void SetSelectedNode(iAImageTreeNode const * node);
-	void SetLabelInfo(iALabelInfo const & labelInfo);
+	void SetLabelInfo(iALabelInfo const * labelInfo);
 public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
 private:
+	iALabelInfo const * m_labelInfo;
 	int m_labelCount;
 	QVector<iAFilterChart *> m_charts;
 	QVector<QSharedPointer<iAParamHistogramData> > m_chartData;

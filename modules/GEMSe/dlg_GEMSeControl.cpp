@@ -334,7 +334,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		tree,
 		originalImage,
 		m_dlgModalities->GetModalities(),
-		*m_simpleLabelInfo.data(),
+		m_simpleLabelInfo.data(),
 		m_dlgSamplings->GetSamplings()
 	);
 	EnableClusteringDependantUI();
@@ -424,7 +424,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 		m_clusterer->GetResult(),
 		originalImage,
 		m_dlgModalities->GetModalities(),
-		*m_simpleLabelInfo.data(),
+		m_simpleLabelInfo.data(),
 		m_dlgSamplings->GetSamplings()
 	);
 	EnableClusteringDependantUI();
@@ -550,7 +550,7 @@ void dlg_GEMSeControl::SetColorTheme(const QString &themeName)
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme(themeName);
 	m_dlgLabels->SetColorTheme(theme);
 	m_simpleLabelInfo->SetColorTheme(theme);
-	m_dlgGEMSe->SetColorTheme(theme, *m_simpleLabelInfo.data());
+	m_dlgGEMSe->SetColorTheme(theme, m_simpleLabelInfo.data());
 }
 
 
