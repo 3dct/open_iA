@@ -32,8 +32,6 @@ class iAFilterChart: public iADiagramFctWidget
 	Q_OBJECT
 public:
 	iAFilterChart(QWidget* parent,
-		vtkPiecewiseFunction* otf,
-		vtkColorTransferFunction* ctf,
 		QString const & caption,
 		QSharedPointer<iAParamHistogramData> data,
 		QSharedPointer<iANameMapper> nameMapper,

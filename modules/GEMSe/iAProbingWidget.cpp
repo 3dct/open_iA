@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAProbingWidget.h"
 
-#include "iAClusterAttribChart.h"
+#include "iAFilterChart.h"
 #include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
 #include "iAMathUtility.h"
@@ -53,15 +53,15 @@ iAProbingWidget::iAProbingWidget(int labelCount):
 	for (int l = 0; l < m_labelCount; ++l)
 	{
 		m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-		m_charts.push_back(new iAClusterAttribChart(QString("Probability %1").arg(l), l, m_chartData[l],
-			QSharedPointer<iANameMapper>(), false, true));
+		m_charts.push_back(new iAFilterChart(this, QString("Probability %1").arg(l), m_chartData[l],
+			QSharedPointer<iANameMapper>(), true));
 	}
 	m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-	m_charts.push_back(new iAClusterAttribChart("Entropy", m_labelCount, m_chartData[m_labelCount],
-		QSharedPointer<iANameMapper>(), false, true));
+	m_charts.push_back(new iAFilterChart(this, "Entropy", m_chartData[m_labelCount],
+		QSharedPointer<iANameMapper>(), true));
 	m_chartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelCount));
-	m_charts.push_back(new iAClusterAttribChart("Label Distribution", m_labelCount+1, m_chartData[m_labelCount+1],
-		QSharedPointer<iANameMapper>(), false, true));
+	m_charts.push_back(new iAFilterChart(this, "Label Distribution", m_chartData[m_labelCount+1],
+		QSharedPointer<iANameMapper>(), true));
 	for (int c = 0; c < m_charts.size(); ++c)
 	{
 		layout->addWidget(m_charts[c]);
@@ -119,6 +119,6 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 	for (int i = 0; i < m_charts.size(); ++i)
 	{
 		m_charts[i]->ResetMaxYAxisValue();
-		m_charts[i]->UpdateChart();
+		m_charts[i]->redraw();
 	}
 }

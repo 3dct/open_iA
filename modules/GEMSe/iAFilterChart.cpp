@@ -27,6 +27,10 @@
 #include "iAMathUtility.h"
 #include "iANameMapper.h"
 
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkSmartPointer.h>
+
 #include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>
@@ -37,14 +41,12 @@ namespace
 }
 
 iAFilterChart::iAFilterChart(QWidget* parent,
-	vtkPiecewiseFunction* otf,
-	vtkColorTransferFunction* ctf,
 	QString const & caption,
 	QSharedPointer<iAParamHistogramData> data,
 	QSharedPointer<iANameMapper> nameMapper,
 	bool showCaption)
 :
-	iADiagramFctWidget(parent, 0, otf, ctf, caption),
+	iADiagramFctWidget(parent, 0, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption),
 	m_data(data),
 	m_markedLocation(InvalidMarker),
 	m_nameMapper(nameMapper),

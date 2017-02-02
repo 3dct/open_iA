@@ -24,7 +24,7 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class iAClusterAttribChart;
+class iAFilterChart;
 class iAImageTreeNode;
 class iAParamHistogramData;
 
@@ -38,7 +38,7 @@ public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
 private:
 	int m_labelCount;
-	QVector<iAClusterAttribChart *> m_charts;
+	QVector<iAFilterChart *> m_charts;
 	QVector<QSharedPointer<iAParamHistogramData> > m_chartData;
 	iAImageTreeNode const * m_selectedNode;
 };

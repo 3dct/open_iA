@@ -26,9 +26,6 @@
 #include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
 
-#include <vtkPiecewiseFunction.h>
-#include <vtkColorTransferFunction.h>
-
 #include <QCheckBox>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -39,9 +36,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 	QString const & caption,
 	int id,
 	QSharedPointer<iAParamHistogramData> data,
-	QSharedPointer<iANameMapper> nameMapper,
-	bool checkbox,
-	bool showCaption):
+	QSharedPointer<iANameMapper> nameMapper):
 	m_ID(id),
 	m_oldMin(-1),
 	m_oldMax(-1)
@@ -53,18 +48,15 @@ iAClusterAttribChart::iAClusterAttribChart(
 	mainLayout->setMargin(0);
 	mainLayout->setSpacing(5);
 
-	if (checkbox)
-	{
-		m_checkbox = new QCheckBox(caption);
-		QFont f(m_checkbox->font());
-		f.setPointSize(FontSize);
-		m_checkbox->setFont(f);
-		m_checkbox->setMinimumWidth(10);
-		mainLayout->addWidget(m_checkbox);
-		connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
-	}
+	m_checkbox = new QCheckBox(caption);
+	QFont f(m_checkbox->font());
+	f.setPointSize(FontSize);
+	m_checkbox->setFont(f);
+	m_checkbox->setMinimumWidth(10);
+	mainLayout->addWidget(m_checkbox);
+	connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
 
-	m_charts = new iAFilterChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper, showCaption);
+	m_charts = new iAFilterChart(this, "", data, nameMapper);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	mainLayout->addWidget(m_charts);
 

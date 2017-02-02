@@ -22,17 +22,12 @@
 
 #include "iAValueType.h"
 
-#include <vtkSmartPointer.h>
-
 #include <QWidget>
 
 class iAAbstractDrawableFunction;
 class iANameMapper;
 class iAFilterChart;
 class iAParamHistogramData;
-
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
 
 class QCheckBox;
 class QLabel;
@@ -42,9 +37,7 @@ class iAClusterAttribChart: public QWidget
 	Q_OBJECT
 public:
 	iAClusterAttribChart(QString const & caption, int id, QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper,
-		bool checkbox = true,
-		bool showCaption = false);
+		QSharedPointer<iANameMapper> nameMapper);
 	void SetFilteredData(QSharedPointer<iAParamHistogramData> data);
 	void SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data);
 	void RemoveFilterData();
