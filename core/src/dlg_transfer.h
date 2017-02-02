@@ -32,10 +32,9 @@ class QDomNode;
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
-class iAFunctionChangeListener;
-
 class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunction
 {
+Q_OBJECT
 	int selectedPoint;
 
 	QColor          color;
@@ -44,9 +43,6 @@ class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunc
 		
 	vtkPiecewiseFunction     *opacityTF;
 	vtkColorTransferFunction *colorTF;
-
-	iAFunctionChangeListener * m_changeListener;
-
 public:
 	dlg_transfer(iADiagramFctWidget *histogram, QColor color);
 	~dlg_transfer();
@@ -86,11 +82,10 @@ public:
 	vtkPiecewiseFunction* GetOpacityFunction() { return opacityTF; }
 	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
 
-	void setChangeListener(iAFunctionChangeListener* listener);
-
-	// TODO: remov!
+	// TODO: remove!
 	void loadTransferFunction(QDomNode &functionsNode, double range[2]);
-	
+signals:
+	void Changed();
 private:
 	void setColorPoint(int selectedPoint, double x, double red, double green, double blue);
 	void setColorPoint(int selectedPoint, int x, double red, double green, double blue);

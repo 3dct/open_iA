@@ -225,6 +225,7 @@ void iASlicer::setResliceAxesOrigin( double x, double y, double z )
 void iASlicer::setSliceNumber( int sliceNumber )
 {
 	m_data->setSliceNumber(sliceNumber);
+	UpdateMagicLensColors();
 	m_widget->computeGlyphs();
 	update();
 }
@@ -382,6 +383,14 @@ void iASlicer::removeChannel(iAChannelID id)
 iAChannelID iASlicer::getMagicLensInput() const
 {
 	return m_magicLensInput;
+}
+
+void iASlicer::UpdateMagicLensColors()
+{
+	if (m_magicLens)
+	{
+		m_magicLens->UpdateColors();
+	}
 }
 
 void iASlicer::setPieGlyphsOn( bool isOn )

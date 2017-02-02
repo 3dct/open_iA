@@ -22,10 +22,11 @@
 #include "mdichild.h"
 
 #include "dlg_commoninput.h"
-#include "dlg_renderer.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
 #include "dlg_profile.h"
+#include "dlg_renderer.h"
+#include "dlg_transfer.h"
 #include "dlg_volumePlayer.h"
 #include "iAHistogramWidget.h"
 #include "iAChannelVisualizationData.h"
@@ -335,6 +336,10 @@ void MdiChild::enableRenderWindows()
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
 			GetModality(i)->InitHistogram();
+			connect(
+				(dlg_transfer*)(GetModality(i)->GetTransfer()->GetHistogram()->getFunctions()[0]),
+				&dlg_transfer::Changed,
+				this, [this, i] { ModalityTFChanged(i); } );
 		}
 		int modalityIdx = 0;
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
@@ -399,6 +404,15 @@ void MdiChild::enableRenderWindows()
 	}
 	updateImageProperties();
 	m_dlgModalities->EnableUI();
+}
+
+void MdiChild::ModalityTFChanged(int modalityIdx)
+{
+	updateChannelMappers();
+	slicerXZ->UpdateMagicLensColors();
+	slicerXY->UpdateMagicLensColors();
+	slicerYZ->UpdateMagicLensColors();
+	emit TransferFunctionChanged();
 }
 
 void MdiChild::updateProgressBar(int i)
@@ -1363,18 +1377,6 @@ void MdiChild::setSliceXY(int s)
 	else
 	{
 		this->zCoord = s;
-		QList<iAChannelID> keys = m_channels.keys();
-		for (QList<iAChannelID>::iterator it = keys.begin();
-			it != keys.end();
-			++it)
-		{
-			iAChannelID key = *it;
-			if (m_channels.value(key)->IsEnabled()
-				|| (isMagicLensEnabled && key == slicerXY->getMagicLensInput()))
-			{
-				slicerXY->setResliceChannelAxesOrigin(key, 0, 0, (double)s * imageData->GetSpacing()[2]);
-			}
-		}
 		slicerXY->setSliceNumber(s);
 		if (renderSettings.ShowSlicers)
 		{
@@ -1412,17 +1414,6 @@ void MdiChild::setSliceYZ(int s)
 	else
 	{
 		this->xCoord = s;
-		QList<iAChannelID> keys = m_channels.keys();
-		for (QList<iAChannelID>::iterator it = keys.begin();
-			it != keys.end(); ++it)
-		{
-			iAChannelID key = *it;
-			if (m_channels.value(key)->IsEnabled()
-				|| (isMagicLensEnabled && key == slicerYZ->getMagicLensInput()))
-			{
-				slicerYZ->setResliceChannelAxesOrigin(key, (double)s * imageData->GetSpacing()[0], 0, 0);
-			}
-		}
 		slicerYZ->setSliceNumber(s);
 		if (renderSettings.ShowSlicers)
 		{
@@ -1459,17 +1450,6 @@ void MdiChild::setSliceXZ(int s)
 	else
 	{
 		this->yCoord = s;
-		QList<iAChannelID> keys = m_channels.keys();
-		for (QList<iAChannelID>::iterator it = keys.begin();
-			it != keys.end(); ++it)
-		{
-			iAChannelID key = *it;
-			if (m_channels.value(key)->IsEnabled()
-				|| (isMagicLensEnabled && key == slicerXZ->getMagicLensInput()))
-			{
-				slicerXZ->setResliceChannelAxesOrigin(key, 0, (double)s * imageData->GetSpacing()[1], 0);
-			}
-		}
 		slicerXZ->setSliceNumber(s);
 		if (renderSettings.ShowSlicers)
 		{

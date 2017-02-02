@@ -1616,6 +1616,7 @@ void iASlicerData::updateChannelMappers()
 	{
 		iAChannelID key = *it;
 		iAChannelSlicerData * chData = m_channels.value(key).data();
+		chData->UpdateLUT();
 		chData->updateMapper();
 	}
 }

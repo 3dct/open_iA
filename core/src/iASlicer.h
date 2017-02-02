@@ -81,6 +81,7 @@ public:
 	void SetMagicLensInput( iAChannelID id );
 	void AddMagicLensInput(iAChannelID id);
 	void SetMagicLensOpacity(double opacity);
+	void UpdateMagicLensColors();
 	
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor(); 
