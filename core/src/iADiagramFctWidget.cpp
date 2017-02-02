@@ -1149,6 +1149,11 @@ void iADiagramFctWidget::UpdatePrimaryDrawer()
 	m_primaryDrawer->update();
 }
 
+QSharedPointer< iAAbstractDrawableFunction > iADiagramFctWidget::GetPrimaryDrawer()
+{
+	return m_primaryDrawer;
+}
+
 void iADiagramFctWidget::AddImageOverlay( QSharedPointer<QImage> imgOverlay )
 {
 	m_overlays.push_back(imgOverlay);

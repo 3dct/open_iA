@@ -101,6 +101,7 @@ public:
 
 	void UpdatePrimaryDrawer();
 	void SetShowPrimaryDrawer(bool showPrimaryDrawer);
+	QSharedPointer< iAAbstractDrawableFunction > GetPrimaryDrawer();
 	
 	void SetYDrawMode(DrawModeType drawMode);
 
