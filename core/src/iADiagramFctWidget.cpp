@@ -1151,6 +1151,10 @@ void iADiagramFctWidget::UpdatePrimaryDrawer()
 
 QSharedPointer< iAAbstractDrawableFunction > iADiagramFctWidget::GetPrimaryDrawer()
 {
+	if (!m_primaryDrawer)
+	{
+		m_primaryDrawer = CreatePrimaryDrawer();
+	}
 	return m_primaryDrawer;
 }
 

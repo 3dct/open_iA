@@ -77,6 +77,7 @@ void iAProbingWidget::SetLabelInfo(iALabelInfo const & labelInfo)
 	for (int l = 0; l < m_labelCount; ++l)
 	{
 		m_charts[l]->GetPrimaryDrawer()->setColor(labelInfo.GetColor(l));
+		m_charts[l]->redraw();
 	}
 }
 
