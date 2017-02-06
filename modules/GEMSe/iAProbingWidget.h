@@ -29,6 +29,8 @@ class iAImageTreeNode;
 class iALabelInfo;
 class iAParamHistogramData;
 
+class QLabel;
+
 class iAProbingWidget : public QScrollArea
 {
 	Q_OBJECT
@@ -40,8 +42,8 @@ public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
 private:
 	iALabelInfo const * m_labelInfo;
-	int m_labelCount;
 	QVector<iAFilterChart *> m_charts;
 	QVector<QSharedPointer<iAParamHistogramData> > m_chartData;
 	iAImageTreeNode const * m_selectedNode;
+	QLabel* m_lbInfo;
 };
