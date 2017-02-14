@@ -229,11 +229,12 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<C
 		return;
 	}
 	int x, h;
+	QColor fillColor = getColor();
+	int halfMargin = m_margin / 2;
 	for ( int j = 0; j < m_data->GetNumBin(); j++ )
 	{
-		x = (int)(j * binWidth) + m_margin/2;
+		x = (int)(j * binWidth) + halfMargin;
 		h = converter->Diagram2ScreenY(rawData[j]);
-		QColor fillColor = getColor();
 		painter.fillRect(QRect(x, 1, intBinWidth, h), fillColor);
 	}
 }
