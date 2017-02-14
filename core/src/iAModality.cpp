@@ -200,9 +200,9 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
-void iAModality::InitHistogram()
+void iAModality::InitHistogram(int binCount)
 {
-	GetTransfer()->InitHistogram(GetImage());
+	GetTransfer()->InitHistogram(GetImage(), binCount);
 	LoadTransferFunction();
 }
 

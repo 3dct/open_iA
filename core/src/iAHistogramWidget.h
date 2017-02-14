@@ -47,9 +47,8 @@ public:
 	void initialize(vtkImageAccumulate* histData, double * scalarRange, bool reset);
 	void datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histData, bool reset,
 		iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space);
-
-	void drawHistogram();
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
+	void UpdateData();
 
 private:
 	QSharedPointer<iAHistogramData> data;

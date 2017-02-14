@@ -331,7 +331,7 @@ void MdiChild::enableRenderWindows()
 	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			GetModality(i)->InitHistogram();
+			GetModality(i)->InitHistogram(preferences.HistogramBins);
 			connect(
 				(dlg_transfer*)(GetModality(i)->GetTransfer()->GetHistogram()->getFunctions()[0]),
 				&dlg_transfer::Changed,
@@ -633,13 +633,12 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	piecewiseFunction->DeepCopy(volumeStack->getPiecewiseFunction(updateIndex));
 
 	// TODO: VOLUME: update all histograms?
-	if (!getHistogram())
+	if (getHistogram())
 	{
 		getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
 		getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
 		getHistogram()->updateTrf();
 		getHistogram()->redraw();
-		getHistogram()->drawHistogram();
 	}
 	else
 	{
@@ -1517,7 +1516,7 @@ bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
 			QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
-			modTrans->SetHistogramBins(preferences.HistogramBins);
+			modTrans->SetHistogramBinCount(preferences.HistogramBins);
 		}
 		getHistogram()->redraw();
 	}

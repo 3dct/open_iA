@@ -88,7 +88,7 @@ public:
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
-	void InitHistogram();
+	void InitHistogram(int binCount);
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 private:
 	QString m_name;

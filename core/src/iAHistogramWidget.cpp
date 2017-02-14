@@ -95,8 +95,7 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramWidget::GetData() c
 	return data;
 }
 
-
-void iAHistogramWidget::drawHistogram()
+void iAHistogramWidget::UpdateData()
 {
-	drawEverything();
+	data->Update();
 }
