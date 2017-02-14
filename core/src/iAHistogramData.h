@@ -37,6 +37,7 @@ public:
 	virtual DataType const * GetData() const;
 	virtual size_t GetNumBin() const;
 	virtual DataType GetMaxValue() const;
+	virtual iAValueType GetRangeType() const;
 
 	void initialize(vtkImageAccumulate* imgAccumulate, double * scalarRange);
 	void initialize(vtkImageAccumulate* imgAccumulate, DataType* data, size_t numBin, double space, DataType min, DataType max);
@@ -50,6 +51,6 @@ private:
 	iAAbstractDiagramData::DataType		maxFreq;
 	double				accSpacing;
 	double				dataRange[2];
-
+	iAValueType			m_type;
 	void SetMaxFreq();
 };

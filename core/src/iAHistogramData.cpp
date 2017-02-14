@@ -29,10 +29,8 @@
 #include <vtkImageData.h>
 
 iAHistogramData::iAHistogramData()
-	: accumulate(0),
-	numBin(0), rawData(0), rawImg(0), maxFreq(0)
+	: accumulate(0), numBin(0), rawData(0), rawImg(0), maxFreq(0), accSpacing(0)
 {
-	accSpacing = 0;
 	dataRange[0]  = dataRange[1]  = 0;
 }
 
@@ -104,6 +102,12 @@ size_t iAHistogramData::GetNumBin() const
 iAAbstractDiagramData::DataType iAHistogramData::GetMaxValue() const
 {
 	return maxFreq;
+}
+
+iAValueType iAHistogramData::GetRangeType() const
+{
+	int type = ((vtkImageData*)accumulate->GetInput())->GetScalarType();
+	return ((type != VTK_FLOAT) && (type != VTK_DOUBLE)) ? Discrete : Continuous;
 }
 
 void iAHistogramData::SetMaxFreq()
