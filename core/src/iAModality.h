@@ -82,13 +82,13 @@ public:
 	int RenderFlags() const;
 
 	bool LoadData();
+	void LoadTransferFunction();
 
 	void SetTransfer(QSharedPointer<iAModalityTransfer> transfer);
 	QSharedPointer<iAModalityTransfer> GetTransfer();
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
-	void InitHistogram(int binCount);
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 private:
 	QString m_name;
@@ -99,16 +99,14 @@ private:
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
 	double m_spacing[3];
+	vtkSmartPointer<vtkImageData> m_imgData;
+
+	void SetData(vtkSmartPointer<vtkImageData> imgData);
 
 	// TODO: Refactor
 	QString positionSettings;
 	QString orientationSettings;
 	QString tfFileName;
-
-	void SetData(vtkSmartPointer<vtkImageData> imgData);
-	void LoadTransferFunction();
-	
-	vtkSmartPointer<vtkImageData> m_imgData;
 };
 
 

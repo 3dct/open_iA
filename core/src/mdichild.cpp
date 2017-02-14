@@ -332,7 +332,7 @@ void MdiChild::enableRenderWindows()
 	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			GetModality(i)->InitHistogram(preferences.HistogramBins);
+			GetModality(i)->LoadTransferFunction();
 			connect(
 				(dlg_transfer*)(GetModality(i)->GetTransfer()->GetHistogram()->getFunctions()[0]),
 				&dlg_transfer::Changed,

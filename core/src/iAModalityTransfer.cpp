@@ -119,16 +119,6 @@ vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
 	return accumulate;
 }
 
-void iAModalityTransfer::InitHistogram(vtkSmartPointer<vtkImageData> imgData, int binCount)
-{
-	if (!m_useAccumulate)
-		return;
-	UpdateAccumulateImageData(imgData, binCount);
-	histogram->initialize(accumulate, m_scalarRange, true);
-	histogram->updateTrf();
-	histogram->redraw();
-}
-
 QWidget* iAModalityTransfer::NoHistogramAvailableWidget()
 {
 	static QLabel * NoHistogramLabel(new QLabel("Histogram not available for this dataset!"));
