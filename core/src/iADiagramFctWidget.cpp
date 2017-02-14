@@ -1073,11 +1073,6 @@ dlg_function *iADiagramFctWidget::getSelectedFunction()
 	return functions[selectedFunction];
 }
 
-int iADiagramFctWidget::getHeight() const
-{
-	return height;
-}
-
 int iADiagramFctWidget::getChartHeight() const
 {
 	return height - getBottomMargin();
