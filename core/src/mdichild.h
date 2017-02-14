@@ -107,7 +107,7 @@ public:
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
 	void waitForPreviousIO();
 
-	MdiChild(MainWindow * mainWnd, bool unsavedChanges);
+	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
 
 	void newFile();
@@ -128,7 +128,8 @@ public:
 	bool rcview() { maximizeRC(); return true; };
 	bool linkViews( bool l ) { link(l); return true; }
 	bool linkMDIs( bool l ) { linkM(l); return true; }
-	bool editPrefs(iAPreferences const & p, bool init );
+	bool editPrefs(iAPreferences const & p);
+	void ApplyViewerPreferences();
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
