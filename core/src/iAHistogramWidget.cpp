@@ -37,18 +37,18 @@
 #include <QToolTip>
 #include <QXmlStreamWriter>
 
-iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, double* scalarRange, vtkImageAccumulate* accumulate,
+iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkImageAccumulate* accumulate,
 		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label, bool reset) 
 	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
 {
 	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
 	
-	initialize(accumulate, scalarRange, reset);
+	initialize(accumulate, reset);
 }
 
-void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, double* scalarRange, bool reset)
+void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, bool reset)
 {
-	data->initialize(accumulate, scalarRange);
+	data->initialize(accumulate);
 	reInitialize(reset);
 }
 

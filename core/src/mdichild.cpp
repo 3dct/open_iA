@@ -155,6 +155,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	connect(m_dlgModalities, SIGNAL(Active()), this, SIGNAL(active()));
 	connect(m_dlgModalities, SIGNAL(AutoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
+	connect(m_dlgModalities, SIGNAL(ModalityTFChanged()), this, SLOT(ModalityTFChanged()));
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
@@ -332,11 +333,8 @@ void MdiChild::enableRenderWindows()
 	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			GetModality(i)->LoadTransferFunction();
-			connect(
-				(dlg_transfer*)(GetModality(i)->GetTransfer()->GetHistogram()->getFunctions()[0]),
-				&dlg_transfer::Changed,
-				this, [this, i] { ModalityTFChanged(i); } );
+			GetModality(i)->GetTransfer()->Update(GetModality(i)->GetImage(), preferences.HistogramBins);
+			GetModality(i)->LoadTransferFunction();	// should be moved to load project (once this is asynchronous)
 		}
 		int modalityIdx = 0;
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
@@ -402,8 +400,8 @@ void MdiChild::enableRenderWindows()
 	updateImageProperties();
 }
 
-void MdiChild::ModalityTFChanged(int modalityIdx)
-{
+void MdiChild::ModalityTFChanged()
+{ /* int modalityIdx  ideally we would know here which modality has changed, and would only update if it is currently shown */
 	updateChannelMappers();
 	slicerXZ->UpdateMagicLensColors();
 	slicerXY->UpdateMagicLensColors();
@@ -557,7 +555,6 @@ bool MdiChild::loadRaw(const QString &f)
 }
 
 
-
 bool MdiChild::loadFile(const QString &f, bool isStack)
 {
 	if(!QFile::exists(f))	return false;
@@ -637,7 +634,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	if (getHistogram())
 	{
 		getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
-		getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
+		getHistogram()->initialize(imageAccumulate, false);
 		getHistogram()->updateTrf();
 		getHistogram()->redraw();
 	}

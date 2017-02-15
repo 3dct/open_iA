@@ -847,7 +847,7 @@ void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* h
 	vtkPiecewiseFunction* piecewiseFunction = vtkPiecewiseFunction::New();
 	vtkColorTransferFunction* colorTransferFunction = vtkColorTransferFunction::New();
 
-	iAHistogramWidget *imgHistogram = new iAHistogramWidget(TabWidget, (MdiChild*)parent(), imageData->GetScalarRange(), imageAccumulate, piecewiseFunction, colorTransferFunction );
+	iAHistogramWidget *imgHistogram = new iAHistogramWidget(TabWidget, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction );
 	imgHistogram->datatypehistograminitialize(imageAccumulate, histbinlist, 1,  min, max , m_bins, discretization);
 	imgHistogram->updateTrf();
 	imgHistogram->redraw();

@@ -91,6 +91,7 @@ signals:
 	void AutoUpdateChanged(bool toogled);
 	void UpdateViews();
 	void ModalitiesChanged();
+	void ModalityTFChanged();	// ideally we would also emit here which modality (idx?) has changed
 	//! @}
 
 private slots:

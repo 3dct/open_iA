@@ -47,7 +47,6 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 		UpdateAccumulateImageData(imgData, binCount);
 		histogram = new iAHistogramWidget(parent,
 			/* MdiChild */ 0, // todo: remove!
-			imgData->GetScalarRange(),
 			accumulate,
 			otf,
 			ctf,
@@ -117,6 +116,15 @@ vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
 {
 	return accumulate;
+}
+
+void iAModalityTransfer::Update(vtkSmartPointer<vtkImageData> imgData, int binCount)
+{
+	if (!m_useAccumulate)
+		return;
+	UpdateAccumulateImageData(imgData, binCount);
+	histogram->initialize(accumulate, true);
+	histogram->redraw();
 }
 
 QWidget* iAModalityTransfer::NoHistogramAvailableWidget()

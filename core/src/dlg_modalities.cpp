@@ -22,6 +22,7 @@
 #include "dlg_modalities.h"
 
 #include "dlg_modalityProperties.h"
+#include "dlg_transfer.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAHistogramWidget.h"
@@ -252,6 +253,11 @@ void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
 	AddToList(mod);
 	EnableButtons();
 	InitTransfer(mod);
+	connect(
+		(dlg_transfer*)(mod->GetTransfer()->GetHistogram()->getFunctions()[0]),
+		SIGNAL(Changed()),
+		this, SIGNAL(ModalityTFChanged())
+	);
 }
 
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)

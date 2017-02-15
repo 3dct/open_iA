@@ -339,7 +339,7 @@ private slots:
 	void ioFinished();
 	void updateImageProperties();
 	void clearLogs();
-	void ModalityTFChanged(int modalityIdx);
+	void ModalityTFChanged();
 
 public slots:
 	void updateProgressBar(int i);

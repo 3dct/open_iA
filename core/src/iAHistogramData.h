@@ -39,7 +39,7 @@ public:
 	virtual DataType GetMaxValue() const;
 	virtual iAValueType GetRangeType() const;
 
-	void initialize(vtkImageAccumulate* imgAccumulate, double * scalarRange);
+	void initialize(vtkImageAccumulate* imgAccumulate);
 	void initialize(vtkImageAccumulate* imgAccumulate, DataType* data, size_t numBin, double space, DataType min, DataType max);
 	void Update();
 

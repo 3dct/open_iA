@@ -38,13 +38,12 @@ class open_iA_Core_API iAHistogramWidget : public iADiagramFctWidget
 public:
 	iAHistogramWidget(QWidget *parent,
 		MdiChild * mdiChild,
-		double * scalarRange,
 		vtkImageAccumulate* histData,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		QString label = "Greyvalue",
 		bool reset = true);
-	void initialize(vtkImageAccumulate* histData, double * scalarRange, bool reset);
+	void initialize(vtkImageAccumulate* histData, bool reset);
 	void datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histData, bool reset,
 		iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space);
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;

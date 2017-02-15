@@ -54,12 +54,9 @@ iAHistogramData::DataType const * iAHistogramData::GetData() const
 	return rawData;
 }
 
-void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
-	double * scalarRange)
+void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate)
 {
 	accumulate = imgAccumulate;
-	dataRange[0] = scalarRange[0];
-	dataRange[1] = scalarRange[1];
 	Update();
 }
 
@@ -83,6 +80,8 @@ void iAHistogramData::Update()
 	int extent[6];
 	accumulate->GetComponentExtent(extent);
 	numBin = extent[1] + 1;
+	dataRange[0] = accumulate->GetMin()[0];
+	dataRange[1] = accumulate->GetMax()[0];
 	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
 	caster->SetInputData(accumulate->GetOutput());
 	caster->SetOutputScalarType(VtkDataType<DataType>::value);
