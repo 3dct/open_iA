@@ -105,7 +105,10 @@ iAAbstractDiagramData::DataType iAHistogramData::GetMaxValue() const
 
 iAValueType iAHistogramData::GetRangeType() const
 {
-	int type = ((vtkImageData*)accumulate->GetInput())->GetScalarType();
+	vtkImageData* img = dynamic_cast<vtkImageData*>(accumulate->GetInput());
+	if (!img)
+		return Continuous;
+	int type = img->GetScalarType();
 	return ((type != VTK_FLOAT) && (type != VTK_DOUBLE)) ? Discrete : Continuous;
 }
 
