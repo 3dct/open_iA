@@ -886,7 +886,7 @@ void iADiagramFctWidget::resetTrf()
 
 void iADiagramFctWidget::updateTrf()
 {
-	((dlg_transfer*)functions[0])->update(GetData()->GetDataRange());
+	((dlg_transfer*)functions[0])->TranslateToNewRange(GetData()->GetDataRange());
 	redraw();
 }
 
