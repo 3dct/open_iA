@@ -437,6 +437,7 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 					if (probSum > probMax)
 					{
 						label = l;
+						probMax = probSum;
 					}
 					if (probSum > 0) // to avoid infinity - we take 0, which is appropriate according to limit
 					{
