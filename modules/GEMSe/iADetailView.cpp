@@ -309,14 +309,12 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	m_pbGoto->setVisible(node->IsLeaf());
 	update();
 	UpdateLikeHate(node->GetAttitude() == iAImageTreeNode::Liked, node->GetAttitude() == iAImageTreeNode::Hated);
-
 	m_detailText->clear();
-	if (node->IsLeaf() || node->GetChildCount() > 0)
-		m_detailText->append(QString("ID: ") + QString::number(node->GetID()));
 	m_detailText->setMinimumWidth(50);
 	if (node->IsLeaf())
 	{
 		iAImageTreeLeaf* leaf = (iAImageTreeLeaf*)node;
+		m_detailText->append(QString("ID: %1-%2").arg(leaf->GetDatasetID()).arg(node->GetID()));
 		QSharedPointer<iAAttributes> attributes = leaf->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
 		{
@@ -328,6 +326,12 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	}
 	else
 	{
+		QStringList idList;
+		VisitLeafs(node, [&](iAImageTreeLeaf const * leaf)
+		{
+			idList << QString("%1-%2").arg(leaf->GetDatasetID()).arg(leaf->GetID());
+		});
+		m_detailText->append(QString("ID: %1 (%2)").arg(node->GetID()).arg(idList.join(",")));
 		if (allAttributes)
 		{
 			for (int chartID = 0; chartID < allAttributes->size(); ++chartID)
