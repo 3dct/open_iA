@@ -37,7 +37,7 @@ public:
 
 	double getZoom()         const { return xZoom;         }
 	double getYZoom()        const { return yZoom;         }
-	int    getTranslationX()  const { return translationX;   }
+	int    getTranslationX()  const { return translationX; }
 	int    getTranslationY()  const { return translationY; }
 
 	virtual int    getBottomMargin() const { return BOTTOM_MARGIN; }
@@ -45,6 +45,7 @@ public:
 
 	int    getActiveWidth()  const;
 	int    getActiveHeight() const;
+	int getHeight() const;
 
 	virtual void redraw() =0;
 

@@ -29,10 +29,8 @@
 #include <vtkImageData.h>
 
 iAHistogramData::iAHistogramData()
-	: accumulate(0),
-	numBin(0), rawData(0), rawImg(0), maxFreq(0)
+	: accumulate(0), numBin(0), rawData(0), rawImg(0), maxFreq(0), accSpacing(0)
 {
-	accSpacing = 0;
 	dataRange[0]  = dataRange[1]  = 0;
 }
 
@@ -56,30 +54,10 @@ iAHistogramData::DataType const * iAHistogramData::GetData() const
 	return rawData;
 }
 
-void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
-	double * scalarRange)
+void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate)
 {
 	accumulate = imgAccumulate;
-	
-	int extent[6];
-	accumulate->GetComponentExtent(extent);
-	numBin = extent[1]+1;
-
-	// convert accumulate output to expected input of diagram:
-	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
-	caster->SetInputData(accumulate->GetOutput());
-	caster->SetOutputScalarType(VtkDataType<DataType>::value);
-	caster->Update();
-	rawImg = caster->GetOutput();
-	rawData = static_cast<DataType* >(rawImg->GetScalarPointer());
-
-	double null1, null2;
-	accumulate->GetComponentSpacing(accSpacing, null1, null2);
-
-	dataRange[0] = scalarRange[0];
-	dataRange[1] = scalarRange[1];
-
-	SetMaxFreq();
+	Update();
 }
 
 void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
@@ -90,12 +68,28 @@ void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
 	accumulate = imgAccumulate;
 	rawData = data;
 	numBin = bins;
-	
 	accSpacing = space;
-
 	dataRange[0] = min;
 	dataRange[1] = max;
+	SetMaxFreq();
+}
 
+
+void iAHistogramData::Update()
+{
+	int extent[6];
+	accumulate->GetComponentExtent(extent);
+	numBin = extent[1] + 1;
+	dataRange[0] = accumulate->GetMin()[0];
+	dataRange[1] = accumulate->GetMax()[0];
+	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
+	caster->SetInputData(accumulate->GetOutput());
+	caster->SetOutputScalarType(VtkDataType<DataType>::value);
+	caster->Update();
+	rawImg = caster->GetOutput();
+	rawData = static_cast<DataType* >(rawImg->GetScalarPointer());
+	double null1, null2;
+	accumulate->GetComponentSpacing(accSpacing, null1, null2);
 	SetMaxFreq();
 }
 
@@ -109,10 +103,18 @@ iAAbstractDiagramData::DataType iAHistogramData::GetMaxValue() const
 	return maxFreq;
 }
 
+iAValueType iAHistogramData::GetRangeType() const
+{
+	vtkImageData* img = dynamic_cast<vtkImageData*>(accumulate->GetInput());
+	if (!img)
+		return Continuous;
+	int type = img->GetScalarType();
+	return ((type != VTK_FLOAT) && (type != VTK_DOUBLE)) ? Discrete : Continuous;
+}
+
 void iAHistogramData::SetMaxFreq()
 {
-	// find maximum frequency
-	if(rawData)//AMA 06.05.2010
+	if(rawData)
 	{
 		maxFreq = 1;
 		for ( int i = 0; i < GetNumBin(); i++ ) {

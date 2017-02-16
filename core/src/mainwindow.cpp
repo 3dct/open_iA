@@ -930,7 +930,7 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 
 	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
 
-	activeMdiChild()->editPrefs(defaultPreferences, false);
+	activeMdiChild()->editPrefs(defaultPreferences);
 }
 
 
@@ -1186,7 +1186,7 @@ void MainWindow::prefs()
 			static_cast<int>(dlg.getValues()[6]));
 		defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getValues()[7]));
 
-		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences, false))
+		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
 
 		iAConsole::GetInstance().SetLogToFile(logToFile);
@@ -1761,12 +1761,11 @@ void MainWindow::updateWindowMenu()
 
 MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 {
-	MdiChild *child = new MdiChild(this, unsavedChanges);
+	MdiChild *child = new MdiChild(this, defaultPreferences, unsavedChanges);
 	mdiArea->addSubWindow(child);
 
 	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
 	child->setupSlicers(defaultSlicerSettings, false);
-	child->editPrefs(defaultPreferences, true);
 
 	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
 	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );

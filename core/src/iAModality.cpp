@@ -182,7 +182,6 @@ void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
 	m_transfer = transfer;
 }
 
-
 void iAModality::LoadTransferFunction()
 {
 	if (tfFileName.isEmpty())
@@ -237,12 +236,6 @@ void iAModality::SetRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 {
 	return m_renderer;
-}
-
-void iAModality::InitHistogram()
-{
-	GetTransfer()->InitHistogram(GetImage());
-	LoadTransferFunction();
 }
 
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)

@@ -86,7 +86,7 @@
 #include <QSpinBox>
 #include <QToolButton>
 
-MdiChild::MdiChild(MainWindow * mainWnd, bool unsavedChanges) :
+MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsavedChanges) :
 	m_isSmthMaximized(false),
 	volumeStack(new iAVolumeStack),
 	isMagicLensEnabled(false),
@@ -96,6 +96,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, bool unsavedChanges) :
 	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	m_unsavedChanges(unsavedChanges),
+	preferences(prefs),
 	m_currentModality(0),
 	m_currentComponent(0)
 {
@@ -158,11 +159,12 @@ MdiChild::MdiChild(MainWindow * mainWnd, bool unsavedChanges) :
 	connect(m_dlgModalities, SIGNAL(Active()), this, SIGNAL(active()));
 	connect(m_dlgModalities, SIGNAL(AutoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
+	connect(m_dlgModalities, SIGNAL(ModalityTFChanged()), this, SLOT(ModalityTFChanged()));
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	SetModalities(modList);
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
 	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
-
+	ApplyViewerPreferences();
 	imgProperty = 0;
 	imgProfile = 0;
 	SetRenderWindows();
@@ -335,11 +337,8 @@ void MdiChild::enableRenderWindows()
 	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
-			GetModality(i)->InitHistogram();
-			connect(
-				(dlg_transfer*)(GetModality(i)->GetTransfer()->GetHistogram()->getFunctions()[0]),
-				&dlg_transfer::Changed,
-				this, [this, i] { ModalityTFChanged(i); } );
+			GetModality(i)->GetTransfer()->Update(GetModality(i)->GetImage(), preferences.HistogramBins);
+			GetModality(i)->LoadTransferFunction();	// should be moved to load project (once this is asynchronous)
 		}
 		int modalityIdx = 0;
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
@@ -406,8 +405,8 @@ void MdiChild::enableRenderWindows()
 	m_dlgModalities->EnableUI();
 }
 
-void MdiChild::ModalityTFChanged(int modalityIdx)
-{
+void MdiChild::ModalityTFChanged()
+{ /* int modalityIdx  ideally we would know here which modality has changed, and would only update if it is currently shown */
 	updateChannelMappers();
 	slicerXZ->UpdateMagicLensColors();
 	slicerXY->UpdateMagicLensColors();
@@ -560,7 +559,6 @@ bool MdiChild::loadRaw(const QString &f)
 }
 
 
-
 bool MdiChild::loadFile(const QString &f, bool isStack)
 {
 	if(!QFile::exists(f))	return false;
@@ -637,13 +635,12 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	piecewiseFunction->DeepCopy(volumeStack->getPiecewiseFunction(updateIndex));
 
 	// TODO: VOLUME: update all histograms?
-	if (!getHistogram())
+	if (getHistogram())
 	{
 		getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
-		getHistogram()->initialize(imageAccumulate, imageData->GetScalarRange(), false);
+		getHistogram()->initialize(imageAccumulate, false);
 		getHistogram()->updateTrf();
 		getHistogram()->redraw();
-		getHistogram()->drawHistogram();
 	}
 	else
 	{
@@ -1512,32 +1509,20 @@ void MdiChild::enableInteraction( bool b)
 
 }
 
-bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
+bool MdiChild::editPrefs(iAPreferences const & prefs)
 {
 	preferences = prefs;
-	if (!init && getHistogram())
+	if (getHistogram())
 	{
 		// apply histogram bin number to all modalities
 		for (int i = 0; i < GetModalities()->size(); ++i)
 		{
 			QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
-			modTrans->SetHistogramBins(preferences.HistogramBins);
+			modTrans->SetHistogramBinCount(preferences.HistogramBins);
 		}
 		getHistogram()->redraw();
 	}
-	slicerXY->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
-	slicerXZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
-	slicerYZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
-	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
-	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
-	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
-	r->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
-
-	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
-	slicerYZ->setStatisticalExtent(preferences.StatisticalExtent);
-	slicerXZ->setStatisticalExtent(preferences.StatisticalExtent);
-	Raycaster->setStatExt(preferences.StatisticalExtent);
-
+	ApplyViewerPreferences();
 	if (isMagicLensToggled())
 	{
 		updateSlicers();
@@ -1546,6 +1531,21 @@ bool MdiChild::editPrefs(iAPreferences const & prefs, bool init)
 	emit preferencesChanged();
 
 	return true;
+}
+
+void MdiChild::ApplyViewerPreferences()
+{
+	slicerXY->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerXZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerYZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
+	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
+	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
+	r->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
+	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
+	slicerYZ->setStatisticalExtent(preferences.StatisticalExtent);
+	slicerXZ->setStatisticalExtent(preferences.StatisticalExtent);
+	Raycaster->setStatExt(preferences.StatisticalExtent);
 }
 
 void MdiChild::setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)

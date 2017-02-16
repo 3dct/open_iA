@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QString>
 // Requirements:
 // |function| return type must be void
 //
@@ -79,8 +78,7 @@
 		break;												\
 	default:												\
 		throw itk::ExceptionObject(__FILE__, __LINE__,		\
-			QString("Typed Call: Unknown component type.").	\
-			toLatin1().data());								\
+			"Typed Call: Unknown component type.");			\
 		break;												\
 	}														\
 }
@@ -121,7 +119,7 @@
 		break;														\
 	default:														\
 	throw itk::ExceptionObject(__FILE__, __LINE__,					\
-		QString("Typed Call: Unknown component type.").toLatin1().data());\
+		"Typed Call: Unknown component type.");						\
 	break;															\
 	}																\
 }

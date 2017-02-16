@@ -92,6 +92,7 @@ signals:
 	void AutoUpdateChanged(bool toogled);
 	void UpdateViews();
 	void ModalitiesChanged();
+	void ModalityTFChanged();	// ideally we would also emit here which modality (idx?) has changed
 	//! @}
 
 private slots:
@@ -111,7 +112,7 @@ private:
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
-	int m_numBin;
+	int m_numBin;	// only serves to store the numBin from preferences in the MdiChild; this should be a direct reference there to always have the newest value!
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
 	bool m_showSlicePlanes;

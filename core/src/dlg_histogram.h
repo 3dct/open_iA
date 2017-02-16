@@ -41,7 +41,7 @@ public:
 	dlg_histogram(QWidget *parent, vtkImageData* input, vtkImageAccumulate* histData, vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label = "Greyvalue")
 					: dlg_histogramContainer( parent )
 	{
-		histogram = new iAHistogramWidget(parent, (MdiChild*)parent, input->GetScalarRange(), histData, oTF, cTF, label);
+		histogram = new iAHistogramWidget(parent, (MdiChild*)parent, histData, oTF, cTF, label);
 		histogram->setObjectName(QString::fromUtf8("histogram"));
 		this->setWidget(histogram);
 	}

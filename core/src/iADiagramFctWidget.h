@@ -80,7 +80,6 @@ public:
 	void updateTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
-	int getHeight() const;
 	int getChartHeight() const;
 	std::vector<dlg_function*> &getFunctions();
 	iAAbstractDiagramData::DataType GetMaxYValue() const;

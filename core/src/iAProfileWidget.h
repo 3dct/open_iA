@@ -55,9 +55,7 @@ public:
 	void drawProfilePlot();
 	void redraw();
 
-	int getHeight() { return height; }
 	int getMax() { return yHeight; }
-	
 protected:
 	void paintEvent(QPaintEvent * );
 

@@ -68,7 +68,7 @@ public:
 	bool isDeletable(int index);
 
 	void reset();
-	void update(double oldDataRange[2]);
+	void TranslateToNewRange(double oldDataRange[2]);
 	
 	void mousePressEvent(QMouseEvent*)   {}
 	void mouseMoveEvent(QMouseEvent*)    {}

@@ -182,6 +182,11 @@ int iADiagramWidget::getActiveHeight() const
 	return height - getBottomMargin();
 }
 
+int iADiagramWidget::getHeight() const
+{
+	return height;
+}
+
 QColor iADiagramWidget::getBGGradientColor(int idx)
 {
 	switch (idx)

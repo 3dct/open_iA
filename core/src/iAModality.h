@@ -94,16 +94,15 @@ public:
 	bool hasRenderFlag(RenderFlag flag) const;
 	int RenderFlags() const;
 
+	void LoadTransferFunction();
 	void SetTransfer(QSharedPointer<iAModalityTransfer> transfer);
 	QSharedPointer<iAModalityTransfer> GetTransfer();
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
-	void InitHistogram();
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 private:
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
-	void LoadTransferFunction();
 
 	QString m_name;
 	QString m_filename;
@@ -113,6 +112,7 @@ private:
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
 	std::vector<vtkSmartPointer<vtkImageData> > m_imgs;	// TODO: implement lazy loading
+	vtkSmartPointer<vtkImageData> m_imgData;
 
 	// TODO: Refactor
 	QString positionSettings;

@@ -414,19 +414,15 @@ void dlg_transfer::reset()
 	}
 }
 
-void dlg_transfer::update(double oldDataRange[2])
+void dlg_transfer::TranslateToNewRange(double oldDataRange[2])
 {
-	double min;
-	double max;
-
+	double min, max;
 	opacityTF->GetRange(min, max);
-
 	for (int i = 0; i < opacityTF->GetSize(); i++)
 	{
 		double opacity[4];
-		int opacityViewX;
 		opacityTF->GetNodeValue(i, opacity);
-		opacityViewX = d2vX(opacity[0], oldDataRange[0], oldDataRange[1]);
+		int opacityViewX = d2vX(opacity[0], oldDataRange[0], oldDataRange[1]);
 		opacity[0] = v2dX(opacityViewX);
 		opacityTF->SetNodeValue(i, opacity);
 	}
@@ -434,13 +430,11 @@ void dlg_transfer::update(double oldDataRange[2])
 	for (int i = 0; i < colorTF->GetSize(); i++)
 	{
 		double color[6];
-		int colorViewX;
 		colorTF->GetNodeValue(i, color);
-		colorViewX = d2vX(color[0], oldDataRange[0], oldDataRange[1]);
+		int colorViewX = d2vX(color[0], oldDataRange[0], oldDataRange[1]);
 		color[0] = v2dX(colorViewX);
 		colorTF->SetNodeValue(i, color);
 	}
-
 	colorTF->Modified();
 	colorTF->Build();
 	triggerOnChange();

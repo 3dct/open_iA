@@ -886,7 +886,7 @@ void iADiagramFctWidget::resetTrf()
 
 void iADiagramFctWidget::updateTrf()
 {
-	((dlg_transfer*)functions[0])->update(GetData()->GetDataRange());
+	((dlg_transfer*)functions[0])->TranslateToNewRange(GetData()->GetDataRange());
 	redraw();
 }
 
@@ -1071,11 +1071,6 @@ double iADiagramFctWidget::GetDataRange()
 dlg_function *iADiagramFctWidget::getSelectedFunction()
 {
 	return functions[selectedFunction];
-}
-
-int iADiagramFctWidget::getHeight() const
-{
-	return height;
 }
 
 int iADiagramFctWidget::getChartHeight() const
