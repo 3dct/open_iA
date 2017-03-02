@@ -37,6 +37,9 @@
 #include "ParametrizableLabelVotingImageFilter.h"
 #include "FilteringLabelOverlapMeasuresImageFilter.h"
 
+#include <itkCastImageFilter.h>
+#include <itkMultiLabelSTAPLEImageFilter.h>
+#include <itkSTAPLEImageFilter.h>
 #include <itkLabelStatisticsImageFilter.h>
 
 #include <vtkAxis.h>
@@ -161,6 +164,8 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	connect(pbStore, SIGNAL(clicked()), this, SLOT(StoreResult()));
 	connect(pbStoreConfig, SIGNAL(clicked()), this, SLOT(StoreConfig()));
 	connect(pbLoadConfig, SIGNAL(clicked()), this, SLOT(LoadConfig()));
+	connect(pbSTAPLE, SIGNAL(clicked()), this, SLOT(CalcSTAPLE()));
+	connect(pbMajorityVoting, SIGNAL(clicked()), this, SLOT(CalcMajorityVote()));
 	connect(slAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(AbsMinPercentSlider(int)));
 	connect(slMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MinDiffPercentSlider(int)));
 	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
@@ -1111,4 +1116,55 @@ void dlg_MajorityVoting::CheckBoxStateChanged(int state)
 		}
 		m_plotMap.remove(id);
 	}
+}
+
+typedef itk::Image<unsigned int, 3> UIntImage;
+typedef itk::CastImageFilter<LabelImageType, UIntImage> CastIntToUInt;
+typedef itk::CastImageFilter<UIntImage, LabelImageType> CastUIntToInt;
+
+void dlg_MajorityVoting::CalcSTAPLE()
+{
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
+	typedef itk::MultiLabelSTAPLEImageFilter<UIntImage, UIntImage> STAPLEFilter;
+	STAPLEFilter::Pointer filter = STAPLEFilter::New();
+	for (int i = 0; i < selection.size(); ++i)
+	{
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->GetLabelledImage().GetPointer());
+		typename CastIntToUInt::Pointer caster = CastIntToUInt::New();
+		caster->SetInput(lblImg);
+		caster->Update();
+		filter->SetInput(i, caster->GetOutput());
+	}
+	filter->Update();
+	CastUIntToInt::Pointer castback = CastUIntToInt::New();
+	castback->SetInput(filter->GetOutput());
+	castback->Update();
+	m_lastMVResult = castback->GetOutput();
+	lbValue->setText("Value: STAPLE");
+	lbWeight->setText("Weignt: EM");
+	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
+}
+
+void dlg_MajorityVoting::CalcMajorityVote()
+{
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
+	itk::LabelVotingImageFilter<UIntImage>::Pointer filter = itk::LabelVotingImageFilter<UIntImage>::New();
+	for (int i = 0; i < selection.size(); ++i)
+	{
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->GetLabelledImage().GetPointer());
+		typename CastIntToUInt::Pointer caster = CastIntToUInt::New();
+		caster->SetInput(lblImg);
+		caster->Update();
+		filter->SetInput(i, caster->GetOutput());
+	}
+	filter->Update();
+	CastUIntToInt::Pointer castback = CastUIntToInt::New();
+	castback->SetInput(filter->GetOutput());
+	castback->Update();
+	m_lastMVResult = castback->GetOutput();
+	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult);
+	lbValue->setText("Value: Majority Vote");
+	lbWeight->setText("Weignt: Equal");
 }

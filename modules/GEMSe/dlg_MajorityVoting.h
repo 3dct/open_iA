@@ -67,6 +67,8 @@ private slots:
 	void LabelVoters(int);
 	void CheckBoxStateChanged(int);
 	void SamplerFinished();
+	void CalcSTAPLE();
+	void CalcMajorityVote();
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
