@@ -157,6 +157,10 @@ bool iASingleResult::LoadLabelImage()
 		return false;
 	}
 	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
+	if (pixelType != itk::ImageIOBase::INT)
+	{
+		m_labelImg = CastImageTo<int>(m_labelImg);
+	}
 	return (m_labelImg);
 }
 
