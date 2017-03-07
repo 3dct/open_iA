@@ -54,7 +54,5 @@ private:
 	double aotBins, aotOutside, aotInside, aotRadius; 
 	unsigned int aotSamples, aotLevels, aotControlpoints;
 	double rtPow, rtOutside, rtInside;
-	double omtBins, omtThreshs;
-
-	vtkImageData* filter_particleCharacterization(double l, double t, MdiChild* logger);
+	double omtBins, omtThreshs, omtVe;
 };

@@ -29,19 +29,8 @@
 #include <vtkImageData.h>
 #include <QLocale>
 
-/**
-* Signed maurer distancemap template initializes itkSignedMaurerDistanceMapImageFilter .
-* \param	i		The UseImageSpacingOn switch. 
-* \param	s		The SquaredDistanceOff switch. 
-* \param	pos		The InsideIsPositiveOn switch. 
-* \param	n		The switch to set back ground = -1. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param	T		Template datatype.
-* \return	int		Status code. 
-*/
 template<class T> 
-int signed_maurer_distancemap_template( int i, int s, int pos,  int n, iAProgress* p, iAConnector* image )
+int signed_maurer_distancemap_template( int i, int s, int pos, int n, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -78,7 +67,7 @@ int signed_maurer_distancemap_template( int i, int s, int pos,  int n, iAProgres
 				iter.Set(-1);			
 
 			++iter;
-		}//while
+		}
 	}
 
 
@@ -91,32 +80,43 @@ int signed_maurer_distancemap_template( int i, int s, int pos,  int n, iAProgres
 	return EXIT_SUCCESS;
 }
 
-/**
-* Constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
+template<class T>
+int danielsson_distancemap_template( iAProgress* p, iAConnector* image )
+{
+	typedef itk::Image< T, 3 >   InputImageType;
+	typedef itk::Image< unsigned short, 3 >   UShortIageType;
+	typedef itk::Image< unsigned char, 3 >   OutputImageType;
+
+	typedef itk::DanielssonDistanceMapImageFilter< InputImageType, UShortIageType, UShortIageType > danielssonDistFilterType;
+	danielssonDistFilterType::Pointer danielssonDistFilter = danielssonDistFilterType::New();
+	danielssonDistFilter->InputIsBinaryOn();
+	danielssonDistFilter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	p->Observe( danielssonDistFilter );
+	danielssonDistFilter->Update();
+
+	typedef itk::RescaleIntensityImageFilter< UShortIageType, OutputImageType > RescaleFilterType;
+	RescaleFilterType::Pointer intensityRescaler = RescaleFilterType::New();
+	intensityRescaler->SetInput( danielssonDistFilter->GetOutput() );
+	intensityRescaler->SetOutputMinimum( 0 );
+	intensityRescaler->SetOutputMaximum( 255 );
+	intensityRescaler->Update();
+
+	image->SetImage( intensityRescaler->GetOutput() );
+	image->Modified();
+	danielssonDistFilter->ReleaseDataFlagOn();
+	intensityRescaler->ReleaseDataFlagOn();
+
+	return EXIT_SUCCESS;
+}
 
 iADistanceMap::iADistanceMap( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
 	: iAAlgorithm( fn, fid, i, p, logger, parent )
 {
 }
 
-/**
-* Destructor. 
-*/
-
 iADistanceMap::~iADistanceMap()
 {
 }
-
-/**
-* Execute the filter thread.
-*/
 
 void iADistanceMap::run()
 {
@@ -124,14 +124,13 @@ void iADistanceMap::run()
 	{
 	case SIGNED_MAURER_DISTANCE_MAP: 
 		signedmaurerdistancemap(); break;
+	case DANIELSSON_DISTANCE_MAP:
+		danielssondistancemap(); break;
+	case UNKNOWN_FILTER:
 	default:
 		addMsg(tr("unknown filter type"));
 	}
 }
-
-/**
-* Signedmaurerdistancemaps this object. 
-*/
 
 void iADistanceMap::signedmaurerdistancemap( )
 {
@@ -161,4 +160,33 @@ void iADistanceMap::signedmaurerdistancemap( )
 		.arg(Stop()));
 
 	emit startUpdate();	
+}
+
+void iADistanceMap::danielssondistancemap()
+{
+	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
+			.arg( getFilterName() ) );
+
+	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
+
+	try
+	{
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL( danielsson_distancemap_template, itkType, getItkProgress(), getConnector() );
+	}
+	catch ( itk::ExceptionObject &excep )
+	{
+		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+				.arg( getFilterName() )
+				.arg( Stop() ) );
+		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
+				.arg( excep.GetFile() )
+				.arg( excep.GetLine() ) );
+		return;
+	}
+	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+			.arg( getFilterName() )
+			.arg( Stop() ) );
+
+	emit startUpdate();
 }

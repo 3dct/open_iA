@@ -245,7 +245,7 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 		delete s;
 	}
 	m_slicerViews.clear();
-	
+
 	for ( int i = 0; i < dataList->size(); ++i )
 	{
 		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second ) ;

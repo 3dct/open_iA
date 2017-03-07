@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <vtkCommand.h>
 
 #include <QObject>
 
-class iAObserverProgress : public QObject, public vtkCommand
+class open_iA_Core_API iAObserverProgress : public QObject, public vtkCommand
 {
 Q_OBJECT
 public:

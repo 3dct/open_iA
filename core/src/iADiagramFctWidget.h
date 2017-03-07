@@ -40,11 +40,13 @@ class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
 class dlg_function;
+class dlg_TFTable;
 class MdiChild;
 
 class open_iA_Core_API iADiagramFctWidget : public iADiagramWidget
 {
 	Q_OBJECT
+
 public:
 	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1 };
 	
@@ -118,6 +120,11 @@ public:
 
 	bool IsDrawnDiscrete() const;
 
+	bool isTFTableCreated();
+	void closeTFTable();
+	QPoint getTFTablePos();
+	void setTFTablePos(QPoint pos);
+
 protected:
 	void paintEvent(QPaintEvent * );
 	void mousePressEvent(QMouseEvent *event);
@@ -165,6 +172,7 @@ signals:
 	void autoUpdateChanged(bool toggled);
 	void applyTFForAll();
 	void DblClicked();
+	void updateTFTable();
 
 public slots:
 	int deletePoint();
@@ -182,6 +190,9 @@ public slots:
 	bool loadFunctions();
 	bool saveFunctions();
 	void removeFunction();
+	void showTFTable();
+	void TFTableIsFinished();
+
 protected:
 	virtual void drawFunctions(QPainter &painter);
 	virtual QString GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma);
@@ -189,6 +200,7 @@ protected:
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
 	bool                      m_showXAxisLabel;
 	bool                      m_showFunctions;
+
 private:
 	QList< QSharedPointer< QImage > >						m_overlays;
 	QVector< QSharedPointer< iAAbstractDrawableFunction > >	m_datasets;
@@ -198,6 +210,7 @@ private:
 	bool													m_enableAdditionalFunctions;
 	DrawModeType											m_yDrawMode;
 	QSharedPointer<CoordinateConverter>						m_yConverter;
+	dlg_TFTable* TFTable;
 	
 	int m_xAxisSteps;
 	int m_yAxisSteps;

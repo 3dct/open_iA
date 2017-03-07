@@ -40,9 +40,12 @@ public:
 	 * Sets otsu multiple parameters.
 	 * \param	b					SetNumberOfHistogramBins. 
 	 * \param	t					SetNumberOfThresholds. 
+	 * \param	v					SetValleyEmphasis.
 	 */
-	void setOMTParameters( double b, double t ) 
-					{ bins = b; threshs = t; };
+	void setOMTParameters( double b, double t, bool ve ) 
+	{
+		bins = b; threshs = t; valleyemphasis = ve;
+	};
 
 	/**
 	 * Sets otsu parameters.
@@ -84,6 +87,7 @@ protected:
 
 private:
 	double lower, upper, threshs, bins, inner, outer, radius, power, rthresh, othresh;
+	bool valleyemphasis;
 	bool removepeaks;
 	unsigned int controlPoints, levels, samples;
 	std::vector<double> omthreshs;

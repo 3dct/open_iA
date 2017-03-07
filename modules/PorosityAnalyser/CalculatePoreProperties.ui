@@ -142,7 +142,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../open_iA/core/open_iA.qrc"/>
+  <include location="../../core/open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>

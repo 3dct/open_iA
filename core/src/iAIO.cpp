@@ -1710,7 +1710,7 @@ int iAIO::calcTableLength(const QString &fileName)
 	while(!file.atEnd())
 	{
 		file.readLine();
-		TableLength++; // count text line
+		++TableLength; // count text line
 	}
 	file.close();
 

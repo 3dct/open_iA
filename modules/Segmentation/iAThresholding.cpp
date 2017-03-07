@@ -153,7 +153,7 @@ int otsu_threshold_template( double* othresh_ptr, double b, double o, double i, 
 
 
 template<class T> 
-int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double b, double n, iAProgress* p, iAConnector* image )
+int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double b, double n, bool valleyemphasis, iAProgress* p, iAConnector* image )
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
@@ -164,6 +164,7 @@ int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double 
 	filter->SetNumberOfHistogramBins( T (b) );
 	filter->SetNumberOfThresholds( T (n) );
 	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	filter->SetValleyEmphasis( valleyemphasis );
 
 	p->Observe( filter );
 
@@ -243,12 +244,11 @@ void iAThresholding::otsuMultipleThresh()
 {
 	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	ITK_TYPED_CALL(otsu_multiple_threshold_template, itkType,
-		&omthreshs, bins, threshs, getItkProgress(), getConnector());
+		&omthreshs, bins, threshs, valleyemphasis, getItkProgress(), getConnector());
 	addMsg(tr("%1  Otsu Multiple Thresholds = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QString::number(threshs)) );
 	for (int i = 0; i< threshs; i++) addMsg(tr("    Threshold number %1 = %2").arg(i).arg(omthreshs[i]));
 }
-
 
 void iAThresholding::otsuThresh()
 {

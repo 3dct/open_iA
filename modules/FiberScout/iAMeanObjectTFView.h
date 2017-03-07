@@ -16,51 +16,25 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
-#pragma once
+ 
+#ifndef iAMeanObjectTFView_h__
+#define iAMeanObjectTFView_h__
 
-#include "iATransferFunction.h"
-#include "open_iA_Core_export.h"
+#include "ui_FiberScoutMOTFView.h"
+#include "iAQTtoUIConnector.h"
 
-#include <vtkSmartPointer.h>
+typedef iAQTtoUIConnector<QDialog, Ui_MOTFView>  iAMeanObjectTFViewConnector;
 
-class iAHistogramWidget;
-
-class vtkColorTransferFunction;
-class vtkImageAccumulate;
-class vtkImageData;
-class vtkPiecewiseFunction;
-
-class QColor;
-class QDockWidget;
-class QString;
-class QWidget;
-
-//! class uniting a color transfer function, an opacity transfer function
-//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
-class open_iA_Core_API iAModalityTransfer : public iATransferFunction
+class iAMeanObjectTFView : public iAMeanObjectTFViewConnector
 {
-private:
-	vtkSmartPointer<vtkImageAccumulate> accumulate;
-	iAHistogramWidget* histogram;
-	vtkSmartPointer<vtkColorTransferFunction> ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> otf;
-	double m_scalarRange[2];
-	bool m_useAccumulate;
-	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount);
+	Q_OBJECT
 public:
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
-	iAHistogramWidget* GetHistogram();
-	void SetHistogramBinCount(int binCount);
-	void Update(vtkSmartPointer<vtkImageData> imgData, int binCount);
-
-	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
-	vtkPiecewiseFunction* GetOpacityFunction();
-	vtkColorTransferFunction* GetColorFunction();
-
-	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
-	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
-
-	static QWidget* NoHistogramAvailableWidget();
+	iAMeanObjectTFView( QWidget * parent = 0, Qt::WindowFlags f = 0 )
+		: iAMeanObjectTFViewConnector( parent, f )
+	{}
+	~iAMeanObjectTFView() {}
 };
+
+#endif // iAMeanObjectTFView_h__

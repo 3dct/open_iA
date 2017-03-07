@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "itkSignedMaurerDistanceMapImageFilter.h"
-#include "itkImageRegionIterator.h"
+#include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkImage.h"
+#include "itkImageRegionIterator.h"
+#include "itkRescaleIntensityImageFilter.h"
+#include "itkSignedMaurerDistanceMapImageFilter.h"
 
 #include "iAAlgorithm.h"
 
@@ -40,6 +42,7 @@ public:
 	~iADistanceMap( );
 
 	void signedmaurerdistancemap( );
+	void danielssondistancemap();
 
 	/**
 	 * Sets a signedmaurerdistancemap parameters. 
