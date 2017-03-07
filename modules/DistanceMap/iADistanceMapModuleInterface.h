@@ -33,6 +33,7 @@ public:
 
 	private slots:
 	void signed_maurer_distance_map();
+	void danielsson_distance_map();
 
 protected:
 	//settings

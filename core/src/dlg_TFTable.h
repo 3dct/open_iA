@@ -16,52 +16,51 @@
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+*          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
-#pragma once
+ 
+#ifndef dlg_TFTable_h__
+#define dlg_TFTable_h__
 
-#include "iATransferFunction.h"
-#include "open_iA_Core_export.h"
+#include "ui_TFTable.h"
+#include "iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
 
-class iAHistogramWidget;
+class dlg_function;
+class iADiagramFctWidget;
 
-class vtkColorTransferFunction;
-class vtkImageAccumulate;
-class vtkImageData;
 class vtkPiecewiseFunction;
+class vtkColorTransferFunction;
 
-class QColor;
-class QDockWidget;
-class QString;
-class QWidget;
+typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget>  dlg_TFTableWidgetConnector;
 
-//! class uniting a color transfer function, an opacity transfer function
-//! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
-class open_iA_Core_API iAModalityTransfer : public iATransferFunction
+class dlg_TFTable : public dlg_TFTableWidgetConnector
 {
-private:
-	vtkSmartPointer<vtkImageAccumulate> accumulate;
-	iAHistogramWidget* histogram;
-	vtkSmartPointer<vtkColorTransferFunction> ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> otf;
-	int m_binCount;
-	double m_scalarRange[2];
-	bool m_useAccumulate;
-	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData);
+	Q_OBJECT
+
 public:
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
-	iAHistogramWidget* GetHistogram();
-	void SetHistogramBins(int binCount);
-	void InitHistogram(vtkSmartPointer<vtkImageData> imgData);
+	dlg_TFTable( iADiagramFctWidget * parent, dlg_function* func );
 
-	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
-	vtkPiecewiseFunction* GetOpacityFunction();
-	vtkColorTransferFunction* GetColorFunction();
+public slots:
+	void changeColor();
+	void addPoint();
+	void removeSelectedPoint();
+	void updateHistogram();
+	void itemClicked( QTableWidgetItem * );
+	void cellValueChanged( int, int );
+	void updateTable();
+	
+private:
+	void Init();
+	bool isValueXValid(double xVal, int row = -1);
 
-	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
-	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
-
-	static QWidget* NoHistogramAvailableWidget();
+	vtkSmartPointer<vtkPiecewiseFunction> m_oTF;
+	vtkSmartPointer<vtkColorTransferFunction> m_cTF;
+	QColor m_newPointColor;
+	double m_xRange[2];
+	double m_oldItemValue;
+	iADiagramFctWidget* m_parent;
 };
+
+#endif // dlg_TFTable_h__

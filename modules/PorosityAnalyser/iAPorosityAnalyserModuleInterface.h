@@ -78,6 +78,7 @@ private slots:
 	void generateDatasetPreviews();
 	void datasetPreviewThreadFinished();
 	void datasetPreviewThreadStarted();
+	void displayPipelineInSlots( QTableWidgetItem * );
 
 protected:
 	void updateFromGUI() const;
@@ -102,6 +103,8 @@ protected:
 private:
 	int m_pipelineSlotsCount;
 	QSize m_pipelineSlotIconSize;
+
+	void removeGTDatasets( QStringList& list, const QStringList& toDelete );
 };
 
 #endif // iAPorosityAnalyserModuleInterface_h__

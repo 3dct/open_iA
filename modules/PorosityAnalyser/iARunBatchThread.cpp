@@ -44,6 +44,7 @@
 #include <itkExtractImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
+#include <itkHuangThresholdImageFilter.h>
 #include <itkImageDuplicator.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
@@ -51,6 +52,8 @@
 #include <itkIntermodesThresholdImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkIsoDataThresholdImageFilter.h>
+#include <itkKittlerIllingworthThresholdImageFilter.h>
+#include <itkLiThresholdImageFilter.h>
 #include <itkMaximumEntropyThresholdImageFilter.h>
 #include <itkMedianImageFilter.h>
 #include <itkMinimumMaximumImageCalculator.h>
@@ -66,6 +69,7 @@
 #include <itkRobustAutomaticThresholdImageFilter.h>
 #include <itkShanbhagThresholdImageFilter.h>
 #include <itkThresholdImageFilter.h>
+#include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 
 #include <QDebug>
@@ -210,7 +214,7 @@ int computeRatsThreshold( ImagePointer & image, RunInfo & results, float ratsThr
 }
 
 template<class T>
-int computeMorphWatershed( ImagePointer & image, RunInfo & results, float level, bool meyer, bool releaseData = false )
+int computeMorphWatershed( ImagePointer & image, RunInfo & results, float level, int fullyConnected, bool meyer, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   GradientImageType;
@@ -230,6 +234,7 @@ int computeMorphWatershed( ImagePointer & image, RunInfo & results, float level,
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
 	typename GMFType::Pointer gmfilter = GMFType::New();
 	gmfilter->SetInput( duplicator->GetOutput() );
+	gmfilter->Update();
 
 	// Morphological Watershed
 	typedef itk::MorphologicalWatershedImageFilter<GradientImageType, LabelImageType> MorphologicalWatershedFilterType;
@@ -240,14 +245,16 @@ int computeMorphWatershed( ImagePointer & image, RunInfo & results, float level,
 	else
 		mWSFilter->MarkWatershedLineOff();
 
-	mWSFilter->FullyConnectedOn();
+	mWSFilter->SetFullyConnected( fullyConnected );
 	mWSFilter->SetLevel( level );
 	mWSFilter->SetInput( gmfilter->GetOutput() );
+	mWSFilter->Update();
 
 	// Relabel Watershed Result (background = #1label)
 	typedef itk::RelabelComponentImageFilter<LabelImageType, LabelImageType> RelabelConnectedComponentFilterType;
 	typename RelabelConnectedComponentFilterType::Pointer relabelFilter = RelabelConnectedComponentFilterType::New();
 	relabelFilter->SetInput( mWSFilter->GetOutput() );
+	relabelFilter->Update();
 
 	// Binary Threshold
 	typedef itk::BinaryThresholdImageFilter <LabelImageType, MaskImageType> BinaryThresholdImageFilterType;
@@ -328,6 +335,26 @@ int computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo &
 		case P_INTERMODES_THRESHOLD:
 			typedef itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType> IntermodesFilterType;
 			filter = IntermodesFilterType::New();
+			break;
+
+		case P_HUANG_THRESHOLD:
+			typedef itk::HuangThresholdImageFilter <InputImageType, MaskImageType> HuangFilterType;
+			filter = HuangFilterType::New();
+			break;
+
+		case P_LI_THRESHOLD:
+			typedef itk::LiThresholdImageFilter <InputImageType, MaskImageType> LiFilterType;
+			filter = LiFilterType::New();
+			break;
+
+		case P_KITTLERILLINGWORTH_THRESHOLD:
+			typedef itk::KittlerIllingworthThresholdImageFilter <InputImageType, MaskImageType> KittlerIllingworthFilterType;
+			filter = KittlerIllingworthFilterType::New();
+			break;
+
+		case P_TRIANGLE_THRESHOLD:
+			typedef itk::TriangleThresholdImageFilter <InputImageType, MaskImageType> TriangleFilterType;
+			filter = TriangleFilterType::New();
 			break;
 
 		case P_MINIMUM_THRESHOLD:
@@ -1060,10 +1087,10 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 				computeRatsThreshold<T>( curImage, results, params[pind]->asFloat(), releaseData );
 				break;
 			case P_MORPH_WATERSHED_MEYER:
-				computeMorphWatershed<T>( curImage, results, params[pind]->asFloat(), true, releaseData );
+				computeMorphWatershed<T>( curImage, results, params[pind]->asFloat(), params[pind + 1]->asInt(), true, releaseData );
 				break;
 			case P_MORPH_WATERSHED_BEUCHER:
-				computeMorphWatershed<T>( curImage, results, params[pind]->asFloat(), false, releaseData );
+				computeMorphWatershed<T>( curImage, results, params[pind]->asFloat(), params[pind + 1]->asInt(), false, releaseData );
 				break;
 			case P_OTSU_THRESHOLD:
 				computeParamFree<T>( curImage, fid, results, releaseData );
@@ -1087,6 +1114,18 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 				computeParamFree<T>( curImage, fid, results, releaseData );
 				break;
 			case P_INTERMODES_THRESHOLD:
+				computeParamFree<T>( curImage, fid, results, releaseData );
+				break;
+			case P_HUANG_THRESHOLD:
+				computeParamFree<T>( curImage, fid, results, releaseData );
+				break;
+			case P_LI_THRESHOLD:
+				computeParamFree<T>( curImage, fid, results, releaseData );
+				break;
+			case P_KITTLERILLINGWORTH_THRESHOLD:
+				computeParamFree<T>( curImage, fid, results, releaseData );
+				break;
+			case P_TRIANGLE_THRESHOLD:
 				computeParamFree<T>( curImage, fid, results, releaseData );
 				break;
 			case P_MINIMUM_THRESHOLD:
@@ -1271,79 +1310,59 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.threshold ) ) );
 	QString maskName = "mask" + QString::number( lastRow ) + ".mhd";
 	QString maskFilename = "";
-	if( success )
+	if ( success )
 		maskFilename = masksDir + "/" + maskName;
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( maskName ) );
 	//dice metric
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falsePositiveError ) ) );
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falseNegativeError ) ) );
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.dice ) ) );
-	for( int i = 0; i < results.parameters.size(); ++i )
+	for ( int i = 0; i < results.parameters.size(); ++i )
 		runsCSV.setItem( lastRow, col++, new QTableWidgetItem( results.parameters[i] ) );
 
 	iAITKIO::writeFile( maskFilename, results.maskImage, itk::ImageIOBase::CHAR, true );
 
 	//Write mask image preview (png) 
 	try
-	{	
-	MaskImageType * mask = dynamic_cast<MaskImageType*>( results.maskImage.GetPointer() );
-	if( !mask )
-		throw itk::ExceptionObject( "No mask!" );
-
-//	MaskImageType::RegionType inputRegion = mask->GetLargestPossibleRegion();
-	MaskImageType::SizeType size = mask->GetLargestPossibleRegion().GetSize();
-// 	MaskImageType::IndexType indx = inputRegion.GetIndex();
-// 	indx[2] = size[2] * 0.5;
-// 	size[2] = 0; //Z slice
-// 	MaskImageType::RegionType desiredRegion = mask->GetLargestPossibleRegion();
-// 	desiredRegion.SetSize( size );
-// 	desiredRegion.SetIndex( indx );
-// 	m_pmi->log( "Size:" + QString::number( size[0] ) + " " + QString::number( size[1] ) + " " + QString::number( size[2] ) );
-// 	m_pmi->log( "Start:" + QString::number( indx[0] ) + " " + QString::number( indx[1] ) + " " + QString::number( indx[2] ) );
-	
-// 	typedef itk::Image<char, 2>  OutputImageType;
-// 	typedef itk::ExtractImageFilter< MaskImageType, OutputImageType > ExtracterType;
-// 	ExtracterType::Pointer extracter = ExtracterType::New();
-//  	extracter->InPlaceOff();
-//  	extracter->SetDirectionCollapseToIdentity();
-// 	extracter->SetExtractionRegion( desiredRegion );
-// 	extracter->SetInput( mask );
-//  	extracter->Update();
-// 	OutputImageType::Pointer sliceImg = extracter->GetOutput();
-// 	const char * bufferPtr = sliceImg->GetBufferPointer();
-
-	//TODO: move to common or helpers, duplicated in DatasetInfo
-	unsigned char * bufferPtr = (unsigned char *)mask->GetBufferPointer();
-	unsigned long sliceSize = size[0] * size[1];
-	for( unsigned int sliceNumber = 0; sliceNumber < size[2]; sliceNumber++ )
 	{
-		unsigned char * sBufferPtr = bufferPtr + sliceSize * sliceNumber;
-		QImage img( size[0], size[1], QImage::Format_Indexed8 );
-		for( int y = 0; y < size[1]; y++ )
-			memcpy( img.scanLine( size[1] - y - 1 ), sBufferPtr + y*size[0], size[0] );//we invert Y-axis, because VTK and Qt have different Y axis directions
-		img.setColor( 0, qRgb( 0, 0, 0 ) );
-		img.setColor( 1, qRgb( 255, 255, 255 ) );
+		MaskImageType * mask = dynamic_cast<MaskImageType*>( results.maskImage.GetPointer() );
+		if ( !mask )
+			throw itk::ExceptionObject( "No mask!" );
+
 		QFileInfo maskFI( maskFilename );
-
-		//TODO: FIX bug
-		//getMaskSliceDirName( maskFilename );
-		//qDebug() << maskFI.baseName();
-		//qDebug() << maskFI.absoluteDir();
-
 		if ( !QDir( maskFI.absoluteDir() ).mkdir( getMaskSliceDirName( maskFilename ) ) )
-			m_pmi->log( "Could not create directory for slices!" );
-		if( !img.save( getSliceFilename( maskFilename, sliceNumber ) ) )
-			m_pmi->log( "Could not save png!" );
-	}
+			throw std::runtime_error( "Could not create directory for slices!" );
 
+		//TODO: move to common or helpers, duplicated in DatasetInfo
+		MaskImageType::SizeType size = mask->GetLargestPossibleRegion().GetSize();
+		unsigned char * bufferPtr = (unsigned char *) mask->GetBufferPointer();
+		unsigned long sliceSize = size[0] * size[1];
+		for ( unsigned int sliceNumber = 0; sliceNumber < size[2]; sliceNumber++ )
+		{
+			unsigned char * sBufferPtr = bufferPtr + sliceSize * sliceNumber;
+			QImage img( size[0], size[1], QImage::Format_Indexed8 );
+			for ( int y = 0; y < size[1]; y++ )
+				memcpy( img.scanLine( size[1] - y - 1 ), sBufferPtr + y*size[0], size[0] );//we invert Y-axis, because VTK and Qt have different Y axis directions
+			img.setColor( 0, qRgb( 0, 0, 0 ) );
+			img.setColor( 1, qRgb( 255, 255, 255 ) );
+
+			if ( !img.save( getSliceFilename( maskFilename, sliceNumber ) ) )
+				throw std::runtime_error( "Could not save png!" );
+		}
 	}
-	catch( itk::ExceptionObject & err )
+	catch ( itk::ExceptionObject & err )
 	{
-		QString tolog = tr( "  %1 in File %2, Line %3" ).arg( err.GetDescription() )
+		QString tolog = tr( "  %1 in File %2, Line %3" )
+			.arg( err.GetDescription() )
 			.arg( err.GetFile() )
 			.arg( err.GetLine() );
 		m_pmi->log( tolog );
-	}	
+	}
+	catch ( std::exception const & e )
+	{
+		m_pmi->log( e.what() );
+	}
+
 }
 
 void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, QString datasetName, QString batchDir, QTableWidget * settingsCSV, int row )
@@ -1382,7 +1401,7 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 	ScalarPixelType pixelType;
 	ImagePointer image = iAITKIO::readFile( datasetName, pixelType, true);
 
-	//GT image
+	//GT image (make sure it is the same likne MaskImageType (CHAR))
 	ImagePointer gtMask;
 	QString dsFN = QFileInfo( datasetName ).fileName();
 	QString dsPath = QFileInfo( datasetName ).absolutePath();

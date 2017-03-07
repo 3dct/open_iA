@@ -222,22 +222,14 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 	return true;
 }
 
-vtkImageData* iASegmentationModuleInterface::filter_particleCharacterization(double l, double t, MdiChild* child)
-{
-	QString filtername = tr("Batch Mode - Watershed segmentation");
-	child->addStatusMsg(filtername);
-
-	iAWatershedSegmentation* thread = new iAWatershedSegmentation(filtername, WATERSHED, child->getImagePointer(), child->getPolyData(), child->getLogger(), child);
-	child->connectThreadSignalsToChildSlots(thread);
-	thread->setWParameters(l, t);
-	thread->blockSignals(true);  //?
-	thread->start();
-	thread->wait();
-	return thread->getImageDataNew();
-}
-
 void iASegmentationModuleInterface::otsu_Threshold_Filter()
 {
+	QSettings settings;
+	otBins = settings.value( "Filters/Segmentation/Otsu/otBins" ).toDouble();
+	otoutside = settings.value( "Filters/Segmentation/Otsu/otoutside" ).toDouble();
+	otinside = settings.value( "Filters/Segmentation/Otsu/otinside" ).toDouble();
+	otremovepeaks = settings.value( "Filters/Segmentation/Otsu/otremovepeaks" ).toBool();
+
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ) << tr( "$Remove Peaks" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( otBins ) << tr( "%1" ).arg( otoutside ) << tr( "%1" ).arg( otinside ) << (otremovepeaks ? tr( "true" ) : tr( "false" ));
@@ -247,6 +239,11 @@ void iASegmentationModuleInterface::otsu_Threshold_Filter()
 		return;
 
 	otBins = dlg.getValues()[0]; otoutside = dlg.getValues()[1]; otinside = dlg.getValues()[2]; otremovepeaks = dlg.getCheckValues()[3];
+
+	settings.setValue( "Filters/Segmentation/Otsu/otBins", otBins );
+	settings.setValue( "Filters/Segmentation/Otsu/otoutside", otoutside );
+	settings.setValue( "Filters/Segmentation/Otsu/otinside", otinside );
+	settings.setValue( "Filters/Segmentation/Otsu/otremovepeaks", otremovepeaks );
 
 	//prepare
 	QString filterName = tr( "Otsu threshold filter" );
@@ -313,9 +310,9 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 {
 	//set parameters
 	QSettings settings;
-	mwsLevel = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
-	mwsMarkWSLines = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
-	mwsFullyConnected = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected" ).toBool();
+	mwsLevel = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
+	mwsMarkWSLines = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
+	mwsFullyConnected = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsFullyConnected" ).toBool();
 
 	QTextDocument *fDescr = new QTextDocument( 0 );
 	fDescr->setHtml(
@@ -337,9 +334,9 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	mwsMarkWSLines = dlg.getCheckValues()[1]; 
 	mwsFullyConnected = dlg.getCheckValues()[2];
 	
-	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
-	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
-	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
+	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
+	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
+	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
 
 	//prepare
 	QString filterName = tr( "Morphological Watershed Segmentation" );
@@ -406,14 +403,14 @@ void iASegmentationModuleInterface::rats_Threshold_Filter()
 void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 {
 	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Number of Thresholds" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( omtBins ) << tr( "%1" ).arg( omtThreshs ) << tr( "%1" ).arg( otinside );
-	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", 2, inList, inPara, NULL );
+	QStringList inList = ( QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Number of Thresholds" ) << tr( "$Valley Emphasis" ) );
+	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( omtBins ) << tr( "%1" ).arg( omtThreshs ) << ( omtVe ? tr( "true" ) : tr( "false" ) );
+	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", 3, inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	omtBins = dlg.getValues()[0]; omtThreshs = dlg.getValues()[1];;
+	omtBins = dlg.getValues()[0]; omtThreshs = dlg.getValues()[1]; omtVe = dlg.getCheckValues()[2];
 	//prepare
 	QString filterName = tr( "Otsu multiple threshold filter" );
 	PrepareResultChild( filterName );
@@ -422,7 +419,7 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	iARegionGrowing* thread = new iARegionGrowing( filterName, OTSU_MULTIPLE_THRESHOLD,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setOMTParameters( omtBins, omtThreshs );
+	thread->setOMTParameters( omtBins, omtThreshs, omtVe );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

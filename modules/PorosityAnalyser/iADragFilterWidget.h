@@ -64,6 +64,7 @@
 #define IADRAGFILTERWIDGET_H
 
 #include <QFrame>
+#include <QLabel>
 #include <QPixmap>
 
 QT_BEGIN_NAMESPACE
@@ -77,13 +78,14 @@ class iADragFilterWidget : public QFrame
 public:
 	iADragFilterWidget( QString datasetDir, QStringList datasetNameList, int d_f_switch, QWidget *parent = 0 );
 	void updateDatasetTooltip( QStringList filesToUpdateList );
+	QLabel* getLabel(QString name);
 
 protected:
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dragMoveEvent(QDragMoveEvent *event);
-    void dropEvent(QDropEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-	QPixmap mergeOnTop( const QPixmap& pix, QString txt );
+	void dragEnterEvent(QDragEnterEvent *event);
+	void dragMoveEvent(QDragMoveEvent *event);
+	void dropEvent(QDropEvent *event);
+	void mousePressEvent(QMouseEvent *event);
+	QPixmap	mergeOnTop( const QPixmap& pix, QString txt );
 
 private:
 	int m_d_f_switch;
@@ -91,6 +93,8 @@ private:
 	QStringList m_datasetList;
 
 	QString generateDatasetTooltip( QString dataset );
+
+	QList<QLabel *> m_labelList;
 };
 
 #endif // IADRAGFILTERWIDGET_H

@@ -24,10 +24,11 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "dlg_function.h"
 #include "dlg_bezier.h"
-#include "dlg_transfer.h"
+#include "dlg_function.h"
 #include "dlg_gaussian.h"
+#include "dlg_TFTable.h"
+#include "dlg_transfer.h"
 #include "iAAbstractDiagramData.h"
 #include "iAAbstractDrawableFunction.h"
 #include "iAFunctionDrawers.h"
@@ -168,6 +169,7 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
 		QString const & xLabel,
 		QString const & yLabel) :
 	iADiagramWidget (parent),
+	TFTable(0),
 	contextMenu(new QMenu(this)),
 	xCaption(xLabel),
 	yCaption(yLabel),
@@ -369,6 +371,8 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 				func->mouseReleaseEventAfterNewPoint(event);
 				
 			redraw();
+			emit updateTFTable();
+
 			if (isUpdateAutomatically())
 				emit updateViews();
 		break;
@@ -406,6 +410,7 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 				dlg_function *func = *(it + selectedFunction);
 				func->moveSelectedPoint(viewX, viewY);
 				redraw();
+				emit updateTFTable();
 			}
 			selectBin(event);
 		}
@@ -491,10 +496,10 @@ void iADiagramFctWidget::contextMenuEvent(QContextMenuEvent *event)
 	
 	if (m_showFunctions)
 	{
+		contextMenu->addAction( QIcon( ":/images/TFTableView.png" ), tr( "Transfer Function Table View" ), this, SLOT( showTFTable() ) );
 		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, SLOT(loadTransferFunction()));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, SLOT(saveTransferFunction()));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
-		contextMenu->addSeparator();
 	}
 
 	QAction *autoUpdateAction = new QAction(QIcon(":/images/autoUpdate.png"), tr("Update automatically"), this);
@@ -820,7 +825,7 @@ int iADiagramFctWidget::deletePoint()
 	int selectedPoint = func->getSelectedPoint();
 	func->removePoint(selectedPoint);
 	redraw();
-
+	emit updateTFTable();
 	emit updateViews();
 
 	return selectedPoint;
@@ -838,7 +843,7 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 	func->changeColor(event);
 
 	redraw();
-
+	emit updateTFTable();
 	emit updateViews();
 }
 
@@ -861,7 +866,7 @@ void iADiagramFctWidget::resetTrf()
 
 	func->reset();
 	redraw();
-
+	emit updateTFTable();
 	emit updateViews();
 }
 
@@ -888,7 +893,7 @@ bool iADiagramFctWidget::loadTransferFunction()
 		emit noPointSelected();
 
 		redraw();
-
+		emit updateTFTable();
 		emit updateViews();
 	}
 	return true;
@@ -933,7 +938,7 @@ void iADiagramFctWidget::addBezierFunction()
 	functions.push_back(bezier);
 
 	redraw();
-
+	emit updateTFTable();
 	emit updateViews();
 }
 
@@ -949,7 +954,7 @@ void iADiagramFctWidget::addGaussianFunction()
 	functions.push_back(gaussian);
 
 	redraw();
-
+	emit updateTFTable();
 	emit updateViews();
 }
 
@@ -1033,6 +1038,7 @@ void iADiagramFctWidget::updateTransferFunctions(vtkColorTransferFunction* ctf, 
 	((dlg_transfer*)functions[0])->setOpacityFunction(pwf);
 
 	redraw();
+	emit updateTFTable();
 	emit updateViews();
 }
 
@@ -1232,3 +1238,49 @@ bool iADiagramFctWidget::IsDrawnDiscrete() const
 	return ((GetData()->GetRangeType() == Discrete && ((GetData()->GetDataRange()[1]-GetData()->GetDataRange()[0]) <= GetData()->GetNumBin()))
 		|| GetData()->GetRangeType() == Categorical);
 }
+
+void iADiagramFctWidget::showTFTable()
+{
+	if ( !TFTable )
+	{
+		std::vector<dlg_function*>::iterator it = functions.begin();
+		dlg_function* func = *( it + selectedFunction );
+
+		TFTable = new dlg_TFTable( this, func );
+		TFTable->setWindowTitle( "Transfer Function Table View" );
+		TFTable->setWindowFlags( Qt::Dialog |Qt::WindowMinimizeButtonHint |Qt::WindowCloseButtonHint );
+		TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
+		TFTable->show();
+
+		connect( TFTable, SIGNAL( destroyed( QObject* ) ), this, SLOT( TFTableIsFinished() ) );
+		connect( this, SIGNAL( updateTFTable() ), TFTable, SLOT( updateTable() ) );
+	}
+}
+
+QPoint iADiagramFctWidget::getTFTablePos()
+{
+	return TFTable->pos();
+}
+
+void iADiagramFctWidget::setTFTablePos( QPoint pos )
+{
+	TFTable->move( pos );
+}
+
+bool iADiagramFctWidget::isTFTableCreated()
+{
+	bool created;
+	TFTable ? created = true : created = false;
+	return created;
+}
+
+void iADiagramFctWidget::closeTFTable()
+{
+	TFTable->close();
+}
+
+void iADiagramFctWidget::TFTableIsFinished()
+{
+	TFTable = NULL;
+}
+

@@ -214,7 +214,7 @@ int otsu_threshold_template( double* othresh_ptr, double b, double o, double i, 
 * \return	int Status-Code. 
 */
 template<class T> 
-int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double b, double n, iAProgress* p, iAConnector* image )
+int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double b, double n, bool valleyemphasis, iAProgress* p, iAConnector* image )
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
@@ -225,6 +225,7 @@ int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double 
 	filter->SetNumberOfHistogramBins( T (b) );
 	filter->SetNumberOfThresholds( T (n) );
 	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	filter->SetValleyEmphasis( valleyemphasis );
 
 	p->Observe( filter );
 
@@ -277,7 +278,7 @@ void iARegionGrowing::otsuMultipleThresh(  )
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 		ITK_TYPED_CALL(otsu_multiple_threshold_template, itkType,
-			&omthreshs, bins, threshs, getItkProgress(), getConnector());
+			&omthreshs, bins, threshs, valleyemphasis, getItkProgress(), getConnector());
 	}
 	catch( itk::ExceptionObject &excep)
 	{
@@ -289,7 +290,6 @@ void iARegionGrowing::otsuMultipleThresh(  )
 			.arg(excep.GetLine()));
 		return;
 	}
-
 
 	addMsg(tr("%1  Otsu Multiple Thresholds = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QString::number(threshs)) );
@@ -323,7 +323,6 @@ void iARegionGrowing::otsuThresh(  )
 			.arg(excep.GetLine()));
 		return;
 	}
-
 
 	addMsg(tr("%1  Otsu Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QString::number(othresh)) );
@@ -385,7 +384,6 @@ void iARegionGrowing::ratsThresh(  )
 			.arg(excep.GetLine()));
 		return;
 	}
-
 
 	addMsg(tr("%1  Rats Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QString::number(rthresh)) );

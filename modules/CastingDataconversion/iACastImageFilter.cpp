@@ -34,13 +34,12 @@
 #include <itkRGBAPixel.h>
 
 #include <QLocale>
-#include <exception>
 
 class myRGBATypeException : public exception
 {
 	virtual const char* what() const throw()
 	{
-		return "RGBA Converion Error: LONG type needed.";
+		return "RGBA Converion Error: UNSIGNED LONG type needed.";
 	}
 } myRGBATypeExcep;
 

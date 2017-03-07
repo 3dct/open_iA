@@ -90,6 +90,8 @@ void iASelectionsView::visualizeSelectionSlot()
 {
 	int row = listWidget->currentRow();
 	if( row < 0 ) return;
+	QString selText = listWidget->item( row )->text();
+	m_selections[row]->selText = selText;
 	emit visualizeSelection( m_selections[row] );
 }
 
@@ -106,6 +108,8 @@ void iASelectionsView::compareSelectionsSlot()
 	QList<iASelection*> sels;
 	foreach( int row, checkedRows )
 	{
+		QString selText = listWidget->item( row )->text();
+		m_selections[row]->selText = selText;
 		sels.push_back( m_selections[row] );
 	}
 	emit compareSelections( sels );

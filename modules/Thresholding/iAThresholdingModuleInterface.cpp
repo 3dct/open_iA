@@ -49,10 +49,10 @@ void iAThresholdingModuleInterface::binary_threshold()
 {
 	//set parameters
 	QSettings settings;
-	btlower = settings.value( "Filters/Segmentations/BinaryThresholding/btlower" ).toDouble();
-	btupper = settings.value( "Filters/Segmentations/BinaryThresholding/btupper" ).toDouble();
-	btoutside = settings.value( "Filters/Segmentations/BinaryThresholding/btoutside" ).toDouble();
-	btinside = settings.value( "Filters/Segmentations/BinaryThresholding/btinside" ).toDouble();
+	btlower = settings.value( "Filters/Segmentation/BinaryThresholding/btlower" ).toInt();
+	btupper = settings.value( "Filters/Segmentation/BinaryThresholding/btupper" ).toInt();
+	btoutside = settings.value( "Filters/Segmentation/BinaryThresholding/btoutside" ).toInt();
+	btinside = settings.value( "Filters/Segmentation/BinaryThresholding/btinside" ).toInt();
 	
 	QStringList inList = (QStringList() << tr( "#Lower Threshold" ) << tr( "#Upper Threshold" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( btlower ) << tr( "%1" ).arg( btupper ) << tr( "%1" ).arg( btoutside ) << tr( "%1" ).arg( btinside );
@@ -64,10 +64,10 @@ void iAThresholdingModuleInterface::binary_threshold()
 	btoutside = dlg.getValues()[2];
 	btinside = dlg.getValues()[3];
 											  
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btlower", btlower );
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btupper", btupper );
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btoutside", btoutside );
-	settings.setValue( "Filters/Segmentations/BinaryThresholding/btinside", btinside );
+	settings.setValue( "Filters/Segmentation/BinaryThresholding/btlower", btlower );
+	settings.setValue( "Filters/Segmentation/BinaryThresholding/btupper", btupper );
+	settings.setValue( "Filters/Segmentation/BinaryThresholding/btoutside", btoutside );
+	settings.setValue( "Filters/Segmentation/BinaryThresholding/btinside", btinside );
 	
 	//prepare
 	QString filterName = tr( "Binary threshold filter" );
@@ -86,9 +86,9 @@ void iAThresholdingModuleInterface::general_threshold()
 {
 	//set parameters
 	QSettings settings;
-	gtlower = settings.value( "Filters/Segmentations/GeneralThresholding/gtlower" ).toDouble();
-	gtupper = settings.value( "Filters/Segmentations/GeneralThresholding/gtupper" ).toDouble();
-	gtoutside = settings.value( "Filters/Segmentations/GeneralThresholding/gtoutside" ).toDouble();
+	gtlower = settings.value( "Filters/Segmentation/GeneralThresholding/gtlower" ).toDouble();
+	gtupper = settings.value( "Filters/Segmentation/GeneralThresholding/gtupper" ).toDouble();
+	gtoutside = settings.value( "Filters/Segmentation/GeneralThresholding/gtoutside" ).toDouble();
 
 	QStringList inList = (QStringList() << tr( "#Lower Threshold" ) << tr( "#Upper Threshold" ) << tr( "#Outside Value" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( gtlower ) << tr( "%1" ).arg( gtupper ) << tr( "%1" ).arg( gtoutside );
@@ -99,9 +99,9 @@ void iAThresholdingModuleInterface::general_threshold()
 	gtupper = dlg.getValues()[1];
 	gtoutside = dlg.getValues()[2];
 
-	settings.setValue( "Filters/Segmentations/GeneralThresholding/gtlower", gtlower );
-	settings.setValue( "Filters/Segmentations/GeneralThresholding/gtupper", gtupper );
-	settings.setValue( "Filters/Segmentations/GeneralThresholding/gtoutside", gtoutside );
+	settings.setValue( "Filters/Segmentation/GeneralThresholding/gtlower", gtlower );
+	settings.setValue( "Filters/Segmentation/GeneralThresholding/gtupper", gtupper );
+	settings.setValue( "Filters/Segmentation/GeneralThresholding/gtoutside", gtoutside );
 
 	//prepare
 	QString filterName = tr("General threshold filter");
