@@ -81,6 +81,8 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 :: remove test configurations:
 rd /s /q %TEST_CONFIG_PATH%
 
+:: since removing binary dir doesn't always seem to really delete everything, let's try waiting for a bit before deleting it:
+sleep 10
 :: remove binary directory to start from scratch next time:
 rd /s /q %TEST_BIN_DIR%
 
