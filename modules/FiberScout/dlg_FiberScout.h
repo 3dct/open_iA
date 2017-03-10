@@ -18,12 +18,11 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_FIBERSCOUT_H
-#define	DLG_FIBERSCOUT_H
+#pragma once
 
 #include "dlg_imageproperty.h"
 #include "iAFiberScoutModuleInterface.h"
+#include "iAObjectAnalysisType.h"
 #include "iAQTtoUIConnector.h"
 #include "ui_FiberScoutClassExplorer.h"
 #include "ui_FiberScoutParallelCoordinates.h"
@@ -57,6 +56,7 @@ class vtkScalarBarActor;
 class vtkScalarBarWidget;
 class vtkSmartVolumeMapper;
 class vtkStringArray;
+class vtkTable;
 class vtkVolume;
 class vtkVolumeProperty;
 class vtkStructuredGrid;
@@ -91,7 +91,7 @@ class dlg_FiberScout : public QDockWidget, private Ui_FiberScoutCE
 	Q_OBJECT
 
 public:
-	dlg_FiberScout( MdiChild *parent, FilterID fid, vtkRenderer* blobRen);
+	dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl);
 	~dlg_FiberScout();
 
 	// setups
@@ -183,7 +183,7 @@ public slots:
 	void updateMarProgress(int i);
 
 protected:
-	bool initParallelCoordinates( FilterID fid );
+	bool initParallelCoordinates( iAObjectAnalysisType fid );
 
 
 private:
@@ -198,7 +198,7 @@ private:
 	int	width, height;
 	int elementNr;		// Number of elements in csv inputTable
 	int objectNr;		// Number of objects in the specimen
-	int filterID;
+	iAObjectAnalysisType filterID;
 
 	bool draw3DPolarPlot;
 	bool enableRealTimeRendering;
@@ -294,5 +294,3 @@ private:
 	moData m_MOData;
 	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
 };
-
-#endif

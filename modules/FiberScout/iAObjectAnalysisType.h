@@ -20,29 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
-#include "iAObjectAnalysisType.h"
-#include "mdichild.h"
-
-class QDockWidget;
-class dlg_FiberScout;
-class iAFiberScoutToolbar;
-
-
-class iAFiberScoutModuleInterface : public iAModuleInterface
+enum iAObjectAnalysisType
 {
-	Q_OBJECT
-
-public:
-	void Initialize();
-	void hideFiberScoutToolbar();
-private slots:
-	void FiberScout();
-	void FiberScout_Options();
-	void onChildClose();
-private:
-	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	bool filter_FiberScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID);
-	void SetupToolbar();
-	iAFiberScoutToolbar * tlbFiberScout;
+	INDIVIDUAL_FIBRE_VISUALIZATION,
+	INDIVIDUAL_PORE_VISUALIZATION,
 };

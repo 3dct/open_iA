@@ -20,7 +20,6 @@
 * ************************************************************************************/
 
 #include "pch.h"
-#include "defines.h"
 #include "dlg_blobVisualization.h"
 #include "dlg_commoninput.h"
 #include "dlg_editPCClass.h"
@@ -33,6 +32,7 @@
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
+#include "iAObjectAnalysisType.h"
 #include "iAObserverProgress.h"
 #include "iARenderer.h"
 #include "mdichild.h"
@@ -101,6 +101,7 @@
 #include <vtkStringArray.h>
 #include <vtkStructuredGrid.h>
 #include <vtkStructuredGridGeometryFilter.h>
+#include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
 #include <vtkVersion.h>
@@ -179,11 +180,11 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
-dlg_FiberScout::dlg_FiberScout( MdiChild *parent, FilterID fid, vtkRenderer* blobRen )
+dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl )
 	: QDockWidget( parent ),
 	oTF( parent->getPiecewiseFunction() ),
 	cTF( parent->getColorTransferFunction() ),
-	csvTable( parent->getMdCsvTable() ),
+	csvTable( csvtbl ),
 	raycaster( parent->getRaycaster() ),
 	elementTableModel( 0 ),
 	iovSPM( 0 ),
@@ -4691,7 +4692,7 @@ void dlg_FiberScout::SaveBlobMovie()
 		return;
 }
 
-bool dlg_FiberScout::initParallelCoordinates( FilterID fid )
+bool dlg_FiberScout::initParallelCoordinates( iAObjectAnalysisType fid )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	if ( !mdiChild )

@@ -20,29 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
 #include "iAObjectAnalysisType.h"
-#include "mdichild.h"
 
-class QDockWidget;
-class dlg_FiberScout;
-class iAFiberScoutToolbar;
+#include <vtkSmartPointer.h>
 
+#include <QString>
 
-class iAFiberScoutModuleInterface : public iAModuleInterface
+class vtkTable;
+
+class iACsvIO
 {
-	Q_OBJECT
-
 public:
-	void Initialize();
-	void hideFiberScoutToolbar();
-private slots:
-	void FiberScout();
-	void FiberScout_Options();
-	void onChildClose();
+	iACsvIO();
+	bool LoadCsvFile(iAObjectAnalysisType fid, QString const & fileName);
+	vtkTable * GetCSVTable();
 private:
-	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	bool filter_FiberScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID);
-	void SetupToolbar();
-	iAFiberScoutToolbar * tlbFiberScout;
+	int CalcTableLength(const QString &fileName);
+	QStringList GetFibreElementsName(bool withUnit);
+	bool LoadFibreCSV(const QString &fileName);
+	bool LoadPoreCSV(const QString &fileName);
+	vtkSmartPointer<vtkTable> table;
 };
