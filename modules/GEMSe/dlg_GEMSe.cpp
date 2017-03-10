@@ -322,7 +322,6 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 {
 	if (m_histogramContainer->GetSelectedCount() < 2)
 	{
-		DEBUG_LOG("You must select two histograms");
 		return;
 	}
 	m_scatterplot->SetDataSource(

@@ -38,6 +38,7 @@
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
+#include "iAToolsITK.h"
 #include "iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
@@ -592,8 +593,7 @@ bool dlg_GEMSeControl::LoadReferenceImage(QString const & referenceImageName)
 		auto img = iAITKIO::readFile(referenceImageName, pixelType, false);
 		if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
 		{
-			DEBUG_LOG("Invalid pixel type, reference image must be of INT type!");
-			return false;
+			img = CastImageTo<int>(img);
 		}
 		leRefImage->setText(referenceImageName);
 		m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
