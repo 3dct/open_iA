@@ -54,7 +54,7 @@ void iAFusionModuleInterface::addImages()
 	PrepareResultChild(inputIndxs[0], filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
-	iASimpleFusion* thread = new iASimpleFusion(filterName, ADD_IMAGES_FUSION,
+	iASimpleFusion* thread = new iASimpleFusion(filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	thread->setInput2( secondChildImgData );
 	m_mdiChild->connectThreadSignalsToChildSlots(thread);

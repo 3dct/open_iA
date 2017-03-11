@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "defines.h"
 #include "open_iA_Core_export.h"
 
 #include <itkMesh.h>
@@ -51,14 +50,14 @@ class open_iA_Core_API iAAlgorithm : public QThread
 {
 	Q_OBJECT
 public:
-	iAAlgorithm( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
+	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
 	iAAlgorithm( vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
 	virtual ~iAAlgorithm();
 
 	QDateTime Start(); //< Start counting the running time and set the start time
 	int Stop();	//Calculate and get the elapsed time
 
-	void setup(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger * l );
+	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);
 
 	iALogger* getLogger() const;
@@ -74,7 +73,6 @@ public:
 	void allocConnectors(int size);
 
 	iAProgress* getItkProgress();
-	int getFilterID() const;
 	void vtkPolydata_itkMesh ( vtkPolyData* polyData, MeshType::Pointer mesh );
 	void itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData );
 	virtual void SafeTerminate();
@@ -95,10 +93,7 @@ private:
 	bool m_isRunning;
 	QTime m_time;
 	int m_elapsed;
-
 	QString m_filterName;
-	FilterID m_filterID;
-
 	vtkImageData *m_image;
 	vtkPolyData *m_polyData;
 	iAProgress *m_itkProgress;
@@ -106,8 +101,4 @@ private:
 	QMutex m_mutex;
 	QWaitCondition m_condition;
 	QVector<iAConnector*> m_connectors;
-
-	QMutex mutex;
-	QWaitCondition condition;
-	iAConnector **con;
 };

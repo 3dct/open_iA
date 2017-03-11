@@ -18,15 +18,22 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iADistanceMap.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
 #include <itkImageIOBase.h>
+#include <itkDanielssonDistanceMapImageFilter.h>
+#include <itkImage.h>
+#include <itkImageRegionIterator.h>
+#include <itkRescaleIntensityImageFilter.h>
+#include <itkSignedMaurerDistanceMapImageFilter.h>
+
 #include <vtkImageData.h>
+
 #include <QLocale>
 
 template<class T> 
@@ -70,9 +77,7 @@ int signed_maurer_distancemap_template( int i, int s, int pos, int n, iAProgress
 		}
 	}
 
-
 	image->SetImage( distanceImage );
-
 	image->Modified();
 
 	distancefilter->ReleaseDataFlagOn();
@@ -109,24 +114,18 @@ int danielsson_distancemap_template( iAProgress* p, iAConnector* image )
 	return EXIT_SUCCESS;
 }
 
-iADistanceMap::iADistanceMap( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
-
-iADistanceMap::~iADistanceMap()
-{
-}
+iADistanceMap::iADistanceMap( QString fn, iADistanceMapType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
 
 void iADistanceMap::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case SIGNED_MAURER_DISTANCE_MAP: 
 		signedmaurerdistancemap(); break;
 	case DANIELSSON_DISTANCE_MAP:
 		danielssondistancemap(); break;
-	case UNKNOWN_FILTER:
 	default:
 		addMsg(tr("unknown filter type"));
 	}

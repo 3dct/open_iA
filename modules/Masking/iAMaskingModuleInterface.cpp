@@ -42,46 +42,9 @@ void iAMaskingModuleInterface::general_threshold()
 {
 	//set parameters
 	QSettings settings;
-	btlower = settings.value( "Filters/Segmentation/BinaryThresholding/btlower" ).toInt();
-	btupper = settings.value( "Filters/Segmentation/BinaryThresholding/btupper" ).toInt();
-	btoutside = settings.value( "Filters/Segmentation/BinaryThresholding/btoutside" ).toInt();
-	btinside = settings.value( "Filters/Segmentation/BinaryThresholding/btinside" ).toInt();
-	
-	QStringList inList = (QStringList() << tr( "#Lower Threshold" ) << tr( "#Upper Threshold" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( btlower ) << tr( "%1" ).arg( btupper ) << tr( "%1" ).arg( btoutside ) << tr( "%1" ).arg( btinside );
-	dlg_commoninput dlg( m_mainWnd, "Binary Threshold", 4, inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	btlower = dlg.getValues()[0];
-	btupper = dlg.getValues()[1];
-	btoutside = dlg.getValues()[2];
-	btinside = dlg.getValues()[3];
-											  
-	settings.setValue( "Filters/Segmentation/BinaryThresholding/btlower", btlower );
-	settings.setValue( "Filters/Segmentation/BinaryThresholding/btupper", btupper );
-	settings.setValue( "Filters/Segmentation/BinaryThresholding/btoutside", btoutside );
-	settings.setValue( "Filters/Segmentation/BinaryThresholding/btinside", btinside );
-	
-	//prepare
-	QString filterName = tr( "Binary threshold filter" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAThresholding * thread = new iAThresholding( filterName, BINARY_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setBTParameters( btlower, btupper, btoutside, btinside );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iAThresholdingModuleInterface::general_threshold()
-{
-	//set parameters
-	QSettings settings;
-	gtlower = settings.value( "Filters/Segmentation/GeneralThresholding/gtlower" ).toDouble();
-	gtupper = settings.value( "Filters/Segmentation/GeneralThresholding/gtupper" ).toDouble();
-	gtoutside = settings.value( "Filters/Segmentation/GeneralThresholding/gtoutside" ).toDouble();
+	gtlower = settings.value( "Filters/Masking/GeneralThresholding/gtlower" ).toDouble();
+	gtupper = settings.value( "Filters/Masking/GeneralThresholding/gtupper" ).toDouble();
+	gtoutside = settings.value( "Filters/Masking/GeneralThresholding/gtoutside" ).toDouble();
 
 	QStringList inList = (QStringList() << tr( "#Lower Threshold" ) << tr( "#Upper Threshold" ) << tr( "#Outside Value" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( gtlower ) << tr( "%1" ).arg( gtupper ) << tr( "%1" ).arg( gtoutside );
@@ -92,16 +55,16 @@ void iAThresholdingModuleInterface::general_threshold()
 	gtupper = dlg.getValues()[1];
 	gtoutside = dlg.getValues()[2];
 
-	settings.setValue( "Filters/Segmentation/GeneralThresholding/gtlower", gtlower );
-	settings.setValue( "Filters/Segmentation/GeneralThresholding/gtupper", gtupper );
-	settings.setValue( "Filters/Segmentation/GeneralThresholding/gtoutside", gtoutside );
+	settings.setValue( "Filters/Masking/GeneralThresholding/gtlower", gtlower );
+	settings.setValue( "Filters/Masking/GeneralThresholding/gtupper", gtupper );
+	settings.setValue( "Filters/Masking/GeneralThresholding/gtoutside", gtoutside );
 
 	//prepare
 	QString filterName = tr("General threshold filter");
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iAGeneralThresholding * thread = new iAGeneralThresholding( filterName, GENERAL_THRESHOLD,
+	iAGeneralThresholding * thread = new iAGeneralThresholding( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setGTParameters( gtlower, gtupper, gtoutside );

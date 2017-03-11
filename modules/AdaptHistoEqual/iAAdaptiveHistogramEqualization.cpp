@@ -18,10 +18,10 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAAdaptiveHistogramEqualization.h"
 
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -70,48 +70,14 @@ template<class T> int iAAdaptiveHistogramEqualization_template( double aheAlpha,
 	return EXIT_SUCCESS;
 }
 
-/**
-* constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
-
-iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-
-}
-
-/**
-* destructor. 
-*/
-
-iAAdaptiveHistogramEqualization::~iAAdaptiveHistogramEqualization()
-{
-}
-
-/**
-* Execute the filter thread. 
-*/
+iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
+	: iAAlgorithm( fn, i, p, logger, parent )
+{}
 
 void iAAdaptiveHistogramEqualization::run()
 {
-	switch (getFilterID())
-	{
-	case ADAPTIVE_HISTOGRAM_EQUALIZATION:
-		compute_iAAdaptiveHistogramEqualization(); break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	compute_iAAdaptiveHistogramEqualization();
 }
-
-/**
-* Computes Adaptive Histogram Equalization of this object. 
-*/
 
 void iAAdaptiveHistogramEqualization::compute_iAAdaptiveHistogramEqualization( )
 {

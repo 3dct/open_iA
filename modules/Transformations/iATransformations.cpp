@@ -241,8 +241,8 @@ static int transform_template(iATransformations * caller)
 	}
 }
 
-iATransformations::iATransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
+iATransformations::iATransformations( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
+	: iAAlgorithm( fn, i, p, logger, parent )
 {
 	for (int k = 0; k < Dim; k++)
 	{
@@ -255,10 +255,6 @@ iATransformations::iATransformations( QString fn, FilterID fid, vtkImageData* i,
 	m_rotCenterType = iATransformations::RCCenter;
 	m_rotAxesType = iATransformations::RotateAlongX;
 	m_flipAxesType = iATransformations::FlipAxesNone;
-}
-
-iATransformations::~iATransformations()
-{
 }
 
 iATransformations::TransformationType iATransformations::getTransformationType() const

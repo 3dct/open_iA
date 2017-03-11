@@ -116,7 +116,7 @@ void iATransformationsModuleInterface::rotate()
 	{
 		return;
 	}
-	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+	iATransformations * thread = new iATransformations(filterName,
 		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
 	thread->setTransformationType(iATransformations::Rotation);
 	thread->setRotationCenterCoordinate(cx, cy, cz);
@@ -154,7 +154,7 @@ void iATransformationsModuleInterface::translate()
 	{
 		return;
 	}
-	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+	iATransformations * thread = new iATransformations(filterName,
 		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
 	thread->setTransformationType(iATransformations::Translation);
 	thread->setTranslation(tx, ty, tz);
@@ -175,7 +175,7 @@ void iATransformationsModuleInterface::flip()
 	{
 		return;
 	}
-	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+	iATransformations * thread = new iATransformations(filterName,
 		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
 	thread->setFlipAxes(flipAxes);
 	thread->setTransformationType(iATransformations::Flip);
@@ -195,7 +195,7 @@ void iATransformationsModuleInterface::permute()
 	{
 		return;
 	}
-	iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
+	iATransformations * thread = new iATransformations(filterName,
 		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
 	thread->setPermuteAxesOrder(order);
 	thread->setTransformationType(iATransformations::PermuteAxes);

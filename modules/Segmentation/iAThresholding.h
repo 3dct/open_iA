@@ -22,19 +22,26 @@
 
 #include "iAAlgorithm.h"
 
+enum iAThresholdingType
+{
+	BINARY_THRESHOLD,
+	OTSU_MULTIPLE_THRESHOLD,
+	OTSU_THRESHOLD,
+	ADAPTIVE_OTSU_THRESHOLD,
+	RATS_THRESHOLD,
+};
+
 /**
  * Implementation of itkBinaryThresholdImageFilter, itkOtsuThresholdImageFilter, itkAdaptiveOtsuThresholdImageFilter and itkRobustAutomaticThresholdImageFilter threhold.
  * For itkBinaryThresholdImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html
  * For itkOtsuThresholdImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html
  * For itkAdaptiveOtsuThresholdImageFilter refer to FH Wels software team.
  * For itkRobustAutomaticThresholdImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html
- * \remarks	Kana, 01/12/2010. 
  */
 class iAThresholding : public iAAlgorithm
 {
 public:
-	iAThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* l, QObject *parent = 0 );
-	~iAThresholding( );
+	iAThresholding( QString fn, iAThresholdingType fid, vtkImageData* i, vtkPolyData* p, iALogger* l, QObject *parent = 0 );
 
 	/**
 	 * Sets otsu multiple parameters.
@@ -84,13 +91,13 @@ public:
 
 protected:
 	void run();
-
 private:
 	double lower, upper, threshs, bins, inner, outer, radius, power, rthresh, othresh;
 	bool valleyemphasis;
 	bool removepeaks;
 	unsigned int controlPoints, levels, samples;
 	std::vector<double> omthreshs;
+	iAThresholdingType m_type;
 
 	void otsuMultipleThresh();
 	void otsuThresh();

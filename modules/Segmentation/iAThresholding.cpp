@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAThresholding.h"
 
@@ -180,15 +179,9 @@ int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double 
 }
 
 
-iAThresholding::iAThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
-
-
-iAThresholding::~iAThresholding()
-{
-}
+iAThresholding::iAThresholding( QString fn, iAThresholdingType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
 
 
 void iAThresholding::run()
@@ -198,7 +191,7 @@ void iAThresholding::run()
 	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
 	try
 	{
-		switch (getFilterID())
+		switch (m_type)
 		{
 		case BINARY_THRESHOLD:
 			binaryThresh(); break;

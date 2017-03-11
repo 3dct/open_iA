@@ -18,14 +18,20 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAEdgePreservingSmoothing.h"
+
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkGradientAnisotropicDiffusionImageFilter.h>
+#include <itkCurvatureAnisotropicDiffusionImageFilter.h>
+#include <itkBilateralImageFilter.h>
+
 #include <QLocale>
+
 
 /**
 * Gradient anisotropic diffusion template initializes itkGradientAnisotropicDiffusionImageFilter .
@@ -61,6 +67,7 @@ int gradient_anisotropic_diffusion_template( unsigned int i, double t, double c,
 
 	return EXIT_SUCCESS;
 }
+
 
 /**
 * Curvature anisotropic diffusion template initializes itkCurvatureAnisotropicDiffusionImageFilter .
@@ -99,7 +106,6 @@ int curvature_anisotropic_diffusion_template( unsigned int i, double t, double c
 }
 
 
-
 /**
 * bilateral image filter template initializes itkBilateralImageFilter.h .
 * \param	i		SetNumberOfIterations. 
@@ -134,18 +140,15 @@ int bilateral_template( double r, double d, iAProgress* p, iAConnector* image  )
 	return EXIT_SUCCESS;
 }
 
-iAEdgePreservingSmoothing::iAEdgePreservingSmoothing( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
 
-iAEdgePreservingSmoothing::~iAEdgePreservingSmoothing()
-{
-}
+iAEdgePreservingSmoothing::iAEdgePreservingSmoothing( QString fn, iASmoothingType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
+
 
 void iAEdgePreservingSmoothing::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case GRADIENT_ANISOTROPIC_DIFFUSION: 
 		gradientAnisotropicDiffusion(); break;
@@ -157,6 +160,7 @@ void iAEdgePreservingSmoothing::run()
 		addMsg(tr("  unknown filter type"));
 	}
 }
+
 
 void iAEdgePreservingSmoothing::gradientAnisotropicDiffusion( )
 {
@@ -188,9 +192,6 @@ void iAEdgePreservingSmoothing::gradientAnisotropicDiffusion( )
 	emit startUpdate();	
 }
 
-/**
-* Curvature anisotropic diffusion. 
-*/
 
 void iAEdgePreservingSmoothing::curvatureAnisotropicDiffusion( )
 {
@@ -221,12 +222,6 @@ void iAEdgePreservingSmoothing::curvatureAnisotropicDiffusion( )
 	emit startUpdate();	
 }
 
-
-
-
-/**
-* Bilateral filter. 
-*/
 
 void iAEdgePreservingSmoothing::bilateral(  )
 {

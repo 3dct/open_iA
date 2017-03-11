@@ -18,9 +18,10 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAMedianFilter.h"
+
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -73,24 +74,14 @@ int median_template( unsigned int r_x, unsigned int r_y, unsigned int r_z, iAPro
 	return EXIT_SUCCESS;
 }
 
-iAMedianFilter::iAMedianFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
+iAMedianFilter::iAMedianFilter( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
+	: iAAlgorithm( fn, i, p, logger, parent )
+{}
 
-iAMedianFilter::~iAMedianFilter()
-{
-}
 
 void iAMedianFilter::run()
 {
-	switch (getFilterID())
-	{
-	case MEDIAN: 
-		median(); break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	median();
 }
 
 void iAMedianFilter::median( )

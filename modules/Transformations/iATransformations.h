@@ -33,8 +33,7 @@ public:
 	typedef enum { RotateAlongX, RotateAlongY, RotateAlongZ}					RotationAxesType;
 	typedef enum { FlipAxesNone = 0, FlipAxesX = 1, FlipAxesY = 2, FlipAxesZ = 4 }	FlipAxesType;
 
-	iATransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-	~iATransformations();
+	iATransformations( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
 
 	TransformationType getTransformationType() const;
 	void setTransformationType(TransformationType transType);
@@ -58,7 +57,6 @@ public:
 protected:
 	void run();
 	void transform();
-
 private:
 	const static int Dim = iAConnector::ImageBaseType::ImageDimension;
 

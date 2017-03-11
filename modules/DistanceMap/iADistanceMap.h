@@ -20,13 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "itkDanielssonDistanceMapImageFilter.h"
-#include "itkImage.h"
-#include "itkImageRegionIterator.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkSignedMaurerDistanceMapImageFilter.h"
-
 #include "iAAlgorithm.h"
+
+enum iADistanceMapType
+{
+	SIGNED_MAURER_DISTANCE_MAP,
+	DANIELSSON_DISTANCE_MAP,
+};
 
 /**
  * An itk distance map. Basic filter itkSignedMaurerDistanceMapImageFilter.
@@ -34,30 +34,24 @@
  * Further details refer http://www.itk.org/Doxygen/html/classitk_1_1SignedMaurerDistanceMapImageFilter.html.
  * \remarks	Kana, 01/12/2010. 
  */
-
 class iADistanceMap : public iAAlgorithm
 {
 public:
-	iADistanceMap( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iADistanceMap( );
-
-	void signedmaurerdistancemap( );
-	void danielssondistancemap();
+	iADistanceMap( QString fn, iADistanceMapType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
-	 * Sets a signedmaurerdistancemap parameters. 
+	 * Sets signed maurer distance map parameters. 
 	 * \param	i		The UseImageSpacingOn switch. 
 	 * \param	t		The SquaredDistanceOff switch. 
 	 * \param	c		The InsideIsPositiveOn switch. 
 	 * \param	neg		The switch to set back ground = -1. 
 	 */
-
 	void setSMDMParameters( int i, int t, int c, int neg) { imagespacing = i; squareddistance = t; insidepositive = c; n = neg;};
-
 protected:
 	void run();
-
 private:
 	int imagespacing, insidepositive, squareddistance, n; 
-
+	iADistanceMapType m_type;
+	void signedmaurerdistancemap();
+	void danielssondistancemap();
 };

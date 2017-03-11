@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iASubtractImageFilter.h"
 
@@ -63,25 +62,14 @@ int subtract_image_template( iAProgress* p, iAConnector** images  )
 	return EXIT_SUCCESS;
 }
 
-iASubtractImageFilter::iASubtractImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
+iASubtractImageFilter::iASubtractImageFilter( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent )
+{}
 
-}
-
-iASubtractImageFilter::~iASubtractImageFilter()
-{
-}
 
 void iASubtractImageFilter::run()
 {
-	switch (getFilterID())
-	{
-	case SUBTRACT_IMAGE: 
-		subtractImage(); break;
-	default:
-		addMsg(tr("unknown filter type"));
-	}
+	subtractImage();
 }
 
 void iASubtractImageFilter::subtractImage()

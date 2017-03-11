@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAAlgorithm.h"
+#include "defines.h"          // for IOType
 #include "open_iA_Core_export.h"
 
 #include <itkVersorRigid3DTransform.h>

@@ -18,18 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAHessianEigenanalysis.h"
 
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
+#include "iAPixelAccessors.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>
+#include <itkHessianRecursiveGaussianImageFilter.h>
+#include <itkImageAdaptor.h>
 #include <itkLaplacianRecursiveGaussianImageFilter.h>
 #include <itkLaplacianSegmentationLevelSetFunction.h>
 #include <itkLaplacianImageFilter.h>
+#include <itkSymmetricEigenAnalysisImageFilter.h>
 #include <itkZeroCrossingImageFilter.h>
 
 #include <vtkImageData.h>
@@ -194,7 +199,6 @@ template<class T> int computeHessian_template( int sigma, bool hessianComputed, 
 * \param	T				Input type
 * \return	int Status-Code.
 */
-
 template<class T> int computeLaplacian_template(unsigned int sigma, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, DIM > ImageType;
@@ -214,25 +218,18 @@ template<class T> int computeLaplacian_template(unsigned int sigma, iAProgress* 
 }
 
 
-iAHessianEigenanalysis::iAHessianEigenanalysis( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-
-}
-
-
-iAHessianEigenanalysis::~iAHessianEigenanalysis()
-{
-}
+iAHessianEigenanalysis::iAHessianEigenanalysis( QString fn, iAEigenAnalysisType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
 
 
 void iAHessianEigenanalysis::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
-	case COMPUTEHESSIANEIGENANALYSIS:
+	case HESSIANEIGENANALYSIS:
 		computeHessian(); break;
-	case COMPUTE_LAPLACIAN:
+	case LAPLACIAN:
 		computeLaplacian(); break;
 	default:
 		addMsg(tr("  unknown filter type"));

@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAWatershedSegmentation.h"
 
@@ -26,10 +25,6 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 #include "mdichild.h"
-
-#ifdef __GNUC__
-#include <inttypes.h>
-#endif
 
 #include <itkCastImageFilter.h>
 #include <itkImageFileWriter.h>
@@ -121,20 +116,15 @@ int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFull
 	return EXIT_SUCCESS;
 }
 
-iAWatershedSegmentation::iAWatershedSegmentation( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent ) 
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
+iAWatershedSegmentation::iAWatershedSegmentation( QString fn, iAWatershedType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
 {
 	imageDataNew = vtkImageData::New();
 }
 
-iAWatershedSegmentation::~iAWatershedSegmentation()
-{
-
-}
-
 void iAWatershedSegmentation::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case WATERSHED: 
 		watershed(); break;

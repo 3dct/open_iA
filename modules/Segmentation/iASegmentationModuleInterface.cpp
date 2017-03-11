@@ -326,7 +326,7 @@ void iASegmentationModuleInterface::maximum_Distance_Filter()
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iAMaximumDistance* thread = new iAMaximumDistance( filterName, MAXIMUM_DISTANCE_THRESHOLD,
+	iAMaximumDistance* thread = new iAMaximumDistance( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setMDFParameters( mdfli, mdfbins, mdfuli );

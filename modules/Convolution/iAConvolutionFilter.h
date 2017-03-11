@@ -22,32 +22,35 @@
 
 #include "iAAlgorithm.h"
 
+enum iAConvolutionType
+{
+	CONVOLUTION_FILTER,
+	FFT_CONVOLUTION_FILTER,
+	CORRELATION_FILTER,
+	FFT_CORRELATION_FILTER,
+	FFT_NCC_CPP_FILTER,
+};
+
 class iAConvolutionFilter : public iAAlgorithm
 {
 public: 
-	iAConvolutionFilter(QString fn, FilterID fid, vtkImageData* i = 0, vtkPolyData* p = 0, iALogger* logger = 0, QObject *parent = 0);
+	iAConvolutionFilter(QString fn, iAConvolutionType fid, vtkImageData* i = 0, vtkPolyData* p = 0, iALogger* logger = 0, QObject *parent = 0);
 	~iAConvolutionFilter();
-
-
-	//convolution = correlation + flipped kernel
-	void convolutionFilter(); 
-	void fft_convolutionFilter();
-
-	void correlationFilter(); 
-	void fft_correlationFilter(); 
-
-	void fft_cpp_correlationFilter(); 
 
 	void setParameters(std::string templateFileName)
 	{
 		this->templFileName = templateFileName; 
 	}
-
 protected: 
-	void run(); 
-
+	void run();
 private: 
 	vtkPolyData* pData;
 	std::string templFileName; 
+	iAConvolutionType m_type;
 
+	void convolutionFilter();
+	void fft_convolutionFilter();
+	void correlationFilter();
+	void fft_correlationFilter();
+	void fft_cpp_correlationFilter();
 };

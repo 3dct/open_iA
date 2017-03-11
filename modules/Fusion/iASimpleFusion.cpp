@@ -18,9 +18,9 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iASimpleFusion.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -61,20 +61,13 @@ int addImages_template(iAProgress* p, iAConnector* image2, iAConnector* image)
 	return EXIT_SUCCESS;
 }
 
-iASimpleFusion::iASimpleFusion( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
+iASimpleFusion::iASimpleFusion( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
+	: iAAlgorithm( fn, i, p, logger, parent )
 {}
 
 void iASimpleFusion::run()
 {
-
-	switch (getFilterID())
-	{
-	case ADD_IMAGES_FUSION:
-		addImagesFusion(); break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	addImagesFusion();
 }
 
 void iASimpleFusion::addImagesFusion()
