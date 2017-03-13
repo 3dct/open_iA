@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAObjectAnalysisType.h"
+#include "open_iA_Core_export.h"
 
 #include <vtkSmartPointer.h>
 
@@ -28,7 +29,7 @@
 
 class vtkTable;
 
-class iACsvIO
+class open_iA_Core_API iACsvIO
 {
 public:
 	iACsvIO();
