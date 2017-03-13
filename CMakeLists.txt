@@ -58,8 +58,11 @@ SET( ITK_LIBRARIES
 	ITKniftiio				ITKNrrdIO				itkopenjpeg			itkpng				itksys
 	itktiff					itkv3p_netlib
 	itkvcl					itkvnl					itkvnl_algo
-	itkzlib					ITKznz
+	ITKznz
 )
+IF ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
+	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkzlib)
+ENDIF()
 IF (NOT ${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
 	# cannot use ITKGPUCommon_LOADED - it is always defined - bug?
 	SET( ITK_LIBRARIES  ${ITK_LIBRARIES}
