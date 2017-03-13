@@ -93,14 +93,14 @@ int danielsson_distancemap_template( iAProgress* p, iAConnector* image )
 	typedef itk::Image< unsigned char, 3 >   OutputImageType;
 
 	typedef itk::DanielssonDistanceMapImageFilter< InputImageType, UShortIageType, UShortIageType > danielssonDistFilterType;
-	danielssonDistFilterType::Pointer danielssonDistFilter = danielssonDistFilterType::New();
+	typename danielssonDistFilterType::Pointer danielssonDistFilter = danielssonDistFilterType::New();
 	danielssonDistFilter->InputIsBinaryOn();
 	danielssonDistFilter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 	p->Observe( danielssonDistFilter );
 	danielssonDistFilter->Update();
 
 	typedef itk::RescaleIntensityImageFilter< UShortIageType, OutputImageType > RescaleFilterType;
-	RescaleFilterType::Pointer intensityRescaler = RescaleFilterType::New();
+	typename RescaleFilterType::Pointer intensityRescaler = RescaleFilterType::New();
 	intensityRescaler->SetInput( danielssonDistFilter->GetOutput() );
 	intensityRescaler->SetOutputMinimum( 0 );
 	intensityRescaler->SetOutputMaximum( 255 );
