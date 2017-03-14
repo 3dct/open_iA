@@ -23,16 +23,19 @@
 #include "iAAlgorithm.h"
 #include "itkChangeInformationImageFilter.h"
 
+enum iAGeometricTransformationType
+{
+	EXTRACT_IMAGE,
+	RESAMPLER,
+	RESCALE_IMAGE,
+};
+
 /**
- * Application of itkResampleImageFilter and itkExtractImageFilter.
- * For itkResampleImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html.
- * For itkExtractImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
- * \remarks	Kana, 01/12/2010. 
-
- * added Rescale Image filter - HZ, 01/06/2015
- * refer to http://itk.org/ITKExamples/src/Filtering/ImageIntensity/RescaleAnImage/Documentation.html
+ * Geometric transformation filters
+ * For Resample ImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html.
+ * For Extract ImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
+ * For Rescale Image filter refer to http://itk.org/ITKExamples/src/Filtering/ImageIntensity/RescaleAnImage/Documentation.html
  */
-
 class iAGeometricTransformations : public iAAlgorithm
 {
 public:
@@ -41,11 +44,7 @@ public:
 	static const QString InterpBSpline;
 	static const QString InterpWindowedSinc;
 
-	iAGeometricTransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	void extractImage();
-	void resampler();
-	void rescaleImage();
+	iAGeometricTransformations( QString fn, iAGeometricTransformationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets a r parameters. 
@@ -108,10 +107,13 @@ public:
 
 protected:
 	void run();
-
 private:
 	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
 	QString interpolator;
 	unsigned int dim;
 	double outputMin, outputMax;
+	iAGeometricTransformationType m_operation;
+	void extractImage();
+	void resampler();
+	void rescaleImage();
 };

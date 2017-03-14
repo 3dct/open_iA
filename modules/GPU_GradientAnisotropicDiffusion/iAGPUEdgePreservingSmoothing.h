@@ -25,10 +25,8 @@
 class iAGPUEdgePreservingSmoothing : public iAAlgorithm
 {
 public:
-	iAGPUEdgePreservingSmoothing(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-	~iAGPUEdgePreservingSmoothing();
+	iAGPUEdgePreservingSmoothing(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
 
-	void gpuGradientAnisotropicDiffusion();
 // following was copied from iAEdgePreservingSmoothing to prevent module dependency. TODO: Think of better way
 	void setADParameters(unsigned int i, double t, double c) { iterations = i; timestep = t; conductance = c; };
 protected:
@@ -36,4 +34,5 @@ protected:
 private:
 	unsigned int iterations;
 	double timestep, conductance;
+	void gpuGradientAnisotropicDiffusion();
 };

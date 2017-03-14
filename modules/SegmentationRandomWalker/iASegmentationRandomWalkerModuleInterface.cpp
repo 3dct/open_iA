@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iASegmentationRandomWalkerModuleInterface.h"
 
@@ -49,20 +48,6 @@ void iASegmentationRandomWalkerModuleInterface::Initialize()
 	connect(actionSegmRW, SIGNAL(triggered()), this, SLOT(CalculateRW()));
 	connect(actionSegmERW, SIGNAL(triggered()), this, SLOT(CalculateERW()));
 }
-
-/*
-template <typename PixelType>
-PriorModelImageType::Pointer CastToDouble(iAConnector::ImageBaseType* img, PixelType)
-{
-	typedef itk::Image<PixelType, 3> InputImageType;
-	typedef itk::CastImageFilter<InputImageType, PriorModelImageType > CastType;
-	typename CastType::Pointer caster = CastType::New();
-	caster->SetInput(dynamic_cast<itk::Image<PixelType, 3>* >(img));
-	caster->Update();
-	return caster->GetOutput();
-}
-*/
-
 
 template <typename ImagePixelType>
 void CalculateRW_template(
@@ -129,8 +114,8 @@ void CalculateERW_template(
 class iAERWFilter: public iAAlgorithm
 {
 public:
-	iAERWFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAAlgorithm(fn, fid, i, p, logger, parent),
+	iAERWFilter(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
+		iAAlgorithm(fn, i, p, logger, parent),
 		m_priorCount(0)
 	{}
 	void SetPriors(QVector<vtkSmartPointer<vtkImageData> > priors)
@@ -172,8 +157,8 @@ private:
 class iARWFilter: public iAAlgorithm
 {
 public:
-	iARWFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAAlgorithm(fn, fid, i, p, logger, parent),
+	iARWFilter(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
+		iAAlgorithm(fn, i, p, logger, parent),
 		m_beta(0)
 	{}
 	void SetParams(SeedVector const & seeds, double beta)
@@ -274,7 +259,7 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 
 	QString filterName = "Extended Random Walker";
 	PrepareResultChild(fileIndices[0], filterName);
-	iAERWFilter * thread = new iAERWFilter(filterName, EXTENDED_RANDOM_WALKER,
+	iAERWFilter * thread = new iAERWFilter(filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	thread->SetPriors(priorImg);
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -359,7 +344,7 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateRW()
 
 	QString filterName = "Random Walker";
 	PrepareResultChild(filterName);
-	iARWFilter * thread = new iARWFilter(filterName, RANDOM_WALKER,
+	iARWFilter * thread = new iARWFilter(filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	int extent[6];
 	m_childData.imgData->GetExtent(extent);

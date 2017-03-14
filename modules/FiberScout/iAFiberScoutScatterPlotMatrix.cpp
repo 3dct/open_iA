@@ -21,7 +21,7 @@
  
 #include "pch.h"
 #include "iAFiberScoutScatterPlotMatrix.h"
-#include "defines.h"
+#include "iAObjectAnalysisType.h"
 
 #include <itkDecisionRule.h>
 #include <itkDistanceToCentroidMembershipFunction.h>

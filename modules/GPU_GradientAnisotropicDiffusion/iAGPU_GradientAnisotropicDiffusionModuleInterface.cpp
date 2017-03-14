@@ -56,7 +56,7 @@ void iAGPU_GradientAnisotropicDiffusionModuleInterface::gpu_grad_aniso_diffusion
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iAGPUEdgePreservingSmoothing * thread = new iAGPUEdgePreservingSmoothing( filterName, GPU_GRADIENT_ANISOTROPIC_DIFFUSION,
+	iAGPUEdgePreservingSmoothing * thread = new iAGPUEdgePreservingSmoothing( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setADParameters( gadIterations, gadTimeStep, gadConductance );

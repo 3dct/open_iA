@@ -22,18 +22,23 @@
 
 #include "iAAlgorithm.h"
 
+enum iAIntensityFilterType
+{
+	DIFFERENCE_IMAGE,
+	INVERT_INTENSITY,
+	MASK_IMAGE,
+	INTENSITY_WINDOWING,
+};
+
 /**
  * Implementation of DifferenceImageFilter and InvertIntensityImageFilter.
  * For DifferenceImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DifferenceImageFilter.html
  * For InvertIntensityImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1InvertIntensityImageFilter.html
- * \remarks	Kana, 01/12/2010. 
  */
-
 class iAIntensity : public iAAlgorithm
 {
 public:
-	iAIntensity( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAIntensity();
+	iAIntensity( QString fn, iAIntensityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets DifferenceImageFilter parameters. 
@@ -41,13 +46,12 @@ public:
 	 * \param	tr	The tolerance radius. 
 	 * \param	i2	The second vtkImageData*. 
 	 */
-
 	void setDIFParameters(double dt, double tr, vtkImageData* i2) 
 	{ 
 		DifferenceThreshold = dt; 
 		ToleranceRadius = tr;
 		image2 = i2;
-	};
+	}
 
 	/**
 	* Sets Intensity_WindowingImageFilter parameters.
@@ -56,23 +60,21 @@ public:
 	* \param	omin	The output minimum.
 	* \param	omax	The output maximum.
 	*/
-	
 	void setWIIFParameters( double wmin, double wmax, double omin, double omax )
 	{
 		windowMinimum = wmin;
 		windowMaximum = wmax;
 		outputMinimum = omin;
 		outputMaximum = omax;
-	};
-
+	}
 protected:
 	void run();
-	void difference(  );
-	void invert_intensity( );
-	void mask();
-	void intensity_windowing();
-
 private:
 	double DifferenceThreshold, ToleranceRadius, windowMinimum, windowMaximum, outputMinimum, outputMaximum;
 	vtkImageData* image2;
+	iAIntensityFilterType m_type;
+	void difference();
+	void invert_intensity();
+	void mask();
+	void intensity_windowing();
 };

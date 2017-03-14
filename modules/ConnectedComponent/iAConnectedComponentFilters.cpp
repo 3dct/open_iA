@@ -18,15 +18,19 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAConnectedComponentFilters.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
-#include <itkImageIOBase.h>
+#include <itkConnectedComponentImageFilter.h>
+#include <itkScalarConnectedComponentImageFilter.h>
+#include <itkRelabelComponentImageFilter.h>
+
 #include <vtkImageData.h>
+
 #include <QLocale>
 
 /**
@@ -143,36 +147,15 @@ int SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAProg
 	return EXIT_SUCCESS;
 }
 
-/**
-* Constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
+iAConnectedComponentFilters::iAConnectedComponentFilters( QString fn, iAConnCompType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
 
-iAConnectedComponentFilters::iAConnectedComponentFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
 
-/**
-* Destructor. 
-*/
-
-iAConnectedComponentFilters::~iAConnectedComponentFilters()
-{
-}
-
-/**
-* Execute the filter thread.
-*/
 
 void iAConnectedComponentFilters::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case SIMPLE_CONNECTED_COMPONENT_FILTER: 
 		SimpleConnectedComponentFilter(); break;
@@ -185,9 +168,6 @@ void iAConnectedComponentFilters::run()
 	}
 }
 
-/**
-* Simple connected component filter. 
-*/
 
 void iAConnectedComponentFilters::SimpleConnectedComponentFilter( )
 {
@@ -219,9 +199,6 @@ void iAConnectedComponentFilters::SimpleConnectedComponentFilter( )
 	emit startUpdate();	
 }
 
-/**
-* Scalar connected component image filter.
-*/
 
 void iAConnectedComponentFilters::ScalarConnectedComponentFilter()
 {
@@ -253,9 +230,6 @@ void iAConnectedComponentFilters::ScalarConnectedComponentFilter()
 	emit startUpdate();
 }
 
-/**
-* Simple relabel component image filter. 
-*/
 
 void iAConnectedComponentFilters::SimpleRelabelComponentImageFilter( )
 {

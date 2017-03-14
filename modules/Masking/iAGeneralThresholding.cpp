@@ -18,9 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGeneralThresholding.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -64,30 +64,18 @@ int general_threshold_template( double l, double u, double o, iAProgress* p, iAC
 	return EXIT_SUCCESS;
 }
 
-iAGeneralThresholding::iAGeneralThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
+iAGeneralThresholding::iAGeneralThresholding( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent )
+{}
 
-}
-
-iAGeneralThresholding::~iAGeneralThresholding()
-{
-}
 
 void iAGeneralThresholding::run()
 {
-	switch (getFilterID())
-	{
-	case GENERAL_THRESHOLD: 
-		thresholding(); break;
-	default:
-		addMsg(tr("unknown filter type"));
-	}
+	thresholding();
 }
 
 void iAGeneralThresholding::thresholding(  )
 {
-	
 	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
 		.arg(getFilterName()));
 	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
@@ -113,4 +101,3 @@ void iAGeneralThresholding::thresholding(  )
 		.arg(Stop()));
 	emit startUpdate();	
 }
-

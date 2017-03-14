@@ -36,7 +36,6 @@
 #include "ui_sliceYZ.h"
 
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
 
 #include <QFileInfo>
 #include <QMainWindow>
@@ -60,7 +59,6 @@ class vtkPoints;
 class vtkPolyData;
 class vtkRenderWindow;
 class vtkScalarsToColors;
-class vtkTable;
 class vtkTransform;
 
 class dlg_renderer;
@@ -176,11 +174,6 @@ public:
 	vtkPiecewiseFunction * getPiecewiseFunction();
 	vtkColorTransferFunction * getColorTransferFunction();
 	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
-
-	// TODO: move out of here ---------->
-	bool LoadCsvFile(FilterID fid, const QString &fileName);
-	vtkTable * getMdCsvTable() { return mdCsvTable.GetPointer(); }
-	// <---------- end
 
 	//! deprecated; use getImagePointer instead!
 	vtkImageData* getImageData();
@@ -480,13 +473,6 @@ private:
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
 	
-	// TODO: move out of here ---------->
-	bool LoadCsvFile(vtkTable *table, FilterID fid);
-	bool LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileName);
-	//! csv file to table
-	vtkSmartPointer<vtkTable> mdCsvTable;
-	// <---------- end
-
 	bool saveNative;
 	std::vector<iAAlgorithm*> workingAlgorithms;
 

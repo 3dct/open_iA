@@ -42,9 +42,9 @@ void iAMaskingModuleInterface::general_threshold()
 {
 	//set parameters
 	QSettings settings;
-	gtlower = settings.value( "Filters/Segmentations/GeneralThresholding/gtlower" ).toDouble();
-	gtupper = settings.value( "Filters/Segmentations/GeneralThresholding/gtupper" ).toDouble();
-	gtoutside = settings.value( "Filters/Segmentations/GeneralThresholding/gtoutside" ).toDouble();
+	gtlower = settings.value( "Filters/Masking/GeneralThresholding/gtlower" ).toDouble();
+	gtupper = settings.value( "Filters/Masking/GeneralThresholding/gtupper" ).toDouble();
+	gtoutside = settings.value( "Filters/Masking/GeneralThresholding/gtoutside" ).toDouble();
 
 	QStringList inList = (QStringList() << tr( "#Lower Threshold" ) << tr( "#Upper Threshold" ) << tr( "#Outside Value" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( gtlower ) << tr( "%1" ).arg( gtupper ) << tr( "%1" ).arg( gtoutside );
@@ -55,16 +55,16 @@ void iAMaskingModuleInterface::general_threshold()
 	gtupper = dlg.getValues()[1];
 	gtoutside = dlg.getValues()[2];
 
-	settings.setValue( "Filters/Segmentations/GeneralThresholding/gtlower", gtlower );
-	settings.setValue( "Filters/Segmentations/GeneralThresholding/gtupper", gtupper );
-	settings.setValue( "Filters/Segmentations/GeneralThresholding/gtoutside", gtoutside );
+	settings.setValue( "Filters/Masking/GeneralThresholding/gtlower", gtlower );
+	settings.setValue( "Filters/Masking/GeneralThresholding/gtupper", gtupper );
+	settings.setValue( "Filters/Masking/GeneralThresholding/gtoutside", gtoutside );
 
 	//prepare
 	QString filterName = tr("General threshold filter");
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iAGeneralThresholding * thread = new iAGeneralThresholding( filterName, GENERAL_THRESHOLD,
+	iAGeneralThresholding * thread = new iAGeneralThresholding( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setGTParameters( gtlower, gtupper, gtoutside );

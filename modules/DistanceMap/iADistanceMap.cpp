@@ -18,30 +18,26 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iADistanceMap.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
 #include <itkImageIOBase.h>
+#include <itkDanielssonDistanceMapImageFilter.h>
+#include <itkImage.h>
+#include <itkImageRegionIterator.h>
+#include <itkRescaleIntensityImageFilter.h>
+#include <itkSignedMaurerDistanceMapImageFilter.h>
+
 #include <vtkImageData.h>
+
 #include <QLocale>
 
-/**
-* Signed maurer distancemap template initializes itkSignedMaurerDistanceMapImageFilter .
-* \param	i		The UseImageSpacingOn switch. 
-* \param	s		The SquaredDistanceOff switch. 
-* \param	pos		The InsideIsPositiveOn switch. 
-* \param	n		The switch to set back ground = -1. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param	T		Template datatype.
-* \return	int		Status code. 
-*/
 template<class T> 
-int signed_maurer_distancemap_template( int i, int s, int pos,  int n, iAProgress* p, iAConnector* image )
+int signed_maurer_distancemap_template( int i, int s, int pos, int n, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -78,12 +74,10 @@ int signed_maurer_distancemap_template( int i, int s, int pos,  int n, iAProgres
 				iter.Set(-1);			
 
 			++iter;
-		}//while
+		}
 	}
 
-
 	image->SetImage( distanceImage );
-
 	image->Modified();
 
 	distancefilter->ReleaseDataFlagOn();
@@ -91,47 +85,51 @@ int signed_maurer_distancemap_template( int i, int s, int pos,  int n, iAProgres
 	return EXIT_SUCCESS;
 }
 
-/**
-* Constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
-
-iADistanceMap::iADistanceMap( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
+template<class T>
+int danielsson_distancemap_template( iAProgress* p, iAConnector* image )
 {
+	typedef itk::Image< T, 3 >   InputImageType;
+	typedef itk::Image< unsigned short, 3 >   UShortIageType;
+	typedef itk::Image< unsigned char, 3 >   OutputImageType;
+
+	typedef itk::DanielssonDistanceMapImageFilter< InputImageType, UShortIageType, UShortIageType > danielssonDistFilterType;
+	typename danielssonDistFilterType::Pointer danielssonDistFilter = danielssonDistFilterType::New();
+	danielssonDistFilter->InputIsBinaryOn();
+	danielssonDistFilter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	p->Observe( danielssonDistFilter );
+	danielssonDistFilter->Update();
+
+	typedef itk::RescaleIntensityImageFilter< UShortIageType, OutputImageType > RescaleFilterType;
+	typename RescaleFilterType::Pointer intensityRescaler = RescaleFilterType::New();
+	intensityRescaler->SetInput( danielssonDistFilter->GetOutput() );
+	intensityRescaler->SetOutputMinimum( 0 );
+	intensityRescaler->SetOutputMaximum( 255 );
+	intensityRescaler->Update();
+
+	image->SetImage( intensityRescaler->GetOutput() );
+	image->Modified();
+	danielssonDistFilter->ReleaseDataFlagOn();
+	intensityRescaler->ReleaseDataFlagOn();
+
+	return EXIT_SUCCESS;
 }
 
-/**
-* Destructor. 
-*/
-
-iADistanceMap::~iADistanceMap()
-{
-}
-
-/**
-* Execute the filter thread.
-*/
+iADistanceMap::iADistanceMap( QString fn, iADistanceMapType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
 
 void iADistanceMap::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case SIGNED_MAURER_DISTANCE_MAP: 
 		signedmaurerdistancemap(); break;
+	case DANIELSSON_DISTANCE_MAP:
+		danielssondistancemap(); break;
 	default:
 		addMsg(tr("unknown filter type"));
 	}
 }
-
-/**
-* Signedmaurerdistancemaps this object. 
-*/
 
 void iADistanceMap::signedmaurerdistancemap( )
 {
@@ -161,4 +159,33 @@ void iADistanceMap::signedmaurerdistancemap( )
 		.arg(Stop()));
 
 	emit startUpdate();	
+}
+
+void iADistanceMap::danielssondistancemap()
+{
+	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
+			.arg( getFilterName() ) );
+
+	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
+
+	try
+	{
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL( danielsson_distancemap_template, itkType, getItkProgress(), getConnector() );
+	}
+	catch ( itk::ExceptionObject &excep )
+	{
+		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+				.arg( getFilterName() )
+				.arg( Stop() ) );
+		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
+				.arg( excep.GetFile() )
+				.arg( excep.GetLine() ) );
+		return;
+	}
+	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+			.arg( getFilterName() )
+			.arg( Stop() ) );
+
+	emit startUpdate();
 }

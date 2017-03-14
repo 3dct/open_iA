@@ -23,19 +23,16 @@
 #include "iAAlgorithm.h"
 
 /** A implementation of the computation of adpative histogram equalization */
-
 class iAAdaptiveHistogramEqualization : public iAAlgorithm
 {
 public:
-	iAAdaptiveHistogramEqualization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAAdaptiveHistogramEqualization();
+	iAAdaptiveHistogramEqualization( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
-	 * Sets iAAdaptiveHistogramEqualization parameters.
+	 * Sets the adaptive Histogram equalization parameters.
 	 * \param	aheAlpha		Alpha	classical histogram equalization method (alpha=0) -> unsharp mask (alpha=1).
 	 * \param	aheBeta			Beta	unsharp mask (beta=0) -> pass through (beta=1, with alpha=1).
 	 */
-
 	void setCParameters(double aheAlpha, double aheBeta) { 
 		this->aheAlpha = aheAlpha;
 		this->aheBeta = aheBeta;
@@ -43,9 +40,8 @@ public:
 
 protected:
 	void run();
-	void compute_iAAdaptiveHistogramEqualization( );
-
 private:
 	double aheAlpha;
 	double aheBeta;
+	void compute_iAAdaptiveHistogramEqualization( );
 };

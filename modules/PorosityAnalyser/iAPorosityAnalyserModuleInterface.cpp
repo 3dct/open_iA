@@ -120,9 +120,13 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	m_pipelineSlotsCount = minPipelineSlotsCount;
 	
 	// Datasets box
-	QStringList datasetName( "*.mhd" );
-	QDir directory( m_datasetsFolder );
-	QStringList datasetNameList = directory.entryList( datasetName );
+	QDir datasetDir( m_datasetsFolder );
+	datasetDir.setNameFilters( QStringList() << "*.mhd" );
+	QStringList datasetNameList = datasetDir.entryList();
+	datasetDir.setNameFilters( QStringList() << "*_GT.mhd" );
+	QStringList gtDatasetList = datasetDir.entryList();
+	removeGTDatasets( datasetNameList, gtDatasetList );
+
 	QGroupBox *groupBoxDatasets = new QGroupBox( tr( "Datasets" ), uiComputeSegm.dragWidget );
 	iADragFilterWidget *dragWidgetDatasets = new iADragFilterWidget( m_datasetsFolder, datasetNameList, 1, groupBoxDatasets );
 	dragWidgetDatasets->setObjectName( "dragDatasetWidget" );
@@ -143,6 +147,7 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	// Filters box
 	QGroupBox *groupBoxFilters = new QGroupBox( tr( "Filters" ), uiComputeSegm.dragWidget );
 	iADragFilterWidget *dragWidgetFilters = new iADragFilterWidget( m_datasetsFolder, datasetNameList, 0, groupBoxFilters );
+	dragWidgetFilters->setObjectName( "dragFilterWidget" );
 	QHBoxLayout *gbFiltersLayout = new QHBoxLayout;
 	QScrollArea *filtersScrollArea = new QScrollArea();
 	filtersScrollArea->setStyleSheet( "background-color: white" );
@@ -267,6 +272,12 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	loadCSV();
 }
 
+void iAPorosityAnalyserModuleInterface::removeGTDatasets( QStringList& list, const QStringList& toDelete ){
+	QStringListIterator i( toDelete );
+	while ( i.hasNext() )
+		list.removeAll( i.next() );
+}
+
 void iAPorosityAnalyserModuleInterface::loadCSV()
 {
 	iACSVToQTableWidgetConverter::loadCSVFile( uiComputeSegm.csvFilename->text(), uiComputeSegm.tableWidget );
@@ -284,6 +295,27 @@ void iAPorosityAnalyserModuleInterface::browseCSV()
 	uiComputeSegm.csvFilename->setText( csvFile );
 	m_csvFile = csvFile;
 	loadCSV();
+}
+
+void iAPorosityAnalyserModuleInterface::displayPipelineInSlots( QTableWidgetItem * item)
+{
+	if ( QGuiApplication::queryKeyboardModifiers().testFlag( Qt::AltModifier ) )
+	{
+		QTableWidget* tw = qobject_cast<QTableWidget*>( sender() );
+		int selRow = tw->row( item );
+		if ( selRow ) // not header
+		{
+			QStringList algoList = tw->item( selRow, 0 )->text().split( "_" );
+			QList<QLabel*> algoLabelList;
+			iADragFilterWidget* dfw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragFilterWidget" );
+			for ( int i = 0; i < algoList.length(); ++i )
+				algoLabelList.append( dfw->getLabel( algoList[i] ) );
+
+			iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
+			QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
+			QLabel* datsetLabel = ddw->getLabel( dataset );
+		}
+	}
 }
 
 void iAPorosityAnalyserModuleInterface::SaveSettings() const
@@ -623,6 +655,8 @@ void iAPorosityAnalyserModuleInterface::createTableWidgetActions()
 	connect( uiComputeSegm.tbSaveTable, SIGNAL( clicked() ), this, SLOT( saveCSV() ) );
 	connect( loadTableFromCSVAction, SIGNAL( triggered() ), this, SLOT( loadCSV() ) );
 	connect( uiComputeSegm.tbLoadTable, SIGNAL( clicked() ), this, SLOT( loadCSV() ) );
+	connect( uiComputeSegm.tableWidget, SIGNAL( itemClicked( QTableWidgetItem * ) ), 
+			 this, SLOT( displayPipelineInSlots( QTableWidgetItem * ) ) );
 }
 
 void iAPorosityAnalyserModuleInterface::generateDatasetPreviews()

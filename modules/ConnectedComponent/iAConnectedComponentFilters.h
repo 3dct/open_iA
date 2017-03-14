@@ -20,46 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkConnectedComponentImageFilter.h>
-#include <itkScalarConnectedComponentImageFilter.h>
-#include <itkRelabelComponentImageFilter.h>
-#include <itkImage.h>
-
 #include "iAAlgorithm.h"
-#include <iostream>
-#include <fstream>
-#include <string>
-using namespace std;
+
+enum iAConnCompType
+{
+	SIMPLE_CONNECTED_COMPONENT_FILTER,
+	SCALAR_CONNECTED_COMPONENT_FILTER,
+	SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER,
+};
 
 /**
  * Implementation of 2 itk filters. The basic filters are itkRelabelComponentImageFilter and itkConnectedComponentImageFilter.
  * For itkRelabelComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html.
  * For itkConnectedComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html.
- * \remarks	Kana, 01/12/2010. 
  */
-
 class iAConnectedComponentFilters : public iAAlgorithm
 {
 public:
-	iAConnectedComponentFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAConnectedComponentFilters( );
-
-	void SimpleConnectedComponentFilter( );
-	void ScalarConnectedComponentFilter( );
-	void SimpleRelabelComponentImageFilter( );
+	iAConnectedComponentFilters( QString fn, iAConnCompType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets a itkConnectedComponentImageFilter parameters. 
 	 * \param	fullyconnected	The fullyconnected switch. 
 	 */
-
 	void setSCCFParameters( int fullyconnected ) { c = fullyconnected; };
 
 	/**
 	 * Sets a itkScalarConnectedComponentImageFilter parameters. 
 	 * \param	fullyconnected	The fullyconnected switch. 
 	 */
-
 	void setScalarCCFParameters( double distanceThreshold ) { distTreshold = distanceThreshold; };
 
 	/**
@@ -68,17 +57,17 @@ public:
 	 * \param	objectsize		The minimum objectsize. 
 	 * \param	file			The filename. 
 	 */
-
 	void setSRCIFParameters( bool writeroption, int objectsize, QString file ) { w = writeroption; s = objectsize; f = file; };
-
 protected:
 	void run();
-
 private:
 	double distTreshold;
 	int c;
 	int s;
 	bool w;
 	QString f;
-
+	iAConnCompType m_type;
+	void SimpleConnectedComponentFilter( );
+	void ScalarConnectedComponentFilter( );
+	void SimpleRelabelComponentImageFilter( );
 };

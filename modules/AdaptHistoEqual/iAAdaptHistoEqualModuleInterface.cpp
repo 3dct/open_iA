@@ -62,7 +62,7 @@ void iAAdaptHistoEqualModuleInterface::adaptive_Histogram_Equalization()
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
 	m_mdiChild->addStatusMsg( filterName );
-	iAAdaptiveHistogramEqualization* thread = new iAAdaptiveHistogramEqualization( filterName, ADAPTIVE_HISTOGRAM_EQUALIZATION,
+	iAAdaptiveHistogramEqualization* thread = new iAAdaptiveHistogramEqualization( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setCParameters( aheAlpha, aheBeta );

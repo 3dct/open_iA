@@ -22,38 +22,27 @@
 
 #include "iAAlgorithm.h"
 
-#include <itkCastImageFilter.h>
-#include <itkDiscreteGaussianImageFilter.h>
-
 #include <QString>
 
 /**
  * An itk blurring filter. The basic filter is itkDiscreteGaussianImageFilter.
  * For further details have look at http://www.itk.org/Doxygen/html/classitk_1_1DiscreteGaussianImageFilter.html#_details
- * \remarks	Kana, 01/12/2010. 
  */
-
 class iABlurring : public iAAlgorithm
 {
 public:
-	iABlurring( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iABlurring( );
-
-	void discreteGaussian(  );
+	iABlurring( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets a itkDiscreteGaussianImageFilter parameters. 
 	 * \param	v	Variance. 
 	 * \param	me	maximum error. 
 	 */
-
 	void setDGParameters(double v, double me, int out) { variance = v; maximumError = me; outimg = out; };
-
 protected:
 	void run();
-
 private:
 	double variance, maximumError;
 	int outimg;
-
+	void discreteGaussian();
 };

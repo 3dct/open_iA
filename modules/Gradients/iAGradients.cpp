@@ -25,7 +25,9 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>
+#include <itkGradientMagnitudeImageFilter.h>
 #include <itkImageIOBase.h>
 #include <itkHigerOrderAccurateGradient/itkHigherOrderAccurateDerivativeImageFilter.h>
 
@@ -33,17 +35,6 @@
 
 #include <QLocale>
 
-/**
-* template derivative
-* 
-* This template applies a derivative image filter. 
-* \param	o		SetOrder. 
-* \param	d		SetDirection.
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param			The. 
-* \return	int Status-Code. 
-*/
 template<class T> 
 int derivative_template( unsigned int o, unsigned int d, iAProgress* p, iAConnector* image )
 {
@@ -73,17 +64,8 @@ int derivative_template( unsigned int o, unsigned int d, iAProgress* p, iAConnec
 	return EXIT_SUCCESS;
 }
 
-/**
-* template higher order accurate gradient derivative
-*
-* This template applies a higher order accurate gradient derivative image filter.
-* \param	settings		SetOrder, SetDirection, SetOrderOfAccuracy.
-* \param	p		Filter progress information.
-* \param	image	Input image.
-* \param			The.
-* \return	int Status-Code.
-*/
-template<class T> int hoa_derivative_template(const HOAccGradientDerrivativeSettings &settings, iAProgress* p, iAConnector* image, T)
+template<class T>
+int hoa_derivative_template(const HOAccGradientDerrivativeSettings &settings, iAProgress* p, iAConnector* image, T)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	InputImageType * inputImg = dynamic_cast<InputImageType *>(image->GetITKImage());
@@ -108,15 +90,6 @@ template<class T> int hoa_derivative_template(const HOAccGradientDerrivativeSett
 	return EXIT_SUCCESS;
 }
 
-/**
-* template gradient_magnitude
-* 
-* This template applies a gradient magnitude image filter. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param			The. 
-* \return	int Status-Code. 
-*/
 template<class T> 
 int gradient_magnitude_template( iAProgress* p, iAConnector* image  )
 {
@@ -139,35 +112,14 @@ int gradient_magnitude_template( iAProgress* p, iAConnector* image  )
 	return EXIT_SUCCESS;
 }
 
-/**
-* constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
-
-iAGradients::iAGradients( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
+iAGradients::iAGradients( QString fn, iAGradientType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
 {}
 
-/**
-* destructor. 
-*/
-
-iAGradients::~iAGradients()
-{
-}
-
-/**
-* Execute the filter thread. 
-*/
 
 void iAGradients::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case DERIVATIVE:
 		derivative(); break;
@@ -180,10 +132,6 @@ void iAGradients::run()
 		addMsg(tr("  unknown filter type"));
 	}
 }
-
-/**
-* Derivatives this object. 
-*/
 
 void iAGradients::derivative( )
 {
@@ -264,10 +212,6 @@ void iAGradients::hoa_derivative()
 	emit startUpdate();
 }
 
-/**
-* Gradient magnitude. 
-*/
-
 void iAGradients::gradient_magnitude( )
 {
 	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
@@ -296,4 +240,4 @@ void iAGradients::gradient_magnitude( )
 		.arg(Stop()));
 
 	emit startUpdate();	
-};
+}

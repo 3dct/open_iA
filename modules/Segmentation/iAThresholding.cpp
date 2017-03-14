@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAThresholding.h"
 
@@ -155,7 +154,7 @@ int otsu_threshold_template( double* othresh_ptr, double b, double o, double i, 
 
 
 template<class T> 
-int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double b, double n, iAProgress* p, iAConnector* image )
+int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double b, double n, bool valleyemphasis, iAProgress* p, iAConnector* image )
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
@@ -166,6 +165,7 @@ int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double 
 	filter->SetNumberOfHistogramBins( T (b) );
 	filter->SetNumberOfThresholds( T (n) );
 	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	filter->SetValleyEmphasis( valleyemphasis );
 
 	p->Observe( filter );
 
@@ -181,15 +181,9 @@ int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double 
 }
 
 
-iAThresholding::iAThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
-
-
-iAThresholding::~iAThresholding()
-{
-}
+iAThresholding::iAThresholding( QString fn, iAThresholdingType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
 
 
 void iAThresholding::run()
@@ -199,7 +193,7 @@ void iAThresholding::run()
 	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
 	try
 	{
-		switch (getFilterID())
+		switch (m_type)
 		{
 		case BINARY_THRESHOLD:
 			binaryThresh(); break;
@@ -245,12 +239,11 @@ void iAThresholding::otsuMultipleThresh()
 {
 	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	ITK_TYPED_CALL(otsu_multiple_threshold_template, itkType,
-		&omthreshs, bins, threshs, getItkProgress(), getConnector());
+		&omthreshs, bins, threshs, valleyemphasis, getItkProgress(), getConnector());
 	addMsg(tr("%1  Otsu Multiple Thresholds = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QString::number(threshs)) );
 	for (int i = 0; i< threshs; i++) addMsg(tr("    Threshold number %1 = %2").arg(i).arg(omthreshs[i]));
 }
-
 
 void iAThresholding::otsuThresh()
 {

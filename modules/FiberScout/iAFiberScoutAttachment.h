@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #pragma once
 
 #include "iAModuleAttachmentToChild.h"
@@ -30,7 +29,7 @@ class dlg_FiberScout;
 class iABlobCluster;
 
 class vtkOpenGLRenderer;
-
+class vtkTable;
 
 class iAFiberScoutAttachment : public iAModuleAttachmentToChild
 {
@@ -38,7 +37,7 @@ class iAFiberScoutAttachment : public iAModuleAttachmentToChild
 public:
 	iAFiberScoutAttachment(MainWindow* mainWnd, iAChildData childData);
 	~iAFiberScoutAttachment();
-	void init(int filterID);
+	void init(int filterID, vtkSmartPointer<vtkTable> csvtbl);
 	void enableBlobVisualization();
 	void disableBlobVisualization();
 	bool FiberScout_Options(int idx);

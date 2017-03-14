@@ -28,14 +28,10 @@
  * For further details see http://www.itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html
  * \remarks	CH, 01/12/2010. 
  */
-
 class iAGeneralThresholding: public iAAlgorithm
 {
 public:
-	iAGeneralThresholding( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-	~iAGeneralThresholding();
-
-	void thresholding (  );
+	iAGeneralThresholding( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
 
 	/**
 	 * Sets a gt parameters. 
@@ -43,13 +39,10 @@ public:
 	 * \param	u		Upper threshold value. 
 	 * \param	o		Value outside the range. 
 	 */
-
 	void setGTParameters( double l, double u, double o ) { lower = l; upper = u; outer = o; };
-
 protected:
 	void run();
-
 private:
 	double lower, upper, outer;
-	
+	void thresholding ();
 };

@@ -18,10 +18,10 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAConvolutionFilter.h"
 
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -61,8 +61,10 @@
 
 #include <QLocale>
 
-iAConvolutionFilter::iAConvolutionFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p , iALogger* logger, QObject *parent )
-	: iAAlgorithm(fn, fid, i, p, logger, parent) {
+
+iAConvolutionFilter::iAConvolutionFilter(QString fn, iAConvolutionType fid, vtkImageData* i, vtkPolyData* p , iALogger* logger, QObject *parent )
+	: iAAlgorithm(fn, i, p, logger, parent), m_type(fid)
+{
 
 	pData = vtkPolyData::New(); 
 	pData = p; 
@@ -818,7 +820,6 @@ void iAConvolutionFilter::fft_cpp_correlationFilter()
 	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
 		.arg(getFilterName()));
 
-
 	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
 
 	try
@@ -842,12 +843,11 @@ void iAConvolutionFilter::fft_cpp_correlationFilter()
 		.arg(Stop()));
 
 	emit startUpdate();
-
 }
 
 void iAConvolutionFilter::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case CONVOLUTION_FILTER: 
 		convolutionFilter(); break;

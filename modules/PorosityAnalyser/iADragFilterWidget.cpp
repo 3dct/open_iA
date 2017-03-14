@@ -33,15 +33,11 @@ const QStringList customMimeType = QStringList()\
 
 const int rowStartOffset = 25;
 const int maxColumns = 5;
-const int maxRows = 7;
+const int maxRows = 8;
 const int iconHeight = 60;
 const int iconWidth = 60;
 const int columnGutter = iconWidth + 7;
 const int rowGutter = iconHeight + 10;
-const int nbOfNPFilters = 5;
-const int nbOfPFilters = 5;
-const int nbOfRGFilters = 3;
-const int nbOfSMFilters = 5;
 
 iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetList, int d_f_switch, QWidget *parent )
 	: QFrame( parent ), m_d_f_switch( d_f_switch ), m_datasetDir( datasetDir ), m_datasetList( datasetList )
@@ -64,6 +60,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 			dataset->move( 0, ( i + 1 ) * 10 + i*iconHeight );
 			dataset->show();
 			dataset->setAttribute( Qt::WA_DeleteOnClose );
+			m_labelList.append( dataset );
 		}
 	}
 	else if ( m_d_f_switch == 0 )	// Algorithms
@@ -80,7 +77,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		smFilters->show();
 
 		QFrame *separatorSM = new QFrame( this );
-		separatorSM->setGeometry( QRect( xIdx, yIdx * rowStartOffset - 5, nbOfSMFilters * columnGutter, 1 ) );
+		separatorSM->setGeometry( QRect( xIdx, yIdx * rowStartOffset - 5, maxColumns * columnGutter, 1 ) );
 		separatorSM->setFrameShape( QFrame::HLine );
 		separatorSM->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;"
 									"border-bottom-style: solid; border-left-style: none; border-color: darkGray; " );
@@ -88,50 +85,70 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		separatorSM->show();
 
 		// Smoothing
-		QLabel *gadIcon = new QLabel( this );
-		gadIcon->setObjectName( "Gradient Anisotropic Diffusion Smoothing" );
-		gadIcon->setPixmap( QPixmap( ":/images/smooth_GAD.png" ) );
-		gadIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		gadIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset );
-		gadIcon->show();
-		gadIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *gad = new QLabel( this );
+		gad->setObjectName( "Gradient Anisotropic Diffusion Smoothing" );
+		gad->setPixmap( QPixmap( ":/images/smooth_GAD.png" ) );
+		gad->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		gad->setToolTip( "<p>The <b>GradientAnisotropicDiffusion</b> smoothing filter reduce noise (or unwanted detail) "
+							 "in images while preserving specific image features. For many applications, there is an assumption "
+							 "that light-dark transitions (edges) are interesting. Standard isotropic diffusion methods move and "
+							 "blur light-dark boundaries. Anisotropic diffusion methods are formulated to specifically preserve edges.</p>"
+							 "<p><b>TimeStep: </b>appropriate time steps for solving this type of p.d.e.depend on the dimensionality of "
+							 "the image and the order of the equation.Stable values for most 2D and 3D functions are 0.125 and 0.0625, "
+							 "respectively, when the pixel spacing is unity or is turned off.In general, you should keep the time step "
+							 "below (PixelSpacing)/2^(N + 1), where N is the number of image dimensions.</p>"
+							 "<p><b>Conductance Parameter: </b>The conductance parameter controls the sensitivity of the conductance "
+							 "term in the basic anisotropic diffusion equation. It affects the conductance term in different ways "
+							 "depending on the particular variation on the basic equation. As a general rule, the lower the value, the "
+							 "more strongly the diffusion equation preserves image features (such as high gradients or curvature). A high "
+							 "value for conductance will cause the filter to diffuse image features more readily. Typical values range from "
+							 "0.5 to 2.0 for data like the Visible Human color data."
+							 "<p>https://itk.org/Doxygen/html/classitk_1_1AnisotropicDiffusionImageFilter.html</p>" );
+		gad->move( columnGutter * xIdx++, yIdx * rowStartOffset );
+		gad->show();
+		gad->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( gad );
 
-		QLabel *cadIcon = new QLabel( this );
-		cadIcon->setObjectName( "Curvature Anisotropic Diffusion Smoothing" );
-		cadIcon->setPixmap( QPixmap( ":/images/smooth_CAD.png" ) );
-		cadIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		cadIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset );
-		cadIcon->show();
-		cadIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *cad = new QLabel( this );
+		cad->setObjectName( "Curvature Anisotropic Diffusion Smoothing" );
+		cad->setPixmap( QPixmap( ":/images/smooth_CAD.png" ) );
+		cad->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		cad->move( columnGutter * xIdx++, yIdx * rowStartOffset );
+		cad->show();
+		cad->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( cad );
 
-		QLabel *gaussIcon = new QLabel( this );
-		gaussIcon->setObjectName( "Recursive Gaussian Smoothing" );
-		gaussIcon->setPixmap( QPixmap( ":/images/smooth_Gauss.png" ) );
-		gaussIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		gaussIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset );
-		gaussIcon->show();
-		gaussIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *gauss = new QLabel( this );
+		gauss->setObjectName( "Recursive Gaussian Smoothing" );
+		gauss->setPixmap( QPixmap( ":/images/smooth_Gauss.png" ) );
+		gauss->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		gauss->move( columnGutter * xIdx++, yIdx * rowStartOffset );
+		gauss->show();
+		gauss->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( gauss );
 
-		QLabel *bilIcon = new QLabel( this );
-		bilIcon->setObjectName( "Bilateral Smoothing" );
-		bilIcon->setPixmap( QPixmap( ":/images/smooth_Bilateral.png" ) );
-		bilIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		bilIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset );
-		bilIcon->show();
-		bilIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *bil = new QLabel( this );
+		bil->setObjectName( "Bilateral Smoothing" );
+		bil->setPixmap( QPixmap( ":/images/smooth_Bilateral.png" ) );
+		bil->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		bil->move( columnGutter * xIdx++, yIdx * rowStartOffset );
+		bil->show();
+		bil->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( bil );
 
-		QLabel *medIcon = new QLabel( this );
-		medIcon->setObjectName( "Median Smoothing" );
-		medIcon->setPixmap( QPixmap( ":/images/smooth_Median.png" ) );
-		medIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		medIcon->setToolTip( "<p>The <b>Median</b> smoothing filter Computes an image where a given pixel is the median "
+		QLabel *med = new QLabel( this );
+		med->setObjectName( "Median Smoothing" );
+		med->setPixmap( QPixmap( ":/images/smooth_Median.png" ) );
+		med->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		med->setToolTip( "<p>The <b>Median</b> smoothing filter Computes an image where a given pixel is the median "
 							 "value of the the pixels in a neighborhood about the corresponding input pixel. A median filter "
 							 "is one of the family of nonlinear filters.It is used to smooth an image without being biased "
 							 "by outliers or shot noise.</p>"
 							 "<p>http://www.itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html</p>" );
-		medIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset );
-		medIcon->show();
-		medIcon->setAttribute( Qt::WA_DeleteOnClose );
+		med->move( columnGutter * xIdx++, yIdx * rowStartOffset );
+		med->show();
+		med->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( med );
 
 		xIdx = 0;
 
@@ -144,7 +161,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		npSegmFilters->show();
 
 		QFrame *separatorNP = new QFrame( this );
-		separatorNP->setGeometry( QRect( columnGutter * xIdx, ++yIdx * rowStartOffset + yGutterIdx * rowGutter - 5, nbOfPFilters * columnGutter, 1 ) );
+		separatorNP->setGeometry( QRect( columnGutter * xIdx, ++yIdx * rowStartOffset + yGutterIdx * rowGutter - 5, maxColumns * columnGutter, 1 ) );
 		separatorNP->setFrameShape( QFrame::HLine );
 		separatorNP->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;"
 									"border-bottom-style: solid; border-left-style: none; border-color: darkGray; " );
@@ -152,84 +169,132 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		separatorNP->show();
 
 		// Non-parametric
-		QLabel *otsuIcon = new QLabel( this );
-		otsuIcon->setObjectName( "Otsu Threshold" );
-		otsuIcon->setPixmap( QPixmap( ":/images/segment_Otsu.png" ) );
-		otsuIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
-		otsuIcon->setToolTip( "<p>The <b>Otsu Threshold</b> filter creates a binary thresholded image that "
+		QLabel *otsu = new QLabel( this );
+		otsu->setObjectName( "Otsu Threshold" );
+		otsu->setPixmap( QPixmap( ":/images/segment_Otsu.png" ) );
+		otsu->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
+		otsu->setToolTip( "<p>The <b>Otsu Threshold</b> filter creates a binary thresholded image that "
 							  "separates an image into foreground and background components.The filter computes the threshold "
 							  "using the OtsuThresholdCalculator and applies that theshold to the input image using the BinaryThresholdImageFilter.</p>"
 							  "<p>http ://hdl.handle.net/10380/3279 or http://www.insight-journal.org/browse/publication/811 </p>" );
-		otsuIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		otsuIcon->show();
-		otsuIcon->setAttribute( Qt::WA_DeleteOnClose );
+		otsu->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		otsu->show();
+		otsu->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( otsu );
 
-		QLabel *isoDataIcon = new QLabel( this );
-		isoDataIcon->setObjectName( "IsoData Threshold" );
-		isoDataIcon->setPixmap( QPixmap( ":/images/segment_IsoData.png" ) );
-		isoDataIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		isoDataIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		isoDataIcon->show();
-		isoDataIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *isoData = new QLabel( this );
+		isoData->setObjectName( "IsoData Threshold" );
+		isoData->setPixmap( QPixmap( ":/images/segment_IsoData.png" ) );
+		isoData->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		isoData->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		isoData->show();
+		isoData->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( isoData );
 
-		QLabel *intermodesIcon = new QLabel( this );
-		intermodesIcon->setObjectName( "Intermodes Threshold" );
-		intermodesIcon->setPixmap( QPixmap( ":/images/segment_Intermodes.png" ) );
-		intermodesIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		intermodesIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		intermodesIcon->show();
-		intermodesIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *intermodes = new QLabel( this );
+		intermodes->setObjectName( "Intermodes Threshold" );
+		intermodes->setPixmap( QPixmap( ":/images/segment_Intermodes.png" ) );
+		intermodes->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		intermodes->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		intermodes->show();
+		intermodes->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( intermodes );
 
-		QLabel *maxEntropyIcon = new QLabel( this );
-		maxEntropyIcon->setObjectName( "MaxEntropy Threshold" );
-		maxEntropyIcon->setPixmap( QPixmap( ":/images/segment_MaxEntropy.png" ) );
-		maxEntropyIcon->setStyleSheet( "QToolTip{ color: black; background - color: #ffffe1; border: 0px solid white; }" );
-		maxEntropyIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		maxEntropyIcon->show();
-		maxEntropyIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *maxEntropy = new QLabel( this );
+		maxEntropy->setObjectName( "MaxEntropy Threshold" );
+		maxEntropy->setPixmap( QPixmap( ":/images/segment_MaxEntropy.png" ) );
+		maxEntropy->setStyleSheet( "QToolTip{ color: black; background - color: #ffffe1; border: 0px solid white; }" );
+		maxEntropy->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		maxEntropy->show();
+		maxEntropy->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( maxEntropy );
 
-		QLabel *minimumIcon = new QLabel( this );
-		minimumIcon->setObjectName( "Minimum Threshold" );
-		minimumIcon->setPixmap( QPixmap( ":/images/segment_Minimum.png" ) );
-		minimumIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		minimumIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		minimumIcon->show();
-		minimumIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *minimum = new QLabel( this );
+		minimum->setObjectName( "Minimum Threshold" );
+		minimum->setPixmap( QPixmap( ":/images/segment_Minimum.png" ) );
+		minimum->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		minimum->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		minimum->show();
+		minimum->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( minimum );
 
 		xIdx = 0;
 
 		// Non-parametric (new row)
-		QLabel *momentsIcon = new QLabel( this );
-		momentsIcon->setObjectName( "Moments Threshold" );
-		momentsIcon->setPixmap( QPixmap( ":/images/segment_Moments.png" ) );
-		momentsIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		momentsIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * ++yGutterIdx );
-		momentsIcon->show();
-		momentsIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *moments = new QLabel( this );
+		moments->setObjectName( "Moments Threshold" );
+		moments->setPixmap( QPixmap( ":/images/segment_Moments.png" ) );
+		moments->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		moments->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * ++yGutterIdx );
+		moments->show();
+		moments->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( moments );
 
-		QLabel *renyiIcon = new QLabel( this );
-		renyiIcon->setObjectName( "Renyi Threshold" );
-		renyiIcon->setPixmap( QPixmap( ":/images/segment_Renyi.png" ) );
-		renyiIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		renyiIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		renyiIcon->show();
-		renyiIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *renyi = new QLabel( this );
+		renyi->setObjectName( "Renyi Threshold" );
+		renyi->setPixmap( QPixmap( ":/images/segment_Renyi.png" ) );
+		renyi->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		renyi->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		renyi->show();
+		renyi->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( renyi );
 
-		QLabel *shanbhagngIcon = new QLabel( this );
-		shanbhagngIcon->setObjectName( "Shanbhag Threshold" );
-		shanbhagngIcon->setPixmap( QPixmap( ":/images/segment_Shanbhagng.png" ) );
-		shanbhagngIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		shanbhagngIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		shanbhagngIcon->show();
-		shanbhagngIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *shanbhagng = new QLabel( this );
+		shanbhagng->setObjectName( "Shanbhag Threshold" );
+		shanbhagng->setPixmap( QPixmap( ":/images/segment_Shanbhagng.png" ) );
+		shanbhagng->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		shanbhagng->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		shanbhagng->show();
+		shanbhagng->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( shanbhagng );
 
-		QLabel *yenIcon = new QLabel( this );
-		yenIcon->setObjectName( "Yen Threshold" );
-		yenIcon->setPixmap( QPixmap( ":/images/segment_Yen.png" ) );
-		yenIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		yenIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		yenIcon->show();
-		yenIcon->setAttribute( Qt::WA_DeleteOnClose );
+		QLabel *yen = new QLabel( this );
+		yen->setObjectName( "Yen Threshold" );
+		yen->setPixmap( QPixmap( ":/images/segment_Yen.png" ) );
+		yen->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		yen->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		yen->show();
+		yen->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( yen );
+
+		QLabel *huang = new QLabel( this );
+		huang->setObjectName( "Huang Threshold" );
+		huang->setPixmap( QPixmap( ":/images/segment_Huang.png" ) );
+		huang->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		huang->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		huang->show();
+		huang->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( huang );
+
+		xIdx = 0;
+
+		// Non-parametric (new row)
+		QLabel *li = new QLabel( this );
+		li->setObjectName( "Li Threshold" );
+		li->setPixmap( QPixmap( ":/images/segment_Li.png" ) );
+		li->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		li->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * ++yGutterIdx );
+		li->show();
+		li->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( li );
+
+		QLabel *KittlerIllingworth = new QLabel( this );
+		KittlerIllingworth->setObjectName( "KittlerIllingworth Threshold" );
+		KittlerIllingworth->setPixmap( QPixmap( ":/images/segment_KittlerIllingworth.png" ) );
+		KittlerIllingworth->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		KittlerIllingworth->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		KittlerIllingworth->show();
+		KittlerIllingworth->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( KittlerIllingworth );
+
+		QLabel *Triangle = new QLabel( this );
+		Triangle->setObjectName( "Triangle Threshold" );
+		Triangle->setPixmap( QPixmap( ":/images/segment_Triangle.png" ) );
+		Triangle->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		Triangle->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		Triangle->show();
+		Triangle->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( Triangle );
 
 		xIdx = 0;
 
@@ -242,7 +307,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		pSegmFilters->show();
 
 		QFrame *separatorP = new QFrame( this );
-		separatorP->setGeometry( QRect( columnGutter * xIdx, ++yIdx * rowStartOffset + rowGutter * yGutterIdx - 5, nbOfPFilters * columnGutter, 1 ) );
+		separatorP->setGeometry( QRect( columnGutter * xIdx, ++yIdx * rowStartOffset + rowGutter * yGutterIdx - 5, maxColumns * columnGutter, 1 ) );
 		separatorP->setFrameShape( QFrame::HLine );
 		separatorP->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;"
 								   "border-bottom-style: solid; border-left-style: none; border-color: darkGray; " );
@@ -250,32 +315,34 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		separatorP->show();
 
 		// Parametric
-		QLabel *binaryIcon = new QLabel( this );
-		binaryIcon->setObjectName( "Binary Threshold" );
-		binaryIcon->setPixmap( QPixmap( ":/images/segment_Binary.png" ) );
-		binaryIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		binaryIcon->setToolTip( "<p>The <b>Binary Threshold</b> filter produces an output image whose pixels are either one of two "
+		QLabel *binary = new QLabel( this );
+		binary->setObjectName( "Binary Threshold" );
+		binary->setPixmap( QPixmap( ":/images/segment_Binary.png" ) );
+		binary->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		binary->setToolTip( "<p>The <b>Binary Threshold</b> filter produces an output image whose pixels are either one of two "
 								"values (OutsideValue or InsideValue), depending on whether the corresponding input image "
 								"pixels lie between the two thresholds (LowerThreshold and UpperThreshold). Values equal to "
 								"either threshold is considered to be between the thresholds.</p>"
 								"<p>http://www.itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>" );
-		binaryIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		binaryIcon->show();
-		binaryIcon->setAttribute( Qt::WA_DeleteOnClose );
+		binary->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		binary->show();
+		binary->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( binary );
 
-		QLabel *ratsIcon = new QLabel( this );
-		ratsIcon->setObjectName( "Rats Threshold" );
-		ratsIcon->setPixmap( QPixmap( ":/images/segment_Rats.png" ) );
-		ratsIcon->setObjectName( "Rats Threshold" );
-		ratsIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		ratsIcon->setToolTip( "<p>The <b>Robust Automatic Threshold (RATS)</b> filter takes two inputs : the image to be thresholded "
+		QLabel *rats = new QLabel( this );
+		rats->setObjectName( "Rats Threshold" );
+		rats->setPixmap( QPixmap( ":/images/segment_Rats.png" ) );
+		rats->setObjectName( "Rats Threshold" );
+		rats->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		rats->setToolTip( "<p>The <b>Robust Automatic Threshold (RATS)</b> filter takes two inputs : the image to be thresholded "
 							  "and a image of gradient magnitude of that image. The threshold is computed as the mean of the "
 							  "pixel values in the input image weighted by the pixel values in the gradient image. The threshold "
 							  "computed that way should be the mean pixel value where the intensity change the most.</p>"
 							  "<p>Lehmann G.http ://hdl.handle.net/1926/370 http://www.insight-journal.org/browse/publication/134 </p>" );
-		ratsIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
-		ratsIcon->show();
-		ratsIcon->setAttribute( Qt::WA_DeleteOnClose );
+		rats->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
+		rats->show();
+		rats->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( rats );
 
 		QLabel *multiOtsu = new QLabel( this );
 		multiOtsu->setObjectName( "Multiple Otsu" );
@@ -290,6 +357,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		multiOtsu->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		multiOtsu->show();
 		multiOtsu->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( multiOtsu );
 
 		QLabel *mWaterB = new QLabel( this );
 		mWaterB->setObjectName( "Morph Watershed Beucher" );
@@ -298,6 +366,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		mWaterB->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		mWaterB->show();
 		mWaterB->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( mWaterB );
 
 		QLabel *mWaterM = new QLabel( this );
 		mWaterM->setObjectName( "Morph Watershed Meyer" );
@@ -306,6 +375,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		mWaterM->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		mWaterM->show();
 		mWaterM->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( mWaterM );
 
 		//// Region Growing Group Label
 		//QLabel *rgSegmFilters = new QLabel( this );
@@ -316,7 +386,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		//rgSegmFilters->show();
 
 		//QFrame *separatorRG = new QFrame( this );
-		//separatorRG->setGeometry( QRect( 0, 3 * rowStartOffset + rowGutter * 2 - 5, nbOfRGFilters * columnGutter, 1 ) );
+		//separatorRG->setGeometry( QRect( 0, 3 * rowStartOffset + rowGutter * 2 - 5, maxColumns * columnGutter, 1 ) );
 		//separatorRG->setFrameShape( QFrame::HLine );
 		//separatorRG->setStyleSheet( "border-width: 1px; border-top-style: none; border-right-style: none;"
 		//							"border-bottom-style: solid; border-left-style: none; border-color: darkGray; " );
@@ -335,16 +405,18 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		isoX->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * ++yGutterIdx );
 		isoX->show();
 		isoX->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( isoX );
 
-		QLabel *fhwIcon = new QLabel( this );
-		fhwIcon->setObjectName( "Fhw Threshold" );
-		fhwIcon->setPixmap( QPixmap( ":/images/segment_FHW.png" ) );
-		fhwIcon->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		fhwIcon->setToolTip( "<p>The <b>FHW Threshold</b> is calculated based on the Iso50 value (the threshold which lies between the air/pore "
+		QLabel *fhw = new QLabel( this );
+		fhw->setObjectName( "Fhw Threshold" );
+		fhw->setPixmap( QPixmap( ":/images/segment_FHW.png" ) );
+		fhw->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
+		fhw->setToolTip( "<p>The <b>FHW Threshold</b> is calculated based on the Iso50 value (the threshold which lies between the air/pore "
 							 "peak and the first material peak) and the FHW weight factor." );
-		fhwIcon->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter *yGutterIdx );
-		fhwIcon->show();
-		fhwIcon->setAttribute( Qt::WA_DeleteOnClose );
+		fhw->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter *yGutterIdx );
+		fhw->show();
+		fhw->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( fhw );
 
 		// Region Growing
 		QLabel *confiRegCrow = new QLabel( this );
@@ -354,6 +426,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		confiRegCrow->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		confiRegCrow->show();
 		confiRegCrow->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( confiRegCrow );
 
 		QLabel *connRegCrow = new QLabel( this );
 		connRegCrow->setObjectName( "Connected Threshold" );
@@ -362,6 +435,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		connRegCrow->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		connRegCrow->show();
 		connRegCrow->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( connRegCrow );
 
 		QLabel *neighRegCrow = new QLabel( this );
 		neighRegCrow->setObjectName( "Neighborhood Connected" );
@@ -370,6 +444,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		neighRegCrow->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		neighRegCrow->show();
 		neighRegCrow->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( neighRegCrow );
 
 		xIdx = 0;
 
@@ -398,6 +473,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		createSurrounding->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		createSurrounding->show();
 		createSurrounding->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( createSurrounding );
 
 		QLabel *removeSurrounding = new QLabel( this );
 		removeSurrounding->setObjectName( "Remove Surrounding" );
@@ -407,6 +483,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		removeSurrounding->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		removeSurrounding->show();
 		removeSurrounding->setAttribute( Qt::WA_DeleteOnClose );
+		m_labelList.append( removeSurrounding );
 	}
 }
 
@@ -552,4 +629,14 @@ void iADragFilterWidget::updateDatasetTooltip( QStringList filesToUpdateList )
 {
 	foreach( QString s, filesToUpdateList )
 		this->findChild<QLabel*>( QString("dataset_").append(s) )->setToolTip(generateDatasetTooltip( s ) );
+}
+
+QLabel* iADragFilterWidget::getLabel( QString name )
+{
+	for ( int i = 0; i < m_labelList.length(); ++i )
+	{
+		if ( m_labelList[i]->objectName() == name )
+			return ( m_labelList[i] );
+	}
+	return 0;
 }

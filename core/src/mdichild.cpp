@@ -191,9 +191,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 
 	hessianComputed = false;
 
-	// TODO: move to module?
-	mdCsvTable = vtkSmartPointer<vtkTable>::New();
-
 	updateSliceIndicator = true;
 
 	raycasterInitialized = false;
@@ -2555,40 +2552,6 @@ void MdiChild::UpdateProbe( int ptIndex, double * newPos )
 	imgProfile->profileWidget->initialize(profileProbe->profileData, profileProbe->GetRayLength());
 	imgProfile->profileWidget->redraw();
 }
-
-// TODO: move out of here ---------->
-bool MdiChild::LoadCsvFile(vtkTable *table, FilterID fid)
-{
-	QString f = QFileDialog::getOpenFileName(this, tr("Open CSV File"), path, tr("CSV files (*.csv *.CSV)"));
-
-	if(f.isEmpty())
-	{
-		addMsg(tr("Error loading csv file, file name not specified."));
-		return false;
-	}
-
-	return LoadCsvFile(table, fid, f);
-}
-
-bool MdiChild::LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileName)
-{
-	if(!QFile::exists(fileName))
-	{
-		addMsg(tr("Error loading csv file, file not exist."));
-		return false;
-	}
-
-	iAIO* ioThread(new iAIO(imageData, polyData, m_logger, this));
-	bool result = ioThread->loadCSVFile(table, fid, fileName);
-	delete ioThread;
-	return result;
-}
-
-bool MdiChild::LoadCsvFile( FilterID fid, const QString &fileName )
-{
-	return LoadCsvFile( mdCsvTable, fid, fileName );
-}
-// <---------- end
 
 int MdiChild::getSliceXY()
 {

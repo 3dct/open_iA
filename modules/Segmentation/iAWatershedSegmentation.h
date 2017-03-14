@@ -22,43 +22,36 @@
 
 #include "iAAlgorithm.h"
 
-
-#ifdef __GNUC__
-#include <inttypes.h>
-typedef int64_t __int64;
-#else
-/* Borland and Microsoft compilers */
-#endif
+enum iAWatershedType
+{
+	WATERSHED,
+	MORPH_WATERSHED,
+};
 
 /**
  * Implementation of itkWatershedImageFilter. For itkWatershedImageFilter refer to 
  * http://www.itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html
  */
-
 class iAWatershedSegmentation : public iAAlgorithm
 {
-
 public:
-	iAWatershedSegmentation( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	virtual ~iAWatershedSegmentation();
-	void watershed();
-	void morph_watershed();
+	iAWatershedSegmentation( QString fn, iAWatershedType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	void setWParameters( double l, double t ) { level = l; threshold = t; };
 	void setMWSParameters( double mwsl, bool mwsmwsl, bool mwsFC )
 	{
 		mwsLevel = mwsl; mwsMarkWSLines = mwsmwsl; mwsFullyConnected = mwsFC;
-	};
+	}
 
 	vtkImageData* getImageDataNew ( ) { return imageDataNew; }
-
 protected:
 	virtual void run();
-
 private:
 	double level, threshold;
 	double mwsLevel; // Morphological Watershed Segmentation Filter
 	bool mwsMarkWSLines, mwsFullyConnected;	// Morphological Watershed Segmentation Filter
-
+	iAWatershedType m_type;
 	vtkImageData* imageDataNew;
+	void watershed();
+	void morph_watershed();
 };

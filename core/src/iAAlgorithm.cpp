@@ -35,13 +35,12 @@
 
 #include <QMessageBox>
 
-iAAlgorithm::iAAlgorithm( QString fn, FilterID fid, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
+iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
 	: QThread( parent )
 {
 	m_elapsed = 0;
 	m_isRunning = false;
 	m_filterName = fn;
-	m_filterID = fid;
 	m_image = idata;
 	m_polyData = p;
 	m_logger = logger;
@@ -105,12 +104,11 @@ int iAAlgorithm::Stop()
 }
 
 
-void iAAlgorithm::setup(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger * l)
+void iAAlgorithm::setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l)
 {
-	m_filterName = fn; 
-	m_filterID = fid; 
-	m_image = i; 
-	m_polyData = p; 
+	m_filterName = fn;
+	m_image = i;
+	m_polyData = p;
 	m_logger = l;
 }
 
@@ -277,12 +275,6 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 	}
 	polyData->SetPolys(pvtkPolys);
 	pvtkPolys->Delete();
-}
-
-
-int iAAlgorithm::getFilterID() const
-{
-	return m_filterID;
 }
 
 void iAAlgorithm::vtkPolydata_itkMesh(vtkPolyData* polyData, MeshType::Pointer mesh)

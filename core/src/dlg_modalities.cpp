@@ -228,11 +228,24 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 
 void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans)
 {
+	bool TFTableCreated = false;
+	QPoint TFTablePosOnClose;
 	if (m_currentHistogram)
 	{
 		m_currentHistogram->disconnect();
+		TFTableCreated = m_currentHistogram->isTFTableCreated();
+		if ( TFTableCreated )
+		{
+			TFTablePosOnClose = m_currentHistogram->getTFTablePos();
+			m_currentHistogram->closeTFTable();
+		}
 	}
 	m_currentHistogram = modTrans->ShowHistogram(m_histogramContainer);
+	if ( TFTableCreated )
+	{
+		m_currentHistogram->showTFTable();
+		m_currentHistogram->setTFTablePos( TFTablePosOnClose );
+	}
 	connect(m_currentHistogram, SIGNAL(updateViews()), this, SIGNAL(UpdateViews()));
 	connect(m_currentHistogram, SIGNAL(pointSelected()), this, SIGNAL(PointSelected()));
 	connect(m_currentHistogram, SIGNAL(noPointSelected()), this, SIGNAL(NoPointSelected()));

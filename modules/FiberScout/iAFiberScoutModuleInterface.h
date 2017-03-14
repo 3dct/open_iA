@@ -18,16 +18,16 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAFiberScoutModuleInterface_h__
-#define iAFiberScoutModuleInterface_h__
+#pragma once
 
 #include "iAModuleInterface.h"
+#include "iAObjectAnalysisType.h"
 #include "mdichild.h"
 
 class QDockWidget;
 class dlg_FiberScout;
 class iAFiberScoutToolbar;
+
 
 class iAFiberScoutModuleInterface : public iAModuleInterface
 {
@@ -42,9 +42,7 @@ private slots:
 	void onChildClose();
 private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	bool filter_FiberScout(MdiChild* mdiChild, QString fileName, FilterID filterID);
+	bool filter_FiberScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID);
 	void SetupToolbar();
 	iAFiberScoutToolbar * tlbFiberScout;
 };
-
-#endif // iAFiberScoutModuleInterface_h__

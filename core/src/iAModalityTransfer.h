@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iATransferFunction.h"
+#include "open_iA_Core_export.h"
 
 #include <vtkSmartPointer.h>
 
@@ -38,7 +39,7 @@ class QWidget;
 
 //! class uniting a color transfer function, an opacity transfer function
 //! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
-class iAModalityTransfer: public iATransferFunction
+class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
 private:
 	vtkSmartPointer<vtkImageAccumulate> accumulate;

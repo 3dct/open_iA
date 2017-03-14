@@ -20,29 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkGradientAnisotropicDiffusionImageFilter.h>
-#include <itkCurvatureAnisotropicDiffusionImageFilter.h>
-#include <itkBilateralImageFilter.h>
-
 #include "iAAlgorithm.h"
+
+enum iASmoothingType
+{
+	GRADIENT_ANISOTROPIC_DIFFUSION,
+	CURVATURE_ANISOTROPIC_DIFFUSION,
+	BILATERAL,
+};
 
 /**
  * Application of two edge preserving smoothing methods (itkGradientAnisotropicDiffusionImageFilter and itkCurvatureAnisotropicDiffusionImageFilter).
  * For further reference please look at http://www.itk.org/Doxygen/html/classitk_1_1GradientAnisotropicDiffusionImageFilter.html, 
  * http://www.itk.org/Doxygen/html/classitk_1_1CurvatureAnisotropicDiffusionImageFilter.html,
  * http://www.itk.org/Doxygen/html/classitk_1_1BilateralImageFilter.html
- *  
  */
-
 class iAEdgePreservingSmoothing : public iAAlgorithm
 {
 public:
-	iAEdgePreservingSmoothing( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAEdgePreservingSmoothing( );
-
-	void gradientAnisotropicDiffusion(  );
-	void curvatureAnisotropicDiffusion(  );
-	void bilateral( );
+	iAEdgePreservingSmoothing( QString fn, iASmoothingType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets smoothing parameters. 
@@ -58,13 +54,13 @@ public:
 	 * \param	d		domainsigma. 
 	 */
 	void setBParameters( double r, double d ) { rangesigma = r; domainsigma = d; };
-
-
 protected:
 	void run();
-
 private:
 	unsigned int iterations; 
 	double timestep, conductance, rangesigma, domainsigma;
-
+	iASmoothingType m_type;
+	void gradientAnisotropicDiffusion();
+	void curvatureAnisotropicDiffusion();
+	void bilateral();
 };

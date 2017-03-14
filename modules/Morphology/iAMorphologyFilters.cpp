@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAMorphologyFilters.h"
 
@@ -27,9 +26,13 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkBinaryBallStructuringElement.h>
 #include <itkFFTNormalizedCorrelationImageFilter.h>
+#include <itkGrayscaleDilateImageFilter.h>
+#include <itkGrayscaleErodeImageFilter.h>
+#include <itkHessian3DToVesselnessMeasureImageFilter.h>
+#include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkNormalizedCorrelationImageFilter.h>
-#include <itkImageKernelOperator.h>
 
 #include <vtkImageData.h>
 
@@ -143,18 +146,14 @@ template<class T> int EnhancementFilter_template(int s, iAProgress* p, iAConnect
 	return EXIT_SUCCESS;
 }
 
-iAMorphologyFilters::iAMorphologyFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
+iAMorphologyFilters::iAMorphologyFilters( QString fn, iAMorphologyOperationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
 
-iAMorphologyFilters::~iAMorphologyFilters()
-{
-}
 
 void iAMorphologyFilters::run()
 {
-	switch (getFilterID())
+	switch (m_type)
 	{
 	case DILATION_FILTER: 
 		DilationFilter(); break;

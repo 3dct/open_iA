@@ -18,9 +18,9 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAGPUEdgePreservingSmoothing.h"
 
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -35,14 +35,11 @@
 
 #include <QLocale>
 
-iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm(fn, fid, i, p, logger, parent)
-{
-}
+iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
+	: iAAlgorithm(fn, i, p, logger, parent)
+{}
 
-iAGPUEdgePreservingSmoothing::~iAGPUEdgePreservingSmoothing()
-{
-}
+
 
 /**
 * GPU Gradient anisotropic diffusion template initializes itkGPUGradientAnisotropicDiffusionImageFilter .
@@ -116,11 +113,5 @@ void iAGPUEdgePreservingSmoothing::gpuGradientAnisotropicDiffusion()
 
 void iAGPUEdgePreservingSmoothing::run()
 {
-	switch (getFilterID())
-	{
-	case GPU_GRADIENT_ANISOTROPIC_DIFFUSION:
-		gpuGradientAnisotropicDiffusion(); break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	gpuGradientAnisotropicDiffusion();
 }

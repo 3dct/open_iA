@@ -18,9 +18,9 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAMaximumDistance.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -77,25 +77,14 @@ int maximum_distance_template( int* mdfHighInt_ptr, int* mdfLowInt_ptr, int* mdf
 	return EXIT_SUCCESS;
 }
 
-iAMaximumDistance::iAMaximumDistance( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
+iAMaximumDistance::iAMaximumDistance( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
+	: iAAlgorithm( fn, i, p, logger, parent )
+{}
 
-}
-
-iAMaximumDistance::~iAMaximumDistance()
-{
-}
 
 void iAMaximumDistance::run()
 {
-	switch (getFilterID())
-	{
-	case MAXIMUM_DISTANCE_THRESHOLD: 
-		maximumDistance(); break;
-	default:
-		addMsg(tr("unknown filter type"));
-	}
+	maximumDistance();
 }
 
 void iAMaximumDistance::maximumDistance()
@@ -126,9 +115,8 @@ void iAMaximumDistance::maximumDistance()
 	addMsg(tr("Maximum Distance Low Peak = %1").arg(QString::number(mdfLowInt, 10)) );
 	addMsg(tr("Maximum Distance High Peak = %1").arg(QString::number(mdfHighInt, 10)) );
 	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
+		.arg(getFilterName())
 		.arg(Stop()));
 
-	emit startUpdate();	
-
+	emit startUpdate();
 }

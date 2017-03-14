@@ -18,12 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAFiberScoutAttachment.h"
 
 #include "dlg_FiberScout.h"
 #include "iABlobCluster.h"
+#include "iAObjectAnalysisType.h"
 
 #include "iARenderer.h"
 #include "mainwindow.h"
@@ -42,9 +42,9 @@ iAFiberScoutAttachment::~iAFiberScoutAttachment()
 	blobRen->Delete();
 }
 
-void iAFiberScoutAttachment::init(int filterID)
+void iAFiberScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl)
 {
-	imgFS = new dlg_FiberScout(m_childData.child, static_cast<FilterID>(filterID), blobRen);
+	imgFS = new dlg_FiberScout(m_childData.child, static_cast<iAObjectAnalysisType>(filterID), blobRen, csvtbl);
 	connect(imgFS, SIGNAL(updateViews()), m_childData.child, SLOT(updateViews()));
 
 	blobRen->SetLayer(1);

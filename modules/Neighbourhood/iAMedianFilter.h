@@ -21,35 +21,27 @@
 #pragma once
 
 #include "iAAlgorithm.h"
-#include "itkGradientMagnitudeImageFilter.h"
-#include <itkCastImageFilter.h>
 
 /**
  * An implementation of itkMedianImageFilter.
  * For itkMedianImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html
- *  * \remarks	JW, 10/10/2012. 
  */
-
 class iAMedianFilter : public iAAlgorithm
 {
 public:
-	iAMedianFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAMedianFilter();
+	iAMedianFilter( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets iAMedianFilter parameters. 
-	 * \param	r_x		radius along x. 
+	 * \param	r_x		radius along x.
 	 * \param	r_y		radius along y.
 	 * \param	r_z		radius along z.
 	 */
-
 	void setDParameters(unsigned int r_x, unsigned int r_y, unsigned int r_z) { iRx = r_x; iRy = r_y; iRz = r_z; };
 
 protected:
 	void run();
-	void median( );
-
 private:
-	unsigned int iRx, iRy, iRz; 
-
+	unsigned int iRx, iRy, iRz;
+	void median();
 };

@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAHessianModuleInterface.h"
 
@@ -68,7 +67,7 @@ void iAHessianModuleInterface::computeHessianEigenanalysis( int nr )
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis( filterName, COMPUTEHESSIANEIGENANALYSIS,
+	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis( filterName, HESSIANEIGENANALYSIS,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	m_mdiChild->addMsg( "----------" );
@@ -120,7 +119,7 @@ void iAHessianModuleInterface::computeLaplacian()
 	m_mdiChild->addStatusMsg(filterName);
 
 	//execute
-	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis(filterName, COMPUTE_LAPLACIAN,
+	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis(filterName, LAPLACIAN,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 
 	m_mdiChild->connectThreadSignalsToChildSlots(thread);

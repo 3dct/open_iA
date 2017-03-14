@@ -26,14 +26,11 @@
 class iASimpleFusion : public iAAlgorithm
 {
 public:
-	iASimpleFusion( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
+	iASimpleFusion( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 	void setInput2(vtkImageData* i2) { image2 = i2; }
-
 protected:
 	void run();
-	void addImagesFusion();
-
 private:
 	vtkImageData* image2;
+	void addImagesFusion();
 };

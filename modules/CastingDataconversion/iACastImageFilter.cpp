@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "pch.h"
 #include "iACastImageFilter.h"
+
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -35,13 +37,12 @@
 #include <itkRGBAPixel.h>
 
 #include <QLocale>
-#include <exception>
 
 class myRGBATypeException : public std::exception
 {
 	virtual const char* what() const throw()
 	{
-		return "RGBA Conversion Error: LONG type needed.";
+		return "RGBA Conversion Error: UNSIGNED LONG type needed.";
 	}
 } myRGBATypeExcep;
 
@@ -288,10 +289,9 @@ template<class T> int FHW_CastImage_template(std::string m_odt, iAProgress* p, i
 	return EXIT_SUCCESS;
 }
 
-iACastImageFilter::iACastImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
+iACastImageFilter::iACastImageFilter( QString fn, iACastType castType, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_castType(castType)
+{}
 
 
 void iACastImageFilter::run()
@@ -301,7 +301,7 @@ void iACastImageFilter::run()
 	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
 	try
 	{
-		switch ( getFilterID() )
+		switch ( m_castType )
 		{
 			case FHW_CAST_IMAGE:
 				fhwCastImage(); break;

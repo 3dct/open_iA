@@ -20,41 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
-#include "itkCannyEdgeDetectionImageFilter.h"
 #include "iAAlgorithm.h"
-#include "itkCastImageFilter.h"
 
 /**
  * Application of edge detection filter. Basic filter is itkCannyEdgeDetectionImageFilter.
  * For further details refer http://www.itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html.
- * \remarks	Kana, 01/12/2010. 
  */
-
 class iAEdgeDetectionFilters : public iAAlgorithm
 {
 
 public:
-	iAEdgeDetectionFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	virtual ~iAEdgeDetectionFilters();
-
-	void cannyEdgeDetection( );
+	iAEdgeDetectionFilters( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
-	 * Sets a ced parameters. 
-	 * \param	v	The variance. 
-	 * \param	m	The maximum error. 
-	 * \param	u	The upper threshold. 
-	 * \param	l	Thelower threshold. 
+	 * Sets canny edge detection parameters.
+	 * \param	v	The variance.
+	 * \param	m	The maximum error.
+	 * \param	u	The upper threshold.
+	 * \param	l	Thelower threshold.
 	 */
-
 	void setCEDParameters( double v, double m, double u, double l )
-		{ variance = v; maximumError = m; upper = u; lower = l; }; 
-
+		{ variance = v; maximumError = m; upper = u; lower = l; };
 
 protected:
 	virtual void run();
-
 private:
-	double variance, maximumError, upper, lower ;
-
+	double variance, maximumError, upper, lower;
+	void cannyEdgeDetection();
 };

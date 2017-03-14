@@ -21,45 +21,20 @@
 #pragma once
 
 #include "iAAlgorithm.h"
-#include "itkGradientMagnitudeImageFilter.h"
-#include "itkImage.h"
-#include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
-#include "itkHessianRecursiveGaussianImageFilter.h"
-#include "itkImageToParametricSpaceFilter.h"
-#include "itkMesh.h"
-#include "itkImageFileReader.h"
-#include "itkSphereSpatialFunction.h"
-#include "itkInteriorExteriorMeshFilter.h"
-#include "itkParametricSpaceToImageSpaceMeshFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkImageFileWriter.h"
-#include "itkSymmetricSecondRankTensor.h"
-#include "itkSymmetricEigenAnalysisImageFilter.h"
-#include "itkImageAdaptor.h"
-#include "itkCastImageFilter.h"
-#include "itkPointSetToImageFilter.h"
-#include "itkResampleImageFilter.h"
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkJoinImageFilter.h"
-#include "itkUnaryFunctorImageFilter.h"
-#include "iAPixelAccessors.h"
-#include <string>
-#include <iostream>
-#include "itkImageRegionIterator.h"
-#include <itkCastImageFilter.h>
-#include <itkSmartPointer.h>
 
+enum iAEigenAnalysisType
+{
+	HESSIANEIGENANALYSIS,
+	LAPLACIAN,
+};
 
 /**
  * A implementation of the computation of the hessian matrix and eigenanalysis.
- * \remarks	Arikan, 18/04/2012. 
  */
-
 class iAHessianEigenanalysis : public iAAlgorithm
 {
 public:
-	iAHessianEigenanalysis( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAHessianEigenanalysis();
+	iAHessianEigenanalysis( QString fn, iAEigenAnalysisType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets iAHessianEigenanalysis parameters.
@@ -67,28 +42,27 @@ public:
 	 * \param	hessian     Is hessian already computed.
 	 * \param	eigen		Which eigenvalue should computed.
 	 */
-
 	void setCParameters(double sigma, bool hessian, int eigen) { 
 		this->sigma = sigma; 
 		hessianComputed = hessian;
 		nr = eigen;
-	};
+	}
 
 	void setLapParameters(unsigned int sigma){
 		this->sigma = sigma; 
-	}; 
+	}
 
 protected:
 	void run();
-	
-	/** Computes hessian of given image */
-	void computeHessian( );
-
-	/** Computes laplacian of Gaussian (LoG) of given image. */
-	void computeLaplacian(); 
-
 private:
 	unsigned int sigma;
 	bool hessianComputed;
 	int nr;
+	iAEigenAnalysisType m_type;
+
+	//! Computes hessian of given image
+	void computeHessian();
+
+	//! Computes laplacian of Gaussian (LoG) of given image.
+	void computeLaplacian();
 };

@@ -20,47 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include "itkGrayscaleDilateImageFilter.h"
-#include "itkGrayscaleErodeImageFilter.h"
-#include "itkBinaryBallStructuringElement.h"
-#include "itkImage.h"
-
 #include "iAAlgorithm.h"
 
-#include <itkHessian3DToVesselnessMeasureImageFilter.h>
-#include <itkHessianRecursiveGaussianImageFilter.h>
-
-#include <iostream>
-#include <fstream>
-#include <string>
-//using namespace std;
+enum iAMorphologyOperationType
+{
+	DILATION_FILTER,
+	EROSION_FILTER,
+	VESSEL_ENHANCEMENT_FILTER,
+};
 
 /**
- * Implementation of erosion, dilation and binary thinning filters. 
- * \remarks	MA, 18/01/2013. 
+ * Implementation of erosion, dilation and binary thinning filters.
  */
-
 class iAMorphologyFilters : public iAAlgorithm
 {
 public:
-	iAMorphologyFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAMorphologyFilters( );
-
-	void DilationFilter();
-	void ErosionFilter();
-	void VesselEnhancementFilter();
+	iAMorphologyFilters( QString fn, iAMorphologyOperationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets a parameter for the morphology filters (e.g. radius of the structuring binary ball)
 	 * \param	radius	The radius in int.
 	 */
 	void setMORPHParameters( int radius, vtkImageData* image) { r = radius; m_Image = image;};
-
 protected:
 	void run();
-
 private:
 	int r;
 	vtkImageData* m_Image;
-
+	iAMorphologyOperationType m_type;
+	void DilationFilter();
+	void ErosionFilter();
+	void VesselEnhancementFilter();
 };

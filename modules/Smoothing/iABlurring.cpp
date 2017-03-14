@@ -18,12 +18,15 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iABlurring.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+
+#include <itkCastImageFilter.h>
+#include <itkDiscreteGaussianImageFilter.h>
 
 #include <vtkImageData.h>
 
@@ -84,25 +87,17 @@ int discrete_gaussian_template( double v, double me, int outimg, iAProgress* p, 
 	return EXIT_SUCCESS;
 }
 
-iABlurring::iABlurring( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
-}
 
-iABlurring::~iABlurring()
-{
-}
+iABlurring::iABlurring( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
+	: iAAlgorithm( fn, i, p, logger, parent )
+{}
+
 
 void iABlurring::run()
 {
-	switch (getFilterID())
-	{
-	case DISCRETE_GAUSSIAN:
-		discreteGaussian(); break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	discreteGaussian();
 }
+
 
 void iABlurring::discreteGaussian( )
 {
@@ -133,4 +128,3 @@ void iABlurring::discreteGaussian( )
 
 	emit startUpdate();	
 }
-

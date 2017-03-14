@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iASmoothingModuleInterface.h"
 
@@ -93,7 +92,7 @@ void iASmoothingModuleInterface::discrete_Gaussian_Filter()
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iABlurring* thread = new iABlurring( filterName, DISCRETE_GAUSSIAN,
+	iABlurring* thread = new iABlurring( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setDGParameters( dgfVariance, dgfMaximumError, dgfOutput );

@@ -53,7 +53,7 @@ void iAEdgeDetectionModuleInterface::canny_Edge_Detection()
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iAEdgeDetectionFilters* thread = new iAEdgeDetectionFilters( filterName, CANNY_EDGE_DETECTION,
+	iAEdgeDetectionFilters* thread = new iAEdgeDetectionFilters( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setCEDParameters( cedfVariance, cedfMaximumError, cedfUpper, cedfLower );

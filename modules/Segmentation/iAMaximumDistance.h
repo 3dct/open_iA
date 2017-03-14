@@ -24,16 +24,11 @@
 
 /**
  * an itk maximum distance threshold based on histogram for voids segmentation. 
- * \remarks	Kana, 01/12/2010. 
  */
-
 class iAMaximumDistance : public iAAlgorithm
 {
 	public:
-	iAMaximumDistance(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAMaximumDistance( );
-
-	void maximumDistance( );
+	iAMaximumDistance(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets a mdf parameters. 
@@ -41,13 +36,11 @@ class iAMaximumDistance : public iAAlgorithm
 	 * \param	mdfbins					SetBins. 
 	 * \param	mdfuli					Centre set switch. 
 	 */
-
 	void setMDFParameters(double low, double mdfbins, int mdfuli) { li = low; b = mdfbins; u = mdfuli; };
-
 protected:
 	void run();
-
 private:
 	double li, b;
 	int u, mdfThresh, mdfLowInt, mdfHighInt;
+	void maximumDistance();
 };

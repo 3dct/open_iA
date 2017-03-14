@@ -18,28 +18,21 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAEdgeDetectionFilters.h"
+
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkCannyEdgeDetectionImageFilter.h>
+#include <itkCastImageFilter.h>
 #include <itkImageIOBase.h>
 #include <vtkImageData.h>
+
 #include <QLocale>
 
-/**
-* Canny edge detection template initializes itkCannyEdgeDetectionImageFilter .
-* \param	variance		The variance. 
-* \param	maximumError	The maximum error. 
-* \param	upper			The upper. 
-* \param	lower			The lower. 
-* \param	p				Filter progress information. 
-* \param	image			Input image. 
-* \param	T				Template datatype.
-* \return	int				Status code 
-*/
+
 template<class T> 
 int canny_edge_detection_template( double variance, double maximumError, double upper, double lower, iAProgress* p, iAConnector* image )
 {
@@ -69,48 +62,17 @@ int canny_edge_detection_template( double variance, double maximumError, double 
 	return EXIT_SUCCESS;
 }
 
-/**
-* Constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
 
-iAEdgeDetectionFilters::iAEdgeDetectionFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
-{
+iAEdgeDetectionFilters::iAEdgeDetectionFilters( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
+	: iAAlgorithm( fn, i, p, logger, parent )
+{}
 
-}
-
-/**
-* Destructor. 
-*/
-
-iAEdgeDetectionFilters::~iAEdgeDetectionFilters()
-{
-}
-
-/**
-* Execute the filter thread.
-*/
 
 void iAEdgeDetectionFilters::run()
 {
-	switch (getFilterID())
-	{
-	case CANNY_EDGE_DETECTION:
-		cannyEdgeDetection(); break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	cannyEdgeDetection();
 }
 
-/**
-* Canny edge detection. 
-*/
 
 void iAEdgeDetectionFilters::cannyEdgeDetection()
 {
@@ -140,4 +102,3 @@ void iAEdgeDetectionFilters::cannyEdgeDetection()
 
 	emit startUpdate();	
 }
-

@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "pch.h"
 #include "iAGeometricTransformations.h"
+
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -222,15 +224,15 @@ int rescaleImage_template(double outMin, double outMax, iAProgress* p, iAConnect
 	return EXIT_SUCCESS;
 }
 
-iAGeometricTransformations::iAGeometricTransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, fid, i, p, logger, parent )
+iAGeometricTransformations::iAGeometricTransformations( QString fn, iAGeometricTransformationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
+	: iAAlgorithm( fn, i, p, logger, parent ), m_operation(fid)
 {
 }
 
 
 void iAGeometricTransformations::run()
 {
-	switch (getFilterID())
+	switch (m_operation)
 	{
 	case EXTRACT_IMAGE:
 		extractImage( ); break;

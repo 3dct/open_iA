@@ -20,37 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iostream>
-#include <string>
-using namespace std;
 
 #include "iAAlgorithm.h"
 
 /**
  * an itk subtract image filter is used to subtract 2 images. Basic filter is itkSubtractImageFilter.
  * For itkSubtractImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1SubtractImageFilter.html
- * \remarks	Kana, 01/12/2010. 
  */
-
 class iASubtractImageFilter : public iAAlgorithm
 {
 public:
-	iASubtractImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iASubtractImageFilter( );
-
-	void subtractImage(  );
-
-	/**
-	 * Sets a si parameters. 
-	 * \param image	Input images. 
-	 */
-
+	iASubtractImageFilter( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
+	
+	//! set image to subtract
 	void setSIParameters( vtkImageData* image ) { m_Image = image; }
-
 protected:
 	void run();
-
 private:
 	vtkImageData* m_Image;
-
+	void subtractImage(  );
 };

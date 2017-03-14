@@ -23,9 +23,12 @@
 #include "iAFiberScoutModuleInterface.h"
 
 #include "iAConsole.h"
+#include "iACsvIO.h"
 #include "iAFiberScoutAttachment.h"
 #include "iAFiberScoutToolbar.h"
 #include "mainwindow.h"
+
+#include <vtkTable.h>
 
 #include <QFileDialog>
 #include <QInputDialog>
@@ -43,7 +46,7 @@ void iAFiberScoutModuleInterface::Initialize()
 
 void iAFiberScoutModuleInterface::FiberScout()
 {
-	QMap<QString, FilterID> objectMap;
+	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
 	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
 
@@ -103,9 +106,10 @@ void iAFiberScoutModuleInterface::SetupToolbar()
 	tlbFiberScout->setVisible( true );
 }
 
-bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, FilterID filterID )
+bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )
 {
-	if ( !m_mdiChild->LoadCsvFile( filterID, fileName ) )
+	iACsvIO io;
+	if ( !io.LoadCsvFile(objectType, fileName ) )
 		return false;
 
 	QString filtername = tr( "FiberScout started" );
@@ -119,7 +123,7 @@ bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString
 		m_mdiChild->addMsg( "Error while creating FiberScout module!" );
 		return false;
 	}
-	attach->init( filterID );
+	attach->init(objectType, io.GetCSVTable());
 	return true;
 }
 

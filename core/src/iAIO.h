@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAAlgorithm.h"
+#include "defines.h"          // for IOType
 #include "open_iA_Core_export.h"
 
 #include <itkVersorRigid3DTransform.h>
@@ -28,9 +29,7 @@
 #include <vtkSmartPointer.h>
 
 #include <QDir>
-#include <QStringList>
 #include <QString>
-#include <QTextStream>
 
 #include <vector>
 
@@ -63,10 +62,6 @@ public:
 	iAObserverProgress* getObserverProgress() { return observerProgress; };
 	void iosettingswriter();
 	void iosettingsreader();
-	bool loadCSVFile(vtkTable *table, FilterID fid, const QString &fileName);
-	int calcTableLength(const QString &fileName);
-	bool loadFibreCSV(vtkTable *talbe, const QString &fileName);
-	bool loadPoreCSV(vtkTable *talbe, const QString &fileName);
 	QStringList getFibreElementsName(bool withUnit);
 
 	void setAdditionalInfo(QString const & additionalInfo);

@@ -21,43 +21,37 @@
 #pragma once
 
 #include "iAAlgorithm.h"
-#include "itkGradientMagnitudeImageFilter.h"
-#include <itkCastImageFilter.h>
 
 struct HOAccGradientDerrivativeSettings
 {
 	unsigned int order, direction, orderOfAcc;
 };
 
+enum iAGradientType
+{
+	DERIVATIVE,
+	GRADIENT_MAGNITUDE,
+	HIGHER_ORDER_ACCURATE_DERIVATIVE,
+};
+
 /**
  * An implementation of itkDerivativeImageFilter and itkGradientMagnitudeImageFilter.
  * For itkDerivativeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DerivativeImageFilter.html
  * For itkGradientMagnitudeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html
- * \remarks	Kana, 01/12/2010. 
  */
 class iAGradients : public iAAlgorithm
 {
 public:
-	iAGradients( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAGradients();
-
-	/**
-	 * Sets iAGradients parameters. 
-	 * \param	o		SetOrder. 
-	 * \param	d		SetDirection.
-	 */
-
+	iAGradients( QString fn, iAGradientType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 	void setDParameters(double o, double d) { order = o; direction = d; };
 	void setHOAGDParameters(const HOAccGradientDerrivativeSettings * settings) { m_HOAGDSettings = *settings; };
-
 protected:
 	void run();
-	void derivative();
-	void hoa_derivative();
-	void gradient_magnitude();
-
 private:
 	unsigned int order, direction;
 	HOAccGradientDerrivativeSettings m_HOAGDSettings;
-
+	iAGradientType m_type;
+	void derivative();
+	void hoa_derivative();
+	void gradient_magnitude();
 };
