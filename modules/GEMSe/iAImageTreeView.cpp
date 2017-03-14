@@ -205,7 +205,9 @@ void iAImageTreeView::UpdateLayout()
 
 	int requiredHeight = TreePadding + (m_nodesShown-shrinkedNodes) * (TreeClusterPadding+m_iconSize) +
 							shrinkedNodes * (TreeClusterShrinkedHeight+TreeClusterPadding);
+	int requiredWidth = TreePadding + (m_maxLevel * TreeLevelIndent) + TreeInfoRegionWidth + m_iconSize;
 	setMinimumHeight(requiredHeight);
+	setMinimumWidth(requiredWidth);
 
 	UpdateSubtreeHighlight();
 	update();
