@@ -59,6 +59,7 @@ class iASimpleLabelInfo : public iALabelInfo
 private:
 	int m_labelCount;
 	iAColorTheme const * m_theme;
+	QStringList m_labelNames;
 public:
 	iASimpleLabelInfo() :
 		m_labelCount(-1),
@@ -71,7 +72,14 @@ public:
 	virtual QString GetName(int idx) const
 	{
 		assert(idx >= 0 && idx < m_labelCount);
-		return QString("Label %1").arg(idx);
+		if (idx < m_labelNames.size())
+		{
+			return m_labelNames[idx];
+		}
+		else
+		{
+			return QString("Label %1").arg(idx);
+		}
 	}
 
 	virtual QColor GetColor(int idx) const
@@ -90,6 +98,15 @@ public:
 	void SetColorTheme(iAColorTheme const * theme)
 	{
 		m_theme = theme;
+	}
+
+	iAColorTheme const * GetColorTheme() const
+	{
+		return m_theme;
+	}
+	void SetLabelNames(QStringList const & labelNames)
+	{
+		m_labelNames = labelNames;
 	}
 };
 
@@ -479,7 +496,9 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const
 		m_cltFile,
 		mdiChild->GetLayoutName(),
 		leRefImage->text(),
-		hiddenCharts);
+		hiddenCharts,
+		m_simpleLabelInfo->GetColorTheme()->GetName(),
+		m_dlgGEMSe->GetLabelNames());
 	metaFile.Store(fileName);
 }
 
@@ -716,4 +735,15 @@ void dlg_GEMSeControl::DataTFChanged()
 	if (!m_dlgGEMSe)
 		return;
 	m_dlgGEMSe->DataTFChanged();
+}
+
+void dlg_GEMSeControl::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
+{
+	m_simpleLabelInfo->SetLabelNames(labelNames.split(","));
+	int colorThemeIdx = cbColorThemes->findText(colorTheme);
+	if (colorTheme != "" && colorThemeIdx != -1)
+	{
+		cbColorThemes->setCurrentIndex(colorThemeIdx);
+			//SetColorTheme(); // maybe already done via signal, need to check
+	}
 }

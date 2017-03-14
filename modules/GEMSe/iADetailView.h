@@ -68,6 +68,7 @@ public:
 	void SetLabelInfo(iALabelInfo const & labelInfo);
 	void SetRepresentativeType(int representativeType);
 	int GetRepresentativeType();
+	QString GetLabelNames() const;
 signals:
 	void Like();
 	void Hate();

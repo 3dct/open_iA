@@ -46,6 +46,7 @@ public:
 	bool LoadSeeds(QString const & seedsFileName);
 	bool LoadReferenceImage(QString const & referenceImageName);
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
+	void SetLabelInfo(QString const & colorTheme, QString const & labelNames);
 
 	void ResetFilter();
 	void ToggleAutoShrink();

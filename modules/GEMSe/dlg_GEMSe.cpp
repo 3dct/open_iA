@@ -856,3 +856,8 @@ void dlg_GEMSe::DataTFChanged()
 {
 	m_detailView->UpdateMagicLensColors();
 }
+
+QString dlg_GEMSe::GetLabelNames() const
+{
+	return m_detailView->GetLabelNames();
+}

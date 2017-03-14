@@ -144,6 +144,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	{
 		gemseAttach->SetSerializedHiddenCharts(seaFile.GetHiddenCharts());
 	}
+	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
 }
 
 #include <QToolBar>

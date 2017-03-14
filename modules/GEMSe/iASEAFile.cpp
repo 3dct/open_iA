@@ -48,6 +48,8 @@ namespace
 	const QString LayoutKey = "Layout";
 	const QString ReferenceImageKey = "ReferenceImage";
 	const QString HiddenChartsKey = "HiddenCharts";
+	const QString ColorThemeKey = "ColorTheme";
+	const QString LabelNamesKey = "LabelNames";
 
 	void AppendToString(QString & result, QString const & append)
 	{
@@ -152,6 +154,14 @@ iASEAFile::iASEAFile(QString const & fileName):
 	{
 		m_HiddenCharts = metaFile.value(HiddenChartsKey).toString();
 	}
+	if (metaFile.contains(ColorThemeKey))
+	{
+		m_ColorTheme = metaFile.value(ColorThemeKey).toString();
+	}
+	if (metaFile.contains(LabelNamesKey))
+	{
+		m_LabelNames = metaFile.value(LabelNamesKey).toString();
+	}
 	m_good = true;
 }
 
@@ -163,7 +173,9 @@ iASEAFile::iASEAFile(
 		QString const & clusterFile,
 		QString const & layout,
 		QString const & referenceImage,
-		QString const & hiddenCharts):
+		QString const & hiddenCharts,
+		QString const & colorTheme,
+		QString const & labelNames):
 	m_ModalityFileName(modalityFile),
 	m_LabelCount(labelCount),
 	m_Samplings(samplings),
@@ -171,9 +183,10 @@ iASEAFile::iASEAFile(
 	m_LayoutName(layout),
 	m_ReferenceImage(referenceImage),
 	m_HiddenCharts(hiddenCharts),
+	m_ColorTheme(colorTheme),
+	m_LabelNames(labelNames),
 	m_good(true)
 {
-	
 }
 
 void iASEAFile::Store(QString const & fileName)
@@ -200,6 +213,8 @@ void iASEAFile::Store(QString const & fileName)
 	{
 		metaFile.setValue(HiddenChartsKey, m_HiddenCharts);
 	}
+	metaFile.setValue(ColorThemeKey, m_ColorTheme);
+	metaFile.setValue(LabelNamesKey, m_LabelNames);
 	
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
@@ -247,4 +262,14 @@ QString const & iASEAFile::GetReferenceImage() const
 QString const & iASEAFile::GetHiddenCharts() const
 {
 	return m_HiddenCharts;
+}
+
+QString const & iASEAFile::GetLabelNames() const
+{
+	return m_LabelNames;
+}
+
+QString const & iASEAFile::GetColorTheme() const
+{
+	return m_ColorTheme;
 }

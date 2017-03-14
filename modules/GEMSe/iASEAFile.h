@@ -42,7 +42,9 @@ public:
 		QString const & cltFileName,
 		QString const & layoutName,
 		QString const & referenceImage,
-		QString const & hiddenCharts
+		QString const & hiddenCharts,
+		QString const & colorThemeName,
+		QString const & labelNames
 	);
 	void Store(QString const & seaFileName);
 	QString const & GetModalityFileName() const;
@@ -52,6 +54,8 @@ public:
 	QString const & GetLayoutName() const;
 	QString const & GetReferenceImage() const;
 	QString const & GetHiddenCharts() const;
+	QString const & GetLabelNames() const;
+	QString const & GetColorTheme() const;
 
 	bool good() const;
 	// QString const & GetSEAFileName();
@@ -64,6 +68,8 @@ private:
 	QString m_SEAFileName;
 	QString m_ReferenceImage;
 	QString m_HiddenCharts;
+	QString m_ColorTheme;
+	QString m_LabelNames;
 
 	bool m_good;
 };

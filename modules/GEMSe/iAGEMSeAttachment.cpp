@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGEMSeAttachment.h"
 
@@ -155,4 +154,9 @@ void iAGEMSeAttachment::ExportRankings()
 void iAGEMSeAttachment::ImportRankings()
 {
 	m_dlgGEMSeControl->ImportRankings();
+}
+
+void iAGEMSeAttachment::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
+{
+	m_dlgGEMSeControl->SetLabelInfo(colorTheme, labelNames);
 }

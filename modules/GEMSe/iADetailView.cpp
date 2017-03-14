@@ -377,12 +377,12 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo)
 	for (int i=0; i<labelInfo.count(); ++i)
 	{
 		QStandardItem* item = new QStandardItem(labelInfo.GetName(i));
-		item->setFlags(item->flags() & ~Qt::ItemIsEditable & ~Qt::ItemIsSelectable);
+		item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
 		item->setData(labelInfo.GetColor(i), Qt::DecorationRole);
 		m_labelItemModel->appendRow(item);
 	}
 	QStandardItem* diffItem = new QStandardItem("Difference");
-	diffItem->setFlags(diffItem->flags() & ~Qt::ItemIsEditable & ~Qt::ItemIsSelectable);
+	diffItem->setFlags(diffItem->flags() & ~Qt::ItemIsSelectable);
 	diffItem->setData(DefaultColors::DifferenceColor, Qt::DecorationRole);
 	m_labelItemModel->appendRow(diffItem);
 }
@@ -414,4 +414,14 @@ void iADetailView::SetMagicLensCount(int count)
 	m_magicLensCount = count;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->SetMagicLensCount(count);
+}
+
+QString iADetailView::GetLabelNames() const
+{
+	QStringList labelNames;
+	for (int i = 0; i < m_labelItemModel->rowCount()-1; ++i)
+	{
+		labelNames.append(m_labelItemModel->item(i, 0)->text());
+	}
+	return labelNames.join(",");
 }

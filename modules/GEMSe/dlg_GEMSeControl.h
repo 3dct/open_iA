@@ -66,6 +66,7 @@ public:
 	void ExportRankings();
 	void ImportRankings();
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
+	void SetLabelInfo(QString const & colorTheme, QString const & labelNames);
 public slots:
 	void ExportIDs();
 private slots:

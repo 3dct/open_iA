@@ -92,6 +92,7 @@ public:
 	void FreeMemory();
 	void SetProbabilityProbing(bool enabled);
 	void DataTFChanged();
+	QString GetLabelNames() const;
 public slots:
 	void ResetFilters();
 	void SelectHistograms();
