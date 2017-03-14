@@ -35,7 +35,14 @@ rem echo %GIT_BRANCH%
 
 :: Set up Visual Studio Environment for cleaning build
 :: amd64 is the target architectur (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
+echo %VS_PATH% | findstr /c:"2017" >nul
+if %ERRORLEVEL% EQU 0 goto VS2017
 call "%VS_PATH%\VC\vcvarsall.bat" amd64
+goto VCVARSEnd
+:VS2017
+ :: since VS 2017, vcvarsall.bat is in a different subdirectory...
+call "%VS_PATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64
+:VCVARSEnd
 
 @echo on
 
