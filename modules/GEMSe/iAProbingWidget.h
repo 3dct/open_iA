@@ -43,7 +43,10 @@ public slots:
 private:
 	iALabelInfo const * m_labelInfo;
 	QVector<iAFilterChart *> m_charts;
-	QVector<QSharedPointer<iAParamHistogramData> > m_chartData;
+	QVector<QSharedPointer<iAParamHistogramData> > m_labelDistributionChartData;
+	QVector<QSharedPointer<iAParamHistogramData> > m_probabilitiesChartData;
+	QSharedPointer<iAParamHistogramData> m_entropyChartData;
 	iAImageTreeNode const * m_selectedNode;
 	QLabel* m_lbInfo;
+	int m_probChartStart;
 };

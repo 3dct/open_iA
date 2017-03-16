@@ -22,6 +22,7 @@
 
 #include "iAFilterChart.h"
 #include "iAConsole.h"
+#include "iAFunctionDrawers.h"
 #include "iAImageTreeLeaf.h"
 #include "iALabelInfo.h"
 #include "iAMathUtility.h"
@@ -58,19 +59,38 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	layout->setSpacing(0);
 	contentWidget->setLayout(layout);
 	m_lbInfo = new QLabel("Probing n/a");
+	m_lbInfo->setMaximumHeight(20);
 	layout->addWidget(m_lbInfo);
+	
+	// entropy chart:
+	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
+	m_charts.push_back(new iAFilterChart(this, "Entropy", m_entropyChartData,
+		QSharedPointer<iANameMapper>(), true));
+	m_charts[0]->GetPrimaryDrawer()->setColor(QColor(64, 64, 64));
+
+	// label distribution chart:
+	for (int label = 0; label < m_labelInfo->count(); ++label)
+	{
+		m_labelDistributionChartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelInfo->count()));
+	}
+	m_charts.push_back(new iAFilterChart(this, "Label Distribution", m_labelDistributionChartData[0],
+		QSharedPointer<iANameMapper>(), true));
+	m_charts[1]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(0));
+	for (int label = 1; label < m_labelInfo->count(); ++label)
+	{
+		m_charts[1]->AddDataset(QSharedPointer<iAAbstractDrawableFunction>(
+			new iABarGraphDrawer(m_labelDistributionChartData[label],
+				m_labelInfo->GetColor(label), 2)));
+	}
+
+	// highest probability distribution charts:
+	m_probChartStart = m_charts.size();
 	for (int l = 0; l < std::min(NumOfChartsShown, labelInfo->count()); ++l)
 	{
-		m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-		m_charts.push_back(new iAFilterChart(this, QString("Probability %1").arg(l), m_chartData[l],
+		m_probabilitiesChartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
+		m_charts.push_back(new iAFilterChart(this, QString("Probability Distribution Label %1").arg(l), m_probabilitiesChartData[l],
 			QSharedPointer<iANameMapper>(), true));
 	}
-	m_chartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-	m_charts.push_back(new iAFilterChart(this, "Entropy", m_chartData[m_charts.size()],
-		QSharedPointer<iANameMapper>(), true));
-	m_chartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelInfo->count()));
-	m_charts.push_back(new iAFilterChart(this, "Label Distribution", m_chartData[m_charts.size()],
-		QSharedPointer<iANameMapper>(), true));
 	for (int c = 0; c < m_charts.size(); ++c)
 	{
 		layout->addWidget(m_charts[c]);
@@ -91,9 +111,45 @@ void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
 
 void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 {
-	for (int i = 0; i < m_chartData.size(); ++i)
+	// entropy chart:
+	m_entropyChartData->Reset();
+	double limit = -std::log(1.0 / m_labelInfo->count());
+	double normalizeFactor = 1 / limit;
+	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 	{
-		m_chartData[i]->Reset();
+		double entropy = 0.0;
+		for (int l = 0; l < m_labelInfo->count(); ++l)
+		{
+			double value = leaf->GetProbabilityValue(l, x, y, z);
+			if (value > 0)
+			{
+				entropy += (value * std::log(value));
+			}
+		}
+		entropy = clamp(0.0, 1.0, -entropy * normalizeFactor);
+		m_entropyChartData->AddValue(entropy);
+	});
+
+	// label distribution chart:
+	for (int l = 0; l < m_labelDistributionChartData.size(); ++l)
+	{
+		m_labelDistributionChartData[l]->Reset();
+	}
+	itk::Index<3> idx;
+	idx[0] = x; idx[1] = y; idx[2] = z;
+	int valueCount = 0;
+	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
+	{
+		int label = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer())->GetPixel(idx);
+		m_labelDistributionChartData[label]->AddValue(label);
+		valueCount++;
+	});
+	m_charts[1]->SetMaxYAxisValue(valueCount);
+
+	// find the NumOfChartsShown highest probabilities
+	for (int i = 0; i < m_probabilitiesChartData.size(); ++i)
+	{
+		m_probabilitiesChartData[i]->Reset();
 	}
 	std::vector<std::pair<double, int> > probSumOfCharts;
 	for (int l = 0; l < m_labelInfo->count(); ++l)
@@ -109,49 +165,28 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 
 	std::sort(probSumOfCharts.begin(), probSumOfCharts.end(),
 		[](std::pair<double, int> const & first, std::pair<double, int> second)
-		{
+		{	// we need descending sort order
 			return first.first > second.first;
 		}
 	);
 	m_lbInfo->setText(QString("Probing %1, %2, %3; max prob. sum: %4").arg(x).arg(y).arg(z).arg(probSumOfCharts[0].first));
-	for (int i = 0; i < m_charts.size()-2; ++i)
+	for (int i = 0; i < m_probabilitiesChartData.size(); ++i)
 	{
 		int labelValue = probSumOfCharts[i].second;
 		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 		{
 			double probValue = leaf->GetProbabilityValue(labelValue, x, y, z);
-			m_chartData[i]->AddValue(probValue);
+			m_probabilitiesChartData[i]->AddValue(probValue);
 		});
-		m_charts[i]->SetXCaption(QString("Probability %1").arg(labelValue));
-		m_charts[i]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(labelValue));
+		m_charts[m_probChartStart+i]->SetXCaption(QString("Probability Distribution Label %1").arg(labelValue));
+		m_charts[m_probChartStart+i]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(labelValue));
 	}
-	double limit = -std::log(1.0 / m_labelInfo->count());
-	double normalizeFactor = 1 / limit;
-	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
-	{
-		double entropy = 0.0;
-		for (int l = 0; l < m_labelInfo->count(); ++l)
-		{
-			double value = leaf->GetProbabilityValue(l, x, y, z);
-			if (value > 0)
-			{
-				entropy += (value * std::log(value));
-			}
-		}
-		entropy = clamp(0.0, 1.0, -entropy * normalizeFactor);
-		m_chartData[m_charts.size()-2]->AddValue(entropy);
-	});
 
-	itk::Index<3> idx;
-	idx[0] = x; idx[1] = y; idx[2] = z;
-	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
-	{
-		m_chartData[m_charts.size()-1]->AddValue(dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer())->GetPixel(idx));
-	});
-
+	// redraw all charts:
 	for (int i = 0; i < m_charts.size(); ++i)
 	{
-		m_charts[i]->ResetMaxYAxisValue();
+		if (i != 1)	// not for label distribution!
+			m_charts[i]->ResetMaxYAxisValue();
 		m_charts[i]->redraw();
 	}
 }
