@@ -42,7 +42,8 @@ public:
 	static QSharedPointer<iASingleResult> Create(
 		int id,
 		iASamplingResults const & sampling,
-		QVector<double> const & parameter);
+		QVector<double> const & parameter,
+		QString const & fileName);
 
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)
@@ -84,6 +85,7 @@ private:
 	int m_id;
 	iAITKIO::ImagePointer m_labelImg;
 	QVector<iAITKIO::ImagePointer> m_probabilityImg;
+	QString m_fileName;
 
 	bool LoadLabelImage();
 

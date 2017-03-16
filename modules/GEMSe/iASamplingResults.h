@@ -51,6 +51,7 @@ public:
 	QString GetName() const;
 	QString GetFileName() const;
 	QString GetPath(int id) const;
+	QString GetPath() const;
 	QString GetExecutable() const;
 	QString GetAdditionalArguments() const;
 	int GetID() const;

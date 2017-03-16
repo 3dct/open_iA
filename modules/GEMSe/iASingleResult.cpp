@@ -23,6 +23,7 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAAttributes.h"
+#include "iAFileUtils.h"
 #include "iAGEMSeConstants.h"
 #include "iANameMapper.h"
 #include "iASamplingResults.h"
@@ -52,7 +53,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 		id,
 		sampling
 	));
-	if (tokens.size() != attributes->size()+1) // +1 for ID
+	if (tokens.size() < attributes->size()+1) // +1 for ID
 	{
 		DEBUG_LOG(QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
 		return QSharedPointer<iASingleResult>();
@@ -81,16 +82,26 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 		}
 		result->m_attributeValues.push_back(value);
 	}
+	if (tokens.size() > attributes->size() + 1) // fileName at end
+	{
+		result->m_fileName = MakeAbsolute(sampling.GetPath(), tokens[attributes->size() + 1]);
+	}
+	else
+	{
+		result->m_fileName = result->GetFolder() + "/label.mhd";
+	}
 	return result;
 }
 
 QSharedPointer<iASingleResult> iASingleResult::Create(
 	int id,
 	iASamplingResults const & sampling,
-	QVector<double> const & parameter)
+	QVector<double> const & parameter,
+	QString const & fileName)
 {
 	QSharedPointer<iASingleResult> result(new iASingleResult(id, sampling));
 	result->m_attributeValues = parameter;
+	result->m_fileName = fileName;
 	return result;
 }
 
@@ -123,6 +134,7 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 			}
 		}
 	}
+	result += ValueSplitString + MakeRelative(m_sampling.GetPath(), m_fileName);
 	return result;
 }
 
@@ -240,7 +252,7 @@ QString iASingleResult::GetFolder() const
 
 QString iASingleResult::GetLabelPath() const
 {
-	return GetFolder() + "/label.mhd";
+	return m_fileName;
 }
 
 QString iASingleResult::GetProbabilityPath(int label) const

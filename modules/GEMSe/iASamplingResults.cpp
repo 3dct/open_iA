@@ -283,6 +283,11 @@ QString iASamplingResults::GetPath(int id) const
 	return m_path + "/sample" + QString::number(id);
 }
 
+QString iASamplingResults::GetPath() const
+{
+	return m_path;
+}
+
 QString iASamplingResults::GetExecutable() const
 {
 	return m_executable;

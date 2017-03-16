@@ -221,7 +221,8 @@ void iAImageSampler::computationFinished()
 	}
 	ParameterSet const & param = m_parameterSets->at(id);
 
-	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, *m_results.data(), param);
+	QSharedPointer<iASingleResult> result = iASingleResult::Create(id, *m_results.data(), param,
+		m_outputBaseDir + "/sample" + QString::number(id) + +"/label.mhd");
 	
 	result->SetAttribute(m_parameterCount+2, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+2)->AdjustMinMax(computationTime);
