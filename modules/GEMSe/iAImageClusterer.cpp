@@ -322,8 +322,9 @@ void iAImageClusterer::run()
 			float distance = 1.0;
 			if (!img1 || !img2)
 			{
-				DEBUG_LOG("Invalid (non-label) representative difference image");
-				distance = 1.0;
+				DEBUG_LOG(QString("Could not load label image for cluster %1 or %2. Aborting clustering!").arg(m_currImage).arg(j));
+				m_aborted = true;
+				return;
 			}
 			else
 			{
