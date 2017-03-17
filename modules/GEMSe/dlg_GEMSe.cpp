@@ -859,5 +859,7 @@ void dlg_GEMSe::DataTFChanged()
 
 QString dlg_GEMSe::GetLabelNames() const
 {
-	return m_detailView->GetLabelNames();
+	return m_detailView ?
+		m_detailView->GetLabelNames() :
+		QString();
 }

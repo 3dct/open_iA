@@ -498,9 +498,7 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const
 		leRefImage->text(),
 		hiddenCharts,
 		m_simpleLabelInfo->GetColorTheme()->GetName(),
-		m_dlgGEMSe ?
-			m_dlgGEMSe->GetLabelNames() :
-			QString()
+		m_dlgGEMSe->GetLabelNames()
 	);
 	metaFile.Store(fileName);
 }
