@@ -68,6 +68,7 @@ dlg_GEMSe::dlg_GEMSe(
 	m_cameraWidget(0),
 	m_exampleView(0),
 	m_favoriteWidget(0),
+	m_probingWidget(0),
 	m_selectedLeaf(0),
 	m_previewWidgetPool(0),
 	m_colorTheme(colorTheme),
