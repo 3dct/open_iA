@@ -29,108 +29,7 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item row="3" column="2">
-       <widget class="QDoubleSpinBox" name="dsbPositionX">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QDoubleSpinBox" name="dsbOrientationX">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <widget class="QDoubleSpinBox" name="dsbSpacingX">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="2">
-       <widget class="QDoubleSpinBox" name="dsbOriginX">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="3">
-       <widget class="QDoubleSpinBox" name="dsbSpacingY">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QDoubleSpinBox" name="dsbOrientationY">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="3">
-       <widget class="QDoubleSpinBox" name="dsbPositionY">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="4">
-       <widget class="QDoubleSpinBox" name="dsbPositionZ">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="4">
-       <widget class="QDoubleSpinBox" name="dsbOrientationZ">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="4">
-       <widget class="QDoubleSpinBox" name="dsbSpacingZ">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2" colspan="3">
-       <widget class="QLineEdit" name="edChannel">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" colspan="3">
-       <widget class="QLineEdit" name="edFilename">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2" colspan="3">
-       <widget class="QLineEdit" name="edName"/>
-      </item>
-      <item row="7" column="3">
-       <widget class="QDoubleSpinBox" name="dsbOriginY">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="4">
-       <widget class="QDoubleSpinBox" name="dsbOriginZ">
-        <property name="decimals">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0" colspan="5">
+      <item row="8" column="0" colspan="4">
        <widget class="QCheckBox" name="cbMagicLens">
         <property name="text">
          <string>Show in Magic Lens</string>
@@ -192,6 +91,59 @@
         </property>
        </widget>
       </item>
+      <item row="3" column="2">
+       <widget class="QLineEdit" name="edPositionX"/>
+      </item>
+      <item row="3" column="3">
+       <widget class="QLineEdit" name="edPositionY"/>
+      </item>
+      <item row="3" column="4">
+       <widget class="QLineEdit" name="edPositionZ"/>
+      </item>
+      <item row="2" column="2" colspan="3">
+       <widget class="QLineEdit" name="edChannel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" colspan="3">
+       <widget class="QLineEdit" name="edFilename">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" colspan="3">
+       <widget class="QLineEdit" name="edName"/>
+      </item>
+      <item row="4" column="2">
+       <widget class="QLineEdit" name="edOrientationX"/>
+      </item>
+      <item row="4" column="3">
+       <widget class="QLineEdit" name="edOrientationY"/>
+      </item>
+      <item row="4" column="4">
+       <widget class="QLineEdit" name="edOrientationZ"/>
+      </item>
+      <item row="6" column="2">
+       <widget class="QLineEdit" name="edSpacingX"/>
+      </item>
+      <item row="6" column="3">
+       <widget class="QLineEdit" name="edSpacingY"/>
+      </item>
+      <item row="6" column="4">
+       <widget class="QLineEdit" name="edSpacingZ"/>
+      </item>
+      <item row="7" column="2">
+       <widget class="QLineEdit" name="edOriginX"/>
+      </item>
+      <item row="7" column="3">
+       <widget class="QLineEdit" name="edOriginY"/>
+      </item>
+      <item row="7" column="4">
+       <widget class="QLineEdit" name="edOriginZ"/>
+      </item>
      </layout>
     </widget>
    </item>
@@ -199,6 +151,13 @@
     <widget class="QCheckBox" name="cbBoundingBox">
      <property name="text">
       <string>Show Bounding Box</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lbError">
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </item>

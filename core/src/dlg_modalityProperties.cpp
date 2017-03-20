@@ -46,31 +46,34 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 
 	double const * orientation = modality->GetRenderer()->GetOrientation();
 	double const * position = modality->GetRenderer()->GetPosition();
-
 	double const * spacing = modality->GetSpacing();
 	double const * origin = modality->GetOrigin();
 
-	double minSpacing = std::min(modality->GetSpacing()[0], std::min(modality->GetSpacing()[1], modality->GetSpacing()[2]));
-	int placesAfterComma = 1 - (std::min(static_cast<int>(std::log10(minSpacing)), 0));
-
-	dsbPositionX->setValue(position[0]);
-	dsbPositionY->setValue(position[1]);
-	dsbPositionZ->setValue(position[2]);
-
-	dsbOrientationX->setValue(orientation[0]);
-	dsbOrientationY->setValue(orientation[1]);
-	dsbOrientationZ->setValue(orientation[2]);
-
-	dsbOriginX->setValue(origin[0]);
-	dsbOriginY->setValue(origin[1]);
-	dsbOriginZ->setValue(origin[2]);
-
-	dsbSpacingX->setValue(spacing[0]);
-	dsbSpacingY->setValue(spacing[1]);
-	dsbSpacingZ->setValue(spacing[2]);
+	edPositionX   ->setText(QString::number(position[0]));
+	edPositionY   ->setText(QString::number(position[1]));
+	edPositionZ   ->setText(QString::number(position[2]));
+	edOrientationX->setText(QString::number(orientation[0]));
+	edOrientationY->setText(QString::number(orientation[1]));
+	edOrientationZ->setText(QString::number(orientation[2]));
+	edOriginX     ->setText(QString::number(origin[0]));
+	edOriginY     ->setText(QString::number(origin[1]));
+	edOriginZ     ->setText(QString::number(origin[2]));
+	edSpacingX    ->setText(QString::number(spacing[0]));
+	edSpacingY    ->setText(QString::number(spacing[1]));
+	edSpacingZ    ->setText(QString::number(spacing[2]));
 
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
+}
+
+double getValueAndCheck(QLineEdit * le, QString const & caption, QStringList & notOKList)
+{
+	bool isOK;
+	double returnVal = le->text().toDouble(&isOK);
+	if (!isOK) {
+		notOKList.append(caption);
+	}
+	return returnVal;
 }
 
 void dlg_modalityProperties::OKButtonClicked()
@@ -85,22 +88,23 @@ void dlg_modalityProperties::OKButtonClicked()
 	double position[3];
 	double spacing[3];
 	double origin[3];
-	position[0] = dsbPositionX->value();
-	position[1] = dsbPositionY->value();
-	position[2] = dsbPositionZ->value();
-
-	orientation[0] = dsbOrientationX->value();
-	orientation[1] = dsbOrientationY->value();
-	orientation[2] = dsbOrientationZ->value();
-
-	spacing[0] = dsbSpacingX->value();
-	spacing[1] = dsbSpacingY->value();
-	spacing[2] = dsbSpacingZ->value();
-
-	origin[0] = dsbOriginX->value();
-	origin[1] = dsbOriginY->value();
-	origin[2] = dsbOriginZ->value();
-
+	QStringList notOKValues;
+	position[0]    = getValueAndCheck(edPositionX   , "Position X"   , notOKValues);
+	position[1]    = getValueAndCheck(edPositionY   , "Position Y"   , notOKValues);
+	position[2]    = getValueAndCheck(edPositionZ   , "Position Z"   , notOKValues);
+	orientation[0] = getValueAndCheck(edOrientationX, "Orientation X", notOKValues);
+	orientation[1] = getValueAndCheck(edOrientationY, "Orientation Y", notOKValues);
+	orientation[2] = getValueAndCheck(edOrientationZ, "Orientation Z", notOKValues);
+	spacing[0]     = getValueAndCheck(edSpacingX    , "Spacing X"    , notOKValues);
+	spacing[1]     = getValueAndCheck(edSpacingY    , "Spacing Y"    , notOKValues);
+	spacing[2]     = getValueAndCheck(edSpacingZ    , "Spacing Z"    , notOKValues);
+	origin[0]      = getValueAndCheck(edOriginX     , "Origin X"     , notOKValues);
+	origin[1]      = getValueAndCheck(edOriginY     , "Origin Y"     , notOKValues);
+	origin[2]      = getValueAndCheck(edOriginZ     , "Origin Z"     , notOKValues);
+	if (notOKValues.size() > 0) {
+		lbError->setText(QString("One or mor values are not valid: %1").arg(notOKValues.join(",")));
+		return;
+	}
 	m_modality->SetOrigin(origin);
 	m_modality->SetSpacing(spacing);
 	m_modality->GetRenderer()->SetOrientation(orientation);
