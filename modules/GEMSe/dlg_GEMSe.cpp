@@ -780,24 +780,24 @@ void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const
 
 void dlg_GEMSe::ToggleAutoShrink()
 {
+	if (!m_treeView)
+		return;
 	m_treeView->SetAutoShrink(!m_treeView->GetAutoShrink());
-}
-
-
-void dlg_GEMSe::SetMagicLensOpacity(double opacity)
-{
-	m_detailView->SetMagicLensOpacity(opacity);
 }
 
 
 void dlg_GEMSe::SetIconSize(int iconSize)
 {
+	if (!m_treeView)
+		return;
 	m_treeView->SetIconSize(iconSize);
 }
 
 
 bool dlg_GEMSe::SetRepresentativeType(int type)
 {
+	if (!m_treeView)
+		return false;
 	bool result = m_treeView->SetRepresentativeType(type);
 	if (!result)
 	{	// if it failed, reset to what tree view uses

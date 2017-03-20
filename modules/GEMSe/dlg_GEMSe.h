@@ -73,7 +73,6 @@ public:
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
 	void CalcRefImgComp(LabelImagePointer refImg);
 	void ToggleAutoShrink();
-	void SetMagicLensOpacity(double opacity);
 	void SetIconSize(int iconSize);
 	bool SetRepresentativeType(int type);
 	int GetRepresentativeType() const;
