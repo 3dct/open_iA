@@ -78,9 +78,10 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_charts[1]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(0));
 	for (int label = 1; label < m_labelInfo->count(); ++label)
 	{
-		m_charts[1]->AddDataset(QSharedPointer<iAAbstractDrawableFunction>(
+		m_drawers.push_back(QSharedPointer<iAAbstractDrawableFunction>(
 			new iABarGraphDrawer(m_labelDistributionChartData[label],
 				m_labelInfo->GetColor(label), 2)));
+		m_charts[1]->AddDataset(m_drawers[m_drawers.size()-1]);
 	}
 
 	// highest probability distribution charts:
@@ -102,6 +103,11 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 void iAProbingWidget::SetLabelInfo(iALabelInfo const * labelInfo)
 {
 	m_labelInfo = labelInfo;
+	m_charts[1]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(0));
+	for (int l = 0; l < m_drawers.size(); ++l)
+	{
+		m_drawers[l]->setColor(m_labelInfo->GetColor(l+1));
+	}
 }
 
 void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
