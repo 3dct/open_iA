@@ -377,7 +377,6 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo)
 	for (int i=0; i<labelInfo.count(); ++i)
 	{
 		QStandardItem* item = new QStandardItem(labelInfo.GetName(i));
-		item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
 		item->setData(labelInfo.GetColor(i), Qt::DecorationRole);
 		m_labelItemModel->appendRow(item);
 	}

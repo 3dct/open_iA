@@ -175,7 +175,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 			return first.first > second.first;
 		}
 	);
-	m_lbInfo->setText(QString("Probing %1, %2, %3; max prob. sum: %4").arg(x).arg(y).arg(z).arg(probSumOfCharts[0].first));
+	m_lbInfo->setText(QString("Probing %1, %2, %3;").arg(x).arg(y).arg(z));
 	for (int i = 0; i < m_probabilitiesChartData.size(); ++i)
 	{
 		int labelValue = probSumOfCharts[i].second;
