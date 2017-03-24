@@ -61,7 +61,6 @@ class vtkObject;
 class vtkLineSource;
 class vtkInteractorStyle;
 class vtkImageReslice;
-class vtkInteractorStyleImage;
 class vtkImageData;
 class vtkImageActor;
 class vtkGenericOpenGLRenderWindow;
@@ -70,6 +69,8 @@ class vtkActor;
 class iARulerWidget;
 class iAObserverRedirect;
 class iAMagicLens;
+
+class iAInteractorStyleImage;
 
 /**
  * \brief	implements a slicer widget
@@ -198,7 +199,7 @@ private:
 	
 	iAObserverRedirect * observerMouseMove;
 	vtkRenderWindowInteractor* interactor;
-	vtkInteractorStyleImage* interactorStyle;
+	iAInteractorStyleImage* interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
 	vtkSmartPointer<vtkRenderer> ren;
 	vtkCamera* m_camera; // smart pointer?
