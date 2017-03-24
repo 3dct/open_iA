@@ -470,7 +470,7 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 		return;
 	}
 
-	// make sure we're not adding the same seed twice:
+	// make sure we're not adding the same pixel twice:
 	RemoveResultFilterIfExists(x, y, z);
 
 	m_resultFilterModel->item(labelRow)->setChild(

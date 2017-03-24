@@ -54,20 +54,21 @@ void iALabelOverlayThread::RebuildLabelOverlayLUT()
 	m_labelOverlayLUT = vtkSmartPointer<vtkLookupTable>::New();
 	m_labelOverlayLUT->SetNumberOfTableValues(m_labelCount + 1);
 	m_labelOverlayLUT->SetRange(0.0, m_labelCount);
-	m_labelOverlayLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0); //label 0 is transparent
 
 	m_labelOverlayOTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	m_labelOverlayOTF->AddPoint(0, 0);
 	for (int i = 0; i<m_labelCount; ++i)
 	{
 		QColor c(m_colorTheme->GetColor(i));
-		m_labelOverlayLUT->SetTableValue(i + 1,
+		m_labelOverlayLUT->SetTableValue(i,
 			c.red() / 255.0,
 			c.green() / 255.0,
 			c.blue() / 255.0,
 			1);	// all other labels are opaque
-		m_labelOverlayOTF->AddPoint(i + 1, 1);
+		m_labelOverlayOTF->AddPoint(i, 1);
 	}
+	m_labelOverlayLUT->SetTableValue(m_labelCount, 0.0, 0.0, 0.0, 0.0); // value m_labelCount is transparent
+	m_labelOverlayOTF->AddPoint(m_labelCount, 0);
+
 	m_labelOverlayLUT->Build();
 }
 
@@ -78,7 +79,7 @@ vtkSmartPointer<vtkImageData> iALabelOverlayThread::drawImage()
 	result->SetExtent(m_imageExtent);
 	result->SetSpacing(m_imageSpacing);
 	result->AllocateScalars(VTK_INT, 1);
-	clearImage(result, 0);
+	clearImage(result, m_labelCount);
 
 	for (int l = 0; l<m_itemModel->rowCount(); ++l)
 	{
@@ -89,7 +90,7 @@ vtkSmartPointer<vtkImageData> iALabelOverlayThread::drawImage()
 			int x = coordItem->data(Qt::UserRole + 1).toInt();
 			int y = coordItem->data(Qt::UserRole + 2).toInt();
 			int z = coordItem->data(Qt::UserRole + 3).toInt();
-			drawPixel(result, x, y, z, l + 1);
+			drawPixel(result, x, y, z, l);
 		}
 	}
 	return result;
