@@ -230,22 +230,12 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 			// let other slices views know that a new point was created
 			emit addedPoint(result[0], result[1], result[2]);
 		}
-		// call mousePressEvent function of super class without button press information to avoid standard VTK functionality
-		QVTKWidget2::mousePressEvent(new QMouseEvent(QEvent::MouseButtonPress, event->pos(), Qt::NoButton, Qt::NoButton, event->modifiers()));
 	}
 	else
 	{
-		if (m_decorations && event->modifiers() != Qt::NoModifier)
-		// disable brightness/contrast change happening if no modifier pressed
-		{
-			QVTKWidget2::mousePressEvent(new QMouseEvent(QEvent::MouseButtonPress, event->pos(), Qt::NoButton, Qt::NoButton, event->modifiers()));
-		}
-		else
-		{
-			QVTKWidget2::mousePressEvent(event);
-		}
 		emit Clicked();
 	}
+	QVTKWidget2::mousePressEvent(event);
 }
 
 void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
