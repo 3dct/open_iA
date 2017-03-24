@@ -83,6 +83,40 @@
 #include <sstream>
 
 
+class iAInteractorStyleImage : public vtkInteractorStyleImage
+{
+public:
+	static iAInteractorStyleImage *New();
+	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
+
+	virtual void OnLeftButtonDown()
+	{
+		// disable "window-level" and rotation interaction
+		if (!this->Interactor->GetShiftKey())
+		{
+			return;
+		}
+		vtkInteractorStyleImage::OnLeftButtonDown();
+	}
+	/*
+	virtual void OnChar()
+	{
+		vtkRenderWindowInteractor *rwi = this->Interactor;
+		switch (rwi->GetKeyCode())
+		{ // disable 'picking' action on p
+		case 'P':
+		case 'p':
+			break;
+		default:
+			vtkInteractorStyleImage::OnChar();
+		}
+	}
+	*/
+};
+
+vtkStandardNewMacro(iAInteractorStyleImage);
+
+
 iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 0 */,
 		bool decorations/*=true*/) : QObject( parent ),
 	m_mode(slicerMaster->m_mode),
@@ -122,7 +156,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
-	interactorStyle = vtkInteractorStyleImage::New();
+	interactorStyle = iAInteractorStyleImage::New();
 	m_camera = vtkCamera::New();
 
 	reslicer = vtkImageReslice::New();
