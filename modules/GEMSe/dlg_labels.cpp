@@ -60,13 +60,16 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	lvLabels->setModel(m_itemModel);
 }
 
-QStandardItem* GetCoordinateItem(int x, int y, int z)
+namespace
 {
-	QStandardItem* item = new QStandardItem("("+QString::number(x)+", "+QString::number(y)+", "+QString::number(z)+")");
-	item->setData(x, Qt::UserRole + 1);
-	item->setData(y, Qt::UserRole + 2);
-	item->setData(z, Qt::UserRole + 3);
-	return item;
+	QStandardItem* GetCoordinateItem(int x, int y, int z)
+	{
+		QStandardItem* item = new QStandardItem("(" + QString::number(x) + ", " + QString::number(y) + ", " + QString::number(z) + ")");
+		item->setData(x, Qt::UserRole + 1);
+		item->setData(y, Qt::UserRole + 2);
+		item->setData(z, Qt::UserRole + 3);
+		return item;
+	}
 }
 
 void dlg_labels::RendererClicked(int x, int y, int z)
@@ -249,7 +252,6 @@ void dlg_labels::UpdateOverlay()
 	{
 		m_newOverlay = true;
 	}
-
 }
 
 void dlg_labels::LabelOverlayReady()

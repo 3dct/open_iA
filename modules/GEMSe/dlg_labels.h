@@ -87,7 +87,7 @@ private:
 	// for label overlay:
 	vtkSmartPointer<vtkImageData> m_labelOverlayImg;
 	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF; // TODO: check why this is required - manual exploration also doesn't use it!
+	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
 	MdiChild* m_mdiChild;
 	iALabelOverlayThread* m_labelOverlayThread;
 	bool m_newOverlay;

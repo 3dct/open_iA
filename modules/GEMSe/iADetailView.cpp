@@ -22,16 +22,26 @@
 #include "iADetailView.h"
 
 #include "iAAttributes.h"
+
+#include "iAChannelVisualizationData.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h" // for GetClusterMinMax
 #include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
 #include "iALabelInfo.h"
+#include "iALabelOverlayThread.h"
+#include "iAModalityTransfer.h"
 #include "iANameMapper.h"
 #include "iAAttributeDescriptor.h"
-#include "iASlicerWidget.h"
 #include "iASlicerData.h"
+#include "iASlicerWidget.h"
+#include "iAModality.h"
+
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
 
 #include <QLabel>
 #include <QListView>
@@ -48,6 +58,7 @@ iADetailView::iADetailView(
 		ClusterImageType nullImage,
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
+		iAColorTheme const * colorTheme,
 		int representativeType) :
 	m_previewWidget(prevWdgt),
 	m_showingClusterRepresentative(true),
@@ -61,7 +72,11 @@ iADetailView::iADetailView(
 	m_representativeType(representativeType), 
 	m_nextChannelID(0),
 	m_magicLensEnabled(false),
-	m_magicLensCount(1)
+	m_magicLensCount(1),
+	m_labelItemModel(new QStandardItemModel()),
+	m_resultFilterModel(new QStandardItemModel()),
+	m_resultFilterOverlayThread(0),
+	m_newOverlay(false)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -100,13 +115,12 @@ iADetailView::iADetailView(
 	detailSplitter->setOrientation(Qt::Vertical);
 	detailWidgetLayout->addWidget(detailSplitter);
 
-	m_labelItemModel = new QStandardItemModel();
-	QListView* lvLegend = new QListView();
-	lvLegend->setModel(m_labelItemModel);
-	detailSplitter->addWidget(lvLegend);
-	SetLabelInfo(labelInfo);
-	int height = m_labelItemModel->rowCount() * lvLegend->sizeHintForRow(0);
-	lvLegend->setMinimumHeight(height);
+	m_lvLegend = new QListView();
+	m_lvLegend->setModel(m_labelItemModel);
+	detailSplitter->addWidget(m_lvLegend);
+	SetLabelInfo(labelInfo, colorTheme);
+	int height = m_labelItemModel->rowCount() * m_lvLegend->sizeHintForRow(0);
+	m_lvLegend->setMinimumHeight(height);
 	
 	m_detailText = new QTextEdit();
 	m_detailText->setReadOnly(true);
@@ -116,9 +130,9 @@ iADetailView::iADetailView(
 	QFont f(m_detailText->font());
 	f.setPointSize(FontSize);
 	m_detailText->setFont(f);
-	lvLegend->setFont(f);
+	m_lvLegend->setFont(f);
 	
-	lvLegend->setStyleSheet("border: none; outline:none;");
+	m_lvLegend->setStyleSheet("border: none; outline:none;");
 	m_detailText->setStyleSheet("border: none; outline:none;");
 
 	QSplitter * horzSplitter = new QSplitter();
@@ -150,13 +164,13 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
 }
 
-#include "iAChannelVisualizationData.h"
-#include "iAModality.h"
-#include <vtkImageData.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
+iADetailView::~iADetailView()
+{
+	delete m_resultFilterModel;
+}
 
 vtkSmartPointer<vtkColorTransferFunction> GetDefaultCTF(vtkSmartPointer<vtkImageData> imageData)
 {
@@ -176,8 +190,6 @@ vtkSmartPointer<vtkPiecewiseFunction> GetDefaultOTF(vtkSmartPointer<vtkImageData
 	otf->AddPoint(scalarRange[1], 1);
 	return otf;
 }
-
-#include "iAModalityTransfer.h"
 
 void iADetailView::DblClicked()
 {
@@ -362,8 +374,6 @@ bool iADetailView::IsShowingCluster() const
 	return m_showingClusterRepresentative;
 }
 
-#include "iASlicerData.h"
-
 void iADetailView::SetMagicLensOpacity(double opacity)
 {
 	iASlicer* slicer = m_previewWidget->GetSlicer();
@@ -371,14 +381,19 @@ void iADetailView::SetMagicLensOpacity(double opacity)
 }
 
 
-void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo)
+void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme const * colorTheme)
 {
+	m_colorTheme = colorTheme;
+	m_labelCount = labelInfo.count();
 	m_labelItemModel->clear();
-	for (int i=0; i<labelInfo.count(); ++i)
+	m_resultFilterModel->clear();
+	for (int i=0; i<m_labelCount; ++i)
 	{
 		QStandardItem* item = new QStandardItem(labelInfo.GetName(i));
 		item->setData(labelInfo.GetColor(i), Qt::DecorationRole);
 		m_labelItemModel->appendRow(item);
+		item = new QStandardItem(labelInfo.GetName(i));
+		m_resultFilterModel->appendRow(item);
 	}
 	QStandardItem* diffItem = new QStandardItem("Difference");
 	diffItem->setFlags(diffItem->flags() & ~Qt::ItemIsSelectable);
@@ -402,9 +417,17 @@ int iADetailView::GetRepresentativeType()
 
 void iADetailView::SetImage()
 {
-	m_previewWidget->SetImage(m_node->GetRepresentativeImage(m_representativeType) ?
-		m_node->GetRepresentativeImage(m_representativeType) : m_nullImage,
-		!m_node->GetRepresentativeImage(m_representativeType),
+	ClusterImageType img = m_node->GetRepresentativeImage(m_representativeType);
+	m_spacing[0] = img->GetSpacing()[0]; m_spacing[1] = img->GetSpacing()[1]; m_spacing[2] = img->GetSpacing()[2];
+	itk::ImageRegion<3> region = img->GetLargestPossibleRegion();
+	itk::Size<3> size = region.GetSize();
+	itk::Index<3> idx = region.GetIndex();
+	m_extent[0] = idx[0];	m_extent[1] = idx[0] + size[0];
+	m_extent[2] = idx[1];	m_extent[3] = idx[1] + size[1];
+	m_extent[4] = idx[2];	m_extent[5] = idx[2] + size[2];
+	m_previewWidget->SetImage(img ?
+		img : m_nullImage,
+		!img,
 		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 }
 
@@ -423,4 +446,139 @@ QString iADetailView::GetLabelNames() const
 		labelNames.append(m_labelItemModel->item(i, 0)->text());
 	}
 	return labelNames.join(",");
+}
+
+namespace
+{
+	// TODO: unify with dlg_labels
+	QStandardItem* GetCoordinateItem(int x, int y, int z)
+	{
+		QStandardItem* item = new QStandardItem("(" + QString::number(x) + ", " + QString::number(y) + ", " + QString::number(z) + ")");
+		item->setData(x, Qt::UserRole + 1);
+		item->setData(y, Qt::UserRole + 2);
+		item->setData(z, Qt::UserRole + 3);
+		return item;
+	}
+}
+
+void iADetailView::SlicerClicked(int x, int y, int z)
+{
+	DEBUG_LOG(QString("Slicer clicked: %1, %2, %3").arg(x).arg(y).arg(z));
+	int labelRow = GetCurLabelRow();
+	if (labelRow == -1 || labelRow == m_labelItemModel->rowCount()-1)
+	{
+		return;
+	}
+
+	// make sure we're not adding the same seed twice:
+	RemoveResultFilterIfExists(x, y, z);
+
+	m_resultFilterModel->item(labelRow)->setChild(
+		m_resultFilterModel->item(labelRow)->rowCount(),
+		GetCoordinateItem(x, y, z)
+	);
+
+	UpdateOverlay();
+}
+
+void iADetailView::UpdateOverlay()
+{
+	if (!m_resultFilterOverlayThread)
+	{
+		StartOverlayCreation();
+	}
+	else
+	{
+		m_newOverlay = true;
+	}
+}
+
+void iADetailView::StartOverlayCreation()
+{
+	m_resultFilterOverlayThread = new iALabelOverlayThread(
+		m_resultFilterOverlayImg,
+		m_resultFilterOverlayLUT,
+		m_resultFilterOverlayOTF,
+		m_resultFilterModel,
+		m_labelCount,
+		m_colorTheme,
+		m_extent,
+		m_spacing
+	);
+	connect(m_resultFilterOverlayThread, SIGNAL(finished()), this, SLOT(ResultFilterOverlayReady()));
+	m_resultFilterOverlayThread->start();
+}
+
+void iADetailView::ResultFilterOverlayReady()
+{
+	iAChannelID id = static_cast<iAChannelID>(ch_LabelOverlay);
+	iASlicer* slicer = m_previewWidget->GetSlicer();
+	vtkSmartPointer<vtkImageData> imageData = m_resultFilterOverlayImg;
+	if (!m_resultFilterChannel)
+	{
+		m_resultFilterChannel = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
+		m_resultFilterChannel->SetName("Result Filter");
+		ResetChannel(m_resultFilterChannel.data(), imageData, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		slicer->initializeChannel(id, m_resultFilterChannel.data());
+	}
+	else
+	{
+		ResetChannel(m_resultFilterChannel.data(), imageData, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		slicer->reInitializeChannel(id, m_resultFilterChannel.data());
+	}
+	int sliceNr = m_previewWidget->GetSliceNumber();
+	switch (slicer->GetMode())
+	{
+		case YZ: slicer->GetSlicerData()->enableChannel(id, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
+		case XY: slicer->GetSlicerData()->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
+		case XZ: slicer->GetSlicerData()->enableChannel(id, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
+	}
+	iAChannelSlicerData* slicerChannel = slicer->GetChannel(id);
+	slicerChannel->updateMapper();
+	slicerChannel->updateReslicer();
+	slicer->update();
+	if (m_newOverlay)
+	{
+		StartOverlayCreation();
+		m_newOverlay = false;
+	}
+	else
+	{
+		m_resultFilterOverlayThread = nullptr;
+	}
+}
+
+void iADetailView::RemoveResultFilterIfExists(int x, int y, int z)
+{
+	for (int labelRow = 0; labelRow < m_resultFilterModel->rowCount(); ++labelRow)
+	{
+		QStandardItem* labelItem = m_resultFilterModel->item(labelRow);
+		for (int coordRow = labelItem->rowCount()-1; coordRow >= 0; --coordRow)
+		{
+			QStandardItem* coordItem = labelItem->child(coordRow);
+			int itemX = coordItem->data(Qt::UserRole + 1).toInt();
+			int itemY = coordItem->data(Qt::UserRole + 2).toInt();
+			int itemZ = coordItem->data(Qt::UserRole + 3).toInt();
+			if (itemX == x && itemY == y && itemZ == z)
+			{
+				labelItem->removeRow(coordRow);
+			}
+		}
+	}
+}
+
+
+int iADetailView::GetCurLabelRow() const
+{
+	QModelIndexList indices = m_lvLegend->selectionModel()->selectedIndexes();
+	if (indices.size() <= 0)
+	{
+		return -1;
+	}
+	QStandardItem* item = m_labelItemModel->itemFromIndex(indices[0]);
+	while (item->parent() != nullptr)
+	{
+		item = item->parent();
+	}
+	return item->row();
 }

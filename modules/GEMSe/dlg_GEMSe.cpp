@@ -120,7 +120,7 @@ void dlg_GEMSe::SetTree(
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
 
 	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, *labelInfo,
-		m_representativeType);
+		m_colorTheme, m_representativeType);
 	m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
 	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
 	wdImagePreview->layout()->addWidget(m_detailView);
@@ -770,7 +770,7 @@ void dlg_GEMSe::SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const
 	}
 	if (m_detailView)
 	{
-		m_detailView->SetLabelInfo(*labelInfo);
+		m_detailView->SetLabelInfo(*labelInfo, colorTheme);
 	}
 	if (m_probingWidget)
 	{

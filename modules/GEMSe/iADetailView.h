@@ -39,10 +39,15 @@ class iAColorTheme;
 class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iALabelInfo;
+class iALabelOverlayThread;
 class iAModalityList;
 
 class vtkColorTransferFunction;
+class vtkImageData;
+class vtkLookupTable;
 class vtkPiecewiseFunction;
+
+class QListView;
 
 class iADetailView: public QWidget
 {
@@ -52,7 +57,9 @@ public:
 		ClusterImageType nullImage,
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
+		iAColorTheme const * colorTheme,
 		int representativeType);
+	~iADetailView();
 	void SetNode(iAImageTreeNode const * node,
 		QSharedPointer<iAAttributes> allAttributes,
 		iAChartAttributeMapper const & mapper);
@@ -65,7 +72,7 @@ public:
 	void SetMagicLensOpacity(double opacity);
 	void SetMagicLensCount(int count);
 	void UpdateMagicLensColors();
-	void SetLabelInfo(iALabelInfo const & labelInfo);
+	void SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme const * colorTheme);
 	void SetRepresentativeType(int representativeType);
 	int GetRepresentativeType();
 	QString GetLabelNames() const;
@@ -81,6 +88,8 @@ private slots:
 	void DblClicked();
 	void ChangeModality(int);
 	void ChangeMagicLensOpacity(int);
+	void ResultFilterOverlayReady();
+	void SlicerClicked(int, int, int);
 private:
 	iAImageTreeNode const * m_node;
 	iAImagePreviewWidget* m_previewWidget;
@@ -93,14 +102,31 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	QStandardItemModel* m_labelItemModel;
 	int m_representativeType;
+	QListView* m_lvLegend;
 
 	int m_magicLensCurrentModality;
 	int m_magicLensCurrentComponent;
 	bool m_magicLensEnabled;
 	int m_magicLensCount;
+	iAColorTheme const * m_colorTheme;
+
+	int m_nextChannelID;
 
 	void UpdateGeometry();
 	void SetImage();
 
-	int m_nextChannelID;
+	vtkSmartPointer<vtkImageData> m_resultFilterOverlayImg;
+	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
+	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
+	QStandardItemModel* m_resultFilterModel;
+	iALabelOverlayThread* m_resultFilterOverlayThread;
+	QSharedPointer<iAChannelVisualizationData> m_resultFilterChannel;
+	int m_labelCount;
+	double m_spacing[3];
+	int m_extent[6];
+	bool m_newOverlay;
+	int GetCurLabelRow() const;
+	void StartOverlayCreation();
+	void UpdateOverlay();
+	void RemoveResultFilterIfExists(int x, int y, int z);
 };

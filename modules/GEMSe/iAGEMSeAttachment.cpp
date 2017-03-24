@@ -39,10 +39,6 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
-#include <fstream>
-#include <sstream>
-#include <string>
-
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData),
