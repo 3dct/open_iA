@@ -67,7 +67,7 @@ class vtkGenericOpenGLRenderWindow;
 class vtkActor;
 
 class iARulerWidget;
-class iAObserverRedirect;
+class iASlicerObserver;
 class iAMagicLens;
 
 class iAInteractorStyleImage;
@@ -197,7 +197,7 @@ Q_SIGNALS:
 private:
 	iAMagicLens * m_magicLensExternal;
 	
-	iAObserverRedirect * observerMouseMove;
+	iASlicerObserver * observerMouseMove;
 	vtkRenderWindowInteractor* interactor;
 	iAInteractorStyleImage* interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;

@@ -18,35 +18,20 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+ 
+#include "pch.h"
+#include "iASlicerObserver.h"
 
-#include <QObject>
-#include <vtkCommand.h>
+#include "iASlicerData.h"
 
-class vtkObject;
 
-class iASlicerData;
-
-/**
- * \brief	observes the mouse moving
- * 
- * This class servers the iASlicer class to observe mouse movement and to extract coordinates
- * and the corresponding data "below" the mouse pointer. 
- */
-class iAObserverRedirect : public QObject, public vtkCommand
+iASlicerObserver::iASlicerObserver(iASlicerData * subject)
 {
-		Q_OBJECT
+	m_subject = subject;
+}
 
-public:
-	iAObserverRedirect(iASlicerData * subject);
 
-	static iAObserverRedirect * New(iASlicerData * subject)
-	{
-		return new iAObserverRedirect(	subject );
-	}
-
-protected:
-	iASlicerData * m_subject;
-public:
-	virtual void Execute(vtkObject *caller, unsigned long eventId, void*);
-};
+void iASlicerObserver::Execute(vtkObject * caller, unsigned long eventId, void * callData) 
+{
+	m_subject->Execute(caller, eventId, callData);
+}

@@ -26,7 +26,7 @@
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAMovieHelper.h"
-#include "iAObserverRedirect.h"
+#include "iASlicerObserver.h"
 #include "iAPieChartGlyph.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
@@ -152,7 +152,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	rulerWidget(0),
 	interactor(0)
 {
-	observerMouseMove = iAObserverRedirect::New(this);
+	observerMouseMove = iASlicerObserver::New(this);
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
