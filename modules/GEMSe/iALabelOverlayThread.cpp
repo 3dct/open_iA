@@ -49,27 +49,40 @@ iALabelOverlayThread::iALabelOverlayThread(vtkSmartPointer<vtkImageData>& labelO
 	m_imageSpacing(imageSpacing)
 {}
 
-void iALabelOverlayThread::RebuildLabelOverlayLUT()
+vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF(int labelCount)
 {
-	m_labelOverlayLUT = vtkSmartPointer<vtkLookupTable>::New();
-	m_labelOverlayLUT->SetNumberOfTableValues(m_labelCount + 1);
-	m_labelOverlayLUT->SetRange(0.0, m_labelCount);
-
-	m_labelOverlayOTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	for (int i = 0; i<m_labelCount; ++i)
+	auto result = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	for (int i = 0; i < labelCount; ++i)
 	{
-		QColor c(m_colorTheme->GetColor(i));
-		m_labelOverlayLUT->SetTableValue(i,
+		result->AddPoint(i, 1);
+	}
+	result->AddPoint(labelCount, 0);
+	return result;
+}
+
+vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorTheme const * colorTheme)
+{
+	auto result = vtkSmartPointer<vtkLookupTable>::New();
+	result->SetNumberOfTableValues(labelCount + 1);
+	result->SetRange(0.0, labelCount);
+	for (int i = 0; i<labelCount; ++i)
+	{
+		QColor c(colorTheme->GetColor(i));
+		result->SetTableValue(i,
 			c.red() / 255.0,
 			c.green() / 255.0,
 			c.blue() / 255.0,
 			1);	// all other labels are opaque
-		m_labelOverlayOTF->AddPoint(i, 1);
 	}
-	m_labelOverlayLUT->SetTableValue(m_labelCount, 0.0, 0.0, 0.0, 0.0); // value m_labelCount is transparent
-	m_labelOverlayOTF->AddPoint(m_labelCount, 0);
+	result->SetTableValue(labelCount, 0.0, 0.0, 0.0, 0.0); // value m_labelCount is transparent
+	result->Build();
+	return result;
+}
 
-	m_labelOverlayLUT->Build();
+void iALabelOverlayThread::RebuildLabelOverlayLUT()
+{
+	m_labelOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
+	m_labelOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 }
 
 vtkSmartPointer<vtkImageData> iALabelOverlayThread::drawImage()

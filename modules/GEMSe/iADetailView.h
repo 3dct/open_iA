@@ -36,10 +36,10 @@ class iAAttributes;
 class iAChannelVisualizationData;
 class iAChartAttributeMapper;
 class iAColorTheme;
+class iAImageCoordinate;
 class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iALabelInfo;
-class iALabelOverlayThread;
 class iAModalityList;
 
 class vtkColorTransferFunction;
@@ -59,7 +59,6 @@ public:
 		iALabelInfo const & labelInfo,
 		iAColorTheme const * colorTheme,
 		int representativeType);
-	~iADetailView();
 	void SetNode(iAImageTreeNode const * node,
 		QSharedPointer<iAAttributes> allAttributes,
 		iAChartAttributeMapper const & mapper);
@@ -88,7 +87,6 @@ private slots:
 	void DblClicked();
 	void ChangeModality(int);
 	void ChangeMagicLensOpacity(int);
-	void ResultFilterOverlayReady();
 	void SlicerClicked(int, int, int);
 private:
 	iAImageTreeNode const * m_node;
@@ -118,15 +116,11 @@ private:
 	vtkSmartPointer<vtkImageData> m_resultFilterOverlayImg;
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
-	QStandardItemModel* m_resultFilterModel;
-	iALabelOverlayThread* m_resultFilterOverlayThread;
+	QVector<QPair<iAImageCoordinate, int> > m_resultFilter;
 	QSharedPointer<iAChannelVisualizationData> m_resultFilterChannel;
 	int m_labelCount;
 	double m_spacing[3];
-	int m_extent[6];
-	bool m_newOverlay;
+	int m_dimensions[3];
 	int GetCurLabelRow() const;
-	void StartOverlayCreation();
-	void UpdateOverlay();
 	void RemoveResultFilterIfExists(int x, int y, int z);
 };

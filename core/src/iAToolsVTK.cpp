@@ -4,6 +4,7 @@
 
 #include "iAConnector.h"
 #include "iAITKIO.h"
+#include "iAVtkDraw.h"
 
 void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output)
 {

@@ -56,3 +56,7 @@ private:
 	int *    m_imageExtent;
 	double * m_imageSpacing;
 };
+
+vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF(int labelCount);
+
+vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorTheme const * colorTheme);

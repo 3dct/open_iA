@@ -22,25 +22,28 @@
 #include "iADetailView.h"
 
 #include "iAAttributes.h"
-
+#include "iAAttributeDescriptor.h"
 #include "iAChannelVisualizationData.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
+#include "iAImageCoordinate.h"
 #include "iAImageTree.h" // for GetClusterMinMax
 #include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
 #include "iALabelInfo.h"
 #include "iALabelOverlayThread.h"
+#include "iAModality.h"
 #include "iAModalityTransfer.h"
 #include "iANameMapper.h"
-#include "iAAttributeDescriptor.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
-#include "iAModality.h"
+#include "iAVtkDraw.h"
+#include "iAToolsVTK.h"
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
+#include <vtkMetaImageWriter.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QLabel>
@@ -73,10 +76,7 @@ iADetailView::iADetailView(
 	m_nextChannelID(0),
 	m_magicLensEnabled(false),
 	m_magicLensCount(1),
-	m_labelItemModel(new QStandardItemModel()),
-	m_resultFilterModel(new QStandardItemModel()),
-	m_resultFilterOverlayThread(0),
-	m_newOverlay(false)
+	m_labelItemModel(new QStandardItemModel())
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -165,11 +165,6 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
 	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-}
-
-iADetailView::~iADetailView()
-{
-	delete m_resultFilterModel;
 }
 
 vtkSmartPointer<vtkColorTransferFunction> GetDefaultCTF(vtkSmartPointer<vtkImageData> imageData)
@@ -386,19 +381,24 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 	m_colorTheme = colorTheme;
 	m_labelCount = labelInfo.count();
 	m_labelItemModel->clear();
-	m_resultFilterModel->clear();
 	for (int i=0; i<m_labelCount; ++i)
 	{
 		QStandardItem* item = new QStandardItem(labelInfo.GetName(i));
 		item->setData(labelInfo.GetColor(i), Qt::DecorationRole);
 		m_labelItemModel->appendRow(item);
 		item = new QStandardItem(labelInfo.GetName(i));
-		m_resultFilterModel->appendRow(item);
 	}
 	QStandardItem* diffItem = new QStandardItem("Difference");
 	diffItem->setFlags(diffItem->flags() & ~Qt::ItemIsSelectable);
 	diffItem->setData(DefaultColors::DifferenceColor, Qt::DecorationRole);
 	m_labelItemModel->appendRow(diffItem);
+
+	/* TODO: check this
+	m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
+	m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
+	ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+	slicer->reinitializeChannel(id, m_resultFilterChannel.data());
+	*/
 }
 
 
@@ -422,9 +422,7 @@ void iADetailView::SetImage()
 	itk::ImageRegion<3> region = img->GetLargestPossibleRegion();
 	itk::Size<3> size = region.GetSize();
 	itk::Index<3> idx = region.GetIndex();
-	m_extent[0] = idx[0];	m_extent[1] = idx[0] + size[0];
-	m_extent[2] = idx[1];	m_extent[3] = idx[1] + size[1];
-	m_extent[4] = idx[2];	m_extent[5] = idx[2] + size[2];
+	m_dimensions[0] = size[0]; m_dimensions[1] = size[1]; m_dimensions[2] = size[2];
 	m_previewWidget->SetImage(img ?
 		img : m_nullImage,
 		!img,
@@ -464,107 +462,52 @@ namespace
 void iADetailView::SlicerClicked(int x, int y, int z)
 {
 	DEBUG_LOG(QString("Slicer clicked: %1, %2, %3").arg(x).arg(y).arg(z));
-	int labelRow = GetCurLabelRow();
-	if (labelRow == -1 || labelRow == m_labelItemModel->rowCount()-1)
+	int label = GetCurLabelRow();
+	if (label == -1 || label == m_labelItemModel->rowCount()-1)
 	{
 		return;
 	}
-
-	// make sure we're not adding the same pixel twice:
-	RemoveResultFilterIfExists(x, y, z);
-
-	m_resultFilterModel->item(labelRow)->setChild(
-		m_resultFilterModel->item(labelRow)->rowCount(),
-		GetCoordinateItem(x, y, z)
-	);
-
-	UpdateOverlay();
-}
-
-void iADetailView::UpdateOverlay()
-{
-	if (!m_resultFilterOverlayThread)
+	if (!m_resultFilterOverlayImg)
 	{
-		StartOverlayCreation();
+		m_resultFilterOverlayImg = AllocateImage(VTK_INT, m_dimensions, m_spacing);
+		clearImage(m_resultFilterOverlayImg, m_labelCount);
+		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
+		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 	}
-	else
-	{
-		m_newOverlay = true;
-	}
-}
-
-void iADetailView::StartOverlayCreation()
-{
-	m_resultFilterOverlayThread = new iALabelOverlayThread(
-		m_resultFilterOverlayImg,
-		m_resultFilterOverlayLUT,
-		m_resultFilterOverlayOTF,
-		m_resultFilterModel,
-		m_labelCount,
-		m_colorTheme,
-		m_extent,
-		m_spacing
-	);
-	connect(m_resultFilterOverlayThread, SIGNAL(finished()), this, SLOT(ResultFilterOverlayReady()));
-	m_resultFilterOverlayThread->start();
-}
-
-void iADetailView::ResultFilterOverlayReady()
-{
+	drawPixel(m_resultFilterOverlayImg, x, y, z, label);
+	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
+	metaImageWriter->SetFileName("test.mhd");
+	metaImageWriter->SetInputData(m_resultFilterOverlayImg);
+	metaImageWriter->SetCompression(false);
+	metaImageWriter->Write();
+	metaImageWriter->Delete();
+	// for being able to undo:
+	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
 	iAChannelID id = static_cast<iAChannelID>(ch_LabelOverlay);
 	iASlicer* slicer = m_previewWidget->GetSlicer();
-	vtkSmartPointer<vtkImageData> imageData = m_resultFilterOverlayImg;
 	if (!m_resultFilterChannel)
 	{
 		m_resultFilterChannel = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
 		m_resultFilterChannel->SetName("Result Filter");
-		ResetChannel(m_resultFilterChannel.data(), imageData, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		slicer->initializeChannel(id, m_resultFilterChannel.data());
 	}
 	else
 	{
-		ResetChannel(m_resultFilterChannel.data(), imageData, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		slicer->reInitializeChannel(id, m_resultFilterChannel.data());
 	}
 	int sliceNr = m_previewWidget->GetSliceNumber();
 	switch (slicer->GetMode())
 	{
-		case YZ: slicer->GetSlicerData()->enableChannel(id, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
-		case XY: slicer->GetSlicerData()->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
-		case XZ: slicer->GetSlicerData()->enableChannel(id, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
+	case YZ: slicer->GetSlicerData()->enableChannel(id, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
+	case XY: slicer->GetSlicerData()->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
+	case XZ: slicer->GetSlicerData()->enableChannel(id, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
 	}
 	iAChannelSlicerData* slicerChannel = slicer->GetChannel(id);
 	slicerChannel->updateMapper();
 	slicerChannel->updateReslicer();
 	slicer->update();
-	if (m_newOverlay)
-	{
-		StartOverlayCreation();
-		m_newOverlay = false;
-	}
-	else
-	{
-		m_resultFilterOverlayThread = nullptr;
-	}
-}
-
-void iADetailView::RemoveResultFilterIfExists(int x, int y, int z)
-{
-	for (int labelRow = 0; labelRow < m_resultFilterModel->rowCount(); ++labelRow)
-	{
-		QStandardItem* labelItem = m_resultFilterModel->item(labelRow);
-		for (int coordRow = labelItem->rowCount()-1; coordRow >= 0; --coordRow)
-		{
-			QStandardItem* coordItem = labelItem->child(coordRow);
-			int itemX = coordItem->data(Qt::UserRole + 1).toInt();
-			int itemY = coordItem->data(Qt::UserRole + 2).toInt();
-			int itemZ = coordItem->data(Qt::UserRole + 3).toInt();
-			if (itemX == x && itemY == y && itemZ == z)
-			{
-				labelItem->removeRow(coordRow);
-			}
-		}
-	}
 }
 
 
