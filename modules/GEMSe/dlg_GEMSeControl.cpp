@@ -106,7 +106,10 @@ public:
 	}
 	void SetLabelNames(QStringList const & labelNames)
 	{
-		m_labelNames = labelNames;
+		if (labelNames.size() > 1 || labelNames[0].length() > 0)
+		{
+			m_labelNames = labelNames;
+		}
 	}
 };
 

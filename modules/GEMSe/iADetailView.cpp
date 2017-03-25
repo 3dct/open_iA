@@ -393,12 +393,15 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 	diffItem->setData(DefaultColors::DifferenceColor, Qt::DecorationRole);
 	m_labelItemModel->appendRow(diffItem);
 
-	/* TODO: check this
-	m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
-	m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
-	ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
-	slicer->reinitializeChannel(id, m_resultFilterChannel.data());
-	*/
+	if (m_resultFilterOverlayImg)
+	{
+		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
+		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
+		ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		iASlicer* slicer = m_previewWidget->GetSlicer();
+		slicer->reInitializeChannel(ch_LabelOverlay, m_resultFilterChannel.data());
+		slicer->update();
+	}
 }
 
 
@@ -480,22 +483,15 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 		m_resultFilterChannel->SetName("Result Filter");
 		ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		slicer->initializeChannel(id, m_resultFilterChannel.data());
+
+		int sliceNr = m_previewWidget->GetSliceNumber();
+		switch (slicer->GetMode())
+		{
+		case YZ: slicer->GetSlicerData()->enableChannel(id, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
+		case XY: slicer->GetSlicerData()->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
+		case XZ: slicer->GetSlicerData()->enableChannel(id, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
+		}
 	}
-	else
-	{
-		ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
-		slicer->reInitializeChannel(id, m_resultFilterChannel.data());
-	}
-	int sliceNr = m_previewWidget->GetSliceNumber();
-	switch (slicer->GetMode())
-	{
-	case YZ: slicer->GetSlicerData()->enableChannel(id, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
-	case XY: slicer->GetSlicerData()->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
-	case XZ: slicer->GetSlicerData()->enableChannel(id, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
-	}
-	iAChannelSlicerData* slicerChannel = slicer->GetChannel(id);
-	slicerChannel->updateMapper();
-	slicerChannel->updateReslicer();
 	slicer->update();
 }
 
