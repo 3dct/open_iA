@@ -122,5 +122,4 @@ private:
 	double m_spacing[3];
 	int m_dimensions[3];
 	int GetCurLabelRow() const;
-	void RemoveResultFilterIfExists(int x, int y, int z);
 };

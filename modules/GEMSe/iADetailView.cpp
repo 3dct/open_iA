@@ -446,22 +446,8 @@ QString iADetailView::GetLabelNames() const
 	return labelNames.join(",");
 }
 
-namespace
-{
-	// TODO: unify with dlg_labels
-	QStandardItem* GetCoordinateItem(int x, int y, int z)
-	{
-		QStandardItem* item = new QStandardItem("(" + QString::number(x) + ", " + QString::number(y) + ", " + QString::number(z) + ")");
-		item->setData(x, Qt::UserRole + 1);
-		item->setData(y, Qt::UserRole + 2);
-		item->setData(z, Qt::UserRole + 3);
-		return item;
-	}
-}
-
 void iADetailView::SlicerClicked(int x, int y, int z)
 {
-	DEBUG_LOG(QString("Slicer clicked: %1, %2, %3").arg(x).arg(y).arg(z));
 	int label = GetCurLabelRow();
 	if (label == -1 || label == m_labelItemModel->rowCount()-1)
 	{
@@ -475,12 +461,15 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 	}
 	drawPixel(m_resultFilterOverlayImg, x, y, z, label);
+	m_resultFilterOverlayImg->Modified();
+	/*
 	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
 	metaImageWriter->SetFileName("test.mhd");
 	metaImageWriter->SetInputData(m_resultFilterOverlayImg);
 	metaImageWriter->SetCompression(false);
 	metaImageWriter->Write();
 	metaImageWriter->Delete();
+	*/
 	// for being able to undo:
 	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
 	iAChannelID id = static_cast<iAChannelID>(ch_LabelOverlay);
@@ -509,7 +498,6 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 	slicerChannel->updateReslicer();
 	slicer->update();
 }
-
 
 int iADetailView::GetCurLabelRow() const
 {
