@@ -187,6 +187,7 @@ Q_SIGNALS:
 	void updateSignal();
 	void clicked();
 	void clicked(int x, int y, int z);
+	void released(int x, int y, int z);
 	void UserInteraction();
 	//mouse move
 	void oslicerPos(int x, int y, int z, int mode);
