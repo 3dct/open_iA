@@ -69,12 +69,6 @@ void iAImageTreeLeaf::DiscardDetails()
 }
 
 
-ClusterImageType const iAImageTreeLeaf::GetDetailImage() const
-{
-	return m_singleResult->GetLabelledImage();
-}
-
-
 QSharedPointer<iAImageTreeNode > iAImageTreeLeaf::GetChild(int idx) const
 {
 	// leaf node, no children -> null pointer
@@ -111,9 +105,11 @@ int iAImageTreeLeaf::GetFilteredSize() const
 }
 
 void iAImageTreeLeaf::UpdateFilter(iAChartFilter const & filter,
-	iAChartAttributeMapper const & chartAttrMap)
+	iAChartAttributeMapper const & chartAttrMap,
+	iAResultFilter const & resultFilter)
 {
-	m_filtered = !filter.Matches(this, chartAttrMap);
+	m_filtered = !filter.Matches(this, chartAttrMap) ||
+		!ResultFilterMatches(this, resultFilter);
 }
 
 ClusterDistanceType iAImageTreeLeaf::GetDistance() const

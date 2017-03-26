@@ -125,6 +125,9 @@ iADetailView::iADetailView(
 	SetLabelInfo(labelInfo, colorTheme);
 	int height = m_labelItemModel->rowCount() * m_lvLegend->sizeHintForRow(0);
 	m_lvLegend->setMinimumHeight(height);
+
+	QPushButton* resetResultFilterButton = new QPushButton("Reset Result Filter");
+	detailSplitter->addWidget(resetResultFilterButton);
 	
 	m_detailText = new QTextEdit();
 	m_detailText->setReadOnly(true);
@@ -159,6 +162,7 @@ iADetailView::iADetailView(
 
 	// prevWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+	connect(resetResultFilterButton, SIGNAL(clicked()), this, SLOT(ResetResultFilter()));
 	connect(m_pbLike, SIGNAL(clicked()), this, SIGNAL(Like()));
 	connect(m_pbHate, SIGNAL(clicked()), this, SIGNAL(Hate()));
 	connect(m_pbGoto, SIGNAL(clicked()), this, SIGNAL(GoToCluster()));
@@ -399,11 +403,11 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 	diffItem->setData(DefaultColors::DifferenceColor, Qt::DecorationRole);
 	m_labelItemModel->appendRow(diffItem);
 
-	if (m_resultFilterOverlayImg)
+	if (m_resultFilterImg)
 	{
 		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
-		ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		iASlicer* slicer = m_previewWidget->GetSlicer();
 		slicer->reInitializeChannel(ch_LabelOverlay, m_resultFilterChannel.data());
 		slicer->update();
@@ -427,6 +431,10 @@ int iADetailView::GetRepresentativeType()
 void iADetailView::SetImage()
 {
 	ClusterImageType img = m_node->GetRepresentativeImage(m_representativeType);
+	if (!img)
+	{
+		return;
+	}
 	m_spacing[0] = img->GetSpacing()[0]; m_spacing[1] = img->GetSpacing()[1]; m_spacing[2] = img->GetSpacing()[2];
 	itk::ImageRegion<3> region = img->GetLargestPossibleRegion();
 	itk::Size<3> size = region.GetSize();
@@ -505,7 +513,7 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 	AddResultFilterPixel(x, y, z);
 	if (!m_resultFilterTriggerThread)
 	{
-		m_resultFilterTriggerThread = new iATimedEvent(2000);
+		m_resultFilterTriggerThread = new iATimedEvent(1000);
 		connect(m_resultFilterTriggerThread, SIGNAL(finished()), this, SLOT(TriggerResultFilterUpdate()));
 		m_resultFilterTriggerThread->start();
 	}
@@ -516,8 +524,9 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 void iADetailView::TriggerResultFilterUpdate()
 {
 	m_resultFilterTriggerThread = 0;
-	DEBUG_LOG("Triggering Result Filter Update!");
+	emit ResultFilterUpdate();
 }
+
 
 void iADetailView::SlicerReleased(int x, int y, int z)
 {
@@ -545,29 +554,28 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	{
 		return;
 	}
-	if (!m_resultFilterOverlayImg)
+	if (!m_resultFilterImg)
 	{
-		m_resultFilterOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
-		m_resultFilterOverlayImg->SetDimensions(m_dimensions);
-		m_resultFilterOverlayImg->AllocateScalars(VTK_INT, 1);
-		m_resultFilterOverlayImg->SetSpacing(m_spacing);
-		clearImage(m_resultFilterOverlayImg, m_labelCount);
+		m_resultFilterImg = vtkSmartPointer<iAvtkImageData>::New();
+		m_resultFilterImg->SetDimensions(m_dimensions);
+		m_resultFilterImg->AllocateScalars(VTK_INT, 1);
+		m_resultFilterImg->SetSpacing(m_spacing);
+		clearImage(m_resultFilterImg, m_labelCount);
 		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 	}
-	drawPixel(m_resultFilterOverlayImg, x, y, z, label);
-	m_resultFilterOverlayImg->Modified();
-	m_resultFilterOverlayImg->SetScalarRange(0, m_labelCount);
-
-	// for being able to undo:
+	drawPixel(m_resultFilterImg, x, y, z, label);
+	m_resultFilterImg->Modified();
+	m_resultFilterImg->SetScalarRange(0, m_labelCount);
 	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
+
 	iAChannelID id = static_cast<iAChannelID>(ch_LabelOverlay);
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	if (!m_resultFilterChannel)
 	{
 		m_resultFilterChannel = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
 		m_resultFilterChannel->SetName("Result Filter");
-		ResetChannel(m_resultFilterChannel.data(), m_resultFilterOverlayImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		slicer->initializeChannel(id, m_resultFilterChannel.data());
 
 		int sliceNr = m_previewWidget->GetSliceNumber();
@@ -580,6 +588,27 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	}
 	slicer->update();
 }
+
+
+void iADetailView::ResetResultFilter()
+{
+	if (m_resultFilterImg)
+	{
+		clearImage(m_resultFilterImg, m_labelCount);
+		m_resultFilterImg->Modified();
+		iASlicer* slicer = m_previewWidget->GetSlicer();
+		slicer->update();
+		m_resultFilter.clear();
+		emit ResultFilterUpdate();
+	}
+}
+
+
+iAResultFilter const & iADetailView::GetResultFilter() const
+{
+	return m_resultFilter;
+}
+
 
 int iADetailView::GetCurLabelRow() const
 {

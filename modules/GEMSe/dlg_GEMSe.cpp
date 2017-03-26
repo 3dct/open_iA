@@ -165,6 +165,7 @@ void dlg_GEMSe::SetTree(
 	connect(m_detailView, SIGNAL(Like()), this, SLOT(ToggleLike()));
 	connect(m_detailView, SIGNAL(Hate()), this, SLOT(ToggleHate()));
 	connect(m_detailView, SIGNAL(GoToCluster()), this, SLOT(GoToCluster()));
+	connect(m_detailView, SIGNAL(ResultFilterUpdate()), this, SLOT(UpdateResultFilter()));
 	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
 	connect(m_favoriteWidget, SIGNAL(Clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
 	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));
@@ -359,7 +360,7 @@ void dlg_GEMSe::UpdateFilteredChartData()
 
 void dlg_GEMSe::UpdateFilteredData()
 {
-	GetRoot()->UpdateFilter(m_chartFilter, m_chartAttributeMapper);
+	GetRoot()->UpdateFilter(m_chartFilter, m_chartAttributeMapper, m_detailView->GetResultFilter());
 	m_treeView->FilterUpdated();
 	m_exampleView->FilterUpdated();
 
@@ -570,7 +571,8 @@ public:
 		return CombinedProbPtr();
 	}
 	virtual void UpdateFilter(iAChartFilter const & filter,
-		iAChartAttributeMapper const & chartAttrMap)
+		iAChartAttributeMapper const & chartAttrMap,
+		iAResultFilter const & resultFilter)
 	{
 		assert(false);
 	}
@@ -684,7 +686,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 	if (node->IsLeaf())
 	{
 		iAImageTreeLeaf * leaf = dynamic_cast<iAImageTreeLeaf*>(node.data());
-		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(leaf->GetDetailImage().GetPointer());
+		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer());
 		QVector<double> measures;
 		CalculateMeasures(refImg, lblImg, labelCount, measures);
 		for (int i=0; i<measures.size(); ++i)
@@ -863,4 +865,9 @@ QString dlg_GEMSe::GetLabelNames() const
 	return m_detailView ?
 		m_detailView->GetLabelNames() :
 		QString();
+}
+
+void dlg_GEMSe::UpdateResultFilter()
+{
+	UpdateFilteredData();
 }

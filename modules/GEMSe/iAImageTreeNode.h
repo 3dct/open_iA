@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAChartFilter.h"	// try to avoid - but iAResultFilter is a template
 #include "iAITKIO.h" // TODO: replace?
 
 #include <itkImage.h>
@@ -29,7 +30,6 @@
 #include <QVector>
 
 class iAChartAttributeMapper;
-class iAChartFilter;
 
 // TODO: try to avoid this:
 class iAImageTreeLeaf;
@@ -79,7 +79,8 @@ public:
 	virtual int GetClusterSize() const = 0;
 	virtual int GetFilteredSize() const = 0;
 	virtual void UpdateFilter(iAChartFilter const & filter,
-		iAChartAttributeMapper const & chartAttrMap) = 0;
+		iAChartAttributeMapper const & chartAttrMap,
+		iAResultFilter const & resultFilter) = 0;
 	virtual bool IsLeaf() const = 0;
 	//! median image for this cluster:
 	virtual ClusterImageType const GetRepresentativeImage(int type) const = 0;

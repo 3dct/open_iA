@@ -34,15 +34,15 @@ public:
 	virtual int GetClusterSize() const;
 	virtual int GetFilteredSize() const;
 	virtual void UpdateFilter(iAChartFilter const & filter,
-		iAChartAttributeMapper const & chartAttrMap);
+		iAChartAttributeMapper const & chartAttrMap,
+		iAResultFilter const & resultFilter);
 	virtual ClusterImageType const GetRepresentativeImage(int type) const;
 	virtual void DiscardDetails();
-	virtual ClusterImageType const GetDetailImage() const;
+	ClusterImageType const GetLargeImage() const;
 	virtual ClusterIDType GetID() const;
 	virtual bool IsLeaf() const { return true; }
 	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount);
 	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const;
-	ClusterImageType const GetLargeImage() const;
 	virtual double GetAttribute(int) const;
 	virtual void GetMinMax(int chartID, double & min, double & max,
 		iAChartAttributeMapper const & chartAttrMap) const;

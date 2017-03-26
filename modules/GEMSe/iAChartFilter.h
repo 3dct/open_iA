@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAGEMSeConstants.h"
+#include "iAImageCoordinate.h"
 
 #include <QMap>
 
@@ -41,3 +42,8 @@ public:
 private:
 	QMap<int, std::pair<double, double> > m_filters;
 };
+
+
+typedef QVector<QPair<iAImageCoordinate, int> > iAResultFilter;
+
+bool ResultFilterMatches(iAImageTreeLeaf const * leaf, iAResultFilter const & filter);

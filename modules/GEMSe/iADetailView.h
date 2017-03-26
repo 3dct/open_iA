@@ -23,6 +23,8 @@
 #include "iAITKIO.h" // TODO: replace?
 typedef iAITKIO::ImagePointer ClusterImageType;
 
+#include "iAChartFilter.h"   // for iAResultFilter
+
 #include <vtkSmartPointer.h>
 
 #include <QWidget>
@@ -77,12 +79,14 @@ public:
 	void SetRepresentativeType(int representativeType);
 	int GetRepresentativeType();
 	QString GetLabelNames() const;
+	iAResultFilter const & GetResultFilter() const;
 signals:
 	void Like();
 	void Hate();
 	void GoToCluster();
 	void ViewUpdated();
 	void SlicerHover(int, int, int, int);
+	void ResultFilterUpdate();
 protected:
 	virtual void paintEvent(QPaintEvent * );
 private slots:
@@ -93,6 +97,7 @@ private slots:
 	void SlicerMouseMove(int x, int y, int z, int c);
 	void SlicerReleased(int x, int y, int z);
 	void TriggerResultFilterUpdate();
+	void ResetResultFilter();
 private:
 	iAImageTreeNode const * m_node;
 	iAImagePreviewWidget* m_previewWidget;
@@ -119,10 +124,10 @@ private:
 	void SetImage();
 	void AddResultFilterPixel(int x, int y, int z);
 
-	vtkSmartPointer<iAvtkImageData> m_resultFilterOverlayImg;
+	vtkSmartPointer<iAvtkImageData> m_resultFilterImg;
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
-	QVector<QPair<iAImageCoordinate, int> > m_resultFilter;
+	iAResultFilter m_resultFilter;
 	QSharedPointer<iAChannelVisualizationData> m_resultFilterChannel;
 	int m_lastResultFilterX, m_lastResultFilterY, m_lastResultFilterZ;
 	iATimedEvent* m_resultFilterTriggerThread;

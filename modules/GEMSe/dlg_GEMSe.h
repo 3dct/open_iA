@@ -112,6 +112,7 @@ private slots:
 	void UpdateViews();
 	void UpdateClusterChartData();
 	void HistogramSelectionUpdated();
+	void UpdateResultFilter();
 private:
 	void JumpToNode(iAImageTreeNode * leaf, int stepLimit);
 	void UpdateFilteredChartData();

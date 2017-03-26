@@ -38,7 +38,8 @@ public:
 	virtual int GetClusterSize() const;
 	virtual int GetFilteredSize() const;
 	virtual void UpdateFilter(iAChartFilter const & filter,
-		iAChartAttributeMapper const & chartAttrMap);
+		iAChartAttributeMapper const & chartAttrMap,
+		iAResultFilter const & resultFilter);
 	virtual bool IsLeaf() const { return false; }
 	virtual ClusterImageType const GetRepresentativeImage(int type) const;
 	virtual void DiscardDetails();

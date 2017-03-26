@@ -81,3 +81,20 @@ double iAChartFilter::GetMax(int chartID) const
 {
 	return HasFilter(chartID) ? m_filters[chartID].second : -1;
 }
+
+bool ResultFilterMatches(iAImageTreeLeaf const * leaf, iAResultFilter const & filter)
+{
+	LabelImageType* img = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer());
+	for (auto filterEntry: filter)
+	{
+		itk::Index<3> idx;
+		idx[0] = filterEntry.first.x;
+		idx[1] = filterEntry.first.y;
+		idx[2] = filterEntry.first.z;
+		if (img->GetPixel(idx) != filterEntry.second)
+		{
+			return false;
+		}
+	}
+	return true;
+}
