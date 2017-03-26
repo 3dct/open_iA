@@ -449,6 +449,21 @@ QString iADetailView::GetLabelNames() const
 	return labelNames.join(",");
 }
 
+class iAvtkImageData: public vtkImageData
+{
+public:
+	static iAvtkImageData *New();
+	vtkTypeMacro(iAvtkImageData, vtkImageData);
+	void SetScalarRange(int min, int max)
+	{
+		ScalarRangeComputeTime.Modified();
+		ScalarRange[0] = min;
+		ScalarRange[1] = max;
+	}
+};
+
+vtkStandardNewMacro(iAvtkImageData);
+
 void iADetailView::SlicerClicked(int x, int y, int z)
 {
 	int label = GetCurLabelRow();
@@ -458,21 +473,18 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 	}
 	if (!m_resultFilterOverlayImg)
 	{
-		m_resultFilterOverlayImg = AllocateImage(VTK_INT, m_dimensions, m_spacing);
+		m_resultFilterOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
+		m_resultFilterOverlayImg->SetDimensions(m_dimensions);
+		m_resultFilterOverlayImg->AllocateScalars(VTK_INT, 1);
+		m_resultFilterOverlayImg->SetSpacing(m_spacing);
 		clearImage(m_resultFilterOverlayImg, m_labelCount);
 		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 	}
 	drawPixel(m_resultFilterOverlayImg, x, y, z, label);
 	m_resultFilterOverlayImg->Modified();
-	/*
-	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName("test.mhd");
-	metaImageWriter->SetInputData(m_resultFilterOverlayImg);
-	metaImageWriter->SetCompression(false);
-	metaImageWriter->Write();
-	metaImageWriter->Delete();
-	*/
+	m_resultFilterOverlayImg->SetScalarRange(0, m_labelCount);
+
 	// for being able to undo:
 	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
 	iAChannelID id = static_cast<iAChannelID>(ch_LabelOverlay);

@@ -41,6 +41,7 @@ class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iALabelInfo;
 class iAModalityList;
+class iAvtkImageData;
 
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -113,7 +114,7 @@ private:
 	void UpdateGeometry();
 	void SetImage();
 
-	vtkSmartPointer<vtkImageData> m_resultFilterOverlayImg;
+	vtkSmartPointer<iAvtkImageData> m_resultFilterOverlayImg;
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
 	QVector<QPair<iAImageCoordinate, int> > m_resultFilter;
