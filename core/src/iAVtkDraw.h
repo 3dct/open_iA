@@ -23,14 +23,31 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
+/**
+/* change a single pixel in the image
+/* don't forget to call Modified() on the image,
+/* and if the scalar range changed, to update the scalar range!
+/* (unfortunately that seems to require a dirty hack at the moment,
+/* see iAvtkImageData
+ */
 template <typename T>
 void drawPixel(vtkImageData* img, int x, int y, int z, T c);
 
+/**
+ * draw a line in the image
+ * see the notes for drawPixel
+ */
 template <typename T>
 void drawLine(vtkImageData* img, int x1, int y1, int x2, int y2, T c);
 
+/**
+* set all pixels in the image to the given value
+* see the notes for drawPixel
+*/
 template <typename T>
 void clearImage(vtkImageData* img, T c);
+
+
 
 
 template <typename T>

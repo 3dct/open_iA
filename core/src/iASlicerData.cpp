@@ -26,7 +26,6 @@
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAMovieHelper.h"
-#include "iASlicerObserver.h"
 #include "iAPieChartGlyph.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
@@ -271,6 +270,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	interactor->Initialize( );
 
 	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, this );
+	interactor->AddObserver( vtkCommand::LeftButtonReleaseEvent, this );
 	interactor->AddObserver( vtkCommand::MouseMoveEvent, this );
 	interactor->AddObserver( vtkCommand::KeyReleaseEvent, this );
 	interactor->AddObserver( vtkCommand::MouseWheelBackwardEvent, this );
@@ -1018,6 +1018,15 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 		int x, y, z;
 		GetMouseCoord(x, y, z, result);
 		emit clicked(x, y, z);
+		emit UserInteraction();
+		break;
+	}
+	case vtkCommand::LeftButtonReleaseEvent:
+	{
+		double result[4];
+		int x, y, z;
+		GetMouseCoord(x, y, z, result);
+		emit released(x, y, z);
 		emit UserInteraction();
 		break;
 	}
