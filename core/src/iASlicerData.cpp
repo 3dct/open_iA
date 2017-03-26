@@ -152,7 +152,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	rulerWidget(0),
 	interactor(0)
 {
-	observerMouseMove = iASlicerObserver::New(this);
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
@@ -205,8 +204,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 iASlicerData::~iASlicerData(void)
 {
 	disconnect();
-	if(observerMouseMove)
-		observerMouseMove->Delete();
 
 	colormapper->Delete();
 	imageActor->Delete();
@@ -273,11 +270,11 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
 
-	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, observerMouseMove );
-	interactor->AddObserver( vtkCommand::MouseMoveEvent, observerMouseMove );
-	interactor->AddObserver( vtkCommand::KeyReleaseEvent, observerMouseMove );
-	interactor->AddObserver( vtkCommand::MouseWheelBackwardEvent, observerMouseMove );
-	interactor->AddObserver( vtkCommand::MouseWheelForwardEvent, observerMouseMove );
+	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, this );
+	interactor->AddObserver( vtkCommand::MouseMoveEvent, this );
+	interactor->AddObserver( vtkCommand::KeyReleaseEvent, this );
+	interactor->AddObserver( vtkCommand::MouseWheelBackwardEvent, this );
+	interactor->AddObserver( vtkCommand::MouseWheelForwardEvent, this );
 
 	InitReslicerWithImageData();
 	
