@@ -41,6 +41,7 @@ class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iALabelInfo;
 class iAModalityList;
+class iATimedEvent;
 class iAvtkImageData;
 
 class vtkColorTransferFunction;
@@ -89,6 +90,9 @@ private slots:
 	void ChangeModality(int);
 	void ChangeMagicLensOpacity(int);
 	void SlicerClicked(int, int, int);
+	void SlicerMouseMove(int x, int y, int z, int c);
+	void SlicerReleased(int x, int y, int z);
+	void TriggerResultFilterUpdate();
 private:
 	iAImageTreeNode const * m_node;
 	iAImagePreviewWidget* m_previewWidget;
@@ -113,12 +117,16 @@ private:
 
 	void UpdateGeometry();
 	void SetImage();
+	void AddResultFilterPixel(int x, int y, int z);
 
 	vtkSmartPointer<iAvtkImageData> m_resultFilterOverlayImg;
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
 	QVector<QPair<iAImageCoordinate, int> > m_resultFilter;
 	QSharedPointer<iAChannelVisualizationData> m_resultFilterChannel;
+	int m_lastResultFilterX, m_lastResultFilterY, m_lastResultFilterZ;
+	iATimedEvent* m_resultFilterTriggerThread;
+	bool m_MouseButtonDown;
 	int m_labelCount;
 	double m_spacing[3];
 	int m_dimensions[3];

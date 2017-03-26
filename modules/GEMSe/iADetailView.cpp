@@ -48,6 +48,8 @@
 
 #include <QLabel>
 #include <QListView>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QPainter>
 #include <QPushButton>
 #include <QHBoxLayout>
@@ -76,7 +78,9 @@ iADetailView::iADetailView(
 	m_nextChannelID(0),
 	m_magicLensEnabled(false),
 	m_magicLensCount(1),
-	m_labelItemModel(new QStandardItemModel())
+	m_labelItemModel(new QStandardItemModel()),
+	m_MouseButtonDown(false),
+	m_resultFilterTriggerThread(0)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -164,7 +168,9 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
 	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
 vtkSmartPointer<vtkColorTransferFunction> GetDefaultCTF(vtkSmartPointer<vtkImageData> imageData)
@@ -464,10 +470,78 @@ public:
 
 vtkStandardNewMacro(iAvtkImageData);
 
+typedef void(*VoidMethod)();
+
+class iATimedEvent: public QThread
+{
+public:
+	iATimedEvent(int delayMS) :
+		m_waitTimeMS(0),
+		m_delayMS(delayMS)
+	{}
+	void restart()
+	{
+		QMutexLocker locker(&mutex);
+		m_waitTimeMS = 0;
+	}
+	void run()
+	{
+		const int WaitTime = 10;
+		while (m_waitTimeMS < m_delayMS)
+		{
+			msleep(WaitTime);
+			QMutexLocker locker(&mutex);
+			m_waitTimeMS += WaitTime;
+		}
+	}
+private:
+	QMutex mutex;
+	int m_waitTimeMS;
+	int m_delayMS;
+};
+
 void iADetailView::SlicerClicked(int x, int y, int z)
 {
+	AddResultFilterPixel(x, y, z);
+	if (!m_resultFilterTriggerThread)
+	{
+		m_resultFilterTriggerThread = new iATimedEvent(2000);
+		connect(m_resultFilterTriggerThread, SIGNAL(finished()), this, SLOT(TriggerResultFilterUpdate()));
+		m_resultFilterTriggerThread->start();
+	}
+	m_MouseButtonDown = true;
+}
+
+
+void iADetailView::TriggerResultFilterUpdate()
+{
+	m_resultFilterTriggerThread = 0;
+	DEBUG_LOG("Triggering Result Filter Update!");
+}
+
+void iADetailView::SlicerReleased(int x, int y, int z)
+{
+	m_MouseButtonDown = false;
+}
+
+
+void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
+{
+	if (m_MouseButtonDown)
+	{
+		AddResultFilterPixel(x, y, z);
+		m_resultFilterTriggerThread->restart();
+	}
+}
+
+void iADetailView::AddResultFilterPixel(int x, int y, int z)
+{
+	if (x == m_lastResultFilterX && y == m_lastResultFilterY && z == m_lastResultFilterZ)
+	{
+		return;
+	}
 	int label = GetCurLabelRow();
-	if (label == -1 || label == m_labelItemModel->rowCount()-1)
+	if (label == -1 || label == m_labelItemModel->rowCount() - 1)
 	{
 		return;
 	}
