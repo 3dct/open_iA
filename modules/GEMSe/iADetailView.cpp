@@ -436,9 +436,15 @@ int iADetailView::GetRepresentativeType()
 }
 
 
+void iADetailView::SetRefImg(LabelImagePointer refImg)
+{
+	m_refImg = refImg;
+}
+
+
 void iADetailView::SetImage()
 {
-	ClusterImageType img = m_node->GetRepresentativeImage(m_representativeType);
+	ClusterImageType img = m_node->GetRepresentativeImage(m_representativeType, m_refImg);
 	if (!img)
 	{
 		return;

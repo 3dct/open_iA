@@ -65,9 +65,10 @@ public:
 	void SetAutoShrink(bool enabled);
 	bool GetAutoShrink();
 	void SetIconSize(int iconSize);
-	bool SetRepresentativeType(int representativeType);
+	bool SetRepresentativeType(int representativeType, LabelImagePointer refImg);
 	int  GetRepresentativeType() const;
 	void FreeMemory(QSharedPointer<iAImageTreeNode> & node, bool overrideFree);
+	void SetRefImg(LabelImagePointer refImg);
 signals:
 	void Clicked(QSharedPointer<iAImageTreeNode >);
 	void ImageClicked(QSharedPointer<iAImageTreeNode >);
@@ -114,4 +115,5 @@ private:
 	iAPreviewWidgetPool * m_previewPool;
 	int m_iconSize;
 	int m_representativeType;
+	LabelImagePointer m_refImg;
 };

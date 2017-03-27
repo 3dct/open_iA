@@ -41,7 +41,7 @@ public:
 		QMap<int, QString> const & samplings,
 		QString const & cltFileName,
 		QString const & layoutName,
-		QString const & referenceImage,
+		QString const & refImg,
 		QString const & hiddenCharts,
 		QString const & colorThemeName,
 		QString const & labelNames
@@ -66,7 +66,7 @@ private:
 	QString m_ClusteringFileName;
 	QString m_LayoutName;
 	QString m_SEAFileName;
-	QString m_ReferenceImage;
+	QString m_RefImg;
 	QString m_HiddenCharts;
 	QString m_ColorTheme;
 	QString m_LabelNames;

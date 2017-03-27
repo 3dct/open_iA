@@ -114,7 +114,8 @@ void dlg_GEMSe::SetTree(
 	m_previewWidgetPool = new iAPreviewWidgetPool(
 		MaxPreviewWidgets, m_cameraWidget->GetCommonCamera(), iASlicerMode::XY, imageTree->GetLabelCount(), m_colorTheme);
 
-	m_nullImage = AllocateImage(imageTree->m_root->GetRepresentativeImage(iARepresentativeType::Difference));
+	m_nullImage = AllocateImage(imageTree->m_root->GetRepresentativeImage(iARepresentativeType::Difference,
+		LabelImagePointer()));
 
 	m_treeView = new iAImageTreeView(wdTree, imageTree, m_previewWidgetPool, m_representativeType);
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
@@ -517,7 +518,7 @@ public:
 		return 0;
 	}
 
-	virtual ClusterImageType const GetRepresentativeImage(int type) const
+	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const
 	{
 		return m_img;
 	}
@@ -759,6 +760,8 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 	CalculateRefImgComp(GetRoot(), refImg, labelCount);
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
+	m_detailView->SetRefImg(refImg);
+	m_treeView->SetRefImg(refImg);
 }
 
 
@@ -796,11 +799,11 @@ void dlg_GEMSe::SetIconSize(int iconSize)
 }
 
 
-bool dlg_GEMSe::SetRepresentativeType(int type)
+bool dlg_GEMSe::SetRepresentativeType(int type, LabelImagePointer refImg)
 {
 	if (!m_treeView)
 		return false;
-	bool result = m_treeView->SetRepresentativeType(type);
+	bool result = m_treeView->SetRepresentativeType(type, refImg);
 	if (!result)
 	{	// if it failed, reset to what tree view uses
 		type = m_treeView->GetRepresentativeType();

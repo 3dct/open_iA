@@ -53,6 +53,11 @@ iAImageTreeView::iAImageTreeView(
 }
 
 
+void iAImageTreeView::SetRefImg(LabelImagePointer refImg)
+{
+	m_refImg = refImg;
+}
+
 QSharedPointer<iAImageTree > const iAImageTreeView::GetTree() const
 {
 	return m_imageTree;
@@ -230,7 +235,7 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeN
 		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is NULL.");
 		return nodeNumber;
 	}
-	nodeWidget->UpdateShrinkStatus();
+	nodeWidget->UpdateShrinkStatus(m_refImg);
 	
 	int left = TreePadding + level * TreeLevelIndent;
 	int top = TreePadding + (nodeNumber-shrinkedNodes) * (TreeClusterPadding+m_iconSize) +
@@ -274,7 +279,7 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageTreeNode > node
 	}
 	if (!nodeWidget->IsShrinked())
 	{
-		nodeWidget->UpdateRepresentative();
+		nodeWidget->UpdateRepresentative(m_refImg);
 	}
 	if (nodeWidget->IsExpanded())
 	{
@@ -341,19 +346,19 @@ void iAImageTreeView::ExpandNode(bool expand)
 	if (parent)
 	{
 		if (m_autoShrink)
-			m_nodeWidgets[parent.data()]->SetAutoShrink(true);
+			m_nodeWidgets[parent.data()]->SetAutoShrink(true, m_refImg);
 		QSharedPointer<iAImageTreeNode> sibling =
 			GetSibling(nodeWidget->GetClusterNode());
 		if (sibling && m_autoShrink)
 		{
-			m_nodeWidgets[sibling.data()]->SetAutoShrink(true);
+			m_nodeWidgets[sibling.data()]->SetAutoShrink(true, m_refImg);
 		}
 	}
 	bool layoutNeedsUpdate = false;
 	if (expand && nodeWidget->IsAutoShrinked())
 	{
 		layoutNeedsUpdate = true;
-		nodeWidget->SetAutoShrink(false);
+		nodeWidget->SetAutoShrink(false, m_refImg);
 	}
 	layoutNeedsUpdate |= ExpandNode(nodeWidget, expand, false);
 	if (layoutNeedsUpdate)
@@ -440,11 +445,11 @@ bool iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 			}
 		}
 	}
-	m_nodeWidgets[curCluster.data()]->SetAutoShrink(false);
+	m_nodeWidgets[curCluster.data()]->SetAutoShrink(false, m_refImg);
 	QSharedPointer<iAImageTreeNode> parent = path[curIdx];
 	QSharedPointer<iAImageTreeNode> sibling = GetSibling(curCluster);
-	m_nodeWidgets[parent.data()]->SetAutoShrink(false);
-	m_nodeWidgets[sibling.data()]->SetAutoShrink(false);
+	m_nodeWidgets[parent.data()]->SetAutoShrink(false, m_refImg);
+	m_nodeWidgets[sibling.data()]->SetAutoShrink(false, m_refImg);
 	UpdateLayout();
 	emit JumpedTo(curCluster);
 	return true;
@@ -515,23 +520,23 @@ void iAImageTreeView::UpdateAutoShrink(iAImageTreeNode* node, bool wasSelected)
 		(m_nodeWidgets[node]->GetClusterNode()->GetAttitude() != iAImageTreeNode::Liked);
 	if (m_nodeWidgets[node]->IsShrinked() != shrink)
 	{
-		m_nodeWidgets[node]->SetAutoShrink(shrink);
+		m_nodeWidgets[node]->SetAutoShrink(shrink, m_refImg);
 		UpdateLayout();
 	}
 }
 
 
-bool iAImageTreeView::SetRepresentativeType(int representativeType)
+bool iAImageTreeView::SetRepresentativeType(int representativeType, LabelImagePointer refImg)
 {
 	m_representativeType = representativeType;
 	for (iAImageTreeNode* key : m_nodeWidgets.keys())
 	{
-		if (!m_nodeWidgets[key]->SetRepresentativeType(representativeType))
+		if (!m_nodeWidgets[key]->SetRepresentativeType(representativeType, refImg))
 		{
 			if (representativeType == AverageEntropy || representativeType == AverageLabel)
 			{
 				DEBUG_LOG("At least for one dataset, there are no probabilities available!");
-				SetRepresentativeType(Difference);	// just to make sure everybody is back to the a common representative type
+				SetRepresentativeType(Difference, refImg);	// just to make sure everybody is back to the a common representative type
 				return false;
 			}
 			else

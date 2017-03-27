@@ -83,7 +83,7 @@ public:
 		iAResultFilter const & resultFilter) = 0;
 	virtual bool IsLeaf() const = 0;
 	//! median image for this cluster:
-	virtual ClusterImageType const GetRepresentativeImage(int type) const = 0;
+	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const = 0;
 	virtual void DiscardDetails() = 0;
 	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const = 0;

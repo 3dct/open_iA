@@ -84,7 +84,7 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 	setLayout(m_mainLayout);
 	if (!m_shrinkStatus)
 	{
-		CreatePreview();
+		CreatePreview(LabelImagePointer());
 	}
 	else
 	{
@@ -93,14 +93,14 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 }
 
 
-bool iAImageNodeWidget::CreatePreview()
+bool iAImageNodeWidget::CreatePreview(LabelImagePointer refImg)
 {
 	m_imageView = m_previewPool->GetWidget(this);
 	if (!m_imageView)
 	{
 		return false;
 	}
-	UpdateRepresentative();
+	UpdateRepresentative(refImg);
 	connect(m_imageView, SIGNAL(Clicked()), this, SIGNAL(ImageClicked()));
 	connect(m_imageView, SIGNAL(Updated()), this, SIGNAL(Updated()) );
 	m_mainLayout->addWidget(m_imageView);
@@ -238,7 +238,7 @@ void iAImageNodeWidget::SetLargeLayout()
 	}
 }
 
-bool iAImageNodeWidget::UpdateShrinkStatus()
+bool iAImageNodeWidget::UpdateShrinkStatus(LabelImagePointer refImg)
 {
 	bool newShrink = IsShrinked();
 	if (m_shrinkStatus == newShrink)
@@ -253,7 +253,7 @@ bool iAImageNodeWidget::UpdateShrinkStatus()
 	}
 	else
 	{
-		if (!CreatePreview())
+		if (!CreatePreview(refImg))
 		{
 			m_shrinkStatus = true;
 			m_shrinkedAuto = true;
@@ -264,7 +264,7 @@ bool iAImageNodeWidget::UpdateShrinkStatus()
 	return true;
 }
 
-void iAImageNodeWidget::SetAutoShrink(bool newAutoShrink)
+void iAImageNodeWidget::SetAutoShrink(bool newAutoShrink, LabelImagePointer refImg)
 {
 	if (newAutoShrink == m_shrinkedAuto)
 		return;
@@ -273,7 +273,7 @@ void iAImageNodeWidget::SetAutoShrink(bool newAutoShrink)
 		return;
 	}
 	m_shrinkedAuto = newAutoShrink;
-	UpdateShrinkStatus();
+	UpdateShrinkStatus(refImg);
 }
 
 bool iAImageNodeWidget::IsAutoShrinked() const
@@ -281,28 +281,28 @@ bool iAImageNodeWidget::IsAutoShrinked() const
 	return m_shrinkedAuto;
 }
 
-bool iAImageNodeWidget::UpdateRepresentative()
+bool iAImageNodeWidget::UpdateRepresentative(LabelImagePointer refImg)
 {
 	if (!m_imageView)
 	{
 		return true;
 	}
-	if (!m_cluster->GetRepresentativeImage(m_representativeType))
+	if (!m_cluster->GetRepresentativeImage(m_representativeType, refImg))
 	{
 		return false;
 	}
-	m_imageView->SetImage(m_cluster->GetRepresentativeImage(m_representativeType), false,
+	m_imageView->SetImage(m_cluster->GetRepresentativeImage(m_representativeType, refImg), false,
 		m_cluster->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 	m_imageView->update();
 	return true;
 }
 
 
-bool iAImageNodeWidget::SetRepresentativeType(int representativeType)
+bool iAImageNodeWidget::SetRepresentativeType(int representativeType, LabelImagePointer refImg)
 {
 	int oldRepresentativeType = m_representativeType;
 	m_representativeType = representativeType;
-	bool result = UpdateRepresentative();
+	bool result = UpdateRepresentative(refImg);
 	if (!result)
 	{
 		m_representativeType = oldRepresentativeType;

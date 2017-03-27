@@ -148,7 +148,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
 	if (metaFile.contains(ReferenceImageKey))
 	{
-		m_ReferenceImage = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
+		m_RefImg = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
 	}
 	if (metaFile.contains(HiddenChartsKey))
 	{
@@ -172,7 +172,7 @@ iASEAFile::iASEAFile(
 		QMap<int, QString> const & samplings,
 		QString const & clusterFile,
 		QString const & layout,
-		QString const & referenceImage,
+		QString const & refImg,
 		QString const & hiddenCharts,
 		QString const & colorTheme,
 		QString const & labelNames):
@@ -181,7 +181,7 @@ iASEAFile::iASEAFile(
 	m_Samplings(samplings),
 	m_ClusteringFileName(clusterFile),
 	m_LayoutName(layout),
-	m_ReferenceImage(referenceImage),
+	m_RefImg(refImg),
 	m_HiddenCharts(hiddenCharts),
 	m_ColorTheme(colorTheme),
 	m_LabelNames(labelNames),
@@ -205,9 +205,9 @@ void iASEAFile::Store(QString const & fileName)
 	}
 	metaFile.setValue(ClusteringDataKey, MakeRelative(path, m_ClusteringFileName));
 	metaFile.setValue(LayoutKey        , m_LayoutName);
-	if (!m_ReferenceImage.isEmpty())
+	if (!m_RefImg.isEmpty())
 	{
-		metaFile.setValue(ReferenceImageKey, MakeRelative(path, m_ReferenceImage));
+		metaFile.setValue(ReferenceImageKey, MakeRelative(path, m_RefImg));
 	}
 	if (!m_HiddenCharts.isEmpty())
 	{
@@ -256,7 +256,7 @@ QString const & iASEAFile::GetLayoutName() const
 
 QString const & iASEAFile::GetReferenceImage() const
 {
-	return m_ReferenceImage;
+	return m_RefImg;
 }
 
 QString const & iASEAFile::GetHiddenCharts() const

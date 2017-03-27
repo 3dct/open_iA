@@ -138,7 +138,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	}
 	if (seaFile.GetReferenceImage() != "")
 	{
-		gemseAttach->LoadReferenceImage(seaFile.GetReferenceImage());
+		gemseAttach->LoadRefImg(seaFile.GetReferenceImage());
 	}
 	if (seaFile.GetHiddenCharts() != "")
 	{

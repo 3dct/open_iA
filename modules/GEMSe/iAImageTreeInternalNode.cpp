@@ -37,7 +37,7 @@ iAImageTreeInternalNode::iAImageTreeInternalNode(
 	QFileInfo fi(GetCachedFileName(iARepresentativeType::Difference));
 	if (!fi.exists())
 	{
-		CalculateRepresentative(iARepresentativeType::Difference);
+		CalculateRepresentative(iARepresentativeType::Difference, LabelImagePointer());
 		DiscardDetails();
 	}
 }
@@ -50,7 +50,7 @@ int iAImageTreeInternalNode::GetChildCount() const
 }
 
 
-ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type) const
+ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, LabelImagePointer refImg) const
 {
 	switch (type)
 	{
@@ -59,7 +59,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type) cons
 		QVector<iAITKIO::ImagePointer> imgs;
 		for (int i = 0; i < GetChildCount(); ++i)
 		{
-			imgs.push_back(GetChild(i)->GetRepresentativeImage(type));
+			imgs.push_back(GetChild(i)->GetRepresentativeImage(type, refImg));
 		}
 		iAITKIO::ImagePointer rep = CalculateDifferenceMarkers(imgs, m_differenceMarkerValue);
 		if (m_representative.size() == 0)
@@ -90,6 +90,48 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type) cons
 		//StoreImage(m_representative[iARepresentativeType::AverageEntropy], GetCachedFileName(type), true);
 		return m_representative[iARepresentativeType::AverageEntropy];
 	}
+	case iARepresentativeType::Correctness:
+	{
+		if (!refImg)
+		{
+			return ClusterImageType();
+		}
+		ClusterImageType diffRep = GetRepresentativeImage(iARepresentativeType::Difference, LabelImagePointer());
+		ClusterImageType correctnessImg = AllocateImage(diffRep);
+		auto diffImg = dynamic_cast<LabelImageType*>(diffRep.GetPointer());
+		auto corrImg = dynamic_cast<LabelImageType*>(correctnessImg.GetPointer());
+		itk::ImageRegionIterator<LabelImageType> refIt(refImg, refImg->GetLargestPossibleRegion());
+		itk::ImageRegionIterator<LabelImageType> diffIt(diffImg, diffImg->GetLargestPossibleRegion());
+		itk::ImageRegionIterator<LabelImageType> corrIt(corrImg, corrImg->GetLargestPossibleRegion());
+		refIt.GoToBegin(); diffIt.GoToBegin(); corrIt.GoToBegin();
+		while (!refIt.IsAtEnd())
+		{
+			if (refIt.Get() == diffIt.Get())
+			{
+				corrIt.Set(1);
+			}
+			else if (diffIt.Get() == m_labelCount)
+			{
+				corrIt.Set(m_labelCount);
+			}
+			else
+			{
+				corrIt.Set(0);
+			}
+			++refIt;
+			++diffIt;
+			++corrIt;
+		}
+
+		if (m_representative.size() <= iARepresentativeType::Correctness)
+		{
+			m_representative.resize(iARepresentativeType::Correctness + 1);
+		}
+		m_representative[iARepresentativeType::Correctness] = correctnessImg;
+		StoreImage(m_representative[iARepresentativeType::Correctness], GetCachedFileName(iARepresentativeType::Correctness), true);
+
+		return m_representative[iARepresentativeType::Correctness];
+	}
 	case iARepresentativeType::AverageLabel:
 	{
 		CombinedProbPtr result = UpdateProbabilities();
@@ -103,7 +145,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type) cons
 	}
 }
 
-ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int type) const
+ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int type, LabelImagePointer refImg) const
 {
 	switch (type)
 	{
@@ -113,9 +155,9 @@ ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int ty
 		for (int i = 0; i < GetChildCount(); ++i)
 		{
 			// TODO: redundant to  CalculateRepresentative!
-			if (GetChild(i)->GetRepresentativeImage(type))
+			if (GetChild(i)->GetRepresentativeImage(type, refImg))
 			{
-				imgs.push_back(GetChild(i)->GetRepresentativeImage(type));
+				imgs.push_back(GetChild(i)->GetRepresentativeImage(type, refImg));
 			}
 		}
 		m_filteredRepresentative[type] =
@@ -191,7 +233,7 @@ void iAImageTreeInternalNode::GetExampleImages(QVector<iAImageTreeLeaf *> & resu
 }
 
 
-ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type) const
+ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type, LabelImagePointer refImg) const
 {
 	if (GetFilteredSize() != GetClusterSize())
 	{
@@ -201,7 +243,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type)
 		}
 		if (m_filteredRepresentativeOutdated || !m_filteredRepresentative[type])
 		{
-			RecalculateFilteredRepresentative(type);
+			RecalculateFilteredRepresentative(type, refImg);
 		}
 		/*
 		// fine, this just means that all images were filtered out!
@@ -221,7 +263,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type)
 		QFileInfo fi(GetCachedFileName(type));
 		if (!fi.exists())
 		{
-			m_representative[type] = CalculateRepresentative(type);
+			m_representative[type] = CalculateRepresentative(type, refImg);
 
 		}
 		else
@@ -286,7 +328,7 @@ void iAImageTreeInternalNode::UpdateFilter(iAChartFilter const & filter,
 	m_filteredRepresentativeOutdated = true;
 }
 
-void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type) const
+void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type, LabelImagePointer refImg) const
 {
 	m_filteredRepresentativeOutdated = false;
 	if (GetFilteredSize() == GetClusterSize())
@@ -294,7 +336,7 @@ void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type) const
 		DEBUG_LOG("RecalculateFilteredRepresentative called without need (not filtered!)");
 		// return;
 	}
-	m_filteredRepresentative[type] = CalculateFilteredRepresentative(type);
+	m_filteredRepresentative[type] = CalculateFilteredRepresentative(type, refImg);
 }
 
 

@@ -151,7 +151,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbClusteringStore,  SIGNAL(clicked()), this, SLOT(StoreClustering()));
 	connect(pbAllStore,         SIGNAL(clicked()), this, SLOT(StoreAll()));
 	connect(pbSelectHistograms, SIGNAL(clicked()), m_dlgGEMSe, SLOT(SelectHistograms()));
-	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImage()));
+	connect(pbLoadRefImage,     SIGNAL(clicked()), this, SLOT(LoadRefImg()));
 	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(StoreDerivedOutput()));
 	connect(pbFreeMemory, SIGNAL(clicked()), this, SLOT(FreeMemory()));
 
@@ -344,7 +344,8 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 	}
 	double * origSpacing = originalImage->GetSpacing();
 	const itk::Vector<double, 3> resultSpacing =
-		tree->m_root->GetRepresentativeImage(iARepresentativeType::Difference)->GetSpacing();
+		tree->m_root->GetRepresentativeImage(iARepresentativeType::Difference,
+			LabelImagePointer())->GetSpacing();
 	if (origSpacing[0] != resultSpacing[0] ||
 		origSpacing[1] != resultSpacing[1] ||
 		origSpacing[2] != resultSpacing[2])
@@ -516,8 +517,8 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		m_dlgMajorityVoting = new dlg_MajorityVoting(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
 			m_dlgSamplings);
-		if (m_groundTruthImage)
-			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
+		if (m_refImg)
+			m_dlgMajorityVoting->SetGroundTruthImage(m_refImg);
 		mdiChild->splitDockWidget(this, m_dlgMajorityVoting, Qt::Vertical);
 	}
 }
@@ -587,15 +588,16 @@ void dlg_GEMSeControl::SetRepresentative(const QString & reprType)
 		(reprType == "Difference") ?			iARepresentativeType::Difference :
 		(reprType == "Label Distribution") ?	iARepresentativeType::LabelDistribution :
 		(reprType == "Average Label") ?         iARepresentativeType::AverageLabel:
+		(reprType == "Correctness") ?           iARepresentativeType::Correctness:
 		/* reprType == "Average Entropy" */		iARepresentativeType::AverageEntropy;
-	if (!m_dlgGEMSe->SetRepresentativeType(representativeType))
+	if (!m_dlgGEMSe->SetRepresentativeType(representativeType, m_refImg))
 	{   // could not set representative, reset
 		int reprType = m_dlgGEMSe->GetRepresentativeType();
 		cbRepresentative->setCurrentIndex(reprType);
 	}
 }
 
-void dlg_GEMSeControl::LoadRefImage()
+void dlg_GEMSeControl::LoadRefImg()
 {
 	QString refFileName = QFileDialog::getOpenFileName(
 		this,
@@ -605,24 +607,24 @@ void dlg_GEMSeControl::LoadRefImage()
 	);
 	if (refFileName.isEmpty())
 		return;
-	LoadReferenceImage(refFileName);
+	LoadRefImg(refFileName);
 }
 
-bool dlg_GEMSeControl::LoadReferenceImage(QString const & referenceImageName)
+bool dlg_GEMSeControl::LoadRefImg(QString const & refImgName)
 {
 	try
 	{
 		iAITKIO::ScalarPixelType pixelType;
-		auto img = iAITKIO::readFile(referenceImageName, pixelType, false);
+		auto img = iAITKIO::readFile(refImgName, pixelType, false);
 		if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
 		{
 			img = CastImageTo<int>(img);
 		}
-		leRefImage->setText(referenceImageName);
-		m_groundTruthImage = dynamic_cast<LabelImageType*>(img.GetPointer());
-		m_dlgGEMSe->CalcRefImgComp(m_groundTruthImage);
+		leRefImage->setText(refImgName);
+		m_refImg = dynamic_cast<LabelImageType*>(img.GetPointer());
+		m_dlgGEMSe->CalcRefImgComp(m_refImg);
 		if (m_dlgMajorityVoting)
-			m_dlgMajorityVoting->SetGroundTruthImage(m_groundTruthImage);
+			m_dlgMajorityVoting->SetGroundTruthImage(m_refImg);
 	}
 	catch (std::exception & e)
 	{

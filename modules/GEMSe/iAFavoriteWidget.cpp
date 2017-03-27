@@ -132,7 +132,8 @@ void iAFavoriteWidget::Add(iAImageTreeNode * node)
 		return;
 	}
 	widget->setFixedSize(FavoriteWidth, FavoriteWidth);
-	widget->SetImage(node->GetRepresentativeImage(iARepresentativeType::Difference), false, true);
+	widget->SetImage(node->GetRepresentativeImage(iARepresentativeType::Difference,
+		LabelImagePointer()), false, true);
 	connect(widget, SIGNAL(Clicked()), this, SLOT(FavoriteClicked()));
 	connect(widget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	m_favorites.push_back(FavoriteData(node, widget));

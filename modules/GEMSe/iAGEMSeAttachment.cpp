@@ -92,14 +92,9 @@ bool iAGEMSeAttachment::LoadClustering(QString const & fileName)
 	return m_dlgGEMSeControl->LoadClustering(fileName);
 }
 
-bool iAGEMSeAttachment::LoadSeeds(QString const & seedsFileName)
+bool iAGEMSeAttachment::LoadRefImg(QString const & refImgName)
 {
-	return m_dlgLabels->Load(seedsFileName);
-}
-
-bool iAGEMSeAttachment::LoadReferenceImage(QString const & referenceImageName)
-{
-	return m_dlgGEMSeControl->LoadReferenceImage(referenceImageName);
+	return m_dlgGEMSeControl->LoadRefImg(refImgName);
 }
 
 void iAGEMSeAttachment::SetSerializedHiddenCharts(QString const & hiddenCharts)

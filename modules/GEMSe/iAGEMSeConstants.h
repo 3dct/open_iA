@@ -187,5 +187,6 @@ enum iARepresentativeType
 	Difference,
 	AverageEntropy,
 	AverageLabel,
-	LabelDistribution
+	LabelDistribution,
+	Correctness,
 };

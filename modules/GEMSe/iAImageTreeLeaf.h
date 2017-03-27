@@ -36,7 +36,7 @@ public:
 	virtual void UpdateFilter(iAChartFilter const & filter,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAResultFilter const & resultFilter);
-	virtual ClusterImageType const GetRepresentativeImage(int type) const;
+	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const;
 	virtual void DiscardDetails();
 	ClusterImageType const GetLargeImage() const;
 	virtual ClusterIDType GetID() const;

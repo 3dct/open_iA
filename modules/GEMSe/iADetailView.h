@@ -24,6 +24,7 @@
 typedef iAITKIO::ImagePointer ClusterImageType;
 
 #include "iAChartFilter.h"   // for iAResultFilter
+#include "iAImageTreeNode.h" // for LabelImagePointer
 
 #include <vtkSmartPointer.h>
 
@@ -78,6 +79,7 @@ public:
 	int GetRepresentativeType();
 	QString GetLabelNames() const;
 	iAResultFilter const & GetResultFilter() const;
+	void SetRefImg(LabelImagePointer refImg);
 signals:
 	void Like();
 	void Hate();
@@ -109,6 +111,7 @@ private:
 	QStandardItemModel* m_labelItemModel;
 	int m_representativeType;
 	QListView* m_lvLegend;
+	LabelImagePointer m_refImg;
 
 	int m_magicLensCurrentModality;
 	int m_magicLensCurrentComponent;

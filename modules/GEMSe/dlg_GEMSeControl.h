@@ -61,7 +61,7 @@ public:
 	);
 	bool LoadSampling(QString const & fileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
-	bool LoadReferenceImage(QString const & referenceImageName);
+	bool LoadRefImg(QString const & refImgName);
 	void ExportAttributeRangeRanking();
 	void ExportRankings();
 	void ImportRankings();
@@ -83,7 +83,7 @@ private slots:
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
-	void LoadRefImage();
+	void LoadRefImg();
 	void StoreDerivedOutput();
 	void SetMagicLensCount(int);
 	void FreeMemory();
@@ -115,6 +115,6 @@ private:
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
-	LabelImagePointer                    m_groundTruthImage;
+	LabelImagePointer                    m_refImg;
 	QMap<QString, QString>               m_samplingSettings;
 };

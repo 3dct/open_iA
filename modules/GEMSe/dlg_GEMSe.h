@@ -74,7 +74,7 @@ public:
 	void CalcRefImgComp(LabelImagePointer refImg);
 	void ToggleAutoShrink();
 	void SetIconSize(int iconSize);
-	bool SetRepresentativeType(int type);
+	bool SetRepresentativeType(int type, LabelImagePointer refImg);
 	int GetRepresentativeType() const;
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);
@@ -148,11 +148,9 @@ private:
 	iAHistogramContainer * m_histogramContainer;
 	iAGEMSeScatterplot * m_scatterplot;
 	iAProbingWidget * m_probingWidget;
-
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;
-
 	iARepresentativeType m_representativeType;
 	QSharedPointer<iAFakeTreeLeaf> m_currentMajorityVotingResult;
 };

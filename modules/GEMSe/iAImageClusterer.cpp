@@ -317,8 +317,10 @@ void iAImageClusterer::run()
 #endif
 		for (int j=m_currImage+1; j<m_images.size() && !m_aborted; ++j)
 		{
-			ClusterImageType img1 = m_images[m_currImage]->GetRepresentativeImage(iARepresentativeType::Difference).GetPointer();
-			ClusterImageType img2 = m_images[j]->GetRepresentativeImage(iARepresentativeType::Difference).GetPointer();
+			ClusterImageType img1 = m_images[m_currImage]->GetRepresentativeImage(
+				iARepresentativeType::Difference, LabelImagePointer()).GetPointer();
+			ClusterImageType img2 = m_images[j]->GetRepresentativeImage(
+				iARepresentativeType::Difference, LabelImagePointer()).GetPointer();
 			float distance = 1.0;
 			if (!img1 || !img2)
 			{

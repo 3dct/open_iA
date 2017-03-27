@@ -41,7 +41,7 @@ public:
 		iAChartAttributeMapper const & chartAttrMap,
 		iAResultFilter const & resultFilter);
 	virtual bool IsLeaf() const { return false; }
-	virtual ClusterImageType const GetRepresentativeImage(int type) const;
+	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const;
 	virtual void DiscardDetails();
 	virtual void DiscardFilterData();
 	virtual void ClearFilterData();
@@ -56,10 +56,10 @@ public:
 	virtual CombinedProbPtr UpdateProbabilities() const;
 	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;
 private:
-	void RecalculateFilteredRepresentative(int type) const;
+	void RecalculateFilteredRepresentative(int type, LabelImagePointer refImg) const;
 	QString GetCachedFileName(int type) const;
-	ClusterImageType CalculateRepresentative(int type) const;
-	ClusterImageType CalculateFilteredRepresentative(int type) const;
+	ClusterImageType CalculateRepresentative(int type, LabelImagePointer refImg) const;
+	ClusterImageType CalculateFilteredRepresentative(int type, LabelImagePointer refImg) const;
 	ClusterIDType m_ID;
 	int m_clusterSize;
 	int m_filteredSize;
