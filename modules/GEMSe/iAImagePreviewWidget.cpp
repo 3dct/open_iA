@@ -31,7 +31,9 @@
 #include "iASlicerWidget.h"
 
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkImageActor.h>
 #include <vtkImageData.h>
+#include <vtkImageMapper3D.h>
 #include <vtkTransform.h>
 
 namespace
@@ -208,6 +210,30 @@ void iAImagePreviewWidget::SetImage(iAITKIO::ImagePointer const img, bool empty,
 	}
 	m_conn->SetImage(img);
 	SetImage(m_conn->GetVTKImage(), empty, isLabelImg);
+}
+
+void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
+{
+	if (m_addChannelImgActor)
+	{
+		DEBUG_LOG("Failsafe Remove Actor required");
+		m_slicer->RemoveImageActor(m_addChannelImgActor);
+	}
+	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();
+	m_addChannelImgActor->GetMapper()->BorderOn();
+	m_addChannelImgActor->SetInputData(img);
+	m_slicer->AddImageActor(m_addChannelImgActor);
+	m_slicer->update();
+}
+
+void iAImagePreviewWidget::RemoveChannel()
+{
+	if (m_addChannelImgActor)
+	{
+		m_slicer->RemoveImageActor(m_addChannelImgActor);
+		m_slicer->update();
+	}
+	m_addChannelImgActor = nullptr;
 }
 
  void iAImagePreviewWidget::BuildCTF()

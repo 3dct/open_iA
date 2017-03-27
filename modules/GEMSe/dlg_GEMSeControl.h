@@ -88,6 +88,7 @@ private slots:
 	void SetMagicLensCount(int);
 	void FreeMemory();
 	void SetProbabilityProbing(int);
+	void SetCorrectnessUncertainty(int);
 	void DataTFChanged();
 private:
 	void StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts);

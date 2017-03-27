@@ -75,6 +75,7 @@ public:
 	void ToggleAutoShrink();
 	void SetIconSize(int iconSize);
 	bool SetRepresentativeType(int type, LabelImagePointer refImg);
+	void SetCorrectnessUncertaintyOverlay(bool enabled);
 	int GetRepresentativeType() const;
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);

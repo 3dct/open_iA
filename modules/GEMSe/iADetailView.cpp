@@ -432,6 +432,19 @@ void iADetailView::SetRepresentativeType(int representativeType)
 }
 
 
+void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
+{
+	if (enabled)
+	{
+		m_previewWidget->AddNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
+	}
+	else
+	{
+		m_previewWidget->RemoveChannel();
+	}
+}
+
+
 int iADetailView::GetRepresentativeType()
 {
 	return m_representativeType;
@@ -461,7 +474,6 @@ void iADetailView::SetImage()
 		!img,
 		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 }
-
 
 void iADetailView::SetMagicLensCount(int count)
 {

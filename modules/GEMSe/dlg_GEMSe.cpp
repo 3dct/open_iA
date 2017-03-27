@@ -812,6 +812,11 @@ bool dlg_GEMSe::SetRepresentativeType(int type, LabelImagePointer refImg)
 	return result;
 }
 
+void dlg_GEMSe::SetCorrectnessUncertaintyOverlay(bool enabled)
+{
+	m_detailView->SetCorrectnessUncertaintyOverlay(enabled);
+}
+
 int dlg_GEMSe::GetRepresentativeType() const
 {
 	return m_treeView->GetRepresentativeType();

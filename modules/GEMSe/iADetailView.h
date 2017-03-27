@@ -80,6 +80,7 @@ public:
 	QString GetLabelNames() const;
 	iAResultFilter const & GetResultFilter() const;
 	void SetRefImg(LabelImagePointer refImg);
+	void SetCorrectnessUncertaintyOverlay(bool enabled);
 signals:
 	void Like();
 	void Hate();

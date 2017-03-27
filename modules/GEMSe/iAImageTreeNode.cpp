@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAImageTreeNode.h"
 
+#include "iAConsole.h"
+
 iAImageTreeNode::iAImageTreeNode() :
 	m_attitude(NoPreference)
 {
@@ -92,4 +94,53 @@ QSharedPointer<iAImageTreeNode> GetSibling(QSharedPointer<iAImageTreeNode> node)
 		}
 	}
 	return QSharedPointer<iAImageTreeNode>();
+}
+
+
+#include <vtkImageData.h>
+#include "iAToolsVTK.h"
+
+vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelImagePointer refImg) const
+{
+	auto correctnessImg = dynamic_cast<LabelImageType*>(GetRepresentativeImage(iARepresentativeType::Correctness, refImg).GetPointer());
+	auto entropyImg = dynamic_cast<ProbabilityImageType*>(GetRepresentativeImage(iARepresentativeType::AverageEntropy, refImg).GetPointer());
+	if (!correctnessImg)
+	{
+		DEBUG_LOG("Correctness image not available!");
+		return vtkSmartPointer<vtkImageData>();
+	}
+	if (!entropyImg)
+	{
+		DEBUG_LOG("Entropy image not available!");
+		return vtkSmartPointer<vtkImageData>();
+	}
+
+	int dim[3];
+	dim[0] = entropyImg->GetLargestPossibleRegion().GetSize(0);
+	dim[1] = entropyImg->GetLargestPossibleRegion().GetSize(1);
+	dim[2] = entropyImg->GetLargestPossibleRegion().GetSize(2);
+	double spacing[3];
+	spacing[0] = entropyImg->GetSpacing()[0];
+	spacing[1] = entropyImg->GetSpacing()[1];
+	spacing[2] = entropyImg->GetSpacing()[2];
+	vtkSmartPointer<vtkImageData> correctnessEntropyImg = AllocateImage(VTK_UNSIGNED_CHAR, dim, spacing, 4);
+
+	itk::Index<3> idx;
+	for (idx[0] = 0; idx[0] <dim[0]; ++idx[0])
+	{
+		for (idx[1] = 0; idx[1] < dim[1]; ++idx[1])
+		{
+			for (idx[2] = 0; idx[2] < dim[2]; ++idx[2])
+			{
+				int correctness = correctnessImg->GetPixel(idx);
+				double entropy = entropyImg->GetPixel(idx);
+				for (int i = 0; i < 3; ++i)
+				{
+					correctnessEntropyImg->SetScalarComponentFromDouble(idx[0], idx[1], idx[2], i, correctness * 255);
+				}
+				correctnessEntropyImg->SetScalarComponentFromDouble(idx[0], idx[1], idx[2], 3, (1-entropy) * 255 );
+			}
+		}
+	}
+	return correctnessEntropyImg;
 }

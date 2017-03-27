@@ -26,6 +26,8 @@
 #include <itkImage.h>
 #include <itkSmartPointer.h>
 
+#include <vtkSmartPointer.h>
+
 #include <QSharedPointer>
 #include <QVector>
 
@@ -50,6 +52,7 @@ typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
 
 typedef iAITKIO::ImagePointer ClusterImageType;
 
+class vtkImageData;
 
 struct LabelPixelHistogram
 {
@@ -84,6 +87,7 @@ public:
 	virtual bool IsLeaf() const = 0;
 	//! median image for this cluster:
 	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const = 0;
+	virtual vtkSmartPointer<vtkImageData> GetCorrectnessEntropyImage(LabelImagePointer refImg) const;
 	virtual void DiscardDetails() = 0;
 	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const = 0;
