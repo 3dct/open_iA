@@ -375,6 +375,16 @@ iAChannelID iASlicer::getMagicLensInput() const
 	return m_magicLensInput;
 }
 
+void iASlicer::AddImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+{
+	m_data->AddImageActor(imgActor);
+}
+
+void iASlicer::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+{
+	m_data->RemoveImageActor(imgActor);
+}
+
 void iASlicer::UpdateMagicLensColors()
 {
 	if (m_magicLens)

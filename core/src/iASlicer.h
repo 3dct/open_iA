@@ -24,6 +24,8 @@
 #include "open_iA_Core_export.h"
 #include "iASlicerMode.h"
 
+#include <vtkSmartPointer.h>
+
 #include <QObject>
 #include <QSharedPointer>
 
@@ -33,6 +35,7 @@ class QGLWidget;
 
 class vtkCamera;
 class vtkColorTransferFunction;
+class vtkImageActor;
 class vtkImageData;
 class vtkImageReslice;
 class vtkGenericOpenGLRenderWindow;
@@ -96,6 +99,9 @@ public:
 	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );	
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
 	iAChannelID getMagicLensInput() const;
+
+	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 
 	void setPlaneCenter( int x, int y, int z );
 	void setROI(int r[6]);

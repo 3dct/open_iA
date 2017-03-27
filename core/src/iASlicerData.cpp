@@ -432,6 +432,16 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	ren->ResetCamera();
 }
 
+void iASlicerData::AddImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+{
+	ren->AddActor(imgActor);
+}
+
+void iASlicerData::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+{
+	ren->RemoveActor(imgActor);
+}
+
 void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range)
 { 
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New(); 
