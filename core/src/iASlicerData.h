@@ -67,7 +67,6 @@ class vtkGenericOpenGLRenderWindow;
 class vtkActor;
 
 class iARulerWidget;
-class iASlicerObserver;
 class iAMagicLens;
 
 class iAInteractorStyleImage;

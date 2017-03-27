@@ -253,6 +253,20 @@ iASlicerData::~iASlicerData(void)
 	}
 }
 
+//! observer needs to be a separate class; otherwise there is an error when destructing,
+//! as vtk deletes all its observers...
+class iAObserverRedirect: public vtkCommand
+{
+public:
+	iAObserverRedirect(vtkCommand* redirect): m_redirect(redirect)
+	{}
+private:
+	void Execute(vtkObject * caller, unsigned long eventId, void * callData)
+	{
+		m_redirect->Execute(caller, eventId, callData);
+	}
+	vtkCommand* m_redirect;
+};
 
 void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction *ctf,
 	bool showIsoLines, bool showPolygon)
@@ -269,12 +283,13 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
 
-	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, this );
-	interactor->AddObserver( vtkCommand::LeftButtonReleaseEvent, this );
-	interactor->AddObserver( vtkCommand::MouseMoveEvent, this );
-	interactor->AddObserver( vtkCommand::KeyReleaseEvent, this );
-	interactor->AddObserver( vtkCommand::MouseWheelBackwardEvent, this );
-	interactor->AddObserver( vtkCommand::MouseWheelForwardEvent, this );
+	iAObserverRedirect* redirect(new iAObserverRedirect(this));
+	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, redirect);
+	interactor->AddObserver( vtkCommand::LeftButtonReleaseEvent, redirect);
+	interactor->AddObserver( vtkCommand::MouseMoveEvent, redirect);
+	interactor->AddObserver( vtkCommand::KeyReleaseEvent, redirect);
+	interactor->AddObserver( vtkCommand::MouseWheelBackwardEvent, redirect);
+	interactor->AddObserver( vtkCommand::MouseWheelForwardEvent, redirect);
 
 	InitReslicerWithImageData();
 	
