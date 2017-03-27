@@ -11,13 +11,19 @@ void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData>
 	output->DeepCopy(input);
 }
 
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3])
+vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents)
 {
 	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
 	result->SetDimensions(dimensions);
-	result->AllocateScalars(vtkType, 1);
+	result->AllocateScalars(vtkType, numComponents);
 	result->SetSpacing(spacing);
 	return result;
+}
+
+
+vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3])
+{
+	return AllocateImage(vtkType, dimensions, spacing, 1);
 }
 
 vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img)

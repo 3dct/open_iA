@@ -67,7 +67,6 @@ class vtkGenericOpenGLRenderWindow;
 class vtkActor;
 
 class iARulerWidget;
-class iASlicerObserver;
 class iAMagicLens;
 
 class iAInteractorStyleImage;
@@ -96,6 +95,9 @@ public:
 	void enableChannel(iAChannelID id, bool enabled, double x, double y, double z);
 	void enableChannel( iAChannelID id, bool enabled );
 	void setResliceChannelAxesOrigin(iAChannelID id, double x, double y, double z);
+
+	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 
 	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
 
