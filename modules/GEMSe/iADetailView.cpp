@@ -80,7 +80,8 @@ iADetailView::iADetailView(
 	m_magicLensCount(1),
 	m_labelItemModel(new QStandardItemModel()),
 	m_MouseButtonDown(false),
-	m_resultFilterTriggerThread(0)
+	m_resultFilterTriggerThread(0),
+	m_correctnessUncertaintyOverlayEnabled(false)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -434,6 +435,7 @@ void iADetailView::SetRepresentativeType(int representativeType)
 
 void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 {
+	m_correctnessUncertaintyOverlayEnabled = enabled;
 	if (enabled)
 	{
 		m_previewWidget->AddNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
@@ -473,6 +475,11 @@ void iADetailView::SetImage()
 		img : m_nullImage,
 		!img,
 		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
+	if (m_correctnessUncertaintyOverlayEnabled)
+	{
+		m_previewWidget->RemoveChannel();
+		m_previewWidget->AddNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
+	}
 }
 
 void iADetailView::SetMagicLensCount(int count)

@@ -138,4 +138,5 @@ private:
 	double m_spacing[3];
 	int m_dimensions[3];
 	int GetCurLabelRow() const;
+	bool m_correctnessUncertaintyOverlayEnabled;
 };
