@@ -69,9 +69,7 @@ public:
 	int GetSliceNumber() const;
 	void UpdateLikeHate(bool isLike, bool isHate);
 	bool IsShowingCluster() const;
-
 	void SetSliceNumber(int sliceNr);
-	void SetSlicerMode(int mode,int sliceNr);
 	void SetMagicLensOpacity(double opacity);
 	void SetMagicLensCount(int count);
 	void UpdateMagicLensColors();

@@ -640,7 +640,6 @@ void dlg_GEMSe::SliceNumberChanged(int sliceNr)
 void dlg_GEMSe::SlicerModeChanged(iASlicerMode mode, int sliceNr)
 {
 	m_previewWidgetPool->SetSlicerMode(mode, sliceNr, m_cameraWidget->GetCommonCamera());
-	m_detailView->SetSlicerMode(mode, sliceNr);
 }
 
 

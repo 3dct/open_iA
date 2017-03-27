@@ -177,6 +177,7 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
+
 vtkSmartPointer<vtkColorTransferFunction> GetDefaultCTF(vtkSmartPointer<vtkImageData> imageData)
 {
 	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
@@ -185,8 +186,9 @@ vtkSmartPointer<vtkColorTransferFunction> GetDefaultCTF(vtkSmartPointer<vtkImage
 	ctf->AddRGBPoint (scalarRange[1], 1.0, 1.0, 1.0 );
 	ctf->Build();
 	return ctf;
-
 }
+
+
 vtkSmartPointer<vtkPiecewiseFunction> GetDefaultOTF(vtkSmartPointer<vtkImageData> imageData)
 {
 	vtkSmartPointer<vtkPiecewiseFunction> otf = vtkPiecewiseFunction::New();
@@ -195,6 +197,7 @@ vtkSmartPointer<vtkPiecewiseFunction> GetDefaultOTF(vtkSmartPointer<vtkImageData
 	otf->AddPoint(scalarRange[1], 1);
 	return otf;
 }
+
 
 void iADetailView::DblClicked()
 {
@@ -247,6 +250,7 @@ void iADetailView::ChangeModality(int offset)
 	slicer->update();
 }
 
+
 void iADetailView::ChangeMagicLensOpacity(int chg)
 {
 	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
@@ -258,15 +262,19 @@ void iADetailView::ChangeMagicLensOpacity(int chg)
 	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
 }
 
+
 void iADetailView::SetSliceNumber(int sliceNr)
 {
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->update();
 }
 
-void iADetailView::SetSlicerMode(int mode,int sliceNr)
+
+int iADetailView::GetSliceNumber() const
 {
+	return m_previewWidget->GetSliceNumber();
 }
+
 
 void iADetailView::UpdateMagicLensColors()
 {
@@ -275,6 +283,7 @@ void iADetailView::UpdateMagicLensColors()
 	m_previewWidget->GetSlicer()->update();
 
 }
+
 
 void iADetailView::paintEvent(QPaintEvent * )
 {
@@ -291,11 +300,6 @@ void iADetailView::paintEvent(QPaintEvent * )
 	p.drawRect(sel);
 }
 
-int iADetailView::GetSliceNumber() const
-{
-	return m_previewWidget->GetSliceNumber();
-}
-
 
 void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 {
@@ -306,6 +310,7 @@ void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 	else        m_pbHate->setStyleSheet("qproperty-icon: url(:/images/GEMSe_hate.png); background-color: "+DefaultColors::BackgroundColorText+"; border:none;");
 }
 
+
 QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int id)
 {
 	switch(attributes->at(id)->GetValueType())
@@ -315,6 +320,7 @@ QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int 
 		default:          return QString::number(value); break;
 	}
 }
+
 
 void iADetailView::SetNode(iAImageTreeNode const * node,
 	QSharedPointer<iAAttributes> allAttributes,
@@ -374,10 +380,12 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	}
 }
 
+
 bool iADetailView::IsShowingCluster() const
 {
 	return m_showingClusterRepresentative;
 }
+
 
 void iADetailView::SetMagicLensOpacity(double opacity)
 {
@@ -446,12 +454,14 @@ void iADetailView::SetImage()
 		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 }
 
+
 void iADetailView::SetMagicLensCount(int count)
 {
 	m_magicLensCount = count;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->SetMagicLensCount(count);
 }
+
 
 QString iADetailView::GetLabelNames() const
 {
@@ -462,6 +472,7 @@ QString iADetailView::GetLabelNames() const
 	}
 	return labelNames.join(",");
 }
+
 
 class iAvtkImageData: public vtkImageData
 {
@@ -478,7 +489,6 @@ public:
 
 vtkStandardNewMacro(iAvtkImageData);
 
-typedef void(*VoidMethod)();
 
 class iATimedEvent: public QThread
 {
@@ -507,6 +517,7 @@ private:
 	int m_waitTimeMS;
 	int m_delayMS;
 };
+
 
 void iADetailView::SlicerClicked(int x, int y, int z)
 {
@@ -542,6 +553,7 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
 		m_resultFilterTriggerThread->restart();
 	}
 }
+
 
 void iADetailView::AddResultFilterPixel(int x, int y, int z)
 {
