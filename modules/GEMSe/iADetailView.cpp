@@ -127,6 +127,8 @@ iADetailView::iADetailView(
 	m_lvLegend->setMinimumHeight(height);
 
 	QPushButton* resetResultFilterButton = new QPushButton("Reset Result Filter");
+	resetResultFilterButton->setMinimumHeight(10);
+	resetResultFilterButton->setMaximumHeight(25);
 	detailSplitter->addWidget(resetResultFilterButton);
 	
 	m_detailText = new QTextEdit();
@@ -556,7 +558,10 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
 	if (m_MouseButtonDown)
 	{
 		AddResultFilterPixel(x, y, z);
-		m_resultFilterTriggerThread->restart();
+		if (!m_resultFilterTriggerThread)
+			DEBUG_LOG("Result Filter Trigger not yet started....");
+		else
+			m_resultFilterTriggerThread->restart();
 	}
 }
 
