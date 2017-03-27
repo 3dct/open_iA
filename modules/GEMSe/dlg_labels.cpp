@@ -498,7 +498,10 @@ void dlg_labels::SetColorTheme(iAColorTheme const * colorTheme)
 {
 	m_colorTheme = colorTheme;
 	ReColorExistingLabels();
-	UpdateOverlay();
+	if (m_labelOverlayImg)
+	{
+		UpdateOverlay();
+	}
 }
 
 bool dlg_labels::AreSeedsAvailable() const

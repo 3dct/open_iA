@@ -617,11 +617,10 @@ bool dlg_GEMSeControl::LoadRefImg(QString const & refImgName)
 	{
 		iAITKIO::ScalarPixelType pixelType;
 		auto img = iAITKIO::readFile(refImgName, pixelType, false);
-		if (pixelType != itk::ImageIOBase::INT) // check strictly speaking not necessary as dynamic cast will just return 0
+		if (pixelType != itk::ImageIOBase::INT)
 		{
 			img = CastImageTo<int>(img);
 		}
-		leRefImage->setText(refImgName);
 		m_refImg = dynamic_cast<LabelImageType*>(img.GetPointer());
 		m_dlgGEMSe->CalcRefImgComp(m_refImg);
 		if (m_dlgMajorityVoting)
@@ -630,7 +629,9 @@ bool dlg_GEMSeControl::LoadRefImg(QString const & refImgName)
 	catch (std::exception & e)
 	{
 		DEBUG_LOG(QString("Could not load reference image, problem: %1").arg(e.what()));
+		return false;
 	}
+	leRefImage->setText(refImgName);
 	return true;
 }
 

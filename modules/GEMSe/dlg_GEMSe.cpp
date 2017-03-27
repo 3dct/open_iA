@@ -719,7 +719,8 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		return;
 	}
 	int labelCount = m_treeView->GetTree()->GetLabelCount();
-	if (m_chartAttributes->size() == m_MeasureChartIDStart)
+	m_MeasureChartIDStart = m_chartAttributes->Find("Dice");
+	if (m_MeasureChartIDStart == -1)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
@@ -737,7 +738,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
 		}
-
+		m_MeasureChartIDStart = m_chartAttributes->size();
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			int chartID = m_chartAttributes->size();
@@ -753,7 +754,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 			}
 		}
 	}
-	for (int i= m_MeasureChartIDStart; i<m_MeasureChartIDStart + /* TODO: link "magic number" to measures defined above! */ 5 +labelCount; ++i)
+	for (int i= m_MeasureChartIDStart; i<m_MeasureChartIDStart + 5 +labelCount; ++i)
 	{
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
