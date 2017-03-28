@@ -231,7 +231,7 @@ void dlg_MajorityVoting::ClusterUncertaintyDice()
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	QSharedPointer<iAImageTreeNode> node = m_dlgGEMSe->GetSelectedCluster();
-	"Cluster (id=" + QString::number(node->GetID()) + ")";
+	//"Cluster (id=" + QString::number(node->GetID()) + ")";
 }
 
 void dlg_MajorityVoting::SelectionUncertaintyDice(
@@ -356,6 +356,11 @@ iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResu
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
 	int labelVoters, int weightType, int labelCount)
 {
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return iAITKIO::ImagePointer();
+	}
 	auto labelVotingFilter = GetLabelVotingFilter(
 		selection, minAbsPercentage, minDiffPercentage, minRatio, maxPixelEntropy, labelVoters, weightType, labelCount);
 	if (!labelVotingFilter)
@@ -369,6 +374,11 @@ iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleRe
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
 	int labelVoters, int weightType, int labelCount, int mode)
 {
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return iAITKIO::ImagePointer();
+	}
 	auto labelVotingFilter = GetLabelVotingFilter(
 		selection, minAbsPercentage, minDiffPercentage, minRatio, maxPixelEntropy, labelVoters, weightType, labelCount);
 	if (!labelVotingFilter)
@@ -394,6 +404,11 @@ void dlg_MajorityVoting::AbsMinPercentSlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
 	QString name = QString("Voting FBG > %1 % (%2)").arg(QString::number(minAbs * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
@@ -406,6 +421,11 @@ void dlg_MajorityVoting::MinDiffPercentSlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double minDiff = static_cast<double>(slMinDiffPercent->value()) / slMinDiffPercent->maximum();
 	QString name = QString("Voting FBG-SBG > %1 % (%2)").arg(QString::number(minDiff * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
@@ -418,6 +438,11 @@ void dlg_MajorityVoting::MinRatioSlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double minRatio = static_cast<double>(slMinRatio->value()) / 100;
 	QString name = QString("Voting FBG/SBG > %1 (%2)").arg(QString::number(minRatio, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
@@ -430,6 +455,11 @@ void dlg_MajorityVoting::MaxPixelEntropySlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
 	QString name = QString("Voting Entropy < %1 (%2)").arg(QString::number(maxPixelEntropy * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
@@ -447,6 +477,11 @@ void dlg_MajorityVoting::LabelVoters(int)
 	}
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	int labelVoters = slLabelVoters->value();
 	QString name = QString("Voting Best %1 of label (%2)").arg(labelVoters).arg(CollectedIDs(selection));
 	lbValue->setText(name);
@@ -459,6 +494,11 @@ void dlg_MajorityVoting::MinAbsPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
 	m_lastMVResult = GetMajorityVotingNumbers(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount, AbsolutePercentage);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("FBG (%1)").arg(CollectedIDs(selection)));
@@ -468,6 +508,11 @@ void dlg_MajorityVoting::MinDiffPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double minDiff = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
 	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount, DiffPercentage);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("FBG-SBG (%1)").arg(CollectedIDs(selection)));
@@ -477,6 +522,11 @@ void dlg_MajorityVoting::RatioPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double minRatio = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
 	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount, Ratio);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("FBG/SBG (%1)").arg(CollectedIDs(selection)));
@@ -487,6 +537,11 @@ void dlg_MajorityVoting::MaxPixelEntropyPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
 	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount, PixelEntropy);
 	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("Entropy (%1)").arg(CollectedIDs(selection)));
@@ -576,6 +631,11 @@ void dlg_MajorityVoting::StoreConfig()
 	// fetch config for (last?) majority voting (sampling?)
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	QStringList parameterSets;
 	for (int i = 0; i < selection.size(); ++i)
 	{
@@ -1141,6 +1201,11 @@ void dlg_MajorityVoting::CalcSTAPLE()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	typedef itk::MultiLabelSTAPLEImageFilter<UIntImage, UIntImage> STAPLEFilter;
 	STAPLEFilter::Pointer filter = STAPLEFilter::New();
 	for (int i = 0; i < selection.size(); ++i)
@@ -1165,6 +1230,11 @@ void dlg_MajorityVoting::CalcMajorityVote()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
 	itk::LabelVotingImageFilter<UIntImage>::Pointer filter = itk::LabelVotingImageFilter<UIntImage>::New();
 	for (int i = 0; i < selection.size(); ++i)
 	{
