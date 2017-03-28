@@ -131,9 +131,6 @@ private:
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
-	int m_MajorityVotingSamplingID;
-	int m_MajorityVotingID;
-	QVector<QSharedPointer<iAImageTreeLeaf> > m_majorityVotingLeafs;
 	
 	QSharedPointer<iAImageTreeNode> m_selectedCluster;
 	iAImageTreeLeaf * m_selectedLeaf;
@@ -154,5 +151,5 @@ private:
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;
 	iARepresentativeType m_representativeType;
-	QSharedPointer<iAFakeTreeLeaf> m_currentMajorityVotingResult;
+	QVector<QSharedPointer<iAFakeTreeLeaf> > m_MajorityVotingResults;		// to store them somewhere so they don't get deleted - TODO: discard once unused!
 };

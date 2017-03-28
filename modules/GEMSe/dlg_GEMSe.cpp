@@ -72,9 +72,7 @@ dlg_GEMSe::dlg_GEMSe(
 	m_selectedLeaf(0),
 	m_previewWidgetPool(0),
 	m_colorTheme(colorTheme),
-	m_representativeType(iARepresentativeType::Difference),
-	m_MajorityVotingSamplingID(-1),
-	m_MajorityVotingID(0)
+	m_representativeType(iARepresentativeType::Difference)
 {
 }
 
@@ -593,8 +591,11 @@ public:
 
 void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData)
 {
-	m_currentMajorityVotingResult = QSharedPointer<iAFakeTreeLeaf>(new iAFakeTreeLeaf(imgData));
-	m_detailView->SetNode(m_currentMajorityVotingResult.data(), m_chartAttributes, m_chartAttributeMapper);
+	QSharedPointer<iAFakeTreeLeaf> node(new iAFakeTreeLeaf(imgData));
+	m_MajorityVotingResults.push_back(node);
+	m_selectedCluster = node;
+	m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
+	// for the color transfer function:
 	if (m_detailView->GetRepresentativeType() != Difference)
 	{
 		m_detailView->SetRepresentativeType(Difference);
@@ -604,8 +605,10 @@ void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData)
 
 void dlg_GEMSe::AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData)
 {
-	m_currentMajorityVotingResult = QSharedPointer<iAFakeTreeLeaf>(new iAFakeTreeLeaf(imgData));
-	m_detailView->SetNode(m_currentMajorityVotingResult.data(), m_chartAttributes, m_chartAttributeMapper);
+	QSharedPointer<iAFakeTreeLeaf> node(new iAFakeTreeLeaf(imgData));
+	m_MajorityVotingResults.push_back(node);
+	m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
+	// for the color transfer function:
 	if (m_detailView->GetRepresentativeType() != AverageEntropy)
 	{
 		m_detailView->SetRepresentativeType(AverageEntropy);
