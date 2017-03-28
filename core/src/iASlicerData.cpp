@@ -286,6 +286,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, redirect);
 	interactor->AddObserver( vtkCommand::LeftButtonReleaseEvent, redirect);
+	interactor->AddObserver( vtkCommand::RightButtonPressEvent, redirect);
 	interactor->AddObserver( vtkCommand::MouseMoveEvent, redirect);
 	interactor->AddObserver( vtkCommand::KeyReleaseEvent, redirect);
 	interactor->AddObserver( vtkCommand::MouseWheelBackwardEvent, redirect);
@@ -1054,6 +1055,13 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 		emit released(x, y, z);
 		emit UserInteraction();
 		break;
+	}
+	case vtkCommand::RightButtonPressEvent:
+	{
+		double result[4];
+		int x, y, z;
+		GetMouseCoord(x, y, z, result);
+		emit rightClicked(x, y, z);
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
