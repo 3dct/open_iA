@@ -102,6 +102,7 @@ bool iAImageNodeWidget::CreatePreview(LabelImagePointer refImg)
 	}
 	UpdateRepresentative(refImg);
 	connect(m_imageView, SIGNAL(Clicked()), this, SIGNAL(ImageClicked()));
+	connect(m_imageView, SIGNAL(RightClicked()), this, SIGNAL(ImageRightClicked()));
 	connect(m_imageView, SIGNAL(Updated()), this, SIGNAL(Updated()) );
 	m_mainLayout->addWidget(m_imageView);
 	return true;
@@ -112,6 +113,7 @@ void iAImageNodeWidget::ReturnPreview()
 	m_imageView->hide();
 	m_mainLayout->removeWidget(m_imageView);
 	disconnect(m_imageView, SIGNAL(Clicked()), this, SIGNAL(ImageClicked()));
+	disconnect(m_imageView, SIGNAL(RightClicked()), this, SIGNAL(ImageRightClicked()));
 	disconnect(m_imageView, SIGNAL(Updated()),   this, SIGNAL(Updated()) );
 	m_previewPool->ReturnWidget(m_imageView);
 	m_imageView = 0;

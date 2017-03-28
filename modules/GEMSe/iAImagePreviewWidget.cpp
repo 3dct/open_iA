@@ -106,14 +106,20 @@ void iAImagePreviewWidget::InitializeSlicer()
 		m_slicer->disableInteractor();
 	}
 	
-	connect( m_slicer->widget(), SIGNAL(Clicked()), this, SLOT(SlicerClicked()));
+	connect( m_slicer->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect( m_slicer->GetSlicerData(), SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
 	connect( m_slicer->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
 	connect( m_slicer->GetSlicerData(), SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
 }
 
-void iAImagePreviewWidget::SlicerClicked()
+void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
 {
 	emit Clicked();
+}
+
+void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
+{
+	emit RightClicked();
 }
 
 void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)

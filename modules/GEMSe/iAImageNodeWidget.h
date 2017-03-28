@@ -69,6 +69,7 @@ signals:
 	void Expand(bool expand);
 	void Clicked();
 	void ImageClicked();
+	void ImageRightClicked();
 	void Updated();
 private slots:
 	void ExpandButtonClicked();

@@ -60,12 +60,14 @@
 
 iADetailView::iADetailView(
 		iAImagePreviewWidget* prevWdgt,
+		iAImagePreviewWidget* compareWdgt,
 		ClusterImageType nullImage,
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
 		iAColorTheme const * colorTheme,
 		int representativeType) :
 	m_previewWidget(prevWdgt),
+	m_compareWidget(compareWdgt),
 	m_showingClusterRepresentative(true),
 	m_pbLike(new QPushButton("")),
 	m_pbHate(new QPushButton("")),
@@ -99,12 +101,17 @@ iADetailView::iADetailView(
 	QWidget * buttonBar = new QWidget();
 	buttonBar->setLayout(buttonLay);
 	buttonBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+	buttonBar->setFixedHeight(25);
 
 	prevWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	QWidget* topSpacer = new QWidget();
+	topSpacer->setFixedHeight(18);
 
 	QVBoxLayout* lay = new QVBoxLayout();
 	lay->setSpacing(1);
 	lay->setMargin(1);
+	lay->addWidget(topSpacer);
 	lay->addWidget(prevWdgt);
 	lay->addWidget(buttonBar);
 
@@ -145,6 +152,25 @@ iADetailView::iADetailView(
 	m_lvLegend->setStyleSheet("border: none; outline:none;");
 	m_detailText->setStyleSheet("border: none; outline:none;");
 
+	m_compareWidget->SetImage(m_nullImage, true, false);
+
+	QWidget* buttonBarStandin = new QWidget();
+	buttonBarStandin->setFixedHeight(25);
+
+	QVBoxLayout* comparisonLayout = new QVBoxLayout();
+	comparisonLayout->setSpacing(0);
+	comparisonLayout->setContentsMargins(0, 0, 0, 0);
+	comparisonLayout->addWidget(m_compareWidget);
+	comparisonLayout->addWidget(buttonBarStandin);
+
+	QWidget *comparisonContainer = new QWidget();
+	comparisonContainer->setLayout(comparisonLayout);
+
+	QTabWidget * tw = new QTabWidget();
+	tw->setContentsMargins(0, 0, 0, 0);
+	tw->addTab(detailWidget, "Details");
+	tw->addTab(comparisonContainer, "Comparison");
+
 	QSplitter * horzSplitter = new QSplitter();
 	
 	QHBoxLayout* mainLay = new QHBoxLayout();
@@ -153,9 +179,9 @@ iADetailView::iADetailView(
 	mainLay->addWidget(horzSplitter);
 
 	horzSplitter->addWidget(imgStuffWidget);
-	horzSplitter->addWidget(detailWidget);
+	horzSplitter->addWidget(tw);
 	horzSplitter->setStretchFactor(0, 2);
-	horzSplitter->setStretchFactor(0, 1);
+	horzSplitter->setStretchFactor(1, 1);
 		
 	QWidget * mainWdgt(this);
 	mainWdgt->setLayout(mainLay);
@@ -169,6 +195,7 @@ iADetailView::iADetailView(
 	connect(m_pbLike, SIGNAL(clicked()), this, SIGNAL(Like()));
 	connect(m_pbHate, SIGNAL(clicked()), this, SIGNAL(Hate()));
 	connect(m_pbGoto, SIGNAL(clicked()), this, SIGNAL(GoToCluster()));
+	connect(m_compareWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	connect(m_previewWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(DblClicked()), this, SLOT(DblClicked()));
@@ -231,13 +258,13 @@ void iADetailView::ChangeModality(int offset)
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	QSharedPointer<iAModality> mod = m_modalities->Get(m_magicLensCurrentModality);
 	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
-	m_ctf = (mod->GetName() == "Ground Truth") ?
+	vtkColorTransferFunction* ctf = (mod->GetName() == "Ground Truth") ?
 		m_previewWidget->GetCTF().GetPointer() :
 		mod->GetTransfer()->GetColorFunction();
-	m_otf = (mod->GetName() == "Ground Truth") ?
+	vtkPiecewiseFunction* otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
 		mod->GetTransfer()->GetOpacityFunction();
-	ResetChannel(&magicLensData, imageData, m_ctf, m_otf);
+	ResetChannel(&magicLensData, imageData, ctf, otf);
 	QString name(mod->GetImageName(m_magicLensCurrentComponent));
 	magicLensData.SetName(name);
 	slicer->removeChannel(removedID);
@@ -252,6 +279,8 @@ void iADetailView::ChangeModality(int offset)
 	slicer->SetMagicLensInput(id);
 	slicer->update();
 }
+
+//void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, QString const & name, )
 
 
 void iADetailView::ChangeMagicLensOpacity(int chg)
@@ -384,6 +413,21 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 }
 
 
+void iADetailView::SetCompareNode(iAImageTreeNode const * node)
+{
+	m_compareNode = node;
+	ClusterImageType img = m_compareNode->GetRepresentativeImage(m_representativeType, m_refImg);
+	if (!img)
+	{
+		return;
+	}
+	m_compareWidget->SetImage(img ?
+		img : m_nullImage,
+		!img,
+		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
+}
+
+
 bool iADetailView::IsShowingCluster() const
 {
 	return m_showingClusterRepresentative;
@@ -466,15 +510,18 @@ void iADetailView::SetImage()
 	{
 		return;
 	}
+	// {
+	// initialization of m_spacing / m_dimension -> does it need to happen every time?
 	m_spacing[0] = img->GetSpacing()[0]; m_spacing[1] = img->GetSpacing()[1]; m_spacing[2] = img->GetSpacing()[2];
 	itk::ImageRegion<3> region = img->GetLargestPossibleRegion();
 	itk::Size<3> size = region.GetSize();
 	itk::Index<3> idx = region.GetIndex();
 	m_dimensions[0] = size[0]; m_dimensions[1] = size[1]; m_dimensions[2] = size[2];
+	// }
 	m_previewWidget->SetImage(img ?
 		img : m_nullImage,
 		!img,
-		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
+		(m_node->IsLeaf() && m_representativeType != AverageEntropy) || m_representativeType == Difference || m_representativeType == AverageLabel);
 	if (m_correctnessUncertaintyOverlayEnabled)
 	{
 		m_previewWidget->RemoveChannel();

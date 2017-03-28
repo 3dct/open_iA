@@ -63,6 +63,7 @@ public slots:
 	void SetSliceNumber(int sliceNr);
 signals:
 	void Clicked();
+	void RightClicked();
 	void MouseHover();
 	void Updated();
 private:
@@ -89,6 +90,7 @@ private:
 	iAColorTheme const * m_colorTheme;
 	vtkSmartPointer<vtkImageActor> m_addChannelImgActor;
 private slots:
-	void SlicerClicked();
+	void SlicerClicked(int x, int y, int z);
+	void SlicerRightClicked(int x, int y, int z);
 	void SlicerHovered(int x, int y, int z, int mode);
 };

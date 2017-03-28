@@ -101,6 +101,7 @@ private slots:
 	void ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node);
 	void SelectCluster(QSharedPointer<iAImageTreeNode> node);
 	void ClusterLeafSelected(iAImageTreeLeaf *);
+	void CompareAlternateSelected(iAImageTreeNode * node);
 	void FilterChanged(int chartID, double min, double max);
 	void ChartDblClicked(int chartID);
 	void ToggleHate();

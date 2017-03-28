@@ -111,6 +111,7 @@ void iAExampleImageWidget::AdaptLayout()
 	for (int i=0; i<m_gridWidget->m_previews.size(); ++i)
 	{
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(Clicked()), this, SLOT(ImageClicked()));
+		disconnect(m_gridWidget->m_previews[i], SIGNAL(RightClicked()), this, SLOT(ImageRightClicked()));
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(Updated()), this, SLOT(ImageUpdated()));
 		m_layout->removeWidget(m_gridWidget->m_previews[i]);
@@ -139,6 +140,7 @@ void iAExampleImageWidget::AdaptLayout()
 			imgWidget->show();
 			m_layout->addWidget(imgWidget, y, x);
 			connect(imgWidget, SIGNAL(Clicked()), this, SLOT(ImageClicked()));
+			connect(imgWidget, SIGNAL(RightClicked()), this, SLOT(ImageRightClicked()));
 			connect(imgWidget, SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
 			connect(imgWidget, SIGNAL(Updated()), this, SLOT(ImageUpdated()) );
 		}
@@ -215,6 +217,31 @@ void iAExampleImageWidget::ImageClicked()
 		m_gridWidget->m_selectedIndex = idx;
 		emit Selected(m_nodes[idx]);
 		update();
+	}
+}
+
+void iAExampleImageWidget::ImageRightClicked()
+{
+	iAImagePreviewWidget* imgWdgt = dynamic_cast<iAImagePreviewWidget*>(sender());
+	assert(imgWdgt);
+	if (!imgWdgt)
+	{
+		DEBUG_LOG("ExampleWidget click: sender not an image widget!\n");
+		return;
+	}
+	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
+	assert(idx != -1);
+	if (idx == -1)
+	{
+		DEBUG_LOG("ExampleWidget click: didn't find originating image widget!\n");
+		// something wrong...
+		return;
+	}
+	if (idx < m_nodes.size())
+	{
+		m_gridWidget->m_selectedIndex = idx;
+		emit AlternateSelected(m_nodes[idx]);
+		//update();
 	}
 }
 

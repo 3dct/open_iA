@@ -33,6 +33,7 @@
 
 typedef QVBoxLayout LikeLayoutType;
 
+
 iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	m_previewPool(previewPool)
 {
@@ -58,10 +59,12 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
+
 bool iAFavoriteWidget::HasAnyFavorite() const
 {
 	return m_favorites.size() > 0;
 }
+
 
 bool iAFavoriteWidget::ToggleLike(iAImageTreeNode * node)
 {
@@ -119,6 +122,7 @@ bool iAFavoriteWidget::ToggleHate(iAImageTreeNode * node)
 	}
 }
 
+
 void iAFavoriteWidget::Add(iAImageTreeNode * node)
 {
 	if (!node || node->GetAttitude() != iAImageTreeNode::Liked)
@@ -135,6 +139,7 @@ void iAFavoriteWidget::Add(iAImageTreeNode * node)
 	widget->SetImage(node->GetRepresentativeImage(iARepresentativeType::Difference,
 		LabelImagePointer()), false, true);
 	connect(widget, SIGNAL(Clicked()), this, SLOT(FavoriteClicked()));
+	connect(widget, SIGNAL(RightClicked()), this, SLOT(FavoriteRightClicked()));
 	connect(widget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	m_favorites.push_back(FavoriteData(node, widget));
 	dynamic_cast<LikeLayoutType*>(m_likeLayout)->insertWidget(0, widget);
@@ -164,9 +169,11 @@ void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 	m_favorites[idx].widget = 0;
 	m_favorites.remove(idx);
 	disconnect(widget, SIGNAL(Clicked()), this, SLOT(FavoriteClicked()));
+	disconnect(widget, SIGNAL(RightClicked()), this, SLOT(FavoriteRightClicked()));
 	disconnect(widget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	m_previewPool->ReturnWidget(widget);
 }
+
 
 void iAFavoriteWidget::FavoriteClicked()
 {
@@ -184,6 +191,22 @@ void iAFavoriteWidget::FavoriteClicked()
 }
 
 
+void iAFavoriteWidget::FavoriteRightClicked()
+{
+	iAImagePreviewWidget * widget = dynamic_cast<iAImagePreviewWidget*>(sender());
+	if (!widget)
+	{
+		DEBUG_LOG("FavoriteClicked: Error: invalid sender!\n");
+	}
+	iAImageTreeNode * node = GetNodeForWidget(widget);
+	if (!node)
+	{
+		DEBUG_LOG("FavoriteClicked: Error: node not found!\n");
+	}
+	emit RightClicked(node);
+}
+
+
 int iAFavoriteWidget::GetIndexForNode(iAImageTreeNode const* node)
 {
 	for (int i=0; i<m_favorites.size(); ++i)
@@ -195,6 +218,7 @@ int iAFavoriteWidget::GetIndexForNode(iAImageTreeNode const* node)
 	}
 	return -1;
 }
+
 
 iAImageTreeNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widget)
 {

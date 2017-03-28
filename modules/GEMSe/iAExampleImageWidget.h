@@ -55,6 +55,7 @@ private slots:
 	void UpdateImages();
 signals:
 	void Selected(iAImageTreeLeaf *);
+	void AlternateSelected(iAImageTreeNode *);
 	void Hovered(iAImageTreeLeaf *);
 	void ViewUpdated();
 protected:
@@ -71,5 +72,6 @@ private:
 	ClusterImageType m_nullImage;
 private slots:
 	void ImageClicked();
+	void ImageRightClicked();
 	void ImageHovered();
 };

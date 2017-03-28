@@ -72,6 +72,7 @@ public:
 signals:
 	void Clicked(QSharedPointer<iAImageTreeNode >);
 	void ImageClicked(QSharedPointer<iAImageTreeNode >);
+	void ImageRightClicked(iAImageTreeNode *);
 	void Expanded(QSharedPointer<iAImageTreeNode >);
 	void JumpedTo(QSharedPointer<iAImageTreeNode >);
 	void ViewUpdated();
@@ -82,6 +83,7 @@ private slots:
 	void ExpandNode(bool expand);
 	void NodeClicked();
 	void NodeImageClicked();
+	void NodeImageRightClicked();
 private:
 	void AddNode(QSharedPointer<iAImageTreeNode > node, bool shrinked);
 	//! return true if expand was successful

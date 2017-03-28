@@ -47,19 +47,21 @@ class iAFavoriteWidget : public QWidget
 	Q_OBJECT
 public:
 	iAFavoriteWidget(iAPreviewWidgetPool* previewWidgetPool);
-	bool ToggleLike(iAImageTreeNode * leaf);
-	bool ToggleHate(iAImageTreeNode * leaf);
+	bool ToggleLike(iAImageTreeNode * node);
+	bool ToggleHate(iAImageTreeNode * node);
 	bool HasAnyFavorite() const;
 	QVector<iAImageTreeNode const *> GetFavorites(iAImageTreeNode::Attitude att) const;
 signals:
 	void ViewUpdated();
-	void Clicked(iAImageTreeNode * leaf);
+	void Clicked(iAImageTreeNode * node);
+	void RightClicked(iAImageTreeNode * node);
 private slots:
 	void FavoriteClicked();
+	void FavoriteRightClicked();
 private:
-	void Add(iAImageTreeNode * leaf);
-	void Remove(iAImageTreeNode const * leaf);
-	int GetIndexForNode(iAImageTreeNode const* leaf);
+	void Add(iAImageTreeNode * node);
+	void Remove(iAImageTreeNode const * node);
+	int GetIndexForNode(iAImageTreeNode const* node);
 	iAImageTreeNode * GetNodeForWidget(iAImagePreviewWidget* widget);
 	QVector<FavoriteData> m_favorites;
 	iAPreviewWidgetPool* m_previewPool;

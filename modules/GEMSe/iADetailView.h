@@ -59,6 +59,7 @@ class iADetailView: public QWidget
 	Q_OBJECT
 public:
 	iADetailView(iAImagePreviewWidget* prevWdgt,
+		iAImagePreviewWidget* compareWdgt,
 		ClusterImageType nullImage,
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
@@ -67,6 +68,8 @@ public:
 	void SetNode(iAImageTreeNode const * node,
 		QSharedPointer<iAAttributes> allAttributes,
 		iAChartAttributeMapper const & mapper);
+
+	void SetCompareNode(iAImageTreeNode const * node);
 	int GetSliceNumber() const;
 	void UpdateLikeHate(bool isLike, bool isHate);
 	bool IsShowingCluster() const;
@@ -100,15 +103,18 @@ private slots:
 	void TriggerResultFilterUpdate();
 	void ResetResultFilter();
 private:
+	void SetImage();
+	void AddResultFilterPixel(int x, int y, int z);
+
 	iAImageTreeNode const * m_node;
+	iAImageTreeNode const * m_compareNode;
 	iAImagePreviewWidget* m_previewWidget;
+	iAImagePreviewWidget* m_compareWidget;
 	QPushButton *m_pbLike, *m_pbHate, *m_pbGoto;
 	QTextEdit* m_detailText;
 	bool m_showingClusterRepresentative;
 	ClusterImageType m_nullImage;
 	QSharedPointer<iAModalityList> m_modalities;
-	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	QStandardItemModel* m_labelItemModel;
 	int m_representativeType;
 	QListView* m_lvLegend;
@@ -121,10 +127,6 @@ private:
 	iAColorTheme const * m_colorTheme;
 
 	int m_nextChannelID;
-
-	void UpdateGeometry();
-	void SetImage();
-	void AddResultFilterPixel(int x, int y, int z);
 
 	vtkSmartPointer<iAvtkImageData> m_resultFilterImg;
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;

@@ -120,7 +120,9 @@ void dlg_GEMSe::SetTree(
 	m_treeView = new iAImageTreeView(wdTree, imageTree, m_previewWidgetPool, m_representativeType);
 	m_treeView->AddSelectedNode(m_selectedCluster, false);
 
-	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true), m_nullImage, modalities, *labelInfo,
+	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true),
+		m_previewWidgetPool->GetWidget(this, false),
+		m_nullImage, modalities, *labelInfo,
 		m_colorTheme, m_representativeType);
 	m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
 	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
@@ -137,7 +139,6 @@ void dlg_GEMSe::SetTree(
 
 	m_favoriteWidget = new iAFavoriteWidget(m_previewWidgetPool);
 	wdFavorites->layout()->addWidget(m_favoriteWidget);
-	wdFavorites->hide();
 
 	m_scatterplot = new iAGEMSeScatterplot(wdComparisonCharts);
 
@@ -159,16 +160,19 @@ void dlg_GEMSe::SetTree(
 	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
 	connect(m_treeView, SIGNAL(Clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
 	connect(m_treeView, SIGNAL(ImageClicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode>)));
+	connect(m_treeView, SIGNAL(ImageRightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
 	connect(m_treeView, SIGNAL(Expanded(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
 	connect(m_treeView, SIGNAL(JumpedTo(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
 	connect(m_treeView, SIGNAL(SelectionChanged()), this, SLOT(UpdateClusterChartData()));
 	connect(m_exampleView, SIGNAL(Selected(iAImageTreeLeaf *)), this, SLOT(ClusterLeafSelected(iAImageTreeLeaf *)));
+	connect(m_exampleView, SIGNAL(AlternateSelected(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
 	connect(m_detailView, SIGNAL(Like()), this, SLOT(ToggleLike()));
 	connect(m_detailView, SIGNAL(Hate()), this, SLOT(ToggleHate()));
 	connect(m_detailView, SIGNAL(GoToCluster()), this, SLOT(GoToCluster()));
 	connect(m_detailView, SIGNAL(ResultFilterUpdate()), this, SLOT(UpdateResultFilter()));
 	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
 	connect(m_favoriteWidget, SIGNAL(Clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
+	connect(m_favoriteWidget, SIGNAL(RightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
 	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));
 	connect(m_histogramContainer, SIGNAL(FilterChanged(int, double, double)), this, SLOT(FilterChanged(int, double, double)));
 	connect(m_histogramContainer, SIGNAL(ChartDblClicked(int)), this, SLOT(ChartDblClicked(int)));
@@ -308,6 +312,12 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 }
 
 
+void dlg_GEMSe::CompareAlternateSelected(iAImageTreeNode * node)
+{
+	m_detailView->SetCompareNode(node);
+}
+
+
 void dlg_GEMSe::StoreClustering(QString const & fileName)
 {
 	m_treeView->GetTree()->Store(fileName);
@@ -432,7 +442,6 @@ void dlg_GEMSe::ToggleHate()
 	m_detailView->UpdateLikeHate(false, node->GetAttitude() == iAImageTreeNode::Hated);
 	m_treeView->UpdateAutoShrink(node, isHated);
 	m_treeView->UpdateSubtreeHighlight();
-	wdFavorites->setVisible(m_favoriteWidget->HasAnyFavorite());
 	UpdateAttributeRangeAttitude();
 }
 
@@ -448,7 +457,6 @@ void dlg_GEMSe::ToggleLike()
 	m_favoriteWidget->ToggleLike(node);
 	m_detailView->UpdateLikeHate(node->GetAttitude() == iAImageTreeNode::Liked, false);
 	m_treeView->UpdateSubtreeHighlight();
-	wdFavorites->setVisible(m_favoriteWidget->HasAnyFavorite());
 	UpdateAttributeRangeAttitude();
 }
 
@@ -612,7 +620,7 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 		m_logger->log("JumpToNode: No node selected!");
 		return;
 	}
-	if (!m_treeView->JumpToNode(node, stepLimit))
+	if (dynamic_cast<iAFakeTreeLeaf*>(node) || !m_treeView->JumpToNode(node, stepLimit))
 	{
 		m_detailView->SetNode(node, m_chartAttributes, m_chartAttributeMapper);
 	}

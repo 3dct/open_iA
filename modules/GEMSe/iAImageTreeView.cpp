@@ -297,6 +297,7 @@ void iAImageTreeView::AddNode(QSharedPointer<iAImageTreeNode > node, bool shrink
 	connect(nodeWidget, SIGNAL(Expand(bool)), this, SLOT(ExpandNode(bool)));
 	connect(nodeWidget, SIGNAL(Clicked()), this, SLOT(NodeClicked()));
 	connect(nodeWidget, SIGNAL(ImageClicked()), this, SLOT(NodeImageClicked()));
+	connect(nodeWidget, SIGNAL(ImageRightClicked()), this, SLOT(NodeImageRightClicked()));
 	connect(nodeWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	m_nodeWidgets.insert(node.data(), nodeWidget);
 	nodeWidget->show();
@@ -493,6 +494,14 @@ void iAImageTreeView::NodeImageClicked()
 	QObject* obj = sender();
 	iAImageNodeWidget* nodeWidget = dynamic_cast<iAImageNodeWidget*>(obj);
 	emit ImageClicked(nodeWidget->GetClusterNode());
+}
+
+
+void iAImageTreeView::NodeImageRightClicked()
+{
+	QObject* obj = sender();
+	iAImageNodeWidget* nodeWidget = dynamic_cast<iAImageNodeWidget*>(obj);
+	emit ImageRightClicked(nodeWidget->GetClusterNode().data());
 }
 
 
