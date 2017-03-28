@@ -105,6 +105,7 @@ private slots:
 private:
 	void SetImage();
 	void AddResultFilterPixel(int x, int y, int z);
+	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
 
 	iAImageTreeNode const * m_node;
 	iAImageTreeNode const * m_compareNode;

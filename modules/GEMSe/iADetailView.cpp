@@ -24,6 +24,7 @@
 #include "iAAttributes.h"
 #include "iAAttributeDescriptor.h"
 #include "iAChannelVisualizationData.h"
+#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageCoordinate.h"
@@ -243,10 +244,6 @@ void iADetailView::DblClicked()
 
 void iADetailView::ChangeModality(int offset)
 {
-	iAChannelID removedID = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID - m_magicLensCount);
-
-	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
-	m_nextChannelID = (m_nextChannelID + 1) % 8;
 	// TOOD: refactor to remove duplication between here and MdiChild::ChangeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
 	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->Get(m_magicLensCurrentModality)->ComponentCount())
@@ -254,8 +251,6 @@ void iADetailView::ChangeModality(int offset)
 		m_magicLensCurrentComponent = 0;
 		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();
 	}
-	iAChannelVisualizationData magicLensData;
-	iASlicer* slicer = m_previewWidget->GetSlicer();
 	QSharedPointer<iAModality> mod = m_modalities->Get(m_magicLensCurrentModality);
 	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
 	vtkColorTransferFunction* ctf = (mod->GetName() == "Ground Truth") ?
@@ -264,23 +259,33 @@ void iADetailView::ChangeModality(int offset)
 	vtkPiecewiseFunction* otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
 		mod->GetTransfer()->GetOpacityFunction();
-	ResetChannel(&magicLensData, imageData, ctf, otf);
 	QString name(mod->GetImageName(m_magicLensCurrentComponent));
+	AddMagicLensInput(imageData, ctf, otf, name);
+}
+
+void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name)
+{
+	iAChannelID removedID = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID - m_magicLensCount);
+
+	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
+	m_nextChannelID = (m_nextChannelID + 1) % 8;
+	iAChannelVisualizationData magicLensData;
+	ResetChannel(&magicLensData, img, ctf, otf);
 	magicLensData.SetName(name);
+
+	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->removeChannel(removedID);
 	slicer->initializeChannel(id, &magicLensData);
 	int sliceNr = m_previewWidget->GetSliceNumber();
-	switch(slicer->GetMode())
+	switch (slicer->GetMode())
 	{
-		case YZ: slicer->setResliceChannelAxesOrigin(id, static_cast<double>(sliceNr) * imageData->GetSpacing()[0], 0, 0); break;
-		case XY: slicer->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[2]); break;
-		case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * imageData->GetSpacing()[1], 0); break;
+	case YZ: slicer->setResliceChannelAxesOrigin(id, static_cast<double>(sliceNr) * img->GetSpacing()[0], 0, 0); break;
+	case XY: slicer->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sliceNr) * img->GetSpacing()[2]); break;
+	case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * img->GetSpacing()[1], 0); break;
 	}
 	slicer->SetMagicLensInput(id);
 	slicer->update();
 }
-
-//void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, QString const & name, )
 
 
 void iADetailView::ChangeMagicLensOpacity(int chg)
@@ -425,6 +430,16 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 		img : m_nullImage,
 		!img,
 		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
+
+	auto repr = node->GetRepresentativeImage(Difference, m_refImg);
+	iAConnector con;
+	con.SetImage(repr);
+	vtkSmartPointer<vtkImageData> imageData = con.GetVTKImage();
+	// determine CTF/OTF from image / settings?
+	vtkColorTransferFunction* ctf = m_previewWidget->GetCTF().GetPointer();
+	vtkPiecewiseFunction* otf = GetDefaultOTF(imageData);
+	QString name( node->GetID() != -1 ? QString("Ensemble member %1").arg(node->GetID()) : QString("Combination result"));
+	AddMagicLensInput(imageData, ctf, otf, name);
 }
 
 
