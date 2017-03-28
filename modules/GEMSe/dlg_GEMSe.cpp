@@ -29,6 +29,7 @@
 #include "iAConsole.h"
 #include "iADetailView.h"
 #include "iAExampleImageWidget.h"
+#include "iAFakeTreeNode.h"
 #include "iAFavoriteWidget.h"
 #include "iAGEMSeConstants.h"
 #include "iAGEMSeScatterplot.h"
@@ -496,102 +497,9 @@ QSharedPointer<iAImageTreeNode> dlg_GEMSe::GetSelectedCluster()
 	return m_selectedCluster;
 }
 
-class iAFakeTreeLeaf : public iAImageTreeNode
+void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData, QString const & name)
 {
-private:
-	iAITKIO::ImagePointer m_img;
-public:
-	iAFakeTreeLeaf(iAITKIO::ImagePointer img) : iAImageTreeNode(), m_img(img) {}
-
-	virtual bool IsLeaf() const
-	{
-		return false;
-	}
-	virtual int GetChildCount() const
-	{
-		return 0;
-	}
-	virtual double GetAttribute(int) const
-	{
-		return 0;
-	}
-	virtual int GetClusterSize() const
-	{
-		return 0;
-	}
-	virtual int GetFilteredSize() const
-	{
-		return 0;
-	}
-
-	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const
-	{
-		return m_img;
-	}
-	virtual ClusterIDType GetID() const
-	{
-		return -1;
-	}
-	virtual void GetMinMax(int chartID, double & min, double & max,
-		iAChartAttributeMapper const & chartAttrMap) const
-	{}
-	virtual ClusterDistanceType GetDistance() const
-	{
-		return 0;
-	}
-	// we should never get into any of these:
-	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount)
-	{
-		assert(false);
-	}
-	virtual void SetParent(QSharedPointer<iAImageTreeNode > parent)
-	{
-		assert(false);
-	}
-	virtual QSharedPointer<iAImageTreeNode > GetParent() const
-	{
-		assert(false);
-		return QSharedPointer<iAImageTreeNode >();
-	}
-	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const
-	{
-		assert(false);
-		return QSharedPointer<iAImageTreeNode >();
-	}
-	virtual void DiscardDetails()
-	{
-		assert(false);
-	}
-	ClusterImageType const GetLargeImage() const
-	{
-		assert(false);
-		return m_img;
-	}
-	virtual LabelPixelHistPtr UpdateLabelDistribution() const
-	{
-		assert(false);
-		return LabelPixelHistPtr();
-	}
-	virtual CombinedProbPtr UpdateProbabilities() const
-	{
-		assert(false);
-		return CombinedProbPtr();
-	}
-	virtual void UpdateFilter(iAChartFilter const & filter,
-		iAChartAttributeMapper const & chartAttrMap,
-		iAResultFilter const & resultFilter)
-	{
-		assert(false);
-	}
-	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const
-	{
-		assert(false);
-	}
-};
-
-void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData)
-{
-	QSharedPointer<iAFakeTreeLeaf> node(new iAFakeTreeLeaf(imgData));
+	QSharedPointer<iAFakeTreeNode> node(new iAFakeTreeNode(imgData, name));
 	m_MajorityVotingResults.push_back(node);
 	m_selectedCluster = node;
 	m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
@@ -603,9 +511,9 @@ void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData)
 }
 
 
-void dlg_GEMSe::AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData)
+void dlg_GEMSe::AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData, QString const & name)
 {
-	QSharedPointer<iAFakeTreeLeaf> node(new iAFakeTreeLeaf(imgData));
+	QSharedPointer<iAFakeTreeNode> node(new iAFakeTreeNode(imgData, name));
 	m_MajorityVotingResults.push_back(node);
 	m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
 	// for the color transfer function:
@@ -623,7 +531,7 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 		m_logger->log("JumpToNode: No node selected!");
 		return;
 	}
-	if (dynamic_cast<iAFakeTreeLeaf*>(node) || !m_treeView->JumpToNode(node, stepLimit))
+	if (dynamic_cast<iAFakeTreeNode*>(node) || !m_treeView->JumpToNode(node, stepLimit))
 	{
 		m_detailView->SetNode(node, m_chartAttributes, m_chartAttributeMapper);
 	}

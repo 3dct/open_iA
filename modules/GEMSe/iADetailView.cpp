@@ -26,6 +26,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAFakeTreeNode.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageCoordinate.h"
 #include "iAImageTree.h" // for GetClusterMinMax
@@ -438,7 +439,15 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	// determine CTF/OTF from image / settings?
 	vtkColorTransferFunction* ctf = m_previewWidget->GetCTF().GetPointer();
 	vtkPiecewiseFunction* otf = GetDefaultOTF(imageData);
-	QString name( node->GetID() != -1 ? QString("Ensemble member %1").arg(node->GetID()) : QString("Combination result"));
+	QString name;
+	if (dynamic_cast<iAFakeTreeNode const*>(node))
+	{
+		name = dynamic_cast<iAFakeTreeNode const*>(node)->GetName();
+	}
+	else
+	{
+		name = QString("Ensemble member %1").arg(node->GetID());
+	}
 	AddMagicLensInput(imageData, ctf, otf, name);
 }
 

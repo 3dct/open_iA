@@ -38,7 +38,7 @@ class iAAttributes;
 class iACameraWidget;
 class iAColorTheme;
 class iADetailView;
-class iAFakeTreeLeaf;
+class iAFakeTreeNode;
 class iAFavoriteWidget;
 class iAGEMSeScatterplot;
 class iAHistogramContainer;
@@ -82,8 +82,8 @@ public:
 	void ImportRankings(QString const & fileName);
 	void GetSelection(QVector<QSharedPointer<iASingleResult> > &);
 	QSharedPointer<iAImageTreeNode> GetSelectedCluster();
-	void AddMajorityVotingImage(iAITKIO::ImagePointer imgData);
-	void AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData);
+	void AddMajorityVotingImage(iAITKIO::ImagePointer imgData, QString const & name);
+	void AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData, QString const & name);
 	int GetMeasureStartID() { return m_MeasureChartIDStart; }
 	QString GetSerializedHiddenCharts() const;
 	void SetSerializedHiddenCharts(QString const & hiddenCharts);
@@ -151,5 +151,5 @@ private:
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;
 	iARepresentativeType m_representativeType;
-	QVector<QSharedPointer<iAFakeTreeLeaf> > m_MajorityVotingResults;		// to store them somewhere so they don't get deleted - TODO: discard once unused!
+	QVector<QSharedPointer<iAFakeTreeNode> > m_MajorityVotingResults;		// to store them somewhere so they don't get deleted - TODO: discard once unused!
 };
