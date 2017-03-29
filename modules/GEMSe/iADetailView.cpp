@@ -40,6 +40,7 @@
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
 #include "iAVtkDraw.h"
+#include "iAToolsITK.h"
 #include "iAToolsVTK.h"
 
 #include <vtkImageData.h>
@@ -427,18 +428,18 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	{
 		return;
 	}
+	auto pixelType = GetITKScalarPixelType(img);
 	m_compareWidget->SetImage(img ?
 		img : m_nullImage,
 		!img,
-		m_node->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
+		(pixelType != itk::ImageIOBase::FLOAT && pixelType != itk::ImageIOBase::DOUBLE));
 
-	auto repr = node->GetRepresentativeImage(Difference, m_refImg);
 	iAConnector con;
-	con.SetImage(repr);
-	vtkSmartPointer<vtkImageData> imageData = con.GetVTKImage();
+	con.SetImage(img);
+	vtkSmartPointer<vtkImageData> vtkImg = con.GetVTKImage();
 	// determine CTF/OTF from image / settings?
-	vtkColorTransferFunction* ctf = m_previewWidget->GetCTF().GetPointer();
-	vtkPiecewiseFunction* otf = GetDefaultOTF(imageData);
+	vtkColorTransferFunction* ctf = m_compareWidget->GetCTF().GetPointer();
+	vtkPiecewiseFunction* otf = GetDefaultOTF(vtkImg);
 	QString name;
 	if (dynamic_cast<iAFakeTreeNode const*>(node))
 	{
@@ -448,7 +449,7 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	{
 		name = QString("Ensemble member %1").arg(node->GetID());
 	}
-	AddMagicLensInput(imageData, ctf, otf, name);
+	AddMagicLensInput(vtkImg, ctf, otf, name);
 }
 
 

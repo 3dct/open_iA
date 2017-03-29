@@ -138,7 +138,12 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 				{
 					correctnessEntropyImg->SetScalarComponentFromDouble(idx[0], idx[1], idx[2], i, correctness * 255);
 				}
-				correctnessEntropyImg->SetScalarComponentFromDouble(idx[0], idx[1], idx[2], 3, (1-entropy) * 255 );
+				// entropy = 0 -> low uncertainty
+				// entropy = 1 -> high uncertainty
+				correctnessEntropyImg->SetScalarComponentFromDouble(idx[0], idx[1], idx[2], 3,
+					(correctness == 0) ?
+						((1-entropy)*255) : // where the algorithm was wrong, we want to highlight regions were it also was sure   about the result
+						(entropy * 255) );  //                         right,												unsure
 			}
 		}
 	}
