@@ -30,6 +30,7 @@ typedef iAITKIO::ImagePointer ClusterImageType;
 
 #include <QWidget>
 
+class QLabel;
 class QPushButton;
 class QSplitter;
 class QStandardItemModel;
@@ -64,7 +65,8 @@ public:
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
 		iAColorTheme const * colorTheme,
-		int representativeType);
+		int representativeType,
+		QWidget* comparisonDetailsWidget);
 	void SetNode(iAImageTreeNode const * node,
 		QSharedPointer<iAAttributes> allAttributes,
 		iAChartAttributeMapper const & mapper);
@@ -106,6 +108,7 @@ private:
 	void SetImage();
 	void AddResultFilterPixel(int x, int y, int z);
 	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
+	void UpdateComparisonNumbers();
 
 	iAImageTreeNode const * m_node;
 	iAImageTreeNode const * m_compareNode;
@@ -142,4 +145,6 @@ private:
 	int m_dimensions[3];
 	int GetCurLabelRow() const;
 	bool m_correctnessUncertaintyOverlayEnabled;
+	QWidget* m_cmpDetailsWidget;
+	QLabel* m_cmpDetailsLabel;
 };

@@ -285,6 +285,28 @@
                      </property>
                     </layout>
                    </widget>
+				   <widget class="QWidget" name="wdDetails">
+                    <attribute name="title">
+                     <string>Details</string>
+                    </attribute>
+                    <layout class="QVBoxLayout" name="horizontalLayout_128">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                    </layout>
+                   </widget>
                    <widget class="QWidget" name="wdCamera">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -294,7 +316,7 @@
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>100</width>
+                      <width>50</width>
                       <height>100</height>
                      </size>
                     </property>

@@ -68,7 +68,8 @@ iADetailView::iADetailView(
 		QSharedPointer<iAModalityList> modalities,
 		iALabelInfo const & labelInfo,
 		iAColorTheme const * colorTheme,
-		int representativeType) :
+		int representativeType,
+		QWidget* comparisonDetailsWidget) :
 	m_previewWidget(prevWdgt),
 	m_compareWidget(compareWdgt),
 	m_showingClusterRepresentative(true),
@@ -86,7 +87,8 @@ iADetailView::iADetailView(
 	m_labelItemModel(new QStandardItemModel()),
 	m_MouseButtonDown(false),
 	m_resultFilterTriggerThread(0),
-	m_correctnessUncertaintyOverlayEnabled(false)
+	m_correctnessUncertaintyOverlayEnabled(false),
+	m_cmpDetailsWidget(comparisonDetailsWidget)
 {
 	m_pbLike->setContentsMargins(0, 0, 0, 0);
 	m_pbHate->setContentsMargins(0, 0, 0, 0);
@@ -191,6 +193,9 @@ iADetailView::iADetailView(
 	QRect geom(geometry());
 	geom.adjust(+1, +1, -1, -1);
 	mainWdgt->setGeometry(geom);
+
+	m_cmpDetailsWidget->layout()->addWidget(m_cmpDetailsLabel = new QLabel());
+	m_cmpDetailsLabel->setWordWrap(true);
 
 	// prevWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -417,6 +422,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 		if (node->IsLeaf() || node->GetChildCount() > 0)
 			m_detailText->append("Maximum distance: "+QString::number(node->GetDistance()));
 	}
+	UpdateComparisonNumbers();
 }
 
 
@@ -450,6 +456,8 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 		name = QString("Ensemble member %1").arg(node->GetID());
 	}
 	AddMagicLensInput(vtkImg, ctf, otf, name);
+
+	UpdateComparisonNumbers();
 }
 
 
@@ -737,4 +745,111 @@ int iADetailView::GetCurLabelRow() const
 		item = item->parent();
 	}
 	return item->row();
+}
+
+
+#include "itkLabelOverlapMeasuresImageFilter.h"
+
+void iADetailView::UpdateComparisonNumbers()
+{
+	/* calculate (if both integer types)
+		- dice metric between selected 
+		- equal pixels
+		- 
+	*/
+	vtkImageData* left = m_previewWidget->GetImage();
+	vtkImageData* right = m_compareWidget->GetImage();
+
+	if (left->GetScalarType() != VTK_INT)
+	{
+		m_cmpDetailsLabel->setText("Left image is not of int type!");
+		return;
+	}
+	if (right->GetScalarType() != VTK_INT)
+	{
+		m_cmpDetailsLabel->setText("Right image is not of int type!");
+		return;
+	}
+	iAConnector leftCon;  leftCon.SetImage(left);  auto itkLeft = dynamic_cast<LabelImageType*>(leftCon.GetITKImage());
+	iAConnector rightCon; rightCon.SetImage(right); auto itkRight = dynamic_cast<LabelImageType*>(rightCon.GetITKImage());
+
+	if (!itkLeft)
+	{
+		m_cmpDetailsLabel->setText("Left itk image is not of int type!");
+		return;
+	}
+	if (!itkRight)
+	{
+		m_cmpDetailsLabel->setText("Right itk image is not of int type!");
+		return;
+	}
+
+	auto measureFilter = itk::LabelOverlapMeasuresImageFilter<LabelImageType>::New();
+	measureFilter->SetSourceImage(itkLeft);
+	measureFilter->SetTargetImage(itkRight);
+	measureFilter->Update();
+
+	const int UndecidedValue = m_labelCount;
+	int* dims = left->GetDimensions();
+	int* rightDims = right->GetDimensions();
+	if (dims[0] != rightDims[0] || dims[1] != rightDims[1] || dims[2] != rightDims[2])
+	{
+		m_cmpDetailsLabel->setText(QString("Image dimensions don't match (%1, %2, %3) != (%4, %5, %6)!")
+			.arg(dims[0]).arg(dims[1]).arg(dims[2])
+			.arg(rightDims[0]).arg(rightDims[1]).arg(rightDims[2]));
+		return;
+	}
+	long matching = 0;
+	long leftUndecided = 0;
+	long leftOnlyUndecided = 0;
+	long rightUndecided = 0;
+	long rightOnlyUndecided = 0;
+	for (int x = 0; x < dims[0]; ++x)
+	{
+		for (int y = 0; y < dims[1]; ++y)
+		{
+			for (int z = 0; z < dims[2]; ++z)
+			{
+				int leftVal = left->GetScalarComponentAsDouble(x, y, z, 0);
+				int rightVal = right->GetScalarComponentAsDouble(x, y, z, 0);
+				if (leftVal == UndecidedValue)
+				{
+					leftUndecided++;
+					if (rightVal != UndecidedValue)
+					{
+						leftOnlyUndecided++;
+					}
+				}
+				if (rightVal == UndecidedValue)
+				{
+					rightUndecided++;
+					if (leftVal != UndecidedValue)
+					{
+						rightOnlyUndecided++;
+					}
+				}
+			}
+		}
+	}
+
+	QString text;
+	text += QString("Union Overlap (Jaccard): %1\n").arg(measureFilter->GetUnionOverlap());
+	text += QString("Mean Overlap (Dice): %1\n").arg(measureFilter->GetMeanOverlap());
+	text += QString("Total Overlap: %1\n").arg(measureFilter->GetTotalOverlap());
+	text += QString("False Negatives: %1\n").arg(measureFilter->GetFalseNegativeError());
+	text += QString("False Positives: %1\n").arg(measureFilter->GetFalsePositiveError());
+	text += QString("Volume Similarity: %1\n").arg(measureFilter->GetVolumeSimilarity());
+
+	//for (int i = 0; i < m_labelCount; ++i)
+	//{
+		//text += 		measureFilter->GetTargetOverlap
+	//}
+	
+	text += QString("Undecided (left/right/only left/only right): %1/%2/%3/%4")
+		.arg(leftUndecided)
+		.arg(rightUndecided)
+		.arg(leftOnlyUndecided)
+		.arg(rightOnlyUndecided);
+		
+	m_cmpDetailsLabel->setText(text);
 }

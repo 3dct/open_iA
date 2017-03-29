@@ -122,7 +122,8 @@ void dlg_GEMSe::SetTree(
 	m_detailView = new iADetailView(m_previewWidgetPool->GetWidget(this, true),
 		m_previewWidgetPool->GetWidget(this, false),
 		m_nullImage, modalities, *labelInfo,
-		m_colorTheme, m_representativeType);
+		m_colorTheme, m_representativeType,
+		wdDetails);
 	m_detailView->SetNode(m_selectedCluster.data(), m_chartAttributes, m_chartAttributeMapper);
 	m_previewWidgetPool->SetSliceNumber(m_detailView->GetSliceNumber());
 	wdImagePreview->layout()->addWidget(m_detailView);
