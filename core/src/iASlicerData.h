@@ -76,7 +76,7 @@ class iAInteractorStyleImage;
  * 
  * This class implements a slicer widget to evaluate 3D datasets. 
  */
-class open_iA_Core_API iASlicerData :  public QObject, public vtkCommand
+class open_iA_Core_API iASlicerData :  public QObject
 {
 	Q_OBJECT
 public:
