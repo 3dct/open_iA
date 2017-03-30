@@ -558,7 +558,11 @@ void iADetailView::SetImage()
 	if (m_correctnessUncertaintyOverlayEnabled)
 	{
 		m_previewWidget->RemoveChannel();
-		m_previewWidget->AddNoMapperChannel(m_node->GetCorrectnessEntropyImage(m_refImg));
+		vtkSmartPointer<vtkImageData> img = m_node->GetCorrectnessEntropyImage(m_refImg);
+		if (img)
+		{
+			m_previewWidget->AddNoMapperChannel(img);
+		}
 	}
 }
 
