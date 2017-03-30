@@ -267,7 +267,7 @@
                     <attribute name="title">
                      <string>Probing</string>
                     </attribute>
-                    <layout class="QVBoxLayout" name="horizontalLayout_128">
+                    <layout class="QVBoxLayout" name="verticalLayout_1">
                      <property name="spacing">
                       <number>0</number>
                      </property>
@@ -289,7 +289,7 @@
                     <attribute name="title">
                      <string>Details</string>
                     </attribute>
-                    <layout class="QVBoxLayout" name="horizontalLayout_128">
+                    <layout class="QVBoxLayout" name="verticalLayout_5">
                      <property name="spacing">
                       <number>0</number>
                      </property>
