@@ -53,7 +53,7 @@ const QColor DefaultColors::ChartMarkerColor         (235, 184,  31, 255);
 const QColor DefaultColors::ChartSliderColor         (128, 128, 128, 255);
 const QColor DefaultColors::CaptionBGColor           (205, 205, 205, 255);
 const QColor DefaultColors::CaptionFontColor         (  0,   0,   0, 255);
-const QColor DefaultColors::DifferenceColor          (255,   0,   0, 255);
+const QColor DefaultColors::DifferenceColor          (  0,   0,   0, 255);
 
 const QColor DefaultColors::BackgroundHateColor      (255, 221, 221, 255);
 const QColor DefaultColors::BackgroundLikeColor      (221, 255, 221, 255);

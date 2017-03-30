@@ -323,6 +323,7 @@ void iAImageTreeInternalNode::UpdateFilter(iAChartFilter const & filter,
 	for (int i = 0; i<GetChildCount(); ++i)
 	{
 		GetChild(i)->UpdateFilter(filter, chartAttrMap, resultFilter);
+		GetChild(i)->DiscardDetails();
 		m_filteredSize += GetChild(i)->GetFilteredSize();
 	}
 	m_filteredRepresentativeOutdated = true;

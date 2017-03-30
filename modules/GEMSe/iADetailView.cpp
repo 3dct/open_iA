@@ -631,7 +631,7 @@ void iADetailView::SlicerClicked(int x, int y, int z)
 	AddResultFilterPixel(x, y, z);
 	if (!m_resultFilterTriggerThread)
 	{
-		m_resultFilterTriggerThread = new iATimedEvent(1000);
+		m_resultFilterTriggerThread = new iATimedEvent(5000);
 		connect(m_resultFilterTriggerThread, SIGNAL(finished()), this, SLOT(TriggerResultFilterUpdate()));
 		m_resultFilterTriggerThread->start();
 	}
@@ -757,6 +757,10 @@ void iADetailView::UpdateComparisonNumbers()
 		- equal pixels
 		- 
 	*/
+	if (m_compareWidget->Empty())
+	{
+		return;
+	}
 	vtkImageData* left = m_previewWidget->GetImage();
 	vtkImageData* right = m_compareWidget->GetImage();
 

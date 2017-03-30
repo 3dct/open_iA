@@ -146,6 +146,12 @@ iASlicer* iAImagePreviewWidget::GetSlicer()
 	return m_slicer;
 }
 
+
+bool iAImagePreviewWidget::Empty() const
+{
+	return m_empty;
+}
+
 void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
 {
 	m_mode = mode;
