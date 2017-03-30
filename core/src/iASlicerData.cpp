@@ -258,14 +258,14 @@ iASlicerData::~iASlicerData(void)
 class iAObserverRedirect: public vtkCommand
 {
 public:
-	iAObserverRedirect(vtkCommand* redirect): m_redirect(redirect)
+	iAObserverRedirect(iASlicerData* redirect): m_redirect(redirect)
 	{}
 private:
 	void Execute(vtkObject * caller, unsigned long eventId, void * callData)
 	{
 		m_redirect->Execute(caller, eventId, callData);
 	}
-	vtkCommand* m_redirect;
+	iASlicerData* m_redirect;
 };
 
 void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction *ctf,
