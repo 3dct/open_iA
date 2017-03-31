@@ -272,6 +272,11 @@ public:
 	void SetUnsavedChanges(bool b);
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
+
+	//! if more than one modality loaded, ask user to chose one of them
+	//! (currently used for determining which modality to save)
+	int chooseModalityNr(QString const & caption = "Choose Channel");
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -406,17 +411,14 @@ private:
 	QString strippedName(const QString &f);
 	
 	//! sets up the IO thread for saving the correct file type for the given filename.
-	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
-	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
-	//! if more than one modality loaded, ask user to chose one of them
-	//! (currently used for determining which modality to save)
-	int chooseModalityNr();
+
+	// adds an algorithm to the list of currently running jobs
 	void addAlgorithm(iAAlgorithm* thread);
 
 	QFileInfo fileInfo;

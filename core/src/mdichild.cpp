@@ -830,7 +830,7 @@ void MdiChild::updated(int i, QString text)
 	this->addMsg(tr("mdiCild: updated(i,string): %1  %2").arg(i).arg(text));
 }
 
-int MdiChild::chooseModalityNr()
+int MdiChild::chooseModalityNr(QString const & caption)
 {
 	if (GetModalities()->size() == 1)
 	{
@@ -843,7 +843,7 @@ int MdiChild::chooseModalityNr()
 		modalities << GetModality(i)->GetName();
 	}
 	QList<QVariant> values = (QList<QVariant>() << modalities);
-	dlg_commoninput modalityChoice(this, "Choose Channel", 1, parameters, values, NULL);
+	dlg_commoninput modalityChoice(this, caption, 1, parameters, values, NULL);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
