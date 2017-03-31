@@ -899,6 +899,8 @@ void dlg_MajorityVoting::SamplerFinished()
 	}
 	else
 	{
+
+		DEBUG_LOG("Measures for LoadedConfiguration:");
 		m_comparisonMVSelection.clear();
 		m_comparisonBestSelection.clear();
 		for (int s = 0; s < m_comparisonSamplingResults.size(); ++s)
@@ -943,6 +945,14 @@ void dlg_MajorityVoting::SamplerFinished()
 				CalculateMeasures(m_groundTruthImage,
 					dynamic_cast<LabelImageType*>(m_comparisonSamplingResults[s]->Get(m)->GetLabelledImage().GetPointer()),
 					m_labelCount, measureValues);
+				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
+					.arg(m_comparisonSamplingResults[s]->Get(m)->GetDatasetID())
+					.arg(m_comparisonSamplingResults[s]->Get(m)->GetID())
+					.arg(measureValues[0]) // dice
+					.arg(measureValues[2]) // accuracy
+					.arg(measureValues[3]) // precision
+					.arg(measureValues[4]) // recall
+				);
 				for (int i = 0; i<measures.size(); ++i)
 				{
 					int attributeID = attributes->Find(measures[i]->GetName());
@@ -1070,7 +1080,8 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 		auto region = m_groundTruthImage->GetLargestPossibleRegion();
 		auto size = region.GetSize();
 		double pixelCount = size[0] * size[1] * size[2];
-
+		
+		DEBUG_LOG("Measures for SAMPLING:");
 		for (int i = 0; i < SampleCount; ++i)
 		{
 			// calculate current value:
@@ -1099,18 +1110,22 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 			for (int r = 0; r < ResultCount; ++r)
 			{
 				LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
-
+				/*
 				auto diceFilter = DiceFilter::New();
 				diceFilter->SetSourceImage(m_groundTruthImage);
 				diceFilter->SetTargetImage(labelImg);
 				diceFilter->SetIgnoredLabel(UndecidedLabel);
 				diceFilter->Update();
+				*/
 				auto statFilter = StatFilter::New();
 				statFilter->SetInput(labelImg);
 				statFilter->SetLabelInput(labelImg);
 				statFilter->Update();
 
-				double meanDice = diceFilter->GetMeanOverlap();
+				QVector<double> measures;
+				CalculateMeasures(m_groundTruthImage, labelImg, m_labelCount, measures);
+
+				double meanDice = measures[0];
 
 				double undefinedPerc =
 					statFilter->HasLabel(UndecidedLabel)
@@ -1122,6 +1137,15 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 				tables[r]->SetValue(i, 0, value[r]);
 				tables[r]->SetValue(i, 1, undefinedPerc);
 				tables[r]->SetValue(i, 2, meanDice);
+
+				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
+					.arg(r)
+					.arg(i)
+					.arg(measures[0]) // dice
+					.arg(measures[2]) // accuracy
+					.arg(measures[3]) // precision
+					.arg(measures[4]) // recall
+				);
 			}
 		}
 

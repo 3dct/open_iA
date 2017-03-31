@@ -609,6 +609,15 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer());
 		QVector<double> measures;
 		CalculateMeasures(refImg, lblImg, labelCount, measures);
+		// datasetID ID   precision recall
+		DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
+			.arg(leaf->GetDatasetID())
+			.arg(leaf->GetID())
+			.arg(measures[0]) // dice
+			.arg(measures[2]) // accuracy
+			.arg(measures[3]) // precision
+			.arg(measures[4]) // recall
+		);
 		for (int i=0; i<measures.size(); ++i)
 		{
 			int chartID = m_MeasureChartIDStart + i;
@@ -678,6 +687,8 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 	{
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
+
+	DEBUG_LOG("Measures for ENSEMBLE:");
 	CalculateRefImgComp(GetRoot(), refImg, labelCount);
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
