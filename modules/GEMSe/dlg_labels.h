@@ -50,14 +50,12 @@ public:
 	dlg_labels(MdiChild* mdiChild, iAColorTheme const * theme);
 	int GetCurLabelRow() const;
 	int GetSeedCount(int labelIdx) const;
-	QList<iAImageCoordinate> GetSeeds(int labelIdx) const;
 	bool Load(QString const & filename);
 	bool Store(QString const & filename, bool extendedFormat);
 	void SetColorTheme(iAColorTheme const *);
 	virtual int count() const;
 	virtual QString GetName(int idx) const;
 	virtual QColor GetColor(int idx) const;
-	bool AreSeedsAvailable() const;
 public slots:
 	void RendererClicked(int, int, int);
 	void SlicerClicked(int, int, int);
@@ -66,13 +64,12 @@ public slots:
 	void Store();
 	void Load();
 	void StoreImage();
+	void Sample();
 	void LabelOverlayReady();
 	QString const & GetFileName();
 private:
 	void AddSeed(int, int, int);
-	void RebuildLabelOverlayLUT();
 	void UpdateOverlay();
-	void SetOverlayPixels(int label, int value);
 	void AddSeedItem(int label, int x, int y, int z);
 	int AddLabelItem(QString const & labelText);
 	vtkSmartPointer<vtkImageData> drawImage();
@@ -91,6 +88,4 @@ private:
 	MdiChild* m_mdiChild;
 	iALabelOverlayThread* m_labelOverlayThread;
 	bool m_newOverlay;
-signals:
-	void SeedsAvailable();
 };
