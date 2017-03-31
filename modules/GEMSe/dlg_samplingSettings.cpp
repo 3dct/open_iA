@@ -233,7 +233,7 @@ void CategoryParameterInputs::ChangeInputValues(QMap<QString, QString> const & v
 		return;
 	QStringList enabledOptions = values[name].split(",");
 	int curOption = 0;
-	for (int i = 0; i < m_features.size(); ++i)
+	for (int i = 0; i < m_features.size() && curOption < enabledOptions.size(); ++i)
 	{	// short names? descriptor->GetNameMapper()->GetShortName(i + descriptor->GetMin())
 		if (m_features[i]->text() == enabledOptions[curOption])
 		{
