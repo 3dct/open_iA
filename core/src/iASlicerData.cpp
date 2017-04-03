@@ -73,6 +73,7 @@
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
+#include <vtkCommand.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
