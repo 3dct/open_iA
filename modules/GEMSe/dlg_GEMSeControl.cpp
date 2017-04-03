@@ -133,6 +133,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	m_simpleLabelInfo(new iASimpleLabelInfo())
 
 {
+	connect(m_dlgSamplings, SIGNAL(AddSamplings()), this, SLOT(LoadSampling()));
 	dlgLabels->hide();
 	m_simpleLabelInfo->SetColorTheme(colorTheme);
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
