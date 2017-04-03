@@ -134,7 +134,10 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 			}
 		}
 	}
-	result += ValueSplitString + MakeRelative(m_sampling.GetPath(), m_fileName);
+	if (type == iAAttributeDescriptor::DerivedOutput)
+	{
+		result += ValueSplitString + MakeRelative(m_sampling.GetPath(), m_fileName);
+	}
 	return result;
 }
 
