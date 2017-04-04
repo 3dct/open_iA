@@ -27,16 +27,15 @@
 class iAParamHistogramData;
 class iANameMapper;
 
-class iAParamChart: public iADiagramFctWidget
+class iAFilterChart: public iADiagramFctWidget
 {
 	Q_OBJECT
 public:
-	iAParamChart(QWidget* parent,
-		vtkPiecewiseFunction* otf,
-		vtkColorTransferFunction* ctf,
+	iAFilterChart(QWidget* parent,
 		QString const & caption,
 		QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper);
+		QSharedPointer<iANameMapper> nameMapper,
+		bool showCaption = false);
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 	double mapBinToValue(double bin) const;
@@ -72,6 +71,7 @@ private:
 
 	double m_minSliderPos, m_maxSliderPos;
 	int m_selectedHandle;
+	int m_selectionOffset;
 
 	int value2X(double value) const;
 	double x2value(int x) const;

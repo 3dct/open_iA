@@ -39,3 +39,10 @@ void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, b
 vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
 
 void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
+
+
+#define FOR_VTKIMG_PIXELS(img, x, y, z) \
+    int * dims = img->GetDimensions(); \
+    for (int x = 0; x < dims[0]; ++x) \
+        for (int y = 0; y < dims[1]; ++y) \
+            for (int z = 0; z < dims[2]; ++z)

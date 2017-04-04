@@ -28,6 +28,8 @@
 #include <itkCastImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QDateTime>
 #include <QLocale>
 #include <QString>

@@ -20,64 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAValueType.h"
-
 #include <vtkSmartPointer.h>
 
-#include <QWidget>
+#include <QThread>
 
-class iAAbstractDrawableFunction;
-class iANameMapper;
-class iAParamChart;
-class iAParamHistogramData;
+class iAColorTheme;
 
-class vtkColorTransferFunction;
+class vtkImageData;
+class vtkLookupTable;
 class vtkPiecewiseFunction;
 
-class QCheckBox;
-class QLabel;
+class QStandardItemModel;
 
-class iAChartSpanSlider: public QWidget
+class iALabelOverlayThread : public QThread
 {
-	Q_OBJECT
 public:
-	iAChartSpanSlider(QString const & caption, int id, QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper);
-	void SetFilteredData(QSharedPointer<iAParamHistogramData> data);
-	void SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data);
-	void RemoveFilterData();
-	void AddClusterData(QSharedPointer<iAParamHistogramData> data);
-	void ClearClusterData();
-	void SetMarker(double xPos);
-	size_t GetNumBin() const;
-	int GetID() const;
-	iAValueType GetRangeType() const;
-	double GetMaxYValue() const;
-	void SetMaxYAxisValue(double val);
-	
-	void SetSpanValues(double minValue, double maxValue);
-	void ResetSpan();
-	double mapValueToBin(double value) const;
-	void SetBinColor(int bin, QColor const & color);
-	void UpdateChart();
-signals:
-	void Toggled(bool);
-	void FilterChanged(double min, double max);
-	void ChartDblClicked();
-private slots:
-	void SelectionChanged();
+	iALabelOverlayThread(vtkSmartPointer<vtkImageData>& labelOverlayImg,
+		vtkSmartPointer<vtkLookupTable>& labelOverlayLUT,
+		vtkSmartPointer<vtkPiecewiseFunction>& labelOverlayOTF,
+		QStandardItemModel* itemModel,
+		int labelCount,
+		iAColorTheme const * colorTheme,
+		int *    imageExtent,
+		double * imageSpacing);
+	void RebuildLabelOverlayLUT();
+	vtkSmartPointer<vtkImageData> drawImage();
+	void run();
 private:
-	void SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFunction>& drawer, QSharedPointer<iAAbstractDrawableFunction> newDrawer);
-	QColor GetClusterColor(int nr) const;
-	
-	iAParamChart*  m_charts;
-	QCheckBox*     m_checkbox;
-	int    m_ID;
-	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_clusterDrawer;
-	QSharedPointer<iAAbstractDrawableFunction> m_filteredDrawer;
-	QSharedPointer<iAAbstractDrawableFunction> m_filteredClusterDrawer;
-	int	           m_oldMin;
-	int	           m_oldMax;
-	
-	QSharedPointer<iAParamHistogramData> m_filteredClusterData;
+	vtkSmartPointer<vtkImageData>& m_labelOverlayImg;
+	vtkSmartPointer<vtkLookupTable>& m_labelOverlayLUT;
+	vtkSmartPointer<vtkPiecewiseFunction>& m_labelOverlayOTF;
+	QStandardItemModel* m_itemModel;
+	int m_labelCount;
+	iAColorTheme const * m_colorTheme;
+	int *    m_imageExtent;
+	double * m_imageSpacing;
 };
+
+vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF(int labelCount);
+
+vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorTheme const * colorTheme);

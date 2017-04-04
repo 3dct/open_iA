@@ -42,8 +42,9 @@ public:
 	static iAGEMSeAttachment* create(MainWindow * mainWnd, iAChildData childData);
 	bool LoadSampling(QString const & smpFileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
-	bool LoadPriors(QString const & priorsFileName);
-	bool LoadSeeds(QString const & seedsFileName);
+	bool LoadRefImg(QString const & refImgName);
+	void SetSerializedHiddenCharts(QString const & hiddenCharts);
+	void SetLabelInfo(QString const & colorTheme, QString const & labelNames);
 
 	void ResetFilter();
 	void ToggleAutoShrink();

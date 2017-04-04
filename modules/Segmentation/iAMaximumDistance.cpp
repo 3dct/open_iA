@@ -27,6 +27,8 @@
 
 #include <itkMaximumDistance.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**

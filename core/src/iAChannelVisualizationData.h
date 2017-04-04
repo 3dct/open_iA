@@ -66,6 +66,10 @@ public:
 	vtkSmartPointer<vtkImageData>		image;
 	vtkImageReslice*					reslicer;
 
+	QString GetName() const;
+
+	// TODO: contour functionality should be moved into separate class:
+	// {
 	vtkSmartPointer<vtkMarchingContourFilter>	cFilter;
 	vtkSmartPointer<vtkPolyDataMapper>			cMapper;
 	vtkSmartPointer<vtkActor>					cActor;
@@ -74,10 +78,11 @@ public:
 	void SetContoursOpacity( double opacity );
 	void SetShowContours( bool show );
 	void SetContourLineParams( double lineWidth, bool dashed = false );
+	// }
 private:
 	iAChannelSlicerData(iAChannelSlicerData const & other);
 
-	void InitContours();
+	void InitContours();	// TODO: contour functionality should be moved into separate class
 
 	iAChannelSlicerData& operator=(iAChannelSlicerData const & other);
 	void Assign(vtkSmartPointer<vtkImageData> imageData, QColor const & col);
@@ -90,13 +95,12 @@ private:
 
 	vtkScalarsToColors*					m_ctf;
 	vtkPiecewiseFunction*				m_otf;
-};
+	QString                             m_name;};
 
 
 class open_iA_Core_API iAChannelVisualizationData
 {
 public:
-	// TODO: VOLUME: new channel vis. shouldn't have the Maximum3DChannels Limit!
 	static const size_t Maximum3DChannels = 3;
 
 	iAChannelVisualizationData();
@@ -117,6 +121,9 @@ public:
 	void SetColorTF(vtkScalarsToColors* cTF);
 	void SetOpacityTF(vtkPiecewiseFunction* oTF);
 
+	void SetName(QString name);
+	QString GetName() const;
+
 	// check if this can be somehow refactored (not needed for each kind of channel):
 	// begin
 	void SetColor(QColor const & col);
@@ -135,9 +142,10 @@ private:
 	bool threeD;
 	QColor color;
 	bool similarityRenderingEnabled;
-	vtkSmartPointer<vtkImageData>		image;
-	vtkPiecewiseFunction*				piecewiseFunction;
-	vtkScalarsToColors*			colorTransferFunction;
+	vtkSmartPointer<vtkImageData>       image;
+	vtkPiecewiseFunction*               piecewiseFunction;
+	vtkScalarsToColors*                 colorTransferFunction;
+	QString                             m_name;
 };
 
 void open_iA_Core_API ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);

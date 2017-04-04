@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAImageTree.h"
+#include "iAImageTreeNode.h"		// for LabelImagePointer
 #include "iASlicerMode.h"
 
 #include <vtkSmartPointer.h>
@@ -45,7 +46,7 @@ class iAImageNodeWidget: public QWidget
 public:
 	iAImageNodeWidget(
 		QWidget* parent,
-		QSharedPointer<iAImageClusterNode > node,
+		QSharedPointer<iAImageTreeNode > node,
 		iAPreviewWidgetPool * previewPool,
 		bool shrinkAuto,
 		int representativeType);
@@ -53,14 +54,14 @@ public:
 	bool IsExpanded() const;
 	bool IsShrinked() const;
 	void Layout(int x, int y, int width, int height);
-	QSharedPointer<iAImageClusterNode> GetClusterNode();
-	bool UpdateShrinkStatus();
+	QSharedPointer<iAImageTreeNode> GetClusterNode();
+	bool UpdateShrinkStatus(LabelImagePointer refImg);
 	void ToggleButton();
 	void ExpandNode();
-	void SetAutoShrink(bool newAutoShrink);
+	void SetAutoShrink(bool newAutoShrink, LabelImagePointer refImg);
 	bool IsAutoShrinked() const;
-	void UpdateRepresentative();
-	void SetRepresentativeType(int representativeType);
+	bool UpdateRepresentative(LabelImagePointer refImg);
+	bool SetRepresentativeType(int representativeType, LabelImagePointer refImg);
 protected:
 	virtual void paintEvent(QPaintEvent * );
 	virtual void mouseReleaseEvent(QMouseEvent * ev);
@@ -68,19 +69,20 @@ signals:
 	void Expand(bool expand);
 	void Clicked();
 	void ImageClicked();
+	void ImageRightClicked();
 	void Updated();
 private slots:
 	void ExpandButtonClicked();
 private:
 	void ReturnPreview();
-	bool CreatePreview();
+	bool CreatePreview(LabelImagePointer refImg);
 
 	void SetShrinkedLayout();
 	void SetLargeLayout();
 
 	bool m_shrinkedAuto;
 	bool m_shrinkStatus;
-	QSharedPointer<iAImageClusterNode > m_cluster;
+	QSharedPointer<iAImageTreeNode > m_cluster;
 	iAImagePreviewWidget * m_imageView;
 	iATriangleButton* m_expandButton;
 	QLabel* m_infoLabel;

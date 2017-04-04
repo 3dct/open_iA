@@ -32,7 +32,7 @@ public:
 	static QColor const DefaultColor;
 	iAColorable();
 	iAColorable(QColor const & color);
-	void setColor(QColor const & color);
+	virtual void setColor(QColor const & color);
 	QColor const getColor() const;
 private:
 	QColor m_color;

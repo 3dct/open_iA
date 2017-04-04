@@ -30,6 +30,8 @@
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
 #include <itkBilateralImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 

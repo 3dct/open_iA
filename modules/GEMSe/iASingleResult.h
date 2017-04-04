@@ -42,13 +42,12 @@ public:
 	static QSharedPointer<iASingleResult> Create(
 		int id,
 		iASamplingResults const & sampling,
-		QVector<double> const & parameter);
+		QVector<double> const & parameter,
+		QString const & fileName);
 
 	//! retrieve all attritutes of the given type as string
 	//! (such as can be passed into Create method above)
 	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
-
-	iASingleResult(int id, iASamplingResults const & sampling);
 
 	//! retrieve labelled image
 	iAITKIO::ImagePointer const GetLabelledImage();
@@ -69,6 +68,8 @@ public:
 
 	iAITKIO::ImagePointer GetProbabilityImg(int l);
 
+	bool ProbabilityAvailable() const;
+
 	void SetLabelImage(iAITKIO::ImagePointer labelImg);
 
 	void AddProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs);
@@ -76,12 +77,15 @@ public:
 	int GetDatasetID() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
 private:
+	//! constructor; use static Create methods instead!
+	iASingleResult(int id, iASamplingResults const & sampling);
 	//! for now, value-type agnostic storage of values:
 	QVector<double> m_attributeValues;
 	iASamplingResults const & m_sampling;
 	int m_id;
 	iAITKIO::ImagePointer m_labelImg;
 	QVector<iAITKIO::ImagePointer> m_probabilityImg;
+	QString m_fileName;
 
 	bool LoadLabelImage();
 

@@ -65,15 +65,18 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	xLabel->setFont(f);
 	QLabel * zLabel2 = new QLabel("z");
 	zLabel2->setFont(f);
+	m_sliceLabel = new QLabel("");
+	m_sliceLabel->setFont(f);
 
 	gridLay->addWidget(zLabel1, 0, 0, Qt::AlignCenter);
 	gridLay->addWidget(yLabel, 1, 0, Qt::AlignCenter);
 	gridLay->addWidget(xLabel, 2, 1, Qt::AlignCenter);
 	gridLay->addWidget(zLabel2, 2, 2, Qt::AlignCenter);
+	gridLay->addWidget(m_sliceLabel, 0, 2, Qt::AlignCenter);
 
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		char const * caption = ((i==0)?"YZ":(i==1)?"XY":"XZ");
+		char const * caption = GetSlicerModeString(i);
 		m_sliceViews[i] = new iAImagePreviewWidget(QString("CameraView")+caption,
 			0, false, 0, static_cast<iASlicerMode>(i), labelCount, iAColorTheme::NullTheme());
 		m_sliceViews[i]->SetImage(originalData, false, false);
@@ -116,7 +119,7 @@ void iACameraWidget::UpdateScrollBar(int sliceNumber)
 	int maxIdx = minIdx + 1;
 	m_sliceScrollBar->setRange(0, extent[maxIdx]-extent[minIdx]);
 	m_sliceScrollBar->setValue(sliceNumber);
-	
+	UpdateSliceLabel(sliceNumber);
 }
 
 void iACameraWidget::MiniSlicerClicked()
@@ -142,7 +145,15 @@ vtkCamera* iACameraWidget::GetCommonCamera()
 void iACameraWidget::ScrollBarChanged(int value)
 {
 	m_sliceViews[m_slicerMode]->SetSliceNumber(value);
+	UpdateSliceLabel(value);
 	emit SliceChanged(value);
+}
+
+void iACameraWidget::UpdateSliceLabel(int sliceNumber)
+{
+	m_sliceLabel->setText(QString("Selected Axis: %1\nSlice: %2")
+		.arg(GetSlicerModeString(m_slicerMode))
+		.arg(sliceNumber));
 }
 
 void iACameraWidget::UpdateView()

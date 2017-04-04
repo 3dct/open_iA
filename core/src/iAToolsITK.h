@@ -24,6 +24,7 @@
 #include "iAITKIO.h"
 #include "open_iA_Core_export.h"
 
+#include <itkCastImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
@@ -111,5 +112,45 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 		DEBUG_LOG(QString("Error while writing image file '%1': %2")
 			.arg(filename)
 			.arg(e.what()));
+	}
+}
+
+template<typename SourceImageType, typename ResultImageType>
+iAITKIO::ImagePointer InternalCastImageTo(iAITKIO::ImagePointer img)
+{
+	typedef itk::CastImageFilter<SourceImageType, ResultImageType> CastType;
+	typename CastType::Pointer cast = CastType::New();
+	cast->SetInput(dynamic_cast<SourceImageType*>(img.GetPointer()));
+	cast->Update();
+	return cast->GetOutput();
+}
+
+template<typename ResultPixelType>
+iAITKIO::ImagePointer CastImageTo(iAITKIO::ImagePointer img)
+{
+	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
+	switch (GetITKScalarPixelType(img))
+	{
+		case itk::ImageIOBase::UCHAR:
+			return InternalCastImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::CHAR:
+			return InternalCastImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::SHORT:
+			return InternalCastImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::USHORT:
+			return InternalCastImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::INT:
+			return InternalCastImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::UINT:
+			return InternalCastImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::LONG:
+			return InternalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::ULONG:
+			return InternalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::FLOAT:
+			return InternalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
+		default:
+		case itk::ImageIOBase::DOUBLE:
+			return InternalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
 	}
 }

@@ -1112,6 +1112,11 @@ void iADiagramFctWidget::SetMaxYAxisValue(iAAbstractDiagramData::DataType val)
 	}
 }
 
+void iADiagramFctWidget::ResetMaxYAxisValue()
+{
+	m_maxYAxisValue = GetData()->GetMaxValue();
+}
+
 void iADiagramFctWidget::AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset)
 {
 	assert(dataset);
@@ -1143,6 +1148,15 @@ QSharedPointer<iAAbstractDrawableFunction> iADiagramFctWidget::CreatePrimaryDraw
 void iADiagramFctWidget::UpdatePrimaryDrawer()
 {
 	m_primaryDrawer->update();
+}
+
+QSharedPointer< iAAbstractDrawableFunction > iADiagramFctWidget::GetPrimaryDrawer()
+{
+	if (!m_primaryDrawer)
+	{
+		m_primaryDrawer = CreatePrimaryDrawer();
+	}
+	return m_primaryDrawer;
 }
 
 void iADiagramFctWidget::AddImageOverlay( QSharedPointer<QImage> imgOverlay )
@@ -1258,6 +1272,11 @@ bool iADiagramFctWidget::IsDrawnDiscrete() const
 	return ((GetData()->GetRangeType() == Discrete &&
 		((GetData()->GetDataRange()[1]-GetData()->GetDataRange()[0]) <= GetData()->GetNumBin()))
 		|| GetData()->GetRangeType() == Categorical);
+}
+
+void iADiagramFctWidget::SetXCaption(QString const & caption)
+{
+	xCaption = caption;
 }
 
 void iADiagramFctWidget::showTFTable()

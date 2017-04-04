@@ -87,6 +87,7 @@ public:
 	iAAbstractDiagramData::DataType GetMaxYValue() const;
 	iAAbstractDiagramData::DataType GetMaxYAxisValue() const;
 	void SetMaxYAxisValue(iAAbstractDiagramData::DataType val);
+	void ResetMaxYAxisValue();
 
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData() =0;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const =0;
@@ -101,6 +102,7 @@ public:
 
 	void UpdatePrimaryDrawer();
 	void SetShowPrimaryDrawer(bool showPrimaryDrawer);
+	QSharedPointer< iAAbstractDrawableFunction > GetPrimaryDrawer();
 	
 	void SetYDrawMode(DrawModeType drawMode);
 
@@ -119,6 +121,7 @@ public:
 	virtual int getBottomMargin() const;
 
 	bool IsDrawnDiscrete() const;
+	void SetXCaption(QString const & caption);
 
 	bool isTFTableCreated();
 	void closeTFTable();

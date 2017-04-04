@@ -20,8 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAColorable.h"
+
 #include <QSharedPointer>
 
+class QColor;
 class QPainter;
 
 class CoordinateConverter
@@ -44,9 +47,10 @@ public:
  *			encapsulates both the data of the function and the drawing method
  *
  */
-class iAAbstractDrawableFunction
+class iAAbstractDrawableFunction: public iAColorable
 {
 public:
+	iAAbstractDrawableFunction(QColor const & color);
 	/**
 	* \brief makes sure the next call to draw will completely redraw the function, without any caching
 	*/

@@ -20,13 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-class iANameMapper;
-class iAAttributeDescriptor;
-
+#include "iAAttributeDescriptor.h"
 #include "iAValueType.h"
 
 #include <QVector>
 #include <QSharedPointer>
+
+class iANameMapper;
 
 class QTextStream;
 
@@ -39,6 +39,8 @@ public:
 	QSharedPointer<iAAttributeDescriptor> at(int idx);
 	void Add(QSharedPointer<iAAttributeDescriptor> range);
 	void Store(QTextStream & out);
+	int Find(QString const & name);
+	int Count(iAAttributeDescriptor::iAAttributeType type=iAAttributeDescriptor::None) const;
 private:
 	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
 };

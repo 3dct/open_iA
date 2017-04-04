@@ -34,6 +34,8 @@ public:
 	virtual ~iAAbstractDiagramData() {}
 	virtual DataType const * GetData() const =0;
 	virtual size_t GetNumBin() const =0;
+	virtual double GetMinX() const { return 0; }
+	virtual double GetMaxX() const { return GetNumBin(); }
 };
 
 

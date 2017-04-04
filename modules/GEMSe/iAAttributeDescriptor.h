@@ -32,7 +32,7 @@ class iAAttributeDescriptor
 public:
 	enum iAAttributeType
 	{
-		Invalid = -1,
+		None = -1,
 		Parameter,
 		DerivedOutput
 	};

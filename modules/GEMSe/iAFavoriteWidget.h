@@ -21,7 +21,7 @@
 #pragma once
 
 #include "iASlicerMode.h"
-#include "iAImageTree.h"
+#include "iAImageTreeNode.h"
 
 #include <QVector>
 //#include <QSharedPointer>
@@ -34,11 +34,11 @@ class vtkCamera;
 
 struct FavoriteData
 {
-	iAImageClusterNode * node;
+	iAImageTreeNode * node;
 	iAImagePreviewWidget* widget;
 	FavoriteData():
 		node(0), widget(0) {}
-	FavoriteData(iAImageClusterNode *l, iAImagePreviewWidget* w):
+	FavoriteData(iAImageTreeNode *l, iAImagePreviewWidget* w):
 		node(l), widget(w) {}
 };
 
@@ -47,20 +47,22 @@ class iAFavoriteWidget : public QWidget
 	Q_OBJECT
 public:
 	iAFavoriteWidget(iAPreviewWidgetPool* previewWidgetPool);
-	bool ToggleLike(iAImageClusterNode * leaf);
-	bool ToggleHate(iAImageClusterNode * leaf);
+	bool ToggleLike(iAImageTreeNode * node);
+	bool ToggleHate(iAImageTreeNode * node);
 	bool HasAnyFavorite() const;
-	QVector<iAImageClusterNode const *> GetFavorites(iAImageClusterNode::Attitude att) const;
+	QVector<iAImageTreeNode const *> GetFavorites(iAImageTreeNode::Attitude att) const;
 signals:
 	void ViewUpdated();
-	void Clicked(iAImageClusterNode * leaf);
+	void Clicked(iAImageTreeNode * node);
+	void RightClicked(iAImageTreeNode * node);
 private slots:
 	void FavoriteClicked();
+	void FavoriteRightClicked();
 private:
-	void Add(iAImageClusterNode * leaf);
-	void Remove(iAImageClusterNode const * leaf);
-	int GetIndexForNode(iAImageClusterNode const* leaf);
-	iAImageClusterNode * GetNodeForWidget(iAImagePreviewWidget* widget);
+	void Add(iAImageTreeNode * node);
+	void Remove(iAImageTreeNode const * node);
+	int GetIndexForNode(iAImageTreeNode const* node);
+	iAImageTreeNode * GetNodeForWidget(iAImagePreviewWidget* widget);
 	QVector<FavoriteData> m_favorites;
 	iAPreviewWidgetPool* m_previewPool;
 	QLayout *m_likeLayout, *m_hateLayout;

@@ -238,7 +238,6 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	QVTKWidget2::mousePressEvent(event);
 }
 
-
 void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	QVTKWidget2::mouseMoveEvent(event);
@@ -667,9 +666,9 @@ void iASlicerWidget::Frame()
 		if (m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET)
 		{
 			painter.drawLine(points[1] + QPoint(magicLensFrameWidth - hw, vr.height()*0.35),
-				points[0] + QPoint(m_magicLensExternal->GetOffset(0) + 10, +10));
+				points[0] + QPoint(m_magicLensExternal->GetOffset() + 10, +10));
 			painter.drawLine(points[2] - QPoint(-magicLensFrameWidth + hw, vr.height()*0.35),
-				points[3] + QPoint(m_magicLensExternal->GetOffset(0) + 10, -10));
+				points[3] + QPoint(m_magicLensExternal->GetOffset() + 10, -10));
 		}
 	}
 	QVTKWidget2::Frame();

@@ -25,6 +25,8 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <vtkImageData.h>
+
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>

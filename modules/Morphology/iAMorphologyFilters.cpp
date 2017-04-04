@@ -34,6 +34,8 @@
 #include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkNormalizedCorrelationImageFilter.h>
 
+#include <vtkImageData.h>
+
 #include <QLocale>
 
 /**

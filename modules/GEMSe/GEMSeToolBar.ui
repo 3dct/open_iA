@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>160</width>
+    <width>404</width>
     <height>43</height>
    </rect>
   </property>
@@ -91,7 +91,7 @@
      <normaloff>:/images/GEMSe_import_rankings.png</normaloff>:/images/GEMSe_import_rankings.png</iconset>
    </property>
    <property name="text">
-    <string>Export current image/cluster rankings</string>
+    <string>Import current image/cluster rankings</string>
    </property>
   </action>
   <addaction name="action_ResetFilter"/>

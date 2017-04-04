@@ -20,29 +20,59 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer>
-#include <QThread>
+#include "iAImageTreeNode.h"
 
-class iAAttributes;
 class iASingleResult;
 
-class QString;
+class iAAttributes;
 
-class CharacteristicsCalculator : public QThread
+class iAImageTreeLeaf : public iAImageTreeNode
 {
 public:
-	CharacteristicsCalculator(
-		QSharedPointer<iASingleResult> result,
-		int objCountIdx,
-		int avgUncIdx,
-		int labelCount);
-	bool success();
+	iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount);
+	virtual int GetChildCount() const;
+	virtual int GetClusterSize() const;
+	virtual int GetFilteredSize() const;
+	virtual void UpdateFilter(iAChartFilter const & filter,
+		iAChartAttributeMapper const & chartAttrMap,
+		iAResultFilter const & resultFilter);
+	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const;
+	virtual void DiscardDetails() const;
+	ClusterImageType const GetLargeImage() const;
+	virtual ClusterIDType GetID() const;
+	virtual bool IsLeaf() const { return true; }
+	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount);
+	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const;
+	virtual double GetAttribute(int) const;
+	virtual void GetMinMax(int chartID, double & min, double & max,
+		iAChartAttributeMapper const & chartAttrMap) const;
+	virtual ClusterDistanceType GetDistance() const;
+	void SetAttribute(int id, double value);
+	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
+	virtual CombinedProbPtr UpdateProbabilities() const;
+	double GetProbabilityValue(int l, int x, int y, int z) const;
+	int GetDatasetID() const;
+	QSharedPointer<iAAttributes> GetAttributes() const;
+	virtual void GetSelection(QVector<QSharedPointer<iASingleResult> > & result) const;
 private:
-	QSharedPointer<iASingleResult> m_result;
-	int m_objCountIdx;
-	int m_avgUncIdx;
-	bool m_success;
+	bool m_filtered;
 	int m_labelCount;
-	virtual void run();
-
+	QSharedPointer<iASingleResult> m_singleResult;
 };
+
+template<typename VisitorFn>
+void VisitLeafs(iAImageTreeNode const * node, VisitorFn visitor)
+{
+	if (!node->IsLeaf())
+	{
+		for (int i = 0; i<node->GetChildCount(); ++i)
+		{
+			VisitLeafs(node->GetChild(i).data(), visitor);
+		}
+	}
+	else
+	{
+		iAImageTreeLeaf const * leaf = dynamic_cast<iAImageTreeLeaf const *> (node);
+		visitor(leaf);
+	}
+}

@@ -43,7 +43,6 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New())
 {
-
 	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
 	m_selection_ctf->AddRGBPoint(1, 1.0, 0.0, 0.0);
 
@@ -61,7 +60,7 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	content->setLayout(lay);
 	setWidget(content);
 
-	connect(m_splom, SIGNAL(SelectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
+	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
 }
 
 void dlg_modalitySPLOM::SplomSelection(QVector<unsigned int> * selInds)
@@ -187,7 +186,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	                (int)(((m_extent[3]-m_extent[2]+1) / step[1]) + 1) *
 	                (int)(((m_extent[5]-m_extent[4]+1) / step[2]) + 1);
 	
-	std::cout << "Steps: " << step[0] << ", " << step[1] << ", " << step[2] << "; tableSize: " << tableSize;
+	//std::cout << "Steps: " << step[0] << ", " << step[1] << ", " << step[2] << "; tableSize: " << tableSize;
 	
 	iATimeAdder adder;
 	adder.resume();

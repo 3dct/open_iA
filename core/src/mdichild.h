@@ -249,10 +249,9 @@ public:
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
-	void SetMagicLensInput(iAChannelID id, bool initReslicer, std::string const & caption);
+	void SetMagicLensInput(iAChannelID id, bool initReslicer);
 	void SetMagicLensEnabled(bool isOn);
-	void SetMagicLensCaption(std::string const & caption);
-	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption);
+	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
 	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
@@ -271,6 +270,13 @@ public:
 	void ApplyVolumeSettings();
 	bool HasUnsavedChanges() const;
 	void SetUnsavedChanges(bool b);
+	QString GetLayoutName() const;
+	void LoadLayout(QString const & layout);
+
+	//! if more than one modality loaded, ask user to chose one of them
+	//! (currently used for determining which modality to save)
+	int chooseModalityNr(QString const & caption = "Choose Channel");
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -405,17 +411,14 @@ private:
 	QString strippedName(const QString &f);
 	
 	//! sets up the IO thread for saving the correct file type for the given filename.
-	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
-	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
-	//! if more than one modality loaded, ask user to chose one of them
-	//! (currently used for determining which modality to save)
-	int chooseModalityNr();
+
+	// adds an algorithm to the list of currently running jobs
 	void addAlgorithm(iAAlgorithm* thread);
 
 	QFileInfo fileInfo;
@@ -456,7 +459,7 @@ private:
 	void setupViewInternal(bool active);
 	bool IsVolumeDataLoaded() const;
 
-	vtkSmartPointer<vtkImageData> imageData;
+	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
 	vtkTransform* axesTransform;
 	vtkTransform* slicerTransform;
@@ -488,22 +491,22 @@ private:
 	bool raycasterInitialized;
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
+	QString m_layout;
 
 	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
+	int m_currentComponent;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
 	bool m_unsavedChanges;
 	int m_storedModalityNr;		// modality nr being stored
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
-	void ChangeImage(vtkSmartPointer<vtkImageData> img);
+	void ShowModality(int modIdx);
 	void SaveFinished();
 private:
 	int GetCurrentModality() const;
-	void SetCurrentModality(int modality);
-	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
 	void InitModalities();
 	void InitVolumeRenderers();
 public:

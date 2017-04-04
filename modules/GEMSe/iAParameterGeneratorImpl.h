@@ -24,12 +24,14 @@
 
 class iARandomParameterGenerator: public iAParameterGenerator
 {
+public:
 	virtual QString GetName() const;
 	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
 };
 
 class iALatinHypercubeParameterGenerator: public iAParameterGenerator
 {
+public:
 	virtual QString GetName() const;
 	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
 };
@@ -39,8 +41,20 @@ class iALatinHypercubeParameterGenerator: public iAParameterGenerator
 //! this algorithm will typically give less than the specified amount of samples
 class iACartesianGridParameterGenerator : public iAParameterGenerator
 {
+public:
 	virtual QString GetName() const;
 	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+};
+
+class iASelectionParameterGenerator : public iAParameterGenerator
+{
+public:
+	iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets);
+	virtual QString GetName() const;
+	virtual ParameterSetsPointer GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
+private:
+	QString m_name;
+	ParameterSetsPointer m_parameterSets;
 };
 
 QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators();

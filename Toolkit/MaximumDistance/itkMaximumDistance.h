@@ -13,6 +13,8 @@
 //  Software Guide : BeginCodeSnippet
 #include "itkBinaryThresholdImageFilter.h"
 
+#include "itkImageRegionConstIterator.h"
+
 //  Software Guide : EndCodeSnippet
 
 //#include "itkNumericTraits.h"

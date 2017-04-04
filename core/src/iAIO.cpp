@@ -288,7 +288,7 @@ void iAIO::run()
 		case OIF_READER: {
 			IO::OIF::Reader r;
 			r.read(getFileName(), getConnector(), m_channel, m_volumes);
-			if (!m_volumes)
+			//if (!m_volumes)
 			{
 				postImageReadActions();
 			}

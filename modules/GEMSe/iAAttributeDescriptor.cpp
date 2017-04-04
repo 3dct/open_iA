@@ -23,6 +23,7 @@
 
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
+#include "iAListNameMapper.h"
 
 #include <cassert>
 
@@ -69,7 +70,7 @@ iAAttributeDescriptor::iAAttributeType Str2AttribType(QString const & str)
 	else
 	{
 		DEBUG_LOG(QString("Unknown attribute descriptor '%1'\n").arg(str));
-		return iAAttributeDescriptor::Invalid;
+		return iAAttributeDescriptor::None;
 	}
 }
 
@@ -122,44 +123,6 @@ QString ValueType2Str(iAValueType type)
 	}
 }
 
-#include "iANameMapper.h"
-
-#include <QStringList>
-
-class iAListNameMapper : public iANameMapper
-{
-public:
-	iAListNameMapper(QStringList const & names) :
-		m_names(names)
-	{}
-	virtual QString GetName(int idx) const
-	{
-		return m_names[idx];
-	}
-
-	virtual int GetIdx(QString const & name, bool & ok) const
-	{
-		for (int i = 0; i < m_names.size(); ++i)
-		{
-			if (m_names[i] == name)
-			{
-				ok = true;
-				return i;
-			}
-		}
-		ok = false;
-		return -1;
-	}
-
-	virtual int size() const
-	{
-		return m_names.size();
-	}
-private:
-	QStringList m_names;
-};
-
-
 QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString const & def)
 {
 	QStringList defTokens = def.split(AttributeSplitString);
@@ -187,6 +150,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 		case Continuous:	// intentional fall-through!
 		case Discrete:
 		{
+			result->m_logarithmic = false;
 			bool minOk = true, maxOk = true;
 			result->m_min = Converter<double>::convert(defTokens[3], &minOk);
 			result->m_max = Converter<double>::convert(defTokens[4], &maxOk);
@@ -244,7 +208,7 @@ QString iAAttributeDescriptor::ToString() const
 				}
 				break;
 			}
-			for (int i = 0; i < m_nameMapper->size(); ++i)
+			for (int i = GetMin(); i <= GetMax(); ++i)
 			{
 				result += m_nameMapper->GetName(i);
 				if (i < m_nameMapper->size() - 1)
@@ -265,7 +229,7 @@ iAAttributeDescriptor::iAAttributeDescriptor(
 	m_valueType(valueType),
 	m_logarithmic(false)
 {
-	ResetMinMax();
+	ResetMinMax();	// TODO: check why we set it in constructor when it's reset again here anyway; maybe move this to where it's actually needed?
 }
 
 iAAttributeDescriptor::iAAttributeType iAAttributeDescriptor::GetAttribType() const

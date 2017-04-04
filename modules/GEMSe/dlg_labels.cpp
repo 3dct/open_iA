@@ -18,17 +18,19 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "dlg_labels.h"
 
+#include "dlg_commoninput.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iAImageCoordinate.h"
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
 #include "iAFileUtils.h"
-#include "iAVtkDraw.h"
+#include "iALabelOverlayThread.h"
+#include "iAModality.h"
+#include "iAToolsVTK.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -43,6 +45,7 @@
 #include <QThread>
 #include <QXmlStreamReader>
 
+#include <random>
 
 dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
@@ -55,22 +58,40 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	connect(pbStore, SIGNAL(clicked()), this, SLOT(Store()));
 	connect(pbLoad, SIGNAL(clicked()), this, SLOT(Load()));
 	connect(pbStoreImage, SIGNAL(clicked()), this, SLOT(StoreImage()));
+	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	lvLabels->setModel(m_itemModel);
 }
 
-QStandardItem* GetCoordinateItem(int x, int y, int z)
+namespace
 {
-	QStandardItem* item = new QStandardItem("("+QString::number(x)+", "+QString::number(y)+", "+QString::number(z)+")");
-	item->setData(x, Qt::UserRole + 1);
-	item->setData(y, Qt::UserRole + 2);
-	item->setData(z, Qt::UserRole + 3);
-	return item;
+	QStandardItem* GetCoordinateItem(int x, int y, int z)
+	{
+		QStandardItem* item = new QStandardItem("(" + QString::number(x) + ", " + QString::number(y) + ", " + QString::number(z) + ")");
+		item->setData(x, Qt::UserRole + 1);
+		item->setData(y, Qt::UserRole + 2);
+		item->setData(z, Qt::UserRole + 3);
+		return item;
+	}
 }
 
 void dlg_labels::RendererClicked(int x, int y, int z)
 {
 	AddSeed(x, y, z);
+}
+
+bool SeedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
+{
+	for (int i = 0; i<labelItem->rowCount(); ++i)
+	{
+		QStandardItem* coordItem = labelItem->child(i);
+		int ix = coordItem->data(Qt::UserRole + 1).toInt();
+		int iy = coordItem->data(Qt::UserRole + 2).toInt();
+		int iz = coordItem->data(Qt::UserRole + 3).toInt();
+		if (x == ix && y == iy && z == iz)
+			return true;
+	}
+	return false;
 }
 
 void dlg_labels::AddSeed(int x, int y, int z)
@@ -86,10 +107,9 @@ void dlg_labels::AddSeed(int x, int y, int z)
 	}
 
 	// make sure we're not adding the same seed twice:
-	QList<iAImageCoordinate> coordinates = GetSeeds(labelRow);
-	for (auto coord: coordinates)
+	for (int l = 0; l < count(); ++l)
 	{
-		if (coord.x == x && coord.y == y && coord.z == z)
+		if (SeedAlreadyExists(m_itemModel->item(l), x, y, z))
 		{
 			return;
 		}
@@ -112,7 +132,6 @@ void dlg_labels::AddSeedItem(int labelRow, int x, int y, int z)
 		m_itemModel->item(labelRow)->rowCount(),
 		GetCoordinateItem(x, y, z)
 	);
-	emit SeedsAvailable();
 }
 
 
@@ -134,8 +153,11 @@ void dlg_labels::Add()
 void dlg_labels::Remove()
 {
 	QModelIndexList indices = lvLabels->selectionModel()->selectedIndexes();
-	
+	if (indices.size() == 0)
+		return;
 	QStandardItem* item = m_itemModel->itemFromIndex(indices[0]);
+	if (!item)
+		return;
 	bool updateOverlay = true;
 	if (item->parent() == nullptr)  // a label was selected
 	{
@@ -203,110 +225,9 @@ int dlg_labels::GetSeedCount(int labelIdx) const
 	return labelItem->rowCount();
 }
 
-QList<iAImageCoordinate> dlg_labels::GetSeeds(int labelIdx) const
-{
-	QStandardItem* labelItem = m_itemModel->item(labelIdx);
-	QList<iAImageCoordinate> result;
-	for (int i=0; i<labelItem->rowCount(); ++i)
-	{
-		iAImageCoordinate coord;
-		QStandardItem* coordItem = labelItem->child(i);
-		coord.x = coordItem->data(Qt::UserRole + 1).toInt();
-		coord.y = coordItem->data(Qt::UserRole + 2).toInt();
-		coord.z = coordItem->data(Qt::UserRole + 3).toInt();
-		result.append(coord);
-	}
-	return result;
-}
-
-
-class LabelOverlayThread: public QThread
-{
-public:
-	LabelOverlayThread(vtkSmartPointer<vtkImageData>& labelOverlayImg,
-			vtkSmartPointer<vtkLookupTable>& labelOverlayLUT,
-			vtkSmartPointer<vtkPiecewiseFunction>& labelOverlayOTF,
-			QStandardItemModel* itemModel,
-			int labelCount,
-			iAColorTheme const * colorTheme,
-			int *    imageExtent,
-			double * imageSpacing
-			):
-		m_labelOverlayImg(labelOverlayImg),
-		m_labelOverlayLUT(labelOverlayLUT),
-		m_labelOverlayOTF(labelOverlayOTF),
-		m_itemModel(itemModel),
-		m_labelCount(labelCount),
-		m_colorTheme(colorTheme),
-		m_imageExtent(imageExtent),
-		m_imageSpacing(imageSpacing)
-	{}
-
-	void RebuildLabelOverlayLUT()
-	{
-		m_labelOverlayLUT = vtkSmartPointer<vtkLookupTable>::New();
-		m_labelOverlayLUT->SetNumberOfTableValues(m_labelCount+1);
-		m_labelOverlayLUT->SetRange(0.0, m_labelCount);
-		m_labelOverlayLUT->SetTableValue( 0, 0.0, 0.0, 0.0, 0.0 ); //label 0 is transparent
-	
-		m_labelOverlayOTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		m_labelOverlayOTF->AddPoint(0, 0);
-		for (int i=0; i<m_labelCount; ++i)
-		{
-			QColor c(m_colorTheme->GetColor(i));
-			m_labelOverlayLUT->SetTableValue(i+1,
-				c.red()/255.0,
-				c.green()/255.0,
-				c.blue()/255.0,
-				1);	// all other labels are opaque
-			m_labelOverlayOTF->AddPoint(i+1, 1);
-		}
-		m_labelOverlayLUT->Build();
-	}
-
-	vtkSmartPointer<vtkImageData> drawImage()
-	{
-		RebuildLabelOverlayLUT();
-		vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
-		result->SetExtent(m_imageExtent);
-		result->SetSpacing(m_imageSpacing);
-		result->AllocateScalars(VTK_INT, 1);
-		clearImage(result, 0);
-
-		for (int l=0; l<m_itemModel->rowCount(); ++l)
-		{
-			QStandardItem * labelItem = m_itemModel->item(l);
-			for (int i=0; i<labelItem->rowCount(); ++i)
-			{
-				QStandardItem* coordItem = labelItem->child(i);
-				int x = coordItem->data(Qt::UserRole + 1).toInt();
-				int y = coordItem->data(Qt::UserRole + 2).toInt();
-				int z = coordItem->data(Qt::UserRole + 3).toInt();
-				drawPixel(result, x, y, z, l+1);
-			}
-		}
-		return result;
-	}
-
-	void run()
-	{
-		m_labelOverlayImg = drawImage();
-	}
-private:
-	vtkSmartPointer<vtkImageData>& m_labelOverlayImg;
-	vtkSmartPointer<vtkLookupTable>& m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction>& m_labelOverlayOTF;
-	QStandardItemModel* m_itemModel;
-	int m_labelCount;
-	iAColorTheme const * m_colorTheme;
-	int *    m_imageExtent;
-	double * m_imageSpacing;
-};
-
-
 void dlg_labels::StartOverlayCreation()
 {
-	m_labelOverlayThread = new LabelOverlayThread(
+	m_labelOverlayThread = new iALabelOverlayThread(
 			m_labelOverlayImg,
 			m_labelOverlayLUT,
 			m_labelOverlayOTF,
@@ -330,7 +251,6 @@ void dlg_labels::UpdateOverlay()
 	{
 		m_newOverlay = true;
 	}
-
 }
 
 void dlg_labels::LabelOverlayReady()
@@ -344,8 +264,6 @@ void dlg_labels::LabelOverlayReady()
 ///	assert(chData);										// TODO: check/refactor the need for OTF. shouldn't be needed for slicer overlay alone!
 	m_mdiChild->reInitChannel(ch_LabelOverlay, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
 	m_mdiChild->InitChannelRenderer(ch_LabelOverlay, false);
-	// m_mdiChild->UpdateChannelSlicerOpacity(ch_LabelOverlay, 1);
-	//m_mdiChild->updateSlicers();
 	m_mdiChild->updateViews();
 	if (m_newOverlay)
 	{
@@ -432,13 +350,11 @@ bool dlg_labels::Load(QString const & filename)
 	m_fileName = MakeAbsolute(fileInfo.absolutePath(), filename);
 
 	UpdateOverlay();
-
 	pbStore->setEnabled(enableStoreBtn);
-	emit SeedsAvailable();
 	return true;
 }
 
-bool dlg_labels::Store(QString const & filename)
+bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 {
 	QFile file(filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -452,7 +368,8 @@ bool dlg_labels::Store(QString const & filename)
 	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
 	stream.writeStartElement("Labels");
-	
+
+	auto modalities = m_mdiChild->GetModalities();
 	for (int l=0; l<m_itemModel->rowCount(); ++l)
 	{
 		QStandardItem * labelItem = m_itemModel->item(l);
@@ -469,6 +386,22 @@ bool dlg_labels::Store(QString const & filename)
 			stream.writeAttribute("x", QString::number(x));
 			stream.writeAttribute("y", QString::number(y));
 			stream.writeAttribute("z", QString::number(z));
+			if (extendedFormat)
+			{
+				for (int m = 0; m < modalities->size(); ++m)
+				{
+					auto mod = modalities->Get(m);
+					for (int c = 0; c < mod->ComponentCount(); ++c)
+					{
+						double value = mod->GetComponent(c)->GetScalarComponentAsDouble(x, y, z, 0);
+						stream.writeStartElement("Value");
+						stream.writeAttribute("modality", QString::number(m));
+						stream.writeAttribute("component", QString::number(c));
+						stream.writeAttribute("value", QString::number(value, 'g', 16));
+						stream.writeEndElement();
+					}
+				}
+			}
 			stream.writeEndElement();
 		}
 		stream.writeEndElement();
@@ -509,7 +442,17 @@ void dlg_labels::Store()
 	{
 		return;
 	}
-	if (!Store(fileName))
+	QStringList inList;
+	inList << tr("$Extended Format (also write pixel values, not only positions)");
+	QList<QVariant> inPara;
+	inPara << tr("%1").arg(true);
+	dlg_commoninput extendedFormatInput(this, "Seed File Format", 1, inList, inPara, nullptr);
+	if (extendedFormatInput.exec() != QDialog::Accepted)
+	{
+		DEBUG_LOG("Selection of format aborted, aborting seed file storing");
+		return;
+	}
+	if (!Store(fileName, extendedFormatInput.getCheckValues()[0]))
 	{
 		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
 	}
@@ -535,6 +478,78 @@ void dlg_labels::StoreImage()
 	metaImageWriter->Delete();
 }
 
+bool haveAllSeeds(QVector<int> label2SeedCounts, int requiredNumOfSeedsPerLabel)
+{
+	for (int curNumSeeds : label2SeedCounts)
+	{
+		if (curNumSeeds < requiredNumOfSeedsPerLabel)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void dlg_labels::Sample()
+{
+	int gt = m_mdiChild->chooseModalityNr("Choose Ground Truth");
+	vtkSmartPointer<vtkImageData> img = m_mdiChild->GetModality(gt)->GetImage();
+	int labelCount = img->GetScalarRange()[1]+1;
+
+	QStringList     inParams; inParams << "*Number of Seeds per Label";
+	QList<QVariant> inValues; inValues << 50;
+	dlg_commoninput input(this, "Label Count", inParams.size(), inParams, inValues, nullptr);
+	if (input.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	int numOfSeedsPerLabel = input.getSpinBoxValues()[0];
+
+	// check that there is at least numOfSeedsPerLabel pixels per label
+	std::vector<int> histogram(labelCount, 0);
+	FOR_VTKIMG_PIXELS(img, x, y, z)
+	{
+		int label = static_cast<int>(img->GetScalarComponentAsFloat(x, y, z, 0));
+		histogram[label]++;
+	}
+	for (int i = 0; i < labelCount; ++i)
+	{
+		if (histogram[i] < numOfSeedsPerLabel)
+		{
+			numOfSeedsPerLabel = histogram[i] * 3 / 4;
+			DEBUG_LOG(QString("Reducing number of seeds per label to %1 because label %2 only has %3 pixels")
+				.arg(numOfSeedsPerLabel).arg(i).arg(histogram[i]));
+		}
+		if (m_itemModel->rowCount() <= i)
+		{
+			AddLabelItem(QString::number(i));
+		}
+	}
+	
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> xDist(0, img->GetDimensions()[0] - 1);
+	std::uniform_int_distribution<> yDist(0, img->GetDimensions()[1] - 1);
+	std::uniform_int_distribution<> zDist(0, img->GetDimensions()[2] - 1);
+
+	QVector<int> label2SeedCount(labelCount, 0);
+	while (!haveAllSeeds(label2SeedCount, numOfSeedsPerLabel))
+	{
+		int x = xDist(gen);
+		int y = yDist(gen);
+		int z = zDist(gen);
+		int label = static_cast<int>(img->GetScalarComponentAsFloat(x, y, z, 0));
+
+		if (label2SeedCount[label] < numOfSeedsPerLabel && !SeedAlreadyExists(m_itemModel->item(label), x, y, z))
+		{
+			m_itemModel->item(label)->appendRow(GetCoordinateItem(x, y, z));
+			label2SeedCount[label]++;
+		}
+	}
+	pbStore->setEnabled(true);
+	UpdateOverlay();
+}
+
 QString const & dlg_labels::GetFileName()
 {
 	return m_fileName;
@@ -552,17 +567,8 @@ void dlg_labels::SetColorTheme(iAColorTheme const * colorTheme)
 {
 	m_colorTheme = colorTheme;
 	ReColorExistingLabels();
-	UpdateOverlay();
-}
-
-bool dlg_labels::AreSeedsAvailable() const
-{
-	for (int label = 0; label<count(); ++label)
+	if (m_labelOverlayImg)
 	{
-		if (GetSeedCount(label) > 0)
-		{
-			return true;
-		}
+		UpdateOverlay();
 	}
-	return false;
 }

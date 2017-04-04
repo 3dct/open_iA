@@ -78,4 +78,5 @@ private:
 	vtkSmartPointer<vtkActor> outlineActor;
 	vtkRenderer* currentBoundingBoxRenderer;
 	//! @}
+	bool m_isFlat;
 };

@@ -34,9 +34,9 @@ public:
 		//LogToFile;
 	iAPreferences():
 		HistogramBins(DefaultHistogramBins),
+		StatisticalExtent(3),
 		MagicLensSize(DefaultMagicLensSize),
 		MagicLensFrameWidth(3),
-		StatisticalExtent(3),
 		Compression(true),
 		ResultInNewWindow(true)
 	{}

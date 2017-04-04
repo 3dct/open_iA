@@ -18,15 +18,14 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
-#include "iACharacteristics.h"
+#include "iADerivedOutputCalculator.h"
 
+#include "EntropyImageFilter.h"
 #include "iAAttributes.h"
 #include "iAConsole.h"
-#include "iAImageTree.h"
+#include "iAImageTreeNode.h"
 #include "iASingleResult.h"
-
 
 #include <itkImageFileWriter.h>
 #include <itkRelabelComponentImageFilter.h>
@@ -35,7 +34,7 @@
 
 #include <QString>
 
-CharacteristicsCalculator::CharacteristicsCalculator(
+iADerivedOutputCalculator::iADerivedOutputCalculator(
 		QSharedPointer<iASingleResult> result,
 		int objCountIdx,
 		int avgUncIdx,
@@ -48,7 +47,7 @@ CharacteristicsCalculator::CharacteristicsCalculator(
 {}
 
 
-void CharacteristicsCalculator::run()
+void iADerivedOutputCalculator::run()
 {
 	try
 	{
@@ -75,24 +74,26 @@ void CharacteristicsCalculator::run()
 		int objCount = relabel->GetNumberOfObjects();
 		m_result->SetAttribute(m_objCountIdx, objCount);
 
-		if (m_result->GetProbabilityImg(0))
+		if (m_result->ProbabilityAvailable())
 		{
+
+			typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
+
+			typedef fhw::EntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
+			typedef itk::StatisticsImageFilter<ProbabilityImageType> MeanFilter;
+			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{
 				ProbabilityImageType* probImg = dynamic_cast<ProbabilityImageType*>(m_result->GetProbabilityImg(i).GetPointer());
-				if (!probImg)
-				{
-					DEBUG_LOG(QString("Invalid probability image type!"));
-					m_success = false;
-					return;
-				}
-				probImg->ReleaseDataFlagOff();
-				typedef itk::StatisticsImageFilter<ProbabilityImageType> StatImgFilter;
-				StatImgFilter::Pointer statisticsImageFilter = StatImgFilter::New();
-				statisticsImageFilter->SetInput(probImg);
-				statisticsImageFilter->Update();
-				m_result->SetAttribute(m_avgUncIdx, statisticsImageFilter->GetMean());
+				entropyFilter->SetInput(i, probImg);
 			}
+			entropyFilter->SetNormalize(true);
+			entropyFilter->Update();
+			auto meanFilter = MeanFilter::New();
+			meanFilter->SetInput(entropyFilter->GetOutput());
+			meanFilter->Update();
+			double avgEntropy = meanFilter->GetMean();
+			m_result->SetAttribute(m_avgUncIdx, avgEntropy);
 			m_result->DiscardProbability();
 		}
 	} catch (std::exception & e)
@@ -110,7 +111,7 @@ void CharacteristicsCalculator::run()
 }
 
 
-bool CharacteristicsCalculator::success()
+bool iADerivedOutputCalculator::success()
 {
 	return m_success;
 }

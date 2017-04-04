@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGEMSeAttachment.h"
 
@@ -39,10 +38,6 @@
 #include "iAWidgetAddHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
-
-#include <fstream>
-#include <sstream>
-#include <string>
 
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData):
@@ -97,9 +92,14 @@ bool iAGEMSeAttachment::LoadClustering(QString const & fileName)
 	return m_dlgGEMSeControl->LoadClustering(fileName);
 }
 
-bool iAGEMSeAttachment::LoadSeeds(QString const & seedsFileName)
+bool iAGEMSeAttachment::LoadRefImg(QString const & refImgName)
 {
-	return m_dlgLabels->Load(seedsFileName);
+	return m_dlgGEMSeControl->LoadRefImg(refImgName);
+}
+
+void iAGEMSeAttachment::SetSerializedHiddenCharts(QString const & hiddenCharts)
+{
+	return m_dlgGEMSeControl->SetSerializedHiddenCharts(hiddenCharts);
 }
 
 void iAGEMSeAttachment::ResetFilter()
@@ -145,4 +145,9 @@ void iAGEMSeAttachment::ExportRankings()
 void iAGEMSeAttachment::ImportRankings()
 {
 	m_dlgGEMSeControl->ImportRankings();
+}
+
+void iAGEMSeAttachment::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
+{
+	m_dlgGEMSeControl->SetLabelInfo(colorTheme, labelNames);
 }

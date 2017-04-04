@@ -2381,21 +2381,12 @@ void MainWindow::saveLayout()
 void MainWindow::loadLayout()
 {
 	MdiChild *child = activeMdiChild();
-	loadLayout(child, this->layout->currentText());
-}
-
-void MainWindow::loadLayout(MdiChild* child, QString const & layout)
-{
 	assert(child);
-	if(!child)
+	if (!child)
 	{
 		return;
 	}
-	QSettings settings;
-	QByteArray state = settings.value( "Layout/state" + layout ).value<QByteArray>();
-	child->hide();
-	child->restoreState(state, 0);
-	child->show();
+	child->LoadLayout(layout->currentText());
 }
 
 void MainWindow::deleteLayout()

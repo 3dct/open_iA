@@ -19,15 +19,12 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iAChartSpanSlider.h"
+#include "iAClusterAttribChart.h"
 
 #include "iAFunctionDrawers.h"
 #include "iAMathUtility.h"
-#include "iAParamChart.h"
+#include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
-
-#include <vtkPiecewiseFunction.h>
-#include <vtkColorTransferFunction.h>
 
 #include <QCheckBox>
 #include <QLabel>
@@ -35,7 +32,7 @@
 
 #include <cmath>
 
-iAChartSpanSlider::iAChartSpanSlider(
+iAClusterAttribChart::iAClusterAttribChart(
 	QString const & caption,
 	int id,
 	QSharedPointer<iAParamHistogramData> data,
@@ -55,21 +52,22 @@ iAChartSpanSlider::iAChartSpanSlider(
 	QFont f(m_checkbox->font());
 	f.setPointSize(FontSize);
 	m_checkbox->setFont(f);
+	m_checkbox->setMinimumWidth(10);
 	mainLayout->addWidget(m_checkbox);
+	connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
 
-	m_charts = new iAParamChart(this, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, data, nameMapper);
+	m_charts = new iAFilterChart(this, "", data, nameMapper);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	mainLayout->addWidget(m_charts);
 
 	setLayout(mainLayout);
 
-	connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
 	connect(m_charts, SIGNAL(DblClicked()), this,  SIGNAL(ChartDblClicked()));
 	connect(m_charts, SIGNAL(SelectionChanged()), this, SLOT(SelectionChanged()));
 }
 
 
-void iAChartSpanSlider::SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFunction>& drawer, QSharedPointer<iAAbstractDrawableFunction> newDrawer)
+void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFunction>& drawer, QSharedPointer<iAAbstractDrawableFunction> newDrawer)
 {
 	if (drawer)
 	{
@@ -81,13 +79,13 @@ void iAChartSpanSlider::SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFun
 }
 
 
-void iAChartSpanSlider::SetFilteredData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> data)
 {
 	SetAdditionalDrawer(m_filteredDrawer, m_charts->GetDrawer(data, DefaultColors::FilteredChartColor));
 }
 
 
-void iAChartSpanSlider::ClearClusterData()
+void iAClusterAttribChart::ClearClusterData()
 {
 	m_charts->RemoveMarker();
 	foreach (QSharedPointer<iAAbstractDrawableFunction> drawer, m_clusterDrawer)
@@ -97,7 +95,7 @@ void iAChartSpanSlider::ClearClusterData()
 	m_clusterDrawer.clear();
 }
 
-void iAChartSpanSlider::RemoveFilterData()
+void iAClusterAttribChart::RemoveFilterData()
 {
 	bool redraw = (m_filteredDrawer || m_filteredClusterDrawer);
 	if (m_filteredDrawer)
@@ -116,35 +114,40 @@ void iAChartSpanSlider::RemoveFilterData()
 	}
 }
 
-QColor iAChartSpanSlider::GetClusterColor(int nr) const
+QColor iAClusterAttribChart::GetClusterColor(int nr) const
 {
 	assert(nr < MaxSelectedClusters);
 	return DefaultColors::ClusterChartColor[nr];
 }
 
-void iAChartSpanSlider::AddClusterData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> data)
 {
 	m_clusterDrawer.push_back(m_charts->GetDrawer(data, GetClusterColor(m_clusterDrawer.size())));
 	m_charts->AddDataset(m_clusterDrawer[m_clusterDrawer.size()-1]);
 }
 
 
-void iAChartSpanSlider::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data)
+void iAClusterAttribChart::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data)
 {
 	SetAdditionalDrawer(m_filteredClusterDrawer, m_charts->GetDrawer(data, DefaultColors::FilteredClusterChartColor));
 }
 
-void iAChartSpanSlider::SetSpanValues(double minValue, double maxValue)
+void iAClusterAttribChart::SetSpanValues(double minValue, double maxValue)
 {
 	m_charts->SetMinMaxSlider(minValue, maxValue);
 }
 
-void iAChartSpanSlider::SetMarker(double xPos)
+void iAClusterAttribChart::SetMarker(double xPos)
 {
 	m_charts->SetMarker(xPos);
 }
 
-void iAChartSpanSlider::SelectionChanged()
+void iAClusterAttribChart::RemoveMarker()
+{
+	m_charts->RemoveMarker();
+}
+
+void iAClusterAttribChart::SelectionChanged()
 {
 	double minValue = m_charts->GetMinSliderPos();
 	double maxValue = m_charts->GetMaxSliderPos();
@@ -163,52 +166,57 @@ void iAChartSpanSlider::SelectionChanged()
 	}
 }
 
-int iAChartSpanSlider::GetID() const
+int iAClusterAttribChart::GetID() const
 {
 	return m_ID;
 }
 
-iAValueType iAChartSpanSlider::GetRangeType() const
+iAValueType iAClusterAttribChart::GetRangeType() const
 {
 	return m_charts->GetRangeType();
 }
 
 
-double iAChartSpanSlider::GetMaxYValue() const
+double iAClusterAttribChart::GetMaxYValue() const
 {
 	return m_charts->GetMaxYValue();
 }
 
-void iAChartSpanSlider::SetMaxYAxisValue(double val)
+void iAClusterAttribChart::SetMaxYAxisValue(double val)
 {
 	m_charts->SetMaxYAxisValue(val);
 }
 
-void iAChartSpanSlider::ResetSpan()
+void iAClusterAttribChart::ResetSpan()
 {
 	double dr0= m_charts->mapBinToValue(0);
 	double dr1= m_charts->mapBinToValue(m_charts->GetData()->GetNumBin());
 	SetSpanValues(dr0, dr1);
 }
 
-size_t iAChartSpanSlider::GetNumBin() const
+size_t iAClusterAttribChart::GetNumBin() const
 {
 	return m_charts->GetData()->GetNumBin();
 }
 
 
-double iAChartSpanSlider::mapValueToBin(double value) const
+double iAClusterAttribChart::mapValueToBin(double value) const
 {
 	return m_charts->mapValueToBin(value);
 }
 
 
-void iAChartSpanSlider::SetBinColor(int bin, QColor const & color)
+void iAClusterAttribChart::SetBinColor(int bin, QColor const & color)
 {
 	m_charts->SetBinColor(bin, color);
 }
 
-void iAChartSpanSlider::UpdateChart()
+void iAClusterAttribChart::UpdateChart()
 {
 	m_charts->redraw();
+}
+
+void iAClusterAttribChart::ResetMaxYAxisValue()
+{
+	m_charts->ResetMaxYAxisValue();
 }

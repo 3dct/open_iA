@@ -76,11 +76,13 @@
 
 // TODO: VOLUME: check all places using GetModality(0)->GetTransfer() !
 
+#include <QByteArray>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QProgressBar>
+#include <QSettings>
 #include <QSpinBox>
 #include <QToolButton>
 
@@ -94,7 +96,9 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	m_unsavedChanges(unsavedChanges),
-	preferences(prefs)
+	preferences(prefs),
+	m_currentModality(0),
+	m_currentComponent(0)
 {
 	m_mainWnd = mainWnd;
 	setupUi(this);
@@ -259,14 +263,14 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
-	connect(getSlicerXY()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(getSlicerXZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(getSlicerYZ()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(getSlicerXY()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(getSlicerXZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(getSlicerYZ()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(slicerXY->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerXZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerYZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerXY->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(slicerXZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(slicerYZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 
-	connect(m_dlgModalities, SIGNAL(ShowImage(vtkSmartPointer<vtkImageData>)), this, SLOT(ChangeImage(vtkSmartPointer<vtkImageData>)));
+	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
@@ -395,6 +399,7 @@ void MdiChild::enableRenderWindows()
 		}
 	}
 	updateImageProperties();
+	m_dlgModalities->EnableUI();
 }
 
 void MdiChild::ModalityTFChanged()
@@ -414,9 +419,8 @@ void MdiChild::updateProgressBar(int i)
 
 void MdiChild::updateRenderers(int x, int y, int z, int mode)
 {
-		double spacing[3];
-		imageData->GetSpacing(spacing);
-
+	double spacing[3];
+	imageData->GetSpacing(spacing);
 //TODO: improve using iASlicer stuff
 	if (slicerSettings.LinkViews) {
 		xCoord = x; yCoord = y; zCoord = z;
@@ -826,7 +830,7 @@ void MdiChild::updated(int i, QString text)
 	this->addMsg(tr("mdiCild: updated(i,string): %1  %2").arg(i).arg(text));
 }
 
-int MdiChild::chooseModalityNr()
+int MdiChild::chooseModalityNr(QString const & caption)
 {
 	if (GetModalities()->size() == 1)
 	{
@@ -839,7 +843,7 @@ int MdiChild::chooseModalityNr()
 		modalities << GetModality(i)->GetName();
 	}
 	QList<QVariant> values = (QList<QVariant>() << modalities);
-	dlg_commoninput modalityChoice(this, "Choose Channel", 1, parameters, values, NULL);
+	dlg_commoninput modalityChoice(this, caption, 1, parameters, values, NULL);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
@@ -1571,6 +1575,35 @@ void MdiChild::SetUnsavedChanges(bool b)
 }
 
 
+QString MdiChild::GetLayoutName() const
+{
+	return m_layout;
+}
+
+
+void MdiChild::updateLayout()
+{
+	m_mainWnd->loadLayout();
+}
+
+
+void MdiChild::LoadLayout(QString const & layout)
+{
+	m_layout = layout;
+	QSettings settings;
+	QByteArray state = settings.value("Layout/state" + layout).value<QByteArray>();
+	hide();
+	restoreState(state, 0);
+	show();
+}
+
+
+void MdiChild::resetLayout()
+{
+	restoreState(m_initialLayoutState);
+}
+
+
 int MdiChild::GetRenderMode()
 {
 	return volumeSettings.Mode;
@@ -1932,20 +1965,7 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 
 	if (isEnabled)
 	{
-		iAChannelVisualizationData * chData = GetChannelData(ch_ModalityLens);
-		if (!chData)
-		{
-			chData = new iAChannelVisualizationData();
-			InsertChannelData(ch_ModalityLens, chData);
-		}
-		m_currentModality = m_dlgModalities->GetSelected();
-		vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetImage();
-		chData->SetImage(img);
-		chData->SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
-		chData->SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
-		chData->SetOpacity(0.5);
-		InitChannelRenderer(ch_ModalityLens, false, false);
-		SetMagicLensInput(ch_ModalityLens, true, GetModality(m_currentModality)->GetName().toStdString());
+		ChangeModality(0);
 	}
 	SetMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2116,7 +2136,7 @@ bool MdiChild::initView( QString const & title )
 	}
 	if (GetModalities()->size() == 0 && IsVolumeDataLoaded())
 	{
-		// TODO: VOLUME: resolve duplicity between here (called on loadFile) and adding modalities (e.g. via LoadProject)
+		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities (e.g. via LoadProject)
 		QString name;
 		if (!curFile.isEmpty())
 		{
@@ -2169,11 +2189,6 @@ bool MdiChild::initView( QString const & title )
 	return true;
 }
 
-void MdiChild::resetLayout()
-{
-	restoreState(m_initialLayoutState);
-}
-
 void MdiChild::HideHistogram()
 {
 	histogramContainer->hide();
@@ -2181,22 +2196,22 @@ void MdiChild::HideHistogram()
 
 bool MdiChild::addImageProperty()
 {
-	imgProperty = new dlg_imageproperty(this, imageData,
-		GetModality(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath());
+	imgProperty = new dlg_imageproperty(this);
 	tabifyDockWidget(logs, imgProperty);
-
+	updateImageProperties();
 	return true;
 }
 
 void MdiChild::updateImageProperties()
 {
-	if (imageData && imgProperty)
+	if (!imgProperty)
 	{
-		imgProperty->Clear();
-		for (int i = 0; i < GetModalities()->size(); ++i)
-		{
-			imgProperty->AddInfo(imageData, GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
-		}
+		return;
+	}
+	imgProperty->Clear();
+	for (int i = 0; i < GetModalities()->size(); ++i)
+	{
+		imgProperty->AddInfo(GetModality(i)->GetImage(), GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
 	}
 }
 
@@ -2686,19 +2701,17 @@ void MdiChild::check2DMode()
 	}
 }
 
-void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice, std::string const & caption)
+void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
 {
 	slicerXY->SetMagicLensInput(id);
 	slicerXZ->SetMagicLensInput(id);
 	slicerYZ->SetMagicLensInput(id);
-
 	if (initReslice)
 	{
 		slicerYZ->setResliceChannelAxesOrigin(id, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
 		slicerXZ->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
 		slicerXY->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	}
-	SetMagicLensCaption(caption);
 }
 
 
@@ -2709,13 +2722,6 @@ void MdiChild::SetMagicLensEnabled(bool isOn)
 	slicerXY->SetMagicLensEnabled( isOn );
 }
 
-
-void MdiChild::SetMagicLensCaption(std::string const & caption)
-{
-	slicerXZ->SetMagicLensCaption(caption);
-	slicerYZ->SetMagicLensCaption(caption);
-	slicerXY->SetMagicLensCaption(caption);
-}
 
 void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
@@ -2729,21 +2735,26 @@ void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgDa
 	chData->SetOpacityTF( otf );
 	slicerXZ->reInitializeChannel( id, chData );
 	slicerXY->reInitializeChannel( id, chData );
-	slicerYZ->reInitializeChannel( id, chData );	
+	slicerYZ->reInitializeChannel( id, chData );
 }
 
 
-void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption)
+void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
 	if (!isMagicLensEnabled)
 	{
 		return;
 	}
-	reInitChannel(id, imgData, ctf, otf);
-	SetMagicLensInput( id, true, caption);
+	iAChannelVisualizationData chData;
+	chData.SetImage(imgData);
+	chData.SetColorTF(ctf);
+	chData.SetOpacityTF(otf);
+	slicerXZ->reInitializeChannel(id, &chData);
+	slicerXY->reInitializeChannel(id, &chData);
+	slicerYZ->reInitializeChannel(id, &chData);
+	SetMagicLensInput( id, true);
 	updateSlicers();
 }
-
 
 
 vtkImageAccumulate * MdiChild::getImageAccumulate()
@@ -2751,10 +2762,6 @@ vtkImageAccumulate * MdiChild::getImageAccumulate()
 	return GetModality(m_dlgModalities->GetSelected())->GetTransfer()->GetAccumulate();
 }
 
-void MdiChild::updateLayout()
-{
-	m_mainWnd->loadLayout();
-}
 
 void MdiChild::updateChannelMappers()
 {
@@ -2791,18 +2798,34 @@ bool MdiChild::IsVolumeDataLoaded() const
 
 void MdiChild::ChangeModality(int chg)
 {
-	SetCurrentModality(
-		(GetCurrentModality() + chg + GetModalities()->size())
-		% (GetModalities()->size())
-	);
-	int curModIdx = GetCurrentModality();
-	if (curModIdx < 0 || curModIdx >= GetModalities()->size())
+	//slicerXY->removeChannel(ch_SlicerMagicLens);
+	//slicerXZ->removeChannel(ch_SlicerMagicLens);
+	//slicerYZ->removeChannel(ch_SlicerMagicLens);
+	m_currentComponent = (m_currentComponent + chg);
+	if (m_currentComponent < 0 || m_currentComponent >= GetModality(m_currentModality)->ComponentCount())
+	{
+		m_currentComponent = 0;
+		m_currentModality = (m_currentModality + chg + GetModalities()->size()) % (GetModalities()->size());
+	}
+	if (m_currentModality < 0 || m_currentModality >= GetModalities()->size())
 	{
 		DEBUG_LOG("Invalid modality index!");
+		m_currentModality = 0;
 		return;
 	}
-	ChangeImage(GetModalities()->Get(curModIdx)->GetImage(),
-		GetModalities()->Get(curModIdx)->GetName().toStdString());
+
+	iAChannelVisualizationData chData;
+	vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
+	chData.SetImage(img);
+	chData.SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
+	chData.SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
+	chData.SetOpacity(0.5);
+	QString name(GetModality(m_currentModality)->GetImageName(m_currentComponent));
+	chData.SetName(name);
+	slicerXY->initializeChannel(ch_SlicerMagicLens, &chData);
+	slicerXZ->initializeChannel(ch_SlicerMagicLens, &chData);
+	slicerYZ->initializeChannel(ch_SlicerMagicLens, &chData);
+	SetMagicLensInput(ch_SlicerMagicLens, true);
 }
 
 void MdiChild::ChangeMagicLensOpacity(int chg)
@@ -2823,39 +2846,13 @@ int MdiChild::GetCurrentModality() const
 }
 
 
-void MdiChild::SetCurrentModality(int modality)
+void MdiChild::ShowModality(int modIdx)
 {
-	m_currentModality = modality;
+	m_currentModality = modIdx;
+	m_currentComponent = 0;
+	ChangeModality(0);
 }
 
-
-void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img)
-{
-	int selected = m_dlgModalities->GetSelected();
-	if (selected != -1)
-	{
-		m_currentModality = selected;
-		ChangeImage(img, GetModality(selected)->GetName().toStdString());
-		/*
-		// change slicer image as well?
-		slicerXY->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
-		slicerXZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
-		slicerYZ->reInitialize(img, slicerTransform, GetModality(selected)->GetTransfer()->GetColorFunction(), false, false);
-		updateSlicers();
-		*/
-	}
-}
-
-void MdiChild::ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption)
-{
-	if (!isMagicLensToggled())
-	{
-		return;
-	}
-	reInitMagicLens(ch_ModalityLens, img,
-		m_dlgModalities->GetCTF(m_currentModality),
-		m_dlgModalities->GetOTF(m_currentModality), caption);
-}
 
 void MdiChild::SetModalities(QSharedPointer<iAModalityList> modList)
 {

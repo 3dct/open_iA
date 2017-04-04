@@ -73,6 +73,7 @@ void iADiagramWidget::wheelEvent(QWheelEvent *event)
 		zoomAlongX(event->delta(), event->x(), true);
 	}
 	redraw();
+	event->accept();
 }
 
 void iADiagramWidget::resizeEvent(QResizeEvent *event)

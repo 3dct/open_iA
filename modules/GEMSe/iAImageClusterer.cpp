@@ -23,7 +23,10 @@
 #include "iAImageClusterer.h"
 
 #include "iAConsole.h"
+#include "iAGEMSeConstants.h" // for iARepresentativeType
 #include "iAImageTree.h"
+#include "iAImageTreeLeaf.h"
+#include "iAImageTreeInternalNode.h"
 #include "iAMathUtility.h"
 #include "iARepresentative.h"
 #include "iASingleResult.h"
@@ -50,7 +53,7 @@ iAImageClusterer::iAImageClusterer(int labelCount, QString const & outputDirecto
 
 void iAImageClusterer::AddImage(QSharedPointer<iASingleResult> singleResult)
 {
-	m_images.push_back(QSharedPointer<iAImageClusterNode>(new iAImageClusterLeaf(singleResult, m_labelCount)));
+	m_images.push_back(QSharedPointer<iAImageTreeNode>(new iAImageTreeLeaf(singleResult, m_labelCount)));
 }
 
 
@@ -314,13 +317,16 @@ void iAImageClusterer::run()
 #endif
 		for (int j=m_currImage+1; j<m_images.size() && !m_aborted; ++j)
 		{
-			ClusterImageType img1 = m_images[m_currImage]->GetRepresentativeImage(iARepresentativeType::Difference).GetPointer();
-			ClusterImageType img2 = m_images[j]->GetRepresentativeImage(iARepresentativeType::Difference).GetPointer();
+			ClusterImageType img1 = m_images[m_currImage]->GetRepresentativeImage(
+				iARepresentativeType::Difference, LabelImagePointer()).GetPointer();
+			ClusterImageType img2 = m_images[j]->GetRepresentativeImage(
+				iARepresentativeType::Difference, LabelImagePointer()).GetPointer();
 			float distance = 1.0;
 			if (!img1 || !img2)
 			{
-				DEBUG_LOG("Invalid (non-label) representative difference image");
-				distance = 1.0;
+				DEBUG_LOG(QString("Could not load label image for result with id %1 or %2. Aborting clustering!").arg(m_currImage).arg(j));
+				m_aborted = true;
+				return;
 			}
 			else
 			{
@@ -355,7 +361,7 @@ void iAImageClusterer::run()
 	m_perfTimer.start();
 	emit Status("Hierarchical clustering.");
 	assert(m_images.size() > 0);
-	QSharedPointer<iAImageClusterNode> lastNode = m_images[0];
+	QSharedPointer<iAImageTreeNode> lastNode = m_images[0];
 	int clusterID = m_remainingNodes;
 	while (m_remainingNodes > 1 && !m_aborted) // we need to do n-1 merges
 	{
@@ -400,7 +406,7 @@ void iAImageClusterer::run()
 			break;
 		}
 		// create merged node:
-		lastNode = QSharedPointer<iAImageClusterInternal>(new iAImageClusterInternal(
+		lastNode = QSharedPointer<iAImageTreeInternalNode>(new iAImageTreeInternalNode(
 			m_images[idx.first], m_images[idx.second],
 			m_labelCount,
 			m_outputDirectory,
@@ -441,9 +447,9 @@ void iAImageClusterer::run()
 #endif
 		// remove from matrix & list:
 		distances.Remove(idx.first);
-		m_images[idx.first] = QSharedPointer<iAImageClusterNode>();
+		m_images[idx.first] = QSharedPointer<iAImageTreeNode>();
 		distances.Remove(idx.second);
-		m_images[idx.second] = QSharedPointer<iAImageClusterNode>();
+		m_images[idx.second] = QSharedPointer<iAImageTreeNode>();
 
 		--m_remainingNodes;
 		emit Progress(

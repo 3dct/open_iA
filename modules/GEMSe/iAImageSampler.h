@@ -35,7 +35,7 @@ class iAAttributes;
 class iAModalityList;
 class iASamplingResults;
 class iASingleResult;
-class CharacteristicsCalculator;
+class iADerivedOutputCalculator;
 class iACommandRunner;
 
 class iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
@@ -51,9 +51,11 @@ public:
 		QString const & outputBaseDir,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
-		QString const & characteristicsFile,
+		QString const & derivedOutputFile,
 		QString const & computationExecutable,
-		QString const & additionalArguments);
+		QString const & additionalArguments,
+		QString const & pipelineName,
+		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
 	virtual double elapsed() const;
@@ -72,13 +74,14 @@ private:
 	int m_sampleCount;
 	int m_labelCount;
 	ParameterSetsPointer m_parameterSets;
-	QString m_computationExecutable;
+	QString m_executable;
 	QString m_additionalArguments;
 	QString m_outputBaseDir;
+	QString m_pipelineName;
 
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
-	QString m_characteristicsFile;
+	QString m_derivedOutputFile;
 	//! @}
 
 	size_t m_curLoop;
@@ -94,12 +97,13 @@ private:
 	// intention: running several extended random walker's in parallel
 	// downside: seems to slow down rather than speed up overall process
 	QMap<iACommandRunner*, int > m_runningComputation;
-	QMap<CharacteristicsCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
+	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
 
 	QSharedPointer<iASamplingResults> m_results;
 	QMutex m_mutex;
 	int m_runningOperations;
 	int m_parameterCount;
+	int m_samplingID;
 
 	void StatusMsg(QString const & msg);
 private slots:

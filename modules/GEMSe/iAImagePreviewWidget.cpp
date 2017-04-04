@@ -31,6 +31,9 @@
 #include "iASlicerWidget.h"
 
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkImageActor.h>
+#include <vtkImageData.h>
+#include <vtkImageMapper3D.h>
 #include <vtkTransform.h>
 
 namespace
@@ -103,14 +106,20 @@ void iAImagePreviewWidget::InitializeSlicer()
 		m_slicer->disableInteractor();
 	}
 	
-	connect( m_slicer->widget(), SIGNAL(Clicked()), this, SLOT(SlicerClicked()));
+	connect( m_slicer->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect( m_slicer->GetSlicerData(), SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
 	connect( m_slicer->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
 	connect( m_slicer->GetSlicerData(), SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
 }
 
-void iAImagePreviewWidget::SlicerClicked()
+void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
 {
 	emit Clicked();
+}
+
+void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
+{
+	emit RightClicked();
 }
 
 void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
@@ -135,6 +144,12 @@ int iAImagePreviewWidget::GetSliceNumber() const
 iASlicer* iAImagePreviewWidget::GetSlicer()
 {
 	return m_slicer;
+}
+
+
+bool iAImagePreviewWidget::Empty() const
+{
+	return m_empty;
 }
 
 void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
@@ -207,6 +222,30 @@ void iAImagePreviewWidget::SetImage(iAITKIO::ImagePointer const img, bool empty,
 	}
 	m_conn->SetImage(img);
 	SetImage(m_conn->GetVTKImage(), empty, isLabelImg);
+}
+
+void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
+{
+	if (m_addChannelImgActor)
+	{
+		DEBUG_LOG("Failsafe Remove Actor required");
+		m_slicer->RemoveImageActor(m_addChannelImgActor);
+	}
+	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();
+	m_addChannelImgActor->GetMapper()->BorderOn();
+	m_addChannelImgActor->SetInputData(img);
+	m_slicer->AddImageActor(m_addChannelImgActor);
+	m_slicer->update();
+}
+
+void iAImagePreviewWidget::RemoveChannel()
+{
+	if (m_addChannelImgActor)
+	{
+		m_slicer->RemoveImageActor(m_addChannelImgActor);
+		m_slicer->update();
+	}
+	m_addChannelImgActor = nullptr;
 }
 
  void iAImagePreviewWidget::BuildCTF()

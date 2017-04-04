@@ -89,6 +89,7 @@ public:
 	void setup(iASingleSlicerSettings const & settings);
 	
 	void initializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
+	void removeChannel(iAChannelID id);
 	void reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
 	void setChannelOpacity(iAChannelID, double opacity );
 	void enableChannel(iAChannelID id, bool enabled, double x, double y, double z);
@@ -139,7 +140,6 @@ public:
 	virtual void Execute(vtkObject * caller, unsigned long eventId, void * callData);
 
 	void setMagicLensInput(iAChannelID id);
-	void setMagicLensCaption(std::string const & caption);
 	
 	iAChannelSlicerData * GetChannel(iAChannelID id);
 	size_t GetEnabledChannels();

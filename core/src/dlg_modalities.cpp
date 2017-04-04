@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "dlg_modalities.h"
 
+#include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
 #include "dlg_transfer.h"
 #include "iAConsole.h"
@@ -116,6 +117,11 @@ QString GetCaption(iAModality const & mod)
 #include "iAIO.h"
 #include "extension2id.h"
 
+bool CanHaveMultipleChannels(QString const & fileName)
+{
+	return fileName.endsWith(iAIO::VolstackExtension) || fileName.endsWith(".oif");
+}
+
 void dlg_modalities::AddClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
@@ -125,74 +131,25 @@ void dlg_modalities::AddClicked()
 		return;
 
 	const int DefaultRenderFlags = iAModality::MainRenderer;
-
-	// TODO: unify this with mdichild::loadFile / iAModality::loadData!
-	if (fileName.endsWith(iAIO::VolstackExtension))
+	bool split = false;
+	if (CanHaveMultipleChannels(fileName))
 	{
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(
-			0,
-			0,
-			&volumes
-		);
-		io.setupIO(VOLUME_STACK_VOLSTACK_READER, fileName.toLatin1().data());
-		io.start();
-		io.wait();
-		assert(volumes.size() > 0);
-		if (volumes.size() == 0)
+		QStringList inList;
+		inList << tr("$Split Channels (input file potentially has multiple channels. Should they be split into separate datasets, or kept as one dataset with multiple components?)");
+		QList<QVariant> inPara;
+		inPara << tr("%1").arg(true);
+		dlg_commoninput splitInput(this, "Seed File Format", 1, inList, inPara, nullptr);
+		if (splitInput.exec() != QDialog::Accepted)
 		{
-			DEBUG_LOG("No volume found in stack!");
+			DEBUG_LOG("Aborted by user.");
 			return;
 		}
-		int channels = volumes.size();
-		QFileInfo fi(fileName);
-		for (int i = 0; i < channels; ++i)
-		{
-			QSharedPointer<iAModality> newModality(new iAModality(
-				fi.baseName(), fileName, i, volumes[i], DefaultRenderFlags) );
-			modalities->Add(newModality);
-		}
+		split = splitInput.getCheckValues()[0];
 	}
-	else
+	ModalityCollection mods = iAModalityList::Load(fileName, "", -1, split, DefaultRenderFlags);
+	for (auto mod : mods)
 	{
-		vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(img, 0, 0, 0, &volumes);
-
-		QFileInfo fileInfo(fileName);
-		QString extension = fileInfo.suffix();
-		extension = extension.toUpper();
-		const mapQString2int * ext2id = &extensionToId;
-		if (ext2id->find(extension) == ext2id->end())
-		{
-			DEBUG_LOG("Unknown file type!");
-			return;
-		}
-		IOType id = ext2id->find(extension).value();
-		if (!io.setupIO(id, fileName, false))
-		{
-			DEBUG_LOG("Error while setting up modality loading!");
-			return;
-		}
-		io.start();
-		io.wait();
-		QFileInfo fi(fileName);
-		if (volumes.size() > 0)
-		{
-			int channels = volumes.size();
-			for (int i = 0; i < channels; ++i)
-			{
-				QSharedPointer<iAModality> newModality(new iAModality(
-					fi.baseName(), fileName, i, volumes[i], DefaultRenderFlags));
-				modalities->Add(newModality);
-			}
-		}
-		else
-		{
-			QSharedPointer<iAModality> newModality(new iAModality(
-				fi.baseName(), fileName, -1, img, DefaultRenderFlags));
-			modalities->Add(newModality);
-		}
+		modalities->Add(mod);
 	}
 	emit ModalitiesChanged();
 }
@@ -295,6 +252,14 @@ void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTran
 	connect(m_currentHistogram, SIGNAL(endPointSelected()), this, SIGNAL(EndPointSelected()));
 	connect(m_currentHistogram, SIGNAL(active()), this, SIGNAL(Active()));
 	connect(m_currentHistogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(AutoUpdateChanged(bool)));
+}
+
+
+void dlg_modalities::EnableUI()
+{
+	pbAdd->setEnabled(true);
+	cbManualRegistration->setEnabled(true);
+	cbShowMagicLens->setEnabled(true);
 }
 
 void dlg_modalities::RemoveClicked()
@@ -411,7 +376,7 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
 	QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
 	SwitchHistogram(modTransfer);
-	emit ShowImage(currentData->GetImage());
+	emit ModalitySelected(selectedRow);
 }
 
 void dlg_modalities::ShowChecked(QListWidgetItem* item)
@@ -420,7 +385,6 @@ void dlg_modalities::ShowChecked(QListWidgetItem* item)
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
 	if (!renderer)
 	{
-		DEBUG_LOG("No Renderer set!");
 		return;
 	}
 	bool isChecked = item->checkState() == Qt::Checked;

@@ -40,7 +40,11 @@ public:
 		int labelCount,
 		QMap<int, QString> const & samplings,
 		QString const & cltFileName,
-		QString const & layoutName
+		QString const & layoutName,
+		QString const & refImg,
+		QString const & hiddenCharts,
+		QString const & colorThemeName,
+		QString const & labelNames
 	);
 	void Store(QString const & seaFileName);
 	QString const & GetModalityFileName() const;
@@ -48,6 +52,10 @@ public:
 	QMap<int, QString> const & GetSamplings() const;
 	QString const & GetClusteringFileName() const;
 	QString const & GetLayoutName() const;
+	QString const & GetReferenceImage() const;
+	QString const & GetHiddenCharts() const;
+	QString const & GetLabelNames() const;
+	QString const & GetColorTheme() const;
 
 	bool good() const;
 	// QString const & GetSEAFileName();
@@ -58,6 +66,10 @@ private:
 	QString m_ClusteringFileName;
 	QString m_LayoutName;
 	QString m_SEAFileName;
+	QString m_RefImg;
+	QString m_HiddenCharts;
+	QString m_ColorTheme;
+	QString m_LabelNames;
 
 	bool m_good;
 };

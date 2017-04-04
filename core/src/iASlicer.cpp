@@ -333,17 +333,22 @@ void iASlicer::SetMagicLensFrameWidth(int newWidth)
 	widget()->updateMagicLens();
 }
 
+void iASlicer::SetMagicLensCount(int count)
+{
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensCount called on slicer which doesn't have a magic lens!");
+		return;
+	}
+	m_magicLens->SetLensCount(count);
+	widget()->updateMagicLens();
+}
+
 void iASlicer::SetMagicLensInput(iAChannelID id)
 {
 	m_data->setMagicLensInput(id);
 	m_magicLensInput = id;
 }
-
-void iASlicer::SetMagicLensCaption(std::string const & caption)
-{
-	m_data->setMagicLensCaption(caption);
-}
-
 
 void iASlicer::SetMagicLensOpacity(double opacity)
 {
@@ -368,6 +373,11 @@ iASlicerMode iASlicer::GetMode() const
 void iASlicer::initializeChannel(iAChannelID id,  iAChannelVisualizationData * chData)
 {
 	m_data->initializeChannel(id, chData);
+}
+
+void iASlicer::removeChannel(iAChannelID id)
+{
+	m_data->removeChannel(id);
 }
 
 iAChannelID iASlicer::getMagicLensInput() const
@@ -462,4 +472,13 @@ vtkCamera* iASlicer::GetCamera()
 void iASlicer::SetCamera(vtkCamera* camera, bool owner /*=true*/ )
 {
 	m_data->SetCamera(camera, owner);
+}
+
+// declaration in iASlicerMode.h
+const char* GetSlicerModeString(int mode)
+{
+	return (mode == YZ) ? "YZ"
+		: (mode == XY) ? "XY"
+		: (mode == XZ) ? "XZ"
+		: "??";
 }

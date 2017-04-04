@@ -46,6 +46,8 @@ public:
 	~iAImagePreviewWidget();
 	void SetImage(iAITKIO::ImagePointer img, bool empty, bool isLabelImg);
 	void SetImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg);
+	void AddNoMapperChannel(vtkSmartPointer<vtkImageData> img);
+	void RemoveChannel();
 	iASlicerMode GetSlicerMode() const;
 	void SetSlicerMode(iASlicerMode, int sliceNr, vtkCamera*);
 	vtkCamera* GetCamera();
@@ -56,11 +58,13 @@ public:
 	double GetAspectRatio() const;
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF();
 	iASlicer* GetSlicer();
+	bool Empty() const;
 public slots:
 	void UpdateView();
 	void SetSliceNumber(int sliceNr);
 signals:
 	void Clicked();
+	void RightClicked();
 	void MouseHover();
 	void Updated();
 private:
@@ -85,7 +89,9 @@ private:
 	iASlicerMode m_mode;
 	double m_aspectRatio;
 	iAColorTheme const * m_colorTheme;
+	vtkSmartPointer<vtkImageActor> m_addChannelImgActor;
 private slots:
-	void SlicerClicked();
+	void SlicerClicked(int x, int y, int z);
+	void SlicerRightClicked(int x, int y, int z);
 	void SlicerHovered(int x, int y, int z, int mode);
 };

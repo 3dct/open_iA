@@ -80,8 +80,9 @@ public:
 	void SetMagicLensEnabled( bool isEnabled );
 	void SetMagicLensSize(int newSize);
 	void SetMagicLensFrameWidth(int newWidth);
-	void SetMagicLensCaption(std::string const & caption);
+	void SetMagicLensCount(int count);
 	void SetMagicLensInput( iAChannelID id );
+	void AddMagicLensInput(iAChannelID id);
 	void SetMagicLensOpacity(double opacity);
 	void UpdateMagicLensColors();
 	
@@ -96,6 +97,7 @@ public:
 						bool sp = false );
 
 	void initializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
+	void removeChannel(iAChannelID id);
 	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );	
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
 	iAChannelID getMagicLensInput() const;

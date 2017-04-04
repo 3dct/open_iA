@@ -107,10 +107,10 @@ bool iAScatterPlot::hasData() const
 void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, QString & colorArrayName )
 {
 	m_lut = lut;
-	qDebug() << colorArrayName;
+	//qDebug() << colorArrayName;
 	for ( unsigned long i = 0; i < m_splomData->numParams(); ++i )
 	{
-		qDebug() << m_splomData->parameterName( i );
+		//qDebug() << m_splomData->parameterName( i );
 		if ( m_splomData->parameterName( i ) == colorArrayName )
 			m_colInd = i;
 	}

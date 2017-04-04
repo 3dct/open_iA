@@ -25,9 +25,10 @@
 #include "iAConsole.h"
 #include "iAIO.h"
 #include "iAImageCoordinate.h"
-#include "iAVolumeRenderer.h"
+#include "iAMathUtility.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
+#include "iAVolumeRenderer.h"
 #include "extension2id.h"
 
 #include <vtkCamera.h>
@@ -39,22 +40,25 @@
 
 #include <cassert>
 
-
-iAModality::iAModality(QString const & name, QString const & filename, int channel, int renderFlags):
-	m_name(name),
-	m_filename(filename),
-	renderFlags(renderFlags),
-	m_channel(channel)
-{
-}
-
 iAModality::iAModality(QString const & name, QString const & filename, int channel, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
 	renderFlags(renderFlags),
-	m_channel(channel)
+	m_channel(channel),
+	m_imgs(1)
 {
 	SetData(imgData);
+}
+
+
+iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
+	m_name(name),
+	m_filename(filename),
+	renderFlags(renderFlags),
+	m_channel(-1),
+	m_imgs(imgs)
+{
+	SetData(imgs[0]);
 }
 
 QString iAModality::GetName() const
@@ -70,6 +74,16 @@ QString iAModality::GetFileName() const
 int iAModality::GetChannel() const
 {
 	return m_channel;
+}
+
+int iAModality::ComponentCount() const
+{
+	return m_imgs.size();
+}
+
+vtkSmartPointer<vtkImageData> iAModality::GetComponent(int componentIdx) const
+{
+	return m_imgs[componentIdx];
 }
 
 QString iAModality::GetTransferFileName() const
@@ -112,7 +126,22 @@ int iAModality::GetDepth() const
 
 double const * iAModality::GetSpacing() const
 {
-	return m_spacing;
+	return m_imgs[0]->GetSpacing();
+}
+
+double const * iAModality::GetOrigin() const
+{
+	return m_imgs[0]->GetOrigin();
+}
+
+void iAModality::SetSpacing(double spacing[3])
+{
+	m_imgs[0]->SetSpacing(spacing);
+}
+
+void iAModality::SetOrigin(double origin[3])
+{
+	m_imgs[0]->SetOrigin(origin);
 }
 
 iAImageCoordConverter const & iAModality::GetConverter() const
@@ -123,7 +152,17 @@ iAImageCoordConverter const & iAModality::GetConverter() const
 
 vtkSmartPointer<vtkImageData> iAModality::GetImage() const
 {
-	return m_imgData;
+	return m_imgs[0];
+}
+
+QString iAModality::GetImageName(int componentIdx)
+{
+	QString name(GetName());
+	if (ComponentCount() > 1)
+	{
+		return QString("%1-%2").arg(name).arg(componentIdx);
+	}
+	return name;
 }
 
 bool iAModality::hasRenderFlag(RenderFlag loc) const
@@ -199,69 +238,14 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
-bool iAModality::LoadData()
-{
-	// TODO: unify this with mdichild::loadFile / dlg_modalities::AddClicked!
-	if (m_filename.endsWith(iAIO::VolstackExtension))
-	{
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(
-			0,
-			0,
-			&volumes
-		);
-		io.setupIO(VOLUME_STACK_VOLSTACK_READER, m_filename.toLatin1().data());
-		io.start();
-		io.wait();
-		if (volumes.size() == 0)
-		{
-			DEBUG_LOG("No volume found in stack!");
-			return false;
-		}
-		if (m_channel < 0 || m_channel > volumes.size())
-		{
-			DEBUG_LOG(QString("Channel number %1 outside of valid interval [0..%2]").arg(m_channel).arg(volumes.size()));
-			m_channel = 0;
-		}
-		SetData(volumes[m_channel]);
-	}
-	else
-	{
-		vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(img, 0, 0);
-
-		QFileInfo fileInfo(m_filename);
-		QString extension = fileInfo.suffix();
-		extension = extension.toUpper();
-		const mapQString2int * ext2id = &extensionToId;
-		if (ext2id->find(extension) == ext2id->end())
-		{
-			DEBUG_LOG("Unknown file type!");
-			return false;
-		}
-		IOType id = ext2id->find(extension).value();
-		if (!io.setupIO(id, m_filename, false, m_channel))
-		{
-			DEBUG_LOG("Error while setting up modality loading!");
-			return false;
-		}
-		io.start();
-		io.wait();
-		SetData(img);
-	}
-	return true;
-}
-
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);
-	m_imgData = imgData;
+	m_imgs[0] = imgData;
 	int extent[6];
 	imgData->GetExtent(extent);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
 		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
-	imgData->GetSpacing(m_spacing);
 }
 
 
@@ -285,7 +269,6 @@ namespace
 
 	static const QString FileVersionKey("FileVersion");
 	static const QString ModFileVersion("1.0");
-	static const QString SetSpacingToOneKey("SetSpacingToOne");
 
 	static const QString CameraPositionKey("CameraPosition");
 	static const QString CameraFocalPointKey("CameraFocalPoint");
@@ -296,7 +279,6 @@ namespace
 iAModalityList::iAModalityList():
 	m_camSettingsAvailable(false)
 {
-	m_spacing[0] = m_spacing[1] = m_spacing[2] = 1.0;
 }
 
 bool iAModalityList::ModalityExists(QString const & filename, int channel) const
@@ -421,10 +403,8 @@ bool iAModalityList::Load(QString const & filename)
 		m_camSettingsAvailable = true;
 	}
 
-	bool setSpacingToOne = settings.contains(SetSpacingToOneKey) && settings.value(SetSpacingToOneKey).toBool();
 	int currIdx = 0;
-	
-	double spacingFactor[3] = { 1.0, 1.0, 1.0 };
+
 	while (settings.contains(GetModalityKey(currIdx, "Name")))
 	{
 		QString modalityName = settings.value(GetModalityKey(currIdx, "Name")).toString();
@@ -445,32 +425,19 @@ bool iAModalityList::Load(QString const & filename)
 		}
 		else
 		{
-			int renderFlags = (modalityRenderFlags.isEmpty() || modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
+			int renderFlags = (modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
 				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
 				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0);
 
-			QSharedPointer<iAModality> mod(new iAModality(modalityName, modalityFile, channel, renderFlags));
-			if (!mod->LoadData())
+			ModalityCollection mod = iAModalityList::Load(modalityFile, modalityName, channel, false, renderFlags);
+			if (mod.size() != 1) // we expect to load exactly one modality
 			{
+				DEBUG_LOG(QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
 				return false;
 			}
-
-			// fake a spacing of 1 1 1 for main dataset (to improve transparency renderings)
-			if (setSpacingToOne)
-			{
-				if (currIdx == 0)
-				{
-					mod->GetImage()->GetSpacing(spacingFactor);
-				}
-				double spacing[3];
-				mod->GetImage()->GetSpacing(spacing);
-				mod->GetImage()->SetSpacing(spacing[0] / spacingFactor[0], spacing[1] / spacingFactor[1], spacing[2] / spacingFactor[2]);
-			}
-
-			mod->SetStringSettings(positionSettings, orientationSettings, tfFileName);
-
-			m_modalities.push_back(mod);
-			emit Added(mod);
+			mod[0]->SetStringSettings(positionSettings, orientationSettings, tfFileName);
+			m_modalities.push_back(mod[0]);
+			emit Added(mod[0]);
 		}
 		currIdx++;
 	}
@@ -544,4 +511,75 @@ QSharedPointer<iAModality const> iAModalityList::Get(int idx) const
 int iAModalityList::size() const
 {
 	return m_modalities.size();
+}
+
+ModalityCollection iAModalityList::Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags)
+{
+	// TODO: unify this with mdichild::loadFile
+	ModalityCollection result;
+	QFileInfo fileInfo(filename);
+	vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
+	std::vector<vtkSmartPointer<vtkImageData> > volumes;
+	iAIO io(img, 0, 0, 0, &volumes);
+	if (filename.endsWith(iAIO::VolstackExtension))
+	{
+		io.setupIO(VOLUME_STACK_VOLSTACK_READER, filename.toLatin1().data());
+	}
+	else
+	{
+		QString extension = fileInfo.suffix();
+		extension = extension.toUpper();
+		const mapQString2int * ext2id = &extensionToId;
+		if (ext2id->find(extension) == ext2id->end())
+		{
+			DEBUG_LOG("Unknown file type!");
+			return result;
+		}
+		IOType id = ext2id->find(extension).value();
+		if (!io.setupIO(id, filename, false, channel))
+		{
+			DEBUG_LOG("Error while setting up modality loading!");
+			return result;
+		}
+	}
+	io.start();
+	io.wait();
+	QString nameBase = name.isEmpty() ? fileInfo.baseName() : name;
+	if (volumes.size() > 1 && (channel < 0 || channel > volumes.size()))
+	{
+		if (split) // load one modality for each channel
+		{
+			int channels = volumes.size();
+			for (int i = 0; i < channels; ++i)
+			{
+				QSharedPointer<iAModality> newModality(new iAModality(
+					QString("%1-%2").arg(nameBase).arg(i),
+					filename, i, volumes[i], renderFlags));		// TODO: use different renderFlag for first channel?
+				result.push_back(newModality);
+			}
+		}
+		else       // load modality with multiple components
+		{
+			QSharedPointer<iAModality> newModality(new iAModality(
+				nameBase, filename, volumes, renderFlags));
+			result.push_back(newModality);
+		}
+	}
+	else           // load single modality
+	{
+		if (volumes.size() > 0)
+		{
+			channel = clamp(0, static_cast<int>(volumes.size() - 1), channel);
+			img = volumes[channel];
+		}
+		if (!img || img->GetDimensions()[0] == 0 || img->GetDimensions()[1] == 0)
+		{
+			DEBUG_LOG(QString("File '%1' could not be loaded!").arg(filename));
+			return result;
+		}
+		QSharedPointer<iAModality> newModality(new iAModality(
+			nameBase, filename, channel, img, renderFlags));
+		result.push_back(newModality);
+	}
+	return result;
 }

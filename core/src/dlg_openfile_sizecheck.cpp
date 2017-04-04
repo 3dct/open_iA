@@ -37,13 +37,13 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 
 	actualSizeLabel = new QLabel("Actual file size: " + QString::number(fileSize) + " bytes", this);
 	actualSizeLabel->setAlignment(Qt::AlignRight);
-	gridLayout->addWidget(actualSizeLabel, n, 1, 1, 1);
+	gridLayout->addWidget(actualSizeLabel, n, 0, 1, 1);
 	
 	proposedSizeLabel = new QLabel("Predicted file size: ", this);
 	proposedSizeLabel->setAlignment(Qt::AlignRight);
-	gridLayout->addWidget(proposedSizeLabel, n+1, 1, 1, 1);
+	gridLayout->addWidget(proposedSizeLabel, n+1, 0, 1, 1);
 
-	gridLayout->addWidget(buttonBox, n+2, 0, 1, 2);
+	gridLayout->addWidget(buttonBox, n+2, 0, 1, 1);
 		
 
 	if (!isVolumeStack) {

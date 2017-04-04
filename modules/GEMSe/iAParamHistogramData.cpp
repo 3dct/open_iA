@@ -25,12 +25,12 @@
 #include "iAChartFilter.h"
 #include "iAChartAttributeMapper.h"
 #include "iAConsole.h"
-#include "iAImageTree.h"
+#include "iAImageTreeLeaf.h"
 #include "iAMathUtility.h"
 
 #include <algorithm> // for std::fill
 
-double iAParamHistogramData::mapValueToBin(double value) const
+double iAParamHistogramData::MapValueToBin(double value) const
 {
 	if (m_log)
 	{
@@ -47,7 +47,7 @@ double iAParamHistogramData::mapValueToBin(double value) const
 	return mapValue(GetDataRange(0), GetDataRange(1), 0.0, static_cast<double>(GetNumBin()), value);
 }
 
-double iAParamHistogramData::mapBinToValue(double bin) const
+double iAParamHistogramData::MapBinToValue(double bin) const
 {
 	if (m_log)
 	{
@@ -64,66 +64,44 @@ double iAParamHistogramData::mapBinToValue(double bin) const
 }
 
 
-void iAParamHistogramData::CountNodeBin(iAImageClusterNode const * node,
+void iAParamHistogramData::CountNodeBin(iAImageTreeLeaf const* leaf,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
 {
-	iAImageClusterLeaf* leaf = (iAImageClusterLeaf*)node;
 	if (!chartAttrMap.GetDatasetIDs(chartID).contains(leaf->GetDatasetID()))
 	{
 		return;
 	}
 	int attributeID = chartAttrMap.GetAttributeID(chartID, leaf->GetDatasetID());
-	double value = node->GetAttribute(attributeID);
-	int binIdx = clamp(0, static_cast<int>(data->m_numBin-1), static_cast<int>(data->mapValueToBin(value)));
-	data->m_data[binIdx]++;
-	if (data->m_data[binIdx] > data->m_maxValue)
-	{
-		data->m_maxValue = data->m_data[binIdx];
-	}
+	double value = leaf->GetAttribute(attributeID);
+	data->AddValue(value);
 }
 
 
-void iAParamHistogramData::VisitNode(iAImageClusterNode const * node,
+void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
 {
-	if (!node->IsLeaf())
+	VisitLeafs(node, [&](iAImageTreeLeaf const * leaf)
 	{
-		for (int i=0; i<node->GetChildCount(); ++i)
-		{
-			VisitNode(node->GetChild(i).data(), data, chartID, chartAttrMap);
-		}
-	}
-	else
-	{
-		CountNodeBin(node, data, chartID, chartAttrMap);
-	}
+		CountNodeBin(leaf, data, chartID, chartAttrMap);
+	});
 }
 
 
-void iAParamHistogramData::VisitNode(iAImageClusterNode const * node,
+void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap,
 	iAChartFilter const & attributeFilter)
 {
-	if (!node->IsLeaf())
+	VisitLeafs(node, [&](iAImageTreeLeaf const * leaf)
 	{
-		for (int i=0; i<node->GetChildCount(); ++i)
-		{
-			VisitNode(node->GetChild(i).data(), data, chartID, chartAttrMap, attributeFilter);
-		}
-	}
-	else
-	{
-		iAImageClusterLeaf const * leaf = dynamic_cast<iAImageClusterLeaf const *> (node);
-		assert(leaf);
 		if (!attributeFilter.Matches(leaf, chartAttrMap))
 		{
 			return;
 		}
-		CountNodeBin(node, data, chartID, chartAttrMap);
-	}
+		CountNodeBin(leaf, data, chartID, chartAttrMap);
+	});
 }
 
 
@@ -140,7 +118,7 @@ double iAParamHistogramData::GetBinStart(int binNr) const
 }
 
 
-QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageClusterNode const * tree,
+QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNode const * tree,
 	int chartID,
 	iAValueType rangeType,
 	double min, double max, bool log,
@@ -157,7 +135,7 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageCluster
 }
 
 
-QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageClusterNode const * tree,
+QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNode const * tree,
 	int chartID,
 	iAValueType rangeType,
 	double min, double max, bool log,
@@ -171,6 +149,11 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageCluster
 	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
 	VisitNode(tree, result, chartID, chartAttrMap, attributeFilter);
+	if (attributeFilter.HasFilter(chartID))
+	{
+		result->SetMinX(result->MapValueToBin(attributeFilter.GetMin(chartID)));
+		result->SetMaxX(result->MapValueToBin(attributeFilter.GetMax(chartID)));
+	}
 	return result;
 }
 
@@ -180,7 +163,9 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	m_maxValue(std::numeric_limits<double>::lowest()),
 	m_spacing(1.0),
 	m_rangeType(rangeType),
-	m_log(log)
+	m_log(log),
+	m_minX(0),
+	m_maxX(numBin)
 {
 	assert(numBin > 0);
 	assert(!m_log || min > 0);
@@ -193,6 +178,13 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	m_dataRange[0] = min;
 	m_dataRange[1] = (min == max)? min+1: max;
 	m_spacing = (max - min) / m_numBin;
+}
+
+
+void iAParamHistogramData::Reset()
+{
+	m_maxValue = std::numeric_limits<double>::lowest();
+	std::fill(m_data, m_data + m_numBin, 0.0);
 }
 
 iAParamHistogramData::~iAParamHistogramData()
@@ -238,4 +230,32 @@ iAValueType iAParamHistogramData::GetRangeType() const
 bool iAParamHistogramData::IsLogarithmic() const
 {
 	return m_log;
+}
+
+
+double iAParamHistogramData::GetMinX() const
+{
+	return m_minX;
+}
+double iAParamHistogramData::GetMaxX() const
+{
+	return m_maxX;
+}
+void iAParamHistogramData::SetMinX(double x)
+{
+	m_minX = x;
+}
+void iAParamHistogramData::SetMaxX(double x)
+{
+	m_maxX = x;
+}
+
+void iAParamHistogramData::AddValue(double value)
+{
+	int binIdx = clamp(0, static_cast<int>(m_numBin - 1), static_cast<int>(MapValueToBin(value)));
+	m_data[binIdx]++;
+	if (m_data[binIdx] > m_maxValue)
+	{
+		m_maxValue = m_data[binIdx];
+	}
 }

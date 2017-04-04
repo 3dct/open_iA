@@ -47,8 +47,6 @@ enum iAChannelID
 	ch_Microscopy3,
 	ch_Microscopy4,
 
-	ch_ModalityLens,
-
 	ch_ModSPLOMSelection,
 
 	ch_DefectView0,
@@ -60,7 +58,7 @@ enum iAChannelID
 
 	ch_LabelOverlay,
 
-	ch_SE_DetailView,
+	ch_SlicerMagicLens,
 
 	// needs to be the last one, as there can be an arbitrary number of such concentration layers:
 	ch_Concentration0,

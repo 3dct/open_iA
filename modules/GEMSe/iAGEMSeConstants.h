@@ -109,8 +109,6 @@ const int CameraSpacing   = ExampleViewSpacing;
 const int FavoriteBarWidth = 80;
 const int FavoriteWidth    = FavoriteBarWidth - (2 * ExampleViewSpacing);
 
-const int MeasureCount = 5;
-
 enum DerivedOutput
 {
 	objectCount,
@@ -163,8 +161,8 @@ struct Output
 };
 
 
-const QString SMPFileVersion("v6");
-const QString SMPFileFormatVersion("SamplingParameters File " + SMPFileVersion);
+const QString SMPFileVersion("v8");
+const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
 
 const QString AttributeSplitString("\t");
 const QString ValueSplitString(" ");
@@ -189,5 +187,6 @@ enum iARepresentativeType
 	Difference,
 	AverageEntropy,
 	AverageLabel,
-	LabelDistribution
+	LabelDistribution,
+	Correctness,
 };
