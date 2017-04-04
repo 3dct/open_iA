@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_MajorityVoting.h"
+#include "ui_Consensus.h"
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
 #include "iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_MajorityVoting>   dlg_MajorityVotingUI;
+typedef iAQTtoUIConnector<QDockWidget, Ui_Consensus>   dlg_ConsensusUI;
 
 class dlg_GEMSe;
 class dlg_progress;
@@ -44,11 +44,11 @@ class vtkTable;
 
 class QCheckBox;
 
-class dlg_MajorityVoting : public dlg_MajorityVotingUI
+class dlg_Consensus : public dlg_ConsensusUI
 {
 	Q_OBJECT
 public:
-	dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings);
+	dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings);
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
 private slots:
 	void MinAbsPlot();

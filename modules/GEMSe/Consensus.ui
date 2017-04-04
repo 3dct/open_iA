@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MajorityVoting</class>
- <widget class="QDockWidget" name="MajorityVoting">
+ <class>Consensus</class>
+ <widget class="QDockWidget" name="Consensus">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -20,7 +20,7 @@
    <set>QDockWidget::DockWidgetFeatureMask</set>
   </property>
   <property name="windowTitle">
-   <string>Segmentation Combination</string>
+   <string>Segmentation Consensus</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
@@ -277,6 +277,9 @@
     </item>
     <item row="0" column="0" colspan="3">
      <widget class="QPushButton" name="pbMajorityVoting">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>Majority Voting</string>
       </property>
@@ -407,6 +410,9 @@
     </item>
     <item row="1" column="0" colspan="3">
      <widget class="QPushButton" name="pbSTAPLE">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>STAPLE</string>
       </property>

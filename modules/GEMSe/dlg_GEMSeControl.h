@@ -36,7 +36,7 @@ class iAImageSampler;
 
 class dlg_GEMSe;
 class dlg_labels;
-class dlg_MajorityVoting;
+class dlg_Consensus;
 class dlg_modalities;
 class dlg_progress;
 class dlg_samplings;
@@ -106,7 +106,7 @@ private:
 	dlg_GEMSe*                           m_dlgGEMSe;
 	dlg_labels*                          m_dlgLabels;
 	dlg_samplings*                       m_dlgSamplings;
-	dlg_MajorityVoting*                  m_dlgMajorityVoting;
+	dlg_Consensus*                       m_dlgConsensus;
 
 	QSharedPointer<iAImageSampler>       m_sampler;
 	QSharedPointer<iAImageClusterer>     m_clusterer;

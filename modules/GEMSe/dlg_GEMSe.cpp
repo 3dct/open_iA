@@ -498,10 +498,10 @@ QSharedPointer<iAImageTreeNode> dlg_GEMSe::GetSelectedCluster()
 	return m_selectedCluster;
 }
 
-void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData, QString const & name)
+void dlg_GEMSe::AddConsensusImage(iAITKIO::ImagePointer imgData, QString const & name)
 {
 	QSharedPointer<iAFakeTreeNode> node(new iAFakeTreeNode(imgData, name));
-	m_MajorityVotingResults.push_back(node);
+	m_ConsensusResults.push_back(node);
 	m_selectedCluster = node;
 	m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
 	// for the color transfer function:
@@ -512,10 +512,10 @@ void dlg_GEMSe::AddMajorityVotingImage(iAITKIO::ImagePointer imgData, QString co
 }
 
 
-void dlg_GEMSe::AddMajorityVotingNumbers(iAITKIO::ImagePointer imgData, QString const & name)
+void dlg_GEMSe::AddConsensusNumbersImage(iAITKIO::ImagePointer imgData, QString const & name)
 {
 	QSharedPointer<iAFakeTreeNode> node(new iAFakeTreeNode(imgData, name));
-	m_MajorityVotingResults.push_back(node);
+	m_ConsensusResults.push_back(node);
 	m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
 	// for the color transfer function:
 	if (m_detailView->GetRepresentativeType() != AverageEntropy)

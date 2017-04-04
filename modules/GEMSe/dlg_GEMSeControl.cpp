@@ -24,7 +24,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_GEMSe.h"
 #include "dlg_labels.h"
-#include "dlg_MajorityVoting.h"
+#include "dlg_Consensus.h"
 #include "dlg_modalities.h"
 #include "dlg_progress.h"
 #include "dlg_samplings.h"
@@ -125,7 +125,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	dlg_GEMSeControlUI(parentWidget),
 	m_dlgSamplingSettings(0),
 	m_dlgProgress(0),
-	m_dlgMajorityVoting(0),
+	m_dlgConsensus(0),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgModalities(dlgModalities),
 	m_dlgLabels(dlgLabels),
@@ -513,14 +513,14 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 {
 	pbClusteringStore->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
-	if (!m_dlgMajorityVoting)
+	if (!m_dlgConsensus)
 	{
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		m_dlgMajorityVoting = new dlg_MajorityVoting(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
+		m_dlgConsensus = new dlg_Consensus(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
 			m_dlgSamplings);
 		if (m_refImg)
-			m_dlgMajorityVoting->SetGroundTruthImage(m_refImg);
-		mdiChild->splitDockWidget(this, m_dlgMajorityVoting, Qt::Vertical);
+			m_dlgConsensus->SetGroundTruthImage(m_refImg);
+		mdiChild->splitDockWidget(this, m_dlgConsensus, Qt::Vertical);
 	}
 }
 
@@ -623,8 +623,8 @@ bool dlg_GEMSeControl::LoadRefImg(QString const & refImgName)
 		}
 		m_refImg = dynamic_cast<LabelImageType*>(img.GetPointer());
 		m_dlgGEMSe->CalcRefImgComp(m_refImg);
-		if (m_dlgMajorityVoting)
-			m_dlgMajorityVoting->SetGroundTruthImage(m_refImg);
+		if (m_dlgConsensus)
+			m_dlgConsensus->SetGroundTruthImage(m_refImg);
 	}
 	catch (std::exception & e)
 	{

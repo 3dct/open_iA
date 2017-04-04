@@ -19,7 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "dlg_MajorityVoting.h"
+#include "dlg_Consensus.h"
 
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
@@ -93,7 +93,7 @@
 //      +/- theoretically easier to do/practically probably also not little work to make it happen
 
 
-dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
+dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
@@ -173,7 +173,7 @@ dlg_MajorityVoting::dlg_MajorityVoting(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, 
 	connect(slLabelVoters, SIGNAL(valueChanged(int)), this, SLOT(LabelVoters(int)));
 }
 
-int dlg_MajorityVoting::GetWeightType()
+int dlg_Consensus::GetWeightType()
 {
 	if (rbWeightLabelDice->isChecked())  return LabelBased;
 	if (rbWeightCertainty->isChecked())  return Certainty;
@@ -219,14 +219,14 @@ namespace
 
 }
 
-void dlg_MajorityVoting::SetGroundTruthImage(LabelImagePointer groundTruthImage)
+void dlg_Consensus::SetGroundTruthImage(LabelImagePointer groundTruthImage)
 {
 	m_groundTruthImage = groundTruthImage;
 }
 
 #include "iAAttributes.h"
 
-void dlg_MajorityVoting::ClusterUncertaintyDice()
+void dlg_Consensus::ClusterUncertaintyDice()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -234,7 +234,7 @@ void dlg_MajorityVoting::ClusterUncertaintyDice()
 	//"Cluster (id=" + QString::number(node->GetID()) + ")";
 }
 
-void dlg_MajorityVoting::SelectionUncertaintyDice(
+void dlg_Consensus::SelectionUncertaintyDice(
 	QVector<QSharedPointer<iASingleResult> > const & selection,
 	QString const & name)
 {
@@ -352,7 +352,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 	return labelVotingFilter;
 }
 
-iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
+iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
 	int labelVoters, int weightType, int labelCount)
 {
@@ -370,7 +370,7 @@ iAITKIO::ImagePointer GetMajorityVotingImage(QVector<QSharedPointer<iASingleResu
 	return result;
 }
 
-iAITKIO::ImagePointer GetMajorityVotingNumbers(QVector<QSharedPointer<iASingleResult> > selection,
+iAITKIO::ImagePointer GetVotingNumbers(QVector<QSharedPointer<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
 	int labelVoters, int weightType, int labelCount, int mode)
 {
@@ -400,7 +400,7 @@ QString CollectedIDs(QVector<QSharedPointer<iASingleResult> > selection)
 	return ids.join(",");
 }
 
-void dlg_MajorityVoting::AbsMinPercentSlider(int)
+void dlg_Consensus::AbsMinPercentSlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -413,11 +413,11 @@ void dlg_MajorityVoting::AbsMinPercentSlider(int)
 	QString name = QString("Voting FBG > %1 % (%2)").arg(QString::number(minAbs * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount);
-	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult, name );
+	m_lastMVResult = GetVotingImage(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount);
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name );
 }
 
-void dlg_MajorityVoting::MinDiffPercentSlider(int)
+void dlg_Consensus::MinDiffPercentSlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -430,11 +430,11 @@ void dlg_MajorityVoting::MinDiffPercentSlider(int)
 	QString name = QString("Voting FBG-SBG > %1 % (%2)").arg(QString::number(minDiff * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount);
-	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult, name);
+	m_lastMVResult = GetVotingImage(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount);
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
-void dlg_MajorityVoting::MinRatioSlider(int)
+void dlg_Consensus::MinRatioSlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -447,11 +447,11 @@ void dlg_MajorityVoting::MinRatioSlider(int)
 	QString name = QString("Voting FBG/SBG > %1 (%2)").arg(QString::number(minRatio, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount);
-	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult, name);
+	m_lastMVResult = GetVotingImage(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount);
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
-void dlg_MajorityVoting::MaxPixelEntropySlider(int)
+void dlg_Consensus::MaxPixelEntropySlider(int)
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -464,11 +464,11 @@ void dlg_MajorityVoting::MaxPixelEntropySlider(int)
 	QString name = QString("Voting Entropy < %1 (%2)").arg(QString::number(maxPixelEntropy * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount);
-	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult, name);
+	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount);
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
-void dlg_MajorityVoting::LabelVoters(int)
+void dlg_Consensus::LabelVoters(int)
 {
 	if (!m_groundTruthImage)
 	{
@@ -486,11 +486,11 @@ void dlg_MajorityVoting::LabelVoters(int)
 	QString name = QString("Voting Best %1 of label (%2)").arg(labelVoters).arg(CollectedIDs(selection));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetMajorityVotingImage(selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
-	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult, name);
+	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
-void dlg_MajorityVoting::MinAbsPlot()
+void dlg_Consensus::MinAbsPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -500,11 +500,11 @@ void dlg_MajorityVoting::MinAbsPlot()
 		return;
 	}
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount, AbsolutePercentage);
-	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("FBG (%1)").arg(CollectedIDs(selection)));
+	m_lastMVResult = GetVotingNumbers(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount, AbsolutePercentage);
+	m_dlgGEMSe->AddConsensusNumbersImage(m_lastMVResult, QString("FBG (%1)").arg(CollectedIDs(selection)));
 }
 
-void dlg_MajorityVoting::MinDiffPlot()
+void dlg_Consensus::MinDiffPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -514,11 +514,11 @@ void dlg_MajorityVoting::MinDiffPlot()
 		return;
 	}
 	double minDiff = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount, DiffPercentage);
-	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("FBG-SBG (%1)").arg(CollectedIDs(selection)));
+	m_lastMVResult = GetVotingNumbers(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount, DiffPercentage);
+	m_dlgGEMSe->AddConsensusNumbersImage(m_lastMVResult, QString("FBG-SBG (%1)").arg(CollectedIDs(selection)));
 }
 
-void dlg_MajorityVoting::RatioPlot()
+void dlg_Consensus::RatioPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -528,12 +528,12 @@ void dlg_MajorityVoting::RatioPlot()
 		return;
 	}
 	double minRatio = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount, Ratio);
-	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("FBG/SBG (%1)").arg(CollectedIDs(selection)));
+	m_lastMVResult = GetVotingNumbers(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount, Ratio);
+	m_dlgGEMSe->AddConsensusNumbersImage(m_lastMVResult, QString("FBG/SBG (%1)").arg(CollectedIDs(selection)));
 }
 
 
-void dlg_MajorityVoting::MaxPixelEntropyPlot()
+void dlg_Consensus::MaxPixelEntropyPlot()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -543,20 +543,20 @@ void dlg_MajorityVoting::MaxPixelEntropyPlot()
 		return;
 	}
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
-	m_lastMVResult = GetMajorityVotingNumbers(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount, PixelEntropy);
-	m_dlgGEMSe->AddMajorityVotingNumbers(m_lastMVResult, QString("Entropy (%1)").arg(CollectedIDs(selection)));
+	m_lastMVResult = GetVotingNumbers(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount, PixelEntropy);
+	m_dlgGEMSe->AddConsensusNumbersImage(m_lastMVResult, QString("Entropy (%1)").arg(CollectedIDs(selection)));
 }
 
-void dlg_MajorityVoting::StoreResult()
+void dlg_Consensus::StoreResult()
 {
 	if (!m_lastMVResult)
 	{
-		DEBUG_LOG("You need to perform Majority Voting at least once, before last Majority Voting result can be stored!");
+		DEBUG_LOG("You need to perform Voting at least once, before last Consensus result can be stored!");
 		return;
 	}
 	iAITKIO::ScalarPixelType pixelType = itk::ImageIOBase::INT;
 	QString fileName = QFileDialog::getSaveFileName(this,
-		tr("Store Last Majority Voting Result"),
+		tr("Store Last Voting Result"),
 		m_folder,
 		iAIOProvider::GetSupportedSaveFormats()
 	);
@@ -580,7 +580,7 @@ namespace
 	static const QString DerivedOutputName = "Dice";
 }
 
-void dlg_MajorityVoting::StoreConfig()
+void dlg_Consensus::StoreConfig()
 {
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Store Algorithm Comparison Configuration"),
@@ -628,7 +628,7 @@ void dlg_MajorityVoting::StoreConfig()
 	s.setValue("BestSingle/ParameterSets", bestParameterSets.join(","));
 	s.setValue(QString("BestSingle/%1").arg(DerivedOutputName), bestDice.join(","));
 
-	// fetch config for (last?) majority voting (sampling?)
+	// fetch config for (last?) consensus (sampling?)
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
@@ -642,8 +642,8 @@ void dlg_MajorityVoting::StoreConfig()
 		parameterSets.append(QString::number(selection[i]->GetDatasetID()) + "-"+QString::number(selection[i]->GetID()));
 	}
 	int weightType = GetWeightType();
-	s.setValue("MajorityVoting/ParameterSets", parameterSets.join(","));
-	s.setValue("MajorityVoting/WeightType", GetWeightName(weightType));
+	s.setValue("Voting/ParameterSets", parameterSets.join(","));
+	s.setValue("Voting/WeightType", GetWeightName(weightType));
 	if (weightType == LabelBased)
 	{
 		for (int l = 0; l < m_labelCount; ++l)
@@ -660,7 +660,7 @@ void dlg_MajorityVoting::StoreConfig()
 				double labelDice = selection[m]->GetAttribute(attributeID);
 				inputWeights.append(QString::number(labelDice));
 			}
-			s.setValue(QString("MajorityVoting/InputWeightLabel%1").arg(l), inputWeights.join(","));
+			s.setValue(QString("Voting/InputWeightLabel%1").arg(l), inputWeights.join(","));
 		}
 	}
 }
@@ -699,7 +699,7 @@ namespace
 #include "iAParameterGeneratorImpl.h"
 #include "iASEAFile.h"
 
-void dlg_MajorityVoting::LoadConfig()
+void dlg_Consensus::LoadConfig()
 {
 	if (!m_groundTruthImage)
 	{
@@ -750,8 +750,8 @@ void dlg_MajorityVoting::LoadConfig()
 	QStringList bestParameterSetsList = s.value("BestSingle/ParameterSets").toString().split(",");
 	QStringList derivedOuts = s.value(QString("BestSingle/%1").arg(DerivedOutputName)).toString().split(",");
 
-	QStringList mvParamSetsList = s.value("MajorityVoting/ParameterSets").toString().split(",");
-	m_comparisonWeightType = ::GetWeightType(s.value("MajorityVoting/WeightType").toString());
+	QStringList mvParamSetsList = s.value("Voting/ParameterSets").toString().split(",");
+	m_comparisonWeightType = ::GetWeightType(s.value("Voting/WeightType").toString());
 
 	std::map<std::pair<int, int>, double> inputLabelWeightMap;
 	if (m_comparisonWeightType == LabelBased)
@@ -759,7 +759,7 @@ void dlg_MajorityVoting::LoadConfig()
 		bool ok;
 		for (int l = 0; l < m_labelCount; ++l)
 		{
-			QStringList inputWeights = s.value(QString("MajorityVoting/InputWeightLabel%1").arg(l)).toString().split(",");
+			QStringList inputWeights = s.value(QString("Voting/InputWeightLabel%1").arg(l)).toString().split(",");
 			for (int m = 0; m < mvParamSetsList.size(); ++m)
 			{
 				double labelWeight = inputWeights[m].toDouble(&ok);
@@ -877,7 +877,7 @@ void dlg_MajorityVoting::LoadConfig()
 	}
 }
 
-void dlg_MajorityVoting::SamplerFinished()
+void dlg_Consensus::SamplerFinished()
 {
 	// insert result in sampling list?
 	iAImageSampler* sender = qobject_cast<iAImageSampler*> (QObject::sender());
@@ -969,7 +969,7 @@ void dlg_MajorityVoting::SamplerFinished()
 		// ignore label based input weight for now
 		// labelVotingFilter->SetInputLabelWeightMap(inputLabelWeightMap);
 
-		// perform majority voting (sampling?) & do ref img comparisons
+		// perform voting (sampling?) & do ref img comparisons
 
 		delete m_dlgProgress;
 		m_dlgProgress = 0;
@@ -1002,7 +1002,7 @@ vtkIdType AddPlot(int plotType,
 	return plotID;
 }
 
-void dlg_MajorityVoting::AddResult(vtkSmartPointer<vtkTable> table, QString const & title)
+void dlg_Consensus::AddResult(vtkSmartPointer<vtkTable> table, QString const & title)
 {
 	int idx = twSampleResults->rowCount();
 	twSampleResults->setRowCount(idx + 1);
@@ -1020,19 +1020,19 @@ void dlg_MajorityVoting::AddResult(vtkSmartPointer<vtkTable> table, QString cons
 	m_results.push_back(table);
 }
 
-void dlg_MajorityVoting::UpdateWeightPlot()
+void dlg_Consensus::UpdateWeightPlot()
 {
 	lbWeight->setText("Weight: " + GetWeightName(GetWeightType()));
 }
 
-void dlg_MajorityVoting::Sample()
+void dlg_Consensus::Sample()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	Sample(selection, GetWeightType());
 }
 
-void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType)
+void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType)
 {
 	try
 	{
@@ -1095,14 +1095,14 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 				mapNormTo(labelVoterMin, labelVoterMax, norm)
 			};
 
-			// calculate majority voting using these values:
+			// calculate voting using these values:
 			iAITKIO::ImagePointer result[ResultCount];
 
-			result[0] = GetMajorityVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount);
-			result[1] = GetMajorityVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount);
-			result[2] = GetMajorityVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount);
-			result[3] = GetMajorityVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount);
-			result[4] = GetMajorityVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount);
+			result[0] = GetVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount);
+			result[1] = GetVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount);
+			result[2] = GetVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount);
+			result[3] = GetVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount);
+			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount);
 
 			//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
 			// calculate dice coefficient and percentage of undetermined pixels
@@ -1171,7 +1171,7 @@ void dlg_MajorityVoting::Sample(QVector<QSharedPointer<iASingleResult> > const &
 	}
 }
 
-void dlg_MajorityVoting::CheckBoxStateChanged(int state)
+void dlg_Consensus::CheckBoxStateChanged(int state)
 {
 	QCheckBox* sender = dynamic_cast<QCheckBox*>(QObject::sender());
 	int id = m_checkBoxResultIDMap[sender];
@@ -1221,7 +1221,7 @@ typedef itk::Image<unsigned int, 3> UIntImage;
 typedef itk::CastImageFilter<LabelImageType, UIntImage> CastIntToUInt;
 typedef itk::CastImageFilter<UIntImage, LabelImageType> CastUIntToInt;
 
-void dlg_MajorityVoting::CalcSTAPLE()
+void dlg_Consensus::CalcSTAPLE()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -1247,10 +1247,10 @@ void dlg_MajorityVoting::CalcSTAPLE()
 	m_lastMVResult = castback->GetOutput();
 	lbValue->setText("Value: STAPLE");
 	lbWeight->setText("Weight: EM");
-	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult, QString("STAPLE (%1)").arg(CollectedIDs(selection)));
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("STAPLE (%1)").arg(CollectedIDs(selection)));
 }
 
-void dlg_MajorityVoting::CalcMajorityVote()
+void dlg_Consensus::CalcMajorityVote()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
@@ -1273,7 +1273,7 @@ void dlg_MajorityVoting::CalcMajorityVote()
 	castback->SetInput(filter->GetOutput());
 	castback->Update();
 	m_lastMVResult = castback->GetOutput();
-	m_dlgGEMSe->AddMajorityVotingImage(m_lastMVResult, QString("Majority Vote (%1)").arg(CollectedIDs(selection)));
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("Majority Vote (%1)").arg(CollectedIDs(selection)));
 	lbValue->setText("Value: Majority Vote");
 	lbWeight->setText("Weignt: Equal");
 }
