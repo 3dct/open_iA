@@ -88,7 +88,7 @@ public:
 	//! median image for this cluster:
 	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const = 0;
 	virtual vtkSmartPointer<vtkImageData> GetCorrectnessEntropyImage(LabelImagePointer refImg) const;
-	virtual void DiscardDetails() = 0;
+	virtual void DiscardDetails() const = 0;
 	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const = 0;
 	virtual void GetExampleImages(QVector<iAImageTreeLeaf *> & result, int amount) = 0;

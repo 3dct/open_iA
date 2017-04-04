@@ -44,7 +44,7 @@ public:
 	virtual void SetParent(QSharedPointer<iAImageTreeNode > parent);
 	virtual QSharedPointer<iAImageTreeNode > GetParent() const;
 	virtual QSharedPointer<iAImageTreeNode > GetChild(int idx) const;
-	virtual void DiscardDetails();
+	virtual void DiscardDetails() const;
 	ClusterImageType const GetLargeImage() const;
 	virtual LabelPixelHistPtr UpdateLabelDistribution() const;
 	virtual CombinedProbPtr UpdateProbabilities() const;

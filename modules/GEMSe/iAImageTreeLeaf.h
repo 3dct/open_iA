@@ -37,7 +37,7 @@ public:
 		iAChartAttributeMapper const & chartAttrMap,
 		iAResultFilter const & resultFilter);
 	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const;
-	virtual void DiscardDetails();
+	virtual void DiscardDetails() const;
 	ClusterImageType const GetLargeImage() const;
 	virtual ClusterIDType GetID() const;
 	virtual bool IsLeaf() const { return true; }

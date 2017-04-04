@@ -42,7 +42,7 @@ public:
 		iAResultFilter const & resultFilter);
 	virtual bool IsLeaf() const { return false; }
 	virtual ClusterImageType const GetRepresentativeImage(int type, LabelImagePointer refImg) const;
-	virtual void DiscardDetails();
+	virtual void DiscardDetails() const;
 	virtual void DiscardFilterData();
 	virtual void ClearFilterData();
 	virtual ClusterIDType GetID() const;

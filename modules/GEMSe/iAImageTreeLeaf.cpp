@@ -63,7 +63,7 @@ ClusterImageType const iAImageTreeLeaf::GetRepresentativeImage(int type, LabelIm
 }
 
 
-void iAImageTreeLeaf::DiscardDetails()
+void iAImageTreeLeaf::DiscardDetails() const
 {
 	m_singleResult->DiscardDetails();
 }

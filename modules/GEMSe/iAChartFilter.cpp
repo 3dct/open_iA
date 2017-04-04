@@ -85,6 +85,7 @@ double iAChartFilter::GetMax(int chartID) const
 bool ResultFilterMatches(iAImageTreeLeaf const * leaf, iAResultFilter const & filter)
 {
 	LabelImageType* img = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer());
+	leaf->DiscardDetails();
 	for (auto filterEntry: filter)
 	{
 		itk::Index<3> idx;

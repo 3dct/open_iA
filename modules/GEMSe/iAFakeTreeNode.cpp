@@ -87,7 +87,7 @@ double iAFakeTreeNode::GetAttribute(int) const
 	assert(false);
 	return QSharedPointer<iAImageTreeNode >();
 }
- void iAFakeTreeNode::DiscardDetails()
+ void iAFakeTreeNode::DiscardDetails() const
 {
 	assert(false);
 }

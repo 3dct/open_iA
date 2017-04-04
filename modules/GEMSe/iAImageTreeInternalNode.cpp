@@ -280,7 +280,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 }
 
 
-void iAImageTreeInternalNode::DiscardDetails()
+void iAImageTreeInternalNode::DiscardDetails() const
 {
 	m_representative.clear();
 }
