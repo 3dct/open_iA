@@ -53,11 +53,9 @@ SET( ITK_LIBRARIES
 	ITKIOSpatialObjects		ITKIOStimulate			ITKIOTIFF			ITKIOVTK			ITKIOXML
 	ITKVtkGlue				ITKKLMRegionGrowing		ITKMesh				ITKOptimizers		ITKPath
 	ITKVNLInstantiation		ITKVTK					ITKWatersheds		ITKDICOMParser		ITKEXPAT
-	ITKLabelMap
-	itkhdf5					itkhdf5_cpp				itkjpeg				ITKMetaIO			itkNetlibSlatec
+	ITKLabelMap				itkjpeg					ITKMetaIO			itkNetlibSlatec
 	ITKniftiio				ITKNrrdIO				itkopenjpeg			itkpng				itksys
-	itktiff					itkv3p_netlib
-	itkvcl					itkvnl					itkvnl_algo
+	itktiff					itkv3p_netlib			itkvcl				itkvnl				itkvnl_algo
 	ITKznz
 )
 IF ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
