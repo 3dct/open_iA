@@ -17,8 +17,8 @@
  *=========================================================================*/
 #pragma once
 
-#include "itkImageToImageFilter.h"
-#include "itkNumericTraits.h"
+#include <itkImageToImageFilter.h>
+#include <itkNumericTraits.h>
 
 #include "itksys/hash_map.hxx"
 

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "itkImageToImageFilter.h"
+#include <itkImageToImageFilter.h>
 
  /** \class EntropyImageFilter
   *
@@ -58,7 +58,7 @@ class EntropyImageFilter :
 public:
 	/** Standard class typedefs. */
 	typedef EntropyImageFilter                          Self;
-	typedef ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+	typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
 	typedef itk::SmartPointer< Self >                            Pointer;
 	typedef itk::SmartPointer< const Self >                      ConstPointer;
 

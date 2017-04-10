@@ -18,8 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
-
 #include "iAFakeTreeNode.h"
 
 iAFakeTreeNode::iAFakeTreeNode(iAITKIO::ImagePointer img, QString const & name) :

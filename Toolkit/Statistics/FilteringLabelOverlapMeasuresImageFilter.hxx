@@ -190,7 +190,7 @@ namespace fhw {
 			mapIt != this->m_LabelSetMeasures.end(); ++mapIt)
 		{
 			// Do not include the background in the final value.
-			if ((*mapIt).first == NumericTraits<LabelType>::ZeroValue())
+			if ((*mapIt).first == itk::NumericTraits<LabelType>::ZeroValue())
 			{
 				continue;
 			}
@@ -200,7 +200,7 @@ namespace fhw {
 
 		if (itk::Math::ExactlyEquals(denominator, 0.0))
 		{
-			return NumericTraits<RealType>::max();
+			return itk::NumericTraits<RealType>::max();
 		}
 		else
 		{
@@ -225,7 +225,7 @@ namespace fhw {
 
 		if ((*mapIt).second.m_Target == 0)
 		{
-			value = NumericTraits<RealType>::max();
+			value = itk::NumericTraits<RealType>::max();
 		}
 		else
 		{
@@ -280,7 +280,7 @@ namespace fhw {
 		RealType value;
 		if (itk::Math::ExactlyEquals((*mapIt).second.m_Union, 0.0))
 		{
-			value = NumericTraits<RealType>::max();
+			value = itk::NumericTraits<RealType>::max();
 		}
 		else
 		{
@@ -321,7 +321,7 @@ namespace fhw {
 			mapIt != this->m_LabelSetMeasures.end(); ++mapIt)
 		{
 			// Do not include the background in the final value.
-			if ((*mapIt).first == NumericTraits<LabelType>::ZeroValue())
+			if ((*mapIt).first == itk::NumericTraits<LabelType>::ZeroValue())
 			{
 				continue;
 			}
@@ -333,7 +333,7 @@ namespace fhw {
 
 		if (itk::Math::ExactlyEquals(denominator, 0.0))
 		{
-			return NumericTraits<RealType>::max();
+			return itk::NumericTraits<RealType>::max();
 		}
 		else
 		{
@@ -371,7 +371,7 @@ namespace fhw {
 			mapIt != this->m_LabelSetMeasures.end(); ++mapIt)
 		{
 			// Do not include the background in the final value.
-			if ((*mapIt).first == NumericTraits<LabelType>::ZeroValue())
+			if ((*mapIt).first == itk::NumericTraits<LabelType>::ZeroValue())
 			{
 				continue;
 			}
@@ -381,7 +381,7 @@ namespace fhw {
 
 		if (itk::Math::ExactlyEquals(denominator, 0.0))
 		{
-			return NumericTraits<RealType>::max();
+			return itk::NumericTraits<RealType>::max();
 		}
 		else
 		{
@@ -404,7 +404,7 @@ namespace fhw {
 		RealType value;
 		if (itk::Math::ExactlyEquals((*mapIt).second.m_Target, 0.0))
 		{
-			value = NumericTraits<RealType>::max();
+			value = itk::NumericTraits<RealType>::max();
 		}
 		else
 		{
@@ -427,7 +427,7 @@ namespace fhw {
 			mapIt != this->m_LabelSetMeasures.end(); ++mapIt)
 		{
 			// Do not include the background in the final value.
-			if ((*mapIt).first == NumericTraits<LabelType>::ZeroValue())
+			if ((*mapIt).first == itk::NumericTraits<LabelType>::ZeroValue())
 			{
 				continue;
 			}
@@ -437,7 +437,7 @@ namespace fhw {
 
 		if (itk::Math::ExactlyEquals(denominator, 0.0))
 		{
-			return NumericTraits<RealType>::max();
+			return itk::NumericTraits<RealType>::max();
 		}
 		else
 		{
@@ -460,7 +460,7 @@ namespace fhw {
 		RealType value;
 		if (itk::Math::ExactlyEquals((*mapIt).second.m_Source, 0.0))
 		{
-			value = NumericTraits<RealType>::max();
+			value = itk::NumericTraits<RealType>::max();
 		}
 		else
 		{

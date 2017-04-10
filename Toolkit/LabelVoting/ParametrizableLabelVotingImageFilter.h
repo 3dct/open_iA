@@ -122,7 +122,7 @@ class ParametrizableLabelVotingImageFilter :
 public:
 	/** Standard class typedefs. */
 	typedef ParametrizableLabelVotingImageFilter                          Self;
-	typedef ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+	typedef itk::ImageToImageFilter< TInputImage, TOutputImage > Superclass;
 	typedef itk::SmartPointer< Self >                            Pointer;
 	typedef itk::SmartPointer< const Self >                      ConstPointer;
 
@@ -188,7 +188,7 @@ public:
 	{
 		m_LabelForUndecidedPixels = l;
 		m_HasLabelForUndecidedPixels = true;
-		Modified();
+		this->Modified();
 	}
 
 	/** Get label value used for undecided pixels.
@@ -239,7 +239,7 @@ public:
 		if (m_HasLabelForUndecidedPixels)
 		{
 			m_HasLabelForUndecidedPixels = false;
-			Modified();
+			this->Modified();
 		}
 	}
 
@@ -284,7 +284,7 @@ protected:
 	void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
 	void ThreadedGenerateData
-	(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+		(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 	void PrintSelf(std::ostream &, itk::Indent) const ITK_OVERRIDE;
 
