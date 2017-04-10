@@ -67,7 +67,7 @@ public:
 	void SetIconSize(int iconSize);
 	bool SetRepresentativeType(int representativeType, LabelImagePointer refImg);
 	int  GetRepresentativeType() const;
-	void FreeMemory(QSharedPointer<iAImageTreeNode> & node, bool overrideFree);
+	void FreeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree);
 	void SetRefImg(LabelImagePointer refImg);
 signals:
 	void Clicked(QSharedPointer<iAImageTreeNode >);

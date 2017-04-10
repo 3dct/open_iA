@@ -218,7 +218,7 @@ iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int label)
 		QString probFile(GetProbabilityPath(label));
 		if (!QFile::exists(probFile))
 		{
-			throw std::exception(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
+			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
 		}
 		iAITKIO::ScalarPixelType pixelType;
 		m_probabilityImg[label] = iAITKIO::readFile(probFile, pixelType, false);

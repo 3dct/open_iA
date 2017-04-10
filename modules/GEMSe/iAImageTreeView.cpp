@@ -564,7 +564,7 @@ int  iAImageTreeView::GetRepresentativeType() const
 }
 
 
-void iAImageTreeView::FreeMemory(QSharedPointer<iAImageTreeNode> & node, bool overrideFree)
+void iAImageTreeView::FreeMemory(QSharedPointer<iAImageTreeNode> node, bool overrideFree)
 {
 	if (overrideFree ||
 		!m_nodeWidgets[node.data()] ||
