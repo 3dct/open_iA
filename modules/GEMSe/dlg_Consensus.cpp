@@ -1235,7 +1235,7 @@ void dlg_Consensus::CalcSTAPLE()
 	for (int i = 0; i < selection.size(); ++i)
 	{
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->GetLabelledImage().GetPointer());
-		typename CastIntToUInt::Pointer caster = CastIntToUInt::New();
+		CastIntToUInt::Pointer caster = CastIntToUInt::New();
 		caster->SetInput(lblImg);
 		caster->Update();
 		filter->SetInput(i, caster->GetOutput());
@@ -1263,7 +1263,7 @@ void dlg_Consensus::CalcMajorityVote()
 	for (int i = 0; i < selection.size(); ++i)
 	{
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(selection[i]->GetLabelledImage().GetPointer());
-		typename CastIntToUInt::Pointer caster = CastIntToUInt::New();
+		CastIntToUInt::Pointer caster = CastIntToUInt::New();
 		caster->SetInput(lblImg);
 		caster->Update();
 		filter->SetInput(i, caster->GetOutput());

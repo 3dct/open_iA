@@ -48,6 +48,7 @@
 #include <vtkLookupTable.h>
 #include <vtkMetaImageWriter.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkObjectFactory.h>
 
 #include <QLabel>
 #include <QListView>
