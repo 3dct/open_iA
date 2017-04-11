@@ -47,6 +47,10 @@ public:
 	}
 	int & get(int r, int c)
 	{
+		if (r < 0 || c < 0 || r >= rowCount || c >= colCount)
+		{
+			DEBUG_LOG(QString("Invalid Matrix access (%1, %2), matrix dimensions (%3, %4)").arg(r).arg(c).arg(rowCount).arg(colCount));
+		}
 		return data[r*colCount + c];
 	}
 	void inc(int r, int c)
@@ -109,7 +113,14 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 		if (refValue != -1)
 		{
 			int sampleValue = sampleIt.Get();
-			errorMatrix.inc(sampleValue, refValue);
+			if (sampleValue < labelCount)
+			{
+				errorMatrix.inc(sampleValue, refValue);
+			}
+			else
+			{
+				DEBUG_LOG(QString("Pixel value %1 out of valid range (0, %2)").arg(sampleValue).arg(labelCount));
+			}
 		}
 		++sampleIt;
 		++gtIt;
