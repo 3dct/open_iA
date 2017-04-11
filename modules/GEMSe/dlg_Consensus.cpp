@@ -852,24 +852,29 @@ void dlg_Consensus::LoadConfig()
 		));
 		m_queuedSamplers.push_back(sampler);
 	}
-	m_dlgProgress = new dlg_progress(this, m_currentSampler, m_currentSampler, "Sampling Progress");
-	m_mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
 	StartNextSampler();
 }
 
 
 void dlg_Consensus::StartNextSampler()
 {
+
 	m_currentSampler = m_queuedSamplers.takeFirst();
 	connect(m_currentSampler.data(), SIGNAL(finished()), this, SLOT(SamplerFinished()));
+
+	m_dlgProgress = new dlg_progress(this, m_currentSampler, m_currentSampler, "Sampling Progress");
 	connect(m_currentSampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
 	connect(m_currentSampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
+	m_mdiChild->SplitDockWidget(this, m_dlgProgress, Qt::Vertical);
+
 	m_currentSampler->start();
 }
 
 
 void dlg_Consensus::SamplerFinished()
 {
+	delete m_dlgProgress;
+	m_dlgProgress = 0;
 	// insert result in sampling list?
 	iAImageSampler* sender = qobject_cast<iAImageSampler*> (QObject::sender());
 	if (!sender)
@@ -964,9 +969,6 @@ void dlg_Consensus::SamplerFinished()
 	// labelVotingFilter->SetInputLabelWeightMap(inputLabelWeightMap);
 
 	// perform voting (sampling?) & do ref img comparisons
-
-	delete m_dlgProgress;
-	m_dlgProgress = 0;
 }
 
 vtkIdType AddPlot(int plotType,
