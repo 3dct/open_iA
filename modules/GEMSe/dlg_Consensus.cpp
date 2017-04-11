@@ -706,7 +706,6 @@ void dlg_Consensus::LoadConfig()
 		QMessageBox::warning(this, "GEMSe", "Please load a reference image first!");
 		return;
 	}
-	// load config
 	QString fileName = QFileDialog::getOpenFileName(this,
 		tr("Load Algorithm Comparison Configuration"),
 		m_folder,
@@ -746,13 +745,11 @@ void dlg_Consensus::LoadConfig()
 		));
 		++curSamplingIdx;
 	}
-
 	QStringList bestParameterSetsList = s.value("BestSingle/ParameterSets").toString().split(",");
 	QStringList derivedOuts = s.value(QString("BestSingle/%1").arg(DerivedOutputName)).toString().split(",");
-
 	QStringList mvParamSetsList = s.value("Voting/ParameterSets").toString().split(",");
 	m_comparisonWeightType = ::GetWeightType(s.value("Voting/WeightType").toString());
-
+	m_queuedSamplers.clear();
 	std::map<std::pair<int, int>, double> inputLabelWeightMap;
 	if (m_comparisonWeightType == LabelBased)
 	{
@@ -773,13 +770,11 @@ void dlg_Consensus::LoadConfig()
 			}
 		}
 	}
-
 	int lastSamplingID = m_dlgSamplings->GetSamplings()->size();
 	QVector<QSet<int> > bestParameterSetIDs(samplings.size()),
 		mvParameterSetIDs(samplings.size());
 	AddParameterSets(bestParameterSetIDs, bestParameterSetsList);
 	AddParameterSets(mvParameterSetIDs, mvParamSetsList);
-	
 	// run segmentations with loaded parameter sets
 	m_comparisonSamplingResults.clear();
 	m_comparisonBestIDs.clear();
@@ -793,24 +788,23 @@ void dlg_Consensus::LoadConfig()
 		QString outputFolder = QFileDialog::getExistingDirectory(this,
 			QString("Output folder for Algorithm %1").arg(s),
 			m_folder);
-
+		if (outputFolder.isEmpty())
+		{
+			return;
+		}
 		auto samplingResults = iASamplingResults::Load(smpFileName, s);
-		//m_comparisonSamplingInput.push_back(samplingResults);
-		// after sampling, we shouldn't need these anymore
-		// and as long as we don't access the images, they shouldn't get loaded...
-
 		ParameterSetsPointer parameterSets(new QVector<ParameterSet>());
 		for (int i = 0; i < samplingResults->size(); ++i)
 		{
 			if (bestParameterSetIDs[s].contains(i) || mvParameterSetIDs[s].contains(i))
 			{
+				// ToDo: check if parameters already exist in current samplings!
 				if (bestParameterSetIDs[s].contains(i))
 				{
 					m_comparisonBestIDs[s].push_back(parameterSets->size());
 				}
 				if (mvParameterSetIDs[s].contains(i))
 				{
-					//assert(mvParameterSetIDs[s].contains(i))
 					m_comparisonMVIDs[s].push_back(parameterSets->size());
 				}
 				QVector<double> singleParameterSet;
@@ -824,7 +818,6 @@ void dlg_Consensus::LoadConfig()
 				parameterSets->push_back(singleParameterSet);
 			}
 		}
-
 		QStringList parameters;	parameters
 			<< "#Executable"
 			<< "#Additional Parameters";
@@ -832,20 +825,16 @@ void dlg_Consensus::LoadConfig()
 			<< samplingResults->GetExecutable()
 			<< samplingResults->GetAdditionalArguments();
 		dlg_commoninput checkAlgoParams(m_mdiChild, "Check/Correct Algorithm Parameters", 2, parameters, values, NULL);
-
 		if (checkAlgoParams.exec() != QDialog::Accepted)
 		{
 			return;
 		}
-		
 		QStringList changedValues = checkAlgoParams.getText();
 		QString executable = changedValues[0];
 		QString additionalParameters = changedValues[1];
-
 		QSharedPointer<iASelectionParameterGenerator> generator(
 			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));
-
 		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_mdiChild->GetModalities(),
 			samplingResults->GetAttributes(),
@@ -861,21 +850,23 @@ void dlg_Consensus::LoadConfig()
 			samplingResults->GetName(),
 			lastSamplingID+s
 		));
-		if (s == 0)
-		{
-			m_dlgProgress = new dlg_progress(this, sampler, sampler, "Sampling Progress");
-			m_mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
-			connect(sampler.data(), SIGNAL(finished()), this, SLOT(SamplerFinished()));
-			connect(sampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
-			connect(sampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
-			sampler->start();
-		}
-		else
-		{
-			m_sampler.push_back(sampler);
-		}
+		m_queuedSamplers.push_back(sampler);
 	}
+	m_dlgProgress = new dlg_progress(this, m_currentSampler, m_currentSampler, "Sampling Progress");
+	m_mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
+	StartNextSampler();
 }
+
+
+void dlg_Consensus::StartNextSampler()
+{
+	m_currentSampler = m_queuedSamplers.takeFirst();
+	connect(m_currentSampler.data(), SIGNAL(finished()), this, SLOT(SamplerFinished()));
+	connect(m_currentSampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
+	connect(m_currentSampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
+	m_currentSampler->start();
+}
+
 
 void dlg_Consensus::SamplerFinished()
 {
@@ -886,94 +877,96 @@ void dlg_Consensus::SamplerFinished()
 		DEBUG_LOG("Invalid SamplingFinished: No iAImageSampler sender!");
 		return;
 	}
+	if (sender->IsAborted())
+	{
+		DEBUG_LOG("Parameter sampling was aborted, aborting further configuration loading steps!");
+		return;
+	}
 	auto results = sender->GetResults();
 	m_comparisonSamplingResults.push_back(results);
 	m_dlgSamplings->Add(results);
-	if (m_sampler.size() > 0)
+	m_currentSampler.clear();
 	{
-		auto sampler = m_sampler.takeFirst();
-		connect(sampler.data(), SIGNAL(finished()), this, SLOT(SamplerFinished()));
-		connect(sampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
-		connect(sampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
-		sampler->start();
-	}
-	else
-	{
-
-		DEBUG_LOG("Measures for LoadedConfiguration:");
-		m_comparisonMVSelection.clear();
-		m_comparisonBestSelection.clear();
-		for (int s = 0; s < m_comparisonSamplingResults.size(); ++s)
+		if (m_queuedSamplers.size() > 0)
 		{
-			auto attributes = m_comparisonSamplingResults[s]->GetAttributes();
-			// do ref img comparison / measure calculation for the new samplings:
-			// TODO: remove duplication between here and dlg_GEMSe::CalcRefImgComp
-			QVector<QSharedPointer<iAAttributeDescriptor> > measures;
+			StartNextSampler();
+			return;
+		}
+	}
+	
+	DEBUG_LOG("Measures for LoadedConfiguration:");
+	m_comparisonMVSelection.clear();
+	m_comparisonBestSelection.clear();
+	for (int s = 0; s < m_comparisonSamplingResults.size(); ++s)
+	{
+		auto attributes = m_comparisonSamplingResults[s]->GetAttributes();
+		// do ref img comparison / measure calculation for the new samplings:
+		// TODO: remove duplication between here and dlg_GEMSe::CalcRefImgComp
+		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+			"Dice", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+			"Kappa", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+			"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+			"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		for (int i = 0; i<m_labelCount; ++i)
+		{
 			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				"Dice", iAAttributeDescriptor::DerivedOutput, Continuous)));
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				"Kappa", iAAttributeDescriptor::DerivedOutput, Continuous)));
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, Continuous)));
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
-			for (int i = 0; i<m_labelCount; ++i)
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
+		}
+		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
+		{
+			measure->ResetMinMax();
+			attributes->Add(measure);
+		}
+		for (int m = 0; m < m_comparisonSamplingResults[s]->size(); ++m)
+		{
+			// create selections:
+			if (m_comparisonBestIDs[s].contains(m))
 			{
-				measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-					QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
+				m_comparisonBestSelection.push_back(m_comparisonSamplingResults[s]->Get(m));
 			}
-			for (QSharedPointer<iAAttributeDescriptor> measure : measures)
+			if (m_comparisonMVIDs[s].contains(m))
 			{
-				measure->ResetMinMax();
-				attributes->Add(measure);
+				m_comparisonMVSelection.push_back(m_comparisonSamplingResults[s]->Get(m));
 			}
-			for (int m = 0; m < m_comparisonSamplingResults[s]->size(); ++m)
-			{
-				// create selections:
-				if (m_comparisonBestIDs[s].contains(m))
-				{
-					m_comparisonBestSelection.push_back(m_comparisonSamplingResults[s]->Get(m));
-				}
-				if (m_comparisonMVIDs[s].contains(m))
-				{
-					m_comparisonMVSelection.push_back(m_comparisonSamplingResults[s]->Get(m));
-				}
 
-				QVector<double> measureValues;
-				CalculateMeasures(m_groundTruthImage,
-					dynamic_cast<LabelImageType*>(m_comparisonSamplingResults[s]->Get(m)->GetLabelledImage().GetPointer()),
-					m_labelCount, measureValues);
-				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
-					.arg(m_comparisonSamplingResults[s]->Get(m)->GetDatasetID())
-					.arg(m_comparisonSamplingResults[s]->Get(m)->GetID())
-					.arg(measureValues[0]) // dice
-					.arg(measureValues[2]) // accuracy
-					.arg(measureValues[3]) // precision
-					.arg(measureValues[4]) // recall
-				);
-				for (int i = 0; i<measures.size(); ++i)
-				{
-					int attributeID = attributes->Find(measures[i]->GetName());
-					m_comparisonSamplingResults[s]->Get(m)->SetAttribute(attributeID, measureValues[i]);
-					attributes->at(attributeID)->AdjustMinMax(measureValues[i]);
-				}
+			QVector<double> measureValues;
+			CalculateMeasures(m_groundTruthImage,
+				dynamic_cast<LabelImageType*>(m_comparisonSamplingResults[s]->Get(m)->GetLabelledImage().GetPointer()),
+				m_labelCount, measureValues);
+			DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
+				.arg(m_comparisonSamplingResults[s]->Get(m)->GetDatasetID())
+				.arg(m_comparisonSamplingResults[s]->Get(m)->GetID())
+				.arg(measureValues[0]) // dice
+				.arg(measureValues[2]) // accuracy
+				.arg(measureValues[3]) // precision
+				.arg(measureValues[4]) // recall
+			);
+			for (int i = 0; i<measures.size(); ++i)
+			{
+				int attributeID = attributes->Find(measures[i]->GetName());
+				m_comparisonSamplingResults[s]->Get(m)->SetAttribute(attributeID, measureValues[i]);
+				attributes->at(attributeID)->AdjustMinMax(measureValues[i]);
 			}
 		}
-
-		// create charts for these selection:
-		SelectionUncertaintyDice(m_comparisonBestSelection, "Best Parameter Sets from Comparison dataset");
-		Sample(m_comparisonMVSelection, m_comparisonWeightType);
-
-		// ignore label based input weight for now
-		// labelVotingFilter->SetInputLabelWeightMap(inputLabelWeightMap);
-
-		// perform voting (sampling?) & do ref img comparisons
-
-		delete m_dlgProgress;
-		m_dlgProgress = 0;
 	}
+
+	// create charts for these selection:
+	SelectionUncertaintyDice(m_comparisonBestSelection, "Best Parameter Sets from Comparison dataset");
+	Sample(m_comparisonMVSelection, m_comparisonWeightType);
+
+	// ignore label based input weight for now
+	// labelVotingFilter->SetInputLabelWeightMap(inputLabelWeightMap);
+
+	// perform voting (sampling?) & do ref img comparisons
+
+	delete m_dlgProgress;
+	m_dlgProgress = 0;
 }
 
 vtkIdType AddPlot(int plotType,
