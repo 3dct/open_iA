@@ -118,7 +118,7 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	yAxis1->SetLogScale(false);
 	contextView->GetScene()->AddItem(m_chartDiceVsUndec);
 	iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, "Mean Dice vs. Undecided", "ChartDiceVsUndec"));
-	mdiChild->splitDockWidget(this, w, Qt::Vertical);
+	mdiChild->SplitDockWidget(this, w, Qt::Vertical);
 
 	auto vtkWidget2 = new QVTKWidget2();
 	auto contextView2 = vtkSmartPointer<vtkContextView>::New();
@@ -132,7 +132,7 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	yAxis2->SetLogScale(false);
 	contextView2->GetScene()->AddItem(m_chartValueVsDice);
 	iADockWidgetWrapper * w2(new iADockWidgetWrapper(vtkWidget2, "Value vs. Dice", "ChartValueVsDice"));
-	mdiChild->splitDockWidget(this, w2, Qt::Vertical);
+	mdiChild->SplitDockWidget(this, w2, Qt::Vertical);
 
 	auto vtkWidget3 = new QVTKWidget2();
 	auto contextView3 = vtkSmartPointer<vtkContextView>::New();
@@ -146,7 +146,7 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	yAxis3->SetLogScale(false);
 	contextView3->GetScene()->AddItem(m_chartValueVsUndec);
 	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Value vs. Undecided", "ChartValueVsUndec"));
-	mdiChild->splitDockWidget(this, w3, Qt::Vertical);
+	mdiChild->SplitDockWidget(this, w3, Qt::Vertical);
 
 	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
 	int ensembleSize = root->GetClusterSize();

@@ -218,7 +218,7 @@ void dlg_GEMSeControl::StartSampling()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
+		mdiChild->SplitDockWidget(this, m_dlgProgress, Qt::Vertical);
 		connect(m_sampler.data(), SIGNAL(finished()), this, SLOT(SamplingFinished()) );
 		connect(m_sampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)) );
 		connect(m_sampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)) );
@@ -405,7 +405,7 @@ void dlg_GEMSeControl::CalculateClustering()
 		}
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->splitDockWidget(this, m_dlgProgress, Qt::Vertical);
+	mdiChild->SplitDockWidget(this, m_dlgProgress, Qt::Vertical);
 	connect(m_clusterer.data(), SIGNAL(finished()), this, SLOT(ClusteringFinished()) );
 	connect(m_clusterer.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)) );
 	connect(m_clusterer.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)) );
@@ -520,7 +520,7 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 			m_dlgSamplings);
 		if (m_refImg)
 			m_dlgConsensus->SetGroundTruthImage(m_refImg);
-		mdiChild->splitDockWidget(this, m_dlgConsensus, Qt::Vertical);
+		mdiChild->SplitDockWidget(this, m_dlgConsensus, Qt::Vertical);
 	}
 }
 

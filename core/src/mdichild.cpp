@@ -2960,3 +2960,17 @@ void MdiChild::SaveFinished()
 	m_unsavedChanges = false;
 	GetModality(m_storedModalityNr)->SetFileName(ioThread->getFileName());
 }
+
+
+void MdiChild::SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation)
+{
+	QList<QDockWidget*> tabified = m_mainWnd->tabifiedDockWidgets(ref);
+	if (tabified.size() > 0)
+	{
+		tabifyDockWidget(ref, newWidget);
+	}
+	else
+	{
+		splitDockWidget(ref, newWidget, orientation);
+	}
+}
