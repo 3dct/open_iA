@@ -53,7 +53,8 @@ namespace
 }
 
 
-LensData::LensData()
+LensData::LensData():
+	m_qvtkWidget(0)
 {}
 
 
@@ -338,6 +339,17 @@ int iAMagicLens::GetCenterSplitOffset() const
 	return qRound( 0.5 * m_viewedRect.width() * (1.f - m_splitPosition) );
 }
 
+void iAMagicLens::UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkScalarsToColors* cTF,
+	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF)
+{
+	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
+	l.m_imageToColors->SetLookupTable(cTF);
+	l.m_imageToColors->Update();
+	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
+	l.m_bgImageToColors->SetLookupTable(bgCTF);
+	l.m_bgImageToColors->Update();
+}
+
 void iAMagicLens::AddInput(
 	vtkImageReslice * reslicer,  vtkScalarsToColors* cTF,
 	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF,
@@ -347,21 +359,23 @@ void iAMagicLens::AddInput(
 	{
 		return;
 	}
-	if (m_lenses.size() == m_maxLensCount)
+	if (m_lenses.size() != 1 || m_maxLensCount > 1)
 	{
-		delete m_lenses[0].m_qvtkWidget;
-		m_lenses.remove(0);
+		if (m_lenses.size() == m_maxLensCount)
+		{
+			m_lenses[0].m_qvtkWidget->hide();
+			delete m_lenses[0].m_qvtkWidget;
+			m_lenses.remove(0);
+		}
+		LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled, name);
+		l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
+		m_lenses.append(l);
+		UpdateLensInput(l, reslicer, cTF, bgReslice, bgCTF);
 	}
-	LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled, name);
-	l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
-	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
-	l.m_imageToColors->SetLookupTable(cTF);
-	l.m_imageToColors->Update();
-	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
-	l.m_bgImageToColors->SetLookupTable(bgCTF);
-	l.m_bgImageToColors->Update();
-	m_lenses.append(l);
-
+	else
+	{
+		UpdateLensInput(m_lenses[0], reslicer, cTF, bgReslice, bgCTF);
+	}
 	m_isInitialized = true;
 	UpdateOffset();
 	UpdateShowFrame();
