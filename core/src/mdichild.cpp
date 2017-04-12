@@ -1594,6 +1594,7 @@ void MdiChild::LoadLayout(QString const & layout)
 	QByteArray state = settings.value("Layout/state" + layout).value<QByteArray>();
 	hide();
 	restoreState(state, 0);
+	m_isSmthMaximized = false;
 	show();
 }
 
@@ -1601,6 +1602,7 @@ void MdiChild::LoadLayout(QString const & layout)
 void MdiChild::resetLayout()
 {
 	restoreState(m_initialLayoutState);
+	m_isSmthMaximized = false;
 }
 
 
