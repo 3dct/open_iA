@@ -20,14 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFramedQVTKWidget2.h"
+#include "iAFramedQVTKOpenGLWidget.h"
 #include "open_iA_Core_export.h"
 
 #include <QContiguousCache>
 #include <QImage>
 
 class QWidget;
-class QVTKWidget2;
 
 class vtkCamera;
 class vtkGenericOpenGLRenderWindow;
@@ -47,7 +46,7 @@ public:
 	LensData();
 	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled);
 
-	iAFramedQVTKWidget2* m_qvtkWidget;
+	iAFramedQVTKOpenGLWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkImageMapToColors> m_imageToColors;
 	vtkSmartPointer<vtkImageActor> m_imageActor;
 	vtkSmartPointer<vtkImageMapToColors> m_bgImageToColors;
@@ -110,7 +109,7 @@ protected:
 	bool m_isInitialized;
 	int m_maxLensCount;
 protected:
-	void SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle );
+	void SetShowFrame( iAFramedQVTKOpenGLWidget::FrameStyle frameStyle );
 private:
 	int m_size;
 	static const int DEFAULT_SIZE;

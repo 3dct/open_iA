@@ -22,7 +22,7 @@
 
 #include "iAArbitraryProfileOnSlicer.h"
 #include "iAChannelVisualizationData.h"
-#include "iAFramedQVTKWidget2.h"
+#include "iAFramedQVTKOpenGLWidget.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAPieChartGlyph.h"
@@ -52,14 +52,15 @@
 #include <vtkSmartPointer.h>
 #include <vtkThinPlateSplineTransform.h>
 
-#include <QErrorMessage>
-#include <QMenu>
-#include <QIcon>
-#include <QGridLayout>
-#include <QMouseEvent>
-#include <QKeyEvent>
 #include <QBitmap>
+#include <QErrorMessage>
+#include <QGridLayout>
+#include <QIcon>
+#include <QKeyEvent>
 #include <qmath.h>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QPainter>
 
 #define EPSILON 0.0015
 
@@ -74,13 +75,14 @@ PickedData	pickedData;
 
 iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f,
 	bool decorations)
-	: QVTKWidget2(parent, shareWidget, f),
+	: QVTKOpenGLWidget(parent, /*shareWidget,*/ f),
 	m_magicLensExternal(slicerMaster->magicLens()),
 	m_slicerMode(slicerMaster->m_mode),
 	m_slicerDataExternal(slicerMaster->m_data),
 	m_decorations(decorations)
 {
 	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
+	setMouseTracking(true);					// to receive the Mouse Move Event
 	m_imageData = NULL;
 	m_viewMode = NORMAL; // standard m_viewMode
 	m_xInd = m_yInd = m_zInd = 0;
@@ -262,7 +264,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 						innerFisheyeRadius = innerFisheyeRadius - 2.0;
 						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
 
-					}
+				}
 				}
 			}
 		}
@@ -315,7 +317,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 	if(!m_isInitialized && !fisheyeLensActivated)
 	{
-		QVTKWidget2::keyPressEvent(event);
+		QVTKOpenGLWidget::keyPressEvent(event);
 		return;
 	}
 	// if not in snake m_viewMode
@@ -333,7 +335,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 		emit switchedMode(m_viewMode);
 	}
 
-	QVTKWidget2::keyPressEvent(event);
+	QVTKOpenGLWidget::keyPressEvent(event);
 }
 
 
@@ -341,7 +343,7 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 {
 	if(!m_isInitialized && !fisheyeLensActivated)
 	{
-		QVTKWidget2::mousePressEvent(event);
+		QVTKOpenGLWidget::mousePressEvent(event);
 		return;
 	}
 
@@ -350,7 +352,7 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	int indxs[3];
 	if( !pickPoint(pos, result, indxs) )
 	{
-		QVTKWidget2::mousePressEvent(event);
+		QVTKOpenGLWidget::mousePressEvent(event);
 		return;
 	}
 
@@ -391,14 +393,13 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	{
 		emit Clicked();
 	}
-	QVTKWidget2::mousePressEvent(event);
+	QVTKOpenGLWidget::mousePressEvent(event);
 }
 
 
 void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	QVTKWidget2::mouseMoveEvent(event);
-
+	QVTKOpenGLWidget::mouseMoveEvent(event);
 	if(!m_isInitialized && !fisheyeLensActivated)
 		return;
 
@@ -505,7 +506,7 @@ void iASlicerWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if(!m_isInitialized && !fisheyeLensActivated)
 	{
-		QVTKWidget2::mouseReleaseEvent(event);
+		QVTKOpenGLWidget::mouseReleaseEvent(event);
 		return;
 	}
 
@@ -518,7 +519,7 @@ void iASlicerWidget::mouseReleaseEvent(QMouseEvent *event)
 	// let other slice views now that the point was deselected
 	emit deselectedPoint();
 
-	QVTKWidget2::mouseReleaseEvent(event);
+	QVTKOpenGLWidget::mouseReleaseEvent(event);
 }
 
 void iASlicerWidget::mouseDoubleClickEvent(QMouseEvent* event)
@@ -533,7 +534,7 @@ void iASlicerWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	if(!m_isInitialized)
 	{
-		QVTKWidget2::contextMenuEvent(event);
+		QVTKOpenGLWidget::contextMenuEvent(event);
 		return;
 	}
 	// is m_viewMode spline drawing m_viewMode?
@@ -773,7 +774,7 @@ void iASlicerWidget::resizeEvent( QResizeEvent * event )
 		const double lenSz = m_magicLensExternal->GetSize();
 		m_magicLensExternal->SetScaleCoefficient( lenSz / this->height() );
 	}
-	QVTKWidget2::resizeEvent(event);
+	QVTKOpenGLWidget::resizeEvent(event);
 }
 
 
@@ -800,17 +801,17 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 	}
 	else
 	{
-		QVTKWidget2::wheelEvent(event);
+		QVTKOpenGLWidget::wheelEvent(event);
 		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 	}
 	updateMagicLens();
 }
 
-void iASlicerWidget::Frame()
+void iASlicerWidget::paintGL()
 {
 	if(!m_isInitialized)
 	{
-		QVTKWidget2::Frame();
+		QVTKOpenGLWidget::paintGL();
 		return;
 	}
 
@@ -844,7 +845,7 @@ void iASlicerWidget::Frame()
 				points[3] + QPoint(m_magicLensExternal->GetOffset() + 10, -10));
 		}
 	}
-	QVTKWidget2::Frame();
+	QVTKOpenGLWidget::paintGL();
 }
 
 
@@ -1176,7 +1177,7 @@ void iASlicerWidget::updateMagicLens()
 	}
 
 	GetRenderWindow()->Render();
-	Frame();
+	paintGL();
 	m_magicLensExternal->UpdateCamera(ren->GetWorldPoint(), ren->GetActiveCamera());
 
 	QRect rect = QRect(pos2d[0]-lensSzHalf, pos2d[1]-lensSzHalf, lensSz, lensSz);

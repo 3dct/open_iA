@@ -283,8 +283,8 @@ private:
 	dlg_blobVisualization *blobVisDialog;
 
 	iAQSplom *matrix;
-	QVTKWidget *pcWidget;
-	QVTKWidget *pcPolarPlot;
+	QVTKOpenGLWidget *pcWidget;
+	QVTKOpenGLWidget *pcPolarPlot;
 	QWidget *orientationColorMapSelection;
 	QComboBox * orientColormap;
 

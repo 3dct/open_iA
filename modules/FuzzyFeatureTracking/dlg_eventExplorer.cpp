@@ -133,7 +133,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 
 	for(int i=0; i<numberOfCharts; i++)
 	{
-		m_widgets.push_back(new QVTKWidget());
+		m_widgets.push_back(new QVTKOpenGLWidget());
 		this->horizontalLayout->addWidget(m_widgets.at(i));
 
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());

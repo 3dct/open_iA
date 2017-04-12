@@ -40,7 +40,7 @@
 const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
 iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ )
-	: QVTKWidget2( parent )
+	: QVTKOpenGLWidget( parent )
 	, m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
@@ -84,7 +84,7 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
-	QVTKWidget2::mouseMoveEvent( event );
+	QVTKOpenGLWidget::mouseMoveEvent( event );
 	int * pos = GetInteractor( )->GetEventPosition( );
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );

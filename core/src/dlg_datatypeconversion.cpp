@@ -33,7 +33,7 @@
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
-#include <QVTKWidget2.h>
+#include <QVTKOpenGLWidget.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
@@ -462,7 +462,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xylabel->setMinimumWidth(50);
 	xylabel->setText("XY IMAGE");
 
-	vtkWidgetXY = new QVTKWidget2(this);
+	vtkWidgetXY = new QVTKOpenGLWidget(this);
 	vtkWidgetXY->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXY->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXY->setWindowTitle("XY Plane");
@@ -477,7 +477,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzlabel->setMinimumWidth(50);
 	xzlabel->setText("XZ IMAGE");
 
-	vtkWidgetXZ = new QVTKWidget2(this);
+	vtkWidgetXZ = new QVTKOpenGLWidget(this);
 	vtkWidgetXZ->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXZ->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXZ->setWindowTitle("XZ Plane");
@@ -662,7 +662,7 @@ void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist,
 	verticalLayout->addWidget(imgHistogram);
 }
 
-void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKWidget2* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
+void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKOpenGLWidget* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
 {
 	auto actor = vtkSmartPointer<vtkImageActor>::New();
 	actor->SetInputData(color->GetOutput());

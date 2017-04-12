@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVTKWidget2.h>
+#include <QVTKOpenGLWidget.h>
 
 #include <QSharedPointer>
 
@@ -35,7 +35,7 @@ class vtkTable;
 
 class QColor;
 
-class iAGEMSeScatterplot : public QVTKWidget2
+class iAGEMSeScatterplot : public QVTKOpenGLWidget
 {
 public:
 	iAGEMSeScatterplot(QWidget* parent);

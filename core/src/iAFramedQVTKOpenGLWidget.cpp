@@ -18,11 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFramedQVTKWidget2.h"
+#include "iAFramedQVTKOpenGLWidget.h"
 
+#include <QPainter>
 
-iAFramedQVTKWidget2::iAFramedQVTKWidget2(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
-	: QVTKWidget2(parent, shareWidget, f),
+iAFramedQVTKOpenGLWidget::iAFramedQVTKOpenGLWidget(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f)
+	: QVTKOpenGLWidget(parent, /*shareWidget,*/ f),
 	m_penWidth(4.0),
 	m_frameStyle(FRAMED),
 	m_crossHair(false)
@@ -30,33 +31,32 @@ iAFramedQVTKWidget2::iAFramedQVTKWidget2(QWidget * parent, const QGLWidget * sha
 	setAutoFillBackground(false);
 }
 
-
-void iAFramedQVTKWidget2::SetCrossHair(bool enabled)
+void iAFramedQVTKOpenGLWidget::SetCrossHair(bool enabled)
 {
 	m_crossHair = enabled;
 }
 
-void iAFramedQVTKWidget2::SetFrameWidth(qreal newWidth)
+void iAFramedQVTKOpenGLWidget::SetFrameWidth(qreal newWidth)
 {
 	m_penWidth = newWidth;
 }
 
-qreal iAFramedQVTKWidget2::GetFrameWidth() const
+qreal iAFramedQVTKOpenGLWidget::GetFrameWidth() const
 {
 	return m_penWidth;
 }
 
-void iAFramedQVTKWidget2::SetFrameStyle(FrameStyle frameStyle)
+void iAFramedQVTKOpenGLWidget::SetFrameStyle(FrameStyle frameStyle)
 {
 	m_frameStyle = frameStyle;
 }
 
-iAFramedQVTKWidget2::FrameStyle iAFramedQVTKWidget2::GetFrameStyle() const
+iAFramedQVTKOpenGLWidget::FrameStyle iAFramedQVTKOpenGLWidget::GetFrameStyle() const
 {
 	return m_frameStyle;
 }
 
-void iAFramedQVTKWidget2::Frame()
+void iAFramedQVTKOpenGLWidget::paintGL()
 {
 	if(m_frameStyle != NO_FRAME && m_penWidth > 0)
 	{
@@ -118,7 +118,7 @@ void iAFramedQVTKWidget2::Frame()
 		painter.drawLine(points[4], points[5]);
 
 	}
-	QVTKWidget2::Frame();
+	QVTKOpenGLWidget::paintGL();
 }
 
 void drawBorderRectangle(QPainter & painter, QPointF const points[4], int const borderWidth)

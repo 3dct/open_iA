@@ -27,7 +27,7 @@
 #include "iAPerceptuallyUniformLUT.h"
 #include "iAPAQSplom.h"
 
-#include <QVTKWidget.h>
+#include <QVTKOpenGLWidget.h>
 #include <vtkAnnotationLink.h>
 #include <vtkChart.h>
 #include <vtkColor.h>
@@ -72,7 +72,7 @@ iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_SPMSettings( new iASPMSettings( this, f ) ),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
-	m_SBQVTKWidget( new QVTKWidget( this ) ),
+	m_SBQVTKWidget( new QVTKOpenGLWidget( this ) ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
 	m_colorArrayName( defaultColorParam ),

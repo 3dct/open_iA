@@ -37,9 +37,9 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
 #include <vector>
 
-class QVTKWidget;
 class QDockWidget;
 
+class QVTKOpenGLWidget;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkLookupTable;

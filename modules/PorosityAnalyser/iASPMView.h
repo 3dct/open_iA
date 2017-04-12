@@ -27,29 +27,28 @@
 #include "ui_SPMView.h"
 #include "iAQTtoUIConnector.h"
 
-class QVBoxLayout;
+class QAction;
 class QCheckBox;
 class QListWidgetItem;
-class QAction;
 class QTableWidget;
+class QVBoxLayout;
 
-class QVTKWidget;
-class vtkScatterPlotMatrix;
-class vtkObject;
-class vtkCommand;
-class vtkTable;
-class vtkIdTypeArray;
-class vtkScatterPlotMatrix;
-class vtkContextView;
-class vtkLookupTable;
+class QVTKOpenGLWidget;
 class vtkColorTransferFunction;
+class vtkCommand;
+class vtkContextView;
+class vtkIdTypeArray;
+class vtkLookupTable;
+class vtkRenderer;
 class vtkScalarsToColors;
 class vtkScalarBarActor;
-class vtkRenderer;
+class vtkScatterPlotMatrix;
 class vtkSelection;
+class vtkTable;
+
+class iAPAQSplom;
 struct iASelection;
 class iASPMSettings;
-class iAPAQSplom;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
 
@@ -116,7 +115,7 @@ protected:
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	QVTKWidget * m_SBQVTKWidget;
+	QVTKOpenGLWidget * m_SBQVTKWidget;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 	QString m_colorArrayName;

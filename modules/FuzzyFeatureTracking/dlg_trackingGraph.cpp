@@ -38,7 +38,7 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	setupUi(this);
 
 	// create qt graph widget
-	graphWidget = new QVTKWidget();
+	graphWidget = new QVTKOpenGLWidget();
 	this->horizontalLayout->addWidget(graphWidget);
 
 	// create graph

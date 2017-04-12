@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "QVTKWidget2.h"
+#include "QVTKOpenGLWidget.h"
 #include "open_iA_Core_export.h"
 #include "iASlicer.h"
 
@@ -28,7 +28,6 @@
 #include <QGridLayout>
 
 class QMenu;
-class vtkParametricFunctionSource;
 struct iASlicerProfile;
 struct iAArbitraryProfileOnSlicer;
 struct PickedData;
@@ -36,14 +35,15 @@ class iASnakeSpline;
 class iAMagicLens;
 class iAPieChartGlyph;
 
-class vtkRenderWindow;
 class vtkActor;
-class vtkThinPlateSplineTransform;
+class vtkParametricFunctionSource;
 class vtkPoints;
-class vtkRegularPolygonSource;
 class vtkPolyDataMapper;
+class vtkRegularPolygonSource;
+class vtkRenderWindow;
+class vtkThinPlateSplineTransform;
 
-class open_iA_Core_API iASlicerWidget : public QVTKWidget2
+class open_iA_Core_API iASlicerWidget : public QVTKOpenGLWidget
 {
 	Q_OBJECT
 public:
@@ -119,9 +119,7 @@ private:
 	void	initializeFisheyeLens(vtkImageReslice* reslicer);
 	void updateFisheyeTransform( double focalPt[3], iASlicerData *slicerData, double lensRadius, double innerLensRadius);
 
-
-protected slots:	//overloaded events of QVTKWidget2
-	virtual void Frame();
+	void paintGL() override;
 
 public slots:
 

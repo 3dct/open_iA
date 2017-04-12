@@ -88,7 +88,7 @@ void iAFast3DMagicLensWidget::updateLens()
 
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
-	QVTKWidget2::resizeEvent( event );
+	QVTKOpenGLWidget::resizeEvent( event );
 
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 		return;
@@ -112,5 +112,5 @@ void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
 		emit rightButtonReleasedSignal( );
 	else if( Qt::LeftButton == event->button( ) )
 		emit leftButtonReleasedSignal( );
-	QVTKWidget2::mouseReleaseEvent( event );
+	QVTKOpenGLWidget::mouseReleaseEvent( event );
 }

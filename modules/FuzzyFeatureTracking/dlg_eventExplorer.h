@@ -24,7 +24,7 @@
 #include <QObject>
 #include <QList>
 #include "ui_EventExplorer.h"
-#include "QVTKWidget.h"
+#include <QVTKOpenGLWidget.h>
 
 #include <vtkChartXY.h>
 #include <vtkContextView.h>
@@ -79,7 +79,7 @@ private:
 	void buildSubGraph(int id, int layer);
 
 	QWidget* m_activeChild;
-	QVTKWidget* m_chartWidget1;
+	QVTKOpenGLWidget* m_chartWidget1;
 
 	iAVolumeStack* m_volumeStack;
 
@@ -91,7 +91,7 @@ private:
 	int m_propertyYId;
 	int m_rgb[5][3];
 
-	std::vector<QVTKWidget*> m_widgets;
+	std::vector<QVTKOpenGLWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkSmartPointer<vtkPlot>> m_plots;

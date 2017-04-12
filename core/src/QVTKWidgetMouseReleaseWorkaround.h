@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "QVTKWidget.h"
+#include "QVTKOpenGLWidget.h"
 
 #include "open_iA_Core_export.h"
 
@@ -33,11 +33,11 @@
  * which will not get fixed.
  */
 
-class open_iA_Core_API QVTKWidgetMouseReleaseWorkaround : public QVTKWidget
+class open_iA_Core_API QVTKWidgetMouseReleaseWorkaround : public QVTKOpenGLWidget
 {
 	Q_OBJECT
 public:
-	QVTKWidgetMouseReleaseWorkaround(QWidget* parent = NULL, Qt::WindowFlags f = 0): QVTKWidget(parent, f) {}
+	QVTKWidgetMouseReleaseWorkaround(QWidget* parent = NULL, Qt::WindowFlags f = 0): QVTKOpenGLWidget(parent, f) {}
 	~QVTKWidgetMouseReleaseWorkaround(){}
 protected:
 	virtual void mouseReleaseEvent ( QMouseEvent * event );

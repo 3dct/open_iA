@@ -27,7 +27,7 @@
 #include "charts/qcustomplot.h"
 #include "iAPerceptuallyUniformLUT.h"
 
-#include <QVTKWidget.h>
+#include <QVTKOpenGLWidget.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h> 
 #include <vtkScalarBarActor.h>
@@ -47,7 +47,7 @@ void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 
 iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PorosityAnalyzerPDMConnector( parent, f ),
-	m_sbWiget( new QVTKWidget( this ) ),
+	m_sbWiget( new QVTKOpenGLWidget( this ) ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() )

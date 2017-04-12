@@ -56,7 +56,7 @@
 #include <vtkPlot.h>
 #include <vtkPlotLine.h>
 #include <vtkTable.h>
-#include <QVTKWidget2.h>
+#include <QVTKOpenGLWidget.h>
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -100,7 +100,7 @@
 
 struct ChartWidgetData
 {
-	QVTKWidget2* vtkWidget;
+	QVTKOpenGLWidget* vtkWidget;
 	vtkSmartPointer<vtkChartXY> chart;
 };
 
@@ -108,7 +108,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 		MdiChild* mdiChild)
 {
 	ChartWidgetData result;
-	result.vtkWidget = new QVTKWidget2();
+	result.vtkWidget = new QVTKOpenGLWidget();
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
 	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
 	result.chart = vtkSmartPointer<vtkChartXY>::New();

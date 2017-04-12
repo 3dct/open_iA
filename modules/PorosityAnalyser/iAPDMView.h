@@ -33,19 +33,19 @@
 struct iABPMData;
 struct iAHMData;
 
-class QModelIndex;
-class QVTKWidget;
 class QCustomPlot;
-class vtkRenderer;
+class QModelIndex;
+
+class QVTKOpenGLWidget;
 class vtkChartBox;
 class vtkContextView;
 class vtkLookupTable;
-class vtkScalarBarActor;
 class vtkRenderer;
+class vtkScalarBarActor;
+
 struct iABoxPlotData;
 struct iAHistogramPlotData;
 class iAPDMSettings;
-class QVTKWidget;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_PDMView>  PorosityAnalyzerPDMConnector;
 
@@ -90,7 +90,7 @@ protected:
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
 
-	QVTKWidget * m_sbWiget;
+	QVTKOpenGLWidget * m_sbWiget;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;

@@ -24,7 +24,7 @@
 
 #include <QTableWidget>
 
-#include <QVTKWidget.h>
+#include <QVTKOpenGLWidget.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkChartParallelCoordinates.h>
@@ -36,7 +36,7 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PCViewConnector( parent, f ),
 	m_view( vtkSmartPointer<vtkContextView>::New() ),
 	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() ),
-	m_widget( new QVTKWidget( this ) )
+	m_widget( new QVTKOpenGLWidget( this ) )
 {
 	QHBoxLayout *layoutHB = new QHBoxLayout( this );
 	layoutHB->setMargin( 0 );

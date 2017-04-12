@@ -351,7 +351,7 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 		this->updateColumnNames();
 	}
 
-	this->pcWidget->SetRenderWindow( NULL );
+	//this->pcWidget->SetRenderWindow( NULL );
 	this->deletePcViewPointer();
 
 	// new initialize of the pcChart
@@ -1883,7 +1883,7 @@ void dlg_FeatureScout::RenderingOrientation()
 	}
 
 	// update polar plot for orientation rendering
-	this->pcPolarPlot->SetRenderWindow( NULL );
+	// this->pcPolarPlot->SetRenderWindow( NULL );
 
 	// prepare the delaunay triangles
 	VTK_CREATE( vtkDelaunay2D, del );
@@ -3234,7 +3234,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 		matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
 		matrix->setSelectionColor(QColor(255, 40, 0, 1));
-	
+
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
 		spUpdateSPColumnVisibilityWithVis();
 
@@ -4409,7 +4409,7 @@ void dlg_FeatureScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
 void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
-	this->pcPolarPlot->SetRenderWindow( NULL );
+	//this->pcPolarPlot->SetRenderWindow( NULL );
 	double xx, yy, zz, phi;
 
 	// construct delaunay triangulation
@@ -4520,7 +4520,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
-	this->pcPolarPlot->SetRenderWindow( NULL );
+	//this->pcPolarPlot->SetRenderWindow( NULL );
 	double xx, yy, zz, phi;
 
 	// calculate object probability and save it to a table

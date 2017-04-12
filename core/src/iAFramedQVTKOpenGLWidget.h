@@ -20,32 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVTKWidget2.h>
+#include "QVTKOpenGLWidget.h"
 
-class iAFramedQVTKWidget2 : public QVTKWidget2
+class iAFramedQVTKOpenGLWidget : public QVTKOpenGLWidget
 {
-	Q_OBJECT
 public:
 	enum FrameStyle {
 		FRAMED,
 		NO_FRAME,
 		LEFT_SIDE,
 	};
-public:
-	iAFramedQVTKWidget2(QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0);
-
+	iAFramedQVTKOpenGLWidget(QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0);
 	void SetFrameStyle(FrameStyle frameStyle);
 	FrameStyle GetFrameStyle() const;
-
 	qreal GetFrameWidth() const;
 	void SetFrameWidth(qreal newWidth);
-
 	void SetCrossHair(bool enabled);
-
-protected slots:
-	//overloaded events of QVTKWidget2
-	virtual void Frame();
-
+	void paintGL() override;
 protected:
 	qreal m_penWidth;
 	FrameStyle m_frameStyle;

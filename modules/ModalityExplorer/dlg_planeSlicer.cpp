@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_planeSlicer.h"
 
-#include <QVTKWidget2.h>
+#include <QVTKOpenGLWidget.h>
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -32,7 +32,7 @@
 #include <vtkOpenGLRenderer.h>
 
 dlg_planeSlicer::dlg_planeSlicer() :
-	m_vtkWidget(new QVTKWidget2(this))
+	m_vtkWidget(new QVTKOpenGLWidget(this))
 {
 	m_renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
 	m_vtkWidget->GetRenderWindow()->AddRenderer(m_renderer);

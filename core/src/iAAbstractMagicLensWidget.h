@@ -22,7 +22,7 @@
 
 #include "open_iA_Core_export.h"
 // vtk
-#include <QVTKWidget2.h>
+#include "QVTKOpenGLWidget.h"
 #include <vtkSmartPointer.h>
 
 class vtkActor2D;
@@ -30,7 +30,7 @@ class vtkCamera;
 class vtkInteractorStyle;
 class vtkRenderer;
 
-class open_iA_Core_API iAAbstractMagicLensWidget : public QVTKWidget2
+class open_iA_Core_API iAAbstractMagicLensWidget : public QVTKOpenGLWidget
 {
 	Q_OBJECT
 public:

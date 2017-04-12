@@ -81,7 +81,7 @@
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QMapIterator>
-#include <QVTKWidget.h>
+#include <QVTKOpenGLWidget.h>
 
 
 dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra):

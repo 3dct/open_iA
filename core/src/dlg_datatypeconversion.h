@@ -25,7 +25,7 @@
 
 class iAConnector;
 
-class QVTKWidget2;
+class QVTKOpenGLWidget;
 class vtkImageData;
 class vtkPlaneSource;
 
@@ -86,7 +86,7 @@ private:
 	iAPlotData::DataType * m_histbinlist;
 	float m_min, m_max, m_dis;
 	vtkImageData* m_testxyimage, * m_testxzimage, * m_testyzimage, * m_roiimage;
-	QVTKWidget2* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
+	QVTKOpenGLWidget* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
 
 	iAConnector* xyconvertimage, * xzconvertimage, * yzconvertimage;
 

@@ -21,11 +21,10 @@
 #include "iAMagicLens.h"
 
 #include "defines.h"
-#include "iAFramedQVTKWidget2.h"
+#include "iAFramedQVTKOpenGLWidget.h"
 
 #include <QVTKInteractor.h>
 #include <QVTKInteractorAdapter.h>
-#include <QVTKWidget2.h>
 #include <vtkCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageActor.h>
@@ -58,7 +57,7 @@ LensData::LensData():
 
 
 LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled):
-	m_qvtkWidget(new iAFramedQVTKWidget2(parent, shareWidget, f)),
+	m_qvtkWidget(new iAFramedQVTKOpenGLWidget(parent, shareWidget, f)),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
 	m_renWnd(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
@@ -103,7 +102,7 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 
 	m_qvtkWidget->SetRenderWindow(m_renWnd);
 	m_qvtkWidget->SetCrossHair(false);
-	m_qvtkWidget->SetFrameStyle(iAFramedQVTKWidget2::FRAMED);
+	m_qvtkWidget->SetFrameStyle(iAFramedQVTKOpenGLWidget::FRAMED);
 	m_qvtkWidget->setEnabled(enabled);
 	if (enabled)
 		m_qvtkWidget->show();
@@ -304,11 +303,11 @@ void iAMagicLens::UpdateShowFrame()
 {
 	if (m_viewMode == SIDE_BY_SIDE)
 	{
-		SetShowFrame(iAFramedQVTKWidget2::LEFT_SIDE);
+		SetShowFrame(iAFramedQVTKOpenGLWidget::LEFT_SIDE);
 	}
 	else
 	{
-		SetShowFrame(iAFramedQVTKWidget2::FRAMED);
+		SetShowFrame(iAFramedQVTKOpenGLWidget::FRAMED);
 	}
 }
 
@@ -324,7 +323,7 @@ QRect iAMagicLens::GetViewRect() const
 
 // sets a frame for the lense: either framed, not framed, or framed on the left side
 // of the original image
-void iAMagicLens::SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle )
+void iAMagicLens::SetShowFrame( iAFramedQVTKOpenGLWidget::FrameStyle frameStyle )
 {
 	for (LensData & l : m_lenses)
 	{
