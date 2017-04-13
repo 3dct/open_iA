@@ -47,6 +47,7 @@
 
 #include <random>
 
+
 dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
@@ -59,9 +60,11 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	connect(pbLoad, SIGNAL(clicked()), this, SLOT(Load()));
 	connect(pbStoreImage, SIGNAL(clicked()), this, SLOT(StoreImage()));
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
+	connect(pbClear, SIGNAL(clicked()), this, SLOT(Clear()));
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	lvLabels->setModel(m_itemModel);
 }
+
 
 namespace
 {
@@ -75,10 +78,12 @@ namespace
 	}
 }
 
+
 void dlg_labels::RendererClicked(int x, int y, int z)
 {
 	AddSeed(x, y, z);
 }
+
 
 bool SeedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
 {
@@ -93,6 +98,7 @@ bool SeedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
 	}
 	return false;
 }
+
 
 void dlg_labels::AddSeed(int x, int y, int z)
 {
@@ -120,6 +126,7 @@ void dlg_labels::AddSeed(int x, int y, int z)
 	UpdateOverlay();
 }
 
+
 void dlg_labels::SlicerClicked(int x, int y, int z)
 {
 	AddSeed(x, y, z);
@@ -143,12 +150,14 @@ int dlg_labels::AddLabelItem(QString const & labelText)
 	return newItem->row();
 }
 
+
 void dlg_labels::Add()
 {
 	pbStore->setEnabled(true);
 	int labelCount = count();
 	AddLabelItem(QString::number( labelCount ));
 }
+
 
 void dlg_labels::Remove()
 {
@@ -187,10 +196,12 @@ void dlg_labels::Remove()
 	}
 }
 
+
 int dlg_labels::count() const
 {
 	return m_itemModel->rowCount();
 }
+
 
 QString dlg_labels::GetName(int idx) const
 {
@@ -198,10 +209,12 @@ QString dlg_labels::GetName(int idx) const
 	return labelItem->text();
 }
 
+
 QColor dlg_labels::GetColor(int idx) const
 {
 	return m_itemModel->item(idx)->data(Qt::DecorationRole).value<QColor>();
 }
+
 
 int dlg_labels::GetCurLabelRow() const
 {
@@ -225,6 +238,7 @@ int dlg_labels::GetSeedCount(int labelIdx) const
 	return labelItem->rowCount();
 }
 
+
 void dlg_labels::StartOverlayCreation()
 {
 	m_labelOverlayThread = new iALabelOverlayThread(
@@ -241,6 +255,7 @@ void dlg_labels::StartOverlayCreation()
 	m_labelOverlayThread->start();
 }
 
+
 void dlg_labels::UpdateOverlay()
 {
 	if (!m_labelOverlayThread)
@@ -252,6 +267,7 @@ void dlg_labels::UpdateOverlay()
 		m_newOverlay = true;
 	}
 }
+
 
 void dlg_labels::LabelOverlayReady()
 {
@@ -354,6 +370,7 @@ bool dlg_labels::Load(QString const & filename)
 	return true;
 }
 
+
 bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 {
 	QFile file(filename);
@@ -412,6 +429,7 @@ bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 	return true;
 }
 
+
 void dlg_labels::Load()
 {
 	QString fileName = QFileDialog::getOpenFileName(
@@ -429,6 +447,7 @@ void dlg_labels::Load()
 		QMessageBox::warning(this, "GEMSe", "Loading seed file '" + fileName + "' failed!");
 	}
 }
+
 
 void dlg_labels::Store()
 {
@@ -458,6 +477,7 @@ void dlg_labels::Store()
 	}
 }
 
+
 void dlg_labels::StoreImage()
 {
 	QString fileName = QFileDialog::getSaveFileName(
@@ -478,6 +498,7 @@ void dlg_labels::StoreImage()
 	metaImageWriter->Delete();
 }
 
+
 bool haveAllSeeds(QVector<int> label2SeedCounts, int requiredNumOfSeedsPerLabel)
 {
 	for (int curNumSeeds : label2SeedCounts)
@@ -490,15 +511,25 @@ bool haveAllSeeds(QVector<int> label2SeedCounts, int requiredNumOfSeedsPerLabel)
 	return true;
 }
 
+
 void dlg_labels::Sample()
 {
 	int gt = m_mdiChild->chooseModalityNr("Choose Ground Truth");
 	vtkSmartPointer<vtkImageData> img = m_mdiChild->GetModality(gt)->GetImage();
 	int labelCount = img->GetScalarRange()[1]+1;
+	if (labelCount > 50)
+	{
+		auto reply = QMessageBox::question(this, "Sample Seeds",
+			QString("According to min/max values in image, there are %1 labels, this seems a bit much. Do you really want to proceed?").arg(labelCount),
+			QMessageBox::Yes | QMessageBox::No);
+		if (reply != QMessageBox::Yes) {
+			return;
+		}
+	}
 
 	QStringList     inParams; inParams << "*Number of Seeds per Label";
 	QList<QVariant> inValues; inValues << 50;
-	dlg_commoninput input(this, "Label Count", inParams.size(), inParams, inValues, nullptr);
+	dlg_commoninput input(this, "Sample Seeds", inParams.size(), inParams, inValues, nullptr);
 	if (input.exec() != QDialog::Accepted)
 	{
 		return;
@@ -550,10 +581,18 @@ void dlg_labels::Sample()
 	UpdateOverlay();
 }
 
+
+void dlg_labels::Clear()
+{
+	m_itemModel->clear();
+}
+
+
 QString const & dlg_labels::GetFileName()
 {
 	return m_fileName;
 }
+
 
 void dlg_labels::ReColorExistingLabels()
 {
@@ -562,6 +601,7 @@ void dlg_labels::ReColorExistingLabels()
 		m_itemModel->item(i)->setData(m_colorTheme->GetColor(i), Qt::DecorationRole);
 	}
 }
+
 
 void dlg_labels::SetColorTheme(iAColorTheme const * colorTheme)
 {

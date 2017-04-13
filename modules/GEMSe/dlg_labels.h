@@ -65,6 +65,7 @@ public slots:
 	void Load();
 	void StoreImage();
 	void Sample();
+	void Clear();
 	void LabelOverlayReady();
 	QString const & GetFileName();
 private:
