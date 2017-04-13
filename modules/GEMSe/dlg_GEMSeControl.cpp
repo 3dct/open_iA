@@ -218,7 +218,7 @@ void dlg_GEMSeControl::StartSampling()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		mdiChild->SplitDockWidget(this, m_dlgProgress, Qt::Vertical);
+		mdiChild->tabifyDockWidget(this, m_dlgProgress);
 		connect(m_sampler.data(), SIGNAL(finished()), this, SLOT(SamplingFinished()) );
 		connect(m_sampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)) );
 		connect(m_sampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)) );
@@ -405,7 +405,7 @@ void dlg_GEMSeControl::CalculateClustering()
 		}
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->SplitDockWidget(this, m_dlgProgress, Qt::Vertical);
+	mdiChild->tabifyDockWidget(this, m_dlgProgress);
 	connect(m_clusterer.data(), SIGNAL(finished()), this, SLOT(ClusteringFinished()) );
 	connect(m_clusterer.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)) );
 	connect(m_clusterer.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)) );
