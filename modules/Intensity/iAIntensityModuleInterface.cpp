@@ -27,25 +27,33 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
+#include <QSettings>
+
 void iAIntensityModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuIntensity = getMenuWithTitle(filtersMenu, QString( "Intensity" ) );
 	QAction * actionDifference = new QAction(QApplication::translate("MainWindow", "Difference", 0), m_mainWnd );
-	QAction * actionSubtractImage_Filter = new QAction(QApplication::translate("MainWindow", "SubtractImages Filter", 0), m_mainWnd );
-	QAction * actionInvertIntensity = new QAction(QApplication::translate("MainWindow", "InvertIntensity", 0), m_mainWnd );
-	QAction * actionMaskImage = new QAction(QApplication::translate("MainWindow", "MaskImage", 0), m_mainWnd );
+	QAction * actionSubtractImage_Filter = new QAction(QApplication::translate("MainWindow", "Subtract Images", 0), m_mainWnd );
+	QAction * actionInvertIntensity = new QAction(QApplication::translate("MainWindow", "Invert Intensities", 0), m_mainWnd );
+	QAction * actionMaskImage = new QAction(QApplication::translate("MainWindow", "Mask Image", 0), m_mainWnd );
 	QAction * actionIntensityWindowing = new QAction(QApplication::translate("MainWindow", "Intensity Windowing", 0), m_mainWnd );
+	QAction * actionNormalizeImage = new QAction( QApplication::translate( "MainWindow", "Normalize Image", 0 ), m_mainWnd );
+	QAction * actionHistogramMatch = new QAction( QApplication::translate( "MainWindow", "Histogram Match", 0 ), m_mainWnd );
 	menuIntensity->addAction( actionDifference );
 	menuIntensity->addAction( actionSubtractImage_Filter );
 	menuIntensity->addAction( actionInvertIntensity );
 	menuIntensity->addAction( actionMaskImage );
 	menuIntensity->addAction( actionIntensityWindowing );
+	menuIntensity->addAction( actionNormalizeImage );
+	menuIntensity->addAction( actionHistogramMatch );
 	connect( actionDifference, SIGNAL( triggered() ), this, SLOT( difference_Image_Filter() ) );
 	connect( actionSubtractImage_Filter, SIGNAL( triggered() ), this, SLOT( subtractimage_Filter() ) );
 	connect( actionInvertIntensity, SIGNAL( triggered() ), this, SLOT( invert_intensity() ) );
 	connect( actionMaskImage, SIGNAL( triggered() ), this, SLOT( mask() ) );
 	connect( actionIntensityWindowing, SIGNAL( triggered() ), this, SLOT( intensity_windowing() ) );
+	connect( actionNormalizeImage, SIGNAL( triggered() ), this, SLOT( normalize_image() ) );
+	connect( actionHistogramMatch, SIGNAL( triggered() ), this, SLOT( histogram_match() ) );
 }
 
 void iAIntensityModuleInterface::difference_Image_Filter()
@@ -141,12 +149,10 @@ void iAIntensityModuleInterface::intensity_windowing()
 {
 	//set parameters
 	QStringList inList = ( QStringList()
-						   << tr( "#WindowMinimum" ) << tr( "#WindowMaximum" ) << tr( "#OutputMinimum" ) << tr( "#OutputMaximum" ) );
+		 << tr( "#WindowMinimum" ) << tr( "#WindowMaximum" ) << tr( "#OutputMinimum" ) << tr( "#OutputMaximum" ) );
 	QList<QVariant> inPara;
 	inPara << tr( "%1" ).arg( windowMinimum ) << tr( "%1" ).arg( windowMaximum ) << tr( "%1" ).arg( outputMinimum ) << tr( "%1" ).arg( outputMaximum );
-
 	dlg_commoninput dlg( m_mainWnd, "Intensity Windowing Image Filter", 4, inList, inPara, NULL );
-
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
@@ -164,6 +170,59 @@ void iAIntensityModuleInterface::intensity_windowing()
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setWIIFParameters( windowMinimum, windowMaximum, outputMinimum, outputMaximum );
+	thread->start();
+	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+}
+
+void iAIntensityModuleInterface::normalize_image()
+{
+	//prepare
+	QString filterName = "Normalize Image";
+	PrepareResultChild( filterName );
+	m_mdiChild->addStatusMsg( filterName );
+	//execute
+	iAIntensity * thread = new iAIntensity( filterName, NORMALIZE_IMAGE,
+		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
+	m_mdiChild->connectThreadSignalsToChildSlots( thread );
+	thread->start();
+	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+}
+
+void iAIntensityModuleInterface::histogram_match()
+{
+	QSettings settings;
+	hmHistogramLevels = settings.value( "Filters/Intensity/hmHistogramLevels" ).toInt();
+	hmMatchPoints = settings.value( "Filters/Intensity/hmMatchPoints" ).toInt();
+	hmThresholdAtMeanIntensity = settings.value( "Filters/Intensity/hmThresholdAtMeanIntensity" ).toBool();
+	
+	//set parameters
+	QStringList inList = ( QStringList()
+		<< tr( "#Histogram Levels" ) << tr( "#Match Points" ) << tr( "$ThresholdAtMeanIntensity" ) );
+	QList<QVariant> inPara;
+	inPara << tr( "%1" ).arg( hmHistogramLevels ) << tr( "%1" ).arg( hmMatchPoints ) << tr( "%1" ).arg( hmThresholdAtMeanIntensity);
+	dlg_commoninput dlg( m_mainWnd, "Difference Image Filter", 3, inList, inPara, NULL );
+	if ( dlg.exec() != QDialog::Accepted )
+		return;
+
+	hmHistogramLevels = dlg.getValues()[0]; hmMatchPoints = dlg.getValues()[1]; hmThresholdAtMeanIntensity = dlg.getCheckValues()[2];
+
+	settings.setValue( "Filters/Intensity/hmHistogramLevels", hmHistogramLevels );
+	settings.setValue( "Filters/Intensity/hmMatchPoints", hmMatchPoints );
+	settings.setValue( "Filters/Intensity/hmThresholdAtMeanIntensity", hmThresholdAtMeanIntensity );
+
+	MdiChild *child2 = GetSecondNonActiveChild();
+	if ( !child2 )
+		return;
+	
+	//prepare
+	QString filterName = "Histogram Macth";
+	PrepareResultChild( filterName );
+	m_mdiChild->addStatusMsg( filterName );
+	//execute
+	iAIntensity * thread = new iAIntensity( filterName, HISTOGRAM_MATCH,
+		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
+	m_mdiChild->connectThreadSignalsToChildSlots( thread );
+	thread->setHMFParameters( hmHistogramLevels, hmMatchPoints, hmThresholdAtMeanIntensity, child2->getImageData() );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

@@ -26,61 +26,92 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkCastImageFilter.h>
+#include <itkHistogramMatchingImageFilter.h>
 #include <itkIntensityWindowingImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkMaskImageFilter.h>
+#include <itkNormalizeImageFilter.h>
 #include <itkTestingComparisonImageFilter.h>
 
 #include <vtkImageData.h>
 
 #include <QLocale>
 
-/**
-* template mask
-*
-* This template applies the intensity windowing image filter.
-* \param	SetWindowMinimum	The window minimum.
-* \param	SetWindowMaximum	The window maximum.
-* \param	SetOutputMinimum	The output minimum.
-* \param	SetOutputMaximum	The output maximum.
-* \param	p					Filter progress information.
-* \param	image				Input image.
-* \param						The.
-* \return	int Status-Code.
-*/
+template<class T>
+int histomatch_template( int histogramLevels, int matchPoints, bool ThresholdAtMeanIntensity,  iAProgress* p, iAConnector* image2, iAConnector* image )
+{
+	typedef itk::Image< T, DIM > ImageType;
+
+	typedef double InternalPixelType;
+	typedef itk::Image< InternalPixelType, DIM > InternalImageType;
+	typedef itk::CastImageFilter< ImageType, InternalImageType > FixedImageCasterType;
+	typedef itk::CastImageFilter< ImageType, InternalImageType > MovingImageCasterType;
+	FixedImageCasterType::Pointer fixedImageCaster = FixedImageCasterType::New();
+	MovingImageCasterType::Pointer movingImageCaster = MovingImageCasterType::New();
+	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
+	movingImageCaster->SetInput( dynamic_cast< ImageType * >( image2->GetITKImage() ) );
+
+	typedef itk::HistogramMatchingImageFilter<InternalImageType, InternalImageType > MatchingFilterType;
+	MatchingFilterType::Pointer matcher = MatchingFilterType::New();
+	matcher->SetInput( movingImageCaster->GetOutput() );
+	matcher->SetReferenceImage( fixedImageCaster->GetOutput() );
+	matcher->SetNumberOfHistogramLevels( histogramLevels );
+	matcher->SetNumberOfMatchPoints( matchPoints );
+	matcher->ThresholdAtMeanIntensityOn();
+
+	p->Observe( matcher );
+	matcher->Update();
+	image->SetImage( matcher->GetOutput() );
+	image->Modified();
+
+	matcher->ReleaseDataFlagOn();
+
+	return EXIT_SUCCESS;
+}
+
+template<class T>
+int normalize_template(iAProgress* p, iAConnector* image )
+{
+	typedef itk::Image< T, DIM > ImageType;
+	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
+	typename NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
+	normalizeFilter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
+	normalizeFilter->Update( );
+
+	p->Observe( normalizeFilter );
+	normalizeFilter->Update();
+	image->SetImage( normalizeFilter->GetOutput() );
+	image->Modified();
+
+	normalizeFilter->ReleaseDataFlagOn();
+
+	return EXIT_SUCCESS;
+}
+
 template<class T> 
 int intensity_windowing_template( double wmin, double wmax, double omin, double omax, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::IntensityWindowingImageFilter <ImageType, ImageType> IntensityWindowingImageFilterType;
-	typename IntensityWindowingImageFilterType::Pointer filter = IntensityWindowingImageFilterType::New();
-	filter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
-	filter->SetWindowMinimum( wmin );
-	filter->SetWindowMaximum( wmax );
-	filter->SetOutputMinimum( omin );
-	filter->SetOutputMaximum( omax );
-	filter->Update();
+	typename IntensityWindowingImageFilterType::Pointer intensityWindowingFilter = IntensityWindowingImageFilterType::New();
+	intensityWindowingFilter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
+	intensityWindowingFilter->SetWindowMinimum( wmin );
+	intensityWindowingFilter->SetWindowMaximum( wmax );
+	intensityWindowingFilter->SetOutputMinimum( omin );
+	intensityWindowingFilter->SetOutputMaximum( omax );
+	intensityWindowingFilter->Update();
 
-	p->Observe( filter );
-	filter->Update();
-	image->SetImage( filter->GetOutput() );
+	p->Observe( intensityWindowingFilter );
+	intensityWindowingFilter->Update();
+	image->SetImage( intensityWindowingFilter->GetOutput() );
 	image->Modified();
 
-	filter->ReleaseDataFlagOn();
+	intensityWindowingFilter->ReleaseDataFlagOn();
 
 	return EXIT_SUCCESS;
 }
 
-/**
-* template mask
-*
-* This template applies the mask image filter.
-* \param	p					Filter progress information.
-* \param 	image2		If non-null, the second image.
-* \param	image				Input image.
-* \param						The.
-* \return	int Status-Code.
-*/
 template<class T> 
 int mask_template( iAProgress* p, iAConnector* image2, iAConnector* image )
 {
@@ -100,22 +131,10 @@ int mask_template( iAProgress* p, iAConnector* image2, iAConnector* image )
 	return EXIT_SUCCESS;
 }
 
-/**
-* template difference
-* 
-* This template applies the difference image filter. 
-* \param	DifferenceThreshold	The difference threshold. 
-* \param	ToleranceRadius		The tolerance radius. 
-* \param	p					Filter progress information. 
-* \param 	image2		If non-null, the second image. 
-* \param	image				Input image. 
-* \param						The. 
-* \return	int Status-Code. 
-*/
 template<class T> 
 int difference_template( double DifferenceThreshold, double ToleranceRadius, iAProgress* p, iAConnector* image2, iAConnector* image )
 {
-	typedef itk::Image< T, 3 > ImageType;
+	typedef itk::Image< T, DIM > ImageType;
 
 	typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> FilterType;
 
@@ -139,18 +158,9 @@ int difference_template( double DifferenceThreshold, double ToleranceRadius, iAP
 	return EXIT_SUCCESS;
 }
 
-/**
-* template invert_intensity
-* 
-* This template applies the invert intensity filter. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param			The. 
-* \return	int Status-Code. 
-*/
 template<class T> int invert_intensity_template(  iAProgress* p, iAConnector* image )
 {
-	typedef itk::Image< T, 3 > ImageType;
+	typedef itk::Image< T, DIM > ImageType;
 
 	typedef itk::InvertIntensityImageFilter< ImageType, ImageType> FilterType;
 	typename FilterType::Pointer filter = FilterType::New();
@@ -183,6 +193,10 @@ void iAIntensity::run()
 		mask(); break;
 	case INTENSITY_WINDOWING:
 		intensity_windowing(); break;
+	case NORMALIZE_IMAGE:
+		normalize(); break;
+	case HISTOGRAM_MATCH:
+		histomatch(); break;
 	default:
 		addMsg(tr("  unknown filter type"));
 	}
@@ -291,6 +305,66 @@ void iAIntensity::intensity_windowing()
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 		ITK_TYPED_CALL(intensity_windowing_template, itkType,
 			windowMinimum, windowMaximum, outputMinimum, outputMaximum, getItkProgress(), getConnector());
+	}
+	catch ( itk::ExceptionObject &excep )
+	{
+		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+				.arg( getFilterName() )
+				.arg( Stop() ) );
+		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
+				.arg( excep.GetFile() )
+				.arg( excep.GetLine() ) );
+		return;
+	}
+	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+			.arg( getFilterName() )
+			.arg( Stop() ) );
+
+	emit startUpdate();
+}
+
+void iAIntensity::normalize()
+{
+	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
+			.arg( getFilterName() ) );
+
+	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
+
+	try
+	{
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL( normalize_template, itkType, getItkProgress(), getConnector() );
+	}
+	catch ( itk::ExceptionObject &excep )
+	{
+		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+				.arg( getFilterName() )
+				.arg( Stop() ) );
+		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
+				.arg( excep.GetFile() )
+				.arg( excep.GetLine() ) );
+		return;
+	}
+	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
+			.arg( getFilterName() )
+			.arg( Stop() ) );
+
+	emit startUpdate();
+}
+
+void iAIntensity::histomatch()
+{
+	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
+			.arg( getFilterName() ) );
+
+	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
+	getFixedConnector()->SetImage( image2 ); getFixedConnector()->Modified();
+
+	try
+	{
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL( histomatch_template, itkType,
+						histogramLevels, matchPoints, thresholdAtMeanIntensity, getItkProgress(), getFixedConnector(), getConnector() );
 	}
 	catch ( itk::ExceptionObject &excep )
 	{

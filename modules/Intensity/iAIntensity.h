@@ -28,6 +28,8 @@ enum iAIntensityFilterType
 	INVERT_INTENSITY,
 	MASK_IMAGE,
 	INTENSITY_WINDOWING,
+	NORMALIZE_IMAGE,
+	HISTOGRAM_MATCH
 };
 
 /**
@@ -40,12 +42,6 @@ class iAIntensity : public iAAlgorithm
 public:
 	iAIntensity( QString fn, iAIntensityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
-	/**
-	 * Sets DifferenceImageFilter parameters. 
-	 * \param	dt	The difference threshold. 
-	 * \param	tr	The tolerance radius. 
-	 * \param	i2	The second vtkImageData*. 
-	 */
 	void setDIFParameters(double dt, double tr, vtkImageData* i2) 
 	{ 
 		DifferenceThreshold = dt; 
@@ -53,13 +49,6 @@ public:
 		image2 = i2;
 	}
 
-	/**
-	* Sets Intensity_WindowingImageFilter parameters.
-	* \param	wmin	The window minimum.
-	* \param	wmax	The window maximum.
-	* \param	omin	The output minimum.
-	* \param	omax	The output maximum.
-	*/
 	void setWIIFParameters( double wmin, double wmax, double omin, double omax )
 	{
 		windowMinimum = wmin;
@@ -67,14 +56,29 @@ public:
 		outputMinimum = omin;
 		outputMaximum = omax;
 	}
+
+	void setHMFParameters( int hl, int mp, bool tami, vtkImageData* i2 )
+	{
+		histogramLevels = hl;
+		matchPoints = mp;
+		thresholdAtMeanIntensity = tami;
+		image2 = i2;
+	}
+
 protected:
 	void run();
+
 private:
 	double DifferenceThreshold, ToleranceRadius, windowMinimum, windowMaximum, outputMinimum, outputMaximum;
+	int histogramLevels, matchPoints;	// Histogram Match Filter
+	bool thresholdAtMeanIntensity;		// Histogram Match Filter
 	vtkImageData* image2;
 	iAIntensityFilterType m_type;
+
 	void difference();
 	void invert_intensity();
 	void mask();
 	void intensity_windowing();
+	void normalize();
+	void histomatch();
 };
