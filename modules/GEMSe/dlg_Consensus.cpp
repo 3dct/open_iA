@@ -923,6 +923,8 @@ void dlg_Consensus::SamplerFinished()
 			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
 				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
 		}
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
+			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, Discrete)));
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			measure->ResetMinMax();
@@ -943,14 +945,15 @@ void dlg_Consensus::SamplerFinished()
 			QVector<double> measureValues;
 			CalculateMeasures(m_groundTruthImage,
 				dynamic_cast<LabelImageType*>(m_comparisonSamplingResults[s]->Get(m)->GetLabelledImage().GetPointer()),
-				m_labelCount, measureValues);
-			DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
+				m_labelCount, measureValues, true);
+			DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
 				.arg(m_comparisonSamplingResults[s]->Get(m)->GetDatasetID())
 				.arg(m_comparisonSamplingResults[s]->Get(m)->GetID())
 				.arg(measureValues[0]) // dice
 				.arg(measureValues[2]) // accuracy
 				.arg(measureValues[3]) // precision
 				.arg(measureValues[4]) // recall
+				.arg(measureValues[measureValues.size()-1]) // undecided
 			);
 			for (int i = 0; i<measures.size(); ++i)
 			{
@@ -1118,7 +1121,7 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 				statFilter->Update();
 
 				QVector<double> measures;
-				CalculateMeasures(m_groundTruthImage, labelImg, m_labelCount, measures);
+				CalculateMeasures(m_groundTruthImage, labelImg, m_labelCount, measures, true);
 
 				double meanDice = measures[0];
 
@@ -1133,13 +1136,14 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 				tables[r]->SetValue(i, 1, undefinedPerc);
 				tables[r]->SetValue(i, 2, meanDice);
 
-				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
+				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
 					.arg(r)
 					.arg(i)
 					.arg(measures[0]) // dice
 					.arg(measures[2]) // accuracy
 					.arg(measures[3]) // precision
 					.arg(measures[4]) // recall
+					.arg(measures[measures.size() - 1]) // undecided
 				);
 			}
 		}
