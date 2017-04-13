@@ -120,5 +120,6 @@ private:
 	Qt::WindowFlags m_flags;
 	void UpdateOffset();
 	void UpdateShowFrame();
-
+	void UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkScalarsToColors* cTF,
+		vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF);
 };

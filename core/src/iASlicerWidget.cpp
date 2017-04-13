@@ -76,7 +76,6 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	m_xInd = m_yInd = m_zInd = 0;
 	m_isInitialized = false;
 
-
 	m_isSliceProfEnabled = false;
 	m_isArbProfEnabled = false;
 	m_pieGlyphsEnabled = false;
@@ -700,6 +699,7 @@ void iASlicerWidget::menuCenteredMagicLens()
 {
 	if (!m_magicLensExternal) return;
 	m_magicLensExternal->SetViewMode(iAMagicLens::CENTERED);
+	updateMagicLens();
 }
 
 
@@ -707,6 +707,7 @@ void iASlicerWidget::menuOffsetMagicLens()
 {
 	if (!m_magicLensExternal) return;
 	m_magicLensExternal->SetViewMode(iAMagicLens::OFFSET);
+	updateMagicLens();
 }
 
 
@@ -714,6 +715,7 @@ void iASlicerWidget::menuSideBySideMagicLens()
 {
 	if (!m_magicLensExternal) return;
 	m_magicLensExternal->SetViewMode(iAMagicLens::SIDE_BY_SIDE);
+	updateMagicLens();
 }
 
 
