@@ -865,7 +865,7 @@ void dlg_Consensus::StartNextSampler()
 	m_dlgProgress = new dlg_progress(this, m_currentSampler, m_currentSampler, "Sampling Progress");
 	connect(m_currentSampler.data(), SIGNAL(Progress(int)), m_dlgProgress, SLOT(SetProgress(int)));
 	connect(m_currentSampler.data(), SIGNAL(Status(QString const &)), m_dlgProgress, SLOT(SetStatus(QString const &)));
-	m_mdiChild->SplitDockWidget(this, m_dlgProgress, Qt::Vertical);
+	m_mdiChild->tabifyDockWidget(this, m_dlgProgress);
 
 	m_currentSampler->start();
 }
