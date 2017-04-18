@@ -47,8 +47,8 @@ int histomatch_template( int histogramLevels, int matchPoints, bool ThresholdAtM
 	typedef itk::Image< InternalPixelType, DIM > InternalImageType;
 	typedef itk::CastImageFilter< ImageType, InternalImageType > FixedImageCasterType;
 	typedef itk::CastImageFilter< ImageType, InternalImageType > MovingImageCasterType;
-	FixedImageCasterType::Pointer fixedImageCaster = FixedImageCasterType::New();
-	MovingImageCasterType::Pointer movingImageCaster = MovingImageCasterType::New();
+	typename FixedImageCasterType::Pointer fixedImageCaster = FixedImageCasterType::New();
+	typename MovingImageCasterType::Pointer movingImageCaster = MovingImageCasterType::New();
 	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
 	movingImageCaster->SetInput( dynamic_cast< ImageType * >( image2->GetITKImage() ) );
 
