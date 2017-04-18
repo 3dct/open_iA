@@ -18,7 +18,6 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAIO.h"
 
@@ -28,11 +27,12 @@
 #include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
 #include "iAExceptionThrowingErrorObserver.h"
+#include "iAExtendedTypedCallHelper.h"
 #include "iAObserverProgress.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
 #include "iAVolumeStack.h"
-#include "iAExtendedTypedCallHelper.h"
+#include "iAToolsVTK.h"
 
 #include <itkExceptionObject.h>
 #include <itkGDCMImageIO.h>
@@ -311,6 +311,24 @@ void iAIO::run()
 			rv = iAAmiraMeshIO::Write(getFileName(), getVtkImageData());
 			break;
 		}
+		case CSV_WRITER: {
+			// TODO: write more than one modality!
+			auto img = getVtkImageData();
+			int numberOfComponents = img->GetNumberOfScalarComponents();
+			std::ofstream out(getFileName().toStdString());
+			FOR_VTKIMG_PIXELS(img, x, y, z)
+			{
+				for (int c = 0; c < numberOfComponents; ++c)
+				{
+					out << img->GetScalarComponentAsDouble(x, y, z, 0);
+					if (c < numberOfComponents - 1)
+					{
+						out << ",";
+					}
+				}
+			}
+			out.close();
+		}
 		case VTI_READER: {
 			vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
 			reader->SetFileName(getFileName().toStdString().c_str());
@@ -389,6 +407,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case OIF_READER:
 		case AM_READER:
 		case AM_WRITER:
+		case CSV_WRITER:
 		case VTI_READER:
 			fileName = f; break;
 

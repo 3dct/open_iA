@@ -87,6 +87,7 @@ static mapQString2int fill_extensionToSaveId()
 	m["BMP"] = BMP_STACK_WRITER;
 	m["DCM"] = DCM_WRITER;
 	m["AM"] = AM_WRITER;
+	m["CSV"] = CSV_WRITER;
 	return m;
 }
 const mapQString2int extensionToSaveId = fill_extensionToSaveId();

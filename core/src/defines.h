@@ -65,7 +65,8 @@ enum IOType
 	OIF_READER,
 	AM_READER,
 	AM_WRITER,
-	VTI_READER
+	VTI_READER,
+	CSV_WRITER
 };
 
 const int DefaultMagicLensSize = 120;
