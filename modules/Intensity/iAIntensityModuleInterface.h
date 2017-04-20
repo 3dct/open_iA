@@ -37,10 +37,14 @@ private slots:
 	void invert_intensity();
 	void mask();
 	void intensity_windowing();
+	void normalize_image();
+	void histogram_match();
 
 protected:
 	//difference settings
 	double difDifferenceThreshold, difToleranceRadius;
 	//windowing intensity settings
 	double windowMinimum, windowMaximum, outputMinimum, outputMaximum;
+	// histogram match settings
+	int hmHistogramLevels, hmMatchPoints; bool hmThresholdAtMeanIntensity;
 };
