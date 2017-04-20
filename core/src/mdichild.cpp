@@ -25,7 +25,6 @@
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
 #include "dlg_profile.h"
-#include "dlg_renderer.h"
 #include "dlg_transfer.h"
 #include "dlg_volumePlayer.h"
 #include "iAHistogramWidget.h"
@@ -150,7 +149,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	connect(r->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), Raycaster, SLOT(mouseLeftButtonReleasedSlot()) );
 	Raycaster->setAxesTransform(axesTransform);
 
-	m_dlgModalities = new dlg_modalities(r->GetRenderer(), Raycaster->GetRenderer(),
+	m_dlgModalities = new dlg_modalities(r->vtkWidgetRC, Raycaster->GetRenderer(),
 		preferences.HistogramBins, histogramContainer);
 	connect(m_dlgModalities, SIGNAL(UpdateViews()), this, SLOT(updateViews()));
 	connect(m_dlgModalities, SIGNAL(PointSelected()), this, SIGNAL(pointSelected()));

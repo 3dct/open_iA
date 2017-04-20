@@ -23,7 +23,6 @@
 #include "iAModalityExplorerAttachment.h"
 
 #include "dlg_modalities.h"
-//#include "dlg_modalityRenderer.h"
 #include "dlg_planeSlicer.h"
 #include "iAChannelVisualizationData.h"
 #include "iAChildData.h"

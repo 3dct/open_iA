@@ -51,7 +51,8 @@ QString iAIOProvider::GetSupportedSaveFormats()
 	return
 		MetaImages +
 		"STL files (*.stl);;"
-		"AmiraMesh (*.am)";
+		"AmiraMesh (*.am);;"
+		"Comma-Separated Values (*.csv)";
 }
 
 QString iAIOProvider::GetSupportedImageStackFormats()

@@ -67,10 +67,12 @@ public:
 	void setAdditionalInfo(QString const & additionalInfo);
 	QString getAdditionalInfo();
 
+	// TODO: move to Multimodal fusion
+	// {
 	void saveTransformFile(QString fName, VersorRigid3DTransformType*);
 	VersorRigid3DTransformType* readTransformFile(QString fName);
-
 	VersorRigid3DTransformType::Pointer mmFinalTransform;
+	// }
 
 	QString getFileName();
 
