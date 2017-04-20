@@ -361,6 +361,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		m_dlgSamplings->GetSamplings()
 	);
 	EnableClusteringDependantUI();
+	m_dlgConsensus->EnableUI();
 	m_cltFile = fileName;
 	QFileInfo fi(m_cltFile);
 	m_outputFolder = fi.absolutePath();
@@ -451,6 +452,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 		m_dlgSamplings->GetSamplings()
 	);
 	EnableClusteringDependantUI();
+	m_dlgConsensus->EnableUI();
 }
 
 

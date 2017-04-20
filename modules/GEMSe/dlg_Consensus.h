@@ -50,6 +50,7 @@ class dlg_Consensus : public dlg_ConsensusUI
 public:
 	dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings);
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
+	void EnableUI();
 private slots:
 	void MinAbsPlot();
 	void MinDiffPlot();

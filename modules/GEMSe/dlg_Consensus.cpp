@@ -154,7 +154,34 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	slLabelVoters->setMaximum(ensembleSize);
 	twSampleResults->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 	twSampleResults->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+}
 
+int dlg_Consensus::GetWeightType()
+{
+	if (rbWeightLabelDice->isChecked())  return LabelBased;
+	if (rbWeightCertainty->isChecked())  return Certainty;
+	if (rbWeightDiffFBGSBG->isChecked()) return FBGSBGDiff;
+	else return Equal;
+}
+
+void dlg_Consensus::EnableUI()
+{
+	pbMajorityVoting->setEnabled(true);
+	pbSample->setEnabled(true);
+	pbMinAbsPercent_Plot->setEnabled(true);
+	pbMinDiffPercent_Plot->setEnabled(true);
+	pbMinRatio_Plot->setEnabled(true);
+	pbMaxPixelEntropy_Plot->setEnabled(true);
+	pbClusterUncertaintyDice->setEnabled(true);
+	pbStore->setEnabled(true);
+	pbStoreConfig->setEnabled(true);
+	pbLoadConfig->setEnabled(true);
+	pbSTAPLE->setEnabled(true);
+	slAbsMinPercent->setEnabled(true);
+	slMinDiffPercent->setEnabled(true);
+	slMinRatio->setEnabled(true);
+	slMaxPixelEntropy->setEnabled(true);
+	slLabelVoters->setEnabled(true);
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbMinAbsPercent_Plot, SIGNAL(clicked()), this, SLOT(MinAbsPlot()));
 	connect(pbMinDiffPercent_Plot, SIGNAL(clicked()), this, SLOT(MinDiffPlot()));
@@ -171,14 +198,6 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
 	connect(slMaxPixelEntropy, SIGNAL(valueChanged(int)), this, SLOT(MaxPixelEntropySlider(int)));
 	connect(slLabelVoters, SIGNAL(valueChanged(int)), this, SLOT(LabelVoters(int)));
-}
-
-int dlg_Consensus::GetWeightType()
-{
-	if (rbWeightLabelDice->isChecked())  return LabelBased;
-	if (rbWeightCertainty->isChecked())  return Certainty;
-	if (rbWeightDiffFBGSBG->isChecked()) return FBGSBGDiff;
-	else return Equal;
 }
 
 namespace
