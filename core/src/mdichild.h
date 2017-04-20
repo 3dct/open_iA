@@ -61,7 +61,6 @@ class vtkRenderWindow;
 class vtkScalarsToColors;
 class vtkTransform;
 
-class dlg_renderer;
 class dlg_function;
 class dlg_imageproperty;
 class dlg_modalities;
@@ -86,6 +85,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
+typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>   dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
