@@ -25,6 +25,8 @@
 #include <assert.h>
 #include <iostream>
 
+#include <cmath>
+
 bool compare(pair<Graph::idType, Graph::Vertex> v1, pair<Graph::idType, Graph::Vertex> v2) {
 	return (v1.second.rank < v2.second.rank);
 }
@@ -173,7 +175,7 @@ float GraphDrawer::medianValue(Graph::idType vert, OrderType& order, bool forwar
 {
 	vector<int> p = getAdjacentPositions(vert, order, forwardTraversal);
 	int size = p.size();
-	int m = (int)floor((float)size / 2);
+	int m = (int)std::floor((float)size / 2);
 	if (size == 0) {
 		return -1;
 	}

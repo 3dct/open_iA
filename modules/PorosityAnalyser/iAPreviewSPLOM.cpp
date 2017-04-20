@@ -24,6 +24,8 @@
 
 #include <QMouseEvent>
 
+#include <cmath>
+
 const double penWidth = 2.0;
 const QColor bgrCol( 50, 50, 50 );
 const QColor roiCol( 255, 0, 0, 240 );
@@ -119,10 +121,10 @@ void iAPreviewSPLOM::CropPosByRect( QPoint & pos )
 
 void iAPreviewSPLOM::UpdateROI()
 {
-	m_roi.setLeft( fmin( posStart.x(), posEnd.x() ) );
-	m_roi.setTop( fmin( posStart.y(), posEnd.y() ) );
-	m_roi.setRight( fmax( posStart.x(), posEnd.x() ) );
-	m_roi.setBottom( fmax( posStart.y(), posEnd.y() ) );
+	m_roi.setLeft( std::fmin( posStart.x(), posEnd.x() ) );
+	m_roi.setTop( std::fmin( posStart.y(), posEnd.y() ) );
+	m_roi.setRight( std::fmax( posStart.x(), posEnd.x() ) );
+	m_roi.setBottom( std::fmax( posStart.y(), posEnd.y() ) );
 	updateLocRoi();
 	update();
 }

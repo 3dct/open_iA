@@ -30,6 +30,8 @@
 #include <QPoint>
 #include <QPolygon>
 
+#include <cmath>
+
 namespace
 {
 	double ScaleXFactor = 4.0;
