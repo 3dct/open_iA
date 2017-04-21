@@ -21,6 +21,7 @@
 #pragma once
 
 #include <cassert>
+#include <cmath>
 
 // consistently define isNaN/isInf:
 #if (defined(_MSC_VER) && _MSC_VER <= 1600)

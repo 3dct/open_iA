@@ -3,6 +3,8 @@
 #include <QPainter>
 #include <QToolTip>
 
+#include <cmath>
+
 double dlg_histogram_simple::ZOOM_STEP = 1.5;
 double dlg_histogram_simple::HIST_ZOOM_STEP = 1.5;
 
@@ -279,9 +281,9 @@ void dlg_histogram_simple::mouseMoveEvent(QMouseEvent *event)
 		{
 			int diff = (zoomY-event->y())/2.0;
 			if (diff < 0)
-				zoomHistogram(-pow(HIST_ZOOM_STEP,-diff)+histZoom, false);
+				zoomHistogram(-std::pow(HIST_ZOOM_STEP,-diff)+histZoom, false);
 			else
-				zoomHistogram(pow(HIST_ZOOM_STEP,diff)+histZoom, false);
+				zoomHistogram(std::pow(HIST_ZOOM_STEP,diff)+histZoom, false);
 			redraw();
 		}
 		break;

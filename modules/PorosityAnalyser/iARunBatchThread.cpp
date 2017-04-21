@@ -539,9 +539,7 @@ int computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo &
 	typedef typename itk::OtsuMultipleThresholdsImageFilter < InputImageType, MaskImageType > multiOtsuFilterType;
 	typename multiOtsuFilterType::Pointer multiOtsufilter = multiOtsuFilterType::New();
 	multiOtsufilter->SetNumberOfThresholds( NbOfThr );
-#if (ITK_MAJOR_VERSION > 4 || ITK_MINOR_VERSION > 5)
 	multiOtsufilter->SetValleyEmphasis( ValleyEmphasis );
-#endif
 	multiOtsufilter->SetInput( duplicator->GetOutput() );
 	multiOtsufilter->Update();
 
@@ -648,6 +646,7 @@ int computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, R
 	}
 
 	results.surroundingMaskImage = connThrfilter->GetOutput();
+	//iAITKIO::writeFile( "C:/Users/p41036/Desktop/mask.mhd", connThrfilter->GetOutput(), itk::ImageIOBase::CHAR, true );
 	results.surroundingMaskImage->Modified();
 	results.maskImage = image;
 	results.maskImage->Modified();

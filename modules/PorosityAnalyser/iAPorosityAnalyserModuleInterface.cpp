@@ -673,7 +673,10 @@ void iAPorosityAnalyserModuleInterface::datasetPreviewThreadFinished()
 {
 	iADatasetInfo * di = qobject_cast<iADatasetInfo*>( sender() );
 	iADragFilterWidget * ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
-	ddw->updateDatasetTooltip( di->getNewGeneratedInfoFiles().replaceInStrings(".info","") );
+	QStringList datasetList = di->getNewGeneratedInfoFiles().replaceInStrings( ".info", "" );
+	QStringList GTDatasetsList = datasetList.filter( "_GT.mhd" );
+	removeGTDatasets( datasetList, GTDatasetsList );
+	ddw->updateDatasetTooltip( datasetList );
 	uiComputeSegm.pBDatasetPreviewProgress->hide();
 }
 
