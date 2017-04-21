@@ -24,7 +24,6 @@
 
 #include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
-#include "dlg_renderer.h"
 #include "dlg_transfer.h"
 #include "iAAccumulatedXRFData.h"
 #include "iAChannelVisualizationData.h"
