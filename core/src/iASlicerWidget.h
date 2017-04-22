@@ -27,6 +27,8 @@
 #include <QSharedPointer>
 #include <QGridLayout>
 
+#include <vtkScalarsToColors.h>
+
 class QMenu;
 class vtkParametricFunctionSource;
 class iASlicerData;
@@ -37,6 +39,20 @@ struct PickedData;
 class iASnakeSpline;
 class iAMagicLens;
 class iAPieChartGlyph;
+
+//Klara
+class vtkRenderWindow;
+class vtkImageBlend;
+class vtkImageMapper;
+class vtkActor;
+class vtkThinPlateSplineTransform;
+class vtkPoints;
+class vtkRegularPolygonSource;
+class vtkPolyDataMapper;
+class vtkLookupTable;
+class vtkImageMapToColors;
+class vtkImageGridSource;
+
 
 class open_iA_Core_API iASlicerWidget : public QVTKWidget2
 {
@@ -88,6 +104,10 @@ public:
 	void	setMode(iASlicerMode slicerMode);
 	void	SetSlicer(iASlicerData * slicer);
 	void	updateMagicLens();
+	//Klara
+	void	initializeFisheyeLens(vtkImageReslice* reslicer);
+	void	updateFisheyeLens();
+	//endKlara
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
 	void	SetMagicLensFrameWidth(qreal width);
@@ -109,6 +129,12 @@ protected:			//overloaded events of QWidget
 	virtual void contextMenuEvent ( QContextMenuEvent * event );
 	virtual void resizeEvent ( QResizeEvent * event );
 	virtual void wheelEvent(QWheelEvent*);
+
+	//Klara
+private:
+	void updateFisheyeTransform(double focalPt[3], iASlicerData* slicerData, double radius);
+	//endKlara
+
 
 protected slots:	//overloaded events of QVTKWidget2
 	virtual void Frame();
@@ -165,4 +191,32 @@ signals:
 
 private:
 	bool m_decorations;
+
+	//Klara
+	bool fisheyeLensActivated;
+	// variables for transformation
+	vtkSmartPointer<vtkThinPlateSplineTransform> fisheyeTransform;
+	vtkSmartPointer<vtkPoints> p_source;
+	vtkSmartPointer<vtkPoints> p_target;
+	
+	// variables for lens appearance
+	double fisheyeRadius;
+	double fisheyeRadiusDefault = 50.0;
+	vtkSmartPointer<vtkRegularPolygonSource> fisheye;
+	vtkSmartPointer<vtkPolyDataMapper> fisheyeMapper;
+	vtkSmartPointer<vtkActor> fisheyeActor;
+
+	vtkSmartPointer<vtkImageGridSource> imageGrid;
+	vtkSmartPointer<vtkLookupTable> table;
+	vtkSmartPointer<vtkImageMapToColors> gridToColors;
+	vtkSmartPointer<vtkImageBlend> blend;
+
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle1List;
+	QList<vtkSmartPointer<vtkActor>> circle1ActList;
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
+	QList<vtkSmartPointer<vtkActor>> circle2ActList;
+
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle3List;
+	QList<vtkSmartPointer<vtkActor>> circle3ActList;
+	//endKlara
 };

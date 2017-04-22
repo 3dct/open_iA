@@ -85,6 +85,28 @@
 #include <string>
 #include <sstream>
 
+//Klara
+#include <vtkImageMapper.h>
+#include <vtkActor2D.h>
+#include <vtkPoints2D.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageActor.h>
+#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
+
+#include <vtkThinPlateSplineTransform.h>
+#include <vtkRegularPolygonSource.h>
+#include <qmath.h>
+#include <vtkPolyDataMapper2D.h>
+#include<vtkActor2D.h>
+#include <vtkProperty2D.h>
+// not needed later on (just for external windows)
+#include <vtkImageGridSource.h>
+#include <vtkRenderWindow.h>
+#include <vtkLookupTable.h>
+#include <vtkImageBlend.h>
+#include <vtkImageMapToColors.h>
+
 
 iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 0 */,
 		bool decorations/*=true*/) : QObject( parent ),
@@ -168,6 +190,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		rulerWidget = iARulerWidget::New();
 	}
 	transform = vtkTransform::New();
+
+	
+
 }
 
 
@@ -226,6 +251,9 @@ iASlicerData::~iASlicerData(void)
 	}
 }
 
+vtkColorTransferFunction * iASlicerData::GetColorTransferFunction() {
+	return colorTransferFunction;
+}
 
 void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction *ctf,
 	bool showIsoLines, bool showPolygon)
@@ -387,6 +415,8 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 
 	ren->SetActiveCamera(m_camera);
 	ren->ResetCamera();
+
+	//initializeFisheyeLens(reslicer);
 }
 
 void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range)
@@ -1058,7 +1088,253 @@ void iASlicerData::SetManualBackground(double r, double g, double b)
 	rgb[2] = b;
 	UpdateBackground();
 }
+//Klara
+void iASlicerData::initializeFisheyeLens(vtkImageReslice* reslicer) {
 
+	//GetInformationInput() <- returns vtkImageData (default Spacing, Origin, WholeExtent of the output will be copied)
+	//GetExtent() <- set of 6 integers, says what the first and last pixel indices are in each of the three directions
+	int *extents = reslicer->GetInformationInput()->GetExtent();
+
+	/*imageGrid = vtkSmartPointer<vtkImageGridSource>::New();
+	imageGrid->SetGridSpacing(15, 15, 0);
+	imageGrid->SetGridOrigin(0, 0, 0);
+	imageGrid->SetDataExtent(0, extents[1], 0, extents[3], 0, extents[5]);
+	imageGrid->SetDataScalarTypeToUnsignedChar();
+
+	table = vtkSmartPointer<vtkLookupTable>::New();
+	table->SetTableRange(0, 1);
+	table->SetAlphaRange(0.0, 1.0);
+	table->SetHueRange(0.15, 0.15);
+	table->SetSaturationRange(1, 1);
+	table->SetValueRange(0, 1);
+	table->Build();
+
+	gridToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+	gridToColors->SetInputConnection(imageGrid->GetOutputPort());
+	gridToColors->SetLookupTable(table);
+
+	// Blend yellow grid and reslicer image
+	blend = vtkSmartPointer<vtkImageBlend>::New();
+	blend->AddInputConnection(0, reslicer->GetOutputPort());
+	blend->AddInputConnection(0, gridToColors->GetOutputPort());
+
+	reslicer->SetInputConnection(blend->GetOutputPort()); */
+	/////////////////////////////////////////////////////////////////////
+
+	//vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+
+
+	//Clear outdated circles and actors 
+	for (int i = 0; i < circle1ActList.length(); ++i)
+	{
+		ren->RemoveActor2D(circle1ActList.at(i));
+
+	}
+	circle1List.clear();
+	circle1ActList.clear();
+
+	for (int i = 0; i < circle2ActList.length(); ++i)
+	{
+		ren->RemoveActor2D(circle2ActList.at(i));
+
+	}
+	circle2List.clear();
+	circle2ActList.clear();
+	////////////////////////////////////////
+
+	fisheyeTransform = vtkSmartPointer<vtkThinPlateSplineTransform>::New();
+	fisheyeTransform->SetBasisToR2LogR();
+
+	p_source = vtkSmartPointer<vtkPoints>::New();
+	p_target = vtkSmartPointer<vtkPoints>::New();
+	p_source->SetNumberOfPoints(24);
+	p_target->SetNumberOfPoints(24);
+
+	fisheye = vtkSmartPointer<vtkRegularPolygonSource>::New();
+	fisheye->SetNumberOfSides(60);
+	fisheye->GeneratePolygonOff(); // just outlines;
+
+	fisheyeMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+	fisheyeMapper->SetInputConnection(fisheye->GetOutputPort());
+
+	fisheyeActor = vtkSmartPointer<vtkActor2D>::New();
+	fisheyeActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+	fisheyeActor->GetProperty()->SetOpacity(1.0);
+	//fisheyeActor->GetProperty()->SetLineStipplePattern(0xf0f0);
+	//fisheyeActor->GetProperty()->SetLineStippleRepeatFactor(1);
+	fisheyeActor->SetMapper(fisheyeMapper);
+
+	ren->AddActor2D(fisheyeActor);
+	GetRenderWindow()->GetInteractor()->Render();
+
+	/////////////////////////////////////////////////////////
+
+	// Create circle actors (green and red) to show the transform landmarks
+	for (int i = 0; i < p_target->GetNumberOfPoints(); ++i)
+	{
+		// Create a sphere and its associated mapper and actor.
+		vtkSmartPointer<vtkRegularPolygonSource> circle =
+			vtkSmartPointer<vtkRegularPolygonSource>::New();
+
+		circle->GeneratePolygonOff(); // Uncomment this line to generate only the outline of the circle
+		circle->SetNumberOfSides(50);
+		circle->SetRadius(1);
+
+		vtkSmartPointer<vtkPolyDataMapper2D> circleMapper =
+			vtkSmartPointer<vtkPolyDataMapper2D>::New();
+		circleMapper->SetInputConnection(circle->GetOutputPort());
+
+		vtkSmartPointer<vtkActor2D> circleActor =
+			vtkSmartPointer<vtkActor2D>::New();
+		circleActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
+		circleActor->GetProperty()->SetOpacity(1.0);
+		circleActor->SetMapper(circleMapper);
+
+
+
+		circle1List.append(circle);
+		circle1ActList.append(circleActor);
+		ren->AddActor2D(circleActor);
+
+	}
+	for (int i = 0; i < p_source->GetNumberOfPoints(); ++i)
+	{
+		vtkSmartPointer<vtkRegularPolygonSource> circle =
+			vtkSmartPointer<vtkRegularPolygonSource>::New();
+
+		circle->GeneratePolygonOff(); // Uncomment this line to generate only the outline of the circle
+		circle->SetNumberOfSides(50);
+		circle->SetRadius(3);
+
+		vtkSmartPointer<vtkPolyDataMapper2D> circleMapper =
+			vtkSmartPointer<vtkPolyDataMapper2D>::New();
+		circleMapper->SetInputConnection(circle->GetOutputPort());
+
+		vtkSmartPointer<vtkActor2D> circleActor =
+			vtkSmartPointer<vtkActor2D>::New();
+		circleActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		circleActor->GetProperty()->SetOpacity(1.0);
+		circleActor->SetMapper(circleMapper);
+
+
+		circle2List.append(circle);
+		circle2ActList.append(circleActor);
+		ren->AddActor2D(circleActor);
+
+	}
+
+}
+//Klara
+void iASlicerData::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double radius)
+{
+	// Mouse cursor position
+	int xOffset = focalPt[0];
+	int yOffset = focalPt[1];
+
+	fisheye->SetCenter(xOffset, yOffset, 0);
+	fisheye->SetRadius(radius + 30);
+
+	//int extent[6] = { i_min, i_max, j_min, j_max, k_min, k_max };
+	int *extent = reslicer->GetInformationInput()->GetExtent();
+	double *spacing = imageData->GetSpacing();//reslicer->GetInformationInput()->GetSpacing();
+	double *origin = imageData->GetOrigin();//reslicer->GetInformationInput()->GetOrigin();
+
+	double bounds[6] = { extent[0] * spacing[0] + origin[0], extent[1] * spacing[0] + origin[0],
+		extent[2] * spacing[1] + origin[1], extent[3] * spacing[1] + origin[1],
+		extent[4] * spacing[2] + origin[2], extent[5] * spacing[2] + origin[2] };
+
+	// points clockwise from (x_min, y_min) 
+	p_target->SetPoint(0, bounds[0], bounds[2], 0); //x_min, y_min, bottom left
+													// left border points
+	p_target->SetPoint(1, bounds[0], bounds[3] / 2 / 2, 0);
+	p_target->SetPoint(2, bounds[0], bounds[3] / 2, 0);
+	p_target->SetPoint(3, bounds[0], 3 * bounds[3] / 2 / 2, 0);
+
+	p_target->SetPoint(4, bounds[0], bounds[3], 0); //x_min, y_max, top left
+													// top border points
+	p_target->SetPoint(5, (0.25)*bounds[1], bounds[3], 0);
+	p_target->SetPoint(6, (0.5)*bounds[1], bounds[3], 0);
+	p_target->SetPoint(7, (0.75)*bounds[1], bounds[3], 0);
+
+	p_target->SetPoint(8, bounds[1], bounds[3], 0); //x_max, y_max, top right
+													// right border points
+	p_target->SetPoint(9, bounds[1], (0.75)*bounds[3], 0);
+	p_target->SetPoint(10, bounds[1], (0.5)*bounds[3], 0);
+	p_target->SetPoint(11, bounds[1], (0.25)*bounds[3], 0);
+
+	p_target->SetPoint(12, bounds[1], bounds[2], 0); //x_max, y_min, bottom right
+													 // bottom border points
+	p_target->SetPoint(13, (0.75)*bounds[1], bounds[2], 0);
+	p_target->SetPoint(14, (0.5)*bounds[1], bounds[2], 0);
+	p_target->SetPoint(15, (0.25)*bounds[1], bounds[2], 0);
+
+	p_source->SetNumberOfPoints(24);
+	p_source->SetPoint(0, bounds[0], bounds[2], 0); //x_min, y_min, bottom left
+													// left border points
+	p_source->SetPoint(1, bounds[0], (0.25)*bounds[3], 0);
+	p_source->SetPoint(2, bounds[0], (0.5)*bounds[3], 0);
+	p_source->SetPoint(3, bounds[0], (0.75)*bounds[3], 0);
+
+	p_source->SetPoint(4, bounds[0], bounds[3], 0); //x_min, y_max, top left
+													// top border points
+	p_source->SetPoint(5, (0.25)*bounds[1], bounds[3], 0);
+	p_source->SetPoint(6, (0.5)*bounds[1], bounds[3], 0);
+	p_source->SetPoint(7, (0.75)*bounds[1], bounds[3], 0);
+
+	p_source->SetPoint(8, bounds[1], bounds[3], 0); //x_max, y_max, top right
+													// right border points
+	p_source->SetPoint(9, bounds[1], (0.75)*bounds[3], 0);
+	p_source->SetPoint(10, bounds[1], (0.5)*bounds[3], 0);
+	p_source->SetPoint(11, bounds[1], (0.25)*bounds[3], 0);
+
+	p_source->SetPoint(12, bounds[1], bounds[2], 0); //x_max, y_min, bottom right
+													 // bottom border points
+	p_source->SetPoint(13, (0.75)*bounds[1], bounds[2], 0);
+	p_source->SetPoint(14, (0.5)*bounds[1], bounds[2], 0);
+	p_source->SetPoint(15, (0.25)*bounds[1], bounds[2], 0); //*/
+
+	int pointsCount = 8;
+	for (int i = 16; i < 16 + pointsCount; ++i)
+	{
+
+		double radius = 30.0;
+		double xCoordCircle = radius * std::cos(i * (360 / pointsCount) * M_PI / 180);
+		double yCoordCircle = radius * std::sin(i * (360 / pointsCount) * M_PI / 180);
+		p_target->SetPoint(i, xOffset + xCoordCircle, yOffset + yCoordCircle, 0);
+
+		radius = 50.0;
+		xCoordCircle = radius * std::cos(i * (360 / pointsCount) * M_PI / 180);
+		yCoordCircle = radius * std::sin(i * (360 / pointsCount) * M_PI / 180);
+		p_source->SetPoint(i, xOffset + xCoordCircle, yOffset + yCoordCircle, 0);
+	}
+
+	// Set position and text for green circle1 actors
+	for (int i = 0; i < p_target->GetNumberOfPoints(); ++i)
+	{
+		circle1List.at(i)->SetCenter(p_target->GetPoint(i)[0], p_target->GetPoint(i)[1], 0);
+	}
+
+	// Set position and text for red circle2 actors
+	for (int i = 0; i < p_source->GetNumberOfPoints(); ++i)
+	{
+		circle2List.at(i)->SetCenter(p_source->GetPoint(i)[0], p_source->GetPoint(i)[1], 0);
+	}
+
+	fisheyeTransform->SetSourceLandmarks(p_source); // red
+	fisheyeTransform->SetTargetLandmarks(p_target);  // green
+	fisheyeTransform->Update();
+
+	reslicer->SetResliceTransform(fisheyeTransform);
+
+	reslicer->Update();
+
+	//vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+	//ren->GetRenderWindow()->Render();
+	renWin->Render();
+
+
+}
+//endKlara
 
 void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * callData )
 {
@@ -1104,9 +1380,16 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
+
 		double result[4];
 		int xCoord, yCoord, zCoord;
 		GetMouseCoord(xCoord, yCoord, zCoord, result);
+
+		double mouseCoord[3] = { result[0], result[1], result[2] };
+
+		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
+
+
 		if (m_decorations)
 		{
 			printVoxelInformation(xCoord, yCoord, zCoord, result);

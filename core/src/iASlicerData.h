@@ -42,6 +42,7 @@
 #include "ui_sliceXZ.h"
 #include "ui_sliceYZ.h"
 
+
 class vtkScalarBarWidget;
 class vtkTextProperty;
 class vtkColorTransferFunction;
@@ -70,6 +71,19 @@ class vtkActor;
 class iARulerWidget;
 class iAObserverRedirect;
 class iAMagicLens;
+
+//Klara
+class vtkRenderWindow;
+class vtkImageBlend;
+class vtkImageMapper;
+class vtkActor2D;
+class vtkThinPlateSplineTransform;
+class vtkPoints;
+class vtkRegularPolygonSource;
+class vtkPolyDataMapper2D;
+class vtkLookupTable;
+class vtkImageMapToColors;
+class vtkImageGridSource;
 
 /**
  * \brief	implements a slicer widget
@@ -151,6 +165,8 @@ public:
 	vtkScalarBarWidget * GetScalarWidget();
 	vtkImageActor* GetImageActor();
 
+	vtkColorTransferFunction * GetColorTransferFunction();
+
 protected:
 
 	void UpdateResliceAxesDirectionCosines();
@@ -194,6 +210,29 @@ Q_SIGNALS:
 	void Pick();
 
 private:
+	// Klara variables for transformation
+	vtkSmartPointer<vtkThinPlateSplineTransform> fisheyeTransform;
+	vtkSmartPointer<vtkPoints> p_source;
+	vtkSmartPointer<vtkPoints> p_target;
+	// variables for lens appearance
+	vtkSmartPointer<vtkRegularPolygonSource> fisheye;
+	vtkSmartPointer<vtkPolyDataMapper2D> fisheyeMapper;
+	vtkSmartPointer<vtkActor2D> fisheyeActor;
+
+	vtkSmartPointer<vtkImageGridSource> imageGrid;
+	vtkSmartPointer<vtkLookupTable> table;
+	vtkSmartPointer<vtkImageMapToColors> gridToColors;
+	//vtkSmartPointer<vtkImageBlend> blend;
+
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle1List;
+	QList<vtkSmartPointer<vtkActor2D>> circle1ActList;
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
+	QList<vtkSmartPointer<vtkActor2D>> circle2ActList;
+
+	void updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double radius);
+	void initializeFisheyeLens(vtkImageReslice* reslicer);
+	//endKlara
+
 	iAMagicLens * m_magicLensExternal;
 	
 	iAObserverRedirect * observerMouseMove;
@@ -272,4 +311,5 @@ private:
 
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
 	void GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, double* result);
+
 };
