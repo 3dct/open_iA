@@ -526,7 +526,11 @@ void iADiagramFctWidget::contextMenuEvent(QContextMenuEvent *event)
 	autoUpdateAction->setChecked(updateAutomatically);
 	connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 	contextMenu->addAction(autoUpdateAction);
+	
 	contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
+
+	contextMenu->addAction(QIcon(":/images/save.png"), tr("Export data"), this, SLOT(ExportData()));
+
 	if (m_showFunctions && m_allowTrfReset)
 	{
 		contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
@@ -897,12 +901,7 @@ void iADiagramFctWidget::updateTrf()
 
 bool iADiagramFctWidget::loadTransferFunction()
 {
-	QString filePath;
-	if (activeChild)
-	{
-		filePath = activeChild->currentFile();
-		filePath.truncate(filePath.lastIndexOf('/'));
-	}
+	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
@@ -926,12 +925,7 @@ void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 bool iADiagramFctWidget::saveTransferFunction()
 {
 	dlg_transfer *transferFunction = (dlg_transfer*)functions[0];
-	QString filePath;
-	if (activeChild)
-	{
-		filePath = activeChild->currentFile();
-		filePath.truncate(filePath.lastIndexOf('/'));
-	}
+	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty()) {
 		Settings s;
@@ -983,8 +977,7 @@ bool iADiagramFctWidget::loadFunctions()
 	{
 		return false;
 	}
-	QString filePath = activeChild->currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
+	QString filePath = activeChild->getFilePath();
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
@@ -1019,9 +1012,7 @@ bool iADiagramFctWidget::saveFunctions()
 	{
 		return false;
 	}
-	QString filePath = (activeChild)->currentFile();
-	filePath.truncate(filePath.lastIndexOf('/'));
-
+	QString filePath = activeChild->getFilePath();
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
@@ -1061,6 +1052,26 @@ void iADiagramFctWidget::updateTransferFunctions(vtkColorTransferFunction* ctf, 
 	emit updateViews();
 }
 
+void iADiagramFctWidget::ExportData()
+{
+	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
+	QString fileName = QFileDialog::getSaveFileName(
+		this,
+		tr("Save File"),
+		filePath, tr("CSV (*.csv)")
+	);
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	std::ofstream out(fileName.toStdString());
+	out << tr("Start of Bin").toStdString() << "," << tr("Frequency").toStdString() << endl;
+	for (int b = 0; b < GetData()->GetNumBin(); ++b)
+	{
+		out << GetData()->GetBinStart(b) << "," << GetData()->GetData()[b] << std::endl;
+	}
+	out.close();
+}
 
 void iADiagramFctWidget::GetDataRange(double* range)
 {

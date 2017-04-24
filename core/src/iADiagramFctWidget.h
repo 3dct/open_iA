@@ -195,6 +195,7 @@ public slots:
 	void removeFunction();
 	void showTFTable();
 	void TFTableIsFinished();
+	void ExportData();
 
 protected:
 	virtual void drawFunctions(QPainter &painter);

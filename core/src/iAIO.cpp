@@ -326,8 +326,10 @@ void iAIO::run()
 						out << ",";
 					}
 				}
+				out << std::endl;
 			}
 			out.close();
+			break;
 		}
 		case VTI_READER: {
 			vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
