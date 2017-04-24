@@ -32,7 +32,7 @@ class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 
 public:
 	dlg_imageproperty(QWidget *parent);
-	void AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name);
+	void AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name, int channelCount);
 	void Clear();
 private:
 	void EnterMsg(QString txt);

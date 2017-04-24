@@ -2212,7 +2212,13 @@ void MdiChild::updateImageProperties()
 	imgProperty->Clear();
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
-		imgProperty->AddInfo(GetModality(i)->GetImage(), GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName());
+		imgProperty->AddInfo(GetModality(i)->GetImage(), GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName(),
+			(i == 0 &&
+			GetModality(i)->ComponentCount() == 1 &&
+			volumeStack->getNumberOfVolumes() > 1) ?
+				volumeStack->getNumberOfVolumes() :
+				GetModality(i)->ComponentCount()
+			);
 	}
 }
 

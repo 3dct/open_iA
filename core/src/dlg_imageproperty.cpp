@@ -41,28 +41,52 @@ void dlg_imageproperty::Clear()
 	lWidget->clear();
 }
 
-void dlg_imageproperty::AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name)
+void dlg_imageproperty::AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name, int channelCount)
 {
 	EnterMsg(name);
-	EnterMsg( tr( "    Extent: [%1 %2]  [%3 %4]  [%5 %6]" ).arg( src->GetExtent()[0] )
-			  .arg( src->GetExtent()[1] )
-			  .arg( src->GetExtent()[2] )
-			  .arg( src->GetExtent()[3] )
-			  .arg( src->GetExtent()[4] )
-			  .arg( src->GetExtent()[5] ) );
+	EnterMsg( QString( "    %1: [%2 %3]  [%4 %5]  [%6 %7]" )
+		.arg(tr("Extent"))
+		.arg( src->GetExtent()[0] )
+		.arg( src->GetExtent()[1] )
+		.arg( src->GetExtent()[2] )
+		.arg( src->GetExtent()[3] )
+		.arg( src->GetExtent()[4] )
+		.arg( src->GetExtent()[5] ) );
 
-	EnterMsg( tr( "    Spacing:  %1  %2  %3" ).arg( src->GetSpacing()[0] )
-			  .arg( src->GetSpacing()[1] )
-			  .arg( src->GetSpacing()[2] ) );
+	EnterMsg( QString( "    %1:  %2  %3  %4" )
+		.arg(tr("Spacing"))
+		.arg( src->GetSpacing()[0] )
+		.arg( src->GetSpacing()[1] )
+		.arg( src->GetSpacing()[2] ) );
 
-	EnterMsg( tr( "    Origin: %1 %2 %3" ).arg( src->GetOrigin()[0] )
-			  .arg( src->GetOrigin()[1] )
-			  .arg( src->GetOrigin()[2] ) );
+	EnterMsg( QString( "    %1: %2 %3 %4" )
+		.arg(tr("Origin"))
+		.arg( src->GetOrigin()[0] )
+		.arg( src->GetOrigin()[1] )
+		.arg( src->GetOrigin()[2] ) );
 
-	QString txt = src->GetScalarTypeAsString();
-	EnterMsg( "    Datatype: " + txt );
+	EnterMsg( QString("    %1: %2")
+		.arg(tr("Datatype"))
+		.arg(src->GetScalarTypeAsString()) );
 	
-	EnterMsg( tr( "    Components: %1" ).arg( src->GetNumberOfScalarComponents() ) );
+	QString componentStr;
+	if (src->GetNumberOfScalarComponents() > 1 && channelCount > 1)
+	{
+		componentStr = QString("%1/%2")
+			.arg(channelCount)
+			.arg(src->GetNumberOfScalarComponents());
+	}
+	else if (channelCount > 1)
+	{
+		componentStr = QString::number(channelCount);
+	}
+	else
+	{
+		componentStr = QString::number(src->GetNumberOfScalarComponents());
+	}
+	EnterMsg( QString( "    %1: %2" )
+		.arg(tr("Components"))
+		.arg(componentStr) );
 	
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
