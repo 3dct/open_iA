@@ -75,6 +75,9 @@
     </item>
     <item row="19" column="2">
      <widget class="QPushButton" name="pbClusterUncertaintyDice">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>Cluster</string>
       </property>
@@ -83,7 +86,7 @@
     <item row="17" column="2">
      <widget class="QPushButton" name="pbSample">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="text">
        <string>Sample</string>
@@ -113,6 +116,9 @@
        </property>
        <item row="3" column="1">
         <widget class="QSlider" name="slMaxPixelEntropy">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="minimum">
           <number>0</number>
          </property>
@@ -133,7 +139,7 @@
        <item row="3" column="2">
         <widget class="QPushButton" name="pbMaxPixelEntropy_Plot">
          <property name="enabled">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="text">
           <string>Plot</string>
@@ -143,7 +149,7 @@
        <item row="1" column="2">
         <widget class="QPushButton" name="pbMinDiffPercent_Plot">
          <property name="enabled">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="text">
           <string>Plot</string>
@@ -159,6 +165,9 @@
        </item>
        <item row="1" column="1">
         <widget class="QSlider" name="slMinDiffPercent">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="maximum">
           <number>10000</number>
          </property>
@@ -183,7 +192,7 @@
        <item row="2" column="2">
         <widget class="QPushButton" name="pbMinRatio_Plot">
          <property name="enabled">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="text">
           <string>Plot</string>
@@ -192,6 +201,9 @@
        </item>
        <item row="2" column="1">
         <widget class="QSlider" name="slMinRatio">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="minimum">
           <number>100</number>
          </property>
@@ -212,7 +224,7 @@
        <item row="0" column="2">
         <widget class="QPushButton" name="pbMinAbsPercent_Plot">
          <property name="enabled">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="text">
           <string>Plot</string>
@@ -228,6 +240,9 @@
        </item>
        <item row="0" column="1">
         <widget class="QSlider" name="slAbsMinPercent">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="maximum">
           <number>10000</number>
          </property>
@@ -258,6 +273,9 @@
        </item>
        <item row="4" column="1">
         <widget class="QSlider" name="slLabelVoters">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="minimum">
           <number>1</number>
          </property>
@@ -379,6 +397,9 @@
        </item>
        <item row="2" column="1">
         <widget class="QPushButton" name="pbLoadConfig">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Load Config</string>
          </property>
@@ -393,6 +414,9 @@
        </item>
        <item row="3" column="1">
         <widget class="QPushButton" name="pbStore">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Store Last</string>
          </property>
@@ -400,6 +424,9 @@
        </item>
        <item row="2" column="0">
         <widget class="QPushButton" name="pbStoreConfig">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Store Config</string>
          </property>

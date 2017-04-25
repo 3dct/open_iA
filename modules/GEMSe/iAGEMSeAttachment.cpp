@@ -68,10 +68,10 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 		newAttachment->m_dlgSamplings,
 		colorTheme
 	);
-	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
-	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
-	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
-	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
+	mdiChild->SplitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
+	mdiChild->SplitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
+	mdiChild->SplitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
+	mdiChild->SplitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
 
 	connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
 	connect(mdiChild->getSlicerDataXY(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));

@@ -277,6 +277,10 @@ public:
 	//! (currently used for determining which modality to save)
 	int chooseModalityNr(QString const & caption = "Choose Channel");
 
+	//! workaround for bug in splitDockWidget (see https://bugreports.qt.io/browse/QTBUG-60093)
+	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
+	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();

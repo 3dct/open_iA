@@ -50,6 +50,7 @@ class dlg_Consensus : public dlg_ConsensusUI
 public:
 	dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings);
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
+	void EnableUI();
 private slots:
 	void MinAbsPlot();
 	void MinDiffPlot();
@@ -77,6 +78,7 @@ private:
 	void SelectionUncertaintyDice(
 		QVector<QSharedPointer<iASingleResult> > const & selection,
 		QString const & name);
+	void StartNextSampler();
 
 	MdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
@@ -94,7 +96,8 @@ private:
 	QString const & m_folder;
 
 	// for hold-out validation:
-	QVector<QSharedPointer<iAImageSampler> > m_sampler;
+	QVector<QSharedPointer<iAImageSampler> > m_queuedSamplers;
+	QSharedPointer<iAImageSampler> m_currentSampler;
 	dlg_progress * m_dlgProgress;
 	QVector<QSharedPointer<iASamplingResults> > m_comparisonSamplingResults;
 	QVector<QVector<int> > m_comparisonBestIDs;

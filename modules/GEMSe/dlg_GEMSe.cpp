@@ -689,7 +689,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 	}
 
 	DEBUG_LOG("Measures for ENSEMBLE:");
-	CalculateRefImgComp(GetRoot(), refImg, labelCount);
+	CalculateRefImgComp(GetRoot(), refImg, labelCount);	// rewrite using VisitLeafs !
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 	m_detailView->SetRefImg(refImg);

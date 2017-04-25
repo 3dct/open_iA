@@ -184,7 +184,6 @@ void iAImageSampler::run()
 	}
 	if (m_aborted)
 	{
-		StatusMsg("Aborted by user!");
 		return;
 	}
 	// wait for running operations to finish:
@@ -210,7 +209,7 @@ void iAImageSampler::computationFinished()
 	m_computationDuration += computationTime;
 	if (!cmd->success())
 	{
-		DEBUG_LOG(QString("Computation was NOT successful!"));
+		DEBUG_LOG(QString("Computation was NOT successful, aborting!"));
 		m_aborted = true;
 
 		// we don't start derived output calculation (at which's end we would do this otherwise):
@@ -295,6 +294,7 @@ QSharedPointer<iASamplingResults> iAImageSampler::GetResults()
 
 void iAImageSampler::Abort()
 {
+	DEBUG_LOG("Abort requested by User!");
 	m_aborted = true;
 }
 

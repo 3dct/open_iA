@@ -37,5 +37,5 @@ void iAWidgetAddHelper::TabWidget(QDockWidget* newTab, QDockWidget* other)
 
 void iAWidgetAddHelper::SplitWidget(QDockWidget* newSplit, QDockWidget* splitWidget, Qt::Orientation orient)
 {
-	m_mdiChild->splitDockWidget(splitWidget, newSplit, orient);
+	m_mdiChild->SplitDockWidget(splitWidget, newSplit, orient);
 }

@@ -47,6 +47,10 @@ public:
 	}
 	int & get(int r, int c)
 	{
+		if (r < 0 || c < 0 || r >= rowCount || c >= colCount)
+		{
+			DEBUG_LOG(QString("Invalid Matrix access (%1, %2), matrix dimensions (%3, %4)").arg(r).arg(c).arg(rowCount).arg(colCount));
+		}
 		return data[r*colCount + c];
 	}
 	void inc(int r, int c)
@@ -85,7 +89,7 @@ int * colTotals(Matrix & m)
 }
 
 void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int labelCount,
-	QVector<double> & measures)
+	QVector<double> & measures, bool reportUndecided)
 {
 	typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType > FilterType;
 	FilterType::Pointer filter = FilterType::New();
@@ -93,7 +97,6 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 	filter->SetTargetImage(curImg);
 	filter->Update();
 	measures.push_back(filter->GetDiceCoefficient());
-
 
 	// row      column
 	Matrix errorMatrix(labelCount, labelCount);
@@ -103,13 +106,21 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 	ImgConstIter gtIt(refImg, refImg->GetLargestPossibleRegion());
 	sampleIt.GoToBegin();
 	gtIt.GoToBegin();
+	int outsideValues = 0;
 	while (!gtIt.IsAtEnd())
 	{
 		int refValue = gtIt.Get();
 		if (refValue != -1)
 		{
 			int sampleValue = sampleIt.Get();
-			errorMatrix.inc(sampleValue, refValue);
+			if (sampleValue < labelCount)
+			{
+				errorMatrix.inc(sampleValue, refValue);
+			}
+			else
+			{
+				outsideValues++;
+			}
 		}
 		++sampleIt;
 		++gtIt;
@@ -145,6 +156,12 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 	for (int l = 0; l < labelCount; ++l)
 	{
 		measures.push_back(filter->GetDiceCoefficient(l));
+	}
+
+	if (reportUndecided)
+	{
+		// DEBUG_LOG(QString("Encountered %1 pixel values out of valid range (0, %2)").arg(outsideValues).arg(labelCount));
+		measures.push_back(outsideValues);
 	}
 	delete[] actTot;
 	delete[] refTot;

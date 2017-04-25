@@ -23,4 +23,4 @@
 #include "iAImageTreeNode.h"
 
 void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int labelCount,
-	QVector<double> & measures);
+	QVector<double> & measures, bool reportUndecided=false);
