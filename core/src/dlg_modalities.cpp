@@ -29,6 +29,7 @@
 #include "iAHistogramWidget.h"
 #include "iAIOProvider.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iASlicer.h"

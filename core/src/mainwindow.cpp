@@ -2528,7 +2528,9 @@ QString GreatestCommonPrefix(QString const & str1, QString const & str2)
 	return str1.left(pos);
 }
 
+
 #include "iAModality.h"
+#include "iAModalityList.h"
 
 #include <vtkImageReader2.h>
 #include <vtkTIFFReader.h>

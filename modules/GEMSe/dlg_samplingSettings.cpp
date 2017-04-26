@@ -26,6 +26,7 @@
 #include "iAConsole.h"
 #include "iAListNameMapper.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iANameMapper.h"
 #include "iAParameterGeneratorImpl.h"
 

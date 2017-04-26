@@ -30,6 +30,7 @@
 #include "iAFileUtils.h"
 #include "iALabelOverlayThread.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAToolsVTK.h"
 #include "mdichild.h"
 
