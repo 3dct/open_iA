@@ -918,7 +918,7 @@ void dlg_Consensus::SamplerFinished()
 		}
 	}
 	
-	DEBUG_LOG("Measures for LoadedConfiguration:");
+	DEBUG_LOG("Measures for loaded configuration:");
 	m_comparisonMVSelection.clear();
 	m_comparisonBestSelection.clear();
 	for (int s = 0; s < m_comparisonSamplingResults.size(); ++s)
@@ -965,15 +965,25 @@ void dlg_Consensus::SamplerFinished()
 			CalculateMeasures(m_groundTruthImage,
 				dynamic_cast<LabelImageType*>(m_comparisonSamplingResults[s]->Get(m)->GetLabelledImage().GetPointer()),
 				m_labelCount, measureValues, true);
-			DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
+			// {
+			// write measures and parameters to debug out:
+			QString debugOut = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
 				.arg(m_comparisonSamplingResults[s]->Get(m)->GetDatasetID())
 				.arg(m_comparisonSamplingResults[s]->Get(m)->GetID())
 				.arg(measureValues[0]) // dice
 				.arg(measureValues[2]) // accuracy
 				.arg(measureValues[3]) // precision
 				.arg(measureValues[4]) // recall
-				.arg(measureValues[measureValues.size()-1]) // undecided
-			);
+				.arg(measureValues[measureValues.size() - 1]); // undecided
+			for (int i = 0; i < m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->size(); ++i)
+			{
+				if (m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+				{
+					debugOut += QString("\t%1").arg(m_comparisonSamplingResults[s]->Get(m)->GetAttribute(i));
+				}
+			}
+			DEBUG_LOG(debugOut);
+			// }
 			for (int i = 0; i<measures.size(); ++i)
 			{
 				int attributeID = attributes->Find(measures[i]->GetName());
