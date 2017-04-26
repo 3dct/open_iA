@@ -500,11 +500,11 @@ void dlg_labels::StoreImage()
 }
 
 
-bool haveAllSeeds(QVector<int> label2SeedCounts, int requiredNumOfSeedsPerLabel)
+bool haveAllSeeds(QVector<int> const & label2SeedCounts, std::vector<int> const & requiredNumOfSeedsPerLabel)
 {
-	for (int curNumSeeds : label2SeedCounts)
+	for (int i=0; i<label2SeedCounts.size(); ++i)
 	{
-		if (curNumSeeds < requiredNumOfSeedsPerLabel)
+		if (label2SeedCounts[i] < requiredNumOfSeedsPerLabel[i])
 		{
 			return false;
 		}
@@ -528,15 +528,21 @@ void dlg_labels::Sample()
 		}
 	}
 
-	QStringList     inParams; inParams << "*Number of Seeds per Label";
-	QList<QVariant> inValues; inValues << 50;
+	QStringList     inParams; inParams
+		<< "*Number of Seeds per Label"
+		<< "$Reduce seed number for all labels to size of smallest labeling";
+	QList<QVariant> inValues; inValues
+		<< 50
+		<< true;
 	dlg_commoninput input(this, "Sample Seeds", inParams.size(), inParams, inValues, nullptr);
 	if (input.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	int numOfSeedsPerLabel = input.getSpinBoxValues()[0];
+	int numOfSeeds = input.getSpinBoxValues()[0];
+	bool reduceNum = input.getCheckValues()[1];
 
+	std::vector<int> numOfSeedsPerLabel(labelCount, numOfSeeds);
 	// check that there is at least numOfSeedsPerLabel pixels per label
 	std::vector<int> histogram(labelCount, 0);
 	FOR_VTKIMG_PIXELS(img, x, y, z)
@@ -544,17 +550,29 @@ void dlg_labels::Sample()
 		int label = static_cast<int>(img->GetScalarComponentAsFloat(x, y, z, 0));
 		histogram[label]++;
 	}
+	int minNumOfSeeds = numOfSeeds;
 	for (int i = 0; i < labelCount; ++i)
 	{
-		if (histogram[i] < numOfSeedsPerLabel)
+		if ((histogram[i] * 3 / 4) < numOfSeedsPerLabel[i])
 		{
-			numOfSeedsPerLabel = histogram[i] * 3 / 4;
-			DEBUG_LOG(QString("Reducing number of seeds per label to %1 because label %2 only has %3 pixels")
-				.arg(numOfSeedsPerLabel).arg(i).arg(histogram[i]));
+			numOfSeedsPerLabel[i] = histogram[i] * 3 / 4;
+			DEBUG_LOG(QString("Reducing number of seeds for label %1 to %2 because it only has %3 pixels")
+				.arg(i).arg(numOfSeedsPerLabel[i]).arg(histogram[i]));
+		}
+		if (numOfSeedsPerLabel[i] < minNumOfSeeds)
+		{
+			minNumOfSeeds = numOfSeedsPerLabel[i];
 		}
 		if (m_itemModel->rowCount() <= i)
 		{
 			AddLabelItem(QString::number(i));
+		}
+	}
+	if (reduceNum)
+	{
+		for (int i = 0; i < labelCount; ++i)
+		{
+			numOfSeedsPerLabel[i] = minNumOfSeeds;
 		}
 	}
 	
@@ -572,7 +590,7 @@ void dlg_labels::Sample()
 		int z = zDist(gen);
 		int label = static_cast<int>(img->GetScalarComponentAsFloat(x, y, z, 0));
 
-		if (label2SeedCount[label] < numOfSeedsPerLabel && !SeedAlreadyExists(m_itemModel->item(label), x, y, z))
+		if (label2SeedCount[label] < numOfSeedsPerLabel[label] && !SeedAlreadyExists(m_itemModel->item(label), x, y, z))
 		{
 			m_itemModel->item(label)->appendRow(GetCoordinateItem(x, y, z));
 			label2SeedCount[label]++;
