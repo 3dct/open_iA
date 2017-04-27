@@ -85,6 +85,8 @@ IF (ITK_USE_SYSTEM_FFTW)
 		SET(FFTW_DLL ${ITK_FFTW_LIBDIR}/libfftw3f-3.dll)
 		MESSAGE(STATUS "FFTW dll file: ${FFTW_DLL}")
 		INSTALL (FILES ${FFTW_DLL} DESTINATION .)
+	ELSE(MSVC)
+		# INSTALL (FILES ${ITK_FFTW_LIBDIR}/libfftw3f-3.so DESTINATION .)
 	ENDIF (MSVC)
 ENDIF (ITK_USE_SYSTEM_FFTW)
 IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
@@ -110,9 +112,9 @@ ELSE ()
 	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKReview)
 ENDIF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 
+SET (ITK_VER "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
 IF (MSVC)
 	SET (ITK_REL_DIR "${ITK_DIR}/bin/Release")
-	SET (ITK_VER "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
 	INSTALL (FILES ${ITK_REL_DIR}/ITKCommon-${ITK_VER}.dll DESTINATION .)
 	INSTALL (FILES ${ITK_REL_DIR}/ITKIOBioRad-${ITK_VER}.dll DESTINATION .)
 	INSTALL (FILES ${ITK_REL_DIR}/ITKIOBMP-${ITK_VER}.dll DESTINATION .)
@@ -134,6 +136,13 @@ IF (MSVC)
 	INSTALL (FILES ${ITK_REL_DIR}/ITKIONIFTI-${ITK_VER}.dll DESTINATION .)
 	INSTALL (FILES ${ITK_REL_DIR}/ITKIONRRD-${ITK_VER}.dll DESTINATION .)
 	INSTALL (FILES ${ITK_REL_DIR}/ITKTransform-${ITK_VER}.dll DESTINATION .)
+ELSE(MSVC)
+	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+	FOREACH(ITK_LIB ${ITK_LIBRARIES})
+	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
+		STRING(REPLACE "SCIFIO" "itkSCIFIO" ITK_LIBF "${ITK_LIB}")
+		INSTALL (FILES ${ITK_LIB_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1 DESTINATION .)
+	ENDFOREACH(ITK_LIB)
 ENDIF(MSVC)
 
 
@@ -280,8 +289,30 @@ IF(MSVC)
 	IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
 		INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingFreeTypeOpenGL-${VTK_VER}.dll DESTINATION .)
 	ENDIF()
+ELSE(MSVC)
+	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+	SET (EXTRA_VTK_LIBS 
+		vtkalglib	vtkCommonColor	vtkCommonComputationalGeometry	vtkCommonDataModel
+		vtkCommonExecutionModel	vtkCommonMath	vtkCommonMisc	vtkCommonSystem
+		vtkCommonTransforms	vtkexoIIc	vtkexpat	vtkFiltersExtraction
+		vtkFiltersGeneral	vtkFiltersGeometry	vtkFiltersImaging	vtkFiltersSources
+		vtkFiltersStatistics	vtkFiltersTexture	vtkfreetype	vtkhdf5
+		vtkImagingColor	vtkImagingFourier	vtkImagingGeneral	vtkImagingHybrid
+		vtkImagingSources	vtkInfovisLayout	vtkInteractionStyle	vtkInteractionWidgets
+		vtkIOImage	vtkIOXMLParser	vtkjpeg	vtklibxml2
+		vtkmetaio	vtkoggtheora	vtkpng	vtkRenderingLabel
+		vtkRenderingVolume	vtktiff	vtkverdict	vtkViewsInfovis
+		vtkzlib
+	)
+	IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
+		SET (EXTRA_VTK_LIBS ${EXTRA_VTK_LIBS}	vtkRenderingFreeTypeOpenGL)
+	ENDIF()
+	SET (ALL_VTK_LIBS ${VTK_LIBRARIES} ${EXTRA_VTK_LIBS})
+	FOREACH(VTK_LIB ${ALL_VTK_LIBS})
+		INSTALL (FILES ${VTK_LIB_DIR}/lib${VTK_LIB}-${VTK_VER}.so.1 DESTINATION .)
+	ENDFOREACH(VTK_LIB)
+	INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
 ENDIF(MSVC)
-
 
 # Qt
 SET(CMAKE_AUTOMOC ON)
@@ -296,9 +327,9 @@ INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
 
 SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Network_LIBRARIES} ${Qt5PrintSupport_LIBRARIES})
 
+
+STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 IF(MSVC)
-	#Qt
-	STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5Core.dll DESTINATION .)
 	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5Gui.dll DESTINATION .)
 	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5OpenGL.dll DESTINATION .)
@@ -306,7 +337,33 @@ IF(MSVC)
 	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5Xml.dll DESTINATION .)
 	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5PrintSupport.dll DESTINATION .)
 	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/qwindows.dll DESTINATION platforms)
-# TODO: installation for other platforms!
+ELSE(MSVC)
+	SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
+	SET (QT_VER "${Qt5Core_VERSION}")
+	SET (QT_SHORTVER "${Qt5Core_VERSION_MAJOR}.${Qt5Core_VERSION_MINOR}")
+	SET (EXTRA_QT_LIBS Qt5DBus Qt5X11Extras Qt5XcbQpa)
+	SET (ALL_QT_LIBS ${QT_LIBRARIES} ${EXTRA_QT_LIBS})
+	FOREACH(QT_LIBCOLON ${ALL_QT_LIBS})
+		STRING (REPLACE "::" "" QT_LIB "${QT_LIBCOLON}")
+		INSTALL (FILES ${QT_LIB_DIR}/lib${QT_LIB}.so.${QT_VER} DESTINATION . RENAME lib${QT_LIB}.so.${QT_SHORTVER})
+	ENDFOREACH(QT_LIBCOLON)
+
+	# xcb platform plugin:
+	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
+
+	# egl and glx plugins to the xcb platform plugin:
+	INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
+
+	# install icu:
+	# TODO: find out whether Qt was built with icu library dependencies
+	# (typically only the case if webengine/webkit were included); but there
+	# doesn't seem to be any CMake variable exposing this...
+	# also, no version information on ICU is available, therefore the hard-coded 56
+	SET(ICU_LIBS icudata icui18n icuuc)
+	SET(ICU_VER "56")
+	FOREACH(ICU_LIB ${ICU_LIBS})
+		INSTALL (FILES ${QT_LIB_DIR}/lib${ICU_LIB}.so.${ICU_VER}.1 DESTINATION . RENAME lib${ICU_LIB}.so.${ICU_VER})
+	ENDFOREACH()
 ENDIF(MSVC)
 
 
