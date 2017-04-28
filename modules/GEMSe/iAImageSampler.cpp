@@ -28,6 +28,7 @@
 #include "iADerivedOutputCalculator.h"
 #include "iAImageCoordinate.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iANameMapper.h"
 #include "iAParameterGenerator.h"
 #include "iASingleResult.h"

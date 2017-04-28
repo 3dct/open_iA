@@ -26,7 +26,6 @@
 
 #include <QSharedPointer>
 #include <QString>
-#include <QVector>
 
 #include <vector>
 
@@ -34,7 +33,6 @@ class iAImageCoordConverter;
 class iAModalityTransfer;
 class iAVolumeRenderer;
 
-class vtkCamera;
 class vtkImageData;
 class vtkVolume;
 class vtkSmartVolumeMapper;
@@ -81,6 +79,8 @@ public:
 	//! return the name of the given component
 	QString GetImageName(int componentIdx);
 
+	QString GetOrientationString();
+	QString GetPositionString();
 
 	int GetWidth() const;
 	int GetHeight() const;
@@ -118,35 +118,4 @@ private:
 	QString positionSettings;
 	QString orientationSettings;
 	QString tfFileName;
-};
-
-
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
-
-
-class open_iA_Core_API iAModalityList: public QObject
-{
-	Q_OBJECT
-public:
-	iAModalityList();
-	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename);
-	void ApplyCameraSettings(vtkCamera* cam);
-	
-	int size() const;
-	QSharedPointer<iAModality> Get(int idx);
-	QSharedPointer<iAModality const> Get(int idx) const;
-	void Add(QSharedPointer<iAModality> mod);
-	void Remove(int idx);
-	QString const & GetFileName() const;
-	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-signals:
-	void Added(QSharedPointer<iAModality> mod);
-private:
-	bool ModalityExists(QString const & filename, int channel) const;
-
-	ModalityCollection m_modalities;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
 };

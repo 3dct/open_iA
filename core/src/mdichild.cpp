@@ -38,6 +38,7 @@
 #include "iALogger.h"
 #include "iAMdiChildLogger.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
 #include "iAObserverProgress.h"

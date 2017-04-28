@@ -24,6 +24,7 @@
 
 #include "iAChannelVisualizationData.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAQSplom.h"
 
 #include <vtkColorTransferFunction.h>

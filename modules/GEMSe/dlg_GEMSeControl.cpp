@@ -42,6 +42,7 @@
 #include "iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"

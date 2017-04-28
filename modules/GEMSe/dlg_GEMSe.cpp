@@ -609,15 +609,26 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 		LabelImageType* lblImg = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer());
 		QVector<double> measures;
 		CalculateMeasures(refImg, lblImg, labelCount, measures);
-		// datasetID ID   precision recall
-		DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6")
+		// {
+		// write measures and parameters to debug out:
+		QString debugOut = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
 			.arg(leaf->GetDatasetID())
 			.arg(leaf->GetID())
 			.arg(measures[0]) // dice
 			.arg(measures[2]) // accuracy
 			.arg(measures[3]) // precision
 			.arg(measures[4]) // recall
-		);
+			.arg("")		  // undecided
+		;
+		for (int i = 0; i < leaf->GetAttributes()->size(); ++i)
+		{
+			if (leaf->GetAttributes()->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+			{
+				debugOut += QString("\t%1").arg(leaf->GetAttribute(i));
+			}
+		}
+		DEBUG_LOG(debugOut);
+		// }
 		for (int i=0; i<measures.size(); ++i)
 		{
 			int chartID = m_MeasureChartIDStart + i;

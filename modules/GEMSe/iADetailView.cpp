@@ -35,6 +35,7 @@
 #include "iALabelInfo.h"
 #include "iALabelOverlayThread.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iANameMapper.h"
 #include "iASlicerData.h"
