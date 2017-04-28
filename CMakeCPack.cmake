@@ -26,6 +26,9 @@ set(CPACK_NSIS_MENU_LINKS "./${CPACK_PACKAGE_NAME}.exe" "${CPACK_PACKAGE_NAME} $
 set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_NAME} ${VERSION}")
 
 # DEB-specific settings:
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Bernhard Froehler")
+# TODO: not sure yet how to handle dependencies properly
+#SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Bernhard Froehler")
+#MESSAGE(STATUS "${CPACK_DEBIAN_PACKAGE_DEPENDS}")
+#SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.23)")
 
 include(CPack)

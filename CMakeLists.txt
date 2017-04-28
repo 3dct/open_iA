@@ -137,11 +137,23 @@ IF (MSVC)
 	INSTALL (FILES ${ITK_REL_DIR}/ITKIONRRD-${ITK_VER}.dll DESTINATION .)
 	INSTALL (FILES ${ITK_REL_DIR}/ITKTransform-${ITK_VER}.dll DESTINATION .)
 ELSE(MSVC)
+	SET (EXTRA_ITK_LIBS itkdouble-conversion
+		itkgdcmcharls itkgdcmCommon itkgdcmDICT itkgdcmDSED itkgdcmIOD
+		itkgdcmjpeg12 itkgdcmjpeg16 itkgdcmjpeg8 itkgdcmMSFF
+		itkgdcmopenjpeg itkgdcmuuid
+		ITKStatistics ITKTransform)
+	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
+	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
+		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
+	ENDIF()
+	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
+	MESSAGE(STATUS "${ALL_ITK_LIBS}")
 	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
-	FOREACH(ITK_LIB ${ITK_LIBRARIES})
+	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
 	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
 		STRING(REPLACE "SCIFIO" "itkSCIFIO" ITK_LIBF "${ITK_LIB}")
 		INSTALL (FILES ${ITK_LIB_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1 DESTINATION .)
+		# execute command: patchelf --set-rpath '\$ORIGIN' ${INSTALL_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1)
 	ENDFOREACH(ITK_LIB)
 ENDIF(MSVC)
 
@@ -340,8 +352,8 @@ IF(MSVC)
 ELSE(MSVC)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
 	SET (QT_VER "${Qt5Core_VERSION}")
-	SET (QT_SHORTVER "${Qt5Core_VERSION_MAJOR}.${Qt5Core_VERSION_MINOR}")
-	SET (EXTRA_QT_LIBS Qt5DBus Qt5X11Extras Qt5XcbQpa)
+	SET (QT_SHORTVER "${Qt5Core_VERSION_MAJOR}")
+	SET (EXTRA_QT_LIBS Qt5DBus Qt5Gui Qt5Widgets Qt5X11Extras Qt5XcbQpa)
 	SET (ALL_QT_LIBS ${QT_LIBRARIES} ${EXTRA_QT_LIBS})
 	FOREACH(QT_LIBCOLON ${ALL_QT_LIBS})
 		STRING (REPLACE "::" "" QT_LIB "${QT_LIBCOLON}")
@@ -397,6 +409,16 @@ IF(open_iA_GPU_USING_OPENCL)
 	ELSE(OPENCL_FOUND)
 		MESSAGE(SEND_ERROR "OpenCL is not found. Please check your configuration.")
 	ENDIF(OPENCL_FOUND)
+
+	IF (MSVC)
+		INSTALL (FILES ${OPENCL_LIBRARY} DESTINATION .)
+	ELSE (MSVC)
+		# typically OPENCL_LIBRARIES will only contain the one libOpenCL.so anyway, FOREACH just to make sure
+		# hard-coded .1 might have to be replaced at some point...
+		FOREACH(OPENCL_LIB ${OPENCL_LIBRARIES})
+			INSTALL (FILES ${OPENCL_LIB}.1 DESTINATION .)
+		ENDFOREACH()
+	ENDIF(MSVC)
 ENDIF(open_iA_GPU_USING_OPENCL)
 
 
