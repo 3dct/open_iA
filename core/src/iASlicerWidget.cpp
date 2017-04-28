@@ -48,6 +48,7 @@
 #include <QGridLayout>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QBitmap>
 
 #define EPSILON 0.0015
 
@@ -69,8 +70,6 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	m_decorations(decorations)
 {
 	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
-	setCursor(QCursor(Qt::CrossCursor));
-
 	m_imageData = NULL;
 	m_viewMode = NORMAL; // standard m_viewMode
 	m_xInd = m_yInd = m_zInd = 0;
@@ -126,7 +125,7 @@ void iASlicerWidget::initialize( vtkImageData *imageData, vtkPoints *points )
 	this->m_worldSnakePointsExternal = points;
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->GetActiveCamera()->SetParallelProjection(true);
-
+	
 	if (m_decorations)
 	{
 		m_snakeSpline->initialize(ren, imageData->GetSpacing()[0]);
@@ -236,6 +235,7 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	}
 	QVTKWidget2::mousePressEvent(event);
 }
+
 
 void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 {
@@ -559,6 +559,7 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 
 void iASlicerWidget::slicerUpdatedSlot()
 {
+	setCursor( m_slicerDataExternal->getMouseCursor() );
 	if(m_isSliceProfEnabled)
 		updateProfile();
 }

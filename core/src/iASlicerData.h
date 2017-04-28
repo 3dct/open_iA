@@ -109,6 +109,7 @@ public:
 	void setMeasurementStartPoint(int x, int y) { measureStart[0] = x; measureStart[1] = y; };
 	void setROI(int r[6]) { roi = r; };
 	void setShowText(bool isVisible);
+	void setMouseCursor( QString s );
 
 	void disableInteractor() { interactor->Disable(); disabled = true; }
 	void enableInteractor() { interactor->ReInitialize(); disabled = false; }
@@ -153,6 +154,7 @@ public:
 
 	vtkScalarBarWidget * GetScalarWidget();
 	vtkImageActor* GetImageActor();
+	QCursor getMouseCursor();
 
 protected:
 
@@ -274,4 +276,6 @@ private:
 
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
 	void GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, double* result);
+
+	QCursor m_mouseCursor;
 };

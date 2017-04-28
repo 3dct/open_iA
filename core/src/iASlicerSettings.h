@@ -28,6 +28,7 @@ public:
 		ShowPosition;
 	double MinIsoValue, MaxIsoValue;
 	int NumberOfIsoLines;
+	QString CursorMode;
 	
 	iASingleSlicerSettings() :
 		LinearInterpolation(false),
@@ -35,7 +36,8 @@ public:
 		ShowPosition(false),
 		MinIsoValue(0),
 		MaxIsoValue(0),
-		NumberOfIsoLines(0)
+		NumberOfIsoLines(0),
+		CursorMode(QString())
 	{}
 };
 

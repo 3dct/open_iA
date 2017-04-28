@@ -1003,6 +1003,7 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 	slicerSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(defaultSlicerSettings.SingleSlicer.LinearInterpolation));
 	slicerSettingsElement.setAttribute("snakeSlices", tr("%1").arg(defaultSlicerSettings.SnakeSlices));
 	slicerSettingsElement.setAttribute("linkMDIs", tr("%1").arg(defaultSlicerSettings.LinkMDIs));
+	slicerSettingsElement.setAttribute("cursorMode", tr( "%1" ).arg( defaultSlicerSettings.SingleSlicer.CursorMode));
 
 	doc.documentElement().appendChild(slicerSettingsElement);
 }
@@ -1021,6 +1022,7 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 	defaultSlicerSettings.SingleSlicer.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue().toDouble();
 	defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 	defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
+	defaultSlicerSettings.SingleSlicer.CursorMode = attributes.namedItem("cursorMode").nodeValue().toStdString().c_str();
 
 	activeMdiChild()->editSlicerSettings(defaultSlicerSettings);
 }
@@ -1300,7 +1302,15 @@ void MainWindow::renderSettings()
 void MainWindow::slicerSettings()
 {
 	MdiChild *child = activeMdiChild();
-
+	
+	const QStringList mouseCursorModes = QStringList()\
+		<< "Crosshair default" \
+		<< "Crosshair thick red"	<< "Crosshair thin red" \
+		<< "Crosshair thick orange"	<< "Crosshair thin orange" \
+		<< "Crosshair thick yellow"	<< "Crosshair thin yellow" \
+		<< "Crosshair thick blue"	<< "Crosshair thin blue" \
+		<< "Crosshair thick cyan"	<< "Crosshair thin cyan";
+	
 	QStringList inList = (QStringList() << tr("$Link Views")
 		<< tr("$Show Position")
 		<< tr("$Show Isolines")
@@ -1309,8 +1319,14 @@ void MainWindow::slicerSettings()
 		<< tr("#Min Isovalue")
 		<< tr("#Max Isovalue")
 		<< tr("#Snake Slices")
-		<< tr("$Link MDIs"));
+		<< tr("$Link MDIs")
+		<< tr("+Mouse Coursor Types"));
+	
 	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
+	QStringList mouseCursorTypes;
+	foreach( QString mode, mouseCursorModes )
+		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
+	
 	QList<QVariant> inPara; 	inPara  << (slicerSettings.LinkViews ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowPosition ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowIsoLines ? tr("true") : tr("false"))
@@ -1319,9 +1335,10 @@ void MainWindow::slicerSettings()
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MinIsoValue)
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MaxIsoValue)
 		<< tr("%1").arg(slicerSettings.SnakeSlices)
-		<< (child->getLinkedMDIs() ? tr("true") : tr("false"));
+		<< (child->getLinkedMDIs() ? tr("true") : tr("false"))
+		<< mouseCursorTypes;
 
-	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", 9, inList, inPara, NULL);
+	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", 10, inList, inPara, NULL);
 
 	if (dlg->exec() == QDialog::Accepted)
 	{
@@ -1334,6 +1351,7 @@ void MainWindow::slicerSettings()
 		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg->getValues()[6];
 		defaultSlicerSettings.SnakeSlices = dlg->getValues()[7];
 		defaultSlicerSettings.LinkMDIs = dlg->getCheckValues()[8] != 0;
+		defaultSlicerSettings.SingleSlicer.CursorMode = dlg->getComboBoxValues()[9];
 
 		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(defaultSlicerSettings))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
@@ -1907,6 +1925,7 @@ void MainWindow::readSettings()
 	defaultSlicerSettings.SingleSlicer.MinIsoValue = settings.value("Slicer/ssMinIsovalue", 20000).toDouble();
 	defaultSlicerSettings.SingleSlicer.MaxIsoValue = settings.value("Slicer/ssMaxIsovalue", 40000).toDouble();
 	defaultSlicerSettings.SingleSlicer.LinearInterpolation = settings.value("Slicer/ssImageActorUseInterpolation", true).toBool();
+	defaultSlicerSettings.SingleSlicer.CursorMode = settings.value( "Slicer/ssCursorMode", "Crosshair default").toString();
 	defaultSlicerSettings.SnakeSlices = settings.value("Slicer/ssSnakeSlices", 100).toInt();
 	lpCamera = settings.value("Parameters/lpCamera").toBool();
 	lpSliceViews = settings.value("Parameters/lpSliceViews").toBool();
@@ -2002,6 +2021,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssMaxIsovalue", defaultSlicerSettings.SingleSlicer.MaxIsoValue);
 	settings.setValue("Slicer/ssImageActorUseInterpolation", defaultSlicerSettings.SingleSlicer.LinearInterpolation);
 	settings.setValue("Slicer/ssSnakeSlices", defaultSlicerSettings.SnakeSlices);
+	settings.setValue("Slicer/ssCursorMode", defaultSlicerSettings.SingleSlicer.CursorMode);
 
 	settings.setValue("Parameters/lpCamera", lpCamera);
 	settings.setValue("Parameters/lpSliceViews", lpSliceViews);

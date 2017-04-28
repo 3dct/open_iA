@@ -78,6 +78,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QString>
+#include <QBitmap>
 
 #include <string>
 #include <sstream>
@@ -555,6 +556,7 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 	{
 		m_magicLensExternal->SetInterpolate(settings.LinearInterpolation);
 	}
+	setMouseCursor(settings.CursorMode);
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
 	showPosition(settings.ShowPosition);
@@ -1773,6 +1775,27 @@ void iASlicerData::setContours( int n, double * contourValues )
 		cFilter->SetValue( i, contourValues[i] );
 }
 
+void iASlicerData::setMouseCursor( QString s )
+{
+	QString color = s.section( ' ', -1 );
+	if ( color != "default" )
+	{
+		QString shape = s.section( ' ', 0, 0 );
+		QPixmap pm;
+		if ( shape == "Crosshair" )
+			pm = QPixmap( ":/images/" + s.section(' ', 0, 1) + ".png" );
+		QPixmap cpm( pm.size() );
+		cpm.fill( color );
+		cpm.setMask( pm.createMaskFromColor( Qt::transparent ) );
+		m_mouseCursor = QCursor( cpm );
+	}
+	else
+	{
+		m_mouseCursor = QCursor( Qt::CrossCursor );
+	}
+	emit updateSignal();
+}
+
 vtkScalarBarWidget * iASlicerData::GetScalarWidget()
 {
 	return scalarWidget;
@@ -1781,4 +1804,9 @@ vtkScalarBarWidget * iASlicerData::GetScalarWidget()
 vtkImageActor* iASlicerData::GetImageActor()
 {
 	return imageActor;
+}
+
+QCursor iASlicerData::getMouseCursor()
+{
+	return m_mouseCursor;
 }
