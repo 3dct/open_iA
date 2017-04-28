@@ -176,6 +176,20 @@ void iAIntensityModuleInterface::intensity_windowing()
 
 void iAIntensityModuleInterface::normalize_image()
 {
+	//set filter description
+	QTextDocument *fDescr = new QTextDocument();
+	fDescr->setHtml(
+		"<p>Normalizes an image by setting its mean to zero and variance to one."
+		"The Normalize Image Filter shifts and scales an image so that the pixels in the image "
+		"have a zero mean and unit variance. NB: since this filter normalizes the data to lie within -1 to "
+		"1, integral types will produce an image that DOES NOT HAVE a unit variance.</p>"
+		"<p>https://itk.org/Doxygen/html/classitk_1_1NormalizeImageFilter.html</p>");
+
+	QStringList inList; QList<QVariant> inPara; 	
+	dlg_commoninput dlg( m_mainWnd, "Normalize Image Filter", 0, inList, inPara, fDescr );
+	if ( dlg.exec() != QDialog::Accepted )
+		return;
+
 	//prepare
 	QString filterName = "Normalize Image";
 	PrepareResultChild( filterName );
@@ -189,7 +203,27 @@ void iAIntensityModuleInterface::normalize_image()
 }
 
 void iAIntensityModuleInterface::histogram_match()
-{
+{	
+	//set filter description
+	QTextDocument *fDescr = new QTextDocument();
+	fDescr->setHtml(
+		"<p>Normalizes the grayscale values between two images by histogram matching."
+		"The Histogram Matching Image Filter normalizes the grayscale values of a source "
+		"image based on the grayscale values of a reference image. This filter uses a histogram "
+		"matching technique where the histograms of the two images are matched only at a specified "
+		"number of quantile values.</p>"
+		"<p>This filter was originally designed to normalize MR images of the same MR protocol and "
+		"same body part. The algorithm works best if background pixels are excluded from both the "
+		"source and reference histograms. A simple background exclusion method is to exclude all "
+		"pixels whose grayscale values are smaller than the mean grayscale value. "
+		"ThresholdAtMeanIntensityOn() switches on this simple background exclusion method.</p>"
+		"<p>SetNumberOfHistogramLevels() sets the number of bins used when creating histograms of the "
+		"source and reference images. SetNumberOfMatchPoints() governs the number of quantile values "
+		"to be matched.</p>"
+		"<p>This filter assumes that both the source and reference are of the same type and that the "
+		"input and output image type have the same number of dimension and have scalar pixel types.</p>"
+		"<p>https://itk.org/Doxygen/html/classitk_1_1HistogramMatchingImageFilter.html</p>" );
+
 	QSettings settings;
 	hmHistogramLevels = settings.value( "Filters/Intensity/hmHistogramLevels" ).toInt();
 	hmMatchPoints = settings.value( "Filters/Intensity/hmMatchPoints" ).toInt();
@@ -200,7 +234,7 @@ void iAIntensityModuleInterface::histogram_match()
 		<< tr( "#Histogram Levels" ) << tr( "#Match Points" ) << tr( "$ThresholdAtMeanIntensity" ) );
 	QList<QVariant> inPara;
 	inPara << tr( "%1" ).arg( hmHistogramLevels ) << tr( "%1" ).arg( hmMatchPoints ) << tr( "%1" ).arg( hmThresholdAtMeanIntensity);
-	dlg_commoninput dlg( m_mainWnd, "Difference Image Filter", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Histogram Matching Image Filter", 3, inList, inPara, fDescr );
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
