@@ -147,7 +147,6 @@ ELSE(MSVC)
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
 	ENDIF()
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
-	MESSAGE(STATUS "${ALL_ITK_LIBS}")
 	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
 	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
 	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
@@ -476,8 +475,6 @@ IF (NOT DONT_BUILD_OPEN_IA_GUI)
 	ADD_SUBDIRECTORY(gui)
 ENDIF (NOT DONT_BUILD_OPEN_IA_GUI)
 
-# INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR}/Toolkit )
-
 # Configure the default TESTING_DATA_ROOT for the location of Data.
 set(TESTING_DATA_OUTPUT ${PROJECT_SOURCE_DIR}/Test_files/TestITK/Output)
 
@@ -489,4 +486,8 @@ endif(open_iA_TEST_ITK)
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)
+
+if (UNIX)
+	install(CODE "include(\"${CMAKE_SOURCE_DIR}/cmake/ChangeRPath.cmake\")")
+endif()
 include (CMakeCPack.cmake)

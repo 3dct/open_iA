@@ -1,0 +1,19 @@
+MESSAGE("Setting RUNPATH of all included libraries.")
+
+set (scriptcmd ${CMAKE_CURRENT_LIST_DIR}/package.sh)
+
+EXECUTE_PROCESS(COMMAND
+		${scriptcmd}
+	WORKING_DIRECTORY
+		${CMAKE_INSTALL_PREFIX}
+	RESULT_VARIABLE
+		CMDRESULT
+	OUTPUT_VARIABLE
+		CMDOUT
+)
+
+#MESSAGE("Output ${CMDRESULT}: ${CMDOUT}")
+
+IF (NOT "${CMDRESULT}" EQUAL "0")
+	MESSAGE(SEND_ERROR "Setting of RUNPATH failed!")
+ENDIF()
