@@ -132,7 +132,12 @@ FOREACH( indx RANGE ${len} )
 		ENDIF(MSVC)
 		
 		# Installation
-		INSTALL (TARGETS ${module_name} DESTINATION plugins)
+		IF (UNIX)
+			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
+		ENDIF(UNIX)
+		IF (WIN32)
+			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
+		ENDIF(WIN32)
 	ENDIF( ${module_option} )
 ENDFOREACH()
 

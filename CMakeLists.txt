@@ -112,50 +112,6 @@ ELSE ()
 	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKReview)
 ENDIF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 
-SET (ITK_VER "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
-IF (MSVC)
-	SET (ITK_REL_DIR "${ITK_DIR}/bin/Release")
-	INSTALL (FILES ${ITK_REL_DIR}/ITKCommon-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOBioRad-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOBMP-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOGIPL-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOImageBase-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOPNG-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOStimulate-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOVTK-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOGDCM-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOGE-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOIPL-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOHDF5-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOJPEG-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOLSM-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOMRC-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKSCIFIO-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOTIFF-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIOMeta-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIONIFTI-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKIONRRD-${ITK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${ITK_REL_DIR}/ITKTransform-${ITK_VER}.dll DESTINATION .)
-ELSE(MSVC)
-	SET (EXTRA_ITK_LIBS itkdouble-conversion
-		itkgdcmcharls itkgdcmCommon itkgdcmDICT itkgdcmDSED itkgdcmIOD
-		itkgdcmjpeg12 itkgdcmjpeg16 itkgdcmjpeg8 itkgdcmMSFF
-		itkgdcmopenjpeg itkgdcmuuid
-		ITKStatistics ITKTransform)
-	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
-	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
-		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
-	ENDIF()
-	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
-	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
-	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
-	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
-		STRING(REPLACE "SCIFIO" "itkSCIFIO" ITK_LIBF "${ITK_LIB}")
-		INSTALL (FILES ${ITK_LIB_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1 DESTINATION .)
-		# execute command: patchelf --set-rpath '\$ORIGIN' ${INSTALL_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1)
-	ENDFOREACH(ITK_LIB)
-ENDIF(MSVC)
-
 
 # VTK
 FIND_PACKAGE(VTK)
@@ -187,15 +143,10 @@ SET (VTK_LIBRARIES
 	vtkViewsCore
 	vtkViewsInfovis
 	vtksys)
-SET (VTK_VER "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
-SET (VTK_REL_DIR "${VTK_DIR}/bin/Release")
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
 ENDIF("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRendering${VTK_RENDERING_BACKEND})
-IF (MSVC)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRendering${VTK_RENDERING_BACKEND}-${VTK_VER}.dll DESTINATION .)
-ENDIF (MSVC)
 IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 0)
 	SET (VTK_LIBRARIES ${VTK_LIBRARIES}
 		vtkRenderingCore
@@ -203,23 +154,14 @@ IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 0)
 		vtkRenderingQt
 		vtkViewsContext2D)
 	SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingVolume${VTK_RENDERING_BACKEND})
-	IF (MSVC)
-		INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingVolume${VTK_RENDERING_BACKEND}-${VTK_VER}.dll DESTINATION .)
-	ENDIF(MSVC)
 ENDIF (VTK_VERSION_MAJOR GREATER 6 OR  VTK_VERSION_MINOR GREATER 0)
 IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 1)
 	SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingContext${VTK_RENDERING_BACKEND})
-	IF (MSVC)
-		INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingContext${VTK_RENDERING_BACKEND}-${VTK_VER}.dll DESTINATION .)
-	ENDIF(MSVC)
 ENDIF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 1)
 IF (VTK_VERSION_MAJOR GREATER 7 OR (VTK_VERSION_MAJOR EQUAL 7 AND VTK_VERSION_MINOR GREATER 0))
 	SET(VTK_LIBRARIES ${VTK_LIBRARIES} vtkFiltersHybrid vtkFiltersModeling vtkImagingHybrid vtkRenderingAnnotation)
 	IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingGL2PSOpenGL2)
-		IF (MSVC)
-			INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingGL2PSOpenGL2-${VTK_VER}.dll DESTINATION .)
-		ENDIF(MSVC)
+		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingGL2PSOpenGL2 vtkgl2ps)
 	ENDIF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 ENDIF (VTK_VERSION_MAJOR GREATER 7 OR (VTK_VERSION_MAJOR EQUAL 7 AND VTK_VERSION_MINOR GREATER 0))
 IF (vtkoggtheora_LOADED)
@@ -227,103 +169,6 @@ IF (vtkoggtheora_LOADED)
 	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
 ENDIF(vtkoggtheora_LOADED)
 
-IF(MSVC)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkalglib-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkexoIIc-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkexpat-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkfreetype-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkhdf5-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkjpeg-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtklibxml2-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkmetaio-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkpng-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtksys-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtktiff-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkverdict-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkzlib-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/QVTKWidgetPlugin.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkChartsCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonColor-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonComputationalGeometry-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonExecutionModel-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonDataModel-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonMath-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonMisc-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonSystem-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkCommonTransforms-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkDICOMParser-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkGUISupportQt-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkGUISupportQtOpenGL-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersExtraction-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersGeneral-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersGeometry-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersHybrid-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersImaging-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersModeling-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersSources-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersStatistics-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkFiltersTexture-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkIOCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkIOGeometry-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkIOImage-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkIOMovie-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkIOXML-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkIOXMLParser-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkImagingColor-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkImagingCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkImagingGeneral-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkImagingFourier-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkImagingHybrid-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkImagingSources-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkImagingStatistics-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkInfovisCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkInfovisLayout-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkInteractionStyle-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkInteractionWidgets-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkjsoncpp-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkoggtheora-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingAnnotation-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingContext2D-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingFreeType-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingImage-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingLabel-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingQt-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingLabel-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingVolume-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkViewsCore-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkViewsContext2D-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkViewsInfovis-${VTK_VER}.dll DESTINATION .)
-	INSTALL (FILES ${VTK_REL_DIR}/vtkGUISupportQtOpenGL-${VTK_VER}.dll DESTINATION .)
-	IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
-		INSTALL (FILES ${VTK_REL_DIR}/vtkRenderingFreeTypeOpenGL-${VTK_VER}.dll DESTINATION .)
-	ENDIF()
-ELSE(MSVC)
-	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
-	SET (EXTRA_VTK_LIBS 
-		vtkalglib	vtkCommonColor	vtkCommonComputationalGeometry	vtkCommonDataModel
-		vtkCommonExecutionModel	vtkCommonMath	vtkCommonMisc	vtkCommonSystem
-		vtkCommonTransforms	vtkexoIIc	vtkexpat	vtkFiltersExtraction
-		vtkFiltersGeneral	vtkFiltersGeometry	vtkFiltersImaging	vtkFiltersSources
-		vtkFiltersStatistics	vtkFiltersTexture	vtkfreetype	vtkhdf5
-		vtkImagingColor	vtkImagingFourier	vtkImagingGeneral	vtkImagingHybrid
-		vtkImagingSources	vtkInfovisLayout	vtkInteractionStyle	vtkInteractionWidgets
-		vtkIOImage	vtkIOXMLParser	vtkjpeg	vtklibxml2
-		vtkmetaio	vtkoggtheora	vtkpng	vtkRenderingLabel
-		vtkRenderingVolume	vtktiff	vtkverdict	vtkViewsInfovis
-		vtkzlib
-	)
-	IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
-		SET (EXTRA_VTK_LIBS ${EXTRA_VTK_LIBS}	vtkRenderingFreeTypeOpenGL)
-	ENDIF()
-	SET (ALL_VTK_LIBS ${VTK_LIBRARIES} ${EXTRA_VTK_LIBS})
-	FOREACH(VTK_LIB ${ALL_VTK_LIBS})
-		INSTALL (FILES ${VTK_LIB_DIR}/lib${VTK_LIB}-${VTK_VER}.so.1 DESTINATION .)
-	ENDFOREACH(VTK_LIB)
-	INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
-ENDIF(MSVC)
 
 # Qt
 SET(CMAKE_AUTOMOC ON)
@@ -331,51 +176,10 @@ SET(QT_USE_QTXML TRUE)
 IF (WIN32)
 	SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x64" )
 ENDIF (WIN32)
-
 FIND_PACKAGE(Qt5 COMPONENTS Widgets Xml Network Test OpenGL PrintSupport REQUIRED)
 # Qt5OpenGL_INCLUDE_DIRS seems to be required on linux only, but doesn't hurt on Windows:
 INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
-
 SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Network_LIBRARIES} ${Qt5PrintSupport_LIBRARIES})
-
-
-STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
-IF(MSVC)
-	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5Core.dll DESTINATION .)
-	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5Gui.dll DESTINATION .)
-	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5OpenGL.dll DESTINATION .)
-	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5Widgets.dll DESTINATION .)
-	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5Xml.dll DESTINATION .)
-	INSTALL (FILES ${Qt5_BASEDIR}/bin/Qt5PrintSupport.dll DESTINATION .)
-	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/qwindows.dll DESTINATION platforms)
-ELSE(MSVC)
-	SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
-	SET (QT_VER "${Qt5Core_VERSION}")
-	SET (QT_SHORTVER "${Qt5Core_VERSION_MAJOR}")
-	SET (EXTRA_QT_LIBS Qt5DBus Qt5Gui Qt5Widgets Qt5X11Extras Qt5XcbQpa)
-	SET (ALL_QT_LIBS ${QT_LIBRARIES} ${EXTRA_QT_LIBS})
-	FOREACH(QT_LIBCOLON ${ALL_QT_LIBS})
-		STRING (REPLACE "::" "" QT_LIB "${QT_LIBCOLON}")
-		INSTALL (FILES ${QT_LIB_DIR}/lib${QT_LIB}.so.${QT_VER} DESTINATION . RENAME lib${QT_LIB}.so.${QT_SHORTVER})
-	ENDFOREACH(QT_LIBCOLON)
-
-	# xcb platform plugin:
-	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
-
-	# egl and glx plugins to the xcb platform plugin:
-	INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
-
-	# install icu:
-	# TODO: find out whether Qt was built with icu library dependencies
-	# (typically only the case if webengine/webkit were included); but there
-	# doesn't seem to be any CMake variable exposing this...
-	# also, no version information on ICU is available, therefore the hard-coded 56
-	SET(ICU_LIBS icudata icui18n icuuc)
-	SET(ICU_VER "56")
-	FOREACH(ICU_LIB ${ICU_LIBS})
-		INSTALL (FILES ${QT_LIB_DIR}/lib${ICU_LIB}.so.${ICU_VER}.1 DESTINATION . RENAME lib${ICU_LIB}.so.${ICU_VER})
-	ENDFOREACH()
-ENDIF(MSVC)
 
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
@@ -399,7 +203,6 @@ option (open_iA_GPU_USING_OPENCL "" OFF)
 
 IF(open_iA_GPU_USING_OPENCL)
 	INCLUDE(${PROJECT_SOURCE_DIR}/cmake/Modules/FindOpenCL.cmake)
-
 	IF(OPENCL_FOUND)
 		INCLUDE_DIRECTORIES( ${OPENCL_INCLUDE_DIRS} )
 	ELSE(OPENCL_FOUND)
@@ -408,16 +211,6 @@ IF(open_iA_GPU_USING_OPENCL)
 	ELSE(OPENCL_FOUND)
 		MESSAGE(SEND_ERROR "OpenCL is not found. Please check your configuration.")
 	ENDIF(OPENCL_FOUND)
-
-	IF (MSVC)
-		INSTALL (FILES ${OPENCL_LIBRARY} DESTINATION .)
-	ELSE (MSVC)
-		# typically OPENCL_LIBRARIES will only contain the one libOpenCL.so anyway, FOREACH just to make sure
-		# hard-coded .1 might have to be replaced at some point...
-		FOREACH(OPENCL_LIB ${OPENCL_LIBRARIES})
-			INSTALL (FILES ${OPENCL_LIB}.1 DESTINATION .)
-		ENDFOREACH()
-	ENDIF(MSVC)
 ENDIF(open_iA_GPU_USING_OPENCL)
 
 
@@ -484,6 +277,140 @@ if(open_iA_TEST_ITK)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/Test_files/TestITK")
 endif(open_iA_TEST_ITK)
 
+
+
+# Installation
+
+# ITK
+SET (ITK_VER "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
+IF (WIN32)
+	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
+	# strangely, under Windows, ITK seems to build a completely different set of shared libraries
+	# than under Linux. Those listed below are required by our binary. Even more strangely, this
+	# list is different from the list of libraries required for linking)
+	SET (WIN_ITK_LIBS
+		ITKCommon	ITKIOBioRad	ITKIOBMP	ITKIOGIPL	ITKIOImageBase	ITKIOPNG	ITKIOStimulate
+		ITKIOVTK	ITKIOGDCM	ITKIOGE	ITKIOIPL	ITKIOHDF5	ITKIOJPEG	ITKIOLSM	ITKIOMRC	ITKIOTIFF
+		ITKIOMeta	ITKIONIFTI	ITKIONRRD	ITKLabelMap	ITKOptimizers	ITKStatistics	ITKTransform
+		ITKVTK	ITKWatersheds
+	)
+	IF (SCIFIO_LOADED)
+		SET (WIN_ITK_LIBS ${WIN_ITK_LIBS} itkSCIFIO)
+	ENDIF()
+	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
+	FOREACH(ITK_LIB ${WIN_ITK_LIBS})
+		INSTALL (FILES ${ITK_LIB_DIR}/${ITK_LIB}-${ITK_VER}.dll DESTINATION .)
+	ENDFOREACH(ITK_LIB)
+ENDIF(WIN32)
+IF (UNIX)
+	SET (EXTRA_ITK_LIBS	itkdouble-conversion
+		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED		itkgdcmIOD	itkgdcmjpeg12
+		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmopenjpeg itkgdcmuuid
+		ITKStatistics	ITKTransform)
+	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
+	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
+		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
+	ENDIF()
+	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
+	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
+	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
+		STRING(REPLACE "SCIFIO" "itkSCIFIO" ITK_LIBF "${ITK_LIB}")
+		INSTALL (FILES ${ITK_LIB_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1 DESTINATION .)
+	ENDFOREACH(ITK_LIB)
+ENDIF(UNIX)
+
+
+# VTK
+SET (VTK_VER "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
+SET (VTK_EXTRA_LIBS 
+	vtkalglib	vtkCommonColor	vtkCommonComputationalGeometry	vtkCommonDataModel
+	vtkCommonExecutionModel	vtkCommonMath	vtkCommonMisc	vtkCommonSystem
+	vtkCommonTransforms	vtkexoIIc	vtkexpat	vtkFiltersExtraction
+	vtkFiltersGeneral	vtkFiltersGeometry	vtkFiltersImaging	vtkFiltersSources
+	vtkFiltersStatistics	vtkFiltersTexture	vtkfreetype	vtkhdf5
+	vtkImagingColor	vtkImagingFourier	vtkImagingGeneral	vtkImagingHybrid
+	vtkImagingSources	vtkInfovisLayout	vtkInteractionStyle	vtkInteractionWidgets
+	vtkIOImage	vtkIOXMLParser	vtkjpeg	vtklibxml2
+	vtkmetaio	vtkoggtheora	vtkpng	vtkRenderingLabel
+	vtkRenderingVolume	vtktiff	vtkverdict	vtkViewsInfovis
+	vtkzlib)
+IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
+	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}	vtkRenderingFreeTypeOpenGL)
+ENDIF()
+SET (VTK_ALL_LIBS ${VTK_LIBRARIES} ${VTK_EXTRA_LIBS})
+IF (WIN32)
+	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
+	SET (VTK_WIN_EXTRA_LIBS vtkglew vtkImagingMath)
+	SET (VTK_ALL_WIN_LIBS ${VTK_ALL_LIBS} ${VTK_WIN_EXTRA_LIBS})
+	FOREACH(VTK_LIB ${VTK_ALL_WIN_LIBS})
+		INSTALL (FILES ${VTK_LIB_DIR}/${VTK_LIB}-${VTK_VER}.dll DESTINATION .)
+	ENDFOREACH(VTK_LIB)
+	INSTALL(FILES ${VTK_LIB_DIR}/QVTKWidgetPlugin.dll DESTINATION .) 
+ENDIF(WIN32)
+IF (UNIX)
+	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+	FOREACH(VTK_LIB ${VTK_ALL_LIBS})
+		INSTALL (FILES ${VTK_LIB_DIR}/lib${VTK_LIB}-${VTK_VER}.so.1 DESTINATION .)
+	ENDFOREACH(VTK_LIB)
+	INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
+ENDIF(UNIX)
+
+
+# Qt
+STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
+SET (QT_COMMON_EXTRA_LIBS Qt5Gui Qt5Widgets)
+SET (QT_ALL_LIBS ${QT_LIBRARIES} ${QT_COMMON_EXTRA_LIBS})
+IF(WIN32)
+	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
+	FOREACH(QT_LIBCOLON ${QT_ALL_LIBS})
+		STRING (REPLACE "::" "" QT_LIB "${QT_LIBCOLON}")
+		INSTALL (FILES ${QT_LIB_DIR}/${QT_LIB}.dll DESTINATION .)
+	ENDFOREACH(QT_LIBCOLON)
+	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/qwindows.dll DESTINATION platforms)
+ENDIF(WIN32)
+IF(UNIX)
+	SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
+	SET (QT_VER "${Qt5Core_VERSION}")
+	SET (QT_SHORTVER "${Qt5Core_VERSION_MAJOR}")
+	SET (QT_LINUX_EXTRA_LIBS Qt5DBus Qt5X11Extras Qt5XcbQpa)
+	SET (QT_LINUX_ALL_LIBS ${QT_ALL_LIBS} ${QT_LINUX_EXTRA_LIBS})
+	FOREACH(QT_LIBCOLON ${QT_LINUX_ALL_LIBS})
+		STRING (REPLACE "::" "" QT_LIB "${QT_LIBCOLON}")
+		INSTALL (FILES ${QT_LIB_DIR}/lib${QT_LIB}.so.${QT_VER} DESTINATION . RENAME lib${QT_LIB}.so.${QT_SHORTVER})
+	ENDFOREACH(QT_LIBCOLON)
+	# xcb platform plugin:
+	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
+	# egl and glx plugins to the xcb platform plugin:
+	INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
+	# install icu:
+	# TODO: find out whether Qt was built with icu library dependencies
+	# (typically only the case if webengine/webkit were included); but there
+	# doesn't seem to be any CMake variable exposing this...
+	# also, no version information on ICU is available, therefore the hard-coded 56
+	SET(ICU_LIBS icudata icui18n icuuc)
+	SET(ICU_VER "56")
+	FOREACH(ICU_LIB ${ICU_LIBS})
+		INSTALL (FILES ${QT_LIB_DIR}/lib${ICU_LIB}.so.${ICU_VER}.1 DESTINATION . RENAME lib${ICU_LIB}.so.${ICU_VER})
+	ENDFOREACH()
+ENDIF(UNIX)
+
+
+# OpenCL
+IF(open_iA_GPU_USING_OPENCL)
+	IF (WIN32)
+		INSTALL (FILES ${OPENCL_LIBRARY} DESTINATION .)
+	ENDIF (WIN32)
+	IF (UNIX)
+		# typically OPENCL_LIBRARIES will only contain the one libOpenCL.so anyway, FOREACH just to make sure
+		# hard-coded .1 might have to be replaced at some point...
+		FOREACH(OPENCL_LIB ${OPENCL_LIBRARIES})
+			INSTALL (FILES ${OPENCL_LIB}.1 DESTINATION .)
+		ENDFOREACH()
+	ENDIF(UNIX)
+ENDIF(open_iA_GPU_USING_OPENCL)
+
+# Text files:
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)
 

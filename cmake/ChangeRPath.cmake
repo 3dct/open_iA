@@ -1,6 +1,6 @@
 MESSAGE("Setting RUNPATH of all included libraries.")
 
-set (scriptcmd ${CMAKE_CURRENT_LIST_DIR}/package.sh)
+set (scriptcmd ${CMAKE_CURRENT_LIST_DIR}/ChangeRPath.sh)
 
 EXECUTE_PROCESS(COMMAND
 		${scriptcmd}
