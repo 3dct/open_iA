@@ -97,7 +97,7 @@ QString dlg_editPCClass::getClassInfo(QWidget *parent, const QString &title, con
 		*ok = !!ret;
 	if(ret)
 	{
-		//dialog.getColor(color);
+		dialog.getColor(color);
 		return QString ("%1,%2,%3,%4").arg(dialog.getTextValue()).
 											arg(dialog.dcolor.red()).
 											arg(dialog.dcolor.green()).

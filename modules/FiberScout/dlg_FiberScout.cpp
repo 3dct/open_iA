@@ -108,13 +108,6 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
-////for vtkLine Vis
-//#include <vtkLineSource.h>
-//#include <vtkLine.h>
-//#include <vtkUnsignedCharArray.h>
-//#include <vtkCellArray.h>
-//#include <vtkCellData.h>
-
 #include "QtCore/qmath.h"
 #include <QtCore/QXmlStreamReader>
 #include <QtCore/QXmlStreamWriter>
@@ -513,6 +506,7 @@ void dlg_FiberScout::setupViews()
 	// declare element table model
 	elementTableModel = new QStandardItemModel( elementNr, 4, this );
 	elementTable = vtkSmartPointer<vtkTable>::New();
+
 	// declare class tree model
 	classTreeModel = new QStandardItemModel();
 
@@ -575,7 +569,6 @@ void dlg_FiberScout::setupViews()
 							SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
 	//this->createSphereView();
-
 	this->setupPolarPlotView( chartTable );
 }
 
@@ -859,17 +852,6 @@ void dlg_FiberScout::RenderingButton()
 		// Class has no objects, proceed with next class
 		if ( !itemL )
 			continue;
-
-		/*REMOVED, 09.06.2015  
-		//int hID = item->child( 0, 0 )->text().toInt();
-		//if ( !selectedObjID.contains( hID - 1 ) )
-		//{
-		//	oTF->AddPoint( hID - 1, backAlpha );
-		//	cTF->AddRGBPoint( hID - 1, backRGB[0], backRGB[1], backRGB[2] );
-		//}
-		*/
-		//oTF->AddPoint(hID, alpha);
-		//cTF->AddRGBPoint(hID, red, green, blue);
 
 		int hid = 0, next_hid = 1;
 		bool starting = false;
@@ -2213,9 +2195,6 @@ void dlg_FiberScout::ClassAddButton()
 
 		bool ok;
 
-		/*if(cid > 12) cid = 1;
-		QColor cColor = QColor::colorNames().at(18-cid);*/
-
 		// class name and color input when calling AddClassDialog.	
 		cText = dlg_editPCClass::getClassInfo( 0, "FiberScout", cText, &cColor, &ok ).section( ',', 0, 0 );
 
@@ -2239,7 +2218,6 @@ void dlg_FiberScout::ClassAddButton()
 			for ( int i = 0; i < CountObject; i++ )
 			{
 				// get objID from item->text()
-
 				vtkVariant v = pcChart->GetPlot( 0 )->GetSelection()->GetVariantValue( i );
 				objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
 
@@ -2301,11 +2279,6 @@ void dlg_FiberScout::ClassAddButton()
 				//update Class_ID and lookupTable??
 
 			}
-
-			/*int activeNr = activeCount - CountObject;
-			int itemID = this->activeClassItem->index().row();
-			rootItem->child(itemID,1)->setText(QString("%1").arg(activeNr));
-			rootItem->child(itemID,2)->setText(QString("%1").arg(100*activeNr/objectNr));*/
 
 			this->setActiveClassItem( firstLevelItem.first(), 1 );
 			this->calculateElementTable();
@@ -2980,7 +2953,6 @@ void dlg_FiberScout::ScatterPlotButton()
 		spInput->DeepCopy( csvTable );
 
 		// QVTKWidget setup and initialization
-		// sp_qvtkWidget = new QVTKWidget();
 		if ( !iovSPM )
 			return;
 		iovSPM->setWindowTitle( QString( "Scatter Plot Matrix" ) );
@@ -3306,17 +3278,13 @@ void dlg_FiberScout::classDoubleClicked( const QModelIndex &index )
 	if ( item->hasChildren() )
 	{
 		bool ok;
-		QString cText = item->text();
-		QString new_cText = item->text();
-		QColor cColor = this->colorList.at( index.row() );
-		QString new_cInfo = dlg_editPCClass::getClassInfo( 0, "Class Explorer", cText, &cColor, &ok );
-		new_cText = new_cInfo.section( ',', 0, 0 );
-		QColor new_cColor;
-		new_cColor.setRed( new_cInfo.section( ',', 1, 1 ).toInt() );
-		new_cColor.setGreen( new_cInfo.section( ',', 2, 2 ).toInt() );
-		new_cColor.setBlue( new_cInfo.section( ',', 3, 3 ).toInt() );
+		QColor old_cColor = this->colorList.at( index.row() );
+		QString old_cText = item->text();
+		QColor new_cColor = old_cColor;
+		QString new_cText = old_cText;
+		new_cText = dlg_editPCClass::getClassInfo( 0, "Class Explorer", new_cText, &new_cColor, &ok ).section( ',', 0, 0 );
 
-		if ( ok && ( cText.compare( new_cText ) != 0 || new_cColor != cColor ) )
+		if ( ok && ( old_cText.compare( new_cText ) != 0 || new_cColor != old_cColor ) )
 		{
 			this->colorList[index.row()] = new_cColor;
 			item->setText( new_cText );
@@ -3527,16 +3495,11 @@ void dlg_FiberScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandar
 
 void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
 {
-	// int situ, for different situations
-	// 0, class clicked
-	// 1, add class
-	// 2, delete class
-
 	// check once more, if its really a class item 
 	if ( !item->hasChildren() )
 		return;
 
-	if ( situ == 0 )
+	if ( situ == 0 )	// class clicked
 	{
 		// setActiveClassItem
 		this->activeClassItem = item;
@@ -3550,7 +3513,7 @@ void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
 		if ( this->spmActivated )
 			this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
-	else if ( situ == 1 )
+	else if ( situ == 1 )	// add class
 	{
 		// recalculate the old active class
 		this->recalculateChartTable( this->activeClassItem );
@@ -3569,7 +3532,7 @@ void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
 		if ( this->spmActivated )
 			this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
-	else if ( situ == 2 )
+	else if ( situ == 2 )	// delete class
 	{
 		// merge the deleted class table to stamm table
 		this->recalculateChartTable( item );
@@ -4198,11 +4161,11 @@ void dlg_FiberScout::setupPolarPlotView( vtkTable *it )
 	//cTFun->AddRGBPoint(  pcMaxC, 1.0, 0.0, 1.0 );	
 
 	//heatmap
-	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );			//grau			
-	cTFun->AddRGBPoint( pcMaxC * 1 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blau
-	cTFun->AddRGBPoint( pcMaxC * 4 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//rot
-	cTFun->AddRGBPoint( pcMaxC * 9 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//gelb
-	//cTFun->AddRGBPoint(   pcMaxC, 1.0, 1.0, 1.0 );		//weiß
+	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );					//gray			
+	cTFun->AddRGBPoint( pcMaxC * 1 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
+	cTFun->AddRGBPoint( pcMaxC * 4 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
+	cTFun->AddRGBPoint( pcMaxC * 9 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
+	//cTFun->AddRGBPoint(   pcMaxC, 1.0, 1.0, 1.0 );						//white
 
 	// color array to save the colors for each point
 	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -4302,11 +4265,11 @@ void dlg_FiberScout::updatePolarPlotColorScalar( vtkTable *it )
 	//cTFun->AddRGBPoint(  maxF, 1.0, 0.0, 1.0 );
 
 	//heatmap
-	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );			//grau			
-	cTFun->AddRGBPoint( maxF*1.0 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blau
-	cTFun->AddRGBPoint( maxF*4.0 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//rot
-	cTFun->AddRGBPoint( maxF*9.0 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//gelb
-	//cTFun->AddRGBPoint(   maxF, 1.0, 1.0, 1.0 );		//weiß
+	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );				//gray				
+	cTFun->AddRGBPoint( maxF*1.0 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
+	cTFun->AddRGBPoint( maxF*4.0 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
+	cTFun->AddRGBPoint( maxF*9.0 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
+	//cTFun->AddRGBPoint(   maxF, 1.0, 1.0, 1.0 );						//white
 
 	// color array to save the colors for each point
 	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -4513,7 +4476,6 @@ QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
 		{
 			eleString.append( QString( "sL%1" ).arg( micro1 ) );				// 18
 			eleString.append( QString( "cL%1" ).arg( micro1 ) );				// 19
-
 		}
 		eleString.append( QString( "Diameter%1" ).arg( micro1 ) );				// 20
 		eleString.append( QString( "Surface%1" ).arg( micro2 ) );				// 21
