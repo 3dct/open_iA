@@ -356,7 +356,7 @@ QList<double> dlg_commoninput::getDoubleSpinBoxValues()
 		if (t != 0)
 		{
 			//get the text from the child widget and insert is to outValueList
-			outValueList.insert(i,t->text().toDouble());
+			outValueList.insert(i,t->value());
 		}
 		else
 			outValueList.insert(i, 0.0);

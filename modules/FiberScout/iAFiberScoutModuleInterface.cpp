@@ -38,7 +38,7 @@ void iAFiberScoutModuleInterface::Initialize()
 {
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QAction * actionFibreScout = new QAction( m_mainWnd );
-	actionFibreScout->setText( QApplication::translate( "MainWindow", "ObjectScout", 0 ) );
+	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout );
 	tlbFiberScout = 0;
 	connect( actionFibreScout, SIGNAL( triggered() ), this, SLOT( FiberScout() ) );
