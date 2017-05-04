@@ -33,14 +33,12 @@
 iAFiberScoutAttachment::iAFiberScoutAttachment(MainWindow* mainWnd, iAChildData childData) :
 	iAModuleAttachmentToChild(mainWnd, childData)
 {
-	blobRen = vtkOpenGLRenderer::New();
+	blobRen = vtkSmartPointer<vtkOpenGLRenderer>::New();
 	blobVisEnabled = false;
 }
 
 iAFiberScoutAttachment::~iAFiberScoutAttachment()
-{
-	blobRen->Delete();
-}
+{}
 
 void iAFiberScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl)
 {

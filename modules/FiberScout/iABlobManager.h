@@ -46,10 +46,10 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 
+class iABlobCluster;
 class iARenderer;
 class MdiChild;
 
-class iABlobCluster;
 
 class iABlobManager
 {
@@ -165,7 +165,7 @@ private:
 	void					OverlapWithMask (vtkImageData* imageData);
 
 	QList<iABlobCluster*>	m_blobsList;
-	vtkImageData*			m_imageMask;
+	vtkSmartPointer<vtkImageData>	m_imageMask;
 	double					m_blurVariance;
 	double					m_overlappingEnabled;
 	bool					m_isSmoothingEnabled;
@@ -184,9 +184,8 @@ private:
 	double					m_blobOpacity;
 	double					m_silhouetteOpacity;
 
-	vtkRenderer*			m_blobRen;
-	vtkRenderer*			m_labelRen;
-
+	vtkSmartPointer<vtkRenderer>	m_blobRen;
+	vtkSmartPointer<vtkRenderer>	m_labelRen;
 
 	//depth peeling alternative
 	vtkSmartPointer<vtkAppendPolyData>		m_appendedBlobsPD;

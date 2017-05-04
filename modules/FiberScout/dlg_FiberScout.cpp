@@ -247,13 +247,13 @@ dlg_FiberScout::~dlg_FiberScout()
 {
 	delete blobManager;
 
-	if ( this->elementTableModel != NULL )
+	if ( this->elementTableModel != 0 )
 	{
 		delete elementTableModel;
 		elementTableModel = 0;
 	}
 
-	if ( this->classTreeModel != NULL )
+	if ( this->classTreeModel != 0 )
 	{
 		delete classTreeModel;
 		classTreeModel = 0;

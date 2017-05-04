@@ -28,28 +28,26 @@
 #ifndef __iaBlobCluster_h
 #define __iaBlobCluster_h
 
-class iABlobImplicitFunction;
-
-#include <vtkPolyDataNormals.h>
-#include <vtkWindowedSincPolyDataFilter.h>
-#include <vtkSampleFunction.h>
-#include <vtkContourFilter.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
-#include <vtkOutlineFilter.h>
+#include <vtkContourFilter.h>
 #include <vtkFeatureEdges.h>
+#include <vtkOutlineFilter.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkSampleFunction.h>
+#include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 #include <vtkStructuredPoints.h>
-#include <QVector>
-#include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkProperty.h>
-#include <QImage>
-#include <QPen>
-#include <QPainter>
-#include <QFont>
-#include <QApplication>
+#include <vtkWindowedSincPolyDataFilter.h>
 
+#include <QApplication>
+#include <QFont>
+#include <QImage>
+#include <QPainter>
+#include <QPen>
+#include <QVector>
 
 #include "iAXmlFiberParser.h"	// will be removed in feature
 #include "iALabel3D.h"
@@ -100,7 +98,8 @@ public:
 	void						LabelOff (void);
 
 								// Set renderers which will be visualize blob and labels
-	void						AttachRenderers (vtkRenderer* blobRen, vtkRenderer* labelRen);
+	void						AttachRenderers( vtkSmartPointer<vtkRenderer> blobRen,
+												 vtkSmartPointer<vtkRenderer> labelRen );
 
 								// Get property from isosurface actor
 	vtkProperty*				GetSurfaceProperty (void);
@@ -168,8 +167,8 @@ private:
 	void						DrawLabel (void);
 	void						RemoveLabel (void);	// NOT IMPLEMENTED
 
-	vtkRenderer*				m_blobRenderer;
-	vtkRenderer*				m_labelRenderer;
+	vtkSmartPointer<vtkRenderer>	m_blobRenderer;
+	vtkSmartPointer<vtkRenderer>	m_labelRenderer;
 
 	iALabel3D					m_label;
 	QString						m_name;
@@ -178,17 +177,17 @@ private:
 	QString						m_objectType;
 
 	// vtk members
-	vtkPolyDataNormals*			m_polyDataNormals;
-	vtkWindowedSincPolyDataFilter* m_smoother;
+	vtkSmartPointer<vtkPolyDataNormals>			m_polyDataNormals;
+	vtkSmartPointer<vtkWindowedSincPolyDataFilter> m_smoother;
 	iABlobImplicitFunction*		m_implicitFunction;
-	vtkSampleFunction*			m_sampleFunction;
-	vtkContourFilter*			m_contourFilter;
-	vtkPolyDataMapper*			m_contourMapper;
-	vtkActor*					m_contourActor;
-	vtkPolyDataSilhouette*		m_silhouette;
-	vtkPolyDataMapper*			m_silhouetteMapper;
-	vtkActor*					m_silhouetteActor;
-	vtkImageData*				m_imageData;
+	vtkSmartPointer<vtkSampleFunction>			m_sampleFunction;
+	vtkSmartPointer<vtkContourFilter>			m_contourFilter;
+	vtkSmartPointer<vtkPolyDataMapper>			m_contourMapper;
+	vtkSmartPointer<vtkActor>					m_contourActor;
+	vtkSmartPointer<vtkPolyDataSilhouette>		m_silhouette;
+	vtkSmartPointer<vtkPolyDataMapper>			m_silhouetteMapper;
+	vtkSmartPointer<vtkActor>					m_silhouetteActor;
+	vtkSmartPointer<vtkImageData>				m_imageData;
 	iABlobManager*				m_blobManager;
 
 	int							m_dimens[3];
