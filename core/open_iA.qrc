@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/">
+    <file>images/modTF.png</file>
     <file>images/Crosshair thin.png</file>
     <file>images/TFTableView.png</file>
     <file>images/Crosshair thick.png</file>

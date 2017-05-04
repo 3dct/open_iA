@@ -83,7 +83,7 @@ iABlobManager::iABlobManager( void )
 	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
 
-	QSettings settings( "FHW", "FiberScout" );
+	QSettings settings( "FHW", "FeatureScout" );
 	m_depthPeelingEnabled = settings.value( "UseDepthPeeling", true ).toBool();
 }
 
@@ -597,7 +597,7 @@ void iABlobManager::SetUseDepthPeeling( bool enabled )
 	{
 		m_depthPeelingEnabled = enabled;
 		//save to the settings
-		QSettings settings( "FHW", "FiberScout" );
+		QSettings settings( "FHW", "FeatureScout" );
 		settings.setValue( "UseDepthPeeling", m_depthPeelingEnabled );
 		for ( int i = 0; i < m_blobsList.count(); i++ )
 		{

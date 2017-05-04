@@ -52,7 +52,7 @@ void iAFiberScoutModuleInterface::FiberScout()
 
 	QStringList items;
 	items << tr( "Fibers" ) << tr( "Voids" );
-	QString fileName, filterName = tr( "FiberScout" ), item;
+	QString fileName, filterName = tr( "FeatureScout" ), item;
 
 	PrepareActiveChild();
 
@@ -112,7 +112,7 @@ bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString
 	if ( !io.LoadCsvFile(objectType, fileName ) )
 		return false;
 
-	QString filtername = tr( "FiberScout started" );
+	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );
 	m_mdiChild->addMsg( filtername );
 	AttachToMdiChild( m_mdiChild );
@@ -120,7 +120,7 @@ bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString
 	iAFiberScoutAttachment* attach = GetAttachment<iAFiberScoutAttachment>();
 	if ( !attach )
 	{
-		m_mdiChild->addMsg( "Error while creating FiberScout module!" );
+		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
 		return false;
 	}
 	attach->init(objectType, io.GetCSVTable());
@@ -144,12 +144,12 @@ void iAFiberScoutModuleInterface::FiberScout_Options()
 	iAFiberScoutAttachment* attach = GetAttachment<iAFiberScoutAttachment>();
 	if ( !attach )
 	{
-		DEBUG_LOG( "No FiberScout attachment in current MdiChild!" );
+		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
 	attach->FiberScout_Options( idx );
 
-	m_mainWnd->statusBar()->showMessage( tr( "FiberScout options changed to: " ).append( actionText ), 5000 );
+	m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
 }
 
 void iAFiberScoutModuleInterface::onChildClose()

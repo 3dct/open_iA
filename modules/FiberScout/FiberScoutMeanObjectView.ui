@@ -15,7 +15,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>386</width>
+    <width>447</width>
     <height>108</height>
    </size>
   </property>
@@ -99,6 +99,9 @@
            <width>24</width>
            <height>24</height>
           </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonIconOnly</enum>
          </property>
         </widget>
        </item>

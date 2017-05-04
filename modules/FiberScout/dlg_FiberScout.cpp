@@ -1261,7 +1261,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No defined class (except the 'unclassified' class)." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -1674,18 +1674,21 @@ void dlg_FiberScout::browseFolderDialog()
 	dir.truncate( sourcePath.lastIndexOf( "/" ) );
 	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), dir, tr( "CSV Files (*.stl *.STL)" ) );
 	if ( filename.isEmpty() )
-	{
-		QMessageBox msgBox;
-		msgBox.setText( "No file-save-destination specified" );
-		msgBox.setWindowTitle( "FiberScout" );
-		msgBox.exec();
 		return;
-	}
 	iovMO->le_StlPath->setText( filename );
 }
 
 void dlg_FiberScout::saveStl()
 {
+	if ( iovMO->le_StlPath->text().isEmpty() )
+	{
+		QMessageBox msgBox;
+		msgBox.setText( "No save file destination specified." );
+		msgBox.setWindowTitle( "FeatureScout" );
+		msgBox.exec();
+		return;
+	}
+
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->initProgressBar();
 
@@ -2196,7 +2199,7 @@ void dlg_FiberScout::ClassAddButton()
 		bool ok;
 
 		// class name and color input when calling AddClassDialog.	
-		cText = dlg_editPCClass::getClassInfo( 0, "FiberScout", cText, &cColor, &ok ).section( ',', 0, 0 );
+		cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
 
 		if ( ok ) // if input correctly
 		{
@@ -2244,7 +2247,7 @@ void dlg_FiberScout::ClassAddButton()
 			{
 				QMessageBox msgBox;
 				msgBox.setText( "Selected objects are already classified, please make a new selection." );
-				msgBox.setWindowTitle( "FiberScout" );
+				msgBox.setWindowTitle( "FeatureScout" );
 				msgBox.exec();
 				return;
 			}
@@ -2253,7 +2256,7 @@ void dlg_FiberScout::ClassAddButton()
 			{
 				QMessageBox msgBox;
 				msgBox.setText( "Selection Error, please make a new selection." );
-				msgBox.setWindowTitle( "FiberScout" );
+				msgBox.setWindowTitle( "FeatureScout" );
 				msgBox.exec();
 				return;
 			}
@@ -2303,7 +2306,7 @@ void dlg_FiberScout::ClassAddButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No object was selected!" );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 	}
 }
@@ -2434,7 +2437,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No fiber characteristic specified in the element explorer." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2452,8 +2455,8 @@ void dlg_FiberScout::CsvDVSaveButton()
 			if ( filename.isEmpty() )
 			{
 				QMessageBox msgBox;
-				msgBox.setText( "No file-save-destination specified" );
-				msgBox.setWindowTitle( "FiberScout" );
+				msgBox.setText( "No save file destination specified." );
+				msgBox.setWindowTitle( "FeatureScout" );
 				msgBox.exec();
 				return;
 			}
@@ -2641,7 +2644,7 @@ void dlg_FiberScout::WisetexSaveButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No data available!" );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2652,7 +2655,7 @@ void dlg_FiberScout::WisetexSaveButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No destination file was specified!" );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2662,7 +2665,7 @@ void dlg_FiberScout::WisetexSaveButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "Could not open XML file." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2683,7 +2686,7 @@ void dlg_FiberScout::ClassSaveButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No classes was defined." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2693,7 +2696,7 @@ void dlg_FiberScout::ClassSaveButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No destination file was specified!" );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2703,7 +2706,7 @@ void dlg_FiberScout::ClassSaveButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "Could not open XML file." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2733,7 +2736,7 @@ void dlg_FiberScout::ClassLoadButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "Class load error: No source file was specified!" );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2743,7 +2746,7 @@ void dlg_FiberScout::ClassLoadButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "Class load error: Could not open source xml file." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -2759,7 +2762,7 @@ void dlg_FiberScout::ClassLoadButton()
 		{
 			QMessageBox msgBox;
 			msgBox.setText( "Class load error: Incorrect xml file for current dataset, please check." );
-			msgBox.setWindowTitle( "FiberScout" );
+			msgBox.setWindowTitle( "FeatureScout" );
 			msgBox.exec();
 			checker.clear();
 			return;
@@ -2768,8 +2771,8 @@ void dlg_FiberScout::ClassLoadButton()
 	else // incompatible xml file
 	{
 		QMessageBox msgBox;
-		msgBox.setText( "Class load error: Incompatible xml file for FiberScout, please check." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setText( "Class load error: xml file incompatible with FeatureScout, please check." );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		checker.clear();
 		return;
@@ -2855,7 +2858,7 @@ void dlg_FiberScout::ClassLoadButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "Class load error: unclear class load process." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 	}
 	reader.clear();
@@ -2882,7 +2885,7 @@ void dlg_FiberScout::ClassDeleteButton()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "You are trying to delete the unclassified class, please select another class." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
 	}
@@ -3215,7 +3218,7 @@ void dlg_FiberScout::autoAddClass( int NbOfClusters )
 			{
 				QMessageBox msgBox;
 				msgBox.setText( "No object was selected!" );
-				msgBox.setWindowTitle( "FiberScout" );
+				msgBox.setWindowTitle( "FeatureScout" );
 				msgBox.exec();
 			}
 		}
@@ -4722,7 +4725,7 @@ bool dlg_FiberScout::changeFiberScout_Options( int idx )
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "Scatterplot Matrix already created." );
-		msgBox.setWindowTitle( "FiberScout" );
+		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return false;
 	}
