@@ -301,8 +301,9 @@ IF (WIN32)
 ENDIF(WIN32)
 IF (UNIX)
 	SET (EXTRA_ITK_LIBS	itkdouble-conversion
-		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED		itkgdcmIOD	itkgdcmjpeg12
+		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED	itkgdcmIOD	itkgdcmjpeg12
 		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmopenjpeg itkgdcmuuid
+		itknetlib	ITKSpatialObjects
 		ITKStatistics	ITKTransform)
 	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
 	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
@@ -328,7 +329,7 @@ SET (VTK_EXTRA_LIBS
 	vtkFiltersStatistics	vtkFiltersTexture	vtkfreetype	vtkhdf5
 	vtkImagingColor	vtkImagingFourier	vtkImagingGeneral	vtkImagingHybrid
 	vtkImagingSources	vtkInfovisLayout	vtkInteractionStyle	vtkInteractionWidgets
-	vtkIOImage	vtkIOXMLParser	vtkjpeg	vtklibxml2
+	vtkIOImage	vtkIOLegacy	vtkIOXMLParser	vtkjpeg	vtklibxml2
 	vtkmetaio	vtkoggtheora	vtkpng	vtkRenderingLabel
 	vtkRenderingVolume	vtktiff	vtkverdict	vtkViewsInfovis
 	vtkzlib)
