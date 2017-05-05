@@ -34,15 +34,15 @@
 
 const char * EnergyLineNames[9] =
 {
-	"Ka1",
-	"Ka2",
+	"Kα1",
+	"Kα2",
 	"Kß1",
-	"La1",
-	"La2",
+	"Lα1",
+	"Lα2",
 	"Lß1",
 	"Lß2",
-	"L?1",
-	"Ma1"
+	"Lγ1",
+	"Mα1"
 };
 
 iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,
