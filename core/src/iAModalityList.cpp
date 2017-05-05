@@ -213,6 +213,7 @@ void iAModalityList::ApplyCameraSettings(vtkCamera* camera)
 	camera->SetPosition(camPosition);
 	camera->SetFocalPoint(camFocalPoint);
 	camera->SetViewUp(camViewUp);
+	m_camSettingsAvailable = false;
 }
 
 namespace

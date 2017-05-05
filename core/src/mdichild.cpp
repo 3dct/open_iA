@@ -363,6 +363,8 @@ void MdiChild::enableRenderWindows()
 	if(updateSliceIndicator){
 		updateSliceIndicators();
 		camIso();
+		vtkCamera* cam = Raycaster->getCamera();
+		GetModalities()->ApplyCameraSettings(cam);
 	}
 	else{
 		updateSliceIndicator = true;
@@ -2129,11 +2131,6 @@ bool MdiChild::initView( QString const & title )
 	if (!raycasterInitialized)
 	{
 		Raycaster->initialize(imageData, polyData);
-		
-		// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-		vtkCamera* cam = Raycaster->getCamera();
-		GetModalities()->ApplyCameraSettings(cam);
-
 		raycasterInitialized = true;
 	}
 	if (GetModalities()->size() == 0 && IsVolumeDataLoaded())
