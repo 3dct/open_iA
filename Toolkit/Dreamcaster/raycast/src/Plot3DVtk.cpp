@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenbцck, Artem & Alexander Amirkhanov, B. Frцhler   *
+*                          J. WeissenbГ¶ck, Artem & Alexander Amirkhanov, B. FrГ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OЦ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraЯe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OГ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraГџe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "../include/Plot3DVtk.h"
 #include "../include/common.h"
@@ -286,15 +286,15 @@ void  Plot3DVtk::Pick( double xpos, double ypos)
 }
 
 void Plot3DVtk::SetPalette( int count, double *colors )
-{//задать палитру
+{//Г§Г Г¤Г ГІГј ГЇГ Г«ГЁГІГ°Гі
 	if (m_lookupTable!=0) 
 	{
 		m_lookupTable->Delete();
 		m_lookupTable=0;
 	}
 	if (m_lookupTable==0) m_lookupTable = vtkLookupTable::New();
-	m_lookupTable->SetNumberOfTableValues(count);//создаем палитру на указанное число цветов
-	for( int i = 0; i < count; i++)//каждому элементу палитры задать свой цвет
+	m_lookupTable->SetNumberOfTableValues(count);//Г±Г®Г§Г¤Г ГҐГ¬ ГЇГ Г«ГЁГІГ°Гі Г­Г  ГіГЄГ Г§Г Г­Г­Г®ГҐ Г·ГЁГ±Г«Г® Г¶ГўГҐГІГ®Гў
+	for( int i = 0; i < count; i++)//ГЄГ Г¦Г¤Г®Г¬Гі ГЅГ«ГҐГ¬ГҐГ­ГІГі ГЇГ Г«ГЁГІГ°Г» Г§Г Г¤Г ГІГј Г±ГўГ®Г© Г¶ГўГҐГІ
 	{
 		m_lookupTable->SetTableValue( i, colors[3*i], colors[3*i+1], colors[3*i+2] );
 	}
@@ -359,8 +359,8 @@ void Plot3DVtk::HighlightPickedPoint()
 
 void Plot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, int cntZ, float scale)
 {
-	//каждая плоскость задается 12 числами из массива точек в ледующем порядке
-	//x1y1z1 x2y2z2 x3y3z3 x4y4z4 и тд
+	//ГЄГ Г¦Г¤Г Гї ГЇГ«Г®Г±ГЄГ®Г±ГІГј Г§Г Г¤Г ГҐГІГ±Гї 12 Г·ГЁГ±Г«Г Г¬ГЁ ГЁГ§ Г¬Г Г±Г±ГЁГўГ  ГІГ®Г·ГҐГЄ Гў Г«ГҐГ¤ГіГѕГ№ГҐГ¬ ГЇГ®Г°ГїГ¤ГЄГҐ
+	//x1y1z1 x2y2z2 x3y3z3 x4y4z4 ГЁ ГІГ¤
 	unsigned int maxDim = max_macro(cntX,cntZ);
 	float clenX = 2.0f/(float)(cntX-1);
 	float clenZ = 2.0f/(float)(cntZ-1);
