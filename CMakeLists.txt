@@ -380,6 +380,7 @@ IF(UNIX)
 	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
 	# egl and glx plugins to the xcb platform plugin:
 	INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
+
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
 	# (typically only the case if webengine/webkit were included); but there
@@ -388,7 +389,10 @@ IF(UNIX)
 	SET(ICU_LIBS icudata icui18n icuuc)
 	SET(ICU_VER "56")
 	FOREACH(ICU_LIB ${ICU_LIBS})
-		INSTALL (FILES ${QT_LIB_DIR}/lib${ICU_LIB}.so.${ICU_VER}.1 DESTINATION . RENAME lib${ICU_LIB}.so.${ICU_VER})
+		SET (ICU_LIB_FILE ${QT_LIB_DIR}/lib${ICU_LIB}.so.${ICU_VER}.1)
+		IF (EXISTS "${ICU_LIB_FILE}")
+			INSTALL (FILES ${ICU_LIB_FILE} DESTINATION . RENAME lib${ICU_LIB}.so.${ICU_VER})
+		ENDIF()
 	ENDFOREACH()
 ENDIF(UNIX)
 
