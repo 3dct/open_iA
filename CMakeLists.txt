@@ -184,11 +184,6 @@ INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
 SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Network_LIBRARIES} ${Qt5PrintSupport_LIBRARIES})
 
 
-IF (CMAKE_COMPILER_IS_GNUCXX)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
-ENDIF()
-
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 
 
@@ -306,8 +301,9 @@ IF (WIN32)
 ENDIF(WIN32)
 IF (UNIX)
 	SET (EXTRA_ITK_LIBS	itkdouble-conversion
-		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED		itkgdcmIOD	itkgdcmjpeg12
+		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED	itkgdcmIOD	itkgdcmjpeg12
 		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmopenjpeg itkgdcmuuid
+		itknetlib	ITKSpatialObjects
 		ITKStatistics	ITKTransform)
 	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
 	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
@@ -333,7 +329,7 @@ SET (VTK_EXTRA_LIBS
 	vtkFiltersStatistics	vtkFiltersTexture	vtkfreetype	vtkhdf5
 	vtkImagingColor	vtkImagingFourier	vtkImagingGeneral	vtkImagingHybrid
 	vtkImagingSources	vtkInfovisLayout	vtkInteractionStyle	vtkInteractionWidgets
-	vtkIOImage	vtkIOXMLParser	vtkjpeg	vtklibxml2
+	vtkIOImage	vtkIOLegacy	vtkIOXMLParser	vtkjpeg	vtklibxml2
 	vtkmetaio	vtkoggtheora	vtkpng	vtkRenderingLabel
 	vtkRenderingVolume	vtktiff	vtkverdict	vtkViewsInfovis
 	vtkzlib)
@@ -385,6 +381,7 @@ IF(UNIX)
 	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
 	# egl and glx plugins to the xcb platform plugin:
 	INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
+
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
 	# (typically only the case if webengine/webkit were included); but there
@@ -393,7 +390,10 @@ IF(UNIX)
 	SET(ICU_LIBS icudata icui18n icuuc)
 	SET(ICU_VER "56")
 	FOREACH(ICU_LIB ${ICU_LIBS})
-		INSTALL (FILES ${QT_LIB_DIR}/lib${ICU_LIB}.so.${ICU_VER}.1 DESTINATION . RENAME lib${ICU_LIB}.so.${ICU_VER})
+		SET (ICU_LIB_FILE ${QT_LIB_DIR}/lib${ICU_LIB}.so.${ICU_VER}.1)
+		IF (EXISTS "${ICU_LIB_FILE}")
+			INSTALL (FILES ${ICU_LIB_FILE} DESTINATION . RENAME lib${ICU_LIB}.so.${ICU_VER})
+		ENDIF()
 	ENDFOREACH()
 ENDIF(UNIX)
 

@@ -78,9 +78,9 @@ void iAPreviewMaker::makeUsingType( QString filename, QString thumbFileName )
 	// extract the region
 	typename InputImageType::SizeType inputSize = image->GetLargestPossibleRegion( ).GetSize( );
 	typename InputImageType::IndexType desiredStart;
-	desiredStart = { 0, static_cast<typename InputImageType::IndexType::IndexValueType>( inputSize[1] ) / 2, 0 };
+	desiredStart = {{ 0, static_cast<typename InputImageType::IndexType::IndexValueType>( inputSize[1] ) / 2, 0 }};
 	typename InputImageType::SizeType desiredSize;
-	desiredSize = { inputSize[0], 0, inputSize[2] };
+	desiredSize = {{ inputSize[0], 0, inputSize[2] }};
 	typename InputImageType::RegionType desiredReg( desiredStart, desiredSize );
 
 	typedef itk::ExtractImageFilter<InputImageType, OutputImageType> FilterType;
