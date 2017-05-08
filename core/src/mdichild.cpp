@@ -557,6 +557,16 @@ bool MdiChild::loadRaw(const QString &f)
 	return true;
 }
 
+namespace
+{
+	bool Is2DImageFile(QString const & f)
+	{
+		return f.endsWith("bmp", Qt::CaseInsensitive) ||
+			f.endsWith("tif", Qt::CaseInsensitive) ||
+			f.endsWith("tiff", Qt::CaseInsensitive) ||
+			f.endsWith("jpg", Qt::CaseInsensitive);
+	}
+}
 
 bool MdiChild::loadFile(const QString &f, bool isStack)
 {
@@ -568,7 +578,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	waitForPreviousIO();
 
 	ioThread = new iAIO(imageData, polyData, m_logger, this, volumeStack->GetVolumes(), volumeStack->GetFileNames());
-	if (!isStack) {
+	if (!isStack || Is2DImageFile(f)) {
 		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
 	}
 	else {
@@ -665,6 +675,12 @@ bool MdiChild::setupStackView(bool active)
 	previousIndexOfVolume = 0;
 
 	int numberOfVolumes=volumeStack->getNumberOfVolumes();
+
+	if (numberOfVolumes == 0)
+	{
+		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
+		return false;
+	}
 
 	int currentIndexOfVolume=0;
 
