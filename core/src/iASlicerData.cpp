@@ -1119,24 +1119,36 @@ void iASlicerData::GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, doubl
 	xCoord = clamp(extent[0], extent[1], xCoord);
 	yCoord = clamp(extent[2], extent[3], yCoord);
 	zCoord = clamp(extent[4], extent[5], zCoord);
-
 }
 
-QString GetFilePixel(MdiChild* tmpChild, iASlicerData* data, int cX, int cY)
+namespace
 {
-	vtkImageData* img = data->GetReslicer()->GetOutput();
-	int const * dim = img->GetDimensions();
-	bool inRange = cX < dim[0] && cY < dim[1];
-	double tmpPix;
-	if (inRange)
+	QString GetSlicerCoordString(int coord1, int coord2, int coord3, int mode)
 	{
-		tmpPix = data->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+		switch (mode) {
+		default:
+		case XY: return QString("%1 %2 %3").arg(coord1).arg(coord2).arg(coord3);
+		case XZ: return QString("%1 %2 %3").arg(coord1).arg(coord3).arg(coord2);
+		case YZ: return QString("%1 %2 %3").arg(coord3).arg(coord1).arg(coord2);
+		}
 	}
-	QString file = tmpChild->getFileInfo().fileName();
-	return QString("%1\t\t\t: %2\n")
-		.arg(file)
-		.arg(inRange? QString::number(tmpPix) : "out of image dimensions");
-	
+
+	QString GetFilePixel(MdiChild* tmpChild, iASlicerData* data, double slicerX, double slicerY, int thirdCoord, int mode)
+	{
+		vtkImageData* img = data->GetReslicer()->GetOutput();
+		int const * dim = img->GetDimensions();
+		bool inRange = slicerX < dim[0] && slicerY < dim[1];
+		double tmpPix = 0;
+		if (inRange)
+		{
+			tmpPix = img->GetScalarComponentAsDouble(slicerX, slicerY, 0, 0);
+		}
+		QString file = tmpChild->getFileInfo().fileName();
+		return QString("%1 [%2]\t: %3\n")
+			.arg(file)
+			.arg(GetSlicerCoordString(slicerX, slicerY, thirdCoord, mode))
+			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.");
+	}
 }
 
 void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, double* result)
@@ -1144,29 +1156,24 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	if (!m_decorations || 0 == m_ptMapped) return;
 
 	vtkImageData * reslicerOutput = reslicer->GetOutput();
-	double * slicerSpacing = reslicerOutput->GetSpacing();
-	double * slicerOrigin = reslicerOutput->GetOrigin();
-	int * slicerExtent = reslicerOutput->GetExtent();
-	int * slicerDims = reslicerOutput->GetDimensions();
-	double * slicerBounds = reslicerOutput->GetBounds();
+	double const * const slicerSpacing = reslicerOutput->GetSpacing();
+	double const * const slicerOrigin = reslicerOutput->GetOrigin();
+	int const * const slicerExtent = reslicerOutput->GetExtent();
+	int const * const slicerDims = reslicerOutput->GetDimensions();
+	double const * const slicerBounds = reslicerOutput->GetBounds();
 
 	// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
 	m_ptMapped[2] = 0; 
 
-	int cX, cY;
-
-	cX = static_cast<int>(floor((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0]));
-	cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
+	int cX = static_cast<int>(floor((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0]));
+	int cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
 
 	// check image extent; if outside ==> default output
 	if ( cX < slicerExtent[0] || cX > slicerExtent[1]    ||    cY < slicerExtent[2] || cY > slicerExtent[3] ) {
 		defaultOutput(); return;
 	}
 
-
 	// get index, coords and value to display
-	QString tmp;
-
 	QString strDetails(QString("index     [ %1, %2, %3 ]\ndatavalue [")
 		.arg(xCoord).arg(yCoord).arg(zCoord));
 
@@ -1183,50 +1190,55 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 		for (int i = 0; i < mdiwindows.size(); i++) {
 			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
 			if (tmpChild != mdi_parent) {
-				double spacing[3];
-				std::size_t foundSlash;
-				tmpChild->getImagePointer()->GetSpacing(spacing);
+				double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
+				double const * const origImgSpacing = imageData->GetSpacing();
+				// TODO: calculate proper coords here for images with finer resolution
+				// should go something like this (for xCoord:)
+				// static_cast<int>(((m_mode == XY || m_mode == XZ)
+				//		? ((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0])
+				//		: xCoord) * (origImgSpacing[0] / tmpSpacing[0]));
+				int tmpX = xCoord * origImgSpacing[0] / tmpSpacing[0];
+				int tmpY = yCoord * origImgSpacing[1] / tmpSpacing[1];
+				int tmpZ = zCoord * origImgSpacing[2] / tmpSpacing[2];
 				switch (m_mode)
 				{
 				case iASlicerMode::XY://XY
-					tmpChild->getSlicerDataXY()->setPlaneCenter(xCoord*spacing[0], yCoord*spacing[1], 1);
-					tmpChild->getSlicerXY()->setIndex(xCoord, yCoord, zCoord);
-					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(zCoord);
-					
+					tmpChild->getSlicerDataXY()->setPlaneCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1], 1);
+					tmpChild->getSlicerXY()->setIndex(tmpX, tmpY, tmpZ);
+					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(tmpZ);
+
 					tmpChild->getSlicerDataXY()->update();
 					tmpChild->getSlicerXY()->update();
 					tmpChild->getSlicerDlgYZ()->update();
-					tmpChild->update();
 
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), cX, cY);
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), tmpX, tmpY, tmpZ, m_mode);
 					break;
 				case iASlicerMode::YZ://YZ
-					tmpChild->getSlicerDataYZ()->setPlaneCenter(yCoord*spacing[1], zCoord*spacing[2], 1);
-					tmpChild->getSlicerYZ()->setIndex(xCoord, yCoord, zCoord);
-					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(xCoord);
+					tmpChild->getSlicerDataYZ()->setPlaneCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2], 1);
+					tmpChild->getSlicerYZ()->setIndex(tmpX, tmpY, tmpZ);
+					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(tmpX);
 
 					tmpChild->getSlicerDataYZ()->update();
 					tmpChild->getSlicerYZ()->update();
 					tmpChild->getSlicerDlgYZ()->update();
-					tmpChild->update();
 
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), cX, cY);
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), tmpY, tmpZ, tmpX, m_mode);
 					break;
 				case iASlicerMode::XZ://XZ
-					tmpChild->getSlicerDataXZ()->setPlaneCenter(xCoord*spacing[0], zCoord*spacing[2], 1);
-					tmpChild->getSlicerXZ()->setIndex(xCoord, yCoord, zCoord);
-					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(yCoord);
+					tmpChild->getSlicerDataXZ()->setPlaneCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2], 1);
+					tmpChild->getSlicerXZ()->setIndex(tmpX, tmpY, tmpZ);
+					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(tmpY);
 
 					tmpChild->getSlicerDataXZ()->update();
 					tmpChild->getSlicerXZ()->update();
 					tmpChild->getSlicerDlgXZ()->update();
-					tmpChild->update();
 
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), cX, cY);
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), tmpX, tmpZ, tmpY, m_mode);
 					break;
 				default://ERROR
 					break;
 				}
+				tmpChild->update();
 			}
 		}
 	}
