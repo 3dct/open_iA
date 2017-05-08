@@ -32,13 +32,11 @@ public:
 private slots:
 	void resampler();
 	void extractImage();
-	void rescale();
 	void childClosed();
 protected:
 	//settings
 	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
 	QString rInterpolator;
 	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	double outputMin, outputMax;
 	bool m_childClosed;
 };

@@ -39,6 +39,7 @@ private slots:
 	void intensity_windowing();
 	void normalize_image();
 	void histogram_match();
+	void rescale();
 
 protected:
 	//difference settings
@@ -47,4 +48,6 @@ protected:
 	double windowMinimum, windowMaximum, outputMinimum, outputMaximum;
 	// histogram match settings
 	int hmHistogramLevels, hmMatchPoints; bool hmThresholdAtMeanIntensity;
+	// rescale intensity settings
+	double outputMin, outputMax;
 };

@@ -54,6 +54,10 @@ void iAIntensityModuleInterface::Initialize()
 	connect( actionIntensityWindowing, SIGNAL( triggered() ), this, SLOT( intensity_windowing() ) );
 	connect( actionNormalizeImage, SIGNAL( triggered() ), this, SLOT( normalize_image() ) );
 	connect( actionHistogramMatch, SIGNAL( triggered() ), this, SLOT( histogram_match() ) );
+
+	QAction * actionRescale_Image = new QAction(QApplication::translate("MainWindow", "Rescale Intensities", 0), m_mainWnd);
+	menuIntensity->addAction(actionRescale_Image);
+	connect(actionRescale_Image, SIGNAL(triggered()), this, SLOT(rescale()));
 }
 
 void iAIntensityModuleInterface::difference_Image_Filter()
@@ -259,4 +263,37 @@ void iAIntensityModuleInterface::histogram_match()
 	thread->setHMFParameters( hmHistogramLevels, hmMatchPoints, hmThresholdAtMeanIntensity, child2->getImageData() );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+}
+
+
+void iAIntensityModuleInterface::rescale()
+{
+	PrepareActiveChild();
+	if (!m_mdiChild)
+		return;
+	QStringList inList = (QStringList() << tr("#Output Minimum") << tr("#Output Maximum"));
+	QList<QVariant> inPara;
+	inPara << tr("%1").arg(outputMin) << tr("%1").arg(outputMax);
+	dlg_commoninput dlg(m_mainWnd, "Rescale Image", 2, inList, inPara, NULL);
+	dlg.show();
+	if (dlg.exec() != QDialog::Accepted)
+		return;
+
+	outputMin = dlg.getValues()[0];
+	outputMax = dlg.getValues()[1];
+
+	//prepare
+	QString filterName = "Rescaled";
+	PrepareResultChild(filterName);
+	m_mdiChild->addStatusMsg(filterName);
+	//execute
+
+	iAIntensity* thread = new iAIntensity(filterName, RESCALE_IMAGE,
+		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+
+	thread->setRescaleParameters(outputMin, outputMax);
+	thread->start();
+
+	m_mainWnd->statusBar()->showMessage(filterName, 5000);
 }
