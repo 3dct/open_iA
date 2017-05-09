@@ -34,6 +34,7 @@
 #include <vtkImageData.h>
 
 #include <QFileInfo>
+#include <QMessageBox>
 #include <QSettings>
 
 namespace
@@ -97,6 +98,19 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 	}
 	for (int i = 0; i<m_modalities.size(); ++i)
 	{
+		QFileInfo modalityFileInfo(m_modalities[i]->GetFileName());
+		if (!modalityFileInfo.exists() || !modalityFileInfo.isFile())
+		{	// TODO: provide option to store as .mhd?
+			//DEBUG_LOG(QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(fileName));
+			QMessageBox::warning(nullptr, "Save Project",
+				QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(m_modalities[i]->GetFileName()));
+			if (fi.exists())
+			{
+				// remove any half-written project file
+				QFile::remove(fi.absoluteFilePath());
+			}
+			return;
+		}
 		settings.setValue(GetModalityKey(i, "Name"), m_modalities[i]->GetName());
 		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->GetFileName()));
 		if (m_modalities[i]->GetChannel() >= 0)
