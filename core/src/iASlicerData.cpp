@@ -83,6 +83,10 @@
 #include <string>
 #include <sstream>
 
+namespace
+{
+	const double PickTolerance = 100.0;
+}
 
 class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
@@ -134,9 +138,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	logoWidget(0),
 	logoRep(0),
 	logoImage(0),
-	m_planeSrc(0),
-	m_planeMapper(0),
-	m_planeActor(0),
 	cFilter(0),
 	cMapper(0),
 	cActor(0),
@@ -146,12 +147,10 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	pDiskSource(0),
 	pDiskMapper(0),
 	pDiskActor(0),
-	roiSource(0),
-	roiMapper(0),
-	roiActor(0),
 	textInfo(0),
 	rulerWidget(0),
-	interactor(0)
+	interactor(0),
+	m_showPositionMarker(false)
 {
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
@@ -173,10 +172,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		logoRep = vtkLogoRepresentation::New();
 		logoImage = vtkQImageToImageSource::New();
 
-		m_planeSrc = vtkPlaneSource::New();
-		m_planeSrc->SetCenter(0, 0, -10000); // to initially hide the green rectangle - use actor visibility instead maybe?
-		m_planeMapper = vtkPolyDataMapper::New();
-		m_planeActor = vtkActor::New();
+		m_positionMarkerSrc = vtkSmartPointer<vtkPlaneSource>::New();
+		m_positionMarkerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		m_positionMarkerActor = vtkSmartPointer<vtkActor>::New();
 
 		cFilter = vtkMarchingContourFilter::New();
 		cMapper = vtkPolyDataMapper::New();
@@ -190,9 +188,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		pDiskMapper = vtkPolyDataMapper::New();
 		pDiskActor = vtkActor::New();
 		
-		roiSource = vtkPlaneSource::New();
-		roiMapper = vtkPolyDataMapper::New();
-		roiActor = vtkActor::New();
+		roiSource = vtkSmartPointer<vtkPlaneSource>::New();
+		roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		roiActor = vtkSmartPointer<vtkActor>::New();
 		
 		textInfo = iAWrapperText::New();
 		
@@ -226,10 +224,6 @@ iASlicerData::~iASlicerData(void)
 		logoWidget->Delete();
 		logoImage->Delete();
 
-		m_planeSrc->Delete();
-		m_planeMapper->Delete();
-		m_planeActor->Delete();
-
 		cFilter->Delete();
 		cMapper->Delete();
 		cActor->Delete();
@@ -242,10 +236,6 @@ iASlicerData::~iASlicerData(void)
 		pDiskMapper->Delete();
 		pDiskActor->Delete();
 
-		roiSource->Delete();
-		roiMapper->Delete();
-		roiActor->Delete();
-		roiActor = NULL;
 		rulerWidget->Delete();
 	}
 
@@ -298,7 +288,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	
 	UpdateResliceAxesDirectionCosines();
 	UpdateBackground();
-	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
+	pointPicker->SetTolerance(PickTolerance);
 
 	if (m_decorations)
 	{
@@ -345,12 +335,13 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		scalarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
 		scalarWidget->GetScalarBarActor()->SetTitle("Range");
 
-		m_planeMapper->SetInputConnection( m_planeSrc->GetOutputPort() );
-		m_planeActor->SetMapper( m_planeMapper );
-		m_planeActor->GetProperty()->SetColor( 0,1,0 );
-		m_planeActor->GetProperty()->SetEdgeColor(0,0,1);
-		m_planeActor->GetProperty()->SetOpacity( 1 );
-		m_planeActor->SetVisibility( poly );
+		UpdatePositionMarkerExtent();
+		m_positionMarkerMapper->SetInputConnection( m_positionMarkerSrc->GetOutputPort() );
+		m_positionMarkerActor->SetMapper( m_positionMarkerMapper );
+		m_positionMarkerActor->GetProperty()->SetColor( 0,1,0 );
+		m_positionMarkerActor->GetProperty()->SetOpacity( 1 );
+		m_positionMarkerActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+		m_positionMarkerActor->SetVisibility(false);
 
 		cFilter->SetInputConnection( reslicer->GetOutputPort() );
 		cFilter->UseScalarTreeOn( );
@@ -401,7 +392,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		rulerWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.333,0.05);
 		rulerWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.333,0.051);
 		
-		ren->AddActor(m_planeActor);
+		ren->AddActor(m_positionMarkerActor);
 		ren->AddActor(cActor);
 		ren->AddActor(pLineActor);
 		ren->AddActor(pDiskActor);
@@ -463,8 +454,7 @@ void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, do
 	imgBlender->Update();
 
 	reslicer->SetInputConnection(imgBlender->GetOutputPort());	
-	pointPicker->SetTolerance(imgBlender->GetOutput()->GetSpacing()[0]/3);
-	//scalarWidget->GetScalarBarActor()->SetLookupTable( lut );
+	pointPicker->SetTolerance(PickTolerance);
 
 	this->imageData = imgBlender->GetOutput();
 	this->imageData->Modified();
@@ -489,7 +479,7 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTra
 
 	InitReslicerWithImageData();
 
-	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
+	pointPicker->SetTolerance(PickTolerance);
 
 	if (m_decorations)
 	{
@@ -593,22 +583,17 @@ void iASlicerData::update()
 }
 
 
-void iASlicerData::setPlaneCenter( double x, double y, double z )
+void iASlicerData::setPositionMarkerCenter(double x, double y)
 {
 	if (!m_decorations)
 	{
 		return;
 	}
-	if (interactor->GetEnabled())
+	if (interactor->GetEnabled() && m_showPositionMarker)
 	{
-		double spacing[2] = {
-			imageData->GetSpacing()[SlicerXInd(m_mode)],
-			imageData->GetSpacing()[SlicerYInd(m_mode)]
-		};
-		m_planeSrc->SetOrigin(0, 0, 0);
-		m_planeSrc->SetPoint1(m_ext * spacing[0], 0, 0);
-		m_planeSrc->SetPoint2(0, m_ext * spacing[1], 0);
-		m_planeSrc->SetCenter( x, y, z );
+		m_positionMarkerActor->SetVisibility(true);
+		m_positionMarkerSrc->SetCenter(x, y, 0);
+		m_positionMarkerMapper->Update();
 	}
 };
 
@@ -629,7 +614,7 @@ void iASlicerData::showPosition(bool s)
 	{
 		return;
 	}
-	m_planeActor->SetVisibility(s); 
+	m_showPositionMarker = s;
 }
 
 
@@ -741,7 +726,7 @@ void iASlicerData::changeImageData( vtkImageData *idata )
 	reslicer->SetInputData( imageData );
 	reslicer->SetInformationInput( imageData );
 
-	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
+	pointPicker->SetTolerance(PickTolerance);
 
 	if (m_decorations)
 	{
@@ -940,10 +925,27 @@ void iASlicerData::saveImageStack()
 	msgBox.exec();
 }
 
+void iASlicerData::UpdatePositionMarkerExtent()
+{
+	double spacing[2] = {
+		imageData->GetSpacing()[SlicerXInd(m_mode)],
+		imageData->GetSpacing()[SlicerYInd(m_mode)]
+	};
+	m_positionMarkerSrc->SetOrigin(0, 0, 0);
+	m_positionMarkerSrc->SetPoint1((m_ext * spacing[0]), 0, 0);
+	m_positionMarkerSrc->SetPoint2(0, (m_ext * spacing[1]), 0);
+}
 
 void iASlicerData::setStatisticalExtent( int statExt )
 {
 	m_ext = statExt;
+	if (m_positionMarkerSrc && imageData)
+	{
+		double center[3];
+		m_positionMarkerSrc->GetCenter(center);
+		UpdatePositionMarkerExtent();
+		m_positionMarkerSrc->SetCenter(center);
+	}
 }
 
 
@@ -1119,24 +1121,36 @@ void iASlicerData::GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, doubl
 	xCoord = clamp(extent[0], extent[1], xCoord);
 	yCoord = clamp(extent[2], extent[3], yCoord);
 	zCoord = clamp(extent[4], extent[5], zCoord);
-
 }
 
-QString GetFilePixel(MdiChild* tmpChild, iASlicerData* data, int cX, int cY)
+namespace
 {
-	vtkImageData* img = data->GetReslicer()->GetOutput();
-	int const * dim = img->GetDimensions();
-	bool inRange = cX < dim[0] && cY < dim[1];
-	double tmpPix;
-	if (inRange)
+	QString GetSlicerCoordString(int coord1, int coord2, int coord3, int mode)
 	{
-		tmpPix = data->GetReslicer()->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, 0);
+		switch (mode) {
+		default:
+		case XY: return QString("%1 %2 %3").arg(coord1).arg(coord2).arg(coord3);
+		case XZ: return QString("%1 %2 %3").arg(coord1).arg(coord3).arg(coord2);
+		case YZ: return QString("%1 %2 %3").arg(coord3).arg(coord1).arg(coord2);
+		}
 	}
-	QString file = tmpChild->getFileInfo().fileName();
-	return QString("%1\t\t\t: %2\n")
-		.arg(file)
-		.arg(inRange? QString::number(tmpPix) : "out of image dimensions");
-	
+
+	QString GetFilePixel(MdiChild* tmpChild, iASlicerData* data, double slicerX, double slicerY, int thirdCoord, int mode)
+	{
+		vtkImageData* img = data->GetReslicer()->GetOutput();
+		int const * dim = img->GetDimensions();
+		bool inRange = slicerX < dim[0] && slicerY < dim[1];
+		double tmpPix = 0;
+		if (inRange)
+		{
+			tmpPix = img->GetScalarComponentAsDouble(slicerX, slicerY, 0, 0);
+		}
+		QString file = tmpChild->getFileInfo().fileName();
+		return QString("%1 [%2]\t: %3\n")
+			.arg(file)
+			.arg(GetSlicerCoordString(slicerX, slicerY, thirdCoord, mode))
+			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.");
+	}
 }
 
 void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, double* result)
@@ -1144,29 +1158,24 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	if (!m_decorations || 0 == m_ptMapped) return;
 
 	vtkImageData * reslicerOutput = reslicer->GetOutput();
-	double * slicerSpacing = reslicerOutput->GetSpacing();
-	double * slicerOrigin = reslicerOutput->GetOrigin();
-	int * slicerExtent = reslicerOutput->GetExtent();
-	int * slicerDims = reslicerOutput->GetDimensions();
-	double * slicerBounds = reslicerOutput->GetBounds();
+	double const * const slicerSpacing = reslicerOutput->GetSpacing();
+	double const * const slicerOrigin = reslicerOutput->GetOrigin();
+	int const * const slicerExtent = reslicerOutput->GetExtent();
+	int const * const slicerDims = reslicerOutput->GetDimensions();
+	double const * const slicerBounds = reslicerOutput->GetBounds();
 
 	// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
 	m_ptMapped[2] = 0; 
 
-	int cX, cY;
-
-	cX = static_cast<int>(floor((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0]));
-	cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
+	int cX = static_cast<int>(floor((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0]));
+	int cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
 
 	// check image extent; if outside ==> default output
 	if ( cX < slicerExtent[0] || cX > slicerExtent[1]    ||    cY < slicerExtent[2] || cY > slicerExtent[3] ) {
 		defaultOutput(); return;
 	}
 
-
 	// get index, coords and value to display
-	QString tmp;
-
 	QString strDetails(QString("index     [ %1, %2, %3 ]\ndatavalue [")
 		.arg(xCoord).arg(yCoord).arg(zCoord));
 
@@ -1183,50 +1192,55 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 		for (int i = 0; i < mdiwindows.size(); i++) {
 			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
 			if (tmpChild != mdi_parent) {
-				double spacing[3];
-				std::size_t foundSlash;
-				tmpChild->getImagePointer()->GetSpacing(spacing);
+				double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
+				double const * const origImgSpacing = imageData->GetSpacing();
+				// TODO: calculate proper coords here for images with finer resolution
+				// should go something like this (for xCoord:)
+				// static_cast<int>(((m_mode == XY || m_mode == XZ)
+				//		? ((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0])
+				//		: xCoord) * (origImgSpacing[0] / tmpSpacing[0]));
+				int tmpX = xCoord * origImgSpacing[0] / tmpSpacing[0];
+				int tmpY = yCoord * origImgSpacing[1] / tmpSpacing[1];
+				int tmpZ = zCoord * origImgSpacing[2] / tmpSpacing[2];
 				switch (m_mode)
 				{
 				case iASlicerMode::XY://XY
-					tmpChild->getSlicerDataXY()->setPlaneCenter(xCoord*spacing[0], yCoord*spacing[1], 1);
-					tmpChild->getSlicerXY()->setIndex(xCoord, yCoord, zCoord);
-					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(zCoord);
-					
+					tmpChild->getSlicerDataXY()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
+					tmpChild->getSlicerXY()->setIndex(tmpX, tmpY, tmpZ);
+					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(tmpZ);
+
 					tmpChild->getSlicerDataXY()->update();
 					tmpChild->getSlicerXY()->update();
 					tmpChild->getSlicerDlgYZ()->update();
-					tmpChild->update();
 
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), cX, cY);
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), tmpX, tmpY, tmpZ, m_mode);
 					break;
 				case iASlicerMode::YZ://YZ
-					tmpChild->getSlicerDataYZ()->setPlaneCenter(yCoord*spacing[1], zCoord*spacing[2], 1);
-					tmpChild->getSlicerYZ()->setIndex(xCoord, yCoord, zCoord);
-					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(xCoord);
+					tmpChild->getSlicerDataYZ()->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
+					tmpChild->getSlicerYZ()->setIndex(tmpX, tmpY, tmpZ);
+					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(tmpX);
 
 					tmpChild->getSlicerDataYZ()->update();
 					tmpChild->getSlicerYZ()->update();
 					tmpChild->getSlicerDlgYZ()->update();
-					tmpChild->update();
 
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), cX, cY);
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), tmpY, tmpZ, tmpX, m_mode);
 					break;
 				case iASlicerMode::XZ://XZ
-					tmpChild->getSlicerDataXZ()->setPlaneCenter(xCoord*spacing[0], zCoord*spacing[2], 1);
-					tmpChild->getSlicerXZ()->setIndex(xCoord, yCoord, zCoord);
-					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(yCoord);
+					tmpChild->getSlicerDataXZ()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
+					tmpChild->getSlicerXZ()->setIndex(tmpX, tmpY, tmpZ);
+					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(tmpY);
 
 					tmpChild->getSlicerDataXZ()->update();
 					tmpChild->getSlicerXZ()->update();
 					tmpChild->getSlicerDlgXZ()->update();
-					tmpChild->update();
 
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), cX, cY);
+					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), tmpX, tmpZ, tmpY, m_mode);
 					break;
 				default://ERROR
 					break;
 				}
+				tmpChild->update();
 			}
 		}
 	}
@@ -1247,14 +1261,14 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 /*
 	// ORIENTATION / ROTATION FIX:
 	// make orientation the same as in other image viewers:
-	setPlaneCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1], 1);
+	setPositionMarkerCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1]);
 */
-	m_planeMapper->Update();
+	m_positionMarkerMapper->Update();
 
 /*
 	// ORIENTATION / ROTATION FIX:
 	// make orientation the same as in other image viewers:
-	if (pLineSource != NULL)	pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1], m_ptMapped[2]);
+	if (pLineSource != NULL)	pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
 */
 
 	//show cross here
@@ -1298,8 +1312,7 @@ void iASlicerData::defaultOutput()
 	QString strDetails(" ");
 	textInfo->GetActor()->SetPosition(20, 20);
 	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
-
-	m_planeSrc->SetCenter(0, 0, -10000);
+	m_positionMarkerActor->SetVisibility(false);
 	interactor->ReInitialize();
 	interactor->Render();
 }

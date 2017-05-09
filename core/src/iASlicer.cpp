@@ -146,9 +146,9 @@ void iASlicer::setResliceChannelAxesOrigin(iAChannelID id, double x, double y, d
 	}
 }
 
-void iASlicer::setPlaneCenter( int x, int y, int z )
+void iASlicer::setPositionMarkerCenter(double x, double y)
 {
-	m_data->setPlaneCenter(x, y, z);
+	m_data->setPositionMarkerCenter(x, y);
 }
 
 void iASlicer::updateROI()

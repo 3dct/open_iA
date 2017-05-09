@@ -27,11 +27,11 @@
 #include "iATypedCallHelper.h"
 
 #include <itkBSplineInterpolateImageFunction.h>
+#include <itkChangeInformationImageFilter.h>
 #include <itkImageIOBase.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
 #include <itkExtractImageFilter.h>
-#include <itkRescaleIntensityImageFilter.h>
 #include <itkWindowedSincInterpolateImageFunction.h>
 
 #include <vtkImageData.h>
@@ -187,43 +187,6 @@ int resampler_template(
 	return EXIT_SUCCESS;
 }
 
-/**
-* template rescale Image
-*
-* This template rescales an image to the specified lower and upper values
-* \param	outMin	The output minimum
-* \param	outMax	The output maximum.
-
-* \param	p		If non-null, the.
-* \param	image	If non-null, the image.
-* \param	T		Template datatype.
-* \return	int Status-Code.
-*/
-template<class T> 
-int rescaleImage_template(double outMin, double outMax, iAProgress* p, iAConnector* image)
-{
-	typedef itk::Image< T, DIM > InputImageType;
-	typedef itk::Image< T, DIM > OutputImageType;
-
-	typedef itk::RescaleIntensityImageFilter< InputImageType, OutputImageType > RescalerType;
-	typename RescalerType::Pointer filter = RescalerType::New();
-
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-
-	filter->SetOutputMinimum(outMin);
-	filter->SetOutputMaximum(outMax);
-
-	p->Observe(filter);
-	filter->Update();
-
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-
-	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
-}
-
 iAGeometricTransformations::iAGeometricTransformations( QString fn, iAGeometricTransformationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
 	: iAAlgorithm( fn, i, p, logger, parent ), m_operation(fid)
 {
@@ -238,8 +201,6 @@ void iAGeometricTransformations::run()
 		extractImage( ); break;
 	case RESAMPLER:
 		resampler( ); break;
-	case RESCALE_IMAGE: 
-		rescaleImage(); break;
 	default:
 		addMsg(tr("  unknown filter type"));
 	}
@@ -305,33 +266,4 @@ void iAGeometricTransformations::resampler( )
 		.arg(Stop()));
 
 	emit startUpdate();	
-}
-
-void iAGeometricTransformations::rescaleImage()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(rescaleImage_template, itkType,
-			outputMin, outputMax, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
 }

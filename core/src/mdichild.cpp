@@ -426,22 +426,22 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 //TODO: improve using iASlicer stuff
 	if (slicerSettings.LinkViews) {
 		xCoord = x; yCoord = y; zCoord = z;
-		if (mode != 2) {
+		if (mode != iASlicerMode::XZ) {
 			if (slicerSettings.SingleSlicer.ShowPosition) {
-				slicerXZ->setPlaneCenter(x*spacing[0], z*spacing[2], 1);
+				slicerXZ->setPositionMarkerCenter(x*spacing[0], z*spacing[2]);
 			}
 			slicerXZ->setIndex(x,y,z);
 			sXZ->spinBoxXZ->setValue(y);
 		}
-		if (mode != 0) {
+		if (mode != iASlicerMode::YZ) {
 			if (slicerSettings.SingleSlicer.ShowPosition)
-				slicerYZ->setPlaneCenter(y*spacing[1], z*spacing[2], 1);
+				slicerYZ->setPositionMarkerCenter(y*spacing[1], z*spacing[2]);
 			slicerYZ->setIndex(x,y,z);
 			sYZ->spinBoxYZ->setValue(x);
 		}
-		if (mode != 1) {
+		if (mode != iASlicerMode::XY) {
 			if (slicerSettings.SingleSlicer.ShowPosition)
-				slicerXY->setPlaneCenter(x*spacing[0], y*spacing[1], 1);
+				slicerXY->setPositionMarkerCenter(x*spacing[0], y*spacing[1]);
 			slicerXY->setIndex(x,y,z);
 			sXY->spinBoxXY->setValue(z);
 		}

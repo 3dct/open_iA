@@ -41,10 +41,6 @@ void iAGeometricTransformationsModuleInterface::Initialize()
 	QAction * actionExtract_Image = new QAction(QApplication::translate("MainWindow", "Extract Image", 0), m_mainWnd);
 	menuGeometric_Transformations->addAction(actionExtract_Image);
 	connect( actionExtract_Image, SIGNAL( triggered() ), this, SLOT( extractImage() ) );
-
-	QAction * actionRescale_Image = new QAction(QApplication::translate("MainWindow", "Rescale Image", 0), m_mainWnd);
-	menuGeometric_Transformations->addAction(actionRescale_Image);
-	connect(actionRescale_Image, SIGNAL(triggered()), this, SLOT(rescale()));
 }
 
 void iAGeometricTransformationsModuleInterface::resampler()
@@ -168,41 +164,6 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	thread->setEParameters( eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-
-
-void iAGeometricTransformationsModuleInterface::rescale()
-{
-	PrepareActiveChild();
-	if (!m_mdiChild)
-		return;	
-	QStringList inList = (QStringList() << tr("#Output Minimum") << tr("#Output Maximum") );
-	QList<QVariant> inPara; 	
-	inPara << tr("%1").arg(outputMin) << tr("%1").arg(outputMax);
-	dlg_commoninput dlg(m_mainWnd, "Rescale Image", 2, inList, inPara, NULL);
-	dlg.show();
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-
-	outputMin = dlg.getValues()[0]; 
-	outputMax = dlg.getValues()[1];
-
-	//prepare
-	QString filterName = "Rescaled";
-	PrepareResultChild(filterName);
-	m_mdiChild->addStatusMsg(filterName);
-	//execute
-
-	iAGeometricTransformations* thread = new iAGeometricTransformations(filterName, RESCALE_IMAGE,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-
-	thread->setRescaleParameters(outputMin, outputMax );
-	thread->start();
-
-	m_mainWnd->statusBar()->showMessage(filterName, 5000);
-
 }
 
 void iAGeometricTransformationsModuleInterface::childClosed()

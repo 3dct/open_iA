@@ -29,13 +29,15 @@ enum iAIntensityFilterType
 	MASK_IMAGE,
 	INTENSITY_WINDOWING,
 	NORMALIZE_IMAGE,
-	HISTOGRAM_MATCH
+	HISTOGRAM_MATCH,
+	RESCALE_IMAGE,
 };
 
 /**
  * Implementation of DifferenceImageFilter and InvertIntensityImageFilter.
  * For DifferenceImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DifferenceImageFilter.html
  * For InvertIntensityImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1InvertIntensityImageFilter.html
+ * For Rescale Image filter refer to http://itk.org/ITKExamples/src/Filtering/ImageIntensity/RescaleAnImage/Documentation.html
  */
 class iAIntensity : public iAAlgorithm
 {
@@ -65,6 +67,12 @@ public:
 		image2 = i2;
 	}
 
+	void setRescaleParameters(double outMin, double outMax)
+	{
+		outputMin = outMin;
+		outputMax = outMax;
+	}
+
 protected:
 	void run();
 
@@ -74,6 +82,7 @@ private:
 	bool thresholdAtMeanIntensity;		// Histogram Match Filter
 	vtkImageData* image2;
 	iAIntensityFilterType m_type;
+	double outputMin, outputMax;		// rescale intensity filter
 
 	void difference();
 	void invert_intensity();
@@ -81,4 +90,5 @@ private:
 	void intensity_windowing();
 	void normalize();
 	void histomatch();
+	void rescaleImage();
 };
