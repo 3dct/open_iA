@@ -300,7 +300,6 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		roiSource->SetOrigin(0, 0, 0);
 		roiSource->SetPoint1(-3, 0, 0);
 		roiSource->SetPoint2(0, -3, 0);
-		
 		roi = NULL;
 
 		QImage img;
@@ -380,7 +379,6 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		roiActor->SetMapper( roiMapper );
 		roiActor->GetProperty()->SetColor( 1, 0, 0 );
 		roiActor->GetProperty()->SetOpacity( 1 );
-
 		roiSource->SetCenter( 0, 0, 1 );
 		roiMapper->Update( );
 		roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
@@ -531,6 +529,12 @@ void iASlicerData::updateROI()
 		roiMapper->Update();
 		interactor->Render();
 	}
+}
+
+
+void iASlicerData::SetROIVisibility(bool visible)
+{
+	roiActor->SetVisibility(visible);
 }
 
 

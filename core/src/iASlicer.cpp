@@ -248,7 +248,7 @@ void iASlicer::setROI( int r[6] )
 
 void iASlicer::setROIVisible( bool isVisible )
 {
-	m_data->getROIActor()->SetVisibility(isVisible);
+	m_data->SetROIVisibility(isVisible);
 }
 
 void iASlicer::changeImageData( vtkImageData *idata )

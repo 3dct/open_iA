@@ -31,7 +31,6 @@
 #include "iAVolumeStack.h"
 #include "mdichild.h"
 
-#include <vtkActor.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkColorTransferFunction.h>

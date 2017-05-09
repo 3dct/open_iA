@@ -108,7 +108,6 @@ public:
 	void setContours(int n, double mi, double ma);
 	void setContours( int n, double * contourValues );
 	void setMeasurementStartPoint(int x, int y) { measureStart[0] = x; measureStart[1] = y; };
-	void setROI(int r[6]) { roi = r; };
 	void setShowText(bool isVisible);
 	void setMouseCursor( QString s );
 
@@ -118,7 +117,10 @@ public:
 	void showPosition(bool s);	
 	void saveMovie(QString& fileName, int qual = 2);
 	void update();
+
 	void updateROI();
+	void setROI(int r[6]) { roi = r; };
+	void SetROIVisibility(bool visible);
 
 	vtkImageReslice *GetReslicer() { return reslicer; }
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
@@ -128,7 +130,6 @@ public:
 	void SetCamera(vtkCamera* camera, bool camOwner=true);
 	vtkImageData* GetImageData() const { return imageData; };
 
-	vtkActor *getROIActor() { return roiActor; };
 	iASlicerMode getMode() const { return m_mode; }
 	void setMode(const iASlicerMode mode);
 
@@ -250,9 +251,9 @@ private:
 	vtkSmartPointer<vtkPlaneSource> roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> roiMapper;
 	vtkSmartPointer<vtkActor> roiActor;
+	int *roi;
 
 	iARulerWidget *rulerWidget;
-	//iARulerActor * scaleActor;
 
 	vtkTransform *transform;
 	bool isolines;
@@ -265,7 +266,6 @@ private:
 	int no;
 	double min, max;
 	
-	int *roi;
 	int measureStart[2];
 	double angleX, angleY, angleZ;
 
