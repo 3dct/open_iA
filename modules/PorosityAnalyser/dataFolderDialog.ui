@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Data Folder:       </string>
+        <string>Results Folder:</string>
        </property>
       </widget>
      </item>

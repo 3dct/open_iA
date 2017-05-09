@@ -765,7 +765,7 @@ void dlg_ParamSpaceSampling::computePeaks( QVector<double> smoothKey, QVector<do
 void dlg_ParamSpaceSampling::computeSmoothHisto( QVector<double> * m_smoothKey, QVector<double> * m_smoothValue )
 {
 	// Compute smoothed histogram from original histogram data
-	typedef unsigned short   PixelType1D;
+	typedef long long	PixelType1D;
 	typedef itk::Image< PixelType1D, 1 > ImageType1D;
 	typedef itk::ImageRegionIterator< ImageType1D>       IteratorType;
 	ImageType1D::Pointer image1D = ImageType1D::New();
@@ -780,11 +780,10 @@ void dlg_ParamSpaceSampling::computeSmoothHisto( QVector<double> * m_smoothKey, 
 	image1D->Allocate();
 	IteratorType image1DIt( image1D, image1D->GetRequestedRegion() );
 	int idx = 0;
-
 	for ( image1DIt.GoToBegin(); !image1DIt.IsAtEnd(); ++image1DIt )
 	{
 		image1DIt.Set( m_valueData[idx] );
-		idx = idx + 1;
+		++idx;
 	}
 	
 	// itkDiscreteGaussianImageFilter used instead of itkRecursiveGaussianImageFilter
@@ -794,14 +793,13 @@ void dlg_ParamSpaceSampling::computeSmoothHisto( QVector<double> * m_smoothKey, 
 	smoothingFilter->SetInput( image1D );
 	smoothingFilter->Update();
 	QVector<double> smoothKey, smoothValue;
-	int j = 0;
 	itk::ImageRegionConstIterator<ImageType1D> smooth1DImageIt( smoothingFilter->GetOutput(), smoothingFilter->GetOutput()->GetLargestPossibleRegion() );
 
-	while ( !smooth1DImageIt.IsAtEnd() )
+	for ( int j = 0; j < 65535; ++j )
 	{
 		smoothKey.append( m_keyData[j] );
 		smoothValue.append( smooth1DImageIt.Get() );
-		j++; ++smooth1DImageIt;
+		++smooth1DImageIt;
 	}
 
 	*m_smoothKey = smoothKey;
