@@ -79,6 +79,7 @@ private slots:
 	void datasetPreviewThreadFinished();
 	void datasetPreviewThreadStarted();
 	void displayPipelineInSlots( QTableWidgetItem * );
+	void compNameChanged();
 
 protected:
 	void updateFromGUI() const;

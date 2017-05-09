@@ -87,6 +87,7 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	uiComputeSegm.resultsFolder->setText( m_resultsFolder );
 	uiComputeSegm.datasetsFolder->setText( m_datasetsFolder );
 	uiComputeSegm.pBDatasetPreviewProgress->hide();
+	connect( uiComputeSegm.computerName, SIGNAL( editingFinished() ), this, SLOT( compNameChanged() ) );
 	connect( uiComputeSegm.tbReload, SIGNAL( clicked() ), this, SLOT( loadCSV() ) );
 	connect( uiComputeSegm.tbSave, SIGNAL( clicked() ), this, SLOT( saveCSV() ) );
 	connect( uiComputeSegm.tbOpenCSV, SIGNAL( clicked() ), this, SLOT( browseCSV() ) );
@@ -683,4 +684,9 @@ void iAPorosityAnalyserModuleInterface::datasetPreviewThreadFinished()
 void iAPorosityAnalyserModuleInterface::datasetPreviewThreadStarted()
 {
 	uiComputeSegm.pBDatasetPreviewProgress->show();
+}
+
+void iAPorosityAnalyserModuleInterface::compNameChanged()
+{
+	m_computerName = uiComputeSegm.computerName->text();;
 }

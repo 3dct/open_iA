@@ -289,8 +289,15 @@ void iAPDMView::UpdateTable()
 		tableWidget->setRowCount( m_datasets->size() + 1 );
 		tableWidget->setItem( 0, 0, new QTableWidgetItem( "Filter/Dataset" ) );
 	}
-	for( int i = 0; i < m_filters->size(); ++i )
-		tableWidget->setItem( 0, i + 1, new QTableWidgetItem( (*m_filters)[i] ) );
+	for ( int i = 0; i < m_filters->size(); ++i )
+	{
+		QString rfn = ( *m_filters )[i];
+		rfn.replace( "Create Surrounding", "CS" );
+		rfn.replace( "Remove Surrounding", "RS" );
+		QTableWidgetItem* twi = new QTableWidgetItem( rfn );
+		twi->setToolTip( rfn );
+		tableWidget->setItem( 0, i + 1, twi );
+	}
 	for( int i = 0; i < m_datasets->size(); ++i )
 		tableWidget->setItem( i + 1, 0, new QTableWidgetItem( (*m_datasets)[i] ) );
 	ShowDeviationControls( false );
