@@ -83,6 +83,10 @@
 #include <string>
 #include <sstream>
 
+namespace
+{
+	const double PickTolerance = 100.0;
+}
 
 class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
@@ -284,7 +288,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	
 	UpdateResliceAxesDirectionCosines();
 	UpdateBackground();
-	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
+	pointPicker->SetTolerance(PickTolerance);
 
 	if (m_decorations)
 	{
@@ -450,8 +454,7 @@ void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, do
 	imgBlender->Update();
 
 	reslicer->SetInputConnection(imgBlender->GetOutputPort());	
-	pointPicker->SetTolerance(imgBlender->GetOutput()->GetSpacing()[0]/3);
-	//scalarWidget->GetScalarBarActor()->SetLookupTable( lut );
+	pointPicker->SetTolerance(PickTolerance);
 
 	this->imageData = imgBlender->GetOutput();
 	this->imageData->Modified();
@@ -476,7 +479,7 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTra
 
 	InitReslicerWithImageData();
 
-	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
+	pointPicker->SetTolerance(PickTolerance);
 
 	if (m_decorations)
 	{
@@ -723,7 +726,7 @@ void iASlicerData::changeImageData( vtkImageData *idata )
 	reslicer->SetInputData( imageData );
 	reslicer->SetInformationInput( imageData );
 
-	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
+	pointPicker->SetTolerance(PickTolerance);
 
 	if (m_decorations)
 	{
