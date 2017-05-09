@@ -602,6 +602,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData)
 {
 	imageData = imgData;
+	setCurrentFile(filename);
 	setupView(false);
 	enableRenderWindows();
 }
