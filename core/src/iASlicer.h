@@ -105,7 +105,7 @@ public:
 	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 
-	void setPlaneCenter( int x, int y, int z );
+	void setPositionMarkerCenter(double x, double y);
 	void setROI(int r[6]);
 	void setROIVisible(bool isVisible);
 	void updateROI();

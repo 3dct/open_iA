@@ -134,9 +134,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	logoWidget(0),
 	logoRep(0),
 	logoImage(0),
-	m_planeSrc(0),
-	m_planeMapper(0),
-	m_planeActor(0),
 	cFilter(0),
 	cMapper(0),
 	cActor(0),
@@ -146,12 +143,10 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	pDiskSource(0),
 	pDiskMapper(0),
 	pDiskActor(0),
-	roiSource(0),
-	roiMapper(0),
-	roiActor(0),
 	textInfo(0),
 	rulerWidget(0),
-	interactor(0)
+	interactor(0),
+	m_showPositionMarker(false)
 {
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
@@ -173,10 +168,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		logoRep = vtkLogoRepresentation::New();
 		logoImage = vtkQImageToImageSource::New();
 
-		m_planeSrc = vtkPlaneSource::New();
-		m_planeSrc->SetCenter(0, 0, -10000); // to initially hide the green rectangle - use actor visibility instead maybe?
-		m_planeMapper = vtkPolyDataMapper::New();
-		m_planeActor = vtkActor::New();
+		m_positionMarkerSrc = vtkSmartPointer<vtkPlaneSource>::New();
+		m_positionMarkerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		m_positionMarkerActor = vtkSmartPointer<vtkActor>::New();
 
 		cFilter = vtkMarchingContourFilter::New();
 		cMapper = vtkPolyDataMapper::New();
@@ -190,9 +184,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		pDiskMapper = vtkPolyDataMapper::New();
 		pDiskActor = vtkActor::New();
 		
-		roiSource = vtkPlaneSource::New();
-		roiMapper = vtkPolyDataMapper::New();
-		roiActor = vtkActor::New();
+		roiSource = vtkSmartPointer<vtkPlaneSource>::New();
+		roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		roiActor = vtkSmartPointer<vtkActor>::New();
 		
 		textInfo = iAWrapperText::New();
 		
@@ -226,10 +220,6 @@ iASlicerData::~iASlicerData(void)
 		logoWidget->Delete();
 		logoImage->Delete();
 
-		m_planeSrc->Delete();
-		m_planeMapper->Delete();
-		m_planeActor->Delete();
-
 		cFilter->Delete();
 		cMapper->Delete();
 		cActor->Delete();
@@ -242,10 +232,6 @@ iASlicerData::~iASlicerData(void)
 		pDiskMapper->Delete();
 		pDiskActor->Delete();
 
-		roiSource->Delete();
-		roiMapper->Delete();
-		roiActor->Delete();
-		roiActor = NULL;
 		rulerWidget->Delete();
 	}
 
@@ -345,12 +331,13 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		scalarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
 		scalarWidget->GetScalarBarActor()->SetTitle("Range");
 
-		m_planeMapper->SetInputConnection( m_planeSrc->GetOutputPort() );
-		m_planeActor->SetMapper( m_planeMapper );
-		m_planeActor->GetProperty()->SetColor( 0,1,0 );
-		m_planeActor->GetProperty()->SetEdgeColor(0,0,1);
-		m_planeActor->GetProperty()->SetOpacity( 1 );
-		m_planeActor->SetVisibility( poly );
+		UpdatePositionMarkerExtent();
+		m_positionMarkerMapper->SetInputConnection( m_positionMarkerSrc->GetOutputPort() );
+		m_positionMarkerActor->SetMapper( m_positionMarkerMapper );
+		m_positionMarkerActor->GetProperty()->SetColor( 0,1,0 );
+		m_positionMarkerActor->GetProperty()->SetOpacity( 1 );
+		m_positionMarkerActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+		m_positionMarkerActor->SetVisibility(false);
 
 		cFilter->SetInputConnection( reslicer->GetOutputPort() );
 		cFilter->UseScalarTreeOn( );
@@ -401,7 +388,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		rulerWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.333,0.05);
 		rulerWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.333,0.051);
 		
-		ren->AddActor(m_planeActor);
+		ren->AddActor(m_positionMarkerActor);
 		ren->AddActor(cActor);
 		ren->AddActor(pLineActor);
 		ren->AddActor(pDiskActor);
@@ -593,22 +580,17 @@ void iASlicerData::update()
 }
 
 
-void iASlicerData::setPlaneCenter( double x, double y, double z )
+void iASlicerData::setPositionMarkerCenter(double x, double y)
 {
 	if (!m_decorations)
 	{
 		return;
 	}
-	if (interactor->GetEnabled())
+	if (interactor->GetEnabled() && m_showPositionMarker)
 	{
-		double spacing[2] = {
-			imageData->GetSpacing()[SlicerXInd(m_mode)],
-			imageData->GetSpacing()[SlicerYInd(m_mode)]
-		};
-		m_planeSrc->SetOrigin(0, 0, 0);
-		m_planeSrc->SetPoint1(m_ext * spacing[0], 0, 0);
-		m_planeSrc->SetPoint2(0, m_ext * spacing[1], 0);
-		m_planeSrc->SetCenter( x, y, z );
+		m_positionMarkerActor->SetVisibility(true);
+		m_positionMarkerSrc->SetCenter(x, y, 0);
+		m_positionMarkerMapper->Update();
 	}
 };
 
@@ -629,7 +611,7 @@ void iASlicerData::showPosition(bool s)
 	{
 		return;
 	}
-	m_planeActor->SetVisibility(s); 
+	m_showPositionMarker = s;
 }
 
 
@@ -940,10 +922,27 @@ void iASlicerData::saveImageStack()
 	msgBox.exec();
 }
 
+void iASlicerData::UpdatePositionMarkerExtent()
+{
+	double spacing[2] = {
+		imageData->GetSpacing()[SlicerXInd(m_mode)],
+		imageData->GetSpacing()[SlicerYInd(m_mode)]
+	};
+	m_positionMarkerSrc->SetOrigin(0, 0, 0);
+	m_positionMarkerSrc->SetPoint1((m_ext * spacing[0]), 0, 0);
+	m_positionMarkerSrc->SetPoint2(0, (m_ext * spacing[1]), 0);
+}
 
 void iASlicerData::setStatisticalExtent( int statExt )
 {
 	m_ext = statExt;
+	if (m_positionMarkerSrc && imageData)
+	{
+		double center[3];
+		m_positionMarkerSrc->GetCenter(center);
+		UpdatePositionMarkerExtent();
+		m_positionMarkerSrc->SetCenter(center);
+	}
 }
 
 
@@ -1203,7 +1202,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 				switch (m_mode)
 				{
 				case iASlicerMode::XY://XY
-					tmpChild->getSlicerDataXY()->setPlaneCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1], 1);
+					tmpChild->getSlicerDataXY()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
 					tmpChild->getSlicerXY()->setIndex(tmpX, tmpY, tmpZ);
 					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(tmpZ);
 
@@ -1214,7 +1213,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), tmpX, tmpY, tmpZ, m_mode);
 					break;
 				case iASlicerMode::YZ://YZ
-					tmpChild->getSlicerDataYZ()->setPlaneCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2], 1);
+					tmpChild->getSlicerDataYZ()->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
 					tmpChild->getSlicerYZ()->setIndex(tmpX, tmpY, tmpZ);
 					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(tmpX);
 
@@ -1225,7 +1224,7 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), tmpY, tmpZ, tmpX, m_mode);
 					break;
 				case iASlicerMode::XZ://XZ
-					tmpChild->getSlicerDataXZ()->setPlaneCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2], 1);
+					tmpChild->getSlicerDataXZ()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
 					tmpChild->getSlicerXZ()->setIndex(tmpX, tmpY, tmpZ);
 					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(tmpY);
 
@@ -1259,14 +1258,14 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 /*
 	// ORIENTATION / ROTATION FIX:
 	// make orientation the same as in other image viewers:
-	setPlaneCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1], 1);
+	setPositionMarkerCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1]);
 */
-	m_planeMapper->Update();
+	m_positionMarkerMapper->Update();
 
 /*
 	// ORIENTATION / ROTATION FIX:
 	// make orientation the same as in other image viewers:
-	if (pLineSource != NULL)	pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1], m_ptMapped[2]);
+	if (pLineSource != NULL)	pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
 */
 
 	//show cross here
@@ -1310,8 +1309,7 @@ void iASlicerData::defaultOutput()
 	QString strDetails(" ");
 	textInfo->GetActor()->SetPosition(20, 20);
 	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
-
-	m_planeSrc->SetCenter(0, 0, -10000);
+	m_positionMarkerActor->SetVisibility(false);
 	interactor->ReInitialize();
 	interactor->Render();
 }

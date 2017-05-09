@@ -103,7 +103,8 @@ public:
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setSliceNumber(int sliceNumber);
-	void setPlaneCenter(double x, double y, double z );
+	//! set the position of the position marker (in slicer coordinates)
+	void setPositionMarkerCenter(double x, double y);
 	void setContours(int n, double mi, double ma);
 	void setContours( int n, double * contourValues );
 	void setMeasurementStartPoint(int x, int y) { measureStart[0] = x; measureStart[1] = y; };
@@ -228,10 +229,11 @@ private:
 
 	iAWrapperText* textInfo;
 
-	//statistical extent plane (green rectangle)
-	vtkPlaneSource *m_planeSrc;
-	vtkPolyDataMapper *m_planeMapper;
-	vtkActor *m_planeActor;
+	// position marker / statistical extent
+	vtkSmartPointer<vtkPlaneSource> m_positionMarkerSrc;
+	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
+	vtkSmartPointer<vtkActor> m_positionMarkerActor;
+	bool m_showPositionMarker;
 
 	vtkMarchingContourFilter *cFilter;
 	vtkPolyDataMapper *cMapper;
@@ -245,9 +247,9 @@ private:
 	vtkPolyDataMapper *pDiskMapper;
 	vtkActor *pDiskActor;
 
-	vtkPlaneSource *roiSource;
-	vtkPolyDataMapper *roiMapper;
-	vtkActor *roiActor;
+	vtkSmartPointer<vtkPlaneSource> roiSource;
+	vtkSmartPointer<vtkPolyDataMapper> roiMapper;
+	vtkSmartPointer<vtkActor> roiActor;
 
 	iARulerWidget *rulerWidget;
 	//iARulerActor * scaleActor;
@@ -276,6 +278,7 @@ private:
 
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
 	void GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, double* result);
+	void UpdatePositionMarkerExtent();
 
 	QCursor m_mouseCursor;
 };
