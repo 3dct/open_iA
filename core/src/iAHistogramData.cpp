@@ -23,6 +23,7 @@
 #include "iAHistogramData.h"
 
 #include "iAVtkDataTypeMapper.h"
+#include "iAToolsVTK.h"
 
 #include <vtkImageAccumulate.h>
 #include <vtkImageCast.h>
@@ -89,7 +90,14 @@ void iAHistogramData::Update()
 	rawImg = caster->GetOutput();
 	rawData = static_cast<DataType* >(rawImg->GetScalarPointer());
 	double null1, null2;
-	accumulate->GetComponentSpacing(accSpacing, null1, null2);
+	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
+	{	// for int types, the last value is inclusive:
+		accSpacing = (dataRange[1] - dataRange[0] + 1) / numBin;
+	}
+	else
+	{
+		accumulate->GetComponentSpacing(accSpacing, null1, null2);
+	}
 	SetMaxFreq();
 }
 

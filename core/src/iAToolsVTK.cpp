@@ -98,3 +98,13 @@ void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)
 	writer->SetInputData(imageData);
 	writer->Write();
 }
+
+
+bool isVtkIntegerType(int type)
+{
+	return type == VTK_CHAR || type == VTK_UNSIGNED_CHAR ||
+		type == VTK_SHORT || type == VTK_UNSIGNED_SHORT ||
+		type == VTK_INT || type == VTK_UNSIGNED_INT ||
+		type == VTK_LONG || type == VTK_UNSIGNED_LONG ||
+		type == VTK_LONG_LONG || type == VTK_UNSIGNED_LONG_LONG;
+}

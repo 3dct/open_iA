@@ -23,6 +23,7 @@
 #include "iAModalityTransfer.h"
 
 #include "iAHistogramWidget.h"
+#include "iAToolsVTK.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageAccumulate.h>
@@ -68,22 +69,13 @@ void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData>
 	SetHistogramBinCount(binCount);
 }
 
-bool isVtkIntegerType(int type)
-{
-	return type == VTK_CHAR || type == VTK_UNSIGNED_CHAR ||
-		type == VTK_SHORT || type == VTK_UNSIGNED_SHORT ||
-		type == VTK_INT || type == VTK_UNSIGNED_INT ||
-		type == VTK_LONG || type == VTK_UNSIGNED_LONG ||
-		type == VTK_LONG_LONG || type == VTK_UNSIGNED_LONG_LONG;
-}
-
 void iAModalityTransfer::SetHistogramBinCount(int binCount)
 {
 	if (!m_useAccumulate)
 		return;
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
 	{
-		binCount = std::min(binCount, static_cast<int>(m_scalarRange[1] - m_scalarRange[0]));
+		binCount = std::min(binCount, static_cast<int>(m_scalarRange[1] - m_scalarRange[0] + 1));
 	}
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
 	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
