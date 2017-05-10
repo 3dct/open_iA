@@ -996,7 +996,7 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 	slicerSettingsElement.setAttribute("linkViews", tr("%1").arg(defaultSlicerSettings.LinkViews));
 	slicerSettingsElement.setAttribute("showIsolines", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowIsoLines));
 	slicerSettingsElement.setAttribute("showPosition", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowPosition));
-
+	slicerSettingsElement.setAttribute("showAxesCaption", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowAxesCaption));
 	slicerSettingsElement.setAttribute("numberOfIsolines", tr("%1").arg(defaultSlicerSettings.SingleSlicer.NumberOfIsoLines));
 	slicerSettingsElement.setAttribute("minIsovalue", tr("%1").arg(defaultSlicerSettings.SingleSlicer.MinIsoValue));
 	slicerSettingsElement.setAttribute("maxIsovalue", tr("%1").arg(defaultSlicerSettings.SingleSlicer.MaxIsoValue));
@@ -1016,6 +1016,7 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 	defaultSlicerSettings.LinkViews = attributes.namedItem("linkViews").nodeValue() == "1";
 	defaultSlicerSettings.SingleSlicer.ShowIsoLines = attributes.namedItem("showIsolines").nodeValue() == "1";
 	defaultSlicerSettings.SingleSlicer.ShowPosition = attributes.namedItem("showPosition").nodeValue() == "1";
+	defaultSlicerSettings.SingleSlicer.ShowAxesCaption = attributes.namedItem("showAxesCaption").nodeValue() == "1";
 	defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = attributes.namedItem("numberOfIsolines").nodeValue().toInt();
 	defaultSlicerSettings.SingleSlicer.MinIsoValue = attributes.namedItem("minIsovalue").nodeValue().toDouble();
 	defaultSlicerSettings.SingleSlicer.MaxIsoValue = attributes.namedItem("maxIsovalue").nodeValue().toDouble();
@@ -1320,7 +1321,9 @@ void MainWindow::slicerSettings()
 		<< tr("#Max Isovalue")
 		<< tr("#Snake Slices")
 		<< tr("$Link MDIs")
-		<< tr("+Mouse Coursor Types"));
+		<< tr("+Mouse Coursor Types")
+		<< tr("$Show Axes Caption")
+		);
 	
 	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
 	QStringList mouseCursorTypes;
@@ -1336,9 +1339,10 @@ void MainWindow::slicerSettings()
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MaxIsoValue)
 		<< tr("%1").arg(slicerSettings.SnakeSlices)
 		<< (child->getLinkedMDIs() ? tr("true") : tr("false"))
-		<< mouseCursorTypes;
+		<< mouseCursorTypes
+		<< (slicerSettings.SingleSlicer.ShowAxesCaption ? tr("true") : tr("false"));
 
-	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", 10, inList, inPara, NULL);
+	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", inList.size(), inList, inPara, NULL);
 
 	if (dlg->exec() == QDialog::Accepted)
 	{
@@ -1352,6 +1356,7 @@ void MainWindow::slicerSettings()
 		defaultSlicerSettings.SnakeSlices = dlg->getValues()[7];
 		defaultSlicerSettings.LinkMDIs = dlg->getCheckValues()[8] != 0;
 		defaultSlicerSettings.SingleSlicer.CursorMode = dlg->getComboBoxValues()[9];
+		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg->getCheckValues()[10] != 0;
 
 		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(defaultSlicerSettings))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
@@ -1919,6 +1924,7 @@ void MainWindow::readSettings()
 
 	defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", false).toBool();
 	defaultSlicerSettings.SingleSlicer.ShowPosition = settings.value("Slicer/ssShowPosition", true).toBool();
+	defaultSlicerSettings.SingleSlicer.ShowAxesCaption = settings.value("Slicer/ssShowAxesCaption", false).toBool();
 	defaultSlicerSettings.SingleSlicer.ShowIsoLines = settings.value("Slicer/ssShowIsolines", false).toBool();
 	defaultSlicerSettings.LinkMDIs = settings.value("Slicer/ssLinkMDIs", false).toBool();
 	defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = settings.value("Slicer/ssNumberOfIsolines", 5).toDouble();
@@ -2014,6 +2020,7 @@ void MainWindow::writeSettings()
 
 	settings.setValue("Slicer/ssLinkViews", defaultSlicerSettings.LinkViews);
 	settings.setValue("Slicer/ssShowPosition", defaultSlicerSettings.SingleSlicer.ShowPosition);
+	settings.setValue("Slicer/ssShowAxesCaption", defaultSlicerSettings.SingleSlicer.ShowAxesCaption);
 	settings.setValue("Slicer/ssShowIsolines", defaultSlicerSettings.SingleSlicer.ShowIsoLines);
 	settings.setValue("Slicer/ssLinkMDIs", defaultSlicerSettings.LinkMDIs);
 	settings.setValue("Slicer/ssNumberOfIsolines", defaultSlicerSettings.SingleSlicer.NumberOfIsoLines);

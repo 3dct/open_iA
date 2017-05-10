@@ -68,6 +68,7 @@
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
 #include <vtkSmartPointer.h>
+#include <vtkTextActor3D.h>
 #include <vtkTextMapper.h>
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
@@ -182,6 +183,12 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		roiSource = vtkSmartPointer<vtkPlaneSource>::New();
 		roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		roiActor = vtkSmartPointer<vtkActor>::New();
+
+		for (int i = 0; i < 2; ++i)
+		{
+			axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
+			axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
+		}
 		
 		textInfo = iAWrapperText::New();
 		
@@ -360,6 +367,38 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		roiMapper->Update( );
 		roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
 		
+		reslicer->Update();
+		double const * const imgSpc = imageData->GetSpacing();
+		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
+		double const * const spc = reslicer->GetOutput()->GetSpacing();
+		int    const * const dim = reslicer->GetOutput()->GetDimensions();
+
+		axisTextActor[0]->SetInput((m_mode == XY || m_mode == XZ) ? "X" : "Y");
+		axisTextActor[1]->SetInput((m_mode == XZ || m_mode == YZ) ? "Z" : "Y");
+
+		for (int i = 0; i < 2; ++i)
+		{
+			axisTextActor[i]->SetPickable(false);
+			// large font size required to make the font nicely smooth
+			axisTextActor[i]->GetTextProperty()->SetFontSize(100);
+			axisTextActor[i]->GetTextProperty()->SetFontFamilyToArial();
+			axisTextActor[i]->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+			ren->AddActor(axisTextActor[i]);
+			axisTextActor[i]->SetVisibility(false);
+			// scaling required to shrink the text to required size (because of large font size, see above)
+			axisTransform[i]->Scale(unitSpacing / 10, unitSpacing / 10, unitSpacing / 10);
+			axisTextActor[i]->SetUserTransform(axisTransform[i]);
+		}
+		double xHalf = (dim[0] - 1) * spc[0] / 2.0;
+		double yHalf = (dim[1] - 1) * spc[1] / 2.0;
+		// "* 10 / unitSpacing" adjusts for scaling (see above)
+		axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
+		axisTextActor[0]->GetTextProperty()->SetVerticalJustificationToTop();
+		axisTextActor[0]->GetTextProperty()->SetJustificationToCentered();
+		axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
+		axisTextActor[1]->GetTextProperty()->SetVerticalJustificationToCentered();
+		axisTextActor[1]->GetTextProperty()->SetJustificationToRight();
+		
 		rulerWidget->SetInteractor(interactor);
 		rulerWidget->SetEnabled( true );
 		rulerWidget->SetRepositionable( true );
@@ -531,6 +570,8 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
 	showPosition(settings.ShowPosition);
+	axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
+	axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
 }
 
 
@@ -1752,8 +1793,8 @@ void iASlicerData::setContours( int n, double mi, double ma )
 	{
 		return;
 	}
-	no = n;  min = mi; max = ma;
-	cFilter->GenerateValues( no, min, max );
+	no = n;  contourMin = mi; contourMax = ma;
+	cFilter->GenerateValues( no, contourMin, contourMax );
 }
 
 void iASlicerData::setContours( int n, double * contourValues )

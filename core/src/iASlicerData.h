@@ -42,29 +42,30 @@
 #include "ui_sliceXZ.h"
 #include "ui_sliceYZ.h"
 
-class vtkScalarBarWidget;
-class vtkTextProperty;
+class vtkActor;
+class vtkCamera;
 class vtkColorTransferFunction;
+class vtkGenericOpenGLRenderWindow;
+class vtkImageActor;
+class vtkImageData;
 class vtkImageMapToColors;
+class vtkImageReslice;
+class vtkInteractorStyle;
+class vtkLineSource;
 class vtkLogoWidget;
 class vtkLogoRepresentation;
-class vtkQImageToImageSource;
 class vtkMarchingContourFilter;
-class vtkCamera;
-class vtkTransform;
-class vtkRenderer;
-class vtkRenderWindowInteractor;
-class vtkPolyDataMapper;
+class vtkObject;
 class vtkPlaneSource;
 class vtkPointPicker;
-class vtkObject;
-class vtkLineSource;
-class vtkInteractorStyle;
-class vtkImageReslice;
-class vtkImageData;
-class vtkImageActor;
-class vtkGenericOpenGLRenderWindow;
-class vtkActor;
+class vtkQImageToImageSource;
+class vtkPolyDataMapper;
+class vtkRenderer;
+class vtkRenderWindowInteractor;
+class vtkScalarBarWidget;
+class vtkTextProperty;
+class vtkTextActor3D;
+class vtkTransform;
 
 class iARulerWidget;
 class iAMagicLens;
@@ -246,6 +247,9 @@ private:
 	vtkSmartPointer<vtkActor> roiActor;
 	int *roi;
 
+	vtkSmartPointer<vtkTransform> axisTransform[2];
+	vtkSmartPointer<vtkTextActor3D> axisTextActor[2];
+
 	iARulerWidget *rulerWidget;
 
 	vtkTransform *transform;
@@ -257,7 +261,7 @@ private:
 	int m_ext;
 	bool disabled;
 	int no;
-	double min, max;
+	double contourMin, contourMax;
 	
 	int measureStart[2];
 	double angleX, angleY, angleZ;

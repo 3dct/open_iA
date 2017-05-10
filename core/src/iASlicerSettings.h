@@ -25,7 +25,8 @@ class iASingleSlicerSettings
 public:
 	bool LinearInterpolation,
 		ShowIsoLines,
-		ShowPosition;
+		ShowPosition,
+		ShowAxesCaption;
 	double MinIsoValue, MaxIsoValue;
 	int NumberOfIsoLines;
 	QString CursorMode;
@@ -34,6 +35,7 @@ public:
 		LinearInterpolation(false),
 		ShowIsoLines(false),
 		ShowPosition(false),
+		ShowAxesCaption(false),
 		MinIsoValue(0),
 		MaxIsoValue(0),
 		NumberOfIsoLines(0),
