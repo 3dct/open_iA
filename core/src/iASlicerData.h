@@ -135,7 +135,6 @@ public:
 
 	/**	Provides the possibility to save an png image of the image viewer native resolution or the current view. */
 	void saveAsImage() const;
-
 	/** Provides the possibility to save an image stack of the current view. */
 	void saveImageStack();
 	void setStatisticalExtent(int statExt);
@@ -143,7 +142,6 @@ public:
 	virtual void Execute(vtkObject * caller, unsigned long eventId, void * callData);
 
 	void setMagicLensInput(iAChannelID id);
-	
 	iAChannelSlicerData * GetChannel(iAChannelID id);
 	size_t GetEnabledChannels();
 
@@ -152,14 +150,12 @@ public:
 	void switchContourSourceToChannel( iAChannelID id );
 
 	void SetManualBackground(double r, double g, double b);
-	//void UnsetManualBackground(); // not used yet
 
 	vtkScalarBarWidget * GetScalarWidget();
 	vtkImageActor* GetImageActor();
 	QCursor getMouseCursor();
 
 protected:
-
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();
 	//mouse move
@@ -183,10 +179,9 @@ protected:
 	* \param [in,out]	x	The x coordinate.
 	* \param [in,out]	y	The y coordinate.
 	*/
-	void snap(double &x, double &y);
+	void snapToHighGradient(double &x, double &y);
 	void InitReslicerWithImageData();
-	void UpdateReslicer();	
-	
+	void UpdateReslicer();
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
@@ -201,7 +196,6 @@ Q_SIGNALS:
 	void oslicerCol(double cl, double cw, int mode);
 	//key press
 	void Pick();
-
 private:
 	iAMagicLens * m_magicLensExternal;
 	vtkRenderWindowInteractor* interactor;
@@ -240,13 +234,12 @@ private:
 	vtkPolyDataMapper *cMapper;
 	vtkActor *cActor;
 
-	vtkLineSource *pLineSource;
-	vtkPolyDataMapper *pLineMapper;
-	vtkActor *pLineActor;
-
-	vtkDiskSource *pDiskSource;
-	vtkPolyDataMapper *pDiskMapper;
-	vtkActor *pDiskActor;
+	vtkSmartPointer<vtkLineSource> pLineSource;
+	vtkSmartPointer<vtkPolyDataMapper> pLineMapper;
+	vtkSmartPointer<vtkActor> pLineActor;
+	vtkSmartPointer<vtkDiskSource> pDiskSource;
+	vtkSmartPointer<vtkPolyDataMapper> pDiskMapper;
+	vtkSmartPointer<vtkActor> pDiskActor;
 
 	vtkSmartPointer<vtkPlaneSource> roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> roiMapper;

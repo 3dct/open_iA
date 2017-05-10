@@ -141,12 +141,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	cFilter(0),
 	cMapper(0),
 	cActor(0),
-	pLineSource(0),
-	pLineMapper(0),
-	pLineActor(0),
-	pDiskSource(0),
-	pDiskMapper(0),
-	pDiskActor(0),
 	textInfo(0),
 	rulerWidget(0),
 	interactor(0),
@@ -155,6 +149,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
+	renWin->PolygonSmoothingOn();
 	interactorStyle = iAInteractorStyleImage::New();
 	m_camera = vtkCamera::New();
 
@@ -180,13 +175,12 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		cMapper = vtkPolyDataMapper::New();
 		cActor = vtkActor::New();
 
-		pLineSource = vtkLineSource::New();
-		pLineMapper = vtkPolyDataMapper::New();
-		pLineActor = vtkActor::New();
-
-		pDiskSource = vtkDiskSource::New();
-		pDiskMapper = vtkPolyDataMapper::New();
-		pDiskActor = vtkActor::New();
+		pLineSource = vtkSmartPointer<vtkLineSource>::New();
+		pLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		pLineActor = vtkSmartPointer<vtkActor>::New();
+		pDiskSource = vtkSmartPointer<vtkDiskSource>::New();
+		pDiskMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		pDiskActor = vtkSmartPointer<vtkActor>::New();
 		
 		roiSource = vtkSmartPointer<vtkPlaneSource>::New();
 		roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -228,14 +222,6 @@ iASlicerData::~iASlicerData(void)
 		cMapper->Delete();
 		cActor->Delete();
 
-		pLineSource->Delete();
-		pLineMapper->Delete();
-		pLineActor->Delete();
-
-		pDiskSource->Delete();
-		pDiskMapper->Delete();
-		pDiskActor->Delete();
-
 		rulerWidget->Delete();
 	}
 
@@ -276,13 +262,14 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	interactor->Initialize( );
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
-	interactor->AddObserver( vtkCommand::LeftButtonPressEvent, redirect);
-	interactor->AddObserver( vtkCommand::LeftButtonReleaseEvent, redirect);
-	interactor->AddObserver( vtkCommand::RightButtonPressEvent, redirect);
-	interactor->AddObserver( vtkCommand::MouseMoveEvent, redirect);
-	interactor->AddObserver( vtkCommand::KeyReleaseEvent, redirect);
-	interactor->AddObserver( vtkCommand::MouseWheelBackwardEvent, redirect);
-	interactor->AddObserver( vtkCommand::MouseWheelForwardEvent, redirect);
+	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
+	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, redirect);
+	interactor->AddObserver(vtkCommand::RightButtonPressEvent, redirect);
+	interactor->AddObserver(vtkCommand::MouseMoveEvent, redirect);
+	interactor->AddObserver(vtkCommand::KeyPressEvent, redirect);
+	interactor->AddObserver(vtkCommand::KeyReleaseEvent, redirect);
+	interactor->AddObserver(vtkCommand::MouseWheelBackwardEvent, redirect);
+	interactor->AddObserver(vtkCommand::MouseWheelForwardEvent, redirect);
 
 	InitReslicerWithImageData();
 	
@@ -356,23 +343,20 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		pLineSource->SetPoint1( 0.0, 0.0, 0.0 );
 		pLineSource->SetPoint2( 10.0, 10.0, 0.0 );
 		pLineSource->Update( );
-
 		pLineMapper->SetInputConnection( pLineSource->GetOutputPort() );
 		pLineActor->SetMapper( pLineMapper );
 		pLineActor->GetProperty()->SetColor( 1.0, 1.0, 1.0 );
 		pLineActor->GetProperty()->SetOpacity( 1 );
 		pLineActor->SetVisibility( false );
 
-		pDiskSource->SetOuterRadius( 0.5 );
-		pDiskSource->SetInnerRadius( 0.0 );
-		pDiskSource->SetCircumferentialResolution( 20 );
+		pDiskSource->SetCircumferentialResolution( 50 );
 		pDiskSource->Update( );
-
 		pDiskMapper->SetInputConnection( pDiskSource->GetOutputPort() );
 		pDiskActor->SetMapper( pDiskMapper );
 		pDiskActor->GetProperty()->SetColor( 1.0, 1.0, 1.0 );
 		pDiskActor->GetProperty()->SetOpacity( 1 );
 		pDiskActor->SetVisibility( false );
+		pDiskActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
 
 		roiMapper->SetInputConnection( roiSource->GetOutputPort() );
 		roiActor->SetVisibility( false );
@@ -1255,7 +1239,11 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 						pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) 
 					  + pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2)
 					);
+		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);	// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
+		pDiskSource->SetOuterRadius(distance);
+		pDiskSource->SetInnerRadius(distance);
 		strDetails += QString("distance [ %1 ]\n").arg(distance);
+
 	}
 
 	// Update the info text with pixel coordinates/value if requested.
@@ -1268,14 +1256,6 @@ void iASlicerData::printVoxelInformation(int xCoord, int yCoord, int zCoord, dou
 	setPositionMarkerCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1]);
 */
 	m_positionMarkerMapper->Update();
-
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	if (pLineSource != NULL)	pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
-*/
-
-	//show cross here
 }
 
 void iASlicerData::executeKeyPressEvent()
@@ -1283,16 +1263,20 @@ void iASlicerData::executeKeyPressEvent()
 	switch(interactor->GetKeyCode())
 	{
 	case 'm':
-		snap(m_ptMapped[0], m_ptMapped[1]);
+		// does not seem to work reliably (most of the time snaps to strange positions which are not the highest gradient close to the current position)
+		// and causes access to pixels outside of the image:
+		//snapToHighGradient(m_ptMapped[0], m_ptMapped[1]);
+
 		m_startMeasurePoint[0] = m_ptMapped[0];
 		m_startMeasurePoint[1] = m_ptMapped[1];
-
-		if (m_decorations && pLineSource != NULL){
-			pLineSource->SetPoint1(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
-			pDiskActor->SetPosition(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
-		}
-
-		if (m_decorations && pLineActor != NULL){
+		if (m_decorations && pLineSource != NULL)
+		{
+			double * slicerSpacing = reslicer->GetOutput()->GetSpacing();
+			pLineSource->SetPoint1(m_startMeasurePoint[0]-(0.5*slicerSpacing[0]), m_startMeasurePoint[1]-(0.5*slicerSpacing[1]), 0.0);
+			pLineSource->SetPoint2(m_startMeasurePoint[0]-(0.5*slicerSpacing[0]), m_startMeasurePoint[1]-(0.5*slicerSpacing[1]), 0.0);
+			pDiskActor->SetPosition(m_startMeasurePoint[0]-(0.5*slicerSpacing[0]), m_startMeasurePoint[1]-(0.5*slicerSpacing[1]), 1.0);
+			pDiskSource->SetOuterRadius(0);
+			pDiskSource->SetInnerRadius(0);
 			pLineActor->SetVisibility(true);
 			pDiskActor->SetVisibility(true);
 		}
@@ -1303,9 +1287,9 @@ void iASlicerData::executeKeyPressEvent()
 			pDiskActor->SetVisibility(false);
 		}		
 		break;
-
 	}
 }
+
 
 void iASlicerData::defaultOutput()
 {
@@ -1322,7 +1306,7 @@ void iASlicerData::defaultOutput()
 }
 
 
-void iASlicerData::snap(double &x, double &y)
+void iASlicerData::snapToHighGradient(double &x, double &y)
 {
 	double range[2];
 	imageData->GetScalarRange(range);
@@ -1350,7 +1334,6 @@ void iASlicerData::snap(double &x, double &y)
 	{
 		//if ( i != 0)
 		{
-
 			double center[2], right[2], left[2], top[2], bottom[2];
 			center[0] = dataCoord1 + i; center[1] = dataCoord2;
 			left[0] = dataCoord1 + i - 1; left[1] = dataCoord2;
@@ -1403,7 +1386,6 @@ void iASlicerData::snap(double &x, double &y)
 			}//if
 		}//if
 	}//for
-
 
 	std::list<double>V_x;
 	std::list<double>V_y;
@@ -1498,7 +1480,6 @@ void iASlicerData::snap(double &x, double &y)
 		// do nothing as v_bool and h_bool are false which means the gradient difference in both direction is not >= to grad threshold
 		// and the cursor position is the final position meaning no change in the position
 	}
-
 	switch(pointselectionkey)
 	{
 	case 1:
