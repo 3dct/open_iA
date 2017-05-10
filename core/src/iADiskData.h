@@ -24,12 +24,12 @@ class vtkDiskSource;
 class vtkPolyDataMapper;
 class vtkActor;
 
+#include <vtkSmartPointer.h>
+
 struct iADiskData 
 {
 	iADiskData();
-	~iADiskData();
-
-	vtkDiskSource *source;
-	vtkPolyDataMapper *mapper;
-	vtkActor *actor;
+	vtkSmartPointer<vtkDiskSource> source;
+	vtkSmartPointer<vtkPolyDataMapper> mapper;
+	vtkSmartPointer<vtkActor> actor;
 };

@@ -28,21 +28,11 @@
 
 iADiskData::iADiskData()
 {
-	source = vtkDiskSource::New();
-	mapper = vtkPolyDataMapper::New();
-	actor = vtkActor::New();
-
+	source = vtkSmartPointer<vtkDiskSource>::New();
+	mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	actor = vtkSmartPointer<vtkActor>::New();
 	source->SetInnerRadius(0.0);
 	source->SetCircumferentialResolution(20);
-
 	mapper->SetInputConnection(source->GetOutputPort());
-
 	actor->SetMapper(mapper);
-}
-
-iADiskData::~iADiskData()
-{
-	source->Delete();
-	mapper->Delete();
-	actor->Delete();
 }

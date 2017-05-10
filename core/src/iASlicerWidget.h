@@ -119,7 +119,7 @@ public slots:
 	void setSliceProfile(double Pos[3]);
 
 	/** Sets profile coordinates. */
-	int setArbitraryProfile(int pointInd, double * Pos);
+	bool setArbitraryProfile(int pointInd, double * Pos);
 
 	/** Moves a point to a new position. */
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);

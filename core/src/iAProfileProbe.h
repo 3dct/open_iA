@@ -28,29 +28,16 @@
 struct iAProfileProbe
 {
 public:
-	iAProfileProbe(double * startPos, double * endPos, vtkImageData * imageData)
+	iAProfileProbe(vtkImageData * imageData)
 	{
-		for (int i=0; i<3; i++)
-		{
-			positions[0][i] = startPos[i];
-			positions[1][i] = endPos[i];
-		}
-		lineSrc = vtkLineSource::New();
+		lineSrc = vtkSmartPointer<vtkLineSource>::New();
 		lineSrc->SetResolution(1500);
-		lineSrc->SetPoint1(positions[0]);
-		lineSrc->SetPoint2(positions[1]);
-		probe = vtkProbeFilter::New();
+		probe = vtkSmartPointer<vtkProbeFilter>::New();
 		probe->SetInputConnection(lineSrc->GetOutputPort());
 		probe->SetSourceData(imageData);
-		probe->Update();
 		profileData = probe->GetPolyDataOutput();
 	}
-	~iAProfileProbe()
-	{
-		probe->Delete();
-		lineSrc->Delete();
-	}
-	void UpdateProbe(int ptIndex, double * newPos)
+	void UpdateProbe(int ptIndex, double const * const newPos)
 	{
 		for (int i=0; i<3; i++)
 			positions[ptIndex][i] = newPos[i];
@@ -69,8 +56,8 @@ public:
 	}
 
 public:
-	vtkLineSource * lineSrc;
-	vtkProbeFilter * probe;
-	vtkPolyData * profileData;
+	vtkSmartPointer<vtkLineSource> lineSrc;
+	vtkSmartPointer<vtkProbeFilter> probe;
+	vtkPolyData *profileData;
 	double positions[2][3];
 };

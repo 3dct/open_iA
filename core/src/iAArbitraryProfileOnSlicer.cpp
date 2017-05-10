@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAArbitraryProfileOnSlicer.h"
 
@@ -49,9 +48,6 @@ void iAArbitraryProfileOnSlicer::setPointScaling( double scaling )
 		m_points[i].source->SetOuterRadius(m_radius);
 }
 
-iAArbitraryProfileOnSlicer::~iAArbitraryProfileOnSlicer()
-{
-}
 
 iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer()
 	: m_radius(ARB_RADIUS),
@@ -128,10 +124,6 @@ int iAArbitraryProfileOnSlicer::setup( int pointInd, double * pos3d, double * po
 	double * spacing	= imgData->GetSpacing();
 	double * origin		= imgData->GetOrigin();	
 	int * dimensions	= imgData->GetDimensions();
-
-	for (int i=0; i<2; ++i)
-		if(pos2d[i] < origin[i] || pos2d[i] >= origin[i] + dimensions[i]*spacing[i])
-			return 0;
 
 	m_profLine.points->SetPoint(pointInd, pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD); 
 

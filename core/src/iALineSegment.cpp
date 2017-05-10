@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iALineSegment.h"
 
@@ -26,30 +25,19 @@
 #include <vtkLineSource.h>
 #include <vtkPoints.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkVersion.h>
-
-iALineSegment::~iALineSegment()
-{
-	points->Delete();
-	lineSource->Delete();
-	mapper->Delete();
-	actor->Delete();
-}
 
 iALineSegment::iALineSegment()
 {
-	points = vtkPoints::New();
+	points = vtkSmartPointer<vtkPoints>::New();
 	points->Allocate(2);
 	points->SetPoint(0, 0,0,0);
 	points->SetPoint(1, 1,1,1);
-	lineSource = vtkLineSource::New();
-	mapper = vtkPolyDataMapper::New();
-	actor = vtkActor::New();
-
+	lineSource = vtkSmartPointer<vtkLineSource>::New();
+	mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	actor = vtkSmartPointer<vtkActor>::New();
 	lineSource->SetPoint1(points->GetPoint(0));
 	lineSource->SetPoint2(points->GetPoint(1));
 	lineSource->SetResolution(1);
 	mapper->SetInputConnection(lineSource->GetOutputPort());
 	actor->SetMapper(mapper);
 }
-

@@ -26,6 +26,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAFramedQVTKWidget2.h"
 #include "iAMagicLens.h"
+#include "iAMathUtility.h"
 #include "iAPieChartGlyph.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
@@ -433,18 +434,25 @@ void iASlicerWidget::setSliceProfile(double Pos[3])
 }
 
 
-int iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos)
+bool iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos)
 {
 	if (!m_decorations)
 	{
-		return 1;
+		return false;
+	}
+	double * spacing = m_imageData->GetSpacing();
+	double * origin = m_imageData->GetOrigin();
+	int * dimensions = m_imageData->GetDimensions();
+	for (int i = 0; i < 3; ++i)
+	{
+		Pos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
 	}
 	double profileCoord2d[2] = {Pos[ SlicerXInd(m_slicerMode) ], Pos[ SlicerYInd(m_slicerMode) ]};
 	if( !m_arbProfile->setup(pointInd, Pos, profileCoord2d, m_slicerDataExternal->GetReslicer()->GetOutput()) )
-		return 0;
+		return false;
 	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();
-	return 1;
+	return true;
 }
 
 
@@ -689,6 +697,7 @@ void iASlicerWidget::changeImageData( vtkImageData * imageData )
 	int		* dim		= m_imageData->GetDimensions();
 	double	* spacing	= m_imageData->GetSpacing();
 	double end[3];
+	// unify this with MdiChild::addProfile somehow?
 	for (int i=0; i<3; i++)
 		end[i] = origin[i] + (dim[i]-1)*spacing[i];
 	setArbitraryProfile(0, origin); setArbitraryProfile(1, end);

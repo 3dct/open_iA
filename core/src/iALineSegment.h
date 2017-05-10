@@ -25,13 +25,13 @@ class vtkActor;
 class vtkPolyDataMapper;
 class vtkLineSource;
 
+#include <vtkSmartPointer.h>
+
 struct iALineSegment
 {
 	iALineSegment();
-	~iALineSegment();
-
-	vtkPoints			*points;
-	vtkActor			*actor;               
-	vtkPolyDataMapper	*mapper;
-	vtkLineSource		*lineSource;
+	vtkSmartPointer<vtkPoints>			points;
+	vtkSmartPointer<vtkActor>			actor;
+	vtkSmartPointer<vtkPolyDataMapper>	mapper;
+	vtkSmartPointer<vtkLineSource>		lineSource;
 };

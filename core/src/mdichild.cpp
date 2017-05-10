@@ -2546,15 +2546,17 @@ void MdiChild::resizeEvent( QResizeEvent * event )
 bool MdiChild::addProfile()
 {
 	delete imgProfile;
-	double start[3], end[3];
-	int dim[3];
-	imageData->GetOrigin(start);
-	imageData->GetDimensions(dim);
+	double end[3];
+	// unify this with iASlicerWidget::changeImageData somehow?
+	double const * const start = imageData->GetOrigin();
+	int const * const dim = imageData->GetDimensions();
+	double const * const spacing = imageData->GetSpacing();
 	for (int i = 0; i<3; i++)
-		end[i] = start[i] + dim[i];
-	profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(start, end, imageData));
+		end[i] = start[i] + (dim[i]-1) * spacing[i];
+	profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(imageData));
+	profileProbe->UpdateProbe(0, start);
+	profileProbe->UpdateProbe(1, end);
 	imgProfile = new dlg_profile(this, profileProbe->profileData, profileProbe->GetRayLength());
-	
 	tabifyDockWidget(logs, imgProfile);
 	connect(imgProfile->profileMode, SIGNAL(toggled(bool)), this, SLOT(toggleArbitraryProfile(bool)));
 	return true;

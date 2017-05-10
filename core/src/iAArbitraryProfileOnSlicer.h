@@ -31,7 +31,6 @@ class vtkActor;
 struct iAArbitraryProfileOnSlicer 
 {
 	iAArbitraryProfileOnSlicer();
-	~iAArbitraryProfileOnSlicer();
 
 	void initialize(vtkRenderer * ren);
 	void setPointScaling(double scaling);
@@ -41,7 +40,7 @@ struct iAArbitraryProfileOnSlicer
 	int GetPntInd() const;
 	double * GetPosition(int index);
 
-	static const int Z_COORD = 1;
+	static const int Z_COORD = 0;
 	static const int ARB_RADIUS = 5;
 
 protected:
