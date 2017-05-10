@@ -27,7 +27,7 @@
 
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>
-#include <itkDiscreteGaussianImageFilter.h>
+#include <itkMedianImageFilter.h>
 
 #include <QErrorMessage>
 #include <QLabel>
@@ -82,8 +82,8 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 				NoofComboBox++;
 		}
 
-		// TODO: better way to set up init valiues -> registry
-		m_sbDelta = 300; m_sbSigma = 20; m_sbIsoX = 50;
+		// TODO: better way to set up init values -> registry
+		m_sbDelta = 6; m_sbSigma = 300; m_sbIsoX = 50;
 
 		createDatasetPreview();
 		createDatasetInfo();
@@ -779,30 +779,26 @@ void dlg_ParamSpaceSampling::computeSmoothHisto( QVector<double> * m_smoothKey, 
 	image1D->SetRegions( region1D );
 	image1D->Allocate();
 	IteratorType image1DIt( image1D, image1D->GetRequestedRegion() );
-	int idx = 0;
+	int idx = -1;
 	for ( image1DIt.GoToBegin(); !image1DIt.IsAtEnd(); ++image1DIt )
-	{
-		image1DIt.Set( m_valueData[idx] );
-		++idx;
-	}
+		image1DIt.Set( m_valueData[++idx] );
 	
-	// itkDiscreteGaussianImageFilter used instead of itkRecursiveGaussianImageFilter
-	typedef itk::DiscreteGaussianImageFilter< ImageType1D, ImageType1D >  SmoothingFilterType;
+	// RecursiveGaussianImageFilter produced huge peak at the start and
+	// enf of the data range, which caused problems for the peak detection
+	// DiscreteGaussianImageFilter, works but the delta parameter is hard
+	// to set then, therefore median filter 
+
+	typedef itk::MedianImageFilter< ImageType1D, ImageType1D >  SmoothingFilterType;
 	SmoothingFilterType::Pointer smoothingFilter = SmoothingFilterType::New();
-	smoothingFilter->SetVariance( m_sbSigma );
+	smoothingFilter->SetRadius( m_sbSigma );
 	smoothingFilter->SetInput( image1D );
 	smoothingFilter->Update();
 	QVector<double> smoothKey, smoothValue;
-	itk::ImageRegionConstIterator<ImageType1D> smooth1DImageIt( smoothingFilter->GetOutput(), smoothingFilter->GetOutput()->GetLargestPossibleRegion() );
+	itk::ImageRegionConstIterator<ImageType1D> smooth1DImgIt( smoothingFilter->GetOutput(), smoothingFilter->GetOutput()->GetLargestPossibleRegion() );
+	for ( smooth1DImgIt.GoToBegin(); !smooth1DImgIt.IsAtEnd(); ++smooth1DImgIt )
+		smoothValue.append( smooth1DImgIt.Get() );
 
-	for ( int j = 0; j < 65535; ++j )
-	{
-		smoothKey.append( m_keyData[j] );
-		smoothValue.append( smooth1DImageIt.Get() );
-		++smooth1DImageIt;
-	}
-
-	*m_smoothKey = smoothKey;
+	*m_smoothKey = m_keyData;
 	*m_smoothValue = smoothValue;
 }
 
