@@ -616,6 +616,7 @@ void iASlicerData::setPositionMarkerCenter(double x, double y)
 		m_positionMarkerActor->SetVisibility(true);
 		m_positionMarkerSrc->SetCenter(x, y, 0);
 		m_positionMarkerMapper->Update();
+		update();
 	}
 };
 
@@ -1092,6 +1093,7 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
+		m_positionMarkerActor->SetVisibility(false);
 		double result[4];
 		int xCoord, yCoord, zCoord;
 		GetMouseCoord(xCoord, yCoord, zCoord, result);
