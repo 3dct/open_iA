@@ -135,9 +135,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	m_cameraOwner(true),
 	scalarWidget(0),
 	textProperty(0),
-	logoWidget(0),
-	logoRep(0),
-	logoImage(0),
 	cFilter(0),
 	cMapper(0),
 	cActor(0),
@@ -163,9 +160,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	{
 		scalarWidget = vtkScalarBarWidget::New();
 		textProperty = vtkTextProperty::New();
-		logoWidget = vtkLogoWidget::New();
-		logoRep = vtkLogoRepresentation::New();
-		logoImage = vtkQImageToImageSource::New();
+		logoWidget = vtkSmartPointer<vtkLogoWidget>::New();
+		logoRep = vtkSmartPointer<vtkLogoRepresentation>::New();
+		logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
 
 		m_positionMarkerSrc = vtkSmartPointer<vtkPlaneSource>::New();
 		m_positionMarkerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -214,9 +211,6 @@ iASlicerData::~iASlicerData(void)
 		textInfo->Delete();	
 
 		textProperty->Delete();
-		logoRep->Delete();
-		logoWidget->Delete();
-		logoImage->Delete();
 
 		cFilter->Delete();
 		cMapper->Delete();
@@ -307,7 +301,6 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		textProperty->SetJustification(VTK_TEXT_CENTERED);
 		textProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
 		textProperty->SetOrientation(1);
-
 		scalarWidget->SetInteractor(interactor);
 		scalarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
 		scalarWidget->GetScalarBarActor()->SetLabelFormat("%.2f");

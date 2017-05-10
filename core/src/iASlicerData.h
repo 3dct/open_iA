@@ -218,9 +218,9 @@ private:
 	vtkTextProperty *textProperty;
 
 	// TODO: extract/ unify with iARenderer
-	vtkLogoWidget *logoWidget;
-	vtkLogoRepresentation *logoRep;
-	vtkQImageToImageSource *logoImage;
+	vtkSmartPointer<vtkLogoWidget> logoWidget;
+	vtkSmartPointer<vtkLogoRepresentation> logoRep;
+	vtkSmartPointer<vtkQImageToImageSource> logoImage;
 
 	iAWrapperText* textInfo;
 
