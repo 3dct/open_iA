@@ -1263,22 +1263,23 @@ void iASlicerData::executeKeyPressEvent()
 	switch(interactor->GetKeyCode())
 	{
 	case 'm':
-		// does not seem to work reliably (most of the time snaps to strange positions which are not the highest gradient close to the current position)
-		// and causes access to pixels outside of the image:
-		//snapToHighGradient(m_ptMapped[0], m_ptMapped[1]);
-
 		m_startMeasurePoint[0] = m_ptMapped[0];
 		m_startMeasurePoint[1] = m_ptMapped[1];
+		// does not work reliably (often snaps to positions not the highest gradient close to the current position)
+		// and causes access to pixels outside of the image:
+		//snapToHighGradient(m_startMeasurePoint[0], m_startMeasurePoint[1]);
+
 		if (m_decorations && pLineSource != NULL)
 		{
 			double * slicerSpacing = reslicer->GetOutput()->GetSpacing();
 			pLineSource->SetPoint1(m_startMeasurePoint[0]-(0.5*slicerSpacing[0]), m_startMeasurePoint[1]-(0.5*slicerSpacing[1]), 0.0);
-			pLineSource->SetPoint2(m_startMeasurePoint[0]-(0.5*slicerSpacing[0]), m_startMeasurePoint[1]-(0.5*slicerSpacing[1]), 0.0);
 			pDiskActor->SetPosition(m_startMeasurePoint[0]-(0.5*slicerSpacing[0]), m_startMeasurePoint[1]-(0.5*slicerSpacing[1]), 1.0);
-			pDiskSource->SetOuterRadius(0);
-			pDiskSource->SetInnerRadius(0);
 			pLineActor->SetVisibility(true);
 			pDiskActor->SetVisibility(true);
+			double result[4];
+			int xCoord, yCoord, zCoord;
+			GetMouseCoord(xCoord, yCoord, zCoord, result);
+			printVoxelInformation(xCoord, yCoord, zCoord, result);
 		}
 		break;
 	case 27: //ESCAPE
