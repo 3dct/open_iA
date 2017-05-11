@@ -71,7 +71,9 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) 
 	if( !QFile::exists( f ) )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 
-	mdiChild->addMsg( tr( "%1  Loading sequence started... \n  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n  Please wait..." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	mdiChild->addMsg( tr( "%1  Loading sequence started... \n"
+		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
+		"  Please wait..." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
 
 	dlgPeriodicTable = new dlg_periodicTable( mdiChild );
 	mdiChild->splitDockWidget( mdiChild->sXZ, dlgPeriodicTable, Qt::Horizontal );

@@ -29,6 +29,7 @@
 #include "iAVolumeSettings.h"
 
 #include <QMainWindow>
+#include <QSharedPointer>
 
 #include <string>
 
@@ -47,15 +48,16 @@ class QLabel;
 class QSplashScreen;
 QT_END_NAMESPACE
 
-class MdiChild;
 class vtkCamera;
 class vtkImageData;
 class vtkImageViewer2;
 class vtkRenderer;
 
-class iAModuleDispatcher;
 class dlg_transfer;
-class vtkCamera;
+class iAModalityList;
+class iAModuleDispatcher;
+class iATLGICTLoader;
+class MdiChild;
 
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 {
@@ -164,6 +166,7 @@ private slots:
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
 	void CloseAllSubWindows();
+	void TLGICTLoadFinished();
 
 public slots:
 	void saveLayout();
@@ -256,4 +259,9 @@ private:
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList layoutNames;
 	QString m_gitVersion;
+
+	QString m_tlgictBaseDirectory;
+	iATLGICTLoader* m_tlgictLoader;
+	QSharedPointer<iAModalityList> m_tlgictModList;
+	MdiChild* m_tlgictChild;
 };

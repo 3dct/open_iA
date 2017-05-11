@@ -566,7 +566,9 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 {
 	if(!QFile::exists(f))	return false;
 
-	addMsg(tr("%1  Loading sequence started... \n  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("%1  Loading sequence started... \n"
+		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
+		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	setCurrentFile(f);
 
 	waitForPreviousIO();

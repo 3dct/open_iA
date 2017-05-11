@@ -37,6 +37,7 @@
 #include "iARenderer.h"
 #include "iASlicerData.h"
 #include "iAToolsVTK.h"
+#include "iATLGICTLoader.h"
 #include "mdichild.h"
 
 #include <vtkCamera.h>
@@ -2555,41 +2556,22 @@ void MainWindow::SaveProject()
 }
 
 
-QString GreatestCommonPrefix(QString const & str1, QString const & str2)
-{
-	int pos = 0;
-	while (pos < str1.size() && pos < str2.size() && str1.at(pos) == str2.at(pos))
-	{
-		++pos;
-	}
-	return str1.left(pos);
-}
-
-
-#include "iAModality.h"
 #include "iAModalityList.h"
-
-#include <vtkImageReader2.h>
-#include <vtkTIFFReader.h>
-#include <vtkBMPReader.h>
-#include <vtkPNGReader.h>
-#include <vtkJPEGReader.h>
-#include <vtkStringArray.h>
+#include "iAObserverProgress.h"
 
 void MainWindow::OpenTLGICTData()
 {
-	QString baseDirectory = QFileDialog::getExistingDirectory(
+	m_tlgictBaseDirectory = QFileDialog::getExistingDirectory(
 		this,
 		tr("Open Talbot-Lau Grating Interferometer CT Dataset"),
 		getPath(),
 		QFileDialog::ShowDirsOnly);
 
-	if (baseDirectory.isEmpty())
+	if (m_tlgictBaseDirectory.isEmpty())
 	{
 		return;
 	}
-
-	QDir dir(baseDirectory);
+	QDir dir(m_tlgictBaseDirectory);
 	QStringList nameFilter;
 	dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 	nameFilter << "*_Rec";
@@ -2600,7 +2582,6 @@ void MainWindow::OpenTLGICTData()
 		DEBUG_LOG("No data found (expected to find subfolders with _Rec suffix).");
 		return;
 	}
-
 	double spacing[3] = { 1, 1, 1 };
 	double origin[3] = { 0, 0, 0 };
 	QStringList inList;
@@ -2616,146 +2597,33 @@ void MainWindow::OpenTLGICTData()
 	{
 		return;
 	}
-
 	spacing[0] = dlg.getValues()[0]; spacing[1] = dlg.getValues()[1]; spacing[2] = dlg.getValues()[2];
 	origin[0] = dlg.getValues()[3];  origin[1] = dlg.getValues()[4];  origin[2] = dlg.getValues()[5];
+	m_tlgictModList = QSharedPointer<iAModalityList>(new iAModalityList);
+	iAObserverProgress* observer =iAObserverProgress::New();
+	m_tlgictLoader = new iATLGICTLoader(m_tlgictModList, spacing, origin, subDirs, observer);
 
-	QSharedPointer<iAModalityList> modList(new iAModalityList);
+	m_tlgictChild = createMdiChild(false);
+	connect(observer, SIGNAL(oprogress(int)), m_tlgictChild, SLOT(updateProgressBar(int)));
+	m_tlgictChild->newFile();
+	m_tlgictChild->show();
+	m_tlgictChild->addMsg(tr("%1  Loading sequence started... \n"
+		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
+		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 
-	QStringList imgFilter;
-	imgFilter << "*.tif" << "*.bmp" << "*.jpg" << "*.png";
-	for (QFileInfo subDirFileInfo : subDirs)
-	{
-		QDir subDir(subDirFileInfo.absoluteFilePath());
-		subDir.setFilter(QDir::Files);
-		subDir.setNameFilters(imgFilter);
-		QFileInfoList imgFiles = subDir.entryInfoList();
-		QString fileNameBase;
-		// determine most common file name base
-		for (QFileInfo imgFileInfo : imgFiles)
-		{
-			if (fileNameBase.isEmpty())
-			{
-				fileNameBase = imgFileInfo.absoluteFilePath();
-			}
-			else
-			{
-				fileNameBase = GreatestCommonPrefix(fileNameBase, imgFileInfo.absoluteFilePath());
-			}
-		}
-		int baseLength = fileNameBase.length();
-		// determine index range:
-		int min = std::numeric_limits<int>::max();
-		int max = std::numeric_limits<int>::min();
-		QString ext;
-		int digits = -1;
-		for (QFileInfo imgFileInfo : imgFiles)
-		{
-			QString imgFileName = imgFileInfo.absoluteFilePath();
-			QString completeSuffix = imgFileInfo.completeSuffix();
-			QString lastDigit = imgFileName.mid(imgFileName.length() - (completeSuffix.length() + 2), 1);
-			bool ok;
-			int myNum = lastDigit.toInt(&ok);
-			if (!ok)
-			{
-				//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
-				continue;
-			}
-			if (ext.isEmpty())
-			{
-				ext = completeSuffix;
-			}
-			else
-			{
-				if (ext != completeSuffix)
-				{
-					DEBUG_LOG(QString("Inconsistent file suffix: %1 has %2, previous files had %3.").arg(imgFileName).arg(completeSuffix).arg(ext));
-					return;
-				}
-			}
+	connect(m_tlgictLoader, SIGNAL(started()), m_tlgictChild, SLOT(initProgressBar()));
+	connect(m_tlgictLoader, SIGNAL(finished()), m_tlgictChild, SLOT(hideProgressBar()));
+	connect(m_tlgictLoader, SIGNAL(finished()), this, SLOT(TLGICTLoadFinished()));
+	m_tlgictLoader->start();
+}
 
-			QString numStr = imgFileName.mid(baseLength, imgFileName.length() - baseLength - completeSuffix.length() - 1);
-			if (digits == -1)
-			{
-				digits = numStr.length();
-			}
 
-			int num = numStr.toInt(&ok);
-			if (!ok)
-			{
-				DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
-				return;
-			}
-			if (num < min)
-			{
-				min = num;
-			}
-			if (num > max)
-			{
-				max = num;
-			}
-		}
-
-		if (max - min + 1 > imgFiles.size())
-		{
-			DEBUG_LOG(QString("Stack loading: not all indices in the interval [%1, %2] are used for base name %3.").arg(min).arg(max).arg(fileNameBase));
-			return;
-		}
-
-		vtkSmartPointer<vtkStringArray> fileNames = vtkSmartPointer<vtkStringArray>::New();
-		for (int i = min; i <= max; i++)
-		{
-			QString temp = fileNameBase + QString("%1").arg(i, digits, 10, QChar('0')) + "." + ext;
-			temp = temp.replace("/", "\\");
-			fileNames->InsertNextValue(temp.toLatin1());
-		}
-
-		// load image stack // TODO: put to common location and use from iAIO!
-		ext = ext.toLower();
-		vtkSmartPointer<vtkImageReader2> reader;
-		if (ext == "jpg" || ext == "jpeg")
-		{
-			reader = vtkSmartPointer<vtkJPEGReader>::New();
-		}
-		else if (ext == "png")
-		{
-			reader = vtkSmartPointer<vtkPNGReader>::New();
-		}
-		else if (ext == "bmp")
-		{
-			reader = vtkSmartPointer<vtkBMPReader>::New();
-		}
-		else if (ext == "tif" || ext == "tiff")
-		{
-			reader = vtkSmartPointer<vtkTIFFReader>::New();
-		}
-		else
-		{
-			DEBUG_LOG(QString("Unknown or undefined image extension (%1)!").arg(ext));
-			return;
-		}
-		reader->SetFileNames(fileNames);
-		reader->SetDataOrigin(origin);
-		reader->SetDataSpacing(spacing);
-		reader->Update();
-		vtkSmartPointer<vtkImageData> img = reader->GetOutput();
-
-		// add modality
-		QString modName = subDirFileInfo.baseName();
-		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
-		modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
-	}
-	if (modList->size() == 0)
-	{
-		DEBUG_LOG("No modalities loaded!");
-		return;
-	}
-
-	MdiChild* child = createMdiChild(false);
-	child->newFile();
-	child->show();
-	child->SetModalities(modList);
-	child->setCurrentFile(baseDirectory);
+void MainWindow::TLGICTLoadFinished()
+{
+	m_tlgictChild->setCurrentFile(m_tlgictBaseDirectory);
+	m_tlgictChild->SetModalities(m_tlgictModList);
+	m_tlgictChild->addMsg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	m_tlgictChild->addMsg("  Directory: " + m_tlgictBaseDirectory);
 }
 
 
