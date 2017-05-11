@@ -18,12 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
-#include "iAPorosityModuleInterface.h"
+#include "iAFeatureCharacteristicsModuleInterface.h"
 
 #include "dlg_commoninput.h"
-#include "iACalcObjectCharacteristics.h"
+#include "iACalcFeatureCharacteristics.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -31,21 +30,21 @@
 #include <QMessageBox>
 #include <QSettings>
 
-void iAPorosityModuleInterface::Initialize()
+void iAFeatureCharacteristicsModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuPorosity = getMenuWithTitle( filtersMenu, QString( "Porosity" ) );
+	QMenu * menuPorosity = getMenuWithTitle( filtersMenu, QString( "Feature Characteristics" ) );
 
-	QAction * actionCalcObjectCharacteristics = new QAction( QApplication::translate( "MainWindow", "Calculate Object Characteristics", 0 ), m_mainWnd );
-	menuPorosity->addAction( actionCalcObjectCharacteristics );
+	QAction * actionCalcFeatureCharacteristics = new QAction( QApplication::translate( "MainWindow", "Calculate Feature Characteristics", 0 ), m_mainWnd );
+	menuPorosity->addAction( actionCalcFeatureCharacteristics );
 
-	connect( actionCalcObjectCharacteristics, SIGNAL( triggered() ), this, SLOT( calcObjectCharacteristics() ) );
+	connect( actionCalcFeatureCharacteristics, SIGNAL( triggered() ), this, SLOT( calcFeatureCharacteristics() ) );
 }
 
-void iAPorosityModuleInterface::calcObjectCharacteristics()
+void iAFeatureCharacteristicsModuleInterface::calcFeatureCharacteristics()
 {
 	//prepare
-	QString filterName = tr( "Calculate Object Characteristics" );
+	QString filterName = tr( "Calculate Feature Characteristics" );
 	PrepareActiveChild();
 	m_mdiChild->addStatusMsg( filterName );
 	QString filename = QFileDialog::getSaveFileName( 0, tr( "Save pore csv file" ),
@@ -54,21 +53,21 @@ void iAPorosityModuleInterface::calcObjectCharacteristics()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No destination file was specified!" );
-		msgBox.setWindowTitle( "Calculate Object Characteristics" );
+		msgBox.setWindowTitle( "Calculate Feature Characteristics" );
 		msgBox.exec();
 		return;
 	}
 
 	QStringList inList = (QStringList() << tr("$Calculate Feret Diameter"));
 	QList<QVariant> inPara = QList<QVariant>() << "false";
-	dlg_commoninput dlg(m_mainWnd, tr("Calculate Object Characteristics"), 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, tr("Calculate Feature Characteristics"), 1, inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
 	bool feretDiameter = dlg.getCheckValues()[0] != 0;
 
 	//execute
-	iACalcObjectCharacteristics* thread = new iACalcObjectCharacteristics( filterName,
+	iACalcFeatureCharacteristics* thread = new iACalcFeatureCharacteristics( filterName,
 		 m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild, filename, feretDiameter);
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->start();

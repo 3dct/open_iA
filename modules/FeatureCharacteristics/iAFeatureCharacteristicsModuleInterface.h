@@ -20,21 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
-#include "mdichild.h"
+#include "iAModuleInterface.h"
 
-class iACalcObjectCharacteristics : public iAAlgorithm
+class iAFeatureCharacteristicsModuleInterface : public iAModuleInterface
 {
+	Q_OBJECT
 public:
-	iACalcObjectCharacteristics( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger,
-		MdiChild *parent, QString path, bool calculateFeretDiameter );
-protected:
-	void run();
-private:
-	vtkImageData *image;
-	QString pathCSV;
-	MdiChild* m_mdiChild;
-	bool m_calculateFeretDiameter;
-
-	void calcObjectCharacteristics();
+	void Initialize();
+private slots:
+	void calcFeatureCharacteristics();
 };

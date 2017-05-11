@@ -18,23 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAPorosityModuleInterface_h__
-#define iAPorosityModuleInterface_h__
+#pragma once
 
-#include "iAModuleInterface.h"
+#include "iAAlgorithm.h"
+#include "mdichild.h"
 
-class MdiChild;
-
-class iAPorosityModuleInterface : public iAModuleInterface
+class iACalcFeatureCharacteristics : public iAAlgorithm
 {
-	Q_OBJECT
-
 public:
-	void Initialize();
+	iACalcFeatureCharacteristics( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger,
+		MdiChild *parent, QString path, bool calculateFeretDiameter );
+protected:
+	void run();
+private:
+	vtkImageData *image;
+	QString pathCSV;
+	MdiChild* m_mdiChild;
+	bool m_calculateFeretDiameter;
 
-private slots:
-	void calcObjectCharacteristics();
+	void calcFeatureCharacteristics();
 };
-
-#endif // iAPorosityModuleInterface_h__

@@ -19,7 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iACalcObjectCharacteristics.h"
+#include "iACalcFeatureCharacteristics.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -35,7 +35,7 @@
 
 #include <QLocale>
 
-template<class T> int calcObjectCharacteristics_template( iAConnector *image, MdiChild* mdiChild,  QString pathCSV, bool feretDiameter )
+template<class T> int calcFeatureCharacteristics_template( iAConnector *image, MdiChild* mdiChild,  QString pathCSV, bool feretDiameter )
 {
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -254,7 +254,7 @@ template<class T> int calcObjectCharacteristics_template( iAConnector *image, Md
 	return EXIT_SUCCESS;
 }
 
-iACalcObjectCharacteristics::iACalcObjectCharacteristics( QString fn,
+iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,
 	vtkImageData* i, vtkPolyData* p, iALogger* logger, MdiChild* parent, QString path,
 	bool calculateFeretDiameter)
 :
@@ -265,12 +265,12 @@ iACalcObjectCharacteristics::iACalcObjectCharacteristics( QString fn,
 	m_mdiChild(parent)
 {}
 
-void iACalcObjectCharacteristics::run()
+void iACalcFeatureCharacteristics::run()
 {
-	calcObjectCharacteristics();
+	calcFeatureCharacteristics();
 }
 
-void iACalcObjectCharacteristics::calcObjectCharacteristics()
+void iACalcFeatureCharacteristics::calcFeatureCharacteristics()
 {
 	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
 			.arg( getFilterName() ) );
@@ -279,7 +279,7 @@ void iACalcObjectCharacteristics::calcObjectCharacteristics()
 	try
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( calcObjectCharacteristics_template, itkType,
+		ITK_TYPED_CALL( calcFeatureCharacteristics_template, itkType,
 			getConnector(), m_mdiChild, pathCSV, m_calculateFeretDiameter);
 	}
 	catch ( itk::ExceptionObject &excep )
@@ -293,7 +293,7 @@ void iACalcObjectCharacteristics::calcObjectCharacteristics()
 		return;
 	}
 
-	addMsg( tr( "%1   Object csv file created in: %2" )
+	addMsg( tr( "%1   Feature csv file created in: %2" )
 			.arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
 			.arg( pathCSV ) );
 
