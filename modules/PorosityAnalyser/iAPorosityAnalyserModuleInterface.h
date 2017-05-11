@@ -71,6 +71,7 @@ private slots:
 	void showHideLogs();
 	void batchProgress(int progress);
 	void totalProgress(int progress);
+	void currentBatch( QString str );
 	void clearPipeline();
 	void addPipeline();
 	void resizePipeline();

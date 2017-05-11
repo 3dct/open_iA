@@ -356,6 +356,7 @@ void iAPorosityAnalyserModuleInterface::runCalculations()
 	iARunBatchThread * rbt = new iARunBatchThread( this );
 	connect( rbt, SIGNAL( batchProgress( int ) ), this, SLOT( batchProgress( int ) ) );
 	connect( rbt, SIGNAL( totalProgress( int ) ), this, SLOT( totalProgress( int ) ) );
+	connect( rbt, SIGNAL( currentBatch( QString ) ), this, SLOT( currentBatch( QString ) ) );
 	rbt->Init( this, m_datasetsFolder,
 			   uiComputeSegm.rbNewPipelineDataNoPores->isChecked(), 
 			   uiComputeSegm.rbNewPipelineData->isChecked(), 
@@ -418,6 +419,12 @@ void iAPorosityAnalyserModuleInterface::batchProgress( int progress )
 void iAPorosityAnalyserModuleInterface::totalProgress( int progress )
 {
 	uiComputeSegm.totalProgress->setValue( progress );
+	QCoreApplication::processEvents();
+}
+
+void iAPorosityAnalyserModuleInterface::currentBatch(QString str )
+{
+	uiComputeSegm.laBatchProgress->setText( str );
 	QCoreApplication::processEvents();
 }
 

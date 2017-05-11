@@ -70,6 +70,7 @@ protected:
 signals:
 	void batchProgress( int progress );
 	void totalProgress( int progress );
+	void currentBatch( QString str );
 };
 
 #endif // iARunBatchThread_h__

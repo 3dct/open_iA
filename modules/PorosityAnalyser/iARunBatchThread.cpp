@@ -1205,19 +1205,19 @@ void iARunBatchThread::executeNewBatches( QTableWidget & settingsCSV, QMap<int, 
 {
 	if ( m_rbNewPipelineDataNoPores || m_rbNewPipelineData )
 	{
-		int batchesToCompute = 0; double val = 0.0;
+		int batchesToCompute = 0;
 		for ( int row = 1; row < settingsCSV.rowCount(); ++row ) // 1 because we skip header
 			if ( isBatchNew[row] ) ++batchesToCompute;
-		double progIncr = 100.0 / batchesToCompute;
+
+		emit totalProgress( 0 );
+		emit batchProgress( 0 );
+		emit currentBatch( "Batch Progress" );
 
 		for ( int row = 1; row < settingsCSV.rowCount(); ++row ) // 1 because we skip header
 		{
-			//update progressbar
-			emit totalProgress( (int) val );
-			val += progIncr;
-
 			if ( isBatchNew[row] )
 			{
+				emit currentBatch( QString("Batch %1 Progress").arg(row));
 				//get files and directory paths
 				QString algName, datasetName, batchesDir, batchDir;
 				getAlgorithmAndDatasetNames( &settingsCSV, row, &algName, &datasetName );
@@ -1236,8 +1236,8 @@ void iARunBatchThread::executeNewBatches( QTableWidget & settingsCSV, QMap<int, 
 				if ( m_rbNewPipelineData )
 					calculatePoreChars( batchDir + "/" + "masks.csv" );
 			}
+			emit totalProgress( row * 100.0 / batchesToCompute );
 		}
-		emit totalProgress( (int) val );
 	}
 	else if ( m_rbExistingPipelineData )
 	{
@@ -1415,18 +1415,12 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 		gtMask = iAITKIO::readFile( gtMaskFile, maskPixType, true);
 	}
 
-	double val = 0.0;
-	double progIncr = 100.0 / totalNumSamples;
-	emit batchProgress( (int)val );
+	emit batchProgress( 0 );
 
 	for( int sampleNo = 0; sampleNo < totalNumSamples; ++sampleNo ) //iterate over parameters
 	{
-		val += progIncr;
-		emit batchProgress( (int)val );
 		while( m_pmi->ui()->rbPause->isChecked() )
-		{
 			QCoreApplication::processEvents();
-		}
 
 		RunInfo results;
 		//fill in parameters info
@@ -1470,6 +1464,7 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 				results.falseNegativeError = fne;
 				results.falsePositiveError = fpe;
 				results.dice = dice;
+				emit batchProgress( ( sampleNo + 1 ) * 100 / totalNumSamples );
 			}
 		}
 		catch( itk::ExceptionObject &excep )
@@ -1502,8 +1497,6 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 		else
 			incrementParameterSet( params );
 	}
-	emit batchProgress( (int)val );
-
 	iACSVToQTableWidgetConverter::saveToCSVFile( m_runsCSV, batchDir + "/runs.csv" );
 }
 
