@@ -1,6 +1,6 @@
 {
   "name": "open_iA",
   "tagline": "A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.",
-  "body": "For more information, please visit [our wiki](https://github.com/3dct/open_ia/wiki).\r\n\r\nFor some demo videos, see our [Youtube channel](https://www.youtube.com/channel/UCbQ8NEUygLvBzLUwdDZvclw).\r\n\r\nContact: c.heinzl@fh-wels.at \r\n",
+  "body": "An 64bit installer for the latest version is now available for Linux and Windows! Check [the releases page](https://github.com/3dct/open_iA/releases)!\r\n\r\nFor more information, please visit [our wiki](https://github.com/3dct/open_ia/wiki).\r\n\r\nFor some demo videos, see our [Youtube channel](https://www.youtube.com/channel/UCbQ8NEUygLvBzLUwdDZvclw).\r\n\r\nContact: c.heinzl@fh-wels.at \r\n",
   "note": "Don't delete this file! It's used internally to help with page regeneration."
 }
