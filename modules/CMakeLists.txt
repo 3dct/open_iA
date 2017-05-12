@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED ( VERSION 3.0 )
 
 PROJECT ( open_iA_modules LANGUAGES CXX )
 
-INCLUDE(${open_iA_SOURCE_DIR}/cmake/Modules/Modules.cmake)
+INCLUDE(Modules)
 SET (option_prefix "Module_")
 
 # List all the modules' subdirectories
