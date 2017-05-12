@@ -370,8 +370,6 @@ IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /EHsc")  # multi-processor compilation and common exception handling strategy
 	ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(/D _SCL_SECURE_NO_WARNINGS)
-	# Apply file grouping based on regular expressions for Visual Studio IDE.
-	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
 ENDIF (MSVC)
 IF (CMAKE_COMPILER_IS_GNUCXX)
 	include(CheckCXXCompilerFlag)

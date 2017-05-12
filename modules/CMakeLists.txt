@@ -120,6 +120,8 @@ FOREACH( indx RANGE ${len} )
 		ENDIF(open_iA_GPU_USING_OPENCL)
 		
 		IF (MSVC)
+			# Apply file grouping based on regular expressions for Visual Studio IDE.
+			SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
 			set_target_properties(${module_name} PROPERTIES
 				RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug/plugins"
 				RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release/plugins"
@@ -130,7 +132,7 @@ FOREACH( indx RANGE ${len} )
 			set_target_properties(${module_name} PROPERTIES
 				LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
 		ENDIF(MSVC)
-		
+
 		# Installation
 		IF (UNIX)
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
