@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <LocalDebuggerCommand>$(Platform)\$(Configuration)\open_iA.exe</LocalDebuggerCommand>
+    <LocalDebuggerEnvironment>PATH=@RelWithDebInfoLibraryPaths@;%PATH%
+SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommand>$(Platform)\$(Configuration)\open_iA.exe</LocalDebuggerCommand>
+    <LocalDebuggerEnvironment>PATH=@DebugLibraryPaths@;%PATH%
+SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <LocalDebuggerCommand>$(Platform)\$(Configuration)\open_iA.exe</LocalDebuggerCommand>
+    <LocalDebuggerEnvironment>PATH=@MinSizeRelLibraryPaths@;%PATH%
+SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommand>$(Platform)\$(Configuration)\open_iA.exe</LocalDebuggerCommand>
+    <LocalDebuggerEnvironment>PATH=@ReleaseLibraryPaths@;%PATH%
+SCIFIO_PATH=@SCIFIO_PATH@</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>
