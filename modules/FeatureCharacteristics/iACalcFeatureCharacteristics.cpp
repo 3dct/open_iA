@@ -27,6 +27,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iATypedCallHelper.h"
+#include "iAProgressToQtSignal.h"
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>
@@ -35,7 +36,7 @@
 
 #include <QLocale>
 
-template<class T> int calcFeatureCharacteristics_template( iAConnector *image, MdiChild* mdiChild,  QString pathCSV, bool feretDiameter )
+template<class T> int calcFeatureCharacteristics_template( iAConnector *image, iAProgressToQtSignal & progress,  QString pathCSV, bool feretDiameter )
 {
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -248,7 +249,7 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, M
 			<< minorlength * spacing << ',' 	// unit = microns
 			<< '\n';
 
-		mdiChild->updateProgressBar( round( labelValue * 100 / allLabels.size() ) );
+		progress.emitProgress(round(labelValue * 100 / allLabels.size()));
 	}
 	fout.close();
 	return EXIT_SUCCESS;
@@ -279,8 +280,11 @@ void iACalcFeatureCharacteristics::calcFeatureCharacteristics()
 	try
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		iAProgressToQtSignal progress;
+		connect(&progress, SIGNAL(progress(int)), m_mdiChild, SLOT(updateProgressBar(int)));
+
 		ITK_TYPED_CALL( calcFeatureCharacteristics_template, itkType,
-			getConnector(), m_mdiChild, pathCSV, m_calculateFeretDiameter);
+			getConnector(), progress, pathCSV, m_calculateFeretDiameter);
 	}
 	catch ( itk::ExceptionObject &excep )
 	{
