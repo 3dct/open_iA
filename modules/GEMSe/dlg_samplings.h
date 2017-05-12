@@ -41,7 +41,7 @@ public:
 public slots:
 	void Remove();
 signals:
-	void AddSamplings();
+	void AddSampling();
 private:
 	QStandardItemModel* m_itemModel;
 	QSharedPointer<QVector<SamplingResultPtr> > m_samplings;

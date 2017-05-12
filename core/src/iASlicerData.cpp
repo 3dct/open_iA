@@ -1096,12 +1096,12 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-		m_positionMarkerActor->SetVisibility(false);
 		double result[4];
 		int xCoord, yCoord, zCoord;
 		GetMouseCoord(xCoord, yCoord, zCoord, result);
 		if (m_decorations)
 		{
+			m_positionMarkerActor->SetVisibility(false);
 			printVoxelInformation(xCoord, yCoord, zCoord, result);
 		}
 		emit oslicerPos(xCoord, yCoord, zCoord, m_mode);
