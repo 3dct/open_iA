@@ -57,8 +57,14 @@ function(get_git_head_revision _refspecvar _hashvar)
 	if(NOT EXISTS "${GIT_DATA}")
 		file(MAKE_DIRECTORY "${GIT_DATA}")
 	endif()
-
+	IF (NOT IS_DIRECTORY "${GIT_DIR}")	# special treatment for submodules
+		FILE(READ "${GIT_DIR}" NEW_GIT_DIR OFFSET 8)
+		STRING(REGEX REPLACE "\n$" "" NEW_GIT_DIR "${NEW_GIT_DIR}")
+		get_filename_component(GIT_DIR "${NEW_GIT_DIR}"
+			REALPATH BASE_DIR "${GIT_PARENT_DIR}")
+	ENDIF()
 	if(NOT EXISTS "${GIT_DIR}/HEAD")
+		MESSAGE(STATUS "GIT: Head does not exist in ${GIT_DIR}!")
 		return()
 	endif()
 	set(HEAD_FILE "${GIT_DATA}/HEAD")

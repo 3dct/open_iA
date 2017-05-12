@@ -25,9 +25,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/OpenCL/cl )
 # DREAMCASTER
 #-----------------------------------------------------------------------------------------
 IF(Module_GPU_DreamcasterTool)
-	IF (MSVC)
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
-	ENDIF (MSVC)
 	IF (CMAKE_COMPILER_IS_GNUCXX)
 	    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 	ENDIF(CMAKE_COMPILER_IS_GNUCXX)
