@@ -570,8 +570,11 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
 	showPosition(settings.ShowPosition);
-	axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
-	axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
+	if (m_decorations)
+	{
+		axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
+		axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
+	}
 }
 
 

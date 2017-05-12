@@ -147,23 +147,11 @@ ELSEIF (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
 	MESSAGE( STATUS "Adding modules: ${ENABLED_MODULE_NAMES}" )
 ENDIF ()
 
-# Windows-specific configuration
-IF (WIN32)
-	ADD_DEFINITIONS(-DCL_COMP)
-	IF (MSVC)
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc")
-		# Activate use of multi-processor compilation if we have Microsft Visual C++ compiler.
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-
-		ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
-		ADD_DEFINITIONS(/D _SCL_SECURE_NO_WARNINGS)
-
-		# Apply file grouping based on regular expressions for Visual Studio IDE.
-		SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
-	ENDIF (MSVC)
-ENDIF (WIN32)
-
+# Compiler flags
+IF (MSVC)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+ENDIF (MSVC)
 IF (CMAKE_COMPILER_IS_GNUCXX)
-        SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-        SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-ENDIF()
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+ENDIF ()
