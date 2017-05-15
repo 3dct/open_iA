@@ -292,7 +292,8 @@ void iAPorosityAnalyserModuleInterface::saveCSV()
 
 void iAPorosityAnalyserModuleInterface::browseCSV()
 {
-	QString csvFile = QFileDialog::getOpenFileName( m_mainWnd, tr( "Computation Parameters File (CSV)" ), m_mainWnd->getPath(), tr( "CSV Files (*.csv *.CSV)" ) );
+	QString csvFile = QFileDialog::getOpenFileName( m_mainWnd, tr( "Computation Parameters File (CSV)" ),
+		m_mainWnd->getPath(), tr( "CSV Files (*.csv *.CSV)" ) );
 	uiComputeSegm.csvFilename->setText( csvFile );
 	m_csvFile = csvFile;
 	loadCSV();
@@ -339,13 +340,15 @@ void iAPorosityAnalyserModuleInterface::updateFromGUI() const
 
 void iAPorosityAnalyserModuleInterface::browserResultsFolder()
 {
-	m_resultsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Results folder" ), m_resultsFolder, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+	m_resultsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Results folder" ), m_resultsFolder,
+		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
 	uiComputeSegm.resultsFolder->setText( m_resultsFolder );
 }
 
 void iAPorosityAnalyserModuleInterface::browserDatasetsFolder()
 {
-	m_datasetsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Datasets folder" ), m_datasetsFolder, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+	m_datasetsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Datasets folder" ), m_datasetsFolder,
+		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
 	uiComputeSegm.datasetsFolder->setText( m_datasetsFolder );
 	computeParameterSpace();	//bad code; creates everything new in uiComputeSegm.dragWidget 
 }
@@ -580,6 +583,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 			}
 		}
 	}
+	uiComputeSegm.tableWidget->scrollToBottom();
 	iACSVToQTableWidgetConverter::saveToCSVFile( *uiComputeSegm.tableWidget, uiComputeSegm.csvFilename->text() );
 }
 
