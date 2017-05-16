@@ -1142,7 +1142,7 @@ void MainWindow::prefs()
 		<< tr("$Compression")
 		<< tr("$Results in new window")
 		<< tr("$Log to file")
-		<< tr("Log File Name")
+		<< tr("#Log File Name")
 		<< tr("+Looks")
 		<< tr("#Magic lens size")
 		<< tr("#Magic lens frame width"));
@@ -1165,6 +1165,13 @@ void MainWindow::prefs()
 		}
 	}
 	iAPreferences p = child ? child->GetPreferences() : defaultPreferences;
+	QTextDocument *fDescr = nullptr;
+	if (iAConsole::GetInstance().IsFileLogError())
+	{
+		fDescr = new QTextDocument();
+		fDescr->setHtml("Could not write to the specified logfile, logging to file was therefore disabled."
+			" Please check file permissions and/or whether the path to the file exists, before re-enabling the option!.");
+	}
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(p.HistogramBins)
 		<< tr("%1").arg(p.StatisticalExtent)
 		<< (p.Compression ? tr("true") : tr("false"))
@@ -1175,7 +1182,7 @@ void MainWindow::prefs()
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth);
 
-	dlg_commoninput dlg(this, "Preferences", inList.size(), inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Preferences", inList.size(), inList, inPara, fDescr);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{

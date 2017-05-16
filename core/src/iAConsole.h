@@ -51,6 +51,7 @@ public:
 	void SetLogToFile(bool value, QString const & fileName);
 	bool IsLogToFileOn() const;
 	QString GetLogFileName() const;
+	bool IsFileLogError() const;
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void LogSignal(QString const & text);
@@ -69,5 +70,6 @@ private:
 	dlg_console* m_console;
 	bool m_logToFile;
 	bool m_closed;
+	bool m_fileLogError;
 	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
 };

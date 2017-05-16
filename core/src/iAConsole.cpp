@@ -68,6 +68,7 @@ void iAConsole::LogSlot(QString const & text)
 		if (logfile.bad())
 		{
 			m_console->Log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			m_fileLogError = true;
 			m_logToFile = false;
 		}
 	}
@@ -85,6 +86,12 @@ bool iAConsole::IsLogToFileOn() const
 	return m_logToFile;
 }
 
+
+bool iAConsole::IsFileLogError() const
+{
+	return m_fileLogError;
+}
+
 QString iAConsole::GetLogFileName() const
 {
 	return m_logFileName;
@@ -94,6 +101,7 @@ iAConsole::iAConsole() :
 	m_console(new dlg_console()),
 	m_logToFile(false),
 	m_closed(false),
+	m_fileLogError(false),
 	m_logFileName("debug.log")
 {
 	// redirect VTK output to console window:
