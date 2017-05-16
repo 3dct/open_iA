@@ -60,6 +60,13 @@ IF (MSVC)
 		SET (DebugLibraryPaths "${ITK_FFTW_LIBDIR};${DebugLibraryPaths}")
 		SET (MinSizeRelLibraryPaths "${ITK_FFTW_LIBDIR};${MinSizeRelLibraryPaths}")
 	ENDIF(ITK_USE_SYSTEM_FFTW)
+	
+	IF (ASTRA_TOOLBOX_FOUND)
+		SET (RelWithDebInfoLibraryPaths "${ASTRA_TOOLBOX_DIR}\\bin\\x64\\Release_CUDA;${RelWithDebInfoLibraryPaths}")
+		SET (ReleaseLibraryPaths "${ASTRA_TOOLBOX_DIR}\\bin\\x64\\Release_CUDA;${ReleaseLibraryPaths}")
+		SET (DebugLibraryPaths "${ASTRA_TOOLBOX_DIR}\\bin\\x64\\Debug_CUDA;${DebugLibraryPaths}")
+		SET (MinSizeRelLibraryPaths "${ASTRA_TOOLBOX_DIR}\\bin\\x64\\Release_CUDA;${MinSizeRelLibraryPaths}")
+	ENDIF()
 
 	IF (NOT "${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
 		STRING(FIND "${ITKZLIB_LIBRARIES}" ";" SEMICOLONPOS)
