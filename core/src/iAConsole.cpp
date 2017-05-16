@@ -74,11 +74,12 @@ void iAConsole::LogSlot(QString const & text)
 	}
 }
 
-void iAConsole::SetLogToFile(bool value, QString const & fileName)
+void iAConsole::SetLogToFile(bool value, QString const & fileName, bool verbose)
 {
 	m_logToFile = value;
 	m_logFileName = fileName;
-	m_console->Log(QString("%1 logging to file '%2'...").arg(value?"Enabling":"Disabling").arg(m_logFileName));
+	if (verbose)
+		LogSlot(QString("%1 logging to file '%2'...").arg(value?"Enabling":"Disabling").arg(m_logFileName));
 }
 
 bool iAConsole::IsLogToFileOn() const

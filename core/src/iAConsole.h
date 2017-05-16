@@ -48,7 +48,7 @@ public:
 	void Log(std::string const & text);
 	void Log(char const * text);
 	void Log(QString const & text);
-	void SetLogToFile(bool value, QString const & fileName);
+	void SetLogToFile(bool value, QString const & fileName, bool verbose=false);
 	bool IsLogToFileOn() const;
 	QString GetLogFileName() const;
 	bool IsFileLogError() const;

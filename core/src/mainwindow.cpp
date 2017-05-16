@@ -1203,7 +1203,7 @@ void MainWindow::prefs()
 		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
 
-		iAConsole::GetInstance().SetLogToFile(logToFile, logFileName);
+		iAConsole::GetInstance().SetLogToFile(logToFile, logFileName, true);
 	}
 }
 
