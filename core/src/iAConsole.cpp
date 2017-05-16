@@ -57,31 +57,44 @@ void iAConsole::LogSlot(QString const & text)
 	}
 	if (m_logToFile)
 	{
-		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::app);
-		logfile << QString("%1 %2\n")
-			.arg(QLocale().toString(
-				QDateTime::currentDateTime(),
-				QLocale::ShortFormat))
-			.arg(text)
-			.toStdString();
-		logfile.close();
+		std::ofstream logfile(m_logFileName.toStdString().c_str(), std::ofstream::out | std::ofstream::app);
+			logfile << QString("%1 %2\n")
+				.arg(QLocale().toString(
+					QDateTime::currentDateTime(),
+					QLocale::ShortFormat))
+				.arg(text)
+				.toStdString();
+			logfile.close();
+		if (logfile.bad())
+		{
+			m_console->Log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			m_logToFile = false;
+		}
 	}
 }
 
-void iAConsole::SetLogToFile(bool value)
+void iAConsole::SetLogToFile(bool value, QString const & fileName)
 {
 	m_logToFile = value;
+	m_logFileName = fileName;
+	m_console->Log(QString("%1 logging to file '%2'...").arg(value?"Enabling":"Disabling").arg(m_logFileName));
 }
 
-bool iAConsole::IsLogToFileOn()
+bool iAConsole::IsLogToFileOn() const
 {
 	return m_logToFile;
+}
+
+QString iAConsole::GetLogFileName() const
+{
+	return m_logFileName;
 }
 
 iAConsole::iAConsole() :
 	m_console(new dlg_console()),
 	m_logToFile(false),
-	m_closed(false)
+	m_closed(false),
+	m_logFileName("debug.log")
 {
 	// redirect VTK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();

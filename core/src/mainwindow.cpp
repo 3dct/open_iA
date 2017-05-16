@@ -927,8 +927,9 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 	defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
 	defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
+	QString logFileName = attributes.namedItem("logFile").nodeValue();
 
-	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
+	iAConsole::GetInstance().SetLogToFile(prefLogToFile, logFileName);
 
 	activeMdiChild()->editPrefs(defaultPreferences);
 }
@@ -1141,6 +1142,7 @@ void MainWindow::prefs()
 		<< tr("$Compression")
 		<< tr("$Results in new window")
 		<< tr("$Log to file")
+		<< tr("Log File Name")
 		<< tr("+Looks")
 		<< tr("#Magic lens size")
 		<< tr("#Magic lens frame width"));
@@ -1168,11 +1170,12 @@ void MainWindow::prefs()
 		<< (p.Compression ? tr("true") : tr("false"))
 		<< (p.ResultInNewWindow ? tr("true") : tr("false"))
 		<< (iAConsole::GetInstance().IsLogToFileOn() ? tr("true") : tr("false"))
+		<< iAConsole::GetInstance().GetLogFileName()
 		<< looks
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth);
 
-	dlg_commoninput dlg(this, "Preferences", 8, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Preferences", inList.size(), inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -1181,18 +1184,19 @@ void MainWindow::prefs()
 		defaultPreferences.Compression = dlg.getCheckValues()[2] != 0;
 		defaultPreferences.ResultInNewWindow = dlg.getCheckValues()[3] != 0;
 		bool logToFile = dlg.getCheckValues()[4] != 0;
-		QString looksStr = dlg.getComboBoxValues()[5];
+		QString logFileName = dlg.getText()[5];
+		QString looksStr = dlg.getComboBoxValues()[6];
 		qssName = styleNames[looksStr];
 		applyQSS();
 
 		defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
-			static_cast<int>(dlg.getValues()[6]));
-		defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getValues()[7]));
+			static_cast<int>(dlg.getValues()[7]));
+		defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getValues()[8]));
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
 
-		iAConsole::GetInstance().SetLogToFile(logToFile);
+		iAConsole::GetInstance().SetLogToFile(logToFile, logFileName);
 	}
 }
 
@@ -1905,7 +1909,8 @@ void MainWindow::readSettings()
 	defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", DefaultMagicLensSize).toInt();
 	defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
-	iAConsole::GetInstance().SetLogToFile(prefLogToFile);
+	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
+	iAConsole::GetInstance().SetLogToFile(prefLogToFile, logFileName);
 
 	defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
 	defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
@@ -2002,6 +2007,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefMagicLensSize", defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", defaultPreferences.MagicLensFrameWidth);
 	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance().IsLogToFileOn());
+	settings.setValue("Preferences/prefLogFile", iAConsole::GetInstance().GetLogFileName());
 
 	settings.setValue("Renderer/rsShowSlicers", defaultRenderSettings.ShowSlicers);
 	settings.setValue("Renderer/rsLinearInterpolation", defaultVolumeSettings.LinearInterpolation);
