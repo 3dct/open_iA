@@ -35,6 +35,8 @@
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
 
+#include <windows.h>
+
 void iAAstraReconstructionModuleInterface::Initialize( )
 {
 	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
@@ -48,6 +50,9 @@ void iAAstraReconstructionModuleInterface::Initialize( )
 
 void iAAstraReconstructionModuleInterface::ForwardProject( )
 {
+	AllocConsole();
+	freopen("CON", "w", stdout);
+
 	MdiChild* child = m_mainWnd->activeMdiChild();
 
 	vtkSmartPointer<vtkImageData> img = child->getImageData();
