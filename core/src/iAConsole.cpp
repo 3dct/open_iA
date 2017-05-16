@@ -71,6 +71,10 @@ void iAConsole::LogSlot(QString const & text)
 			m_fileLogError = true;
 			m_logToFile = false;
 		}
+		else
+		{
+			m_fileLogError = false;
+		}
 	}
 }
 
