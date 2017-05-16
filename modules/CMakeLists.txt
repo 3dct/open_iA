@@ -49,6 +49,7 @@ FOREACH( indx RANGE ${len} )
 	# If option is used add the module
 	IF( ${module_option} )
 		SET(ADDITIONAL_MODULE_LIBRARIES "")
+		SET(ADDITIONAL_MODULE_INCLUDE_DIRS "")
 		LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
 		# Collect .cpp and .h sources from the  module directory
 		FILE( GLOB module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
@@ -106,19 +107,18 @@ FOREACH( indx RANGE ${len} )
 			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
 		ENDIF()
 		
-		# TODO: make depending libraries configurable per module?
+		# standard libraries linked to every module:
 		TARGET_LINK_LIBRARIES(${module_name} ${CORE_LIBRARY_NAME})
 		TARGET_LINK_LIBRARIES(${module_name} ${QT_LIBRARIES})
 		TARGET_LINK_LIBRARIES(${module_name} ${VTK_LIBRARIES})
 		TARGET_LINK_LIBRARIES(${module_name} ${ITK_LIBRARIES})
-		TARGET_LINK_LIBRARIES(${module_name} ${ADDITIONAL_MODULE_LIBRARIES})
-		IF(FFTW_FOUND)
-			TARGET_LINK_LIBRARIES(${module_name} ${FFTW_LIBRARIES})
-		ENDIF(FFTW_FOUND)
-		IF(open_iA_GPU_USING_OPENCL)
-			TARGET_LINK_LIBRARIES(${module_name} ${OPENCL_LIBRARIES}) #TODO: proper OpenCL connection
-		ENDIF(open_iA_GPU_USING_OPENCL)
-		
+		# additional module (such as astra, eigen, OpenCL, ...)
+		IF (ADDITIONAL_MODULE_LIBRARIES)
+			TARGET_LINK_LIBRARIES(${module_name} ${ADDITIONAL_MODULE_LIBRARIES})
+		ENDIF()
+		IF (ADDITIONAL_MODULE_INCLUDE_DIRS)
+			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${ADDITIONAL_MODULE_INCLUDE_DIRS})
+		ENDIF()
 		IF (MSVC)
 			# Apply file grouping based on regular expressions for Visual Studio IDE.
 			SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
