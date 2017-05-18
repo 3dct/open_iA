@@ -101,8 +101,8 @@ public:
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
-private:
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
+private:
 
 	QString m_name;
 	QString m_filename;
