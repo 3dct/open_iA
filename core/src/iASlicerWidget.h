@@ -27,8 +27,6 @@
 #include <QSharedPointer>
 #include <QGridLayout>
 
-#include <vtkScalarsToColors.h>
-
 class QMenu;
 class vtkParametricFunctionSource;
 class iASlicerData;
@@ -52,7 +50,7 @@ class vtkPolyDataMapper;
 class vtkLookupTable;
 class vtkImageMapToColors;
 class vtkImageGridSource;
-
+class vtkTextActor;
 
 class open_iA_Core_API iASlicerWidget : public QVTKWidget2
 {
@@ -106,7 +104,6 @@ public:
 	void	updateMagicLens();
 	//Klara
 	void	initializeFisheyeLens(vtkImageReslice* reslicer);
-	void	updateFisheyeLens();
 	//endKlara
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
@@ -132,7 +129,7 @@ protected:			//overloaded events of QWidget
 
 	//Klara
 private:
-	void updateFisheyeTransform(double focalPt[3], iASlicerData* slicerData, double radius);
+	void updateFisheyeTransform( double focalPt[3], iASlicerData *slicerData, double lensRadius, double innerLensRadius);
 	//endKlara
 
 
@@ -194,29 +191,33 @@ private:
 
 	//Klara
 	bool fisheyeLensActivated;
+
+	double fisheyeRadius = 80.0;
+	double fisheyeRadiusDefault = 80.0;
+	double innerFisheyeRadius = 70.0;
+	double innerFisheyeRadiusDefault = 70.0;
+	double innerFisheyeMinRadius = 58; // for default radius 70.0
+
 	// variables for transformation
 	vtkSmartPointer<vtkThinPlateSplineTransform> fisheyeTransform;
 	vtkSmartPointer<vtkPoints> p_source;
 	vtkSmartPointer<vtkPoints> p_target;
-	
 	// variables for lens appearance
-	double fisheyeRadius;
-	double fisheyeRadiusDefault = 50.0;
 	vtkSmartPointer<vtkRegularPolygonSource> fisheye;
 	vtkSmartPointer<vtkPolyDataMapper> fisheyeMapper;
 	vtkSmartPointer<vtkActor> fisheyeActor;
-
-	vtkSmartPointer<vtkImageGridSource> imageGrid;
-	vtkSmartPointer<vtkLookupTable> table;
-	vtkSmartPointer<vtkImageMapToColors> gridToColors;
-	vtkSmartPointer<vtkImageBlend> blend;
+	/*vtkSmartPointer<vtkRegularPolygonSource> fisheye_inner1;
+	vtkSmartPointer<vtkPolyDataMapper> fisheyeMapper_inner1;
+	vtkSmartPointer<vtkActor> fisheyeActor_inner1;
+	vtkSmartPointer<vtkRegularPolygonSource> fisheye_inner2;
+	vtkSmartPointer<vtkPolyDataMapper> fisheyeMapper_inner2;
+	vtkSmartPointer<vtkActor> fisheyeActor_inner2; //*/
 
 	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle1List;
 	QList<vtkSmartPointer<vtkActor>> circle1ActList;
 	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
 	QList<vtkSmartPointer<vtkActor>> circle2ActList;
 
-	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle3List;
-	QList<vtkSmartPointer<vtkActor>> circle3ActList;
+	//vtkSmartPointer<vtkTransform> m_t;
 	//endKlara
 };

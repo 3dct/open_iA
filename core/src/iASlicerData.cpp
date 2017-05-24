@@ -141,7 +141,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	roiActor(0),
 	textInfo(0),
 	rulerWidget(0),
-	interactor(0)
+	interactor(0),
+	m_sliceNumber(0) // for fisheye transformation
 {
 	observerMouseMove = iAObserverRedirect::New(this);
 	renWin->AlphaBitPlanesOn();
@@ -1944,6 +1945,10 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 	default://ERROR
 		break;
 	}
+
+	// for fisheye transformation in slicers
+	m_sliceNumber = sliceNumber;
+
 	double * spacing = imageData->GetSpacing();
 	//also apply to enabled channels
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
@@ -2127,4 +2132,10 @@ vtkScalarBarWidget * iASlicerData::GetScalarWidget()
 vtkImageActor* iASlicerData::GetImageActor()
 {
 	return imageActor;
+}
+
+// for fisheye transformation in slicers
+int iASlicerData::getSliceNumber()
+{
+	return m_sliceNumber;
 }
