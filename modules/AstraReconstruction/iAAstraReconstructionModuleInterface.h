@@ -29,4 +29,12 @@ public:
 	void Initialize();
 private slots:
 	void ForwardProject();
+	void BackProject();
+private:
+	QString linspace(double projAngleStart, double projAngleEnd, int projAnglesCount);
+	
+	QString projGeomType;
+	double detSpacingX, detSpacingY, distOrigDet, 
+		distOrigSource, projAngleStart, projAngleEnd;
+	int detRowCnt, detColCnt, projAnglesCount;
 };
