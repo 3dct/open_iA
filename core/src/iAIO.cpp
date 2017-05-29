@@ -267,7 +267,6 @@ void iAIO::run()
 		case STL_READER:
 			rv = readSTL(); break;
 		case RAW_READER:
-		case PRO_READER:
 		case PARS_READER:
 		case VGI_READER:
 			rv = readImageData(); break;
@@ -379,8 +378,6 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			fileName = f; compression = c; break;
 		case RAW_READER:
 			return setupRAWReader(f);
-		case PRO_READER:
-			return setupPROReader(f);
 		case PARS_READER:
 			return setupPARSReader(f);
 		case VGI_READER:
@@ -1079,12 +1076,6 @@ bool iAIO::setupRAWReader( QString f )
 	else return false;
 
 	return true;
-}
-
-
-bool iAIO::setupPROReader( QString f )
-{
-	return setupRAWReader(f);
 }
 
 
