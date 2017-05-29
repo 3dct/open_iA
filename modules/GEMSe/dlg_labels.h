@@ -66,20 +66,17 @@ public slots:
 	void StoreImage();
 	void Sample();
 	void Clear();
-	void LabelOverlayReady();
 	QString const & GetFileName();
 private:
 	void AddSeed(int, int, int);
-	void UpdateOverlay();
 	void AddSeedItem(int label, int x, int y, int z);
 	int AddLabelItem(QString const & labelText);
-	vtkSmartPointer<vtkImageData> drawImage();
-	void StartOverlayCreation();
-	void ReColorExistingLabels();
+	void ReInitChannel();
 
 	QStandardItemModel* m_itemModel;
 	iAColorTheme const * m_colorTheme;
 	int m_maxLabel;
+	int m_maxColor;
 	QString m_fileName;
 
 	// for label overlay:
@@ -87,6 +84,5 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
 	MdiChild* m_mdiChild;
-	iALabelOverlayThread* m_labelOverlayThread;
 	bool m_newOverlay;
 };
