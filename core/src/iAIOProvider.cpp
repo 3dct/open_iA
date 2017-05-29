@@ -34,8 +34,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		+ MetaImages + 
 		"STL files (*.stl);;"
 		"VGI files (*.vgi);;"
-		"RAW files (*.raw *.rec *.vol);;"
-		"PRO files (*.pro);;"
+		"RAW files (*.raw *.rec *.vol *.pro);;"
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
 		"NRRD files (*.nrrd);;"

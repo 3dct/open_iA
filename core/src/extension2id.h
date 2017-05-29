@@ -36,7 +36,7 @@ static mapQString2int fill_extensionToId()
 	m["RAW"] = RAW_READER;
 	m["VOL"] = RAW_READER;
 	m["REC"] = RAW_READER;
-	m["PRO"] = PRO_READER;
+	m["PRO"] = RAW_READER;
 	m["PARS"] = PARS_READER;
 	m["VGI"] = VGI_READER;
 	m["DCM"] = DCM_READER;
