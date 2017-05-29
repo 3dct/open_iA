@@ -177,6 +177,15 @@ void dlg_labels::Remove()
 	bool updateOverlay = true;
 	if (item->parent() == nullptr)  // a label was selected
 	{
+		if (item->rowCount() > 0)
+		{
+			auto reply = QMessageBox::question(this, "Remove Label",
+				QString("Are you sure you want to remove the whole label and all of its %1 seeds?").arg(item->rowCount()),
+				QMessageBox::Yes | QMessageBox::No);
+			if (reply != QMessageBox::Yes) {
+				return;
+			}
+		}
 		int curLabel = GetCurLabelRow();
 		if (curLabel == -1)
 		{
