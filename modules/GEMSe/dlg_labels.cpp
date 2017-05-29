@@ -63,6 +63,7 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbClear, SIGNAL(clicked()), this, SLOT(Clear()));
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
+	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);
 }
 
@@ -136,6 +137,7 @@ void dlg_labels::SlicerClicked(int x, int y, int z)
 
 void dlg_labels::AddSeedItem(int labelRow, int x, int y, int z)
 {
+	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() + 1));
 	m_itemModel->item(labelRow)->setChild(
 		m_itemModel->item(labelRow)->rowCount(),
 		GetCoordinateItem(x, y, z)
@@ -146,8 +148,12 @@ void dlg_labels::AddSeedItem(int labelRow, int x, int y, int z)
 int dlg_labels::AddLabelItem(QString const & labelText)
 {
 	QStandardItem* newItem = new QStandardItem(labelText);
+	QStandardItem* newItemCount = new QStandardItem("0");
 	newItem->setData(m_colorTheme->GetColor(m_itemModel->rowCount()), Qt::DecorationRole);
-	m_itemModel->appendRow(newItem);
+	QList<QStandardItem* > newRow;
+	newRow.append(newItem);
+	newRow.append(newItemCount);
+	m_itemModel->appendRow(newRow);
 	return newItem->row();
 }
 
