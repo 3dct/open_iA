@@ -170,7 +170,7 @@ int dlg_labels::AddLabelItem(QString const & labelText)
 {
 	if (!m_labelOverlayImg)
 	{
-		m_labelOverlayImg = vtkSmartPointer<vtkImageData>::New();
+		m_labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
 		m_labelOverlayImg->SetExtent(m_mdiChild->getImagePointer()->GetExtent());
 		m_labelOverlayImg->SetSpacing(m_mdiChild->getImagePointer()->GetSpacing());
 		m_labelOverlayImg->AllocateScalars(VTK_INT, 1);
@@ -212,6 +212,7 @@ void dlg_labels::ReInitChannelTF()
 void dlg_labels::UpdateChannel()
 {
 	m_labelOverlayImg->Modified();
+	m_labelOverlayImg->SetScalarRange(0, count());
 	m_mdiChild->reInitChannel(ch_LabelOverlay, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
 	m_mdiChild->InitChannelRenderer(ch_LabelOverlay, false);
 	m_mdiChild->updateViews();
@@ -317,6 +318,7 @@ bool dlg_labels::Load(QString const & filename)
 	{
 		clearImage(m_labelOverlayImg, 0);
 	}
+	m_maxColor = 0;
 	m_itemModel->clear();
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	QFile file(filename);

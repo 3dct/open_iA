@@ -23,12 +23,28 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
+#include "open_iA_core_export.h"
+
+
+class open_iA_Core_API iAvtkImageData : public vtkImageData
+{
+public:
+	static iAvtkImageData *New();
+	vtkTypeMacro(iAvtkImageData, vtkImageData);
+	void SetScalarRange(int min, int max)
+	{
+		ScalarRangeComputeTime.Modified();
+		ScalarRange[0] = min;
+		ScalarRange[1] = max;
+	}
+};
+
 /**
 /* change a single pixel in the image
 /* don't forget to call Modified() on the image,
 /* and if the scalar range changed, to update the scalar range!
 /* (unfortunately that seems to require a dirty hack at the moment,
-/* see iAvtkImageData
+/* see iAvtkImageData above)
  */
 template <typename T>
 void drawPixel(vtkImageData* img, int x, int y, int z, T c);

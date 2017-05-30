@@ -48,7 +48,6 @@
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkMetaImageWriter.h>
-#include <vtkObjectFactory.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QLabel>
@@ -585,22 +584,6 @@ QString iADetailView::GetLabelNames() const
 	}
 	return labelNames.join(",");
 }
-
-
-class iAvtkImageData: public vtkImageData
-{
-public:
-	static iAvtkImageData *New();
-	vtkTypeMacro(iAvtkImageData, vtkImageData);
-	void SetScalarRange(int min, int max)
-	{
-		ScalarRangeComputeTime.Modified();
-		ScalarRange[0] = min;
-		ScalarRange[1] = max;
-	}
-};
-
-vtkStandardNewMacro(iAvtkImageData);
 
 
 class iATimedEvent: public QThread

@@ -35,7 +35,7 @@ class MdiChild;
 class QStandardItem;
 class QStandardItemModel;
 
-class vtkImageData;
+class iAvtkImageData;
 class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
@@ -83,7 +83,7 @@ private:
 	QString m_fileName;
 
 	// for label overlay:
-	vtkSmartPointer<vtkImageData> m_labelOverlayImg;
+	vtkSmartPointer<iAvtkImageData> m_labelOverlayImg;
 	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
 	MdiChild* m_mdiChild;
