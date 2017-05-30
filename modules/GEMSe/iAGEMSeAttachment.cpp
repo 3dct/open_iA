@@ -77,6 +77,9 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 	connect(mdiChild->getSlicerDataXY(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
 	connect(mdiChild->getSlicerDataXZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
 	connect(mdiChild->getSlicerDataYZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
+	connect(mdiChild->getSlicerDataXY(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	connect(mdiChild->getSlicerDataXZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	connect(mdiChild->getSlicerDataYZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
 
 
 	return newAttachment;

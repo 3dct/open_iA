@@ -59,6 +59,7 @@ public:
 public slots:
 	void RendererClicked(int, int, int);
 	void SlicerClicked(int, int, int);
+	void SlicerRightClicked(int, int, int);
 	void Add();
 	void Remove();
 	void Store();
@@ -71,11 +72,11 @@ private:
 	void AddSeed(int, int, int);
 	void AddSeedItem(int label, int x, int y, int z);
 	int AddLabelItem(QString const & labelText);
-	void ReInitChannel();
+	void ReInitChannelTF();
+	void UpdateChannel();
 
 	QStandardItemModel* m_itemModel;
 	iAColorTheme const * m_colorTheme;
-	int m_maxLabel;
 	int m_maxColor;
 	QString m_fileName;
 

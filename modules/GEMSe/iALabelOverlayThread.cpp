@@ -52,10 +52,10 @@ iALabelOverlayThread::iALabelOverlayThread(vtkSmartPointer<vtkImageData>& labelO
 vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF(int labelCount)
 {
 	auto result = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	result->AddPoint(0, 0);
+	result->AddPoint(0.0, 0.0);
 	for (int i = 0; i < labelCount; ++i)
 	{
-		result->AddPoint(i+1, 1);
+		result->AddPoint(i+1, 1.0);
 	}
 	return result;
 }
@@ -65,7 +65,7 @@ vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorThem
 	auto result = vtkSmartPointer<vtkLookupTable>::New();
 	result->SetNumberOfTableValues(labelCount + 1);
 	result->SetRange(0, labelCount);
-	result->SetTableValue(0, 0.0, 0.0, 0.0, 0.0); // value m_labelCount is transparent
+	result->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.0);   // value 0 is transparent
 	for (int i = 0; i<labelCount; ++i)
 	{
 		QColor c(colorTheme->GetColor(i));
@@ -73,7 +73,7 @@ vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorThem
 			c.red() / 255.0,
 			c.green() / 255.0,
 			c.blue() / 255.0,
-			1);	// all other labels are opaque
+			1.0);	                                  // all other labels are opaque
 	}
 	result->Build();
 	return result;
