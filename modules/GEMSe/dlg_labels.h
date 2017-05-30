@@ -32,6 +32,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 class iAColorTheme;
 class MdiChild;
 
+class QStandardItem;
 class QStandardItemModel;
 
 class vtkImageData;
@@ -70,6 +71,7 @@ public slots:
 	QString const & GetFileName();
 private:
 	void AddSeed(int, int, int);
+	void RemoveSeed(QStandardItem* item, int x, int y, int z);
 	void AddSeedItem(int label, int x, int y, int z);
 	int AddLabelItem(QString const & labelText);
 	void ReInitChannelTF();

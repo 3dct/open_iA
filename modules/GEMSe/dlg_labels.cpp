@@ -148,9 +148,7 @@ void dlg_labels::SlicerRightClicked(int x, int y, int z)
 		int idx = FindSeed(m_itemModel->item(l), x, y, z);
 		if (idx != -1)
 		{
-			drawPixel(m_labelOverlayImg, x, y, z, 0);
-			m_itemModel->item(l)->removeRow(idx);
-			UpdateChannel();
+			RemoveSeed(m_itemModel->item(l)->child(idx), x, y, z);
 			break;
 		}
 	}
@@ -256,9 +254,18 @@ void dlg_labels::Remove()
 		int x = item->data(Qt::UserRole + 1).toInt();
 		int y = item->data(Qt::UserRole + 2).toInt();
 		int z = item->data(Qt::UserRole + 3).toInt();
-		drawPixel(m_labelOverlayImg, x, y, z, 0);
-		item->parent()->removeRow(item->row());
+		RemoveSeed(item, x, y, z);
 	}
+}
+
+
+void dlg_labels::RemoveSeed(QStandardItem* item, int x, int y, int z)
+{
+	drawPixel(m_labelOverlayImg, x, y, z, 0);
+	int labelRow = item->parent()->row();
+	item->parent()->removeRow(item->row());
+	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() - 1));
+	UpdateChannel();
 }
 
 
