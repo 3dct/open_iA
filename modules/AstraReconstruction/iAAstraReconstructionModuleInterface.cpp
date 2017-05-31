@@ -190,15 +190,15 @@ void iAAstraReconstructionModuleInterface::ForwardProject( )
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
 	// 
-	int projDim[3] = { detColCnt, detRowCnt, projAnglesCount };
+	int projDim[3] = { detRowCnt, projAnglesCount, detColCnt };
 	double projSpacing[3] = { detSpacingX, detSpacingY, detSpacingX };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
 	//astra::CAlgorithmManager::getSingleton().store(algorithm);
 
-	FOR_VTKIMG_PIXELS(projImg, x, y, z)
+	FOR_VTKIMG_PIXELS(projImg, a, b, c)
 	{
 		//int index = x + y*DetectorColCount + z*DetectorColCount*DetectorRowCount;
-		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[y][z][x]);
+		projImg->SetScalarComponentFromFloat(a, b, c, 0, projectionData->getData3D()[a][b][c]);
 	}
 	MdiChild* resultChild = m_mainWnd->GetResultChild("");
 	resultChild->setImageData("Astra Forward Projection", projImg);
@@ -241,7 +241,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		<< tr("%1").arg(detColCnt) << tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd) << tr("%1").arg(projAnglesCount)
 		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource);
 
-	dlg_commoninput dlg(m_mainWnd, "Forward Projection", 10, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Back Projection", 10, inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
