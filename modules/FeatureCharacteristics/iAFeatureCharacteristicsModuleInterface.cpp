@@ -60,7 +60,7 @@ void iAFeatureCharacteristicsModuleInterface::calcFeatureCharacteristics()
 
 	QStringList inList = (QStringList() << tr("$Calculate Feret Diameter"));
 	QList<QVariant> inPara = QList<QVariant>() << "false";
-	dlg_commoninput dlg(m_mainWnd, tr("Calculate Feature Characteristics"), 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, tr("Calculate Feature Characteristics"), inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 

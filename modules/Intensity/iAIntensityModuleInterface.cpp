@@ -68,7 +68,7 @@ void iAIntensityModuleInterface::difference_Image_Filter()
 	QList<QVariant> inPara;
 	inPara << tr( "%1" ).arg( difDifferenceThreshold ) << tr( "%1" ).arg( difToleranceRadius );
 
-	dlg_commoninput dlg( m_mainWnd, "Difference Image Filter", 2, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Difference Image Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -156,7 +156,7 @@ void iAIntensityModuleInterface::intensity_windowing()
 		 << tr( "#WindowMinimum" ) << tr( "#WindowMaximum" ) << tr( "#OutputMinimum" ) << tr( "#OutputMaximum" ) );
 	QList<QVariant> inPara;
 	inPara << tr( "%1" ).arg( windowMinimum ) << tr( "%1" ).arg( windowMaximum ) << tr( "%1" ).arg( outputMinimum ) << tr( "%1" ).arg( outputMaximum );
-	dlg_commoninput dlg( m_mainWnd, "Intensity Windowing Image Filter", 4, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Intensity Windowing Image Filter", inList, inPara, NULL );
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
@@ -190,7 +190,7 @@ void iAIntensityModuleInterface::normalize_image()
 		"<p>https://itk.org/Doxygen/html/classitk_1_1NormalizeImageFilter.html</p>");
 
 	QStringList inList; QList<QVariant> inPara; 	
-	dlg_commoninput dlg( m_mainWnd, "Normalize Image Filter", 0, inList, inPara, fDescr );
+	dlg_commoninput dlg( m_mainWnd, "Normalize Image Filter", inList, inPara, fDescr );
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
@@ -238,7 +238,7 @@ void iAIntensityModuleInterface::histogram_match()
 		<< tr( "#Histogram Levels" ) << tr( "#Match Points" ) << tr( "$ThresholdAtMeanIntensity" ) );
 	QList<QVariant> inPara;
 	inPara << tr( "%1" ).arg( hmHistogramLevels ) << tr( "%1" ).arg( hmMatchPoints ) << tr( "%1" ).arg( hmThresholdAtMeanIntensity);
-	dlg_commoninput dlg( m_mainWnd, "Histogram Matching Image Filter", 3, inList, inPara, fDescr );
+	dlg_commoninput dlg( m_mainWnd, "Histogram Matching Image Filter", inList, inPara, fDescr );
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
@@ -274,7 +274,7 @@ void iAIntensityModuleInterface::rescale()
 	QStringList inList = (QStringList() << tr("#Output Minimum") << tr("#Output Maximum"));
 	QList<QVariant> inPara;
 	inPara << tr("%1").arg(outputMin) << tr("%1").arg(outputMax);
-	dlg_commoninput dlg(m_mainWnd, "Rescale Image", 2, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Rescale Image", inList, inPara, NULL);
 	dlg.show();
 	if (dlg.exec() != QDialog::Accepted)
 		return;

@@ -223,7 +223,7 @@ IF (WIN32)
 	# strangely, under Windows, ITK seems to build a completely different set of shared libraries
 	# than under Linux. Those listed below are required by our binary. Even more strangely, this
 	# list is different from the list of libraries required for linking)
-	SET (WIN_ITK_LIBS
+	SET (WIN_ITK_LIBS ${WIN_ITK_LIBS}
 		ITKCommon	ITKIOBioRad	ITKIOBMP	ITKIOGIPL	ITKIOImageBase	ITKIOPNG	ITKIOStimulate
 		ITKIOVTK	ITKIOGDCM	ITKIOGE	ITKIOIPL	ITKIOHDF5	ITKIOJPEG	ITKIOLSM	ITKIOMRC	ITKIOTIFF
 		ITKIOMeta	ITKIONIFTI	ITKIONRRD	ITKLabelMap	ITKOptimizers	ITKStatistics	ITKTransform

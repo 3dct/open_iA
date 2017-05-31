@@ -52,7 +52,7 @@ void iADistanceMapModuleInterface::signed_maurer_distance_map()
 
 	QStringList inList = (QStringList() << tr( "$Image spacing" ) << tr( "$Squared distance" ) << tr( "$Inside positive" ) << tr( "$Remove negative values" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( smdmi ) << tr( "%1" ).arg( smdms ) << tr( "%1" ).arg( smdmp ) << tr( "%1" ).arg( smdmn );
-	dlg_commoninput dlg( m_mainWnd, "Signed Maurer Distance Map", 4, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Signed Maurer Distance Map", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	smdmi = dlg.getCheckValues()[0]; 

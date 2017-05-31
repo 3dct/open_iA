@@ -45,7 +45,7 @@ void iAGPU_GradientAnisotropicDiffusionModuleInterface::gpu_grad_aniso_diffusion
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Number of Iterations" ) << tr( "#Time Step" ) << tr( "#Conductance" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( gadIterations ) << tr( "%1" ).arg( gadTimeStep ) << tr( "%1" ).arg( gadConductance );
-	dlg_commoninput dlg( m_mainWnd, "GPU Gradient Anisotropic Diffusion", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "GPU Gradient Anisotropic Diffusion", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	gadIterations = dlg.getValues()[0];

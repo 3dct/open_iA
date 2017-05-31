@@ -87,7 +87,6 @@ protected:
 protected:
 	
 private:
-	bool setupPROReader( QString f );
 	bool setupRAWReader( QString f );
 	bool setupPARSReader( QString f );
 	bool setupVGIReader( QString f );

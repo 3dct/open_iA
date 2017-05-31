@@ -26,6 +26,14 @@
 #include "iAITKIO.h"
 #include "iAVtkDraw.h"
 
+
+
+#include <vtkObjectFactory.h>
+
+// declared in iAVtkDraw.h
+vtkStandardNewMacro(iAvtkImageData);
+
+
 void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output)
 {
 	output->DeepCopy(input);

@@ -236,7 +236,7 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 		}
 	}
 	inPara	<< list;
-	dlg_commoninput dlg(m_mainWnd, "Extended Random Walker Segmentation", 1, inList, inPara, fDescr, true);
+	dlg_commoninput dlg(m_mainWnd, "Extended Random Walker Segmentation", inList, inPara, fDescr, true);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;

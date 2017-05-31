@@ -63,7 +63,7 @@ void iAGradientsModuleInterface::derivative_Filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Order" ) << tr( "#Direction" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( dfOrder ) << tr( "%1" ).arg( dfDirection );
-	dlg_commoninput dlg( m_mainWnd, "Derivative", 2, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Derivative", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -96,7 +96,7 @@ void iAGradientsModuleInterface::higherOrderDerivative()
 	fDescr->setHtml(
 		"<p><font size=+1>Calculate Higher Order Accurate Gradient Derivative.</font></p>"
 		"<p>Computes the higher order accurate directional derivative of an image. The directional derivative at each pixel location is computed by convolution with a higher order accurate derivative operator of user-specified order.</p>");
-	dlg_commoninput dlg(m_mainWnd, "Higher Order Accurate Gradient Derivative", 3, inList, inPara, fDescr);
+	dlg_commoninput dlg(m_mainWnd, "Higher Order Accurate Gradient Derivative", inList, inPara, fDescr);
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;

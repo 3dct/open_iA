@@ -78,7 +78,7 @@ void iAConvolutionModuleInterface::convolve()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "Convolution Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Convolution Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	
@@ -112,7 +112,7 @@ void iAConvolutionModuleInterface::correlate()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "Correlation Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Correlation Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -146,7 +146,7 @@ void iAConvolutionModuleInterface::FFT_correlate()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "FFT Correlation Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "FFT Correlation Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -180,7 +180,7 @@ void iAConvolutionModuleInterface::FFT_convolve()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "FFT Convolution Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "FFT Convolution Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -214,7 +214,7 @@ void iAConvolutionModuleInterface::FFT_CPP_correlate()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "FFT CPP correlation filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "FFT CPP correlation filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 

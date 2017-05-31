@@ -48,8 +48,10 @@ public:
 	void Log(std::string const & text);
 	void Log(char const * text);
 	void Log(QString const & text);
-	void SetLogToFile(bool value);
-	bool IsLogToFileOn();
+	void SetLogToFile(bool value, QString const & fileName, bool verbose=false);
+	bool IsLogToFileOn() const;
+	QString GetLogFileName() const;
+	bool IsFileLogError() const;
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void LogSignal(QString const & text);
@@ -64,8 +66,10 @@ private:
 
 	void close();
 
+	QString m_logFileName;
 	dlg_console* m_console;
 	bool m_logToFile;
 	bool m_closed;
+	bool m_fileLogError;
 	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
 };

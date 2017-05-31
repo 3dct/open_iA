@@ -267,7 +267,6 @@ void iAIO::run()
 		case STL_READER:
 			rv = readSTL(); break;
 		case RAW_READER:
-		case PRO_READER:
 		case PARS_READER:
 		case VGI_READER:
 			rv = readImageData(); break;
@@ -379,8 +378,6 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			fileName = f; compression = c; break;
 		case RAW_READER:
 			return setupRAWReader(f);
-		case PRO_READER:
-			return setupPROReader(f);
 		case PARS_READER:
 			return setupPARSReader(f);
 		case VGI_READER:
@@ -787,14 +784,14 @@ bool iAIO::setupVolumeStackMHDReader(QString f)
 		<< tr("%1").arg(digitsInIndex) 
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1]) );
 
-	dlg_commoninput *dlg = new dlg_commoninput (parent, "Set file parameters", 5, inList, inPara, NULL);
+	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 
-	if (dlg->exec() == QDialog::Accepted){
+	if (dlg.exec() == QDialog::Accepted){
 
-		fileNamesBase = dlg->getText()[0];
-		extension = dlg->getText()[1];
-		digitsInIndex = dlg->getValues()[2];
-		indexRange[0] = dlg->getValues()[3]; indexRange[1]= dlg->getValues()[4];
+		fileNamesBase = dlg.getText()[0];
+		extension = dlg.getText()[1];
+		digitsInIndex = dlg.getValues()[2];
+		indexRange[0] = dlg.getValues()[3]; indexRange[1]= dlg.getValues()[4];
 	
 		FillFileNameArray(indexRange, digitsInIndex);
 	}
@@ -970,7 +967,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< datatype
 		<< byteOrderStr);
 
-	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, parent, "RAW file specs", 17, inList, inPara, NULL, f);
+	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, parent, "RAW file specs", inList, inPara, NULL, f);
 	
 	if (dlg->exec() == QDialog::Accepted){
 
@@ -1040,7 +1037,7 @@ bool iAIO::setupRAWReader( QString f )
 		<< datatype
 		<< byteOrderStr);
 
-	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (false, parent, "RAW file specs", 12, inList, inPara, NULL, f);
+	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (false, parent, "RAW file specs", inList, inPara, NULL, f);
 
 	if (dlg->exec() == QDialog::Accepted)
 	{
@@ -1079,12 +1076,6 @@ bool iAIO::setupRAWReader( QString f )
 	else return false;
 
 	return true;
-}
-
-
-bool iAIO::setupPROReader( QString f )
-{
-	return setupRAWReader(f);
 }
 
 
@@ -1324,25 +1315,25 @@ bool iAIO::setupStackReader( QString f )
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << datatype);
 
-	dlg_commoninput *dlg = new dlg_commoninput (parent, "Set file parameters", 12, inList, inPara, NULL);
+	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 
-	if (dlg->exec() == QDialog::Accepted){
+	if (dlg.exec() == QDialog::Accepted){
 
-		fileNamesBase = dlg->getText()[0];
-		extension = dlg->getText()[1];
-		digitsInIndex = dlg->getValues()[2];
-		indexRange[0] = dlg->getValues()[3]; indexRange[1]= dlg->getValues()[4];
-		spacing[0] = dlg->getValues()[5]; spacing[1]= dlg->getValues()[6]; spacing[2] = dlg->getValues()[7];
-		origin[0] = dlg->getValues()[8]; origin[1]= dlg->getValues()[9]; origin[2] = dlg->getValues()[10];
+		fileNamesBase = dlg.getText()[0];
+		extension = dlg.getText()[1];
+		digitsInIndex = dlg.getValues()[2];
+		indexRange[0] = dlg.getValues()[3]; indexRange[1]= dlg.getValues()[4];
+		spacing[0] = dlg.getValues()[5]; spacing[1]= dlg.getValues()[6]; spacing[2] = dlg.getValues()[7];
+		origin[0] = dlg.getValues()[8]; origin[1]= dlg.getValues()[9]; origin[2] = dlg.getValues()[10];
 		 
-		if (dlg->getComboBoxValues()[11] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
-		if (dlg->getComboBoxValues()[11] == "VTK_CHAR") scalarType = VTK_CHAR;
-		if (dlg->getComboBoxValues()[11] == "VTK_UNSIGNED_SHORT") scalarType = VTK_UNSIGNED_SHORT;
-		if (dlg->getComboBoxValues()[11] == "VTK_SHORT") scalarType = VTK_SHORT;
-		if (dlg->getComboBoxValues()[11] == "VTK_UNSIGNED_INT") scalarType = VTK_UNSIGNED_INT;
-		if (dlg->getComboBoxValues()[11] == "VTK_INT") scalarType = VTK_INT;
-		if (dlg->getComboBoxValues()[11] == "VTK_FLOAT") scalarType = VTK_FLOAT;
-		if (dlg->getComboBoxValues()[11] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
+		if (dlg.getComboBoxValues()[11] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
+		if (dlg.getComboBoxValues()[11] == "VTK_CHAR") scalarType = VTK_CHAR;
+		if (dlg.getComboBoxValues()[11] == "VTK_UNSIGNED_SHORT") scalarType = VTK_UNSIGNED_SHORT;
+		if (dlg.getComboBoxValues()[11] == "VTK_SHORT") scalarType = VTK_SHORT;
+		if (dlg.getComboBoxValues()[11] == "VTK_UNSIGNED_INT") scalarType = VTK_UNSIGNED_INT;
+		if (dlg.getComboBoxValues()[11] == "VTK_INT") scalarType = VTK_INT;
+		if (dlg.getComboBoxValues()[11] == "VTK_FLOAT") scalarType = VTK_FLOAT;
+		if (dlg.getComboBoxValues()[11] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
 
 		FillFileNameArray(indexRange, digitsInIndex);
 	}

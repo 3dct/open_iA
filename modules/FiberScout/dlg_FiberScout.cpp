@@ -2442,7 +2442,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 		return;
 	}
 
-	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList.count(), inList, inPara, NULL );
+	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, NULL );
 
 	if ( dlg.exec() == QDialog::Accepted && ( dlg.getCheckValues()[0] == 2 || dlg.getCheckValues()[1] == 2 ) )
 	{
@@ -4395,7 +4395,7 @@ int dlg_FiberScout::OpenBlobVisDialog()
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[0] : blobManager->GetDimensions()[0] )
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[1] : blobManager->GetDimensions()[1] )
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[2] : blobManager->GetDimensions()[2] );
-	dlg_commoninput dlg( this, "Blob rendering preferences", inList.size(), inList, inPara, NULL );
+	dlg_commoninput dlg( this, "Blob rendering preferences", inList, inPara, NULL );
 
 	if ( dlg.exec() == QDialog::Accepted )
 	{
@@ -4553,11 +4553,11 @@ void dlg_FiberScout::SaveBlobMovie()
 		QStringList inList = ( QStringList() << tr( "+Rotation mode" ) );
 		QList<QVariant> inPara = ( QList<QVariant>() << modes );
 
-		dlg_commoninput *dlg = new dlg_commoninput( this, "Save movie options", 1, inList, inPara, NULL );
-		if ( dlg->exec() == QDialog::Accepted )
+		dlg_commoninput dlg( this, "Save movie options", inList, inPara, NULL );
+		if ( dlg.exec() == QDialog::Accepted )
 		{
-			mode = dlg->getComboBoxValues()[0];
-			imode = dlg->getComboBoxIndices()[0];
+			mode = dlg.getComboBoxValues()[0];
+			imode = dlg.getComboBoxIndices()[0];
 		}
 	}
 
@@ -4595,7 +4595,7 @@ void dlg_FiberScout::SaveBlobMovie()
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[0] ) << tr( "%1" ).arg( blobManager->GetDimensions()[0] )
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[1] ) << tr( "%1" ).arg( blobManager->GetDimensions()[1] )
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[2] ) << tr( "%1" ).arg( blobManager->GetDimensions()[2] );
-	dlg_commoninput dlg( this, "Blob rendering preferences", inList.size(), inList, inPara, NULL );
+	dlg_commoninput dlg( this, "Blob rendering preferences", inList, inPara, NULL );
 
 	if ( dlg.exec() == QDialog::Accepted )
 	{

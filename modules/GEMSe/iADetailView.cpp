@@ -48,7 +48,6 @@
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkMetaImageWriter.h>
-#include <vtkObjectFactory.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QLabel>
@@ -587,22 +586,6 @@ QString iADetailView::GetLabelNames() const
 }
 
 
-class iAvtkImageData: public vtkImageData
-{
-public:
-	static iAvtkImageData *New();
-	vtkTypeMacro(iAvtkImageData, vtkImageData);
-	void SetScalarRange(int min, int max)
-	{
-		ScalarRangeComputeTime.Modified();
-		ScalarRange[0] = min;
-		ScalarRange[1] = max;
-	}
-};
-
-vtkStandardNewMacro(iAvtkImageData);
-
-
 class iATimedEvent: public QThread
 {
 public:
@@ -664,7 +647,8 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
 	{
 		AddResultFilterPixel(x, y, z);
 		if (!m_resultFilterTriggerThread)
-			DEBUG_LOG("Result Filter Trigger not yet started....");
+			m_MouseButtonDown = false;
+			//DEBUG_LOG("Result Filter Trigger not yet started....");
 		else
 			m_resultFilterTriggerThread->restart();
 	}

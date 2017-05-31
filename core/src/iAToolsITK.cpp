@@ -67,6 +67,26 @@ itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer im
 		result = itk::ImageIOBase::FLOAT;
 	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::m_DIM> *>( imagePtr ) )
 		result = itk::ImageIOBase::DOUBLE;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::UCHAR;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::CHAR;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::SHORT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::USHORT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::INT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::UINT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::LONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::ULONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::FLOAT;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::DOUBLE;
 
 	return result;
 }
@@ -117,6 +137,26 @@ itk::ImageIOBase::IOPixelType GetITKPixelType( iAITKIO::ImagePointer image )
 		result = itk::ImageIOBase::RGBA;
 	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::m_DIM> *>( imagePtr ) )
 		result = itk::ImageIOBase::RGBA;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
 
 	return result;
 }

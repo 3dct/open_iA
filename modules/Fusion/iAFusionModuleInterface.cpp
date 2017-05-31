@@ -46,7 +46,7 @@ void iAFusionModuleInterface::addImages()
 	QList<QMdiSubWindow *> mdiwindows = m_mainWnd->MdiChildList();
 	QStringList inList = (QStringList() << tr("+Input 1") << tr("+Input 2"));
 	int inputIndxs[2];
-	if (QDialog::Accepted != m_mainWnd->SelectInputs("Threshold Fusion", 2, inList, inputIndxs))
+	if (QDialog::Accepted != m_mainWnd->SelectInputs("Threshold Fusion", inList, inputIndxs))
 		return;
 	vtkImageData * secondChildImgData = qobject_cast<MdiChild *>(mdiwindows.at(inputIndxs[1])->widget())->getImageData();
 	//prepare

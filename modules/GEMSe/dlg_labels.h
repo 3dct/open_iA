@@ -32,9 +32,10 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 class iAColorTheme;
 class MdiChild;
 
+class QStandardItem;
 class QStandardItemModel;
 
-class vtkImageData;
+class iAvtkImageData;
 class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
@@ -59,6 +60,7 @@ public:
 public slots:
 	void RendererClicked(int, int, int);
 	void SlicerClicked(int, int, int);
+	void SlicerRightClicked(int, int, int);
 	void Add();
 	void Remove();
 	void Store();
@@ -66,27 +68,24 @@ public slots:
 	void StoreImage();
 	void Sample();
 	void Clear();
-	void LabelOverlayReady();
 	QString const & GetFileName();
 private:
 	void AddSeed(int, int, int);
-	void UpdateOverlay();
+	void RemoveSeed(QStandardItem* item, int x, int y, int z);
 	void AddSeedItem(int label, int x, int y, int z);
 	int AddLabelItem(QString const & labelText);
-	vtkSmartPointer<vtkImageData> drawImage();
-	void StartOverlayCreation();
-	void ReColorExistingLabels();
+	void ReInitChannelTF();
+	void UpdateChannel();
 
 	QStandardItemModel* m_itemModel;
 	iAColorTheme const * m_colorTheme;
-	int m_maxLabel;
+	int m_maxColor;
 	QString m_fileName;
 
 	// for label overlay:
-	vtkSmartPointer<vtkImageData> m_labelOverlayImg;
+	vtkSmartPointer<iAvtkImageData> m_labelOverlayImg;
 	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
 	MdiChild* m_mdiChild;
-	iALabelOverlayThread* m_labelOverlayThread;
 	bool m_newOverlay;
 };

@@ -843,7 +843,7 @@ void dlg_Consensus::LoadConfig()
 		QList<QVariant> values; values
 			<< samplingResults->GetExecutable()
 			<< samplingResults->GetAdditionalArguments();
-		dlg_commoninput checkAlgoParams(m_mdiChild, "Check/Correct Algorithm Parameters", 2, parameters, values, NULL);
+		dlg_commoninput checkAlgoParams(m_mdiChild, "Check/Correct Algorithm Parameters", parameters, values, NULL);
 		if (checkAlgoParams.exec() != QDialog::Accepted)
 		{
 			return;
