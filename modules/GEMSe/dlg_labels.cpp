@@ -32,6 +32,7 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAToolsVTK.h"
+#include "iAVtkDraw.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -53,7 +54,7 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
 	m_mdiChild(mdiChild),
-	m_labelOverlayThread(0)
+	m_maxColor(0)
 {
 	connect(pbAdd, SIGNAL(clicked()), this, SLOT(Add()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
@@ -63,6 +64,7 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbClear, SIGNAL(clicked()), this, SLOT(Clear()));
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
+	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);
 }
 
@@ -86,7 +88,7 @@ void dlg_labels::RendererClicked(int x, int y, int z)
 }
 
 
-bool SeedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
+int FindSeed(QStandardItem* labelItem, int x, int y, int z)
 {
 	for (int i = 0; i<labelItem->rowCount(); ++i)
 	{
@@ -95,9 +97,15 @@ bool SeedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
 		int iy = coordItem->data(Qt::UserRole + 2).toInt();
 		int iz = coordItem->data(Qt::UserRole + 3).toInt();
 		if (x == ix && y == iy && z == iz)
-			return true;
+			return i;
 	}
-	return false;
+	return -1;
+}
+
+
+bool SeedAlreadyExists(QStandardItem* labelItem, int x, int y, int z)
+{
+	return FindSeed(labelItem, x, y, z) != -1;
 }
 
 
@@ -121,10 +129,9 @@ void dlg_labels::AddSeed(int x, int y, int z)
 			return;
 		}
 	}
-	
+
 	AddSeedItem(labelRow, x, y, z);
-	
-	UpdateOverlay();
+	UpdateChannel();
 }
 
 
@@ -134,20 +141,54 @@ void dlg_labels::SlicerClicked(int x, int y, int z)
 }
 
 
+void dlg_labels::SlicerRightClicked(int x, int y, int z)
+{
+	for (int l = 0; l < count(); ++l)
+	{
+		int idx = FindSeed(m_itemModel->item(l), x, y, z);
+		if (idx != -1)
+		{
+			RemoveSeed(m_itemModel->item(l)->child(idx), x, y, z);
+			break;
+		}
+	}
+}
+
+
 void dlg_labels::AddSeedItem(int labelRow, int x, int y, int z)
 {
+	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() + 1));
 	m_itemModel->item(labelRow)->setChild(
 		m_itemModel->item(labelRow)->rowCount(),
 		GetCoordinateItem(x, y, z)
 	);
+	drawPixel(m_labelOverlayImg, x, y, z, labelRow+1);
 }
 
 
 int dlg_labels::AddLabelItem(QString const & labelText)
 {
+	if (!m_labelOverlayImg)
+	{
+		m_labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
+		m_labelOverlayImg->SetExtent(m_mdiChild->getImagePointer()->GetExtent());
+		m_labelOverlayImg->SetSpacing(m_mdiChild->getImagePointer()->GetSpacing());
+		m_labelOverlayImg->AllocateScalars(VTK_INT, 1);
+		clearImage(m_labelOverlayImg, 0);
+		iAChannelVisualizationData* chData = m_mdiChild->GetChannelData(ch_LabelOverlay);
+		if (!chData)
+		{
+			chData = new iAChannelVisualizationData();
+			m_mdiChild->InsertChannelData(ch_LabelOverlay, chData);
+		}
+	}
 	QStandardItem* newItem = new QStandardItem(labelText);
-	newItem->setData(m_colorTheme->GetColor(m_itemModel->rowCount()), Qt::DecorationRole);
-	m_itemModel->appendRow(newItem);
+	QStandardItem* newItemCount = new QStandardItem("0");
+	newItem->setData(m_colorTheme->GetColor(m_maxColor++), Qt::DecorationRole);
+	QList<QStandardItem* > newRow;
+	newRow.append(newItem);
+	newRow.append(newItemCount);
+	m_itemModel->appendRow(newRow);
 	return newItem->row();
 }
 
@@ -157,6 +198,24 @@ void dlg_labels::Add()
 	pbStore->setEnabled(true);
 	int labelCount = count();
 	AddLabelItem(QString::number( labelCount ));
+	ReInitChannelTF();
+}
+
+
+void dlg_labels::ReInitChannelTF()
+{
+	m_labelOverlayLUT = BuildLabelOverlayLUT(count(), m_colorTheme);
+	m_labelOverlayOTF = BuildLabelOverlayOTF(count());
+}
+
+
+void dlg_labels::UpdateChannel()
+{
+	m_labelOverlayImg->Modified();
+	m_labelOverlayImg->SetScalarRange(0, count());
+	m_mdiChild->reInitChannel(ch_LabelOverlay, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
+	m_mdiChild->InitChannelRenderer(ch_LabelOverlay, false);
+	m_mdiChild->updateViews();
 }
 
 
@@ -171,17 +230,21 @@ void dlg_labels::Remove()
 	bool updateOverlay = true;
 	if (item->parent() == nullptr)  // a label was selected
 	{
+		if (item->rowCount() > 0)
+		{
+			auto reply = QMessageBox::question(this, "Remove Label",
+				QString("Are you sure you want to remove the whole label and all of its %1 seeds?").arg(item->rowCount()),
+				QMessageBox::Yes | QMessageBox::No);
+			if (reply != QMessageBox::Yes) {
+				return;
+			}
+		}
 		int curLabel = GetCurLabelRow();
 		if (curLabel == -1)
 		{
 			return;
 		}
-		updateOverlay = (GetSeedCount(curLabel) > 0);
 		m_itemModel->removeRow(curLabel);
-		ReColorExistingLabels();
-		// recolor existing labels:
-	
-
 		if (count() == 0)
 		{
 			pbStore->setEnabled(false);
@@ -189,12 +252,21 @@ void dlg_labels::Remove()
 	}
 	else
 	{							// remove a single seed
-		item->parent()->removeRow(item->row());
+		int x = item->data(Qt::UserRole + 1).toInt();
+		int y = item->data(Qt::UserRole + 2).toInt();
+		int z = item->data(Qt::UserRole + 3).toInt();
+		RemoveSeed(item, x, y, z);
 	}
-	if (updateOverlay)
-	{
-		UpdateOverlay();
-	}
+}
+
+
+void dlg_labels::RemoveSeed(QStandardItem* item, int x, int y, int z)
+{
+	drawPixel(m_labelOverlayImg, x, y, z, 0);
+	int labelRow = item->parent()->row();
+	item->parent()->removeRow(item->row());
+	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() - 1));
+	UpdateChannel();
 }
 
 
@@ -240,64 +312,16 @@ int dlg_labels::GetSeedCount(int labelIdx) const
 }
 
 
-void dlg_labels::StartOverlayCreation()
-{
-	m_labelOverlayThread = new iALabelOverlayThread(
-			m_labelOverlayImg,
-			m_labelOverlayLUT,
-			m_labelOverlayOTF,
-			m_itemModel,
-			count(),
-			m_colorTheme,
-			m_mdiChild->getImagePointer()->GetExtent(),
-			m_mdiChild->getImagePointer()->GetSpacing()
-		);
-	connect(m_labelOverlayThread, SIGNAL(finished()), this, SLOT(LabelOverlayReady()));
-	m_labelOverlayThread->start();
-}
-
-
-void dlg_labels::UpdateOverlay()
-{
-	if (!m_labelOverlayThread)
-	{
-		StartOverlayCreation();
-	}
-	else
-	{
-		m_newOverlay = true;
-	}
-}
-
-
-void dlg_labels::LabelOverlayReady()
-{
-	iAChannelVisualizationData* chData = m_mdiChild->GetChannelData(ch_LabelOverlay);
-	if (!chData)
-	{
-		chData = new iAChannelVisualizationData();
-		m_mdiChild->InsertChannelData(ch_LabelOverlay, chData);
-	}
-///	assert(chData);										// TODO: check/refactor the need for OTF. shouldn't be needed for slicer overlay alone!
-	m_mdiChild->reInitChannel(ch_LabelOverlay, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
-	m_mdiChild->InitChannelRenderer(ch_LabelOverlay, false);
-	m_mdiChild->updateViews();
-	if (m_newOverlay)
-	{
-		StartOverlayCreation();
-		m_newOverlay = false;
-	}
-	else
-	{
-		m_labelOverlayThread = nullptr;
-	}
-}
-
-
 bool dlg_labels::Load(QString const & filename)
 {
+	if (m_labelOverlayImg)
+	{
+		clearImage(m_labelOverlayImg, 0);
+	}
+	m_maxColor = 0;
 	m_itemModel->clear();
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
+	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{	
@@ -365,9 +389,9 @@ bool dlg_labels::Load(QString const & filename)
 
 	QFileInfo fileInfo(file);
 	m_fileName = MakeAbsolute(fileInfo.absolutePath(), filename);
-
-	UpdateOverlay();
 	pbStore->setEnabled(enableStoreBtn);
+	ReInitChannelTF();
+	UpdateChannel();
 	return true;
 }
 
@@ -592,18 +616,26 @@ void dlg_labels::Sample()
 
 		if (label2SeedCount[label] < numOfSeedsPerLabel[label] && !SeedAlreadyExists(m_itemModel->item(label), x, y, z))
 		{
-			m_itemModel->item(label)->appendRow(GetCoordinateItem(x, y, z));
+			// m_itemModel->item(label)->appendRow(GetCoordinateItem(x, y, z));
+			AddSeedItem(label, x, y, z);
 			label2SeedCount[label]++;
 		}
 	}
+	ReInitChannelTF();
+	UpdateChannel();
 	pbStore->setEnabled(true);
-	UpdateOverlay();
 }
 
 
 void dlg_labels::Clear()
 {
+	if (m_labelOverlayImg)
+	{
+		clearImage(m_labelOverlayImg, 0);
+		UpdateChannel();
+	}
 	m_itemModel->clear();
+	m_maxColor = 0;
 }
 
 
@@ -613,21 +645,8 @@ QString const & dlg_labels::GetFileName()
 }
 
 
-void dlg_labels::ReColorExistingLabels()
-{
-	for (int i=0; i<m_itemModel->rowCount(); ++i)
-	{
-		m_itemModel->item(i)->setData(m_colorTheme->GetColor(i), Qt::DecorationRole);
-	}
-}
-
-
 void dlg_labels::SetColorTheme(iAColorTheme const * colorTheme)
 {
 	m_colorTheme = colorTheme;
-	ReColorExistingLabels();
-	if (m_labelOverlayImg)
-	{
-		UpdateOverlay();
-	}
+	m_maxColor = 0;
 }
