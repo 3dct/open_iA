@@ -97,7 +97,7 @@ void iAAstraReconstructionModuleInterface::ForwardProject( )
 		<< tr("%1").arg(detColCnt) << tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd) << tr("%1").arg(projAnglesCount) 
 		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource);
 	
-	dlg_commoninput dlg(m_mainWnd, "Forward Projection", 10, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Forward Projection", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	
@@ -241,7 +241,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		<< tr("%1").arg(detColCnt) << tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd) << tr("%1").arg(projAnglesCount)
 		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource);
 
-	dlg_commoninput dlg(m_mainWnd, "Back Projection", 10, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Back Projection", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
