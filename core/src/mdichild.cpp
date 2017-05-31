@@ -506,30 +506,24 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 
 bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 {
-	bool setUp = false;
 	polyData->ReleaseData();
 	// TODO: insert plugin mechanism.
 	// - iterate over file plugins; if one returns a match, use it
 	if (QString::compare(fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0)
 	{
-		if (!ioThread->setupIO(STL_READER, f)) return false;
-		setUp = true;
+		return ioThread->setupIO(STL_READER, f);
 	}
-	if (!setUp)
+	imageData->ReleaseData();
+	QString extension = fileInfo.suffix();
+	extension = extension.toUpper();
+	const mapQString2int * ext2id = &extensionToId;
+	if(isStack)	ext2id = &extensionToIdStack;
+	if (ext2id->find(extension) == ext2id->end())
 	{
-		imageData->ReleaseData();
-		QString extension = fileInfo.suffix();
-		extension = extension.toUpper();
-		const mapQString2int * ext2id = &extensionToId;
-		if(isStack)	ext2id = &extensionToIdStack;
-		if (ext2id->find(extension) == ext2id->end())
-		{
-			return false;
-		}
-		IOType id = ext2id->find( extension ).value();
-		if ( !ioThread->setupIO(id, f) ) return false;
+		return false;
 	}
-	return true;
+	IOType id = ext2id->find( extension ).value();
+	return ioThread->setupIO(id, f);
 }
 
 
