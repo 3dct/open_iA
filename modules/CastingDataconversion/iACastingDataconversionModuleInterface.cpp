@@ -46,7 +46,7 @@ void iACastingDataconversionModuleInterface::castimage_Filter()
 		<< tr( "VTK_UNSIGNED__INT64" ) << ( "Label image to color-coded RGBA image" ) );
 	QStringList inList = (QStringList() << tr( "+Output Data Type" ));
 	QList<QVariant> inPara; 	inPara << datatype;
-	dlg_commoninput dlg( m_mainWnd, "Cast Image Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Cast Image Filter", inList, inPara, NULL );
 	QString datatypeStr;
 	if( dlg.exec() != QDialog::Accepted )
 		return;

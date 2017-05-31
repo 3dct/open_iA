@@ -212,7 +212,7 @@ void dlg_volumePlayer::editMaxSpeed() {
 	QStringList inList		= (QStringList() << tr("#Speed (one step/msec)"));
 	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
 
-	dlg_commoninput *dlg = new dlg_commoninput (m_parent, "Set speed", 1, inList, inPara, NULL);
+	dlg_commoninput *dlg = new dlg_commoninput (m_parent, "Set speed", inList, inPara, NULL);
 	
 	if (dlg->exec() == QDialog::Accepted){
 		float speed = (float)dlg->getValues()[0];

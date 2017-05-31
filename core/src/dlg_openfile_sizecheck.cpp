@@ -29,7 +29,8 @@
 #include <QObject>
 
 
-dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *parent, QString winTitle, int n, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, QString fileName, int extentIndex1, int extentIndex2, int extentIndex3, int datatypeIndex, bool modal) : dlg_commoninput(parent, winTitle, n, inList, inPara, fDescr, modal)
+dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, QString fileName, int extentIndex1, int extentIndex2, int extentIndex3, int datatypeIndex, bool modal) :
+	dlg_commoninput(parent, winTitle, inList, inPara, fDescr, modal)
 {
 	this->isVolumeStack = isVolumeStack;
 	QFileInfo info1(fileName);
@@ -37,13 +38,13 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 
 	actualSizeLabel = new QLabel("Actual file size: " + QString::number(fileSize) + " bytes", this);
 	actualSizeLabel->setAlignment(Qt::AlignRight);
-	gridLayout->addWidget(actualSizeLabel, n, 0, 1, 1);
+	gridLayout->addWidget(actualSizeLabel, inList.size(), 0, 1, 1);
 	
 	proposedSizeLabel = new QLabel("Predicted file size: ", this);
 	proposedSizeLabel->setAlignment(Qt::AlignRight);
-	gridLayout->addWidget(proposedSizeLabel, n+1, 0, 1, 1);
+	gridLayout->addWidget(proposedSizeLabel, inList.size()+1, 0, 1, 1);
 
-	gridLayout->addWidget(buttonBox, n+2, 0, 1, 1);
+	gridLayout->addWidget(buttonBox, inList.size()+2, 0, 1, 1);
 		
 
 	if (!isVolumeStack) {

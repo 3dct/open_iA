@@ -41,7 +41,7 @@ class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
 
 public:
 	//class constructor
-	dlg_commoninput ( QWidget *parent, QString winTitel, int n, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ), bool modal = true);
+	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ), bool modal = true);
 	
 	void setComboValues ( QList<QVariant> inCombo ){inComboValue = inCombo;}; 
 

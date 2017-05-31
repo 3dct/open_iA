@@ -139,7 +139,7 @@ void dlg_modalities::AddClicked()
 		inList << tr("$Split Channels (input file potentially has multiple channels. Should they be split into separate datasets, or kept as one dataset with multiple components?)");
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(true);
-		dlg_commoninput splitInput(this, "Seed File Format", 1, inList, inPara, nullptr);
+		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, nullptr);
 		if (splitInput.exec() != QDialog::Accepted)
 		{
 			DEBUG_LOG("Aborted by user.");

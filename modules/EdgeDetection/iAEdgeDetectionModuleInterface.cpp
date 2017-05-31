@@ -41,7 +41,7 @@ void iAEdgeDetectionModuleInterface::canny_Edge_Detection()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Variance" ) << tr( "#Maximum error" ) << tr( "#Upper" ) << tr( "#Lower" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( cedfVariance ) << tr( "%1" ).arg( cedfMaximumError ) << tr( "%1" ).arg( cedfUpper ) << tr( "%1" ).arg( cedfLower );
-	dlg_commoninput dlg( m_mainWnd, "Canny Edge Detection", 4, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Canny Edge Detection", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	cedfVariance = dlg.getValues()[0];

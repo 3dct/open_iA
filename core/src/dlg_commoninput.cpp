@@ -37,7 +37,7 @@ enum ContainerSize {
 	WIDTH=530, HEIGHT=600
 };
 
-dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, int n, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, bool modal) : QDialog (parent)
+dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, bool modal) : QDialog (parent)
 {
 	//initialize a instance of error message dialog box
 	eMessage = new QErrorMessage(this);
@@ -49,8 +49,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, int n, QStri
 	//if the input parameters are correct, then initialize the dialog class
 	if  (winTitle.isEmpty())
 		eMessage->showMessage("No window title entered. Please give a window title");
-	else if (inList.size() != n)
-		eMessage->showMessage("The number of strings in the string list and the number of parameters entered does not match.");
+	else if (inList.size() != inPara.size())
+		eMessage->showMessage("Implementation Error: The number of of parameter descriptions and the number of given values does not match. Please report this to the developers!");
 	else
 	{
 		//setup the ui dialog class widget as this
@@ -59,7 +59,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, int n, QStri
 		NoofComboBox = 0;
 		//int ComboBoxCounter = 0;
 		//initialize variables
-		numPara = n;
+		numPara = inList.size();
 
 		//set the window title
 		this->setWindowTitle(winTitle);

@@ -56,7 +56,7 @@ void iAConnectedComponentModuleInterface::simple_connected_component()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "$Fully Connected" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( sccff );
-	dlg_commoninput dlg( m_mainWnd, "Simple Connected Component Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Simple Connected Component Filter", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted ) 
 		return;
 	sccff = dlg.getCheckValues()[0];
@@ -78,7 +78,7 @@ void iAConnectedComponentModuleInterface::scalar_connected_component()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "^Distance Threshold" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( scalccDistThresh );
-	dlg_commoninput dlg( m_mainWnd, "Scalar Connected Component Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Scalar Connected Component Filter", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	scalccDistThresh = dlg.getDoubleSpinBoxValues()[0];
@@ -112,7 +112,7 @@ void iAConnectedComponentModuleInterface::simple_relabel_connected_component()
 	//set parameters
 	QStringList inList = ( QStringList() << tr( "*Minimum Object Size" ) << tr( "$Write labels to file" ) );
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( srcifs ) << tr( "%1" ).arg( srcifw );
-	dlg_commoninput dlg( m_mainWnd, "Simple Relabel Connected Component Filter", 2, inList, inPara, fDescr );
+	dlg_commoninput dlg( m_mainWnd, "Simple Relabel Connected Component Filter", inList, inPara, fDescr );
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 	srcifs = dlg.getSpinBoxValues()[0];

@@ -57,7 +57,7 @@ void iASmoothingModuleInterface::grad_aniso_diffusion()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Number of Iterations" ) << tr( "#Time Step" ) << tr( "#Conductance" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( gadIterations ) << tr( "%1" ).arg( gadTimeStep ) << tr( "%1" ).arg( gadConductance );
-	dlg_commoninput dlg( m_mainWnd, "Gradient Anisotropic Diffusion", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Gradient Anisotropic Diffusion", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -79,7 +79,7 @@ void iASmoothingModuleInterface::discrete_Gaussian_Filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Variance" ) << tr( "#Maximum error" ) << tr( "$UShort Output" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( dgfVariance ) << tr( "%1" ).arg( dgfMaximumError ) << tr( "%1" ).arg( dgfOutput );
-	dlg_commoninput dlg( m_mainWnd, "Discrete Gaussian", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Discrete Gaussian", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -105,7 +105,7 @@ void iASmoothingModuleInterface::curv_aniso_diffusion()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Number of Iterations" ) << tr( "#Time Step" ) << tr( "#Conductance" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( cadIterations ) << tr( "%1" ).arg( cadTimeStep ) << tr( "%1" ).arg( cadConductance );
-	dlg_commoninput dlg( m_mainWnd, "Curvature Anisotropic Diffusion", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Curvature Anisotropic Diffusion", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -128,7 +128,7 @@ void iASmoothingModuleInterface::bilat_filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Range Sigma" ) << tr( "#Domain Sigma" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( bilRangeSigma ) << tr( "%1" ).arg( bilDomainSigma );
-	dlg_commoninput dlg( m_mainWnd, "Bilateral Image Filter", 2, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Bilateral Image Filter", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	bilRangeSigma = dlg.getValues()[0]; bilDomainSigma = dlg.getValues()[1];

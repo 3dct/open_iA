@@ -476,7 +476,7 @@ bool MainWindow::saveSettings()
 			<< tr("%1").arg(spRenderSettings ? tr("true") : tr("false"))
 			<< tr("%1").arg(spSlicerSettings ? tr("true") : tr("false"));
 
-		dlg_commoninput dlg(this, "Save Settings", 7, inList, inPara, NULL);
+		dlg_commoninput dlg(this, "Save Settings", inList, inPara, NULL);
 
 		if (dlg.exec() == QDialog::Accepted)
 		{
@@ -559,7 +559,7 @@ bool MainWindow::loadSettings()
 		if (renderSettings)       { inList << tr("$Render Settings");       inPara << tr("%1").arg(lpRenderSettings ? tr("true") : tr("false")); }
 		if (slicerSettings)       { inList << tr("$Slice Settings");        inPara << tr("%1").arg(lpSlicerSettings ? tr("true") : tr("false")); }
 
-		dlg_commoninput dlg(this, "Load Settings", inList.size(), inList, inPara, NULL);
+		dlg_commoninput dlg(this, "Load Settings", inList, inPara, NULL);
 
 		if (dlg.exec() == QDialog::Accepted)
 		{
@@ -1182,7 +1182,7 @@ void MainWindow::prefs()
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth);
 
-	dlg_commoninput dlg(this, "Preferences", inList.size(), inList, inPara, fDescr);
+	dlg_commoninput dlg(this, "Preferences", inList, inPara, fDescr);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -1264,7 +1264,7 @@ void MainWindow::renderSettings()
 		<< tr("%1").arg(renderSettings.BackgroundBottom)
 		<< renderTypes;
 
-	dlg_commoninput dlg(this, "Renderer settings", 14, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -1353,21 +1353,21 @@ void MainWindow::slicerSettings()
 		<< mouseCursorTypes
 		<< (slicerSettings.SingleSlicer.ShowAxesCaption ? tr("true") : tr("false"));
 
-	dlg_commoninput *dlg = new dlg_commoninput (this, "Slicer settings", inList.size(), inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Slicer settings", inList, inPara, NULL);
 
-	if (dlg->exec() == QDialog::Accepted)
+	if (dlg.exec() == QDialog::Accepted)
 	{
-		defaultSlicerSettings.LinkViews = dlg->getCheckValues()[0] != 0;
-		defaultSlicerSettings.SingleSlicer.ShowPosition = dlg->getCheckValues()[1] != 0;
-		defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg->getCheckValues()[2] != 0;
-		defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg->getCheckValues()[3] != 0;
-		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg->getValues()[4];
-		defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg->getValues()[5];
-		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg->getValues()[6];
-		defaultSlicerSettings.SnakeSlices = dlg->getValues()[7];
-		defaultSlicerSettings.LinkMDIs = dlg->getCheckValues()[8] != 0;
-		defaultSlicerSettings.SingleSlicer.CursorMode = dlg->getComboBoxValues()[9];
-		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg->getCheckValues()[10] != 0;
+		defaultSlicerSettings.LinkViews = dlg.getCheckValues()[0] != 0;
+		defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValues()[1] != 0;
+		defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValues()[2] != 0;
+		defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValues()[3] != 0;
+		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getValues()[4];
+		defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getValues()[5];
+		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getValues()[6];
+		defaultSlicerSettings.SnakeSlices = dlg.getValues()[7];
+		defaultSlicerSettings.LinkMDIs = dlg.getCheckValues()[8] != 0;
+		defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValues()[9];
+		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValues()[10] != 0;
 
 		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(defaultSlicerSettings))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
@@ -2222,7 +2222,7 @@ QList<QMdiSubWindow*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
 }
 
 
-int MainWindow::SelectInputs( QString winTitel, int n, QStringList inList, int * out_inputIndxs, bool modal /*= true*/ )
+int MainWindow::SelectInputs( QString winTitel, QStringList inList, int * out_inputIndxs, bool modal /*= true*/ )
 {
 	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
 	//check if sufficient number of datasets are opened
@@ -2235,13 +2235,13 @@ int MainWindow::SelectInputs( QString winTitel, int n, QStringList inList, int *
 	QStringList mdiChildrenNames;
 	for (int childInd=0; childInd<mdiwindows.size(); childInd++)
 		mdiChildrenNames << mdiwindows.at(childInd)->windowTitle();
-	for (int inputInd = 0; inputInd<n; inputInd++)
+	for (int inputInd = 0; inputInd<inList.size(); inputInd++)
 		inPara << mdiChildrenNames;
 
-	dlg_commoninput inputs(this, winTitel + ": Inputs Selection", n, inList, inPara, NULL);
+	dlg_commoninput inputs(this, winTitel + ": Inputs Selection", inList, inPara, NULL);
 	if( QDialog::Accepted == inputs.exec() )
 	{
-		for (int inputInd = 0; inputInd<n; inputInd++)
+		for (int inputInd = 0; inputInd<inList.size(); inputInd++)
 			out_inputIndxs[inputInd] = inputs.getComboBoxIndices()[inputInd];
 		return QDialog::Accepted;
 	}
@@ -2310,7 +2310,7 @@ void MainWindow::OpenWithDataTypeConversion()
 		<< tr("%1").arg(owdtcsy)
 		<< tr("%1").arg(owdtcsz);
 
-	dlg_commoninput dlg(this, "Open With DataType Conversion", 8, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Open With DataType Conversion", inList, inPara, NULL);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -2388,7 +2388,7 @@ void MainWindow::saveLayout()
 		QStringList inList = (QStringList() << tr("#Layout Name:") );
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(layoutName);
-		dlg_commoninput dlg(this, "Layout Name", 1, inList, inPara, NULL);
+		dlg_commoninput dlg(this, "Layout Name", inList, inPara, NULL);
 		if (dlg.exec() == QDialog::Accepted)
 		{
 			layoutName =  dlg.getText()[0];
@@ -2613,15 +2613,15 @@ void MainWindow::OpenTLGICTData()
 	inPara << tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]);
 
-	dlg_commoninput *dlg = new dlg_commoninput(this, "Set file parameters", 6, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Set file parameters", inList, inPara, NULL);
 
-	if (!dlg->exec() == QDialog::Accepted)
+	if (!dlg.exec() == QDialog::Accepted)
 	{
 		return;
 	}
 
-	spacing[0] = dlg->getValues()[0]; spacing[1] = dlg->getValues()[1]; spacing[2] = dlg->getValues()[2];
-	origin[0] = dlg->getValues()[3];  origin[1] = dlg->getValues()[4];  origin[2] = dlg->getValues()[5];
+	spacing[0] = dlg.getValues()[0]; spacing[1] = dlg.getValues()[1]; spacing[2] = dlg.getValues()[2];
+	origin[0] = dlg.getValues()[3];  origin[1] = dlg.getValues()[4];  origin[2] = dlg.getValues()[5];
 
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 

@@ -32,7 +32,6 @@ public:
 	*
 	* \param [in,out]	parent	If non-null, the parent.
 	* \param	winTitle		The window title.
-	* \param	n				The.
 	* \param	inList			List of ins.
 	* \param	inPara			The in para.
 	* \param	fileName		File name of the RAW file.
@@ -42,8 +41,8 @@ public:
 	* \param	datatypeIndex	Index of the check box with  datatype stored in file.
 	* \param	modal			true to modal.
 	*/
-	dlg_openfile_sizecheck (bool isVolumeStack, QWidget *parent, QString winTitel, int n, QStringList inList, QList<QVariant> inPara, QTextDocument *text, QString fileName, 
-		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10, 
+	dlg_openfile_sizecheck (bool isVolumeStack, QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *text, QString fileName,
+		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10,
 		bool modal = true);
 private:
 	qint64 fileSize;

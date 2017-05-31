@@ -73,7 +73,7 @@ void iAGeometricTransformationsModuleInterface::resampler()
 		<< interpolators;
 
 
-	dlg_commoninput dlg( m_mainWnd, "Resampler", 10, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Resampler", inList, inPara, NULL );
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;
@@ -122,7 +122,7 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[3] + 1 )
 		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[5] + 1 );
 
-	dlg_commoninput dlg( m_mainWnd, "Extract Image", 6, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Extract Image", inList, inPara, NULL );
 	dlg.connectMdiChild(origChild);
 	dlg.setModal( false );
 	dlg.show();

@@ -490,7 +490,7 @@ void dlg_labels::Store()
 	inList << tr("$Extended Format (also write pixel values, not only positions)");
 	QList<QVariant> inPara;
 	inPara << tr("%1").arg(true);
-	dlg_commoninput extendedFormatInput(this, "Seed File Format", 1, inList, inPara, nullptr);
+	dlg_commoninput extendedFormatInput(this, "Seed File Format", inList, inPara, nullptr);
 	if (extendedFormatInput.exec() != QDialog::Accepted)
 	{
 		DEBUG_LOG("Selection of format aborted, aborting seed file storing");
@@ -558,7 +558,7 @@ void dlg_labels::Sample()
 	QList<QVariant> inValues; inValues
 		<< 50
 		<< true;
-	dlg_commoninput input(this, "Sample Seeds", inParams.size(), inParams, inValues, nullptr);
+	dlg_commoninput input(this, "Sample Seeds", inParams, inValues, nullptr);
 	if (input.exec() != QDialog::Accepted)
 	{
 		return;

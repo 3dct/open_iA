@@ -94,7 +94,7 @@ void iATransformationsModuleInterface::rotate()
 	QList<QVariant> inPara; 	inPara
 		<< 0 << rotAxes << rotCenter << 0 << 0 << 0;
 
-	dlg_commoninput dlg(m_mainWnd, tr("Rotation parameters"), inList.size(), inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, tr("Rotation parameters"), inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -134,7 +134,7 @@ void iATransformationsModuleInterface::translate()
 	QList<QVariant> inPara; 	
 	inPara << 0 << 0 << 0;
 
-	dlg_commoninput dlg(m_mainWnd, tr("Translation parameters"), inList.size(), inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, tr("Translation parameters"), inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 

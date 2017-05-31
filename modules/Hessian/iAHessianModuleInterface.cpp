@@ -56,7 +56,7 @@ void iAHessianModuleInterface::computeHessianEigenanalysis( int nr )
 	QStringList inList = (QStringList() << tr( "#Sigma" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( chefSigma );
 
-	dlg_commoninput dlg( m_mainWnd, "Parameters for the Hessian matrix", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Parameters for the Hessian matrix", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -106,7 +106,7 @@ void iAHessianModuleInterface::computeLaplacian()
 	QStringList inList = (QStringList() << tr("#Sigma"));
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(chefSigma);
 
-	dlg_commoninput dlg(m_mainWnd, "Parameters for the Laplacian matrix", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Parameters for the Laplacian matrix", inList, inPara, NULL);
 
 
 	if (dlg.exec() != QDialog::Accepted)

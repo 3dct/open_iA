@@ -249,7 +249,7 @@ void dlg_GEMSeControl::LoadSampling()
 		inList << tr("*Label Count");
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(2);
-		dlg_commoninput lblCountInput(this, "Label Count", 1, inList, inPara, nullptr);
+		dlg_commoninput lblCountInput(this, "Label Count", inList, inPara, nullptr);
 		if (lblCountInput.exec() != QDialog::Accepted)
 		{
 			DEBUG_LOG("Cannot load sampling without label count input!");

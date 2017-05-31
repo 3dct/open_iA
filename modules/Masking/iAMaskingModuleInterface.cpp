@@ -48,7 +48,7 @@ void iAMaskingModuleInterface::general_threshold()
 
 	QStringList inList = (QStringList() << tr( "#Lower Threshold" ) << tr( "#Upper Threshold" ) << tr( "#Outside Value" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( gtlower ) << tr( "%1" ).arg( gtupper ) << tr( "%1" ).arg( gtoutside );
-	dlg_commoninput dlg( m_mainWnd, "General Threshold", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "General Threshold", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	gtlower = dlg.getValues()[0];

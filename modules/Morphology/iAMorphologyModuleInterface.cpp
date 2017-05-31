@@ -50,7 +50,7 @@ void iAMorphologyModuleInterface::dilation_filter()
 	QStringList inList = (QStringList() << tr( "#Structuring element radius" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( dilrad );
 
-	dlg_commoninput dlg( m_mainWnd, "Dilation Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Dilation Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -75,7 +75,7 @@ void iAMorphologyModuleInterface::erosion_filter()
 	QStringList inList = (QStringList() << tr( "#Structuring element radius" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( errad );
 
-	dlg_commoninput dlg( m_mainWnd, "Erosion Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Erosion Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -102,7 +102,7 @@ void iAMorphologyModuleInterface::vessel_enhancement_filter()
 	QStringList inList = (QStringList() << tr( "#Sigma" ));
 	QList<QVariant> inPara; inPara << tr( "%1" ).arg( sigmaenh );
 
-	dlg_commoninput dlg( m_mainWnd, "Enhancement Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Enhancement Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;

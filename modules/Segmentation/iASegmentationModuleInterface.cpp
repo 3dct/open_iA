@@ -180,7 +180,7 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		}
 	}
 	inPara << list << list;
-	dlg_commoninput dlg(m_mainWnd, "Segmentation Quality Metric", 2, inList, inPara, fDescr, true);
+	dlg_commoninput dlg(m_mainWnd, "Segmentation Quality Metric", inList, inPara, fDescr, true);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
@@ -247,7 +247,7 @@ void iASegmentationModuleInterface::binary_threshold()
 
 	QStringList inList = (QStringList() << tr("#Lower Threshold") << tr("#Upper Threshold") << tr("#Outside Value") << tr("#Inside Value"));
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(btlower) << tr("%1").arg(btupper) << tr("%1").arg(btoutside) << tr("%1").arg(btinside);
-	dlg_commoninput dlg(m_mainWnd, "Binary Threshold", 4, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Binary Threshold", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	btlower = dlg.getValues()[0];
@@ -284,7 +284,7 @@ void iASegmentationModuleInterface::otsu_Threshold_Filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ) << tr( "$Remove Peaks" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( otBins ) << tr( "%1" ).arg( otoutside ) << tr( "%1" ).arg( otinside ) << (otremovepeaks ? tr( "true" ) : tr( "false" ));
-	dlg_commoninput dlg( m_mainWnd, "Otsu Threshold", 4, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Otsu Threshold", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -314,7 +314,7 @@ void iASegmentationModuleInterface::maximum_Distance_Filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Number of Intensity" ) << tr( "#Low Intensity" ) << tr( "$Use Low Intensity" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( mdfbins ) << tr( "%1" ).arg( mdfli ) << tr( "%1" ).arg( mdfuli );
-	dlg_commoninput dlg( m_mainWnd, "Maximum Distance Filter", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Maximum Distance Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -339,7 +339,7 @@ void iASegmentationModuleInterface::watershed_seg()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Level" ) << tr( "#Threshold" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( wsLevel ) << tr( "%1" ).arg( wsThreshold );
-	dlg_commoninput dlg( m_mainWnd, "Watershed segmentation", 2, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Watershed segmentation", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	wsLevel = dlg.getValues()[0]; wsThreshold = dlg.getValues()[1];
@@ -376,7 +376,7 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) );
 	QList<QVariant> inPara;
 	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected );
-	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", 3, inList, inPara, fDescr );
+	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", inList, inPara, fDescr );
 
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
@@ -407,7 +407,7 @@ void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ) << tr( "#Radius" ) << tr( "#Samples" ) << tr( "#Levels" ) << tr( "#Control Points" ));
 	QList<QVariant> inPara; inPara << tr( "%1" ).arg( aotBins ) << tr( "%1" ).arg( aotOutside ) << tr( "%1" ).arg( aotInside ) << tr( "%1" ).arg( aotRadius ) << tr( "%1" ).arg( aotSamples ) << tr( "%1" ).arg( aotLevels ) << tr( "%1" ).arg( aotControlpoints );
-	dlg_commoninput dlg( m_mainWnd, "Adaptive otsu threshold", 7, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Adaptive otsu threshold", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -432,7 +432,7 @@ void iASegmentationModuleInterface::rats_Threshold_Filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Power" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( rtPow ) << tr( "%1" ).arg( rtOutside ) << tr( "%1" ).arg( rtInside );
-	dlg_commoninput dlg( m_mainWnd, "Rats Threshold", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Rats Threshold", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -456,7 +456,7 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	//set parameters
 	QStringList inList = ( QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Number of Thresholds" ) << tr( "$Valley Emphasis" ) );
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( omtBins ) << tr( "%1" ).arg( omtThreshs ) << ( omtVe ? tr( "true" ) : tr( "false" ) );
-	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", 3, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;

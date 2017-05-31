@@ -49,7 +49,7 @@ void iANeighbourhoodModuleInterface::median_Filter()
 		"biased by outliers or shot noise.</p>"
 		"<p>MedR defines the radius of the kernel in x,y,z direction.</p>" );
 
-	dlg_commoninput dlg( m_mainWnd, "Median Filter Neighborhood Setting", 3, inList, inPara, fDescr );
+	dlg_commoninput dlg( m_mainWnd, "Median Filter Neighborhood Setting", inList, inPara, fDescr );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;

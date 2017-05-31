@@ -787,12 +787,12 @@ void iASlicerData::saveAsImage() const
 	{
 		QStringList inList = (QStringList() << tr("$Save native image"));
 		QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")));
-		dlg_commoninput *dlg = new dlg_commoninput(mdi_parent, "Save options", 1, inList, inPara, NULL);
-		if (dlg->exec() != QDialog::Accepted)
+		dlg_commoninput dlg(mdi_parent, "Save options", inList, inPara, NULL);
+		if (dlg.exec() != QDialog::Accepted)
 		{
 			return;
 		}
-		saveNative = dlg->getCheckValues()[0];
+		saveNative = dlg.getCheckValues()[0];
 	}
 	vtkSmartPointer<vtkImageCast> castfilter = vtkSmartPointer<vtkImageCast>::New();
 	vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -851,15 +851,15 @@ void iASlicerData::saveImageStack()
 	bool saveNative = true;
 	QStringList inList = ( QStringList() << tr("$Save native image") << tr("#From Slice Number:") <<  tr("#To Slice Number:") );
 	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1").arg(sliceFirst) <<tr("%1").arg(sliceLast)  );
-	dlg_commoninput *dlg = new dlg_commoninput (mdi_parent, "Save options", 3, inList, inPara, NULL);
+	dlg_commoninput dlg(mdi_parent, "Save options", inList, inPara, NULL);
 
-	if (dlg->exec() != QDialog::Accepted)
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	saveNative = dlg->getCheckValues()[0];
-	sliceFirst = dlg->getValues()[1];
-	sliceLast = dlg->getValues()[2];
+	saveNative = dlg.getCheckValues()[0];
+	sliceFirst = dlg.getValues()[1];
+	sliceLast  = dlg.getValues()[2];
 
 	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num]){
 		QMessageBox msgBox;

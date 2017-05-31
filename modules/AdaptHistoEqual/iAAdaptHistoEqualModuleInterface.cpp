@@ -51,7 +51,7 @@ void iAAdaptHistoEqualModuleInterface::adaptive_Histogram_Equalization()
 		"to how much the filter acts like an unsharp mask (alpha=1).</p>"
 		"<p>The parameter beta controls how much the filter acts like an unsharp mask (beta=0) to much the filter acts like pass"
 		"through (beta=1, with alpha=1).</p>" );
-	dlg_commoninput dlg( m_mainWnd, "Parameters for the Adaptive Histogram Equalization", 2, inList, inPara, fDescr );
+	dlg_commoninput dlg( m_mainWnd, "Parameters for the Adaptive Histogram Equalization", inList, inPara, fDescr );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	aheAlpha = dlg.getValues()[0];

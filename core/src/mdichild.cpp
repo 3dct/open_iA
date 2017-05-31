@@ -862,7 +862,7 @@ int MdiChild::chooseModalityNr(QString const & caption)
 		modalities << GetModality(i)->GetName();
 	}
 	QList<QVariant> values = (QList<QVariant>() << modalities);
-	dlg_commoninput modalityChoice(this, caption, parameters.size(), parameters, values, NULL);
+	dlg_commoninput modalityChoice(this, caption, parameters, values, NULL);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
@@ -884,7 +884,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 		components << QString::number(i);
 	}
 	QList<QVariant> values = (QList<QVariant>() << components);
-	dlg_commoninput componentChoice(this, "Choose Component", parameters.size(), parameters, values, NULL);
+	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, NULL);
 	if (componentChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
@@ -1913,7 +1913,7 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
 
-	dlg_commoninput dlg(this, "Save movie options", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Save movie options", inList, inPara, NULL);
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		mode =  dlg.getComboBoxValues()[0];
