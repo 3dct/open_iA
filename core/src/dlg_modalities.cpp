@@ -211,11 +211,14 @@ void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
 	AddToList(mod);
 	EnableButtons();
 	InitTransfer(mod);
-	connect(
-		(dlg_transfer*)(mod->GetTransfer()->GetHistogram()->getFunctions()[0]),
-		SIGNAL(Changed()),
-		this, SIGNAL(ModalityTFChanged())
-	);
+	if (mod->GetTransfer()->GetHistogram())
+	{
+		connect(
+			(dlg_transfer*)(mod->GetTransfer()->GetHistogram()->getFunctions()[0]),
+			SIGNAL(Changed()),
+			this, SIGNAL(ModalityTFChanged())
+		);
+	}
 }
 
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)

@@ -115,7 +115,7 @@ public:
 	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
 	bool save();
 	bool saveAs();
-	bool saveFile(const QString &f, int modalityNr);
+	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
@@ -273,9 +273,12 @@ public:
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
 
-	//! if more than one modality loaded, ask user to chose one of them
+	//! if more than one modality loaded, ask user to choose one of them
 	//! (currently used for determining which modality to save)
 	int chooseModalityNr(QString const & caption = "Choose Channel");
+	//! if given modality has more than one component, ask user to choose one of them
+	//! (currently used for determining which modality to save)
+	int chooseComponentNr(int modalityNr);
 
 	//! workaround for bug in splitDockWidget (see https://bugreports.qt.io/browse/QTBUG-60093)
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
@@ -496,6 +499,7 @@ private:
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
 	QString m_layout;
+	vtkSmartPointer<vtkImageData> tmpSaveImg;	//< TODO: get rid of this (by introducing smart pointer in iAIO/ iAlgorithm?
 
 	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;

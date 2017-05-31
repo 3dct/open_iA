@@ -63,6 +63,7 @@
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
+#include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
 #include <vtkMatrixToLinearTransform.h>
@@ -709,6 +710,11 @@ bool MdiChild::setupStackView(bool active)
 
 void MdiChild::setupViewInternal(bool active)
 {
+	if (!imageData)
+	{
+		DEBUG_LOG("Image Data is not set!");
+		return;
+	}
 	if (!active)
 		initView(curFile.isEmpty() ? "Untitled":"" );
 
@@ -856,12 +862,34 @@ int MdiChild::chooseModalityNr(QString const & caption)
 		modalities << GetModality(i)->GetName();
 	}
 	QList<QVariant> values = (QList<QVariant>() << modalities);
-	dlg_commoninput modalityChoice(this, caption, 1, parameters, values, NULL);
+	dlg_commoninput modalityChoice(this, caption, parameters.size(), parameters, values, NULL);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
 	}
 	return modalityChoice.getComboBoxIndices()[0];
+}
+
+int MdiChild::chooseComponentNr(int modalityNr)
+{
+	int nrOfComponents = GetModality(modalityNr)->GetImage()->GetNumberOfScalarComponents();
+	if (nrOfComponents == 1)
+	{
+		return 0;
+	}
+	QStringList parameters = (QStringList() << tr("+Component"));
+	QStringList components;
+	for (int i = 0; i < nrOfComponents; ++i)
+	{
+		components << QString::number(i);
+	}
+	QList<QVariant> values = (QList<QVariant>() << components);
+	dlg_commoninput componentChoice(this, "Choose Component", parameters.size(), parameters, values, NULL);
+	if (componentChoice.exec() != QDialog::Accepted)
+	{
+		return -1;
+	}
+	return componentChoice.getComboBoxIndices()[0];
 }
 
 bool MdiChild::save()
@@ -877,19 +905,32 @@ bool MdiChild::save()
 		{
 			return false;
 		}
-		/*// choice: save single modality, or modality stack!
+		/*
+		// choice: save single modality, or modality stack!
 		if (GetModality(modalityNr)->ComponentCount() > 1)
-		{
+		{                         // should be ChannelCount()
 		}
 		*/
-		return saveFile(GetModality(modalityNr)->GetFileName(), modalityNr);
+		int componentNr = chooseComponentNr(modalityNr);
+		if (componentNr == -1)
+		{
+			return false;
+		}
+		
+		return saveFile(GetModality(modalityNr)->GetFileName(), modalityNr, componentNr);
 	}
 }
 
 bool MdiChild::saveAs()
 {
+	// TODO: unify with saveFile second part
 	int modalityNr = chooseModalityNr();
 	if (modalityNr == -1)
+	{
+		return false;
+	}
+	int componentNr = chooseComponentNr(modalityNr);
+	if (componentNr == -1)
 	{
 		return false;
 	}
@@ -905,7 +946,7 @@ bool MdiChild::saveAs()
 	{
 		return false;
 	}
-	return saveFile(f, modalityNr);
+	return saveFile(f, modalityNr, componentNr);
 }
 
 void MdiChild::waitForPreviousIO()
@@ -1007,16 +1048,25 @@ bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 }
 
 
-bool MdiChild::saveFile(const QString &f, int modalityNr)
+bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 {
 	waitForPreviousIO();
 
-	vtkSmartPointer<vtkImageData> img = GetModality(modalityNr)->GetImage();
-	ioThread = new iAIO(img, polyData, m_logger, this);
+	tmpSaveImg = GetModality(modalityNr)->GetImage();
+	if (tmpSaveImg->GetNumberOfScalarComponents() > 1)
+	{
+		auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
+		imgExtract->SetInputData(tmpSaveImg);
+		imgExtract->SetComponents(componentNr);
+		imgExtract->Update();
+		tmpSaveImg = imgExtract->GetOutput();
+	}
+
+	ioThread = new iAIO(tmpSaveImg, polyData, m_logger, this);
 	connectIOThreadSignals(ioThread);
 	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
 	m_storedModalityNr = modalityNr;
-	if (!setupSaveIO(f, img)) {
+	if (!setupSaveIO(f, tmpSaveImg)) {
 		ioFinished();
 		return false;
 	}
@@ -2642,7 +2692,8 @@ void MdiChild::initProgressBar()
 
 void MdiChild::ioFinished()
 {
-	ioThread = 0;
+	ioThread = nullptr;
+	tmpSaveImg = nullptr;
 }
 
 iASlicerData* MdiChild::getSlicerDataXZ()

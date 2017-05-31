@@ -363,11 +363,9 @@ void iATransformations::transform()
 {
 	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
 		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); 
-
 	try
 	{
+		getConnector()->SetImage(getVtkImageData());
 		switch (getConnector()->GetVTKImage()->GetScalarType()) // This filter handles all types
 		{
 		case VTK_UNSIGNED_CHAR:

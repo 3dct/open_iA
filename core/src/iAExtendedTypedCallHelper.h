@@ -44,7 +44,7 @@
 //
 #define ITK_EXTENDED_TYPED_CALL(function, itk_scalar_type, itk_image_type, ...)		\
 {																			\
-	if(itk_image_type == itk::ImageIOBase::SCALAR)							\
+	if (itk_image_type == itk::ImageIOBase::SCALAR)							\
 	{																		\
 		switch ( itk_scalar_type )											\
 		{																	\
@@ -80,16 +80,55 @@
 				break;														\
 			default:														\
 				throw itk::ExceptionObject( __FILE__, __LINE__,				\
-				QString( "Typed Call: Unknown component type." ).			\
-				toLatin1().data() );										\
-				break;														\
+					QString( "Typed Call: Unknown scalar pixel type." ).	\
+					toLatin1().data() );									\
 		}																	\
 	}																		\
-	if ( itk_image_type == itk::ImageIOBase::RGBA ||						\
-		 itk_image_type == itk::ImageIOBase::VECTOR )						\
-		{																	\
+	else if (itk_image_type == itk::ImageIOBase::RGB)						\
+	{                                                                       \
 		switch ( itk_scalar_type )											\
-				{															\
+		{																	\
+			case itk::ImageIOBase::UCHAR:									\
+				function<itk::RGBPixel< unsigned char >>( __VA_ARGS__ );	\
+				break;														\
+			case itk::ImageIOBase::CHAR:									\
+				function<itk::RGBPixel<char>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::SHORT:									\
+				function<itk::RGBPixel<short>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::USHORT:									\
+				function<itk::RGBPixel<unsigned short>>( __VA_ARGS__ );     \
+				break;														\
+			case itk::ImageIOBase::INT:										\
+				function<itk::RGBPixel<int>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::UINT:									\
+				function<itk::RGBPixel<unsigned int>>( __VA_ARGS__ );		\
+				break;														\
+			case itk::ImageIOBase::LONG:									\
+				function<itk::RGBPixel<long>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::ULONG:									\
+				function<itk::RGBPixel<unsigned long>>( __VA_ARGS__ );		\
+				break;														\
+			case itk::ImageIOBase::FLOAT:									\
+				function<itk::RGBPixel<float>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::DOUBLE:									\
+				function<itk::RGBPixel<double>>( __VA_ARGS__ );				\
+				break;														\
+			default:														\
+				throw itk::ExceptionObject( __FILE__, __LINE__,				\
+					QString( "Typed Call: Unknown scalar pixel type." ).	\
+					toLatin1().data() );									\
+		}																	\
+	}																		\
+	else if ( itk_image_type == itk::ImageIOBase::RGBA ||					\
+		 itk_image_type == itk::ImageIOBase::VECTOR )						\
+	{																		\
+		switch ( itk_scalar_type )											\
+		{																	\
 			case itk::ImageIOBase::UCHAR:									\
 				function<itk::RGBAPixel< unsigned char >>( __VA_ARGS__ );	\
 				break;														\
@@ -122,11 +161,15 @@
 				break;														\
 			default:														\
 				throw itk::ExceptionObject( __FILE__, __LINE__,				\
-				QString( "Typed Call: Unknown pixel type." ).				\
-				toLatin1().data() );										\
-				break;														\
-				}															\
+					QString( "Typed Call: Unknown scalar pixel type." ).	\
+					toLatin1().data() );									\
 		}																	\
+	}																		\
+	else																	\
+	{																		\
+		throw itk::ExceptionObject(__FILE__, __LINE__,						\
+			QString("Typed Call: Unknown pixel type.").toLatin1().data() );	\
+	}																		\
 }
 
 #define VTK_EXTENDED_TYPED_CALL(function, vtk_scalar_type, number_of_components,...)		\
@@ -167,8 +210,7 @@
 				break;																		\
 			default:																		\
 				throw itk::ExceptionObject( __FILE__, __LINE__,								\
-				QString( "Typed Call: Unknown component type." ).toLatin1().data() );		\
-				break;																		\
+					QString( "Typed Call: Unknown component type." ).toLatin1().data() );	\
 		}																					\
 	}																						\
 	else             																		\
@@ -207,8 +249,7 @@
 				break;																		\
 			default:																		\
 				throw itk::ExceptionObject( __FILE__, __LINE__,								\
-				QString( "Typed Call: Unknown pixel type." ).toLatin1().data() );			\
-				break;																		\
+					QString( "Typed Call: Unknown pixel type." ).toLatin1().data() );		\
 		}																					\
 	}																						\
 }

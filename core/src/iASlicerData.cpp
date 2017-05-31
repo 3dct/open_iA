@@ -413,11 +413,17 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		ren->AddActor(roiActor);
 	}
 
-	colormapper->SetLookupTable(colorTransferFunction);
-
-	if ( imageData->GetNumberOfScalarComponents() > 1 )
+	if (imageData->GetNumberOfScalarComponents() == 1)
+	{
+		colormapper->SetLookupTable(colorTransferFunction);
+	}
+	else
 	{
 		colormapper->SetLookupTable( 0 );
+		if (imageData->GetNumberOfScalarComponents() == 3)
+		{
+			colormapper->SetOutputFormatToRGB();		// default is RGBA
+		}
 	}
 
 	colormapper->SetInputConnection(reslicer->GetOutputPort());
