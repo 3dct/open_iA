@@ -79,8 +79,12 @@ MACRO( MODULE_GENERATE_EXPORT_HEADER module_name)
 	#else\n\
 		#define ${module_name}_API __declspec(dllimport)\n\
 	#endif\n\
-#else // no export specification needed for tests and other platforms\n\
-	#define ${module_name}_API\n\
+#else // export symbols from dynamic shared objects \n\
+	#if  defined(__GNUG__) && !defined( NO_DLL_LINKAGE) && defined(${module_name}_EXPORTS)\n\
+	    #define ${module_name}_API __attribute__ ((visibility (\"default\")))\n\
+	#else \n\
+	    #define ${module_name}_API\n\
+	#endif\n\
 #endif")
 	ENDIF()
 ENDMACRO()

@@ -44,8 +44,11 @@ IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 ENDIF ()
 IF (CMAKE_COMPILER_IS_GNUCXX)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+	# see Ulrich Drepper - How to write Shared Libraries
+	#   - fPIC vs. fpic
+	#   - why fvisibility=hidden
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
+	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
 ENDIF()
 
 # Installation
