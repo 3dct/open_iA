@@ -664,7 +664,8 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int c)
 	{
 		AddResultFilterPixel(x, y, z);
 		if (!m_resultFilterTriggerThread)
-			DEBUG_LOG("Result Filter Trigger not yet started....");
+			m_MouseButtonDown = false;
+			//DEBUG_LOG("Result Filter Trigger not yet started....");
 		else
 			m_resultFilterTriggerThread->restart();
 	}
