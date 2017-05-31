@@ -321,6 +321,7 @@ bool dlg_labels::Load(QString const & filename)
 	m_maxColor = 0;
 	m_itemModel->clear();
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
+	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{	
