@@ -41,8 +41,7 @@ public:
 	 */
 	void setGTParameters( double l, double u, double o ) { lower = l; upper = u; outer = o; };
 protected:
-	void run();
+	virtual void performWork();
 private:
 	double lower, upper, outer;
-	void thresholding ();
 };

@@ -97,12 +97,10 @@ public:
 	}
 
 protected:
-	void run();
+	virtual void performWork();
 private:
 	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
 	QString interpolator;
 	unsigned int dim;
 	iAGeometricTransformationType m_operation;
-	void extractImage();
-	void resampler();
 };

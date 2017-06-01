@@ -39,9 +39,8 @@ public:
 	};
 
 protected:
-	void run();
+	virtual void performWork();
 private:
 	double aheAlpha;
 	double aheBeta;
-	void compute_iAAdaptiveHistogramEqualization( );
 };

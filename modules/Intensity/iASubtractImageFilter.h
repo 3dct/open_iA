@@ -35,8 +35,7 @@ public:
 	//! set image to subtract
 	void setSIParameters( vtkImageData* image ) { m_Image = image; }
 protected:
-	void run();
+	virtual void performWork();
 private:
 	vtkImageData* m_Image;
-	void subtractImage(  );
 };

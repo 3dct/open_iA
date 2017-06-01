@@ -55,12 +55,9 @@ public:
 	 */
 	void setBParameters( double r, double d ) { rangesigma = r; domainsigma = d; };
 protected:
-	void run();
+	void performWork();
 private:
 	unsigned int iterations; 
 	double timestep, conductance, rangesigma, domainsigma;
 	iASmoothingType m_type;
-	void gradientAnisotropicDiffusion();
-	void curvatureAnisotropicDiffusion();
-	void bilateral();
 };

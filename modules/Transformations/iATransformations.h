@@ -55,8 +55,7 @@ public:
 	void setPermuteAxesOrder(const QString & order);
 
 protected:
-	void run();
-	void transform();
+	virtual void performWork();
 private:
 	const static int Dim = iAConnector::ImageBaseType::ImageDimension;
 

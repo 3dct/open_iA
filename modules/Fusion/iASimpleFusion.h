@@ -29,8 +29,7 @@ public:
 	iASimpleFusion( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 	void setInput2(vtkImageData* i2) { image2 = i2; }
 protected:
-	void run();
+	virtual void performWork();
 private:
 	vtkImageData* image2;
-	void addImagesFusion();
 };

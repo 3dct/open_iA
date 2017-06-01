@@ -186,44 +186,23 @@ iAThresholding::iAThresholding( QString fn, iAThresholdingType fid, vtkImageData
 {}
 
 
-void iAThresholding::run()
+void iAThresholding::performWork()
 {
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	try
+	switch (m_type)
 	{
-		switch (m_type)
-		{
-		case BINARY_THRESHOLD:
-			binaryThresh(); break;
-		case OTSU_MULTIPLE_THRESHOLD:
-			otsuMultipleThresh(); break;
-		case OTSU_THRESHOLD:
-			otsuThresh(); break;
-		case ADAPTIVE_OTSU_THRESHOLD:
-			adaptiveOtsuThresh(); break;
-		case RATS_THRESHOLD:
-			ratsThresh(); break;
-		default:
-			addMsg(tr("unknown filter type"));
-		}
+	case BINARY_THRESHOLD:
+		binaryThresh(); break;
+	case OTSU_MULTIPLE_THRESHOLD:
+		otsuMultipleThresh(); break;
+	case OTSU_THRESHOLD:
+		otsuThresh(); break;
+	case ADAPTIVE_OTSU_THRESHOLD:
+		adaptiveOtsuThresh(); break;
+	case RATS_THRESHOLD:
+		ratsThresh(); break;
+	default:
+		addMsg(tr("unknown filter type"));
 	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
 }
 
 

@@ -40,9 +40,8 @@ public:
 	 */
 	void setDGParameters(double v, double me, int out) { variance = v; maximumError = me; outimg = out; };
 protected:
-	void run();
+	void performWork();
 private:
 	double variance, maximumError;
 	int outimg;
-	void discreteGaussian();
 };

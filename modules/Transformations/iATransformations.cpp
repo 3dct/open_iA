@@ -354,58 +354,32 @@ void iATransformations::setPermuteAxesOrder(const QString &order)
 	}
 }
 
-void iATransformations::run()
+void iATransformations::performWork()
 {
-	transform();
-}
-
-void iATransformations::transform()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	try
+	switch (getConnector()->GetVTKImage()->GetScalarType()) // This filter handles all types
 	{
-		getConnector()->SetImage(getVtkImageData());
-		switch (getConnector()->GetVTKImage()->GetScalarType()) // This filter handles all types
-		{
-		case VTK_UNSIGNED_CHAR:
-			transform_template<unsigned char, double>(this); break;
-		case VTK_CHAR:
-			transform_template<char, double>(this); break;
-		case VTK_UNSIGNED_SHORT:
-			transform_template<unsigned short, double>(this); break;
-		case VTK_SHORT:
-			transform_template<short, double>(this); break;
-		case VTK_UNSIGNED_INT:
-			transform_template<unsigned int, double>(this);  break;
-		case VTK_INT:
-			transform_template<int, double>(this); break;
-		case VTK_UNSIGNED_LONG:
-			transform_template<unsigned long, double>(this); break;
-		case VTK_LONG:
-			transform_template<long, double>(this); break;
-		case VTK_FLOAT:
-			transform_template<float, double>(this); break;
-		case VTK_DOUBLE:
-			transform_template<double, double>(this); break;
-		default:
-			addMsg(tr("  unknown component type"));
-			return;
-		}
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
+	case VTK_UNSIGNED_CHAR:
+		transform_template<unsigned char, double>(this); break;
+	case VTK_CHAR:
+		transform_template<char, double>(this); break;
+	case VTK_UNSIGNED_SHORT:
+		transform_template<unsigned short, double>(this); break;
+	case VTK_SHORT:
+		transform_template<short, double>(this); break;
+	case VTK_UNSIGNED_INT:
+		transform_template<unsigned int, double>(this);  break;
+	case VTK_INT:
+		transform_template<int, double>(this); break;
+	case VTK_UNSIGNED_LONG:
+		transform_template<unsigned long, double>(this); break;
+	case VTK_LONG:
+		transform_template<long, double>(this); break;
+	case VTK_FLOAT:
+		transform_template<float, double>(this); break;
+	case VTK_DOUBLE:
+		transform_template<double, double>(this); break;
+	default:
+		addMsg(tr("  unknown component type"));
 		return;
 	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-	
-	emit startUpdate();
 }

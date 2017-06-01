@@ -151,104 +151,24 @@ iAMorphologyFilters::iAMorphologyFilters( QString fn, iAMorphologyOperationType 
 {}
 
 
-void iAMorphologyFilters::run()
+void iAMorphologyFilters::performWork()
 {
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	switch (m_type)
 	{
-	case DILATION_FILTER: 
-		DilationFilter(); break;
-	case EROSION_FILTER: 
-		ErosionFilter(); break;
-	case VESSEL_ENHANCEMENT_FILTER: 
-		VesselEnhancementFilter(); break;
+	case DILATION_FILTER:
+		ITK_TYPED_CALL(DilationFilter_template, itkType,
+			r, getItkProgress(), getConnector());
+		break;
+	case EROSION_FILTER:
+		ITK_TYPED_CALL(ErosionFilter_template, itkType,
+			r, getItkProgress(), getConnector());
+		break;
+	case VESSEL_ENHANCEMENT_FILTER:
+		ITK_TYPED_CALL(EnhancementFilter_template, itkType,
+			r, getItkProgress(), getConnector());
+		break;
 	default:
 		addMsg(tr("unknown filter type"));
 	}
-}
-
-void iAMorphologyFilters::DilationFilter( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(DilationFilter_template, itkType,
-			r, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-void iAMorphologyFilters::ErosionFilter( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(ErosionFilter_template, itkType,
-			r, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-void iAMorphologyFilters::VesselEnhancementFilter( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(EnhancementFilter_template, itkType,
-			r, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
 }

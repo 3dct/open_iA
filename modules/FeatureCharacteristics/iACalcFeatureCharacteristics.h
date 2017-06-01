@@ -29,12 +29,10 @@ public:
 	iACalcFeatureCharacteristics( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger,
 		MdiChild *parent, QString path, bool calculateFeretDiameter );
 protected:
-	void run();
+	virtual void performWork();
 private:
 	vtkImageData *image;
 	QString pathCSV;
 	MdiChild* m_mdiChild;
 	bool m_calculateFeretDiameter;
-
-	void calcFeatureCharacteristics();
 };

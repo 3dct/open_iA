@@ -685,182 +685,36 @@ template<class T> int fft_cpp_correlationFilterTemplate(iAConnector* image, iAPr
 	return EXIT_SUCCESS;
 }
 
-void iAConvolutionFilter::convolutionFilter()
+
+void iAConvolutionFilter::performWork()
 {
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(convolutionFilterTemplate, itkType,
-			getConnector(), getItkProgress(), templFileName);
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-void iAConvolutionFilter::fft_convolutionFilter()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(fft_convolutionFilterTemplate, itkType,
-			getConnector(), getItkProgress(), templFileName);
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-void iAConvolutionFilter::correlationFilter()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); 
-	getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(correlationFilterTemplate, itkType,
-			getConnector(), getItkProgress(), templFileName);
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-void iAConvolutionFilter::fft_correlationFilter()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		switch (getConnector()->GetITKScalarPixelType())
-		{
-		case itk::ImageIOBase::USHORT:
-			streamed_fft_correlationFilterTemplate<unsigned short>(getConnector(), getItkProgress(), templFileName, pData); break;
-		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-		default:
-			addMsg(tr(" unknown component type"));
-			return;
-		}
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-void iAConvolutionFilter::fft_cpp_correlationFilter()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(fft_cpp_correlationFilterTemplate, itkType,
-			getConnector(), getItkProgress(), templFileName);
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-void iAConvolutionFilter::run()
-{
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	switch (m_type)
 	{
-	case CONVOLUTION_FILTER: 
-		convolutionFilter(); break;
+	case CONVOLUTION_FILTER:
+		ITK_TYPED_CALL(convolutionFilterTemplate, itkType,
+			getConnector(), getItkProgress(), templFileName);
+		break;
 	case FFT_CONVOLUTION_FILTER:
-		fft_convolutionFilter(); break;
-	case CORRELATION_FILTER: 
-		correlationFilter(); break; 
-	case FFT_CORRELATION_FILTER: 
-		fft_correlationFilter(); break; 
-	case FFT_NCC_CPP_FILTER: 
-		fft_cpp_correlationFilter(); break; 
+		ITK_TYPED_CALL(fft_convolutionFilterTemplate, itkType,
+			getConnector(), getItkProgress(), templFileName);
+		break;
+	case CORRELATION_FILTER:
+		ITK_TYPED_CALL(correlationFilterTemplate, itkType,
+			getConnector(), getItkProgress(), templFileName);
+		break;
+	case FFT_CORRELATION_FILTER:
+		if (itkType != itk::ImageIOBase::USHORT)
+		{
+			throw std::runtime_error("This filter only supports unsigned short type!");
+		}
+		streamed_fft_correlationFilterTemplate<unsigned short>(getConnector(), getItkProgress(), templFileName, pData); break;
+		break;
+	case FFT_NCC_CPP_FILTER:
+		ITK_TYPED_CALL(fft_cpp_correlationFilterTemplate, itkType,
+			getConnector(), getItkProgress(), templFileName);
+		break;
 	default:
 		addMsg(tr("unknown filter type"));
 	}
-
 }

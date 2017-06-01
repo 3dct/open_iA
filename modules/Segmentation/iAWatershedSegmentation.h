@@ -45,13 +45,11 @@ public:
 
 	vtkImageData* getImageDataNew ( ) { return imageDataNew; }
 protected:
-	virtual void run();
+	virtual void performWork();
 private:
 	double level, threshold;
 	double mwsLevel; // Morphological Watershed Segmentation Filter
 	bool mwsMarkWSLines, mwsFullyConnected;	// Morphological Watershed Segmentation Filter
 	iAWatershedType m_type;
 	vtkImageData* imageDataNew;
-	void watershed();
-	void morph_watershed();
 };

@@ -266,43 +266,14 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,
 	m_mdiChild(parent)
 {}
 
-void iACalcFeatureCharacteristics::run()
+void iACalcFeatureCharacteristics::performWork()
 {
-	calcFeatureCharacteristics();
-}
-
-void iACalcFeatureCharacteristics::calcFeatureCharacteristics()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		iAProgressToQtSignal progress;
-		connect(&progress, SIGNAL(progress(int)), m_mdiChild, SLOT(updateProgressBar(int)));
-
-		ITK_TYPED_CALL( calcFeatureCharacteristics_template, itkType,
-			getConnector(), progress, pathCSV, m_calculateFeretDiameter);
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-
-	addMsg( tr( "%1   Feature csv file created in: %2" )
-			.arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( pathCSV ) );
-
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" )
-			.arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+	iAProgressToQtSignal progress;
+	connect(&progress, SIGNAL(progress(int)), m_mdiChild, SLOT(updateProgressBar(int)));
+	ITK_TYPED_CALL(calcFeatureCharacteristics_template, itkType,
+		getConnector(), progress, pathCSV, m_calculateFeretDiameter);
+	addMsg(tr("%1   Feature csv file created in: %2")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(pathCSV));
 }

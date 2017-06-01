@@ -48,10 +48,8 @@ public:
 	 */
 	void setSMDMParameters( int i, int t, int c, int neg) { imagespacing = i; squareddistance = t; insidepositive = c; n = neg;};
 protected:
-	void run();
+	virtual void performWork();
 private:
 	int imagespacing, insidepositive, squareddistance, n; 
 	iADistanceMapType m_type;
-	void signedmaurerdistancemap();
-	void danielssondistancemap();
 };

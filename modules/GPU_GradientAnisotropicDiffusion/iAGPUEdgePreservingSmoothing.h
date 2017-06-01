@@ -30,9 +30,8 @@ public:
 // following was copied from iAEdgePreservingSmoothing to prevent module dependency. TODO: Think of better way
 	void setADParameters(unsigned int i, double t, double c) { iterations = i; timestep = t; conductance = c; };
 protected:
-	void run();
+	virtual void performWork();
 private:
 	unsigned int iterations;
 	double timestep, conductance;
-	void gpuGradientAnisotropicDiffusion();
 };

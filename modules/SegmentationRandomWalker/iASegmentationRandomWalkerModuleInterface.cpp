@@ -125,32 +125,11 @@ public:
 private:
 	int m_priorCount;
 
-	virtual void run()
+	virtual void performWork()
 	{
-		addMsg(tr("%1  %2 started.")
-			.arg(QLocale().toString(Start(), QLocale::ShortFormat))
-			.arg(getFilterName()));
-		getConnector()->SetImage(getVtkImageData());
-		getConnector()->Modified();
-		try
-		{
-			iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-			ITK_TYPED_CALL(CalculateERW_template, itkType,
-				getConnectorArray(), m_priorCount + 1);
-		}
-		catch( itk::ExceptionObject &e)
-		{
-			addMsg(tr("%1  %2 terminated unexpectedly (%3). Elapsed time: %4 ms")
-				.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-				.arg(getFilterName())
-				.arg(e.what())
-				.arg(Stop()));
-		}
-		addMsg(tr("%1  %2 finished. Elapsed time: %3 ms")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		emit startUpdate();
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL(CalculateERW_template, itkType,
+			getConnectorArray(), m_priorCount + 1);
 	}
 };
 
@@ -170,33 +149,11 @@ private:
 	SeedVector m_seeds;
 	double m_beta;
 
-	virtual void run()
+	virtual void performWork()
 	{
-		addMsg(tr("%1  %2 started.")
-			.arg(QLocale().toString(Start(), QLocale::ShortFormat))
-			.arg(getFilterName()));
-		getConnector()->SetImage(getVtkImageData());
-		getConnector()->Modified();
-
-		try
-		{
-			iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-			ITK_TYPED_CALL(CalculateRW_template, itkType,
-				getConnector(), m_seeds, m_beta);
-		}
-		catch( itk::ExceptionObject &e)
-		{
-			addMsg(tr("%1  %2 terminated unexpectedly (%3). Elapsed time: %4 ms")
-				.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-				.arg(getFilterName())
-				.arg(e.what())
-				.arg(Stop()));
-		}
-		addMsg(tr("%1  %2 finished. Elapsed time: %3 ms")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		emit startUpdate();
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL(CalculateRW_template, itkType,
+			getConnector(), m_seeds, m_beta);
 	}
 };
 

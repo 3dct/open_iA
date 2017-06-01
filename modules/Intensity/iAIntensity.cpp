@@ -207,235 +207,42 @@ iAIntensity::iAIntensity( QString fn, iAIntensityFilterType fid, vtkImageData* i
 {}
 
 
-void iAIntensity::run()
+void iAIntensity::performWork()
 {
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	switch (m_type)
 	{
 	case DIFFERENCE_IMAGE:
-		difference(); break;
+		getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
+		ITK_TYPED_CALL(difference_template, itkType,
+			DifferenceThreshold, ToleranceRadius, getItkProgress(), getFixedConnector(), getConnector());
+		break;
 	case INVERT_INTENSITY:
-		invert_intensity(); break;
+		ITK_TYPED_CALL(invert_intensity_template, itkType,
+			getItkProgress(), getConnector());
+		break;
 	case MASK_IMAGE:
-		mask(); break;
+		getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
+		ITK_TYPED_CALL(mask_template, itkType,
+			getItkProgress(), getFixedConnector(), getConnector());
+		break;
 	case INTENSITY_WINDOWING:
-		intensity_windowing(); break;
+		ITK_TYPED_CALL(intensity_windowing_template, itkType,
+			windowMinimum, windowMaximum, outputMinimum, outputMaximum, getItkProgress(), getConnector());
+		break;
 	case NORMALIZE_IMAGE:
-		normalize(); break;
+		ITK_TYPED_CALL(normalize_template, itkType, getItkProgress(), getConnector());
+		break;
 	case HISTOGRAM_MATCH:
-		histomatch(); break;
+		getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
+		ITK_TYPED_CALL(histomatch_template, itkType,
+			histogramLevels, matchPoints, thresholdAtMeanIntensity, getItkProgress(), getFixedConnector(), getConnector());
+		break;
 	case RESCALE_IMAGE:
-		rescaleImage(); break;
+		ITK_TYPED_CALL(rescaleImage_template, itkType,
+			outputMin, outputMax, getItkProgress(), getConnector());
+		break;
 	default:
 		addMsg(tr("  unknown filter type"));
 	}
-}
-
-void iAIntensity::difference( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(difference_template, itkType,
-			DifferenceThreshold, ToleranceRadius, getItkProgress(), getFixedConnector(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-void iAIntensity::invert_intensity( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(invert_intensity_template, itkType,
-			getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-void iAIntensity::mask()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-	getFixedConnector()->SetImage( image2 ); getFixedConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(mask_template, itkType,
-			getItkProgress(), getFixedConnector(), getConnector());
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-
-	emit startUpdate();
-}
-
-void iAIntensity::intensity_windowing()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(intensity_windowing_template, itkType,
-			windowMinimum, windowMaximum, outputMinimum, outputMaximum, getItkProgress(), getConnector());
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-
-	emit startUpdate();
-}
-
-void iAIntensity::normalize()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( normalize_template, itkType, getItkProgress(), getConnector() );
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-
-	emit startUpdate();
-}
-
-void iAIntensity::histomatch()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-	getFixedConnector()->SetImage( image2 ); getFixedConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( histomatch_template, itkType,
-						histogramLevels, matchPoints, thresholdAtMeanIntensity, getItkProgress(), getFixedConnector(), getConnector() );
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-
-	emit startUpdate();
-}
-
-void iAIntensity::rescaleImage()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(rescaleImage_template, itkType,
-			outputMin, outputMax, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
 }

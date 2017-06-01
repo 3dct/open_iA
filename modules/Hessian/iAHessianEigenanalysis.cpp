@@ -223,75 +223,20 @@ iAHessianEigenanalysis::iAHessianEigenanalysis( QString fn, iAEigenAnalysisType 
 {}
 
 
-void iAHessianEigenanalysis::run()
+void iAHessianEigenanalysis::performWork()
 {
 	switch (m_type)
 	{
 	case HESSIANEIGENANALYSIS:
-		computeHessian(); break;
+		VTK_TYPED_CALL(computeHessian_template, getVtkImageData()->GetScalarType(),
+			sigma, hessianComputed, nr, getItkProgress(), getConnector());
+		break;
 	case LAPLACIAN:
-		computeLaplacian(); break;
+		addMsg(tr("    Sigma: %3").arg(this->sigma));
+		VTK_TYPED_CALL(computeLaplacian_template, getVtkImageData()->GetScalarType(),
+			this->sigma, getItkProgress(), getConnector());
+		break;
 	default:
 		addMsg(tr("  unknown filter type"));
 	}
-}
-
-
-void iAHessianEigenanalysis::computeHessian( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();	
-
-	try
-	{
-		VTK_TYPED_CALL(computeHessian_template, getVtkImageData()->GetScalarType(),
-			sigma, hessianComputed, nr, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms. For learning only.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3. For learning only.").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-
-void iAHessianEigenanalysis::computeLaplacian()
-{
-	addMsg(tr("%1  %2 started. Sigma %3").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(this->sigma)
-		);
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		VTK_TYPED_CALL(computeLaplacian_template, getVtkImageData()->GetScalarType(),
-			this->sigma, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms. ").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3. ").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
 }

@@ -86,7 +86,17 @@ signals:
 	void aprogress(int i);
 
 protected:
+	//! Performs the actual work. The method in this class performs some basic
+	//! actions (like printing messages when the algorithm started and stopped,
+	//! and basic error checking by catching any exceptions). Typically you will
+	//! not want to override this method but the "performWork" method below
 	virtual void run();
+
+	//! Method that performs the algorithm's work, to be overridden in child
+	//! classes.
+	virtual void performWork();
+
+	//! sets the image data
 	void setImageData(vtkImageData* imgData);
 
 private:

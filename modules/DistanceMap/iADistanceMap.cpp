@@ -118,74 +118,19 @@ iADistanceMap::iADistanceMap( QString fn, iADistanceMapType fid, vtkImageData* i
 	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
 {}
 
-void iADistanceMap::run()
+void iADistanceMap::performWork()
 {
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	switch (m_type)
 	{
-	case SIGNED_MAURER_DISTANCE_MAP: 
-		signedmaurerdistancemap(); break;
+	case SIGNED_MAURER_DISTANCE_MAP:
+		ITK_TYPED_CALL(signed_maurer_distancemap_template, itkType,
+			imagespacing, squareddistance, insidepositive, n, getItkProgress(), getConnector());
+		break;
 	case DANIELSSON_DISTANCE_MAP:
-		danielssondistancemap(); break;
+		ITK_TYPED_CALL(danielsson_distancemap_template, itkType, getItkProgress(), getConnector());
+		break;
 	default:
 		addMsg(tr("unknown filter type"));
 	}
-}
-
-void iADistanceMap::signedmaurerdistancemap( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(signed_maurer_distancemap_template, itkType,
-			imagespacing, squareddistance, insidepositive, n, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-void iADistanceMap::danielssondistancemap()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( danielsson_distancemap_template, itkType, getItkProgress(), getConnector() );
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-
-	emit startUpdate();
 }
