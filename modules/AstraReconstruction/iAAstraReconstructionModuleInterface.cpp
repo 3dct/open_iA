@@ -232,22 +232,22 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	int const * const dim = img->GetDimensions();
 
 	QSettings settings;
-	projGeomType = settings.value("Tools/AstraReconstruction/ForwardProjection/projGeomType").toString();
-	detSpacingX = settings.value("Tools/AstraReconstruction/ForwardProjection/detSpacingX").toDouble();
-	detSpacingY = settings.value("Tools/AstraReconstruction/ForwardProjection/detSpacingY").toDouble();
-	detRowDim = settings.value("Tools/AstraReconstruction/ForwardProjection/detRowDim", 1).toInt();
-	detColDim = settings.value("Tools/AstraReconstruction/ForwardProjection/detColDim", 0).toInt();
-	projAngleDim = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleDim", 2).toInt();
-	projAngleStart = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleStart").toDouble();
-	projAngleEnd = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleEnd").toDouble();
-	distOrigDet = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigDet").toDouble();
-	distOrigSource = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigSource").toDouble();
-	volDim[0] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeDimX").toInt();
-	volDim[1] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeDimY").toInt();
-	volDim[2] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeDimZ").toInt();
-	volSpacing[0] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeSpacingX", 1).toDouble();
-	volSpacing[1] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeSpacingY", 1).toDouble();
-	volSpacing[2] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeSpacingZ", 1).toDouble();
+	projGeomType = settings.value("Tools/AstraReconstruction/BackProjection/projGeomType").toString();
+	detSpacingX = settings.value("Tools/AstraReconstruction/BackProjection/detSpacingX").toDouble();
+	detSpacingY = settings.value("Tools/AstraReconstruction/BackProjection/detSpacingY").toDouble();
+	detRowDim = settings.value("Tools/AstraReconstruction/BackProjection/detRowDim", 1).toInt();
+	detColDim = settings.value("Tools/AstraReconstruction/BackProjection/detColDim", 0).toInt();
+	projAngleDim = settings.value("Tools/AstraReconstruction/BackProjection/projAngleDim", 2).toInt();
+	projAngleStart = settings.value("Tools/AstraReconstruction/BackProjection/projAngleStart").toDouble();
+	projAngleEnd = settings.value("Tools/AstraReconstruction/BackProjection/projAngleEnd").toDouble();
+	distOrigDet = settings.value("Tools/AstraReconstruction/BackProjection/distOrigDet").toDouble();
+	distOrigSource = settings.value("Tools/AstraReconstruction/BackProjection/distOrigSource").toDouble();
+	volDim[0] = settings.value("Tools/AstraReconstruction/BackProjection/volumeDimX").toInt();
+	volDim[1] = settings.value("Tools/AstraReconstruction/BackProjection/volumeDimY").toInt();
+	volDim[2] = settings.value("Tools/AstraReconstruction/BackProjection/volumeDimZ").toInt();
+	volSpacing[0] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingX", 1).toDouble();
+	volSpacing[1] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingY", 1).toDouble();
+	volSpacing[2] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingZ", 1).toDouble();
 
 	QStringList inList = (QStringList() << tr("+Projection Geometry Type")
 		<< tr("^Detector Spacing X") << tr("^Detector Spacing Y")
@@ -301,7 +301,9 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	vtkSmartPointer<vtkImageData> float32Img = cast->GetOutput();
 
 	float* buf = new float[ dim[0] * dim[1] * dim[2] ];
-
+	detRowCnt = dim[detRowDim];
+	detColCnt = dim[detColDim];
+	projAnglesCount = dim[projAngleDim];
 	FOR_VTKIMG_PIXELS(img, x, y, z)
 	{
 		int detCol = (detColDim == 0) ? x : (detColDim == 1) ? y : z;
@@ -311,22 +313,22 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
 	}
 
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projGeomType", projGeomType);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingX", detSpacingX);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingY", detSpacingY);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detRowDim", detRowCnt);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detColDim", detColCnt);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleDim", projAnglesCount);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleStart", projAngleStart);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleEnd", projAngleEnd);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/distOrigDet", distOrigDet);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/distOrigSource", distOrigSource);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeDimX", volDim[0]);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeDimY", volDim[1]);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeDimZ", volDim[2]);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeSpacingX", volSpacing[0]);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeSpacingY", volSpacing[1]);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeSpacingZ", volSpacing[2]);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/projGeomType", projGeomType);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/detSpacingX", detSpacingX);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/detSpacingY", detSpacingY);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/detRowDim", detRowDim);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/detColDim", detColDim);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/projAngleDim", projAngleDim);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/projAngleStart", projAngleStart);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/projAngleEnd", projAngleEnd);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/distOrigDet", distOrigDet);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/distOrigSource", distOrigSource);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeDimX", volDim[0]);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeDimY", volDim[1]);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeDimZ", volDim[2]);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingX", volSpacing[0]);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingY", volSpacing[1]);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingZ", volSpacing[2]);
 	
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
