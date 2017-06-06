@@ -43,7 +43,6 @@ void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
 bool isVtkIntegerType(int type);
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \
-    int * dims = img->GetDimensions(); \
-    for (int x = 0; x < dims[0]; ++x) \
-        for (int y = 0; y < dims[1]; ++y) \
-            for (int z = 0; z < dims[2]; ++z)
+    for (int x = 0; x < img->GetDimensions()[0]; ++x) \
+        for (int y = 0; y < img->GetDimensions()[1]; ++y) \
+            for (int z = 0; z < img->GetDimensions()[2]; ++z)
