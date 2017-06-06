@@ -172,10 +172,10 @@ void iAAstraReconstructionModuleInterface::ForwardProject( )
 	winMaxYOption.addAttribute("value", dim[1] * img->GetSpacing()[1] / 2.0);
 
 	astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
-	winMinZOption.addAttribute("key", "WindowMinY");
+	winMinZOption.addAttribute("key", "WindowMinZ");
 	winMinZOption.addAttribute("value", -dim[2] * img->GetSpacing()[2] / 2.0);
 	astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
-	winMaxZOption.addAttribute("key", "WindowMaxY");
+	winMaxZOption.addAttribute("key", "WindowMaxZ");
 	winMaxZOption.addAttribute("value", dim[2] * img->GetSpacing()[2] / 2.0);
 
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
@@ -190,15 +190,15 @@ void iAAstraReconstructionModuleInterface::ForwardProject( )
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
 	// 
-	int projDim[3] = { detRowCnt, projAnglesCount, detColCnt };
+	int projDim[3] = { detRowCnt, detColCnt, projAnglesCount };
 	double projSpacing[3] = { detSpacingX, detSpacingY, detSpacingX };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
 	//astra::CAlgorithmManager::getSingleton().store(algorithm);
 
-	FOR_VTKIMG_PIXELS(projImg, a, b, c)
+	FOR_VTKIMG_PIXELS(projImg, x, y, z)
 	{
 		//int index = x + y*DetectorColCount + z*DetectorColCount*DetectorRowCount;
-		projImg->SetScalarComponentFromFloat(a, b, c, 0, projectionData->getData3D()[a][b][c]);
+		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[y][z][x]);
 	}
 	MdiChild* resultChild = m_mainWnd->GetResultChild("");
 	resultChild->setImageData("Astra Forward Projection", projImg);
@@ -304,10 +304,10 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	//winMaxYOption.addAttribute("value", dim[1] * img->GetSpacing()[1] / 2.0);
 
 	//astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
-	//winMinZOption.addAttribute("key", "WindowMinY");
+	//winMinZOption.addAttribute("key", "WindowMinZ");
 	//winMinZOption.addAttribute("value", -dim[2] * img->GetSpacing()[2] / 2.0);
 	//astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
-	//winMaxZOption.addAttribute("key", "WindowMaxY");
+	//winMaxZOption.addAttribute("key", "WindowMaxZ");
 	//winMaxZOption.addAttribute("value", dim[2] * img->GetSpacing()[2] / 2.0);
 
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
