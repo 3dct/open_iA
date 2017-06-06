@@ -37,4 +37,8 @@ private:
 	double detSpacingX, detSpacingY, distOrigDet, 
 		distOrigSource, projAngleStart, projAngleEnd;
 	int detRowCnt, detColCnt, projAnglesCount;
+
+	int detRowDim, detColDim, projAngleDim;
+	int volDim[3];
+	double volSpacing[3];
 };

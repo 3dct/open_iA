@@ -89,9 +89,12 @@ void iAAstraReconstructionModuleInterface::ForwardProject( )
 	distOrigDet = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigDet").toDouble();
 	distOrigSource = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigSource").toDouble();
 
-	QStringList inList = (QStringList() << tr("+Projection Geometry Type") << tr("^Detector Spacing X") << tr("^Detector Spacing Y") 
-		<< tr("*Detector Row Count") << tr("*DetectorColCount") << tr("^Projection Angle Sart [°]") << tr("^Projection Angle End [°]") 
-		<< tr("*Number of Projections") << tr("^Distance Origin Detector") << tr("^Distance Origin Source"));
+	QStringList inList = (QStringList() << tr("+Projection Geometry Type")
+		<< tr("^Detector Spacing X") << tr("^Detector Spacing Y")
+		<< tr("*Detector Row Count") << tr("*Detector Column Count")
+		<< tr("^Projection Angle Start [°]") << tr("^Projection Angle End [°]")
+		<< tr("*Number of Projections")
+		<< tr("^Distance Origin Detector") << tr("^Distance Origin Source"));
 	const QStringList projectionGeometryTypes = QStringList() << QString("!") + "cone";
 	QList<QVariant> inPara; 	inPara << projectionGeometryTypes << tr("%1").arg(detSpacingX) << tr("%1").arg(detSpacingY) << tr("%1").arg(detRowCnt)
 		<< tr("%1").arg(detColCnt) << tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd) << tr("%1").arg(projAnglesCount) 
@@ -186,23 +189,36 @@ void iAAstraReconstructionModuleInterface::ForwardProject( )
 
 	DEBUG_LOG(QString("Dimensions: %1x%2x%3").arg(projectionData->getWidth()).arg(projectionData->getHeight()).arg(projectionData->getDepth()));
 
-	//int id = astra::CData3DManager::getSingleton().store();
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
-	// 
 	int projDim[3] = { detRowCnt, detColCnt, projAnglesCount };
 	double projSpacing[3] = { detSpacingX, detSpacingY, detSpacingX };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
-	//astra::CAlgorithmManager::getSingleton().store(algorithm);
 
 	FOR_VTKIMG_PIXELS(projImg, x, y, z)
 	{
-		//int index = x + y*DetectorColCount + z*DetectorColCount*DetectorRowCount;
 		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[y][z][x]);
 	}
 	MdiChild* resultChild = m_mainWnd->GetResultChild("");
 	resultChild->setImageData("Astra Forward Projection", projImg);
 	resultChild->update();
+
+	delete algorithm;
+	delete volumeData;
+	delete projectionData;
+	delete projector;
+}
+
+namespace
+{
+	QStringList GetDimStringList(int selectedDim)
+	{
+		assert(selectedDim >= 0 && selectedDim <= 2);
+		return QStringList()
+			<< ((selectedDim == 0) ? "!x" : "x")
+			<< ((selectedDim == 1) ? "!y" : "y")
+			<< ((selectedDim == 2) ? "!z" : "z");
+	}
 }
 
 void iAAstraReconstructionModuleInterface::BackProject()
@@ -219,21 +235,36 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	projGeomType = settings.value("Tools/AstraReconstruction/ForwardProjection/projGeomType").toString();
 	detSpacingX = settings.value("Tools/AstraReconstruction/ForwardProjection/detSpacingX").toDouble();
 	detSpacingY = settings.value("Tools/AstraReconstruction/ForwardProjection/detSpacingY").toDouble();
-	detRowCnt = settings.value("Tools/AstraReconstruction/ForwardProjection/detRowCnt").toInt();
-	detColCnt = settings.value("Tools/AstraReconstruction/ForwardProjection/detColCnt").toInt();
+	detRowDim = settings.value("Tools/AstraReconstruction/ForwardProjection/detRowDim", 1).toInt();
+	detColDim = settings.value("Tools/AstraReconstruction/ForwardProjection/detColDim", 0).toInt();
+	projAngleDim = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleDim", 2).toInt();
 	projAngleStart = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleStart").toDouble();
 	projAngleEnd = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleEnd").toDouble();
-	projAnglesCount = settings.value("Tools/AstraReconstruction/ForwardProjection/projAnglesCount").toInt();
 	distOrigDet = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigDet").toDouble();
 	distOrigSource = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigSource").toDouble();
+	volDim[0] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeDimX").toInt();
+	volDim[1] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeDimY").toInt();
+	volDim[2] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeDimZ").toInt();
+	volSpacing[0] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeSpacingX", 1).toDouble();
+	volSpacing[1] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeSpacingY", 1).toDouble();
+	volSpacing[2] = settings.value("Tools/AstraReconstruction/ForwardProjection/volumeSpacingZ", 1).toDouble();
 
-	QStringList inList = (QStringList() << tr("+Projection Geometry Type") << tr("^Detector Spacing X") << tr("^Detector Spacing Y")
-		<< tr("*Detector Row Count") << tr("*DetectorColCount") << tr("^Projection Angle Sart [°]") << tr("^Projection Angle End [°]")
-		<< tr("*Number of Projections") << tr("^Distance Origin Detector") << tr("^Distance Origin Source"));
+	QStringList inList = (QStringList() << tr("+Projection Geometry Type")
+		<< tr("^Detector Spacing X") << tr("^Detector Spacing Y")
+		<< tr("+Detector Row Dimension") << tr("+Detector Column Dimension")
+		<< tr("+Projection Dimension")
+		<< tr("^Projection Angle Start [°]") << tr("^Projection Angle End [°]")
+		<< tr("^Distance Origin Detector") << tr("^Distance Origin Source")
+		<< tr("*Volume Width") << tr("*Volume Height") << tr("*Volume Depth")
+		<< tr("^Volume Spacing X") << tr("^Volume Spacing Y") << tr("^Volume Spacing Z"));
 	const QStringList projectionGeometryTypes = QStringList() << QString("!") + "cone";
-	QList<QVariant> inPara; 	inPara << projectionGeometryTypes << tr("%1").arg(detSpacingX) << tr("%1").arg(detSpacingY) << tr("%1").arg(detRowCnt)
-		<< tr("%1").arg(detColCnt) << tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd) << tr("%1").arg(projAnglesCount)
-		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource);
+	QList<QVariant> inPara; 	inPara << projectionGeometryTypes
+		<< tr("%1").arg(detSpacingX) << tr("%1").arg(detSpacingY)
+		<< GetDimStringList(detRowDim) << GetDimStringList(detColDim) << GetDimStringList(projAngleDim)
+		<< tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd)
+		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource)
+		<< tr("%1").arg(volDim[0]) << tr("%1").arg(volDim[1]) << tr("%1").arg(volDim[2])
+		<< tr("%1").arg(volSpacing[0]) << tr("%1").arg(volSpacing[1]) << tr("%1").arg(volSpacing[2]);
 
 	dlg_commoninput dlg(m_mainWnd, "Back Projection", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
@@ -242,13 +273,26 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	projGeomType = dlg.getComboBoxValues()[0];
 	detSpacingX = dlg.getDoubleSpinBoxValues()[1];
 	detSpacingY = dlg.getDoubleSpinBoxValues()[2];
-	detRowCnt = dlg.getSpinBoxValues()[3];
-	detColCnt = dlg.getSpinBoxValues()[4];
-	projAngleStart = dlg.getDoubleSpinBoxValues()[5];
-	projAngleEnd = dlg.getDoubleSpinBoxValues()[6];
-	projAnglesCount = dlg.getSpinBoxValues()[7];
+	detRowDim = dlg.getComboBoxIndices()[3];
+	detColDim = dlg.getComboBoxIndices()[4];
+	projAngleDim = dlg.getComboBoxIndices()[5];
+	projAngleStart = dlg.getDoubleSpinBoxValues()[6];
+	projAngleEnd = dlg.getDoubleSpinBoxValues()[7];
 	distOrigDet = dlg.getDoubleSpinBoxValues()[8];
 	distOrigSource = dlg.getDoubleSpinBoxValues()[9];
+	volDim[0] = dlg.getSpinBoxValues()[10];
+	volDim[1] = dlg.getSpinBoxValues()[11];
+	volDim[2] = dlg.getSpinBoxValues()[12];
+	volSpacing[0] = dlg.getDoubleSpinBoxValues()[13];
+	volSpacing[1] = dlg.getDoubleSpinBoxValues()[14];
+	volSpacing[2] = dlg.getDoubleSpinBoxValues()[15];
+
+	if (detColDim == detRowDim || detColDim == projAngleDim || detRowDim == projAngleDim)
+	{
+		DEBUG_LOG("One of the axes (x, y, z) has been specified for more than one usage out of (detector row / detector column / projection angle) dimensions. "
+			"Make sure each axis is used exactly for one dimension!");
+		return;
+	}
 
 	vtkNew<vtkImageCast> cast;
 	cast->SetInputData(img);
@@ -260,25 +304,29 @@ void iAAstraReconstructionModuleInterface::BackProject()
 
 	FOR_VTKIMG_PIXELS(img, x, y, z)
 	{
-		//int index = x + y*detColCnt + z*detColCnt*detRowCnt;				// tried, did not work
-		int index = x + z*detColCnt + y*detColCnt*projAnglesCount;			// works somehow
-		//int index = y + z*detRowCnt + x*projAnglesCount*detRowCnt;		// tried, did not work
-		//int index = y + x*detRowCnt + z*detColCnt*detRowCnt;				// tried, did not work
-		//int index = z + x*projAnglesCount + y*projAnglesCount*detColCnt;	// tried, did not work
-		//int index = z + y*projAnglesCount + x*projAnglesCount*detRowCnt;	// tried, did not work
+		int detCol = (detColDim == 0) ? x : (detColDim == 1) ? y : z;
+		int detRow = (detRowDim == 0) ? x : (detRowDim == 1) ? y : z;
+		int projAngle = (projAngleDim == 0) ? x : (projAngleDim == 1) ? y : z;
+		int index = detCol + projAngle*detColCnt + detRow*detColCnt*projAnglesCount;
 		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
 	}
 
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projGeomType", projGeomType);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingX", detSpacingX);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingY", detSpacingY);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detRowCnt", detRowCnt);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detColCnt", detColCnt);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detRowDim", detRowCnt);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detColDim", detColCnt);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleDim", projAnglesCount);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleStart", projAngleStart);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleEnd", projAngleEnd);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAnglesCount", projAnglesCount);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/distOrigDet", distOrigDet);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/distOrigSource", distOrigSource);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeDimX", volDim[0]);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeDimY", volDim[1]);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeDimZ", volDim[2]);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeSpacingX", volSpacing[0]);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeSpacingY", volSpacing[1]);
+	settings.setValue("Tools/AstraReconstruction/ForwardProjection/volumeSpacingZ", volSpacing[2]);
 	
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
@@ -302,26 +350,26 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	volGeomNode.addChildNode("GridRowCount", 128);
 	volGeomNode.addChildNode("GridSliceCount", 128);
 
-	//astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
-	//winMinXOption.addAttribute("key", "WindowMinX");
-	//winMinXOption.addAttribute("value", -dim[0] * img->GetSpacing()[0]/2.0);
-	//astra::XMLNode winMaxXOption = volGeomNode.addChildNode("Option");
-	//winMaxXOption.addAttribute("key", "WindowMaxX");
-	//winMaxXOption.addAttribute("value", dim[0] * img->GetSpacing()[0] / 2.0);
+	astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
+	winMinXOption.addAttribute("key", "WindowMinX");
+	winMinXOption.addAttribute("value", -volDim[0] * volSpacing[0]/2.0);
+	astra::XMLNode winMaxXOption = volGeomNode.addChildNode("Option");
+	winMaxXOption.addAttribute("key", "WindowMaxX");
+	winMaxXOption.addAttribute("value", volDim[0] * volSpacing[0] / 2.0);
 
-	//astra::XMLNode winMinYOption = volGeomNode.addChildNode("Option");
-	//winMinYOption.addAttribute("key", "WindowMinY");
-	//winMinYOption.addAttribute("value", -dim[1] * img->GetSpacing()[1] / 2.0);
-	//astra::XMLNode winMaxYOption = volGeomNode.addChildNode("Option");
-	//winMaxYOption.addAttribute("key", "WindowMaxY");
-	//winMaxYOption.addAttribute("value", dim[1] * img->GetSpacing()[1] / 2.0);
+	astra::XMLNode winMinYOption = volGeomNode.addChildNode("Option");
+	winMinYOption.addAttribute("key", "WindowMinY");
+	winMinYOption.addAttribute("value", -volDim[1] * volSpacing[1] / 2.0);
+	astra::XMLNode winMaxYOption = volGeomNode.addChildNode("Option");
+	winMaxYOption.addAttribute("key", "WindowMaxY");
+	winMaxYOption.addAttribute("value", volDim[1] * volSpacing[1] / 2.0);
 
-	//astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
-	//winMinZOption.addAttribute("key", "WindowMinZ");
-	//winMinZOption.addAttribute("value", -dim[2] * img->GetSpacing()[2] / 2.0);
-	//astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
-	//winMaxZOption.addAttribute("key", "WindowMaxZ");
-	//winMaxZOption.addAttribute("value", dim[2] * img->GetSpacing()[2] / 2.0);
+	astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
+	winMinZOption.addAttribute("key", "WindowMinZ");
+	winMinZOption.addAttribute("value", -volDim[2] * volSpacing[2] / 2.0);
+	astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
+	winMaxZOption.addAttribute("key", "WindowMaxZ");
+	winMaxZOption.addAttribute("value", volDim[2] * volSpacing[2] / 2.0);
 
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
@@ -335,21 +383,21 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
 
-	int projDim[3] = { 128, 128, 128 };
-	double projSpacing[3] = { 0.64, 0.64, 0.64 };
-	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
-	//astra::CAlgorithmManager::getSingleton().store(algorithm);
+	auto volImg = AllocateImage(VTK_FLOAT, volDim, volSpacing);
 
-	FOR_VTKIMG_PIXELS(projImg, x, y, z)
+	FOR_VTKIMG_PIXELS(volImg, x, y, z)
 	{
-		//int index = x + y*DetectorColCount + z*DetectorColCount*DetectorRowCount;
-		projImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[y][z][x]);
+		volImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[z][y][x]);
 	}
 	MdiChild* resultChild = m_mainWnd->GetResultChild("");
-	resultChild->setImageData("Astra Back Projection", projImg);
+	resultChild->setImageData("Astra Back Projection", volImg);
 	resultChild->update();
 
 	delete[] buf;
+	delete algorithm;
+	delete volumeData;
+	delete projectionData;
+	delete projector;
 }
 
 QString iAAstraReconstructionModuleInterface::linspace(double projAngleStart, double projAngleEnd, int projAnglesCount)
