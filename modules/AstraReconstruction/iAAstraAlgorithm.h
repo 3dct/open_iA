@@ -20,23 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAAlgorithm.h"
 
-class iAAstraReconstructionModuleInterface : public iAModuleInterface
+class iAAstraAlgorithm : public iAAlgorithm
 {
-	Q_OBJECT
 public:
-	void Initialize();
-private slots:
+	enum AlgorithmType
+	{
+		ForwardProjection,
+		FilteredBackProjection,
+		SIRTBackProjection
+	};
+	iAAstraAlgorithm(AlgorithmType type, QString const & filterName, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent);
+	void SetFwdProjectionParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
+	void SetFBPParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
+		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3]);
+private:
+	virtual void performWork();
 	void ForwardProject();
 	void BackProject();
-private:	
-	QString projGeomType;
-	double detSpacingX, detSpacingY, distOrigDet, 
-		distOrigSource, projAngleStart, projAngleEnd;
-	int detRowCnt, detColCnt, projAnglesCount;
 
-	int detRowDim, detColDim, projAngleDim;
-	int volDim[3];
-	double volSpacing[3];
+	int m_type;
+	QString m_projGeomType;
+	double m_detSpacingX, m_detSpacingY, m_distOrigDet,
+		m_distOrigSource, m_projAngleStart, m_projAngleEnd;
+	int m_detRowCnt, m_detColCnt, m_projAnglesCount;
+
+	int m_detRowDim, m_detColDim, m_projAngleDim;
+	int m_volDim[3];
+	double m_volSpacing[3];
 };
