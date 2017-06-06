@@ -263,8 +263,6 @@ void iAAstraAlgorithm::BackProject()
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), static_cast<astra::float32*>(buf));
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry());
 
-	DEBUG_LOG(QString("Dimensions: %1x%2x%3").arg(volumeData->getWidth()).arg(volumeData->getHeight()).arg(volumeData->getDepth()));
-
 	astra::CCudaBackProjectionAlgorithm3D* algorithm = new astra::CCudaBackProjectionAlgorithm3D();
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
