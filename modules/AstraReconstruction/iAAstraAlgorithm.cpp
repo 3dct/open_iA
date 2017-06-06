@@ -105,7 +105,7 @@ void iAAstraAlgorithm::SetFBPParams(QString const & projGeomType, double detSpac
 	for (int i = 0; i < 3; ++i)
 	{
 		m_volDim[i] = volDim[i];
-		m_volSpacing[3] = volSpacing[i];
+		m_volSpacing[i] = volSpacing[i];
 	}
 }
 

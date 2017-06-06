@@ -213,7 +213,6 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	iAAstraAlgorithm* backProjection = new iAAstraAlgorithm(iAAstraAlgorithm::FilteredBackProjection, filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	m_mdiChild->connectThreadSignalsToChildSlots(backProjection);
-	m_mdiChild->connectThreadSignalsToChildSlots(backProjection);
 	backProjection->SetFBPParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource,
 		detRowDim, detColDim, projAngleDim, volDim, volSpacing);
 	backProjection->start();
