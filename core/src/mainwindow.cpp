@@ -1574,6 +1574,10 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 		copyFunctions(oldChild, newChild);
 		return newChild;
 	}
+	else
+	{
+		oldChild->SetUnsavedChanges(true);
+	}
 	return oldChild;
 }
 

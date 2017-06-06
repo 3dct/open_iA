@@ -23,7 +23,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
-#include "open_iA_core_export.h"
+#include "open_iA_Core_export.h"
 
 
 class open_iA_Core_API iAvtkImageData : public vtkImageData

@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGradients.h"
 #include "iAConnector.h"
@@ -117,127 +116,40 @@ iAGradients::iAGradients( QString fn, iAGradientType fid, vtkImageData* i, vtkPo
 {}
 
 
-void iAGradients::run()
+void iAGradients::performWork()
 {
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	switch (m_type)
 	{
 	case DERIVATIVE:
-		derivative(); break;
+		ITK_TYPED_CALL(derivative_template, itkType,
+			order, direction, getItkProgress(), getConnector());
+		break;
 	case GRADIENT_MAGNITUDE:
-		gradient_magnitude(); break;
+		ITK_TYPED_CALL(gradient_magnitude_template, itkType,
+			getItkProgress(), getConnector());
+		break;
 	case HIGHER_ORDER_ACCURATE_DERIVATIVE:
-		hoa_derivative();
+		switch (itkType)
+		{
+			case itk::ImageIOBase::CHAR:
+				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<char>(0)); break;
+			case itk::ImageIOBase::SHORT:
+				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<short>(0)); break;
+			case itk::ImageIOBase::INT:
+				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<int>(0)); break;
+			case itk::ImageIOBase::LONG:
+				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<long>(0)); break;
+			case itk::ImageIOBase::FLOAT:
+				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<float>(0)); break;
+			case itk::ImageIOBase::DOUBLE:
+				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<double>(0)); break;
+			default:
+				throw std::runtime_error("Unsupported pixel type!");
+				return;
+		}
 		break;
 	default:
 		addMsg(tr("  unknown filter type"));
 	}
-}
-
-void iAGradients::derivative( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(derivative_template, itkType,
-			order, direction, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();
-
-
-}
-
-void iAGradients::hoa_derivative()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		switch (getConnector()->GetITKScalarPixelType()) // This filter handles all types
-		{
-
-		case itk::ImageIOBase::CHAR:
-			hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<char>(0)); break;
-		case itk::ImageIOBase::SHORT:
-			hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<short>(0)); break;
-		case itk::ImageIOBase::INT:
-			hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<int>(0)); break;
-		case itk::ImageIOBase::LONG:
-			hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<long>(0)); break;
-		case itk::ImageIOBase::FLOAT:
-			hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<float>(0)); break;
-		case itk::ImageIOBase::DOUBLE:
-			hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<double>(0)); break;
-		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-		default:
-			addMsg(tr("  unknown component type"));
-			return;
-		}
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-void iAGradients::gradient_magnitude( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(gradient_magnitude_template, itkType,
-			getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
 }

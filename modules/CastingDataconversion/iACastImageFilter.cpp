@@ -294,44 +294,17 @@ iACastImageFilter::iACastImageFilter( QString fn, iACastType castType, vtkImageD
 {}
 
 
-void iACastImageFilter::run()
+void iACastImageFilter::performWork()
 {
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-	try
+	switch ( m_castType )
 	{
-		switch ( m_castType )
-		{
-			case FHW_CAST_IMAGE:
-				fhwCastImage(); break;
-			case DATATYPE_CONVERSION:
-				DataTypeConversion(); break;
-			default:
-				addMsg( tr( "unknown filter type" ) );
-		}
+		case FHW_CAST_IMAGE:
+			fhwCastImage(); break;
+		case DATATYPE_CONVERSION:
+			DataTypeConversion(); break;
+		default:
+			addMsg( tr( "unknown filter type" ) );
 	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	catch (const std::exception& e)
-	{
-		addMsg(tr("%1  %2 could not continue. %3").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(e.what()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-	emit startUpdate();
 }
 
 void iACastImageFilter::fhwCastImage()

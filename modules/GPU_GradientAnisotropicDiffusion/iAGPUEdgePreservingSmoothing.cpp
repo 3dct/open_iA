@@ -40,7 +40,6 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing(QString fn, vtkImageD
 {}
 
 
-
 /**
 * GPU Gradient anisotropic diffusion template initializes itkGPUGradientAnisotropicDiffusionImageFilter .
 * \param	i		NumberOfIterations.
@@ -81,37 +80,10 @@ int GPU_gradient_anisotropic_diffusion_template(unsigned int i, double t, double
 	return EXIT_SUCCESS;
 }
 
-void iAGPUEdgePreservingSmoothing::gpuGradientAnisotropicDiffusion()
+
+void iAGPUEdgePreservingSmoothing::performWork()
 {
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion_template, itkType,
-			iterations, timestep, conductance, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
-}
-
-void iAGPUEdgePreservingSmoothing::run()
-{
-	gpuGradientAnisotropicDiffusion();
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion_template, itkType,
+		iterations, timestep, conductance, getItkProgress(), getConnector());
 }

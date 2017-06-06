@@ -74,7 +74,7 @@ public:
 	}
 
 protected:
-	void run();
+	virtual void performWork();
 
 private:
 	double DifferenceThreshold, ToleranceRadius, windowMinimum, windowMaximum, outputMinimum, outputMaximum;
@@ -83,12 +83,4 @@ private:
 	vtkImageData* image2;
 	iAIntensityFilterType m_type;
 	double outputMin, outputMax;		// rescale intensity filter
-
-	void difference();
-	void invert_intensity();
-	void mask();
-	void intensity_windowing();
-	void normalize();
-	void histomatch();
-	void rescaleImage();
 };

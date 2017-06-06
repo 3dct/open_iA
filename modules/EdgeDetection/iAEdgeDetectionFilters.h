@@ -43,8 +43,7 @@ public:
 		{ variance = v; maximumError = m; upper = u; lower = l; };
 
 protected:
-	virtual void run();
+	virtual void performWork();
 private:
 	double variance, maximumError, upper, lower;
-	void cannyEdgeDetection();
 };

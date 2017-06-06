@@ -53,16 +53,10 @@ public:
 	}
 
 protected:
-	void run();
+	virtual void performWork();
 private:
 	unsigned int sigma;
 	bool hessianComputed;
 	int nr;
 	iAEigenAnalysisType m_type;
-
-	//! Computes hessian of given image
-	void computeHessian();
-
-	//! Computes laplacian of Gaussian (LoG) of given image.
-	void computeLaplacian();
 };

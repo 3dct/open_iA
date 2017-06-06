@@ -152,111 +152,24 @@ iAConnectedComponentFilters::iAConnectedComponentFilters( QString fn, iAConnComp
 {}
 
 
-
-void iAConnectedComponentFilters::run()
+void iAConnectedComponentFilters::performWork()
 {
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	switch (m_type)
 	{
-	case SIMPLE_CONNECTED_COMPONENT_FILTER: 
-		SimpleConnectedComponentFilter(); break;
+	case SIMPLE_CONNECTED_COMPONENT_FILTER:
+		ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, itkType,
+			c, getItkProgress(), getConnector());
+		break;
 	case SCALAR_CONNECTED_COMPONENT_FILTER:
-		ScalarConnectedComponentFilter(); break;
-	case SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER: 
-		SimpleRelabelComponentImageFilter(); break;
+		ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, itkType,
+			distTreshold, getItkProgress(), getConnector());
+		break;
+	case SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER:
+		ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, itkType,
+			w, s, f, getItkProgress(), getConnector());
+		break;
 	default:
 		addMsg(tr("unknown filter type"));
 	}
-}
-
-
-void iAConnectedComponentFilters::SimpleConnectedComponentFilter( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, itkType,
-			c, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-
-void iAConnectedComponentFilters::ScalarConnectedComponentFilter()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-		.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, itkType,
-			distTreshold, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-			.arg( excep.GetFile() )
-			.arg( excep.GetLine() ) );
-		return;
-	}
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-		.arg( getFilterName() )
-		.arg( Stop() ) );
-
-	emit startUpdate();
-}
-
-
-void iAConnectedComponentFilters::SimpleRelabelComponentImageFilter( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, itkType,
-			w, s, f, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
 }

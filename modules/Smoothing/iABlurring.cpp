@@ -93,38 +93,9 @@ iABlurring::iABlurring( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* l
 {}
 
 
-void iABlurring::run()
+void iABlurring::performWork()
 {
-	discreteGaussian();
-}
-
-
-void iABlurring::discreteGaussian( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType pixelType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(discrete_gaussian_template, pixelType,
-			variance, maximumError, outimg, getItkProgress(), getConnector() );
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
+	iAConnector::ITKScalarPixelType pixelType = getConnector()->GetITKScalarPixelType();
+	ITK_TYPED_CALL(discrete_gaussian_template, pixelType,
+		variance, maximumError, outimg, getItkProgress(), getConnector() );
 }

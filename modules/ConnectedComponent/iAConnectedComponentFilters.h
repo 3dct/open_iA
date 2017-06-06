@@ -59,7 +59,7 @@ public:
 	 */
 	void setSRCIFParameters( bool writeroption, int objectsize, QString file ) { w = writeroption; s = objectsize; f = file; };
 protected:
-	void run();
+	void performWork();
 private:
 	double distTreshold;
 	int c;
@@ -67,7 +67,4 @@ private:
 	bool w;
 	QString f;
 	iAConnCompType m_type;
-	void SimpleConnectedComponentFilter( );
-	void ScalarConnectedComponentFilter( );
-	void SimpleRelabelComponentImageFilter( );
 };

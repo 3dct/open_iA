@@ -42,15 +42,9 @@ public:
 		this->templFileName = templateFileName; 
 	}
 protected: 
-	void run();
+	virtual void performWork();
 private: 
 	vtkPolyData* pData;
 	std::string templFileName; 
 	iAConvolutionType m_type;
-
-	void convolutionFilter();
-	void fft_convolutionFilter();
-	void correlationFilter();
-	void fft_correlationFilter();
-	void fft_cpp_correlationFilter();
 };

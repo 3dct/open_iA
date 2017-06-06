@@ -46,12 +46,9 @@ public:
 	void setDParameters(double o, double d) { order = o; direction = d; };
 	void setHOAGDParameters(const HOAccGradientDerrivativeSettings * settings) { m_HOAGDSettings = *settings; };
 protected:
-	void run();
+	virtual void performWork();
 private:
 	unsigned int order, direction;
 	HOAccGradientDerrivativeSettings m_HOAGDSettings;
 	iAGradientType m_type;
-	void derivative();
-	void hoa_derivative();
-	void gradient_magnitude();
 };

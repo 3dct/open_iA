@@ -90,7 +90,7 @@ public:
 	void setBTParameters(double l, double u, double o, double i) { lower = l; upper = u; outer = o; inner = i; };
 
 protected:
-	void run();
+	virtual void performWork();
 private:
 	double lower, upper, threshs, bins, inner, outer, radius, power, rthresh, othresh;
 	bool valleyemphasis;

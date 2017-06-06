@@ -43,12 +43,9 @@ public:
 	 */
 	void setMORPHParameters( int radius, vtkImageData* image) { r = radius; m_Image = image;};
 protected:
-	void run();
+	void performWork();
 private:
 	int r;
 	vtkImageData* m_Image;
 	iAMorphologyOperationType m_type;
-	void DilationFilter();
-	void ErosionFilter();
-	void VesselEnhancementFilter();
 };

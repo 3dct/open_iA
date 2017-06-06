@@ -74,36 +74,9 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization( QString fn, vt
 	: iAAlgorithm( fn, i, p, logger, parent )
 {}
 
-void iAAdaptiveHistogramEqualization::run()
+void iAAdaptiveHistogramEqualization::performWork()
 {
-	compute_iAAdaptiveHistogramEqualization();
-}
-
-void iAAdaptiveHistogramEqualization::compute_iAAdaptiveHistogramEqualization( )
-{
-	addMsg(tr("%1  %2 started (Alpha: %3 Beta: %4)").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()).arg(this->aheAlpha).arg(this->aheBeta));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	
-	try
-	{
-		VTK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, getVtkImageData()->GetScalarType(),
-			aheAlpha, aheBeta, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms. For learning only.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3. For learning only.").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
+	addMsg(QString("    Alpha=%1; Beta=%2").arg(this->aheAlpha).arg(this->aheBeta));
+	VTK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, getVtkImageData()->GetScalarType(),
+		aheAlpha, aheBeta, getItkProgress(), getConnector());
 }
