@@ -6,3 +6,11 @@ SET( DEPENDENCIES_MODULES
 SET( DEPENDENCIES_CMAKE
 	open_iA_GPU_USING_OPENCL
 )
+
+# Libraries which are used by the module
+SET( DEPENDENCIES_LIBRARIES
+)
+
+# Toolkit directories
+SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+)
