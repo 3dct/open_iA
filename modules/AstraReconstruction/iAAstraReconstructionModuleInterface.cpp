@@ -215,12 +215,6 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	vtkSmartPointer<vtkImageData> img = child->getImageData();
 	int const * const dim = img->GetDimensions();
 
-	vtkNew<vtkImageCast> cast;
-	cast->SetInputData(img);
-	cast->SetOutputScalarTypeToFloat();
-	cast->Update();
-	vtkSmartPointer<vtkImageData> float32Img = cast->GetOutput();
-
 	QSettings settings;
 	projGeomType = settings.value("Tools/AstraReconstruction/ForwardProjection/projGeomType").toString();
 	detSpacingX = settings.value("Tools/AstraReconstruction/ForwardProjection/detSpacingX").toDouble();
@@ -256,6 +250,25 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	distOrigDet = dlg.getDoubleSpinBoxValues()[8];
 	distOrigSource = dlg.getDoubleSpinBoxValues()[9];
 
+	vtkNew<vtkImageCast> cast;
+	cast->SetInputData(img);
+	cast->SetOutputScalarTypeToFloat();
+	cast->Update();
+	vtkSmartPointer<vtkImageData> float32Img = cast->GetOutput();
+
+	float* buf = new float[ dim[0] * dim[1] * dim[2] ];
+
+	FOR_VTKIMG_PIXELS(img, x, y, z)
+	{
+		//int index = x + y*detColCnt + z*detColCnt*detRowCnt;				// tried, did not work
+		int index = x + z*detColCnt + y*detColCnt*projAnglesCount;			// works somehow
+		//int index = y + z*detRowCnt + x*projAnglesCount*detRowCnt;		// tried, did not work
+		//int index = y + x*detRowCnt + z*detColCnt*detRowCnt;				// tried, did not work
+		//int index = z + x*projAnglesCount + y*projAnglesCount*detColCnt;	// tried, did not work
+		//int index = z + y*projAnglesCount + x*projAnglesCount*detRowCnt;	// tried, did not work
+		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
+	}
+
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projGeomType", projGeomType);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingX", detSpacingX);
 	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingY", detSpacingY);
@@ -273,7 +286,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	gpuIndexOption.addAttribute("key", "GPUIndex");
 	gpuIndexOption.addAttribute("value", "0");
 
-		astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
+	astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 	projGeomNode.addAttribute("type", projGeomType.toStdString());
 	projGeomNode.addChildNode("DetectorSpacingX", detSpacingX);
 	projGeomNode.addChildNode("DetectorSpacingY", detSpacingY);
@@ -313,7 +326,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
 	
-	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), static_cast<astra::float32*>(float32Img->GetScalarPointer()));
+	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), static_cast<astra::float32*>(buf));
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry() );
 
 	DEBUG_LOG(QString("Dimensions: %1x%2x%3").arg(volumeData->getWidth()).arg(volumeData->getHeight()).arg(volumeData->getDepth()));
@@ -335,6 +348,8 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	MdiChild* resultChild = m_mainWnd->GetResultChild("");
 	resultChild->setImageData("Astra Back Projection", projImg);
 	resultChild->update();
+
+	delete[] buf;
 }
 
 QString iAAstraReconstructionModuleInterface::linspace(double projAngleStart, double projAngleEnd, int projAnglesCount)
