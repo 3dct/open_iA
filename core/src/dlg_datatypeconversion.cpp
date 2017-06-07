@@ -454,11 +454,9 @@ void dlg_datatypeconversion::DataTypeConversionROI(string m_filename, double* b,
 	m_roiimage = m_roiconvertimage->GetVTKImage();
 }
 
-dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* input, const char* filename, const char* intype, double* b, double* c, double* inPara) : QDialog (parent)
+dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* input, const char* filename, int intype, double* b, double* c, double* inPara) : QDialog (parent)
 {
-	//setup the ui dialog class widget as this
 	setupUi(this);
-
 
 	imageData = vtkImageData::New();
 	m_testxyimage =  vtkImageData::New();
@@ -479,7 +477,6 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xyinteractor = vtkRenderWindowInteractor::New();
 	xzinteractor = vtkRenderWindowInteractor::New();
 
-	//set the window title
 	this->setWindowTitle("DatatypeConversion");
 	this->setMinimumWidth(c[0]*0.5);
 	this->setMinimumHeight(c[0]*0.5);
@@ -726,7 +723,7 @@ void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* h
 void dlg_datatypeconversion::xyprojectslices()
 {
 	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table =		vtkSmartPointer<vtkLookupTable>::New();
+	vtkSmartPointer<vtkLookupTable> table = vtkSmartPointer<vtkLookupTable>::New();
 
 	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
 	imageAccumulate->SetInputData(m_testxyimage);

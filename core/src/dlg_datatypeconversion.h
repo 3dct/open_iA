@@ -49,7 +49,7 @@ class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 	Q_OBJECT
 
 public:
-	dlg_datatypeconversion ( QWidget *parent, vtkImageData* input, const char* filename, const char* intype, double* b, double* c, double* inPara );
+	dlg_datatypeconversion ( QWidget *parent, vtkImageData* input, const char* filename, int intype, double* b, double* c, double* inPara );
 	~dlg_datatypeconversion();
 
 	void DataTypeConversion(string m_filename, double* b);

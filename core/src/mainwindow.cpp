@@ -2288,6 +2288,10 @@ void MainWindow::OpenWithDataTypeConversion()
 		path,
 		iAIOProvider::GetSupportedLoadFormats()
 	);
+	if (file.isEmpty())
+	{
+		return;
+	}
 
 	QStringList datatype = (QStringList()
 		<< tr("VTK_SIGNED_CHAR") << tr("VTK_UNSIGNED_CHAR")
@@ -2306,56 +2310,57 @@ void MainWindow::OpenWithDataTypeConversion()
 		<< tr("%1").arg(owdtcsx)<< tr("%1").arg(owdtcsy)<< tr("%1").arg(owdtcsz);
 
 	dlg_commoninput dlg(this, "Open With DataType Conversion", inList, inPara, NULL);
-
-	if (dlg.exec() == QDialog::Accepted)
+	if (dlg.exec() != QDialog::Accepted)
 	{
-		owdtcs = dlg.getValues()[1];
-		owdtcx = dlg.getValues()[2]; owdtcy = dlg.getValues()[3]; owdtcz = dlg.getValues()[4];
-		owdtcsx = dlg.getValues()[5]; owdtcsy = dlg.getValues()[6];	owdtcsz = dlg.getValues()[7];
-
-		QString owdtcintype = dlg.getComboBoxValues()[0];
-
-		double para[8];
-		para[0] = dlg.getValues()[1];
-		para[1] = dlg.getValues()[2]; para[2] = dlg.getValues()[3]; para[3] = dlg.getValues()[4];
-		para[4] = dlg.getValues()[5]; para[5] = dlg.getValues()[6];	para[6] = dlg.getValues()[7];
-		para[7] = defaultPreferences.HistogramBins;
-
-		QSize qwinsize = this->size();
-		double winsize[2];
-		winsize[0] = qwinsize.width();	winsize[1] = qwinsize.height();
-
-		double inPara[11];
-		inPara[0] = owdtcmin;	inPara[1] = owdtcmax; inPara[2] = owdtcoutmin; inPara[3] = owdtcoutmax; inPara[4] = owdtcdov; inPara[5] = owdtcxori; inPara[6] = owdtcxsize;
-		inPara[7] = owdtcyori; inPara[8] = owdtcysize; inPara[9] = owdtczori; inPara[10] = owdtczsize;
-		dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion( this, imageData, file.toStdString().c_str(), owdtcintype.toStdString().c_str(), para, winsize, inPara );
-
-		if(conversionwidget->exec() == QDialog::Accepted)
-		{
-			string owdtctype = conversionwidget->getcombobox();
-			owdtcmin = conversionwidget->getlabelWidget1(); owdtcmax = conversionwidget->getlabelWidget2();
-			owdtcoutmin = conversionwidget->getlabelWidget3(); owdtcoutmax = conversionwidget->getlabelWidget4();
-			owdtcdov = conversionwidget->getcheckbox1();
-			owdtcxori = conversionwidget->getlabelWidget6();	owdtcxsize = conversionwidget->getlabelWidget7();
-			owdtcyori = conversionwidget->getlabelWidget8();	owdtcysize = conversionwidget->getlabelWidget9();
-			owdtczori = conversionwidget->getlabelWidget10(); owdtczsize = conversionwidget->getlabelWidget11();
-
-			double roi[6];
-			roi[0] = conversionwidget->getlabelWidget6();	roi[1] = conversionwidget->getlabelWidget7();
-			roi[2] = conversionwidget->getlabelWidget8();	roi[3] = conversionwidget->getlabelWidget9();
-			roi[4] = conversionwidget->getlabelWidget10(); roi[5] = conversionwidget->getlabelWidget11();
-
-			if ( owdtcdov == 0 )
-			{
-				testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para, owdtcintype.toStdString(), owdtctype, owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov  );
-			}
-			else
-			{
-				testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para, owdtcintype.toStdString(), owdtctype, owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi  );
-			}
-		}
+		return;
 	}
+	owdtcs = dlg.getValues()[1];
+	owdtcx = dlg.getValues()[2]; owdtcy = dlg.getValues()[3]; owdtcz = dlg.getValues()[4];
+	owdtcsx = dlg.getValues()[5]; owdtcsy = dlg.getValues()[6];	owdtcsz = dlg.getValues()[7];
 
+	QString owdtcintype = dlg.getComboBoxValues()[0];
+
+	double para[8];
+	para[0] = dlg.getValues()[1];
+	para[1] = dlg.getValues()[2]; para[2] = dlg.getValues()[3]; para[3] = dlg.getValues()[4];
+	para[4] = dlg.getValues()[5]; para[5] = dlg.getValues()[6];	para[6] = dlg.getValues()[7];
+	para[7] = defaultPreferences.HistogramBins;
+
+	QSize qwinsize = this->size();
+	double winsize[2];
+	winsize[0] = qwinsize.width();	winsize[1] = qwinsize.height();
+
+	double convPara[11];
+	convPara[0] = owdtcmin;   convPara[1] = owdtcmax;  convPara[2] = owdtcoutmin; convPara[3] = owdtcoutmax; convPara[4] = owdtcdov; convPara[5] = owdtcxori;
+	convPara[6] = owdtcxsize; convPara[7] = owdtcyori; convPara[8] = owdtcysize;  convPara[9] = owdtczori;   convPara[10] = owdtczsize;
+	dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion( this, imageData, file.toStdString().c_str(), MapVTKTypeStringToInt(owdtcintype), para, winsize, convPara );
+	if (conversionwidget->exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	QString outDataType = conversionwidget->getDataType();
+	owdtcmin = conversionwidget->getlabelWidget1(); owdtcmax = conversionwidget->getlabelWidget2();
+	owdtcoutmin = conversionwidget->getlabelWidget3(); owdtcoutmax = conversionwidget->getlabelWidget4();
+	owdtcdov = conversionwidget->getConvertROI();
+	owdtcxori = conversionwidget->getlabelWidget6();	owdtcxsize = conversionwidget->getlabelWidget7();
+	owdtcyori = conversionwidget->getlabelWidget8();	owdtcysize = conversionwidget->getlabelWidget9();
+	owdtczori = conversionwidget->getlabelWidget10(); owdtczsize = conversionwidget->getlabelWidget11();
+
+	double roi[6];
+	roi[0] = conversionwidget->getlabelWidget6();	roi[1] = conversionwidget->getlabelWidget7();
+	roi[2] = conversionwidget->getlabelWidget8();	roi[3] = conversionwidget->getlabelWidget9();
+	roi[4] = conversionwidget->getlabelWidget10(); roi[5] = conversionwidget->getlabelWidget11();
+
+	if ( owdtcdov == 0 )
+	{
+		testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para, MapVTKTypeStringToInt(outDataType),
+			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov  );
+	}
+	else
+	{
+		testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para, MapVTKTypeStringToInt(outDataType),
+			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi  );
+	}
 	loadFile(testfinalfilename, false);
 }
 
