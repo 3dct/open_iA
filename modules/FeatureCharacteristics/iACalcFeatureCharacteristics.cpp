@@ -198,6 +198,7 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 			a13 = 0.0;
 			a23 = 0.0;
 		}
+
 		majorlength = labelGeometryImageFilter->GetMajorAxisLength( labelValue );
 		minorlength = labelGeometryImageFilter->GetMinorAxisLength( labelValue );
 		dimX = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
