@@ -27,28 +27,31 @@ class iAAstraAlgorithm : public iAAlgorithm
 public:
 	enum AlgorithmType
 	{
-		ForwardProjection,
-		FilteredBackProjection,
-		SIRTBackProjection
+		FP3D,
+		BP3D,
+		FDK3D,
+		SIRT3D,
+		CGLS3D
 	};
 	iAAstraAlgorithm(AlgorithmType type, QString const & filterName, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent);
-	void SetFwdProjectionParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+	void SetFwdProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
-	void SetFBPParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+	void SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
-		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3]);
+		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations);
 private:
 	virtual void performWork();
 	void ForwardProject();
-	void BackProject();
+	void BackProject(AlgorithmType type);
 
-	int m_type;
+
+	AlgorithmType m_type;
 	QString m_projGeomType;
 	double m_detSpacingX, m_detSpacingY, m_distOrigDet,
 		m_distOrigSource, m_projAngleStart, m_projAngleEnd;
-	int m_detRowCnt, m_detColCnt, m_projAnglesCount;
-
-	int m_detRowDim, m_detColDim, m_projAngleDim;
+	int m_detRowCnt, m_detColCnt, m_projAnglesCount,
+		m_detRowDim, m_detColDim, m_projAngleDim,
+		m_numberOfIterations;
 	int m_volDim[3];
 	double m_volSpacing[3];
 };

@@ -27,6 +27,9 @@
 #define ASTRA_CUDA
 //#include <astra/AstraObjectManager.h>
 #include <astra/CudaBackProjectionAlgorithm3D.h>
+#include <astra/CudaFDKAlgorithm3D.h>
+#include <astra/CudaCglsAlgorithm3D.h>
+#include <astra/CudaSirtAlgorithm3D.h>
 #include <astra/CudaForwardProjectionAlgorithm3D.h>
 #include <astra/CudaProjector3D.h>
 
@@ -65,20 +68,22 @@ void iAAstraAlgorithm::performWork()
 	freopen("CON", "w", stdout);
 	switch (m_type)
 	{
-	case ForwardProjection:
+	case FP3D:
 		ForwardProject();
 		break;
-	case FilteredBackProjection:
-		BackProject();
+	case BP3D:
+	case FDK3D:
+	case SIRT3D:
+	case CGLS3D:
+		BackProject(m_type);
 		break;
-	case SIRTBackProjection:
 	default:
 		DEBUG_LOG("Invalid Algorithm!");
 	}
 }
 
 
-void iAAstraAlgorithm::SetFwdProjectionParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+void iAAstraAlgorithm::SetFwdProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 	double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource)
 {
 	m_projGeomType = projGeomType;
@@ -94,11 +99,11 @@ void iAAstraAlgorithm::SetFwdProjectionParams(QString const & projGeomType, doub
 }
 
 
-void iAAstraAlgorithm::SetFBPParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+void iAAstraAlgorithm::SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 	double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
-	int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3])
+	int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations)
 {
-	SetFwdProjectionParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource);
+	SetFwdProjectParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource);
 	m_detRowDim = detRowDim;
 	m_detColDim = detColDim;
 	m_projAngleDim = projAngleDim;
@@ -107,6 +112,7 @@ void iAAstraAlgorithm::SetFBPParams(QString const & projGeomType, double detSpac
 		m_volDim[i] = volDim[i];
 		m_volSpacing[i] = volSpacing[i];
 	}
+	m_numberOfIterations = numOfIterations;
 }
 
 
@@ -176,10 +182,9 @@ void iAAstraAlgorithm::ForwardProject()
 	astra::CCudaForwardProjectionAlgorithm3D* algorithm = new astra::CCudaForwardProjectionAlgorithm3D();
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
-	int projDim[3] = { m_detRowCnt, m_detColCnt, m_projAnglesCount };
-	double projSpacing[3] = { m_detSpacingX, m_detSpacingY, m_detSpacingX };
+	int projDim[3] = { m_detRowCnt, m_detColCnt, m_projAnglesCount };     // "normalize" z spacing with projections count to make sinograms with different counts more easily comparable
+	double projSpacing[3] = { m_detSpacingX, m_detSpacingY, m_detSpacingX * 360 / m_projAnglesCount };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
-
 	FOR_VTKIMG_PIXELS(projImg, x, y, z)
 	{
 		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[y][z][x]);
@@ -194,8 +199,21 @@ void iAAstraAlgorithm::ForwardProject()
 }
 
 
-void iAAstraAlgorithm::BackProject()
+namespace
 {
+	void runFDK3D(astra::CCudaProjector3D* projector, astra::CFloat32ProjectionData3DMemory * projectionData, astra::CFloat32VolumeData3DMemory * volumeData)
+	{
+		astra::CCudaFDKAlgorithm3D* algorithm = new astra::CCudaFDKAlgorithm3D();
+		algorithm->initialize(projector, projectionData, volumeData);
+		algorithm->run();
+		delete algorithm;
+	}
+}
+
+
+void iAAstraAlgorithm::BackProject(AlgorithmType type)
+{
+	// cast input to float image and convert it to dimension order expected by astra:
 	vtkSmartPointer<vtkImageData> img = getConnector()->GetVTKImage();
 	int * dim = img->GetDimensions();
 	vtkNew<vtkImageCast> cast;
@@ -203,7 +221,6 @@ void iAAstraAlgorithm::BackProject()
 	cast->SetOutputScalarTypeToFloat();
 	cast->Update();
 	vtkSmartPointer<vtkImageData> float32Img = cast->GetOutput();
-
 	float* buf = new float[dim[0] * dim[1] * dim[2]];
 	FOR_VTKIMG_PIXELS(img, x, y, z)
 	{
@@ -214,12 +231,12 @@ void iAAstraAlgorithm::BackProject()
 		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
 	}
 
+	// create XML configuration:
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
 	astra::XMLNode gpuIndexOption = projectorConfig.self.addChildNode("Option");
 	gpuIndexOption.addAttribute("key", "GPUIndex");
 	gpuIndexOption.addAttribute("value", "0");
-
 	astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 	projGeomNode.addAttribute("type", m_projGeomType.toStdString());
 	projGeomNode.addChildNode("DetectorSpacingX", m_detSpacingX);
@@ -230,26 +247,22 @@ void iAAstraAlgorithm::BackProject()
 		qDegreesToRadians(m_projAngleEnd), m_projAnglesCount).toStdString());
 	projGeomNode.addChildNode("DistanceOriginDetector", m_distOrigDet);
 	projGeomNode.addChildNode("DistanceOriginSource", m_distOrigSource);
-
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	volGeomNode.addChildNode("GridColCount", 128);
 	volGeomNode.addChildNode("GridRowCount", 128);
 	volGeomNode.addChildNode("GridSliceCount", 128);
-
 	astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
 	winMinXOption.addAttribute("key", "WindowMinX");
 	winMinXOption.addAttribute("value", -m_volDim[0] * m_volSpacing[0] / 2.0);
 	astra::XMLNode winMaxXOption = volGeomNode.addChildNode("Option");
 	winMaxXOption.addAttribute("key", "WindowMaxX");
 	winMaxXOption.addAttribute("value", m_volDim[0] * m_volSpacing[0] / 2.0);
-
 	astra::XMLNode winMinYOption = volGeomNode.addChildNode("Option");
 	winMinYOption.addAttribute("key", "WindowMinY");
 	winMinYOption.addAttribute("value", -m_volDim[1] * m_volSpacing[1] / 2.0);
 	astra::XMLNode winMaxYOption = volGeomNode.addChildNode("Option");
 	winMaxYOption.addAttribute("key", "WindowMaxY");
 	winMaxYOption.addAttribute("value", m_volDim[1] * m_volSpacing[1] / 2.0);
-
 	astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
 	winMinZOption.addAttribute("key", "WindowMinZ");
 	winMinZOption.addAttribute("value", -m_volDim[2] * m_volSpacing[2] / 2.0);
@@ -257,18 +270,53 @@ void iAAstraAlgorithm::BackProject()
 	winMaxZOption.addAttribute("key", "WindowMaxZ");
 	winMaxZOption.addAttribute("value", m_volDim[2] * m_volSpacing[2] / 2.0);
 
+	// create Algorithm and run:
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
-
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), static_cast<astra::float32*>(buf));
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry());
+	switch (type)
+	{
+		case BP3D: {
+			astra::CCudaBackProjectionAlgorithm3D* bp3dalgo = new astra::CCudaBackProjectionAlgorithm3D();
+			bp3dalgo->initialize(projector, projectionData, volumeData);		// unfortunately, initialize is not virtual in CReconstructionAlgorithm3D, otherwise we could call it once after the switch...
+			bp3dalgo->run();
+			delete bp3dalgo;
+			break;
+		}
+		case FDK3D: {
+			astra::CCudaFDKAlgorithm3D* fdkalgo = new astra::CCudaFDKAlgorithm3D();
+			fdkalgo->initialize(projector, projectionData, volumeData);
+			fdkalgo->run();
+			delete fdkalgo;
+			break;
+		}
+		case SIRT3D:
+		case CGLS3D:
+			runFDK3D(projector, projectionData, volumeData);
+			switch (type)
+			{
+				case SIRT3D: {
+					astra::CCudaSirtAlgorithm3D* sirtalgo = new astra::CCudaSirtAlgorithm3D();
+					sirtalgo->initialize(projector, projectionData, volumeData);
+					sirtalgo->run(m_numberOfIterations);
+					delete sirtalgo;
+					break;
+				}
+				case CGLS3D: {
+					astra::CCudaCglsAlgorithm3D* cglsalgo = new astra::CCudaCglsAlgorithm3D();
+					cglsalgo->initialize(projector, projectionData, volumeData);
+					cglsalgo->run(m_numberOfIterations);
+					delete cglsalgo;
+				}
+			}
+			break;
+		default:
+			DEBUG_LOG("Unknown backprojection algorithm selected!");
+	}
 
-	astra::CCudaBackProjectionAlgorithm3D* algorithm = new astra::CCudaBackProjectionAlgorithm3D();
-	algorithm->initialize(projector, projectionData, volumeData);
-	algorithm->run();
-
+	// retrieve result image:
 	auto volImg = AllocateImage(VTK_FLOAT, m_volDim, m_volSpacing);
-
 	FOR_VTKIMG_PIXELS(volImg, x, y, z)
 	{
 		volImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[z][y][x]);
@@ -276,8 +324,8 @@ void iAAstraAlgorithm::BackProject()
 	getConnector()->SetImage(volImg);
 	getConnector()->Modified();
 
+	// cleanup
 	delete[] buf;
-	delete algorithm;
 	delete volumeData;
 	delete projectionData;
 	delete projector;

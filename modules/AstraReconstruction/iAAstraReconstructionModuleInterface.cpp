@@ -22,6 +22,7 @@
 #include "iAAstraReconstructionModuleInterface.h"
 
 #include "iAAstraAlgorithm.h"
+#include "iAConsole.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 #include "dlg_commoninput.h"
@@ -113,10 +114,10 @@ void iAAstraReconstructionModuleInterface::ForwardProject()
 	// start forward projection filter:
 	QString filterName = "Forward Projection";
 	PrepareResultChild(filterName);
-	iAAstraAlgorithm* fwdProjection = new iAAstraAlgorithm(iAAstraAlgorithm::ForwardProjection, filterName,
+	iAAstraAlgorithm* fwdProjection = new iAAstraAlgorithm(iAAstraAlgorithm::FP3D, filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	m_mdiChild->connectThreadSignalsToChildSlots(fwdProjection);
-	fwdProjection->SetFwdProjectionParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource);
+	fwdProjection->SetFwdProjectParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource);
 	fwdProjection->start();
 	m_mdiChild->addStatusMsg(filterName);
 	m_mainWnd->statusBar()->showMessage(filterName, 10000);
@@ -146,6 +147,8 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	volSpacing[0] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingX", 1).toDouble();
 	volSpacing[1] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingY", 1).toDouble();
 	volSpacing[2] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingZ", 1).toDouble();
+	algorithmType = settings.value("Tools/AstraReconstruction/BackProjection/algorithmType").toInt();
+	numberOfIterations = settings.value("Tools/AstraReconstruction/BackProjection/numberOfIterations", 100).toInt();
 	QStringList inList = (QStringList() << tr("+Projection Geometry Type")
 		<< tr("^Detector Spacing X") << tr("^Detector Spacing Y")
 		<< tr("+Detector Row Dimension") << tr("+Detector Column Dimension")
@@ -153,7 +156,21 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		<< tr("^Projection Angle Start [°]") << tr("^Projection Angle End [°]")
 		<< tr("^Distance Origin Detector") << tr("^Distance Origin Source")
 		<< tr("*Volume Width") << tr("*Volume Height") << tr("*Volume Depth")
-		<< tr("^Volume Spacing X") << tr("^Volume Spacing Y") << tr("^Volume Spacing Z"));
+		<< tr("^Volume Spacing X") << tr("^Volume Spacing Y") << tr("^Volume Spacing Z")
+		<< tr("+Algorithm")
+		<< tr("*Number of Iterations"));
+	QStringList AlgorithmTypes = QStringList()
+		<< "Backprojection"
+		<< "FDK 3D"
+		<< "SIRT 3D"
+		<< "CGLS 3D";
+	switch (algorithmType)
+	{
+		case iAAstraAlgorithm::BP3D:   AlgorithmTypes.replace(0, "!" + AlgorithmTypes[0]); break;
+		case iAAstraAlgorithm::FDK3D:  AlgorithmTypes.replace(1, "!" + AlgorithmTypes[1]); break;
+		case iAAstraAlgorithm::SIRT3D: AlgorithmTypes.replace(2, "!" + AlgorithmTypes[2]); break;
+		case iAAstraAlgorithm::CGLS3D: AlgorithmTypes.replace(3, "!" + AlgorithmTypes[3]); break;
+	}
 	const QStringList projectionGeometryTypes = QStringList() << QString("!") + "cone";
 	QList<QVariant> inPara; 	inPara << projectionGeometryTypes
 		<< tr("%1").arg(detSpacingX) << tr("%1").arg(detSpacingY)
@@ -161,7 +178,9 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		<< tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd)
 		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource)
 		<< tr("%1").arg(volDim[0]) << tr("%1").arg(volDim[1]) << tr("%1").arg(volDim[2])
-		<< tr("%1").arg(volSpacing[0]) << tr("%1").arg(volSpacing[1]) << tr("%1").arg(volSpacing[2]);
+		<< tr("%1").arg(volSpacing[0]) << tr("%1").arg(volSpacing[1]) << tr("%1").arg(volSpacing[2])
+		<< AlgorithmTypes
+		<< numberOfIterations;
 	dlg_commoninput dlg(m_mainWnd, "Back Projection", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
@@ -181,6 +200,15 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	volSpacing[0] = dlg.getDoubleSpinBoxValues()[13];
 	volSpacing[1] = dlg.getDoubleSpinBoxValues()[14];
 	volSpacing[2] = dlg.getDoubleSpinBoxValues()[15];
+	switch (dlg.getComboBoxIndices()[16])
+	{
+		case 0: algorithmType = iAAstraAlgorithm::BP3D;	  break;
+		case 1: algorithmType = iAAstraAlgorithm::FDK3D;  break;
+		case 2: algorithmType = iAAstraAlgorithm::SIRT3D; break;
+		case 3: algorithmType = iAAstraAlgorithm::CGLS3D; break;
+		default: DEBUG_LOG("Invalid Algorithm Type selection!"); return;
+	}
+	numberOfIterations = dlg.getSpinBoxValues()[17];
 	if (detColDim == detRowDim || detColDim == projAngleDim || detRowDim == projAngleDim)
 	{
 		child->addMsg("One of the axes (x, y, z) has been specified for more than one usage out of (detector row / detector column / projection angle) dimensions. "
@@ -206,15 +234,17 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingX", volSpacing[0]);
 	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingY", volSpacing[1]);
 	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingZ", volSpacing[2]);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/algorithmType", algorithmType);
+	settings.setValue("Tools/AstraReconstruction/BackProjection/numberOfIterations", numberOfIterations);
 	
 	// start back projection filter:
-	QString filterName = "Filtered Back-Projection";
+	QString filterName = dlg.getComboBoxValues()[16]; // string of algorithm type
 	PrepareResultChild(filterName);
-	iAAstraAlgorithm* backProjection = new iAAstraAlgorithm(iAAstraAlgorithm::FilteredBackProjection, filterName,
+	iAAstraAlgorithm* backProjection = new iAAstraAlgorithm(static_cast<iAAstraAlgorithm::AlgorithmType>(algorithmType), filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	m_mdiChild->connectThreadSignalsToChildSlots(backProjection);
-	backProjection->SetFBPParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource,
-		detRowDim, detColDim, projAngleDim, volDim, volSpacing);
+	backProjection->SetBckProjectParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource,
+		detRowDim, detColDim, projAngleDim, volDim, volSpacing, numberOfIterations);
 	backProjection->start();
 	m_mdiChild->addStatusMsg(filterName);
 	m_mainWnd->statusBar()->showMessage(filterName, 10000);

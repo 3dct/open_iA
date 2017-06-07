@@ -34,9 +34,9 @@ private:
 	QString projGeomType;
 	double detSpacingX, detSpacingY, distOrigDet, 
 		distOrigSource, projAngleStart, projAngleEnd;
-	int detRowCnt, detColCnt, projAnglesCount;
-
-	int detRowDim, detColDim, projAngleDim;
+	int detRowCnt, detColCnt, projAnglesCount,
+		detRowDim, detColDim, projAngleDim,
+		algorithmType, numberOfIterations;
 	int volDim[3];
 	double volSpacing[3];
 };
