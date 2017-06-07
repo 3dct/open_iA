@@ -536,17 +536,17 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	label5->setText("Output Datatype");
 	QStringList datatypecon = (QStringList() <<  tr("VTK_SIGNED_CHAR") <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_SHORT")
 		<<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE") );
-	comboBox = new QComboBox(this);
-	comboBox->insertItems(0,datatypecon);
+	cbDataType = new QComboBox(this);
+	cbDataType->insertItems(0,datatypecon);
 
-	checkbox1 = new QCheckBox(" Data Conversion of ROI ", this);
-	checkbox2 = new QCheckBox(" Use Maximum Datatype Range ", this);
+	chConvertROI = new QCheckBox(" Data Conversion of ROI ", this);
+	chUseMaxDatatypeRange = new QCheckBox(" Use Maximum Datatype Range ", this);
 
 	QHBoxLayout *hbox0 = new QHBoxLayout();
 	hbox0->addWidget(label5);
-	hbox0->addWidget(comboBox);
-	hbox0->addWidget(checkbox1);
-	hbox0->addWidget(checkbox2);
+	hbox0->addWidget(cbDataType);
+	hbox0->addWidget(chConvertROI);
+	hbox0->addWidget(chUseMaxDatatypeRange);
 
 	verticalLayout->addLayout(hbox0);
 
@@ -684,7 +684,7 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 	lineEdit2->setText(str[1].toString());
 	lineEdit3->setText(str[2].toString());
 	lineEdit4->setText(str[3].toString());
-	checkbox1->setChecked(str[4].toBool());
+	chConvertROI->setChecked(str[4].toBool());
 	lineEdit5->setText(str[5].toString());
 	lineEdit6->setText(str[6].toString());
 	lineEdit7->setText(str[7].toString());
@@ -1058,5 +1058,5 @@ double dlg_datatypeconversion::getlabelWidget9 (){return lineEdit8->text().toDou
 double dlg_datatypeconversion::getlabelWidget10 (){return lineEdit9->text().toDouble();};
 double dlg_datatypeconversion::getlabelWidget11 (){return lineEdit10->text().toDouble();};
 
-string dlg_datatypeconversion::getcombobox (){return comboBox->currentText().toStdString();};
-int dlg_datatypeconversion::getcheckbox1 (){return checkbox1->checkState();}
+QString dlg_datatypeconversion::getDataType() { return cbDataType->currentText(); };
+int dlg_datatypeconversion::getConvertROI(){return chConvertROI->checkState();}

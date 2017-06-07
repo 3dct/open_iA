@@ -76,8 +76,8 @@ public:
 	double getlabelWidget10();
 	double getlabelWidget11();
 
-	string getcombobox ();
-	int getcheckbox1 ();
+	QString getDataType();
+	int getConvertROI();
 	private slots:
 		void update(QString a);
 
@@ -102,8 +102,8 @@ private:
 
 	int m_xstart, m_xend, m_ystart, m_yend, m_zstart, m_zend;
 	QLineEdit* lineEdit1, *lineEdit2, *lineEdit3,*lineEdit4, *lineEdit5, *lineEdit6, *lineEdit7, *lineEdit8, *lineEdit9, *lineEdit10;
-	QComboBox* comboBox;
-	QCheckBox* checkbox1, * checkbox2;
+	QComboBox* cbDataType;
+	QCheckBox* chConvertROI, *chUseMaxDatatypeRange;
 	double m_roi[6];
 	double m_spacing[3];
 
