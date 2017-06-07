@@ -985,15 +985,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 		rawHeaderSize = dlg->getValues()[15];
 		headersize = rawHeaderSize;
-		 
-		if (dlg->getComboBoxValues()[14] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
-		if (dlg->getComboBoxValues()[14] == "VTK_CHAR") scalarType = VTK_CHAR;
-		if (dlg->getComboBoxValues()[14] == "VTK_UNSIGNED_SHORT") scalarType = VTK_UNSIGNED_SHORT;
-		if (dlg->getComboBoxValues()[14] == "VTK_SHORT") scalarType = VTK_SHORT;
-		if (dlg->getComboBoxValues()[14] == "VTK_UNSIGNED_INT") scalarType = VTK_UNSIGNED_INT;
-		if (dlg->getComboBoxValues()[14] == "VTK_INT") scalarType = VTK_INT;
-		if (dlg->getComboBoxValues()[14] == "VTK_FLOAT") scalarType = VTK_FLOAT;
-		if (dlg->getComboBoxValues()[14] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
+		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValues()[14]);
 		rawScalarType = scalarType;
 
 		if (dlg->getComboBoxValues()[16] == "Little Endian") 

@@ -40,6 +40,8 @@ vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFl
 
 void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
 
+int MapVTKTypeStringToInt(QString const & vtkTypeName);
+
 bool isVtkIntegerType(int type);
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \

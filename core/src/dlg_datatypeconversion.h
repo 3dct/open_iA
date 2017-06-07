@@ -59,8 +59,8 @@ public:
 	void xyprojectslices();
 	void xzprojectslices();
 	void yzprojectslices();
-	QString coreconversionfunction(QString filename, QString & finalfilename, double* para, string indatatype, string outdatatype, double minrange, double maxrange, double minout, double maxout, int check);
-	QString coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, string indatatype, string outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi);
+	QString coreconversionfunction(QString filename, QString & finalfilename, double* para, int indatatype, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check);
+	QString coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi);
 	void updatevalues(double* inPara);
 	virtual void changeEvent();
 	void updateroi( );
@@ -90,7 +90,7 @@ private:
 	QTabWidget* TabWidget;
 	int m_bins;
 	vtkImageData* imageData;
-	string m_intype;
+	int m_intype;
 	double m_sliceskip, m_insizex,	m_insizey, m_insizez, m_inspacex, m_inspacey, m_inspacez;
 	string m_filename;
 	iAAbstractDiagramData::DataType * m_histbinlist;

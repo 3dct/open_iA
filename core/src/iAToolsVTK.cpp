@@ -116,3 +116,22 @@ bool isVtkIntegerType(int type)
 		type == VTK_LONG || type == VTK_UNSIGNED_LONG ||
 		type == VTK_LONG_LONG || type == VTK_UNSIGNED_LONG_LONG;
 }
+
+int MapVTKTypeStringToInt(QString const & vtkTypeName)
+{
+	if (vtkTypeName == "VTK_VOID")           return VTK_VOID;
+	if (vtkTypeName == "VTK_BIT")            return VTK_BIT;
+	if (vtkTypeName == "VTK_UNSIGNED_CHAR")  return VTK_UNSIGNED_CHAR;
+	if (vtkTypeName == "VTK_SIGNED_CHAR")    return VTK_SIGNED_CHAR;
+	if (vtkTypeName == "VTK_CHAR")           return VTK_CHAR;
+	if (vtkTypeName == "VTK_UNSIGNED_SHORT") return VTK_UNSIGNED_SHORT;
+	if (vtkTypeName == "VTK_SHORT")          return VTK_SHORT;
+	if (vtkTypeName == "VTK_UNSIGNED_INT")   return VTK_UNSIGNED_INT;
+	if (vtkTypeName == "VTK_INT")            return VTK_INT;
+	if (vtkTypeName == "VTK_UNSIGNED_LONG")  return VTK_UNSIGNED_LONG;
+	if (vtkTypeName == "VTK_LONG")           return VTK_LONG;
+	if (vtkTypeName == "VTK_FLOAT")          return VTK_FLOAT;
+	if (vtkTypeName == "VTK_DOUBLE")         return VTK_DOUBLE;
+	if (vtkTypeName == "VTK_ID_TYPE")        return VTK_ID_TYPE;
+	return -1;
+}

@@ -36,6 +36,7 @@
 #include "iAModuleDispatcher.h"
 #include "iARenderer.h"
 #include "iASlicerData.h"
+#include "iAToolsVTK.h"
 #include "mdichild.h"
 
 #include <vtkCamera.h>
@@ -2289,30 +2290,20 @@ void MainWindow::OpenWithDataTypeConversion()
 	);
 
 	QStringList datatype = (QStringList()
-		<<  tr("VTK_SIGNED_CHAR") <<  tr("VTK_UNSIGNED_CHAR")
-		<<  tr("VTK_SHORT")	      <<  tr("VTK_UNSIGNED_SHORT")
-		<<  tr("VTK_INT")         <<  tr("VTK_UNSIGNED_INT")
-		<<  tr("VTK_FLOAT")
-		<<  tr("VTK_DOUBLE") );
-
+		<< tr("VTK_SIGNED_CHAR") << tr("VTK_UNSIGNED_CHAR")
+		<< tr("VTK_SHORT")       << tr("VTK_UNSIGNED_SHORT")
+		<< tr("VTK_INT")         << tr("VTK_UNSIGNED_INT")
+		<< tr("VTK_FLOAT")       << tr("VTK_DOUBLE") );
 	QStringList inList = (QStringList()
 		<< tr("+Data Type")
 		<< tr("#Slice sample rate")
-		<< tr("# Dim X")
-		<< tr("# Dim Y")
-		<< tr("# Dim Z")
-		<< tr("# Space X")
-		<< tr("# Space Y")
-		<< tr("# Space Z"));
+		<< tr("# Dim X")   << tr("# Dim Y")   << tr("# Dim Z")
+		<< tr("# Space X") << tr("# Space Y") << tr("# Space Z"));
 	QList<QVariant> inPara;
 	inPara << datatype
 		<< tr("%1").arg(owdtcs)
-		<< tr("%1").arg(owdtcx)
-		<< tr("%1").arg(owdtcy)
-		<< tr("%1").arg(owdtcz)
-		<< tr("%1").arg(owdtcsx)
-		<< tr("%1").arg(owdtcsy)
-		<< tr("%1").arg(owdtcsz);
+		<< tr("%1").arg(owdtcx) << tr("%1").arg(owdtcy) << tr("%1").arg(owdtcz)
+		<< tr("%1").arg(owdtcsx)<< tr("%1").arg(owdtcsy)<< tr("%1").arg(owdtcsz);
 
 	dlg_commoninput dlg(this, "Open With DataType Conversion", inList, inPara, NULL);
 
