@@ -1309,28 +1309,18 @@ bool iAIO::setupStackReader( QString f )
 
 	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 
-	if (dlg.exec() == QDialog::Accepted){
-
-		fileNamesBase = dlg.getText()[0];
-		extension = dlg.getText()[1];
-		digitsInIndex = dlg.getValues()[2];
-		indexRange[0] = dlg.getValues()[3]; indexRange[1]= dlg.getValues()[4];
-		spacing[0] = dlg.getValues()[5]; spacing[1]= dlg.getValues()[6]; spacing[2] = dlg.getValues()[7];
-		origin[0] = dlg.getValues()[8]; origin[1]= dlg.getValues()[9]; origin[2] = dlg.getValues()[10];
-		 
-		if (dlg.getComboBoxValues()[11] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
-		if (dlg.getComboBoxValues()[11] == "VTK_CHAR") scalarType = VTK_CHAR;
-		if (dlg.getComboBoxValues()[11] == "VTK_UNSIGNED_SHORT") scalarType = VTK_UNSIGNED_SHORT;
-		if (dlg.getComboBoxValues()[11] == "VTK_SHORT") scalarType = VTK_SHORT;
-		if (dlg.getComboBoxValues()[11] == "VTK_UNSIGNED_INT") scalarType = VTK_UNSIGNED_INT;
-		if (dlg.getComboBoxValues()[11] == "VTK_INT") scalarType = VTK_INT;
-		if (dlg.getComboBoxValues()[11] == "VTK_FLOAT") scalarType = VTK_FLOAT;
-		if (dlg.getComboBoxValues()[11] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
-
-		FillFileNameArray(indexRange, digitsInIndex);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return false;
 	}
-	else return false;
-
+	fileNamesBase = dlg.getText()[0];
+	extension = dlg.getText()[1];
+	digitsInIndex = dlg.getValues()[2];
+	indexRange[0] = dlg.getValues()[3]; indexRange[1]= dlg.getValues()[4];
+	spacing[0] = dlg.getValues()[5]; spacing[1]= dlg.getValues()[6]; spacing[2] = dlg.getValues()[7];
+	origin[0] = dlg.getValues()[8]; origin[1]= dlg.getValues()[9]; origin[2] = dlg.getValues()[10];
+	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValues()[11]);
+	FillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
 
