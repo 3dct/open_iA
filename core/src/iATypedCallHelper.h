@@ -30,7 +30,6 @@
 // and such |foo| function definition:
 //   template <ColumnType T>
 //   void foo(t1 arg1, t2 arg2) {
-//     
 //   }
 //
 // instead of writing (won't compile):
