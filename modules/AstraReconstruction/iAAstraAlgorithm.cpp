@@ -248,9 +248,9 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	projGeomNode.addChildNode("DistanceOriginDetector", m_distOrigDet);
 	projGeomNode.addChildNode("DistanceOriginSource", m_distOrigSource);
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
-	volGeomNode.addChildNode("GridColCount", 128);
-	volGeomNode.addChildNode("GridRowCount", 128);
-	volGeomNode.addChildNode("GridSliceCount", 128);
+	volGeomNode.addChildNode("GridColCount", m_volDim[0]);
+	volGeomNode.addChildNode("GridRowCount", m_volDim[1]);
+	volGeomNode.addChildNode("GridSliceCount", m_volDim[2]);
 	astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
 	winMinXOption.addAttribute("key", "WindowMinX");
 	winMinXOption.addAttribute("value", -m_volDim[0] * m_volSpacing[0] / 2.0);

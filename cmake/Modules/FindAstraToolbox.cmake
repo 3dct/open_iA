@@ -17,9 +17,10 @@ SET (ASTRA_TOOLBOX_LIBRARIES "ASTRA_TOOLBOX_LIBRARIES-NOTFOUND")
 SET (ASTRA_TOOLBOX_INCLUDE_DIRS "ASTRA_TOOLBOX_INCLUDE_DIRS-NOTFOUND")
 
 # ToDo: Fix to include correct library for both Debug and Release build!
-find_library(ASTRA_TOOLBOX_LIBRARIES AstraCuda64D
+find_library(ASTRA_TOOLBOX_LIBRARIES AstraCuda64
     PATHS ${ASTRA_TOOLBOX_DIR}/bin/x64/Release_CUDA
-    PATHS ${ASTRA_TOOLBOX_DIR}/bin/x64/Debug_CUDA
+    ${ASTRA_TOOLBOX_DIR}/bin/x64/Debug_CUDA
+	${ASTRA_TOOLBOX_DIR}/mex
 )
 
 find_path(ASTRA_INCLUDE_DIR astra/Algorithm.h

@@ -31,6 +31,8 @@
 
 #include <QSettings>
 
+#include <cassert>
+
 //#include <windows.h>
 
 namespace
