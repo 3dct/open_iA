@@ -86,8 +86,6 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 	iteratortype iter (itkimage, itkimage->GetRequestedRegion());
 	iter.GoToBegin();
 
-	typename std::vector<unsigned int> m_VolumeCount ( (b[7]+1), 0 );
-
 	typename InputImageType::PixelType buffer;
 	unsigned long datatypesize = sizeof(buffer);
 	long slicesize = b[1]*b[2];
@@ -96,7 +94,8 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 	int numsliceread = 0;
 
 	long totalsize = b[1]*b[2]*b[3]*datatypesize;
-	float min = 65535000;	float max = 0;
+	double min = std::numeric_limits<double>::max();
+	double max = std::numeric_limits<double>::lowest();
 
 	//calculation of minimum and maximum
 	fseek ( pFile , 0 , SEEK_SET );
@@ -116,13 +115,10 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 	while (loop)
 	{
 		result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile);
-
-		//histogram code
-		unsigned short Pixel_test = ((buffer-min)/discretization); //static_cast<PixelType> 
+		size_t binIdx = ((buffer-min)/discretization);
 		iter.Set(buffer);
 		++iter;
-		long long value = m_VolumeCount[Pixel_test];	
-		m_VolumeCount[Pixel_test] = value + 1;	
+		histptr[binIdx] += 1;
 		slicecounter++;
 		if ( slicecounter == slicesize )
 		{
@@ -132,19 +128,10 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 			if ( skipmemory < totalsize )
 			{	fseek ( pFile , skipmemory , SEEK_SET );	}
 			else
-			{	loop = 0;	}//ifelse
-		}//if
-	}//while
-	fclose(pFile);
-
-	for ( typename  std::vector<unsigned int>::iterator iter = m_VolumeCount.begin() ; iter != m_VolumeCount.end(); ++iter )
-	{
-		*histptr = *iter;
-		histptr++;
+			{	loop = 0;	}
+		}
 	}
-
-	for (int i = 0; i < (b[7]+1); i++)
-	{	histptr--;	}
+	fclose(pFile);
 
 	*m_min = min;	*m_max = max;	*m_dis = discretization;
 
@@ -374,8 +361,8 @@ template<class T> int DataTypeConversionROI_template( string m_filename, double*
 	//int slicecounter = 0;
 
 	//long totalsize = b[1]*b[2]*b[3]*datatypesize;
-	float min = 65535;
-	float max = 0;
+	float min = std::numeric_limits<float>::max();
+	float max = std::numeric_limits<float>::lowest();
 
 	//calculation of minimum and maximum
 	fseek ( pFile , 0 , SEEK_SET );
@@ -492,8 +479,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	m_min = 0; m_max = 0; m_dis = 0;
 	m_roi[0]= 0; m_roi[1] = 0; m_roi[2]= 0; m_roi[3]= m_insizex; m_roi[4] = m_insizey; m_roi[5] = m_insizez;
 
-
-	m_histbinlist = (iAAbstractDiagramData::DataType*) malloc (sizeof(iAAbstractDiagramData::DataType)*m_bins);
+	m_histbinlist = new iAAbstractDiagramData::DataType[m_bins];
 
 	DataTypeConversion(m_filename, b);
 
@@ -685,7 +671,7 @@ void dlg_datatypeconversion::changeEvent()
 
 dlg_datatypeconversion::~dlg_datatypeconversion()
 {
-
+	delete[] m_histbinlist;
 }
 
 void dlg_datatypeconversion::updatevalues(double* inPara)
@@ -713,8 +699,8 @@ void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* h
 	vtkPiecewiseFunction* piecewiseFunction = vtkPiecewiseFunction::New();
 	vtkColorTransferFunction* colorTransferFunction = vtkColorTransferFunction::New();
 
-	iAHistogramWidget *imgHistogram = new iAHistogramWidget(TabWidget, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction );
-	imgHistogram->datatypehistograminitialize(imageAccumulate, histbinlist, 1,  min, max , m_bins, discretization);
+	iAHistogramWidget *imgHistogram = new iAHistogramWidget(TabWidget, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction,
+		histbinlist, min, max , m_bins, discretization);
 	imgHistogram->updateTrf();
 	imgHistogram->redraw();
 	TabWidget->addTab(imgHistogram, QString("Histogram"));
