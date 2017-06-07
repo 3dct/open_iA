@@ -8,8 +8,13 @@ SET( DEPENDENCIES_CMAKE
 )
 
 # Libraries which are used by the module
-SET( DEPENDENCIES_LIBRARIES
-	${ASTRA_TOOLBOX_LIBRARIES}
+SET( DEPENDENCIES_LIBRARIES_DEBUG
+	${ASTRA_TOOLBOX_LIBRARIES_DEBUG}
+)
+
+# Libraries which are used by the module
+SET( DEPENDENCIES_LIBRARIES_RELEASE
+	${ASTRA_TOOLBOX_LIBRARIES_RELEASE}
 )
 
 # Include directories used by the module
