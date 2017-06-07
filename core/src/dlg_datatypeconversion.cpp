@@ -112,6 +112,7 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 	// copy the file into the buffer:
 	bool loop = 1; 
 	fseek ( pFile , 0 , SEEK_SET );
+	std::fill(histptr, histptr + static_cast<size_t>(b[7]), 0);
 	while (loop)
 	{
 		result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile);
