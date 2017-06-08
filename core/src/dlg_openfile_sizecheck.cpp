@@ -21,6 +21,7 @@
  
 #include "pch.h"
 #include "dlg_openfile_sizecheck.h"
+#include "iAToolsVTK.h"
 
 #include <QComboBox>
 #include <QFileInfo>
@@ -65,7 +66,7 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 }
 
 
-int dlg_openfile_sizecheck::CheckFileSize()
+void dlg_openfile_sizecheck::CheckFileSize()
 {
 	size_t extent[3];
 	size_t voxelSize = 0; 
@@ -82,8 +83,5 @@ int dlg_openfile_sizecheck::CheckFileSize()
 		voxelSize = MapVTKTypeStringToSize(getComboBoxValues()[14]);
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
-
 	proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
-
-	return 1;
 }

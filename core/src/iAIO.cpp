@@ -33,6 +33,7 @@
 #include "iAProgress.h"
 #include "iAVolumeStack.h"
 #include "iAToolsVTK.h"
+#include "iATypedCallHelper.h"
 
 #include <itkExceptionObject.h>
 #include <itkGDCMImageIO.h>
@@ -93,7 +94,7 @@ const QString iAIO::VolstackExtension(".volstack");
  */
 template<class T> int read_raw_image_template ( int d, unsigned long h, int bO,
 											  int* e, double* sp, double* o, QString f, 
-											  iAProgress* p, iAConnector* image, T  )
+											  iAProgress* p, iAConnector* image  )
 {
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
 	typename RawImageIOType::Pointer io = RawImageIOType::New();
@@ -671,33 +672,7 @@ bool iAIO::readRawImage()
 {
 	try
 	{
-		switch (scalarType) // This filter handles all types
-		{
-		case VTK_UNSIGNED_CHAR:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<unsigned char>(0));  break;
-		case VTK_CHAR:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<char>(0));  break;
-		case VTK_UNSIGNED_SHORT:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<unsigned short>(0));  break;
-		case VTK_SHORT:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<short>(0));  break;
-		case VTK_UNSIGNED_INT:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<unsigned int>(0));  break;
-		case VTK_INT:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<int>(0));  break;
-		case VTK_UNSIGNED_LONG:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<unsigned long>(0));  break;
-		case VTK_LONG:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<int>(0));  break;
-		case VTK_FLOAT:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<float>(0));  break;
-		case VTK_DOUBLE:
-			read_raw_image_template(dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector(), static_cast<double>(0));  break;
-		case VTK_VOID:
-		default:
-			emit msg(tr("  unknown component type"));
-			return false;
-		}
+		VTK_TYPED_CALL(read_raw_image_template, scalarType, dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector());
 	}
 	catch (itk::ExceptionObject &excep)
 	{

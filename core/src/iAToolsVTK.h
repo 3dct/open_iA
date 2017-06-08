@@ -43,6 +43,8 @@ void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
 
 int MapVTKTypeStringToInt(QString const & vtkTypeName);
 
+int MapVTKTypeStringToSize(QString const & vtkTypeString);
+
 bool isVtkIntegerType(int type);
 
 QStringList const & VTKDataTypeList();

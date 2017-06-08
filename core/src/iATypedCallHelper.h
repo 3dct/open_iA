@@ -82,43 +82,44 @@
 	}														\
 }
 
-#define VTK_TYPED_CALL(function, vtk_scalar_type, ...)				\
-{																	\
-	switch (vtk_scalar_type)										\
-	{																\
-	case VTK_UNSIGNED_CHAR:											\
-		function<unsigned char>(__VA_ARGS__);						\
-		break;														\
-	case VTK_CHAR:													\
-		function<char>(__VA_ARGS__);								\
-		break;														\
-	case VTK_SHORT:													\
-		function<short>(__VA_ARGS__);								\
-		break;														\
-	case VTK_UNSIGNED_SHORT:										\
-		function<unsigned short>(__VA_ARGS__);						\
-		break;														\
-	case VTK_INT:													\
-		function<int>(__VA_ARGS__);									\
-		break;														\
-	case VTK_UNSIGNED_INT:											\
-		function<unsigned int>(__VA_ARGS__);						\
-		break;														\
-	case VTK_LONG:													\
-		function<long>(__VA_ARGS__);								\
-		break;														\
-	case VTK_UNSIGNED_LONG:											\
-		function<unsigned long>(__VA_ARGS__);						\
-		break;														\
-	case VTK_FLOAT:													\
-		function<float>(__VA_ARGS__);								\
-		break;														\
-	case VTK_DOUBLE:												\
-		function<double>(__VA_ARGS__);								\
-		break;														\
-	default:														\
-	throw itk::ExceptionObject(__FILE__, __LINE__,					\
-		"Typed Call: Unknown component type.");						\
-	break;															\
-	}																\
+#define VTK_TYPED_CALL(function, vtk_scalar_type, ...)		\
+{															\
+	switch (vtk_scalar_type)								\
+	{														\
+	case VTK_UNSIGNED_CHAR:									\
+		function<unsigned char>(__VA_ARGS__);				\
+		break;												\
+	case VTK_SIGNED_CHAR:									\
+	case VTK_CHAR:											\
+		function<char>(__VA_ARGS__);						\
+		break;												\
+	case VTK_SHORT:											\
+		function<short>(__VA_ARGS__);						\
+		break;												\
+	case VTK_UNSIGNED_SHORT:								\
+		function<unsigned short>(__VA_ARGS__);				\
+		break;												\
+	case VTK_INT:											\
+		function<int>(__VA_ARGS__);							\
+		break;												\
+	case VTK_UNSIGNED_INT:									\
+		function<unsigned int>(__VA_ARGS__);				\
+		break;												\
+	case VTK_LONG:											\
+		function<long>(__VA_ARGS__);						\
+		break;												\
+	case VTK_UNSIGNED_LONG:									\
+		function<unsigned long>(__VA_ARGS__);				\
+		break;												\
+	case VTK_FLOAT:											\
+		function<float>(__VA_ARGS__);						\
+		break;												\
+	case VTK_DOUBLE:										\
+		function<double>(__VA_ARGS__);						\
+		break;												\
+	default:												\
+	throw itk::ExceptionObject(__FILE__, __LINE__,			\
+		"Typed Call: Unknown component type.");				\
+	break;													\
+	}														\
 }
