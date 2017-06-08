@@ -2339,17 +2339,17 @@ void MainWindow::OpenWithDataTypeConversion()
 		return;
 	}
 	QString outDataType = conversionwidget->getDataType();
-	owdtcmin = conversionwidget->getlabelWidget1(); owdtcmax = conversionwidget->getlabelWidget2();
-	owdtcoutmin = conversionwidget->getlabelWidget3(); owdtcoutmax = conversionwidget->getlabelWidget4();
+	owdtcmin = conversionwidget->getRangeLower(); owdtcmax = conversionwidget->getRangeUpper();
+	owdtcoutmin = conversionwidget->getOutputMin(); owdtcoutmax = conversionwidget->getOutputMax();
 	owdtcdov = conversionwidget->getConvertROI();
-	owdtcxori = conversionwidget->getlabelWidget6();   owdtcxsize = conversionwidget->getlabelWidget7();
-	owdtcyori = conversionwidget->getlabelWidget8();   owdtcysize = conversionwidget->getlabelWidget9();
-	owdtczori = conversionwidget->getlabelWidget10();  owdtczsize = conversionwidget->getlabelWidget11();
+	owdtcxori = conversionwidget->getXOrigin(); owdtcxsize = conversionwidget->getXSize();
+	owdtcyori = conversionwidget->getYOrigin(); owdtcysize = conversionwidget->getYSize();
+	owdtczori = conversionwidget->getZOrigin(); owdtczsize = conversionwidget->getZSize();
 
 	double roi[6];
-	roi[0] = conversionwidget->getlabelWidget6();  roi[1] = conversionwidget->getlabelWidget7();
-	roi[2] = conversionwidget->getlabelWidget8();  roi[3] = conversionwidget->getlabelWidget9();
-	roi[4] = conversionwidget->getlabelWidget10(); roi[5] = conversionwidget->getlabelWidget11();
+	roi[0] = owdtcxori; roi[1] = owdtcxsize;
+	roi[2] = owdtcyori; roi[3] = owdtcysize;
+	roi[4] = owdtczori; roi[5] = owdtczsize;
 
 	if ( owdtcdov == 0 )
 	{
@@ -2360,7 +2360,8 @@ void MainWindow::OpenWithDataTypeConversion()
 	}
 	else
 	{
-		testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para, MapVTKTypeStringToInt(outDataType),
+		testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para,
+			MapVTKTypeStringToInt(outDataType),
 			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi  );
 	}
 	loadFile(testfinalfilename, false);

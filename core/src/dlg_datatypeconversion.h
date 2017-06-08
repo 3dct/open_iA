@@ -65,16 +65,16 @@ public:
 	virtual void changeEvent();
 	void updateroi( );
 
-	double getlabelWidget1 ();
-	double getlabelWidget2 ();
-	double getlabelWidget3 ();
-	double getlabelWidget4 ();
-	double getlabelWidget6 ();
-	double getlabelWidget7 ();
-	double getlabelWidget8 ();
-	double getlabelWidget9 ();
-	double getlabelWidget10();
-	double getlabelWidget11();
+	double getRangeLower();
+	double getRangeUpper();
+	double getOutputMin();
+	double getOutputMax();
+	double getXOrigin();
+	double getXSize();
+	double getYOrigin();
+	double getYSize();
+	double getZOrigin();
+	double getZSize();
 
 	QString getDataType();
 	int getConvertROI();
@@ -101,7 +101,7 @@ private:
 	iAConnector* xyconvertimage;	iAConnector* xzconvertimage; iAConnector* yzconvertimage;
 
 	int m_xstart, m_xend, m_ystart, m_yend, m_zstart, m_zend;
-	QLineEdit* lineEdit1, *lineEdit2, *lineEdit3,*lineEdit4, *lineEdit5, *lineEdit6, *lineEdit7, *lineEdit8, *lineEdit9, *lineEdit10;
+	QLineEdit* leRangeLower, *leRangeUpper, *leOutputMin,*leOutputMax, *leXOrigin, *leXSize, *leYOrigin, *leYSize, *leZOrigin, *leZSize;
 	QComboBox* cbDataType;
 	QCheckBox* chConvertROI, *chUseMaxDatatypeRange;
 	double m_roi[6];

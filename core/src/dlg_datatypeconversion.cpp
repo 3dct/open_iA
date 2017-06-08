@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "dlg_datatypeconversion.h"
 
@@ -375,27 +374,21 @@ template<class T> int DataTypeConversionROI_template( string m_filename, double*
 		{	max = buffer;	}
 	}
 
-	//float discretization = (float)((max-min)/(b[7]));
-
-	//create the container for the histogram
 	bool loop = 1; 
 	// copy the file into the buffer:
 	fseek ( pFile , 0 , SEEK_SET );
 	while (loop)
 	{
 		result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile);
-
 		if ( result )
 		{
-			//unsigned short Pixel_test = ((buffer-min)/discretization); //static_cast<PixelType> 
 			iter.Set(buffer);
 			++iter;
 		}
 		else
 		{	loop = 0;	}
-	}//while
+	}
 	fclose(pFile);
-
 
 	typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
 	typename EIFType::Pointer filter = EIFType::New();
@@ -457,8 +450,8 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzconvertimage = new iAConnector();
 	yzconvertimage = new iAConnector();
 
-	xyroiSource = vtkPlaneSource::New();	xzroiSource = vtkPlaneSource::New();
-	xyroiMapper = vtkPolyDataMapper::New();	xzroiMapper = vtkPolyDataMapper::New();
+	xyroiSource = vtkPlaneSource::New(); xyroiMapper = vtkPolyDataMapper::New();
+	xzroiSource = vtkPlaneSource::New(); xzroiMapper = vtkPolyDataMapper::New();
 	xyroiActor = vtkActor::New();	xzroiActor = vtkActor::New();
 	xyrenderer = vtkRenderer::New();
 	xzrenderer = vtkRenderer::New();
@@ -541,115 +534,115 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	cbDataType->insertItems(0,datatypecon);
 
 	chConvertROI = new QCheckBox(" Data Conversion of ROI ", this);
+	/*
 	chUseMaxDatatypeRange = new QCheckBox(" Use Maximum Datatype Range ", this);
-
 	QHBoxLayout *hbox0 = new QHBoxLayout();
 	hbox0->addWidget(label5);
 	hbox0->addWidget(cbDataType);
 	hbox0->addWidget(chConvertROI);
 	hbox0->addWidget(chUseMaxDatatypeRange);
-
 	verticalLayout->addLayout(hbox0);
+	*/
 
 	QLabel *label1 = new QLabel(this, 0);
 	label1->setMinimumWidth(50);
 	label1->setText("Lower Range");
-	lineEdit1 = new QLineEdit(this);
-	lineEdit1->setMinimumWidth(50);
+	leRangeLower = new QLineEdit(this);
+	leRangeLower->setMinimumWidth(50);
 
 	QLabel *label2 = new QLabel(this, 0);
 	label2->setMinimumWidth(50);
 	label2->setText("Upper Range");
-	lineEdit2 = new QLineEdit(this);
-	lineEdit2->setMinimumWidth(50);
+	leRangeUpper = new QLineEdit(this);
+	leRangeUpper->setMinimumWidth(50);
 
 	QHBoxLayout *hbox1 = new QHBoxLayout();
 	hbox1->addWidget(label1);
-	hbox1->addWidget(lineEdit1);
+	hbox1->addWidget(leRangeLower);
 	hbox1->addWidget(label2);
-	hbox1->addWidget(lineEdit2);
+	hbox1->addWidget(leRangeUpper);
 	verticalLayout->addLayout(hbox1);
 
 	QLabel *label3 = new QLabel(this, 0);
 	label3->setMinimumWidth(50);
 	label3->setText("Minimum Output Value");
-	lineEdit3 = new QLineEdit(this);
-	lineEdit3->setMinimumWidth(50);
+	leOutputMin = new QLineEdit(this);
+	leOutputMin->setMinimumWidth(50);
 
 	QLabel *label4 = new QLabel(this, 0);
 	label4->setMinimumWidth(50);
 	label4->setText("Maximum Output Value");
-	lineEdit4 = new QLineEdit(this);
-	lineEdit4->setMinimumWidth(50);
+	leOutputMax = new QLineEdit(this);
+	leOutputMax->setMinimumWidth(50);
 
 	QHBoxLayout *hbox2 = new QHBoxLayout();
 	hbox2->addWidget(label3);
-	hbox2->addWidget(lineEdit3);
+	hbox2->addWidget(leOutputMin);
 	hbox2->addWidget(label4);
-	hbox2->addWidget(lineEdit4);
+	hbox2->addWidget(leOutputMax);
 	verticalLayout->addLayout(hbox2);
 
 	QLabel *label6 = new QLabel(this, 0);
 	label6->setMinimumWidth(50);
 	label6->setText("X Origin");
-	lineEdit5 = new QLineEdit(this);
-	lineEdit5->setMinimumWidth(50);
-	lineEdit5->setObjectName("labelWidget6");
+	leXOrigin = new QLineEdit(this);
+	leXOrigin->setMinimumWidth(50);
+	leXOrigin->setObjectName("XOrigin");
 
 	QLabel *label7 = new QLabel(this, 0);
 	label7->setMinimumWidth(50);
 	label7->setText("X Size");
-	lineEdit6 = new QLineEdit(this);
-	lineEdit6->setMinimumWidth(50);
-	lineEdit6->setObjectName("labelWidget7");
+	leXOrigin = new QLineEdit(this);
+	leXSize->setMinimumWidth(50);
+	leXSize->setObjectName("XSize");
 
 	QHBoxLayout *hbox3 = new QHBoxLayout();
 	hbox3->addWidget(label6);
-	hbox3->addWidget(lineEdit5);
+	hbox3->addWidget(leXOrigin);
 	hbox3->addWidget(label7);
-	hbox3->addWidget(lineEdit6);
+	hbox3->addWidget(leXSize);
 	verticalLayout->addLayout(hbox3);
 
 	QLabel *label8 = new QLabel(this, 0);
 	label8->setMinimumWidth(50);
 	label8->setText("Y Origin");
-	lineEdit7 = new QLineEdit(this);
-	lineEdit7->setMinimumWidth(50);
-	lineEdit7->setObjectName("labelWidget8");
+	leYOrigin = new QLineEdit(this);
+	leYOrigin->setMinimumWidth(50);
+	leYOrigin->setObjectName("YOrigin");
 
 	QLabel *label9 = new QLabel(this, 0);
 	label9->setMinimumWidth(50);
 	label9->setText("Y Size");
-	lineEdit8 = new QLineEdit(this);
-	lineEdit8->setMinimumWidth(50);
-	lineEdit8->setObjectName("labelWidget9");
+	leYSize = new QLineEdit(this);
+	leYSize->setMinimumWidth(50);
+	leYSize->setObjectName("YSize");
 
 	QHBoxLayout *hbox4 = new QHBoxLayout();
 	hbox4->addWidget(label8);
-	hbox4->addWidget(lineEdit7);
+	hbox4->addWidget(leYOrigin);
 	hbox4->addWidget(label9);
-	hbox4->addWidget(lineEdit8);
+	hbox4->addWidget(leYSize);
 	verticalLayout->addLayout(hbox4);
 
 	QLabel *label10 = new QLabel(this, 0);
 	label10->setMinimumWidth(50);
 	label10->setText("Z Origin");
-	lineEdit9 = new QLineEdit(this);
-	lineEdit9->setMinimumWidth(50);
-	lineEdit9->setObjectName("labelWidget10");
+	leZOrigin = new QLineEdit(this);
+	leZOrigin->setMinimumWidth(50);
+	leZOrigin->setObjectName("ZOrigin");
 
 	QLabel *label11 = new QLabel(this, 0);
 	label11->setMinimumWidth(50);
 	label11->setText("Z Size");
-	lineEdit10 = new QLineEdit(this);
-	lineEdit10->setMinimumWidth(50);
-	lineEdit10->setObjectName("labelWidget11");
+	leZSize = new QLineEdit(this);
+	leZSize->setMinimumWidth(50);
+	leZSize->setObjectName("ZSize");
 
 	QHBoxLayout *hbox5 = new QHBoxLayout();
 	hbox5->addWidget(label10);
-	hbox5->addWidget(lineEdit9);
+	hbox5->addWidget(leZOrigin);
 	hbox5->addWidget(label11);
-	hbox5->addWidget(lineEdit10);
+	hbox5->addWidget(leZSize);
 	verticalLayout->addLayout(hbox5);
 
 	updatevalues( inPara );
@@ -657,12 +650,12 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	//add the ok and cancel button to the verticalLayout
 	verticalLayout->addWidget(buttonBox);
 
-	connect(lineEdit5, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit6, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit7, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit8, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit9, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit10, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leXOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leXSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leYOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leYSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leZOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leZSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
 }
 
 void dlg_datatypeconversion::changeEvent()
@@ -681,17 +674,17 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 	str <<  tr("%1").arg(inPara[0]) <<  tr("%1").arg(inPara[1]) <<  tr("%1").arg(inPara[2]) <<  tr("%1").arg(inPara[3]) 
 		<<  tr("%1").arg(inPara[4]) <<  tr("%1").arg(inPara[5])	<<  tr("%1").arg(inPara[6]) <<  tr("%1").arg(inPara[7]) 
 		<<  tr("%1").arg(inPara[8]) <<  tr("%1").arg(inPara[9]) <<  tr("%1").arg(inPara[10]);
-	lineEdit1->setText(str[0].toString());
-	lineEdit2->setText(str[1].toString());
-	lineEdit3->setText(str[2].toString());
-	lineEdit4->setText(str[3].toString());
+	leRangeLower->setText(str[0].toString());
+	leRangeUpper->setText(str[1].toString());
+	leOutputMin->setText(str[2].toString());
+	leOutputMax->setText(str[3].toString());
 	chConvertROI->setChecked(str[4].toBool());
-	lineEdit5->setText(str[5].toString());
-	lineEdit6->setText(str[6].toString());
-	lineEdit7->setText(str[7].toString());
-	lineEdit8->setText(str[8].toString());
-	lineEdit9->setText(str[9].toString());
-	lineEdit10->setText(str[10].toString());
+	leXOrigin->setText(str[5].toString());
+	leXSize->setText(str[6].toString());
+	leYOrigin->setText(str[7].toString());
+	leYSize->setText(str[8].toString());
+	leZOrigin->setText(str[9].toString());
+	leZSize->setText(str[10].toString());
 }
 
 void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* histbinlist, float min, float max, int m_bins, double discretization )
@@ -716,7 +709,6 @@ void dlg_datatypeconversion::xyprojectslices()
 	imageAccumulate->SetInputData(m_testxyimage);
 	imageAccumulate->Update();
 	table->SetRange(imageAccumulate->GetMin()[0], imageAccumulate->GetMax()[0]); // image intensity range
-
 	table->SetValueRange(0.0, 1.0); // from black to white
 	table->SetSaturationRange(0.0, 0.0); // no color saturation
 	table->SetRampToLinear();
@@ -1019,17 +1011,17 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 void dlg_datatypeconversion::update(QString a ) 
 {
 	QString senderName = QObject::sender()->objectName();
-	if (senderName.compare("labelWidget11") == 0)
+	if (senderName.compare("ZSize") == 0)
 	{	m_roi[5] = a.toDouble();}
-	if (senderName.compare("labelWidget10") == 0)
+	if (senderName.compare("ZOrigin") == 0)
 	{	m_roi[2] = a.toDouble();}
-	if (senderName.compare("labelWidget9") == 0)
+	if (senderName.compare("YSize") == 0)
 	{	m_roi[4] = a.toDouble();}
-	if (senderName.compare("labelWidget8") == 0)
+	if (senderName.compare("YOrigin") == 0)
 	{	m_roi[1] = a.toDouble();}
-	if (senderName.compare("labelWidget7") == 0)
+	if (senderName.compare("XSize") == 0)
 	{	m_roi[3] = a.toDouble();}
-	if (senderName.compare("labelWidget6") == 0)
+	if (senderName.compare("XOrigin") == 0)
 	{	m_roi[0] = a.toDouble();}
 	updateroi();
 }
@@ -1048,16 +1040,16 @@ void dlg_datatypeconversion::updateroi( )
 	vtkWidgetXZ->update();
 }
 
-double dlg_datatypeconversion::getlabelWidget1 (){return lineEdit1->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget2 (){return lineEdit2->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget3 (){return lineEdit3->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget4 (){return lineEdit4->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget6 (){return lineEdit5->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget7 (){return lineEdit6->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget8 (){return lineEdit7->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget9 (){return lineEdit8->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget10 (){return lineEdit9->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget11 (){return lineEdit10->text().toDouble();};
+double dlg_datatypeconversion::getRangeLower() { return leRangeLower->text().toDouble(); }
+double dlg_datatypeconversion::getRangeUpper() { return leRangeUpper->text().toDouble(); }
+double dlg_datatypeconversion::getOutputMin()  { return leOutputMin ->text().toDouble(); }
+double dlg_datatypeconversion::getOutputMax()  { return leOutputMax ->text().toDouble(); }
+double dlg_datatypeconversion::getXOrigin()    { return leXOrigin   ->text().toDouble(); }
+double dlg_datatypeconversion::getXSize()      { return leXSize     ->text().toDouble(); }
+double dlg_datatypeconversion::getYOrigin()    { return leYOrigin   ->text().toDouble(); }
+double dlg_datatypeconversion::getYSize()      { return leYSize     ->text().toDouble(); }
+double dlg_datatypeconversion::getZOrigin()    { return leZOrigin   ->text().toDouble(); }
+double dlg_datatypeconversion::getZSize()      { return leZSize     ->text().toDouble(); }
 
-QString dlg_datatypeconversion::getDataType() { return cbDataType->currentText(); };
-int dlg_datatypeconversion::getConvertROI(){return chConvertROI->checkState();}
+QString dlg_datatypeconversion::getDataType()  { return cbDataType->currentText(); }
+int dlg_datatypeconversion::getConvertROI()    { return chConvertROI->checkState();}
