@@ -938,11 +938,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 	fileNamesBase = f;
 	extension = "." + QFileInfo(f).suffix();
-	QStringList datatype = (QStringList()
-		<< tr("VTK_UNSIGNED_CHAR") << tr("VTK_CHAR")
-		<< tr("VTK_UNSIGNED_SHORT") << tr("VTK_SHORT")
-		<< tr("VTK_UNSIGNED_INT") << tr("VTK_INT")
-		<< tr("VTK_FLOAT") << tr("VTK_DOUBLE"));
+	QStringList datatype(VTKDataTypeList());
 	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
@@ -1005,11 +1001,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 bool iAIO::setupRAWReader( QString f )
 {
-	QStringList datatype = (QStringList()
-		<< tr("VTK_UNSIGNED_CHAR") << tr("VTK_CHAR")
-		<< tr("VTK_UNSIGNED_SHORT") << tr("VTK_SHORT")
-		<< tr("VTK_UNSIGNED_INT") << tr("VTK_INT")
-		<< tr("VTK_FLOAT") << tr("VTK_DOUBLE"));
+	QStringList datatype(VTKDataTypeList());
 	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
@@ -1047,16 +1039,7 @@ bool iAIO::setupRAWReader( QString f )
 		rawHeaderSize = dlg->getValues()[9];
 		headersize = rawHeaderSize;
 		fileName = f;
-				
-		if (dlg->getComboBoxValues()[10] == "VTK_UNSIGNED_CHAR") scalarType = VTK_UNSIGNED_CHAR;
-		if (dlg->getComboBoxValues()[10] == "VTK_CHAR") scalarType = VTK_CHAR;
-		if (dlg->getComboBoxValues()[10] == "VTK_UNSIGNED_SHORT") scalarType = VTK_UNSIGNED_SHORT;
-		if (dlg->getComboBoxValues()[10] == "VTK_SHORT") scalarType = VTK_SHORT;
-		if (dlg->getComboBoxValues()[10] == "VTK_UNSIGNED_INT") scalarType = VTK_UNSIGNED_INT;
-		if (dlg->getComboBoxValues()[10] == "VTK_INT") scalarType = VTK_INT;
-		if (dlg->getComboBoxValues()[10] == "VTK_FLOAT") scalarType = VTK_FLOAT;
-		if (dlg->getComboBoxValues()[10] == "VTK_DOUBLE") scalarType = VTK_DOUBLE;
-		
+		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValues()[10]);
 		rawScalarType = scalarType;
 		if (dlg->getComboBoxValues()[11] == "Little Endian") 
 			byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
@@ -1293,7 +1276,6 @@ bool iAIO::setupStackReader( QString f )
 
 	fileNamesBase = f;
 	extension = "." + QFileInfo(f).suffix();
-	QStringList datatype = (QStringList() <<  tr("VTK_UNSIGNED_SHORT") << tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_CHAR") <<   tr("VTK_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE"));
 	QStringList inList		= (QStringList() 
 		<< tr("#File Names Base") << tr("#Extension") 
 		<< tr("#Number of Digits in Index")
@@ -1305,7 +1287,7 @@ bool iAIO::setupStackReader( QString f )
 		<< tr("%1").arg(digitsInIndex) 
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << datatype);
+		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << VTKDataTypeList());
 
 	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 

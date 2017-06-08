@@ -73,32 +73,13 @@ int dlg_openfile_sizecheck::CheckFileSize()
 
 	if (!isVolumeStack) {
 		extent[0] = getValues()[0]; extent[1]= getValues()[1]; extent[2] = getValues()[2];     
-
-		if (getComboBoxValues()[10] == "VTK_UNSIGNED_CHAR") voxelSize = sizeof(unsigned char);
-		else if (getComboBoxValues()[10] == "VTK_UNSIGNED_SHORT") voxelSize = sizeof(unsigned short);
-		else if (getComboBoxValues()[10] == "VTK_FLOAT") voxelSize = sizeof(float);
-		else if (getComboBoxValues()[10] == "VTK_UNSIGNED_CHAR") voxelSize = sizeof(unsigned char);
-		else if (getComboBoxValues()[10] == "VTK_CHAR") voxelSize = sizeof(char);
-		else if (getComboBoxValues()[10] == "VTK_SHORT") voxelSize = sizeof(short);
-		else if (getComboBoxValues()[10] == "VTK_UNSIGNED_INT") voxelSize = sizeof(unsigned int);
-		else if (getComboBoxValues()[10] == "VTK_INT") voxelSize = sizeof(int);
-		else if (getComboBoxValues()[10] == "VTK_DOUBLE") voxelSize = sizeof(double);
-
+		voxelSize = MapVTKTypeStringToSize(getComboBoxValues()[10]);
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
 	else 
 	{
 		extent[0] = getValues()[5]; extent[1]= getValues()[6]; extent[2] = getValues()[7];
-		if (getComboBoxValues()[14] == "VTK_UNSIGNED_CHAR") voxelSize = sizeof(unsigned char);
-		else if (getComboBoxValues()[14] == "VTK_UNSIGNED_SHORT") voxelSize = sizeof(unsigned short);
-		else if (getComboBoxValues()[14] == "VTK_FLOAT") voxelSize = sizeof(float);
-		else if (getComboBoxValues()[14] == "VTK_UNSIGNED_CHAR") voxelSize = sizeof(unsigned char);
-		else if (getComboBoxValues()[14] == "VTK_CHAR") voxelSize = sizeof(char);
-		else if (getComboBoxValues()[14] == "VTK_SHORT") voxelSize = sizeof(short);
-		else if (getComboBoxValues()[14] == "VTK_UNSIGNED_INT") voxelSize = sizeof(unsigned int);
-		else if (getComboBoxValues()[14] == "VTK_INT") voxelSize = sizeof(int);
-		else if (getComboBoxValues()[14] == "VTK_DOUBLE") voxelSize = sizeof(double);
-
+		voxelSize = MapVTKTypeStringToSize(getComboBoxValues()[14]);
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
 

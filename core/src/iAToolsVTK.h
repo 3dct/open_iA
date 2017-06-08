@@ -27,6 +27,7 @@
 class vtkImageData;
 
 class QString;
+class QStringList;
 
 // image creation:
 void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output);
@@ -43,6 +44,8 @@ void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
 int MapVTKTypeStringToInt(QString const & vtkTypeName);
 
 bool isVtkIntegerType(int type);
+
+QStringList const & VTKDataTypeList();
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \
     int * dims = img->GetDimensions(); \

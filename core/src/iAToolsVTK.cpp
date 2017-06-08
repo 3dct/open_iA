@@ -20,15 +20,20 @@
 * ************************************************************************************/
 #include "iAToolsVTK.h"
 
-#include <vtkImageData.h>
-
 #include "iAConnector.h"
 #include "iAITKIO.h"
 #include "iAVtkDraw.h"
 
-
-
+#include <vtkBMPWriter.h>
+#include <vtkImageData.h>
+#include <vtkImageWriter.h>
+#include <vtkJPEGWriter.h>
 #include <vtkObjectFactory.h>
+#include <vtkPNGWriter.h>
+#include <vtkTIFFWriter.h>
+
+#include <QFileInfo>
+#include <QStringList>
 
 // declared in iAVtkDraw.h
 vtkStandardNewMacro(iAvtkImageData);
@@ -77,15 +82,6 @@ vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFl
 	return con.GetVTKImage();
 }
 
-#include <vtkImageWriter.h>
-
-#include <vtkBMPWriter.h>
-#include <vtkJPEGWriter.h>
-#include <vtkPNGWriter.h>
-#include <vtkTIFFWriter.h>
-
-#include <QFileInfo>
-
 void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)
 {
 	QFileInfo fi(filename);
@@ -117,21 +113,45 @@ bool isVtkIntegerType(int type)
 		type == VTK_LONG_LONG || type == VTK_UNSIGNED_LONG_LONG;
 }
 
-int MapVTKTypeStringToInt(QString const & vtkTypeName)
+int MapVTKTypeStringToInt(QString const & vtkTypeString)
 {
-	if (vtkTypeName == "VTK_VOID")           return VTK_VOID;
-	if (vtkTypeName == "VTK_BIT")            return VTK_BIT;
-	if (vtkTypeName == "VTK_UNSIGNED_CHAR")  return VTK_UNSIGNED_CHAR;
-	if (vtkTypeName == "VTK_SIGNED_CHAR")    return VTK_SIGNED_CHAR;
-	if (vtkTypeName == "VTK_CHAR")           return VTK_CHAR;
-	if (vtkTypeName == "VTK_UNSIGNED_SHORT") return VTK_UNSIGNED_SHORT;
-	if (vtkTypeName == "VTK_SHORT")          return VTK_SHORT;
-	if (vtkTypeName == "VTK_UNSIGNED_INT")   return VTK_UNSIGNED_INT;
-	if (vtkTypeName == "VTK_INT")            return VTK_INT;
-	if (vtkTypeName == "VTK_UNSIGNED_LONG")  return VTK_UNSIGNED_LONG;
-	if (vtkTypeName == "VTK_LONG")           return VTK_LONG;
-	if (vtkTypeName == "VTK_FLOAT")          return VTK_FLOAT;
-	if (vtkTypeName == "VTK_DOUBLE")         return VTK_DOUBLE;
-	if (vtkTypeName == "VTK_ID_TYPE")        return VTK_ID_TYPE;
+	if (vtkTypeString == "VTK_VOID")           return VTK_VOID;
+	if (vtkTypeString == "VTK_BIT")            return VTK_BIT;
+	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return VTK_UNSIGNED_CHAR;
+	if (vtkTypeString == "VTK_SIGNED_CHAR")    return VTK_SIGNED_CHAR;
+	if (vtkTypeString == "VTK_CHAR")           return VTK_CHAR;
+	if (vtkTypeString == "VTK_UNSIGNED_SHORT") return VTK_UNSIGNED_SHORT;
+	if (vtkTypeString == "VTK_SHORT")          return VTK_SHORT;
+	if (vtkTypeString == "VTK_UNSIGNED_INT")   return VTK_UNSIGNED_INT;
+	if (vtkTypeString == "VTK_INT")            return VTK_INT;
+	if (vtkTypeString == "VTK_UNSIGNED_LONG")  return VTK_UNSIGNED_LONG;
+	if (vtkTypeString == "VTK_LONG")           return VTK_LONG;
+	if (vtkTypeString == "VTK_FLOAT")          return VTK_FLOAT;
+	if (vtkTypeString == "VTK_DOUBLE")         return VTK_DOUBLE;
+	if (vtkTypeString == "VTK_ID_TYPE")        return VTK_ID_TYPE;
 	return -1;
+}
+
+int MapVTKTypeStringToSize(QString const & vtkTypeString)
+{
+	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return sizeof(unsigned char);
+	if (vtkTypeString == "VTK_UNSIGNED_SHORT") return sizeof(unsigned short);
+	if (vtkTypeString == "VTK_FLOAT")          return sizeof(float);
+	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return sizeof(unsigned char);
+	if (vtkTypeString == "VTK_CHAR")           return sizeof(char);
+	if (vtkTypeString == "VTK_SHORT")          return sizeof(short);
+	if (vtkTypeString == "VTK_UNSIGNED_INT")   return sizeof(unsigned int);
+	if (vtkTypeString == "VTK_INT")            return sizeof(int);
+	if (vtkTypeString == "VTK_DOUBLE")         return sizeof(double);
+	return -1;
+}
+
+QStringList const & VTKDataTypeList()
+{
+	static QStringList datatypeList = (QStringList()
+		<< "VTK_UNSIGNED_CHAR"  << "VTK_CHAR"
+		<< "VTK_UNSIGNED_SHORT" << "VTK_SHORT"
+		<< "VTK_UNSIGNED_INT"   << "VTK_INT"
+		<< "VTK_FLOAT" << "VTK_DOUBLE");
+	return datatypeList;
 }
