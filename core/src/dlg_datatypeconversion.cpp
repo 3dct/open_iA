@@ -460,11 +460,8 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzconvertimage = new iAConnector();
 	yzconvertimage = new iAConnector();
 
-	xyroiSource = vtkPlaneSource::New(); xyroiMapper = vtkPolyDataMapper::New();
-	xzroiSource = vtkPlaneSource::New(); xzroiMapper = vtkPolyDataMapper::New();
-	xyroiActor = vtkActor::New();	xzroiActor = vtkActor::New();
-	xyrenderer = vtkRenderer::New();
-	xzrenderer = vtkRenderer::New();
+	xyroiSource = vtkSmartPointer<vtkPlaneSource>::New();
+	xzroiSource = vtkSmartPointer<vtkPlaneSource>::New();
 
 	this->setWindowTitle("DatatypeConversion");
 	this->setMinimumWidth(c[0]*0.5);
@@ -733,33 +730,35 @@ void dlg_datatypeconversion::xyprojectslices()
 	// Display the image
 	vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
 	actor->SetInputData(color->GetOutput());
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	window->AddRenderer(renderer);
 
-	xywindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	xywindow->AddRenderer(xyrenderer);
-
-	xyroiMapper->SetInputConnection( xyroiSource->GetOutputPort() );
-	xyroiActor->SetVisibility( true );
-	xyroiActor->SetMapper( xyroiMapper );
-	xyroiActor->GetProperty()->SetColor( 1, 0, 0 );
-	xyroiActor->GetProperty()->SetOpacity( 1 );
+	auto roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	roiMapper->SetInputConnection( xyroiSource->GetOutputPort() );
+	auto roiActor = vtkSmartPointer<vtkActor>::New();
+	roiActor->SetVisibility( true );
+	roiActor->SetMapper( roiMapper );
+	roiActor->GetProperty()->SetColor( 1, 0, 0 );
+	roiActor->GetProperty()->SetOpacity( 1 );
 
 	xyroiSource->SetCenter( 0, 0, 1 );
-	xyroiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
+	roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
 
 	xyroiSource->SetOrigin(0, 0, 0);
 	xyroiSource->SetPoint1(3, 0 , 0); 
 	xyroiSource->SetPoint2(0 , 3, 0);
-	xyroiMapper->Update( );
+	roiMapper->Update( );
 
-	xyrenderer->AddActor(xyroiActor);
-	xyrenderer->AddActor(actor);
+	renderer->AddActor(actor);
+	renderer->AddActor(roiActor);
 
-	vtkWidgetXY->SetRenderWindow(xywindow);
+	vtkWidgetXY->SetRenderWindow(window);
 	vtkSmartPointer<vtkInteractorStyleImage> imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
-	xywindow->GetInteractor()->SetInteractorStyle(imageStyle);
+	window->GetInteractor()->SetInteractorStyle(imageStyle);
 
 	vtkWidgetXY->update();
-	xywindow->Render();
+	window->Render();
 }
 
 void dlg_datatypeconversion::xzprojectslices()
@@ -815,37 +814,37 @@ void dlg_datatypeconversion::xzprojectslices()
 	color->SetInputConnection(reslice->GetOutputPort());
 
 	// Display the image
-	vtkSmartPointer<vtkImageActor> xzactor = vtkSmartPointer<vtkImageActor>::New();
-	xzactor->SetInputData(color->GetOutput());
+	vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+	actor->SetInputData(color->GetOutput());
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
 
-	vtkSmartPointer<vtkRenderer> xzrenderer = vtkSmartPointer<vtkRenderer>::New();
-	xzrenderer->AddActor(xzactor);
-
-	xzwindow =	vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	xzwindow->AddRenderer(xzrenderer);
-
-	xzroiMapper->SetInputConnection( xzroiSource->GetOutputPort() );
-	xzroiActor->SetVisibility( true );
-	xzroiActor->SetMapper( xzroiMapper );
-	xzroiActor->GetProperty()->SetColor( 1, 0, 0 );
-	xzroiActor->GetProperty()->SetOpacity( 1 );
+	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	window->AddRenderer(renderer);
+	auto roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	roiMapper->SetInputConnection( xzroiSource->GetOutputPort() );
+	auto roiActor = vtkSmartPointer<vtkActor>::New();
+	roiActor->SetVisibility( true );
+	roiActor->SetMapper( roiMapper );
+	roiActor->GetProperty()->SetColor( 1, 0, 0 );
+	roiActor->GetProperty()->SetOpacity( 1 );
 
 	xzroiSource->SetCenter( 0, 0, 1 );
-	xzroiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
+	roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
 
 	xzroiSource->SetOrigin(0, -m_insizez, 0);
 	xzroiSource->SetPoint1(10, -m_insizez , 0);
 	xzroiSource->SetPoint2(0 , 2, 0);
-	xzroiMapper->Update( );
+	roiMapper->Update( );
 
-	xzrenderer->AddActor(xzroiActor);
+	renderer->AddActor(actor);
+	renderer->AddActor(roiActor);
 
-	vtkWidgetXZ->SetRenderWindow(xzwindow);
+	vtkWidgetXZ->SetRenderWindow(window);
 	vtkSmartPointer<vtkInteractorStyleImage> xzimageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
-	xzwindow->GetInteractor()->SetInteractorStyle(xzimageStyle);
+	window->GetInteractor()->SetInteractorStyle(xzimageStyle);
 
 	vtkWidgetXZ->update();
-	xzwindow->Render();
+	window->Render();
 }
 
 template <typename T>
@@ -959,18 +958,12 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 void dlg_datatypeconversion::update(QString a)
 {
 	QString senderName = QObject::sender()->objectName();
-	if (senderName.compare("ZSize") == 0)
-	{	m_roi[5] = a.toDouble();}
-	if (senderName.compare("ZOrigin") == 0)
-	{	m_roi[2] = a.toDouble();}
-	if (senderName.compare("YSize") == 0)
-	{	m_roi[4] = a.toDouble();}
-	if (senderName.compare("YOrigin") == 0)
-	{	m_roi[1] = a.toDouble();}
-	if (senderName.compare("XSize") == 0)
-	{	m_roi[3] = a.toDouble();}
-	if (senderName.compare("XOrigin") == 0)
-	{	m_roi[0] = a.toDouble();}
+	if (senderName.compare("XOrigin") == 0) { m_roi[0] = a.toDouble(); }
+	if (senderName.compare("YOrigin") == 0) { m_roi[1] = a.toDouble(); }
+	if (senderName.compare("ZOrigin") == 0) { m_roi[2] = a.toDouble(); }
+	if (senderName.compare("XSize") == 0)   { m_roi[3] = a.toDouble(); }
+	if (senderName.compare("YSize") == 0)   { m_roi[4] = a.toDouble(); }
+	if (senderName.compare("ZSize") == 0)	{ m_roi[5] = a.toDouble(); }
 	updateroi();
 }
 

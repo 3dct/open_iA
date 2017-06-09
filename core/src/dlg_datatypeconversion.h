@@ -26,13 +26,8 @@
 class iAConnector;
 
 class QVTKWidget2;
-class vtkActor;
-class vtkGenericOpenGLRenderWindow;
 class vtkImageData;
 class vtkPlaneSource;
-class vtkPolyDataMapper;
-class vtkRenderer;
-class vtkRenderWindowInteractor;
 
 class QCheckBox;
 class QComboBox;
@@ -106,9 +101,5 @@ private:
 	double m_roi[6];
 	double m_spacing[3];
 
-	vtkPlaneSource *xyroiSource, *xzroiSource;
-	vtkPolyDataMapper *xyroiMapper, *xzroiMapper;
-	vtkActor *xyroiActor, *xzroiActor;
-	vtkRenderer* xyrenderer, *xzrenderer;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> xywindow, xzwindow;
+	vtkSmartPointer<vtkPlaneSource> xyroiSource, xzroiSource;
 };
