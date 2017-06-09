@@ -187,7 +187,7 @@ void iAAstraAlgorithm::ForwardProject()
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
 	FOR_VTKIMG_PIXELS(projImg, x, y, z)
 	{
-		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[y][z][x]);
+		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[x][z][y]);
 	}
 	getConnector()->SetImage(projImg);
 	getConnector()->Modified();
@@ -210,6 +210,7 @@ namespace
 	}
 }
 
+//#include <vtkMetaImageWriter.h>
 
 void iAAstraAlgorithm::BackProject(AlgorithmType type)
 {
@@ -227,9 +228,10 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 		int detCol = (m_detColDim == 0) ? x : (m_detColDim == 1) ? y : z;
 		int detRow = (m_detRowDim == 0) ? x : (m_detRowDim == 1) ? y : z;
 		int projAngle = (m_projAngleDim == 0) ? x : (m_projAngleDim == 1) ? y : z;
-		int index = detCol + projAngle*m_detColCnt + detRow*m_detColCnt*m_projAnglesCount;
+		int index = detRow + projAngle*m_detRowCnt + detCol*m_detRowCnt*m_projAnglesCount;
 		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
 	}
+	//vtkNew<vtkMetaImageWriter> writer;
 
 	// create XML configuration:
 	astra::Config projectorConfig;
@@ -293,7 +295,7 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 		}
 		case SIRT3D:
 		case CGLS3D:
-			runFDK3D(projector, projectionData, volumeData);
+			//runFDK3D(projector, projectionData, volumeData);
 			switch (type)
 			{
 				case SIRT3D: {
