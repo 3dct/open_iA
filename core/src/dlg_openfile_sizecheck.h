@@ -56,5 +56,5 @@ private slots:
 /**
 * \brief	Check if parameters fit actual file size.
 */
-	int CheckFileSize();
+	void CheckFileSize();
 };

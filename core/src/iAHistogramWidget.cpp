@@ -46,6 +46,24 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkIm
 	initialize(accumulate, reset);
 }
 
+iAHistogramWidget::iAHistogramWidget(QWidget *parent,
+	MdiChild * mdiChild,
+	vtkImageAccumulate* accumulate,
+	vtkPiecewiseFunction* oTF,
+	vtkColorTransferFunction* cTF,
+	iAAbstractDiagramData::DataType* histData,
+	iAAbstractDiagramData::DataType dataMin,
+	iAAbstractDiagramData::DataType dataMax,
+	int bins,
+	double space,
+	QString label,
+	bool reset)
+	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
+{
+	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
+	datatypehistograminitialize(accumulate, histData, reset, dataMin, dataMax, bins, space);
+}
+
 void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, bool reset)
 {
 	data->initialize(accumulate);

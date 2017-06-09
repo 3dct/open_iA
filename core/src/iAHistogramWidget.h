@@ -43,6 +43,18 @@ public:
 		vtkColorTransferFunction* cTF,
 		QString label = "Greyvalue",
 		bool reset = true);
+	iAHistogramWidget(QWidget *parent,
+		MdiChild * mdiChild,
+		vtkImageAccumulate* accumulate,
+		vtkPiecewiseFunction* oTF,
+		vtkColorTransferFunction* cTF,
+		iAAbstractDiagramData::DataType* histData,
+		iAAbstractDiagramData::DataType min,
+		iAAbstractDiagramData::DataType max,
+		int bins,
+		double space,
+		QString label,
+		bool reset = true);
 	void initialize(vtkImageAccumulate* histData, bool reset);
 	void datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histData, bool reset,
 		iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space);

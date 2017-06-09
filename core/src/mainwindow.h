@@ -227,9 +227,15 @@ private:
 	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
 	//! @}
 	//! @{ Open with DataType Conversion settings
-	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;
+	int owdtcs,
+		owdtcx, owdtcy, owdtcz,
+		owdtcxori, owdtcyori, owdtczori,
+		owdtcxsize, owdtcysize, owdtczsize,
+		owdtcdov;
+	double owdtcsx, owdtcsy, owdtcsz,
+		owdtcoutmin, owdtcoutmax;
+	float owdtcmin, owdtcmax;
 	//! @}
-	float owdtcmin, owdtcmax; double owdtcoutmin, owdtcoutmax; int owdtcdov ;//openwithdatatype
 
 	bool lpCamera, lpSliceViews, lpTransferFunction, lpProbabilityFunctions, lpPreferences, lpRenderSettings, lpSlicerSettings;
 	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
