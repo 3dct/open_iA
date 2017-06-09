@@ -52,7 +52,7 @@ SET( ITK_LIBRARIES
 	ITKVtkGlue				ITKKLMRegionGrowing		ITKMesh				ITKOptimizers		ITKPath
 	ITKVNLInstantiation		ITKVTK					ITKWatersheds		ITKDICOMParser		ITKEXPAT
 	ITKLabelMap				itkjpeg					ITKMetaIO			itkNetlibSlatec
-	ITKniftiio				ITKNrrdIO				itkopenjpeg			itkpng				itksys
+	ITKniftiio				ITKNrrdIO				itkpng				itksys
 	itktiff					itkv3p_netlib			itkvcl				itkvnl				itkvnl_algo
 	ITKznz
 )
@@ -87,6 +87,10 @@ IF (ITK_USE_SYSTEM_FFTW)
 		#INSTALL (FILES ${ITK_FFTW_LIBDIR}/libfftw3f-3.so DESTINATION .)
 	ENDIF (MSVC)
 ENDIF (ITK_USE_SYSTEM_FFTW)
+IF (ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 12)
+	# apparently, in 4.12 the itkopenjpeg.lib isn't built anymore by default
+	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkopenjpeg)
+ENDIF()
 IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 		# starting with ITK 4.5, there is an implicit dependency on ITKIOMRC:
 	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
