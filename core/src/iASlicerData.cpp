@@ -870,11 +870,11 @@ void iASlicerData::saveImageStack()
 	//Determine extension
 	QFileInfo fileInfo(file);
 	int ext;
-	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
+	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
 		ext = 1;
 	} else if (QString::compare(fileInfo.suffix(), "PNG", Qt::CaseInsensitive) == 0) {
 		ext = 2;
-	} else if ((QString::compare(fileInfo.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(pars.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
+	} else if ((QString::compare(fileInfo.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fileInfo.suffix(), "JPEG", Qt::CaseInsensitive) == 0)){
 		ext = 3;
 	} else if (QString::compare(fileInfo.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
 		ext = 4;
