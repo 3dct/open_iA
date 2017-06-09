@@ -289,7 +289,13 @@ void iACalculatePorePropertiesThread::run()
 
 				if ( dx == 0 && dy == 0 )
 				{
-					phi = 0.0; theta = 0.0; a11 = 0.0; a22 = 0.0; a12 = 0.0; a13 = 0.0; a23 = 0.0; 
+					phi = 0.0;
+					theta = 0.0;
+					a11 = 0.0;
+					a22 = 0.0;
+					a12 = 0.0;
+					a13 = 0.0;
+					a23 = 0.0;
 				}
 
 				majorlength = labelGeometryImageFilter->GetMajorAxisLength( labelValue );
