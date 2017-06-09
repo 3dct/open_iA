@@ -51,7 +51,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkVersion.h>
 
 #include <QCheckBox>
 #include <QComboBox>
