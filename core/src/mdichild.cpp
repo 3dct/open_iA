@@ -985,22 +985,22 @@ QString GetSupportedPixelTypeString(QVector<int> const & types)
 
 bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 {
-	QFileInfo pars(f);
-	if (QString::compare(pars.suffix(), "STL", Qt::CaseInsensitive) == 0) {
+	QFileInfo fileInfo(f);
+	if (QString::compare(fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0) {
 		if (polyData->GetNumberOfPoints() <= 1)	{
 			QMessageBox::warning(this, tr("Save File"), tr("Model contains no data. Saving aborted."));
 			return false;
 		} else {
-			if ( !ioThread->setupIO(STL_WRITER, pars.absoluteFilePath() ) ) return false;
+			if ( !ioThread->setupIO(STL_WRITER, fileInfo.absoluteFilePath() ) ) return false;
 		}
 	} else {
 		if (!IsVolumeDataLoaded()) {
 			QMessageBox::warning(this, tr("Save File"), tr("Image contains no data. Saving aborted.")); return false;
 		} else {
-			if ((QString::compare(pars.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
-				(QString::compare(pars.suffix(), "MHA", Qt::CaseInsensitive) == 0))
+			if ((QString::compare(fileInfo.suffix(), "MHD", Qt::CaseInsensitive) == 0) ||
+				(QString::compare(fileInfo.suffix(), "MHA", Qt::CaseInsensitive) == 0))
 			{
-					if ( !ioThread->setupIO(MHD_WRITER, pars.absoluteFilePath(), preferences.Compression) )
+					if ( !ioThread->setupIO(MHD_WRITER, fileInfo.absoluteFilePath(), preferences.Compression) )
 						return false;
 					setCurrentFile(f);
 					m_mainWnd->setCurrentFile(f);	// TODO: VOLUME: do in setCurrentFile member method?
@@ -1022,7 +1022,7 @@ bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 				supportedPixelTypes.insert(PNG_STACK_WRITER, pngJpgBmpSupported);
 				supportedPixelTypes.insert(JPG_STACK_WRITER, pngJpgBmpSupported);
 
-				QString suffix = pars.suffix().toUpper();
+				QString suffix = fileInfo.suffix().toUpper();
 				if (!extensionToSaveId.contains(suffix))
 				{
 					return false;
@@ -1036,7 +1036,7 @@ bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 						.arg(GetSupportedPixelTypeString(supportedPixelTypes[ioID])));
 					return false;
 				}
-				if (!ioThread->setupIO(ioID, pars.absoluteFilePath()))
+				if (!ioThread->setupIO(ioID, fileInfo.absoluteFilePath()))
 				{
 					return false;
 				}
