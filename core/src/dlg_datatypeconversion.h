@@ -54,7 +54,6 @@ public:
 	QString coreconversionfunction(QString filename, QString & finalfilename, double* para, int indatatype, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check);
 	QString coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi);
 	void updatevalues(double* inPara);
-	virtual void changeEvent();
 	void updateroi( );
 
 	double getRangeLower();
@@ -79,7 +78,6 @@ private:
 	iAConnector* m_roiconvertimage;
 
 	double * m_bptr;
-	QTabWidget* TabWidget;
 	int m_bins;
 	vtkImageData* imageData;
 	int m_intype;

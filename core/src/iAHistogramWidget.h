@@ -53,7 +53,7 @@ public:
 		iAAbstractDiagramData::DataType max,
 		int bins,
 		double space,
-		QString label = "Greyvalue",
+		QString label,
 		bool reset = true);
 	void initialize(vtkImageAccumulate* histData, bool reset);
 	void datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histData, bool reset,

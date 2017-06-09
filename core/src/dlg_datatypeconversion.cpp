@@ -24,6 +24,7 @@
 #include "iAConnector.h"
 #include "iAHistogramWidget.h"
 #include "iAToolsVTK.h"
+#include <iATransferFunction.h>
 #include "iATypedCallHelper.h"
 
 #include <itkChangeInformationImageFilter.h>
@@ -482,9 +483,6 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 
 	DataTypeConversion(m_filename, b);
 
-	TabWidget = new QTabWidget(this);
-	verticalLayout->addWidget(TabWidget);
-
 	histogramdrawing (m_histbinlist, m_min, m_max, m_bins, m_dis);
 
 	QVBoxLayout *xyboxlayout = new QVBoxLayout();
@@ -655,11 +653,6 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	connect(leZSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
 }
 
-void dlg_datatypeconversion::changeEvent()
-{
-	//emit labelWidget11->textChanged();
-} 
-
 dlg_datatypeconversion::~dlg_datatypeconversion()
 {
 	delete[] m_histbinlist;
@@ -690,75 +683,54 @@ void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* h
 	vtkPiecewiseFunction* piecewiseFunction = vtkPiecewiseFunction::New();
 	vtkColorTransferFunction* colorTransferFunction = vtkColorTransferFunction::New();
 
-	iAHistogramWidget *imgHistogram = new iAHistogramWidget(TabWidget, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction,
-		histbinlist, min, max , m_bins, discretization);
+	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction,
+		histbinlist, min, max , m_bins, discretization, "Histogram (Intensities)");
 	imgHistogram->updateTrf();
 	imgHistogram->redraw();
-	TabWidget->addTab(imgHistogram, QString("Histogram"));
+	verticalLayout->addWidget(imgHistogram);
 }
 
-#include <iATransferFunction.h>
-
-void dlg_datatypeconversion::xyprojectslices()
+void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKWidget2* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
 {
-
-	/*
-	// useless, values are always mapped to 0..65535 before anyway via rescale:
-	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
-	imageAccumulate->SetInputData(m_testxyimage);
-	imageAccumulate->Update();
-	double minValue = imageAccumulate->GetMin()[0];
-	double maxValue = imageAccumulate->GetMax()[0];
-	*/
-	/*
-	double minValue = 0; double maxValue = 65535;
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table = vtkSmartPointer<vtkLookupTable>::New();
-	table->SetRange(minValue, maxValue); // image intensity range
-	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 1.0); // no color saturation
-	table->SetRampToLinear();
-	table->Build();
-	*/
-	auto table = GetDefaultColorTransferFunction(m_testxyimage);
-
-	// Map the image through the lookup table
-	vtkSmartPointer<vtkImageMapToColors> color = vtkSmartPointer<vtkImageMapToColors>::New();
-	color->SetLookupTable(table);
-	color->SetInputData(m_testxyimage);
-
-	// Display the image
-	vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+	auto actor = vtkSmartPointer<vtkImageActor>::New();
 	actor->SetInputData(color->GetOutput());
-	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	window->AddRenderer(renderer);
-
 	auto roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	roiMapper->SetInputConnection( xyroiSource->GetOutputPort() );
+	roiMapper->SetInputConnection(roiSource->GetOutputPort());
 	auto roiActor = vtkSmartPointer<vtkActor>::New();
-	roiActor->SetVisibility( true );
-	roiActor->SetMapper( roiMapper );
-	roiActor->GetProperty()->SetColor( 1, 0, 0 );
-	roiActor->GetProperty()->SetOpacity( 1 );
+	roiActor->SetVisibility(true);
+	roiActor->SetMapper(roiMapper);
+	roiActor->GetProperty()->SetColor(1, 0, 0);
+	roiActor->GetProperty()->SetOpacity(1);
+	roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+	roiMapper->Update();
 
-	xyroiSource->SetCenter( 0, 0, 1 );
-	roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
-
-	xyroiSource->SetOrigin(0, 0, 0);
-	xyroiSource->SetPoint1(3, 0 , 0); 
-	xyroiSource->SetPoint2(0 , 3, 0);
-	roiMapper->Update( );
-
+	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->AddActor(actor);
 	renderer->AddActor(roiActor);
 
-	vtkWidgetXY->SetRenderWindow(window);
-	vtkSmartPointer<vtkInteractorStyleImage> imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	window->AddRenderer(renderer);
+	vtkWidget->SetRenderWindow(window);
+	auto imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
 	window->GetInteractor()->SetInteractorStyle(imageStyle);
-
-	vtkWidgetXY->update();
+	vtkWidget->update();
 	window->Render();
+}
+
+void dlg_datatypeconversion::xyprojectslices()
+{
+	// Map the image through the lookup table
+	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
+	auto table = GetDefaultColorTransferFunction(m_testxyimage);
+	color->SetLookupTable(table);
+	color->SetInputData(m_testxyimage);
+	color->Update();
+
+	xyroiSource->SetCenter(0, 0, 1);
+	xyroiSource->SetOrigin(0, 0, 0);
+	xyroiSource->SetPoint1(3, 0, 0);
+	xyroiSource->SetPoint2(0, 3, 0);
+	SetupSliceWidget(color, vtkWidgetXY, xyroiSource);
 }
 
 void dlg_datatypeconversion::xzprojectslices()
@@ -776,7 +748,7 @@ void dlg_datatypeconversion::xzprojectslices()
 	};
 
 	// Set the slice orientation
-	vtkSmartPointer<vtkMatrix4x4> resliceAxes = vtkSmartPointer<vtkMatrix4x4>::New();
+	auto resliceAxes = vtkSmartPointer<vtkMatrix4x4>::New();
 	resliceAxes->DeepCopy(coronalElements);
 	// Set the point through which to slice
 	resliceAxes->SetElement(0, 3, center[0]);
@@ -784,67 +756,25 @@ void dlg_datatypeconversion::xzprojectslices()
 	resliceAxes->SetElement(2, 3, center[2]);
 
 	// Extract a slice in the desired orientation
-	vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
+	auto reslice = vtkSmartPointer<vtkImageReslice>::New();
 	reslice->SetInputData(m_testxzimage);
 	reslice->SetOutputDimensionality(2);
 	reslice->SetResliceAxes(resliceAxes);
 	reslice->SetInterpolationModeToLinear();
 
-	/*
-	// useless, values are always mapped to 0..65535 before anyway via rescale:
-	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
-	imageAccumulate->SetInputData(m_testxzimage);
-	imageAccumulate->Update();
-	double minValue = imageAccumulate->GetMin()[0];
-	double maxValue = imageAccumulate->GetMax()[0];
-	*/
-	double minValue = 0; double maxValue = 65535;
-	
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table = vtkSmartPointer<vtkLookupTable>::New();
-	table->SetRange(minValue, maxValue); // image intensity range
-	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 1.0); // no color saturation
-	table->SetRampToLinear();
-	table->Build();
-
 	// Map the image through the lookup table
-	vtkSmartPointer<vtkImageMapToColors> color = vtkSmartPointer<vtkImageMapToColors>::New();
+	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
+	auto table = GetDefaultColorTransferFunction(m_testxyimage);
 	color->SetLookupTable(table);
 	color->SetInputConnection(reslice->GetOutputPort());
+	color->Update();
 
-	// Display the image
-	vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
-	actor->SetInputData(color->GetOutput());
-	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-
-	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	window->AddRenderer(renderer);
-	auto roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	roiMapper->SetInputConnection( xzroiSource->GetOutputPort() );
-	auto roiActor = vtkSmartPointer<vtkActor>::New();
-	roiActor->SetVisibility( true );
-	roiActor->SetMapper( roiMapper );
-	roiActor->GetProperty()->SetColor( 1, 0, 0 );
-	roiActor->GetProperty()->SetOpacity( 1 );
-
-	xzroiSource->SetCenter( 0, 0, 1 );
-	roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
-
+	xzroiSource->SetCenter(0, 0, 1);
 	xzroiSource->SetOrigin(0, -m_insizez, 0);
-	xzroiSource->SetPoint1(10, -m_insizez , 0);
-	xzroiSource->SetPoint2(0 , 2, 0);
-	roiMapper->Update( );
+	xzroiSource->SetPoint1(10, -m_insizez, 0);
+	xzroiSource->SetPoint2(0, 2, 0);
 
-	renderer->AddActor(actor);
-	renderer->AddActor(roiActor);
-
-	vtkWidgetXZ->SetRenderWindow(window);
-	vtkSmartPointer<vtkInteractorStyleImage> xzimageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
-	window->GetInteractor()->SetInteractorStyle(xzimageStyle);
-
-	vtkWidgetXZ->update();
-	window->Render();
+	SetupSliceWidget(color, vtkWidgetXZ, xzroiSource);
 }
 
 template <typename T>
