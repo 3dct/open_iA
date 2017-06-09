@@ -32,8 +32,9 @@
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
-#include <QVTKWidget.h>
+#include <QVTKWidget2.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
@@ -48,7 +49,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkVersion.h>
 
@@ -61,12 +61,12 @@
 #include <QVariant>
 
 
-template<class T> int DataTypeConversion_template(string m_filename, double* b, iAAbstractDiagramData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
+template<class T> int DataTypeConversion_template(QString const & m_filename, double* b, iAAbstractDiagramData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
 	FILE * pFile;
-	pFile = fopen( m_filename.c_str(), "rb" );
+	pFile = fopen( m_filename.toStdString().c_str(), "rb" );
 	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
@@ -79,11 +79,6 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 	typename InputImageType::RegionType itkregion;	itkregion.SetSize(itksize);	itkregion.SetIndex(itkindex);
 
 	itkimage->SetSpacing(itkspacing);	itkimage->SetRegions(itkregion);	itkimage->Allocate();	itkimage->FillBuffer(0);
-
-	//create itk image iterator
-	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
-	iteratortype iter (itkimage, itkimage->GetRequestedRegion());
-	iter.GoToBegin();
 
 	typename InputImageType::PixelType buffer;
 	unsigned long datatypesize = sizeof(buffer);
@@ -108,7 +103,10 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 
 	float discretization = (float)((max-min)/(b[7]));
 
-	// copy the file into the buffer:
+	// copy the file into the buffer and create histogram:
+	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
+	iteratortype iter(itkimage, itkimage->GetRequestedRegion());
+	iter.GoToBegin();
 	bool loop = 1; 
 	fseek ( pFile , 0 , SEEK_SET );
 	std::fill(histptr, histptr + static_cast<size_t>(b[7]), 0);
@@ -121,7 +119,7 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 		histptr[binIdx] += 1;
 		slicecounter++;
 		if ( slicecounter == slicesize )
-		{
+		{	// TO CHECK: does that really skip anything?
 			slicecounter = 0;
 			numsliceread++;
 			long skipmemory = slicesize*datatypesize*b[0]*numsliceread;
@@ -198,10 +196,10 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 
 	xyconvertimage->SetImage(xyrescalefilter->GetOutput());
 	xyconvertimage->Modified();
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName("C:/LIBS/vtkxyimage.mhd");
-	metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
 
+	vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	metaImageWriter->SetFileName("xyimage.mhd");
+	metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
 	metaImageWriter->SetCompression(0);
 	metaImageWriter->Write();
 
@@ -255,6 +253,12 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 	xzconvertimage->SetImage(xzrescalefilter->GetOutput());
 	xzconvertimage->Modified();
 
+	metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	metaImageWriter->SetFileName("xzimage.mhd");
+	metaImageWriter->SetInputData(xzconvertimage->GetVTKImage());
+	metaImageWriter->SetCompression(0);
+	metaImageWriter->Write();
+
 	//yz plane - along x axis
 	extractsize[0] = 1; extractsize[1] = b[2];	extractsize[2] = b[3];
 	extractregion.SetSize(extractsize);
@@ -305,10 +309,16 @@ template<class T> int DataTypeConversion_template(string m_filename, double* b, 
 	yzconvertimage->SetImage(yznormalizefilter->GetOutput());
 	yzconvertimage->Modified();
 
+	metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	metaImageWriter->SetFileName("yzimage.mhd");
+	metaImageWriter->SetInputData(yzconvertimage->GetVTKImage());
+	metaImageWriter->SetCompression(0);
+	metaImageWriter->Write();
+
 	return EXIT_SUCCESS;
 }
 
-void dlg_datatypeconversion::DataTypeConversion(string m_filename, double* b)
+void dlg_datatypeconversion::DataTypeConversion(QString const & m_filename, double* b)
 {
 	VTK_TYPED_CALL(DataTypeConversion_template, m_intype, m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage);
 	m_testxyimage = xyconvertimage->GetVTKImage();
@@ -317,12 +327,12 @@ void dlg_datatypeconversion::DataTypeConversion(string m_filename, double* b)
 }
 
 //roi conversion
-template<class T> int DataTypeConversionROI_template( string m_filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage)
+template<class T> int DataTypeConversionROI_template(QString const & m_filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
 	FILE * pFile;
-	pFile = fopen( m_filename.c_str(), "rb" );
+	pFile = fopen( m_filename.toStdString().c_str(), "rb" );
 	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
@@ -429,7 +439,7 @@ template<class T> int DataTypeConversionROI_template( string m_filename, double*
 	return EXIT_SUCCESS;
 }
 
-void dlg_datatypeconversion::DataTypeConversionROI(string m_filename, double* b, double *roi)
+void dlg_datatypeconversion::DataTypeConversionROI(QString const & m_filename, double* b, double *roi)
 {
 	VTK_TYPED_CALL(DataTypeConversionROI_template, m_intype, m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage);
 	m_roiimage = m_roiconvertimage->GetVTKImage();
@@ -455,8 +465,6 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xyroiActor = vtkActor::New();	xzroiActor = vtkActor::New();
 	xyrenderer = vtkRenderer::New();
 	xzrenderer = vtkRenderer::New();
-	xyinteractor = vtkRenderWindowInteractor::New();
-	xzinteractor = vtkRenderWindowInteractor::New();
 
 	this->setWindowTitle("DatatypeConversion");
 	this->setMinimumWidth(c[0]*0.5);
@@ -477,12 +485,6 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 
 	DataTypeConversion(m_filename, b);
 
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName("C:/LIBS/testimage3.mhd");
-	metaImageWriter->SetInputData(m_testyzimage);
-	metaImageWriter->SetCompression(0);
-	metaImageWriter->Write();
-
 	TabWidget = new QTabWidget(this);
 	verticalLayout->addWidget(TabWidget);
 
@@ -493,7 +495,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xylabel->setMinimumWidth(50);
 	xylabel->setText("XY IMAGE");
 
-	vtkWidgetXY = new QVTKWidget(this);
+	vtkWidgetXY = new QVTKWidget2(this);
 	vtkWidgetXY->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXY->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXY->setWindowTitle("XY Plane");
@@ -508,7 +510,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzlabel->setMinimumWidth(50);
 	xzlabel->setText("XZ IMAGE");
 
-	vtkWidgetXZ = new QVTKWidget(this);
+	vtkWidgetXZ = new QVTKWidget2(this);
 	vtkWidgetXZ->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXZ->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXZ->setWindowTitle("XZ Plane");
@@ -534,15 +536,13 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	cbDataType->insertItems(0,datatypecon);
 
 	chConvertROI = new QCheckBox(" Data Conversion of ROI ", this);
-	/*
-	chUseMaxDatatypeRange = new QCheckBox(" Use Maximum Datatype Range ", this);
+	//chUseMaxDatatypeRange = new QCheckBox(" Use Maximum Datatype Range ", this);
 	QHBoxLayout *hbox0 = new QHBoxLayout();
 	hbox0->addWidget(label5);
 	hbox0->addWidget(cbDataType);
 	hbox0->addWidget(chConvertROI);
-	hbox0->addWidget(chUseMaxDatatypeRange);
+	//hbox0->addWidget(chUseMaxDatatypeRange);
 	verticalLayout->addLayout(hbox0);
-	*/
 
 	QLabel *label1 = new QLabel(this, 0);
 	label1->setMinimumWidth(50);
@@ -592,7 +592,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	QLabel *label7 = new QLabel(this, 0);
 	label7->setMinimumWidth(50);
 	label7->setText("X Size");
-	leXOrigin = new QLineEdit(this);
+	leXSize = new QLineEdit(this);
 	leXSize->setMinimumWidth(50);
 	leXSize->setObjectName("XSize");
 
@@ -700,19 +700,30 @@ void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* h
 	TabWidget->addTab(imgHistogram, QString("Histogram"));
 }
 
+#include <iATransferFunction.h>
+
 void dlg_datatypeconversion::xyprojectslices()
 {
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table = vtkSmartPointer<vtkLookupTable>::New();
 
+	/*
+	// useless, values are always mapped to 0..65535 before anyway via rescale:
 	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
 	imageAccumulate->SetInputData(m_testxyimage);
 	imageAccumulate->Update();
-	table->SetRange(imageAccumulate->GetMin()[0], imageAccumulate->GetMax()[0]); // image intensity range
+	double minValue = imageAccumulate->GetMin()[0];
+	double maxValue = imageAccumulate->GetMax()[0];
+	*/
+	/*
+	double minValue = 0; double maxValue = 65535;
+	// Create a greyscale lookup table
+	vtkSmartPointer<vtkLookupTable> table = vtkSmartPointer<vtkLookupTable>::New();
+	table->SetRange(minValue, maxValue); // image intensity range
 	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 0.0); // no color saturation
+	table->SetSaturationRange(0.0, 1.0); // no color saturation
 	table->SetRampToLinear();
 	table->Build();
+	*/
+	auto table = GetDefaultColorTransferFunction(m_testxyimage);
 
 	// Map the image through the lookup table
 	vtkSmartPointer<vtkImageMapToColors> color = vtkSmartPointer<vtkImageMapToColors>::New();
@@ -723,13 +734,8 @@ void dlg_datatypeconversion::xyprojectslices()
 	vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
 	actor->SetInputData(color->GetOutput());
 
-	xywindow =	vtkRenderWindow::New();
+	xywindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	xywindow->AddRenderer(xyrenderer);
-
-	// Set up the interaction
-	vtkSmartPointer<vtkInteractorStyleImage> imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
-	xyinteractor->SetInteractorStyle(imageStyle);
-	xywindow->SetInteractor(xyinteractor);
 
 	xyroiMapper->SetInputConnection( xyroiSource->GetOutputPort() );
 	xyroiActor->SetVisibility( true );
@@ -747,10 +753,13 @@ void dlg_datatypeconversion::xyprojectslices()
 
 	xyrenderer->AddActor(xyroiActor);
 	xyrenderer->AddActor(actor);
-	xywindow->Render();
 
 	vtkWidgetXY->SetRenderWindow(xywindow);
+	vtkSmartPointer<vtkInteractorStyleImage> imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+	xywindow->GetInteractor()->SetInteractorStyle(imageStyle);
+
 	vtkWidgetXY->update();
+	xywindow->Render();
 }
 
 void dlg_datatypeconversion::xzprojectslices()
@@ -782,16 +791,21 @@ void dlg_datatypeconversion::xzprojectslices()
 	reslice->SetResliceAxes(resliceAxes);
 	reslice->SetInterpolationModeToLinear();
 
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table =	vtkSmartPointer<vtkLookupTable>::New();
-
+	/*
+	// useless, values are always mapped to 0..65535 before anyway via rescale:
 	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
 	imageAccumulate->SetInputData(m_testxzimage);
 	imageAccumulate->Update();
-	table->SetRange(imageAccumulate->GetMin()[0], imageAccumulate->GetMax()[0]); // image intensity range
-
+	double minValue = imageAccumulate->GetMin()[0];
+	double maxValue = imageAccumulate->GetMax()[0];
+	*/
+	double minValue = 0; double maxValue = 65535;
+	
+	// Create a greyscale lookup table
+	vtkSmartPointer<vtkLookupTable> table = vtkSmartPointer<vtkLookupTable>::New();
+	table->SetRange(minValue, maxValue); // image intensity range
 	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 0.0); // no color saturation
+	table->SetSaturationRange(0.0, 1.0); // no color saturation
 	table->SetRampToLinear();
 	table->Build();
 
@@ -807,13 +821,8 @@ void dlg_datatypeconversion::xzprojectslices()
 	vtkSmartPointer<vtkRenderer> xzrenderer = vtkSmartPointer<vtkRenderer>::New();
 	xzrenderer->AddActor(xzactor);
 
-	vtkSmartPointer<vtkRenderWindow> xzwindow =	vtkSmartPointer<vtkRenderWindow>::New();
+	xzwindow =	vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	xzwindow->AddRenderer(xzrenderer);
-
-	// Set up the interaction
-	vtkSmartPointer<vtkInteractorStyleImage> xzimageStyle =	vtkSmartPointer<vtkInteractorStyleImage>::New();
-	xzinteractor->SetInteractorStyle(xzimageStyle);
-	xzwindow->SetInteractor(xzinteractor);
 
 	xzroiMapper->SetInputConnection( xzroiSource->GetOutputPort() );
 	xzroiActor->SetVisibility( true );
@@ -830,73 +839,13 @@ void dlg_datatypeconversion::xzprojectslices()
 	xzroiMapper->Update( );
 
 	xzrenderer->AddActor(xzroiActor);
-	xzwindow->Render();
 
 	vtkWidgetXZ->SetRenderWindow(xzwindow);
+	vtkSmartPointer<vtkInteractorStyleImage> xzimageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+	xzwindow->GetInteractor()->SetInteractorStyle(xzimageStyle);
+
 	vtkWidgetXZ->update();
-}
-
-
-void dlg_datatypeconversion::yzprojectslices()
-{
-	double center[3];
-	center[0] = 0; 
-	center[1] = 0; 
-	center[2] = 0; 
-
-	static double obliqueElements[16] = {
-		1, 0, 0, 0,
-		0, 0.866025, -0.5, 0,
-		0, 0.5, 0.866025, 0,
-		0, 0, 0, 1
-	};
-
-	// Set the slice orientation
-	vtkSmartPointer<vtkMatrix4x4> resliceAxes = vtkSmartPointer<vtkMatrix4x4>::New();
-	resliceAxes->DeepCopy(obliqueElements);
-	// Set the point through which to slice
-	resliceAxes->SetElement(0, 3, center[0]);
-	resliceAxes->SetElement(1, 3, center[1]);
-	resliceAxes->SetElement(2, 3, center[2]);
-
-	// Extract a slice in the desired orientation
-	vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
-	reslice->SetInputData(m_testyzimage);
-	reslice->SetOutputDimensionality(2);
-	reslice->SetResliceAxes(resliceAxes);
-	reslice->SetInterpolationModeToLinear();
-
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table =	vtkSmartPointer<vtkLookupTable>::New();
-	table->SetRange(0, 65535); // image intensity range
-	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 0.0); // no color saturation
-	table->SetRampToLinear();
-	table->Build();
-
-	// Map the image through the lookup table
-	vtkSmartPointer<vtkImageMapToColors> color = vtkSmartPointer<vtkImageMapToColors>::New();
-	color->SetLookupTable(table);
-	color->SetInputConnection(reslice->GetOutputPort());
-
-	// Display the image
-	vtkSmartPointer<vtkImageActor> actor =	vtkSmartPointer<vtkImageActor>::New();
-	actor->SetInputData(color->GetOutput());
-
-	vtkSmartPointer<vtkRenderer> renderer =	vtkSmartPointer<vtkRenderer>::New();
-	renderer->AddActor(actor);
-
-	vtkSmartPointer<vtkRenderWindow> window = vtkSmartPointer<vtkRenderWindow>::New();
-	window->AddRenderer(renderer);
-
-	// Set up the interaction
-	vtkSmartPointer<vtkInteractorStyleImage> imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
-	vtkSmartPointer<vtkRenderWindowInteractor> interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	interactor->SetInteractorStyle(imageStyle);
-	window->SetInteractor(interactor);
-	window->Render();
-	vtkWidgetYZ->SetRenderWindow(window);
-	vtkWidgetYZ->update();
+	xzwindow->Render();
 }
 
 template <typename T>
@@ -904,7 +853,6 @@ void loadBinary(FILE* pFile, vtkImageData* imageData, float shift, float scale, 
 {
 	T buffer;
 	fseek(pFile, 0, SEEK_SET);
-	// Fill every entry of the image data with "2.0"
 	int* dims = imageData->GetDimensions();
 	for (int z = 0; z < dims[2]; z++)
 	{
@@ -959,7 +907,7 @@ QString dlg_datatypeconversion::coreconversionfunction( QString filename, QStrin
 QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi)
 {
 
-	DataTypeConversionROI(filename.toStdString(), m_bptr, roi);
+	DataTypeConversionROI(filename, m_bptr, roi);
 	float m_Scale = 0;
 	//scale and shift calculator
 	if ( minrange != maxrange )
@@ -1008,7 +956,7 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 }
 
 
-void dlg_datatypeconversion::update(QString a ) 
+void dlg_datatypeconversion::update(QString a)
 {
 	QString senderName = QObject::sender()->objectName();
 	if (senderName.compare("ZSize") == 0)

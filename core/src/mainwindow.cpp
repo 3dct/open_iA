@@ -2292,19 +2292,13 @@ void MainWindow::OpenWithDataTypeConversion()
 	{
 		return;
 	}
-
-	QStringList datatype = (QStringList()
-		<< tr("VTK_SIGNED_CHAR") << tr("VTK_UNSIGNED_CHAR")
-		<< tr("VTK_SHORT")       << tr("VTK_UNSIGNED_SHORT")
-		<< tr("VTK_INT")         << tr("VTK_UNSIGNED_INT")
-		<< tr("VTK_FLOAT")       << tr("VTK_DOUBLE") );
 	QStringList inList = (QStringList()
 		<< tr("+Data Type")
 		<< tr("#Slice sample rate")
 		<< tr("# Dim X")   << tr("# Dim Y")   << tr("# Dim Z")
 		<< tr("# Space X") << tr("# Space Y") << tr("# Space Z"));
 	QList<QVariant> inPara;
-	inPara << datatype
+	inPara << VTKDataTypeList()
 		<< tr("%1").arg(owdtcs)
 		<< tr("%1").arg(owdtcx) << tr("%1").arg(owdtcy) << tr("%1").arg(owdtcz)
 		<< tr("%1").arg(owdtcsx)<< tr("%1").arg(owdtcsy)<< tr("%1").arg(owdtcsz);

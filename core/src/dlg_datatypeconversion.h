@@ -20,29 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include <string>
-using namespace std;
-
-#include <QDialog>
-#include <QString>
-
+#include "iAAbstractDiagramData.h"
 #include "ui_DataTypeConversion.h"
 
-class QCheckBox;
-class QComboBox;
+class iAConnector;
 
-class QVTKWidget;
+class QVTKWidget2;
 class vtkActor;
+class vtkGenericOpenGLRenderWindow;
 class vtkImageData;
 class vtkPlaneSource;
 class vtkPolyDataMapper;
 class vtkRenderer;
-class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 
-class iAConnector;
+class QCheckBox;
+class QComboBox;
 
-#include "iAAbstractDiagramData.h"
+#include <vtkSmartPointer.h>
+
+#include <QDialog>
+#include <QString>
 
 class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 {
@@ -52,13 +50,12 @@ public:
 	dlg_datatypeconversion ( QWidget *parent, vtkImageData* input, const char* filename, int intype, double* b, double* c, double* inPara );
 	~dlg_datatypeconversion();
 
-	void DataTypeConversion(string m_filename, double* b);
-	void DataTypeConversionROI(string m_filename, double* b, double *roi);
+	void DataTypeConversion(QString const & m_filename, double* b);
+	void DataTypeConversionROI(QString const & m_filename, double* b, double *roi);
 	void histogramdrawing(iAAbstractDiagramData::DataType* histbinlist, float min, float max, int m_bins, double discretization);
 
 	void xyprojectslices();
 	void xzprojectslices();
-	void yzprojectslices();
 	QString coreconversionfunction(QString filename, QString & finalfilename, double* para, int indatatype, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check);
 	QString coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi);
 	void updatevalues(double* inPara);
@@ -92,18 +89,20 @@ private:
 	vtkImageData* imageData;
 	int m_intype;
 	double m_sliceskip, m_insizex,	m_insizey, m_insizez, m_inspacex, m_inspacey, m_inspacez;
-	string m_filename;
+	QString m_filename;
 	iAAbstractDiagramData::DataType * m_histbinlist;
 	float m_min, m_max, m_dis;
-	vtkImageData* m_testxyimage;	vtkImageData* m_testxzimage;	vtkImageData* m_testyzimage; vtkImageData* m_roiimage;
-	QVTKWidget* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
+	vtkImageData* m_testxyimage, * m_testxzimage, * m_testyzimage, * m_roiimage;
+	QVTKWidget2* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
 
-	iAConnector* xyconvertimage;	iAConnector* xzconvertimage; iAConnector* yzconvertimage;
+	iAConnector* xyconvertimage, * xzconvertimage, * yzconvertimage;
 
 	int m_xstart, m_xend, m_ystart, m_yend, m_zstart, m_zend;
 	QLineEdit* leRangeLower, *leRangeUpper, *leOutputMin,*leOutputMax, *leXOrigin, *leXSize, *leYOrigin, *leYSize, *leZOrigin, *leZSize;
 	QComboBox* cbDataType;
-	QCheckBox* chConvertROI, *chUseMaxDatatypeRange;
+	QCheckBox* chConvertROI
+		// , *chUseMaxDatatypeRange
+	;
 	double m_roi[6];
 	double m_spacing[3];
 
@@ -111,6 +110,5 @@ private:
 	vtkPolyDataMapper *xyroiMapper, *xzroiMapper;
 	vtkActor *xyroiActor, *xzroiActor;
 	vtkRenderer* xyrenderer, *xzrenderer;
-	vtkRenderWindowInteractor* xyinteractor, *xzinteractor;
-	vtkRenderWindow* xywindow, *xzwindow;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> xywindow, xzwindow;
 };
