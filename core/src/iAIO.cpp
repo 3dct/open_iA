@@ -329,6 +329,7 @@ void iAIO::run()
 				out << std::endl;
 			}
 			out.close();
+			rv = true;
 			break;
 		}
 		case VTI_READER: {
