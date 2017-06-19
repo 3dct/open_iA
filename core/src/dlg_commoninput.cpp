@@ -183,7 +183,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 		}
 		
 		//Controls the containers width and sets the correct width for the widgets
-		containerLayout->setColumnMinimumWidth(1, WIDTH + 30 - containerLayout->minimumSize().width());
+		containerLayout->setColumnMinimumWidth(0, WIDTH/3);
+		containerLayout->setColumnMinimumWidth(1, WIDTH/3);
 		
 		container->setMaximumWidth(WIDTH);
 		container->setLayout(containerLayout);
