@@ -172,8 +172,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	connectSignalsToSlots();
 	pbar->setValue(100);
 
-	saveNative = true;
-
 	snakeSlicer = false;
 	isSliceProfileEnabled = false;
 	isArbProfileEnabled = false;

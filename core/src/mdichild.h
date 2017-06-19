@@ -481,8 +481,7 @@ private:
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
-	
-	bool saveNative;
+
 	std::vector<iAAlgorithm*> workingAlgorithms;
 
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;

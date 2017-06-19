@@ -22,6 +22,7 @@
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
+#include "iAConnector.h"
 #include "iAIOProvider.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
@@ -31,6 +32,7 @@
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
 #include "iASlicerSettings.h"
+#include "iAToolsITK.h"
 #include "iAToolsVTK.h"
 #include "mdichild.h"
 
@@ -780,36 +782,47 @@ void iASlicerData::saveAsImage() const
 		"", iAIOProvider::GetSupportedImageFormats());
 	if (fileName.isEmpty())
 		return;
-	vtkImageData *img = reslicer->GetOutput();
-	bool saveNative = false;
-	if (img->GetScalarType() != VTK_DOUBLE &&
-		img->GetScalarType() != VTK_FLOAT)
+	bool saveNative = true;
+	bool output16Bit = false;
+	QStringList inList = (QStringList() << tr("$Save native image (intensity rescaled to output format)"));
+	QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")));
+	QFileInfo fi(fileName);
+	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
+		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
-		QStringList inList = (QStringList() << tr("$Save native image"));
-		QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")));
-		dlg_commoninput dlg(mdi_parent, "Save options", inList, inPara, NULL);
-		if (dlg.exec() != QDialog::Accepted)
-		{
-			return;
-		}
-		saveNative = dlg.getCheckValues()[0];
+		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
+		inPara << (output16Bit ? tr("true") : tr("false"));
 	}
-	vtkSmartPointer<vtkImageCast> castfilter = vtkSmartPointer<vtkImageCast>::New();
-	vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	dlg_commoninput dlg(mdi_parent, "Save options", inList, inPara, NULL);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	saveNative = dlg.getCheckValues()[0];
+	if (inList.size() > 1)
+	{
+		output16Bit = dlg.getCheckValues()[1];
+	}
+	iAConnector con;
+	vtkSmartPointer<vtkImageData> img;
 	if (saveNative)
 	{
-		QFileInfo fi(fileName);
-		if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) != 0) &&
-			(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) != 0))
-		{ // TODO: rescale intensity
-			castfilter->SetInputData(reslicer->GetOutput());
-			castfilter->SetOutputScalarTypeToUnsignedChar();
-			castfilter->Update();
-			img = castfilter->GetOutput();
+		con.SetImage(reslicer->GetOutput());
+		iAITKIO::ImagePointer imgITK;
+		if (!output16Bit)
+		{
+			imgITK = RescaleImageTo<unsigned char>(con.GetITKImage(), 0, 255);
 		}
+		else
+		{
+			imgITK = RescaleImageTo<unsigned short>(con.GetITKImage(), 0, 65535);
+		}
+		con.SetImage(imgITK);
+		img = con.GetVTKImage();
 	}
 	else
 	{
+		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
 		wtif->SetInput(renWin);
 		wtif->Update();
 		img = wtif->GetOutput();
@@ -849,10 +862,20 @@ void iASlicerData::saveImageStack()
 	int sliceFirst = 0, sliceLast = arr[num]-1;
 
 	bool saveNative = true;
-	QStringList inList = ( QStringList() << tr("$Save native image") << tr("#From Slice Number:") <<  tr("#To Slice Number:") );
+	bool output16Bit = false;
+	QStringList inList = ( QStringList() << tr("$Save native image (intensity rescaled to output format)")
+		<< tr("#From Slice Number:")
+		<<  tr("#To Slice Number:") );
 	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1").arg(sliceFirst) <<tr("%1").arg(sliceLast)  );
 	dlg_commoninput dlg(mdi_parent, "Save options", inList, inPara, NULL);
 
+	QFileInfo fileInfo(file);
+	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
+		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
+	{
+		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
+		inPara << (output16Bit ? tr("true") : tr("false"));
+	}
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -860,6 +883,10 @@ void iASlicerData::saveImageStack()
 	saveNative = dlg.getCheckValues()[0];
 	sliceFirst = dlg.getValues()[1];
 	sliceLast  = dlg.getValues()[2];
+	if (inList.size() > 3)
+	{
+		output16Bit = dlg.getCheckValues()[3];
+	}
 
 	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num]){
 		QMessageBox msgBox;
@@ -868,7 +895,6 @@ void iASlicerData::saveImageStack()
 		return;
 	}
 	//Determine extension
-	QFileInfo fileInfo(file);
 	int ext;
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) || (QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0)){
 		ext = 1;
@@ -906,23 +932,21 @@ void iASlicerData::saveImageStack()
 		update();
 
 		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
-		vtkSmartPointer<vtkImageCast> castfilter = vtkSmartPointer<vtkImageCast>::New();
-		//Determine Native
+		iAConnector con;
 		if (saveNative)
 		{
-			/*
-			if (ext != 1)
+			con.SetImage(reslicer->GetOutput());
+			iAITKIO::ImagePointer imgITK;
+			if (!output16Bit)
 			{
-			castfilter->SetInputData(img);
-			castfilter->SetOutputScalarTypeToUnsignedChar();
-			castfilter->Update();
-			img = castfilter->GetOutput();
+				imgITK = RescaleImageTo<unsigned char>(con.GetITKImage(), 0, 255);
 			}
 			else
 			{
-			*/
-				img = reslicer->GetOutput();
-			//}
+				imgITK = RescaleImageTo<unsigned short>(con.GetITKImage(), 0, 65535);
+			}
+			con.SetImage(imgITK);
+			img = con.GetVTKImage();
 		}
 		else
 		{

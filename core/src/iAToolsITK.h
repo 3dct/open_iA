@@ -29,6 +29,7 @@
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
+#include <itkRescaleIntensityImageFilter.h>
 
 #include <QString>
 
@@ -152,5 +153,47 @@ iAITKIO::ImagePointer CastImageTo(iAITKIO::ImagePointer img)
 		default:
 		case itk::ImageIOBase::DOUBLE:
 			return InternalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
+	}
+}
+
+template<typename SourceImageType, typename ResultImageType>
+iAITKIO::ImagePointer InternalRescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
+{
+	typedef itk::RescaleIntensityImageFilter<SourceImageType, ResultImageType> RescaleType;
+	typename RescaleType::Pointer rescale = RescaleType::New();
+	rescale->SetInput(dynamic_cast<SourceImageType*>(img.GetPointer()));
+	rescale->SetOutputMinimum(min);
+	rescale->SetOutputMaximum(max);
+	rescale->Update();
+	return rescale->GetOutput();
+}
+
+template<typename ResultPixelType>
+iAITKIO::ImagePointer RescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
+{
+	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
+	switch (GetITKScalarPixelType(img))
+	{
+	case itk::ImageIOBase::UCHAR:
+		return InternalRescaleImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::CHAR:
+		return InternalRescaleImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::SHORT:
+		return InternalRescaleImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::USHORT:
+		return InternalRescaleImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::INT:
+		return InternalRescaleImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::UINT:
+		return InternalRescaleImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::LONG:
+		return InternalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::ULONG:
+		return InternalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::FLOAT:
+		return InternalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	default:
+	case itk::ImageIOBase::DOUBLE:
+		return InternalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}
 }
