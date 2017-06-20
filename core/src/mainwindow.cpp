@@ -82,7 +82,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	QCoreApplication::setOrganizationName("FHW");
 	QCoreApplication::setOrganizationDomain("3dct.at");
 	QCoreApplication::setApplicationName(appName);
-	setWindowTitle(appName);
+	setWindowTitle(appName + " " + m_gitVersion);
 	QSettings settings;
 	path = settings.value("Path").toString();
 	restoreGeometry(settings.value("geometry", saveGeometry()).toByteArray());
