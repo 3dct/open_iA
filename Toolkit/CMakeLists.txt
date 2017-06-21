@@ -26,7 +26,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/OpenCL/cl )
 #-----------------------------------------------------------------------------------------
 IF(Module_GPU_DreamcasterTool)
 	IF (CMAKE_COMPILER_IS_GNUCXX)
-	    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11"")
+	    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
 	ENDIF(CMAKE_COMPILER_IS_GNUCXX)
   IF (APPLE)
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
