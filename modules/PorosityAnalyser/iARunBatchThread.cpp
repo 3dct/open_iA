@@ -78,7 +78,12 @@
 #include <QMessageBox>
 #include <QTime>
 
-#include <omp.h>
+//openMP
+#ifndef __APPLE__
+#ifndef __MACOSX
+#include <omp.h>///TODO: gcc include omp //omp.h works with gcc 4.6
+#endif
+#endif
 
 struct RunInfo
 {

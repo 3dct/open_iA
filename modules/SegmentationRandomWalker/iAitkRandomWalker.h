@@ -34,7 +34,7 @@ public:
 	void SetInput(TInputImage* image, SeedVector, double beta);
 	bool Success() const;
 	LabelImagePointer GetLabelImage();
-	QVector<ProbabilityImagePointer> GetProbabilityImages();
+	QVector<iAITKIO::ImagePointer> GetProbabilityImages();
 	void Calculate();
 private:
 	// not implemented on purpose:
@@ -60,7 +60,7 @@ public:
 	void AddPriorModel(PriorModelImagePointer priorModel);
 	bool Success() const;
 	LabelImagePointer GetLabelImage();
-	QVector<ProbabilityImagePointer> GetProbabilityImages();
+	QVector<iAITKIO::ImagePointer> GetProbabilityImages();
 	void Calculate(); 
 private:
 	// not implemented on purpose:

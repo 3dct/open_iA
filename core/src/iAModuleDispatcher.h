@@ -84,7 +84,7 @@ private:
 
 template <typename T> T* iAModuleDispatcher::GetModule(T* type)
 {
-	for (iALoadedModule m: m_loadedModules.size())
+	for (iALoadedModule m: m_loadedModules)
 	{
 		T* ptr = dynamic_cast<T*>(m.moduleInterface);
 		if (ptr)

@@ -40,7 +40,7 @@ class iAImagePreviewWidget: public QWidget
 {
 	Q_OBJECT
 public:
-	static const int SliceNumberNotSet = -1;
+	static const int SliceNumberNotSet;
 	iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera, iASlicerMode,
 		int labelCount, iAColorTheme const * colorTheme, bool magicLens=false);
 	~iAImagePreviewWidget();
