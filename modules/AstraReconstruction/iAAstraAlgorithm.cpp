@@ -287,7 +287,7 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), static_cast<astra::float32*>(buf));
-	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry());
+	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), 0.0f);
 	switch (type)
 	{
 		case BP3D: {
@@ -304,26 +304,20 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 			delete fdkalgo;
 			break;
 		}
-		case SIRT3D:
-		case CGLS3D:
-			//runFDK3D(projector, projectionData, volumeData);
-			switch (type)
-			{
-				case SIRT3D: {
-					astra::CCudaSirtAlgorithm3D* sirtalgo = new astra::CCudaSirtAlgorithm3D();
-					sirtalgo->initialize(projector, projectionData, volumeData);
-					sirtalgo->run(m_numberOfIterations);
-					delete sirtalgo;
-					break;
-				}
-				case CGLS3D: {
-					astra::CCudaCglsAlgorithm3D* cglsalgo = new astra::CCudaCglsAlgorithm3D();
-					cglsalgo->initialize(projector, projectionData, volumeData);
-					cglsalgo->run(m_numberOfIterations);
-					delete cglsalgo;
-				}
-			}
+		case SIRT3D: {
+			astra::CCudaSirtAlgorithm3D* sirtalgo = new astra::CCudaSirtAlgorithm3D();
+			sirtalgo->initialize(projector, projectionData, volumeData);
+			sirtalgo->run(m_numberOfIterations);
+			delete sirtalgo;
 			break;
+		}
+		case CGLS3D: {
+			astra::CCudaCglsAlgorithm3D* cglsalgo = new astra::CCudaCglsAlgorithm3D();
+			cglsalgo->initialize(projector, projectionData, volumeData);
+			cglsalgo->run(m_numberOfIterations);
+			delete cglsalgo;
+			break;
+		}
 		default:
 			DEBUG_LOG("Unknown backprojection algorithm selected!");
 	}
