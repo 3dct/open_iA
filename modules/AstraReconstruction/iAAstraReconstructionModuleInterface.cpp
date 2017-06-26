@@ -43,7 +43,10 @@ namespace
 		return QStringList()
 			<< QString("%1x (%2)").arg((selectedDim == 0) ? "!" : "").arg(imgDims[0])
 			<< QString("%1y (%2)").arg((selectedDim == 1) ? "!" : "").arg(imgDims[1])
-			<< QString("%1z (%2)").arg((selectedDim == 2) ? "!" : "").arg(imgDims[2]);
+			<< QString("%1z (%2)").arg((selectedDim == 2) ? "!" : "").arg(imgDims[2])
+			<< QString("%1-x (%2)").arg((selectedDim == 3) ? "!" : "").arg(imgDims[0])
+			<< QString("%1-y (%2)").arg((selectedDim == 4) ? "!" : "").arg(imgDims[1])
+			<< QString("%1-z (%2)").arg((selectedDim == 5) ? "!" : "").arg(imgDims[2]);
 	}
 }
 
@@ -211,7 +214,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		default: DEBUG_LOG("Invalid Algorithm Type selection!"); return;
 	}
 	numberOfIterations = dlg.getSpinBoxValues()[17];
-	if (detColDim == detRowDim || detColDim == projAngleDim || detRowDim == projAngleDim)
+	if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim %3) || (detRowDim % 3) == (projAngleDim % 3))
 	{
 		child->addMsg("One of the axes (x, y, z) has been specified for more than one usage out of (detector row / detector column / projection angle) dimensions. "
 			"Make sure each axis is used exactly for one dimension!");

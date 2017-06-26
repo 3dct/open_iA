@@ -225,13 +225,24 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	float* buf = new float[dim[0] * dim[1] * dim[2]];
 	FOR_VTKIMG_PIXELS(img, x, y, z)
 	{
-		int detCol = (m_detColDim == 0) ? x : (m_detColDim == 1) ? y : z;
-		int detRow = (m_detRowDim == 0) ? x : (m_detRowDim == 1) ? y : z;
-		int projAngle = (m_projAngleDim == 0) ? x : (m_projAngleDim == 1) ? y : z;
+		int detCol = ((m_detColDim % 3) == 0) ? x : ((m_detColDim % 3) == 1) ? y : z;
+		if (m_detColDim >= 3)
+		{
+			detCol = m_detColCnt - detCol;
+		}
+		int detRow = ((m_detRowDim % 3) == 0) ? x : (m_detRowDim == 1) ? y : z;
+		if (m_detRowDim >= 3)
+		{
+			detRow = m_detRowCnt - detRow;
+		}
+		int projAngle = ((m_projAngleDim % 3) == 0) ? x : ((m_projAngleDim % 3) == 1) ? y : z;
+		if (m_projAngleDim >= 3)
+		{
+			projAngle = m_projAnglesCount - projAngle;
+		}
 		int index = detRow + projAngle*m_detRowCnt + detCol*m_detRowCnt*m_projAnglesCount;
 		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
 	}
-	//vtkNew<vtkMetaImageWriter> writer;
 
 	// create XML configuration:
 	astra::Config projectorConfig;
