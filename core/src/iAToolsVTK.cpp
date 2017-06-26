@@ -21,6 +21,7 @@
 #include "iAToolsVTK.h"
 
 #include "iAConnector.h"
+#include "iAConsole.h"
 #include "iAITKIO.h"
 #include "iAVtkDraw.h"
 
@@ -93,10 +94,15 @@ void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)
 		writer = vtkSmartPointer<vtkPNGWriter>::New();
 	}
 	else if ((QString::compare(fi.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "JPEG", Qt::CaseInsensitive) == 0)) {
-		vtkJPEGWriter *writer = vtkJPEGWriter::New();
+		writer = vtkJPEGWriter::New();
 	}
 	else if (QString::compare(fi.suffix(), "BMP", Qt::CaseInsensitive) == 0) {
-		vtkBMPWriter *writer = vtkBMPWriter::New();
+		writer = vtkBMPWriter::New();
+	}
+	else
+	{
+		DEBUG_LOG("Could not write image: Filename has an unknown extension!");
+		return;
 	}
 	writer->SetFileName(filename.toLatin1());
 	writer->SetInputData(imageData);
