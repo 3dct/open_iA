@@ -76,13 +76,18 @@ void CloseLibrary(iALoadedModule & module)
 
 QFileInfoList GetLibraryList()
 {
-	QDir root(QCoreApplication::applicationDirPath() + "/plugins");
-	QStringList nameFilter;
+    QDir root(QCoreApplication::applicationDirPath() + "/plugins");
+    QStringList nameFilter;
+
 #ifdef _MSC_VER
 	nameFilter << "*.dll";
-#else
+#elseif __GNUC__
 	nameFilter << "*.so";
+#else
+    nameFilter << "*.dylib";
 #endif
+    
+    QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
 	return root.entryInfoList(nameFilter, QDir::Files);
 }
 

@@ -63,7 +63,7 @@ FOREACH( indx RANGE ${len} )
 		QT5_WRAP_UI( module_srcs ${module_uis})
 		# If there are dependencies do the check
 		MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} module_dependencies )
-		
+
 		FOREACH( d ${module_dependencies} )
 			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
 			IF (${depend_full_path} STREQUAL "NOTFOUND")
@@ -79,12 +79,12 @@ FOREACH( indx RANGE ${len} )
 				# Collect .ui files from the  module directory and add them
 				FILE( GLOB depend_uis "${depend_full_path}/*.ui" )
 				QT5_WRAP_UI( depend_srcs ${depend_uis})
-				
+
 				LIST (APPEND module_srcs ${depend_srcs})
 				LIST (APPEND module_hs ${depend_hs})
 			ENDIF()
 		ENDFOREACH()
-		
+
 		# clean module name for use as identifier (if leading number, then add "_" prefix)
 		string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
 		# Generate module export header
@@ -101,11 +101,11 @@ FOREACH( indx RANGE ${len} )
 			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
 		ENDFOREACH()
-		
+
 		IF (NOT "${module_dependencies}" STREQUAL "")
 			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
 		ENDIF()
-		
+
 		# TODO: make depending libraries configurable per module?
 		TARGET_LINK_LIBRARIES(${module_name} ${CORE_LIBRARY_NAME})
 		TARGET_LINK_LIBRARIES(${module_name} ${QT_LIBRARIES})
@@ -118,7 +118,7 @@ FOREACH( indx RANGE ${len} )
 		IF(open_iA_GPU_USING_OPENCL)
 			TARGET_LINK_LIBRARIES(${module_name} ${OPENCL_LIBRARIES}) #TODO: proper OpenCL connection
 		ENDIF(open_iA_GPU_USING_OPENCL)
-		
+
 		IF (MSVC)
 			# Apply file grouping based on regular expressions for Visual Studio IDE.
 			SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
@@ -128,18 +128,25 @@ FOREACH( indx RANGE ${len} )
 				RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo/plugins"
 				RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel/plugins"
 			)
-		ELSE(MSVC)
+		ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 			set_target_properties(${module_name} PROPERTIES
-				LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
-		ENDIF(MSVC)
+				LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug/plugins"
+				LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release/plugins"
+				LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/RelWithDebInfo/plugins"
+				LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/MinSizeRel/plugins"
+		)
+		ELSE()
+			set_target_properties(${module_name} PROPERTIES
+			LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
+		ENDIF()
 
-		# Installation
-		IF (UNIX)
-			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
-		ENDIF(UNIX)
-		IF (WIN32)
+		# CPACK Installation
+		IF (MSVC)
 			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
-		ENDIF(WIN32)
+		ELSE()
+			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
+		ENDIF()
+
 	ENDIF( ${module_option} )
 ENDFOREACH()
 
