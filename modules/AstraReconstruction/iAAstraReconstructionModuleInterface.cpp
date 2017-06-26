@@ -39,7 +39,7 @@ namespace
 {
 	QStringList GetDimStringList(int selectedDim, int const imgDims[3])
 	{
-		assert(selectedDim >= 0 && selectedDim <= 2);
+		assert(selectedDim >= 0 && selectedDim <= 5);
 		return QStringList()
 			<< QString("%1x (%2)").arg((selectedDim == 0) ? "!" : "").arg(imgDims[0])
 			<< QString("%1y (%2)").arg((selectedDim == 1) ? "!" : "").arg(imgDims[1])
@@ -220,9 +220,9 @@ void iAAstraReconstructionModuleInterface::BackProject()
 			"Make sure each axis is used exactly for one dimension!");
 		return;
 	}
-	detRowCnt = dim[detRowDim];
-	detColCnt = dim[detColDim];
-	projAnglesCount = dim[projAngleDim];
+	detRowCnt = dim[detRowDim % 3];
+	detColCnt = dim[detColDim % 3];
+	projAnglesCount = dim[projAngleDim % 3];
 	settings.setValue("Tools/AstraReconstruction/BackProjection/projGeomType", projGeomType);
 	settings.setValue("Tools/AstraReconstruction/BackProjection/detSpacingX", detSpacingX);
 	settings.setValue("Tools/AstraReconstruction/BackProjection/detSpacingY", detSpacingY);

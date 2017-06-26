@@ -22,6 +22,11 @@
 
 #include "iAAlgorithm.h"
 
+namespace astra
+{
+	struct Config;
+}
+
 class iAAstraAlgorithm : public iAAlgorithm
 {
 public:
@@ -43,7 +48,9 @@ private:
 	virtual void performWork();
 	void ForwardProject();
 	void BackProject(AlgorithmType type);
-
+	
+	void iAAstraAlgorithm::CreateConeProjGeom(astra::Config & projectorConfig);
+	void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig);
 
 	AlgorithmType m_type;
 	QString m_projGeomType;
