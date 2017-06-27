@@ -101,8 +101,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 
 	pointPicker = vtkSmartPointer<vtkPicker>::New();
 	renderObserver = NULL;
-	observerFPProgress = iAObserverProgress::New();
-	observerGPUProgress = iAObserverProgress::New();
 
 	plane1 = vtkSmartPointer<vtkPlane>::New();
 	plane2 = vtkSmartPointer<vtkPlane>::New();
@@ -117,8 +115,6 @@ iARenderer::~iARenderer(void)
 	renWin->RemoveAllObservers();
 
 	if (renderObserver) renderObserver->Delete();
-	observerFPProgress->Delete();
-	observerGPUProgress->Delete();
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -506,7 +502,7 @@ void iARenderer::mouseLeftButtonReleasedSlot()
 
 void iARenderer::InitObserver()
 {
-	renderObserver = RenderObserver::New(ren, labelRen, interactor, pointPicker,
+	renderObserver = iARenderObserver::New(ren, labelRen, interactor, pointPicker,
 		axesTransform, imageData,
 		plane1, plane2, plane3, cellLocator);
 

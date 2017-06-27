@@ -80,6 +80,7 @@ public:
 public slots:
 	//! add modality to list, create transfer function, show histogram, add volume to renderers
 	void ModalityAdded(QSharedPointer<iAModality> mod);
+	void InteractorModeSwitched(int newMode);
 signals:
 	void ModalityAvailable();
 	void ModalitySelected(int modalityIdx);

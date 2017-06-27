@@ -230,6 +230,11 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	emit ModalityAvailable();
 }
 
+void dlg_modalities::InteractorModeSwitched(int newMode)
+{
+	cbManualRegistration->setChecked(newMode == 'a');
+}
+
 void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans)
 {
 	bool TFTableCreated = false;

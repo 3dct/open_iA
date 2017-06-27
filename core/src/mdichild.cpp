@@ -47,6 +47,7 @@
 #include "iAProfileProbe.h"
 #include "iAProfileWidget.h"
 #include "iARenderer.h"
+#include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
@@ -2190,6 +2191,7 @@ bool MdiChild::initView( QString const & title )
 	if (!raycasterInitialized)
 	{
 		Raycaster->initialize(imageData, polyData);
+		connect(Raycaster->getRenderObserver(), SIGNAL(InteractorModeSwitched(int)), m_dlgModalities, SLOT(InteractorModeSwitched(int)));
 		raycasterInitialized = true;
 	}
 	if (GetModalities()->size() == 0 && IsVolumeDataLoaded())
@@ -2237,9 +2239,6 @@ bool MdiChild::initView( QString const & title )
 		showPoly();
 		HideHistogram();
 	}
-
-	connect(Raycaster->getObserverFPProgress(), SIGNAL( oprogress(int) ), this, SLOT( updateProgressBar(int))) ;
-	connect(Raycaster->getObserverGPUProgress(), SIGNAL( oprogress(int) ), this, SLOT( updateProgressBar(int))) ;
 
 	//Load the layout to the child
 	updateLayout();

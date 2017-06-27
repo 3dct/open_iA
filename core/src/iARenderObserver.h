@@ -56,14 +56,14 @@
  * This class servers the iARenderer class to observe mouse movement and to extract coordinates
  * and the corresponding data "below" the mouse pointer. 
  */
-class open_iA_Core_API RenderObserver : public QObject, public vtkCommand
+class open_iA_Core_API iARenderObserver : public QObject, public vtkCommand
 {
 	Q_OBJECT
 
 	enum Axis { X_AXIS = 1, Y_AXIS, Z_AXIS };
 
 public:
-	RenderObserver(vtkRenderer* pRen,
+	iARenderObserver(vtkRenderer* pRen,
 						 vtkRenderer* pLabelRen,
 						 vtkRenderWindowInteractor* pIren,
 						 vtkPicker* pPicker,
@@ -74,9 +74,9 @@ public:
 						 vtkPlane* plane3,
 						 vtkCellLocator * cellLocator
 						 );
-	~RenderObserver();
+	~iARenderObserver();
 
-	static RenderObserver *New(vtkRenderer* pRen,
+	static iARenderObserver *New(vtkRenderer* pRen,
 									 vtkRenderer* pLabelRen,
 									 vtkRenderWindowInteractor* pIren,
 									 vtkPicker* pPicker,
@@ -138,4 +138,5 @@ private:
 
 Q_SIGNALS:
 	void Clicked(int x, int y, int z);
+	void InteractorModeSwitched(int newMode);
 };

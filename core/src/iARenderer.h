@@ -34,7 +34,7 @@ class iAChannelVisualizationData;
 class iAChannelRenderData;
 class iAObserverProgress;
 class iARenderSettings;
-class RenderObserver;
+class iARenderObserver;
 
 class vtkActor;
 class vtkAnnotatedCubeActor;
@@ -122,20 +122,14 @@ public:
 	void GetImageDataBounds(double bounds[6]); //!< remove
 	vtkOpenGLRenderer * GetLabelRenderer ();
 	vtkPolyDataMapper* GetPolyMapper() const;
-	
-	iAObserverProgress* getObserverFPProgress() { return observerFPProgress; }
-	iAObserverProgress* getObserverGPUProgress() { return observerGPUProgress; }
 
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
-	RenderObserver * getRenderObserver(){ return renderObserver; }
+	iARenderObserver * getRenderObserver(){ return renderObserver; }
 	void AddRenderer(vtkRenderer* renderer);
 	void ApplySettings(iARenderSettings & settings);
 protected:
 	void InitObserver();
-	RenderObserver *renderObserver;
-	iAObserverProgress* observerFPProgress;
-	iAObserverProgress* observerGPUProgress;
-
+	iARenderObserver *renderObserver;
 private:
 	//! @{ things that are set from the outside
 	vtkRenderWindowInteractor* interactor;
