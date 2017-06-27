@@ -96,7 +96,7 @@ void iAitkRandomWalker<TInputImage>::Calculate()
 }
 
 template <class TInputImage>
-QVector<ProbabilityImagePointer> iAitkRandomWalker<TInputImage>::GetProbabilityImages()
+QVector<iAITKIO::ImagePointer> iAitkRandomWalker<TInputImage>::GetProbabilityImages()
 {
 	assert(m_result);
 	return m_result->probabilityImages;
@@ -177,7 +177,7 @@ void iAitkExtendedRandomWalker<TInputImage>::Calculate()
 }
 
 template <class TInputImage>
-QVector<ProbabilityImagePointer> iAitkExtendedRandomWalker<TInputImage>::GetProbabilityImages()
+QVector<iAITKIO::ImagePointer> iAitkExtendedRandomWalker<TInputImage>::GetProbabilityImages()
 {
 	assert(m_result);
 	return m_result->probabilityImages;

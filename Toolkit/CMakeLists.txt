@@ -26,8 +26,10 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/OpenCL/cl )
 #-----------------------------------------------------------------------------------------
 IF(Module_GPU_DreamcasterTool)
 	IF (CMAKE_COMPILER_IS_GNUCXX)
-	    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-	ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+	    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
+	ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  ENDIF()
 
 	# set the Output directory for the executable and library
 	IF(NOT LIBRARY_OUTPUT_PATH)
@@ -101,6 +103,6 @@ IF(Module_GPU_DreamcasterTool)
 	SET(DREAMCASTER_EXECUTABLE_PATH "${EXECUTABLE_OUTPUT_PATH}")
 	#DREAMCASTER create library files (static libraries)
 	ADD_LIBRARY (Dreamcaster ${DREAMCASTER_SRCS})
-	
+
 	target_compile_definitions(Dreamcaster PRIVATE NO_DLL_LINKAGE)
 ENDIF(Module_GPU_DreamcasterTool)

@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <set>
+#include <cmath>
 
 #include <iAFunction.h>
 
@@ -338,7 +339,7 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 	if ((functions.size() * funcStepCnt * funcStepCnt * argStepCnt) < iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops)
 	{
 		funcStepCnt = std::min(static_cast<unsigned long long>(functions.size()),
-			static_cast<unsigned long long>(sqrt(static_cast<double>(iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops / (functions.size() * argStepCnt))))
+                               static_cast<unsigned long long>(std::sqrt(static_cast<double>(iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops / (functions.size() * argStepCnt))))
 		);
 
 		if ((functions.size() * funcStepCnt * funcStepCnt * argStepCnt) < iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops)
@@ -349,7 +350,7 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 		}
 	}
 	// calculate final step sizes:
-	unsigned long long funcStepSize = sqrt(static_cast<double>((functions.size()*functions.size()) / funcStepCnt));
+    unsigned long long funcStepSize = std::sqrt(static_cast<double>((functions.size()*functions.size()) / funcStepCnt));
 	unsigned long long argStepSize = (argMax-argMin) / argStepCnt;
 	// factor which should normalize everything to 0..1
 	double normalizeFactor = (2 * funcStepCnt * funcStepCnt * argStepCnt) /

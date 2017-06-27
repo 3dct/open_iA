@@ -51,6 +51,8 @@ namespace
 	}
 }
 
+const int iAImagePreviewWidget::SliceNumberNotSet = -1;
+
 #include <QSizePolicy>
 
 iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera,
