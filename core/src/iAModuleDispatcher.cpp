@@ -81,7 +81,7 @@ QFileInfoList GetLibraryList()
 
 #ifdef _MSC_VER
 	nameFilter << "*.dll";
-#elseif __GNUC__
+#elif __GNUC__
 	nameFilter << "*.so";
 #else
     nameFilter << "*.dylib";
