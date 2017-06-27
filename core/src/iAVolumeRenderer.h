@@ -66,6 +66,8 @@ public:
 	void ShowBoundingBox(bool visible);
 
 	void SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
+
+	void SetMovable(bool movable);
 private:
 	vtkSmartPointer<vtkVolume> volume;
 	vtkSmartPointer<vtkVolumeProperty> volProp;

@@ -384,6 +384,11 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	}
 	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
 	QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
+	for (int i = 0; i<modalities->size(); ++i)
+	{
+		QSharedPointer<iAModality> mod = modalities->Get(i);
+		mod->GetRenderer()->SetMovable(mod == currentData);
+	}
 	SwitchHistogram(modTransfer);
 	emit ModalitySelected(selectedRow);
 }

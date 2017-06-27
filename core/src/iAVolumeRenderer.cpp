@@ -95,6 +95,12 @@ void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<v
 	Update();
 }
 
+void iAVolumeRenderer::SetMovable(bool movable)
+{
+	volume->SetPickable(movable);
+	volume->SetDragable(movable);
+}
+
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
