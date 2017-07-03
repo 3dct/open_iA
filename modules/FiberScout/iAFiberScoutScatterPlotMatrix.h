@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+#pragma once
 
 /*=========================================================================
 
@@ -35,9 +35,6 @@
 
 =========================================================================*/
 
-
-#ifndef iAFiberScoutScatterPlotMatrix_h
-#define iAFiberScoutScatterPlotMatrix_h
 
 #include "mdichild.h"
 
@@ -100,12 +97,6 @@ public:
   // Description:
   // Get the position of the active plot.
   virtual vtkVector2i GetActivePlot();
-
-  // Description:
-  // Get the active AnnotationLink from the big chart, which
-  // is the only active AnnotationLink in the matrix.
-  // @deprecated Replaced by GetAnnotationLink(), never in a VTK release.
-  VTK_LEGACY(vtkAnnotationLink* GetActiveAnnotationLink());
 
   // Description:
   // Get the AnnotationLink for the scatter plot matrix, this gives you access
@@ -385,4 +376,3 @@ private:
 
 } // namespace FiberScout
 
-#endif // iAFiberScoutScatterPlotMatrix_h

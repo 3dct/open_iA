@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IACALCULATEDENSITYMAP_H
-#define IACALCULATEDENSITYMAP_H
+#pragma once
+
 // std
 #include <vector>
 // vtk
@@ -137,5 +136,3 @@ std::vector<std::vector<std::vector<TPrecision>>> CalculateDensityMap<TPrecision
 
 	return density;*/
 }
-
-#endif // IACALCULATEDENSITYMAP_H

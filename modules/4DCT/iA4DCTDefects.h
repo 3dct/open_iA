@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IA4DCTDEFECTDATA_H
-#define IA4DCTDEFECTDATA_H
 // Qt
 #include <QVector>
 #include <QString>
@@ -36,5 +35,3 @@ namespace iA4DCTDefects
 	VectorDataType			load( QString path );
 	HashDataType			DefectDataToHash( VectorDataType defects );
 };
-
-#endif // IA4DCTDEFECTDATA_H

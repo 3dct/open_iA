@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAMeanObjectTFView_h__
-#define iAMeanObjectTFView_h__
+#pragma once
 
 #include "ui_FiberScoutMOTFView.h"
 #include "iAQTtoUIConnector.h"
@@ -36,5 +34,3 @@ public:
 	{}
 	~iAMeanObjectTFView() {}
 };
-
-#endif // iAMeanObjectTFView_h__

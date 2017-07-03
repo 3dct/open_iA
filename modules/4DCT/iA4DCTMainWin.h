@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IASTACKVIEW_H
-#define IASTACKVIEW_H
 // iA
 #include "iA4DCTData.h"
 #include "iAQTtoUIConnector.h"
@@ -58,5 +57,3 @@ private:
 	double						m_size[3];
 	iA4DCTData					m_data;
 };
-
-#endif // IASTACKVIEW_H

@@ -18,15 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-
-/*
-	Autor: AMA2
-*/
-
 #pragma once
-#ifndef __iaBlobCluster_h
-#define __iaBlobCluster_h
 
 #include <vtkActor.h>
 #include <vtkContourFilter.h>
@@ -206,5 +198,3 @@ private:
 	double						m_blobOpacity;
 	double						m_silhouetteOpacity;	
 };
-
-#endif // __iaBlobCluster_h

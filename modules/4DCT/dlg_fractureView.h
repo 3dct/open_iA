@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef DLG_FRACTUREVIEW_H
-#define DLG_FRACTUREVIEW_H
 // Ui
 #include "ui_iA4DCTFractureViewDialog.h"
 // iA
@@ -47,5 +46,3 @@ private:
 private slots:
 	void				stageCurrentIndexChanged( int ind );
 };
-
-#endif // DLG_FACTUREVIEW_H

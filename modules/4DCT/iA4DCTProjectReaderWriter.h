@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IA4DCTPROJECTREADERWRITER_H
-#define IA4DCTPROJECTREADERWRITER_H
 // Qt
 #include <QString>
 
@@ -32,5 +31,3 @@ public:
 	static void		save( iA4DCTMainWin * mainWin, QString path );
 	static bool		load( iA4DCTMainWin * mainWin, QString path );
 };
-
-#endif // IA4DCTPROJECTREADERWRITER_H

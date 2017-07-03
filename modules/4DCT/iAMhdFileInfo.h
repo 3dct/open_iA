@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IAMHDFILEINFO_H
-#define IAMHDFILEINFO_H
 // Qt
 #include <QString>
 #include <QFile>
@@ -39,5 +38,3 @@ protected:
 	double		m_dimSize[3];
 	double		m_elemSpacing[3];
 };
-
-#endif // IAMHDFILEINFO_H

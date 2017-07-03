@@ -18,14 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAREGIONVIEW_H
-#define IAREGIONVIEW_H
+#pragma once
 
 class iARegionView
 {
 public:
 	void	calculateDensityMap();
 };
-
-#endif // IAREGIONVIEW_H

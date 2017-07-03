@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IAPREVIEWMAKER_H
-#define IAPREVIEWMAKER_H
 // Qt
 #include <QString>
 
@@ -33,5 +32,3 @@ private:
 	template<typename TPixelType>
 	static void		makeUsingType( QString filename, QString thumbFileName );
 };
-
-#endif // IAPREVIEWMAKER_H

@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IADEFECTVISMODULE_H
-#define IADEFECTVISMODULE_H
 // iA
 #include "iAVisModule.h"
 // vtk
@@ -47,5 +46,3 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper>	m_mapper;
 	vtkSmartPointer<vtkActor>			m_actor;
 };
-
-#endif // IADEFECTVISMODULE_H

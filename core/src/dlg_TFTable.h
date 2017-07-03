@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef dlg_TFTable_h__
-#define dlg_TFTable_h__
+#pragma once
 
 #include "ui_TFTable.h"
 #include "iAQTtoUIConnector.h"
@@ -62,5 +60,3 @@ private:
 	double m_oldItemValue;
 	iADiagramFctWidget* m_parent;
 };
-
-#endif // dlg_TFTable_h__

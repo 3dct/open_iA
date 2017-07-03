@@ -18,15 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-
-/*
-	author: ALMA
-*/
-
 #pragma once
-#ifndef __iaBlobManager_h
-#define __iaBlobManager_h
 
 #include <vtkSmartPointer.h>
 #include <QList>
@@ -198,5 +190,3 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper>		m_silhouetteMapper;
 	vtkSmartPointer<vtkActor>				m_silhouetteActor;
 };
-
-#endif // __iaBlobManager_h

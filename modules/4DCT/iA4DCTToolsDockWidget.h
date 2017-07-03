@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IA4DCTTOOLSDOCKWIDGET_H
-#define IA4DCTTOOLSDOCKWIDGET_H
 // Ui
 #include "ui_iA4DCTToolsDockWidget.h"
 // QT
@@ -33,5 +32,3 @@ public:
 	iA4DCTToolsDockWidget( QWidget * parent );
 	~iA4DCTToolsDockWidget( );
 };
-
-#endif // IA4DCTTOOLSDOCKWIDGET_H

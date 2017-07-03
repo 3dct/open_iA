@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IA4DCTMODULEINTERFACE_H
-#define IA4DCTMODULEINTERFACE_H
 // iA
 #include "iAFiberCharacteristics.h"
 #include "iAModuleInterface.h"
@@ -52,5 +51,3 @@ private:
 	int					m_labeImageChildInd;
 	dlg_densityMap*		m_densityMap;
 };
-
-#endif // IA4DCTMODULEINTERFACE_H

@@ -18,16 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-
-// .NAME vtkMetaballs - implicit function for a sphere
-// .SECTION Description
-// vtkMetaballs computes the implicit function and/or gradient for a sphere.
-// vtkMetaballs is a concrete implementation of vtkImplicitFunction.
-
 #pragma once
-#ifndef IABLOBIMPLICITFUNCTION_H
-#define IABLOBIMPLICITFUNCTION_H
 
 #include <vtkAlgorithm.h>
 #include <vtkImplicitFunction.h>
@@ -101,5 +92,3 @@ private:
 	iABlobImplicitFunction (const iABlobImplicitFunction&);		// Not implemented
 	void operator= (const iABlobImplicitFunction&);	// Not implemented
 };
-
-#endif // __iAVtkBlobImplicitFunction_h

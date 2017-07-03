@@ -18,14 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA4DCTDATA_H
-#define IA4DCTDATA_H
+#pragma once
+
 // iA
 #include "iA4DCTStageData.h"
 // Qt
 #include <QList>
 
 typedef QList<iA4DCTStageData *> iA4DCTData;
-
-#endif // IA4DCTDATA_H

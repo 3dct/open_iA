@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef DLG_HIGHLIGHTDEFECTS_H
-#define DLG_HIGHLIGHTDEFECTS_H
 // Ui
 #include "ui_iA4DCTHeightlightDefectsDialog.h"
 // Qt
@@ -49,5 +48,3 @@ private slots:
 private:
 	iA4DCTVisWin *	m_visWin;
 };
-
-#endif // DLG_HIGHLIGHTDEFECTS_H

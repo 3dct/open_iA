@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA4DCTSETTINGS_H
-#define IA4DCTSETTINGS_H
+#pragma once
 
 const QString S_4DCT_ADD_BUTTON_DLG		= "4DCT/AddButtonDialog";
 const QString S_4DCT_OPEN_DIR			= "4DCT/OpenDirectory";
@@ -33,5 +31,3 @@ const QString S_4DCT_THUMB_NAME					= "_thumb";
 const QString S_4DCT_EXTRACTED_FIBERS			= "_extracted_fibers";
 const QString S_4DCT_EXTRACTED_CURVED_FIBERS	= "_extracted_curved_fibers";
 const QString S_4DCT_EXTRACTED_FIBER_IMAGE		= "_extracted_fiber_image";
-
-#endif // IA4DCTSETTINGS_H

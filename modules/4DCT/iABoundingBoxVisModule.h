@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#ifndef IABOUNDINGBOXVISMODULE_H
-#define IABOUNDINGBOXVISMODULE_H
 // iA
 #include "iAVisModule.h"
 // vtk
@@ -55,5 +54,3 @@ protected:
 	vtkSmartPointer<vtkPolyDataMapper>		m_mapper;
 	vtkSmartPointer<vtkActor>				m_actor;
 };
-
-#endif // IABOUNDINGBOXVISMODULE_H

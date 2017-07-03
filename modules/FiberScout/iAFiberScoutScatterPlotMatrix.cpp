@@ -1137,19 +1137,6 @@ void iAScatterPlotMatrix::StartAnimation(
 }
 
 //----------------------------------------------------------------------------
-#ifndef VTK_LEGACY_REMOVE
-vtkAnnotationLink* iAScatterPlotMatrix::GetActiveAnnotationLink()
-{
-	// Never made it into a release, deprecating for shorter, more consistent
-	// naming of the function.
-	VTK_LEGACY_REPLACED_BODY( iAScatterPlotMatrix::GetActiveAnnotationLink,
-							  "VTK 5.8",
-							  iAScatterPlotMatrix::GetAnnotationLink );
-	return this->GetAnnotationLink();
-}
-#endif
-
-//----------------------------------------------------------------------------
 vtkAnnotationLink* iAScatterPlotMatrix::GetAnnotationLink()
 {
 	return this->Private->Link.GetPointer();
