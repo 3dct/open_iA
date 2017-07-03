@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iACalculatePoreProperties_h__
-#define iACalculatePoreProperties_h__
+#pragma once
 
 #include "ui_CalculatePoreProperties.h"
 
@@ -68,5 +66,3 @@ protected:
 	QTableWidget m_masks;
 	QString m_masksCSVPath;
 };
-
-#endif // iACalculatePoreProperties_h__

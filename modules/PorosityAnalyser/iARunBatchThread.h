@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iARunBatchThread_h__
-#define iARunBatchThread_h__
+#pragma once
 
 #include <QList>
 #include <QString>
@@ -72,5 +70,3 @@ signals:
 	void totalProgress( int progress );
 	void currentBatch( QString str );
 };
-
-#endif // iARunBatchThread_h__

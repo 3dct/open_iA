@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iASPMSettings_h__
-#define iASPMSettings_h__
+#pragma once
 
 #include "ui_SPMSettings.h"
 #include "iAQTtoUIConnector.h"
@@ -36,4 +34,3 @@ public:
 	}
 	~iASPMSettings() {}
 };
-#endif // iASPMSettings_h__

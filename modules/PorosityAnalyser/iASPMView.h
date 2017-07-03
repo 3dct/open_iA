@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iASPMView_h__
-#define iASPMView_h__
+#pragma once
 
 #include <QDockWidget>
 #include <vtkSmartPointer.h>
@@ -124,5 +122,3 @@ protected:
 	QString m_colorArrayName;
 	bool m_updateColumnVisibility;
 };
-
-#endif // iASPMView_h__

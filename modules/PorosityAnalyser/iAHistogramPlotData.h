@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IAHISTOGRAMLOTDATA_H__
-#define IAHISTOGRAMLOTDATA_H__
+#pragma once
 
 #include <QMap>
 #include <QList>
@@ -36,4 +34,3 @@ public:
 	double min, max;
 	double range[2];
 };
-#endif // IAHISTOGRAMLOTDATA_H__

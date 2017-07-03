@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #pragma once
 
 #include "iASlicerMode.h"
@@ -82,4 +81,3 @@ public:
 private:
 	const QString m_SlicerName;
 };
-

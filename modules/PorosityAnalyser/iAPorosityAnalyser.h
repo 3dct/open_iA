@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAPorosityAnalyser_h__
-#define iAPorosityAnalyser_h__
+#pragma once
 
 #include "ui_PorosityAnalyser.h"
 #include "iAQTtoUIConnector.h"
@@ -96,5 +94,3 @@ protected:
 	int m_runsOffset;
 	QMainWindow *m_visanMW;
 };
-
-#endif // iAPorosityAnalyser_h__

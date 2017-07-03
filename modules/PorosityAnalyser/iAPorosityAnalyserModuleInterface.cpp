@@ -485,7 +485,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 		if ( pipeline[j].at( 0 ).length() == 0 )
 		{
 			QMessageBox msgBox;
-			msgBox.setText( "The pipeline is not connected. Please close the gab by rearanging the filters.  " );
+			msgBox.setText( "The pipeline is not connected. Please close the gap by rearranging the filters.  " );
 			msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
 			msgBox.exec();
 			return;

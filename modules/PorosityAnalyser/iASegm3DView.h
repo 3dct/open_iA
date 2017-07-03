@@ -18,10 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IA_SEGM_3D_VIEW_H
-#define IA_SEGM_3D_VIEW_H
-
+#pragma once
 
 #include "ui_Segm3DView.h"
 #include <iAQTtoUIConnector.h>
@@ -105,5 +102,3 @@ protected:
 	double m_range;
 	QList<QWidget *> m_containerList;
 };
-
-#endif

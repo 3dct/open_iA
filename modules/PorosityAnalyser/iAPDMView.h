@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAPDMView_h__
-#define iAPDMView_h__
+#pragma once
 
 #include "ui_PDMView.h"
 #include "iAQTtoUIConnector.h"
@@ -97,5 +95,3 @@ protected:
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 };
-
-#endif // iAPDMView_h__

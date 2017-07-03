@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAHMData_h__
-#define iAHMData_h__
+#pragma once
 
 #include "iAHistogramPlotData.h"
 
@@ -38,5 +36,3 @@ struct iAHMData
 		gtPorosityMap.clear();
 	}
 };
-
-#endif // iAHMData_h__

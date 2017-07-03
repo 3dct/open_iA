@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAPCView_h__
-#define iAPCView_h__
+#pragma once
 
 #include "ui_PCView.h"
 #include "iAQTtoUIConnector.h"
@@ -53,4 +51,3 @@ protected:
 	vtkSmartPointer<vtkChartParallelCoordinates> m_chart;
 	QVTKWidget * m_widget;
 };
-#endif // iAPCView_h__

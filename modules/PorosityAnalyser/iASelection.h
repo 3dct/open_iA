@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iASelection_h__
-#define iASelection_h__
+#pragma once
 
 #include <QList>
 #include <QModelIndex>
@@ -44,6 +42,3 @@ struct iASelection
 	vtkSmartPointer<vtkIdTypeArray>  ids;
 	QString selText;
 };
-
-
-#endif // iASelection_h__

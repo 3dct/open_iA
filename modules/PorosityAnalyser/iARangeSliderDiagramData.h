@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IARANGESLIDERDIAGRAMDATA_H
-#define IARANGESLIDERDIAGRAMDATA_H
+#pragma once
 
 #include "iAAbstractDiagramData.h"
 
@@ -82,5 +80,3 @@ private:
 
 	double m_range[2];
 };
-
-#endif /* IARANGESLIDERDIAGRAMDATA_H */

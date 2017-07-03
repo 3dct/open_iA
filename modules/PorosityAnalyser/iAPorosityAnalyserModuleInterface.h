@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAPorosityAnalyserModuleInterface_h__
-#define iAPorosityAnalyserModuleInterface_h__
+#pragma once
 
 #include <itkImageIOBase.h>
 #include <QWidget>
@@ -108,5 +106,3 @@ private:
 
 	void removeGTDatasets( QStringList& list, const QStringList& toDelete );
 };
-
-#endif // iAPorosityAnalyserModuleInterface_h__

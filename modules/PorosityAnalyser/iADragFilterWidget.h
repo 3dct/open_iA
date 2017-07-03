@@ -59,9 +59,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef IADRAGFILTERWIDGET_H
-#define IADRAGFILTERWIDGET_H
+#pragma once
 
 #include <QFrame>
 #include <QLabel>
@@ -96,5 +94,3 @@ private:
 
 	QList<QLabel *> m_labelList;
 };
-
-#endif // IADRAGFILTERWIDGET_H

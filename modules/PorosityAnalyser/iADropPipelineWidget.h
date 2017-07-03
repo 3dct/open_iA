@@ -59,9 +59,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef IADROPPIPELINEWIDGET_H
-#define IADROPPIPELINEWIDGET_H
+#pragma once
 
 #include <QList>
 #include <QPoint>
@@ -115,5 +113,3 @@ private:
 	int m_imageSize;
 	int m_totalPipelineSlots;
 };
-
-#endif // IADROPPIPELINEWIDGET_H

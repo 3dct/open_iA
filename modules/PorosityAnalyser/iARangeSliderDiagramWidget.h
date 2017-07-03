@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IARANGESLIDERDIAGRAMWIDGET_H
-#define IARANGESLIDERDIAGRAMWIDGET_H
+#pragma once
 
 #include "iADiagramFctWidget.h"
 #include "iAFunctionDrawers.h"
@@ -122,5 +120,3 @@ private:
 	int getBin( QMouseEvent *event );
 	void setupSelectionDrawer();
 };
-
-#endif /*IARANGESLIDERDIAGRAMWIDGET_H*/

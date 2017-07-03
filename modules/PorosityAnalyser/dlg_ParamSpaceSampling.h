@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_PARAMSPACESAMPLING_H
-#define DLG_PARAMSPACESAMPLING_H
+#pragma once
 
 #include <QDialog>
 #include <QString>
@@ -146,4 +144,3 @@ protected:
 		);
 
 };
-#endif
