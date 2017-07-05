@@ -154,4 +154,7 @@ private:
 
 	QString m_additionalInfo;
 	int m_channel;
+
+	QVector<QString> m_hdf5Path;
+	bool m_isITKHDF5;
 };

@@ -31,6 +31,8 @@ static mapQString2int fill_extensionToId()
 
 	m[""] = UNKNOWN_READER;
 	m["MHD"] = MHD_READER;
+	m["H5"] = HDF5_READER;
+	m["HE5"] = HDF5_READER;
 	m["MHA"] = MHD_READER;
 	m["STL"] = STL_READER;
 	m["RAW"] = RAW_READER;
@@ -40,7 +42,6 @@ static mapQString2int fill_extensionToId()
 	m["PARS"] = PARS_READER;
 	m["VGI"] = VGI_READER;
 	m["DCM"] = DCM_READER;
-	m["DCM"] = DCM_WRITER;
 	m["NRRD"] = NRRD_READER;
 	m["TIF"] = MHD_READER;
 	m["TIFF"] = MHD_READER;
@@ -52,6 +53,7 @@ static mapQString2int fill_extensionToId()
 	m["OIF"] = OIF_READER;
 	m["AM"] = AM_READER;
 	m["VTI"] = VTI_READER;
+	m["HDF5"] = HDF5_READER;
 
 	return m;
 }
@@ -88,6 +90,9 @@ static mapQString2int fill_extensionToSaveId()
 	m["DCM"] = DCM_WRITER;
 	m["AM"] = AM_WRITER;
 	m["CSV"] = CSV_WRITER;
+	m["HDF5"] = MHD_WRITER;
+	m["HE5"] = MHD_WRITER;
+	m["H5"] = MHD_WRITER;
 	return m;
 }
 const mapQString2int extensionToSaveId = fill_extensionToSaveId();
