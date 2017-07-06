@@ -175,23 +175,34 @@ void iAAstraAlgorithm::ForwardProject()
 	cast->Update();
 	vtkSmartPointer<vtkImageData> float32Img = cast->GetOutput();
 
+	astra::float32* buf = new astra::float32[dim[0] * dim[1] * dim[2]];
+	FOR_VTKIMG_PIXELS(float32Img, x, y, z)
+	{
+		size_t index = y  + x * dim[1] + z * dim[0] * dim[1];
+		if (index < 0 || index >= dim[0] * dim[1] * dim[2])
+		{
+			DEBUG_LOG(QString("Index out of bounds: %1 (valid range: 0..%2)").arg(index).arg(dim[0] * dim[1] * dim[2]));
+		}
+		buf[index] = float32Img->GetScalarComponentAsFloat(x, y, z, 0);
+	}
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry());
-	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), static_cast<astra::float32*>(float32Img->GetScalarPointer()));
+	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), buf);
 	astra::CCudaForwardProjectionAlgorithm3D* algorithm = new astra::CCudaForwardProjectionAlgorithm3D();
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
 	int projDim[3] = { m_detRowCnt, m_detColCnt, m_projAnglesCount };     // "normalize" z spacing with projections count to make sinograms with different counts more easily comparable
-	double projSpacing[3] = { m_detSpacingX, m_detSpacingY, m_detSpacingX * 360 / m_projAnglesCount };
+	double projSpacing[3] = { m_detSpacingX, m_detSpacingY, m_detSpacingX * 180 / m_projAnglesCount };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
 	FOR_VTKIMG_PIXELS(projImg, x, y, z)
 	{
-		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[x][z][y]);
+		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[y][m_projAnglesCount-z-1][m_detColCnt-x-1]);
 	}
 	getConnector()->SetImage(projImg);
 	getConnector()->Modified();
 
+	delete[] buf;
 	delete algorithm;
 	delete volumeData;
 	delete projectionData;
