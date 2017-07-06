@@ -30,7 +30,7 @@ const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am *.hdf5 *.h5 *.he5 *.vti *.bmp *.jpg *.jpeg *.png *.tif *.tiff);;"
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am *.hdf5 *.h5 *.he5 *.mat *.vti *.bmp *.jpg *.jpeg *.png *.tif *.tiff);;"
 		+ MetaImages +
 		"STL files (*.stl);;"
 		"VGI files (*.vgi);;"
@@ -40,7 +40,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"NRRD files (*.nrrd);;"
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
-		"Hierarchical Data Format v5 (*.hdf5 *.h5 *.he5);;"
+		"Hierarchical Data Format v5 (*.hdf5 *.h5 *.he5 *.mat);;"
 		"Network Common Data Format v4 (*.nc *.cdf);;"
 		"VTI files (*.vti);;") +
 		GetSupportedImageFormats();

@@ -157,4 +157,5 @@ private:
 
 	QVector<QString> m_hdf5Path;
 	bool m_isITKHDF5;
+	bool loadHDF5File();
 };

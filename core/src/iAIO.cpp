@@ -246,7 +246,7 @@ iAIO::~iAIO()
 	stlReader->Delete();
 	if (observerProgress) observerProgress->Delete();
 }
-
+/*
 QString MapHDF5ClassToString(H5S_class_t hdf5Class)
 {
 	switch (hdf5Class)
@@ -258,6 +258,7 @@ QString MapHDF5ClassToString(H5S_class_t hdf5Class)
 	default: return QString("Unknown");
 	}
 }
+*/
 
 QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 {
@@ -275,7 +276,116 @@ QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 		case H5T_ENUM	   : return QString("Enum");
 		case H5T_VLEN	   : return QString("VLen");
 		case H5T_ARRAY     : return QString("Array");
+		default: return QString("Unknown");
 	}
+}
+
+namespace
+{
+	const int InvalidHDF5Type = -1;
+}
+
+int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
+{
+	switch (hdf5Type)
+	{
+	case H5T_INTEGER: {
+		switch (numBytes)
+		{
+		case 1: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_CHAR : VTK_CHAR;
+		case 2: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_SHORT : VTK_SHORT;
+		case 4: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_INT : VTK_INT;
+		case 8: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_LONG_LONG : VTK_LONG_LONG;
+		default: return InvalidHDF5Type;
+		}
+	} 
+	case H5T_FLOAT: {
+		switch (numBytes)
+		{
+			case 4:  return VTK_FLOAT;
+			case 8:  return VTK_DOUBLE;
+			default: return InvalidHDF5Type;
+		}
+	}
+
+	case H5T_STRING:
+	case H5T_NO_CLASS:  // intentional fall-through!
+	case H5T_TIME:
+	case H5T_BITFIELD:
+	case H5T_OPAQUE:
+	case H5T_COMPOUND:
+	case H5T_REFERENCE:
+	case H5T_ENUM:
+	case H5T_VLEN:
+	case H5T_ARRAY:
+	default:            return InvalidHDF5Type;
+	}
+}
+
+bool iAIO::loadHDF5File()
+{
+	if (m_hdf5Path.size() < 2)
+	{
+		return false;
+	}
+	hid_t file = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	m_hdf5Path.removeLast();
+	hid_t loc_id = file;
+	QStack<hid_t> openGroups;
+	while (m_hdf5Path.size() > 1)
+	{
+		QString name = m_hdf5Path.last();
+		m_hdf5Path.removeLast();
+		loc_id = H5Gopen(file, name.toStdString().c_str(), H5P_DEFAULT);
+		openGroups.push(loc_id);
+	}
+
+	hid_t dset = H5Dopen(loc_id, m_hdf5Path[0].toStdString().c_str(), H5P_DEFAULT);
+	hid_t space = H5Dget_space(dset);
+	int rank = H5Sget_simple_extent_ndims(space);
+	hsize_t * dims = new hsize_t[rank];
+	hsize_t * maxdims = new hsize_t[rank];
+	int status = H5Sget_simple_extent_dims(space, dims, maxdims);
+	H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
+	hid_t type_id = H5Dget_type(dset);
+	H5T_class_t hdf5Type = H5Tget_class(type_id);
+	size_t numBytes = H5Tget_size(type_id);
+	H5T_order_t order = H5Tget_order(type_id);
+	H5T_sign_t sign = H5Tget_sign(type_id);
+	int vtkType = GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
+	H5Tclose(type_id);						// class=%2; 
+	QString caption = QString("Dataset: %1; type=%2 (%3 bytes, order %4, %5); rank=%6; ")
+		.arg(m_hdf5Path[0])
+		//.arg(MapHDF5ClassToString(hdf5Class))
+		.arg(MapHDF5TypeToString(hdf5Type))
+		.arg(numBytes)
+		.arg((order == H5T_ORDER_LE) ? "LE" : "BE")
+		.arg((sign == H5T_SGN_NONE) ? "unsigned" : "signed")
+		.arg(rank);
+	for (int i = 0; i < rank; ++i)
+	{
+		caption += QString("%1%2").arg(dims[i]).arg((dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
+		if (i < rank - 1) caption += " x ";
+	}
+	DEBUG_LOG(caption);
+	status = H5Sclose(space);
+	if (vtkType == InvalidHDF5Type)
+	{
+		DEBUG_LOG("Can't load a dataset of this data type!");
+		return false;
+	}
+
+	// actual reading of data:
+	//status = H5Dread(dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, );
+
+	status = H5Dclose(dset);
+
+	while (openGroups.size() > 0)
+	{
+		H5Gclose(openGroups.pop());
+	}
+
+	H5Fclose(file);
 }
 
 void iAIO::run()
@@ -384,59 +494,7 @@ void iAIO::run()
 			}
 			else
 			{
-				if (m_hdf5Path.size() < 2)
-				{
-					rv = false;
-					return;
-				}
-				hid_t file = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
-				m_hdf5Path.removeLast();
-				hid_t loc_id = file;
-				QStack<hid_t> openGroups;
-				while (m_hdf5Path.size() > 1)
-				{
-					QString name = m_hdf5Path.last();
-					m_hdf5Path.removeLast();
-					loc_id = H5Gopen(file, name.toStdString().c_str(), H5P_DEFAULT);
-					openGroups.push(loc_id);
-				}
-
-				hid_t dset = H5Dopen(loc_id, m_hdf5Path[0].toStdString().c_str(), H5P_DEFAULT);
-				hid_t space = H5Dget_space(dset);
-				int rank = H5Sget_simple_extent_ndims(space);
-				hsize_t * dims = new hsize_t[rank];
-				hsize_t * maxdims = new hsize_t[rank];
-				int status = H5Sget_simple_extent_dims(space, dims, maxdims);
-				H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
-				hid_t type_id = H5Dget_type(dset);
-				H5T_class_t hdft5Type = H5Tget_class(type_id);
-				size_t numBytes = H5Tget_size(type_id);
-				H5Tclose(type_id);
-				QString caption = QString("Dataset: %1; class=%2; type=%3 (%4 bytes); rank=%5; ")
-					.arg(m_hdf5Path[0])
-					.arg(MapHDF5ClassToString(hdf5Class))
-					.arg(MapHDF5TypeToString(hdft5Type))
-					.arg(numBytes)
-					.arg(rank);
-				for (int i = 0; i < rank; ++i)
-				{
-					caption += QString("%1%2").arg(dims[i]).arg((dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
-					if (i < rank - 1) caption += " x ";
-				}
-				DEBUG_LOG(caption);
-				status = H5Sclose(space);
-
-				// actual reading of data:
-				//status = H5Dread(dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, );
-
-				status = H5Dclose(dset);
-
-				while (openGroups.size() > 0)
-				{
-					H5Gclose(openGroups.pop());
-				}
-
-				H5Fclose(file);
+				rv = loadHDF5File();
 			}
 		}
 		case UNKNOWN_READER:
@@ -496,6 +554,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 	status = H5Oget_info_by_name(loc_id, name, &infobuf, H5P_DEFAULT);
 	QString caption;
 	bool group = false;
+	int vtkType = -1;
 	switch (infobuf.type) {
 	case H5O_TYPE_GROUP:
 		caption = QString("Group: %1").arg(name);
@@ -513,14 +572,29 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 		hsize_t * dims = new hsize_t[rank];
 		hsize_t * maxdims = new hsize_t[rank];
 		int status = H5Sget_simple_extent_dims(space, dims, maxdims);
-		caption = QString("Dataset: %1; rank=%2; ").arg(name).arg(rank);
+		H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
+		hid_t type_id = H5Dget_type(dset);
+		H5T_class_t hdf5Type = H5Tget_class(type_id);
+		size_t numBytes = H5Tget_size(type_id);
+		H5T_order_t order = H5Tget_order(type_id);
+		H5T_sign_t sign = H5Tget_sign(type_id);
+		vtkType = GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
+		H5Tclose(type_id);
+		caption = QString("Dataset: %1; type=%2 (%3 bytes, order %4, %5); rank=%6; ")
+			.arg(name)
+			//.arg(MapHDF5ClassToString(hdf5Class))
+			.arg(MapHDF5TypeToString(hdf5Type))
+			.arg(numBytes)
+			.arg((order == H5T_ORDER_LE) ? "LE" : "BE")
+			.arg((sign == H5T_SGN_NONE) ? "unsigned" : "signed")
+			.arg(rank);
 		for (int i = 0; i < rank; ++i)
 		{
 			caption += QString("%1%2").arg(dims[i]).arg((dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
 			if (i < rank - 1) caption += " x ";
 		}
-		status = H5Dclose(dset);
 		status = H5Sclose(space);
+		status = H5Dclose(dset);
 		break;
 	}
 	case H5O_TYPE_NAMED_DATATYPE:
@@ -559,6 +633,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 		break;
 	}
 	newItem->setData(QString("%1").arg(name), Qt::UserRole + 2);
+	newItem->setData(vtkType, Qt::UserRole + 3);
 
 	return return_val;
 }
@@ -618,6 +693,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		{
 			fileName = f;
 			QDialog dlg;
+			dlg.setWindowTitle(QString("Open '%1'").arg(fileName));
 			QVBoxLayout* lay = new QVBoxLayout();
 			QTreeView* tree = new QTreeView();
 			QStandardItemModel* model = new QStandardItemModel();
@@ -656,9 +732,16 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			int result = dlg.exec();
 			QModelIndex idx = tree->currentIndex();
 			bool datasetSelected = (idx.data(Qt::UserRole + 1) == DATASET);
+			int vtkType = -1;
 			if (datasetSelected)
 			{
 				DEBUG_LOG("Dataset selected!");
+				vtkType = idx.data(Qt::UserRole + 3).toInt();
+				if (vtkType == -1)
+				{
+					DEBUG_LOG("Can't read datasets of this data type!");
+					emit msg("Can't read datasets of this data type!");
+				}
 				do
 				{
 					m_hdf5Path.append(idx.data(Qt::UserRole+2).toString());
@@ -672,9 +755,16 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 					DEBUG_LOG(QString("    %1").arg(m_hdf5Path[i]));
 				}
 			}
+			else
+			{
+				emit msg("You have to select a dataset!");
+			}
 			m_isITKHDF5 = (m_hdf5Path.size() > 2 && m_hdf5Path[m_hdf5Path.size() - 2] == QString("ITKImage"));
-
-			return (result == QDialog::Accepted && datasetSelected && m_hdf5Path.size() >= 2);
+			if (m_hdf5Path.size() < 2)
+			{
+				emit msg("Invalid selection!");
+			}
+			return (result == QDialog::Accepted && datasetSelected && m_hdf5Path.size() >= 2 && vtkType != -1);
 		}
 		case UNKNOWN_READER: 
 		default:
