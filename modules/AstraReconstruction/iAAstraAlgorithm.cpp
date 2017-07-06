@@ -294,7 +294,7 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 		{
 			detCol = m_detColCnt - detCol - 1;
 		}
-		int detRow = ((m_detRowDim % 3) == 0) ? x : (m_detRowDim == 1) ? y : z;
+		int detRow = ((m_detRowDim % 3) == 0) ? x : ((m_detRowDim % 3) == 1) ? y : z;
 		if (m_detRowDim >= 3)
 		{
 			detRow = m_detRowCnt - detRow - 1;
@@ -304,7 +304,7 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 		{
 			projAngle = m_projAnglesCount - projAngle - 1;
 		}
-		int index = detRow + projAngle*m_detRowCnt + detCol*m_detRowCnt*m_projAnglesCount;
+		int index = detCol + projAngle*m_detColCnt + detRow*m_detColCnt*m_projAnglesCount;
 		if (index < 0 || index >= m_projAnglesCount*m_detRowCnt*m_detColCnt)
 		{
 			DEBUG_LOG(QString("Index out of bounds: %1 (valid range: 0..%2)").arg(index).arg(m_projAnglesCount*m_detRowCnt*m_detColCnt));
