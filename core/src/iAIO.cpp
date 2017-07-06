@@ -378,14 +378,14 @@ bool iAIO::loadHDF5File()
 	// actual reading of data:
 	//status = H5Dread(dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, );
 
-	status = H5Dclose(dset);
-
+	H5Dclose(dset);
 	while (openGroups.size() > 0)
 	{
 		H5Gclose(openGroups.pop());
 	}
-
 	H5Fclose(file);
+
+	return true;
 }
 
 void iAIO::run()
@@ -514,9 +514,13 @@ void iAIO::run()
 	}
 }
 
+
 #include <QTextEdit>
 #include <QTreeView>
 #include <QStandardItemModel>
+
+namespace
+{
 
 struct opdata {
 	QStandardItem* item;
@@ -638,6 +642,35 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 	return return_val;
 }
 
+bool HDF5GroupExists(hid_t file_id, const char * name)
+{
+	hid_t loc_id = H5Gopen(file_id, name, H5P_DEFAULT);
+	bool result = loc_id > 0;
+	if (result)
+	{
+		H5Gclose(loc_id);
+	}
+	return result;
+}
+
+bool HDF5DatasetExists(hid_t file_id, const char * name)
+{
+	hid_t loc_id = H5Dopen(file_id, name, H5P_DEFAULT);
+	bool result = loc_id > 0;
+	if (result)
+	{
+		H5Dclose(loc_id);
+	}
+	return result;
+}
+
+bool IsHDF5ITKImage(hid_t file_id)
+{
+	return HDF5GroupExists(file_id, "ITKImage") && HDF5DatasetExists(file_id, "ITKVersion");
+}
+
+}
+
 /**
  * \return	true if it succeeds, false if it fails. 
  */
@@ -692,35 +725,34 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case HDF5_READER:
 		{
 			fileName = f;
+			hid_t file_id = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+			m_isITKHDF5 = IsHDF5ITKImage(file_id);
+			if (m_isITKHDF5)
+			{
+				H5Fclose(file_id);
+				return true;
+			}
 			QDialog dlg;
-			dlg.setWindowTitle(QString("Open '%1'").arg(fileName));
+			dlg.setWindowTitle(QString("Open HDF5").arg(fileName));
 			QVBoxLayout* lay = new QVBoxLayout();
 			QTreeView* tree = new QTreeView();
 			QStandardItemModel* model = new QStandardItemModel();
 			model->setHorizontalHeaderLabels(QStringList() << "HDF5 Structure");
 			tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
-			QStandardItem* rootItem = new QStandardItem("/");
-			model->appendRow(rootItem);
-			rootItem->setData(0, Qt::UserRole + 1);
-
-			//C++ API currently seems not well supported (and somehow seems to clash with VTK/ITK 's hdf 5?
-			//keeps complaining about missing CommonFG::iterateElems...
-
-			hid_t file = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+			QStandardItem* rootItem = new QStandardItem(QFileInfo(fileName).fileName() + "/");
 			rootItem->setData(GROUP, Qt::UserRole + 1);
 			rootItem->setData(fileName, Qt::UserRole + 2);
-			H5O_info_t      infobuf;
-			herr_t status = H5Oget_info(file, &infobuf);
+			model->appendRow(rootItem);
+
+			H5O_info_t infobuf;
+			H5Oget_info(file_id, &infobuf);
 			struct opdata   od;
 			od.item = rootItem;
 			od.recurs = 0;
 			od.prev = NULL;
 			od.addr = infobuf.addr;
-			status = H5Literate(file, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, op_func,
-				(void *)&od);
-			H5Fclose(file);
-
-			// TODO: check for ITKImage entry, skip showing dlg if exists!
+			H5Literate(file_id, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, op_func, (void *)&od);
+			H5Fclose(file_id);
 
 			tree->setModel(model);
 			lay->addWidget(tree);
@@ -729,42 +761,41 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			connect(buttons, SIGNAL(rejected()), &dlg, SLOT(reject()));
 			lay->addWidget(buttons);
 			dlg.setLayout(lay);
-			int result = dlg.exec();
-			QModelIndex idx = tree->currentIndex();
-			bool datasetSelected = (idx.data(Qt::UserRole + 1) == DATASET);
-			int vtkType = -1;
-			if (datasetSelected)
+			if (dlg.exec() != QDialog::Accepted)
 			{
-				DEBUG_LOG("Dataset selected!");
-				vtkType = idx.data(Qt::UserRole + 3).toInt();
-				if (vtkType == -1)
-				{
-					DEBUG_LOG("Can't read datasets of this data type!");
-					emit msg("Can't read datasets of this data type!");
-				}
-				do
-				{
-					m_hdf5Path.append(idx.data(Qt::UserRole+2).toString());
-					idx = idx.parent();
-				}
-				while (idx != QModelIndex());
-				
-				DEBUG_LOG(QString("Path: %1").arg(m_hdf5Path.size()));
-				for (int i = 0; i < m_hdf5Path.size(); ++i)
-				{
-					DEBUG_LOG(QString("    %1").arg(m_hdf5Path[i]));
-				}
+				emit msg("Dataset selection aborted.");
+				return false;
 			}
-			else
+			QModelIndex idx = tree->currentIndex();
+			if (idx.data(Qt::UserRole + 1) != DATASET)
 			{
 				emit msg("You have to select a dataset!");
+				return false;
 			}
-			m_isITKHDF5 = (m_hdf5Path.size() > 2 && m_hdf5Path[m_hdf5Path.size() - 2] == QString("ITKImage"));
+			if (idx.data(Qt::UserRole + 3).toInt() == -1)
+			{
+				DEBUG_LOG("Can't read datasets of this data type!");
+				emit msg("Can't read datasets of this data type!");
+				return false;
+			}
+			do
+			{
+				m_hdf5Path.append(idx.data(Qt::UserRole+2).toString());
+				idx = idx.parent();
+			}
+			while (idx != QModelIndex());
+				
+			DEBUG_LOG(QString("Path: %1").arg(m_hdf5Path.size()));
+			for (int i = 0; i < m_hdf5Path.size(); ++i)
+			{
+				DEBUG_LOG(QString("    %1").arg(m_hdf5Path[i]));
+			}
 			if (m_hdf5Path.size() < 2)
 			{
 				emit msg("Invalid selection!");
+				return false;
 			}
-			return (result == QDialog::Accepted && datasetSelected && m_hdf5Path.size() >= 2 && vtkType != -1);
+			return true;
 		}
 		case UNKNOWN_READER: 
 		default:
