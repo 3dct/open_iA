@@ -311,16 +311,6 @@ int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sig
 	}
 }
 
-template <typename T>
-void readhdf5(vtkSmartPointer<vtkImageData> vtkImg, void * raw_data, int const dim[3])
-{
-	FOR_VTKIMG_PIXELS(vtkImg, x, y, z)
-	{
-		size_t idx = x + y * dim[0] + z * dim[0] * dim[1];
-		vtkImg->SetScalarComponentFromDouble(x, y, z, 0, static_cast<T*>(raw_data)[idx]);
-	}
-}
-
 hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 {
 	switch (hdf5Type)
@@ -346,6 +336,8 @@ hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 	default: return InvalidHDF5Type;
 	}
 }
+
+#include <vtkImageImport.h>
 
 bool iAIO::loadHDF5File()
 {
@@ -421,12 +413,17 @@ bool iAIO::loadHDF5File()
 		H5Gclose(openGroups.pop());
 	}
 	H5Fclose(file);
-	
-	vtkSmartPointer<vtkImageData> vtkImg = AllocateImage(vtkType, dim, m_hdf5Spacing);
-	VTK_TYPED_CALL(readhdf5, vtkType, vtkImg, raw_data, dim);
-	delete[] raw_data;
 
-	getConnector()->SetImage(vtkImg);
+	vtkSmartPointer<vtkImageImport> imgImport = vtkSmartPointer<vtkImageImport>::New();
+	imgImport->SetDataSpacing(m_hdf5Spacing[0], m_hdf5Spacing[1], m_hdf5Spacing[2]);
+	imgImport->SetDataOrigin(0, 0, 0);
+	imgImport->SetWholeExtent(0, dim[0], 0, dim[1], 0, dim[2]);
+	imgImport->SetDataExtentToWholeExtent();
+	imgImport->SetDataScalarType(vtkType);
+	imgImport->SetNumberOfScalarComponents(1);
+	imgImport->SetImportVoidPointer(raw_data, 0);
+	imgImport->Update();
+	getConnector()->SetImage(imgImport->GetOutput());
 	getConnector()->Modified();
 	postImageReadActions();
 
