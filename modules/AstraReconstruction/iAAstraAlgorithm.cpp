@@ -281,19 +281,23 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 		int detCol = ((m_detColDim % 3) == 0) ? x : ((m_detColDim % 3) == 1) ? y : z;
 		if (m_detColDim >= 3)
 		{
-			detCol = m_detColCnt - detCol;
+			detCol = m_detColCnt - detCol - 1;
 		}
 		int detRow = ((m_detRowDim % 3) == 0) ? x : (m_detRowDim == 1) ? y : z;
 		if (m_detRowDim >= 3)
 		{
-			detRow = m_detRowCnt - detRow;
+			detRow = m_detRowCnt - detRow - 1;
 		}
 		int projAngle = ((m_projAngleDim % 3) == 0) ? x : ((m_projAngleDim % 3) == 1) ? y : z;
 		if (m_projAngleDim >= 3)
 		{
-			projAngle = m_projAnglesCount - projAngle;
+			projAngle = m_projAnglesCount - projAngle - 1;
 		}
 		int index = detRow + projAngle*m_detRowCnt + detCol*m_detRowCnt*m_projAnglesCount;
+		if (index < 0 || index >= m_projAnglesCount*m_detRowCnt*m_detColCnt)
+		{
+			DEBUG_LOG(QString("Index out of bounds: %1 (valid range: 0..%2)").arg(index).arg(m_projAnglesCount*m_detRowCnt*m_detColCnt));
+		}
 		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
 	}
 
@@ -303,16 +307,15 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	astra::XMLNode gpuIndexOption = projectorConfig.self.addChildNode("Option");
 	gpuIndexOption.addAttribute("key", "GPUIndex");
 	gpuIndexOption.addAttribute("value", "0");
-	/*
+
 	if (m_projGeomType == "cone")
 	{
 		CreateConeProjGeom(projectorConfig);
 	}
 	else
 	{
-	*/
 		CreateConeVecProjGeom(projectorConfig);
-	//}
+	}
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	volGeomNode.addChildNode("GridColCount", m_volDim[0]);
 	volGeomNode.addChildNode("GridRowCount", m_volDim[1]);
