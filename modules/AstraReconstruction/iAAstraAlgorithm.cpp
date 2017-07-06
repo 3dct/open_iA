@@ -192,7 +192,7 @@ void iAAstraAlgorithm::ForwardProject()
 	astra::CCudaForwardProjectionAlgorithm3D* algorithm = new astra::CCudaForwardProjectionAlgorithm3D();
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
-	int projDim[3] = { m_detRowCnt, m_detColCnt, m_projAnglesCount };     // "normalize" z spacing with projections count to make sinograms with different counts more easily comparable
+	int projDim[3] = { m_detColCnt, m_detRowCnt, m_projAnglesCount };     // "normalize" z spacing with projections count to make sinograms with different counts more easily comparable
 	double projSpacing[3] = { m_detSpacingX, m_detSpacingY, m_detSpacingX * 180 / m_projAnglesCount };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
 	FOR_VTKIMG_PIXELS(projImg, x, y, z)
