@@ -382,7 +382,7 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	auto volImg = AllocateImage(VTK_FLOAT, m_volDim, m_volSpacing);
 	FOR_VTKIMG_PIXELS(volImg, x, y, z)
 	{
-		volImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[z][y][x]);
+		volImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[z][x][y]);
 	}
 	getConnector()->SetImage(volImg);
 	getConnector()->Modified();
