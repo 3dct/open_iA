@@ -31,9 +31,6 @@ static mapQString2int fill_extensionToId()
 
 	m[""] = UNKNOWN_READER;
 	m["MHD"] = MHD_READER;
-	m["H5"] = HDF5_READER;
-	m["HE5"] = HDF5_READER;
-	m["MAT"] = HDF5_READER;
 	m["MHA"] = MHD_READER;
 	m["STL"] = STL_READER;
 	m["RAW"] = RAW_READER;
@@ -55,6 +52,11 @@ static mapQString2int fill_extensionToId()
 	m["AM"] = AM_READER;
 	m["VTI"] = VTI_READER;
 	m["HDF5"] = HDF5_READER;
+	m["H5"] = HDF5_READER;
+	m["HE5"] = HDF5_READER;
+	m["NC"] = HDF5_READER;
+	m["CDF"] = HDF5_READER;
+	m["MAT"] = HDF5_READER;
 
 	return m;
 }

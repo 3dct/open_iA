@@ -26,23 +26,28 @@
 const QString iAIOProvider::ProjectFileExtension(".mod");
 const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;All files (*.*)");
 const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
+namespace
+{
+	const QString ImageFormatExtensions("*.bmp *.jpg *.jpeg *.png *.tif *.tiff");
+}
 
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am *.hdf5 *.h5 *.he5 *.mat *.vti *.bmp *.jpg *.jpeg *.png *.tif *.tiff);;"
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am *.hdf5 *.h5 *.he5 *.mat *.vti "+ImageFormatExtensions+");;"
 		+ MetaImages +
 		"STL files (*.stl);;"
-		"VGI files (*.vgi);;"
+		"VG Studio Scenes (*.vgi);;"
 		"RAW files (*.raw *.rec *.vol *.pro);;"
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
 		"NRRD files (*.nrrd);;"
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
-		"Hierarchical Data Format v5 (*.hdf5 *.h5 *.he5 *.mat);;"
+		"Hierarchical Data Format v5 (*.hdf5 *.h5 *.he5);;"
 		"Network Common Data Format v4 (*.nc *.cdf);;"
-		"VTI files (*.vti);;") +
+		"Matlab data files v7.3 (*.mat)"
+		"Serial VTK image data (*.vti);;") +
 		GetSupportedImageFormats();
 }
 
@@ -59,7 +64,7 @@ QString iAIOProvider::GetSupportedSaveFormats()
 
 QString iAIOProvider::GetSupportedImageStackFormats()
 {
-	return QString("All supported types (*.mhd *.mha *.tif *.png *.jpg *.bmp);;"
+	return QString("All supported types (*.mhd *.mha " + ImageFormatExtensions + ");;"
 		) + MetaImages +
 		GetSupportedImageFormats();
 }
@@ -77,8 +82,8 @@ QString iAIOProvider::GetSupportedImageFormats()
 {
 	return QObject::tr(
 		"BMP (*.bmp);;"
-		"JPEG (*.jpg);;"
+		"JPEG (*.jpg *.jpeg);;"
 		"PNG (*.png);;"
-		"TIFF (*.tif);;"
+		"TIFF (*.tif *.tiff);;"
 	);
 }
