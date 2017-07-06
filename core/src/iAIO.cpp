@@ -307,18 +307,43 @@ int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sig
 			default: return InvalidHDF5Type;
 		}
 	}
+	default: return InvalidHDF5Type;
+	}
+}
 
-	case H5T_STRING:
-	case H5T_NO_CLASS:  // intentional fall-through!
-	case H5T_TIME:
-	case H5T_BITFIELD:
-	case H5T_OPAQUE:
-	case H5T_COMPOUND:
-	case H5T_REFERENCE:
-	case H5T_ENUM:
-	case H5T_VLEN:
-	case H5T_ARRAY:
-	default:            return InvalidHDF5Type;
+template <typename T>
+void readhdf5(vtkSmartPointer<vtkImageData> vtkImg, void * raw_data, int const dim[3])
+{
+	FOR_VTKIMG_PIXELS(vtkImg, x, y, z)
+	{
+		size_t idx = x + y * dim[0] + z * dim[0] * dim[1];
+		vtkImg->SetScalarComponentFromDouble(x, y, z, 0, static_cast<T*>(raw_data)[idx]);
+	}
+}
+
+hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
+{
+	switch (hdf5Type)
+	{
+	case H5T_INTEGER: {
+		switch (numBytes)
+		{
+		case 1: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UCHAR : H5T_NATIVE_SCHAR;
+		case 2: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_USHORT : H5T_NATIVE_SHORT;
+		case 4: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UINT : H5T_NATIVE_INT;
+		case 8: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_ULLONG : H5T_NATIVE_LLONG;
+		default: return InvalidHDF5Type;
+		}
+	}
+	case H5T_FLOAT: {
+		switch (numBytes)
+		{
+		case 4:  return H5T_NATIVE_FLOAT;
+		case 8:  return H5T_NATIVE_DOUBLE;
+		default: return InvalidHDF5Type;
+		}
+	}
+	default: return InvalidHDF5Type;
 	}
 }
 
@@ -340,14 +365,14 @@ bool iAIO::loadHDF5File()
 		openGroups.push(loc_id);
 	}
 
-	hid_t dset = H5Dopen(loc_id, m_hdf5Path[0].toStdString().c_str(), H5P_DEFAULT);
-	hid_t space = H5Dget_space(dset);
+	hid_t dataset_id = H5Dopen(loc_id, m_hdf5Path[0].toStdString().c_str(), H5P_DEFAULT);
+	hid_t space = H5Dget_space(dataset_id);
 	int rank = H5Sget_simple_extent_ndims(space);
-	hsize_t * dims = new hsize_t[rank];
+	hsize_t * hdf5Dims = new hsize_t[rank];
 	hsize_t * maxdims = new hsize_t[rank];
-	int status = H5Sget_simple_extent_dims(space, dims, maxdims);
+	int status = H5Sget_simple_extent_dims(space, hdf5Dims, maxdims);
 	H5S_class_t hdf5Class = H5Sget_simple_extent_type(space);
-	hid_t type_id = H5Dget_type(dset);
+	hid_t type_id = H5Dget_type(dataset_id);
 	H5T_class_t hdf5Type = H5Tget_class(type_id);
 	size_t numBytes = H5Tget_size(type_id);
 	H5T_order_t order = H5Tget_order(type_id);
@@ -364,7 +389,7 @@ bool iAIO::loadHDF5File()
 		.arg(rank);
 	for (int i = 0; i < rank; ++i)
 	{
-		caption += QString("%1%2").arg(dims[i]).arg((dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
+		caption += QString("%1%2").arg(hdf5Dims[i]).arg((hdf5Dims[i] != maxdims[i]) ? QString("%1").arg(maxdims[i]) : QString());
 		if (i < rank - 1) caption += " x ";
 	}
 	DEBUG_LOG(caption);
@@ -378,12 +403,32 @@ bool iAIO::loadHDF5File()
 	// actual reading of data:
 	//status = H5Dread(dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, );
 
-	H5Dclose(dset);
+	int dim[3];
+	for (int i = 0; i < 3; ++i)
+	{
+		dim[i] = (i < rank) ? hdf5Dims[i] : 1;
+	}
+	unsigned char * raw_data = new unsigned char[numBytes * dim[0] * dim[1] * dim[2] ];
+	status = H5Dread(dataset_id, GetHDF5ReadType(hdf5Type, numBytes, sign), H5S_ALL, H5S_ALL, H5P_DEFAULT, raw_data);
+	if (status < 0)
+	{
+		DEBUG_LOG("Reading dataset failed!");
+		return false;
+	}
+	H5Dclose(dataset_id);
 	while (openGroups.size() > 0)
 	{
 		H5Gclose(openGroups.pop());
 	}
 	H5Fclose(file);
+	
+	vtkSmartPointer<vtkImageData> vtkImg = AllocateImage(vtkType, dim, m_hdf5Spacing);
+	VTK_TYPED_CALL(readhdf5, vtkType, vtkImg, raw_data, dim);
+	delete[] raw_data;
+
+	getConnector()->SetImage(vtkImg);
+	getConnector()->Modified();
+	postImageReadActions();
 
 	return true;
 }
@@ -487,16 +532,16 @@ void iAIO::run()
 			rv = true;
 			break;
 		}
-		case HDF5_READER: {
+		case HDF5_READER:
 			if (m_isITKHDF5)
 			{
-				rv = readMetaImage(); break;
+				rv = readMetaImage();
 			}
 			else
 			{
 				rv = loadHDF5File();
 			}
-		}
+			break;
 		case UNKNOWN_READER:
 		default:
 			emit msg(tr("  unknown reader type"));
@@ -559,6 +604,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 	QString caption;
 	bool group = false;
 	int vtkType = -1;
+	int rank = 0;
 	switch (infobuf.type) {
 	case H5O_TYPE_GROUP:
 		caption = QString("Group: %1").arg(name);
@@ -572,7 +618,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 			break;
 		}
 		hid_t space = H5Dget_space(dset);
-		int rank = H5Sget_simple_extent_ndims(space);
+		rank = H5Sget_simple_extent_ndims(space);
 		hsize_t * dims = new hsize_t[rank];
 		hsize_t * maxdims = new hsize_t[rank];
 		int status = H5Sget_simple_extent_dims(space, dims, maxdims);
@@ -638,7 +684,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
 	}
 	newItem->setData(QString("%1").arg(name), Qt::UserRole + 2);
 	newItem->setData(vtkType, Qt::UserRole + 3);
-
+	newItem->setData(rank, Qt::UserRole + 4);
 	return return_val;
 }
 
@@ -670,6 +716,10 @@ bool IsHDF5ITKImage(hid_t file_id)
 }
 
 }
+
+#include "iAQTtoUIConnector.h"
+#include "ui_OpenHDF5.h"
+typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 
 /**
  * \return	true if it succeeds, false if it fails. 
@@ -732,13 +782,11 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 				H5Fclose(file_id);
 				return true;
 			}
-			QDialog dlg;
+			OpenHDF5Dlg dlg;
 			dlg.setWindowTitle(QString("Open HDF5").arg(fileName));
-			QVBoxLayout* lay = new QVBoxLayout();
-			QTreeView* tree = new QTreeView();
 			QStandardItemModel* model = new QStandardItemModel();
 			model->setHorizontalHeaderLabels(QStringList() << "HDF5 Structure");
-			tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+			dlg.tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
 			QStandardItem* rootItem = new QStandardItem(QFileInfo(fileName).fileName() + "/");
 			rootItem->setData(GROUP, Qt::UserRole + 1);
 			rootItem->setData(fileName, Qt::UserRole + 2);
@@ -754,19 +802,13 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			H5Literate(file_id, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, op_func, (void *)&od);
 			H5Fclose(file_id);
 
-			tree->setModel(model);
-			lay->addWidget(tree);
-			QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-			connect(buttons, SIGNAL(accepted()), &dlg, SLOT(accept()));
-			connect(buttons, SIGNAL(rejected()), &dlg, SLOT(reject()));
-			lay->addWidget(buttons);
-			dlg.setLayout(lay);
+			dlg.tree->setModel(model);
 			if (dlg.exec() != QDialog::Accepted)
 			{
 				emit msg("Dataset selection aborted.");
 				return false;
 			}
-			QModelIndex idx = tree->currentIndex();
+			QModelIndex idx = dlg.tree->currentIndex();
 			if (idx.data(Qt::UserRole + 1) != DATASET)
 			{
 				emit msg("You have to select a dataset!");
@@ -774,9 +816,12 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			}
 			if (idx.data(Qt::UserRole + 3).toInt() == -1)
 			{
-				DEBUG_LOG("Can't read datasets of this data type!");
 				emit msg("Can't read datasets of this data type!");
 				return false;
+			}
+			if (idx.data(Qt::UserRole + 4).toInt() < 1 || idx.data(Qt::UserRole + 4).toInt() > 3)
+			{
+				emit msg(QString("The rank (number of dimensions) of the dataset must be between 1 and 3 (was %1)").arg(idx.data(Qt::UserRole + 4).toInt()));
 			}
 			do
 			{
@@ -793,6 +838,15 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			if (m_hdf5Path.size() < 2)
 			{
 				emit msg("Invalid selection!");
+				return false;
+			}
+			bool okX, okY, okZ;
+			m_hdf5Spacing[0] = dlg.edSpacingX->text().toDouble(&okX);
+			m_hdf5Spacing[1] = dlg.edSpacingY->text().toDouble(&okY);
+			m_hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble(&okZ);
+			if (!(okX && okY && okZ))
+			{
+				emit msg("Invalid spacing (has to be a valid floating point number)!");
 				return false;
 			}
 			return true;
