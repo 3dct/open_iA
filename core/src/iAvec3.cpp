@@ -24,13 +24,136 @@
 
 #include <cmath>
 
+iAVec3::iAVec3()
+{
+	x = 0;
+	y = 0;
+	z = 0;
+}
+iAVec3::iAVec3(float px, float py, float pz)
+{
+	x = px;
+	y = py;
+	z = pz;
+}
+iAVec3::iAVec3(float val)
+{
+	x = val;
+	y = val;
+	z = val;
+}
+iAVec3::iAVec3(float data[3])
+{
+	x = data[0];
+	y = data[1];
+	z = data[2];
+}
+iAVec3::iAVec3(const iAVec3& v)
+{
+	x = v.x;
+	y = v.y;
+	z = v.z;
+}
+
 float iAVec3::length() const
 {
 	return (float)sqrt(x*x + y*y + z*z);
 }
 
-
 float iAVec3::angle(iAVec3 const & a, iAVec3 const & b)
 {
 	return std::acos((a & b) / (a.length() * b.length()));
+}
+
+iAVec3& iAVec3::operator= (const iAVec3& v)
+{
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	return *this;
+}
+
+iAVec3 iAVec3::operator+ () const
+{
+	return *this;
+}
+
+iAVec3 iAVec3::operator- () const
+{
+	return iAVec3(-x, -y, -z);
+}
+
+iAVec3& iAVec3::operator+= (const iAVec3& v)
+{
+	x += v.x;
+	y += v.y;
+	z += v.z;
+	return *this;
+}
+
+iAVec3& iAVec3::operator-= (const iAVec3& v)
+{
+	x -= v.x;
+	y -= v.y;
+	z -= v.z;
+	return *this;
+}
+
+iAVec3& iAVec3::operator*= (const iAVec3& v)
+{
+	x *= v.x;
+	y *= v.y;
+	z *= v.z;
+	return *this;
+}
+
+iAVec3& iAVec3::operator*= (float f)
+{
+	x *= f;
+	y *= f;
+	z *= f;
+	return *this;
+}
+
+iAVec3& iAVec3::operator/= (const iAVec3& v)
+{
+	x /= v.x;
+	y /= v.y;
+	z /= v.z;
+	return *this;
+}
+
+const float& iAVec3::operator[] (int index) const
+{
+	return *(index + &x);
+}
+
+float& iAVec3::operator[] (int index)
+{
+	return *(index + &x);
+}
+
+int iAVec3::operator== (const iAVec3& v) const
+{
+	return x == v.x && y == v.y && z == v.z;
+}
+
+int	iAVec3::operator!= (const iAVec3& v) const
+{
+	return x != v.x || y != v.y || z != v.z;
+}
+
+int	iAVec3::operator<  (const iAVec3& v) const
+{
+	return (x < v.x) || ((x == v.x) && (y < v.y));
+}
+
+int	iAVec3::operator>  (const iAVec3& v) const
+{
+	return (x > v.x) || ((x == v.x) && (y > v.y));
+}
+
+iAVec3 iAVec3::normalize() const
+{
+	return (*this) / this->length();
 }
