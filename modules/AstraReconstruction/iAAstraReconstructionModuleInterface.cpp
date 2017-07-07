@@ -104,6 +104,32 @@ void iAAstraReconstructionModuleInterface::ForwardProject()
 }
 
 
+int MapAlgoComboIndexToAstraIndex(int comboIndex)
+{
+	switch (comboIndex)
+	{
+	case 0: return iAAstraAlgorithm::BP3D;   break;
+	case 1: return iAAstraAlgorithm::FDK3D;  break;
+	case 2: return iAAstraAlgorithm::SIRT3D; break;
+	case 3: return iAAstraAlgorithm::CGLS3D; break;
+	default: DEBUG_LOG("Invalid Algorithm Type selection!"); return iAAstraAlgorithm::FDK3D;
+	}
+}
+
+
+int MapAlgoAstraIndexToComboIndex(int astraIndex)
+{
+	switch (astraIndex)
+	{
+	case iAAstraAlgorithm::BP3D:   return 0; break;
+	case iAAstraAlgorithm::FDK3D:  return 1; break;
+	case iAAstraAlgorithm::SIRT3D: return 2; break;
+	case iAAstraAlgorithm::CGLS3D: return 3; break;
+	default: DEBUG_LOG("Invalid Algorithm Type selection!"); return 0;
+	}
+}
+
+
 void iAAstraReconstructionModuleInterface::BackProject()
 {
 	// ask for and store settings:
@@ -128,13 +154,17 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	volSpacing[0]  = settings.value(SettingsKeyBase + "volumeSpacingX", 1).toDouble();
 	volSpacing[1]  = settings.value(SettingsKeyBase + "volumeSpacingY", 1).toDouble();
 	volSpacing[2]  = settings.value(SettingsKeyBase + "volumeSpacingZ", 1).toDouble();
-	algorithmType  = settings.value(SettingsKeyBase + "algorithmType").toInt();
+	algorithmType  = settings.value(SettingsKeyBase + "algorithmType", 1).toInt();
 	numberOfIterations = settings.value(SettingsKeyBase + "numberOfIterations", 100).toInt();
+	correctCenterOfRotation = settings.value(SettingsKeyBase + "correctCenterOfRotation", false).toBool();
+	correctCenterOfRotationOffset = settings.value(SettingsKeyBase + "correctCenterOfRotationOffset", 0.0).toDouble();
+
 	dlg_ProjectionParameters dlg;
 	dlg.fillProjectionGeometryValues(projGeomType, detSpacingX, detSpacingY, projAngleStart, projAngleEnd, distOrigDet, distOrigSource);
 	dlg.fillVolumeGeometryValues(volDim, volSpacing);
 	dlg.fillProjInputMapping(detRowDim, detColDim, projAngleDim, volDim);
-	dlg.fillAlgorithmValues(algorithmType, numberOfIterations);
+	dlg.fillAlgorithmValues(MapAlgoAstraIndexToComboIndex(algorithmType), numberOfIterations);
+	dlg.fillCorrectionValues(correctCenterOfRotation, correctCenterOfRotationOffset);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	projGeomType = dlg.ProjGeomType->currentText();
@@ -153,15 +183,10 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	volSpacing[0] = dlg.VolGeomSpacingX->text().toDouble();
 	volSpacing[1] = dlg.VolGeomSpacingY->text().toDouble();
 	volSpacing[2] = dlg.VolGeomSpacingZ->text().toDouble();
-	switch (dlg.AlgorithmType->currentIndex())
-	{
-		case 0: algorithmType = iAAstraAlgorithm::BP3D;	  break;
-		case 1: algorithmType = iAAstraAlgorithm::FDK3D;  break;
-		case 2: algorithmType = iAAstraAlgorithm::SIRT3D; break;
-		case 3: algorithmType = iAAstraAlgorithm::CGLS3D; break;
-		default: DEBUG_LOG("Invalid Algorithm Type selection!"); return;
-	}
+	algorithmType = MapAlgoComboIndexToAstraIndex(dlg.AlgorithmType->currentIndex());
 	numberOfIterations = dlg.AlgorithmIterations->value();
+	correctCenterOfRotation = dlg.CorrectionCenterOfRotation->isChecked();
+	correctCenterOfRotationOffset = dlg.CorrectionCenterOfRotationOffset->value();
 	if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim %3) || (detRowDim % 3) == (projAngleDim % 3))
 	{
 		child->addMsg("One of the axes (x, y, z) has been specified for more than one usage out of (detector row / detector column / projection angle) dimensions. "
@@ -189,7 +214,9 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	settings.setValue(SettingsKeyBase + "volumeSpacingZ", volSpacing[2]);
 	settings.setValue(SettingsKeyBase + "algorithmType", algorithmType);
 	settings.setValue(SettingsKeyBase + "numberOfIterations", numberOfIterations);
-	
+	settings.setValue(SettingsKeyBase + "correctCenterOfRotation", correctCenterOfRotation);
+	settings.setValue(SettingsKeyBase + "correctCenterOfRotationOffset", correctCenterOfRotationOffset);
+
 	// start back projection filter:
 	QString filterName = dlg.AlgorithmType->currentText();
 	PrepareResultChild(filterName);
@@ -197,7 +224,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	m_mdiChild->connectThreadSignalsToChildSlots(backProjection);
 	backProjection->SetBckProjectParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource,
-		detRowDim, detColDim, projAngleDim, volDim, volSpacing, numberOfIterations);
+		detRowDim, detColDim, projAngleDim, volDim, volSpacing, numberOfIterations, correctCenterOfRotation, correctCenterOfRotationOffset);
 	backProjection->start();
 	m_mdiChild->addStatusMsg(filterName);
 	m_mainWnd->statusBar()->showMessage(filterName, 10000);

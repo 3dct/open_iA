@@ -43,14 +43,15 @@ public:
 		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
 	void SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
-		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations);
+		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations,
+		bool correctCenterOfRotation = false, double correctCenterOfRotationOffset = 0.0);
 private:
 	virtual void performWork();
 	void ForwardProject();
 	void BackProject(AlgorithmType type);
 	
 	void iAAstraAlgorithm::CreateConeProjGeom(astra::Config & projectorConfig);
-	void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig);
+	void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset);
 
 	AlgorithmType m_type;
 	QString m_projGeomType;
@@ -61,4 +62,6 @@ private:
 		m_numberOfIterations;
 	int m_volDim[3];
 	double m_volSpacing[3];
+	bool m_correctCenterOfRotation;
+	double m_correctCenterOfRotationOffset;
 };

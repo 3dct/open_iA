@@ -36,6 +36,7 @@ public:
 	void fillVolumeGeometryValues(int dim[3], double spacing[3]);
 	void fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, int dim[3]);
 	void fillAlgorithmValues(int algorithmType, int numberOfIterations);
+	void fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset);
 	virtual int exec();
 private slots:
 	void algorithmChanged(int idx);

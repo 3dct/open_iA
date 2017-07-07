@@ -39,4 +39,6 @@ private:
 		algorithmType, numberOfIterations;
 	int volDim[3];
 	double volSpacing[3];
+	bool correctCenterOfRotation;
+	double correctCenterOfRotationOffset;
 };

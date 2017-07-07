@@ -41,6 +41,7 @@ void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & proj
 	gbVolumeGeometry->hide();
 	gbProjectionInput->hide();
 	gbAlgorithm->hide();
+	gbCorrections->hide();
 	ProjGeomType->setCurrentText(projGeomType);
 	ProjGeomDetectorPixelsX->setValue(detColCnt);
 	ProjGeomDetectorPixelsY->setValue(detRowCnt);
@@ -108,6 +109,13 @@ void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int number
 {
 	AlgorithmType->setCurrentIndex(algorithmType);
 	AlgorithmIterations->setValue(numberOfIterations);
+}
+
+
+void dlg_ProjectionParameters::fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset)
+{
+	CorrectionCenterOfRotation->setChecked(correctCenterOfRotation);
+	CorrectionCenterOfRotationOffset->setValue(correctCenterOfRotationOffset);
 }
 
 

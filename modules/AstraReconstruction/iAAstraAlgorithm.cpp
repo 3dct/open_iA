@@ -23,6 +23,7 @@
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAToolsVTK.h"
+#include "iAVec3.h"
 
 #define ASTRA_CUDA
 //#include <astra/AstraObjectManager.h>
@@ -101,7 +102,8 @@ void iAAstraAlgorithm::SetFwdProjectParams(QString const & projGeomType, double 
 
 void iAAstraAlgorithm::SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 	double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
-	int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations)
+	int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations,
+	bool correctCenterOfRotation, double correctCenterOfRotationOffset)
 {
 	SetFwdProjectParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource);
 	m_detRowDim = detRowDim;
@@ -113,6 +115,8 @@ void iAAstraAlgorithm::SetBckProjectParams(QString const & projGeomType, double 
 		m_volSpacing[i] = volSpacing[i];
 	}
 	m_numberOfIterations = numOfIterations;
+	m_correctCenterOfRotation = correctCenterOfRotation;
+	m_correctCenterOfRotationOffset = correctCenterOfRotationOffset;
 }
 
 
@@ -235,36 +239,35 @@ void iAAstraAlgorithm::CreateConeProjGeom(astra::Config & projectorConfig)
 	projGeomNode.addChildNode("DistanceOriginSource", m_distOrigSource);
 }
 
-void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig)
+void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset)
 {
 	QString vectors;
 	for (int i = 0; i<m_projAnglesCount; ++i)
 	{
 		double curAngle = qDegreesToRadians(m_projAngleStart) + i*(qDegreesToRadians(m_projAngleEnd) - qDegreesToRadians(m_projAngleStart)) / (m_projAnglesCount-1);
-
-		double sourcePosX = sin(curAngle) * m_distOrigSource;
-		double sourcePosY = -cos(curAngle) * m_distOrigSource;
-		double sourcePosZ = 0;
-
-		double detectorCenterX = -sin(curAngle) * m_distOrigDet;
-		double detectorCenterY = cos(curAngle) * m_distOrigDet;
-		double detectorCenterZ = 0;
-
-		// vector from detector pixel(0, 0) to(0, 1)
-		double detectorPixelHorizVecX = cos(curAngle) * m_detSpacingX;
-		double detectorPixelHorizVecY = sin(curAngle) * m_detSpacingX;
-		double detectorPixelHorizVecZ = 0;
-
-		// vector from detector pixel(0, 0) to(1, 0)
-		double detectorPixelVertVecX = 0;
-		double detectorPixelVertVecY = 0;
-		double detectorPixelVertVecZ = m_detSpacingY;
+		iAVec3 sourcePos(
+			sin(curAngle) * m_distOrigSource,
+			-cos(curAngle) * m_distOrigSource,
+			0);
+		iAVec3 detectorCenter(
+			-sin(curAngle) * m_distOrigDet,
+			cos(curAngle) * m_distOrigDet,
+			0);
+		iAVec3 detectorPixelHorizVec(				// vector from detector pixel(0, 0) to(0, 1)
+			cos(curAngle) * m_detSpacingX,
+			sin(curAngle) * m_detSpacingX,
+			0);
+		iAVec3 detectorPixelVertVec(0, 0, m_detSpacingY); // vector from detector pixel(0, 0) to(1, 0)
+		iAVec3 shiftVec = detectorPixelHorizVec.normalize() * m_correctCenterOfRotationOffset;
+		sourcePos += shiftVec;
+		detectorCenter += shiftVec;
+		
 		if (!vectors.isEmpty()) vectors += ",";
 		vectors += QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12")
-			.arg(sourcePosX).arg(sourcePosY).arg(sourcePosZ)
-			.arg(detectorCenterX).arg(detectorCenterY).arg(detectorCenterZ)
-			.arg(detectorPixelHorizVecX).arg(detectorPixelHorizVecY).arg(detectorPixelHorizVecZ)
-			.arg(detectorPixelVertVecX).arg(detectorPixelVertVecY).arg(detectorPixelVertVecZ);
+			.arg(sourcePos.x).arg(sourcePos.y).arg(sourcePos.z)
+			.arg(detectorCenter.x).arg(detectorCenter.y).arg(detectorCenter.z)
+			.arg(detectorPixelHorizVec.x).arg(detectorPixelHorizVec.y).arg(detectorPixelHorizVec.z)
+			.arg(detectorPixelVertVec.x).arg(detectorPixelVertVec.y).arg(detectorPixelVertVec.z);
 	}
 	astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 	projGeomNode.addAttribute("type", "cone_vec");
@@ -319,13 +322,15 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	gpuIndexOption.addAttribute("key", "GPUIndex");
 	gpuIndexOption.addAttribute("value", "0");
 
-	if (m_projGeomType == "cone")
+	assert(m_projGeomType == "cone");
+
+	if (m_correctCenterOfRotation)
 	{
-		CreateConeProjGeom(projectorConfig);
+		CreateConeVecProjGeom(projectorConfig, m_correctCenterOfRotationOffset);
 	}
 	else
 	{
-		CreateConeVecProjGeom(projectorConfig);
+		CreateConeProjGeom(projectorConfig);
 	}
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	volGeomNode.addChildNode("GridColCount", m_volDim[0]);
