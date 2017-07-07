@@ -57,9 +57,13 @@ void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & proj
 void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & projGeomType, double detSpacingX, double detSpacingY,
 	double projAngleStart, double projAngleEnd, double distOrigDet, double distOrigSource)
 {
+	ProjGeomDetectorPixelsLabel->hide();
 	ProjGeomDetectorPixelsX->hide();
+	ProjGeomDetectorPixelsXLabel->hide();
 	ProjGeomDetectorPixelsY->hide();
+	ProjGeomDetectorPixelsYLabel->hide();
 	ProjGeomProjCount->hide();
+	ProjGeomProjCountLabel->hide();
 	ProjGeomType->setCurrentText(projGeomType);
 	ProjGeomDetectorSpacingX->setValue(detSpacingX);
 	ProjGeomDetectorSpacingY->setValue(detSpacingY);
