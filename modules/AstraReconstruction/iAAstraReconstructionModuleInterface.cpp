@@ -25,30 +25,13 @@
 #include "iAConsole.h"
 #include "mainwindow.h"
 #include "mdichild.h"
-#include "dlg_commoninput.h"
+#include "dlg_ProjectionParameters.h"
 
 #include <vtkImageData.h>
 
 #include <QSettings>
 
 #include <cassert>
-
-//#include <windows.h>
-
-namespace
-{
-	QStringList GetDimStringList(int selectedDim, int const imgDims[3])
-	{
-		assert(selectedDim >= 0 && selectedDim <= 5);
-		return QStringList()
-			<< QString("%1x (%2)").arg((selectedDim == 0) ? "!" : "").arg(imgDims[0])
-			<< QString("%1y (%2)").arg((selectedDim == 1) ? "!" : "").arg(imgDims[1])
-			<< QString("%1z (%2)").arg((selectedDim == 2) ? "!" : "").arg(imgDims[2])
-			<< QString("%1-x (%2)").arg((selectedDim == 3) ? "!" : "").arg(imgDims[0])
-			<< QString("%1-y (%2)").arg((selectedDim == 4) ? "!" : "").arg(imgDims[1])
-			<< QString("%1-z (%2)").arg((selectedDim == 5) ? "!" : "").arg(imgDims[2]);
-	}
-}
 
 
 void iAAstraReconstructionModuleInterface::Initialize( )
@@ -72,49 +55,41 @@ void iAAstraReconstructionModuleInterface::ForwardProject()
 {
 	// ask for and store settings:
 	QSettings settings;
-	projGeomType = settings.value("Tools/AstraReconstruction/ForwardProjection/projGeomType").toString();
-	detSpacingX = settings.value("Tools/AstraReconstruction/ForwardProjection/detSpacingX").toDouble();
-	detSpacingY = settings.value("Tools/AstraReconstruction/ForwardProjection/detSpacingY").toDouble();
-	detRowCnt = settings.value("Tools/AstraReconstruction/ForwardProjection/detRowCnt").toInt();
-	detColCnt = settings.value("Tools/AstraReconstruction/ForwardProjection/detColCnt").toInt();
-	projAngleStart = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleStart").toDouble();
-	projAngleEnd = settings.value("Tools/AstraReconstruction/ForwardProjection/projAngleEnd").toDouble();
-	projAnglesCount = settings.value("Tools/AstraReconstruction/ForwardProjection/projAnglesCount").toInt();
-	distOrigDet = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigDet").toDouble();
-	distOrigSource = settings.value("Tools/AstraReconstruction/ForwardProjection/distOrigSource").toDouble();
-	QStringList inList = (QStringList() << tr("+Projection Geometry Type")
-		<< tr("^Detector Spacing X") << tr("^Detector Spacing Y")
-		<< tr("*Detector Row Count") << tr("*Detector Column Count")
-		<< tr("^Projection Angle Start [°]") << tr("^Projection Angle End [°]")
-		<< tr("*Number of Projections")
-		<< tr("^Distance Origin Detector") << tr("^Distance Origin Source"));
-	const QStringList projectionGeometryTypes = QStringList() << QString("!") + "cone";
-	QList<QVariant> inPara; 	inPara << projectionGeometryTypes << tr("%1").arg(detSpacingX) << tr("%1").arg(detSpacingY) << tr("%1").arg(detRowCnt)
-		<< tr("%1").arg(detColCnt) << tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd) << tr("%1").arg(projAnglesCount)
-		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource);
-	dlg_commoninput dlg(m_mainWnd, "Forward Projection", inList, inPara, NULL);
+	QString SettingsKeyBase("Tools/AstraReconstruction/ForwardProjection/");
+	projGeomType = settings.value(SettingsKeyBase + "projGeomType").toString();
+	detSpacingX = settings.value(SettingsKeyBase + "detSpacingX").toDouble();
+	detSpacingY = settings.value(SettingsKeyBase + "detSpacingY").toDouble();
+	detRowCnt = settings.value(SettingsKeyBase + "detRowCnt").toInt();
+	detColCnt = settings.value(SettingsKeyBase + "detColCnt").toInt();
+	projAngleStart = settings.value(SettingsKeyBase + "projAngleStart").toDouble();
+	projAngleEnd = settings.value(SettingsKeyBase + "projAngleEnd").toDouble();
+	projAnglesCount = settings.value(SettingsKeyBase + "projAnglesCount").toInt();
+	distOrigDet = settings.value(SettingsKeyBase + "distOrigDet").toDouble();
+	distOrigSource = settings.value(SettingsKeyBase + "distOrigSource").toDouble();
+	dlg_ProjectionParameters dlg;
+	dlg.fillProjectionGeometryValues(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	projGeomType = dlg.getComboBoxValues()[0];
-	detSpacingX = dlg.getDoubleSpinBoxValues()[1];
-	detSpacingY = dlg.getDoubleSpinBoxValues()[2];
-	detRowCnt = dlg.getSpinBoxValues()[3];
-	detColCnt = dlg.getSpinBoxValues()[4];
-	projAngleStart = dlg.getDoubleSpinBoxValues()[5];
-	projAngleEnd = dlg.getDoubleSpinBoxValues()[6];
-	projAnglesCount = dlg.getSpinBoxValues()[7];
-	distOrigDet = dlg.getDoubleSpinBoxValues()[8];
-	distOrigSource = dlg.getDoubleSpinBoxValues()[9];
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projGeomType", projGeomType);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingX", detSpacingX);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detSpacingY", detSpacingY);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detRowCnt", detRowCnt);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/detColCnt", detColCnt);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleStart", projAngleStart);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAngleEnd", projAngleEnd);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/projAnglesCount", projAnglesCount);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/distOrigDet", distOrigDet);
-	settings.setValue("Tools/AstraReconstruction/ForwardProjection/distOrigSource", distOrigSource);
+	projGeomType = dlg.ProjGeomType->currentText();
+	detSpacingX = dlg.ProjGeomDetectorSpacingX->value();
+	detSpacingY = dlg.ProjGeomDetectorSpacingY->value();
+	detColCnt = dlg.ProjGeomDetectorPixelsX->value();
+	detRowCnt = dlg.ProjGeomDetectorPixelsY->value();
+	projAngleStart = dlg.ProjGeomProjAngleStart->value();
+	projAngleEnd = dlg.ProjGeomProjAngleEnd->value();
+	projAnglesCount = dlg.ProjGeomProjCount->value();
+	distOrigDet = dlg.ProjGeomDistOriginDetector->value();
+	distOrigSource = dlg.ProjGeomDistOriginSource->value();
+	settings.setValue(SettingsKeyBase + "projGeomType", projGeomType);
+	settings.setValue(SettingsKeyBase + "detSpacingX", detSpacingX);
+	settings.setValue(SettingsKeyBase + "detSpacingY", detSpacingY);
+	settings.setValue(SettingsKeyBase + "detRowCnt", detRowCnt);
+	settings.setValue(SettingsKeyBase + "detColCnt", detColCnt);
+	settings.setValue(SettingsKeyBase + "projAngleStart", projAngleStart);
+	settings.setValue(SettingsKeyBase + "projAngleEnd", projAngleEnd);
+	settings.setValue(SettingsKeyBase + "projAnglesCount", projAnglesCount);
+	settings.setValue(SettingsKeyBase + "distOrigDet", distOrigDet);
+	settings.setValue(SettingsKeyBase + "distOrigSource", distOrigSource);
 	
 	// start forward projection filter:
 	QString filterName = "Forward Projection";
@@ -136,76 +111,49 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	vtkSmartPointer<vtkImageData> img = child->getImageData();
 	int const * const dim = img->GetDimensions();
 	QSettings settings;
-	projGeomType = settings.value("Tools/AstraReconstruction/BackProjection/projGeomType").toString();
-	detSpacingX = settings.value("Tools/AstraReconstruction/BackProjection/detSpacingX").toDouble();
-	detSpacingY = settings.value("Tools/AstraReconstruction/BackProjection/detSpacingY").toDouble();
-	detRowDim = settings.value("Tools/AstraReconstruction/BackProjection/detRowDim", 1).toInt();
-	detColDim = settings.value("Tools/AstraReconstruction/BackProjection/detColDim", 0).toInt();
-	projAngleDim = settings.value("Tools/AstraReconstruction/BackProjection/projAngleDim", 2).toInt();
-	projAngleStart = settings.value("Tools/AstraReconstruction/BackProjection/projAngleStart").toDouble();
-	projAngleEnd = settings.value("Tools/AstraReconstruction/BackProjection/projAngleEnd").toDouble();
-	distOrigDet = settings.value("Tools/AstraReconstruction/BackProjection/distOrigDet").toDouble();
-	distOrigSource = settings.value("Tools/AstraReconstruction/BackProjection/distOrigSource").toDouble();
-	volDim[0] = settings.value("Tools/AstraReconstruction/BackProjection/volumeDimX").toInt();
-	volDim[1] = settings.value("Tools/AstraReconstruction/BackProjection/volumeDimY").toInt();
-	volDim[2] = settings.value("Tools/AstraReconstruction/BackProjection/volumeDimZ").toInt();
-	volSpacing[0] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingX", 1).toDouble();
-	volSpacing[1] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingY", 1).toDouble();
-	volSpacing[2] = settings.value("Tools/AstraReconstruction/BackProjection/volumeSpacingZ", 1).toDouble();
-	algorithmType = settings.value("Tools/AstraReconstruction/BackProjection/algorithmType").toInt();
-	numberOfIterations = settings.value("Tools/AstraReconstruction/BackProjection/numberOfIterations", 100).toInt();
-	QStringList inList = (QStringList() << tr("+Projection Geometry Type")
-		<< tr("^Detector Spacing X") << tr("^Detector Spacing Y")
-		<< tr("+Detector Row Dimension") << tr("+Detector Column Dimension")
-		<< tr("+Projection Dimension")
-		<< tr("^Projection Angle Start [°]") << tr("^Projection Angle End [°]")
-		<< tr("^Distance Origin Detector") << tr("^Distance Origin Source")
-		<< tr("*Volume Width") << tr("*Volume Height") << tr("*Volume Depth")
-		<< tr("^Volume Spacing X") << tr("^Volume Spacing Y") << tr("^Volume Spacing Z")
-		<< tr("+Algorithm")
-		<< tr("*Number of Iterations"));
-	QStringList AlgorithmTypes = QStringList()
-		<< "Backprojection"
-		<< "FDK 3D"
-		<< "SIRT 3D"
-		<< "CGLS 3D";
-	switch (algorithmType)
-	{
-		case iAAstraAlgorithm::BP3D:   AlgorithmTypes.replace(0, "!" + AlgorithmTypes[0]); break;
-		case iAAstraAlgorithm::FDK3D:  AlgorithmTypes.replace(1, "!" + AlgorithmTypes[1]); break;
-		case iAAstraAlgorithm::SIRT3D: AlgorithmTypes.replace(2, "!" + AlgorithmTypes[2]); break;
-		case iAAstraAlgorithm::CGLS3D: AlgorithmTypes.replace(3, "!" + AlgorithmTypes[3]); break;
-	}
-	const QStringList projectionGeometryTypes = QStringList() << QString("!") + "cone";
-	QList<QVariant> inPara; 	inPara << projectionGeometryTypes
-		<< tr("%1").arg(detSpacingX) << tr("%1").arg(detSpacingY)
-		<< GetDimStringList(detRowDim, dim) << GetDimStringList(detColDim, dim) << GetDimStringList(projAngleDim, dim)
-		<< tr("%1").arg(projAngleStart) << tr("%1").arg(projAngleEnd)
-		<< tr("%1").arg(distOrigDet) << tr("%1").arg(distOrigSource)
-		<< tr("%1").arg(volDim[0]) << tr("%1").arg(volDim[1]) << tr("%1").arg(volDim[2])
-		<< tr("%1").arg(volSpacing[0]) << tr("%1").arg(volSpacing[1]) << tr("%1").arg(volSpacing[2])
-		<< AlgorithmTypes
-		<< numberOfIterations;
-	dlg_commoninput dlg(m_mainWnd, "Back Projection", inList, inPara, NULL);
+	QString SettingsKeyBase("Tools/AstraReconstruction/BackProjection/");
+	projGeomType   = settings.value(SettingsKeyBase + "projGeomType").toString();
+	detSpacingX    = settings.value(SettingsKeyBase + "detSpacingX").toDouble();
+	detSpacingY    = settings.value(SettingsKeyBase + "detSpacingY").toDouble();
+	detRowDim      = settings.value(SettingsKeyBase + "detRowDim", 1).toInt();
+	detColDim      = settings.value(SettingsKeyBase + "detColDim", 0).toInt();
+	projAngleDim   = settings.value(SettingsKeyBase + "projAngleDim", 2).toInt();
+	projAngleStart = settings.value(SettingsKeyBase + "projAngleStart").toDouble();
+	projAngleEnd   = settings.value(SettingsKeyBase + "projAngleEnd").toDouble();
+	distOrigDet    = settings.value(SettingsKeyBase + "distOrigDet").toDouble();
+	distOrigSource = settings.value(SettingsKeyBase + "distOrigSource").toDouble();
+	volDim[0]      = settings.value(SettingsKeyBase + "volumeDimX").toInt();
+	volDim[1]      = settings.value(SettingsKeyBase + "volumeDimY").toInt();
+	volDim[2]      = settings.value(SettingsKeyBase + "volumeDimZ").toInt();
+	volSpacing[0]  = settings.value(SettingsKeyBase + "volumeSpacingX", 1).toDouble();
+	volSpacing[1]  = settings.value(SettingsKeyBase + "volumeSpacingY", 1).toDouble();
+	volSpacing[2]  = settings.value(SettingsKeyBase + "volumeSpacingZ", 1).toDouble();
+	algorithmType  = settings.value(SettingsKeyBase + "algorithmType").toInt();
+	numberOfIterations = settings.value(SettingsKeyBase + "numberOfIterations", 100).toInt();
+	dlg_ProjectionParameters dlg;
+	dlg.fillProjectionGeometryValues(projGeomType, detSpacingX, detSpacingY, projAngleStart, projAngleEnd, distOrigDet, distOrigSource);
+	dlg.fillVolumeGeometryValues(volDim, volSpacing);
+	dlg.fillProjInputMapping(detRowDim, detColDim, projAngleDim, volDim);
+	dlg.fillAlgorithmValues(algorithmType, numberOfIterations);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	projGeomType = dlg.getComboBoxValues()[0];
-	detSpacingX = dlg.getDoubleSpinBoxValues()[1];
-	detSpacingY = dlg.getDoubleSpinBoxValues()[2];
-	detRowDim = dlg.getComboBoxIndices()[3];
-	detColDim = dlg.getComboBoxIndices()[4];
-	projAngleDim = dlg.getComboBoxIndices()[5];
-	projAngleStart = dlg.getDoubleSpinBoxValues()[6];
-	projAngleEnd = dlg.getDoubleSpinBoxValues()[7];
-	distOrigDet = dlg.getDoubleSpinBoxValues()[8];
-	distOrigSource = dlg.getDoubleSpinBoxValues()[9];
-	volDim[0] = dlg.getSpinBoxValues()[10];
-	volDim[1] = dlg.getSpinBoxValues()[11];
-	volDim[2] = dlg.getSpinBoxValues()[12];
-	volSpacing[0] = dlg.getDoubleSpinBoxValues()[13];
-	volSpacing[1] = dlg.getDoubleSpinBoxValues()[14];
-	volSpacing[2] = dlg.getDoubleSpinBoxValues()[15];
-	switch (dlg.getComboBoxIndices()[16])
+	projGeomType = dlg.ProjGeomType->currentText();
+	detSpacingX = dlg.ProjGeomDetectorSpacingX->value();
+	detSpacingY = dlg.ProjGeomDetectorSpacingY->value();
+	detRowDim = dlg.ProjInputDetectorRowDim->currentIndex();
+	detColDim = dlg.ProjInputDetectorColDim->currentIndex();
+	projAngleDim = dlg.ProjInputProjAngleDim->currentIndex();
+	projAngleStart = dlg.ProjGeomProjAngleStart->value();
+	projAngleEnd = dlg.ProjGeomProjAngleEnd->value();
+	distOrigDet = dlg.ProjGeomDistOriginDetector->value();
+	distOrigSource = dlg.ProjGeomDistOriginSource->value();
+	volDim[0] =   dlg.VolGeomDimensionX->text().toInt();
+	volDim[1] =   dlg.VolGeomDimensionY->text().toInt();
+	volDim[2] =   dlg.VolGeomDimensionZ->text().toInt();
+	volSpacing[0] = dlg.VolGeomSpacingX->text().toDouble();
+	volSpacing[1] = dlg.VolGeomSpacingY->text().toDouble();
+	volSpacing[2] = dlg.VolGeomSpacingZ->text().toDouble();
+	switch (dlg.AlgorithmType->currentIndex())
 	{
 		case 0: algorithmType = iAAstraAlgorithm::BP3D;	  break;
 		case 1: algorithmType = iAAstraAlgorithm::FDK3D;  break;
@@ -213,7 +161,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 		case 3: algorithmType = iAAstraAlgorithm::CGLS3D; break;
 		default: DEBUG_LOG("Invalid Algorithm Type selection!"); return;
 	}
-	numberOfIterations = dlg.getSpinBoxValues()[17];
+	numberOfIterations = dlg.AlgorithmIterations->value();
 	if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim %3) || (detRowDim % 3) == (projAngleDim % 3))
 	{
 		child->addMsg("One of the axes (x, y, z) has been specified for more than one usage out of (detector row / detector column / projection angle) dimensions. "
@@ -223,27 +171,27 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	detRowCnt = dim[detRowDim % 3];
 	detColCnt = dim[detColDim % 3];
 	projAnglesCount = dim[projAngleDim % 3];
-	settings.setValue("Tools/AstraReconstruction/BackProjection/projGeomType", projGeomType);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/detSpacingX", detSpacingX);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/detSpacingY", detSpacingY);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/detRowDim", detRowDim);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/detColDim", detColDim);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/projAngleDim", projAngleDim);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/projAngleStart", projAngleStart);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/projAngleEnd", projAngleEnd);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/distOrigDet", distOrigDet);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/distOrigSource", distOrigSource);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeDimX", volDim[0]);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeDimY", volDim[1]);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeDimZ", volDim[2]);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingX", volSpacing[0]);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingY", volSpacing[1]);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/volumeSpacingZ", volSpacing[2]);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/algorithmType", algorithmType);
-	settings.setValue("Tools/AstraReconstruction/BackProjection/numberOfIterations", numberOfIterations);
+	settings.setValue(SettingsKeyBase + "projGeomType", projGeomType);
+	settings.setValue(SettingsKeyBase + "detSpacingX", detSpacingX);
+	settings.setValue(SettingsKeyBase + "detSpacingY", detSpacingY);
+	settings.setValue(SettingsKeyBase + "detRowDim", detRowDim);
+	settings.setValue(SettingsKeyBase + "detColDim", detColDim);
+	settings.setValue(SettingsKeyBase + "projAngleDim", projAngleDim);
+	settings.setValue(SettingsKeyBase + "projAngleStart", projAngleStart);
+	settings.setValue(SettingsKeyBase + "projAngleEnd", projAngleEnd);
+	settings.setValue(SettingsKeyBase + "distOrigDet", distOrigDet);
+	settings.setValue(SettingsKeyBase + "distOrigSource", distOrigSource);
+	settings.setValue(SettingsKeyBase + "volumeDimX", volDim[0]);
+	settings.setValue(SettingsKeyBase + "volumeDimY", volDim[1]);
+	settings.setValue(SettingsKeyBase + "volumeDimZ", volDim[2]);
+	settings.setValue(SettingsKeyBase + "volumeSpacingX", volSpacing[0]);
+	settings.setValue(SettingsKeyBase + "volumeSpacingY", volSpacing[1]);
+	settings.setValue(SettingsKeyBase + "volumeSpacingZ", volSpacing[2]);
+	settings.setValue(SettingsKeyBase + "algorithmType", algorithmType);
+	settings.setValue(SettingsKeyBase + "numberOfIterations", numberOfIterations);
 	
 	// start back projection filter:
-	QString filterName = dlg.getComboBoxValues()[16]; // string of algorithm type
+	QString filterName = dlg.AlgorithmType->currentText();
 	PrepareResultChild(filterName);
 	iAAstraAlgorithm* backProjection = new iAAstraAlgorithm(static_cast<iAAstraAlgorithm::AlgorithmType>(algorithmType), filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
