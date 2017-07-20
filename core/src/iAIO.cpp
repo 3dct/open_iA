@@ -337,6 +337,37 @@ hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 	}
 }
 
+// typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
+herr_t errorfunc(unsigned n, const H5E_error2_t *err, void *client_data)
+{
+	/*
+	hid_t       cls_id;     class ID
+	hid_t       maj_num;	major error ID
+	hid_t       min_num;	minor error number
+	unsigned	line;		line in file where error occurs
+	const char	*func_name; function in which error occurred
+	const char	*file_name;	file in which error occurred
+	const char	*desc;
+	*/
+	DEBUG_LOG(QString("HDF5 error: class=%1 maj_num=%2(%3) min_num=%4(%5) file=%6:%7 func=%8 desc=%9")
+		.arg(err->cls_id)
+		.arg(err->maj_num)
+		.arg(H5Eget_major(err->maj_num))
+		.arg(err->min_num)
+		.arg(H5Eget_minor(err->min_num))
+		.arg(err->file_name)
+		.arg(err->line)
+		.arg(err->func_name)
+		.arg(err->desc));
+	return 0;
+}
+
+void printHDF5ErrorsToConsole()
+{
+	hid_t err_stack = H5Eget_current_stack();
+	herr_t walkresult = H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, NULL);
+}
+
 #include <vtkImageImport.h>
 
 bool iAIO::loadHDF5File()
@@ -405,6 +436,7 @@ bool iAIO::loadHDF5File()
 	if (status < 0)
 	{
 		DEBUG_LOG("Reading dataset failed!");
+		printHDF5ErrorsToConsole();
 		return false;
 	}
 	H5Dclose(dataset_id);
@@ -417,7 +449,7 @@ bool iAIO::loadHDF5File()
 	vtkSmartPointer<vtkImageImport> imgImport = vtkSmartPointer<vtkImageImport>::New();
 	imgImport->SetDataSpacing(m_hdf5Spacing[0], m_hdf5Spacing[1], m_hdf5Spacing[2]);
 	imgImport->SetDataOrigin(0, 0, 0);
-	imgImport->SetWholeExtent(0, dim[0], 0, dim[1], 0, dim[2]);
+	imgImport->SetWholeExtent(0, dim[0]-1, 0, dim[1]-1, 0, dim[2]-1);
 	imgImport->SetDataExtentToWholeExtent();
 	imgImport->SetDataScalarType(vtkType);
 	imgImport->SetNumberOfScalarComponents(1);
@@ -773,6 +805,12 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		{
 			fileName = f;
 			hid_t file_id = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+			if (file_id < 0)
+			{
+				printHDF5ErrorsToConsole();
+				DEBUG_LOG("H5open returned value < 0!");
+				return false;
+			}
 			m_isITKHDF5 = IsHDF5ITKImage(file_id);
 			if (m_isITKHDF5)
 			{
