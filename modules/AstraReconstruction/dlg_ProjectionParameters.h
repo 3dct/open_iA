@@ -20,36 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "ui_ProjectionParameters.h"
 
-#include <vtkSmartPointer.h>
+#include <QDialog>
 
-class vtkImageData;
-
-class QString;
-class QStringList;
-
-// image creation:
-void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3]);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents);
-
-// image I/O (using ITK methods of iAITKIO)
-void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
-vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
-
-void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
-
-int MapVTKTypeStringToInt(QString const & vtkTypeName);
-
-int MapVTKTypeStringToSize(QString const & vtkTypeString);
-
-bool isVtkIntegerType(int type);
-
-QStringList const & VTKDataTypeList();
-
-#define FOR_VTKIMG_PIXELS(img, x, y, z) \
-    for (int x = 0; x < img->GetDimensions()[0]; ++x) \
-        for (int y = 0; y < img->GetDimensions()[1]; ++y) \
-            for (int z = 0; z < img->GetDimensions()[2]; ++z)
+class dlg_ProjectionParameters : public QDialog, public Ui_ProjectionParameters
+{
+	Q_OBJECT
+public:
+	dlg_ProjectionParameters();
+	void fillProjectionGeometryValues(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
+	void fillProjectionGeometryValues(QString const & projGeomType, double detSpacingX, double detSpacingY,
+		double projAngleStart, double projAngleEnd, double distOrigDet, double distOrigSource);
+	void fillVolumeGeometryValues(int dim[3], double spacing[3]);
+	void fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, int dim[3]);
+	void fillAlgorithmValues(int algorithmType, int numberOfIterations);
+	void fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset);
+	virtual int exec();
+private slots:
+	void algorithmChanged(int idx);
+private:
+	QStringList GetDimStringList(int const imgDims[3]);
+};

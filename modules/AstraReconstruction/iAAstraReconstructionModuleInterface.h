@@ -20,36 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "iAModuleInterface.h"
 
-#include <vtkSmartPointer.h>
-
-class vtkImageData;
-
-class QString;
-class QStringList;
-
-// image creation:
-void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3]);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents);
-
-// image I/O (using ITK methods of iAITKIO)
-void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
-vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
-
-void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
-
-int MapVTKTypeStringToInt(QString const & vtkTypeName);
-
-int MapVTKTypeStringToSize(QString const & vtkTypeString);
-
-bool isVtkIntegerType(int type);
-
-QStringList const & VTKDataTypeList();
-
-#define FOR_VTKIMG_PIXELS(img, x, y, z) \
-    for (int x = 0; x < img->GetDimensions()[0]; ++x) \
-        for (int y = 0; y < img->GetDimensions()[1]; ++y) \
-            for (int z = 0; z < img->GetDimensions()[2]; ++z)
+class iAAstraReconstructionModuleInterface : public iAModuleInterface
+{
+	Q_OBJECT
+public:
+	void Initialize();
+private slots:
+	void ForwardProject();
+	void BackProject();
+private:	
+	QString projGeomType;
+	double detSpacingX, detSpacingY, distOrigDet, 
+		distOrigSource, projAngleStart, projAngleEnd;
+	int detRowCnt, detColCnt, projAnglesCount,
+		detRowDim, detColDim, projAngleDim,
+		algorithmType, numberOfIterations;
+	int volDim[3];
+	double volSpacing[3];
+	bool correctCenterOfRotation;
+	double correctCenterOfRotationOffset;
+};

@@ -44,9 +44,6 @@ IF(Module_GPU_DreamcasterTool)
 		INCLUDE(${CMAKE_ROOT}/Modules/FindCUDA.cmake)
 	ENDIF(open_iA_GPU_USING_CUDA)
 
-	INCLUDE_DIRECTORIES(${DREAMCASTER_SOURCE_DIR} ${DREAMCASTER_BINARY_DIR} ${open_iA_core_SOURCE_DIR}/src ${Toolkit_DIR}/cl)
-	INCLUDE_DIRECTORIES( ${open_iA_core_BINARY_DIR} )
-
 	#.cpp sources
 	SET( DREAMCASTER_SRCS
 		Dreamcaster/dreamcaster.cpp
@@ -105,4 +102,6 @@ IF(Module_GPU_DreamcasterTool)
 	ADD_LIBRARY (Dreamcaster ${DREAMCASTER_SRCS})
 
 	target_compile_definitions(Dreamcaster PRIVATE NO_DLL_LINKAGE)
+	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${DREAMCASTER_SOURCE_DIR} ${DREAMCASTER_BINARY_DIR} ${open_iA_core_SOURCE_DIR}/src ${Toolkit_DIR}/cl)
+	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${open_iA_core_BINARY_DIR} ${OPENCL_INCLUDE_DIRS})
 ENDIF(Module_GPU_DreamcasterTool)

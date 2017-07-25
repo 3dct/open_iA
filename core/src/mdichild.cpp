@@ -596,6 +596,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData)
 {
 	imageData = imgData;
+	GetModality(0)->SetData(imageData);
 	setCurrentFile(filename);
 	setupView(false);
 	enableRenderWindows();
@@ -2253,8 +2254,11 @@ void MdiChild::HideHistogram()
 
 bool MdiChild::addImageProperty()
 {
-	imgProperty = new dlg_imageproperty(this);
-	tabifyDockWidget(logs, imgProperty);
+	if (!imgProperty)
+	{
+		imgProperty = new dlg_imageproperty(this);
+		tabifyDockWidget(logs, imgProperty);
+	}
 	updateImageProperties();
 	return true;
 }

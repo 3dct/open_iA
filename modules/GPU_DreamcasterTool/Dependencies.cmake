@@ -10,6 +10,7 @@ SET( DEPENDENCIES_CMAKE
 # Libraries which are used by the module
 SET( DEPENDENCIES_LIBRARIES
 	Dreamcaster
+	${OPENCL_LIBRARIES}
 )
 
 # Toolkit directories

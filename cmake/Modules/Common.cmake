@@ -201,6 +201,10 @@ IF(EIGEN3_FOUND)
 ENDIF(EIGEN3_FOUND)
 
 
+# Astra Toolbox
+FIND_PACKAGE(AstraToolbox)
+
+
 # OpenCL
 option (open_iA_GPU_USING_OPENCL "" OFF)
 IF(open_iA_GPU_USING_OPENCL)

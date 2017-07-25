@@ -20,36 +20,48 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "iAAlgorithm.h"
 
-#include <vtkSmartPointer.h>
+namespace astra
+{
+	struct Config;
+}
 
-class vtkImageData;
+class iAAstraAlgorithm : public iAAlgorithm
+{
+public:
+	enum AlgorithmType
+	{
+		FP3D,
+		BP3D,
+		FDK3D,
+		SIRT3D,
+		CGLS3D
+	};
+	iAAstraAlgorithm(AlgorithmType type, QString const & filterName, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent);
+	void SetFwdProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
+	void SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
+		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations,
+		bool correctCenterOfRotation = false, double correctCenterOfRotationOffset = 0.0);
+private:
+	virtual void performWork();
+	void ForwardProject();
+	void BackProject(AlgorithmType type);
+	
+	void iAAstraAlgorithm::CreateConeProjGeom(astra::Config & projectorConfig);
+	void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset);
 
-class QString;
-class QStringList;
-
-// image creation:
-void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3]);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents);
-
-// image I/O (using ITK methods of iAITKIO)
-void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
-vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
-
-void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
-
-int MapVTKTypeStringToInt(QString const & vtkTypeName);
-
-int MapVTKTypeStringToSize(QString const & vtkTypeString);
-
-bool isVtkIntegerType(int type);
-
-QStringList const & VTKDataTypeList();
-
-#define FOR_VTKIMG_PIXELS(img, x, y, z) \
-    for (int x = 0; x < img->GetDimensions()[0]; ++x) \
-        for (int y = 0; y < img->GetDimensions()[1]; ++y) \
-            for (int z = 0; z < img->GetDimensions()[2]; ++z)
+	AlgorithmType m_type;
+	QString m_projGeomType;
+	double m_detSpacingX, m_detSpacingY, m_distOrigDet,
+		m_distOrigSource, m_projAngleStart, m_projAngleEnd;
+	int m_detRowCnt, m_detColCnt, m_projAnglesCount,
+		m_detRowDim, m_detColDim, m_projAngleDim,
+		m_numberOfIterations;
+	int m_volDim[3];
+	double m_volSpacing[3];
+	bool m_correctCenterOfRotation;
+	double m_correctCenterOfRotationOffset;
+};
