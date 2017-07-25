@@ -207,13 +207,14 @@ IF(open_iA_GPU_USING_OPENCL)
 	INCLUDE(FindOpenCL)
 	IF(OPENCL_FOUND)
 		INCLUDE_DIRECTORIES( ${OPENCL_INCLUDE_DIRS} )
-	ELSE(OPENCL_FOUND)
-	#try again with modified ITK-version of FindOpenCL.cmake
+	ELSE()
+		#try again with modified ITK-version of FindOpenCL.cmake
 		INCLUDE(FindOpenCL2)
-	ELSE(OPENCL_FOUND)
-		MESSAGE(SEND_ERROR "OpenCL is not found. Please check your configuration.")
-	ENDIF(OPENCL_FOUND)
-ENDIF(open_iA_GPU_USING_OPENCL)
+		IF (NOT OPENCL_FOUND)
+			MESSAGE(SEND_ERROR "OpenCL is not found. Please check your configuration.")
+		ENDIF()
+	ENDIF()
+ENDIF()
 
 
 #OpenMP
