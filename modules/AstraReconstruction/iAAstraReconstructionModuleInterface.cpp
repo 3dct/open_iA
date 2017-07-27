@@ -29,7 +29,10 @@
 
 #include <vtkImageData.h>
 
+#include <QMessageBox>
 #include <QSettings>
+
+#include <cuda_runtime_api.h>
 
 #include <cassert>
 
@@ -51,8 +54,41 @@ void iAAstraReconstructionModuleInterface::Initialize( )
 }
 
 
+bool IsCUDAAvailable()
+{
+	int deviceCount = 0;
+	cudaGetDeviceCount(&deviceCount);
+	if (deviceCount == 0)
+		return false;
+	else
+	{
+		for (int dev = 0; dev < deviceCount; dev++)
+		{
+			cudaDeviceProp deviceProp;
+			cudaGetDeviceProperties(&deviceProp, dev);
+			DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
+				.arg(deviceProp.name)
+				.arg(deviceProp.major)
+				.arg(deviceProp.minor)
+				.arg(deviceProp.clockRate)
+				.arg(deviceProp.memoryClockRate)
+				.arg(deviceProp.memoryBusWidth)
+				.arg(deviceProp.concurrentKernels)
+				.arg(deviceProp.totalGlobalMem)
+			);
+		}
+	}
+	return true;
+}
+
+
 void iAAstraReconstructionModuleInterface::ForwardProject()
 {
+	if (!IsCUDAAvailable())
+	{
+		QMessageBox::warning(m_mainWnd, "ASTRA", "No CUDA device available. Forward projection requires a CUDA-capable device.");
+		return;
+	}
 	// ask for and store settings:
 	QSettings settings;
 	QString SettingsKeyBase("Tools/AstraReconstruction/ForwardProjection/");
@@ -132,6 +168,11 @@ int MapAlgoAstraIndexToComboIndex(int astraIndex)
 
 void iAAstraReconstructionModuleInterface::BackProject()
 {
+	if (!IsCUDAAvailable())
+	{
+		QMessageBox::warning(m_mainWnd, "ASTRA", "No CUDA device available. Backprojection requires a CUDA-capable device.");
+		return;
+	}
 	// ask for and store settings:
 	MdiChild* child = m_mainWnd->activeMdiChild();
 	vtkSmartPointer<vtkImageData> img = child->getImageData();
