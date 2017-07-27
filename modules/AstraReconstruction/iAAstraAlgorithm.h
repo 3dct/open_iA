@@ -50,8 +50,8 @@ private:
 	void ForwardProject();
 	void BackProject(AlgorithmType type);
 	
-	void iAAstraAlgorithm::CreateConeProjGeom(astra::Config & projectorConfig);
-	void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset);
+	void CreateConeProjGeom(astra::Config & projectorConfig);
+	void CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset);
 
 	AlgorithmType m_type;
 	QString m_projGeomType;

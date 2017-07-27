@@ -23,7 +23,7 @@
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAToolsVTK.h"
-#include "iAVec3.h"
+#include "iAvec3.h"
 
 #define ASTRA_CUDA
 //#include <astra/AstraObjectManager.h>
@@ -65,8 +65,10 @@ iAAstraAlgorithm::iAAstraAlgorithm(iAAstraAlgorithm::AlgorithmType type, QString
 
 void iAAstraAlgorithm::performWork()
 {
+#ifdef _MSC_VER
 	AllocConsole();
 	freopen("CON", "w", stdout);
+#endif
 	switch (m_type)
 	{
 	case FP3D:
