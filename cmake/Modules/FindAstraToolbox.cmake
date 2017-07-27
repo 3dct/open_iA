@@ -17,22 +17,28 @@ SET (ASTRA_TOOLBOX_LIBRARIES_DEBUG "ASTRA_TOOLBOX_LIBRARIES-NOTFOUND")
 SET (ASTRA_TOOLBOX_LIBRARIES_RELEASE "ASTRA_TOOLBOX_LIBRARIES-NOTFOUND")
 SET (ASTRA_TOOLBOX_INCLUDE_DIRS "ASTRA_TOOLBOX_INCLUDE_DIRS-NOTFOUND")
 
-# ToDo: Fix to include correct library for both Debug and Release build!
-find_library(ASTRA_TOOLBOX_LIBRARIES_RELEASE AstraCuda64
-	PATHS ${ASTRA_TOOLBOX_DIR}/bin/x64/Release_CUDA
-	${ASTRA_TOOLBOX_DIR}/mex
-)
-
-find_library(ASTRA_TOOLBOX_LIBRARIES_DEBUG AstraCuda64D
-	${ASTRA_TOOLBOX_DIR}/bin/x64/Debug_CUDA
-)
+IF (MSVC)
+	find_library(ASTRA_TOOLBOX_LIBRARIES_RELEASE AstraCuda64
+		PATHS ${ASTRA_TOOLBOX_DIR}/bin/x64/Release_CUDA
+		${ASTRA_TOOLBOX_DIR}/mex
+	)
+	find_library(ASTRA_TOOLBOX_LIBRARIES_DEBUG AstraCuda64D
+		PATHS ${ASTRA_TOOLBOX_DIR}/bin/x64/Debug_CUDA
+	)
+ELSE()
+	find_library(ASTRA_TOOLBOX_LIBRARIES_RELEASE astra
+		PATHS ${ASTRA_TOOLBOX_DIR}/build/linux/.libs
+	)
+ENDIF()
 
 find_path(ASTRA_INCLUDE_DIR astra/Algorithm.h
 	PATHS ${ASTRA_TOOLBOX_DIR}/include
 )
 
 find_path(BOOST_INCLUDE_DIR boost/shared_ptr.hpp
-	PATHS ${ASTRA_TOOLBOX_DIR}/lib/include)
+	PATHS ${ASTRA_TOOLBOX_DIR}/lib/include
+	/usr/include
+)
 
 SET (ASTRA_TOOLBOX_INCLUDE_DIRS ${ASTRA_INCLUDE_DIR} ${BOOST_INCLUDE_DIR})
 
@@ -43,7 +49,8 @@ ELSE()
 ENDIF ()
 
 IF (NOT ASTRA_TOOLBOX_LIBRARIES_DEBUG)
-	MESSAGE(WARNING "Astra Toolbox: Debug library not found. You will not be able to build depending libraries in debug mode!")
+	MESSAGE(WARNING "Astra Toolbox: Debug library not found. You will not be able to debug the Astra code!")
+	SET (ASTRA_TOOLBOX_LIBRARIES_DEBUG "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}")
 ENDIF()
 
 IF (AstraToolbox_FIND_REQUIRED AND NOT ASTRA_TOOLBOX_FOUND)
