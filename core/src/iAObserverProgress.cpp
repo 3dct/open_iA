@@ -32,7 +32,7 @@ iAObserverProgress::iAObserverProgress(  ) // : iID(-1)
 
 void iAObserverProgress::Execute(vtkObject* caller, unsigned long, void*) 
 {
-	emit oprogress(((vtkAlgorithm*)caller)->GetProgress()*100); 
+	emit oprogress(((vtkAlgorithm*)caller)->GetProgress()*100);
 }
 
 

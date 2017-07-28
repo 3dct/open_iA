@@ -22,6 +22,7 @@
 
 #include "iAModality.h"
 #include "iAModalityList.h"
+#include "iAMultiStepProgressObserver.h"
 #include "iAObserverProgress.h"
 
 #include <vtkImageReader2.h>
@@ -53,8 +54,9 @@ public:
 	iATLGICTLoader(QSharedPointer<iAModalityList> modList, double const * const spacing, double const * const origin, QFileInfoList subDirs, iAObserverProgress* observer) :
 		m_modList(modList),
 		m_subDirs(subDirs),
-		m_observer(observer)
+		m_multiStepObserver(new iAMultiStepProgressObserver(subDirs.size()) )
 	{
+		connect(m_multiStepObserver, SIGNAL(oprogress(int)), observer, SIGNAL(oprogress(int)));
 		std::copy(spacing, spacing + 3, m_spacing);
 		std::copy(origin, origin + 3, m_origin);
 	}
@@ -63,11 +65,12 @@ private:
 	double m_spacing[3];
 	double m_origin[3];
 	QFileInfoList m_subDirs;
-	iAObserverProgress* m_observer;
+	iAMultiStepProgressObserver* m_multiStepObserver;
 	void run()
 	{
 		QStringList imgFilter;
 		imgFilter << "*.tif" << "*.bmp" << "*.jpg" << "*.png";
+		int completedDirs = 0;
 		for (QFileInfo subDirFileInfo : m_subDirs)
 		{
 			QDir subDir(subDirFileInfo.absoluteFilePath());
@@ -181,7 +184,7 @@ private:
 			reader->SetFileNames(fileNames);
 			reader->SetDataOrigin(m_origin);
 			reader->SetDataSpacing(m_spacing);
-			reader->AddObserver(vtkCommand::ProgressEvent, m_observer);
+			reader->AddObserver(vtkCommand::ProgressEvent, m_multiStepObserver);		// intercept progress and divide by number of images!
 			reader->Update();
 			vtkSmartPointer<vtkImageData> img = reader->GetOutput();
 
@@ -189,12 +192,12 @@ private:
 			QString modName = subDirFileInfo.baseName();
 			modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
 			m_modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
+			m_multiStepObserver->SetCompletedSteps(++completedDirs);
 		}
 		if (m_modList->size() == 0)
 		{
 			DEBUG_LOG("No modalities loaded!");
 			return;
 		}
-
 	}
 };

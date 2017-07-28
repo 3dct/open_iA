@@ -18,40 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConsole.h"
-#include "iASCIFIOCheck.h"
-#include "mainwindow.h"
-#include "version.h"
+#include "iAMultiStepProgressObserver.h"
 
-#include <QApplication>
-#include <QDate>
+#include <vtkAlgorithm.h>
 
-#include <vtkSmartPointer.h>
+iAMultiStepProgressObserver::iAMultiStepProgressObserver(double overallSteps) :
+	m_currentStep(0),
+	m_overallSteps(overallSteps)
+{}
 
-int main(int argc, char *argv[])
+void iAMultiStepProgressObserver::SetCompletedSteps(int steps)
 {
-	MainWindow::InitResources();
-	QApplication app(argc, argv);
-	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+	m_currentStep = steps;
+}
 
-	MainWindow mainWin("open_iA", VERSION, ":/images/splashscreen.png");
-
-	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
-
-	CheckSCIFIO();
-
-	mainWin.LoadArguments(argc, argv);
-	// TODO: unify with logo in slicer/renderer!
-	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
-	mainWin.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
-
-	if( QDate::currentDate().dayOfYear() >= 340 ) {
-		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");
-		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
-		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
-	}
-
-	mainWin.show();
-
-	return app.exec();
+void iAMultiStepProgressObserver::Execute(vtkObject *caller, unsigned long, void*)
+{
+	emit oprogress((m_currentStep + ((vtkAlgorithm*)caller)->GetProgress()) * 100 / m_overallSteps);
 }
