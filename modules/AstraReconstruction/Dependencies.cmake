@@ -25,6 +25,7 @@ SET( DEPENDENCIES_LIBRARIES
 # Include directories used by the module
 SET( DEPENDENCIES_INCLUDE_DIRS
 	${ASTRA_TOOLBOX_INCLUDE_DIRS}
+	${CUDA_TOOLKIT_INCLUDE}
 )
 
 # iAnalyseToolkit directories
