@@ -2573,16 +2573,26 @@ void MainWindow::OpenTLGICTData()
 	}
 	QDir dir(m_tlgictBaseDirectory);
 	QStringList nameFilter;
-	dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 	nameFilter << "*_Rec";
-	dir.setNameFilters(nameFilter);
-	QFileInfoList subDirs = dir.entryInfoList();
+	QFileInfoList subDirs = dir.entryInfoList(nameFilter, QDir::Dirs | QDir::NoDotAndDotDot);
 	if (subDirs.size() == 0)
 	{
 		DEBUG_LOG("No data found (expected to find subfolders with _Rec suffix).");
 		return;
 	}
-	double spacing[3] = { 1, 1, 1 };
+
+	QStringList logFileFilter;
+	logFileFilter << "*.log";
+	QFileInfoList logFiles = dir.entryInfoList(logFileFilter, QDir::Files);
+	if (logFiles.size() == 0)
+	{
+		DEBUG_LOG("No log file found (expected to find a file with .log suffix).");
+		return;
+	}
+	QSettings iniLog(logFiles[0].absoluteFilePath(), QSettings::IniFormat);
+	double pixelSize = iniLog.value("Reconstruction/Pixel Size (um)", 1000).toDouble() / 1000;
+
+	double spacing[3] = { pixelSize, pixelSize, pixelSize };
 	double origin[3] = { 0, 0, 0 };
 	QStringList inList;
 	inList << tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
