@@ -2555,87 +2555,19 @@ void MainWindow::SaveProject()
 	activeChild->StoreProject(modalitiesFileName);
 }
 
-
-#include "iAModalityList.h"
-#include "iAObserverProgress.h"
-
 void MainWindow::OpenTLGICTData()
 {
-	m_tlgictBaseDirectory = QFileDialog::getExistingDirectory(
+	iATLGICTLoader* tlgictLoader = new iATLGICTLoader();
+	QString baseDirectory = QFileDialog::getExistingDirectory(
 		this,
 		tr("Open Talbot-Lau Grating Interferometer CT Dataset"),
 		getPath(),
 		QFileDialog::ShowDirsOnly);
-
-	if (m_tlgictBaseDirectory.isEmpty())
-	{
+	if (!tlgictLoader->setup(baseDirectory, this))
 		return;
-	}
-	QDir dir(m_tlgictBaseDirectory);
-	QStringList nameFilter;
-	nameFilter << "*_Rec";
-	QFileInfoList subDirs = dir.entryInfoList(nameFilter, QDir::Dirs | QDir::NoDotAndDotDot);
-	if (subDirs.size() == 0)
-	{
-		DEBUG_LOG("No data found (expected to find subfolders with _Rec suffix).");
-		return;
-	}
-
-	QStringList logFileFilter;
-	logFileFilter << "*.log";
-	QFileInfoList logFiles = dir.entryInfoList(logFileFilter, QDir::Files);
-	if (logFiles.size() == 0)
-	{
-		DEBUG_LOG("No log file found (expected to find a file with .log suffix).");
-		return;
-	}
-	QSettings iniLog(logFiles[0].absoluteFilePath(), QSettings::IniFormat);
-	double pixelSize = iniLog.value("Reconstruction/Pixel Size (um)", 1000).toDouble() / 1000;
-
-	double spacing[3] = { pixelSize, pixelSize, pixelSize };
-	double origin[3] = { 0, 0, 0 };
-	QStringList inList;
-	inList << tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
-		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z");
-	QList<QVariant> inPara;
-	inPara << tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]);
-
-	dlg_commoninput dlg(this, "Set file parameters", inList, inPara, NULL);
-
-	if (!dlg.exec() == QDialog::Accepted)
-	{
-		return;
-	}
-	spacing[0] = dlg.getValues()[0]; spacing[1] = dlg.getValues()[1]; spacing[2] = dlg.getValues()[2];
-	origin[0] = dlg.getValues()[3];  origin[1] = dlg.getValues()[4];  origin[2] = dlg.getValues()[5];
-	m_tlgictModList = QSharedPointer<iAModalityList>(new iAModalityList);
-	iAObserverProgress* observer =iAObserverProgress::New();
-	m_tlgictLoader = new iATLGICTLoader(m_tlgictModList, spacing, origin, subDirs, observer);
-
-	m_tlgictChild = createMdiChild(false);
-	connect(observer, SIGNAL(oprogress(int)), m_tlgictChild, SLOT(updateProgressBar(int)));
-	m_tlgictChild->newFile();
-	m_tlgictChild->show();
-	m_tlgictChild->addMsg(tr("%1  Loading sequence started... \n"
-		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
-		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-
-	connect(m_tlgictLoader, SIGNAL(started()), m_tlgictChild, SLOT(initProgressBar()));
-	connect(m_tlgictLoader, SIGNAL(finished()), m_tlgictChild, SLOT(hideProgressBar()));
-	connect(m_tlgictLoader, SIGNAL(finished()), this, SLOT(TLGICTLoadFinished()));
-	m_tlgictLoader->start();
+	tlgictLoader->start(createMdiChild(false));
+	// tlgictLoader will delete itself when finished!
 }
-
-
-void MainWindow::TLGICTLoadFinished()
-{
-	m_tlgictChild->setCurrentFile(m_tlgictBaseDirectory);
-	m_tlgictChild->SetModalities(m_tlgictModList);
-	m_tlgictChild->addMsg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	m_tlgictChild->addMsg("  Directory: " + m_tlgictBaseDirectory);
-}
-
 
 void MainWindow::LoadArguments(int argc, char** argv)
 {

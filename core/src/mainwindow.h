@@ -166,7 +166,6 @@ private slots:
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
 	void CloseAllSubWindows();
-	void TLGICTLoadFinished();
 
 public slots:
 	void saveLayout();
@@ -259,9 +258,4 @@ private:
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList layoutNames;
 	QString m_gitVersion;
-
-	QString m_tlgictBaseDirectory;
-	iATLGICTLoader* m_tlgictLoader;
-	QSharedPointer<iAModalityList> m_tlgictModList;
-	MdiChild* m_tlgictChild;
 };
