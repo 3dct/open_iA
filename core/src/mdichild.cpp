@@ -2964,7 +2964,7 @@ void MdiChild::InitModalities()
 	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
 	m_initVolumeRenderers = true;
 	setImageData(
-		GetModality(0)->GetFileName(),
+		currentFile().isEmpty() ? GetModality(0)->GetFileName() : currentFile(),
 		GetModality(0)->GetImage()
 	);
 }

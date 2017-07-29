@@ -319,7 +319,15 @@ void MainWindow::LoadFile(QString const & fileName)
 	}
 	else
 	{
-		loadFile(fileName, fileName.endsWith(".volstack"));
+		QFileInfo fi(fileName);
+		if (fi.isDir())
+		{
+			LoadTLGICTData(fileName);
+		}
+		else
+		{
+			loadFile(fileName, fileName.endsWith(".volstack"));
+		}
 	}
 }
 
@@ -2557,12 +2565,17 @@ void MainWindow::SaveProject()
 
 void MainWindow::OpenTLGICTData()
 {
-	iATLGICTLoader* tlgictLoader = new iATLGICTLoader();
 	QString baseDirectory = QFileDialog::getExistingDirectory(
 		this,
 		tr("Open Talbot-Lau Grating Interferometer CT Dataset"),
 		getPath(),
 		QFileDialog::ShowDirsOnly);
+	LoadTLGICTData(baseDirectory);
+}
+
+void MainWindow::LoadTLGICTData(QString const & baseDirectory)
+{
+	iATLGICTLoader* tlgictLoader = new iATLGICTLoader();
 	if (!tlgictLoader->setup(baseDirectory, this))
 		return;
 	tlgictLoader->start(createMdiChild(false));

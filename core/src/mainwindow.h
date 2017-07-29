@@ -202,6 +202,7 @@ private:
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void LoadProject(QString const & fileName);
+	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
 
 	QSplashScreen *splashScreen;
