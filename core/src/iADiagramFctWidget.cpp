@@ -34,7 +34,7 @@
 #include "iAFunctionDrawers.h"
 #include "iAMathUtility.h"
 #include "iASettings.h"
-#include "mainwindow.h"
+#include "mainwindow.h"		// TODO: get rid of this inclusion!
 #include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>

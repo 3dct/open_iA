@@ -24,8 +24,6 @@
 
 #include "dlg_function.h"
 #include "iAHistogramData.h"
-#include "mainwindow.h"
-#include "mdichild.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
