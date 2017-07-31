@@ -1,21 +1,14 @@
 # OpenCL:
 
 IF (open_iA_GPU_USING_OPENCL)
-	MESSAGE(STATUS "Requiring OpenCL!")
 
 	IF (${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
 		MESSAGE(SEND_ERROR "You're trying to build with OpenCL support, but your ITK build has OpenCL/GPU support disabled! Please build ITK libraries with ITK_USE_GPU enabled!")
 	ENDIF()
 
-	INCLUDE(FindOpenCL)
+	FIND_PACKAGE(OpenCL REQUIRED)
 	IF(OPENCL_FOUND)
 		INCLUDE_DIRECTORIES( ${OPENCL_INCLUDE_DIRS} )
-	ELSE()
-		#try again with modified ITK-version of FindOpenCL.cmake
-#		INCLUDE(FindOpenCL2)
-#		IF (NOT OPENCL_FOUND)
-			MESSAGE(SEND_ERROR "OpenCL is not found. Please check your configuration.")
-#		ENDIF()
 	ENDIF()
 
 	IF (WIN32)
