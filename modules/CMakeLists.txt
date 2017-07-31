@@ -1,12 +1,8 @@
-CMAKE_MINIMUM_REQUIRED ( VERSION 3.0 )
-
-PROJECT ( open_iA_modules LANGUAGES CXX )
-
 INCLUDE(Modules)
 SET (option_prefix "Module_")
 
 # List all the modules' subdirectories
-LOAD_MODULES( ${open_iA_modules_SOURCE_DIR}
+LOAD_MODULES( ${CMAKE_CURRENT_SOURCE_DIR}
 	MODULE_NAMES
 	MODULE_DESCRIPTIONS
 	MODULE_DEFAULT_VALS
@@ -32,11 +28,10 @@ ENDFOREACH()
 SET (LIB_TYPE SHARED)
 
 # workaround for ui_xyz.h files:
-INCLUDE_DIRECTORIES( ${open_iA_toolkit_BINARY_DIR}) # ui target directory for ui files in toolkit folder
-INCLUDE_DIRECTORIES( ${open_iA_modules_BINARY_DIR} ) # ui target directory for ui files in module folders
-
-INCLUDE_DIRECTORIES( ${open_iA_core_SOURCE_DIR}/src )
-INCLUDE_DIRECTORIES( ${open_iA_core_BINARY_DIR} )
+INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/Toolkit) # ui target directory for ui files in toolkit folder
+INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/modules ) # ui target directory for ui files in module folders
+INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/core/src )
+INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/core )
 
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)

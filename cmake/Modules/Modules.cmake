@@ -1,6 +1,6 @@
 # Generate full path to the module directory
 MACRO( GET_MODULE_FULL_PATH module_name_in module_full_path_out )
-    SET( ${module_full_path_out} ${PROJECT_SOURCE_DIR}/${module_name_in} )
+    SET( ${module_full_path_out} ${CMAKE_CURRENT_SOURCE_DIR}/${module_name_in} )
     IF (NOT EXISTS ${${module_full_path_out}})
         # MESSAGE(WARNING "Module ${module_name_in} not found (searched in ${${module_full_path_out}})!")
         SET( ${module_full_path_out} "NOTFOUND")
