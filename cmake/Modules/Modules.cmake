@@ -54,6 +54,7 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
         FOREACH( d ${DEPENDENCIES_CMAKE} )
             IF( NOT ${d} )
                 MESSAGE(STATUS "Enabling ${d}, required by module ${option_name}")
+                SET (${d} "ON")
                 SET (${d} "ON" PARENT_SCOPE)
             ENDIF()
         ENDFOREACH()

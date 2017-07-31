@@ -7,10 +7,10 @@ SET ( PARENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 #-----------------------------------------------------------------------------------------
 # set the Output directory for the executable and library
 IF(NOT LIBRARY_OUTPUT_PATH)
-  SET (LIBRARY_OUTPUT_PATH ${open_iA_toolkit_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
+	SET (LIBRARY_OUTPUT_PATH ${open_iA_toolkit_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
 ENDIF(NOT LIBRARY_OUTPUT_PATH)
 IF(NOT EXECUTABLE_OUTPUT_PATH)
-  SET (EXECUTABLE_OUTPUT_PATH ${open_iA_toolkit_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+	SET (EXECUTABLE_OUTPUT_PATH ${open_iA_toolkit_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
 ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
@@ -26,17 +26,17 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/OpenCL/cl )
 #-----------------------------------------------------------------------------------------
 IF(Module_GPU_DreamcasterTool)
 	IF (CMAKE_COMPILER_IS_GNUCXX)
-	    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
 	ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  ENDIF()
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	ENDIF()
 
 	# set the Output directory for the executable and library
 	IF(NOT LIBRARY_OUTPUT_PATH)
-	  SET (LIBRARY_OUTPUT_PATH ${DREAMCASTER_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
+		SET (LIBRARY_OUTPUT_PATH ${DREAMCASTER_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
 	ENDIF(NOT LIBRARY_OUTPUT_PATH)
 	IF(NOT EXECUTABLE_OUTPUT_PATH)
-	  SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+		SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
 	ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
 	MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
