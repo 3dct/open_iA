@@ -16,6 +16,8 @@ ADD_SUBDIRECTORY(core)
 ADD_SUBDIRECTORY(modules)
 ADD_SUBDIRECTORY(gui)
 
+INCLUDE(Optional)
+
 #-------------------------
 # Testing
 #-------------------------

@@ -53,7 +53,8 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
         # Cmake defines
         FOREACH( d ${DEPENDENCIES_CMAKE} )
             IF( NOT ${d} )
-                MESSAGE(SEND_ERROR "${option_name} requires ${d} to be ON")
+                MESSAGE(STATUS "Enabling ${DEPENDENCIES_CMAKE}, required by module ${option_name}")
+                SET (${DEPENDENCIES_CMAKE} "ON" PARENT_SCOPE)
             ENDIF()
         ENDFOREACH()
         # Libraries
