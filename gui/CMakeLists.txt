@@ -1,7 +1,3 @@
-CMAKE_MINIMUM_REQUIRED ( VERSION 3.0 )
-
-PROJECT ( open_iA_gui LANGUAGES CXX )
-
 SET (EXECUTABLE_NAME open_iA)
 
 # open_iA Version number
@@ -10,7 +6,7 @@ git_describe(VERSION --tags)
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
 
 # Generate executable:
-SET (MAIN_SOURCES "${PROJECT_SOURCE_DIR}/main.cpp")
+SET (MAIN_SOURCES "${CMAKE_SOURCE_DIR}/gui/main.cpp")
 
 IF (WIN32)
 	set(MAIN_SOURCES ${MAIN_SOURCES} open_iA.rc)
@@ -36,9 +32,9 @@ TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${VTKEdge_LIBRARIES})
 TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${ITK_LIBRARIES})
 TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} ${Toolkit_LIBRARIES})
 
-INCLUDE_DIRECTORIES( ${open_iA_core_SOURCE_DIR}/src )
-INCLUDE_DIRECTORIES( ${open_iA_core_BINARY_DIR} ) # for open_iACore_export.h
-INCLUDE_DIRECTORIES( ${open_iA_gui_BINARY_DIR} ) # for version.h
+INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/core/src )
+INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/core ) # for open_iACore_export.h
+INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/gui ) # for version.h
 
 # Windows-specific configuration
 IF (MSVC)
@@ -111,11 +107,11 @@ IF (MSVC)
 #endforeach()
 	ENDIF()
 
-	IF (NOT EXISTS ${open_iA_gui_BINARY_DIR}/open_iA.vcxproj.user)
-		CONFIGURE_FILE(${open_iA_gui_SOURCE_DIR}/open_iA.vcxproj.user ${open_iA_gui_BINARY_DIR} @ONLY)
+	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)	# find a way to update this if required
+		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/gui/open_iA.vcxproj.user ${CMAKE_BINARY_DIR}/gui @ONLY)
 	ENDIF ()
-	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)
-		CONFIGURE_FILE( ${open_iA_gui_SOURCE_DIR}/ALL_BUILD.vcxproj.user ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user )
+	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)		# find a way to update this if required
+		CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/gui/ALL_BUILD.vcxproj.user ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user )
 	ENDIF ()
 ENDIF (MSVC)
 

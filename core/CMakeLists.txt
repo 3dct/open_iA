@@ -1,7 +1,3 @@
-CMAKE_MINIMUM_REQUIRED ( VERSION 3.6.1 )
-
-PROJECT ( open_iA_core LANGUAGES CXX )
-
 #Collect .cpp and .h sources from the sources directory
 FILE( GLOB open_iA_core_SRCS "src/*.cpp" "src/*.h" )
 
@@ -54,8 +50,8 @@ ENDIF (APPLE)
 INCLUDE(Modules)
 MODULE_GENERATE_EXPORT_HEADER ( ${CORE_LIBRARY_NAME} )
 
-INCLUDE_DIRECTORIES( ${open_iA_core_SOURCE_DIR}/src )
-INCLUDE_DIRECTORIES( ${open_iA_core_BINARY_DIR} )
+INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/core/src )
+INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/core )
 
 # Compiler Flags
 IF (MSVC)
