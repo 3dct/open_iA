@@ -1,12 +1,3 @@
-get_filename_component(CoreSrcDir "../core" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-get_filename_component(CoreBinDir "../core" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-INCLUDE_DIRECTORIES(${CoreSrcDir})
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/Toolkit)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/Toolkit/OpenCL/cl)
-
-#-----------------------------------------------------------------------------------------
-# DREAMCASTER
-#-----------------------------------------------------------------------------------------
 IF(Module_GPU_DreamcasterTool)
 	IF (CMAKE_COMPILER_IS_GNUCXX)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
@@ -68,14 +59,13 @@ IF(Module_GPU_DreamcasterTool)
 	# this appends qrc qt4 resources to the project
 	QT5_ADD_RESOURCES( DREAMCASTER_CLIENT_SRCS ${DREAMCASTER_QRC} ) #resources have to be added to executables!
 
-	INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-
-	SET(DREAMCASTER_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
 	SET(DREAMCASTER_EXECUTABLE_PATH "${EXECUTABLE_OUTPUT_PATH}")
-	#DREAMCASTER create library files (static libraries)
+
 	ADD_LIBRARY (Dreamcaster ${DREAMCASTER_SRCS})
 
+	get_filename_component(CoreSrcDir "../core" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+	get_filename_component(CoreBinDir "../core" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 	target_compile_definitions(Dreamcaster PRIVATE NO_DLL_LINKAGE)
-	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${DREAMCASTER_SOURCE_DIR} ${DREAMCASTER_BINARY_DIR} ${CoreSrcDir}/src)
-	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${CoreBinDir} ${OPENCL_INCLUDE_DIRS})
+	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Dreamcaster)
+	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${CoreSrcDir}/src ${OPENCL_INCLUDE_DIRS} ${CoreBinDir} ${CMAKE_CURRENT_SOURCE_DIR}/OpenCL)
 ENDIF(Module_GPU_DreamcasterTool)

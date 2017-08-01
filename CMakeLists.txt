@@ -17,8 +17,6 @@ ADD_SUBDIRECTORY(modules)
 ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(gui)
 
-INCLUDE(Optional)
-
 #-------------------------
 # Testing
 #-------------------------

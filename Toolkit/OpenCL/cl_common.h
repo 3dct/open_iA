@@ -10,11 +10,9 @@
 // if it does not work on your PC, just uncomment the following line 
 #define CL_USE_DEPRECATED_OPENCL_1_1_APIS
 
-#include "cl.hpp"
-
 #ifndef __APPLE__
 #ifndef __MACOSX
-#include "CL/cl.h"
+#include "CL/cl.hpp"
 #endif
 #endif
 

@@ -205,6 +205,10 @@ FIND_PACKAGE(AstraToolbox)
 FIND_PACKAGE(CUDA)
 
 
+# OpenCL
+FIND_PACKAGE(OpenCL)
+
+
 #OpenMP
 INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -344,6 +348,30 @@ IF(UNIX)
 	ENDFOREACH()
 ENDIF(UNIX)
 
+# OpenCL:
+IF (OPENCL_FOUND)
+	IF (WIN32)
+		# OPENCL_LIBRARIES is set fixed to the OpenCL.lib file, but we need the dll
+		# at least for AMD APP SDK, the dll is located in a similar location, just "bin" instead of "lib":
+		STRING(REGEX REPLACE "lib/x86_64/OpenCL.lib" "bin/x86_64/OpenCL.dll" OPENCL_LIB ${OPENCL_LIBRARIES})
+		INSTALL (FILES ${OPENCL_LIB} DESTINATION .)
+	ENDIF (WIN32)
+	IF (UNIX)
+		# typically OPENCL_LIBRARIES will only contain the one libOpenCL.so anyway, FOREACH just to make sure
+		# hard-coded .1 might have to be replaced at some point...
+		FOREACH(OPENCL_LIB ${OPENCL_LIBRARIES})
+			INSTALL (FILES ${OPENCL_LIB}.1 DESTINATION .)
+		ENDFOREACH()
+	ENDIF(UNIX)
+ENDIF()
+
+IF (ASTRA_TOOLBOX_FOUND)
+	MESSAGE(STATUS "ASTRA Toolbox installation still to do...")
+ENDIF()
+
+IF (CUDA_FOUND)
+	MESSAGE(STATUS "CUDA runtime installation still to do...")
+ENDIF()
 
 #-------------------------
 # Compiler Flags
