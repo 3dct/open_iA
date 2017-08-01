@@ -12,9 +12,9 @@ INCLUDE(Common)
 #-------------------------
 # Subdirectories
 #-------------------------
-ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(core)
 ADD_SUBDIRECTORY(modules)
+ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(gui)
 
 INCLUDE(Optional)
