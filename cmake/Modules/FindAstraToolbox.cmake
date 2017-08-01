@@ -49,7 +49,6 @@ ELSE()
 ENDIF ()
 
 IF (NOT ASTRA_TOOLBOX_LIBRARIES_DEBUG)
-	MESSAGE(WARNING "Astra Toolbox: Debug library not found. You will not be able to debug the Astra code!")
 	SET (ASTRA_TOOLBOX_LIBRARIES_DEBUG "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}")
 ENDIF()
 
