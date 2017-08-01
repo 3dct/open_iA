@@ -28,10 +28,12 @@ ENDFOREACH()
 SET (LIB_TYPE SHARED)
 
 # workaround for ui_xyz.h files:
-INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/Toolkit) # ui target directory for ui files in toolkit folder
-INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/modules ) # ui target directory for ui files in module folders
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/core/src )
-INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR}/core )
+get_filename_component(OpeniASrcDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+get_filename_component(OpeniABinDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+INCLUDE_DIRECTORIES( ${OpeniABinDir}/Toolkit)  # ui target directory for ui files in toolkit folder
+INCLUDE_DIRECTORIES( ${OpeniABinDir}/modules ) # ui target directory for ui files in module folders
+INCLUDE_DIRECTORIES( ${OpeniABinDir}/core )    # ui target directory for ui files in core folder
+INCLUDE_DIRECTORIES( ${OpeniASrcDir}/core/src )
 
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)

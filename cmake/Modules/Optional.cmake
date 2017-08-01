@@ -1,7 +1,5 @@
 # OpenCL:
-
 IF (open_iA_GPU_USING_OPENCL)
-
 	IF (${ITKGPUCommon_LIBRARY_DIRS} STREQUAL "")
 		MESSAGE(SEND_ERROR "You're trying to build with OpenCL support, but your ITK build has OpenCL/GPU support disabled! Please build ITK libraries with ITK_USE_GPU enabled!")
 	ENDIF()
@@ -25,4 +23,3 @@ IF (open_iA_GPU_USING_OPENCL)
 		ENDFOREACH()
 	ENDIF(UNIX)
 ENDIF()
-
