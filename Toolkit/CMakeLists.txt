@@ -5,6 +5,10 @@ IF(Module_GPU_DreamcasterTool)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 	ENDIF()
 
+	IF (NOT OPENCL_FOUND)
+		MESSAGE(SEND_ERROR "Dreamcaster requires OpenCL_FOUND to be true!")
+	ENDIF()
+
 	IF(open_iA_GPU_USING_CUDA)
 		INCLUDE(${CMAKE_ROOT}/Modules/FindCUDA.cmake)
 	ENDIF(open_iA_GPU_USING_CUDA)

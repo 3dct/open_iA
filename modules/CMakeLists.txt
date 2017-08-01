@@ -135,25 +135,21 @@ FOREACH( indx RANGE ${len} )
 				RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo/plugins"
 				RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel/plugins"
 			)
-		ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-			set_target_properties(${module_name} PROPERTIES
-				LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/RelWithDebInfo/plugins"
-				LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/MinSizeRel/plugins"
-		)
-		ELSE()
-			set_target_properties(${module_name} PROPERTIES
-			LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
-		ENDIF()
-
-		# CPACK Installation
-		IF (MSVC)
 			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
 		ELSE()
+			IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+				set_target_properties(${module_name} PROPERTIES
+					LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/Debug/plugins"
+					LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release/plugins"
+					LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/RelWithDebInfo/plugins"
+					LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/MinSizeRel/plugins"
+			)
+			ELSE()
+				set_target_properties(${module_name} PROPERTIES
+					LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/plugins")
+			ENDIF()
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION plugins)
 		ENDIF()
-
 	ENDIF( ${module_option} )
 ENDFOREACH()
 

@@ -239,8 +239,7 @@ IF (WIN32)
 	FOREACH(ITK_LIB ${WIN_ITK_LIBS})
 		INSTALL (FILES ${ITK_LIB_DIR}/${ITK_LIB}-${ITK_VER}.dll DESTINATION .)
 	ENDFOREACH(ITK_LIB)
-ENDIF(WIN32)
-IF (UNIX)
+ELSEIF (UNIX)
 	SET (EXTRA_ITK_LIBS	itkdouble-conversion
 		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED	itkgdcmIOD	itkgdcmjpeg12
 		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmopenjpeg itkgdcmuuid
@@ -257,7 +256,9 @@ IF (UNIX)
 		STRING(REPLACE "SCIFIO" "itkSCIFIO" ITK_LIBF "${ITK_LIB}")
 		INSTALL (FILES ${ITK_LIB_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1 DESTINATION .)
 	ENDFOREACH(ITK_LIB)
-ENDIF(UNIX)
+ELSE()
+	MESSAGE(WARNING "Installation procedure for your operating system is not yet implemented!")
+ENDIF()
 
 # VTK
 SET (VTK_VER "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
@@ -288,15 +289,13 @@ IF (WIN32)
 		INSTALL (FILES ${VTK_LIB_DIR}/${VTK_LIB}-${VTK_VER}.dll DESTINATION .)
 	ENDFOREACH(VTK_LIB)
 	INSTALL(FILES ${VTK_LIB_DIR}/QVTKWidgetPlugin.dll DESTINATION .)
-ENDIF(WIN32)
-IF (UNIX)
+ELSEIF (UNIX)
 	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
 	FOREACH(VTK_LIB ${VTK_ALL_LIBS})
 		INSTALL (FILES ${VTK_LIB_DIR}/lib${VTK_LIB}-${VTK_VER}.so.1 DESTINATION .)
 	ENDFOREACH(VTK_LIB)
 	INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
-ENDIF(UNIX)
-
+ENDIF()
 
 # Qt
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
@@ -348,29 +347,47 @@ IF(UNIX)
 	ENDFOREACH()
 ENDIF(UNIX)
 
-# OpenCL:
+# OpenCL
 IF (OPENCL_FOUND)
 	IF (WIN32)
 		# OPENCL_LIBRARIES is set fixed to the OpenCL.lib file, but we need the dll
 		# at least for AMD APP SDK, the dll is located in a similar location, just "bin" instead of "lib":
-		STRING(REGEX REPLACE "lib/x86_64/OpenCL.lib" "bin/x86_64/OpenCL.dll" OPENCL_LIB ${OPENCL_LIBRARIES})
-		INSTALL (FILES ${OPENCL_LIB} DESTINATION .)
-	ENDIF (WIN32)
-	IF (UNIX)
+		STRING(REGEX REPLACE "lib/x86_64/OpenCL.lib" "bin/x86_64/OpenCL.dll" OPENCL_DLL ${OPENCL_LIBRARIES})
+		IF (NOT EXISTS "${OPENCL_DLL}")
+			SET (OPENCL_DLL "C:\\Program Files\\NVIDIA Corporation\\OpenCL") # installed along with NVidia driver
+		ENDIF()
+		IF (NOT EXISTS "${OPENCL_DLL}")
+			MESSAGE(WARNING "OpenCL.dll was not found. You can continue building, but the program might not run (or it might fail to run when installed/cpacked).")
+		ELSE()
+			INSTALL (FILES ${OPENCL_DLL} DESTINATION .)
+		ENDIF()
+	ELSEIF (UNIX)
 		# typically OPENCL_LIBRARIES will only contain the one libOpenCL.so anyway, FOREACH just to make sure
 		# hard-coded .1 might have to be replaced at some point...
 		FOREACH(OPENCL_LIB ${OPENCL_LIBRARIES})
 			INSTALL (FILES ${OPENCL_LIB}.1 DESTINATION .)
 		ENDFOREACH()
-	ENDIF(UNIX)
+	ENDIF()
 ENDIF()
 
-IF (ASTRA_TOOLBOX_FOUND)
-	MESSAGE(STATUS "ASTRA Toolbox installation still to do...")
-ENDIF()
-
+# CUDA:
 IF (CUDA_FOUND)
-	MESSAGE(STATUS "CUDA runtime installation still to do...")
+	IF (WIN32)
+		INSTALL (FILES "${CUDA_TOOLKIT_ROOT_DIR}/bin/cudart64_${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}.dll" DESTINATION .)
+		INSTALL (FILES "${CUDA_TOOLKIT_ROOT_DIR}/bin/cufft64_${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}.dll" DESTINATION .)
+	ELSE()
+		MESSAGE(WARNING "CUDA installation for your operating system is not yet implemented!")
+	ENDIF ()
+ENDIF()
+
+# ASTRA Toolbox
+IF (ASTRA_TOOLBOX_FOUND)
+	IF (WIN32)
+		STRING(REGEX REPLACE "AstraCuda64.lib" "AstraCuda64.dll" ASTRA_RELEASE_DLL "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}")
+		INSTALL (FILES ${ASTRA_RELEASE_DLL} DESTINATION .)
+	ELSE()
+		MESSAGE(WARNING "ASTRA Toolbox installation for your operating system is not yet implemented!")
+	ENDIF ()
 ENDIF()
 
 #-------------------------
