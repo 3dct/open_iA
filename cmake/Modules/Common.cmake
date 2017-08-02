@@ -105,8 +105,8 @@ IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 		IF (MSVC)
 			# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
 		ELSE(MSVC)
-			MESSAGE(STATUS "Copying SCIFIO jars from ${SCIFIO_PATH} to ${DESTDIR}")
 			SET (DESTDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scifio_jars")
+			MESSAGE(STATUS "Copying SCIFIO jars from ${SCIFIO_PATH} to ${DESTDIR}")
 			configure_file("${SCIFIO_PATH}/bioformats_package.jar" "${DESTDIR}/bioformats_package.jar" COPYONLY)
 			configure_file("${SCIFIO_PATH}/scifio-itk-bridge.jar" "${DESTDIR}/scifio-itk-bridge.jar" COPYONLY)
 		ENDIF(MSVC)
@@ -238,18 +238,22 @@ IF (WIN32)
 		INSTALL (FILES ${ITK_LIB_DIR}/${ITK_LIB}-${ITK_VER}.dll DESTINATION .)
 	ENDFOREACH(ITK_LIB)
 ELSEIF (UNIX)
+	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
 	SET (EXTRA_ITK_LIBS	itkdouble-conversion
 		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED	itkgdcmIOD	itkgdcmjpeg12
 		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmopenjpeg itkgdcmuuid
 		itknetlib	ITKSpatialObjects
 		ITKStatistics	ITKTransform)
 	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
-	# but they are also required again for ITK 4.12...
-	IF(ITK_VERSION_MAJOR LESS 5 AND (ITK_VERSION_MINOR LESS 11 OR ITK_VERSION_MINOR GREATER 11))
+	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
 	ENDIF()
+	# But they are required again for ITK 4.12, yet here they are the only libraries without the version suffix - yay!
+	SET (SPECIAL_ITK_LIBS  itkhdf5_cpp itkhdf5)
+	FOREACH (SPECIAL_ITK_LIB ${SPECIAL_ITK_LIBS})
+		INSTALL (FILES ${ITK_LIB_DIR}/lib${SPECIAL_ITK_LIB}.so.1 DESTINATION .)
+	ENDFOREACH()
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
-	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
 	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
 	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
 		STRING(REPLACE "SCIFIO" "itkSCIFIO" ITK_LIBF "${ITK_LIB}")
