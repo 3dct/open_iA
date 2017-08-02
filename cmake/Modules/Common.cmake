@@ -305,7 +305,7 @@ ENDIF()
 
 # Qt
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
-STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})	# on linux, lib is omitted if installed from package repos
+STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
 SET (QT_COMMON_EXTRA_LIBS Qt5Gui Qt5Widgets)
 SET (QT_ALL_LIBS ${QT_LIBRARIES} ${QT_COMMON_EXTRA_LIBS})
 IF(WIN32)
