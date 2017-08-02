@@ -1,54 +1,49 @@
-#Collect .cpp and .h sources from the sources directory
 FILE( GLOB open_iA_core_SRCS "src/*.cpp" "src/*.h" )
-
-# *.ui files
+FILE( GLOB open_iA_core_test_srcs "src/*Test.cpp" "src/*Test.cxx" )
+IF ( NOT "${open_iA_core_test_srcs}" STREQUAL "" )
+	LIST( REMOVE_ITEM open_iA_core_SRCS ${open_iA_core_test_srcs} )
+ENDIF ()
 FILE( GLOB open_iA_core_UI "src/*.ui" )
-
-# *.qrc files
 SET( open_iA_core_QRC open_iA.qrc)
 
-
-#========================================================================================-
-# Finalize configuration
-#========================================================================================-
-
-# SET(CMAKE_AUTOUIC ON)
-# build ui_XXX files from the XML-style .ui files
 QT5_WRAP_UI( open_iA_core_SRCS ${open_iA_core_UI})
 QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
 
 SET (LIB_TYPE SHARED)
 
-# Generate core dll file:
+# Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
-TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} ${QT_LIBRARIES})
-TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} ${VTK_LIBRARIES})
-TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} ${ITK_LIBRARIES})
+TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
 IF (WIN32)
 	# apparently required for VS 2015, and doesn't hurt for VS2013:
-	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} Opengl32)
+	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC Opengl32)
 ENDIF (WIN32)
 
-
 IF(APPLE)
-   INCLUDE_DIRECTORIES ( /System/Library/Frameworks )
-   FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-   FIND_LIBRARY(GLUT_LIBRARY GLUT )
-   FIND_LIBRARY(OpenGL_LIBRARY OpenGL )
-   MARK_AS_ADVANCED (COCOA_LIBRARY
-                     GLUT_LIBRARY
-                     OpenGL_LIBRARY)
-   SET(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
-	 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} ${EXTRA_LIBS})
-	 MESSAGE(STATUS "Extra Core: ${EXTRA_LIBS}")
+	INCLUDE_DIRECTORIES( /System/Library/Frameworks )
+	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+	FIND_LIBRARY(GLUT_LIBRARY GLUT )
+	FIND_LIBRARY(OpenGL_LIBRARY OpenGL )
+	MARK_AS_ADVANCED(COCOA_LIBRARY
+					 GLUT_LIBRARY
+					 OpenGL_LIBRARY)
+	SET(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
+	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} ${EXTRA_LIBS})
+	MESSAGE(STATUS "Extra Core: ${EXTRA_LIBS}")
 ENDIF (APPLE)
-
 
 INCLUDE(Modules)
 MODULE_GENERATE_EXPORT_HEADER ( ${CORE_LIBRARY_NAME} )
 
-INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/src )
-INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} )
+TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+
+IF (BUILD_TESTING)
+	ADD_EXECUTABLE(StringHelperTest src/iAStringHelperTest.cpp src/iAStringHelper.cpp)
+	TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
+	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
+	ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
+ENDIF (BUILD_TESTING)
 
 # Compiler Flags
 IF (MSVC)

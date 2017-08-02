@@ -30,17 +30,16 @@ ENDMACRO()
 
 # Module stores its dependencies in Dependencies.txt file. Check if all the dependencies are enabled
 MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencies)
-
+    # reset entries:
+    SET (DEPENDENCIES_MODULES)
+    SET (DEPENDENCIES_CMAKE)
+    SET (DEPENDENCIES_LIBRARIES)
+    SET (DEPENDENCIES_LIBRARIES_DEBUG)
+    SET (DEPENDENCIES_LIBRARIES_RELEASE)
+    SET (DEPENDENCIES_INCLUDE_DIRS)
+    SET (DEPENDENCIES_IA_TOOLKIT_DIRS)
     SET( dependencies_full_path ${module_full_path}/Dependencies.cmake)
     IF( EXISTS ${dependencies_full_path} )
-        # reset entries:
-        SET (DEPENDENCIES_MODULES)
-        SET (DEPENDENCIES_CMAKE)
-        SET (DEPENDENCIES_LIBRARIES)
-        SET (DEPENDENCIES_LIBRARIES_DEBUG)
-        SET (DEPENDENCIES_LIBRARIES_RELEASE)
-        SET (DEPENDENCIES_INCLUDE_DIRS)
-        SET (DEPENDENCIES_IA_TOOLKIT_DIRS)
         INCLUDE( ${dependencies_full_path} )
         # Modules
         FOREACH( d ${DEPENDENCIES_MODULES} )
@@ -53,7 +52,7 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
         # Cmake defines
         FOREACH( d ${DEPENDENCIES_CMAKE} )
             IF( NOT ${d} )
-                MESSAGE(SEND_ERROR "Flag ${d}, required by module ${option_name}, is not set!")
+                MESSAGE(SEND_ERROR "${option_name} requires ${d} to be TRUE")
             ENDIF()
         ENDFOREACH()
         # Libraries
@@ -93,6 +92,8 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
                 LIST (APPEND ADDITIONAL_MODULE_INCLUDE_DIRS ${Toolkit_DIR}/${td})
             ENDIF()
         ENDFOREACH()
+	ELSE()
+		MESSAGE(WARNING "Dependency specification file for module ${option_name} is missing!")
     ENDIF()
 ENDMACRO()
 

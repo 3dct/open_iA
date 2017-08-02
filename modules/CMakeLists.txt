@@ -27,13 +27,8 @@ ENDFOREACH()
 
 SET (LIB_TYPE SHARED)
 
-# workaround for ui_xyz.h files:
 get_filename_component(OpeniASrcDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 get_filename_component(OpeniABinDir "../" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-INCLUDE_DIRECTORIES( ${OpeniABinDir}/Toolkit)  # ui target directory for ui files in toolkit folder
-INCLUDE_DIRECTORIES( ${OpeniABinDir}/modules ) # ui target directory for ui files in module folders
-INCLUDE_DIRECTORIES( ${OpeniABinDir}/core )    # ui target directory for ui files in core folder
-INCLUDE_DIRECTORIES( ${OpeniASrcDir}/core/src )
 
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
@@ -50,15 +45,13 @@ FOREACH( indx RANGE ${len} )
 		SET(ADDITIONAL_MODULE_LIBRARIES_RELEASE "")
 		SET(ADDITIONAL_MODULE_INCLUDE_DIRS "")
 		LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
-		# Collect .cpp and .h sources from the  module directory
+		# Collect source files from the module directories, except potential *Test.cpp/cxx files
 		FILE( GLOB module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
 		FILE( GLOB module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
-		FILE( GLOB module_hs "${module_full_path}/*.h" )
 		IF ( NOT "${module_test_srcs}" STREQUAL "" )
-			# MESSAGE (STATUS "Removing test sources: ${module_test_srcs}")
 			LIST( REMOVE_ITEM module_srcs ${module_test_srcs} )
-		ENDIF ( NOT "${module_test_srcs}" STREQUAL "" )
-		# Collect .ui files from the  module directory and add them
+		ENDIF ()
+		FILE( GLOB module_hs "${module_full_path}/*.h" )
 		FILE( GLOB module_uis "${module_full_path}/*.ui" )
 		QT5_WRAP_UI( module_srcs ${module_uis})
 		# If there are dependencies do the check
@@ -97,6 +90,9 @@ FOREACH( indx RANGE ${len} )
 
 		add_library(${module_name} ${LIB_TYPE} ${module_srcs} ${module_hs} )
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
+		# workaround for ui_xyz.h files:
+		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/Toolkit)  # ui files in toolkit folder
+		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
 		FOREACH( d ${module_dependencies} )
 			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
@@ -105,22 +101,18 @@ FOREACH( indx RANGE ${len} )
 		IF (NOT "${module_dependencies}" STREQUAL "")
 			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
 		ENDIF()
-
-		# TODO: make depending libraries configurable per module?
-		TARGET_LINK_LIBRARIES(${module_name} ${CORE_LIBRARY_NAME})
-		TARGET_LINK_LIBRARIES(${module_name} ${QT_LIBRARIES})
-		TARGET_LINK_LIBRARIES(${module_name} ${VTK_LIBRARIES})
-		TARGET_LINK_LIBRARIES(${module_name} ${ITK_LIBRARIES})
+		# also pulls in libraries defined in core interface (qt, vtk, itk):
+		TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${CORE_LIBRARY_NAME})
 
 		# additional module (such as astra, eigen, OpenCL, ...)
 		IF (ADDITIONAL_MODULE_LIBRARIES)
-			TARGET_LINK_LIBRARIES(${module_name} ${ADDITIONAL_MODULE_LIBRARIES})
+			TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${ADDITIONAL_MODULE_LIBRARIES})
 		ENDIF()
 		IF (ADDITIONAL_MODULE_LIBRARIES_DEBUG)
-			TARGET_LINK_LIBRARIES(${module_name} debug ${ADDITIONAL_MODULE_LIBRARIES_DEBUG})
+			TARGET_LINK_LIBRARIES(${module_name} PRIVATE debug ${ADDITIONAL_MODULE_LIBRARIES_DEBUG})
 		ENDIF()
 		IF (ADDITIONAL_MODULE_LIBRARIES_RELEASE)
-			TARGET_LINK_LIBRARIES(${module_name} optimized ${ADDITIONAL_MODULE_LIBRARIES_RELEASE})
+			TARGET_LINK_LIBRARIES(${module_name} PRIVATE optimized ${ADDITIONAL_MODULE_LIBRARIES_RELEASE})
 		ENDIF()
 		IF (ADDITIONAL_MODULE_INCLUDE_DIRS)
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${ADDITIONAL_MODULE_INCLUDE_DIRS})
