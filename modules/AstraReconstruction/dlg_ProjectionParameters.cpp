@@ -94,7 +94,7 @@ QStringList dlg_ProjectionParameters::GetDimStringList(int const imgDims[3])
 }
 
 
-void dlg_ProjectionParameters::fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, int dim[3])
+void dlg_ProjectionParameters::fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, const int dim[3])
 {
 	ProjInputDetectorRowDim->addItems(GetDimStringList(dim));
 	ProjInputDetectorRowDim->setCurrentIndex(detRowDim);
@@ -109,6 +109,7 @@ void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int number
 {
 	AlgorithmType->setCurrentIndex(algorithmType);
 	AlgorithmIterations->setValue(numberOfIterations);
+	algorithmChanged(algorithmType);
 }
 
 
