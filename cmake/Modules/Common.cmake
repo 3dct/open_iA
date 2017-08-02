@@ -244,7 +244,8 @@ ELSEIF (UNIX)
 		itknetlib	ITKSpatialObjects
 		ITKStatistics	ITKTransform)
 	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
-	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
+	# but they are also required again for ITK 4.12...
+	IF(ITK_VERSION_MAJOR LESS 5 AND (ITK_VERSION_MINOR LESS 11 OR ITK_VERSION_MINOR GREATER 11))
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
 	ENDIF()
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
