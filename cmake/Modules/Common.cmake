@@ -248,11 +248,13 @@ ELSEIF (UNIX)
 	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
 	ENDIF()
-	# But they are required again for ITK 4.12, yet here they are the only libraries without the version suffix - yay!
-	SET (SPECIAL_ITK_LIBS  itkhdf5_cpp itkhdf5)
-	FOREACH (SPECIAL_ITK_LIB ${SPECIAL_ITK_LIBS})
-		INSTALL (FILES ${ITK_LIB_DIR}/lib${SPECIAL_ITK_LIB}.so.1 DESTINATION .)
-	ENDFOREACH()
+	# But they are required again for ITK 4.12, yet here they are the only libraries without the version suffix:
+	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 11)
+		SET (SPECIAL_ITK_LIBS  itkhdf5_cpp itkhdf5)
+		FOREACH (SPECIAL_ITK_LIB ${SPECIAL_ITK_LIBS})
+			INSTALL (FILES ${ITK_LIB_DIR}/lib${SPECIAL_ITK_LIB}.so.1 DESTINATION .)
+		ENDFOREACH()
+	ENDIF()
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
 	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
 	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
