@@ -20,16 +20,36 @@
 * ************************************************************************************/
 #pragma once
 
-#include <utility> // for std::pair
+#include "iAVectorType.h"	// for iAVectorDataType
+#include "iAVectorArray.h"
 
-#include <QVector>
+#include <QSharedPointer>
 
-#include "iAImageCoordinate.h"	// for iAVoxelIndexType
+#include <vector>
+#include <cstddef> // for size_t
 
-typedef int iAEdgeIndexType;
-typedef int iAVertexIndexType;
-typedef int iALabelType;
-typedef double iAEdgeWeightType;
-typedef std::pair<iAVoxelIndexType, iAVoxelIndexType> iAEdgeType;
+// implementation of a standalone vector of values
+class iAStandaloneVector: public iAVectorType
+{
+private:
+	std::vector<iAVectorDataType> m_data;
+public:
+	iAStandaloneVector(IndexType size);
+	virtual iAVectorDataType get(size_t channelIdx) const;
+	virtual IndexType size() const;
+	void set(IndexType, iAVectorDataType);
+};
 
-typedef QVector<iALabelType> iALabelData;
+//! a single vector accessing its via the iAVectorArray it is contained in
+//! (mainly to directly access the vector for a single pixel from a iAVectorArray
+//! drawing its data from a collection of images)
+class iAPixelVector: public iAVectorType
+{
+private:
+	iAVectorArray const & m_data;
+	size_t m_voxelIdx;
+public:
+	iAPixelVector(iAVectorArray const & data, size_t voxelIdx);
+	iAVectorDataType get(size_t channelIdx) const;
+	IndexType size() const;
+};

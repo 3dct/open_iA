@@ -26,7 +26,7 @@
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
 #include "iAMathUtility.h"
-#include "iASpectraDistance.h"
+#include "iAVectorDistance.h"
 #include "iAToolsITK.h"
 
 #include <itkImage.h>

@@ -18,73 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "iASpectrumType.h"
+#pragma once
 
-iASpectralVoxelData::iASpectralVoxelData(): m_maxSum(-1)
-{}
+#include "iAVectorType.h"  // for iAVectorDataType
 
-iASpectralVoxelData::~iASpectralVoxelData()
-{}
+#include <cstddef> // for size_t
 
+#include <QSharedPointer>
 
-
-iASpectrumDataType iASpectrumType::operator[](size_t channelIdx) const
+//! abstract base class for access to multi-channel/vector data, arranged as array
+class iAVectorArray
 {
-	return get(channelIdx);
-}
-
-QSharedPointer<iASpectrumType const> iASpectrumType::normalized() const
-{
-	QSharedPointer<iAStandaloneSpectrumType> result(new iAStandaloneSpectrumType(size()));
-	iASpectrumDataType sum = 0;
-	for(iASpectrumType::IndexType i = 0; i<size(); ++i)
-	{
-		sum += get(i);
-	}
-	for(iASpectrumType::IndexType i = 0; i<size(); ++i)
-	{
-		result->set(i, get(i) / sum);
-	}
-	return result;
-}
-
-
-
-iADirectAccessSpectrumType::iADirectAccessSpectrumType(iASpectralVoxelData const & data, size_t voxelIdx):
-	m_data(data),
-	m_voxelIdx(voxelIdx)
-{}
-
-iASpectrumDataType iADirectAccessSpectrumType::get(size_t channelIdx) const
-{
-	iASpectrumDataType value = m_data.get(m_voxelIdx, channelIdx);
-	return value;
-}
-
-iASpectrumType::IndexType iADirectAccessSpectrumType::size() const
-{
-	return m_data.channelCount();
-}
-
-
-
-iAStandaloneSpectrumType::iAStandaloneSpectrumType(IndexType size):
-	m_data(size)
-{}
-
-iASpectrumDataType iAStandaloneSpectrumType::get(size_t idx) const
-{
-	return m_data[idx];
-}
-
-iASpectrumType::IndexType iAStandaloneSpectrumType::size() const
-{
-	return m_data.size();
-}
-
-void iAStandaloneSpectrumType::set(iASpectrumType::IndexType idx, iASpectrumDataType value)
-{
-	m_data[idx] = value;
-}
+private:
+	mutable iAVectorDataType m_maxSum;
+public:
+	iAVectorArray();
+	virtual ~iAVectorArray();
+	virtual size_t size() const =0;
+	virtual size_t channelCount() const =0;
+	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const =0;
+	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const =0;
+	iAVectorDataType getMaxSum() const;
+};

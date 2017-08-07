@@ -23,27 +23,26 @@
 #include "iAPCA.h"
 
 #include "iAImageCoordinate.h"
-#include "iAitkImagesMultiChannelAdapter.h"
-#include "iASpectrumType.h"
+#include "iAVectorArrayImpl.h"
 
 #include <itkImage.h>
 #include <itkMultiplyImageFilter.h>
 #include <itkImagePCAShapeModelEstimator.h>
 #include <itkNumericSeriesFileNames.h>
 
-iAPCA::iAPCA(QSharedPointer<iASpectralVoxelData const> spectralData):
+iAPCA::iAPCA(QSharedPointer<iAVectorArray const> spectralData):
 	m_spectralData(spectralData)
 {
 }
 
-QSharedPointer<iASpectralVoxelData const> iAPCA::GetReduced(iAImageCoordConverter const & convert, int cutOff)
+QSharedPointer<iAVectorArray const> iAPCA::GetReduced(iAImageCoordConverter const & convert, int cutOff)
 {
 	const int spectraCount = m_spectralData->size();
 	assert(spectraCount > 0);
 	const int spectrumBinCount = m_spectralData->channelCount();
 
 	const unsigned int Dimensions = 3;
-	typedef iASpectrumDataType PixelType;
+	typedef iAVectorDataType PixelType;
 	typedef itk::Image<PixelType, Dimensions> ImageType;
 	typedef itk::MultiplyImageFilter<ImageType, ImageType, ImageType> ScaleType;
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
@@ -79,7 +78,7 @@ QSharedPointer<iASpectralVoxelData const> iAPCA::GetReduced(iAImageCoordConverte
 				for (idx[2] = 0; idx[2] < convert.GetDepth(); ++idx[2])
 				{
 					int specIdx = convert.GetIndexFromCoordinates(iAImageCoordinate(idx[0], idx[1], idx[2]));
-					iASpectrumDataType voxelValue = m_spectralData->get(specIdx, k);
+					iAVectorDataType voxelValue = m_spectralData->get(specIdx, k);
 					myImg->SetPixel(idx, voxelValue);
 				}
 			}
@@ -94,8 +93,8 @@ QSharedPointer<iASpectralVoxelData const> iAPCA::GetReduced(iAImageCoordConverte
 	double sv_mean=sqrt(v[0]);
 
 	// create output in required format:
-	QSharedPointer<iAitkImagesMultiChannelAdapter<ImageType> >
-		result(new iAitkImagesMultiChannelAdapter<ImageType>(convert.GetWidth(), convert.GetHeight(), convert.GetDepth()));
+	QSharedPointer<iAitkPixelVectorArray<ImageType> >
+		result(new iAitkPixelVectorArray<ImageType>(convert.GetWidth(), convert.GetHeight(), convert.GetDepth()));
 	for (int binIdx = 0; binIdx < cutOff; ++binIdx)
 	{
 		ImageType::Pointer binImg = filter->GetOutput(binIdx);

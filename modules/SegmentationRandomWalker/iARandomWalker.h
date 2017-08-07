@@ -20,25 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAImageGraphTypes.h"
-#include "iASeedType.h"
-
 #include "iAAlgorithm.h"
+#include "iAImageGraphTypes.h"
+#include "iAImageTypes.h"
+#include "iASeedType.h"
+#include "iAVectorArray.h"
+
 
 #include <QSharedPointer>
 #include <QVector>
 
-#include "iAImageTypes.h"
 
 class iANormalizer;
 class iALabelMapper;
 class iAImageGraph;
-class iASpectraDistance;
+class iAVectorDistance;
 
 struct iARWInputChannel
 {
-	QSharedPointer<iASpectralVoxelData const> image;
-	QSharedPointer<iASpectraDistance> distanceFunc;
+	QSharedPointer<iAVectorArray const> image;
+	QSharedPointer<iAVectorDistance> distanceFunc;
 	QSharedPointer<iANormalizer> normalizeFunc;
 	double             weight;
 };

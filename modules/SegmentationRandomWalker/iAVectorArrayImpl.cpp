@@ -18,18 +18,53 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "pch.h"
+#include "iAVectorArrayImpl.h"
 
-#include <utility> // for std::pair
 
-#include <QVector>
 
-#include "iAImageCoordinate.h"	// for iAVoxelIndexType
+iAVectorArray::iAVectorArray() : m_maxSum(-1)
+{}
 
-typedef int iAEdgeIndexType;
-typedef int iAVertexIndexType;
-typedef int iALabelType;
-typedef double iAEdgeWeightType;
-typedef std::pair<iAVoxelIndexType, iAVoxelIndexType> iAEdgeType;
+iAVectorArray::~iAVectorArray()
+{}
 
-typedef QVector<iALabelType> iALabelData;
+
+
+iAvtkPixelVectorArray::iAvtkPixelVectorArray(size_t width, size_t height, size_t depth):
+	m_coordConv(width, height, depth)
+{
+}
+
+	
+void iAvtkPixelVectorArray::AddImage(vtkSmartPointer<vtkImageData> img)
+{
+	int extent[6];
+	img->GetExtent(extent);
+	assert((extent[1]-extent[0]+1) == m_coordConv.GetWidth() &&
+		(extent[3]-extent[2]+1) == m_coordConv.GetHeight() &&
+		(extent[5]-extent[4]+1) == m_coordConv.GetDepth());
+	m_images.push_back(img);
+}
+
+size_t iAvtkPixelVectorArray::size() const
+{
+	return m_coordConv.GetVertexCount();
+}
+
+size_t iAvtkPixelVectorArray::channelCount() const
+{
+	return m_images.size();
+}
+
+QSharedPointer<iAVectorType const> iAvtkPixelVectorArray::get(size_t voxelIdx) const
+{
+	return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
+}
+
+iAVectorDataType iAvtkPixelVectorArray::get(size_t voxelIdx, size_t channelIdx) const
+{
+	iAImageCoordinate coords = m_coordConv.GetCoordinatesFromIndex(voxelIdx);
+	iAVectorDataType value = m_images[channelIdx]->GetScalarComponentAsDouble(coords.x, coords.y, coords.z, 0);
+	return value;
+}

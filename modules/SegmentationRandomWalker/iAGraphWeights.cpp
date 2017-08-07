@@ -24,9 +24,11 @@
 
 #include "iANormalizer.h"
 #include "iAImageGraph.h"
-#include "iASpectraDistance.h"
+#include "iAVectorArray.h"
+#include "iAVectorDistance.h"
 
 #include <algorithm>
+#include <cassert>
 
 iAGraphWeights::iAGraphWeights(iAEdgeIndexType edgeCount):
 m_weights(edgeCount)
@@ -66,8 +68,8 @@ int iAGraphWeights::GetEdgeCount() const
 
 QSharedPointer<iAGraphWeights> CalculateGraphWeights(
 	iAImageGraph const & graph,
-	iASpectralVoxelData const & voxelData,
-	iASpectraDistance const & distanceFunc)
+	iAVectorArray const & voxelData,
+	iAVectorDistance const & distanceFunc)
 {
 	QSharedPointer<iAGraphWeights> result(new iAGraphWeights(graph.GetEdgeCount()));
 	for (int i=0; i<graph.GetEdgeCount(); ++i)
@@ -95,7 +97,7 @@ QSharedPointer<iAGraphWeights const> CombineGraphWeights(
 		{
 			combinedWeight += weight[channelIdx] * graphWeights[channelIdx]->GetWeight(edgeIdx);
 		}
-		combinedWeight += iASpectraDistance::EPSILON;
+		combinedWeight += iAVectorDistance::EPSILON;
 		result->SetWeight(edgeIdx, combinedWeight);
 	}
 	return result;

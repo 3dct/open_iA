@@ -27,7 +27,8 @@
 
 class iANormalizer;
 class iAImageGraph;
-class iASpectraDistance;
+class iAVectorDistance;
+class iAVectorArray;
 
 class iAGraphWeights
 {
@@ -44,8 +45,8 @@ private:
 
 QSharedPointer<iAGraphWeights> CalculateGraphWeights(
 	iAImageGraph const & graph,
-	iASpectralVoxelData const & voxelData,
-	iASpectraDistance const & distanceFunc
+	iAVectorArray const & voxelData,
+	iAVectorDistance const & distanceFunc
 );
 
 QSharedPointer<iAGraphWeights const> CombineGraphWeights(

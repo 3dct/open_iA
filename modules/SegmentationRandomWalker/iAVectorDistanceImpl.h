@@ -20,123 +20,123 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASpectraDistance.h"
+#include "iAVectorDistance.h"
 
 #include <QString>
 
 int GetDistanceMeasureCount();
 char const * const * const GetDistanceMeasureNames();
 char const * const * const GetShortMeasureNames();
-QSharedPointer<iASpectraDistance> GetDistanceMeasure(QString const & distFuncName);
-QSharedPointer<iASpectraDistance> GetDistanceMeasureFromShortName(QString const & distFuncName);
+QSharedPointer<iAVectorDistance> GetDistanceMeasure(QString const & distFuncName);
+QSharedPointer<iAVectorDistance> GetDistanceMeasureFromShortName(QString const & distFuncName);
 
-class iASpectralAngularDistance: public iASpectraDistance
+class iASpectralAngularDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iAL1NormDistance: public iASpectraDistance
+class iAL1NormDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iAL2NormDistance: public iASpectraDistance
+class iAL2NormDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iALInfNormDistance: public iASpectraDistance
+class iALInfNormDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iAJensenShannonDistance : public iASpectraDistance
+class iAJensenShannonDistance : public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iAKullbackLeiblerDivergence : public iASpectraDistance
+class iAKullbackLeiblerDivergence : public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 	virtual bool isSymmetric() const {return false; }
 };
 
-class iAChiSquareDistance: public iASpectraDistance
+class iAChiSquareDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iAEarthMoversDistance: public iASpectraDistance
+class iAEarthMoversDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iASquaredDistance: public iASpectraDistance
+class iASquaredDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const;
 	virtual char const * GetShortName() const;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const;
 };
 
-class iANullDistance: public iASpectraDistance
+class iANullDistance: public iAVectorDistance
 {
 public:
 	virtual char const * GetName() const { return "Null Dist."; }
 	virtual char const * GetShortName() const { return "null"; }
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const { return 0; }
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const { return 0; }
 };
 
 /*
-class iAMutualInformation : public iASpectraDistance
+class iAMutualInformation : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2);
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2);
 	virtual bool isSymmetric() {return true; }
 };
 
-class iACrossCorrelation : public iASpectraDistance
+class iACrossCorrelation : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2);
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2);
 	virtual bool isSymmetric() {return true; }
 };
 
-class iAMahalanobisDistance : public iASpectraDistance
+class iAMahalanobisDistance : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2);
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2);
 	virtual bool isSymmetric() {return true; }
 };
 
-class iAHausdorffDistance : public iASpectraDistance
+class iAHausdorffDistance : public iAVectorDistance
 {
 public:
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2);
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2);
 	virtual bool isSymmetric() {return true; }
 };
 */

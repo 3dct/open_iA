@@ -18,21 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
 * ************************************************************************************/
-
-#ifndef IA_ITK_RANDOM_WALKER_HXX
-#define IA_ITK_RANDOM_WALKER_HXX
+#pragma once
 
 #include "iAitkRandomWalker.h"
 
 #include "iAImageCoordinate.h"
-#include "iAitkImagesMultiChannelAdapter.h"
 #include "iANormalizerImpl.h"
 #include "iARandomWalker.h"
-#include "iASpectraDistanceImpl.h"
+#include "iAVectorArrayImpl.h"
+#include "iAVectorDistanceImpl.h"
 
 
 template <class TInputImage>
-QSharedPointer<iASpectralVoxelData> GetPixelValueListFromImage(TInputImage* input)
+QSharedPointer<iAVectorArray> GetPixelValueListFromImage(TInputImage* input)
 {
 	assert(input);
 
@@ -41,8 +39,8 @@ QSharedPointer<iASpectralVoxelData> GetPixelValueListFromImage(TInputImage* inpu
 
 	int numOfEntries = inputSize[0]*inputSize[1]*inputSize[2];
 	int nrOfComponents = 1;
-	QSharedPointer<iAitkImagesMultiChannelAdapter<TInputImage> > data(new
-		iAitkImagesMultiChannelAdapter<TInputImage>
+	QSharedPointer<iAitkPixelVectorArray<TInputImage> > data(new
+		iAitkPixelVectorArray<TInputImage>
 		(inputSize[0], inputSize[1], inputSize[2]));
 	data->AddImage(input);
 	return data;
@@ -72,7 +70,7 @@ void iAitkRandomWalker<TInputImage>::Calculate()
 	input1.image = GetPixelValueListFromImage(m_input);
 
 	// at the moment, hardcode distance function and normalizer
-	input1.distanceFunc = QSharedPointer<iASpectraDistance>(new iASquaredDistance());
+	input1.distanceFunc = QSharedPointer<iAVectorDistance>(new iASquaredDistance());
 	iAGaussianNormalizer* n = new iAGaussianNormalizer();
 	n->SetBeta(m_beta);
 	input1.normalizeFunc = QSharedPointer<iANormalizer>(n); // m_normalizeFunc;
@@ -148,7 +146,7 @@ void iAitkExtendedRandomWalker<TInputImage>::Calculate()
 	iARWInputChannel input1;
 
 	input1.image = GetPixelValueListFromImage(m_input);
-	input1.distanceFunc = QSharedPointer<iASpectraDistance>(new iASquaredDistance());// m_distanceFuncs[0];
+	input1.distanceFunc = QSharedPointer<iAVectorDistance>(new iASquaredDistance());// m_distanceFuncs[0];
 	iAGaussianNormalizer* n = new iAGaussianNormalizer();
 	n->SetBeta(1.0);
 	input1.normalizeFunc = QSharedPointer<iANormalizer>(n); // m_normalizeFunc;
@@ -208,6 +206,3 @@ bool iAitkExtendedRandomWalker<TInputImage>::Success() const
 {
 	return m_result;
 }
-
-
-#endif

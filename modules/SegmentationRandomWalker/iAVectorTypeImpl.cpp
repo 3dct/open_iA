@@ -20,42 +20,67 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "iAitkImagesMultiChannelAdapter.h"
+#include "iAVectorTypeImpl.h"
 
-iAvtkImagesMultiChannelAdapter::iAvtkImagesMultiChannelAdapter(size_t width, size_t height, size_t depth):
-	m_coordConv(width, height, depth)
+
+
+iAVectorDataType iAVectorType::operator[](size_t channelIdx) const
 {
+	return get(channelIdx);
 }
 
-	
-void iAvtkImagesMultiChannelAdapter::AddImage(vtkSmartPointer<vtkImageData> img)
+QSharedPointer<iAVectorType const> iAVectorType::normalized() const
 {
-	int extent[6];
-	img->GetExtent(extent);
-	assert((extent[1]-extent[0]+1) == m_coordConv.GetWidth() &&
-		(extent[3]-extent[2]+1) == m_coordConv.GetHeight() &&
-		(extent[5]-extent[4]+1) == m_coordConv.GetDepth());
-	m_images.push_back(img);
+	QSharedPointer<iAStandaloneVector> result(new iAStandaloneVector(size()));
+	iAVectorDataType sum = 0;
+	for(iAVectorType::IndexType i = 0; i<size(); ++i)
+	{
+		sum += get(i);
+	}
+	for(iAVectorType::IndexType i = 0; i<size(); ++i)
+	{
+		result->set(i, get(i) / sum);
+	}
+	return result;
 }
 
-size_t iAvtkImagesMultiChannelAdapter::size() const
-{
-	return m_coordConv.GetVertexCount();
-}
 
-size_t iAvtkImagesMultiChannelAdapter::channelCount() const
-{
-	return m_images.size();
-}
 
-QSharedPointer<iASpectrumType const> iAvtkImagesMultiChannelAdapter::get(size_t voxelIdx) const
-{
-	return QSharedPointer<iASpectrumType const>(new iADirectAccessSpectrumType(*this, voxelIdx));
-}
 
-iASpectrumDataType iAvtkImagesMultiChannelAdapter::get(size_t voxelIdx, size_t channelIdx) const
+iAPixelVector::iAPixelVector(iAVectorArray const & data, size_t voxelIdx):
+	m_data(data),
+	m_voxelIdx(voxelIdx)
+{}
+
+iAVectorDataType iAPixelVector::get(size_t channelIdx) const
 {
-	iAImageCoordinate coords = m_coordConv.GetCoordinatesFromIndex(voxelIdx);
-	iASpectrumDataType value = m_images[channelIdx]->GetScalarComponentAsDouble(coords.x, coords.y, coords.z, 0);
+	iAVectorDataType value = m_data.get(m_voxelIdx, channelIdx);
 	return value;
+}
+
+iAVectorType::IndexType iAPixelVector::size() const
+{
+	return m_data.channelCount();
+}
+
+
+
+
+iAStandaloneVector::iAStandaloneVector(IndexType size):
+	m_data(size)
+{}
+
+iAVectorDataType iAStandaloneVector::get(size_t idx) const
+{
+	return m_data[idx];
+}
+
+iAVectorType::IndexType iAStandaloneVector::size() const
+{
+	return m_data.size();
+}
+
+void iAStandaloneVector::set(iAVectorType::IndexType idx, iAVectorDataType value)
+{
+	m_data[idx] = value;
 }

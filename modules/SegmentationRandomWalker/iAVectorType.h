@@ -20,62 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFunction.h"
-#include "open_iA_Core_export.h"
+typedef double iAVectorDataType;
 
 #include <QSharedPointer>
-#include <QVector>
 
-#include <cstddef> // for size_t
-
-class iASpectrumType;
-
-typedef double iASpectrumDataType;
-
-//! base class for access to multi-channel data, arranged as array
-class open_iA_Core_API iASpectralVoxelData
-{
-private:
-	mutable iASpectrumDataType m_maxSum;
-public:
-	iASpectralVoxelData();
-	virtual ~iASpectralVoxelData();
-	virtual size_t size() const =0;
-	virtual size_t channelCount() const =0;
-	virtual QSharedPointer<iASpectrumType const> get(size_t voxelIdx) const =0;
-	virtual iASpectrumDataType get(size_t voxelIdx, size_t channelIdx) const =0;
-	iASpectrumDataType getMaxSum() const;
-};
-
-//! accessor class to the data of all channels for one voxel inside iASpectralVoxelData 
-class iASpectrumType
+//! abstract base class for an arbitrary-sized vector
+class iAVectorType
 {
 public:
 	typedef size_t IndexType;
-	virtual iASpectrumDataType operator[](size_t channelIdx) const;
-	virtual iASpectrumDataType get(size_t channelIdx) const =0;
-	virtual IndexType size() const =0;
-	virtual QSharedPointer<iASpectrumType const> normalized() const;
-};
-
-class iAStandaloneSpectrumType: public iASpectrumType
-{
-private:
-	std::vector<iASpectrumDataType> m_data;
-public:
-	iAStandaloneSpectrumType(IndexType size);
-	virtual iASpectrumDataType get(size_t channelIdx) const;
-	virtual IndexType size() const;
-	void set(IndexType, iASpectrumDataType);
-};
-
-class open_iA_Core_API iADirectAccessSpectrumType: public iASpectrumType
-{
-private:
-	iASpectralVoxelData const & m_data;
-	size_t m_voxelIdx;
-public:
-	iADirectAccessSpectrumType(iASpectralVoxelData const & data, size_t voxelIdx);
-	iASpectrumDataType get(size_t channelIdx) const;
-	IndexType size() const;
+	virtual iAVectorDataType operator[](size_t channelIdx) const;
+	virtual iAVectorDataType get(size_t channelIdx) const = 0;
+	virtual IndexType size() const = 0;
+	virtual QSharedPointer<iAVectorType const> normalized() const;
 };
