@@ -24,10 +24,14 @@
 #include "dlg_RWSeeds.h"
 #include "dlg_commoninput.h"
 #include "iAConnector.h"
+#include "iAImageTypes.h"
 #include "iAitkRandomWalker.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
+#include "iATypedCallHelper.h"
+#include "iAVectorArrayImpl.h"
 #include "mainwindow.h"
 #include "mdichild.h"
-#include "iATypedCallHelper.h"
 
 #include <QMdiSubWindow>
 #include <QMessageBox>
@@ -41,25 +45,41 @@ void iASegmentationRandomWalkerModuleInterface::Initialize()
 	QMenu * menuGraphSegm = getMenuWithTitle(menuSegm, QString("Graph-Based"));
 	QAction * actionSegmRW = new QAction( m_mainWnd );
 	QAction * actionSegmERW = new QAction( m_mainWnd );
-	actionSegmRW->setText( QApplication::translate( "MainWindow", "Random Walker", 0 ) );
-	actionSegmERW->setText( QApplication::translate( "MainWindow", "Extended Random Walker", 0 ) );
+	actionSegmRW->setText( QApplication::translate( "MainWindow", "Random Walker (from Seed Points)", 0 ) );
+	actionSegmERW->setText( QApplication::translate( "MainWindow", "Extended Random Walker (Prior Model)", 0 ) );
 	menuGraphSegm->addAction(actionSegmRW);
 	menuGraphSegm->addAction(actionSegmERW);
 	connect(actionSegmRW, SIGNAL(triggered()), this, SLOT(CalculateRW()));
 	connect(actionSegmERW, SIGNAL(triggered()), this, SLOT(CalculateERW()));
 }
 
+
+struct RWParams
+{
+	RWParams() :
+		m_inputChannels(new QVector<iARWInputChannel>()),
+		m_maxIter(1000),
+		m_seeds(new SeedVector)
+	{}
+	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
+	int m_maxIter;
+	int m_size[3];
+	double m_spacing[3];
+	QSharedPointer<SeedVector> m_seeds;
+};
+
+
 template <typename ImagePixelType>
 void CalculateRW_template(
 	iAConnector* connector,
-	SeedVector seeds,
-	double beta
+	RWParams const & params
 	)
 {
 	typedef itk::Image<ImagePixelType, 3> TInputImage;
 	typedef iAitkRandomWalker<TInputImage> TRandomWalker;
 	TRandomWalker* randomWalker = new TRandomWalker();
-	randomWalker->SetInput(dynamic_cast< TInputImage* >(connector->GetITKImage()), seeds, beta);
+	randomWalker->SetInput(params.m_inputChannels);
+	randomWalker->SetParams(params.m_maxIter, params.m_size, params.m_spacing, params.m_seeds);
 	randomWalker->Calculate();
 	if (randomWalker->Success() )
 	{
@@ -68,46 +88,39 @@ void CalculateRW_template(
 	}
 }
 
+struct ERWParams
+{
+	ERWParams():
+		m_inputChannels(new QVector<iARWInputChannel>()),
+		m_priorModel(new QVector<PriorModelImagePointer>()),
+		m_maxIter(1000),
+		m_gamma(1)
+	{}
+	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
+	int m_maxIter;
+	int m_size[3];
+	double m_spacing[3];
+	QSharedPointer<QVector<PriorModelImagePointer> > m_priorModel;
+	double m_gamma;
+};
+
 
 template <typename ImagePixelType>
 void CalculateERW_template(
-	iAConnector** connectors,
-	int connectorCount
+	iAConnector* connector,
+	ERWParams const & params
 	)
 {
 	typedef itk::Image<ImagePixelType, 3> TInputImage;
 	typedef iAitkExtendedRandomWalker<TInputImage> TExtendedRandomWalker;
 	TExtendedRandomWalker* randomWalker = new TExtendedRandomWalker();
-	randomWalker->SetInput(dynamic_cast< TInputImage* >(connectors[0]->GetITKImage()));
-	/*
-	for (int i=1; i<connectorCount; ++i)
-	{
-		typename PriorModelImageType::Pointer priorLabelModel;
-		switch (connectors[i]->GetITKScalarPixelType()) // This filter handles all types
-		{
-			case itk::ImageIOBase::UCHAR:  priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<unsigned char>(0)); break;
-			case itk::ImageIOBase::CHAR:   priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<char>(0)); break;
-			case itk::ImageIOBase::USHORT: priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<unsigned short>(0)); break;
-			case itk::ImageIOBase::SHORT:  priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<short>(0)); break;
-			case itk::ImageIOBase::UINT:   priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<unsigned int>(0)); break;
-			case itk::ImageIOBase::INT:    priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<int>(0)); break;
-			case itk::ImageIOBase::ULONG:  priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<unsigned long>(0)); break;
-			case itk::ImageIOBase::LONG:   priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<long>(0)); break;
-			case itk::ImageIOBase::FLOAT:  priorLabelModel = CastToDouble(connectors[i]->GetITKImage(), static_cast<float>(0)); break;
-			case itk::ImageIOBase::DOUBLE: priorLabelModel = dynamic_cast<PriorModelImageType* >(connectors[i]->GetITKImage());
-			case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-			default: ;
-//				addMsg(tr("%1  Unknown/Invalid image type")
-//					.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-		}
-		randomWalker->AddPriorModel(priorLabelModel);
-	}
-	*/
+	randomWalker->SetInput(params.m_inputChannels);
+	randomWalker->SetParams(params.m_maxIter, params.m_size, params.m_spacing, params.m_priorModel, params.m_gamma);
 	randomWalker->Calculate();
 	if (randomWalker->Success() )
 	{
-		connectors[0]->SetImage( randomWalker->GetLabelImage() );
-		connectors[0]->Modified();
+		connector->SetImage( randomWalker->GetLabelImage() );
+		connector->Modified();
 	}
 }
 
@@ -115,21 +128,19 @@ class iAERWFilter: public iAAlgorithm
 {
 public:
 	iAERWFilter(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAAlgorithm(fn, i, p, logger, parent),
-		m_priorCount(0)
+		iAAlgorithm(fn, i, p, logger, parent)
 	{}
-	void SetPriors(QVector<vtkSmartPointer<vtkImageData> > priors)
+	void SetParams(ERWParams const & params)
 	{
-		m_priorCount = priors.size();
+		m_params = params;
 	}
 private:
-	int m_priorCount;
+	ERWParams m_params;
 
 	virtual void performWork()
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(CalculateERW_template, itkType,
-			getConnectorArray(), m_priorCount + 1);
+		ITK_TYPED_CALL(CalculateERW_template, itkType, getConnector(), m_params);
 	}
 };
 
@@ -137,90 +148,188 @@ class iARWFilter: public iAAlgorithm
 {
 public:
 	iARWFilter(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAAlgorithm(fn, i, p, logger, parent),
-		m_beta(0)
+		iAAlgorithm(fn, i, p, logger, parent)
 	{}
-	void SetParams(SeedVector const & seeds, double beta)
+	void SetParams(RWParams const & params  )
 	{
-		m_seeds = seeds;
-		m_beta = beta;
+		m_params = params;
 	}
 private:
-	SeedVector m_seeds;
-	double m_beta;
+	RWParams m_params;
 
 	virtual void performWork()
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(CalculateRW_template, itkType,
-			getConnector(), m_seeds, m_beta);
+		ITK_TYPED_CALL(CalculateRW_template, itkType, getConnector(), m_params);
 	}
 };
 
 bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 {
-	
+	double DefaultBeta = 1;
+	double DefaultWeight = 1;
+	int originalFileIdx = 0;
+	int labelCnt = 2;
+
 	QList<QMdiSubWindow *> mdiwindows = m_mainWnd->MdiChildList();
-	if (mdiwindows.size() < 3) {
+	int fileCnt = mdiwindows.size();
+	QStringList windowList;
+	QString::SplitBehavior behavior = QString::SplitBehavior::SkipEmptyParts;
+	for (int i = 0; i<fileCnt; ++i)
+	{
+		MdiChild* mdiChild = qobject_cast<MdiChild *>(mdiwindows[i]->widget());
+		int modCnt = mdiChild->GetModalities()->size();
+		QString fileName = mdiChild->currentFile();
+		if (!fileName.isEmpty())
+		{
+			windowList << fileName.split("/", behavior).last();
+		}
+		else
+		{
+			windowList << mdiChild->windowTitle();
+		}
+	}
+
+	if (fileCnt > 3)	// if more than 3 files are open, there's either more than one input or more than two labels
+	{
+		QStringList inParaDescr = (QStringList()
+			<< tr("+Original Image")
+			<< tr("*Number of Labels"));
+		QList<QVariant> inParaValue;
+		inParaValue << windowList << labelCnt;
+		QTextDocument *fDescr = new QTextDocument(0);
+		fDescr->setHtml(
+			"<p><font size=+1>Calculate Extended Random Walker.</font></p>"
+			"<p>Select which image to use as input, and how many labels you want to segment "
+			"(for each of which you need to select a prior probability image in the next step).</p>");
+		dlg_commoninput dlg(m_mainWnd, "Extended Random Walker Segmentation", inParaDescr, inParaValue, fDescr, true);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return false;
+		}
+		originalFileIdx = dlg.getSpinBoxValues()[0];
+		labelCnt = dlg.getSpinBoxValues()[1];
+	}
+	else
+	{
+		MdiChild* activeChild = m_mainWnd->activeMdiChild();
+		for (int i = 0; i < fileCnt; ++i)
+		{
+			if (qobject_cast<MdiChild *>(mdiwindows[i]->widget()) == activeChild)
+			{
+				originalFileIdx = i;
+				break;
+			}
+		}
+	}
+	if ( labelCnt+1 > fileCnt) {
 		QMessageBox::warning(m_mainWnd, tr("Extended Random Walker Segmentation"),
-			tr("This operation requires at least three datasets to be loaded: "
-			"The original image data, and one probability image for each label to segment "
-			"(a probabilistic pixelwise classification, which is used as a prior model). "
-			"Currently there are %1 windows open.")
-			.arg(mdiwindows.size()));
+			tr("Too few datasets loaded (%1). For the chosen task, there need to be at least %2 images loaded: One original image and %3 label priors.")
+			.arg(fileCnt)
+			.arg(labelCnt+1)
+			.arg(labelCnt));
 		return false;
 	}
-	QStringList inList = (QStringList()
-		<< tr("+Original Image"));
+	windowList.removeAt(originalFileIdx);
+	
+	QStringList normalizerModes;
+	for (int n = 0; n < nmCount; ++n)
+	{
+		normalizerModes << GetNormalizerNames()[n];
+	}
+	QStringList distanceFuncList;
+	for (int d = 0; d < GetDistanceMeasureCount(); ++d)
+	{
+		distanceFuncList << GetDistanceMeasureNames()[d];
+	}
+	QStringList inParaDescr = QStringList();
+	QList<QVariant> inParaValue;
+	MdiChild* origMdiChild = qobject_cast<MdiChild *>(mdiwindows[originalFileIdx]->widget());
+	int modalityCnt = origMdiChild->GetModalities()->size();
+	for (int m = 0; m < modalityCnt; ++m)
+	{
+		inParaDescr
+			<< QString("+Modality %1 Normalizer").arg(m)
+			<< QString("^Modality %1 Beta (only Gaussian Norm.)").arg(m)
+			<< QString("+Modality %1 Distance Function").arg(m)
+			<< QString("^Modality %1 Weight").arg(m);
+		inParaValue
+			<< normalizerModes
+			<< DefaultBeta
+			<< distanceFuncList
+			<< DefaultWeight;
+	}
+	for (int p = 0; p < labelCnt; ++p)
+	{
+		inParaDescr << QString("+Label %1 Prior").arg(p);
+		inParaValue << windowList;
+	}
+	inParaDescr << tr("^Gamma (Weight of Priors)")
+		<< tr("*Maximum Iterations (for linear solver)");
+	ERWParams params;
+	inParaValue
+		<< params.m_gamma
+		<< params.m_maxIter;
+	
 	QTextDocument *fDescr = new QTextDocument(0);
 	fDescr->setHtml(
 		"<p><font size=+1>Calculate Extended Random Walker.</font></p>"
 		"<p>Select which image to use as original image All other open windows will be considered as prior model.</p>");
-	QList<QVariant> inPara;
-	QStringList list;
-	QString::SplitBehavior behavior = QString::SplitBehavior::SkipEmptyParts;
-	for (int i=0; i<mdiwindows.size(); ++i)
-	{
-		MdiChild* mdiChild = qobject_cast<MdiChild *>(mdiwindows[i]->widget());
-		QString fileName = mdiChild->currentFile();
-		if (!fileName.isEmpty())
-		{
-			list << fileName.split("/", behavior).last();
-		}
-		else
-		{
-			list << mdiChild->windowTitle();
-		}
-	}
-	inPara	<< list;
-	dlg_commoninput dlg(m_mainWnd, "Extended Random Walker Segmentation", inList, inPara, fDescr, true);
+
+	dlg_commoninput dlg(m_mainWnd, "Extended Random Walker Segmentation", inParaDescr, inParaValue, fDescr, true);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
 	}
 
-	QList<int> fileIndices = dlg.getComboBoxIndices();
-	QVector<vtkSmartPointer<vtkImageData> > priorImg(mdiwindows.size()-1);
-	int currInsert = 0;
-	for (int i=0; i<mdiwindows.size(); ++i)
+	auto img = origMdiChild->GetModality(0)->GetImage();
+	int const * size = img->GetDimensions();
+	double const * spacing = img->GetSpacing();
+	std::copy(size, size + 3, params.m_size);
+	std::copy(spacing, spacing + 3, params.m_spacing);
+
+	for (int m=0; m<modalityCnt; ++m)
 	{
-		if (i == fileIndices[0])
+		QString normFuncName = dlg.getComboBoxIndices()    [m*4  ];
+		double beta          = dlg.getDoubleSpinBoxValues()[m*4+1];
+		QString distFuncName = dlg.getComboBoxValues()     [m*4+2];
+		double weight        = dlg.getDoubleSpinBoxValues()[m*4+3];
+		iARWInputChannel input;
+	
+		auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>(new iAvtkPixelVectorArray(size[0], size[1], size[2]));
+		for (int c = 0; c < origMdiChild->GetModality(m)->ComponentCount(); ++c)
 		{
-			continue;
+			vtkPixelAccess->AddImage(origMdiChild->GetModality(m)->GetComponent(c));
 		}
-		else
-		{
-			priorImg[currInsert++] = qobject_cast<MdiChild *>(mdiwindows[i]->widget())->getImagePointer();
-		}
+		input.image = vtkPixelAccess;
+		input.distanceFunc = GetDistanceMeasure(distFuncName);
+		input.normalizeFunc = CreateNormalizer(normFuncName, beta);
+		input.weight = weight;
+		params.m_inputChannels->push_back(input);
 	}
+	QSet<int> usedFileIDs;
+	for (int p = 0; p < labelCnt; ++p)
+	{
+		int curFileID = dlg.getComboBoxIndices()[modalityCnt*4 + p];
+		if (usedFileIDs.contains(curFileID))
+		{
+			QMessageBox::warning(m_mainWnd, tr("Extended Random Walker Segmentation"),
+				tr("Same dataset used as prior for more than one label (%1), this does not make sense.").arg(dlg.getComboBoxValues()[modalityCnt * 4 + p]));
+			return false;
+		}
+		usedFileIDs.insert(curFileID);
+		params.m_priorModel->push_back(qobject_cast<MdiChild *>(mdiwindows[p]->widget())->GetModality(0)->GetImage());
+	}
+	params.m_gamma = dlg.getDoubleSpinBoxValues()[modalityCnt*4 + labelCnt];
+	params.m_maxIter = dlg.getDoubleSpinBoxValues()[modalityCnt*4 + labelCnt+1];
 
 	QString filterName = "Extended Random Walker";
-	PrepareResultChild(fileIndices[0], filterName);
-	iAERWFilter * thread = new iAERWFilter(filterName,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	thread->SetPriors(priorImg);
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->start();
+	PrepareResultChild(originalFileIdx, filterName);
+	iAERWFilter * erw = new iAERWFilter(filterName,
+		m_childData.imgData, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	erw->SetParams(params);
+	m_mdiChild->connectThreadSignalsToChildSlots(erw);
+	erw->start();
 	return true;
 }
 
@@ -311,7 +420,8 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateRW()
 		QMessageBox::warning(0, "Random Walker", "You must specify at least two seed points.");
 		return false;
 	}
-	thread->SetParams(seedVector, beta);
+	RWParams params;
+	thread->SetParams(params);
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->start();
 	return true;

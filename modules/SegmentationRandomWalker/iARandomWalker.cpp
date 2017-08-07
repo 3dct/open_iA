@@ -238,7 +238,7 @@ iARandomWalker::iARandomWalker(
 		iAVoxelIndexType depth,
 		double const spacing[3],
 		QSharedPointer<QVector<iARWInputChannel> > inputChannels,
-		SeedVector const & seeds
+		QSharedPointer<SeedVector> seeds
 ):
 	m_imageGraph(new iAImageGraph(width, height, depth, iAImageCoordinate::ColRowDepMajor)),
 	m_inputChannels(inputChannels),
@@ -249,9 +249,9 @@ iARandomWalker::iARandomWalker(
 {
 	for(int i=0; i<3; ++i) m_spacing[i] = spacing[i];
 	assert((*m_inputChannels)[0].image->size() == width*height*depth);
-	for (int i=0; i<seeds.size(); ++i)
+	for (int i=0; i<seeds->size(); ++i)
 	{
-		int label = seeds[i].second;
+		int label = seeds->at(i).second;
 		if (label < m_minLabel)
 		{
 			m_minLabel = label;
@@ -270,7 +270,7 @@ void iARandomWalker::run()
 		QMessageBox::warning(0, "Random Walker", "Input Channels must not be empty!");
 		return;
 	}
-	if (m_seeds.size() == 0)
+	if (m_seeds->size() == 0)
 	{
 		QMessageBox::warning(0, "Random Walker", "Seeds must not be empty!");
 		return;
@@ -286,10 +286,10 @@ void iARandomWalker::run()
 
 	IndexMap seedMap;
 	QSet<int> labelSet;
-	for (iAVertexIndexType seedIdx=0; seedIdx < m_seeds.size(); ++seedIdx)
+	for (iAVertexIndexType seedIdx=0; seedIdx < m_seeds->size(); ++seedIdx)
 	{
-		seedMap.insert(m_imageGraph->GetConverter().GetIndexFromCoordinates(m_seeds[seedIdx].first), seedIdx);
-		labelSet.insert(m_seeds[seedIdx].second);
+		seedMap.insert(m_imageGraph->GetConverter().GetIndexFromCoordinates(m_seeds->at(seedIdx).first), seedIdx);
+		labelSet.insert(m_seeds->at(seedIdx).second);
 	}
 	int labelCount = labelSet.size();
 	if (m_maxLabel != labelCount-1)
@@ -387,9 +387,9 @@ void iARandomWalker::run()
 	for (int i=0; i<labelCount; ++i)
 	{
 		VectorType boundary(seedCount);
-		for (iAVertexIndexType seedIdx = 0; seedIdx < m_seeds.size(); ++seedIdx)
+		for (iAVertexIndexType seedIdx = 0; seedIdx < m_seeds->size(); ++seedIdx)
 		{
-			boundary[seedIdx] = m_seeds[seedIdx].second == i;
+			boundary[seedIdx] = m_seeds->at(seedIdx).second == i;
 		}
 		VectorType b(m_vertexCount-seedCount);
 #ifdef USE_EIGEN

@@ -40,7 +40,7 @@ public:
 	void set(IndexType, iAVectorDataType);
 };
 
-//! a single vector accessing its via the iAVectorArray it is contained in
+//! a single vector accessing its data via the iAVectorArray it is contained in
 //! (mainly to directly access the vector for a single pixel from a iAVectorArray
 //! drawing its data from a collection of images)
 class iAPixelVector: public iAVectorType

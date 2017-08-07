@@ -31,7 +31,9 @@ public:
 	typedef iAitkRandomWalker				  Self;
 	iAitkRandomWalker();
 	~iAitkRandomWalker();
-	void SetInput(TInputImage* image, SeedVector, double beta);
+	void SetInput(QSharedPointer<QVector<iARWInputChannel> > input);
+	void SetParams(int maxIter, int const size[3], double const  spacing[3], QSharedPointer<SeedVector> seeds);
+
 	bool Success() const;
 	LabelImagePointer GetLabelImage();
 	QVector<iAITKIO::ImagePointer> GetProbabilityImages();
@@ -40,14 +42,18 @@ private:
 	// not implemented on purpose:
 	iAitkRandomWalker(const Self &);
 	void operator=(const Self &);
-	
+
+	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
+	QSharedPointer<SeedVector> m_seeds;
+	int m_maxIter;
+	int m_size[3];
+	double m_spacing[3];
+
 	QSharedPointer<iARandomWalker> m_randomWalker;
-	
-	TInputImage* m_input;
-	SeedVector m_seeds;
-	double m_beta;
 	QSharedPointer<iARWResult> m_result;
 };
+
+class iAExtendedRandomWalker;
 
 template <class TInputImage>
 class iAitkExtendedRandomWalker
@@ -56,24 +62,29 @@ public:
 	typedef iAitkExtendedRandomWalker				  Self;
 	iAitkExtendedRandomWalker();
 	~iAitkExtendedRandomWalker();
-	void SetInput(TInputImage* image);
-	void AddPriorModel(PriorModelImagePointer priorModel);
+	void SetInput(QSharedPointer<QVector<iARWInputChannel> > input);
+	void SetParams(int maxIter, int const size[3], double const spacing[3], QSharedPointer<QVector<PriorModelImagePointer> > priors, double gamma);
+
 	bool Success() const;
 	LabelImagePointer GetLabelImage();
 	QVector<iAITKIO::ImagePointer> GetProbabilityImages();
-	void Calculate(); 
+	void Calculate();
 private:
 	// not implemented on purpose:
 	iAitkExtendedRandomWalker(const Self &);
 	void operator=(const Self &);
 	
-	QSharedPointer<iAExtendedRandomWalker> m_extendedRandomWalker;
-	
-	TInputImage* m_input;
+	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
 	QSharedPointer<QVector<PriorModelImagePointer> > m_priorModel;
+	double m_gamma;
+	int m_maxIter;
+	int m_size[3];
+	double m_spacing[3];
+
+	QSharedPointer<iAExtendedRandomWalker> m_extendedRandomWalker;
 	QSharedPointer<iARWResult> m_result;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "iAitkRandomWalker.hxx"
+#include "iAitkRandomWalker.txx"
 #endif

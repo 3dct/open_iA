@@ -39,7 +39,7 @@ class iAVectorDistance;
 struct iARWInputChannel
 {
 	QSharedPointer<iAVectorArray const> image;
-	QSharedPointer<iAVectorDistance> distanceFunc;
+	QSharedPointer<iAVectorDistance const> distanceFunc;
 	QSharedPointer<iANormalizer> normalizeFunc;
 	double             weight;
 };
@@ -59,14 +59,14 @@ public:
 		iAVoxelIndexType depth,
 		double const spacing[3],
 		QSharedPointer<QVector<iARWInputChannel> > inputChannels,
-		SeedVector const & seeds
+		QSharedPointer<SeedVector> seeds
 	);
 	QSharedPointer<iARWResult> GetResult();
 private:
 	int m_vertexCount;
 	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
 	QSharedPointer<iAImageGraph> m_imageGraph;
-	SeedVector const & m_seeds;
+	QSharedPointer<SeedVector> m_seeds;
 	int m_minLabel, m_maxLabel;
 	double m_spacing[3];
 	QSharedPointer<iARWResult>  m_result;
