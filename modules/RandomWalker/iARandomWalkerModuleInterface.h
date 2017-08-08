@@ -20,8 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVector>
-struct iAImageCoordinate;
+#include "iAModuleInterface.h"
 
-typedef std::pair<iAImageCoordinate, int> SeedType;
-typedef QVector<SeedType> SeedVector;
+class iARandomWalkerModuleInterface : public iAModuleInterface
+{
+	Q_OBJECT
+
+public:
+	void Initialize();
+private slots:
+	bool CalculateRW();
+	bool CalculateERW();
+};

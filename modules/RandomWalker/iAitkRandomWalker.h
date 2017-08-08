@@ -32,7 +32,7 @@ public:
 	iAitkRandomWalker();
 	~iAitkRandomWalker();
 	void SetInput(QSharedPointer<QVector<iARWInputChannel> > input);
-	void SetParams(int maxIter, int const size[3], double const  spacing[3], QSharedPointer<SeedVector> seeds);
+	void SetParams(int maxIter, int const size[3], double const  spacing[3], QSharedPointer<iASeedVector> seeds);
 
 	bool Success() const;
 	LabelImagePointer GetLabelImage();
@@ -44,7 +44,7 @@ private:
 	void operator=(const Self &);
 
 	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
-	QSharedPointer<SeedVector> m_seeds;
+	QSharedPointer<iASeedVector> m_seeds;
 	int m_maxIter;
 	int m_size[3];
 	double m_spacing[3];

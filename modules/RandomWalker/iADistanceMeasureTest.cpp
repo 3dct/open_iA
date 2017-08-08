@@ -19,16 +19,16 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iASpectraDistanceImpl.h"
+#include "iAVectorDistanceImpl.h"
 
 #include "iASimpleTester.h"
+#include "iAVectorArray.h"
+#include "iAVectorTypeImpl.h"
 
-
-
-class TestSpectralVoxelData: public iASpectralVoxelData
+class TestVectorArray: public iAVectorArray
 {
 private:
-	std::vector<std::vector<iASpectrumDataType> > m_data;
+	std::vector<std::vector<iAVectorDataType> > m_data;
 public:
 	virtual size_t size() const
 	{
@@ -38,15 +38,15 @@ public:
 	{
 		return m_data[0].size();
 	}
-	virtual QSharedPointer<iASpectrumType const> get(size_t voxelIdx) const
+	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const
 	{
-		return QSharedPointer<iASpectrumType const>(new iADirectAccessSpectrumType(*this, voxelIdx));
+		return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
 	}
-	virtual iASpectrumDataType get(size_t voxelIdx, size_t channelIdx) const
+	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const
 	{
 		return m_data[voxelIdx][channelIdx];
 	}
-	void set(size_t voxelIdx, size_t channelIdx, iASpectrumDataType value)
+	void set(size_t voxelIdx, size_t channelIdx, iAVectorDataType value)
 	{
 		if (m_data.size() <= voxelIdx)
 		{
@@ -62,7 +62,7 @@ public:
 
 
 BEGIN_TEST
-	TestSpectralVoxelData fct3;
+	TestVectorArray fct3;
 	fct3.set(0, 0, 0);
 	fct3.set(0, 1, 1);
 	fct3.set(0, 2, 0);
@@ -70,7 +70,7 @@ BEGIN_TEST
 	fct3.set(1, 1, 3);
 	fct3.set(1, 2, 2);
 
-	TestSpectralVoxelData fct4;
+	TestVectorArray fct4;
 	fct4.set(0, 0, 5);
 	fct4.set(0, 1, 5);
 	fct4.set(0, 2, 6);

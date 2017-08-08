@@ -238,7 +238,7 @@ iARandomWalker::iARandomWalker(
 		iAVoxelIndexType depth,
 		double const spacing[3],
 		QSharedPointer<QVector<iARWInputChannel> > inputChannels,
-		QSharedPointer<SeedVector> seeds
+		QSharedPointer<iASeedVector> seeds
 ):
 	m_imageGraph(new iAImageGraph(width, height, depth, iAImageCoordinate::ColRowDepMajor)),
 	m_inputChannels(inputChannels),

@@ -19,7 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iASegmentationRandomWalkerModuleInterface.h"
+#include "iARandomWalkerModuleInterface.h"
 
 #include "dlg_RWSeeds.h"
 #include "dlg_commoninput.h"
@@ -38,7 +38,7 @@
 #include <QTextDocument>
 
 
-void iASegmentationRandomWalkerModuleInterface::Initialize()
+void iARandomWalkerModuleInterface::Initialize()
 {
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegm = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
@@ -59,13 +59,13 @@ struct RWParams
 	RWParams() :
 		m_inputChannels(new QVector<iARWInputChannel>()),
 		m_maxIter(1000),
-		m_seeds(new SeedVector)
+		m_seeds(new iASeedVector)
 	{}
 	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
 	int m_maxIter;
 	int m_size[3];
 	double m_spacing[3];
-	QSharedPointer<SeedVector> m_seeds;
+	QSharedPointer<iASeedVector> m_seeds;
 };
 
 
@@ -164,7 +164,7 @@ private:
 	}
 };
 
-bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
+bool iARandomWalkerModuleInterface::CalculateERW()
 {
 	double DefaultBeta = 1;
 	double DefaultWeight = 1;
@@ -334,70 +334,7 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 }
 
 
-SeedVector ExtractSeedVector(QString const & seedString, int width, int height, int depth)
-{
-	QStringList lines = seedString.split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
-	SeedVector result;
-	QString parseErrors;
-	bool numberOK;
-	// convert seed string to vector:
-	QRegExp rx("(\\ |\\,|\\.|\\:|\\;|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
-	for (int lineNumber = 0; lineNumber < lines.size(); ++lineNumber)
-	{
-		QString line = lines[lineNumber];
-		QStringList query = line.split(rx);
-		int x=0,
-			y=0,
-			z=0;
-		if (query.size() < 2)
-		{
-			parseErrors.append(QString("Line %1: Invalid coordinate number %2.\n").arg(lineNumber).arg(query.size()));
-			continue;
-		}
-		x = query[0].toInt(&numberOK);
-		if (!numberOK)
-		{
-			parseErrors.append(QString("Line %1: Invalid x-coordinate: %2.\n").arg(lineNumber).arg(query[0]));
-			continue;
-		}
-		y = query[1].toInt(&numberOK);
-		if (!numberOK)
-		{
-			parseErrors.append(QString("Line %1: Invalid y-coordinate: %2.\n").arg(lineNumber).arg(query[1]));
-			continue;
-		}
-		z = query[2].toInt(&numberOK);
-		if (!numberOK)
-		{
-			parseErrors.append(QString("Line %1: Invalid z-coordinate: %2.\n").arg(lineNumber).arg(query[2]));
-			continue;
-		}
-		int label = query[3].toInt(&numberOK);
-		if (!numberOK)
-		{
-			parseErrors.append(QString("Line %1: Invalid label: %2.\n").arg(lineNumber).arg(query[3]));
-			continue;
-		}
-		if (x < 0 || x > width ||
-		    y < 0 || y > height ||
-			z < 0 || z > depth)
-		{
-			parseErrors.append(QString("Line %1: Coordinate outside of image: %2, %3, %4.\n").arg(lineNumber).arg(x).arg(y).arg(z));
-		}
-		else
-		{
-			result.push_back(std::make_pair(iAImageCoordinate(x, y, z), label));
-		}
-	}
-	if (parseErrors.size() > 0)
-	{
-		QMessageBox::warning(0, "Random Walker", "Error(s) in seed file: \n"+parseErrors);
-	}
-	return result;
-}
-
-
-bool iASegmentationRandomWalkerModuleInterface::CalculateRW()
+bool iARandomWalkerModuleInterface::CalculateRW()
 {
 	dlg_RWSeeds dlgRWSeeds(m_mainWnd);
 	if (dlgRWSeeds.exec() != QDialog::Accepted)
@@ -414,13 +351,14 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateRW()
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	int extent[6];
 	m_childData.imgData->GetExtent(extent);
-	SeedVector seedVector = ExtractSeedVector(seeds, extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1);
-	if (seedVector.size() < 2)
+	QSharedPointer<iASeedVector> seedVector = ExtractSeedVector(seeds, extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1);
+	if (seedVector->size() < 2)
 	{
 		QMessageBox::warning(0, "Random Walker", "You must specify at least two seed points.");
 		return false;
 	}
 	RWParams params;
+	params.m_seeds = seedVector;
 	thread->SetParams(params);
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->start();

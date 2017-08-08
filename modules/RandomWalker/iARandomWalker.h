@@ -59,14 +59,14 @@ public:
 		iAVoxelIndexType depth,
 		double const spacing[3],
 		QSharedPointer<QVector<iARWInputChannel> > inputChannels,
-		QSharedPointer<SeedVector> seeds
+		QSharedPointer<iASeedVector> seeds
 	);
 	QSharedPointer<iARWResult> GetResult();
 private:
 	int m_vertexCount;
 	QSharedPointer<QVector<iARWInputChannel> > m_inputChannels;
 	QSharedPointer<iAImageGraph> m_imageGraph;
-	QSharedPointer<SeedVector> m_seeds;
+	QSharedPointer<iASeedVector> m_seeds;
 	int m_minLabel, m_maxLabel;
 	double m_spacing[3];
 	QSharedPointer<iARWResult>  m_result;

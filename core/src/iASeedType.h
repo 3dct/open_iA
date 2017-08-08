@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "open_iA_Core_export.h"
 
-class iASegmentationRandomWalkerModuleInterface : public iAModuleInterface
-{
-	Q_OBJECT
+#include <QSharedPointer>
+#include <QString>
+#include <QVector>
 
-public:
-	void Initialize();
-private slots:
-	bool CalculateRW();
-	bool CalculateERW();
-};
+struct iAImageCoordinate;
+
+typedef std::pair<iAImageCoordinate, int> iASeedType;
+typedef QVector<iASeedType> iASeedVector;
+
+open_iA_Core_API QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int width, int height, int depth);

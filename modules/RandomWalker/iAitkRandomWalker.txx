@@ -76,7 +76,7 @@ void iAitkRandomWalker<TInputImage>::SetInput(QSharedPointer<QVector<iARWInputCh
 }
 
 template <class TInputImage>
-void iAitkRandomWalker<TInputImage>::SetParams(int maxIter, int const size[3], double const spacing[3], QSharedPointer<SeedVector> seeds)
+void iAitkRandomWalker<TInputImage>::SetParams(int maxIter, int const size[3], double const spacing[3], QSharedPointer<iASeedVector> seeds)
 {
 	m_maxIter = maxIter;
 	std::copy(size, size + 3, m_size);
