@@ -140,7 +140,6 @@ bool iASVMModuleInterface::CalculateSVM()
 	}
 	m_mdiChild = m_mainWnd->createMdiChild(true);
 	m_mdiChild->show();
-	m_mdiChild->setWindowTitle("SVM Probabilities");
 	iASVMImageFilter * svm = new iASVMImageFilter(img, m_mdiChild->getLogger(), m_mdiChild);
 	svm->SetParameters(kernelIdx, c, gamma, dimension, r);
 	svm->SetSeeds(seeds);
@@ -169,4 +168,5 @@ void iASVMModuleInterface::SVMFinished()
 		mods->Add(mod);
 	}
 	m_mdiChild->SetModalities(mods);
+	m_mdiChild->setWindowTitle("SVM[*]");
 }
