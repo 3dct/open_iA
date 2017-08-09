@@ -23,6 +23,7 @@
 #include "iARandomWalker.h"
 
 // wrapper classes to make the (extended) random walker applicable for arbitrary itk imges
+// TODO: remove templates, now working with vtk images directly!
 
 template <class TInputImage>
 class iAitkRandomWalker

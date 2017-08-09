@@ -22,10 +22,6 @@
 #include "iAVectorArrayImpl.h"
 
 
-
-iAVectorArray::iAVectorArray() : m_maxSum(-1)
-{}
-
 iAVectorArray::~iAVectorArray()
 {}
 

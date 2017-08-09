@@ -45,17 +45,19 @@ void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData>
 	output->DeepCopy(input);
 }
 
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents)
+vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
 {
 	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
 	result->SetDimensions(dimensions);
 	result->AllocateScalars(vtkType, numComponents);
-	result->SetSpacing(spacing);
+	double nonConstSpc[3];
+	std::copy(spacing, spacing + 3, nonConstSpc);
+	result->SetSpacing(nonConstSpc);
 	return result;
 }
 
 
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3])
+vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3])
 {
 	return AllocateImage(vtkType, dimensions, spacing, 1);
 }

@@ -1577,6 +1577,7 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 {
 	if (oldChild->getResultInNewWindow())
 	{
+		// TODO: copy all modality images, or don't copy anything here and use image from old image directly!
 		vtkSmartPointer<vtkImageData> imageData = oldChild->getImagePointer();
 		MdiChild* newChild = createMdiChild(true);
 		newChild->show();

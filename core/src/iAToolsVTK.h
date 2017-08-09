@@ -32,8 +32,8 @@ class QStringList;
 // image creation:
 void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output);
 open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3]);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents);
+open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3]);
+open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents);
 
 // image I/O (using ITK methods of iAITKIO)
 void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);

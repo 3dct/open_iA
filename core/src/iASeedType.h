@@ -30,5 +30,6 @@ struct iAImageCoordinate;
 
 typedef std::pair<iAImageCoordinate, int> iASeedType;
 typedef QVector<iASeedType> iASeedVector;
+typedef QSharedPointer<iASeedVector> iASeedsPointer;
 
-open_iA_Core_API QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int width, int height, int depth);
+open_iA_Core_API iASeedsPointer ExtractSeedVector(QString const & seedString, int width, int height, int depth);
