@@ -112,7 +112,6 @@ void iATLGICTLoader::start(MdiChild* child)
 {
 	m_multiStepObserver = new iAMultiStepProgressObserver(m_subDirs.size());
 	m_child = child;
-	m_child->newFile();
 	m_child->show();
 	m_child->addMsg(tr("%1  Loading sequence started... \n"
 		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"

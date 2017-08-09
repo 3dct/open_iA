@@ -2537,7 +2537,6 @@ void MainWindow::LoadProject(QString const & fileName)
 	if (fileName.isEmpty())
 		return;
 	MdiChild* child = createMdiChild(false);
-	child->newFile();
 	if (child->LoadProject(fileName))
 	{
 		child->show();
