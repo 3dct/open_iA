@@ -97,11 +97,11 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_logger(new MdiChildLogger(this)),
 	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
-	m_unsavedChanges(unsavedChanges),
 	preferences(prefs),
 	m_currentModality(0),
 	m_currentComponent(0)
 {
+	setWindowModified(unsavedChanges);
 	m_mainWnd = mainWnd;
 	setupUi(this);
 	//prepare window for handling dock widgets
@@ -190,9 +190,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	worldProfilePoints->Allocate(2);
 
 	hessianComputed = false;
-
 	updateSliceIndicator = true;
-
 	raycasterInitialized = false;
 }
 
@@ -1628,18 +1626,6 @@ void MdiChild::ApplyVolumeSettings()
 }
 
 
-bool MdiChild::HasUnsavedChanges() const
-{
-	return m_unsavedChanges;
-}
-
-
-void MdiChild::SetUnsavedChanges(bool b)
-{
-	m_unsavedChanges = b;
-}
-
-
 QString MdiChild::GetLayoutName() const
 {
 	return m_layout;
@@ -2363,7 +2349,7 @@ void MdiChild::closeEvent(QCloseEvent *event)
 		addStatusMsg("Cannot close window while I/O operation is in progress!");
 		event->ignore();
 	} else {
-		if (m_unsavedChanges)
+		if (isWindowModified())
 		{
 			auto reply = QMessageBox::question(this, "Unsaved changes",
 				"You have unsaved changes. Are you sure you want to close this window?",
@@ -2385,7 +2371,6 @@ void MdiChild::setCurrentFile(const QString &f)
 	curFile = f;
 	path = fileInfo.canonicalPath();
 	isUntitled = f.isEmpty();
-	setWindowModified(false);
 	setWindowTitle(userFriendlyCurrentFile() + "[*]");
 }
 
@@ -3030,7 +3015,7 @@ vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 void MdiChild::SaveFinished()
 {
 	m_dlgModalities->SetFileName(m_storedModalityNr, ioThread->getFileName());
-	m_unsavedChanges = GetModalities()->HasUnsavedModality();
+	setWindowModified(GetModalities()->HasUnsavedModality());
 }
 
 
