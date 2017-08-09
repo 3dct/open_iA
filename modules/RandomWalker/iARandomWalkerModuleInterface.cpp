@@ -207,7 +207,7 @@ bool iARandomWalkerModuleInterface::CalculateERW()
 		{
 			return false;
 		}
-		originalFileIdx = dlg.getSpinBoxValues()[0];
+		originalFileIdx = dlg.getComboBoxIndices()[0];
 		labelCnt = dlg.getSpinBoxValues()[1];
 	}
 	else
@@ -235,12 +235,12 @@ bool iARandomWalkerModuleInterface::CalculateERW()
 	QStringList normalizerModes;
 	for (int n = 0; n < nmCount; ++n)
 	{
-		normalizerModes << GetNormalizerNames()[n];
+		normalizerModes << QString((n == nmGaussian)?"!":"")+GetNormalizerNames()[n];
 	}
 	QStringList distanceFuncList;
 	for (int d = 0; d < GetDistanceMeasureCount(); ++d)
 	{
-		distanceFuncList << GetDistanceMeasureNames()[d];
+		distanceFuncList << QString((d == dmSquared)? "!":"")+GetDistanceMeasureNames()[d];
 	}
 	QStringList inParaDescr = QStringList();
 	QList<QVariant> inParaValue;
@@ -318,7 +318,7 @@ bool iARandomWalkerModuleInterface::CalculateERW()
 			return false;
 		}
 		usedFileIDs.insert(curFileID);
-		params.m_priorModel->push_back(qobject_cast<MdiChild *>(mdiwindows[p]->widget())->GetModality(0)->GetImage());
+		params.m_priorModel->push_back(qobject_cast<MdiChild *>(mdiwindows[curFileID]->widget())->GetModality(0)->GetImage());
 	}
 	params.m_gamma = dlg.getDoubleSpinBoxValues()[modalityCnt*4 + labelCnt];
 	params.m_maxIter = dlg.getDoubleSpinBoxValues()[modalityCnt*4 + labelCnt+1];

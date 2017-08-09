@@ -555,14 +555,15 @@ void iAExtendedRandomWalker::run()
 			for (int labelIdx = 0; labelIdx < m_priorModel->size(); ++labelIdx)
 			{
 				//sum += (*m_priorModel)[labelIdx]->GetPixel(idx);
-				sum += (*m_priorModel)[labelIdx]->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
+				double value = (*m_priorModel)[labelIdx]->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
+				sum += value;
 			}
 			assert (std::abs(sum-1.0) < EPSILON);
-			if (std::abs(sum-1.0) >= EPSILON)
-			{
+			//if (std::abs(sum-1.0) >= EPSILON)
+			//{
 				//priorNormalized = false;
 				//DebugOut() << "Prior Model not normalized at (x="<<coord.x<<", y="<<coord.y<<", z="<<coord.z<<"): "<< sum << std::endl;
-			}
+			//}
 			vertexWeightSum[voxelIdx] += (m_priorModelWeight * sum);
 		}
 		//if (!priorNormalized)

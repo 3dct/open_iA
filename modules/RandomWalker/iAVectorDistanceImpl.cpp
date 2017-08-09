@@ -40,22 +40,6 @@ namespace
 		return sqrt(sum);
 	}
 
-	enum MeasureIndices
-	{
-		dmL1,
-		dmL2,
-		dmLinf,
-		dmCosine,
-		dmJensenShannon,
-		dmKullbackLeibler,
-		dmChiSquare,
-		dmEarthMovers,
-		dmSquared,
-
-		dmCount,
-		dmInvalid=dmCount
-	};
-
 	const char * const MeasureNames[dmCount+1] =
 	{
 		  "L1norm"

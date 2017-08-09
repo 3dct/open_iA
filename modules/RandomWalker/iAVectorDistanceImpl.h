@@ -24,6 +24,22 @@
 
 #include <QString>
 
+enum MeasureIndices
+{
+	dmL1,
+	dmL2,
+	dmLinf,
+	dmCosine,
+	dmJensenShannon,
+	dmKullbackLeibler,
+	dmChiSquare,
+	dmEarthMovers,
+	dmSquared,
+
+	dmCount,
+	dmInvalid = dmCount
+};
+
 int GetDistanceMeasureCount();
 char const * const * const GetDistanceMeasureNames();
 char const * const * const GetShortMeasureNames();
