@@ -30,8 +30,8 @@
 
 #include <vtkImageData.h>
 
-iASVMImageFilter::iASVMImageFilter(vtkImageData* i, iALogger* l):
-	iAAlgorithm("SVM", i, NULL, l, NULL),
+iASVMImageFilter::iASVMImageFilter(vtkImageData* i, iALogger* l, QObject* mdiChild):
+	iAAlgorithm("SVM", i, NULL, l, mdiChild),
 	m_probabilities(new QVector<ImagePointer>)
 {}
 
@@ -97,9 +97,9 @@ void iASVMImageFilter::performWork()
 	problem.l = m_seeds->size();
 	problem.x = new p_svm_node[m_seeds->size()];
 	problem.y = new double[m_seeds->size()];
-	svm_node *x_space = new svm_node[m_seeds->size() * (m_input.size() + 1)];
+	size_t xspacesize = m_seeds->size() * (m_input.size() + 1);
+	svm_node *x_space = new svm_node[xspacesize];
 
-	int curSeedIdx = 0;
 	int curSpaceIdx = 0;
 	//if (m_seeds)
 	//{
@@ -108,10 +108,10 @@ void iASVMImageFilter::performWork()
 	for (int seedIdx = 0; seedIdx < m_seeds->size(); ++seedIdx)
 	{
 		iASeedType seed = m_seeds->at(seedIdx);
-		problem.y[curSeedIdx] = seed.second;
+		problem.y[seedIdx] = seed.second;
 		if (seed.second < labelMin) labelMin = seed.second;
 		if (seed.second > labelMax) labelMax = seed.second;
-		problem.x[curSeedIdx] = &x_space[curSpaceIdx];
+		problem.x[seedIdx] = &x_space[curSpaceIdx];
 		for (int m = 0; m < m_input.size(); ++m)
 		{
 			x_space[curSpaceIdx].index = m;
@@ -142,48 +142,6 @@ void iASVMImageFilter::performWork()
 	}
 	// train the model
 	svm_model* model = svm_train(&problem, &param);
-
-	// DEBUG OUTPUT -->
-	/*
-	DebugOut() << std::endl << "# of classes: " <<  model->nr_class << std::endl
-	<< "# of SV: " << model->l << std::endl;
-	for (int s=0; s<model->l; ++s)
-	{
-	DebugOut() << "    SV["<<s<<"]=(";
-	for (int c=0; c<channelCount; ++c)
-	{
-	DebugOut() << model->SV[s][c].value << " ";
-	}
-	DebugOut() <<")"<<std::endl;
-	}
-	DebugOut() << "sv_coefs: "<< std::endl;
-	for (int c=0; c<labelCount-1; ++c)
-	{
-	DebugOut()  << "    ";
-	for (int s=0; s<model->l; ++s)
-	{
-	DebugOut() << model->sv_coef[c][s] << " ";
-	}
-	DebugOut() << std::endl;
-	}
-	DebugOut() << std::endl << "Labels:" << std::endl;
-	std::ostringstream probAStr, probBStr;
-	for (int l=0; l<labelCount; ++l)
-	{
-	DebugOut() << "    " << l  << ": " << model->label[l] << "; num of SV: " << model->nSV[l] << std::endl;
-	probAStr << model->probA[l] << " ";
-	probBStr << model->probB[l] << " ";
-	}
-	DebugOut() << "ProbA: " << probAStr.str() << std::endl
-	<< "ProbB: " << probBStr.str() << std::endl;
-
-	if (svm_check_probability_model(model) == 0)
-	{
-	DebugOut () << "Mode is NOT suitable for probability estimates!" << std::endl;
-	}
-	*/
-	// DEBUG OUTPUT <--
-
 	int labelCount = labelMax - labelMin + 1;
 
 	m_probabilities->clear();
@@ -204,55 +162,19 @@ void iASVMImageFilter::performWork()
 	// for each pixel, execute svm_predict :
 	FOR_VTKIMG_PIXELS(m_input[0], x, y, z)
 	{
-		/*
-		if (doDebug(coord))
-		DebugOut() << "Pixel " << coord.x << ", " << coord.y << ", " << coord.z << ": channels=";
-		*/
-
 		for (int m = 0; m < m_input.size(); ++m)
 		{
 			node[m].index = m;
 			node[m].value = m_input[m]->GetScalarComponentAsDouble(x, y, z, 0);
-			++m;
 		}
-
-		// DEBUG OUTPUT -->
-		/*
-		if (doDebug(coord))
-		{
-		for (int i=0; i<channelCount; ++i)
-		{
-		DebugOut() << node[i].value;
-		if (i < channelCount-1)
-		{
-		DebugOut() << ",";
-		}
-		}
-		DebugOut() << "; probabilities=";
-		}
-		*/
-		// DEBUG OUTPUT <--
-
 		double label = svm_predict_probability(model, node, prob_estimates);
 		double label2 = svm_predict(model, node);
-
-		/*
-		if (doDebug(coord))
-		{
-		for (int l=0; l<labelCount; ++l)
-		{
-		DebugOut() << prob_estimates[l] << ",";
-		}
-		DebugOut() << " label=" << label << ", label2=" << label2 << std::endl;
-		}
-		*/
 		double probSum = 0;
 		for (int l = 0; l < labelCount; ++l)
 		{
 			drawPixel((*m_probabilities)[l], x, y, z, prob_estimates[l]);
-
 			probSum += prob_estimates[l];
-
+			// DEBUG check begin
 			if (prob_estimates[l] < -MY_EPSILON || prob_estimates[l] > 1.0+MY_EPSILON)
 			{
 				DEBUG_LOG(QString("SVM: Invalid probability (%1) at %2, %3, %4")
@@ -261,7 +183,9 @@ void iASVMImageFilter::performWork()
 					.arg(y)
 					.arg(z));
 			}
+			// DEBUG check end
 		}
+		// DEBUG check begin
 		if (probSum - 1.0 > MY_EPSILON)
 		{
 			DEBUG_LOG(QString("SVM: Probabilities at %1, %2, %3 add up to %4 instead of 1!")
@@ -270,8 +194,8 @@ void iASVMImageFilter::performWork()
 				.arg(z)
 				.arg(probSum) );
 		}
+		// DEBUG check end
 	}
-
 	delete[] prob_estimates;
 	delete[] node;
 	delete[] x_space;

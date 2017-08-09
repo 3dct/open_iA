@@ -46,7 +46,7 @@ public:
 	typedef vtkSmartPointer<vtkImageData>	ImagePointer;
 	typedef QSharedPointer<QVector<ImagePointer> > ImagesPointer;
 
-	iASVMImageFilter(vtkImageData* i, iALogger* l);
+	iASVMImageFilter(vtkImageData* i, iALogger* l, QObject* mdiChild);
 	void AddInput(ImagePointer input);
 	void SetParameters(int kernel, double c, double gamma, int degree, double coef0);
 	void SetSeeds(iASeedsPointer seeds);

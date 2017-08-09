@@ -35,6 +35,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTextStream>
 
 
 void iASVMModuleInterface::Initialize()
@@ -112,7 +113,6 @@ bool iASVMModuleInterface::CalculateSVM()
 	vtkSmartPointer<vtkImageData> img = activeChild->GetModality(0)->GetImage();
 	int dim[3];
 	img->GetDimensions(dim);
-	QString seedString;
 
 	iASeedsPointer seeds;
 	if (seedFileName.endsWith("xml"))
@@ -123,11 +123,25 @@ bool iASVMModuleInterface::CalculateSVM()
 	}
 	else
 	{
+		QFile f(seedFileName);
+		if (!f.open(QFile::ReadOnly | QFile::Text))
+		{
+			DEBUG_LOG(QString("Can't open file %1.").arg(seedFileName));
+			return false;
+		}
+		QTextStream in(&f);
+		QString seedString = in.readAll();
 		seeds = ExtractSeedVector(seedString, dim[0], dim[1], dim[2]);
 	}
-
-	PrepareResultChild("SVM");
-	iASVMImageFilter * svm = new iASVMImageFilter(m_childData.imgData, activeChild->getLogger());
+	if (seeds->size() == 0)
+	{
+		DEBUG_LOG("No seeds found!");
+		return false;
+	}
+	m_mdiChild = m_mainWnd->createMdiChild(true);
+	m_mdiChild->show();
+	m_mdiChild->setWindowTitle("SVM Probabilities");
+	iASVMImageFilter * svm = new iASVMImageFilter(img, m_mdiChild->getLogger(), m_mdiChild);
 	svm->SetParameters(kernelIdx, c, gamma, dimension, r);
 	svm->SetSeeds(seeds);
 	for (int i = 0; i < activeChild->GetModalities()->size(); ++i)
@@ -138,9 +152,8 @@ bool iASVMModuleInterface::CalculateSVM()
 			svm->AddInput(mod->GetComponent(m));
 		}
 	}
-	//m_mdiChild->connectThreadSignalsToChildSlots(svm);
-	svm->start();
 	connect(svm, SIGNAL(finished()), this, SLOT(SVMFinished()));
+	svm->start();
 	return true;
 }
 
@@ -148,7 +161,6 @@ void iASVMModuleInterface::SVMFinished()
 {
 	iASVMImageFilter* svm = qobject_cast<iASVMImageFilter*>(QObject::sender());
 	iASVMImageFilter::ImagesPointer probImg = svm->GetResult();
-
 	QSharedPointer<iAModalityList> mods(new iAModalityList);
 	for (int p = 0; p < probImg->size(); ++p)
 	{
