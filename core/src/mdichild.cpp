@@ -2384,7 +2384,7 @@ void MdiChild::setCurrentFile(const QString &f)
 	fileInfo.setFile(f);
 	curFile = f;
 	path = fileInfo.canonicalPath();
-	isUntitled = false;
+	isUntitled = f.isEmpty();
 	setWindowModified(false);
 	setWindowTitle(userFriendlyCurrentFile() + "[*]");
 }
@@ -3029,8 +3029,8 @@ vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 
 void MdiChild::SaveFinished()
 {
-	m_unsavedChanges = false;
-	GetModality(m_storedModalityNr)->SetFileName(ioThread->getFileName());
+	m_dlgModalities->SetFileName(m_storedModalityNr, ioThread->getFileName());
+	m_unsavedChanges = GetModalities()->HasUnsavedModality();
 }
 
 
