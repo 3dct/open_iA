@@ -329,8 +329,29 @@ bool iARandomWalkerModuleInterface::CalculateERW()
 		m_childData.imgData, NULL, m_mdiChild->getLogger(), m_mdiChild);
 	erw->SetParams(params);
 	m_mdiChild->connectThreadSignalsToChildSlots(erw);
+	connect(erw, SIGNAL(finished()), this, SLOT(erwFinished()));
 	erw->start();
 	return true;
+}
+
+
+void iARandomWalkerModuleInterface::erwFinished()
+{
+
+	//iAERWFilter* erw = qobject_cast<iAERWFilter*>(QObject::sender());
+	/*
+	MdiChild* mdiChild = m_mainWnd->createMdiChild(true);
+	ImagesPointer probImg = erw->GetProbabilities();
+	QSharedPointer<iAModalityList> mods(new iAModalityList);
+	for (int p = 0; p < probImg->size(); ++p)
+	{
+		QSharedPointer<iAModality> mod(new iAModality(QString("ERW Probability Label %1").arg(p),
+			QString(""), -1, probImg->at(p), iAModality::MainRenderer));
+		mods->Add(mod);
+	}
+	mdiChild->SetModalities(mods);
+	mdiChild->setWindowTitle("SVM[*]");
+	*/
 }
 
 

@@ -31,4 +31,5 @@ public:
 private slots:
 	bool CalculateRW();
 	bool CalculateERW();
+	void erwFinished();
 };
