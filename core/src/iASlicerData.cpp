@@ -149,7 +149,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
-	renWin->PolygonSmoothingOn();
+	renWin->PolygonSmoothingOff();	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards
 	interactorStyle = iAInteractorStyleImage::New();
 	m_camera = vtkCamera::New();
 
