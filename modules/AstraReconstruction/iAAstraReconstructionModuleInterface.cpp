@@ -54,31 +54,64 @@ void iAAstraReconstructionModuleInterface::Initialize( )
 }
 
 
-bool IsCUDAAvailable()
+namespace
 {
-	int deviceCount = 0;
-	cudaGetDeviceCount(&deviceCount);
-	if (deviceCount == 0)
-		return false;
-	else
+
+	bool IsCUDAAvailable()
 	{
-		for (int dev = 0; dev < deviceCount; dev++)
+		int deviceCount = 0;
+		cudaGetDeviceCount(&deviceCount);
+		if (deviceCount == 0)
+			return false;
+		/*
+		// TODO: Allow choosing a device to use?
+		else
 		{
-			cudaDeviceProp deviceProp;
-			cudaGetDeviceProperties(&deviceProp, dev);
-			DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
-				.arg(deviceProp.name)
-				.arg(deviceProp.major)
-				.arg(deviceProp.minor)
-				.arg(deviceProp.clockRate)
-				.arg(deviceProp.memoryClockRate)
-				.arg(deviceProp.memoryBusWidth)
-				.arg(deviceProp.concurrentKernels)
-				.arg(deviceProp.totalGlobalMem)
-			);
+			for (int dev = 0; dev < deviceCount; dev++)
+			{
+				cudaDeviceProp deviceProp;
+				cudaGetDeviceProperties(&deviceProp, dev);
+				DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
+					.arg(deviceProp.name)
+					.arg(deviceProp.major)
+					.arg(deviceProp.minor)
+					.arg(deviceProp.clockRate)
+					.arg(deviceProp.memoryClockRate)
+					.arg(deviceProp.memoryBusWidth)
+					.arg(deviceProp.concurrentKernels)
+					.arg(deviceProp.totalGlobalMem)
+				);
+			}
+		}
+		*/
+		return true;
+	}
+
+
+	int MapAlgoComboIndexToAstraIndex(int comboIndex)
+	{
+		switch (comboIndex)
+		{
+		case 0: return iAAstraAlgorithm::BP3D;   break;
+		case 1: return iAAstraAlgorithm::FDK3D;  break;
+		case 2: return iAAstraAlgorithm::SIRT3D; break;
+		case 3: return iAAstraAlgorithm::CGLS3D; break;
+		default: DEBUG_LOG("Invalid Algorithm Type selection!"); return iAAstraAlgorithm::FDK3D;
 		}
 	}
-	return true;
+
+
+	int MapAlgoAstraIndexToComboIndex(int astraIndex)
+	{
+		switch (astraIndex)
+		{
+		case iAAstraAlgorithm::BP3D:   return 0; break;
+		case iAAstraAlgorithm::FDK3D:  return 1; break;
+		case iAAstraAlgorithm::SIRT3D: return 2; break;
+		case iAAstraAlgorithm::CGLS3D: return 3; break;
+		default: DEBUG_LOG("Invalid Algorithm Type selection!"); return 0;
+		}
+	}
 }
 
 
@@ -140,32 +173,6 @@ void iAAstraReconstructionModuleInterface::ForwardProject()
 }
 
 
-int MapAlgoComboIndexToAstraIndex(int comboIndex)
-{
-	switch (comboIndex)
-	{
-	case 0: return iAAstraAlgorithm::BP3D;   break;
-	case 1: return iAAstraAlgorithm::FDK3D;  break;
-	case 2: return iAAstraAlgorithm::SIRT3D; break;
-	case 3: return iAAstraAlgorithm::CGLS3D; break;
-	default: DEBUG_LOG("Invalid Algorithm Type selection!"); return iAAstraAlgorithm::FDK3D;
-	}
-}
-
-
-int MapAlgoAstraIndexToComboIndex(int astraIndex)
-{
-	switch (astraIndex)
-	{
-	case iAAstraAlgorithm::BP3D:   return 0; break;
-	case iAAstraAlgorithm::FDK3D:  return 1; break;
-	case iAAstraAlgorithm::SIRT3D: return 2; break;
-	case iAAstraAlgorithm::CGLS3D: return 3; break;
-	default: DEBUG_LOG("Invalid Algorithm Type selection!"); return 0;
-	}
-}
-
-
 void iAAstraReconstructionModuleInterface::BackProject()
 {
 	if (!IsCUDAAvailable())
@@ -203,7 +210,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	dlg_ProjectionParameters dlg;
 	dlg.fillProjectionGeometryValues(projGeomType, detSpacingX, detSpacingY, projAngleStart, projAngleEnd, distOrigDet, distOrigSource);
 	dlg.fillVolumeGeometryValues(volDim, volSpacing);
-	dlg.fillProjInputMapping(detRowDim, detColDim, projAngleDim, volDim);
+	dlg.fillProjInputMapping(detRowDim, detColDim, projAngleDim, dim);
 	dlg.fillAlgorithmValues(MapAlgoAstraIndexToComboIndex(algorithmType), numberOfIterations);
 	dlg.fillCorrectionValues(correctCenterOfRotation, correctCenterOfRotationOffset);
 	if (dlg.exec() != QDialog::Accepted)
@@ -218,12 +225,12 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	projAngleEnd = dlg.ProjGeomProjAngleEnd->value();
 	distOrigDet = dlg.ProjGeomDistOriginDetector->value();
 	distOrigSource = dlg.ProjGeomDistOriginSource->value();
-	volDim[0] =   dlg.VolGeomDimensionX->text().toInt();
-	volDim[1] =   dlg.VolGeomDimensionY->text().toInt();
-	volDim[2] =   dlg.VolGeomDimensionZ->text().toInt();
-	volSpacing[0] = dlg.VolGeomSpacingX->text().toDouble();
-	volSpacing[1] = dlg.VolGeomSpacingY->text().toDouble();
-	volSpacing[2] = dlg.VolGeomSpacingZ->text().toDouble();
+	volDim[0] = dlg.VolGeomDimensionX->value();
+	volDim[1] = dlg.VolGeomDimensionY->value();
+	volDim[2] = dlg.VolGeomDimensionZ->value();
+	volSpacing[0] = dlg.VolGeomSpacingX->value();
+	volSpacing[1] = dlg.VolGeomSpacingY->value();
+	volSpacing[2] = dlg.VolGeomSpacingZ->value();
 	algorithmType = MapAlgoComboIndexToAstraIndex(dlg.AlgorithmType->currentIndex());
 	numberOfIterations = dlg.AlgorithmIterations->value();
 	correctCenterOfRotation = dlg.CorrectionCenterOfRotation->isChecked();

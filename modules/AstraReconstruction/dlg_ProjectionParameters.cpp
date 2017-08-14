@@ -25,6 +25,7 @@ dlg_ProjectionParameters::dlg_ProjectionParameters()
 {
 	setupUi(this);
 	connect(AlgorithmType, SIGNAL(currentIndexChanged(int)), this, SLOT(algorithmChanged(int)));
+	connect(CorrectionCenterOfRotation, SIGNAL(stateChanged(int)), this, SLOT(centerOfRotationEnabled(int)));
 }
 
 
@@ -77,12 +78,12 @@ void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & proj
 
 void dlg_ProjectionParameters::fillVolumeGeometryValues(int dim[3], double spacing[3])
 {
-	VolGeomDimensionX->setText(QString("%1").arg(dim[0]));
-	VolGeomDimensionY->setText(QString("%1").arg(dim[1]));
-	VolGeomDimensionZ->setText(QString("%1").arg(dim[2]));
-	VolGeomSpacingX->setText(QString("%1").arg(spacing[0]));
-	VolGeomSpacingY->setText(QString("%1").arg(spacing[1]));
-	VolGeomSpacingZ->setText(QString("%1").arg(spacing[2]));
+	VolGeomDimensionX->setValue(dim[0]);
+	VolGeomDimensionY->setValue(dim[1]);
+	VolGeomDimensionZ->setValue(dim[2]);
+	VolGeomSpacingX->setValue(spacing[0]);
+	VolGeomSpacingY->setValue(spacing[1]);
+	VolGeomSpacingZ->setValue(spacing[2]);
 }
 
 
@@ -94,7 +95,7 @@ QStringList dlg_ProjectionParameters::GetDimStringList(int const imgDims[3])
 }
 
 
-void dlg_ProjectionParameters::fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, int dim[3])
+void dlg_ProjectionParameters::fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, const int dim[3])
 {
 	ProjInputDetectorRowDim->addItems(GetDimStringList(dim));
 	ProjInputDetectorRowDim->setCurrentIndex(detRowDim);
@@ -109,6 +110,7 @@ void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int number
 {
 	AlgorithmType->setCurrentIndex(algorithmType);
 	AlgorithmIterations->setValue(numberOfIterations);
+	algorithmChanged(algorithmType);
 }
 
 
@@ -116,6 +118,7 @@ void dlg_ProjectionParameters::fillCorrectionValues(bool correctCenterOfRotation
 {
 	CorrectionCenterOfRotation->setChecked(correctCenterOfRotation);
 	CorrectionCenterOfRotationOffset->setValue(correctCenterOfRotationOffset);
+	centerOfRotationEnabled(correctCenterOfRotation ? Qt::Checked : Qt::Unchecked);
 }
 
 
@@ -123,4 +126,10 @@ int dlg_ProjectionParameters::exec()
 {
 	resize(width(), minimumSizeHint().height());
 	return QDialog::exec();
+}
+
+
+void dlg_ProjectionParameters::centerOfRotationEnabled(int state)
+{
+	CorrectionCenterOfRotationOffset->setEnabled(state == Qt::Checked);
 }
