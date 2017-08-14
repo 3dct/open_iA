@@ -40,6 +40,7 @@ public:
 	virtual int exec();
 private slots:
 	void algorithmChanged(int idx);
+	void centerOfRotationEnabled(int);
 private:
 	QStringList GetDimStringList(int const imgDims[3]);
 };

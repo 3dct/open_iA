@@ -25,6 +25,7 @@ dlg_ProjectionParameters::dlg_ProjectionParameters()
 {
 	setupUi(this);
 	connect(AlgorithmType, SIGNAL(currentIndexChanged(int)), this, SLOT(algorithmChanged(int)));
+	connect(CorrectionCenterOfRotation, SIGNAL(stateChanged(int)), this, SLOT(centerOfRotationEnabled(int)));
 }
 
 
@@ -117,6 +118,7 @@ void dlg_ProjectionParameters::fillCorrectionValues(bool correctCenterOfRotation
 {
 	CorrectionCenterOfRotation->setChecked(correctCenterOfRotation);
 	CorrectionCenterOfRotationOffset->setValue(correctCenterOfRotationOffset);
+	centerOfRotationEnabled(correctCenterOfRotation ? Qt::Checked : Qt::Unchecked);
 }
 
 
@@ -124,4 +126,10 @@ int dlg_ProjectionParameters::exec()
 {
 	resize(width(), minimumSizeHint().height());
 	return QDialog::exec();
+}
+
+
+void dlg_ProjectionParameters::centerOfRotationEnabled(int state)
+{
+	CorrectionCenterOfRotationOffset->setEnabled(state == Qt::Checked);
 }
