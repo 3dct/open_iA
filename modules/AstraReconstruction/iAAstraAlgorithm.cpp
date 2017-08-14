@@ -65,10 +65,11 @@ iAAstraAlgorithm::iAAstraAlgorithm(iAAstraAlgorithm::AlgorithmType type, QString
 
 void iAAstraAlgorithm::performWork()
 {
-#ifdef _MSC_VER
-	AllocConsole();
-	freopen("CON", "w", stdout);
-#endif
+// errors are printed to the console by ASTRA:
+//#ifdef _MSC_VER
+//	AllocConsole();
+//	freopen("CON", "w", stdout);
+//#endif
 	switch (m_type)
 	{
 	case FP3D:
