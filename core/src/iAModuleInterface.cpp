@@ -90,7 +90,7 @@ MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 	else if( mdiwindows.size() < 2 )
 	{
 		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
-			tr( "Only one dataset available. Please load second dataset for fusion!" ) );
+			tr( "Only one dataset available. Please load another one!" ) );
 		return 0;
 	}
 	MdiChild * activeChild = m_mainWnd->activeMdiChild();

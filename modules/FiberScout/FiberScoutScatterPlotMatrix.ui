@@ -6,9 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>982</width>
+    <height>795</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>38</width>
+    <height>80</height>
+   </size>
+  </property>
+  <property name="windowOpacity">
+   <double>0.000000000000000</double>
   </property>
   <property name="features">
    <set>QDockWidget::DockWidgetFeatureMask</set>
@@ -16,7 +31,14 @@
   <property name="windowTitle">
    <string>Scatter Plot Matrix</string>
   </property>
-  <widget class="QVTKWidget" name="dockWidgetContents"/>
+  <widget class="QVTKWidget" name="dockWidgetContents">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>

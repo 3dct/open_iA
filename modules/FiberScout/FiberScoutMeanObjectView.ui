@@ -13,10 +13,16 @@
     <height>470</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="minimumSize">
    <size>
-    <width>447</width>
-    <height>108</height>
+    <width>375</width>
+    <height>80</height>
    </size>
   </property>
   <property name="features">
@@ -91,7 +97,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../../core/open_iA.qrc">
+          <iconset>
            <normaloff>:/images/modTF.png</normaloff>:/images/modTF.png</iconset>
          </property>
          <property name="iconSize">
@@ -178,7 +184,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QVTKWidget" name="plotWidget"/>
+     <widget class="QVTKWidget" name="plotWidget" native="true"/>
     </item>
    </layout>
   </widget>

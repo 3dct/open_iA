@@ -869,7 +869,6 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 		m_peakGraph->setData( pX, pY );
 		m_peakGraph->setLineStyle( QCPGraph::lsImpulse );
 		QCPItemText *textLabel = new QCPItemText( m_histoPlot );
-		m_histoPlot->addItem( textLabel );
 		textLabel->setPositionAlignment( Qt::AlignTop | Qt::AlignHCenter );
 		textLabel->position->setType( QCPItemPosition::ptPlotCoords );
 		textLabel->position->setCoords( pX[0], pY[0] / 2 );
@@ -906,7 +905,6 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 		peakGraph->setPen( QPen( QColor( Qt::gray ), 0.7, Qt::DashLine ) );
 		peakGraph->setLineStyle( QCPGraph::lsImpulse );
 		QCPItemText *textLabel = new QCPItemText( m_histoPlot );
-		m_histoPlot->addItem( textLabel );
 		textLabel->setPositionAlignment( Qt::AlignTop | Qt::AlignHCenter );
 		textLabel->position->setType( QCPItemPosition::ptPlotCoords );
 		textLabel->position->setCoords( pX[0], pY[0] / 2 );

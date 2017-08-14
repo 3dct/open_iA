@@ -101,7 +101,7 @@ struct RunInfo
 	ImagePointer surroundingMaskImage;
 	float porosity;
 	int threshold;
-	int surroundingVoxels;
+	long surroundingVoxels;
 	float falseNegativeError;
 	float falsePositiveError;
 	float dice;

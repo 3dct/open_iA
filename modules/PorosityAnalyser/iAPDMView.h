@@ -71,13 +71,13 @@ protected:
 	virtual bool eventFilter( QObject * obj, QEvent * event );
 	void addWidgetToTable( int r, int c, QWidget * plot );
 	void ShowDeviationControls( bool visible );
-	void ShowHistogramControls( bool visible );
+	void ShowPorosityRangeControls( bool visible );
 	void HighlightSelected( QObject * obj );
 
 protected slots:
 	void UpdateTable();
 	void FitTable();
-	void ChangeHistogramRange();
+	void UpdateRepresentation();
 	void UpdateColormapSettings( double range );
 
 signals:
