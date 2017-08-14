@@ -123,6 +123,35 @@ void iAAstraAlgorithm::SetBckProjectParams(QString const & projGeomType, double 
 }
 
 
+namespace
+{
+	void FillVolumeGeometryNode(astra::XMLNode & volGeomNode, int const volDim[3], double const volSpacing[3])
+	{
+		volGeomNode.addChildNode("GridColCount", volDim[1]);      // columns are "y-direction" (second index component in buffer) in astra
+		volGeomNode.addChildNode("GridRowCount", volDim[0]);      // rows are "x-direction" (first index component in buffer) in astra
+		volGeomNode.addChildNode("GridSliceCount", volDim[2]);
+		astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
+		winMinXOption.addAttribute("key", "WindowMinX");
+		winMinXOption.addAttribute("value", -volDim[1] * volSpacing[1] / 2.0);
+		astra::XMLNode winMaxXOption = volGeomNode.addChildNode("Option");
+		winMaxXOption.addAttribute("key", "WindowMaxX");
+		winMaxXOption.addAttribute("value", volDim[1] * volSpacing[1] / 2.0);
+		astra::XMLNode winMinYOption = volGeomNode.addChildNode("Option");
+		winMinYOption.addAttribute("key", "WindowMinY");
+		winMinYOption.addAttribute("value", -volDim[0] * volSpacing[0] / 2.0);
+		astra::XMLNode winMaxYOption = volGeomNode.addChildNode("Option");
+		winMaxYOption.addAttribute("key", "WindowMaxY");
+		winMaxYOption.addAttribute("value", volDim[0] * volSpacing[0] / 2.0);
+		astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
+		winMinZOption.addAttribute("key", "WindowMinZ");
+		winMinZOption.addAttribute("value", -volDim[2] * volSpacing[2] / 2.0);
+		astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
+		winMaxZOption.addAttribute("key", "WindowMaxZ");
+		winMaxZOption.addAttribute("value", volDim[2] * volSpacing[2] / 2.0);
+	}
+}
+
+
 void iAAstraAlgorithm::ForwardProject()
 {
 	vtkSmartPointer<vtkImageData> img = getConnector()->GetVTKImage();
@@ -151,30 +180,7 @@ void iAAstraAlgorithm::ForwardProject()
 	projGeomNode.addChildNode("DistanceOriginSource", m_distOrigSource);
 
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
-	volGeomNode.addChildNode("GridColCount", dim[0]);
-	volGeomNode.addChildNode("GridRowCount", dim[1]);
-	volGeomNode.addChildNode("GridSliceCount", dim[2]);
-
-	astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
-	winMinXOption.addAttribute("key", "WindowMinX");
-	winMinXOption.addAttribute("value", -dim[0] * img->GetSpacing()[0] / 2.0);
-	astra::XMLNode winMaxXOption = volGeomNode.addChildNode("Option");
-	winMaxXOption.addAttribute("key", "WindowMaxX");
-	winMaxXOption.addAttribute("value", dim[0] * img->GetSpacing()[0] / 2.0);
-
-	astra::XMLNode winMinYOption = volGeomNode.addChildNode("Option");
-	winMinYOption.addAttribute("key", "WindowMinY");
-	winMinYOption.addAttribute("value", -dim[1] * img->GetSpacing()[1] / 2.0);
-	astra::XMLNode winMaxYOption = volGeomNode.addChildNode("Option");
-	winMaxYOption.addAttribute("key", "WindowMaxY");
-	winMaxYOption.addAttribute("value", dim[1] * img->GetSpacing()[1] / 2.0);
-
-	astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
-	winMinZOption.addAttribute("key", "WindowMinZ");
-	winMinZOption.addAttribute("value", -dim[2] * img->GetSpacing()[2] / 2.0);
-	astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
-	winMaxZOption.addAttribute("key", "WindowMaxZ");
-	winMaxZOption.addAttribute("value", dim[2] * img->GetSpacing()[2] / 2.0);
+	FillVolumeGeometryNode(volGeomNode, dim, img->GetSpacing());
 
 	vtkNew<vtkImageCast> cast;
 	cast->SetInputData(img);
@@ -217,17 +223,6 @@ void iAAstraAlgorithm::ForwardProject()
 }
 
 
-namespace
-{
-	void runFDK3D(astra::CCudaProjector3D* projector, astra::CFloat32ProjectionData3DMemory * projectionData, astra::CFloat32VolumeData3DMemory * volumeData)
-	{
-		astra::CCudaFDKAlgorithm3D* algorithm = new astra::CCudaFDKAlgorithm3D();
-		algorithm->initialize(projector, projectionData, volumeData);
-		algorithm->run();
-		delete algorithm;
-	}
-}
-
 void iAAstraAlgorithm::CreateConeProjGeom(astra::Config & projectorConfig)
 {
 	astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
@@ -241,6 +236,7 @@ void iAAstraAlgorithm::CreateConeProjGeom(astra::Config & projectorConfig)
 	projGeomNode.addChildNode("DistanceOriginDetector", m_distOrigDet);
 	projGeomNode.addChildNode("DistanceOriginSource", m_distOrigSource);
 }
+
 
 void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset)
 {
@@ -279,8 +275,6 @@ void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig, do
 	projGeomNode.addChildNode("Vectors", vectors.toStdString());
 }
 
-
-//#include <vtkMetaImageWriter.h>
 
 void iAAstraAlgorithm::BackProject(AlgorithmType type)
 {
@@ -336,27 +330,7 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 		CreateConeProjGeom(projectorConfig);
 	}
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
-	volGeomNode.addChildNode("GridColCount", m_volDim[0]);
-	volGeomNode.addChildNode("GridRowCount", m_volDim[1]);
-	volGeomNode.addChildNode("GridSliceCount", m_volDim[2]);
-	astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
-	winMinXOption.addAttribute("key", "WindowMinX");
-	winMinXOption.addAttribute("value", -m_volDim[0] * m_volSpacing[0] / 2.0);
-	astra::XMLNode winMaxXOption = volGeomNode.addChildNode("Option");
-	winMaxXOption.addAttribute("key", "WindowMaxX");
-	winMaxXOption.addAttribute("value", m_volDim[0] * m_volSpacing[0] / 2.0);
-	astra::XMLNode winMinYOption = volGeomNode.addChildNode("Option");
-	winMinYOption.addAttribute("key", "WindowMinY");
-	winMinYOption.addAttribute("value", -m_volDim[1] * m_volSpacing[1] / 2.0);
-	astra::XMLNode winMaxYOption = volGeomNode.addChildNode("Option");
-	winMaxYOption.addAttribute("key", "WindowMaxY");
-	winMaxYOption.addAttribute("value", m_volDim[1] * m_volSpacing[1] / 2.0);
-	astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
-	winMinZOption.addAttribute("key", "WindowMinZ");
-	winMinZOption.addAttribute("value", -m_volDim[2] * m_volSpacing[2] / 2.0);
-	astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
-	winMaxZOption.addAttribute("key", "WindowMaxZ");
-	winMaxZOption.addAttribute("value", m_volDim[2] * m_volSpacing[2] / 2.0);
+	FillVolumeGeometryNode(volGeomNode, m_volDim, m_volSpacing);
 
 	// create Algorithm and run:
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
@@ -401,7 +375,7 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	auto volImg = AllocateImage(VTK_FLOAT, m_volDim, m_volSpacing);
 	FOR_VTKIMG_PIXELS(volImg, x, y, z)
 	{
-		volImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[z][y][x]);
+		volImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[z][x][y]);
 	}
 	getConnector()->SetImage(volImg);
 	getConnector()->Modified();
