@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>444</width>
+    <width>523</width>
     <height>611</height>
    </rect>
   </property>
@@ -461,7 +461,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="VolGeomDimensionX"/>
+         <widget class="QSpinBox" name="VolGeomDimensionX">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10000000</number>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_20">
@@ -471,7 +478,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="VolGeomDimensionY"/>
+         <widget class="QSpinBox" name="VolGeomDimensionY">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10000000</number>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_21">
@@ -481,7 +495,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="VolGeomDimensionZ"/>
+         <widget class="QSpinBox" name="VolGeomDimensionZ">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10000000</number>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -502,7 +523,17 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="VolGeomSpacingX"/>
+         <widget class="QDoubleSpinBox" name="VolGeomSpacingX">
+          <property name="decimals">
+           <number>6</number>
+          </property>
+          <property name="maximum">
+           <double>10000000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_27">
@@ -512,7 +543,17 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="VolGeomSpacingY"/>
+         <widget class="QDoubleSpinBox" name="VolGeomSpacingY">
+          <property name="decimals">
+           <number>6</number>
+          </property>
+          <property name="maximum">
+           <double>10000000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="label_28">
@@ -522,7 +563,17 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="VolGeomSpacingZ"/>
+         <widget class="QDoubleSpinBox" name="VolGeomSpacingZ">
+          <property name="decimals">
+           <number>6</number>
+          </property>
+          <property name="maximum">
+           <double>10000000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

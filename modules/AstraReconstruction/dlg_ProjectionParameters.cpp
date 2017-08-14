@@ -78,12 +78,12 @@ void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & proj
 
 void dlg_ProjectionParameters::fillVolumeGeometryValues(int dim[3], double spacing[3])
 {
-	VolGeomDimensionX->setText(QString("%1").arg(dim[0]));
-	VolGeomDimensionY->setText(QString("%1").arg(dim[1]));
-	VolGeomDimensionZ->setText(QString("%1").arg(dim[2]));
-	VolGeomSpacingX->setText(QString("%1").arg(spacing[0]));
-	VolGeomSpacingY->setText(QString("%1").arg(spacing[1]));
-	VolGeomSpacingZ->setText(QString("%1").arg(spacing[2]));
+	VolGeomDimensionX->setValue(dim[0]);
+	VolGeomDimensionY->setValue(dim[1]);
+	VolGeomDimensionZ->setValue(dim[2]);
+	VolGeomSpacingX->setValue(spacing[0]);
+	VolGeomSpacingY->setValue(spacing[1]);
+	VolGeomSpacingZ->setValue(spacing[2]);
 }
 
 
