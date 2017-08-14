@@ -24,6 +24,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_editPCClass.h"
 #include "dlg_FiberScout.h"
+#include "dlg_modalities.h"
 #include "iAmat4.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
@@ -1549,10 +1550,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		else
 			iovMO->setWindowTitle( QString( "Void Mean Object View" ) );
 
-		//iovMO->setMinimumWidth( iovPC->width() + iovPP->width() + 4 );
 		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovMO );
-		iovMO->resize( mdiChild->size().width() / 2, mdiChild->size().height() * 2 / 3 );
-		mdiChild->adjustSize();
 		iovMO->show();
 	}
 
@@ -2615,7 +2613,6 @@ void dlg_FiberScout::CsvDVSaveButton()
 				iovDV->setWindowTitle( QString( "Distribution View" ) );
 				this->m_dvContextView->SetInteractor( iovDV->dockWidgetContents->GetInteractor() );
 				iovDV->dockWidgetContents->SetRenderWindow( this->m_dvContextView->GetRenderWindow() );
-				iovDV->setMinimumWidth( iovPC->width() + iovPP->width() + 4 );
 				mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovDV );
 				iovDV->show();
 			}
@@ -4665,15 +4662,6 @@ bool dlg_FiberScout::initParallelCoordinates( iAObjectAnalysisType fid )
 
 	iovPC = new dlg_IOVPC( this );
 	iovPP = new dlg_IOVPP( this );
-	//iovPC->setMinimumHeight( mdiChild->size().height() / 3 );
-	//iovPC->setMaximumHeight( mdiChild->size().height() / 3 );
-	iovPC->setMinimumWidth( initPCWidth );
-	//iovPP->setMinimumHeight( mdiChild->size().height() / 3 );
-	//iovPP->setMaximumHeight( mdiChild->size().height() / 3 );
-	iovPP->setMinimumWidth( initPPWidth );
-	//this->setMinimumHeight( mdiChild->size().height() / 3 );
-	//this->setMaximumHeight( mdiChild->size().height() / 3 );
-	this->setMaximumWidth( initEExpWidth );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, this );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
@@ -4684,6 +4672,7 @@ bool dlg_FiberScout::initParallelCoordinates( iAObjectAnalysisType fid )
 	mdiChild->sYZ->hide();
 	mdiChild->sXZ->hide();
 	mdiChild->sXY->hide();
+	mdiChild->GetModalitiesDlg()->hide();
 	if ( this->filterID == INDIVIDUAL_PORE_VISUALIZATION )
 		iovPP->hide();
 
@@ -4700,12 +4689,7 @@ bool dlg_FiberScout::changeFiberScout_Options( int idx )
 	if ( idx == 6 && !iovSPM )
 	{
 		iovSPM = new dlg_IOVSPM( this );
-		if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
-			iovSPM->resize( iovPC->width() + iovPP->width() + 4, 0 );
-		else
-			iovSPM->resize( iovPC->width(), 0 );
 		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovSPM );
-		mdiChild->adjustSize();
 		iovSPM->show();
 
 		if ( iovDV && !iovMO || ( iovDV && iovMO ) )
