@@ -48,16 +48,16 @@ iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 void iAGEMSeModuleInterface::Initialize()
 {
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiChannelSegm = getMenuWithTitle( toolsMenu, QString( "GEMSe" ), false );
+	QMenu * menuSegmEnsembles = getMenuWithTitle( toolsMenu, QString( "Segmentation Ensembles" ), false );
 	
-	QAction * actionMetricVis = new QAction( m_mainWnd );
-	actionMetricVis->setText( QApplication::translate( "MainWindow", "GEMSe", 0 ) );
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionMetricVis, true);
-	connect(actionMetricVis, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
+	QAction * actionGEMSe = new QAction( m_mainWnd );
+	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+	AddActionToMenuAlphabeticallySorted(menuSegmEnsembles, actionGEMSe, true);
+	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
 
 	QAction * actionPreCalculated = new QAction( m_mainWnd );
 	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Pre-Calculated Results", 0 ));
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionPreCalculated, false);
+	AddActionToMenuAlphabeticallySorted(menuSegmEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }
 
