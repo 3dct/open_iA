@@ -57,6 +57,10 @@ struct Converter<double>
 };
 
 
+iAAttributeDescriptor::~iAAttributeDescriptor()
+{}
+
+
 iAAttributeDescriptor::iAAttributeType Str2AttribType(QString const & str)
 {
 	if (str == ParameterStr)

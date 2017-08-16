@@ -66,6 +66,8 @@ public:
 		m_labelCount(-1),
 		m_theme(0)
 	{}
+	virtual ~iASimpleLabelInfo()
+	{}
 	virtual int count() const
 	{
 		return m_labelCount;

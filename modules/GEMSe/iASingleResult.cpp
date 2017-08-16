@@ -23,17 +23,21 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAAttributes.h"
-#include "iAFileUtils.h"
-#include "iAGEMSeConstants.h"
 #include "iANameMapper.h"
 #include "iASamplingResults.h"
 
 #include "iAConsole.h"
-#include "iAToolsITK.h"
+#include "iAFileUtils.h"
 #include "iAITKIO.h"
+#include "iAToolsITK.h"
 
 #include <QFile>
 #include <QFileInfo>
+
+namespace
+{
+	const QString ValueSplitString(" ");
+}
 
 QSharedPointer<iASingleResult> iASingleResult::Create(
 	QString const & line,

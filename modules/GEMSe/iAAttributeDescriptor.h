@@ -51,6 +51,7 @@ public:
 	bool CoversWholeRange(double min, double max) const;
 	QString ToString() const;
 	void SetNameMapper(QSharedPointer<iANameMapper> mapper);
+	virtual ~iAAttributeDescriptor();
 private:
 	iAAttributeDescriptor(iAAttributeDescriptor const & other) = delete;
 	iAAttributeDescriptor& operator=(iAAttributeDescriptor const & other) = delete;

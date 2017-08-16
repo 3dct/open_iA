@@ -109,18 +109,6 @@ const int CameraSpacing   = ExampleViewSpacing;
 const int FavoriteBarWidth = 80;
 const int FavoriteWidth    = FavoriteBarWidth - (2 * ExampleViewSpacing);
 
-enum DerivedOutput
-{
-	objectCount,
-	duration,
-	diceMetric,
-	kappa,
-	overallAcc,
-	precision,
-	recall,
-	DerivedOutputCount
-};
-
 
 struct DefaultColors
 {
@@ -151,13 +139,6 @@ struct DefaultColors
 	static const QBrush ChartSliderBrush;
 
 	static const QBrush CaptionBrush;
-};
-
-struct Output
-{
-	static const QString NameSeparator;
-	static const QString ValueSeparator;
-	static const QString OptionalParamSeparator;
 };
 
 

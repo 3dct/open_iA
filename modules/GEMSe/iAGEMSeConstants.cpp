@@ -80,9 +80,3 @@ const QBrush DefaultColors::TriangleButtonSelectedBrush(Qt::black, Qt::SolidPatt
 const QBrush DefaultColors::ChartMarkerBrush(DefaultColors::ImageChartColor, Qt::SolidPattern);
 const QBrush DefaultColors::ChartSliderBrush(DefaultColors::ChartSliderColor, Qt::SolidPattern);
 const QBrush DefaultColors::CaptionBrush(DefaultColors::CaptionBGColor, Qt::SolidPattern);
-
-
-
-const QString Output::NameSeparator(": ");
-const QString Output::ValueSeparator(",");
-const QString Output::OptionalParamSeparator(" ");
