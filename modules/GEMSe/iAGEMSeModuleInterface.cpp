@@ -147,27 +147,13 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
 }
 
-#include <QToolBar>
-
-#include "ui_GEMSeToolBar.h"
-#include "iAQTtoUIConnector.h"
-
-class iAGEMSeToolbar : public QToolBar, public Ui_GEMSeToolBar
-{
-public:
-	iAGEMSeToolbar(QWidget* parent) : QToolBar("GEMSe ToolBar", parent)
-	{
-		this->setupUi(this);
-	}
-};
-
 void iAGEMSeModuleInterface::SetupToolbar()
 {
 	if (m_toolbar)
 	{
 		return;
 	}
-	m_toolbar = new iAGEMSeToolbar(m_mainWnd);
+	m_toolbar = new iAGEMSeToolbar("GEMSe ToolBar", m_mainWnd);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
 	connect(m_toolbar->action_ResetFilter, SIGNAL(triggered()), this, SLOT(ResetFilter()));

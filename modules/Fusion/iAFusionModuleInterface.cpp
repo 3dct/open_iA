@@ -26,6 +26,7 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
+#include <QDialog>
 #include <QMdiSubWindow>
 
 void iAFusionModuleInterface::Initialize()
