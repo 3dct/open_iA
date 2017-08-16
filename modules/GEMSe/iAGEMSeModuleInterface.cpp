@@ -86,8 +86,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Precalculated Sampling & Clustering Data"),
-		QString() // TODO get directory of current file
-		,
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
 		tr("GEMSe project (*.sea );;") );
 	if (fileName != "")
 	{
