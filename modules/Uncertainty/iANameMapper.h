@@ -20,27 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+class QString;
 
-#include <QVector>
-
-class iAChartView;
-class iADockWidgetWrapper;
-class iAMemberView;
-class iASpatialView;
-
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+class iANameMapper
 {
-	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
-private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	bool loadSampling(QString const & fileName, int labelCount, int id);
-	iAChartView  * m_chartView;
-	iAMemberView * m_memberView;
-	iASpatialView* m_spatialView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
+	virtual ~iANameMapper() {}
+	virtual QString GetName(int idx) const = 0;
+	virtual int GetIdx(QString const & name, bool & ok) const = 0;
+	virtual int size() const =0;
 };

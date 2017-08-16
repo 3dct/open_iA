@@ -19,12 +19,15 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
+#include "iAEnsembleDescriptorFile.h"
 #include "iAUncertaintyAttachment.h"
 
 #include "iAChartView.h"
 #include "iAChildData.h"
+#include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "iAMemberView.h"
+#include "iASamplingResults.h"
 #include "iASpatialView.h"
 #include "mdichild.h"
 
@@ -56,4 +59,52 @@ void iAUncertaintyAttachment::toggleDockWidgetTitleBars()
 	{
 		m_dockWidgets[i]->toggleTitleBar();
 	}
+}
+
+bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
+{
+	iAEnsembleDescriptorFile ensembleFile(fileName);
+	if (!ensembleFile.good())
+	{
+		DEBUG_LOG("Ensemble: Given data file could not be read.");
+		return false;
+	}
+	if (!GetMdiChild()->LoadProject(ensembleFile.GetModalityFileName()))
+	{
+		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile.GetModalityFileName()));
+		return false;
+	}
+	// load sampling data:
+	QMap<int, QString> const & samplings = ensembleFile.GetSamplings();
+	for (int key : samplings.keys())
+	{
+		if (!loadSampling(samplings[key], ensembleFile.GetLabelCount(), key))
+		{
+			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
+			return false;
+		}
+	}
+	return true;
+}
+
+
+bool iAUncertaintyAttachment::loadSampling(QString const & fileName, int labelCount, int id)
+{
+	//m_simpleLabelInfo->SetLabelCount(labelCount);
+	if (fileName.isEmpty())
+	{
+		DEBUG_LOG("No filename given, not loading.");
+		return false;
+	}
+	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::Load(fileName, id);
+	if (!samplingResults)
+	{
+		DEBUG_LOG("Loading Sampling failed.");
+		return false;
+	}
+	QFileInfo fi(fileName);
+	// load all ensemble members into member view
+	// update spatial view to show representative of all
+	// enable probability probing in chart view?
+	return true;
 }

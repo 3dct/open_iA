@@ -20,27 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "iAAttributeDescriptor.h"
+#include "iAValueType.h"
 
 #include <QVector>
+#include <QSharedPointer>
 
-class iAChartView;
-class iADockWidgetWrapper;
-class iAMemberView;
-class iASpatialView;
+class iANameMapper;
 
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+class QTextStream;
+
+class iAAttributes
 {
-	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
+	static QSharedPointer<iAAttributes> Create(QTextStream & in);
+	int size() const;
+	QSharedPointer<iAAttributeDescriptor const> at(int idx) const;
+	QSharedPointer<iAAttributeDescriptor> at(int idx);
+	void Add(QSharedPointer<iAAttributeDescriptor> range);
+	void Store(QTextStream & out);
+	int Find(QString const & name);
+	int Count(iAAttributeDescriptor::iAAttributeType type=iAAttributeDescriptor::None) const;
 private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	bool loadSampling(QString const & fileName, int labelCount, int id);
-	iAChartView  * m_chartView;
-	iAMemberView * m_memberView;
-	iASpatialView* m_spatialView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
+	QVector<QSharedPointer<iAAttributeDescriptor> > m_attributes;
 };

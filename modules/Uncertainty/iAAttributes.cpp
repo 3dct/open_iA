@@ -18,29 +18,86 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "iAAttributes.h"
 
-#include <QVector>
+#include "iAAttributeDescriptor.h"
 
-class iAChartView;
-class iADockWidgetWrapper;
-class iAMemberView;
-class iASpatialView;
+#include <QTextStream>
 
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+
+QSharedPointer<iAAttributes> iAAttributes::Create(QTextStream & in)
 {
-	Q_OBJECT
-public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
-private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	bool loadSampling(QString const & fileName, int labelCount, int id);
-	iAChartView  * m_chartView;
-	iAMemberView * m_memberView;
-	iASpatialView* m_spatialView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-};
+	QSharedPointer<iAAttributes> result(new iAAttributes);
+	while (!in.atEnd())
+	{
+		QString line = in.readLine();
+		QSharedPointer<iAAttributeDescriptor> descriptor =
+			iAAttributeDescriptor::Create(line);
+		if (descriptor)
+		{
+			result->m_attributes.push_back(descriptor);
+		}
+		else
+		{
+			return QSharedPointer<iAAttributes>(new iAAttributes);
+		}
+	}
+	return result;
+}
+
+int iAAttributes::size() const
+{
+	return m_attributes.size();
+}
+
+
+QSharedPointer<iAAttributeDescriptor> iAAttributes::at(int idx)
+{
+	return m_attributes[idx];
+}
+
+QSharedPointer<iAAttributeDescriptor const> iAAttributes::at(int idx) const
+{
+	return m_attributes[idx];
+}
+
+
+void iAAttributes::Add(QSharedPointer<iAAttributeDescriptor> range)
+{
+	m_attributes.push_back(range);
+}
+
+void iAAttributes::Store(QTextStream & out)
+{
+	for (int i = 0; i < m_attributes.size(); ++i)
+	{
+		out << m_attributes[i]->ToString();
+	}
+}
+
+int iAAttributes::Find(QString const & name)
+{
+	for (int i = 0; i < m_attributes.size(); ++i)
+	{
+		if (m_attributes[i]->GetName() == name)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+int iAAttributes::Count(iAAttributeDescriptor::iAAttributeType type) const
+{
+	int count = 0;
+	for (int i = 0; i < m_attributes.size(); ++i)
+	{
+		if (type == iAAttributeDescriptor::None	|| m_attributes[i]->GetAttribType() == type)
+		{
+			count++;
+		}
+	}
+	return count;
+}

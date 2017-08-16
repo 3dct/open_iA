@@ -20,27 +20,44 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "iAValueType.h"
 
-#include <QVector>
+#include <QSharedPointer>
+#include <QString>
 
-class iAChartView;
-class iADockWidgetWrapper;
-class iAMemberView;
-class iASpatialView;
+class iANameMapper;
 
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+class iAAttributeDescriptor
 {
-	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
+	enum iAAttributeType
+	{
+		None = -1,
+		Parameter,
+		DerivedOutput
+	};
+	static QSharedPointer<iAAttributeDescriptor> Create(QString const & def);
+	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
+	iAAttributeType GetAttribType() const;
+	iAValueType GetValueType() const;
+	virtual QSharedPointer<iANameMapper> GetNameMapper() const;
+	double GetMin() const;
+	double GetMax() const;
+	QString GetName() const;
+	void SetLogScale(bool l);
+	bool IsLogScale() const;
+	void ResetMinMax();
+	void AdjustMinMax(double value);
+	bool CoversWholeRange(double min, double max) const;
+	QString ToString() const;
+	void SetNameMapper(QSharedPointer<iANameMapper> mapper);
 private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	bool loadSampling(QString const & fileName, int labelCount, int id);
-	iAChartView  * m_chartView;
-	iAMemberView * m_memberView;
-	iASpatialView* m_spatialView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
+	iAAttributeDescriptor(iAAttributeDescriptor const & other) = delete;
+	iAAttributeDescriptor& operator=(iAAttributeDescriptor const & other) = delete;
+	iAAttributeType m_attribType;
+	iAValueType m_valueType;
+	double m_min, m_max;
+	bool m_logarithmic;
+	QString m_name;
+	QSharedPointer<iANameMapper> m_nameMapper;
 };

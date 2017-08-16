@@ -22,7 +22,6 @@
 #include "iAUncertaintyModuleInterface.h"
 
 #include "iAConsole.h"
-#include "iAEnsembleDescriptorFile.h"
 #include "iAUncertaintyAttachment.h"
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -63,9 +62,7 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 {
 	SetupToolBar();
-	iAEnsembleDescriptorFile ensembleFile(fileName);
 	m_mdiChild = m_mainWnd->createMdiChild(false);
-	m_mdiChild->show();
 	UpdateChildData();
 	bool result = AttachToMdiChild(m_mdiChild);
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
@@ -74,6 +71,12 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 		DEBUG_LOG("Uncertainty exploration could not be initialized!");
 		return;
 	}
+	if (!attach->loadEnsemble(fileName))
+	{
+		delete m_mdiChild;
+		return;
+	}
+	m_mdiChild->show();
 }
 
 void iAUncertaintyModuleInterface::SetupToolBar()
