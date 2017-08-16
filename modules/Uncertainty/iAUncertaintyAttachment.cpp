@@ -23,7 +23,7 @@
 
 #include "iAChartView.h"
 #include "iAChildData.h"
-#include "iADocKWidgetWrapper.h"
+#include "iADockWidgetWrapper.h"
 #include "iAMemberView.h"
 #include "iASpatialView.h"
 #include "mdichild.h"
