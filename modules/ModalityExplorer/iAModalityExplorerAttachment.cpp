@@ -22,26 +22,6 @@
 #include "pch.h"
 #include "iAModalityExplorerAttachment.h"
 
-#include "dlg_modalities.h"
-#include "dlg_planeSlicer.h"
-#include "iAChannelVisualizationData.h"
-#include "iAChildData.h"
-#include "iAConsole.h"
-#include "iALogger.h"
-#include "iAModality.h"
-#include "iARenderSettings.h"
-#include "iASlicer.h"
-#include "iASlicerWidget.h"
-#include "iAWidgetAddHelper.h"
-#include "mdichild.h"
-#include "mainwindow.h"
-
-#include <QFileDialog>
-
-#include <fstream>
-#include <sstream>
-#include <string>
-
 
 iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData)
@@ -52,12 +32,10 @@ iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * 
 {
 	MdiChild * mdiChild = childData.child;
 	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, childData);
-
 	/*
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
 	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);
 	planeSlicer->hide();
 	*/
-		
 	return newAttachment;
 }

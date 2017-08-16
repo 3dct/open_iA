@@ -46,10 +46,6 @@
 #include <cassert>
 
 
-iAModalityExplorerModuleInterface::iAModalityExplorerModuleInterface()
-{}
-
-
 void iAModalityExplorerModuleInterface::Initialize()
 {
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
