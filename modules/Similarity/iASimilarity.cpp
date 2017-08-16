@@ -66,7 +66,7 @@ int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector
 	if (nc)
 	{
 		typedef itk::NormalizedCorrelationImageToImageMetric< ImageType, ImageType > NCMetricType;
-		NCMetricType::Pointer ncmetric = NCMetricType::New();
+		typename NCMetricType::Pointer ncmetric = NCMetricType::New();
 		ncmetric->SetFixedImage(dynamic_cast<ImageType *>(image->GetITKImage()));
 		ncmetric->SetFixedImageRegion(dynamic_cast<ImageType *>(image->GetITKImage())->GetLargestPossibleRegion());
 		ncmetric->SetMovingImage(dynamic_cast<ImageType *>(image2->GetITKImage()));
@@ -85,17 +85,17 @@ int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector
 		joinFilter->SetInput2(dynamic_cast<ImageType *>(image2->GetITKImage()));
 		joinFilter->Update();
 
-		typedef JoinFilterType::OutputImageType  VectorImageType;
+		typedef typename JoinFilterType::OutputImageType  VectorImageType;
 		typedef itk::Statistics::ImageToHistogramFilter<VectorImageType >  HistogramFilterType;
 		typename HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
 		histogramFilter->SetInput(joinFilter->GetOutput());
 		histogramFilter->SetMarginalScale(10.0);
-		typedef HistogramFilterType::HistogramSizeType   HistogramSizeType;
+		typedef typename HistogramFilterType::HistogramSizeType   HistogramSizeType;
 		HistogramSizeType size(2);
 		size[0] = miHistoBins;  // number of bins for the first  channel
 		size[1] = miHistoBins;  // number of bins for the second channel
 		histogramFilter->SetHistogramSize(size);
-		typedef HistogramFilterType::HistogramMeasurementVectorType HistogramMeasurementVectorType;
+		typedef typename HistogramFilterType::HistogramMeasurementVectorType HistogramMeasurementVectorType;
 		HistogramMeasurementVectorType binMinimum(3);
 		HistogramMeasurementVectorType binMaximum(3);
 		binMinimum[0] = -0.5;
@@ -107,10 +107,10 @@ int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector
 		histogramFilter->SetHistogramBinMinimum(binMinimum);
 		histogramFilter->SetHistogramBinMaximum(binMaximum);
 		histogramFilter->Update();
-		typedef HistogramFilterType::HistogramType  HistogramType;
+		typedef typename HistogramFilterType::HistogramType  HistogramType;
 		const HistogramType * histogram = histogramFilter->GetOutput();
-		HistogramType::ConstIterator itr = histogram->Begin();
-		HistogramType::ConstIterator end = histogram->End();
+		typename HistogramType::ConstIterator itr = histogram->Begin();
+		typename HistogramType::ConstIterator end = histogram->End();
 		const double Sum = histogram->GetTotalFrequency();
 
 		while (itr != end)
