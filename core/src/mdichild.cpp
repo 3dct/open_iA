@@ -2744,6 +2744,12 @@ dlg_sliceYZ	* MdiChild::getSlicerDlgYZ()
 	return sYZ;
 }
 
+
+dlg_renderer * MdiChild::getRendererDlg()
+{
+	return r;
+}
+
 dlg_imageproperty * MdiChild::getImagePropertyDlg()
 {
 	return imgProperty;
