@@ -18,20 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iADockWidgetWrapper.h"
 
-#include "open_iA_Core_export.h"
-
-#include <QDockWidget>
-
-class QString;
-
-class open_iA_Core_API iADockWidgetWrapper: public QDockWidget
+iADockWidgetWrapper::iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName):
+	m_titleBar(new QWidget())
 {
-public:
-	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName);
-	void toggleTitleBar();
-	bool isTitleBarVisible() const;
-private:
-	QWidget* m_titleBar;
-};
+	setWindowTitle(windowTitle);
+	setFeatures(DockWidgetVerticalTitleBar | DockWidgetClosable | DockWidgetMovable | DockWidgetFloatable);
+	setWidget(widget);
+	setObjectName(objectName);
+}
+
+
+void iADockWidgetWrapper::toggleTitleBar()
+{
+	QWidget* titleBar = titleBarWidget();
+	if (titleBar == m_titleBar)
+	{
+		setTitleBarWidget(nullptr);
+	}
+	else
+	{
+		setTitleBarWidget(m_titleBar);
+	}
+}
+
+
+bool iADockWidgetWrapper::isTitleBarVisible() const
+{
+	return titleBarWidget() != nullptr;
+}
