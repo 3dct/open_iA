@@ -18,16 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAAttributeDescriptor.h"
 
-#include "iAConsole.h"
 #include "iAListNameMapper.h"
+
+#include "iAConsole.h"
+
+
+const QString iAAttributeDescriptor::ValueSplitString(" ");
 
 namespace
 {
 	const QString AttributeSplitString("\t");
-	const QString ValueSplitString(" ");
 	const QString CategoricalValueSplitString(",");
 
 	// Attribute Types:

@@ -18,31 +18,56 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAEnsemble.h"
 
-#include "iAModuleAttachmentToChild.h"
+#include "iAEnsembleDescriptorFile.h"
+#include "iASamplingResults.h"
 
-#include <QSharedPointer>
-#include <QVector>
+#include "iAConsole.h"
 
-class iAChartView;
-class iADockWidgetWrapper;
-class iAEnsemble;
-class iAMemberView;
-class iASpatialView;
+#include <QFileInfo>
 
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+QSharedPointer<iAEnsemble> iAEnsemble::create()
 {
-	Q_OBJECT
-public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
-private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAChartView  * m_chartView;
-	iAMemberView * m_memberView;
-	iASpatialView* m_spatialView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QSharedPointer<iAEnsemble> m_ensemble;
-};
+	return QSharedPointer<iAEnsemble>(new iAEnsemble);
+}
+
+bool iAEnsemble::load(iAEnsembleDescriptorFile const & ensembleFile)
+{
+	// load sampling data:
+	QMap<int, QString> const & samplings = ensembleFile.GetSamplings();
+	for (int key : samplings.keys())
+	{
+		if (!loadSampling(samplings[key], ensembleFile.GetLabelCount(), key))
+		{
+			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
+			return false;
+		}
+	}
+	return true;
+}
+
+bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
+{
+	//m_simpleLabelInfo->SetLabelCount(labelCount);
+	if (fileName.isEmpty())
+	{
+		DEBUG_LOG("No filename given, not loading.");
+		return false;
+	}
+	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::Load(fileName, id);
+	if (!samplingResults)
+	{
+		DEBUG_LOG("Loading Sampling failed.");
+		return false;
+	}
+	QFileInfo fi(fileName);
+	// load all ensemble members into member view
+	// update spatial view to show representative of all
+	// enable probability probing in chart view?
+	return true;
+}
+
+iAEnsemble::iAEnsemble()
+{
+}

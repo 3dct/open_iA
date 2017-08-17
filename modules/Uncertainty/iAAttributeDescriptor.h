@@ -30,6 +30,7 @@ class iANameMapper;
 class iAAttributeDescriptor
 {
 public:
+	static const QString ValueSplitString;
 	enum iAAttributeType
 	{
 		None = -1,

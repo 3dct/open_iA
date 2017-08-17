@@ -29,17 +29,17 @@
 class iAAttributes;
 class iASamplingResults;
 
-class iASingleResult
+class iAMember
 {
 public:
 
 	//! create from string
-	static QSharedPointer<iASingleResult> Create(
+	static QSharedPointer<iAMember> create(
 		QString const & line,
 		iASamplingResults const & sampling,
 		QSharedPointer<iAAttributes> attributes);
 
-	static QSharedPointer<iASingleResult> Create(
+	static QSharedPointer<iAMember> create(
 		int id,
 		iASamplingResults const & sampling,
 		QVector<double> const & parameter,
@@ -78,7 +78,7 @@ public:
 	QSharedPointer<iAAttributes> GetAttributes() const;
 private:
 	//! constructor; use static Create methods instead!
-	iASingleResult(int id, iASamplingResults const & sampling);
+	iAMember(int id, iASamplingResults const & sampling);
 	//! for now, value-type agnostic storage of values:
 	QVector<double> m_attributeValues;
 	iASamplingResults const & m_sampling;

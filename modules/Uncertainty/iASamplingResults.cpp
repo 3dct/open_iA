@@ -22,7 +22,7 @@
 
 #include "iAAttributes.h"
 #include "iAAttributeDescriptor.h"
-#include "iASingleResult.h"
+#include "iAMember.h"
 
 #include "iAConsole.h"
 #include "iAFileUtils.h"
@@ -173,10 +173,10 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 		if (charac && characIn && !characIn->atEnd())
 		{
 			QString derivedOutLine = characIn->readLine();
-			attribLine = paramLine + ValueSplitString + derivedOutLine;
+			attribLine = paramLine + iAAttributeDescriptor::ValueSplitString + derivedOutLine;
 		}
 		lineNr++;
-		QSharedPointer<iASingleResult> result = iASingleResult::Create(
+		QSharedPointer<iAMember> result = iAMember::create(
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
 			*this,
@@ -246,7 +246,7 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 	{
 		if (id)
 		{
-			outParamSet << m_results[i]->GetID() << ValueSplitString;
+			outParamSet << m_results[i]->GetID() << iAAttributeDescriptor::ValueSplitString;
 		}
 		outParamSet << m_results[i]->ToString(m_attributes, type) << endl;
 	}
@@ -261,18 +261,18 @@ int iASamplingResults::size() const
 }
 
 
-QSharedPointer<iASingleResult> iASamplingResults::Get(int i) const
+QSharedPointer<iAMember> iASamplingResults::Get(int i) const
 {
 	return m_results[i];
 }
 
 
-void iASamplingResults::AddResult(QSharedPointer<iASingleResult> result)
+void iASamplingResults::AddResult(QSharedPointer<iAMember> result)
 {
 	m_results.push_back(result);
 }
 
-QVector<QSharedPointer<iASingleResult> > const & iASamplingResults::GetResults() const
+QVector<QSharedPointer<iAMember> > const & iASamplingResults::GetResults() const
 {
 	return m_results;
 }

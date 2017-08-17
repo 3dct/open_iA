@@ -20,29 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "iANameMapper.h"
 
-#include <QSharedPointer>
-#include <QVector>
+#include <QStringList>
 
-class iAChartView;
-class iADockWidgetWrapper;
-class iAEnsemble;
-class iAMemberView;
-class iASpatialView;
-
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+class iAListNameMapper : public iANameMapper
 {
-	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
+	iAListNameMapper(QStringList const & names) :
+		m_names(names)
+	{}
+	virtual QString GetName(int idx) const
+	{
+		return m_names[idx];
+	}
+
+	virtual int GetIdx(QString const & name, bool & ok) const
+	{
+		for (int i = 0; i < m_names.size(); ++i)
+		{
+			if (m_names[i] == name)
+			{
+				ok = true;
+				return i;
+			}
+		}
+		ok = false;
+		return -1;
+	}
+
+	virtual int size() const
+	{
+		return m_names.size();
+	}
 private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAChartView  * m_chartView;
-	iAMemberView * m_memberView;
-	iASpatialView* m_spatialView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QSharedPointer<iAEnsemble> m_ensemble;
+	QStringList m_names;
 };

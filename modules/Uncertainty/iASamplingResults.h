@@ -25,7 +25,7 @@
 #include <QVector>
 
 class iAAttributes;
-class iASingleResult;
+class iAMember;
 
 class iASamplingResults
 {
@@ -44,9 +44,9 @@ public:
 		QString const & parameterSetFileName,
 		QString const & derivedOutputFileName);
 	int size() const;
-	QSharedPointer<iASingleResult> Get(int i) const;
-	void AddResult(QSharedPointer<iASingleResult> result);
-	QVector<QSharedPointer<iASingleResult> > const & GetResults() const;
+	QSharedPointer<iAMember> Get(int i) const;
+	void AddResult(QSharedPointer<iAMember> result);
+	QVector<QSharedPointer<iAMember> > const & GetResults() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
 	QString GetName() const;
 	QString GetFileName() const;
@@ -58,7 +58,7 @@ public:
 	bool StoreAttributes(int type, QString const & fileName, bool id);
 private:
 	QSharedPointer<iAAttributes> m_attributes;
-	QVector<QSharedPointer<iASingleResult> > m_results;
+	QVector<QSharedPointer<iAMember> > m_results;
 	QString m_name;           //!< name of this sampling
 	QString m_parameterSetFile;//!<the name of the file containing the parameter sets
 	QString m_derivedOutputFile;//!<the name of the file containing the derived outputs

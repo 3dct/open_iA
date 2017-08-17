@@ -20,29 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
-
 #include <QSharedPointer>
+#include <QString>
 #include <QVector>
 
-class iAChartView;
-class iADockWidgetWrapper;
-class iAEnsemble;
-class iAMemberView;
-class iASpatialView;
+class iAEnsembleDescriptorFile;
 
-class iAUncertaintyAttachment : public iAModuleAttachmentToChild
+class iAEnsemble
 {
-	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
+	//! create from string
+	static QSharedPointer<iAEnsemble> create();
+	bool load(iAEnsembleDescriptorFile const & ensembleFile);
 private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAChartView  * m_chartView;
-	iAMemberView * m_memberView;
-	iASpatialView* m_spatialView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QSharedPointer<iAEnsemble> m_ensemble;
+	bool loadSampling(QString const & fileName, int labelCount, int id);
+	//! constructor; use static Create methods instead!
+	iAEnsemble();
 };
