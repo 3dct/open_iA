@@ -46,7 +46,7 @@ public:
 	int size() const;
 	QSharedPointer<iAMember> Get(int i) const;
 	void AddResult(QSharedPointer<iAMember> result);
-	QVector<QSharedPointer<iAMember> > const & GetResults() const;
+	QVector<QSharedPointer<iAMember> > const & GetMembers() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
 	QString GetName() const;
 	QString GetFileName() const;

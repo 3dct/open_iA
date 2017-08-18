@@ -66,13 +66,9 @@ public:
 
 	int GetID();
 
-	iAITKIO::ImagePointer GetProbabilityImg(int l);
+	QVector<iAITKIO::ImagePointer> GetProbabilityImgs(int labelCount);
 
 	bool ProbabilityAvailable() const;
-
-	void SetLabelImage(iAITKIO::ImagePointer labelImg);
-
-	void AddProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs);
 
 	int GetDatasetID() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
@@ -83,11 +79,7 @@ private:
 	QVector<double> m_attributeValues;
 	iASamplingResults const & m_sampling;
 	int m_id;
-	iAITKIO::ImagePointer m_labelImg;
-	QVector<iAITKIO::ImagePointer> m_probabilityImg;
 	QString m_fileName;
-
-	bool LoadLabelImage();
 
 	QString GetLabelPath() const;
 	QString GetProbabilityPath(int label) const;

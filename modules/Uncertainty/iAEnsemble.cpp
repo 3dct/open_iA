@@ -22,8 +22,12 @@
 
 #include "iAEnsembleDescriptorFile.h"
 #include "iASamplingResults.h"
+#include "iAMember.h"
 
 #include "iAConsole.h"
+#include "iAToolsITK.h"
+
+#include <itkAddImageFilter.h>
 
 #include <QFileInfo>
 
@@ -44,7 +48,64 @@ bool iAEnsemble::load(iAEnsembleDescriptorFile const & ensembleFile)
 			return false;
 		}
 	}
+	createUncertaintyImages(ensembleFile.GetLabelCount());
+	//QFileInfo(fileName);
+	// load all ensemble members into member view
+	// update spatial view to show representative of all
+	// enable probability probing in chart view?
 	return true;
+}
+
+void iAEnsemble::createUncertaintyImages(int labelCount)
+{
+	// also load slice images here?
+	if (m_samplings.size() == 0 || m_samplings[0]->GetMembers().size() == 0)
+	{
+		DEBUG_LOG("No samplings or no members found!");
+		return;
+	}
+	m_samplings[0]->Get(0)->GetLabelledImage();
+	size_t count = 0;
+	
+	QVector<iAITKIO::ImagePointer> labelSums;
+	QVector<iAITKIO::ImagePointer> probSums;
+
+	typedef itk::AddImageFilter<itk::Image<double, 3> > AddImgFilterType;
+	for (QSharedPointer<iASamplingResults> sampling : m_samplings)
+	{
+		for (QSharedPointer<iAMember> member : sampling->GetMembers())
+		{
+			iAITKIO::ImagePointer labelImg = member->GetLabelledImage();
+			QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
+			if (probImgs.size() != labelCount)
+			{
+				DEBUG_LOG("Not enough probability images available!");
+				return;
+			}
+			if (labelSums.empty())
+			{	// initialized empty sums:
+				for (int i = 0; i < labelCount; ++i)
+				{	// AllocateImage automatically initializes to 0
+					auto labelSumI = AllocateImage(labelImg);
+					auto probsSumI = AllocateImage(probImgs[0]);
+					labelSums.push_back(labelSumI);
+					probSums.push_back(probsSumI);
+				}
+			}
+			// AddImageFilter maybe overkill?
+			for (int l = 0; l < labelCount; ++l)
+			{
+				AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+				addImgFilter->SetInput1(dynamic_cast<itk::Image<double, 3>*>(probSums[l].GetPointer()));
+				addImgFilter->SetInput2(dynamic_cast<itk::Image<double, 3>*>(probImgs[l].GetPointer()));
+				addImgFilter->Update();
+				probSums[l] = addImgFilter->GetOutput();
+			}
+			++count;
+		}
+	}
+
+	// divide
 }
 
 bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
@@ -61,10 +122,7 @@ bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
 		DEBUG_LOG("Loading Sampling failed.");
 		return false;
 	}
-	QFileInfo fi(fileName);
-	// load all ensemble members into member view
-	// update spatial view to show representative of all
-	// enable probability probing in chart view?
+	m_samplings.push_back(samplingResults);
 	return true;
 }
 

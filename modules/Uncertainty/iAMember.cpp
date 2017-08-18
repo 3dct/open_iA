@@ -154,15 +154,6 @@ int iAMember::GetID()
 
 iAITKIO::ImagePointer const iAMember::GetLabelledImage()
 {
-	if (!m_labelImg)
-	{
-		LoadLabelImage();
-	}
-	return m_labelImg;
-}
-
-bool iAMember::LoadLabelImage()
-{
 	iAITKIO::ScalarPixelType pixelType;
 	QFileInfo f(GetLabelPath());
 	if (!f.exists() || f.isDir())
@@ -170,25 +161,12 @@ bool iAMember::LoadLabelImage()
 		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(GetLabelPath()));
 		return false;
 	}
-	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
+	iAITKIO::ImagePointer labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
 	if (pixelType != itk::ImageIOBase::INT)
 	{
-		m_labelImg = CastImageTo<int>(m_labelImg);
+		labelImg = CastImageTo<int>(labelImg);
 	}
-	return (m_labelImg);
-}
-
-void iAMember::DiscardDetails()
-{
-	m_labelImg = nullptr;
-}
-
-void iAMember::DiscardProbability()
-{
-	for (int i = 0; i < m_probabilityImg.size(); ++i)
-	{
-		m_probabilityImg[i] = nullptr;
-	}
+	return labelImg;
 }
 
 double iAMember::GetAttribute(int id) const
@@ -206,43 +184,26 @@ void iAMember::SetAttribute(int id, double value)
 	m_attributeValues[id] = value;
 }
 
-iAITKIO::ImagePointer iAMember::GetProbabilityImg(int label)
+QVector<iAITKIO::ImagePointer> iAMember::GetProbabilityImgs(int labelCount)
 {
-	if (m_probabilityImg.size() <= label)
+	QVector<iAITKIO::ImagePointer> probabilityImg(labelCount);
+	for (int l=0; l<labelCount; ++l)
 	{
-		m_probabilityImg.resize(label +1);
-	}
-	if (!m_probabilityImg[label])
-	{
-		QString probFile(GetProbabilityPath(label));
+		QString probFile(GetProbabilityPath(labelCount));
 		if (!QFile::exists(probFile))
 		{
 			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
 		}
 		iAITKIO::ScalarPixelType pixelType;
-		m_probabilityImg[label] = iAITKIO::readFile(probFile, pixelType, false);
+		probabilityImg[l] = iAITKIO::readFile(probFile, pixelType, false);
 	}
-	return m_probabilityImg[label];
+	return probabilityImg;
 }
 
 bool iAMember::ProbabilityAvailable() const
 {
-	if (m_probabilityImg.size() > 0)
-		return true;
-
 	QString probFile(GetProbabilityPath(0));
 	return QFile::exists(probFile);
-}
-
-void iAMember::SetLabelImage(iAITKIO::ImagePointer labelImg)
-{
-	m_labelImg = labelImg;
-}
-
-
-void iAMember::AddProbabilityImages(QVector<iAITKIO::ImagePointer> & probImgs)
-{
-	m_probabilityImg = probImgs;
 }
 
 

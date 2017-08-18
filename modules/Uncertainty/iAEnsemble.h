@@ -20,11 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
+#include <vtkSmartPointer.h>
+
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
 class iAEnsembleDescriptorFile;
+class iASamplingResults;
+
+class vtkImageData;
 
 class iAEnsemble
 {
@@ -34,6 +39,10 @@ public:
 	bool load(iAEnsembleDescriptorFile const & ensembleFile);
 private:
 	bool loadSampling(QString const & fileName, int labelCount, int id);
+	void createUncertaintyImages(int labelCount);
 	//! constructor; use static Create methods instead!
 	iAEnsemble();
+	QVector<QSharedPointer<iASamplingResults> > m_samplings;
+	vtkSmartPointer<vtkImageData> m_ensembleUncertainty;
+	vtkSmartPointer<vtkImageData> m_averageAlgorithmUncertainty;
 };

@@ -213,7 +213,6 @@ void alloc_image_tmpl2(int const size[3], double const spacing[3], iAITKIO::Imag
 }
 
 
-// when moving that to core, we get unresolved external! why?
 iAITKIO::ImagePointer AllocateImage(int const size[3], double const spacing[3], itk::ImageIOBase::IOComponentType type)
 {
 	iAITKIO::ImagePointer result;

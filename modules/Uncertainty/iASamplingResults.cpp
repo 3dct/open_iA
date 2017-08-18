@@ -272,7 +272,7 @@ void iASamplingResults::AddResult(QSharedPointer<iAMember> result)
 	m_results.push_back(result);
 }
 
-QVector<QSharedPointer<iAMember> > const & iASamplingResults::GetResults() const
+QVector<QSharedPointer<iAMember> > const & iASamplingResults::GetMembers() const
 {
 	return m_results;
 }
