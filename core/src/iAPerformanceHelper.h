@@ -105,7 +105,7 @@ public:
 	//! usage)
 	static void printTime(iAPerformanceTimer::DurationType, std::string const & caption = "", bool printMemUsage = false);
 	//! print memory usage information
-	static void printMemoryUsage();
+	static QString printMemoryUsage();
 private:
 	iAPerfHelperImpl*     m_pImpl;
 };
