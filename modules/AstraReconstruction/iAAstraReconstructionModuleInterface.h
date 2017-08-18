@@ -29,7 +29,7 @@ public:
 	void Initialize();
 private slots:
 	void ForwardProject();
-	void BackProject();
+	void Reconstruct();
 	void FreeBeamIntensity();
 private:	
 	QString projGeomType;

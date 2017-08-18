@@ -49,10 +49,10 @@ void iAAstraReconstructionModuleInterface::Initialize( )
 	AddActionToMenuAlphabeticallySorted(astraReconMenu, actionForwardProject, true);
 	connect(actionForwardProject, SIGNAL(triggered()), this, SLOT(ForwardProject()));
 
-	QAction * actionBackProject = new QAction(m_mainWnd);
-	actionBackProject->setText(QApplication::translate("MainWindow", "Back Projection", 0));
-	AddActionToMenuAlphabeticallySorted(astraReconMenu, actionBackProject, true);
-	connect(actionBackProject, SIGNAL(triggered()), this, SLOT(BackProject()));
+	QAction * actionReconstruct = new QAction(m_mainWnd);
+	actionReconstruct->setText(QApplication::translate("MainWindow", "Reconstruct", 0));
+	AddActionToMenuAlphabeticallySorted(astraReconMenu, actionReconstruct, true);
+	connect(actionReconstruct, SIGNAL(triggered()), this, SLOT(Reconstruct()));
 
 	QAction * actionFreeBeamIntensity = new QAction(m_mainWnd);
 	actionFreeBeamIntensity->setText(QApplication::translate("MainWindow", "Free Beam Intensity", 0));
@@ -180,7 +180,7 @@ void iAAstraReconstructionModuleInterface::ForwardProject()
 }
 
 
-void iAAstraReconstructionModuleInterface::BackProject()
+void iAAstraReconstructionModuleInterface::Reconstruct()
 {
 	if (!IsCUDAAvailable())
 	{
@@ -278,7 +278,7 @@ void iAAstraReconstructionModuleInterface::BackProject()
 	iAAstraAlgorithm* backProjection = new iAAstraAlgorithm(static_cast<iAAstraAlgorithm::AlgorithmType>(algorithmType), filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	m_mdiChild->connectThreadSignalsToChildSlots(backProjection);
-	backProjection->SetBckProjectParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource,
+	backProjection->SetReconstructParams(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource,
 		detRowDim, detColDim, projAngleDim, volDim, volSpacing, numberOfIterations, correctCenterOfRotation, correctCenterOfRotationOffset);
 	backProjection->start();
 	m_mdiChild->addStatusMsg(filterName);

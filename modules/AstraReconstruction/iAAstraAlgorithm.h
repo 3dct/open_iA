@@ -41,14 +41,14 @@ public:
 	iAAstraAlgorithm(AlgorithmType type, QString const & filterName, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent);
 	void SetFwdProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
-	void SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+	void SetReconstructParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
 		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations,
 		bool correctCenterOfRotation = false, double correctCenterOfRotationOffset = 0.0);
 private:
 	virtual void performWork();
 	void ForwardProject();
-	void BackProject(AlgorithmType type);
+	void Reconstruct(AlgorithmType type);
 	
 	void CreateConeProjGeom(astra::Config & projectorConfig);
 	void CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset);
