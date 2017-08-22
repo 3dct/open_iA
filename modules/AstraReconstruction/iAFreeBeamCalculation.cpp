@@ -81,17 +81,17 @@ int freeBeamCalculation_template( double indexX, double indexY, double indexZ, d
 		roiFilter->Update();
 
 		typedef itk::Image< T, 2 > ImageType2D;
-		ImageType2D::RegionType roiSliceRegion;
-		ImageType2D::RegionType::SizeType roiSliceSize;
-		ImageType2D::RegionType::IndexType roiSliceIndex;
-		InputImageType::RegionType requestedROIRegion = roiFilter->GetOutput()->GetRequestedRegion();
+		typename ImageType2D::RegionType roiSliceRegion;
+		typename ImageType2D::RegionType::SizeType roiSliceSize;
+		typename ImageType2D::RegionType::IndexType roiSliceIndex;
+		typename InputImageType::RegionType requestedROIRegion = roiFilter->GetOutput()->GetRequestedRegion();
 		roiSliceIndex[direction[0]] = requestedROIRegion.GetIndex()[direction[0]];
 		roiSliceIndex[1 - direction[0]] = requestedROIRegion.GetIndex()[direction[1]];
 		roiSliceSize[direction[0]] = requestedROIRegion.GetSize()[direction[0]];
 		roiSliceSize[1 - direction[0]] = requestedROIRegion.GetSize()[direction[1]];
 		roiSliceRegion.SetSize(roiSliceSize);
 		roiSliceRegion.SetIndex(roiSliceIndex);
-		ImageType2D::Pointer outputROISliceImage = ImageType2D::New();
+		typename ImageType2D::Pointer outputROISliceImage = ImageType2D::New();
 		outputROISliceImage->SetRegions(roiSliceRegion);
 		outputROISliceImage->Allocate();
 		
