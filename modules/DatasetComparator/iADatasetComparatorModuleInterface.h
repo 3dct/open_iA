@@ -24,6 +24,9 @@
 
 #include <itkHilbertPath.h>
 
+#include <QDir>
+#include <QMap>
+
 class MdiChild;
 
 class iADatasetComparatorModuleInterface : public iAModuleInterface
@@ -33,16 +36,13 @@ class iADatasetComparatorModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 
-private slots:
-	void DatasetComparator();
-
-protected:
-
-private:
 	typedef itk::HilbertPath<unsigned int, 3> PathType;
 	PathType::Pointer m_HPath;
-	
-	QString m_datasetPath;
-	QStringList m_datasetList;
-	
+
+	QDir m_datasetsDir;
+	QMap<QString, QList<int> > m_DatasetIntensityMap;
+
+private slots:
+	void DatasetComparator();
+	void visualizeHilbertPath();
 };

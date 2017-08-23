@@ -20,19 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QThread>
-
+#include <QObject>
 
 class iADatasetComparatorModuleInterface;
 
-class iAMappIntensitiesThread : public QThread
+class iAIntensityMapper : public QObject
 {
 	Q_OBJECT
+
 public:
-	iAMappIntensitiesThread( QObject * parent = 0 ) : QThread( parent ) {};
-	void Init(iADatasetComparatorModuleInterface * pmi);
-protected:
-	virtual void run();
-	
-	iADatasetComparatorModuleInterface * m_pmi;
+	iAIntensityMapper(iADatasetComparatorModuleInterface * dcmi);
+	~iAIntensityMapper();
+
+public slots:
+	void process();
+
+signals:
+	void finished();
+	void error(QString err);
+
+private:
+	iADatasetComparatorModuleInterface * m_dcmi;
 };
