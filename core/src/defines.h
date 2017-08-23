@@ -66,7 +66,9 @@ enum IOType
 	AM_WRITER,
 	VTI_READER,
 	CSV_WRITER,
+#ifdef USE_HDF5
 	HDF5_READER,
+#endif
 	HDF5_WRITER
 };
 

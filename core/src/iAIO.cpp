@@ -68,9 +68,10 @@
 #include <QStringList>
 #include <QTextStream>
 
-
+#ifdef USE_HDF5
 #include <hdf5.h>
 #include <QStack>
+#endif
 
 #include <algorithm>
 #include <cmath>
@@ -247,6 +248,7 @@ iAIO::~iAIO()
 	if (observerProgress) observerProgress->Delete();
 }
 
+#ifdef USE_HDF5
 QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 {
 	switch (hdf5Type)
@@ -448,6 +450,7 @@ bool iAIO::loadHDF5File()
 
 	return true;
 }
+#endif
 
 void iAIO::run()
 {
@@ -548,6 +551,7 @@ void iAIO::run()
 			rv = true;
 			break;
 		}
+#ifdef USE_HDF5
 		case HDF5_READER:
 			if (m_isITKHDF5)
 			{
@@ -558,11 +562,11 @@ void iAIO::run()
 				rv = loadHDF5File();
 			}
 			break;
+#endif
 		case UNKNOWN_READER:
 		default:
 			emit msg(tr("  unknown reader type"));
 	}
-
 	if (rv) {
 		//emit msg(tr("   File I/O successful!"));
 		if ((ioID == MHD_WRITER) || (ioID == STL_WRITER) || (ioID == TIF_STACK_WRITER) 
@@ -576,6 +580,7 @@ void iAIO::run()
 }
 
 
+#ifdef USE_HDF5
 #include <QTextEdit>
 #include <QTreeView>
 #include <QStandardItemModel>
@@ -736,6 +741,7 @@ bool IsHDF5ITKImage(hid_t file_id)
 #include "iAQTtoUIConnector.h"
 #include "ui_OpenHDF5.h"
 typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
+#endif
 
 /**
  * \return	true if it succeeds, false if it fails. 
@@ -788,6 +794,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case CSV_WRITER:
 		case VTI_READER:
 			fileName = f; break;
+#ifdef USE_HDF5
 		case HDF5_READER:
 		{
 			fileName = f;
@@ -873,6 +880,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			}
 			return true;
 		}
+#endif
 		case UNKNOWN_READER: 
 		default:
 			emit msg(tr("  unknown IO type")); 

@@ -34,7 +34,11 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am *.hdf5 *.h5 *.he5 *.mat *.vti "+ImageFormatExtensions+");;"
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am "
+#ifdef USE_HDF5
+		"*.hdf5 *.h5 *.he5 *.mat "
+#endif
+		"*.vti "+ImageFormatExtensions+");;"
 		+ MetaImages +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
@@ -44,9 +48,11 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"NRRD files (*.nrrd);;"
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
+#ifdef USE_HDF5
 		"Hierarchical Data Format v5 (*.hdf5 *.h5 *.he5);;"
-		"Network Common Data Format v4 (*.nc *.cdf);;"
 		"Matlab data files v7.3 (*.mat);;"
+		"Network Common Data Format v4 (*.nc *.cdf);;"
+#endif
 		"Serial VTK image data (*.vti);;") +
 		GetSupportedImageFormats();
 }

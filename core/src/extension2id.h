@@ -51,12 +51,14 @@ static mapQString2int fill_extensionToId()
 	m["OIF"] = OIF_READER;
 	m["AM"] = AM_READER;
 	m["VTI"] = VTI_READER;
+#ifdef USE_HDF5
 	m["HDF5"] = HDF5_READER;
 	m["H5"] = HDF5_READER;
 	m["HE5"] = HDF5_READER;
 	m["NC"] = HDF5_READER;
 	m["CDF"] = HDF5_READER;
 	m["MAT"] = HDF5_READER;
+#endif
 
 	return m;
 }
