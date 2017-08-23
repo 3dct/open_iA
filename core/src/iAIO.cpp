@@ -246,19 +246,6 @@ iAIO::~iAIO()
 	stlReader->Delete();
 	if (observerProgress) observerProgress->Delete();
 }
-/*
-QString MapHDF5ClassToString(H5S_class_t hdf5Class)
-{
-	switch (hdf5Class)
-	{
-	H5S_NO_CLASS: return QString("No Class");
-	H5S_SCALAR: return QString("Scalar");
-	H5S_SIMPLE: return QString("Simple");
-	H5S_NULL: return QString("Null");
-	default: return QString("Unknown");
-	}
-}
-*/
 
 QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 {

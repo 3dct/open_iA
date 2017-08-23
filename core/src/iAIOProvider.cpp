@@ -46,7 +46,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"AmiraMesh (*.am);;"
 		"Hierarchical Data Format v5 (*.hdf5 *.h5 *.he5);;"
 		"Network Common Data Format v4 (*.nc *.cdf);;"
-		"Matlab data files v7.3 (*.mat)"
+		"Matlab data files v7.3 (*.mat);;"
 		"Serial VTK image data (*.vti);;") +
 		GetSupportedImageFormats();
 }
