@@ -160,9 +160,9 @@ int freeBeamCalculation_template( double indexX, double indexY, double indexZ, d
 	{
 		typedef itk::ImageRegionConstIterator< InputImageType > InputIteratorType;
 		typedef itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
-		typename InputIteratorType inputIt(dynamic_cast<InputImageType *>(image->GetITKImage()),
+		InputIteratorType inputIt(dynamic_cast<InputImageType *>(image->GetITKImage()),
 			dynamic_cast<InputImageType *>(image->GetITKImage())->GetLargestPossibleRegion());
-		typename OutputIteratorType outputIt(outputImage, outputRegion);
+		OutputIteratorType outputIt(outputImage, outputRegion);
 		
 		inputIt.GoToBegin();
 		outputIt.GoToBegin();
