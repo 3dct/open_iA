@@ -3,9 +3,9 @@
 #-------------------------
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-  message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
-   "cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
-   "and run cmake with a newly created build directory.")
+	message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
+		"cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
+		"and run cmake with a newly created build directory.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
 #-------------------------
@@ -40,6 +40,16 @@ ENDIF()
 #-------------------------
 # LIBRARIES
 #-------------------------
+
+
+set (HDF5_LIB_TYPE SHARED)
+string(TOLOWER ${HDF5_LIB_TYPE} HDF5_LIB_SEARCH_TYPE)
+FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE )
+
+IF (HDF5_FOUND)
+	find_library(HDF5_LIBRARY hdf5 PATHS ${HDF5_DIR}/../bin)
+	INCLUDE_DIRECTORIES( ${HDF5_INCLUDE_DIR} )
+ENDIF()
 
 # ITK (>= 4)
 FIND_PACKAGE(ITK)
@@ -418,6 +428,16 @@ IF (ASTRA_TOOLBOX_FOUND)
 		get_filename_component(ASTRA_SHAREDLIB "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}" REALPATH)
 		INSTALL (FILES "${ASTRA_SHAREDLIB}" DESTINATION . RENAME libastra.so.0)
 	ENDIF ()
+ENDIF()
+
+# HDF5
+IF (HDF5_FOUND)
+	STRING(REGEX REPLACE "/cmake" "" HDF5_BASE_DIR ${HDF5_DIR})
+	SET(HDF5_BIN_DIR ${HDF5_BASE_DIR}/bin)
+	SET(HDF5_LIBRARIES hdf5 szip zlib)
+	FOREACH(HDF5_LIB ${HDF5_LIBRARIES})
+		INSTALL(FILES "${HDF5_BIN_DIR}/${HDF5_LIB}.dll" DESTINATION .)
+	ENDFOREACH()
 ENDIF()
 
 #-------------------------

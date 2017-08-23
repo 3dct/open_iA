@@ -20,31 +20,51 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAAlgorithm.h"
 
-class iAAstraReconstructionModuleInterface : public iAModuleInterface
+enum iAFreeBeamCalculationType
 {
-	Q_OBJECT
-public:
-	void Initialize();
-private slots:
-	void ForwardProject();
-	void Reconstruct();
-	void FreeBeamIntensity();
-private:	
-	QString projGeomType;
-	double detSpacingX, detSpacingY, distOrigDet, 
-		distOrigSource, projAngleStart, projAngleEnd;
-	int detRowCnt, detColCnt, projAnglesCount,
-		detRowDim, detColDim, projAngleDim,
-		algorithmType, numberOfIterations;
-	int volDim[3];
-	double volSpacing[3];
-	bool correctCenterOfRotation;
-	double correctCenterOfRotationOffset;
+	FREEBEAMCALCULATION,
+};
 
-	bool m_childClosed;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
+/**
+ * FreeBeamCalculation filter
+ * refer to http://www.itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
+ */
+class iAFreeBeamCalculation : public iAAlgorithm
+{
+public:
+	iAFreeBeamCalculation(QString fn, iAFreeBeamCalculationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
+
+	/**
+	 * Sets an e parameters.
+	 * \param	oX	Origin x coordinate.
+	 * \param	oY	Origin y coordinate.
+	 * \param	oZ	Origin z coordinate.
+	 * \param	sX	Size x coordinate.
+	 * \param	sY	Size y coordinate.
+	 * \param	sZ	Size z coordinate.
+	 * \param	d	Dimensions.
+	 */
+
+	void setEParameters(double oX, double oY, double oZ,
+		double sX, double sY, double sZ, bool mmfbi, int mmfbiv)
+	{
+		originX = oX;
+		originY = oY;
+		originZ = oZ;
+		sizeX = sX;
+		sizeY = sY;
+		sizeZ = sZ;
+		manualMeanFreeBeamIntensity = mmfbi;
+		manualMeanFreeBeamIntensityValue = mmfbiv;
+	}
+
+protected:
+	virtual void performWork();
+private:
+	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
 	bool manualMeanFreeBeamIntensity;
 	int manualMeanFreeBeamIntensityValue;
+	iAFreeBeamCalculationType m_operation;
 };

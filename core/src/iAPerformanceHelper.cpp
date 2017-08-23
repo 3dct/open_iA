@@ -178,16 +178,16 @@ iAPerformanceHelper::~iAPerformanceHelper()
 
 void iAPerformanceHelper::printTime(iAPerformanceTimer::DurationType duration, std::string const & caption, bool printMemUsage)
 {
-	DEBUG_LOG(QString("%1 %2").arg(caption.c_str()).arg(formatDuration(duration)));
-	if (printMemUsage)
-	{
-		printMemoryUsage();
-	}
+	DEBUG_LOG(QString("%1 %2%3")
+		.arg(caption.c_str())
+		.arg(formatDuration(duration))
+		.arg(printMemUsage ? printMemoryUsage() : "")
+	);
 }
 
-void iAPerformanceHelper::printMemoryUsage()
+QString iAPerformanceHelper::printMemoryUsage()
 {
-	DEBUG_LOG(QString("; memory usage: %1  MB").arg(getCurrentRSS()/1048576));
+	return QString("; memory usage: %1  MB").arg(getCurrentRSS()/1048576);
 }
 
 void iAPerformanceHelper::start(std::string const & caption, bool printMemUsage)
@@ -195,11 +195,10 @@ void iAPerformanceHelper::start(std::string const & caption, bool printMemUsage)
 	m_pImpl->m_caption = caption;
 	m_pImpl->m_printMemUsage = printMemUsage;
 	m_pImpl->m_perfTimer.start();
-	DEBUG_LOG(QString(">>>>> START %1 ").arg(m_pImpl->m_caption.c_str()));
-	if (m_pImpl->m_printMemUsage)
-	{
-		printMemoryUsage();
-	}
+	DEBUG_LOG(QString(">>>>> START %1 %2")
+		.arg(m_pImpl->m_caption.c_str())
+		.arg(m_pImpl->m_printMemUsage ? printMemoryUsage(): "")
+	);
 }
 
 

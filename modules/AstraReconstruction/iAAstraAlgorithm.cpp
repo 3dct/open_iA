@@ -22,7 +22,9 @@
 
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
+#include "iATypedCallHelper.h"
 #include "iAvec3.h"
 
 #define ASTRA_CUDA
@@ -79,7 +81,7 @@ void iAAstraAlgorithm::performWork()
 	case FDK3D:
 	case SIRT3D:
 	case CGLS3D:
-		BackProject(m_type);
+		Reconstruct(m_type);
 		break;
 	default:
 		DEBUG_LOG("Invalid Algorithm!");
@@ -103,7 +105,7 @@ void iAAstraAlgorithm::SetFwdProjectParams(QString const & projGeomType, double 
 }
 
 
-void iAAstraAlgorithm::SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
+void iAAstraAlgorithm::SetReconstructParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 	double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
 	int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations,
 	bool correctCenterOfRotation, double correctCenterOfRotationOffset)
@@ -152,6 +154,29 @@ namespace
 }
 
 
+template <typename T>
+void SwapXYandCastToFloat(vtkSmartPointer<vtkImageData> img, astra::float32* buf)
+{
+	T* imgBuf = static_cast<T*>(img->GetScalarPointer());
+	int * dim = img->GetDimensions();
+	size_t inIdx = 0;
+	for (int z = 0; z < dim[2]; ++z)
+	{
+		for (int y = 0; y < dim[1]; ++y)
+		{
+#pragma omp parallel for
+			for (int x = 0; x < dim[0]; ++x)
+
+			{
+				size_t outIdx = y + ((x + z * dim[0]) * dim[1]);
+				buf[outIdx] = static_cast<float>(imgBuf[inIdx + x]);
+			}
+			inIdx += dim[0];
+		}
+	}
+}
+
+
 void iAAstraAlgorithm::ForwardProject()
 {
 	vtkSmartPointer<vtkImageData> img = getConnector()->GetVTKImage();
@@ -182,22 +207,14 @@ void iAAstraAlgorithm::ForwardProject()
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	FillVolumeGeometryNode(volGeomNode, dim, img->GetSpacing());
 
-	vtkNew<vtkImageCast> cast;
-	cast->SetInputData(img);
-	cast->SetOutputScalarTypeToFloat();
-	cast->Update();
-	vtkSmartPointer<vtkImageData> float32Img = cast->GetOutput();
-
+	iAPerformanceHelper inCopyTimer;
+	inCopyTimer.start("Cast and copy to input buffer");
 	astra::float32* buf = new astra::float32[dim[0] * dim[1] * dim[2]];
-	FOR_VTKIMG_PIXELS(float32Img, x, y, z)
-	{
-		size_t index = y  + x * dim[1] + z * dim[0] * dim[1];
-		if (index < 0 || index >= dim[0] * dim[1] * dim[2])
-		{
-			DEBUG_LOG(QString("Index out of bounds: %1 (valid range: 0..%2)").arg(index).arg(dim[0] * dim[1] * dim[2]));
-		}
-		buf[index] = float32Img->GetScalarComponentAsFloat(x, y, z, 0);
-	}
+	VTK_TYPED_CALL(SwapXYandCastToFloat, img->GetScalarType(), img, buf);
+	inCopyTimer.stop();
+
+	iAPerformanceHelper astraSetupAndRunTimer;
+	astraSetupAndRunTimer.start("ASTRA setup and run");
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry());
@@ -205,21 +222,40 @@ void iAAstraAlgorithm::ForwardProject()
 	astra::CCudaForwardProjectionAlgorithm3D* algorithm = new astra::CCudaForwardProjectionAlgorithm3D();
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
+	astraSetupAndRunTimer.stop();
+
+	iAPerformanceHelper outCopyTimer;
+	outCopyTimer.start("Copy to output buffer");
 	int projDim[3] = { m_detColCnt, m_detRowCnt, m_projAnglesCount };     // "normalize" z spacing with projections count to make sinograms with different counts more easily comparable
 	double projSpacing[3] = { m_detSpacingX, m_detSpacingY, m_detSpacingX * 180 / m_projAnglesCount };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
-	FOR_VTKIMG_PIXELS(projImg, x, y, z)
+	float* projImgBuf = static_cast<float*>(projImg->GetScalarPointer());
+	astra::float32*** projData3D = projectionData->getData3D();
+	size_t imgIndex = 0;
+	for (int z = 0; z < projDim[2]; ++z)
 	{
-		projImg->SetScalarComponentFromFloat(x, y, z, 0, projectionData->getData3D()[y][m_projAnglesCount-z-1][m_detColCnt-x-1]);
+		for (int y = 0; y < projDim[1]; ++y)
+		{
+#pragma omp parallel for
+			for (int x = 0; x < projDim[0]; ++x)
+			{
+				projImgBuf[imgIndex + x] = projData3D[y][m_projAnglesCount - z - 1][m_detColCnt - x - 1];
+			}
+			imgIndex += projDim[0];
+		}
 	}
 	getConnector()->SetImage(projImg);
 	getConnector()->Modified();
+	outCopyTimer.stop();
 
+	iAPerformanceHelper deleteTimer;
+	deleteTimer.start("Cleanup");
 	delete[] buf;
 	delete algorithm;
 	delete volumeData;
 	delete projectionData;
 	delete projector;
+	deleteTimer.stop();
 }
 
 
@@ -276,51 +312,93 @@ void iAAstraAlgorithm::CreateConeVecProjGeom(astra::Config & projectorConfig, do
 }
 
 
-void iAAstraAlgorithm::BackProject(AlgorithmType type)
+template <typename T>
+void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int detColDim, int detRowDim, int projAngleDim)
 {
-	// cast input to float image and convert it to dimension order expected by astra:
-	vtkSmartPointer<vtkImageData> img = getConnector()->GetVTKImage();
+	float* imgBuf = static_cast<float*>(img->GetScalarPointer());
+	int * dim = img->GetDimensions();
+	int detColDimIdx = detColDim % 3;		// only do modulus once before loop
+	int detRowDimIdx = detRowDim % 3;
+	int projAngleDimIdx = projAngleDim % 3;
+	int idx[3];
+	size_t imgBufIdx = 0;
+	for (idx[2] = 0; idx[2] < dim[2]; ++idx[2])
+	{
+		for (idx[1] = 0; idx[1] < dim[1]; ++idx[1])
+		{
+#pragma omp parallel for
+			for (idx[0] = 0; idx[0] < dim[0]; ++idx[0])
+			{
+				int detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
+				int detRow    = idx[detRowDimIdx];     if (detRowDim >= 3)    { detRow    = dim[detRowDimIdx]    - detRow    - 1; }
+				int projAngle = idx[projAngleDimIdx];  if (projAngleDim >= 3) { projAngle = dim[projAngleDimIdx] - projAngle - 1; }
+				int bufIndex = detCol + ((projAngle + detRow*dim[projAngleDimIdx])*dim[detColDimIdx]);
+				buf[bufIndex] = static_cast<float>(imgBuf[imgBufIdx + idx[0]]);
+			}
+			imgBufIdx += dim[0];
+		}
+	}
+}
+
+/*
+template <typename T>
+void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int detColDim, int detRowDim, int projAngleDim, int detRowCnt, int detColCnt, int projAngleCnt)
+{
 	int * dim = img->GetDimensions();
 	vtkNew<vtkImageCast> cast;
 	cast->SetInputData(img);
 	cast->SetOutputScalarTypeToFloat();
 	cast->Update();
 	vtkSmartPointer<vtkImageData> float32Img = cast->GetOutput();
-	float* buf = new float[dim[0] * dim[1] * dim[2]];
 	FOR_VTKIMG_PIXELS(img, x, y, z)
 	{
-		int detCol = ((m_detColDim % 3) == 0) ? x : ((m_detColDim % 3) == 1) ? y : z;
-		if (m_detColDim >= 3)
+		int detCol = ((detColDim % 3) == 0) ? x : ((detColDim % 3) == 1) ? y : z;
+		if (detColDim >= 3)
 		{
-			detCol = m_detColCnt - detCol - 1;
+			detCol = detColCnt - detCol - 1;
 		}
-		int detRow = ((m_detRowDim % 3) == 0) ? x : ((m_detRowDim % 3) == 1) ? y : z;
-		if (m_detRowDim >= 3)
+		int detRow = ((detRowDim % 3) == 0) ? x : ((detRowDim % 3) == 1) ? y : z;
+		if (detRowDim >= 3)
 		{
-			detRow = m_detRowCnt - detRow - 1;
+			detRow = detRowCnt - detRow - 1;
 		}
-		int projAngle = ((m_projAngleDim % 3) == 0) ? x : ((m_projAngleDim % 3) == 1) ? y : z;
-		if (m_projAngleDim >= 3)
+		int projAngle = ((projAngleDim % 3) == 0) ? x : ((projAngleDim % 3) == 1) ? y : z;
+		if (projAngleDim >= 3)
 		{
-			projAngle = m_projAnglesCount - projAngle - 1;
+			projAngle = projAngleCnt - projAngle - 1;
 		}
-		int index = detCol + projAngle*m_detColCnt + detRow*m_detColCnt*m_projAnglesCount;
-		if (index < 0 || index >= m_projAnglesCount*m_detRowCnt*m_detColCnt)
+		int index = detCol + projAngle*detColCnt + detRow*detColCnt*projAngleCnt;
+		if (index < 0 || index >= projAngleCnt*detRowCnt*detColCnt)
 		{
-			DEBUG_LOG(QString("Index out of bounds: %1 (valid range: 0..%2)").arg(index).arg(m_projAnglesCount*m_detRowCnt*m_detColCnt));
+			DEBUG_LOG(QString("Index out of bounds: %1 (valid range: 0..%2)").arg(index).arg(projAngleCnt*detRowCnt*detColCnt));
 		}
 		buf[index] = img->GetScalarComponentAsFloat(x, y, z, 0);
 	}
+}
+*/
 
+
+void iAAstraAlgorithm::Reconstruct(AlgorithmType type)
+{
+	vtkSmartPointer<vtkImageData> img = getConnector()->GetVTKImage();
+	int * dim = img->GetDimensions();
+
+	iAPerformanceHelper inCopyTimer;
+	inCopyTimer.start("Cast and Copy to input buffer");
+	astra::float32* buf = new astra::float32[dim[0] * dim[1] * dim[2]];
+	//VTK_TYPED_CALL(SwapDimensions, img->GetScalarType(), img, buf, m_detColDim, m_detRowDim, m_projAngleDim, m_detRowCnt, m_detColCnt, m_projAnglesCount);
+	VTK_TYPED_CALL(SwapDimensions, img->GetScalarType(), img, buf, m_detColDim, m_detRowDim, m_projAngleDim);
+	inCopyTimer.stop();
+
+	iAPerformanceHelper configTimer;
+	configTimer.start("Config");
 	// create XML configuration:
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
 	astra::XMLNode gpuIndexOption = projectorConfig.self.addChildNode("Option");
 	gpuIndexOption.addAttribute("key", "GPUIndex");
 	gpuIndexOption.addAttribute("value", "0");
-
 	assert(m_projGeomType == "cone");
-
 	if (m_correctCenterOfRotation)
 	{
 		CreateConeVecProjGeom(projectorConfig, m_correctCenterOfRotationOffset);
@@ -331,11 +409,14 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 	}
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	FillVolumeGeometryNode(volGeomNode, m_volDim, m_volSpacing);
+	configTimer.stop();
 
+	iAPerformanceHelper astraSetupAndRunTimer;
+	astraSetupAndRunTimer.start("ASTRA setup and run");
 	// create Algorithm and run:
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
-	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), static_cast<astra::float32*>(buf));
+	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), buf);
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), 0.0f);
 	switch (type)
 	{
@@ -370,19 +451,43 @@ void iAAstraAlgorithm::BackProject(AlgorithmType type)
 		default:
 			DEBUG_LOG("Unknown backprojection algorithm selected!");
 	}
+	astraSetupAndRunTimer.stop();
 
+	iAPerformanceHelper outCopyTimer;
+	outCopyTimer.start("Copy to output buffer");
 	// retrieve result image:
 	auto volImg = AllocateImage(VTK_FLOAT, m_volDim, m_volSpacing);
+	float* volImgBuf = static_cast<float*>(volImg->GetScalarPointer());
+	/*
 	FOR_VTKIMG_PIXELS(volImg, x, y, z)
 	{
 		volImg->SetScalarComponentFromFloat(x, y, z, 0, volumeData->getData3D()[z][x][y]);
 	}
+	*/
+	astra::float32*** volData3D = volumeData->getData3D();
+	size_t imgIndex = 0;
+	for (int z = 0; z < m_volDim[2]; ++z)
+	{
+		for (int y = 0; y < m_volDim[1]; ++y)
+		{
+			#pragma omp parallel for
+			for (int x = 0; x < m_volDim[0]; ++x)
+			{
+				volImgBuf[imgIndex + x] = volData3D[z][x][y];
+			}
+			imgIndex += m_volDim[0];
+		}
+	}
+
 	getConnector()->SetImage(volImg);
 	getConnector()->Modified();
+	outCopyTimer.stop();
 
-	// cleanup
+	iAPerformanceHelper deleteTimer;
+	deleteTimer.start("Cleanup");
 	delete[] buf;
 	delete volumeData;
 	delete projectionData;
 	delete projector;
+	deleteTimer.stop();
 }

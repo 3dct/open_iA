@@ -154,4 +154,9 @@ private:
 
 	QString m_additionalInfo;
 	int m_channel;
+
+	QVector<QString> m_hdf5Path;
+	bool m_isITKHDF5;
+	double m_hdf5Spacing[3];
+	bool loadHDF5File();
 };

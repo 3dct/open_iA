@@ -65,7 +65,11 @@ enum IOType
 	AM_READER,
 	AM_WRITER,
 	VTI_READER,
-	CSV_WRITER
+	CSV_WRITER,
+#ifdef USE_HDF5
+	HDF5_READER,
+#endif
+	HDF5_WRITER
 };
 
 const int DefaultMagicLensSize = 120;
