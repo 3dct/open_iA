@@ -34,7 +34,4 @@ public:
 	{
 		this->setupUi(this);
 	}
-	~iAQTtoUIConnector(void)
-	{
-	}
 };

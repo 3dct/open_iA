@@ -3,9 +3,9 @@
 #-------------------------
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-  message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
-   "cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
-   "and run cmake with a newly created build directory.")
+	message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
+		"cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
+		"and run cmake with a newly created build directory.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
 #-------------------------
@@ -40,6 +40,18 @@ ENDIF()
 #-------------------------
 # LIBRARIES
 #-------------------------
+
+
+set (HDF5_LIB_TYPE SHARED)
+string(TOLOWER ${HDF5_LIB_TYPE} HDF5_LIB_SEARCH_TYPE)
+FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C HL NO_MODULE REQUIRED ${HDF5_LIB_SEARCH_TYPE})
+
+IF (HDF5_FOUND)
+	find_library(HDF5_LIBRARY hdf5
+		PATHS ${HDF5_DIR}/../bin)
+	MESSAGE(STATUS "Found HDF5 (include=${HDF5_INCLUDE_DIR})!")
+	INCLUDE_DIRECTORIES( ${HDF5_INCLUDE_DIR} )
+ENDIF()
 
 # ITK (>= 4)
 FIND_PACKAGE(ITK)
