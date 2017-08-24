@@ -161,7 +161,7 @@ iAColorThemeManager::iAColorThemeManager()
 	m_themes.insert(few->GetName(), few);
 
  
-	iAColorTheme* grayScale17 = new iAColorTheme("Grayscale (best for 1,2,3,5,9,17 labels; max 17)");
+	iAColorTheme* grayScale17 = new iAColorTheme("Grayscale (best for 1,2,3,5,9,17 labels; max. 17)");
 	grayScale17->AddColor(QColor(  0,  0,  0));
 	grayScale17->AddColor(QColor(255,255,255));
 	grayScale17->AddColor(QColor(128,128,128));
@@ -198,7 +198,7 @@ iAColorThemeManager::iAColorThemeManager()
 	m_themes.insert(grayScale6->GetName(), grayScale6);
 
 	// themes from https://www.materialui.co/colors
-	iAColorTheme* materialRed = new iAColorTheme("Material red (max 10)");
+	iAColorTheme* materialRed = new iAColorTheme("Material red (max. 10)");
 	materialRed->AddColor(QColor(255, 235, 238));
 	materialRed->AddColor(QColor(255, 205, 210));
 	materialRed->AddColor(QColor(239,154,154));
@@ -211,7 +211,7 @@ iAColorThemeManager::iAColorThemeManager()
 	materialRed->AddColor(QColor(183, 28, 28));
 	m_themes.insert(materialRed->GetName(), materialRed);
 
-	iAColorTheme* materialBlue = new iAColorTheme("Material blue (max 10)");
+	iAColorTheme* materialBlue = new iAColorTheme("Material blue (max. 10)");
 	materialBlue->AddColor(QColor(227, 242, 253));
 	materialBlue->AddColor(QColor(187, 222, 251));
 	materialBlue->AddColor(QColor(144, 202, 249));
@@ -224,7 +224,7 @@ iAColorThemeManager::iAColorThemeManager()
 	materialBlue->AddColor(QColor(13, 71, 161));
 	m_themes.insert(materialBlue->GetName(), materialBlue);
 
-	iAColorTheme* flatUI = new iAColorTheme("Flat UI (max 20)");
+	iAColorTheme* flatUI = new iAColorTheme("Flat UI (max. 20)");
 	flatUI->AddColor(QColor(26, 188, 156));
 	flatUI->AddColor(QColor(46, 204, 113));
 	flatUI->AddColor(QColor(52, 152, 219));
@@ -247,7 +247,7 @@ iAColorThemeManager::iAColorThemeManager()
 	flatUI->AddColor(QColor(127, 140, 141));
 	m_themes.insert(flatUI->GetName(), flatUI);
 
-	iAColorTheme* metroColors = new iAColorTheme("Metro Colors (max 20)");
+	iAColorTheme* metroColors = new iAColorTheme("Metro Colors (max. 20)");
 	metroColors->AddColor(QColor(164, 196, 0));
 	metroColors->AddColor(QColor(96, 169, 23));
 	metroColors->AddColor(QColor(0, 138, 0));
@@ -270,6 +270,17 @@ iAColorThemeManager::iAColorThemeManager()
 	metroColors->AddColor(QColor(160, 82, 45));
 	m_themes.insert(metroColors->GetName(), metroColors);
 
+
+	iAColorTheme* brewerQual1 = new iAColorTheme("Brewer Qualitaive 1 (max. 8)");
+	brewerQual1->AddColor(QColor(27, 158, 119));
+	brewerQual1->AddColor(QColor(217, 95, 2));
+	brewerQual1->AddColor(QColor(117, 112, 179));
+	brewerQual1->AddColor(QColor(231, 41, 138));
+	brewerQual1->AddColor(QColor(102, 166, 30));
+	brewerQual1->AddColor(QColor(230, 171, 2));
+	brewerQual1->AddColor(QColor(166, 118, 29));
+	brewerQual1->AddColor(QColor(102, 102, 102));
+	m_themes.insert(brewerQual1->GetName(), brewerQual1);
 }
 
 iAColorThemeManager::~iAColorThemeManager()

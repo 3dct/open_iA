@@ -30,13 +30,6 @@
 #include <itkImageBase.h>
 #include <itkImage.h>
 #include <itkImageIOBase.h>
-#include <itkImageRegionConstIterator.h>
-
-#include <QMap>
-#include <QDir>
-#include <QList>
-
-//#include <iAConsole.h>
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
@@ -46,29 +39,16 @@ typedef itk::HilbertPath<unsigned int, DIM> PathType;
 template<class T>
 void getIntensities( PathType::Pointer path, ImagePointer & image, QList<int> & intensityList )
 {
-	// TODO: Typecheck QList for e.g., float images
+	// TODO: Typecheck QList for e.g., float images + check max size of list
 	typedef itk::Image< T, DIM >   InputImageType;
-	typedef itk::ImageRegionConstIterator< InputImageType > IteratorType;
 	typedef PathType::IndexType IndexType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
-	IteratorType it(input, input->GetLargestPossibleRegion());
 	
-	for (unsigned int d = 0; d < path->NumberOfSteps(); d++)
+	for (unsigned int h = 0; h < path->NumberOfSteps(); h++)
 	{
-		IndexType hIdx = path->Evaluate(d);
-		for (it.GoToBegin(); !it.IsAtEnd(); ++it)
-		{
-			if (it.GetIndex() == hIdx)
-			{
-				//typename InputImageType::PixelType value = it.Get();
-				//DEBUG_LOG(QString("[%1, %2, %3] :  %4").arg(hIdx[0]).arg(hIdx[1]).arg(hIdx[2]).arg(value));
-				
-				// TODO: Typecheck QList for e.g., float images
-				intensityList.append(it.Get());
-				break;
-			}
-		}
+		IndexType coord = path->Evaluate(h);
+		intensityList.append(input->GetPixel(coord));
 	}
 }
 

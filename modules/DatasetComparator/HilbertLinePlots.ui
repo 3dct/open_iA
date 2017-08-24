@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HilbertLinePlots</class>
+ <widget class="QDockWidget" name="HilbertLinePlots">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>408</width>
+    <height>377</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hilber Line Plots</string>
+  </property>
+  <widget class="QWidget" name="HilbertLinePlots_dockWidgetContents">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <layout class="QVBoxLayout" name="PlotsContainer_verticalLayout"/>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../../core/open_iA.qrc"/>
+  <include location="../../core/open_iA.qrc"/>
+ </resources>
+ <connections/>
+</ui>

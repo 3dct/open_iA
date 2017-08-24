@@ -18,37 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+ 
+#include "pch.h"
+#include "iADatasetsFolder.h"
+#include "mainwindow.h"
+#include "defines.h"
 
-#include "iAModuleInterface.h"
-#include "iAHilbertLinePlots.h"
+#include <QFileDialog>
+#include <QSettings>
 
-#include <itkHilbertPath.h>
-
-
-#include <QDir>
-#include <QMap>
-
-class MdiChild;
-
-class iADatasetComparatorModuleInterface : public iAModuleInterface
+iADatasetsFolder::iADatasetsFolder( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : QDialog( parent, f )
 {
-	Q_OBJECT
+	setupUi( this );
+	
+	QSettings settings( organisationName, applicationName );
+	datasetsFolder->setText( settings.value("Tools/DatasetComparator/DatasetsFolder", "" ).toString() );
+	connect( tbOpenDatasetsFolder, SIGNAL( clicked() ), this, SLOT( browseDatasetsFolder() ) );
+}
 
-public:
-	void Initialize();
+QString iADatasetsFolder::DatasetsFolderName()
+{
+	return datasetsFolder->text();
+}
 
-	typedef itk::HilbertPath<unsigned int, 3> PathType;
-	PathType::Pointer m_HPath;
+iADatasetsFolder::~iADatasetsFolder()
+{
+	QSettings settings( organisationName, applicationName );
+	settings.setValue("Tools/DatasetComparator/DatasetsFolder", datasetsFolder->text() );
+}
 
-	QDir m_datasetsDir;
-	QMap<QString, QList<int> > m_DatasetIntensityMap;
+void iADatasetsFolder::browseDatasetsFolder()
+{
+	QString dir = QFileDialog::getExistingDirectory( this, tr( "Datasets folder" ), datasetsFolder->text(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+	if( dir == "" )
+		return;
 
-private slots:
-	void DatasetComparator();
-	void visualizeHilbertPath();
-	void setupHilbertLinePlots();
+	datasetsFolder->setText( dir );
+	QSettings settings( organisationName, applicationName );
+	settings.setValue("Tools/DatasetComparator/DatasetsFolder", datasetsFolder->text() );
+}
 
-protected:
-	iAHilbertLinePlots* hlpView;
-};
