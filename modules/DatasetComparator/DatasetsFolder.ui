@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Specify Results Folder</string>
+   <string>Specify Datasets Folder</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
