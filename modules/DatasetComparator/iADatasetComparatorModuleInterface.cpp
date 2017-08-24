@@ -40,9 +40,10 @@
 void iADatasetComparatorModuleInterface::Initialize()
 {
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuDatasetComparator = getMenuWithTitle(toolsMenu, QString("Dataset Comparator"));
+	//QMenu * menuDatasetComparator = getMenuWithTitle(toolsMenu, QString("Dataset Comparator"));
 	QAction * actionDatasetComparator = new QAction(QApplication::translate("MainWindow", "Dataset Comparator", 0), m_mainWnd);
-	menuDatasetComparator->addAction(actionDatasetComparator);
+	AddActionToMenuAlphabeticallySorted(toolsMenu, actionDatasetComparator);
+	//menuDatasetComparator->addAction(actionDatasetComparator);
 	connect(actionDatasetComparator, SIGNAL(triggered()), this, SLOT(DatasetComparator()));
 }
 
