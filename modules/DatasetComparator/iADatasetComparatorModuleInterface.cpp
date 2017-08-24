@@ -67,7 +67,7 @@ void iADatasetComparatorModuleInterface::DatasetComparator()
 	PrepareActiveChild();
 
 	m_HPath = PathType::New();
-	m_HPath->SetHilbertOrder(7);	// for [8]^3 images
+	m_HPath->SetHilbertOrder(3);	// for [8]^3 images
 	m_HPath->Initialize();
 
 	QThread* thread = new QThread;
