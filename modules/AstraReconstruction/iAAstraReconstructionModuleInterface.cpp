@@ -42,7 +42,7 @@
 void iAAstraReconstructionModuleInterface::Initialize( )
 {
 	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
-	QMenu * astraReconMenu = getMenuWithTitle( toolsMenu, QString( "Astra Reconstruction" ), false );
+	QMenu * astraReconMenu = getMenuWithTitle( toolsMenu, QString( "ASTRA Toolbox" ), false );
 	
 	QAction * actionForwardProject = new QAction( m_mainWnd );
 	actionForwardProject->setText( QApplication::translate( "MainWindow", "Forward Projection", 0 ) );
@@ -50,7 +50,7 @@ void iAAstraReconstructionModuleInterface::Initialize( )
 	connect(actionForwardProject, SIGNAL(triggered()), this, SLOT(ForwardProject()));
 
 	QAction * actionReconstruct = new QAction(m_mainWnd);
-	actionReconstruct->setText(QApplication::translate("MainWindow", "Reconstruct", 0));
+	actionReconstruct->setText(QApplication::translate("MainWindow", "Reconstruction", 0));
 	AddActionToMenuAlphabeticallySorted(astraReconMenu, actionReconstruct, true);
 	connect(actionReconstruct, SIGNAL(triggered()), this, SLOT(Reconstruct()));
 
@@ -143,6 +143,7 @@ void iAAstraReconstructionModuleInterface::ForwardProject()
 	distOrigDet = settings.value(SettingsKeyBase + "distOrigDet").toDouble();
 	distOrigSource = settings.value(SettingsKeyBase + "distOrigSource").toDouble();
 	dlg_ProjectionParameters dlg;
+	dlg.setWindowTitle("ASTRA Forward Projection");
 	dlg.fillProjectionGeometryValues(projGeomType, detSpacingX, detSpacingY, detRowCnt, detColCnt, projAngleStart, projAngleEnd, projAnglesCount, distOrigDet, distOrigSource);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
@@ -215,6 +216,7 @@ void iAAstraReconstructionModuleInterface::Reconstruct()
 	correctCenterOfRotationOffset = settings.value(SettingsKeyBase + "correctCenterOfRotationOffset", 0.0).toDouble();
 
 	dlg_ProjectionParameters dlg;
+	dlg.setWindowTitle("ASTRA Reconstruction");
 	dlg.fillProjectionGeometryValues(projGeomType, detSpacingX, detSpacingY, projAngleStart, projAngleEnd, distOrigDet, distOrigSource);
 	dlg.fillVolumeGeometryValues(volDim, volSpacing);
 	dlg.fillProjInputMapping(detRowDim, detColDim, projAngleDim, dim);
