@@ -45,4 +45,7 @@ private:
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;
 	vtkSmartPointer<vtkImageData> m_ensembleUncertainty;
 	vtkSmartPointer<vtkImageData> m_averageAlgorithmUncertainty;
+
+	QVector<IntImagePointer> m_labelDistr;
+	QVector<iAITKIO::ImagePointer> m_probDistr;
 };

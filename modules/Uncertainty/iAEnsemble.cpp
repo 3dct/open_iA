@@ -28,6 +28,7 @@
 #include "iAToolsITK.h"
 
 #include <itkAddImageFilter.h>
+#include <itkMultiplyImageFilter.h>
 
 #include <QFileInfo>
 
@@ -56,6 +57,12 @@ bool iAEnsemble::load(iAEnsembleDescriptorFile const & ensembleFile)
 	return true;
 }
 
+
+typedef itk::Image<double, 3> DoubleImage;
+typedef itk::Image<int, 3> IntImage;
+typedef IntImage::Pointer IntImagePointer;
+
+
 void iAEnsemble::createUncertaintyImages(int labelCount)
 {
 	// also load slice images here?
@@ -66,46 +73,83 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 	}
 	m_samplings[0]->Get(0)->GetLabelledImage();
 	size_t count = 0;
-	
-	QVector<iAITKIO::ImagePointer> labelSums;
-	QVector<iAITKIO::ImagePointer> probSums;
 
+	// also calculate neighbourhood uncertainty here?
+	m_labelDistr.clear();
+	m_probDistr.clear();
 	typedef itk::AddImageFilter<itk::Image<double, 3> > AddImgFilterType;
 	for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 	{
 		for (QSharedPointer<iAMember> member : sampling->GetMembers())
 		{
-			iAITKIO::ImagePointer labelImg = member->GetLabelledImage();
+			IntImagePointer labelImg = dynamic_cast<IntImage*>(member->GetLabelledImage().GetPointer());
 			QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
 			if (probImgs.size() != labelCount)
 			{
 				DEBUG_LOG("Not enough probability images available!");
 				return;
 			}
-			if (labelSums.empty())
+			if (m_labelDistr.empty())
 			{	// initialized empty sums:
 				for (int i = 0; i < labelCount; ++i)
 				{	// AllocateImage automatically initializes to 0
-					auto labelSumI = AllocateImage(labelImg);
-					auto probsSumI = AllocateImage(probImgs[0]);
-					labelSums.push_back(labelSumI);
-					probSums.push_back(probsSumI);
+					auto labelSumI = CreateImage<IntImage>(labelImg);
+					m_labelDistr.push_back(labelSumI);
 				}
 			}
-			// AddImageFilter maybe overkill?
+			bool allFresh = m_probDistr.empty();
 			for (int l = 0; l < labelCount; ++l)
 			{
-				AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
-				addImgFilter->SetInput1(dynamic_cast<itk::Image<double, 3>*>(probSums[l].GetPointer()));
-				addImgFilter->SetInput2(dynamic_cast<itk::Image<double, 3>*>(probImgs[l].GetPointer()));
-				addImgFilter->Update();
-				probSums[l] = addImgFilter->GetOutput();
+				// create probability histogram here?
+				if (allFresh)
+				{
+					m_probDistr.push_back(probImgs[l]);
+				}
+				else
+				{
+					AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+					addImgFilter->InPlaceOn();
+					addImgFilter->SetInput(dynamic_cast<itk::Image<double, 3>*>(m_probDistr[l].GetPointer()));
+					addImgFilter->SetInput2(dynamic_cast<itk::Image<double, 3>*>(probImgs[l].GetPointer()));
+					addImgFilter->Update();
+				}
+			}
+			itk::Size<3> size = labelImg->GetLargestPossibleRegion().GetSize();
+			itk::Index<3> idx;
+			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+			{
+				for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+				{
+					for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+					{
+						int label = labelImg->GetPixel(idx);
+						// optimize speed via iterators / direct access?
+						m_labelDistr[label]->SetPixel(idx, m_labelDistr[label]->GetPixel(idx) + 1);
+					}
+				}
 			}
 			++count;
 		}
 	}
 
-	// divide
+	// divide by count to get distributions:
+	double factor = 1.0 / count;
+	typedef itk::MultiplyImageFilter<IntImage, DoubleImage, DoubleImage> IntToDoubleMultiplyImg;
+	typedef itk::MultiplyImageFilter<DoubleImage, DoubleImage, DoubleImage> DoubleMultiplyImg;
+	for (int l = 0; l < labelCount; ++l)
+	{
+		auto multiplyLabelFilter = IntToDoubleMultiplyImg::New();
+		multiplyLabelFilter->SetInput(m_labelDistr[l]);
+		multiplyLabelFilter->InPlaceOn();
+		multiplyLabelFilter->SetConstant2(factor);
+		multiplyLabelFilter->Update();
+
+		auto multiplyProbFilter = DoubleMultiplyImg::New();
+		multiplyProbFilter->SetInput(m_probDistr[l]);
+		multiplyProbFilter->InPlaceOn();
+		multiplyProbFilter->SetConstant2(factor);
+		multiplyProbFilter->Update();
+	}
 }
 
 bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
