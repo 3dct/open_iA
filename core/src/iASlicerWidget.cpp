@@ -48,11 +48,8 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 
-//Klara
-#include <vtkImageMapper.h>
 #include <vtkActor.h>
 #include <vtkPoints.h>
-#include <vtkImageMapToColors.h>
 #include <vtkImageActor.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
@@ -61,14 +58,6 @@
 #include <vtkRegularPolygonSource.h>
 #include <qmath.h>
 #include <vtkPolyDataMapper.h>
-#include<vtkActor2D.h>
-#include <vtkProperty2D.h>
-// not needed later on (just for external windows)
-#include <vtkImageGridSource.h>
-#include <vtkRenderWindow.h>
-#include <vtkLookupTable.h>
-#include <vtkImageBlend.h>
-#include <vtkImageMapToColors.h>
 
 #include <QDebug.h>
 #include <vtkSphereSource.h>
@@ -180,7 +169,6 @@ iASlicerWidget::~iASlicerWidget()
 
 void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 {
-	//Klara
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 
 	// vtk Interactor tastenbelegung
@@ -205,7 +193,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 			m_slicerDataExternal->GetReslicer()->SetAutoCropOutput
 				( !m_slicerDataExternal->GetReslicer()->GetAutoCropOutput() );
 
-			// Clear outdated circles and actors 
+			// Clear outdated circles and actors (not needed for final version)
 			for ( int i = 0; i < circle1ActList.length(); ++i )
 				ren->RemoveActor( circle1ActList.at( i ) );
 			//circle1List.clear();
@@ -214,11 +202,9 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 			for ( int i = 0; i < circle2ActList.length(); ++i )
 				ren->RemoveActor( circle2ActList.at( i ) );
 			circle2List.clear();
-			circle2ActList.clear();
+			circle2ActList.clear(); //*/
 
 			ren->RemoveActor( fisheyeActor );
-			//ren->RemoveActor(fisheyeActor_inner1);
-			//ren->RemoveActor(fisheyeActor_inner2);
 		
 			// No fisheye transform
 			double bounds[6];
@@ -250,37 +236,82 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 		if (event->modifiers().testFlag(Qt::ControlModifier)) {
 			if (event->key() == Qt::Key_Minus) {
 
-				if ((innerFisheyeRadius+2.0) <= fisheyeRadius) {
-					innerFisheyeRadius = innerFisheyeRadius + 2.0;
+				if (fisheyeRadius <= 20 && innerFisheyeRadius + 1.0 <= 20.0) {
+					innerFisheyeRadius = innerFisheyeRadius + 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+
 				}
+
+				else {
+					if ((innerFisheyeRadius + 2.0) <= fisheyeRadius) {
+						innerFisheyeRadius = innerFisheyeRadius + 2.0;
+						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+					}
+
+				}
+
+				
 			}
 			if (event->key() == Qt::Key_Plus) {
-				if ((innerFisheyeRadius-2.0) >= (innerFisheyeMinRadius)) {
-					innerFisheyeRadius = innerFisheyeRadius - 2.0;
+
+				if (fisheyeRadius <= 20 && innerFisheyeRadius - 1.0 >= 1.0) {
+					innerFisheyeRadius = innerFisheyeRadius - 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+
+				}
+				else {
+					if ((innerFisheyeRadius - 2.0) >= (innerFisheyeMinRadius)) {
+						innerFisheyeRadius = innerFisheyeRadius - 2.0;
+						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+
+				}
 				}
 			}
 		}
 		else if (!(event->modifiers().testFlag(Qt::ControlModifier))) {
 			if (event->key() == Qt::Key_Plus) {
-				if (!(fisheyeRadius + 10.0 > fisheyeRadiusDefault + 140.0)) {
-					fisheyeRadius = fisheyeRadius + 10.0;
-					innerFisheyeRadius = innerFisheyeRadius + 10.0;
-					innerFisheyeMinRadius = innerFisheyeMinRadius + 8;
+
+				if (fisheyeRadius + 1.0 <= 20.0) {
+					fisheyeRadius = fisheyeRadius + 1.0;
+					innerFisheyeRadius = innerFisheyeRadius + 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+
 				}
+				else {
+					if (!(fisheyeRadius + 10.0 > maxFisheyeRadius)) {
+						fisheyeRadius = fisheyeRadius + 10.0;
+						innerFisheyeRadius = innerFisheyeRadius + 10.0;
+						innerFisheyeMinRadius = innerFisheyeMinRadius + 8;
+						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+
+					}
+				}
+
+				
 			}
 			if (event->key() == Qt::Key_Minus) {
-				if (!(fisheyeRadius - 10.0 < fisheyeRadiusDefault - 20.0)) {
-					fisheyeRadius = fisheyeRadius - 10.0;
-					innerFisheyeRadius = innerFisheyeRadius - 10.0;
-					innerFisheyeMinRadius = innerFisheyeMinRadius - 8;
-					
-					if (innerFisheyeRadius < innerFisheyeMinRadius)
-						innerFisheyeRadius = innerFisheyeMinRadius;
 
-					updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+				if (fisheyeRadius - 1.0 < 20.0 && fisheyeRadius - 1.0 >= minFisheyeRadius) {
+					fisheyeRadius = fisheyeRadius - 1.0;
+					innerFisheyeRadius = innerFisheyeRadius - 1.0;
+					if (innerFisheyeMinRadius > 1.0)
+						innerFisheyeMinRadius = 1.0;
+
+					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+
+				}
+				else {
+
+					if (!(fisheyeRadius - 10.0 < minFisheyeRadius)) {
+						fisheyeRadius = fisheyeRadius - 10.0;
+						innerFisheyeRadius = innerFisheyeRadius - 10.0;
+						innerFisheyeMinRadius = innerFisheyeMinRadius - 8;
+
+						if (innerFisheyeRadius < innerFisheyeMinRadius)
+							innerFisheyeRadius = innerFisheyeMinRadius;
+
+						updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+					}
 				}
 			}
 		}
@@ -390,7 +421,6 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 
 	pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 
-	//Klara
 	if ( fisheyeLensActivated )
 	{
 		vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
@@ -884,19 +914,17 @@ void iASlicerWidget::menuSideBySideMagicLens()
 	m_magicLensExternal->SetViewMode(iAMagicLens::SIDE_BY_SIDE);
 }
 
-
-//Klara
 void iASlicerWidget::initializeFisheyeLens(vtkImageReslice* reslicer)
 {
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 
 	fisheyeTransform = vtkSmartPointer<vtkThinPlateSplineTransform>::New();
 	fisheyeTransform->SetBasisToR2LogR();
-
 	p_source = vtkSmartPointer<vtkPoints>::New();
 	p_target = vtkSmartPointer<vtkPoints>::New();
 	p_source->SetNumberOfPoints( 32 );
 	p_target->SetNumberOfPoints( 32 );
+	reslicer->SetInterpolationModeToLinear(); // added while testing
 
 	fisheye = vtkSmartPointer<vtkRegularPolygonSource>::New();
 	fisheye->SetNumberOfSides( 60 );
@@ -907,38 +935,8 @@ void iASlicerWidget::initializeFisheyeLens(vtkImageReslice* reslicer)
 	fisheyeActor = vtkSmartPointer<vtkActor>::New();
 	fisheyeActor->GetProperty()->SetColor( 1.00000, 0.50196, 0.00000 );
 	fisheyeActor->GetProperty()->SetOpacity( 1.0 );
-	//fisheyeActor->GetProperty()->SetLineStipplePattern( 0x00FF );
-	//fisheyeActor->GetProperty()->SetLineStippleRepeatFactor( 2.0 );
 	fisheyeActor->SetMapper( fisheyeMapper );
 	ren->AddActor(fisheyeActor);
-
-	/*fisheye_inner1 = vtkSmartPointer<vtkRegularPolygonSource>::New();
-	fisheye_inner1->SetNumberOfSides(60);
-	fisheye_inner1->GeneratePolygonOff(); // just outlines;
-	fisheye_inner1->SetRadius(50.0);
-	fisheyeMapper_inner1 = vtkSmartPointer<vtkPolyDataMapper>::New();
-	fisheyeMapper_inner1->SetInputConnection(fisheye_inner1->GetOutputPort());
-	fisheyeActor_inner1 = vtkSmartPointer<vtkActor>::New();
-	fisheyeActor_inner1->GetProperty()->SetColor(1.00000, 0.50196, 0.00000);
-	fisheyeActor_inner1->GetProperty()->SetOpacity(1.0);
-	fisheyeActor_inner1->GetProperty()->SetLineStipplePattern(0x00FF);
-	fisheyeActor_inner1->GetProperty()->SetLineStippleRepeatFactor(2.0);
-	fisheyeActor_inner1->SetMapper(fisheyeMapper_inner1);
-	ren->AddActor(fisheyeActor_inner1); //*/
-
-	/*fisheye_inner2 = vtkSmartPointer<vtkRegularPolygonSource>::New();
-	fisheye_inner2->SetNumberOfSides(60);
-	fisheye_inner2->GeneratePolygonOff(); // just outlines;
-	fisheye_inner2->SetRadius(50.0);
-	fisheyeMapper_inner2 = vtkSmartPointer<vtkPolyDataMapper>::New();
-	fisheyeMapper_inner2->SetInputConnection(fisheye_inner2->GetOutputPort());
-	fisheyeActor_inner2 = vtkSmartPointer<vtkActor>::New();
-	fisheyeActor_inner2->GetProperty()->SetColor(1.00000, 0.50196, 0.00000);
-	fisheyeActor_inner2->GetProperty()->SetOpacity(1.0);
-	fisheyeActor_inner2->GetProperty()->SetLineStipplePattern(0x00FF);
-	fisheyeActor_inner2->GetProperty()->SetLineStippleRepeatFactor(2.0);
-	fisheyeActor_inner2->SetMapper(fisheyeMapper_inner2);
-	ren->AddActor(fisheyeActor_inner2); //*/
 
 	// Create circle actors (green and red) to show the transform landmarks
 	for ( int i = 0; i < p_target->GetNumberOfPoints(); ++i )
@@ -985,7 +983,6 @@ void iASlicerWidget::initializeFisheyeLens(vtkImageReslice* reslicer)
 	}
 }
 
-// von actor daten holen
 void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* slicerData , double lensRadius, double innerLensRadius)
 {
 	vtkImageData * reslicedImgData = slicerData->GetReslicer()->GetOutput();
@@ -996,67 +993,46 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	
 	double bounds[6];
 	m_slicerDataExternal->GetReslicer()->GetInformationInput()->GetBounds( bounds );
-	
-	p_target->SetNumberOfPoints( 32 );
+
+	p_target->SetNumberOfPoints( 32 ); // already set above!
 	p_source->SetNumberOfPoints( 32 );
 	iASlicerMode mode = slicerData->getMode();
 	int sn = slicerData->getSliceNumber();
+
+	cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << endl;
+	cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << endl;
 
 	switch ( slicerData->getMode() )
 	{
 		case iASlicerMode::YZ:
 			p_target->SetPoint( 0, sn * spacing[0], bounds[2], bounds[2] ); //x_min, y_min, bottom left // left border points
-			//p_target->SetPoint( 1, sn * spacing[0], bounds[2], 0.25 * bounds[5] );
 			p_target->SetPoint( 1, sn * spacing[0], bounds[2], 0.5  * bounds[5] );
-			//p_target->SetPoint( 3, sn * spacing[0], bounds[2], 0.75 * bounds[5] );
 			p_target->SetPoint( 2, sn * spacing[0], bounds[2], bounds[5] ); //x_min, y_max, top left // top border points
-			//p_target->SetPoint( 5, sn * spacing[0], 0.25 * bounds[3], bounds[5]);
 			p_target->SetPoint( 3, sn * spacing[0], 0.5  * bounds[3], bounds[5]);
-			//p_target->SetPoint( 7, sn * spacing[0], 0.75 * bounds[3], bounds[5]);
 			p_target->SetPoint( 4, sn * spacing[0], bounds[3], bounds[5] ); //x_max, y_max, top right // right border points
-			//p_target->SetPoint( 9, sn * spacing[0],  bounds[3], 0.75 * bounds[5] );
 			p_target->SetPoint( 5, sn * spacing[0], bounds[3], 0.5  * bounds[5] );
-			//p_target->SetPoint( 11, sn * spacing[0], bounds[3], 0.25 * bounds[5] );
 			p_target->SetPoint( 6, sn * spacing[0], bounds[3], bounds[2] ); //x_max, y_min, bottom right // bottom border points
-			//p_target->SetPoint( 13, sn * spacing[0], 0.75 * bounds[3], bounds[2] );
 			p_target->SetPoint( 7, sn * spacing[0], 0.5  * bounds[3], bounds[2] );
-			//p_target->SetPoint( 15, sn * spacing[0], 0.25 * bounds[3], bounds[2] );
 			break;
 		case iASlicerMode::XY:
 			p_target->SetPoint( 0, bounds[0], bounds[2], sn * spacing[2] ); //x_min, y_min, bottom left // left border points
-			//p_target->SetPoint( 1, bounds[0], 0.25 * bounds[3], sn * spacing[2]);
 			p_target->SetPoint( 1, bounds[0], 0.5  * bounds[3], sn * spacing[2]);
-			//p_target->SetPoint( 3, bounds[0], 0.75 * bounds[3], sn * spacing[2]);
 			p_target->SetPoint( 2, bounds[0], bounds[3], sn * spacing[2] ); //x_min, y_max, top left // top border points
-			//p_target->SetPoint( 5, 0.25 * bounds[1], bounds[3], sn * spacing[2]);
 			p_target->SetPoint( 3, 0.5  * bounds[1], bounds[3], sn * spacing[2]);
-			//p_target->SetPoint( 7, 0.75 * bounds[1], bounds[3], sn * spacing[2]);
 			p_target->SetPoint( 4, bounds[1], bounds[3], sn * spacing[2] ); //x_max, y_max, top right // right border points
-			//p_target->SetPoint( 9, bounds[1], 0.75 * bounds[3], sn * spacing[2]);
 			p_target->SetPoint( 5, bounds[1], 0.5  * bounds[3], sn * spacing[2]);
-			//p_target->SetPoint( 11, bounds[1], 0.25 * bounds[3], sn * spacing[2]);
 			p_target->SetPoint( 6, bounds[1], bounds[2], sn * spacing[2] ); //x_max, y_min, bottom right // bottom border points
-			//p_target->SetPoint( 13, 0.75 * bounds[1], bounds[2], sn * spacing[2]);
 			p_target->SetPoint( 7, 0.5  * bounds[1], bounds[2], sn * spacing[2]);
-			//p_target->SetPoint( 15, 0.25 * bounds[1], bounds[2], sn * spacing[2]);
 			break;
 		case iASlicerMode::XZ:
 			p_target->SetPoint( 0, bounds[0], sn * spacing[1], bounds[4] ); //x_min, y_min, bottom left // left border points
-			//p_target->SetPoint( 1, bounds[0], sn * spacing[1], 0.25 * bounds[5]);
 			p_target->SetPoint( 1, bounds[0], sn * spacing[1], 0.5  * bounds[5]);
-			//p_target->SetPoint( 3, bounds[0], sn * spacing[1], 0.75 * bounds[5]);
 			p_target->SetPoint( 2, bounds[0], sn * spacing[1], bounds[5] ); //x_min, y_max, top left // top border points
-			//p_target->SetPoint( 5, 0.25 * bounds[1], sn * spacing[1], bounds[5] );
 			p_target->SetPoint( 3, 0.5  * bounds[1], sn * spacing[1], bounds[5] );
-			//p_target->SetPoint( 7, 0.75 * bounds[1], sn * spacing[1], bounds[5] );
 			p_target->SetPoint( 4, bounds[1], sn * spacing[1], bounds[5] ); //x_max, y_max, top right // right border points
-			//p_target->SetPoint( 9, bounds[1], sn * spacing[1], 0.75 * bounds[5] );
 			p_target->SetPoint( 5, bounds[1], sn * spacing[1], 0.5  * bounds[5] );
-			//p_target->SetPoint( 11, bounds[1], sn * spacing[1], 0.25 * bounds[5] );
 			p_target->SetPoint( 6, bounds[1], sn * spacing[1],  bounds[4] ); //x_max, y_min, bottom right // bottom border points
-			//p_target->SetPoint( 13, 0.75 * bounds[1], sn * spacing[1], bounds[4] );
 			p_target->SetPoint( 7, 0.5  * bounds[1], sn * spacing[1], bounds[4] );
-			//p_target->SetPoint( 15, 0.25 * bounds[1], sn * spacing[1], bounds[4] );
 			break;
 		default:
 			break;
@@ -1064,71 +1040,15 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 
 	for ( int i = 0; i < p_target->GetNumberOfPoints()- (p_target->GetNumberOfPoints()-8); ++i )
 		p_source->SetPoint( i, p_target->GetPoint( i ) ); //*/
-	// outer circle 1
+
 	int fixPoints = 8;
-	/*for (int fix = p_target->GetNumberOfPoints()-16-8-8-8-8; fix < p_target->GetNumberOfPoints()-16-8-8-8; fix++)
-	{
-		double fixRadiusX = (lensRadius + 10.0) * std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-		double fixRadiusY = (lensRadius + 10.0) * std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-
-		switch (mode)
-		{
-		case iASlicerMode::YZ:
-			p_source->SetPoint(fix, sn * spacing[0], focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY);
-			p_target->SetPoint(fix, sn * spacing[0], focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY);
-			break;
-		case iASlicerMode::XY:
-			p_target->SetPoint(fix, focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY, sn * spacing[2]);
-			p_source->SetPoint(fix, focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY, sn * spacing[2]);
-			break;
-		case iASlicerMode::XZ:
-			p_target->SetPoint(fix, focalPt[0] + fixRadiusX, sn * spacing[1], focalPt[1] + fixRadiusY);
-			p_source->SetPoint(fix, focalPt[0] + fixRadiusX, sn * spacing[1], focalPt[1] + fixRadiusY);
-			break;
-		default:
-			break;
-		}
-	}//*/
-	// outer quad 2
-	/*fixPoints = 8;
-	for (int fix = p_target->GetNumberOfPoints() - 4-8-8-8; fix < p_target->GetNumberOfPoints() - 8-8-8; fix++)
-	{
-		//int f = fix + fix + 1;
-		double fixRadiusX = (lensRadius + 300.0) * std::cos(((2 * fix) + 1) * (360 / fixPoints) * M_PI / 180) * spacing[0];
-		double fixRadiusY = (lensRadius + 300.0) * std::sin(((2 * fix) + 1) * (360 / fixPoints) * M_PI / 180) * spacing[0];
-
-		switch (mode)
-		{
-		case iASlicerMode::YZ:
-			p_source->SetPoint(fix, sn * spacing[0], focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY);
-			p_target->SetPoint(fix, sn * spacing[0], focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY);
-			break;
-		case iASlicerMode::XY:
-			p_target->SetPoint(fix, focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY, sn * spacing[2]);
-			p_source->SetPoint(fix, focalPt[0] + fixRadiusX, focalPt[1] + fixRadiusY, sn * spacing[2]);
-			break;
-		case iASlicerMode::XZ:
-			p_target->SetPoint(fix, focalPt[0] + fixRadiusX, sn * spacing[1], focalPt[1] + fixRadiusY);
-			p_source->SetPoint(fix, focalPt[0] + fixRadiusX, sn * spacing[1], focalPt[1] + fixRadiusY);
-			break;
-		default:
-			break;
-		}
-	}//*/
-	// outer circle 3
-	fixPoints = 8;
+	// outer circle 1
 	double fixRadiusX;
 	double fixRadiusY;
 	for (int fix = p_target->GetNumberOfPoints() - 8 - 8 - 8; fix < p_target->GetNumberOfPoints() - 8 - 8; fix++)
 	{
-		//if (fix % 2 == 0) {
 			fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
 			fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-		//}
-		//else {
-			//fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-			//fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-		//}
 
 		switch (mode)
 		{
@@ -1148,19 +1068,13 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 			break;
 		}
 	}
-	// outer circle 4
+	// outer circle 2
 	fixPoints = 8;
 	for (int fix = p_target->GetNumberOfPoints() - 8 - 8; fix < p_target->GetNumberOfPoints() - 8; fix++)
 	{
-		//if (fix % 2 == 0) {
 			fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
 			fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-		//}
-		//else {
-			//fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-			//fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-		//}
-
+		
 		switch (mode)
 		{
 		case iASlicerMode::YZ:
@@ -1181,42 +1095,11 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	}
 
 	int pointsCount = 8;
-	/*double radius;
-	for ( int i = p_target->GetNumberOfPoints() - pointsCount-8; i < p_target->GetNumberOfPoints()-8; ++i )
-	{
-		//radius = 45.0;
-		double xCoordCircle1 = innerLensRadius * std::cos( i * ( 360 / pointsCount ) * M_PI / 180 ) * spacing[0];
-		double yCoordCircle1 = innerLensRadius * std::sin( i * ( 360 / pointsCount ) * M_PI / 180 ) * spacing[0];
-		//radius = 50.0;
-		double xCoordCircle2 = lensRadius * std::cos( i * ( 360 / pointsCount ) * M_PI / 180 ) * spacing[0];
-		double yCoordCircle2 = lensRadius * std::sin( i * ( 360 / pointsCount ) * M_PI / 180 ) * spacing[0];
-		
-		switch ( mode )
-		{
-			case iASlicerMode::YZ:
-				p_source->SetPoint( i, sn * spacing[0], focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2 );
-				p_target->SetPoint( i, sn * spacing[0], focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1 );
-				break;
-			case iASlicerMode::XY:
-				p_target->SetPoint( i, focalPt[0] + xCoordCircle1, focalPt[1] + yCoordCircle1, sn * spacing[2] );
-				p_source->SetPoint( i, focalPt[0] + xCoordCircle2, focalPt[1] + yCoordCircle2, sn * spacing[2] );
-				break;
-			case iASlicerMode::XZ:
-				p_target->SetPoint( i, focalPt[0] + xCoordCircle1, sn * spacing[1], focalPt[1] + yCoordCircle1 );
-				p_source->SetPoint( i, focalPt[0] + xCoordCircle2, sn * spacing[1], focalPt[1] + yCoordCircle2 );
-				break;
-			default:
-				break;
-		}
-	}//*/
-
-	pointsCount = 8;
 	for (int i = p_target->GetNumberOfPoints() - pointsCount; i < p_target->GetNumberOfPoints(); ++i)
 	{
-		//radius = 35.0;
 		double xCoordCircle1 = (innerLensRadius) * std::cos(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
 		double yCoordCircle1 = (innerLensRadius) * std::sin(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
-		//radius = 50.0;
+
 		double xCoordCircle2 = (lensRadius) * std::cos(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
 		double yCoordCircle2 = (lensRadius) * std::sin(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
 
@@ -1262,23 +1145,14 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 
 	fisheye->SetCenter( focalPt[0], focalPt[1], 0.0 );
 	fisheye->SetRadius( lensRadius * slicerData->GetReslicer()->GetOutput()->GetSpacing()[0] );
-	//fisheyeActor->GetProperty()->SetLineStipplePattern(0x00FF);
-	//fisheyeActor->GetProperty()->SetLineStippleRepeatFactor(2.0);
-
-	//fisheye_inner1->SetCenter(focalPt[0], focalPt[1], 0.0);
-	//fisheye_inner1->SetRadius((innerLensRadius) * slicerData->GetReslicer()->GetOutput()->GetSpacing()[0]);
-	//fisheye_inner2->SetCenter(focalPt[0], focalPt[1], 0.0);
-	//fisheye_inner2->SetRadius((innerLensRadius-10.0) * slicerData->GetReslicer()->GetOutput()->GetSpacing()[0]);
-
 
 	fisheyeTransform->SetSourceLandmarks(p_source); // red
 	fisheyeTransform->SetTargetLandmarks(p_target);  // green
-
+	
 	slicerData->GetReslicer()->SetResliceTransform( fisheyeTransform );
 	slicerData->GetReslicer()->Update();
-	slicerData->update();
+	slicerData->update(); 
 }
-//endKlara
 
 void iASlicerWidget::updateMagicLens()
 {

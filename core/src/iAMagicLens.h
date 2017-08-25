@@ -40,21 +40,6 @@ class vtkScalarsToColors;
 class vtkTextActor;
 class vtkWindowToImageFilter;
 
-// TestMagicLens
-class vtkRenderWindow;
-class vtkImageBlend;
-class vtkImageMapper;
-class vtkActor2D;
-class vtkThinPlateSplineTransform;
-class vtkPoints;
-class vtkRegularPolygonSource;
-// End TestMagicLens
-
-// Klara
-class vtkImageGridSource;
-class QPainter;
-// endKlara
-
 class open_iA_Core_API iAMagicLens
 {
 public:
@@ -98,10 +83,6 @@ public:
 	void SetOpacity(double opacity);
 	double GetOpacity();
 
-	// TestMagicLens
-	void UpdateTransform( double * focalPt, vtkImageReslice * reslicer );
-	// End TestMagicLens
-
 protected:
 	iAFramedQVTKWidget2 * m_qvtkWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWnd;
@@ -119,38 +100,6 @@ protected:
 	vtkSmartPointer<vtkImageMapToColors> m_bgImageToColors;
 	vtkSmartPointer<vtkImageActor> m_bgImageActor;
 	bool m_isInitialized;
-
-	//Klara
-	vtkSmartPointer<vtkImageGridSource> lensGrid;
-	vtkSmartPointer<vtkImageMapToColors> m_gridToColors;
-	vtkSmartPointer<vtkImageActor> m_gridImageActor;
-	vtkSmartPointer<vtkImageBlend> m_blend; // blends the grid into the lens image
-	vtkSmartPointer<vtkImageReslice> m_gridReslice;
-	vtkSmartPointer<vtkActor2D> m_gridActor;
-	vtkSmartPointer<vtkImageMapper> m_gridMapper;
-
-	vtkSmartPointer<vtkRegularPolygonSource> fisheye;
-	
-	//endKlara
-
-	// TestMagicLens
-	vtkSmartPointer<vtkRenderer> m_TestRenderer;
-	vtkSmartPointer<vtkRenderWindow> m_TestRenderWindow;
-	vtkSmartPointer<vtkImageMapToColors> m_TestAlpha;
-	vtkSmartPointer<vtkImageBlend> m_TestBlend;
-	vtkSmartPointer<vtkImageReslice> m_TestReslice;
-	vtkSmartPointer<vtkImageMapper> m_TestMap;
-	vtkSmartPointer<vtkActor2D> m_TestMapAct;
-	vtkSmartPointer<vtkThinPlateSplineTransform> m_transform;
-	vtkSmartPointer< vtkPoints > m_p1;
-	vtkSmartPointer< vtkPoints > m_p2;
-	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle1List;
-	QList<vtkSmartPointer<vtkActor2D>> circle1ActList;
-	QList<vtkSmartPointer<vtkTextActor>> textAct1List;
-	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
-	QList<vtkSmartPointer<vtkActor2D>> circle2ActList;
-	QList<vtkSmartPointer<vtkTextActor>> textAct2List;
-	// End TestMagicLens
 
 protected:
 	void SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle );
