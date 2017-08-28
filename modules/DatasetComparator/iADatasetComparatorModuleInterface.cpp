@@ -23,18 +23,9 @@
 
 #include "mainwindow.h"
 #include "mdichild.h"
-#include "iAIntensityMapper.h"
-#include "iARenderer.h"
 #include "iADatasetsFolder.h"
 
-#include <vtkPoints.h>
-#include <vtkCellArray.h>
-#include <vtkLine.h>
-#include <vtkPolyData.h>
-
 #include <QFileDialog>
-#include <QSettings>
-#include <QThread>
 #include <QMessageBox>
 
 void iADatasetComparatorModuleInterface::Initialize()
@@ -47,14 +38,14 @@ void iADatasetComparatorModuleInterface::Initialize()
 
 void iADatasetComparatorModuleInterface::DatasetComparator()
 {
-	iADatasetsFolder * datasetsFolder = new iADatasetsFolder(m_mdiChild);
+	iADatasetsFolder * datasetsFolder = new iADatasetsFolder();
 	if (!datasetsFolder->exec() == QDialog::Accepted)
 		return;
 
-	m_datasetsDir = QDir(datasetsFolder->DatasetsFolderName());
-	m_datasetsDir.setNameFilters(QStringList("*.mhd"));
+	QDir datasetsDir = QDir(datasetsFolder->DatasetsFolderName());
+	datasetsDir.setNameFilters(QStringList("*.mhd"));
 	
-	if (m_datasetsDir.entryList().size() < 1)
+	if (datasetsDir.entryList().size() < 1)
 	{
 		QMessageBox msgBox;
 		msgBox.setText("No mhd-files in this directory.");
@@ -65,60 +56,15 @@ void iADatasetComparatorModuleInterface::DatasetComparator()
 
 	PrepareActiveChild();
 
-	m_HPath = PathType::New();
-	m_HPath->SetHilbertOrder(3);	// for [8]^3 images
-	m_HPath->Initialize();
-
-	QThread* thread = new QThread;
-	iAIntensityMapper * im = new iAIntensityMapper(this);
-	im->moveToThread(thread);
-	connect(im, SIGNAL(error(QString)), this, SLOT(errorString(QString)));		//TODO: Handle error case
-	connect(thread, SIGNAL(started()), im, SLOT(process()));
-	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
-	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), this, SLOT(visualizeHilbertPath()));	//TODO: better solution to visulaize Hilbert path
-	connect(thread, SIGNAL(finished()), this, SLOT(setupHilbertLinePlots()));
-	thread->start();
-}
-
-void iADatasetComparatorModuleInterface::visualizeHilbertPath()
-{
-	// TODO: consider Spacing
-	vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-	QString str = m_DatasetIntensityMap.firstKey();
-	unsigned int pathSteps = m_DatasetIntensityMap.values(str).at(0).size();
-
-	for (unsigned int i = 0; i < pathSteps; ++i)
+	if (dc)
 	{
-		double point[3] = { (double) m_HPath->EvaluateToIndex(i)[0],
-			(double) m_HPath->EvaluateToIndex(i)[1],
-			(double) m_HPath->EvaluateToIndex(i)[2] };
-		pts->InsertNextPoint(point);
+		m_mdiChild->removeDockWidget(dc);
+		dc->PlotsContainer_verticalLayout->removeWidget(dc);
+		delete dc;
+		dc = 0;
 	}
 
-	vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
-	linesPolyData->SetPoints(pts);
-	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-	for (int i = 0; i < pathSteps - 1; ++i)
-	{
-		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-		line->GetPointIds()->SetId(0, i); 
-		line->GetPointIds()->SetId(1, i + 1); 
-		lines->InsertNextCell(line);
-	}
-	
-	linesPolyData->SetLines(lines);
-
-	m_mdiChild->getRaycaster()->setPolyData(linesPolyData);
-	m_mdiChild->getRaycaster()->update();
-}
-
-void iADatasetComparatorModuleInterface::setupHilbertLinePlots()
-{
-	hlpView = new iAHilbertLinePlots(m_mdiChild);
-	hlpView->SetData(m_DatasetIntensityMap);
-	hlpView->showHilbertLinePlots();
-	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, hlpView);
-	hlpView->raise();
+	dc = new dlg_DatasetComparator(m_mdiChild, datasetsDir);
+	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, dc);
+	dc->raise();
 }

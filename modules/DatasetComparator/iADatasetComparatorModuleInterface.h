@@ -21,13 +21,7 @@
 #pragma once
 
 #include "iAModuleInterface.h"
-#include "iAHilbertLinePlots.h"
-
-#include <itkHilbertPath.h>
-
-
-#include <QDir>
-#include <QMap>
+#include "dlg_DatasetComparator.h"
 
 class MdiChild;
 
@@ -38,17 +32,9 @@ class iADatasetComparatorModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 
-	typedef itk::HilbertPath<unsigned int, 3> PathType;
-	PathType::Pointer m_HPath;
-
-	QDir m_datasetsDir;
-	QMap<QString, QList<int> > m_DatasetIntensityMap;
-
 private slots:
 	void DatasetComparator();
-	void visualizeHilbertPath();
-	void setupHilbertLinePlots();
 
-protected:
-	iAHilbertLinePlots* hlpView;
+private:
+	dlg_DatasetComparator* dc;
 };

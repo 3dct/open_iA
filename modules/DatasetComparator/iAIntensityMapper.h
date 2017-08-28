@@ -22,14 +22,14 @@
 
 #include <QObject>
 
-class iADatasetComparatorModuleInterface;
+class dlg_DatasetComparator;
 
 class iAIntensityMapper : public QObject
 {
 	Q_OBJECT
 
 public:
-	iAIntensityMapper(iADatasetComparatorModuleInterface * dcmi);
+	iAIntensityMapper(dlg_DatasetComparator * dc);
 	~iAIntensityMapper();
 
 public slots:
@@ -40,5 +40,5 @@ signals:
 	void error(QString err);
 
 private:
-	iADatasetComparatorModuleInterface * m_dcmi;
+	dlg_DatasetComparator * m_dc;
 };

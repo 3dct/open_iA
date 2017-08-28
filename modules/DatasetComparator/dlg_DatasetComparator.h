@@ -20,26 +20,34 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_HilbertLinePlots.h"
+#include "Ui_dlg_DatasetComparator.h"
 #include "iAQTtoUIConnector.h"
+#include "mdichild.h"
+
+#include <itkHilbertPath.h>
 
 #include <QDockWidget>
+#include <QDir>
 
+typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
+typedef itk::HilbertPath<unsigned int, 3> PathType;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_HilbertLinePlots>  DatasetComparatorHLPConnector;
-
-class iAHilbertLinePlots : public DatasetComparatorHLPConnector
+class dlg_DatasetComparator : public DatasetComparatorConnector
 {
 	Q_OBJECT
 
 public:
-	iAHilbertLinePlots( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-	~iAHilbertLinePlots();
-	void showHilbertLinePlots();
+	dlg_DatasetComparator(QWidget * parent, QDir datasetsDir, Qt::WindowFlags f = 0);
+	~dlg_DatasetComparator();
+
+	PathType::Pointer m_HPath;
+	QDir m_datasetsDir;
+	QMap<QString, QList<int> > m_DatasetIntensityMap;
 
 public slots:
-	void SetData(QMap<QString, QList<int> > datasetIntensityMap);
+	void showHilbertLinePlots();
+	void visualizeHilbertPath();
 
 private:
-	QMap<QString, QList<int> > m_DatasetIntensityMap;
+	MdiChild * m_mdiChild;
 };

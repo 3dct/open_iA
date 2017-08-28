@@ -20,11 +20,17 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "iAHilbertLinePlots.h"
+#include "dlg_DatasetComparator.h"
 #include "iAColorTheme.h"
-
+#include "iAIntensityMapper.h"
 #include "defines.h"
 #include "qcustomplot.h"
+#include "iARenderer.h"
+
+#include <vtkPoints.h>
+#include <vtkCellArray.h>
+#include <vtkLine.h>
+#include <vtkPolyData.h>
 
 #include <QMap>
 #include <QList>
@@ -32,21 +38,34 @@
 
 const double golden_ratio = 0.618033988749895;
 
-iAHilbertLinePlots::iAHilbertLinePlots( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: DatasetComparatorHLPConnector( parent, f )
-{}
-
-iAHilbertLinePlots::~iAHilbertLinePlots()
-{}
-
-void iAHilbertLinePlots::SetData(QMap<QString, QList<int> > datasetIntensityMap )
+dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */ )
+	: DatasetComparatorConnector( parent, f ), 
+	m_mdiChild(static_cast<MdiChild*>(parent)),
+	m_datasetsDir(datasetsDir)
 {
-	m_DatasetIntensityMap = datasetIntensityMap;
+	m_HPath = PathType::New();
+	m_HPath->SetHilbertOrder(3);	// for [8]^3 images
+	m_HPath->Initialize();
+
+	QThread* thread = new QThread;
+	iAIntensityMapper * im = new iAIntensityMapper(this);
+	im->moveToThread(thread);
+	connect(im, SIGNAL(error(QString)), this, SLOT(errorString(QString)));		//TODO: Handle error case
+	connect(thread, SIGNAL(started()), im, SLOT(process()));
+	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
+	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
+	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+	connect(thread, SIGNAL(finished()), this, SLOT(visualizeHilbertPath()));
+	connect(thread, SIGNAL(finished()), this, SLOT(showHilbertLinePlots()));
+	thread->start();
 }
 
-void iAHilbertLinePlots::showHilbertLinePlots()
+dlg_DatasetComparator::~dlg_DatasetComparator()
+{}
+
+void dlg_DatasetComparator::showHilbertLinePlots()
 {
-	QCustomPlot * customPlot = new QCustomPlot(HilbertLinePlots_dockWidgetContents);
+	QCustomPlot * customPlot = new QCustomPlot(dockWidgetContents);
 	customPlot->legend->setVisible(true);
 	customPlot->legend->setFont(QFont("Helvetica", 11));
 	customPlot->xAxis->setLabel("Hilbert index");
@@ -96,4 +115,36 @@ void iAHilbertLinePlots::showHilbertLinePlots()
 	}
 	customPlot->graph(0)->rescaleAxes();
 	PlotsContainer_verticalLayout->addWidget(customPlot);
+}
+
+void dlg_DatasetComparator::visualizeHilbertPath()
+{
+	// TODO: Delete unused polydata! + consider Spacing?
+	vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+	QString str = m_DatasetIntensityMap.firstKey();
+	unsigned int pathSteps = m_DatasetIntensityMap.values(str).at(0).size();
+
+	for (unsigned int i = 0; i < pathSteps; ++i)
+	{
+		double point[3] = { (double) m_HPath->EvaluateToIndex(i)[0],
+			(double) m_HPath->EvaluateToIndex(i)[1],
+			(double) m_HPath->EvaluateToIndex(i)[2] };
+		pts->InsertNextPoint(point);
+	}
+
+	vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
+	linesPolyData->SetPoints(pts);
+	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+	for (int i = 0; i < pathSteps - 1; ++i)
+	{
+		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+		line->GetPointIds()->SetId(0, i);
+		line->GetPointIds()->SetId(1, i + 1);
+		lines->InsertNextCell(line);
+	}
+
+	linesPolyData->SetLines(lines);
+
+	m_mdiChild->getRaycaster()->setPolyData(linesPolyData);
+	m_mdiChild->getRaycaster()->update();
 }

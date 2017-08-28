@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>HilbertLinePlots</class>
- <widget class="QDockWidget" name="HilbertLinePlots">
+ <class>dlg_DatasetComparator</class>
+ <widget class="QDockWidget" name="dlg_DatasetComparator">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Hilber Line Plots</string>
   </property>
-  <widget class="QWidget" name="HilbertLinePlots_dockWidgetContents">
+  <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QVBoxLayout" name="PlotsContainer_verticalLayout"/>

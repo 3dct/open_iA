@@ -24,7 +24,7 @@
 
 #include "defines.h"
 #include "iAITKIO.h"
-#include "iADatasetComparatorModuleInterface.h"
+#include "dlg_DatasetComparator.h"
 #include "iATypedCallHelper.h"
 
 #include <itkImageBase.h>
@@ -52,9 +52,9 @@ void getIntensities( PathType::Pointer path, ImagePointer & image, QList<int> & 
 	}
 }
 
-iAIntensityMapper::iAIntensityMapper(iADatasetComparatorModuleInterface * dcmi)
+iAIntensityMapper::iAIntensityMapper(dlg_DatasetComparator * dc)
 {
-	m_dcmi = dcmi;
+	m_dc = dc;
 }
 
 iAIntensityMapper::~iAIntensityMapper()
@@ -63,23 +63,23 @@ iAIntensityMapper::~iAIntensityMapper()
 
 void iAIntensityMapper::process()
 {
-	QStringList datsetsList = m_dcmi->m_datasetsDir.entryList();
+	QStringList datsetsList = m_dc->m_datasetsDir.entryList();
 
 	for (int i = 0; i < datsetsList.size(); ++i)
 	{
 		QList<int> intensityList;
-		QString dataset = m_dcmi->m_datasetsDir.filePath(datsetsList.at(i));
+		QString dataset = m_dc->m_datasetsDir.filePath(datsetsList.at(i));
 		ScalarPixelType pixelType;
 		ImagePointer image = iAITKIO::readFile( dataset, pixelType, true);
 		try
 		{
-			ITK_TYPED_CALL(getIntensities, pixelType, m_dcmi->m_HPath, image, intensityList);
+			ITK_TYPED_CALL(getIntensities, pixelType, m_dc->m_HPath, image, intensityList);
 		}
 		catch (itk::ExceptionObject &excep)
 		{
 			emit error("ITK exception"); // TODO: Better description
 		}
-		m_dcmi->m_DatasetIntensityMap.insert(datsetsList.at(i), intensityList);
+		m_dc->m_DatasetIntensityMap.insert(datsetsList.at(i), intensityList);
 	}
 	emit finished();
 }
