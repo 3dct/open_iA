@@ -30,11 +30,16 @@ class vtkImageData;
 
 typedef vtkSmartPointer<vtkImageData> ImagePointer;
 
+class QVTKOpenGLWidget;
+
 class iASpatialView: public QWidget
 {
 	Q_OBJECT
 public:
+	iASpatialView();
 	void ShowImage(ImagePointer img);
 signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
+private:
+	QVTKOpenGLWidget* m_vtkWidget;
 };
