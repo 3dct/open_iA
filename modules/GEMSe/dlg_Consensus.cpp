@@ -504,6 +504,7 @@ void dlg_Consensus::LabelVoters(int)
 	int labelVoters = slLabelVoters->value();
 	QString name = QString("Voting Best %1 of label (%2)").arg(labelVoters).arg(CollectedIDs(selection));
 	lbValue->setText(name);
+	lbValue->setMinimumWidth(10);
 	UpdateWeightPlot();
 	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
