@@ -21,10 +21,12 @@
 #include "iAEnsemble.h"
 
 #include "iAEnsembleDescriptorFile.h"
-#include "iASamplingResults.h"
 #include "iAMember.h"
+#include "iASamplingResults.h"
 
+#include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAPerformanceHelper.h"
 #include "iAToolsITK.h"
 
 #include <itkAddImageFilter.h>
@@ -57,11 +59,9 @@ bool iAEnsemble::load(iAEnsembleDescriptorFile const & ensembleFile)
 	return true;
 }
 
-
-typedef itk::Image<double, 3> DoubleImage;
-typedef itk::Image<int, 3> IntImage;
-typedef IntImage::Pointer IntImagePointer;
-
+typedef itk::AddImageFilter<itk::Image<double, 3> > AddImgFilterType;
+typedef itk::MultiplyImageFilter<IntImage, DoubleImage, DoubleImage> IntToDoubleMultiplyImg;
+typedef itk::MultiplyImageFilter<DoubleImage, DoubleImage, DoubleImage> DoubleMultiplyImg;
 
 void iAEnsemble::createUncertaintyImages(int labelCount)
 {
@@ -71,51 +71,30 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 		DEBUG_LOG("No samplings or no members found!");
 		return;
 	}
-	m_samplings[0]->Get(0)->GetLabelledImage();
+	//m_samplings[0]->Get(0)->GetLabelledImage();
 	size_t count = 0;
 
 	// also calculate neighbourhood uncertainty here?
+
+	iAPerformanceHelper labelDistrMeasure;
+	labelDistrMeasure.start("Label Distribution Loop");
 	m_labelDistr.clear();
-	m_probDistr.clear();
-	typedef itk::AddImageFilter<itk::Image<double, 3> > AddImgFilterType;
+	itk::Size<3> size;
+	itk::Index<3> idx;
 	for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 	{
 		for (QSharedPointer<iAMember> member : sampling->GetMembers())
 		{
-			IntImagePointer labelImg = dynamic_cast<IntImage*>(member->GetLabelledImage().GetPointer());
-			QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
-			if (probImgs.size() != labelCount)
-			{
-				DEBUG_LOG("Not enough probability images available!");
-				return;
-			}
+			typename IntImage::Pointer labelImg = dynamic_cast<IntImage*>(member->GetLabelledImage().GetPointer());
 			if (m_labelDistr.empty())
-			{	// initialized empty sums:
+			{	// initialize empty sums:
 				for (int i = 0; i < labelCount; ++i)
 				{	// AllocateImage automatically initializes to 0
 					auto labelSumI = CreateImage<IntImage>(labelImg);
 					m_labelDistr.push_back(labelSumI);
 				}
+				size = labelImg->GetLargestPossibleRegion().GetSize();
 			}
-			bool allFresh = m_probDistr.empty();
-			for (int l = 0; l < labelCount; ++l)
-			{
-				// create probability histogram here?
-				if (allFresh)
-				{
-					m_probDistr.push_back(probImgs[l]);
-				}
-				else
-				{
-					AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
-					addImgFilter->InPlaceOn();
-					addImgFilter->SetInput(dynamic_cast<itk::Image<double, 3>*>(m_probDistr[l].GetPointer()));
-					addImgFilter->SetInput2(dynamic_cast<itk::Image<double, 3>*>(probImgs[l].GetPointer()));
-					addImgFilter->Update();
-				}
-			}
-			itk::Size<3> size = labelImg->GetLargestPossibleRegion().GetSize();
-			itk::Index<3> idx;
 			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
 			{
 				for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
@@ -131,11 +110,12 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 			++count;
 		}
 	}
-
-	// divide by count to get distributions:
+	labelDistrMeasure.stop();
 	double factor = 1.0 / count;
-	typedef itk::MultiplyImageFilter<IntImage, DoubleImage, DoubleImage> IntToDoubleMultiplyImg;
-	typedef itk::MultiplyImageFilter<DoubleImage, DoubleImage, DoubleImage> DoubleMultiplyImg;
+	/*
+	iAPerformanceHelper labelDistrDivMeasure;
+	labelDistrDivMeasure.start("Label Distribution Divisions Loop");
+	// divide by count to get distributions:
 	for (int l = 0; l < labelCount; ++l)
 	{
 		auto multiplyLabelFilter = IntToDoubleMultiplyImg::New();
@@ -143,13 +123,194 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 		multiplyLabelFilter->InPlaceOn();
 		multiplyLabelFilter->SetConstant2(factor);
 		multiplyLabelFilter->Update();
+	}
+	labelDistrDivMeasure.stop();
+	*/
 
+	iAPerformanceHelper labelDistrSumEntropyLoopMeasure;
+	labelDistrSumEntropyLoopMeasure.start("Label Distribution Entropy Loop");
+	// TOOD: itk entropy filter!
+	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+	{
+		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+		{
+			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			{
+				// calculate entropy
+				double entropy = 0;
+				for (int l = 0; l < labelCount; ++l)
+				{
+					// optimize speed via iterators / direct access?
+					double prob = m_labelDistr[l]->GetPixel(idx) / count;
+					if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
+					{
+						entropy += (prob * std::log(prob));
+					}
+				}
+				entropy = -entropy;	// * normalizeFactor	//entropy = clamp(0.0, limit, entropy);
+				m_probSumEntropy->SetPixel(idx, entropy);
+			}
+		}
+	}
+	labelDistrSumEntropyLoopMeasure.stop();
+
+
+	iAPerformanceHelper probSumLoopMeasure;
+	probSumLoopMeasure.start("Probability Sum Loop");
+	m_probDistr.clear();
+	for (QSharedPointer<iASamplingResults> sampling : m_samplings)
+	{
+		for (QSharedPointer<iAMember> member : sampling->GetMembers())
+		{
+			QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
+			if (probImgs.size() != labelCount)
+			{
+				DEBUG_LOG("Not enough probability images available!");
+				return;
+			}
+			bool allFresh = m_probDistr.empty();
+			for (int l = 0; l < labelCount; ++l)
+			{
+				// create probability histogram here?
+				if (allFresh)
+				{
+					m_probDistr.push_back(dynamic_cast<DoubleImage*>(probImgs[l].GetPointer()));
+				}
+				else
+				{
+					AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+					addImgFilter->InPlaceOn();
+					addImgFilter->SetInput(m_probDistr[l]);
+					addImgFilter->SetInput2(dynamic_cast<DoubleImage*>(probImgs[l].GetPointer()));
+					addImgFilter->Update();
+				}
+			}
+		}
+	}
+	probSumLoopMeasure.stop();
+	/*
+	iAPerformanceHelper probSumDivLoopMeasure;
+	probSumDivLoopMeasure.start("Prob Sum Divisions Loop");
+	// divide by count to get distributions:
+	for (int l = 0; l < labelCount; ++l)
+	{
 		auto multiplyProbFilter = DoubleMultiplyImg::New();
 		multiplyProbFilter->SetInput(m_probDistr[l]);
 		multiplyProbFilter->InPlaceOn();
 		multiplyProbFilter->SetConstant2(factor);
 		multiplyProbFilter->Update();
 	}
+	probSumDivLoopMeasure.stop();
+	*/
+	iAPerformanceHelper probSumEntropyLoopMeasure;
+	probSumEntropyLoopMeasure.start("Prob Sum Entropy Loop");
+	m_probSumEntropy = CreateImage<DoubleImage>(dynamic_cast<DoubleImage*>(m_probDistr[0].GetPointer()));
+	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+	{
+		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+		{
+			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			{
+				// calculate entropy
+				double entropy = 0;
+				for (int l = 0; l < labelCount; ++l)
+				{
+					// optimize speed via iterators / direct access?
+					double prob = m_probDistr[l]->GetPixel(idx) / count;
+					if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
+					{
+						entropy += (prob * std::log(prob));
+					}
+				}
+				entropy = -entropy;	// * normalizeFactor	//entropy = clamp(0.0, limit, entropy);
+				m_probSumEntropy->SetPixel(idx, entropy);
+			}
+		}
+	}
+	probSumEntropyLoopMeasure.stop();
+
+
+	iAPerformanceHelper entropySumLoopMeasure;
+	entropySumLoopMeasure.start("Entropy Sum Loop");
+	for (QSharedPointer<iASamplingResults> sampling : m_samplings)
+	{
+		for (QSharedPointer<iAMember> member : sampling->GetMembers())
+		{
+			QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
+			typename DoubleImage::Pointer * probImgsArray = new DoubleImage::Pointer[labelCount];
+			for (int l = 0; l < labelCount; ++l)
+			{
+				probImgsArray[l] = dynamic_cast<DoubleImage*>(probImgs[l].GetPointer());
+			}
+			if (m_probDistr.empty())
+			{
+				m_entropySum = CreateImage<DoubleImage>(dynamic_cast<DoubleImage*>(probImgs[0].GetPointer()));
+			}
+			itk::Index<3> idx;
+			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+			{
+				for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+				{
+					for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+					{
+						// calculate entropy
+						double entropy = 0;
+						for (int l = 0; l < labelCount; ++l)
+						{
+							double prob = probImgsArray[l]->GetPixel(idx);
+							if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
+							{
+								entropy += (prob * std::log(prob));
+							}
+						}
+						entropy = -entropy;	// * normalizeFactor
+											//entropy = clamp(0.0, limit, entropy);
+						m_entropySum->SetPixel(idx, m_entropySum->GetPixel(idx) + entropy);
+					}
+				}
+			}
+		}
+	}
+	entropySumLoopMeasure.stop();
+	iAPerformanceHelper entropySumDivLoopMeasure;
+	entropySumDivLoopMeasure.start("Entropy Sum Division");
+	auto multiplyEntropyFilter = DoubleMultiplyImg::New();
+	multiplyEntropyFilter->SetInput(m_entropySum);
+	multiplyEntropyFilter->InPlaceOn();
+	multiplyEntropyFilter->SetConstant2(factor);
+	multiplyEntropyFilter->Update();
+	entropySumDivLoopMeasure.stop();
+
+	iAPerformanceHelper imgConversionMeasure;
+	imgConversionMeasure.start("Image Conversion");
+	iAConnector con1;
+	con1.SetImage(m_probSumEntropy);
+	m_labelDistributionUncertainty = con1.GetVTKImage();
+
+	iAConnector con2;
+	con2.SetImage(m_entropySum);
+	m_avgAlgEntropySumUncertainty = con2.GetVTKImage();
+	
+	iAConnector con3;
+	con3.SetImage(m_probSumEntropy);
+	m_avgAlgProbEntropyUncertainty = con3.GetVTKImage();
+	imgConversionMeasure.stop();
+}
+
+
+vtkImagePointer iAEnsemble::GetLabelDistribution()
+{
+	return m_labelDistributionUncertainty;
+}
+
+vtkImagePointer iAEnsemble::GetAvgAlgEntropyFromSum()
+{
+	return m_avgAlgEntropySumUncertainty;
+}
+
+vtkImagePointer iAEnsemble::GetAvgAlgEntropyFromProbSum()
+{
+	return m_avgAlgProbEntropyUncertainty;
 }
 
 bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)

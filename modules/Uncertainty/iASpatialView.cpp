@@ -1,18 +1,18 @@
 #include "iASpatialView.h"
 
+#include "iAImageWidget.h"
+
 #include "QVTKOpenGLWidget.h"
 
-iASpatialView::iASpatialView():
-	m_vtkWidget(new QVTKOpenGLWidget())
+#include <QHBoxLayout>
+
+iASpatialView::iASpatialView(): QWidget()
 {
+	this->setLayout(new QHBoxLayout());
 }
 
-void iASpatialView::ShowImage(ImagePointer img)
+void iASpatialView::AddImage(vtkImagePointer img)
 {
-
-}
-
-void iASpatialView::ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack)
-{
-
+	m_images.push_back(new iAImageWidget(img));
+	layout()->addWidget(m_images[m_images.size() - 1]);
 }

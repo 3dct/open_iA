@@ -20,45 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkImage.h>
-
-#include <vtkSmartPointer.h>
-
-#include <QSharedPointer>
-#include <QString>
-#include <QVector>
-
-class iAEnsembleDescriptorFile;
-class iASamplingResults;
+//#include "QVTKOpenGLWidget.h"
+#include <QVTKWidget2.h>
 
 class vtkImageData;
 
-typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
-typedef itk::Image<double, 3> DoubleImage;
-typedef itk::Image<int, 3> IntImage;
-
-class iAEnsemble
+//class iAImageWidget: public QVTKOpenGLWidget
+class iAImageWidget : public QVTKWidget2
 {
 public:
-	//! create from string
-	static QSharedPointer<iAEnsemble> create();
-	bool load(iAEnsembleDescriptorFile const & ensembleFile);
-	vtkImagePointer GetLabelDistribution();
-	vtkImagePointer GetAvgAlgEntropyFromSum();
-	vtkImagePointer GetAvgAlgEntropyFromProbSum();
-private:
-	bool loadSampling(QString const & fileName, int labelCount, int id);
-	void createUncertaintyImages(int labelCount);
-	//! constructor; use static Create methods instead!
-	iAEnsemble();
-	QVector<QSharedPointer<iASamplingResults> > m_samplings;
-
-	vtkImagePointer m_labelDistributionUncertainty;
-	vtkImagePointer m_avgAlgEntropySumUncertainty;
-	vtkImagePointer m_avgAlgProbEntropyUncertainty;
-
-	QVector<IntImage::Pointer> m_labelDistr;
-	DoubleImage::Pointer m_entropySum;
-	DoubleImage::Pointer m_probSumEntropy;
-	QVector<DoubleImage::Pointer> m_probDistr;
+	iAImageWidget(vtkSmartPointer<vtkImageData> img);
 };
