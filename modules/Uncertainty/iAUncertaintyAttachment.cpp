@@ -79,9 +79,9 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 	bool result = m_ensemble->load(ensembleFile);
 	if (result)
 	{
-		m_spatialView->AddImage(m_ensemble->GetLabelDistribution());
-		m_spatialView->AddImage(m_ensemble->GetAvgAlgEntropyFromSum());
-		m_spatialView->AddImage(m_ensemble->GetAvgAlgEntropyFromProbSum());
+		m_spatialView->AddImage("Label Distribution", m_ensemble->GetLabelDistribution());
+		m_spatialView->AddImage("Avg. Alg. Entropy (Sum)", m_ensemble->GetAvgAlgEntropyFromSum());
+		m_spatialView->AddImage("Avg. Alg. Entropy (Prob. Sum)", m_ensemble->GetAvgAlgEntropyFromProbSum());
 	}
 	return result;
 }

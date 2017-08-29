@@ -64,6 +64,8 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->AddViewProp(slice);
 	renderer->ResetCamera();
+	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 	auto renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	// renderWindow->SetSize(300, 300);
 	renderWindow->AddRenderer(renderer);

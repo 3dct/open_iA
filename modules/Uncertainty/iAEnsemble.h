@@ -59,6 +59,7 @@ private:
 
 	QVector<IntImage::Pointer> m_labelDistr;
 	DoubleImage::Pointer m_entropySum;
+	DoubleImage::Pointer m_labelDistrEntropy;
 	DoubleImage::Pointer m_probSumEntropy;
 	QVector<DoubleImage::Pointer> m_probDistr;
 };

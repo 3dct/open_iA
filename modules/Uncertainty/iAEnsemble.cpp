@@ -129,6 +129,8 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 
 	iAPerformanceHelper labelDistrSumEntropyLoopMeasure;
 	labelDistrSumEntropyLoopMeasure.start("Label Distribution Entropy Loop");
+	auto spacing = m_labelDistr[0]->GetSpacing();
+	m_labelDistrEntropy = CreateImage<DoubleImage>(size, spacing);
 	// TOOD: itk entropy filter!
 	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
 	{
@@ -141,14 +143,14 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 				for (int l = 0; l < labelCount; ++l)
 				{
 					// optimize speed via iterators / direct access?
-					double prob = m_labelDistr[l]->GetPixel(idx) / count;
+					double prob = static_cast<double>(m_labelDistr[l]->GetPixel(idx)) / count;
 					if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
 					{
 						entropy += (prob * std::log(prob));
 					}
 				}
 				entropy = -entropy;	// * normalizeFactor	//entropy = clamp(0.0, limit, entropy);
-				m_probSumEntropy->SetPixel(idx, entropy);
+				m_labelDistrEntropy->SetPixel(idx, entropy);
 			}
 		}
 	}
@@ -178,11 +180,19 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 				}
 				else
 				{
-					AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
-					addImgFilter->InPlaceOn();
-					addImgFilter->SetInput(m_probDistr[l]);
-					addImgFilter->SetInput2(dynamic_cast<DoubleImage*>(probImgs[l].GetPointer()));
-					addImgFilter->Update();
+					try
+					{
+						AddImgFilterType::Pointer addImgFilter = AddImgFilterType::New();
+						addImgFilter->InPlaceOn();
+						addImgFilter->SetInput1(dynamic_cast<DoubleImage*>(probImgs[l].GetPointer()));
+						addImgFilter->SetInput2(m_probDistr[l]);
+						addImgFilter->ReleaseDataFlagOff();
+						addImgFilter->Update();
+					}
+					catch (itk::ExceptionObject & excp)
+					{
+						DEBUG_LOG(QString("ITK ERROR: %1").arg(excp.what()));
+					}
 				}
 			}
 		}
@@ -204,7 +214,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 	*/
 	iAPerformanceHelper probSumEntropyLoopMeasure;
 	probSumEntropyLoopMeasure.start("Prob Sum Entropy Loop");
-	m_probSumEntropy = CreateImage<DoubleImage>(dynamic_cast<DoubleImage*>(m_probDistr[0].GetPointer()));
+	m_probSumEntropy = CreateImage<DoubleImage>(size, spacing);
 	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
 	{
 		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
@@ -232,6 +242,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 
 	iAPerformanceHelper entropySumLoopMeasure;
 	entropySumLoopMeasure.start("Entropy Sum Loop");
+	m_entropySum = CreateImage<DoubleImage>(size, spacing);
 	for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 	{
 		for (QSharedPointer<iAMember> member : sampling->GetMembers())
@@ -241,10 +252,6 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 			for (int l = 0; l < labelCount; ++l)
 			{
 				probImgsArray[l] = dynamic_cast<DoubleImage*>(probImgs[l].GetPointer());
-			}
-			if (m_probDistr.empty())
-			{
-				m_entropySum = CreateImage<DoubleImage>(dynamic_cast<DoubleImage*>(probImgs[0].GetPointer()));
 			}
 			itk::Index<3> idx;
 			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
@@ -275,16 +282,17 @@ void iAEnsemble::createUncertaintyImages(int labelCount)
 	iAPerformanceHelper entropySumDivLoopMeasure;
 	entropySumDivLoopMeasure.start("Entropy Sum Division");
 	auto multiplyEntropyFilter = DoubleMultiplyImg::New();
-	multiplyEntropyFilter->SetInput(m_entropySum);
 	multiplyEntropyFilter->InPlaceOn();
-	multiplyEntropyFilter->SetConstant2(factor);
+	multiplyEntropyFilter->ReleaseDataFlagOff();
+	multiplyEntropyFilter->SetConstant1(factor);
+	multiplyEntropyFilter->SetInput2(m_entropySum);
 	multiplyEntropyFilter->Update();
 	entropySumDivLoopMeasure.stop();
 
 	iAPerformanceHelper imgConversionMeasure;
 	imgConversionMeasure.start("Image Conversion");
 	iAConnector con1;
-	con1.SetImage(m_probSumEntropy);
+	con1.SetImage(m_labelDistrEntropy);
 	m_labelDistributionUncertainty = con1.GetVTKImage();
 
 	iAConnector con2;

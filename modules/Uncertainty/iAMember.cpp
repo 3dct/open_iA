@@ -189,7 +189,7 @@ QVector<iAITKIO::ImagePointer> iAMember::GetProbabilityImgs(int labelCount)
 	QVector<iAITKIO::ImagePointer> probabilityImg(labelCount);
 	for (int l=0; l<labelCount; ++l)
 	{
-		QString probFile(GetProbabilityPath(labelCount));
+		QString probFile(GetProbabilityPath(l));
 		if (!QFile::exists(probFile))
 		{
 			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
