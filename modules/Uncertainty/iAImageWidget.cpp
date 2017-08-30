@@ -95,11 +95,13 @@ void iAImageWidget::StyleChanged()
 void iAImageWidget::SetMode(int slicerMode)
 {
 	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+	m_slicer->update();
 }
 
 void iAImageWidget::SetSlice(int sliceNumber)
 {
 	m_slicer->setSliceNumber(sliceNumber);
+	m_slicer->update();
 }
 
 int iAImageWidget::GetSliceCount() const

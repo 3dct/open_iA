@@ -16,10 +16,11 @@ iASpatialView::iASpatialView(): QWidget()
 	xyButton = new QPushButton("XY");
 	xzButton = new QPushButton("XZ");
 	yzButton = new QPushButton("YZ");
-	xyButton->setCheckable(true);
-	xzButton->setCheckable(true);
-	yzButton->setCheckable(true);
-	xyButton->setChecked(true);
+	xyButton->setDown(true);
+	xyButton->setAutoExclusive(false);
+	xzButton->setAutoExclusive(false);
+	yzButton->setAutoExclusive(false);
+	// TODO: find out why QPushButton::setCheckable doesn't work as advertised (i.e., not at all)
 	connect(xyButton, SIGNAL(clicked()), this, SLOT(xyClicked()));
 	connect(xzButton, SIGNAL(clicked()), this, SLOT(xzClicked()));
 	connect(yzButton, SIGNAL(clicked()), this, SLOT(yzClicked()));
@@ -28,17 +29,24 @@ iASpatialView::iASpatialView(): QWidget()
 	m_sliceControl->setMaximum(0);
 	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(sliceChanged(int)));
 
+	auto sliceButtonBar = new QWidget();
+	sliceButtonBar->setLayout(new QHBoxLayout());
+	sliceButtonBar->layout()->setSpacing(0);
+	sliceButtonBar->layout()->addWidget(xyButton);
+	sliceButtonBar->layout()->addWidget(xzButton);
+	sliceButtonBar->layout()->addWidget(yzButton);
+
 	m_sliceBar = new QWidget();
 	m_sliceBar->setLayout(new QHBoxLayout());
-	m_sliceBar->layout()->addWidget(xyButton);
-	m_sliceBar->layout()->addWidget(xzButton);
-	m_sliceBar->layout()->addWidget(yzButton);
+	m_sliceBar->layout()->setSpacing(0);
+	m_sliceBar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+	m_sliceBar->layout()->addWidget(sliceButtonBar);
 	m_sliceBar->layout()->addWidget(m_sliceControl);
 
 	m_contentWidget = new QWidget();
-	m_contentWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	m_contentWidget->setLayout(new QHBoxLayout());
 	m_contentWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
+	m_contentWidget->layout()->setSpacing(0);
 
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_contentWidget);
@@ -74,9 +82,9 @@ void iASpatialView::StyleChanged()
 
 void iASpatialView::xyClicked()
 {
-	xyButton->setChecked(true);
-	xzButton->setChecked(false);
-	yzButton->setChecked(false);
+	xyButton->setDown(true);
+	xzButton->setDown(false);
+	yzButton->setDown(false);
 	for (int i = 0; i < m_images.size(); ++i)
 	{
 		m_imageWidgets[i]->SetMode(iASlicerMode::XY);
@@ -87,9 +95,9 @@ void iASpatialView::xyClicked()
 
 void iASpatialView::xzClicked()
 {
-	xzButton->setChecked(false);
-	xyButton->setChecked(false);
-	yzButton->setChecked(false);
+	xyButton->setDown(false);
+	xzButton->setDown(true);
+	yzButton->setDown(false);
 	for (int i = 0; i < m_images.size(); ++i)
 	{
 		m_imageWidgets[i]->SetMode(iASlicerMode::XZ);
@@ -100,9 +108,9 @@ void iASpatialView::xzClicked()
 
 void iASpatialView::yzClicked()
 {
-	yzButton->setChecked(true);
-	xyButton->setChecked(false);
-	xyButton->setChecked(false);
+	xyButton->setDown(false);
+	xzButton->setDown(false);
+	yzButton->setDown(true);
 	for (int i = 0; i < m_images.size(); ++i)
 	{
 		m_imageWidgets[i]->SetMode(iASlicerMode::YZ);

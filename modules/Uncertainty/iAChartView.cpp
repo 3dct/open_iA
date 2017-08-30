@@ -18,19 +18,36 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAChartView.h"
 
-#include <QWidget>
+#include "qcustomplot.h"
 
-class QCustomPlot;
 
-class iAChartView: public QWidget
+iAChartView::iAChartView()
 {
-	Q_OBJECT
-public:
-	iAChartView();
-signals:
-	void ChartSelection();
-private:
-	QCustomPlot* m_plot;
-};
+	m_plot = new QCustomPlot();
+
+	setLayout(new QHBoxLayout());
+	layout()->addWidget(m_plot);
+
+	// generate some data:
+	QVector<double> x(101), y(101); // initialize with entries 0..100
+	for (int i = 0; i<101; ++i)
+	{
+		x[i] = i / 50.0 - 1; // x goes from -1 to 1
+		y[i] = x[i] * x[i]; // let's plot a quadratic function
+	}
+	// create graph and assign data to it:
+	m_plot->addGraph();
+	m_plot->graph(0)->setData(x, y);
+	m_plot->graph(0)->setLineStyle(QCPGraph::lsNone);
+	m_plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle));
+
+	// give the axes some labels:
+	m_plot->xAxis->setLabel("x");
+	m_plot->yAxis->setLabel("y");
+	// set axes ranges, so we see all data:
+	m_plot->xAxis->setRange(-1, 1);
+	m_plot->yAxis->setRange(0, 1);
+	m_plot->replot();
+}

@@ -76,50 +76,9 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			DEBUG_LOG("No samplings or no members found!");
 			return;
 		}
-		//m_samplings[0]->Get(0)->GetLabelledImage();
 		itk::Index<3> idx;
 		itk::Size<3> size;
 		itk::Vector<double, 3> spacing;
-
-		/*
-		// test AddImage filter:
-		typedef itk::Image<int, 3> IntImage3D;
-		typedef itk::AddImageFilter<IntImage3D> IntAddImgFilter;
-		itk::Size<3> testSize = { 2, 2, 2 };
-		itk::Vector<double, 3> testSpacing;	testSpacing.Fill(1);
-		auto inImg1 = CreateImage<IntImage3D>(testSize, testSpacing);
-		auto inOutImg = CreateImage<IntImage3D>(testSize, testSpacing);
-		auto inImg3 = CreateImage<IntImage3D>(testSize, testSpacing);
-
-		inImg1->FillBuffer(1);
-		inImg1->ReleaseDataFlagOff();
-		inImg3->FillBuffer(3);
-		inImg3->ReleaseDataFlagOff();
-		inOutImg->FillBuffer(2);
-		inOutImg->ReleaseDataFlagOff();
-
-		auto add1 = IntAddImgFilter::New();
-		add1->InPlaceOn();
-		add1->ReleaseDataFlagOff();
-		add1->SetInput1(inImg1);
-		add1->SetInput2(inOutImg);
-		add1->Update();
-
-		auto add2 = IntAddImgFilter::New();
-		add2->InPlaceOn();
-		add2->ReleaseDataFlagOff();
-		add2->SetInput1(inImg3);
-		add2->SetInput2(inOutImg);
-		add2->Update();
-
-		itk::Index<3> testIdx = { 0, 0, 0 };
-		DEBUG_LOG(QString("Can run in place: %1; pixel(0, 0) in imgs: inImg1=%2, inOutImg=%3, inImg3=%4")
-			.arg(add1->CanRunInPlace()?"yes":"no")
-			.arg(inImg1->GetPixel(testIdx))
-			.arg(inOutImg->GetPixel(testIdx))
-			.arg(inImg3->GetPixel(testIdx))
-		);
-		*/
 
 		// also calculate neighbourhood uncertainty here?
 		size_t count = 0;
