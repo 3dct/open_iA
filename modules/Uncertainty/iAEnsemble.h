@@ -42,13 +42,13 @@ class iAEnsemble
 public:
 	//! create from string
 	static QSharedPointer<iAEnsemble> create();
-	bool load(iAEnsembleDescriptorFile const & ensembleFile);
+	bool load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile);
 	vtkImagePointer GetLabelDistribution();
 	vtkImagePointer GetAvgAlgEntropyFromSum();
 	vtkImagePointer GetAvgAlgEntropyFromProbSum();
 private:
 	bool loadSampling(QString const & fileName, int labelCount, int id);
-	void createUncertaintyImages(int labelCount);
+	void createUncertaintyImages(int labelCount, QString const & cachePath);
 	//! constructor; use static Create methods instead!
 	iAEnsemble();
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;
@@ -58,7 +58,7 @@ private:
 	vtkImagePointer m_avgAlgProbEntropyUncertainty;
 
 	QVector<IntImage::Pointer> m_labelDistr;
-	DoubleImage::Pointer m_entropySum;
+	DoubleImage::Pointer m_entropyAvgEntropy;
 	DoubleImage::Pointer m_labelDistrEntropy;
 	DoubleImage::Pointer m_probSumEntropy;
 	QVector<DoubleImage::Pointer> m_probDistr;

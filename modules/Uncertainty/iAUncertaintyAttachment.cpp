@@ -78,12 +78,12 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile.GetModalityFileName()));
 		return false;
 	}
-	bool result = m_ensemble->load(ensembleFile);
+	bool result = m_ensemble->load(fileName, ensembleFile);
 	if (result)
 	{
-		m_spatialView->AddImage("Label Distribution", m_ensemble->GetLabelDistribution());
-		m_spatialView->AddImage("Avg. Alg. Entropy (Sum)", m_ensemble->GetAvgAlgEntropyFromSum());
-		m_spatialView->AddImage("Avg. Alg. Entropy (Prob. Sum)", m_ensemble->GetAvgAlgEntropyFromProbSum());
+		m_spatialView->AddImage("Label Distribution Uncertainty", m_ensemble->GetLabelDistribution());
+		m_spatialView->AddImage("Algorithm Uncertainty (Entropy Sum Average)", m_ensemble->GetAvgAlgEntropyFromSum());
+		m_spatialView->AddImage("Algorithm Uncertainty (Probability Sum Entropy)", m_ensemble->GetAvgAlgEntropyFromProbSum());
 	}
 	return result;
 }
