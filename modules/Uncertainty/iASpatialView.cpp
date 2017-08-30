@@ -16,7 +16,7 @@ iASpatialView::iASpatialView(): QWidget()
 void iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
 {
 	auto imgWidget = new iAImageWidget(img);
-	// m_images.push_back(imgWidget);
+	m_images.push_back(imgWidget);
 	QWidget*  container = new QWidget();
 	container->setLayout(new QVBoxLayout());
 	auto label = new QLabel(caption);
@@ -25,4 +25,12 @@ void iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
 	container->layout()->addWidget(label);
 	container->layout()->addWidget(imgWidget);
 	layout()->addWidget(container);
+}
+
+void iASpatialView::StyleChanged()
+{
+	for (int i = 0; i < m_images.size(); ++i)
+	{
+		m_images[i]->StyleChanged();
+	}
 }

@@ -2380,6 +2380,7 @@ void MainWindow::applyQSS()
 		QString style = styleIn.readAll();
 		styleFile.close();
 		qApp->setStyleSheet(style);
+		emit StyleChanged();
 	}
 }
 

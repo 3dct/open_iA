@@ -187,6 +187,8 @@ public slots:
 	void setHistogramFocus();
 	void tabChanged(int index);
 
+signals:
+	void StyleChanged();
 private:
 	void connectSignalsToSlots();
 	void setupToolBars();

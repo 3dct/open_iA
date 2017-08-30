@@ -61,14 +61,13 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	imgProp->SetLookupTable(ctf);
 	slice->SetProperty(imgProp);
 
-	auto renderer = vtkSmartPointer<vtkRenderer>::New();
-	renderer->AddViewProp(slice);
-	renderer->ResetCamera();
-	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+	m_renderer = vtkSmartPointer<vtkRenderer>::New();
+	m_renderer->AddViewProp(slice);
+	m_renderer->ResetCamera();
+	StyleChanged();
 	auto renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	// renderWindow->SetSize(300, 300);
-	renderWindow->AddRenderer(renderer);
+	renderWindow->AddRenderer(m_renderer);
 
 	SetRenderWindow(renderWindow);
 
@@ -87,4 +86,11 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 
 	renderWindowInteractor->Start();
 	*/
+}
+
+
+void iAImageWidget::StyleChanged()
+{
+	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	m_renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 }

@@ -24,10 +24,14 @@
 #include <QVTKWidget2.h>
 
 class vtkImageData;
+class vtkRenderer;
 
 //class iAImageWidget: public QVTKOpenGLWidget
 class iAImageWidget : public QVTKWidget2
 {
 public:
 	iAImageWidget(vtkSmartPointer<vtkImageData> img);
+	void StyleChanged();
+private:
+	vtkSmartPointer<vtkRenderer> m_renderer;
 };

@@ -31,6 +31,7 @@
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "mdichild.h"
+#include "mainwindow.h"
 
 iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData),
@@ -45,6 +46,7 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 	childData.child->splitDockWidget(childData.child->getRendererDlg(), m_dockWidgets[0], Qt::Horizontal);
 	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Vertical);
 	childData.child->splitDockWidget(m_dockWidgets[1], m_dockWidgets[2], Qt::Horizontal);
+	connect(mainWnd, SIGNAL(StyleChanged()), m_spatialView, SLOT(StyleChanged()));
 }
 
 iAUncertaintyAttachment* iAUncertaintyAttachment::create(MainWindow * mainWnd, iAChildData childData)

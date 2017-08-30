@@ -38,10 +38,12 @@ class iASpatialView: public QWidget
 public:
 	iASpatialView();
 	void AddImage(QString const & caption, vtkImagePointer img);
+public slots:
+	void StyleChanged();
 /*
 signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
 */
-//private:
-//	QVector<iAImageWidget*> m_images;
+private:
+	QVector<iAImageWidget*> m_images;
 };
