@@ -20,7 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
+#include "dlg_DatasetComparator.h"
+
 #include <QObject>
+#include <QDir>
 
 class dlg_DatasetComparator;
 
@@ -29,7 +32,7 @@ class iAIntensityMapper : public QObject
 	Q_OBJECT
 
 public:
-	iAIntensityMapper(dlg_DatasetComparator * dc);
+	iAIntensityMapper(QDir datasetsDir, PathID pathID, QMap<QString, QList<icData> > &datasetIntensityMap);
 	~iAIntensityMapper();
 
 public slots:
@@ -40,5 +43,7 @@ signals:
 	void error(QString err);
 
 private:
-	dlg_DatasetComparator * m_dc;
+	QDir m_datasetsDir;
+	PathID m_pathID;
+	QMap<QString, QList<icData> > &m_DatasetIntensityMap;
 };

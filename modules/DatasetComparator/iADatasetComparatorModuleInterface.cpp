@@ -23,7 +23,6 @@
 
 #include "mainwindow.h"
 #include "mdichild.h"
-#include "iADatasetsFolder.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -38,32 +37,9 @@ void iADatasetComparatorModuleInterface::Initialize()
 
 void iADatasetComparatorModuleInterface::DatasetComparator()
 {
-	iADatasetsFolder * datasetsFolder = new iADatasetsFolder();
-	if (!datasetsFolder->exec() == QDialog::Accepted)
-		return;
-
-	QDir datasetsDir = QDir(datasetsFolder->DatasetsFolderName());
-	datasetsDir.setNameFilters(QStringList("*.mhd"));
-	
-	if (datasetsDir.entryList().size() < 1)
-	{
-		QMessageBox msgBox;
-		msgBox.setText("No mhd-files in this directory.");
-		msgBox.setWindowTitle("Dataset Comparator");
-		msgBox.exec();
-		return;
-	}
-
 	PrepareActiveChild();
-
-	if (dc)
-	{
-		m_mdiChild->removeDockWidget(dc);
-		dc->PlotsContainer_verticalLayout->removeWidget(dc);
-		delete dc;
-		dc = 0;
-	}
-
+	QDir datasetsDir = m_mdiChild->getFilePath();
+	datasetsDir.setNameFilters(QStringList("*.mhd"));
 	dc = new dlg_DatasetComparator(m_mdiChild, datasetsDir);
 	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, dc);
 	dc->raise();

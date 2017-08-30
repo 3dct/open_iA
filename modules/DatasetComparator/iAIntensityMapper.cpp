@@ -24,37 +24,81 @@
 
 #include "defines.h"
 #include "iAITKIO.h"
-#include "dlg_DatasetComparator.h"
 #include "iATypedCallHelper.h"
 
 #include <itkImageBase.h>
 #include <itkImage.h>
 #include <itkImageIOBase.h>
+#include <itkHilbertPath.h>
+#include <itkImageRegionIteratorWithIndex.h>
+
+#include <math.h>
+
+#include "iAConsole.h"
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
 typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-typedef itk::HilbertPath<unsigned int, DIM> PathType;
 
 template<class T>
-void getIntensities( PathType::Pointer path, ImagePointer & image, QList<int> & intensityList )
+void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList )
 {
 	// TODO: Typecheck QList for e.g., float images + check max size of list
 	typedef itk::Image< T, DIM >   InputImageType;
-	typedef PathType::IndexType IndexType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
-	
-	for (unsigned int h = 0; h < path->NumberOfSteps(); h++)
+
+	switch (m_pathID)
 	{
-		IndexType coord = path->Evaluate(h);
-		intensityList.append(input->GetPixel(coord));
+		case P_HILBERT:
+		{
+			typedef itk::HilbertPath<unsigned int, DIM> PathType;
+			PathType::Pointer m_HPath = PathType::New();
+			typedef PathType::IndexType IndexType;
+			InputImageType::RegionType region = input->GetLargestPossibleRegion();
+			InputImageType::SizeType size = region.GetSize();
+
+			m_HPath->SetHilbertOrder((int) (log(size[0]) / log(2)));
+			DEBUG_LOG(QString("HPath started with Order %1").arg((int) (log(size[0]) / log(2))));
+			m_HPath->Initialize();
+			DEBUG_LOG(QString("HPath initialized"));
+			for (unsigned int h = 0; h < m_HPath->NumberOfSteps(); h++)
+			{
+				IndexType coord = m_HPath->Evaluate(h);
+				icData data;
+				data.intensity = input->GetPixel(coord);
+				data.x = coord[0];
+				data.y = coord[1];
+				data.z = coord[2];
+				intensityList.append(data);
+				//DEBUG_LOG(QString("Mapping %1 of %2 done").arg(h).arg(m_HPath->NumberOfSteps()));
+			}
+		}
+		break;
+
+		case P_SCAN_LINE:
+		{
+			itk::ImageRegionIteratorWithIndex<InputImageType> imageIterator(input, input->GetLargestPossibleRegion());
+			for (imageIterator.GoToBegin(); !imageIterator.IsAtEnd(); ++imageIterator)
+			{
+				InputImageType::IndexType coord = imageIterator.GetIndex();
+				icData data;
+				data.intensity = input->GetPixel(coord);
+				data.x = coord[0];
+				data.y = coord[1];
+				data.z = coord[2];
+				intensityList.append(data);
+			}
+		}
+		break;
 	}
 }
 
-iAIntensityMapper::iAIntensityMapper(dlg_DatasetComparator * dc)
+iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QMap<QString, QList<icData> > &datasetIntensityMap):
+	m_DatasetIntensityMap(datasetIntensityMap),
+	m_datasetsDir(datasetsDir),
+	m_pathID(pathID)
 {
-	m_dc = dc;
 }
 
 iAIntensityMapper::~iAIntensityMapper()
@@ -63,23 +107,23 @@ iAIntensityMapper::~iAIntensityMapper()
 
 void iAIntensityMapper::process()
 {
-	QStringList datsetsList = m_dc->m_datasetsDir.entryList();
+	QStringList datasetsList = m_datasetsDir.entryList();
 
-	for (int i = 0; i < datsetsList.size(); ++i)
+	for (int i = 0; i < datasetsList.size(); ++i)
 	{
-		QList<int> intensityList;
-		QString dataset = m_dc->m_datasetsDir.filePath(datsetsList.at(i));
+		QList<icData> intensityList;
+		QString dataset = m_datasetsDir.filePath(datasetsList.at(i));
 		ScalarPixelType pixelType;
 		ImagePointer image = iAITKIO::readFile( dataset, pixelType, true);
 		try
 		{
-			ITK_TYPED_CALL(getIntensities, pixelType, m_dc->m_HPath, image, intensityList);
+			ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList);
 		}
 		catch (itk::ExceptionObject &excep)
 		{
 			emit error("ITK exception"); // TODO: Better description
 		}
-		m_dc->m_DatasetIntensityMap.insert(datsetsList.at(i), intensityList);
+		m_DatasetIntensityMap.insert(datasetsList.at(i), intensityList);
 	}
 	emit finished();
 }

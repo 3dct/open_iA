@@ -23,14 +23,41 @@
 #include "Ui_dlg_DatasetComparator.h"
 #include "iAQTtoUIConnector.h"
 #include "mdichild.h"
-
-#include <itkHilbertPath.h>
+#include "qcustomplot.h"
 
 #include <QDockWidget>
 #include <QDir>
 
+struct icData
+{
+	double intensity;
+	unsigned int x;
+	unsigned int y;
+	unsigned int z;
+};
+
+enum PathID
+{
+	P_HILBERT,
+	P_SCAN_LINE
+};
+
+const QStringList pathNames = QStringList()\
+<< "Hilbert"\
+<< "Scan Line";
+
+typedef QMap<QString, PathID> MapPathNames2PathID;
+static MapPathNames2PathID fill_PathNameToId()
+{
+	MapPathNames2PathID m;
+	m[pathNames.at(0)] = P_HILBERT;
+	m[pathNames.at(1)] = P_SCAN_LINE;
+
+	return m;
+}
+const MapPathNames2PathID PathNameToId = fill_PathNameToId();
+
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
-typedef itk::HilbertPath<unsigned int, 3> PathType;
 
 class dlg_DatasetComparator : public DatasetComparatorConnector
 {
@@ -40,14 +67,17 @@ public:
 	dlg_DatasetComparator(QWidget * parent, QDir datasetsDir, Qt::WindowFlags f = 0);
 	~dlg_DatasetComparator();
 
-	PathType::Pointer m_HPath;
 	QDir m_datasetsDir;
-	QMap<QString, QList<int> > m_DatasetIntensityMap;
+	QMap<QString, QList<icData> > m_DatasetIntensityMap;
 
 public slots:
-	void showHilbertLinePlots();
-	void visualizeHilbertPath();
+	void showLinePlots();
+	void visualizePath();
+	void updateDatasetComparator();
 
 private:
 	MdiChild * m_mdiChild;
+	QCustomPlot * customPlot;
+
+	void mapIntensities();
 };

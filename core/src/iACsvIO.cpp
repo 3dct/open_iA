@@ -48,7 +48,8 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->Initialize();
 
 	// calculate the length of objects in csv file for defining the vtkTable
-	int tableLength = CalcTableLength(fileName) - 1;	//REASON for "-1": last line of "fiber" csv-file contains element info 
+	// REASON for removed "-1": last line of "fiber" csv-file does not contain element info anymore 
+	int tableLength = CalcTableLength(fileName);
 	if (tableLength <= 0)
 		return false;
 

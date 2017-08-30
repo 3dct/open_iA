@@ -43,29 +43,10 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir)
 {
-	m_HPath = PathType::New();
-	m_HPath->SetHilbertOrder(3);	// for [8]^3 images
-	m_HPath->Initialize();
+	mapIntensities();
 
-	QThread* thread = new QThread;
-	iAIntensityMapper * im = new iAIntensityMapper(this);
-	im->moveToThread(thread);
-	connect(im, SIGNAL(error(QString)), this, SLOT(errorString(QString)));		//TODO: Handle error case
-	connect(thread, SIGNAL(started()), im, SLOT(process()));
-	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
-	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), this, SLOT(visualizeHilbertPath()));
-	connect(thread, SIGNAL(finished()), this, SLOT(showHilbertLinePlots()));
-	thread->start();
-}
-
-dlg_DatasetComparator::~dlg_DatasetComparator()
-{}
-
-void dlg_DatasetComparator::showHilbertLinePlots()
-{
-	QCustomPlot * customPlot = new QCustomPlot(dockWidgetContents);
+	customPlot = new QCustomPlot(dockWidgetContents);
+	customPlot->setOpenGl(true);
 	customPlot->legend->setVisible(true);
 	customPlot->legend->setFont(QFont("Helvetica", 11));
 	customPlot->xAxis->setLabel("Hilbert index");
@@ -78,11 +59,20 @@ void dlg_DatasetComparator::showHilbertLinePlots()
 	connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
 	customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 
-	QMap<QString, QList<int>>::iterator it;
+	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
+}
+
+dlg_DatasetComparator::~dlg_DatasetComparator()
+{}
+
+void dlg_DatasetComparator::showLinePlots()
+{
+	customPlot->removeGraph(0);
+	QMap<QString, QList<icData>>::iterator it;
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme("Brewer Qualitaive 1 (max. 8)");
 	QColor graphPenColor;
 	QPen graphPen;
-	graphPen.setWidth(3);
+	graphPen.setWidth(3);	// Make sure qcustomplot uses opengl (or set width to 0), otherwise bad performance
 	int datasetIdx = 0;
 	for (it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
@@ -92,7 +82,6 @@ void dlg_DatasetComparator::showHilbertLinePlots()
 		}
 		else
 		{
-			//TODO: Use predefined colors, e.g., from color brewer or pantone
 			// https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
 			float h = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 			h += golden_ratio;
@@ -103,12 +92,12 @@ void dlg_DatasetComparator::showHilbertLinePlots()
 		graphPen.setColor(graphPenColor);
 		customPlot->graph(datasetIdx)->setPen(graphPen);
 		customPlot->graph(datasetIdx)->setName(it.key());
-		QList<int> l = it.value();
+		QList<icData> l = it.value();
 		QVector<double> x(l.size()), y(l.size());
 		for (int i = 0; i < l.size(); ++i)
 		{
 			x[i] = i;
-			y[i] = l[i];
+			y[i] = l[i].intensity;
 		}
 		customPlot->graph(datasetIdx)->setData(x, y);
 		++datasetIdx;
@@ -117,18 +106,15 @@ void dlg_DatasetComparator::showHilbertLinePlots()
 	PlotsContainer_verticalLayout->addWidget(customPlot);
 }
 
-void dlg_DatasetComparator::visualizeHilbertPath()
+void dlg_DatasetComparator::visualizePath()
 {
-	// TODO: Delete unused polydata! + consider Spacing?
 	vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
 	QString str = m_DatasetIntensityMap.firstKey();
 	unsigned int pathSteps = m_DatasetIntensityMap.values(str).at(0).size();
-
+	QList<icData>  data = m_DatasetIntensityMap.values(str)[0];
 	for (unsigned int i = 0; i < pathSteps; ++i)
 	{
-		double point[3] = { (double) m_HPath->EvaluateToIndex(i)[0],
-			(double) m_HPath->EvaluateToIndex(i)[1],
-			(double) m_HPath->EvaluateToIndex(i)[2] };
+		double point[3] = { (double) data[i].x, (double) data[i].y, (double)data[i].z };
 		pts->InsertNextPoint(point);
 	}
 
@@ -147,4 +133,24 @@ void dlg_DatasetComparator::visualizeHilbertPath()
 
 	m_mdiChild->getRaycaster()->setPolyData(linesPolyData);
 	m_mdiChild->getRaycaster()->update();
+}
+
+void dlg_DatasetComparator::updateDatasetComparator()
+{
+	mapIntensities();
+}
+
+void dlg_DatasetComparator::mapIntensities()
+{
+	QThread* thread = new QThread;
+	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()], m_DatasetIntensityMap);
+	im->moveToThread(thread);
+	connect(im, SIGNAL(error(QString)), this, SLOT(errorString(QString)));		//TODO: Handle error case
+	connect(thread, SIGNAL(started()), im, SLOT(process()));
+	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
+	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
+	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+	connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));
+	connect(thread, SIGNAL(finished()), this, SLOT(showLinePlots()));
+	thread->start();
 }
