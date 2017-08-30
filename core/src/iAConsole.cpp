@@ -58,13 +58,14 @@ void iAConsole::LogSlot(QString const & text)
 	if (m_logToFile)
 	{
 		std::ofstream logfile(m_logFileName.toStdString().c_str(), std::ofstream::out | std::ofstream::app);
-			logfile << QString("%1 %2\n")
-				.arg(QLocale().toString(
-					QDateTime::currentDateTime(),
-					QLocale::ShortFormat))
-				.arg(text)
-				.toStdString();
-			logfile.close();
+		logfile << QString("%1 %2\n")
+			.arg(QLocale().toString(
+				QDateTime::currentDateTime(),
+				QLocale::ShortFormat))
+			.arg(text)
+			.toStdString();
+		logfile.flush();
+		logfile.close();
 		if (logfile.bad())
 		{
 			m_console->Log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
