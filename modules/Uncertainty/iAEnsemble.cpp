@@ -29,6 +29,7 @@
 #include "iAPerformanceHelper.h"
 #include "iAToolsITK.h"
 
+#include <QDir>
 #include <QFileInfo>
 
 QSharedPointer<iAEnsemble> iAEnsemble::create()
@@ -61,6 +62,12 @@ typedef itk::ImageRegionConstIterator<DoubleImage> DoubleImageConstIter;
 
 void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePath)
 {
+	QDir qdir;
+	if (!qdir.mkpath(cachePath))
+	{
+		DEBUG_LOG(QString("Can't create cache directory %1!").arg(cachePath));
+		return;
+	}
 	try
 	{
 		// also load slice images here?
