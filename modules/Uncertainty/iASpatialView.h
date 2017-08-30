@@ -32,6 +32,9 @@ typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
 
 class iAImageWidget;
 
+class QPushButton;
+class QSpinBox;
+
 class iASpatialView: public QWidget
 {
 	Q_OBJECT
@@ -40,10 +43,20 @@ public:
 	void AddImage(QString const & caption, vtkImagePointer img);
 public slots:
 	void StyleChanged();
+private slots:
+	void xyClicked();
+	void xzClicked();
+	void yzClicked();
+	void sliceChanged(int);
 /*
 signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
 */
 private:
-	QVector<iAImageWidget*> m_images;
+	QVector<iAImageWidget*> m_imageWidgets;
+	QVector<QPair<QString, vtkImagePointer> > m_images;
+	QWidget* m_contentWidget;
+	QWidget* m_sliceBar;
+	QSpinBox* m_sliceControl;
+	QPushButton * xyButton, *xzButton, *yzButton;
 };

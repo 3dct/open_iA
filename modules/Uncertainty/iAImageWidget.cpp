@@ -22,34 +22,37 @@
 
 #include "iATransferFunction.h"
 
+// separate solution based on vtkImageSlice:
+/*
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageData.h>
-#include <vtkImageMapToColors.h>
 #include <vtkImageProperty.h>
-#include <vtkColorTransferFunction.h>
 #include <vtkImageResliceMapper.h>
 #include <vtkImageSlice.h>
 #include <vtkRenderer.h>
+*/
+
+// iASlicer-based solution:
+#include "iASlicerSettings.h"
+#include "iASlicer.h"
+
+#include <vtkTransform.h>
+
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+
 
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 {
-	auto ctf = GetDefaultColorTransferFunction(img);
 	/*
-	auto mapIntensityToColor = vtkSmartPointer<vtkImageMapToColors>::New();
-	mapIntensityToColor->SetInputData(img);
-	mapIntensityToColor->SetLookupTable(ctf);
-	*/
-
+	auto ctf = GetDefaultColorTransferFunction(img);
 	auto mapper = vtkSmartPointer<vtkImageResliceMapper>::New();
 	mapper->SetInputData(img);
-	//resliceMapper->SetInputConnection(mapIntensityToColor->GetOutputPort());
-	/*
-	vtkNew<vtkPlane> plane;
-	plane->SetOrigin(0, 0, 0);
-	plane->SetNormal(0, 0, 1);
-	resliceMapper->SetSlicePlane(plane);
-	*/
+	// additional mapper settings:
+	// vtkNew<vtkPlane> plane;
+	// plane->SetOrigin(0, 0, 0);
+	// plane->SetNormal(0, 0, 1);
+	// resliceMapper->SetSlicePlane(plane);
 	// resliceMapper->SetSlabThickness(0.1);
 	mapper->SliceAtFocalPointOn();
 	mapper->BorderOn();
@@ -64,33 +67,49 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
 	m_renderer->AddViewProp(slice);
 	m_renderer->ResetCamera();
-	StyleChanged();
 	auto renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	// renderWindow->SetSize(300, 300);
 	renderWindow->AddRenderer(m_renderer);
-
 	SetRenderWindow(renderWindow);
-
-	/*
-	// Setup render window interactor
-	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-		vtkSmartPointer<vtkRenderWindowInteractor>::New();
-
-	vtkSmartPointer<vtkInteractorStyleImage> style =
-		vtkSmartPointer<vtkInteractorStyleImage>::New();
-	renderWindowInteractor->SetInteractorStyle(style);
-
-	// Render and start interaction
-	renderWindowInteractor->SetRenderWindow(renderWindow);
-	renderWindowInteractor->Initialize();
-
-	renderWindowInteractor->Start();
 	*/
+
+	auto ctf = GetDefaultColorTransferFunction(img);
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
+	auto transform = vtkSmartPointer<vtkTransform>::New();
+	m_slicer->setup(iASingleSlicerSettings());
+	m_slicer->initializeData(img, transform, ctf, false, false);
+	m_slicer->initializeWidget(img);
+
+	StyleChanged();
 }
 
 
 void iAImageWidget::StyleChanged()
 {
 	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	m_renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+	
+	//m_renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+	m_slicer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+}
+
+
+void iAImageWidget::SetMode(int slicerMode)
+{
+	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+}
+
+void iAImageWidget::SetSlice(int sliceNumber)
+{
+	m_slicer->setSliceNumber(sliceNumber);
+}
+
+int iAImageWidget::GetSliceCount() const
+{
+	int * ext = m_slicer->GetImageData()->GetExtent();
+	switch (m_slicer->GetMode())
+	{
+		case XZ: return ext[3] - ext[2] + 1;
+		case YZ: return ext[1] - ext[0] + 1;
+		default:
+		case XY: return ext[5] - ext[4] + 1;
+	}
 }

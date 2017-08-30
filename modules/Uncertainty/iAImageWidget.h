@@ -21,17 +21,26 @@
 #pragma once
 
 //#include "QVTKOpenGLWidget.h"
-#include <QVTKWidget2.h>
+//#include <QVTKWidget2.h>
+#include <vtkSmartPointer.h>
+#include <QWidget>
+
+class iASlicer;
 
 class vtkImageData;
-class vtkRenderer;
+//class vtkRenderer;
 
 //class iAImageWidget: public QVTKOpenGLWidget
-class iAImageWidget : public QVTKWidget2
+//class iAImageWidget : public QVTKWidget2
+class iAImageWidget: public QWidget
 {
 public:
 	iAImageWidget(vtkSmartPointer<vtkImageData> img);
 	void StyleChanged();
+	void SetMode(int slicerMode);
+	void SetSlice(int sliceNumber);
+	int GetSliceCount() const;
 private:
-	vtkSmartPointer<vtkRenderer> m_renderer;
+	//vtkSmartPointer<vtkRenderer> m_renderer;
+	iASlicer* m_slicer;
 };
