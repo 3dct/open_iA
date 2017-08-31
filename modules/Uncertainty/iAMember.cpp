@@ -184,9 +184,9 @@ void iAMember::SetAttribute(int id, double value)
 	m_attributeValues[id] = value;
 }
 
-QVector<iAITKIO::ImagePointer> iAMember::GetProbabilityImgs(int labelCount)
+QVector<DoubleImage::Pointer> iAMember::GetProbabilityImgs(int labelCount)
 {
-	QVector<iAITKIO::ImagePointer> probabilityImg(labelCount);
+	QVector<DoubleImage::Pointer> probabilityImg(labelCount);
 	for (int l=0; l<labelCount; ++l)
 	{
 		QString probFile(GetProbabilityPath(l));
@@ -195,7 +195,7 @@ QVector<iAITKIO::ImagePointer> iAMember::GetProbabilityImgs(int labelCount)
 			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
 		}
 		iAITKIO::ScalarPixelType pixelType;
-		probabilityImg[l] = iAITKIO::readFile(probFile, pixelType, false);
+		probabilityImg[l] = dynamic_cast<DoubleImage*>(iAITKIO::readFile(probFile, pixelType, false).GetPointer());
 	}
 	return probabilityImg;
 }

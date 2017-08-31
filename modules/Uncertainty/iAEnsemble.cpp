@@ -238,7 +238,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			{
 				for (QSharedPointer<iAMember> member : sampling->GetMembers())
 				{
-					QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
+					QVector<DoubleImage::Pointer> probImgs = member->GetProbabilityImgs(labelCount);
 					if (probImgs.size() != labelCount)
 					{
 						DEBUG_LOG("Not enough probability images available!");
@@ -250,12 +250,11 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 						// create probability histogram here?
 						if (allFresh)
 						{
-							m_probDistr.push_back(dynamic_cast<DoubleImage*>(probImgs[l].GetPointer()));
+							m_probDistr.push_back(probImgs[l]);
 						}
 						else
 						{
-							auto probImg = dynamic_cast<DoubleImage*>(probImgs[l].GetPointer());
-							AddImageInPlace(m_probDistr[l], probImg);
+							AddImageInPlace(m_probDistr[l], probImgs[l]);
 						}
 					}
 				}
@@ -289,13 +288,8 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			{
 				for (QSharedPointer<iAMember> member : sampling->GetMembers())
 				{
-					QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
-					QVector<DoubleImage::Pointer> probImgsDblImgVec;
-					for (int l = 0; l < labelCount; ++l)
-					{
-						probImgsDblImgVec.push_back(dynamic_cast<DoubleImage*>(probImgs[l].GetPointer()));
-					}
-					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgsDblImgVec);
+					QVector<DoubleImage::Pointer> probImgs = member->GetProbabilityImgs(labelCount);
+					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgs);
 					AddImageInPlace(m_entropyAvgEntropy, memberEntropy);
 				}
 			}

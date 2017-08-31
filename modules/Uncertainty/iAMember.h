@@ -29,6 +29,8 @@
 class iAAttributes;
 class iASamplingResults;
 
+typedef itk::Image<double, 3> DoubleImage;
+
 class iAMember
 {
 public:
@@ -52,12 +54,6 @@ public:
 	//! retrieve labelled image
 	iAITKIO::ImagePointer const GetLabelledImage();
 
-	//! discards full detail images from memory
-	// TODO: check if that can be done automatically somehow
-	void DiscardDetails();
-
-	void DiscardProbability();
-
 	//! get attribute (parameter or characteristic)
 	double GetAttribute(int id) const;
 	
@@ -66,7 +62,7 @@ public:
 
 	int GetID();
 
-	QVector<iAITKIO::ImagePointer> GetProbabilityImgs(int labelCount);
+	QVector<DoubleImage::Pointer> GetProbabilityImgs(int labelCount);
 
 	bool ProbabilityAvailable() const;
 
