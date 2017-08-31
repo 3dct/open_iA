@@ -45,24 +45,28 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 {
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
-	QVector<double> x, y;
+	QVector<double> x, y, t;
 	x.reserve(m_voxelCount);
 	y.reserve(m_voxelCount);
+	t.reserve(m_voxelCount);
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-
 	std::copy(bufX, bufX + m_voxelCount, std::back_inserter(x));
 	std::copy(bufY, bufY + m_voxelCount, std::back_inserter(y));
+	for (int i = 0; i < m_voxelCount; ++i)
+	{	// unfortunately we seem to require this additional storage
+		t.push_back(i);  // to make QCustomPlot not sort the data
+	}
 
-	m_plot->addGraph();
-	m_plot->graph(0)->setData(x, y);
-	m_plot->graph(0)->setLineStyle(QCPGraph::lsNone);
-	m_plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle));
-	m_plot->graph(0)->setSelectable(QCP::stMultipleDataRanges);
+	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
+	curve->setData(t, x, y, true);
+	curve->setLineStyle(QCPCurve::lsNone);
+	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle));
+	curve->setSelectable(QCP::stMultipleDataRanges);
 	QCPSelectionDecorator* decorator = new QCPSelectionDecorator();
 	decorator->setPen(QPen(QColor(255, 255, 0)));
-	m_plot->graph(0)->setSelectionDecorator(decorator);
-	connect(m_plot->graph(0), SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
+	curve->setSelectionDecorator(decorator);
+	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
 
 	m_plot->xAxis->setLabel(captionX);
 	m_plot->yAxis->setLabel(captionY);

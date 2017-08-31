@@ -26,6 +26,7 @@
 
 class QCustomPlot;
 class QCPDataSelection;
+class QCPCurve;
 
 class vtkImageData;
 

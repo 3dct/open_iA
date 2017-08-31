@@ -137,17 +137,17 @@ void iASpatialView::sliceChanged(int slice)
 }
 
 
-
 vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT()
 {
 	auto result = vtkSmartPointer<vtkLookupTable>::New();
 	result->SetNumberOfTableValues(2);
-	result->SetRange(0, 1);
-	result->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.1);   // value 0 is transparent
-	result->SetTableValue(1.0, 1.0, 1.0, 0.0, 0.9);   // selection is half opaque
+	result->SetRange(0, 1);                  // alpha value here is not used!
+	result->SetTableValue(0.0, 0.0, 0.0, 0.0);
+	result->SetTableValue(1.0, 1.0, 1.0, 0.0);
 	result->Build();
 	return result;
 }
+
 
 vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF()
 {
@@ -156,6 +156,7 @@ vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF()
 	result->AddPoint(1.0, 0.5);
 	return result;
 }
+
 
 void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 {
