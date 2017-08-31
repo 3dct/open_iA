@@ -26,6 +26,7 @@
 
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAMathUtility.h"
 #include "iAPerformanceHelper.h"
 #include "iAToolsITK.h"
 
@@ -39,7 +40,6 @@ QSharedPointer<iAEnsemble> iAEnsemble::create()
 
 bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile)
 {
-	// load sampling data:
 	QMap<int, QString> const & samplings = ensembleFile.GetSamplings();
 	for (int key : samplings.keys())
 	{
@@ -50,15 +50,91 @@ bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile
 		}
 	}
 	createUncertaintyImages(ensembleFile.GetLabelCount(), QFileInfo(ensembleFileName).absolutePath() + "/cache");
-	//QFileInfo(fileName);
-	// load all ensemble members into member view
-	// update spatial view to show representative of all
-	// enable probability probing in chart view?
 	return true;
+}
+
+/**
+ * Calculate an entropy image out of a given collection of images.
+ *
+ * For each voxel, the given collection is interpreted as separate probability distribution
+ * @param distribution the collection of images considered as probability distribution
+ * @param normalize whether to normalize the entropy to the range [0..1]
+ *        the maximum entropy appears when there is equal distribution among all alternatives
+ *        (i.e. if distribution has N elements, then the entropy is maximum for a voxel if all
+ *        values of the distribution for that voxel have the value 1/N)
+ * @param probFactor factor to apply to the elements of distribution before calculating the entropy
+ *        from it. This is useful if the given distribution does not contain probabilities, but
+ *        e.g. a "histogram", that is, a number of occurences of that particular value among the
+ *        set for which the entropy should be calculated. In that case, specify 1/(size of set)
+ *        as factor
+ * @return the entropy for each voxel in form of an image with pixel type double
+ *        in case that the given distribution was empty, an empty smart ptr will be returned
+ *        (equivalent of null).
+ */
+template <typename TImage>
+DoubleImage::Pointer CalculateEntropyImage(QVector<typename TImage::Pointer> distribution, bool normalize = true, double probFactor = 1.0)
+{
+	if (distribution.empty())
+	{
+		return DoubleImage::Pointer();
+	}
+	auto size = distribution[0]->GetLargestPossibleRegion().GetSize();
+	auto spacing = distribution[0]->GetSpacing();
+	double limit = std::log(distribution.size());  // max entropy: - N* (1/N * log(1/N)) = log(N)
+	double normalizeFactor = normalize ? 1.0 / limit : 1.0;
+	auto result = CreateImage<DoubleImage>(size, spacing);
+	itk::Index<3> idx; // optimize speed via iterators / direct access?
+	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+	{
+		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+		{
+			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			{
+				double entropy = 0;
+				for (int l = 0; l < distribution.size(); ++l)
+				{
+					double prob = distribution[l]->GetPixel(idx) * probFactor;
+					if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
+					{
+						entropy += (prob * std::log(prob));
+					}
+				}
+				entropy = clamp(0.0, limit, -entropy * normalizeFactor);
+				result->SetPixel(idx, entropy);
+			}
+		}
+	}
+	return result;
 }
 
 typedef itk::ImageRegionIterator<DoubleImage> DoubleImageIterator;
 typedef itk::ImageRegionConstIterator<DoubleImage> DoubleImageConstIter;
+
+void MultiplyImageInPlace(DoubleImage::Pointer img, double factor)
+{
+	DoubleImageIterator outImgIt(img, img->GetLargestPossibleRegion());
+	while (!outImgIt.IsAtEnd())
+	{
+		double outImgVal = outImgIt.Get();
+		outImgIt.Set(outImgVal * factor);
+		++outImgIt;
+	}
+}
+
+void AddImageInPlace(DoubleImage::Pointer inOutimg, DoubleImage::Pointer inImg2)
+{
+	DoubleImageIterator outImgIt(inOutimg, inOutimg->GetLargestPossibleRegion());
+	DoubleImageConstIter inImgIt(inImg2, inImg2->GetLargestPossibleRegion());
+	while (!inImgIt.IsAtEnd() && !outImgIt.IsAtEnd())
+	{
+		double inImgVal = inImgIt.Get();
+		double outImgVal = outImgIt.Get();
+		outImgIt.Set(inImgVal + outImgVal);
+		++inImgIt;
+		++outImgIt;
+	}
+	// assert(inImgIt.IsAtEnd() == outImgIt.IsAtEnd()); // images of same resolution
+}
 
 void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePath)
 {
@@ -138,30 +214,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			iAPerformanceHelper labelDistrSumEntropyLoopMeasure;
 			labelDistrSumEntropyLoopMeasure.start("Label Distribution Entropy Loop");
 			spacing = m_labelDistr[0]->GetSpacing();
-			m_labelDistrEntropy = CreateImage<DoubleImage>(size, spacing);
-			// TOOD: itk entropy filter!
-			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-			{
-				for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
-				{
-					for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
-					{
-						// calculate entropy
-						double entropy = 0;
-						for (int l = 0; l < labelCount; ++l)
-						{
-							// optimize speed via iterators / direct access?
-							double prob = static_cast<double>(m_labelDistr[l]->GetPixel(idx)) / count;
-							if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
-							{
-								entropy += (prob * std::log(prob));
-							}
-						}
-						entropy = -entropy;	// * normalizeFactor	//entropy = clamp(0.0, limit, entropy);
-						m_labelDistrEntropy->SetPixel(idx, entropy);
-					}
-				}
-			}
+			m_labelDistrEntropy = CalculateEntropyImage<IntImage>(m_labelDistr, true, 1.0 / count);
 			labelDistrSumEntropyLoopMeasure.stop();
 			iAITKIO::writeFile(cachePath + "/labelDistributionEntropy.mhd", m_labelDistrEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
@@ -202,16 +255,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 						else
 						{
 							auto probImg = dynamic_cast<DoubleImage*>(probImgs[l].GetPointer());
-							DoubleImageConstIter inImgIt(probImg, probImg->GetLargestPossibleRegion());
-							DoubleImageIterator outImgIt(m_probDistr[l], m_probDistr[l]->GetLargestPossibleRegion());
-							while (!inImgIt.IsAtEnd() && !outImgIt.IsAtEnd())
-							{
-								double inImgVal = inImgIt.Get();
-								double outImgVal = outImgIt.Get();
-								outImgIt.Set(inImgVal + outImgVal);
-								++inImgIt;
-								++outImgIt;
-							}
+							AddImageInPlace(m_probDistr[l], probImg);
 						}
 					}
 				}
@@ -219,29 +263,9 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			probSumLoopMeasure.stop();
 			iAPerformanceHelper probSumEntropyLoopMeasure;
 			probSumEntropyLoopMeasure.start("Prob Sum Entropy Loop");
-			m_probSumEntropy = CreateImage<DoubleImage>(size, spacing);
-			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-			{
-				for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
-				{
-					for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
-					{
-						// calculate entropy
-						double entropy = 0;
-						for (int l = 0; l < labelCount; ++l)
-						{
-							// optimize speed via iterators / direct access?
-							double prob = m_probDistr[l]->GetPixel(idx) / count;
-							if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
-							{
-								entropy += (prob * std::log(prob));
-							}
-						}
-						entropy = -entropy;	// * normalizeFactor	//entropy = clamp(0.0, limit, entropy);
-						m_probSumEntropy->SetPixel(idx, entropy);
-					}
-				}
-			}
+			for (int l=0; l<m_probDistr.size(); ++l)
+				MultiplyImageInPlace(m_probDistr[l], factor);
+			m_probSumEntropy = CalculateEntropyImage<DoubleImage>(m_probDistr);
 			probSumEntropyLoopMeasure.stop();
 			iAITKIO::writeFile(cachePath + "/avgAlgProbSumEntropy.mhd", m_probSumEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
@@ -266,45 +290,19 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 				for (QSharedPointer<iAMember> member : sampling->GetMembers())
 				{
 					QVector<iAITKIO::ImagePointer> probImgs = member->GetProbabilityImgs(labelCount);
-					typename DoubleImage::Pointer * probImgsArray = new DoubleImage::Pointer[labelCount];
+					QVector<DoubleImage::Pointer> probImgsDblImgVec;
 					for (int l = 0; l < labelCount; ++l)
 					{
-						probImgsArray[l] = dynamic_cast<DoubleImage*>(probImgs[l].GetPointer());
+						probImgsDblImgVec.push_back(dynamic_cast<DoubleImage*>(probImgs[l].GetPointer()));
 					}
-					for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-					{
-						for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
-						{
-							for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
-							{
-								// calculate entropy
-								double entropy = 0;
-								for (int l = 0; l < labelCount; ++l)
-								{
-									double prob = probImgsArray[l]->GetPixel(idx);
-									if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
-									{
-										entropy += (prob * std::log(prob));
-									}
-								}
-								entropy = -entropy;	// * normalizeFactor
-													//entropy = clamp(0.0, limit, entropy);
-								m_entropyAvgEntropy->SetPixel(idx, m_entropyAvgEntropy->GetPixel(idx) + entropy);
-							}
-						}
-					}
+					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgsDblImgVec);
+					AddImageInPlace(m_entropyAvgEntropy, memberEntropy);
 				}
 			}
 			entropySumLoopMeasure.stop();
 			iAPerformanceHelper entropySumDivLoopMeasure;
 			entropySumDivLoopMeasure.start("Entropy Sum Division");
-			DoubleImageIterator outImgIt(m_entropyAvgEntropy, m_entropyAvgEntropy->GetLargestPossibleRegion());
-			while (!outImgIt.IsAtEnd())
-			{
-				double outImgVal = outImgIt.Get();
-				outImgIt.Set(outImgVal * factor);
-				++outImgIt;
-			}
+			MultiplyImageInPlace(m_entropyAvgEntropy, factor);
 			entropySumDivLoopMeasure.stop();
 			iAITKIO::writeFile(cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
@@ -348,7 +346,6 @@ vtkImagePointer iAEnsemble::GetAvgAlgEntropyFromProbSum()
 
 bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
 {
-	//m_simpleLabelInfo->SetLabelCount(labelCount);
 	if (fileName.isEmpty())
 	{
 		DEBUG_LOG("No filename given, not loading.");
