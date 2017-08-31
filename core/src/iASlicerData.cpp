@@ -1644,6 +1644,19 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 	setResliceAxesOrigin( xyz[0] * spacing[0], xyz[1] * spacing[1], xyz[2] * spacing[2] );
 }
 
+int iASlicerData::getSliceNumber() const
+{
+	double * xyz = reslicer->GetResliceAxesOrigin();
+	double * spacing = imageData->GetSpacing();
+	switch (m_mode)
+	{
+	case iASlicerMode::XY: return xyz[2] / spacing[2];
+	case iASlicerMode::YZ: return xyz[0] / spacing[0];
+	case iASlicerMode::XZ: return xyz[1] / spacing[1];
+	default: return -1;//ERROR
+	}
+}
+
 iAChannelSlicerData & iASlicerData::GetOrCreateChannel(iAChannelID id)
 {
 	if (!m_channels.contains(id))
