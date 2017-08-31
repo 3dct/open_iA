@@ -115,3 +115,9 @@ int iAImageWidget::GetSliceCount() const
 		case XY: return ext[5] - ext[4] + 1;
 	}
 }
+
+
+iASlicer* iAImageWidget::GetSlicer()
+{
+	return m_slicer;
+}

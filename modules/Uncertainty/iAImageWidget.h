@@ -40,6 +40,7 @@ public:
 	void SetMode(int slicerMode);
 	void SetSlice(int sliceNumber);
 	int GetSliceCount() const;
+	iASlicer* GetSlicer();
 private:
 	//vtkSmartPointer<vtkRenderer> m_renderer;
 	iASlicer* m_slicer;

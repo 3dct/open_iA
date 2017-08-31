@@ -20,17 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
+#include <vtkSmartPointer.h>
+
 #include <QWidget>
 
 class QCustomPlot;
+class QCPDataSelection;
+
+class vtkImageData;
+
+typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
 
 class iAChartView: public QWidget
 {
 	Q_OBJECT
 public:
 	iAChartView();
+	void AddPlot(vtkImagePointer img1, vtkImagePointer img2, QString const & captionX, QString const & captionY);
+	vtkImagePointer GetSelectionImage();
+private slots:
+	void selectionChanged(QCPDataSelection const &);
+	void chartMousePress(QMouseEvent *);
 signals:
-	void ChartSelection();
+	void SelectionChanged();
 private:
 	QCustomPlot* m_plot;
+	vtkImagePointer m_selectionImg;
+	size_t m_voxelCount;
 };

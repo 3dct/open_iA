@@ -3,7 +3,15 @@
 #include "iAImageWidget.h"
 #include "iASlicerMode.h"
 
-#include "QVTKOpenGLWidget.h"
+#include "iAChannelVisualizationData.h"
+#include "iAChannelID.h"
+#include "iASlicer.h"
+#include "iASlicerData.h"
+
+//#include <QVTKOpenGLWidget.h"
+#include <vtkPiecewiseFunction.h>
+#include <vtkLookupTable.h>
+#include <vtkImageData.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -11,7 +19,8 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-iASpatialView::iASpatialView(): QWidget()
+iASpatialView::iASpatialView(): QWidget(),
+	m_selectionChannelInitialized(false)
 {
 	xyButton = new QPushButton("XY");
 	xzButton = new QPushButton("XZ");
@@ -125,4 +134,51 @@ void iASpatialView::sliceChanged(int slice)
 	{
 		m_imageWidgets[i]->SetSlice(slice);
 	}
+}
+
+
+
+vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT()
+{
+	auto result = vtkSmartPointer<vtkLookupTable>::New();
+	result->SetNumberOfTableValues(2);
+	result->SetRange(0, 1);
+	result->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.1);   // value 0 is transparent
+	result->SetTableValue(1.0, 1.0, 1.0, 0.0, 0.9);   // selection is half opaque
+	result->Build();
+	return result;
+}
+
+vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF()
+{
+	auto result = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	result->AddPoint(0.0, 0.0);
+	result->AddPoint(1.0, 0.5);
+	return result;
+}
+
+void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
+{
+	iASlicer* slicer = m_imageWidgets[0]->GetSlicer();
+	if (!m_selectionChannelInitialized)
+	{
+		iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
+		m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
+		m_ctf = BuildLabelOverlayLUT();
+		m_otf = BuildLabelOverlayOTF();
+		ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
+		m_selectionData->SetName("Scatterplot Selection");
+
+		// move to iAImageWidget?
+		slicer->initializeChannel(id, m_selectionData.data());
+		int sliceNr = slicer->GetSlicerData()->getSliceNumber();
+		switch (slicer->GetMode())
+		{
+			case YZ: slicer->enableChannel(id, true, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[0], 0, 0); break;
+			case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[2]); break;
+			case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[1], 0); break;
+		}
+		m_selectionChannelInitialized = true;
+	}
+	slicer->update();
 }

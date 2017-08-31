@@ -56,6 +56,8 @@ private:
 	vtkImagePointer m_labelDistributionUncertainty;
 	vtkImagePointer m_avgAlgEntropySumUncertainty;
 	vtkImagePointer m_avgAlgProbEntropyUncertainty;
+	//vtkImagePointer m_neighbhourLabelDistr3x3Uncertainty;
+	//vtkImagePointer m_neighbhourLabelDistr5x5Uncertainty;
 
 	QVector<IntImage::Pointer> m_labelDistr;
 	DoubleImage::Pointer m_entropyAvgEntropy;

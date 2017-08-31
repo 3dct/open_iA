@@ -27,10 +27,13 @@
 #include <vtkSmartPointer.h>
 
 class vtkImageData;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
 
 typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
 
 class iAImageWidget;
+class iAChannelVisualizationData;
 
 class QPushButton;
 class QSpinBox;
@@ -41,6 +44,7 @@ class iASpatialView: public QWidget
 public:
 	iASpatialView();
 	void AddImage(QString const & caption, vtkImagePointer img);
+	void ShowSelection(vtkImagePointer selectionImg);
 public slots:
 	void StyleChanged();
 private slots:
@@ -59,4 +63,9 @@ private:
 	QWidget* m_sliceBar;
 	QSpinBox* m_sliceControl;
 	QPushButton * xyButton, *xzButton, *yzButton;
+	
+	bool m_selectionChannelInitialized;
+	vtkSmartPointer<vtkLookupTable> m_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+	QSharedPointer<iAChannelVisualizationData> m_selectionData;
 };

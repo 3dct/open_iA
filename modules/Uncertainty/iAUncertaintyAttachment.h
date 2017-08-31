@@ -38,6 +38,8 @@ public:
 	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
 	void toggleDockWidgetTitleBars();
 	bool loadEnsemble(QString const & fileName);
+private slots:
+	void ChartSelectionChanged();
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
 	iAChartView  * m_chartView;
