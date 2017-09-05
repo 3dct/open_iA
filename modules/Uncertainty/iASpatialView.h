@@ -35,7 +35,7 @@ typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
 class iAImageWidget;
 class iAChannelVisualizationData;
 
-class QPushButton;
+class QToolButton;
 class QSpinBox;
 
 class iASpatialView: public QWidget
@@ -48,9 +48,7 @@ public:
 public slots:
 	void StyleChanged();
 private slots:
-	void xyClicked();
-	void xzClicked();
-	void yzClicked();
+	void slicerModeButtonClicked(bool checked);
 	void sliceChanged(int);
 /*
 signals:
@@ -62,10 +60,11 @@ private:
 	QWidget* m_contentWidget;
 	QWidget* m_sliceBar;
 	QSpinBox* m_sliceControl;
-	QPushButton * xyButton, *xzButton, *yzButton;
+	QVector<QToolButton*> slicerModeButton;
 	
 	bool m_selectionChannelInitialized;
 	vtkSmartPointer<vtkLookupTable> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	QSharedPointer<iAChannelVisualizationData> m_selectionData;
+	int m_curMode;
 };

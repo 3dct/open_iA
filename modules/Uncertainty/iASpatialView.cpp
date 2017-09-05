@@ -35,36 +35,33 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPushButton>
+#include <QToolButton>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
 iASpatialView::iASpatialView(): QWidget(),
 	m_selectionChannelInitialized(false)
 {
-	xyButton = new QPushButton("XY");
-	xzButton = new QPushButton("XZ");
-	yzButton = new QPushButton("YZ");
-	xyButton->setDown(true);
-	xyButton->setAutoExclusive(false);
-	xzButton->setAutoExclusive(false);
-	yzButton->setAutoExclusive(false);
-	// TODO: find out why QPushButton::setCheckable doesn't work as advertised (i.e., not at all)
-	connect(xyButton, SIGNAL(clicked()), this, SLOT(xyClicked()));
-	connect(xzButton, SIGNAL(clicked()), this, SLOT(xzClicked()));
-	connect(yzButton, SIGNAL(clicked()), this, SLOT(yzClicked()));
-
 	m_sliceControl = new QSpinBox();
 	m_sliceControl->setMaximum(0);
 	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(sliceChanged(int)));
 
 	auto sliceButtonBar = new QWidget();
 	sliceButtonBar->setLayout(new QHBoxLayout());
-	sliceButtonBar->layout()->setSpacing(0);
-	sliceButtonBar->layout()->addWidget(xyButton);
-	sliceButtonBar->layout()->addWidget(xzButton);
-	sliceButtonBar->layout()->addWidget(yzButton);
-
+	sliceButtonBar->layout()->setSpacing(0);			// same order as in iASlicerMode!
+	static const char* const slicerModeButtonLabels[] = { "YZ", "XY", "XZ" };
+	for (int i = 0; i < 3; ++i)
+	{
+		slicerModeButton.push_back(new QToolButton());
+		slicerModeButton[i]->setText(slicerModeButtonLabels[i]);
+		slicerModeButton[i]->setAutoExclusive(true);
+		slicerModeButton[i]->setCheckable(true);
+		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(slicerModeButtonClicked(bool)));
+		sliceButtonBar->layout()->addWidget(slicerModeButton[i]);
+	}
+	m_curMode = iASlicerMode::XY;
+	slicerModeButton[m_curMode]->setChecked(true);
+	
 	m_sliceBar = new QWidget();
 	m_sliceBar->setLayout(new QHBoxLayout());
 	m_sliceBar->layout()->setSpacing(0);
@@ -101,7 +98,6 @@ void iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
 
 void iASpatialView::StyleChanged()
 {
-	
 	for (int i = 0; i < m_images.size(); ++i)
 	{
 		m_imageWidgets[i]->StyleChanged();
@@ -109,43 +105,20 @@ void iASpatialView::StyleChanged()
 }
 
 
-void iASpatialView::xyClicked()
+void iASpatialView::slicerModeButtonClicked(bool checked)
 {
-	xyButton->setDown(true);
-	xzButton->setDown(false);
-	yzButton->setDown(false);
+	int modeIdx = slicerModeButton.indexOf(dynamic_cast<QToolButton*>(sender()));
+	if (m_curMode == modeIdx)
+	{
+		return;
+	}
 	for (int i = 0; i < m_images.size(); ++i)
 	{
-		m_imageWidgets[i]->SetMode(iASlicerMode::XY);
+		m_imageWidgets[i]->SetMode(modeIdx);
 	}
 	if (m_imageWidgets.size() > 0)
 		m_sliceControl->setMaximum(m_imageWidgets[0]->GetSliceCount()-1);
-}
-
-void iASpatialView::xzClicked()
-{
-	xyButton->setDown(false);
-	xzButton->setDown(true);
-	yzButton->setDown(false);
-	for (int i = 0; i < m_images.size(); ++i)
-	{
-		m_imageWidgets[i]->SetMode(iASlicerMode::XZ);
-	}
-	if (m_imageWidgets.size() > 0)
-		m_sliceControl->setMaximum(m_imageWidgets[0]->GetSliceCount()-1);
-}
-
-void iASpatialView::yzClicked()
-{
-	xyButton->setDown(false);
-	xzButton->setDown(false);
-	yzButton->setDown(true);
-	for (int i = 0; i < m_images.size(); ++i)
-	{
-		m_imageWidgets[i]->SetMode(iASlicerMode::YZ);
-	}
-	if (m_imageWidgets.size() > 0)
-		m_sliceControl->setMaximum(m_imageWidgets[0]->GetSliceCount()-1);
+	m_curMode = modeIdx;
 }
 
 void iASpatialView::sliceChanged(int slice)
