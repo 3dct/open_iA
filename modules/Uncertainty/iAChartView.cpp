@@ -61,11 +61,9 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
 	curve->setData(t, x, y, true);
 	curve->setLineStyle(QCPCurve::lsNone);
-	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle));
+	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(0, 0, 255), 2));
 	curve->setSelectable(QCP::stMultipleDataRanges);
-	QCPSelectionDecorator* decorator = new QCPSelectionDecorator();
-	decorator->setPen(QPen(QColor(255, 255, 0)));
-	curve->setSelectionDecorator(decorator);
+	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(255, 255, 0), 2));
 	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
 
 	m_plot->xAxis->setLabel(captionX);
