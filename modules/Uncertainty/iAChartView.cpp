@@ -23,6 +23,7 @@
 #include "iAConsole.h"
 #include "qcustomplot.h"
 #include "iAToolsVTK.h"
+#include "iAColors.h"
 
 #include <vtkImageData.h>
 
@@ -61,9 +62,9 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
 	curve->setData(t, x, y, true);
 	curve->setLineStyle(QCPCurve::lsNone);
-	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(0, 0, 255), 2));
+	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
 	curve->setSelectable(QCP::stMultipleDataRanges);
-	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(255, 255, 0), 2));
+	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::SelectionColor, 2));
 	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
 
 	m_plot->xAxis->setLabel(captionX);

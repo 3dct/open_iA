@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "iASpatialView.h"
 
+#include "iAColors.h"
 #include "iAImageWidget.h"
-#include "iASlicerMode.h"
 
 #include "iAChannelVisualizationData.h"
 #include "iAChannelID.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
+#include "iASlicerMode.h"
 
 //#include <QVTKOpenGLWidget.h"
 #include <vtkPiecewiseFunction.h>
@@ -136,7 +137,10 @@ vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT()
 	result->SetNumberOfTableValues(2);
 	result->SetRange(0, 1);                  // alpha value here is not used!
 	result->SetTableValue(0.0, 0.0, 0.0, 0.0);
-	result->SetTableValue(1.0, 1.0, 1.0, 0.0);
+	result->SetTableValue(1.0,
+		Uncertainty::SelectionColor.red() / 255.0,
+		Uncertainty::SelectionColor.green() / 255.0,
+		Uncertainty::SelectionColor.blue() / 255.0);
 	result->Build();
 	return result;
 }
