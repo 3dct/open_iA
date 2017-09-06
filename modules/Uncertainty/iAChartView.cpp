@@ -69,8 +69,8 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 
 	m_plot->xAxis->setLabel(captionX);
 	m_plot->yAxis->setLabel(captionY);
-	m_plot->xAxis->setRange(0, 2);
-	m_plot->yAxis->setRange(0, 2);
+	m_plot->xAxis->setRange(0, 1);
+	m_plot->yAxis->setRange(0, 1);
 	m_plot->replot();
 
 	m_selectionImg = AllocateImage(imgX);
