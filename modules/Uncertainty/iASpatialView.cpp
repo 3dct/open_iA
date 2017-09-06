@@ -54,18 +54,19 @@ struct ImageData
 
 struct ImageGUIElements
 {
-	ImageGUIElements() : imageWidget(nullptr), container(nullptr) {}
+	ImageGUIElements() : imageWidget(nullptr), container(nullptr),
+		m_selectionChannelInitialized(false) {}
 	void DeleteAll()
 	{
 		delete container;
 	}
 	iAImageWidget* imageWidget;
 	QWidget* container;
+	bool m_selectionChannelInitialized;
 };
 
 
-iASpatialView::iASpatialView(): QWidget(),
-	m_selectionChannelInitialized(false)
+iASpatialView::iASpatialView(): QWidget()
 {
 	m_sliceControl = new QSpinBox();
 	m_sliceControl->setMaximum(0);
@@ -223,10 +224,10 @@ vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF()
 
 void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 {
-	for (int id : m_guiElements.keys())
+	for (int guiID : m_guiElements.keys())
 	{
-		iASlicer* slicer = m_guiElements[id].imageWidget->GetSlicer();
-		if (!m_selectionChannelInitialized)
+		iASlicer* slicer = m_guiElements[guiID].imageWidget->GetSlicer();
+		if (!m_guiElements[guiID].m_selectionChannelInitialized)
 		{
 			iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
 			m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
@@ -244,7 +245,7 @@ void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 				case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[2]); break;
 				case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[1], 0); break;
 			}
-			m_selectionChannelInitialized = true;
+			m_guiElements[guiID].m_selectionChannelInitialized = true;
 		}
 		slicer->update();
 	}

@@ -69,8 +69,6 @@ private:
 	QToolBar* m_imageBar;
 	QSpinBox* m_sliceControl;
 	QVector<QToolButton*> slicerModeButton;
-	
-	bool m_selectionChannelInitialized;
 	vtkSmartPointer<vtkLookupTable> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	QSharedPointer<iAChannelVisualizationData> m_selectionData;
