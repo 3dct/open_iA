@@ -38,6 +38,8 @@ public:
 private slots:
 	void selectionChanged(QCPDataSelection const &);
 	void chartMousePress(QMouseEvent *);
+	void xAxisChoice();
+	void yAxisChoice();
 signals:
 	void SelectionChanged();
 private:
@@ -45,6 +47,8 @@ private:
 	QCustomPlot* m_plot;
 	vtkImagePointer m_selectionImg;
 	size_t m_voxelCount;
+	QWidget* m_xAxisChooser, * m_yAxisChooser;
+	int m_xAxisChoice, m_yAxisChoice;
 	
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
 };

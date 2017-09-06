@@ -37,8 +37,22 @@ iAChartView::iAChartView()
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	m_plot->setInteraction(QCP::iSelectPlottables, true);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(chartMousePress(QMouseEvent *)));
-	setLayout(new QHBoxLayout());
+	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_plot);
+	auto datasetChoiceContainer = new QWidget();
+	datasetChoiceContainer->setLayout(new QVBoxLayout());
+	m_xAxisChooser = new QWidget();
+	m_xAxisChooser->setLayout(new QHBoxLayout());
+	m_xAxisChooser->layout()->setSpacing(0);
+	m_xAxisChooser->layout()->addWidget(new QLabel("X Axis"));
+	m_yAxisChooser = new QWidget();
+	m_yAxisChooser->setLayout(new QHBoxLayout());
+	m_yAxisChooser->layout()->setSpacing(0);
+	m_yAxisChooser->layout()->addWidget(new QLabel("Y Axis"));
+	datasetChoiceContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+	datasetChoiceContainer->layout()->addWidget(m_xAxisChooser);
+	datasetChoiceContainer->layout()->addWidget(m_yAxisChooser);
+	layout()->addWidget(datasetChoiceContainer);
 }
 
 
@@ -82,10 +96,55 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 void iAChartView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
 	m_imgs = imgs;
-	AddPlot(imgs->GetEntropy(iAUncertaintyImages::LabelDistributionEntropy),
-		imgs->GetEntropy(iAUncertaintyImages::AvgAlgorithmEntropyProbSum),
-		imgs->GetSourceName(iAUncertaintyImages::LabelDistributionEntropy),
-		imgs->GetSourceName(iAUncertaintyImages::AvgAlgorithmEntropyProbSum));
+	m_xAxisChoice = iAUncertaintyImages::LabelDistributionEntropy;
+	m_yAxisChoice = iAUncertaintyImages::AvgAlgorithmEntropyProbSum;
+	for (int i = 0; i < iAUncertaintyImages::SourceCount; ++i)
+	{
+		QToolButton* xButton = new QToolButton(); xButton->setText(imgs->GetSourceName(i));
+		QToolButton* yButton = new QToolButton(); yButton->setText(imgs->GetSourceName(i));
+		xButton->setProperty("imgId", i);
+		yButton->setProperty("imgId", i);
+		xButton->setAutoExclusive(true);
+		xButton->setCheckable(true);
+		yButton->setAutoExclusive(true);
+		yButton->setCheckable(true);
+		if (i == m_xAxisChoice)
+		{
+			xButton->setChecked(true);
+		}
+		if (i == m_yAxisChoice)
+		{
+			yButton->setChecked(true);
+		}
+		connect(xButton, SIGNAL(clicked()), this, SLOT(xAxisChoice()));
+		connect(yButton, SIGNAL(clicked()), this, SLOT(yAxisChoice()));
+		m_xAxisChooser->layout()->addWidget(xButton);
+		m_yAxisChooser->layout()->addWidget(yButton);
+	}
+	AddPlot(imgs->GetEntropy(m_xAxisChoice), imgs->GetEntropy(m_yAxisChoice),
+		imgs->GetSourceName(m_xAxisChoice), imgs->GetSourceName(m_yAxisChoice));
+}
+
+
+void iAChartView::xAxisChoice()
+{
+	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
+	if (imgId == m_xAxisChoice)
+		return;
+	m_xAxisChoice = imgId;
+	AddPlot(m_imgs->GetEntropy(m_xAxisChoice), m_imgs->GetEntropy(m_yAxisChoice),
+		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
+}
+
+
+void iAChartView::yAxisChoice()
+{
+	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
+	if (imgId == m_yAxisChoice)
+		return;
+	m_yAxisChoice = imgId;
+	AddPlot(m_imgs->GetEntropy(m_xAxisChoice), m_imgs->GetEntropy(m_yAxisChoice),
+		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
 }
 
 
@@ -105,7 +164,7 @@ void iAChartView::selectionChanged(QCPDataSelection const & selection)
 	}
 	m_selectionImg->Modified();
 
-	StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
+	//StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
 	emit SelectionChanged();
 }
 

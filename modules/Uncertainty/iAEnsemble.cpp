@@ -360,8 +360,8 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			iAITKIO::writeFile(cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		if (!LoadCachedImage(m_neighbourhoodAvgEntropy3x3, cachePath + "entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)") ||
-			!LoadCachedImage(m_neighbourhoodAvgEntropy5x5, cachePath + "entropyNeighbourhood5x5.mhd", "neighbourhood entropy (5x5)"))
+		if (!LoadCachedImage(m_neighbourhoodAvgEntropy3x3, cachePath + "/entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)") ||
+			!LoadCachedImage(m_neighbourhoodAvgEntropy5x5, cachePath + "/entropyNeighbourhood5x5.mhd", "neighbourhood entropy (5x5)"))
 		{
 			iAPerformanceHelper neighbourEntropyMeasure;
 			neighbourEntropyMeasure.start("Neighbourhood Entropy Loop");
@@ -382,8 +382,8 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			MultiplyImageInPlace(m_neighbourhoodAvgEntropy3x3, factor);
 			MultiplyImageInPlace(m_neighbourhoodAvgEntropy5x5, factor);
 			neighbourEntropyMeasure.stop();
-			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood3x3.mhd.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), itk::ImageIOBase::DOUBLE, true);
-			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood5x5.mhd.mhd", m_neighbourhoodAvgEntropy5x5.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood3x3.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood5x5.mhd", m_neighbourhoodAvgEntropy5x5.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
 
@@ -428,11 +428,11 @@ vtkImagePointer iAEnsemble::GetEntropy(int source)
 
 
 const char* const UncertaintyNames[] = {
-	"Label Distribution Uncertainty",
-	"Algorithm Uncertainty (Entropy Sum Average)",
-	"Algorithm Uncertainty (Probability Sum Entropy)",
-	"3x3 Neighbourhood Uncertainty",
-	"5x5 Neighbourhood Uncertainty",
+	"Label Distribution",
+	"Algorithm (Entropy Sum Avg.)",
+	"Algorithm (Prob. Sum Entropy)",
+	"3x3 Neighbourhood",
+	"5x5 Neighbourhood",
 };
 
 
