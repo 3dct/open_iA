@@ -65,6 +65,14 @@ void iAUncertaintyAttachment::toggleDockWidgetTitleBars()
 	}
 }
 
+const char* const UncertaintyNames[] = {
+	"Label Distribution Uncertainty",
+	"Algorithm Uncertainty (Entropy Sum Average)",
+	"Algorithm Uncertainty (Probability Sum Entropy)",
+	"3x3 Neighbourhood Uncertainty",
+	"5x5 Neighbourhood Uncertainty",
+};
+
 bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 {
 	iAEnsembleDescriptorFile ensembleFile(fileName);
@@ -81,13 +89,13 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 	bool result = m_ensemble->load(fileName, ensembleFile);
 	if (result)
 	{
-		m_spatialView->AddImage("Label Distribution Uncertainty", m_ensemble->GetEntropy(iAEnsemble::LabelDistributionEntropy));
-		m_spatialView->AddImage("Algorithm Uncertainty (Entropy Sum Average)", m_ensemble->GetEntropy(iAEnsemble::AvgAlgorithmEntropyEntrSum));
-		m_spatialView->AddImage("Algorithm Uncertainty (Probability Sum Entropy)", m_ensemble->GetEntropy(iAEnsemble::AvgAlgorithmEntropyProbSum));
-
+		for (int i = 0; i < iAEnsemble::SourceCount; ++i)
+		{
+			m_spatialView->AddImage(UncertaintyNames[i], m_ensemble->GetEntropy(i));
+		}
 		m_chartView->AddPlot(m_ensemble->GetEntropy(iAEnsemble::LabelDistributionEntropy), m_ensemble->GetEntropy(iAEnsemble::AvgAlgorithmEntropyProbSum),
-			"Label Distribution Uncertainty",
-			"Algorithm Uncertainty (Entropy Sum Average)");
+			UncertaintyNames[iAEnsemble::LabelDistributionEntropy],
+			UncertaintyNames[iAEnsemble::AvgAlgorithmEntropyProbSum]);
 
 		connect(m_chartView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
 	}

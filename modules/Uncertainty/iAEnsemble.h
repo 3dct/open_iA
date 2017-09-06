@@ -65,5 +65,7 @@ private:
 	DoubleImage::Pointer m_entropyAvgEntropy;
 	DoubleImage::Pointer m_labelDistrEntropy;
 	DoubleImage::Pointer m_probSumEntropy;
+	DoubleImage::Pointer m_neighbourhoodAvgEntropy3x3;
+	DoubleImage::Pointer m_neighbourhoodAvgEntropy5x5;
 	QVector<DoubleImage::Pointer> m_probDistr;
 };

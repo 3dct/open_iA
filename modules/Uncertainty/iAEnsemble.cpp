@@ -30,6 +30,8 @@
 #include "iAPerformanceHelper.h"
 #include "iAToolsITK.h"
 
+#include <itkConstNeighborhoodIterator.h>
+
 #include <QDir>
 #include <QFileInfo>
 
@@ -155,6 +157,70 @@ namespace
 		}
 		return true;
 	}
+}
+
+DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int labelCount, size_t patchSize, itk::Size<3> size, itk::Vector<double, 3> spacing)
+{
+	DoubleImage::Pointer result = CreateImage<DoubleImage>(size, spacing);
+	int neighbourhoodSize = std::pow(patchSize * 2 + 1, 3);
+	int * labelHistogram = new int[neighbourhoodSize];
+	double probFactor = 1.0 / neighbourhoodSize;
+	double limit = std::log(labelCount);  // max entropy: - N* (1/N * log(1/N)) = log(N)
+	double normalizeFactor = 1.0 / limit;
+	bool IsInBounds;
+	itk::Size<3> patch3Dsize = { patchSize, patchSize, patchSize };
+	itk::ConstNeighborhoodIterator<IntImage> it(patch3Dsize, intImage, intImage->GetLargestPossibleRegion());
+	itk::ImageRegionIterator<DoubleImage> outIt(result, result->GetLargestPossibleRegion());
+	it.GoToBegin();
+	outIt.GoToBegin();
+	while (!it.IsAtEnd() && !outIt.IsAtEnd())
+	{
+		double sum = 0;
+		std::fill(labelHistogram, labelHistogram + labelCount, 0);
+		int valueCount = 0;
+		for (int i = 0; i < neighbourhoodSize; ++i)
+		{
+			int value = it.GetPixel(i, IsInBounds);
+			if (IsInBounds)
+			{
+				labelHistogram[value]++;
+				valueCount++;
+			}
+		}
+
+		double entropy = 0;
+		if (valueCount == neighbourhoodSize)
+		{
+			for (int l = 0; l < labelCount; ++l)
+			{
+				double prob = labelHistogram[l] * probFactor;
+				if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
+				{
+					entropy += (prob * std::log(prob));
+				}
+			}
+			entropy = clamp(0.0, limit, -entropy * normalizeFactor);
+		}
+		else
+		{
+			for (int l = 0; l < labelCount; ++l)
+			{
+				double prob = static_cast<double>(labelHistogram[l]) / valueCount;
+				if (prob > 0) // to avoid infinity - we take 0, which is appropriate according to limit of 0 times infinity
+				{
+					entropy += (prob * std::log(prob));
+				}
+			}
+			double limit = std::log(valueCount);  // max entropy: - N* (1/N * log(1/N)) = log(N)
+			double normalizeFactor = 1.0 / limit;
+			entropy = clamp(0.0, limit, -entropy * normalizeFactor);
+		}
+		outIt.Set(entropy);
+		++it;
+		++outIt;
+	}
+	delete[] labelHistogram;
+	return result;
 }
 
 void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePath)
@@ -294,12 +360,38 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			iAITKIO::writeFile(cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		//if (!LoadCachedImage(m_entropyNeighbourhood, cachePath + "neighbourhoodEntropy.mhd", "neighbourhood entropy"))
+		if (!LoadCachedImage(m_neighbourhoodAvgEntropy3x3, cachePath + "entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)") ||
+			!LoadCachedImage(m_neighbourhoodAvgEntropy5x5, cachePath + "entropyNeighbourhood5x5.mhd", "neighbourhood entropy (5x5)"))
+		{
+			iAPerformanceHelper neighbourEntropyMeasure;
+			neighbourEntropyMeasure.start("Neighbourhood Entropy Loop");
+			m_neighbourhoodAvgEntropy3x3 = CreateImage<DoubleImage>(size, spacing);
+			m_neighbourhoodAvgEntropy5x5 = CreateImage<DoubleImage>(size, spacing);
+			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
+			{
+				for (QSharedPointer<iAMember> member : sampling->GetMembers())
+				{
+					auto labelImgOrig = member->GetLabelledImage();
+					auto labelImg = dynamic_cast<IntImage*>(labelImgOrig.GetPointer());
+					DoubleImage::Pointer neighbourEntropyImg3x3 = NeighbourhoodEntropyImage(labelImg, labelCount, 1, size, spacing);
+					DoubleImage::Pointer neighbourEntropyImg5x5 = NeighbourhoodEntropyImage(labelImg, labelCount, 2, size, spacing);
+					AddImageInPlace(m_neighbourhoodAvgEntropy3x3, neighbourEntropyImg3x3);
+					AddImageInPlace(m_neighbourhoodAvgEntropy5x5, neighbourEntropyImg5x5);
+				}
+			}
+			MultiplyImageInPlace(m_neighbourhoodAvgEntropy3x3, factor);
+			MultiplyImageInPlace(m_neighbourhoodAvgEntropy5x5, factor);
+			neighbourEntropyMeasure.stop();
+			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood3x3.mhd.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood5x5.mhd.mhd", m_neighbourhoodAvgEntropy5x5.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+		}
+
 
 		m_entropy.resize(SourceCount);
 
 		iAPerformanceHelper imgConversionMeasure;
 		imgConversionMeasure.start("Image Conversion");
+
 		iAConnector con1;
 		con1.SetImage(m_labelDistrEntropy);
 		m_entropy[LabelDistributionEntropy] = con1.GetVTKImage();
@@ -311,6 +403,15 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 		iAConnector con3;
 		con3.SetImage(m_probSumEntropy);
 		m_entropy[AvgAlgorithmEntropyProbSum] = con3.GetVTKImage();
+
+		iAConnector con4;
+		con4.SetImage(m_neighbourhoodAvgEntropy3x3);
+		m_entropy[Neighbourhood3x3Entropy] = con4.GetVTKImage();
+
+		iAConnector con5;
+		con5.SetImage(m_neighbourhoodAvgEntropy5x5);
+		m_entropy[Neighbourhood5x5Entropy] = con5.GetVTKImage();
+
 		imgConversionMeasure.stop();
 	}
 	catch (itk::ExceptionObject & excp)
