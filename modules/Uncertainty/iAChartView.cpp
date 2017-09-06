@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iAChartView.h"
 
-#include "iAConsole.h"
-#include "qcustomplot.h"
-#include "iAToolsVTK.h"
 #include "iAColors.h"
+#include "iAConsole.h"
+#include "iAToolsVTK.h"
+#include "qcustomplot.h"
 
 #include <vtkImageData.h>
 
@@ -44,6 +44,8 @@ iAChartView::iAChartView()
 
 void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
+	m_plot->removePlottable(0);
+
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	QVector<double> x, y, t;
@@ -74,6 +76,16 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 	m_plot->replot();
 
 	m_selectionImg = AllocateImage(imgX);
+}
+
+
+void iAChartView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
+{
+	m_imgs = imgs;
+	AddPlot(imgs->GetEntropy(iAUncertaintyImages::LabelDistributionEntropy),
+		imgs->GetEntropy(iAUncertaintyImages::AvgAlgorithmEntropyProbSum),
+		imgs->GetSourceName(iAUncertaintyImages::LabelDistributionEntropy),
+		imgs->GetSourceName(iAUncertaintyImages::AvgAlgorithmEntropyProbSum));
 }
 
 

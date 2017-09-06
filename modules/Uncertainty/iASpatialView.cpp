@@ -98,12 +98,22 @@ iASpatialView::iASpatialView(): QWidget()
 	m_contentWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
 	m_contentWidget->layout()->setSpacing(0);
 
-	m_imageBar = new QToolBar();
+	m_imageBar = new QWidget();
+	m_imageBar->setLayout(new QHBoxLayout());
 
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_contentWidget);
 	layout()->addWidget(m_sliceBar);
 	layout()->addWidget(m_imageBar);
+}
+
+
+void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
+{
+	for (int i = 0; i < iAUncertaintyImages::SourceCount; ++i)
+	{
+		AddImage(imgs->GetSourceName(i), imgs->GetEntropy(i));
+	}
 }
 
 
@@ -113,7 +123,7 @@ void iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
 	button->setText(caption);
 	button->setCheckable(true);
 	button->setAutoExclusive(false);
-	m_imageBar->addWidget(button);
+	m_imageBar->layout()->addWidget(button);
 	connect(button, SIGNAL( clicked() ), this, SLOT( imageButtonClicked() ) );
 	iAImageWidget* imgW = nullptr;
 	m_images.push_back(ImageData(caption, img));

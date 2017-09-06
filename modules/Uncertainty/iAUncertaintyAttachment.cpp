@@ -65,14 +65,6 @@ void iAUncertaintyAttachment::toggleDockWidgetTitleBars()
 	}
 }
 
-const char* const UncertaintyNames[] = {
-	"Label Distribution Uncertainty",
-	"Algorithm Uncertainty (Entropy Sum Average)",
-	"Algorithm Uncertainty (Probability Sum Entropy)",
-	"3x3 Neighbourhood Uncertainty",
-	"5x5 Neighbourhood Uncertainty",
-};
-
 bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 {
 	iAEnsembleDescriptorFile ensembleFile(fileName);
@@ -89,13 +81,8 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 	bool result = m_ensemble->load(fileName, ensembleFile);
 	if (result)
 	{
-		for (int i = 0; i < iAEnsemble::SourceCount; ++i)
-		{
-			m_spatialView->AddImage(UncertaintyNames[i], m_ensemble->GetEntropy(i));
-		}
-		m_chartView->AddPlot(m_ensemble->GetEntropy(iAEnsemble::LabelDistributionEntropy), m_ensemble->GetEntropy(iAEnsemble::AvgAlgorithmEntropyProbSum),
-			UncertaintyNames[iAEnsemble::LabelDistributionEntropy],
-			UncertaintyNames[iAEnsemble::AvgAlgorithmEntropyProbSum]);
+		m_spatialView->SetDatasets(m_ensemble);
+		m_chartView->SetDatasets(m_ensemble);
 
 		connect(m_chartView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
 	}

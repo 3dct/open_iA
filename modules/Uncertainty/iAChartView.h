@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include "iAUncertaintyImages.h"  // for vtkImagePointer
 
 #include <QWidget>
 
@@ -28,16 +28,12 @@ class QCustomPlot;
 class QCPDataSelection;
 class QCPCurve;
 
-class vtkImageData;
-
-typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
-
 class iAChartView: public QWidget
 {
 	Q_OBJECT
 public:
 	iAChartView();
-	void AddPlot(vtkImagePointer img1, vtkImagePointer img2, QString const & captionX, QString const & captionY);
+	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	vtkImagePointer GetSelectionImage();
 private slots:
 	void selectionChanged(QCPDataSelection const &);
@@ -45,7 +41,10 @@ private slots:
 signals:
 	void SelectionChanged();
 private:
+	QSharedPointer<iAUncertaintyImages> m_imgs;
 	QCustomPlot* m_plot;
 	vtkImagePointer m_selectionImg;
 	size_t m_voxelCount;
+	
+	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
 };

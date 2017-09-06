@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkImage.h>
+#include "iAUncertaintyImages.h"
 
-#include <vtkSmartPointer.h>
+#include <itkImage.h>
 
 #include <QSharedPointer>
 #include <QString>
@@ -31,27 +31,17 @@
 class iAEnsembleDescriptorFile;
 class iASamplingResults;
 
-class vtkImageData;
-
-typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
 typedef itk::Image<double, 3> DoubleImage;
 typedef itk::Image<int, 3> IntImage;
 
-class iAEnsemble
+class iAEnsemble: public iAUncertaintyImages
 {
 public:
-	enum SourceType
-	{
-		LabelDistributionEntropy,
-		AvgAlgorithmEntropyEntrSum, AvgAlgorithmEntropyProbSum, // unify? should be the same
-		Neighbourhood3x3Entropy,
-		Neighbourhood5x5Entropy,
-		SourceCount
-	};
 	//! create from string
 	static QSharedPointer<iAEnsemble> create();
 	bool load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile);
-	vtkImagePointer GetEntropy(int source);
+	virtual vtkImagePointer GetEntropy(int source);
+	virtual QString GetSourceName(int source);
 private:
 	bool loadSampling(QString const & fileName, int labelCount, int id);
 	void createUncertaintyImages(int labelCount, QString const & cachePath);

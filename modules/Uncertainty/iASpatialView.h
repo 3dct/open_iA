@@ -20,21 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAUncertaintyImages.h"  // for vtkImagePointer
+
 #include "iAImageCoordinate.h"
 
 #include <QMap>
 #include <QWidget>
 
-#include <vtkSmartPointer.h>
-
-class vtkImageData;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 
-typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
-
-class iAImageWidget;
 class iAChannelVisualizationData;
+class iAImageWidget;
 
 class QToolBar;
 class QToolButton;
@@ -48,7 +45,7 @@ class iASpatialView: public QWidget
 	Q_OBJECT
 public:
 	iASpatialView();
-	void AddImage(QString const & caption, vtkImagePointer img);
+	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	void ShowSelection(vtkImagePointer selectionImg);
 public slots:
 	void StyleChanged();
@@ -61,12 +58,13 @@ signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
 */
 private:
+	void AddImage(QString const & caption, vtkImagePointer img);
 	void AddImageDisplay(int idx);
 	QVector<ImageData> m_images;
 	QMap<int, ImageGUIElements> m_guiElements;
 	QWidget* m_contentWidget;
 	QWidget* m_sliceBar;
-	QToolBar* m_imageBar;
+	QWidget* m_imageBar;
 	QSpinBox* m_sliceControl;
 	QVector<QToolButton*> slicerModeButton;
 	vtkSmartPointer<vtkLookupTable> m_ctf;

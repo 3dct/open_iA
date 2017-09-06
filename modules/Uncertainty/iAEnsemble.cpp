@@ -426,6 +426,22 @@ vtkImagePointer iAEnsemble::GetEntropy(int source)
 	return m_entropy[source];
 }
 
+
+const char* const UncertaintyNames[] = {
+	"Label Distribution Uncertainty",
+	"Algorithm Uncertainty (Entropy Sum Average)",
+	"Algorithm Uncertainty (Probability Sum Entropy)",
+	"3x3 Neighbourhood Uncertainty",
+	"5x5 Neighbourhood Uncertainty",
+};
+
+
+QString iAEnsemble::GetSourceName(int sourceIdx)
+{
+	return UncertaintyNames[sourceIdx];
+}
+
+
 bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
 {
 	if (fileName.isEmpty())
