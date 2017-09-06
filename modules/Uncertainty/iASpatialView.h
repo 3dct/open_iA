@@ -22,6 +22,7 @@
 
 #include "iAImageCoordinate.h"
 
+#include <QMap>
 #include <QWidget>
 
 #include <vtkSmartPointer.h>
@@ -35,8 +36,12 @@ typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
 class iAImageWidget;
 class iAChannelVisualizationData;
 
+class QToolBar;
 class QToolButton;
 class QSpinBox;
+
+struct ImageData;
+struct ImageGUIElements;
 
 class iASpatialView: public QWidget
 {
@@ -50,15 +55,18 @@ public slots:
 private slots:
 	void slicerModeButtonClicked(bool checked);
 	void sliceChanged(int);
+	void imageButtonClicked();
 /*
 signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
 */
 private:
-	QVector<iAImageWidget*> m_imageWidgets;
-	QVector<QPair<QString, vtkImagePointer> > m_images;
+	void AddImageDisplay(int idx);
+	QVector<ImageData> m_images;
+	QMap<int, ImageGUIElements> m_guiElements;
 	QWidget* m_contentWidget;
 	QWidget* m_sliceBar;
+	QToolBar* m_imageBar;
 	QSpinBox* m_sliceControl;
 	QVector<QToolButton*> slicerModeButton;
 	

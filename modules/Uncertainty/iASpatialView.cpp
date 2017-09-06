@@ -24,6 +24,7 @@
 #include "iAImageWidget.h"
 
 #include "iAChannelVisualizationData.h"
+#include "iAConsole.h"
 #include "iAChannelID.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
@@ -36,9 +37,32 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QToolButton>
 #include <QSpinBox>
+#include <QToolBar>
+#include <QToolButton>
 #include <QVBoxLayout>
+
+
+struct ImageData
+{
+	ImageData() {}
+	ImageData(QString const & c, vtkImagePointer img):
+		caption(c), image(img) {}
+	QString caption;
+	vtkImagePointer image;
+};
+
+struct ImageGUIElements
+{
+	ImageGUIElements() : imageWidget(nullptr), container(nullptr) {}
+	void DeleteAll()
+	{
+		delete container;
+	}
+	iAImageWidget* imageWidget;
+	QWidget* container;
+};
+
 
 iASpatialView::iASpatialView(): QWidget(),
 	m_selectionChannelInitialized(false)
@@ -47,9 +71,7 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_sliceControl->setMaximum(0);
 	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(sliceChanged(int)));
 
-	auto sliceButtonBar = new QWidget();
-	sliceButtonBar->setLayout(new QHBoxLayout());
-	sliceButtonBar->layout()->setSpacing(0);			// same order as in iASlicerMode!
+	auto sliceButtonBar = new QToolBar();			// same order as in iASlicerMode!
 	static const char* const slicerModeButtonLabels[] = { "YZ", "XY", "XZ" };
 	for (int i = 0; i < 3; ++i)
 	{
@@ -58,7 +80,7 @@ iASpatialView::iASpatialView(): QWidget(),
 		slicerModeButton[i]->setAutoExclusive(true);
 		slicerModeButton[i]->setCheckable(true);
 		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(slicerModeButtonClicked(bool)));
-		sliceButtonBar->layout()->addWidget(slicerModeButton[i]);
+		sliceButtonBar->addWidget(slicerModeButton[i]);
 	}
 	m_curMode = iASlicerMode::XY;
 	slicerModeButton[m_curMode]->setChecked(true);
@@ -75,58 +97,102 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_contentWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
 	m_contentWidget->layout()->setSpacing(0);
 
+	m_imageBar = new QToolBar();
+
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_contentWidget);
 	layout()->addWidget(m_sliceBar);
+	layout()->addWidget(m_imageBar);
 }
+
 
 void iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
 {
-	m_images.push_back(QPair<QString, vtkImagePointer>(caption, img));
+	auto * button = new QToolButton();
+	button->setText(caption);
+	button->setCheckable(true);
+	button->setAutoExclusive(false);
+	m_imageBar->addWidget(button);
+	connect(button, SIGNAL( clicked() ), this, SLOT( imageButtonClicked() ) );
+	iAImageWidget* imgW = nullptr;
+	m_images.push_back(ImageData(caption, img));
+	if (m_images.size() == 1)
+	{
+		AddImageDisplay(0);
+		button->setChecked(true);
+	}
+	button->setProperty("imageID", m_images.size() - 1);
+}
 
-	auto imgWidget = new iAImageWidget(img);
-	QWidget*  container = new QWidget();
-	container->setLayout(new QVBoxLayout());
-	auto label = new QLabel(caption);
+
+void iASpatialView::AddImageDisplay(int idx)
+{
+	if (m_guiElements.contains(idx))
+	{
+		DEBUG_LOG(QString("Image %1 already shown!").arg(idx));
+		return;
+	}
+	ImageGUIElements gui;
+	gui.container = new QWidget();
+	gui.container->setLayout(new QVBoxLayout());
+	gui.imageWidget = new iAImageWidget(m_images[idx].image);
+	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	label->setAlignment(Qt::AlignHCenter);
-	container->layout()->addWidget(label);
-	container->layout()->addWidget(imgWidget);
-	m_contentWidget->layout()->addWidget(container);
-	m_imageWidgets.push_back(imgWidget);
-	m_sliceControl->setMaximum(imgWidget->GetSliceCount()-1);
+	gui.container->layout()->addWidget(label);
+	gui.container->layout()->addWidget(gui.imageWidget);
+	m_contentWidget->layout()->addWidget(gui.container);
+	m_sliceControl->setMaximum(gui.imageWidget->GetSliceCount()-1);
+	m_guiElements.insert(idx, gui);
 }
+
 
 void iASpatialView::StyleChanged()
 {
-	for (int i = 0; i < m_images.size(); ++i)
+	for (int id: m_guiElements.keys())
 	{
-		m_imageWidgets[i]->StyleChanged();
+		m_guiElements[id].imageWidget->StyleChanged();
 	}
 }
 
 
 void iASpatialView::slicerModeButtonClicked(bool checked)
 {
-	int modeIdx = slicerModeButton.indexOf(dynamic_cast<QToolButton*>(sender()));
+	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (m_curMode == modeIdx)
 	{
 		return;
 	}
-	for (int i = 0; i < m_images.size(); ++i)
+	for (int id : m_guiElements.keys())
 	{
-		m_imageWidgets[i]->SetMode(modeIdx);
+		m_guiElements[id].imageWidget->SetMode(modeIdx);
+		m_sliceControl->setMaximum(m_guiElements[id].imageWidget->GetSliceCount() - 1);
 	}
-	if (m_imageWidgets.size() > 0)
-		m_sliceControl->setMaximum(m_imageWidgets[0]->GetSliceCount()-1);
 	m_curMode = modeIdx;
 }
 
+
+void iASpatialView::imageButtonClicked()
+{
+	QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+	int id = button->property("imageID").toInt();
+	if (m_guiElements.contains(id))
+	{	// remove image widget:
+		m_guiElements[id].DeleteAll();
+		m_guiElements.remove(id);
+	}
+	else
+	{
+		AddImageDisplay(id);
+	}
+}
+
+
 void iASpatialView::sliceChanged(int slice)
 {
-	for (int i = 0; i < m_images.size(); ++i)
+	for (int id : m_guiElements.keys())
 	{
-		m_imageWidgets[i]->SetSlice(slice);
+		m_guiElements[id].imageWidget->SetSlice(slice);
 	}
 }
 
@@ -157,26 +223,29 @@ vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF()
 
 void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 {
-	iASlicer* slicer = m_imageWidgets[0]->GetSlicer();
-	if (!m_selectionChannelInitialized)
+	for (int id : m_guiElements.keys())
 	{
-		iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
-		m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
-		m_ctf = BuildLabelOverlayLUT();
-		m_otf = BuildLabelOverlayOTF();
-		ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
-		m_selectionData->SetName("Scatterplot Selection");
-
-		// move to iAImageWidget?
-		slicer->initializeChannel(id, m_selectionData.data());
-		int sliceNr = slicer->GetSlicerData()->getSliceNumber();
-		switch (slicer->GetMode())
+		iASlicer* slicer = m_guiElements[id].imageWidget->GetSlicer();
+		if (!m_selectionChannelInitialized)
 		{
-			case YZ: slicer->enableChannel(id, true, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[0], 0, 0); break;
-			case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[2]); break;
-			case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[1], 0); break;
+			iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
+			m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
+			m_ctf = BuildLabelOverlayLUT();
+			m_otf = BuildLabelOverlayOTF();
+			ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
+			m_selectionData->SetName("Scatterplot Selection");
+
+			// move to iAImageWidget?
+			slicer->initializeChannel(id, m_selectionData.data());
+			int sliceNr = slicer->GetSlicerData()->getSliceNumber();
+			switch (slicer->GetMode())
+			{
+				case YZ: slicer->enableChannel(id, true, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[0], 0, 0); break;
+				case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[2]); break;
+				case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[1], 0); break;
+			}
+			m_selectionChannelInitialized = true;
 		}
-		m_selectionChannelInitialized = true;
+		slicer->update();
 	}
-	slicer->update();
 }

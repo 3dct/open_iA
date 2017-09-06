@@ -46,7 +46,6 @@ public:
 		AvgAlgorithmEntropyEntrSum, AvgAlgorithmEntropyProbSum, // unify? should be the same
 		Neighbourhood3x3Entropy,
 		Neighbourhood5x5Entropy,
-
 		SourceCount
 	};
 	//! create from string
