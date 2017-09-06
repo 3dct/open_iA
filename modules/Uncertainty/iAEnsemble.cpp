@@ -265,7 +265,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			probSumLoopMeasure.stop();
 			iAPerformanceHelper probSumEntropyLoopMeasure;
 			probSumEntropyLoopMeasure.start("Prob Sum Entropy Loop");
-			for (int l=0; l<m_probDistr.size(); ++l)
+			for (int l = 0; l < m_probDistr.size(); ++l)
 				MultiplyImageInPlace(m_probDistr[l], factor);
 			m_probSumEntropy = CalculateEntropyImage<DoubleImage>(m_probDistr);
 			probSumEntropyLoopMeasure.stop();
@@ -294,19 +294,23 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			iAITKIO::writeFile(cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
+		//if (!LoadCachedImage(m_entropyNeighbourhood, cachePath + "neighbourhoodEntropy.mhd", "neighbourhood entropy"))
+
+		m_entropy.resize(SourceCount);
+
 		iAPerformanceHelper imgConversionMeasure;
 		imgConversionMeasure.start("Image Conversion");
 		iAConnector con1;
 		con1.SetImage(m_labelDistrEntropy);
-		m_labelDistributionUncertainty = con1.GetVTKImage();
+		m_entropy[LabelDistributionEntropy] = con1.GetVTKImage();
 
 		iAConnector con2;
 		con2.SetImage(m_entropyAvgEntropy);
-		m_avgAlgEntropySumUncertainty = con2.GetVTKImage();
+		m_entropy[AvgAlgorithmEntropyEntrSum] = con2.GetVTKImage();
 
 		iAConnector con3;
 		con3.SetImage(m_probSumEntropy);
-		m_avgAlgProbEntropyUncertainty = con3.GetVTKImage();
+		m_entropy[AvgAlgorithmEntropyProbSum] = con3.GetVTKImage();
 		imgConversionMeasure.stop();
 	}
 	catch (itk::ExceptionObject & excp)
@@ -316,19 +320,9 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 }
 
 
-vtkImagePointer iAEnsemble::GetLabelDistribution()
+vtkImagePointer iAEnsemble::GetEntropy(int source)
 {
-	return m_labelDistributionUncertainty;
-}
-
-vtkImagePointer iAEnsemble::GetAvgAlgEntropyFromSum()
-{
-	return m_avgAlgEntropySumUncertainty;
-}
-
-vtkImagePointer iAEnsemble::GetAvgAlgEntropyFromProbSum()
-{
-	return m_avgAlgProbEntropyUncertainty;
+	return m_entropy[source];
 }
 
 bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)

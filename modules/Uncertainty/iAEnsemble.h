@@ -40,12 +40,19 @@ typedef itk::Image<int, 3> IntImage;
 class iAEnsemble
 {
 public:
+	enum SourceType
+	{
+		LabelDistributionEntropy,
+		AvgAlgorithmEntropyEntrSum, AvgAlgorithmEntropyProbSum, // unify? should be the same
+		Neighbourhood3x3Entropy,
+		Neighbourhood5x5Entropy,
+
+		SourceCount
+	};
 	//! create from string
 	static QSharedPointer<iAEnsemble> create();
 	bool load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile);
-	vtkImagePointer GetLabelDistribution();
-	vtkImagePointer GetAvgAlgEntropyFromSum();
-	vtkImagePointer GetAvgAlgEntropyFromProbSum();
+	vtkImagePointer GetEntropy(int source);
 private:
 	bool loadSampling(QString const & fileName, int labelCount, int id);
 	void createUncertaintyImages(int labelCount, QString const & cachePath);
@@ -53,11 +60,7 @@ private:
 	iAEnsemble();
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;
 
-	vtkImagePointer m_labelDistributionUncertainty;
-	vtkImagePointer m_avgAlgEntropySumUncertainty;
-	vtkImagePointer m_avgAlgProbEntropyUncertainty;
-	//vtkImagePointer m_neighbhourLabelDistr3x3Uncertainty;
-	//vtkImagePointer m_neighbhourLabelDistr5x5Uncertainty;
+	QVector<vtkImagePointer> m_entropy;
 
 	QVector<IntImage::Pointer> m_labelDistr;
 	DoubleImage::Pointer m_entropyAvgEntropy;

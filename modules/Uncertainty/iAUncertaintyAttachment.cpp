@@ -83,9 +83,9 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 	{
 		//m_spatialView->AddImage("Label Distribution Uncertainty", m_ensemble->GetLabelDistribution());
 		//m_spatialView->AddImage("Algorithm Uncertainty (Entropy Sum Average)", m_ensemble->GetAvgAlgEntropyFromSum());
-		m_spatialView->AddImage("Algorithm Uncertainty (Probability Sum Entropy)", m_ensemble->GetAvgAlgEntropyFromProbSum());
+		m_spatialView->AddImage("Algorithm Uncertainty (Probability Sum Entropy)", m_ensemble->GetEntropy(iAEnsemble::AvgAlgorithmEntropyProbSum));
 
-		m_chartView->AddPlot(m_ensemble->GetLabelDistribution(), m_ensemble->GetAvgAlgEntropyFromSum(),
+		m_chartView->AddPlot(m_ensemble->GetEntropy(iAEnsemble::LabelDistributionEntropy), m_ensemble->GetEntropy(iAEnsemble::AvgAlgorithmEntropyProbSum),
 			"Label Distribution Uncertainty",
 			"Algorithm Uncertainty (Entropy Sum Average)");
 
