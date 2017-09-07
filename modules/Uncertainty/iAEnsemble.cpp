@@ -42,6 +42,8 @@ QSharedPointer<iAEnsemble> iAEnsemble::create()
 
 bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile)
 {
+	iAPerformanceHelper ensembleLoad;
+	ensembleLoad.start("Ensemble loading");
 	QMap<int, QString> const & samplings = ensembleFile.GetSamplings();
 	for (int key : samplings.keys())
 	{
@@ -52,6 +54,7 @@ bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile
 		}
 	}
 	createUncertaintyImages(ensembleFile.GetLabelCount(), QFileInfo(ensembleFileName).absolutePath() + "/cache");
+	ensembleLoad.stop();
 	return true;
 }
 

@@ -22,6 +22,7 @@
 
 #include "iAColors.h"
 #include "iAConsole.h"
+#include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
 #include "qcustomplot.h"
 
@@ -31,6 +32,11 @@
 iAChartView::iAChartView()
 {
 	m_plot = new QCustomPlot();
+	//m_plot->setOpenGl(true, 1);
+	if (!m_plot->openGl())
+	{
+		DEBUG_LOG("QCustomPlot is NOT using OpenGL!");
+	}
 	m_plot->setInteraction(QCP::iRangeDrag, true);
 	m_plot->setInteraction(QCP::iRangeZoom, true);
 	m_plot->setInteraction(QCP::iMultiSelect, true);
@@ -39,6 +45,7 @@ iAChartView::iAChartView()
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(chartMousePress(QMouseEvent *)));
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_plot);
+
 	auto datasetChoiceContainer = new QWidget();
 	datasetChoiceContainer->setLayout(new QVBoxLayout());
 	m_xAxisChooser = new QWidget();
@@ -53,41 +60,80 @@ iAChartView::iAChartView()
 	datasetChoiceContainer->layout()->addWidget(m_xAxisChooser);
 	datasetChoiceContainer->layout()->addWidget(m_yAxisChooser);
 	layout()->addWidget(datasetChoiceContainer);
+
+	QComboBox * colorThemeChooser = new QComboBox();
+	QStringList options;
+	options
+		<< "gpGrayscale"
+		<< "gpHot"
+		<< "gpCold"
+		<< "gpNight"
+		<< "gpCandy"
+		<< "gpGeography"
+		<< "gpIon"
+		<< "gpThermal"
+		<< "gpPolar"
+		<< "gpSpectrum"
+		<< "gpJet"
+		<< "gpHues";
+	colorThemeChooser->addItems(options);
+	connect(colorThemeChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(colorThemeChanged(int)));
+	QWidget* colorThemeContainer = new QWidget();
+	colorThemeContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+	colorThemeContainer->setLayout(new QHBoxLayout());
+	colorThemeContainer->layout()->addWidget(new QLabel("Color Theme:"));
+	colorThemeContainer->layout()->addWidget(colorThemeChooser);
+	layout()->addWidget(colorThemeContainer);
 }
 
 
 void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
-	m_plot->removePlottable(0);
+	m_plot->clearPlottables();
+	const int BinCountX = 250;
+	const int BinCountY = 250;
 
-	int * dim = imgX->GetDimensions();
-	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
-	QVector<double> x, y, t;
-	x.reserve(m_voxelCount);
-	y.reserve(m_voxelCount);
-	t.reserve(m_voxelCount);
+	// create histogram...
+	/*
+	int histogram[BinCount][BinCount];
+	std::fill(histogram, histogram + (BinCount*BinCount), 0);
+	*/
+
+	iAPerformanceHelper heatmapCalcMeasure;
+	heatmapCalcMeasure.start("Heatmap calculation");
+	colorMap = new QCPColorMap(m_plot->xAxis, m_plot->yAxis);
+	colorMap->data()->setSize(BinCountX, BinCountY);
+	colorMap->data()->setRange(QCPRange(0, 1), QCPRange(0, 1));
+	colorMap->data()->fill(0);
+
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	std::copy(bufX, bufX + m_voxelCount, std::back_inserter(x));
-	std::copy(bufY, bufY + m_voxelCount, std::back_inserter(y));
-	for (int i = 0; i < m_voxelCount; ++i)
-	{	// unfortunately we seem to require this additional storage
-		t.push_back(i);  // to make QCustomPlot not sort the data
+	FOR_VTKIMG_PIXELS_IDX(imgX, idx)
+	{
+		int x, y;
+		colorMap->data()->coordToCell(bufX[idx], bufY[idx], &x, &y);
+		colorMap->data()->setCell(x, y, colorMap->data()->cell(x, y)+1 );
 	}
 
-	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
-	curve->setData(t, x, y, true);
-	curve->setLineStyle(QCPCurve::lsNone);
-	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
-	curve->setSelectable(QCP::stMultipleDataRanges);
-	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::SelectionColor, 2));
-	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
+	QCPColorScale *colorScale = new QCPColorScale(m_plot);
+	m_plot->plotLayout()->addElement(0, 1, colorScale); // add it to the right of the main axis rect
+	colorScale->setType(QCPAxis::atRight); // scale shall be vertical bar with tick/axis labels right (actually atRight is already the default)
+	colorMap->setColorScale(colorScale); // associate the color map with the color scale
+	colorScale->axis()->setLabel("Entropy");
 
-	m_plot->xAxis->setLabel(captionX);
-	m_plot->yAxis->setLabel(captionY);
-	m_plot->xAxis->setRange(0, 1);
-	m_plot->yAxis->setRange(0, 1);
-	m_plot->replot();
+	colorMap->setGradient(QCPColorGradient::gpGrayscale);
+	colorMap->rescaleDataRange();
+	QCPMarginGroup *marginGroup = new QCPMarginGroup(m_plot);
+	m_plot->axisRect()->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
+	colorScale->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
+
+	m_plot->rescaleAxes();
+	heatmapCalcMeasure.stop();
+
+	// create mapping from bins  to pixels that are contained 
+	//     or still explicit uncertainty, to be able to select not only bins but sub-bins?
+
+	// subdivide bins -> zoomable?
 
 	m_selectionImg = AllocateImage(imgX);
 }
@@ -150,7 +196,7 @@ void iAChartView::yAxisChoice()
 
 void iAChartView::selectionChanged(QCPDataSelection const & selection)
 {
-	DEBUG_LOG("Selection Changed");
+	/*
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (int v=0; v<m_voxelCount; ++v)
 	{
@@ -163,6 +209,7 @@ void iAChartView::selectionChanged(QCPDataSelection const & selection)
 		std::fill(buf + selection.dataRange(r).begin(), buf + selection.dataRange(r).end(), 1);
 	}
 	m_selectionImg->Modified();
+	*/
 
 	//StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
 	emit SelectionChanged();
@@ -185,4 +232,11 @@ void iAChartView::chartMousePress(QMouseEvent *)
 	{	// enable dragging otherwise
 		m_plot->setSelectionRectMode(QCP::srmNone);
 	}
+}
+
+
+void iAChartView::colorThemeChanged(int index)
+{
+	colorMap->setGradient(static_cast<QCPColorGradient::GradientPreset>(index));
+	m_plot->replot();
 }

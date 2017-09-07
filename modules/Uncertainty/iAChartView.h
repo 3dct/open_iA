@@ -25,6 +25,7 @@
 #include <QWidget>
 
 class QCustomPlot;
+class QCPColorMap;
 class QCPDataSelection;
 class QCPCurve;
 
@@ -40,6 +41,7 @@ private slots:
 	void chartMousePress(QMouseEvent *);
 	void xAxisChoice();
 	void yAxisChoice();
+	void colorThemeChanged(int index);
 signals:
 	void SelectionChanged();
 private:
@@ -49,6 +51,7 @@ private:
 	size_t m_voxelCount;
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
+	QCPColorMap * colorMap;
 	
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
 };

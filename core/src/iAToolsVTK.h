@@ -53,3 +53,6 @@ QStringList const & VTKDataTypeList();
 for (int z = 0; z < img->GetDimensions()[2]; ++z) \
 	for (int y = 0; y < img->GetDimensions()[1]; ++y) \
 		for (int x = 0; x < img->GetDimensions()[0]; ++x)
+
+#define FOR_VTKIMG_PIXELS_IDX(img, idx) \
+for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)
