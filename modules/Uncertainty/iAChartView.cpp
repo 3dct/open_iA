@@ -28,8 +28,42 @@
 
 #include <vtkImageData.h>
 
+QCPColorGradient GetGradientFromIdx(int index)
+{
+	const int PredefinedCount = QCPColorGradient::gpHues + 1;
+	if (index < PredefinedCount)
+	{
+		return QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(index));
+	}
+	else
+	{
+		switch (index - PredefinedCount)
+		{
+			case 0:
+			{
+				QCPColorGradient myGrayScale;
+				QMap<double, QColor> myGrayScaleMap;
+				myGrayScaleMap.insert(0.0, QColor(255, 255, 255));
+				myGrayScaleMap.insert(1.0, QColor(0, 0, 0));
+				myGrayScale.setColorStops(myGrayScaleMap);
+				return myGrayScale;
+			}
+			default:
+			case 1:
+			{
+				QCPColorGradient whiteToBlue;
+				QMap<double, QColor> whiteToBlueMap;
+				whiteToBlueMap.insert(0.0, QColor(255, 255, 255));
+				whiteToBlueMap.insert(1.0, QColor(0, 0, 255));
+				whiteToBlue.setColorStops(whiteToBlueMap);
+				return whiteToBlue;
+			}
+		}
+	}
+}
 
-iAChartView::iAChartView()
+iAChartView::iAChartView():
+	m_gradient(QCPColorGradient::gpGrayscale)
 {
 	m_plot = new QCustomPlot();
 	//m_plot->setOpenGl(true, 1);
@@ -75,7 +109,9 @@ iAChartView::iAChartView()
 		<< "gpPolar"
 		<< "gpSpectrum"
 		<< "gpJet"
-		<< "gpHues";
+		<< "gpHues"
+		<< "WhiteToBlack"
+		<< "WhiteToBlue";
 	colorThemeChooser->addItems(options);
 	connect(colorThemeChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(colorThemeChanged(int)));
 	QWidget* colorThemeContainer = new QWidget();
@@ -92,13 +128,6 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 	m_plot->clearPlottables();
 	const int BinCountX = 250;
 	const int BinCountY = 250;
-
-	// create histogram...
-	/*
-	int histogram[BinCount][BinCount];
-	std::fill(histogram, histogram + (BinCount*BinCount), 0);
-	*/
-
 	iAPerformanceHelper heatmapCalcMeasure;
 	heatmapCalcMeasure.start("Heatmap calculation");
 	colorMap = new QCPColorMap(m_plot->xAxis, m_plot->yAxis);
@@ -115,13 +144,15 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 		colorMap->data()->setCell(x, y, colorMap->data()->cell(x, y)+1 );
 	}
 
-	QCPColorScale *colorScale = new QCPColorScale(m_plot);
+	colorScale = new QCPColorScale(m_plot);
 	m_plot->plotLayout()->addElement(0, 1, colorScale); // add it to the right of the main axis rect
 	colorScale->setType(QCPAxis::atRight); // scale shall be vertical bar with tick/axis labels right (actually atRight is already the default)
+	colorScale->setRangeDrag(false);
+	colorScale->setRangeZoom(false);
 	colorMap->setColorScale(colorScale); // associate the color map with the color scale
 	colorScale->axis()->setLabel("Entropy");
 
-	colorMap->setGradient(QCPColorGradient::gpGrayscale);
+	colorMap->setGradient(GetGradientFromIdx(m_gradient));
 	colorMap->rescaleDataRange();
 	QCPMarginGroup *marginGroup = new QCPMarginGroup(m_plot);
 	m_plot->axisRect()->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
@@ -135,7 +166,7 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 
 	// subdivide bins -> zoomable?
 
-	m_selectionImg = AllocateImage(imgX);
+	m_plot->replot();
 }
 
 
@@ -167,6 +198,7 @@ void iAChartView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 		m_xAxisChooser->layout()->addWidget(xButton);
 		m_yAxisChooser->layout()->addWidget(yButton);
 	}
+	m_selectionImg = AllocateImage(imgs->GetEntropy(m_xAxisChoice));
 	AddPlot(imgs->GetEntropy(m_xAxisChoice), imgs->GetEntropy(m_yAxisChoice),
 		imgs->GetSourceName(m_xAxisChoice), imgs->GetSourceName(m_yAxisChoice));
 }
@@ -237,6 +269,8 @@ void iAChartView::chartMousePress(QMouseEvent *)
 
 void iAChartView::colorThemeChanged(int index)
 {
-	colorMap->setGradient(static_cast<QCPColorGradient::GradientPreset>(index));
+	m_gradient = index;
+	colorMap->setGradient(GetGradientFromIdx(m_gradient));
+	colorScale->setGradient(GetGradientFromIdx(m_gradient));
 	m_plot->replot();
 }

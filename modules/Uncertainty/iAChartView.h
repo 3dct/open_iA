@@ -26,6 +26,7 @@
 
 class QCustomPlot;
 class QCPColorMap;
+class QCPColorScale;
 class QCPDataSelection;
 class QCPCurve;
 
@@ -52,6 +53,7 @@ private:
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
 	QCPColorMap * colorMap;
-	
+	QCPColorScale *colorScale;
+	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
 };
