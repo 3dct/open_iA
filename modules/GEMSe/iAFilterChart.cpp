@@ -56,7 +56,6 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	m_maxSliderPos = m_data->MapBinToValue(m_data->GetNumBin());
 	m_captionPosition = Qt::AlignLeft | Qt::AlignTop;
 	m_showXAxisLabel = showCaption;
-	m_showFunctions = false;
 	SetXAxisSteps(std::min(static_cast<int>(m_data->GetNumBin()), 20));
 	for (int i = 0; i < m_data->GetNumBin(); ++i)
 	{

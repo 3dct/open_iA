@@ -182,18 +182,18 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
 	m_enableAdditionalFunctions(true),
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
-	m_showFunctions(true),
 	m_maxYAxisValue(std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
 {
 	leftMargin   = (yLabel == "") ? 0 : 60;
 	selectedFunction = 0;
-
-	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
-	transferFunction->setOpacityFunction(oTF);
-	transferFunction->setColorFunction(cTF);
-	
-	functions.push_back(transferFunction);
-
+	m_showFunctions = oTF && cTF;
+	if (m_showFunctions)
+	{
+		dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
+		transferFunction->setOpacityFunction(oTF);
+		transferFunction->setColorFunction(cTF);
+		functions.push_back(transferFunction);
+	}
 	activeChild = mdiChild;
 }
 
