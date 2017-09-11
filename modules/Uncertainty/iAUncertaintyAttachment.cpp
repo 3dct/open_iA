@@ -34,9 +34,11 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
+const int EntropyBinCount = 100;
+
 iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData),
-	m_ensemble(iAEnsemble::create())
+	m_ensemble(iAEnsemble::create(EntropyBinCount))
 {
 	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
@@ -87,8 +89,12 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 	{
 		m_spatialView->SetDatasets(m_ensemble);
 		m_scatterplotView->SetDatasets(m_ensemble);
-		auto histogramData = CreateHistogram<int>(m_ensemble->GetLabelDistribution(), m_ensemble->LabelCount(), 0, m_ensemble->LabelCount(), Discrete);
-		m_histogramView->AddChart("Label Distribution", histogramData);
+		auto labelDistributionHistogram =
+			CreateHistogram<int>(m_ensemble->GetLabelDistribution(), m_ensemble->LabelCount(), 0, m_ensemble->LabelCount(), Discrete);
+		m_histogramView->AddChart("Label Distribution", labelDistributionHistogram);
+
+		auto entropyHistogram = iASimpleHistogramData::Create(0, 1, m_ensemble->EntropyBinCount(), m_ensemble->EntropyHistogram(), Continuous);
+		m_histogramView->AddChart("Algorithmic Entropy Histogram", entropyHistogram);
 
 		connect(m_scatterplotView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
 	}

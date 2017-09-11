@@ -38,7 +38,7 @@ size_t iASimpleHistogramData::GetNumBin() const
 
 double iASimpleHistogramData::GetSpacing() const
 {						// check int type (see also iAHistogramData)
-	return (GetDataRange()[1] - GetDataRange()[0] + 1) / m_numBin;
+	return (GetDataRange()[1] - GetDataRange()[0] + ((GetRangeType() == Discrete) ? 1 : 0)) / m_numBin;
 }
 
 double const * iASimpleHistogramData::GetDataRange() const
@@ -82,7 +82,8 @@ void iASimpleHistogramData::SetBin(size_t binIdx, DataType value)
 
 iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType) :
 	m_numBin(numBin),
-	m_xValueType(xValueType)
+	m_xValueType(xValueType),
+	m_dataOwner(true)
 {
 	m_data = new DataType[numBin];
 	std::fill(m_data, m_data + m_numBin, 0);
@@ -92,12 +93,45 @@ iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_
 	m_rangeY[1] = 0;
 }
 
+
+iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, double* data, iAValueType xValueType) :
+	m_numBin(numBin),
+	m_xValueType(xValueType),
+	m_dataOwner(false)
+{
+	m_data = data;
+	m_rangeX[0] = minX;
+	m_rangeX[1] = maxX;
+	m_rangeY[0] = std::numeric_limits<double>::max();
+	m_rangeY[1] = std::numeric_limits<double>::lowest();
+	for (int i = 0; i < numBin; ++i)
+	{
+		if (data[i] < m_rangeY[0])
+		{
+			m_rangeY[0] = data[i];
+		}
+		if (data[i] > m_rangeY[1])
+		{
+			m_rangeY[1] = data[i];
+		}
+	}
+}
+
+iASimpleHistogramData::~iASimpleHistogramData()
+{
+	if (m_dataOwner)
+		delete[] m_data;
+}
+
 QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType)
 {
 	return QSharedPointer<iASimpleHistogramData>(new iASimpleHistogramData(minX, maxX, numBin, xValueType));
 }
 
-
+QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType)
+{
+	return QSharedPointer<iASimpleHistogramData>(new iASimpleHistogramData(minX, maxX, numBin, data, xValueType));
+}
 
 // iAHistogramView
 

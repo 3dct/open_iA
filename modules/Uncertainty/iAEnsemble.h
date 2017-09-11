@@ -32,18 +32,21 @@ class iASamplingResults;
 class iAEnsemble: public iAUncertaintyImages
 {
 public:
+	~iAEnsemble();
 	//! create from string
-	static QSharedPointer<iAEnsemble> create();
+	static QSharedPointer<iAEnsemble> create(int entropyBinCount);
 	bool load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile);
 	virtual vtkImagePointer GetEntropy(int source) const;
 	virtual QString GetSourceName(int source) const;
 	QVector<IntImage::Pointer> const & GetLabelDistribution() const;
 	int LabelCount() const;
+	double * EntropyHistogram() const;
+	int EntropyBinCount() const;
 private:
 	bool loadSampling(QString const & fileName, int labelCount, int id);
 	void createUncertaintyImages(int labelCount, QString const & cachePath);
 	//! constructor; use static Create methods instead!
-	iAEnsemble();
+	iAEnsemble(int entropyBinCount);
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;
 
 	QVector<vtkImagePointer> m_entropy;
@@ -56,4 +59,6 @@ private:
 	DoubleImage::Pointer m_neighbourhoodAvgEntropy5x5;
 	QVector<DoubleImage::Pointer> m_probDistr;
 	int m_labelCount;
+	double * m_entropyHistogram;
+	int m_entropyBinCount;
 };

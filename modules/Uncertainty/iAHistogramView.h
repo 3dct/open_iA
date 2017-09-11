@@ -38,7 +38,9 @@ class iAAbstractDiagramRangedData;
 class iASimpleHistogramData : public iAAbstractDiagramRangedData
 {
 public:
-	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, iAValueType valueType);
+	virtual ~iASimpleHistogramData();
+	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
+	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType);
 
 	// Inherited via iAAbstractDiagramRangedData
 	virtual DataType const * GetData() const override;
@@ -52,18 +54,19 @@ public:
 	//void AddValue(DataType value);
 	void SetBin(size_t binIdx, DataType value);
 private:
-
 	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
-	double* m_data;
+	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, double* data, iAValueType xValueType);
+	double * m_data;
 	double m_rangeX[2];
 	double m_rangeY[2];
 	size_t m_numBin;
 	iAValueType m_xValueType;
+	bool m_dataOwner;
 };
 
 
 template <typename PixelT>
-QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> imgs, size_t numBin, PixelT min, PixelT max, iAValueType xValueType)
+QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, PixelT min, PixelT max, iAValueType xValueType)
 {
 	/*
 	img->ReleaseDataFlagOff();
@@ -88,9 +91,10 @@ QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Imag
 	return result;
 }
 
-
+/*
+// for pixel probing:
 template <typename PixelT>
-QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> imgs, size_t numBin, int index[3], PixelT min, PixelT max, iAValueType xValueType)
+QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, int index[3], PixelT min, PixelT max, iAValueType xValueType)
 {
 	auto result = iASimpleHistogramData::Create(min, max, numBin, xValueType);
 	itk::Index<3> idx;
@@ -101,6 +105,7 @@ QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Imag
 	}
 	return result;
 }
+*/
 
 
 class iAHistogramChartWidget : public iADiagramFctWidget

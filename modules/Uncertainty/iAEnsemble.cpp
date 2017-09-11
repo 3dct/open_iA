@@ -34,10 +34,11 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QTextStream>
 
-QSharedPointer<iAEnsemble> iAEnsemble::create()
+QSharedPointer<iAEnsemble> iAEnsemble::create(int entropyBinCount)
 {
-	return QSharedPointer<iAEnsemble>(new iAEnsemble);
+	return QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
 }
 
 bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile)
@@ -184,6 +185,66 @@ namespace
 		iAConnector con;
 		con.SetImage(itkImg);
 		return con.GetVTKImage();
+	}
+
+	bool LoadHistogram(QString const & fileName, double* & destination, int & binCount)
+	{
+		if (!QFileInfo::exists(fileName))
+		{
+			return false;
+		}
+		QVector<QString> lines;
+		QFile in(fileName);
+		if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
+			!in.isOpen())
+		{
+			DEBUG_LOG(QString("Couldn't open %1 for reading!").arg(fileName));
+			return false;
+		}
+		QTextStream inStream(&in);
+		while (!inStream.atEnd()) {
+			QString line = inStream.readLine();
+			lines.push_back(line);
+		}
+		in.close();
+		if (lines.size() != binCount)
+		{
+			DEBUG_LOG("Different histogram bin count than anticipated, readjusting buffer size.");
+			delete[] destination;
+			binCount = lines.size();
+			destination = new double[binCount];
+		}
+		size_t cur = 0;
+		bool ok;
+		for (QString line : lines)
+		{
+			destination[cur] = line.toDouble(&ok);
+			if (!ok)
+			{
+				DEBUG_LOG(QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
+				return false;
+			}
+			++cur;
+		}
+		return true;
+	}
+
+	bool StoreHistogram(QString const & fileName, double const * histogramData, int binCount)
+	{
+		QFile out(fileName);
+		if (!out.open(QIODevice::WriteOnly | QIODevice::Text) ||
+			!out.isOpen())
+		{
+			DEBUG_LOG(QString("Couldn't open %1 for output!").arg(fileName));
+			return false;
+		}
+		QTextStream outStream(&out);
+		for (int i = 0; i < binCount; ++i)
+		{
+			outStream << QString("%1\n").arg(histogramData[i]);
+		}
+		out.close();
+		return true;
 	}
 }
 
@@ -380,21 +441,34 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			iAITKIO::writeFile(cachePath + "/avgAlgProbSumEntropy.mhd", m_probSumEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		if (!LoadCachedImage<DoubleImage>(m_entropyAvgEntropy, cachePath + "/avgAlgEntropyAvgEntropy.mhd", "average algorithm entropy (from algorithm entropy average)"))
+		if (!LoadCachedImage<DoubleImage>(m_entropyAvgEntropy, cachePath + "/avgAlgEntropyAvgEntropy.mhd", "average algorithm entropy (from algorithm entropy average)")
+			|| !LoadHistogram(cachePath+"/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount) )
 		{
 			iAPerformanceHelper entropySumLoopMeasure;
 			entropySumLoopMeasure.start("Entropy Sum Loop");
 			m_entropyAvgEntropy = CreateImage<DoubleImage>(size, spacing);
+			int memberIdx = 0;
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
 				for (QSharedPointer<iAMember> member : sampling->GetMembers())
 				{
 					QVector<DoubleImage::Pointer> probImgs = member->GetProbabilityImgs(labelCount);
 					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgs);
+
+					itk::ImageRegionConstIterator<DoubleImage> it(memberEntropy, memberEntropy->GetLargestPossibleRegion());
+					it.GoToBegin();
+					while (!it.IsAtEnd())
+					{
+						int binIdx = mapValue(0.0, 1.0, 0, m_entropyBinCount, it.Get());
+						++m_entropyHistogram[binIdx];
+						++it;
+					}
+					//iAITKIO::writeFile(cachePath + "/algorithmEntropy"+QString::number(memberIdx)+".mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 					AddImageInPlace(m_entropyAvgEntropy, memberEntropy);
 				}
 			}
 			entropySumLoopMeasure.stop();
+			StoreHistogram(cachePath + "/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount);
 			iAPerformanceHelper entropySumDivLoopMeasure;
 			entropySumDivLoopMeasure.start("Entropy Sum Division");
 			MultiplyImageInPlace(m_entropyAvgEntropy, factor);
@@ -486,9 +560,18 @@ bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
 	return true;
 }
 
-iAEnsemble::iAEnsemble():
-	m_labelCount(-1)
+iAEnsemble::iAEnsemble(int entropyBinCount) :
+	m_labelCount(-1),
+	m_entropyBinCount(entropyBinCount)
 {
+	m_entropyHistogram = new double[entropyBinCount];
+	std::fill(m_entropyHistogram, m_entropyHistogram + entropyBinCount, 0);
+}
+
+
+iAEnsemble::~iAEnsemble()
+{
+	delete[] m_entropyHistogram;
 }
 
 
@@ -501,4 +584,16 @@ QVector<IntImage::Pointer> const & iAEnsemble::GetLabelDistribution() const
 int iAEnsemble::LabelCount() const
 {
 	return m_labelCount;
+}
+
+
+double * iAEnsemble::EntropyHistogram() const
+{
+	return m_entropyHistogram;
+}
+
+
+int iAEnsemble::EntropyBinCount() const
+{
+	return m_entropyBinCount;
 }
