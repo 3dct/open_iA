@@ -1,0 +1,114 @@
+/*************************************  open_iA  ************************************ *
+* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
+#include "iAHistogramView.h"
+
+#include "iAMathUtility.h"
+
+#include <QHBoxLayout>
+
+// iASimpleHistogramData
+
+iASimpleHistogramData::DataType const * iASimpleHistogramData::GetData() const
+{
+	return m_data;
+}
+
+size_t iASimpleHistogramData::GetNumBin() const
+{
+	return m_numBin;
+}
+
+double iASimpleHistogramData::GetSpacing() const
+{						// check int type (see also iAHistogramData)
+	return (GetDataRange()[1] - GetDataRange()[0] + 1) / m_numBin;
+}
+
+double const * iASimpleHistogramData::GetDataRange() const
+{
+	return m_rangeX;
+}
+
+iASimpleHistogramData::DataType iASimpleHistogramData::GetMaxValue() const
+{
+	return m_rangeY[1];
+}
+
+iASimpleHistogramData::DataType iASimpleHistogramData::GetMinValue() const
+{
+	return m_rangeY[0];
+}
+
+iAValueType iASimpleHistogramData::GetRangeType() const
+{
+	return m_xValueType;
+}
+
+
+/*
+void iASimpleHistogramData::AddValue(DataType value)
+{
+	size_t bin = mapValue(GetDataRange()[0], GetDataRange()[1], 0.0, static_cast<DataType>(m_numBin), value);
+	bin = clamp(static_cast<size_t>(0), m_numBin, bin);
+	m_data[bin]++;
+	if (value > m_rangeY[1])
+		m_rangeY[1] = value;
+}
+*/
+
+void iASimpleHistogramData::SetBin(size_t binIdx, DataType value)
+{
+	m_data[binIdx] = value;
+	if (value > m_rangeY[1])
+		m_rangeY[1] = value;
+}
+
+iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType) :
+	m_numBin(numBin),
+	m_xValueType(xValueType)
+{
+	m_data = new DataType[numBin];
+	std::fill(m_data, m_data + m_numBin, 0);
+	m_rangeX[0] = minX;
+	m_rangeX[1] = maxX;
+	m_rangeY[0] = 0;
+	m_rangeY[1] = 0;
+}
+
+QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType)
+{
+	return QSharedPointer<iASimpleHistogramData>(new iASimpleHistogramData(minX, maxX, numBin, xValueType));
+}
+
+
+
+// iAHistogramView
+
+iAHistogramView::iAHistogramView()
+{
+	setLayout(new QHBoxLayout());
+}
+
+void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data)
+{
+	m_chart = new iAHistogramChartWidget(data, caption);
+	layout()->addWidget(m_chart);
+}
+// m_chart

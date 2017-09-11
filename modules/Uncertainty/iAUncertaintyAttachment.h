@@ -25,10 +25,11 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class iAScatterPlotView;
 class iADockWidgetWrapper;
 class iAEnsemble;
+class iAHistogramView;
 class iAMemberView;
+class iAScatterPlotView;
 class iASpatialView;
 
 class iAUncertaintyAttachment : public iAModuleAttachmentToChild
@@ -42,8 +43,9 @@ private slots:
 	void ChartSelectionChanged();
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAScatterPlotView  * m_scatterplotView;
-	iAMemberView * m_memberView;
+	iAHistogramView* m_histogramView;
+	iAMemberView* m_memberView;
+	iAScatterPlotView* m_scatterplotView;
 	iASpatialView* m_spatialView;
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
 	QSharedPointer<iAEnsemble> m_ensemble;
