@@ -30,11 +30,11 @@ class QCPColorScale;
 class QCPDataSelection;
 class QCPCurve;
 
-class iAChartView: public QWidget
+class iAScatterPlotView: public QWidget
 {
 	Q_OBJECT
 public:
-	iAChartView();
+	iAScatterPlotView();
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	vtkImagePointer GetSelectionImage();
 private slots:

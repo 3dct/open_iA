@@ -21,7 +21,7 @@
 #include "pch.h"
 #include "iAUncertaintyAttachment.h"
 
-#include "iAChartView.h"
+#include "iAScatterPlotView.h"
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
 #include "iAMemberView.h"
@@ -37,12 +37,12 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 	iAModuleAttachmentToChild(mainWnd, childData),
 	m_ensemble(iAEnsemble::create())
 {
-	m_chartView = new iAChartView();
+	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
 	m_spatialView = new iASpatialView();
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "UncSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_memberView, "Member View", "UncMemberView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_chartView, "Chart View", "UncChartView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_scatterplotView, "Chart View", "UncChartView"));
 	childData.child->splitDockWidget(childData.child->getRendererDlg(), m_dockWidgets[0], Qt::Horizontal);
 	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Vertical);
 	childData.child->splitDockWidget(m_dockWidgets[1], m_dockWidgets[2], Qt::Horizontal);
@@ -82,14 +82,14 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 	if (result)
 	{
 		m_spatialView->SetDatasets(m_ensemble);
-		m_chartView->SetDatasets(m_ensemble);
+		m_scatterplotView->SetDatasets(m_ensemble);
 
-		connect(m_chartView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
+		connect(m_scatterplotView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
 	}
 	return result;
 }
 
 void iAUncertaintyAttachment::ChartSelectionChanged()
 {
-	m_spatialView->ShowSelection(m_chartView->GetSelectionImage());
+	m_spatialView->ShowSelection(m_scatterplotView->GetSelectionImage());
 }

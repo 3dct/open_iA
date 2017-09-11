@@ -25,7 +25,7 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class iAChartView;
+class iAScatterPlotView;
 class iADockWidgetWrapper;
 class iAEnsemble;
 class iAMemberView;
@@ -42,7 +42,7 @@ private slots:
 	void ChartSelectionChanged();
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAChartView  * m_chartView;
+	iAScatterPlotView  * m_scatterplotView;
 	iAMemberView * m_memberView;
 	iASpatialView* m_spatialView;
 	QVector<iADockWidgetWrapper*> m_dockWidgets;

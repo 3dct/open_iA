@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAChartView.h"
+#include "iAScatterPlotView.h"
 
 #include "iAColors.h"
 #include "iAConsole.h"
@@ -62,7 +62,7 @@ QCPColorGradient GetGradientFromIdx(int index)
 	}
 }
 
-iAChartView::iAChartView():
+iAScatterPlotView::iAScatterPlotView():
 	m_gradient(QCPColorGradient::gpGrayscale)
 {
 	m_plot = new QCustomPlot();
@@ -123,7 +123,7 @@ iAChartView::iAChartView():
 }
 
 
-void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
+void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
 	m_plot->clearPlottables();
 	const int BinCountX = 250;
@@ -170,7 +170,7 @@ void iAChartView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString co
 }
 
 
-void iAChartView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
+void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
 	m_imgs = imgs;
 	m_xAxisChoice = iAUncertaintyImages::LabelDistributionEntropy;
@@ -204,7 +204,7 @@ void iAChartView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 }
 
 
-void iAChartView::xAxisChoice()
+void iAScatterPlotView::xAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_xAxisChoice)
@@ -215,7 +215,7 @@ void iAChartView::xAxisChoice()
 }
 
 
-void iAChartView::yAxisChoice()
+void iAScatterPlotView::yAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_yAxisChoice)
@@ -226,7 +226,7 @@ void iAChartView::yAxisChoice()
 }
 
 
-void iAChartView::selectionChanged(QCPDataSelection const & selection)
+void iAScatterPlotView::selectionChanged(QCPDataSelection const & selection)
 {
 	/*
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
@@ -248,13 +248,13 @@ void iAChartView::selectionChanged(QCPDataSelection const & selection)
 }
 
 
-vtkImagePointer iAChartView::GetSelectionImage()
+vtkImagePointer iAScatterPlotView::GetSelectionImage()
 {
 	return m_selectionImg;
 }
 
 
-void iAChartView::chartMousePress(QMouseEvent *)
+void iAScatterPlotView::chartMousePress(QMouseEvent *)
 {
 	if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
 	{	// allow selection with Ctrl key
@@ -267,7 +267,7 @@ void iAChartView::chartMousePress(QMouseEvent *)
 }
 
 
-void iAChartView::colorThemeChanged(int index)
+void iAScatterPlotView::colorThemeChanged(int index)
 {
 	m_gradient = index;
 	colorMap->setGradient(GetGradientFromIdx(m_gradient));
