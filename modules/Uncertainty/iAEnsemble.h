@@ -58,6 +58,8 @@ private:
 	DoubleImage::Pointer m_neighbourhoodAvgEntropy3x3;
 	DoubleImage::Pointer m_neighbourhoodAvgEntropy5x5;
 	QVector<DoubleImage::Pointer> m_probDistr;
+	QVector<double> m_memberEntropyAvg;
+	QVector<double> m_memberEntropyVar;
 	int m_labelCount;
 	double * m_entropyHistogram;
 	int m_entropyBinCount;

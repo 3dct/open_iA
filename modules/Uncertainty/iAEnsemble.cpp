@@ -246,6 +246,55 @@ namespace
 		out.close();
 		return true;
 	}
+
+	bool StoreValues(QString const & fileName, QVector<double> const & values)
+	{
+		QFile out(fileName);
+		if (!out.open(QIODevice::WriteOnly | QIODevice::Text) ||
+			!out.isOpen())
+		{
+			DEBUG_LOG(QString("Couldn't open %1 for output!").arg(fileName));
+			return false;
+		}
+		QTextStream outStream(&out);
+		for (int i = 0; i < values.size(); ++i)
+		{
+			outStream << QString("%1\n").arg(values[i]);
+		}
+		out.close();
+		return true;
+	}
+
+	bool LoadValues(QString const & fileName, QVector<double> & values)
+	{
+		if (!QFileInfo::exists(fileName))
+		{
+			return false;
+		}
+		QVector<QString> lines;
+		QFile in(fileName);
+		if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
+			!in.isOpen())
+		{
+			DEBUG_LOG(QString("Couldn't open %1 for reading!").arg(fileName));
+			return false;
+		}
+		QTextStream inStream(&in);
+		values.clear();
+		bool ok;
+		while (!inStream.atEnd()) {
+			QString line = inStream.readLine();
+			double val = line.toDouble(&ok);
+			if (!ok)
+			{
+				DEBUG_LOG(QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
+				return false;
+			}
+			values.push_back(val);
+		}
+		in.close();
+		return true;
+	}
 }
 
 DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int labelCount, size_t patchSize, itk::Size<3> size, itk::Vector<double, 3> spacing)
@@ -435,40 +484,62 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			iAPerformanceHelper probSumEntropyLoopMeasure;
 			probSumEntropyLoopMeasure.start("Prob Sum Entropy Loop");
 			for (int l = 0; l < m_probDistr.size(); ++l)
+			{
 				MultiplyImageInPlace(m_probDistr[l], factor);
+			}
 			m_probSumEntropy = CalculateEntropyImage<DoubleImage>(m_probDistr);
 			probSumEntropyLoopMeasure.stop();
 			iAITKIO::writeFile(cachePath + "/avgAlgProbSumEntropy.mhd", m_probSumEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
 		if (!LoadCachedImage<DoubleImage>(m_entropyAvgEntropy, cachePath + "/avgAlgEntropyAvgEntropy.mhd", "average algorithm entropy (from algorithm entropy average)")
-			|| !LoadHistogram(cachePath+"/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount) )
+			|| !LoadHistogram(cachePath+"/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount)
+			|| !LoadValues(cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg)
+			|| !LoadValues(cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar))
 		{
 			iAPerformanceHelper entropySumLoopMeasure;
 			entropySumLoopMeasure.start("Entropy Sum Loop");
 			m_entropyAvgEntropy = CreateImage<DoubleImage>(size, spacing);
 			int memberIdx = 0;
+			double numberOfPixels = size[0] * size[1] * size[2];
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
 				for (QSharedPointer<iAMember> member : sampling->GetMembers())
 				{
 					QVector<DoubleImage::Pointer> probImgs = member->GetProbabilityImgs(labelCount);
 					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgs);
-
+					double sum = 0;
 					itk::ImageRegionConstIterator<DoubleImage> it(memberEntropy, memberEntropy->GetLargestPossibleRegion());
 					it.GoToBegin();
 					while (!it.IsAtEnd())
 					{
 						int binIdx = mapValue(0.0, 1.0, 0, m_entropyBinCount, it.Get());
+						sum += it.Get();
+						++m_entropyHistogram[binIdx];
+						++it;
+					}
+					double entropyAvg = sum / numberOfPixels;
+					it.GoToBegin();
+					double diffsum = 0;
+					while (!it.IsAtEnd())
+					{
+						int binIdx = mapValue(0.0, 1.0, 0, m_entropyBinCount, it.Get());
+						diffsum += std::pow(it.Get() - entropyAvg, 2);
 						++m_entropyHistogram[binIdx];
 						++it;
 					}
 					//iAITKIO::writeFile(cachePath + "/algorithmEntropy"+QString::number(memberIdx)+".mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+					double entropyVar = diffsum / numberOfPixels;
+					m_memberEntropyAvg.push_back(entropyAvg);
+					m_memberEntropyVar.push_back(entropyVar);
+					++memberIdx;
 					AddImageInPlace(m_entropyAvgEntropy, memberEntropy);
 				}
 			}
 			entropySumLoopMeasure.stop();
 			StoreHistogram(cachePath + "/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount);
+			StoreValues(cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg);
+			StoreValues(cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar);
 			iAPerformanceHelper entropySumDivLoopMeasure;
 			entropySumDivLoopMeasure.start("Entropy Sum Division");
 			MultiplyImageInPlace(m_entropyAvgEntropy, factor);
