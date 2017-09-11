@@ -1075,14 +1075,14 @@ void iADiagramFctWidget::ExportData()
 
 void iADiagramFctWidget::GetDataRange(double* range)
 {
-	range[0] = GetData()->GetDataRange(0);
-	range[1] = GetData()->GetDataRange(1);
+	range[0] = GetData()->GetDataRange()[0];
+	range[1] = GetData()->GetDataRange()[1];
 }
 
 
 double iADiagramFctWidget::GetDataRange()
 {
-	return GetData()->GetDataRange(1) - GetData()->GetDataRange(0);
+	return GetData()->GetDataRange()[1] - GetData()->GetDataRange()[0];
 }
 
 dlg_function *iADiagramFctWidget::getSelectedFunction()

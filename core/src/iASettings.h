@@ -34,7 +34,7 @@ private:
 public:
 	Settings();
 	Settings(QString const & filename);
-	void LoadTransferFunction(iATransferFunction* transferFunction, double range[2]);
+	void LoadTransferFunction(iATransferFunction* transferFunction, double const range[2]);
 	void StoreTransferFunction(iATransferFunction* transferFunction);
 	void Save(QString const & fileName);
 private:

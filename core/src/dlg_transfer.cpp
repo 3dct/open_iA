@@ -414,7 +414,7 @@ void dlg_transfer::reset()
 	}
 }
 
-void dlg_transfer::TranslateToNewRange(double oldDataRange[2])
+void dlg_transfer::TranslateToNewRange(double const oldDataRange[2])
 {
 	double min, max;
 	opacityTF->GetRange(min, max);
@@ -565,7 +565,7 @@ void dlg_transfer::triggerOnChange()
 	emit Changed();
 }
 
-void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double range[2])
+void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double const range[2])
 {
 	QDomNode transferElement = functionsNode.namedItem("transfer");
 	if (!transferElement.isElement())

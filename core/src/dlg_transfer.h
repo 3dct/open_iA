@@ -68,7 +68,7 @@ public:
 	bool isDeletable(int index);
 
 	void reset();
-	void TranslateToNewRange(double oldDataRange[2]);
+	void TranslateToNewRange(double const oldDataRange[2]);
 	
 	void mousePressEvent(QMouseEvent*)   {}
 	void mouseMoveEvent(QMouseEvent*)    {}
@@ -83,7 +83,7 @@ public:
 	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
 
 	// TODO: remove!
-	void loadTransferFunction(QDomNode &functionsNode, double range[2]);
+	void loadTransferFunction(QDomNode &functionsNode, double const range[2]);
 signals:
 	void Changed();
 private:
