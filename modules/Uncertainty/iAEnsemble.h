@@ -22,8 +22,6 @@
 
 #include "iAUncertaintyImages.h"
 
-#include <itkImage.h>
-
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
@@ -31,17 +29,16 @@
 class iAEnsembleDescriptorFile;
 class iASamplingResults;
 
-typedef itk::Image<double, 3> DoubleImage;
-typedef itk::Image<int, 3> IntImage;
-
 class iAEnsemble: public iAUncertaintyImages
 {
 public:
 	//! create from string
 	static QSharedPointer<iAEnsemble> create();
 	bool load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile);
-	virtual vtkImagePointer GetEntropy(int source);
-	virtual QString GetSourceName(int source);
+	virtual vtkImagePointer GetEntropy(int source) const;
+	virtual QString GetSourceName(int source) const;
+	QVector<IntImage::Pointer> const & GetLabelDistribution() const;
+	int LabelCount() const;
 private:
 	bool loadSampling(QString const & fileName, int labelCount, int id);
 	void createUncertaintyImages(int labelCount, QString const & cachePath);
@@ -58,4 +55,5 @@ private:
 	DoubleImage::Pointer m_neighbourhoodAvgEntropy3x3;
 	DoubleImage::Pointer m_neighbourhoodAvgEntropy5x5;
 	QVector<DoubleImage::Pointer> m_probDistr;
+	int m_labelCount;
 };

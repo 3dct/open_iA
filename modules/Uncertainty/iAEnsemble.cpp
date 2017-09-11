@@ -53,6 +53,7 @@ bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile
 			return false;
 		}
 	}
+	m_labelCount = ensembleFile.GetLabelCount();
 	createUncertaintyImages(ensembleFile.GetLabelCount(), QFileInfo(ensembleFileName).absolutePath() + "/cache");
 	ensembleLoad.stop();
 	return true;
@@ -163,7 +164,7 @@ namespace
 	}
 
 	template <typename TImage>
-	bool LoadCachedImageSeries(QVector<typename TImage::Pointer> imgPointers, QString baseName, int startIdx, int count, QString const & label)
+	bool LoadCachedImageSeries(QVector<typename TImage::Pointer> & imgPointers, QString const & baseName, int startIdx, int count, QString const & label)
 	{
 		imgPointers.clear();
 		imgPointers.resize(count);
@@ -287,7 +288,6 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 		{
 			size = m_labelDistr[0]->GetLargestPossibleRegion().GetSize();
 			spacing = m_labelDistr[0]->GetSpacing();
-
 		}
 		else
 		{
@@ -448,7 +448,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 }
 
 
-vtkImagePointer iAEnsemble::GetEntropy(int source)
+vtkImagePointer iAEnsemble::GetEntropy(int source) const
 {
 	return m_entropy[source];
 }
@@ -463,7 +463,7 @@ const char* const UncertaintyNames[] = {
 };
 
 
-QString iAEnsemble::GetSourceName(int sourceIdx)
+QString iAEnsemble::GetSourceName(int sourceIdx) const
 {
 	return UncertaintyNames[sourceIdx];
 }
@@ -486,6 +486,19 @@ bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
 	return true;
 }
 
-iAEnsemble::iAEnsemble()
+iAEnsemble::iAEnsemble():
+	m_labelCount(-1)
 {
+}
+
+
+QVector<IntImage::Pointer> const & iAEnsemble::GetLabelDistribution() const
+{
+	return m_labelDistr;
+}
+
+
+int iAEnsemble::LabelCount() const
+{
+	return m_labelCount;
 }

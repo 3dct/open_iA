@@ -20,12 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
+#include <itkImage.h>
+
 #include <vtkSmartPointer.h>
 
-class QString;
 class vtkImageData;
 
 typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
+
+typedef itk::Image<double, 3> DoubleImage;
+typedef itk::Image<int, 3> IntImage;
+
+class QString;
 
 class iAUncertaintyImages
 {
@@ -38,6 +44,6 @@ public:
 		Neighbourhood5x5Entropy,
 		SourceCount
 	};
-	virtual vtkImagePointer GetEntropy(int source) =0;
-	virtual QString GetSourceName(int source) =0;
+	virtual vtkImagePointer GetEntropy(int source) const =0;
+	virtual QString GetSourceName(int source) const =0;
 };
