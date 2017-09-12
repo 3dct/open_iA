@@ -40,7 +40,7 @@ double iAHistogramData::GetSpacing() const
 	return accSpacing;
 }
 
-double const * iAHistogramData::GetDataRange() const
+double const * iAHistogramData::GetXBounds() const
 {
 	return dataRange;
 }
@@ -53,7 +53,7 @@ iAHistogramData::DataType const * iAHistogramData::GetData() const
 void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate)
 {
 	accumulate = imgAccumulate;
-	Update();
+	UpdateData();
 }
 
 void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
@@ -71,7 +71,7 @@ void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
 }
 
 
-void iAHistogramData::Update()
+void iAHistogramData::UpdateData()
 {
 	int extent[6];
 	accumulate->GetComponentExtent(extent);

@@ -92,8 +92,8 @@ public:
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData() =0;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const =0;
 	
-	void GetDataRange(double* range);
-	double GetDataRange();
+	double const * GetXBounds() const;
+	double GetXRange() const;
 
 	void AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset);
 	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);

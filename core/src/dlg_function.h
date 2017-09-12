@@ -35,7 +35,7 @@ public:
 	static const int GAUSSIAN = 1;
 	static const int BEZIER   = 2;
 
-	dlg_function(iADiagramFctWidget* fctDiagram) : fctDiagram(fctDiagram) { }
+	dlg_function(iADiagramFctWidget* chart) : chart(chart) { }
 
 	virtual int getType() = 0;
 
@@ -62,5 +62,5 @@ public:
 	virtual void mouseReleaseEvent(QMouseEvent *event) = 0;
 	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) = 0;
 	
-	iADiagramFctWidget *fctDiagram;
+	iADiagramFctWidget *chart;
 };

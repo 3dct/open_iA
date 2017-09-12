@@ -35,10 +35,10 @@ public:
 	iADiagramWidget(QWidget* parent);
 	virtual ~iADiagramWidget();
 
-	double getZoom()         const { return xZoom;         }
-	double getYZoom()        const { return yZoom;         }
-	int    getTranslationX()  const { return translationX; }
-	int    getTranslationY()  const { return translationY; }
+	double GetXZoom()        const { return xZoom;         }
+	double GetYZoom()        const { return yZoom;         }
+	int    getTranslationX() const { return translationX; }
+	int    getTranslationY() const { return translationY; }
 
 	virtual int    getBottomMargin() const { return BOTTOM_MARGIN; }
 	virtual int    getLeftMargin()   const { return leftMargin;    }

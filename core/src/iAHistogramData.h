@@ -32,7 +32,7 @@ class iAHistogramData: public iAAbstractDiagramRangedData
 public:
 	iAHistogramData();
 	virtual double GetSpacing() const;
-	virtual double const * GetDataRange() const;
+	virtual double const * GetXBounds() const;
 	virtual DataType const * GetData() const;
 	virtual size_t GetNumBin() const;
 	virtual DataType GetMaxValue() const;
@@ -40,7 +40,7 @@ public:
 
 	void initialize(vtkImageAccumulate* imgAccumulate);
 	void initialize(vtkImageAccumulate* imgAccumulate, DataType* data, size_t numBin, double space, DataType min, DataType max);
-	void Update();
+	void UpdateData();
 
 private:
 	vtkImageAccumulate* accumulate;

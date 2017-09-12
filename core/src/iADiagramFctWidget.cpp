@@ -895,7 +895,7 @@ void iADiagramFctWidget::resetTrf()
 
 void iADiagramFctWidget::updateTrf()
 {
-	((dlg_transfer*)functions[0])->TranslateToNewRange(GetData()->GetDataRange());
+	((dlg_transfer*)functions[0])->TranslateToNewRange(GetXBounds());
 	redraw();
 }
 
@@ -906,7 +906,7 @@ bool iADiagramFctWidget::loadTransferFunction()
 	if (!fileName.isEmpty())
 	{
 		Settings s(fileName);
-		s.LoadTransferFunction((dlg_transfer*)functions[0], GetData()->GetDataRange());
+		s.LoadTransferFunction((dlg_transfer*)functions[0], GetXBounds());
 
 		emit noPointSelected();
 
@@ -919,7 +919,7 @@ bool iADiagramFctWidget::loadTransferFunction()
 
 void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 {
-	((dlg_transfer*)functions[0])->loadTransferFunction(functionsNode, GetData()->GetDataRange());
+	((dlg_transfer*)functions[0])->loadTransferFunction(functionsNode, GetXBounds());
 }
 
 bool iADiagramFctWidget::saveTransferFunction()
@@ -961,7 +961,7 @@ void iADiagramFctWidget::addGaussianFunction()
 
 	gaussian->setMean(contextPos.x());
 	gaussian->setSigma(width/6);
-	gaussian->setMultiplier((int)((getActiveHeight()-contextPos.y())*this->getYZoom()));
+	gaussian->setMultiplier((int)((getActiveHeight()-contextPos.y())*this->GetYZoom()));
 	
 	selectedFunction = (unsigned int)functions.size();
 	functions.push_back(gaussian);
@@ -1073,16 +1073,14 @@ void iADiagramFctWidget::ExportData()
 	out.close();
 }
 
-void iADiagramFctWidget::GetDataRange(double* range)
+double const * iADiagramFctWidget::GetXBounds() const
 {
-	range[0] = GetData()->GetDataRange()[0];
-	range[1] = GetData()->GetDataRange()[1];
+	return GetData()->GetXBounds();
 }
 
-
-double iADiagramFctWidget::GetDataRange()
+double iADiagramFctWidget::GetXRange() const
 {
-	return GetData()->GetDataRange()[1] - GetData()->GetDataRange()[0];
+	return GetData()->GetXBounds()[1] - GetData()->GetXBounds()[0];
 }
 
 dlg_function *iADiagramFctWidget::getSelectedFunction()
@@ -1189,11 +1187,7 @@ void iADiagramFctWidget::RemoveImageOverlay( QImage * imgOverlay )
 
 int iADiagramFctWidget::diagram2PaintX(double x)
 {
-	double dataRange[2];
-	GetDataRange(dataRange);
-
-	double screenX = (x - dataRange[0]) * getActiveWidth() * xZoom
-		/ (dataRange[1] - dataRange[0]);
+	double screenX = (x - GetXBounds()[0]) * getActiveWidth() * xZoom / GetXRange();
 	screenX = clamp(0.0, getActiveWidth()*xZoom, screenX);
 	return static_cast<int>(round(screenX));
 }
@@ -1281,7 +1275,7 @@ QString iADiagramFctWidget::GetXAxisCaption(double value, int placesBeforeComma,
 bool iADiagramFctWidget::IsDrawnDiscrete() const
 {
 	return ((GetData()->GetRangeType() == Discrete &&
-		((GetData()->GetDataRange()[1]-GetData()->GetDataRange()[0]) <= GetData()->GetNumBin()))
+		(GetXRange() <= GetData()->GetNumBin()))
 		|| GetData()->GetRangeType() == Categorical);
 }
 
