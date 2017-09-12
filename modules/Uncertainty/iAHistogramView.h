@@ -46,7 +46,7 @@ public:
 	virtual DataType const * GetData() const override;
 	virtual size_t GetNumBin() const override;
 	virtual double GetSpacing() const override;
-	virtual double const * GetDataRange() const override;
+	virtual double const * XBounds() const override;
 	virtual DataType GetMaxValue() const override;
 	virtual DataType GetMinValue() const override;
 	virtual iAValueType GetRangeType() const override;
@@ -57,7 +57,7 @@ private:
 	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
 	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, double* data, iAValueType xValueType);
 	double * m_data;
-	double m_rangeX[2];
+	double m_xBounds[2];
 	double m_rangeY[2];
 	size_t m_numBin;
 	iAValueType m_xValueType;

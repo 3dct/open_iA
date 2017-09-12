@@ -32,9 +32,9 @@ public:
 	void updateRangeSliderFunction();
 	
 	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
+	virtual size_t GetNumBin() const override;
 
-	virtual double GetSpacing() const
+	virtual double GetSpacing() const override
 	{
 		if ( GetNumBin() <= 1 )
 			return 0.0;
@@ -42,17 +42,12 @@ public:
 		return ( m_range[1] - m_range[0] ) / (GetNumBin() - 1.0);
 	}
 
-	virtual double * GetDataRange()
+	virtual double const * XBounds() const override
 	{
 		return m_range;
 	}
 
-	virtual double GetDataRange( int idx ) const
-	{
-		return m_range[idx];
-	}
-
-	virtual DataType GetMaxValue() const 
+	virtual DataType GetMaxValue() const override
 	{
 		double max = 0;
 		for ( int i = 0; i < m_rangeSliderData.size(); ++i )
@@ -63,7 +58,7 @@ public:
 		return max;
 	}
 
-	virtual DataType GetMinValue() const
+	virtual DataType GetMinValue() const override
 	{
 		double min = 0;
 		for ( int i = 0; i < m_rangeSliderData.size(); ++i )

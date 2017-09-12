@@ -292,7 +292,7 @@ int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 				  .arg( m_yLabel )
 				  .arg( rawData[nthBin] )
 				  .arg( m_xLabel )
-				  .arg( ( GetData()->GetSpacing() * nthBin + GetData()->GetDataRange( 0 ) ) ) );
+				  .arg( ( GetData()->GetSpacing() * nthBin + XBounds()[0] ) ) );
 	QToolTip::showText( event->globalPos(), text, this );
 	return nthBin;
 }
@@ -392,8 +392,8 @@ QList<int> iARangeSliderDiagramWidget::getSelectedRawTableRows()
 		}
 	}
 
-	double selMinValue = GetData()->GetSpacing() * m_firstSelectedBin + GetData()->GetDataRange( 0 );
-	double selMaxValue = GetData()->GetSpacing() * m_lastSelectedBin + GetData()->GetDataRange( 0 );
+	double selMinValue = GetData()->GetSpacing() * m_firstSelectedBin + XBounds()[0];
+	double selMaxValue = GetData()->GetSpacing() * m_lastSelectedBin + XBounds()[0];
 
 	for ( int i = 1; i < m_rawTable->rowCount(); ++i )
 	{

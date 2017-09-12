@@ -41,8 +41,8 @@ iAClusterAttribChart::iAClusterAttribChart(
 	m_oldMin(-1),
 	m_oldMax(-1)
 {
-	double dr0= data->GetDataRange(0);
-	double dr1= data->GetDataRange(1);
+	double dr0= data->XBounds()[0];
+	double dr1= data->XBounds()[1];
 
 	QVBoxLayout* mainLayout = new QVBoxLayout();
 	mainLayout->setMargin(0);
@@ -158,8 +158,6 @@ void iAClusterAttribChart::SelectionChanged()
 	}
 	if (m_oldMin != minValue || m_oldMax != maxValue)
 	{
-		double dataRange[2];
-		m_charts->GetDataRange(dataRange);
 		m_oldMin = minValue;
 		m_oldMax = maxValue;
 		emit FilterChanged(minValue, maxValue);

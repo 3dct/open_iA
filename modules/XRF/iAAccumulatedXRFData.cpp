@@ -53,14 +53,9 @@ double iAAccumulatedXRFData::GetSpacing() const
 	return (dataRange[1] - dataRange[0]) / GetNumBin();
 }
 
-double * iAAccumulatedXRFData::GetDataRange()
+double const * iAAccumulatedXRFData::XBounds() const
 {
 	return dataRange;
-}
-
-double iAAccumulatedXRFData::GetDataRange(int idx) const
-{
-	return dataRange[idx];
 }
 
 iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetData() const

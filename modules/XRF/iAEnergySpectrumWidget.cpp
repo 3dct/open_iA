@@ -183,8 +183,6 @@ void iAEnergySpectrumWidget::drawDatasets(QPainter& painter)
 		painter.drawRect(drawRect);
 	}
 	QFontMetrics fm(painter.font());
-	double dataRange[2];
-	GetDataRange(dataRange);
 	QList<iACharacteristicEnergy*> keys = m_elementEnergies.keys();
 	for (QList<iACharacteristicEnergy*>::const_iterator it = keys.begin();
 		it != keys.end();
@@ -199,8 +197,8 @@ void iAEnergySpectrumWidget::drawDatasets(QPainter& painter)
 			QLine line;
 			QRect diagram = geometry();
 			double elementkEV = element->energies[j]/1000.0;
-			if (elementkEV >= dataRange[0] &&
-				elementkEV <= dataRange[1])
+			if (elementkEV >= XBounds()[0] &&
+				elementkEV <= XBounds()[1])
 			{
 				double pos = diagram2PaintX(elementkEV);
 				line.setP1(QPoint(pos, 0));

@@ -297,8 +297,8 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 		}
 		QString text( tr( "%1\n(data range: [%2..%3])" )
 				  .arg( value )
-				  .arg( m_data->GetDataRange()[0] )
-				  .arg( m_data->GetDataRange()[1] )
+				  .arg( m_data->XBounds()[0] )
+				  .arg( m_data->XBounds()[1] )
 		);
 		QToolTip::showText( event->globalPos(), text, this );
 		redraw();

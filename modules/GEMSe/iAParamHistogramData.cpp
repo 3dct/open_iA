@@ -34,8 +34,8 @@ double iAParamHistogramData::MapValueToBin(double value) const
 {
 	if (m_log)
 	{
-		double minLog = std::floor(LogFunc(GetDataRange(0)));
-		double maxLog = std::ceil (LogFunc(GetDataRange(1)));
+		double minLog = std::floor(LogFunc(XBounds()[0]));
+		double maxLog = std::ceil (LogFunc(XBounds()[1]));
 		double valueLog = LogFunc(value);
 		valueLog = clamp(minLog, maxLog, valueLog);
 		return mapValue(
@@ -44,15 +44,15 @@ double iAParamHistogramData::MapValueToBin(double value) const
 			valueLog
 		);
 	}
-	return mapValue(GetDataRange(0), GetDataRange(1), 0.0, static_cast<double>(GetNumBin()), value);
+	return mapValue(XBounds()[0], XBounds()[1], 0.0, static_cast<double>(GetNumBin()), value);
 }
 
 double iAParamHistogramData::MapBinToValue(double bin) const
 {
 	if (m_log)
 	{
-		double minLog = std::floor(LogFunc(GetDataRange(0)));
-		double maxLog = std::ceil (LogFunc(GetDataRange(1)));
+		double minLog = std::floor(LogFunc(XBounds()[0]));
+		double maxLog = std::ceil (LogFunc(XBounds()[1]));
 		double yLog = mapValue(
 			0.0, static_cast<double>(m_numBin),
 			minLog, maxLog,
@@ -60,7 +60,7 @@ double iAParamHistogramData::MapBinToValue(double bin) const
 			);
 		return std::pow(LogBase, yLog);
 	}
-	return mapValue(0.0, static_cast<double>(GetNumBin()), GetDataRange(0), GetDataRange(1), bin);
+	return mapValue(0.0, static_cast<double>(GetNumBin()), XBounds()[0], XBounds()[1], bin);
 }
 
 
@@ -207,14 +207,9 @@ double iAParamHistogramData::GetSpacing() const
 	return m_spacing;
 }
 
-double * iAParamHistogramData::GetDataRange()
+double const * iAParamHistogramData::XBounds() const
 {
 	return m_dataRange;
-}
-
-double iAParamHistogramData::GetDataRange(int idx) const
-{
-	return m_dataRange[idx];
 }
 
 iAParamHistogramData::DataType iAParamHistogramData::GetMaxValue() const
