@@ -788,9 +788,9 @@ int iADiagramFctWidget::BottomMargin() const
 	return BOTTOM_MARGIN;
 }
 
-void iADiagramFctWidget::changeMode(int mode, QMouseEvent *event)
+void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 {
-	switch(mode)
+	switch(newMode)
 	{
 		case MOVE_POINT_MODE:
 		{
@@ -835,7 +835,7 @@ void iADiagramFctWidget::changeMode(int mode, QMouseEvent *event)
 		}
 			break;
 		default:
-			iADiagramWidget::changeMode(mode, event);
+			iADiagramWidget::changeMode(newMode, event);
 			break;
 	}
 }

@@ -208,19 +208,19 @@ void iADiagramWidget::resetView()
 	redraw();
 }
 
-void iADiagramWidget::changeMode(int mode, QMouseEvent *event)
+void iADiagramWidget::changeMode(int newMode, QMouseEvent *event)
 {
-	switch(mode)
+	switch(newMode)
 	{
 	case MOVE_POINT_MODE:
 		break;
 	case MOVE_VIEW_MODE:
 		dragStartPosX = event->x();
 		dragStartPosY = event->y();
-		this->mode = MOVE_VIEW_MODE;
+		mode = MOVE_VIEW_MODE;
 		break;
 	default:
-		this->mode = mode;
+		mode = newMode;
 		break;
 	}
 }
@@ -283,7 +283,7 @@ void iADiagramWidget::mousePressEvent(QMouseEvent *event)
 
 void iADiagramWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	switch(this->mode)
+	switch(mode)
 	{
 	case NO_MODE: /* do nothing */ break;
 	case MOVE_POINT_MODE:

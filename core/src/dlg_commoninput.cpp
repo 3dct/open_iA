@@ -221,7 +221,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 
 void dlg_commoninput::updateValues(QList<QVariant> inPara)
 {
-	QObjectList children = this->container->children();
+	QObjectList children = container->children();
 
 	int paramIdx = 0;
 	for ( int i = 0; i < children.size(); i++)
@@ -273,7 +273,7 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 
 void dlg_commoninput::connectMdiChild(MdiChild *child)
 {
-	QObjectList children = this->container->children();
+	QObjectList children = container->children();
 
 	for (int i = 0; i < children.size(); i++)
 	{
@@ -314,7 +314,7 @@ QList<double> dlg_commoninput::getValues()
 	{
 		QString test = widgetList[i];
 		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>(widgetList[i]);
+		QLineEdit *t = container->findChild<QLineEdit*>(widgetList[i]);
 		
 		if (t != 0)
 		{
@@ -333,7 +333,7 @@ QList<double> dlg_commoninput::getSpinBoxValues()
 	for (int i = 0; i < numPara; i++)
 	{
 		// find the child widget with the name in the leList
-		QSpinBox *t = this->container->findChild<QSpinBox*>(widgetList[i]);
+		QSpinBox *t = container->findChild<QSpinBox*>(widgetList[i]);
 		
 		if (t != 0)
 		{
@@ -352,7 +352,7 @@ QList<double> dlg_commoninput::getDoubleSpinBoxValues()
 	for (int i = 0; i < numPara; i++)
 	{
 		// find the child widget with the name in the leList
-		QDoubleSpinBox *t = this->container->findChild<QDoubleSpinBox*>(widgetList[i]);
+		QDoubleSpinBox *t = container->findChild<QDoubleSpinBox*>(widgetList[i]);
 		
 		if (t != 0)
 		{
@@ -371,7 +371,7 @@ QList<int> dlg_commoninput::getCheckValues()
 	for (int i = 0; i < numPara; i++)
 	{
 		// find the child widget with the name in the leList
-		QCheckBox *t = this->container->findChild<QCheckBox*>(widgetList[i]);
+		QCheckBox *t = container->findChild<QCheckBox*>(widgetList[i]);
 
 		if (t != 0)
 		{
@@ -390,7 +390,7 @@ QStringList dlg_commoninput::getComboBoxValues()
 	for (int i = 0; i < numPara; i++)
 	{
 		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>(widgetList[i]);
+		QComboBox *t = container->findChild<QComboBox*>(widgetList[i]);
 
 		if (t != 0)
 		{
@@ -410,7 +410,7 @@ QStringList dlg_commoninput::getText()
 	for (int i = 0; i < numPara; i++)
 	{
 		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>(widgetList[i]);
+		QLineEdit *t = container->findChild<QLineEdit*>(widgetList[i]);
 		
 		if (t != 0)
 		{
@@ -431,28 +431,28 @@ double dlg_commoninput::getParameterValue(QString name)
 	if ( name.contains("LineEdit", Qt::CaseSensitive) )
 	{
 		// find the child widget with name in the objectname
-		QLineEdit *l_temp = this->container->findChild<QLineEdit*>(name);
+		QLineEdit *l_temp = container->findChild<QLineEdit*>(name);
 
 		outValue = l_temp->text().toDouble();
 	}
 	else if (name.contains("ComboBox", Qt::CaseSensitive) )
 	{
 		// find the child widget with name in the objectname
-		QComboBox *t_temp = this->container->findChild<QComboBox*>(name);
+		QComboBox *t_temp = container->findChild<QComboBox*>(name);
 
 		outValue = t_temp->currentText().toDouble();
 	}
 	else if( name.contains("CheckBox", Qt::CaseSensitive) )
 	{
 		// find the child widget with name in the objectname
-		QCheckBox *t_temp = this->container->findChild<QCheckBox*>(name);
+		QCheckBox *t_temp = container->findChild<QCheckBox*>(name);
 
 		outValue = t_temp->checkState();
 	}
 	else if( name.contains("SpinBox", Qt::CaseSensitive) )
 	{
 		// find the child widget with name in the objectname
-		QSpinBox *t_temp = this->container->findChild<QSpinBox*>(name);
+		QSpinBox *t_temp = container->findChild<QSpinBox*>(name);
 
 		outValue = t_temp->text().toDouble();
 	}
@@ -467,7 +467,7 @@ QList<int> dlg_commoninput::getComboBoxIndices()
 	for (int i = 0; i < numPara; i++)
 	{
 		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>(widgetList[i]);
+		QComboBox *t = container->findChild<QComboBox*>(widgetList[i]);
 
 		if (t != 0)
 		{

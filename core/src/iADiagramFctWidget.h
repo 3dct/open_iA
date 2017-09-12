@@ -157,7 +157,7 @@ protected:
 	virtual void drawDatasets(QPainter &painter);
 	virtual void drawImageOverlays(QPainter &painter);
 	virtual void drawAxes(QPainter &painter);
-	virtual void changeMode(int mode, QMouseEvent *event);
+	virtual void changeMode(int newMode, QMouseEvent *event) override;
 
 	// conversion between screen and data coordinates/bins:
 	int diagram2PaintX(double x);
