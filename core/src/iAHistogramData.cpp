@@ -40,7 +40,7 @@ double iAHistogramData::GetSpacing() const
 	return accSpacing;
 }
 
-double const * iAHistogramData::GetXBounds() const
+double const * iAHistogramData::XBounds() const
 {
 	return dataRange;
 }

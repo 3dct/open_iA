@@ -74,7 +74,7 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 	painter.setBrush(QColor(128, 128, 128, 255));
 
 	QColor c;
-	double gradientWidth = chart->getActiveWidth()*chart->GetXZoom();
+	double gradientWidth = chart->ActiveWidth()*chart->XZoom();
 
 	gradient = QLinearGradient();
 	gradient.setStart(0, 0);
@@ -183,7 +183,7 @@ void dlg_transfer::drawOnTop(QPainter &painter)
 {
 	if ( opacityTF->GetSize() == colorTF->GetSize())
 	{
-		double gradientWidth = chart->getActiveWidth()*chart->GetXZoom();
+		double gradientWidth = chart->ActiveWidth()*chart->XZoom();
 
 		painter.fillRect( 0, 0, gradientWidth, -chart->GetTFGradientHeight(), gradient );
 	}
@@ -191,8 +191,8 @@ void dlg_transfer::drawOnTop(QPainter &painter)
 
 int dlg_transfer::selectPoint(QMouseEvent *event, int *x)
 { 
-	int lx = event->x() - chart->getLeftMargin();
-	int ly = chart->geometry().height() - event->y() - chart->getBottomMargin() - chart->getTranslationY();
+	int lx = event->x() - chart->LeftMargin();
+	int ly = chart->geometry().height() - event->y() - chart->BottomMargin() - chart->YShift();
 	int index = -1;
 	
 	double pointValue[4];
@@ -263,7 +263,7 @@ void dlg_transfer::addColorPoint(int x, double red, double green, double blue)
 	if (red < 0 || green < 0 || blue < 0)
 	{
 		QGradientStops stops = gradient.stops();
-		double gradientWidth = chart->getActiveWidth()*chart->GetXZoom();
+		double gradientWidth = chart->ActiveWidth()*chart->XZoom();
 		double pos = x /gradientWidth;
 
 		// find stops before and after pos
@@ -322,8 +322,8 @@ void dlg_transfer::removePoint(int index)
 
 void dlg_transfer::moveSelectedPoint(int x, int y)
 {
-	if (x > chart->getActiveWidth()-1) x = chart->getActiveWidth() - 1;
-	y = clamp(0, chart->geometry().height() - chart->getBottomMargin() - 1, y);
+	if (x > chart->ActiveWidth()-1) x = chart->ActiveWidth() - 1;
+	y = clamp(0, chart->geometry().height() - chart->BottomMargin() - 1, y);
 
 	double dataX = v2dX(x);
 	if (selectedPoint != 0 && selectedPoint != opacityTF->GetSize()-1)
@@ -400,11 +400,11 @@ void dlg_transfer::reset()
 	if (opacityTF != NULL && colorTF != NULL)
 	{
 		opacityTF->RemoveAllPoints();
-		opacityTF->AddPoint(chart->GetXBounds()[0], 0.0 );
-		opacityTF->AddPoint(chart->GetXBounds()[1], 1.0 );
+		opacityTF->AddPoint(chart->XBounds()[0], 0.0 );
+		opacityTF->AddPoint(chart->XBounds()[1], 1.0 );
 		colorTF->RemoveAllPoints();
-		colorTF->AddRGBPoint(chart->GetXBounds()[0], 0.0, 0.0, 0.0 );
-		colorTF->AddRGBPoint(chart->GetXBounds()[1], 1.0, 1.0, 1.0 );
+		colorTF->AddRGBPoint(chart->XBounds()[0], 0.0, 0.0, 0.0 );
+		colorTF->AddRGBPoint(chart->XBounds()[1], 1.0, 1.0, 1.0 );
 		colorTF->Build();
 		triggerOnChange();
 	}
@@ -514,34 +514,34 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 // TODO: unify somewhere!
 double dlg_transfer::v2dX(int x)
 {
-	double dX = ((double)(x-chart->getTranslationX()) / (double)chart->getActiveWidth() * chart->GetXRange()) /chart->GetXZoom() + chart->GetXBounds()[0];
-	return clamp(chart->GetXBounds()[0], chart->GetXBounds()[1], dX);
+	double dX = ((double)(x-chart->XShift()) / (double)chart->ActiveWidth() * chart->XRange()) /chart->XZoom() + chart->XBounds()[0];
+	return clamp(chart->XBounds()[0], chart->XBounds()[1], dX);
 }
 
 // convert from [0..maxDiagPixelHeight] to [0..1]
 double dlg_transfer::v2dY(int y)
 {
-	return mapToNorm(0, chart->getChartHeight(), y);
+	return mapToNorm(0, chart->ChartHeight(), y);
 }
 
 int dlg_transfer::d2vX(double x, double oldDataRange0, double oldDataRange1)
 {
 	if (oldDataRange0 == -1 && oldDataRange1 == -1)
-		return (int)((x - chart->GetXBounds()[0]) * (double)chart->getActiveWidth() / chart->GetXRange()*chart->GetXZoom()) +chart->getTranslationX();
+		return (int)((x - chart->XBounds()[0]) * (double)chart->ActiveWidth() / chart->XRange()*chart->XZoom()) +chart->XShift();
 	else
-		return (int)((x -oldDataRange0) * (double)chart->getActiveWidth() / (oldDataRange1 - oldDataRange0)*chart->GetXZoom()) +chart->getTranslationX();
+		return (int)((x -oldDataRange0) * (double)chart->ActiveWidth() / (oldDataRange1 - oldDataRange0)*chart->XZoom()) +chart->XShift();
 		
 }
 
 // convert from [0..1] to [0..maxDiagPixelHeight]
 int dlg_transfer::d2vY(double y)
 {
-	return mapNormTo(0, std::max(0, chart->getChartHeight()), y);;
+	return mapNormTo(0, std::max(0, chart->ChartHeight()), y);
 }
 
 int dlg_transfer::d2iX(double x)
 {
-	return d2vX(x) -chart->getTranslationX();
+	return d2vX(x) -chart->XShift();
 }
 
 int dlg_transfer::d2iY(double y)

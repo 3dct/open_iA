@@ -21,6 +21,8 @@
 #include "pch.h"
 #include "iAProfileWidget.h"
 
+#include "iAMathUtility.h"
+
 #include <QMessageBox>
 #include <QMdiSubWindow>
 #include <QPainter>
@@ -87,7 +89,7 @@ void iAProfileWidget::drawProfilePlot()
 	drawBackground(painter);
 
 	//change the origin of the window to left bottom
-	painter.translate(translationX+getLeftMargin(), height-getBottomMargin());
+	painter.translate(translationX+LeftMargin(), height-BottomMargin());
 	painter.scale(1, -1);
 
 	drawHistogram(painter);
@@ -118,16 +120,10 @@ void iAProfileWidget::selectBin(QMouseEvent *event)
 	{
 		return;
 	}
-	xPos = event->x() - getLeftMargin();
-	if (xPos < 0) 
-		xPos = 0;
-	if (xPos >= getActiveWidth()) 
-		xPos = getActiveWidth()-1;
-
-	//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (numBin / width)
-	int nthBin = (int)((((xPos-translationX) * numBin) / getActiveWidth()) / xZoom);
-	double len = (((xPos-translationX) * rayLen) / getActiveWidth()) / xZoom;
-	if (nthBin >= numBin || xPos == getActiveWidth()-1)
+	xPos = clamp(0, ActiveWidth() - 1, event->x() - LeftMargin());
+	int nthBin = (int)((((xPos-translationX) * numBin) / ActiveWidth()) / xZoom);
+	double len = (((xPos-translationX) * rayLen) / ActiveWidth()) / xZoom;
+	if (nthBin >= numBin || xPos == ActiveWidth()-1)
 	{
 		nthBin = numBin-1;
 	}
@@ -145,7 +141,7 @@ void iAProfileWidget::selectBin(QMouseEvent *event)
 
 void iAProfileWidget::drawHistogram(QPainter &painter)
 {
-	double binWidth = (double)(getActiveWidth()) / numBin *xZoom;
+	double binWidth = (double)(ActiveWidth()) / numBin *xZoom;
 
 	int intBinWidth = (int)binWidth;
 
@@ -158,7 +154,7 @@ void iAProfileWidget::drawHistogram(QPainter &painter)
 	if (scalars)
 	{
 		//draw the histogram using the painter on the image
-		double scalingCoef = (double)(height-getBottomMargin()-1) / yHeight *yZoom;
+		double scalingCoef = (double)(height-BottomMargin()-1) / yHeight *yZoom;
 		for ( int j = 0; j < numBin-1; j++ ) 
 		{		 
 			double x1 = (int)(j * binWidth);
@@ -204,9 +200,9 @@ void iAProfileWidget::drawXAxis(QPainter &painter)
 			text = QString::number((int)value, 10);
 
 		//calculate the x coordinate
-		int x = (int)(pos * getActiveWidth() * xZoom);
+		int x = (int)(pos * ActiveWidth() * xZoom);
 		//draw a small indicator line
-		painter.drawLine(x, (int)(getBottomMargin()*0.1), x, -1);
+		painter.drawLine(x, (int)(BottomMargin()*0.1), x, -1);
 
 		if (i <= 0)
 		{
@@ -223,9 +219,9 @@ void iAProfileWidget::drawXAxis(QPainter &painter)
 		i++;
 	}
 	//draw the x axis
-	painter.drawLine(0, -1, (int)(getActiveWidth()*xZoom), -1);
+	painter.drawLine(0, -1, (int)(ActiveWidth()*xZoom), -1);
 	//write the x axis label
-	painter.drawText( QPointF((int)(getActiveWidth() * 0.45 ), getBottomMargin()-2), xCaption);
+	painter.drawText( QPointF((int)(ActiveWidth() * 0.45 ), BottomMargin()-2), xCaption);
 }
 
 
@@ -254,25 +250,25 @@ void iAProfileWidget::drawYAxis(QPainter &painter)
 			text = QString::number((int)yValue, 10);
 
 		//calculate the y coordinate
-		int y = -(int)(pos * getActiveHeight() * yZoom)-1;
+		int y = -(int)(pos * ActiveHeight() * yZoom)-1;
 		//draw a small indicator line
-		painter.drawLine((int)(-getLeftMargin()*0.1), y, 0, y);
+		painter.drawLine((int)(-LeftMargin()*0.1), y, 0, y);
 
 		if(i == stepNumber)
-			painter.drawText(TEXT_X-getLeftMargin(), y+0.6*fontHeight, text); //write the text left aligned to the indicator line
+			painter.drawText(TEXT_X-LeftMargin(), y+0.6*fontHeight, text); //write the text left aligned to the indicator line
 		else
-			painter.drawText(TEXT_X-getLeftMargin(), y+0.25*fontHeight, text); //write the text centered to the indicator line
+			painter.drawText(TEXT_X-LeftMargin(), y+0.25*fontHeight, text); //write the text centered to the indicator line
 
 		i++;
 	}
-	painter.drawLine(0, -1, 0, -(int)(getActiveHeight()*yZoom));
+	painter.drawLine(0, -1, 0, -(int)(ActiveHeight()*yZoom));
 	//write the y axis label
 	painter.save();
 	painter.rotate(-90);
-	painter.drawText( 
+	painter.drawText(
 		QPointF(
-		getActiveHeight()*0.5 - 0.5*fm.width(yCaption), 
-		-getLeftMargin() + fontHeight - 5), 
+		ActiveHeight()*0.5 - 0.5*fm.width(yCaption),
+		-LeftMargin() + fontHeight - 5),
 		yCaption);
 	painter.restore();
 }

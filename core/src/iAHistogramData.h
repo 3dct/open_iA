@@ -32,7 +32,7 @@ class iAHistogramData: public iAAbstractDiagramRangedData
 public:
 	iAHistogramData();
 	virtual double GetSpacing() const;
-	virtual double const * GetXBounds() const;
+	virtual double const * XBounds() const;
 	virtual DataType const * GetData() const;
 	virtual size_t GetNumBin() const;
 	virtual DataType GetMaxValue() const;

@@ -92,10 +92,10 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 			selectionRects.clear();
 			redraw();
 		}
-		else if( event->modifiers() || event->y() > geometry().height() - getBottomMargin() )
+		else if( event->modifiers() || event->y() > geometry().height() - BottomMargin() )
 		{
 			QMouseEvent eventCopy(event->type(),
-				QPoint(event->x(), geometry().height() - getBottomMargin()),
+				QPoint(event->x(), geometry().height() - BottomMargin()),
 				event->globalPos(),
 				event->button(),
 				event->buttons(),
@@ -109,7 +109,7 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	QMouseEvent eventCopy(event->type(),
-		QPoint(event->x(), geometry().height() - getBottomMargin()),
+		QPoint(event->x(), geometry().height() - BottomMargin()),
 		event->globalPos(),
 		event->button(),
 		event->buttons(),
@@ -121,8 +121,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction
-		diagramRect.setTop(    GetCoordinateConverter()->Screen2DiagramY(getActiveHeight() - selectionRect.bottom()) );
-		diagramRect.setBottom( GetCoordinateConverter()->Screen2DiagramY(getActiveHeight() - selectionRect.top()   ) );
+		diagramRect.setTop(    GetCoordinateConverter()->Screen2DiagramY(ActiveHeight() - selectionRect.bottom()) );
+		diagramRect.setBottom( GetCoordinateConverter()->Screen2DiagramY(ActiveHeight() - selectionRect.top()   ) );
 		diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
 		diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
 		diagramRect = diagramRect.normalized();
@@ -150,7 +150,7 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 void iAEnergySpectrumWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	QMouseEvent eventCopy(event->type(),
-		QPoint(event->x(), geometry().height() - getBottomMargin()),
+		QPoint(event->x(), geometry().height() - BottomMargin()),
 		event->globalPos(),
 		event->button(),
 		event->buttons(),
@@ -204,7 +204,7 @@ void iAEnergySpectrumWidget::drawDatasets(QPainter& painter)
 			{
 				double pos = diagram2PaintX(elementkEV);
 				line.setP1(QPoint(pos, 0));
-				line.setP2(QPoint(pos, diagram.height()-getBottomMargin()));
+				line.setP2(QPoint(pos, diagram.height()-BottomMargin()));
 				painter.drawLine(line);
 				painter.save();
 				painter.scale(1, -1);
