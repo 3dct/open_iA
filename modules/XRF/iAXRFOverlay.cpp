@@ -33,7 +33,7 @@ void initSpectraColormap(
 	int colormapHeight = spectraHistogramColormap.height();
 	double sensitivity = (max - val) / max;
 	sensitivity *= sensitivity; //square scaling
-	double scale = sensitivity * accData->GetMaxValue() / colormapHeight;
+	double scale = sensitivity * accData->YBounds()[1] / colormapHeight;
 	colormapLUT->RemoveAllPoints();
 	for (int y=0; y<colormapHeight; ++y)
 	{

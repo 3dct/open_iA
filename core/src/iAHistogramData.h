@@ -35,7 +35,7 @@ public:
 	virtual double const * XBounds() const;
 	virtual DataType const * GetData() const;
 	virtual size_t GetNumBin() const;
-	virtual DataType GetMaxValue() const;
+	virtual DataType const * YBounds() const;
 	virtual iAValueType GetRangeType() const;
 
 	void initialize(vtkImageAccumulate* imgAccumulate);
@@ -47,9 +47,9 @@ private:
 	size_t				numBin;
 	vtkSmartPointer<vtkImageData> rawImg;
 	iAAbstractDiagramData::DataType*	rawData;
-	iAAbstractDiagramData::DataType		maxFreq;
+	iAAbstractDiagramData::DataType		yBounds[2];
 	double				accSpacing;
-	double				dataRange[2];
+	double				xBounds[2];
 	iAValueType			m_type;
 	void SetMaxFreq();
 };

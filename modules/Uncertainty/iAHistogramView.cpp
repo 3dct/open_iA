@@ -46,14 +46,9 @@ double const * iASimpleHistogramData::XBounds() const
 	return m_xBounds;
 }
 
-iASimpleHistogramData::DataType iASimpleHistogramData::GetMaxValue() const
+iASimpleHistogramData::DataType const * iASimpleHistogramData::YBounds() const
 {
-	return m_rangeY[1];
-}
-
-iASimpleHistogramData::DataType iASimpleHistogramData::GetMinValue() const
-{
-	return m_rangeY[0];
+	return m_yBounds;
 }
 
 iAValueType iASimpleHistogramData::GetRangeType() const
@@ -76,8 +71,8 @@ void iASimpleHistogramData::AddValue(DataType value)
 void iASimpleHistogramData::SetBin(size_t binIdx, DataType value)
 {
 	m_data[binIdx] = value;
-	if (value > m_rangeY[1])
-		m_rangeY[1] = value;
+	if (value > m_yBounds[1])
+		m_yBounds[1] = value;
 }
 
 iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType) :
@@ -89,8 +84,8 @@ iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_
 	std::fill(m_data, m_data + m_numBin, 0);
 	m_xBounds[0] = minX;
 	m_xBounds[1] = maxX;
-	m_rangeY[0] = 0;
-	m_rangeY[1] = 0;
+	m_yBounds[0] = 0;
+	m_yBounds[1] = 0;
 }
 
 
@@ -102,17 +97,17 @@ iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_
 	m_data = data;
 	m_xBounds[0] = minX;
 	m_xBounds[1] = maxX;
-	m_rangeY[0] = std::numeric_limits<double>::max();
-	m_rangeY[1] = std::numeric_limits<double>::lowest();
+	m_yBounds[0] = std::numeric_limits<double>::max();
+	m_yBounds[1] = std::numeric_limits<double>::lowest();
 	for (int i = 0; i < numBin; ++i)
 	{
-		if (data[i] < m_rangeY[0])
+		if (data[i] < m_yBounds[0])
 		{
-			m_rangeY[0] = data[i];
+			m_yBounds[0] = data[i];
 		}
-		if (data[i] > m_rangeY[1])
+		if (data[i] > m_yBounds[1])
 		{
-			m_rangeY[1] = data[i];
+			m_yBounds[1] = data[i];
 		}
 	}
 }

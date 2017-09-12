@@ -59,8 +59,7 @@ class iAAbstractDiagramRangedData: public iAAbstractDiagramData
 public:
 	virtual double GetSpacing() const =0;
 	virtual double const * XBounds() const =0;
-	virtual DataType GetMaxValue() const =0;
-	virtual DataType GetMinValue() const { return 0; }
+	virtual DataType const * YBounds() const = 0;
 
 	virtual double GetBinStart(int binNr) const		// default: assume constant (i.e. linear) spacing
 	{

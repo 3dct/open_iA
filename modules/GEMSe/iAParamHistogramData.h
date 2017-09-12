@@ -60,7 +60,7 @@ public:
 	virtual size_t GetNumBin() const override;
 	virtual double GetSpacing() const override;
 	virtual double const * XBounds() const override;
-	virtual DataType GetMaxValue() const override;
+	virtual DataType const * YBounds() const override;
 	virtual double GetBinStart(int binNr) const override;
 	double MapValueToBin(double value) const;
 	double MapBinToValue(double bin) const;
@@ -87,8 +87,8 @@ private:
 		iAChartAttributeMapper const & chartAttrMap);
 	DataType * m_data;
 	size_t m_numBin;
-	double m_dataRange[2];
-	DataType m_maxValue;
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 	DataType m_spacing;
 	iAValueType m_rangeType;
 	bool m_log;

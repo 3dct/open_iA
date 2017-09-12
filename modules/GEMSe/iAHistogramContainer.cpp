@@ -127,7 +127,7 @@ void iAHistogramContainer::CreateCharts()
 		}
 		if (attrib->GetAttribType() == iAAttributeDescriptor::Parameter)
 		{
-			maxValue = std::max(data->GetMaxValue(), maxValue);
+			maxValue = std::max(data->YBounds()[1], maxValue);
 		}
 		m_charts.insert(chartID, new iAClusterAttribChart(attrib->GetName(), chartID, data,
 			attrib->GetNameMapper()));

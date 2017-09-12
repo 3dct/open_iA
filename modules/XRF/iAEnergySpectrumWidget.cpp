@@ -132,9 +132,9 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 			diagramRect.setTop(0);
 		}
 
-		if (diagramRect.bottom() > GetData()->GetMaxValue())
+		if (diagramRect.bottom() > GetData()->YBounds()[1])
 		{
-			diagramRect.setBottom(GetData()->GetMaxValue());
+			diagramRect.setBottom(GetData()->YBounds()[1]);
 		}
 
 		// .width() and .height() counter-intuitively report 1 if x1=x2/y1=y2

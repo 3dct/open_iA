@@ -26,8 +26,8 @@ iARangeSliderDiagramData::iARangeSliderDiagramData( QList<double> m_rangeSliderD
 	m_rangeSliderFunction( NULL ),
 	m_rangeSliderData( m_rangeSliderData )
 {
-	m_range[0] = min;
-	m_range[1] = max;
+	m_xBounds[0] = min;
+	m_xBounds[1] = max;
 }
 
 iARangeSliderDiagramData::~iARangeSliderDiagramData()
@@ -41,10 +41,15 @@ void iARangeSliderDiagramData::updateRangeSliderFunction()
 	{
 		m_rangeSliderFunction = new DataType[m_rangeSliderData.size()];
 	}
-
+	m_yBounds[0] = std::numeric_limits<double>::max();
+	m_yBounds[1] = std::numeric_limits<double>::lowest();
 	for ( int i = 0; i < m_rangeSliderData.size(); ++i )
 	{
 		m_rangeSliderFunction[i] = m_rangeSliderData.at( i );
+		if (m_rangeSliderData.at(i) > m_yBounds[1])
+			m_yBounds[1] = m_rangeSliderData.at(i);
+		if (m_rangeSliderData.at(i) < m_yBounds[0])
+			m_yBounds[0] = m_rangeSliderData.at(i);
 	}
 }
 

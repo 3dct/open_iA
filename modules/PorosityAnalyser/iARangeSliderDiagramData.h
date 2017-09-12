@@ -39,39 +39,23 @@ public:
 		if ( GetNumBin() <= 1 )
 			return 0.0;
 		
-		return ( m_range[1] - m_range[0] ) / (GetNumBin() - 1.0);
+		return ( m_xBounds[1] - m_xBounds[0] ) / (GetNumBin() - 1.0);
 	}
 
 	virtual double const * XBounds() const override
 	{
-		return m_range;
+		return m_xBounds;
 	}
 
-	virtual DataType GetMaxValue() const override
+	virtual DataType const * YBounds() const override
 	{
-		double max = 0;
-		for ( int i = 0; i < m_rangeSliderData.size(); ++i )
-		{
-			if ( m_rangeSliderData.at( i ) > max )
-				max = m_rangeSliderData.at( i );
-		}
-		return max;
-	}
-
-	virtual DataType GetMinValue() const override
-	{
-		double min = 0;
-		for ( int i = 0; i < m_rangeSliderData.size(); ++i )
-		{
-			if ( m_rangeSliderData.at( i ) < min )
-				min = m_rangeSliderData.at( i );
-		}
-		return min;
+		return m_yBounds;
 	}
 
 private:
 	DataType* m_rangeSliderFunction;
 	QList<double> m_rangeSliderData;
 
-	double m_range[2];
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 };

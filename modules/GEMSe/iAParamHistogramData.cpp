@@ -63,7 +63,6 @@ double iAParamHistogramData::MapBinToValue(double bin) const
 	return mapValue(0.0, static_cast<double>(GetNumBin()), XBounds()[0], XBounds()[1], bin);
 }
 
-
 void iAParamHistogramData::CountNodeBin(iAImageTreeLeaf const* leaf,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
@@ -77,7 +76,6 @@ void iAParamHistogramData::CountNodeBin(iAImageTreeLeaf const* leaf,
 	data->AddValue(value);
 }
 
-
 void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
 	iAChartAttributeMapper const & chartAttrMap)
@@ -87,7 +85,6 @@ void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 		CountNodeBin(leaf, data, chartID, chartAttrMap);
 	});
 }
-
 
 void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 	QSharedPointer<iAParamHistogramData> data, int chartID,
@@ -104,19 +101,17 @@ void iAParamHistogramData::VisitNode(iAImageTreeNode const * node,
 	});
 }
 
-
 double iAParamHistogramData::GetBinStart(int binNr) const
 {
 	if (!m_log)
 	{
 		return iAAbstractDiagramRangedData::GetBinStart(binNr);
 	}
-	double minLog = std::floor(LogFunc(m_dataRange[0]));
-	double maxLog = std::ceil (LogFunc(m_dataRange[1]));
+	double minLog = std::floor(LogFunc(m_xBounds[0]));
+	double maxLog = std::ceil (LogFunc(m_xBounds[1]));
 	double valueLog = mapValue(0, static_cast<int>(m_numBin), minLog, maxLog, binNr);
 	return std::pow(LogBase, valueLog);
 }
-
 
 QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNode const * tree,
 	int chartID,
@@ -133,7 +128,6 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	VisitNode(tree, result, chartID, chartAttrMap);
 	return result;
 }
-
 
 QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNode const * tree,
 	int chartID,
@@ -157,10 +151,9 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	return result;
 }
 
-iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max, bool log, iAValueType rangeType):
+iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max, bool log, iAValueType rangeType) :
 	m_data(new DataType[numBin > 0 ? numBin : 1]),
-	m_numBin(numBin > 0? numBin : 1),
-	m_maxValue(std::numeric_limits<double>::lowest()),
+	m_numBin(numBin > 0 ? numBin : 1),
 	m_spacing(1.0),
 	m_rangeType(rangeType),
 	m_log(log),
@@ -174,16 +167,16 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 		DEBUG_LOG("Need to define minimum bigger than 0 for logarithmic scale!");
 		min = 0.000001;
 	}
-	std::fill(m_data, m_data+numBin, 0.0);
-	m_dataRange[0] = min;
-	m_dataRange[1] = (min == max)? min+1: max;
+	Reset();
+	m_xBounds[0] = min;
+	m_xBounds[1] = (min == max)? min+1: max;
 	m_spacing = (max - min) / m_numBin;
 }
 
-
 void iAParamHistogramData::Reset()
 {
-	m_maxValue = std::numeric_limits<double>::lowest();
+	m_yBounds[0] = 0;
+	m_yBounds[1] = std::numeric_limits<double>::lowest();
 	std::fill(m_data, m_data + m_numBin, 0.0);
 }
 
@@ -209,12 +202,12 @@ double iAParamHistogramData::GetSpacing() const
 
 double const * iAParamHistogramData::XBounds() const
 {
-	return m_dataRange;
+	return m_xBounds;
 }
 
-iAParamHistogramData::DataType iAParamHistogramData::GetMaxValue() const
+iAParamHistogramData::DataType const * iAParamHistogramData::YBounds() const
 {
-	return m_maxValue;
+	return m_yBounds;
 }
 
 iAValueType iAParamHistogramData::GetRangeType() const
@@ -227,19 +220,21 @@ bool iAParamHistogramData::IsLogarithmic() const
 	return m_log;
 }
 
-
 double iAParamHistogramData::GetMinX() const
 {
 	return m_minX;
 }
+
 double iAParamHistogramData::GetMaxX() const
 {
 	return m_maxX;
 }
+
 void iAParamHistogramData::SetMinX(double x)
 {
 	m_minX = x;
 }
+
 void iAParamHistogramData::SetMaxX(double x)
 {
 	m_maxX = x;
@@ -249,8 +244,8 @@ void iAParamHistogramData::AddValue(double value)
 {
 	int binIdx = clamp(0, static_cast<int>(m_numBin - 1), static_cast<int>(MapValueToBin(value)));
 	m_data[binIdx]++;
-	if (m_data[binIdx] > m_maxValue)
+	if (m_data[binIdx] > m_yBounds[1])
 	{
-		m_maxValue = m_data[binIdx];
+		m_yBounds[1] = m_data[binIdx];
 	}
 }

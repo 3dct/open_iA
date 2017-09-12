@@ -32,30 +32,30 @@
 #include <cassert>
 #include <limits>
 
-iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy):
+iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy) :
 	m_xrfData(data),
 	m_spectraHistograms(new iASpectraHistograms(data)),
 	m_minimum(new CountType[m_xrfData->size()]),
 	m_maximum(new CountType[m_xrfData->size()]),
 	m_average(new CountType[m_xrfData->size()]),
-	m_totalMaximum(0),
-	m_totalMinimum(std::numeric_limits<double>::max()),
 	m_functionalBoxplotData(0)
 {
 	calculateStatistics();
 	SetFct(fctDefault);
-	dataRange[0] = minEnergy;
-	dataRange[1] = maxEnergy;
+	m_xBounds[0] = minEnergy;
+	m_xBounds[1] = maxEnergy;
+	m_yBounds[1] = 0;
+	m_yBounds[0] = std::numeric_limits<double>::max();
 }
 
 double iAAccumulatedXRFData::GetSpacing() const
 {
-	return (dataRange[1] - dataRange[0]) / GetNumBin();
+	return (m_xBounds[1] - m_xBounds[0]) / GetNumBin();
 }
 
 double const * iAAccumulatedXRFData::XBounds() const
 {
-	return dataRange;
+	return m_xBounds;
 }
 
 iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetData() const
@@ -77,9 +77,9 @@ size_t iAAccumulatedXRFData::GetNumBin() const
 	return m_xrfData->size();
 }
 
-iAAccumulatedXRFData::DataType iAAccumulatedXRFData::GetMaxValue() const
+iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::YBounds() const
 {
-	return m_totalMaximum;
+	return m_yBounds;
 }
 
 CountType iAAccumulatedXRFData::GetSpectraHistogramMax() const
@@ -99,9 +99,7 @@ iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetAvgData() const
 
 void iAAccumulatedXRFData::ComputeSpectraHistograms( long numBins )
 {
-	double maxCount = m_totalMaximum;
-	double minCount = m_totalMinimum;
-	m_spectraHistograms->compute(numBins, maxCount, minCount);
+	m_spectraHistograms->compute(numBins, m_yBounds[1], m_yBounds[0]);
 }
 
 void iAAccumulatedXRFData::RetrieveHistData( long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out )
@@ -222,21 +220,21 @@ void iAAccumulatedXRFData::calculateStatistics()
 		m_average[i] = avg;
 		m_maximum[i] = max;
 		m_minimum[i] = min;
-		if(max > m_totalMaximum)
-			m_totalMaximum = max;
-		if(min < m_totalMinimum)
-			m_totalMinimum = min;
+		if(max > m_yBounds[1])
+			m_yBounds[1] = max;
+		if(min < m_yBounds[0])
+			m_yBounds[0] = min;
 		++it;
 		++i;
 	}
 
 	//workaround if XRF values are negative (in our case due to the FDK reco nature)
-	if( m_totalMinimum < 0.0 )
+	if(m_yBounds[0] < 0.0 )
 		for(int j=0; j<i; ++j)
 		{
-			m_average[j] -= m_totalMinimum;
-			m_maximum[j] -= m_totalMinimum;
-			m_minimum[j] -= m_totalMinimum;
+			m_average[j] -= m_yBounds[0];
+			m_maximum[j] -= m_yBounds[0];
+			m_minimum[j] -= m_yBounds[0];
 		}
 }
 

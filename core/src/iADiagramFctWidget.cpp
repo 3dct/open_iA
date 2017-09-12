@@ -243,7 +243,7 @@ void iADiagramFctWidget::CreateYConverter()
 {
 	if (m_maxYAxisValue == std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
 	{
-		m_maxYAxisValue = GetData()->GetMaxValue();
+		m_maxYAxisValue = GetData()->YBounds()[1];
 	}
 	if (m_yDrawMode == Linear)
 	{
@@ -1100,7 +1100,7 @@ std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
 
 iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYValue() const
 {
-	return GetData()->GetMaxValue();
+	return GetData()->YBounds()[1];
 }
 
 iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYAxisValue() const
@@ -1123,7 +1123,7 @@ void iADiagramFctWidget::SetMaxYAxisValue(iAAbstractDiagramData::DataType val)
 
 void iADiagramFctWidget::ResetMaxYAxisValue()
 {
-	m_maxYAxisValue = GetData()->GetMaxValue();
+	m_maxYAxisValue = GetData()->YBounds()[1];
 }
 
 void iADiagramFctWidget::AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset)

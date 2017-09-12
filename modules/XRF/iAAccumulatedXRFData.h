@@ -47,11 +47,11 @@ public:
 		fctDefault = fctMax,
 	};
 	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
-	virtual double GetSpacing() const;
+	virtual double GetSpacing() const override;
 	virtual double const * XBounds() const override;
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
-	virtual DataType GetMaxValue() const;
+	virtual DataType const * YBounds() const override;
+	virtual DataType const * GetData() const override;
+	virtual size_t GetNumBin() const override;
 	void SetFct(int fctIdx);
 	void RetrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType GetSpectraHistogramMax() const;
@@ -71,9 +71,8 @@ private:
 	CountType* m_minimum;
 	CountType* m_average;
 	AccumulateFct m_accumulateFct;
-	double m_totalMaximum;
-	double m_totalMinimum;
-	double dataRange[2];
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 	FunctionalBoxPlot* m_functionalBoxplotData;
 	std::vector<iAFunction<size_t, unsigned int> *> m_spectrumFunctions;
 	QSharedPointer<iASpectraHistograms>	m_spectraHistograms;
