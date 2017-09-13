@@ -136,6 +136,22 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	return button;
 }
 
+void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelVisualizationData> selectionData)
+{
+	iASlicer* slicer = gui.imageWidget->GetSlicer();
+	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
+	selectionData->SetName("Scatterplot Selection");
+	slicer->initializeChannel(id, selectionData.data());
+	int sliceNr = slicer->GetSlicerData()->getSliceNumber();
+	switch (slicer->GetMode())
+	{
+	case YZ: slicer->enableChannel(id, true, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[0], 0, 0); break;
+	case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[2]); break;
+	case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[1], 0); break;
+	}
+	gui.m_selectionChannelInitialized = true;
+}
+
 
 void iASpatialView::AddImageDisplay(int idx)
 {
@@ -156,6 +172,10 @@ void iASpatialView::AddImageDisplay(int idx)
 	m_contentWidget->layout()->addWidget(gui.container);
 	m_sliceControl->setMaximum(gui.imageWidget->GetSliceCount()-1);
 	m_guiElements.insert(idx, gui);
+	if (m_selectionData && !gui.m_selectionChannelInitialized)
+	{
+		InitializeChannel(gui, m_selectionData);
+	}
 }
 
 
@@ -241,28 +261,19 @@ vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF()
 
 void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 {
+	if (!m_selectionData)
+	{
+		m_ctf = BuildLabelOverlayLUT();
+		m_otf = BuildLabelOverlayOTF();
+		m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
+		ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
+	}
 	for (int guiID : m_guiElements.keys())
 	{
 		iASlicer* slicer = m_guiElements[guiID].imageWidget->GetSlicer();
 		if (!m_guiElements[guiID].m_selectionChannelInitialized)
 		{
-			iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
-			m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
-			m_ctf = BuildLabelOverlayLUT();
-			m_otf = BuildLabelOverlayOTF();
-			ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
-			m_selectionData->SetName("Scatterplot Selection");
-
-			// move to iAImageWidget?
-			slicer->initializeChannel(id, m_selectionData.data());
-			int sliceNr = slicer->GetSlicerData()->getSliceNumber();
-			switch (slicer->GetMode())
-			{
-				case YZ: slicer->enableChannel(id, true, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[0], 0, 0); break;
-				case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[2]); break;
-				case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionImg->GetSpacing()[1], 0); break;
-			}
-			m_guiElements[guiID].m_selectionChannelInitialized = true;
+			InitializeChannel(m_guiElements[guiID], m_selectionData);
 		}
 		slicer->update();
 	}
