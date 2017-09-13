@@ -20,5 +20,6 @@
 * ************************************************************************************/
 #include "iAColors.h"
 
-QColor Uncertainty::ChartColor(0, 0, 255);
-QColor Uncertainty::SelectionColor(128, 128, 0);
+QColor Uncertainty::ChartColor(27, 158, 119);
+QColor Uncertainty::SelectionColor(230, 171, 2);
+QColor Uncertainty::MemberBarColor(ChartColor);

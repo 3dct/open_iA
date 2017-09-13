@@ -63,9 +63,9 @@ QCPColorGradient GetGradientFromIdx(int index)
 }
 
 iAScatterPlotView::iAScatterPlotView():
-	m_gradient(QCPColorGradient::gpGrayscale)
+	m_gradient(QCPColorGradient::gpGrayscale),
+	m_plot(new QCustomPlot())
 {
-	m_plot = new QCustomPlot();
 	//m_plot->setOpenGl(true, 1);
 	if (!m_plot->openGl())
 	{

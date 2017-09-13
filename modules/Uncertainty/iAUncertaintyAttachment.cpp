@@ -89,6 +89,7 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 	{
 		m_spatialView->SetDatasets(m_ensemble);
 		m_scatterplotView->SetDatasets(m_ensemble);
+		m_memberView->SetEnsemble(m_ensemble);
 		auto labelDistributionHistogram =
 			CreateHistogram<int>(m_ensemble->GetLabelDistribution(), m_ensemble->LabelCount(), 0, m_ensemble->LabelCount(), Discrete);
 		m_histogramView->AddChart("Label Distribution", labelDistributionHistogram);

@@ -247,7 +247,7 @@ namespace
 		return true;
 	}
 
-	bool StoreValues(QString const & fileName, QVector<double> const & values)
+	bool StoreValues(QString const & fileName, std::vector<double> const & values)
 	{
 		QFile out(fileName);
 		if (!out.open(QIODevice::WriteOnly | QIODevice::Text) ||
@@ -265,7 +265,7 @@ namespace
 		return true;
 	}
 
-	bool LoadValues(QString const & fileName, QVector<double> & values)
+	bool LoadValues(QString const & fileName, std::vector<double> & values)
 	{
 		if (!QFileInfo::exists(fileName))
 		{
@@ -667,4 +667,18 @@ double * iAEnsemble::EntropyHistogram() const
 int iAEnsemble::EntropyBinCount() const
 {
 	return m_entropyBinCount;
+}
+
+size_t iAEnsemble::MemberCount() const
+{
+	return m_memberEntropyAvg.size();
+}
+
+std::vector<double> const & iAEnsemble::MemberAttribute(size_t idx) const
+{
+	switch (idx)
+	{
+	case UncertaintyMean: return m_memberEntropyAvg;
+	case UncertaintyVar: return m_memberEntropyVar;
+	}
 }

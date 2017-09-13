@@ -22,11 +22,21 @@
 
 #include <QWidget>
 
+class iAEnsemble;
+class QCustomPlot;
+class QCPRange;
+
 class iAMemberView: public QWidget
 {
 	Q_OBJECT
 public:
-	void AddMember();
-signals:
-	void MemberSelected();
+	iAMemberView();
+	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
+//signals:
+//	void MemberSelected();
+private:
+	QSharedPointer<iAEnsemble> m_ensemble;
+	QCustomPlot* m_plot;
+private slots:
+	void ChangedRange(QCPRange const & newRange);
 };

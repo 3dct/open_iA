@@ -32,6 +32,11 @@ class iASamplingResults;
 class iAEnsemble: public iAUncertaintyImages
 {
 public:
+	enum MemberAttributes
+	{
+		UncertaintyMean,
+		UncertaintyVar
+	};
 	~iAEnsemble();
 	//! create from string
 	static QSharedPointer<iAEnsemble> create(int entropyBinCount);
@@ -42,6 +47,8 @@ public:
 	int LabelCount() const;
 	double * EntropyHistogram() const;
 	int EntropyBinCount() const;
+	size_t MemberCount() const;
+	std::vector<double> const & MemberAttribute(size_t idx) const;
 private:
 	bool loadSampling(QString const & fileName, int labelCount, int id);
 	void createUncertaintyImages(int labelCount, QString const & cachePath);
@@ -58,8 +65,8 @@ private:
 	DoubleImage::Pointer m_neighbourhoodAvgEntropy3x3;
 	DoubleImage::Pointer m_neighbourhoodAvgEntropy5x5;
 	QVector<DoubleImage::Pointer> m_probDistr;
-	QVector<double> m_memberEntropyAvg;
-	QVector<double> m_memberEntropyVar;
+	std::vector<double> m_memberEntropyAvg;
+	std::vector<double> m_memberEntropyVar;
 	int m_labelCount;
 	double * m_entropyHistogram;
 	int m_entropyBinCount;

@@ -24,6 +24,7 @@
 
 struct Uncertainty
 {
-	static QColor SelectionColor;
 	static QColor ChartColor;
+	static QColor SelectionColor;
+	static QColor MemberBarColor;
 };
