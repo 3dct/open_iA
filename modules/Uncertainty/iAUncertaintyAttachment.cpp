@@ -24,6 +24,7 @@
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
 #include "iAHistogramView.h"
+#include "iASimpleHistogramData.h"
 #include "iAMemberView.h"
 #include "iAScatterPlotView.h"
 #include "iASpatialView.h"
