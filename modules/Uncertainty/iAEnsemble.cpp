@@ -513,7 +513,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 					it.GoToBegin();
 					while (!it.IsAtEnd())
 					{
-						int binIdx = mapValue(0.0, 1.0, 0, m_entropyBinCount, it.Get());
+						int binIdx = clamp(0, m_entropyBinCount-1, mapValue(0.0, 1.0, 0, m_entropyBinCount, it.Get()));
 						sum += it.Get();
 						++m_entropyHistogram[binIdx];
 						++it;
@@ -523,7 +523,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 					double diffsum = 0;
 					while (!it.IsAtEnd())
 					{
-						int binIdx = mapValue(0.0, 1.0, 0, m_entropyBinCount, it.Get());
+						int binIdx = clamp(0, m_entropyBinCount-1, mapValue(0.0, 1.0, 0, m_entropyBinCount, it.Get()));
 						diffsum += std::pow(it.Get() - entropyAvg, 2);
 						++m_entropyHistogram[binIdx];
 						++it;
