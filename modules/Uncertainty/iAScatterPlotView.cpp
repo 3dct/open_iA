@@ -28,6 +28,8 @@
 
 #include <vtkImageData.h>
 
+/*
+// only relevant for heatmap:
 QCPColorGradient GetGradientFromIdx(int index)
 {
 	const int PredefinedCount = QCPColorGradient::gpHues + 1;
@@ -61,12 +63,14 @@ QCPColorGradient GetGradientFromIdx(int index)
 		}
 	}
 }
+*/
 
 iAScatterPlotView::iAScatterPlotView():
-	m_gradient(QCPColorGradient::gpGrayscale),
+// only relevant for heatmap:
+// m_gradient(QCPColorGradient::gpGrayscale),
 	m_plot(new QCustomPlot())
 {
-	//m_plot->setOpenGl(true, 1);
+	//m_plot->setOpenGl(true);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(chartMousePress(QMouseEvent *)));
@@ -87,7 +91,8 @@ iAScatterPlotView::iAScatterPlotView():
 	datasetChoiceContainer->layout()->addWidget(m_xAxisChooser);
 	datasetChoiceContainer->layout()->addWidget(m_yAxisChooser);
 	layout()->addWidget(datasetChoiceContainer);
-
+	/*
+	// only relevant for heatmap
 	QComboBox * colorThemeChooser = new QComboBox();
 	QStringList options;
 	options
@@ -113,6 +118,7 @@ iAScatterPlotView::iAScatterPlotView():
 	colorThemeContainer->layout()->addWidget(new QLabel("Color Theme:"));
 	colorThemeContainer->layout()->addWidget(colorThemeChooser);
 	layout()->addWidget(colorThemeContainer);
+	*/
 }
 
 
@@ -292,8 +298,11 @@ void iAScatterPlotView::chartMousePress(QMouseEvent *)
 
 void iAScatterPlotView::colorThemeChanged(int index)
 {
+	/*
+	// only relevant for heatmap
 	m_gradient = index;
 	colorMap->setGradient(GetGradientFromIdx(m_gradient));
 	colorScale->setGradient(GetGradientFromIdx(m_gradient));
 	m_plot->replot();
+	*/
 }

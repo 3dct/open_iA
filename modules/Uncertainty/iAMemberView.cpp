@@ -47,6 +47,7 @@ std::vector<size_t> sort_indices_desc(const std::vector<T> &v) {
 iAMemberView::iAMemberView():
 	m_plot(new QCustomPlot())
 {
+	//m_plot->setOpenGl(true);
 	setLayout(new QHBoxLayout());
 	layout()->addWidget(m_plot);
 	//  | QCP::iMultiSelect

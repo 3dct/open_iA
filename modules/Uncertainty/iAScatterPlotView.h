@@ -52,8 +52,11 @@ private:
 	size_t m_voxelCount;
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
+	/*
+	// only relevant for heatmap
 	QCPColorMap * colorMap;
 	QCPColorScale *colorScale;
+	*/
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
 };
