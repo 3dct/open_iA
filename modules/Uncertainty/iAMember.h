@@ -52,7 +52,7 @@ public:
 	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
 
 	//! retrieve labelled image
-	iAITKIO::ImagePointer const GetLabelledImage();
+	iAITKIO::ImagePointer const LabelImage();
 
 	//! get attribute (parameter or characteristic)
 	double GetAttribute(int id) const;

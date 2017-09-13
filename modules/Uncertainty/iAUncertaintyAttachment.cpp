@@ -24,12 +24,14 @@
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
 #include "iAHistogramView.h"
-#include "iASimpleHistogramData.h"
+#include "iAMember.h"
 #include "iAMemberView.h"
 #include "iAScatterPlotView.h"
+#include "iASimpleHistogramData.h"
 #include "iASpatialView.h"
 
 #include "iAChildData.h"
+#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "mdichild.h"
@@ -99,6 +101,7 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 		m_histogramView->AddChart("Algorithmic Entropy Histogram", entropyHistogram);
 
 		connect(m_scatterplotView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
+		connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
 	}
 	return result;
 }
@@ -106,4 +109,18 @@ bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 void iAUncertaintyAttachment::ChartSelectionChanged()
 {
 	m_spatialView->ShowSelection(m_scatterplotView->GetSelectionImage());
+}
+
+void iAUncertaintyAttachment::MemberSelected(int memberIdx)
+{
+	iAITKIO::ImagePointer itkImg = m_ensemble->Member(memberIdx)->LabelImage();
+	iAConnector con;
+	con.SetImage(itkImg);
+	bool keep = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
+	m_spatialView->AddMemberImage(QString("Member #%1").arg(memberIdx), con.GetVTKImage(), keep);
+	if (!keep)
+	{
+		m_shownMembers.clear();
+	}
+	m_shownMembers.push_back(itkImg);
 }

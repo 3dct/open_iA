@@ -152,7 +152,7 @@ int iAMember::GetID()
 	return m_id;
 }
 
-iAITKIO::ImagePointer const iAMember::GetLabelledImage()
+iAITKIO::ImagePointer const iAMember::LabelImage()
 {
 	iAITKIO::ScalarPixelType pixelType;
 	QFileInfo f(GetLabelPath());

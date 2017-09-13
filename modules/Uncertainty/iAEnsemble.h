@@ -27,6 +27,7 @@
 #include <QVector>
 
 class iAEnsembleDescriptorFile;
+class iAMember;
 class iASamplingResults;
 
 class iAEnsemble: public iAUncertaintyImages
@@ -47,6 +48,7 @@ public:
 	int LabelCount() const;
 	double * EntropyHistogram() const;
 	int EntropyBinCount() const;
+	QSharedPointer<iAMember> const Member(size_t memberIdx) const;
 	size_t MemberCount() const;
 	std::vector<double> const & MemberAttribute(size_t idx) const;
 private:

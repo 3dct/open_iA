@@ -67,15 +67,8 @@ iAScatterPlotView::iAScatterPlotView():
 	m_plot(new QCustomPlot())
 {
 	//m_plot->setOpenGl(true, 1);
-	if (!m_plot->openGl())
-	{
-		DEBUG_LOG("QCustomPlot is NOT using OpenGL!");
-	}
-	m_plot->setInteraction(QCP::iRangeDrag, true);
-	m_plot->setInteraction(QCP::iRangeZoom, true);
-	m_plot->setInteraction(QCP::iMultiSelect, true);
+	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
-	m_plot->setInteraction(QCP::iSelectPlottables, true);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(chartMousePress(QMouseEvent *)));
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_plot);
@@ -126,6 +119,7 @@ iAScatterPlotView::iAScatterPlotView():
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
 	m_plot->clearPlottables();
+/*
 	const int BinCountX = 250;
 	const int BinCountY = 250;
 	iAPerformanceHelper heatmapCalcMeasure;
@@ -165,6 +159,37 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	//     or still explicit uncertainty, to be able to select not only bins but sub-bins?
 
 	// subdivide bins -> zoomable?
+*/
+	iAPerformanceHelper scatterPlotCreationTimer;
+	scatterPlotCreationTimer.start("Scatterplot creation");
+	int * dim = imgX->GetDimensions();
+	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
+	QVector<double> x, y, t;
+	x.reserve(m_voxelCount);
+	y.reserve(m_voxelCount);
+	t.reserve(m_voxelCount);
+	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
+	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
+	std::copy(bufX, bufX + m_voxelCount, std::back_inserter(x));
+	std::copy(bufY, bufY + m_voxelCount, std::back_inserter(y));
+	for (int i = 0; i < m_voxelCount; ++i)
+	{	// unfortunately we seem to require this additional storage
+		t.push_back(i);  // to make QCustomPlot not sort the data
+	}
+
+	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
+	curve->setData(t, x, y, true);
+	curve->setLineStyle(QCPCurve::lsNone);
+	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
+	curve->setSelectable(QCP::stMultipleDataRanges);
+	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::SelectionColor, 2));
+	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
+
+	m_plot->xAxis->setLabel(captionX);
+	m_plot->yAxis->setLabel(captionY);
+	m_plot->xAxis->setRange(0, 1);
+	m_plot->yAxis->setRange(0, 1);
+	scatterPlotCreationTimer.stop();
 
 	m_plot->replot();
 }
@@ -228,7 +253,6 @@ void iAScatterPlotView::yAxisChoice()
 
 void iAScatterPlotView::selectionChanged(QCPDataSelection const & selection)
 {
-	/*
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (int v=0; v<m_voxelCount; ++v)
 	{
@@ -241,7 +265,6 @@ void iAScatterPlotView::selectionChanged(QCPDataSelection const & selection)
 		std::fill(buf + selection.dataRange(r).begin(), buf + selection.dataRange(r).end(), 1);
 	}
 	m_selectionImg->Modified();
-	*/
 
 	//StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
 	emit SelectionChanged();

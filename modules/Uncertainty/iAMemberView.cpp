@@ -49,24 +49,31 @@ iAMemberView::iAMemberView():
 {
 	setLayout(new QHBoxLayout());
 	layout()->addWidget(m_plot);
+	//  | QCP::iMultiSelect
+	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
+	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
 }
 
 void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 {
 	m_ensemble = ensemble;
 
-	auto sortedIndices = sort_indices_desc<double>(ensemble->MemberAttribute(iAEnsemble::UncertaintyMean));
+	m_sortedIndices.clear();
+	m_sortedIndices = sort_indices_desc<double>(ensemble->MemberAttribute(iAEnsemble::UncertaintyMean));
 
 	QCPBars * mean = new QCPBars(m_plot->xAxis, m_plot->yAxis);
 	mean->setPen(QPen(Uncertainty::MemberBarColor));
 	mean->setName("Mean Uncertainty");
+	mean->setSelectable(QCP::stSingleData);
+	mean->selectionDecorator()->setPen(Uncertainty::SelectionColor);
 
 	QVector<double> ticks;
 	QVector<QString> labels;
 	QVector<double> data;
 
 	size_t cnt = 0;
-	for (double idx : sortedIndices)
+	for (double idx : m_sortedIndices)
 	{
 		ticks << cnt;
 		labels << QString::number(static_cast<int>(idx));
@@ -80,11 +87,14 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	m_plot->xAxis->setRange(-1, 20); // by default, show the first 20 member...
 	m_plot->yAxis->setLabel("Mean Uncertainty");
 	m_plot->yAxis->setRange(0, 1);
-	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 	m_plot->axisRect()->setRangeDrag(Qt::Horizontal); // ... but allow dragging
 	m_plot->axisRect()->setRangeZoom(Qt::Horizontal); // and zooming in horizontal direction
 	mean->setData(ticks, data);
+
+	connect(mean, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
 	connect(m_plot->xAxis, SIGNAL(rangeChanged(const QCPRange &)), this, SLOT(ChangedRange(QCPRange const &)));
+
+	m_plot->replot();
 }
 
 void iAMemberView::ChangedRange(QCPRange const & newRange)
@@ -107,5 +117,27 @@ void iAMemberView::ChangedRange(QCPRange const & newRange)
 		if (fixedRange.lower < lowerBound || qFuzzyCompare(newRange.size(), upperBound - lowerBound))
 			fixedRange.lower = lowerBound;
 		m_plot->xAxis->setRange(fixedRange);
+	}
+}
+
+
+void iAMemberView::ChartMousePress(QMouseEvent *)
+{
+	if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+	{	// allow selection with Ctrl key
+		m_plot->setSelectionRectMode(QCP::srmSelect);
+	}
+	else
+	{	// enable dragging otherwise
+		m_plot->setSelectionRectMode(QCP::srmNone);
+	}
+}
+
+void iAMemberView::SelectionChanged(QCPDataSelection const & selection)
+{
+	for (int r = 0; r < selection.dataRangeCount(); ++r)
+	{
+		int memberIdx = selection.dataRange(r).begin();
+		emit MemberSelected(m_sortedIndices[memberIdx]);
 	}
 }

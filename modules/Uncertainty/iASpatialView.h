@@ -47,6 +47,7 @@ public:
 	iASpatialView();
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	void ShowSelection(vtkImagePointer selectionImg);
+	void AddMemberImage(QString const & caption, vtkImagePointer img, bool keep);
 public slots:
 	void StyleChanged();
 private slots:
@@ -58,8 +59,9 @@ signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
 */
 private:
-	void AddImage(QString const & caption, vtkImagePointer img);
+	QToolButton* AddImage(QString const & caption, vtkImagePointer img);
 	void AddImageDisplay(int idx);
+	void RemoveImageDisplay(int idx);
 	QVector<ImageData> m_images;
 	QMap<int, ImageGUIElements> m_guiElements;
 	QWidget* m_contentWidget;
@@ -71,4 +73,5 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	QSharedPointer<iAChannelVisualizationData> m_selectionData;
 	int m_curMode;
+	QVector<QToolButton*> m_memberButtons;
 };

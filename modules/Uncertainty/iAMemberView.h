@@ -25,6 +25,7 @@
 class iAEnsemble;
 class QCustomPlot;
 class QCPRange;
+class QCPDataSelection;
 
 class iAMemberView: public QWidget
 {
@@ -32,11 +33,14 @@ class iAMemberView: public QWidget
 public:
 	iAMemberView();
 	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
-//signals:
-//	void MemberSelected();
+signals:
+	void MemberSelected(int memberIdx);
 private:
 	QSharedPointer<iAEnsemble> m_ensemble;
 	QCustomPlot* m_plot;
+	std::vector<size_t> m_sortedIndices;
 private slots:
 	void ChangedRange(QCPRange const & newRange);
+	void SelectionChanged(QCPDataSelection const & selection);
+	void ChartMousePress(QMouseEvent *);
 };

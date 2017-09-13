@@ -117,7 +117,7 @@ void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 }
 
 
-void iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
+QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
 {
 	auto * button = new QToolButton();
 	button->setText(caption);
@@ -133,6 +133,7 @@ void iASpatialView::AddImage(QString const & caption, vtkImagePointer img)
 		button->setChecked(true);
 	}
 	button->setProperty("imageID", m_images.size() - 1);
+	return button;
 }
 
 
@@ -155,6 +156,13 @@ void iASpatialView::AddImageDisplay(int idx)
 	m_contentWidget->layout()->addWidget(gui.container);
 	m_sliceControl->setMaximum(gui.imageWidget->GetSliceCount()-1);
 	m_guiElements.insert(idx, gui);
+}
+
+
+void iASpatialView::RemoveImageDisplay(int idx)
+{
+	m_guiElements[idx].DeleteAll();
+	m_guiElements.remove(idx);
 }
 
 
@@ -189,8 +197,7 @@ void iASpatialView::imageButtonClicked()
 	int id = button->property("imageID").toInt();
 	if (m_guiElements.contains(id))
 	{	// remove image widget:
-		m_guiElements[id].DeleteAll();
-		m_guiElements.remove(id);
+		RemoveImageDisplay(id);
 	}
 	else
 	{
@@ -259,4 +266,26 @@ void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 		}
 		slicer->update();
 	}
+}
+
+
+
+void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img, bool keep)
+{
+	if (!keep)
+	{
+		for (auto memberButton : m_memberButtons)
+		{
+			int idx = memberButton->property("imageID").toInt();
+			RemoveImageDisplay(idx);
+			m_images.remove(idx);
+			delete memberButton;
+		}
+		m_memberButtons.clear();
+	}
+	auto memberButton = AddImage(caption, img);
+	int idx = memberButton->property("imageID").toInt();
+	memberButton->setChecked(true);
+	AddImageDisplay(idx);
+	m_memberButtons.push_back(memberButton);
 }

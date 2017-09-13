@@ -22,6 +22,8 @@
 
 #include "iAModuleAttachmentToChild.h"
 
+#include "iAITKIO.h"
+
 #include <QSharedPointer>
 #include <QVector>
 
@@ -41,6 +43,7 @@ public:
 	bool loadEnsemble(QString const & fileName);
 private slots:
 	void ChartSelectionChanged();
+	void MemberSelected(int memberIdx);
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
 	iAHistogramView* m_histogramView;
@@ -49,4 +52,5 @@ private:
 	iASpatialView* m_spatialView;
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
 	QSharedPointer<iAEnsemble> m_ensemble;
+	QVector<iAITKIO::ImagePointer> m_shownMembers;
 };

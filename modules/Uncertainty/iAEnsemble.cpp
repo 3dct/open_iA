@@ -408,7 +408,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			{
 				for (QSharedPointer<iAMember> member : sampling->GetMembers())
 				{
-					typename IntImage::Pointer labelImg = dynamic_cast<IntImage*>(member->GetLabelledImage().GetPointer());
+					typename IntImage::Pointer labelImg = dynamic_cast<IntImage*>(member->LabelImage().GetPointer());
 					if (m_labelDistr.empty())
 					{	// initialize empty sums:
 						for (int i = 0; i < labelCount; ++i)
@@ -558,7 +558,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			{
 				for (QSharedPointer<iAMember> member : sampling->GetMembers())
 				{
-					auto labelImgOrig = member->GetLabelledImage();
+					auto labelImgOrig = member->LabelImage();
 					auto labelImg = dynamic_cast<IntImage*>(labelImgOrig.GetPointer());
 					DoubleImage::Pointer neighbourEntropyImg3x3 = NeighbourhoodEntropyImage(labelImg, labelCount, 1, size, spacing);
 					DoubleImage::Pointer neighbourEntropyImg5x5 = NeighbourhoodEntropyImage(labelImg, labelCount, 2, size, spacing);
@@ -674,10 +674,25 @@ size_t iAEnsemble::MemberCount() const
 	return m_memberEntropyAvg.size();
 }
 
+QSharedPointer<iAMember> const iAEnsemble::Member(size_t memberIdx) const
+{
+	int s = 0;
+	for (int s=0; s<m_samplings.size(); ++s)
+	{
+		if (memberIdx < m_samplings[s]->size())
+		{
+			return m_samplings[s]->Get(memberIdx);
+		}
+		memberIdx -= m_samplings[s]->size();
+	}
+	return QSharedPointer<iAMember>();
+}
+
 std::vector<double> const & iAEnsemble::MemberAttribute(size_t idx) const
 {
 	switch (idx)
 	{
+	default:
 	case UncertaintyMean: return m_memberEntropyAvg;
 	case UncertaintyVar: return m_memberEntropyVar;
 	}
