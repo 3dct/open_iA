@@ -34,7 +34,7 @@
 #include <QFile>
 #include <QFileInfo>
 
-QSharedPointer<iAMember> iAMember::create(
+QSharedPointer<iAMember> iAMember::Create(
 	QString const & line,
 	iASamplingResults const & sampling,
 	QSharedPointer<iAAttributes> attributes)
@@ -92,7 +92,7 @@ QSharedPointer<iAMember> iAMember::create(
 	return result;
 }
 
-QSharedPointer<iAMember> iAMember::create(
+QSharedPointer<iAMember> iAMember::Create(
 	int id,
 	iASamplingResults const & sampling,
 	QVector<double> const & parameter,

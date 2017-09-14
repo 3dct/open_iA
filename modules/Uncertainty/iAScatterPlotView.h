@@ -39,11 +39,11 @@ public:
 	vtkImagePointer GetSelectionImage();
 	void ToggleSettings();
 private slots:
-	void selectionChanged(QCPDataSelection const &);
-	void chartMousePress(QMouseEvent *);
-	void xAxisChoice();
-	void yAxisChoice();
-	void colorThemeChanged(int index);
+	void SelectionChanged(QCPDataSelection const &);
+	void ChartMousePress(QMouseEvent *);
+	void XAxisChoice();
+	void YAxisChoice();
+	void ColorThemeChanged(int index);
 signals:
 	void SelectionChanged();
 private:

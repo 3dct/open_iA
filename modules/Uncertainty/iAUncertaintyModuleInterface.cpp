@@ -42,7 +42,7 @@ void iAUncertaintyModuleInterface::Initialize()
 
 iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
 {
-	iAUncertaintyAttachment* result = iAUncertaintyAttachment::create( mainWnd, childData);
+	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, childData);
 	return result;
 }
 
@@ -71,7 +71,7 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 		DEBUG_LOG("Uncertainty exploration could not be initialized!");
 		return;
 	}
-	if (!attach->loadEnsemble(fileName))
+	if (!attach->LoadEnsemble(fileName))
 	{
 		delete m_mdiChild;
 		return;
@@ -101,7 +101,7 @@ void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
 		return;
 	}
-	attach->toggleDockWidgetTitleBars();
+	attach->ToggleDockWidgetTitleBars();
 }
 
 void iAUncertaintyModuleInterface::ToggleSettings()

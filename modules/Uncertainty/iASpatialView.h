@@ -52,9 +52,9 @@ public:
 public slots:
 	void StyleChanged();
 private slots:
-	void slicerModeButtonClicked(bool checked);
-	void sliceChanged(int);
-	void imageButtonClicked();
+	void SlicerModeButtonClicked(bool checked);
+	void SliceChanged(int);
+	void ImageButtonClicked();
 /*
 signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);

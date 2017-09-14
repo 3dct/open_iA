@@ -176,7 +176,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 			attribLine = paramLine + iAAttributeDescriptor::ValueSplitString + derivedOutLine;
 		}
 		lineNr++;
-		QSharedPointer<iAMember> result = iAMember::create(
+		QSharedPointer<iAMember> result = iAMember::Create(
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
 			*this,

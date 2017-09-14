@@ -18,37 +18,28 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAEnsembleView.h"
 
-#include "iADiagramFctWidget.h"
+#include <QHBoxLayout>
+#include <QListWidget>
 
-#include <itkMinimumMaximumImageCalculator.h>
-#include <itkImageRegionConstIterator.h>
-
-#include <QWidget>
-
-class iAEnsemble;
-class iASimpleHistogramData;
-
-class iAHistogramChartWidget : public iADiagramFctWidget
+iAEnsembleView::iAEnsembleView():
+	m_list(new QListWidget())
 {
-public:
-	iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption);
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
-	QSharedPointer<iAAbstractDrawableFunction> CreatePrimaryDrawer();
-private:
-	QSharedPointer<iASimpleHistogramData> m_data;
-};
+	setLayout(new QHBoxLayout());
+	layout()->addWidget(m_list);
+}
 
 
-class iAHistogramView : public QWidget
+void iAEnsembleView::AddEnsemble(QString const & caption, QSharedPointer<iAEnsemble> ensemble)
 {
-	Q_OBJECT
-public:
-	iAHistogramView();
-	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
-private:
-	void AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data);
-	iADiagramFctWidget* m_chart;
-};
+	m_ensembles.push_back(ensemble);
+	m_list->addItem(caption);
+}
+
+/*
+QVector<QSharedPointer<iAEnsemble> > & iAEnsembleView::Ensembles()
+{
+	return m_ensembles;
+}
+*/

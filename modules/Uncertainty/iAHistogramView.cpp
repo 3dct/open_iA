@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAHistogramView.h"
 
+#include "iAEnsemble.h"
 #include "iAFunctionDrawers.h"
 #include "iASimpleHistogramData.h"
 
@@ -57,4 +58,14 @@ void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleH
 {
 	m_chart = new iAHistogramChartWidget(data, caption);
 	layout()->addWidget(m_chart);
+}
+
+
+void iAHistogramView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
+{
+	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
+	AddChart("Label Distribution", labelDistributionHistogram);
+
+	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
+	AddChart("Algorithmic Entropy Histogram", entropyHistogram);
 }

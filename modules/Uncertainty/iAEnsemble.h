@@ -40,8 +40,8 @@ public:
 	};
 	~iAEnsemble();
 	//! create from string
-	static QSharedPointer<iAEnsemble> create(int entropyBinCount);
-	bool load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile);
+	static QSharedPointer<iAEnsemble> Create(int entropyBinCount);
+	bool Load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile);
 	virtual vtkImagePointer GetEntropy(int source) const;
 	virtual QString GetSourceName(int source) const;
 	QVector<IntImage::Pointer> const & GetLabelDistribution() const;
@@ -52,8 +52,8 @@ public:
 	size_t MemberCount() const;
 	std::vector<double> const & MemberAttribute(size_t idx) const;
 private:
-	bool loadSampling(QString const & fileName, int labelCount, int id);
-	void createUncertaintyImages(int labelCount, QString const & cachePath);
+	bool LoadSampling(QString const & fileName, int labelCount, int id);
+	void CreateUncertaintyImages(int labelCount, QString const & cachePath);
 	//! constructor; use static Create methods instead!
 	iAEnsemble(int entropyBinCount);
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;

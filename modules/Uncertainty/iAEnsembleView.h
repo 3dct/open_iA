@@ -20,35 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADiagramFctWidget.h"
-
-#include <itkMinimumMaximumImageCalculator.h>
-#include <itkImageRegionConstIterator.h>
-
+#include <QVector>
 #include <QWidget>
 
 class iAEnsemble;
-class iASimpleHistogramData;
 
-class iAHistogramChartWidget : public iADiagramFctWidget
+class QListWidget;
+
+class iAEnsembleView : public QWidget
 {
 public:
-	iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption);
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
-	QSharedPointer<iAAbstractDrawableFunction> CreatePrimaryDrawer();
+	iAEnsembleView();
+	void AddEnsemble(QString const & caption, QSharedPointer<iAEnsemble> ensemble);
+//	QVector<QSharedPointer<iAEnsemble> > & Ensembles();
+signals:
+	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
 private:
-	QSharedPointer<iASimpleHistogramData> m_data;
-};
-
-
-class iAHistogramView : public QWidget
-{
-	Q_OBJECT
-public:
-	iAHistogramView();
-	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
-private:
-	void AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data);
-	iADiagramFctWidget* m_chart;
+	QListWidget* m_list;
+	QVector<QSharedPointer<iAEnsemble> > m_ensembles;
 };

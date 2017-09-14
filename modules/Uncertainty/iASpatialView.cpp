@@ -72,7 +72,7 @@ iASpatialView::iASpatialView(): QWidget(),
 {
 	m_sliceControl = new QSpinBox();
 	m_sliceControl->setMaximum(0);
-	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(sliceChanged(int)));
+	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(SliceChanged(int)));
 
 	auto sliceButtonBar = new QToolBar();			// same order as in iASlicerMode!
 	static const char* const slicerModeButtonLabels[] = { "YZ", "XY", "XZ" };
@@ -82,7 +82,7 @@ iASpatialView::iASpatialView(): QWidget(),
 		slicerModeButton[i]->setText(slicerModeButtonLabels[i]);
 		slicerModeButton[i]->setAutoExclusive(true);
 		slicerModeButton[i]->setCheckable(true);
-		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(slicerModeButtonClicked(bool)));
+		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(SlicerModeButtonClicked(bool)));
 		sliceButtonBar->addWidget(slicerModeButton[i]);
 	}
 	m_curMode = iASlicerMode::XY;
@@ -132,7 +132,7 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	button->setCheckable(true);
 	button->setAutoExclusive(false);
 	m_imageBar->layout()->addWidget(button);
-	connect(button, SIGNAL( clicked() ), this, SLOT( imageButtonClicked() ) );
+	connect(button, SIGNAL( clicked() ), this, SLOT( ImageButtonClicked() ) );
 	iAImageWidget* imgW = nullptr;
 	m_images.insert(newImgID, ImageData(caption, img));
 	button->setProperty("imageID", newImgID);
@@ -205,7 +205,7 @@ void iASpatialView::StyleChanged()
 }
 
 
-void iASpatialView::slicerModeButtonClicked(bool checked)
+void iASpatialView::SlicerModeButtonClicked(bool checked)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (m_curMode == modeIdx)
@@ -221,7 +221,7 @@ void iASpatialView::slicerModeButtonClicked(bool checked)
 }
 
 
-void iASpatialView::imageButtonClicked()
+void iASpatialView::ImageButtonClicked()
 {
 	QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
 	int id = button->property("imageID").toInt();
@@ -236,7 +236,7 @@ void iASpatialView::imageButtonClicked()
 }
 
 
-void iASpatialView::sliceChanged(int slice)
+void iASpatialView::SliceChanged(int slice)
 {
 	m_slice = slice;
 	for (int id : m_guiElements.keys())

@@ -36,26 +36,26 @@
 #include <QFileInfo>
 #include <QTextStream>
 
-QSharedPointer<iAEnsemble> iAEnsemble::create(int entropyBinCount)
+QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount)
 {
 	return QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
 }
 
-bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile)
+bool iAEnsemble::Load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile)
 {
 	iAPerformanceHelper ensembleLoad;
 	ensembleLoad.start("Ensemble loading");
 	QMap<int, QString> const & samplings = ensembleFile.GetSamplings();
 	for (int key : samplings.keys())
 	{
-		if (!loadSampling(samplings[key], ensembleFile.GetLabelCount(), key))
+		if (!LoadSampling(samplings[key], ensembleFile.GetLabelCount(), key))
 		{
 			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
 			return false;
 		}
 	}
 	m_labelCount = ensembleFile.GetLabelCount();
-	createUncertaintyImages(ensembleFile.GetLabelCount(), QFileInfo(ensembleFileName).absolutePath() + "/cache");
+	CreateUncertaintyImages(ensembleFile.GetLabelCount(), QFileInfo(ensembleFileName).absolutePath() + "/cache");
 	ensembleLoad.stop();
 	return true;
 }
@@ -361,7 +361,7 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 	return result;
 }
 
-void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePath)
+void iAEnsemble::CreateUncertaintyImages(int labelCount, QString const & cachePath)
 {
 	QDir qdir;
 	if (!qdir.mkpath(cachePath))
@@ -614,7 +614,7 @@ QString iAEnsemble::GetSourceName(int sourceIdx) const
 }
 
 
-bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
+bool iAEnsemble::LoadSampling(QString const & fileName, int labelCount, int id)
 {
 	if (fileName.isEmpty())
 	{

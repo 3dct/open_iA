@@ -73,7 +73,7 @@ iAScatterPlotView::iAScatterPlotView():
 	//m_plot->setOpenGl(true);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
-	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(chartMousePress(QMouseEvent *)));
+	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_plot);
 
@@ -117,7 +117,7 @@ iAScatterPlotView::iAScatterPlotView():
 		<< "WhiteToBlack"
 		<< "WhiteToBlue";
 	colorThemeChooser->addItems(options);
-	connect(colorThemeChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(colorThemeChanged(int)));
+	connect(colorThemeChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(ColorThemeChanged(int)));
 	QWidget* colorThemeContainer = new QWidget();
 	colorThemeContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	colorThemeContainer->setLayout(new QHBoxLayout());
@@ -189,7 +189,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
 	curve->setSelectable(QCP::stMultipleDataRanges);
 	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::SelectionColor, 2));
-	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
+	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
 
 	m_plot->xAxis->setLabel(captionX);
 	m_plot->yAxis->setLabel(captionY);
@@ -224,8 +224,8 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 		{
 			yButton->setChecked(true);
 		}
-		connect(xButton, SIGNAL(clicked()), this, SLOT(xAxisChoice()));
-		connect(yButton, SIGNAL(clicked()), this, SLOT(yAxisChoice()));
+		connect(xButton, SIGNAL(clicked()), this, SLOT(XAxisChoice()));
+		connect(yButton, SIGNAL(clicked()), this, SLOT(YAxisChoice()));
 		m_xAxisChooser->layout()->addWidget(xButton);
 		m_yAxisChooser->layout()->addWidget(yButton);
 	}
@@ -235,7 +235,7 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 }
 
 
-void iAScatterPlotView::xAxisChoice()
+void iAScatterPlotView::XAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_xAxisChoice)
@@ -246,7 +246,7 @@ void iAScatterPlotView::xAxisChoice()
 }
 
 
-void iAScatterPlotView::yAxisChoice()
+void iAScatterPlotView::YAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_yAxisChoice)
@@ -257,7 +257,7 @@ void iAScatterPlotView::yAxisChoice()
 }
 
 
-void iAScatterPlotView::selectionChanged(QCPDataSelection const & selection)
+void iAScatterPlotView::SelectionChanged(QCPDataSelection const & selection)
 {
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (int v=0; v<m_voxelCount; ++v)
@@ -283,7 +283,7 @@ vtkImagePointer iAScatterPlotView::GetSelectionImage()
 }
 
 
-void iAScatterPlotView::chartMousePress(QMouseEvent *)
+void iAScatterPlotView::ChartMousePress(QMouseEvent *)
 {
 	if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
 	{	// allow selection with Ctrl key
@@ -296,7 +296,7 @@ void iAScatterPlotView::chartMousePress(QMouseEvent *)
 }
 
 
-void iAScatterPlotView::colorThemeChanged(int index)
+void iAScatterPlotView::ColorThemeChanged(int index)
 {
 	/*
 	// only relevant for heatmap

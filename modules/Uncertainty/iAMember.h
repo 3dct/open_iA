@@ -36,12 +36,12 @@ class iAMember
 public:
 
 	//! create from string
-	static QSharedPointer<iAMember> create(
+	static QSharedPointer<iAMember> Create(
 		QString const & line,
 		iASamplingResults const & sampling,
 		QSharedPointer<iAAttributes> attributes);
 
-	static QSharedPointer<iAMember> create(
+	static QSharedPointer<iAMember> Create(
 		int id,
 		iASamplingResults const & sampling,
 		QVector<double> const & parameter,
