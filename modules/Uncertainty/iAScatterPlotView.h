@@ -37,6 +37,7 @@ public:
 	iAScatterPlotView();
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	vtkImagePointer GetSelectionImage();
+	void ToggleSettings();
 private slots:
 	void selectionChanged(QCPDataSelection const &);
 	void chartMousePress(QMouseEvent *);
@@ -52,6 +53,7 @@ private:
 	size_t m_voxelCount;
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
+	QWidget* m_settings;
 	/*
 	// only relevant for heatmap
 	QCPColorMap * colorMap;

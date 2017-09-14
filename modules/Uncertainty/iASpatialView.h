@@ -48,6 +48,7 @@ public:
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	void ShowSelection(vtkImagePointer selectionImg);
 	void AddMemberImage(QString const & caption, vtkImagePointer img, bool keep);
+	void ToggleSettings();
 public slots:
 	void StyleChanged();
 private slots:
@@ -74,4 +75,6 @@ private:
 	QSharedPointer<iAChannelVisualizationData> m_selectionData;
 	int m_curMode;
 	QVector<QToolButton*> m_memberButtons;
+	QWidget* m_settings;
+	int m_slice;
 };

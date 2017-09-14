@@ -77,6 +77,11 @@ iAScatterPlotView::iAScatterPlotView():
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_plot);
 
+	m_settings = new QWidget();
+	m_settings->setLayout(new QVBoxLayout);
+	m_settings->layout()->setSpacing(0);
+	m_settings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+
 	auto datasetChoiceContainer = new QWidget();
 	datasetChoiceContainer->setLayout(new QVBoxLayout());
 	m_xAxisChooser = new QWidget();
@@ -90,7 +95,8 @@ iAScatterPlotView::iAScatterPlotView():
 	datasetChoiceContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	datasetChoiceContainer->layout()->addWidget(m_xAxisChooser);
 	datasetChoiceContainer->layout()->addWidget(m_yAxisChooser);
-	layout()->addWidget(datasetChoiceContainer);
+	m_settings->layout()->addWidget(datasetChoiceContainer);
+	layout()->addWidget(m_settings);
 	/*
 	// only relevant for heatmap
 	QComboBox * colorThemeChooser = new QComboBox();
@@ -305,4 +311,10 @@ void iAScatterPlotView::colorThemeChanged(int index)
 	colorScale->setGradient(GetGradientFromIdx(m_gradient));
 	m_plot->replot();
 	*/
+}
+
+
+void iAScatterPlotView::ToggleSettings()
+{
+	m_settings->setVisible(!m_settings->isVisible());
 }

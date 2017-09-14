@@ -74,6 +74,13 @@ void iAUncertaintyAttachment::toggleDockWidgetTitleBars()
 	}
 }
 
+
+void iAUncertaintyAttachment::ToggleSettings()
+{
+	m_spatialView->ToggleSettings();
+	m_scatterplotView->ToggleSettings();
+}
+
 bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
 {
 	iAEnsembleDescriptorFile ensembleFile(fileName);

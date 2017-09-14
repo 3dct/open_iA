@@ -66,7 +66,8 @@ struct ImageGUIElements
 };
 
 
-iASpatialView::iASpatialView(): QWidget()
+iASpatialView::iASpatialView(): QWidget(),
+	m_slice(0)
 {
 	m_sliceControl = new QSpinBox();
 	m_sliceControl->setMaximum(0);
@@ -103,8 +104,14 @@ iASpatialView::iASpatialView(): QWidget()
 
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_contentWidget);
-	layout()->addWidget(m_sliceBar);
-	layout()->addWidget(m_imageBar);
+
+	m_settings = new QWidget();
+	m_settings->setLayout(new QVBoxLayout);
+	m_settings->layout()->setSpacing(0);
+	m_settings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+	m_settings->layout()->addWidget(m_sliceBar);
+	m_settings->layout()->addWidget(m_imageBar);
+	layout()->addWidget(m_settings);
 }
 
 
@@ -176,6 +183,7 @@ void iASpatialView::AddImageDisplay(int idx)
 	{
 		InitializeChannel(gui, m_selectionData);
 	}
+	gui.imageWidget->SetSlice(m_slice);
 }
 
 
@@ -228,6 +236,7 @@ void iASpatialView::imageButtonClicked()
 
 void iASpatialView::sliceChanged(int slice)
 {
+	m_slice = slice;
 	for (int id : m_guiElements.keys())
 	{
 		m_guiElements[id].imageWidget->SetSlice(slice);
@@ -280,7 +289,6 @@ void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 }
 
 
-
 void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img, bool keep)
 {
 	if (!keep)
@@ -299,4 +307,10 @@ void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img,
 	memberButton->setChecked(true);
 	AddImageDisplay(idx);
 	m_memberButtons.push_back(memberButton);
+}
+
+
+void iASpatialView::ToggleSettings()
+{
+	m_settings->setVisible(!m_settings->isVisible());
 }

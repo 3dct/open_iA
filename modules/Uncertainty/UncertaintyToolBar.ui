@@ -40,7 +40,17 @@
     <string>Toggle Title Bar</string>
    </property>
   </action>
+  <action name="action_ToggleSettings">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Settings</string>
+   </property>
+  </action>
   <addaction name="action_ToggleTitleBar"/>
+  <addaction name="action_ToggleSettings"/>
  </widget>
  <resources>
   <include location="../../core/open_iA.qrc"/>

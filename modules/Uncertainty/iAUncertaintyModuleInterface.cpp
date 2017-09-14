@@ -87,6 +87,9 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 	}
 	m_toolbar = new iAUncertaintyToolbar("Uncertainty Exploration Toolbar");
 	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(ToggleDockWidgetTitleBars()));
+	m_toolbar->action_ToggleSettings->setCheckable(true);
+	m_toolbar->action_ToggleSettings->setChecked(true);
+	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
@@ -99,4 +102,15 @@ void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 		return;
 	}
 	attach->toggleDockWidgetTitleBars();
+}
+
+void iAUncertaintyModuleInterface::ToggleSettings()
+{
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		return;
+	}
+	attach->ToggleSettings();
 }

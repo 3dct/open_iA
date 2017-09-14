@@ -40,6 +40,7 @@ class iAUncertaintyAttachment : public iAModuleAttachmentToChild
 public:
 	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
 	void toggleDockWidgetTitleBars();
+	void ToggleSettings();
 	bool loadEnsemble(QString const & fileName);
 private slots:
 	void ChartSelectionChanged();
