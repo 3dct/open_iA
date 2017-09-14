@@ -63,7 +63,7 @@ private:
 	QToolButton* AddImage(QString const & caption, vtkImagePointer img);
 	void AddImageDisplay(int idx);
 	void RemoveImageDisplay(int idx);
-	QVector<ImageData> m_images;
+	QMap<int, ImageData> m_images;
 	QMap<int, ImageGUIElements> m_guiElements;
 	QWidget* m_contentWidget;
 	QWidget* m_sliceBar;
@@ -77,4 +77,5 @@ private:
 	QVector<QToolButton*> m_memberButtons;
 	QWidget* m_settings;
 	int m_slice;
+	int newImgID;
 };

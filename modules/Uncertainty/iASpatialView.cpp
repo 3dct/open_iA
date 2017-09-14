@@ -67,7 +67,8 @@ struct ImageGUIElements
 
 
 iASpatialView::iASpatialView(): QWidget(),
-	m_slice(0)
+	m_slice(0),
+	newImgID(0)
 {
 	m_sliceControl = new QSpinBox();
 	m_sliceControl->setMaximum(0);
@@ -133,13 +134,14 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	m_imageBar->layout()->addWidget(button);
 	connect(button, SIGNAL( clicked() ), this, SLOT( imageButtonClicked() ) );
 	iAImageWidget* imgW = nullptr;
-	m_images.push_back(ImageData(caption, img));
-	if (m_images.size() == 1)
+	m_images.insert(newImgID, ImageData(caption, img));
+	button->setProperty("imageID", newImgID);
+	++newImgID;
+	if (newImgID == 1)
 	{
 		AddImageDisplay(0);
 		button->setChecked(true);
 	}
-	button->setProperty("imageID", m_images.size() - 1);
 	return button;
 }
 
@@ -291,6 +293,11 @@ void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 
 void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img, bool keep)
 {
+	if (!img)
+	{
+		DEBUG_LOG("Image was null!");
+		return;
+	}
 	if (!keep)
 	{
 		for (auto memberButton : m_memberButtons)
