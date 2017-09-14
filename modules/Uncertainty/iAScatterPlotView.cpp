@@ -174,23 +174,17 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 */
 	iAPerformanceHelper scatterPlotCreationTimer;
 	scatterPlotCreationTimer.start("Scatterplot creation");
+	QSharedPointer<QCPCurveDataContainer> data(new QCPCurveDataContainer);
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
-	QVector<double> x, y, t;
-	x.reserve(m_voxelCount);
-	y.reserve(m_voxelCount);
-	t.reserve(m_voxelCount);
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	std::copy(bufX, bufX + m_voxelCount, std::back_inserter(x));
-	std::copy(bufY, bufY + m_voxelCount, std::back_inserter(y));
-	for (int i = 0; i < m_voxelCount; ++i)
-	{	// unfortunately we seem to require this additional storage
-		t.push_back(i);  // to make QCustomPlot not sort the data
+	for (size_t i = 0; i < m_voxelCount; ++i)
+	{
+		data->add(QCPCurveData(i, bufX[i], bufY[i]));
 	}
-
 	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
-	curve->setData(t, x, y, true);
+	curve->setData(data);
 	curve->setLineStyle(QCPCurve::lsNone);
 	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
 	curve->setSelectable(QCP::stMultipleDataRanges);
