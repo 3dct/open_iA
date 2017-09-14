@@ -27,6 +27,7 @@ iAEnsembleView::iAEnsembleView():
 	m_list(new QListWidget())
 {
 	setLayout(new QHBoxLayout());
+	layout()->setSpacing(0);
 	layout()->addWidget(m_list);
 }
 

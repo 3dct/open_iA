@@ -75,6 +75,7 @@ iAScatterPlotView::iAScatterPlotView():
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
 	setLayout(new QVBoxLayout());
+	layout()->setSpacing(0);
 	layout()->addWidget(m_plot);
 
 	m_settings = new QWidget();

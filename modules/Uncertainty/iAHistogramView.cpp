@@ -57,6 +57,7 @@ iAHistogramView::iAHistogramView()
 void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data)
 {
 	m_chart = new iAHistogramChartWidget(data, caption);
+	layout()->setSpacing(0);
 	layout()->addWidget(m_chart);
 }
 
