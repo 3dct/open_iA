@@ -23,7 +23,9 @@
 #include <QWidget>
 
 class iAEnsemble;
+class iAMember;
 class QCustomPlot;
+class QCPBars;
 class QCPRange;
 class QCPDataSelection;
 
@@ -33,12 +35,15 @@ class iAMemberView: public QWidget
 public:
 	iAMemberView();
 	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
+	QVector<QSharedPointer<iAMember> > SelectedMembers() const;
+	QVector<int > SelectedMemberIDs() const;
 signals:
 	void MemberSelected(int memberIdx);
 private:
 	QSharedPointer<iAEnsemble> m_ensemble;
 	QCustomPlot* m_plot;
 	std::vector<size_t> m_sortedIndices;
+	QCPBars * mean;
 private slots:
 	void ChangedRange(QCPRange const & newRange);
 	void SelectionChanged(QCPDataSelection const & selection);

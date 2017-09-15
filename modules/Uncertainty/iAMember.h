@@ -55,19 +55,19 @@ public:
 	iAITKIO::ImagePointer const LabelImage();
 
 	//! get attribute (parameter or characteristic)
-	double GetAttribute(int id) const;
+	double Attribute(int id) const;
 	
 	//! set attribute (parameter or characteristic)
 	void SetAttribute(int id, double value);
 
-	int GetID();
+	int ID();
 
-	QVector<DoubleImage::Pointer> GetProbabilityImgs(int labelCount);
+	QVector<DoubleImage::Pointer> ProbabilityImgs(int labelCount);
 
 	bool ProbabilityAvailable() const;
 
-	int GetDatasetID() const;
-	QSharedPointer<iAAttributes> GetAttributes() const;
+	int DatasetID() const;
+	QSharedPointer<iAAttributes> Attributes() const;
 private:
 	//! constructor; use static Create methods instead!
 	iAMember(int id, iASamplingResults const & sampling);
@@ -77,7 +77,7 @@ private:
 	int m_id;
 	QString m_fileName;
 
-	QString GetLabelPath() const;
-	QString GetProbabilityPath(int label) const;
-	QString GetFolder() const;
+	QString LabelPath() const;
+	QString ProbabilityPath(int label) const;
+	QString Folder() const;
 };

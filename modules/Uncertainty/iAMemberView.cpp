@@ -51,8 +51,7 @@ iAMemberView::iAMemberView():
 	setLayout(new QHBoxLayout());
 	layout()->setSpacing(0);
 	layout()->addWidget(m_plot);
-	//  | QCP::iMultiSelect
-	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
 }
@@ -64,11 +63,13 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	m_sortedIndices.clear();
 	m_sortedIndices = sort_indices_desc<double>(ensemble->MemberAttribute(iAEnsemble::UncertaintyMean));
 
-	QCPBars * mean = new QCPBars(m_plot->xAxis, m_plot->yAxis);
+	mean = new QCPBars(m_plot->xAxis, m_plot->yAxis);
 	mean->setPen(QPen(Uncertainty::MemberBarColor));
 	mean->setName("Mean Uncertainty");
-	mean->setSelectable(QCP::stSingleData);
+	mean->setSelectable(QCP::stMultipleDataRanges);
 	mean->selectionDecorator()->setPen(Uncertainty::SelectionColor);
+
+	
 
 	QVector<double> ticks;
 	QVector<QString> labels;
@@ -137,9 +138,37 @@ void iAMemberView::ChartMousePress(QMouseEvent *)
 
 void iAMemberView::SelectionChanged(QCPDataSelection const & selection)
 {
+	if (selection.dataRangeCount() == 1 && selection.dataRange(0).begin()+1 == selection.dataRange(0).end())
+	{
+		int barIdx = selection.dataRange(0).begin();
+		emit MemberSelected(m_sortedIndices[barIdx]);
+	}
+}
+
+QVector<QSharedPointer<iAMember> > iAMemberView::SelectedMembers() const
+{
+	QCPDataSelection selection = mean->selection();
+	QVector<QSharedPointer<iAMember> > result;
 	for (int r = 0; r < selection.dataRangeCount(); ++r)
 	{
-		int memberIdx = selection.dataRange(r).begin();
-		emit MemberSelected(m_sortedIndices[memberIdx]);
+		for (int barIdx = selection.dataRange(r).begin(); barIdx < selection.dataRange(r).end(); ++barIdx)
+		{
+			result.push_back(m_ensemble->Member(m_sortedIndices[barIdx]));
+		}
 	}
+	return result;
+}
+
+QVector<int > iAMemberView::SelectedMemberIDs() const
+{
+	QCPDataSelection selection = mean->selection();
+	QVector<int> result;
+	for (int r = 0; r < selection.dataRangeCount(); ++r)
+	{
+		for (int barIdx = selection.dataRange(r).begin(); barIdx < selection.dataRange(r).end(); ++barIdx)
+		{
+			result.push_back(m_sortedIndices[barIdx]);
+		}
+	}
+	return result;
 }

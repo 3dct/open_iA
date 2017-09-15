@@ -37,7 +37,25 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
+#include <QDir>
+
 const int EntropyBinCount = 100;
+
+template <typename T>
+QString Join(QVector<T> const & vec, QString const & joinStr)
+{
+	QString result;
+	bool first = true;
+	for (T elem : vec)
+	{
+		if (!first)
+			result += joinStr;
+		else
+			first = false;
+		result += QString::number(elem);
+	}
+	return result;
+}
 
 iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData)
@@ -87,7 +105,6 @@ void iAUncertaintyAttachment::ToggleSettings()
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
-	QSharedPointer<iAEnsemble> ensemble(iAEnsemble::Create(EntropyBinCount));
 	iAEnsembleDescriptorFile ensembleFile(fileName);
 	if (!ensembleFile.good())
 	{
@@ -99,23 +116,34 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile.GetModalityFileName()));
 		return false;
 	}
-	bool result = ensemble->Load(fileName, ensembleFile);
-	if (result)
+	auto ensemble = iAEnsemble::Create(EntropyBinCount, fileName, ensembleFile);
+	if (ensemble)
 	{
 		m_ensembleView->AddEnsemble("Full Ensemble", ensemble);
 		EnsembleSelected(ensemble);
 	}
-	return result;
+	return ensemble;
 }
 
-void iAUncertaintyAttachment::CalculateNewEnsemble()
+void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 {
-	/*
-	auto members m_memberView->SelectedMembers();
-	QSharedPointer<iAEnsemble> newEnsemble(members);
-		// newEnsemble->createUncertaintyImages...?
-	m_ensembleView->AddEnsemble(newEnsemble);
-	*/
+	auto members = m_memberView->SelectedMembers();
+	auto memberIDs = m_memberView->SelectedMemberIDs();
+	if (members.empty())
+	{
+		DEBUG_LOG("No members selected!");
+		return;
+	}
+	static int newEnsembleID = 1;
+	QString cachePath;
+	do
+	{
+		cachePath = m_currentEnsemble->CachePath() + QString("/sub%1").arg(newEnsembleID);
+		++newEnsembleID;
+	} while (QDir(cachePath).exists());
+	auto newEnsemble = iAEnsemble::Create(EntropyBinCount, members, m_currentEnsemble->Sampling(0),
+		m_currentEnsemble->LabelCount(), cachePath, newEnsembleID);
+	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(Join(memberIDs, ",")), newEnsemble);
 }
 
 void iAUncertaintyAttachment::ChartSelectionChanged()

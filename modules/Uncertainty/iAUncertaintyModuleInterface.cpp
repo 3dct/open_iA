@@ -90,6 +90,7 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 	m_toolbar->action_ToggleSettings->setCheckable(true);
 	m_toolbar->action_ToggleSettings->setChecked(true);
 	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
+	connect(m_toolbar->action_CalculateNewSubEnsemble, SIGNAL(triggered()), this, SLOT(CalculateNewSubEnsemble()));
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
@@ -113,4 +114,15 @@ void iAUncertaintyModuleInterface::ToggleSettings()
 		return;
 	}
 	attach->ToggleSettings();
+}
+
+void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
+{
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		return;
+	}
+	attach->CalculateNewSubEnsemble();
 }

@@ -42,7 +42,7 @@ public:
 	static iAUncertaintyAttachment* Create(MainWindow * mainWnd, iAChildData childData);
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings();
-	void CalculateNewEnsemble();
+	void CalculateNewSubEnsemble();
 	bool LoadEnsemble(QString const & fileName);
 private slots:
 	void ChartSelectionChanged();
