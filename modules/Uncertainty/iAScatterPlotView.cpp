@@ -68,7 +68,8 @@ QCPColorGradient GetGradientFromIdx(int index)
 iAScatterPlotView::iAScatterPlotView():
 // only relevant for heatmap:
 // m_gradient(QCPColorGradient::gpGrayscale),
-	m_plot(new QCustomPlot())
+	m_plot(new QCustomPlot()),
+	m_curve(nullptr)
 {
 	//m_plot->setOpenGl(true);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
@@ -131,6 +132,11 @@ iAScatterPlotView::iAScatterPlotView():
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
+	QCPDataSelection selection;
+	if (m_curve)
+	{
+		selection = m_curve->selection();
+	}
 	m_plot->clearPlottables();
 /*
 	const int BinCountX = 250;
@@ -184,18 +190,21 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	{
 		data->add(QCPCurveData(i, bufX[i], bufY[i]));
 	}
-	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
-	curve->setData(data);
-	curve->setLineStyle(QCPCurve::lsNone);
-	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
-	curve->setSelectable(QCP::stMultipleDataRanges);
-	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::SelectionColor, 2));
-	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
+	m_curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
+	m_curve->setData(data);
+	m_curve->setLineStyle(QCPCurve::lsNone);
+	m_curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
+	m_curve->setSelectable(QCP::stMultipleDataRanges);
+	m_curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::SelectionColor, 2));
+	connect(m_curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
 
 	m_plot->xAxis->setLabel(captionX);
 	m_plot->yAxis->setLabel(captionY);
 	m_plot->xAxis->setRange(0, 1);
 	m_plot->yAxis->setRange(0, 1);
+
+	m_curve->setSelection(selection);
+
 	scatterPlotCreationTimer.stop();
 
 	m_plot->replot();

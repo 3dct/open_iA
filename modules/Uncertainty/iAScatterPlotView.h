@@ -49,6 +49,7 @@ signals:
 private:
 	QSharedPointer<iAUncertaintyImages> m_imgs;
 	QCustomPlot* m_plot;
+	QCPCurve* m_curve;
 	vtkImagePointer m_selectionImg;
 	size_t m_voxelCount;
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
