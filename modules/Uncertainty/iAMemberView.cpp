@@ -58,6 +58,7 @@ iAMemberView::iAMemberView():
 
 void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 {
+	m_plot->clearPlottables();
 	m_ensemble = ensemble;
 
 	m_sortedIndices.clear();
@@ -87,6 +88,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
 	textTicker->addTicks(ticks, labels);
 	m_plot->xAxis->setTicker(textTicker);
+	m_plot->xAxis->setLabel("Member ID");
 	m_plot->xAxis->setRange(-1, 20); // by default, show the first 20 member...
 	m_plot->yAxis->setLabel("Mean Uncertainty");
 	m_plot->yAxis->setRange(0, 1);

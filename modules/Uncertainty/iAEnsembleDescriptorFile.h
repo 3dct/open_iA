@@ -60,7 +60,7 @@ public:
 	QVector<int> SubEnsemble(size_t idx) const;
 	int SubEnsembleID(size_t idx) const;
 
-	void AddSubEnsemble(int id, QVector<int> members);
+	void AddSubEnsemble(int id, QVector<int> const & members);
 
 	bool good() const;
 private:

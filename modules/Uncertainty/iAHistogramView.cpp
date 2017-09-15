@@ -31,7 +31,7 @@
 #include <QHBoxLayout>
 
 iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption):
-	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption),
+	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, "Frequency (Pixels)"),
 m_data(data) {
 }
 
@@ -64,9 +64,13 @@ void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleH
 
 void iAHistogramView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 {
+	for (auto widget : findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
 	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
-	AddChart("Label Distribution", labelDistributionHistogram);
+	AddChart("Label", labelDistributionHistogram);
 
 	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
-	AddChart("Algorithmic Entropy Histogram", entropyHistogram);
+	AddChart("Algorithmic Entropy", entropyHistogram);
 }

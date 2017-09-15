@@ -322,7 +322,7 @@ int iAEnsembleDescriptorFile::SubEnsembleID(size_t idx) const
 	return m_subEnsembleID[idx];
 }
 
-void iAEnsembleDescriptorFile::AddSubEnsemble(int id, QVector<int> members)
+void iAEnsembleDescriptorFile::AddSubEnsemble(int id, QVector<int> const & members)
 {
 	m_subEnsembleID.push_back(id);
 	m_subEnsembles.push_back(members);

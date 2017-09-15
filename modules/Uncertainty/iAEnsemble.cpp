@@ -740,7 +740,6 @@ QSharedPointer<iAEnsemble> iAEnsemble::AddSubEnsemble(QVector<int> memberIDs, in
 	QString cachePath = m_cachePath + QString("/sub%1").arg(newEnsembleID);
 	auto newEnsemble = iAEnsemble::Create(EntropyBinCount(), members, Sampling(0), LabelCount(), cachePath, newEnsembleID);
 	m_subEnsembles.push_back(newEnsemble);
-	m_ensembleFile->AddSubEnsemble(newEnsembleID, memberIDs);
 	return newEnsemble;
 }
 
@@ -762,4 +761,10 @@ int iAEnsemble::ID() const
 		DEBUG_LOG("Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
 	}
 	return m_samplings[0]->ID();
+}
+
+
+QSharedPointer<iAEnsembleDescriptorFile> iAEnsemble::EnsembleFile()
+{
+	return m_ensembleFile;
 }

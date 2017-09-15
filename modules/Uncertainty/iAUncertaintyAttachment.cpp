@@ -140,6 +140,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 		++m_newSubEnsembleID;
 	} while (QDir(cachePath).exists());
 	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
+	mainEnsemble->EnsembleFile()->AddSubEnsemble(subEnsembleID, memberIDs);
 	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(Join(memberIDs, ",")), newEnsemble);
 	mainEnsemble->Store();
 }

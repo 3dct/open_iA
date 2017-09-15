@@ -60,6 +60,7 @@ public:
 	QVector<QSharedPointer<iAEnsemble> > SubEnsembles() const;
 	int ID() const;
 	void Store();
+	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
 private:
 	bool LoadSampling(QString const & fileName, int labelCount, int id);
 	void CreateUncertaintyImages();

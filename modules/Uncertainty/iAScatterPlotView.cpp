@@ -204,6 +204,14 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 
 void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
+	for (auto widget : m_xAxisChooser->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
+	for (auto widget : m_yAxisChooser->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
 	m_imgs = imgs;
 	m_xAxisChoice = iAUncertaintyImages::LabelDistributionEntropy;
 	m_yAxisChoice = iAUncertaintyImages::AvgAlgorithmEntropyProbSum;

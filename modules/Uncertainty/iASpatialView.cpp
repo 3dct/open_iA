@@ -119,6 +119,17 @@ iASpatialView::iASpatialView(): QWidget(),
 
 void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
+	newImgID = 0;
+	for (auto widget : m_imageBar->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
+	for (auto guiIdx : m_guiElements.keys())
+	{
+		RemoveImageDisplay(guiIdx);
+	}
+	m_images.clear();
+	m_memberButtons.clear();
 	for (int i = 0; i < iAUncertaintyImages::SourceCount; ++i)
 	{
 		AddImage(imgs->GetSourceName(i), imgs->GetEntropy(i));
