@@ -34,6 +34,7 @@
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
+#include "iAStringHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
 
@@ -41,24 +42,9 @@
 
 const int EntropyBinCount = 100;
 
-template <typename T>
-QString Join(QVector<T> const & vec, QString const & joinStr)
-{
-	QString result;
-	bool first = true;
-	for (T elem : vec)
-	{
-		if (!first)
-			result += joinStr;
-		else
-			first = false;
-		result += QString::number(elem);
-	}
-	return result;
-}
-
 iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData):
-	iAModuleAttachmentToChild(mainWnd, childData)
+	iAModuleAttachmentToChild(mainWnd, childData),
+	m_newSubEnsembleID(1)
 {
 	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
@@ -105,45 +91,57 @@ void iAUncertaintyAttachment::ToggleSettings()
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
-	iAEnsembleDescriptorFile ensembleFile(fileName);
-	if (!ensembleFile.good())
+	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile(new iAEnsembleDescriptorFile(fileName));
+	if (!ensembleFile->good())
 	{
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	if (!GetMdiChild()->LoadProject(ensembleFile.GetModalityFileName()))
+	if (!GetMdiChild()->LoadProject(ensembleFile->ModalityFileName()))
 	{
-		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile.GetModalityFileName()));
+		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile->ModalityFileName()));
 		return false;
 	}
-	auto ensemble = iAEnsemble::Create(EntropyBinCount, fileName, ensembleFile);
+	auto ensemble = iAEnsemble::Create(EntropyBinCount, ensembleFile);
 	if (ensemble)
 	{
 		m_ensembleView->AddEnsemble("Full Ensemble", ensemble);
+		for (auto subEnsemble : ensemble->SubEnsembles())
+		{
+			if (subEnsemble->ID() > m_newSubEnsembleID)
+				m_newSubEnsembleID = subEnsemble->ID();
+			m_ensembleView->AddEnsemble(QString("SubEnsemble %1").arg(subEnsemble->ID()), subEnsemble);
+		}
 		EnsembleSelected(ensemble);
+	}
+	m_childData.child->showMaximized();
+	if (!ensembleFile->LayoutName().isEmpty())
+	{
+		m_childData.child->LoadLayout(ensembleFile->LayoutName());
 	}
 	return ensemble;
 }
 
 void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 {
-	auto members = m_memberView->SelectedMembers();
 	auto memberIDs = m_memberView->SelectedMemberIDs();
-	if (members.empty())
+	if (memberIDs.empty())
 	{
 		DEBUG_LOG("No members selected!");
 		return;
 	}
-	static int newEnsembleID = 1;
+	QSharedPointer<iAEnsemble> mainEnsemble = m_ensembleView->Ensembles()[0];
 	QString cachePath;
+	int subEnsembleID;
 	do
 	{
-		cachePath = m_currentEnsemble->CachePath() + QString("/sub%1").arg(newEnsembleID);
-		++newEnsembleID;
+		subEnsembleID = m_newSubEnsembleID;
+		cachePath = mainEnsemble->CachePath() + QString("/sub%1").arg(subEnsembleID);
+		++m_newSubEnsembleID;
 	} while (QDir(cachePath).exists());
-	auto newEnsemble = iAEnsemble::Create(EntropyBinCount, members, m_currentEnsemble->Sampling(0),
-		m_currentEnsemble->LabelCount(), cachePath, newEnsembleID);
+	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
 	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(Join(memberIDs, ",")), newEnsemble);
+	mainEnsemble->Store();
 }
 
 void iAUncertaintyAttachment::ChartSelectionChanged()

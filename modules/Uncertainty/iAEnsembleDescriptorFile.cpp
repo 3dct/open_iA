@@ -23,6 +23,7 @@
 
 #include "iAConsole.h"
 #include "iAFileUtils.h"
+#include "iAStringHelper.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -47,6 +48,7 @@ namespace
 	const QString HiddenChartsKey = "HiddenCharts";
 	const QString ColorThemeKey = "ColorTheme";
 	const QString LabelNamesKey = "LabelNames";
+	const QString SubEnsembleKey = "SubEnsemble";
 
 	void AppendToString(QString & result, QString const & append)
 	{
@@ -108,7 +110,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 		DEBUG_LOG(QString("Load Precalculated Data: Required setting(s) %1 missing in analysis description file.").arg(missingKeys));
 		return;
 	}
-	m_SEAFileName = fileName;
+	m_fileName = fileName;
 	QFileInfo fi(fileName);
 	m_ModalityFileName   = MakeAbsolute(fi.absolutePath(), metaFile.value(ModalitiesKey).toString());
 	bool labelCountOK;
@@ -157,6 +159,33 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 	{
 		m_LabelNames = metaFile.value(LabelNamesKey).toString();
 	}
+
+	QStringList subEnsembleKeys(metaFile.allKeys().filter(SubEnsembleKey));
+	for (QString keyStr : subEnsembleKeys)
+	{
+		bool ok = false;
+		int key = 0;
+		key = keyStr.right(keyStr.length() - SubEnsembleKey.length()).toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Load Precalculated Data: Invalid Subset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
+			return;
+		}
+		QStringList idStrings = metaFile.value(keyStr).toString().split(",");
+		QVector<int> memberIDs;
+		for (QString idString : idStrings)
+		{
+			int val = idString.toInt(&ok);
+			if (!ok)
+			{
+				DEBUG_LOG(QString("Load Precalculated Data: Invalid Subset member ID: %1 (number part: %2)").arg(idString).arg(val));
+				return;
+			}
+			memberIDs.push_back(val);
+		}
+		AddSubEnsemble(key, memberIDs);
+	}
+	
 	m_good = true;
 }
 
@@ -187,7 +216,7 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 	QSettings metaFile(fileName, QSettings::IniFormat);
 	metaFile.setValue(FileVersionKey, FileVersionValue);
 	
-	m_SEAFileName = fileName;
+	m_fileName = fileName;
 	QFileInfo fi(fileName);
 	QString path(fi.absolutePath());
 	metaFile.setValue(ModalitiesKey    , MakeRelative(path, m_ModalityFileName));
@@ -205,8 +234,19 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 	{
 		metaFile.setValue(HiddenChartsKey, m_HiddenCharts);
 	}
-	metaFile.setValue(ColorThemeKey, m_ColorTheme);
-	metaFile.setValue(LabelNamesKey, m_LabelNames);
+	if (!m_ColorTheme.isEmpty())
+	{
+		metaFile.setValue(ColorThemeKey, m_ColorTheme);
+	}
+	if (!m_LabelNames.isEmpty())
+	{
+		metaFile.setValue(LabelNamesKey, m_LabelNames);
+	}
+
+	for (int i = 0; i < m_subEnsembles.size(); ++i)
+	{
+		metaFile.setValue(SubEnsembleKey + QString::number(m_subEnsembleID[i]), Join(m_subEnsembles[i], ","));
+	}
 	
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
@@ -220,43 +260,70 @@ bool iAEnsembleDescriptorFile::good() const
 	return m_good;
 }
 
+QString const & iAEnsembleDescriptorFile::FileName() const
+{
+	return m_fileName;
+}
 
-QString const & iAEnsembleDescriptorFile::GetModalityFileName() const
+
+QString const & iAEnsembleDescriptorFile::ModalityFileName() const
 {
 	return m_ModalityFileName;
 }
 
-int iAEnsembleDescriptorFile::GetLabelCount() const
+int iAEnsembleDescriptorFile::LabelCount() const
 {
 	return m_LabelCount;
 }
 
-QMap<int, QString> const & iAEnsembleDescriptorFile::GetSamplings() const
+QMap<int, QString> const & iAEnsembleDescriptorFile::Samplings() const
 {
 	return m_Samplings;
 }
 
-QString const & iAEnsembleDescriptorFile::GetLayoutName() const
+QString const & iAEnsembleDescriptorFile::LayoutName() const
 {
 	return m_LayoutName;
 }
 
-QString const & iAEnsembleDescriptorFile::GetReferenceImage() const
+QString const & iAEnsembleDescriptorFile::ReferenceImage() const
 {
 	return m_RefImg;
 }
 
-QString const & iAEnsembleDescriptorFile::GetHiddenCharts() const
+QString const & iAEnsembleDescriptorFile::HiddenCharts() const
 {
 	return m_HiddenCharts;
 }
 
-QString const & iAEnsembleDescriptorFile::GetLabelNames() const
+QString const & iAEnsembleDescriptorFile::LabelNames() const
 {
 	return m_LabelNames;
 }
 
-QString const & iAEnsembleDescriptorFile::GetColorTheme() const
+QString const & iAEnsembleDescriptorFile::ColorTheme() const
 {
 	return m_ColorTheme;
+}
+
+
+size_t iAEnsembleDescriptorFile::SubEnsembleCount() const
+{
+	return m_subEnsembles.size();
+}
+
+QVector<int> iAEnsembleDescriptorFile::SubEnsemble(size_t idx) const
+{
+	return m_subEnsembles[idx];
+}
+
+int iAEnsembleDescriptorFile::SubEnsembleID(size_t idx) const
+{
+	return m_subEnsembleID[idx];
+}
+
+void iAEnsembleDescriptorFile::AddSubEnsemble(int id, QVector<int> members)
+{
+	m_subEnsembleID.push_back(id);
+	m_subEnsembles.push_back(members);
 }

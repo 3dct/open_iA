@@ -41,8 +41,7 @@ public:
 	~iAEnsemble();
 	//! create from string
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
-		QString const & ensembleFileName,
-		iAEnsembleDescriptorFile const & ensembleFile);
+		QSharedPointer<iAEnsembleDescriptorFile> ensembleFile);
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
 		QVector<QSharedPointer<iAMember> > members,
 		QSharedPointer<iASamplingResults> superSet, int labelCount, QString const & cachePath, int id);
@@ -57,6 +56,10 @@ public:
 	std::vector<double> const & MemberAttribute(size_t idx) const;
 	QSharedPointer<iASamplingResults> Sampling(size_t idx) const;
 	QString const & CachePath() const;
+	QSharedPointer<iAEnsemble> AddSubEnsemble(QVector<int> memberIDs, int newEnsembleID);
+	QVector<QSharedPointer<iAEnsemble> > SubEnsembles() const;
+	int ID() const;
+	void Store();
 private:
 	bool LoadSampling(QString const & fileName, int labelCount, int id);
 	void CreateUncertaintyImages();
@@ -79,5 +82,6 @@ private:
 	double * m_entropyHistogram;
 	int m_entropyBinCount;
 	QString m_cachePath;
-	QString m_ensembleFile;
+	QSharedPointer<iAEnsembleDescriptorFile> m_ensembleFile;
+	QVector<QSharedPointer<iAEnsemble> > m_subEnsembles;
 };

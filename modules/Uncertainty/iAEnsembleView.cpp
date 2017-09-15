@@ -29,18 +29,29 @@ iAEnsembleView::iAEnsembleView():
 	setLayout(new QHBoxLayout());
 	layout()->setSpacing(0);
 	layout()->addWidget(m_list);
+	connect(m_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(EnsembleDblClicked(QListWidgetItem*)));
 }
 
 
 void iAEnsembleView::AddEnsemble(QString const & caption, QSharedPointer<iAEnsemble> ensemble)
 {
 	m_ensembles.push_back(ensemble);
-	m_list->addItem(caption);
+	QListWidgetItem* item = new QListWidgetItem(caption);
+	item->setData(Qt::UserRole, m_ensembles.size() - 1);
+	m_list->addItem(item);
 }
 
-/*
+
+void iAEnsembleView::EnsembleDblClicked(QListWidgetItem* item)
+{
+	emit EnsembleSelected(
+		m_ensembles[
+			item->data(Qt::UserRole).toInt()
+		]
+	);
+}
+
 QVector<QSharedPointer<iAEnsemble> > & iAEnsembleView::Ensembles()
 {
 	return m_ensembles;
 }
-*/

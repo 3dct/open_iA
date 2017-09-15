@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QString>
 #include <QMap>
+#include <QString>
+#include <QVector>
 
 class iAEnsembleDescriptorFile
 {
@@ -45,14 +46,21 @@ public:
 		QString const & labelNames
 	);
 	void Store(QString const & ensembleFileName);
-	QString const & GetModalityFileName() const;
-	int GetLabelCount() const;
-	QMap<int, QString> const & GetSamplings() const;
-	QString const & GetLayoutName() const;
-	QString const & GetReferenceImage() const;
-	QString const & GetHiddenCharts() const;
-	QString const & GetLabelNames() const;
-	QString const & GetColorTheme() const;
+	QString const & FileName() const;
+	QString const & ModalityFileName() const;
+	int LabelCount() const;
+	QMap<int, QString> const & Samplings() const;
+	QString const & LayoutName() const;
+	QString const & ReferenceImage() const;
+	QString const & HiddenCharts() const;
+	QString const & LabelNames() const;
+	QString const & ColorTheme() const;
+
+	size_t SubEnsembleCount() const;
+	QVector<int> SubEnsemble(size_t idx) const;
+	int SubEnsembleID(size_t idx) const;
+
+	void AddSubEnsemble(int id, QVector<int> members);
 
 	bool good() const;
 private:
@@ -60,11 +68,14 @@ private:
 	int m_LabelCount;
 	QMap<int, QString> m_Samplings;
 	QString m_LayoutName;
-	QString m_SEAFileName;
+	QString m_fileName;
 	QString m_RefImg;
 	QString m_HiddenCharts;
 	QString m_ColorTheme;
 	QString m_LabelNames;
+
+	QVector<QVector<int> > m_subEnsembles;
+	QVector<int> m_subEnsembleID;
 
 	bool m_good;
 };

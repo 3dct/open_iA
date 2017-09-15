@@ -145,20 +145,6 @@ void iAMemberView::SelectionChanged(QCPDataSelection const & selection)
 	}
 }
 
-QVector<QSharedPointer<iAMember> > iAMemberView::SelectedMembers() const
-{
-	QCPDataSelection selection = mean->selection();
-	QVector<QSharedPointer<iAMember> > result;
-	for (int r = 0; r < selection.dataRangeCount(); ++r)
-	{
-		for (int barIdx = selection.dataRange(r).begin(); barIdx < selection.dataRange(r).end(); ++barIdx)
-		{
-			result.push_back(m_ensemble->Member(m_sortedIndices[barIdx]));
-		}
-	}
-	return result;
-}
-
 QVector<int > iAMemberView::SelectedMemberIDs() const
 {
 	QCPDataSelection selection = mean->selection();

@@ -37,24 +37,30 @@
 #include <QTextStream>
 
 QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
-	QString const & ensembleFileName,
-	iAEnsembleDescriptorFile const & ensembleFile)
+	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile)
 {
 	auto result = QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
 	iAPerformanceHelper ensembleLoad;
 	ensembleLoad.start("Ensemble loading");
-	QMap<int, QString> const & samplings = ensembleFile.GetSamplings();
+	QMap<int, QString> const & samplings = ensembleFile->Samplings();
 	for (int key : samplings.keys())
 	{
-		if (!result->LoadSampling(samplings[key], ensembleFile.GetLabelCount(), key))
+		if (!result->LoadSampling(samplings[key], ensembleFile->LabelCount(), key))
 		{
 			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
 			return QSharedPointer<iAEnsemble>();
 		}
 	}
-	result->m_labelCount = ensembleFile.GetLabelCount();
-	result->m_cachePath = QFileInfo(ensembleFileName).absolutePath() + "/cache";
+	result->m_ensembleFile = ensembleFile;
+	result->m_labelCount = ensembleFile->LabelCount();
+	result->m_cachePath = QFileInfo(ensembleFile->FileName()).absolutePath() + "/cache";
 	result->CreateUncertaintyImages();
+	// load sub ensembles:
+	for (int i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
+	{
+		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
+	}
+
 	ensembleLoad.stop();
 	return result;
 }
@@ -722,4 +728,38 @@ QSharedPointer<iASamplingResults> iAEnsemble::Sampling(size_t idx) const
 QString const & iAEnsemble::CachePath() const
 {
 	return m_cachePath;
+}
+
+QSharedPointer<iAEnsemble> iAEnsemble::AddSubEnsemble(QVector<int> memberIDs, int newEnsembleID)
+{
+	QVector<QSharedPointer<iAMember> > members;
+	for (int memberID : memberIDs)
+	{
+		members.push_back(Member(memberID));
+	}
+	QString cachePath = m_cachePath + QString("/sub%1").arg(newEnsembleID);
+	auto newEnsemble = iAEnsemble::Create(EntropyBinCount(), members, Sampling(0), LabelCount(), cachePath, newEnsembleID);
+	m_subEnsembles.push_back(newEnsemble);
+	m_ensembleFile->AddSubEnsemble(newEnsembleID, memberIDs);
+	return newEnsemble;
+}
+
+void iAEnsemble::Store()
+{
+	m_ensembleFile->Store(m_ensembleFile->FileName());
+}
+
+QVector<QSharedPointer<iAEnsemble> > iAEnsemble::SubEnsembles() const
+{
+	return m_subEnsembles;
+}
+
+
+int iAEnsemble::ID() const
+{
+	if (m_samplings.size() > 1)
+	{
+		DEBUG_LOG("Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
+	}
+	return m_samplings[0]->ID();
 }

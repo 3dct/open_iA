@@ -58,4 +58,5 @@ private:
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
 	QVector<iAITKIO::ImagePointer> m_shownMembers;
 	QSharedPointer<iAEnsemble> m_currentEnsemble;
+	int m_newSubEnsembleID;
 };

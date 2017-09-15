@@ -35,7 +35,6 @@ class iAMemberView: public QWidget
 public:
 	iAMemberView();
 	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
-	QVector<QSharedPointer<iAMember> > SelectedMembers() const;
 	QVector<int > SelectedMemberIDs() const;
 signals:
 	void MemberSelected(int memberIdx);
