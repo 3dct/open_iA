@@ -1208,11 +1208,6 @@ void iASlicerWidget::updateMagicLens()
 	GetRenderWindow()->Render();
 	Frame();
 
-	// TestMagicLens
-	iAChannelSlicerData * chSlicerData = m_slicerDataExternal->GetChannel( static_cast<iAChannelID>( ch_ModalityLens ) );
-	m_magicLensExternal->UpdateTransform( ren->GetWorldPoint(), chSlicerData->reslicer );
-	// End TestMagicLens
-
 	m_magicLensExternal->UpdateCamera(ren->GetWorldPoint(), ren->GetActiveCamera());
 	QRect rect = QRect(pos2d[0]-lensSzHalf, pos2d[1]-lensSzHalf, lensSz, lensSz);
 	m_magicLensExternal->SetGeometry(rect);
