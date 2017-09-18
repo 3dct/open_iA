@@ -25,6 +25,9 @@
 #include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
 //#include "qcustomplot.h"
+//#include "iAScatterPlot.h"
+#include "iAQSplom.h"
+#include "iASPLOMData.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -33,6 +36,7 @@
 #include <QVBoxLayout>
 
 #include <vtkImageData.h>
+#include <vtkLookupTable.h>
 
 /*
 // only relevant for heatmap:
@@ -80,14 +84,14 @@ iAScatterPlotView::iAScatterPlotView()
 	m_curve(nullptr)
 */
 {
-	//m_plot->setOpenGl(true);
+	setLayout(new QVBoxLayout());
+	layout()->setSpacing(0);
 
 	/*
+	//m_plot->setOpenGl(true);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
-	setLayout(new QVBoxLayout());
-	layout()->setSpacing(0);
 	layout()->addWidget(m_plot);
 	*/
 
@@ -144,6 +148,40 @@ iAScatterPlotView::iAScatterPlotView()
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
+	iAQSplom* splom = new iAQSplom();
+	int * dim = imgX->GetDimensions();
+	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
+	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
+	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
+	QTableWidget* table = new QTableWidget();
+	table->clear();
+	table->setColumnCount(2);
+	table->setRowCount(m_voxelCount + 1);
+	table->setItem(0, 0, new QTableWidgetItem(captionX));
+	table->setItem(0, 1, new QTableWidgetItem(captionY));
+	for (size_t i = 0; i < m_voxelCount; ++i)
+	{
+		table->setItem(1+i, 0, new QTableWidgetItem(QString::number(bufX[i])));
+		table->setItem(1+i, 1, new QTableWidgetItem(QString::number(bufY[i])));
+	}
+	splom->setData(table);
+	auto lut = vtkSmartPointer<vtkLookupTable>::New();
+	double lutRange[2] = { 0, 1 };
+	lut->SetRange(lutRange);
+	lut->Build();
+	vtkIdType lutColCnt = lut->GetNumberOfTableValues();
+	double alpha = 0.5;
+	for (vtkIdType i = 0; i < lutColCnt; i++)
+	{
+		double rgba[4]; lut->GetTableValue(i, rgba);
+		rgba[3] = alpha;
+		lut->SetTableValue(i, rgba);
+	}
+	lut->Build();
+	splom->setLookupTable(lut, captionX);
+	layout()->addWidget(splom);
+
+	//iAScatterPlot* scatterPlot = new iAScatterPlot(); // apparently we can't have a single scatterplot but need a matrix
 	/*
 	// QCUSTOMPLOT {
 	QCPDataSelection selection;

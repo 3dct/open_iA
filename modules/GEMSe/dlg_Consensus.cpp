@@ -30,7 +30,6 @@
 #include "iAImageTreeNode.h"
 #include "iAIOProvider.h"
 #include "iALookupTable.h"
-#include "iAQSplom.h"
 #include "iASingleResult.h"
 #include "mdichild.h"
 
