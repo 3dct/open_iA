@@ -48,6 +48,9 @@
 #include <itkImageIOBase.h>
 #include "iATypedCallHelper.h"
 
+#include "iAFunction.h"
+#include "iAFunctionalBoxplot.h"
+
 
 const double golden_ratio = 0.618033988749895;
 
@@ -89,6 +92,8 @@ void dlg_DatasetComparator::showLinePlots()
 	QPen graphPen;
 	//graphPen.setWidth(3);	// Make sure qcustomplot uses opengl (or set width to 0), otherwise bad performance
 	int datasetIdx = 0;
+	
+	std::vector<iAFunction<unsigned int, double> *> functions;
 	for (it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
 		if (m_DatasetIntensityMap.size() <= theme->size())
@@ -105,18 +110,97 @@ void dlg_DatasetComparator::showLinePlots()
 			graphPenColor = QColor::fromHsvF(h, 0.95, 0.95, 1.0);
 		}
 		customPlot->addGraph();
-		connect(customPlot->graph(), SIGNAL(selectionChanged(const QCPDataSelection & )), 
-			this, SLOT(selectionChanged(const QCPDataSelection & )));
+		connect(customPlot->graph(), SIGNAL(selectionChanged(const QCPDataSelection &)),
+			this, SLOT(selectionChanged(const QCPDataSelection &)));
 		customPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		graphPen.setColor(graphPenColor);
 		customPlot->graph()->setPen(graphPen);
 		customPlot->graph()->setName(it->first);
 		QList<icData> l = it->second;
 		QSharedPointer<QCPGraphDataContainer> emaData(new QCPGraphDataContainer);
+
+		iAFunction<unsigned int, double> * funct = new iAFunction<unsigned int, double>(l.size());
+
 		for (unsigned int i = 0; i < l.size(); ++i)
+		{
 			emaData->add(QCPGraphData(double(i), l[i].intensity));
+			funct->set(i, l[i].intensity);
+		}
+		functions.push_back(funct);
+
 		customPlot->graph()->setData(emaData);
 	}
+
+	ModifiedDepthMeasure<unsigned int, double> measure;
+	auto m_functionalBoxplotData = new iAFunctionalBoxplot<unsigned int, double>(
+		functions, /*argMin=*/0, /*argMax=*/m_DatasetIntensityMap[0].second.size() - 1,
+		&measure, 2);
+
+	QSharedPointer<QCPGraphDataContainer> fb_medianData(new QCPGraphDataContainer);
+	for (unsigned int i = 0; i < m_functionalBoxplotData->getMedian().size(); ++i)
+		fb_medianData->add(QCPGraphData(double(i), m_functionalBoxplotData->getMedian().get(i)));
+
+	customPlot->addGraph();
+	customPlot->graph()->setLayer("background");
+	customPlot->graph()->setName("fb_Median");
+	QPen medianPen;
+	medianPen.setColor(QColor(0, 0, 0, 255));
+	medianPen.setStyle(Qt::DashLine);
+	medianPen.setWidthF(3);
+	customPlot->graph()->setPen(medianPen);
+	customPlot->graph()->setData(fb_medianData);
+
+	QSharedPointer<QCPGraphDataContainer> fb_075Data(new QCPGraphDataContainer);
+	for (unsigned int i = 0; i < m_functionalBoxplotData->getMedian().size(); ++i)
+		fb_075Data->add(QCPGraphData(double(i), m_functionalBoxplotData->getCentralRegion().getMax(i)));
+
+	customPlot->addGraph();
+	//customPlot->graph()->setLayer("background");
+	customPlot->graph()->setData(fb_075Data);
+	customPlot->graph()->setName("fb_075");
+	QPen quantilePen;
+	quantilePen.setColor(QColor(128, 128, 128, 80));
+	customPlot->graph()->setPen(quantilePen);
+
+	QSharedPointer<QCPGraphDataContainer> fb_025Data(new QCPGraphDataContainer);
+	for (unsigned int i = 0; i < m_functionalBoxplotData->getMedian().size(); ++i)
+		fb_025Data->add(QCPGraphData(double(i), m_functionalBoxplotData->getCentralRegion().getMin(i)));
+
+	customPlot->addGraph();
+	//customPlot->graph()->setLayer("background");
+	customPlot->graph()->setData(fb_025Data);
+	customPlot->graph()->setName("fb_025");
+	customPlot->graph()->setPen(quantilePen);
+	customPlot->graph()->setBrush(QColor(128, 128, 128, 150));
+	customPlot->graph()->setChannelFillGraph(customPlot->graph(customPlot->graphCount() - 2));
+
+
+	QSharedPointer<QCPGraphDataContainer> fb_MaxData(new QCPGraphDataContainer);
+	for (unsigned int i = 0; i < m_functionalBoxplotData->getMedian().size(); ++i)
+		fb_MaxData->add(QCPGraphData(double(i), m_functionalBoxplotData->getEnvelope().getMax(i)));
+
+	customPlot->addGraph();
+	//customPlot->graph()->setLayer("background");
+	customPlot->graph()->setData(fb_MaxData);
+	customPlot->graph()->setName("fb_Max");
+	QPen maxPen;
+	maxPen.setColor(QColor(255, 0, 0, 80));
+	maxPen.setWidth(2);
+	customPlot->graph()->setPen(maxPen);
+
+	QSharedPointer<QCPGraphDataContainer> fb_MinData(new QCPGraphDataContainer);
+	for (unsigned int i = 0; i < m_functionalBoxplotData->getMedian().size(); ++i)
+		fb_MinData->add(QCPGraphData(double(i), m_functionalBoxplotData->getEnvelope().getMin(i)));
+
+	customPlot->addGraph();
+	//customPlot->graph()->setLayer("background");
+	customPlot->graph()->setData(fb_MinData);
+	customPlot->graph()->setName("fb_Min");
+	QPen minPen;
+	minPen.setColor(QColor(0, 0, 255, 80));
+	minPen.setWidth(2);
+	customPlot->graph()->setPen(minPen);
+
 	customPlot->graph(0)->rescaleAxes();
 	PlotsContainer_verticalLayout->addWidget(customPlot);
 }

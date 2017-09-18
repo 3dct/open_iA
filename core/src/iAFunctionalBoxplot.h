@@ -410,9 +410,9 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 	{
 		double iqr15 = 1.5*(m_centralRegion.getMax(a) - m_centralRegion.getMin(a));
 		m_envelope.setMin(a, std::max(m_envelope.getMin(a),
-			static_cast<unsigned int>(m_centralRegion.getMin(a) - iqr15 ) ) );
+			static_cast<ValType>(m_centralRegion.getMin(a) - iqr15 ) ) );
 		m_envelope.setMax(a, std::min(m_envelope.getMax(a),
-			static_cast<unsigned int>(m_centralRegion.getMax(a) + iqr15 ) ) );
+			static_cast<ValType>(m_centralRegion.getMax(a) + iqr15 ) ) );
 		// TODO: find next data value which is still inside envelope and use that
 	}
 
