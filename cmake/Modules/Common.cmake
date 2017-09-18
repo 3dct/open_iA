@@ -110,7 +110,11 @@ IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
 	IF (SCIFIO_LOADED)
 		ADD_DEFINITIONS( -DUSE_SCIFIO )
-		MESSAGE(STATUS "ITK has SCIFIO support enabled. Notice that in order to run a build with this library on another machine than the one you built it, the environment variable SCIFIO_PATH has to be set to the path containing the SCIFIO jar files! Otherwise loading images will fail!")
+		MESSAGE(STATUS "ITK has SCIFIO support enabled.\n\
+    Notice that in order to run a build with this library on another machine\n\
+    than the one you built it, the environment variable SCIFIO_PATH\n\
+    has to be set to the path containing the SCIFIO jar files!\n\
+    Otherwise loading images will fail!")
 		SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
 		IF (MSVC)
 			# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
