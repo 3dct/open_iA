@@ -80,6 +80,7 @@ public:
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
 
+	void setPSize(int width, int height);
 protected:
 	int p2binx( double p ) const;											//!< Get grid bin index using parameter value X
 	int p2biny( double p ) const;											//!< Get grid bin index using parameter value Y
@@ -194,4 +195,6 @@ protected:
 	//state flags
 	bool m_isMaximizedPlot;						//!< flag telling if plot is maximized (bigger plot)
 	bool m_isPreviewPlot;						//!< flag telling if plot is previewed (displayed in maximized plot)
+
+	int m_pwidth, m_pheight;
 };

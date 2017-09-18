@@ -136,7 +136,8 @@ void iAScatterPlot::setTransform( double scale, QPointF newOffset )
 	if ( isUpdate )
 	{
 		calculateNiceSteps();
-		m_splom->update();
+		if (m_splom)
+			m_splom->update();
 	}
 }
 
@@ -287,7 +288,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		isUpdate = true;
 	}
 
-	if ( isUpdate )
+	if ( isUpdate && m_splom)
 		m_splom->update();
 }
 
@@ -410,7 +411,7 @@ void iAScatterPlot::calculateRanges()
 {
 	m_prX[0] = m_prX[1] = m_splomData->paramData( m_paramIndices[0] )[0];
 	m_prY[0] = m_prY[1] = m_splomData->paramData( m_paramIndices[1] )[0];
-	for ( unsigned long i = 0; i < m_splomData->numPoints(); ++i )
+	for ( unsigned long i = 1; i < m_splomData->numPoints(); ++i )
 	{
 		double x = m_splomData->paramData( m_paramIndices[0] )[i];
 		double y = m_splomData->paramData( m_paramIndices[1] )[i];
@@ -545,6 +546,8 @@ QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
 
 void iAScatterPlot::updateSelectedPoints( bool append )
 {
+	if (!m_splom)
+		return;
 	QVector<unsigned int> * selInds = m_splom->getSelection();
 	if ( !append )
 		selInds->clear();
@@ -607,7 +610,7 @@ bool iAScatterPlot::isMaximizedClicked( QMouseEvent * event )
 {
 	if ( m_paramIndices[0] > m_paramIndices[1] ) //only plots above the diagonal can be maximized
 		return false;
-	if ( m_splom->getVisibleParametersCount() <= 1 )
+	if ( !m_splom || m_splom->getVisibleParametersCount() <= 1 )
 		return false;
 	QPoint epos = event->pos();
 	if ( m_maxBtnRect.contains( getLocalPos( epos ) ) )
@@ -621,6 +624,14 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	if ( !m_splomData )
 		return;
 
+	int pwidth  = m_pwidth;
+	int pheight = m_pheight;
+	if (m_splom)
+	{
+		pwidth  = m_splom->width();
+		pheight = m_splom->height();
+	}
+
 	painter.save();
 	double ptRad = getPointRadius();
 	double ptSize = 2 * ptRad;
@@ -629,10 +640,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	painter.beginNativePainting();
 	QPoint tl = m_globRect.topLeft(), br = m_globRect.bottomRight();
 	//glScissor( tl.x() - 3, h - br.y(), br.x() - tl.x() + 6, br.y() - tl.y() );
-	int y = m_splom->height() - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
+	int y = m_pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
 
-	int pwidth = m_splom->width();
-	int pheight = m_splom->height();
+
 
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
@@ -662,68 +672,74 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glDisableClientState( GL_COLOR_ARRAY );
 	glColor3f( 0.f, 0.f, 0.f );
 
-	QVector<unsigned int> * selInds = m_splom->getSelection();
-	glDrawElements( GL_POINTS, selInds->size(), GL_UNSIGNED_INT, selInds->data() );
+	if (m_splom)
+	{
+		QVector<unsigned int> * selInds = m_splom->getSelection();
+		glDrawElements(GL_POINTS, selInds->size(), GL_UNSIGNED_INT, selInds->data());
+	}
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
 
-	//draw current point
-	double anim = m_splom->getAnimIn();
-	if ( m_curInd >= 0 )
+	if (m_splom)
 	{
-		double pPM = settings.pickedPointMagnification;
-		double curPtSize = ptSize * linterp( 1.0, pPM, anim );
-		glPointSize( curPtSize );
-		glBegin( GL_POINTS );
-		if ( m_lut->initialized() )
+		//draw current point
+		double anim = m_splom->getAnimIn();
+		if (m_curInd >= 0)
 		{
-			double val = m_splomData->paramData( m_colInd )[m_curInd];
-			double rgba[4]; m_lut->getColor( val, rgba );
-			glColor4f( rgba[0], rgba[1], rgba[2], linterp( rgba[3], 1.0, anim ) );
+			double pPM = settings.pickedPointMagnification;
+			double curPtSize = ptSize * linterp(1.0, pPM, anim);
+			glPointSize(curPtSize);
+			glBegin(GL_POINTS);
+			if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[m_curInd];
+				double rgba[4]; m_lut->getColor(val, rgba);
+				glColor4f(rgba[0], rgba[1], rgba[2], linterp(rgba[3], 1.0, anim));
+			}
+			double tx = p2tx(m_splomData->paramData(m_paramIndices[0])[m_curInd]);
+			double ty = p2ty(m_splomData->paramData(m_paramIndices[1])[m_curInd]);
+			glVertex3f(tx, ty, 0.0f);
+			glEnd();
 		}
-		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[m_curInd] );
-		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[m_curInd] );
-		glVertex3f( tx, ty, 0.0f );
-		glEnd();
-	}
 
-	//draw highlighted points
-	const QList<int> & highlightedPoints = *m_splom->getHighlightedPoints();
-	foreach( const int & ind, highlightedPoints )
-	{
-		double curPtSize = ptSize * settings.pickedPointMagnification;
-		glPointSize( curPtSize );
-		glBegin( GL_POINTS );
-		if ( m_lut->initialized() )
+		//draw highlighted points
+		const QList<int> & highlightedPoints = *m_splom->getHighlightedPoints();
+		foreach(const int & ind, highlightedPoints)
 		{
-			double val = m_splomData->paramData( m_colInd )[ind];
-			double rgba[4]; m_lut->getColor( val, rgba );
-			glColor4f( rgba[0], rgba[1], rgba[2], 1.0 );
+			double curPtSize = ptSize * settings.pickedPointMagnification;
+			glPointSize(curPtSize);
+			glBegin(GL_POINTS);
+			if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[ind];
+				double rgba[4]; m_lut->getColor(val, rgba);
+				glColor4f(rgba[0], rgba[1], rgba[2], 1.0);
+			}
+			double tx = p2tx(m_splomData->paramData(m_paramIndices[0])[ind]);
+			double ty = p2ty(m_splomData->paramData(m_paramIndices[1])[ind]);
+			glVertex3f(tx, ty, 0.0f);
+			glEnd();
 		}
-		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[ind] );
-		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[ind] );
-		glVertex3f( tx, ty, 0.0f );
-		glEnd();
-	}
 
-	//draw previous point
-	anim = m_splom->getAnimOut();
-	if ( m_prevPtInd >= 0 && anim > 0.0 )
-	{
-		double pPM = settings.pickedPointMagnification;
-		double curPtSize = ptSize * linterp( 1.0, pPM, anim );
-		glPointSize( curPtSize );
-		glBegin( GL_POINTS );
-		if ( m_lut->initialized() )
+		//draw previous point
+		anim = m_splom->getAnimOut();
+		if (m_prevPtInd >= 0 && anim > 0.0)
 		{
-			double val = m_splomData->paramData( m_colInd )[m_prevPtInd];
-			double rgba[4]; m_lut->getColor( val, rgba );
-			glColor4f( rgba[0], rgba[1], rgba[2], linterp( rgba[3], 1.0, anim ) );
+			double pPM = settings.pickedPointMagnification;
+			double curPtSize = ptSize * linterp(1.0, pPM, anim);
+			glPointSize(curPtSize);
+			glBegin(GL_POINTS);
+			if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[m_prevPtInd];
+				double rgba[4]; m_lut->getColor(val, rgba);
+				glColor4f(rgba[0], rgba[1], rgba[2], linterp(rgba[3], 1.0, anim));
+			}
+			double tx = p2tx(m_splomData->paramData(m_paramIndices[0])[m_prevPtInd]);
+			double ty = p2ty(m_splomData->paramData(m_paramIndices[1])[m_prevPtInd]);
+			glVertex3f(tx, ty, 0.0f);
+			glEnd();
 		}
-		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[m_prevPtInd] );
-		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[m_prevPtInd] );
-		glVertex3f( tx, ty, 0.0f );
-		glEnd();
 	}
 
 	glPopMatrix();
@@ -823,7 +839,7 @@ void iAScatterPlot::drawMaximizeButton( QPainter & painter )
 {
 	if ( !m_isPlotActive || m_isPreviewPlot )
 		return;
-	if ( m_splom->getVisibleParametersCount() <= 1 )
+	if ( !m_splom || m_splom->getVisibleParametersCount() <= 1 )
 		return;
 	if ( m_paramIndices[0] > m_paramIndices[1] )
 		return;
@@ -847,7 +863,8 @@ void iAScatterPlot::drawMaximizeButton( QPainter & painter )
 
 void iAScatterPlot::createAndFillVBO()
 {
-	m_splom->makeCurrent();
+	if (m_splom)
+		m_splom->makeCurrent();
 	if ( m_pointsBuffer )
 	{
 		m_pointsBuffer->release();
@@ -903,4 +920,11 @@ double iAScatterPlot::getPointRadius() const
 	if ( m_isMaximizedPlot )
 		res *= settings.maximizedPointMagnification;
 	return res;
+}
+
+
+void iAScatterPlot::setPSize(int width, int height)
+{
+	m_pwidth = width;
+	m_pheight = height;
 }
