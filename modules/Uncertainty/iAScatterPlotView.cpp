@@ -24,7 +24,13 @@
 #include "iAConsole.h"
 #include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
-#include "qcustomplot.h"
+//#include "qcustomplot.h"
+
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QToolButton>
+#include <QVariant>
+#include <QVBoxLayout>
 
 #include <vtkImageData.h>
 
@@ -65,19 +71,25 @@ QCPColorGradient GetGradientFromIdx(int index)
 }
 */
 
-iAScatterPlotView::iAScatterPlotView():
+iAScatterPlotView::iAScatterPlotView()
 // only relevant for heatmap:
 // m_gradient(QCPColorGradient::gpGrayscale),
+/*
+	:
 	m_plot(new QCustomPlot()),
 	m_curve(nullptr)
+*/
 {
 	//m_plot->setOpenGl(true);
+
+	/*
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
 	layout()->addWidget(m_plot);
+	*/
 
 	m_settings = new QWidget();
 	m_settings->setLayout(new QVBoxLayout);
@@ -132,13 +144,18 @@ iAScatterPlotView::iAScatterPlotView():
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
+	/*
+	// QCUSTOMPLOT {
 	QCPDataSelection selection;
 	if (m_curve)
 	{
 		selection = m_curve->selection();
 	}
 	m_plot->clearPlottables();
+	*/
+
 /*
+	// HEATMAP {
 	const int BinCountX = 250;
 	const int BinCountY = 250;
 	iAPerformanceHelper heatmapCalcMeasure;
@@ -178,7 +195,9 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	//     or still explicit uncertainty, to be able to select not only bins but sub-bins?
 
 	// subdivide bins -> zoomable?
+	// } HEATMAP
 */
+	/*
 	iAPerformanceHelper scatterPlotCreationTimer;
 	scatterPlotCreationTimer.start("Scatterplot creation");
 	QSharedPointer<QCPCurveDataContainer> data(new QCPCurveDataContainer);
@@ -208,6 +227,8 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	scatterPlotCreationTimer.stop();
 
 	m_plot->replot();
+	*/
+	// QCUSTOMPLOT }
 }
 
 
@@ -274,7 +295,7 @@ void iAScatterPlotView::YAxisChoice()
 		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
 }
 
-
+/*
 void iAScatterPlotView::SelectionChanged(QCPDataSelection const & selection)
 {
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
@@ -293,14 +314,14 @@ void iAScatterPlotView::SelectionChanged(QCPDataSelection const & selection)
 	//StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
 	emit SelectionChanged();
 }
-
+*/
 
 vtkImagePointer iAScatterPlotView::GetSelectionImage()
 {
 	return m_selectionImg;
 }
 
-
+/*
 void iAScatterPlotView::ChartMousePress(QMouseEvent *)
 {
 	if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
@@ -312,6 +333,7 @@ void iAScatterPlotView::ChartMousePress(QMouseEvent *)
 		m_plot->setSelectionRectMode(QCP::srmNone);
 	}
 }
+*/
 
 
 void iAScatterPlotView::ColorThemeChanged(int index)
