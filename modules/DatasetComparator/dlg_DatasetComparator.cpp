@@ -20,21 +20,30 @@
 * ************************************************************************************/
  
 #include "pch.h"
+#include "defines.h"
 #include "dlg_DatasetComparator.h"
 #include "iAColorTheme.h"
+#include "iAHistogramWidget.h"
 #include "iAIntensityMapper.h"
-#include "defines.h"
-#include "qcustomplot.h"
 #include "iARenderer.h"
+
+#include "qcustomplot.h"
+
+#include <omp.h>
 
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
+#include <vtkImageData.h>
 #include <vtkLine.h>
 #include <vtkPolyData.h>
 
 #include <QMap>
 #include <QList>
 #include <QColor>
+
+#include <sys/timeb.h>
+#include "iAConsole.h"
+
 
 const double golden_ratio = 0.618033988749895;
 
@@ -46,7 +55,7 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	mapIntensities();
 
 	customPlot = new QCustomPlot(dockWidgetContents);
-	customPlot->setOpenGl(true);
+	customPlot->setOpenGl(false);
 	customPlot->legend->setVisible(true);
 	customPlot->legend->setFont(QFont("Helvetica", 11));
 	customPlot->xAxis->setLabel("Hilbert index");
@@ -55,9 +64,11 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	customPlot->xAxis2->setTickLabels(false);
 	customPlot->yAxis2->setVisible(true);
 	customPlot->yAxis2->setTickLabels(false);
+	customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
+	customPlot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
 	connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
-	customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+	connect(customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 
 	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
 }
@@ -68,17 +79,18 @@ dlg_DatasetComparator::~dlg_DatasetComparator()
 void dlg_DatasetComparator::showLinePlots()
 {
 	customPlot->removeGraph(0);
-	QMap<QString, QList<icData>>::iterator it;
+	QList<QPair<QString, QList<icData>>>::iterator it;
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme("Brewer Qualitaive 1 (max. 8)");
 	QColor graphPenColor;
 	QPen graphPen;
-	graphPen.setWidth(3);	// Make sure qcustomplot uses opengl (or set width to 0), otherwise bad performance
+	//graphPen.setWidth(3);	// Make sure qcustomplot uses opengl (or set width to 0), otherwise bad performance
 	int datasetIdx = 0;
 	for (it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
 		if (m_DatasetIntensityMap.size() <= theme->size())
 		{
 			graphPenColor = theme->GetColor(datasetIdx);
+			++datasetIdx;
 		}
 		else
 		{
@@ -89,18 +101,17 @@ void dlg_DatasetComparator::showLinePlots()
 			graphPenColor = QColor::fromHsvF(h, 0.95, 0.95, 1.0);
 		}
 		customPlot->addGraph();
+		connect(customPlot->graph(), SIGNAL(selectionChanged(const QCPDataSelection & )), 
+			this, SLOT(selectionChanged(const QCPDataSelection & )));
+		customPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		graphPen.setColor(graphPenColor);
-		customPlot->graph(datasetIdx)->setPen(graphPen);
-		customPlot->graph(datasetIdx)->setName(it.key());
-		QList<icData> l = it.value();
-		QVector<double> x(l.size()), y(l.size());
-		for (int i = 0; i < l.size(); ++i)
-		{
-			x[i] = i;
-			y[i] = l[i].intensity;
-		}
-		customPlot->graph(datasetIdx)->setData(x, y);
-		++datasetIdx;
+		customPlot->graph()->setPen(graphPen);
+		customPlot->graph()->setName(it->first);
+		QList<icData> l = it->second;
+		QSharedPointer<QCPGraphDataContainer> emaData(new QCPGraphDataContainer);
+		for (unsigned int i = 0; i < l.size(); ++i)
+			emaData->add(QCPGraphData(double(i), l[i].intensity));
+		customPlot->graph()->setData(emaData);
 	}
 	customPlot->graph(0)->rescaleAxes();
 	PlotsContainer_verticalLayout->addWidget(customPlot);
@@ -109,9 +120,9 @@ void dlg_DatasetComparator::showLinePlots()
 void dlg_DatasetComparator::visualizePath()
 {
 	vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-	QString str = m_DatasetIntensityMap.firstKey();
-	unsigned int pathSteps = m_DatasetIntensityMap.values(str).at(0).size();
-	QList<icData>  data = m_DatasetIntensityMap.values(str)[0];
+	QString str = m_DatasetIntensityMap.at(0).first;
+	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
+	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
 	for (unsigned int i = 0; i < pathSteps; ++i)
 	{
 		double point[3] = { (double) data[i].x, (double) data[i].y, (double)data[i].z };
@@ -121,16 +132,14 @@ void dlg_DatasetComparator::visualizePath()
 	vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
 	linesPolyData->SetPoints(pts);
 	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-	for (int i = 0; i < pathSteps - 1; ++i)
+	for (unsigned int i = 0; i < pathSteps - 1; ++i)
 	{
 		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
 		line->GetPointIds()->SetId(0, i);
 		line->GetPointIds()->SetId(1, i + 1);
 		lines->InsertNextCell(line);
 	}
-
 	linesPolyData->SetLines(lines);
-
 	m_mdiChild->getRaycaster()->setPolyData(linesPolyData);
 	m_mdiChild->getRaycaster()->update();
 }
@@ -150,7 +159,102 @@ void dlg_DatasetComparator::mapIntensities()
 	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
 	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
 	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));
+	//connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));
 	connect(thread, SIGNAL(finished()), this, SLOT(showLinePlots()));
 	thread->start();
 }
+
+void dlg_DatasetComparator::mousePress(QMouseEvent* e)
+{
+	if ((e->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
+		customPlot->setSelectionRectMode(QCP::srmSelect);
+	else
+		customPlot->setSelectionRectMode(QCP::srmNone);
+}
+
+int GetMilliCount()
+{
+	// Something like GetTickCount but portable
+	// It rolls over every ~ 12.1 days (0x100000/24/60/60)
+	// Use GetMilliSpan to correct for rollover
+	timeb tb;
+	ftime(&tb);
+	int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
+	return nCount;
+}
+
+int GetMilliSpan(int nTimeStart)
+{
+	int nSpan = GetMilliCount() - nTimeStart;
+	if (nSpan < 0)
+		nSpan += 0x100000 * 1000;
+	return nSpan;
+}
+
+void dlg_DatasetComparator::selectionChanged(const QCPDataSelection & selection)
+{
+	// TODO: only process active curve/dataset + Parallel with new open version?
+	// TODO: change transfer function for "hiden" values should be HistogramRangeMinimum-1 
+
+	QList< 	QCPDataRange> selHilberIndices = selection.dataRanges();
+	int* dims = m_mdiChild->getImagePointer()->GetDimensions();
+	QString str = m_DatasetIntensityMap.at(0).first;
+	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
+	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
+
+	//if (selHilberIndices.size() < 1)
+	//{
+	//int nTimeStart = GetMilliCount();
+	//	for (unsigned int i = 0; i < pathSteps; ++i)
+	//	{
+	//		double v = m_mdiChild->getImagePointer()->GetScalarComponentAsDouble(data[i].x, data[i].y, data[i].z, 0);
+	//		if (v != data[i].intensity)
+	//			m_mdiChild->getImagePointer()->SetScalarComponentFromDouble(data[i].x, data[i].y, data[i].z, 0, data[i].intensity);
+	//	}
+	//int nTimeElapsed = GetMilliSpan(nTimeStart);
+	//DEBUG_LOG(QString("elapsed time in ms: %1").arg(nTimeElapsed));
+	//}
+	if (selHilberIndices.size() < 1)
+	{
+		int nTimeStart = GetMilliCount();
+		for (unsigned int i = 0; i < pathSteps; ++i)
+		{
+			unsigned short *v = static_cast< unsigned short * >
+				(m_mdiChild->getImagePointer()->GetScalarPointer(data[i].x, data[i].y, data[i].z));
+			if (*v != data[i].intensity)
+				*v = data[i].intensity;
+		}
+		int nTimeElapsed = GetMilliSpan(nTimeStart);
+		DEBUG_LOG(QString("elapsed time in ms: %1").arg(nTimeElapsed));
+	}
+	else
+	{
+		double r[2];
+		m_mdiChild->getHistogram()->GetDataRange(r);
+		for (unsigned int i = 0; i < pathSteps; ++i)
+		{
+			bool showVoxel = false;
+			for (int j = 0; j < selHilberIndices.size(); ++j)
+			{
+				if (i >= selHilberIndices.at(j).begin() && i <= selHilberIndices.at(j).end())
+				{
+					unsigned short *v = static_cast< unsigned short * >
+						(m_mdiChild->getImagePointer()->GetScalarPointer(data[i].x, data[i].y, data[i].z));
+					*v = data[i].intensity;
+					showVoxel = true;
+					break;
+				}
+			}
+			if (!showVoxel)
+			{
+				unsigned short *v = static_cast< unsigned short * >
+					(m_mdiChild->getImagePointer()->GetScalarPointer(data[i].x, data[i].y, data[i].z));
+				*v = r[0];
+			}
+		}
+	}
+
+	m_mdiChild->getImagePointer()->Modified();
+	m_mdiChild->getRaycaster()->update();
+}
+

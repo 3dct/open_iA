@@ -33,9 +33,12 @@ public:
 
 private slots:
 	void calc_similarity_metrics();
+	void childClosed();
 
 protected:
 	// similarity metrics 
-	bool smMeanSquares, smNormalizedCorrelation, smMutualInformation;
+	bool smMeanSquares, smNormalizedCorrelation, smMutualInformation, m_childClosed;
 	int smMIHistogramBins;
+	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ, rOriginX,
+		rOriginY, rOriginZ, rSizeX, rSizeY, rSizeZ;
 };

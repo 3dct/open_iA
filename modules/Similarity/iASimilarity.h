@@ -37,13 +37,22 @@ class iASimilarity : public iAAlgorithm
 public:
 	iASimilarity(QString fn, iASimilarityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
 
-	void setSMParameters(bool ms, bool nc, bool mi, int mihb, vtkImageData* i2)
+	void setSMParameters(double oX, double oY, double oZ, double sX, double sY, double sZ,
+		bool ms, bool nc, bool mi, int mihb, vtkImageData* nai, QString awt, QString nawt)
 	{
 		meanSqaures = ms;
 		normalizedCorrelation = nc;
 		mutualInformation = mi;
 		miHistoBins = mihb;
-		image2 = i2;
+		nonActiveImage = nai;
+		originX = oX;
+		originY = oY;
+		originZ = oZ;
+		sizeX = sX;
+		sizeY = sY;
+		sizeZ = sZ;
+		active_windowTitle = awt;
+		nonActive_windowTitle = nawt;
 	}
 
 protected:
@@ -52,8 +61,10 @@ protected:
 private:
 	bool meanSqaures, normalizedCorrelation, mutualInformation;
 	int miHistoBins;
-	vtkImageData* image2;
+	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
+	vtkImageData* nonActiveImage;
 	iASimilarityFilterType m_type;
+	QString active_windowTitle, nonActive_windowTitle;
 
 	void calcSimilarityMetrics();
 };

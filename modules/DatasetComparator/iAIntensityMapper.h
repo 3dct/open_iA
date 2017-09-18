@@ -32,7 +32,7 @@ class iAIntensityMapper : public QObject
 	Q_OBJECT
 
 public:
-	iAIntensityMapper(QDir datasetsDir, PathID pathID, QMap<QString, QList<icData> > &datasetIntensityMap);
+	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap);
 	~iAIntensityMapper();
 
 public slots:
@@ -45,5 +45,5 @@ signals:
 private:
 	QDir m_datasetsDir;
 	PathID m_pathID;
-	QMap<QString, QList<icData> > &m_DatasetIntensityMap;
+	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;
 };

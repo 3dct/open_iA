@@ -68,12 +68,14 @@ public:
 	~dlg_DatasetComparator();
 
 	QDir m_datasetsDir;
-	QMap<QString, QList<icData> > m_DatasetIntensityMap;
+	QList<QPair <QString, QList<icData> >> m_DatasetIntensityMap;
 
 public slots:
 	void showLinePlots();
 	void visualizePath();
 	void updateDatasetComparator();
+	void mousePress(QMouseEvent*);
+	void selectionChanged(const QCPDataSelection & selection);
 
 private:
 	MdiChild * m_mdiChild;

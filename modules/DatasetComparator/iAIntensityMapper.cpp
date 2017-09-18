@@ -34,7 +34,7 @@
 
 #include <math.h>
 
-#include "iAConsole.h"
+//#include "iAConsole.h"
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
@@ -43,7 +43,7 @@ typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 template<class T>
 void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList )
 {
-	// TODO: Typecheck QList for e.g., float images + check max size of list
+	// TODO: Typecheck QList for e.g., float images + cubic region only check
 	typedef itk::Image< T, DIM >   InputImageType;
 
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -58,20 +58,20 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 			InputImageType::RegionType region = input->GetLargestPossibleRegion();
 			InputImageType::SizeType size = region.GetSize();
 
-			m_HPath->SetHilbertOrder((int) (log(size[0]) / log(2)));
-			DEBUG_LOG(QString("HPath started with Order %1").arg((int) (log(size[0]) / log(2))));
+			unsigned int order = log(size[0]) / log(2);
+			m_HPath->SetHilbertOrder(order);
 			m_HPath->Initialize();
-			DEBUG_LOG(QString("HPath initialized"));
-			for (unsigned int h = 0; h < m_HPath->NumberOfSteps(); h++)
+			unsigned int h = 0;
+			for (; h < m_HPath->NumberOfSteps(); h++)
 			{
-				IndexType coord = m_HPath->Evaluate(h);
-				icData data;
-				data.intensity = input->GetPixel(coord);
-				data.x = coord[0];
-				data.y = coord[1];
-				data.z = coord[2];
-				intensityList.append(data);
-				//DEBUG_LOG(QString("Mapping %1 of %2 done").arg(h).arg(m_HPath->NumberOfSteps()));
+					IndexType coord = m_HPath->Evaluate(h);
+					icData data;
+					data.intensity = input->GetPixel(coord);
+					data.x = coord[0];
+					data.y = coord[1];
+					data.z = coord[2];
+					intensityList.append(data);
+					//DEBUG_LOG(QString("Mapping %1 of %2 done").arg(h).arg(m_HPath->NumberOfSteps()));
 			}
 		}
 		break;
@@ -94,7 +94,7 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 	}
 }
 
-iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QMap<QString, QList<icData> > &datasetIntensityMap):
+iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap):
 	m_DatasetIntensityMap(datasetIntensityMap),
 	m_datasetsDir(datasetsDir),
 	m_pathID(pathID)
@@ -123,7 +123,7 @@ void iAIntensityMapper::process()
 		{
 			emit error("ITK exception"); // TODO: Better description
 		}
-		m_DatasetIntensityMap.insert(datasetsList.at(i), intensityList);
+		m_DatasetIntensityMap.push_back(qMakePair(datasetsList.at(i), intensityList));
 	}
 	emit finished();
 }
