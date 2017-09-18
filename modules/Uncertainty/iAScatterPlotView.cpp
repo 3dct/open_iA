@@ -24,13 +24,13 @@
 #include "iAConsole.h"
 #include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
-//#include "qcustomplot.h"
-//#include "iAScatterPlot.h"
-#include "iAQSplom.h"
+#include "iAScatterPlot.h"
 #include "iASPLOMData.h"
 
+#include <QGLWidget>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPainter>
 #include <QToolButton>
 #include <QVariant>
 #include <QVBoxLayout>
@@ -146,25 +146,91 @@ iAScatterPlotView::iAScatterPlotView()
 }
 
 
+class ScatterPlotWidget : public QGLWidget
+{
+public:
+	ScatterPlotWidget(iAScatterPlot* scatterplot) :
+		m_scatterplot(scatterplot)
+	{
+		qglClearColor(QColor(255, 255, 255));
+	}
+	virtual void paintEvent(QPaintEvent * event)
+	{
+		QPainter painter(this);
+		painter.setRenderHint(QPainter::Antialiasing);
+		painter.setRenderHint(QPainter::HighQualityAntialiasing);
+		painter.beginNativePainting();
+		glClear(GL_COLOR_BUFFER_BIT);
+		painter.endNativePainting();
+		m_scatterplot->paintOnParent(painter);
+	}
+	virtual void resizeEvent(QResizeEvent* event)
+	{
+		m_scatterplot->setRect(geometry());
+		m_scatterplot->setPSize(width(), height());
+		update();
+	}
+	virtual void wheelEvent(QWheelEvent * event)
+	{
+		m_scatterplot->SPLOMWheelEvent(event);
+		update();
+	}
+	virtual void mousePressEvent(QMouseEvent * event)
+	{
+		m_scatterplot->SPLOMMousePressEvent(event);
+		update();
+	}
+
+	virtual void mouseReleaseEvent(QMouseEvent * event)
+	{
+		m_scatterplot->SPLOMMouseReleaseEvent(event);
+		update();
+	}
+
+	virtual void mouseMoveEvent(QMouseEvent * event)
+	{
+		m_scatterplot->SPLOMMouseMoveEvent(event);
+		update();
+	}
+	virtual void keyPressEvent(QKeyEvent * event)
+	{
+		switch (event->key())
+		{
+		case Qt::Key_R: //if R is pressed, reset all the applied transformation as offset and scaling
+			m_scatterplot->setTransform(1.0, QPointF(0.0f, 0.0f));
+			break;
+		}
+		update();
+	}
+
+private:
+	iAScatterPlot* m_scatterplot;
+};
+
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
-	iAQSplom* splom = new iAQSplom();
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	QTableWidget* table = new QTableWidget();
-	table->clear();
-	table->setColumnCount(2);
-	table->setRowCount(m_voxelCount + 1);
-	table->setItem(0, 0, new QTableWidgetItem(captionX));
-	table->setItem(0, 1, new QTableWidgetItem(captionY));
+
+	splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	splomData->paramNames().push_back(captionX);
+	splomData->paramNames().push_back(captionY);
+	
+	QList<double> values0;
+	splomData->data().push_back(values0);
+	QList<double> values1;
+	splomData->data().push_back(values1);
 	for (size_t i = 0; i < m_voxelCount; ++i)
 	{
-		table->setItem(1+i, 0, new QTableWidgetItem(QString::number(bufX[i])));
-		table->setItem(1+i, 1, new QTableWidgetItem(QString::number(bufY[i])));
+		splomData->data()[0].push_back(bufX[i]);
+		splomData->data()[1].push_back(bufY[i]);
 	}
-	splom->setData(table);
+	scatterplot = new iAScatterPlot();
+	scatterplot->setData(0, 1, splomData);
+	ScatterPlotWidget *scatterPlotWidget = new ScatterPlotWidget(scatterplot);
+	/*
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { 0, 1 };
 	lut->SetRange(lutRange);
@@ -179,7 +245,10 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	}
 	lut->Build();
 	splom->setLookupTable(lut, captionX);
-	layout()->addWidget(splom);
+	*/
+	layout()->addWidget(scatterPlotWidget);
+	scatterplot->setRect(scatterPlotWidget->geometry());
+	scatterplot->setPSize(scatterPlotWidget->width(), scatterPlotWidget->height());
 
 	//iAScatterPlot* scatterPlot = new iAScatterPlot(); // apparently we can't have a single scatterplot but need a matrix
 	/*

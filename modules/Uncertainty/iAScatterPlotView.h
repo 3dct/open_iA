@@ -31,7 +31,8 @@ class QCPDataSelection;
 class QCPCurve;
 */
 
-class QTableWidget;
+class iASPLOMData;
+class iAScatterPlot;
 
 class iAScatterPlotView: public QWidget
 {
@@ -66,7 +67,8 @@ private:
 	QCPColorScale *colorScale;
 	*/
 
-	QTableWidget* widget;
+	QSharedPointer<iASPLOMData> splomData;
+	iAScatterPlot* scatterplot;
 
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
