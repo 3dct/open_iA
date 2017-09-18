@@ -29,7 +29,7 @@
 
 #include "qcustomplot.h"
 
-#include <omp.h>
+//#include <omp.h>
 
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
@@ -41,8 +41,12 @@
 #include <QList>
 #include <QColor>
 
-#include <sys/timeb.h>
-#include "iAConsole.h"
+//#include <sys/timeb.h>
+//#include "iAConsole.h"
+
+#include <itkImageBase.h>
+#include <itkImageIOBase.h>
+#include "iATypedCallHelper.h"
 
 
 const double golden_ratio = 0.618033988749895;
@@ -172,28 +176,18 @@ void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 		customPlot->setSelectionRectMode(QCP::srmNone);
 }
 
-int GetMilliCount()
+template <typename  T>
+void setVoxelIntensity(
+	vtkImageData* inputImage, unsigned int x, unsigned int y, 
+	unsigned int z, double intensity)
 {
-	// Something like GetTickCount but portable
-	// It rolls over every ~ 12.1 days (0x100000/24/60/60)
-	// Use GetMilliSpan to correct for rollover
-	timeb tb;
-	ftime(&tb);
-	int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
-	return nCount;
-}
-
-int GetMilliSpan(int nTimeStart)
-{
-	int nSpan = GetMilliCount() - nTimeStart;
-	if (nSpan < 0)
-		nSpan += 0x100000 * 1000;
-	return nSpan;
+	T *v = static_cast< T* >(inputImage->GetScalarPointer(x, y, z));
+	*v = intensity;
 }
 
 void dlg_DatasetComparator::selectionChanged(const QCPDataSelection & selection)
 {
-	// TODO: only process active curve/dataset + Parallel with new open version?
+	// TODO: only process active curve/dataset 
 	// TODO: change transfer function for "hiden" values should be HistogramRangeMinimum-1 
 
 	QList< 	QCPDataRange> selHilberIndices = selection.dataRanges();
@@ -201,31 +195,13 @@ void dlg_DatasetComparator::selectionChanged(const QCPDataSelection & selection)
 	QString str = m_DatasetIntensityMap.at(0).first;
 	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
 	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
+	int scalarType = m_mdiChild->getImagePointer()->GetScalarType();
 
-	//if (selHilberIndices.size() < 1)
-	//{
-	//int nTimeStart = GetMilliCount();
-	//	for (unsigned int i = 0; i < pathSteps; ++i)
-	//	{
-	//		double v = m_mdiChild->getImagePointer()->GetScalarComponentAsDouble(data[i].x, data[i].y, data[i].z, 0);
-	//		if (v != data[i].intensity)
-	//			m_mdiChild->getImagePointer()->SetScalarComponentFromDouble(data[i].x, data[i].y, data[i].z, 0, data[i].intensity);
-	//	}
-	//int nTimeElapsed = GetMilliSpan(nTimeStart);
-	//DEBUG_LOG(QString("elapsed time in ms: %1").arg(nTimeElapsed));
-	//}
 	if (selHilberIndices.size() < 1)
 	{
-		int nTimeStart = GetMilliCount();
 		for (unsigned int i = 0; i < pathSteps; ++i)
-		{
-			unsigned short *v = static_cast< unsigned short * >
-				(m_mdiChild->getImagePointer()->GetScalarPointer(data[i].x, data[i].y, data[i].z));
-			if (*v != data[i].intensity)
-				*v = data[i].intensity;
-		}
-		int nTimeElapsed = GetMilliSpan(nTimeStart);
-		DEBUG_LOG(QString("elapsed time in ms: %1").arg(nTimeElapsed));
+			VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_mdiChild->getImagePointer(),
+				data[i].x, data[i].y, data[i].z, data[i].intensity);
 	}
 	else
 	{
@@ -238,23 +214,19 @@ void dlg_DatasetComparator::selectionChanged(const QCPDataSelection & selection)
 			{
 				if (i >= selHilberIndices.at(j).begin() && i <= selHilberIndices.at(j).end())
 				{
-					unsigned short *v = static_cast< unsigned short * >
-						(m_mdiChild->getImagePointer()->GetScalarPointer(data[i].x, data[i].y, data[i].z));
-					*v = data[i].intensity;
+					VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_mdiChild->getImagePointer(),
+						data[i].x, data[i].y, data[i].z, data[i].intensity);
 					showVoxel = true;
 					break;
 				}
 			}
 			if (!showVoxel)
-			{
-				unsigned short *v = static_cast< unsigned short * >
-					(m_mdiChild->getImagePointer()->GetScalarPointer(data[i].x, data[i].y, data[i].z));
-				*v = r[0];
-			}
+				VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_mdiChild->getImagePointer(),
+					data[i].x, data[i].y, data[i].z, r[0]);
 		}
 	}
-
 	m_mdiChild->getImagePointer()->Modified();
 	m_mdiChild->getRaycaster()->update();
+	m_mdiChild->updateSlicers();
 }
 
