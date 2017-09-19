@@ -23,13 +23,6 @@
 #include "iAUncertaintyImages.h"  // for vtkImagePointer
 
 #include <QWidget>
-/*
-class QCustomPlot;
-class QCPColorMap;
-class QCPColorScale;
-class QCPDataSelection;
-class QCPCurve;
-*/
 
 class iASPLOMData;
 class iAScatterPlot;
@@ -43,29 +36,18 @@ public:
 	vtkImagePointer GetSelectionImage();
 	void ToggleSettings();
 private slots:
-	//void SelectionChanged(QCPDataSelection const &);
-	//void ChartMousePress(QMouseEvent *);
 	void XAxisChoice();
 	void YAxisChoice();
-	void ColorThemeChanged(int index);
 signals:
 	void SelectionChanged();
 private:
 	QSharedPointer<iAUncertaintyImages> m_imgs;
-	/*
-	QCustomPlot* m_plot;
-	QCPCurve* m_curve;
-	*/
+
 	vtkImagePointer m_selectionImg;
 	size_t m_voxelCount;
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
 	QWidget* m_settings;
-	/*
-	// only relevant for heatmap
-	QCPColorMap * colorMap;
-	QCPColorScale *colorScale;
-	*/
 
 	QSharedPointer<iASPLOMData> splomData;
 	iAScatterPlot* scatterplot;
