@@ -755,7 +755,22 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		if (yValue < 1.0)
 			text = QString::number(yValue, 'g', 3);
 		else
-			text = QString::number((int)yValue, 10);
+			if (yValue > 1000000000)
+			{
+				text = QString::number((int)yValue/1000000000, 10)+"G";
+			}
+			else if (yValue > 1000000)
+			{
+				text = QString::number((int)yValue / 1000000, 10) + "M";
+			}
+			else if (yValue > 1000)
+			{
+				text = QString::number((int)yValue / 1000, 10) + "K";
+			}
+			else
+			{
+				text = QString::number((int)yValue, 10);
+			}
 
 		//calculate the y coordinate
 		int y = -(int)(pos * activeHeight * yZoom)-1;
