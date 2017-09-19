@@ -51,6 +51,7 @@ private:
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
 	QWidget* m_settings;
+	QWidget* m_scatterPlotContainer;
 
 	QSharedPointer<iASPLOMData> m_splomData;
 	iAScatterPlot* m_scatterplot;

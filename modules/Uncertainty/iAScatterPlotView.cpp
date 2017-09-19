@@ -65,11 +65,13 @@ private:
 
 iAScatterPlotView::iAScatterPlotView():
 	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
-	m_scatterPlotWidget(nullptr)
+	m_scatterPlotWidget(nullptr),
+	m_scatterPlotContainer(new QWidget())
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
-
+	m_scatterPlotContainer->setLayout(new QHBoxLayout());
+	layout()->addWidget(m_scatterPlotContainer);
 
 	m_settings = new QWidget();
 	m_settings->setLayout(new QVBoxLayout);
@@ -97,12 +99,15 @@ iAScatterPlotView::iAScatterPlotView():
 class ScatterPlotWidget : public QGLWidget
 {
 public:
-	const int PaddingLeft   = 35;
-	const int PaddingTop    = 35;
+	const int PaddingLeft   = 45;
+	const int PaddingTop    = 5;
 	const int PaddingRight  = 5;
-	const int PaddingBottom = 5;
-	ScatterPlotWidget():
-		m_scatterplot(nullptr)
+	const int PaddingBottom = 45;
+	const int TextPadding	= 2;
+	ScatterPlotWidget(QString const & captionX, QString const & captionY):
+		m_scatterplot(nullptr),
+		m_captionX(captionX),
+		m_captionY(captionY)
 	{
 		setMouseTracking(true);
 		setFocusPolicy(Qt::StrongFocus);
@@ -122,12 +127,12 @@ public:
 		painter.endNativePainting();
 		m_scatterplot->paintOnParent(painter);
 
-		// print axes labels:
+		// print axes tick labels:
 		painter.save();
 		QList<double> ticksX, ticksY; QList<QString> textX, textY;
 		m_scatterplot->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
 		painter.setPen(m_scatterplot->settings.tickLabelColor);
-		QPoint tOfs(35,35);
+		QPoint tOfs(45,45);
 		long tSpc = 5;
 		for (long i = 0; i < ticksY.size(); ++i)
 		{
@@ -138,9 +143,19 @@ public:
 		for (long i = 0; i < ticksX.size(); ++i)
 		{
 			double t = ticksX[i]; QString text = textX[i];
-			painter.drawText(QRectF(-tOfs.y() + tSpc, t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignLeft | Qt::AlignVCenter, text);
+			painter.drawText(QRectF(-tOfs.y() + tSpc - (height() - PaddingBottom - TextPadding), t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignRight | Qt::AlignVCenter, text);
 		}
 		painter.restore();
+
+		QFontMetrics fm = painter.fontMetrics();
+		// print axes labels:
+		painter.save();
+		painter.setPen(m_scatterplot->settings.tickLabelColor);
+		painter.drawText(QRectF(0, height()-fm.height()-TextPadding, width(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_captionX);
+		painter.rotate(-90);
+		painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_captionY);
+		painter.restore();
+		
 	}
 	virtual void resizeEvent(QResizeEvent* event)
 	{
@@ -153,6 +168,7 @@ public:
 	virtual void wheelEvent(QWheelEvent * event)
 	{
 		m_scatterplot->SPLOMWheelEvent(event);
+		update();
 	}
 	virtual void mousePressEvent(QMouseEvent * event)
 	{
@@ -162,6 +178,7 @@ public:
 	virtual void mouseReleaseEvent(QMouseEvent * event)
 	{
 		m_scatterplot->SPLOMMouseReleaseEvent(event);
+		update();
 	}
 
 	virtual void mouseMoveEvent(QMouseEvent * event)
@@ -177,13 +194,9 @@ public:
 			break;
 		}
 	}
-	virtual void initializeGL()
-	{
-		//qglClearColor(QColor(255, 255, 255));
-	}
-
 private:
 	iAScatterPlot* m_scatterplot;
+	QString m_captionX, m_captionY;
 };
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
@@ -208,7 +221,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	}
 
 	// setup scatterplot:
-	m_scatterPlotWidget = new ScatterPlotWidget();
+	m_scatterPlotWidget = new ScatterPlotWidget(captionX, captionY);
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), m_scatterPlotWidget);
 	m_scatterPlotWidget->setScatterPlot(m_scatterplot);
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
@@ -227,7 +240,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
 	m_scatterplot->setData(0, 1, m_splomData);
 	m_scatterplot->setLookupTable(lookupTable, captionX);
-	layout()->addWidget(m_scatterPlotWidget);
+	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 
 	connect(m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
 }
