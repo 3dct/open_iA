@@ -98,9 +98,9 @@ class ScatterPlotWidget : public QGLWidget
 {
 public:
 	const int PaddingLeft   = 45;
-	const int PaddingTop    = 5;
+	const int PaddingTop    = 45;
 	const int PaddingRight  = 5;
-	const int PaddingBottom = 45;
+	const int PaddingBottom = 5;
 	ScatterPlotWidget():
 		m_scatterplot(nullptr)
 	{
@@ -145,9 +145,9 @@ public:
 	virtual void resizeEvent(QResizeEvent* event)
 	{
 		QRect size(geometry());
-		size.moveTop(PaddingTop);
+		size.moveTop(0);
 		size.moveLeft(0);
-		size.adjust(PaddingLeft, 0, -PaddingRight, -PaddingBottom);
+		size.adjust(PaddingLeft, PaddingTop, -PaddingRight, -PaddingBottom);
 		m_scatterplot->setRect(size);
 	}
 	virtual void wheelEvent(QWheelEvent * event)
