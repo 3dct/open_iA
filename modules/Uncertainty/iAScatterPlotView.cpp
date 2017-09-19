@@ -96,6 +96,10 @@ iAScatterPlotView::iAScatterPlotView():
 class ScatterPlotWidget : public QGLWidget
 {
 public:
+	const int PaddingLeft   = 45;
+	const int PaddingTop    = 5;
+	const int PaddingRight  = 5;
+	const int PaddingBottom = 45;
 	ScatterPlotWidget():
 		m_scatterplot(nullptr)
 	{
@@ -112,15 +116,37 @@ public:
 		painter.setRenderHint(QPainter::Antialiasing);
 		painter.setRenderHint(QPainter::HighQualityAntialiasing);
 		painter.beginNativePainting();
+		glClearColor(1.0, 1.0, 1.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		painter.endNativePainting();
 		m_scatterplot->paintOnParent(painter);
+
+		// print axes labels:
+		painter.save();
+		QList<double> ticksX, ticksY; QList<QString> textX, textY;
+		m_scatterplot->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+		painter.setPen(m_scatterplot->settings.tickLabelColor);
+		QPoint tOfs(45,45);
+		long tSpc = 5;
+		for (long i = 0; i < ticksY.size(); ++i)
+		{
+			double t = ticksY[i]; QString text = textY[i];
+			painter.drawText(QRectF(0, t - tOfs.y(), tOfs.x() - tSpc, 2 * tOfs.y()), Qt::AlignRight | Qt::AlignVCenter, text);
+		}
+		painter.rotate(-90);
+		for (long i = 0; i < ticksX.size(); ++i)
+		{
+			double t = ticksX[i]; QString text = textX[i];
+			painter.drawText(QRectF(-tOfs.y() + tSpc, t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignLeft | Qt::AlignVCenter, text);
+		}
+		painter.restore();
 	}
 	virtual void resizeEvent(QResizeEvent* event)
 	{
 		QRect size(geometry());
-		size.moveTop(0);
+		size.moveTop(PaddingTop);
 		size.moveLeft(0);
+		size.adjust(PaddingLeft, 0, -PaddingRight, -PaddingBottom);
 		m_scatterplot->setRect(size);
 	}
 	virtual void wheelEvent(QWheelEvent * event)
@@ -152,7 +178,7 @@ public:
 	}
 	virtual void initializeGL()
 	{
-		qglClearColor(QColor(255, 255, 255));
+		//qglClearColor(QColor(255, 255, 255));
 	}
 
 private:
