@@ -66,9 +66,10 @@ tickLabelColor( QColor( 100, 100, 100 ) ),
 backgroundColor( QColor( 255, 255, 255 ) )
 {}
 
-iAScatterPlot::iAScatterPlot( iAQSplom * splom /*= 0*/, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */, QGLWidget* parent /*= nullptr*/)
-	:QObject( splom ),
+iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
+	:QObject(parent),
 	settings(),
+	m_parentWidget(parent),
 	m_splom( splom ),
 	m_lut( new iALookupTable() ),
 	m_scale( 1.0 ),
@@ -81,7 +82,6 @@ iAScatterPlot::iAScatterPlot( iAQSplom * splom /*= 0*/, int numTicks /*= 5*/, bo
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false )
 {
-	m_parentWidget = parent ? parent : splom;
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
 }
@@ -547,11 +547,9 @@ QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
 
 void iAScatterPlot::updateSelectedPoints( bool append )
 {
-	if (!m_splom)
-		return;
-	QVector<unsigned int> * selInds = m_splom->getSelection();
+	QVector<unsigned int> & selInds = m_splom->getSelection();
 	if ( !append )
-		selInds->clear();
+		selInds.clear();
 	QPolygonF pPoly;
 	for ( int i = 0; i < m_selPoly.size(); ++i )
 	{
@@ -569,8 +567,8 @@ void iAScatterPlot::updateSelectedPoints( bool append )
 			QPointF pt( m_splomData->paramData( m_paramIndices[0] )[i], m_splomData->paramData( m_paramIndices[1] )[i] );
 			if ( pPoly.containsPoint( pt, Qt::OddEvenFill ) )
 			{
-				if ( append ) if ( selInds->contains( i ) ) continue;
-				selInds->push_back( i );
+				if ( append ) if ( selInds.contains( i ) ) continue;
+				selInds.push_back( i );
 			}
 		}
 		}
@@ -671,11 +669,8 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glDisableClientState( GL_COLOR_ARRAY );
 	glColor3f( 0.f, 0.f, 0.f );
 
-	if (m_splom)
-	{
-		QVector<unsigned int> * selInds = m_splom->getSelection();
-		glDrawElements(GL_POINTS, selInds->size(), GL_UNSIGNED_INT, selInds->data());
-	}
+	QVector<unsigned int> & selInds = m_splom->getSelection();
+	glDrawElements(GL_POINTS, selInds.size(), GL_UNSIGNED_INT, selInds.data());
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
 
@@ -702,7 +697,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		}
 
 		//draw highlighted points
-		const QList<int> & highlightedPoints = *m_splom->getHighlightedPoints();
+		const QList<int> & highlightedPoints = m_splom->getHighlightedPoints();
 		foreach(const int & ind, highlightedPoints)
 		{
 			double curPtSize = ptSize * settings.pickedPointMagnification;

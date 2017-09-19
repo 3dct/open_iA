@@ -64,9 +64,9 @@ void iAQSplom::setAnimOut( double anim )
 	update();
 }
 
-const QList<int> * iAQSplom::getHighlightedPoints() const
+const QList<int> & iAQSplom::getHighlightedPoints() const
 {
-	return &m_highlightedPoints;
+	return m_highlightedPoints;
 }
 
 iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
@@ -115,7 +115,7 @@ void iAQSplom::setData( const QTableWidget * data )
 		QList<iAScatterPlot*> row;
 		for( unsigned long x = 0; x < numParams; ++x )
 		{
-			iAScatterPlot * s = new iAScatterPlot(this);
+			iAScatterPlot * s = new iAScatterPlot(this, this);
 			connect( s, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
 			connect( s, SIGNAL( transformModified( double, QPointF ) ), this, SLOT( transformUpdated( double, QPointF ) ) );
 			connect( s, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
@@ -178,9 +178,9 @@ void iAQSplom::setParameterVisibility( int paramIndex, bool isVisible )
 	update();
 }
 
-QVector<unsigned int> * iAQSplom::getSelection()
+QVector<unsigned int> & iAQSplom::getSelection()
 {
-	return &m_selInds;
+	return m_selInds;
 }
 
 void iAQSplom::setSelection( const QVector<unsigned int> * selInds )
@@ -363,7 +363,7 @@ void iAQSplom::plotMaximized()
 
 	//create main plot
 	delete m_maximizedPlot;
-	m_maximizedPlot = new iAScatterPlot( this, 11, true );
+	m_maximizedPlot = new iAScatterPlot( this, this, 11, true );
 	connect( m_maximizedPlot, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
 	connect( m_maximizedPlot, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
 	connect( m_maximizedPlot, SIGNAL( plotMaximized() ), this, SLOT( plotMinimized() ) );

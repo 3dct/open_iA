@@ -27,8 +27,8 @@
 #include <QOpenGLFramebufferObject>
 #include <QList>
 
-class iAQSplom;
 class iALookupTable;
+class iAScatterPlotSelectionHandler;
 class iASPLOMData;
 class QTableWidget;
 class QTimer;
@@ -47,7 +47,7 @@ class open_iA_Core_API iAScatterPlot : public QObject
 		//Methods
 public:
 	//!  Constructor: requires a parent SPLOM widget
-	iAScatterPlot( iAQSplom * splom = nullptr, int numTicks = 5, bool isMaximizedPlot = false, QGLWidget* parent = nullptr);
+	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData );			//!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
@@ -163,7 +163,7 @@ public:
 	Settings settings;
 protected:
 	QGLWidget* m_parentWidget;					//!< the parent widget
-	iAQSplom * m_splom;							//!< SPLOM-parent
+	iAScatterPlotSelectionHandler * m_splom;	//!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;							//!< plot's rectangle
 	QRectF m_locRect;							//!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;	//!< pointer to SPLOM-parent's data
