@@ -22,6 +22,7 @@
 
 #include "iAColors.h"
 #include "iAConsole.h"
+#include "iALookupTable.h"
 #include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
 #include "iAScatterPlot.h"
@@ -152,7 +153,8 @@ public:
 	ScatterPlotWidget(iAScatterPlot* scatterplot) :
 		m_scatterplot(scatterplot)
 	{
-		qglClearColor(QColor(255, 255, 255));
+		setMouseTracking(true);
+		setFocusPolicy(Qt::StrongFocus);
 	}
 	virtual void paintEvent(QPaintEvent * event)
 	{
@@ -166,31 +168,28 @@ public:
 	}
 	virtual void resizeEvent(QResizeEvent* event)
 	{
-		m_scatterplot->setRect(geometry());
-		m_scatterplot->setPSize(width(), height());
-		update();
+		QRect size(geometry());
+		size.moveTop(0);
+		size.moveLeft(0);
+		m_scatterplot->setRect(size);
 	}
 	virtual void wheelEvent(QWheelEvent * event)
 	{
 		m_scatterplot->SPLOMWheelEvent(event);
-		update();
 	}
 	virtual void mousePressEvent(QMouseEvent * event)
 	{
 		m_scatterplot->SPLOMMousePressEvent(event);
-		update();
 	}
 
 	virtual void mouseReleaseEvent(QMouseEvent * event)
 	{
 		m_scatterplot->SPLOMMouseReleaseEvent(event);
-		update();
 	}
 
 	virtual void mouseMoveEvent(QMouseEvent * event)
 	{
 		m_scatterplot->SPLOMMouseMoveEvent(event);
-		update();
 	}
 	virtual void keyPressEvent(QKeyEvent * event)
 	{
@@ -200,7 +199,10 @@ public:
 			m_scatterplot->setTransform(1.0, QPointF(0.0f, 0.0f));
 			break;
 		}
-		update();
+	}
+	virtual void initializeGL()
+	{
+		qglClearColor(QColor(255, 255, 255));
 	}
 
 private:
@@ -209,15 +211,14 @@ private:
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
+	// setup data object:
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-
 	splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	splomData->paramNames().push_back(captionX);
 	splomData->paramNames().push_back(captionY);
-	
 	QList<double> values0;
 	splomData->data().push_back(values0);
 	QList<double> values1;
@@ -227,10 +228,10 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 		splomData->data()[0].push_back(bufX[i]);
 		splomData->data()[1].push_back(bufY[i]);
 	}
+
+	// setup scatterplot:
 	scatterplot = new iAScatterPlot();
-	scatterplot->setData(0, 1, splomData);
 	ScatterPlotWidget *scatterPlotWidget = new ScatterPlotWidget(scatterplot);
-	/*
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { 0, 1 };
 	lut->SetRange(lutRange);
@@ -244,13 +245,11 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 		lut->SetTableValue(i, rgba);
 	}
 	lut->Build();
-	splom->setLookupTable(lut, captionX);
-	*/
+	QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
+	scatterplot->setData(0, 1, splomData);
+	scatterplot->setLookupTable(lookupTable, captionX);
 	layout()->addWidget(scatterPlotWidget);
-	scatterplot->setRect(scatterPlotWidget->geometry());
-	scatterplot->setPSize(scatterPlotWidget->width(), scatterPlotWidget->height());
 
-	//iAScatterPlot* scatterPlot = new iAScatterPlot(); // apparently we can't have a single scatterplot but need a matrix
 	/*
 	// QCUSTOMPLOT {
 	QCPDataSelection selection;
@@ -260,7 +259,6 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	}
 	m_plot->clearPlottables();
 	*/
-
 /*
 	// HEATMAP {
 	const int BinCountX = 250;
