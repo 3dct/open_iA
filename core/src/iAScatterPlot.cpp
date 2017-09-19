@@ -22,6 +22,7 @@
 #include "pch.h"
 #include "iAScatterPlot.h"
 
+#include "iAConsole.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
 #include "iAQSplom.h"
@@ -65,7 +66,7 @@ tickLabelColor( QColor( 100, 100, 100 ) ),
 backgroundColor( QColor( 255, 255, 255 ) )
 {}
 
-iAScatterPlot::iAScatterPlot( iAQSplom * splom /*= 0*/, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */ )
+iAScatterPlot::iAScatterPlot( iAQSplom * splom /*= 0*/, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */, QGLWidget* parent /*= nullptr*/)
 	:QObject( splom ),
 	settings(),
 	m_splom( splom ),
@@ -80,6 +81,7 @@ iAScatterPlot::iAScatterPlot( iAQSplom * splom /*= 0*/, int numTicks /*= 5*/, bo
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false )
 {
+	m_parentWidget = parent ? parent : splom;
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
 }
@@ -104,7 +106,7 @@ bool iAScatterPlot::hasData() const
 	return true;
 }
 
-void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, QString & colorArrayName )
+void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName )
 {
 	m_lut = lut;
 	//qDebug() << colorArrayName;
@@ -136,8 +138,7 @@ void iAScatterPlot::setTransform( double scale, QPointF newOffset )
 	if ( isUpdate )
 	{
 		calculateNiceSteps();
-		if (m_splom)
-			m_splom->update();
+		m_parentWidget->update();
 	}
 }
 
@@ -288,8 +289,8 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		isUpdate = true;
 	}
 
-	if ( isUpdate && m_splom)
-		m_splom->update();
+	if ( isUpdate)
+		m_parentWidget->update();
 }
 
 void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
@@ -624,13 +625,8 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	if ( !m_splomData )
 		return;
 
-	int pwidth  = m_pwidth;
-	int pheight = m_pheight;
-	if (m_splom)
-	{
-		pwidth  = m_splom->width();
-		pheight = m_splom->height();
-	}
+	int pwidth  = m_parentWidget->width();
+	int pheight = m_parentWidget->height();
 
 	painter.save();
 	double ptRad = getPointRadius();
@@ -640,7 +636,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	painter.beginNativePainting();
 	QPoint tl = m_globRect.topLeft(), br = m_globRect.bottomRight();
 	//glScissor( tl.x() - 3, h - br.y(), br.x() - tl.x() + 6, br.y() - tl.y() );
-	int y = m_pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
+	int y = pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
 
 
 
@@ -658,8 +654,11 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	glScissor( m_globRect.left(), y, m_globRect.width(), m_globRect.height() );
 	glEnable( GL_SCISSOR_TEST );
-	if ( !m_pointsBuffer->bind() )//TODO: proper handling (exceptions?)
+	if (!m_pointsBuffer->bind())//TODO: proper handling (exceptions?)
+	{
+		DEBUG_LOG("Failed to bind points buffer!");
 		return;
+	}
 	glEnable( GL_POINT_SMOOTH );
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -863,8 +862,7 @@ void iAScatterPlot::drawMaximizeButton( QPainter & painter )
 
 void iAScatterPlot::createAndFillVBO()
 {
-	if (m_splom)
-		m_splom->makeCurrent();
+	m_parentWidget->makeCurrent();
 	if ( m_pointsBuffer )
 	{
 		m_pointsBuffer->release();
@@ -920,11 +918,4 @@ double iAScatterPlot::getPointRadius() const
 	if ( m_isMaximizedPlot )
 		res *= settings.maximizedPointMagnification;
 	return res;
-}
-
-
-void iAScatterPlot::setPSize(int width, int height)
-{
-	m_pwidth = width;
-	m_pheight = height;
 }

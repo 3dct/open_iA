@@ -47,13 +47,13 @@ class open_iA_Core_API iAScatterPlot : public QObject
 		//Methods
 public:
 	//!  Constructor: requires a parent SPLOM widget
-	iAScatterPlot( iAQSplom * splom = 0, int numTicks = 5, bool isMaximizedPlot = false );
+	iAScatterPlot( iAQSplom * splom = nullptr, int numTicks = 5, bool isMaximizedPlot = false, QGLWidget* parent = nullptr);
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData );			//!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
 	bool hasData() const;															//!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
-	void setLookupTable( QSharedPointer<iALookupTable> &lut, QString & colorArrayName );
+	void setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName );
 	const int * getIndices() const { return m_paramIndices; }						//!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );							//!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );					//!< Set new transform: new scale and change in the offset (delta)
@@ -80,7 +80,6 @@ public:
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
 
-	void setPSize(int width, int height);
 protected:
 	int p2binx( double p ) const;											//!< Get grid bin index using parameter value X
 	int p2biny( double p ) const;											//!< Get grid bin index using parameter value Y
@@ -163,7 +162,8 @@ protected:
 public:
 	Settings settings;
 protected:
-	iAQSplom * m_splom;				//!< SPLOM-parent
+	QGLWidget* m_parentWidget;					//!< the parent widget
+	iAQSplom * m_splom;							//!< SPLOM-parent
 	QRect m_globRect;							//!< plot's rectangle
 	QRectF m_locRect;							//!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;	//!< pointer to SPLOM-parent's data
@@ -195,6 +195,4 @@ protected:
 	//state flags
 	bool m_isMaximizedPlot;						//!< flag telling if plot is maximized (bigger plot)
 	bool m_isPreviewPlot;						//!< flag telling if plot is previewed (displayed in maximized plot)
-
-	int m_pwidth, m_pheight;
 };

@@ -23,6 +23,7 @@
 #include "iAQSplom.h"
 #include "iAScatterPlot.h"
 #include "iALookupTable.h"
+#include "iAMathUtility.h"
 #include "iASPLOMData.h"
 
 #include <vtkLookupTable.h>
@@ -514,10 +515,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 	//boundary checks
 	for( int i = 0; i < 2; ++i )		
 	{
-		if( ind[i] >= getVisibleParametersCount() )	
-			ind[i] = getVisibleParametersCount() - 1;
-		if( ind[i] < 0 )	
-			ind[i] = 0;
+		ind[i] = clamp(0, getVisibleParametersCount() - 1, ind[i]);
 	}
 	//are we between plots due to the spacing?
 	bool isBetween = false;
