@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAHistogramView.h"
 
+#include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
 #include "iAFunctionDrawers.h"
 #include "iASimpleHistogramData.h"
@@ -46,7 +47,7 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramChartWidget::GetDat
 }
 QSharedPointer<iAAbstractDrawableFunction> iAHistogramChartWidget::CreatePrimaryDrawer()
 {
-	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(0, 0, 255), 2));
+	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, Uncertainty::ChartColor, 2));
 }
 
 iAHistogramView::iAHistogramView()

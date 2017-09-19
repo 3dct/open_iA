@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMemberView.h"
 
-#include "iAColors.h"
+#include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
 
 #include <QHBoxLayout>

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlotView.h"
 
-#include "iAColors.h"
+#include "iAUncertaintyColors.h"
 #include "iAConsole.h"
 #include "iALookupTable.h"
 #include "iAPerformanceHelper.h"
@@ -228,12 +228,16 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { 0, 1 };
 	lut->SetRange(lutRange);
+	lut->SetNumberOfTableValues(2);
 	lut->Build();
 	vtkIdType lutColCnt = lut->GetNumberOfTableValues();
 	double alpha = 0.5;
 	for (vtkIdType i = 0; i < lutColCnt; i++)
 	{
 		double rgba[4]; lut->GetTableValue(i, rgba);
+		rgba[0] = Uncertainty::ChartColor.red() / 255.0;
+		rgba[1] = Uncertainty::ChartColor.green() / 255.0;
+		rgba[2] = Uncertainty::ChartColor.blue() / 255.0;
 		rgba[3] = alpha;
 		lut->SetTableValue(i, rgba);
 	}

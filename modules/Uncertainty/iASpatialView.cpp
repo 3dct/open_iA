@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASpatialView.h"
 
-#include "iAColors.h"
+#include "iAUncertaintyColors.h"
 #include "iAImageWidget.h"
 
 #include "iAChannelVisualizationData.h"
