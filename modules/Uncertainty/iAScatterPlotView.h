@@ -27,6 +27,7 @@
 class iASPLOMData;
 class iAScatterPlot;
 class iAScatterPlotStandaloneHandler;
+class ScatterPlotWidget;
 
 class iAScatterPlotView: public QWidget
 {
@@ -51,8 +52,9 @@ private:
 	int m_xAxisChoice, m_yAxisChoice;
 	QWidget* m_settings;
 
-	QSharedPointer<iASPLOMData> splomData;
-	iAScatterPlot* scatterplot;
+	QSharedPointer<iASPLOMData> m_splomData;
+	iAScatterPlot* m_scatterplot;
+	ScatterPlotWidget *m_scatterPlotWidget;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 
 	int m_gradient;

@@ -64,7 +64,8 @@ private:
 };
 
 iAScatterPlotView::iAScatterPlotView():
-	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler())
+	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
+	m_scatterPlotWidget(nullptr)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
@@ -187,28 +188,29 @@ private:
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
+	delete m_scatterPlotWidget;
 	// setup data object:
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
-	splomData->paramNames().push_back(captionX);
-	splomData->paramNames().push_back(captionY);
+	m_splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	m_splomData->paramNames().push_back(captionX);
+	m_splomData->paramNames().push_back(captionY);
 	QList<double> values0;
-	splomData->data().push_back(values0);
+	m_splomData->data().push_back(values0);
 	QList<double> values1;
-	splomData->data().push_back(values1);
+	m_splomData->data().push_back(values1);
 	for (size_t i = 0; i < m_voxelCount; ++i)
 	{
-		splomData->data()[0].push_back(bufX[i]);
-		splomData->data()[1].push_back(bufY[i]);
+		m_splomData->data()[0].push_back(bufX[i]);
+		m_splomData->data()[1].push_back(bufY[i]);
 	}
 
 	// setup scatterplot:
-	ScatterPlotWidget *scatterPlotWidget = new ScatterPlotWidget();
-	scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), scatterPlotWidget);
-	scatterPlotWidget->setScatterPlot(scatterplot);
+	m_scatterPlotWidget = new ScatterPlotWidget();
+	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), m_scatterPlotWidget);
+	m_scatterPlotWidget->setScatterPlot(m_scatterplot);
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { 0, 1 };
 	lut->SetRange(lutRange);
@@ -223,11 +225,11 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	}
 	lut->Build();
 	QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
-	scatterplot->setData(0, 1, splomData);
-	scatterplot->setLookupTable(lookupTable, captionX);
-	layout()->addWidget(scatterPlotWidget);
+	m_scatterplot->setData(0, 1, m_splomData);
+	m_scatterplot->setLookupTable(lookupTable, captionX);
+	layout()->addWidget(m_scatterPlotWidget);
 
-	connect(scatterplot, SIGNAL(selectionModified()), this, SLOT(selectionUpdated()));
+	connect(m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
 }
 
 
@@ -296,7 +298,17 @@ void iAScatterPlotView::YAxisChoice()
 
 void iAScatterPlotView::SelectionUpdated()
 {
-	QVector<unsigned int> m_points = m_scatterPlotHandler->getSelection();
+	QVector<unsigned int> selectedPoints = m_scatterPlotHandler->getSelection();
+
+	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
+	for (int v = 0; v<m_voxelCount; ++v)
+	{
+		*buf = selectedPoints.contains(v) ? 1 : 0;
+		buf++;
+	}
+	m_selectionImg->Modified();
+	//StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
+	emit SelectionChanged();
 }
 
 vtkImagePointer iAScatterPlotView::GetSelectionImage()
