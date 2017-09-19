@@ -760,15 +760,15 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		else
 			if (yValue > 1000000000)
 			{
-				text = QString::number(yValue/1000000000.0, 'g', 2)+"G";
+				text = QString::number(yValue/1000000000.0, 'f', 2)+"G";
 			}
 			else if (yValue > 1000000)
 			{
-				text = QString::number(yValue / 1000000, 'g', 2) + "M";
+				text = QString::number(yValue / 1000000, 'f', 2) + "M";
 			}
 			else if (yValue > 1000)
 			{
-				text = QString::number(yValue / 1000, 'g', 2) + "K";
+				text = QString::number(yValue / 1000, 'f', 2) + "K";
 			}
 			else
 			{
@@ -781,7 +781,7 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		painter.drawLine((int)(-LeftMargin()*0.1), y, 0, y);
 
 		if(i == stepNumber)
-			painter.drawText(TEXT_X-LeftMargin(), y+0.75*fontHeight, text); //write the text left aligned to the indicator line
+			painter.drawText(TEXT_X-LeftMargin(), y+0.75*fontHeight, text); //write the text top aligned to the indicator line
 		else
 			painter.drawText(TEXT_X-LeftMargin(), y+0.25*fontHeight, text); //write the text centered to the indicator line
 
