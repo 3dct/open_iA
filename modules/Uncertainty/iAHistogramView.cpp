@@ -47,7 +47,7 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramChartWidget::GetDat
 }
 QSharedPointer<iAAbstractDrawableFunction> iAHistogramChartWidget::CreatePrimaryDrawer()
 {
-	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, Uncertainty::ChartColor, 2));
+	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2));
 }
 
 iAHistogramView::iAHistogramView()

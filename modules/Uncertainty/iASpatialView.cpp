@@ -265,9 +265,9 @@ vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT()
 	result->SetRange(0, 1);                  // alpha value here is not used!
 	result->SetTableValue(0.0, 0.0, 0.0, 0.0);
 	result->SetTableValue(1.0,
-		Uncertainty::SelectionColor.red() / 255.0,
-		Uncertainty::SelectionColor.green() / 255.0,
-		Uncertainty::SelectionColor.blue() / 255.0);
+		iAUncertaintyColors::Selection.red() / 255.0,
+		iAUncertaintyColors::Selection.green() / 255.0,
+		iAUncertaintyColors::Selection.blue() / 255.0);
 	result->Build();
 	return result;
 }

@@ -65,10 +65,10 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	m_sortedIndices = sort_indices_desc<double>(ensemble->MemberAttribute(iAEnsemble::UncertaintyMean));
 
 	mean = new QCPBars(m_plot->xAxis, m_plot->yAxis);
-	mean->setPen(QPen(Uncertainty::MemberBarColor));
+	mean->setPen(QPen(iAUncertaintyColors::MemberBar));
 	mean->setName("Mean Uncertainty");
 	mean->setSelectable(QCP::stMultipleDataRanges);
-	mean->selectionDecorator()->setPen(Uncertainty::SelectionColor);
+	mean->selectionDecorator()->setPen(iAUncertaintyColors::Selection);
 
 	
 

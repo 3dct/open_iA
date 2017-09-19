@@ -22,9 +22,9 @@
 
 #include <QColor>
 
-struct Uncertainty
+struct iAUncertaintyColors
 {
-	static QColor ChartColor;
-	static QColor SelectionColor;
-	static QColor MemberBarColor;
+	static QColor Chart;
+	static QColor Selection;
+	static QColor MemberBar;
 };

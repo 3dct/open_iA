@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAScatterPlotView.h"
 
-#include "iAUncertaintyColors.h"
 #include "iAConsole.h"
 #include "iALookupTable.h"
 #include "iAPerformanceHelper.h"
@@ -28,6 +27,7 @@
 #include "iAScatterPlot.h"
 #include "iAScatterPlotSelectionHandler.h"
 #include "iASPLOMData.h"
+#include "iAUncertaintyColors.h"
 
 #include <QGLWidget>
 #include <QHBoxLayout>
@@ -224,6 +224,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	// setup scatterplot:
 	m_scatterPlotWidget = new ScatterPlotWidget(captionX, captionY);
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), m_scatterPlotWidget);
+	m_scatterplot->settings.selectionColor = iAUncertaintyColors::Selection;
 	m_scatterPlotWidget->setScatterPlot(m_scatterplot);
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { 0, 1 };
@@ -235,9 +236,9 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	for (vtkIdType i = 0; i < lutColCnt; i++)
 	{
 		double rgba[4]; lut->GetTableValue(i, rgba);
-		rgba[0] = Uncertainty::ChartColor.red() / 255.0;
-		rgba[1] = Uncertainty::ChartColor.green() / 255.0;
-		rgba[2] = Uncertainty::ChartColor.blue() / 255.0;
+		rgba[0] = iAUncertaintyColors::Chart.red() / 255.0;
+		rgba[1] = iAUncertaintyColors::Chart.green() / 255.0;
+		rgba[2] = iAUncertaintyColors::Chart.blue() / 255.0;
 		rgba[3] = alpha;
 		lut->SetTableValue(i, rgba);
 	}
