@@ -150,11 +150,15 @@ iAScatterPlotView::iAScatterPlotView()
 class ScatterPlotWidget : public QGLWidget
 {
 public:
-	ScatterPlotWidget(iAScatterPlot* scatterplot) :
-		m_scatterplot(scatterplot)
+	ScatterPlotWidget():
+		m_scatterplot(nullptr)
 	{
 		setMouseTracking(true);
 		setFocusPolicy(Qt::StrongFocus);
+	}
+	void setScatterPlot(iAScatterPlot* scatterplot)
+	{
+		m_scatterplot = scatterplot;
 	}
 	virtual void paintEvent(QPaintEvent * event)
 	{
@@ -230,8 +234,9 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	}
 
 	// setup scatterplot:
-	scatterplot = new iAScatterPlot();
-	ScatterPlotWidget *scatterPlotWidget = new ScatterPlotWidget(scatterplot);
+	ScatterPlotWidget *scatterPlotWidget = new ScatterPlotWidget();
+	scatterplot = new iAScatterPlot(nullptr, 5, false, scatterPlotWidget);
+	scatterPlotWidget->setScatterPlot(scatterplot);
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { 0, 1 };
 	lut->SetRange(lutRange);
