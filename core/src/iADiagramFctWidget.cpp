@@ -760,15 +760,15 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		else
 			if (yValue > 1000000000)
 			{
-				text = QString::number(yValue/1000000000.0, 'f', 2)+"G";
+				text = QString::number(yValue/1000000000.0, 'f', (yValue < 10000000000) ? 2 : 1)+"G";
 			}
 			else if (yValue > 1000000)
 			{
-				text = QString::number(yValue / 1000000, 'f', 2) + "M";
+				text = QString::number(yValue / 1000000, 'f', (yValue < 10000000) ? 2 : 1) + "M";
 			}
 			else if (yValue > 1000)
 			{
-				text = QString::number(yValue / 1000, 'f', 2) + "K";
+				text = QString::number(yValue / 1000, 'f', (yValue < 10000) ? 2 : 1) + "K";
 			}
 			else
 			{
