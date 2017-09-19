@@ -26,6 +26,7 @@
 #include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
 #include "iAScatterPlot.h"
+#include "iAScatterPlotSelectionHandler.h"
 #include "iASPLOMData.h"
 
 #include <QGLWidget>
@@ -39,7 +40,31 @@
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 
-iAScatterPlotView::iAScatterPlotView()
+class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
+{
+public:
+	virtual QVector<unsigned int> & getSelection() {
+		return m_selection;
+	}
+	virtual const QList<int> & getHighlightedPoints() const {
+		return m_highlight;
+	}
+	virtual int getVisibleParametersCount() const {
+		return 2;
+	}
+	virtual double getAnimIn() const {
+		return 1.0;
+	}
+	virtual double getAnimOut() const {
+		return 0.0;
+	}
+private:
+	QList<int> m_highlight;
+	QVector<unsigned int> m_selection;
+};
+
+iAScatterPlotView::iAScatterPlotView():
+	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler())
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
@@ -156,7 +181,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 
 	// setup scatterplot:
 	ScatterPlotWidget *scatterPlotWidget = new ScatterPlotWidget();
-	scatterplot = new iAScatterPlot(nullptr, 5, false, scatterPlotWidget);
+	scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), scatterPlotWidget);
 	scatterPlotWidget->setScatterPlot(scatterplot);
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { 0, 1 };
@@ -176,6 +201,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	scatterplot->setLookupTable(lookupTable, captionX);
 	layout()->addWidget(scatterPlotWidget);
 
+	connect(scatterplot, SIGNAL(selectionModified()), this, SLOT(selectionUpdated()));
 }
 
 
@@ -244,7 +270,7 @@ void iAScatterPlotView::YAxisChoice()
 
 void iAScatterPlotView::SelectionUpdated()
 {
-
+	QVector<unsigned int> m_points = m_scatterPlotHandler->getSelection();
 }
 
 vtkImagePointer iAScatterPlotView::GetSelectionImage()

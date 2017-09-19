@@ -26,6 +26,7 @@
 
 class iASPLOMData;
 class iAScatterPlot;
+class iAScatterPlotStandaloneHandler;
 
 class iAScatterPlotView: public QWidget
 {
@@ -38,6 +39,7 @@ public:
 private slots:
 	void XAxisChoice();
 	void YAxisChoice();
+	void SelectionUpdated();
 signals:
 	void SelectionChanged();
 private:
@@ -51,6 +53,7 @@ private:
 
 	QSharedPointer<iASPLOMData> splomData;
 	iAScatterPlot* scatterplot;
+	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
