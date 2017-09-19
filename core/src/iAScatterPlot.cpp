@@ -63,7 +63,8 @@ selectionPolyColor( QColor( 150, 150, 150, 100 ) ),
 plotBorderColor( QColor( 170, 170, 170 ) ),
 tickLineColor( QColor( 221, 221, 221 ) ),
 tickLabelColor( QColor( 100, 100, 100 ) ),
-backgroundColor( QColor( 255, 255, 255 ) )
+backgroundColor( QColor( 255, 255, 255 ) ),
+selectionColor( QColor(0, 0, 0) )
 {}
 
 iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
@@ -667,7 +668,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glColorPointer( 4, GL_FLOAT, 7 * sizeof( GLfloat ), (const void *) ( 3 * sizeof( GLfloat ) ) );
 	glDrawArrays( GL_POINTS, 0, m_splomData->numPoints() );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
 	glDisableClientState( GL_COLOR_ARRAY );
-	glColor3f( 0.f, 0.f, 0.f );
+	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
 	QVector<unsigned int> & selInds = m_splom->getSelection();
 	glDrawElements(GL_POINTS, selInds.size(), GL_UNSIGNED_INT, selInds.data());

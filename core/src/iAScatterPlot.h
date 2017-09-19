@@ -153,9 +153,7 @@ protected:
 		QColor tickLineColor;
 		QColor tickLabelColor;
 		QColor backgroundColor;
-		QColor popupBorderColor;
-		QColor popupFillColor;
-		QColor popupTextColor;
+		QColor selectionColor;
 	};
 
 	//Members
