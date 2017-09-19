@@ -780,7 +780,7 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		//draw a small indicator line
 		painter.drawLine((int)(-LeftMargin()*0.1), y, 0, y);
 
-		if(i == Y_AXIS_STEPS)
+		if(i == stepNumber)
 			painter.drawText(TEXT_X-LeftMargin(), y+0.75*fontHeight, text); //write the text left aligned to the indicator line
 		else
 			painter.drawText(TEXT_X-LeftMargin(), y+0.25*fontHeight, text); //write the text centered to the indicator line
