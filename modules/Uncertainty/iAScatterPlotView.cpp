@@ -71,6 +71,7 @@ iAScatterPlotView::iAScatterPlotView():
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
 	m_scatterPlotContainer->setLayout(new QHBoxLayout());
+	m_scatterPlotContainer->layout()->setSpacing(0);
 	layout()->addWidget(m_scatterPlotContainer);
 
 	m_settings = new QWidget();
@@ -312,11 +313,11 @@ void iAScatterPlotView::YAxisChoice()
 void iAScatterPlotView::SelectionUpdated()
 {
 	QVector<unsigned int> selectedPoints = m_scatterPlotHandler->getSelection();
-
+	std::set<unsigned int> selectedSet(selectedPoints.begin(), selectedPoints.end());
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
-	for (int v = 0; v<m_voxelCount; ++v)
+	for (unsigned int v = 0; v<m_voxelCount; ++v)
 	{
-		*buf = selectedPoints.contains(v) ? 1 : 0;
+		*buf = selectedSet.find(v) != selectedSet.end() ? 1 : 0;
 		buf++;
 	}
 	m_selectionImg->Modified();
