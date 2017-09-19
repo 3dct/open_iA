@@ -97,8 +97,8 @@ iAScatterPlotView::iAScatterPlotView():
 class ScatterPlotWidget : public QGLWidget
 {
 public:
-	const int PaddingLeft   = 45;
-	const int PaddingTop    = 45;
+	const int PaddingLeft   = 35;
+	const int PaddingTop    = 35;
 	const int PaddingRight  = 5;
 	const int PaddingBottom = 5;
 	ScatterPlotWidget():
@@ -127,7 +127,7 @@ public:
 		QList<double> ticksX, ticksY; QList<QString> textX, textY;
 		m_scatterplot->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
 		painter.setPen(m_scatterplot->settings.tickLabelColor);
-		QPoint tOfs(45,45);
+		QPoint tOfs(35,35);
 		long tSpc = 5;
 		for (long i = 0; i < ticksY.size(); ++i)
 		{
