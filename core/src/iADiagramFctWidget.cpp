@@ -736,10 +736,13 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 
 	int activeHeight = ActiveHeight()-1;
 
-	const double step = 1.0 / (Y_AXIS_STEPS * yZoom);
+	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
+	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (fontHeight*1.1)) );
+	stepNumber = std::max(1, stepNumber);	// make sure there's at least 2 steps
+	const double step = 1.0 / (stepNumber * yZoom);
 	double logMax = LogFunc(static_cast<double>(m_maxYAxisValue));
 
-	for (int i = 0; i <= Y_AXIS_STEPS; ++i)
+	for (int i = 0; i <= stepNumber; ++i)
 	{
 		//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (rayLength / width)
 		double pos = step * i;
@@ -757,15 +760,15 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		else
 			if (yValue > 1000000000)
 			{
-				text = QString::number((int)yValue/1000000000, 10)+"G";
+				text = QString::number(yValue/1000000000.0, 'g', 2)+"G";
 			}
 			else if (yValue > 1000000)
 			{
-				text = QString::number((int)yValue / 1000000, 10) + "M";
+				text = QString::number(yValue / 1000000, 'g', 2) + "M";
 			}
 			else if (yValue > 1000)
 			{
-				text = QString::number((int)yValue / 1000, 10) + "K";
+				text = QString::number(yValue / 1000, 'g', 2) + "K";
 			}
 			else
 			{
