@@ -28,6 +28,10 @@
 #include <QDockWidget>
 #include <QDir>
 
+template <typename ArgType, typename ValType>
+class iAFunctionalBoxplot;
+typedef iAFunctionalBoxplot< unsigned int, double> FunctionalBoxPlot;
+
 struct icData
 {
 	double intensity;
@@ -71,15 +75,19 @@ public:
 	QList<QPair <QString, QList<icData> >> m_DatasetIntensityMap;
 
 public slots:
-	void showLinePlots();
-	void visualizePath();
-	void updateDatasetComparator();
 	void mousePress(QMouseEvent*);
+	void mouseMove(QMouseEvent*);
 	void selectionChanged(const QCPDataSelection & selection);
+	void showFBPGraphs();
+	void showLinePlots();
+	void updateDatasetComparator();
+	void visualizePath();
 
 private:
 	MdiChild * m_mdiChild;
-	QCustomPlot * customPlot;
+	QCustomPlot * m_customPlot;
+	QCPItemText * m_dataPointInfo;
 
 	void mapIntensities();
+	void createFBPGraphs(iAFunctionalBoxplot<unsigned int, double>* fbpData);
 };
