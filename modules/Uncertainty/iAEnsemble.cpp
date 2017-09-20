@@ -621,11 +621,11 @@ vtkImagePointer iAEnsemble::GetEntropy(int source) const
 
 
 const char* const UncertaintyNames[] = {
-	"Label Distribution",
-	"Algorithm (Entropy Sum Avg.)",
-	"Algorithm (Prob. Sum Entropy)",
-	"3x3 Neighbourhood",
-	"5x5 Neighbourhood",
+	"Ensemble Uncertainty",
+	"Algorithm Uncertainty",
+	"Algorithm U. (Prob. Sum)",
+	"Neighbour(3) Uncertainty",
+	"Neighbour(5) Uncertainty",
 };
 
 
