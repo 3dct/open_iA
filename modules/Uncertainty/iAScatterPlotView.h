@@ -52,11 +52,7 @@ private:
 	int m_xAxisChoice, m_yAxisChoice;
 	QWidget* m_settings;
 	QWidget* m_scatterPlotContainer;
-
-	QSharedPointer<iASPLOMData> m_splomData;
-	iAScatterPlot* m_scatterplot;
 	ScatterPlotWidget *m_scatterPlotWidget;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);

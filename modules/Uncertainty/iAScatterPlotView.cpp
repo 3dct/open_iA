@@ -64,7 +64,6 @@ private:
 };
 
 iAScatterPlotView::iAScatterPlotView():
-	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
 	m_scatterPlotWidget(nullptr),
 	m_scatterPlotContainer(new QWidget())
 {
@@ -105,17 +104,33 @@ public:
 	const int PaddingRight  = 5;
 	const int PaddingBottom = 45;
 	const int TextPadding	= 2;
-	ScatterPlotWidget(QString const & captionX, QString const & captionY):
-		m_scatterplot(nullptr),
-		m_captionX(captionX),
-		m_captionY(captionY)
+	ScatterPlotWidget(QSharedPointer<iASPLOMData> data, double rangeMin, double rangeMax):
+		m_data(data),
+		m_scatterPlotHandler(new iAScatterPlotStandaloneHandler())
 	{
 		setMouseTracking(true);
 		setFocusPolicy(Qt::StrongFocus);
-	}
-	void setScatterPlot(iAScatterPlot* scatterplot)
-	{
-		m_scatterplot = scatterplot;
+		m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
+
+		auto lut = vtkSmartPointer<vtkLookupTable>::New();
+		double lutRange[2] = { rangeMin, rangeMax };
+		lut->SetRange(lutRange);
+		lut->Build();
+		vtkIdType lutColCnt = lut->GetNumberOfTableValues();
+		double alpha = 0.5;
+		for (vtkIdType i = 0; i < lutColCnt; i++)
+		{
+			double rgba[4]; lut->GetTableValue(i, rgba);
+			rgba[0] = iAUncertaintyColors::Chart.red() / 255.0;
+			rgba[1] = iAUncertaintyColors::Chart.green() / 255.0;
+			rgba[2] = iAUncertaintyColors::Chart.blue() / 255.0;
+			rgba[3] = alpha;
+			lut->SetTableValue(i, rgba);
+		}
+		lut->Build();
+		QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
+		m_scatterplot->setData(0, 1, m_data);
+		m_scatterplot->setLookupTable(lookupTable, m_data->parameterName(0));
 	}
 	virtual void paintEvent(QPaintEvent * event)
 	{
@@ -152,9 +167,9 @@ public:
 		// print axes labels:
 		painter.save();
 		painter.setPen(m_scatterplot->settings.tickLabelColor);
-		painter.drawText(QRectF(0, height()-fm.height()-TextPadding, width(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_captionX);
+		painter.drawText(QRectF(0, height()-fm.height()-TextPadding, width(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(0));
 		painter.rotate(-90);
-		painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_captionY);
+		painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(1));
 		painter.restore();
 		
 	}
@@ -195,9 +210,15 @@ public:
 			break;
 		}
 	}
-private:
+	QVector<unsigned int> getSelection()
+	{
+		return m_scatterPlotHandler->getSelection();
+	}
+public:
 	iAScatterPlot* m_scatterplot;
-	QString m_captionX, m_captionY;
+private:
+	QSharedPointer<iASPLOMData> m_data;
+	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 };
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
@@ -208,47 +229,24 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	m_splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
-	m_splomData->paramNames().push_back(captionX);
-	m_splomData->paramNames().push_back(captionY);
+	auto splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	splomData->paramNames().push_back(captionX);
+	splomData->paramNames().push_back(captionY);
 	QList<double> values0;
-	m_splomData->data().push_back(values0);
+	splomData->data().push_back(values0);
 	QList<double> values1;
-	m_splomData->data().push_back(values1);
+	splomData->data().push_back(values1);
 	for (size_t i = 0; i < m_voxelCount; ++i)
 	{
-		m_splomData->data()[0].push_back(bufX[i]);
-		m_splomData->data()[1].push_back(bufY[i]);
+		splomData->data()[0].push_back(bufX[i]);
+		splomData->data()[1].push_back(bufY[i]);
 	}
 
 	// setup scatterplot:
-	m_scatterPlotWidget = new ScatterPlotWidget(captionX, captionY);
-	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), m_scatterPlotWidget);
-	m_scatterplot->settings.selectionColor = iAUncertaintyColors::Selection;
-	m_scatterPlotWidget->setScatterPlot(m_scatterplot);
-	auto lut = vtkSmartPointer<vtkLookupTable>::New();
-	double lutRange[2] = { 0, 1 };
-	lut->SetRange(lutRange);
-	lut->SetNumberOfTableValues(2);
-	lut->Build();
-	vtkIdType lutColCnt = lut->GetNumberOfTableValues();
-	double alpha = 0.5;
-	for (vtkIdType i = 0; i < lutColCnt; i++)
-	{
-		double rgba[4]; lut->GetTableValue(i, rgba);
-		rgba[0] = iAUncertaintyColors::Chart.red() / 255.0;
-		rgba[1] = iAUncertaintyColors::Chart.green() / 255.0;
-		rgba[2] = iAUncertaintyColors::Chart.blue() / 255.0;
-		rgba[3] = alpha;
-		lut->SetTableValue(i, rgba);
-	}
-	lut->Build();
-	QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
-	m_scatterplot->setData(0, 1, m_splomData);
-	m_scatterplot->setLookupTable(lookupTable, captionX);
+	m_scatterPlotWidget = new ScatterPlotWidget(splomData, 0, 1);
+	m_scatterPlotWidget->m_scatterplot->settings.selectionColor = iAUncertaintyColors::Selection;
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
-
-	connect(m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
+	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
 }
 
 
@@ -317,7 +315,7 @@ void iAScatterPlotView::YAxisChoice()
 
 void iAScatterPlotView::SelectionUpdated()
 {
-	QVector<unsigned int> selectedPoints = m_scatterPlotHandler->getSelection();
+	QVector<unsigned int> selectedPoints = m_scatterPlotWidget->getSelection();
 	std::set<unsigned int> selectedSet(selectedPoints.begin(), selectedPoints.end());
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (unsigned int v = 0; v<m_voxelCount; ++v)
