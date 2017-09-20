@@ -43,18 +43,19 @@ public:
 	bool Store(QString const & smpFileName,
 		QString const & parameterSetFileName,
 		QString const & derivedOutputFileName);
-	int size() const;
+	int Size() const;
 	QSharedPointer<iAMember> Get(int i) const;
 	void AddResult(QSharedPointer<iAMember> result);
-	QVector<QSharedPointer<iAMember> > const & GetMembers() const;
-	QSharedPointer<iAAttributes> GetAttributes() const;
-	QString GetName() const;
-	QString GetFileName() const;
-	QString GetPath(int id) const;
-	QString GetPath() const;
-	QString GetExecutable() const;
-	QString GetAdditionalArguments() const;
-	int GetID() const;
+	QVector<QSharedPointer<iAMember> > const & Members() const;
+	void SetMembers(QVector<QSharedPointer<iAMember> > const & members);
+	QSharedPointer<iAAttributes> Attributes() const;
+	QString Name() const;
+	QString FileName() const;
+	QString Path(int id) const;
+	QString Path() const;
+	QString Executable() const;
+	QString AdditionalArguments() const;
+	int ID() const;
 	bool StoreAttributes(int type, QString const & fileName, bool id);
 private:
 	QSharedPointer<iAAttributes> m_attributes;

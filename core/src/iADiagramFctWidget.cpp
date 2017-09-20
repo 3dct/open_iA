@@ -736,10 +736,13 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 
 	int activeHeight = ActiveHeight()-1;
 
-	const double step = 1.0 / (Y_AXIS_STEPS * yZoom);
+	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
+	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (fontHeight*1.1)) );
+	stepNumber = std::max(1, stepNumber);	// make sure there's at least 2 steps
+	const double step = 1.0 / (stepNumber * yZoom);
 	double logMax = LogFunc(static_cast<double>(m_maxYAxisValue));
 
-	for (int i = 0; i <= Y_AXIS_STEPS; ++i)
+	for (int i = 0; i <= stepNumber; ++i)
 	{
 		//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (rayLength / width)
 		double pos = step * i;
@@ -755,15 +758,30 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		if (yValue < 1.0)
 			text = QString::number(yValue, 'g', 3);
 		else
-			text = QString::number((int)yValue, 10);
+			if (yValue > 1000000000)
+			{
+				text = QString::number(yValue/1000000000.0, 'f', (yValue < 10000000000) ? 2 : 1)+"G";
+			}
+			else if (yValue > 1000000)
+			{
+				text = QString::number(yValue / 1000000, 'f', (yValue < 10000000) ? 2 : 1) + "M";
+			}
+			else if (yValue > 1000)
+			{
+				text = QString::number(yValue / 1000, 'f', (yValue < 10000) ? 2 : 1) + "K";
+			}
+			else
+			{
+				text = QString::number((int)yValue, 10);
+			}
 
 		//calculate the y coordinate
 		int y = -(int)(pos * activeHeight * yZoom)-1;
 		//draw a small indicator line
 		painter.drawLine((int)(-LeftMargin()*0.1), y, 0, y);
 
-		if(i == Y_AXIS_STEPS)
-			painter.drawText(TEXT_X-LeftMargin(), y+0.75*fontHeight, text); //write the text left aligned to the indicator line
+		if(i == stepNumber)
+			painter.drawText(TEXT_X-LeftMargin(), y+0.75*fontHeight, text); //write the text top aligned to the indicator line
 		else
 			painter.drawText(TEXT_X-LeftMargin(), y+0.25*fontHeight, text); //write the text centered to the indicator line
 

@@ -34,7 +34,7 @@
 #include <QFile>
 #include <QFileInfo>
 
-QSharedPointer<iAMember> iAMember::create(
+QSharedPointer<iAMember> iAMember::Create(
 	QString const & line,
 	iASamplingResults const & sampling,
 	QSharedPointer<iAAttributes> attributes)
@@ -83,16 +83,16 @@ QSharedPointer<iAMember> iAMember::create(
 	}
 	if (tokens.size() > attributes->size() + 1) // fileName at end
 	{
-		result->m_fileName = MakeAbsolute(sampling.GetPath(), tokens[attributes->size() + 1]);
+		result->m_fileName = MakeAbsolute(sampling.Path(), tokens[attributes->size() + 1]);
 	}
 	else
 	{
-		result->m_fileName = result->GetFolder() + "/label.mhd";
+		result->m_fileName = result->Folder() + "/label.mhd";
 	}
 	return result;
 }
 
-QSharedPointer<iAMember> iAMember::create(
+QSharedPointer<iAMember> iAMember::Create(
 	int id,
 	iASamplingResults const & sampling,
 	QVector<double> const & parameter,
@@ -135,7 +135,7 @@ QString iAMember::ToString(QSharedPointer<iAAttributes> attributes, int type)
 	}
 	if (type == iAAttributeDescriptor::DerivedOutput)
 	{
-		result += iAAttributeDescriptor::ValueSplitString + MakeRelative(m_sampling.GetPath(), m_fileName);
+		result += iAAttributeDescriptor::ValueSplitString + MakeRelative(m_sampling.Path(), m_fileName);
 	}
 	return result;
 }
@@ -147,7 +147,7 @@ iAMember::iAMember(int id, iASamplingResults const & sampling):
 {
 }
 
-int iAMember::GetID()
+int iAMember::ID()
 {
 	return m_id;
 }
@@ -155,13 +155,13 @@ int iAMember::GetID()
 iAITKIO::ImagePointer const iAMember::LabelImage()
 {
 	iAITKIO::ScalarPixelType pixelType;
-	QFileInfo f(GetLabelPath());
+	QFileInfo f(LabelPath());
 	if (!f.exists() || f.isDir())
 	{
-		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(GetLabelPath()));
-		return false;
+		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(LabelPath()));
+		return iAITKIO::ImagePointer();
 	}
-	iAITKIO::ImagePointer labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
+	iAITKIO::ImagePointer labelImg = iAITKIO::readFile(LabelPath(), pixelType, false);
 	if (pixelType != itk::ImageIOBase::INT)
 	{
 		labelImg = CastImageTo<int>(labelImg);
@@ -169,7 +169,7 @@ iAITKIO::ImagePointer const iAMember::LabelImage()
 	return labelImg;
 }
 
-double iAMember::GetAttribute(int id) const
+double iAMember::Attribute(int id) const
 {
 	return m_attributeValues[id];
 }
@@ -184,12 +184,12 @@ void iAMember::SetAttribute(int id, double value)
 	m_attributeValues[id] = value;
 }
 
-QVector<DoubleImage::Pointer> iAMember::GetProbabilityImgs(int labelCount)
+QVector<DoubleImage::Pointer> iAMember::ProbabilityImgs(int labelCount)
 {
 	QVector<DoubleImage::Pointer> probabilityImg(labelCount);
 	for (int l=0; l<labelCount; ++l)
 	{
-		QString probFile(GetProbabilityPath(l));
+		QString probFile(ProbabilityPath(l));
 		if (!QFile::exists(probFile))
 		{
 			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
@@ -202,34 +202,34 @@ QVector<DoubleImage::Pointer> iAMember::GetProbabilityImgs(int labelCount)
 
 bool iAMember::ProbabilityAvailable() const
 {
-	QString probFile(GetProbabilityPath(0));
+	QString probFile(ProbabilityPath(0));
 	return QFile::exists(probFile);
 }
 
 
-QString iAMember::GetFolder() const
+QString iAMember::Folder() const
 {
-	return m_sampling.GetPath(m_id);
+	return m_sampling.Path(m_id);
 }
 
 
-QString iAMember::GetLabelPath() const
+QString iAMember::LabelPath() const
 {
 	return m_fileName;
 }
 
-QString iAMember::GetProbabilityPath(int label) const
+QString iAMember::ProbabilityPath(int label) const
 {
-	return QString("%1/prob%2.mhd").arg(GetFolder()).arg(label);
+	return QString("%1/prob%2.mhd").arg(Folder()).arg(label);
 }
 
 
-int iAMember::GetDatasetID() const
+int iAMember::DatasetID() const
 {
-	return m_sampling.GetID();
+	return m_sampling.ID();
 }
 
-QSharedPointer<iAAttributes> iAMember::GetAttributes() const
+QSharedPointer<iAAttributes> iAMember::Attributes() const
 {
-	return m_sampling.GetAttributes();
+	return m_sampling.Attributes();
 }

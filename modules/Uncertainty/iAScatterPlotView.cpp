@@ -20,62 +20,64 @@
 * ************************************************************************************/
 #include "iAScatterPlotView.h"
 
-#include "iAColors.h"
 #include "iAConsole.h"
+#include "iALookupTable.h"
 #include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
-#include "qcustomplot.h"
+#include "iAScatterPlot.h"
+#include "iAScatterPlotSelectionHandler.h"
+#include "iASPLOMData.h"
+#include "iAUncertaintyColors.h"
+
+#include <QGLWidget>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QToolButton>
+#include <QVariant>
+#include <QVBoxLayout>
 
 #include <vtkImageData.h>
+#include <vtkLookupTable.h>
 
-/*
-// only relevant for heatmap:
-QCPColorGradient GetGradientFromIdx(int index)
+class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
-	const int PredefinedCount = QCPColorGradient::gpHues + 1;
-	if (index < PredefinedCount)
-	{
-		return QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(index));
+public:
+	virtual QVector<unsigned int> & getSelection() {
+		return m_selection;
 	}
-	else
-	{
-		switch (index - PredefinedCount)
-		{
-			case 0:
-			{
-				QCPColorGradient myGrayScale;
-				QMap<double, QColor> myGrayScaleMap;
-				myGrayScaleMap.insert(0.0, QColor(255, 255, 255));
-				myGrayScaleMap.insert(1.0, QColor(0, 0, 0));
-				myGrayScale.setColorStops(myGrayScaleMap);
-				return myGrayScale;
-			}
-			default:
-			case 1:
-			{
-				QCPColorGradient whiteToBlue;
-				QMap<double, QColor> whiteToBlueMap;
-				whiteToBlueMap.insert(0.0, QColor(255, 255, 255));
-				whiteToBlueMap.insert(1.0, QColor(0, 0, 255));
-				whiteToBlue.setColorStops(whiteToBlueMap);
-				return whiteToBlue;
-			}
-		}
+	virtual const QList<int> & getHighlightedPoints() const {
+		return m_highlight;
 	}
-}
-*/
+	virtual int getVisibleParametersCount() const {
+		return 2;
+	}
+	virtual double getAnimIn() const {
+		return 1.0;
+	}
+	virtual double getAnimOut() const {
+		return 0.0;
+	}
+private:
+	QList<int> m_highlight;
+	QVector<unsigned int> m_selection;
+};
 
 iAScatterPlotView::iAScatterPlotView():
-// only relevant for heatmap:
-// m_gradient(QCPColorGradient::gpGrayscale),
-	m_plot(new QCustomPlot())
+	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
+	m_scatterPlotWidget(nullptr),
+	m_scatterPlotContainer(new QWidget())
 {
-	//m_plot->setOpenGl(true);
-	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
-	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
-	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(chartMousePress(QMouseEvent *)));
 	setLayout(new QVBoxLayout());
-	layout()->addWidget(m_plot);
+	layout()->setSpacing(0);
+	m_scatterPlotContainer->setLayout(new QHBoxLayout());
+	m_scatterPlotContainer->layout()->setSpacing(0);
+	layout()->addWidget(m_scatterPlotContainer);
+
+	m_settings = new QWidget();
+	m_settings->setLayout(new QVBoxLayout);
+	m_settings->layout()->setSpacing(0);
+	m_settings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
 	auto datasetChoiceContainer = new QWidget();
 	datasetChoiceContainer->setLayout(new QVBoxLayout());
@@ -90,119 +92,176 @@ iAScatterPlotView::iAScatterPlotView():
 	datasetChoiceContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	datasetChoiceContainer->layout()->addWidget(m_xAxisChooser);
 	datasetChoiceContainer->layout()->addWidget(m_yAxisChooser);
-	layout()->addWidget(datasetChoiceContainer);
-	/*
-	// only relevant for heatmap
-	QComboBox * colorThemeChooser = new QComboBox();
-	QStringList options;
-	options
-		<< "gpGrayscale"
-		<< "gpHot"
-		<< "gpCold"
-		<< "gpNight"
-		<< "gpCandy"
-		<< "gpGeography"
-		<< "gpIon"
-		<< "gpThermal"
-		<< "gpPolar"
-		<< "gpSpectrum"
-		<< "gpJet"
-		<< "gpHues"
-		<< "WhiteToBlack"
-		<< "WhiteToBlue";
-	colorThemeChooser->addItems(options);
-	connect(colorThemeChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(colorThemeChanged(int)));
-	QWidget* colorThemeContainer = new QWidget();
-	colorThemeContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-	colorThemeContainer->setLayout(new QHBoxLayout());
-	colorThemeContainer->layout()->addWidget(new QLabel("Color Theme:"));
-	colorThemeContainer->layout()->addWidget(colorThemeChooser);
-	layout()->addWidget(colorThemeContainer);
-	*/
+	m_settings->layout()->addWidget(datasetChoiceContainer);
+	layout()->addWidget(m_settings);
 }
 
 
+class ScatterPlotWidget : public QGLWidget
+{
+public:
+	const int PaddingLeft   = 45;
+	const int PaddingTop    = 5;
+	const int PaddingRight  = 5;
+	const int PaddingBottom = 45;
+	const int TextPadding	= 2;
+	ScatterPlotWidget(QString const & captionX, QString const & captionY):
+		m_scatterplot(nullptr),
+		m_captionX(captionX),
+		m_captionY(captionY)
+	{
+		setMouseTracking(true);
+		setFocusPolicy(Qt::StrongFocus);
+	}
+	void setScatterPlot(iAScatterPlot* scatterplot)
+	{
+		m_scatterplot = scatterplot;
+	}
+	virtual void paintEvent(QPaintEvent * event)
+	{
+		QPainter painter(this);
+		painter.setRenderHint(QPainter::Antialiasing);
+		painter.setRenderHint(QPainter::HighQualityAntialiasing);
+		painter.beginNativePainting();
+		glClearColor(1.0, 1.0, 1.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		painter.endNativePainting();
+		m_scatterplot->paintOnParent(painter);
+
+		// print axes tick labels:
+		painter.save();
+		QList<double> ticksX, ticksY; QList<QString> textX, textY;
+		m_scatterplot->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+		painter.setPen(m_scatterplot->settings.tickLabelColor);
+		QPoint tOfs(45,45);
+		long tSpc = 5;
+		for (long i = 0; i < ticksY.size(); ++i)
+		{
+			double t = ticksY[i]; QString text = textY[i];
+			painter.drawText(QRectF(0, t - tOfs.y(), tOfs.x() - tSpc, 2 * tOfs.y()), Qt::AlignRight | Qt::AlignVCenter, text);
+		}
+		painter.rotate(-90);
+		for (long i = 0; i < ticksX.size(); ++i)
+		{
+			double t = ticksX[i]; QString text = textX[i];
+			painter.drawText(QRectF(-tOfs.y() + tSpc - (height() - PaddingBottom - TextPadding), t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignRight | Qt::AlignVCenter, text);
+		}
+		painter.restore();
+
+		QFontMetrics fm = painter.fontMetrics();
+		// print axes labels:
+		painter.save();
+		painter.setPen(m_scatterplot->settings.tickLabelColor);
+		painter.drawText(QRectF(0, height()-fm.height()-TextPadding, width(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_captionX);
+		painter.rotate(-90);
+		painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_captionY);
+		painter.restore();
+		
+	}
+	virtual void resizeEvent(QResizeEvent* event)
+	{
+		QRect size(geometry());
+		size.moveTop(0);
+		size.moveLeft(0);
+		size.adjust(PaddingLeft, PaddingTop, -PaddingRight, -PaddingBottom);
+		m_scatterplot->setRect(size);
+	}
+	virtual void wheelEvent(QWheelEvent * event)
+	{
+		m_scatterplot->SPLOMWheelEvent(event);
+		update();
+	}
+	virtual void mousePressEvent(QMouseEvent * event)
+	{
+		m_scatterplot->SPLOMMousePressEvent(event);
+	}
+
+	virtual void mouseReleaseEvent(QMouseEvent * event)
+	{
+		m_scatterplot->SPLOMMouseReleaseEvent(event);
+		update();
+	}
+
+	virtual void mouseMoveEvent(QMouseEvent * event)
+	{
+		m_scatterplot->SPLOMMouseMoveEvent(event);
+	}
+	virtual void keyPressEvent(QKeyEvent * event)
+	{
+		switch (event->key())
+		{
+		case Qt::Key_R: //if R is pressed, reset all the applied transformation as offset and scaling
+			m_scatterplot->setTransform(1.0, QPointF(0.0f, 0.0f));
+			break;
+		}
+	}
+private:
+	iAScatterPlot* m_scatterplot;
+	QString m_captionX, m_captionY;
+};
+
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
-	m_plot->clearPlottables();
-/*
-	const int BinCountX = 250;
-	const int BinCountY = 250;
-	iAPerformanceHelper heatmapCalcMeasure;
-	heatmapCalcMeasure.start("Heatmap calculation");
-	colorMap = new QCPColorMap(m_plot->xAxis, m_plot->yAxis);
-	colorMap->data()->setSize(BinCountX, BinCountY);
-	colorMap->data()->setRange(QCPRange(0, 1), QCPRange(0, 1));
-	colorMap->data()->fill(0);
-
-	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
-	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	FOR_VTKIMG_PIXELS_IDX(imgX, idx)
-	{
-		int x, y;
-		colorMap->data()->coordToCell(bufX[idx], bufY[idx], &x, &y);
-		colorMap->data()->setCell(x, y, colorMap->data()->cell(x, y)+1 );
-	}
-
-	colorScale = new QCPColorScale(m_plot);
-	m_plot->plotLayout()->addElement(0, 1, colorScale); // add it to the right of the main axis rect
-	colorScale->setType(QCPAxis::atRight); // scale shall be vertical bar with tick/axis labels right (actually atRight is already the default)
-	colorScale->setRangeDrag(false);
-	colorScale->setRangeZoom(false);
-	colorMap->setColorScale(colorScale); // associate the color map with the color scale
-	colorScale->axis()->setLabel("Entropy");
-
-	colorMap->setGradient(GetGradientFromIdx(m_gradient));
-	colorMap->rescaleDataRange();
-	QCPMarginGroup *marginGroup = new QCPMarginGroup(m_plot);
-	m_plot->axisRect()->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
-	colorScale->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
-
-	m_plot->rescaleAxes();
-	heatmapCalcMeasure.stop();
-
-	// create mapping from bins  to pixels that are contained 
-	//     or still explicit uncertainty, to be able to select not only bins but sub-bins?
-
-	// subdivide bins -> zoomable?
-*/
-	iAPerformanceHelper scatterPlotCreationTimer;
-	scatterPlotCreationTimer.start("Scatterplot creation");
+	delete m_scatterPlotWidget;
+	// setup data object:
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
-	QVector<double> x, y, t;
-	x.reserve(m_voxelCount);
-	y.reserve(m_voxelCount);
-	t.reserve(m_voxelCount);
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	std::copy(bufX, bufX + m_voxelCount, std::back_inserter(x));
-	std::copy(bufY, bufY + m_voxelCount, std::back_inserter(y));
-	for (int i = 0; i < m_voxelCount; ++i)
-	{	// unfortunately we seem to require this additional storage
-		t.push_back(i);  // to make QCustomPlot not sort the data
+	m_splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	m_splomData->paramNames().push_back(captionX);
+	m_splomData->paramNames().push_back(captionY);
+	QList<double> values0;
+	m_splomData->data().push_back(values0);
+	QList<double> values1;
+	m_splomData->data().push_back(values1);
+	for (size_t i = 0; i < m_voxelCount; ++i)
+	{
+		m_splomData->data()[0].push_back(bufX[i]);
+		m_splomData->data()[1].push_back(bufY[i]);
 	}
 
-	auto curve = new QCPCurve(m_plot->xAxis, m_plot->yAxis);
-	curve->setData(t, x, y, true);
-	curve->setLineStyle(QCPCurve::lsNone);
-	curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::ChartColor, 2));
-	curve->setSelectable(QCP::stMultipleDataRanges);
-	curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Uncertainty::SelectionColor, 2));
-	connect(curve, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(selectionChanged(QCPDataSelection const &)));
+	// setup scatterplot:
+	m_scatterPlotWidget = new ScatterPlotWidget(captionX, captionY);
+	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), m_scatterPlotWidget);
+	m_scatterplot->settings.selectionColor = iAUncertaintyColors::Selection;
+	m_scatterPlotWidget->setScatterPlot(m_scatterplot);
+	auto lut = vtkSmartPointer<vtkLookupTable>::New();
+	double lutRange[2] = { 0, 1 };
+	lut->SetRange(lutRange);
+	lut->SetNumberOfTableValues(2);
+	lut->Build();
+	vtkIdType lutColCnt = lut->GetNumberOfTableValues();
+	double alpha = 0.5;
+	for (vtkIdType i = 0; i < lutColCnt; i++)
+	{
+		double rgba[4]; lut->GetTableValue(i, rgba);
+		rgba[0] = iAUncertaintyColors::Chart.red() / 255.0;
+		rgba[1] = iAUncertaintyColors::Chart.green() / 255.0;
+		rgba[2] = iAUncertaintyColors::Chart.blue() / 255.0;
+		rgba[3] = alpha;
+		lut->SetTableValue(i, rgba);
+	}
+	lut->Build();
+	QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
+	m_scatterplot->setData(0, 1, m_splomData);
+	m_scatterplot->setLookupTable(lookupTable, captionX);
+	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 
-	m_plot->xAxis->setLabel(captionX);
-	m_plot->yAxis->setLabel(captionY);
-	m_plot->xAxis->setRange(0, 1);
-	m_plot->yAxis->setRange(0, 1);
-	scatterPlotCreationTimer.stop();
-
-	m_plot->replot();
+	connect(m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
 }
 
 
 void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
+	for (auto widget : m_xAxisChooser->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
+	for (auto widget : m_yAxisChooser->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
 	m_imgs = imgs;
 	m_xAxisChoice = iAUncertaintyImages::LabelDistributionEntropy;
 	m_yAxisChoice = iAUncertaintyImages::AvgAlgorithmEntropyProbSum;
@@ -224,8 +283,8 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 		{
 			yButton->setChecked(true);
 		}
-		connect(xButton, SIGNAL(clicked()), this, SLOT(xAxisChoice()));
-		connect(yButton, SIGNAL(clicked()), this, SLOT(yAxisChoice()));
+		connect(xButton, SIGNAL(clicked()), this, SLOT(XAxisChoice()));
+		connect(yButton, SIGNAL(clicked()), this, SLOT(YAxisChoice()));
 		m_xAxisChooser->layout()->addWidget(xButton);
 		m_yAxisChooser->layout()->addWidget(yButton);
 	}
@@ -235,7 +294,7 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 }
 
 
-void iAScatterPlotView::xAxisChoice()
+void iAScatterPlotView::XAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_xAxisChoice)
@@ -246,7 +305,7 @@ void iAScatterPlotView::xAxisChoice()
 }
 
 
-void iAScatterPlotView::yAxisChoice()
+void iAScatterPlotView::YAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_yAxisChoice)
@@ -256,53 +315,27 @@ void iAScatterPlotView::yAxisChoice()
 		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
 }
 
-
-void iAScatterPlotView::selectionChanged(QCPDataSelection const & selection)
+void iAScatterPlotView::SelectionUpdated()
 {
+	QVector<unsigned int> selectedPoints = m_scatterPlotHandler->getSelection();
+	std::set<unsigned int> selectedSet(selectedPoints.begin(), selectedPoints.end());
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
-	for (int v=0; v<m_voxelCount; ++v)
+	for (unsigned int v = 0; v<m_voxelCount; ++v)
 	{
-		*buf = 0;
+		*buf = selectedSet.find(v) != selectedSet.end() ? 1 : 0;
 		buf++;
 	}
-	buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
-	for (int r = 0; r < selection.dataRangeCount(); ++r)
-	{
-		std::fill(buf + selection.dataRange(r).begin(), buf + selection.dataRange(r).end(), 1);
-	}
 	m_selectionImg->Modified();
-
 	//StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
 	emit SelectionChanged();
 }
-
 
 vtkImagePointer iAScatterPlotView::GetSelectionImage()
 {
 	return m_selectionImg;
 }
 
-
-void iAScatterPlotView::chartMousePress(QMouseEvent *)
+void iAScatterPlotView::ToggleSettings()
 {
-	if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
-	{	// allow selection with Ctrl key
-		m_plot->setSelectionRectMode(QCP::srmSelect);
-	}
-	else
-	{	// enable dragging otherwise
-		m_plot->setSelectionRectMode(QCP::srmNone);
-	}
-}
-
-
-void iAScatterPlotView::colorThemeChanged(int index)
-{
-	/*
-	// only relevant for heatmap
-	m_gradient = index;
-	colorMap->setGradient(GetGradientFromIdx(m_gradient));
-	colorScale->setGradient(GetGradientFromIdx(m_gradient));
-	m_plot->replot();
-	*/
+	m_settings->setVisible(!m_settings->isVisible());
 }

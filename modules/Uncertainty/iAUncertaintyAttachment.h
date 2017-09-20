@@ -29,6 +29,7 @@
 
 class iADockWidgetWrapper;
 class iAEnsemble;
+class iAEnsembleView;
 class iAHistogramView;
 class iAMemberView;
 class iAScatterPlotView;
@@ -38,19 +39,24 @@ class iAUncertaintyAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void toggleDockWidgetTitleBars();
-	bool loadEnsemble(QString const & fileName);
+	static iAUncertaintyAttachment* Create(MainWindow * mainWnd, iAChildData childData);
+	void ToggleDockWidgetTitleBars();
+	void ToggleSettings();
+	void CalculateNewSubEnsemble();
+	bool LoadEnsemble(QString const & fileName);
 private slots:
 	void ChartSelectionChanged();
 	void MemberSelected(int memberIdx);
+	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
 	iAHistogramView* m_histogramView;
 	iAMemberView* m_memberView;
 	iAScatterPlotView* m_scatterplotView;
 	iASpatialView* m_spatialView;
+	iAEnsembleView* m_ensembleView;
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QSharedPointer<iAEnsemble> m_ensemble;
 	QVector<iAITKIO::ImagePointer> m_shownMembers;
+	QSharedPointer<iAEnsemble> m_currentEnsemble;
+	int m_newSubEnsembleID;
 };

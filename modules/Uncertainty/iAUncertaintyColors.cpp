@@ -18,8 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAColors.h"
+#include "iAUncertaintyColors.h"
 
-QColor Uncertainty::ChartColor(27, 158, 119);
-QColor Uncertainty::SelectionColor(230, 171, 2);
-QColor Uncertainty::MemberBarColor(ChartColor);
+QColor iAUncertaintyColors::Chart(27, 158, 119);
+QColor iAUncertaintyColors::Selection(230, 171, 2);
+QColor iAUncertaintyColors::MemberBar(Chart);

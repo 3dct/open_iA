@@ -36,28 +36,48 @@
 #include <QFileInfo>
 #include <QTextStream>
 
-QSharedPointer<iAEnsemble> iAEnsemble::create(int entropyBinCount)
+QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
+	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile)
 {
-	return QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
-}
-
-bool iAEnsemble::load(QString const & ensembleFileName, iAEnsembleDescriptorFile const & ensembleFile)
-{
+	auto result = QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
 	iAPerformanceHelper ensembleLoad;
 	ensembleLoad.start("Ensemble loading");
-	QMap<int, QString> const & samplings = ensembleFile.GetSamplings();
+	QMap<int, QString> const & samplings = ensembleFile->Samplings();
 	for (int key : samplings.keys())
 	{
-		if (!loadSampling(samplings[key], ensembleFile.GetLabelCount(), key))
+		if (!result->LoadSampling(samplings[key], ensembleFile->LabelCount(), key))
 		{
 			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
-			return false;
+			return QSharedPointer<iAEnsemble>();
 		}
 	}
-	m_labelCount = ensembleFile.GetLabelCount();
-	createUncertaintyImages(ensembleFile.GetLabelCount(), QFileInfo(ensembleFileName).absolutePath() + "/cache");
+	result->m_ensembleFile = ensembleFile;
+	result->m_labelCount = ensembleFile->LabelCount();
+	result->m_cachePath = QFileInfo(ensembleFile->FileName()).absolutePath() + "/cache";
+	result->CreateUncertaintyImages();
+	// load sub ensembles:
+	for (int i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
+	{
+		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
+	}
+
 	ensembleLoad.stop();
-	return true;
+	return result;
+}
+
+QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
+	QVector<QSharedPointer<iAMember> > member,
+	QSharedPointer<iASamplingResults> superSet,	int labelCount, QString const & cachePath, int id)
+{
+	QSharedPointer<iAEnsemble> result(new iAEnsemble(entropyBinCount));
+	QSharedPointer<iASamplingResults> samplingResults(new iASamplingResults(superSet->Attributes(),
+		"Subset", superSet->Path(), superSet->Executable(), superSet->AdditionalArguments(), superSet->Name(), id));
+	samplingResults->SetMembers(member);
+	result->m_samplings.push_back(samplingResults);
+	result->m_cachePath = cachePath;
+	result->m_labelCount = labelCount;
+	result->CreateUncertaintyImages();
+	return result;
 }
 
 
@@ -361,23 +381,23 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 	return result;
 }
 
-void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePath)
+void iAEnsemble::CreateUncertaintyImages()
 {
 	QDir qdir;
-	if (!qdir.mkpath(cachePath))
+	if (!qdir.mkpath(m_cachePath))
 	{
-		DEBUG_LOG(QString("Can't create cache directory %1!").arg(cachePath));
+		DEBUG_LOG(QString("Can't create cache directory %1!").arg(m_cachePath));
 		return;
 	}
-	if (labelCount <= 0)
+	if (m_labelCount <= 0)
 	{
-		DEBUG_LOG(QString("Invalid label count: %1").arg(labelCount));
+		DEBUG_LOG(QString("Invalid label count: %1").arg(m_labelCount));
 		return;
 	}
 	try
 	{
 		// also load slice images here?
-		if (m_samplings.size() == 0 || m_samplings[0]->GetMembers().size() == 0)
+		if (m_samplings.size() == 0 || m_samplings[0]->Members().size() == 0)
 		{
 			DEBUG_LOG("No samplings or no members found!");
 			return;
@@ -390,11 +410,11 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 		size_t count = 0;
 		for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 		{
-			count += sampling->GetMembers().size();
+			count += sampling->Members().size();
 		}
 		double factor = 1.0 / count;
 
-		if (LoadCachedImageSeries<IntImage>(m_labelDistr, cachePath+"/labelDistribution", 0, labelCount, "Label Distribution"))
+		if (LoadCachedImageSeries<IntImage>(m_labelDistr, m_cachePath+"/labelDistribution", 0, m_labelCount, "Label Distribution"))
 		{
 			size = m_labelDistr[0]->GetLargestPossibleRegion().GetSize();
 			spacing = m_labelDistr[0]->GetSpacing();
@@ -406,18 +426,19 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			m_labelDistr.clear();
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->GetMembers())
+				for (QSharedPointer<iAMember> member : sampling->Members())
 				{
-					typename IntImage::Pointer labelImg = dynamic_cast<IntImage*>(member->LabelImage().GetPointer());
+					iAITKIO::ImagePointer labelBaseImg = member->LabelImage();
+					typename IntImage::Pointer intlabelImg = dynamic_cast<IntImage*>(labelBaseImg.GetPointer());
 					if (m_labelDistr.empty())
 					{	// initialize empty sums:
-						for (int i = 0; i < labelCount; ++i)
+						for (int i = 0; i < m_labelCount; ++i)
 						{	// AllocateImage automatically initializes to 0
-							auto labelSumI = CreateImage<IntImage>(labelImg);
+							auto labelSumI = CreateImage<IntImage>(intlabelImg);
 							m_labelDistr.push_back(labelSumI);
 						}
-						size = labelImg->GetLargestPossibleRegion().GetSize();
-						spacing = labelImg->GetSpacing();
+						size = intlabelImg->GetLargestPossibleRegion().GetSize();
+						spacing = intlabelImg->GetSpacing();
 					}
 					for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
 					{
@@ -425,7 +446,7 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 						{
 							for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
 							{
-								int label = labelImg->GetPixel(idx);
+								int label = intlabelImg->GetPixel(idx);
 								// optimize speed via iterators / direct access?
 								m_labelDistr[label]->SetPixel(idx, m_labelDistr[label]->GetPixel(idx) + 1);
 							}
@@ -434,39 +455,39 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 				}
 			}
 			labelDistrMeasure.stop();
-			for (int i = 0; i < labelCount; ++i)
+			for (int i = 0; i < m_labelCount; ++i)
 			{
-				iAITKIO::writeFile(cachePath + "/labelDistribution" +QString::number(i)+".mhd",
+				iAITKIO::writeFile(m_cachePath + "/labelDistribution" +QString::number(i)+".mhd",
 					m_labelDistr[i].GetPointer(), itk::ImageIOBase::INT, true);
 			}
 		}
 
-		if (!LoadCachedImage<DoubleImage>(m_labelDistrEntropy, cachePath + "/labelDistributionEntropy.mhd", "label distribution entropy"))
+		if (!LoadCachedImage<DoubleImage>(m_labelDistrEntropy, m_cachePath + "/labelDistributionEntropy.mhd", "label distribution entropy"))
 		{
 			iAPerformanceHelper labelDistrSumEntropyLoopMeasure;
 			labelDistrSumEntropyLoopMeasure.start("Label Distribution Entropy Loop");
 			m_labelDistrEntropy = CalculateEntropyImage<IntImage>(m_labelDistr, true, factor);
 			labelDistrSumEntropyLoopMeasure.stop();
-			iAITKIO::writeFile(cachePath + "/labelDistributionEntropy.mhd", m_labelDistrEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/labelDistributionEntropy.mhd", m_labelDistrEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		if (!LoadCachedImage<DoubleImage>(m_probSumEntropy, cachePath + "/avgAlgProbSumEntropy.mhd", "average algorithm entropy(from probability sums)"))
+		if (!LoadCachedImage<DoubleImage>(m_probSumEntropy, m_cachePath + "/avgAlgProbSumEntropy.mhd", "average algorithm entropy(from probability sums)"))
 		{
 			iAPerformanceHelper probSumLoopMeasure;
 			probSumLoopMeasure.start("Probability Sum Loop");
 			m_probDistr.clear();
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->GetMembers())
+				for (QSharedPointer<iAMember> member : sampling->Members())
 				{
-					QVector<DoubleImage::Pointer> probImgs = member->GetProbabilityImgs(labelCount);
-					if (probImgs.size() != labelCount)
+					QVector<DoubleImage::Pointer> probImgs = member->ProbabilityImgs(m_labelCount);
+					if (probImgs.size() != m_labelCount)
 					{
 						DEBUG_LOG("Not enough probability images available!");
 						return;
 					}
 					bool allFresh = m_probDistr.empty();
-					for (int l = 0; l < labelCount; ++l)
+					for (int l = 0; l < m_labelCount; ++l)
 					{
 						// create probability histogram here?
 						if (allFresh)
@@ -489,13 +510,13 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			}
 			m_probSumEntropy = CalculateEntropyImage<DoubleImage>(m_probDistr);
 			probSumEntropyLoopMeasure.stop();
-			iAITKIO::writeFile(cachePath + "/avgAlgProbSumEntropy.mhd", m_probSumEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/avgAlgProbSumEntropy.mhd", m_probSumEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		if (!LoadCachedImage<DoubleImage>(m_entropyAvgEntropy, cachePath + "/avgAlgEntropyAvgEntropy.mhd", "average algorithm entropy (from algorithm entropy average)")
-			|| !LoadHistogram(cachePath+"/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount)
-			|| !LoadValues(cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg)
-			|| !LoadValues(cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar))
+		if (!LoadCachedImage<DoubleImage>(m_entropyAvgEntropy, m_cachePath + "/avgAlgEntropyAvgEntropy.mhd", "average algorithm entropy (from algorithm entropy average)")
+			|| !LoadHistogram(m_cachePath+"/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount)
+			|| !LoadValues(m_cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg)
+			|| !LoadValues(m_cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar))
 		{
 			iAPerformanceHelper entropySumLoopMeasure;
 			entropySumLoopMeasure.start("Entropy Sum Loop");
@@ -504,9 +525,9 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			double numberOfPixels = size[0] * size[1] * size[2];
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->GetMembers())
+				for (QSharedPointer<iAMember> member : sampling->Members())
 				{
-					QVector<DoubleImage::Pointer> probImgs = member->GetProbabilityImgs(labelCount);
+					QVector<DoubleImage::Pointer> probImgs = member->ProbabilityImgs(m_labelCount);
 					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgs);
 					double sum = 0;
 					itk::ImageRegionConstIterator<DoubleImage> it(memberEntropy, memberEntropy->GetLargestPossibleRegion());
@@ -537,18 +558,18 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 				}
 			}
 			entropySumLoopMeasure.stop();
-			StoreHistogram(cachePath + "/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount);
-			StoreValues(cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg);
-			StoreValues(cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar);
+			StoreHistogram(m_cachePath + "/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount);
+			StoreValues(m_cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg);
+			StoreValues(m_cachePath + "/algorithmEntropyVar.csv", m_memberEntropyVar);
 			iAPerformanceHelper entropySumDivLoopMeasure;
 			entropySumDivLoopMeasure.start("Entropy Sum Division");
 			MultiplyImageInPlace(m_entropyAvgEntropy, factor);
 			entropySumDivLoopMeasure.stop();
-			iAITKIO::writeFile(cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		if (!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy3x3, cachePath + "/entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)") ||
-			!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy5x5, cachePath + "/entropyNeighbourhood5x5.mhd", "neighbourhood entropy (5x5)"))
+		if (!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy3x3, m_cachePath + "/entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)") ||
+			!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy5x5, m_cachePath + "/entropyNeighbourhood5x5.mhd", "neighbourhood entropy (5x5)"))
 		{
 			iAPerformanceHelper neighbourEntropyMeasure;
 			neighbourEntropyMeasure.start("Neighbourhood Entropy Loop");
@@ -556,12 +577,12 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			m_neighbourhoodAvgEntropy5x5 = CreateImage<DoubleImage>(size, spacing);
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->GetMembers())
+				for (QSharedPointer<iAMember> member : sampling->Members())
 				{
 					auto labelImgOrig = member->LabelImage();
 					auto labelImg = dynamic_cast<IntImage*>(labelImgOrig.GetPointer());
-					DoubleImage::Pointer neighbourEntropyImg3x3 = NeighbourhoodEntropyImage(labelImg, labelCount, 1, size, spacing);
-					DoubleImage::Pointer neighbourEntropyImg5x5 = NeighbourhoodEntropyImage(labelImg, labelCount, 2, size, spacing);
+					DoubleImage::Pointer neighbourEntropyImg3x3 = NeighbourhoodEntropyImage(labelImg, m_labelCount, 1, size, spacing);
+					DoubleImage::Pointer neighbourEntropyImg5x5 = NeighbourhoodEntropyImage(labelImg, m_labelCount, 2, size, spacing);
 					AddImageInPlace(m_neighbourhoodAvgEntropy3x3, neighbourEntropyImg3x3);
 					AddImageInPlace(m_neighbourhoodAvgEntropy5x5, neighbourEntropyImg5x5);
 				}
@@ -569,8 +590,8 @@ void iAEnsemble::createUncertaintyImages(int labelCount, QString const & cachePa
 			MultiplyImageInPlace(m_neighbourhoodAvgEntropy3x3, factor);
 			MultiplyImageInPlace(m_neighbourhoodAvgEntropy5x5, factor);
 			neighbourEntropyMeasure.stop();
-			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood3x3.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), itk::ImageIOBase::DOUBLE, true);
-			iAITKIO::writeFile(cachePath + "/entropyNeighbourhood5x5.mhd", m_neighbourhoodAvgEntropy5x5.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/entropyNeighbourhood3x3.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), itk::ImageIOBase::DOUBLE, true);
+			iAITKIO::writeFile(m_cachePath + "/entropyNeighbourhood5x5.mhd", m_neighbourhoodAvgEntropy5x5.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
 
@@ -614,7 +635,7 @@ QString iAEnsemble::GetSourceName(int sourceIdx) const
 }
 
 
-bool iAEnsemble::loadSampling(QString const & fileName, int labelCount, int id)
+bool iAEnsemble::LoadSampling(QString const & fileName, int labelCount, int id)
 {
 	if (fileName.isEmpty())
 	{
@@ -679,11 +700,11 @@ QSharedPointer<iAMember> const iAEnsemble::Member(size_t memberIdx) const
 	int s = 0;
 	for (int s=0; s<m_samplings.size(); ++s)
 	{
-		if (memberIdx < m_samplings[s]->size())
+		if (memberIdx < m_samplings[s]->Size())
 		{
 			return m_samplings[s]->Get(memberIdx);
 		}
-		memberIdx -= m_samplings[s]->size();
+		memberIdx -= m_samplings[s]->Size();
 	}
 	return QSharedPointer<iAMember>();
 }
@@ -696,4 +717,54 @@ std::vector<double> const & iAEnsemble::MemberAttribute(size_t idx) const
 	case UncertaintyMean: return m_memberEntropyAvg;
 	case UncertaintyVar: return m_memberEntropyVar;
 	}
+}
+
+QSharedPointer<iASamplingResults> iAEnsemble::Sampling(size_t idx) const
+{
+	return m_samplings[idx];
+}
+
+
+QString const & iAEnsemble::CachePath() const
+{
+	return m_cachePath;
+}
+
+QSharedPointer<iAEnsemble> iAEnsemble::AddSubEnsemble(QVector<int> memberIDs, int newEnsembleID)
+{
+	QVector<QSharedPointer<iAMember> > members;
+	for (int memberID : memberIDs)
+	{
+		members.push_back(Member(memberID));
+	}
+	QString cachePath = m_cachePath + QString("/sub%1").arg(newEnsembleID);
+	auto newEnsemble = iAEnsemble::Create(EntropyBinCount(), members, Sampling(0), LabelCount(), cachePath, newEnsembleID);
+	m_subEnsembles.push_back(newEnsemble);
+	return newEnsemble;
+}
+
+void iAEnsemble::Store()
+{
+	m_ensembleFile->Store(m_ensembleFile->FileName());
+}
+
+QVector<QSharedPointer<iAEnsemble> > iAEnsemble::SubEnsembles() const
+{
+	return m_subEnsembles;
+}
+
+
+int iAEnsemble::ID() const
+{
+	if (m_samplings.size() > 1)
+	{
+		DEBUG_LOG("Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
+	}
+	return m_samplings[0]->ID();
+}
+
+
+QSharedPointer<iAEnsembleDescriptorFile> iAEnsemble::EnsembleFile()
+{
+	return m_ensembleFile;
 }

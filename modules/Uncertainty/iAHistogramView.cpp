@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAHistogramView.h"
 
+#include "iAUncertaintyColors.h"
+#include "iAEnsemble.h"
 #include "iAFunctionDrawers.h"
 #include "iASimpleHistogramData.h"
 
@@ -30,7 +32,7 @@
 #include <QHBoxLayout>
 
 iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption):
-	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption),
+	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, "Frequency (Pixels)"),
 m_data(data) {
 }
 
@@ -45,7 +47,7 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramChartWidget::GetDat
 }
 QSharedPointer<iAAbstractDrawableFunction> iAHistogramChartWidget::CreatePrimaryDrawer()
 {
-	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(0, 0, 255), 2));
+	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2));
 }
 
 iAHistogramView::iAHistogramView()
@@ -56,5 +58,20 @@ iAHistogramView::iAHistogramView()
 void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data)
 {
 	m_chart = new iAHistogramChartWidget(data, caption);
+	layout()->setSpacing(0);
 	layout()->addWidget(m_chart);
+}
+
+
+void iAHistogramView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
+{
+	for (auto widget : findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
+	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
+	AddChart("Label", labelDistributionHistogram);
+
+	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
+	AddChart("Algorithmic Entropy", entropyHistogram);
 }

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMemberView.h"
 
-#include "iAColors.h"
+#include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
 
 #include <QHBoxLayout>
@@ -49,25 +49,28 @@ iAMemberView::iAMemberView():
 {
 	//m_plot->setOpenGl(true);
 	setLayout(new QHBoxLayout());
+	layout()->setSpacing(0);
 	layout()->addWidget(m_plot);
-	//  | QCP::iMultiSelect
-	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
 }
 
 void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 {
+	m_plot->clearPlottables();
 	m_ensemble = ensemble;
 
 	m_sortedIndices.clear();
 	m_sortedIndices = sort_indices_desc<double>(ensemble->MemberAttribute(iAEnsemble::UncertaintyMean));
 
-	QCPBars * mean = new QCPBars(m_plot->xAxis, m_plot->yAxis);
-	mean->setPen(QPen(Uncertainty::MemberBarColor));
+	mean = new QCPBars(m_plot->xAxis, m_plot->yAxis);
+	mean->setPen(QPen(iAUncertaintyColors::MemberBar));
 	mean->setName("Mean Uncertainty");
-	mean->setSelectable(QCP::stSingleData);
-	mean->selectionDecorator()->setPen(Uncertainty::SelectionColor);
+	mean->setSelectable(QCP::stMultipleDataRanges);
+	mean->selectionDecorator()->setPen(iAUncertaintyColors::Selection);
+
+	
 
 	QVector<double> ticks;
 	QVector<QString> labels;
@@ -85,6 +88,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
 	textTicker->addTicks(ticks, labels);
 	m_plot->xAxis->setTicker(textTicker);
+	m_plot->xAxis->setLabel("Member ID");
 	m_plot->xAxis->setRange(-1, 20); // by default, show the first 20 member...
 	m_plot->yAxis->setLabel("Mean Uncertainty");
 	m_plot->yAxis->setRange(0, 1);
@@ -136,9 +140,23 @@ void iAMemberView::ChartMousePress(QMouseEvent *)
 
 void iAMemberView::SelectionChanged(QCPDataSelection const & selection)
 {
+	if (selection.dataRangeCount() == 1 && selection.dataRange(0).begin()+1 == selection.dataRange(0).end())
+	{
+		int barIdx = selection.dataRange(0).begin();
+		emit MemberSelected(m_sortedIndices[barIdx]);
+	}
+}
+
+QVector<int > iAMemberView::SelectedMemberIDs() const
+{
+	QCPDataSelection selection = mean->selection();
+	QVector<int> result;
 	for (int r = 0; r < selection.dataRangeCount(); ++r)
 	{
-		int memberIdx = selection.dataRange(r).begin();
-		emit MemberSelected(m_sortedIndices[memberIdx]);
+		for (int barIdx = selection.dataRange(r).begin(); barIdx < selection.dataRange(r).end(); ++barIdx)
+		{
+			result.push_back(m_sortedIndices[barIdx]);
+		}
 	}
+	return result;
 }

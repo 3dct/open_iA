@@ -176,7 +176,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 			attribLine = paramLine + iAAttributeDescriptor::ValueSplitString + derivedOutLine;
 		}
 		lineNr++;
-		QSharedPointer<iAMember> result = iAMember::create(
+		QSharedPointer<iAMember> result = iAMember::Create(
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
 			*this,
@@ -228,9 +228,6 @@ bool iASamplingResults::Store(QString const & fileName,
 
 	return StoreAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
 		StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
-
-
-	return true;
 }
 
 bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool id)
@@ -246,7 +243,7 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 	{
 		if (id)
 		{
-			outParamSet << m_results[i]->GetID() << iAAttributeDescriptor::ValueSplitString;
+			outParamSet << m_results[i]->ID() << iAAttributeDescriptor::ValueSplitString;
 		}
 		outParamSet << m_results[i]->ToString(m_attributes, type) << endl;
 	}
@@ -255,7 +252,7 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 }
 
 
-int iASamplingResults::size() const
+int iASamplingResults::Size() const
 {
 	return m_results.size();
 }
@@ -272,50 +269,55 @@ void iASamplingResults::AddResult(QSharedPointer<iAMember> result)
 	m_results.push_back(result);
 }
 
-QVector<QSharedPointer<iAMember> > const & iASamplingResults::GetMembers() const
+QVector<QSharedPointer<iAMember> > const & iASamplingResults::Members() const
 {
 	return m_results;
 }
 
-QSharedPointer<iAAttributes> iASamplingResults::GetAttributes() const
+void iASamplingResults::SetMembers(QVector<QSharedPointer<iAMember> > const & members)
+{
+	m_results = members;
+}
+
+QSharedPointer<iAAttributes> iASamplingResults::Attributes() const
 {
 	return m_attributes;
 }
 
 
-QString iASamplingResults::GetName() const
+QString iASamplingResults::Name() const
 {
 	return m_name;
 }
 
 
-QString iASamplingResults::GetFileName() const
+QString iASamplingResults::FileName() const
 {
 	return m_fileName;
 }
 
 
-QString iASamplingResults::GetPath(int id) const
+QString iASamplingResults::Path(int id) const
 {
 	return m_path + "/sample" + QString::number(id);
 }
 
-QString iASamplingResults::GetPath() const
+QString iASamplingResults::Path() const
 {
 	return m_path;
 }
 
-QString iASamplingResults::GetExecutable() const
+QString iASamplingResults::Executable() const
 {
 	return m_executable;
 }
 
-QString iASamplingResults::GetAdditionalArguments() const
+QString iASamplingResults::AdditionalArguments() const
 {
 	return m_additionalArguments;
 }
 
-int iASamplingResults::GetID() const
+int iASamplingResults::ID() const
 {
 	return m_id;
 }

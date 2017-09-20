@@ -24,11 +24,10 @@
 
 #include <QWidget>
 
-class QCustomPlot;
-class QCPColorMap;
-class QCPColorScale;
-class QCPDataSelection;
-class QCPCurve;
+class iASPLOMData;
+class iAScatterPlot;
+class iAScatterPlotStandaloneHandler;
+class ScatterPlotWidget;
 
 class iAScatterPlotView: public QWidget
 {
@@ -37,26 +36,28 @@ public:
 	iAScatterPlotView();
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	vtkImagePointer GetSelectionImage();
+	void ToggleSettings();
 private slots:
-	void selectionChanged(QCPDataSelection const &);
-	void chartMousePress(QMouseEvent *);
-	void xAxisChoice();
-	void yAxisChoice();
-	void colorThemeChanged(int index);
+	void XAxisChoice();
+	void YAxisChoice();
+	void SelectionUpdated();
 signals:
 	void SelectionChanged();
 private:
 	QSharedPointer<iAUncertaintyImages> m_imgs;
-	QCustomPlot* m_plot;
+
 	vtkImagePointer m_selectionImg;
 	size_t m_voxelCount;
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
-	/*
-	// only relevant for heatmap
-	QCPColorMap * colorMap;
-	QCPColorScale *colorScale;
-	*/
+	QWidget* m_settings;
+	QWidget* m_scatterPlotContainer;
+
+	QSharedPointer<iASPLOMData> m_splomData;
+	iAScatterPlot* m_scatterplot;
+	ScatterPlotWidget *m_scatterPlotWidget;
+	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
+
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
 };

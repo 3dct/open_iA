@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,16 +15,23 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include <QColor>
+#include <QList>
+#include <QVector>
 
-struct Uncertainty
+//! class providing a few selection/highlight/settings details to a single scatterplot
+//! implemented by iAQSplom, but can also be implemented separately to e.g. allow a
+//! standalone scatterplot
+class iAScatterPlotSelectionHandler
 {
-	static QColor ChartColor;
-	static QColor SelectionColor;
-	static QColor MemberBarColor;
+public:
+	virtual QVector<unsigned int> & getSelection() = 0;
+	virtual const QList<int> & getHighlightedPoints() const = 0;
+	virtual int getVisibleParametersCount() const = 0;
+	virtual double getAnimIn() const = 0;
+	virtual double getAnimOut() const = 0;
 };

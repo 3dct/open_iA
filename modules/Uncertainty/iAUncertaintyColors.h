@@ -20,64 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAITKIO.h" // TODO: replace?
+#include <QColor>
 
-#include <QSharedPointer>
-#include <QString>
-#include <QVector>
-
-class iAAttributes;
-class iASamplingResults;
-
-typedef itk::Image<double, 3> DoubleImage;
-
-class iAMember
+struct iAUncertaintyColors
 {
-public:
-
-	//! create from string
-	static QSharedPointer<iAMember> Create(
-		QString const & line,
-		iASamplingResults const & sampling,
-		QSharedPointer<iAAttributes> attributes);
-
-	static QSharedPointer<iAMember> Create(
-		int id,
-		iASamplingResults const & sampling,
-		QVector<double> const & parameter,
-		QString const & fileName);
-
-	//! retrieve all attritutes of the given type as string
-	//! (such as can be passed into Create method above)
-	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
-
-	//! retrieve labelled image
-	iAITKIO::ImagePointer const LabelImage();
-
-	//! get attribute (parameter or characteristic)
-	double Attribute(int id) const;
-	
-	//! set attribute (parameter or characteristic)
-	void SetAttribute(int id, double value);
-
-	int ID();
-
-	QVector<DoubleImage::Pointer> ProbabilityImgs(int labelCount);
-
-	bool ProbabilityAvailable() const;
-
-	int DatasetID() const;
-	QSharedPointer<iAAttributes> Attributes() const;
-private:
-	//! constructor; use static Create methods instead!
-	iAMember(int id, iASamplingResults const & sampling);
-	//! for now, value-type agnostic storage of values:
-	QVector<double> m_attributeValues;
-	iASamplingResults const & m_sampling;
-	int m_id;
-	QString m_fileName;
-
-	QString LabelPath() const;
-	QString ProbabilityPath(int label) const;
-	QString Folder() const;
+	static QColor Chart;
+	static QColor Selection;
+	static QColor MemberBar;
 };

@@ -20,64 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAITKIO.h" // TODO: replace?
-
-#include <QSharedPointer>
-#include <QString>
 #include <QVector>
+#include <QWidget>
 
-class iAAttributes;
-class iASamplingResults;
+class iAEnsemble;
 
-typedef itk::Image<double, 3> DoubleImage;
+class QListWidget;
+class QListWidgetItem;
 
-class iAMember
+class iAEnsembleView : public QWidget
 {
+	Q_OBJECT
 public:
-
-	//! create from string
-	static QSharedPointer<iAMember> Create(
-		QString const & line,
-		iASamplingResults const & sampling,
-		QSharedPointer<iAAttributes> attributes);
-
-	static QSharedPointer<iAMember> Create(
-		int id,
-		iASamplingResults const & sampling,
-		QVector<double> const & parameter,
-		QString const & fileName);
-
-	//! retrieve all attritutes of the given type as string
-	//! (such as can be passed into Create method above)
-	QString ToString(QSharedPointer<iAAttributes> attributes, int type);
-
-	//! retrieve labelled image
-	iAITKIO::ImagePointer const LabelImage();
-
-	//! get attribute (parameter or characteristic)
-	double Attribute(int id) const;
-	
-	//! set attribute (parameter or characteristic)
-	void SetAttribute(int id, double value);
-
-	int ID();
-
-	QVector<DoubleImage::Pointer> ProbabilityImgs(int labelCount);
-
-	bool ProbabilityAvailable() const;
-
-	int DatasetID() const;
-	QSharedPointer<iAAttributes> Attributes() const;
+	iAEnsembleView();
+	void AddEnsemble(QString const & caption, QSharedPointer<iAEnsemble> ensemble);
+	QVector<QSharedPointer<iAEnsemble> > & Ensembles();
+signals:
+	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
+private slots:
+	void EnsembleDblClicked(QListWidgetItem*);
 private:
-	//! constructor; use static Create methods instead!
-	iAMember(int id, iASamplingResults const & sampling);
-	//! for now, value-type agnostic storage of values:
-	QVector<double> m_attributeValues;
-	iASamplingResults const & m_sampling;
-	int m_id;
-	QString m_fileName;
-
-	QString LabelPath() const;
-	QString ProbabilityPath(int label) const;
-	QString Folder() const;
+	QListWidget* m_list;
+	QVector<QSharedPointer<iAEnsemble> > m_ensembles;
 };

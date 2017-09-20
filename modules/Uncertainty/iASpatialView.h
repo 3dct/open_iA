@@ -48,12 +48,13 @@ public:
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	void ShowSelection(vtkImagePointer selectionImg);
 	void AddMemberImage(QString const & caption, vtkImagePointer img, bool keep);
+	void ToggleSettings();
 public slots:
 	void StyleChanged();
 private slots:
-	void slicerModeButtonClicked(bool checked);
-	void sliceChanged(int);
-	void imageButtonClicked();
+	void SlicerModeButtonClicked(bool checked);
+	void SliceChanged(int);
+	void ImageButtonClicked();
 /*
 signals:
 	void ROISelected(iAImageCoordinate topLeftFront, iAImageCoordinate bottomRightBack);
@@ -62,7 +63,7 @@ private:
 	QToolButton* AddImage(QString const & caption, vtkImagePointer img);
 	void AddImageDisplay(int idx);
 	void RemoveImageDisplay(int idx);
-	QVector<ImageData> m_images;
+	QMap<int, ImageData> m_images;
 	QMap<int, ImageGUIElements> m_guiElements;
 	QWidget* m_contentWidget;
 	QWidget* m_sliceBar;
@@ -74,4 +75,7 @@ private:
 	QSharedPointer<iAChannelVisualizationData> m_selectionData;
 	int m_curMode;
 	QVector<QToolButton*> m_memberButtons;
+	QWidget* m_settings;
+	int m_slice;
+	int newImgID;
 };

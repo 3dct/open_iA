@@ -27,6 +27,7 @@
 
 #include <QWidget>
 
+class iAEnsemble;
 class iASimpleHistogramData;
 
 class iAHistogramChartWidget : public iADiagramFctWidget
@@ -46,7 +47,8 @@ class iAHistogramView : public QWidget
 	Q_OBJECT
 public:
 	iAHistogramView();
-	void AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data);
+	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
 private:
+	void AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data);
 	iADiagramFctWidget* m_chart;
 };

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASpatialView.h"
 
-#include "iAColors.h"
+#include "iAUncertaintyColors.h"
 #include "iAImageWidget.h"
 
 #include "iAChannelVisualizationData.h"
@@ -66,11 +66,13 @@ struct ImageGUIElements
 };
 
 
-iASpatialView::iASpatialView(): QWidget()
+iASpatialView::iASpatialView(): QWidget(),
+	m_slice(0),
+	newImgID(0)
 {
 	m_sliceControl = new QSpinBox();
 	m_sliceControl->setMaximum(0);
-	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(sliceChanged(int)));
+	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(SliceChanged(int)));
 
 	auto sliceButtonBar = new QToolBar();			// same order as in iASlicerMode!
 	static const char* const slicerModeButtonLabels[] = { "YZ", "XY", "XZ" };
@@ -80,7 +82,7 @@ iASpatialView::iASpatialView(): QWidget()
 		slicerModeButton[i]->setText(slicerModeButtonLabels[i]);
 		slicerModeButton[i]->setAutoExclusive(true);
 		slicerModeButton[i]->setCheckable(true);
-		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(slicerModeButtonClicked(bool)));
+		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(SlicerModeButtonClicked(bool)));
 		sliceButtonBar->addWidget(slicerModeButton[i]);
 	}
 	m_curMode = iASlicerMode::XY;
@@ -102,14 +104,32 @@ iASpatialView::iASpatialView(): QWidget()
 	m_imageBar->setLayout(new QHBoxLayout());
 
 	setLayout(new QVBoxLayout());
+	layout()->setSpacing(0);
 	layout()->addWidget(m_contentWidget);
-	layout()->addWidget(m_sliceBar);
-	layout()->addWidget(m_imageBar);
+
+	m_settings = new QWidget();
+	m_settings->setLayout(new QVBoxLayout);
+	m_settings->layout()->setSpacing(0);
+	m_settings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+	m_settings->layout()->addWidget(m_sliceBar);
+	m_settings->layout()->addWidget(m_imageBar);
+	layout()->addWidget(m_settings);
 }
 
 
 void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
+	newImgID = 0;
+	for (auto widget : m_imageBar->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	{
+		delete widget;
+	}
+	for (auto guiIdx : m_guiElements.keys())
+	{
+		RemoveImageDisplay(guiIdx);
+	}
+	m_images.clear();
+	m_memberButtons.clear();
 	for (int i = 0; i < iAUncertaintyImages::SourceCount; ++i)
 	{
 		AddImage(imgs->GetSourceName(i), imgs->GetEntropy(i));
@@ -124,15 +144,16 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	button->setCheckable(true);
 	button->setAutoExclusive(false);
 	m_imageBar->layout()->addWidget(button);
-	connect(button, SIGNAL( clicked() ), this, SLOT( imageButtonClicked() ) );
+	connect(button, SIGNAL( clicked() ), this, SLOT( ImageButtonClicked() ) );
 	iAImageWidget* imgW = nullptr;
-	m_images.push_back(ImageData(caption, img));
-	if (m_images.size() == 1)
+	m_images.insert(newImgID, ImageData(caption, img));
+	button->setProperty("imageID", newImgID);
+	++newImgID;
+	if (newImgID == 1)
 	{
 		AddImageDisplay(0);
 		button->setChecked(true);
 	}
-	button->setProperty("imageID", m_images.size() - 1);
 	return button;
 }
 
@@ -176,6 +197,7 @@ void iASpatialView::AddImageDisplay(int idx)
 	{
 		InitializeChannel(gui, m_selectionData);
 	}
+	gui.imageWidget->SetSlice(m_slice);
 }
 
 
@@ -195,7 +217,7 @@ void iASpatialView::StyleChanged()
 }
 
 
-void iASpatialView::slicerModeButtonClicked(bool checked)
+void iASpatialView::SlicerModeButtonClicked(bool checked)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (m_curMode == modeIdx)
@@ -211,7 +233,7 @@ void iASpatialView::slicerModeButtonClicked(bool checked)
 }
 
 
-void iASpatialView::imageButtonClicked()
+void iASpatialView::ImageButtonClicked()
 {
 	QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
 	int id = button->property("imageID").toInt();
@@ -226,8 +248,9 @@ void iASpatialView::imageButtonClicked()
 }
 
 
-void iASpatialView::sliceChanged(int slice)
+void iASpatialView::SliceChanged(int slice)
 {
+	m_slice = slice;
 	for (int id : m_guiElements.keys())
 	{
 		m_guiElements[id].imageWidget->SetSlice(slice);
@@ -242,9 +265,9 @@ vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT()
 	result->SetRange(0, 1);                  // alpha value here is not used!
 	result->SetTableValue(0.0, 0.0, 0.0, 0.0);
 	result->SetTableValue(1.0,
-		Uncertainty::SelectionColor.red() / 255.0,
-		Uncertainty::SelectionColor.green() / 255.0,
-		Uncertainty::SelectionColor.blue() / 255.0);
+		iAUncertaintyColors::Selection.red() / 255.0,
+		iAUncertaintyColors::Selection.green() / 255.0,
+		iAUncertaintyColors::Selection.blue() / 255.0);
 	result->Build();
 	return result;
 }
@@ -280,9 +303,13 @@ void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
 }
 
 
-
 void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img, bool keep)
 {
+	if (!img)
+	{
+		DEBUG_LOG("Image was null!");
+		return;
+	}
 	if (!keep)
 	{
 		for (auto memberButton : m_memberButtons)
@@ -299,4 +326,10 @@ void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img,
 	memberButton->setChecked(true);
 	AddImageDisplay(idx);
 	m_memberButtons.push_back(memberButton);
+}
+
+
+void iASpatialView::ToggleSettings()
+{
+	m_settings->setVisible(!m_settings->isVisible());
 }

@@ -23,50 +23,59 @@
 
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
+#include "iAEnsembleView.h"
 #include "iAHistogramView.h"
 #include "iAMember.h"
 #include "iAMemberView.h"
 #include "iAScatterPlotView.h"
-#include "iASimpleHistogramData.h"
 #include "iASpatialView.h"
 
 #include "iAChildData.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
+#include "iAStringHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
+
+#include <QDir>
 
 const int EntropyBinCount = 100;
 
 iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData),
-	m_ensemble(iAEnsemble::create(EntropyBinCount))
+	m_newSubEnsembleID(1)
 {
 	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
 	m_spatialView = new iASpatialView();
 	m_histogramView = new iAHistogramView();
+	m_ensembleView = new iAEnsembleView();
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "UncSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_memberView, "Member View", "UncMemberView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_scatterplotView, "Scatterplot View", "UncScatterplotView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_histogramView, "Histogram View", "UncHistogramView"));
-	childData.child->splitDockWidget(childData.child->getRendererDlg(), m_dockWidgets[0], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Vertical);
-	childData.child->splitDockWidget(m_dockWidgets[1], m_dockWidgets[2], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Horizontal);
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
+	QDockWidget* splitAnchor = childData.child->getRendererDlg();
+	for (auto dockWidget : m_dockWidgets)
+	{
+		childData.child->splitDockWidget(splitAnchor, dockWidget, Qt::Horizontal);
+		splitAnchor = dockWidget;
+	}
 	connect(mainWnd, SIGNAL(StyleChanged()), m_spatialView, SLOT(StyleChanged()));
+	connect(m_scatterplotView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
+	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
+	connect(m_ensembleView, SIGNAL(EnsembleSelected(QSharedPointer<iAEnsemble>)), this, SLOT(EnsembleSelected(QSharedPointer<iAEnsemble>)));
 }
 
-iAUncertaintyAttachment* iAUncertaintyAttachment::create(MainWindow * mainWnd, iAChildData childData)
+iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, iAChildData childData)
 {
 	MdiChild * mdiChild = childData.child;
 	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, childData);
 	return newAttachment;
 }
 
-
-void iAUncertaintyAttachment::toggleDockWidgetTitleBars()
+void iAUncertaintyAttachment::ToggleDockWidgetTitleBars()
 {
 	for (int i = 0; i < m_dockWidgets.size(); ++i)
 	{
@@ -74,36 +83,66 @@ void iAUncertaintyAttachment::toggleDockWidgetTitleBars()
 	}
 }
 
-bool iAUncertaintyAttachment::loadEnsemble(QString const & fileName)
+void iAUncertaintyAttachment::ToggleSettings()
 {
-	iAEnsembleDescriptorFile ensembleFile(fileName);
-	if (!ensembleFile.good())
+	m_spatialView->ToggleSettings();
+	m_scatterplotView->ToggleSettings();
+}
+
+bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
+{
+	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile(new iAEnsembleDescriptorFile(fileName));
+	if (!ensembleFile->good())
 	{
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	if (!GetMdiChild()->LoadProject(ensembleFile.GetModalityFileName()))
+	if (!GetMdiChild()->LoadProject(ensembleFile->ModalityFileName()))
 	{
-		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile.GetModalityFileName()));
+		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile->ModalityFileName()));
 		return false;
 	}
-	bool result = m_ensemble->load(fileName, ensembleFile);
-	if (result)
+	auto ensemble = iAEnsemble::Create(EntropyBinCount, ensembleFile);
+	if (ensemble)
 	{
-		m_spatialView->SetDatasets(m_ensemble);
-		m_scatterplotView->SetDatasets(m_ensemble);
-		m_memberView->SetEnsemble(m_ensemble);
-		auto labelDistributionHistogram =
-			CreateHistogram<int>(m_ensemble->GetLabelDistribution(), m_ensemble->LabelCount(), 0, m_ensemble->LabelCount(), Discrete);
-		m_histogramView->AddChart("Label Distribution", labelDistributionHistogram);
-
-		auto entropyHistogram = iASimpleHistogramData::Create(0, 1, m_ensemble->EntropyBinCount(), m_ensemble->EntropyHistogram(), Continuous);
-		m_histogramView->AddChart("Algorithmic Entropy Histogram", entropyHistogram);
-
-		connect(m_scatterplotView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
-		connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
+		m_ensembleView->AddEnsemble("Full Ensemble", ensemble);
+		for (auto subEnsemble : ensemble->SubEnsembles())
+		{
+			if (subEnsemble->ID() > m_newSubEnsembleID)
+				m_newSubEnsembleID = subEnsemble->ID();
+			m_ensembleView->AddEnsemble(QString("SubEnsemble %1").arg(subEnsemble->ID()), subEnsemble);
+		}
+		EnsembleSelected(ensemble);
 	}
-	return result;
+	m_childData.child->showMaximized();
+	if (!ensembleFile->LayoutName().isEmpty())
+	{
+		m_childData.child->LoadLayout(ensembleFile->LayoutName());
+	}
+	return ensemble;
+}
+
+void iAUncertaintyAttachment::CalculateNewSubEnsemble()
+{
+	auto memberIDs = m_memberView->SelectedMemberIDs();
+	if (memberIDs.empty())
+	{
+		DEBUG_LOG("No members selected!");
+		return;
+	}
+	QSharedPointer<iAEnsemble> mainEnsemble = m_ensembleView->Ensembles()[0];
+	QString cachePath;
+	int subEnsembleID;
+	do
+	{
+		subEnsembleID = m_newSubEnsembleID;
+		cachePath = mainEnsemble->CachePath() + QString("/sub%1").arg(subEnsembleID);
+		++m_newSubEnsembleID;
+	} while (QDir(cachePath).exists());
+	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
+	mainEnsemble->EnsembleFile()->AddSubEnsemble(subEnsembleID, memberIDs);
+	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(Join(memberIDs, ",")), newEnsemble);
+	mainEnsemble->Store();
 }
 
 void iAUncertaintyAttachment::ChartSelectionChanged()
@@ -113,7 +152,7 @@ void iAUncertaintyAttachment::ChartSelectionChanged()
 
 void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 {
-	iAITKIO::ImagePointer itkImg = m_ensemble->Member(memberIdx)->LabelImage();
+	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->LabelImage();
 	iAConnector con;
 	con.SetImage(itkImg);
 	bool keep = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
@@ -123,4 +162,13 @@ void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 		m_shownMembers.clear();
 	}
 	m_shownMembers.push_back(itkImg);
+}
+
+void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemble)
+{
+	m_currentEnsemble = ensemble;
+	m_spatialView->SetDatasets(ensemble);
+	m_scatterplotView->SetDatasets(ensemble);
+	m_memberView->SetEnsemble(ensemble);
+	m_histogramView->SetEnsemble(ensemble);
 }

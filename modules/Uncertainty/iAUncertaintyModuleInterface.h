@@ -42,6 +42,8 @@ protected:
 private slots:
 	void UncertaintyExploration();
 	void ToggleDockWidgetTitleBars();
+	void ToggleSettings();
+	void CalculateNewSubEnsemble();
 private:
 	void LoadEnsemble(QString const & ensembleFileName);
 	void SetupToolBar();
