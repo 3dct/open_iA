@@ -65,7 +65,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
-	m_scatterplot->setData(0, 1, m_data);
+	m_scatterplot->setData(0, 1, data);
 }
 
 void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)
@@ -81,7 +81,7 @@ void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double
 		rgba[0] = c.red() / 255.0;
 		rgba[1] = c.green() / 255.0;
 		rgba[2] = c.blue() / 255.0;
-		rgba[3] = c.alpha();
+		rgba[3] = c.alpha() / 255.0;
 		lut->SetTableValue(i, rgba);
 	}
 	lut->Build();

@@ -114,8 +114,11 @@ void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, QString 
 	for ( unsigned long i = 0; i < m_splomData->numParams(); ++i )
 	{
 		//qDebug() << m_splomData->parameterName( i );
-		if ( m_splomData->parameterName( i ) == colorArrayName )
+		if (m_splomData->parameterName(i) == colorArrayName)
+		{
 			m_colInd = i;
+			break;
+		}
 	}
 	createAndFillVBO();
 }
