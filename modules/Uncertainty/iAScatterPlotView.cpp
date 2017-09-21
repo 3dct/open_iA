@@ -21,15 +21,13 @@
 #include "iAScatterPlotView.h"
 
 #include "iAConsole.h"
-#include "iALookupTable.h"
 #include "iAPerformanceHelper.h"
 #include "iAToolsVTK.h"
 #include "iAScatterPlot.h"
-#include "iAScatterPlotSelectionHandler.h"
+#include "iAScatterPlotWidget.h"
 #include "iASPLOMData.h"
 #include "iAUncertaintyColors.h"
 
-#include <QGLWidget>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
@@ -38,30 +36,6 @@
 #include <QVBoxLayout>
 
 #include <vtkImageData.h>
-#include <vtkLookupTable.h>
-
-class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
-{
-public:
-	virtual QVector<unsigned int> & getSelection() {
-		return m_selection;
-	}
-	virtual const QList<int> & getHighlightedPoints() const {
-		return m_highlight;
-	}
-	virtual int getVisibleParametersCount() const {
-		return 2;
-	}
-	virtual double getAnimIn() const {
-		return 1.0;
-	}
-	virtual double getAnimOut() const {
-		return 0.0;
-	}
-private:
-	QList<int> m_highlight;
-	QVector<unsigned int> m_selection;
-};
 
 iAScatterPlotView::iAScatterPlotView():
 	m_scatterPlotWidget(nullptr),
@@ -96,131 +70,6 @@ iAScatterPlotView::iAScatterPlotView():
 }
 
 
-class ScatterPlotWidget : public QGLWidget
-{
-public:
-	const int PaddingLeft   = 45;
-	const int PaddingTop    = 5;
-	const int PaddingRight  = 5;
-	const int PaddingBottom = 45;
-	const int TextPadding	= 2;
-	ScatterPlotWidget(QSharedPointer<iASPLOMData> data, double rangeMin, double rangeMax):
-		m_data(data),
-		m_scatterPlotHandler(new iAScatterPlotStandaloneHandler())
-	{
-		setMouseTracking(true);
-		setFocusPolicy(Qt::StrongFocus);
-		m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
-
-		auto lut = vtkSmartPointer<vtkLookupTable>::New();
-		double lutRange[2] = { rangeMin, rangeMax };
-		lut->SetRange(lutRange);
-		lut->Build();
-		vtkIdType lutColCnt = lut->GetNumberOfTableValues();
-		double alpha = 0.5;
-		for (vtkIdType i = 0; i < lutColCnt; i++)
-		{
-			double rgba[4]; lut->GetTableValue(i, rgba);
-			rgba[0] = iAUncertaintyColors::Chart.red() / 255.0;
-			rgba[1] = iAUncertaintyColors::Chart.green() / 255.0;
-			rgba[2] = iAUncertaintyColors::Chart.blue() / 255.0;
-			rgba[3] = alpha;
-			lut->SetTableValue(i, rgba);
-		}
-		lut->Build();
-		QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
-		m_scatterplot->setData(0, 1, m_data);
-		m_scatterplot->setLookupTable(lookupTable, m_data->parameterName(0));
-	}
-	virtual void paintEvent(QPaintEvent * event)
-	{
-		QPainter painter(this);
-		painter.setRenderHint(QPainter::Antialiasing);
-		painter.setRenderHint(QPainter::HighQualityAntialiasing);
-		painter.beginNativePainting();
-		glClearColor(1.0, 1.0, 1.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		painter.endNativePainting();
-		m_scatterplot->paintOnParent(painter);
-
-		// print axes tick labels:
-		painter.save();
-		QList<double> ticksX, ticksY; QList<QString> textX, textY;
-		m_scatterplot->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
-		painter.setPen(m_scatterplot->settings.tickLabelColor);
-		QPoint tOfs(45,45);
-		long tSpc = 5;
-		for (long i = 0; i < ticksY.size(); ++i)
-		{
-			double t = ticksY[i]; QString text = textY[i];
-			painter.drawText(QRectF(0, t - tOfs.y(), tOfs.x() - tSpc, 2 * tOfs.y()), Qt::AlignRight | Qt::AlignVCenter, text);
-		}
-		painter.rotate(-90);
-		for (long i = 0; i < ticksX.size(); ++i)
-		{
-			double t = ticksX[i]; QString text = textX[i];
-			painter.drawText(QRectF(-tOfs.y() + tSpc - (height() - PaddingBottom - TextPadding), t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignRight | Qt::AlignVCenter, text);
-		}
-		painter.restore();
-
-		QFontMetrics fm = painter.fontMetrics();
-		// print axes labels:
-		painter.save();
-		painter.setPen(m_scatterplot->settings.tickLabelColor);
-		painter.drawText(QRectF(0, height()-fm.height()-TextPadding, width(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(0));
-		painter.rotate(-90);
-		painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(1));
-		painter.restore();
-		
-	}
-	virtual void resizeEvent(QResizeEvent* event)
-	{
-		QRect size(geometry());
-		size.moveTop(0);
-		size.moveLeft(0);
-		size.adjust(PaddingLeft, PaddingTop, -PaddingRight, -PaddingBottom);
-		m_scatterplot->setRect(size);
-	}
-	virtual void wheelEvent(QWheelEvent * event)
-	{
-		m_scatterplot->SPLOMWheelEvent(event);
-		update();
-	}
-	virtual void mousePressEvent(QMouseEvent * event)
-	{
-		m_scatterplot->SPLOMMousePressEvent(event);
-	}
-
-	virtual void mouseReleaseEvent(QMouseEvent * event)
-	{
-		m_scatterplot->SPLOMMouseReleaseEvent(event);
-		update();
-	}
-
-	virtual void mouseMoveEvent(QMouseEvent * event)
-	{
-		m_scatterplot->SPLOMMouseMoveEvent(event);
-	}
-	virtual void keyPressEvent(QKeyEvent * event)
-	{
-		switch (event->key())
-		{
-		case Qt::Key_R: //if R is pressed, reset all the applied transformation as offset and scaling
-			m_scatterplot->setTransform(1.0, QPointF(0.0f, 0.0f));
-			break;
-		}
-	}
-	QVector<unsigned int> getSelection()
-	{
-		return m_scatterPlotHandler->getSelection();
-	}
-public:
-	iAScatterPlot* m_scatterplot;
-private:
-	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
-};
-
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
 	delete m_scatterPlotWidget;
@@ -243,8 +92,11 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	}
 
 	// setup scatterplot:
-	m_scatterPlotWidget = new ScatterPlotWidget(splomData, 0, 1);
-	m_scatterPlotWidget->m_scatterplot->settings.selectionColor = iAUncertaintyColors::Selection;
+	m_scatterPlotWidget = new iAScatterPlotWidget(splomData);
+	QColor c(iAUncertaintyColors::Chart);
+	c.setAlpha(0.5);
+	m_scatterPlotWidget->setPlotColor(c, 0, 1);
+	m_scatterPlotWidget->setSelectionColor(iAUncertaintyColors::Selection);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
 }

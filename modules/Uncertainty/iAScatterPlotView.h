@@ -24,10 +24,7 @@
 
 #include <QWidget>
 
-class iASPLOMData;
-class iAScatterPlot;
-class iAScatterPlotStandaloneHandler;
-class ScatterPlotWidget;
+class iAScatterPlotWidget;
 
 class iAScatterPlotView: public QWidget
 {
@@ -52,7 +49,7 @@ private:
 	int m_xAxisChoice, m_yAxisChoice;
 	QWidget* m_settings;
 	QWidget* m_scatterPlotContainer;
-	ScatterPlotWidget *m_scatterPlotWidget;
+	iAScatterPlotWidget* m_scatterPlotWidget;
 
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
