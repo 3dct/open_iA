@@ -78,9 +78,11 @@ public slots:
 	void mousePress(QMouseEvent*);
 	void mouseMove(QMouseEvent*);
 	void selectionChanged(const QCPDataSelection & selection);
+	void setFbpTransparency(int);
 	void showFBPGraphs();
 	void showLinePlots();
 	void updateDatasetComparator();
+	void updateFBPView();
 	void visualizePath();
 
 private:

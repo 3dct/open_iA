@@ -65,7 +65,8 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	m_dataPointInfoFont.setBold(true);
 	m_dataPointInfo->setFont(m_dataPointInfoFont);
 	m_dataPointInfo->setLayer("main");
-	
+	sl_fbpTransparency->hide();
+
 	mapIntensities();
 	
 	m_customPlot->setOpenGl(false);
@@ -84,12 +85,13 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	connect(m_customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_customPlot->xAxis2, SLOT(setRange(QCPRange)));
 	connect(m_customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_customPlot->yAxis2, SLOT(setRange(QCPRange)));
 	connect(m_customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
-	connect(m_customPlot, SIGNAL(plottableClick(QCPAbstractPlottable*, int, QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*, int, QMouseEvent*)));
-
 	connect(m_customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
-
+	
 	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
 	connect(cb_showFbp, SIGNAL(stateChanged(int )), this, SLOT(showFBPGraphs()));
+	connect(cb_fbpView, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFBPView()));
+	connect(sl_fbpTransparency, SIGNAL(valueChanged(int)), this, SLOT(setFbpTransparency(int)));
+
 }
 
 dlg_DatasetComparator::~dlg_DatasetComparator()
@@ -102,7 +104,7 @@ void dlg_DatasetComparator::showLinePlots()
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme("Metro Colors (max. 20)");
 	QColor graphPenColor;
 	QPen graphPen;
-	graphPen.setWidth(2);	// Make sure qcustomplot uses opengl (or set width to 0), otherwise bad performance
+	graphPen.setWidth(2);  // For better perfromance setOpenGl(true) on qcustomplot;
 	int datasetIdx = 0;
 	std::vector<iAFunction<unsigned int, double> *> functions;
 	
@@ -131,7 +133,7 @@ void dlg_DatasetComparator::showLinePlots()
 		m_customPlot->graph()->setName(it->first);
 		QPen p = m_customPlot->graph()->selectionDecorator()->pen();
 		p.setColor(QColor(254, 153, 41));
-		m_customPlot->graph()->selectionDecorator()->setPen(p);  // orange
+		m_customPlot->graph()->selectionDecorator()->setPen(p);  // Selection color: orange
 
 		QList<icData> l = it->second;
 		QSharedPointer<QCPGraphDataContainer> graphData(new QCPGraphDataContainer);
@@ -210,6 +212,30 @@ void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 		m_customPlot->setSelectionRectMode(QCP::srmSelect);
 	else
 		m_customPlot->setSelectionRectMode(QCP::srmNone);
+}
+
+void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
+{
+	if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
+		return;
+
+	QPoint p(e->pos().x(), e->pos().y());
+	QList<double> l;
+	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+		l.push_back(m_customPlot->graph(i)->selectTest(p, true));
+	auto minDistance = *std::min_element(std::begin(l), std::end(l));
+	if (minDistance >= 0 && minDistance < 2.0)
+	{
+		auto idx = l.indexOf(minDistance);
+		auto x = m_customPlot->xAxis->pixelToCoord(e->pos().x());
+		auto y = m_customPlot->yAxis->pixelToCoord(e->pos().y());
+		m_dataPointInfo->setText(QString("%1:").arg(m_customPlot->graph(idx)->name()));
+		m_dataPointInfo->position->setCoords(QPointF(x, y));
+		m_dataPointInfo->setVisible(true);
+	}
+	else
+		m_dataPointInfo->setVisible(false);
+	m_customPlot->replot();
 }
 
 template <typename  T>
@@ -344,6 +370,7 @@ void dlg_DatasetComparator::showFBPGraphs()
 	{
 		if (cb_showFbp->isChecked())
 		{
+			sl_fbpTransparency->show();
 			if (cb_fbpView->currentText() == "Alone")
 			{
 				if (i >= m_DatasetIntensityMap.size())
@@ -360,17 +387,24 @@ void dlg_DatasetComparator::showFBPGraphs()
 			}
 			else
 			{
-				if (i >= m_DatasetIntensityMap.size())
+				m_customPlot->graph(i)->removeFromLegend();
+				if (i < m_DatasetIntensityMap.size())
+				{
+					m_customPlot->graph(i)->setVisible(true);
+					m_customPlot->graph(i)->addToLegend();
+				}
+				else
 				{
 					m_customPlot->graph(i)->setLayer("background");
 					m_customPlot->graph(i)->setVisible(true);
-					if(m_customPlot->graph(i)->name() != "Third Quartile")
+					if (m_customPlot->graph(i)->name() != "Third Quartile")
 						m_customPlot->graph(i)->addToLegend();
 				}
 			}
 		}
 		else
 		{
+			sl_fbpTransparency->hide();
 			if (i >= m_DatasetIntensityMap.size())
 			{
 				m_customPlot->graph(i)->setVisible(false);
@@ -386,23 +420,31 @@ void dlg_DatasetComparator::showFBPGraphs()
 	m_customPlot->replot();
 }
 
-void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
+void dlg_DatasetComparator::updateFBPView()
 {
-	QPoint p(e->pos().x(), e->pos().y());
-	QList<double> l;
-	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
-		l.push_back(m_customPlot->graph(i)->selectTest(p, true));
-	auto minDistance = *std::min_element(std::begin(l), std::end(l));
-	if (minDistance >= 0 && minDistance < 2.0)
+	if (cb_showFbp->isChecked())
+		showFBPGraphs();
+}
+
+void dlg_DatasetComparator::setFbpTransparency(int value)
+{
+	double alpha = round(value * 255 / 100.0);
+	QPen p; QColor c; QBrush b;
+	for (int i = m_DatasetIntensityMap.size(); i < m_customPlot->graphCount(); ++i)
 	{
-		auto idx = l.indexOf(minDistance);
-		auto x = m_customPlot->xAxis->pixelToCoord(e->pos().x());
-		auto y = m_customPlot->yAxis->pixelToCoord(e->pos().y());
-		m_dataPointInfo->setText(QString("%1:").arg(m_customPlot->graph(idx)->name()));
-		m_dataPointInfo->position->setCoords(QPointF(x, y));
-		m_dataPointInfo->setVisible(true);
+		p = m_customPlot->graph(i)->pen();
+		c = m_customPlot->graph(i)->pen().color();
+		c.setAlpha(alpha);
+		p.setColor(c);
+		m_customPlot->graph(i)->setPen(p);
+		if (m_customPlot->graph(i)->name() == "Interquartile Range")
+		{
+			b = m_customPlot->graph(i)->brush();
+			c = m_customPlot->graph(i)->brush().color();
+			c.setAlpha(alpha);
+			b.setColor(c);
+			m_customPlot->graph(i)->setBrush(b);
+		}
 	}
-	else
-		m_dataPointInfo->setVisible(false);
 	m_customPlot->replot();
 }

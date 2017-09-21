@@ -133,6 +133,28 @@
             </item>
            </widget>
           </item>
+          <item>
+           <widget class="QSlider" name="sl_fbpTransparency">
+            <property name="minimumSize">
+             <size>
+              <width>70</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="sliderPosition">
+             <number>99</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
