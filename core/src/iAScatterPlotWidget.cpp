@@ -27,6 +27,8 @@
 
 #include <vtkLookupTable.h>
 
+#include <QMouseEvent>
+
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:
@@ -125,7 +127,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	for (long i = 0; i < ticksX.size(); ++i)
 	{
 		double t = ticksX[i]; QString text = textX[i];
-		painter.drawText(QRectF(-tOfs.y() + tSpc - (height() - PaddingBottom - TextPadding), t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignRight | Qt::AlignVCenter, text);
+		painter.drawText(QRectF(-tOfs.y() + tSpc + PaddingBottom - height() - TextPadding, t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignRight | Qt::AlignVCenter, text);
 	}
 	painter.restore();
 
@@ -150,24 +152,40 @@ void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 
 void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 {
-	m_scatterplot->SPLOMWheelEvent(event);
-	update();
+	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	{
+		m_scatterplot->SPLOMWheelEvent(event);
+		update();
+	}
 }
 
 void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 {
-	m_scatterplot->SPLOMMousePressEvent(event);
+	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	{
+		m_scatterplot->SPLOMMousePressEvent(event);
+	}
 }
 
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 {
-	m_scatterplot->SPLOMMouseReleaseEvent(event);
-	update();
+	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	{
+		m_scatterplot->SPLOMMouseReleaseEvent(event);
+		update();
+	}
 }
 
 void iAScatterPlotWidget::mouseMoveEvent(QMouseEvent * event)
 {
-	m_scatterplot->SPLOMMouseMoveEvent(event);
+	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	{
+		m_scatterplot->SPLOMMouseMoveEvent(event);
+	}
 }
 
 void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
