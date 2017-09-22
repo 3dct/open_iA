@@ -342,7 +342,8 @@ double iAScatterPlot::p2x( double pval ) const
 double iAScatterPlot::x2p( double x ) const
 {
 	double rangeSrc[2] = { m_locRect.left(), m_locRect.right() };
-	return mapValue( rangeSrc, m_prX, revertTransformX(x));
+	double revTransX = clamp(rangeSrc[0], rangeSrc[1], revertTransformX(x));
+	return mapValue( rangeSrc, m_prX, revTransX);
 }
 
 int iAScatterPlot::p2biny( double p ) const
@@ -366,7 +367,8 @@ double iAScatterPlot::p2y( double pval ) const
 double iAScatterPlot::y2p( double y ) const
 {
 	double rangeSrc[2] = { m_locRect.bottom(), m_locRect.top() };
-	return mapValue( rangeSrc, m_prY, revertTransformY(y) );
+	double revTransY = clamp(rangeSrc[1], rangeSrc[0], revertTransformY(y));
+	return mapValue( rangeSrc, m_prY, revTransY);
 }
 
 double iAScatterPlot::applyTransformX( double v ) const
