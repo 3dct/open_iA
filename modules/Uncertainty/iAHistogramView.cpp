@@ -33,7 +33,7 @@
 
 iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption):
 	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, "Frequency (Pixels)"),
-m_data(data) {
+	m_data(data) {
 }
 
 QSharedPointer<iAAbstractDiagramRangedData> iAHistogramChartWidget::GetData()
@@ -58,7 +58,8 @@ iAHistogramView::iAHistogramView()
 void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data)
 {
 	m_chart = new iAHistogramChartWidget(data, caption);
-	layout()->setSpacing(0);
+	m_chart->SetEnableAdditionalFunctions(false);
+	layout()->setSpacing(5);
 	layout()->addWidget(m_chart);
 }
 
