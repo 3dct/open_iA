@@ -63,10 +63,11 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 		splitAnchor = dockWidget;
 	}
 	connect(mainWnd, SIGNAL(StyleChanged()), m_spatialView, SLOT(StyleChanged()));
-	connect(m_scatterplotView, SIGNAL(SelectionChanged()), this, SLOT(ChartSelectionChanged()));
+	connect(m_scatterplotView, SIGNAL(SelectionChanged()), m_spatialView, SLOT(UpdateSelection()));
 	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
 	connect(m_ensembleView, SIGNAL(EnsembleSelected(QSharedPointer<iAEnsemble>)), this, SLOT(EnsembleSelected(QSharedPointer<iAEnsemble>)));
 }
+
 
 iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, iAChildData childData)
 {
@@ -74,6 +75,7 @@ iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, i
 	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, childData);
 	return newAttachment;
 }
+
 
 void iAUncertaintyAttachment::ToggleDockWidgetTitleBars()
 {
@@ -83,11 +85,13 @@ void iAUncertaintyAttachment::ToggleDockWidgetTitleBars()
 	}
 }
 
+
 void iAUncertaintyAttachment::ToggleSettings()
 {
 	m_spatialView->ToggleSettings();
 	m_scatterplotView->ToggleSettings();
 }
+
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
@@ -113,6 +117,7 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 			m_ensembleView->AddEnsemble(QString("SubEnsemble %1").arg(subEnsemble->ID()), subEnsemble);
 		}
 		EnsembleSelected(ensemble);
+		m_spatialView->SetupSelection(m_scatterplotView->GetSelectionImage());
 	}
 	m_childData.child->showMaximized();
 	if (!ensembleFile->LayoutName().isEmpty())
@@ -121,6 +126,7 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	}
 	return ensemble;
 }
+
 
 void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 {
@@ -145,10 +151,6 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	mainEnsemble->Store();
 }
 
-void iAUncertaintyAttachment::ChartSelectionChanged()
-{
-	m_spatialView->ShowSelection(m_scatterplotView->GetSelectionImage());
-}
 
 void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 {
@@ -163,6 +165,7 @@ void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 	}
 	m_shownMembers.push_back(itkImg);
 }
+
 
 void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemble)
 {

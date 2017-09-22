@@ -282,15 +282,17 @@ vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF()
 }
 
 
-void iASpatialView::ShowSelection(vtkImagePointer selectionImg)
+void iASpatialView::SetupSelection(vtkImagePointer selectionImg)
 {
-	if (!m_selectionData)
-	{
-		m_ctf = BuildLabelOverlayLUT();
-		m_otf = BuildLabelOverlayOTF();
-		m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
-		ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
-	}
+	m_ctf = BuildLabelOverlayLUT();
+	m_otf = BuildLabelOverlayOTF();
+	m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
+	ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
+}
+
+
+void iASpatialView::UpdateSelection()
+{
 	for (int guiID : m_guiElements.keys())
 	{
 		iASlicer* slicer = m_guiElements[guiID].imageWidget->GetSlicer();

@@ -45,7 +45,6 @@ public:
 	void CalculateNewSubEnsemble();
 	bool LoadEnsemble(QString const & fileName);
 private slots:
-	void ChartSelectionChanged();
 	void MemberSelected(int memberIdx);
 	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
 private:

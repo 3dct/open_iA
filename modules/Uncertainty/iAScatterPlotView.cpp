@@ -138,7 +138,10 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 		m_xAxisChooser->layout()->addWidget(xButton);
 		m_yAxisChooser->layout()->addWidget(yButton);
 	}
-	m_selectionImg = AllocateImage(imgs->GetEntropy(m_xAxisChoice));
+	if (!m_selectionImg)
+	{
+		m_selectionImg = AllocateImage(imgs->GetEntropy(m_xAxisChoice));
+	}
 	AddPlot(imgs->GetEntropy(m_xAxisChoice), imgs->GetEntropy(m_yAxisChoice),
 		imgs->GetSourceName(m_xAxisChoice), imgs->GetSourceName(m_yAxisChoice));
 }

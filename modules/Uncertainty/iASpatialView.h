@@ -46,11 +46,12 @@ class iASpatialView: public QWidget
 public:
 	iASpatialView();
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
-	void ShowSelection(vtkImagePointer selectionImg);
 	void AddMemberImage(QString const & caption, vtkImagePointer img, bool keep);
 	void ToggleSettings();
+	void SetupSelection(vtkImagePointer selectionImg);
 public slots:
 	void StyleChanged();
+	void UpdateSelection();
 private slots:
 	void SlicerModeButtonClicked(bool checked);
 	void SliceChanged(int);
