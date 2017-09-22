@@ -733,7 +733,7 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 	int fontHeight = fm.height();
 
 	int activeHeight = ActiveHeight()-1;
-	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight+BottomMargin())), QBrush(QColor(255, 255, 255)));
+	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight+BottomMargin()+1)), QBrush(QColor(255, 255, 255)));
 	painter.setPen(Qt::black);
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
