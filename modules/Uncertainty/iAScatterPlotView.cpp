@@ -72,7 +72,12 @@ iAScatterPlotView::iAScatterPlotView():
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
-	delete m_scatterPlotWidget;
+	QVector<unsigned int> selection;
+	if (m_scatterPlotWidget)
+	{
+		selection = m_scatterPlotWidget->getSelection();
+		delete m_scatterPlotWidget;
+	}
 	// setup data object:
 	int * dim = imgX->GetDimensions();
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
@@ -97,6 +102,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	c.setAlpha(128);
 	m_scatterPlotWidget->setPlotColor(c, 0, 1);
 	m_scatterPlotWidget->setSelectionColor(iAUncertaintyColors::Selection);
+	m_scatterPlotWidget->setSelection(selection);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
 }
