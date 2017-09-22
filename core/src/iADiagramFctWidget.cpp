@@ -727,11 +727,14 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 	{
 		return;
 	}
-	painter.setPen(Qt::black);
+	painter.save();
+	painter.translate(-translationX, 0);
 	QFontMetrics fm = painter.fontMetrics();
 	int fontHeight = fm.height();
 
 	int activeHeight = ActiveHeight()-1;
+	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight+BottomMargin())), QBrush(QColor(255, 255, 255)));
+	painter.setPen(Qt::black);
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
 	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (fontHeight*1.1)) );
@@ -791,6 +794,7 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		activeHeight*0.5 - 0.5*fm.width(yCaption),
 		-LeftMargin() + fontHeight - 5);
 	painter.drawText(textPos, yCaption);
+	painter.restore();
 	painter.restore();
 }
 
