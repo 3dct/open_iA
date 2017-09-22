@@ -38,6 +38,7 @@ public:
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
 	QVector<unsigned int> getSelection();
+	void setSelection(QVector<unsigned int> const & selection);
 	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void setSelectionColor(QColor const & c);
 protected:

@@ -30,19 +30,28 @@
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:
-	virtual QVector<unsigned int> & getSelection() {
+	virtual QVector<unsigned int> & getSelection()
+	{
 		return m_selection;
 	}
-	virtual const QList<int> & getHighlightedPoints() const {
+	void setSelection(QVector<unsigned int> const & selection)
+	{
+		m_selection = selection;
+	}
+	virtual const QList<int> & getHighlightedPoints() const
+	{
 		return m_highlight;
 	}
-	virtual int getVisibleParametersCount() const {
+	virtual int getVisibleParametersCount() const
+	{
 		return 2;
 	}
-	virtual double getAnimIn() const {
+	virtual double getAnimIn() const
+	{
 		return 1.0;
 	}
-	virtual double getAnimOut() const {
+	virtual double getAnimOut() const
+	{
 		return 0.0;
 	}
 private:
@@ -176,6 +185,10 @@ QVector<unsigned int> iAScatterPlotWidget::getSelection()
 	return m_scatterPlotHandler->getSelection();
 }
 
+void iAScatterPlotWidget::setSelection(QVector<unsigned int> const & selection)
+{
+	m_scatterPlotHandler->setSelection(selection);
+}
 
 void iAScatterPlotWidget::setSelectionColor(QColor const & c)
 {
