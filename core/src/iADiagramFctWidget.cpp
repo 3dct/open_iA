@@ -182,7 +182,8 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
 	m_enableAdditionalFunctions(true),
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
-	m_maxYAxisValue(std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
+	m_maxYAxisValue(std::numeric_limits<iAAbstractDiagramData::DataType>::lowest()),
+	contextMenuVisible(false)
 {
 	leftMargin   = (yLabel == "") ? 0 : 60;
 	selectedFunction = 0;
@@ -382,23 +383,20 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 	}
 	std::vector<dlg_function*>::iterator it = functions.begin();
 	dlg_function *func = *(it + selectedFunction);
-			
-	switch(event->button())
+	switch (event->button())
 	{
 		case Qt::LeftButton:
 			if (mode == MOVE_NEW_POINT_MODE)
 				func->mouseReleaseEventAfterNewPoint(event);
-				
 			redraw();
 			emit updateTFTable();
 
 			if (isUpdateAutomatically())
 				emit updateViews();
-		break;
+			break;
 		default:
-		break;
+			break;
 	}
-
 	mode = NO_MODE;
 	contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
@@ -494,40 +492,39 @@ void iADiagramFctWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	contextPos = event->pos();
 	contextMenu->clear();
-
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	dlg_function *func = *(it + selectedFunction);
-	
-	if (func->getSelectedPoint() != -1)
-	{
-		if (func->isColored())
-		{
-			QAction *changeColorAction = new QAction(QIcon(":/images/changeColor.png"), tr("Change Color"), this);
-			contextMenu->setDefaultAction(changeColorAction);
-			connect(changeColorAction, SIGNAL(triggered()), this, SLOT(changeColor()));
-			contextMenu->addAction(changeColorAction);
-		}
-
-		if (func->isDeletable(func->getSelectedPoint()))
-			contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, SLOT(deletePoint()));
-		contextMenu->addSeparator();
-	}
 	
 	if (m_showFunctions)
 	{
-		contextMenu->addAction( QIcon( ":/images/TFTableView.png" ), tr( "Transfer Function Table View" ), this, SLOT( showTFTable() ) );
+		std::vector<dlg_function*>::iterator it = functions.begin();
+		dlg_function *func = *(it + selectedFunction);
+
+		if (func->getSelectedPoint() != -1)
+		{
+			if (func->isColored())
+			{
+				QAction *changeColorAction = new QAction(QIcon(":/images/changeColor.png"), tr("Change Color"), this);
+				contextMenu->setDefaultAction(changeColorAction);
+				connect(changeColorAction, SIGNAL(triggered()), this, SLOT(changeColor()));
+				contextMenu->addAction(changeColorAction);
+			}
+
+			if (func->isDeletable(func->getSelectedPoint()))
+				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, SLOT(deletePoint()));
+			contextMenu->addSeparator();
+		}
+		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, SLOT(showTFTable()));
 		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, SLOT(loadTransferFunction()));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, SLOT(saveTransferFunction()));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
-	}
 
-	QAction *autoUpdateAction = new QAction(QIcon(":/images/autoUpdate.png"), tr("Update automatically"), this);
-	autoUpdateAction->setCheckable(true);
-	autoUpdateAction->setChecked(updateAutomatically);
-	connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
-	contextMenu->addAction(autoUpdateAction);
-	
-	contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
+		QAction *autoUpdateAction = new QAction(QIcon(":/images/autoUpdate.png"), tr("Update automatically"), this);
+		autoUpdateAction->setCheckable(true);
+		autoUpdateAction->setChecked(updateAutomatically);
+		connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
+		contextMenu->addAction(autoUpdateAction);
+
+		contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
+	}
 
 	contextMenu->addAction(QIcon(":/images/save.png"), tr("Export data"), this, SLOT(ExportData()));
 
