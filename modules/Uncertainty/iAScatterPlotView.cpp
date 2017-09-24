@@ -35,11 +35,23 @@
 #include <QVariant>
 #include <QVBoxLayout>
 
+#include <QVTKWidget.h>
+#include <vtkChartXY.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
+#include <vtkFloatArray.h>
 #include <vtkImageData.h>
+#include <vtkPen.h>
+#include <vtkPlot.h>
+#include <vtkTable.h>
+
+#define VTK_CREATE(type, name) \
+    vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
 iAScatterPlotView::iAScatterPlotView():
 	m_scatterPlotWidget(nullptr),
-	m_scatterPlotContainer(new QWidget())
+	m_scatterPlotContainer(new QWidget()),
+	m_vtkChartWidget(nullptr)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
@@ -103,8 +115,42 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget->setPlotColor(c, 0, 1);
 	m_scatterPlotWidget->setSelectionColor(iAUncertaintyColors::Selection);
 	m_scatterPlotWidget->setSelection(selection);
+	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
+
+	if (m_vtkChartWidget)
+	{
+		delete m_vtkChartWidget;
+	}
+	m_vtkChartWidget = new QVTKWidget();
+	auto chart = vtkSmartPointer<vtkChartXY>::New();
+	// Test charting with a few more points...
+	VTK_CREATE(vtkTable, table);
+	//VTK_CREATE(vtkFloatArray, arrIdx);
+	//arrIdx->SetName("X Axis");
+	//table->AddColumn(arrIdx);
+	VTK_CREATE(vtkFloatArray, arX);
+	arX->SetName(captionX.toStdString().c_str());
+	table->AddColumn(arX);
+	VTK_CREATE(vtkFloatArray, arY);
+	arY->SetName(captionY.toStdString().c_str());
+	table->AddColumn(arY);
+	table->SetNumberOfRows(m_voxelCount);
+	for (size_t i = 0; i < m_voxelCount; ++i)
+	{
+		table->SetValue(i, 0, bufX[i]);
+		table->SetValue(i, 1, bufY[i]);
+	}
+	VTK_CREATE(vtkContextView, view); // This contains a chart object
+	view->GetScene()->AddItem(chart);
+	view->SetInteractor(m_vtkChartWidget->GetInteractor());
+	m_vtkChartWidget->SetRenderWindow(view->GetRenderWindow());
+	vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
+	points->SetInputData(table, 0, 1);
+	points->SetColor(iAUncertaintyColors::Chart.red(), iAUncertaintyColors::Chart.green(), iAUncertaintyColors::Chart.blue(), iAUncertaintyColors::Chart.alpha());
+	points->GetSelectionPen()->SetColor(iAUncertaintyColors::Selection.red(), iAUncertaintyColors::Selection.green(), iAUncertaintyColors::Selection.blue(), iAUncertaintyColors::Selection.alpha());
+	m_scatterPlotContainer->layout()->addWidget(m_vtkChartWidget);
 }
 
 

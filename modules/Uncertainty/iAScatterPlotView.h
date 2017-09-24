@@ -25,6 +25,7 @@
 #include <QWidget>
 
 class iAScatterPlotWidget;
+class QVTKWidget;
 
 class iAScatterPlotView: public QWidget
 {
@@ -50,6 +51,7 @@ private:
 	QWidget* m_settings;
 	QWidget* m_scatterPlotContainer;
 	iAScatterPlotWidget* m_scatterPlotWidget;
+	QVTKWidget* m_vtkChartWidget;
 
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
