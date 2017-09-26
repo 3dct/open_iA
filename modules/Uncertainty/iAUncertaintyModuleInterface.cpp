@@ -71,12 +71,12 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 		DEBUG_LOG("Uncertainty exploration could not be initialized!");
 		return;
 	}
+	m_mdiChild->show();
 	if (!attach->LoadEnsemble(fileName))
 	{
 		delete m_mdiChild;
 		return;
 	}
-	m_mdiChild->show();
 }
 
 void iAUncertaintyModuleInterface::SetupToolBar()

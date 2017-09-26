@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAUncertaintyAttachment.h"
 
+#include "dlg_imageproperty.h"
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
 #include "iAEnsembleView.h"
@@ -56,12 +57,6 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_scatterplotView, "Scatterplot View", "UncScatterplotView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_histogramView, "Histogram View", "UncHistogramView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
-	QDockWidget* splitAnchor = childData.child->getRendererDlg();
-	for (auto dockWidget : m_dockWidgets)
-	{
-		childData.child->splitDockWidget(splitAnchor, dockWidget, Qt::Horizontal);
-		splitAnchor = dockWidget;
-	}
 	connect(mainWnd, SIGNAL(StyleChanged()), m_spatialView, SLOT(StyleChanged()));
 	connect(m_scatterplotView, SIGNAL(SelectionChanged()), m_spatialView, SLOT(UpdateSelection()));
 	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
@@ -119,7 +114,18 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 		EnsembleSelected(ensemble);
 		m_spatialView->SetupSelection(m_scatterplotView->GetSelectionImage());
 	}
+	m_mainWnd->showMaximized();
 	m_childData.child->showMaximized();
+	m_childData.child->splitDockWidget(m_childData.child->getSlicerDlgXY(), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
+	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
+	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[4], Qt::Vertical);	// Ensemble View
+	m_childData.child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Histogram View
+	m_childData.child->splitDockWidget(m_dockWidgets[4], m_dockWidgets[1], Qt::Horizontal);	// Member View
+	m_childData.child->getSlicerDlgXY()->hide();
+	m_childData.child->getImagePropertyDlg()->hide();
+	m_mainWnd->resizeDocks({ m_dockWidgets[2], m_dockWidgets[3] }, { 400 , 200 }, Qt::Vertical);
+	m_mainWnd->resizeDocks({ m_dockWidgets[4], m_dockWidgets[1] }, { 100 , 200 }, Qt::Horizontal);
+	m_mainWnd->resizeDocks({ m_dockWidgets[4], m_dockWidgets[1] }, { 100 , 200 }, Qt::Vertical);
 	if (!ensembleFile->LayoutName().isEmpty())
 	{
 		m_childData.child->LoadLayout(ensembleFile->LayoutName());

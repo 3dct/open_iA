@@ -34,6 +34,7 @@
 iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption):
 	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, "Frequency (Pixels)"),
 	m_data(data) {
+	setMinimumHeight(120);
 }
 
 QSharedPointer<iAAbstractDiagramRangedData> iAHistogramChartWidget::GetData()

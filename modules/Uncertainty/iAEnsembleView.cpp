@@ -30,6 +30,7 @@ iAEnsembleView::iAEnsembleView():
 	layout()->setSpacing(0);
 	layout()->addWidget(m_list);
 	connect(m_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(EnsembleDblClicked(QListWidgetItem*)));
+	setMaximumWidth(200);
 }
 
 
