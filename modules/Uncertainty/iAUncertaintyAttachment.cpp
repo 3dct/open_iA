@@ -123,9 +123,6 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	m_childData.child->splitDockWidget(m_dockWidgets[4], m_dockWidgets[1], Qt::Horizontal);	// Member View
 	m_childData.child->getSlicerDlgXY()->hide();
 	m_childData.child->getImagePropertyDlg()->hide();
-	m_mainWnd->resizeDocks({ m_dockWidgets[2], m_dockWidgets[3] }, { 400 , 200 }, Qt::Vertical);
-	m_mainWnd->resizeDocks({ m_dockWidgets[4], m_dockWidgets[1] }, { 100 , 200 }, Qt::Horizontal);
-	m_mainWnd->resizeDocks({ m_dockWidgets[4], m_dockWidgets[1] }, { 100 , 200 }, Qt::Vertical);
 	if (!ensembleFile->LayoutName().isEmpty())
 	{
 		m_childData.child->LoadLayout(ensembleFile->LayoutName());
