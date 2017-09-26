@@ -76,18 +76,18 @@ void CloseLibrary(iALoadedModule & module)
 
 QFileInfoList GetLibraryList()
 {
-    QDir root(QCoreApplication::applicationDirPath() + "/plugins");
-    QStringList nameFilter;
+	QDir root(QCoreApplication::applicationDirPath() + "/plugins");
+	QStringList nameFilter;
 
 #ifdef _MSC_VER
 	nameFilter << "*.dll";
-#elif __GNUC__
-	nameFilter << "*.so";
+#elif defined(__APPLE__) && defined(__MACH__)
+	nameFilter << "*.dylib";
 #else
-    nameFilter << "*.dylib";
+	nameFilter << "*.so";
 #endif
-    
-    QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
+	
+	QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
 	return root.entryInfoList(nameFilter, QDir::Files);
 }
 
@@ -167,6 +167,9 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	{
 		LoadModuleAndInterface(fi, logger);
 	}
+	// enable Tools and Filters only if any modules were loaded that put something into them:
+	m_mainWnd->getToolsMenu()->menuAction()->setVisible(m_mainWnd->getToolsMenu()->actions().size() > 0);
+	m_mainWnd->getFiltersMenu()->menuAction()->setVisible(m_mainWnd->getFiltersMenu()->actions().size() > 0);
 }
 
 void iAModuleDispatcher::SaveModulesSettings() const
