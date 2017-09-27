@@ -198,12 +198,14 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 	}
 	if (!m_selectionImg)
 	{
-		vtkImagePointer img = imgs->GetEntropy(m_xAxisChoice);
-		//m_selectionImg = AllocateImage(imgs);
+		vtkImagePointer i = imgs->GetEntropy(m_xAxisChoice);
 		m_selectionImg = vtkSmartPointer<iAvtkImageData>::New();
-		m_selectionImg->SetDimensions(img->GetDimensions());
-		m_selectionImg->AllocateScalars(img->GetScalarType(), 1);
-		m_selectionImg->SetSpacing(img->GetSpacing());
+		m_selectionImg->SetDimensions(i->GetDimensions());
+		m_selectionImg->AllocateScalars(i->GetScalarType(), 1);
+		m_selectionImg->SetSpacing(i->GetSpacing());
+		m_voxelCount = static_cast<size_t>(i->GetDimensions()[0]) * i->GetDimensions()[1] * i->GetDimensions()[2];
+		int* imgbuf = static_cast<int*>(m_selectionImg->GetScalarPointer());
+		std::fill(imgbuf, imgbuf + m_voxelCount, 0);
 		m_selectionImg->SetScalarRange(0, 1);
 	}
 	AddPlot(imgs->GetEntropy(m_xAxisChoice), imgs->GetEntropy(m_yAxisChoice),
