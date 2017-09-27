@@ -37,10 +37,10 @@ public:
 	static const int PaddingBottom;
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	QVector<unsigned int> getSelection();
-	void setSelection(QVector<unsigned int> const & selection);
-	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
-	void setSelectionColor(QColor const & c);
+	QVector<unsigned int> GetSelection();
+	void SetSelection(QVector<unsigned int> const & selection);
+	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
+	void SetSelectionColor(QColor const & c);
 protected:
 	virtual void paintEvent(QPaintEvent * event);
 	virtual void resizeEvent(QResizeEvent* event);

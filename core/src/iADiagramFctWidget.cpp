@@ -628,7 +628,7 @@ int textPos(int markerX, int step, int stepNr, int textWidth)
 
 void iADiagramFctWidget::drawXAxis(QPainter &painter)
 {
-	painter.setPen(Qt::black);
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 
 	const int MINIMUM_MARGIN = 8;
 	const int TextAxisDistance = 2;
@@ -707,7 +707,7 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 	}
 	
 	//draw the x axis
-	painter.setPen(Qt::black);
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 	painter.drawLine(0, -1, (int)((ActiveWidth())*xZoom), -1);
 	
 	if (m_showXAxisLabel)
@@ -733,8 +733,9 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 	int fontHeight = fm.height();
 
 	int activeHeight = ActiveHeight()-1;
-	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight+BottomMargin()+1)), QBrush(QColor(255, 255, 255)));
-	painter.setPen(Qt::black);
+	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight+BottomMargin()+1)),
+		QBrush(QWidget::palette().color(QWidget::backgroundRole())));
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
 	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (fontHeight*1.1)) );

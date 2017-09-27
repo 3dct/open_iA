@@ -184,19 +184,9 @@ int iADiagramWidget::Height() const
 	return height;
 }
 
-QColor iADiagramWidget::getBGGradientColor(int idx)
-{
-	switch (idx)
-	{
-		case 0: return QColor(140,140,140,255);
-		case 1: return QColor(255,255,255,255);
-	}
-	return QColor(0, 0, 0);
-}
-
 void iADiagramWidget::drawBackground(QPainter &painter)
 {
-	painter.fillRect( rect(), Qt::white);
+	painter.fillRect( rect(), QWidget::palette().color(QWidget::backgroundRole()));
 }
 
 void iADiagramWidget::resetView()

@@ -79,7 +79,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_scatterplot->setData(0, 1, data);
 }
 
-void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)
+void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)
 {
 	auto lut = vtkSmartPointer<vtkLookupTable>::New();
 	double lutRange[2] = { rangeMin, rangeMax };
@@ -106,7 +106,10 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	QColor bgColor(QWidget::palette().color(QWidget::backgroundRole()));
+	QColor fg(QWidget::palette().color(QPalette::Text));
+	m_scatterplot->settings.tickLabelColor = fg;
+	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
 	m_scatterplot->paintOnParent(painter);
@@ -147,7 +150,10 @@ void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 	size.moveTop(0);
 	size.moveLeft(0);
 	size.adjust(PaddingLeft, PaddingTop, -PaddingRight, -PaddingBottom);
-	m_scatterplot->setRect(size);
+	if (size.width() > 0 && size.height() > 0)
+	{
+		m_scatterplot->setRect(size);
+	}
 }
 
 void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
@@ -198,17 +204,17 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-QVector<unsigned int> iAScatterPlotWidget::getSelection()
+QVector<unsigned int> iAScatterPlotWidget::GetSelection()
 {
 	return m_scatterPlotHandler->getSelection();
 }
 
-void iAScatterPlotWidget::setSelection(QVector<unsigned int> const & selection)
+void iAScatterPlotWidget::SetSelection(QVector<unsigned int> const & selection)
 {
 	m_scatterPlotHandler->setSelection(selection);
 }
 
-void iAScatterPlotWidget::setSelectionColor(QColor const & c)
+void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
 {
 	m_scatterplot->settings.selectionColor = c;
 }

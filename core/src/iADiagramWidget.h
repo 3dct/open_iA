@@ -84,7 +84,6 @@ protected:
 
 	virtual double getMaxXZoom() const;
 	virtual void drawBackground(QPainter &painter);
-	virtual QColor getBGGradientColor(int idx);
 
 	virtual void setNewSize();
 
