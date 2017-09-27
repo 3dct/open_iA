@@ -22,6 +22,7 @@
 
 #include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
+#include "iAMember.h"
 
 #include <QHBoxLayout>
 
@@ -70,8 +71,6 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	mean->setSelectable(QCP::stMultipleDataRanges);
 	mean->selectionDecorator()->setPen(iAUncertaintyColors::Selection);
 
-	
-
 	QVector<double> ticks;
 	QVector<QString> labels;
 	QVector<double> data;
@@ -80,7 +79,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	for (double idx : m_sortedIndices)
 	{
 		ticks << cnt;
-		labels << QString::number(static_cast<int>(idx));
+		labels << QString::number(static_cast<int>(ensemble->Member(idx)->ID()));
 		data << ensemble->MemberAttribute(iAEnsemble::UncertaintyMean)[idx];
 		++cnt;
 	}
@@ -143,7 +142,7 @@ void iAMemberView::SelectionChanged(QCPDataSelection const & selection)
 	if (selection.dataRangeCount() == 1 && selection.dataRange(0).begin()+1 == selection.dataRange(0).end())
 	{
 		int barIdx = selection.dataRange(0).begin();
-		emit MemberSelected(m_sortedIndices[barIdx]);
+		emit MemberSelected(m_ensemble->Member(m_sortedIndices[barIdx])->ID());
 	}
 }
 
@@ -155,7 +154,7 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 	{
 		for (int barIdx = selection.dataRange(r).begin(); barIdx < selection.dataRange(r).end(); ++barIdx)
 		{
-			result.push_back(m_sortedIndices[barIdx]);
+			result.push_back(m_ensemble->Member(m_sortedIndices[barIdx])->ID());
 		}
 	}
 	return result;
