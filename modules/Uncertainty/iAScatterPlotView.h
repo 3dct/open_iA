@@ -28,6 +28,8 @@ class iAScatterPlotWidget;
 class iAvtkImageData;
 
 class QVTKWidget;
+class vtkContextView;
+class vtkChartXY;
 
 class iAScatterPlotView: public QWidget
 {
@@ -37,6 +39,8 @@ public:
 	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
 	vtkImagePointer GetSelectionImage();
 	void ToggleSettings();
+public slots:
+	void StyleChanged();
 private slots:
 	void XAxisChoice();
 	void YAxisChoice();
@@ -53,7 +57,10 @@ private:
 	QWidget* m_settings;
 	QWidget* m_scatterPlotContainer;
 	iAScatterPlotWidget* m_scatterPlotWidget;
+
 	QVTKWidget* m_vtkChartWidget;
+	vtkSmartPointer<vtkChartXY> m_chart;
+	vtkSmartPointer<vtkContextView> m_view;
 
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);

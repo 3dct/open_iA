@@ -38,6 +38,8 @@ public:
 	QVector<int > SelectedMemberIDs() const;
 signals:
 	void MemberSelected(int memberIdx);
+public slots:
+	void StyleChanged();
 private:
 	QSharedPointer<iAEnsemble> m_ensemble;
 	QCustomPlot* m_plot;

@@ -78,7 +78,6 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->initializeData(img, transform, ctf, false, false);
 	m_slicer->initializeWidget(img);
-
 	StyleChanged();
 }
 

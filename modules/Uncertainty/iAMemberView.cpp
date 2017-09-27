@@ -98,6 +98,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	connect(mean, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
 	connect(m_plot->xAxis, SIGNAL(rangeChanged(const QCPRange &)), this, SLOT(ChangedRange(QCPRange const &)));
 
+	StyleChanged();
 	m_plot->replot();
 }
 
@@ -158,4 +159,21 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 		}
 	}
 	return result;
+}
+
+
+void iAMemberView::StyleChanged()
+{
+	QColor bg(QWidget::palette().color(QPalette::Background));
+	QColor fg(QWidget::palette().color(QPalette::Text));
+	m_plot->setBackground(bg);
+	m_plot->axisRect()->setBackground(bg);
+	for (auto a : m_plot->axisRect()->axes())
+	{
+		a->setLabelColor(fg);
+		a->setTickLabelColor(fg);
+		a->setBasePen(fg);
+		a->setTickPen(fg);
+	}
+	m_plot->replot();
 }
