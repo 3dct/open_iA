@@ -27,6 +27,7 @@
 #include "iAScatterPlotWidget.h"
 #include "iASPLOMData.h"
 #include "iAUncertaintyColors.h"
+#include "iAVtkDraw.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -151,11 +152,16 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	points->SetColor(iAUncertaintyColors::Chart.red(), iAUncertaintyColors::Chart.green(), iAUncertaintyColors::Chart.blue(), iAUncertaintyColors::Chart.alpha());
 	points->GetSelectionPen()->SetColor(iAUncertaintyColors::Selection.red(), iAUncertaintyColors::Selection.green(), iAUncertaintyColors::Selection.blue(), iAUncertaintyColors::Selection.alpha());
 	m_scatterPlotContainer->layout()->addWidget(m_vtkChartWidget);
+	*/
 }
 
 
 void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
+	if (m_scatterPlotWidget)
+	{
+		m_scatterPlotWidget->getSelection().clear();
+	}
 	for (auto widget : m_xAxisChooser->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
 	{
 		delete widget;
@@ -192,7 +198,13 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 	}
 	if (!m_selectionImg)
 	{
-		m_selectionImg = AllocateImage(imgs->GetEntropy(m_xAxisChoice));
+		vtkImagePointer img = imgs->GetEntropy(m_xAxisChoice);
+		//m_selectionImg = AllocateImage(imgs);
+		m_selectionImg = vtkSmartPointer<iAvtkImageData>::New();
+		m_selectionImg->SetDimensions(img->GetDimensions());
+		m_selectionImg->AllocateScalars(img->GetScalarType(), 1);
+		m_selectionImg->SetSpacing(img->GetSpacing());
+		m_selectionImg->SetScalarRange(0, 1);
 	}
 	AddPlot(imgs->GetEntropy(m_xAxisChoice), imgs->GetEntropy(m_yAxisChoice),
 		imgs->GetSourceName(m_xAxisChoice), imgs->GetSourceName(m_yAxisChoice));

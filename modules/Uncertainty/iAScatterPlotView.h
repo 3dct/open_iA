@@ -25,6 +25,8 @@
 #include <QWidget>
 
 class iAScatterPlotWidget;
+class iAvtkImageData;
+
 class QVTKWidget;
 
 class iAScatterPlotView: public QWidget
@@ -44,7 +46,7 @@ signals:
 private:
 	QSharedPointer<iAUncertaintyImages> m_imgs;
 
-	vtkImagePointer m_selectionImg;
+	vtkSmartPointer<iAvtkImageData> m_selectionImg;
 	size_t m_voxelCount;
 	QWidget* m_xAxisChooser, * m_yAxisChooser;
 	int m_xAxisChoice, m_yAxisChoice;
