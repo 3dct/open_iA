@@ -67,9 +67,11 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 
 	mean = new QCPBars(m_plot->xAxis, m_plot->yAxis);
 	mean->setPen(QPen(iAUncertaintyColors::MemberBar));
+	mean->setBrush(QBrush(iAUncertaintyColors::MemberBar));
 	mean->setName("Mean Uncertainty");
 	mean->setSelectable(QCP::stMultipleDataRanges);
 	mean->selectionDecorator()->setPen(iAUncertaintyColors::Selection);
+	mean->selectionDecorator()->setBrush(iAUncertaintyColors::Selection);
 
 	QVector<double> ticks;
 	QVector<QString> labels;
