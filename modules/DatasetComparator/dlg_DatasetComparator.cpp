@@ -26,8 +26,11 @@
 #include "iAHistogramWidget.h"
 #include "iAIntensityMapper.h"
 #include "iARenderer.h"
-
-#include "qcustomplot.h"
+#include "iATransferFunction.h"
+#include "iAVolumeRenderer.h"
+#include "iATypedCallHelper.h"
+#include "iAFunction.h"
+#include "iAFunctionalBoxplot.h"
 
 //#include <omp.h>
 
@@ -36,6 +39,19 @@
 #include <vtkImageData.h>
 #include <vtkLine.h>
 #include <vtkPolyData.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkRenderer.h>
+#include <vtkCamera.h>
+#include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkAbstractVolumeMapper.h>
+#include <vtkVolumeProperty.h>
+#include <vtkProperty.h>
+#include <vtkCornerAnnotation.h>
+#include <vtkTextProperty.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkTextActor.h>
 
 #include <QMap>
 #include <QList>
@@ -44,14 +60,6 @@
 //#include <sys/timeb.h>
 //#include "iAConsole.h"
 
-#include <itkImageBase.h>
-#include <itkImageIOBase.h>
-#include "iATypedCallHelper.h"
-
-#include "iAFunction.h"
-#include "iAFunctionalBoxplot.h"
-
-
 const double golden_ratio = 0.618033988749895;
 
 dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */ )
@@ -59,8 +67,19 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir),
 	m_customPlot(new QCustomPlot(dockWidgetContents)),
-	m_dataPointInfo(new QCPItemText(m_customPlot))
+	m_dataPointInfo(new QCPItemText(m_customPlot)),
+	m_MultiRendererView(new multi3DRendererView()),
+	m_renderWindow(vtkSmartPointer<vtkRenderWindow>::New())
 {
+	m_renderWindow->SetNumberOfLayers(2);
+	m_MultiRendererView->wgtContainer->SetRenderWindow(m_renderWindow);
+	auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	renderWindowInteractor->SetRenderWindow(m_renderWindow);
+	auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+	renderWindowInteractor->SetInteractorStyle(style);
+	m_mdiChild->tabifyDockWidget(m_mdiChild->r, m_MultiRendererView);
+	m_MultiRendererView->show();
+	
 	QFont m_dataPointInfoFont(font().family(), 11);
 	m_dataPointInfoFont.setBold(true);
 	m_dataPointInfo->setFont(m_dataPointInfoFont);
@@ -68,9 +87,9 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	sl_fbpTransparency->hide();
 
 	mapIntensities();
-	
+
 	m_customPlot->setOpenGl(false);
-	//customPlot->setBackground(Qt::darkGray);
+	m_customPlot->setBackground(Qt::darkGray);
 	m_customPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
 	m_customPlot->legend->setVisible(true);
 	m_customPlot->legend->setFont(QFont("Helvetica", 11));
@@ -86,12 +105,12 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	connect(m_customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_customPlot->yAxis2, SLOT(setRange(QCPRange)));
 	connect(m_customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 	connect(m_customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
-	
+	connect(m_customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
+
 	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
 	connect(cb_showFbp, SIGNAL(stateChanged(int )), this, SLOT(showFBPGraphs()));
 	connect(cb_fbpView, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFBPView()));
 	connect(sl_fbpTransparency, SIGNAL(valueChanged(int)), this, SLOT(setFbpTransparency(int)));
-
 }
 
 dlg_DatasetComparator::~dlg_DatasetComparator()
@@ -160,8 +179,7 @@ void dlg_DatasetComparator::showLinePlots()
 
 void dlg_DatasetComparator::visualizePath()
 {
-	vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-	QString str = m_DatasetIntensityMap.at(0).first;
+	auto pts = vtkSmartPointer<vtkPoints>::New();
 	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
 	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
 	for (unsigned int i = 0; i < pathSteps; ++i)
@@ -170,12 +188,12 @@ void dlg_DatasetComparator::visualizePath()
 		pts->InsertNextPoint(point);
 	}
 
-	vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
+	auto linesPolyData = vtkSmartPointer<vtkPolyData>::New();
 	linesPolyData->SetPoints(pts);
-	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	for (unsigned int i = 0; i < pathSteps - 1; ++i)
 	{
-		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+		auto line = vtkSmartPointer<vtkLine>::New();
 		line->GetPointIds()->SetId(0, i);
 		line->GetPointIds()->SetId(1, i + 1);
 		lines->InsertNextCell(line);
@@ -187,6 +205,7 @@ void dlg_DatasetComparator::visualizePath()
 
 void dlg_DatasetComparator::updateDatasetComparator()
 {
+	m_imgDataList.clear();
 	m_DatasetIntensityMap.clear();
 	mapIntensities();
 }
@@ -194,7 +213,7 @@ void dlg_DatasetComparator::updateDatasetComparator()
 void dlg_DatasetComparator::mapIntensities()
 {
 	QThread* thread = new QThread;
-	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()], m_DatasetIntensityMap);
+	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()], m_DatasetIntensityMap, m_imgDataList);
 	im->moveToThread(thread);
 	connect(im, SIGNAL(error(QString)), this, SLOT(errorString(QString)));		//TODO: Handle error case
 	connect(thread, SIGNAL(started()), im, SLOT(process()));
@@ -231,6 +250,7 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 		auto y = m_customPlot->yAxis->pixelToCoord(e->pos().y());
 		m_dataPointInfo->setText(QString("%1:").arg(m_customPlot->graph(idx)->name()));
 		m_dataPointInfo->position->setCoords(QPointF(x, y));
+		m_dataPointInfo->setLayer("overlay");
 		m_dataPointInfo->setVisible(true);
 	}
 	else
@@ -245,51 +265,6 @@ void setVoxelIntensity(
 {
 	T *v = static_cast< T* >(inputImage->GetScalarPointer(x, y, z));
 	*v = intensity;
-}
-
-void dlg_DatasetComparator::selectionChanged(const QCPDataSelection & selection)
-{
-	// TODO: only process active curve/dataset 
-	// TODO: change transfer function for "hiden" values should be HistogramRangeMinimum-1 
-	QList< 	QCPDataRange> selHilberIndices = selection.dataRanges();
-	int* dims = m_mdiChild->getImagePointer()->GetDimensions();
-	QString str = m_DatasetIntensityMap.at(0).first;
-	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
-	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
-	int scalarType = m_mdiChild->getImagePointer()->GetScalarType();
-
-	if (selHilberIndices.size() < 1)
-	{
-		for (unsigned int i = 0; i < pathSteps; ++i)
-			VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_mdiChild->getImagePointer(),
-				data[i].x, data[i].y, data[i].z, data[i].intensity);
-		m_dataPointInfo->setVisible(false);
-	}
-	else
-	{
-		double r[2];
-		m_mdiChild->getHistogram()->GetDataRange(r);
-		for (unsigned int i = 0; i < pathSteps; ++i)
-		{
-			bool showVoxel = false;
-			for (int j = 0; j < selHilberIndices.size(); ++j)
-			{
-				if (i >= selHilberIndices.at(j).begin() && i <= selHilberIndices.at(j).end())
-				{
-					VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_mdiChild->getImagePointer(),
-						data[i].x, data[i].y, data[i].z, data[i].intensity);
-					showVoxel = true;
-					break;
-				}
-			}
-			if (!showVoxel)
-				VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_mdiChild->getImagePointer(),
-					data[i].x, data[i].y, data[i].z, r[0]);
-		}
-	}
-	m_mdiChild->getImagePointer()->Modified();
-	m_mdiChild->getRaycaster()->update();
-	m_mdiChild->updateSlicers();
 }
 
 void dlg_DatasetComparator::createFBPGraphs(iAFunctionalBoxplot<unsigned int, double> * fbpData)
@@ -329,7 +304,7 @@ void dlg_DatasetComparator::createFBPGraphs(iAFunctionalBoxplot<unsigned int, do
 	m_customPlot->graph()->setName("Median");
 	QPen medianPen;
 	medianPen.setColor(QColor(0, 0, 0, 255));
-	medianPen.setWidth(7);
+	medianPen.setWidth(5);
 	m_customPlot->graph()->setPen(medianPen);
 	m_customPlot->graph()->setData(fb_medianData);
 	m_customPlot->graph()->setSelectable(QCP::stNone);
@@ -344,7 +319,7 @@ void dlg_DatasetComparator::createFBPGraphs(iAFunctionalBoxplot<unsigned int, do
 	m_customPlot->graph()->setName("Max");
 	QPen maxPen;
 	maxPen.setColor(QColor(255, 0, 0, 255));
-	maxPen.setWidth(5);
+	maxPen.setWidth(3);
 	m_customPlot->graph()->setPen(maxPen);
 	m_customPlot->graph()->setSelectable(QCP::stNone);
 
@@ -358,7 +333,7 @@ void dlg_DatasetComparator::createFBPGraphs(iAFunctionalBoxplot<unsigned int, do
 	m_customPlot->graph()->setName("Min");
 	QPen minPen;
 	minPen.setColor(QColor(0, 0, 255, 255));
-	minPen.setWidth(5);
+	minPen.setWidth(3);
 	m_customPlot->graph()->setPen(minPen);
 	m_customPlot->graph()->setSelectable(QCP::stNone);
 }
@@ -447,4 +422,97 @@ void dlg_DatasetComparator::setFbpTransparency(int value)
 		}
 	}
 	m_customPlot->replot();
+}
+
+void dlg_DatasetComparator::selectionChangedByUser()
+{
+	// TODO[?]: only process active curve/dataset
+	// TODO: change transfer function for "hiden" values should be HistogramRangeMinimum-1 
+	
+	m_renderWindow->GetRenderers()->RemoveAllItems();
+
+	auto backgroundRenderer = vtkSmartPointer<vtkRenderer>::New();
+	backgroundRenderer->SetLayer(0);
+	backgroundRenderer->InteractiveOff();
+	backgroundRenderer->SetBackground(1.0, 1.0, 1.0);
+	m_renderWindow->AddRenderer(backgroundRenderer);
+
+	QList<QCPGraph *> selGraphsList = m_customPlot->selectedGraphs();
+	QStringList datasetsList = m_datasetsDir.entryList();
+
+	for (unsigned int i = 0; i < selGraphsList.size(); ++i)
+	{
+		int idx = datasetsList.indexOf(selGraphsList[i]->name());
+		QList<QCPDataRange> selHilberIndices = selGraphsList[i]->selection().dataRanges();
+		unsigned int pathSteps = m_DatasetIntensityMap.at(idx).second.size(); 
+		QList<icData>  data = m_DatasetIntensityMap.at(idx).second;
+		int scalarType = m_imgDataList[idx]->GetScalarType();
+
+		if (selHilberIndices.size() < 1)
+		{
+			for (unsigned int i = 0; i < pathSteps; ++i)
+				VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
+					data[i].x, data[i].y, data[i].z, data[i].intensity);
+			m_dataPointInfo->setVisible(false);
+		}
+		else
+		{
+			double r[2];
+			m_mdiChild->getHistogram()->GetDataRange(r);
+			for (unsigned int i = 0; i < pathSteps; ++i)
+			{
+				bool showVoxel = false;
+				for (int j = 0; j < selHilberIndices.size(); ++j)
+				{
+					if (i >= selHilberIndices.at(j).begin() && i <= selHilberIndices.at(j).end())
+					{
+						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
+							data[i].x, data[i].y, data[i].z, data[i].intensity);
+						showVoxel = true;
+						break;
+					}
+				}
+				if (!showVoxel)
+					VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
+						data[i].x, data[i].y, data[i].z, r[0]);
+			}
+		}
+		
+		m_imgDataList[idx]->Modified();
+		float viewportColumns = selGraphsList.size() < 3.0 ? fmod(selGraphsList.size(), 3.0) : 3.0;
+		float viewportRows = ceil(selGraphsList.size() / viewportColumns);
+		float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
+		
+		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
+		cornerAnnotation->SetLinearFontScaleFactor(2);
+		cornerAnnotation->SetNonlinearFontScaleFactor(1);
+		cornerAnnotation->SetMaximumFontSize(14);
+		cornerAnnotation->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+		cornerAnnotation->GetTextProperty()->SetFontSize(14);
+		cornerAnnotation->SetText(2, selGraphsList[i]->name().toStdString().c_str());
+		cornerAnnotation->GetTextProperty()->BoldOn();
+		cornerAnnotation->GetTextProperty()->SetColor(
+			selGraphsList[i]->pen().color().redF(),
+			selGraphsList[i]->pen().color().greenF(),
+			selGraphsList[i]->pen().color().blueF());
+		
+		iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
+		auto renderer = vtkSmartPointer<vtkRenderer>::New();
+		renderer->SetLayer(1);
+		renderer->SetActiveCamera(m_mdiChild->getRaycaster()->getCamera());
+		renderer->GetActiveCamera()->ParallelProjectionOn();
+		renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
+			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
+			fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
+			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
+		renderer->AddViewProp(cornerAnnotation);
+		renderer->ResetCamera();
+		
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[idx]));
+		m_volumeRenderer->ApplySettings(m_mdiChild->GetVolumeSettings());
+		m_volumeRenderer->AddTo(renderer);
+		m_volumeRenderer->AddBoundingBoxTo(renderer);
+		m_renderWindow->AddRenderer(renderer);
+	}
+	m_renderWindow->Render();
 }

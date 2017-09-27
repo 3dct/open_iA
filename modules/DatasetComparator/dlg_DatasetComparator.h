@@ -20,13 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "Ui_dlg_DatasetComparator.h"
+#include "ui_dlg_DatasetComparator.h"
+#include "ui_Multi3DView.h"
 #include "iAQTtoUIConnector.h"
 #include "mdichild.h"
 #include "qcustomplot.h"
 
 #include <QDockWidget>
 #include <QDir>
+
+#include <vtkSmartPointer.h>
+
+#include <itkImageBase.h>
+#include <itkImage.h>
+#include <itkImageIOBase.h>
+
+class iAVolumeRenderer;
+class vtkRenderWindow;
+
+typedef itk::ImageBase< DIM > ImageBaseType;
+typedef ImageBaseType::Pointer ImagePointer;
+typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot;
@@ -62,13 +76,14 @@ static MapPathNames2PathID fill_PathNameToId()
 const MapPathNames2PathID PathNameToId = fill_PathNameToId();
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
+typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
 
 class dlg_DatasetComparator : public DatasetComparatorConnector
 {
 	Q_OBJECT
 
 public:
-	dlg_DatasetComparator(QWidget * parent, QDir datasetsDir, Qt::WindowFlags f = 0);
+	dlg_DatasetComparator(QWidget *parent, QDir datasetsDir, Qt::WindowFlags f = 0);
 	~dlg_DatasetComparator();
 
 	QDir m_datasetsDir;
@@ -77,18 +92,22 @@ public:
 public slots:
 	void mousePress(QMouseEvent*);
 	void mouseMove(QMouseEvent*);
-	void selectionChanged(const QCPDataSelection & selection);
 	void setFbpTransparency(int);
 	void showFBPGraphs();
 	void showLinePlots();
 	void updateDatasetComparator();
 	void updateFBPView();
 	void visualizePath();
+	void selectionChangedByUser();
 
 private:
-	MdiChild * m_mdiChild;
-	QCustomPlot * m_customPlot;
-	QCPItemText * m_dataPointInfo;
+	MdiChild *m_mdiChild;
+	QCustomPlot *m_customPlot;
+	QCPItemText *m_dataPointInfo;
+	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
+	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
+	multi3DRendererView *m_MultiRendererView;
+	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 
 	void mapIntensities();
 	void createFBPGraphs(iAFunctionalBoxplot<unsigned int, double>* fbpData);

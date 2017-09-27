@@ -25,14 +25,18 @@
 #include <QObject>
 #include <QDir>
 
-class dlg_DatasetComparator;
+#include <vtkSmartPointer.h>
+
+typedef itk::ImageBase< DIM > ImageBaseType;
+typedef ImageBaseType::Pointer ImagePointer;
+typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 class iAIntensityMapper : public QObject
 {
 	Q_OBJECT
 
 public:
-	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap);
+	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList);
 	~iAIntensityMapper();
 
 public slots:
@@ -46,4 +50,5 @@ private:
 	QDir m_datasetsDir;
 	PathID m_pathID;
 	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;
+	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList;
 };

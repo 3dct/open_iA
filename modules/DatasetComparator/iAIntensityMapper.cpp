@@ -26,27 +26,28 @@
 #include "iAITKIO.h"
 #include "iATypedCallHelper.h"
 
-#include <itkImageBase.h>
-#include <itkImage.h>
-#include <itkImageIOBase.h>
 #include <itkHilbertPath.h>
 #include <itkImageRegionIteratorWithIndex.h>
+#include <itkImageToVTKImageFilter.h>
 
 #include <math.h>
 
 //#include "iAConsole.h"
 
-typedef itk::ImageBase< DIM > ImageBaseType;
-typedef ImageBaseType::Pointer ImagePointer;
-typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-
 template<class T>
-void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList )
+void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList)
 {
 	// TODO: Typecheck QList for e.g., float images + cubic region only check
 	typedef itk::Image< T, DIM >   InputImageType;
-
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
+
+	typedef itk::ImageToVTKImageFilter<InputImageType> ITKTOVTKConverterType;
+	ITKTOVTKConverterType::Pointer itkToVTKConverter = ITKTOVTKConverterType::New();
+	itkToVTKConverter->SetInput(input);
+	itkToVTKConverter->Update();
+	vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+	imageData->DeepCopy(itkToVTKConverter->GetOutput());
+	m_imgDataList.append(imageData);
 
 	switch (m_pathID)
 	{
@@ -92,12 +93,14 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 		}
 		break;
 	}
+	itkToVTKConverter->ReleaseDataFlagOn();
 }
 
-iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap):
+iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList):
 	m_DatasetIntensityMap(datasetIntensityMap),
 	m_datasetsDir(datasetsDir),
-	m_pathID(pathID)
+	m_pathID(pathID),
+	m_imgDataList(imgDataList)
 {
 }
 
@@ -117,7 +120,7 @@ void iAIntensityMapper::process()
 		ImagePointer image = iAITKIO::readFile( dataset, pixelType, true);
 		try
 		{
-			ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList);
+			ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList, m_imgDataList);
 		}
 		catch (itk::ExceptionObject &excep)
 		{
