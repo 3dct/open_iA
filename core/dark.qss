@@ -6,6 +6,7 @@ General
 	QWidget
 	{
 		background-color: rgba(0, 0, 0, 255);
+		color: rgba(230, 230, 230, 255);
 	}
 	
 	QWidget#page, page_2
