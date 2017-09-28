@@ -20,26 +20,58 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_DatasetComparator.h"
+#include "qcustomplot.h"
 
-class iAIntensityMapper : public QObject
+#include <itkImageBase.h>
+#include <itkImage.h>
+#include <itkImageIOBase.h>
+
+#include <math.h>
+
+typedef itk::ImageBase< DIM > ImageBaseType;
+typedef ImageBaseType::Pointer ImagePointer;
+typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
+
+template <typename ArgType, typename ValType>
+class iAFunctionalBoxplot;
+typedef iAFunctionalBoxplot< unsigned int, double> FunctionalBoxPlot;
+
+struct icData
 {
-	Q_OBJECT
-
-public:
-	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList);
-	~iAIntensityMapper();
-
-public slots:
-	void process();
-
-signals:
-	void finished();
-	void error(QString err);
-
-private:
-	QDir m_datasetsDir;
-	PathID m_pathID;
-	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;
-	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList;
+	double intensity;
+	unsigned int x;
+	unsigned int y;
+	unsigned int z;
 };
+
+enum PathID
+{
+	P_HILBERT,
+	P_SCAN_LINE
+};
+
+const QStringList pathNames = QStringList()\
+<< "Hilbert"\
+<< "Scan Line";
+
+typedef QMap<QString, PathID> MapPathNames2PathID;
+static MapPathNames2PathID fill_PathNameToId()
+{
+	MapPathNames2PathID m;
+	m[pathNames.at(0)] = P_HILBERT;
+	m[pathNames.at(1)] = P_SCAN_LINE;
+
+	return m;
+}
+const MapPathNames2PathID PathNameToId = fill_PathNameToId();
+
+const double golden_ratio = 0.618033988749895;
+
+inline void updateLegendAndGraphVisibility(QCPPlottableLegendItem *plItem, float alpha, bool visibility)
+{
+	QCPGraph *g = qobject_cast<QCPGraph*>(plItem->plottable());
+	QColor c = plItem->textColor();
+	c.setAlphaF(alpha);
+	plItem->setTextColor(c);
+	g->setVisible(visibility);
+}

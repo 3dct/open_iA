@@ -21,16 +21,12 @@
  
 #include "pch.h"
 #include "iAIntensityMapper.h"
-
-#include "defines.h"
 #include "iAITKIO.h"
 #include "iATypedCallHelper.h"
 
 #include <itkHilbertPath.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageToVTKImageFilter.h>
-
-#include <math.h>
 
 //#include "iAConsole.h"
 
@@ -45,7 +41,7 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 	ITKTOVTKConverterType::Pointer itkToVTKConverter = ITKTOVTKConverterType::New();
 	itkToVTKConverter->SetInput(input);
 	itkToVTKConverter->Update();
-	vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+	auto imageData = vtkSmartPointer<vtkImageData>::New();
 	imageData->DeepCopy(itkToVTKConverter->GetOutput());
 	m_imgDataList.append(imageData);
 

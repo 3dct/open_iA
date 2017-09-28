@@ -20,7 +20,6 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "defines.h"
 #include "dlg_DatasetComparator.h"
 #include "iAColorTheme.h"
 #include "iAHistogramWidget.h"
@@ -31,8 +30,6 @@
 #include "iATypedCallHelper.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
-
-//#include <omp.h>
 
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
@@ -52,15 +49,24 @@
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
 #include <vtkTextActor.h>
+#include <vtkCallbackCommand.h>
+#include <vtkActor2DCollection.h>
 
-#include <QMap>
-#include <QList>
-#include <QColor>
-
+//#include <omp.h>
 //#include <sys/timeb.h>
 //#include "iAConsole.h"
 
-const double golden_ratio = 0.618033988749895;
+
+void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
+	void* vtkNotUsed(client), void* vtkNotUsed(callData))
+{
+	auto *r = static_cast<vtkRenderer*>(caller);
+	if (!r->GetActors2D()->GetLastActor2D())
+		return;
+	auto r_centerX = r->GetCenter()[0];
+	auto r_centerY = r->GetCenter()[1];
+	r->GetActors2D()->GetLastActor2D()->SetPosition(r_centerX, r_centerY);
+}
 
 dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */ )
 	: DatasetComparatorConnector( parent, f ), 
@@ -69,25 +75,21 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	m_customPlot(new QCustomPlot(dockWidgetContents)),
 	m_dataPointInfo(new QCPItemText(m_customPlot)),
 	m_MultiRendererView(new multi3DRendererView()),
-	m_renderWindow(vtkSmartPointer<vtkRenderWindow>::New())
+	m_mrvRenWin(vtkSmartPointer<vtkRenderWindow>::New()),
+	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
+	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
-	m_renderWindow->SetNumberOfLayers(2);
-	m_MultiRendererView->wgtContainer->SetRenderWindow(m_renderWindow);
-	auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	renderWindowInteractor->SetRenderWindow(m_renderWindow);
-	auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-	renderWindowInteractor->SetInteractorStyle(style);
-	m_mdiChild->tabifyDockWidget(m_mdiChild->r, m_MultiRendererView);
-	m_MultiRendererView->show();
-	
-	QFont m_dataPointInfoFont(font().family(), 11);
-	m_dataPointInfoFont.setBold(true);
-	m_dataPointInfo->setFont(m_dataPointInfoFont);
-	m_dataPointInfo->setLayer("main");
-	sl_fbpTransparency->hide();
+	generateHilbertIdx();
+	setupQCustomPlot();
+	setupGUIConnections();
+	setupMultiRendererView();
+}
 
-	mapIntensities();
+dlg_DatasetComparator::~dlg_DatasetComparator()
+{}
 
+void dlg_DatasetComparator::setupQCustomPlot()
+{
 	m_customPlot->setOpenGl(false);
 	m_customPlot->setBackground(Qt::darkGray);
 	m_customPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
@@ -101,20 +103,53 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	m_customPlot->yAxis2->setTickLabels(false);
 	m_customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_customPlot->setMultiSelectModifier(Qt::ShiftModifier);
+
 	connect(m_customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_customPlot->xAxis2, SLOT(setRange(QCPRange)));
 	connect(m_customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_customPlot->yAxis2, SLOT(setRange(QCPRange)));
 	connect(m_customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 	connect(m_customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
 	connect(m_customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
+	connect(m_customPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)), 
+		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+}
 
+void dlg_DatasetComparator::setupGUIConnections()
+{
 	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
-	connect(cb_showFbp, SIGNAL(stateChanged(int )), this, SLOT(showFBPGraphs()));
+	connect(cb_showFbp, SIGNAL(stateChanged(int)), this, SLOT(showFBPGraphs()));
 	connect(cb_fbpView, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFBPView()));
 	connect(sl_fbpTransparency, SIGNAL(valueChanged(int)), this, SLOT(setFbpTransparency(int)));
 }
 
-dlg_DatasetComparator::~dlg_DatasetComparator()
-{}
+void dlg_DatasetComparator::setupMultiRendererView()
+{
+	auto mrvWinModCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+	mrvWinModCallback->SetCallback(winModCallback);
+	m_mrvBGRen->AddObserver(vtkCommand::ModifiedEvent, mrvWinModCallback);
+	
+	m_mrvBGRen->SetLayer(0);
+	m_mrvBGRen->InteractiveOff();
+	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
+
+	m_mrvTxtAct->SetInput("No Hilbert index selected");
+	m_mrvTxtAct->GetTextProperty()->SetFontSize(24);
+	m_mrvTxtAct->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+	m_mrvTxtAct->GetTextProperty()->SetJustificationToCentered();
+	m_mrvTxtAct->GetTextProperty()->SetVerticalJustificationToCentered();
+	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+	
+	m_mrvRenWin->SetNumberOfLayers(2);
+	m_MultiRendererView->wgtContainer->SetRenderWindow(m_mrvRenWin);
+	auto renWinInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	renWinInteractor->SetRenderWindow(m_mrvRenWin);
+	auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+	renWinInteractor->SetInteractorStyle(style);
+	m_mrvRenWin->AddRenderer(m_mrvBGRen);
+	m_mrvRenWin->Render();
+
+	m_mdiChild->tabifyDockWidget(m_mdiChild->r, m_MultiRendererView);
+	m_MultiRendererView->show();
+}
 
 void dlg_DatasetComparator::showLinePlots()
 {
@@ -207,10 +242,10 @@ void dlg_DatasetComparator::updateDatasetComparator()
 {
 	m_imgDataList.clear();
 	m_DatasetIntensityMap.clear();
-	mapIntensities();
+	generateHilbertIdx();
 }
 
-void dlg_DatasetComparator::mapIntensities()
+void dlg_DatasetComparator::generateHilbertIdx()
 {
 	QThread* thread = new QThread;
 	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()], m_DatasetIntensityMap, m_imgDataList);
@@ -225,7 +260,7 @@ void dlg_DatasetComparator::mapIntensities()
 	thread->start();
 }
 
-void dlg_DatasetComparator::mousePress(QMouseEvent* e)
+void dlg_DatasetComparator::mousePress(QMouseEvent *e)
 {
 	if ((e->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
 		m_customPlot->setSelectionRectMode(QCP::srmSelect);
@@ -233,19 +268,20 @@ void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 		m_customPlot->setSelectionRectMode(QCP::srmNone);
 }
 
-void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
+void dlg_DatasetComparator::mouseMove(QMouseEvent *e)
 {
 	if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
 		return;
 
 	QPoint p(e->pos().x(), e->pos().y());
-	QList<double> l;
+	QList<double> distList;
 	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
-		l.push_back(m_customPlot->graph(i)->selectTest(p, true));
-	auto minDistance = *std::min_element(std::begin(l), std::end(l));
-	if (minDistance >= 0 && minDistance < 2.0)
+		distList.push_back(m_customPlot->graph(i)->selectTest(p, true));
+	auto minDistance = *std::min_element(std::begin(distList), std::end(distList));
+	auto idx = distList.indexOf(minDistance);
+	if (minDistance >= 0 && minDistance < 2.0 
+		&& m_customPlot->graph(idx)->visible())
 	{
-		auto idx = l.indexOf(minDistance);
 		auto x = m_customPlot->xAxis->pixelToCoord(e->pos().x());
 		auto y = m_customPlot->yAxis->pixelToCoord(e->pos().y());
 		m_dataPointInfo->setText(QString("%1:").arg(m_customPlot->graph(idx)->name()));
@@ -267,7 +303,7 @@ void setVoxelIntensity(
 	*v = intensity;
 }
 
-void dlg_DatasetComparator::createFBPGraphs(iAFunctionalBoxplot<unsigned int, double> * fbpData)
+void dlg_DatasetComparator::createFBPGraphs(iAFunctionalBoxplot<unsigned int, double> *fbpData)
 {
 	QSharedPointer<QCPGraphDataContainer> fb_075Data(new QCPGraphDataContainer);
 	for (unsigned int i = 0; i < fbpData->getMedian().size(); ++i)
@@ -426,26 +462,27 @@ void dlg_DatasetComparator::setFbpTransparency(int value)
 
 void dlg_DatasetComparator::selectionChangedByUser()
 {
-	// TODO[?]: only process active curve/dataset
 	// TODO: change transfer function for "hiden" values should be HistogramRangeMinimum-1 
-	
-	m_renderWindow->GetRenderers()->RemoveAllItems();
+	m_mrvRenWin->GetRenderers()->RemoveAllItems();
+	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
+	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 
-	auto backgroundRenderer = vtkSmartPointer<vtkRenderer>::New();
-	backgroundRenderer->SetLayer(0);
-	backgroundRenderer->InteractiveOff();
-	backgroundRenderer->SetBackground(1.0, 1.0, 1.0);
-	m_renderWindow->AddRenderer(backgroundRenderer);
-
-	QList<QCPGraph *> selGraphsList = m_customPlot->selectedGraphs();
 	QStringList datasetsList = m_datasetsDir.entryList();
+	QList<QCPGraph *> selGraphsList = m_customPlot->selectedGraphs();
+	QList<QCPGraph *> visSelGraphList;
+	for (auto selGraph : selGraphsList)
+		if (selGraph->visible())
+			visSelGraphList.append(selGraph);
 
-	for (unsigned int i = 0; i < selGraphsList.size(); ++i)
+	if (!visSelGraphList.size())
+		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+
+	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
 	{
-		int idx = datasetsList.indexOf(selGraphsList[i]->name());
-		QList<QCPDataRange> selHilberIndices = selGraphsList[i]->selection().dataRanges();
-		unsigned int pathSteps = m_DatasetIntensityMap.at(idx).second.size(); 
-		QList<icData>  data = m_DatasetIntensityMap.at(idx).second;
+		int idx = datasetsList.indexOf(visSelGraphList[i]->name());
+		QList<QCPDataRange> selHilberIndices = visSelGraphList[i]->selection().dataRanges();
+		unsigned int pathSteps = m_DatasetIntensityMap[idx].second.size(); 
+		QList<icData>  data = m_DatasetIntensityMap[idx].second;
 		int scalarType = m_imgDataList[idx]->GetScalarType();
 
 		if (selHilberIndices.size() < 1)
@@ -479,9 +516,9 @@ void dlg_DatasetComparator::selectionChangedByUser()
 		}
 		
 		m_imgDataList[idx]->Modified();
-		float viewportColumns = selGraphsList.size() < 3.0 ? fmod(selGraphsList.size(), 3.0) : 3.0;
-		float viewportRows = ceil(selGraphsList.size() / viewportColumns);
-		float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
+		float viewportCols = visSelGraphList.size() < 3.0 ? fmod(visSelGraphList.size(), 3.0) : 3.0;
+		float viewportRows = ceil(visSelGraphList.size() / viewportCols);
+		float fieldLengthX = 1.0 / viewportCols, fieldLengthY = 1.0 / viewportRows;
 		
 		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
 		cornerAnnotation->SetLinearFontScaleFactor(2);
@@ -489,30 +526,68 @@ void dlg_DatasetComparator::selectionChangedByUser()
 		cornerAnnotation->SetMaximumFontSize(14);
 		cornerAnnotation->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 		cornerAnnotation->GetTextProperty()->SetFontSize(14);
-		cornerAnnotation->SetText(2, selGraphsList[i]->name().toStdString().c_str());
+		cornerAnnotation->SetText(2, visSelGraphList[i]->name().toStdString().c_str());
 		cornerAnnotation->GetTextProperty()->BoldOn();
 		cornerAnnotation->GetTextProperty()->SetColor(
-			selGraphsList[i]->pen().color().redF(),
-			selGraphsList[i]->pen().color().greenF(),
-			selGraphsList[i]->pen().color().blueF());
+			visSelGraphList[i]->pen().color().redF(),
+			visSelGraphList[i]->pen().color().greenF(),
+			visSelGraphList[i]->pen().color().blueF());
 		
 		iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
-		auto renderer = vtkSmartPointer<vtkRenderer>::New();
-		renderer->SetLayer(1);
-		renderer->SetActiveCamera(m_mdiChild->getRaycaster()->getCamera());
-		renderer->GetActiveCamera()->ParallelProjectionOn();
-		renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
-			fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
-		renderer->AddViewProp(cornerAnnotation);
-		renderer->ResetCamera();
+		auto ren = vtkSmartPointer<vtkRenderer>::New();
+		ren->SetLayer(1);
+		ren->SetActiveCamera(m_mdiChild->getRaycaster()->getCamera());
+		ren->GetActiveCamera()->ParallelProjectionOn();
+		ren->SetViewport(fmod(i, viewportCols) * fieldLengthX,
+			1 - (ceil((i + 1.0) / viewportCols) / viewportRows),
+			fmod(i, viewportCols) * fieldLengthX + fieldLengthX,
+			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
+		ren->AddViewProp(cornerAnnotation);
+		ren->ResetCamera();
 		
-		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[idx]));
-		m_volumeRenderer->ApplySettings(m_mdiChild->GetVolumeSettings());
-		m_volumeRenderer->AddTo(renderer);
-		m_volumeRenderer->AddBoundingBoxTo(renderer);
-		m_renderWindow->AddRenderer(renderer);
+		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[idx]));
+		m_volRen->ApplySettings(m_mdiChild->GetVolumeSettings());
+		m_volRen->AddTo(ren);
+		m_volRen->AddBoundingBoxTo(ren);
+		m_mrvRenWin->AddRenderer(ren);
 	}
-	m_renderWindow->Render();
+	m_mrvRenWin->Render();
+}
+
+void dlg_DatasetComparator::legendClick(QCPLegend *legend, QCPAbstractLegendItem *item, QMouseEvent* e)
+{
+	if ((e->button() == Qt::LeftButton) && !cb_showFbp->isChecked() && item)
+	{
+		QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(item);
+		if (!m_selLegendItemList.contains(plItem))
+		{
+			updateLegendAndGraphVisibility(plItem, 1.0, true);
+			m_selLegendItemList.append(plItem);
+		}
+		else
+			m_selLegendItemList.removeOne(plItem);
+
+		for (int i = 0; i < legend->itemCount(); ++i)
+		{
+			QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(legend->item(i));
+			if (!m_selLegendItemList.contains(plItem))
+			{
+				if ((m_selLegendItemList.size() > 0))
+					updateLegendAndGraphVisibility(plItem, 0.3, false);
+				else
+					updateLegendAndGraphVisibility(plItem, 1.0, true);
+			}
+		}
+		m_customPlot->replot();
+	}
+	else if ((e->button() == Qt::RightButton) && !cb_showFbp->isChecked() && m_selLegendItemList.size() > 0)
+	{
+		m_selLegendItemList.clear();
+		for (int i = 0; i < legend->itemCount(); ++i)
+		{
+			QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(legend->item(i));
+			updateLegendAndGraphVisibility(plItem, 1.0, true);
+		}
+		m_customPlot->replot();
+	}
 }

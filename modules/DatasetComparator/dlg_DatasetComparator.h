@@ -21,59 +21,15 @@
 #pragma once
 
 #include "ui_dlg_DatasetComparator.h"
+#include "mdichild.h"
+#include "datasetComparatorHelpers.h"
 #include "ui_Multi3DView.h"
 #include "iAQTtoUIConnector.h"
-#include "mdichild.h"
-#include "qcustomplot.h"
-
-#include <QDockWidget>
-#include <QDir>
-
-#include <vtkSmartPointer.h>
-
-#include <itkImageBase.h>
-#include <itkImage.h>
-#include <itkImageIOBase.h>
 
 class iAVolumeRenderer;
+
 class vtkRenderWindow;
-
-typedef itk::ImageBase< DIM > ImageBaseType;
-typedef ImageBaseType::Pointer ImagePointer;
-typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-
-template <typename ArgType, typename ValType>
-class iAFunctionalBoxplot;
-typedef iAFunctionalBoxplot< unsigned int, double> FunctionalBoxPlot;
-
-struct icData
-{
-	double intensity;
-	unsigned int x;
-	unsigned int y;
-	unsigned int z;
-};
-
-enum PathID
-{
-	P_HILBERT,
-	P_SCAN_LINE
-};
-
-const QStringList pathNames = QStringList()\
-<< "Hilbert"\
-<< "Scan Line";
-
-typedef QMap<QString, PathID> MapPathNames2PathID;
-static MapPathNames2PathID fill_PathNameToId()
-{
-	MapPathNames2PathID m;
-	m[pathNames.at(0)] = P_HILBERT;
-	m[pathNames.at(1)] = P_SCAN_LINE;
-
-	return m;
-}
-const MapPathNames2PathID PathNameToId = fill_PathNameToId();
+class vtkTextActor;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
@@ -99,16 +55,23 @@ public slots:
 	void updateFBPView();
 	void visualizePath();
 	void selectionChangedByUser();
+	void legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*);
 
 private:
 	MdiChild *m_mdiChild;
 	QCustomPlot *m_customPlot;
 	QCPItemText *m_dataPointInfo;
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
-	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
 	multi3DRendererView *m_MultiRendererView;
-	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
-
-	void mapIntensities();
-	void createFBPGraphs(iAFunctionalBoxplot<unsigned int, double>* fbpData);
+	vtkSmartPointer<vtkRenderWindow> m_mrvRenWin;
+	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
+	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
+	QSharedPointer<iAVolumeRenderer> m_volRen;
+	QList<QCPPlottableLegendItem*> m_selLegendItemList;
+	
+	void generateHilbertIdx();
+	void createFBPGraphs(iAFunctionalBoxplot<unsigned int, double> *fbpData);
+	void setupQCustomPlot();
+	void setupGUIConnections();
+	void setupMultiRendererView();
 };
