@@ -326,102 +326,6 @@ QList<double> dlg_ParamSpaceSampling::getValues()
 	return ( outValueList );
 }
 
-QList<double> dlg_ParamSpaceSampling::getSpinBoxValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QSpinBox *t = this->container->findChild<QSpinBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->text().toDouble() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<double> dlg_ParamSpaceSampling::getDoubleSpinBoxValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QDoubleSpinBox *t = this->container->findChild<QDoubleSpinBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->value() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<int> dlg_ParamSpaceSampling::getCheckValues()
-{
-	outCheckList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QCheckBox *t = this->container->findChild<QCheckBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outCheckList.insert( i, t->checkState() );
-		}
-		else
-			outCheckList.insert( i, 0 );
-	}
-	return ( outCheckList );
-}
-
-QStringList dlg_ParamSpaceSampling::getComboBoxValues()
-{
-	outComboValues.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboValues.insert( i, t->currentText() );
-		}
-		else
-			//needs to be there otherwise the list indices are incorrect!
-			outComboValues.insert( i, "" );
-	}
-	return ( outComboValues );
-}
-
-QStringList dlg_ParamSpaceSampling::getText()
-{
-	outTextList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outTextList.insert( i, t->text() );
-		}
-		else
-			outTextList.insert( i, "" );
-	}
-	return ( outTextList );
-}
-
 double dlg_ParamSpaceSampling::getParameterValue( QString name )
 {
 	if ( name.contains( QRegExp( "$#*" ) ) )
@@ -458,25 +362,6 @@ double dlg_ParamSpaceSampling::getParameterValue( QString name )
 	else outValue = 0;
 
 	return outValue;
-}
-
-QList<int> dlg_ParamSpaceSampling::getComboBoxIndices()
-{
-	outComboIndices.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboIndices.insert( i, t->currentIndex() );
-		}
-		else
-			outComboIndices.insert( i, -1 );
-	}
-	return ( outComboIndices );
 }
 
 void dlg_ParamSpaceSampling::createDatasetPreview()

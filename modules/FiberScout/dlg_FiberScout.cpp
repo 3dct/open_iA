@@ -4397,23 +4397,23 @@ int dlg_FiberScout::OpenBlobVisDialog()
 	if ( dlg.exec() == QDialog::Accepted )
 	{
 		int i = 0;
-		blobManager->SetRange               ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetRange               ( dlg.getDoubleSpinBoxValue(i++) );
 		blobManager->SetShowBlob            ( dlg.getCheckValue(i++) != 0 );
 		blobManager->SetUseDepthPeeling     ( dlg.getCheckValue(i++) );
-		blobManager->SetBlobOpacity         ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetBlobOpacity         ( dlg.getDoubleSpinBoxValue(i++) );
 		blobManager->SetSilhouettes         ( dlg.getCheckValue(i++) != 0 );
-		blobManager->SetSilhouetteOpacity   ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetSilhouetteOpacity   ( dlg.getDoubleSpinBoxValue(i++) );
 		blobManager->SetLabeling            ( dlg.getCheckValue(i++) != 0 );
 		blobManager->SetOverlappingEnabled  ( dlg.getCheckValue(i++) != 0 );
-		blobManager->SetOverlapThreshold    ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetOverlapThreshold    ( dlg.getDoubleSpinBoxValue(i++) );
 		blobManager->SetSmoothing           ( dlg.getCheckValue(i++) );
 		blobManager->SetGaussianBlur        ( dlg.getCheckValue(i++) );
-		blobManager->SetGaussianBlurVariance( dlg.getSpinBoxValues()[i++] );
+		blobManager->SetGaussianBlurVariance( dlg.getSpinBoxValue(i++) );
 
 		int dimens[3];
-		dimens[0] = dlg.getSpinBoxValues()[i++];
-		dimens[1] = dlg.getSpinBoxValues()[i++];
-		dimens[2] = dlg.getSpinBoxValues()[i++];
+		dimens[0] = dlg.getSpinBoxValue(i++);
+		dimens[1] = dlg.getSpinBoxValue(i++);
+		dimens[2] = dlg.getSpinBoxValue(i++);
 		blobManager->SetDimensions( dimens );
 		return 1;
 	}
@@ -4604,30 +4604,27 @@ void dlg_FiberScout::SaveBlobMovie()
 		double gaussianBlurVariance[2];
 		int dimX[2]; int dimY[2]; int dimZ[2];
 
-		size_t numFrames = dlg.getSpinBoxValues()[i++];
+		size_t numFrames = dlg.getSpinBoxValue(i++);
 		for ( int ind = 0; ind < 2; ++ind )
-			range[ind] = dlg.getDoubleSpinBoxValues()[i++];
+			range[ind] = dlg.getDoubleSpinBoxValue(i++);
 		blobManager->SetShowBlob( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
-			blobOpacity[ind] = dlg.getDoubleSpinBoxValues()[i++];
+			blobOpacity[ind] = dlg.getDoubleSpinBoxValue(i++);
 		blobManager->SetSilhouettes( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
-			silhouetteOpacity[ind] = dlg.getDoubleSpinBoxValues()[i++];
+			silhouetteOpacity[ind] = dlg.getDoubleSpinBoxValue(i++);
 		blobManager->SetLabeling( dlg.getCheckValue(i++) != 0 );
 		blobManager->SetOverlappingEnabled( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
-			overlapThreshold[ind] = dlg.getDoubleSpinBoxValues()[i++];
+			overlapThreshold[ind] = dlg.getDoubleSpinBoxValue(i++);
 		blobManager->SetSmoothing( dlg.getCheckValue(i++) );
 		blobManager->SetGaussianBlur( dlg.getCheckValue(i++) );
 		for ( int ind = 0; ind < 2; ++ind )
-			gaussianBlurVariance[ind] = dlg.getSpinBoxValues()[i++];
+			gaussianBlurVariance[ind] = dlg.getSpinBoxValue(i++);
 
-		for ( int ind = 0; ind < 2; ++ind )
-			dimX[ind] = dlg.getSpinBoxValues()[i++];
-		for ( int ind = 0; ind < 2; ++ind )
-			dimY[ind] = dlg.getSpinBoxValues()[i++];
-		for ( int ind = 0; ind < 2; ++ind )
-			dimZ[ind] = dlg.getSpinBoxValues()[i++];
+		for ( int ind = 0; ind < 2; ++ind )	dimX[ind] = dlg.getSpinBoxValue(i++);
+		for ( int ind = 0; ind < 2; ++ind )	dimY[ind] = dlg.getSpinBoxValue(i++);
+		for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getSpinBoxValue(i++);
 
 		QFileInfo fileInfo = static_cast<MdiChild*>( activeChild )->getFileInfo();
 		

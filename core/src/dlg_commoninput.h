@@ -43,17 +43,13 @@ public:
 	//class constructor
 	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ), bool modal = true);
 	
-	void setComboValues ( QList<QVariant> inCombo ){inComboValue = inCombo;}; 
-
-	QStringList getWidgetList();
-	
 	QList<double> getValues();	
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;
 	QStringList getText();
-	QList<double> getSpinBoxValues();
-	QList<double> getDoubleSpinBoxValues();
+	int getSpinBoxValue(int index) const;
+	double getDoubleSpinBoxValue(int index) const;
 
 	double getParameterValue(QString name);	
 	void updateValues(QList<QVariant>);

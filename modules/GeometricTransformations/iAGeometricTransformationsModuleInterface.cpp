@@ -139,12 +139,12 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	origChild->deactivate();
 	if (result != QDialog::Accepted)
 		return;
-	eiIndexX = dlg.getSpinBoxValues()[0];
-	eiIndexY = dlg.getSpinBoxValues()[1];
-	eiIndexZ = dlg.getSpinBoxValues()[2];
-	eiSizeX = dlg.getSpinBoxValues()[3];
-	eiSizeY = dlg.getSpinBoxValues()[4];
-	eiSizeZ = dlg.getSpinBoxValues()[5];
+	eiIndexX = dlg.getSpinBoxValue(0);
+	eiIndexY = dlg.getSpinBoxValue(1);
+	eiIndexZ = dlg.getSpinBoxValue(2);
+	eiSizeX  = dlg.getSpinBoxValue(3);
+	eiSizeY  = dlg.getSpinBoxValue(4);
+	eiSizeZ  = dlg.getSpinBoxValue(5);
 	//prepare
 	QString filterName = "Extracted";
 	// at the moment, PrepareResultChild always takes the active child, but that might have changed

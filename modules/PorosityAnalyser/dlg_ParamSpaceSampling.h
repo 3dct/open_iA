@@ -48,21 +48,13 @@ public:
 							QTextDocument * fDescr, QString datasetDir, QString datasetName, QStringList datasetInfo, QVector<double> keyData,
 							QVector<double> valueData, QString filterName, bool modal = false );
 
-	QStringList getWidgetList();
-	QStringList getComboBoxValues();
-	QStringList getText();
-	QList<int> getComboBoxIndices();
 	QList<double> getValues();
-	QList<int> getCheckValues();
-	QList<double> getSpinBoxValues();
-	QList<double> getDoubleSpinBoxValues();
 
-	void setComboValues( QList<QVariant> inCombo ){ inComboValue = inCombo; };
 	double getParameterValue( QString name );
 	void updateValues( QList<QVariant> );
 	void connectMdiChild( MdiChild *child );
 
-	public slots:
+public slots:
 	void updateHistoPeaks( int value );
 	void updateHistoSmooth( int value );
 	void updateIsoXPeak( int value );
@@ -87,11 +79,8 @@ private:
 	QString m_filterName;
 	QStringList m_datasetInfo;
 	QStringList widgetList;
-	QStringList outComboValues, outTextList;
 	QList<QCPGraph *> m_peakGraphList;
 	QList<double> outValueList;
-	QList<int> outCheckList;
-	QList<int> outComboIndices;
 	QList<QLabel*> listLabel;
 	QList<QVariant> inComboValue;
 	QList<QVariant> m_inPara;
@@ -114,7 +103,6 @@ private:
 	QSpinBox* sbIsoX;
 	QLabel* cbSHLine_Label;
 	QCheckBox* cbSHLine;
-
 
 	void createDatasetPreview();
 	void createDatasetInfo();

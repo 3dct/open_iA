@@ -257,7 +257,7 @@ void dlg_GEMSeControl::LoadSampling()
 			DEBUG_LOG("Cannot load sampling without label count input!");
 			return;
 		}
-		labelCount = lblCountInput.getSpinBoxValues()[0];
+		labelCount = lblCountInput.getSpinBoxValue(0);
 	}
 	LoadSampling(fileName, labelCount, m_dlgSamplings->GetSamplings()->size());
 }

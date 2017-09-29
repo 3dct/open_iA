@@ -327,62 +327,34 @@ QList<double> dlg_commoninput::getValues()
 	return (outValueList);
 }
 
-QList<double> dlg_commoninput::getSpinBoxValues()
+int dlg_commoninput::getSpinBoxValue(int index) const
 {
-	outValueList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QSpinBox *t = container->findChild<QSpinBox*>(widgetList[i]);
-		
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert(i,t->text().toDouble());
-		}
-		else
-			outValueList.insert(i, 0.0);
-	}
-	return (outValueList);
+	QSpinBox *t = container->findChild<QSpinBox*>(widgetList[index]);
+	return t? t->value(): 0;
 }
 
-QList<double> dlg_commoninput::getDoubleSpinBoxValues()
+double dlg_commoninput::getDoubleSpinBoxValue(int index) const
 {
-	outValueList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QDoubleSpinBox *t = container->findChild<QDoubleSpinBox*>(widgetList[i]);
-		
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert(i,t->value());
-		}
-		else
-			outValueList.insert(i, 0.0);
-	}
-	return (outValueList);
+	QDoubleSpinBox *t = container->findChild<QDoubleSpinBox*>(widgetList[index]);
+	return t? t->value(): 0.0;
 }
 
 int dlg_commoninput::getCheckValue(int index) const
 {
 	QCheckBox *t = container->findChild<QCheckBox*>(widgetList[index]);
-	if (t)
-	{
-		return t->checkState();
-	}
-	return 0;
+	return t? t->checkState(): 0;
 }
 
 QString dlg_commoninput::getComboBoxValue(int index) const
 {
 	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
-	if (t)
-	{
-		return t->currentText();
-	}
-	return QString();
+	return t? t->currentText(): QString();
+}
+
+int dlg_commoninput::getComboBoxIndex(int index) const
+{
+	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
+	return t ? t->currentIndex() : -1;
 }
 
 QStringList dlg_commoninput::getText()
@@ -395,7 +367,6 @@ QStringList dlg_commoninput::getText()
 		
 		if (t != 0)
 		{
-			//get the text from the child widget and insert is to outValueList
 			outTextList.insert(i,t->text());
 		}
 		else
@@ -440,14 +411,4 @@ double dlg_commoninput::getParameterValue(QString name)
 	else outValue = 0;
 
 	return outValue;
-}
-
-int dlg_commoninput::getComboBoxIndex(int index) const
-{
-	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
-	if (t)
-	{
-		return t->currentIndex();
-	}
-	return -1;
 }
