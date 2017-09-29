@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iASegmentationModuleInterface.h"
 
+#include "iAFuzzyCMeans.h"
 #include "iAMaximumDistance.h"
 #include "iAThresholding.h"
 #include "iAWatershedSegmentation.h"
@@ -48,11 +49,13 @@ void iASegmentationModuleInterface::Initialize()
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
 	QMenu * menuGlobalThresholding = getMenuWithTitle(menuSegmentation, QString("Global Thresholding"));
 	QMenu * menuLocalThresholding = getMenuWithTitle(menuSegmentation, QString("Local Thresholding"));
-	QMenu * menuSegmentationWatershed = getMenuWithTitle( menuSegmentation, QString( "Based on Watershed" ) );
+	QMenu * menuWatershed = getMenuWithTitle( menuSegmentation, QString( "Based on Watershed" ) );
+	QMenu * menuFuzzyCMeans = getMenuWithTitle( menuSegmentation, QString( "Fuzzy C-Means" ) );
 
 	menuSegmentation->addAction(menuGlobalThresholding->menuAction() );
 	menuSegmentation->addAction(menuLocalThresholding->menuAction());
-	menuSegmentation->addAction(menuSegmentationWatershed->menuAction() );
+	menuSegmentation->addAction(menuWatershed->menuAction() );
+	menuSegmentation->addAction(menuFuzzyCMeans->menuAction() );
 
 	// global thresholding
 	QAction * actionBinary_threshold_filter = new QAction(QApplication::translate("MainWindow", "Binary threshold filter", 0), m_mainWnd);
@@ -82,18 +85,25 @@ void iASegmentationModuleInterface::Initialize()
 
 	// watershed-based
 	QAction * actionWatershed = new QAction(QApplication::translate("MainWindow", "Watershed Segmentation Filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuSegmentationWatershed, actionWatershed );
+	AddActionToMenuAlphabeticallySorted(menuWatershed, actionWatershed );
 	connect( actionWatershed, SIGNAL( triggered() ), this, SLOT( watershed_seg() ) );
 
 	QAction * actionMorphologicalWatershed = new QAction(QApplication::translate("MainWindow", "Morphological Watershed Segmentation Filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuSegmentationWatershed, actionMorphologicalWatershed );
+	AddActionToMenuAlphabeticallySorted(menuWatershed, actionMorphologicalWatershed );
 	connect( actionMorphologicalWatershed, SIGNAL( triggered() ), this, SLOT( morph_watershed_seg() ) );
 
-
-	QAction * actionSegmMetric = new QAction(m_mainWnd);
-	actionSegmMetric->setText(QApplication::translate("MainWindow", "Quality Metrics to Console", 0));
+	QAction * actionSegmMetric = new QAction(QApplication::translate("MainWindow", "Quality Metrics to Console", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionSegmMetric, true);
 	connect(actionSegmMetric, SIGNAL(triggered()), this, SLOT(CalculateSegmentationMetrics()));
+	
+	// fuzzy c-means
+	QAction * actionFuzzyCMeans = new QAction(QApplication::translate("MainWindow", "Fuzzy C-Means", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionFuzzyCMeans );
+	connect( actionFuzzyCMeans, SIGNAL( triggered() ), this, SLOT( fuzzycmeans_seg() ) );
+	
+	QAction * actionKernelizedFuzzyCMeans = new QAction(QApplication::translate("MainWindow", "Kernelized Fuzzy C-Means", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionKernelizedFuzzyCMeans);
+	connect(actionKernelizedFuzzyCMeans, SIGNAL( triggered() ), this, SLOT( kernelizedfuzzycmeans_seg() ) );
 }
 
 
@@ -457,7 +467,6 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	QStringList inList = ( QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Number of Thresholds" ) << tr( "$Valley Emphasis" ) );
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( omtBins ) << tr( "%1" ).arg( omtThreshs ) << ( omtVe ? tr( "true" ) : tr( "false" ) );
 	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", inList, inPara, NULL );
-
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
@@ -475,3 +484,72 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }
 
+
+void iASegmentationModuleInterface::fuzzycmeans_seg()
+{
+
+	QStringList inList = (QStringList()
+		<< tr("#Max. Iterations")
+		<< tr("#Maximum Error")
+		<< tr("#M")
+		<< tr("#Number of Threads")
+		<< tr("#Number of classes")
+		<< tr("#Centroids")
+		<< tr("$Ignore Background Pixels")
+		<< tr("#Background Pixel") );
+	QList<QVariant> inPara; inPara
+		<< QString("%1").arg(500)
+		<< QString("%1").arg(0.001)
+		<< QString("%1").arg(2)		// m
+		<< QString("%1").arg(4)		// number of threads
+		<< QString("%1").arg(2)		// number of classes
+		<< QString("-940 -450")		// centroids
+		<< true
+		<< QString("%1").arg(2000);
+
+	dlg_commoninput dlg(m_mainWnd, "Fuzzy C-Means", inList, inPara, NULL);
+	if (dlg.exec() != QDialog::Accepted)
+		return;
+
+	unsigned int maxIter = dlg.getValues()[0];
+	double maxError = static_cast<unsigned int>(dlg.getValues()[1]);
+	double m = dlg.getValues()[2];
+	unsigned int numOfThreads = static_cast<unsigned int>(dlg.getValues()[3]);
+	unsigned int numOfClasses = static_cast<unsigned int>(dlg.getValues()[4]);
+	QStringList centroidStringList = dlg.getText()[5].split(" ");
+	if (centroidStringList.size() != numOfClasses)
+	{
+		DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
+		return;
+	}
+	QVector<double> centroids;
+	for (auto c : centroidStringList)
+	{
+		bool ok;
+		double centroid = c.toDouble(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+			return;
+		}
+		centroids.push_back(centroid);
+	}
+	bool ignoreBg = dlg.getCheckValues()[6];
+	double bgPixel = dlg.getValues()[7];
+
+	//prepare
+	QString filterName = "Fuzzy C-Means";
+	PrepareResultChild(filterName);
+	m_mdiChild->addStatusMsg(filterName);
+	//execute
+	auto thread = new iAFuzzyCMeans(filterName, m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->setParameters(maxIter, maxError, m, numOfThreads, numOfClasses, centroids, ignoreBg, bgPixel);
+	thread->start();
+	m_mainWnd->statusBar()->showMessage(filterName, 5000);
+}
+
+void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
+{
+
+}

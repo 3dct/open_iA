@@ -20,41 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAAlgorithm.h"
 
-class MdiChild;
-
-class iASegmentationModuleInterface : public iAModuleInterface
+class iAFuzzyCMeans : public iAAlgorithm
 {
-	Q_OBJECT
-
 public:
-	void Initialize();
-
-private slots:
-	void binary_threshold();
-	void otsu_Threshold_Filter();
-	void maximum_Distance_Filter();
-	void watershed_seg();
-	void morph_watershed_seg();
-	void adaptive_Otsu_Threshold_Filter();
-	void rats_Threshold_Filter();
-	void otsu_Multiple_Threshold_Filter();
-	void fuzzycmeans_seg();
-	void kernelizedfuzzycmeans_seg();
-	bool CalculateSegmentationMetrics();
-
+	iAFuzzyCMeans(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
+	void setParameters(unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
+		QVector<double> centroids, bool ignoreBg, double bgPixel);
+protected:
+	virtual void performWork();
 private:
-	//settings
-	double btlower, btupper, btoutside, btinside; //binary threshold
-	double otBins, otinside, otoutside;
-	bool otremovepeaks;
-	double mdfli, mdfbins; int mdfuli; //maximum distance filter parameters
-	double wsLevel, wsThreshold;
-	double mwsLevel; // Morphological Watershed Segmentation Filter
-	bool mwsMarkWSLines, mwsFullyConnected; // Morphological Watershed Segmentation Filter
-	double aotBins, aotOutside, aotInside, aotRadius; 
-	unsigned int aotSamples, aotLevels, aotControlpoints;
-	double rtPow, rtOutside, rtInside;
-	double omtBins, omtThreshs, omtVe;
+	unsigned int m_maxIter;
+	double m_maxError;
+	double m_m;
+	unsigned int m_numOfThreads;
+	unsigned int m_numOfClasses;
+	QVector<double> m_centroids;
+	bool m_ignoreBg;
+	double m_bgPixel;
 };
