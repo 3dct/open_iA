@@ -365,43 +365,24 @@ QList<double> dlg_commoninput::getDoubleSpinBoxValues()
 	return (outValueList);
 }
 
-QList<int> dlg_commoninput::getCheckValues()
+int dlg_commoninput::getCheckValue(int index) const
 {
-	outCheckList.clear();
-	for (int i = 0; i < numPara; i++)
+	QCheckBox *t = container->findChild<QCheckBox*>(widgetList[index]);
+	if (t)
 	{
-		// find the child widget with the name in the leList
-		QCheckBox *t = container->findChild<QCheckBox*>(widgetList[i]);
-
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outCheckList.insert(i,t->checkState());
-		}
-		else
-			outCheckList.insert(i, 0);
+		return t->checkState();
 	}
-	return (outCheckList);
+	return 0;
 }
 
-QStringList dlg_commoninput::getComboBoxValues()
+QString dlg_commoninput::getComboBoxValue(int index) const
 {
-	outComboValues.clear();
-	for (int i = 0; i < numPara; i++)
+	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
+	if (t)
 	{
-		// find the child widget with the name in the leList
-		QComboBox *t = container->findChild<QComboBox*>(widgetList[i]);
-
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboValues.insert(i,t->currentText());
-		}
-		else
-			//needs to be there otherwise the list indices are incorrect!
-			outComboValues.insert(i, "");
+		return t->currentText();
 	}
-	return (outComboValues);
+	return QString();
 }
 
 QStringList dlg_commoninput::getText()
@@ -461,21 +442,12 @@ double dlg_commoninput::getParameterValue(QString name)
 	return outValue;
 }
 
-QList<int> dlg_commoninput::getComboBoxIndices()
+int dlg_commoninput::getComboBoxIndex(int index) const
 {
-	outComboIndices.clear();
-	for (int i = 0; i < numPara; i++)
+	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
+	if (t)
 	{
-		// find the child widget with the name in the leList
-		QComboBox *t = container->findChild<QComboBox*>(widgetList[i]);
-
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboIndices.insert(i, t->currentIndex());
-		}
-		else
-			outComboIndices.insert(i, -1);
+		return t->currentIndex();
 	}
-	return (outComboIndices);
+	return -1;
 }

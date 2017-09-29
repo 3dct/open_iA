@@ -85,7 +85,7 @@ void iASmoothingModuleInterface::discrete_Gaussian_Filter()
 		return;
 	dgfVariance = dlg.getValues()[0];
 	dgfMaximumError = dlg.getValues()[1];
-	dgfOutput = dlg.getCheckValues()[2];
+	dgfOutput = dlg.getCheckValue(2);
 
 	//prepare
 	QString filterName = "Discrete Gaussian";

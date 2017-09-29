@@ -1426,12 +1426,12 @@ bool iAIO::setupVolumeStackReader(QString f)
 
 		rawHeaderSize = dlg->getValues()[15];
 		headersize = rawHeaderSize;
-		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValues()[14]);
+		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(14));
 		rawScalarType = scalarType;
 
-		if (dlg->getComboBoxValues()[16] == "Little Endian") 
+		if (dlg->getComboBoxValue(16) == "Little Endian")
 		byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
-		else if (dlg->getComboBoxValues()[16] == "Big Endian") 
+		else if (dlg->getComboBoxValue(16) == "Big Endian")
 		byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
 		rawByteOrder = byteOrder;
@@ -1484,11 +1484,11 @@ bool iAIO::setupRAWReader( QString f )
 		rawHeaderSize = dlg->getValues()[9];
 		headersize = rawHeaderSize;
 		fileName = f;
-		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValues()[10]);
+		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(10));
 		rawScalarType = scalarType;
-		if (dlg->getComboBoxValues()[11] == "Little Endian") 
+		if (dlg->getComboBoxValue(11) == "Little Endian")
 			byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
-		else if (dlg->getComboBoxValues()[11] == "Big Endian") 
+		else if (dlg->getComboBoxValue(11) == "Big Endian")
 			byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
 		rawByteOrder = byteOrder;
@@ -1746,7 +1746,7 @@ bool iAIO::setupStackReader( QString f )
 	indexRange[0] = dlg.getValues()[3]; indexRange[1]= dlg.getValues()[4];
 	spacing[0] = dlg.getValues()[5]; spacing[1]= dlg.getValues()[6]; spacing[2] = dlg.getValues()[7];
 	origin[0] = dlg.getValues()[8]; origin[1]= dlg.getValues()[9]; origin[2] = dlg.getValues()[10];
-	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValues()[11]);
+	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValue(11));
 	FillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }

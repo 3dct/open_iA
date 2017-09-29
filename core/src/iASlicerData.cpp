@@ -798,10 +798,10 @@ void iASlicerData::saveAsImage() const
 	{
 		return;
 	}
-	saveNative = dlg.getCheckValues()[0];
+	saveNative = dlg.getCheckValue(0);
 	if (inList.size() > 1)
 	{
-		output16Bit = dlg.getCheckValues()[1];
+		output16Bit = dlg.getCheckValue(1);
 	}
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
@@ -878,12 +878,12 @@ void iASlicerData::saveImageStack()
 	{
 		return;
 	}
-	saveNative = dlg.getCheckValues()[0];
+	saveNative = dlg.getCheckValue(0);
 	sliceFirst = dlg.getValues()[1];
 	sliceLast  = dlg.getValues()[2];
 	if (inList.size() > 3)
 	{
-		output16Bit = dlg.getCheckValues()[3];
+		output16Bit = dlg.getCheckValue(3);
 	}
 
 	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num]){

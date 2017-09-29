@@ -869,7 +869,7 @@ int MdiChild::chooseModalityNr(QString const & caption)
 	{
 		return -1;
 	}
-	return modalityChoice.getComboBoxIndices()[0];
+	return modalityChoice.getComboBoxIndex(0);
 }
 
 int MdiChild::chooseComponentNr(int modalityNr)
@@ -891,7 +891,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	{
 		return -1;
 	}
-	return componentChoice.getComboBoxIndices()[0];
+	return componentChoice.getComboBoxIndex(0);
 }
 
 bool MdiChild::save()
@@ -1918,8 +1918,8 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	dlg_commoninput dlg(this, "Save movie options", inList, inPara, NULL);
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		mode =  dlg.getComboBoxValues()[0];
-		imode = dlg.getComboBoxIndices()[0];
+		mode =  dlg.getComboBoxValue(0);
+		imode = dlg.getComboBoxIndex(0);
 	}
 
 

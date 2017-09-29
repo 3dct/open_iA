@@ -86,7 +86,7 @@ void iAGeometricTransformationsModuleInterface::resampler()
 	rSizeX = dlg.getValues()[6];
 	rSizeY = dlg.getValues()[7];
 	rSizeZ = dlg.getValues()[8];
-	rInterpolator = dlg.getComboBoxValues()[9];
+	rInterpolator = dlg.getComboBoxValue(9);
 
 	//prepare
 	QString filterName = "Resampled";

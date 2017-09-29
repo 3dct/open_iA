@@ -490,13 +490,13 @@ bool MainWindow::saveSettings()
 
 		if (dlg.exec() == QDialog::Accepted)
 		{
-			dlg.getCheckValues()[0] == 0 ? spCamera = false               : spCamera = true;
-			dlg.getCheckValues()[1] == 0 ? spSliceViews = false           : spSliceViews = true;
-			dlg.getCheckValues()[2] == 0 ? spTransferFunction = false     : spTransferFunction = true;
-			dlg.getCheckValues()[3] == 0 ? spProbabilityFunctions = false : spProbabilityFunctions = true;
-			dlg.getCheckValues()[4] == 0 ? spPreferences = false          : spPreferences = true;
-			dlg.getCheckValues()[5] == 0 ? spRenderSettings = false       : spRenderSettings = true;
-			dlg.getCheckValues()[6] == 0 ? spSlicerSettings = false        : spSlicerSettings = true;
+			dlg.getCheckValue(0) == 0 ? spCamera = false               : spCamera = true;
+			dlg.getCheckValue(1) == 0 ? spSliceViews = false           : spSliceViews = true;
+			dlg.getCheckValue(2) == 0 ? spTransferFunction = false     : spTransferFunction = true;
+			dlg.getCheckValue(3) == 0 ? spProbabilityFunctions = false : spProbabilityFunctions = true;
+			dlg.getCheckValue(4) == 0 ? spPreferences = false          : spPreferences = true;
+			dlg.getCheckValue(5) == 0 ? spRenderSettings = false       : spRenderSettings = true;
+			dlg.getCheckValue(6) == 0 ? spSlicerSettings = false        : spSlicerSettings = true;
 
 			QDomDocument doc = loadSettingsFile(fileName);
 
@@ -574,13 +574,13 @@ bool MainWindow::loadSettings()
 		if (dlg.exec() == QDialog::Accepted)
 		{
 			int index = 0;
-			if (camera)               { dlg.getCheckValues()[index++] == 0 ? lpCamera = false               : lpCamera = true; }
-			if (sliceViews)           { dlg.getCheckValues()[index++] == 0 ? lpSliceViews = false           : lpSliceViews = true; }
-			if (transferFunction)     { dlg.getCheckValues()[index++] == 0 ? lpTransferFunction = false     : lpTransferFunction = true; }
-			if (probabilityFunctions) { dlg.getCheckValues()[index++] == 0 ? lpProbabilityFunctions = false : lpProbabilityFunctions = true; }
-			if (preferences)          { dlg.getCheckValues()[index++] == 0 ? lpPreferences = false          : lpPreferences = true; }
-			if (renderSettings)       { dlg.getCheckValues()[index++] == 0 ? lpRenderSettings = false       : lpRenderSettings = true; }
-			if (slicerSettings)       { dlg.getCheckValues()[index++] == 0 ? lpSlicerSettings = false       : lpSlicerSettings = true; }
+			if (camera)               { dlg.getCheckValue(index++) == 0 ? lpCamera = false               : lpCamera = true; }
+			if (sliceViews)           { dlg.getCheckValue(index++) == 0 ? lpSliceViews = false           : lpSliceViews = true; }
+			if (transferFunction)     { dlg.getCheckValue(index++) == 0 ? lpTransferFunction = false     : lpTransferFunction = true; }
+			if (probabilityFunctions) { dlg.getCheckValue(index++) == 0 ? lpProbabilityFunctions = false : lpProbabilityFunctions = true; }
+			if (preferences)          { dlg.getCheckValue(index++) == 0 ? lpPreferences = false          : lpPreferences = true; }
+			if (renderSettings)       { dlg.getCheckValue(index++) == 0 ? lpRenderSettings = false       : lpRenderSettings = true; }
+			if (slicerSettings)       { dlg.getCheckValue(index++) == 0 ? lpSlicerSettings = false       : lpSlicerSettings = true; }
 
 			if (lpProbabilityFunctions)
 			{
@@ -1198,11 +1198,11 @@ void MainWindow::prefs()
 	{
 		defaultPreferences.HistogramBins = (int)dlg.getValues()[0];
 		defaultPreferences.StatisticalExtent = (int)dlg.getValues()[1];
-		defaultPreferences.Compression = dlg.getCheckValues()[2] != 0;
-		defaultPreferences.ResultInNewWindow = dlg.getCheckValues()[3] != 0;
-		bool logToFile = dlg.getCheckValues()[4] != 0;
+		defaultPreferences.Compression = dlg.getCheckValue(2) != 0;
+		defaultPreferences.ResultInNewWindow = dlg.getCheckValue(3) != 0;
+		bool logToFile = dlg.getCheckValue(4) != 0;
 		QString logFileName = dlg.getText()[5];
-		QString looksStr = dlg.getComboBoxValues()[6];
+		QString looksStr = dlg.getComboBoxValue(6);
 		qssName = styleNames[looksStr];
 		applyQSS();
 
@@ -1278,13 +1278,13 @@ void MainWindow::renderSettings()
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		defaultRenderSettings.ShowSlicers = dlg.getCheckValues()[0] != 0;
-		defaultRenderSettings.ShowHelpers = dlg.getCheckValues()[1] != 0;
-		defaultRenderSettings.ShowRPosition = dlg.getCheckValues()[2] != 0;
+		defaultRenderSettings.ShowSlicers = dlg.getCheckValue(0) != 0;
+		defaultRenderSettings.ShowHelpers = dlg.getCheckValue(1) != 0;
+		defaultRenderSettings.ShowRPosition = dlg.getCheckValue(2) != 0;
 		
-		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValues()[3] != 0;
-		defaultVolumeSettings.Shading = dlg.getCheckValues()[4] != 0;
-		defaultRenderSettings.ParallelProjection = dlg.getCheckValues()[5] != 0;
+		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(3) != 0;
+		defaultVolumeSettings.Shading = dlg.getCheckValue(4) != 0;
+		defaultRenderSettings.ParallelProjection = dlg.getCheckValue(5) != 0;
 
 		defaultVolumeSettings.SampleDistance = dlg.getValues()[6];
 		defaultVolumeSettings.AmbientLighting = dlg.getValues()[7];
@@ -1294,7 +1294,7 @@ void MainWindow::renderSettings()
 		defaultRenderSettings.BackgroundTop = dlg.getText()[11];
 		defaultRenderSettings.BackgroundBottom = dlg.getText()[12];
 
-		QString renderType = dlg.getComboBoxValues()[13];
+		QString renderType = dlg.getComboBoxValue(13);
 
 		// TODO: use renderModes / reverse mapping ?
 		defaultVolumeSettings.Mode = vtkSmartVolumeMapper::DefaultRenderMode;
@@ -1367,17 +1367,17 @@ void MainWindow::slicerSettings()
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		defaultSlicerSettings.LinkViews = dlg.getCheckValues()[0] != 0;
-		defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValues()[1] != 0;
-		defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValues()[2] != 0;
-		defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValues()[3] != 0;
+		defaultSlicerSettings.LinkViews = dlg.getCheckValue(0) != 0;
+		defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValue(1) != 0;
+		defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValue(2) != 0;
+		defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValue(3) != 0;
 		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getValues()[4];
 		defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getValues()[5];
 		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getValues()[6];
 		defaultSlicerSettings.SnakeSlices = dlg.getValues()[7];
-		defaultSlicerSettings.LinkMDIs = dlg.getCheckValues()[8] != 0;
-		defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValues()[9];
-		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValues()[10] != 0;
+		defaultSlicerSettings.LinkMDIs = dlg.getCheckValue(8) != 0;
+		defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(9);
+		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(10) != 0;
 
 		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(defaultSlicerSettings))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
@@ -2256,7 +2256,7 @@ int MainWindow::SelectInputs( QString winTitel, QStringList inList, int * out_in
 	if( QDialog::Accepted == inputs.exec() )
 	{
 		for (int inputInd = 0; inputInd<inList.size(); inputInd++)
-			out_inputIndxs[inputInd] = inputs.getComboBoxIndices()[inputInd];
+			out_inputIndxs[inputInd] = inputs.getComboBoxIndex(inputInd);
 		return QDialog::Accepted;
 	}
 
@@ -2321,7 +2321,7 @@ void MainWindow::OpenWithDataTypeConversion()
 	owdtcx = dlg.getValues()[2]; owdtcy = dlg.getValues()[3]; owdtcz = dlg.getValues()[4];
 	owdtcsx = dlg.getValues()[5]; owdtcsy = dlg.getValues()[6];	owdtcsz = dlg.getValues()[7];
 
-	QString owdtcintype = dlg.getComboBoxValues()[0];
+	QString owdtcintype = dlg.getComboBoxValue(0);
 
 	double para[8];
 	para[0] = dlg.getValues()[1];

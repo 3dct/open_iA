@@ -64,7 +64,7 @@ void iAFeatureCharacteristicsModuleInterface::calcFeatureCharacteristics()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	bool feretDiameter = dlg.getCheckValues()[0] != 0;
+	bool feretDiameter = dlg.getCheckValue(0) != 0;
 
 	//execute
 	iACalcFeatureCharacteristics* thread = new iACalcFeatureCharacteristics( filterName,

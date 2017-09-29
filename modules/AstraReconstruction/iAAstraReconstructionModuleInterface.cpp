@@ -332,7 +332,7 @@ void iAAstraReconstructionModuleInterface::FreeBeamIntensity()
 	eiSizeX = dlg.getSpinBoxValues()[2];
 	eiSizeY = dlg.getSpinBoxValues()[3];
 	eiSizeZ = m_childData.imgData->GetExtent()[5] + 1;
-	manualMeanFreeBeamIntensity = dlg.getCheckValues()[4];
+	manualMeanFreeBeamIntensity = dlg.getCheckValue(4);
 	manualMeanFreeBeamIntensityValue = dlg.getValues()[5];
 
 	settings.setValue("Tools/AstraReconstruction/manualMeanFreeBeamIntensity", manualMeanFreeBeamIntensity);

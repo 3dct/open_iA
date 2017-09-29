@@ -196,14 +196,13 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		return false;
 	}
 
-	QList<int> fileIndices = dlg.getComboBoxIndices();
-	if (fileIndices[0] == fileIndices[1])
+	if (dlg.getComboBoxIndex(0) == dlg.getComboBoxIndex(1))
 	{
 		QMessageBox::warning(m_mainWnd, tr("Segmentation Quality Metric"),
 			tr("Same file selected for both ground truth and segmented image!"));
 	}
-	vtkImageData * groundTruthVTK = qobject_cast<MdiChild *>(mdiwindows[fileIndices[0]]->widget())->getImageData();
-	vtkImageData * segmentedVTK = qobject_cast<MdiChild *>(mdiwindows[fileIndices[1]]->widget())->getImageData();
+	vtkImageData * groundTruthVTK = qobject_cast<MdiChild *>(mdiwindows[dlg.getComboBoxIndex(0)]->widget())->getImageData();
+	vtkImageData * segmentedVTK = qobject_cast<MdiChild *>(mdiwindows[dlg.getComboBoxIndex(1)]->widget())->getImageData();
 	iAConnector groundTruthCon;
 	groundTruthCon.SetImage(groundTruthVTK);
 	iAConnector segmentedCon;
@@ -299,7 +298,7 @@ void iASegmentationModuleInterface::otsu_Threshold_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	otBins = dlg.getValues()[0]; otoutside = dlg.getValues()[1]; otinside = dlg.getValues()[2]; otremovepeaks = dlg.getCheckValues()[3];
+	otBins = dlg.getValues()[0]; otoutside = dlg.getValues()[1]; otinside = dlg.getValues()[2]; otremovepeaks = dlg.getCheckValue(3);
 
 	settings.setValue( "Filters/Segmentation/Otsu/otBins", otBins );
 	settings.setValue( "Filters/Segmentation/Otsu/otoutside", otoutside );
@@ -329,7 +328,7 @@ void iASegmentationModuleInterface::maximum_Distance_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	mdfbins = dlg.getValues()[0]; mdfli = dlg.getValues()[1]; mdfuli = dlg.getCheckValues()[2];
+	mdfbins = dlg.getValues()[0]; mdfli = dlg.getValues()[1]; mdfuli = dlg.getCheckValue(2);
 
 	//prepare
 	QString filterName = "Maximum distance";
@@ -391,9 +390,9 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 		
-	mwsLevel = dlg.getValues()[0]; 
-	mwsMarkWSLines = dlg.getCheckValues()[1]; 
-	mwsFullyConnected = dlg.getCheckValues()[2];
+	mwsLevel = dlg.getValues()[0];
+	mwsMarkWSLines = dlg.getCheckValue(1);
+	mwsFullyConnected = dlg.getCheckValue(2);
 	
 	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
 	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
@@ -470,7 +469,7 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	omtBins = dlg.getValues()[0]; omtThreshs = dlg.getValues()[1]; omtVe = dlg.getCheckValues()[2];
+	omtBins = dlg.getValues()[0]; omtThreshs = dlg.getValues()[1]; omtVe = dlg.getCheckValue(2);
 	//prepare
 	QString filterName = "Otsu multiple threshold";
 	PrepareResultChild( filterName );
@@ -534,7 +533,7 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 		}
 		centroids.push_back(centroid);
 	}
-	bool ignoreBg = dlg.getCheckValues()[6];
+	bool ignoreBg = dlg.getCheckValue(6);
 	double bgPixel = dlg.getValues()[7];
 
 	//prepare

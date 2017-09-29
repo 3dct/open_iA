@@ -100,12 +100,11 @@ void iATransformationsModuleInterface::rotate()
 
 	//get rot axes
 	int k = 0;
-	QList<int> indices = dlg.getComboBoxIndices();
 	QList<qreal> values = dlg.getValues();
 
 	qreal rotAngle = values[k++];
-	int rotAxesIdx = indices[k++];
-	int rotCenterIdx = indices[k++];
+	int rotAxesIdx = dlg.getComboBoxIndex(k++);
+	int rotCenterIdx = dlg.getComboBoxIndex(k++);
 	qreal cx = values[k++];
 	qreal cy = values[k++];
 	qreal cz = values[k++];

@@ -50,7 +50,7 @@ void iACastingDataconversionModuleInterface::castimage_Filter()
 	QString datatypeStr;
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	datatypeStr = dlg.getComboBoxValues()[0];
+	datatypeStr = dlg.getComboBoxValue(0);
 	//prepare
 	QString filterName = "Cast to " + datatypeStr;
 	PrepareResultChild( filterName );

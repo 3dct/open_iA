@@ -242,7 +242,7 @@ void iAIntensityModuleInterface::histogram_match()
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
-	hmHistogramLevels = dlg.getValues()[0]; hmMatchPoints = dlg.getValues()[1]; hmThresholdAtMeanIntensity = dlg.getCheckValues()[2];
+	hmHistogramLevels = dlg.getValues()[0]; hmMatchPoints = dlg.getValues()[1]; hmThresholdAtMeanIntensity = dlg.getCheckValue(2);
 
 	settings.setValue( "Filters/Intensity/hmHistogramLevels", hmHistogramLevels );
 	settings.setValue( "Filters/Intensity/hmMatchPoints", hmMatchPoints );

@@ -48,9 +48,9 @@ public:
 	QStringList getWidgetList();
 	
 	QList<double> getValues();	
-	QList<int> getCheckValues();	
-	QStringList getComboBoxValues();
-	QList<int> getComboBoxIndices();
+	int getCheckValue(int index) const;
+	QString getComboBoxValue(int index) const;
+	int getComboBoxIndex(int index) const;
 	QStringList getText();
 	QList<double> getSpinBoxValues();
 	QList<double> getDoubleSpinBoxValues();
@@ -65,9 +65,7 @@ private:
 	int numPara;
 	double outValue;
 	QList<double> outValueList;
-	QList<int> outCheckList;
-	QStringList outComboValues, outTextList;
-	QList<int> outComboIndices;
+	QStringList outTextList;
 	QList<QLabel*> listLabel;
 	QErrorMessage *eMessage;
 	QList<QVariant> inComboValue;

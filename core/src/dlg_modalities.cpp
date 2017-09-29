@@ -145,7 +145,7 @@ void dlg_modalities::AddClicked()
 			DEBUG_LOG("Aborted by user.");
 			return;
 		}
-		split = splitInput.getCheckValues()[0];
+		split = splitInput.getCheckValue(0);
 	}
 	ModalityCollection mods = iAModalityList::Load(fileName, "", -1, split, DefaultRenderFlags);
 	for (auto mod : mods)

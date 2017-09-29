@@ -59,7 +59,7 @@ void iAConnectedComponentModuleInterface::simple_connected_component()
 	dlg_commoninput dlg( m_mainWnd, "Simple Connected Component Filter", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted ) 
 		return;
-	sccff = dlg.getCheckValues()[0];
+	sccff = dlg.getCheckValue(0);
 	//prepare
 	QString filterName = "Simple Connected Component";
 	PrepareResultChild( filterName );
@@ -116,7 +116,7 @@ void iAConnectedComponentModuleInterface::simple_relabel_connected_component()
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 	srcifs = dlg.getSpinBoxValues()[0];
-	srcifw = dlg.getCheckValues()[1];
+	srcifw = dlg.getCheckValue(1);
 
 	//prepare
 	QString filterName = "Simple Relabel Connected Component";

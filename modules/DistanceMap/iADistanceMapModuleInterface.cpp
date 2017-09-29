@@ -55,10 +55,10 @@ void iADistanceMapModuleInterface::signed_maurer_distance_map()
 	dlg_commoninput dlg( m_mainWnd, "Signed Maurer Distance Map", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	smdmi = dlg.getCheckValues()[0]; 
-	smdms = dlg.getCheckValues()[1]; 
-	smdmp = dlg.getCheckValues()[2]; 
-	smdmn = dlg.getCheckValues()[3];
+	smdmi = dlg.getCheckValue(0);
+	smdms = dlg.getCheckValue(1);
+	smdmp = dlg.getCheckValue(2);
+	smdmn = dlg.getCheckValue(3);
 
 	settings.setValue( "Filters/DistanceMap/SignedMaurer/smdmi", smdmi );
 	settings.setValue( "Filters/DistanceMap/SignedMaurer/smdms", smdms );

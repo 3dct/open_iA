@@ -2442,11 +2442,11 @@ void dlg_FiberScout::CsvDVSaveButton()
 
 	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, NULL );
 
-	if ( dlg.exec() == QDialog::Accepted && ( dlg.getCheckValues()[0] == 2 || dlg.getCheckValues()[1] == 2 ) )
+	if ( dlg.exec() == QDialog::Accepted && ( dlg.getCheckValue(0) == 2 || dlg.getCheckValue(1) == 2 ) )
 	{
 		QString filename;
 
-		if ( dlg.getCheckValues()[0] == 2 )
+		if ( dlg.getCheckValue(0) == 2 )
 		{
 			filename = QFileDialog::getSaveFileName( this, tr( "Save fiber characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
 
@@ -2548,7 +2548,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 			disTable->AddColumn( populations.GetPointer() );
 
 			//Writes csv file
-			if ( dlg.getCheckValues()[0] == 2 )
+			if ( dlg.getCheckValue(0) == 2 )
 			{
 				ofstream file( filename.toStdString().c_str(), std::ios::app );
 				if ( file.is_open() )
@@ -2586,7 +2586,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 			}
 
 			//Creates chart for each selected characteristic
-			if ( dlg.getCheckValues()[1] == 2 )
+			if ( dlg.getCheckValue(1) == 2 )
 			{
 				vtkChartXY* chart = vtkChartXY::SafeDownCast( distributionChartMatrix
 															  ->GetChart( vtkVector2i( row % ( rowList.count() < 3 ? rowList.count() % 3 : 3 ), row / 3 ) ) );
@@ -2604,7 +2604,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 		}
 
 		//Renders the distributionMatrix in a new dockWidget
-		if ( dlg.getCheckValues()[1] == 2 )
+		if ( dlg.getCheckValue(1) == 2 )
 		{
 			MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 			if ( !iovDV )
@@ -4397,17 +4397,17 @@ int dlg_FiberScout::OpenBlobVisDialog()
 	if ( dlg.exec() == QDialog::Accepted )
 	{
 		int i = 0;
-		blobManager->SetRange( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetShowBlob( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetUseDepthPeeling( dlg.getCheckValues()[i++] );
-		blobManager->SetBlobOpacity( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetSilhouettes( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetSilhouetteOpacity( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetLabeling( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetOverlappingEnabled( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetOverlapThreshold( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetSmoothing( dlg.getCheckValues()[i++] );
-		blobManager->SetGaussianBlur( dlg.getCheckValues()[i++] );
+		blobManager->SetRange               ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetShowBlob            ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetUseDepthPeeling     ( dlg.getCheckValue(i++) );
+		blobManager->SetBlobOpacity         ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetSilhouettes         ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetSilhouetteOpacity   ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetLabeling            ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetOverlappingEnabled  ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetOverlapThreshold    ( dlg.getDoubleSpinBoxValues()[i++] );
+		blobManager->SetSmoothing           ( dlg.getCheckValue(i++) );
+		blobManager->SetGaussianBlur        ( dlg.getCheckValue(i++) );
 		blobManager->SetGaussianBlurVariance( dlg.getSpinBoxValues()[i++] );
 
 		int dimens[3];
@@ -4553,8 +4553,8 @@ void dlg_FiberScout::SaveBlobMovie()
 		dlg_commoninput dlg( this, "Save movie options", inList, inPara, NULL );
 		if ( dlg.exec() == QDialog::Accepted )
 		{
-			mode = dlg.getComboBoxValues()[0];
-			imode = dlg.getComboBoxIndices()[0];
+			mode = dlg.getComboBoxValue(0);
+			imode = dlg.getComboBoxIndex(0);
 		}
 	}
 
@@ -4607,18 +4607,18 @@ void dlg_FiberScout::SaveBlobMovie()
 		size_t numFrames = dlg.getSpinBoxValues()[i++];
 		for ( int ind = 0; ind < 2; ++ind )
 			range[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetShowBlob( dlg.getCheckValues()[i++] != 0 );
+		blobManager->SetShowBlob( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
 			blobOpacity[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetSilhouettes( dlg.getCheckValues()[i++] != 0 );
+		blobManager->SetSilhouettes( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
 			silhouetteOpacity[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetLabeling( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetOverlappingEnabled( dlg.getCheckValues()[i++] != 0 );
+		blobManager->SetLabeling( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetOverlappingEnabled( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
 			overlapThreshold[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetSmoothing( dlg.getCheckValues()[i++] );
-		blobManager->SetGaussianBlur( dlg.getCheckValues()[i++] );
+		blobManager->SetSmoothing( dlg.getCheckValue(i++) );
+		blobManager->SetGaussianBlur( dlg.getCheckValue(i++) );
 		for ( int ind = 0; ind < 2; ++ind )
 			gaussianBlurVariance[ind] = dlg.getSpinBoxValues()[i++];
 
