@@ -30,21 +30,22 @@
 
 #include <vtkImageData.h>
 
-template <typename ImagePixelType>
+template <typename InputPixelType>
 void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
 	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel, QVector<vtkSmartPointer<vtkImageData> > & probOut)
 {
 	const unsigned int ImageDimension = 3;
-	typedef unsigned int OutPixelType;
-	typedef itk::Image<ImagePixelType, ImageDimension> IType;
-	typedef itk::Image<OutPixelType, ImageDimension> OType;
-	typedef itk::FuzzyClassifierInitializationImageFilter<IType> TFuzzyClassifier;
+	typedef unsigned int LabelPixelType;
+	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
+	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
 	typedef TFuzzyClassifier::MembershipValueType ProbabilityType;
-	typedef itk::FCMClassifierInitializationImageFilter<IType> TClassifierFCM;
+	typedef itk::FCMClassifierInitializationImageFilter<InputImageType> TClassifierFCM;
 	typedef itk::VectorImage<ProbabilityType, ImageDimension> VectorImageType;
 	typedef itk::Image<ProbabilityType, ImageDimension> ScalarProbabilityImageType;
+	typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
+	typedef itk::FuzzyClassifierImageFilter<TClassifierFCM::OutputImageType, LabelPixelType> TLabelClassifier;
 
-	TClassifierFCM::Pointer classifier = TClassifierFCM::New();
+	auto classifier = TClassifierFCM::New();
 	classifier->SetMaximumNumberOfIterations(maxIter);
 	classifier->SetMaximumError(maxError);
 	classifier->SetM(m);
@@ -58,14 +59,13 @@ void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxErr
 	classifier->SetCentroids(centroidsArray);
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<IType *>(img->GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(img->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 
 	for (int p = 0; p < probs->GetVectorLength(); ++p)
 	{
-		typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
-		IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+		auto indexSelectionFilter = IndexSelectionType::New();
 		indexSelectionFilter->SetIndex(p);
 		indexSelectionFilter->SetInput(probs);
 		indexSelectionFilter->Update();
@@ -75,9 +75,7 @@ void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxErr
 		vtkImg->DeepCopy(con.GetVTKImage());
 		probOut.push_back(vtkImg);
 	}
-
-	typedef itk::FuzzyClassifierImageFilter<TClassifierFCM::OutputImageType> TLabelClassifier;
-	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
+	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	img->SetImage(labelClass->GetOutput());
 }
