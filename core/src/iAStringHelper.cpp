@@ -71,7 +71,7 @@ QString Vec3D2String(double* vec)
 
 QString getPaddedOrTruncatedName(QString const & name, int size)
 {
-	if (name > size)
+	if (name.length() > size)
 		return name.left(size - 2) + "..";
 	else
 		return name.leftJustified(size, ' ');
