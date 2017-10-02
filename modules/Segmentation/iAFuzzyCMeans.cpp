@@ -28,9 +28,11 @@
 #include <itkVectorImage.h>
 #include <itkVectorIndexSelectionCastImageFilter.h>
 
+#include <vtkImageData.h>
+
 template <typename ImagePixelType>
 void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
-	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel, QVector<iAConnector*> & probOut)
+	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel, QVector<vtkSmartPointer<vtkImageData> > & probOut)
 {
 	const unsigned int ImageDimension = 3;
 	typedef unsigned int OutPixelType;
@@ -56,7 +58,7 @@ void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxErr
 	classifier->SetCentroids(centroidsArray);
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast< IType * >(img->GetITKImage()));
+	classifier->SetInput(dynamic_cast<IType *>(img->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 
@@ -67,9 +69,11 @@ void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxErr
 		indexSelectionFilter->SetIndex(p);
 		indexSelectionFilter->SetInput(probs);
 		indexSelectionFilter->Update();
-		iAConnector * con = new iAConnector();
-		con->SetImage(indexSelectionFilter->GetOutput());
-		probOut.push_back(con);
+		iAConnector con;
+		con.SetImage(indexSelectionFilter->GetOutput());
+		auto vtkImg = vtkSmartPointer<vtkImageData>::New();
+		vtkImg->DeepCopy(con.GetVTKImage());
+		probOut.push_back(vtkImg);
 	}
 
 	typedef itk::FuzzyClassifierImageFilter<TClassifierFCM::OutputImageType> TLabelClassifier;
@@ -102,7 +106,7 @@ void iAFuzzyCMeans::performWork()
 		m_numOfThreads, m_numOfClasses, m_centroids, m_ignoreBg, m_bgPixel, m_probOut);
 }
 
-QVector<iAConnector*> & iAFuzzyCMeans::GetProbabilities()
+QVector<vtkSmartPointer<vtkImageData> > & iAFuzzyCMeans::GetProbabilities()
 {
 	return m_probOut;
 }

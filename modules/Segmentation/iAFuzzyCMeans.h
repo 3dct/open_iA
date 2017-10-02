@@ -28,7 +28,7 @@ public:
 	iAFuzzyCMeans(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
 	void setParameters(unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
 		QVector<double> centroids, bool ignoreBg, double bgPixel);
-	QVector<iAConnector*> & GetProbabilities();
+	QVector<vtkSmartPointer<vtkImageData> > & GetProbabilities();
 protected:
 	virtual void performWork();
 private:
@@ -41,5 +41,5 @@ private:
 	bool m_ignoreBg;
 	double m_bgPixel;
 	
-	QVector<iAConnector*> m_probOut;
+	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
 };

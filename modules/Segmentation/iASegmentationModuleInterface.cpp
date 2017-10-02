@@ -29,6 +29,8 @@
 #include "dlg_commoninput.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -247,18 +249,26 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 
 void iASegmentationModuleInterface::binary_threshold()
 {
-	//set parameters
 	QSettings settings;
 	btlower = settings.value("Filters/Segmentation/BinaryThresholding/btlower").toDouble();
 	btupper = settings.value("Filters/Segmentation/BinaryThresholding/btupper").toDouble();
 	btoutside = settings.value("Filters/Segmentation/BinaryThresholding/btoutside").toDouble();
 	btinside = settings.value("Filters/Segmentation/BinaryThresholding/btinside").toDouble();
 
-	QStringList inList = (QStringList() << tr("#Lower Threshold") << tr("#Upper Threshold") << tr("#Outside Value") << tr("#Inside Value"));
-	QList<QVariant> inPara; 	inPara << tr("%1").arg(btlower) << tr("%1").arg(btupper) << tr("%1").arg(btoutside) << tr("%1").arg(btinside);
+	QStringList inList = (QStringList()
+		<< tr("#Lower Threshold")
+		<< tr("#Upper Threshold")
+		<< tr("#Outside Value")
+		<< tr("#Inside Value"));
+	QList<QVariant> inPara; inPara
+		<< tr("%1").arg(btlower)
+		<< tr("%1").arg(btupper)
+		<< tr("%1").arg(btoutside)
+		<< tr("%1").arg(btinside);
 	dlg_commoninput dlg(m_mainWnd, "Binary Threshold", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
+
 	btlower = dlg.getDblValue(0);
 	btupper = dlg.getDblValue(1);
 	btoutside = dlg.getDblValue(2);
@@ -269,11 +279,9 @@ void iASegmentationModuleInterface::binary_threshold()
 	settings.setValue("Filters/Segmentation/BinaryThresholding/btoutside", btoutside);
 	settings.setValue("Filters/Segmentation/BinaryThresholding/btinside", btinside);
 
-	//prepare
 	QString filterName = "Binary threshold";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
-	//execute
 	iAThresholding * thread = new iAThresholding(filterName, BINARY_THRESHOLD,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	m_mdiChild->connectThreadSignalsToChildSlots(thread);
@@ -290,26 +298,33 @@ void iASegmentationModuleInterface::otsu_Threshold_Filter()
 	otinside = settings.value( "Filters/Segmentation/Otsu/otinside" ).toDouble();
 	otremovepeaks = settings.value( "Filters/Segmentation/Otsu/otremovepeaks" ).toBool();
 
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ) << tr( "$Remove Peaks" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( otBins ) << tr( "%1" ).arg( otoutside ) << tr( "%1" ).arg( otinside ) << (otremovepeaks ? tr( "true" ) : tr( "false" ));
+	QStringList inList = (QStringList()
+		<< tr( "#Number of Histogram Bins" )
+		<< tr( "#Outside Value" )
+		<< tr( "#Inside Value" )
+		<< tr( "$Remove Peaks" ));
+	QList<QVariant> inPara; inPara
+		<< tr( "%1" ).arg( otBins )
+		<< tr( "%1" ).arg( otoutside )
+		<< tr( "%1" ).arg( otinside )
+		<< (otremovepeaks ? tr( "true" ) : tr( "false" ));
 	dlg_commoninput dlg( m_mainWnd, "Otsu Threshold", inList, inPara, NULL );
-
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	otBins = dlg.getDblValue(0); otoutside = dlg.getDblValue(1); otinside = dlg.getDblValue(2); otremovepeaks = dlg.getCheckValue(3);
+	otBins = dlg.getDblValue(0);
+	otoutside = dlg.getDblValue(1);
+	otinside = dlg.getDblValue(2);
+	otremovepeaks = dlg.getCheckValue(3);
 
 	settings.setValue( "Filters/Segmentation/Otsu/otBins", otBins );
 	settings.setValue( "Filters/Segmentation/Otsu/otoutside", otoutside );
 	settings.setValue( "Filters/Segmentation/Otsu/otinside", otinside );
 	settings.setValue( "Filters/Segmentation/Otsu/otremovepeaks", otremovepeaks );
 
-	//prepare
 	QString filterName = "Otsu threshold";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
-	//execute
 	iAThresholding* thread = new iAThresholding( filterName, OTSU_THRESHOLD,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -320,21 +335,25 @@ void iASegmentationModuleInterface::otsu_Threshold_Filter()
 
 void iASegmentationModuleInterface::maximum_Distance_Filter()
 {
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Intensity" ) << tr( "#Low Intensity" ) << tr( "$Use Low Intensity" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( mdfbins ) << tr( "%1" ).arg( mdfli ) << tr( "%1" ).arg( mdfuli );
+	QStringList inList = (QStringList()
+		<< tr( "#Number of Intensity" )
+		<< tr( "#Low Intensity" )
+		<< tr( "$Use Low Intensity" ));
+	QList<QVariant> inPara; inPara
+		<< tr( "%1" ).arg( mdfbins )
+		<< tr( "%1" ).arg( mdfli )
+		<< tr( "%1" ).arg( mdfuli );
 	dlg_commoninput dlg( m_mainWnd, "Maximum Distance Filter", inList, inPara, NULL );
-
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	mdfbins = dlg.getDblValue(0); mdfli = dlg.getDblValue(1); mdfuli = dlg.getCheckValue(2);
+	mdfbins = dlg.getDblValue(0);
+	mdfli = dlg.getDblValue(1);
+	mdfuli = dlg.getCheckValue(2);
 
-	//prepare
 	QString filterName = "Maximum distance";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
-	//execute
 	iAMaximumDistance* thread = new iAMaximumDistance( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -345,19 +364,23 @@ void iASegmentationModuleInterface::maximum_Distance_Filter()
 
 void iASegmentationModuleInterface::watershed_seg()
 {
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Level" ) << tr( "#Threshold" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( wsLevel ) << tr( "%1" ).arg( wsThreshold );
+	QStringList inList = (QStringList()
+		<< tr( "#Level" )
+		<< tr( "#Threshold" ));
+	QList<QVariant> inPara; inPara
+		<< tr( "%1" ).arg( wsLevel )
+		<< tr( "%1" ).arg( wsThreshold );
+
 	dlg_commoninput dlg( m_mainWnd, "Watershed segmentation", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	wsLevel = dlg.getDblValue(0); wsThreshold = dlg.getDblValue(1);
 
-	//prepare
+	wsLevel = dlg.getDblValue(0);
+	wsThreshold = dlg.getDblValue(1);
+
 	QString filterName = "Watershed segmentation";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
-	//execute
 	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, WATERSHED,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -368,12 +391,10 @@ void iASegmentationModuleInterface::watershed_seg()
 
 void iASegmentationModuleInterface::morph_watershed_seg()
 {
-	//set parameters
 	QSettings settings;
 	mwsLevel = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
 	mwsMarkWSLines = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
 	mwsFullyConnected = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsFullyConnected" ).toBool();
-
 	QTextDocument *fDescr = new QTextDocument( 0 );
 	fDescr->setHtml(
 		"<p><font size=+1>Calculates the Morphological Watershed Transformation.</font></p>"
@@ -381,12 +402,15 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 		"Note 1: As input image use e.g., a gradient magnitude image.<br>"
 		"Note 2: Mark WS Lines label whatershed lines with 0, background with 1. )</p>"
 		);
-
-	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) );
-	QList<QVariant> inPara;
-	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected );
+	QStringList inList = ( QStringList()
+		<< tr( "#Level" )
+		<< tr( "$Mark WS Lines" )
+		<< tr( "$Fully Connected" ) );
+	QList<QVariant> inPara; inPara
+		<< tr( "%1" ).arg( mwsLevel )
+		<< tr( "%1" ).arg( mwsMarkWSLines )
+		<< tr( "%1" ).arg( mwsFullyConnected );
 	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", inList, inPara, fDescr );
-
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 		
@@ -398,13 +422,11 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
 	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
 
-	//prepare
 	QString filterName = "Morphological watershed segmentation";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
-	//execute
 	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, MORPH_WATERSHED,
-																   m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
+		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setMWSParameters( mwsLevel, mwsMarkWSLines, mwsFullyConnected );
 	thread->start();
@@ -413,21 +435,37 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 
 void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
 {
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ) << tr( "#Radius" ) << tr( "#Samples" ) << tr( "#Levels" ) << tr( "#Control Points" ));
-	QList<QVariant> inPara; inPara << tr( "%1" ).arg( aotBins ) << tr( "%1" ).arg( aotOutside ) << tr( "%1" ).arg( aotInside ) << tr( "%1" ).arg( aotRadius ) << tr( "%1" ).arg( aotSamples ) << tr( "%1" ).arg( aotLevels ) << tr( "%1" ).arg( aotControlpoints );
+	QStringList inList = (QStringList()
+		<< tr( "#Number of Histogram Bins" )
+		<< tr( "#Outside Value" )
+		<< tr( "#Inside Value" )
+		<< tr( "#Radius" )
+		<< tr( "#Samples" )
+		<< tr( "#Levels" )
+		<< tr( "#Control Points" ));
+	QList<QVariant> inPara; inPara
+		<< tr( "%1" ).arg( aotBins )
+		<< tr( "%1" ).arg( aotOutside )
+		<< tr( "%1" ).arg( aotInside )
+		<< tr( "%1" ).arg( aotRadius )
+		<< tr( "%1" ).arg( aotSamples )
+		<< tr( "%1" ).arg( aotLevels )
+		<< tr( "%1" ).arg( aotControlpoints );
 	dlg_commoninput dlg( m_mainWnd, "Adaptive otsu threshold", inList, inPara, NULL );
-
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	aotBins = dlg.getDblValue(0); aotOutside = dlg.getDblValue(1); aotInside = dlg.getDblValue(2); aotRadius = dlg.getDblValue(3);
-	aotSamples = dlg.getDblValue(4); aotLevels = dlg.getDblValue(5); aotControlpoints = dlg.getDblValue(6);
-	//prepare
+	aotBins = dlg.getDblValue(0);
+	aotOutside = dlg.getDblValue(1);
+	aotInside = dlg.getDblValue(2);
+	aotRadius = dlg.getDblValue(3);
+	aotSamples = dlg.getDblValue(4);
+	aotLevels = dlg.getDblValue(5);
+	aotControlpoints = dlg.getDblValue(6);
+
 	QString filterName = "Adaptive otsu threshold";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
-	//execute
 	iAThresholding* thread = new iAThresholding( filterName, ADAPTIVE_OTSU_THRESHOLD,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -438,20 +476,25 @@ void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
 
 void iASegmentationModuleInterface::rats_Threshold_Filter()
 {
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Power" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( rtPow ) << tr( "%1" ).arg( rtOutside ) << tr( "%1" ).arg( rtInside );
+	QStringList inList = (QStringList()
+		<< tr( "#Power" )
+		<< tr( "#Outside Value" )
+		<< tr( "#Inside Value" ));
+	QList<QVariant> inPara; inPara
+		<< tr( "%1" ).arg( rtPow )
+		<< tr( "%1" ).arg( rtOutside )
+		<< tr( "%1" ).arg( rtInside );
 	dlg_commoninput dlg( m_mainWnd, "Rats Threshold", inList, inPara, NULL );
-
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	rtPow = dlg.getDblValue(0); rtOutside = dlg.getDblValue(1); rtInside = dlg.getDblValue(2);
-	//prepare
+	rtPow = dlg.getDblValue(0);
+	rtOutside = dlg.getDblValue(1);
+	rtInside = dlg.getDblValue(2);
+
 	QString filterName = "Rats threshold filter";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
-	//execute
 	iAThresholding* thread = new iAThresholding( filterName, RATS_THRESHOLD,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -462,13 +505,11 @@ void iASegmentationModuleInterface::rats_Threshold_Filter()
 
 void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 {
-	//set parameters
 	QStringList inList = ( QStringList()
 		<< tr( "#Number of Histogram Bins" )
 		<< tr( "#Number of Thresholds" )
 		<< tr( "$Valley Emphasis" ) );
-	QList<QVariant> inPara;
-	inPara
+	QList<QVariant> inPara;	inPara
 		<< tr( "%1" ).arg( omtBins )
 		<< tr( "%1" ).arg( omtThreshs )
 		<< ( omtVe ? tr( "true" ) : tr( "false" ) );
@@ -476,12 +517,13 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	omtBins = dlg.getDblValue(0); omtThreshs = dlg.getDblValue(1); omtVe = dlg.getCheckValue(2);
-	//prepare
+	omtBins = dlg.getDblValue(0);
+	omtThreshs = dlg.getDblValue(1);
+	omtVe = dlg.getCheckValue(2);
+
 	QString filterName = "Otsu multiple threshold";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
-	//execute
 	iAThresholding* thread = new iAThresholding( filterName, OTSU_MULTIPLE_THRESHOLD,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -520,13 +562,12 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 		<< fcmIgnoreBg
 		<< QString("%1").arg(fcmBgPixel)
 		<< QString("%1").arg(fcmNumOfThreads);
-
 	dlg_commoninput dlg(m_mainWnd, "Fuzzy C-Means", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	fcmMaxIter = dlg.getDblValue(0);
-	fcmMaxError = static_cast<unsigned int>(dlg.getDblValue(1));
+	fcmMaxIter = static_cast<unsigned int>(dlg.getDblValue(0));
+	fcmMaxError = dlg.getDblValue(1);
 	fcmM = dlg.getDblValue(2);
 	fcmNumOfClasses = static_cast<unsigned int>(dlg.getDblValue(3));
 	fcmCentroidString = dlg.getText(4);
@@ -561,11 +602,9 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 	settings.setValue("Filters/Segmentation/FuzzyCMeans/ignoreBG",		fcmIgnoreBg      );
 	settings.setValue("Filters/Segmentation/FuzzyCMeans/bgPixel",		fcmBgPixel       );
 
-	//prepare
 	QString filterName = "Fuzzy C-Means";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
-	//execute
 	fuzzy = new iAFuzzyCMeans(filterName, m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	connect(fuzzy, SIGNAL(finished()), this, SLOT(FuzzyCMeansFinished()));
 	m_mdiChild->connectThreadSignalsToChildSlots(fuzzy);
@@ -574,17 +613,13 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 	m_mainWnd->statusBar()->showMessage(filterName, 5000);
 }
 
-#include "iAModality.h"
-#include "iAModalityList.h"
-
-
 void iASegmentationModuleInterface::FuzzyCMeansFinished()
 {
 	auto & probs = fuzzy->GetProbabilities();
 	for (int p = 0; p < probs.size(); ++p)
 	{
 		m_mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
-			new iAModality(QString("FCM Prob %1").arg(p), "", -1, probs[p]->GetVTKImage(), 0)));
+			new iAModality(QString("FCM Prob %1").arg(p), "", -1, probs[p], 0)));
 	}
 }
 
