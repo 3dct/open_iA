@@ -71,7 +71,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	//Generates a scrollable container for the widgets with a grid layout
 	auto scrollArea = new QScrollArea(this);
 	scrollArea->setObjectName("scrollArea");
-	auto container = new QWidget(scrollArea);
+	container = new QWidget(scrollArea);
 	container->setObjectName("container");
 	auto containerLayout = new QGridLayout(container);
 	containerLayout->setObjectName("containerLayout");
