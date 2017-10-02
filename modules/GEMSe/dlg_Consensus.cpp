@@ -848,9 +848,8 @@ void dlg_Consensus::LoadConfig()
 		{
 			return;
 		}
-		QStringList changedValues = checkAlgoParams.getText();
-		QString executable = changedValues[0];
-		QString additionalParameters = changedValues[1];
+		QString executable = checkAlgoParams.getText(0);
+		QString additionalParameters = checkAlgoParams.getText(1);
 		QSharedPointer<iASelectionParameterGenerator> generator(
 			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));

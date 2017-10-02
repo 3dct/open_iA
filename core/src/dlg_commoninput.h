@@ -38,40 +38,18 @@ class QScrollArea;
 class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
 {
 	Q_OBJECT
-
 public:
-	//class constructor
 	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ), bool modal = true);
-
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;
-	QStringList getText();
+	QString getText(int index) const;
 	int getIntValue(int index) const;
 	double getDblValue(int index) const;
-
-	double getParameterValue(QString name);	
-	void updateValues(QList<QVariant>);
-
 	void connectMdiChild(MdiChild *child);
-	
 private:
-	
-	int numPara;
-	double outValue;
-	QList<double> outValueList;
-	QStringList outTextList;
-	QList<QLabel*> listLabel;
-	QErrorMessage *eMessage;
-	QList<QVariant> inComboValue;
-	int NoofComboBox;
-	QString tStr;
-	QScrollArea *scrollArea;
-	QWidget *container; 
-	QGridLayout *containerLayout;
-	int selectedComboBoxPos; 
-	
+	QWidget *container;
+	void updateValues(QList<QVariant>);
 protected:
 	QStringList widgetList;
-
 };

@@ -1233,8 +1233,8 @@ bool iAIO::setupVolumeStackMHDReader(QString f)
 
 	if (dlg.exec() == QDialog::Accepted){
 
-		fileNamesBase = dlg.getText()[0];
-		extension = dlg.getText()[1];
+		fileNamesBase = dlg.getText(0);
+		extension = dlg.getText(1);
 		digitsInIndex = dlg.getDblValue(2);
 		indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
 	
@@ -1417,8 +1417,8 @@ bool iAIO::setupVolumeStackReader(QString f)
 		extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;
 		extent[1]--; extent[3]--; extent[5]--;
 
-		fileNamesBase = dlg->getText()[0];
-		extension = dlg->getText()[1];
+		fileNamesBase = dlg->getText(0);
+		extension = dlg->getText(1);
 		digitsInIndex = dlg->getDblValue(2);
 		indexRange[0] = dlg->getDblValue(3); indexRange[1]= dlg->getDblValue(4);
 		spacing[0] = dlg->getDblValue(8); spacing[1]= dlg->getDblValue(9); spacing[2] = dlg->getDblValue(10);
@@ -1740,8 +1740,8 @@ bool iAIO::setupStackReader( QString f )
 	{
 		return false;
 	}
-	fileNamesBase = dlg.getText()[0];
-	extension = dlg.getText()[1];
+	fileNamesBase = dlg.getText(0);
+	extension = dlg.getText(1);
 	digitsInIndex = dlg.getDblValue(2);
 	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
 	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);

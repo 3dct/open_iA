@@ -1201,7 +1201,7 @@ void MainWindow::prefs()
 		defaultPreferences.Compression = dlg.getCheckValue(2) != 0;
 		defaultPreferences.ResultInNewWindow = dlg.getCheckValue(3) != 0;
 		bool logToFile = dlg.getCheckValue(4) != 0;
-		QString logFileName = dlg.getText()[5];
+		QString logFileName = dlg.getText(5);
 		QString looksStr = dlg.getComboBoxValue(6);
 		qssName = styleNames[looksStr];
 		applyQSS();
@@ -1291,8 +1291,8 @@ void MainWindow::renderSettings()
 		defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(8);
 		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(9);
 		defaultVolumeSettings.SpecularPower = dlg.getDblValue(10);
-		defaultRenderSettings.BackgroundTop = dlg.getText()[11];
-		defaultRenderSettings.BackgroundBottom = dlg.getText()[12];
+		defaultRenderSettings.BackgroundTop = dlg.getText(11);
+		defaultRenderSettings.BackgroundBottom = dlg.getText(12);
 
 		QString renderType = dlg.getComboBoxValue(13);
 
@@ -2398,7 +2398,7 @@ void MainWindow::saveLayout()
 		dlg_commoninput dlg(this, "Layout Name", inList, inPara, NULL);
 		if (dlg.exec() == QDialog::Accepted)
 		{
-			layoutName =  dlg.getText()[0];
+			layoutName =  dlg.getText(0);
 			if (layoutName == "")
 			{
 				QMessageBox::warning(this, "Save Layout", "Layout Name cannot be empty!");

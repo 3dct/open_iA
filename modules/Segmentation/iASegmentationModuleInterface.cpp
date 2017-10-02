@@ -529,7 +529,7 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 	fcmMaxError = static_cast<unsigned int>(dlg.getDblValue(1));
 	fcmM = dlg.getDblValue(2);
 	fcmNumOfClasses = static_cast<unsigned int>(dlg.getDblValue(3));
-	fcmCentroidString = dlg.getText()[4];
+	fcmCentroidString = dlg.getText(4);
 	auto centroidStringList = fcmCentroidString.split(" ");
 	if (centroidStringList.size() != fcmNumOfClasses)
 	{
