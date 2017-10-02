@@ -518,13 +518,11 @@ QListView
 	
 	QListView::item:hover
 	{
-		background: rgba(245, 245, 245, 255);
 		color: rgba(0, 0, 0, 255);
 		border: 1px solid rgba(135, 135, 135, 255);
 	}
 	QListView::item:alternate:hover
 	{
-		background: rgba(255, 255, 255, 255);
 		color: rgba(0, 0, 0, 255);
 		border: 1px solid rgba(135, 135, 135, 255);
 	}

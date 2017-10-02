@@ -503,7 +503,7 @@ QListView
 	
 	QListView::item:selected 
 	{
-		background: rgba(180, 180, 180, 255);
+		background: rgba(75, 75, 75, 255);
 		color: rgba(230, 230, 230, 255);
 		border-top: 1px solid 		rgba(120, 120, 120, 255);
 		border-bottom: 1px solid 	rgba(40, 40, 40, 255);
@@ -519,13 +519,11 @@ QListView
 	
 	QListView::item:hover
 	{
-		background: rgba(10, 10, 10, 255);
 		color: rgba(255, 255, 255, 255);
 		border: 1px solid rgba(120, 120, 120, 255);
 	}
 	QListView::item:alternate:hover
 	{
-		background: rgba(30, 30, 30, 255);
 		color: rgba(255, 255, 255, 255);
 		border: 1px solid rgba(120, 120, 120, 255);
 	}
