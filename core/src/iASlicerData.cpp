@@ -288,7 +288,6 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		textInfo->AddToScene(ren);
 		textInfo->SetText(" ");
 		textInfo->SetPosition(iAWrapperText::POS_LOWER_LEFT);
-		textInfo->GetTextMapper()->GetTextProperty()->SetFontSize(12);
 		textInfo->Show(1);
 
 		roiSource->SetOrigin(0, 0, 0);
@@ -586,6 +585,7 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 	{
 		axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
 		axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
+		textInfo->GetTextMapper()->GetTextProperty()->SetFontSize(settings.ToolTipFontSize);
 	}
 }
 
@@ -1203,7 +1203,7 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	}
 
 	// get index, coords and value to display
-	QString strDetails(QString("index     [ %1, %2, %3 ]\n")
+	QString strDetails(QString("index        [ %1, %2, %3 ]\n")
 		.arg(static_cast<int>(xCoord)).arg(static_cast<int>(yCoord)).arg(static_cast<int>(zCoord)));
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
@@ -1212,10 +1212,10 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		for (int m=0; m<mdi_parent->GetModalities()->size(); ++m)
 		{
 			auto mod = mdi_parent->GetModality(m);
-			strDetails += getPaddedOrTruncatedName(mod->GetName(), 10) + ":";
+			strDetails += getPaddedOrTruncatedName(mod->GetName(), 12)+" ";
 			for (int c = 0; c<mod->ComponentCount(); ++c)
 			{
-				strDetails += " [";
+				strDetails += "[ ";
 				auto img = mod->GetComponent(c);
 				for (int i = 0; i < img->GetNumberOfScalarComponents(); i++)
 				{
@@ -1224,7 +1224,7 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 						strDetails += " ";
 					strDetails += QString::number(value);
 				}
-				strDetails += "]";
+				strDetails += " ] ";
 			}
 			strDetails += "\n";
 		}

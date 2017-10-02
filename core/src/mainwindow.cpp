@@ -1015,6 +1015,7 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 	slicerSettingsElement.setAttribute("snakeSlices", tr("%1").arg(defaultSlicerSettings.SnakeSlices));
 	slicerSettingsElement.setAttribute("linkMDIs", tr("%1").arg(defaultSlicerSettings.LinkMDIs));
 	slicerSettingsElement.setAttribute("cursorMode", tr( "%1" ).arg( defaultSlicerSettings.SingleSlicer.CursorMode));
+	slicerSettingsElement.setAttribute("toolTipFontSize", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ToolTipFontSize));
 
 	doc.documentElement().appendChild(slicerSettingsElement);
 }
@@ -1035,6 +1036,7 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 	defaultSlicerSettings.SnakeSlices = attributes.namedItem("snakeSlices").nodeValue().toDouble();
 	defaultSlicerSettings.LinkMDIs = attributes.namedItem("linkMDIs").nodeValue() == "1";
 	defaultSlicerSettings.SingleSlicer.CursorMode = attributes.namedItem("cursorMode").nodeValue().toStdString().c_str();
+	defaultSlicerSettings.SingleSlicer.ToolTipFontSize = attributes.namedItem("toolTipFontSize").nodeValue().toInt();
 
 	activeMdiChild()->editSlicerSettings(defaultSlicerSettings);
 }
@@ -1344,6 +1346,7 @@ void MainWindow::slicerSettings()
 		<< tr("$Link MDIs")
 		<< tr("+Mouse Coursor Types")
 		<< tr("$Show Axes Caption")
+		<< tr("#Tooltip Font Size (pt)")
 		);
 	
 	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
@@ -1361,7 +1364,8 @@ void MainWindow::slicerSettings()
 		<< tr("%1").arg(slicerSettings.SnakeSlices)
 		<< (child->getLinkedMDIs() ? tr("true") : tr("false"))
 		<< mouseCursorTypes
-		<< (slicerSettings.SingleSlicer.ShowAxesCaption ? tr("true") : tr("false"));
+		<< (slicerSettings.SingleSlicer.ShowAxesCaption ? tr("true") : tr("false"))
+		<< QString("%1").arg(slicerSettings.SingleSlicer.ToolTipFontSize);
 
 	dlg_commoninput dlg(this, "Slicer settings", inList, inPara, NULL);
 
@@ -1371,13 +1375,14 @@ void MainWindow::slicerSettings()
 		defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValue(1) != 0;
 		defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValue(2) != 0;
 		defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValue(3) != 0;
-		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getDblValue(4);
+		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getIntValue(4);
 		defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getDblValue(5);
 		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getDblValue(6);
-		defaultSlicerSettings.SnakeSlices = dlg.getDblValue(7);
+		defaultSlicerSettings.SnakeSlices = dlg.getIntValue(7);
 		defaultSlicerSettings.LinkMDIs = dlg.getCheckValue(8) != 0;
 		defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(9);
 		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(10) != 0;
+		defaultSlicerSettings.SingleSlicer.ToolTipFontSize = dlg.getIntValue(11);
 
 		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(defaultSlicerSettings))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);
@@ -1959,6 +1964,8 @@ void MainWindow::readSettings()
 	defaultSlicerSettings.SingleSlicer.LinearInterpolation = settings.value("Slicer/ssImageActorUseInterpolation", true).toBool();
 	defaultSlicerSettings.SingleSlicer.CursorMode = settings.value( "Slicer/ssCursorMode", "Crosshair default").toString();
 	defaultSlicerSettings.SnakeSlices = settings.value("Slicer/ssSnakeSlices", 100).toInt();
+	defaultSlicerSettings.SingleSlicer.ToolTipFontSize = settings.value("Slicer/toolTipFontSize", 12).toInt();
+
 	lpCamera = settings.value("Parameters/lpCamera").toBool();
 	lpSliceViews = settings.value("Parameters/lpSliceViews").toBool();
 	lpTransferFunction = settings.value("Parameters/lpTransferFunction").toBool();
@@ -2056,6 +2063,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Slicer/ssImageActorUseInterpolation", defaultSlicerSettings.SingleSlicer.LinearInterpolation);
 	settings.setValue("Slicer/ssSnakeSlices", defaultSlicerSettings.SnakeSlices);
 	settings.setValue("Slicer/ssCursorMode", defaultSlicerSettings.SingleSlicer.CursorMode);
+	settings.setValue("Slicer/toolTipFontSize", defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
 
 	settings.setValue("Parameters/lpCamera", lpCamera);
 	settings.setValue("Parameters/lpSliceViews", lpSliceViews);
