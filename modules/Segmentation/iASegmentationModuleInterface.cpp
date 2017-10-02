@@ -589,7 +589,7 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 		}
 		centroids.push_back(centroid);
 	}
-	bool ignoreBg = dlg.getCheckValue(5);
+	fcmIgnoreBg = dlg.getCheckValue(5);
 	double bgPixel = dlg.getDblValue(6);
 	fcmNumOfThreads = static_cast<unsigned int>(dlg.getDblValue(7));
 
@@ -619,7 +619,7 @@ void iASegmentationModuleInterface::FuzzyCMeansFinished()
 	for (int p = 0; p < probs.size(); ++p)
 	{
 		m_mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
-			new iAModality(QString("FCM Prob %1").arg(p), "", -1, probs[p], 0)));
+			new iAModality(QString("FCM Prob. %1").arg(p), "", -1, probs[p], 0)));
 	}
 }
 
