@@ -81,7 +81,7 @@ void iAConnectedComponentModuleInterface::scalar_connected_component()
 	dlg_commoninput dlg( m_mainWnd, "Scalar Connected Component Filter", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	scalccDistThresh = dlg.getDoubleSpinBoxValue(0);
+	scalccDistThresh = dlg.getDblValue(0);
 	//prepare
 	QString filterName = "Scalar Connected Component";
 	PrepareResultChild( filterName );
@@ -115,7 +115,7 @@ void iAConnectedComponentModuleInterface::simple_relabel_connected_component()
 	dlg_commoninput dlg( m_mainWnd, "Simple Relabel Connected Component Filter", inList, inPara, fDescr );
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
-	srcifs = dlg.getSpinBoxValue(0);
+	srcifs = dlg.getIntValue(0);
 	srcifw = dlg.getCheckValue(1);
 
 	//prepare

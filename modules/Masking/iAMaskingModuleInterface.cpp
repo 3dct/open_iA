@@ -51,9 +51,9 @@ void iAMaskingModuleInterface::general_threshold()
 	dlg_commoninput dlg( m_mainWnd, "General Threshold", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	gtlower = dlg.getValues()[0];
-	gtupper = dlg.getValues()[1];
-	gtoutside = dlg.getValues()[2];
+	gtlower = dlg.getDblValue(0);
+	gtupper = dlg.getDblValue(1);
+	gtoutside = dlg.getDblValue(2);
 
 	settings.setValue( "Filters/Masking/GeneralThresholding/gtlower", gtlower );
 	settings.setValue( "Filters/Masking/GeneralThresholding/gtupper", gtupper );

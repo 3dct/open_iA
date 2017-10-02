@@ -215,7 +215,7 @@ void dlg_volumePlayer::editMaxSpeed() {
 	dlg_commoninput *dlg = new dlg_commoninput (m_parent, "Set speed", inList, inPara, NULL);
 	
 	if (dlg->exec() == QDialog::Accepted){
-		float speed = (float)dlg->getValues()[0];
+		float speed = (float)dlg->getDblValue(0);
 		m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
 		this->speedValue->setText(QString::number(speed, 'f', 2));
 	}

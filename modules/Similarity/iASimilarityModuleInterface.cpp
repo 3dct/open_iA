@@ -77,7 +77,7 @@ void iASimilarityModuleInterface::calc_similarity_metrics()
 	smMeanSquares = dlg->getCheckValue(0);
 	smNormalizedCorrelation = dlg->getCheckValue(1);
 	smMutualInformation = dlg->getCheckValue(2);
-	smMIHistogramBins = dlg->getSpinBoxValue(3);
+	smMIHistogramBins = dlg->getIntValue(3);
 
 	settings.setValue("Filters/Similarity/smMeanSquares", smMeanSquares);
 	settings.setValue("Filters/Similarity/msNormalizedCorrelation", smNormalizedCorrelation);

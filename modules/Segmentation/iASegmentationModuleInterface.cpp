@@ -259,10 +259,10 @@ void iASegmentationModuleInterface::binary_threshold()
 	dlg_commoninput dlg(m_mainWnd, "Binary Threshold", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	btlower = dlg.getValues()[0];
-	btupper = dlg.getValues()[1];
-	btoutside = dlg.getValues()[2];
-	btinside = dlg.getValues()[3];
+	btlower = dlg.getDblValue(0);
+	btupper = dlg.getDblValue(1);
+	btoutside = dlg.getDblValue(2);
+	btinside = dlg.getDblValue(3);
 
 	settings.setValue("Filters/Segmentation/BinaryThresholding/btlower", btlower);
 	settings.setValue("Filters/Segmentation/BinaryThresholding/btupper", btupper);
@@ -298,7 +298,7 @@ void iASegmentationModuleInterface::otsu_Threshold_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	otBins = dlg.getValues()[0]; otoutside = dlg.getValues()[1]; otinside = dlg.getValues()[2]; otremovepeaks = dlg.getCheckValue(3);
+	otBins = dlg.getDblValue(0); otoutside = dlg.getDblValue(1); otinside = dlg.getDblValue(2); otremovepeaks = dlg.getCheckValue(3);
 
 	settings.setValue( "Filters/Segmentation/Otsu/otBins", otBins );
 	settings.setValue( "Filters/Segmentation/Otsu/otoutside", otoutside );
@@ -328,7 +328,7 @@ void iASegmentationModuleInterface::maximum_Distance_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	mdfbins = dlg.getValues()[0]; mdfli = dlg.getValues()[1]; mdfuli = dlg.getCheckValue(2);
+	mdfbins = dlg.getDblValue(0); mdfli = dlg.getDblValue(1); mdfuli = dlg.getCheckValue(2);
 
 	//prepare
 	QString filterName = "Maximum distance";
@@ -351,7 +351,7 @@ void iASegmentationModuleInterface::watershed_seg()
 	dlg_commoninput dlg( m_mainWnd, "Watershed segmentation", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	wsLevel = dlg.getValues()[0]; wsThreshold = dlg.getValues()[1];
+	wsLevel = dlg.getDblValue(0); wsThreshold = dlg.getDblValue(1);
 
 	//prepare
 	QString filterName = "Watershed segmentation";
@@ -390,7 +390,7 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 		
-	mwsLevel = dlg.getValues()[0];
+	mwsLevel = dlg.getDblValue(0);
 	mwsMarkWSLines = dlg.getCheckValue(1);
 	mwsFullyConnected = dlg.getCheckValue(2);
 	
@@ -421,8 +421,8 @@ void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	aotBins = dlg.getValues()[0]; aotOutside = dlg.getValues()[1]; aotInside = dlg.getValues()[2]; aotRadius = dlg.getValues()[3];
-	aotSamples = dlg.getValues()[4]; aotLevels = dlg.getValues()[5]; aotControlpoints = dlg.getValues()[6];
+	aotBins = dlg.getDblValue(0); aotOutside = dlg.getDblValue(1); aotInside = dlg.getDblValue(2); aotRadius = dlg.getDblValue(3);
+	aotSamples = dlg.getDblValue(4); aotLevels = dlg.getDblValue(5); aotControlpoints = dlg.getDblValue(6);
 	//prepare
 	QString filterName = "Adaptive otsu threshold";
 	PrepareResultChild( filterName );
@@ -446,7 +446,7 @@ void iASegmentationModuleInterface::rats_Threshold_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	rtPow = dlg.getValues()[0]; rtOutside = dlg.getValues()[1]; rtInside = dlg.getValues()[2];
+	rtPow = dlg.getDblValue(0); rtOutside = dlg.getDblValue(1); rtInside = dlg.getDblValue(2);
 	//prepare
 	QString filterName = "Rats threshold filter";
 	PrepareResultChild( filterName );
@@ -476,7 +476,7 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	omtBins = dlg.getValues()[0]; omtThreshs = dlg.getValues()[1]; omtVe = dlg.getCheckValue(2);
+	omtBins = dlg.getDblValue(0); omtThreshs = dlg.getDblValue(1); omtVe = dlg.getCheckValue(2);
 	//prepare
 	QString filterName = "Otsu multiple threshold";
 	PrepareResultChild( filterName );
@@ -525,10 +525,10 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	fcmMaxIter = dlg.getValues()[0];
-	fcmMaxError = static_cast<unsigned int>(dlg.getValues()[1]);
-	fcmM = dlg.getValues()[2];
-	fcmNumOfClasses = static_cast<unsigned int>(dlg.getValues()[3]);
+	fcmMaxIter = dlg.getDblValue(0);
+	fcmMaxError = static_cast<unsigned int>(dlg.getDblValue(1));
+	fcmM = dlg.getDblValue(2);
+	fcmNumOfClasses = static_cast<unsigned int>(dlg.getDblValue(3));
 	fcmCentroidString = dlg.getText()[4];
 	auto centroidStringList = fcmCentroidString.split(" ");
 	if (centroidStringList.size() != fcmNumOfClasses)
@@ -549,8 +549,8 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 		centroids.push_back(centroid);
 	}
 	bool ignoreBg = dlg.getCheckValue(5);
-	double bgPixel = dlg.getValues()[6];
-	fcmNumOfThreads = static_cast<unsigned int>(dlg.getValues()[7]);
+	double bgPixel = dlg.getDblValue(6);
+	fcmNumOfThreads = static_cast<unsigned int>(dlg.getDblValue(7));
 
 	settings.setValue("Filters/Segmentation/FuzzyCMeans/maxIter",       fcmMaxIter       );
 	settings.setValue("Filters/Segmentation/FuzzyCMeans/maxError",		fcmMaxError      );

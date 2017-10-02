@@ -48,9 +48,9 @@ void iAGPU_GradientAnisotropicDiffusionModuleInterface::gpu_grad_aniso_diffusion
 	dlg_commoninput dlg( m_mainWnd, "GPU Gradient Anisotropic Diffusion", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	gadIterations = dlg.getValues()[0];
-	gadTimeStep = dlg.getValues()[1];
-	gadConductance = dlg.getValues()[2];
+	gadIterations = dlg.getDblValue(0);
+	gadTimeStep = dlg.getDblValue(1);
+	gadConductance = dlg.getDblValue(2);
 	//prepare
 	QString filterName = tr( "GPU Gradient anisotropic diffusion filter" );
 	PrepareResultChild( filterName );

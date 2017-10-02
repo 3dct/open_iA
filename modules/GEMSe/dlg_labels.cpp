@@ -563,7 +563,7 @@ void dlg_labels::Sample()
 	{
 		return;
 	}
-	int numOfSeeds = input.getSpinBoxValue(0);
+	int numOfSeeds = input.getIntValue(0);
 	bool reduceNum = input.getCheckValue(1);
 
 	std::vector<int> numOfSeedsPerLabel(labelCount, numOfSeeds);

@@ -77,15 +77,15 @@ void iAGeometricTransformationsModuleInterface::resampler()
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	rOriginX = dlg.getValues()[0];
-	rOriginY = dlg.getValues()[1];
-	rOriginZ = dlg.getValues()[2];
-	rSpacingX = dlg.getValues()[3];
-	rSpacingY = dlg.getValues()[4];
-	rSpacingZ = dlg.getValues()[5];
-	rSizeX = dlg.getValues()[6];
-	rSizeY = dlg.getValues()[7];
-	rSizeZ = dlg.getValues()[8];
+	rOriginX = dlg.getDblValue(0);
+	rOriginY = dlg.getDblValue(1);
+	rOriginZ = dlg.getDblValue(2);
+	rSpacingX = dlg.getDblValue(3);
+	rSpacingY = dlg.getDblValue(4);
+	rSpacingZ = dlg.getDblValue(5);
+	rSizeX = dlg.getDblValue(6);
+	rSizeY = dlg.getDblValue(7);
+	rSizeZ = dlg.getDblValue(8);
 	rInterpolator = dlg.getComboBoxValue(9);
 
 	//prepare
@@ -139,12 +139,12 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	origChild->deactivate();
 	if (result != QDialog::Accepted)
 		return;
-	eiIndexX = dlg.getSpinBoxValue(0);
-	eiIndexY = dlg.getSpinBoxValue(1);
-	eiIndexZ = dlg.getSpinBoxValue(2);
-	eiSizeX  = dlg.getSpinBoxValue(3);
-	eiSizeY  = dlg.getSpinBoxValue(4);
-	eiSizeZ  = dlg.getSpinBoxValue(5);
+	eiIndexX = dlg.getIntValue(0);
+	eiIndexY = dlg.getIntValue(1);
+	eiIndexZ = dlg.getIntValue(2);
+	eiSizeX  = dlg.getIntValue(3);
+	eiSizeY  = dlg.getIntValue(4);
+	eiSizeZ  = dlg.getIntValue(5);
 	//prepare
 	QString filterName = "Extracted";
 	// at the moment, PrepareResultChild always takes the active child, but that might have changed

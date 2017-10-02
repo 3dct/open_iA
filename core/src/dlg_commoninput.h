@@ -42,14 +42,13 @@ class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
 public:
 	//class constructor
 	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ), bool modal = true);
-	
-	QList<double> getValues();	
+
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;
 	QStringList getText();
-	int getSpinBoxValue(int index) const;
-	double getDoubleSpinBoxValue(int index) const;
+	int getIntValue(int index) const;
+	double getDblValue(int index) const;
 
 	double getParameterValue(QString name);	
 	void updateValues(QList<QVariant>);

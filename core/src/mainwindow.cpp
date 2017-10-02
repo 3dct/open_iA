@@ -1196,8 +1196,8 @@ void MainWindow::prefs()
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		defaultPreferences.HistogramBins = (int)dlg.getValues()[0];
-		defaultPreferences.StatisticalExtent = (int)dlg.getValues()[1];
+		defaultPreferences.HistogramBins = (int)dlg.getDblValue(0);
+		defaultPreferences.StatisticalExtent = (int)dlg.getDblValue(1);
 		defaultPreferences.Compression = dlg.getCheckValue(2) != 0;
 		defaultPreferences.ResultInNewWindow = dlg.getCheckValue(3) != 0;
 		bool logToFile = dlg.getCheckValue(4) != 0;
@@ -1207,8 +1207,8 @@ void MainWindow::prefs()
 		applyQSS();
 
 		defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
-			static_cast<int>(dlg.getValues()[7]));
-		defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getValues()[8]));
+			static_cast<int>(dlg.getDblValue(7)));
+		defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(8)));
 
 		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
@@ -1286,11 +1286,11 @@ void MainWindow::renderSettings()
 		defaultVolumeSettings.Shading = dlg.getCheckValue(4) != 0;
 		defaultRenderSettings.ParallelProjection = dlg.getCheckValue(5) != 0;
 
-		defaultVolumeSettings.SampleDistance = dlg.getValues()[6];
-		defaultVolumeSettings.AmbientLighting = dlg.getValues()[7];
-		defaultVolumeSettings.DiffuseLighting = dlg.getValues()[8];
-		defaultVolumeSettings.SpecularLighting = dlg.getValues()[9];
-		defaultVolumeSettings.SpecularPower = dlg.getValues()[10];
+		defaultVolumeSettings.SampleDistance = dlg.getDblValue(6);
+		defaultVolumeSettings.AmbientLighting = dlg.getDblValue(7);
+		defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(8);
+		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(9);
+		defaultVolumeSettings.SpecularPower = dlg.getDblValue(10);
 		defaultRenderSettings.BackgroundTop = dlg.getText()[11];
 		defaultRenderSettings.BackgroundBottom = dlg.getText()[12];
 
@@ -1371,10 +1371,10 @@ void MainWindow::slicerSettings()
 		defaultSlicerSettings.SingleSlicer.ShowPosition = dlg.getCheckValue(1) != 0;
 		defaultSlicerSettings.SingleSlicer.ShowIsoLines = dlg.getCheckValue(2) != 0;
 		defaultSlicerSettings.SingleSlicer.LinearInterpolation = dlg.getCheckValue(3) != 0;
-		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getValues()[4];
-		defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getValues()[5];
-		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getValues()[6];
-		defaultSlicerSettings.SnakeSlices = dlg.getValues()[7];
+		defaultSlicerSettings.SingleSlicer.NumberOfIsoLines = dlg.getDblValue(4);
+		defaultSlicerSettings.SingleSlicer.MinIsoValue = dlg.getDblValue(5);
+		defaultSlicerSettings.SingleSlicer.MaxIsoValue = dlg.getDblValue(6);
+		defaultSlicerSettings.SnakeSlices = dlg.getDblValue(7);
 		defaultSlicerSettings.LinkMDIs = dlg.getCheckValue(8) != 0;
 		defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(9);
 		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(10) != 0;
@@ -2317,16 +2317,16 @@ void MainWindow::OpenWithDataTypeConversion()
 	{
 		return;
 	}
-	owdtcs = dlg.getValues()[1];
-	owdtcx = dlg.getValues()[2]; owdtcy = dlg.getValues()[3]; owdtcz = dlg.getValues()[4];
-	owdtcsx = dlg.getValues()[5]; owdtcsy = dlg.getValues()[6];	owdtcsz = dlg.getValues()[7];
+	owdtcs = dlg.getDblValue(1);
+	owdtcx = dlg.getDblValue(2); owdtcy = dlg.getDblValue(3); owdtcz = dlg.getDblValue(4);
+	owdtcsx = dlg.getDblValue(5); owdtcsy = dlg.getDblValue(6);	owdtcsz = dlg.getDblValue(7);
 
 	QString owdtcintype = dlg.getComboBoxValue(0);
 
 	double para[8];
-	para[0] = dlg.getValues()[1];
-	para[1] = dlg.getValues()[2]; para[2] = dlg.getValues()[3]; para[3] = dlg.getValues()[4];
-	para[4] = dlg.getValues()[5]; para[5] = dlg.getValues()[6];	para[6] = dlg.getValues()[7];
+	para[0] = dlg.getDblValue(1);
+	para[1] = dlg.getDblValue(2); para[2] = dlg.getDblValue(3); para[3] = dlg.getDblValue(4);
+	para[4] = dlg.getDblValue(5); para[5] = dlg.getDblValue(6);	para[6] = dlg.getDblValue(7);
 	para[7] = defaultPreferences.HistogramBins;
 
 	QSize qwinsize = this->size();

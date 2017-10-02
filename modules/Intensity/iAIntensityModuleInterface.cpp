@@ -73,8 +73,8 @@ void iAIntensityModuleInterface::difference_Image_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	difDifferenceThreshold = dlg.getValues()[0];
-	difToleranceRadius = dlg.getValues()[1];
+	difDifferenceThreshold = dlg.getDblValue(0);
+	difToleranceRadius = dlg.getDblValue(1);
 
 	MdiChild *child2 = GetSecondNonActiveChild();
 	if (!child2)
@@ -160,10 +160,10 @@ void iAIntensityModuleInterface::intensity_windowing()
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
-	windowMinimum = dlg.getValues()[0];
-	windowMaximum = dlg.getValues()[1];
-	outputMinimum = dlg.getValues()[2];
-	outputMaximum = dlg.getValues()[3];
+	windowMinimum = dlg.getDblValue(0);
+	windowMaximum = dlg.getDblValue(1);
+	outputMinimum = dlg.getDblValue(2);
+	outputMaximum = dlg.getDblValue(3);
 
 	//prepare
 	QString filterName = "Intensity Windowing";
@@ -242,7 +242,7 @@ void iAIntensityModuleInterface::histogram_match()
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
-	hmHistogramLevels = dlg.getValues()[0]; hmMatchPoints = dlg.getValues()[1]; hmThresholdAtMeanIntensity = dlg.getCheckValue(2);
+	hmHistogramLevels = dlg.getDblValue(0); hmMatchPoints = dlg.getDblValue(1); hmThresholdAtMeanIntensity = dlg.getCheckValue(2);
 
 	settings.setValue( "Filters/Intensity/hmHistogramLevels", hmHistogramLevels );
 	settings.setValue( "Filters/Intensity/hmMatchPoints", hmMatchPoints );
@@ -279,8 +279,8 @@ void iAIntensityModuleInterface::rescale()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	outputMin = dlg.getValues()[0];
-	outputMax = dlg.getValues()[1];
+	outputMin = dlg.getDblValue(0);
+	outputMax = dlg.getDblValue(1);
 
 	//prepare
 	QString filterName = "Rescaled";

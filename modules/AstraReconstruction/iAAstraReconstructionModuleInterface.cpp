@@ -326,14 +326,14 @@ void iAAstraReconstructionModuleInterface::FreeBeamIntensity()
 	if (result != QDialog::Accepted)
 		return;
 	
-	eiIndexX = dlg.getSpinBoxValue(0);
-	eiIndexY = dlg.getSpinBoxValue(1);
+	eiIndexX = dlg.getIntValue(0);
+	eiIndexY = dlg.getIntValue(1);
 	eiIndexZ = 0.0;
-	eiSizeX = dlg.getSpinBoxValue(2);
-	eiSizeY = dlg.getSpinBoxValue(3);
+	eiSizeX = dlg.getIntValue(2);
+	eiSizeY = dlg.getIntValue(3);
 	eiSizeZ = m_childData.imgData->GetExtent()[5] + 1;
 	manualMeanFreeBeamIntensity = dlg.getCheckValue(4);
-	manualMeanFreeBeamIntensityValue = dlg.getValues()[5];
+	manualMeanFreeBeamIntensityValue = dlg.getDblValue(5);
 
 	settings.setValue("Tools/AstraReconstruction/manualMeanFreeBeamIntensity", manualMeanFreeBeamIntensity);
 	settings.setValue("Tools/AstraReconstruction/manualMeanFreeBeamIntensityValue", manualMeanFreeBeamIntensityValue);

@@ -100,14 +100,12 @@ void iATransformationsModuleInterface::rotate()
 
 	//get rot axes
 	int k = 0;
-	QList<qreal> values = dlg.getValues();
-
-	qreal rotAngle = values[k++];
+	qreal rotAngle = dlg.getDblValue(k++);
 	int rotAxesIdx = dlg.getComboBoxIndex(k++);
 	int rotCenterIdx = dlg.getComboBoxIndex(k++);
-	qreal cx = values[k++];
-	qreal cy = values[k++];
-	qreal cz = values[k++];
+	qreal cx = dlg.getDblValue(k++);
+	qreal cy = dlg.getDblValue(k++);
+	qreal cz = dlg.getDblValue(k++);
 
 	QString filterName = "Rotated";
 	vtkImageData * inpImage = prepare(filterName);
@@ -141,11 +139,9 @@ void iATransformationsModuleInterface::translate()
 	//here set to be minus, because itk translate the origin
 	//of the coordinate system, hence opposite to the image translation
 	int k = 0;
-	QList<qreal> values = dlg.getValues();
-	qreal tx = -values[k++];
-	qreal ty = -values[k++];
-	qreal tz = -values[k++];
-
+	qreal tx = -dlg.getDblValue(k++);
+	qreal ty = -dlg.getDblValue(k++);
+	qreal tz = -dlg.getDblValue(k++);
 
 	QString filterName = "Translated";
 	vtkImageData * inpImage = prepare(filterName);

@@ -879,8 +879,8 @@ void iASlicerData::saveImageStack()
 		return;
 	}
 	saveNative = dlg.getCheckValue(0);
-	sliceFirst = dlg.getValues()[1];
-	sliceLast  = dlg.getValues()[2];
+	sliceFirst = dlg.getDblValue(1);
+	sliceLast  = dlg.getDblValue(2);
 	if (inList.size() > 3)
 	{
 		output16Bit = dlg.getCheckValue(3);

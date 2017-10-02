@@ -68,8 +68,8 @@ void iAGradientsModuleInterface::derivative_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	dfOrder = dlg.getValues()[0];
-	dfDirection = dlg.getValues()[1];
+	dfOrder = dlg.getDblValue(0);
+	dfDirection = dlg.getDblValue(1);
 
 	//prepare
 	QString filterName = "Derivative image";
@@ -101,9 +101,9 @@ void iAGradientsModuleInterface::higherOrderDerivative()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	HOAGDSettings.order = dlg.getValues()[0];
-	HOAGDSettings.direction = dlg.getValues()[1];
-	HOAGDSettings.orderOfAcc = dlg.getValues()[2];
+	HOAGDSettings.order = dlg.getDblValue(0);
+	HOAGDSettings.direction = dlg.getDblValue(1);
+	HOAGDSettings.orderOfAcc = dlg.getDblValue(2);
 
 	//prepare
 	QString filterName = "Higher Order Accurate Gradient Derivative";

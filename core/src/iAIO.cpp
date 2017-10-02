@@ -1235,8 +1235,8 @@ bool iAIO::setupVolumeStackMHDReader(QString f)
 
 		fileNamesBase = dlg.getText()[0];
 		extension = dlg.getText()[1];
-		digitsInIndex = dlg.getValues()[2];
-		indexRange[0] = dlg.getValues()[3]; indexRange[1]= dlg.getValues()[4];
+		digitsInIndex = dlg.getDblValue(2);
+		indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
 	
 		FillFileNameArray(indexRange, digitsInIndex);
 	}
@@ -1412,19 +1412,19 @@ bool iAIO::setupVolumeStackReader(QString f)
 	
 	if (dlg->exec() == QDialog::Accepted){
 
-		rawSizeX = dlg->getValues()[5]; rawSizeY = dlg->getValues()[6]; rawSizeZ = dlg->getValues()[7];      
+		rawSizeX = dlg->getDblValue(5); rawSizeY = dlg->getDblValue(6); rawSizeZ = dlg->getDblValue(7);
 		extent[0] = 0; extent[2] = 0; extent[4] = 0;
-		extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;      
+		extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;
 		extent[1]--; extent[3]--; extent[5]--;
 
 		fileNamesBase = dlg->getText()[0];
 		extension = dlg->getText()[1];
-		digitsInIndex = dlg->getValues()[2];
-		indexRange[0] = dlg->getValues()[3]; indexRange[1]= dlg->getValues()[4];
-		spacing[0] = dlg->getValues()[8]; spacing[1]= dlg->getValues()[9]; spacing[2] = dlg->getValues()[10];
-		origin[0] = dlg->getValues()[11]; origin[1]= dlg->getValues()[12]; origin[2] = dlg->getValues()[13];
+		digitsInIndex = dlg->getDblValue(2);
+		indexRange[0] = dlg->getDblValue(3); indexRange[1]= dlg->getDblValue(4);
+		spacing[0] = dlg->getDblValue(8); spacing[1]= dlg->getDblValue(9); spacing[2] = dlg->getDblValue(10);
+		origin[0] = dlg->getDblValue(11); origin[1]= dlg->getDblValue(12); origin[2] = dlg->getDblValue(13);
 
-		rawHeaderSize = dlg->getValues()[15];
+		rawHeaderSize = dlg->getDblValue(15);
 		headersize = rawHeaderSize;
 		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(14));
 		rawScalarType = scalarType;
@@ -1470,18 +1470,18 @@ bool iAIO::setupRAWReader( QString f )
 
 	if (dlg->exec() == QDialog::Accepted)
 	{
-		rawSizeX = dlg->getValues()[0]; rawSizeY = dlg->getValues()[1]; rawSizeZ = dlg->getValues()[2];      
+		rawSizeX = dlg->getDblValue(0); rawSizeY = dlg->getDblValue(1); rawSizeZ = dlg->getDblValue(2);
 		extent[0] = 0; extent[2] = 0; extent[4] = 0;
-		extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;      
+		extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;
 		extent[1]--; extent[3]--; extent[5]--;
 
-		rawSpaceX = dlg->getValues()[3]; rawSpaceY = dlg->getValues()[4]; rawSpaceZ = dlg->getValues()[5];
+		rawSpaceX = dlg->getDblValue(3); rawSpaceY = dlg->getDblValue(4); rawSpaceZ = dlg->getDblValue(5);
 		spacing[0] = rawSpaceX; spacing[1]= rawSpaceY; spacing[2] = rawSpaceZ;
 
-		rawOriginX = dlg->getValues()[6]; rawOriginY = dlg->getValues()[7]; rawOriginZ = dlg->getValues()[8];
+		rawOriginX = dlg->getDblValue(6); rawOriginY = dlg->getDblValue(7); rawOriginZ = dlg->getDblValue(8);
 		origin[0] = rawOriginX; origin[1]= rawOriginY; origin[2] = rawOriginZ;
 
-		rawHeaderSize = dlg->getValues()[9];
+		rawHeaderSize = dlg->getDblValue(9);
 		headersize = rawHeaderSize;
 		fileName = f;
 		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(10));
@@ -1742,10 +1742,10 @@ bool iAIO::setupStackReader( QString f )
 	}
 	fileNamesBase = dlg.getText()[0];
 	extension = dlg.getText()[1];
-	digitsInIndex = dlg.getValues()[2];
-	indexRange[0] = dlg.getValues()[3]; indexRange[1]= dlg.getValues()[4];
-	spacing[0] = dlg.getValues()[5]; spacing[1]= dlg.getValues()[6]; spacing[2] = dlg.getValues()[7];
-	origin[0] = dlg.getValues()[8]; origin[1]= dlg.getValues()[9]; origin[2] = dlg.getValues()[10];
+	digitsInIndex = dlg.getDblValue(2);
+	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
+	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);
+	origin[0] = dlg.getDblValue(8); origin[1]= dlg.getDblValue(9); origin[2] = dlg.getDblValue(10);
 	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValue(11));
 	FillFileNameArray(indexRange, digitsInIndex);
 	return true;

@@ -61,7 +61,7 @@ void iASmoothingModuleInterface::grad_aniso_diffusion()
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	gadIterations = dlg.getValues()[0]; gadTimeStep = dlg.getValues()[1]; gadConductance = dlg.getValues()[2];
+	gadIterations = dlg.getDblValue(0); gadTimeStep = dlg.getDblValue(1); gadConductance = dlg.getDblValue(2);
 	//prepare
 	QString filterName = "Gradient anisotropic diffusion";
 	PrepareResultChild( filterName );
@@ -83,8 +83,8 @@ void iASmoothingModuleInterface::discrete_Gaussian_Filter()
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	dgfVariance = dlg.getValues()[0];
-	dgfMaximumError = dlg.getValues()[1];
+	dgfVariance = dlg.getDblValue(0);
+	dgfMaximumError = dlg.getDblValue(1);
 	dgfOutput = dlg.getCheckValue(2);
 
 	//prepare
@@ -109,7 +109,7 @@ void iASmoothingModuleInterface::curv_aniso_diffusion()
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	cadIterations = dlg.getValues()[0]; cadTimeStep = dlg.getValues()[1]; cadConductance = dlg.getValues()[2];
+	cadIterations = dlg.getDblValue(0); cadTimeStep = dlg.getDblValue(1); cadConductance = dlg.getDblValue(2);
 	//prepare
 	QString filterName = "Curvature anisotropic diffusion";
 	PrepareResultChild( filterName );
@@ -131,7 +131,7 @@ void iASmoothingModuleInterface::bilat_filter()
 	dlg_commoninput dlg( m_mainWnd, "Bilateral Image Filter", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	bilRangeSigma = dlg.getValues()[0]; bilDomainSigma = dlg.getValues()[1];
+	bilRangeSigma = dlg.getDblValue(0); bilDomainSigma = dlg.getDblValue(1);
 	//prepare
 	QString filterName = "Bilateral filtered";
 	PrepareResultChild( filterName );

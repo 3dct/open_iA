@@ -54,8 +54,8 @@ void iAAdaptHistoEqualModuleInterface::adaptive_Histogram_Equalization()
 	dlg_commoninput dlg( m_mainWnd, "Parameters for the Adaptive Histogram Equalization", inList, inPara, fDescr );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	aheAlpha = dlg.getValues()[0];
-	aheBeta = dlg.getValues()[1];
+	aheAlpha = dlg.getDblValue(0);
+	aheBeta = dlg.getDblValue(1);
 	//prepare
 	QString filterName = "Adaptive Histogram Equalization";
 	PrepareResultChild( filterName );

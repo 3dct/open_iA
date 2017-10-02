@@ -73,13 +73,13 @@ void dlg_openfile_sizecheck::CheckFileSize()
 	size_t proposedSize;
 
 	if (!isVolumeStack) {
-		extent[0] = getValues()[0]; extent[1]= getValues()[1]; extent[2] = getValues()[2];     
+		extent[0] = getDblValue(0); extent[1]= getDblValue(1); extent[2] = getDblValue(2);
 		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(10));
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
 	else 
 	{
-		extent[0] = getValues()[5]; extent[1]= getValues()[6]; extent[2] = getValues()[7];
+		extent[0] = getDblValue(5); extent[1]= getDblValue(6); extent[2] = getDblValue(7);
 		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(14));
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}

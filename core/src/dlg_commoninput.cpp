@@ -307,36 +307,22 @@ void dlg_commoninput::connectMdiChild(MdiChild *child)
 	}
 }
 
-QList<double> dlg_commoninput::getValues()
-{
-	outValueList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		QString test = widgetList[i];
-		// find the child widget with the name in the leList
-		QLineEdit *t = container->findChild<QLineEdit*>(widgetList[i]);
-		
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert(i, t->text().toDouble());
-		}
-		else
-			outValueList.insert(i, 0.0);
-	}
-	return (outValueList);
-}
-
-int dlg_commoninput::getSpinBoxValue(int index) const
+int dlg_commoninput::getIntValue(int index) const
 {
 	QSpinBox *t = container->findChild<QSpinBox*>(widgetList[index]);
 	return t? t->value(): 0;
 }
 
-double dlg_commoninput::getDoubleSpinBoxValue(int index) const
+double dlg_commoninput::getDblValue(int index) const
 {
 	QDoubleSpinBox *t = container->findChild<QDoubleSpinBox*>(widgetList[index]);
-	return t? t->value(): 0.0;
+	if (t)
+		return t->value();
+	else
+	{
+		QLineEdit *t = container->findChild<QLineEdit*>(widgetList[index]);
+		return t ? t->text().toDouble() : 0.0;
+	}
 }
 
 int dlg_commoninput::getCheckValue(int index) const

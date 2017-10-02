@@ -102,8 +102,8 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	{
 		return false;
 	}
-	m_spacing[0] = dlg.getValues()[0]; m_spacing[1] = dlg.getValues()[1]; m_spacing[2] = dlg.getValues()[2];
-	m_origin[0] = dlg.getValues()[3]; m_origin[1] = dlg.getValues()[4]; m_origin[2] = dlg.getValues()[5];
+	m_spacing[0] = dlg.getDblValue(0); m_spacing[1] = dlg.getDblValue(1); m_spacing[2] = dlg.getDblValue(2);
+	m_origin[0] = dlg.getDblValue(3); m_origin[1] = dlg.getDblValue(4); m_origin[2] = dlg.getDblValue(5);
 	return true;
 }
 

@@ -44,10 +44,10 @@ void iAEdgeDetectionModuleInterface::canny_Edge_Detection()
 	dlg_commoninput dlg( m_mainWnd, "Canny Edge Detection", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	cedfVariance = dlg.getValues()[0];
-	cedfMaximumError = dlg.getValues()[1];
-	cedfUpper = dlg.getValues()[2];
-	cedfLower = dlg.getValues()[3];
+	cedfVariance = dlg.getDblValue(0);
+	cedfMaximumError = dlg.getDblValue(1);
+	cedfUpper = dlg.getDblValue(2);
+	cedfLower = dlg.getDblValue(3);
 	//prepare
 	QString filterName = "Canny edge detection";
 	PrepareResultChild( filterName );
