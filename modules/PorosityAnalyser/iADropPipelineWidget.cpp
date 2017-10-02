@@ -284,7 +284,7 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 		{
 			QString nosnows_filterParam = inList[j];
 			nosnows_filterParam.remove( " " );	
-			double value = dlg.getValues()[j];
+			double value = dlg.getValue(j);
 			unionList.append( inList[j] + " " + QString::number( value ) );
 			settings.setValue( pipelinePresetsPath + filterName + "/" + nosnows_filterParam, value );
 		}
@@ -315,6 +315,10 @@ void iADropPipelineWidget::mouseMoveEvent( QMouseEvent *event )
 	{
 		QRect square = targetSquare( event->pos() );
 		int found = findPiece( square );
+		if (found == -1)
+		{
+			return;
+		}
 		int distance = ( event->pos() - startPos ).manhattanLength();
 		if ( distance >= QApplication::startDragDistance() )
 		{

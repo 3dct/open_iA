@@ -47,12 +47,7 @@ public:
 	dlg_ParamSpaceSampling( QWidget *parent, QString winTitel, int n, QStringList inList, QList<QVariant> inPara,
 							QTextDocument * fDescr, QString datasetDir, QString datasetName, QStringList datasetInfo, QVector<double> keyData,
 							QVector<double> valueData, QString filterName, bool modal = false );
-
-	QList<double> getValues();
-
-	double getParameterValue( QString name );
-	void updateValues( QList<QVariant> );
-	void connectMdiChild( MdiChild *child );
+	double getValue(int index) const;
 
 public slots:
 	void updateHistoPeaks( int value );
@@ -63,14 +58,11 @@ public slots:
 private:
 
 	int numPara;
-	int NoofComboBox;
-	int selectedComboBoxPos;
 	int m_sbDelta, m_sbSigma, m_sbIsoX, m_emi_count, m_absorp_count;
 	int emi_peaks[MAX_PEAK];
 	int absorp_peaks[MAX_PEAK];
 	int m_isoXGrayValue;
 	int m_airPoreGrayValue;
-	double outValue;
 	double* m_data[2];
 	double m_highestFreq;
 	QTextDocument* m_description;
@@ -80,9 +72,6 @@ private:
 	QStringList m_datasetInfo;
 	QStringList widgetList;
 	QList<QCPGraph *> m_peakGraphList;
-	QList<double> outValueList;
-	QList<QLabel*> listLabel;
-	QList<QVariant> inComboValue;
 	QList<QVariant> m_inPara;
 	QVector<double> m_keyData, m_valueData;
 	QVector<double> m_smoothKey;
@@ -115,6 +104,7 @@ private:
 	void createDescription();
 	void updateLineEdits();
 	void addUnits();
+	void updateValues(QList<QVariant>);
 
 protected:
 
