@@ -270,7 +270,10 @@ void dlg_commoninput::connectMdiChild(MdiChild *child)
 int dlg_commoninput::getIntValue(int index) const
 {
 	QSpinBox *t = container->findChild<QSpinBox*>(widgetList[index]);
-	return t? t->value(): 0;
+	if (t)
+		return t->value();
+	QLineEdit *t2 = container->findChild<QLineEdit*>(widgetList[index]);
+	return t2 ? t2->text().toInt() : 0;
 }
 
 double dlg_commoninput::getDblValue(int index) const
@@ -278,11 +281,8 @@ double dlg_commoninput::getDblValue(int index) const
 	QDoubleSpinBox *t = container->findChild<QDoubleSpinBox*>(widgetList[index]);
 	if (t)
 		return t->value();
-	else
-	{
-		QLineEdit *t = container->findChild<QLineEdit*>(widgetList[index]);
-		return t ? t->text().toDouble() : 0.0;
-	}
+	QLineEdit *t2 = container->findChild<QLineEdit*>(widgetList[index]);
+	return t2 ? t2->text().toDouble() : 0.0;
 }
 
 int dlg_commoninput::getCheckValue(int index) const
