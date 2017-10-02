@@ -26,12 +26,15 @@
 #include "iAIOProvider.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAMovieHelper.h"
 #include "iAPieChartGlyph.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
 #include "iASlicerSettings.h"
+#include "iAStringHelper.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
 #include "mdichild.h"
@@ -285,6 +288,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		textInfo->AddToScene(ren);
 		textInfo->SetText(" ");
 		textInfo->SetPosition(iAWrapperText::POS_LOWER_LEFT);
+		textInfo->GetTextMapper()->GetTextProperty()->SetFontSize(12);
 		textInfo->Show(1);
 
 		roiSource->SetOrigin(0, 0, 0);
@@ -1199,66 +1203,82 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	}
 
 	// get index, coords and value to display
-	QString strDetails(QString("index     [ %1, %2, %3 ]\ndatavalue [")
+	QString strDetails(QString("index     [ %1, %2, %3 ]\n")
 		.arg(static_cast<int>(xCoord)).arg(static_cast<int>(yCoord)).arg(static_cast<int>(zCoord)));
 
-	for (int i = 0; i < reslicer->GetOutput()->GetNumberOfScalarComponents(); i++) {
-		double Pix = reslicer->GetOutput()->GetScalarComponentAsDouble(cX, cY, 0, i);
-		strDetails += " " + QString::number(Pix);
-	}
-	strDetails += " ]\n";
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
-	if (mdi_parent &&
-		mdi_parent->getLinkedMDIs())
+	if (mdi_parent)
 	{
-		QList<QMdiSubWindow *> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
-		for (int i = 0; i < mdiwindows.size(); i++) {
-			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
-			if (tmpChild != mdi_parent) {
-				double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
-				double const * const origImgSpacing = imageData->GetSpacing();
-				int tmpX = xCoord * origImgSpacing[0] / tmpSpacing[0];
-				int tmpY = yCoord * origImgSpacing[1] / tmpSpacing[1];
-				int tmpZ = zCoord * origImgSpacing[2] / tmpSpacing[2];
-				switch (m_mode)
+		for (int m=0; m<mdi_parent->GetModalities()->size(); ++m)
+		{
+			auto mod = mdi_parent->GetModality(m);
+			strDetails += getPaddedOrTruncatedName(mod->GetName(), 10) + ":";
+			for (int c = 0; c<mod->ComponentCount(); ++c)
+			{
+				strDetails += " [";
+				auto img = mod->GetComponent(c);
+				for (int i = 0; i < img->GetNumberOfScalarComponents(); i++)
 				{
-				case iASlicerMode::XY://XY
-					tmpChild->getSlicerDataXY()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
-					tmpChild->getSlicerXY()->setIndex(tmpX, tmpY, tmpZ);
-					tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(tmpZ);
-
-					tmpChild->getSlicerDataXY()->update();
-					tmpChild->getSlicerXY()->update();
-					tmpChild->getSlicerDlgYZ()->update();
-
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), tmpX, tmpY, tmpZ, m_mode);
-					break;
-				case iASlicerMode::YZ://YZ
-					tmpChild->getSlicerDataYZ()->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
-					tmpChild->getSlicerYZ()->setIndex(tmpX, tmpY, tmpZ);
-					tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(tmpX);
-
-					tmpChild->getSlicerDataYZ()->update();
-					tmpChild->getSlicerYZ()->update();
-					tmpChild->getSlicerDlgYZ()->update();
-
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), tmpY, tmpZ, tmpX, m_mode);
-					break;
-				case iASlicerMode::XZ://XZ
-					tmpChild->getSlicerDataXZ()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
-					tmpChild->getSlicerXZ()->setIndex(tmpX, tmpY, tmpZ);
-					tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(tmpY);
-
-					tmpChild->getSlicerDataXZ()->update();
-					tmpChild->getSlicerXZ()->update();
-					tmpChild->getSlicerDlgXZ()->update();
-
-					strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), tmpX, tmpZ, tmpY, m_mode);
-					break;
-				default://ERROR
-					break;
+					double value = img->GetScalarComponentAsDouble(xCoord, yCoord, zCoord, i);
+					if (i > 0)
+						strDetails += " ";
+					strDetails += QString::number(value);
 				}
-				tmpChild->update();
+				strDetails += "]";
+			}
+			strDetails += "\n";
+		}
+		if (mdi_parent->getLinkedMDIs())
+		{
+			QList<QMdiSubWindow *> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
+			for (int i = 0; i < mdiwindows.size(); i++) {
+				MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+				if (tmpChild != mdi_parent) {
+					double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
+					double const * const origImgSpacing = imageData->GetSpacing();
+					int tmpX = xCoord * origImgSpacing[0] / tmpSpacing[0];
+					int tmpY = yCoord * origImgSpacing[1] / tmpSpacing[1];
+					int tmpZ = zCoord * origImgSpacing[2] / tmpSpacing[2];
+					switch (m_mode)
+					{
+					case iASlicerMode::XY://XY
+						tmpChild->getSlicerDataXY()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
+						tmpChild->getSlicerXY()->setIndex(tmpX, tmpY, tmpZ);
+						tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(tmpZ);
+
+						tmpChild->getSlicerDataXY()->update();
+						tmpChild->getSlicerXY()->update();
+						tmpChild->getSlicerDlgYZ()->update();
+
+						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), tmpX, tmpY, tmpZ, m_mode);
+						break;
+					case iASlicerMode::YZ://YZ
+						tmpChild->getSlicerDataYZ()->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
+						tmpChild->getSlicerYZ()->setIndex(tmpX, tmpY, tmpZ);
+						tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(tmpX);
+
+						tmpChild->getSlicerDataYZ()->update();
+						tmpChild->getSlicerYZ()->update();
+						tmpChild->getSlicerDlgYZ()->update();
+
+						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), tmpY, tmpZ, tmpX, m_mode);
+						break;
+					case iASlicerMode::XZ://XZ
+						tmpChild->getSlicerDataXZ()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
+						tmpChild->getSlicerXZ()->setIndex(tmpX, tmpY, tmpZ);
+						tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(tmpY);
+
+						tmpChild->getSlicerDataXZ()->update();
+						tmpChild->getSlicerXZ()->update();
+						tmpChild->getSlicerDlgXZ()->update();
+
+						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), tmpX, tmpZ, tmpY, m_mode);
+						break;
+					default://ERROR
+						break;
+					}
+					tmpChild->update();
+				}
 			}
 		}
 	}
