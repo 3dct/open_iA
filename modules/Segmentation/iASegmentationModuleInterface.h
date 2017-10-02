@@ -23,6 +23,7 @@
 #include "iAModuleInterface.h"
 
 class MdiChild;
+class iAFuzzyCMeans;
 
 class iASegmentationModuleInterface : public iAModuleInterface
 {
@@ -43,18 +44,38 @@ private slots:
 	void fuzzycmeans_seg();
 	void kernelizedfuzzycmeans_seg();
 	bool CalculateSegmentationMetrics();
-
+	
+	void FuzzyCMeansFinished();
 private:
-	//settings
-	double btlower, btupper, btoutside, btinside; //binary threshold
+
+	double btlower, btupper, btoutside, btinside;	//!< Binary threshold parameters
+	
+	//! @{ Otsu threshold parameters
 	double otBins, otinside, otoutside;
 	bool otremovepeaks;
-	double mdfli, mdfbins; int mdfuli; //maximum distance filter parameters
-	double wsLevel, wsThreshold;
-	double mwsLevel; // Morphological Watershed Segmentation Filter
-	bool mwsMarkWSLines, mwsFullyConnected; // Morphological Watershed Segmentation Filter
+	//! @}
+
+	double mdfli, mdfbins; int mdfuli;				//!< Maximum distance filter parameters
+	double wsLevel, wsThreshold;					//!< Watershed parameters
+
+	//! @{ Morphological watershed parameters
+	double mwsLevel;								
+	bool mwsMarkWSLines, mwsFullyConnected;
+	//! @}
+
+	//! @{ Adaptive Otsu parametesr
 	double aotBins, aotOutside, aotInside, aotRadius; 
 	unsigned int aotSamples, aotLevels, aotControlpoints;
-	double rtPow, rtOutside, rtInside;
-	double omtBins, omtThreshs, omtVe;
+	//! @}
+
+	double rtPow, rtOutside, rtInside;				//!< Rats threshold parameters
+	double omtBins, omtThreshs, omtVe;				//!< Otsu multiple thresholds parameters
+
+	//! @{ Fuzzy C-Means parameters
+	unsigned int fcmMaxIter, fcmNumOfThreads, fcmNumOfClasses;
+	double fcmMaxError, fcmM, fcmBgPixel;
+	QString fcmCentroidString;
+	bool fcmIgnoreBg;
+	iAFuzzyCMeans* fuzzy;
+	//! @}
 };

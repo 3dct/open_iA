@@ -463,8 +463,15 @@ void iASegmentationModuleInterface::rats_Threshold_Filter()
 void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 {
 	//set parameters
-	QStringList inList = ( QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Number of Thresholds" ) << tr( "$Valley Emphasis" ) );
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( omtBins ) << tr( "%1" ).arg( omtThreshs ) << ( omtVe ? tr( "true" ) : tr( "false" ) );
+	QStringList inList = ( QStringList()
+		<< tr( "#Number of Histogram Bins" )
+		<< tr( "#Number of Thresholds" )
+		<< tr( "$Valley Emphasis" ) );
+	QList<QVariant> inPara;
+	inPara
+		<< tr( "%1" ).arg( omtBins )
+		<< tr( "%1" ).arg( omtThreshs )
+		<< ( omtVe ? tr( "true" ) : tr( "false" ) );
 	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
@@ -486,37 +493,45 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 
 void iASegmentationModuleInterface::fuzzycmeans_seg()
 {
-
+	QSettings settings;
+	fcmMaxIter        = settings.value("Filters/Segmentation/FuzzyCMeans/maxIter", 500).toUInt();
+	fcmMaxError       = settings.value("Filters/Segmentation/FuzzyCMeans/maxError", 0.0001).toDouble();
+	fcmM              = settings.value("Filters/Segmentation/FuzzyCMeans/m", 2).toUInt();
+	fcmNumOfThreads   = settings.value("Filters/Segmentation/FuzzyCMeans/numOfThreads", 4).toUInt();
+	fcmNumOfClasses   = settings.value("Filters/Segmentation/FuzzyCMeans/numOfClasses", 2).toUInt();
+	fcmCentroidString = settings.value("Filters/Segmentation/FuzzyCMeans/centroidString", "0 1").toString();
+	fcmIgnoreBg       = settings.value("Filters/Segmentation/FuzzyCMeans/ignoreBG", true).toBool();
+	fcmBgPixel        = settings.value("Filters/Segmentation/FuzzyCMeans/bgPixel", 0).toDouble();
 	QStringList inList = (QStringList()
 		<< tr("#Max. Iterations")
 		<< tr("#Maximum Error")
 		<< tr("#M")
-		<< tr("#Number of Threads")
 		<< tr("#Number of classes")
 		<< tr("#Centroids")
 		<< tr("$Ignore Background Pixels")
-		<< tr("#Background Pixel") );
+		<< tr("#Background Pixel")
+		<< tr("#Number of Threads"));
 	QList<QVariant> inPara; inPara
-		<< QString("%1").arg(500)
-		<< QString("%1").arg(0.001)
-		<< QString("%1").arg(2)		// m
-		<< QString("%1").arg(4)		// number of threads
-		<< QString("%1").arg(2)		// number of classes
-		<< QString("-940 -450")		// centroids
-		<< true
-		<< QString("%1").arg(2000);
+		<< QString("%1").arg(fcmMaxIter)
+		<< QString("%1").arg(fcmMaxError)
+		<< QString("%1").arg(fcmM)
+		<< QString("%1").arg(fcmNumOfClasses)
+		<< QString(fcmCentroidString)
+		<< fcmIgnoreBg
+		<< QString("%1").arg(fcmBgPixel)
+		<< QString("%1").arg(fcmNumOfThreads);
 
 	dlg_commoninput dlg(m_mainWnd, "Fuzzy C-Means", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	unsigned int maxIter = dlg.getValues()[0];
-	double maxError = static_cast<unsigned int>(dlg.getValues()[1]);
-	double m = dlg.getValues()[2];
-	unsigned int numOfThreads = static_cast<unsigned int>(dlg.getValues()[3]);
-	unsigned int numOfClasses = static_cast<unsigned int>(dlg.getValues()[4]);
-	QStringList centroidStringList = dlg.getText()[5].split(" ");
-	if (centroidStringList.size() != numOfClasses)
+	fcmMaxIter = dlg.getValues()[0];
+	fcmMaxError = static_cast<unsigned int>(dlg.getValues()[1]);
+	fcmM = dlg.getValues()[2];
+	fcmNumOfClasses = static_cast<unsigned int>(dlg.getValues()[3]);
+	fcmCentroidString = dlg.getText()[4];
+	auto centroidStringList = fcmCentroidString.split(" ");
+	if (centroidStringList.size() != fcmNumOfClasses)
 	{
 		DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
 		return;
@@ -533,19 +548,44 @@ void iASegmentationModuleInterface::fuzzycmeans_seg()
 		}
 		centroids.push_back(centroid);
 	}
-	bool ignoreBg = dlg.getCheckValue(6);
-	double bgPixel = dlg.getValues()[7];
+	bool ignoreBg = dlg.getCheckValue(5);
+	double bgPixel = dlg.getValues()[6];
+	fcmNumOfThreads = static_cast<unsigned int>(dlg.getValues()[7]);
+
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/maxIter",       fcmMaxIter       );
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/maxError",		fcmMaxError      );
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/m",				fcmM             );
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/numOfThreads",	fcmNumOfThreads  );
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/numOfClasses",	fcmNumOfClasses  );
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/centroidString",fcmCentroidString);
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/ignoreBG",		fcmIgnoreBg      );
+	settings.setValue("Filters/Segmentation/FuzzyCMeans/bgPixel",		fcmBgPixel       );
 
 	//prepare
 	QString filterName = "Fuzzy C-Means";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
-	auto thread = new iAFuzzyCMeans(filterName, m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-	thread->setParameters(maxIter, maxError, m, numOfThreads, numOfClasses, centroids, ignoreBg, bgPixel);
-	thread->start();
+	fuzzy = new iAFuzzyCMeans(filterName, m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
+	connect(fuzzy, SIGNAL(finished()), this, SLOT(FuzzyCMeansFinished()));
+	m_mdiChild->connectThreadSignalsToChildSlots(fuzzy);
+	fuzzy->setParameters(fcmMaxIter, fcmMaxError, fcmM, fcmNumOfThreads, fcmNumOfClasses, centroids, fcmIgnoreBg, fcmBgPixel);
+	fuzzy->start();
 	m_mainWnd->statusBar()->showMessage(filterName, 5000);
+}
+
+#include "iAModality.h"
+#include "iAModalityList.h"
+
+
+void iASegmentationModuleInterface::FuzzyCMeansFinished()
+{
+	auto & probs = fuzzy->GetProbabilities();
+	for (int p = 0; p < probs.size(); ++p)
+	{
+		m_mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
+			new iAModality(QString("FCM Prob %1").arg(p), "", -1, probs[p]->GetVTKImage(), 0)));
+	}
 }
 
 void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()

@@ -25,16 +25,22 @@
 
 #include <itkFCMClassifierInitializationImageFilter.h>
 #include <itkFuzzyClassifierImageFilter.h>
+#include <itkVectorImage.h>
+#include <itkVectorIndexSelectionCastImageFilter.h>
 
 template <typename ImagePixelType>
 void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
-	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel)
+	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel, QVector<iAConnector*> & probOut)
 {
-	typedef unsigned int OPixelType;
-	typedef itk::Image<ImagePixelType, 3> IType;
-	typedef itk::Image<OPixelType, 3> OType;
+	const unsigned int ImageDimension = 3;
+	typedef unsigned int OutPixelType;
+	typedef itk::Image<ImagePixelType, ImageDimension> IType;
+	typedef itk::Image<OutPixelType, ImageDimension> OType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<IType> TFuzzyClassifier;
+	typedef TFuzzyClassifier::MembershipValueType ProbabilityType;
 	typedef itk::FCMClassifierInitializationImageFilter<IType> TClassifierFCM;
+	typedef itk::VectorImage<ProbabilityType, ImageDimension> VectorImageType;
+	typedef itk::Image<ProbabilityType, ImageDimension> ScalarProbabilityImageType;
 
 	TClassifierFCM::Pointer classifier = TClassifierFCM::New();
 	classifier->SetMaximumNumberOfIterations(maxIter);
@@ -51,12 +57,24 @@ void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxErr
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
 	classifier->SetInput(dynamic_cast< IType * >(img->GetITKImage()));
+	classifier->Update();
+	auto probs = classifier->GetOutput();
 
-	auto probabilities = classifier->GetOutput();
+	for (int p = 0; p < probs->GetVectorLength(); ++p)
+	{
+		typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
+		IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+		indexSelectionFilter->SetIndex(p);
+		indexSelectionFilter->SetInput(probs);
+		indexSelectionFilter->Update();
+		iAConnector * con = new iAConnector();
+		con->SetImage(indexSelectionFilter->GetOutput());
+		probOut.push_back(con);
+	}
 
 	typedef itk::FuzzyClassifierImageFilter<TClassifierFCM::OutputImageType> TLabelClassifier;
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
-	labelClass->SetInput(probabilities);
+	labelClass->SetInput(probs);
 	img->SetImage(labelClass->GetOutput());
 }
 
@@ -80,5 +98,11 @@ void iAFuzzyCMeans::setParameters(unsigned int maxIter, double maxError, double 
 void iAFuzzyCMeans::performWork()
 {
 	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(fuzzycmeans_template, itkType, getConnector(), m_maxIter, m_maxError, m_m, m_numOfThreads, m_numOfClasses, m_centroids, m_ignoreBg, m_bgPixel);
+	ITK_TYPED_CALL(fuzzycmeans_template, itkType, getConnector(), m_maxIter, m_maxError, m_m,
+		m_numOfThreads, m_numOfClasses, m_centroids, m_ignoreBg, m_bgPixel, m_probOut);
+}
+
+QVector<iAConnector*> & iAFuzzyCMeans::GetProbabilities()
+{
+	return m_probOut;
 }
