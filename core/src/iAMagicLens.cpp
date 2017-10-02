@@ -58,7 +58,7 @@ LensData::LensData():
 {}
 
 
-LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled, QString const & name):
+LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled):
 	m_qvtkWidget(new iAFramedQVTKWidget2(parent, shareWidget, f)),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
@@ -83,7 +83,6 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 	double orientation[3] = {180, 0, 0};
 	m_imageActor->SetOrientation(orientation);
 */
-	m_textActor->SetInput(name.toStdString().c_str());
 	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
 #if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
 	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
@@ -340,7 +339,7 @@ int iAMagicLens::GetCenterSplitOffset() const
 }
 
 void iAMagicLens::UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkScalarsToColors* cTF,
-	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF)
+	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF, QString const & name)
 {
 	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
 	l.m_imageToColors->SetLookupTable(cTF);
@@ -348,6 +347,7 @@ void iAMagicLens::UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkS
 	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
 	l.m_bgImageToColors->SetLookupTable(bgCTF);
 	l.m_bgImageToColors->Update();
+	l.m_textActor->SetInput(name.toStdString().c_str());
 }
 
 void iAMagicLens::AddInput(
@@ -367,14 +367,14 @@ void iAMagicLens::AddInput(
 			delete m_lenses[0].m_qvtkWidget;
 			m_lenses.remove(0);
 		}
-		LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled, name);
+		LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled);
 		l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
 		m_lenses.append(l);
-		UpdateLensInput(l, reslicer, cTF, bgReslice, bgCTF);
+		UpdateLensInput(l, reslicer, cTF, bgReslice, bgCTF, name);
 	}
 	else
 	{
-		UpdateLensInput(m_lenses[0], reslicer, cTF, bgReslice, bgCTF);
+		UpdateLensInput(m_lenses[0], reslicer, cTF, bgReslice, bgCTF, name);
 	}
 	m_isInitialized = true;
 	UpdateOffset();
