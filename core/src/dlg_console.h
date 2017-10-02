@@ -21,11 +21,6 @@
 #pragma once
 
 #include "ui_Console.h"
-#include "iAQTtoUIConnector.h"
-#include <QDockWidget>
-#include <string>
-
-//typedef iAQTtoUIConnector<QDockWidget, Ui_ConsoleMainWindow> dlg_consoleConnector;
 
 class dlg_console : public QMainWindow, public Ui_Console
 {
