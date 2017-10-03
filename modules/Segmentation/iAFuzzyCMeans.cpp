@@ -216,10 +216,11 @@ void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 		probOut.push_back(vtkImg);
 	}
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
-	labelClass->SetInput(classifier->GetOutput());
+	labelClass->SetInput(probs);
 	labelClass->Update();
 	iAConnector outCon;
-	outCon.SetImage(labelClass->GetOutput());
+	auto itkImg = labelClass->GetOutput();
+	outCon.SetImage(itkImg);
 	out->DeepCopy(outCon.GetVTKImage());
 }
 
@@ -253,6 +254,7 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["StructRadius Y"].toUInt(),
 		parameters["StructRadius Z"].toUInt()
 	};
+	m_outImg = vtkSmartPointer<vtkImageData>::New();
 	ITK_TYPED_CALL(kfcm_template, itkType,
 		con,
 		parameters["Maximum Iterations"].toUInt(),
