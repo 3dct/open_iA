@@ -21,10 +21,11 @@
 #pragma once
 
 #include "iANameMapper.h"
+#include "open_iA_Core_export.h"
 
 #include <QStringList>
 
-class iAListNameMapper : public iANameMapper
+class open_iA_Core_API iAListNameMapper : public iANameMapper
 {
 public:
 	iAListNameMapper(QStringList const & names) :

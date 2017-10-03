@@ -21,15 +21,17 @@
 #pragma once
 
 #include "iAValueType.h"
+#include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
 #include <QString>
 
 class iANameMapper;
 
-class iAAttributeDescriptor
+class open_iA_Core_API iAAttributeDescriptor
 {
 public:
+	static const QString ValueSplitString;
 	enum iAAttributeType
 	{
 		None = -1,
@@ -51,7 +53,6 @@ public:
 	bool CoversWholeRange(double min, double max) const;
 	QString ToString() const;
 	void SetNameMapper(QSharedPointer<iANameMapper> mapper);
-	virtual ~iAAttributeDescriptor();
 private:
 	iAAttributeDescriptor(iAAttributeDescriptor const & other) = delete;
 	iAAttributeDescriptor& operator=(iAAttributeDescriptor const & other) = delete;
