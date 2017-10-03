@@ -64,8 +64,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 		info->setPalette(p);
 		info->setDocument(fDescr);
 		info->setReadOnly(true);
-		info->setStyleSheet("QTextEdit {margin-left:10px;}");
-		gridLayout->addWidget(info, 0, 0 , 1, 2);
+		gridLayout->addWidget(info, 0, 0);
 	}
 
 	//Generates a scrollable container for the widgets with a grid layout
@@ -170,12 +169,11 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	QPalette pal = scrollArea->palette();
 	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
 	scrollArea->setPalette(pal);
-		
-	gridLayout->addWidget(scrollArea, 1, 0, 1, 1);
+
+	gridLayout->addWidget(scrollArea, 1, 0);
+	gridLayout->addWidget(buttonBox, 2, 0);//add the ok and cancel button to the gridlayout
 
 	updateValues(inPara);
-	//add the ok and cancel button to the gridlayout
-	gridLayout->addWidget(buttonBox, 2, 0, 1, 1);
 }
 
 void dlg_commoninput::updateValues(QList<QVariant> inPara)
