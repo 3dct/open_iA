@@ -25,6 +25,7 @@
 
 #include <QSharedPointer>
 #include <QString>
+#include <QVariant>
 
 class iANameMapper;
 
@@ -39,9 +40,15 @@ public:
 		DerivedOutput
 	};
 	static QSharedPointer<iAAttributeDescriptor> Create(QString const & def);
+	static QSharedPointer<iAAttributeDescriptor> CreateParam(
+		QString const & name, iAValueType valueType,
+		double min = std::numeric_limits<double>::lowest(),
+		double max = std::numeric_limits<double>::max(),
+		QVariant defaultValue = 0.0);
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
 	iAAttributeType GetAttribType() const;
 	iAValueType GetValueType() const;
+	QVariant DefaultValue() const;
 	virtual QSharedPointer<iANameMapper> GetNameMapper() const;
 	double GetMin() const;
 	double GetMax() const;
@@ -59,6 +66,7 @@ private:
 	iAAttributeType m_attribType;
 	iAValueType m_valueType;
 	double m_min, m_max;
+	QVariant m_defaultValue;
 	bool m_logarithmic;
 	QString m_name;
 	QSharedPointer<iANameMapper> m_nameMapper;

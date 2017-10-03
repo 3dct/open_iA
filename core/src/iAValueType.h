@@ -25,5 +25,7 @@ enum iAValueType
 	Invalid = -1,
 	Continuous,
 	Discrete,
-	Categorical
+	Categorical,
+	String,
+	Boolean
 };

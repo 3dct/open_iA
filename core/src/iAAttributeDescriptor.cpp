@@ -207,6 +207,17 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 	return result;
 }
 
+QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::CreateParam(
+	QString const & name, iAValueType valueType, double min, double max,
+	QVariant defaultValue)
+{
+	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(name, Parameter, valueType));
+	result->m_min = min;
+	result->m_max = max;
+	result->m_defaultValue = defaultValue;
+	return result;
+}
+
 
 QString iAAttributeDescriptor::ToString() const
 {
@@ -290,6 +301,11 @@ double iAAttributeDescriptor::GetMin() const
 double iAAttributeDescriptor::GetMax() const
 {
 	return m_max;
+}
+
+QVariant iAAttributeDescriptor::DefaultValue() const
+{
+	return m_defaultValue;
 }
 
 QString iAAttributeDescriptor::GetName() const
