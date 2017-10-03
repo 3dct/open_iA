@@ -21,35 +21,6 @@
 #pragma once
 
 #include "iAAlgorithm.h"
-
-class iAProbabilitySource
-{
-public:
-	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities() =0;
-};
-
-class iAFuzzyCMeans : public iAAlgorithm, public iAProbabilitySource
-{
-public:
-	iAFuzzyCMeans(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-	void setParameters(unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
-		QVector<double> centroids, bool ignoreBg, double bgPixel);
-	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
-protected:
-	virtual void performWork();
-private:
-	unsigned int m_maxIter;
-	double m_maxError;
-	double m_m;
-	unsigned int m_numOfThreads;
-	unsigned int m_numOfClasses;
-	QVector<double> m_centroids;
-	bool m_ignoreBg;
-	double m_bgPixel;
-	
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
-};
-
 #include "iAAttributeDescriptor.h"
 #include "iAITKIO.h"
 
@@ -58,6 +29,12 @@ private:
 #include <itkFuzzyClassifierImageFilter.h>
 
 #include <QMap>
+
+class iAProbabilitySource
+{
+public:
+	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities() =0;
+};
 
 typedef QSharedPointer<iAAttributeDescriptor> pParameter;
 
@@ -102,6 +79,17 @@ protected:
 };
 
 typedef iAAttributeDescriptor ParamDesc;
+
+class iAFCMFilter : public iAFilter, public iAProbabilitySource
+{
+public:
+	static QSharedPointer<iAFCMFilter> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
+private:
+	iAFCMFilter();
+	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
+};
 
 class iAKFCMFilter : public iAFilter, public iAProbabilitySource
 {

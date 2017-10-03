@@ -36,9 +36,13 @@ namespace
 	const unsigned int ImageDimension = 3;
 }
 
+// FCM
+
 template <typename InputPixelType>
-void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
-	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel, QVector<vtkSmartPointer<vtkImageData> > & probOut)
+void fcm_template(iAConnector & img, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
+	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel,
+	vtkSmartPointer<vtkImageData> & outImg,
+	QVector<vtkSmartPointer<vtkImageData> > & probOut)
 {
 	typedef unsigned int LabelPixelType;
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
@@ -64,7 +68,7 @@ void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxErr
 	classifier->SetCentroids(centroidsArray);
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(img->GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(img.GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 
@@ -82,44 +86,82 @@ void fuzzycmeans_template(iAConnector * img, unsigned int maxIter, double maxErr
 	}
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
-	img->SetImage(labelClass->GetOutput());
+	iAConnector outCon;
+	outCon.SetImage(labelClass->GetOutput());
+	outImg = outCon.GetVTKImage();
 }
 
-iAFuzzyCMeans::iAFuzzyCMeans(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent)
-	: iAAlgorithm(fn, i, p, logger, parent)
-{}
-
-void iAFuzzyCMeans::setParameters(unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
-	QVector<double> centroids, bool ignoreBg, double bgPixel)
+void AddFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
 {
-	m_maxIter = maxIter;
-	m_maxError = maxError;
-	m_m = m;
-	m_numOfThreads = numOfThreads;
-	m_numOfClasses = numOfClasses;
-	m_centroids = centroids;
-	m_ignoreBg = ignoreBg;
-	m_bgPixel = bgPixel;
+	params.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete, 500, 1));
+	params.push_back(ParamDesc::CreateParam("Maximum Error", Continuous, 0.0001));
+	params.push_back(ParamDesc::CreateParam("M", Continuous, 2));
+	params.push_back(ParamDesc::CreateParam("Number of Classes", Discrete, 2, 1));
+	params.push_back(ParamDesc::CreateParam("Centroids", String, "0 1"));
+	params.push_back(ParamDesc::CreateParam("Ignore Background", Boolean, false));
+	params.push_back(ParamDesc::CreateParam("Background Value", Continuous, 0));
+	params.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
 }
 
-void iAFuzzyCMeans::performWork()
+QSharedPointer<iAFCMFilter> iAFCMFilter::Create()
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(fuzzycmeans_template, itkType, getConnector(), m_maxIter, m_maxError, m_m,
-		m_numOfThreads, m_numOfClasses, m_centroids, m_ignoreBg, m_bgPixel, m_probOut);
+	return QSharedPointer<iAFCMFilter>(new iAFCMFilter());
 }
 
-QVector<vtkSmartPointer<vtkImageData> > & iAFuzzyCMeans::Probabilities()
+iAFCMFilter::iAFCMFilter() :
+	iAFilter("FCM", "Segmentation",
+		"Fuzzy C-Means")
+{
+	AddFCMParameters(m_parameters);
+}
+
+void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
+{
+	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
+	QString centroidString = parameters["Centroids"].toString();
+	auto centroidStringList = centroidString.split(" ");
+	if (centroidStringList.size() != numberOfClasses)
+	{
+		DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
+		return;
+	}
+	QVector<double> centroids;
+	for (auto c : centroidStringList)
+	{
+		bool ok;
+		double centroid = c.toDouble(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+			return;
+		}
+		centroids.push_back(centroid);
+	}
+	//m_outImg = vtkSmartPointer<vtkImageData>::New();
+	iAConnector con;
+	con.SetImage(m_inImg);
+	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
+	ITK_TYPED_CALL(fcm_template, itkType,
+		con,
+		parameters["Maximum Iterations"].toUInt(),
+		parameters["Maximum Error"].toDouble(),
+		parameters["M"].toDouble(),
+		parameters["Number of Threads"].toUInt(),
+		numberOfClasses,
+		centroids,
+		parameters["Ignore Background"].toBool(),
+		parameters["Background Value"].toDouble(),
+		m_outImg,
+		m_probOut
+	);
+}
+
+QVector<vtkSmartPointer<vtkImageData> > & iAFCMFilter::Probabilities()
 {
 	return m_probOut;
 }
 
-
-
-
 // KFCM
-
-
 QSharedPointer<iAKFCMFilter> iAKFCMFilter::Create()
 {
 	return QSharedPointer<iAKFCMFilter>(new iAKFCMFilter());
@@ -129,19 +171,12 @@ iAKFCMFilter::iAKFCMFilter() :
 	iAFilter("Kernelized FCM", "Segmentation",
 		"Fuzzy C-Means with spatial constraints based on kernel-induced distance")
 {
-	m_parameters.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete  , 500   , 1));
-	m_parameters.push_back(ParamDesc::CreateParam("Maximum Error"     , Continuous, 0.0001));
-	m_parameters.push_back(ParamDesc::CreateParam("M"                 , Continuous, 2     ));
+	AddFCMParameters(m_parameters);
 	m_parameters.push_back(ParamDesc::CreateParam("Alpha"             , Continuous, 1     ));
-	m_parameters.push_back(ParamDesc::CreateParam("Number of Classes" , Discrete  , 2     , 1));
-	m_parameters.push_back(ParamDesc::CreateParam("Centroids"         , String    , "0 1" ));
 	m_parameters.push_back(ParamDesc::CreateParam("Sigma"             , Continuous, 1     ));
 	m_parameters.push_back(ParamDesc::CreateParam("StructRadius X"    , Discrete  , 1     , 1));
 	m_parameters.push_back(ParamDesc::CreateParam("StructRadius Y"    , Discrete  , 1     , 1));
 	m_parameters.push_back(ParamDesc::CreateParam("StructRadius Z"    , Discrete  , 1     , 1));	// (Vector Type ? )
-	m_parameters.push_back(ParamDesc::CreateParam("Ignore Background" , Boolean   , false ));
-	m_parameters.push_back(ParamDesc::CreateParam("Background Value"  , Continuous, 0     ));
-	m_parameters.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
 }
 
 template <typename InputPixelType>
@@ -226,9 +261,6 @@ void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 
 void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 {
-	iAConnector con;
-	con.SetImage(m_inImg);
-	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QString centroidString = parameters["Centroids"].toString();
 	auto centroidStringList = centroidString.split(" ");
@@ -255,6 +287,9 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["StructRadius Z"].toUInt()
 	};
 	m_outImg = vtkSmartPointer<vtkImageData>::New();
+	iAConnector con;
+	con.SetImage(m_inImg);
+	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
 	ITK_TYPED_CALL(kfcm_template, itkType,
 		con,
 		parameters["Maximum Iterations"].toUInt(),
@@ -272,7 +307,6 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		m_probOut
 	);
 }
-
 
 QVector<vtkSmartPointer<vtkImageData> > & iAKFCMFilter::Probabilities()
 {

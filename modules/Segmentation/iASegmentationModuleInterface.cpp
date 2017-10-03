@@ -533,87 +533,6 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 }
 
 
-void iASegmentationModuleInterface::fuzzycmeans_seg()
-{
-	QSettings settings;
-	fcmMaxIter        = settings.value("Filters/Segmentation/FuzzyCMeans/maxIter", 500).toUInt();
-	fcmMaxError       = settings.value("Filters/Segmentation/FuzzyCMeans/maxError", 0.0001).toDouble();
-	fcmM              = settings.value("Filters/Segmentation/FuzzyCMeans/m", 2).toUInt();
-	fcmNumOfThreads   = settings.value("Filters/Segmentation/FuzzyCMeans/numOfThreads", 4).toUInt();
-	fcmNumOfClasses   = settings.value("Filters/Segmentation/FuzzyCMeans/numOfClasses", 2).toUInt();
-	fcmCentroidString = settings.value("Filters/Segmentation/FuzzyCMeans/centroidString", "0 1").toString();
-	fcmIgnoreBg       = settings.value("Filters/Segmentation/FuzzyCMeans/ignoreBG", true).toBool();
-	fcmBgPixel        = settings.value("Filters/Segmentation/FuzzyCMeans/bgPixel", 0).toDouble();
-	QStringList inList = (QStringList()
-		<< tr("#Max. Iterations")
-		<< tr("#Maximum Error")
-		<< tr("#M")
-		<< tr("#Number of classes")
-		<< tr("#Centroids")
-		<< tr("$Ignore Background Pixels")
-		<< tr("#Background Pixel")
-		<< tr("#Number of Threads"));
-	QList<QVariant> inPara; inPara
-		<< QString("%1").arg(fcmMaxIter)
-		<< QString("%1").arg(fcmMaxError)
-		<< QString("%1").arg(fcmM)
-		<< QString("%1").arg(fcmNumOfClasses)
-		<< QString(fcmCentroidString)
-		<< fcmIgnoreBg
-		<< QString("%1").arg(fcmBgPixel)
-		<< QString("%1").arg(fcmNumOfThreads);
-	dlg_commoninput dlg(m_mainWnd, "Fuzzy C-Means", inList, inPara, NULL);
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-
-	fcmMaxIter = static_cast<unsigned int>(dlg.getDblValue(0));
-	fcmMaxError = dlg.getDblValue(1);
-	fcmM = dlg.getDblValue(2);
-	fcmNumOfClasses = static_cast<unsigned int>(dlg.getDblValue(3));
-	fcmCentroidString = dlg.getText(4);
-	auto centroidStringList = fcmCentroidString.split(" ");
-	if (centroidStringList.size() != fcmNumOfClasses)
-	{
-		DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
-		return;
-	}
-	QVector<double> centroids;
-	for (auto c : centroidStringList)
-	{
-		bool ok;
-		double centroid = c.toDouble(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
-			return;
-		}
-		centroids.push_back(centroid);
-	}
-	fcmIgnoreBg = dlg.getCheckValue(5);
-	double bgPixel = dlg.getDblValue(6);
-	fcmNumOfThreads = static_cast<unsigned int>(dlg.getDblValue(7));
-
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/maxIter",       fcmMaxIter       );
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/maxError",		fcmMaxError      );
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/m",				fcmM             );
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/numOfThreads",	fcmNumOfThreads  );
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/numOfClasses",	fcmNumOfClasses  );
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/centroidString",fcmCentroidString);
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/ignoreBG",		fcmIgnoreBg      );
-	settings.setValue("Filters/Segmentation/FuzzyCMeans/bgPixel",		fcmBgPixel       );
-
-	QString filterName = "Fuzzy C-Means";
-	PrepareResultChild(filterName);
-	auto fuzzy = new iAFuzzyCMeans(filterName, m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	connect(fuzzy, SIGNAL(finished()), this, SLOT(FuzzyCMeansFinished()));
-	m_mdiChild->connectThreadSignalsToChildSlots(fuzzy);
-	fuzzy->setParameters(fcmMaxIter, fcmMaxError, fcmM, fcmNumOfThreads, fcmNumOfClasses, centroids, fcmIgnoreBg, fcmBgPixel);
-	m_probSource = fuzzy;
-	fuzzy->start();
-	m_mdiChild->addStatusMsg(filterName);
-	m_mainWnd->statusBar()->showMessage(filterName, 5000);
-}
-
 void iASegmentationModuleInterface::FuzzyCMeansFinished()
 {
 	if (!m_probSource)
@@ -715,6 +634,13 @@ void iASegmentationModuleInterface::RunFilter(QSharedPointer<iAFilter> filter)
 	m_mdiChild->addStatusMsg(filter->Name());
 	m_mainWnd->statusBar()->showMessage(filter->Name(), 5000);
 	thread->start();
+}
+
+void iASegmentationModuleInterface::fuzzycmeans_seg()
+{
+	QSharedPointer<iAFCMFilter> filter = iAFCMFilter::Create();
+	m_probSource = filter.data();
+	RunFilter(filter);
 }
 
 void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
