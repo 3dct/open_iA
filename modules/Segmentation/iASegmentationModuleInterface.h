@@ -23,7 +23,7 @@
 #include "iAModuleInterface.h"
 
 class MdiChild;
-class iAFuzzyCMeans;
+class iAProbabilitySource;
 
 class iASegmentationModuleInterface : public iAModuleInterface
 {
@@ -76,6 +76,6 @@ private:
 	double fcmMaxError, fcmM, fcmBgPixel;
 	QString fcmCentroidString;
 	bool fcmIgnoreBg;
-	iAFuzzyCMeans* fuzzy;
+	iAProbabilitySource* m_probSource;
 	//! @}
 };
