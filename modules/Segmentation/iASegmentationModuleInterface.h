@@ -24,6 +24,7 @@
 
 class MdiChild;
 class iAProbabilitySource;
+class iAFilter;
 
 class iASegmentationModuleInterface : public iAModuleInterface
 {
@@ -78,4 +79,7 @@ private:
 	bool fcmIgnoreBg;
 	iAProbabilitySource* m_probSource;
 	//! @}
+
+	// TODO: Move to ... ModuleInterface?
+	void RunFilter(QSharedPointer<iAFilter> filter);
 };

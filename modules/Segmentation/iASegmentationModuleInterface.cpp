@@ -650,14 +650,15 @@ private:
 	QMap<QString, QVariant> m_paramValues;
 };
 
-void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
+void iASegmentationModuleInterface::RunFilter(QSharedPointer<iAFilter> filter)
 {
 	// load settings and show in dialog:
-	QSharedPointer<iAKFCMFilter> filter = iAKFCMFilter::Create();
 	auto params = filter->Parameters();
 	QSettings settings;
 	QStringList parameterNames;
 	QList<QVariant> parameterValues;
+	QString filterNameShort(filter->Name());
+	filterNameShort.replace(" ", "");
 	for (auto param : params)
 	{
 		QString fullParamName;
@@ -673,7 +674,7 @@ void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
 		parameterValues << settings.value(
 			QString("Filters/%1/%2/%3")
 				.arg(filter->Category())
-				.arg(filter->Name())
+				.arg(filterNameShort)
 				.arg(param->GetName()),
 			param->DefaultValue());
 	}
@@ -699,7 +700,7 @@ void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
 		paramValues[param->GetName()] = value;
 		settings.setValue(QString("Filters/%1/%2/%3")
 				.arg(filter->Category())
-				.arg(filter->Name())
+				.arg(filterNameShort)
 				.arg(param->GetName()),
 			value);
 		++idx;
@@ -710,9 +711,15 @@ void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
 	iAFilterRunner* thread = new iAFilterRunner(filter, paramValues,
 		filter->Name(), m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	connect(thread, SIGNAL(finished()), this, SLOT(FuzzyCMeansFinished()));
-	m_probSource = filter.data();
 	m_mdiChild->connectThreadSignalsToChildSlots(thread);
 	m_mdiChild->addStatusMsg(filter->Name());
 	m_mainWnd->statusBar()->showMessage(filter->Name(), 5000);
 	thread->start();
+}
+
+void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
+{
+	QSharedPointer<iAKFCMFilter> filter = iAKFCMFilter::Create();
+	m_probSource = filter.data();
+	RunFilter(filter);
 }

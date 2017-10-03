@@ -129,27 +129,29 @@ iAKFCMFilter::iAKFCMFilter() :
 	iAFilter("Kernelized FCM", "Segmentation",
 		"Fuzzy C-Means with spatial constraints based on kernel-induced distance")
 {
-	m_parameters.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete, 1));
-	m_parameters.push_back(ParamDesc::CreateParam("Maximum Error", Continuous));
-	m_parameters.push_back(ParamDesc::CreateParam("M", Continuous));
-	m_parameters.push_back(ParamDesc::CreateParam("Alpha", Continuous));
-	m_parameters.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 1));
-	m_parameters.push_back(ParamDesc::CreateParam("Number of Classes", Discrete, 1));
-	m_parameters.push_back(ParamDesc::CreateParam("Centroids", String));
-	m_parameters.push_back(ParamDesc::CreateParam("Sigma", Continuous));
-	m_parameters.push_back(ParamDesc::CreateParam("StructRadius X", Discrete, 1));
-	m_parameters.push_back(ParamDesc::CreateParam("StructRadius Y", Discrete, 1));
-	m_parameters.push_back(ParamDesc::CreateParam("StructRadius Z", Discrete, 1));	// (Vector Type ? )
-	m_parameters.push_back(ParamDesc::CreateParam("Ignore Background", Boolean));
-	m_parameters.push_back(ParamDesc::CreateParam("Background Value", Continuous));
+	m_parameters.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete  , 500   , 1));
+	m_parameters.push_back(ParamDesc::CreateParam("Maximum Error"     , Continuous, 0.0001));
+	m_parameters.push_back(ParamDesc::CreateParam("M"                 , Continuous, 2     ));
+	m_parameters.push_back(ParamDesc::CreateParam("Alpha"             , Continuous, 1     ));
+	m_parameters.push_back(ParamDesc::CreateParam("Number of Classes" , Discrete  , 2     , 1));
+	m_parameters.push_back(ParamDesc::CreateParam("Centroids"         , String    , "0 1" ));
+	m_parameters.push_back(ParamDesc::CreateParam("Sigma"             , Continuous, 1     ));
+	m_parameters.push_back(ParamDesc::CreateParam("StructRadius X"    , Discrete  , 1     , 1));
+	m_parameters.push_back(ParamDesc::CreateParam("StructRadius Y"    , Discrete  , 1     , 1));
+	m_parameters.push_back(ParamDesc::CreateParam("StructRadius Z"    , Discrete  , 1     , 1));	// (Vector Type ? )
+	m_parameters.push_back(ParamDesc::CreateParam("Ignore Background" , Boolean   , false ));
+	m_parameters.push_back(ParamDesc::CreateParam("Background Value"  , Continuous, 0     ));
+	m_parameters.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
 }
 
 template <typename InputPixelType>
-void kfcm_template(iAConnector & img, unsigned int maxIter, double maxError,
+void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 	double m, double alpha, unsigned int numOfThreads, unsigned int numOfClasses,
 	QVector<double> const & centroids, double sigma,
 	unsigned int seRadius[3], bool ignoreBackgroundPixels,
-	double backgroundPixel, QVector<vtkSmartPointer<vtkImageData> > & probOut)
+	double backgroundPixel,
+	vtkSmartPointer<vtkImageData> & out,
+	QVector<vtkSmartPointer<vtkImageData> > & probOut)
 {
 	typedef unsigned int LabelPixelType;
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
@@ -198,7 +200,7 @@ void kfcm_template(iAConnector & img, unsigned int maxIter, double maxError,
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(img.GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(inCon.GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	for (int p = 0; p < probs->GetVectorLength(); ++p)
@@ -215,7 +217,10 @@ void kfcm_template(iAConnector & img, unsigned int maxIter, double maxError,
 	}
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(classifier->GetOutput());
-	img.SetImage(labelClass->GetOutput());
+	labelClass->Update();
+	iAConnector outCon;
+	outCon.SetImage(labelClass->GetOutput());
+	out->DeepCopy(outCon.GetVTKImage());
 }
 
 void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
@@ -261,6 +266,7 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		seRadius,
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
+		m_outImg,
 		m_probOut
 	);
 }
