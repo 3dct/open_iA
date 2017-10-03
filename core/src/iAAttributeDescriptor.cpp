@@ -208,8 +208,8 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 }
 
 QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::CreateParam(
-	QString const & name, iAValueType valueType, double min, double max,
-	QVariant defaultValue)
+	QString const & name, iAValueType valueType,
+	QVariant defaultValue, double min, double max)
 {
 	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(name, Parameter, valueType));
 	result->m_min = min;

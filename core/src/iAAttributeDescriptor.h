@@ -42,9 +42,9 @@ public:
 	static QSharedPointer<iAAttributeDescriptor> Create(QString const & def);
 	static QSharedPointer<iAAttributeDescriptor> CreateParam(
 		QString const & name, iAValueType valueType,
+		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
-		double max = std::numeric_limits<double>::max(),
-		QVariant defaultValue = 0.0);
+		double max = std::numeric_limits<double>::max());
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
 	iAAttributeType GetAttribType() const;
 	iAValueType GetValueType() const;
