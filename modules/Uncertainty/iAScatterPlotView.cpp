@@ -151,6 +151,8 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	points->SetInputData(table, 0, 1);
 	points->SetColor(iAUncertaintyColors::Chart.red(), iAUncertaintyColors::Chart.green(), iAUncertaintyColors::Chart.blue(), iAUncertaintyColors::Chart.alpha());
 	points->GetSelectionPen()->SetColor(iAUncertaintyColors::Selection.red(), iAUncertaintyColors::Selection.green(), iAUncertaintyColors::Selection.blue(), iAUncertaintyColors::Selection.alpha());
+	m_chart->GetAxis(vtkAxis::BOTTOM)->SetTitle(captionX.toStdString().c_str());
+	m_chart->GetAxis(vtkAxis::LEFT)->SetTitle(captionY.toStdString().c_str());
 	m_scatterPlotContainer->layout()->addWidget(m_vtkChartWidget);
 
 	StyleChanged();
@@ -271,4 +273,6 @@ void iAScatterPlotView::StyleChanged()
 	xAxis->GetLabelProperties()->SetColor(fg.red() / 255.0, fg.green() / 255.0, fg.blue() / 255.0);
 	yAxis->GetTitleProperties()->SetColor(fg.red() / 255.0, fg.green() / 255.0, fg.blue() / 255.0);
 	yAxis->GetLabelProperties()->SetColor(fg.red() / 255.0, fg.green() / 255.0, fg.blue() / 255.0);
+	xAxis->GetPen()->SetColor(fg.red(), fg.green(), fg.blue());
+	yAxis->GetPen()->SetColor(fg.red(), fg.green(), fg.blue());
 }
