@@ -556,6 +556,8 @@ void iASegmentationModuleInterface::StartFCMThread(QSharedPointer<iAFilter> filt
 {
 	m_probSource = dynamic_cast<iAProbabilitySource*>(filter.data());
 	iAFilterRunner* thread = RunFilter(filter, m_mainWnd);
+	if (!thread)
+		return;
 	m_mdiChild = qobject_cast<MdiChild*>(thread->parent());
 	connect(thread, SIGNAL(workDone()), this, SLOT(FuzzyCMeansFinished()));
 }
