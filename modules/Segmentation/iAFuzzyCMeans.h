@@ -61,3 +61,12 @@ public:
 private:
 	iAKFCMFilter();
 };
+
+class iAMSKFCMFilter : public iAFilter, public iAProbabilitySource
+{
+public:
+	static QSharedPointer<iAMSKFCMFilter> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iAMSKFCMFilter();
+};

@@ -42,8 +42,9 @@ private slots:
 	void adaptive_Otsu_Threshold_Filter();
 	void rats_Threshold_Filter();
 	void otsu_Multiple_Threshold_Filter();
-	void fuzzycmeans_seg();
-	void kernelizedfuzzycmeans_seg();
+	void fcm_seg();
+	void kfcm_seg();
+	void mskfcm_seg();
 	bool CalculateSegmentationMetrics();
 	
 	void FuzzyCMeansFinished();

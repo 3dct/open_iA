@@ -101,11 +101,15 @@ void iASegmentationModuleInterface::Initialize()
 	// fuzzy c-means
 	QAction * actionFuzzyCMeans = new QAction(QApplication::translate("MainWindow", "Fuzzy C-Means", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionFuzzyCMeans );
-	connect( actionFuzzyCMeans, SIGNAL( triggered() ), this, SLOT( fuzzycmeans_seg() ) );
+	connect( actionFuzzyCMeans, SIGNAL( triggered() ), this, SLOT( fcm_seg() ) );
 	
-	QAction * actionKernelizedFuzzyCMeans = new QAction(QApplication::translate("MainWindow", "Kernelized Fuzzy C-Means", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionKernelizedFuzzyCMeans);
-	connect(actionKernelizedFuzzyCMeans, SIGNAL( triggered() ), this, SLOT( kernelizedfuzzycmeans_seg() ) );
+	QAction * actionKFCM = new QAction(QApplication::translate("MainWindow", "Kernelized FCM", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionKFCM);
+	connect(actionKFCM, SIGNAL( triggered() ), this, SLOT( kfcm_seg() ) );
+
+	QAction * actionMSKFCM = new QAction(QApplication::translate("MainWindow", "MSKFCM", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionMSKFCM);
+	connect(actionMSKFCM, SIGNAL(triggered()), this, SLOT(mskfcm_seg()));
 }
 
 
@@ -634,16 +638,23 @@ void iASegmentationModuleInterface::RunFilter(QSharedPointer<iAFilter> filter)
 	thread->start();
 }
 
-void iASegmentationModuleInterface::fuzzycmeans_seg()
+void iASegmentationModuleInterface::fcm_seg()
 {
 	QSharedPointer<iAFCMFilter> filter = iAFCMFilter::Create();
 	m_probSource = filter.data();
 	RunFilter(filter);
 }
 
-void iASegmentationModuleInterface::kernelizedfuzzycmeans_seg()
+void iASegmentationModuleInterface::kfcm_seg()
 {
 	QSharedPointer<iAKFCMFilter> filter = iAKFCMFilter::Create();
+	m_probSource = filter.data();
+	RunFilter(filter);
+}
+
+void iASegmentationModuleInterface::mskfcm_seg()
+{
+	QSharedPointer<iAMSKFCMFilter> filter = iAMSKFCMFilter::Create();
 	m_probSource = filter.data();
 	RunFilter(filter);
 }
