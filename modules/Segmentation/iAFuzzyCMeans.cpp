@@ -63,6 +63,60 @@ void iAProbabilitySource::SetProbabilities(VectorImageType::Pointer vectorImg)
 	}
 }
 
+namespace
+{
+	void AddFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
+	{
+		params.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete, 500, 1));
+		params.push_back(ParamDesc::CreateParam("Maximum Error", Continuous, 0.0001));
+		params.push_back(ParamDesc::CreateParam("M", Continuous, 2));
+		params.push_back(ParamDesc::CreateParam("Number of Classes", Discrete, 2, 1));
+		params.push_back(ParamDesc::CreateParam("Centroids", String, "0 1"));
+		params.push_back(ParamDesc::CreateParam("Ignore Background", Boolean, false));
+		params.push_back(ParamDesc::CreateParam("Background Value", Continuous, 0));
+		params.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
+	}
+
+	void AddKFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
+	{
+		AddFCMParameters(params);
+		params.push_back(ParamDesc::CreateParam("Alpha", Continuous, 1));
+		params.push_back(ParamDesc::CreateParam("Sigma", Continuous, 1));
+		params.push_back(ParamDesc::CreateParam("StructRadius X", Discrete, 1, 1));
+		params.push_back(ParamDesc::CreateParam("StructRadius Y", Discrete, 1, 1));
+		params.push_back(ParamDesc::CreateParam("StructRadius Z", Discrete, 1, 1));	// (Vector Type ? )
+	}
+
+	bool ConvertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
+	{
+		auto centroidStringList = centroidString.split(" ");
+		if (centroidStringList.size() != numberOfClasses)
+		{
+			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
+			return false;
+		}
+		for (auto c : centroidStringList)
+		{
+			bool ok;
+			double centroid = c.toDouble(&ok);
+			if (!ok)
+			{
+				DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+				return false;
+			}
+			centroids.push_back(centroid);
+		}
+		return true;
+	}
+
+	bool CheckFCMParameters(QMap<QString, QVariant> parameters)
+	{
+		unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
+		QVector<double> centroids;
+		return ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
+	}
+}
+
 
 // FCM
 
@@ -101,53 +155,6 @@ void fcm_template(iAConnector & img, unsigned int maxIter, double maxError, doub
 	outImg->DeepCopy(outCon.GetVTKImage());
 }
 
-namespace
-{
-	void AddFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
-	{
-		params.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete, 500, 1));
-		params.push_back(ParamDesc::CreateParam("Maximum Error", Continuous, 0.0001));
-		params.push_back(ParamDesc::CreateParam("M", Continuous, 2));
-		params.push_back(ParamDesc::CreateParam("Number of Classes", Discrete, 2, 1));
-		params.push_back(ParamDesc::CreateParam("Centroids", String, "0 1"));
-		params.push_back(ParamDesc::CreateParam("Ignore Background", Boolean, false));
-		params.push_back(ParamDesc::CreateParam("Background Value", Continuous, 0));
-		params.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
-	}
-
-	void AddKFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
-	{
-		AddFCMParameters(params);
-		params.push_back(ParamDesc::CreateParam("Alpha", Continuous, 1));
-		params.push_back(ParamDesc::CreateParam("Sigma", Continuous, 1));
-		params.push_back(ParamDesc::CreateParam("StructRadius X", Discrete, 1, 1));
-		params.push_back(ParamDesc::CreateParam("StructRadius Y", Discrete, 1, 1));
-		params.push_back(ParamDesc::CreateParam("StructRadius Z", Discrete, 1, 1));	// (Vector Type ? )
-	}
-	
-	bool ConvertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
-	{
-		auto centroidStringList = centroidString.split(" ");
-		if (centroidStringList.size() != numberOfClasses)
-		{
-			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
-			return false;
-		}
-		for (auto c : centroidStringList)
-		{
-			bool ok;
-			double centroid = c.toDouble(&ok);
-			if (!ok)
-			{
-				DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
-				return false;
-			}
-			centroids.push_back(centroid);
-		}
-		return true;
-	}
-}
-
 QSharedPointer<iAFCMFilter> iAFCMFilter::Create()
 {
 	return QSharedPointer<iAFCMFilter>(new iAFCMFilter());
@@ -163,14 +170,16 @@ iAFCMFilter::iAFCMFilter() :
 	AddFCMParameters(m_parameters);
 }
 
+bool iAFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
+{
+	return CheckFCMParameters(parameters);
+}
+
 void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
-	if (!ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids))
-	{
-		return;
-	}
+	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
 	m_outImg = vtkSmartPointer<vtkImageData>::New();
 	iAConnector con;
 	con.SetImage(m_inImg);
@@ -206,6 +215,11 @@ iAKFCMFilter::iAKFCMFilter() :
 		"Cybernetics, Part B : Cybernetics, IEEE Transactions on, 34(4) : 1907–1916, 2004. 1, 2.2")
 {
 	AddKFCMParameters(m_parameters);
+}
+
+bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
+{
+	return CheckFCMParameters(parameters);
 }
 
 template <typename InputPixelType>
@@ -272,10 +286,7 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
-	if (!ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids))
-	{
-		return;
-	}
+	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
 	unsigned int seRadius[3] = {
 		parameters["StructRadius X"].toUInt(),
 		parameters["StructRadius Y"].toUInt(),
@@ -323,6 +334,11 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 	AddKFCMParameters(m_parameters);
 	m_parameters.push_back(ParamDesc::CreateParam("P", Continuous, 2));
 	m_parameters.push_back(ParamDesc::CreateParam("Q", Continuous, 1));
+}
+
+bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
+{
+	return CheckFCMParameters(parameters);
 }
 
 template <typename InputPixelType>
@@ -390,10 +406,7 @@ void iAMSKFCMFilter::Run(QMap<QString, QVariant> parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
-	if (!ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids))
-	{
-		return;
-	}
+	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
 	unsigned int seRadius[3] = {
 		parameters["StructRadius X"].toUInt(),
 		parameters["StructRadius Y"].toUInt(),

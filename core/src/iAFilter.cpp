@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFilter.h"
 
+#include <QVariant>
+
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description):
 	m_name(name),
 	m_category(category),
@@ -57,4 +59,9 @@ void iAFilter::SetInput(vtkSmartPointer<vtkImageData> inImg)
 vtkSmartPointer<vtkImageData> iAFilter::Output() const
 {
 	return m_outImg;
+}
+
+bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
+{
+	return true;
 }

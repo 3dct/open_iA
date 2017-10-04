@@ -108,7 +108,10 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 			value);
 		++idx;
 	}
-
+	if (!filter->CheckParameters(paramValues))
+	{
+		return nullptr;
+	}
 	auto mdiChild = mainWnd->GetResultChild(filter->Name() + " " + mainWnd->activeMdiChild()->windowTitle());
 	if (!mdiChild)
 	{

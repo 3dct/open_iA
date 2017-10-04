@@ -47,6 +47,7 @@ class iAFCMFilter : public iAFilter, public iAProbabilitySource
 {
 public:
 	static QSharedPointer<iAFCMFilter> Create();
+	bool CheckParameters(QMap<QString, QVariant> parameters) override;
 	void Run(QMap<QString, QVariant> parameters) override;
 private:
 	iAFCMFilter();
@@ -56,6 +57,7 @@ class iAKFCMFilter : public iAFilter, public iAProbabilitySource
 {
 public:
 	static QSharedPointer<iAKFCMFilter> Create();
+	bool CheckParameters(QMap<QString, QVariant> parameters) override;
 	void Run(QMap<QString, QVariant> parameters) override;
 private:
 	iAKFCMFilter();
@@ -65,6 +67,7 @@ class iAMSKFCMFilter : public iAFilter, public iAProbabilitySource
 {
 public:
 	static QSharedPointer<iAMSKFCMFilter> Create();
+	bool CheckParameters(QMap<QString, QVariant> parameters) override;
 	void Run(QMap<QString, QVariant> parameters) override;
 private:
 	iAMSKFCMFilter();

@@ -52,6 +52,7 @@ public:
 	QVector<pParameter> const & Parameters() const;
 	void SetInput(vtkSmartPointer<vtkImageData> inImg);
 	vtkSmartPointer<vtkImageData> Output() const;
+	virtual bool CheckParameters(QMap<QString, QVariant> parameters);
 	virtual void Run(QMap<QString, QVariant> parameters) = 0;
 protected:
 	QVector<pParameter> m_parameters;
