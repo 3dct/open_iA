@@ -74,8 +74,8 @@ public:
 	QString getPath() { return path; };
 
 	void LoadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack);
-	void loadFiles(QStringList fileNames);
+	void LoadFile(QString fileName, bool isStack);
+	void LoadFiles(QStringList fileNames);
 
 	QDomDocument loadSettingsFile(QString filename);
 	void saveSettingsFile(QDomDocument &doc, QString filename);
@@ -199,7 +199,6 @@ private:
 	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
-	void loadFileInternal(QString fileName, bool isStack);
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);

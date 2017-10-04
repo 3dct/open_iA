@@ -230,7 +230,7 @@ void MainWindow::newFile()
 
 void MainWindow::Open()
 {
-	loadFiles(
+	LoadFiles(
 		QFileDialog::getOpenFileNames(
 			this,
 			tr("Open Files"),
@@ -238,18 +238,6 @@ void MainWindow::Open()
 			iAIOProvider::GetSupportedLoadFormats()
 		)
 	);
-}
-
-
-void MainWindow::loadFiles(QStringList fileNames) {
-
-	statusBar()->showMessage(tr("Loading data..."), 5000);
-	QString fileName;
-
-	for (int i = 0; i < fileNames.length(); i++)
-	{
-		loadFileInternal(fileNames[i], false);
-	}
 }
 
 
@@ -277,7 +265,7 @@ void MainWindow::OpenRaw()
 
 void MainWindow::OpenImageStack()
 {
-	loadFile(
+	LoadFile(
 		QFileDialog::getOpenFileName(
 			this,
 			tr("Open File"),
@@ -290,7 +278,7 @@ void MainWindow::OpenImageStack()
 
 void MainWindow::OpenVolumeStack()
 {
-	loadFile(
+	LoadFile(
 		QFileDialog::getOpenFileName(
 			this,
 			tr("Open File"),
@@ -311,6 +299,7 @@ void MainWindow::OpenRecentFile()
 	LoadFile(fileName);
 }
 
+
 void MainWindow::LoadFile(QString const & fileName)
 {
 	if (fileName.endsWith(iAIOProvider::ProjectFileExtension))
@@ -326,16 +315,17 @@ void MainWindow::LoadFile(QString const & fileName)
 		}
 		else
 		{
-			loadFile(fileName, fileName.endsWith(".volstack"));
+			LoadFile(fileName, fileName.endsWith(".volstack"));
 		}
 	}
 }
 
-void MainWindow::loadFileInternal(QString fileName, bool isStack)
+
+void MainWindow::LoadFile(QString fileName, bool isStack)
 {
 	if (fileName.isEmpty())
 		return;
-
+	statusBar()->showMessage(tr("Loading data..."), 5000);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	path = t;
 	if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
@@ -379,10 +369,13 @@ void MainWindow::loadFileInternal(QString fileName, bool isStack)
 	}
 }
 
-void MainWindow::loadFile(QString fileName, bool isStack)
+
+void MainWindow::LoadFiles(QStringList fileNames)
 {
-	statusBar()->showMessage(tr("Loading data..."), 5000);
-	loadFileInternal(fileName, isStack);
+	for (int i = 0; i < fileNames.length(); i++)
+	{
+		LoadFile(fileNames[i]);
+	}
 }
 
 
@@ -2375,7 +2368,7 @@ void MainWindow::OpenWithDataTypeConversion()
 			MapVTKTypeStringToInt(outDataType),
 			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi  );
 	}
-	loadFile(testfinalfilename, false);
+	LoadFile(testfinalfilename, false);
 }
 
 void MainWindow::applyQSS()
@@ -2593,16 +2586,9 @@ void MainWindow::LoadTLGICTData(QString const & baseDirectory)
 
 void MainWindow::LoadArguments(int argc, char** argv)
 {
-	if (argc > 2)
-	{
-		QStringList files;
-		for (int a = 1; a < argc; ++a) files << argv[a];
-		loadFiles(files);
-	}
-	else if (argc > 1)
-	{
-		LoadFile(QString(argv[1]));
-	}
+	QStringList files;
+	for (int a = 1; a < argc; ++a) files << argv[a];
+	LoadFiles(files);
 }
 
 iAPreferences const & MainWindow::GetDefaultPreferences() const
