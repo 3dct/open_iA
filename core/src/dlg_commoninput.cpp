@@ -30,7 +30,7 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QScrollArea>
-#include <QTextEdit>
+#include <QTextBrowser>
 
 enum ContainerSize {
 	WIDTH=530, HEIGHT=600
@@ -58,12 +58,13 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 
 	if(fDescr)
 	{
-		QTextEdit* info = new QTextEdit();
+		auto info = new QTextBrowser();
 		QPalette p = info->palette();
 		p.setColor(QPalette::Base, QColor(240, 240, 255));
 		info->setPalette(p);
 		info->setDocument(fDescr);
 		info->setReadOnly(true);
+		info->setOpenExternalLinks(true);
 		gridLayout->addWidget(info, 0, 0);
 	}
 
