@@ -48,9 +48,8 @@ iAFilterRunner::iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QV
 
 void iAFilterRunner::performWork()
 {
-	m_filter->SetInput(getConnector()->GetVTKImage());
+	m_filter->SetConnector(getConnector());
 	m_filter->Run(m_paramValues);
-	getConnector()->SetImage(m_filter->Output());
 	emit workDone();
 }
 

@@ -22,16 +22,13 @@
 
 #include "open_iA_Core_export.h"
 
-#include <vtkSmartPointer.h>
-
 #include <QMap>
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
 class iAAttributeDescriptor;
-
-class vtkImageData;
+class iAConnector;
 
 typedef QSharedPointer<iAAttributeDescriptor> pParameter;
 
@@ -50,13 +47,18 @@ public:
 	QString Category() const;
 	QString Description() const;
 	QVector<pParameter> const & Parameters() const;
-	void SetInput(vtkSmartPointer<vtkImageData> inImg);
-	vtkSmartPointer<vtkImageData> Output() const;
+	void SetConnector(iAConnector* con);
+	iAConnector* Connector();
 	virtual bool CheckParameters(QMap<QString, QVariant> parameters);
 	virtual void Run(QMap<QString, QVariant> parameters) = 0;
 protected:
 	QVector<pParameter> m_parameters;
-	vtkSmartPointer<vtkImageData> m_inImg;
-	vtkSmartPointer<vtkImageData> m_outImg;
+	iAConnector* m_con;
 	QString m_name, m_category, m_description;
 };
+
+#define IAFILTER_CREATE(FilterName) \
+QSharedPointer<FilterName> FilterName::Create() \
+{ \
+	return QSharedPointer<FilterName>(new FilterName()); \
+}

@@ -28,6 +28,10 @@
 #include <itkSimpleFilterWatcher.h>
 #include <itkFuzzyClassifierImageFilter.h>
 
+#include <vtkSmartPointer.h>
+
+class vtkImageData;
+
 const unsigned int ImageDimension = 3;
 typedef double ProbabilityPixelType;
 typedef itk::VectorImage<ProbabilityPixelType, ImageDimension> VectorImageType;

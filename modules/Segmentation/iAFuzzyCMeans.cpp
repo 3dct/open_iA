@@ -121,9 +121,8 @@ namespace
 // FCM
 
 template <typename InputPixelType>
-void fcm_template(iAConnector & img, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
+void fcm_template(iAConnector * con, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
 	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel,
-	vtkSmartPointer<vtkImageData> & outImg,
 	iAProbabilitySource & probSource)
 {
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
@@ -144,21 +143,16 @@ void fcm_template(iAConnector & img, unsigned int maxIter, double maxError, doub
 	classifier->SetCentroids(centroidsArray);
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(img.GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(con->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	probSource.SetProbabilities(probs);
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
-	iAConnector outCon;
-	outCon.SetImage(labelClass->GetOutput());
-	outImg->DeepCopy(outCon.GetVTKImage());
+	con->SetImage(labelClass->GetOutput());
 }
 
-QSharedPointer<iAFCMFilter> iAFCMFilter::Create()
-{
-	return QSharedPointer<iAFCMFilter>(new iAFCMFilter());
-}
+IAFILTER_CREATE(iAFCMFilter)
 
 iAFCMFilter::iAFCMFilter() :
 	iAFilter("FCM", "Segmentation",
@@ -180,12 +174,9 @@ void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
 	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
-	m_outImg = vtkSmartPointer<vtkImageData>::New();
-	iAConnector con;
-	con.SetImage(m_inImg);
-	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(fcm_template, itkType,
-		con,
+		m_con,
 		parameters["Maximum Iterations"].toUInt(),
 		parameters["Maximum Error"].toDouble(),
 		parameters["M"].toDouble(),
@@ -194,7 +185,6 @@ void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 		centroids,
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
-		m_outImg,
 		*this
 	);
 }
@@ -202,10 +192,7 @@ void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 
 // KFCM
 
-QSharedPointer<iAKFCMFilter> iAKFCMFilter::Create()
-{
-	return QSharedPointer<iAKFCMFilter>(new iAKFCMFilter());
-}
+IAFILTER_CREATE(iAKFCMFilter)
 
 iAKFCMFilter::iAKFCMFilter() :
 	iAFilter("Kernelized FCM", "Segmentation",
@@ -223,12 +210,11 @@ bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
 }
 
 template <typename InputPixelType>
-void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
+void kfcm_template(iAConnector * con, unsigned int maxIter, double maxError,
 	double m, double alpha, unsigned int numOfThreads, unsigned int numOfClasses,
 	QVector<double> const & centroids, double sigma,
 	unsigned int seRadius[3], bool ignoreBackgroundPixels,
 	double backgroundPixel,
-	vtkSmartPointer<vtkImageData> & out,
 	iAProbabilitySource & probSource)
 {
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
@@ -269,17 +255,14 @@ void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(inCon.GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(con->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	probSource.SetProbabilities(probs);
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
-	iAConnector outCon;
-	auto itkImg = labelClass->GetOutput();
-	outCon.SetImage(itkImg);
-	out->DeepCopy(outCon.GetVTKImage());
+	con->SetImage(labelClass->GetOutput());
 }
 
 void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
@@ -292,12 +275,9 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["StructRadius Y"].toUInt(),
 		parameters["StructRadius Z"].toUInt()
 	};
-	m_outImg = vtkSmartPointer<vtkImageData>::New();
-	iAConnector con;
-	con.SetImage(m_inImg);
-	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(kfcm_template, itkType,
-		con,
+		m_con,
 		parameters["Maximum Iterations"].toUInt(),
 		parameters["Maximum Error"].toDouble(),
 		parameters["M"].toDouble(),
@@ -309,7 +289,6 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		seRadius,
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
-		m_outImg,
 		*this
 	);
 }
@@ -317,10 +296,7 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 
 // MSKFCM
 
-QSharedPointer<iAMSKFCMFilter> iAMSKFCMFilter::Create()
-{
-	return QSharedPointer<iAMSKFCMFilter>(new iAMSKFCMFilter());
-}
+IAFILTER_CREATE(iAMSKFCMFilter)
 
 iAMSKFCMFilter::iAMSKFCMFilter() :
 	iAFilter("MSKFCM", "Segmentation",
@@ -342,12 +318,11 @@ bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
 }
 
 template <typename InputPixelType>
-void mskfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
+void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError,
 	double m, double alpha, unsigned int numOfThreads, unsigned int numOfClasses,
 	QVector<double> const & centroids, double sigma,
 	unsigned int seRadius[3], bool ignoreBackgroundPixels,
 	double backgroundPixel, double p, double q,
-	vtkSmartPointer<vtkImageData> & out,
 	iAProbabilitySource & probSource)
 {
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
@@ -389,17 +364,14 @@ void mskfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
 	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(inCon.GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(con->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	probSource.SetProbabilities(probs);
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
-	iAConnector outCon;
-	auto itkImg = labelClass->GetOutput();
-	outCon.SetImage(itkImg);
-	out->DeepCopy(outCon.GetVTKImage());
+	con->SetImage(labelClass->GetOutput());
 }
 
 void iAMSKFCMFilter::Run(QMap<QString, QVariant> parameters)
@@ -412,12 +384,9 @@ void iAMSKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["StructRadius Y"].toUInt(),
 		parameters["StructRadius Z"].toUInt()
 	};
-	m_outImg = vtkSmartPointer<vtkImageData>::New();
-	iAConnector con;
-	con.SetImage(m_inImg);
-	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(mskfcm_template, itkType,
-		con,
+		m_con,
 		parameters["Maximum Iterations"].toUInt(),
 		parameters["Maximum Error"].toDouble(),
 		parameters["M"].toDouble(),
@@ -431,7 +400,6 @@ void iAMSKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["Background Value"].toDouble(),
 		parameters["P"].toDouble(),
 		parameters["Q"].toDouble(),
-		m_outImg,
 		*this
 	);
 }

@@ -51,14 +51,9 @@ QVector<pParameter> const & iAFilter::Parameters() const
 	return m_parameters;
 }
 
-void iAFilter::SetInput(vtkSmartPointer<vtkImageData> inImg)
+void iAFilter::SetConnector(iAConnector* con)
 {
-	m_inImg = inImg;
-}
-
-vtkSmartPointer<vtkImageData> iAFilter::Output() const
-{
-	return m_outImg;
+	m_con = con;
 }
 
 bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)

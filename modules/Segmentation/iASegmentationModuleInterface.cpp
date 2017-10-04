@@ -254,45 +254,7 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 
 void iASegmentationModuleInterface::binary_threshold()
 {
-	QSettings settings;
-	btlower = settings.value("Filters/Segmentation/BinaryThresholding/btlower").toDouble();
-	btupper = settings.value("Filters/Segmentation/BinaryThresholding/btupper").toDouble();
-	btoutside = settings.value("Filters/Segmentation/BinaryThresholding/btoutside").toDouble();
-	btinside = settings.value("Filters/Segmentation/BinaryThresholding/btinside").toDouble();
-
-	QStringList inList = (QStringList()
-		<< tr("#Lower Threshold")
-		<< tr("#Upper Threshold")
-		<< tr("#Outside Value")
-		<< tr("#Inside Value"));
-	QList<QVariant> inPara; inPara
-		<< tr("%1").arg(btlower)
-		<< tr("%1").arg(btupper)
-		<< tr("%1").arg(btoutside)
-		<< tr("%1").arg(btinside);
-	dlg_commoninput dlg(m_mainWnd, "Binary Threshold", inList, inPara, NULL);
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-
-	btlower = dlg.getDblValue(0);
-	btupper = dlg.getDblValue(1);
-	btoutside = dlg.getDblValue(2);
-	btinside = dlg.getDblValue(3);
-
-	settings.setValue("Filters/Segmentation/BinaryThresholding/btlower", btlower);
-	settings.setValue("Filters/Segmentation/BinaryThresholding/btupper", btupper);
-	settings.setValue("Filters/Segmentation/BinaryThresholding/btoutside", btoutside);
-	settings.setValue("Filters/Segmentation/BinaryThresholding/btinside", btinside);
-
-	QString filterName = "Binary threshold";
-	PrepareResultChild(filterName);
-	m_mdiChild->addStatusMsg(filterName);
-	iAThresholding * thread = new iAThresholding(filterName, BINARY_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-	thread->setBTParameters(btlower, btupper, btoutside, btinside);
-	thread->start();
-	m_mainWnd->statusBar()->showMessage(filterName, 5000);
+	RunFilter(iABinaryThreshold::Create(), m_mainWnd);
 }
 
 void iASegmentationModuleInterface::otsu_Threshold_Filter()

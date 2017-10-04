@@ -22,6 +22,8 @@
 
 #include "iAAlgorithm.h"
 
+#include "iAFilter.h"
+
 enum iAThresholdingType
 {
 	BINARY_THRESHOLD,
@@ -29,6 +31,15 @@ enum iAThresholdingType
 	OTSU_THRESHOLD,
 	ADAPTIVE_OTSU_THRESHOLD,
 	RATS_THRESHOLD,
+};
+
+class iABinaryThreshold : public iAFilter
+{
+public:
+	static QSharedPointer<iABinaryThreshold> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iABinaryThreshold();
 };
 
 /**
@@ -84,15 +95,10 @@ public:
 	void setRTParameters( double p, double o, double i ) 
 					{ power = p; outer = o; inner = i; };
 
-	/**
-	 * Sets binary thresholding parameters.
-	 */
-	void setBTParameters(double l, double u, double o, double i) { lower = l; upper = u; outer = o; inner = i; };
-
 protected:
 	virtual void performWork();
 private:
-	double lower, upper, threshs, bins, inner, outer, radius, power, rthresh, othresh;
+	double threshs, bins, inner, outer, radius, power, rthresh, othresh;
 	bool valleyemphasis;
 	bool removepeaks;
 	unsigned int controlPoints, levels, samples;
@@ -103,5 +109,4 @@ private:
 	void otsuThresh();
 	void adaptiveOtsuThresh();
 	void ratsThresh();
-	void binaryThresh();
 };

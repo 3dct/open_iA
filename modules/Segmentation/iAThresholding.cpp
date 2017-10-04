@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAThresholding.h"
 
+#include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -54,6 +55,36 @@ template<class T> int binary_threshold_template(double l, double u, double o, do
 	image->Modified();
 	filter->ReleaseDataFlagOn();
 	return EXIT_SUCCESS;
+}
+
+IAFILTER_CREATE(iABinaryThreshold)
+
+void iABinaryThreshold::Run(QMap<QString, QVariant> parameters)
+{
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	iAProgress progress;
+	ITK_TYPED_CALL(binary_threshold_template, itkType,
+		parameters["Lower Threshold"].toDouble(),
+		parameters["Upper Threshold"].toDouble(),
+		parameters["Outside Value"].toDouble(),
+		parameters["Inside Value"].toDouble(),
+		&progress, m_con);
+}
+
+iABinaryThreshold::iABinaryThreshold() :
+	iAFilter("Binary threshold", "Segmentation",
+		"Two thresholds (lower, upper) can be specified; "
+		"if a voxel value is between these two (including the threshold values themselves),"
+		"then the output is set to the <em>inside</em> value at this voxel, "
+		"otherwise the <em>outside</em> value.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html\">"
+		"Binary Threshold Filter</a> in the ITK documentation.")
+{
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Lower Threshold", Continuous, 0));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Upper Threshold", Continuous, 32768));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
 }
 
 
@@ -190,8 +221,6 @@ void iAThresholding::performWork()
 {
 	switch (m_type)
 	{
-	case BINARY_THRESHOLD:
-		binaryThresh(); break;
 	case OTSU_MULTIPLE_THRESHOLD:
 		otsuMultipleThresh(); break;
 	case OTSU_THRESHOLD:
@@ -203,14 +232,6 @@ void iAThresholding::performWork()
 	default:
 		addMsg(tr("unknown filter type"));
 	}
-}
-
-
-void iAThresholding::binaryThresh()
-{
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(binary_threshold_template, itkType,
-		lower, upper, outer, inner, getItkProgress(), getConnector());
 }
 
 
