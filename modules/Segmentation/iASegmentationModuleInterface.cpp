@@ -532,7 +532,6 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }
 
-
 void iASegmentationModuleInterface::FuzzyCMeansFinished()
 {
 	if (!m_probSource)
@@ -547,7 +546,6 @@ void iASegmentationModuleInterface::FuzzyCMeansFinished()
 			new iAModality(QString("FCM Prob. %1").arg(p), "", -1, probs[p], 0)));
 	}
 }
-
 
 class iAFilterRunner : public iAAlgorithm
 {

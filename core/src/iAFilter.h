@@ -20,41 +20,42 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
-#include "iAAttributeDescriptor.h"
-#include "iAFilter.h"
-#include "iAITKIO.h"
+#include "open_iA_Core_export.h"
 
-#include <itkKFCMSClassifierInitializationImageFilter.h>
-#include <itkSimpleFilterWatcher.h>
-#include <itkFuzzyClassifierImageFilter.h>
+#include <vtkSmartPointer.h>
 
-class iAProbabilitySource
+#include <QMap>
+#include <QSharedPointer>
+#include <QString>
+#include <QVector>
+
+class iAAttributeDescriptor;
+
+class vtkImageData;
+
+typedef QSharedPointer<iAAttributeDescriptor> pParameter;
+
+//! Base class for image filters
+//! Derived classes should:
+//!     - fill the m_parameters vector in their constructor
+//!     - override the SetParameters method to transfer the parameters to the actual algorithm
+//!     - override the Run method to perform the actual calculations
+//!       on m_inImg and (allocate and) store the result in m_outImg
+class open_iA_Core_API iAFilter
 {
 public:
-	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities() =0;
-};
-
-typedef iAAttributeDescriptor ParamDesc;
-
-class iAFCMFilter : public iAFilter, public iAProbabilitySource
-{
-public:
-	static QSharedPointer<iAFCMFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
-private:
-	iAFCMFilter();
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
-};
-
-class iAKFCMFilter : public iAFilter, public iAProbabilitySource
-{
-public:
-	static QSharedPointer<iAKFCMFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
-private:
-	iAKFCMFilter();
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
+	iAFilter(QString const & name, QString const & category, QString const & description);
+	virtual ~iAFilter();
+	QString Name() const;
+	QString Category() const;
+	QString Description() const;
+	QVector<pParameter> const & Parameters() const;
+	void SetInput(vtkSmartPointer<vtkImageData> inImg);
+	vtkSmartPointer<vtkImageData> Output() const;
+	virtual void Run(QMap<QString, QVariant> parameters) = 0;
+protected:
+	QVector<pParameter> m_parameters;
+	vtkSmartPointer<vtkImageData> m_inImg;
+	vtkSmartPointer<vtkImageData> m_outImg;
+	QString m_name, m_category, m_description;
 };

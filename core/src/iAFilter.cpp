@@ -18,43 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
-
-#include "iAAlgorithm.h"
-#include "iAAttributeDescriptor.h"
 #include "iAFilter.h"
-#include "iAITKIO.h"
 
-#include <itkKFCMSClassifierInitializationImageFilter.h>
-#include <itkSimpleFilterWatcher.h>
-#include <itkFuzzyClassifierImageFilter.h>
+iAFilter::iAFilter(QString const & name, QString const & category, QString const & description):
+	m_name(name),
+	m_category(category),
+	m_description(description)
+{}
 
-class iAProbabilitySource
+iAFilter::~iAFilter()
+{}
+
+QString iAFilter::Name() const
 {
-public:
-	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities() =0;
-};
+	return m_name;
+}
 
-typedef iAAttributeDescriptor ParamDesc;
-
-class iAFCMFilter : public iAFilter, public iAProbabilitySource
+QString iAFilter::Category() const
 {
-public:
-	static QSharedPointer<iAFCMFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
-private:
-	iAFCMFilter();
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
-};
+	return m_category;
+}
 
-class iAKFCMFilter : public iAFilter, public iAProbabilitySource
+QString iAFilter::Description() const
 {
-public:
-	static QSharedPointer<iAKFCMFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
-private:
-	iAKFCMFilter();
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
-};
+	return m_description;
+}
+
+QVector<pParameter> const & iAFilter::Parameters() const
+{
+	return m_parameters;
+}
+
+void iAFilter::SetInput(vtkSmartPointer<vtkImageData> inImg)
+{
+	m_inImg = inImg;
+}
+
+vtkSmartPointer<vtkImageData> iAFilter::Output() const
+{
+	return m_outImg;
+}
