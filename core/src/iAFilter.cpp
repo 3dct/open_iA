@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFilter.h"
 
+#include "iALogger.h"
+
 #include <QVariant>
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description):
@@ -51,12 +53,18 @@ QVector<pParameter> const & iAFilter::Parameters() const
 	return m_parameters;
 }
 
-void iAFilter::SetConnector(iAConnector* con)
+void iAFilter::SetUp(iAConnector* con, iALogger* log)
 {
 	m_con = con;
+	m_log = log;
 }
 
 bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
 {
 	return true;
+}
+
+void iAFilter::AddMsg(QString msg)
+{
+	m_log->log(msg);
 }

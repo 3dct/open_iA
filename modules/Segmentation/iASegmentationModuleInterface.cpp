@@ -77,14 +77,13 @@ void iASegmentationModuleInterface::Initialize()
 	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionMaximum_distance_filter );
 	connect( actionMaximum_distance_filter, SIGNAL( triggered() ), this, SLOT( maximum_Distance_Filter() ) );
 
-	// local thresholding
+	QAction * actionRats_threshold_filter = new QAction(QApplication::translate("MainWindow", "Rats threshold filter", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionRats_threshold_filter);
+	connect(actionRats_threshold_filter, SIGNAL(triggered()), this, SLOT(rats_Threshold_Filter()));
+
 	QAction * actionAdaptive_otsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Adaptive Otsu threshold filter", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuLocalThresholding, actionAdaptive_otsu_threshold_filter );
 	connect( actionAdaptive_otsu_threshold_filter, SIGNAL( triggered() ), this, SLOT(adaptive_Otsu_Threshold_Filter() ) );
-
-	QAction * actionRats_threshold_filter = new QAction(QApplication::translate("MainWindow", "Rats threshold filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuLocalThresholding, actionRats_threshold_filter );
-	connect( actionRats_threshold_filter, SIGNAL( triggered() ), this, SLOT( rats_Threshold_Filter() ) );
 
 	// watershed-based
 	QAction * actionWatershed = new QAction(QApplication::translate("MainWindow", "Watershed Segmentation Filter", 0), m_mainWnd);
@@ -259,45 +258,22 @@ void iASegmentationModuleInterface::binary_threshold()
 
 void iASegmentationModuleInterface::otsu_Threshold_Filter()
 {
-	QSettings settings;
-	otBins = settings.value( "Filters/Segmentation/Otsu/otBins" ).toDouble();
-	otoutside = settings.value( "Filters/Segmentation/Otsu/otoutside" ).toDouble();
-	otinside = settings.value( "Filters/Segmentation/Otsu/otinside" ).toDouble();
-	otremovepeaks = settings.value( "Filters/Segmentation/Otsu/otremovepeaks" ).toBool();
+	RunFilter(iAOtsuThreshold::Create(), m_mainWnd);
+}
 
-	QStringList inList = (QStringList()
-		<< tr( "#Number of Histogram Bins" )
-		<< tr( "#Outside Value" )
-		<< tr( "#Inside Value" )
-		<< tr( "$Remove Peaks" ));
-	QList<QVariant> inPara; inPara
-		<< tr( "%1" ).arg( otBins )
-		<< tr( "%1" ).arg( otoutside )
-		<< tr( "%1" ).arg( otinside )
-		<< (otremovepeaks ? tr( "true" ) : tr( "false" ));
-	dlg_commoninput dlg( m_mainWnd, "Otsu Threshold", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
+void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
+{
+	RunFilter(iAAdaptiveOtsuThreshold::Create(), m_mainWnd);
+}
 
-	otBins = dlg.getDblValue(0);
-	otoutside = dlg.getDblValue(1);
-	otinside = dlg.getDblValue(2);
-	otremovepeaks = dlg.getCheckValue(3);
+void iASegmentationModuleInterface::rats_Threshold_Filter()
+{
+	RunFilter(iARatsThreshold::Create(), m_mainWnd);
+}
 
-	settings.setValue( "Filters/Segmentation/Otsu/otBins", otBins );
-	settings.setValue( "Filters/Segmentation/Otsu/otoutside", otoutside );
-	settings.setValue( "Filters/Segmentation/Otsu/otinside", otinside );
-	settings.setValue( "Filters/Segmentation/Otsu/otremovepeaks", otremovepeaks );
-
-	QString filterName = "Otsu threshold";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	iAThresholding* thread = new iAThresholding( filterName, OTSU_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setOTParameters( otBins, otoutside, otinside, otremovepeaks );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
+{
+	RunFilter(iAOtsuMultipleThreshold::Create(), m_mainWnd);
 }
 
 void iASegmentationModuleInterface::maximum_Distance_Filter()
@@ -396,105 +372,6 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setMWSParameters( mwsLevel, mwsMarkWSLines, mwsFullyConnected );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
-{
-	QStringList inList = (QStringList()
-		<< tr( "#Number of Histogram Bins" )
-		<< tr( "#Outside Value" )
-		<< tr( "#Inside Value" )
-		<< tr( "#Radius" )
-		<< tr( "#Samples" )
-		<< tr( "#Levels" )
-		<< tr( "#Control Points" ));
-	QList<QVariant> inPara; inPara
-		<< tr( "%1" ).arg( aotBins )
-		<< tr( "%1" ).arg( aotOutside )
-		<< tr( "%1" ).arg( aotInside )
-		<< tr( "%1" ).arg( aotRadius )
-		<< tr( "%1" ).arg( aotSamples )
-		<< tr( "%1" ).arg( aotLevels )
-		<< tr( "%1" ).arg( aotControlpoints );
-	dlg_commoninput dlg( m_mainWnd, "Adaptive otsu threshold", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-
-	aotBins = dlg.getDblValue(0);
-	aotOutside = dlg.getDblValue(1);
-	aotInside = dlg.getDblValue(2);
-	aotRadius = dlg.getDblValue(3);
-	aotSamples = dlg.getDblValue(4);
-	aotLevels = dlg.getDblValue(5);
-	aotControlpoints = dlg.getDblValue(6);
-
-	QString filterName = "Adaptive otsu threshold";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	iAThresholding* thread = new iAThresholding( filterName, ADAPTIVE_OTSU_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setAOTParameters( aotRadius, aotSamples, aotLevels, aotControlpoints, aotBins, aotOutside, aotInside );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::rats_Threshold_Filter()
-{
-	QStringList inList = (QStringList()
-		<< tr( "#Power" )
-		<< tr( "#Outside Value" )
-		<< tr( "#Inside Value" ));
-	QList<QVariant> inPara; inPara
-		<< tr( "%1" ).arg( rtPow )
-		<< tr( "%1" ).arg( rtOutside )
-		<< tr( "%1" ).arg( rtInside );
-	dlg_commoninput dlg( m_mainWnd, "Rats Threshold", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	
-	rtPow = dlg.getDblValue(0);
-	rtOutside = dlg.getDblValue(1);
-	rtInside = dlg.getDblValue(2);
-
-	QString filterName = "Rats threshold filter";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	iAThresholding* thread = new iAThresholding( filterName, RATS_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setRTParameters( rtPow, rtOutside, rtInside );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
-{
-	QStringList inList = ( QStringList()
-		<< tr( "#Number of Histogram Bins" )
-		<< tr( "#Number of Thresholds" )
-		<< tr( "$Valley Emphasis" ) );
-	QList<QVariant> inPara;	inPara
-		<< tr( "%1" ).arg( omtBins )
-		<< tr( "%1" ).arg( omtThreshs )
-		<< ( omtVe ? tr( "true" ) : tr( "false" ) );
-	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-
-	omtBins = dlg.getDblValue(0);
-	omtThreshs = dlg.getDblValue(1);
-	omtVe = dlg.getCheckValue(2);
-
-	QString filterName = "Otsu multiple threshold";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	iAThresholding* thread = new iAThresholding( filterName, OTSU_MULTIPLE_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setOMTParameters( omtBins, omtThreshs, omtVe );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

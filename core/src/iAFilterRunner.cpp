@@ -48,11 +48,10 @@ iAFilterRunner::iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QV
 
 void iAFilterRunner::performWork()
 {
-	m_filter->SetConnector(getConnector());
+	m_filter->SetUp(getConnector(), qobject_cast<MdiChild*>(parent())->getLogger());
 	m_filter->Run(m_paramValues);
 	emit workDone();
 }
-
 
 iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {

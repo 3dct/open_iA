@@ -38,7 +38,11 @@
 
 #include <QLocale>
 
-template<class T> int binary_threshold_template(double l, double u, double o, double i, iAProgress* p, iAConnector* image)
+
+// Binary Threshold
+
+template<class T>
+void binary_threshold_template(double l, double u, double o, double i, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< T, 3 >   OutputImageType;
@@ -54,7 +58,6 @@ template<class T> int binary_threshold_template(double l, double u, double o, do
 	image->SetImage(filter->GetOutput());
 	image->Modified();
 	filter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 IAFILTER_CREATE(iABinaryThreshold)
@@ -72,7 +75,7 @@ void iABinaryThreshold::Run(QMap<QString, QVariant> parameters)
 }
 
 iABinaryThreshold::iABinaryThreshold() :
-	iAFilter("Binary threshold", "Segmentation",
+	iAFilter("Binary Thresholding", "Segmentation",
 		"Two thresholds (lower, upper) can be specified; "
 		"if a voxel value is between these two (including the threshold values themselves),"
 		"then the output is set to the <em>inside</em> value at this voxel, "
@@ -88,8 +91,10 @@ iABinaryThreshold::iABinaryThreshold() :
 }
 
 
+// Robust Automatic Threshold (RAT)
+
 template<class T> 
-int rats_threshold_template( double* rthresh_ptr, double pow, double o, double i, iAProgress* p, iAConnector* image  )
+void rats_threshold_template(double & rthresh_ptr, double pow, double o, double i, iAProgress* p, iAConnector* image  )
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
@@ -108,44 +113,49 @@ int rats_threshold_template( double* rthresh_ptr, double pow, double o, double i
 	filter->SetPow( pow );
 	p->Observe( filter );
 	filter->Update();
-	*rthresh_ptr = (double)filter->GetThreshold();
+	rthresh_ptr = (double)filter->GetThreshold();
 	image->SetImage(filter->GetOutput());
 	image->Modified();
 	gmfilter->ReleaseDataFlagOn();
 	filter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
+IAFILTER_CREATE(iARatsThreshold)
 
-template<class T> 
-int adaptive_otsu_threshold( double r, unsigned int s, unsigned int l, unsigned int c, double b, double o, double i, iAProgress* p, iAConnector* image  )
+void iARatsThreshold::Run(QMap<QString, QVariant> parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
-	typename InputImageType::SizeType radius;
-	radius.Fill( T(r) );
-	typedef itk::AdaptiveOtsuThresholdImageFilter< InputImageType, OutputImageType > AOTIFType;
-	typename AOTIFType::Pointer filter = AOTIFType::New();
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	filter->SetOutsideValue( T(o) );
-	filter->SetInsideValue( T(i) );
-	filter->SetNumberOfHistogramBins( T(b) );
-	filter->SetNumberOfControlPoints( c );
-	filter->SetNumberOfLevels( l );
-	filter->SetNumberOfSamples( s);
-	filter->SetRadius( radius );
-	filter->Update();
-	p->Observe( filter );
-	filter->Update();
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	iAProgress progress;
+	double threshold;
+	ITK_TYPED_CALL(rats_threshold_template, itkType,
+		threshold,
+		parameters["Power"].toDouble(),
+		parameters["Outside Value"].toDouble(),
+		parameters["Inside Value"].toDouble(),
+		&progress, m_con);
+	AddMsg(QString("%1  Rats Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(QString::number(threshold)));
+}
+
+iARatsThreshold::iARatsThreshold() :
+	iAFilter("RATS", "Segmentation",
+		"Robust automatic threshold selection. This method automatically determines a global threshold"
+		"by weighting the pixel values by their gradient (thus setting the threshold to the value where "
+		"the intensities change most).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html\">"
+		"RATS Filter</a> in the ITK documentation.")
+{
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Power", Continuous, 1));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
 }
 
 
+// Otsu's Threshold
+
 template<class T> 
-int otsu_threshold_template( double* othresh_ptr, double b, double o, double i, bool removepeaks, iAProgress* p, iAConnector* image  )
+void otsu_threshold_template(double & othresh, double b, double o, double i, bool removepeaks, iAProgress* p, iAConnector* image  )
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
@@ -161,7 +171,7 @@ int otsu_threshold_template( double* othresh_ptr, double b, double o, double i, 
 		filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 		p->Observe( filter );
 		filter->Update();
-		*othresh_ptr = (double)filter->GetThreshold();
+		othresh = (double)filter->GetThreshold();
 		image->SetImage(filter->GetOutput());
 		image->Modified();
 		filter->ReleaseDataFlagOn();
@@ -175,99 +185,157 @@ int otsu_threshold_template( double* othresh_ptr, double b, double o, double i, 
 		filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 		p->Observe( filter );
 		filter->Update();
-		*othresh_ptr = (double)filter->GetThreshold();
+		othresh = (double)filter->GetThreshold();
 		image->SetImage(filter->GetOutput());
 		image->Modified();
 		filter->ReleaseDataFlagOn();
 	}
-	return EXIT_SUCCESS;
+}
+
+IAFILTER_CREATE(iAOtsuThreshold)
+
+void iAOtsuThreshold::Run(QMap<QString, QVariant> parameters)
+{
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	iAProgress progress;
+	double threshold;
+	ITK_TYPED_CALL(otsu_threshold_template, itkType,
+		threshold,
+		parameters["Number of Histogram Bins"].toDouble(),
+		parameters["Outside Value"].toDouble(),
+		parameters["Inside Value"].toDouble(),
+		parameters["Remove Peaks"].toBool(),
+		&progress, m_con);
+	AddMsg(QString("%1  Otsu Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(QString::number(threshold)));
+}
+
+iAOtsuThreshold::iAOtsuThreshold() :
+	iAFilter("Otsu threshold", "Segmentation",
+		"Creates an image segmented into foreground (inside value) and background (outside value) using Otsu's method,"
+		"which tries to maximize the between-class variance using a histogram.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
+		"Otsu Threshold Filter</a> in the ITK documentation.")
+{
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Histogram Bins", Discrete, 128, 2));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Remove Peaks", Boolean, false));
 }
 
 
-template<class T> 
-int otsu_multiple_threshold_template( std::vector<double>* omthresh_ptr, double b, double n, bool valleyemphasis, iAProgress* p, iAConnector* image )
+// Adaptive Otsu
+
+template<class T>
+void adaptive_otsu_threshold(double r, unsigned int s, unsigned int l, unsigned int c, double b, double o, double i,
+	unsigned int splineOrder,
+	iAProgress* p, iAConnector* image)
+{
+	typedef itk::Image< T, 3 >   InputImageType;
+	typedef itk::Image< T, 3 >   OutputImageType;
+	typename InputImageType::SizeType radius;
+	radius.Fill(T(r));
+	typedef itk::AdaptiveOtsuThresholdImageFilter< InputImageType, OutputImageType > AOTIFType;
+	typename AOTIFType::Pointer filter = AOTIFType::New();
+	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
+	filter->SetOutsideValue(T(o));
+	filter->SetInsideValue(T(i));
+	filter->SetNumberOfHistogramBins(b);
+	filter->SetNumberOfControlPoints(c);
+	filter->SetNumberOfLevels(l);
+	filter->SetNumberOfSamples(s);
+	filter->SetRadius(radius);
+	filter->SetSplineOrder(splineOrder);
+	filter->Update();
+	p->Observe(filter);
+	filter->Update();
+	image->SetImage(filter->GetOutput());
+	image->Modified();
+	filter->ReleaseDataFlagOn();
+}
+
+IAFILTER_CREATE(iAAdaptiveOtsuThreshold)
+
+void iAAdaptiveOtsuThreshold::Run(QMap<QString, QVariant> parameters)
+{
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	iAProgress progress;
+	ITK_TYPED_CALL(adaptive_otsu_threshold, itkType,
+		parameters["Radius"].toDouble(),
+		parameters["Samples"].toUInt(),
+		parameters["Levels"].toUInt(),
+		parameters["Control Points"].toUInt(),
+		parameters["Number of Histogram Bins"].toUInt(),
+		parameters["Outside Value"].toDouble(),
+		parameters["Inside Value"].toDouble(),
+		parameters["Spline Order"].toUInt(),
+		&progress, m_con);
+}
+
+iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
+	iAFilter("Adaptive Otsu", "Segmentation",
+		"For more information, see the "
+		"<a href=\"https://github.com/ITKTools/ITKTools/blob/master/src/thresholdimage/itkAdaptiveOtsuThresholdImageFilter.h\">"
+		"Adaptive Otsu Threshold source code</a> in the ITKTools.")
+{
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Histogram Bins", Discrete, 256, 2));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Radius", Continuous, 8));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Samples", Discrete, 5000));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Levels", Discrete, 3));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Control Points", Discrete, 50, 1));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Spline Order", Discrete, 3, 2));
+}
+
+
+// Otsu Multiple Threshold
+
+template<class T>
+void otsu_multiple_threshold_template( std::vector<double>& omthresh, double b, double n, bool valleyemphasis, iAProgress* p, iAConnector* image )
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
 	typedef typename itk::Image< T, 3 >   OutputImageType;
-
 	typedef typename itk::OtsuMultipleThresholdsImageFilter < InputImageType, OutputImageType > OMTIFType;
-
 	typename OMTIFType::Pointer filter = OMTIFType::New();
 	filter->SetNumberOfHistogramBins( T (b) );
 	filter->SetNumberOfThresholds( T (n) );
 	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 	filter->SetValleyEmphasis( valleyemphasis );
-
 	p->Observe( filter );
-
 	filter->Update();
-
-	*omthresh_ptr = filter->GetThresholds();
+	omthresh = filter->GetThresholds();
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
+IAFILTER_CREATE(iAOtsuMultipleThreshold)
 
-iAThresholding::iAThresholding( QString fn, iAThresholdingType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
-{}
-
-
-void iAThresholding::performWork()
+void iAOtsuMultipleThreshold::Run(QMap<QString, QVariant> parameters)
 {
-	switch (m_type)
-	{
-	case OTSU_MULTIPLE_THRESHOLD:
-		otsuMultipleThresh(); break;
-	case OTSU_THRESHOLD:
-		otsuThresh(); break;
-	case ADAPTIVE_OTSU_THRESHOLD:
-		adaptiveOtsuThresh(); break;
-	case RATS_THRESHOLD:
-		ratsThresh(); break;
-	default:
-		addMsg(tr("unknown filter type"));
-	}
-}
-
-
-void iAThresholding::otsuMultipleThresh()
-{
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	iAProgress progress;
+	std::vector<double> omthresh;
 	ITK_TYPED_CALL(otsu_multiple_threshold_template, itkType,
-		&omthreshs, bins, threshs, valleyemphasis, getItkProgress(), getConnector());
-	addMsg(tr("%1  Otsu Multiple Thresholds = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(QString::number(threshs)) );
-	for (int i = 0; i< threshs; i++) addMsg(tr("    Threshold number %1 = %2").arg(i).arg(omthreshs[i]));
+		omthresh,
+		parameters["Number of Histogram Bins"].toDouble(),
+		parameters["Number of Thresholds"].toDouble(),
+		parameters["Valley Emphasis"].toBool(),
+		&progress, m_con);
+	AddMsg(QString("%1  Otsu Multiple Thresholds = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(omthresh.size()));
+	for (int i = 0; i< omthresh.size(); i++) AddMsg(QString("    Threshold number %1 = %2").arg(i).arg(omthresh[i]));
 }
 
-void iAThresholding::otsuThresh()
+iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
+	iAFilter("Otsu Multiple Thresholds", "Segmentation",
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
+		"Otsu Multiple Threshold Filter</a> in the ITK documentation.")
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(otsu_threshold_template, itkType,
-		&othresh, bins, outer, inner, removepeaks, getItkProgress(), getConnector());
-	addMsg(tr("%1  Otsu Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(QString::number(othresh)) );
-}
-
-
-void iAThresholding::adaptiveOtsuThresh()
-{
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(adaptive_otsu_threshold, itkType,
-		radius, samples, levels, controlPoints, bins, outer, inner, getItkProgress(), getConnector());
-}
-
-
-void iAThresholding::ratsThresh()
-{
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(rats_threshold_template, itkType,
-		&rthresh, power, outer, inner, getItkProgress(), getConnector());
-	addMsg(tr("%1  Rats Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(QString::number(rthresh)) );
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Histogram Bins", Discrete, 256, 2));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Thresholds", Discrete, 2, 1));
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Valley Emphasis", Boolean, 1));
 }

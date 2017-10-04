@@ -29,6 +29,7 @@
 
 class iAAttributeDescriptor;
 class iAConnector;
+class iALogger;
 
 typedef QSharedPointer<iAAttributeDescriptor> pParameter;
 
@@ -47,14 +48,16 @@ public:
 	QString Category() const;
 	QString Description() const;
 	QVector<pParameter> const & Parameters() const;
-	void SetConnector(iAConnector* con);
-	iAConnector* Connector();
+	void SetUp(iAConnector* con, iALogger* logger);
 	virtual bool CheckParameters(QMap<QString, QVariant> parameters);
 	virtual void Run(QMap<QString, QVariant> parameters) = 0;
 protected:
 	QVector<pParameter> m_parameters;
 	iAConnector* m_con;
 	QString m_name, m_category, m_description;
+	iALogger* m_log;
+
+	void AddMsg(QString msg);
 };
 
 #define IAFILTER_CREATE(FilterName) \
