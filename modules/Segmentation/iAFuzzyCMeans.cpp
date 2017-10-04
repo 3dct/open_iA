@@ -31,10 +31,36 @@
 
 #include <vtkImageData.h>
 
-namespace
+typedef unsigned int LabelPixelType;
+typedef itk::Image<ProbabilityPixelType, ImageDimension> ScalarProbabilityImageType;
+typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
+typedef itk::FuzzyClassifierImageFilter<VectorImageType, LabelPixelType> TLabelClassifier;
+
+
+
+QVector<vtkSmartPointer<vtkImageData> > & iAProbabilitySource::Probabilities()
 {
-	const unsigned int ImageDimension = 3;
+	return m_probOut;
 }
+
+
+
+void iAProbabilitySource::SetProbabilities(VectorImageType::Pointer vectorImg)
+{
+	for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
+	{
+		auto indexSelectionFilter = IndexSelectionType::New();
+		indexSelectionFilter->SetIndex(p);
+		indexSelectionFilter->SetInput(vectorImg);
+		indexSelectionFilter->Update();
+		iAConnector con;
+		con.SetImage(indexSelectionFilter->GetOutput());
+		auto vtkImg = vtkSmartPointer<vtkImageData>::New();
+		vtkImg->DeepCopy(con.GetVTKImage());
+		m_probOut.push_back(vtkImg);
+	}
+}
+
 
 // FCM
 
@@ -42,17 +68,11 @@ template <typename InputPixelType>
 void fcm_template(iAConnector & img, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
 	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel,
 	vtkSmartPointer<vtkImageData> & outImg,
-	QVector<vtkSmartPointer<vtkImageData> > & probOut)
+	iAProbabilitySource & probSource)
 {
-	typedef unsigned int LabelPixelType;
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
-	typedef TFuzzyClassifier::MembershipValueType ProbabilityPixelType;
 	typedef itk::FCMClassifierInitializationImageFilter<InputImageType> TClassifierFCM;
-	typedef itk::VectorImage<ProbabilityPixelType, ImageDimension> VectorImageType;
-	typedef itk::Image<ProbabilityPixelType, ImageDimension> ScalarProbabilityImageType;
-	typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
-	typedef itk::FuzzyClassifierImageFilter<TClassifierFCM::OutputImageType, LabelPixelType> TLabelClassifier;
 
 	auto classifier = TClassifierFCM::New();
 	classifier->SetMaximumNumberOfIterations(maxIter);
@@ -71,36 +91,49 @@ void fcm_template(iAConnector & img, unsigned int maxIter, double maxError, doub
 	classifier->SetInput(dynamic_cast<InputImageType *>(img.GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
-
-	for (int p = 0; p < probs->GetVectorLength(); ++p)
-	{
-		auto indexSelectionFilter = IndexSelectionType::New();
-		indexSelectionFilter->SetIndex(p);
-		indexSelectionFilter->SetInput(probs);
-		indexSelectionFilter->Update();
-		iAConnector con;
-		con.SetImage(indexSelectionFilter->GetOutput());
-		auto vtkImg = vtkSmartPointer<vtkImageData>::New();
-		vtkImg->DeepCopy(con.GetVTKImage());
-		probOut.push_back(vtkImg);
-	}
+	probSource.SetProbabilities(probs);
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	iAConnector outCon;
 	outCon.SetImage(labelClass->GetOutput());
-	outImg = outCon.GetVTKImage();
+	outImg->DeepCopy(outCon.GetVTKImage());
 }
 
-void AddFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
+namespace
 {
-	params.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete, 500, 1));
-	params.push_back(ParamDesc::CreateParam("Maximum Error", Continuous, 0.0001));
-	params.push_back(ParamDesc::CreateParam("M", Continuous, 2));
-	params.push_back(ParamDesc::CreateParam("Number of Classes", Discrete, 2, 1));
-	params.push_back(ParamDesc::CreateParam("Centroids", String, "0 1"));
-	params.push_back(ParamDesc::CreateParam("Ignore Background", Boolean, false));
-	params.push_back(ParamDesc::CreateParam("Background Value", Continuous, 0));
-	params.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
+	void AddFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
+	{
+		params.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete, 500, 1));
+		params.push_back(ParamDesc::CreateParam("Maximum Error", Continuous, 0.0001));
+		params.push_back(ParamDesc::CreateParam("M", Continuous, 2));
+		params.push_back(ParamDesc::CreateParam("Number of Classes", Discrete, 2, 1));
+		params.push_back(ParamDesc::CreateParam("Centroids", String, "0 1"));
+		params.push_back(ParamDesc::CreateParam("Ignore Background", Boolean, false));
+		params.push_back(ParamDesc::CreateParam("Background Value", Continuous, 0));
+		params.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
+	}
+	
+	bool ConvertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
+	{
+		auto centroidStringList = centroidString.split(" ");
+		if (centroidStringList.size() != numberOfClasses)
+		{
+			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
+			return false;
+		}
+		for (auto c : centroidStringList)
+		{
+			bool ok;
+			double centroid = c.toDouble(&ok);
+			if (!ok)
+			{
+				DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+				return false;
+			}
+			centroids.push_back(centroid);
+		}
+		return true;
+	}
 }
 
 QSharedPointer<iAFCMFilter> iAFCMFilter::Create()
@@ -118,26 +151,12 @@ iAFCMFilter::iAFCMFilter() :
 void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
-	QString centroidString = parameters["Centroids"].toString();
-	auto centroidStringList = centroidString.split(" ");
-	if (centroidStringList.size() != numberOfClasses)
+	QVector<double> centroids;
+	if (!ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids))
 	{
-		DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
 		return;
 	}
-	QVector<double> centroids;
-	for (auto c : centroidStringList)
-	{
-		bool ok;
-		double centroid = c.toDouble(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
-			return;
-		}
-		centroids.push_back(centroid);
-	}
-	//m_outImg = vtkSmartPointer<vtkImageData>::New();
+	m_outImg = vtkSmartPointer<vtkImageData>::New();
 	iAConnector con;
 	con.SetImage(m_inImg);
 	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
@@ -152,16 +171,13 @@ void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
 		m_outImg,
-		m_probOut
+		*this
 	);
 }
 
-QVector<vtkSmartPointer<vtkImageData> > & iAFCMFilter::Probabilities()
-{
-	return m_probOut;
-}
 
 // KFCM
+
 QSharedPointer<iAKFCMFilter> iAKFCMFilter::Create()
 {
 	return QSharedPointer<iAKFCMFilter>(new iAKFCMFilter());
@@ -186,23 +202,15 @@ void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 	unsigned int seRadius[3], bool ignoreBackgroundPixels,
 	double backgroundPixel,
 	vtkSmartPointer<vtkImageData> & out,
-	QVector<vtkSmartPointer<vtkImageData> > & probOut)
+	iAProbabilitySource & probSource)
 {
-	typedef unsigned int LabelPixelType;
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
-	//typedef itk::Image<LabelPixelType, ImageDimension> LabelImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
 	typedef itk::KFCMSClassifierInitializationImageFilter<InputImageType> TClassifierKFCMS;
 	typedef TClassifierKFCMS::KernelDistanceMetricPointer KernelDistMetricPtr;
 	typedef TFuzzyClassifier::CentroidType TCentroid;
 	typedef itk::Statistics::RBFKernelInducedDistanceMetric<TCentroid> RBFKernelType;
-	typedef itk::FuzzyClassifierImageFilter<TClassifierKFCMS::OutputImageType> TLabelClassifier;
 	typedef itk::FlatStructuringElement<ImageDimension> StructuringElementType;
-
-	typedef TFuzzyClassifier::MembershipValueType ProbabilityPixelType;
-	typedef itk::VectorImage<ProbabilityPixelType, ImageDimension> VectorImageType;
-	typedef itk::Image<ProbabilityPixelType, ImageDimension> ScalarProbabilityImageType;
-	typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
 
 	TClassifierKFCMS::Pointer classifier = TClassifierKFCMS::New();
 	itk::SimpleFilterWatcher watcher(classifier, "KFCMS classifier");
@@ -225,7 +233,6 @@ void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 	kernelDistancePtr->SetB(1.0);		// make a parameter?
 	kernelDistancePtr->SetSigma(sigma);
 	classifier->SetKernelDistanceMetric(static_cast<KernelDistMetricPtr>(kernelDistancePtr));
-
 	StructuringElementType::RadiusType elementRadius;
 	for (int i = 0; i < ImageDimension; i++)
 	{
@@ -238,18 +245,7 @@ void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 	classifier->SetInput(dynamic_cast<InputImageType *>(inCon.GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
-	for (int p = 0; p < probs->GetVectorLength(); ++p)
-	{
-		auto indexSelectionFilter = IndexSelectionType::New();
-		indexSelectionFilter->SetIndex(p);
-		indexSelectionFilter->SetInput(probs);
-		indexSelectionFilter->Update();
-		iAConnector con;
-		con.SetImage(indexSelectionFilter->GetOutput());
-		auto vtkImg = vtkSmartPointer<vtkImageData>::New();
-		vtkImg->DeepCopy(con.GetVTKImage());
-		probOut.push_back(vtkImg);
-	}
+	probSource.SetProbabilities(probs);
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
@@ -262,24 +258,10 @@ void kfcm_template(iAConnector & inCon, unsigned int maxIter, double maxError,
 void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
-	QString centroidString = parameters["Centroids"].toString();
-	auto centroidStringList = centroidString.split(" ");
-	if (centroidStringList.size() != numberOfClasses)
-	{
-		DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
-		return;
-	}
 	QVector<double> centroids;
-	for (auto c : centroidStringList)
+	if (!ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids))
 	{
-		bool ok;
-		double centroid = c.toDouble(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
-			return;
-		}
-		centroids.push_back(centroid);
+		return;
 	}
 	unsigned int seRadius[3] = {
 		parameters["StructRadius X"].toUInt(),
@@ -304,11 +286,6 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
 		m_outImg,
-		m_probOut
+		*this
 	);
-}
-
-QVector<vtkSmartPointer<vtkImageData> > & iAKFCMFilter::Probabilities()
-{
-	return m_probOut;
 }

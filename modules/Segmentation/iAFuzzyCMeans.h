@@ -29,10 +29,17 @@
 #include <itkSimpleFilterWatcher.h>
 #include <itkFuzzyClassifierImageFilter.h>
 
+const unsigned int ImageDimension = 3;
+typedef double ProbabilityPixelType;
+typedef itk::VectorImage<ProbabilityPixelType, ImageDimension> VectorImageType;
+
 class iAProbabilitySource
 {
 public:
-	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities() =0;
+	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
+	void SetProbabilities(VectorImageType::Pointer vectorImg);
+private:
+	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
 };
 
 typedef iAAttributeDescriptor ParamDesc;
@@ -42,10 +49,8 @@ class iAFCMFilter : public iAFilter, public iAProbabilitySource
 public:
 	static QSharedPointer<iAFCMFilter> Create();
 	void Run(QMap<QString, QVariant> parameters) override;
-	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
 private:
 	iAFCMFilter();
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
 };
 
 class iAKFCMFilter : public iAFilter, public iAProbabilitySource
@@ -53,8 +58,6 @@ class iAKFCMFilter : public iAFilter, public iAProbabilitySource
 public:
 	static QSharedPointer<iAKFCMFilter> Create();
 	void Run(QMap<QString, QVariant> parameters) override;
-	QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
 private:
 	iAKFCMFilter();
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
 };
