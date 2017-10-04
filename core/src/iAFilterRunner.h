@@ -20,52 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAttributeDescriptor.h"
-#include "iAFilter.h"
-#include "iAITKIO.h"
+#include "open_iA_Core_export.h"
 
-#include <itkKFCMSClassifierInitializationImageFilter.h>
-#include <itkSimpleFilterWatcher.h>
-#include <itkFuzzyClassifierImageFilter.h>
+#include "iAAlgorithm.h"
 
-const unsigned int ImageDimension = 3;
-typedef double ProbabilityPixelType;
-typedef itk::VectorImage<ProbabilityPixelType, ImageDimension> VectorImageType;
+#include <QMap>
+#include <QSharedPointer>
 
-class iAProbabilitySource
+class iAFilter;
+class MainWindow;
+class MdiChild;
+
+class iAFilterRunner : public iAAlgorithm
 {
+	Q_OBJECT
 public:
-	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
-	void SetProbabilities(VectorImageType::Pointer vectorImg);
+	iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild);
+	void performWork();
 private:
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
+	QSharedPointer<iAFilter> m_filter;
+	QMap<QString, QVariant> m_paramValues;
+signals:
+	void workDone();
 };
 
-typedef iAAttributeDescriptor ParamDesc;
-
-class iAFCMFilter : public iAFilter, public iAProbabilitySource
-{
-public:
-	static QSharedPointer<iAFCMFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-private:
-	iAFCMFilter();
-};
-
-class iAKFCMFilter : public iAFilter, public iAProbabilitySource
-{
-public:
-	static QSharedPointer<iAKFCMFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-private:
-	iAKFCMFilter();
-};
-
-class iAMSKFCMFilter : public iAFilter, public iAProbabilitySource
-{
-public:
-	static QSharedPointer<iAMSKFCMFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-private:
-	iAMSKFCMFilter();
-};
+open_iA_Core_API iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);

@@ -29,6 +29,7 @@
 #include "dlg_commoninput.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAFilterRunner.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "mainwindow.h"
@@ -551,110 +552,25 @@ void iASegmentationModuleInterface::FuzzyCMeansFinished()
 	}
 }
 
-class iAFilterRunner : public iAAlgorithm
+void iASegmentationModuleInterface::StartFCMThread(QSharedPointer<iAFilter> filter)
 {
-public:
-	iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues,
-		QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0) :
-		iAAlgorithm(fn, i, p, logger, parent),
-		m_filter(filter),
-		m_paramValues(paramValues)
-	{}
-	void performWork()
-	{
-		m_filter->SetInput(getConnector()->GetVTKImage());
-		m_filter->Run(m_paramValues);
-		getConnector()->SetImage(m_filter->Output());
-	}
-private:
-	QSharedPointer<iAFilter> m_filter;
-	QMap<QString, QVariant> m_paramValues;
-};
-
-void iASegmentationModuleInterface::RunFilter(QSharedPointer<iAFilter> filter)
-{
-	// load settings and show in dialog:
-	auto params = filter->Parameters();
-	QSettings settings;
-	QStringList parameterNames;
-	QList<QVariant> parameterValues;
-	QString filterNameShort(filter->Name());
-	filterNameShort.replace(" ", "");
-	for (auto param : params)
-	{
-		QString fullParamName;
-		switch (param->GetValueType())
-		{
-		case Continuous: fullParamName = "#"; break;    // potentially ^ for DoubleSpinBox?
-		case Discrete  : fullParamName = "*"; break;
-		case String    : fullParamName = "#"; break;
-		case Boolean   : fullParamName = "$"; break;
-		}
-		fullParamName += param->GetName();
-		parameterNames << fullParamName;
-		parameterValues << settings.value(
-			QString("Filters/%1/%2/%3")
-				.arg(filter->Category())
-				.arg(filterNameShort)
-				.arg(param->GetName()),
-			param->DefaultValue());
-	}
-	QTextDocument *fDescr = new QTextDocument(0);
-	fDescr->setHtml(filter->Description());
-	dlg_commoninput dlg(m_mainWnd, filter->Name(), parameterNames, parameterValues, fDescr);
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-
-	// store settings:
-	QMap<QString, QVariant> paramValues;
-	int idx = 0;
-	for (auto param : params)
-	{
-		QVariant value;
-		switch (param->GetValueType())
-		{
-		case Continuous: value = dlg.getDblValue(idx);   break;
-		case Discrete:   value = dlg.getIntValue(idx);   break;
-		case String:     value = dlg.getText(idx);       break;
-		case Boolean:    value = dlg.getCheckValue(idx); break;
-		}
-		paramValues[param->GetName()] = value;
-		settings.setValue(QString("Filters/%1/%2/%3")
-				.arg(filter->Category())
-				.arg(filterNameShort)
-				.arg(param->GetName()),
-			value);
-		++idx;
-	}
-
-	// start calculation
-	PrepareResultChild(filter->Name());
-	iAFilterRunner* thread = new iAFilterRunner(filter, paramValues,
-		filter->Name(), m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	connect(thread, SIGNAL(finished()), this, SLOT(FuzzyCMeansFinished()));
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-	m_mdiChild->addStatusMsg(filter->Name());
-	m_mainWnd->statusBar()->showMessage(filter->Name(), 5000);
-	thread->start();
+	m_probSource = dynamic_cast<iAProbabilitySource*>(filter.data());
+	iAFilterRunner* thread = RunFilter(filter, m_mainWnd);
+	m_mdiChild = qobject_cast<MdiChild*>(thread->parent());
+	connect(thread, SIGNAL(workDone()), this, SLOT(FuzzyCMeansFinished()));
 }
 
 void iASegmentationModuleInterface::fcm_seg()
 {
-	QSharedPointer<iAFCMFilter> filter = iAFCMFilter::Create();
-	m_probSource = filter.data();
-	RunFilter(filter);
+	StartFCMThread(iAFCMFilter::Create());
 }
 
 void iASegmentationModuleInterface::kfcm_seg()
 {
-	QSharedPointer<iAKFCMFilter> filter = iAKFCMFilter::Create();
-	m_probSource = filter.data();
-	RunFilter(filter);
+	StartFCMThread(iAKFCMFilter::Create());
 }
 
 void iASegmentationModuleInterface::mskfcm_seg()
 {
-	QSharedPointer<iAMSKFCMFilter> filter = iAMSKFCMFilter::Create();
-	m_probSource = filter.data();
-	RunFilter(filter);
+	StartFCMThread(iAMSKFCMFilter::Create());
 }

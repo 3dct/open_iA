@@ -81,6 +81,5 @@ private:
 	iAProbabilitySource* m_probSource;
 	//! @}
 
-	// TODO: Move to ... ModuleInterface?
-	void RunFilter(QSharedPointer<iAFilter> filter);
+	void StartFCMThread(QSharedPointer<iAFilter> filter);
 };
