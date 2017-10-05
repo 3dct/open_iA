@@ -47,6 +47,7 @@
 
 void iASegmentationModuleInterface::Initialize()
 {
+	REGISTER_FACTORY(iABinaryThreshold);
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
 	QMenu * menuGlobalThresholding = getMenuWithTitle(menuSegmentation, QString("Global Thresholding"));
@@ -58,11 +59,6 @@ void iASegmentationModuleInterface::Initialize()
 	menuSegmentation->addAction(menuLocalThresholding->menuAction());
 	menuSegmentation->addAction(menuWatershed->menuAction() );
 	menuSegmentation->addAction(menuFuzzyCMeans->menuAction() );
-
-	// global thresholding
-	QAction * actionBinary_threshold_filter = new QAction(QApplication::translate("MainWindow", "Binary threshold filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionBinary_threshold_filter);
-	connect(actionBinary_threshold_filter, SIGNAL(triggered()), this, SLOT(binary_threshold()));
 
 	QAction * actionOtsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Otsu threshold filter", 0), m_mainWnd );
 	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionOtsu_threshold_filter );
@@ -248,11 +244,6 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		return false;
 	}
 	return true;
-}
-
-void iASegmentationModuleInterface::binary_threshold()
-{
-	RunFilter(iABinaryThreshold::Create(), m_mainWnd);
 }
 
 void iASegmentationModuleInterface::otsu_Threshold_Filter()

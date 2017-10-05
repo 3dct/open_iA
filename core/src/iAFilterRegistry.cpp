@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,49 +15,20 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "iAModuleInterface.h"
+#include "iAFilterRegistry.h"
 
-#include <QMap>
-
-class MdiChild;
-class iAProbabilitySource;
-class iAFilter;
-class iAFilterRunner;
-
-class iASegmentationModuleInterface : public iAModuleInterface
+void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory)
 {
-	Q_OBJECT
+	m_filters.push_back(factory);
+}
 
-public:
-	void Initialize();
+QVector<QSharedPointer<iAAbstractFilterFactory>> const & iAFilterRegistry::FilterFactories()
+{
+	return m_filters;
+}
 
-private slots:
-	void otsu_Threshold_Filter();
-	void maximum_Distance_Filter();
-	void watershed_seg();
-	void morph_watershed_seg();
-	void adaptive_Otsu_Threshold_Filter();
-	void rats_Threshold_Filter();
-	void otsu_Multiple_Threshold_Filter();
-	void fcm_seg();
-	void kfcm_seg();
-	void mskfcm_seg();
-	bool CalculateSegmentationMetrics();
-	
-	void FuzzyCMeansFinished();
-private:
-	double wsLevel, wsThreshold;					//!< Watershed parameters
-
-	//! @{ Morphological watershed parameters
-	double mwsLevel;								
-	bool mwsMarkWSLines, mwsFullyConnected;
-	//! @}
-
-	QMap<iAFilterRunner*, iAProbabilitySource*> m_probSources;
-	void StartFCMThread(QSharedPointer<iAFilter> filter);
-};
+QVector<QSharedPointer<iAAbstractFilterFactory>> iAFilterRegistry::m_filters;

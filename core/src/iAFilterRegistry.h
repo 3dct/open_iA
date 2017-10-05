@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,49 +15,46 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "open_iA_Core_export.h"
 
-#include <QMap>
+#include <QSharedPointer>
+#include <QVector>
 
-class MdiChild;
-class iAProbabilitySource;
 class iAFilter;
-class iAFilterRunner;
 
-class iASegmentationModuleInterface : public iAModuleInterface
+class open_iA_Core_API iAAbstractFilterFactory
 {
-	Q_OBJECT
-
 public:
-	void Initialize();
-
-private slots:
-	void otsu_Threshold_Filter();
-	void maximum_Distance_Filter();
-	void watershed_seg();
-	void morph_watershed_seg();
-	void adaptive_Otsu_Threshold_Filter();
-	void rats_Threshold_Filter();
-	void otsu_Multiple_Threshold_Filter();
-	void fcm_seg();
-	void kfcm_seg();
-	void mskfcm_seg();
-	bool CalculateSegmentationMetrics();
-	
-	void FuzzyCMeansFinished();
-private:
-	double wsLevel, wsThreshold;					//!< Watershed parameters
-
-	//! @{ Morphological watershed parameters
-	double mwsLevel;								
-	bool mwsMarkWSLines, mwsFullyConnected;
-	//! @}
-
-	QMap<iAFilterRunner*, iAProbabilitySource*> m_probSources;
-	void StartFCMThread(QSharedPointer<iAFilter> filter);
+	virtual QSharedPointer<iAFilter> Create() =0;
 };
+
+class open_iA_Core_API iAFilterRegistry
+{
+public:
+	static void AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory);
+	static QVector<QSharedPointer<iAAbstractFilterFactory>> const & FilterFactories();
+private:
+	static QVector<QSharedPointer<iAAbstractFilterFactory>> m_filters;
+};
+
+
+template <typename FilterType>
+class iAFilterFactory: public iAAbstractFilterFactory
+{
+public:
+	QSharedPointer<iAFilter> Create() override
+	{
+		return FilterType::Create();
+	}
+};
+
+#define REGISTER_FACTORY(FilterType) \
+iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()));
+
+// the above is a workaround for the "static construction" of the iAFilterFactory<FilterName>,
+// see e.g. https://stackoverflow.com/questions/1197106/static-constructors-in-c-i-need-to-initialize-private-static-objects

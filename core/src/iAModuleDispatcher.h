@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVector>
+#include <QObject>
 #include <QString>
+#include <QVector>
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
@@ -35,6 +36,7 @@ class MainWindow;
 
 class QAction;
 class QFileInfo;
+class QMenu;
 
 struct iAModuleAction
 {
@@ -62,8 +64,9 @@ struct iALoadedModule
 	iAModuleInterface* moduleInterface;
 };
 
-class iAModuleDispatcher
+class iAModuleDispatcher: public QObject
 {
+	Q_OBJECT
 public:
 	iAModuleDispatcher( MainWindow * mainWnd );
 	~iAModuleDispatcher();
@@ -74,6 +77,10 @@ public:
 	void SetModuleActionsEnabled( bool isEnabled );
 	template <typename T> T* GetModule(T* type);
 	void ChildCreated(MdiChild* child);
+	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
+	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
+private slots:
+	void ExecuteFilter();
 private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;

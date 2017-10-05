@@ -18,10 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAModuleDispatcher.h"
 
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
+#include "iAFilterRunner.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"
@@ -167,9 +169,29 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	{
 		LoadModuleAndInterface(fi, logger);
 	}
+	auto filterFactories = iAFilterRegistry::FilterFactories();
+	for (int i=0; i<filterFactories.size(); ++i)
+	{
+		auto filterFactory = filterFactories[i];
+		auto filter = filterFactory->Create();
+		filter->Name();
+		QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
+		QMenu * menuCategory = getMenuWithTitle(filtersMenu, filter->Category());
+		// TODO: allow for subcategories (with slashes?)
+		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->Name().toStdString().c_str(), 0), m_mainWnd);
+		AddActionToMenuAlphabeticallySorted(menuCategory, filterAction);
+		filterAction->setData(i);
+		connect(filterAction, SIGNAL(triggered()), this, SLOT(ExecuteFilter()));
+	}
 	// enable Tools and Filters only if any modules were loaded that put something into them:
 	m_mainWnd->getToolsMenu()->menuAction()->setVisible(m_mainWnd->getToolsMenu()->actions().size() > 0);
 	m_mainWnd->getFiltersMenu()->menuAction()->setVisible(m_mainWnd->getFiltersMenu()->actions().size() > 0);
+}
+
+void iAModuleDispatcher::ExecuteFilter()
+{
+	int filterID = qobject_cast<QAction *>(sender())->data().toInt();
+	RunFilter(iAFilterRegistry::FilterFactories()[filterID]->Create(), m_mainWnd);
 }
 
 void iAModuleDispatcher::SaveModulesSettings() const
@@ -212,4 +234,34 @@ void iAModuleDispatcher::ChildCreated(MdiChild* child)
 	{
 		m.moduleInterface->ChildCreated(child);
 	}
+}
+
+
+QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+			return  submenus.at(i);
+	}
+	QMenu * result = new QMenu(parentMenu);
+	result->setTitle(title);
+	AddActionToMenuAlphabeticallySorted(parentMenu, result->menuAction(), isDisablable);
+	return result;
+}
+
+
+void  iAModuleDispatcher::AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable)
+{
+	AddModuleAction(action, isDisablable);
+	foreach(QAction * curAct, menu->actions())
+	{
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
+	}
+	menu->addAction(action);
 }
