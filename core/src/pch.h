@@ -27,6 +27,7 @@
 // need to do that very early, otherwise some itk header will include it,
 // but in some other way so that "GetConsoleWindow" is not defined
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #endif
 

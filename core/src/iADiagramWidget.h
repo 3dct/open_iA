@@ -23,6 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
+#define NOMINMAX
 #include <QGLWidget>
 #include <QImage>
 
