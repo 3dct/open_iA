@@ -55,22 +55,14 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iARatsThreshold);
 	REGISTER_FILTER(iAAdaptiveOtsuThreshold);
 
+	REGISTER_FILTER(iAWatershed);
+	REGISTER_FILTER(iAMorphologicalWatershed);
+
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
-	QMenu * menuWatershed = getMenuWithTitle( menuSegmentation, QString( "Based on Watershed" ) );
 	QMenu * menuFuzzyCMeans = getMenuWithTitle( menuSegmentation, QString( "Fuzzy C-Means" ) );
 
-	menuSegmentation->addAction(menuWatershed->menuAction() );
 	menuSegmentation->addAction(menuFuzzyCMeans->menuAction() );
-
-	// watershed-based
-	QAction * actionWatershed = new QAction(QApplication::translate("MainWindow", "Watershed Segmentation Filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuWatershed, actionWatershed );
-	connect( actionWatershed, SIGNAL( triggered() ), this, SLOT( watershed_seg() ) );
-
-	QAction * actionMorphologicalWatershed = new QAction(QApplication::translate("MainWindow", "Morphological Watershed Segmentation Filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuWatershed, actionMorphologicalWatershed );
-	connect( actionMorphologicalWatershed, SIGNAL( triggered() ), this, SLOT( morph_watershed_seg() ) );
 
 	QAction * actionSegmMetric = new QAction(QApplication::translate("MainWindow", "Quality Metrics to Console", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionSegmMetric, true);
@@ -227,77 +219,6 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		return false;
 	}
 	return true;
-}
-
-void iASegmentationModuleInterface::watershed_seg()
-{
-	QStringList inList = (QStringList()
-		<< tr( "#Level" )
-		<< tr( "#Threshold" ));
-	QList<QVariant> inPara; inPara
-		<< tr( "%1" ).arg( wsLevel )
-		<< tr( "%1" ).arg( wsThreshold );
-
-	dlg_commoninput dlg( m_mainWnd, "Watershed segmentation", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-
-	wsLevel = dlg.getDblValue(0);
-	wsThreshold = dlg.getDblValue(1);
-
-	QString filterName = "Watershed segmentation";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, WATERSHED,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setWParameters( wsLevel, wsThreshold );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::morph_watershed_seg()
-{
-	QSettings settings;
-	mwsLevel = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
-	mwsMarkWSLines = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
-	mwsFullyConnected = settings.value( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsFullyConnected" ).toBool();
-	QTextDocument *fDescr = new QTextDocument( 0 );
-	fDescr->setHtml(
-		"<p><font size=+1>Calculates the Morphological Watershed Transformation.</font></p>"
-		"<p>For further details see: http://www.insight-journal.org/browse/publication/92Select <br>"
-		"Note 1: As input image use e.g., a gradient magnitude image.<br>"
-		"Note 2: Mark WS Lines label whatershed lines with 0, background with 1. )</p>"
-		);
-	QStringList inList = ( QStringList()
-		<< tr( "#Level" )
-		<< tr( "$Mark WS Lines" )
-		<< tr( "$Fully Connected" ) );
-	QList<QVariant> inPara; inPara
-		<< tr( "%1" ).arg( mwsLevel )
-		<< tr( "%1" ).arg( mwsMarkWSLines )
-		<< tr( "%1" ).arg( mwsFullyConnected );
-	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", inList, inPara, fDescr );
-	if ( dlg.exec() != QDialog::Accepted )
-		return;
-		
-	mwsLevel = dlg.getDblValue(0);
-	mwsMarkWSLines = dlg.getCheckValue(1);
-	mwsFullyConnected = dlg.getCheckValue(2);
-	
-	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
-	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
-	settings.setValue( "Filters/Segmentation/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
-
-	QString filterName = "Morphological watershed segmentation";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, MORPH_WATERSHED,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setMWSParameters( mwsLevel, mwsMarkWSLines, mwsFullyConnected );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }
 
 void iASegmentationModuleInterface::FuzzyCMeansFinished()

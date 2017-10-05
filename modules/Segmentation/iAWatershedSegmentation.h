@@ -20,36 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAWatershedType
-{
-	WATERSHED,
-	MORPH_WATERSHED,
-};
-
-/**
- * Implementation of itkWatershedImageFilter. For itkWatershedImageFilter refer to 
- * http://www.itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html
- */
-class iAWatershedSegmentation : public iAAlgorithm
+class iAWatershed : public iAFilter
 {
 public:
-	iAWatershedSegmentation( QString fn, iAWatershedType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	void setWParameters( double l, double t ) { level = l; threshold = t; };
-	void setMWSParameters( double mwsl, bool mwsmwsl, bool mwsFC )
-	{
-		mwsLevel = mwsl; mwsMarkWSLines = mwsmwsl; mwsFullyConnected = mwsFC;
-	}
-
-	vtkImageData* getImageDataNew ( ) { return imageDataNew; }
-protected:
-	virtual void performWork();
+	static QSharedPointer<iAWatershed> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
 private:
-	double level, threshold;
-	double mwsLevel; // Morphological Watershed Segmentation Filter
-	bool mwsMarkWSLines, mwsFullyConnected;	// Morphological Watershed Segmentation Filter
-	iAWatershedType m_type;
-	vtkImageData* imageDataNew;
+	iAWatershed();
+};
+
+class iAMorphologicalWatershed : public iAFilter
+{
+public:
+	static QSharedPointer<iAMorphologicalWatershed> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iAMorphologicalWatershed();
 };

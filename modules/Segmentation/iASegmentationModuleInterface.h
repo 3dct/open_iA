@@ -32,26 +32,15 @@ class iAFilterRunner;
 class iASegmentationModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
 	void Initialize();
-
 private slots:
-	void watershed_seg();
-	void morph_watershed_seg();
 	void fcm_seg();
 	void kfcm_seg();
 	void mskfcm_seg();
 	bool CalculateSegmentationMetrics();
 	void FuzzyCMeansFinished();
 private:
-	double wsLevel, wsThreshold;					//!< Watershed parameters
-
-	//! @{ Morphological watershed parameters
-	double mwsLevel;								
-	bool mwsMarkWSLines, mwsFullyConnected;
-	//! @}
-
 	QMap<iAFilterRunner*, iAProbabilitySource*> m_probSources;
 	void StartFCMThread(QSharedPointer<iAFilter> filter);
 };
