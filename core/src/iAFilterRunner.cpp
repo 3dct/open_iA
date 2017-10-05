@@ -48,7 +48,7 @@ iAFilterRunner::iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QV
 
 void iAFilterRunner::performWork()
 {
-	m_filter->SetUp(getConnector(), qobject_cast<MdiChild*>(parent())->getLogger());
+	m_filter->SetUp(getConnector(), qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress());
 	m_filter->Run(m_paramValues);
 	emit workDone();
 }

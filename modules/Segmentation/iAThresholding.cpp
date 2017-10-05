@@ -67,13 +67,12 @@ IAFILTER_CREATE(iABinaryThreshold)
 void iABinaryThreshold::Run(QMap<QString, QVariant> parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	iAProgress progress;
 	ITK_TYPED_CALL(binary_threshold_template, itkType,
 		parameters["Lower Threshold"].toDouble(),
 		parameters["Upper Threshold"].toDouble(),
 		parameters["Outside Value"].toDouble(),
 		parameters["Inside Value"].toDouble(),
-		&progress, m_con);
+		m_progress, m_con);
 }
 
 iABinaryThreshold::iABinaryThreshold() :
@@ -127,14 +126,13 @@ IAFILTER_CREATE(iARatsThreshold)
 void iARatsThreshold::Run(QMap<QString, QVariant> parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	iAProgress progress;
 	double threshold;
 	ITK_TYPED_CALL(rats_threshold_template, itkType,
 		threshold,
 		parameters["Power"].toDouble(),
 		parameters["Outside Value"].toDouble(),
 		parameters["Inside Value"].toDouble(),
-		&progress, m_con);
+		m_progress, m_con);
 	AddMsg(QString("%1  Rats Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QString::number(threshold)));
 }
@@ -199,7 +197,6 @@ IAFILTER_CREATE(iAOtsuThreshold)
 void iAOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	iAProgress progress;
 	double threshold;
 	ITK_TYPED_CALL(otsu_threshold_template, itkType,
 		threshold,
@@ -207,7 +204,7 @@ void iAOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 		parameters["Outside Value"].toDouble(),
 		parameters["Inside Value"].toDouble(),
 		parameters["Remove Peaks"].toBool(),
-		&progress, m_con);
+		m_progress, m_con);
 	AddMsg(QString("%1  Otsu Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QString::number(threshold)));
 }
@@ -262,7 +259,6 @@ IAFILTER_CREATE(iAAdaptiveOtsuThreshold)
 void iAAdaptiveOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	iAProgress progress;
 	ITK_TYPED_CALL(adaptive_otsu_threshold, itkType,
 		parameters["Radius"].toDouble(),
 		parameters["Samples"].toUInt(),
@@ -272,7 +268,7 @@ void iAAdaptiveOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 		parameters["Outside Value"].toDouble(),
 		parameters["Inside Value"].toDouble(),
 		parameters["Spline Order"].toUInt(),
-		&progress, m_con);
+		m_progress, m_con);
 }
 
 iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
@@ -318,14 +314,13 @@ IAFILTER_CREATE(iAOtsuMultipleThreshold)
 void iAOtsuMultipleThreshold::Run(QMap<QString, QVariant> parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	iAProgress progress;
 	std::vector<double> omthresh;
 	ITK_TYPED_CALL(otsu_multiple_threshold_template, itkType,
 		omthresh,
 		parameters["Number of Histogram Bins"].toDouble(),
 		parameters["Number of Thresholds"].toDouble(),
 		parameters["Valley Emphasis"].toBool(),
-		&progress, m_con);
+		m_progress, m_con);
 	AddMsg(QString("%1  Otsu Multiple Thresholds = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(omthresh.size()));
 	for (int i = 0; i< omthresh.size(); i++) AddMsg(QString("    Threshold number %1 = %2").arg(i).arg(omthresh[i]));
@@ -372,13 +367,12 @@ void iAMaximumDistance::Run(QMap<QString, QVariant> parameters)
 {
 	int mdfHighInt, mdfLowInt, mdfThresh;
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	iAProgress progress;
 	ITK_TYPED_CALL(maximum_distance_template, itkType,
 		&mdfHighInt, &mdfLowInt, &mdfThresh,
 		parameters["Low Intensity"].toDouble(),
 		parameters["Number of Histogram Bins"].toDouble(),
 		parameters["Use Low Intensity"].toBool(),
-		&progress, m_con);
+		m_progress, m_con);
 	AddMsg(QString("Maximum Distance Threshold = %1").arg(QString::number(mdfThresh, 10)));
 	AddMsg(QString("Maximum Distance Low Peak = %1").arg(QString::number(mdfLowInt, 10)));
 	AddMsg(QString("Maximum Distance High Peak = %1").arg(QString::number(mdfHighInt, 10)));

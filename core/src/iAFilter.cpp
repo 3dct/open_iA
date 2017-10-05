@@ -52,10 +52,11 @@ QVector<pParameter> const & iAFilter::Parameters() const
 	return m_parameters;
 }
 
-void iAFilter::SetUp(iAConnector* con, iALogger* log)
+void iAFilter::SetUp(iAConnector* con, iALogger* log, iAProgress* progress)
 {
 	m_con = con;
 	m_log = log;
+	m_progress = progress;
 }
 
 bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)

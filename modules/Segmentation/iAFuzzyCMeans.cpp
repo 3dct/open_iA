@@ -22,6 +22,7 @@
 
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
 #include <itkFCMClassifierInitializationImageFilter.h>
@@ -121,15 +122,17 @@ namespace
 // FCM
 
 template <typename InputPixelType>
-void fcm_template(iAConnector * con, unsigned int maxIter, double maxError, double m, unsigned int numOfThreads, unsigned int numOfClasses,
-	QVector<double> const & centroids, bool ignoreBackgroundPixels, double backgroundPixel,
-	iAProbabilitySource & probSource)
+void fcm_template(iAConnector * con, unsigned int maxIter, double maxError, double m,
+	unsigned int numOfThreads, unsigned int numOfClasses, QVector<double> const & centroids,
+	bool ignoreBackgroundPixels, double backgroundPixel,
+	iAProbabilitySource & probSource, iAProgress* p)
 {
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
 	typedef itk::FCMClassifierInitializationImageFilter<InputImageType> TClassifierFCM;
 
 	auto classifier = TClassifierFCM::New();
+	p->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(maxIter);
 	classifier->SetMaximumError(maxError);
 	classifier->SetM(m);
@@ -185,7 +188,7 @@ void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 		centroids,
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
-		*this
+		*this, m_progress
 	);
 }
 
@@ -210,12 +213,10 @@ bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
 }
 
 template <typename InputPixelType>
-void kfcm_template(iAConnector * con, unsigned int maxIter, double maxError,
-	double m, double alpha, unsigned int numOfThreads, unsigned int numOfClasses,
-	QVector<double> const & centroids, double sigma,
-	unsigned int seRadius[3], bool ignoreBackgroundPixels,
-	double backgroundPixel,
-	iAProbabilitySource & probSource)
+void kfcm_template(iAConnector * con, unsigned int maxIter, double maxError, double m,
+	unsigned int numOfThreads, unsigned int numOfClasses, QVector<double> const & centroids,
+	bool ignoreBackgroundPixels, double backgroundPixel, double alpha, double sigma,
+	unsigned int seRadius[3], iAProbabilitySource & probSource, iAProgress* p)
 {
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
@@ -226,9 +227,7 @@ void kfcm_template(iAConnector * con, unsigned int maxIter, double maxError,
 	typedef itk::FlatStructuringElement<ImageDimension> StructuringElementType;
 
 	TClassifierKFCMS::Pointer classifier = TClassifierKFCMS::New();
-	itk::SimpleFilterWatcher watcher(classifier, "KFCMS classifier");
-
-	// set parameters:
+	p->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(maxIter);
 	classifier->SetMaximumError(maxError);
 	classifier->SetM(m);
@@ -281,15 +280,15 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["Maximum Iterations"].toUInt(),
 		parameters["Maximum Error"].toDouble(),
 		parameters["M"].toDouble(),
-		parameters["Alpha"].toDouble(),
 		parameters["Number of Threads"].toUInt(),
 		numberOfClasses,
 		centroids,
-		parameters["Sigma"].toDouble(),
-		seRadius,
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
-		*this
+		parameters["Alpha"].toDouble(),
+		parameters["Sigma"].toDouble(),
+		seRadius,
+		*this, m_progress
 	);
 }
 
@@ -318,12 +317,11 @@ bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
 }
 
 template <typename InputPixelType>
-void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError,
-	double m, double alpha, unsigned int numOfThreads, unsigned int numOfClasses,
-	QVector<double> const & centroids, double sigma,
-	unsigned int seRadius[3], bool ignoreBackgroundPixels,
-	double backgroundPixel, double p, double q,
-	iAProbabilitySource & probSource)
+void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError, double m,
+	unsigned int numOfThreads, unsigned int numOfClasses, QVector<double> const & centroids,
+	bool ignoreBackgroundPixels, double backgroundPixel, double alpha, double sigma,
+	unsigned int seRadius[3], double p, double q,
+	iAProbabilitySource & probSource, iAProgress* progress)
 {
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
@@ -331,6 +329,7 @@ void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError,
 	typedef TClassifierMSKFCM::KernelDistanceMetricPointer KernelDistMetricPtr;
 
 	TClassifierMSKFCM::Pointer classifier = TClassifierMSKFCM::New();
+	progress->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(maxIter);
 	classifier->SetMaximumError(maxError);
 	classifier->SetM(m);
@@ -390,16 +389,16 @@ void iAMSKFCMFilter::Run(QMap<QString, QVariant> parameters)
 		parameters["Maximum Iterations"].toUInt(),
 		parameters["Maximum Error"].toDouble(),
 		parameters["M"].toDouble(),
-		parameters["Alpha"].toDouble(),
 		parameters["Number of Threads"].toUInt(),
 		numberOfClasses,
 		centroids,
-		parameters["Sigma"].toDouble(),
-		seRadius,
 		parameters["Ignore Background"].toBool(),
 		parameters["Background Value"].toDouble(),
+		parameters["Alpha"].toDouble(),
+		parameters["Sigma"].toDouble(),
+		seRadius,
 		parameters["P"].toDouble(),
 		parameters["Q"].toDouble(),
-		*this
+		*this, m_progress
 	);
 }

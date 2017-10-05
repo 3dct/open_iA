@@ -33,6 +33,7 @@
 class iAAttributeDescriptor;
 class iAConnector;
 class iALogger;
+class iAProgress;
 
 typedef QSharedPointer<iAAttributeDescriptor> pParameter;
 
@@ -51,7 +52,7 @@ public:
 	QString Category() const;
 	QString Description() const;
 	QVector<pParameter> const & Parameters() const;
-	void SetUp(iAConnector* con, iALogger* logger);
+	void SetUp(iAConnector* con, iALogger* logger, iAProgress* progress);
 	void AddParameter(
 		QString const & name, iAValueType valueType,
 		QVariant defaultValue = 0.0,
@@ -64,7 +65,7 @@ protected:
 	iAConnector* m_con;
 	QString m_name, m_category, m_description;
 	iALogger* m_log;
-
+	iAProgress* m_progress;
 	void AddMsg(QString msg);
 };
 
