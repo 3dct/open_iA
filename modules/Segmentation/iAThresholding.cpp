@@ -76,7 +76,7 @@ void iABinaryThreshold::Run(QMap<QString, QVariant> parameters)
 }
 
 iABinaryThreshold::iABinaryThreshold() :
-	iAFilter("Binary Thresholding", "Segmentation",
+	iAFilter("Binary Thresholding", "Segmentation/Global Thresholding",
 		"Two thresholds (lower, upper) can be specified; "
 		"if a voxel value is between these two (including the threshold values themselves),"
 		"then the output is set to the <em>inside</em> value at this voxel, "

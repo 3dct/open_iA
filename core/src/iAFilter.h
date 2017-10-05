@@ -50,6 +50,7 @@ public:
 	virtual ~iAFilter();
 	QString Name() const;
 	QString Category() const;
+	QString FullCategory() const;
 	QString Description() const;
 	QVector<pParameter> const & Parameters() const;
 	void SetUp(iAConnector* con, iALogger* logger, iAProgress* progress);

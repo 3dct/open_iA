@@ -39,6 +39,12 @@ QString iAFilter::Name() const
 
 QString iAFilter::Category() const
 {
+	int slashPos = m_category.indexOf("/");
+	return slashPos > 0 ? m_category.left(slashPos) : m_category;
+}
+
+QString iAFilter::FullCategory() const
+{
 	return m_category;
 }
 

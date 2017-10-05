@@ -28,6 +28,7 @@
 #include "dlg_commoninput.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAFilterRegistry.h"
 #include "iAFilterRunner.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -47,7 +48,7 @@
 
 void iASegmentationModuleInterface::Initialize()
 {
-	REGISTER_FACTORY(iABinaryThreshold);
+	REGISTER_FACTORY(iABinaryThreshold)
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
 	QMenu * menuGlobalThresholding = getMenuWithTitle(menuSegmentation, QString("Global Thresholding"));

@@ -174,12 +174,12 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	{
 		auto filterFactory = filterFactories[i];
 		auto filter = filterFactory->Create();
-		filter->Name();
-		QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-		QMenu * menuCategory = getMenuWithTitle(filtersMenu, filter->Category());
-		// TODO: allow for subcategories (with slashes?)
+		QMenu * filterMenu = m_mainWnd->getFiltersMenu();
+		QStringList categories = filter->FullCategory().split("/");
+		for (auto cat : categories)
+			filterMenu = getMenuWithTitle(filterMenu, cat);
 		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->Name().toStdString().c_str(), 0), m_mainWnd);
-		AddActionToMenuAlphabeticallySorted(menuCategory, filterAction);
+		AddActionToMenuAlphabeticallySorted(filterMenu, filterAction);
 		filterAction->setData(i);
 		connect(filterAction, SIGNAL(triggered()), this, SLOT(ExecuteFilter()));
 	}
