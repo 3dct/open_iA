@@ -529,7 +529,7 @@ QListView
 		border: 1px solid rgba(120, 120, 120, 255);
 	}
 	
-	QListView::item:alternate:hover
+	QListView::item:alternate:hover,
 	QListWidget::item:alternate:hover
 	{
 		color: rgba(255, 255, 255, 255);
