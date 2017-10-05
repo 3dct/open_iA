@@ -22,9 +22,12 @@
 
 #include "iAModuleInterface.h"
 
+#include <QMap>
+
 class MdiChild;
 class iAProbabilitySource;
 class iAFilter;
+class iAFilterRunner;
 
 class iASegmentationModuleInterface : public iAModuleInterface
 {
@@ -78,7 +81,7 @@ private:
 	double fcmMaxError, fcmM, fcmBgPixel;
 	QString fcmCentroidString;
 	bool fcmIgnoreBg;
-	iAProbabilitySource* m_probSource;
+	QMap<iAFilterRunner*, iAProbabilitySource*> m_probSources;
 	//! @}
 
 	void StartFCMThread(QSharedPointer<iAFilter> filter);

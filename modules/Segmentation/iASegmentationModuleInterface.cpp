@@ -353,25 +353,29 @@ void iASegmentationModuleInterface::morph_watershed_seg()
 
 void iASegmentationModuleInterface::FuzzyCMeansFinished()
 {
-	if (!m_probSource)
+	iAFilterRunner* thread = dynamic_cast<iAFilterRunner*>(sender());
+	iAProbabilitySource* probSource = m_probSources[thread];
+	if (!thread || !probSource)
 	{
-		DEBUG_LOG("Fuzzy not set!");
+		DEBUG_LOG("Invalid FCM finished call!");
 		return;
 	}
-	auto & probs = m_probSource->Probabilities();
+	auto & probs = probSource->Probabilities();
 	for (int p = 0; p < probs.size(); ++p)
 	{
 		m_mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
 			new iAModality(QString("FCM Prob. %1").arg(p), "", -1, probs[p], 0)));
 	}
+	m_probSources.remove(thread);
 }
 
 void iASegmentationModuleInterface::StartFCMThread(QSharedPointer<iAFilter> filter)
 {
-	m_probSource = dynamic_cast<iAProbabilitySource*>(filter.data());
 	iAFilterRunner* thread = RunFilter(filter, m_mainWnd);
 	if (!thread)
 		return;
+
+	m_probSources.insert(thread, dynamic_cast<iAProbabilitySource*>(filter.data()));
 	m_mdiChild = qobject_cast<MdiChild*>(thread->parent());
 	connect(thread, SIGNAL(workDone()), this, SLOT(FuzzyCMeansFinished()));
 }
