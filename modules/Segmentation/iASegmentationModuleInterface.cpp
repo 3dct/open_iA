@@ -48,38 +48,20 @@
 
 void iASegmentationModuleInterface::Initialize()
 {
-	REGISTER_FACTORY(iABinaryThreshold)
+	REGISTER_FILTER(iABinaryThreshold);
+	REGISTER_FILTER(iAOtsuThreshold);
+	REGISTER_FILTER(iAOtsuMultipleThreshold);
+	REGISTER_FILTER(iAMaximumDistance);
+	REGISTER_FILTER(iARatsThreshold);
+	REGISTER_FILTER(iAAdaptiveOtsuThreshold);
+
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
-	QMenu * menuGlobalThresholding = getMenuWithTitle(menuSegmentation, QString("Global Thresholding"));
-	QMenu * menuLocalThresholding = getMenuWithTitle(menuSegmentation, QString("Local Thresholding"));
 	QMenu * menuWatershed = getMenuWithTitle( menuSegmentation, QString( "Based on Watershed" ) );
 	QMenu * menuFuzzyCMeans = getMenuWithTitle( menuSegmentation, QString( "Fuzzy C-Means" ) );
 
-	menuSegmentation->addAction(menuGlobalThresholding->menuAction() );
-	menuSegmentation->addAction(menuLocalThresholding->menuAction());
 	menuSegmentation->addAction(menuWatershed->menuAction() );
 	menuSegmentation->addAction(menuFuzzyCMeans->menuAction() );
-
-	QAction * actionOtsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Otsu threshold filter", 0), m_mainWnd );
-	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionOtsu_threshold_filter );
-	connect( actionOtsu_threshold_filter, SIGNAL( triggered() ), this, SLOT( otsu_Threshold_Filter() ) );
-
-	QAction * actionOtsu_Multiple_Threshold_Filter = new QAction(QApplication::translate("MainWindow", "Otsu multiple threshold filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionOtsu_Multiple_Threshold_Filter );
-	connect( actionOtsu_Multiple_Threshold_Filter, SIGNAL( triggered() ), this, SLOT( otsu_Multiple_Threshold_Filter() ) );
-
-	QAction * actionMaximum_distance_filter = new QAction(QApplication::translate("MainWindow", "Maximum distance filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionMaximum_distance_filter );
-	connect( actionMaximum_distance_filter, SIGNAL( triggered() ), this, SLOT( maximum_Distance_Filter() ) );
-
-	QAction * actionRats_threshold_filter = new QAction(QApplication::translate("MainWindow", "Rats threshold filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuGlobalThresholding, actionRats_threshold_filter);
-	connect(actionRats_threshold_filter, SIGNAL(triggered()), this, SLOT(rats_Threshold_Filter()));
-
-	QAction * actionAdaptive_otsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Adaptive Otsu threshold filter", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuLocalThresholding, actionAdaptive_otsu_threshold_filter );
-	connect( actionAdaptive_otsu_threshold_filter, SIGNAL( triggered() ), this, SLOT(adaptive_Otsu_Threshold_Filter() ) );
 
 	// watershed-based
 	QAction * actionWatershed = new QAction(QApplication::translate("MainWindow", "Watershed Segmentation Filter", 0), m_mainWnd);
@@ -245,31 +227,6 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		return false;
 	}
 	return true;
-}
-
-void iASegmentationModuleInterface::otsu_Threshold_Filter()
-{
-	RunFilter(iAOtsuThreshold::Create(), m_mainWnd);
-}
-
-void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
-{
-	RunFilter(iAAdaptiveOtsuThreshold::Create(), m_mainWnd);
-}
-
-void iASegmentationModuleInterface::rats_Threshold_Filter()
-{
-	RunFilter(iARatsThreshold::Create(), m_mainWnd);
-}
-
-void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
-{
-	RunFilter(iAOtsuMultipleThreshold::Create(), m_mainWnd);
-}
-
-void iASegmentationModuleInterface::maximum_Distance_Filter()
-{
-	RunFilter(iAMaximumDistance::Create(), m_mainWnd);
 }
 
 void iASegmentationModuleInterface::watershed_seg()

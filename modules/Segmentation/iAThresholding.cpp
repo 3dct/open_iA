@@ -138,7 +138,7 @@ void iARatsThreshold::Run(QMap<QString, QVariant> parameters)
 }
 
 iARatsThreshold::iARatsThreshold() :
-	iAFilter("RATS", "Segmentation",
+	iAFilter("RATS", "Segmentation/Global Thresholding",
 		"Robust automatic threshold selection. This method automatically determines a global threshold"
 		"by weighting the pixel values by their gradient (thus setting the threshold to the value where "
 		"the intensities change most).<br/>"
@@ -210,7 +210,7 @@ void iAOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 }
 
 iAOtsuThreshold::iAOtsuThreshold() :
-	iAFilter("Otsu Threshold", "Segmentation",
+	iAFilter("Otsu Threshold", "Segmentation/Global Thresholding",
 		"Creates an image segmented into foreground (inside value) and background (outside value) using Otsu's method,"
 		"which tries to maximize the between-class variance using a histogram.<br/>"
 		"For more information, see the "
@@ -272,7 +272,7 @@ void iAAdaptiveOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 }
 
 iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
-	iAFilter("Adaptive Otsu", "Segmentation",
+	iAFilter("Adaptive Otsu", "Segmentation/Local Thresholding",
 		"For more information, see the "
 		"<a href=\"https://github.com/ITKTools/ITKTools/blob/master/src/thresholdimage/itkAdaptiveOtsuThresholdImageFilter.h\">"
 		"Adaptive Otsu Threshold source code</a> in the ITKTools.")
@@ -327,7 +327,7 @@ void iAOtsuMultipleThreshold::Run(QMap<QString, QVariant> parameters)
 }
 
 iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
-	iAFilter("Otsu Multiple Thresholds", "Segmentation",
+	iAFilter("Otsu Multiple Thresholds", "Segmentation/Global Thresholding",
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
 		"Otsu Multiple Threshold Filter</a> in the ITK documentation.")
@@ -381,7 +381,7 @@ void iAMaximumDistance::Run(QMap<QString, QVariant> parameters)
 IAFILTER_CREATE(iAMaximumDistance)
 
 iAMaximumDistance::iAMaximumDistance() :
-	iAFilter("Maximum Distance", "Segmentation",
+	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
 		"A maximum distance threshold based on the histogram for voids segmentation.")
 {
 	AddParameter("Number of Histogram Bins", Discrete, 256, 2);

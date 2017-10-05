@@ -37,18 +37,12 @@ public:
 	void Initialize();
 
 private slots:
-	void otsu_Threshold_Filter();
-	void maximum_Distance_Filter();
 	void watershed_seg();
 	void morph_watershed_seg();
-	void adaptive_Otsu_Threshold_Filter();
-	void rats_Threshold_Filter();
-	void otsu_Multiple_Threshold_Filter();
 	void fcm_seg();
 	void kfcm_seg();
 	void mskfcm_seg();
 	bool CalculateSegmentationMetrics();
-	
 	void FuzzyCMeansFinished();
 private:
 	double wsLevel, wsThreshold;					//!< Watershed parameters

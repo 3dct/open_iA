@@ -53,7 +53,7 @@ public:
 	}
 };
 
-#define REGISTER_FACTORY(FilterType) \
+#define REGISTER_FILTER(FilterType) \
 iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()));
 
 // the above is a workaround for the "static construction" of the iAFilterFactory<FilterName>,
