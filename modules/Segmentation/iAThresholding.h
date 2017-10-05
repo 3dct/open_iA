@@ -68,3 +68,13 @@ public:
 private:
 	iAOtsuMultipleThreshold();
 };
+
+
+class iAMaximumDistance : public iAFilter
+{
+public:
+	static QSharedPointer<iAMaximumDistance> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iAMaximumDistance();
+};

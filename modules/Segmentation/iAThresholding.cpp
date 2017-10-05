@@ -26,6 +26,8 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include "itkMaximumDistance.h"
+
 #include <vtkImageData.h>
 
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
@@ -338,4 +340,57 @@ iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
 	AddParameter("Number of Thresholds", Discrete, 2, 1);
 	AddParameter("Valley Emphasis", Boolean, 1);
+}
+
+
+// Maximum Distance Threshold
+
+template<class T>
+void maximum_distance_template(int* mdfHighInt_ptr, int* mdfLowInt_ptr, int* mdfThresh_ptr,
+	double li, double b, bool u, iAProgress* p, iAConnector* image)
+{
+	typedef itk::Image< T, 3 >   InputImageType;
+	typedef itk::Image< T, 3 >   OutputImageType;
+	typedef itk::MaximumDistance< InputImageType > MaximumDistanceType;
+	auto filter = MaximumDistanceType::New();
+	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
+	filter->SetBins(b);
+	if (u)
+		filter->SetCentre(li);
+	else
+		filter->SetCentre(32767);
+	p->Observe(filter);
+	filter->Update();
+	image->SetImage(filter->GetOutput());
+	filter->GetThreshold(mdfThresh_ptr);
+	filter->GetLowIntensity(mdfLowInt_ptr);
+	filter->GetHighIntensity(mdfHighInt_ptr);
+	image->Modified();
+}
+
+void iAMaximumDistance::Run(QMap<QString, QVariant> parameters)
+{
+	int mdfHighInt, mdfLowInt, mdfThresh;
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	iAProgress progress;
+	ITK_TYPED_CALL(maximum_distance_template, itkType,
+		&mdfHighInt, &mdfLowInt, &mdfThresh,
+		parameters["Low Intensity"].toDouble(),
+		parameters["Number of Histogram Bins"].toDouble(),
+		parameters["Use Low Intensity"].toBool(),
+		&progress, m_con);
+	AddMsg(QString("Maximum Distance Threshold = %1").arg(QString::number(mdfThresh, 10)));
+	AddMsg(QString("Maximum Distance Low Peak = %1").arg(QString::number(mdfLowInt, 10)));
+	AddMsg(QString("Maximum Distance High Peak = %1").arg(QString::number(mdfHighInt, 10)));
+}
+
+IAFILTER_CREATE(iAMaximumDistance)
+
+iAMaximumDistance::iAMaximumDistance() :
+	iAFilter("Maximum Distance", "Segmentation",
+		"A maximum distance threshold based on the histogram for voids segmentation.")
+{
+	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
+	AddParameter("Low Intensity", Continuous, 0);
+	AddParameter("Use Low Intensity", Boolean, false);
 }

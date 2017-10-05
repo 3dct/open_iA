@@ -22,7 +22,6 @@
 #include "iASegmentationModuleInterface.h"
 
 #include "iAFuzzyCMeans.h"
-#include "iAMaximumDistance.h"
 #include "iAThresholding.h"
 #include "iAWatershedSegmentation.h"
 
@@ -278,31 +277,7 @@ void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
 
 void iASegmentationModuleInterface::maximum_Distance_Filter()
 {
-	QStringList inList = (QStringList()
-		<< tr( "#Number of Intensity" )
-		<< tr( "#Low Intensity" )
-		<< tr( "$Use Low Intensity" ));
-	QList<QVariant> inPara; inPara
-		<< tr( "%1" ).arg( mdfbins )
-		<< tr( "%1" ).arg( mdfli )
-		<< tr( "%1" ).arg( mdfuli );
-	dlg_commoninput dlg( m_mainWnd, "Maximum Distance Filter", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-
-	mdfbins = dlg.getDblValue(0);
-	mdfli = dlg.getDblValue(1);
-	mdfuli = dlg.getCheckValue(2);
-
-	QString filterName = "Maximum distance";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	iAMaximumDistance* thread = new iAMaximumDistance( filterName,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setMDFParameters( mdfli, mdfbins, mdfuli );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+	RunFilter(iAMaximumDistance::Create(), m_mainWnd);
 }
 
 void iASegmentationModuleInterface::watershed_seg()
