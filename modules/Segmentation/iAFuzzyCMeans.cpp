@@ -158,7 +158,7 @@ void fcm_template(iAConnector * con, unsigned int maxIter, double maxError, doub
 IAFILTER_CREATE(iAFCMFilter)
 
 iAFCMFilter::iAFCMFilter() :
-	iAFilter("FCM", "Segmentation",
+	iAFilter("FCM", "Segmentation/Fuzzy C-Means",
 		"Fuzzy C-Means (FCM) Classification<br/><br/>"
 		"This implementation is based on Bezdek et al.'s paper \"FCM: The fuzzy"
 		"c-means clustering algorithm\" (Computers & Geosciences, 10 (2), 191-203.,"
@@ -198,7 +198,7 @@ void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
 IAFILTER_CREATE(iAKFCMFilter)
 
 iAKFCMFilter::iAKFCMFilter() :
-	iAFilter("Kernelized FCM", "Segmentation",
+	iAFilter("Kernelized FCM", "Segmentation/Fuzzy C-Means",
 		"Spatially Constrained Fuzzy C-Means based on kernel-induced distance (KFCMS)<br/><br/>"
 		"This implementation is based on S.C.Chen. and D.Q.Zhang, \"Robust image segmentation using"
 		"FCM with spatial constraints based on new kernel - induced distance measure\". Systems, Man, and"
@@ -298,7 +298,7 @@ void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
 IAFILTER_CREATE(iAMSKFCMFilter)
 
 iAMSKFCMFilter::iAMSKFCMFilter() :
-	iAFilter("MSKFCM", "Segmentation",
+	iAFilter("MSKFCM", "Segmentation/Fuzzy C-Means",
 		"Modified Spatial Kernelized Fuzzy C-Means.<br/><br/>"
 		"This implementation is a modified version of the algorithm MSFKCM proposed"
 		"by Castro et al.in the paper \"Comparison of various fuzzy clustering"

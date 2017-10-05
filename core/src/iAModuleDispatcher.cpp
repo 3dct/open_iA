@@ -191,7 +191,10 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 void iAModuleDispatcher::ExecuteFilter()
 {
 	int filterID = qobject_cast<QAction *>(sender())->data().toInt();
-	RunFilter(iAFilterRegistry::FilterFactories()[filterID]->Create(), m_mainWnd);
+	auto factory = iAFilterRegistry::FilterFactories()[filterID];
+	auto runner = RunFilter(factory->Create(), m_mainWnd);
+	if (iAFilterRegistry::FilterCallback(factory))
+		iAFilterRegistry::FilterCallback(factory)->FilterStarted(runner);
 }
 
 void iAModuleDispatcher::SaveModulesSettings() const

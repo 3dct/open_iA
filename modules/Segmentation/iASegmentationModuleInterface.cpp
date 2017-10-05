@@ -58,28 +58,15 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAWatershed);
 	REGISTER_FILTER(iAMorphologicalWatershed);
 
+	REGISTER_FILTER_WITH_CALLBACK(iAFCMFilter, this);
+	REGISTER_FILTER_WITH_CALLBACK(iAKFCMFilter, this);
+	REGISTER_FILTER_WITH_CALLBACK(iAMSKFCMFilter, this);
+
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
-	QMenu * menuFuzzyCMeans = getMenuWithTitle( menuSegmentation, QString( "Fuzzy C-Means" ) );
-
-	menuSegmentation->addAction(menuFuzzyCMeans->menuAction() );
-
+	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString("Segmentation"));
 	QAction * actionSegmMetric = new QAction(QApplication::translate("MainWindow", "Quality Metrics to Console", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionSegmMetric, true);
 	connect(actionSegmMetric, SIGNAL(triggered()), this, SLOT(CalculateSegmentationMetrics()));
-	
-	// fuzzy c-means
-	QAction * actionFuzzyCMeans = new QAction(QApplication::translate("MainWindow", "Fuzzy C-Means", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionFuzzyCMeans );
-	connect( actionFuzzyCMeans, SIGNAL( triggered() ), this, SLOT( fcm_seg() ) );
-	
-	QAction * actionKFCM = new QAction(QApplication::translate("MainWindow", "Kernelized FCM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionKFCM);
-	connect(actionKFCM, SIGNAL( triggered() ), this, SLOT( kfcm_seg() ) );
-
-	QAction * actionMSKFCM = new QAction(QApplication::translate("MainWindow", "MSKFCM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuFuzzyCMeans, actionMSKFCM);
-	connect(actionMSKFCM, SIGNAL(triggered()), this, SLOT(mskfcm_seg()));
 }
 
 
@@ -239,27 +226,10 @@ void iASegmentationModuleInterface::FuzzyCMeansFinished()
 	m_probSources.remove(thread);
 }
 
-void iASegmentationModuleInterface::StartFCMThread(QSharedPointer<iAFilter> filter)
+void iASegmentationModuleInterface::FilterStarted(iAFilterRunner* thread)
 {
-	iAFilterRunner* thread = RunFilter(filter, m_mainWnd);
 	if (!thread)
 		return;
-
-	m_probSources.insert(thread, dynamic_cast<iAProbabilitySource*>(filter.data()));
+	m_probSources.insert(thread, dynamic_cast<iAProbabilitySource*>(thread->Filter().data()));
 	connect(thread, SIGNAL(workDone()), this, SLOT(FuzzyCMeansFinished()));
-}
-
-void iASegmentationModuleInterface::fcm_seg()
-{
-	StartFCMThread(iAFCMFilter::Create());
-}
-
-void iASegmentationModuleInterface::kfcm_seg()
-{
-	StartFCMThread(iAKFCMFilter::Create());
-}
-
-void iASegmentationModuleInterface::mskfcm_seg()
-{
-	StartFCMThread(iAMSKFCMFilter::Create());
 }

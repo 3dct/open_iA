@@ -123,3 +123,8 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 	thread->start();
 	return thread;
 }
+
+QSharedPointer<iAFilter> iAFilterRunner::Filter()
+{
+	return m_filter;
+}

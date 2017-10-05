@@ -26,9 +26,21 @@ void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> 
 	m_filters.push_back(factory);
 }
 
+void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory, iAFilterRunCallback* callback)
+{
+	AddFilterFactory(factory);
+	m_callback.insert(factory, callback);
+}
+
 QVector<QSharedPointer<iAAbstractFilterFactory>> const & iAFilterRegistry::FilterFactories()
 {
 	return m_filters;
 }
 
+iAFilterRunCallback* iAFilterRegistry::FilterCallback(QSharedPointer<iAAbstractFilterFactory> factory)
+{
+	return m_callback.contains(factory)? m_callback[factory] : nullptr;
+}
+
 QVector<QSharedPointer<iAAbstractFilterFactory>> iAFilterRegistry::m_filters;
+QMap<QSharedPointer<iAAbstractFilterFactory>, iAFilterRunCallback*> iAFilterRegistry::m_callback;

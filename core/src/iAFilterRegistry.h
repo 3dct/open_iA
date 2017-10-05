@@ -22,10 +22,12 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QMap>
 #include <QSharedPointer>
 #include <QVector>
 
 class iAFilter;
+class iAFilterRunner;
 
 class open_iA_Core_API iAAbstractFilterFactory
 {
@@ -33,13 +35,23 @@ public:
 	virtual QSharedPointer<iAFilter> Create() =0;
 };
 
+class open_iA_Core_API iAFilterRunCallback
+{
+public:
+	virtual void FilterStarted(iAFilterRunner* runner) = 0;
+};
+
 class open_iA_Core_API iAFilterRegistry
 {
 public:
 	static void AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory);
+	static void AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory,
+		iAFilterRunCallback* callback);
 	static QVector<QSharedPointer<iAAbstractFilterFactory>> const & FilterFactories();
+	static iAFilterRunCallback* FilterCallback(QSharedPointer<iAAbstractFilterFactory>);
 private:
 	static QVector<QSharedPointer<iAAbstractFilterFactory>> m_filters;
+	static QMap<QSharedPointer<iAAbstractFilterFactory>, iAFilterRunCallback*> m_callback;
 };
 
 
@@ -55,6 +67,9 @@ public:
 
 #define REGISTER_FILTER(FilterType) \
 iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()));
+
+#define REGISTER_FILTER_WITH_CALLBACK(FilterType, callback) \
+iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()), callback);
 
 // the above is a workaround for the "static construction" of the iAFilterFactory<FilterName>,
 // see e.g. https://stackoverflow.com/questions/1197106/static-constructors-in-c-i-need-to-initialize-private-static-objects

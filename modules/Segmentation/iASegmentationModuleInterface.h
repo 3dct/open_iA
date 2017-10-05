@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAModuleInterface.h"
+#include "iAFilterRegistry.h"
 
 #include <QMap>
 
@@ -29,18 +30,15 @@ class iAProbabilitySource;
 class iAFilter;
 class iAFilterRunner;
 
-class iASegmentationModuleInterface : public iAModuleInterface
+class iASegmentationModuleInterface : public iAModuleInterface, public iAFilterRunCallback
 {
 	Q_OBJECT
 public:
 	void Initialize();
+	void FilterStarted(iAFilterRunner* filter) override;
 private slots:
-	void fcm_seg();
-	void kfcm_seg();
-	void mskfcm_seg();
 	bool CalculateSegmentationMetrics();
 	void FuzzyCMeansFinished();
 private:
 	QMap<iAFilterRunner*, iAProbabilitySource*> m_probSources;
-	void StartFCMThread(QSharedPointer<iAFilter> filter);
 };

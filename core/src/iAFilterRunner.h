@@ -31,12 +31,13 @@ class iAFilter;
 class MainWindow;
 class MdiChild;
 
-class iAFilterRunner : public iAAlgorithm
+class open_iA_Core_API iAFilterRunner : public iAAlgorithm
 {
 	Q_OBJECT
 public:
 	iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild);
 	void performWork();
+	QSharedPointer<iAFilter> Filter();
 private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;
