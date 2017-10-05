@@ -65,26 +65,26 @@ void iAProbabilitySource::SetProbabilities(VectorImageType::Pointer vectorImg)
 
 namespace
 {
-	void AddFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
+	void AddFCMParameters(iAFilter & filter)
 	{
-		params.push_back(ParamDesc::CreateParam("Maximum Iterations", Discrete, 500, 1));
-		params.push_back(ParamDesc::CreateParam("Maximum Error", Continuous, 0.0001));
-		params.push_back(ParamDesc::CreateParam("M", Continuous, 2));
-		params.push_back(ParamDesc::CreateParam("Number of Classes", Discrete, 2, 1));
-		params.push_back(ParamDesc::CreateParam("Centroids", String, "0 1"));
-		params.push_back(ParamDesc::CreateParam("Ignore Background", Boolean, false));
-		params.push_back(ParamDesc::CreateParam("Background Value", Continuous, 0));
-		params.push_back(ParamDesc::CreateParam("Number of Threads", Discrete, 4, 1));
+		filter.AddParameter("Maximum Iterations", Discrete, 500, 1);
+		filter.AddParameter("Maximum Error", Continuous, 0.0001);
+		filter.AddParameter("M", Continuous, 2);
+		filter.AddParameter("Number of Classes", Discrete, 2, 1);
+		filter.AddParameter("Centroids", String, "0 1");
+		filter.AddParameter("Ignore Background", Boolean, false);
+		filter.AddParameter("Background Value", Continuous, 0);
+		filter.AddParameter("Number of Threads", Discrete, 4, 1);
 	}
 
-	void AddKFCMParameters(QVector<QSharedPointer<iAAttributeDescriptor> > & params)
+	void AddKFCMParameters(iAFilter & filter)
 	{
-		AddFCMParameters(params);
-		params.push_back(ParamDesc::CreateParam("Alpha", Continuous, 1));
-		params.push_back(ParamDesc::CreateParam("Sigma", Continuous, 1));
-		params.push_back(ParamDesc::CreateParam("StructRadius X", Discrete, 1, 1));
-		params.push_back(ParamDesc::CreateParam("StructRadius Y", Discrete, 1, 1));
-		params.push_back(ParamDesc::CreateParam("StructRadius Z", Discrete, 1, 1));	// (Vector Type ? )
+		AddFCMParameters(filter);
+		filter.AddParameter("Alpha", Continuous, 1);
+		filter.AddParameter("Sigma", Continuous, 1);
+		filter.AddParameter("StructRadius X", Discrete, 1, 1);
+		filter.AddParameter("StructRadius Y", Discrete, 1, 1);
+		filter.AddParameter("StructRadius Z", Discrete, 1, 1);	// (Vector Type ? )
 	}
 
 	bool ConvertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
@@ -161,7 +161,7 @@ iAFCMFilter::iAFCMFilter() :
 		"c-means clustering algorithm\" (Computers & Geosciences, 10 (2), 191-203.,"
 		"1984).")
 {
-	AddFCMParameters(m_parameters);
+	AddFCMParameters(*this);
 }
 
 bool iAFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
@@ -201,7 +201,7 @@ iAKFCMFilter::iAKFCMFilter() :
 		"FCM with spatial constraints based on new kernel - induced distance measure\". Systems, Man, and"
 		"Cybernetics, Part B : Cybernetics, IEEE Transactions on, 34(4) : 1907–1916, 2004. 1, 2.2")
 {
-	AddKFCMParameters(m_parameters);
+	AddKFCMParameters(*this);
 }
 
 bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
@@ -307,9 +307,9 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 		"kernelized - spatial fuzzy c-means algorithm\" (Proc. of 10th IEEE Int. Conf."
 		"On Inf.Tech. and Appl.in Biom., Corfu, Greece, 2010).")
 {
-	AddKFCMParameters(m_parameters);
-	m_parameters.push_back(ParamDesc::CreateParam("P", Continuous, 2));
-	m_parameters.push_back(ParamDesc::CreateParam("Q", Continuous, 1));
+	AddKFCMParameters(*this);
+	AddParameter("P", Continuous, 2);
+	AddParameter("Q", Continuous, 1);
 }
 
 bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)

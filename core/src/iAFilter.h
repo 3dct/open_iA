@@ -22,9 +22,12 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAValueType.h"
+
 #include <QMap>
 #include <QSharedPointer>
 #include <QString>
+#include <QVariant>
 #include <QVector>
 
 class iAAttributeDescriptor;
@@ -49,6 +52,11 @@ public:
 	QString Description() const;
 	QVector<pParameter> const & Parameters() const;
 	void SetUp(iAConnector* con, iALogger* logger);
+	void AddParameter(
+		QString const & name, iAValueType valueType,
+		QVariant defaultValue = 0.0,
+		double min = std::numeric_limits<double>::lowest(),
+		double max = std::numeric_limits<double>::max());
 	virtual bool CheckParameters(QMap<QString, QVariant> parameters);
 	virtual void Run(QMap<QString, QVariant> parameters) = 0;
 protected:

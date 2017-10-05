@@ -21,8 +21,7 @@
 #include "iAFilter.h"
 
 #include "iALogger.h"
-
-#include <QVariant>
+#include "iAAttributeDescriptor.h"
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description):
 	m_name(name),
@@ -67,4 +66,10 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
 void iAFilter::AddMsg(QString msg)
 {
 	m_log->log(msg);
+}
+
+void iAFilter::AddParameter(QString const & name, iAValueType valueType,
+	QVariant defaultValue, double min, double max)
+{
+	m_parameters.push_back(iAAttributeDescriptor::CreateParam(name, valueType, defaultValue, min, max));
 }

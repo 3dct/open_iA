@@ -84,10 +84,10 @@ iABinaryThreshold::iABinaryThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html\">"
 		"Binary Threshold Filter</a> in the ITK documentation.")
 {
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Lower Threshold", Continuous, 0));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Upper Threshold", Continuous, 32768));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
+	AddParameter("Lower Threshold", Continuous, 0);
+	AddParameter("Upper Threshold", Continuous, 32768);
+	AddParameter("Outside Value", Continuous, 0);
+	AddParameter("Inside Value", Continuous, 1);
 }
 
 
@@ -146,9 +146,9 @@ iARatsThreshold::iARatsThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html\">"
 		"RATS Filter</a> in the ITK documentation.")
 {
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Power", Continuous, 1));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
+	AddParameter("Power", Continuous, 1);
+	AddParameter("Outside Value", Continuous, 0);
+	AddParameter("Inside Value", Continuous, 1);
 }
 
 
@@ -211,17 +211,17 @@ void iAOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 }
 
 iAOtsuThreshold::iAOtsuThreshold() :
-	iAFilter("Otsu threshold", "Segmentation",
+	iAFilter("Otsu Threshold", "Segmentation",
 		"Creates an image segmented into foreground (inside value) and background (outside value) using Otsu's method,"
 		"which tries to maximize the between-class variance using a histogram.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
 		"Otsu Threshold Filter</a> in the ITK documentation.")
 {
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Histogram Bins", Discrete, 128, 2));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Remove Peaks", Boolean, false));
+	AddParameter("Number of Histogram Bins", Discrete, 128, 2);
+	AddParameter("Outside Value", Continuous, 0);
+	AddParameter("Inside Value", Continuous, 1);
+	AddParameter("Remove Peaks", Boolean, false);
 }
 
 
@@ -279,14 +279,14 @@ iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
 		"<a href=\"https://github.com/ITKTools/ITKTools/blob/master/src/thresholdimage/itkAdaptiveOtsuThresholdImageFilter.h\">"
 		"Adaptive Otsu Threshold source code</a> in the ITKTools.")
 {
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Histogram Bins", Discrete, 256, 2));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Outside Value", Continuous, 0));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Inside Value", Continuous, 1));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Radius", Continuous, 8));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Samples", Discrete, 5000));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Levels", Discrete, 3));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Control Points", Discrete, 50, 1));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Spline Order", Discrete, 3, 2));
+	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
+	AddParameter("Outside Value", Continuous, 0);
+	AddParameter("Inside Value", Continuous, 1);
+	AddParameter("Radius", Continuous, 8);
+	AddParameter("Samples", Discrete, 5000);
+	AddParameter("Levels", Discrete, 3);
+	AddParameter("Control Points", Discrete, 50, 1);
+	AddParameter("Spline Order", Discrete, 3, 2);
 }
 
 
@@ -335,7 +335,7 @@ iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
 		"Otsu Multiple Threshold Filter</a> in the ITK documentation.")
 {
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Histogram Bins", Discrete, 256, 2));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Number of Thresholds", Discrete, 2, 1));
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam("Valley Emphasis", Boolean, 1));
+	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
+	AddParameter("Number of Thresholds", Discrete, 2, 1);
+	AddParameter("Valley Emphasis", Boolean, 1);
 }
