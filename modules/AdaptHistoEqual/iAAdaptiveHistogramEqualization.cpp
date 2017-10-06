@@ -68,7 +68,7 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 		"through (beta=1, with alpha=1).</p>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
-		"Discrete Gaussian Filter</a> in the ITK documentation.")
+		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
 {
 	AddParameter("Alpha", Continuous, 0, 0, 1);
 	AddParameter("Beta", Continuous, 0, 0, 1);

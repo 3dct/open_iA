@@ -50,7 +50,7 @@ void discrete_gaussian_template( double v, double me, bool outimg, iAProgress* p
 	if ( outimg )
 	{
 		typedef itk::CastImageFilter<RealImageType, InputImageType> CastToInputFilterType;
-		typename CastToInputFilterType::Pointer toInput = CastToInputFilterType::New();
+		auto toInput = CastToInputFilterType::New();
 		toInput->SetInput( filter->GetOutput() );
 		p->Observe( toInput );
 		toInput->Update();
@@ -74,7 +74,7 @@ void iADiscreteGaussian::Run(QMap<QString, QVariant> parameters)
 	ITK_TYPED_CALL(discrete_gaussian_template, pixelType,
 		parameters["Variance"].toDouble(),
 		parameters["Maximum Error"].toDouble(),
-		parameters["UShort Output"].toBool(),
+		parameters["Input Type Output"].toBool(),
 		m_progress, m_con);
 }
 
@@ -82,14 +82,15 @@ iADiscreteGaussian::iADiscreteGaussian() :
 	iAFilter("Discrete Gaussian", "Smoothing/Blurring",
 		"Performs a discrete gaussian blurring using the given <em>Variance</em> and <em>Maximum Error</em>.<br/>"
 		"Note that the variance needs to be given in image coordinates (i.e. considering the spacing)."
-		"If <em>UShort Output</em> is checked, then the output of the filter will be cast to an unsigned short image.<br/>"
+		"If <em>Input Type Output</em> is checked, then the output of the filter will be converted back "
+		"to the same type as the input image; otherwise, the result will be a float image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DiscreteGaussianImageFilter.html\">"
 		"Discrete Gaussian Filter</a> in the ITK documentation.")
 {
 	AddParameter("Variance", Continuous, 0);
-	AddParameter("Maximum Error", Continuous, 0.01);
-	AddParameter("UShort Output", Boolean, false);
+	AddParameter("Maximum Error", Continuous, 0.01, 0, 1);
+	AddParameter("Input Type Output", Boolean, false);
 }
 
 
@@ -126,13 +127,14 @@ void iAGradientAnisotropicDiffusion::Run(QMap<QString, QVariant> parameters)
 iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
 	iAFilter("Gradient Anisotropic Diffusion", "Smoothing/Edge preserving smoothing",
 		"Performs a gradient anisotropic diffusion.<br/>"
+		"Note: The input to this filter is a float image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GradientAnisotropicDiffusionImageFilter.html\">"
 		"Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
 {
 	AddParameter("Number of Iterations", Discrete, 100, 1);
-	AddParameter("Time Step", Continuous, 0.1);
-	AddParameter("Conductance", Continuous, 0.1);
+	AddParameter("Time Step", Continuous, 0.0625);
+	AddParameter("Conductance", Continuous, 1);
 }
 
 
@@ -169,14 +171,14 @@ void iACurvatureAnisotropicDiffusion::Run(QMap<QString, QVariant> parameters)
 iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
 	iAFilter("Curvature Anisotropic Diffusion", "Smoothing/Edge preserving smoothing",
 		"Performs an anisotropic diffusion using a modified curvature diffusion equation (MCDE)."
-		"Note: The input to this filter needs to be float or double!<br/>"
+		"Note: The input to this filter is a float image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CurvatureAnisotropicDiffusionImageFilter.html\">"
 		"Curvature Anisotropic Diffusion Filter</a> in the ITK documentation.")
 {
 	AddParameter("Number of Iterations", Discrete, 100, 1);
-	AddParameter("Time Step", Continuous, 0.1);
-	AddParameter("Conductance", Continuous, 0.1);
+	AddParameter("Time Step", Continuous, 0.0625);
+	AddParameter("Conductance", Continuous, 1);
 }
 
 
@@ -210,7 +212,10 @@ void iABilateral::Run(QMap<QString, QVariant> parameters)
 
 iABilateral::iABilateral() :
 	iAFilter("Bilateral Image Filter", "Smoothing/Edge preserving smoothing",
-		""
+		"Bilateral filtering blurs an image using both domain and range neighborhoods.<br/>"
+		"Pixels that are close to a pixel in the image domain and similar to a pixel in the image range "
+		"are used to calculate the filtered value. Two gaussian kernels (one in the image domain "
+		"and one in the image range) are used to smooth the image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BilateralImageFilter.html\">"
 		"Bilateral Image Filter</a> in the ITK documentation.")
