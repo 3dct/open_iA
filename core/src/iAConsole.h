@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iALogger.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QObject>
@@ -72,4 +74,16 @@ private:
 	bool m_closed;
 	bool m_fileLogError;
 	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
+};
+
+
+class iAConsoleLogger : public iALogger
+{
+public:
+	void log(QString const & msg);
+	static iAConsoleLogger & Get();
+private:
+	iAConsoleLogger();
+	iAConsoleLogger(iAConsoleLogger const&);
+	void operator=(iAConsoleLogger const&);
 };

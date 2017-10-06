@@ -142,3 +142,21 @@ void iAConsole::Close()
 {
 	GetInstance().close();
 }
+
+
+
+// iAConsoleLogger
+
+void iAConsoleLogger::log(QString const & msg)
+{
+	iAConsole::GetInstance().Log(msg.toStdString());
+}
+
+iAConsoleLogger & iAConsoleLogger::Get()
+{
+	static iAConsoleLogger GlobalConsoleLogger;
+	return GlobalConsoleLogger;
+}
+
+iAConsoleLogger::iAConsoleLogger()
+{}

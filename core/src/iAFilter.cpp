@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "iAFilter.h"
 
-#include "iALogger.h"
+#include "iAConsole.h"
 #include "iAAttributeDescriptor.h"
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description):
 	m_name(name),
 	m_category(category),
-	m_description(description)
+	m_description(description),
+	m_log(&iAConsoleLogger::Get())
 {}
 
 iAFilter::~iAFilter()

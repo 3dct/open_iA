@@ -59,18 +59,6 @@
 #include <QTimer>
 #include <QtXml/QDomDocument>
 
-
-class ConsoleLogger : public iALogger
-{
-public:
-	void log(QString const & msg)
-	{
-		iAConsole::GetInstance().Log(msg.toStdString());
-	}
-};
-
-ConsoleLogger GlobalConsoleLogger;
-
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & splashImage )
 :
 	QMainWindow(),
@@ -112,7 +100,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	createRecentFileActions();
 	connectSignalsToSlots();
-	//setupToolBars();
 	setupStatusBar();
 	updateMenus();
 	slicerToolsGroup = new QActionGroup(this);
@@ -137,9 +124,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	this->layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	this->layoutToolbar->insertWidget(this->actionSave_Layout, layout);
 
-	m_moduleDispatcher->InitializeModules(&GlobalConsoleLogger);
+	m_moduleDispatcher->InitializeModules(&iAConsoleLogger::Get());
 	SetModuleActionsEnabled( false );
-
 }
 
 
@@ -1993,12 +1979,6 @@ void MainWindow::readSettings()
 	owdtcxsize = settings.value("OpenWithDataTypeConversion/owdtcxsize").toInt();
 	owdtcysize = settings.value("OpenWithDataTypeConversion/owdtcysize").toInt();
 	owdtczsize = settings.value("OpenWithDataTypeConversion/owdtczsize").toInt();
-
-	dtcmin = settings.value("Filters/DataTypeConversion/dtcmin").toFloat();
-	dtcmax = settings.value("Filters/DataTypeConversion/dtcmax").toFloat();
-	dtcoutmin = settings.value("Filters/DataTypeConversion/dtcoutmin").toDouble();
-	dtcoutmax = settings.value("Filters/DataTypeConversion/dtcoutmax").toDouble();
-	dtcdov = settings.value("Filters/DataTypeConversion/dtcdov").toInt();
 
 	settings.beginGroup("Layout");
 	layoutNames = settings.allKeys();

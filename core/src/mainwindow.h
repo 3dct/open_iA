@@ -191,7 +191,6 @@ signals:
 	void StyleChanged();
 private:
 	void connectSignalsToSlots();
-	void setupToolBars();
 	void setupStatusBar();
 	void readSettings();
 	void writeSettings();
@@ -205,31 +204,22 @@ private:
 	void LoadProject(QString const & fileName);
 	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
-
-	QSplashScreen *splashScreen;
-		
 	QMdiSubWindow *findMdiChild(const QString &fileName);
 	QString strippedName(const QString &fullFileName);
-
 	double neighborhood(vtkImageData *imageData, int x0, int y0, int z0);
 
+	QSplashScreen *splashScreen;
 	QAction *separatorAct;
 	enum { MaxRecentFiles = 8 };
 	QAction *recentFileActs[MaxRecentFiles];
 	QActionGroup *slicerToolsGroup;
-
 	QSignalMapper *windowMapper;
-	
 	QString qssName;
-
 	iAVolumeSettings defaultVolumeSettings;	
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;
 
-	//! @{ DataType Conversion settings
-	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
-	//! @}
 	//! @{ Open with DataType Conversion settings
 	int owdtcs,
 		owdtcx, owdtcy, owdtcz,
@@ -245,18 +235,9 @@ private:
 	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
 
 	QString defaultLayout;
-
-	QString movFileName; //mean object visualization parameter
-
-	int fvDiscretizationFactor;
-	QString fvFileName;
-
 	QString curFile, path;
-
 	QTimer *timer;
-
 	QComboBox * layout;
-
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList layoutNames;
 	QString m_gitVersion;
