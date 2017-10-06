@@ -20,27 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-/** A implementation of the computation of adpative histogram equalization */
-class iAAdaptiveHistogramEqualization : public iAAlgorithm
+class iAAdaptiveHistogramEqualization : public iAFilter
 {
 public:
-	iAAdaptiveHistogramEqualization( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets the adaptive Histogram equalization parameters.
-	 * \param	aheAlpha		Alpha	classical histogram equalization method (alpha=0) -> unsharp mask (alpha=1).
-	 * \param	aheBeta			Beta	unsharp mask (beta=0) -> pass through (beta=1, with alpha=1).
-	 */
-	void setCParameters(double aheAlpha, double aheBeta) { 
-		this->aheAlpha = aheAlpha;
-		this->aheBeta = aheBeta;
-	};
-
-protected:
-	virtual void performWork();
+	static QSharedPointer<iAAdaptiveHistogramEqualization> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
 private:
-	double aheAlpha;
-	double aheBeta;
+	iAAdaptiveHistogramEqualization();
 };
