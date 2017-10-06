@@ -46,30 +46,78 @@ typedef QSharedPointer<iAAttributeDescriptor> pParameter;
 class open_iA_Core_API iAFilter
 {
 public:
+	//! Constructor initializing name, category and description of the filter
+	//! @param name The name of the filter. It will be used in its menu entry,
+	//!     as part of the title of the result window, and as title for the
+	//!     parameter selection dialog.
+	//! @param category The filter category. It will be used for putting the
+	//!     filter into a fitting submenu and for categorizing the filter
+	//!     parameters when storing them in the registry you can use the slash
+	//!     character ("/") to specify subcategories.
+	//!     A category of "Segmentation/Global Thresholding" for example would put
+	//      a filter in the "Global Thresholding" submenu of the "Segmentation"
+	//!     menu, which in turn is added as submenu to the Filter menu.
+	//!     When left empty, the filter will be added directly in the Filter menu
+	//! @param description An (optional) description of the filter algorithm, and
+	//!     ideally its settings. Can contain HTML (e.g. links)
 	iAFilter(QString const & name, QString const & category, QString const & description);
+	//! Destructor
 	virtual ~iAFilter();
+	//! Retrieve the filter name
 	QString Name() const;
+	//! Retrieve the filter category (if sub-categories were specified, this only
+	//! returns the first one)
 	QString Category() const;
+	//! Retrieve the full category string (just as specified in the constructor)
 	QString FullCategory() const;
+	//! Retrieve the filter description
 	QString Description() const;
+	//! Retrieve a list of the filter parameters
 	QVector<pParameter> const & Parameters() const;
+	//! Used internally by iAFilterRunner to set up the resources required in the
+	//! filter
 	void SetUp(iAConnector* con, iALogger* logger, iAProgress* progress);
+	//! Check whether the filter can be run with the given parameters. If
+	//! you need to perform special checks on your parameters, override this
+	//! method. The standard implementation here just checks parameters with
+	//! Discrete and Continuous value type for minimum and maximum values.
+	//! @param parameters the generic list of parameters that the filter will
+	//!     be called with
+	//! @return true if the given parameters are acceptable for the filter, false
+	//!     otherwise
+	virtual bool CheckParameters(QMap<QString, QVariant> parameters);
+	//! The actual implementation of the filter
+	//! @param parameters the map of parameters to use in this specific filter run
+	virtual void Run(QMap<QString, QVariant> parameters) = 0;
+	//! Adds the description of a parameter to the filter
+	//! @param name the parameter's name
+	//! @param valueType the type of value this parameter can have
+	//! @param defaultValue the default value of the parameter; for Categorical
+	//!     valueTypes, this should be the list of possible values
+	//! @param min the minimum value this parameter can have (inclusive).
+	//! @param max the maximum value this parameter can have (inclusive)
 	void AddParameter(
 		QString const & name, iAValueType valueType,
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
-	virtual bool CheckParameters(QMap<QString, QVariant> parameters);
-	virtual void Run(QMap<QString, QVariant> parameters) = 0;
 protected:
-	QVector<pParameter> m_parameters;
+	//! Adds some message to the targeted output place for this filter
+	//! Typically this will go into the log window of the result MdiChild
+	//! @param msg the message to print
+	void AddMsg(QString msg);
+	//! An accessor to the image to be processed by the filter
 	iAConnector* m_con;
+	//! The class that is watched for progress. Typically you will call
+	//! m_progress->Observe(someItkFilter) to set up the progress observation
+	iAProgress* m_progress;
+private:
+	QVector<pParameter> m_parameters;
 	QString m_name, m_category, m_description;
 	iALogger* m_log;
-	iAProgress* m_progress;
-	void AddMsg(QString msg);
 };
 
+//! Convenience Macro for creating the static Create method for your filter
 #define IAFILTER_CREATE(FilterName) \
 QSharedPointer<FilterName> FilterName::Create() \
 { \

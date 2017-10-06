@@ -29,32 +29,59 @@
 class iAFilter;
 class iAFilterRunner;
 
+//! Class for internal use in iAFilterRegistry and iAFilterFactory only
+//! There should be no need to use this class directly; use REGISTER_FILTER or
+//! REGISTER_FILTER_WITH_CALLBACK macros below instead!
 class open_iA_Core_API iAAbstractFilterFactory
 {
 public:
 	virtual QSharedPointer<iAFilter> Create() =0;
 };
 
+//! Callback for occasions when a module has to do some additional stuff
+//! after the filter has started. Inherit from this class, implement the
+//! FilterStarted method and pass an object of the inheriting class to
+//! the REGISTER_FILTER_WITH_CALLBACK macro along with your filter class
 class open_iA_Core_API iAFilterRunCallback
 {
 public:
 	virtual void FilterStarted(iAFilterRunner* runner) = 0;
 };
 
+//! Registry for image filters.
+//! Use REGISTER_FILTER and REGISTER_FILTER_WITH_CALLBACK macros add a filter
+//! to the list of filters in this class.
+//! All filters registered with these macros will be added to the Filter menu
+//! (in a submenu according to their Category(), the menu entry will have the
+//! filter name; the menu entry will be disabled until a dataset is loaded.
+//! When a dataset is loaded, clicking the menu entry will result in
+//! execution of the filter with the currently active window as input.
+//! The class is meant to be used statically (Follows the singleton pattern),
+//! the creation of objects of this class is thus prohibited.
 class open_iA_Core_API iAFilterRegistry
 {
 public:
+	//! Adds a given filter factory to the registry. Not meant for public use,
+	//! use REGISTER_FILTER instead!
 	static void AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory);
+	//! Adds a given filter factory to the registry. Not meant for public use,
+	//! use REGISTER_FILTER_WITH_CALLBACK instead!
 	static void AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory,
 		iAFilterRunCallback* callback);
+	//! Retrieve a list of all currently registered filter (factories)
 	static QVector<QSharedPointer<iAAbstractFilterFactory>> const & FilterFactories();
+	//! Retrieve the callback for a given factory (if the given factory does not
+	//! have a callback, nullptr is returned).
 	static iAFilterRunCallback* FilterCallback(QSharedPointer<iAAbstractFilterFactory>);
 private:
+	iAFilterRegistry();	//!< iAFilterRegistry is meant to be used as a singleton, thus prevent creation of objects
 	static QVector<QSharedPointer<iAAbstractFilterFactory>> m_filters;
 	static QMap<QSharedPointer<iAAbstractFilterFactory>, iAFilterRunCallback*> m_callback;
 };
 
-
+//! Factory for an iAFilter.
+//! There should be no need to use this class directly; use REGISTER_FILTER or
+//! REGISTER_FILTER_WITH_CALLBACK macros below instead!
 template <typename FilterType>
 class iAFilterFactory: public iAAbstractFilterFactory
 {
@@ -65,11 +92,13 @@ public:
 	}
 };
 
+//! Macro to register a class derived from iAFilter in the iAFilterRegistry.
+//! See iAFilterRegistry for the consequences this has
 #define REGISTER_FILTER(FilterType) \
 iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()));
 
+//! Macro to register a class derived from iAFilter in the iAFilterRegistry,
+//! along with a callback for when the filter has been started.
+//! See iAFilterRegistry for the consequences this has
 #define REGISTER_FILTER_WITH_CALLBACK(FilterType, callback) \
 iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()), callback);
-
-// the above is a workaround for the "static construction" of the iAFilterFactory<FilterName>,
-// see e.g. https://stackoverflow.com/questions/1197106/static-constructors-in-c-i-need-to-initialize-private-static-objects

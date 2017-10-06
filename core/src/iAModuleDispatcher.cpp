@@ -226,10 +226,8 @@ void iAModuleDispatcher::SetModuleActionsEnabled( bool isEnabled )
 			QMenu * actMenu = m_moduleActions[i].action->menu();
 			if (actMenu)
 				actMenu->setEnabled(isEnabled);
-			
 		}
 }
-
 
 void iAModuleDispatcher::ChildCreated(MdiChild* child)
 {
