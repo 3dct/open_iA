@@ -20,28 +20,40 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-#include <QString>
-
-/**
- * An itk blurring filter. The basic filter is itkDiscreteGaussianImageFilter.
- * For further details have look at http://www.itk.org/Doxygen/html/classitk_1_1DiscreteGaussianImageFilter.html#_details
- */
-class iABlurring : public iAAlgorithm
+class iADiscreteGaussian: public iAFilter
 {
 public:
-	iABlurring( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets a itkDiscreteGaussianImageFilter parameters. 
-	 * \param	v	Variance. 
-	 * \param	me	maximum error. 
-	 */
-	void setDGParameters(double v, double me, int out) { variance = v; maximumError = me; outimg = out; };
-protected:
-	void performWork();
+	static QSharedPointer<iADiscreteGaussian> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
 private:
-	double variance, maximumError;
-	int outimg;
+	iADiscreteGaussian();
+};
+
+class iAGradientAnisotropicDiffusion : public iAFilter
+{
+public:
+	static QSharedPointer<iAGradientAnisotropicDiffusion> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iAGradientAnisotropicDiffusion();
+};
+
+class iACurvatureAnisotropicDiffusion : public iAFilter
+{
+public:
+	static QSharedPointer<iACurvatureAnisotropicDiffusion> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iACurvatureAnisotropicDiffusion();
+};
+
+class iABilateral : public iAFilter
+{
+public:
+	static QSharedPointer<iABilateral> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iABilateral();
 };

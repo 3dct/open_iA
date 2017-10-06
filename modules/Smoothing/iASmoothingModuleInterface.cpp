@@ -21,127 +21,14 @@
 #include "pch.h"
 #include "iASmoothingModuleInterface.h"
 
-#include "dlg_commoninput.h"
-#include "iABlurring.h"
-#include "iAEdgePreservingSmoothing.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include "iAFilterRegistry.h"
+
+#include "iASmoothing.h"
 
 void iASmoothingModuleInterface::Initialize()
 {
-	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuSmoothing = getMenuWithTitle(filtersMenu, QString( "Smoothing" ) );
-	QMenu * menuEdge_preserving_smoothing = getMenuWithTitle( menuSmoothing, QString( "Edge preserving smoothing" ) );
-	QMenu * menuBlurring = getMenuWithTitle( menuSmoothing, QString( "Blurring" ) );
-	menuSmoothing->addAction( menuEdge_preserving_smoothing->menuAction() );
-	menuSmoothing->addAction( menuBlurring->menuAction() );
-
-	QAction * actionGradient_anisotropic_diffusion = new QAction(QApplication::translate("MainWindow", "Gradient Anisotropic Diffusion", 0), m_mainWnd );
-	QAction * actionDiscrete_Gaussian = new QAction(QApplication::translate("MainWindow", "Discrete Gaussian", 0), m_mainWnd );
-	QAction * actionCurvature_Anisotropic_Diffusion = new QAction(QApplication::translate("MainWindow", "Curvature Anisotropic Diffusion", 0), m_mainWnd );
-	QAction * actionBilateral = new QAction(QApplication::translate("MainWindow", "Bilateral Image Filter", 0), m_mainWnd );
-
-	menuBlurring->addAction( actionDiscrete_Gaussian );
-	menuEdge_preserving_smoothing->addAction( actionGradient_anisotropic_diffusion );
-	menuEdge_preserving_smoothing->addAction( actionCurvature_Anisotropic_Diffusion );
-	menuEdge_preserving_smoothing->addAction( actionBilateral );
-
-	connect( actionGradient_anisotropic_diffusion, SIGNAL( triggered() ), this, SLOT( grad_aniso_diffusion() ) );
-	connect( actionDiscrete_Gaussian, SIGNAL( triggered() ), this, SLOT( discrete_Gaussian_Filter() ) );
-	connect( actionCurvature_Anisotropic_Diffusion, SIGNAL( triggered() ), this, SLOT( curv_aniso_diffusion() ) );
-	connect( actionBilateral, SIGNAL( triggered() ), this, SLOT( bilat_filter() ) );
+	REGISTER_FILTER(iADiscreteGaussian);
+	REGISTER_FILTER(iAGradientAnisotropicDiffusion);
+	REGISTER_FILTER(iACurvatureAnisotropicDiffusion);
+	REGISTER_FILTER(iABilateral);
 }
-
-void iASmoothingModuleInterface::grad_aniso_diffusion()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Iterations" ) << tr( "#Time Step" ) << tr( "#Conductance" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( gadIterations ) << tr( "%1" ).arg( gadTimeStep ) << tr( "%1" ).arg( gadConductance );
-	dlg_commoninput dlg( m_mainWnd, "Gradient Anisotropic Diffusion", inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	gadIterations = dlg.getDblValue(0); gadTimeStep = dlg.getDblValue(1); gadConductance = dlg.getDblValue(2);
-	//prepare
-	QString filterName = "Gradient anisotropic diffusion";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAEdgePreservingSmoothing* thread = new iAEdgePreservingSmoothing( filterName, GRADIENT_ANISOTROPIC_DIFFUSION,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setADParameters( gadIterations, gadTimeStep, gadConductance );
-	thread->start();
-}
-
-void iASmoothingModuleInterface::discrete_Gaussian_Filter()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Variance" ) << tr( "#Maximum error" ) << tr( "$UShort Output" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( dgfVariance ) << tr( "%1" ).arg( dgfMaximumError ) << tr( "%1" ).arg( dgfOutput );
-	dlg_commoninput dlg( m_mainWnd, "Discrete Gaussian", inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	dgfVariance = dlg.getDblValue(0);
-	dgfMaximumError = dlg.getDblValue(1);
-	dgfOutput = dlg.getCheckValue(2);
-
-	//prepare
-	QString filterName = "Discrete Gaussian";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iABlurring* thread = new iABlurring( filterName,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setDGParameters( dgfVariance, dgfMaximumError, dgfOutput );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASmoothingModuleInterface::curv_aniso_diffusion()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Iterations" ) << tr( "#Time Step" ) << tr( "#Conductance" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( cadIterations ) << tr( "%1" ).arg( cadTimeStep ) << tr( "%1" ).arg( cadConductance );
-	dlg_commoninput dlg( m_mainWnd, "Curvature Anisotropic Diffusion", inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	cadIterations = dlg.getDblValue(0); cadTimeStep = dlg.getDblValue(1); cadConductance = dlg.getDblValue(2);
-	//prepare
-	QString filterName = "Curvature anisotropic diffusion";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAEdgePreservingSmoothing* thread = new iAEdgePreservingSmoothing( filterName, CURVATURE_ANISOTROPIC_DIFFUSION,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setADParameters( cadIterations, cadTimeStep, cadConductance );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASmoothingModuleInterface::bilat_filter()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Range Sigma" ) << tr( "#Domain Sigma" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( bilRangeSigma ) << tr( "%1" ).arg( bilDomainSigma );
-	dlg_commoninput dlg( m_mainWnd, "Bilateral Image Filter", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	bilRangeSigma = dlg.getDblValue(0); bilDomainSigma = dlg.getDblValue(1);
-	//prepare
-	QString filterName = "Bilateral filtered";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAEdgePreservingSmoothing* thread = new iAEdgePreservingSmoothing( filterName, BILATERAL,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setBParameters( bilRangeSigma, bilDomainSigma );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-

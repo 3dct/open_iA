@@ -22,24 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iASmoothingModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-	private slots:
-	void grad_aniso_diffusion();
-	void discrete_Gaussian_Filter();
-	void curv_aniso_diffusion();
-	void bilat_filter();
-
-protected:
-	//settings
-	unsigned int gadIterations, cadIterations;
-	double gadTimeStep, gadConductance, cadTimeStep, cadConductance, bilRangeSigma, bilDomainSigma;
-	double dgfVariance, dgfMaximumError; int dgfOutput;
 };
