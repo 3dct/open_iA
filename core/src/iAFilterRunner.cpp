@@ -53,32 +53,51 @@ void iAFilterRunner::performWork()
 	emit workDone();
 }
 
+namespace
+{
+	QString SettingName(QSharedPointer<iAFilter> filter, QSharedPointer<iAAttributeDescriptor> param)
+	{
+		QString filterNameShort(filter->Name());
+		filterNameShort.replace(" ", "");
+		return QString("Filters/%1/%2/%3").arg(filter->Category()).arg(filterNameShort).arg(param->GetName());
+	}
+
+	QString ValueTypePrefix(iAValueType val)
+	{
+		switch (val)
+		{
+		case Continuous : return "#"; // potentially ^ for DoubleSpinBox?
+		case Discrete   : return "*";
+		case Boolean    : return "$";
+		case Categorical: return "+";
+		default:
+		case String: return "#";
+		}
+	}
+}
+
 iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	auto params = filter->Parameters();
 	QSettings settings;
 	QStringList parameterNames;
 	QList<QVariant> parameterValues;
-	QString filterNameShort(filter->Name());
-	filterNameShort.replace(" ", "");
 	for (auto param : params)
 	{
-		QString fullParamName;
-		switch (param->GetValueType())
+		parameterNames << (ValueTypePrefix(param->GetValueType()) + param->GetName());
+		if (param->GetValueType() == Categorical)
 		{
-		case Continuous: fullParamName = "#"; break;    // potentially ^ for DoubleSpinBox?
-		case Discrete: fullParamName = "*"; break;
-		case String: fullParamName = "#"; break;
-		case Boolean: fullParamName = "$"; break;
+			QStringList comboValues = param->DefaultValue().toStringList();
+			QString selectedValue = settings.value(SettingName(filter, param), "").toString();
+			for (int i = 0; i < comboValues.size(); ++i)
+				if (comboValues[i] == selectedValue)
+					comboValues[i] = "!" + comboValues[i];
+			parameterValues << comboValues;
 		}
-		fullParamName += param->GetName();
-		parameterNames << fullParamName;
-		parameterValues << settings.value(
-			QString("Filters/%1/%2/%3")
-			.arg(filter->Category())
-			.arg(filterNameShort)
-			.arg(param->GetName()),
-			param->DefaultValue());
+		else
+		{
+			parameterValues << settings.value(SettingName(filter, param), param->DefaultValue());
+		}
 	}
 	QTextDocument *fDescr = new QTextDocument(0);
 	fDescr->setHtml(filter->Description());
@@ -93,17 +112,14 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 		QVariant value;
 		switch (param->GetValueType())
 		{
-		case Continuous: value = dlg.getDblValue(idx);   break;
-		case Discrete:   value = dlg.getIntValue(idx);   break;
-		case String:     value = dlg.getText(idx);       break;
-		case Boolean:    value = dlg.getCheckValue(idx); break;
+		case Continuous:  value = dlg.getDblValue(idx);      break;
+		case Discrete:    value = dlg.getIntValue(idx);      break;
+		case String:      value = dlg.getText(idx);          break;
+		case Boolean:     value = dlg.getCheckValue(idx);    break;
+		case Categorical: value = dlg.getComboBoxValue(idx); break;
 		}
 		paramValues[param->GetName()] = value;
-		settings.setValue(QString("Filters/%1/%2/%3")
-			.arg(filter->Category())
-			.arg(filterNameShort)
-			.arg(param->GetName()),
-			value);
+		settings.setValue(SettingName(filter, param), value);
 		++idx;
 	}
 	if (!filter->CheckParameters(paramValues))
