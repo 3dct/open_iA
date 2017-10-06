@@ -88,6 +88,7 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
 					.arg(param->Min()).arg(param->Max()));
 				return false;
 			}
+			break;
 		}
 		case Continuous:
 		{
@@ -105,6 +106,7 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
 					.arg(param->Min()).arg(param->Max()));
 				return false;
 			}
+			break;
 		}
 		case Categorical:
 		{
@@ -117,6 +119,7 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
 					.arg(values.join(",")));
 				return false;
 			}
+			break;
 		}
 		}
 	}
