@@ -67,6 +67,58 @@ void iAFilter::SetUp(iAConnector* con, iALogger* log, iAProgress* progress)
 
 bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
 {
+	bool ok;
+	for (auto param: m_parameters)
+	{
+		switch (param->ValueType())
+		{
+		case Discrete: {
+			long long value = parameters[param->Name()].toLongLong(&ok);
+			if (!ok)
+			{
+				AddMsg(QString("Parameter %1: Expected integer value, %2 given.").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				return false;
+			}
+			if (value < param->Min() || value > param->Max())
+			{
+				AddMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					.arg(param->Name())
+					.arg(parameters[param->Name()].toString())
+					.arg(param->Min()).arg(param->Max()));
+				return false;
+			}
+		}
+		case Continuous:
+		{
+			double value = parameters[param->Name()].toDouble(&ok);
+			if (!ok)
+			{
+				AddMsg(QString("Parameter %1: Expected double value, %2 given.").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				return false;
+			}
+			if (value < param->Min() || value > param->Max())
+			{
+				AddMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					.arg(param->Name())
+					.arg(parameters[param->Name()].toString())
+					.arg(param->Min()).arg(param->Max()));
+				return false;
+			}
+		}
+		case Categorical:
+		{
+			QStringList values = param->DefaultValue().toStringList();
+			if (!values.contains(parameters[param->Name()].toString()))
+			{
+				AddMsg(QString("Parameter %1: Given value '%2' not in the list of valid values (%3).")
+					.arg(param->Name())
+					.arg(parameters[param->Name()].toString())
+					.arg(values.join(",")));
+				return false;
+			}
+		}
+		}
+	}
 	return true;
 }
 

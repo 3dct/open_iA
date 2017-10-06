@@ -167,7 +167,7 @@ bool iASimpleRelabelConnectedComponents::CheckParameters(QMap<QString, QVariant>
 			return false;
 		}
 	}
-	return true;
+	return iAFilter::CheckParameters(parameters);
 }
 
 iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :

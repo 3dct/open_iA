@@ -169,7 +169,7 @@ iAFCMFilter::iAFCMFilter() :
 
 bool iAFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
 {
-	return CheckFCMParameters(parameters);
+	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
 }
 
 void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
@@ -209,7 +209,7 @@ iAKFCMFilter::iAKFCMFilter() :
 
 bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
 {
-	return CheckFCMParameters(parameters);
+	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
 }
 
 template <typename InputPixelType>
@@ -313,7 +313,7 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 
 bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
 {
-	return CheckFCMParameters(parameters);
+	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
 }
 
 template <typename InputPixelType>

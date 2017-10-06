@@ -46,13 +46,13 @@ public:
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
-	iAAttributeType GetAttribType() const;
-	iAValueType GetValueType() const;
+	iAAttributeType AttribType() const;
+	iAValueType ValueType() const;
 	QVariant DefaultValue() const;
-	virtual QSharedPointer<iANameMapper> GetNameMapper() const;
-	double GetMin() const;
-	double GetMax() const;
-	QString GetName() const;
+	virtual QSharedPointer<iANameMapper> NameMapper() const;
+	double Min() const;
+	double Max() const;
+	QString Name() const;
 	void SetLogScale(bool l);
 	bool IsLogScale() const;
 	void ResetMinMax();

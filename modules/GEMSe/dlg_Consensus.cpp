@@ -829,7 +829,7 @@ void dlg_Consensus::LoadConfig()
 				QVector<double> singleParameterSet;
 				for (int p = 0; p < samplingResults->GetAttributes()->size(); ++p)
 				{
-					if (samplingResults->GetAttributes()->at(p)->GetAttribType() == iAAttributeDescriptor::Parameter)
+					if (samplingResults->GetAttributes()->at(p)->AttribType() == iAAttributeDescriptor::Parameter)
 					{
 						singleParameterSet.push_back(samplingResults->Get(i)->GetAttribute(p));
 					}
@@ -976,7 +976,7 @@ void dlg_Consensus::SamplerFinished()
 				.arg(measureValues[measureValues.size() - 1]); // undecided
 			for (int i = 0; i < m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->size(); ++i)
 			{
-				if (m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+				if (m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->at(i)->AttribType() == iAAttributeDescriptor::Parameter)
 				{
 					debugOut += QString("\t%1").arg(m_comparisonSamplingResults[s]->Get(m)->GetAttribute(i));
 				}
@@ -985,7 +985,7 @@ void dlg_Consensus::SamplerFinished()
 			// }
 			for (int i = 0; i<measures.size(); ++i)
 			{
-				int attributeID = attributes->Find(measures[i]->GetName());
+				int attributeID = attributes->Find(measures[i]->Name());
 				m_comparisonSamplingResults[s]->Get(m)->SetAttribute(attributeID, measureValues[i]);
 				attributes->at(attributeID)->AdjustMinMax(measureValues[i]);
 			}

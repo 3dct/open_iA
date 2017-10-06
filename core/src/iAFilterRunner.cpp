@@ -59,7 +59,7 @@ namespace
 	{
 		QString filterNameShort(filter->Name());
 		filterNameShort.replace(" ", "");
-		return QString("Filters/%1/%2/%3").arg(filter->Category()).arg(filterNameShort).arg(param->GetName());
+		return QString("Filters/%1/%2/%3").arg(filter->Category()).arg(filterNameShort).arg(param->Name());
 	}
 
 	QString ValueTypePrefix(iAValueType val)
@@ -84,8 +84,8 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 	QList<QVariant> dlgParamValues;
 	for (auto param : params)
 	{
-		dlgParamNames << (ValueTypePrefix(param->GetValueType()) + param->GetName());
-		if (param->GetValueType() == Categorical)
+		dlgParamNames << (ValueTypePrefix(param->ValueType()) + param->Name());
+		if (param->ValueType() == Categorical)
 		{
 			QStringList comboValues = param->DefaultValue().toStringList();
 			QString storedValue = settings.value(SettingName(filter, param), "").toString();
@@ -110,7 +110,7 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 	for (auto param : params)
 	{
 		QVariant value;
-		switch (param->GetValueType())
+		switch (param->ValueType())
 		{
 		case Continuous:  value = dlg.getDblValue(idx);      break;
 		case Discrete:    value = dlg.getIntValue(idx);      break;
@@ -118,10 +118,11 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 		case Boolean:     value = dlg.getCheckValue(idx);    break;
 		case Categorical: value = dlg.getComboBoxValue(idx); break;
 		}
-		paramValues[param->GetName()] = value;
+		paramValues[param->Name()] = value;
 		settings.setValue(SettingName(filter, param), value);
 		++idx;
 	}
+	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->CheckParameters(paramValues))
 	{
 		return nullptr;

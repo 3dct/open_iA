@@ -205,17 +205,17 @@ void dlg_GEMSe::CreateMapper()
 			
 			// check if previous datasets have an attribute with the same name
 			if (samplingIdx > 0 &&
-				attribute->GetAttribType() ==
+				attribute->AttribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				chartID = m_chartAttributes->Find(attribute->GetName());
+				chartID = m_chartAttributes->Find(attribute->Name());
 			}
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 				// and update min/max:
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->GetMin());
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->GetMax());
+				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Min());
+				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Max());
 			}
 			else
 			{	// add chart and mapping:
@@ -300,8 +300,8 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 		}
 		int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, node->GetDatasetID());
 		double value = node->GetAttribute(attributeID);
-		if (m_chartAttributes->at(chartID)->GetValueType() == Discrete ||
-			m_chartAttributes->at(chartID)->GetValueType() == Categorical)
+		if (m_chartAttributes->at(chartID)->ValueType() == Discrete ||
+			m_chartAttributes->at(chartID)->ValueType() == Categorical)
 		{
 			value += 0.5;
 		}
@@ -340,8 +340,8 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 	m_scatterplot->SetDataSource(
 		m_histogramContainer->GetSelectedChartID(0),
 		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->Name(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->Name(),
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->IsLogScale(),
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->IsLogScale(),
 		m_chartAttributeMapper,
@@ -622,7 +622,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 		;
 		for (int i = 0; i < leaf->GetAttributes()->size(); ++i)
 		{
-			if (leaf->GetAttributes()->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+			if (leaf->GetAttributes()->at(i)->AttribType() == iAAttributeDescriptor::Parameter)
 			{
 				debugOut += QString("\t%1").arg(leaf->GetAttribute(i));
 			}
