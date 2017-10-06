@@ -80,28 +80,28 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	auto params = filter->Parameters();
 	QSettings settings;
-	QStringList parameterNames;
-	QList<QVariant> parameterValues;
+	QStringList dlgParamNames;
+	QList<QVariant> dlgParamValues;
 	for (auto param : params)
 	{
-		parameterNames << (ValueTypePrefix(param->GetValueType()) + param->GetName());
+		dlgParamNames << (ValueTypePrefix(param->GetValueType()) + param->GetName());
 		if (param->GetValueType() == Categorical)
 		{
 			QStringList comboValues = param->DefaultValue().toStringList();
-			QString selectedValue = settings.value(SettingName(filter, param), "").toString();
+			QString storedValue = settings.value(SettingName(filter, param), "").toString();
 			for (int i = 0; i < comboValues.size(); ++i)
-				if (comboValues[i] == selectedValue)
+				if (comboValues[i] == storedValue)
 					comboValues[i] = "!" + comboValues[i];
-			parameterValues << comboValues;
+			dlgParamValues << comboValues;
 		}
 		else
 		{
-			parameterValues << settings.value(SettingName(filter, param), param->DefaultValue());
+			dlgParamValues << settings.value(SettingName(filter, param), param->DefaultValue());
 		}
 	}
 	QTextDocument *fDescr = new QTextDocument(0);
 	fDescr->setHtml(filter->Description());
-	dlg_commoninput dlg(mainWnd, filter->Name(), parameterNames, parameterValues, fDescr);
+	dlg_commoninput dlg(mainWnd, filter->Name(), dlgParamNames, dlgParamValues, fDescr);
 	if (dlg.exec() != QDialog::Accepted)
 		return nullptr;
 

@@ -21,9 +21,9 @@
 #include "pch.h"
 #include "iASmoothingModuleInterface.h"
 
-#include "iAFilterRegistry.h"
-
 #include "iASmoothing.h"
+
+#include "iAFilterRegistry.h"
 
 void iASmoothingModuleInterface::Initialize()
 {
