@@ -18,40 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iABoneThicknessModuleInterface.h"
-#include "iABoneThicknessAttachment.h"
-#include "mainwindow.h"
+#pragma once
 
-#include <mdichild.h>
+#include "open_iA_Core_export.h"
 
-iABoneThicknessModuleInterface::iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
-iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
-void iABoneThicknessModuleInterface::Initialize( )
-{
-	if (!m_mainWnd)
-		return;
-	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
-
-	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));
-	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));
-	AddActionToMenuAlphabeticallySorted(toolsMenu, pBoneThickness);
-}
-
-void iABoneThicknessModuleInterface::slotBoneThickness()
-{
-	PrepareActiveChild();
-
-	if (m_mdiChild)
-	{
-		AttachToMdiChild(m_mdiChild);
-	}
-}
-
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	return new iABoneThicknessAttachment(mainWnd, childData);
-}
+open_iA_Core_API int ProcessCommandLine(int argc, char const * const * argv);

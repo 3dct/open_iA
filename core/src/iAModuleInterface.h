@@ -46,7 +46,9 @@ public:
 	virtual ~iAModuleInterface();
 	void SetMainWindow( MainWindow * mainWnd );
 	void SetDispatcher( iAModuleDispatcher * dispatcher );
-	virtual void Initialize() = 0;
+	//! override to add references to the module in the core code,
+	//! for example menu entries
+	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
 	virtual void SaveSettings() const;
 	iAChildData GetChildData() const;
 	//! Called whenever an MdiChild object is created. Override to react on this

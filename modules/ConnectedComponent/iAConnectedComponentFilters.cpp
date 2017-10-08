@@ -62,10 +62,9 @@ void iASimpleConnectedComponents::Run(QMap<QString, QVariant> parameters)
 
 iASimpleConnectedComponents::iASimpleConnectedComponents() :
 	iAFilter("Simple Connected Component Filter", "Connected Component Filters",
-		"Simple Connected Components Filter.<br/>"
-		"Labels the objects in a binary image (non-zero pixels are considered "
-		"to be objects, zero-valued pixels are considered to be background). "
-		"Each distinct object is assigned a unique label.<br/>"
+		"Assigns each distinct object in a binary image a unique label.<br/>"
+		"Non-zero pixels are considered to be objects, zero-valued pixels are "
+		"considered to be background).<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html\">"
 		"Connected Component Filter</a> in the ITK documentation.")
@@ -102,8 +101,7 @@ void iAScalarConnectedComponents::Run(QMap<QString, QVariant> parameters)
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
 	iAFilter("Scalar Connected Component Filter", "Connected Component Filters",
-		"Scalar Connected Components Filter.<br/>"
-		"A connected components filter that labels the objects in an arbitrary image. "
+		"Labels the objects in an arbitrary image.<br/>"
 		"Two pixels are similar if they are within <em>Distance Threshold</em> of each other.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarConnectedComponentImageFilter.html\">"
@@ -172,17 +170,21 @@ bool iASimpleRelabelConnectedComponents::CheckParameters(QMap<QString, QVariant>
 
 iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
 	iAFilter("Simple Relabel Connected Component Filter", "Connected Component Filters",
-		"<p>Remaps the labels associated with the objects in an image (as from the output of ConnectedComponentImageFilter) "
-		"such that the label numbers are consecutive with no gaps between the label numbers used. By default, the relabeling "
-		"will also sort the labels based on the size of the object: the largest object will have label #1, the second largest "
-		"will have label #2, etc. If two labels have the same size their initial order is kept. Label #0 is assumed to be the "
-		"background and is left unaltered by the relabeling.</p>"
-		"<p>If user sets a minimum object size, all objects with fewer pixels than the minimum will be discarded, so that the "
-		"number of objects reported will be only those remaining.</p>"
-		"<p>Enabling the write option will save the file to a user specific path.</p>"
+		"Remaps the labels associated with the objects in an image such that the "
+		"label numbers are consecutive with no gaps.<br/>"
+		"The input could for example be the output of the Simple Connected "
+		"Component Filter. By default, the relabeling will also sort the labels "
+		"based on the size of the object: the largest object will have label #1, "
+		"the second largest will have label #2, etc. If two labels have the same "
+		"size their initial order is kept. Label #0 is assumed to be the "
+		"background and is left unaltered by the relabeling.<br/>"
+		"If user sets a minimum object size, all objects with fewer pixels than "
+		"the minimum will be discarded, so that the number of objects reported "
+		"will be only those remaining. Enabling the write option will save details "
+		"of each object to a user specified file path.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html\">"
-		"Scalar Connected Component Filter</a> in the ITK documentation.")
+		"Relabel Component Filter</a> in the ITK documentation.")
 {
 	AddParameter("Minimum Object Size", Discrete, 1, 1);
 	AddParameter("Write labels to file", Boolean, false);

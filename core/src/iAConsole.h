@@ -87,3 +87,14 @@ private:
 	iAConsoleLogger(iAConsoleLogger const&);
 	void operator=(iAConsoleLogger const&);
 };
+
+class iAStdOutLogger : public iALogger
+{
+public:
+	void log(QString const & msg);
+	static iAStdOutLogger & Get();
+private:
+	iAStdOutLogger();
+	iAStdOutLogger(iAStdOutLogger const&);
+	void operator=(iAStdOutLogger const&);
+};

@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGradientsModuleInterface.h"
 
@@ -31,6 +30,8 @@ HOAccGradientDerrivativeSettings HOAGDSettings;
 
 void iAGradientsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuGradients = getMenuWithTitle(filtersMenu, QString( "Gradients" ) );
 	QAction * actionGradient_Magnitude = new QAction(QApplication::translate("MainWindow", "Gradient Magnitude", 0), m_mainWnd );

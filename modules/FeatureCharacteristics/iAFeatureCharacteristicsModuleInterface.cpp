@@ -32,12 +32,12 @@
 
 void iAFeatureCharacteristicsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuPorosity = getMenuWithTitle( filtersMenu, QString( "Feature Characteristics" ) );
-
 	QAction * actionCalcFeatureCharacteristics = new QAction( QApplication::translate( "MainWindow", "Calculate Feature Characteristics", 0 ), m_mainWnd );
 	menuPorosity->addAction( actionCalcFeatureCharacteristics );
-
 	connect( actionCalcFeatureCharacteristics, SIGNAL( triggered() ), this, SLOT( calcFeatureCharacteristics() ) );
 }
 

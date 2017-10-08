@@ -26,8 +26,6 @@
 #include <QApplication>
 #include <QDate>
 
-#include <vtkSmartPointer.h>
-
 int main(int argc, char *argv[])
 {
 	MainWindow::InitResources();
@@ -50,7 +48,6 @@ int main(int argc, char *argv[])
 		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}
-
 	mainWin.show();
 
 	return app.exec();

@@ -30,9 +30,10 @@
 
 void iAMaskingModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuMask = getMenuWithTitle(filtersMenu, QString("Mask"));
-
 	QAction * actionGeneral_threshold_filter = new QAction(QApplication::translate( "MainWindow", "General threshold filter", 0 ), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuMask, actionGeneral_threshold_filter);
 	connect( actionGeneral_threshold_filter, SIGNAL( triggered() ), this, SLOT( general_threshold() ) );

@@ -1212,7 +1212,7 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		for (int m=0; m<mdi_parent->GetModalities()->size(); ++m)
 		{
 			auto mod = mdi_parent->GetModality(m);
-			strDetails += getPaddedOrTruncatedName(mod->GetName(), 12)+" ";
+			strDetails += PadOrTruncate(mod->GetName(), 12)+" ";
 			for (int c = 0; c<mod->ComponentCount(); ++c)
 			{
 				strDetails += "[ ";

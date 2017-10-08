@@ -160,3 +160,21 @@ iAConsoleLogger & iAConsoleLogger::Get()
 
 iAConsoleLogger::iAConsoleLogger()
 {}
+
+
+
+// iAStdOutLogger
+
+void iAStdOutLogger::log(QString const & msg)
+{
+	std::cout << msg.toStdString() << std::endl;
+}
+
+iAStdOutLogger & iAStdOutLogger::Get()
+{
+	static iAStdOutLogger GlobalStdOutLogger;
+	return GlobalStdOutLogger;
+}
+
+iAStdOutLogger::iAStdOutLogger()
+{}

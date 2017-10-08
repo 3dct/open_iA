@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
-// iA
+
 #include "iAModuleInterface.h"
 
 class iABoneThicknessModuleInterface : public iAModuleInterface

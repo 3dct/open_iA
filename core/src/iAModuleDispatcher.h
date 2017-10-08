@@ -69,6 +69,7 @@ class iAModuleDispatcher: public QObject
 	Q_OBJECT
 public:
 	iAModuleDispatcher( MainWindow * mainWnd );
+	iAModuleDispatcher(QString const & rootPath);
 	~iAModuleDispatcher();
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
@@ -85,7 +86,7 @@ private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;
 	QVector < iALoadedModule > m_loadedModules;
-	
+	QString m_rootPath;
 	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, iALogger* logger);
 	void InitializeModuleInterface(iAModuleInterface* m);
 };

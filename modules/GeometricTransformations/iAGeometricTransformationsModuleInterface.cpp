@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGeometricTransformationsModuleInterface.h"
 
@@ -31,6 +30,8 @@
 
 void iAGeometricTransformationsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuGeometric_Transformations = getMenuWithTitle(filtersMenu, QApplication::translate("MainWindow", "Geometric Transformations", 0));
 	

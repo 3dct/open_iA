@@ -28,6 +28,8 @@
 
 void iANeighbourhoodModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuNeighbourhood = getMenuWithTitle(filtersMenu, QString("Neighbourhood"));
 	QAction * actionItkMedianFilter = new QAction(QApplication::translate("MainWindow", "Median Filter", 0), m_mainWnd);

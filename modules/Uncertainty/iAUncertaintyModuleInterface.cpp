@@ -31,9 +31,10 @@
 
 void iAUncertaintyModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu * menuSegmentation = getMenuWithTitle( toolsMenu, QString( "Segmentation Ensembles" ), false );
-	
 	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", 0), m_mainWnd );
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionUncertainty, false);
 	connect(actionUncertainty, SIGNAL(triggered()), this, SLOT(UncertaintyExploration()));

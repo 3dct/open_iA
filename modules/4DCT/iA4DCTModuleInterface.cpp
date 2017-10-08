@@ -67,6 +67,8 @@ iA4DCTModuleInterface::~iA4DCTModuleInterface( )
 
 void iA4DCTModuleInterface::Initialize( )
 {
+	if (!m_mainWnd)
+		return;
 	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
 
 	// ToFix: the menu should be added through the standard way of adding modules menus.

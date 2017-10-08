@@ -18,40 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iABoneThicknessModuleInterface.h"
-#include "iABoneThicknessAttachment.h"
-#include "mainwindow.h"
+#include "iAConsole.h"
+#include "iACommandLineProcessor.h"
+#include "iASCIFIOCheck.h"
+#include "version.h"
 
-#include <mdichild.h>
-
-iABoneThicknessModuleInterface::iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
-iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
-void iABoneThicknessModuleInterface::Initialize( )
+int main(int argc, char *argv[])
 {
-	if (!m_mainWnd)
-		return;
-	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
-
-	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));
-	connect(pBoneThickness, SIGNAL(triggered()), this, SLOT(slotBoneThickness()));
-	AddActionToMenuAlphabeticallySorted(toolsMenu, pBoneThickness);
-}
-
-void iABoneThicknessModuleInterface::slotBoneThickness()
-{
-	PrepareActiveChild();
-
-	if (m_mdiChild)
-	{
-		AttachToMdiChild(m_mdiChild);
-	}
-}
-
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	return new iABoneThicknessAttachment(mainWnd, childData);
+	CheckSCIFIO();
+	return ProcessCommandLine(argc, argv);
 }

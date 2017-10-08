@@ -28,6 +28,8 @@
 
 void iAHessianModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menucomputeHessianEigenanalysis = getMenuWithTitle(filtersMenu, QString( "Hessian and Eigenanalysis" ) );
 	QAction * actioncomputeHessianEigenanalysis = new QAction(QApplication::translate("MainWindow", "Compute Hessian and Eigenanalysis", 0), m_mainWnd);

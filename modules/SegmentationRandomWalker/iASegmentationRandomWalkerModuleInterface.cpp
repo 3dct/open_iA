@@ -36,6 +36,8 @@
 
 void iASegmentationRandomWalkerModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegm = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
 	QMenu * menuGraphSegm = getMenuWithTitle(menuSegm, QString("Graph-Based"));

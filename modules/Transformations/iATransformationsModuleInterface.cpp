@@ -32,6 +32,8 @@
 
 void iATransformationsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuTransformations = getMenuWithTitle(filtersMenu, QString( "Transformations" ) );
 

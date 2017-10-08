@@ -31,6 +31,8 @@
 
 void iAIntensityModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuIntensity = getMenuWithTitle(filtersMenu, QString( "Intensity" ) );
 	QAction * actionDifference = new QAction(QApplication::translate("MainWindow", "Difference", 0), m_mainWnd );

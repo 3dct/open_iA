@@ -58,6 +58,14 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAWatershed);
 	REGISTER_FILTER(iAMorphologicalWatershed);
 
+	if (!m_mainWnd)
+	{
+		REGISTER_FILTER(iAFCMFilter);
+		REGISTER_FILTER(iAKFCMFilter);
+		REGISTER_FILTER(iAMSKFCMFilter);
+		return;
+	}
+
 	REGISTER_FILTER_WITH_CALLBACK(iAFCMFilter, this);
 	REGISTER_FILTER_WITH_CALLBACK(iAKFCMFilter, this);
 	REGISTER_FILTER_WITH_CALLBACK(iAMSKFCMFilter, this);

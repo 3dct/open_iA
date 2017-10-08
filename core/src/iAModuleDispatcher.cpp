@@ -55,6 +55,12 @@ iALoadedModule::iALoadedModule(QString const & n, MODULE_HANDLE h, iAModuleInter
 iAModuleDispatcher::iAModuleDispatcher(MainWindow * mainWnd)
 {
 	m_mainWnd = mainWnd;
+	m_rootPath = QCoreApplication::applicationDirPath();
+}
+
+iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(nullptr)
+{
+	m_rootPath = rootPath;
 }
 
 void CloseLibrary(iALoadedModule & module)
@@ -76,9 +82,9 @@ void CloseLibrary(iALoadedModule & module)
 #endif
 }
 
-QFileInfoList GetLibraryList()
+QFileInfoList GetLibraryList(QString const & rootPath)
 {
-	QDir root(QCoreApplication::applicationDirPath() + "/plugins");
+	QDir root(rootPath + "/plugins");
 	QStringList nameFilter;
 
 #ifdef _MSC_VER
@@ -164,10 +170,14 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 
 void iAModuleDispatcher::InitializeModules(iALogger* logger)
 {
-	QFileInfoList fList = GetLibraryList();
+	QFileInfoList fList = GetLibraryList(m_rootPath);
 	for (QFileInfo fi : fList)
 	{
 		LoadModuleAndInterface(fi, logger);
+	}
+	if (!m_mainWnd)	// all non-GUI related stuff already done
+	{
+		return;
 	}
 	auto filterFactories = iAFilterRegistry::FilterFactories();
 	for (int i=0; i<filterFactories.size(); ++i)

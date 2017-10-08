@@ -46,10 +46,10 @@ QString Vec3D2String(double* vec);
 //!
 //! If the string given in name is longer than the specified size, the string is truncated
 //! to size-2 and ".." is appended, otherwise it is filled with spaces to be exactly size long
-//! @param name the string to be padded or truncated
+//! @param str the string to be padded or truncated
 //! @param size the size that the return string should have
 //! @return a string of exactly the length size, a padded or truncated form of the given name
-QString getPaddedOrTruncatedName(QString const & name, int size);
+QString PadOrTruncate(QString const & str, int size);
 
 //! join a vector of numeric types T to string, using the given string as item separator
 //!

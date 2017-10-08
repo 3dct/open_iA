@@ -32,6 +32,8 @@
 
 void iASimilarityModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSimilarity = getMenuWithTitle(filtersMenu, QString("Similarity"));
 	QAction * actionCalculateSimilarityMetrics = new QAction(QApplication::translate("MainWindow", "Calculate Similarity Metrics", 0), m_mainWnd);

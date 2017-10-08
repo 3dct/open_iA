@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iADistanceMapModuleInterface.h"
 
@@ -31,6 +30,8 @@
 
 void iADistanceMapModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuDistance_Map = getMenuWithTitle(filtersMenu, QApplication::translate("MainWindow", "Distance Map", 0));
 	QAction * actionSigned_Maurer_Distance_Map = new QAction(QApplication::translate("MainWindow", "Signed Maurer Distance Map", 0), m_mainWnd );

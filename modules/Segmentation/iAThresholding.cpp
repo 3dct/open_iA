@@ -78,7 +78,7 @@ void iABinaryThreshold::Run(QMap<QString, QVariant> parameters)
 iABinaryThreshold::iABinaryThreshold() :
 	iAFilter("Binary Thresholding", "Segmentation/Global Thresholding",
 		"Two thresholds (lower, upper) can be specified; "
-		"if a voxel value is between these two (including the threshold values themselves),"
+		"if a voxel value is between these two (including the threshold values themselves), "
 		"then the output is set to the <em>inside</em> value at this voxel, "
 		"otherwise the <em>outside</em> value.<br/>"
 		"For more information, see the "
@@ -139,9 +139,10 @@ void iARatsThreshold::Run(QMap<QString, QVariant> parameters)
 
 iARatsThreshold::iARatsThreshold() :
 	iAFilter("RATS", "Segmentation/Global Thresholding",
-		"Robust automatic threshold selection. This method automatically determines a global threshold"
-		"by weighting the pixel values by their gradient (thus setting the threshold to the value where "
-		"the intensities change most).<br/>"
+		"Robust automatic threshold selection. <br/>"
+		"This filter determines a global threshold by weighting the pixel "
+		"values by their gradient (thus setting the threshold to the value "
+		"where the intensities change most).<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html\">"
 		"RATS Filter</a> in the ITK documentation.")
@@ -211,7 +212,7 @@ void iAOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 
 iAOtsuThreshold::iAOtsuThreshold() :
 	iAFilter("Otsu Threshold", "Segmentation/Global Thresholding",
-		"Creates an image segmented into foreground (inside value) and background (outside value) using Otsu's method,"
+		"Creates an image segmented into foreground (inside value) and background (outside value) using Otsu's method, "
 		"which tries to maximize the between-class variance using a histogram.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
@@ -273,6 +274,7 @@ void iAAdaptiveOtsuThreshold::Run(QMap<QString, QVariant> parameters)
 
 iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
 	iAFilter("Adaptive Otsu", "Segmentation/Local Thresholding",
+		"A local thresholding filter based on Otsu's method.<br/>"
 		"For more information, see the "
 		"<a href=\"https://github.com/ITKTools/ITKTools/blob/master/src/thresholdimage/itkAdaptiveOtsuThresholdImageFilter.h\">"
 		"Adaptive Otsu Threshold source code</a> in the ITKTools.")
@@ -328,6 +330,7 @@ void iAOtsuMultipleThreshold::Run(QMap<QString, QVariant> parameters)
 
 iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 	iAFilter("Otsu Multiple Thresholds", "Segmentation/Global Thresholding",
+		"Performs Otsu's method with multiple thresholds.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
 		"Otsu Multiple Threshold Filter</a> in the ITK documentation.")
@@ -382,7 +385,7 @@ IAFILTER_CREATE(iAMaximumDistance)
 
 iAMaximumDistance::iAMaximumDistance() :
 	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
-		"A maximum distance threshold based on the histogram for voids segmentation.")
+		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.")
 {
 	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
 	AddParameter("Low Intensity", Continuous, 0);

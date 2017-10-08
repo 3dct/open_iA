@@ -58,14 +58,15 @@ void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> parameters)
 
 iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 	iAFilter("Adaptive Histogram Equalization", "",
-		"<p><font size=+1>Histogram equalization modifies the contrast in an image.</font></p>"
-		"<p>The AdaptiveHistogramEqualizationImageFilter is a superset of many contrast enhancing filters. By modifying its parameters"
-		"(alpha, beta), the AdaptiveHistogramEqualizationImageFilter can produce an adaptively equalized histogram or a version of"
-		"unsharp mask (local mean subtraction).</p>"
-		"<p>The parameter alpha controls how much the filter acts like the classical histogram equalization method (alpha=0)"
-		"to how much the filter acts like an unsharp mask (alpha=1).</p>"
-		"<p>The parameter beta controls how much the filter acts like an unsharp mask (beta=0) to much the filter acts like pass"
-		"through (beta=1, with alpha=1).</p>"
+		"This filter is a superset of many contrast enhancing filters.<br/>"
+		"By modifying its parameters (alpha, beta), the filter can produce an "
+		"adaptively equalized histogram or a version of unsharp mask (local "
+		"mean subtraction).<br/>"
+		"The parameter alpha controls how much the filter acts like the "
+		"classical histogram equalization method (alpha=0) to how much the "
+		"filter acts like an unsharp mask (alpha=1). The parameter beta "
+		"controls how much the filter acts like an unsharp mask (beta=0) to "
+		"how much the filter acts like pass through (beta=1, with alpha=1)."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
 		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
