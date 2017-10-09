@@ -27,20 +27,15 @@
 #include "iATypedCallHelper.h"
 
 #include <itkCastImageFilter.h>
-#include <itkConnectedComponentImageFilter.h>
 #include <itkConvolutionImageFilter.h>
 #include <itkFFTConvolutionImageFilter.h>
 #include <itkFFTNormalizedCorrelationImageFilter.h>
-#include <itkIdentityTransform.h>
 #include <itkImageFileReader.h>
 #include <itkImageToVTKImageFilter.h>
 #include <itkImportImageFilter.h>
-#include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkNormalizedCorrelationImageFilter.h>
 #include <itkPipelineMonitorImageFilter.h>
-#include <itkRecursiveMultiResolutionPyramidImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
-#include <itkResampleImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
 #include <itkScalarImageKmeansImageFilter.h>
@@ -59,124 +54,84 @@
 #include <vtkStripper.h>
 #include <vtkTubeFilter.h>
 
-#include <QLocale>
-
 
 iAConvolutionFilter::iAConvolutionFilter(QString fn, iAConvolutionType fid, vtkImageData* i, vtkPolyData* p , iALogger* logger, QObject *parent )
 	: iAAlgorithm(fn, i, p, logger, parent), m_type(fid)
 {
-
-	pData = vtkPolyData::New(); 
-	pData = p; 
+	pData = vtkPolyData::New();
+	pData = p;
 }
 
 iAConvolutionFilter::~iAConvolutionFilter() {}
 
-template<class T> int convolutionFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
-{
-	typedef itk::Image<T, DIM> ImageType;	
-	typedef itk::Image<float, DIM> KernelImageType; 
-	typename ImageType::Pointer img = dynamic_cast<ImageType *>(image->GetITKImage());
-
-	typedef itk::ImageFileReader<KernelImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-
-	reader->SetFileName(templateFileName);
-	reader->Update();
-
-	p->Observe(reader); 
-
-	typename KernelImageType::Pointer kernelImg = reader->GetOutput();
-
-	typedef itk::ConvolutionImageFilter<ImageType, KernelImageType, KernelImageType> ConvFilterType;
-	typename ConvFilterType::Pointer filter = ConvFilterType::New();
-
-	filter->SetInput(img);
-
-#if ITK_VERSION_MAJOR >= 4
-	filter->SetKernelImage(kernelImg);
-#else
-	filter->SetImageKernelInput(kernelImg);
-#endif
-
-	p->Observe(filter);
-	filter->Update();
-
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-
-	return EXIT_SUCCESS;
-}
-
-//fft based convolution instead of spatial domain convolution
-template<class T> int fft_convolutionFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
+template<class T> void convolutionFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
-	typename ImageType::Pointer img = dynamic_cast<ImageType *>(image->GetITKImage());
 
 	typedef itk::ImageFileReader<KernelImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-
+	auto reader = ReaderType::New();
 	reader->SetFileName(templateFileName);
 	reader->Update();
-
 	p->Observe(reader);
+	auto kernelImg = reader->GetOutput();
 
-	typename KernelImageType::Pointer kernelImg = reader->GetOutput();
-
-	typedef itk::FFTConvolutionImageFilter<ImageType, KernelImageType, KernelImageType> ConvFilterType;
-	typename ConvFilterType::Pointer filter = ConvFilterType::New();
-
+	typedef itk::ConvolutionImageFilter<ImageType, KernelImageType, KernelImageType> ConvFilterType;
+	auto filter = ConvFilterType::New();
+	auto img = dynamic_cast<ImageType *>(image->GetITKImage());
 	filter->SetInput(img);
-
-#if ITK_VERSION_MAJOR >= 4
 	filter->SetKernelImage(kernelImg);
-#else
-	filter->SetImageKernelInput(kernelImg);
-#endif
-
-	filter->SetNormalize(true); 
-
 	p->Observe(filter);
 	filter->Update();
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
-	return EXIT_SUCCESS;
 }
 
-template<class T> int kmeansclusterFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
+//fft based convolution instead of spatial domain convolution
+template<class T> void fft_convolutionFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
 {
 	typedef itk::Image<T, DIM> ImageType;
-	typedef itk::Image<int, DIM> IntImageType; 
+	typedef itk::Image<float, DIM> KernelImageType;
+
+	typedef itk::ImageFileReader<KernelImageType> ReaderType;
+	auto reader = ReaderType::New();
+	reader->SetFileName(templateFileName);
+	reader->Update();
+	p->Observe(reader);
+	auto kernelImg = reader->GetOutput();
+
+	typedef itk::FFTConvolutionImageFilter<ImageType, KernelImageType, KernelImageType> ConvFilterType;
+	auto filter = ConvFilterType::New();
+	auto img = dynamic_cast<ImageType *>(image->GetITKImage());
+	filter->SetInput(img);
+	filter->SetKernelImage(kernelImg);
+	filter->SetNormalize(true);
+	p->Observe(filter);
+	filter->Update();
+	image->SetImage(filter->GetOutput());
+	image->Modified();
+}
+
+template<class T> void kmeansclusterFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
+{
+	typedef itk::Image<T, DIM> ImageType;
+	typedef itk::Image<int, DIM> IntImageType;
 	typedef itk::Image<float, DIM> FloatImageType;
 
-
 	typedef itk::ScalarImageKmeansImageFilter<ImageType, ImageType> KMeansFilterType;
-	typename KMeansFilterType::Pointer kmeansFilter = KMeansFilterType::New();
-
+	auto kmeansFilter = KMeansFilterType::New();
 	kmeansFilter->SetInput(dynamic_cast<ImageType*> (image->GetITKImage()));
-
-	const unsigned int numberOfInitialClasses = 2;
-	const unsigned int useNonContiguousLabels = true;
-
-	kmeansFilter->SetUseNonContiguousLabels(useNonContiguousLabels);
-
+	kmeansFilter->SetUseNonContiguousLabels(/*useNonContiguousLabels=*/true);
 	//bimodal distribution -> fibre datasets -> always?
 	//initial mean values for each class
 	kmeansFilter->AddClassWithInitialMean(itk::NumericTraits<unsigned short>::max() * 1 / 3);
 	kmeansFilter->AddClassWithInitialMean(itk::NumericTraits<unsigned short>::max() * 2 / 3);
-
-	p->Observe(kmeansFilter); 
-
+	p->Observe(kmeansFilter);
 	kmeansFilter->Update();
 
-	typename KMeansFilterType::ParametersType estimatedMeans = kmeansFilter->GetFinalMeans();
+	auto estimatedMeans = kmeansFilter->GetFinalMeans();
 	const unsigned int numberOfActualClasses = estimatedMeans.Size();
 	std::cout << "number of actual  classes : " << numberOfActualClasses << std::endl;
-
 	for (size_t i = 0; i < numberOfActualClasses; i++)
 	{
 		std::cout << "cluster[" << i << "]";
@@ -186,35 +141,29 @@ template<class T> int kmeansclusterFilterTemplate(iAConnector* image, iAProgress
 	typedef typename KMeansFilterType::OutputImageType OutputImageType;
 
 	typedef itk::ScalarConnectedComponentImageFilter <ImageType, IntImageType> ConnectedComponentImageFilterType;
-	typename ConnectedComponentImageFilterType::Pointer labelFilter = ConnectedComponentImageFilterType::New();
+	auto labelFilter = ConnectedComponentImageFilterType::New();
 	labelFilter->FullyConnectedOn();
 	labelFilter->SetInput(kmeansFilter->GetOutput());
-	labelFilter->SetDistanceThreshold(4); 
-
+	labelFilter->SetDistanceThreshold(4);
 	labelFilter->Update();
-
 	std::cout << "num of Objects: " << labelFilter->GetObjectCount() << std::endl;
 
 	typedef itk::RelabelComponentImageFilter<IntImageType, IntImageType>  RelabelFilterType;
-	typename RelabelFilterType::Pointer relabeler = RelabelFilterType::New();
-
+	auto relabeler = RelabelFilterType::New();
 	relabeler->SetInput(labelFilter->GetOutput());
-
-	relabeler->Update(); 
+	relabeler->Update();
 
 	typedef itk::RescaleIntensityImageFilter<IntImageType> RescaleFilterType;
-	typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
-
+	auto rescaler = RescaleFilterType::New();
 	rescaler->SetInput(relabeler->GetOutput());
 	rescaler->SetOutputMinimum(0);
 	rescaler->SetOutputMaximum(itk::NumericTraits<unsigned short>::max());
-
-	rescaler->Update(); 
+	rescaler->Update();
 
 	typedef std::vector<RelabelFilterType::ObjectSizeType> SizesType;
 	const SizesType & sizes = relabeler->GetSizeOfObjectsInPixels();
 
-	std::cout << "size of sizes : " << sizes.size() << std::endl; 
+	std::cout << "size of sizes : " << sizes.size() << std::endl;
 	SizesType::const_iterator sizeItr = sizes.begin();
 	SizesType::const_iterator sizeEnd = sizes.end();
 
@@ -231,179 +180,155 @@ template<class T> int kmeansclusterFilterTemplate(iAConnector* image, iAProgress
 
 	image->SetImage(rescaler->GetOutput());
 	image->Modified();
-
-	return 0; 
 }
 
-template<class T> int correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
+template<class T> void correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
-	typename ImageType::Pointer img = dynamic_cast<ImageType *>(image->GetITKImage());
 
 	typedef itk::ImageFileReader<KernelImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-
+	auto reader = ReaderType::New();
 	reader->SetFileName(templateFileName);
-	reader->Update();
-
-	typename KernelImageType::Pointer template_img = dynamic_cast<KernelImageType*>(reader->GetOutput()); 
-
 	p->Observe(reader);
+	reader->Update();
+	auto template_img = dynamic_cast<KernelImageType*>(reader->GetOutput());
 
-	typedef itk::NormalizedCorrelationImageFilter<ImageType, KernelImageType, KernelImageType> CorrelationFilterType;
 	// The radius of the kernel must be the radius of the patch, NOT the size of the patch
 	itk::Size<3> radius = template_img->GetLargestPossibleRegion().GetSize();
 	radius[0] = (radius[0] - 1) / 2;
 	radius[1] = (radius[1] - 1) / 2;
 	radius[2] = (radius[2] - 1) / 2;
-	
+
 	itk::ImageKernelOperator<float, 3> kernelOperator;
 	kernelOperator.SetImageKernel(template_img);
 	kernelOperator.CreateToRadius(radius);
 
-	typename CorrelationFilterType::Pointer filter = CorrelationFilterType::New();
+	auto img = dynamic_cast<ImageType *>(image->GetITKImage());
+	typedef itk::NormalizedCorrelationImageFilter<ImageType, KernelImageType, KernelImageType> CorrelationFilterType;
+	auto filter = CorrelationFilterType::New();
 	filter->SetInput(img);
 	filter->SetTemplate(kernelOperator);
-
 	p->Observe(filter);
 	filter->Update();
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
-	return EXIT_SUCCESS;
 }
 
 //NCC calculation using fft
-template<class T> int fft_correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName, vtkPolyData*pdata)
+template<class T> void fft_correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName, vtkPolyData*pdata)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
-	typename ImageType::Pointer img = dynamic_cast<ImageType *>(image->GetITKImage());
+	auto img = dynamic_cast<ImageType *>(image->GetITKImage());
 
 	typedef itk::ImageFileReader<KernelImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-
+	auto reader = ReaderType::New();
 	reader->SetFileName(templateFileName);
 	reader->Update();
-
-	typename KernelImageType::Pointer template_img = dynamic_cast<KernelImageType*>(reader->GetOutput());
+	auto template_img = dynamic_cast<KernelImageType*>(reader->GetOutput());
 
 	//cast input image to float
 	typedef itk::CastImageFilter<ImageType, KernelImageType> CasterType;
-	typename CasterType::Pointer caster = CasterType::New();
+	auto caster = CasterType::New();
 	caster->SetInput(img);
-	
-	typedef itk::FFTNormalizedCorrelationImageFilter<KernelImageType, KernelImageType> CorrelationFilterType;
-	typename CorrelationFilterType::Pointer filter = CorrelationFilterType::New();
-	filter->SetInput(caster->GetOutput()); 
-	//filter->SetFixedImage(img);
-	filter->SetMovingImage(template_img); 
-	filter->Modified(); 
 
+	typedef itk::FFTNormalizedCorrelationImageFilter<KernelImageType, KernelImageType> CorrelationFilterType;
+	auto filter = CorrelationFilterType::New();
+	filter->SetInput(caster->GetOutput());
+	//filter->SetFixedImage(img);
+	filter->SetMovingImage(template_img);
+	filter->Modified();
 	p->Observe(filter);
 	filter->Update();
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
-	return EXIT_SUCCESS;
 }
 
-template<class T> int streamed_fft_correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName, vtkPolyData*pData)
+template<class T> void streamed_fft_correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName, vtkPolyData*pData)
 {
-	std::cout << "starting streamed FFT NCC calculation" << std::endl; 
-
+	std::cout << "starting streamed FFT NCC calculation" << std::endl;
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
+
 	typename ImageType::Pointer img = dynamic_cast<ImageType *>(image->GetITKImage());
 
 	typedef itk::ImageFileReader<KernelImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-
+	auto reader = ReaderType::New();
 	reader->SetFileName(templateFileName);
 	reader->Update();
+	auto template_img = dynamic_cast<KernelImageType*>(reader->GetOutput());
 
-	typename KernelImageType::Pointer template_img = dynamic_cast<KernelImageType*>(reader->GetOutput());
-	
 	//cast input image to float
 	typedef itk::CastImageFilter<ImageType, KernelImageType> CasterType;
-	typename CasterType::Pointer caster = CasterType::New();
+	auto caster = CasterType::New();
 	caster->SetInput(img);
 
 	typedef itk::PipelineMonitorImageFilter<KernelImageType> MonitorFilterType;
-	typename MonitorFilterType::Pointer monitorFilter = MonitorFilterType::New(); 
+	auto monitorFilter = MonitorFilterType::New();
 	monitorFilter->SetInput(caster->GetOutput());
-	monitorFilter->DebugOn(); 
+	monitorFilter->DebugOn();
 
 	int numStreamDivisions = 100;
 	std::cout << "Number of stream divisions: " << numStreamDivisions << std::endl;
 
 	typedef itk::StreamingImageFilter<KernelImageType, KernelImageType> StreamingFilterType;
-	typename StreamingFilterType::Pointer streamer = StreamingFilterType::New(); 
+	auto streamer = StreamingFilterType::New();
 	streamer->SetInput(monitorFilter->GetOutput());
-	streamer->SetNumberOfStreamDivisions(numStreamDivisions); 	
-	
+	streamer->SetNumberOfStreamDivisions(numStreamDivisions);
+
 	typedef itk::FFTNormalizedCorrelationImageFilter<KernelImageType, KernelImageType> CorrelationFilterType;
 	//typedef itk::NormalizedCorrelationImageFilter<KernelImageType, KernelImageType, KernelImageType> CorrelationFilterType;
-	typename CorrelationFilterType::Pointer filter = CorrelationFilterType::New();
+	auto filter = CorrelationFilterType::New();
 	filter->SetInput(streamer->GetOutput());
 	//filter->SetFixedImage(img);
 	filter->SetMovingImage(template_img);
-
 	p->Observe(filter);
 	filter->Update();
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-	
-	return EXIT_SUCCESS;
-
 }
 
 // fft ncc only on contour
-template<class T> int fft_contour_correlationFilterTemplate2(iAConnector* image, iAProgress* p, std::string templateFileName, vtkPolyData*pData)
+template<class T> void fft_contour_correlationFilterTemplate2(iAConnector* image, iAProgress* p, std::string templateFileName, vtkPolyData*pData)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
 	typename ImageType::Pointer img = dynamic_cast<ImageType *>(image->GetITKImage());
 
-	
 	typedef itk::ImageFileReader<KernelImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-
+	auto reader = ReaderType::New();
 	reader->SetFileName(templateFileName);
 	reader->Update();
 
-	typename KernelImageType::Pointer template_img = dynamic_cast<KernelImageType*>(reader->GetOutput());	
+	auto template_img = dynamic_cast<KernelImageType*>(reader->GetOutput());
 
-	typedef itk::ImageToVTKImageFilter<ImageType> ConverterType; 
-	typename ConverterType::Pointer converter = ConverterType::New(); 
-	converter->SetInput(img); 
-	converter->Update(); 
+	typedef itk::ImageToVTKImageFilter<ImageType> ConverterType;
+	auto converter = ConverterType::New();
+	converter->SetInput(img);
+	converter->Update();
 
-	//vtkSmartPointer<vtkImageDataGeometryFilter> imageDataGeometryFilter = 
+	//vtkSmartPointer<vtkImageDataGeometryFilter> imageDataGeometryFilter =
 	//	vtkSmartPointer<vtkImageDataGeometryFilter>::New();
 	//imageDataGeometryFilter->SetInputData(converter->GetOutput());
-	//imageDataGeometryFilter->Update(); 
+	//imageDataGeometryFilter->Update();
 
-	vtkSmartPointer<vtkContourFilter> skinExtractor =   vtkSmartPointer<vtkContourFilter>::New();
+	auto skinExtractor = vtkSmartPointer<vtkContourFilter>::New();
 	skinExtractor->SetInputData(converter->GetOutput());
 	skinExtractor->SetValue(0, 50000);
 	skinExtractor->Update();
-	
+
 	//cast input image to float
 	//typedef itk::CastImageFilter<ImageType, KernelImageType> CasterType;
 	//CasterType::Pointer caster = CasterType::New();
 	//caster->SetInput(img);
-	
-	//typedef itk::SimpleContourExtractorImageFilter<ImageType, ImageType> ContourFilterType; 
-	//typename ContourFilterType::Pointer contourFilter = ContourFilterType::New(); 
-	//contourFilter->SetInput(img); 
-	//contourFilter->SetInputBackgroundValue(12000); 
-	//contourFilter->SetInputForegroundValue(50000); 
-	//contourFilter->Update(); 
+
+	//typedef itk::SimpleContourExtractorImageFilter<ImageType, ImageType> ContourFilterType;
+	//typename ContourFilterType::Pointer contourFilter = ContourFilterType::New();
+	//contourFilter->SetInput(img);
+	//contourFilter->SetInputBackgroundValue(12000);
+	//contourFilter->SetInputForegroundValue(50000);
+	//contourFilter->Update();
 
 	//typedef itk::FFTNormalizedCorrelationImageFilter<KernelImageType, KernelImageType> CorrelationFilterType;
 	//typename CorrelationFilterType::Pointer filter = CorrelationFilterType::New();
@@ -419,9 +344,9 @@ template<class T> int fft_contour_correlationFilterTemplate2(iAConnector* image,
 	image->Modified();
 
 	pData->ShallowCopy(skinExtractor->GetOutput());
-	pData->Modified(); 
+	pData->Modified();
 
-	std::cout << "numb of points: " << pData->GetNumberOfPoints() << std::endl; 
+	std::cout << "numb of points: " << pData->GetNumberOfPoints() << std::endl;
 
 	//vtkSmartPointer<vtkPolyDataMapper> mapper =
 	//vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -432,34 +357,27 @@ template<class T> int fft_contour_correlationFilterTemplate2(iAConnector* image,
 	//actor->SetMapper(mapper);
 	//actor->GetProperty()->SetPointSize(5);
 
-	vtkSmartPointer<vtkPlane> plane =
-		vtkSmartPointer<vtkPlane>::New();
+	auto plane = vtkSmartPointer<vtkPlane>::New();
 	plane->SetNormal(0, 0, 1);
 
-	vtkSmartPointer<vtkCutter> cutter =
-		vtkSmartPointer<vtkCutter>::New();
+	auto cutter = vtkSmartPointer<vtkCutter>::New();
 	cutter->SetInputData(pData);
 	cutter->SetCutFunction(plane);
 	cutter->GenerateValues(1, 0.0, 0.0);
 
-	vtkSmartPointer<vtkPolyDataMapper> modelMapper =
-		vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto modelMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	modelMapper->SetInputData(pData);
 
-	vtkSmartPointer<vtkActor> model =
-		vtkSmartPointer<vtkActor>::New();
+	auto model = vtkSmartPointer<vtkActor>::New();
 	model->SetMapper(modelMapper);
 
-	vtkSmartPointer<vtkStripper> stripper =
-		vtkSmartPointer<vtkStripper>::New();
+	auto stripper = vtkSmartPointer<vtkStripper>::New();
 	stripper->SetInputConnection(cutter->GetOutputPort());
 
-	vtkSmartPointer<vtkKochanekSpline> spline =
-		vtkSmartPointer<vtkKochanekSpline>::New();
+	auto spline = vtkSmartPointer<vtkKochanekSpline>::New();
 	spline->SetDefaultTension(.1);
 
-	vtkSmartPointer<vtkSplineFilter> sf =
-		vtkSmartPointer<vtkSplineFilter>::New();
+	auto sf = vtkSmartPointer<vtkSplineFilter>::New();
 
 	sf->SetInputConnection(stripper->GetOutputPort());
 	sf->SetSubdivideToSpecified();
@@ -467,30 +385,24 @@ template<class T> int fft_contour_correlationFilterTemplate2(iAConnector* image,
 	sf->SetSpline(spline);
 	sf->GetSpline()->ClosedOn();
 
-	vtkSmartPointer<vtkTubeFilter> tubes =
-		vtkSmartPointer<vtkTubeFilter>::New();
+	auto tubes = vtkSmartPointer<vtkTubeFilter>::New();
 	tubes->SetInputConnection(sf->GetOutputPort());
 	tubes->SetNumberOfSides(2);
 	tubes->SetRadius(0.2);
 
-	vtkSmartPointer<vtkPolyDataMapper> linesMapper =
-		vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto linesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	linesMapper->SetInputConnection(sf->GetOutputPort());
 	linesMapper->ScalarVisibilityOff();
 
-	vtkSmartPointer<vtkActor> lines =
-		vtkSmartPointer<vtkActor>::New();
+	auto lines = vtkSmartPointer<vtkActor>::New();
 	lines->SetMapper(linesMapper);
 
-	vtkSmartPointer<vtkRenderer> ren =
-		vtkSmartPointer<vtkRenderer>::New();
-	vtkSmartPointer<vtkRenderWindow> renWin =
-		vtkSmartPointer<vtkRenderWindow>::New();
+	auto ren = vtkSmartPointer<vtkRenderer>::New();
+	auto renWin = vtkSmartPointer<vtkRenderWindow>::New();
 
 	renWin->AddRenderer(ren);
 
-	vtkSmartPointer<vtkRenderWindowInteractor> iren =
-		vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	auto iren =	vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	iren->SetRenderWindow(renWin);
 
 	// Add the actors to the renderer
@@ -540,34 +452,27 @@ template<class T> int fft_contour_correlationFilterTemplate2(iAConnector* image,
 	}
 	*/
 
-	vtkSmartPointer<vtkPolyDataMapper> mapper =
-		vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData(cutter->GetOutput());
 
-	vtkSmartPointer<vtkActor> actor =
-		vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 	actor->GetProperty()->SetPointSize(5);
 
-	vtkSmartPointer<vtkRenderer> renderer =
-		vtkSmartPointer<vtkRenderer>::New();
-	vtkSmartPointer<vtkRenderWindow> renderWindow =
-		vtkSmartPointer<vtkRenderWindow>::New();
+	auto renderer = vtkSmartPointer<vtkRenderer>::New();
+	auto renderWindow =	vtkSmartPointer<vtkRenderWindow>::New();
 	renderWindow->AddRenderer(renderer);
-	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-		vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	renderWindowInteractor->SetRenderWindow(renderWindow);
 
 	renderer->AddActor(actor);
 
 	renderWindow->Render();
 	renderWindowInteractor->Start();
-	
-	return EXIT_SUCCESS;
 }
 
 //NCC calculation using fft and pure c++
-template<class T> int fft_cpp_correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
+template<class T> void fft_cpp_correlationFilterTemplate(iAConnector* image, iAProgress* p, std::string templateFileName)
 {
 	/*
 	typedef itk::Image<T, DIM> ImageType;
@@ -681,8 +586,6 @@ template<class T> int fft_cpp_correlationFilterTemplate(iAConnector* image, iAPr
 
 	outputBuffer = NULL;
 	*/
-
-	return EXIT_SUCCESS;
 }
 
 
