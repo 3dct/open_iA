@@ -36,11 +36,6 @@ namespace
 	const QString ParameterStr("Parameter");
 	const QString DerivedOutputStr("Derived Output");
 
-	// Value Types:
-	const QString ContinuousStr("Continuous");
-	const QString DiscreteStr("Discrete");
-	const QString CategoricalStr("Categorical");
-
 	const QString LinearStr("Linear");
 	const QString LogarithmicStr("Logarithmic");
 
@@ -106,42 +101,6 @@ QString AttribType2Str(iAAttributeDescriptor::iAAttributeType type)
 			return DerivedOutputStr;
 		default:
 			return UnknownStr;
-	}
-}
-
-iAValueType Str2ValueType(QString const & str)
-{
-	if (str == ContinuousStr)
-	{
-		return iAValueType::Continuous;
-	}
-	else if (str == DiscreteStr)
-	{
-		return iAValueType::Discrete;
-	}
-	else if (str == CategoricalStr)
-	{
-		return iAValueType::Categorical;
-	}
-	else
-	{
-		DEBUG_LOG(QString("Unknown value type '%1'\n").arg(str));
-		return iAValueType::Invalid;
-	}
-}
-
-QString ValueType2Str(iAValueType type)
-{
-	switch (type)
-	{
-	case iAValueType::Continuous:
-		return ContinuousStr;
-	case iAValueType::Discrete:
-		return DiscreteStr;
-	case iAValueType::Categorical:
-		return CategoricalStr;
-	default:
-		return UnknownStr;
 	}
 }
 

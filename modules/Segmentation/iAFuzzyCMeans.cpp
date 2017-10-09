@@ -159,7 +159,7 @@ IAFILTER_CREATE(iAFCMFilter)
 
 iAFCMFilter::iAFCMFilter() :
 	iAFilter("FCM", "Segmentation/Fuzzy C-Means",
-		"Fuzzy C-Means (FCM) Classification<br/><br/>"
+		"Fuzzy C-Means (FCM) Classification<br/>"
 		"This implementation is based on Bezdek et al.'s paper \"FCM: The fuzzy"
 		"c-means clustering algorithm\" (Computers & Geosciences, 10 (2), 191-203.,"
 		"1984).")
@@ -199,7 +199,7 @@ IAFILTER_CREATE(iAKFCMFilter)
 
 iAKFCMFilter::iAKFCMFilter() :
 	iAFilter("Kernelized FCM", "Segmentation/Fuzzy C-Means",
-		"Spatially Constrained Fuzzy C-Means based on kernel-induced distance (KFCMS)<br/><br/>"
+		"Spatially Constrained Fuzzy C-Means based on kernel-induced distance (KFCMS)<br/>"
 		"This implementation is based on S.C.Chen. and D.Q.Zhang, \"Robust image segmentation using"
 		"FCM with spatial constraints based on new kernel - induced distance measure\". Systems, Man, and"
 		"Cybernetics, Part B : Cybernetics, IEEE Transactions on, 34(4) : 1907–1916, 2004. 1, 2.2")
@@ -299,7 +299,7 @@ IAFILTER_CREATE(iAMSKFCMFilter)
 
 iAMSKFCMFilter::iAMSKFCMFilter() :
 	iAFilter("MSKFCM", "Segmentation/Fuzzy C-Means",
-		"Modified Spatial Kernelized Fuzzy C-Means.<br/><br/>"
+		"Modified Spatial Kernelized Fuzzy C-Means.<br/>"
 		"This implementation is a modified version of the algorithm MSFKCM proposed"
 		"by Castro et al.in the paper \"Comparison of various fuzzy clustering"
 		"algorithms in the detection of ROI in lung CT and a modified"

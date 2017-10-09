@@ -77,6 +77,9 @@ private:
 };
 
 
+// Some default loggers:
+
+
 class iAConsoleLogger : public iALogger
 {
 public:
