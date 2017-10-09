@@ -30,6 +30,7 @@ class iAVolumeRenderer;
 
 class vtkRenderWindow;
 class vtkTextActor;
+class vtkPoints;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
@@ -56,6 +57,7 @@ public slots:
 	void visualizePath();
 	void selectionChangedByUser();
 	void legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*);
+	void setSelectionFromRenderer(vtkPoints* selCellPoints);
 
 private:
 	MdiChild *m_mdiChild;

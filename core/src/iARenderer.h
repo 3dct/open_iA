@@ -60,6 +60,11 @@ class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkTransform;
 
+//
+class vtkPoints;
+class vtkUnstructuredGrid;
+class vtkDataSetMapper;
+//
 
 class open_iA_Core_API iARenderer: public QObject
 {
@@ -127,6 +132,11 @@ public:
 	iARenderObserver * getRenderObserver(){ return renderObserver; }
 	void AddRenderer(vtkRenderer* renderer);
 	void ApplySettings(iARenderSettings & settings);
+	
+	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
+	vtkSmartPointer<vtkDataSetMapper> selectedMapper;
+	vtkSmartPointer<vtkActor> selectedActor;
+	vtkSmartPointer<vtkUnstructuredGrid> finalSelection;
 protected:
 	void InitObserver();
 	iARenderObserver *renderObserver;
@@ -169,9 +179,8 @@ private:
 	vtkTransform* axesTransform;
 	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
 	//! @}
-
+	
 	int ext; //!< statistical extent size
-
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
@@ -179,7 +188,7 @@ Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
 	void Clicked(int, int, int);
-
+	void cellsSelected(vtkPoints* selCellPoints);
 	void reInitialized();
 	void onSetupRenderer();
 	void onSetCamera();

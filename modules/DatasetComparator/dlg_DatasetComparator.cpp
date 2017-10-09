@@ -51,10 +51,14 @@
 #include <vtkTextActor.h>
 #include <vtkCallbackCommand.h>
 #include <vtkActor2DCollection.h>
+#include <vtkPoints.h>
+
+#include "iARenderObserver.h"
+#include "mainwindow.h"
 
 //#include <omp.h>
 //#include <sys/timeb.h>
-//#include "iAConsole.h"
+#include "iAConsole.h"
 
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
@@ -91,7 +95,7 @@ dlg_DatasetComparator::~dlg_DatasetComparator()
 void dlg_DatasetComparator::setupQCustomPlot()
 {
 	m_customPlot->setOpenGl(false);
-	m_customPlot->setBackground(Qt::darkGray);
+	//m_customPlot->setBackground(Qt::darkGray);
 	m_customPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
 	m_customPlot->legend->setVisible(true);
 	m_customPlot->legend->setFont(QFont("Helvetica", 11));
@@ -111,6 +115,8 @@ void dlg_DatasetComparator::setupQCustomPlot()
 	connect(m_customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
 	connect(m_customPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)), 
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+	connect(m_mdiChild->getRaycaster(), SIGNAL(cellsSelected(vtkPoints*)),
+		this, SLOT(setSelectionFromRenderer(vtkPoints*)));
 }
 
 void dlg_DatasetComparator::setupGUIConnections()
@@ -185,9 +191,14 @@ void dlg_DatasetComparator::showLinePlots()
 		graphPen.setColor(graphPenColor);
 		m_customPlot->graph()->setPen(graphPen);
 		m_customPlot->graph()->setName(it->first);
+		QCPScatterStyle myScatter;
+		myScatter.setShape(QCPScatterStyle::ssDisc);
+		myScatter.setSize(3.0);
+		m_customPlot->graph()->setScatterStyle(myScatter);
 		QPen p = m_customPlot->graph()->selectionDecorator()->pen();
-		p.setColor(QColor(254, 153, 41));
-		m_customPlot->graph()->selectionDecorator()->setPen(p);  // Selection color: orange
+		p.setWidth(5);
+		p.setColor(QColor(254, 153, 41));	// Selection color: orange
+		m_customPlot->graph()->selectionDecorator()->setPen(p);  
 
 		QList<icData> l = it->second;
 		QSharedPointer<QCPGraphDataContainer> graphData(new QCPGraphDataContainer);
@@ -590,4 +601,52 @@ void dlg_DatasetComparator::legendClick(QCPLegend *legend, QCPAbstractLegendItem
 		}
 		m_customPlot->replot();
 	}
+}
+
+void dlg_DatasetComparator::setSelectionFromRenderer(vtkPoints *selCellPoints)
+{
+	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
+	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
+	QList<bool> selHilbertIdxList;
+	for (int i = 0; i < pathSteps; ++i)
+	{
+		bool found = false;
+		for (int j = 0; j < selCellPoints->GetNumberOfPoints(); ++j)
+		{
+			double *pt = selCellPoints->GetPoint(j);
+			if (data[i].x == pt[0] && data[i].y == pt[1] && data[i].z == pt[2])
+			{
+				found = true;
+				break;
+			}
+		}
+		selHilbertIdxList.append(found);
+	}
+
+	QCPDataSelection selection;
+	QCPDataRange selRange;
+	selRange.setBegin(-1);
+	selRange.setEnd(-1);
+	for (int i = 0; i < selHilbertIdxList.size(); ++i)
+	{
+		if (selRange.begin() > -1)
+		{
+			if (selHilbertIdxList[i])
+				continue;
+			else
+			{
+				selRange.setEnd(i);
+				selection.addDataRange(selRange,false);
+				selRange.setBegin(-1);
+				selRange.setEnd(-1);
+			}
+		}
+		else
+		{
+			if (selHilbertIdxList[i])
+				selRange.setBegin(i);
+		}
+	}
+	m_customPlot->graph(0)->setSelection(selection);
+	m_customPlot->replot();
 }
