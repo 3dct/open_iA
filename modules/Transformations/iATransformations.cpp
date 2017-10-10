@@ -57,7 +57,7 @@ static typename TImageType::PointType center_image(TImageType * image, typename 
 }
 
 template<class TPixelType, class TPrecision>
-static int flip_template(iATransformations * caller)
+static void flip_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         	ImageType;
@@ -87,8 +87,6 @@ static int flip_template(iATransformations * caller)
 	caller->getConnector()->Modified();
 
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class TPixelType, class TPrecision>
@@ -125,7 +123,7 @@ static void affine_template(iATransformations * caller,
 
 
 template<class TPixelType, class TPrecision> 
-static int rotate_template(iATransformations * caller)
+static void rotate_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         			ImageType;
@@ -171,12 +169,10 @@ static int rotate_template(iATransformations * caller)
 	transform->Translate(translation2);
 
 	affine_template<TPixelType, TPrecision>(caller, transform);
-
-	return EXIT_SUCCESS;
 }
 
 template<class TPixelType, class TPrecision>
-static int translate_template(iATransformations * caller)
+static void translate_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::AffineTransform<TPrecision, Dim>			TransformType;
@@ -189,11 +185,10 @@ static int translate_template(iATransformations * caller)
 	transform->Translate(translation);
 
 	affine_template<TPixelType, TPrecision>(caller, transform);
-	return EXIT_SUCCESS;
 }
 
 template<class TPixelType, class TPrecision>
-static int permute_template(iATransformations * caller)
+static void permute_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         			ImageType;
@@ -219,27 +214,22 @@ static int permute_template(iATransformations * caller)
 	caller->getConnector()->Modified();
 
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template <class TPixelType, class TPrecision>
-static int transform_template(iATransformations * caller)
+static void transform_template(iATransformations * caller)
 {
-	iATransformations::TransformationType type 
-		= caller->getTransformationType();
+	auto type = caller->getTransformationType();
 	switch (type)
 	{
 	case iATransformations::Rotation:
-		return rotate_template<TPixelType, TPrecision>(caller);
+		rotate_template<TPixelType, TPrecision>(caller);
 	case iATransformations::Translation:
-		return translate_template<TPixelType, TPrecision>(caller);
+		translate_template<TPixelType, TPrecision>(caller);
 	case iATransformations::Flip:
-		return flip_template<TPixelType, TPrecision>(caller);
+		flip_template<TPixelType, TPrecision>(caller);
 	case iATransformations::PermuteAxes:
-		return permute_template<TPixelType, TPrecision>(caller);
-	default:
-		return EXIT_FAILURE;
+		permute_template<TPixelType, TPrecision>(caller);
 	}
 }
 
