@@ -56,7 +56,6 @@
 iAScatterPlotView::iAScatterPlotView():
 	m_scatterPlotWidget(nullptr),
 	m_scatterPlotContainer(new QWidget())
-	,m_vtkChartWidget(nullptr)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
@@ -123,37 +122,6 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
-
-	if (m_vtkChartWidget)
-	{
-		delete m_vtkChartWidget;
-	}
-	m_vtkChartWidget = new QVTKWidget();
-	m_chart = vtkSmartPointer<vtkChartXY>::New();
-	VTK_CREATE(vtkTable, table);
-	VTK_CREATE(vtkFloatArray, arX);
-	arX->SetName(captionX.toStdString().c_str());
-	table->AddColumn(arX);
-	VTK_CREATE(vtkFloatArray, arY);
-	arY->SetName(captionY.toStdString().c_str());
-	table->AddColumn(arY);
-	table->SetNumberOfRows(m_voxelCount);
-	for (size_t i = 0; i < m_voxelCount; ++i)
-	{
-		table->SetValue(i, 0, bufX[i]);
-		table->SetValue(i, 1, bufY[i]);
-	}
-	m_view = vtkSmartPointer<vtkContextView>::New();
-	m_view->GetScene()->AddItem(m_chart);
-	m_view->SetInteractor(m_vtkChartWidget->GetInteractor());
-	m_vtkChartWidget->SetRenderWindow(m_view->GetRenderWindow());
-	vtkPlot *points = m_chart->AddPlot(vtkChart::POINTS);
-	points->SetInputData(table, 0, 1);
-	points->SetColor(iAUncertaintyColors::Chart.red(), iAUncertaintyColors::Chart.green(), iAUncertaintyColors::Chart.blue(), iAUncertaintyColors::Chart.alpha());
-	points->GetSelectionPen()->SetColor(iAUncertaintyColors::Selection.red(), iAUncertaintyColors::Selection.green(), iAUncertaintyColors::Selection.blue(), iAUncertaintyColors::Selection.alpha());
-	m_chart->GetAxis(vtkAxis::BOTTOM)->SetTitle(captionX.toStdString().c_str());
-	m_chart->GetAxis(vtkAxis::LEFT)->SetTitle(captionY.toStdString().c_str());
-	m_scatterPlotContainer->layout()->addWidget(m_vtkChartWidget);
 
 	StyleChanged();
 }
@@ -264,15 +232,4 @@ void iAScatterPlotView::ToggleSettings()
 
 void iAScatterPlotView::StyleChanged()
 {
-	QColor bg(QWidget::palette().color(QPalette::Background));
-	QColor fg(QWidget::palette().color(QPalette::Text));
-	m_view->GetScene()->GetRenderer()->SetBackground(bg.red() / 255.0, bg.green() / 255.0, bg.blue() / 255.0);
-	auto xAxis = m_chart->GetAxis(vtkAxis::BOTTOM);
-	auto yAxis = m_chart->GetAxis(vtkAxis::LEFT);
-	xAxis->GetTitleProperties()->SetColor(fg.red() / 255.0, fg.green() / 255.0, fg.blue() / 255.0);
-	xAxis->GetLabelProperties()->SetColor(fg.red() / 255.0, fg.green() / 255.0, fg.blue() / 255.0);
-	yAxis->GetTitleProperties()->SetColor(fg.red() / 255.0, fg.green() / 255.0, fg.blue() / 255.0);
-	yAxis->GetLabelProperties()->SetColor(fg.red() / 255.0, fg.green() / 255.0, fg.blue() / 255.0);
-	xAxis->GetPen()->SetColor(fg.red(), fg.green(), fg.blue());
-	yAxis->GetPen()->SetColor(fg.red(), fg.green(), fg.blue());
 }

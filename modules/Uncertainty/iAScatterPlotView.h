@@ -27,10 +27,6 @@
 class iAScatterPlotWidget;
 class iAvtkImageData;
 
-class QVTKWidget;
-class vtkContextView;
-class vtkChartXY;
-
 class iAScatterPlotView: public QWidget
 {
 	Q_OBJECT
@@ -57,10 +53,6 @@ private:
 	QWidget* m_settings;
 	QWidget* m_scatterPlotContainer;
 	iAScatterPlotWidget* m_scatterPlotWidget;
-
-	QVTKWidget* m_vtkChartWidget;
-	vtkSmartPointer<vtkChartXY> m_chart;
-	vtkSmartPointer<vtkContextView> m_view;
 
 	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
