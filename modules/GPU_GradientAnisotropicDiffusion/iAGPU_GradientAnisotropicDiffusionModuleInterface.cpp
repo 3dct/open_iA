@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGPU_GradientAnisotropicDiffusionModuleInterface.h"
 
@@ -29,13 +28,13 @@
 
 void iAGPU_GradientAnisotropicDiffusionModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSmoothing = getMenuWithTitle(filtersMenu, QString( "Smoothing" ) );
 	QMenu * menuEdge_preserving_smoothing = getMenuWithTitle( menuSmoothing, QString( "Edge preserving smoothing" ) );
-
 	QAction * actionGPU_Gradient_Anisotropic_Diffusion = new QAction( m_mainWnd );
 	actionGPU_Gradient_Anisotropic_Diffusion->setText(QApplication::translate("MainWindow", "GPU Gradient Anisotropic Diffusion", 0));
-
 	menuEdge_preserving_smoothing->addAction(actionGPU_Gradient_Anisotropic_Diffusion );
 	connect( actionGPU_Gradient_Anisotropic_Diffusion, SIGNAL( triggered() ), this, SLOT( gpu_grad_aniso_diffusion() ) );
 }
@@ -48,9 +47,9 @@ void iAGPU_GradientAnisotropicDiffusionModuleInterface::gpu_grad_aniso_diffusion
 	dlg_commoninput dlg( m_mainWnd, "GPU Gradient Anisotropic Diffusion", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	gadIterations = dlg.getValues()[0];
-	gadTimeStep = dlg.getValues()[1];
-	gadConductance = dlg.getValues()[2];
+	gadIterations = dlg.getDblValue(0);
+	gadTimeStep = dlg.getDblValue(1);
+	gadConductance = dlg.getDblValue(2);
 	//prepare
 	QString filterName = tr( "GPU Gradient anisotropic diffusion filter" );
 	PrepareResultChild( filterName );

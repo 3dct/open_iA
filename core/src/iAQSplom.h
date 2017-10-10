@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAScatterPlotSelectionHandler.h"
+
 #include <QGLWidget>
 #include <QList>
 
@@ -47,7 +49,7 @@ class vtkLookupTable;
 	Inherits QGLWidget,manages scatter plots internally.
 	Some customization options are available via the public settings member.
 */
-class open_iA_Core_API iAQSplom : public QGLWidget
+class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectionHandler
 {
 	Q_OBJECT
 	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
@@ -70,7 +72,7 @@ public:
 	void applyLookupTable();												//!< Apply lookup table to all the scatter plots.
 	void setParameterVisibility( int paramIndex, bool isVisible );			//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
-	QVector<unsigned int> * getSelection();									//!< Get vector of indices of currently selected data points.
+	QVector<unsigned int> & getSelection();									//!< Get vector of indices of currently selected data points.
 	void setSelection( const QVector<unsigned int> * selInds );				//!< Set selected data points from a vector of indices.
 	void getActivePlotIndices( int * inds_out );							//!< Get X and Y parameter indices of currently active scatter plot.
 	inline int getVisibleParametersCount() const							//!< Get the number of parameters currently displayed
@@ -81,7 +83,7 @@ public:
 	void setAnimIn( double anim );											//!< Setter for animation in property
 	double getAnimOut() const { return m_animOut; }							//!< Getter for animation in property
 	void setAnimOut( double anim );											//!< Setter for animation in property
-	const QList<int> * getHighlightedPoints() const;
+	const QList<int> & getHighlightedPoints() const;
 
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.

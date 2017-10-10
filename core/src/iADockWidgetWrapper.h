@@ -20,17 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QDockWidget>
 
-class iADockWidgetWrapper: public QDockWidget
+class QString;
+
+class open_iA_Core_API iADockWidgetWrapper: public QDockWidget
 {
 public:
-	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName)
-	{
-		setWindowTitle(windowTitle);
-		setFeatures(DockWidgetVerticalTitleBar | DockWidgetClosable | DockWidgetMovable | DockWidgetFloatable);
-		//if (widget)
-			setWidget(widget);
-		setObjectName(objectName);
-	}
+	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName);
+	void toggleTitleBar();
+	bool isTitleBarVisible() const;
+private:
+	QWidget* m_titleBar;
 };

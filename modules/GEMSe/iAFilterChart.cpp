@@ -56,7 +56,6 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	m_maxSliderPos = m_data->MapBinToValue(m_data->GetNumBin());
 	m_captionPosition = Qt::AlignLeft | Qt::AlignTop;
 	m_showXAxisLabel = showCaption;
-	m_showFunctions = false;
 	SetXAxisSteps(std::min(static_cast<int>(m_data->GetNumBin()), 20));
 	for (int i = 0; i < m_data->GetNumBin(); ++i)
 	{
@@ -125,14 +124,14 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	{
 		double y1 =  0;
 		double y2 =  ChartColoringHeight;
-		int binWidth = std::ceil(mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0.0, getActiveWidth()*xZoom, static_cast<double>(1)));
+		int binWidth = std::ceil(mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0.0, ActiveWidth()*xZoom, static_cast<double>(1)));
 		for (int b = 0; b < m_data->GetNumBin(); ++b)
 		{
 			if (m_binColors[b].alpha() == 0)
 			{
 				continue;
 			}
-			double x1 = mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0.0, getActiveWidth()*xZoom, static_cast<double>(b));
+			double x1 = mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0.0, ActiveWidth()*xZoom, static_cast<double>(b));
 
 			QRect rect(x1, y1, binWidth, y2);
 			painter.fillRect(rect, m_binColors[b]);
@@ -176,13 +175,13 @@ iAValueType iAFilterChart::GetRangeType() const
 
 double iAFilterChart::GetMinVisibleBin() const
 {
-	double minVisXBin = mapValue(0.0, getActiveWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(-translationX));
+	double minVisXBin = mapValue(0.0, ActiveWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(-translationX));
 	return minVisXBin;
 }
 
 double iAFilterChart::GetMaxVisibleBin() const
 {
-	double maxVisXBin = mapValue(0.0, getActiveWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(getActiveWidth()-translationX));
+	double maxVisXBin = mapValue(0.0, ActiveWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(ActiveWidth()-translationX));
 	return maxVisXBin;
 }
 
@@ -206,13 +205,13 @@ void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
 int iAFilterChart::value2X(double value) const
 {
 	double bin = mapValueToBin(value);
-	int xPos = mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0, static_cast<int>(getActiveWidth()*xZoom), bin) + translationX;
+	int xPos = mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0, static_cast<int>(ActiveWidth()*xZoom), bin) + translationX;
 	return xPos;
 }
 
 double iAFilterChart::x2value(int x) const
 {
-	double bin = mapValue(0, static_cast<int>(getActiveWidth()*xZoom), 0.0, static_cast<double>(m_data->GetNumBin()), x-translationX);
+	double bin = mapValue(0, static_cast<int>(ActiveWidth()*xZoom), 0.0, static_cast<double>(m_data->GetNumBin()), x-translationX);
 	double value = mapBinToValue(bin);
 	return value;
 }
@@ -230,11 +229,11 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 			return;
 		}
 		
-		if ( event->y() > geometry().height() - getBottomMargin() - translationY
+		if ( event->y() > geometry().height() - BottomMargin() - translationY
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			// check if we hit min or max handle:
-			int x = event->x() - getLeftMargin();
+			int x = event->x() - LeftMargin();
 
 			int minX = value2X(m_minSliderPos);
 			int maxX = value2X(m_maxSliderPos);
@@ -270,12 +269,12 @@ void iAFilterChart::mouseReleaseEvent( QMouseEvent *event )
 void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 {
 	if (	( event->buttons() == Qt::LeftButton ) &&
-			( event->y() > geometry().height() - getBottomMargin() - translationY			// mouse event below X-axis
+			( event->y() > geometry().height() - BottomMargin() - translationY			// mouse event below X-axis
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&	
 			  m_selectedHandle != -1)
 	{
-		int x = event->x() - getLeftMargin() + m_selectionOffset;
-		if (x < 0 || x-translationX > static_cast<int>(getActiveWidth()*xZoom) )
+		int x = event->x() - LeftMargin() + m_selectionOffset;
+		if (x < 0 || x-translationX > static_cast<int>(ActiveWidth()*xZoom) )
 		{
 			return;
 		}
@@ -298,8 +297,8 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 		}
 		QString text( tr( "%1\n(data range: [%2..%3])" )
 				  .arg( value )
-				  .arg( m_data->GetDataRange()[0] )
-				  .arg( m_data->GetDataRange()[1] )
+				  .arg( m_data->XBounds()[0] )
+				  .arg( m_data->XBounds()[1] )
 		);
 		QToolTip::showText( event->globalPos(), text, this );
 		redraw();

@@ -106,6 +106,6 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramWidget::GetData() c
 
 void iAHistogramWidget::UpdateData()
 {
-	data->Update();
-	SetMaxYAxisValue(data->GetMaxValue());
+	data->UpdateData();
+	SetMaxYAxisValue(data->YBounds()[1]);
 }

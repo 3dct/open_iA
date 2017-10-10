@@ -67,20 +67,10 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 		//setup the ui dialog class widget as this
 		setupUi( this );
 
-		NoofComboBox = 0;
-		//int ComboBoxCounter = 0;
-		//initialize variables
 		numPara = n;
 
 		//set the window title
 		this->setWindowTitle( winTitle );
-
-		for ( int i = 0; i < numPara; i++ )
-		{
-			tStr = inList[i];
-			if ( tStr.contains( "+" ) )
-				NoofComboBox++;
-		}
 
 		// TODO: better way to set up init values -> registry
 		m_sbDelta = 6; m_sbSigma = 300; m_sbIsoX = 50;
@@ -124,10 +114,6 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 			label->setText( tStr );
 			containerLayout->addWidget( label, i, 0, 1, 1 );
 
-			/////////////////////////////
-			// $ -> switch off line edit
-			// # -> switch off checkbox
-			/////////////////////////////
 			QWidget *newWidget;
 
 			tempStr = tStr;
@@ -230,7 +216,6 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 
 void dlg_ParamSpaceSampling::updateValues( QList<QVariant> inPara )
 {
-	//QObjectList children = this->children();
 	QObjectList children = this->container->children();
 
 	int paramIdx = 0;
@@ -269,214 +254,10 @@ void dlg_ParamSpaceSampling::updateValues( QList<QVariant> inPara )
 	}
 }
 
-void dlg_ParamSpaceSampling::connectMdiChild( MdiChild *child )
+double dlg_ParamSpaceSampling::getValue(int index) const
 {
-	QObjectList children = this->container->children();
-
-	for ( int i = 0; i < children.size(); i++ )
-	{
-		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>( children.at( i ) );
-		if ( lineEdit != NULL )
-		{
-			QString objectName = lineEdit->objectName();
-			connect( lineEdit, SIGNAL( textEdited( QString ) ), child, SLOT( updated( QString ) ) );
-		}
-
-		QComboBox *comboBox = dynamic_cast<QComboBox*>( children.at( i ) );
-
-		if ( comboBox != NULL )
-		{
-			QString objectName = comboBox->objectName();
-			connect( comboBox, SIGNAL( currentIndexChanged( QString ) ), child, SLOT( updated( i, QString ) ) );
-		}
-
-		QCheckBox *checkBox = dynamic_cast<QCheckBox*>( children.at( i ) );
-		if ( checkBox != NULL )
-		{
-			QString objectName = checkBox->objectName();
-			connect( checkBox, SIGNAL( stateChanged( int ) ), child, SLOT( updated( i ) ) );
-		}
-
-		QSpinBox *spinBox = dynamic_cast<QSpinBox*>( children.at( i ) );
-		if ( spinBox != NULL )
-		{
-			QString objectName = spinBox->objectName();
-			connect( spinBox, SIGNAL( valueChanged( QString ) ), child, SLOT( updated( QString ) ) );
-		}
-	}
-}
-
-QList<double> dlg_ParamSpaceSampling::getValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		QString test = widgetList[i];
-		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->text().toDouble() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<double> dlg_ParamSpaceSampling::getSpinBoxValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QSpinBox *t = this->container->findChild<QSpinBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->text().toDouble() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<double> dlg_ParamSpaceSampling::getDoubleSpinBoxValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QDoubleSpinBox *t = this->container->findChild<QDoubleSpinBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->value() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<int> dlg_ParamSpaceSampling::getCheckValues()
-{
-	outCheckList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QCheckBox *t = this->container->findChild<QCheckBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outCheckList.insert( i, t->checkState() );
-		}
-		else
-			outCheckList.insert( i, 0 );
-	}
-	return ( outCheckList );
-}
-
-QStringList dlg_ParamSpaceSampling::getComboBoxValues()
-{
-	outComboValues.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboValues.insert( i, t->currentText() );
-		}
-		else
-			//needs to be there otherwise the list indices are incorrect!
-			outComboValues.insert( i, "" );
-	}
-	return ( outComboValues );
-}
-
-QStringList dlg_ParamSpaceSampling::getText()
-{
-	outTextList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outTextList.insert( i, t->text() );
-		}
-		else
-			outTextList.insert( i, "" );
-	}
-	return ( outTextList );
-}
-
-double dlg_ParamSpaceSampling::getParameterValue( QString name )
-{
-	if ( name.contains( QRegExp( "$#*" ) ) )
-		name.remove( 0, 1 );
-
-	if ( name.contains( "LineEdit", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QLineEdit *l_temp = this->container->findChild<QLineEdit*>( name );
-
-		outValue = l_temp->text().toDouble();
-	}
-	else if ( name.contains( "ComboBox", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QComboBox *t_temp = this->container->findChild<QComboBox*>( name );
-
-		outValue = t_temp->currentText().toDouble();
-	}
-	else if ( name.contains( "CheckBox", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QCheckBox *t_temp = this->container->findChild<QCheckBox*>( name );
-
-		outValue = t_temp->checkState();
-	}
-	else if ( name.contains( "SpinBox", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QSpinBox *t_temp = this->container->findChild<QSpinBox*>( name );
-
-		outValue = t_temp->text().toDouble();
-	}
-	else outValue = 0;
-
-	return outValue;
-}
-
-QList<int> dlg_ParamSpaceSampling::getComboBoxIndices()
-{
-	outComboIndices.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboIndices.insert( i, t->currentIndex() );
-		}
-		else
-			outComboIndices.insert( i, -1 );
-	}
-	return ( outComboIndices );
+	QLineEdit *t = this->container->findChild<QLineEdit*>( widgetList[index] );
+	return t ? t->text().toDouble() : 0.0;
 }
 
 void dlg_ParamSpaceSampling::createDatasetPreview()

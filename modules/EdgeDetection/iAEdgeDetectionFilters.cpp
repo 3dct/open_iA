@@ -27,50 +27,52 @@
 
 #include <itkCannyEdgeDetectionImageFilter.h>
 #include <itkCastImageFilter.h>
-#include <itkImageIOBase.h>
-#include <vtkImageData.h>
 
-#include <QLocale>
-
-
-template<class T> 
-int canny_edge_detection_template( double variance, double maximumError, double upper, double lower, iAProgress* p, iAConnector* image )
+template<class T>
+void canny_edge_detection_template( double variance, double maximumError, double upper, double lower, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
-
 	typedef itk::CastImageFilter< InputImageType, RealImageType> CastToRealFilterType;
-	typename CastToRealFilterType::Pointer toReal = CastToRealFilterType::New();
-	toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-
 	typedef itk::CannyEdgeDetectionImageFilter < RealImageType, RealImageType > CannyEDFType;
-	CannyEDFType::Pointer canny = CannyEDFType::New(); 
+
+	auto toReal = CastToRealFilterType::New();
+	toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	auto canny = CannyEDFType::New();
 	canny->SetVariance( variance );
 	canny->SetMaximumError( maximumError );
 	canny->SetUpperThreshold( upper );
 	canny->SetLowerThreshold( lower );
 	canny->SetInput( toReal->GetOutput() );
-
 	p->Observe( canny );
-
-	canny->Update();	
+	canny->Update();
 	image->SetImage(canny->GetOutput( ));
 	image->Modified();
-
 	canny->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
+IAFILTER_CREATE(iACannyEdgeDetection)
 
-iAEdgeDetectionFilters::iAEdgeDetectionFilters( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, i, p, logger, parent )
-{}
-
-
-void iAEdgeDetectionFilters::performWork()
+void iACannyEdgeDetection::Run(QMap<QString, QVariant> parameters)
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(canny_edge_detection_template, itkType,
-		variance, maximumError, upper, lower, getItkProgress(), getConnector());
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(canny_edge_detection_template, pixelType,
+		parameters["Variance"].toDouble(), parameters["Maximum Error"].toDouble(),
+		parameters["Upper Threshold"].toDouble(), parameters["Lower Threshold"].toDouble(),
+		m_progress, m_con);
+}
+
+iACannyEdgeDetection::iACannyEdgeDetection() :
+	iAFilter("Canny", "Edge detection",
+		"Canny edge detector for scalar-valued images.<br/>"
+		"<em>Variance</em> and <em>Maximum</em> parameters are used to perform "
+		"a Gaussian smoothing of the image.<br/>"
+		"For more information, see the "
+		"<a href=\"http://www.itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html\">"
+		"Canny Edge Detection Filter</a> in the ITK documentation.")
+{
+	AddParameter("Variance", Continuous, 0.01);
+	AddParameter("Maximum error", Continuous, 0.01);
+	AddParameter("Lower Threshold", Continuous, 0);
+	AddParameter("Upper Threshold", Continuous, 1);
 }

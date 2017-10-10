@@ -28,7 +28,6 @@
 #include "iAvec3.h"
 
 #define ASTRA_CUDA
-//#include <astra/AstraObjectManager.h>
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
 #include <astra/CudaCglsAlgorithm3D.h>

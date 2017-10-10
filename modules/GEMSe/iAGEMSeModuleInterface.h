@@ -21,9 +21,14 @@
 #pragma once
 
 #include "iAModuleInterface.h"
+#include "iAQTtoUIConnector.h"
+#include "ui_GEMSeToolBar.h"
 
-class iAGEMSeToolbar;
+#include <QToolBar>
+
 class iASEAFile;
+
+typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
 
 class iAGEMSeModuleInterface : public iAModuleInterface
 {

@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iADistanceMapModuleInterface.h"
 
@@ -31,6 +30,8 @@
 
 void iADistanceMapModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuDistance_Map = getMenuWithTitle(filtersMenu, QApplication::translate("MainWindow", "Distance Map", 0));
 	QAction * actionSigned_Maurer_Distance_Map = new QAction(QApplication::translate("MainWindow", "Signed Maurer Distance Map", 0), m_mainWnd );
@@ -55,10 +56,10 @@ void iADistanceMapModuleInterface::signed_maurer_distance_map()
 	dlg_commoninput dlg( m_mainWnd, "Signed Maurer Distance Map", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	smdmi = dlg.getCheckValues()[0]; 
-	smdms = dlg.getCheckValues()[1]; 
-	smdmp = dlg.getCheckValues()[2]; 
-	smdmn = dlg.getCheckValues()[3];
+	smdmi = dlg.getCheckValue(0);
+	smdms = dlg.getCheckValue(1);
+	smdmp = dlg.getCheckValue(2);
+	smdmn = dlg.getCheckValue(3);
 
 	settings.setValue( "Filters/DistanceMap/SignedMaurer/smdmi", smdmi );
 	settings.setValue( "Filters/DistanceMap/SignedMaurer/smdms", smdms );

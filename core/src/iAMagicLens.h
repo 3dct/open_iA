@@ -45,7 +45,7 @@ class LensData
 {
 public:
 	LensData();
-	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled, QString const & name);
+	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled);
 
 	iAFramedQVTKWidget2* m_qvtkWidget;
 	vtkSmartPointer<vtkImageMapToColors> m_imageToColors;
@@ -121,5 +121,5 @@ private:
 	void UpdateOffset();
 	void UpdateShowFrame();
 	void UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkScalarsToColors* cTF,
-		vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF);
+		vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF, QString const & name);
 };

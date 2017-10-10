@@ -30,7 +30,6 @@
 #include "iAImageTreeNode.h"
 #include "iAIOProvider.h"
 #include "iALookupTable.h"
-#include "iAQSplom.h"
 #include "iASingleResult.h"
 #include "mdichild.h"
 
@@ -504,6 +503,7 @@ void dlg_Consensus::LabelVoters(int)
 	int labelVoters = slLabelVoters->value();
 	QString name = QString("Voting Best %1 of label (%2)").arg(labelVoters).arg(CollectedIDs(selection));
 	lbValue->setText(name);
+	lbValue->setMinimumWidth(10);
 	UpdateWeightPlot();
 	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
@@ -829,7 +829,7 @@ void dlg_Consensus::LoadConfig()
 				QVector<double> singleParameterSet;
 				for (int p = 0; p < samplingResults->GetAttributes()->size(); ++p)
 				{
-					if (samplingResults->GetAttributes()->at(p)->GetAttribType() == iAAttributeDescriptor::Parameter)
+					if (samplingResults->GetAttributes()->at(p)->AttribType() == iAAttributeDescriptor::Parameter)
 					{
 						singleParameterSet.push_back(samplingResults->Get(i)->GetAttribute(p));
 					}
@@ -848,9 +848,8 @@ void dlg_Consensus::LoadConfig()
 		{
 			return;
 		}
-		QStringList changedValues = checkAlgoParams.getText();
-		QString executable = changedValues[0];
-		QString additionalParameters = changedValues[1];
+		QString executable = checkAlgoParams.getText(0);
+		QString additionalParameters = checkAlgoParams.getText(1);
 		QSharedPointer<iASelectionParameterGenerator> generator(
 			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));
@@ -977,7 +976,7 @@ void dlg_Consensus::SamplerFinished()
 				.arg(measureValues[measureValues.size() - 1]); // undecided
 			for (int i = 0; i < m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->size(); ++i)
 			{
-				if (m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+				if (m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->at(i)->AttribType() == iAAttributeDescriptor::Parameter)
 				{
 					debugOut += QString("\t%1").arg(m_comparisonSamplingResults[s]->Get(m)->GetAttribute(i));
 				}
@@ -986,7 +985,7 @@ void dlg_Consensus::SamplerFinished()
 			// }
 			for (int i = 0; i<measures.size(); ++i)
 			{
-				int attributeID = attributes->Find(measures[i]->GetName());
+				int attributeID = attributes->Find(measures[i]->Name());
 				m_comparisonSamplingResults[s]->Get(m)->SetAttribute(attributeID, measureValues[i]);
 				attributes->at(attributeID)->AdjustMinMax(measureValues[i]);
 			}

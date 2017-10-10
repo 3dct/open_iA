@@ -47,22 +47,9 @@ public:
 	dlg_ParamSpaceSampling( QWidget *parent, QString winTitel, int n, QStringList inList, QList<QVariant> inPara,
 							QTextDocument * fDescr, QString datasetDir, QString datasetName, QStringList datasetInfo, QVector<double> keyData,
 							QVector<double> valueData, QString filterName, bool modal = false );
+	double getValue(int index) const;
 
-	QStringList getWidgetList();
-	QStringList getComboBoxValues();
-	QStringList getText();
-	QList<int> getComboBoxIndices();
-	QList<double> getValues();
-	QList<int> getCheckValues();
-	QList<double> getSpinBoxValues();
-	QList<double> getDoubleSpinBoxValues();
-
-	void setComboValues( QList<QVariant> inCombo ){ inComboValue = inCombo; };
-	double getParameterValue( QString name );
-	void updateValues( QList<QVariant> );
-	void connectMdiChild( MdiChild *child );
-
-	public slots:
+public slots:
 	void updateHistoPeaks( int value );
 	void updateHistoSmooth( int value );
 	void updateIsoXPeak( int value );
@@ -71,14 +58,11 @@ public:
 private:
 
 	int numPara;
-	int NoofComboBox;
-	int selectedComboBoxPos;
 	int m_sbDelta, m_sbSigma, m_sbIsoX, m_emi_count, m_absorp_count;
 	int emi_peaks[MAX_PEAK];
 	int absorp_peaks[MAX_PEAK];
 	int m_isoXGrayValue;
 	int m_airPoreGrayValue;
-	double outValue;
 	double* m_data[2];
 	double m_highestFreq;
 	QTextDocument* m_description;
@@ -87,13 +71,7 @@ private:
 	QString m_filterName;
 	QStringList m_datasetInfo;
 	QStringList widgetList;
-	QStringList outComboValues, outTextList;
 	QList<QCPGraph *> m_peakGraphList;
-	QList<double> outValueList;
-	QList<int> outCheckList;
-	QList<int> outComboIndices;
-	QList<QLabel*> listLabel;
-	QList<QVariant> inComboValue;
 	QList<QVariant> m_inPara;
 	QVector<double> m_keyData, m_valueData;
 	QVector<double> m_smoothKey;
@@ -115,7 +93,6 @@ private:
 	QLabel* cbSHLine_Label;
 	QCheckBox* cbSHLine;
 
-
 	void createDatasetPreview();
 	void createDatasetInfo();
 	void computeSmoothHisto( QVector<double> *m_smoothKey, QVector<double> *m_smoothValue );
@@ -127,6 +104,7 @@ private:
 	void createDescription();
 	void updateLineEdits();
 	void addUnits();
+	void updateValues(QList<QVariant>);
 
 protected:
 

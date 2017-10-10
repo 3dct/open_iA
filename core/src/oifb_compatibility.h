@@ -58,13 +58,14 @@ DEALINGS IN THE SOFTWARE.
  */
 
 #ifdef _WIN32 //WINDOWS ONLY
-
 #include <cstdlib>
 #include <cstdio>
 #include <cstdarg>
 #include <cstdint>
 #include <string>
 #include <vector>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #include <ole2.h>
 #include <time.h>

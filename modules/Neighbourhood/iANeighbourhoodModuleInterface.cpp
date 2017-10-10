@@ -28,6 +28,8 @@
 
 void iANeighbourhoodModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuNeighbourhood = getMenuWithTitle(filtersMenu, QString("Neighbourhood"));
 	QAction * actionItkMedianFilter = new QAction(QApplication::translate("MainWindow", "Median Filter", 0), m_mainWnd);
@@ -54,9 +56,9 @@ void iANeighbourhoodModuleInterface::median_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	medR_x = dlg.getValues()[0];
-	medR_y = dlg.getValues()[1];
-	medR_z = dlg.getValues()[2];
+	medR_x = dlg.getDblValue(0);
+	medR_y = dlg.getDblValue(1);
+	medR_z = dlg.getDblValue(2);
 
 	//prepare
 	QString filterName = "Median Filtered";

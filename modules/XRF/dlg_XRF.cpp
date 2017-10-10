@@ -543,7 +543,7 @@ void dlg_XRF::updateFunctionalBoxplot(int show)
 	{
 		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->GetFunctionalBoxPlot(),
 			m_xrfData->size(),
-			m_accumulatedXRF->GetMaxValue());
+			m_accumulatedXRF->YBounds()[1]);
 		m_spectrumDiagram->AddImageOverlay(m_functionalBoxplotImage);
 	}
 	else
@@ -1415,7 +1415,7 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
-		m_accumulatedXRF->GetMaxValue()));
+		m_accumulatedXRF->YBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
 	QSharedPointer<iAStepFunctionDrawer> drawable(new iAStepFunctionDrawer(data, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);

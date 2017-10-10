@@ -63,7 +63,7 @@ Settings::Settings(QString const & filename)
 	file.close();
 }
 
-void Settings::LoadTransferFunction(iATransferFunction* transferFunction, double range[2])
+void Settings::LoadTransferFunction(iATransferFunction* transferFunction, double const range[2])
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");

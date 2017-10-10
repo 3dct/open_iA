@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGradientsModuleInterface.h"
 
@@ -31,6 +30,8 @@ HOAccGradientDerrivativeSettings HOAGDSettings;
 
 void iAGradientsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuGradients = getMenuWithTitle(filtersMenu, QString( "Gradients" ) );
 	QAction * actionGradient_Magnitude = new QAction(QApplication::translate("MainWindow", "Gradient Magnitude", 0), m_mainWnd );
@@ -68,8 +69,8 @@ void iAGradientsModuleInterface::derivative_Filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	dfOrder = dlg.getValues()[0];
-	dfDirection = dlg.getValues()[1];
+	dfOrder = dlg.getDblValue(0);
+	dfDirection = dlg.getDblValue(1);
 
 	//prepare
 	QString filterName = "Derivative image";
@@ -101,9 +102,9 @@ void iAGradientsModuleInterface::higherOrderDerivative()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	HOAGDSettings.order = dlg.getValues()[0];
-	HOAGDSettings.direction = dlg.getValues()[1];
-	HOAGDSettings.orderOfAcc = dlg.getValues()[2];
+	HOAGDSettings.order = dlg.getDblValue(0);
+	HOAGDSettings.direction = dlg.getDblValue(1);
+	HOAGDSettings.orderOfAcc = dlg.getDblValue(2);
 
 	//prepare
 	QString filterName = "Higher Order Accurate Gradient Derivative";

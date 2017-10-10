@@ -109,18 +109,6 @@ const int CameraSpacing   = ExampleViewSpacing;
 const int FavoriteBarWidth = 80;
 const int FavoriteWidth    = FavoriteBarWidth - (2 * ExampleViewSpacing);
 
-enum DerivedOutput
-{
-	objectCount,
-	duration,
-	diceMetric,
-	kappa,
-	overallAcc,
-	precision,
-	recall,
-	DerivedOutputCount
-};
-
 
 struct DefaultColors
 {
@@ -153,34 +141,10 @@ struct DefaultColors
 	static const QBrush CaptionBrush;
 };
 
-struct Output
-{
-	static const QString NameSeparator;
-	static const QString ValueSeparator;
-	static const QString OptionalParamSeparator;
-};
-
 
 const QString SMPFileVersion("v8");
 const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
-
-const QString AttributeSplitString("\t");
 const QString ValueSplitString(" ");
-const QString CategoricalValueSplitString(",");
-
-// Attribute Types:
-const QString ParameterStr("Parameter");
-const QString DerivedOutputStr("Derived Output");
-
-// Value Types:
-const QString ContinuousStr("Continuous");
-const QString DiscreteStr("Discrete");
-const QString CategoricalStr("Categorical");
-
-const QString LinearStr("Linear");
-const QString LogarithmicStr("Logarithmic");
-
-const QString UnknownStr("Unknown");
 
 enum iARepresentativeType
 {

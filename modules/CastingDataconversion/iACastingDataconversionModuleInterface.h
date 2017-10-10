@@ -22,18 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iACastingDataconversionModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void castimage_Filter();
-
-protected:
-	//settings
 };

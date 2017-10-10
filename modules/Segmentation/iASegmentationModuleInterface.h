@@ -21,38 +21,24 @@
 #pragma once
 
 #include "iAModuleInterface.h"
+#include "iAFilterRegistry.h"
+
+#include <QMap>
 
 class MdiChild;
+class iAProbabilitySource;
+class iAFilter;
+class iAFilterRunner;
 
-class iASegmentationModuleInterface : public iAModuleInterface
+class iASegmentationModuleInterface : public iAModuleInterface, public iAFilterRunCallback
 {
 	Q_OBJECT
-
 public:
 	void Initialize();
-
+	void FilterStarted(iAFilterRunner* filter) override;
 private slots:
-	void binary_threshold();
-	void otsu_Threshold_Filter();
-	void maximum_Distance_Filter();
-	void watershed_seg();
-	void morph_watershed_seg();
-	void adaptive_Otsu_Threshold_Filter();
-	void rats_Threshold_Filter();
-	void otsu_Multiple_Threshold_Filter();
 	bool CalculateSegmentationMetrics();
-
+	void FuzzyCMeansFinished();
 private:
-	//settings
-	double btlower, btupper, btoutside, btinside; //binary threshold
-	double otBins, otinside, otoutside;
-	bool otremovepeaks;
-	double mdfli, mdfbins; int mdfuli; //maximum distance filter parameters
-	double wsLevel, wsThreshold;
-	double mwsLevel; // Morphological Watershed Segmentation Filter
-	bool mwsMarkWSLines, mwsFullyConnected; // Morphological Watershed Segmentation Filter
-	double aotBins, aotOutside, aotInside, aotRadius; 
-	unsigned int aotSamples, aotLevels, aotControlpoints;
-	double rtPow, rtOutside, rtInside;
-	double omtBins, omtThreshs, omtVe;
+	QMap<iAFilterRunner*, iAProbabilitySource*> m_probSources;
 };

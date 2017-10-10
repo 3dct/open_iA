@@ -36,6 +36,8 @@
 
 void iASegmentationRandomWalkerModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegm = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
 	QMenu * menuGraphSegm = getMenuWithTitle(menuSegm, QString("Graph-Based"));
@@ -198,13 +200,12 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 	{
 		return false;
 	}
-
-	QList<int> fileIndices = dlg.getComboBoxIndices();
+	int fileIndex = dlg.getComboBoxIndex(0);
 	QVector<vtkSmartPointer<vtkImageData> > priorImg(mdiwindows.size()-1);
 	int currInsert = 0;
 	for (int i=0; i<mdiwindows.size(); ++i)
 	{
-		if (i == fileIndices[0])
+		if (i == fileIndex)
 		{
 			continue;
 		}
@@ -215,7 +216,7 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 	}
 
 	QString filterName = "Extended Random Walker";
-	PrepareResultChild(fileIndices[0], filterName);
+	PrepareResultChild(fileIndex, filterName);
 	iAERWFilter * thread = new iAERWFilter(filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	thread->SetPriors(priorImg);

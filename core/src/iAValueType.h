@@ -25,5 +25,12 @@ enum iAValueType
 	Invalid = -1,
 	Continuous,
 	Discrete,
-	Categorical
+	Categorical,
+	String,
+	Boolean
 };
+
+class QString;
+
+QString ValueType2Str(iAValueType type);
+iAValueType Str2ValueType(QString const & str);

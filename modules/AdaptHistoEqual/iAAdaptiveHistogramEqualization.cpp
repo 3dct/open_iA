@@ -27,56 +27,50 @@
 #include "iATypedCallHelper.h"
 
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
-#include <itkImageFileWriter.h>
 
-#include <vtkImageData.h>
-
-#include <QLocale>
-
-/**
-* template computes Adaptive Histogram Equalization
-* 
-* This template is used for calculating the Adaptive Histogram Equalization
-* \param	Alpha			Alpha controls how much the filter acts like the classical histogram equalization
-* \param	Beta			Beta controls how much the filter acts like an unsharp mask
-* \param	p				Filter progress information. 
-* \param	image			Input image. 
-* \param	T				Input type 
-* \return	int Status-Code. 
-*/
-template<class T> int iAAdaptiveHistogramEqualization_template( double aheAlpha, double aheBeta, iAProgress* p, iAConnector* image)
+template<class T> void iAAdaptiveHistogramEqualization_template( double alpha, double beta, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
-	
-	typename InputImageType::Pointer castImage;
-	castImage = dynamic_cast< InputImageType * >( image->GetITKImage() );
-
 	typedef  itk::AdaptiveHistogramEqualizationImageFilter< InputImageType > AdaptiveHistogramEqualizationImageFilterType;
-	typename AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
+	auto castImage = dynamic_cast< InputImageType * >( image->GetITKImage() );
+	auto adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
 	adaptiveHistogramEqualizationImageFilter->SetInput( castImage );
-	adaptiveHistogramEqualizationImageFilter->SetAlpha( aheAlpha );
-	adaptiveHistogramEqualizationImageFilter->SetBeta( aheBeta );
+	adaptiveHistogramEqualizationImageFilter->SetAlpha( alpha );
+	adaptiveHistogramEqualizationImageFilter->SetBeta( beta );
 	adaptiveHistogramEqualizationImageFilter->SetRadius( 1 );
-	 
 	p->Observe( adaptiveHistogramEqualizationImageFilter );
-
 	adaptiveHistogramEqualizationImageFilter->Update();
-	  
 	image->SetImage(adaptiveHistogramEqualizationImageFilter->GetOutput());
 	image->Modified();
-
 	adaptiveHistogramEqualizationImageFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm( fn, i, p, logger, parent )
-{}
+IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
 
-void iAAdaptiveHistogramEqualization::performWork()
+void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> parameters)
 {
-	addMsg(QString("    Alpha=%1; Beta=%2").arg(this->aheAlpha).arg(this->aheBeta));
-	VTK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, getVtkImageData()->GetScalarType(),
-		aheAlpha, aheBeta, getItkProgress(), getConnector());
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, pixelType,
+		parameters["Alpha"].toDouble(),
+		parameters["Beta"].toDouble(),
+		m_progress, m_con);
+}
+
+iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
+	iAFilter("Adaptive Histogram Equalization", "",
+		"This filter is a superset of many contrast enhancing filters.<br/>"
+		"By modifying its parameters (alpha, beta), the filter can produce an "
+		"adaptively equalized histogram or a version of unsharp mask (local "
+		"mean subtraction).<br/>"
+		"The parameter alpha controls how much the filter acts like the "
+		"classical histogram equalization method (alpha=0) to how much the "
+		"filter acts like an unsharp mask (alpha=1). The parameter beta "
+		"controls how much the filter acts like an unsharp mask (beta=0) to "
+		"how much the filter acts like pass through (beta=1, with alpha=1)."
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
+		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
+{
+	AddParameter("Alpha", Continuous, 0, 0, 1);
+	AddParameter("Beta", Continuous, 0, 0, 1);
 }

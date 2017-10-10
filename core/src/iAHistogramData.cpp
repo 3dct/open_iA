@@ -30,9 +30,10 @@
 #include <vtkImageData.h>
 
 iAHistogramData::iAHistogramData()
-	: accumulate(0), numBin(0), rawData(0), rawImg(0), maxFreq(0), accSpacing(0)
+	: accumulate(0), numBin(0), rawData(0), rawImg(0), accSpacing(0)
 {
-	dataRange[0]  = dataRange[1]  = 0;
+	xBounds[0] = xBounds[1] = 0;
+	yBounds[0] = yBounds[1] = 0;
 }
 
 double iAHistogramData::GetSpacing() const
@@ -40,14 +41,9 @@ double iAHistogramData::GetSpacing() const
 	return accSpacing;
 }
 
-double * iAHistogramData::GetDataRange()
+double const * iAHistogramData::XBounds() const
 {
-	return dataRange;
-}
-
-double iAHistogramData::GetDataRange(int idx) const
-{
-	return dataRange[idx];
+	return xBounds;
 }
 
 iAHistogramData::DataType const * iAHistogramData::GetData() const
@@ -58,7 +54,7 @@ iAHistogramData::DataType const * iAHistogramData::GetData() const
 void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate)
 {
 	accumulate = imgAccumulate;
-	Update();
+	UpdateData();
 }
 
 void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
@@ -70,19 +66,19 @@ void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
 	rawData = data;
 	numBin = bins;
 	accSpacing = space;
-	dataRange[0] = min;
-	dataRange[1] = max;
+	xBounds[0] = min;
+	xBounds[1] = max;
 	SetMaxFreq();
 }
 
 
-void iAHistogramData::Update()
+void iAHistogramData::UpdateData()
 {
 	int extent[6];
 	accumulate->GetComponentExtent(extent);
 	numBin = extent[1] + 1;
-	dataRange[0] = accumulate->GetMin()[0];
-	dataRange[1] = accumulate->GetMax()[0];
+	xBounds[0] = accumulate->GetMin()[0];
+	xBounds[1] = accumulate->GetMax()[0];
 	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
 	caster->SetInputData(accumulate->GetOutput());
 	caster->SetOutputScalarType(VtkDataType<DataType>::value);
@@ -92,7 +88,7 @@ void iAHistogramData::Update()
 	double null1, null2;
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
 	{	// for int types, the last value is inclusive:
-		accSpacing = (dataRange[1] - dataRange[0] + 1) / numBin;
+		accSpacing = (xBounds[1] - xBounds[0] + 1) / numBin;
 	}
 	else
 	{
@@ -106,9 +102,9 @@ size_t iAHistogramData::GetNumBin() const
 	return numBin;
 }
 
-iAAbstractDiagramData::DataType iAHistogramData::GetMaxValue() const
+iAAbstractDiagramData::DataType const * iAHistogramData::YBounds() const
 {
-	return maxFreq;
+	return yBounds;
 }
 
 iAValueType iAHistogramData::GetRangeType() const
@@ -124,10 +120,10 @@ void iAHistogramData::SetMaxFreq()
 {
 	if(rawData)
 	{
-		maxFreq = 1;
+		yBounds[1] = 1;
 		for ( int i = 0; i < GetNumBin(); i++ ) {
-			if (rawData[i] > maxFreq)
-				maxFreq = rawData[i];
+			if (rawData[i] > yBounds[1])
+				yBounds[1] = rawData[i];
 		}
 	}
 }

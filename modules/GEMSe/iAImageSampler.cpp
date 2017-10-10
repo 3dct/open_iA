@@ -157,7 +157,7 @@ void iAImageSampler::run()
 		for (int i = 0; i < m_parameterCount; ++i)
 		{
 			QString value;
-			switch (m_parameters->at(i)->GetValueType())
+			switch (m_parameters->at(i)->ValueType())
 			{
 			case Continuous:
 				value = QString::number(paramSet.at(i), 'g', 12);
@@ -166,7 +166,7 @@ void iAImageSampler::run()
 				value = QString::number(static_cast<long>(paramSet.at(i)));
 				break;
 			case Categorical:
-				value = m_parameters->at(i)->GetNameMapper()->GetName(static_cast<long>(paramSet.at(i)));
+				value = m_parameters->at(i)->NameMapper()->GetName(static_cast<long>(paramSet.at(i)));
 				break;
 			}
 			argumentList << value;

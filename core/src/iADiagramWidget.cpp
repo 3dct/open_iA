@@ -134,8 +134,8 @@ void iADiagramWidget::zoomAlongX(double value, int x, bool deltaMode)
 	{
 		return;
 	}
-	int absoluteX = x-translationX-getLeftMargin();
-	double absoluteXRatio = (double)absoluteX/((getActiveWidth()-1)*xZoom);
+	int absoluteX = x-translationX-LeftMargin();
+	double absoluteXRatio = (double)absoluteX/((ActiveWidth()-1)*xZoom);
 	if (deltaMode)
 	{
 		if (value /* = delta */ > 0)
@@ -151,15 +151,12 @@ void iADiagramWidget::zoomAlongX(double value, int x, bool deltaMode)
 	{
 		xZoom = value;
 	}
-	if (xZoom < 1.0)
-		xZoom = 1.0;
-	if (xZoom > maxXZoom)
-		xZoom = maxXZoom;
+	xZoom = clamp(1.0, maxXZoom, xZoom);
 
-	int absXAfterZoom = (int)(getActiveWidth()*xZoom*absoluteXRatio);
+	int absXAfterZoom = (int)(ActiveWidth()*xZoom*absoluteXRatio);
 
-	translationX = clamp(-static_cast<int>(getActiveWidth() * (xZoom-1)), 0,
-		-absXAfterZoom +x -getLeftMargin());
+	translationX = clamp(-static_cast<int>(ActiveWidth() * (xZoom-1)), 0,
+		-absXAfterZoom +x -LeftMargin());
 
 	if (xZoomBefore != xZoom || translationXBefore != translationX)
 	{
@@ -172,34 +169,24 @@ double iADiagramWidget::getMaxXZoom() const
 	return MAX_X_ZOOM;
 }
 
-int iADiagramWidget::getActiveWidth() const
+int iADiagramWidget::ActiveWidth() const
 {
-	return width - getLeftMargin();
+	return width - LeftMargin();
 }
 
-int iADiagramWidget::getActiveHeight() const
+int iADiagramWidget::ActiveHeight() const
 {
-	return height - getBottomMargin();
+	return height - BottomMargin();
 }
 
-int iADiagramWidget::getHeight() const
+int iADiagramWidget::Height() const
 {
 	return height;
 }
 
-QColor iADiagramWidget::getBGGradientColor(int idx)
-{
-	switch (idx)
-	{
-		case 0: return QColor(140,140,140,255);
-		case 1: return QColor(255,255,255,255);
-	}
-	return QColor(0, 0, 0);
-}
-
 void iADiagramWidget::drawBackground(QPainter &painter)
 {
-	painter.fillRect( rect(), Qt::white);
+	painter.fillRect( rect(), QWidget::palette().color(QWidget::backgroundRole()));
 }
 
 void iADiagramWidget::resetView()
@@ -211,19 +198,19 @@ void iADiagramWidget::resetView()
 	redraw();
 }
 
-void iADiagramWidget::changeMode(int mode, QMouseEvent *event)
+void iADiagramWidget::changeMode(int newMode, QMouseEvent *event)
 {
-	switch(mode)
+	switch(newMode)
 	{
 	case MOVE_POINT_MODE:
 		break;
 	case MOVE_VIEW_MODE:
 		dragStartPosX = event->x();
 		dragStartPosY = event->y();
-		this->mode = MOVE_VIEW_MODE;
+		mode = MOVE_VIEW_MODE;
 		break;
 	default:
-		this->mode = mode;
+		mode = newMode;
 		break;
 	}
 }
@@ -286,7 +273,7 @@ void iADiagramWidget::mousePressEvent(QMouseEvent *event)
 
 void iADiagramWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	switch(this->mode)
+	switch(mode)
 	{
 	case NO_MODE: /* do nothing */ break;
 	case MOVE_POINT_MODE:
@@ -295,16 +282,11 @@ void iADiagramWidget::mouseMoveEvent(QMouseEvent *event)
 		}
 		break;
 	case MOVE_VIEW_MODE:
-		translationX = clamp(-static_cast<int>(getActiveWidth() * (xZoom-1)), 0,
+		translationX = clamp(-static_cast<int>(ActiveWidth() * (xZoom-1)), 0,
 			translationStartX + event->x() - dragStartPosX);
 		emit XAxisChanged();
 		translationY = translationStartY + event->y() - dragStartPosY;
-
-		if ( translationY >= height * yZoom - height )
-			translationY = height * yZoom - height;
-		else if ( translationY < -( height * yZoom - height ) )
-			translationY = -( height * yZoom - height );
-
+		translationY = clamp(static_cast<int>(-(height * yZoom - height)), static_cast<int>(height * yZoom - height), translationY);
 		redraw();
 		break;
 	case X_ZOOM_MODE:

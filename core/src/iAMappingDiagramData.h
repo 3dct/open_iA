@@ -34,6 +34,6 @@ public:
 		size_t targetNumBin, double targetMinX, double targetMaxX,
 		DataType const maxValue);
 	~iAMappingDiagramData();
-	virtual size_t GetNumBin() const;
-	virtual DataType const * GetData() const;
+	virtual size_t GetNumBin() const override;
+	virtual DataType const * GetData() const override;
 };

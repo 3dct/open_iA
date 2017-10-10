@@ -182,18 +182,19 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
 	m_enableAdditionalFunctions(true),
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
-	m_showFunctions(true),
-	m_maxYAxisValue(std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
+	m_maxYAxisValue(std::numeric_limits<iAAbstractDiagramData::DataType>::lowest()),
+	contextMenuVisible(false)
 {
 	leftMargin   = (yLabel == "") ? 0 : 60;
 	selectedFunction = 0;
-
-	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
-	transferFunction->setOpacityFunction(oTF);
-	transferFunction->setColorFunction(cTF);
-	
-	functions.push_back(transferFunction);
-
+	m_showFunctions = oTF && cTF;
+	if (m_showFunctions)
+	{
+		dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
+		transferFunction->setOpacityFunction(oTF);
+		transferFunction->setColorFunction(cTF);
+		functions.push_back(transferFunction);
+	}
 	activeChild = mdiChild;
 }
 
@@ -232,10 +233,10 @@ bool iADiagramFctWidget::isUpdateAutomatically() const
 
 void iADiagramFctWidget::paintEvent(QPaintEvent * e)
 {
-	if (draw) this->drawEverything();
+	if (draw) drawEverything();
 
 	QPainter painter(this);
-	painter.drawImage(QRectF(0, 0, this->geometry().width(), this->geometry().height()), image);
+	painter.drawImage(QRectF(0, 0, geometry().width(), geometry().height()), image);
 }
 
 
@@ -243,15 +244,15 @@ void iADiagramFctWidget::CreateYConverter()
 {
 	if (m_maxYAxisValue == std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
 	{
-		m_maxYAxisValue = GetData()->GetMaxValue();
+		m_maxYAxisValue = GetData()->YBounds()[1];
 	}
 	if (m_yDrawMode == Linear)
 	{
-		m_yConverter = QSharedPointer<CoordinateConverter>(new LinearConverter(yZoom, m_maxYAxisValue, getActiveHeight() - 1));
+		m_yConverter = QSharedPointer<CoordinateConverter>(new LinearConverter(yZoom, m_maxYAxisValue, ActiveHeight() - 1));
 	}
 	else
 	{																	// 1 - smallest value larger than 0. TODO: find that from data!
-		m_yConverter = QSharedPointer<CoordinateConverter>(new LogarithmicConverter(yZoom, m_maxYAxisValue, 1, getActiveHeight() - 1));
+		m_yConverter = QSharedPointer<CoordinateConverter>(new LogarithmicConverter(yZoom, m_maxYAxisValue, 1, ActiveHeight() - 1));
 	}
 }
 
@@ -264,13 +265,13 @@ void iADiagramFctWidget::drawEverything()
 	}
 	// TODO: update converter every time one of these values changes
 	//		 alternative: give converter direct access to values (via some interface)
-	m_yConverter->update(yZoom, m_maxYAxisValue, 1, getActiveHeight());
+	m_yConverter->update(yZoom, m_maxYAxisValue, 1, ActiveHeight());
 
 	QPainter painter(&image);
 	painter.setRenderHint(QPainter::Antialiasing);
 
 	drawBackground(painter);
-	painter.translate(translationX+getLeftMargin(), -getBottomMargin());
+	painter.translate(translationX+LeftMargin(), -BottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
 	painter.translate(0, height);
@@ -382,24 +383,21 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 	}
 	std::vector<dlg_function*>::iterator it = functions.begin();
 	dlg_function *func = *(it + selectedFunction);
-			
-	switch(event->button())
+	switch (event->button())
 	{
 		case Qt::LeftButton:
-			if (this->mode == MOVE_NEW_POINT_MODE)
+			if (mode == MOVE_NEW_POINT_MODE)
 				func->mouseReleaseEventAfterNewPoint(event);
-				
 			redraw();
 			emit updateTFTable();
 
 			if (isUpdateAutomatically())
 				emit updateViews();
-		break;
+			break;
 		default:
-		break;
+			break;
 	}
-
-	this->mode = NO_MODE;
+	mode = NO_MODE;
 	contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
@@ -415,14 +413,14 @@ void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	switch(this->mode)
+	switch (mode)
 	{
 		case NO_MODE: /* do nothing */ break;
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
 		{
-			int viewX = event->x() - getLeftMargin();
-			int viewY = this->geometry().height() -event->y() -getBottomMargin();
+			int viewX = event->x() - LeftMargin();
+			int viewY = geometry().height() -event->y() -BottomMargin();
 			if (m_showFunctions)
 			{
 				std::vector<dlg_function*>::iterator it = functions.begin();
@@ -448,7 +446,7 @@ void iADiagramFctWidget::selectBin(QMouseEvent *event)
 	}
 	int xPos = clamp(0, width-1, event->x());
 	//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (numBin / width)
-	int nthBin = (int)((((xPos-translationX-getLeftMargin()) * GetData()->GetNumBin()) / (getActiveWidth())) / xZoom);
+	int nthBin = (int)((((xPos-translationX-LeftMargin()) * GetData()->GetNumBin()) / (ActiveWidth())) / xZoom);
 	assert( GetData()->GetNumBin() > 0 );
 	if (nthBin >= GetData()->GetNumBin() || xPos == width-1) nthBin = static_cast<int>(GetData()->GetNumBin())-1;
 	if (nthBin < 0) nthBin = 0;
@@ -494,40 +492,39 @@ void iADiagramFctWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	contextPos = event->pos();
 	contextMenu->clear();
-
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	dlg_function *func = *(it + selectedFunction);
-	
-	if (func->getSelectedPoint() != -1)
-	{
-		if (func->isColored())
-		{
-			QAction *changeColorAction = new QAction(QIcon(":/images/changeColor.png"), tr("Change Color"), this);
-			contextMenu->setDefaultAction(changeColorAction);
-			connect(changeColorAction, SIGNAL(triggered()), this, SLOT(changeColor()));
-			contextMenu->addAction(changeColorAction);
-		}
-
-		if (func->isDeletable(func->getSelectedPoint()))
-			contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, SLOT(deletePoint()));
-		contextMenu->addSeparator();
-	}
 	
 	if (m_showFunctions)
 	{
-		contextMenu->addAction( QIcon( ":/images/TFTableView.png" ), tr( "Transfer Function Table View" ), this, SLOT( showTFTable() ) );
+		std::vector<dlg_function*>::iterator it = functions.begin();
+		dlg_function *func = *(it + selectedFunction);
+
+		if (func->getSelectedPoint() != -1)
+		{
+			if (func->isColored())
+			{
+				QAction *changeColorAction = new QAction(QIcon(":/images/changeColor.png"), tr("Change Color"), this);
+				contextMenu->setDefaultAction(changeColorAction);
+				connect(changeColorAction, SIGNAL(triggered()), this, SLOT(changeColor()));
+				contextMenu->addAction(changeColorAction);
+			}
+
+			if (func->isDeletable(func->getSelectedPoint()))
+				contextMenu->addAction(QIcon(":/images/deletePoint.png"), tr("Delete"), this, SLOT(deletePoint()));
+			contextMenu->addSeparator();
+		}
+		contextMenu->addAction(QIcon(":/images/TFTableView.png"), tr("Transfer Function Table View"), this, SLOT(showTFTable()));
 		contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Load transfer function"), this, SLOT(loadTransferFunction()));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Save transfer function"), this, SLOT(saveTransferFunction()));
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
-	}
 
-	QAction *autoUpdateAction = new QAction(QIcon(":/images/autoUpdate.png"), tr("Update automatically"), this);
-	autoUpdateAction->setCheckable(true);
-	autoUpdateAction->setChecked(updateAutomatically);
-	connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
-	contextMenu->addAction(autoUpdateAction);
-	
-	contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
+		QAction *autoUpdateAction = new QAction(QIcon(":/images/autoUpdate.png"), tr("Update automatically"), this);
+		autoUpdateAction->setCheckable(true);
+		autoUpdateAction->setChecked(updateAutomatically);
+		connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
+		contextMenu->addAction(autoUpdateAction);
+
+		contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
+	}
 
 	contextMenu->addAction(QIcon(":/images/save.png"), tr("Export data"), this, SLOT(ExportData()));
 
@@ -560,7 +557,7 @@ QSharedPointer<CoordinateConverter> const iADiagramFctWidget::GetCoordinateConve
 
 void iADiagramFctWidget::drawDatasets(QPainter &painter)
 {
-	double binWidth = getActiveWidth() * xZoom / GetData()->GetNumBin();
+	double binWidth = ActiveWidth() * xZoom / GetData()->GetNumBin();
 	if (!m_primaryDrawer)
 	{
 		m_primaryDrawer = CreatePrimaryDrawer();
@@ -579,10 +576,10 @@ void iADiagramFctWidget::drawDatasets(QPainter &painter)
 
 void iADiagramFctWidget::drawImageOverlays( QPainter &painter )
 {
-	QRect targetRect = this->geometry();
+	QRect targetRect = geometry();
 	int yTranslate = -(yZoom-1) * (targetRect.height());
 	targetRect.setHeight(targetRect.height()-targetRect.top()-1);
-	targetRect.setWidth( (targetRect.width() - getLeftMargin()) * xZoom);
+	targetRect.setWidth( (targetRect.width() - LeftMargin()) * xZoom);
 	targetRect.setTop(targetRect.top() + yTranslate);
 	targetRect.setLeft(0);
 	for (int i = 0; i < m_overlays.size(); ++i)
@@ -631,7 +628,7 @@ int textPos(int markerX, int step, int stepNr, int textWidth)
 
 void iADiagramFctWidget::drawXAxis(QPainter &painter)
 {
-	painter.setPen(Qt::black);
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 
 	const int MINIMUM_MARGIN = 8;
 	const int TextAxisDistance = 2;
@@ -656,9 +653,9 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 				m_requiredPlacesAfterComma = (stepToNextBin < 10) ? requiredDigits(10 / stepToNextBin) : 0;
 				QString text = GetXAxisCaption(value, placesBeforeComma, m_requiredPlacesAfterComma);
 
-				int markerX = markerPos(i, stepNumber, getActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
+				int markerX = markerPos(i, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
 				int textX = textPos(markerX, i, stepNumber, fm.width(text));
-				int next_markerX = markerPos(i+1, stepNumber, getActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
+				int next_markerX = markerPos(i+1, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
 				int next_textX = textPos(next_markerX, i+1, stepNumber, fm.width(text));
 				int textWidth = fm.width(text) + fm.width("M");
 				overlap = (textX + textWidth) >= next_textX;
@@ -699,8 +696,8 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 		{
 			break;
 		}
-		int markerX = markerPos(i, stepNumber, getActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
-		painter.drawLine(markerX, (int)(getBottomMargin()*0.1), markerX, -1);
+		int markerX = markerPos(i, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
+		painter.drawLine(markerX, (int)(BottomMargin()*0.1), markerX, -1);
 
 		int textX = textPos(markerX, i, stepNumber, fm.width(text));
 		int textY = fm.height() + TextAxisDistance;
@@ -710,15 +707,15 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 	}
 	
 	//draw the x axis
-	painter.setPen(Qt::black);
-	painter.drawLine(0, -1, (int)((getActiveWidth())*xZoom), -1);
+	painter.setPen(QWidget::palette().color(QPalette::Text));
+	painter.drawLine(0, -1, (int)((ActiveWidth())*xZoom), -1);
 	
 	if (m_showXAxisLabel)
 	{
 		//write the x axis label
 		QPointF textPos(
-			m_captionPosition.testFlag(Qt::AlignCenter) ? (int)(getActiveWidth() * 0.45 - translationX): 0 /* left-aligned */ ,
-			m_captionPosition.testFlag(Qt::AlignBottom) ? getBottomMargin()-fm.descent()-1 : -getHeight() + getBottomMargin() + fm.height()
+			m_captionPosition.testFlag(Qt::AlignCenter) ? (int)(ActiveWidth() * 0.45 - translationX): 0 /* left-aligned */ ,
+			m_captionPosition.testFlag(Qt::AlignBottom) ? BottomMargin()-fm.descent()-1 : -Height() + BottomMargin() + fm.height()
 		);
 		painter.drawText(textPos, xCaption);
 	}
@@ -726,20 +723,27 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 
 void iADiagramFctWidget::drawYAxis(QPainter &painter)
 {
-	if ( getLeftMargin() <= 0 )
+	if ( LeftMargin() <= 0 )
 	{
 		return;
 	}
-	painter.setPen(Qt::black);
+	painter.save();
+	painter.translate(-translationX, 0);
 	QFontMetrics fm = painter.fontMetrics();
 	int fontHeight = fm.height();
 
-	int activeHeight = getActiveHeight()-1;
+	int activeHeight = ActiveHeight()-1;
+	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight+BottomMargin()+1)),
+		QBrush(QWidget::palette().color(QWidget::backgroundRole())));
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 
-	const double step = 1.0 / (Y_AXIS_STEPS * yZoom);
+	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
+	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (fontHeight*1.1)) );
+	stepNumber = std::max(1, stepNumber);	// make sure there's at least 2 steps
+	const double step = 1.0 / (stepNumber * yZoom);
 	double logMax = LogFunc(static_cast<double>(m_maxYAxisValue));
 
-	for (int i = 0; i <= Y_AXIS_STEPS; ++i)
+	for (int i = 0; i <= stepNumber; ++i)
 	{
 		//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (rayLength / width)
 		double pos = step * i;
@@ -755,17 +759,32 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 		if (yValue < 1.0)
 			text = QString::number(yValue, 'g', 3);
 		else
-			text = QString::number((int)yValue, 10);
+			if (yValue > 1000000000)
+			{
+				text = QString::number(yValue/1000000000.0, 'f', (yValue < 10000000000) ? 2 : 1)+"G";
+			}
+			else if (yValue > 1000000)
+			{
+				text = QString::number(yValue / 1000000, 'f', (yValue < 10000000) ? 2 : 1) + "M";
+			}
+			else if (yValue > 1000)
+			{
+				text = QString::number(yValue / 1000, 'f', (yValue < 10000) ? 2 : 1) + "K";
+			}
+			else
+			{
+				text = QString::number((int)yValue, 10);
+			}
 
 		//calculate the y coordinate
 		int y = -(int)(pos * activeHeight * yZoom)-1;
 		//draw a small indicator line
-		painter.drawLine((int)(-getLeftMargin()*0.1), y, 0, y);
+		painter.drawLine((int)(-LeftMargin()*0.1), y, 0, y);
 
-		if(i == Y_AXIS_STEPS)
-			painter.drawText(TEXT_X-getLeftMargin(), y+0.75*fontHeight, text); //write the text left aligned to the indicator line
+		if(i == stepNumber)
+			painter.drawText(TEXT_X-LeftMargin(), y+0.75*fontHeight, text); //write the text top aligned to the indicator line
 		else
-			painter.drawText(TEXT_X-getLeftMargin(), y+0.25*fontHeight, text); //write the text centered to the indicator line
+			painter.drawText(TEXT_X-LeftMargin(), y+0.25*fontHeight, text); //write the text centered to the indicator line
 
 	}
 	painter.drawLine(0, -1, 0, -(int)(activeHeight*yZoom));
@@ -774,12 +793,13 @@ void iADiagramFctWidget::drawYAxis(QPainter &painter)
 	painter.rotate(-90);
 	QPointF textPos(
 		activeHeight*0.5 - 0.5*fm.width(yCaption),
-		-getLeftMargin() + fontHeight - 5);
+		-LeftMargin() + fontHeight - 5);
 	painter.drawText(textPos, yCaption);
+	painter.restore();
 	painter.restore();
 }
 
-int iADiagramFctWidget::getBottomMargin() const
+int iADiagramFctWidget::BottomMargin() const
 {
 	if (!m_showXAxisLabel)
 	{
@@ -788,9 +808,9 @@ int iADiagramFctWidget::getBottomMargin() const
 	return BOTTOM_MARGIN;
 }
 
-void iADiagramFctWidget::changeMode(int mode, QMouseEvent *event)
+void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 {
-	switch(mode)
+	switch(newMode)
 	{
 		case MOVE_POINT_MODE:
 		{
@@ -800,8 +820,8 @@ void iADiagramFctWidget::changeMode(int mode, QMouseEvent *event)
 			}
 			std::vector<dlg_function*>::iterator it = functions.begin();
 			dlg_function *func = *(it + selectedFunction);
-			int x = event->x() - getLeftMargin();
-			int y = this->geometry().height() -event->y() -getBottomMargin();
+			int x = event->x() - LeftMargin();
+			int y = geometry().height() - event->y() -BottomMargin();
 			int selectedPoint = func->selectPoint(event, &x);
 
 			// don't do anything if outside of diagram region:
@@ -820,10 +840,10 @@ void iADiagramFctWidget::changeMode(int mode, QMouseEvent *event)
 				selectedPoint = func->addPoint(x, y);
 				func->addColorPoint(x);
 				
-				this->mode = MOVE_NEW_POINT_MODE;
+				mode = MOVE_NEW_POINT_MODE;
 			}
 			else
-				this->mode = MOVE_POINT_MODE;
+				mode = MOVE_POINT_MODE;
 
 			redraw();
 
@@ -835,7 +855,7 @@ void iADiagramFctWidget::changeMode(int mode, QMouseEvent *event)
 		}
 			break;
 		default:
-			iADiagramWidget::changeMode(mode, event);
+			iADiagramWidget::changeMode(newMode, event);
 			break;
 	}
 }
@@ -895,7 +915,7 @@ void iADiagramFctWidget::resetTrf()
 
 void iADiagramFctWidget::updateTrf()
 {
-	((dlg_transfer*)functions[0])->TranslateToNewRange(GetData()->GetDataRange());
+	((dlg_transfer*)functions[0])->TranslateToNewRange(XBounds());
 	redraw();
 }
 
@@ -906,7 +926,7 @@ bool iADiagramFctWidget::loadTransferFunction()
 	if (!fileName.isEmpty())
 	{
 		Settings s(fileName);
-		s.LoadTransferFunction((dlg_transfer*)functions[0], GetData()->GetDataRange());
+		s.LoadTransferFunction((dlg_transfer*)functions[0], XBounds());
 
 		emit noPointSelected();
 
@@ -919,7 +939,7 @@ bool iADiagramFctWidget::loadTransferFunction()
 
 void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 {
-	((dlg_transfer*)functions[0])->loadTransferFunction(functionsNode, GetData()->GetDataRange());
+	((dlg_transfer*)functions[0])->loadTransferFunction(functionsNode, XBounds());
 }
 
 bool iADiagramFctWidget::saveTransferFunction()
@@ -945,7 +965,7 @@ void iADiagramFctWidget::addBezierFunction()
 {
 	dlg_bezier *bezier = new dlg_bezier(this, PredefinedColors()[functions.size() % 7]);
 
-	bezier->addPoint(contextPos.x(), getActiveHeight()-contextPos.y());
+	bezier->addPoint(contextPos.x(), ActiveHeight()-contextPos.y());
 
 	selectedFunction = (unsigned int)functions.size();
 	functions.push_back(bezier);
@@ -961,7 +981,7 @@ void iADiagramFctWidget::addGaussianFunction()
 
 	gaussian->setMean(contextPos.x());
 	gaussian->setSigma(width/6);
-	gaussian->setMultiplier((int)((getActiveHeight()-contextPos.y())*this->getYZoom()));
+	gaussian->setMultiplier((int)((ActiveHeight()-contextPos.y())*YZoom()));
 	
 	selectedFunction = (unsigned int)functions.size();
 	functions.push_back(gaussian);
@@ -1073,16 +1093,14 @@ void iADiagramFctWidget::ExportData()
 	out.close();
 }
 
-void iADiagramFctWidget::GetDataRange(double* range)
+double const * iADiagramFctWidget::XBounds() const
 {
-	range[0] = GetData()->GetDataRange(0);
-	range[1] = GetData()->GetDataRange(1);
+	return GetData()->XBounds();
 }
 
-
-double iADiagramFctWidget::GetDataRange()
+double iADiagramFctWidget::XRange() const
 {
-	return GetData()->GetDataRange(1) - GetData()->GetDataRange(0);
+	return GetData()->XBounds()[1] - GetData()->XBounds()[0];
 }
 
 dlg_function *iADiagramFctWidget::getSelectedFunction()
@@ -1090,9 +1108,9 @@ dlg_function *iADiagramFctWidget::getSelectedFunction()
 	return functions[selectedFunction];
 }
 
-int iADiagramFctWidget::getChartHeight() const
+int iADiagramFctWidget::ChartHeight() const
 {
-	return height - getBottomMargin();
+	return height - BottomMargin();
 }
 
 std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
@@ -1102,7 +1120,7 @@ std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
 
 iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYValue() const
 {
-	return GetData()->GetMaxValue();
+	return GetData()->YBounds()[1];
 }
 
 iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYAxisValue() const
@@ -1125,7 +1143,7 @@ void iADiagramFctWidget::SetMaxYAxisValue(iAAbstractDiagramData::DataType val)
 
 void iADiagramFctWidget::ResetMaxYAxisValue()
 {
-	m_maxYAxisValue = GetData()->GetMaxValue();
+	m_maxYAxisValue = GetData()->YBounds()[1];
 }
 
 void iADiagramFctWidget::AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset)
@@ -1189,29 +1207,23 @@ void iADiagramFctWidget::RemoveImageOverlay( QImage * imgOverlay )
 
 int iADiagramFctWidget::diagram2PaintX(double x)
 {
-	double dataRange[2];
-	GetDataRange(dataRange);
-
-	double screenX = (x - dataRange[0]) * getActiveWidth() * xZoom
-		/ (dataRange[1] - dataRange[0]);
-	screenX = clamp(0.0, getActiveWidth()*xZoom, screenX);
+	double screenX = (x - XBounds()[0]) * ActiveWidth() * xZoom / XRange();
+	screenX = clamp(0.0, ActiveWidth()*xZoom, screenX);
 	return static_cast<int>(round(screenX));
 }
 
 long iADiagramFctWidget::screenX2DataBin(int x)
 {
 	double numBin = GetData()->GetNumBin();
-	double diagX = static_cast<double>(x-translationX-getLeftMargin()) * numBin
-		/ (getActiveWidth() * xZoom);
+	double diagX = static_cast<double>(x-translationX-LeftMargin()) * numBin / (ActiveWidth() * xZoom);
 	diagX = clamp(0.0, numBin, diagX);
 	return static_cast<long>(round(diagX));
 }
 
 int iADiagramFctWidget::dataBin2ScreenX(long x)
 {
-	double screenX = static_cast<double>(x) * getActiveWidth() * xZoom
-		/ (GetData()->GetNumBin());
-	screenX = clamp(0.0, getActiveWidth()*xZoom, screenX);
+	double screenX = static_cast<double>(x) * ActiveWidth() * xZoom / (GetData()->GetNumBin());
+	screenX = clamp(0.0, ActiveWidth()*xZoom, screenX);
 	return static_cast<int>(round(screenX));
 }
 
@@ -1261,7 +1273,7 @@ void iADiagramFctWidget::SetEnableAdditionalFunctions(bool enable)
 
 int iADiagramFctWidget::GetTFGradientHeight() const
 {
-	return getBottomMargin();
+	return BottomMargin();
 }
 
 QString iADiagramFctWidget::GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma)
@@ -1281,7 +1293,7 @@ QString iADiagramFctWidget::GetXAxisCaption(double value, int placesBeforeComma,
 bool iADiagramFctWidget::IsDrawnDiscrete() const
 {
 	return ((GetData()->GetRangeType() == Discrete &&
-		((GetData()->GetDataRange()[1]-GetData()->GetDataRange()[0]) <= GetData()->GetNumBin()))
+		(XRange() <= GetData()->GetNumBin()))
 		|| GetData()->GetRangeType() == Categorical);
 }
 

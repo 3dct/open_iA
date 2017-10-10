@@ -92,10 +92,10 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 			selectionRects.clear();
 			redraw();
 		}
-		else if( event->modifiers() || event->y() > geometry().height() - getBottomMargin() )
+		else if( event->modifiers() || event->y() > geometry().height() - BottomMargin() )
 		{
 			QMouseEvent eventCopy(event->type(),
-				QPoint(event->x(), geometry().height() - getBottomMargin()),
+				QPoint(event->x(), geometry().height() - BottomMargin()),
 				event->globalPos(),
 				event->button(),
 				event->buttons(),
@@ -109,7 +109,7 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	QMouseEvent eventCopy(event->type(),
-		QPoint(event->x(), geometry().height() - getBottomMargin()),
+		QPoint(event->x(), geometry().height() - BottomMargin()),
 		event->globalPos(),
 		event->button(),
 		event->buttons(),
@@ -121,8 +121,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction
-		diagramRect.setTop(    GetCoordinateConverter()->Screen2DiagramY(getActiveHeight() - selectionRect.bottom()) );
-		diagramRect.setBottom( GetCoordinateConverter()->Screen2DiagramY(getActiveHeight() - selectionRect.top()   ) );
+		diagramRect.setTop(    GetCoordinateConverter()->Screen2DiagramY(ActiveHeight() - selectionRect.bottom()) );
+		diagramRect.setBottom( GetCoordinateConverter()->Screen2DiagramY(ActiveHeight() - selectionRect.top()   ) );
 		diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
 		diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
 		diagramRect = diagramRect.normalized();
@@ -132,9 +132,9 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 			diagramRect.setTop(0);
 		}
 
-		if (diagramRect.bottom() > GetData()->GetMaxValue())
+		if (diagramRect.bottom() > GetData()->YBounds()[1])
 		{
-			diagramRect.setBottom(GetData()->GetMaxValue());
+			diagramRect.setBottom(GetData()->YBounds()[1]);
 		}
 
 		// .width() and .height() counter-intuitively report 1 if x1=x2/y1=y2
@@ -150,7 +150,7 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 void iAEnergySpectrumWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	QMouseEvent eventCopy(event->type(),
-		QPoint(event->x(), geometry().height() - getBottomMargin()),
+		QPoint(event->x(), geometry().height() - BottomMargin()),
 		event->globalPos(),
 		event->button(),
 		event->buttons(),
@@ -183,8 +183,6 @@ void iAEnergySpectrumWidget::drawDatasets(QPainter& painter)
 		painter.drawRect(drawRect);
 	}
 	QFontMetrics fm(painter.font());
-	double dataRange[2];
-	GetDataRange(dataRange);
 	QList<iACharacteristicEnergy*> keys = m_elementEnergies.keys();
 	for (QList<iACharacteristicEnergy*>::const_iterator it = keys.begin();
 		it != keys.end();
@@ -199,12 +197,12 @@ void iAEnergySpectrumWidget::drawDatasets(QPainter& painter)
 			QLine line;
 			QRect diagram = geometry();
 			double elementkEV = element->energies[j]/1000.0;
-			if (elementkEV >= dataRange[0] &&
-				elementkEV <= dataRange[1])
+			if (elementkEV >= XBounds()[0] &&
+				elementkEV <= XBounds()[1])
 			{
 				double pos = diagram2PaintX(elementkEV);
 				line.setP1(QPoint(pos, 0));
-				line.setP2(QPoint(pos, diagram.height()-getBottomMargin()));
+				line.setP2(QPoint(pos, diagram.height()-BottomMargin()));
 				painter.drawLine(line);
 				painter.save();
 				painter.scale(1, -1);

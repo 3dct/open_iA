@@ -29,8 +29,6 @@
 
 class QMenu;
 class vtkParametricFunctionSource;
-class iASlicerData;
-struct iADiskData;
 struct iASlicerProfile;
 struct iAArbitraryProfileOnSlicer;
 struct PickedData;

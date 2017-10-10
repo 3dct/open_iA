@@ -23,6 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
+#define NOMINMAX
 #include <QGLWidget>
 #include <QImage>
 
@@ -35,17 +36,15 @@ public:
 	iADiagramWidget(QWidget* parent);
 	virtual ~iADiagramWidget();
 
-	double getZoom()         const { return xZoom;         }
-	double getYZoom()        const { return yZoom;         }
-	int    getTranslationX()  const { return translationX; }
-	int    getTranslationY()  const { return translationY; }
-
-	virtual int    getBottomMargin() const { return BOTTOM_MARGIN; }
-	virtual int    getLeftMargin()   const { return leftMargin;    }
-
-	int    getActiveWidth()  const;
-	int    getActiveHeight() const;
-	int getHeight() const;
+	double XZoom()  const { return xZoom;         }
+	double YZoom()  const { return yZoom;         }
+	int    XShift() const { return translationX; }
+	int    YShift() const { return translationY; }
+	virtual int BottomMargin() const { return BOTTOM_MARGIN; }
+	virtual int LeftMargin()   const { return leftMargin;    }
+	int ActiveWidth()  const;
+	int ActiveHeight() const;
+	int Height() const;
 
 	virtual void redraw() =0;
 
@@ -86,12 +85,11 @@ protected:
 
 	virtual double getMaxXZoom() const;
 	virtual void drawBackground(QPainter &painter);
-	virtual QColor getBGGradientColor(int idx);
 
 	virtual void setNewSize();
 
 	virtual void mousePressEvent(QMouseEvent *event);
-	virtual void changeMode(int mode, QMouseEvent *event);
+	virtual void changeMode(int newMode, QMouseEvent *event);
 	virtual void selectBin(QMouseEvent *event) =0;
 	virtual void mouseMoveEvent(QMouseEvent *event);
 private:

@@ -104,6 +104,7 @@ public:
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setSliceNumber(int sliceNumber);
+	int getSliceNumber() const;
 	//! set the position of the position marker (in slicer coordinates)
 	void setPositionMarkerCenter(double x, double y);
 	void setContours(int n, double mi, double ma);
