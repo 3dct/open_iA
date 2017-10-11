@@ -20,18 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-//#include "QVTKOpenGLWidget.h"
-//#include <QVTKWidget2.h>
 #include <vtkSmartPointer.h>
 #include <QWidget>
 
 class iASlicer;
 
 class vtkImageData;
-//class vtkRenderer;
 
-//class iAImageWidget: public QVTKOpenGLWidget
-//class iAImageWidget : public QVTKWidget2
 class iAImageWidget: public QWidget
 {
 public:

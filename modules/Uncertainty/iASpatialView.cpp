@@ -30,7 +30,6 @@
 #include "iASlicerData.h"
 #include "iASlicerMode.h"
 
-//#include <QVTKOpenGLWidget.h"
 #include <vtkPiecewiseFunction.h>
 #include <vtkLookupTable.h>
 #include <vtkImageData.h>
