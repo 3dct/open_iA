@@ -123,3 +123,4 @@ QSharedPointer<FilterName> FilterName::Create() \
 { \
 	return QSharedPointer<FilterName>(new FilterName()); \
 }
+

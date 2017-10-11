@@ -41,29 +41,21 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+ImageGUIElements::ImageGUIElements() : imageWidget(nullptr), container(nullptr),
+	m_selectionChannelInitialized(false)
+{}
 
-struct ImageData
+void ImageGUIElements::DeleteAll()
 {
-	ImageData() {}
-	ImageData(QString const & c, vtkImagePointer img):
-		caption(c), image(img) {}
-	QString caption;
-	vtkImagePointer image;
-};
+	delete container;
+}
 
-struct ImageGUIElements
-{
-	ImageGUIElements() : imageWidget(nullptr), container(nullptr),
-		m_selectionChannelInitialized(false) {}
-	void DeleteAll()
-	{
-		delete container;
-	}
-	iAImageWidget* imageWidget;
-	QWidget* container;
-	bool m_selectionChannelInitialized;
-};
+ImageData::ImageData()
+{}
 
+ImageData::ImageData(QString const & c, vtkImagePointer img):
+	caption(c), image(img)
+{}
 
 iASpatialView::iASpatialView(): QWidget(),
 	m_slice(0),

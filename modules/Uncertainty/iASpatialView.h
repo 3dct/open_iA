@@ -37,8 +37,21 @@ class QToolBar;
 class QToolButton;
 class QSpinBox;
 
-struct ImageData;
-struct ImageGUIElements;
+struct ImageData
+{
+	ImageData();
+	ImageData(QString const & c, vtkImagePointer img);
+	QString caption;
+	vtkImagePointer image;
+};
+struct ImageGUIElements
+{
+	ImageGUIElements();
+	void DeleteAll();
+	iAImageWidget* imageWidget;
+	QWidget* container;
+	bool m_selectionChannelInitialized;
+};
 
 class iASpatialView: public QWidget
 {

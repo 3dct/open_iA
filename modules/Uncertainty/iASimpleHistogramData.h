@@ -21,7 +21,9 @@
 #pragma once
 
 #include <QSharedPointer>
+
 #include <itkImage.h>
+#include <itkImageRegionConstIterator.h>
 
 #include "iAAbstractDiagramData.h"
 #include "iAFunctionDrawers.h"

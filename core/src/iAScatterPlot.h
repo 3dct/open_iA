@@ -22,10 +22,11 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QWidget>
-#include <QScopedPointer>
-#include <QOpenGLFramebufferObject>
+#include <QGLWidget>
 #include <QList>
+#include <QOpenGLFramebufferObject>
+#include <QScopedPointer>
+#include <QWidget>
 
 class iALookupTable;
 class iAScatterPlotSelectionHandler;

@@ -138,7 +138,7 @@ void fcm_template(iAConnector * con, unsigned int maxIter, double maxError, doub
 	classifier->SetM(m);
 	classifier->SetNumberOfThreads(numOfThreads);
 	classifier->SetNumberOfClasses(numOfClasses);
-	TFuzzyClassifier::CentroidArrayType centroidsArray;
+	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; i < numOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
@@ -221,12 +221,12 @@ void kfcm_template(iAConnector * con, unsigned int maxIter, double maxError, dou
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
 	typedef itk::KFCMSClassifierInitializationImageFilter<InputImageType> TClassifierKFCMS;
-	typedef TClassifierKFCMS::KernelDistanceMetricPointer KernelDistMetricPtr;
-	typedef TFuzzyClassifier::CentroidType TCentroid;
+	typedef typename TClassifierKFCMS::KernelDistanceMetricPointer KernelDistMetricPtr;
+	typedef typename TFuzzyClassifier::CentroidType TCentroid;
 	typedef itk::Statistics::RBFKernelInducedDistanceMetric<TCentroid> RBFKernelType;
 	typedef itk::FlatStructuringElement<ImageDimension> StructuringElementType;
 
-	TClassifierKFCMS::Pointer classifier = TClassifierKFCMS::New();
+	auto classifier = TClassifierKFCMS::New();
 	p->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(maxIter);
 	classifier->SetMaximumError(maxError);
@@ -234,13 +234,13 @@ void kfcm_template(iAConnector * con, unsigned int maxIter, double maxError, dou
 	classifier->SetAlpha(alpha);
 	classifier->SetNumberOfThreads(numOfThreads);
 	classifier->SetNumberOfClasses(numOfClasses);
-	TFuzzyClassifier::CentroidArrayType centroidsArray;
+	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; i < numOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
 	classifier->SetCentroids(centroidsArray);
-	RBFKernelType::Pointer kernelDistancePtr = RBFKernelType::New();
+	auto kernelDistancePtr = RBFKernelType::New();
 	kernelDistancePtr->SetA(2.0);		// make a parameter?
 	kernelDistancePtr->SetB(1.0);		// make a parameter?
 	kernelDistancePtr->SetSigma(sigma);
@@ -326,9 +326,9 @@ void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError, d
 	typedef itk::Image<InputPixelType, ImageDimension> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
 	typedef itk::MSKFCMClassifierInitializationImageFilter<InputImageType> TClassifierMSKFCM;
-	typedef TClassifierMSKFCM::KernelDistanceMetricPointer KernelDistMetricPtr;
+	typedef typename TClassifierMSKFCM::KernelDistanceMetricPointer KernelDistMetricPtr;
 
-	TClassifierMSKFCM::Pointer classifier = TClassifierMSKFCM::New();
+	auto classifier = TClassifierMSKFCM::New();
 	progress->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(maxIter);
 	classifier->SetMaximumError(maxError);
@@ -337,7 +337,7 @@ void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError, d
 	classifier->SetQ(q);
 	classifier->SetNumberOfThreads(numOfThreads);
 	classifier->SetNumberOfClasses(numOfClasses);
-	TFuzzyClassifier::CentroidArrayType centroidsArray;
+	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
 	for (int i = 0; i < numOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
@@ -345,16 +345,16 @@ void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError, d
 	classifier->SetCentroids(centroidsArray);
 	itk::SimpleFilterWatcher watcher(classifier, "MSKFCM classifier");
 
-	typedef TFuzzyClassifier::CentroidType TCentroid;
+	typedef typename TFuzzyClassifier::CentroidType TCentroid;
 	typedef itk::Statistics::RBFKernelInducedDistanceMetric<TCentroid>
 		RBFKernelType;
-	RBFKernelType::Pointer kernelDistancePtr = RBFKernelType::New();
+	auto kernelDistancePtr = RBFKernelType::New();
 	kernelDistancePtr->SetA(2.0);		// make a parameter?
 	kernelDistancePtr->SetB(1.0);		// make a parameter?
 	kernelDistancePtr->SetSigma(sigma);
 	classifier->SetKernelDistanceMetric(static_cast<KernelDistMetricPtr>(kernelDistancePtr));
 	typedef itk::FlatStructuringElement<ImageDimension> StructuringElementType;
-	StructuringElementType::RadiusType elementRadius;
+	typename StructuringElementType::RadiusType elementRadius;
 	for (int i = 0; i < ImageDimension; i++)
 	{
 		elementRadius[i] = seRadius[i];
@@ -367,7 +367,7 @@ void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError, d
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	probSource.SetProbabilities(probs);
-	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
+	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
 	con->SetImage(labelClass->GetOutput());
