@@ -41,6 +41,8 @@
 
 void iAAstraReconstructionModuleInterface::Initialize( )
 {
+	if (!m_mainWnd)
+		return;
 	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
 	QMenu * astraReconMenu = getMenuWithTitle( toolsMenu, QString( "ASTRA Toolbox" ), false );
 	
