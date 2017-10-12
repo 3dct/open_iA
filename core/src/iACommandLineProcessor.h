@@ -22,4 +22,19 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QObject>
+
+class iACommandLineProgressIndicator : public QObject
+{
+	Q_OBJECT
+public:
+	iACommandLineProgressIndicator(int numberOfSteps, bool quiet);
+public slots:
+	void Progress(int percent);
+private:
+	int m_lastDots;
+	int m_numberOfDots;
+	bool m_quiet;
+};
+
 open_iA_Core_API int ProcessCommandLine(int argc, char const * const * argv);

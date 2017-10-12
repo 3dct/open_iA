@@ -48,8 +48,13 @@ QString Vec3D2String(double* vec);
 //! to size-2 and ".." is appended, otherwise it is filled with spaces to be exactly size long
 //! @param str the string to be padded or truncated
 //! @param size the size that the return string should have
-//! @return a string of exactly the length size, a padded or truncated form of the given name
+//! @return a string of exactly the given size, padded or truncated from the given name
 QString PadOrTruncate(QString const & str, int size);
+
+//! strip HTML tags from the given string
+//! @param html a string potentially containing HTML tags
+//! @return the input string with all HTML tags (<xyz>, </xyz>, <xyz/>) removed
+QString StripHTML(QString const & html);
 
 //! join a vector of numeric types T to string, using the given string as item separator
 //!

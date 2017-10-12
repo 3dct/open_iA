@@ -76,3 +76,10 @@ QString PadOrTruncate(QString const & str, int size)
 	else
 		return str.leftJustified(size, ' ');
 }
+
+
+QString StripHTML(QString const & html)
+{
+	QString result(html);
+	return result.remove(QRegExp("<[^>]*>"));
+}
