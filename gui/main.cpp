@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
 	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
 
-	CheckSCIFIO();
+	CheckSCIFIO(QCoreApplication::applicationDirPath());
 
 	mainWin.LoadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!

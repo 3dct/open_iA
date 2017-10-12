@@ -25,6 +25,6 @@
 
 int main(int argc, char *argv[])
 {
-	CheckSCIFIO();
+	CheckSCIFIO(QString(argv[0]));
 	return ProcessCommandLine(argc, argv);
 }
