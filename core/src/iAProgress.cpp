@@ -26,16 +26,9 @@
 
 iAProgress::iAProgress( )
 {
-	m_RedrawCommand = RedrawCommandType::New();
-	m_RedrawCommand->SetCallbackFunction( this, &iAProgress::ProcessEvent );
-	m_RedrawCommand->SetCallbackFunction( this, &iAProgress::ConstProcessEvent );
-	m_ObserverTag = 0;
-}
-
-
-iAProgress::RedrawCommandType * iAProgress::GetRedrawCommand( void ) const
-{
-	return m_RedrawCommand.GetPointer();
+	m_Command = CommandType::New();
+	m_Command->SetCallbackFunction( this, &iAProgress::ProcessEvent );
+	m_Command->SetCallbackFunction( this, &iAProgress::ConstProcessEvent );
 }
 
 
@@ -63,8 +56,7 @@ void iAProgress::ConstProcessEvent( const itk::Object * caller, const itk::Event
 
 void iAProgress::Observe( itk::Object *caller )
 {
-	m_ObserverTag = caller->AddObserver(  itk::ProgressEvent(), m_RedrawCommand.GetPointer() );
-	m_Caller = caller;
+	caller->AddObserver(  itk::ProgressEvent(), m_Command.GetPointer() );
 }
 
 
