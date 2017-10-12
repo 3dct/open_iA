@@ -28,17 +28,17 @@
 class MdiChild;
 class iAProbabilitySource;
 class iAFilter;
-class iAFilterRunner;
+class iAFilterRunnerGUI;
 
-class iASegmentationModuleInterface : public iAModuleInterface, public iAFilterRunCallback
+class iASegmentationModuleInterface : public iAModuleInterface, public iAFilterRunGUICallback
 {
 	Q_OBJECT
 public:
 	void Initialize();
-	void FilterStarted(iAFilterRunner* filter) override;
+	void FilterStarted(iAFilterRunnerGUI* filter) override;
 private slots:
 	bool CalculateSegmentationMetrics();
 	void FuzzyCMeansFinished();
 private:
-	QMap<iAFilterRunner*, iAProbabilitySource*> m_probSources;
+	QMap<iAFilterRunnerGUI*, iAProbabilitySource*> m_probSources;
 };

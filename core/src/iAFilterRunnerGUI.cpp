@@ -18,7 +18,7 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFilterRunner.h"
+#include "iAFilterRunnerGUI.h"
 
 #include "iAFilter.h"
 
@@ -40,17 +40,22 @@ class iAFilter;
 
 class vtkImageData;
 
-iAFilterRunner::iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
+iAFilterRunnerGUI::iAFilterRunnerGUI(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
 	iAAlgorithm(filter->Name(), mdiChild->getImagePointer(), mdiChild->getPolyData(), mdiChild->getLogger(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues)
 {}
 
-void iAFilterRunner::performWork()
+void iAFilterRunnerGUI::performWork()
 {
 	m_filter->SetUp(getConnector(), qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress());
 	m_filter->Run(m_paramValues);
 	emit workDone();
+}
+
+QSharedPointer<iAFilter> iAFilterRunnerGUI::Filter()
+{
+	return m_filter;
 }
 
 namespace
@@ -76,7 +81,7 @@ namespace
 	}
 }
 
-iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+iAFilterRunnerGUI* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	auto params = filter->Parameters();
 	QSettings settings;
@@ -133,15 +138,10 @@ iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 		mainWnd->statusBar()->showMessage("Cannot get result child from main window!", 5000);
 		return nullptr;
 	}
-	iAFilterRunner* thread = new iAFilterRunner(filter, paramValues, mdiChild);
+	iAFilterRunnerGUI* thread = new iAFilterRunnerGUI(filter, paramValues, mdiChild);
 	mdiChild->connectThreadSignalsToChildSlots(thread);
 	mdiChild->addStatusMsg(filter->Name());
 	mainWnd->statusBar()->showMessage(filter->Name(), 5000);
 	thread->start();
 	return thread;
-}
-
-QSharedPointer<iAFilter> iAFilterRunner::Filter()
-{
-	return m_filter;
 }

@@ -23,7 +23,7 @@
 
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
-#include "iAFilterRunner.h"
+#include "iAFilterRunnerGUI.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"

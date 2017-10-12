@@ -31,15 +31,15 @@ class iAFilter;
 class MainWindow;
 class MdiChild;
 
-//! Runner for descendants of iAFilter
+//! GUI Runner for descendants of iAFilter
 //!
 //! Used in RunFilter (see below) to run a descendant of iAFilter inside its
 //! own thread
-class open_iA_Core_API iAFilterRunner : public iAAlgorithm
+class open_iA_Core_API iAFilterRunnerGUI : public iAAlgorithm
 {
 	Q_OBJECT
 public:
-	iAFilterRunner(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild);
+	iAFilterRunnerGUI(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild);
 	void performWork();
 	QSharedPointer<iAFilter> Filter();
 private:
@@ -58,4 +58,4 @@ signals:
 //! Subsequently it creates a thread for the given filter, assigns the slots
 //! required for progress indication, final display and cleanup, and finally
 //! it runs the filter with the parameters.
-open_iA_Core_API iAFilterRunner* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);
+open_iA_Core_API iAFilterRunnerGUI* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);

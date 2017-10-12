@@ -74,7 +74,7 @@ public:
 	QString Description() const;
 	//! Retrieve a list of the filter parameters
 	QVector<pParameter> const & Parameters() const;
-	//! Used internally by iAFilterRunner to set up the resources required in the
+	//! Used internally by the filter runner to set up the resources required in the
 	//! filter
 	void SetUp(iAConnector* con, iALogger* logger, iAProgress* progress);
 	//! Check whether the filter can be run with the given parameters. If

@@ -29,7 +29,7 @@
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAFilterRegistry.h"
-#include "iAFilterRunner.h"
+#include "iAFilterRunnerGUI.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "mainwindow.h"
@@ -218,7 +218,7 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 
 void iASegmentationModuleInterface::FuzzyCMeansFinished()
 {
-	iAFilterRunner* thread = dynamic_cast<iAFilterRunner*>(sender());
+	auto thread = dynamic_cast<iAFilterRunnerGUI*>(sender());
 	iAProbabilitySource* probSource = m_probSources[thread];
 	if (!thread || !probSource)
 	{
@@ -234,7 +234,7 @@ void iASegmentationModuleInterface::FuzzyCMeansFinished()
 	m_probSources.remove(thread);
 }
 
-void iASegmentationModuleInterface::FilterStarted(iAFilterRunner* thread)
+void iASegmentationModuleInterface::FilterStarted(iAFilterRunnerGUI* thread)
 {
 	if (!thread)
 		return;
