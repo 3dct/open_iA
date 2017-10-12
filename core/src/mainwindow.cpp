@@ -124,7 +124,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	this->layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	this->layoutToolbar->insertWidget(this->actionSave_Layout, layout);
 
-	m_moduleDispatcher->InitializeModules(&iAConsoleLogger::Get());
+	m_moduleDispatcher->InitializeModules(iAConsoleLogger::Get());
 	SetModuleActionsEnabled( false );
 }
 
@@ -900,7 +900,7 @@ void MainWindow::savePreferences(QDomDocument &doc)
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(defaultPreferences.MagicLensFrameWidth));
-	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::GetInstance().IsLogToFileOn()));
+	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::GetInstance()->IsLogToFileOn()));
 
 	doc.documentElement().appendChild(preferencesElement);
 }
@@ -918,7 +918,7 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
 	QString logFileName = attributes.namedItem("logFile").nodeValue();
 
-	iAConsole::GetInstance().SetLogToFile(prefLogToFile, logFileName);
+	iAConsole::GetInstance()->SetLogToFile(prefLogToFile, logFileName);
 
 	activeMdiChild()->editPrefs(defaultPreferences);
 }
@@ -1157,7 +1157,7 @@ void MainWindow::prefs()
 	}
 	iAPreferences p = child ? child->GetPreferences() : defaultPreferences;
 	QTextDocument *fDescr = nullptr;
-	if (iAConsole::GetInstance().IsFileLogError())
+	if (iAConsole::GetInstance()->IsFileLogError())
 	{
 		fDescr = new QTextDocument();
 		fDescr->setHtml("Could not write to the specified logfile, logging to file was therefore disabled."
@@ -1167,8 +1167,8 @@ void MainWindow::prefs()
 		<< tr("%1").arg(p.StatisticalExtent)
 		<< (p.Compression ? tr("true") : tr("false"))
 		<< (p.ResultInNewWindow ? tr("true") : tr("false"))
-		<< (iAConsole::GetInstance().IsLogToFileOn() ? tr("true") : tr("false"))
-		<< iAConsole::GetInstance().GetLogFileName()
+		<< (iAConsole::GetInstance()->IsLogToFileOn() ? tr("true") : tr("false"))
+		<< iAConsole::GetInstance()->GetLogFileName()
 		<< looks
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth);
@@ -1194,7 +1194,7 @@ void MainWindow::prefs()
 		if (activeMdiChild() && activeMdiChild()->editPrefs(defaultPreferences))
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
 
-		iAConsole::GetInstance().SetLogToFile(logToFile, logFileName, true);
+		iAConsole::GetInstance()->SetLogToFile(logToFile, logFileName, true);
 	}
 }
 
@@ -1915,7 +1915,7 @@ void MainWindow::readSettings()
 	defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", 3).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
-	iAConsole::GetInstance().SetLogToFile(prefLogToFile, logFileName);
+	iAConsole::GetInstance()->SetLogToFile(prefLogToFile, logFileName);
 
 	defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
 	defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
@@ -2007,8 +2007,8 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefResultInNewWindow", defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/prefMagicLensSize", defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", defaultPreferences.MagicLensFrameWidth);
-	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance().IsLogToFileOn());
-	settings.setValue("Preferences/prefLogFile", iAConsole::GetInstance().GetLogFileName());
+	settings.setValue("Preferences/prefLogToFile", iAConsole::GetInstance()->IsLogToFileOn());
+	settings.setValue("Preferences/prefLogFile", iAConsole::GetInstance()->GetLogFileName());
 
 	settings.setValue("Renderer/rsShowSlicers", defaultRenderSettings.ShowSlicers);
 	settings.setValue("Renderer/rsLinearInterpolation", defaultVolumeSettings.LinearInterpolation);

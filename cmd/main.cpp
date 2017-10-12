@@ -21,10 +21,10 @@
 #include "iAConsole.h"
 #include "iACommandLineProcessor.h"
 #include "iASCIFIOCheck.h"
-#include "version.h"
 
 int main(int argc, char *argv[])
 {
+	iAGlobalLogger::SetLogger(iAStdOutLogger::Get());
 	CheckSCIFIO(QString(argv[0]));
 	return ProcessCommandLine(argc, argv);
 }

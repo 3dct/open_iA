@@ -435,7 +435,7 @@ void dlg_GEMSe::ToggleHate()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		m_logger->log("ToggleHate No node selected!");
+		DEBUG_LOG("ToggleHate No node selected!");
 		return;
 	}
 	bool isHated = m_favoriteWidget->ToggleHate(node);
@@ -451,7 +451,7 @@ void dlg_GEMSe::ToggleLike()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		m_logger->log("ToggleHate No node selected!");
+		DEBUG_LOG("ToggleHate No node selected!");
 		return;
 	}
 	m_favoriteWidget->ToggleLike(node);
@@ -529,7 +529,7 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)
 	{
-		m_logger->log("JumpToNode: No node selected!");
+		DEBUG_LOG("JumpToNode: No node selected!");
 		return;
 	}
 	if (dynamic_cast<iAFakeTreeNode*>(node) || !m_treeView->JumpToNode(node, stepLimit))
@@ -575,7 +575,7 @@ void dlg_GEMSe::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!m_cameraWidget)
 	{
-		m_logger->log("ShowImage: Camera Widget not set!");
+		DEBUG_LOG("ShowImage: Camera Widget not set!");
 		return;
 	}
 	m_cameraWidget->ShowImage(imgData);

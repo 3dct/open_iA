@@ -27,7 +27,7 @@ iAFilter::iAFilter(QString const & name, QString const & category, QString const
 	m_name(name),
 	m_category(category),
 	m_description(description),
-	m_log(&iAConsoleLogger::Get())
+	m_log(iAStdOutLogger::Get())
 {}
 
 iAFilter::~iAFilter()
@@ -128,7 +128,7 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
 
 void iAFilter::AddMsg(QString msg)
 {
-	m_log->log(msg);
+	m_log->Log(msg);
 }
 
 void iAFilter::AddParameter(QString const & name, iAValueType valueType,

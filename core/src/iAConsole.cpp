@@ -29,15 +29,23 @@
 
 #include <fstream>
 
-void iAConsole::Log(std::string const & text)
+
+// iAGlobalLogger
+
+iALogger* iAGlobalLogger::m_globalLogger(nullptr);
+
+
+void iAGlobalLogger::SetLogger(iALogger* logger)
 {
-	Log(QString::fromStdString(text));
+	m_globalLogger = logger;
+}
+iALogger* iAGlobalLogger::Get()
+{
+	return m_globalLogger;
 }
 
-void iAConsole::Log(char const * text)
-{
-	Log(QString(text));
-}
+
+// iAConsole
 
 void iAConsole::Log(QString const & text)
 {
@@ -124,10 +132,10 @@ iAConsole::~iAConsole()
 	delete m_console;
 }
 
-iAConsole& iAConsole::GetInstance()
+iAConsole* iAConsole::GetInstance()
 {
 	static iAConsole instance;
-	return instance;
+	return &instance;
 }
 
 
@@ -140,22 +148,28 @@ void iAConsole::close()
 
 void iAConsole::Close()
 {
-	GetInstance().close();
+	GetInstance()->close();
 }
+
+
+// iALogger
+
+iALogger::~iALogger()
+{}
 
 
 
 // iAConsoleLogger
 
-void iAConsoleLogger::log(QString const & msg)
+void iAConsoleLogger::Log(QString const & msg)
 {
-	iAConsole::GetInstance().Log(msg.toStdString());
+	iAConsole::GetInstance()->Log(msg);
 }
 
-iAConsoleLogger & iAConsoleLogger::Get()
+iAConsoleLogger * iAConsoleLogger::Get()
 {
 	static iAConsoleLogger GlobalConsoleLogger;
-	return GlobalConsoleLogger;
+	return &GlobalConsoleLogger;
 }
 
 iAConsoleLogger::iAConsoleLogger()
@@ -165,15 +179,15 @@ iAConsoleLogger::iAConsoleLogger()
 
 // iAStdOutLogger
 
-void iAStdOutLogger::log(QString const & msg)
+void iAStdOutLogger::Log(QString const & msg)
 {
 	std::cout << msg.toStdString() << std::endl;
 }
 
-iAStdOutLogger & iAStdOutLogger::Get()
+iAStdOutLogger * iAStdOutLogger::Get()
 {
 	static iAStdOutLogger GlobalStdOutLogger;
-	return GlobalStdOutLogger;
+	return &GlobalStdOutLogger;
 }
 
 iAStdOutLogger::iAStdOutLogger()

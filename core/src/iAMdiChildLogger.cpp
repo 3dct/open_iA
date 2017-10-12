@@ -29,7 +29,7 @@ MdiChildLogger::MdiChildLogger(MdiChild* mdiChild)
 	connect(this, SIGNAL(logSignal(QString)), mdiChild, SLOT(addMsg(QString)));
 }
 
-void MdiChildLogger::log(QString const & msg)
+void MdiChildLogger::Log(QString const & msg)
 {
 	emit logSignal(msg);
 }

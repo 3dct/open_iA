@@ -32,9 +32,8 @@ int main(int argc, char *argv[])
 	QApplication app(argc, argv);
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 
+	iAGlobalLogger::SetLogger(iAConsole::GetInstance());
 	MainWindow mainWin("open_iA", VERSION, ":/images/splashscreen.png");
-
-	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
 
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 

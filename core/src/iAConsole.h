@@ -35,21 +35,27 @@
 class dlg_console;
 class iARedirectVtkOutput;
 
-#define DEBUG_LOG(t) iAConsole::GetInstance().Log(t)
+class open_iA_Core_API iAGlobalLogger
+{
+public:
+	static void SetLogger(iALogger* logger);
+	static iALogger* Get();
+private:
+	static iALogger* m_globalLogger;
+};
+
+#define DEBUG_LOG(t) { if (iAGlobalLogger::Get()) iAGlobalLogger::Get()->Log(t); }
 
 //! Debugging helper class. Instantiates a dlg_console to
 //! log debug messages
 //! TODO: check if we can't reuse logging window here!
-class open_iA_Core_API iAConsole: public QObject
+class open_iA_Core_API iAConsole: public QObject, public iALogger
 {
 	Q_OBJECT
 public:
-	static iAConsole& GetInstance();
+	static iAConsole* GetInstance();
 	static void Close();
-
-	void Log(std::string const & text);
-	void Log(char const * text);
-	void Log(QString const & text);
+	void Log(QString const & text) override;
 	void SetLogToFile(bool value, QString const & fileName, bool verbose=false);
 	bool IsLogToFileOn() const;
 	QString GetLogFileName() const;
@@ -79,23 +85,22 @@ private:
 
 // Some default loggers:
 
-
 class iAConsoleLogger : public iALogger
 {
 public:
-	void log(QString const & msg);
-	static iAConsoleLogger & Get();
+	void Log(QString const & msg) override;
+	static iAConsoleLogger * Get();
 private:
 	iAConsoleLogger();
 	iAConsoleLogger(iAConsoleLogger const&);
 	void operator=(iAConsoleLogger const&);
 };
 
-class iAStdOutLogger : public iALogger
+class open_iA_Core_API iAStdOutLogger : public iALogger
 {
 public:
-	void log(QString const & msg);
-	static iAStdOutLogger & Get();
+	void Log(QString const & msg) override;
+	static iAStdOutLogger * Get();
 private:
 	iAStdOutLogger();
 	iAStdOutLogger(iAStdOutLogger const&);

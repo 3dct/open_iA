@@ -151,7 +151,7 @@ void iAAlgorithm::addMsg(QString txt)
 {
 	if (m_logger)
 	{
-		m_logger->log(txt);
+		m_logger->Log(txt);
 	}
 }
 

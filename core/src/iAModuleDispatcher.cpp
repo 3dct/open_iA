@@ -155,12 +155,12 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 	MODULE_HANDLE handle = LoadModule(fi);
 	if (!handle)
 	{
-		logger->log(QString("Could not load the dynamic library '%1'").arg(fi.absoluteFilePath()));
+		logger->Log(QString("Could not load the dynamic library '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	iAModuleInterface * m = LoadModuleInterface(handle);
 	if (!m) {
-		logger->log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
+		logger->Log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	InitializeModuleInterface(m);
