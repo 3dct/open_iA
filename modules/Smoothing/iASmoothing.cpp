@@ -89,7 +89,7 @@ iADiscreteGaussian::iADiscreteGaussian() :
 		"Discrete Gaussian Filter</a> in the ITK documentation.")
 {
 	AddParameter("Variance", Continuous, 0);
-	AddParameter("Maximum Error", Continuous, 0.01, 0, 1);
+	AddParameter("Maximum Error", Continuous, 0.01, 0+std::numeric_limits<double>::epsilon(), 1-std::numeric_limits<double>::epsilon());
 	AddParameter("Input Type Output", Boolean, false);
 }
 

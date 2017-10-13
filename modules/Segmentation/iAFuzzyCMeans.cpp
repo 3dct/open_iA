@@ -70,7 +70,7 @@ namespace
 	{
 		filter.AddParameter("Maximum Iterations", Discrete, 500, 1);
 		filter.AddParameter("Maximum Error", Continuous, 0.0001);
-		filter.AddParameter("M", Continuous, 2);
+		filter.AddParameter("M", Continuous, 2, 1.0+std::numeric_limits<double>::epsilon());	// must be larger than 1.0, 1.0 would cause division by zero
 		filter.AddParameter("Number of Classes", Discrete, 2, 1);
 		filter.AddParameter("Centroids", String, "0 1");
 		filter.AddParameter("Ignore Background", Boolean, false);
