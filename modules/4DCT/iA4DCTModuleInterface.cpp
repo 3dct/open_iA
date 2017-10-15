@@ -31,6 +31,10 @@
 #include "iASlicerWidget.h"
 #include "mainwindow.h"
 #include "mdichild.h"
+#include "iAFeatureExtraction.h"
+#include "iAFeatureExtractionDialog.h"
+#include "iADefectClassifier.h"
+#include "iAClassifyDefectsDialog.h"
 // vtk
 #include <vtkMath.h>
 // itk
@@ -95,6 +99,16 @@ void iA4DCTModuleInterface::Initialize( )
 	saveProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ) );
 	connect( saveProj, SIGNAL( triggered( ) ), this, SLOT( saveProj( ) ) );
 	menu4DCT->addAction( saveProj );
+
+	QAction* featureExtraction = new QAction( m_mainWnd );
+	featureExtraction->setText( QApplication::translate( "MainWindows", "Extract features to file", 0 ) );
+	connect( featureExtraction, SIGNAL( triggered( ) ), this, SLOT( extractFeaturesToFile( ) ) );
+	menu4DCT->addAction( featureExtraction );
+
+	QAction* defectClassification = new QAction( m_mainWnd );
+	defectClassification->setText( QApplication::translate( "MainWindows", "Defect classification", 0 ) );
+	connect( defectClassification, SIGNAL( triggered( ) ), this, SLOT( defectClassification( ) ) );
+	menu4DCT->addAction( defectClassification );
 }
 
 /*============
@@ -138,6 +152,47 @@ void iA4DCTModuleInterface::saveProj( )
 	if( stackView != NULL ) {
 		stackView->save( );
 	}
+}
+
+void iA4DCTModuleInterface::extractFeaturesToFile( )
+{
+	iAFeatureExtractionDialog dialog;
+	if( dialog.exec( ) == QDialog::Rejected )
+	{
+		return;
+	}
+
+	iAFeatureExtraction::run( dialog.getInputImg( ), dialog.getOutputFile( ) );
+}
+
+void iA4DCTModuleInterface::defectClassification()
+{
+	iAClassifyDefectsDialog dlg;
+	if( dlg.exec( ) == QDialog::Rejected )
+	{
+		return;
+	}
+
+	iADefectClassifier df;
+	iADefectClassifier::Parameters params;
+	params.Spacing = dlg.ui.dsbSpacing->value( );
+	params.ElongationP = dlg.ui.dsbElongationP->value( );
+	params.ElongationD = dlg.ui.dsbElongationD->value( );
+	params.LengthRangeP[0] = dlg.ui.dsbLengthRangeP_1->value( );
+	params.LengthRangeP[1] = dlg.ui.dsbLengthRangeP_2->value( );
+	params.WidthRangeP[0] = dlg.ui.dsbWidthRangeP_1->value( );
+	params.WidthRangeP[1] = dlg.ui.dsbWidthRangeP_2->value( );
+	params.AngleP = dlg.ui.dsbAngleP->value( );
+	params.AngleB = dlg.ui.dsbAngleB->value( );
+	params.AngleD = dlg.ui.dsbAngleD->value( );
+	params.NeighborhoodDistP = dlg.ui.dsbNeighborhoodDistanceP->value( );
+	params.NeighborhoodDistFF = dlg.ui.dsbNeighborhoodDistanceFF->value( );
+	params.BigVolumeThreshold = dlg.ui.dsbBigVolumeThreshold->value( );
+	params.FibersFile = dlg.ui.Fibers->ui.Path->text( ).toStdString( );
+	params.FeaturesFile = dlg.ui.Defects->ui.Path->text( ).toStdString( );
+	params.OutputDir = dlg.ui.Output->ui.Path->text( ).toStdString( );
+
+	df.run( params );
 }
 
 //void iA4DCTModuleInterface::enableDensityMap()
