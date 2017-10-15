@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,24 +15,27 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
+
+#include <QObject>
 
 class QColor;
 class QMouseEvent;
 class QPainter;
 class iADiagramFctWidget;
 
-class dlg_function
+class dlg_function: public QObject
 {
+	Q_OBJECT
 public:
 	static const int TRANSFER = 0;
 	static const int GAUSSIAN = 1;
 	static const int BEZIER   = 2;
 
-	dlg_function(iADiagramFctWidget* fctDiagram) : fctDiagram(fctDiagram) { }
+	dlg_function(iADiagramFctWidget* chart) : chart(chart) { }
 
 	virtual int getType() = 0;
 
@@ -59,5 +62,5 @@ public:
 	virtual void mouseReleaseEvent(QMouseEvent *event) = 0;
 	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) = 0;
 	
-	iADiagramFctWidget *fctDiagram;
+	iADiagramFctWidget *chart;
 };

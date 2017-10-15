@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -27,12 +27,32 @@
 class vtkImageData;
 
 class QString;
+class QStringList;
 
 // image creation:
 void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output);
 open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3]);
+open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3]);
+open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents);
 
 // image I/O (using ITK methods of iAITKIO)
-void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
+open_iA_Core_API void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
 vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
+
+void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
+
+int MapVTKTypeStringToInt(QString const & vtkTypeName);
+
+int MapVTKTypeStringToSize(QString const & vtkTypeString);
+
+bool isVtkIntegerType(int type);
+
+QStringList const & VTKDataTypeList();
+
+#define FOR_VTKIMG_PIXELS(img, x, y, z) \
+for (int z = 0; z < img->GetDimensions()[2]; ++z) \
+	for (int y = 0; y < img->GetDimensions()[1]; ++y) \
+		for (int x = 0; x < img->GetDimensions()[0]; ++x)
+
+#define FOR_VTKIMG_PIXELS_IDX(img, idx) \
+for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)

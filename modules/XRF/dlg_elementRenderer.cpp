@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -43,7 +43,7 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_tag(0),
 	m_indexInReferenceLib(-1)
 {
-	renContainer->SetRenderWindow(m_renderer->GetRenderWindow());
+	renContainer->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->GetRenderWindow()));
 	m_renderer->GetRenderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
 
@@ -53,7 +53,6 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 
 
 void dlg_elementRenderer::removeObserver()
-
 {
 	//is m_renderer deleted by Qt?
 	if(m_observedRenderer)
@@ -62,7 +61,6 @@ void dlg_elementRenderer::removeObserver()
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
-	// TODO: VOLUME: check if working!
 	iASimpleTransferFunction transferFunction(ctf, otf);
 	if(!m_rendInitialized)
 	{
@@ -73,7 +71,6 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	}
 	else
 	{
-		// TODO: VOLUME: check if recreation of volume renderer is necessary!
 		m_volumeRenderer->Remove();
 		m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));

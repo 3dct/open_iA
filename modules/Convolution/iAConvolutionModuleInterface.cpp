@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAConvolutionModuleInterface.h"
 
@@ -33,6 +32,8 @@
 
 void iAConvolutionModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filterMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuConvolution_Filter = getMenuWithTitle(filterMenu, QString("Convolution & Correlation"));
 
@@ -78,12 +79,12 @@ void iAConvolutionModuleInterface::convolve()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "Convolution Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Convolution Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	
 	//prepare
-	QString filterName = tr("Convolution Filter");
+	QString filterName = "Convolution";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -112,12 +113,12 @@ void iAConvolutionModuleInterface::correlate()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "Correlation Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Correlation Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
 	//prepare
-	QString filterName = tr("Correlation Filter");
+	QString filterName = "Correlation";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -146,12 +147,12 @@ void iAConvolutionModuleInterface::FFT_correlate()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "FFT Correlation Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "FFT Correlation Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
 	//prepare
-	QString filterName = tr("FFT Correlation Filter");
+	QString filterName = "FFT Correlation";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -180,12 +181,12 @@ void iAConvolutionModuleInterface::FFT_convolve()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "FFT Convolution Filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "FFT Convolution Filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
 	//prepare
-	QString filterName = tr("FFT Convolution Filter");
+	QString filterName = "FFT Convolution";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute
@@ -214,12 +215,12 @@ void iAConvolutionModuleInterface::FFT_CPP_correlate()
 	QStringList inList = (QStringList() << tr("#Path to template image"));
 	QList<QVariant> inPara; inPara << tr("%1").arg(filename);
 
-	dlg_commoninput dlg(m_mainWnd, "FFT CPP correlation filter", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "FFT CPP correlation filter", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
 	//prepare
-	QString filterName = tr("FFT CPP correlation filter");
+	QString filterName = "FFT CPP correlation";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute

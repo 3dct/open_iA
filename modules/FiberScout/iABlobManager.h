@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,18 +15,10 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-
-/*
-	author: ALMA
-*/
-
 #pragma once
-#ifndef __iaBlobManager_h
-#define __iaBlobManager_h
 
 #include <vtkSmartPointer.h>
 #include <QList>
@@ -46,10 +38,10 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 
+class iABlobCluster;
 class iARenderer;
 class MdiChild;
 
-class iABlobCluster;
 
 class iABlobManager
 {
@@ -165,7 +157,7 @@ private:
 	void					OverlapWithMask (vtkImageData* imageData);
 
 	QList<iABlobCluster*>	m_blobsList;
-	vtkImageData*			m_imageMask;
+	vtkSmartPointer<vtkImageData>	m_imageMask;
 	double					m_blurVariance;
 	double					m_overlappingEnabled;
 	bool					m_isSmoothingEnabled;
@@ -184,9 +176,8 @@ private:
 	double					m_blobOpacity;
 	double					m_silhouetteOpacity;
 
-	vtkRenderer*			m_blobRen;
-	vtkRenderer*			m_labelRen;
-
+	vtkSmartPointer<vtkRenderer>	m_blobRen;
+	vtkSmartPointer<vtkRenderer>	m_labelRen;
 
 	//depth peeling alternative
 	vtkSmartPointer<vtkAppendPolyData>		m_appendedBlobsPD;
@@ -199,5 +190,3 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper>		m_silhouetteMapper;
 	vtkSmartPointer<vtkActor>				m_silhouetteActor;
 };
-
-#endif // __iaBlobManager_h

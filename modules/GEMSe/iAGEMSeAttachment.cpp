@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGEMSeAttachment.h"
 
@@ -39,10 +38,6 @@
 #include "iAWidgetAddHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
-
-#include <fstream>
-#include <sstream>
-#include <string>
 
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData):
@@ -73,15 +68,18 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData c
 		newAttachment->m_dlgSamplings,
 		colorTheme
 	);
-	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
-	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
-	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
-	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
+	mdiChild->SplitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
+	mdiChild->SplitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
+	mdiChild->SplitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
+	mdiChild->SplitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
 
-	connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
+	//connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
 	connect(mdiChild->getSlicerDataXY(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
 	connect(mdiChild->getSlicerDataXZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
 	connect(mdiChild->getSlicerDataYZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
+	connect(mdiChild->getSlicerDataXY(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	connect(mdiChild->getSlicerDataXZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	connect(mdiChild->getSlicerDataYZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
 
 
 	return newAttachment;
@@ -97,9 +95,14 @@ bool iAGEMSeAttachment::LoadClustering(QString const & fileName)
 	return m_dlgGEMSeControl->LoadClustering(fileName);
 }
 
-bool iAGEMSeAttachment::LoadSeeds(QString const & seedsFileName)
+bool iAGEMSeAttachment::LoadRefImg(QString const & refImgName)
 {
-	return m_dlgLabels->Load(seedsFileName);
+	return m_dlgGEMSeControl->LoadRefImg(refImgName);
+}
+
+void iAGEMSeAttachment::SetSerializedHiddenCharts(QString const & hiddenCharts)
+{
+	return m_dlgGEMSeControl->SetSerializedHiddenCharts(hiddenCharts);
 }
 
 void iAGEMSeAttachment::ResetFilter()
@@ -117,7 +120,7 @@ void iAGEMSeAttachment::ToggleDockWidgetTitleBar()
 	QWidget* titleBar = m_dlgGEMSe->titleBarWidget();
 	if (titleBar == m_dummyTitleWidget)
 	{
-		m_dlgGEMSe->setTitleBarWidget(NULL);
+		m_dlgGEMSe->setTitleBarWidget(nullptr);
 	}
 	else
 	{
@@ -145,4 +148,9 @@ void iAGEMSeAttachment::ExportRankings()
 void iAGEMSeAttachment::ImportRankings()
 {
 	m_dlgGEMSeControl->ImportRankings();
+}
+
+void iAGEMSeAttachment::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
+{
+	m_dlgGEMSeControl->SetLabelInfo(colorTheme, labelNames);
 }

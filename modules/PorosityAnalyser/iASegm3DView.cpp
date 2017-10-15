@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -36,6 +36,7 @@
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
+#include <vtkLight.h>
 #include <vtkLookupTable.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
@@ -43,6 +44,7 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
@@ -280,9 +282,9 @@ void iASegm3DViewData::LoadAndApplySettings()
 	renderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
 	renderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
 	renderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", false).toBool();
-	renderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", false).toBool();
-	renderSettings.BackgroundTop = settings.value("Renderer/rsBackgroundTop", "#8f8f8f").toString();
-	renderSettings.BackgroundBottom = settings.value("Renderer/rsBackgroundBottom", "#8f8f8f").toString();
+	renderSettings.ParallelProjection = true;
+	renderSettings.BackgroundTop = "#8f8f8f"; //"#FFFFFF" 
+	renderSettings.BackgroundBottom = "#8f8f8f";
 
 	volumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
 	volumeSettings.Shading = settings.value("Renderer/rsShading", true).toBool();
@@ -292,7 +294,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
 	volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
 	volumeSettings.Mode = settings.value("Renderer/rsRenderMode", 0).toInt();
-	
+
 	m_renderer->ApplySettings(renderSettings);
 	m_volumeRenderer->ApplySettings(volumeSettings);
 
@@ -305,11 +307,24 @@ void iASegm3DViewData::LoadAndApplySettings()
 
 	m_renderer->GetPolyActor()->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
 	m_wireActor->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowWireframe", false ).toBool() );
+	
 	m_renderer->GetPolyActor()->GetProperty()->SetSpecular( 0 );
 	m_renderer->GetPolyActor()->GetProperty()->SetDiffuse( 0 );
 	m_renderer->GetPolyActor()->GetProperty()->SetAmbient( 1 );
 	scalarBarWgt->SetEnabled( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
 	volScalarBarWgt->SetEnabled( settings.value( "PorosityAnalyser/GUI/ShowVolume", false ).toBool() );
+
+	m_renderer->GetRenderer()->ResetCamera();
+
+	vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
+	light->SetLightTypeToSceneLight();
+	light->SetPosition( 0, 0, 1 );
+	light->SetConeAngle( 45 );
+	light->SetFocalPoint( 0,0,0 );
+	light->SetDiffuseColor( 1, 1, 1 );
+	light->SetAmbientColor( 1, 1, 1 );
+	light->SetSpecularColor( 1, 1, 1 );
+	m_renderer->GetRenderer()->AddLight( light );
 }
 
 iAFast3DMagicLensWidget * iASegm3DViewData::GetWidget()

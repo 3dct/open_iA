@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAMorphologyModuleInterface.h"
 
@@ -29,6 +28,8 @@
 
 void iAMorphologyModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menu_Morphology_Filters = getMenuWithTitle(filtersMenu, QString( "Morphology" ) );
 	QAction * actionDilation_Filter = new QAction(QApplication::translate("MainWindow", "Dilation", 0), m_mainWnd );
@@ -50,14 +51,14 @@ void iAMorphologyModuleInterface::dilation_filter()
 	QStringList inList = (QStringList() << tr( "#Structuring element radius" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( dilrad );
 
-	dlg_commoninput dlg( m_mainWnd, "Dilation Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Dilation Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	dilrad = dlg.getValues()[0];
+	dilrad = dlg.getDblValue(0);
 	//prepare
-	QString filterName = tr( "Dilation Filter" );
+	QString filterName = "Dilated " + QString::number(dilrad);
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -75,15 +76,15 @@ void iAMorphologyModuleInterface::erosion_filter()
 	QStringList inList = (QStringList() << tr( "#Structuring element radius" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( errad );
 
-	dlg_commoninput dlg( m_mainWnd, "Erosion Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Erosion Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	errad = dlg.getValues()[0];
+	errad = dlg.getDblValue(0);
 
 	//prepare
-	QString filterName = tr( "Erosion Filter" );
+	QString filterName = "Eroded " + QString::number(errad);
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 
@@ -102,14 +103,14 @@ void iAMorphologyModuleInterface::vessel_enhancement_filter()
 	QStringList inList = (QStringList() << tr( "#Sigma" ));
 	QList<QVariant> inPara; inPara << tr( "%1" ).arg( sigmaenh );
 
-	dlg_commoninput dlg( m_mainWnd, "Enhancement Filter", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Enhancement Filter", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	sigmaenh = dlg.getValues()[0];
+	sigmaenh = dlg.getDblValue(0);
 	//prepare
-	QString filterName = tr( "Enhancement Filter" );
+	QString filterName = "Vessel Enhancement";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute

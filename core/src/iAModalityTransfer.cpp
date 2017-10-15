@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,14 +15,15 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "iAModalityTransfer.h"
 
 #include "iAHistogramWidget.h"
+#include "iAToolsVTK.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageAccumulate.h>
@@ -35,7 +36,6 @@
 #include <QDockWidget>
 
 iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount):
-	m_binCount(binCount),
 	histogram(0)
 {
 	ctf = GetDefaultColorTransferFunction(imgData);
@@ -45,11 +45,9 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 	if (m_useAccumulate)
 	{
 		accumulate->ReleaseDataFlagOn();
-		accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
-		UpdateAccumulateImageData(imgData);
+		UpdateAccumulateImageData(imgData, binCount);
 		histogram = new iAHistogramWidget(parent,
 			/* MdiChild */ 0, // todo: remove!
-			imgData->GetScalarRange(),
 			accumulate,
 			otf,
 			ctf,
@@ -59,30 +57,34 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QS
 	}
 }
 
-void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData)
+void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount)
 {
 	if (!m_useAccumulate)
-	{
 		return;
-	}
 	m_useAccumulate = imgData->GetNumberOfScalarComponents() == 1;
 	m_scalarRange[0] = imgData->GetScalarRange()[0];
 	m_scalarRange[1] = imgData->GetScalarRange()[1];
-	accumulate->SetComponentSpacing((m_scalarRange[1] - m_scalarRange[0]) / m_binCount, 0.0, 0.0);
-	accumulate->SetComponentOrigin(m_scalarRange[0], 0.0, 0.0);
 	accumulate->SetInputData(imgData);
-	accumulate->Update();
+	accumulate->SetComponentOrigin(imgData->GetScalarRange()[0], 0.0, 0.0);
+	SetHistogramBinCount(binCount);
 }
 
-void iAModalityTransfer::SetHistogramBins(int binCount)
+void iAModalityTransfer::SetHistogramBinCount(int binCount)
 {
 	if (!m_useAccumulate)
-	{
 		return;
+	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
+	{
+		binCount = std::min(binCount, static_cast<int>(m_scalarRange[1] - m_scalarRange[0] + 1));
 	}
-	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0); // number of bars
-	accumulate->SetComponentSpacing((m_scalarRange[1] - m_scalarRange[0]) / m_binCount, 0.0, 0.0);
+	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
+	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
+	accumulate->SetComponentSpacing(((m_scalarRange[1] - m_scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
 	accumulate->Update();
+	if (histogram)
+	{
+		histogram->UpdateData();
+	}
 }
 
 iAHistogramWidget* iAModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
@@ -121,15 +123,12 @@ vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
 	return accumulate;
 }
 
-void iAModalityTransfer::InitHistogram(vtkSmartPointer<vtkImageData> imgData)
+void iAModalityTransfer::Update(vtkSmartPointer<vtkImageData> imgData, int binCount)
 {
 	if (!m_useAccumulate)
-	{
 		return;
-	}
-	UpdateAccumulateImageData(imgData);
-	histogram->initialize(accumulate, m_scalarRange, true);
-	histogram->updateTrf();
+	UpdateAccumulateImageData(imgData, binCount);
+	histogram->initialize(accumulate, true);
 	histogram->redraw();
 }
 

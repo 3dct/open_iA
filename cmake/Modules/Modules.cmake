@@ -1,6 +1,6 @@
 # Generate full path to the module directory
 MACRO( GET_MODULE_FULL_PATH module_name_in module_full_path_out )
-    SET( ${module_full_path_out} ${PROJECT_SOURCE_DIR}/${module_name_in} )
+    SET( ${module_full_path_out} ${CMAKE_CURRENT_SOURCE_DIR}/${module_name_in} )
     IF (NOT EXISTS ${${module_full_path_out}})
         # MESSAGE(WARNING "Module ${module_name_in} not found (searched in ${${module_full_path_out}})!")
         SET( ${module_full_path_out} "NOTFOUND")
@@ -30,7 +30,14 @@ ENDMACRO()
 
 # Module stores its dependencies in Dependencies.txt file. Check if all the dependencies are enabled
 MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencies)
-
+    # reset entries:
+    SET (DEPENDENCIES_MODULES)
+    SET (DEPENDENCIES_CMAKE)
+    SET (DEPENDENCIES_LIBRARIES)
+    SET (DEPENDENCIES_LIBRARIES_DEBUG)
+    SET (DEPENDENCIES_LIBRARIES_RELEASE)
+    SET (DEPENDENCIES_INCLUDE_DIRS)
+    SET (DEPENDENCIES_IA_TOOLKIT_DIRS)
     SET( dependencies_full_path ${module_full_path}/Dependencies.cmake)
     IF( EXISTS ${dependencies_full_path} )
         INCLUDE( ${dependencies_full_path} )
@@ -45,7 +52,7 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
         # Cmake defines
         FOREACH( d ${DEPENDENCIES_CMAKE} )
             IF( NOT ${d} )
-                MESSAGE(SEND_ERROR "${option_name} requires ${d} to be ON")
+                MESSAGE(SEND_ERROR "${option_name} requires ${d} to be TRUE")
             ENDIF()
         ENDFOREACH()
         # Libraries
@@ -55,13 +62,38 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
                 LIST( APPEND ADDITIONAL_MODULE_LIBRARIES ${l} )
             ENDIF()
         ENDFOREACH()
+        FOREACH( l ${DEPENDENCIES_LIBRARIES_DEBUG} )
+            list( FIND ADDITIONAL_MODULE_LIBRARIES_DEBUG ${l} HasLib )
+            IF(HasLib EQUAL -1)
+                LIST( APPEND ADDITIONAL_MODULE_LIBRARIES_DEBUG ${l} )
+            ENDIF()
+        ENDFOREACH()
+        FOREACH( l ${DEPENDENCIES_LIBRARIES_RELEASE} )
+            list( FIND ADDITIONAL_MODULE_LIBRARIES_RELEASE ${l} HasLib )
+            IF(HasLib EQUAL -1)
+                LIST( APPEND ADDITIONAL_MODULE_LIBRARIES_RELEASE ${l} )
+            ENDIF()
+        ENDFOREACH()
+        FOREACH( i ${DEPENDENCIES_INCLUDE_DIRS} )
+            list( FIND ADDITIONAL_MODULE_INCLUDE_DIRS ${i} HasInclude )
+            IF (HasInclude EQUAL -1)
+                IF (NOT EXISTS ${i})
+                    MESSAGE(WARNING "Include directory ${i}, required by module ${option_name}, does not exist!")
+                ELSE()
+                    LIST( APPEND ADDITIONAL_MODULE_INCLUDE_DIRS ${i} )
+                ENDIF()
+            ENDIF()
+        ENDFOREACH()
         # Toolkit directories
         FOREACH( td ${DEPENDENCIES_IA_TOOLKIT_DIRS} )
-            INCLUDE_DIRECTORIES( ${Toolkit_DIR}/${td} )
-			IF (NOT EXISTS ${Toolkit_DIR}/${td})
-				MESSAGE(WARNING "Required toolkit directory ${td} for module ${option_name} not found (searched in ${Toolkit_DIR}/${td})!")
-			ENDIF()
+            IF (NOT EXISTS ${Toolkit_DIR}/${td})
+                MESSAGE(WARNING "Toolkit directory ${td}, required for module ${option_name}, not found (searched in ${Toolkit_DIR}/${td})!")
+            ELSE()
+                LIST (APPEND ADDITIONAL_MODULE_INCLUDE_DIRS ${Toolkit_DIR}/${td})
+            ENDIF()
         ENDFOREACH()
+	ELSE()
+		MESSAGE(WARNING "Dependency specification file for module ${option_name} is missing!")
     ENDIF()
 ENDMACRO()
 
@@ -79,8 +111,12 @@ MACRO( MODULE_GENERATE_EXPORT_HEADER module_name)
 	#else\n\
 		#define ${module_name}_API __declspec(dllimport)\n\
 	#endif\n\
-#else // no export specification needed for tests and other platforms\n\
-	#define ${module_name}_API\n\
+#else // export symbols from dynamic shared objects \n\
+	#if  defined(__GNUG__) && !defined( NO_DLL_LINKAGE) && defined(${module_name}_EXPORTS)\n\
+	    #define ${module_name}_API __attribute__ ((visibility (\"default\")))\n\
+	#else \n\
+	    #define ${module_name}_API\n\
+	#endif\n\
 #endif")
 	ENDIF()
 ENDMACRO()

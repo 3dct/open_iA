@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,13 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "iAImageTree.h"
+#include "iAImageTreeNode.h"		// for LabelImagePointer
 #include "iASlicerMode.h"
 
 #include <vtkSmartPointer.h>
@@ -45,7 +46,7 @@ class iAImageNodeWidget: public QWidget
 public:
 	iAImageNodeWidget(
 		QWidget* parent,
-		QSharedPointer<iAImageClusterNode > node,
+		QSharedPointer<iAImageTreeNode > node,
 		iAPreviewWidgetPool * previewPool,
 		bool shrinkAuto,
 		int representativeType);
@@ -53,14 +54,14 @@ public:
 	bool IsExpanded() const;
 	bool IsShrinked() const;
 	void Layout(int x, int y, int width, int height);
-	QSharedPointer<iAImageClusterNode> GetClusterNode();
-	bool UpdateShrinkStatus();
+	QSharedPointer<iAImageTreeNode> GetClusterNode();
+	bool UpdateShrinkStatus(LabelImagePointer refImg);
 	void ToggleButton();
 	void ExpandNode();
-	void SetAutoShrink(bool newAutoShrink);
+	void SetAutoShrink(bool newAutoShrink, LabelImagePointer refImg);
 	bool IsAutoShrinked() const;
-	void UpdateRepresentative();
-	void SetRepresentativeType(int representativeType);
+	bool UpdateRepresentative(LabelImagePointer refImg);
+	bool SetRepresentativeType(int representativeType, LabelImagePointer refImg);
 protected:
 	virtual void paintEvent(QPaintEvent * );
 	virtual void mouseReleaseEvent(QMouseEvent * ev);
@@ -68,19 +69,20 @@ signals:
 	void Expand(bool expand);
 	void Clicked();
 	void ImageClicked();
+	void ImageRightClicked();
 	void Updated();
 private slots:
 	void ExpandButtonClicked();
 private:
 	void ReturnPreview();
-	bool CreatePreview();
+	bool CreatePreview(LabelImagePointer refImg);
 
 	void SetShrinkedLayout();
 	void SetLargeLayout();
 
 	bool m_shrinkedAuto;
 	bool m_shrinkStatus;
-	QSharedPointer<iAImageClusterNode > m_cluster;
+	QSharedPointer<iAImageTreeNode > m_cluster;
 	iAImagePreviewWidget * m_imageView;
 	iATriangleButton* m_expandButton;
 	QLabel* m_infoLabel;

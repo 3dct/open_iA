@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAnalyse_PorosityAnalyserHelpers_h
-#define iAnalyse_PorosityAnalyserHelpers_h
+#pragma once
 
 #include <QMap>
 #include <QList>
@@ -106,7 +104,11 @@ const QStringList filterNames = QStringList()\
 << "Median Smoothing"\
 << "IsoX Threshold"\
 << "Fhw Threshold"\
-<< "Create Surrounding";
+<< "Create Surrounding"\
+<< "Huang Threshold"\
+<< "Li Threshold"\
+<< "KittlerIllingworth Threshold"\
+<< "Triangle Threshold";
 
 const QString contextMenuStyle(
 	"QMenu{"
@@ -146,7 +148,11 @@ enum PorosityFilterID
 	P_MEDIAN_SMOOTH,
 	P_ISOX_THRESHOLD,
 	P_FHW_THRESHOLD,
-	P_CREATE_SURROUNDING
+	P_CREATE_SURROUNDING,
+	P_HUANG_THRESHOLD,
+	P_LI_THRESHOLD,
+	P_KITTLERILLINGWORTH_THRESHOLD,
+	P_TRIANGLE_THRESHOLD
 };
 
 typedef QMap<QString, PorosityFilterID> MapQString2PorosityId;
@@ -180,6 +186,10 @@ static MapQString2PorosityId fill_FilterNameToId()
 	m[filterNames.at( 24 )] = P_ISOX_THRESHOLD;
 	m[filterNames.at( 25 )] = P_FHW_THRESHOLD;
 	m[filterNames.at( 26 )] = P_CREATE_SURROUNDING;
+	m[filterNames.at( 27 )] = P_HUANG_THRESHOLD;
+	m[filterNames.at( 28 )] = P_LI_THRESHOLD;
+	m[filterNames.at( 29 )] = P_KITTLERILLINGWORTH_THRESHOLD;
+	m[filterNames.at( 30 )] = P_TRIANGLE_THRESHOLD;
 	return m;
 }
 const MapQString2PorosityId FilterNameToId = fill_FilterNameToId();
@@ -209,7 +219,8 @@ static MapId2Params fill_FilterIdToParamList()
 	m[P_RATS_THRESHOLD] = QList<ParamNameType>()\
 		<< NameTypePair( "Pow", PT_FLOAT );
 	m[P_MORPH_WATERSHED_MEYER] = QList<ParamNameType>()\
-		<< NameTypePair( "Level", PT_FLOAT );
+		<< NameTypePair( "Level", PT_FLOAT )\
+		<< NameTypePair( "FullyConnected", PT_INT );
 	m[P_MORPH_WATERSHED_BEUCHER] = m[P_MORPH_WATERSHED_MEYER];
 	m[P_OTSU_THRESHOLD] = QList<ParamNameType>();
 	m[P_CONNECTED_THRESHOLD] = QList<ParamNameType>()\
@@ -260,6 +271,10 @@ static MapId2Params fill_FilterIdToParamList()
 		<< NameTypePair( "FhwWeight", PT_INT );
 	m[P_CREATE_SURROUNDING] = QList<ParamNameType>()\
 		<< NameTypePair( "UpSurrThr", PT_FLOAT );
+	m[P_HUANG_THRESHOLD] = QList<ParamNameType>();
+	m[P_LI_THRESHOLD] = QList<ParamNameType>();
+	m[P_KITTLERILLINGWORTH_THRESHOLD] = QList<ParamNameType>();
+	m[P_TRIANGLE_THRESHOLD] = QList<ParamNameType>();
 	return m;
 }
 const MapId2Params FilterIdToParamList = fill_FilterIdToParamList();
@@ -295,6 +310,10 @@ static MapId2Params fill_FilterIdToOutputParamList()
 	m[P_ISOX_THRESHOLD] = m[P_RATS_THRESHOLD];
 	m[P_FHW_THRESHOLD] = m[P_RATS_THRESHOLD];
 	m[P_CREATE_SURROUNDING] = QList<ParamNameType>();
+	m[P_HUANG_THRESHOLD] = m[P_RATS_THRESHOLD];
+	m[P_LI_THRESHOLD] = m[P_RATS_THRESHOLD];
+	m[P_KITTLERILLINGWORTH_THRESHOLD] = m[P_RATS_THRESHOLD];
+	m[P_TRIANGLE_THRESHOLD] = m[P_RATS_THRESHOLD];
 	return m;
 }
 const MapId2Params FilterIdToOutputParamList = fill_FilterIdToOutputParamList();
@@ -731,5 +750,3 @@ inline QString getSliceFilename( const QString &maskFilename, const int & sliceN
 		+ maskFI.baseName()
 		+ "_Z_" + QString::number( sliceNumber ) + ".png";
 }
-
-#endif //iAnalyse_PorosityAnalyserHelpers_h

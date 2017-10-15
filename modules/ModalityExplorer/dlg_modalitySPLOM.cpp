@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,6 +24,7 @@
 
 #include "iAChannelVisualizationData.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAQSplom.h"
 
 #include <vtkColorTransferFunction.h>
@@ -43,7 +44,6 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New())
 {
-
 	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
 	m_selection_ctf->AddRGBPoint(1, 1.0, 0.0, 0.0);
 
@@ -61,7 +61,7 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	content->setLayout(lay);
 	setWidget(content);
 
-	connect(m_splom, SIGNAL(SelectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
+	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
 }
 
 void dlg_modalitySPLOM::SplomSelection(QVector<unsigned int> * selInds)
@@ -187,7 +187,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	                (int)(((m_extent[3]-m_extent[2]+1) / step[1]) + 1) *
 	                (int)(((m_extent[5]-m_extent[4]+1) / step[2]) + 1);
 	
-	std::cout << "Steps: " << step[0] << ", " << step[1] << ", " << step[2] << "; tableSize: " << tableSize;
+	//std::cout << "Steps: " << step[0] << ", " << step[1] << ", " << step[2] << "; tableSize: " << tableSize;
 	
 	iATimeAdder adder;
 	adder.resume();

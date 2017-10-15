@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,64 +15,72 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
+
+enum iAIntensityFilterType
+{
+	DIFFERENCE_IMAGE,
+	INVERT_INTENSITY,
+	MASK_IMAGE,
+	INTENSITY_WINDOWING,
+	NORMALIZE_IMAGE,
+	HISTOGRAM_MATCH,
+	RESCALE_IMAGE,
+};
 
 /**
  * Implementation of DifferenceImageFilter and InvertIntensityImageFilter.
  * For DifferenceImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DifferenceImageFilter.html
  * For InvertIntensityImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1InvertIntensityImageFilter.html
- * \remarks	Kana, 01/12/2010. 
+ * For Rescale Image filter refer to http://itk.org/ITKExamples/src/Filtering/ImageIntensity/RescaleAnImage/Documentation.html
  */
-
-class iAIntensity : public iAFilter
+class iAIntensity : public iAAlgorithm
 {
 public:
-	iAIntensity( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAIntensity();
-
-	/**
-	 * Sets DifferenceImageFilter parameters. 
-	 * \param	dt	The difference threshold. 
-	 * \param	tr	The tolerance radius. 
-	 * \param	i2	The second vtkImageData*. 
-	 */
+	iAIntensity( QString fn, iAIntensityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	void setDIFParameters(double dt, double tr, vtkImageData* i2) 
 	{ 
 		DifferenceThreshold = dt; 
 		ToleranceRadius = tr;
 		image2 = i2;
-	};
+	}
 
-	/**
-	* Sets Intensity_WindowingImageFilter parameters.
-	* \param	wmin	The window minimum.
-	* \param	wmax	The window maximum.
-	* \param	omin	The output minimum.
-	* \param	omax	The output maximum.
-	*/
-	
 	void setWIIFParameters( double wmin, double wmax, double omin, double omax )
 	{
 		windowMinimum = wmin;
 		windowMaximum = wmax;
 		outputMinimum = omin;
 		outputMaximum = omax;
-	};
+	}
+
+	void setHMFParameters( int hl, int mp, bool tami, vtkImageData* i2 )
+	{
+		histogramLevels = hl;
+		matchPoints = mp;
+		thresholdAtMeanIntensity = tami;
+		image2 = i2;
+	}
+
+	void setRescaleParameters(double outMin, double outMax)
+	{
+		outputMin = outMin;
+		outputMax = outMax;
+	}
 
 protected:
-	void run();
-	void difference(  );
-	void invert_intensity( );
-	void mask();
-	void intensity_windowing();
+	virtual void performWork();
 
 private:
 	double DifferenceThreshold, ToleranceRadius, windowMinimum, windowMaximum, outputMinimum, outputMaximum;
+	int histogramLevels, matchPoints;	// Histogram Match Filter
+	bool thresholdAtMeanIntensity;		// Histogram Match Filter
 	vtkImageData* image2;
+	iAIntensityFilterType m_type;
+	double outputMin, outputMax;		// rescale intensity filter
 };

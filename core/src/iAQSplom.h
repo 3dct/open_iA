@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,14 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "open_iA_Core_export.h"
+
+#include "iAScatterPlotSelectionHandler.h"
 
 #include <QGLWidget>
 #include <QList>
@@ -47,7 +49,7 @@ class vtkLookupTable;
 	Inherits QGLWidget,manages scatter plots internally.
 	Some customization options are available via the public settings member.
 */
-class open_iA_Core_API iAQSplom : public QGLWidget
+class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectionHandler
 {
 	Q_OBJECT
 	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
@@ -70,7 +72,7 @@ public:
 	void applyLookupTable();												//!< Apply lookup table to all the scatter plots.
 	void setParameterVisibility( int paramIndex, bool isVisible );			//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
-	QVector<unsigned int> * getSelection();									//!< Get vector of indices of currently selected data points.
+	QVector<unsigned int> & getSelection();									//!< Get vector of indices of currently selected data points.
 	void setSelection( const QVector<unsigned int> * selInds );				//!< Set selected data points from a vector of indices.
 	void getActivePlotIndices( int * inds_out );							//!< Get X and Y parameter indices of currently active scatter plot.
 	inline int getVisibleParametersCount() const							//!< Get the number of parameters currently displayed
@@ -81,7 +83,7 @@ public:
 	void setAnimIn( double anim );											//!< Setter for animation in property
 	double getAnimOut() const { return m_animOut; }							//!< Getter for animation in property
 	void setAnimOut( double anim );											//!< Setter for animation in property
-	const QList<int> * getHighlightedPoints() const;
+	const QList<int> & getHighlightedPoints() const;
 
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.

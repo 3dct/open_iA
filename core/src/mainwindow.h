@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -29,6 +29,7 @@
 #include "iAVolumeSettings.h"
 
 #include <QMainWindow>
+#include <QSharedPointer>
 
 #include <string>
 
@@ -47,15 +48,16 @@ class QLabel;
 class QSplashScreen;
 QT_END_NAMESPACE
 
-class MdiChild;
 class vtkCamera;
 class vtkImageData;
 class vtkImageViewer2;
 class vtkRenderer;
 
-class iAModuleDispatcher;
 class dlg_transfer;
-class vtkCamera;
+class iAModalityList;
+class iAModuleDispatcher;
+class iATLGICTLoader;
+class MdiChild;
 
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 {
@@ -72,8 +74,8 @@ public:
 	QString getPath() { return path; };
 
 	void LoadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack);
-	void loadFiles(QStringList fileNames);
+	void LoadFile(QString fileName, bool isStack);
+	void LoadFiles(QStringList fileNames);
 
 	QDomDocument loadSettingsFile(QString filename);
 	void saveSettingsFile(QDomDocument &doc, QString filename);
@@ -102,12 +104,12 @@ public:
 	QMenu * getFileMenu();
 	MdiChild *GetResultChild( QString const & title );
 	MdiChild *GetResultChild( int childInd, QString const & title );
+	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
 	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	int SelectInputs(QString winTitel, int n, QStringList inList, int * out_inputIndxs, bool modal = true);
+	int SelectInputs(QString winTitel, QStringList inList, int * out_inputIndxs, bool modal = true);
 	void addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
-	void loadLayout(MdiChild* child, QString const & layout);
 	void LoadArguments(int argc, char** argv);
 	iAPreferences const & GetDefaultPreferences() const;
 protected:
@@ -116,15 +118,18 @@ protected:
 private slots:
 	void timeout();
 	void newFile();
-	void open();
-	void openImageStack();
-	void openVolumeStack();
+	void Open();
+	void OpenRaw();
+	void OpenImageStack();
+	void OpenVolumeStack();
+	void OpenTLGICTData();
 	void save();
 	void saveAs();
-	void saveAsImageStack();
 	void saveScreen();
 	bool loadSettings();
 	bool saveSettings();
+	void LoadProject();
+	void SaveProject();
 	void maxXY();
 	void maxXZ();
 	void maxYZ();
@@ -156,14 +161,11 @@ private slots:
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
 	void raycasterLoadCameraSettings();
-	void openRecentFile();
+	void OpenRecentFile();
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
-	void LoadProject();
-	void LoadProject(QString const & fileName);
-	void SaveProject();
-	void OpenTLGICTData();
+	void CloseAllSubWindows();
 
 public slots:
 	void saveLayout();
@@ -176,7 +178,7 @@ public slots:
 	void about();
 	void updateMenus();
 	void updateWindowMenu();
-	MdiChild *createMdiChild();
+	MdiChild *createMdiChild(bool unsavedChanges);
 	void switchLayoutDirection();
 	void setActiveSubWindow(QWidget *window);
 	void pointSelected();
@@ -185,9 +187,10 @@ public slots:
 	void setHistogramFocus();
 	void tabChanged(int index);
 
+signals:
+	void StyleChanged();
 private:
 	void connectSignalsToSlots();
-	void setupToolBars();
 	void setupStatusBar();
 	void readSettings();
 	void writeSettings();
@@ -195,55 +198,46 @@ private:
 	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
-	void loadFileInternal(QString fileName, bool isStack);
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
-
-	QSplashScreen *splashScreen;
-		
+	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
+	void LoadProject(QString const & fileName);
+	void LoadTLGICTData(QString const & baseDirectory);
+	bool KeepOpen();
 	QMdiSubWindow *findMdiChild(const QString &fileName);
 	QString strippedName(const QString &fullFileName);
-
 	double neighborhood(vtkImageData *imageData, int x0, int y0, int z0);
 
+	QSplashScreen *splashScreen;
 	QAction *separatorAct;
 	enum { MaxRecentFiles = 8 };
 	QAction *recentFileActs[MaxRecentFiles];
 	QActionGroup *slicerToolsGroup;
-
 	QSignalMapper *windowMapper;
-	
 	QString qssName;
-
 	iAVolumeSettings defaultVolumeSettings;	
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;
 
-	//! @{ DataType Conversion settings
-	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
-	//! @}
 	//! @{ Open with DataType Conversion settings
-	int owdtcs, owdtcx,owdtcy,owdtcz, owdtcxori, owdtcyori, owdtczori, owdtcxsize, owdtcysize, owdtczsize; double owdtcsx, owdtcsy, owdtcsz;
+	int owdtcs,
+		owdtcx, owdtcy, owdtcz,
+		owdtcxori, owdtcyori, owdtczori,
+		owdtcxsize, owdtcysize, owdtczsize,
+		owdtcdov;
+	double owdtcsx, owdtcsy, owdtcsz,
+		owdtcoutmin, owdtcoutmax;
+	float owdtcmin, owdtcmax;
 	//! @}
-	float owdtcmin, owdtcmax; double owdtcoutmin, owdtcoutmax; int owdtcdov ;//openwithdatatype
 
 	bool lpCamera, lpSliceViews, lpTransferFunction, lpProbabilityFunctions, lpPreferences, lpRenderSettings, lpSlicerSettings;
 	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
 
 	QString defaultLayout;
-
-	QString movFileName; //mean object visualization parameter
-
-	int fvDiscretizationFactor;
-	QString fvFileName;
-
 	QString curFile, path;
-
 	QTimer *timer;
-
 	QComboBox * layout;
-
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList layoutNames;
 	QString m_gitVersion;

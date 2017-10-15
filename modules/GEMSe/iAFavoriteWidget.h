@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,13 +15,13 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "iASlicerMode.h"
-#include "iAImageTree.h"
+#include "iAImageTreeNode.h"
 
 #include <QVector>
 //#include <QSharedPointer>
@@ -34,11 +34,11 @@ class vtkCamera;
 
 struct FavoriteData
 {
-	iAImageClusterNode * node;
+	iAImageTreeNode * node;
 	iAImagePreviewWidget* widget;
 	FavoriteData():
 		node(0), widget(0) {}
-	FavoriteData(iAImageClusterNode *l, iAImagePreviewWidget* w):
+	FavoriteData(iAImageTreeNode *l, iAImagePreviewWidget* w):
 		node(l), widget(w) {}
 };
 
@@ -47,20 +47,22 @@ class iAFavoriteWidget : public QWidget
 	Q_OBJECT
 public:
 	iAFavoriteWidget(iAPreviewWidgetPool* previewWidgetPool);
-	bool ToggleLike(iAImageClusterNode * leaf);
-	bool ToggleHate(iAImageClusterNode * leaf);
+	bool ToggleLike(iAImageTreeNode * node);
+	bool ToggleHate(iAImageTreeNode * node);
 	bool HasAnyFavorite() const;
-	QVector<iAImageClusterNode const *> GetFavorites(iAImageClusterNode::Attitude att) const;
+	QVector<iAImageTreeNode const *> GetFavorites(iAImageTreeNode::Attitude att) const;
 signals:
 	void ViewUpdated();
-	void Clicked(iAImageClusterNode * leaf);
+	void Clicked(iAImageTreeNode * node);
+	void RightClicked(iAImageTreeNode * node);
 private slots:
 	void FavoriteClicked();
+	void FavoriteRightClicked();
 private:
-	void Add(iAImageClusterNode * leaf);
-	void Remove(iAImageClusterNode const * leaf);
-	int GetIndexForNode(iAImageClusterNode const* leaf);
-	iAImageClusterNode * GetNodeForWidget(iAImagePreviewWidget* widget);
+	void Add(iAImageTreeNode * node);
+	void Remove(iAImageTreeNode const * node);
+	int GetIndexForNode(iAImageTreeNode const* node);
+	iAImageTreeNode * GetNodeForWidget(iAImagePreviewWidget* widget);
 	QVector<FavoriteData> m_favorites;
 	iAPreviewWidgetPool* m_previewPool;
 	QLayout *m_likeLayout, *m_hateLayout;

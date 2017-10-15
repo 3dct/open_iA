@@ -1,5 +1,15 @@
 <RCC>
   <qresource prefix="/">
+    <file>images/modTF.png</file>
+    <file>images/Crosshair thin.png</file>
+    <file>images/TFTableView.png</file>
+    <file>images/Crosshair thick.png</file>
+    <file>images/remTFPoint.png</file>
+    <file>images/segment_Li.png</file>
+    <file>images/segment_KittlerIllingworth.png</file>
+    <file>images/addTFPoint.png</file>
+    <file>images/segment_Huang.png</file>
+    <file>images/segment_Triangle.png</file>
     <file>images/selection_list.png</file>
     <file>images/rem_sel.png</file>
     <file>images/load.png</file>
@@ -148,7 +158,6 @@
     <file>images/py.png</file>
     <file>images/pz.png</file>
     <file>images/iso.png</file>
-    <file>images/saveasstack.png</file>
     <file>images/savestack.png</file>
     <file>images/splashscreen.png</file>
     <file>images/label.png</file>
@@ -174,8 +183,8 @@
     <file>images/GEMSe_toggle_autoshrink.png</file>
     <file>images/GEMSe_toggle_titleBar.png</file>
     <file>images/GEMSe_export_ids.png</file>
-	<file>images/GEMSe_export_ranges.png</file>
-	<file>images/GEMSe_export_rankings.png</file>
-	<file>images/GEMSe_import_rankings.png</file>
+    <file>images/GEMSe_export_ranges.png</file>
+    <file>images/GEMSe_export_rankings.png</file>
+    <file>images/GEMSe_import_rankings.png</file>
   </qresource>
 </RCC>

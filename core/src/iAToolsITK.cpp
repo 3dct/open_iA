@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iAToolsITK.h"
@@ -66,6 +66,26 @@ itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer im
 	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< float >, iAITKIO::m_DIM> *>( imagePtr ) )
 		result = itk::ImageIOBase::FLOAT;
 	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::m_DIM> *>( imagePtr ) )
+		result = itk::ImageIOBase::DOUBLE;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::UCHAR;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::CHAR;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::SHORT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::USHORT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::INT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::UINT;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::LONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::ULONG;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::FLOAT;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::m_DIM> *>(imagePtr))
 		result = itk::ImageIOBase::DOUBLE;
 
 	return result;
@@ -117,6 +137,26 @@ itk::ImageIOBase::IOPixelType GetITKPixelType( iAITKIO::ImagePointer image )
 		result = itk::ImageIOBase::RGBA;
 	else if ( dynamic_cast<itk::Image<itk::RGBAPixel< double >, iAITKIO::m_DIM> *>( imagePtr ) )
 		result = itk::ImageIOBase::RGBA;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< unsigned char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< char >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned short >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned int >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image< itk::RGBPixel< float >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
+	else if (dynamic_cast<itk::Image<itk::RGBPixel< double >, iAITKIO::m_DIM> *>(imagePtr))
+		result = itk::ImageIOBase::RGB;
 
 	return result;
 }
@@ -173,7 +213,6 @@ void alloc_image_tmpl2(int const size[3], double const spacing[3], iAITKIO::Imag
 }
 
 
-// when moving that to core, we get unresolved external! why?
 iAITKIO::ImagePointer AllocateImage(int const size[3], double const spacing[3], itk::ImageIOBase::IOComponentType type)
 {
 	iAITKIO::ImagePointer result;

@@ -1,3 +1,23 @@
+/*************************************  open_iA  ************************************ *
+* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "string.h"
 #include "../include/common.h"
 #include "../include/scene.h"
@@ -69,7 +89,7 @@ int TriPrim::Intersect( Ray& a_Ray, float& a_Dist ) const
 	if (!(a_Dist > t && t > 0)) return MISS;
 	float hu = O[ku] + t * D[ku] - m_WaldTri.m_A[ku];
 	float hv = O[kv] + t * D[kv] - m_WaldTri.m_A[kv];
-	float beta = hv * m_WaldTri.bnu + hu * m_WaldTri.bnv;//=m_WaldTri.m_U=//èëè íàîáîğîò
+	float beta = hv * m_WaldTri.bnu + hu * m_WaldTri.bnv;//=m_WaldTri.m_U=//Ã¨Ã«Ã¨ Ã­Ã Ã®Ã¡Ã®Ã°Ã®Ã²
 	if (beta < 0) return MISS;
 	float gamma = hu * m_WaldTri.cnu + hv * m_WaldTri.cnv;//=m_WaldTri.m_V=
 	if (gamma < 0) return MISS;

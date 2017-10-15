@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenbцck, *
-*                     Artem & Alexander Amirkhanov, B. Frцhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbГ¶ck, Artem & Alexander Amirkhanov, B. FrГ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OЦ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraЯe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OГ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraГџe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -88,8 +88,8 @@ private:
 	vtkCubeAxesActor2D *m_cubeAxes;;
 	vtkPolyDataMapper *m_pickedMapper;
 	vtkActor *m_pickedActor;
-	double m_Smin;//минимальное значение из массива скаляров
-	double m_Smax;//максимальное значение из массива скаляров
+	double m_Smin;//Г¬ГЁГ­ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ ГЁГ§ Г¬Г Г±Г±ГЁГўГ  Г±ГЄГ Г«ГїГ°Г®Гў
+	double m_Smax;//Г¬Г ГЄГ±ГЁГ¬Г Г«ГјГ­Г®ГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ ГЁГ§ Г¬Г Г±Г±ГЁГўГ  Г±ГЄГ Г«ГїГ°Г®Гў
 	double MinX,MaxX;
 	double MinY,MaxY;
 	double MinZ,MaxZ;

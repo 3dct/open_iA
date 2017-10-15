@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,17 +15,21 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
 #include "dlg_modalities.h"
 
+#include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
+#include "dlg_transfer.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAHistogramWidget.h"
+#include "iAIOProvider.h"
 #include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
@@ -69,6 +73,9 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(ListClicked(QListWidgetItem*)));
 
+	connect(lwModalities, SIGNAL(itemChanged(QListWidgetItem*)),
+		this, SLOT(ShowChecked(QListWidgetItem*)));
+
 	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
 }
 
@@ -108,15 +115,44 @@ QString GetCaption(iAModality const & mod)
 	return mod.GetName()+" ("+fi.fileName()+")";
 }
 
+#include "iAIO.h"
+#include "extension2id.h"
+
+bool CanHaveMultipleChannels(QString const & fileName)
+{
+	return fileName.endsWith(iAIO::VolstackExtension) || fileName.endsWith(".oif");
+}
+
 void dlg_modalities::AddClicked()
 {
-	QSharedPointer<iAModality> newModality(new iAModality);
-	dlg_modalityProperties prop(this, newModality);
-	if (prop.exec() == QDialog::Rejected)
-	{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
+		"",
+		iAIOProvider::GetSupportedLoadFormats() + tr("Volume Stack (*.volstack);;"));
+	if (fileName.isEmpty())
 		return;
+
+	const int DefaultRenderFlags = iAModality::MainRenderer;
+	bool split = false;
+	if (CanHaveMultipleChannels(fileName))
+	{
+		QStringList inList;
+		inList << tr("$Split Channels (input file potentially has multiple channels. Should they be split into separate datasets, or kept as one dataset with multiple components?)");
+		QList<QVariant> inPara;
+		inPara << tr("%1").arg(true);
+		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, nullptr);
+		if (splitInput.exec() != QDialog::Accepted)
+		{
+			DEBUG_LOG("Aborted by user.");
+			return;
+		}
+		split = splitInput.getCheckValue(0);
 	}
-	modalities->Add(newModality);
+	ModalityCollection mods = iAModalityList::Load(fileName, "", -1, split, DefaultRenderFlags);
+	for (auto mod : mods)
+	{
+		modalities->Add(mod);
+	}
+	emit ModalitiesChanged();
 }
 
 void dlg_modalities::MagicLens()
@@ -165,6 +201,8 @@ void dlg_modalities::AddToList(QSharedPointer<iAModality> mod)
 	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
 	lwModalities->addItem(listItem);
 	lwModalities->setCurrentItem(listItem);
+	listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
+	listItem->setCheckState(Qt::Checked);
 }
 
 void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
@@ -173,6 +211,14 @@ void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
 	AddToList(mod);
 	EnableButtons();
 	InitTransfer(mod);
+	if (mod->GetTransfer()->GetHistogram())
+	{
+		connect(
+			(dlg_transfer*)(mod->GetTransfer()->GetHistogram()->getFunctions()[0]),
+			SIGNAL(Changed()),
+			this, SIGNAL(ModalityTFChanged())
+		);
+	}
 }
 
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
@@ -184,19 +230,45 @@ void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 	emit ModalityAvailable();
 }
 
+void dlg_modalities::InteractorModeSwitched(int newMode)
+{
+	cbManualRegistration->setChecked(newMode == 'a');
+}
+
 void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans)
 {
+	bool TFTableCreated = false;
+	QPoint TFTablePosOnClose;
 	if (m_currentHistogram)
 	{
 		m_currentHistogram->disconnect();
+		TFTableCreated = m_currentHistogram->isTFTableCreated();
+		if ( TFTableCreated )
+		{
+			TFTablePosOnClose = m_currentHistogram->getTFTablePos();
+			m_currentHistogram->closeTFTable();
+		}
 	}
 	m_currentHistogram = modTrans->ShowHistogram(m_histogramContainer);
+	if ( TFTableCreated )
+	{
+		m_currentHistogram->showTFTable();
+		m_currentHistogram->setTFTablePos( TFTablePosOnClose );
+	}
 	connect(m_currentHistogram, SIGNAL(updateViews()), this, SIGNAL(UpdateViews()));
 	connect(m_currentHistogram, SIGNAL(pointSelected()), this, SIGNAL(PointSelected()));
 	connect(m_currentHistogram, SIGNAL(noPointSelected()), this, SIGNAL(NoPointSelected()));
 	connect(m_currentHistogram, SIGNAL(endPointSelected()), this, SIGNAL(EndPointSelected()));
 	connect(m_currentHistogram, SIGNAL(active()), this, SIGNAL(Active()));
 	connect(m_currentHistogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(AutoUpdateChanged(bool)));
+}
+
+
+void dlg_modalities::EnableUI()
+{
+	pbAdd->setEnabled(true);
+	cbManualRegistration->setEnabled(true);
+	cbShowMagicLens->setEnabled(true);
 }
 
 void dlg_modalities::RemoveClicked()
@@ -220,6 +292,9 @@ void dlg_modalities::RemoveClicked()
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
 	EnableButtons();
+
+	m_mainRenderer->GetRenderWindow()->Render();
+	emit ModalitiesChanged();
 }
 
 void dlg_modalities::EditClicked()
@@ -230,17 +305,12 @@ void dlg_modalities::EditClicked()
 		DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
 		return;
 	}
-	QString fnBefore = modalities->Get(idx)->GetFileName();
 	int renderFlagsBefore = modalities->Get(idx)->RenderFlags();
 	QSharedPointer<iAModality> editModality(modalities->Get(idx));
 	dlg_modalityProperties prop(this, editModality);
 	if (prop.exec() == QDialog::Rejected)
 	{
 		return;
-	}
-	if (fnBefore != editModality->GetFileName())
-	{
-		DEBUG_LOG("Changing file not supported!");
 	}
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
 	if (!renderer)
@@ -278,6 +348,7 @@ void dlg_modalities::EditClicked()
 		renderer->AddTo(m_magicLensWidget->getLensRenderer());
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
+	emit ModalitiesChanged();
 }
 
 void dlg_modalities::EnableButtons()
@@ -313,8 +384,26 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	}
 	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
 	QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
+	for (int i = 0; i<modalities->size(); ++i)
+	{
+		QSharedPointer<iAModality> mod = modalities->Get(i);
+		mod->GetRenderer()->SetMovable(mod == currentData);
+	}
 	SwitchHistogram(modTransfer);
-	emit ShowImage(currentData->GetImage());
+	emit ModalitySelected(selectedRow);
+}
+
+void dlg_modalities::ShowChecked(QListWidgetItem* item)
+{
+	int i = lwModalities->row(item);
+	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
+	if (!renderer)
+	{
+		return;
+	}
+	bool isChecked = item->checkState() == Qt::Checked;
+	renderer->ShowVolume(isChecked);
+	m_mainRenderer->GetRenderWindow()->Render();
 }
 
 QSharedPointer<iAModalityList const> dlg_modalities::GetModalities() const
@@ -405,6 +494,6 @@ void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane
 
 void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString const & name)
 {
-	QSharedPointer<iAModality> newModality(new iAModality(name, "", img, iAModality::MainRenderer));
+	QSharedPointer<iAModality> newModality(new iAModality(name, "", -1, img, iAModality::MainRenderer));
 	modalities->Add(newModality);
 }

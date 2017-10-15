@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -30,8 +30,8 @@ typedef iAITKIO::ImagePointer ClusterImageType;
 #include <QVector>
 #include <QWidget>
 
-class iAImageClusterLeaf;
-class iAImageClusterNode;
+class iAImageTreeLeaf;
+class iAImageTreeNode;
 class iAImagePreviewWidget;
 class iAPreviewWidgetPool;
 
@@ -44,31 +44,34 @@ class iAExampleImageWidget: public QWidget
 	Q_OBJECT
 public:
 	//! aspectRatio = height/width
-	iAExampleImageWidget(QWidget* parent, double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
-	void SetSelectedNode(QSharedPointer<iAImageClusterNode> node);
-	void SetSelectedImage(iAImageClusterLeaf * leaf);
+	iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool* previewPool, ClusterImageType nullImage);
+	void SetSelectedNode(QSharedPointer<iAImageTreeNode> node);
+	void SetSelectedImage(iAImageTreeLeaf * leaf);
 	void FilterUpdated();
 public slots:
 	void AdaptLayout();
 	void ImageUpdated();
+private slots:
+	void UpdateImages();
 signals:
-	void Selected(iAImageClusterLeaf *);
-	void Hovered(iAImageClusterLeaf *);
+	void Selected(iAImageTreeLeaf *);
+	void AlternateSelected(iAImageTreeNode *);
+	void Hovered(iAImageTreeLeaf *);
 	void ViewUpdated();
 protected:
 	virtual void resizeEvent(QResizeEvent *);
 private:
-	void UpdateImages();
-	QVector<iAImageClusterLeaf *> m_nodes;
+	QVector<iAImageTreeLeaf *> m_nodes;
 	QGridLayout* m_layout;
 	int m_width;
 	int m_height;
-	QSharedPointer<iAImageClusterNode> m_rootNode;
+	QSharedPointer<iAImageTreeNode> m_rootNode;
 	double m_aspectRatio;
 	iAPreviewWidgetPool * m_previewPool;
 	ExampleGrid* m_gridWidget;
 	ClusterImageType m_nullImage;
 private slots:
 	void ImageClicked();
+	void ImageRightClicked();
 	void ImageHovered();
 };

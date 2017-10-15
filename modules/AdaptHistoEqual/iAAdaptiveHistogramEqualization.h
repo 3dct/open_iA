@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,37 +15,18 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "iAFilter.h"
 
-/** A implementation of the computation of adpative histogram equalization */
-
 class iAAdaptiveHistogramEqualization : public iAFilter
 {
 public:
-	iAAdaptiveHistogramEqualization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAAdaptiveHistogramEqualization();
-
-	/**
-	 * Sets iAAdaptiveHistogramEqualization parameters.
-	 * \param	aheAlpha		Alpha	classical histogram equalization method (alpha=0) -> unsharp mask (alpha=1).
-	 * \param	aheBeta			Beta	unsharp mask (beta=0) -> pass through (beta=1, with alpha=1).
-	 */
-
-	void setCParameters(double aheAlpha, double aheBeta) { 
-		this->aheAlpha = aheAlpha;
-		this->aheBeta = aheBeta;
-	};
-
-protected:
-	void run();
-	void compute_iAAdaptiveHistogramEqualization( );
-
+	static QSharedPointer<iAAdaptiveHistogramEqualization> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
 private:
-	double aheAlpha;
-	double aheBeta;
+	iAAdaptiveHistogramEqualization();
 };

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -27,7 +27,7 @@
 
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>
-#include <itkDiscreteGaussianImageFilter.h>
+#include <itkMedianImageFilter.h>
 
 #include <QErrorMessage>
 #include <QLabel>
@@ -67,23 +67,13 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 		//setup the ui dialog class widget as this
 		setupUi( this );
 
-		NoofComboBox = 0;
-		//int ComboBoxCounter = 0;
-		//initialize variables
 		numPara = n;
 
 		//set the window title
 		this->setWindowTitle( winTitle );
 
-		for ( int i = 0; i < numPara; i++ )
-		{
-			tStr = inList[i];
-			if ( tStr.contains( "+" ) )
-				NoofComboBox++;
-		}
-
-		// TODO: better way to set up init valiues -> registry
-		m_sbDelta = 300; m_sbSigma = 20; m_sbIsoX = 50;
+		// TODO: better way to set up init values -> registry
+		m_sbDelta = 6; m_sbSigma = 300; m_sbIsoX = 50;
 
 		createDatasetPreview();
 		createDatasetInfo();
@@ -124,10 +114,6 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 			label->setText( tStr );
 			containerLayout->addWidget( label, i, 0, 1, 1 );
 
-			/////////////////////////////
-			// $ -> switch off line edit
-			// # -> switch off checkbox
-			/////////////////////////////
 			QWidget *newWidget;
 
 			tempStr = tStr;
@@ -230,7 +216,6 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling( QWidget *parent, QString winTitl
 
 void dlg_ParamSpaceSampling::updateValues( QList<QVariant> inPara )
 {
-	//QObjectList children = this->children();
 	QObjectList children = this->container->children();
 
 	int paramIdx = 0;
@@ -269,214 +254,10 @@ void dlg_ParamSpaceSampling::updateValues( QList<QVariant> inPara )
 	}
 }
 
-void dlg_ParamSpaceSampling::connectMdiChild( MdiChild *child )
+double dlg_ParamSpaceSampling::getValue(int index) const
 {
-	QObjectList children = this->container->children();
-
-	for ( int i = 0; i < children.size(); i++ )
-	{
-		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>( children.at( i ) );
-		if ( lineEdit != NULL )
-		{
-			QString objectName = lineEdit->objectName();
-			connect( lineEdit, SIGNAL( textEdited( QString ) ), child, SLOT( updated( QString ) ) );
-		}
-
-		QComboBox *comboBox = dynamic_cast<QComboBox*>( children.at( i ) );
-
-		if ( comboBox != NULL )
-		{
-			QString objectName = comboBox->objectName();
-			connect( comboBox, SIGNAL( currentIndexChanged( QString ) ), child, SLOT( updated( i, QString ) ) );
-		}
-
-		QCheckBox *checkBox = dynamic_cast<QCheckBox*>( children.at( i ) );
-		if ( checkBox != NULL )
-		{
-			QString objectName = checkBox->objectName();
-			connect( checkBox, SIGNAL( stateChanged( int ) ), child, SLOT( updated( i ) ) );
-		}
-
-		QSpinBox *spinBox = dynamic_cast<QSpinBox*>( children.at( i ) );
-		if ( spinBox != NULL )
-		{
-			QString objectName = spinBox->objectName();
-			connect( spinBox, SIGNAL( valueChanged( QString ) ), child, SLOT( updated( QString ) ) );
-		}
-	}
-}
-
-QList<double> dlg_ParamSpaceSampling::getValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		QString test = widgetList[i];
-		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->text().toDouble() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<double> dlg_ParamSpaceSampling::getSpinBoxValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QSpinBox *t = this->container->findChild<QSpinBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->text().toDouble() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<double> dlg_ParamSpaceSampling::getDoubleSpinBoxValues()
-{
-	outValueList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QDoubleSpinBox *t = this->container->findChild<QDoubleSpinBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert( i, t->text().toDouble() );
-		}
-		else
-			outValueList.insert( i, 0.0 );
-	}
-	return ( outValueList );
-}
-
-QList<int> dlg_ParamSpaceSampling::getCheckValues()
-{
-	outCheckList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QCheckBox *t = this->container->findChild<QCheckBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outCheckList.insert( i, t->checkState() );
-		}
-		else
-			outCheckList.insert( i, 0 );
-	}
-	return ( outCheckList );
-}
-
-QStringList dlg_ParamSpaceSampling::getComboBoxValues()
-{
-	outComboValues.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboValues.insert( i, t->currentText() );
-		}
-		else
-			//needs to be there otherwise the list indices are incorrect!
-			outComboValues.insert( i, "" );
-	}
-	return ( outComboValues );
-}
-
-QStringList dlg_ParamSpaceSampling::getText()
-{
-	outTextList.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outTextList.insert( i, t->text() );
-		}
-		else
-			outTextList.insert( i, "" );
-	}
-	return ( outTextList );
-}
-
-double dlg_ParamSpaceSampling::getParameterValue( QString name )
-{
-	if ( name.contains( QRegExp( "$#*" ) ) )
-		name.remove( 0, 1 );
-
-	if ( name.contains( "LineEdit", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QLineEdit *l_temp = this->container->findChild<QLineEdit*>( name );
-
-		outValue = l_temp->text().toDouble();
-	}
-	else if ( name.contains( "ComboBox", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QComboBox *t_temp = this->container->findChild<QComboBox*>( name );
-
-		outValue = t_temp->currentText().toDouble();
-	}
-	else if ( name.contains( "CheckBox", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QCheckBox *t_temp = this->container->findChild<QCheckBox*>( name );
-
-		outValue = t_temp->checkState();
-	}
-	else if ( name.contains( "SpinBox", Qt::CaseSensitive ) )
-	{
-		// find the child widget with name in the objectname
-		QSpinBox *t_temp = this->container->findChild<QSpinBox*>( name );
-
-		outValue = t_temp->text().toDouble();
-	}
-	else outValue = 0;
-
-	return outValue;
-}
-
-QList<int> dlg_ParamSpaceSampling::getComboBoxIndices()
-{
-	outComboIndices.clear();
-	for ( int i = 0; i < numPara; i++ )
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>( widgetList[i] );
-
-		if ( t != 0 )
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboIndices.insert( i, t->currentIndex() );
-		}
-		else
-			outComboIndices.insert( i, -1 );
-	}
-	return ( outComboIndices );
+	QLineEdit *t = this->container->findChild<QLineEdit*>( widgetList[index] );
+	return t ? t->text().toDouble() : 0.0;
 }
 
 void dlg_ParamSpaceSampling::createDatasetPreview()
@@ -765,7 +546,7 @@ void dlg_ParamSpaceSampling::computePeaks( QVector<double> smoothKey, QVector<do
 void dlg_ParamSpaceSampling::computeSmoothHisto( QVector<double> * m_smoothKey, QVector<double> * m_smoothValue )
 {
 	// Compute smoothed histogram from original histogram data
-	typedef unsigned short   PixelType1D;
+	typedef long long	PixelType1D;
 	typedef itk::Image< PixelType1D, 1 > ImageType1D;
 	typedef itk::ImageRegionIterator< ImageType1D>       IteratorType;
 	ImageType1D::Pointer image1D = ImageType1D::New();
@@ -779,32 +560,26 @@ void dlg_ParamSpaceSampling::computeSmoothHisto( QVector<double> * m_smoothKey, 
 	image1D->SetRegions( region1D );
 	image1D->Allocate();
 	IteratorType image1DIt( image1D, image1D->GetRequestedRegion() );
-	int idx = 0;
-
+	int idx = -1;
 	for ( image1DIt.GoToBegin(); !image1DIt.IsAtEnd(); ++image1DIt )
-	{
-		image1DIt.Set( m_valueData[idx] );
-		idx = idx + 1;
-	}
+		image1DIt.Set( m_valueData[++idx] );
 	
-	// itkDiscreteGaussianImageFilter used instead of itkRecursiveGaussianImageFilter
-	typedef itk::DiscreteGaussianImageFilter< ImageType1D, ImageType1D >  SmoothingFilterType;
+	// RecursiveGaussianImageFilter produced huge peak at the start and
+	// enf of the data range, which caused problems for the peak detection
+	// DiscreteGaussianImageFilter, works but the delta parameter is hard
+	// to set then, therefore median filter 
+
+	typedef itk::MedianImageFilter< ImageType1D, ImageType1D >  SmoothingFilterType;
 	SmoothingFilterType::Pointer smoothingFilter = SmoothingFilterType::New();
-	smoothingFilter->SetVariance( m_sbSigma );
+	smoothingFilter->SetRadius( m_sbSigma );
 	smoothingFilter->SetInput( image1D );
 	smoothingFilter->Update();
 	QVector<double> smoothKey, smoothValue;
-	int j = 0;
-	itk::ImageRegionConstIterator<ImageType1D> smooth1DImageIt( smoothingFilter->GetOutput(), smoothingFilter->GetOutput()->GetLargestPossibleRegion() );
+	itk::ImageRegionConstIterator<ImageType1D> smooth1DImgIt( smoothingFilter->GetOutput(), smoothingFilter->GetOutput()->GetLargestPossibleRegion() );
+	for ( smooth1DImgIt.GoToBegin(); !smooth1DImgIt.IsAtEnd(); ++smooth1DImgIt )
+		smoothValue.append( smooth1DImgIt.Get() );
 
-	while ( !smooth1DImageIt.IsAtEnd() )
-	{
-		smoothKey.append( m_keyData[j] );
-		smoothValue.append( smooth1DImageIt.Get() );
-		j++; ++smooth1DImageIt;
-	}
-
-	*m_smoothKey = smoothKey;
+	*m_smoothKey = m_keyData;
 	*m_smoothValue = smoothValue;
 }
 
@@ -875,7 +650,6 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 		m_peakGraph->setData( pX, pY );
 		m_peakGraph->setLineStyle( QCPGraph::lsImpulse );
 		QCPItemText *textLabel = new QCPItemText( m_histoPlot );
-		m_histoPlot->addItem( textLabel );
 		textLabel->setPositionAlignment( Qt::AlignTop | Qt::AlignHCenter );
 		textLabel->position->setType( QCPItemPosition::ptPlotCoords );
 		textLabel->position->setCoords( pX[0], pY[0] / 2 );
@@ -912,7 +686,6 @@ void dlg_ParamSpaceSampling::createHistoPeaks()
 		peakGraph->setPen( QPen( QColor( Qt::gray ), 0.7, Qt::DashLine ) );
 		peakGraph->setLineStyle( QCPGraph::lsImpulse );
 		QCPItemText *textLabel = new QCPItemText( m_histoPlot );
-		m_histoPlot->addItem( textLabel );
 		textLabel->setPositionAlignment( Qt::AlignTop | Qt::AlignHCenter );
 		textLabel->position->setType( QCPItemPosition::ptPlotCoords );
 		textLabel->position->setCoords( pX[0], pY[0] / 2 );

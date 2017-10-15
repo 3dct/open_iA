@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -146,9 +146,9 @@ void iASlicer::setResliceChannelAxesOrigin(iAChannelID id, double x, double y, d
 	}
 }
 
-void iASlicer::setPlaneCenter( int x, int y, int z )
+void iASlicer::setPositionMarkerCenter(double x, double y)
 {
-	m_data->setPlaneCenter(x, y, z);
+	m_data->setPositionMarkerCenter(x, y);
 }
 
 void iASlicer::updateROI()
@@ -225,6 +225,7 @@ void iASlicer::setResliceAxesOrigin( double x, double y, double z )
 void iASlicer::setSliceNumber( int sliceNumber )
 {
 	m_data->setSliceNumber(sliceNumber);
+	UpdateMagicLensColors();
 	m_widget->computeGlyphs();
 	update();
 }
@@ -247,7 +248,7 @@ void iASlicer::setROI( int r[6] )
 
 void iASlicer::setROIVisible( bool isVisible )
 {
-	m_data->getROIActor()->SetVisibility(isVisible);
+	m_data->SetROIVisibility(isVisible);
 }
 
 void iASlicer::changeImageData( vtkImageData *idata )
@@ -332,17 +333,22 @@ void iASlicer::SetMagicLensFrameWidth(int newWidth)
 	widget()->updateMagicLens();
 }
 
+void iASlicer::SetMagicLensCount(int count)
+{
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensCount called on slicer which doesn't have a magic lens!");
+		return;
+	}
+	m_magicLens->SetLensCount(count);
+	widget()->updateMagicLens();
+}
+
 void iASlicer::SetMagicLensInput(iAChannelID id)
 {
 	m_data->setMagicLensInput(id);
 	m_magicLensInput = id;
 }
-
-void iASlicer::SetMagicLensCaption(std::string const & caption)
-{
-	m_data->setMagicLensCaption(caption);
-}
-
 
 void iASlicer::SetMagicLensOpacity(double opacity)
 {
@@ -369,9 +375,32 @@ void iASlicer::initializeChannel(iAChannelID id,  iAChannelVisualizationData * c
 	m_data->initializeChannel(id, chData);
 }
 
+void iASlicer::removeChannel(iAChannelID id)
+{
+	m_data->removeChannel(id);
+}
+
 iAChannelID iASlicer::getMagicLensInput() const
 {
 	return m_magicLensInput;
+}
+
+void iASlicer::AddImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+{
+	m_data->AddImageActor(imgActor);
+}
+
+void iASlicer::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+{
+	m_data->RemoveImageActor(imgActor);
+}
+
+void iASlicer::UpdateMagicLensColors()
+{
+	if (m_magicLens)
+	{
+		m_magicLens->UpdateColors();
+	}
 }
 
 void iASlicer::setPieGlyphsOn( bool isOn )
@@ -443,4 +472,13 @@ vtkCamera* iASlicer::GetCamera()
 void iASlicer::SetCamera(vtkCamera* camera, bool owner /*=true*/ )
 {
 	m_data->SetCamera(camera, owner);
+}
+
+// declaration in iASlicerMode.h
+const char* GetSlicerModeString(int mode)
+{
+	return (mode == YZ) ? "YZ"
+		: (mode == XY) ? "XY"
+		: (mode == XZ) ? "XZ"
+		: "??";
 }

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -28,29 +28,16 @@
 struct iAProfileProbe
 {
 public:
-	iAProfileProbe(double * startPos, double * endPos, vtkImageData * imageData)
+	iAProfileProbe(vtkImageData * imageData)
 	{
-		for (int i=0; i<3; i++)
-		{
-			positions[0][i] = startPos[i];
-			positions[1][i] = endPos[i];
-		}
-		lineSrc = vtkLineSource::New();
+		lineSrc = vtkSmartPointer<vtkLineSource>::New();
 		lineSrc->SetResolution(1500);
-		lineSrc->SetPoint1(positions[0]);
-		lineSrc->SetPoint2(positions[1]);
-		probe = vtkProbeFilter::New();
+		probe = vtkSmartPointer<vtkProbeFilter>::New();
 		probe->SetInputConnection(lineSrc->GetOutputPort());
 		probe->SetSourceData(imageData);
-		probe->Update();
 		profileData = probe->GetPolyDataOutput();
 	}
-	~iAProfileProbe()
-	{
-		probe->Delete();
-		lineSrc->Delete();
-	}
-	void UpdateProbe(int ptIndex, double * newPos)
+	void UpdateProbe(int ptIndex, double const * const newPos)
 	{
 		for (int i=0; i<3; i++)
 			positions[ptIndex][i] = newPos[i];
@@ -69,8 +56,8 @@ public:
 	}
 
 public:
-	vtkLineSource * lineSrc;
-	vtkProbeFilter * probe;
-	vtkPolyData * profileData;
+	vtkSmartPointer<vtkLineSource> lineSrc;
+	vtkSmartPointer<vtkProbeFilter> probe;
+	vtkPolyData *profileData;
 	double positions[2][3];
 };

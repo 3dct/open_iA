@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,21 +15,29 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iASingleResult.h"
 
 #include "iAAttributeDescriptor.h"
 #include "iAAttributes.h"
-#include "iAGEMSeConstants.h"
 #include "iANameMapper.h"
 #include "iASamplingResults.h"
 
 #include "iAConsole.h"
-#include "iAToolsITK.h"
+#include "iAFileUtils.h"
 #include "iAITKIO.h"
+#include "iAToolsITK.h"
+
+#include <QFile>
+#include <QFileInfo>
+
+namespace
+{
+	const QString ValueSplitString(" ");
+}
 
 QSharedPointer<iASingleResult> iASingleResult::Create(
 	QString const & line,
@@ -49,7 +57,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 		id,
 		sampling
 	));
-	if (tokens.size() != attributes->size()+1) // +1 for ID
+	if (tokens.size() < attributes->size()+1) // +1 for ID
 	{
 		DEBUG_LOG(QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
 		return QSharedPointer<iASingleResult>();
@@ -57,7 +65,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 	for (int i = 0; i < attributes->size(); ++i)
 	{
 		double value = -1;
-		int valueType = attributes->at(i)->GetValueType();
+		int valueType = attributes->at(i)->ValueType();
 		QString curToken = tokens[i + 1];
 		switch (valueType)
 		{
@@ -68,7 +76,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 				value = curToken.toInt(&ok);
 				break;
 			case Categorical:
-				value = attributes->at(i)->GetNameMapper()->GetIdx(curToken, ok);
+				value = attributes->at(i)->NameMapper()->GetIdx(curToken, ok);
 				break;
 		}
 		if (!ok)
@@ -78,16 +86,26 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 		}
 		result->m_attributeValues.push_back(value);
 	}
+	if (tokens.size() > attributes->size() + 1) // fileName at end
+	{
+		result->m_fileName = MakeAbsolute(sampling.GetPath(), tokens[attributes->size() + 1]);
+	}
+	else
+	{
+		result->m_fileName = result->GetFolder() + "/label.mhd";
+	}
 	return result;
 }
 
 QSharedPointer<iASingleResult> iASingleResult::Create(
 	int id,
 	iASamplingResults const & sampling,
-	QVector<double> const & parameter)
+	QVector<double> const & parameter,
+	QString const & fileName)
 {
 	QSharedPointer<iASingleResult> result(new iASingleResult(id, sampling));
 	result->m_attributeValues = parameter;
+	result->m_fileName = fileName;
 	return result;
 }
 
@@ -102,23 +120,27 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 	}
 	for (int i = 0; i < m_attributeValues.size(); ++i)
 	{
-		if (attributes->at(i)->GetAttribType() == type)
+		if (attributes->at(i)->AttribType() == type)
 		{
 			if (!result.isEmpty())
 			{
 				result += ValueSplitString;
 			}
-			if (attributes->at(i)->GetNameMapper())
+			if (attributes->at(i)->NameMapper())
 			{
-				result += attributes->at(i)->GetNameMapper()->GetName(m_attributeValues[i]);
+				result += attributes->at(i)->NameMapper()->GetName(m_attributeValues[i]);
 			}
 			else
 			{
-				result += (attributes->at(i)->GetValueType() == iAValueType::Discrete) ?
+				result += (attributes->at(i)->ValueType() == iAValueType::Discrete) ?
 					QString::number(static_cast<int>(m_attributeValues[i])) :
 					QString::number(m_attributeValues[i]);
 			}
 		}
+	}
+	if (type == iAAttributeDescriptor::DerivedOutput)
+	{
+		result += ValueSplitString + MakeRelative(m_sampling.GetPath(), m_fileName);
 	}
 	return result;
 }
@@ -147,13 +169,31 @@ iAITKIO::ImagePointer const iASingleResult::GetLabelledImage()
 bool iASingleResult::LoadLabelImage()
 {
 	iAITKIO::ScalarPixelType pixelType;
+	QFileInfo f(GetLabelPath());
+	if (!f.exists() || f.isDir())
+	{
+		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(GetLabelPath()));
+		return false;
+	}
 	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
+	if (pixelType != itk::ImageIOBase::INT)
+	{
+		m_labelImg = CastImageTo<int>(m_labelImg);
+	}
 	return (m_labelImg);
 }
 
 void iASingleResult::DiscardDetails()
 {
-	m_labelImg = NULL;
+	m_labelImg = nullptr;
+}
+
+void iASingleResult::DiscardProbability()
+{
+	for (int i = 0; i < m_probabilityImg.size(); ++i)
+	{
+		m_probabilityImg[i] = nullptr;
+	}
 }
 
 double iASingleResult::GetAttribute(int id) const
@@ -179,12 +219,25 @@ iAITKIO::ImagePointer iASingleResult::GetProbabilityImg(int label)
 	}
 	if (!m_probabilityImg[label])
 	{
+		QString probFile(GetProbabilityPath(label));
+		if (!QFile::exists(probFile))
+		{
+			throw std::runtime_error(QString("File %1 does not exist!").arg(probFile).toStdString().c_str());
+		}
 		iAITKIO::ScalarPixelType pixelType;
-		m_probabilityImg[label] = iAITKIO::readFile(GetProbabilityPath(label), pixelType, false);
+		m_probabilityImg[label] = iAITKIO::readFile(probFile, pixelType, false);
 	}
 	return m_probabilityImg[label];
 }
 
+bool iASingleResult::ProbabilityAvailable() const
+{
+	if (m_probabilityImg.size() > 0)
+		return true;
+
+	QString probFile(GetProbabilityPath(0));
+	return QFile::exists(probFile);
+}
 
 void iASingleResult::SetLabelImage(iAITKIO::ImagePointer labelImg)
 {
@@ -206,7 +259,7 @@ QString iASingleResult::GetFolder() const
 
 QString iASingleResult::GetLabelPath() const
 {
-	return GetFolder() + "/label.mhd";
+	return m_fileName;
 }
 
 QString iASingleResult::GetProbabilityPath(int label) const

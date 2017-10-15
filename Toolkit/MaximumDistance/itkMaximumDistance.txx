@@ -8,6 +8,22 @@
 namespace itk 
 {
 
+	// Traits type to prevent overflow in Threshold below
+	template<typename T>
+	struct MyThreshType{
+		static const int Threshold = 65534;
+	};
+
+	template<>
+	struct MyThreshType<char>{
+		static const int Threshold = 127;
+	};
+
+	template<>
+	struct MyThreshType<unsigned char>{
+		static const int Threshold = 254;
+	};
+
 	//  Software Guide : BeginCodeSnippet
 	template <class TImageType>
 	MaximumDistance<TImageType>::MaximumDistance()
@@ -165,7 +181,7 @@ namespace itk
 		m_BTIFFilter->SetLowerThreshold( 0 );
 		m_BTIFFilter->SetUpperThreshold( m_Threshold );
 		m_BTIFFilter->SetOutsideValue( 0 );
-		m_BTIFFilter->SetInsideValue( 65534 );
+		m_BTIFFilter->SetInsideValue( MyThreshType<typename TImageType::PixelType>::Threshold );
 		m_BTIFFilter->SetInput(this->GetInput());
 
 		m_BTIFFilter->GraftOutput( this->GetOutput() );

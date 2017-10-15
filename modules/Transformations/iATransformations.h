@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,16 +15,16 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAAlgorithm.h"
 
 #include "iAConnector.h"
 
-class iATransformations: public iAFilter
+class iATransformations: public iAAlgorithm
 {
 	Q_OBJECT
 public:
@@ -33,8 +33,7 @@ public:
 	typedef enum { RotateAlongX, RotateAlongY, RotateAlongZ}					RotationAxesType;
 	typedef enum { FlipAxesNone = 0, FlipAxesX = 1, FlipAxesY = 2, FlipAxesZ = 4 }	FlipAxesType;
 
-	iATransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-	~iATransformations();
+	iATransformations( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
 
 	TransformationType getTransformationType() const;
 	void setTransformationType(TransformationType transType);
@@ -55,17 +54,8 @@ public:
 	void setPermuteAxesOrder(int ox, int oy, int oz);
 	void setPermuteAxesOrder(const QString & order);
 
-	void displayResult(vtkImageData * img);
-signals:
-	void resultReady(vtkImageData * img);
-
-private slots:
-	void pushResult(vtkImageData * img);
-
 protected:
-	void run();
-	void transform();
-
+	virtual void performWork();
 private:
 	const static int Dim = iAConnector::ImageBaseType::ImageDimension;
 

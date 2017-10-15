@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,70 +15,38 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include <itkConnectedComponentImageFilter.h>
-#include <itkScalarConnectedComponentImageFilter.h>
-#include <itkRelabelComponentImageFilter.h>
-#include <itkImage.h>
-
 #include "iAFilter.h"
-#include <iostream>
-#include <fstream>
-#include <string>
-using namespace std;
 
-/**
- * Implementation of 2 itk filters. The basic filters are itkRelabelComponentImageFilter and itkConnectedComponentImageFilter.
- * For itkRelabelComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html.
- * For itkConnectedComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html.
- * \remarks	Kana, 01/12/2010. 
- */
-
-class iAConnectedComponentFilters : public iAFilter
+class iASimpleConnectedComponents: public iAFilter
 {
 public:
-	iAConnectedComponentFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAConnectedComponentFilters( );
-
-	void SimpleConnectedComponentFilter( );
-	void ScalarConnectedComponentFilter( );
-	void SimpleRelabelComponentImageFilter( );
-
-	/**
-	 * Sets a itkConnectedComponentImageFilter parameters. 
-	 * \param	fullyconnected	The fullyconnected switch. 
-	 */
-
-	void setSCCFParameters( int fullyconnected ) { c = fullyconnected; };
-
-	/**
-	 * Sets a itkScalarConnectedComponentImageFilter parameters. 
-	 * \param	fullyconnected	The fullyconnected switch. 
-	 */
-
-	void setScalarCCFParameters( double distanceThreshold ) { distTreshold = distanceThreshold; };
-
-	/**
-	 * Sets a itkRelabelComponentImageFilter parameters. 
-	 * \param	writeroption	The switch writeroption. 
-	 * \param	objectsize		The minimum objectsize. 
-	 * \param	file			The filename. 
-	 */
-
-	void setSRCIFParameters( bool writeroption, int objectsize, QString file ) { w = writeroption; s = objectsize; f = file; };
-
-protected:
-	void run();
-
+	static QSharedPointer<iASimpleConnectedComponents> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
 private:
-	double distTreshold;
-	int c;
-	int s;
-	bool w;
-	QString f;
+	iASimpleConnectedComponents();
+};
 
+class iAScalarConnectedComponents : public iAFilter
+{
+public:
+	static QSharedPointer<iAScalarConnectedComponents> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+private:
+	iAScalarConnectedComponents();
+};
+
+class iASimpleRelabelConnectedComponents : public iAFilter
+{
+public:
+	static QSharedPointer<iASimpleRelabelConnectedComponents> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
+	bool CheckParameters(QMap<QString, QVariant> parameters) override;
+private:
+	iASimpleRelabelConnectedComponents();
+	QString m_outFile;
 };

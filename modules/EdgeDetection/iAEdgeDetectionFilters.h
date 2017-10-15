@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,46 +15,18 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include "itkCannyEdgeDetectionImageFilter.h"
 #include "iAFilter.h"
-#include "itkCastImageFilter.h"
 
-/**
- * Application of edge detection filter. Basic filter is itkCannyEdgeDetectionImageFilter.
- * For further details refer http://www.itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html.
- * \remarks	Kana, 01/12/2010. 
- */
-
-class iAEdgeDetectionFilters : public iAFilter
+class iACannyEdgeDetection : public iAFilter
 {
-
 public:
-	iAEdgeDetectionFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	virtual ~iAEdgeDetectionFilters();
-
-	void cannyEdgeDetection( );
-
-	/**
-	 * Sets a ced parameters. 
-	 * \param	v	The variance. 
-	 * \param	m	The maximum error. 
-	 * \param	u	The upper threshold. 
-	 * \param	l	Thelower threshold. 
-	 */
-
-	void setCEDParameters( double v, double m, double u, double l )
-		{ variance = v; maximumError = m; upper = u; lower = l; }; 
-
-
-protected:
-	virtual void run();
-
+	static QSharedPointer<iACannyEdgeDetection> Create();
+	void Run(QMap<QString, QVariant> parameters) override;
 private:
-	double variance, maximumError, upper, lower ;
-
+	iACannyEdgeDetection();
 };

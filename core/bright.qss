@@ -488,19 +488,23 @@ QProgressBar
 /****************************************************************************
 QListView
 ****************************************************************************/
-	QListView
+	QListView,
+	QListWidget,
+	QTextEdit
 	{
 		background: rgba(255, 255, 255, 255);
 		color: rgba(25, 25, 25, 255);
 	}
 	
-	QListView::item
+	QListView::item,
+	QListWidget::item
 	{
 		background: rgba(235, 235, 235, 255);
 		color: rgba(25, 25, 25, 255);
 	}
 	
-	QListView::item:selected 
+	QListView::item:selected,
+	QListWidget::item:selected
 	{
 		background: rgba(180, 180, 180, 255);
 		color: rgba(25, 25, 25, 255);
@@ -510,21 +514,23 @@ QListView
 		border-right: 1px solid		rgba(205, 205, 205, 255);
 	}
 	
-	QListView::item:alternate
+	QListView::item:alternate,
+	QListWidget::item:alternate
 	{
 		background: rgba(255, 255, 255, 255);
 		color: rgba(25, 25, 25, 255);
 	}
 	
-	QListView::item:hover
+	QListView::item:hover,
+	QListWidget::item:hover
 	{
-		background: rgba(245, 245, 245, 255);
 		color: rgba(0, 0, 0, 255);
 		border: 1px solid rgba(135, 135, 135, 255);
 	}
-	QListView::item:alternate:hover
+
+	QListView::item:alternate:hover,
+	QListWidget::item:alternate:hover
 	{
-		background: rgba(255, 255, 255, 255);
 		color: rgba(0, 0, 0, 255);
 		border: 1px solid rgba(135, 135, 135, 255);
 	}

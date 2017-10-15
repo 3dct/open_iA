@@ -253,11 +253,61 @@
                     </property>
                    </layout>
                   </widget>
-                  <widget class="QSplitter" name="splitter_2">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
+                  <widget class="QTabWidget" name="tabWidget">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
                    </property>
-                   <widget class="QWidget" name="wdCamera" native="true">
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <widget class="QWidget" name="wdProbing">
+                    <attribute name="title">
+                     <string>Probing</string>
+                    </attribute>
+                    <layout class="QVBoxLayout" name="verticalLayout_1">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                    </layout>
+                   </widget>
+				   <widget class="QWidget" name="wdDetails">
+                    <attribute name="title">
+                     <string>Details</string>
+                    </attribute>
+                    <layout class="QVBoxLayout" name="verticalLayout_5">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="wdCamera">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                       <horstretch>0</horstretch>
@@ -266,10 +316,13 @@
                     </property>
                     <property name="minimumSize">
                      <size>
-                      <width>100</width>
+                      <width>50</width>
                       <height>100</height>
                      </size>
                     </property>
+                    <attribute name="title">
+                     <string>Camera</string>
+                    </attribute>
                     <layout class="QHBoxLayout" name="horizontalLayout_6">
                      <property name="spacing">
                       <number>0</number>
@@ -288,19 +341,16 @@
                      </property>
                     </layout>
                    </widget>
-                   <widget class="QWidget" name="wdFavorites" native="true">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
+                   <widget class="QWidget" name="wdFavorites">
                     <property name="minimumSize">
                      <size>
                       <width>50</width>
                       <height>100</height>
                      </size>
                     </property>
+                    <attribute name="title">
+                     <string>Favorites</string>
+                    </attribute>
                     <layout class="QVBoxLayout" name="verticalLayout_3">
                      <property name="spacing">
                       <number>0</number>

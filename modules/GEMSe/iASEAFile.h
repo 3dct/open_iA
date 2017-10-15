@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -40,7 +40,11 @@ public:
 		int labelCount,
 		QMap<int, QString> const & samplings,
 		QString const & cltFileName,
-		QString const & layoutName
+		QString const & layoutName,
+		QString const & refImg,
+		QString const & hiddenCharts,
+		QString const & colorThemeName,
+		QString const & labelNames
 	);
 	void Store(QString const & seaFileName);
 	QString const & GetModalityFileName() const;
@@ -48,6 +52,10 @@ public:
 	QMap<int, QString> const & GetSamplings() const;
 	QString const & GetClusteringFileName() const;
 	QString const & GetLayoutName() const;
+	QString const & GetReferenceImage() const;
+	QString const & GetHiddenCharts() const;
+	QString const & GetLabelNames() const;
+	QString const & GetColorTheme() const;
 
 	bool good() const;
 	// QString const & GetSEAFileName();
@@ -58,6 +66,10 @@ private:
 	QString m_ClusteringFileName;
 	QString m_LayoutName;
 	QString m_SEAFileName;
+	QString m_RefImg;
+	QString m_HiddenCharts;
+	QString m_ColorTheme;
+	QString m_LabelNames;
 
 	bool m_good;
 };

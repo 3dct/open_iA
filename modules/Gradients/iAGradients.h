@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,49 +15,40 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
-#include "itkGradientMagnitudeImageFilter.h"
-#include <itkCastImageFilter.h>
+#include "iAAlgorithm.h"
 
 struct HOAccGradientDerrivativeSettings
 {
 	unsigned int order, direction, orderOfAcc;
 };
 
+enum iAGradientType
+{
+	DERIVATIVE,
+	GRADIENT_MAGNITUDE,
+	HIGHER_ORDER_ACCURATE_DERIVATIVE,
+};
+
 /**
  * An implementation of itkDerivativeImageFilter and itkGradientMagnitudeImageFilter.
  * For itkDerivativeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DerivativeImageFilter.html
  * For itkGradientMagnitudeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html
- * \remarks	Kana, 01/12/2010. 
  */
-class iAGradients : public iAFilter
+class iAGradients : public iAAlgorithm
 {
 public:
-	iAGradients( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAGradients();
-
-	/**
-	 * Sets iAGradients parameters. 
-	 * \param	o		SetOrder. 
-	 * \param	d		SetDirection.
-	 */
-
+	iAGradients( QString fn, iAGradientType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 	void setDParameters(double o, double d) { order = o; direction = d; };
 	void setHOAGDParameters(const HOAccGradientDerrivativeSettings * settings) { m_HOAGDSettings = *settings; };
-
 protected:
-	void run();
-	void derivative();
-	void hoa_derivative();
-	void gradient_magnitude();
-
+	virtual void performWork();
 private:
 	unsigned int order, direction;
 	HOAccGradientDerrivativeSettings m_HOAGDSettings;
-
+	iAGradientType m_type;
 };

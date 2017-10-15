@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -67,7 +67,6 @@
 
 
 const QString defaultColorParam = "Deviat. from Ref.";
-
 const int popupWidthRange[2] = { 80, 300 };
 
 iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
@@ -118,6 +117,7 @@ void iASPMView::InitScalarBar()
 	m_sbActor->SetOrientationToHorizontal();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Color Map" );
+	m_sbActor->VisibilityOff();
 	m_SBQVTKWidget->GetRenderWindow()->AddRenderer( m_sbRen );
 	m_SBQVTKWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
@@ -161,6 +161,7 @@ void iASPMView::SetData( const QTableWidget * data )
 	}
 	m_updateColumnVisibility = true;
 	m_SPMSettings->colorCodingParameter->setCurrentText( colorArName );
+	m_sbActor->VisibilityOn();
 }
 
 void iASPMView::changeColumnVisibility( QListWidgetItem * item )

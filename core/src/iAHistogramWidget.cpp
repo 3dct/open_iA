@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,31 +24,40 @@
 
 #include "dlg_function.h"
 #include "iAHistogramData.h"
-#include "mainwindow.h"
-#include "mdichild.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
-#include <QFileDialog>
-#include <QMdiSubWindow>
-#include <QMessageBox>
-#include <QPainter>
-#include <QToolTip>
-#include <QXmlStreamWriter>
-
-iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, double* scalarRange, vtkImageAccumulate* accumulate,
+iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkImageAccumulate* accumulate,
 		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label, bool reset) 
 	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
 {
 	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
 	
-	initialize(accumulate, scalarRange, reset);
+	initialize(accumulate, reset);
 }
 
-void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, double* scalarRange, bool reset)
+iAHistogramWidget::iAHistogramWidget(QWidget *parent,
+	MdiChild * mdiChild,
+	vtkImageAccumulate* accumulate,
+	vtkPiecewiseFunction* oTF,
+	vtkColorTransferFunction* cTF,
+	iAAbstractDiagramData::DataType* histData,
+	iAAbstractDiagramData::DataType dataMin,
+	iAAbstractDiagramData::DataType dataMax,
+	int bins,
+	double space,
+	QString label,
+	bool reset)
+	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
 {
-	data->initialize(accumulate, scalarRange);
+	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
+	datatypehistograminitialize(accumulate, histData, reset, dataMin, dataMax, bins, space);
+}
+
+void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, bool reset)
+{
+	data->initialize(accumulate);
 	reInitialize(reset);
 }
 
@@ -95,8 +104,8 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramWidget::GetData() c
 	return data;
 }
 
-
-void iAHistogramWidget::drawHistogram()
+void iAHistogramWidget::UpdateData()
 {
-	drawEverything();
+	data->UpdateData();
+	SetMaxYAxisValue(data->YBounds()[1]);
 }

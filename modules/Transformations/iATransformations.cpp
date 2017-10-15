@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iATransformations.h"
 
@@ -31,6 +30,8 @@
 #include <itkPermuteAxesImageFilter.h>
 #include <itkFlipImageFilter.h>
 #include <itkImageRegion.h>
+
+#include <vtkImageData.h>
 
 template <class TImageType>
 static typename TImageType::PointType image_center(TImageType * image)
@@ -56,7 +57,7 @@ static typename TImageType::PointType center_image(TImageType * image, typename 
 }
 
 template<class TPixelType, class TPrecision>
-static int flip_template(iATransformations * caller)
+static void flip_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         	ImageType;
@@ -82,12 +83,10 @@ static int flip_template(iATransformations * caller)
 
 	ImageType * outImage = filter->GetOutput();
 	outImage->SetOrigin(origin);
-	caller->getFixedConnector()->SetImage(outImage);
-	caller->displayResult(caller->getFixedConnector()->GetVTKImage());
+	caller->getConnector()->SetImage(outImage);
+	caller->getConnector()->Modified();
 
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class TPixelType, class TPrecision>
@@ -116,15 +115,15 @@ static void affine_template(iATransformations * caller,
 	caller->getItkProgress()->Observe(resample);
 	resample->Update();
 
-	caller->getFixedConnector()->SetImage(resample->GetOutput());
-	caller->displayResult(caller->getFixedConnector()->GetVTKImage());
+	caller->getConnector()->SetImage(resample->GetOutput());
+	caller->getConnector()->Modified();
 
 	resample->ReleaseDataFlagOn();
 }
 
 
 template<class TPixelType, class TPrecision> 
-static int rotate_template(iATransformations * caller)
+static void rotate_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         			ImageType;
@@ -170,12 +169,10 @@ static int rotate_template(iATransformations * caller)
 	transform->Translate(translation2);
 
 	affine_template<TPixelType, TPrecision>(caller, transform);
-
-	return EXIT_SUCCESS;
 }
 
 template<class TPixelType, class TPrecision>
-static int translate_template(iATransformations * caller)
+static void translate_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::AffineTransform<TPrecision, Dim>			TransformType;
@@ -188,11 +185,10 @@ static int translate_template(iATransformations * caller)
 	transform->Translate(translation);
 
 	affine_template<TPixelType, TPrecision>(caller, transform);
-	return EXIT_SUCCESS;
 }
 
 template<class TPixelType, class TPrecision>
-static int permute_template(iATransformations * caller)
+static void permute_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         			ImageType;
@@ -214,36 +210,31 @@ static int permute_template(iATransformations * caller)
 	caller->getItkProgress()->Observe(filter);
 	filter->Update();
 
-	caller->getFixedConnector()->SetImage(filter->GetOutput());
-	caller->displayResult(caller->getFixedConnector()->GetVTKImage());
+	caller->getConnector()->SetImage(filter->GetOutput());
+	caller->getConnector()->Modified();
 
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template <class TPixelType, class TPrecision>
-static int transform_template(iATransformations * caller)
+static void transform_template(iATransformations * caller)
 {
-	iATransformations::TransformationType type 
-		= caller->getTransformationType();
+	auto type = caller->getTransformationType();
 	switch (type)
 	{
 	case iATransformations::Rotation:
-		return rotate_template<TPixelType, TPrecision>(caller);
+		rotate_template<TPixelType, TPrecision>(caller);
 	case iATransformations::Translation:
-		return translate_template<TPixelType, TPrecision>(caller);
+		translate_template<TPixelType, TPrecision>(caller);
 	case iATransformations::Flip:
-		return flip_template<TPixelType, TPrecision>(caller);
+		flip_template<TPixelType, TPrecision>(caller);
 	case iATransformations::PermuteAxes:
-		return permute_template<TPixelType, TPrecision>(caller);
-	default:
-		return EXIT_FAILURE;
+		permute_template<TPixelType, TPrecision>(caller);
 	}
 }
 
-iATransformations::iATransformations( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+iATransformations::iATransformations( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
+	: iAAlgorithm( fn, i, p, logger, parent )
 {
 	for (int k = 0; k < Dim; k++)
 	{
@@ -256,12 +247,6 @@ iATransformations::iATransformations( QString fn, FilterID fid, vtkImageData* i,
 	m_rotCenterType = iATransformations::RCCenter;
 	m_rotAxesType = iATransformations::RotateAlongX;
 	m_flipAxesType = iATransformations::FlipAxesNone;
-
-	connect(this, SIGNAL(resultReady(vtkImageData *)), this, SLOT(pushResult(vtkImageData *)), Qt::BlockingQueuedConnection);
-}
-
-iATransformations::~iATransformations()
-{
 }
 
 iATransformations::TransformationType iATransformations::getTransformationType() const
@@ -359,76 +344,32 @@ void iATransformations::setPermuteAxesOrder(const QString &order)
 	}
 }
 
-void iATransformations::run()
+void iATransformations::performWork()
 {
-	transform();
-}
-
-void iATransformations::transform()
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); 
-
-	try
+	switch (getConnector()->GetVTKImage()->GetScalarType()) // This filter handles all types
 	{
-		switch (getConnector()->GetVTKImage()->GetScalarType()) // This filter handles all types
-		{
-		case VTK_UNSIGNED_CHAR:
-			transform_template<unsigned char, double>(this); break;
-		case VTK_CHAR:
-			transform_template<char, double>(this); break;
-		case VTK_UNSIGNED_SHORT:
-			transform_template<unsigned short, double>(this); break;
-		case VTK_SHORT:
-			transform_template<short, double>(this); break;
-		case VTK_UNSIGNED_INT:
-			transform_template<unsigned int, double>(this);  break;
-		case VTK_INT:
-			transform_template<int, double>(this); break;
-		case VTK_UNSIGNED_LONG:
-			transform_template<unsigned long, double>(this); break;
-		case VTK_LONG:
-			transform_template<long, double>(this); break;
-		case VTK_FLOAT:
-			transform_template<float, double>(this); break;
-		case VTK_DOUBLE:
-			transform_template<double, double>(this); break;
-		default:
-			addMsg(tr("  unknown component type"));
-			return;
-		}
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
+	case VTK_UNSIGNED_CHAR:
+		transform_template<unsigned char, double>(this); break;
+	case VTK_CHAR:
+		transform_template<char, double>(this); break;
+	case VTK_UNSIGNED_SHORT:
+		transform_template<unsigned short, double>(this); break;
+	case VTK_SHORT:
+		transform_template<short, double>(this); break;
+	case VTK_UNSIGNED_INT:
+		transform_template<unsigned int, double>(this);  break;
+	case VTK_INT:
+		transform_template<int, double>(this); break;
+	case VTK_UNSIGNED_LONG:
+		transform_template<unsigned long, double>(this); break;
+	case VTK_LONG:
+		transform_template<long, double>(this); break;
+	case VTK_FLOAT:
+		transform_template<float, double>(this); break;
+	case VTK_DOUBLE:
+		transform_template<double, double>(this); break;
+	default:
+		addMsg(tr("  unknown component type"));
 		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-}
-
-void iATransformations::displayResult(vtkImageData * img)
-{
-	//this is called from different thred
-	//convert to signal-slot mechanism
-	emit resultReady(img);
-}
-
-void iATransformations::pushResult(vtkImageData * img)
-{
-	MdiChild * resultWnd = qobject_cast<MdiChild *>(parent());
-	if (resultWnd != NULL)
-	{
-		if (!resultWnd->isVisible())
-			resultWnd->show();
-		resultWnd->displayResult(getFilterName(), img);
 	}
 }

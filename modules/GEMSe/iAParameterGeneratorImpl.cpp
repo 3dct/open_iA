@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -193,9 +193,9 @@ ParameterSetsPointer iARandomParameterGenerator::GetParameterSets(QSharedPointer
 	{
 		random.push_back(CreateRand(
 			parameter->at(p)->IsLogScale(),
-			parameter->at(p)->GetMin(),
-			parameter->at(p)->GetMax(),
-			parameter->at(p)->GetValueType()
+			parameter->at(p)->Min(),
+			parameter->at(p)->Max(),
+			parameter->at(p)->ValueType()
 		));
 	}
 
@@ -301,10 +301,10 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	MyExtDblRandom dblRand;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->GetValueType();
+		iAValueType valueType = parameter->at(p)->ValueType();
 		QSharedPointer<MyRange> range = CreateRange(parameter->at(p)->IsLogScale(),
-			parameter->at(p)->GetMin(),
-			parameter->at(p)->GetMax(),
+			parameter->at(p)->Min(),
+			parameter->at(p)->Max(),
 			sampleCount,
 			valueType);
 		
@@ -368,12 +368,12 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	QVector<QSharedPointer<MyRange>> ranges;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->GetValueType();
+		iAValueType valueType = parameter->at(p)->ValueType();
 		ranges.push_back(
 			CreateRange(
 				parameter->at(p)->IsLogScale(),
-				parameter->at(p)->GetMin(),
-				parameter->at(p)->GetMax(),
+				parameter->at(p)->Min(),
+				parameter->at(p)->Max(),
 				samplesPerParameter-1, // -1 because we choose from the edges of the range
 				valueType)
 			);
@@ -387,7 +387,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 		for (int p = 0; p < parameter->size(); ++p)
 		{
 			double value = ranges[p]->min(parameterRangeIdx[p]);
-			iAValueType valueType = parameter->at(p)->GetValueType();
+			iAValueType valueType = parameter->at(p)->ValueType();
 			if (valueType == Discrete || valueType == Categorical)
 			{
 				value = static_cast<int>(value);
@@ -419,4 +419,22 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
 	}
 	return parameterGenerators;
+}
+
+
+iASelectionParameterGenerator::iASelectionParameterGenerator(QString const & name, ParameterSetsPointer parameterSets):
+	m_name(name),
+	m_parameterSets(parameterSets)
+{
+
+}
+
+ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
+{
+	return m_parameterSets;
+}
+
+QString iASelectionParameterGenerator::GetName() const
+{
+	return m_name;
 }

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,15 +15,17 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "dlg_datatypeconversion.h"
 
 #include "iAConnector.h"
 #include "iAHistogramWidget.h"
+#include "iAToolsVTK.h"
+#include <iATransferFunction.h>
+#include "iATypedCallHelper.h"
 
 #include <itkChangeInformationImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -31,8 +33,9 @@
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
-#include <QVTKWidget.h>
+#include <QVTKWidget2.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
@@ -47,9 +50,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkVersion.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -59,53 +60,13 @@
 #include <QStringList>
 #include <QVariant>
 
-namespace
-{
-	int GetImageDataType(std::string datatype)
-	{
-		int imgType = VTK_DOUBLE;
-		if (datatype.compare("VTK_UNSIGNED_CHAR") == 0)
-		{
-			imgType = VTK_UNSIGNED_CHAR;
-		}
-		if (datatype.compare("VTK_CHAR") == 0)
-		{
-			imgType = VTK_CHAR;
-		}
-		if (datatype.compare("VTK_UNSIGNED_SHORT") == 0)
-		{
-			imgType = VTK_CHAR;
-		}
-		if (datatype.compare("VTK_SHORT") == 0)
-		{
-			imgType = VTK_SHORT;
-		}
-		if (datatype.compare("VTK_UNSIGNED_INT") == 0)
-		{
-			imgType = VTK_UNSIGNED_INT;
-		}
-		if (datatype.compare("VTK_INT") == 0)
-		{
-			imgType = VTK_INT;
-		}
-		if (datatype.compare("VTK_FLOAT") == 0)
-		{
-			imgType = VTK_FLOAT;
-		}
-		if (datatype.compare("VTK_DOUBLE") == 0)
-		{
-			imgType = VTK_DOUBLE;
-		}
-		return imgType;
-	}
-}
 
-template<class T> int DataTypeConversion_template( string m_filename, double* b, iAAbstractDiagramData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage, T  )
+template<class T> int DataTypeConversion_template(QString const & m_filename, double* b, iAAbstractDiagramData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
 	FILE * pFile;
-	pFile = fopen( m_filename.c_str(), "rb" );
+	pFile = fopen( m_filename.toStdString().c_str(), "rb" );
 	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
@@ -119,13 +80,6 @@ template<class T> int DataTypeConversion_template( string m_filename, double* b,
 
 	itkimage->SetSpacing(itkspacing);	itkimage->SetRegions(itkregion);	itkimage->Allocate();	itkimage->FillBuffer(0);
 
-	//create itk image iterator
-	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
-	iteratortype iter (itkimage, itkimage->GetRequestedRegion());
-	iter.GoToBegin();
-
-	typename std::vector<unsigned int> m_VolumeCount ( (b[7]+1), 0 );
-
 	typename InputImageType::PixelType buffer;
 	unsigned long datatypesize = sizeof(buffer);
 	long slicesize = b[1]*b[2];
@@ -134,7 +88,8 @@ template<class T> int DataTypeConversion_template( string m_filename, double* b,
 	int numsliceread = 0;
 
 	long totalsize = b[1]*b[2]*b[3]*datatypesize;
-	float min = 65535000;	float max = 0;
+	double min = std::numeric_limits<double>::max();
+	double max = std::numeric_limits<double>::lowest();
 
 	//calculation of minimum and maximum
 	fseek ( pFile , 0 , SEEK_SET );
@@ -148,41 +103,33 @@ template<class T> int DataTypeConversion_template( string m_filename, double* b,
 
 	float discretization = (float)((max-min)/(b[7]));
 
-	// copy the file into the buffer:
+	// copy the file into the buffer and create histogram:
+	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
+	iteratortype iter(itkimage, itkimage->GetRequestedRegion());
+	iter.GoToBegin();
 	bool loop = 1; 
 	fseek ( pFile , 0 , SEEK_SET );
+	std::fill(histptr, histptr + static_cast<size_t>(b[7]), 0);
 	while (loop)
 	{
 		result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile);
-
-		//histogram code
-		unsigned short Pixel_test = ((buffer-min)/discretization); //static_cast<PixelType> 
+		size_t binIdx = ((buffer-min)/discretization);
 		iter.Set(buffer);
 		++iter;
-		long long value = m_VolumeCount[Pixel_test];	
-		m_VolumeCount[Pixel_test] = value + 1;	
+		histptr[binIdx] += 1;
 		slicecounter++;
 		if ( slicecounter == slicesize )
-		{
+		{	// TO CHECK: does that really skip anything?
 			slicecounter = 0;
 			numsliceread++;
 			long skipmemory = slicesize*datatypesize*b[0]*numsliceread;
 			if ( skipmemory < totalsize )
 			{	fseek ( pFile , skipmemory , SEEK_SET );	}
 			else
-			{	loop = 0;	}//ifelse
-		}//if
-	}//while
-	fclose(pFile);
-
-	for ( typename  std::vector<unsigned int>::iterator iter = m_VolumeCount.begin() ; iter != m_VolumeCount.end(); ++iter )
-	{
-		*histptr = *iter;
-		histptr++;
+			{	loop = 0;	}
+		}
 	}
-
-	for (int i = 0; i < (b[7]+1); i++)
-	{	histptr--;	}
+	fclose(pFile);
 
 	*m_min = min;	*m_max = max;	*m_dis = discretization;
 
@@ -249,10 +196,10 @@ template<class T> int DataTypeConversion_template( string m_filename, double* b,
 
 	xyconvertimage->SetImage(xyrescalefilter->GetOutput());
 	xyconvertimage->Modified();
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName("C:/LIBS/vtkxyimage.mhd");
-	metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
 
+	vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	metaImageWriter->SetFileName("xyimage.mhd");
+	metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
 	metaImageWriter->SetCompression(0);
 	metaImageWriter->Write();
 
@@ -306,6 +253,12 @@ template<class T> int DataTypeConversion_template( string m_filename, double* b,
 	xzconvertimage->SetImage(xzrescalefilter->GetOutput());
 	xzconvertimage->Modified();
 
+	metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	metaImageWriter->SetFileName("xzimage.mhd");
+	metaImageWriter->SetInputData(xzconvertimage->GetVTKImage());
+	metaImageWriter->SetCompression(0);
+	metaImageWriter->Write();
+
 	//yz plane - along x axis
 	extractsize[0] = 1; extractsize[1] = b[2];	extractsize[2] = b[3];
 	extractregion.SetSize(extractsize);
@@ -356,77 +309,30 @@ template<class T> int DataTypeConversion_template( string m_filename, double* b,
 	yzconvertimage->SetImage(yznormalizefilter->GetOutput());
 	yzconvertimage->Modified();
 
+	metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	metaImageWriter->SetFileName("yzimage.mhd");
+	metaImageWriter->SetInputData(yzconvertimage->GetVTKImage());
+	metaImageWriter->SetCompression(0);
+	metaImageWriter->Write();
+
 	return EXIT_SUCCESS;
 }
 
-void dlg_datatypeconversion::DataTypeConversion(string m_filename, double* b)
+void dlg_datatypeconversion::DataTypeConversion(QString const & m_filename, double* b)
 {
-	if ( m_intype.compare("VTK_UNSIGNED_CHAR") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<unsigned char>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_CHAR") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<char>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-
-	}
-	else if ( m_intype.compare("VTK_UNSIGNED_SHORT") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<unsigned short>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_SHORT") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<short>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_UNSIGNED_INT") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<unsigned int>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_INT") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<int>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_FLOAT") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<float>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_DOUBLE") == 0 )
-	{
-		DataTypeConversion_template(m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage, static_cast<double>(0));
-		m_testxyimage = xyconvertimage->GetVTKImage();
-		m_testxzimage = xzconvertimage->GetVTKImage();
-		m_testyzimage = yzconvertimage->GetVTKImage();
-	}
+	VTK_TYPED_CALL(DataTypeConversion_template, m_intype, m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage);
+	m_testxyimage = xyconvertimage->GetVTKImage();
+	m_testxzimage = xzconvertimage->GetVTKImage();
+	m_testyzimage = yzconvertimage->GetVTKImage();
 }
 
 //roi conversion
-template<class T> int DataTypeConversionROI_template( string m_filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage, T  )
+template<class T> int DataTypeConversionROI_template(QString const & m_filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
 	FILE * pFile;
-	pFile = fopen( m_filename.c_str(), "rb" );
+	pFile = fopen( m_filename.toStdString().c_str(), "rb" );
 	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
@@ -465,8 +371,8 @@ template<class T> int DataTypeConversionROI_template( string m_filename, double*
 	//int slicecounter = 0;
 
 	//long totalsize = b[1]*b[2]*b[3]*datatypesize;
-	float min = 65535;
-	float max = 0;
+	float min = std::numeric_limits<float>::max();
+	float max = std::numeric_limits<float>::lowest();
 
 	//calculation of minimum and maximum
 	fseek ( pFile , 0 , SEEK_SET );
@@ -478,27 +384,21 @@ template<class T> int DataTypeConversionROI_template( string m_filename, double*
 		{	max = buffer;	}
 	}
 
-	//float discretization = (float)((max-min)/(b[7]));
-
-	//create the container for the histogram
 	bool loop = 1; 
 	// copy the file into the buffer:
 	fseek ( pFile , 0 , SEEK_SET );
 	while (loop)
 	{
 		result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile);
-
 		if ( result )
 		{
-			//unsigned short Pixel_test = ((buffer-min)/discretization); //static_cast<PixelType> 
 			iter.Set(buffer);
 			++iter;
 		}
 		else
 		{	loop = 0;	}
-	}//while
+	}
 	fclose(pFile);
-
 
 	typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
 	typename EIFType::Pointer filter = EIFType::New();
@@ -539,57 +439,15 @@ template<class T> int DataTypeConversionROI_template( string m_filename, double*
 	return EXIT_SUCCESS;
 }
 
-void dlg_datatypeconversion::DataTypeConversionROI(string m_filename, double* b, double *roi)
+void dlg_datatypeconversion::DataTypeConversionROI(QString const & m_filename, double* b, double *roi)
 {
-	if ( m_intype.compare("VTK_UNSIGNED_CHAR") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<unsigned char>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_CHAR") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<char>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_UNSIGNED_SHORT") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<unsigned short>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_SHORT") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<short>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_UNSIGNED_INT") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<unsigned int>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_INT") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<int>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_FLOAT") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<float>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-	else if ( m_intype.compare("VTK_DOUBLE") == 0 )
-	{
-		DataTypeConversionROI_template(m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage, static_cast<double>(0));
-		m_roiimage = m_roiconvertimage->GetVTKImage();
-	}
-
-
+	VTK_TYPED_CALL(DataTypeConversionROI_template, m_intype, m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage);
+	m_roiimage = m_roiconvertimage->GetVTKImage();
 }
 
-dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* input, const char* filename, const char* intype, double* b, double* c, double* inPara) : QDialog (parent)
+dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* input, const char* filename, int intype, double* b, double* c, double* inPara) : QDialog (parent)
 {
-	//setup the ui dialog class widget as this
 	setupUi(this);
-
 
 	imageData = vtkImageData::New();
 	m_testxyimage =  vtkImageData::New();
@@ -602,15 +460,9 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzconvertimage = new iAConnector();
 	yzconvertimage = new iAConnector();
 
-	xyroiSource = vtkPlaneSource::New();	xzroiSource = vtkPlaneSource::New();
-	xyroiMapper = vtkPolyDataMapper::New();	xzroiMapper = vtkPolyDataMapper::New();
-	xyroiActor = vtkActor::New();	xzroiActor = vtkActor::New();
-	xyrenderer = vtkRenderer::New();
-	xzrenderer = vtkRenderer::New();
-	xyinteractor = vtkRenderWindowInteractor::New();
-	xzinteractor = vtkRenderWindowInteractor::New();
+	xyroiSource = vtkSmartPointer<vtkPlaneSource>::New();
+	xzroiSource = vtkSmartPointer<vtkPlaneSource>::New();
 
-	//set the window title
 	this->setWindowTitle("DatatypeConversion");
 	this->setMinimumWidth(c[0]*0.5);
 	this->setMinimumHeight(c[0]*0.5);
@@ -626,19 +478,9 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	m_min = 0; m_max = 0; m_dis = 0;
 	m_roi[0]= 0; m_roi[1] = 0; m_roi[2]= 0; m_roi[3]= m_insizex; m_roi[4] = m_insizey; m_roi[5] = m_insizez;
 
-
-	m_histbinlist = (iAAbstractDiagramData::DataType*) malloc (sizeof(iAAbstractDiagramData::DataType)*m_bins);
+	m_histbinlist = new iAAbstractDiagramData::DataType[m_bins];
 
 	DataTypeConversion(m_filename, b);
-
-	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName("C:/LIBS/testimage3.mhd");
-	metaImageWriter->SetInputData(m_testyzimage);
-	metaImageWriter->SetCompression(0);
-	metaImageWriter->Write();
-
-	TabWidget = new QTabWidget(this);
-	verticalLayout->addWidget(TabWidget);
 
 	histogramdrawing (m_histbinlist, m_min, m_max, m_bins, m_dis);
 
@@ -647,7 +489,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xylabel->setMinimumWidth(50);
 	xylabel->setText("XY IMAGE");
 
-	vtkWidgetXY = new QVTKWidget(this);
+	vtkWidgetXY = new QVTKWidget2(this);
 	vtkWidgetXY->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXY->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXY->setWindowTitle("XY Plane");
@@ -662,7 +504,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzlabel->setMinimumWidth(50);
 	xzlabel->setText("XZ IMAGE");
 
-	vtkWidgetXZ = new QVTKWidget(this);
+	vtkWidgetXZ = new QVTKWidget2(this);
 	vtkWidgetXZ->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXZ->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXZ->setWindowTitle("XZ Plane");
@@ -684,119 +526,117 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	label5->setText("Output Datatype");
 	QStringList datatypecon = (QStringList() <<  tr("VTK_SIGNED_CHAR") <<  tr("VTK_UNSIGNED_CHAR") <<  tr("VTK_SHORT")
 		<<  tr("VTK_UNSIGNED_SHORT") <<  tr("VTK_INT") <<  tr("VTK_UNSIGNED_INT") <<  tr("VTK_FLOAT") <<  tr("VTK_DOUBLE") );
-	comboBox = new QComboBox(this);
-	comboBox->insertItems(0,datatypecon);
+	cbDataType = new QComboBox(this);
+	cbDataType->insertItems(0,datatypecon);
 
-	checkbox1 = new QCheckBox(" Data Conversion of ROI ", this);
-	checkbox2 = new QCheckBox(" Use Maximum Datatype Range ", this);
-
+	chConvertROI = new QCheckBox(" Data Conversion of ROI ", this);
+	//chUseMaxDatatypeRange = new QCheckBox(" Use Maximum Datatype Range ", this);
 	QHBoxLayout *hbox0 = new QHBoxLayout();
 	hbox0->addWidget(label5);
-	hbox0->addWidget(comboBox);
-	hbox0->addWidget(checkbox1);
-	hbox0->addWidget(checkbox2);
-
+	hbox0->addWidget(cbDataType);
+	hbox0->addWidget(chConvertROI);
+	//hbox0->addWidget(chUseMaxDatatypeRange);
 	verticalLayout->addLayout(hbox0);
 
 	QLabel *label1 = new QLabel(this, 0);
 	label1->setMinimumWidth(50);
 	label1->setText("Lower Range");
-	lineEdit1 = new QLineEdit(this);
-	lineEdit1->setMinimumWidth(50);
+	leRangeLower = new QLineEdit(this);
+	leRangeLower->setMinimumWidth(50);
 
 	QLabel *label2 = new QLabel(this, 0);
 	label2->setMinimumWidth(50);
 	label2->setText("Upper Range");
-	lineEdit2 = new QLineEdit(this);
-	lineEdit2->setMinimumWidth(50);
+	leRangeUpper = new QLineEdit(this);
+	leRangeUpper->setMinimumWidth(50);
 
 	QHBoxLayout *hbox1 = new QHBoxLayout();
 	hbox1->addWidget(label1);
-	hbox1->addWidget(lineEdit1);
+	hbox1->addWidget(leRangeLower);
 	hbox1->addWidget(label2);
-	hbox1->addWidget(lineEdit2);
+	hbox1->addWidget(leRangeUpper);
 	verticalLayout->addLayout(hbox1);
 
 	QLabel *label3 = new QLabel(this, 0);
 	label3->setMinimumWidth(50);
 	label3->setText("Minimum Output Value");
-	lineEdit3 = new QLineEdit(this);
-	lineEdit3->setMinimumWidth(50);
+	leOutputMin = new QLineEdit(this);
+	leOutputMin->setMinimumWidth(50);
 
 	QLabel *label4 = new QLabel(this, 0);
 	label4->setMinimumWidth(50);
 	label4->setText("Maximum Output Value");
-	lineEdit4 = new QLineEdit(this);
-	lineEdit4->setMinimumWidth(50);
+	leOutputMax = new QLineEdit(this);
+	leOutputMax->setMinimumWidth(50);
 
 	QHBoxLayout *hbox2 = new QHBoxLayout();
 	hbox2->addWidget(label3);
-	hbox2->addWidget(lineEdit3);
+	hbox2->addWidget(leOutputMin);
 	hbox2->addWidget(label4);
-	hbox2->addWidget(lineEdit4);
+	hbox2->addWidget(leOutputMax);
 	verticalLayout->addLayout(hbox2);
 
 	QLabel *label6 = new QLabel(this, 0);
 	label6->setMinimumWidth(50);
 	label6->setText("X Origin");
-	lineEdit5 = new QLineEdit(this);
-	lineEdit5->setMinimumWidth(50);
-	lineEdit5->setObjectName("labelWidget6");
+	leXOrigin = new QLineEdit(this);
+	leXOrigin->setMinimumWidth(50);
+	leXOrigin->setObjectName("XOrigin");
 
 	QLabel *label7 = new QLabel(this, 0);
 	label7->setMinimumWidth(50);
 	label7->setText("X Size");
-	lineEdit6 = new QLineEdit(this);
-	lineEdit6->setMinimumWidth(50);
-	lineEdit6->setObjectName("labelWidget7");
+	leXSize = new QLineEdit(this);
+	leXSize->setMinimumWidth(50);
+	leXSize->setObjectName("XSize");
 
 	QHBoxLayout *hbox3 = new QHBoxLayout();
 	hbox3->addWidget(label6);
-	hbox3->addWidget(lineEdit5);
+	hbox3->addWidget(leXOrigin);
 	hbox3->addWidget(label7);
-	hbox3->addWidget(lineEdit6);
+	hbox3->addWidget(leXSize);
 	verticalLayout->addLayout(hbox3);
 
 	QLabel *label8 = new QLabel(this, 0);
 	label8->setMinimumWidth(50);
 	label8->setText("Y Origin");
-	lineEdit7 = new QLineEdit(this);
-	lineEdit7->setMinimumWidth(50);
-	lineEdit7->setObjectName("labelWidget8");
+	leYOrigin = new QLineEdit(this);
+	leYOrigin->setMinimumWidth(50);
+	leYOrigin->setObjectName("YOrigin");
 
 	QLabel *label9 = new QLabel(this, 0);
 	label9->setMinimumWidth(50);
 	label9->setText("Y Size");
-	lineEdit8 = new QLineEdit(this);
-	lineEdit8->setMinimumWidth(50);
-	lineEdit8->setObjectName("labelWidget9");
+	leYSize = new QLineEdit(this);
+	leYSize->setMinimumWidth(50);
+	leYSize->setObjectName("YSize");
 
 	QHBoxLayout *hbox4 = new QHBoxLayout();
 	hbox4->addWidget(label8);
-	hbox4->addWidget(lineEdit7);
+	hbox4->addWidget(leYOrigin);
 	hbox4->addWidget(label9);
-	hbox4->addWidget(lineEdit8);
+	hbox4->addWidget(leYSize);
 	verticalLayout->addLayout(hbox4);
 
 	QLabel *label10 = new QLabel(this, 0);
 	label10->setMinimumWidth(50);
 	label10->setText("Z Origin");
-	lineEdit9 = new QLineEdit(this);
-	lineEdit9->setMinimumWidth(50);
-	lineEdit9->setObjectName("labelWidget10");
+	leZOrigin = new QLineEdit(this);
+	leZOrigin->setMinimumWidth(50);
+	leZOrigin->setObjectName("ZOrigin");
 
 	QLabel *label11 = new QLabel(this, 0);
 	label11->setMinimumWidth(50);
 	label11->setText("Z Size");
-	lineEdit10 = new QLineEdit(this);
-	lineEdit10->setMinimumWidth(50);
-	lineEdit10->setObjectName("labelWidget11");
+	leZSize = new QLineEdit(this);
+	leZSize->setMinimumWidth(50);
+	leZSize->setObjectName("ZSize");
 
 	QHBoxLayout *hbox5 = new QHBoxLayout();
 	hbox5->addWidget(label10);
-	hbox5->addWidget(lineEdit9);
+	hbox5->addWidget(leZOrigin);
 	hbox5->addWidget(label11);
-	hbox5->addWidget(lineEdit10);
+	hbox5->addWidget(leZSize);
 	verticalLayout->addLayout(hbox5);
 
 	updatevalues( inPara );
@@ -804,22 +644,17 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	//add the ok and cancel button to the verticalLayout
 	verticalLayout->addWidget(buttonBox);
 
-	connect(lineEdit5, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit6, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit7, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit8, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit9, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
-	connect(lineEdit10, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leXOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leXSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leYOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leYSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leZOrigin, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
+	connect(leZSize, SIGNAL(textChanged(QString)), this, SLOT(update(QString)));
 }
-
-void dlg_datatypeconversion::changeEvent()
-{
-	//emit labelWidget11->textChanged();
-} 
 
 dlg_datatypeconversion::~dlg_datatypeconversion()
 {
-
+	delete[] m_histbinlist;
 }
 
 void dlg_datatypeconversion::updatevalues(double* inPara)
@@ -828,17 +663,17 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 	str <<  tr("%1").arg(inPara[0]) <<  tr("%1").arg(inPara[1]) <<  tr("%1").arg(inPara[2]) <<  tr("%1").arg(inPara[3]) 
 		<<  tr("%1").arg(inPara[4]) <<  tr("%1").arg(inPara[5])	<<  tr("%1").arg(inPara[6]) <<  tr("%1").arg(inPara[7]) 
 		<<  tr("%1").arg(inPara[8]) <<  tr("%1").arg(inPara[9]) <<  tr("%1").arg(inPara[10]);
-	lineEdit1->setText(str[0].toString());
-	lineEdit2->setText(str[1].toString());
-	lineEdit3->setText(str[2].toString());
-	lineEdit4->setText(str[3].toString());
-	checkbox1->setChecked(str[4].toBool());
-	lineEdit5->setText(str[5].toString());
-	lineEdit6->setText(str[6].toString());
-	lineEdit7->setText(str[7].toString());
-	lineEdit8->setText(str[8].toString());
-	lineEdit9->setText(str[9].toString());
-	lineEdit10->setText(str[10].toString());
+	leRangeLower->setText(str[0].toString());
+	leRangeUpper->setText(str[1].toString());
+	leOutputMin->setText(str[2].toString());
+	leOutputMax->setText(str[3].toString());
+	chConvertROI->setChecked(str[4].toBool());
+	leXOrigin->setText(str[5].toString());
+	leXSize->setText(str[6].toString());
+	leYOrigin->setText(str[7].toString());
+	leYSize->setText(str[8].toString());
+	leZOrigin->setText(str[9].toString());
+	leZSize->setText(str[10].toString());
 }
 
 void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* histbinlist, float min, float max, int m_bins, double discretization )
@@ -847,65 +682,54 @@ void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* h
 	vtkPiecewiseFunction* piecewiseFunction = vtkPiecewiseFunction::New();
 	vtkColorTransferFunction* colorTransferFunction = vtkColorTransferFunction::New();
 
-	iAHistogramWidget *imgHistogram = new iAHistogramWidget(TabWidget, (MdiChild*)parent(), imageData->GetScalarRange(), imageAccumulate, piecewiseFunction, colorTransferFunction );
-	imgHistogram->datatypehistograminitialize(imageAccumulate, histbinlist, 1,  min, max , m_bins, discretization);
+	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction,
+		histbinlist, min, max , m_bins, discretization, "Histogram (Intensities)");
 	imgHistogram->updateTrf();
 	imgHistogram->redraw();
-	TabWidget->addTab(imgHistogram, QString("Histogram"));
+	verticalLayout->addWidget(imgHistogram);
+}
+
+void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKWidget2* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
+{
+	auto actor = vtkSmartPointer<vtkImageActor>::New();
+	actor->SetInputData(color->GetOutput());
+	auto roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	roiMapper->SetInputConnection(roiSource->GetOutputPort());
+	auto roiActor = vtkSmartPointer<vtkActor>::New();
+	roiActor->SetVisibility(true);
+	roiActor->SetMapper(roiMapper);
+	roiActor->GetProperty()->SetColor(1, 0, 0);
+	roiActor->GetProperty()->SetOpacity(1);
+	roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+	roiMapper->Update();
+
+	auto renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->AddActor(actor);
+	renderer->AddActor(roiActor);
+
+	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	window->AddRenderer(renderer);
+	vtkWidget->SetRenderWindow(window);
+	auto imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+	window->GetInteractor()->SetInteractorStyle(imageStyle);
+	vtkWidget->update();
+	window->Render();
 }
 
 void dlg_datatypeconversion::xyprojectslices()
 {
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table =		vtkSmartPointer<vtkLookupTable>::New();
-
-	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
-	imageAccumulate->SetInputData(m_testxyimage);
-	imageAccumulate->Update();
-	table->SetRange(imageAccumulate->GetMin()[0], imageAccumulate->GetMax()[0]); // image intensity range
-
-	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 0.0); // no color saturation
-	table->SetRampToLinear();
-	table->Build();
-
 	// Map the image through the lookup table
-	vtkSmartPointer<vtkImageMapToColors> color =	vtkSmartPointer<vtkImageMapToColors>::New();
+	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
+	auto table = GetDefaultColorTransferFunction(m_testxyimage);
 	color->SetLookupTable(table);
 	color->SetInputData(m_testxyimage);
+	color->Update();
 
-	// Display the image
-	vtkSmartPointer<vtkImageActor> actor =		vtkSmartPointer<vtkImageActor>::New();
-	actor->SetInputData(color->GetOutput());
-
-	xywindow =	vtkRenderWindow::New();
-	xywindow->AddRenderer(xyrenderer);
-
-	// Set up the interaction
-	vtkSmartPointer<vtkInteractorStyleImage> imageStyle =		vtkSmartPointer<vtkInteractorStyleImage>::New();
-	xyinteractor->SetInteractorStyle(imageStyle);
-	xywindow->SetInteractor(xyinteractor);
-
-	xyroiMapper->SetInputConnection( xyroiSource->GetOutputPort() );
-	xyroiActor->SetVisibility( true );
-	xyroiActor->SetMapper( xyroiMapper );
-	xyroiActor->GetProperty()->SetColor( 1, 0, 0 );
-	xyroiActor->GetProperty()->SetOpacity( 1 );
-
-	xyroiSource->SetCenter( 0, 0, 1 );
-	xyroiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
-
+	xyroiSource->SetCenter(0, 0, 1);
 	xyroiSource->SetOrigin(0, 0, 0);
-	xyroiSource->SetPoint1(3, 0 , 0); 
-	xyroiSource->SetPoint2(0 , 3, 0);
-	xyroiMapper->Update( );
-
-	xyrenderer->AddActor(xyroiActor);
-	xyrenderer->AddActor(actor);
-	xywindow->Render();
-
-	vtkWidgetXY->SetRenderWindow(xywindow);
-	vtkWidgetXY->update();
+	xyroiSource->SetPoint1(3, 0, 0);
+	xyroiSource->SetPoint2(0, 3, 0);
+	SetupSliceWidget(color, vtkWidgetXY, xyroiSource);
 }
 
 void dlg_datatypeconversion::xzprojectslices()
@@ -923,7 +747,7 @@ void dlg_datatypeconversion::xzprojectslices()
 	};
 
 	// Set the slice orientation
-	vtkSmartPointer<vtkMatrix4x4> resliceAxes =    vtkSmartPointer<vtkMatrix4x4>::New();
+	auto resliceAxes = vtkSmartPointer<vtkMatrix4x4>::New();
 	resliceAxes->DeepCopy(coronalElements);
 	// Set the point through which to slice
 	resliceAxes->SetElement(0, 3, center[0]);
@@ -931,349 +755,87 @@ void dlg_datatypeconversion::xzprojectslices()
 	resliceAxes->SetElement(2, 3, center[2]);
 
 	// Extract a slice in the desired orientation
-	vtkSmartPointer<vtkImageReslice> reslice =    vtkSmartPointer<vtkImageReslice>::New();
+	auto reslice = vtkSmartPointer<vtkImageReslice>::New();
 	reslice->SetInputData(m_testxzimage);
 	reslice->SetOutputDimensionality(2);
 	reslice->SetResliceAxes(resliceAxes);
 	reslice->SetInterpolationModeToLinear();
 
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table =		vtkSmartPointer<vtkLookupTable>::New();
-
-	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
-	imageAccumulate->SetInputData(m_testxzimage);
-	imageAccumulate->Update();
-	table->SetRange(imageAccumulate->GetMin()[0], imageAccumulate->GetMax()[0]); // image intensity range
-
-	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 0.0); // no color saturation
-	table->SetRampToLinear();
-	table->Build();
-
 	// Map the image through the lookup table
-	vtkSmartPointer<vtkImageMapToColors> color =	vtkSmartPointer<vtkImageMapToColors>::New();
+	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
+	auto table = GetDefaultColorTransferFunction(m_testxyimage);
 	color->SetLookupTable(table);
 	color->SetInputConnection(reslice->GetOutputPort());
+	color->Update();
 
-	// Display the image
-	vtkSmartPointer<vtkImageActor> xzactor =		vtkSmartPointer<vtkImageActor>::New();
-	xzactor->SetInputData(color->GetOutput());
-
-	vtkSmartPointer<vtkRenderer> xzrenderer =		vtkSmartPointer<vtkRenderer>::New();
-	xzrenderer->AddActor(xzactor);
-
-	vtkSmartPointer<vtkRenderWindow> xzwindow =		vtkSmartPointer<vtkRenderWindow>::New();
-	xzwindow->AddRenderer(xzrenderer);
-
-	// Set up the interaction
-	vtkSmartPointer<vtkInteractorStyleImage> xzimageStyle =		vtkSmartPointer<vtkInteractorStyleImage>::New();
-	xzinteractor->SetInteractorStyle(xzimageStyle);
-	xzwindow->SetInteractor(xzinteractor);
-
-	xzroiMapper->SetInputConnection( xzroiSource->GetOutputPort() );
-	xzroiActor->SetVisibility( true );
-	xzroiActor->SetMapper( xzroiMapper );
-	xzroiActor->GetProperty()->SetColor( 1, 0, 0 );
-	xzroiActor->GetProperty()->SetOpacity( 1 );
-
-	xzroiSource->SetCenter( 0, 0, 1 );
-	xzroiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
-
+	xzroiSource->SetCenter(0, 0, 1);
 	xzroiSource->SetOrigin(0, -m_insizez, 0);
-	xzroiSource->SetPoint1(10, -m_insizez , 0);
-	xzroiSource->SetPoint2(0 , 2, 0);
-	xzroiMapper->Update( );
+	xzroiSource->SetPoint1(10, -m_insizez, 0);
+	xzroiSource->SetPoint2(0, 2, 0);
 
-	xzrenderer->AddActor(xzroiActor);
-	xzwindow->Render();
-
-	vtkWidgetXZ->SetRenderWindow(xzwindow);
-	vtkWidgetXZ->update();
+	SetupSliceWidget(color, vtkWidgetXZ, xzroiSource);
 }
 
-
-void dlg_datatypeconversion::yzprojectslices()
+template <typename T>
+void loadBinary(FILE* pFile, vtkImageData* imageData, float shift, float scale, double &minout, double &maxout)
 {
-	double center[3];
-	center[0] = 0; 
-	center[1] = 0; 
-	center[2] = 0; 
-
-	static double obliqueElements[16] = {
-		1, 0, 0, 0,
-		0, 0.866025, -0.5, 0,
-		0, 0.5, 0.866025, 0,
-		0, 0, 0, 1
-	};
-
-	// Set the slice orientation
-	vtkSmartPointer<vtkMatrix4x4> resliceAxes =    vtkSmartPointer<vtkMatrix4x4>::New();
-	resliceAxes->DeepCopy(obliqueElements);
-	// Set the point through which to slice
-	resliceAxes->SetElement(0, 3, center[0]);
-	resliceAxes->SetElement(1, 3, center[1]);
-	resliceAxes->SetElement(2, 3, center[2]);
-
-	// Extract a slice in the desired orientation
-	vtkSmartPointer<vtkImageReslice> reslice =    vtkSmartPointer<vtkImageReslice>::New();
-	reslice->SetInputData(m_testyzimage);
-	reslice->SetOutputDimensionality(2);
-	reslice->SetResliceAxes(resliceAxes);
-	reslice->SetInterpolationModeToLinear();
-
-	// Create a greyscale lookup table
-	vtkSmartPointer<vtkLookupTable> table =		vtkSmartPointer<vtkLookupTable>::New();
-	table->SetRange(0, 65535); // image intensity range
-	table->SetValueRange(0.0, 1.0); // from black to white
-	table->SetSaturationRange(0.0, 0.0); // no color saturation
-	table->SetRampToLinear();
-	table->Build();
-
-	// Map the image through the lookup table
-	vtkSmartPointer<vtkImageMapToColors> color = vtkSmartPointer<vtkImageMapToColors>::New();
-	color->SetLookupTable(table);
-	color->SetInputConnection(reslice->GetOutputPort());
-
-	// Display the image
-	vtkSmartPointer<vtkImageActor> actor =	vtkSmartPointer<vtkImageActor>::New();
-	actor->SetInputData(color->GetOutput());
-
-	vtkSmartPointer<vtkRenderer> renderer =	vtkSmartPointer<vtkRenderer>::New();
-	renderer->AddActor(actor);
-
-	vtkSmartPointer<vtkRenderWindow> window =	vtkSmartPointer<vtkRenderWindow>::New();
-	window->AddRenderer(renderer);
-
-	// Set up the interaction
-	vtkSmartPointer<vtkInteractorStyleImage> imageStyle =		vtkSmartPointer<vtkInteractorStyleImage>::New();
-	vtkSmartPointer<vtkRenderWindowInteractor> interactor =		vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	interactor->SetInteractorStyle(imageStyle);
-	window->SetInteractor(interactor);
-	window->Render();
-	vtkWidgetYZ->SetRenderWindow(window);
-	vtkWidgetYZ->update();
+	T buffer;
+	fseek(pFile, 0, SEEK_SET);
+	int* dims = imageData->GetDimensions();
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y<dims[1]; y++)
+		{
+			for (int x = 0; x<dims[0]; x++)
+			{
+				size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
+				double value = buffer * scale + shift;
+				value = (value > maxout) ? maxout : value;
+				value = (value < minout) ? minout : value;
+				imageData->SetScalarComponentFromDouble(x, y, z, 0, value);
+			}
+		}
+	}
 }
 
-QString dlg_datatypeconversion::coreconversionfunction( QString filename, QString & finalfilename, double* para, string indatatype, string outdatatype, double minrange, double maxrange, double minout, double maxout, int check )
+QString dlg_datatypeconversion::coreconversionfunction( QString filename, QString & finalfilename, double* para, int indatatype, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check )
 {
-	float m_Scale = 0;
+	float scale = 0;
 	//scale and shift calculator
 	if ( minrange != maxrange )
-	{   m_Scale = ( maxout - minout ) / ( maxrange - minrange );	}
+	{   scale = ( maxout - minout ) / ( maxrange - minrange );	}
 	else if ( maxrange != 0 )
 	{	//m_Scale = ( maxout - minout ) / minrange );	
 	}
 	else
 	{
-		m_Scale = 0.0;
+		scale = 0.0;
 	}
-
-	float m_Shift = ( minout - minrange ) * m_Scale;
-
+	float shift = ( minout - minrange ) * scale;
 	FILE * pFile;
 	pFile = fopen ( filename.toStdString().c_str(), "rb" );
 	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
-
 	vtkImageData* imageData = vtkImageData::New();
 	// Setup the image
 	imageData->SetDimensions(para[1], para[2], para[3]);
-	imageData->AllocateScalars(GetImageDataType(outdatatype), 1);
-
+	imageData->AllocateScalars(outdatatype, 1);
 	//loading of datatype 
-	if ( indatatype.compare("VTK_UNSIGNED_CHAR") == 0 )
-	{
-		unsigned char buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
-	if ( indatatype.compare("VTK_CHAR") == 0 )
-	{
-		char buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
-	if ( indatatype.compare("VTK_UNSIGNED_SHORT") == 0 )
-	{
-		unsigned short buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
-	if ( indatatype.compare("VTK_SHORT") == 0 )
-	{
-		short buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread (reinterpret_cast<char*>(&buffer),sizeof(buffer),1,pFile);		  
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
-	if ( indatatype.compare("VTK_UNSIGNED_INT") == 0 )
-	{
-		unsigned int buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
-	if ( indatatype.compare("VTK_INT") == 0 )
-	{
-		int buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
-	if ( indatatype.compare("VTK_FLOAT") == 0 )
-	{
-		float buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
-	if ( indatatype.compare("VTK_DOUBLE") == 0 )
-	{
-		double buffer;
-		fseek ( pFile , 0 , SEEK_SET );
-		// Fill every entry of the image data with "2.0"
-		int* dims = imageData->GetDimensions();
-		for ( int z = 0; z < dims[2]; z++ )
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					size_t result = fread(reinterpret_cast<char*>(&buffer), sizeof(buffer), 1, pFile);
-
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}
-			}
-		}
-	}
+	VTK_TYPED_CALL(loadBinary, indatatype, pFile, imageData, shift, scale, minout, maxout);
 	fclose(pFile);
-
 	filename.chop(4);
 	filename.append("-DT.mhd");
-
 	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
 	metaImageWriter->SetFileName(filename.toStdString().c_str());
 	metaImageWriter->SetInputData(imageData);
 	metaImageWriter->Write();
-
 	finalfilename = filename;
 	return filename;
 }
 
-QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, string indatatype, string outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi)
+QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi)
 {
 
-	DataTypeConversionROI(filename.toStdString(), m_bptr, roi);
+	DataTypeConversionROI(filename, m_bptr, roi);
 	float m_Scale = 0;
 	//scale and shift calculator
 	if ( minrange != maxrange )
@@ -1294,182 +856,43 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 	vtkImageData* imageData = vtkImageData::New();
 	// Setup the image
 	imageData->SetDimensions(roi[1], roi[3], roi[5]);
-	imageData->AllocateScalars(GetImageDataType(outdatatype), 1);
-
-	//loading of datatype 
-	if ( indatatype.compare("VTK_UNSIGNED_CHAR") == 0 )
+	imageData->AllocateScalars(outdatatype, 1);
+	int* dims = imageData->GetDimensions();
+	for (int z=0; z<dims[2]; z++)
 	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
+		for (int y=0; y<dims[1]; y++)
 		{
-			for (int y=0; y<dims[1]; y++)
+			for (int x=0; x<dims[0]; x++)
 			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
-	if ( indatatype.compare("VTK_CHAR") == 0 )
-	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
-	if ( indatatype.compare("VTK_UNSIGNED_SHORT") == 0 )
-	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
-	if ( indatatype.compare("VTK_SHORT") == 0 )
-	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
-	if ( indatatype.compare("VTK_UNSIGNED_INT") == 0 )
-	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
-	if ( indatatype.compare("VTK_INT") == 0 )
-	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
-	if ( indatatype.compare("VTK_FLOAT") == 0 )
-	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
-	if ( indatatype.compare("VTK_DOUBLE") == 0 )
-	{
-		int* dims = imageData->GetDimensions();
-		for (int z=0; z<dims[2]; z++)
-		{
-			for (int y=0; y<dims[1]; y++)
-			{
-				for (int x=0; x<dims[0]; x++)
-				{
-					double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
-					double value  =  buffer * m_Scale + m_Shift;
-					value = ( value > maxout ) ? maxout : value;
-					value = ( value < minout ) ? minout : value;
-					imageData->SetScalarComponentFromDouble(x,y,z,0,value);
-				}// for x
-			}// for y
-		}//for z
-	}
+				double buffer = m_roiimage->GetScalarComponentAsDouble(x,y,z,0);
+				double value  =  buffer * m_Scale + m_Shift;
+				value = ( value > maxout ) ? maxout : value;
+				value = ( value < minout ) ? minout : value;
+				imageData->SetScalarComponentFromDouble(x,y,z,0,value);
+			}// for x
+		}// for y
+	}//for z
 
 	filename.chop(4);
 	filename.append("-DT-roi.mhd");
-
 	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
 	metaImageWriter->SetFileName(filename.toStdString().c_str());
 	metaImageWriter->SetInputData(imageData);
 	metaImageWriter->Write();
-
 	finalfilename = filename;
 	return filename;
 }
 
 
-void dlg_datatypeconversion::update(QString a ) 
+void dlg_datatypeconversion::update(QString a)
 {
 	QString senderName = QObject::sender()->objectName();
-	if (senderName.compare("labelWidget11") == 0)
-	{	m_roi[5] = a.toDouble();}
-	if (senderName.compare("labelWidget10") == 0)
-	{	m_roi[2] = a.toDouble();}
-	if (senderName.compare("labelWidget9") == 0)
-	{	m_roi[4] = a.toDouble();}
-	if (senderName.compare("labelWidget8") == 0)
-	{	m_roi[1] = a.toDouble();}
-	if (senderName.compare("labelWidget7") == 0)
-	{	m_roi[3] = a.toDouble();}
-	if (senderName.compare("labelWidget6") == 0)
-	{	m_roi[0] = a.toDouble();}
+	if (senderName.compare("XOrigin") == 0) { m_roi[0] = a.toDouble(); }
+	if (senderName.compare("YOrigin") == 0) { m_roi[1] = a.toDouble(); }
+	if (senderName.compare("ZOrigin") == 0) { m_roi[2] = a.toDouble(); }
+	if (senderName.compare("XSize") == 0)   { m_roi[3] = a.toDouble(); }
+	if (senderName.compare("YSize") == 0)   { m_roi[4] = a.toDouble(); }
+	if (senderName.compare("ZSize") == 0)	{ m_roi[5] = a.toDouble(); }
 	updateroi();
 }
 
@@ -1487,16 +910,16 @@ void dlg_datatypeconversion::updateroi( )
 	vtkWidgetXZ->update();
 }
 
-double dlg_datatypeconversion::getlabelWidget1 (){return lineEdit1->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget2 (){return lineEdit2->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget3 (){return lineEdit3->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget4 (){return lineEdit4->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget6 (){return lineEdit5->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget7 (){return lineEdit6->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget8 (){return lineEdit7->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget9 (){return lineEdit8->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget10 (){return lineEdit9->text().toDouble();};
-double dlg_datatypeconversion::getlabelWidget11 (){return lineEdit10->text().toDouble();};
+double dlg_datatypeconversion::getRangeLower() { return leRangeLower->text().toDouble(); }
+double dlg_datatypeconversion::getRangeUpper() { return leRangeUpper->text().toDouble(); }
+double dlg_datatypeconversion::getOutputMin()  { return leOutputMin ->text().toDouble(); }
+double dlg_datatypeconversion::getOutputMax()  { return leOutputMax ->text().toDouble(); }
+double dlg_datatypeconversion::getXOrigin()    { return leXOrigin   ->text().toDouble(); }
+double dlg_datatypeconversion::getXSize()      { return leXSize     ->text().toDouble(); }
+double dlg_datatypeconversion::getYOrigin()    { return leYOrigin   ->text().toDouble(); }
+double dlg_datatypeconversion::getYSize()      { return leYSize     ->text().toDouble(); }
+double dlg_datatypeconversion::getZOrigin()    { return leZOrigin   ->text().toDouble(); }
+double dlg_datatypeconversion::getZSize()      { return leZSize     ->text().toDouble(); }
 
-string dlg_datatypeconversion::getcombobox (){return comboBox->currentText().toStdString();};
-int dlg_datatypeconversion::getcheckbox1 (){return checkbox1->checkState();}
+QString dlg_datatypeconversion::getDataType()  { return cbDataType->currentText(); }
+int dlg_datatypeconversion::getConvertROI()    { return chConvertROI->checkState();}

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,103 +15,107 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAConnectedComponentFilters.h"
+
 #include "iAConnector.h"
+#include "defines.h" // for DIM
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
-#include <itkImageIOBase.h>
-#include <vtkImageData.h>
-#include <QLocale>
+#include <itkConnectedComponentImageFilter.h>
+#include <itkScalarConnectedComponentImageFilter.h>
+#include <itkRelabelComponentImageFilter.h>
 
-/**
-* Simple connected component filter template initializes itk******* .
-* \param	c		Switch on fully connected. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param	T		Template datatype. 
-* \return	int		Status code 
-*/
+#include <QFileDialog>
+#include <QMessageBox>
+
 template<class T> 
-int SimpleConnectedComponentFilter_template(int c, iAProgress* p, iAConnector* image )
+void SimpleConnectedComponentFilter_template(bool fullyConnected, iAProgress* p, iAConnector* image )
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< unsigned short, 3 >   OutputImageType;
-
+	typedef itk::Image<T, DIM>   InputImageType;
+	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ConnectedComponentImageFilter< InputImageType, OutputImageType > CCIFType;
 	typename CCIFType::Pointer filter = CCIFType::New();
 	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 	filter->SetBackgroundValue(0);
-
-	if ( c == 2 )
-		filter->FullyConnectedOn();
-	else
-		filter->FullyConnectedOff();
-
+	filter->SetFullyConnected(fullyConnected);
 	p->Observe( filter );
-
 	filter->Update(); 
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-/**
-* Scalar connected component filter template initializes itk******* .
-* \param	distTreshold	Distance treshold value.
-* \param	p		Filter progress information.
-* \param	image	Input image.
-* \param	T		Template datatype.
-* \return	int		Status code
-*/
-template<class T> 
-int ScalarConnectedComponentFilter_template( double distTreshold, iAProgress* p, iAConnector* image )
-{
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< long, 3 >   OutputImageType;
+IAFILTER_CREATE(iASimpleConnectedComponents)
 
+void iASimpleConnectedComponents::Run(QMap<QString, QVariant> parameters)
+{
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, pixelType,
+		parameters["Fully Connected"].toBool(),
+		m_progress, m_con);
+}
+
+iASimpleConnectedComponents::iASimpleConnectedComponents() :
+	iAFilter("Simple Connected Component Filter", "Connected Component Filters",
+		"Assigns each distinct object in a binary image a unique label.<br/>"
+		"Non-zero pixels are considered to be objects, zero-valued pixels are "
+		"considered to be background).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html\">"
+		"Connected Component Filter</a> in the ITK documentation.")
+{
+	AddParameter("Fully Connected", Boolean, false);
+}
+
+
+template<class T> 
+void ScalarConnectedComponentFilter_template( double distTreshold, iAProgress* p, iAConnector* image )
+{
+	typedef itk::Image<T, DIM>   InputImageType;
+	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ScalarConnectedComponentImageFilter< InputImageType, OutputImageType > SCCIFType;
 	typename SCCIFType::Pointer filter = SCCIFType::New();
 	filter->SetInput( dynamic_cast<InputImageType *>(image->GetITKImage()) );
 	filter->SetDistanceThreshold( distTreshold );
-
 	p->Observe( filter );
-
 	filter->Update();
-
 	image->SetImage( filter->GetOutput() );
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-/**
-* Simple relabel component image filte template initializes itk******* .
-* \param	w		The width. 
-* \param	s		minimum object size. 
-* \param	f		The format string. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param	T		Template datatype. 
-* \return	int		Status code  
-*/
-template<class T> 
-int SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAProgress* p, iAConnector* image )
-{
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< long, 3 >   OutputImageType;
+IAFILTER_CREATE(iAScalarConnectedComponents)
 
+void iAScalarConnectedComponents::Run(QMap<QString, QVariant> parameters)
+{
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, pixelType,
+		parameters["Distance Threshold"].toDouble(),
+		m_progress, m_con);
+}
+
+iAScalarConnectedComponents::iAScalarConnectedComponents() :
+	iAFilter("Scalar Connected Component Filter", "Connected Component Filters",
+		"Labels the objects in an arbitrary image.<br/>"
+		"Two pixels are similar if they are within <em>Distance Threshold</em> of each other.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarConnectedComponentImageFilter.html\">"
+		"Scalar Connected Component Filter</a> in the ITK documentation.")
+{
+	AddParameter("Distance Threshold", Continuous, 1);
+}
+
+
+template<class T> 
+void SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAProgress* p, iAConnector* image )
+{
+	typedef itk::Image<T, DIM>   InputImageType;
+	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::RelabelComponentImageFilter< InputImageType, OutputImageType > RCIFType;
 	typename RCIFType::Pointer filter = RCIFType::New();
 	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
@@ -119,171 +123,69 @@ int SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAProg
 	filter->SetInPlace(true);
 	p->Observe( filter );
 	filter->Update(); 
-
 	if ( w )
 	{
 		long int no_of_Objects = filter->GetNumberOfObjects();
-
-		//text file writer
 		ofstream myfile;
 		myfile.open(f.toStdString());
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
-
 		for ( int i = 0; i < no_of_Objects; i++ )
 			myfile << i << "," << filter->GetSizeOfObjectsInPhysicalUnits()[i] << endl;
-		
 		myfile.close();
 	}
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
-/**
-* Constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
+IAFILTER_CREATE(iASimpleRelabelConnectedComponents)
 
-iAConnectedComponentFilters::iAConnectedComponentFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
+void iASimpleRelabelConnectedComponents::Run(QMap<QString, QVariant> parameters)
 {
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, pixelType,
+		parameters["Write labels to file"].toBool(),
+		parameters["Minimum Object Size"].toInt(),
+		m_outFile,
+		m_progress, m_con);
 }
 
-/**
-* Destructor. 
-*/
-
-iAConnectedComponentFilters::~iAConnectedComponentFilters()
+bool iASimpleRelabelConnectedComponents::CheckParameters(QMap<QString, QVariant> parameters)
 {
+	if (parameters["Write labels to file"].toBool())
+	{
+		m_outFile = QFileDialog::getSaveFileName(0, "Save file", 0, "txt Files (*.txt *.TXT)");
+		if (m_outFile.isEmpty())
+		{
+			QMessageBox msgBox;
+			msgBox.setText("No destination file was specified!");
+			msgBox.setWindowTitle(Name());
+			msgBox.exec();
+			return false;
+		}
+	}
+	return iAFilter::CheckParameters(parameters);
 }
 
-/**
-* Execute the filter thread.
-*/
-
-void iAConnectedComponentFilters::run()
+iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
+	iAFilter("Simple Relabel Connected Component Filter", "Connected Component Filters",
+		"Remaps the labels associated with the objects in an image such that the "
+		"label numbers are consecutive with no gaps.<br/>"
+		"The input could for example be the output of the Simple Connected "
+		"Component Filter. By default, the relabeling will also sort the labels "
+		"based on the size of the object: the largest object will have label #1, "
+		"the second largest will have label #2, etc. If two labels have the same "
+		"size their initial order is kept. Label #0 is assumed to be the "
+		"background and is left unaltered by the relabeling.<br/>"
+		"If user sets a minimum object size, all objects with fewer pixels than "
+		"the minimum will be discarded, so that the number of objects reported "
+		"will be only those remaining. Enabling the write option will save details "
+		"of each object to a user specified file path.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html\">"
+		"Relabel Component Filter</a> in the ITK documentation.")
 {
-	switch (getFilterID())
-	{
-	case SIMPLE_CONNECTED_COMPONENT_FILTER: 
-		SimpleConnectedComponentFilter(); break;
-	case SCALAR_CONNECTED_COMPONENT_FILTER:
-		ScalarConnectedComponentFilter(); break;
-	case SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER: 
-		SimpleRelabelComponentImageFilter(); break;
-	case UNKNOWN_FILTER: 
-	default:
-		addMsg(tr("unknown filter type"));
-	}
-}
-
-/**
-* Simple connected component filter. 
-*/
-
-void iAConnectedComponentFilters::SimpleConnectedComponentFilter( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, itkType,
-			c, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-/**
-* Scalar connected component image filter.
-*/
-
-void iAConnectedComponentFilters::ScalarConnectedComponentFilter()
-{
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-		.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, itkType,
-			distTreshold, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-			.arg( excep.GetFile() )
-			.arg( excep.GetLine() ) );
-		return;
-	}
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-		.arg( getFilterName() )
-		.arg( Stop() ) );
-
-	emit startUpdate();
-}
-
-/**
-* Simple relabel component image filter. 
-*/
-
-void iAConnectedComponentFilters::SimpleRelabelComponentImageFilter( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, itkType,
-			w, s, f, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
+	AddParameter("Minimum Object Size", Discrete, 1, 1);
+	AddParameter("Write labels to file", Boolean, false);
 }

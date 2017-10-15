@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iATransformationsModuleInterface.h"
 
@@ -33,6 +32,8 @@
 
 void iATransformationsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuTransformations = getMenuWithTitle(filtersMenu, QString( "Transformations" ) );
 
@@ -77,62 +78,10 @@ vtkImageData * iATransformationsModuleInterface::prepare(const QString & caption
 	MdiChild * actChild = m_mainWnd->activeMdiChild();
 	if (actChild == NULL)
 		return NULL;
-	vtkImageData * inpImage = actChild->getImageData();
-
-	//prepare
-	if (actChild->getResultInNewWindow())
-	{
-		m_mdiChild = m_mainWnd->createMdiChild();
-		m_mdiChild->newFile();
-		m_mdiChild->show();
-
-		//copy functions
-		//taken from MainWindow::GetResultChild()
-		//e80024
-		std::vector<dlg_function*> activeChildFunctions = actChild->getFunctions();
-		for (unsigned int i = 1; i < activeChildFunctions.size(); ++i)
-		{
-			dlg_function *curFunc = activeChildFunctions[i];
-
-			switch (curFunc->getType())
-			{
-			case dlg_function::GAUSSIAN:
-			{
-				dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
-				dlg_gaussian * newGaussian = new dlg_gaussian(m_mdiChild->getHistogram(), PredefinedColors()[i % 7]);
-
-				newGaussian->setMean(oldGaussian->getMean());
-				newGaussian->setMultiplier(oldGaussian->getMultiplier());
-				newGaussian->setSigma(oldGaussian->getSigma());
-
-				m_mdiChild->getFunctions().push_back(newGaussian);
-			}
-				break;
-			case dlg_function::BEZIER:
-			{
-				dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
-				dlg_bezier * newBezier = new dlg_bezier(m_mdiChild->getHistogram(), PredefinedColors()[i % 7]);
-
-				for (unsigned int j = 0; j<oldBezier->getPoints().size(); ++j)
-					newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
-
-				m_mdiChild->getFunctions().push_back(newBezier);
-			}
-				break;
-			default:
-				// unknown function type, do nothing
-				break;
-			}
-		}
-
-	}
-	else
-	{
-		m_mdiChild = actChild;
-	}
+	PrepareResultChild(caption);
 	m_mdiChild->addStatusMsg(caption);
-
-	return inpImage;
+	m_mainWnd->statusBar()->showMessage(caption, 5000);
+	return m_childData.imgData;
 }
 
 void iATransformationsModuleInterface::rotate()
@@ -147,39 +96,34 @@ void iATransformationsModuleInterface::rotate()
 	QList<QVariant> inPara; 	inPara
 		<< 0 << rotAxes << rotCenter << 0 << 0 << 0;
 
-	dlg_commoninput dlg(m_mainWnd, tr("Rotation parameters"), inList.size(), inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, tr("Rotation parameters"), inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
 	//get rot axes
 	int k = 0;
-	QList<int> indices = dlg.getComboBoxIndices();
-	QList<qreal> values = dlg.getValues();
+	qreal rotAngle = dlg.getDblValue(k++);
+	int rotAxesIdx = dlg.getComboBoxIndex(k++);
+	int rotCenterIdx = dlg.getComboBoxIndex(k++);
+	qreal cx = dlg.getDblValue(k++);
+	qreal cy = dlg.getDblValue(k++);
+	qreal cz = dlg.getDblValue(k++);
 
-	qreal rotAngle = values[k++];
-	int rotAxesIdx = indices[k++];
-	int rotCenterIdx = indices[k++];
-	qreal cx = values[k++];
-	qreal cy = values[k++];
-	qreal cz = values[k++];
-
-	QString filterName = tr("Transformations: Rotate");
+	QString filterName = "Rotated";
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-		
-		thread->setTransformationType(iATransformations::Rotation);
-		thread->setRotationCenterCoordinate(cx, cy, cz);
-		thread->setRotationAngle(rotAngle);
-		thread->setRotationAxes(axes[rotAxesIdx]);
-		thread->setRotationCenter(center[rotCenterIdx]);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setTransformationType(iATransformations::Rotation);
+	thread->setRotationCenterCoordinate(cx, cy, cz);
+	thread->setRotationAngle(rotAngle);
+	thread->setRotationAxes(axes[rotAxesIdx]);
+	thread->setRotationCenter(center[rotCenterIdx]);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }
 
 void iATransformationsModuleInterface::translate()
@@ -189,7 +133,7 @@ void iATransformationsModuleInterface::translate()
 	QList<QVariant> inPara; 	
 	inPara << 0 << 0 << 0;
 
-	dlg_commoninput dlg(m_mainWnd, tr("Translation parameters"), inList.size(), inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, tr("Translation parameters"), inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
@@ -197,25 +141,22 @@ void iATransformationsModuleInterface::translate()
 	//here set to be minus, because itk translate the origin
 	//of the coordinate system, hence opposite to the image translation
 	int k = 0;
-	QList<qreal> values = dlg.getValues();
-	qreal tx = -values[k++];
-	qreal ty = -values[k++];
-	qreal tz = -values[k++];
+	qreal tx = -dlg.getDblValue(k++);
+	qreal ty = -dlg.getDblValue(k++);
+	qreal tz = -dlg.getDblValue(k++);
 
-	QString filterName = tr("Transformations: Translate");
+	QString filterName = "Translated";
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-
-		thread->setTransformationType(iATransformations::Translation);
-		thread->setTranslation(tx, ty, tz);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setTransformationType(iATransformations::Translation);
+	thread->setTranslation(tx, ty, tz);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }
 
 void iATransformationsModuleInterface::flip()
@@ -224,19 +165,19 @@ void iATransformationsModuleInterface::flip()
 	if (action == NULL)
 		return;
 	QChar flipAxes = action->data().toChar();
-	QString filterName = tr("Transformations: Flip axes ") + flipAxes;
+
+	QString filterName = "Flipped axis " + QString(flipAxes);
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-		thread->setFlipAxes(flipAxes);
-		thread->setTransformationType(iATransformations::Flip);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setFlipAxes(flipAxes);
+	thread->setTransformationType(iATransformations::Flip);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }
 
 void iATransformationsModuleInterface::permute()
@@ -245,17 +186,16 @@ void iATransformationsModuleInterface::permute()
 	if (action == NULL)
 		return;
 	QString order = action->data().toString();
-	QString filterName = tr("Transformations: Change coordinate ") + order;
+	QString filterName = "Changed coordinate " + order;
 	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage != NULL)
+	if (inpImage == NULL)
 	{
-		//execute
-		iATransformations * thread = new iATransformations(filterName, UNKNOWN_FILTER,
-			inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-		thread->setPermuteAxesOrder(order);
-		thread->setTransformationType(iATransformations::PermuteAxes);
-		m_mdiChild->connectThreadSignalsToChildSlots(thread);
-		thread->start();
-		m_mainWnd->statusBar()->showMessage(filterName, 5000);
+		return;
 	}
+	iATransformations * thread = new iATransformations(filterName,
+		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
+	thread->setPermuteAxesOrder(order);
+	thread->setTransformationType(iATransformations::PermuteAxes);
+	m_mdiChild->connectThreadSignalsToChildSlots(thread);
+	thread->start();
 }

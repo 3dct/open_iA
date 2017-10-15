@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAHessianModuleInterface.h"
 
@@ -29,6 +28,8 @@
 
 void iAHessianModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menucomputeHessianEigenanalysis = getMenuWithTitle(filtersMenu, QString( "Hessian and Eigenanalysis" ) );
 	QAction * actioncomputeHessianEigenanalysis = new QAction(QApplication::translate("MainWindow", "Compute Hessian and Eigenanalysis", 0), m_mainWnd);
@@ -57,18 +58,18 @@ void iAHessianModuleInterface::computeHessianEigenanalysis( int nr )
 	QStringList inList = (QStringList() << tr( "#Sigma" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( chefSigma );
 
-	dlg_commoninput dlg( m_mainWnd, "Parameters for the Hessian matrix", 1, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Parameters for the Hessian matrix", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	chefSigma = dlg.getValues()[0];
+	chefSigma = dlg.getDblValue(0);
 	//prepare
-	QString filterName = tr( "Computing Hessian and Eigenanalyis" );
+	QString filterName = "Hessian and Eigenanalyis";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
-	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis( filterName, COMPUTEHESSIANEIGENANALYSIS,
+	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis( filterName, HESSIANEIGENANALYSIS,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	m_mdiChild->addMsg( "----------" );
@@ -107,20 +108,20 @@ void iAHessianModuleInterface::computeLaplacian()
 	QStringList inList = (QStringList() << tr("#Sigma"));
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(chefSigma);
 
-	dlg_commoninput dlg(m_mainWnd, "Parameters for the Laplacian matrix", 1, inList, inPara, NULL);
+	dlg_commoninput dlg(m_mainWnd, "Parameters for the Laplacian matrix", inList, inPara, NULL);
 
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	chefSigma = dlg.getValues()[0];
+	chefSigma = dlg.getDblValue(0);
 
 	//prepare
-	QString filterName = tr("Computing Laplacian of Gaussian");
+	QString filterName = "Laplacian of Gaussian";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 
 	//execute
-	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis(filterName, COMPUTE_LAPLACIAN,
+	iAHessianEigenanalysis* thread = new iAHessianEigenanalysis(filterName, LAPLACIAN,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 
 	m_mdiChild->connectThreadSignalsToChildSlots(thread);

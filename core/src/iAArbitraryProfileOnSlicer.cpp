@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAArbitraryProfileOnSlicer.h"
 
@@ -49,9 +48,6 @@ void iAArbitraryProfileOnSlicer::setPointScaling( double scaling )
 		m_points[i].source->SetOuterRadius(m_radius);
 }
 
-iAArbitraryProfileOnSlicer::~iAArbitraryProfileOnSlicer()
-{
-}
 
 iAArbitraryProfileOnSlicer::iAArbitraryProfileOnSlicer()
 	: m_radius(ARB_RADIUS),
@@ -128,10 +124,6 @@ int iAArbitraryProfileOnSlicer::setup( int pointInd, double * pos3d, double * po
 	double * spacing	= imgData->GetSpacing();
 	double * origin		= imgData->GetOrigin();	
 	int * dimensions	= imgData->GetDimensions();
-
-	for (int i=0; i<2; ++i)
-		if(pos2d[i] < origin[i] || pos2d[i] >= origin[i] + dimensions[i]*spacing[i])
-			return 0;
 
 	m_profLine.points->SetPoint(pointInd, pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD); 
 

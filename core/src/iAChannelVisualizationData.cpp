@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -96,25 +96,9 @@ void iAChannelSlicerData::Assign(vtkSmartPointer<vtkImageData> imageData, QColor
 
 void iAChannelSlicerData::SetupOutput( vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf )
 {
-	double rgb[3];
-	double range[2]; image->GetScalarRange( range );
-	m_lut->SetRange( range );
-	const int numCols = 1024;
-	m_lut->SetNumberOfColors( numCols );
-	double alpha;// = otf->GetValue( image->GetScalarRange()[0] );
-	//double deltaAlpha = (otf->GetValue(image->GetScalarRange()[1] ) - alpha) / (numCols - 1);
-	double scalVal = range[0];
-	double scalValDelta = (range[1] - range[0]) / (numCols - 1);
-	for( int i = 0; i < numCols; ++i )
-	{
-		ctf->GetColor( scalVal, rgb );
-		alpha = otf->GetValue( scalVal );
-		m_lut->SetTableValue( i, rgb[0], rgb[1], rgb[2], alpha );//m_lut->SetTableValue( i, rgb[0], rgb[1], rgb[2], 1 );
-		//alpha += deltaAlpha;
-		scalVal += scalValDelta;
-	}
-	m_lut->Build();
-	
+	m_ctf = ctf;
+	m_otf = otf;
+	UpdateLUT();
 	colormapper->SetLookupTable( m_lut );//colormapper->SetLookupTable( ctf );
 	colormapper->PassAlphaToOutputOn();
 	colormapper->SetInputConnection(reslicer->GetOutputPort() );
@@ -122,10 +106,30 @@ void iAChannelSlicerData::SetupOutput( vtkScalarsToColors* ctf, vtkPiecewiseFunc
 	imageActor->SetInputData( colormapper->GetOutput() );
 }
 
+void iAChannelSlicerData::UpdateLUT()
+{
+	double rgb[3];
+	double range[2]; image->GetScalarRange(range);
+	m_lut->SetRange(range);
+	const int numCols = 1024;
+	m_lut->SetNumberOfTableValues(numCols);
+	double scalVal = range[0];
+	double scalValDelta = (range[1] - range[0]) / (numCols - 1);
+	for (int i = 0; i < numCols; ++i)
+	{
+		m_ctf->GetColor(scalVal, rgb);
+		double alpha = m_otf->GetValue(scalVal);
+		m_lut->SetTableValue(i, rgb[0], rgb[1], rgb[2], alpha);
+		scalVal += scalValDelta;
+	}
+	m_lut->Build();
+}
+
 void iAChannelSlicerData::Init(iAChannelVisualizationData * chData, int mode)
 {
 	m_isInitialized = true;
 	Assign(chData->GetImage(), chData->GetColor());
+	m_name = chData->GetName();
 
 	reslicer->SetOutputDimensionality( 2 );
 	reslicer->SetInterpolationModeToCubic();
@@ -158,6 +162,7 @@ void iAChannelSlicerData::UpdateResliceAxesDirectionCosines( int mode )
 void iAChannelSlicerData::ReInit(iAChannelVisualizationData * chData)
 {
 	Assign(chData->GetImage(), chData->GetColor());
+	m_name = chData->GetName();
 
 	reslicer->UpdateWholeExtent();
 	reslicer->Update();
@@ -239,6 +244,14 @@ void iAChannelSlicerData::SetContoursOpacity( double opacity )
 	cActor->GetProperty()->SetOpacity( opacity );
 }
 
+
+QString iAChannelSlicerData::GetName() const
+{
+	return m_name;
+}
+
+
+
 iAChannelVisualizationData::iAChannelVisualizationData():
 	piecewiseFunction(NULL),
 	colorTransferFunction(NULL),
@@ -303,6 +316,12 @@ void iAChannelVisualizationData::SetOpacityTF(vtkPiecewiseFunction* oTF)
 	piecewiseFunction = oTF;
 }
 
+
+void iAChannelVisualizationData::SetName(QString name)
+{
+	m_name = name;
+}
+
 void iAChannelVisualizationData::SetColor(QColor const & col)
 {
 	color = col;
@@ -343,4 +362,9 @@ void ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageDa
 	chData->SetImage(image);
 	chData->SetColorTF(ctf);
 	chData->SetOpacityTF(otf);
+}
+
+QString iAChannelVisualizationData::GetName() const
+{
+	return m_name;
 }

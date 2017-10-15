@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -36,7 +36,6 @@
 #include "ui_sliceYZ.h"
 
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
 
 #include <QFileInfo>
 #include <QMainWindow>
@@ -60,17 +59,15 @@ class vtkPoints;
 class vtkPolyData;
 class vtkRenderWindow;
 class vtkScalarsToColors;
-class vtkTable;
 class vtkTransform;
 
-class dlg_renderer;
 class dlg_function;
 class dlg_imageproperty;
 class dlg_modalities;
 class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
-class iAAlgorithms;
+class iAAlgorithm;
 class iAChannelVisualizationData;
 class iAHistogramWidget;
 class iAIO;
@@ -88,6 +85,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
+typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>   dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
@@ -106,17 +104,17 @@ public:
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
 	void waitForPreviousIO();
 
-	MdiChild(MainWindow * mainWnd);
+	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
 
 	void newFile();
 	void showPoly();
 	bool loadFile(const QString &f, bool isStack);
+	bool loadRaw(const QString &f);
 	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
 	bool save();
 	bool saveAs();
-	bool saveAsImageStack();
-	bool saveFile(const QString &f);
+	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
@@ -127,7 +125,8 @@ public:
 	bool rcview() { maximizeRC(); return true; };
 	bool linkViews( bool l ) { link(l); return true; }
 	bool linkMDIs( bool l ) { linkM(l); return true; }
-	bool editPrefs(iAPreferences const & p, bool init );
+	bool editPrefs(iAPreferences const & p);
+	void ApplyViewerPreferences();
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
@@ -167,17 +166,13 @@ public:
 	iAPreferences    const & GetPreferences()    const;
 	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
-	void connectThreadSignalsToChildSlots(iAAlgorithms* thread, bool providesProgress = true, bool usesDoneSignal = false);
+	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
+	void connectIOThreadSignals(iAIO* thread);
 	bool isHessianComputed() { return hessianComputed; }
 	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
 	vtkPiecewiseFunction * getPiecewiseFunction();
 	vtkColorTransferFunction * getColorTransferFunction();
 	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
-
-	// TODO: move out of here ---------->
-	bool LoadCsvFile(FilterID fid, const QString &fileName);
-	vtkTable * getMdCsvTable() { return mdCsvTable.GetPointer(); }
-	// <---------- end
 
 	//! deprecated; use getImagePointer instead!
 	vtkImageData* getImageData();
@@ -197,6 +192,7 @@ public:
 	dlg_sliceXY * getSlicerDlgXY();
 	dlg_sliceXZ	* getSlicerDlgXZ();
 	dlg_sliceYZ	* getSlicerDlgYZ();
+	dlg_renderer * getRendererDlg();
 	dlg_imageproperty * getImagePropertyDlg();
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return preferences.ResultInNewWindow; }
@@ -253,10 +249,9 @@ public:
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
-	void SetMagicLensInput(iAChannelID id, bool initReslicer, std::string const & caption);
+	void SetMagicLensInput(iAChannelID id, bool initReslicer);
 	void SetMagicLensEnabled(bool isOn);
-	void SetMagicLensCaption(std::string const & caption);
-	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, std::string const & caption);
+	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
 	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
@@ -267,12 +262,28 @@ public:
 	int getYCoord() const { return yCoord; }
 	int getZCoord() const { return zCoord; }
 
-	MainWindow* getM_mainWnd();
+	MainWindow* getMainWnd();
 	void HideHistogram();
 	//! apply current rendering settings of this mdi child to the given iARenderer
 	void ApplyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
 	void ApplyVolumeSettings();
+	bool HasUnsavedChanges() const;
+	void SetUnsavedChanges(bool b);
+	QString GetLayoutName() const;
+	void LoadLayout(QString const & layout);
+
+	//! if more than one modality loaded, ask user to choose one of them
+	//! (currently used for determining which modality to save)
+	int chooseModalityNr(QString const & caption = "Choose Channel");
+	//! if given modality has more than one component, ask user to choose one of them
+	//! (currently used for determining which modality to save)
+	int chooseComponentNr(int modalityNr);
+
+	//! workaround for bug in splitDockWidget (see https://bugreports.qt.io/browse/QTBUG-60093)
+	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
+	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -287,6 +298,7 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
+	void TransferFunctionChanged();
 
 private slots:
 	void maximizeRC();
@@ -331,6 +343,9 @@ private slots:
 	void updated(int state, QString text);
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
+	void updateImageProperties();
+	void clearLogs();
+	void ModalityTFChanged();
 
 public slots:
 	void updateProgressBar(int i);
@@ -367,7 +382,6 @@ public slots:
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
 	void UpdateProbe(int ptIndex, double * newPos);
 	void resetLayout();
-
 private:
 	void closeEvent(QCloseEvent *event);
 	bool addImageProperty( );
@@ -384,7 +398,7 @@ private:
 	void changeVisibility(unsigned char mode);
 	int getVisibility() const;
 	void hideVolumeWidgets();
-	void visibilityBlock(QList<QSpacerItem*> spacerItems, QList<QWidget*> widgets, bool show);
+	void setVisibility(QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
 	virtual void resizeEvent ( QResizeEvent * event );
 
@@ -404,14 +418,15 @@ private:
 	QString strippedName(const QString &f);
 	
 	//! sets up the IO thread for saving the correct file type for the given filename.
-	//!
 	//! \return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f);
+	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
-	//!
 	//! \return	true if it succeeds, false if it fails.
 	bool setupLoadIO(QString const & f, bool isStack);
+
+	// adds an algorithm to the list of currently running jobs
+	void addAlgorithm(iAAlgorithm* thread);
 
 	QFileInfo fileInfo;
 
@@ -449,9 +464,9 @@ private:
 	
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
-	bool IsOnlyPolyDataLoaded();
+	bool IsVolumeDataLoaded() const;
 
-	vtkSmartPointer<vtkImageData> imageData;
+	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
 	vtkTransform* axesTransform;
 	vtkTransform* slicerTransform;
@@ -466,16 +481,8 @@ private:
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
-	
-	// TODO: move out of here ---------->
-	bool LoadCsvFile(vtkTable *table, FilterID fid);
-	bool LoadCsvFile(vtkTable *table, FilterID fid, const QString &fileName);
-	//! csv file to table
-	vtkSmartPointer<vtkTable> mdCsvTable;
-	// <---------- end
 
-	bool saveNative;
-	std::vector<iAAlgorithms*> workingAlgorithms;
+	std::vector<iAAlgorithm*> workingAlgorithms;
 
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;
 
@@ -490,19 +497,23 @@ private:
 	bool raycasterInitialized;
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
+	QString m_layout;
+	vtkSmartPointer<vtkImageData> tmpSaveImg;	//< TODO: get rid of this (by introducing smart pointer in iAIO/ iAlgorithm?
 
 	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
+	int m_currentComponent;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
+	bool m_unsavedChanges;
+	int m_storedModalityNr;		// modality nr being stored
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
-	void ChangeImage(vtkSmartPointer<vtkImageData> img);
+	void ShowModality(int modIdx);
+	void SaveFinished();
 private:
 	int GetCurrentModality() const;
-	void SetCurrentModality(int modality);
-	void ChangeImage(vtkSmartPointer<vtkImageData> img, std::string const & caption);
 	void InitModalities();
 	void InitVolumeRenderers();
 public:

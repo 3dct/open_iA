@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -24,7 +24,7 @@
 
 #include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
-#include "dlg_renderer.h"
+#include "dlg_transfer.h"
 #include "iAAccumulatedXRFData.h"
 #include "iAChannelVisualizationData.h"
 #include "iACharacteristicEnergy.h"
@@ -66,6 +66,7 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkImageData.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
@@ -109,7 +110,7 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	gb_pieGlyphsSettings->hide();
 
 	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData> (new iAEnergySpectrumDiagramData(m_xrfData.data()));
-	m_voxelSpectrumDrawer = QSharedPointer<iAFilledLineFunctionDrawer>(new iAFilledLineFunctionDrawer(m_voxelEnergy, QColor(150, 0, 0)));
+	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionDrawer>(new iAStepFunctionDrawer(m_voxelEnergy, QColor(150, 0, 0)));
 
 	m_selectedBinXDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 150, 0, 0, 50 ) ) );
 	m_selectedBinYDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 0, 0, 150, 50 ) ) );
@@ -191,7 +192,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
 
-	m_spectrumDiagram->setColorTransferFunctionChangeListener(this);
+	connect((dlg_transfer*)(m_spectrumDiagram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(SpectrumTFChanged()));
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
@@ -236,9 +237,6 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_refSpectra->cb_showRefSpectra->setEnabled(true);
 	m_refSpectra->cb_showRefLines->setEnabled(true);
 	pb_decompose->setEnabled(true);
-
-	// only required if spectra are loaded:
-	connect ( cb_spectrumProbing, SIGNAL( stateChanged(int) ), this, SLOT( showVoxelSpectrum(int) ) );
 }
 
 void dlg_XRF::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */iAWidgetAddHelper & widgetAddHelper)
@@ -392,7 +390,7 @@ QSharedPointer<iAAbstractDiagramData> dlg_XRF::GetVoxelSpectrum()
 }
 
 
-void dlg_XRF::onFunctionChanged()
+void dlg_XRF::SpectrumTFChanged()
 {
 	m_ctfChanged = true;
 }
@@ -545,7 +543,7 @@ void dlg_XRF::updateFunctionalBoxplot(int show)
 	{
 		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->GetFunctionalBoxPlot(),
 			m_xrfData->size(),
-			m_accumulatedXRF->GetMaxValue());
+			m_accumulatedXRF->YBounds()[1]);
 		m_spectrumDiagram->AddImageOverlay(m_functionalBoxplotImage);
 	}
 	else
@@ -1417,9 +1415,9 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
-		m_accumulatedXRF->GetMaxValue()));
+		m_accumulatedXRF->YBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
-	QSharedPointer<iAFilledLineFunctionDrawer> drawable(new iAFilledLineFunctionDrawer(data, color));
+	QSharedPointer<iAStepFunctionDrawer> drawable(new iAStepFunctionDrawer(data, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
 	m_spectrumDiagram->AddDataset(drawable);
 	m_spectrumDiagram->redraw();

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef IARANGESLIDERDIAGRAMDATA_H
-#define IARANGESLIDERDIAGRAMDATA_H
+#pragma once
 
 #include "iAAbstractDiagramData.h"
 
@@ -34,53 +32,30 @@ public:
 	void updateRangeSliderFunction();
 	
 	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
+	virtual size_t GetNumBin() const override;
 
-	virtual double GetSpacing() const
+	virtual double GetSpacing() const override
 	{
 		if ( GetNumBin() <= 1 )
 			return 0.0;
 		
-		return ( m_range[1] - m_range[0] ) / (GetNumBin() - 1.0);
+		return ( m_xBounds[1] - m_xBounds[0] ) / (GetNumBin() - 1.0);
 	}
 
-	virtual double * GetDataRange()
+	virtual double const * XBounds() const override
 	{
-		return m_range;
+		return m_xBounds;
 	}
 
-	virtual double GetDataRange( int idx ) const
+	virtual DataType const * YBounds() const override
 	{
-		return m_range[idx];
-	}
-
-	virtual DataType GetMaxValue() const 
-	{
-		double max = 0;
-		for ( int i = 0; i < m_rangeSliderData.size(); ++i )
-		{
-			if ( m_rangeSliderData.at( i ) > max )
-				max = m_rangeSliderData.at( i );
-		}
-		return max;
-	}
-
-	virtual DataType GetMinValue() const
-	{
-		double min = 0;
-		for ( int i = 0; i < m_rangeSliderData.size(); ++i )
-		{
-			if ( m_rangeSliderData.at( i ) < min )
-				min = m_rangeSliderData.at( i );
-		}
-		return min;
+		return m_yBounds;
 	}
 
 private:
 	DataType* m_rangeSliderFunction;
 	QList<double> m_rangeSliderData;
 
-	double m_range[2];
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 };
-
-#endif /* IARANGESLIDERDIAGRAMDATA_H */

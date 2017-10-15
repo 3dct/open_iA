@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -56,14 +56,14 @@
  * This class servers the iARenderer class to observe mouse movement and to extract coordinates
  * and the corresponding data "below" the mouse pointer. 
  */
-class open_iA_Core_API RenderObserver : public QObject, public vtkCommand
+class open_iA_Core_API iARenderObserver : public QObject, public vtkCommand
 {
 	Q_OBJECT
 
 	enum Axis { X_AXIS = 1, Y_AXIS, Z_AXIS };
 
 public:
-	RenderObserver(vtkRenderer* pRen,
+	iARenderObserver(vtkRenderer* pRen,
 						 vtkRenderer* pLabelRen,
 						 vtkRenderWindowInteractor* pIren,
 						 vtkPicker* pPicker,
@@ -74,9 +74,9 @@ public:
 						 vtkPlane* plane3,
 						 vtkCellLocator * cellLocator
 						 );
-	~RenderObserver();
+	~iARenderObserver();
 
-	static RenderObserver *New(vtkRenderer* pRen,
+	static iARenderObserver *New(vtkRenderer* pRen,
 									 vtkRenderer* pLabelRen,
 									 vtkRenderWindowInteractor* pIren,
 									 vtkPicker* pPicker,
@@ -138,4 +138,5 @@ private:
 
 Q_SIGNALS:
 	void Clicked(int x, int y, int z);
+	void InteractorModeSwitched(int newMode);
 };

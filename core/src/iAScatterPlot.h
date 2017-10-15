@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,21 +15,21 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "open_iA_Core_export.h"
 
 #include <QGLWidget>
-#include <QWidget>
-#include <QScopedPointer>
-#include <QOpenGLFramebufferObject>
 #include <QList>
+#include <QOpenGLFramebufferObject>
+#include <QScopedPointer>
+#include <QWidget>
 
-class iAQSplom;
 class iALookupTable;
+class iAScatterPlotSelectionHandler;
 class iASPLOMData;
 class QTableWidget;
 class QTimer;
@@ -48,13 +48,13 @@ class open_iA_Core_API iAScatterPlot : public QObject
 		//Methods
 public:
 	//!  Constructor: requires a parent SPLOM widget
-	iAScatterPlot( iAQSplom * splom = 0, int numTicks = 5, bool isMaximizedPlot = false );
+	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData );			//!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
 	bool hasData() const;															//!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
-	void setLookupTable( QSharedPointer<iALookupTable> &lut, QString & colorArrayName );
+	void setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName );
 	const int * getIndices() const { return m_paramIndices; }						//!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );							//!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );					//!< Set new transform: new scale and change in the offset (delta)
@@ -154,16 +154,15 @@ protected:
 		QColor tickLineColor;
 		QColor tickLabelColor;
 		QColor backgroundColor;
-		QColor popupBorderColor;
-		QColor popupFillColor;
-		QColor popupTextColor;
+		QColor selectionColor;
 	};
 
 	//Members
 public:
 	Settings settings;
 protected:
-	iAQSplom * m_splom;				//!< SPLOM-parent
+	QGLWidget* m_parentWidget;					//!< the parent widget
+	iAScatterPlotSelectionHandler * m_splom;	//!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;							//!< plot's rectangle
 	QRectF m_locRect;							//!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;	//!< pointer to SPLOM-parent's data

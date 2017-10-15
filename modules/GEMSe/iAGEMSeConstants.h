@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -109,20 +109,6 @@ const int CameraSpacing   = ExampleViewSpacing;
 const int FavoriteBarWidth = 80;
 const int FavoriteWidth    = FavoriteBarWidth - (2 * ExampleViewSpacing);
 
-const int MeasureCount = 5;
-
-enum DerivedOutput
-{
-	objectCount,
-	duration,
-	diceMetric,
-	kappa,
-	overallAcc,
-	precision,
-	recall,
-	DerivedOutputCount
-};
-
 
 struct DefaultColors
 {
@@ -155,39 +141,16 @@ struct DefaultColors
 	static const QBrush CaptionBrush;
 };
 
-struct Output
-{
-	static const QString NameSeparator;
-	static const QString ValueSeparator;
-	static const QString OptionalParamSeparator;
-};
 
-
-const QString SMPFileVersion("v6");
-const QString SMPFileFormatVersion("SamplingParameters File " + SMPFileVersion);
-
-const QString AttributeSplitString("\t");
+const QString SMPFileVersion("v8");
+const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
 const QString ValueSplitString(" ");
-const QString CategoricalValueSplitString(",");
-
-// Attribute Types:
-const QString ParameterStr("Parameter");
-const QString DerivedOutputStr("Derived Output");
-
-// Value Types:
-const QString ContinuousStr("Continuous");
-const QString DiscreteStr("Discrete");
-const QString CategoricalStr("Categorical");
-
-const QString LinearStr("Linear");
-const QString LogarithmicStr("Logarithmic");
-
-const QString UnknownStr("Unknown");
 
 enum iARepresentativeType
 {
 	Difference,
 	AverageEntropy,
 	AverageLabel,
-	LabelDistribution
+	LabelDistribution,
+	Correctness,
 };

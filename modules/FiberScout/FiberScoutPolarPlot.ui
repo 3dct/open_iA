@@ -12,8 +12,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>246</width>
-    <height>80</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="features">
@@ -151,7 +151,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QVTKWidget" name="plotWidget"/>
+     <widget class="QVTKWidget" name="plotWidget" native="true"/>
     </item>
    </layout>
   </widget>

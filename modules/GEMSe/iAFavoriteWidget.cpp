@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAFavoriteWidget.h"
 
@@ -33,10 +32,11 @@
 
 typedef QVBoxLayout LikeLayoutType;
 
+
 iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	m_previewPool(previewPool)
 {
-	QWidget* favListWdgt = new QWidget();
+	QWidget* favListWdgt = this;
 	QHBoxLayout* favListLayout = new QHBoxLayout();
 	favListLayout->setSpacing(0);
 	favListLayout->setMargin(0);
@@ -49,7 +49,6 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	m_likeLayout->setSpacing(ExampleViewSpacing);
 	m_likeLayout->setContentsMargins(ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing);
 	m_likeLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	//m_likeLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 	likes->setLayout(m_likeLayout);
 	likes->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	likes->setStyleSheet("background-color: #DFD;");
@@ -57,51 +56,51 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	favListLayout->addWidget(likes);
 	
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	SetCaptionedContent(this, "Favorites", favListWdgt);
-	setFixedWidth(FavoriteBarWidth);
 }
+
 
 bool iAFavoriteWidget::HasAnyFavorite() const
 {
 	return m_favorites.size() > 0;
 }
 
-bool iAFavoriteWidget::ToggleLike(iAImageClusterNode * node)
+
+bool iAFavoriteWidget::ToggleLike(iAImageTreeNode * node)
 {
 	if (!node)
 	{
 		DEBUG_LOG("ERROR in favorites: ToggleLike called for NULL node.\n");
 		return false;
 	}
-	if (node->GetAttitude() == iAImageClusterNode::Liked)
+	if (node->GetAttitude() == iAImageTreeNode::Liked)
 	{
-		node->SetAttitude(iAImageClusterNode::NoPreference);
+		node->SetAttitude(iAImageTreeNode::NoPreference);
 		Remove(node);
 		return false;
 	}
 	else
 	{
-		node->SetAttitude(iAImageClusterNode::Liked);
+		node->SetAttitude(iAImageTreeNode::Liked);
 		Add(node);
 		return true;
 	}
 }
 
-bool iAFavoriteWidget::ToggleHate(iAImageClusterNode * node)
+bool iAFavoriteWidget::ToggleHate(iAImageTreeNode * node)
 {
 	if (!node)
 	{
 		DEBUG_LOG("ERROR in favorites: ToggleHate called for NULL node.\n");
 		return false;
 	}
-	if (node->GetAttitude() == iAImageClusterNode::Hated)
+	if (node->GetAttitude() == iAImageTreeNode::Hated)
 	{
-		node->SetAttitude(iAImageClusterNode::NoPreference);
+		node->SetAttitude(iAImageTreeNode::NoPreference);
 		return false;
 	}
 	else
 	{
-		if (node->GetAttitude() == iAImageClusterNode::Liked)
+		if (node->GetAttitude() == iAImageTreeNode::Liked)
 		{
 			int idx = GetIndexForNode(node);
 			if (idx == -1)
@@ -117,14 +116,15 @@ bool iAFavoriteWidget::ToggleHate(iAImageClusterNode * node)
 			}
 			m_likeLayout->removeWidget(widget);
 		}
-		node->SetAttitude(iAImageClusterNode::Hated);
+		node->SetAttitude(iAImageTreeNode::Hated);
 		return true;
 	}
 }
 
-void iAFavoriteWidget::Add(iAImageClusterNode * node)
+
+void iAFavoriteWidget::Add(iAImageTreeNode * node)
 {
-	if (!node || node->GetAttitude() != iAImageClusterNode::Liked)
+	if (!node || node->GetAttitude() != iAImageTreeNode::Liked)
 	{
 		return;
 	}
@@ -135,15 +135,17 @@ void iAFavoriteWidget::Add(iAImageClusterNode * node)
 		return;
 	}
 	widget->setFixedSize(FavoriteWidth, FavoriteWidth);
-	widget->SetImage(node->GetRepresentativeImage(iARepresentativeType::Difference), false, true);
+	widget->SetImage(node->GetRepresentativeImage(iARepresentativeType::Difference,
+		LabelImagePointer()), false, true);
 	connect(widget, SIGNAL(Clicked()), this, SLOT(FavoriteClicked()));
+	connect(widget, SIGNAL(RightClicked()), this, SLOT(FavoriteRightClicked()));
 	connect(widget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	m_favorites.push_back(FavoriteData(node, widget));
 	dynamic_cast<LikeLayoutType*>(m_likeLayout)->insertWidget(0, widget);
 }
 
 
-void iAFavoriteWidget::Remove(iAImageClusterNode const * node)
+void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 {
 	if (!node)
 	{
@@ -166,9 +168,11 @@ void iAFavoriteWidget::Remove(iAImageClusterNode const * node)
 	m_favorites[idx].widget = 0;
 	m_favorites.remove(idx);
 	disconnect(widget, SIGNAL(Clicked()), this, SLOT(FavoriteClicked()));
+	disconnect(widget, SIGNAL(RightClicked()), this, SLOT(FavoriteRightClicked()));
 	disconnect(widget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	m_previewPool->ReturnWidget(widget);
 }
+
 
 void iAFavoriteWidget::FavoriteClicked()
 {
@@ -177,7 +181,7 @@ void iAFavoriteWidget::FavoriteClicked()
 	{
 		DEBUG_LOG("FavoriteClicked: Error: invalid sender!\n");
 	}
-	iAImageClusterNode * node = GetNodeForWidget(widget);
+	iAImageTreeNode * node = GetNodeForWidget(widget);
 	if (!node)
 	{
 		DEBUG_LOG("FavoriteClicked: Error: node not found!\n");
@@ -186,7 +190,23 @@ void iAFavoriteWidget::FavoriteClicked()
 }
 
 
-int iAFavoriteWidget::GetIndexForNode(iAImageClusterNode const* node)
+void iAFavoriteWidget::FavoriteRightClicked()
+{
+	iAImagePreviewWidget * widget = dynamic_cast<iAImagePreviewWidget*>(sender());
+	if (!widget)
+	{
+		DEBUG_LOG("FavoriteClicked: Error: invalid sender!\n");
+	}
+	iAImageTreeNode * node = GetNodeForWidget(widget);
+	if (!node)
+	{
+		DEBUG_LOG("FavoriteClicked: Error: node not found!\n");
+	}
+	emit RightClicked(node);
+}
+
+
+int iAFavoriteWidget::GetIndexForNode(iAImageTreeNode const* node)
 {
 	for (int i=0; i<m_favorites.size(); ++i)
 	{
@@ -198,7 +218,8 @@ int iAFavoriteWidget::GetIndexForNode(iAImageClusterNode const* node)
 	return -1;
 }
 
-iAImageClusterNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widget)
+
+iAImageTreeNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* widget)
 {
 	for (FavoriteData const & data: m_favorites)
 	{
@@ -211,9 +232,9 @@ iAImageClusterNode * iAFavoriteWidget::GetNodeForWidget(iAImagePreviewWidget* wi
 }
 
 
-QVector<iAImageClusterNode const *> iAFavoriteWidget::GetFavorites(iAImageClusterNode::Attitude att) const
+QVector<iAImageTreeNode const *> iAFavoriteWidget::GetFavorites(iAImageTreeNode::Attitude att) const
 {
-	QVector<iAImageClusterNode const *> result;
+	QVector<iAImageTreeNode const *> result;
 	for (FavoriteData const & data : m_favorites)
 	{
 		if (data.node->GetAttitude() == att)

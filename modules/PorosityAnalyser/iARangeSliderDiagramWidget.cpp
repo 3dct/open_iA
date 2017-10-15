@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -87,7 +87,7 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 {
 	std::vector<dlg_function*>::iterator it = functions.begin();
 	dlg_function *func = *( it + selectedFunction );
-	int x = event->x() - getLeftMargin();
+	int x = event->x() - LeftMargin();
 	int selectedPoint = func->selectPoint( event, &x );
 
 	if ( event->button() == Qt::RightButton )
@@ -131,7 +131,7 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 				m_addedHandles.append( m_firstSelectedBin );
 			}
 		}
-		else if ( event->y() > geometry().height() - getBottomMargin() - translationY  &&
+		else if ( event->y() > geometry().height() - BottomMargin() - translationY  &&
 				  !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			if ( m_addedHandles.size() < 2 )
@@ -175,7 +175,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 
 			std::vector<dlg_function*>::iterator it = functions.begin();
 			dlg_function *func = *( it + selectedFunction );
-			int x = event->x() - getLeftMargin();
+			int x = event->x() - LeftMargin();
 			int selectedPoint = func->selectPoint( event, &x );
 
 			// don't do anything if outside of diagram region:
@@ -202,7 +202,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 				func->moveSelectedPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + translationX, 0 );
 			}
 		}
-		else if ( event->y() > geometry().height() - getBottomMargin() - translationY )	// mouse event below X-axis
+		else if ( event->y() > geometry().height() - BottomMargin() - translationY )	// mouse event below X-axis
 		{
 			if ( m_addedHandles.size() == 2 )	// there are two handles draw a selection
 			{
@@ -237,12 +237,12 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 
 			m_selectionRubberBand->setGeometry( QRect( m_selectionOrigin, event->pos() ).normalized() );
 		}
-		else if ( event->y() > geometry().height() - getBottomMargin() - translationY
+		else if ( event->y() > geometry().height() - BottomMargin() - translationY
 				  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			std::vector<dlg_function*>::iterator it = functions.begin();
 			dlg_function *func = *( it + selectedFunction );
-			int x = event->x() - getLeftMargin();
+			int x = event->x() - LeftMargin();
 			int selectedPoint = func->getSelectedPoint();
 
 			// don't do anything if not an added handle is selected
@@ -292,7 +292,7 @@ int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 				  .arg( m_yLabel )
 				  .arg( rawData[nthBin] )
 				  .arg( m_xLabel )
-				  .arg( ( GetData()->GetSpacing() * nthBin + GetData()->GetDataRange( 0 ) ) ) );
+				  .arg( ( GetData()->GetSpacing() * nthBin + XBounds()[0] ) ) );
 	QToolTip::showText( event->globalPos(), text, this );
 	return nthBin;
 }
@@ -304,7 +304,7 @@ void iARangeSliderDiagramWidget::setupSelectionDrawer()
 	if ( m_selectionDrawer )
 		RemoveDataset( m_selectionDrawer );
 
-	m_selectionDrawer = QSharedPointer<iAFilledLineFunctionDrawer>( new iAFilledLineFunctionDrawer( m_selectedData, m_selectionColor ) );
+	m_selectionDrawer = QSharedPointer<iAStepFunctionDrawer>( new iAStepFunctionDrawer( m_selectedData, m_selectionColor ) );
 	AddDataset( m_selectionDrawer );
 }
 
@@ -331,7 +331,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 	
 	if ( m_histogramDrawerList.size() )
 	{
-		QListIterator<QSharedPointer<iAFilledLineFunctionDrawer> > it( m_histogramDrawerList );
+		QListIterator<QSharedPointer<iAStepFunctionDrawer> > it( m_histogramDrawerList );
 		while ( it.hasNext() )
 			RemoveDataset( it.next() );
 
@@ -346,8 +346,8 @@ void iARangeSliderDiagramWidget::selectSlot()
 		QSharedPointer<iAAbstractDiagramData> selectedData = QSharedPointer<iAAbstractDiagramData>(
 			new iAFilteringDiagramData( GetData(), row - 1, row - 1 ) );	//-1 cause of DiagramData
 
-		QSharedPointer<iAFilledLineFunctionDrawer> selectionDrawer = QSharedPointer<iAFilledLineFunctionDrawer>(
-			new iAFilledLineFunctionDrawer( selectedData, QColor( Qt::yellow ) ) );
+		QSharedPointer<iAStepFunctionDrawer> selectionDrawer = QSharedPointer<iAStepFunctionDrawer>(
+			new iAStepFunctionDrawer( selectedData, QColor( Qt::yellow ) ) );
 
 		m_histogramDrawerList.append( selectionDrawer );
 		AddDataset( selectionDrawer );
@@ -359,7 +359,7 @@ void iARangeSliderDiagramWidget::deleteSlot()
 {
 	if ( m_histogramDrawerList.size() )
 	{
-		QListIterator<QSharedPointer<iAFilledLineFunctionDrawer> > it( m_histogramDrawerList );
+		QListIterator<QSharedPointer<iAStepFunctionDrawer> > it( m_histogramDrawerList );
 		while ( it.hasNext() )
 			RemoveDataset( it.next() );
 
@@ -392,8 +392,8 @@ QList<int> iARangeSliderDiagramWidget::getSelectedRawTableRows()
 		}
 	}
 
-	double selMinValue = GetData()->GetSpacing() * m_firstSelectedBin + GetData()->GetDataRange( 0 );
-	double selMaxValue = GetData()->GetSpacing() * m_lastSelectedBin + GetData()->GetDataRange( 0 );
+	double selMinValue = GetData()->GetSpacing() * m_firstSelectedBin + XBounds()[0];
+	double selMaxValue = GetData()->GetSpacing() * m_lastSelectedBin + XBounds()[0];
 
 	for ( int i = 1; i < m_rawTable->rowCount(); ++i )
 	{

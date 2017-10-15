@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,21 +15,23 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "iASlicerWidget.h"
 
+#include "iAArbitraryProfileOnSlicer.h"
+#include "iAChannelVisualizationData.h"
+#include "iAFramedQVTKWidget2.h"
+#include "iAMagicLens.h"
+#include "iAMathUtility.h"
+#include "iAPieChartGlyph.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerProfile.h"
-#include "iAArbitraryProfileOnSlicer.h"
 #include "iASnakeSpline.h"
-#include "iAMagicLens.h"
-#include "iAChannelVisualizationData.h"
-#include "iAPieChartGlyph.h"
 
 #include <QVTKInteractorAdapter.h>
 #include <QVTKInteractor.h>
@@ -47,6 +49,7 @@
 #include <QGridLayout>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QBitmap>
 
 #define EPSILON 0.0015
 
@@ -68,13 +71,10 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	m_decorations(decorations)
 {
 	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
-	setCursor(QCursor(Qt::CrossCursor));
-
 	m_imageData = NULL;
 	m_viewMode = NORMAL; // standard m_viewMode
 	m_xInd = m_yInd = m_zInd = 0;
 	m_isInitialized = false;
-
 
 	m_isSliceProfEnabled = false;
 	m_isArbProfEnabled = false;
@@ -126,7 +126,7 @@ void iASlicerWidget::initialize( vtkImageData *imageData, vtkPoints *points )
 	this->m_worldSnakePointsExternal = points;
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->GetActiveCamera()->SetParallelProjection(true);
-
+	
 	if (m_decorations)
 	{
 		m_snakeSpline->initialize(ren, imageData->GetSpacing()[0]);
@@ -229,22 +229,12 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 			// let other slices views know that a new point was created
 			emit addedPoint(result[0], result[1], result[2]);
 		}
-		// call mousePressEvent function of super class without button press information to avoid standard VTK functionality
-		QVTKWidget2::mousePressEvent(new QMouseEvent(QEvent::MouseButtonPress, event->pos(), Qt::NoButton, Qt::NoButton, event->modifiers()));
 	}
 	else
 	{
-		if (!m_decorations && event->modifiers() == Qt::NoModifier)
-		// disable brightness/contrast change happening if no modifier pressed
-		{
-			QVTKWidget2::mousePressEvent(new QMouseEvent(QEvent::MouseButtonPress, event->pos(), Qt::NoButton, Qt::NoButton, event->modifiers()));
-		}
-		else
-		{
-			QVTKWidget2::mousePressEvent(event);
-		}
 		emit Clicked();
 	}
+	QVTKWidget2::mousePressEvent(event);
 }
 
 
@@ -444,18 +434,25 @@ void iASlicerWidget::setSliceProfile(double Pos[3])
 }
 
 
-int iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos)
+bool iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos)
 {
 	if (!m_decorations)
 	{
-		return 1;
+		return false;
+	}
+	double * spacing = m_imageData->GetSpacing();
+	double * origin = m_imageData->GetOrigin();
+	int * dimensions = m_imageData->GetDimensions();
+	for (int i = 0; i < 3; ++i)
+	{
+		Pos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
 	}
 	double profileCoord2d[2] = {Pos[ SlicerXInd(m_slicerMode) ], Pos[ SlicerYInd(m_slicerMode) ]};
 	if( !m_arbProfile->setup(pointInd, Pos, profileCoord2d, m_slicerDataExternal->GetReslicer()->GetOutput()) )
-		return 0;
+		return false;
 	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();
-	return 1;
+	return true;
 }
 
 
@@ -570,6 +567,7 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 
 void iASlicerWidget::slicerUpdatedSlot()
 {
+	setCursor( m_slicerDataExternal->getMouseCursor() );
 	if(m_isSliceProfEnabled)
 		updateProfile();
 }
@@ -643,21 +641,6 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 	updateMagicLens();
 }
 
-
-namespace
-{
-	void drawBorder(QPainter & painter, QPointF const points[4], int const borderWidth)
-	{
-		for(int i=0; i<4; i++)
-		painter.drawLine(
-			points[i].x() + (i==0? borderWidth: (i==2? -borderWidth: 0) ),
-			points[i].y(),
-			points[(i+1)%4].x() + (i==0? -borderWidth: (i==2? borderWidth: 0) ),
-			points[(i+1)%4].y());
-	}
-}
-
-
 void iASlicerWidget::Frame()
 {
 	if(!m_isInitialized)
@@ -666,33 +649,34 @@ void iASlicerWidget::Frame()
 		return;
 	}
 
-	if(	m_magicLensExternal && m_magicLensExternal->Enabled() )
+	if(	m_magicLensExternal && m_magicLensExternal->Enabled() &&
+		(m_magicLensExternal->GetViewMode() == iAMagicLens::SIDE_BY_SIDE ||
+		m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET) &&
+		m_magicLensExternal->GetFrameWidth() > 0)
 	{
 		QPainter painter(this);
-		QPen pen( QColor(255, 255, 255, 150) );
+		QPen pen( QColor(255, 255, 255, 255) );
 		qreal magicLensFrameWidth = m_magicLensExternal->GetFrameWidth();
 		pen.setWidthF(magicLensFrameWidth);
 		painter.setPen(pen);
 		QRect vr = m_magicLensExternal->GetViewRect();
-
-		if( m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET )
+		qreal hw = pen.widthF() * 0.5;
+		int penWidth = static_cast<int>(pen.widthF());
+		const double UpperLeftFix = penWidth % 2;
+		const double HeightWidthFix = (penWidth == 1) ? 1 : 0;
+		QPointF points[4] = {
+			vr.topLeft()     + QPoint(UpperLeftFix + hw, UpperLeftFix + hw),
+			vr.topRight()    + QPoint(HeightWidthFix+1  -hw, UpperLeftFix + hw),
+			vr.bottomRight() + QPoint(HeightWidthFix + 1  -hw, HeightWidthFix + 1  -hw),
+			vr.bottomLeft()  + QPoint(UpperLeftFix + hw, HeightWidthFix + 1 -hw)
+		};
+		drawBorderRectangle(painter, points, magicLensFrameWidth);
+		if (m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET)
 		{
-			QPointF points[4] = { vr.topLeft(), vr.topRight(), vr.bottomRight(), vr.bottomLeft() };
-			drawBorder(painter, points, magicLensFrameWidth);
-			painter.drawLine(	points[1] + QPoint(magicLensFrameWidth, vr.height()*0.35),
-								points[0] + QPoint(m_magicLensExternal->GetOffset(0)+10, +10));
-			painter.drawLine(	points[2] - QPoint(-magicLensFrameWidth, vr.height()*0.35),
-								points[3] + QPoint(m_magicLensExternal->GetOffset(0)+10, -10));
-		}
-		else if( m_magicLensExternal->GetViewMode() == iAMagicLens::SIDE_BY_SIDE )
-		{
-			qreal hw = pen.widthF() * 0.5;
-			QPointF points[4] = {	vr.topLeft()		+ QPoint(-hw, -hw),
-				vr.topRight()		+ QPoint( hw+1, -hw), 
-				vr.bottomRight()	+ QPoint( hw+1,  hw+1), 
-				vr.bottomLeft()		+ QPoint(-hw,  hw+1) };
-			drawBorder(painter, points, magicLensFrameWidth);
-			
+			painter.drawLine(points[1] + QPoint(magicLensFrameWidth - hw, vr.height()*0.35),
+				points[0] + QPoint(m_magicLensExternal->GetOffset() + 10, +10));
+			painter.drawLine(points[2] - QPoint(-magicLensFrameWidth + hw, vr.height()*0.35),
+				points[3] + QPoint(m_magicLensExternal->GetOffset() + 10, -10));
 		}
 	}
 	QVTKWidget2::Frame();
@@ -713,6 +697,7 @@ void iASlicerWidget::changeImageData( vtkImageData * imageData )
 	int		* dim		= m_imageData->GetDimensions();
 	double	* spacing	= m_imageData->GetSpacing();
 	double end[3];
+	// unify this with MdiChild::addProfile somehow?
 	for (int i=0; i<3; i++)
 		end[i] = origin[i] + (dim[i]-1)*spacing[i];
 	setArbitraryProfile(0, origin); setArbitraryProfile(1, end);
@@ -724,6 +709,7 @@ void iASlicerWidget::menuCenteredMagicLens()
 {
 	if (!m_magicLensExternal) return;
 	m_magicLensExternal->SetViewMode(iAMagicLens::CENTERED);
+	updateMagicLens();
 }
 
 
@@ -731,6 +717,7 @@ void iASlicerWidget::menuOffsetMagicLens()
 {
 	if (!m_magicLensExternal) return;
 	m_magicLensExternal->SetViewMode(iAMagicLens::OFFSET);
+	updateMagicLens();
 }
 
 
@@ -738,6 +725,7 @@ void iASlicerWidget::menuSideBySideMagicLens()
 {
 	if (!m_magicLensExternal) return;
 	m_magicLensExternal->SetViewMode(iAMagicLens::SIDE_BY_SIDE);
+	updateMagicLens();
 }
 
 

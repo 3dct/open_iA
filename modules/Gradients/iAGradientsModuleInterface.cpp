@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGradientsModuleInterface.h"
 
@@ -31,6 +30,8 @@ HOAccGradientDerrivativeSettings HOAGDSettings;
 
 void iAGradientsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuGradients = getMenuWithTitle(filtersMenu, QString( "Gradients" ) );
 	QAction * actionGradient_Magnitude = new QAction(QApplication::translate("MainWindow", "Gradient Magnitude", 0), m_mainWnd );
@@ -47,7 +48,7 @@ void iAGradientsModuleInterface::Initialize()
 void iAGradientsModuleInterface::gradientMagnitude()
 {
 	//prepare
-	QString filterName = tr( "Gradient Magnitude" );
+	QString filterName = "Gradient Magnitude";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -63,16 +64,16 @@ void iAGradientsModuleInterface::derivative_Filter()
 	//set parameters
 	QStringList inList = (QStringList() << tr( "#Order" ) << tr( "#Direction" ));
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( dfOrder ) << tr( "%1" ).arg( dfDirection );
-	dlg_commoninput dlg( m_mainWnd, "Derivative", 2, inList, inPara, NULL );
+	dlg_commoninput dlg( m_mainWnd, "Derivative", inList, inPara, NULL );
 
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	dfOrder = dlg.getValues()[0];
-	dfDirection = dlg.getValues()[1];
+	dfOrder = dlg.getDblValue(0);
+	dfDirection = dlg.getDblValue(1);
 
 	//prepare
-	QString filterName = tr( "Derivative image filter" );
+	QString filterName = "Derivative image";
 	PrepareResultChild( filterName );
 	m_mdiChild->addStatusMsg( filterName );
 	//execute
@@ -96,17 +97,17 @@ void iAGradientsModuleInterface::higherOrderDerivative()
 	fDescr->setHtml(
 		"<p><font size=+1>Calculate Higher Order Accurate Gradient Derivative.</font></p>"
 		"<p>Computes the higher order accurate directional derivative of an image. The directional derivative at each pixel location is computed by convolution with a higher order accurate derivative operator of user-specified order.</p>");
-	dlg_commoninput dlg(m_mainWnd, "Higher Order Accurate Gradient Derivative", 3, inList, inPara, fDescr);
+	dlg_commoninput dlg(m_mainWnd, "Higher Order Accurate Gradient Derivative", inList, inPara, fDescr);
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	HOAGDSettings.order = dlg.getValues()[0];
-	HOAGDSettings.direction = dlg.getValues()[1];
-	HOAGDSettings.orderOfAcc = dlg.getValues()[2];
+	HOAGDSettings.order = dlg.getDblValue(0);
+	HOAGDSettings.direction = dlg.getDblValue(1);
+	HOAGDSettings.orderOfAcc = dlg.getDblValue(2);
 
 	//prepare
-	QString filterName = tr("Higher Order Accurate Gradient Derivative Filter");
+	QString filterName = "Higher Order Accurate Gradient Derivative";
 	PrepareResultChild(filterName);
 	m_mdiChild->addStatusMsg(filterName);
 	//execute

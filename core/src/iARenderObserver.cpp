@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "pch.h"
@@ -34,7 +34,7 @@
 
 #include <QTextStream>
 
-RenderObserver::RenderObserver(vtkRenderer* pRen,
+iARenderObserver::iARenderObserver(vtkRenderer* pRen,
 	vtkRenderer* pLabelRen,
 	vtkRenderWindowInteractor* pIren,
 	vtkPicker* pPicker,
@@ -67,7 +67,7 @@ RenderObserver::RenderObserver(vtkRenderer* pRen,
 	m_pWorldPicker = vtkWorldPointPicker::New();
 }
 
-void RenderObserver::ReInitialize( vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren, vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3, vtkCellLocator *cellLocator )
+void iARenderObserver::ReInitialize( vtkRenderer* pRen, vtkRenderer* pLabelRen, vtkRenderWindowInteractor* pIren, vtkPicker* pPicker, vtkTransform* pTrans, vtkImageData* pImageData, vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3, vtkCellLocator *cellLocator )
 {
 	m_pRen = pRen;
 	m_pLabelRen = pLabelRen;
@@ -82,16 +82,16 @@ void RenderObserver::ReInitialize( vtkRenderer* pRen, vtkRenderer* pLabelRen, vt
 }
 
 
-RenderObserver::~RenderObserver()
+iARenderObserver::~iARenderObserver()
 {
 	m_pLine->Delete();
 	m_pProbe->Delete();
 	m_pWorldPicker->Delete();
 }
 
-void RenderObserver::Execute(vtkObject * caller, 
-	unsigned long eid,  
-	void *  callData)  
+void iARenderObserver::Execute(vtkObject * caller,
+	unsigned long eid,
+	void *  callData)
 {
 	char keyCode = m_pIren->GetKeyCode();
 	char* keySym = m_pIren->GetKeySym();
@@ -112,6 +112,10 @@ void RenderObserver::Execute(vtkObject * caller,
 		}
 		case vtkCommand::KeyPressEvent:
 		{
+			if (keyCode == 'a' || keyCode == 'c')
+			{
+				emit InteractorModeSwitched(keyCode);
+			}
 			if (keyCode == '\t') {
 				mode++; if (mode > 1) mode = 0;
 			}
@@ -265,7 +269,7 @@ void RenderObserver::Execute(vtkObject * caller,
 }
 
 
-void RenderObserver::PickVolume(double point[3]) 
+void iARenderObserver::PickVolume(double point[3])
 {
 	int i;
 	double p1World[4], p2World[4], pickPosition[4];
@@ -382,7 +386,7 @@ void RenderObserver::PickVolume(double point[3])
 }
 
 
-void RenderObserver::SetAxis(Axis axis, double pickedAxis[3])
+void iARenderObserver::SetAxis(Axis axis, double pickedAxis[3])
 {
 	double trans[3] = {
 		m_pTrans->GetMatrix()->GetElement(0, 3),
@@ -426,7 +430,7 @@ void RenderObserver::SetAxis(Axis axis, double pickedAxis[3])
 }
 
 
-void RenderObserver::CheckPos(int dim)
+void iARenderObserver::CheckPos(int dim)
 {
 	int dims[3];
 	m_pImageData->GetDimensions(dims);
@@ -441,7 +445,7 @@ void RenderObserver::CheckPos(int dim)
 }
 
 
-void RenderObserver::PickWithWorldPicker()
+void iARenderObserver::PickWithWorldPicker()
 {
 	m_pRen->Render();
 	m_pWorldPicker->Pick(
@@ -452,16 +456,16 @@ void RenderObserver::PickWithWorldPicker()
 }
 
 
-RenderObserver * RenderObserver::New( vtkRenderer* pRen, 
-	vtkRenderer* pLabelRen, 
-	vtkRenderWindowInteractor* pIren, 
-	vtkPicker* pPicker, 
-	vtkTransform* pTrans, 
-	vtkImageData* pImageData,  
+iARenderObserver * iARenderObserver::New( vtkRenderer* pRen,
+	vtkRenderer* pLabelRen,
+	vtkRenderWindowInteractor* pIren,
+	vtkPicker* pPicker,
+	vtkTransform* pTrans,
+	vtkImageData* pImageData,
 	vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3,
 	vtkCellLocator *cellLocator )
 {
-	return new RenderObserver(pRen,
+	return new iARenderObserver(pRen,
 		pLabelRen,
 		pIren,
 		pPicker,
@@ -472,38 +476,38 @@ RenderObserver * RenderObserver::New( vtkRenderer* pRen,
 }
 
 
-void RenderObserver::AddListener(vtkCommand* listener)
+void iARenderObserver::AddListener(vtkCommand* listener)
 {
 	m_listener.push_back(listener);
 }
 
 
-int RenderObserver::GetMode()
+int iARenderObserver::GetMode()
 {
 	return mode;
 }
 
-vtkCellLocator * RenderObserver::GetCellLocator()
+vtkCellLocator * iARenderObserver::GetCellLocator()
 {
 	return m_pcellLocator;
 }
-vtkRenderWindowInteractor* RenderObserver::GetInteractor()
+vtkRenderWindowInteractor* iARenderObserver::GetInteractor()
 {
 	return m_pIren;
 }
-vtkImageData* RenderObserver::GetImageData()
+vtkImageData* iARenderObserver::GetImageData()
 {
 	return m_pImageData;
 }
-vtkRenderer* RenderObserver::GetLabelRenderer()
+vtkRenderer* iARenderObserver::GetLabelRenderer()
 {
 	return m_pLabelRen;
 }
-vtkPicker* RenderObserver::GetPicker()
+vtkPicker* iARenderObserver::GetPicker()
 {
 	return m_pPicker;
 }
-vtkWorldPointPicker* RenderObserver::GetWorldPicker()
+vtkWorldPointPicker* iARenderObserver::GetWorldPicker()
 {
 	return m_pWorldPicker;
 }

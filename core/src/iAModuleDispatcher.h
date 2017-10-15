@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,16 +15,18 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include <QVector>
+#include <QObject>
 #include <QString>
+#include <QVector>
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h> // for HINSTANCE / LPCWSTR
 #endif
 
@@ -34,6 +36,7 @@ class MainWindow;
 
 class QAction;
 class QFileInfo;
+class QMenu;
 
 struct iAModuleAction
 {
@@ -61,10 +64,12 @@ struct iALoadedModule
 	iAModuleInterface* moduleInterface;
 };
 
-class iAModuleDispatcher
+class iAModuleDispatcher: public QObject
 {
+	Q_OBJECT
 public:
 	iAModuleDispatcher( MainWindow * mainWnd );
+	iAModuleDispatcher(QString const & rootPath);
 	~iAModuleDispatcher();
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
@@ -73,18 +78,22 @@ public:
 	void SetModuleActionsEnabled( bool isEnabled );
 	template <typename T> T* GetModule(T* type);
 	void ChildCreated(MdiChild* child);
+	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
+	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
+private slots:
+	void ExecuteFilter();
 private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;
 	QVector < iALoadedModule > m_loadedModules;
-	
+	QString m_rootPath;
 	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, iALogger* logger);
 	void InitializeModuleInterface(iAModuleInterface* m);
 };
 
 template <typename T> T* iAModuleDispatcher::GetModule(T* type)
 {
-	for (iALoadedModule m: m_loadedModules.size())
+	for (iALoadedModule m: m_loadedModules)
 	{
 		T* ptr = dynamic_cast<T*>(m.moduleInterface);
 		if (ptr)

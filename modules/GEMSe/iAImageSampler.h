@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -35,7 +35,7 @@ class iAAttributes;
 class iAModalityList;
 class iASamplingResults;
 class iASingleResult;
-class CharacteristicsCalculator;
+class iADerivedOutputCalculator;
 class iACommandRunner;
 
 class iAImageSampler: public QThread, public iADurationEstimator, public iAAbortListener
@@ -47,12 +47,15 @@ public:
 		QSharedPointer<iAAttributes> range,
 		QSharedPointer<iAParameterGenerator> sampleGenerator,
 		int sampleCount,
+		int labelCount,
 		QString const & outputBaseDir,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
-		QString const & characteristicsFile,
+		QString const & derivedOutputFile,
 		QString const & computationExecutable,
-		QString const & additionalArguments);
+		QString const & additionalArguments,
+		QString const & pipelineName,
+		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
 	virtual double elapsed() const;
@@ -69,14 +72,16 @@ private:
 	QSharedPointer<iAAttributes> m_parameters;
 	QSharedPointer<iAParameterGenerator> m_sampleGenerator;
 	int m_sampleCount;
+	int m_labelCount;
 	ParameterSetsPointer m_parameterSets;
-	QString m_computationExecutable;
+	QString m_executable;
 	QString m_additionalArguments;
 	QString m_outputBaseDir;
+	QString m_pipelineName;
 
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
-	QString m_characteristicsFile;
+	QString m_derivedOutputFile;
 	//! @}
 
 	size_t m_curLoop;
@@ -92,12 +97,13 @@ private:
 	// intention: running several extended random walker's in parallel
 	// downside: seems to slow down rather than speed up overall process
 	QMap<iACommandRunner*, int > m_runningComputation;
-	QMap<CharacteristicsCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
+	QMap<iADerivedOutputCalculator*, QSharedPointer<iASingleResult> > m_runningDerivedOutput;
 
 	QSharedPointer<iASamplingResults> m_results;
 	QMutex m_mutex;
 	int m_runningOperations;
 	int m_parameterCount;
+	int m_samplingID;
 
 	void StatusMsg(QString const & msg);
 private slots:

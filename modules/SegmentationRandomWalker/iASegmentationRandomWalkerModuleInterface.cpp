@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iASegmentationRandomWalkerModuleInterface.h"
 
@@ -37,6 +36,8 @@
 
 void iASegmentationRandomWalkerModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegm = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
 	QMenu * menuGraphSegm = getMenuWithTitle(menuSegm, QString("Graph-Based"));
@@ -49,20 +50,6 @@ void iASegmentationRandomWalkerModuleInterface::Initialize()
 	connect(actionSegmRW, SIGNAL(triggered()), this, SLOT(CalculateRW()));
 	connect(actionSegmERW, SIGNAL(triggered()), this, SLOT(CalculateERW()));
 }
-
-/*
-template <typename PixelType>
-PriorModelImageType::Pointer CastToDouble(iAConnector::ImageBaseType* img, PixelType)
-{
-	typedef itk::Image<PixelType, 3> InputImageType;
-	typedef itk::CastImageFilter<InputImageType, PriorModelImageType > CastType;
-	typename CastType::Pointer caster = CastType::New();
-	caster->SetInput(dynamic_cast<itk::Image<PixelType, 3>* >(img));
-	caster->Update();
-	return caster->GetOutput();
-}
-*/
-
 
 template <typename ImagePixelType>
 void CalculateRW_template(
@@ -126,11 +113,11 @@ void CalculateERW_template(
 	}
 }
 
-class iAERWFilter: public iAFilter
+class iAERWFilter: public iAAlgorithm
 {
 public:
-	iAERWFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAFilter(fn, fid, i, p, logger, parent),
+	iAERWFilter(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
+		iAAlgorithm(fn, i, p, logger, parent),
 		m_priorCount(0)
 	{}
 	void SetPriors(QVector<vtkSmartPointer<vtkImageData> > priors)
@@ -140,40 +127,19 @@ public:
 private:
 	int m_priorCount;
 
-	virtual void run()
+	virtual void performWork()
 	{
-		addMsg(tr("%1  %2 started.")
-			.arg(QLocale().toString(Start(), QLocale::ShortFormat))
-			.arg(getFilterName()));
-		getConnector()->SetImage(getVtkImageData());
-		getConnector()->Modified();
-		try
-		{
-			iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-			ITK_TYPED_CALL(CalculateERW_template, itkType,
-				getConnectorArray(), m_priorCount + 1);
-		}
-		catch( itk::ExceptionObject &e)
-		{
-			addMsg(tr("%1  %2 terminated unexpectedly (%3). Elapsed time: %4 ms")
-				.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-				.arg(getFilterName())
-				.arg(e.what())
-				.arg(Stop()));
-		}
-		addMsg(tr("%1  %2 finished. Elapsed time: %3 ms")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		emit startUpdate();
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL(CalculateERW_template, itkType,
+			getConnectorArray(), m_priorCount + 1);
 	}
 };
 
-class iARWFilter: public iAFilter
+class iARWFilter: public iAAlgorithm
 {
 public:
-	iARWFilter(QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
-		iAFilter(fn, fid, i, p, logger, parent),
+	iARWFilter(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0):
+		iAAlgorithm(fn, i, p, logger, parent),
 		m_beta(0)
 	{}
 	void SetParams(SeedVector const & seeds, double beta)
@@ -185,33 +151,11 @@ private:
 	SeedVector m_seeds;
 	double m_beta;
 
-	virtual void run()
+	virtual void performWork()
 	{
-		addMsg(tr("%1  %2 started.")
-			.arg(QLocale().toString(Start(), QLocale::ShortFormat))
-			.arg(getFilterName()));
-		getConnector()->SetImage(getVtkImageData());
-		getConnector()->Modified();
-
-		try
-		{
-			iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-			ITK_TYPED_CALL(CalculateRW_template, itkType,
-				getConnector(), m_seeds, m_beta);
-		}
-		catch( itk::ExceptionObject &e)
-		{
-			addMsg(tr("%1  %2 terminated unexpectedly (%3). Elapsed time: %4 ms")
-				.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-				.arg(getFilterName())
-				.arg(e.what())
-				.arg(Stop()));
-		}
-		addMsg(tr("%1  %2 finished. Elapsed time: %3 ms")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		emit startUpdate();
+		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+		ITK_TYPED_CALL(CalculateRW_template, itkType,
+			getConnector(), m_seeds, m_beta);
 	}
 };
 
@@ -251,18 +195,17 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 		}
 	}
 	inPara	<< list;
-	dlg_commoninput dlg(m_mainWnd, "Extended Random Walker Segmentation", 1, inList, inPara, fDescr, true);
+	dlg_commoninput dlg(m_mainWnd, "Extended Random Walker Segmentation", inList, inPara, fDescr, true);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
 	}
-
-	QList<int> fileIndices = dlg.getComboBoxIndices();
+	int fileIndex = dlg.getComboBoxIndex(0);
 	QVector<vtkSmartPointer<vtkImageData> > priorImg(mdiwindows.size()-1);
 	int currInsert = 0;
 	for (int i=0; i<mdiwindows.size(); ++i)
 	{
-		if (i == fileIndices[0])
+		if (i == fileIndex)
 		{
 			continue;
 		}
@@ -271,8 +214,10 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateERW()
 			priorImg[currInsert++] = qobject_cast<MdiChild *>(mdiwindows[i]->widget())->getImagePointer();
 		}
 	}
-	PrepareResultChild(fileIndices[0], "Extended Random Walker");
-	iAERWFilter * thread = new iAERWFilter("Extended Random Walker", EXTENDED_RANDOM_WALKER,
+
+	QString filterName = "Extended Random Walker";
+	PrepareResultChild(fileIndex, filterName);
+	iAERWFilter * thread = new iAERWFilter(filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	thread->SetPriors(priorImg);
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
@@ -338,7 +283,7 @@ SeedVector ExtractSeedVector(QString const & seedString, int width, int height, 
 	}
 	if (parseErrors.size() > 0)
 	{
-		QMessageBox::warning(0, "Segmentation Explorer", "Error(s) in seed file: \n"+parseErrors);
+		QMessageBox::warning(0, "Random Walker", "Error(s) in seed file: \n"+parseErrors);
 	}
 	return result;
 }
@@ -355,15 +300,16 @@ bool iASegmentationRandomWalkerModuleInterface::CalculateRW()
 	QString seeds = dlgRWSeeds.GetSeeds();
 	double beta = dlgRWSeeds.GetBeta();
 
-	PrepareResultChild("Random Walker");
-	iARWFilter * thread = new iARWFilter("Random Walker", RANDOM_WALKER,
+	QString filterName = "Random Walker";
+	PrepareResultChild(filterName);
+	iARWFilter * thread = new iARWFilter(filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	int extent[6];
 	m_childData.imgData->GetExtent(extent);
 	SeedVector seedVector = ExtractSeedVector(seeds, extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1);
 	if (seedVector.size() < 2)
 	{
-		QMessageBox::warning(0, "Segmentation Explorer", "You must specify at least two seed points.");
+		QMessageBox::warning(0, "Random Walker", "You must specify at least two seed points.");
 		return false;
 	}
 	thread->SetParams(seedVector, beta);

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -34,7 +34,7 @@
 
 void iAModuleInterface::PrepareResultChild( QString const & wndTitle )
 {
-	m_mdiChild = m_mainWnd->GetResultChild( wndTitle );
+	m_mdiChild = m_mainWnd->GetResultChild( wndTitle + " " + m_mainWnd->activeMdiChild()->windowTitle());
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
@@ -90,7 +90,7 @@ MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 	else if( mdiwindows.size() < 2 )
 	{
 		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
-			tr( "Only one dataset available. Please load second dataset for fusion!" ) );
+			tr( "Only one dataset available. Please load another one!" ) );
 		return 0;
 	}
 	MdiChild * activeChild = m_mainWnd->activeMdiChild();
@@ -104,16 +104,7 @@ MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 
 QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const & title, bool isDisablable /*= true*/  )
 {
-	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
-	for( int i = 0; i < submenus.size(); ++i )
-	{
-		if( submenus.at( i )->title() == title )
-			return  submenus.at( i );
-	}
-	QMenu * result = new QMenu(parentMenu);
-	result->setTitle( title );
-	AddActionToMenuAlphabeticallySorted( parentMenu, result->menuAction(), isDisablable );
-	return result;
+	return m_dispatcher->getMenuWithTitle(parentMenu, title, isDisablable);
 }
 
 void iAModuleInterface::SaveSettings() const {}
@@ -180,16 +171,7 @@ bool iAModuleInterface::isAttached()
 
 void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable /*= true */ )
 {
-	m_dispatcher->AddModuleAction( action, isDisablable );
-	foreach( QAction * curAct, menu->actions() )
-	{
-		if( curAct->text() > action->text() )
-		{
-			menu->insertAction( curAct, action );
-			return;
-		}
-	}
-	menu->addAction( action );
+	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
 }
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )

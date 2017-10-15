@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,52 +15,37 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include "itkGrayscaleDilateImageFilter.h"
-#include "itkGrayscaleErodeImageFilter.h"
-#include "itkBinaryBallStructuringElement.h"
-#include "itkImage.h"
+#include "iAAlgorithm.h"
 
-#include "iAFilter.h"
-
-#include <itkHessian3DToVesselnessMeasureImageFilter.h>
-#include <itkHessianRecursiveGaussianImageFilter.h>
-
-#include <iostream>
-#include <fstream>
-#include <string>
-//using namespace std;
+enum iAMorphologyOperationType
+{
+	DILATION_FILTER,
+	EROSION_FILTER,
+	VESSEL_ENHANCEMENT_FILTER,
+};
 
 /**
- * Implementation of erosion, dilation and binary thinning filters. 
- * \remarks	MA, 18/01/2013. 
+ * Implementation of erosion, dilation and binary thinning filters.
  */
-
-class iAMorphologyFilters : public iAFilter
+class iAMorphologyFilters : public iAAlgorithm
 {
 public:
-	iAMorphologyFilters( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	~iAMorphologyFilters( );
-
-	void DilationFilter();
-	void ErosionFilter();
-	void VesselEnhancementFilter();
+	iAMorphologyFilters( QString fn, iAMorphologyOperationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
 	/**
 	 * Sets a parameter for the morphology filters (e.g. radius of the structuring binary ball)
 	 * \param	radius	The radius in int.
 	 */
 	void setMORPHParameters( int radius, vtkImageData* image) { r = radius; m_Image = image;};
-
 protected:
-	void run();
-
+	void performWork();
 private:
 	int r;
 	vtkImageData* m_Image;
-
+	iAMorphologyOperationType m_type;
 };

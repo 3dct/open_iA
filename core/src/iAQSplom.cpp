@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,14 +15,15 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
 #include "iAQSplom.h"
 #include "iAScatterPlot.h"
 #include "iALookupTable.h"
+#include "iAMathUtility.h"
 #include "iASPLOMData.h"
 
 #include <vtkLookupTable.h>
@@ -63,9 +64,9 @@ void iAQSplom::setAnimOut( double anim )
 	update();
 }
 
-const QList<int> * iAQSplom::getHighlightedPoints() const
+const QList<int> & iAQSplom::getHighlightedPoints() const
 {
-	return &m_highlightedPoints;
+	return m_highlightedPoints;
 }
 
 iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
@@ -114,7 +115,7 @@ void iAQSplom::setData( const QTableWidget * data )
 		QList<iAScatterPlot*> row;
 		for( unsigned long x = 0; x < numParams; ++x )
 		{
-			iAScatterPlot * s = new iAScatterPlot(this);
+			iAScatterPlot * s = new iAScatterPlot(this, this);
 			connect( s, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
 			connect( s, SIGNAL( transformModified( double, QPointF ) ), this, SLOT( transformUpdated( double, QPointF ) ) );
 			connect( s, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
@@ -177,9 +178,9 @@ void iAQSplom::setParameterVisibility( int paramIndex, bool isVisible )
 	update();
 }
 
-QVector<unsigned int> * iAQSplom::getSelection()
+QVector<unsigned int> & iAQSplom::getSelection()
 {
-	return &m_selInds;
+	return m_selInds;
 }
 
 void iAQSplom::setSelection( const QVector<unsigned int> * selInds )
@@ -362,7 +363,7 @@ void iAQSplom::plotMaximized()
 
 	//create main plot
 	delete m_maximizedPlot;
-	m_maximizedPlot = new iAScatterPlot( this, 11, true );
+	m_maximizedPlot = new iAScatterPlot( this, this, 11, true );
 	connect( m_maximizedPlot, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
 	connect( m_maximizedPlot, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
 	connect( m_maximizedPlot, SIGNAL( plotMaximized() ), this, SLOT( plotMinimized() ) );
@@ -496,7 +497,7 @@ bool iAQSplom::drawPopup( QPainter& painter )
 
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
- 	ctx.palette.setColor( QPalette::Text, col );
+	ctx.palette.setColor( QPalette::Text, col );
 	ctx.palette.setColor( QPalette::Text, settings.popupTextColor );
 	doc.documentLayout()->draw( &painter, ctx ); //doc.drawContents( &painter );
 	
@@ -514,10 +515,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 	//boundary checks
 	for( int i = 0; i < 2; ++i )		
 	{
-		if( ind[i] >= getVisibleParametersCount() )	
-			ind[i] = getVisibleParametersCount() - 1;
-		if( ind[i] < 0 )	
-			ind[i] = 0;
+		ind[i] = clamp(0, getVisibleParametersCount() - 1, ind[i]);
 	}
 	//are we between plots due to the spacing?
 	bool isBetween = false;

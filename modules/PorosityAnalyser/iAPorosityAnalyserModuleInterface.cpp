@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAPorosityAnalyserModuleInterface.h"
 
@@ -47,6 +46,8 @@ const int maxPipelineSlotsCount = 10;
 
 void iAPorosityAnalyserModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	qsrand(QTime::currentTime().msec());
 	//Add the module to iAnalyse Tools' menu
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
@@ -87,6 +88,7 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	uiComputeSegm.resultsFolder->setText( m_resultsFolder );
 	uiComputeSegm.datasetsFolder->setText( m_datasetsFolder );
 	uiComputeSegm.pBDatasetPreviewProgress->hide();
+	connect( uiComputeSegm.computerName, SIGNAL( editingFinished() ), this, SLOT( compNameChanged() ) );
 	connect( uiComputeSegm.tbReload, SIGNAL( clicked() ), this, SLOT( loadCSV() ) );
 	connect( uiComputeSegm.tbSave, SIGNAL( clicked() ), this, SLOT( saveCSV() ) );
 	connect( uiComputeSegm.tbOpenCSV, SIGNAL( clicked() ), this, SLOT( browseCSV() ) );
@@ -120,9 +122,13 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	m_pipelineSlotsCount = minPipelineSlotsCount;
 	
 	// Datasets box
-	QStringList datasetName( "*.mhd" );
-	QDir directory( m_datasetsFolder );
-	QStringList datasetNameList = directory.entryList( datasetName );
+	QDir datasetDir( m_datasetsFolder );
+	datasetDir.setNameFilters( QStringList() << "*.mhd" );
+	QStringList datasetNameList = datasetDir.entryList();
+	datasetDir.setNameFilters( QStringList() << "*_GT.mhd" );
+	QStringList gtDatasetList = datasetDir.entryList();
+	removeGTDatasets( datasetNameList, gtDatasetList );
+
 	QGroupBox *groupBoxDatasets = new QGroupBox( tr( "Datasets" ), uiComputeSegm.dragWidget );
 	iADragFilterWidget *dragWidgetDatasets = new iADragFilterWidget( m_datasetsFolder, datasetNameList, 1, groupBoxDatasets );
 	dragWidgetDatasets->setObjectName( "dragDatasetWidget" );
@@ -143,6 +149,7 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	// Filters box
 	QGroupBox *groupBoxFilters = new QGroupBox( tr( "Filters" ), uiComputeSegm.dragWidget );
 	iADragFilterWidget *dragWidgetFilters = new iADragFilterWidget( m_datasetsFolder, datasetNameList, 0, groupBoxFilters );
+	dragWidgetFilters->setObjectName( "dragFilterWidget" );
 	QHBoxLayout *gbFiltersLayout = new QHBoxLayout;
 	QScrollArea *filtersScrollArea = new QScrollArea();
 	filtersScrollArea->setStyleSheet( "background-color: white" );
@@ -267,6 +274,12 @@ void iAPorosityAnalyserModuleInterface::computeParameterSpace()
 	loadCSV();
 }
 
+void iAPorosityAnalyserModuleInterface::removeGTDatasets( QStringList& list, const QStringList& toDelete ){
+	QStringListIterator i( toDelete );
+	while ( i.hasNext() )
+		list.removeAll( i.next() );
+}
+
 void iAPorosityAnalyserModuleInterface::loadCSV()
 {
 	iACSVToQTableWidgetConverter::loadCSVFile( uiComputeSegm.csvFilename->text(), uiComputeSegm.tableWidget );
@@ -280,10 +293,32 @@ void iAPorosityAnalyserModuleInterface::saveCSV()
 
 void iAPorosityAnalyserModuleInterface::browseCSV()
 {
-	QString csvFile = QFileDialog::getOpenFileName( m_mainWnd, tr( "Computation Parameters File (CSV)" ), m_mainWnd->getPath(), tr( "CSV Files (*.csv *.CSV)" ) );
+	QString csvFile = QFileDialog::getOpenFileName( m_mainWnd, tr( "Computation Parameters File (CSV)" ),
+		m_mainWnd->getPath(), tr( "CSV Files (*.csv *.CSV)" ) );
 	uiComputeSegm.csvFilename->setText( csvFile );
 	m_csvFile = csvFile;
 	loadCSV();
+}
+
+void iAPorosityAnalyserModuleInterface::displayPipelineInSlots( QTableWidgetItem * item)
+{
+	if ( QGuiApplication::queryKeyboardModifiers().testFlag( Qt::AltModifier ) )
+	{
+		QTableWidget* tw = qobject_cast<QTableWidget*>( sender() );
+		int selRow = tw->row( item );
+		if ( selRow ) // not header
+		{
+			QStringList algoList = tw->item( selRow, 0 )->text().split( "_" );
+			QList<QLabel*> algoLabelList;
+			iADragFilterWidget* dfw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragFilterWidget" );
+			for ( int i = 0; i < algoList.length(); ++i )
+				algoLabelList.append( dfw->getLabel( algoList[i] ) );
+
+			iADragFilterWidget* ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
+			QString dataset = QString( "dataset_" + tw->item( selRow, 1 )->text() );
+			QLabel* datsetLabel = ddw->getLabel( dataset );
+		}
+	}
 }
 
 void iAPorosityAnalyserModuleInterface::SaveSettings() const
@@ -306,13 +341,15 @@ void iAPorosityAnalyserModuleInterface::updateFromGUI() const
 
 void iAPorosityAnalyserModuleInterface::browserResultsFolder()
 {
-	m_resultsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Results folder" ), m_resultsFolder, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+	m_resultsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Results folder" ), m_resultsFolder,
+		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
 	uiComputeSegm.resultsFolder->setText( m_resultsFolder );
 }
 
 void iAPorosityAnalyserModuleInterface::browserDatasetsFolder()
 {
-	m_datasetsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Datasets folder" ), m_datasetsFolder, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+	m_datasetsFolder = QFileDialog::getExistingDirectory( m_mainWnd, tr( "Datasets folder" ), m_datasetsFolder,
+		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
 	uiComputeSegm.datasetsFolder->setText( m_datasetsFolder );
 	computeParameterSpace();	//bad code; creates everything new in uiComputeSegm.dragWidget 
 }
@@ -323,6 +360,7 @@ void iAPorosityAnalyserModuleInterface::runCalculations()
 	iARunBatchThread * rbt = new iARunBatchThread( this );
 	connect( rbt, SIGNAL( batchProgress( int ) ), this, SLOT( batchProgress( int ) ) );
 	connect( rbt, SIGNAL( totalProgress( int ) ), this, SLOT( totalProgress( int ) ) );
+	connect( rbt, SIGNAL( currentBatch( QString ) ), this, SLOT( currentBatch( QString ) ) );
 	rbt->Init( this, m_datasetsFolder,
 			   uiComputeSegm.rbNewPipelineDataNoPores->isChecked(), 
 			   uiComputeSegm.rbNewPipelineData->isChecked(), 
@@ -388,6 +426,12 @@ void iAPorosityAnalyserModuleInterface::totalProgress( int progress )
 	QCoreApplication::processEvents();
 }
 
+void iAPorosityAnalyserModuleInterface::currentBatch(QString str )
+{
+	uiComputeSegm.laBatchProgress->setText( str );
+	QCoreApplication::processEvents();
+}
+
 QString iAPorosityAnalyserModuleInterface::ComputerName() const
 {
 	return m_computerName;
@@ -442,7 +486,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 		if ( pipeline[j].at( 0 ).length() == 0 )
 		{
 			QMessageBox msgBox;
-			msgBox.setText( "The pipeline is not connected. Please close the gab by rearanging the filters.  " );
+			msgBox.setText( "The pipeline is not connected. Please close the gap by rearranging the filters.  " );
 			msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
 			msgBox.exec();
 			return;
@@ -540,6 +584,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 			}
 		}
 	}
+	uiComputeSegm.tableWidget->scrollToBottom();
 	iACSVToQTableWidgetConverter::saveToCSVFile( *uiComputeSegm.tableWidget, uiComputeSegm.csvFilename->text() );
 }
 
@@ -623,6 +668,8 @@ void iAPorosityAnalyserModuleInterface::createTableWidgetActions()
 	connect( uiComputeSegm.tbSaveTable, SIGNAL( clicked() ), this, SLOT( saveCSV() ) );
 	connect( loadTableFromCSVAction, SIGNAL( triggered() ), this, SLOT( loadCSV() ) );
 	connect( uiComputeSegm.tbLoadTable, SIGNAL( clicked() ), this, SLOT( loadCSV() ) );
+	connect( uiComputeSegm.tableWidget, SIGNAL( itemClicked( QTableWidgetItem * ) ), 
+			 this, SLOT( displayPipelineInSlots( QTableWidgetItem * ) ) );
 }
 
 void iAPorosityAnalyserModuleInterface::generateDatasetPreviews()
@@ -639,11 +686,19 @@ void iAPorosityAnalyserModuleInterface::datasetPreviewThreadFinished()
 {
 	iADatasetInfo * di = qobject_cast<iADatasetInfo*>( sender() );
 	iADragFilterWidget * ddw = uiComputeSegm.dragWidget->findChild<iADragFilterWidget*>( "dragDatasetWidget" );
-	ddw->updateDatasetTooltip( di->getNewGeneratedInfoFiles().replaceInStrings(".info","") );
+	QStringList datasetList = di->getNewGeneratedInfoFiles().replaceInStrings( ".info", "" );
+	QStringList GTDatasetsList = datasetList.filter( "_GT.mhd" );
+	removeGTDatasets( datasetList, GTDatasetsList );
+	ddw->updateDatasetTooltip( datasetList );
 	uiComputeSegm.pBDatasetPreviewProgress->hide();
 }
 
 void iAPorosityAnalyserModuleInterface::datasetPreviewThreadStarted()
 {
 	uiComputeSegm.pBDatasetPreviewProgress->show();
+}
+
+void iAPorosityAnalyserModuleInterface::compNameChanged()
+{
+	m_computerName = uiComputeSegm.computerName->text();;
 }

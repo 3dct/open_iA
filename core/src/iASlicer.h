@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,14 +15,16 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "iAChannelID.h"
 #include "open_iA_Core_export.h"
 #include "iASlicerMode.h"
+
+#include <vtkSmartPointer.h>
 
 #include <QObject>
 #include <QSharedPointer>
@@ -33,6 +35,7 @@ class QGLWidget;
 
 class vtkCamera;
 class vtkColorTransferFunction;
+class vtkImageActor;
 class vtkImageData;
 class vtkImageReslice;
 class vtkGenericOpenGLRenderWindow;
@@ -77,9 +80,11 @@ public:
 	void SetMagicLensEnabled( bool isEnabled );
 	void SetMagicLensSize(int newSize);
 	void SetMagicLensFrameWidth(int newWidth);
-	void SetMagicLensCaption(std::string const & caption);
+	void SetMagicLensCount(int count);
 	void SetMagicLensInput( iAChannelID id );
+	void AddMagicLensInput(iAChannelID id);
 	void SetMagicLensOpacity(double opacity);
+	void UpdateMagicLensColors();
 	
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor(); 
@@ -92,11 +97,15 @@ public:
 						bool sp = false );
 
 	void initializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
+	void removeChannel(iAChannelID id);
 	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );	
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
 	iAChannelID getMagicLensInput() const;
 
-	void setPlaneCenter( int x, int y, int z );
+	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+
+	void setPositionMarkerCenter(double x, double y);
 	void setROI(int r[6]);
 	void setROIVisible(bool isVisible);
 	void updateROI();

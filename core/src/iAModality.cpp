@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,48 +15,43 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "pch.h"
 #include "iAModality.h"
 
-#include "iAConsole.h"
 #include "iAImageCoordinate.h"
-#include "iAitkImagesMultiChannelAdapter.h"
-#include "iAVolumeRenderer.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
-#include "extension2id.h"
+#include "iAStringHelper.h" // for Str2Vec3D
+#include "iAVolumeRenderer.h"
 
-#include <vtkCamera.h>
+#include <vtkImageData.h>
 #include <vtkVolume.h>
-
-#include <QSettings>
 
 #include <cassert>
 
-iAModality::iAModality():
-	m_name(""),
-	m_filename(""),
-	renderFlags(MainRenderer)
-{
-}
-
-iAModality::iAModality(QString const & name, QString const & filename, int renderFlags):
+iAModality::iAModality(QString const & name, QString const & filename, int channel, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
-	renderFlags(renderFlags)
-{
-}
-
-iAModality::iAModality(QString const & name, QString const & filename, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
-	m_name(name),
-	m_filename(filename),
-	renderFlags(renderFlags)
+	renderFlags(renderFlags),
+	m_channel(channel),
+	m_imgs(1)
 {
 	SetData(imgData);
+}
+
+
+iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
+	m_name(name),
+	m_filename(filename),
+	renderFlags(renderFlags),
+	m_channel(-1),
+	m_imgs(imgs)
+{
+	SetData(imgs[0]);
 }
 
 QString iAModality::GetName() const
@@ -69,25 +64,39 @@ QString iAModality::GetFileName() const
 	return m_filename;
 }
 
+int iAModality::GetChannel() const
+{
+	return m_channel;
+}
+
+int iAModality::ComponentCount() const
+{
+	return m_imgs.size();
+}
+
+vtkSmartPointer<vtkImageData> iAModality::GetComponent(int componentIdx) const
+{
+	return m_imgs[componentIdx];
+}
+
+QString iAModality::GetTransferFileName() const
+{
+	return tfFileName;
+}
+
 void iAModality::SetName(QString const & name)
 {
 	m_name = name;
 }
 
-void iAModality::SetFileName(QString const & filename)
+void iAModality::SetFileName(QString const & fileName)
 {
-	m_filename = filename;
+	m_filename = fileName;
 }
 
 void iAModality::SetRenderFlag(int renderFlags)
 {
 	this->renderFlags = renderFlags;
-}
-	
-QSharedPointer<iASpectralVoxelData const> iAModality::GetData() const
-{
-	assert(m_data);
-	return m_data;
 }
 
 int iAModality::GetWidth() const
@@ -110,8 +119,22 @@ int iAModality::GetDepth() const
 
 double const * iAModality::GetSpacing() const
 {
-	assert(m_data);
-	return m_spacing;
+	return m_imgs[0]->GetSpacing();
+}
+
+double const * iAModality::GetOrigin() const
+{
+	return m_imgs[0]->GetOrigin();
+}
+
+void iAModality::SetSpacing(double spacing[3])
+{
+	m_imgs[0]->SetSpacing(spacing);
+}
+
+void iAModality::SetOrigin(double origin[3])
+{
+	m_imgs[0]->SetOrigin(origin);
 }
 
 iAImageCoordConverter const & iAModality::GetConverter() const
@@ -122,7 +145,17 @@ iAImageCoordConverter const & iAModality::GetConverter() const
 
 vtkSmartPointer<vtkImageData> iAModality::GetImage() const
 {
-	return m_imgData;
+	return m_imgs[0];
+}
+
+QString iAModality::GetImageName(int componentIdx)
+{
+	QString name(GetName());
+	if (ComponentCount() > 1)
+	{
+		return QString("%1-%2").arg(name).arg(componentIdx);
+	}
+	return name;
 }
 
 bool iAModality::hasRenderFlag(RenderFlag loc) const
@@ -136,90 +169,11 @@ int iAModality::RenderFlags() const
 	return renderFlags;
 }
 
-// IO-related; possibly could be extracted to somewhere else?
-#include "iAIO.h"
-
-bool iAModality::LoadData()
-{
-	if (m_imgData)
-	{	// if already loaded, there's nothing to do!
-		return true;
-	}
-	if (m_filename.endsWith(iAIO::VolstackExtension))
-	{
-		std::vector<vtkSmartPointer<vtkImageData> > volumes;
-		iAIO io(
-			0,
-			0,
-			&volumes
-		);
-
-		io.setupIO(VOLUME_STACK_VOLSTACK_READER, m_filename.toLatin1().data());
-
-		io.start();
-		io.wait();
-		assert(volumes.size() > 0);
-		if (volumes.size() == 0)
-		{
-			DEBUG_LOG("No volume found in stack!");
-			return false;
-		}
-		int channels = volumes.size();
-		int extent[6];
-		volumes[0]->GetExtent(extent);
-		volumes[0]->GetSpacing(m_spacing);
-
-		m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
-			extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1));
-		
-		QSharedPointer<iAvtkImagesMultiChannelAdapter> data(new iAvtkImagesMultiChannelAdapter(
-			m_converter->GetWidth(), m_converter->GetHeight(), m_converter->GetDepth()));
-
-		for (int i=0; i<volumes.size(); ++i)
-		{
-			data->AddImage(volumes[i]);
-		}
-		m_data = data;
-		// TODO: make all channel images available somehow?
-		m_imgData = volumes[0];
-	}
-	else
-	{
-		// TODO: use ITK image loading?
-		vtkSmartPointer<vtkImageData> img = vtkSmartPointer<vtkImageData>::New();
-		iAIO io(img, 0, 0);
-
-		QFileInfo fileInfo(m_filename);
-		QString extension = fileInfo.suffix();
-		extension = extension.toUpper();
-		const mapQString2int * ext2id = &extensionToId;
-		if (ext2id->find(extension) == ext2id->end())
-		{
-			DEBUG_LOG("Unknown file type!");
-			return false;
-		}
-		IOType id = ext2id->find(extension).value();
-		if (!io.setupIO( id, m_filename ))
-		{
-			DEBUG_LOG("Error while setting up modality loading!");
-			return false;
-		}
-		// TODO: check for errors during actual loading!
-		//connect(io, done(bool), this, )
-		io.start();
-		// TODO: VOLUME: make asynchronous!
-		io.wait();
-		SetData(img);
-	}
-	return true;
-}
-
 void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
 {
 	// TODO: VOLUME: rewrite / move to iAModalityTransfer constructor if possible!
 	m_transfer = transfer;
 }
-
 
 void iAModality::LoadTransferFunction()
 {
@@ -229,29 +183,11 @@ void iAModality::LoadTransferFunction()
 	}
 	Settings s(tfFileName);
 	s.LoadTransferFunction(GetTransfer().data(), GetImage()->GetScalarRange());
-	tfFileName = "";
 }
 
 QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
 {
 	return m_transfer;
-}
-
-bool Str2Vec3D(QString const & str, double vec[3])
-{
-	QStringList list = str.split(" ");
-	if (list.size() != 3)
-	{
-		return false;
-	}
-	for (int i = 0; i < 3; ++i)
-	{
-		bool ok;
-		vec[i] = list[i].toDouble(&ok);
-		if (!ok)
-			return false;
-	}
-	return true;
 }
 
 void iAModality::SetRenderer(QSharedPointer<iAVolumeRenderer> renderer)
@@ -266,7 +202,6 @@ void iAModality::SetRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 	if (!Str2Vec3D(orientationSettings, orientation) ||
 		!Str2Vec3D(positionSettings, position))
 	{
-		//DEBUG_LOG("Invalid orientation/position!");
 		return;
 	}
 	renderer->SetPosition(position);
@@ -278,279 +213,32 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
-void iAModality::InitHistogram()
-{
-	GetTransfer()->InitHistogram(GetImage());
-	LoadTransferFunction();
-}
-
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);
-	m_imgData = imgData;
+	m_imgs[0] = imgData;
 	int extent[6];
 	imgData->GetExtent(extent);
-	imgData->GetSpacing(m_spacing);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
-		extent[1]-extent[0]+1, extent[3]-extent[2]+1, extent[5]-extent[4]+1));
-	QSharedPointer<iAvtkImagesMultiChannelAdapter> data(new iAvtkImagesMultiChannelAdapter(
-		m_converter->GetWidth(), m_converter->GetHeight(), m_converter->GetDepth()));
-	data->AddImage(imgData);
-	m_data = data;
+		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
 }
 
 
-// iAModalityList
-#include "iAFileUtils.h"
-
-namespace
+void iAModality::SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
 {
-	QString GetModalityKey(int idx, QString key)
-	{
-		return QString("Modality")+QString::number(idx)+"/"+key;
-	}
-
-	static const QString FileVersionKey("FileVersion");
-	static const QString ModFileVersion("1.0");
-	static const QString SetSpacingToOneKey("SetSpacingToOne");
-
-	static const QString CameraPositionKey("CameraPosition");
-	static const QString CameraFocalPointKey("CameraFocalPoint");
-	static const QString CameraViewUpKey("CameraViewUp");
+	positionSettings = pos;
+	orientationSettings = ori;
+	tfFileName = tfFile;
 }
 
 
-iAModalityList::iAModalityList():
-	m_camSettingsAvailable(false)
+QString iAModality::GetOrientationString()
 {
-	m_spacing[0] = m_spacing[1] = m_spacing[2] = 1.0;
+	return m_renderer ? Vec3D2String(m_renderer->GetOrientation()) : QString();
 }
 
-bool iAModalityList::ModalityExists(QString const & filename) const
+
+QString iAModality::GetPositionString()
 {
-	foreach (QSharedPointer<iAModality> mod, m_modalities)
-	{
-		if (mod->GetFileName() == filename)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-QString const & iAModalityList::GetFileName() const
-{
-	return m_fileName;
-}
-
-QString GetRenderFlagString(QSharedPointer<iAModality> mod)
-{
-	QString result;
-	if (mod->hasRenderFlag(iAModality::MagicLens)) result += "L";
-	if (mod->hasRenderFlag(iAModality::MainRenderer)) result += "R";
-	if (mod->hasRenderFlag(iAModality::BoundingBox)) result += "B";
-	return result;
-}
-
-QString Vec3D2String(double* vec)
-{
-	return QString("%1 %2 %3").arg(vec[0]).arg(vec[1]).arg(vec[2]);
-}
-
-QString GetOrientation(QSharedPointer<iAVolumeRenderer> renderer)
-{
-	double * orientation = renderer->GetOrientation();
-	return Vec3D2String(orientation);
-}
-
-QString GetPosition(QSharedPointer<iAVolumeRenderer> renderer)
-{
-	double * position = renderer->GetPosition();
-	return Vec3D2String(position);
-}
-
-void iAModalityList::Store(QString const & filename, vtkCamera* camera)
-{
-	m_fileName = filename;
-	QSettings settings(filename, QSettings::IniFormat );
-	QFileInfo fi(filename);
-	settings.setValue(FileVersionKey, ModFileVersion);
-	if (camera)
-	{
-		settings.setValue(CameraPositionKey, Vec3D2String(camera->GetPosition()));
-		settings.setValue(CameraFocalPointKey, Vec3D2String(camera->GetFocalPoint()));
-		settings.setValue(CameraViewUpKey, Vec3D2String(camera->GetViewUp()));
-	}
-	for (int i=0; i<m_modalities.size(); ++i)
-	{
-		settings.setValue(GetModalityKey(i, "Name"), m_modalities[i]->GetName());
-		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->GetFileName()));
-		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalities[i]) );
-		settings.setValue(GetModalityKey(i, "Orientation"), GetOrientation(m_modalities[i]->GetRenderer()));
-		settings.setValue(GetModalityKey(i, "Position"), GetPosition(m_modalities[i]->GetRenderer()));
-		QFileInfo modFileInfo(m_modalities[i]->GetFileName());
-		QString absoluteTFFileName(modFileInfo.absoluteFilePath() + "_tf.xml");
-		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
-		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
-		Settings s;
-		s.StoreTransferFunction(m_modalities[i]->GetTransfer().data());
-		s.Save(absoluteTFFileName);
-	}
-}
-
-bool iAModalityList::Load(QString const & filename)
-{
-	if (filename.isEmpty())
-	{
-		DEBUG_LOG("No modality file given.");
-		return false;
-	}
-	QFileInfo fi(filename);
-	if (!fi.exists())
-	{
-		DEBUG_LOG(QString("Given modality file '%1' does not exist.").arg(filename));
-		return false;
-	}
-	QSettings settings(filename, QSettings::IniFormat );
-	
-	if (!settings.contains(FileVersionKey) ||
-		settings.value(FileVersionKey).toString() != ModFileVersion)
-	{
-		DEBUG_LOG(QString("Invalid modality file version (was %1, expected %2! Trying to parse anyway, but expect failures.")
-			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
-			.arg(ModFileVersion));
-		return false;
-	}
-	if (!Str2Vec3D(settings.value(CameraPositionKey).toString(), camPosition) ||
-		!Str2Vec3D(settings.value(CameraFocalPointKey).toString(), camFocalPoint) ||
-		!Str2Vec3D(settings.value(CameraViewUpKey).toString(), camViewUp))
-	{
-		//DEBUG_LOG(QString("Invalid or missing camera information."));
-	}
-	else
-	{
-		m_camSettingsAvailable = true;
-	}
-
-	bool setSpacingToOne = settings.contains(SetSpacingToOneKey) && settings.value(SetSpacingToOneKey).toBool();
-	int currIdx = 0;
-	
-	double spacingFactor[3] = { 1.0, 1.0, 1.0 };
-	while (settings.contains(GetModalityKey(currIdx, "Name")))
-	{
-		QString modalityName = settings.value(GetModalityKey(currIdx, "Name")).toString();
-		QString modalityFile = settings.value(GetModalityKey(currIdx, "File")).toString();
-		QString modalityRenderFlags = settings.value(GetModalityKey(currIdx, "RenderFlags")).toString();
-		modalityFile = MakeAbsolute(fi.absolutePath(), modalityFile);
-		QString orientationSettings = settings.value(GetModalityKey(currIdx, "Orientation")).toString();
-		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
-		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
-		tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
-		if (ModalityExists(modalityFile))
-		{
-			//DebugOut () << "Modality (name="<<modalityName<<", filename="<<modalityFile<<") already exists!" << std::endl;
-		}
-		else
-		{
-			int renderFlags = (modalityRenderFlags.isEmpty() || modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
-				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
-				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0);
-
-			QSharedPointer<iAModality> mod(new iAModality(modalityName, modalityFile, renderFlags));
-			if (!mod->LoadData())
-			{
-				return false;
-			}
-
-			// fake a spacing of 1 1 1 for main dataset (to improve transparency renderings)
-			if (setSpacingToOne)
-			{
-				if (currIdx == 0)
-				{
-					mod->GetImage()->GetSpacing(spacingFactor);
-				}
-				double spacing[3];
-				mod->GetImage()->GetSpacing(spacing);
-				mod->GetImage()->SetSpacing(spacing[0] / spacingFactor[0], spacing[1] / spacingFactor[1], spacing[2] / spacingFactor[2]);
-			}
-
-			mod->orientationSettings = orientationSettings;
-			mod->positionSettings = positionSettings;
-			mod->tfFileName = tfFileName;
-
-			m_modalities.push_back(mod);
-			emit Added(mod);
-		}
-		currIdx++;
-	}
-	m_fileName = filename;
-	return true;
-}
-
-void iAModalityList::ApplyCameraSettings(vtkCamera* camera)
-{
-	if (!camera || !m_camSettingsAvailable)
-	{
-		return;
-	}
-	camera->SetPosition(camPosition);
-	camera->SetFocalPoint(camFocalPoint);
-	camera->SetViewUp(camViewUp);
-}
-
-namespace
-{
-QString GetMeasurementString(QSharedPointer<iAModality> mod)
-{
-	return QString("") + QString::number(mod->GetWidth()) + "x" + 
-		QString::number(mod->GetHeight()) + "x" +
-		QString::number(mod->GetDepth()) + " (" +
-		QString::number(mod->GetSpacing()[0]) + ", " +
-		QString::number(mod->GetSpacing()[1]) + ", " +
-		QString::number(mod->GetSpacing()[2]) + ")";
-}
-}
-
-void iAModalityList::Add(QSharedPointer<iAModality> mod)
-{
-	if (m_modalities.size() > 0)
-	{
-		// make sure that size & spacing fit:
-		/*
-		if (m_modalities[0]->GetWidth() != mod->GetWidth() ||
-			m_modalities[0]->GetHeight() != mod->GetHeight() ||
-			m_modalities[0]->GetDepth() != mod->GetDepth() ||
-			m_modalities[0]->GetSpacing()[0] != mod->GetSpacing()[0] ||
-			m_modalities[0]->GetSpacing()[1] != mod->GetSpacing()[1] ||
-			m_modalities[0]->GetSpacing()[2] != mod->GetSpacing()[2])
-		{
-			DebugOut() << "Measurements of new modality " <<
-				GetMeasurementString(mod) << " don't fit measurements of existing one: " <<
-				GetMeasurementString(m_modalities[0]) << std::endl;
-			return;
-		}
-		*/
-	}
-	m_modalities.push_back(mod);
-	emit Added(mod);
-}
-
-void iAModalityList::Remove(int idx)
-{
-	m_modalities.remove(idx);
-}
-
-QSharedPointer<iAModality> iAModalityList::Get(int idx)
-{
-	return m_modalities[idx];
-}
-
-QSharedPointer<iAModality const> iAModalityList::Get(int idx) const
-{
-	return m_modalities[idx];
-}
-
-int iAModalityList::size() const
-{
-	return m_modalities.size();
+	return m_renderer ? Vec3D2String(m_renderer->GetPosition()) : QString();
 }

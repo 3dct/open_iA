@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,16 +15,15 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAImageNodeWidget.h"
 
 #include "iAConsole.h"
 #include "iAImagePreviewWidget.h"
-#include "iAImageTree.h"
+#include "iAImageTreeNode.h"
 #include "iAPreviewWidgetPool.h"
 #include "iAGEMSeConstants.h"
 #include "iATriangleButton.h"
@@ -36,7 +35,7 @@
 #include <QVBoxLayout>
 
 iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
-	QSharedPointer<iAImageClusterNode> treeNode,
+	QSharedPointer<iAImageTreeNode> treeNode,
 	iAPreviewWidgetPool * previewPool,
 	bool shrinkAuto,
 	int representativeType)
@@ -85,7 +84,7 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 	setLayout(m_mainLayout);
 	if (!m_shrinkStatus)
 	{
-		CreatePreview();
+		CreatePreview(LabelImagePointer());
 	}
 	else
 	{
@@ -94,15 +93,16 @@ iAImageNodeWidget::iAImageNodeWidget(QWidget* parent,
 }
 
 
-bool iAImageNodeWidget::CreatePreview()
+bool iAImageNodeWidget::CreatePreview(LabelImagePointer refImg)
 {
 	m_imageView = m_previewPool->GetWidget(this);
 	if (!m_imageView)
 	{
 		return false;
 	}
-	UpdateRepresentative();
+	UpdateRepresentative(refImg);
 	connect(m_imageView, SIGNAL(Clicked()), this, SIGNAL(ImageClicked()));
+	connect(m_imageView, SIGNAL(RightClicked()), this, SIGNAL(ImageRightClicked()));
 	connect(m_imageView, SIGNAL(Updated()), this, SIGNAL(Updated()) );
 	m_mainLayout->addWidget(m_imageView);
 	return true;
@@ -113,6 +113,7 @@ void iAImageNodeWidget::ReturnPreview()
 	m_imageView->hide();
 	m_mainLayout->removeWidget(m_imageView);
 	disconnect(m_imageView, SIGNAL(Clicked()), this, SIGNAL(ImageClicked()));
+	disconnect(m_imageView, SIGNAL(RightClicked()), this, SIGNAL(ImageRightClicked()));
 	disconnect(m_imageView, SIGNAL(Updated()),   this, SIGNAL(Updated()) );
 	m_previewPool->ReturnWidget(m_imageView);
 	m_imageView = 0;
@@ -144,7 +145,7 @@ void iAImageNodeWidget::Layout(int x, int y, int width, int height)
 	move(x, y);
 }
 
-QSharedPointer<iAImageClusterNode > iAImageNodeWidget::GetClusterNode()
+QSharedPointer<iAImageTreeNode > iAImageNodeWidget::GetClusterNode()
 {
 	return m_cluster;
 }
@@ -174,6 +175,11 @@ void iAImageNodeWidget::ExpandButtonClicked()
 {
 	if (m_cluster->GetChildCount() == 0)
 	{
+		return;
+	}
+	if (m_cluster->GetDistance() == 0)
+	{
+		DEBUG_LOG("Cluster only holds exactly equal results, skipping expansion!");
 		return;
 	}
 	emit Expand(IsExpanded());
@@ -234,7 +240,7 @@ void iAImageNodeWidget::SetLargeLayout()
 	}
 }
 
-bool iAImageNodeWidget::UpdateShrinkStatus()
+bool iAImageNodeWidget::UpdateShrinkStatus(LabelImagePointer refImg)
 {
 	bool newShrink = IsShrinked();
 	if (m_shrinkStatus == newShrink)
@@ -249,7 +255,7 @@ bool iAImageNodeWidget::UpdateShrinkStatus()
 	}
 	else
 	{
-		if (!CreatePreview())
+		if (!CreatePreview(refImg))
 		{
 			m_shrinkStatus = true;
 			m_shrinkedAuto = true;
@@ -260,16 +266,16 @@ bool iAImageNodeWidget::UpdateShrinkStatus()
 	return true;
 }
 
-void iAImageNodeWidget::SetAutoShrink(bool newAutoShrink)
+void iAImageNodeWidget::SetAutoShrink(bool newAutoShrink, LabelImagePointer refImg)
 {
 	if (newAutoShrink == m_shrinkedAuto)
 		return;
-	if (GetClusterNode()->GetAttitude() == iAImageClusterNode::Liked)
+	if (GetClusterNode()->GetAttitude() == iAImageTreeNode::Liked)
 	{
 		return;
 	}
 	m_shrinkedAuto = newAutoShrink;
-	UpdateShrinkStatus();
+	UpdateShrinkStatus(refImg);
 }
 
 bool iAImageNodeWidget::IsAutoShrinked() const
@@ -277,25 +283,31 @@ bool iAImageNodeWidget::IsAutoShrinked() const
 	return m_shrinkedAuto;
 }
 
-void iAImageNodeWidget::UpdateRepresentative()
+bool iAImageNodeWidget::UpdateRepresentative(LabelImagePointer refImg)
 {
 	if (!m_imageView)
 	{
-		return;
+		return true;
 	}
-	if (!m_cluster->GetRepresentativeImage(m_representativeType))
+	if (!m_cluster->GetRepresentativeImage(m_representativeType, refImg))
 	{
-		DEBUG_LOG("ImageNode: image view shown but cluster representative is NULL!\n");
-		return;
+		return false;
 	}
-	m_imageView->SetImage(m_cluster->GetRepresentativeImage(m_representativeType), false,
+	m_imageView->SetImage(m_cluster->GetRepresentativeImage(m_representativeType, refImg), false,
 		m_cluster->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 	m_imageView->update();
+	return true;
 }
 
 
-void iAImageNodeWidget::SetRepresentativeType(int representativeType)
+bool iAImageNodeWidget::SetRepresentativeType(int representativeType, LabelImagePointer refImg)
 {
+	int oldRepresentativeType = m_representativeType;
 	m_representativeType = representativeType;
-	UpdateRepresentative();
+	bool result = UpdateRepresentative(refImg);
+	if (!result)
+	{
+		m_representativeType = oldRepresentativeType;
+	}
+	return result;
 }

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -65,15 +65,18 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	xLabel->setFont(f);
 	QLabel * zLabel2 = new QLabel("z");
 	zLabel2->setFont(f);
+	m_sliceLabel = new QLabel("");
+	m_sliceLabel->setFont(f);
 
 	gridLay->addWidget(zLabel1, 0, 0, Qt::AlignCenter);
 	gridLay->addWidget(yLabel, 1, 0, Qt::AlignCenter);
 	gridLay->addWidget(xLabel, 2, 1, Qt::AlignCenter);
 	gridLay->addWidget(zLabel2, 2, 2, Qt::AlignCenter);
+	gridLay->addWidget(m_sliceLabel, 0, 2, Qt::AlignCenter);
 
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		char const * caption = ((i==0)?"YZ":(i==1)?"XY":"XZ");
+		char const * caption = GetSlicerModeString(i);
 		m_sliceViews[i] = new iAImagePreviewWidget(QString("CameraView")+caption,
 			0, false, 0, static_cast<iASlicerMode>(i), labelCount, iAColorTheme::NullTheme());
 		m_sliceViews[i]->SetImage(originalData, false, false);
@@ -116,7 +119,7 @@ void iACameraWidget::UpdateScrollBar(int sliceNumber)
 	int maxIdx = minIdx + 1;
 	m_sliceScrollBar->setRange(0, extent[maxIdx]-extent[minIdx]);
 	m_sliceScrollBar->setValue(sliceNumber);
-	
+	UpdateSliceLabel(sliceNumber);
 }
 
 void iACameraWidget::MiniSlicerClicked()
@@ -142,7 +145,15 @@ vtkCamera* iACameraWidget::GetCommonCamera()
 void iACameraWidget::ScrollBarChanged(int value)
 {
 	m_sliceViews[m_slicerMode]->SetSliceNumber(value);
+	UpdateSliceLabel(value);
 	emit SliceChanged(value);
+}
+
+void iACameraWidget::UpdateSliceLabel(int sliceNumber)
+{
+	m_sliceLabel->setText(QString("Selected Axis: %1\nSlice: %2")
+		.arg(GetSlicerModeString(m_slicerMode))
+		.arg(sliceNumber));
 }
 
 void iACameraWidget::UpdateView()

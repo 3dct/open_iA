@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,18 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAHessianEigenanalysis.h"
 
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
+#include "iAPixelAccessors.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>
+#include <itkHessianRecursiveGaussianImageFilter.h>
+#include <itkImageAdaptor.h>
 #include <itkLaplacianRecursiveGaussianImageFilter.h>
 #include <itkLaplacianSegmentationLevelSetFunction.h>
 #include <itkLaplacianImageFilter.h>
+#include <itkSymmetricEigenAnalysisImageFilter.h>
 #include <itkZeroCrossingImageFilter.h>
 
 #include <vtkImageData.h>
@@ -69,8 +74,8 @@ template<class T> int computeHessian_template( int sigma, bool hessianComputed, 
 	/************************************** Data and type definitions end *****************/
 
 	/************************************** Hessian part **********************************/
-	typename HessianFilterType::Pointer	m_Hessian;	// In m_Hessian werden die Matrizen f�r jedes Voxel gepsichert. MA
-	m_Hessian = HessianFilterType::New();	// Objekt f�r die Matrizen deklariert. MA
+	typename HessianFilterType::Pointer	m_Hessian;	// In m_Hessian werden die Matrizen f?r jedes Voxel gepsichert. MA
+	m_Hessian = HessianFilterType::New();	// Objekt f?r die Matrizen deklariert. MA
 
 	m_Hessian->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 	m_Hessian->SetSigma(sigma);
@@ -194,7 +199,6 @@ template<class T> int computeHessian_template( int sigma, bool hessianComputed, 
 * \param	T				Input type
 * \return	int Status-Code.
 */
-
 template<class T> int computeLaplacian_template(unsigned int sigma, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, DIM > ImageType;
@@ -214,88 +218,25 @@ template<class T> int computeLaplacian_template(unsigned int sigma, iAProgress* 
 }
 
 
-iAHessianEigenanalysis::iAHessianEigenanalysis( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAFilter( fn, fid, i, p, logger, parent )
+iAHessianEigenanalysis::iAHessianEigenanalysis( QString fn, iAEigenAnalysisType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
+	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+{}
+
+
+void iAHessianEigenanalysis::performWork()
 {
-
-}
-
-
-iAHessianEigenanalysis::~iAHessianEigenanalysis()
-{
-}
-
-
-void iAHessianEigenanalysis::run()
-{
-	switch (getFilterID())
+	switch (m_type)
 	{
-	case COMPUTEHESSIANEIGENANALYSIS:
-		computeHessian(); break;
-	case COMPUTE_LAPLACIAN: 
-		computeLaplacian(); break; 
-	case UNKNOWN_FILTER: 
+	case HESSIANEIGENANALYSIS:
+		VTK_TYPED_CALL(computeHessian_template, getVtkImageData()->GetScalarType(),
+			sigma, hessianComputed, nr, getItkProgress(), getConnector());
+		break;
+	case LAPLACIAN:
+		addMsg(tr("    Sigma: %3").arg(this->sigma));
+		VTK_TYPED_CALL(computeLaplacian_template, getVtkImageData()->GetScalarType(),
+			this->sigma, getItkProgress(), getConnector());
+		break;
 	default:
 		addMsg(tr("  unknown filter type"));
 	}
-}
-
-
-void iAHessianEigenanalysis::computeHessian( )
-{
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();	
-
-	try
-	{
-		VTK_TYPED_CALL(computeHessian_template, getVtkImageData()->GetScalarType(),
-			sigma, hessianComputed, nr, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms. For learning only.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3. For learning only.").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
-}
-
-
-void iAHessianEigenanalysis::computeLaplacian()
-{
-	addMsg(tr("%1  %2 started. Sigma %3").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(this->sigma)
-		);
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-
-	try
-	{
-		VTK_TYPED_CALL(computeLaplacian_template, getVtkImageData()->GetScalarType(),
-			this->sigma, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms. ").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3. ").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
-
-	emit startUpdate();
 }

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGEMSeModuleInterface.h"
 
@@ -47,17 +46,19 @@ iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 
 void iAGEMSeModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiChannelSegm = getMenuWithTitle( toolsMenu, QString( "GEMSe" ), false );
+	QMenu * menuSegmEnsembles = getMenuWithTitle( toolsMenu, QString( "Segmentation Ensembles" ), false );
 	
-	QAction * actionMetricVis = new QAction( m_mainWnd );
-	actionMetricVis->setText( QApplication::translate( "MainWindow", "GEMSe", 0 ) );
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionMetricVis, true);
-	connect(actionMetricVis, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
+	QAction * actionGEMSe = new QAction( m_mainWnd );
+	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+	AddActionToMenuAlphabeticallySorted(menuSegmEnsembles, actionGEMSe, true);
+	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
 
 	QAction * actionPreCalculated = new QAction( m_mainWnd );
 	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Pre-Calculated Results", 0 ));
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionPreCalculated, false);
+	AddActionToMenuAlphabeticallySorted(menuSegmEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }
 
@@ -86,9 +87,8 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Precalculated Sampling & Clustering Data"),
-		QString() // TODO get directory of current file
-		,
-		tr("Precalculated Segmentation Explorer Analysis file (*.sea);;" ) );
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
+		tr("GEMSe project (*.sea );;") );
 	if (fileName != "")
 	{
 		iASEAFile seaFile(fileName);
@@ -98,13 +98,17 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 
 void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 {
-	MdiChild *child = m_mainWnd->createMdiChild();
+	MdiChild *child = m_mainWnd->createMdiChild(false);
 	if (!seaFile.good())
 	{
-		DEBUG_LOG("Given precalculated data file could not be read.\n");
+		DEBUG_LOG("Given precalculated data file could not be read.");
 		return;
 	}
-	child->LoadProject(seaFile.GetModalityFileName());
+	if (!child->LoadProject(seaFile.GetModalityFileName()))
+	{
+		DEBUG_LOG(QString("Failed loading project '%1'").arg(seaFile.GetModalityFileName()));
+		return;
+	}
 	m_mdiChild = child;
 	UpdateChildData();
 
@@ -126,28 +130,22 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	}
 	if (!result || !gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
 	{
-		DEBUG_LOG("Precomputed Data Loading failed!\n");
+		DEBUG_LOG("Precomputed Data Loading failed!");
 	}
-
 	if (seaFile.GetLayoutName() != "")
 	{
-		m_mainWnd->loadLayout(child, seaFile.GetLayoutName());
+		child->LoadLayout(seaFile.GetLayoutName());
 	}
-}
-
-#include <QToolBar>
-
-#include "ui_GEMSeToolBar.h"
-#include "iAQTtoUIConnector.h"
-
-class iAGEMSeToolbar : public QToolBar, public Ui_GEMSeToolBar
-{
-public:
-	iAGEMSeToolbar(QWidget* parent) : QToolBar("GEMSe ToolBar", parent)
+	if (seaFile.GetReferenceImage() != "")
 	{
-		this->setupUi(this);
+		gemseAttach->LoadRefImg(seaFile.GetReferenceImage());
 	}
-};
+	if (seaFile.GetHiddenCharts() != "")
+	{
+		gemseAttach->SetSerializedHiddenCharts(seaFile.GetHiddenCharts());
+	}
+	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
+}
 
 void iAGEMSeModuleInterface::SetupToolbar()
 {
@@ -155,7 +153,7 @@ void iAGEMSeModuleInterface::SetupToolbar()
 	{
 		return;
 	}
-	m_toolbar = new iAGEMSeToolbar(m_mainWnd);
+	m_toolbar = new iAGEMSeToolbar("GEMSe ToolBar", m_mainWnd);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
 	connect(m_toolbar->action_ResetFilter, SIGNAL(triggered()), this, SLOT(ResetFilter()));

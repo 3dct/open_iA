@@ -25,9 +25,6 @@ IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
 set "TEST_CONFIG_PATH=%tmp%\ctest_config_%RANDOM%"
 if exist "%TEST_CONFIG_PATH%" goto :uniqTmpLoop
 
-:: remove binary directory to start from scratch:
-rd /s /q %TEST_BIN_DIR%
-
 ::TO PAUSE SYSTEM
 :: ping -n 10 127.0.0.1 > null
 cd %TEST_SRC_DIR%
@@ -38,7 +35,14 @@ rem echo %GIT_BRANCH%
 
 :: Set up Visual Studio Environment for cleaning build
 :: amd64 is the target architectur (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
+echo %VS_PATH% | findstr /c:"2017" >nul
+if %ERRORLEVEL% EQU 0 goto VS2017
 call "%VS_PATH%\VC\vcvarsall.bat" amd64
+goto VCVARSEnd
+:VS2017
+ :: since VS 2017, vcvarsall.bat is in a different subdirectory...
+call "%VS_PATH%\VC\Auxiliary\Build\vcvarsall.bat" amd64
+:VCVARSEnd
 
 @echo on
 
@@ -80,8 +84,14 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 )
 
 :: CLEANUP:
+
 :: remove test configurations:
 rd /s /q %TEST_CONFIG_PATH%
+
+:: since removing binary dir doesn't always seem to really delete everything, let's try waiting for a bit before deleting it:
+sleep 10
+:: remove binary directory to start from scratch next time:
+rd /s /q %TEST_BIN_DIR%
 
 goto end
 

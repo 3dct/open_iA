@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -40,12 +40,13 @@ class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
 class dlg_function;
-class iAFunctionChangeListener;
+class dlg_TFTable;
 class MdiChild;
 
 class open_iA_Core_API iADiagramFctWidget : public iADiagramWidget
 {
 	Q_OBJECT
+
 public:
 	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1 };
 	
@@ -81,20 +82,20 @@ public:
 	void updateTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
-	int getHeight() const;
-	int getChartHeight() const;
 	std::vector<dlg_function*> &getFunctions();
 	iAAbstractDiagramData::DataType GetMaxYValue() const;
 	iAAbstractDiagramData::DataType GetMaxYAxisValue() const;
 	void SetMaxYAxisValue(iAAbstractDiagramData::DataType val);
+	void ResetMaxYAxisValue();
 
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData() =0;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const =0;
-	
-	void GetDataRange(double* range);
-	double GetDataRange();
 
-	void setColorTransferFunctionChangeListener(iAFunctionChangeListener* listener);
+	int ChartHeight() const;
+	int GetTFGradientHeight() const;
+	virtual int BottomMargin() const;
+	double const * XBounds() const;
+	double XRange() const;
 
 	void AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset);
 	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);
@@ -103,6 +104,7 @@ public:
 
 	void UpdatePrimaryDrawer();
 	void SetShowPrimaryDrawer(bool showPrimaryDrawer);
+	QSharedPointer< iAAbstractDrawableFunction > GetPrimaryDrawer();
 	
 	void SetYDrawMode(DrawModeType drawMode);
 
@@ -116,11 +118,13 @@ public:
 	void SetAllowTrfReset(bool allow);
 	void SetEnableAdditionalFunctions(bool enable);
 
-	int GetTFGradientHeight() const;
-
-	virtual int getBottomMargin() const;
-
 	bool IsDrawnDiscrete() const;
+	void SetXCaption(QString const & caption);
+
+	bool isTFTableCreated();
+	void closeTFTable();
+	QPoint getTFTablePos();
+	void setTFTablePos(QPoint pos);
 
 protected:
 	void paintEvent(QPaintEvent * );
@@ -153,7 +157,7 @@ protected:
 	virtual void drawDatasets(QPainter &painter);
 	virtual void drawImageOverlays(QPainter &painter);
 	virtual void drawAxes(QPainter &painter);
-	virtual void changeMode(int mode, QMouseEvent *event);
+	virtual void changeMode(int newMode, QMouseEvent *event) override;
 
 	// conversion between screen and data coordinates/bins:
 	int diagram2PaintX(double x);
@@ -169,6 +173,7 @@ signals:
 	void autoUpdateChanged(bool toggled);
 	void applyTFForAll();
 	void DblClicked();
+	void updateTFTable();
 
 public slots:
 	int deletePoint();
@@ -186,6 +191,10 @@ public slots:
 	bool loadFunctions();
 	bool saveFunctions();
 	void removeFunction();
+	void showTFTable();
+	void TFTableIsFinished();
+	void ExportData();
+
 protected:
 	virtual void drawFunctions(QPainter &painter);
 	virtual QString GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma);
@@ -193,6 +202,7 @@ protected:
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
 	bool                      m_showXAxisLabel;
 	bool                      m_showFunctions;
+
 private:
 	QList< QSharedPointer< QImage > >						m_overlays;
 	QVector< QSharedPointer< iAAbstractDrawableFunction > >	m_datasets;
@@ -202,6 +212,7 @@ private:
 	bool													m_enableAdditionalFunctions;
 	DrawModeType											m_yDrawMode;
 	QSharedPointer<CoordinateConverter>						m_yConverter;
+	dlg_TFTable* TFTable;
 	
 	int m_xAxisSteps;
 	int m_yAxisSteps;

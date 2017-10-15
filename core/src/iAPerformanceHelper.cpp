@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,10 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAPerformanceHelper.h"
 
@@ -38,6 +37,8 @@
  */
 
 #if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #include <psapi.h>
 
@@ -179,16 +180,16 @@ iAPerformanceHelper::~iAPerformanceHelper()
 
 void iAPerformanceHelper::printTime(iAPerformanceTimer::DurationType duration, std::string const & caption, bool printMemUsage)
 {
-	DEBUG_LOG(QString("%1 %2").arg(caption.c_str()).arg(formatDuration(duration)));
-	if (printMemUsage)
-	{
-		printMemoryUsage();
-	}
+	DEBUG_LOG(QString("%1 %2%3")
+		.arg(caption.c_str())
+		.arg(formatDuration(duration))
+		.arg(printMemUsage ? printMemoryUsage() : "")
+	);
 }
 
-void iAPerformanceHelper::printMemoryUsage()
+QString iAPerformanceHelper::printMemoryUsage()
 {
-	DEBUG_LOG(QString("; memory usage: %1  MB").arg(getCurrentRSS()/1048576));
+	return QString("; memory usage: %1  MB").arg(getCurrentRSS()/1048576);
 }
 
 void iAPerformanceHelper::start(std::string const & caption, bool printMemUsage)
@@ -196,11 +197,10 @@ void iAPerformanceHelper::start(std::string const & caption, bool printMemUsage)
 	m_pImpl->m_caption = caption;
 	m_pImpl->m_printMemUsage = printMemUsage;
 	m_pImpl->m_perfTimer.start();
-	DEBUG_LOG(QString(">>>>> START %1 ").arg(m_pImpl->m_caption.c_str()));
-	if (m_pImpl->m_printMemUsage)
-	{
-		printMemoryUsage();
-	}
+	DEBUG_LOG(QString(">>>>> START %1 %2")
+		.arg(m_pImpl->m_caption.c_str())
+		.arg(m_pImpl->m_printMemUsage ? printMemoryUsage(): "")
+	);
 }
 
 

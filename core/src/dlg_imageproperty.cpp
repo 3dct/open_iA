@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -25,10 +25,9 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 
-dlg_imageproperty::dlg_imageproperty(QWidget *parent, vtkImageData* src, vtkImageAccumulate* accum, QString const & Filename) : QDockWidget(parent)
+dlg_imageproperty::dlg_imageproperty(QWidget *parent) : QDockWidget(parent)
 {
 	setupUi(this);
-	AddInfo(src, accum, QString("Filename: %1 ").arg(Filename));
 }
 
 void dlg_imageproperty::EnterMsg(QString txt)
@@ -42,28 +41,52 @@ void dlg_imageproperty::Clear()
 	lWidget->clear();
 }
 
-void dlg_imageproperty::AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name)
+void dlg_imageproperty::AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name, int channelCount)
 {
 	EnterMsg(name);
-	EnterMsg( tr( "    Extent: [%1 %2]  [%3 %4]  [%5 %6]" ).arg( src->GetExtent()[0] )
-			  .arg( src->GetExtent()[1] )
-			  .arg( src->GetExtent()[2] )
-			  .arg( src->GetExtent()[3] )
-			  .arg( src->GetExtent()[4] )
-			  .arg( src->GetExtent()[5] ) );
+	EnterMsg( QString( "    %1: [%2 %3]  [%4 %5]  [%6 %7]" )
+		.arg(tr("Extent"))
+		.arg( src->GetExtent()[0] )
+		.arg( src->GetExtent()[1] )
+		.arg( src->GetExtent()[2] )
+		.arg( src->GetExtent()[3] )
+		.arg( src->GetExtent()[4] )
+		.arg( src->GetExtent()[5] ) );
 
-	EnterMsg( tr( "    Spacing:  %1  %2  %3" ).arg( src->GetSpacing()[0] )
-			  .arg( src->GetSpacing()[1] )
-			  .arg( src->GetSpacing()[2] ) );
+	EnterMsg( QString( "    %1:  %2  %3  %4" )
+		.arg(tr("Spacing"))
+		.arg( src->GetSpacing()[0] )
+		.arg( src->GetSpacing()[1] )
+		.arg( src->GetSpacing()[2] ) );
 
-	EnterMsg( tr( "    Origin: %1 %2 %3" ).arg( src->GetOrigin()[0] )
-			  .arg( src->GetOrigin()[1] )
-			  .arg( src->GetOrigin()[2] ) );
+	EnterMsg( QString( "    %1: %2 %3 %4" )
+		.arg(tr("Origin"))
+		.arg( src->GetOrigin()[0] )
+		.arg( src->GetOrigin()[1] )
+		.arg( src->GetOrigin()[2] ) );
 
-	QString txt = src->GetScalarTypeAsString();
-	EnterMsg( "    Datatype: " + txt );
+	EnterMsg( QString("    %1: %2")
+		.arg(tr("Datatype"))
+		.arg(src->GetScalarTypeAsString()) );
 	
-	EnterMsg( tr( "    Components: %1" ).arg( src->GetNumberOfScalarComponents() ) );
+	QString componentStr;
+	if (src->GetNumberOfScalarComponents() > 1 && channelCount > 1)
+	{
+		componentStr = QString("%1/%2")
+			.arg(channelCount)
+			.arg(src->GetNumberOfScalarComponents());
+	}
+	else if (channelCount > 1)
+	{
+		componentStr = QString::number(channelCount);
+	}
+	else
+	{
+		componentStr = QString::number(src->GetNumberOfScalarComponents());
+	}
+	EnterMsg( QString( "    %1: %2" )
+		.arg(tr("Components"))
+		.arg(componentStr) );
 	
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{

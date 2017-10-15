@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -37,14 +37,14 @@ const QColor DefaultColors::SubtreeHighlightColor[MaxSelectedClusters] = {
 	QColor(240, 240, 240, 255)
 };
 const QColor DefaultColors::ClusterChartColor[MaxSelectedClusters] = {
-	QColor(255,  50,  50, 255),
-	QColor(255, 130, 130, 255),
-	QColor(255,  70,  70, 255),
-	QColor(255, 150, 150, 255),
-	QColor(255,  90,  90, 255),
-	QColor(255, 170, 170, 255),
-	QColor(255, 110, 110, 255),
-	QColor(255, 190, 190, 255)
+	QColor(255,  50,  50, 100),
+	QColor(255, 130, 130, 100),
+	QColor(255,  70,  70, 100),
+	QColor(255, 150, 150, 100),
+	QColor(255,  90,  90, 100),
+	QColor(255, 170, 170, 100),
+	QColor(255, 110, 110, 100),
+	QColor(255, 190, 190, 100)
 };
 const QColor DefaultColors::ImageChartColor          (255, 204,  51, 255);
 const QColor DefaultColors::FilteredChartColor       (185, 185, 185, 255);
@@ -53,7 +53,7 @@ const QColor DefaultColors::ChartMarkerColor         (235, 184,  31, 255);
 const QColor DefaultColors::ChartSliderColor         (128, 128, 128, 255);
 const QColor DefaultColors::CaptionBGColor           (205, 205, 205, 255);
 const QColor DefaultColors::CaptionFontColor         (  0,   0,   0, 255);
-const QColor DefaultColors::DifferenceColor          (255,   0,   0, 255);
+const QColor DefaultColors::DifferenceColor          (  0,   0,   0, 255);
 
 const QColor DefaultColors::BackgroundHateColor      (255, 221, 221, 255);
 const QColor DefaultColors::BackgroundLikeColor      (221, 255, 221, 255);
@@ -80,9 +80,3 @@ const QBrush DefaultColors::TriangleButtonSelectedBrush(Qt::black, Qt::SolidPatt
 const QBrush DefaultColors::ChartMarkerBrush(DefaultColors::ImageChartColor, Qt::SolidPattern);
 const QBrush DefaultColors::ChartSliderBrush(DefaultColors::ChartSliderColor, Qt::SolidPattern);
 const QBrush DefaultColors::CaptionBrush(DefaultColors::CaptionBGColor, Qt::SolidPattern);
-
-
-
-const QString Output::NameSeparator(": ");
-const QString Output::ValueSeparator(",");
-const QString Output::OptionalParamSeparator(" ");

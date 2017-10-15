@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,585 +15,289 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "pch.h"
 #include "iACastImageFilter.h"
+
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include <itkFHWRescaleIntensityImageFilter.h>
 
-#include <vtkImageData.h>
-
-#include <itkLabelToRGBImageFilter.h>
+#include <itkCastImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
+#include <itkLabelToRGBImageFilter.h>
 #include <itkRGBPixel.h>
 #include <itkRGBAPixel.h>
 
-#include <QLocale>
-#include <exception>
-
-class myRGBATypeException : public exception
+class myRGBATypeException : public std::exception
 {
 	virtual const char* what() const throw()
 	{
-		return "RGBA Converion Error: LONG type needed.";
+		return "RGBA Conversion Error: UNSIGNED LONG type needed.";
 	}
 } myRGBATypeExcep;
 
-template<class T> int FHW_CastImage_template( string m_odt, iAProgress* p, iAConnector* image )
+template <class InT, class OutT>
+void CastImage_template2(iAProgress* p, iAConnector* con)
 {
-	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::Image<InT, DIM > InputImageType;
+	typedef itk::Image<OutT, DIM> OutputImageType;
+	typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
+	typename OTIFType::Pointer filter = OTIFType::New();
+	filter->SetInput(dynamic_cast<InputImageType *>(con->GetITKImage()));
+	p->Observe(filter);
+	filter->Update();
+	con->SetImage(filter->GetOutput());
+	con->Modified();
+	filter->ReleaseDataFlagOn();
+}
 
-	if ( m_odt.compare( "VTK_SIGNED_CHAR" ) == 0 )
+template<class T> void CastImage_template(std::string datatype, iAProgress* p, iAConnector* con)
+{
+	if (datatype.compare("VTK_CHAR") == 0 ||  datatype.compare( "VTK_SIGNED_CHAR" ) == 0)
 	{
-		typedef itk::Image <char, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, char>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED_CHAR" ) == 0 )
+	else if (datatype.compare( "VTK_UNSIGNED_CHAR" ) == 0)
 	{
-		typedef itk::Image <unsigned char, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, unsigned char>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_SHORT" ) == 0 )
+	else if (datatype.compare( "VTK_SHORT" ) == 0)
 	{
-		typedef itk::Image <short, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, short>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED_SHORT" ) == 0 )
+	else if (datatype.compare( "VTK_UNSIGNED_SHORT" ) == 0)
 	{
-		typedef itk::Image <unsigned short, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, unsigned short>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_INT" ) == 0 )
+	else if (datatype.compare( "VTK_INT" ) == 0)
 	{
-		typedef itk::Image <int, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, int>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED_INT" ) == 0 )
+	else if (datatype.compare( "VTK_UNSIGNED_INT" ) == 0)
 	{
-		typedef itk::Image <unsigned int, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, unsigned int>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_LONG" ) == 0 )
+	else if (datatype.compare( "VTK_LONG" ) == 0)
 	{
-		typedef itk::Image <long, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, long>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED_LONG" ) == 0 )
+	else if (datatype.compare( "VTK_UNSIGNED_LONG" ) == 0)
 	{
-		typedef itk::Image <unsigned long, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, unsigned long>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_FLOAT" ) == 0 )
+	else if (datatype.compare("VTK_LONG_LONG") == 0 || datatype.compare("VTK__INT64") == 0)
 	{
-		typedef itk::Image <float, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, long long>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_DOUBLE" ) == 0 )
+	else if (datatype.compare("VTK_UNSIGNED_LONG_LONG") == 0 || datatype.compare("VTK_UNSIGNED__INT64") == 0)
 	{
-		typedef itk::Image <double, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, unsigned long long>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_LONG_LONG" ) == 0 )
+	else if (datatype.compare( "VTK_FLOAT" ) == 0)
 	{
-		typedef itk::Image <long long, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		CastImage_template2<T, float>(p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED_LONG_LONG" ) == 0 )
+	else if (datatype.compare( "VTK_DOUBLE" ) == 0)
 	{
-		typedef itk::Image <unsigned long long, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
-	}
-
-	else if ( m_odt.compare( "VTK__INT64" ) == 0 )
-	{
-		typedef itk::Image <long long, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
-	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED__INT64" ) == 0 )
-	{
-		typedef itk::Image <unsigned long long, DIM> OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
-	}
-	else if ( m_odt.compare( "Label image to color-coded RGBA image" ) == 0 )
-	{
-		if ( image->GetITKScalarPixelType() != itk::ImageIOBase::ULONG )
-			throw  myRGBATypeExcep;
-		
-		typedef itk::Image< unsigned long, DIM > LongImageType;
-		typedef itk::RGBPixel< unsigned char > RGBPixelType;
-		typedef itk::Image< RGBPixelType, DIM > RGBImageType;
-		typedef itk::RGBAPixel< unsigned char > RGBAPixelType;
-		typedef itk::Image< RGBAPixelType, DIM>  RGBAImageType;
-
-		typedef itk::LabelToRGBImageFilter<LongImageType, RGBImageType> RGBFilterType;
-		RGBFilterType::Pointer labelToRGBFilter = RGBFilterType::New();
-		labelToRGBFilter->SetInput( dynamic_cast<LongImageType *>( image->GetITKImage() ) );
-		labelToRGBFilter->Update();
-
-		RGBImageType::RegionType region;
-		region.SetSize( labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetSize() );
-		region.SetIndex( labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetIndex() );
-
-		RGBAImageType::Pointer rgbaImage = RGBAImageType::New();
-		rgbaImage->SetRegions( region );
-		rgbaImage->SetSpacing( labelToRGBFilter->GetOutput()->GetSpacing() );
-		rgbaImage->Allocate();
-
-		itk::ImageRegionConstIterator< RGBImageType > cit( labelToRGBFilter->GetOutput(), region );
-		itk::ImageRegionIterator< RGBAImageType >     it( rgbaImage, region );
-		for ( cit.GoToBegin(), it.GoToBegin(); !it.IsAtEnd(); ++cit, ++it )
-		{
-			it.Value().SetRed( cit.Value().GetRed() );
-			it.Value().SetBlue( cit.Value().GetBlue() );
-			it.Value().SetGreen( cit.Value().GetGreen() );
-			it.Value().SetAlpha( 255 );
-		}
-
-		image->SetImage( rgbaImage );
-		image->Modified();
-		labelToRGBFilter->ReleaseDataFlagOn();
+		CastImage_template2<T, double>(p, con);
 	}
 	else
 	{
-		typedef itk::Image< T, DIM >   OutputImageType;
-		typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
-		typename OTIFType::Pointer filter = OTIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
-	}
-	return EXIT_SUCCESS;
-}
-
-iACastImageFilter::iACastImageFilter( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAFilter( fn, fid, i, p, logger, parent )
-{
-}
-
-iACastImageFilter::~iACastImageFilter()
-{
-}
-
-void iACastImageFilter::run()
-{
-	switch ( getFilterID() )
-	{
-		case FHW_CAST_IMAGE:
-			fhwCastImage(); break;
-		case DATATYPE_CONVERSION:
-			DataTypeConversion(); break;
-		case UNKNOWN_FILTER:
-		default:
-			addMsg( tr( "unknown filter type" ) );
+		throw std::runtime_error("Invalid datatype for casting!");
 	}
 }
 
-void iACastImageFilter::fhwCastImage()
+template <class InT, class OutT>
+void DataTypeConversion_template2(float min, float max, double outmin, double outmax, bool dov, iAProgress* p, iAConnector* con)
 {
-
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
-
-	try
+	typedef itk::Image<InT, DIM>   InputImageType;
+	typedef itk::Image<OutT, DIM> OutputImageType;
+	typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
+	typename RIIFType::Pointer filter = RIIFType::New();
+	filter->SetInput(dynamic_cast<InputImageType *>(con->GetITKImage()));
+	filter->SetInputMinimum(min);
+	filter->SetInputMaximum(max);
+	if (dov)
 	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( FHW_CastImage_template, itkType,
-						m_odt, getItkProgress(), getConnector() );
-	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
-	catch ( const exception& e )
-	{
-		addMsg( tr( "%1  %2 could not continue. %3" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( e.what() ) );
-		return;
-	}
 
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-	emit startUpdate();
+		filter->SetOutputMinimum(std::numeric_limits<OutT>::lowest());
+		filter->SetOutputMaximum(std::numeric_limits<OutT>::max());
+	}
+	else
+	{
+		filter->SetOutputMinimum(outmin);
+		filter->SetOutputMaximum(outmax);
+	}
+	p->Observe(filter);
+	filter->Update();
+	con->SetImage(filter->GetOutput());
+	con->Modified();
+	filter->ReleaseDataFlagOn();
 }
 
 template<class T>
-int DataTypeConversion_template( string m_odt, float m_min, float m_max, double m_outmin, double m_outmax, int dov, iAProgress* p, iAConnector* image )
+void DataTypeConversion_template(std::string datatype, float min, float max, double outmin, double outmax, bool dov, iAProgress* p, iAConnector* con)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-
-	if ( m_odt.compare( "VTK_UNSIGNED_CHAR" ) == 0 )
+	if (datatype.compare("VTK_UNSIGNED_CHAR") == 0)
 	{
-		typedef itk::Image <unsigned char, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			filter->SetOutputMinimum( 0 );
-			filter->SetOutputMaximum( 255 );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		DataTypeConversion_template2<T, unsigned char>(min, max, outmin, outmax, dov, p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_SHORT" ) == 0 )
+	else if (datatype.compare("VTK_CHAR") == 0 || datatype.compare("VTK_SIGNED_CHAR") == 0)
 	{
-		typedef itk::Image <short, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			filter->SetOutputMinimum( -32768 );
-			filter->SetOutputMaximum( 32767 );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		DataTypeConversion_template2<T, char>(min, max, outmin, outmax, dov, p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED_SHORT" ) == 0 )
+	else if (datatype.compare("VTK_SHORT") == 0)
 	{
-		typedef itk::Image <unsigned short, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			filter->SetOutputMinimum( 0 );
-			filter->SetOutputMaximum( 65535 );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		DataTypeConversion_template2<T, short>(min, max, outmin, outmax, dov, p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_INT" ) == 0 )
+	else if (datatype.compare("VTK_UNSIGNED_SHORT") == 0)
 	{
-		typedef itk::Image <int, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			filter->SetOutputMinimum( -2147483648 );
-			filter->SetOutputMaximum( 2147483647 );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		DataTypeConversion_template2<T, unsigned short>(min, max, outmin, outmax, dov, p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_UNSIGNED_INT" ) == 0 )
+	else if (datatype.compare("VTK_INT") == 0)
 	{
-		typedef itk::Image <unsigned int, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			filter->SetOutputMinimum( 0 );
-			filter->SetOutputMaximum( 4294967295 );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		DataTypeConversion_template2<T, int>(min, max, outmin, outmax, dov, p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_FLOAT" ) == 0 )
+	else if (datatype.compare("VTK_UNSIGNED_INT") == 0)
 	{
-		typedef itk::Image <float, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			double lower = 1.175*pow( 10.0, -38 );
-			double higher = 3.402*pow( 10.0, 38 );
-			filter->SetOutputMinimum( lower );
-			filter->SetOutputMaximum( higher );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		DataTypeConversion_template2<T, unsigned int>(min, max, outmin, outmax, dov, p, con);
 	}
-
-	else if ( m_odt.compare( "VTK_DOUBLE" ) == 0 )
+	else if (datatype.compare("VTK_LONG") == 0)
 	{
-		typedef itk::Image <double, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			double lower = 2.225*pow( 10.0, -307 );
-			double higher = 1.797*pow( 10.0, 307 );
-			filter->SetOutputMinimum( lower );
-			filter->SetOutputMaximum( higher );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		DataTypeConversion_template2<T, long>(min, max, outmin, outmax, dov, p, con);
 	}
-
+	else if (datatype.compare("VTK_UNSIGNED_LONG") == 0)
+	{
+		DataTypeConversion_template2<T, unsigned long>(min, max, outmin, outmax, dov, p, con);
+	}
+	else if (datatype.compare("VTK_LONG_LONG") == 0 || datatype.compare("VTK__INT64") == 0)
+	{
+		DataTypeConversion_template2<T, long long>(min, max, outmin, outmax, dov, p, con);
+	}
+	else if (datatype.compare("VTK_UNSIGNED_LONG_LONG") == 0 || datatype.compare("VTK_UNSIGNED__INT64") == 0)
+	{
+		DataTypeConversion_template2<T, unsigned long long>(min, max, outmin, outmax, dov, p, con);
+	}
+	else if (datatype.compare("VTK_FLOAT") == 0)
+	{
+		DataTypeConversion_template2<T, float>(min, max, outmin, outmax, dov, p, con);
+	}
+	else if (datatype.compare("VTK_DOUBLE") == 0)
+	{
+		DataTypeConversion_template2<T, double>(min, max, outmin, outmax, dov, p, con);
+	}
 	else
 	{
-		typedef itk::Image <char, 3> OutputImageType;
-		typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
-
-		typename RIIFType::Pointer filter = RIIFType::New();
-		filter->SetInput( dynamic_cast<InputImageType *>( image->GetITKImage() ) );
-		filter->SetInputMinimum( m_min );
-		filter->SetInputMaximum( m_max );
-		if ( dov == 2 )
-		{
-			filter->SetOutputMinimum( -128 );
-			filter->SetOutputMaximum( 127 );
-		}
-		else
-		{
-			filter->SetOutputMinimum( m_outmin );
-			filter->SetOutputMaximum( m_outmax );
-		}
-		p->Observe( filter );
-		filter->Update();
-		image->SetImage( filter->GetOutput() );
-		image->Modified();
-		filter->ReleaseDataFlagOn();
+		throw std::runtime_error("Invalid datatype for rescale!");
 	}
-
-	return EXIT_SUCCESS;
 }
 
-void iACastImageFilter::DataTypeConversion()
+void ConvertToRGB(iAProgress* p, iAConnector* image)
 {
+	if (image->GetITKScalarPixelType() != itk::ImageIOBase::ULONG)
+		throw  myRGBATypeExcep;
 
-	addMsg( tr( "%1  %2 started." ).arg( QLocale().toString( Start(), QLocale::ShortFormat ) )
-			.arg( getFilterName() ) );
-	getConnector()->SetImage( getVtkImageData() ); getConnector()->Modified();
+	typedef itk::Image< unsigned long, DIM > LongImageType;
+	typedef itk::RGBPixel< unsigned char > RGBPixelType;
+	typedef itk::Image< RGBPixelType, DIM > RGBImageType;
+	typedef itk::RGBAPixel< unsigned char > RGBAPixelType;
+	typedef itk::Image< RGBAPixelType, DIM>  RGBAImageType;
 
-	try
+	typedef itk::LabelToRGBImageFilter<LongImageType, RGBImageType> RGBFilterType;
+	RGBFilterType::Pointer labelToRGBFilter = RGBFilterType::New();
+	labelToRGBFilter->SetInput(dynamic_cast<LongImageType *>(image->GetITKImage()));
+	labelToRGBFilter->Update();
+
+	RGBImageType::RegionType region;
+	region.SetSize(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetSize());
+	region.SetIndex(labelToRGBFilter->GetOutput()->GetLargestPossibleRegion().GetIndex());
+
+	RGBAImageType::Pointer rgbaImage = RGBAImageType::New();
+	rgbaImage->SetRegions(region);
+	rgbaImage->SetSpacing(labelToRGBFilter->GetOutput()->GetSpacing());
+	rgbaImage->Allocate();
+
+	itk::ImageRegionConstIterator< RGBImageType > cit(labelToRGBFilter->GetOutput(), region);
+	itk::ImageRegionIterator< RGBAImageType >     it(rgbaImage, region);
+	for (cit.GoToBegin(), it.GoToBegin(); !it.IsAtEnd(); ++cit, ++it)
 	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL( DataTypeConversion_template, itkType,
-						m_type, m_min, m_max, m_outmin, m_outmax, m_dov, getItkProgress(), getConnector() );
+		it.Value().SetRed(cit.Value().GetRed());
+		it.Value().SetBlue(cit.Value().GetBlue());
+		it.Value().SetGreen(cit.Value().GetGreen());
+		it.Value().SetAlpha(255);
 	}
-	catch ( itk::ExceptionObject &excep )
-	{
-		addMsg( tr( "%1  %2 terminated unexpectedly. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-				.arg( getFilterName() )
-				.arg( Stop() ) );
-		addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
-				.arg( excep.GetFile() )
-				.arg( excep.GetLine() ) );
-		return;
-	}
+	image->SetImage(rgbaImage);
+	image->Modified();
+	labelToRGBFilter->ReleaseDataFlagOn();
+}
 
-	addMsg( tr( "%1  %2 finished. Elapsed time: %3 ms" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) )
-			.arg( getFilterName() )
-			.arg( Stop() ) );
-	emit startUpdate();
+IAFILTER_CREATE(iACastImageFilter)
+
+void iACastImageFilter::Run(QMap<QString, QVariant> parameters)
+{
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	if (parameters["Data Type"].toString() == "Label image to color-coded RGBA image")
+	{
+		ConvertToRGB(m_progress, m_con);
+	}
+	if (parameters["Rescale Range"].toBool())
+	{
+		ITK_TYPED_CALL(DataTypeConversion_template, pixelType,
+			parameters["Data Type"].toString().toStdString(),
+			parameters["Input Min"].toDouble(),
+			parameters["Input Max"].toDouble(),
+			parameters["Output Min"].toDouble(),
+			parameters["Output Max"].toDouble(),
+			parameters["Use Full Output Range"].toBool(),
+			m_progress, m_con);
+	}
+	else
+	{
+		ITK_TYPED_CALL(CastImage_template, pixelType,
+			parameters["Data Type"].toString().toStdString(),
+			m_progress, m_con);
+	}
+}
+
+iACastImageFilter::iACastImageFilter() :
+	iAFilter("Datatype Conversion", "",
+		"Converts image to another datatype.<br/><em>Rescale Range</em> determines whether the intensities are transformed in that process."
+		"Input Minimum and Maximum and Output Minimum amd Maximum are only applicable in the case that Rescale Ranges is checked.<br/>"
+		"If <em>Use Full Output Range</em> is checked, then Output Min and Max are ignored, instead the minimum and maximum possible values "
+		"of the chosen output datatype are used.<br/>"
+		"For more information, see the "
+		"<a href=\"http://www.itk.org/Doxygen/html/classitk_1_1CastImageFilter.html\">"
+		"Cast Image Filter</a> and the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
+		"Rescale Image Filter</a> in the ITK documentation.")
+{
+	QStringList datatypes = (QStringList()
+		<< QString("VTK_SIGNED_CHAR")
+		<< QString("VTK_UNSIGNED_CHAR")
+		<< QString("VTK_SHORT")
+		<< QString("VTK_UNSIGNED_SHORT")
+		<< QString("VTK_INT")
+		<< QString("VTK_UNSIGNED_INT")
+		<< QString("VTK_LONG")
+		<< QString("VTK_UNSIGNED_LONG")
+		<< QString("VTK_FLOAT")
+		<< QString("VTK_DOUBLE")
+		<< QString("VTK_LONG_LONG")
+		<< QString("VTK_UNSIGNED_LONG_LONG")
+		<< QString("VTK__INT64")
+		<< QString("VTK_UNSIGNED__INT64")
+		<< ("Label image to color-coded RGBA image"));
+	AddParameter("Data Type", Categorical, datatypes);
+	AddParameter("Rescale Range", Boolean, false);
+	AddParameter("Input Min", Continuous, 0);
+	AddParameter("Input Max", Continuous, 1);
+	AddParameter("Use Full Output Range", Boolean, true);
+	AddParameter("Output Min", Continuous, 0);
+	AddParameter("Output Max", Continuous, 1);
 }

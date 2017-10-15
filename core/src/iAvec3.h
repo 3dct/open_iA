@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -29,107 +29,28 @@ class open_iA_Core_API iAVec3
 {
 public:
 	float x,y,z;
-	iAVec3(){}
-	iAVec3(float px, float py, float pz)
-	{
-		x = px;
-		y = py;
-		z = pz;
-	}
-	iAVec3(float val)
-	{
-		x = val;
-		y = val;
-		z = val;
-	}
-	iAVec3(float data[3])
-	{
-		x = data[0];
-		y = data[1];
-		z = data[2];
-	}
-	iAVec3(const iAVec3& v)
-	{
-		x = v.x;
-		y = v.y;
-		z = v.z;
-	}
-	iAVec3& operator= (const iAVec3& v)
-	{
-		x = v.x;
-		y = v.y;
-		z = v.z;
-		return *this;
-	}
-	iAVec3 operator+ () const
-	{
-		return *this;
-	}
-	iAVec3 operator- () const
-	{
-		return iAVec3(-x,-y,-z);
-	}
-	iAVec3& operator+= (const iAVec3& v)
-	{
-		x += v.x;
-		y += v.y;
-		z += v.z;
-		return *this;
-	}
-	iAVec3& operator-= (const iAVec3& v)
-	{
-		x -= v.x;
-		y -= v.y;
-		z -= v.z;
-		return *this;
-	}
-	iAVec3& operator*= (const iAVec3& v)
-	{
-		x *= v.x;
-		y *= v.y;
-		z *= v.z;
-		return *this;
-	}
-	iAVec3& operator*= (float f)
-	{
-		x *= f;
-		y *= f;
-		z *= f;
-		return *this;
-	}
-	iAVec3& operator/= (const iAVec3& v)
-	{
-		x /= v.x;
-		y /= v.y;
-		z /= v.z;
-		return *this;
-	}
-	const float& operator[] (int index) const
-	{
-		return *(index+&x);
-	}
-	float& operator[] (int index)
-	{
-		return *(index+&x);
-	}
-	int     operator== (const iAVec3& v) const
-	{
-		return x == v.x && y == v.y && z == v.z;
-	}
-	int	    operator!= (const iAVec3& v) const
-	{
-		return x != v.x || y != v.y || z != v.z;
-	}
-	int	    operator<  (const iAVec3& v) const
-	{
-		return ( x < v.x ) || ((x == v.x) && (y < v.y));
-	}
-	int	    operator>  (const iAVec3& v) const
-	{
-		return ( x > v.x ) || ((x == v.x) && (y > v.y));
-	}
+	iAVec3();
+	iAVec3(float px, float py, float pz);
+	iAVec3(float val);
+	iAVec3(float data[3]);
+	iAVec3(const iAVec3& v);
+	iAVec3& operator= (const iAVec3& v);
+	iAVec3 operator+ () const;
+	iAVec3 operator- () const;
+	iAVec3& operator+= (const iAVec3& v);
+	iAVec3& operator-= (const iAVec3& v);
+	iAVec3& operator*= (const iAVec3& v);
+	iAVec3& operator*= (float f);
+	iAVec3& operator/= (const iAVec3& v);
+	const float& operator[] (int index) const;
+	float& operator[] (int index);
+	int     operator== (const iAVec3& v) const;
+	int	    operator!= (const iAVec3& v) const;
+	int	    operator<  (const iAVec3& v) const;
+	int	    operator>  (const iAVec3& v) const;
 	float	length() const;
 	static float angle(iAVec3 const & a, iAVec3 const & b);
+	iAVec3 normalize() const;
 
 	friend iAVec3 operator + (const iAVec3&,const iAVec3&);
 	friend iAVec3 operator - (const iAVec3&,const iAVec3&);
@@ -138,9 +59,10 @@ public:
 	friend iAVec3 operator * (const iAVec3&,float);
 	friend iAVec3 operator / (const iAVec3&,float);
 	friend iAVec3 operator / (const iAVec3&,const iAVec3&);
-	friend float  operator & (const iAVec3&,const iAVec3&);
-	friend iAVec3 operator ^ (const iAVec3&,const iAVec3&);
+	friend float  operator & (const iAVec3&,const iAVec3&);		// dot product
+	friend iAVec3 operator ^ (const iAVec3&,const iAVec3&);		// cross product
 };
+
 inline iAVec3 operator + (const iAVec3& u,const iAVec3& v)
 {
 	return iAVec3(u.x + v.x, u.y + v.y, u.z + v.z);
@@ -175,12 +97,14 @@ inline iAVec3 operator / (const iAVec3& u,const iAVec3& v)
 {
 	return iAVec3(u.x / v.x, u.y / v.y, u.z / v.z);
 }
-//dot
+
+//! dot product
 inline float    operator & (const iAVec3& u,const iAVec3& v)
 {
 	return u.x*v.x + u.y*v.y + u.z*v.z;
 }
-//cross
+
+//! cross product
 inline iAVec3 operator ^ (const iAVec3& u,const iAVec3& v)
 {
 	return iAVec3(u.y*v.z - u.z*v.y,

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,18 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
 #include "ui_GEMSeControl.h"
+
+#include "iAImageTreeNode.h"    // for LabelImagePointer
+
+#include <vtkSmartPointer.h>
+
+#include <QMap>
 
 #include <iAQTtoUIConnector.h>
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
@@ -28,17 +34,16 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 class iAImageClusterer;
 class iAImageSampler;
 
+class dlg_GEMSe;
 class dlg_labels;
+class dlg_Consensus;
 class dlg_modalities;
+class dlg_progress;
 class dlg_samplings;
 class dlg_samplingSettings;
-class dlg_progress;
-class dlg_GEMSe;
 class iAColorTheme;
 class iASimpleLabelInfo;
 class iASamplingResults;
-
-#include <vtkSmartPointer.h>
 
 class vtkImageData;
 
@@ -56,9 +61,12 @@ public:
 	);
 	bool LoadSampling(QString const & fileName, int labelCount, int datasetID);
 	bool LoadClustering(QString const & fileName);
+	bool LoadRefImg(QString const & refImgName);
 	void ExportAttributeRangeRanking();
 	void ExportRankings();
 	void ImportRankings();
+	void SetSerializedHiddenCharts(QString const & hiddenCharts);
+	void SetLabelInfo(QString const & colorTheme, QString const & labelNames);
 public slots:
 	void ExportIDs();
 private slots:
@@ -69,17 +77,28 @@ private slots:
 	void LoadClustering();
 	void CalculateClustering();
 	void StoreClustering();
-	void CalcRefImgComp();
 	void StoreAll();
 	void DataAvailable();
-	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void ResetFilters();
-	void SetMagicLensOpacity(int newValue);
+	void ModalitySelected(int modalityIdx);
 	void SetIconSize(int newSize);
 	void SetColorTheme(const QString &);
 	void SetRepresentative(const QString &);
+	void LoadRefImg();
+	void StoreDerivedOutput();
+	void SetMagicLensCount(int);
+	void FreeMemory();
+	void SetProbabilityProbing(int);
+	void SetCorrectnessUncertainty(int);
+	void DataTFChanged();
 private:
-	void StoreGEMSeProject(QString const & fileName);
+	void StoreGEMSeProject(QString const & fileName, QString const & hiddenCharts);
+	void EnableClusteringDependantUI();
+	void EnableSamplingDependantUI();
+	void StoreDerivedOutput(
+		QString const & derivedOutputFileName,
+		QString const & attributeDescriptorOutputFileName,
+		QSharedPointer<iASamplingResults> results);
+
 	
 	dlg_modalities*                      m_dlgModalities;
 	dlg_samplingSettings*                m_dlgSamplingSettings;
@@ -87,6 +106,7 @@ private:
 	dlg_GEMSe*                           m_dlgGEMSe;
 	dlg_labels*                          m_dlgLabels;
 	dlg_samplings*                       m_dlgSamplings;
+	dlg_Consensus*                       m_dlgConsensus;
 
 	QSharedPointer<iAImageSampler>       m_sampler;
 	QSharedPointer<iAImageClusterer>     m_clusterer;
@@ -96,4 +116,6 @@ private:
 	QString                              m_cltFile;
 	QString                              m_m_metaFileName;
 	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
+	LabelImagePointer                    m_refImg;
+	QMap<QString, QString>               m_samplingSettings;
 };

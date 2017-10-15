@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -31,7 +31,6 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
 #include <vtkSmartPointer.h>
 
-#include "iAFunctionChangeListener.h"
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
 #include "iARendererManager.h"
@@ -61,13 +60,13 @@ class iAEnergySpectrumDiagramData;
 class iAReferenceSpectraLibrary;
 class iAAbstractDrawableFunction;
 class iAMultipleFunctionDrawer;
-class iAFilledLineFunctionDrawer;
+class iAStepFunctionDrawer;
 class iAElementConcentrations;
 class iASelectedBinDrawer;
 class iAWidgetAddHelper;
 class iAPeriodicTableListener;
 
-class dlg_XRF : public dlg_xrfContainer, public iAFunctionChangeListener, public iASpectrumFilterListener
+class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 {
 	Q_OBJECT
 public:
@@ -88,8 +87,6 @@ public:
 	void UpdateVoxelSpectrum(int x, int y, int z);
 	void UpdateConcentrationViews(int x, int y, int z);
 	bool IsInitialized();
-
-	void onFunctionChanged();
 	
 	void OnSelectionUpdate(QVector<iASpectrumFilter> const & filter);
 	bool isDecompositionLoaded() {return m_decompositionLoaded;}
@@ -137,6 +134,7 @@ private slots:
 	void setLinDrawMode(bool);
 	void decompositionSuccess();
 	void decompositionFinished();
+	void SpectrumTFChanged();
 
 	void computeSimilarityMap();
 
@@ -174,7 +172,7 @@ private:
 	QSharedPointer<iAEnergySpectrumDiagramData>				m_voxelEnergy;
 	QSharedPointer<iAAccumulatedXRFData>					m_accumulatedXRF;
 
-	QMap<int, QSharedPointer<iAFilledLineFunctionDrawer> >	m_refSpectraDrawers;
+	QMap<int, QSharedPointer<iAStepFunctionDrawer> >		m_refSpectraDrawers;
 	QSharedPointer<iAReferenceSpectraLibrary>				m_refSpectraLib;
 	
 	QSharedPointer<iAMultipleFunctionDrawer>				m_spectraLinesDrawer;

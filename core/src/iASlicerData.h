@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -42,34 +42,35 @@
 #include "ui_sliceXZ.h"
 #include "ui_sliceYZ.h"
 
-class vtkScalarBarWidget;
-class vtkTextProperty;
+class vtkActor;
+class vtkCamera;
 class vtkColorTransferFunction;
+class vtkGenericOpenGLRenderWindow;
+class vtkImageActor;
+class vtkImageData;
 class vtkImageMapToColors;
+class vtkImageReslice;
+class vtkInteractorStyle;
+class vtkLineSource;
 class vtkLogoWidget;
 class vtkLogoRepresentation;
-class vtkQImageToImageSource;
 class vtkMarchingContourFilter;
-class vtkCamera;
-class vtkTransform;
-class vtkRenderer;
-class vtkRenderWindowInteractor;
-class vtkPolyDataMapper;
+class vtkObject;
 class vtkPlaneSource;
 class vtkPointPicker;
-class vtkObject;
-class vtkLineSource;
-class vtkInteractorStyle;
-class vtkImageReslice;
-class vtkInteractorStyleImage;
-class vtkImageData;
-class vtkImageActor;
-class vtkGenericOpenGLRenderWindow;
-class vtkActor;
+class vtkQImageToImageSource;
+class vtkPolyDataMapper;
+class vtkRenderer;
+class vtkRenderWindowInteractor;
+class vtkScalarBarWidget;
+class vtkTextProperty;
+class vtkTextActor3D;
+class vtkTransform;
 
 class iARulerWidget;
-class iAObserverRedirect;
 class iAMagicLens;
+
+class iAInteractorStyleImage;
 
 /**
  * \brief	implements a slicer widget
@@ -89,22 +90,28 @@ public:
 	void setup(iASingleSlicerSettings const & settings);
 	
 	void initializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
+	void removeChannel(iAChannelID id);
 	void reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
 	void setChannelOpacity(iAChannelID, double opacity );
 	void enableChannel(iAChannelID id, bool enabled, double x, double y, double z);
 	void enableChannel( iAChannelID id, bool enabled );
 	void setResliceChannelAxesOrigin(iAChannelID id, double x, double y, double z);
 
+	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+
 	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setSliceNumber(int sliceNumber);
-	void setPlaneCenter(double x, double y, double z );
+	int getSliceNumber() const;
+	//! set the position of the position marker (in slicer coordinates)
+	void setPositionMarkerCenter(double x, double y);
 	void setContours(int n, double mi, double ma);
 	void setContours( int n, double * contourValues );
 	void setMeasurementStartPoint(int x, int y) { measureStart[0] = x; measureStart[1] = y; };
-	void setROI(int r[6]) { roi = r; };
 	void setShowText(bool isVisible);
+	void setMouseCursor( QString s );
 
 	void disableInteractor() { interactor->Disable(); disabled = true; }
 	void enableInteractor() { interactor->ReInitialize(); disabled = false; }
@@ -112,7 +119,10 @@ public:
 	void showPosition(bool s);	
 	void saveMovie(QString& fileName, int qual = 2);
 	void update();
+
 	void updateROI();
+	void setROI(int r[6]) { roi = r; };
+	void SetROIVisibility(bool visible);
 
 	vtkImageReslice *GetReslicer() { return reslicer; }
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
@@ -122,13 +132,11 @@ public:
 	void SetCamera(vtkCamera* camera, bool camOwner=true);
 	vtkImageData* GetImageData() const { return imageData; };
 
-	vtkActor *getROIActor() { return roiActor; };
 	iASlicerMode getMode() const { return m_mode; }
 	void setMode(const iASlicerMode mode);
 
 	/**	Provides the possibility to save an png image of the image viewer native resolution or the current view. */
 	void saveAsImage() const;
-
 	/** Provides the possibility to save an image stack of the current view. */
 	void saveImageStack();
 	void setStatisticalExtent(int statExt);
@@ -136,8 +144,6 @@ public:
 	virtual void Execute(vtkObject * caller, unsigned long eventId, void * callData);
 
 	void setMagicLensInput(iAChannelID id);
-	void setMagicLensCaption(std::string const & caption);
-	
 	iAChannelSlicerData * GetChannel(iAChannelID id);
 	size_t GetEnabledChannels();
 
@@ -146,17 +152,16 @@ public:
 	void switchContourSourceToChannel( iAChannelID id );
 
 	void SetManualBackground(double r, double g, double b);
-	//void UnsetManualBackground(); // not used yet
 
 	vtkScalarBarWidget * GetScalarWidget();
 	vtkImageActor* GetImageActor();
+	QCursor getMouseCursor();
 
 protected:
-
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();
 	//mouse move
-	void printVoxelInformation(int xCoord, int yCoord, int zCoord, double* result);
+	void printVoxelInformation(double xCoord, double yCoord, double zCoord);
 	void executeKeyPressEvent();
 	void defaultOutput();
 
@@ -176,29 +181,27 @@ protected:
 	* \param [in,out]	x	The x coordinate.
 	* \param [in,out]	y	The y coordinate.
 	*/
-	void snap(double &x, double &y);
+	void snapToHighGradient(double &x, double &y);
 	void InitReslicerWithImageData();
-	void UpdateReslicer();	
-	
+	void UpdateReslicer();
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
 	void updateSignal();
 	void clicked();
 	void clicked(int x, int y, int z);
+	void rightClicked(int x, int y, int z);
+	void released(int x, int y, int z);
 	void UserInteraction();
 	//mouse move
 	void oslicerPos(int x, int y, int z, int mode);
 	void oslicerCol(double cl, double cw, int mode);
 	//key press
 	void Pick();
-
 private:
 	iAMagicLens * m_magicLensExternal;
-	
-	iAObserverRedirect * observerMouseMove;
 	vtkRenderWindowInteractor* interactor;
-	vtkInteractorStyleImage* interactorStyle;
+	iAInteractorStyleImage* interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
 	vtkSmartPointer<vtkRenderer> ren;
 	vtkCamera* m_camera; // smart pointer?
@@ -217,35 +220,38 @@ private:
 	vtkTextProperty *textProperty;
 
 	// TODO: extract/ unify with iARenderer
-	vtkLogoWidget *logoWidget;
-	vtkLogoRepresentation *logoRep;
-	vtkQImageToImageSource *logoImage;
+	vtkSmartPointer<vtkLogoWidget> logoWidget;
+	vtkSmartPointer<vtkLogoRepresentation> logoRep;
+	vtkSmartPointer<vtkQImageToImageSource> logoImage;
 
 	iAWrapperText* textInfo;
 
-	//statistical extent plane (green rectangle)
-	vtkPlaneSource *m_planeSrc;
-	vtkPolyDataMapper *m_planeMapper;
-	vtkActor *m_planeActor;
+	// position marker / statistical extent
+	vtkSmartPointer<vtkPlaneSource> m_positionMarkerSrc;
+	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
+	vtkSmartPointer<vtkActor> m_positionMarkerActor;
+	bool m_showPositionMarker;
 
 	vtkMarchingContourFilter *cFilter;
 	vtkPolyDataMapper *cMapper;
 	vtkActor *cActor;
 
-	vtkLineSource *pLineSource;
-	vtkPolyDataMapper *pLineMapper;
-	vtkActor *pLineActor;
+	vtkSmartPointer<vtkLineSource> pLineSource;
+	vtkSmartPointer<vtkPolyDataMapper> pLineMapper;
+	vtkSmartPointer<vtkActor> pLineActor;
+	vtkSmartPointer<vtkDiskSource> pDiskSource;
+	vtkSmartPointer<vtkPolyDataMapper> pDiskMapper;
+	vtkSmartPointer<vtkActor> pDiskActor;
 
-	vtkDiskSource *pDiskSource;
-	vtkPolyDataMapper *pDiskMapper;
-	vtkActor *pDiskActor;
+	vtkSmartPointer<vtkPlaneSource> roiSource;
+	vtkSmartPointer<vtkPolyDataMapper> roiMapper;
+	vtkSmartPointer<vtkActor> roiActor;
+	int *roi;
 
-	vtkPlaneSource *roiSource;
-	vtkPolyDataMapper *roiMapper;
-	vtkActor *roiActor;
+	vtkSmartPointer<vtkTransform> axisTransform[2];
+	vtkSmartPointer<vtkTextActor3D> axisTextActor[2];
 
 	iARulerWidget *rulerWidget;
-	//iARulerActor * scaleActor;
 
 	vtkTransform *transform;
 	bool isolines;
@@ -256,9 +262,8 @@ private:
 	int m_ext;
 	bool disabled;
 	int no;
-	double min, max;
+	double contourMin, contourMax;
 	
-	int *roi;
 	int measureStart[2];
 	double angleX, angleY, angleZ;
 
@@ -267,9 +272,11 @@ private:
 
 	//mouse move
 	double m_ptMapped[3];
-	std::string m_strDetails;
 	double m_startMeasurePoint[2];
 
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
-	void GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, double* result);
+	void GetMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
+	void UpdatePositionMarkerExtent();
+
+	QCursor m_mouseCursor;
 };

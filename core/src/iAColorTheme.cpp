@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -196,6 +196,80 @@ iAColorThemeManager::iAColorThemeManager()
 	grayScale6->AddColor(QColor(204,204,204));
 	grayScale6->AddColor(QColor(255,255,255));
 	m_themes.insert(grayScale6->GetName(), grayScale6);
+
+	// themes from https://www.materialui.co/colors
+	iAColorTheme* materialRed = new iAColorTheme("Material red (max 10)");
+	materialRed->AddColor(QColor(255, 235, 238));
+	materialRed->AddColor(QColor(255, 205, 210));
+	materialRed->AddColor(QColor(239,154,154));
+	materialRed->AddColor(QColor(229, 115, 115));
+	materialRed->AddColor(QColor(239, 83, 80));
+	materialRed->AddColor(QColor(244, 67, 54));
+	materialRed->AddColor(QColor(229, 57, 53));
+	materialRed->AddColor(QColor(211, 47, 47));
+	materialRed->AddColor(QColor(198, 40, 40));
+	materialRed->AddColor(QColor(183, 28, 28));
+	m_themes.insert(materialRed->GetName(), materialRed);
+
+	iAColorTheme* materialBlue = new iAColorTheme("Material blue (max 10)");
+	materialBlue->AddColor(QColor(227, 242, 253));
+	materialBlue->AddColor(QColor(187, 222, 251));
+	materialBlue->AddColor(QColor(144, 202, 249));
+	materialBlue->AddColor(QColor(100, 181, 246));
+	materialBlue->AddColor(QColor(66, 165, 245));
+	materialBlue->AddColor(QColor(33, 150, 243));
+	materialBlue->AddColor(QColor(30, 136, 229));
+	materialBlue->AddColor(QColor(25, 118, 210));
+	materialBlue->AddColor(QColor(21, 101, 192));
+	materialBlue->AddColor(QColor(13, 71, 161));
+	m_themes.insert(materialBlue->GetName(), materialBlue);
+
+	iAColorTheme* flatUI = new iAColorTheme("Flat UI (max 20)");
+	flatUI->AddColor(QColor(26, 188, 156));
+	flatUI->AddColor(QColor(46, 204, 113));
+	flatUI->AddColor(QColor(52, 152, 219));
+	flatUI->AddColor(QColor(155, 89, 182));
+	flatUI->AddColor(QColor(52, 73, 94));
+	flatUI->AddColor(QColor(22, 160, 133));
+	flatUI->AddColor(QColor(39, 174, 96));
+	flatUI->AddColor(QColor(41, 128, 185));
+	flatUI->AddColor(QColor(142, 68, 173));
+	flatUI->AddColor(QColor(44, 62, 80));
+	flatUI->AddColor(QColor(241, 196, 15));
+	flatUI->AddColor(QColor(230, 126, 34));
+	flatUI->AddColor(QColor(231, 76, 60));
+	flatUI->AddColor(QColor(236, 240, 241));
+	flatUI->AddColor(QColor(149, 165, 166));
+	flatUI->AddColor(QColor(243, 156, 18));
+	flatUI->AddColor(QColor(211, 84, 0));
+	flatUI->AddColor(QColor(192, 57, 43));
+	flatUI->AddColor(QColor(189, 195, 199));
+	flatUI->AddColor(QColor(127, 140, 141));
+	m_themes.insert(flatUI->GetName(), flatUI);
+
+	iAColorTheme* metroColors = new iAColorTheme("Metro Colors (max 20)");
+	metroColors->AddColor(QColor(164, 196, 0));
+	metroColors->AddColor(QColor(96, 169, 23));
+	metroColors->AddColor(QColor(0, 138, 0));
+	metroColors->AddColor(QColor(0, 171, 169));
+	metroColors->AddColor(QColor(27, 161, 226));
+	metroColors->AddColor(QColor(0, 80, 239));
+	metroColors->AddColor(QColor(106, 0, 255));
+	metroColors->AddColor(QColor(170, 0, 255));
+	metroColors->AddColor(QColor(244, 114, 208));
+	metroColors->AddColor(QColor(216, 0, 115));
+	metroColors->AddColor(QColor(162, 0, 37));
+	metroColors->AddColor(QColor(229, 20, 0));
+	metroColors->AddColor(QColor(250, 104, 0));
+	metroColors->AddColor(QColor(240, 163, 10));
+	metroColors->AddColor(QColor(227, 200, 0));
+	metroColors->AddColor(QColor(130, 90, 44));
+	metroColors->AddColor(QColor(109, 135, 100));
+	metroColors->AddColor(QColor(100, 118, 135));
+	metroColors->AddColor(QColor(118, 96, 138));
+	metroColors->AddColor(QColor(160, 82, 45));
+	m_themes.insert(metroColors->GetName(), metroColors);
+
 }
 
 iAColorThemeManager::~iAColorThemeManager()

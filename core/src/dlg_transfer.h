@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -32,10 +32,9 @@ class QDomNode;
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
-class iAFunctionChangeListener;
-
 class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunction
 {
+Q_OBJECT
 	int selectedPoint;
 
 	QColor          color;
@@ -44,9 +43,6 @@ class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunc
 		
 	vtkPiecewiseFunction     *opacityTF;
 	vtkColorTransferFunction *colorTF;
-
-	iAFunctionChangeListener * m_changeListener;
-
 public:
 	dlg_transfer(iADiagramFctWidget *histogram, QColor color);
 	~dlg_transfer();
@@ -72,7 +68,7 @@ public:
 	bool isDeletable(int index);
 
 	void reset();
-	void update(double oldDataRange[2]);
+	void TranslateToNewRange(double const oldDataRange[2]);
 	
 	void mousePressEvent(QMouseEvent*)   {}
 	void mouseMoveEvent(QMouseEvent*)    {}
@@ -86,11 +82,10 @@ public:
 	vtkPiecewiseFunction* GetOpacityFunction() { return opacityTF; }
 	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
 
-	void setChangeListener(iAFunctionChangeListener* listener);
-
-	// TODO: remov!
-	void loadTransferFunction(QDomNode &functionsNode, double range[2]);
-	
+	// TODO: remove!
+	void loadTransferFunction(QDomNode &functionsNode, double const range[2]);
+signals:
+	void Changed();
 private:
 	void setColorPoint(int selectedPoint, double x, double red, double green, double blue);
 	void setColorPoint(int selectedPoint, int x, double red, double green, double blue);

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -46,6 +46,10 @@ namespace
 	const QString SamplingDataKey = "SamplingData";
 	const QString ClusteringDataKey = "ClusteringData";
 	const QString LayoutKey = "Layout";
+	const QString ReferenceImageKey = "ReferenceImage";
+	const QString HiddenChartsKey = "HiddenCharts";
+	const QString ColorThemeKey = "ColorTheme";
+	const QString LabelNamesKey = "LabelNames";
 
 	void AppendToString(QString & result, QString const & append)
 	{
@@ -128,13 +132,36 @@ iASEAFile::iASEAFile(QString const & fileName):
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Load Precalculated Data: Invalid Dataset identifier: %1").arg(keyStr));
+			DEBUG_LOG(QString("Load Precalculated Data: Invalid Dataset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
 			return;
 		}
 		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
 	}
+	QList<int> keys = m_Samplings.keys();
+	qSort(keys.begin(), keys.end());
+	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
+	{
+		DEBUG_LOG(QString("Incoherent sampling indices, or not starting at 0: [%1..%2]").arg(keys[0]).arg(keys[keys.size() - 1]));
+		return;
+	}
 	m_ClusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
+	if (metaFile.contains(ReferenceImageKey))
+	{
+		m_RefImg = MakeAbsolute(fi.absolutePath(), metaFile.value(ReferenceImageKey).toString());
+	}
+	if (metaFile.contains(HiddenChartsKey))
+	{
+		m_HiddenCharts = metaFile.value(HiddenChartsKey).toString();
+	}
+	if (metaFile.contains(ColorThemeKey))
+	{
+		m_ColorTheme = metaFile.value(ColorThemeKey).toString();
+	}
+	if (metaFile.contains(LabelNamesKey))
+	{
+		m_LabelNames = metaFile.value(LabelNamesKey).toString();
+	}
 	m_good = true;
 }
 
@@ -144,15 +171,22 @@ iASEAFile::iASEAFile(
 		int labelCount,
 		QMap<int, QString> const & samplings,
 		QString const & clusterFile,
-		QString const & layout):
+		QString const & layout,
+		QString const & refImg,
+		QString const & hiddenCharts,
+		QString const & colorTheme,
+		QString const & labelNames):
 	m_ModalityFileName(modalityFile),
 	m_LabelCount(labelCount),
 	m_Samplings(samplings),
 	m_ClusteringFileName(clusterFile),
 	m_LayoutName(layout),
+	m_RefImg(refImg),
+	m_HiddenCharts(hiddenCharts),
+	m_ColorTheme(colorTheme),
+	m_LabelNames(labelNames),
 	m_good(true)
 {
-	
 }
 
 void iASEAFile::Store(QString const & fileName)
@@ -170,7 +204,17 @@ void iASEAFile::Store(QString const & fileName)
 		metaFile.setValue(SamplingDataKey + QString::number(key), MakeRelative(path, m_Samplings[key]));
 	}
 	metaFile.setValue(ClusteringDataKey, MakeRelative(path, m_ClusteringFileName));
-	metaFile.setValue(LayoutKey        , MakeRelative(path, m_LayoutName));
+	metaFile.setValue(LayoutKey        , m_LayoutName);
+	if (!m_RefImg.isEmpty())
+	{
+		metaFile.setValue(ReferenceImageKey, MakeRelative(path, m_RefImg));
+	}
+	if (!m_HiddenCharts.isEmpty())
+	{
+		metaFile.setValue(HiddenChartsKey, m_HiddenCharts);
+	}
+	metaFile.setValue(ColorThemeKey, m_ColorTheme);
+	metaFile.setValue(LabelNamesKey, m_LabelNames);
 	
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
@@ -208,4 +252,24 @@ QString const & iASEAFile::GetClusteringFileName() const
 QString const & iASEAFile::GetLayoutName() const
 {
 	return m_LayoutName;
+}
+
+QString const & iASEAFile::GetReferenceImage() const
+{
+	return m_RefImg;
+}
+
+QString const & iASEAFile::GetHiddenCharts() const
+{
+	return m_HiddenCharts;
+}
+
+QString const & iASEAFile::GetLabelNames() const
+{
+	return m_LabelNames;
+}
+
+QString const & iASEAFile::GetColorTheme() const
+{
+	return m_ColorTheme;
 }

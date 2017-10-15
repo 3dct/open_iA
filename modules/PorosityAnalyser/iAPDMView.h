@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAPDMView_h__
-#define iAPDMView_h__
+#pragma once
 
 #include "ui_PDMView.h"
 #include "iAQTtoUIConnector.h"
@@ -71,13 +69,13 @@ protected:
 	virtual bool eventFilter( QObject * obj, QEvent * event );
 	void addWidgetToTable( int r, int c, QWidget * plot );
 	void ShowDeviationControls( bool visible );
-	void ShowHistogramControls( bool visible );
+	void ShowPorosityRangeControls( bool visible );
 	void HighlightSelected( QObject * obj );
 
 protected slots:
 	void UpdateTable();
 	void FitTable();
-	void ChangeHistogramRange();
+	void UpdateRepresentation();
 	void UpdateColormapSettings( double range );
 
 signals:
@@ -97,5 +95,3 @@ protected:
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 };
-
-#endif // iAPDMView_h__

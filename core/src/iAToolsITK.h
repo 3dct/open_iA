@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -24,10 +24,12 @@
 #include "iAITKIO.h"
 #include "open_iA_Core_export.h"
 
+#include <itkCastImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
+#include <itkRescaleIntensityImageFilter.h>
 
 #include <QString>
 
@@ -111,5 +113,87 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 		DEBUG_LOG(QString("Error while writing image file '%1': %2")
 			.arg(filename)
 			.arg(e.what()));
+	}
+}
+
+template<typename SourceImageType, typename ResultImageType>
+iAITKIO::ImagePointer InternalCastImageTo(iAITKIO::ImagePointer img)
+{
+	typedef itk::CastImageFilter<SourceImageType, ResultImageType> CastType;
+	typename CastType::Pointer cast = CastType::New();
+	cast->SetInput(dynamic_cast<SourceImageType*>(img.GetPointer()));
+	cast->Update();
+	return cast->GetOutput();
+}
+
+template<typename ResultPixelType>
+iAITKIO::ImagePointer CastImageTo(iAITKIO::ImagePointer img)
+{
+	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
+	switch (GetITKScalarPixelType(img))
+	{
+		case itk::ImageIOBase::UCHAR:
+			return InternalCastImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::CHAR:
+			return InternalCastImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::SHORT:
+			return InternalCastImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::USHORT:
+			return InternalCastImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::INT:
+			return InternalCastImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::UINT:
+			return InternalCastImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::LONG:
+			return InternalCastImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::ULONG:
+			return InternalCastImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img);
+		case itk::ImageIOBase::FLOAT:
+			return InternalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
+		default:
+		case itk::ImageIOBase::DOUBLE:
+			return InternalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
+	}
+}
+
+template<typename SourceImageType, typename ResultImageType>
+iAITKIO::ImagePointer InternalRescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
+{
+	typedef itk::RescaleIntensityImageFilter<SourceImageType, ResultImageType> RescaleType;
+	typename RescaleType::Pointer rescale = RescaleType::New();
+	rescale->SetInput(dynamic_cast<SourceImageType*>(img.GetPointer()));
+	rescale->SetOutputMinimum(min);
+	rescale->SetOutputMaximum(max);
+	rescale->Update();
+	return rescale->GetOutput();
+}
+
+template<typename ResultPixelType>
+iAITKIO::ImagePointer RescaleImageTo(iAITKIO::ImagePointer img, double min, double max)
+{
+	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
+	switch (GetITKScalarPixelType(img))
+	{
+	case itk::ImageIOBase::UCHAR:
+		return InternalRescaleImageTo<itk::Image<unsigned char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::CHAR:
+		return InternalRescaleImageTo<itk::Image<char, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::SHORT:
+		return InternalRescaleImageTo<itk::Image<short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::USHORT:
+		return InternalRescaleImageTo<itk::Image<unsigned short, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::INT:
+		return InternalRescaleImageTo<itk::Image<int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::UINT:
+		return InternalRescaleImageTo<itk::Image<unsigned int, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::LONG:
+		return InternalRescaleImageTo<itk::Image<long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::ULONG:
+		return InternalRescaleImageTo<itk::Image<unsigned long, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	case itk::ImageIOBase::FLOAT:
+		return InternalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
+	default:
+	case itk::ImageIOBase::DOUBLE:
+		return InternalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}
 }

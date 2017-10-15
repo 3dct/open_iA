@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,130 +15,62 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAAdaptiveHistogramEqualization.h"
 
+#include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
-#include <itkImageFileWriter.h>
 
-#include <vtkImageData.h>
-
-#include <QLocale>
-
-/**
-* template computes Adaptive Histogram Equalization
-* 
-* This template is used for calculating the Adaptive Histogram Equalization
-* \param	Alpha			Alpha controls how much the filter acts like the classical histogram equalization
-* \param	Beta			Beta controls how much the filter acts like an unsharp mask
-* \param	p				Filter progress information. 
-* \param	image			Input image. 
-* \param	T				Input type 
-* \return	int Status-Code. 
-*/
-template<class T> int iAAdaptiveHistogramEqualization_template( double aheAlpha, double aheBeta, iAProgress* p, iAConnector* image)
+template<class T> void iAAdaptiveHistogramEqualization_template( double alpha, double beta, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
-	
-	typename InputImageType::Pointer castImage;
-	castImage = dynamic_cast< InputImageType * >( image->GetITKImage() );
-
 	typedef  itk::AdaptiveHistogramEqualizationImageFilter< InputImageType > AdaptiveHistogramEqualizationImageFilterType;
-	typename AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
+	auto castImage = dynamic_cast< InputImageType * >( image->GetITKImage() );
+	auto adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
 	adaptiveHistogramEqualizationImageFilter->SetInput( castImage );
-	adaptiveHistogramEqualizationImageFilter->SetAlpha( aheAlpha );
-	adaptiveHistogramEqualizationImageFilter->SetBeta( aheBeta );
+	adaptiveHistogramEqualizationImageFilter->SetAlpha( alpha );
+	adaptiveHistogramEqualizationImageFilter->SetBeta( beta );
 	adaptiveHistogramEqualizationImageFilter->SetRadius( 1 );
-	 
 	p->Observe( adaptiveHistogramEqualizationImageFilter );
-
 	adaptiveHistogramEqualizationImageFilter->Update();
-	  
 	image->SetImage(adaptiveHistogramEqualizationImageFilter->GetOutput());
 	image->Modified();
-
 	adaptiveHistogramEqualizationImageFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-/**
-* constructor. 
-* \param	fn		Filter name. 
-* \param	fid		Filter ID number. 
-* \param	i		Input image data. 
-* \param	p		Input vtkpolydata. 
-* \param	w		Input widget list. 
-* \param	parent	Parent object. 
-*/
+IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
 
-iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization( QString fn, FilterID fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAFilter( fn, fid, i, p, logger, parent )
+void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> parameters)
 {
-
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, pixelType,
+		parameters["Alpha"].toDouble(),
+		parameters["Beta"].toDouble(),
+		m_progress, m_con);
 }
 
-/**
-* destructor. 
-*/
-
-iAAdaptiveHistogramEqualization::~iAAdaptiveHistogramEqualization()
+iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
+	iAFilter("Adaptive Histogram Equalization", "",
+		"This filter is a superset of many contrast enhancing filters.<br/>"
+		"By modifying its parameters (alpha, beta), the filter can produce an "
+		"adaptively equalized histogram or a version of unsharp mask (local "
+		"mean subtraction).<br/>"
+		"The parameter alpha controls how much the filter acts like the "
+		"classical histogram equalization method (alpha=0) to how much the "
+		"filter acts like an unsharp mask (alpha=1). The parameter beta "
+		"controls how much the filter acts like an unsharp mask (beta=0) to "
+		"how much the filter acts like pass through (beta=1, with alpha=1)."
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
+		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
 {
-}
-
-/**
-* Execute the filter thread. 
-*/
-
-void iAAdaptiveHistogramEqualization::run()
-{
-	switch (getFilterID())
-	{
-	case ADAPTIVE_HISTOGRAM_EQUALIZATION:
-		compute_iAAdaptiveHistogramEqualization(); break;
-	case UNKNOWN_FILTER: 
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
-}
-
-/**
-* Computes Adaptive Histogram Equalization of this object. 
-*/
-
-void iAAdaptiveHistogramEqualization::compute_iAAdaptiveHistogramEqualization( )
-{
-	addMsg(tr("%1  %2 started (Alpha: %3 Beta: %4)").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()).arg(this->aheAlpha).arg(this->aheBeta));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	
-	try
-	{
-		VTK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, getVtkImageData()->GetScalarType(),
-			aheAlpha, aheBeta, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms. For learning only.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())														
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3. For learning only.").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())														
-		.arg(Stop()));
-
-	emit startUpdate();	
+	AddParameter("Alpha", Continuous, 0, 0, 1);
+	AddParameter("Beta", Continuous, 0, 0, 1);
 }

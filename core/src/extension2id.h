@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -36,11 +36,10 @@ static mapQString2int fill_extensionToId()
 	m["RAW"] = RAW_READER;
 	m["VOL"] = RAW_READER;
 	m["REC"] = RAW_READER;
-	m["PRO"] = PRO_READER;
+	m["PRO"] = RAW_READER;
 	m["PARS"] = PARS_READER;
 	m["VGI"] = VGI_READER;
 	m["DCM"] = DCM_READER;
-	m["DCM"] = DCM_WRITER;
 	m["NRRD"] = NRRD_READER;
 	m["TIF"] = MHD_READER;
 	m["TIFF"] = MHD_READER;
@@ -52,6 +51,14 @@ static mapQString2int fill_extensionToId()
 	m["OIF"] = OIF_READER;
 	m["AM"] = AM_READER;
 	m["VTI"] = VTI_READER;
+#ifdef USE_HDF5
+	m["HDF5"] = HDF5_READER;
+	m["H5"] = HDF5_READER;
+	m["HE5"] = HDF5_READER;
+	m["NC"] = HDF5_READER;
+	m["CDF"] = HDF5_READER;
+	m["MAT"] = HDF5_READER;
+#endif
 
 	return m;
 }
@@ -75,3 +82,22 @@ static mapQString2int fill_extensionToIdStack()
 	return m;
 }
 const mapQString2int extensionToIdStack = fill_extensionToIdStack();
+
+static mapQString2int fill_extensionToSaveId()
+{
+	mapQString2int m;
+	m["TIF"] = TIF_STACK_WRITER;
+	m["TIFF"] = TIF_STACK_WRITER;
+	m["JPG"] = JPG_STACK_WRITER;
+	m["JPEG"] = JPG_STACK_WRITER;
+	m["PNG"] = PNG_STACK_WRITER;
+	m["BMP"] = BMP_STACK_WRITER;
+	m["DCM"] = DCM_WRITER;
+	m["AM"] = AM_WRITER;
+	m["CSV"] = CSV_WRITER;
+	m["HDF5"] = MHD_WRITER;
+	m["HE5"] = MHD_WRITER;
+	m["H5"] = MHD_WRITER;
+	return m;
+}
+const mapQString2int extensionToSaveId = fill_extensionToSaveId();

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -47,12 +47,11 @@ public:
 		fctDefault = fctMax,
 	};
 	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
-	virtual double GetSpacing() const;
-	virtual double * GetDataRange();
-	virtual double GetDataRange(int idx) const;
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
-	virtual DataType GetMaxValue() const;
+	virtual double GetSpacing() const override;
+	virtual double const * XBounds() const override;
+	virtual DataType const * YBounds() const override;
+	virtual DataType const * GetData() const override;
+	virtual size_t GetNumBin() const override;
 	void SetFct(int fctIdx);
 	void RetrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType GetSpectraHistogramMax() const;
@@ -72,9 +71,8 @@ private:
 	CountType* m_minimum;
 	CountType* m_average;
 	AccumulateFct m_accumulateFct;
-	double m_totalMaximum;
-	double m_totalMinimum;
-	double dataRange[2];
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 	FunctionalBoxPlot* m_functionalBoxplotData;
 	std::vector<iAFunction<size_t, unsigned int> *> m_spectrumFunctions;
 	QSharedPointer<iASpectraHistograms>	m_spectraHistograms;

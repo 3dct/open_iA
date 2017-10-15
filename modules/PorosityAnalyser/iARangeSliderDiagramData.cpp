@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -26,8 +26,8 @@ iARangeSliderDiagramData::iARangeSliderDiagramData( QList<double> m_rangeSliderD
 	m_rangeSliderFunction( NULL ),
 	m_rangeSliderData( m_rangeSliderData )
 {
-	m_range[0] = min;
-	m_range[1] = max;
+	m_xBounds[0] = min;
+	m_xBounds[1] = max;
 }
 
 iARangeSliderDiagramData::~iARangeSliderDiagramData()
@@ -41,10 +41,15 @@ void iARangeSliderDiagramData::updateRangeSliderFunction()
 	{
 		m_rangeSliderFunction = new DataType[m_rangeSliderData.size()];
 	}
-
+	m_yBounds[0] = std::numeric_limits<double>::max();
+	m_yBounds[1] = std::numeric_limits<double>::lowest();
 	for ( int i = 0; i < m_rangeSliderData.size(); ++i )
 	{
 		m_rangeSliderFunction[i] = m_rangeSliderData.at( i );
+		if (m_rangeSliderData.at(i) > m_yBounds[1])
+			m_yBounds[1] = m_rangeSliderData.at(i);
+		if (m_rangeSliderData.at(i) < m_yBounds[0])
+			m_yBounds[0] = m_rangeSliderData.at(i);
 	}
 }
 

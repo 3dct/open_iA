@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,47 +15,14 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_FIBERSCOUT_H
-#define	DLG_FIBERSCOUT_H
-
-#include <QList>
-#include <QMap>
-
-#include <vtkAbstractArray.h>
-#include <vtkAnnotationLink.h>
-#include <vtkAxis.h>
-#include <vtkChartParallelCoordinates.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkDataArray.h>
-#include <vtkDataRepresentation.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkEventQtSlotConnect.h>
-#include <vtkFloatArray.h>
-#include <vtkStringArray.h>
-#include <vtkIntArray.h>
-#include <vtkPiecewiseFunction.h>
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#include <vtkScalarBarActor.h>
-#include <vtkScalarBarWidget.h>
-#include <vtkScalarsToColors.h>
-#include <vtkSelection.h>
-#include <vtkSelectionNode.h>
-#include <vtkSmartPointer.h>
-#include <vtkStdString.h>
-#include <vtkTextProperty.h>
-#include <vtkTable.h>
-#include <vtkVariantArray.h>
-#include <vtkVolume.h>
+#pragma once
 
 #include "dlg_imageproperty.h"
 #include "iAFiberScoutModuleInterface.h"
+#include "iAObjectAnalysisType.h"
 #include "iAQTtoUIConnector.h"
 #include "ui_FiberScoutClassExplorer.h"
 #include "ui_FiberScoutParallelCoordinates.h"
@@ -70,6 +37,30 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutSPM> dlg_IOVSPM;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutDV> dlg_IOVDV;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutMO> dlg_IOVMO;
 
+class iABlobCluster;
+class iABlobManager;
+class iAMeanObjectTFView;
+class iAModalityTransfer;
+class iARenderer;
+class dlg_blobVisualization;
+class MdiChild;
+
+class vtkChartParallelCoordinates;
+class vtkContextView;
+class vtkDataArray;
+class vtkDelaunay2D;
+class vtkFixedPointVolumeRayCastMapper;
+class vtkIdTypeArray;
+class vtkLookupTable;
+class vtkScalarBarActor;
+class vtkScalarBarWidget;
+class vtkSmartVolumeMapper;
+class vtkStringArray;
+class vtkTable;
+class vtkVolume;
+class vtkVolumeProperty;
+class vtkStructuredGrid;
+
 class QComboBox;
 class QStandardItem;
 class QStandardItemModel;
@@ -77,21 +68,20 @@ class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
 
-class vtkCollection;
-class vtkLookupTable;
-class vtkDelaunay2D;
-
-class iABlobCluster;
-class iABlobManager;
-class iARenderer;
-class dlg_blobVisualization;
-
 namespace FiberScout
 {
 	class iAScatterPlotMatrix;
 }
-class MdiChild;
 
+struct moData
+{
+	QList<iAModalityTransfer *> moHistogramList;
+	QList<vtkSmartPointer<vtkVolume> > moVolumesList;
+	QList<vtkSmartPointer<vtkRenderer> > moRendererList;
+	QList<vtkSmartPointer<vtkFixedPointVolumeRayCastMapper> > moVolumeMapperList;
+	QList<vtkSmartPointer<vtkVolumeProperty> > moVolumePropertyList;
+	QList<vtkSmartPointer<vtkImageData> > moImageDataList;
+};
 
 /**
 * \brief	implement vtkChartParallelCoordinates as dialog
@@ -101,14 +91,13 @@ class dlg_FiberScout : public QDockWidget, private Ui_FiberScoutCE
 	Q_OBJECT
 
 public:
-	dlg_FiberScout( MdiChild *parent, FilterID fid, vtkRenderer* blobRen);
+	dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl);
 	~dlg_FiberScout();
 
 	// setups
 	void setupModel();
 	void setupViews();
 	void setupConnections();
-	void createSphereView();
 	void setupPolarPlotView(vtkTable *it);
 	void updatePolarPlotColorScalar(vtkTable *it);
 	void updateObjectOrientationID(vtkTable *table);
@@ -186,8 +175,15 @@ public slots:
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	bool changeFiberScout_Options( int idx );
 
+	void modifyMeanObjectTF();
+	void updateMOView();
+	void browseFolderDialog();
+	void saveStl();
+	void updateStlProgress(int i);
+	void updateMarProgress(int i);
+
 protected:
-	bool initParallelCoordinates( FilterID fid );
+	bool initParallelCoordinates( iAObjectAnalysisType fid );
 
 
 private:
@@ -202,14 +198,14 @@ private:
 	int	width, height;
 	int elementNr;		// Number of elements in csv inputTable
 	int objectNr;		// Number of objects in the specimen
-	int filterID;
+	iAObjectAnalysisType filterID;
 
 	bool draw3DPolarPlot;
 	bool enableRealTimeRendering;
 	bool classRendering;
 	bool spmActivated;
 
-	QString sourcePath;
+	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
 	
 	// calculate the average value of a 1D array
@@ -278,17 +274,14 @@ private:
 	QWidget *orientationColorMapSelection;
 	QComboBox * orientColormap;
 	
-	vtkSmartPointer<vtkContextView> dvContextView;
+	vtkSmartPointer<vtkContextView> m_dvContextView;
 
-	vtkSmartPointer<vtkScalarBarActor> scalarBarPP;
-	vtkSmartPointer<vtkScalarBarActor> scalarBarFLD;
-	vtkSmartPointer<vtkScalarBarWidget> scalarWidgetPP;
-	vtkSmartPointer<vtkScalarBarWidget> scalarWidgetFLD;
+	vtkSmartPointer<vtkScalarBarActor> m_scalarBarPP;
+	vtkSmartPointer<vtkScalarBarActor> m_scalarBarFLD;
+	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetPP;
+	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetFLD;
 	
 	int mousePressedPos [2];
-
-	//void updateViewPorts();
-	//vtkSmartPointer<vtkRenderWindow> renderWindow;
 
 	dlg_IOVPC * iovPC;
 	dlg_IOVPP * iovPP;
@@ -296,8 +289,8 @@ private:
 	dlg_IOVDV * iovDV;
 	dlg_IOVMO * iovMO;
 
-	//Mean Object Rendering
-	QList<vtkVolume *> m_MOVolumesList;
+	//Mean Object Rendering	
+	iAMeanObjectTFView* m_motfView;	
+	moData m_MOData;
+	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
 };
-
-#endif

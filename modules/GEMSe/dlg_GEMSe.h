@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -27,105 +27,113 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
 #include "iAGEMSeConstants.h"
-#include "iAImageTreeView.h"
-#include "iAImageNodeWidget.h"
-#include "iAGEMSeConstants.h"
+#include "iAImageTreeNode.h"
+#include "iASlicerMode.h"
 
 #include <vtkSmartPointer.h>
+
+#include <QVector>
 
 class iAAttributes;
 class iACameraWidget;
 class iAColorTheme;
-class iAChartSpanSlider;
 class iADetailView;
+class iAFakeTreeNode;
 class iAFavoriteWidget;
-class iAImageClusterNode;
+class iAGEMSeScatterplot;
+class iAHistogramContainer;
+class iAImageTree;
+class iAImageTreeLeaf;
+class iAImageTreeView;
 class iAExampleImageWidget;
 class iALabelInfo;
 class iALogger;
 class iAModalityList;
-class iAParamHistogramData;
 class iAPreviewWidgetPool;
+class iAProbingWidget;
+class iASamplingResults;
+class iASingleResult;
 
-class vtkChartXY;
 class vtkImageData;
-class vtkPlot;
-class vtkTable;
-class QVTKWidget2;
 
 class dlg_GEMSe: public dlg_GEMSeUI
 {
 	Q_OBJECT
 public:
 	dlg_GEMSe(QWidget *parent, iALogger * logger, iAColorTheme const * colorTheme);
-	~dlg_GEMSe();
-	void SetTree(QSharedPointer<iAImageTree > imageTree,
+	void SetTree(QSharedPointer<iAImageTree> imageTree,
 		vtkSmartPointer<vtkImageData> originalImage,
 		QSharedPointer<iAModalityList> modalities,
-		iALabelInfo const & labelInfo,
-		QVector<QSharedPointer<iASamplingResults> > samplings);
+		iALabelInfo const * labelInfo,
+		QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > samplings);
 	void StoreClustering(QString const & fileName);
-	void CreateCharts();
-	QSharedPointer<iAImageClusterNode> GetCurrentCluster();
-	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const& labelInfo);
+	QSharedPointer<iAImageTreeNode> GetCurrentCluster();
+	QSharedPointer<iAImageTreeNode> GetRoot();
+	void SetColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo);
 	void ShowImage(vtkSmartPointer<vtkImageData> imgData);
-	void ResetFilters();
 	void CalcRefImgComp(LabelImagePointer refImg);
 	void ToggleAutoShrink();
-	void SetMagicLensOpacity(double opacity);
 	void SetIconSize(int iconSize);
-	void SetRepresentativeType(int type);
+	bool SetRepresentativeType(int type, LabelImagePointer refImg);
+	void SetCorrectnessUncertaintyOverlay(bool enabled);
+	int GetRepresentativeType() const;
 	void ExportAttributeRangeRanking(QString const & fileName);
 	void ExportRankings(QString const & fileName);
 	void ImportRankings(QString const & fileName);
+	void GetSelection(QVector<QSharedPointer<iASingleResult> > &);
+	QSharedPointer<iAImageTreeNode> GetSelectedCluster();
+	void AddConsensusImage(iAITKIO::ImagePointer imgData, QString const & name);
+	void AddConsensusNumbersImage(iAITKIO::ImagePointer imgData, QString const & name);
+	int GetMeasureStartID() { return m_MeasureChartIDStart; }
+	QString GetSerializedHiddenCharts() const;
+	void SetSerializedHiddenCharts(QString const & hiddenCharts);
+	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > GetSamplings();
+	void SetMagicLensCount(int count);
+	void FreeMemory();
+	void SetProbabilityProbing(bool enabled);
+	void DataTFChanged();
+	QString GetLabelNames() const;
+public slots:
+	void ResetFilters();
+	void SelectHistograms();
 private slots:
-	void ClusterNodeClicked(QSharedPointer<iAImageClusterNode> node);
-	void ClusterNodeImageClicked(QSharedPointer<iAImageClusterNode> node);
-	void SelectCluster(QSharedPointer<iAImageClusterNode> node);
-	void ClusterLeafSelected(iAImageClusterLeaf *);
-	void ChartSelected(bool selected);
-	void FilterChanged(double min, double max);
+	void ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node);
+	void ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node);
+	void SelectCluster(QSharedPointer<iAImageTreeNode> node);
+	void ClusterLeafSelected(iAImageTreeLeaf *);
+	void CompareAlternateSelected(iAImageTreeNode * node);
+	void FilterChanged(int chartID, double min, double max);
+	void ChartDblClicked(int chartID);
 	void ToggleHate();
 	void ToggleLike();
 	void GoToCluster();
-	void FavoriteClicked(iAImageClusterNode * leaf);
+	void FavoriteClicked(iAImageTreeNode * leaf);
 	
 	void SlicerModeChanged(iASlicerMode mode, int sliceNr);
 	void SliceNumberChanged(int sliceNr);
 	void UpdateViews();
 	void UpdateClusterChartData();
-	void ChartDblClicked();
+	void HistogramSelectionUpdated();
+	void UpdateResultFilter();
 private:
-	void JumpToNode(iAImageClusterNode * leaf, int stepLimit);
-	void UpdateComparisonChart();
-	void UpdateComparisonChartClusterPlot();
-	void UpdateComparisonChartLeafPlot();
-
+	void JumpToNode(iAImageTreeNode * leaf, int stepLimit);
 	void UpdateFilteredChartData();
 	void UpdateClusterFilteredChartData();
 	void UpdateFilteredData();
 	void UpdateAttributeRangeAttitude();
-	void AddDiagramSubWidgetsWithProperStretch();
-
-	void RemoveAllCharts();
 	void CreateMapper();
-
-	void CalculateRefImgComp(QSharedPointer<iAImageClusterNode> node, LabelImagePointer refImg,
+	void CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 		int labelCount);
-
-	vtkSmartPointer<vtkTable> GetComparisonTable(iAImageClusterNode const * node, iAChartFilter const & filter);
-	void UpdateComparisonChart(vtkSmartPointer<vtkTable> & table, vtkSmartPointer<vtkPlot> & plot,
-		iAImageClusterNode const * node, QColor const & color, iAChartFilter const & filter);
 	
 	// data:
-	QVector<QSharedPointer<iASamplingResults> > m_samplings;
+	QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > m_samplings;
+	QStringList m_pipelineNames;
 	QSharedPointer<iAAttributes> m_chartAttributes;
 	iAChartAttributeMapper m_chartAttributeMapper;
 	int m_MeasureChartIDStart;
-	QVector<int> m_selectedForComparison;
 	
-	QSharedPointer<iAImageClusterNode> m_selectedCluster;
-	iAImageClusterLeaf * m_selectedLeaf;
+	QSharedPointer<iAImageTreeNode> m_selectedCluster;
+	iAImageTreeLeaf * m_selectedLeaf;
 
 	iAChartFilter m_chartFilter;
 
@@ -135,32 +143,13 @@ private:
 	iAExampleImageWidget * m_exampleView;
 	iACameraWidget* m_cameraWidget;
 	iAFavoriteWidget* m_favoriteWidget;
-	QVTKWidget2 * m_chartWidget;
-	vtkSmartPointer<vtkChartXY> m_comparisonChart;
-	QWidget * m_paramChartWidget, *m_derivedOutputChartWidget;
-	QWidget * m_paramChartContainer, * m_derivedOutputChartContainer;
-	QGridLayout* m_paramChartLayout;
-	QSplitter* m_chartContainer;
-	QMap<int, iAChartSpanSlider*> m_charts;
 	iAColorTheme const * m_colorTheme;
-
-	vtkSmartPointer<vtkTable> m_allTable;
-	vtkSmartPointer<vtkTable> m_clusterTable;
-	vtkSmartPointer<vtkTable> m_allFilteredTable;
-	vtkSmartPointer<vtkTable> m_clusterFilteredTable;
-	vtkSmartPointer<vtkTable> m_singleTable;
-	vtkSmartPointer<vtkPlot> m_allFilteredPlot;
-	vtkSmartPointer<vtkPlot> m_clusterPlot;
-	vtkSmartPointer<vtkPlot> m_clusterFilteredPlot;
-	vtkSmartPointer<vtkPlot> m_singlePlot;
-
-	QMap<int, QSharedPointer<iAParamHistogramData> > m_chartData;
-
+	iAHistogramContainer * m_histogramContainer;
+	iAGEMSeScatterplot * m_scatterplot;
+	iAProbingWidget * m_probingWidget;
 	iALogger* m_logger;
 	iAPreviewWidgetPool* m_previewWidgetPool;
 	ClusterImageType m_nullImage;
-
 	iARepresentativeType m_representativeType;
-
-	QVector< QVector<float> > m_attitudes;
+	QVector<QSharedPointer<iAFakeTreeNode> > m_ConsensusResults;		// to store them somewhere so they don't get deleted - TODO: discard once unused!
 };

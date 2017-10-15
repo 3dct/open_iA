@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef DLG_PARAMSPACESAMPLING_H
-#define DLG_PARAMSPACESAMPLING_H
+#pragma once
 
 #include <QDialog>
 #include <QString>
@@ -49,22 +47,9 @@ public:
 	dlg_ParamSpaceSampling( QWidget *parent, QString winTitel, int n, QStringList inList, QList<QVariant> inPara,
 							QTextDocument * fDescr, QString datasetDir, QString datasetName, QStringList datasetInfo, QVector<double> keyData,
 							QVector<double> valueData, QString filterName, bool modal = false );
+	double getValue(int index) const;
 
-	QStringList getWidgetList();
-	QStringList getComboBoxValues();
-	QStringList getText();
-	QList<int> getComboBoxIndices();
-	QList<double> getValues();
-	QList<int> getCheckValues();
-	QList<double> getSpinBoxValues();
-	QList<double> getDoubleSpinBoxValues();
-
-	void setComboValues( QList<QVariant> inCombo ){ inComboValue = inCombo; };
-	double getParameterValue( QString name );
-	void updateValues( QList<QVariant> );
-	void connectMdiChild( MdiChild *child );
-
-	public slots:
+public slots:
 	void updateHistoPeaks( int value );
 	void updateHistoSmooth( int value );
 	void updateIsoXPeak( int value );
@@ -73,14 +58,11 @@ public:
 private:
 
 	int numPara;
-	int NoofComboBox;
-	int selectedComboBoxPos;
 	int m_sbDelta, m_sbSigma, m_sbIsoX, m_emi_count, m_absorp_count;
 	int emi_peaks[MAX_PEAK];
 	int absorp_peaks[MAX_PEAK];
 	int m_isoXGrayValue;
 	int m_airPoreGrayValue;
-	double outValue;
 	double* m_data[2];
 	double m_highestFreq;
 	QTextDocument* m_description;
@@ -89,13 +71,7 @@ private:
 	QString m_filterName;
 	QStringList m_datasetInfo;
 	QStringList widgetList;
-	QStringList outComboValues, outTextList;
 	QList<QCPGraph *> m_peakGraphList;
-	QList<double> outValueList;
-	QList<int> outCheckList;
-	QList<int> outComboIndices;
-	QList<QLabel*> listLabel;
-	QList<QVariant> inComboValue;
 	QList<QVariant> m_inPara;
 	QVector<double> m_keyData, m_valueData;
 	QVector<double> m_smoothKey;
@@ -117,7 +93,6 @@ private:
 	QLabel* cbSHLine_Label;
 	QCheckBox* cbSHLine;
 
-
 	void createDatasetPreview();
 	void createDatasetInfo();
 	void computeSmoothHisto( QVector<double> *m_smoothKey, QVector<double> *m_smoothValue );
@@ -129,6 +104,7 @@ private:
 	void createDescription();
 	void updateLineEdits();
 	void addUnits();
+	void updateValues(QList<QVariant>);
 
 protected:
 
@@ -146,4 +122,3 @@ protected:
 		);
 
 };
-#endif

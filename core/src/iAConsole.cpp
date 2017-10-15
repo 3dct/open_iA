@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -29,15 +29,23 @@
 
 #include <fstream>
 
-void iAConsole::Log(std::string const & text)
+
+// iAGlobalLogger
+
+iALogger* iAGlobalLogger::m_globalLogger(nullptr);
+
+
+void iAGlobalLogger::SetLogger(iALogger* logger)
 {
-	Log(QString::fromStdString(text));
+	m_globalLogger = logger;
+}
+iALogger* iAGlobalLogger::Get()
+{
+	return m_globalLogger;
 }
 
-void iAConsole::Log(char const * text)
-{
-	Log(QString(text));
-}
+
+// iAConsole
 
 void iAConsole::Log(QString const & text)
 {
@@ -57,31 +65,60 @@ void iAConsole::LogSlot(QString const & text)
 	}
 	if (m_logToFile)
 	{
-		std::ofstream logfile("debug.log", std::ofstream::out | std::ofstream::app);
+		std::ofstream logfile(m_logFileName.toStdString().c_str(), std::ofstream::out | std::ofstream::app);
 		logfile << QString("%1 %2\n")
 			.arg(QLocale().toString(
 				QDateTime::currentDateTime(),
 				QLocale::ShortFormat))
 			.arg(text)
 			.toStdString();
+		logfile.flush();
 		logfile.close();
+		if (logfile.bad())
+		{
+			m_console->Log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			m_fileLogError = true;
+			m_logToFile = false;
+		}
+		else
+		{
+			m_fileLogError = false;
+		}
 	}
 }
 
-void iAConsole::SetLogToFile(bool value)
+void iAConsole::SetLogToFile(bool value, QString const & fileName, bool verbose)
 {
+	if (verbose && m_logToFile != value)
+	{
+		LogSlot(QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
+	}
 	m_logToFile = value;
+	m_logFileName = fileName;
 }
 
-bool iAConsole::IsLogToFileOn()
+bool iAConsole::IsLogToFileOn() const
 {
 	return m_logToFile;
+}
+
+
+bool iAConsole::IsFileLogError() const
+{
+	return m_fileLogError;
+}
+
+QString iAConsole::GetLogFileName() const
+{
+	return m_logFileName;
 }
 
 iAConsole::iAConsole() :
 	m_console(new dlg_console()),
 	m_logToFile(false),
-	m_closed(false)
+	m_closed(false),
+	m_fileLogError(false),
+	m_logFileName("debug.log")
 {
 	// redirect VTK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
@@ -95,10 +132,10 @@ iAConsole::~iAConsole()
 	delete m_console;
 }
 
-iAConsole& iAConsole::GetInstance()
+iAConsole* iAConsole::GetInstance()
 {
 	static iAConsole instance;
-	return instance;
+	return &instance;
 }
 
 
@@ -111,5 +148,47 @@ void iAConsole::close()
 
 void iAConsole::Close()
 {
-	GetInstance().close();
+	GetInstance()->close();
 }
+
+
+// iALogger
+
+iALogger::~iALogger()
+{}
+
+
+
+// iAConsoleLogger
+
+void iAConsoleLogger::Log(QString const & msg)
+{
+	iAConsole::GetInstance()->Log(msg);
+}
+
+iAConsoleLogger * iAConsoleLogger::Get()
+{
+	static iAConsoleLogger GlobalConsoleLogger;
+	return &GlobalConsoleLogger;
+}
+
+iAConsoleLogger::iAConsoleLogger()
+{}
+
+
+
+// iAStdOutLogger
+
+void iAStdOutLogger::Log(QString const & msg)
+{
+	std::cout << msg.toStdString() << std::endl;
+}
+
+iAStdOutLogger * iAStdOutLogger::Get()
+{
+	static iAStdOutLogger GlobalStdOutLogger;
+	return &GlobalStdOutLogger;
+}
+
+iAStdOutLogger::iAStdOutLogger()
+{}

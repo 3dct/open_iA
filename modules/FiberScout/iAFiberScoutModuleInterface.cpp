@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,17 +15,19 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAFiberScoutModuleInterface.h"
 
 #include "iAConsole.h"
+#include "iACsvIO.h"
 #include "iAFiberScoutAttachment.h"
 #include "iAFiberScoutToolbar.h"
 #include "mainwindow.h"
+
+#include <vtkTable.h>
 
 #include <QFileDialog>
 #include <QInputDialog>
@@ -33,9 +35,11 @@
 
 void iAFiberScoutModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QAction * actionFibreScout = new QAction( m_mainWnd );
-	actionFibreScout->setText( QApplication::translate( "MainWindow", "FiberScout", 0 ) );
+	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout );
 	tlbFiberScout = 0;
 	connect( actionFibreScout, SIGNAL( triggered() ), this, SLOT( FiberScout() ) );
@@ -43,13 +47,13 @@ void iAFiberScoutModuleInterface::Initialize()
 
 void iAFiberScoutModuleInterface::FiberScout()
 {
-	QMap<QString, FilterID> objectMap;
+	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
 	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
 
 	QStringList items;
 	items << tr( "Fibers" ) << tr( "Voids" );
-	QString fileName, filterName = tr( "FiberScout" ), item;
+	QString fileName, filterName = tr( "FeatureScout" ), item;
 
 	PrepareActiveChild();
 
@@ -103,12 +107,13 @@ void iAFiberScoutModuleInterface::SetupToolbar()
 	tlbFiberScout->setVisible( true );
 }
 
-bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, FilterID filterID )
+bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )
 {
-	if ( !m_mdiChild->LoadCsvFile( filterID, fileName ) )
+	iACsvIO io;
+	if ( !io.LoadCsvFile(objectType, fileName ) )
 		return false;
 
-	QString filtername = tr( "FiberScout started" );
+	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );
 	m_mdiChild->addMsg( filtername );
 	AttachToMdiChild( m_mdiChild );
@@ -116,10 +121,10 @@ bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString
 	iAFiberScoutAttachment* attach = GetAttachment<iAFiberScoutAttachment>();
 	if ( !attach )
 	{
-		m_mdiChild->addMsg( "Error while creating FiberScout module!" );
+		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
 		return false;
 	}
-	attach->init( filterID );
+	attach->init(objectType, io.GetCSVTable());
 	return true;
 }
 
@@ -140,12 +145,12 @@ void iAFiberScoutModuleInterface::FiberScout_Options()
 	iAFiberScoutAttachment* attach = GetAttachment<iAFiberScoutAttachment>();
 	if ( !attach )
 	{
-		DEBUG_LOG( "No FiberScout attachment in current MdiChild!" );
+		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
 	attach->FiberScout_Options( idx );
 
-	m_mainWnd->statusBar()->showMessage( tr( "FiberScout options changed to: " ).append( actionText ), 5000 );
+	m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
 }
 
 void iAFiberScoutModuleInterface::onChildClose()

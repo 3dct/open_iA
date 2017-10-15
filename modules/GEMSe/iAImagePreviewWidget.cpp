@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -31,6 +31,9 @@
 #include "iASlicerWidget.h"
 
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkImageActor.h>
+#include <vtkImageData.h>
+#include <vtkImageMapper3D.h>
 #include <vtkTransform.h>
 
 namespace
@@ -47,6 +50,8 @@ namespace
 		return (extent[baseIdx] - extent[baseIdx-1]) / 2;
 	}
 }
+
+const int iAImagePreviewWidget::SliceNumberNotSet = -1;
 
 #include <QSizePolicy>
 
@@ -103,14 +108,20 @@ void iAImagePreviewWidget::InitializeSlicer()
 		m_slicer->disableInteractor();
 	}
 	
-	connect( m_slicer->widget(), SIGNAL(Clicked()), this, SLOT(SlicerClicked()));
+	connect( m_slicer->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect( m_slicer->GetSlicerData(), SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
 	connect( m_slicer->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
 	connect( m_slicer->GetSlicerData(), SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
 }
 
-void iAImagePreviewWidget::SlicerClicked()
+void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
 {
 	emit Clicked();
+}
+
+void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
+{
+	emit RightClicked();
 }
 
 void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
@@ -135,6 +146,12 @@ int iAImagePreviewWidget::GetSliceNumber() const
 iASlicer* iAImagePreviewWidget::GetSlicer()
 {
 	return m_slicer;
+}
+
+
+bool iAImagePreviewWidget::Empty() const
+{
+	return m_empty;
 }
 
 void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCamera* camera)
@@ -207,6 +224,30 @@ void iAImagePreviewWidget::SetImage(iAITKIO::ImagePointer const img, bool empty,
 	}
 	m_conn->SetImage(img);
 	SetImage(m_conn->GetVTKImage(), empty, isLabelImg);
+}
+
+void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
+{
+	if (m_addChannelImgActor)
+	{
+		DEBUG_LOG("Failsafe Remove Actor required");
+		m_slicer->RemoveImageActor(m_addChannelImgActor);
+	}
+	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();
+	m_addChannelImgActor->GetMapper()->BorderOn();
+	m_addChannelImgActor->SetInputData(img);
+	m_slicer->AddImageActor(m_addChannelImgActor);
+	m_slicer->update();
+}
+
+void iAImagePreviewWidget::RemoveChannel()
+{
+	if (m_addChannelImgActor)
+	{
+		m_slicer->RemoveImageActor(m_addChannelImgActor);
+		m_slicer->update();
+	}
+	m_addChannelImgActor = nullptr;
 }
 
  void iAImagePreviewWidget::BuildCTF()

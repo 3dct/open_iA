@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,12 +15,10 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAPorosityAnalyserModuleInterface_h__
-#define iAPorosityAnalyserModuleInterface_h__
+#pragma once
 
 #include <itkImageIOBase.h>
 #include <QWidget>
@@ -71,6 +69,7 @@ private slots:
 	void showHideLogs();
 	void batchProgress(int progress);
 	void totalProgress(int progress);
+	void currentBatch( QString str );
 	void clearPipeline();
 	void addPipeline();
 	void resizePipeline();
@@ -78,6 +77,8 @@ private slots:
 	void generateDatasetPreviews();
 	void datasetPreviewThreadFinished();
 	void datasetPreviewThreadStarted();
+	void displayPipelineInSlots( QTableWidgetItem * );
+	void compNameChanged();
 
 protected:
 	void updateFromGUI() const;
@@ -102,6 +103,6 @@ protected:
 private:
 	int m_pipelineSlotsCount;
 	QSize m_pipelineSlotIconSize;
-};
 
-#endif // iAPorosityAnalyserModuleInterface_h__
+	void removeGTDatasets( QStringList& list, const QStringList& toDelete );
+};

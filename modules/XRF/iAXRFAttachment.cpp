@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
 #include "pch.h"
@@ -71,7 +71,9 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) 
 	if( !QFile::exists( f ) )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 
-	mdiChild->addMsg( tr( "%1  Loading sequence started... \n  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n  Please wait..." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	mdiChild->addMsg( tr( "%1  Loading sequence started... \n"
+		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
+		"  Please wait..." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
 
 	dlgPeriodicTable = new dlg_periodicTable( mdiChild );
 	mdiChild->splitDockWidget( mdiChild->sXZ, dlgPeriodicTable, Qt::Horizontal );
@@ -83,9 +85,8 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) 
 
 	ioThread = new iAIO( mdiChild->getLogger(), mdiChild, dlgXRF->GetXRFData()->GetDataPtr() );
 	mdiChild->setReInitializeRenderWindows( false );
-	mdiChild->connectThreadSignalsToChildSlots( ioThread );
+	mdiChild->connectIOThreadSignals( ioThread );
 	connect( ioThread, SIGNAL( done() ), this, SLOT( xrfLoadingDone() ) );
-	connect( ioThread->getObserverProgress(), SIGNAL( oprogress( int ) ), mdiChild, SLOT( updateProgressBar( int ) ) );
 	connect( ioThread, SIGNAL( failed() ), this, SLOT( xrfLoadingFailed() ) );
 	connect( ioThread, SIGNAL( finished() ), this, SLOT( ioFinished() ) );
 
@@ -114,7 +115,7 @@ void iAXRFAttachment::reInitXRF()
 	m_otf = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	m_otf->AddPoint(img->GetScalarRange()[0], 1);
 	m_otf->AddPoint(img->GetScalarRange()[1], 1);
-	m_childData.child->reInitMagicLens(ch_XRF, img, dlgXRF->GetColorTransferFunction(), m_otf, "Spectral Color Image");
+	m_childData.child->reInitMagicLens(ch_XRF, img, dlgXRF->GetColorTransferFunction(), m_otf);
 }
 
 void iAXRFAttachment::initXRF()
@@ -142,6 +143,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	m_otf->AddPoint(img->GetScalarRange()[1], 1);
 	chData->SetColorTF( dlgXRF->GetColorTransferFunction() );
 	chData->SetOpacityTF(m_otf);
+	chData->SetName("Spectral Color Image");
 	m_childData.child->InitChannelRenderer( ch_XRF, false, enableChannel );
 	bool isMagicLensEnabled = m_childData.child->isMagicLensToggled();
 	if( enableChannel )
@@ -151,8 +153,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	else if (isMagicLensEnabled)
 	{
 		m_childData.child->SetMagicLensInput(ch_XRF,
-			!m_childData.child->GetChannelData(ch_XRF)->IsEnabled(),
-			"Spectral Color Image");
+			!m_childData.child->GetChannelData(ch_XRF)->IsEnabled());
 	}
 	m_childData.child->updateSlicers();
 	m_childData.child->addMsg( tr( "%1  Spectral color image initialized." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );

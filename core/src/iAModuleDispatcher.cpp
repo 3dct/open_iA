@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,13 +15,15 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAModuleDispatcher.h"
 
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
+#include "iAFilterRunnerGUI.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"
@@ -53,6 +55,12 @@ iALoadedModule::iALoadedModule(QString const & n, MODULE_HANDLE h, iAModuleInter
 iAModuleDispatcher::iAModuleDispatcher(MainWindow * mainWnd)
 {
 	m_mainWnd = mainWnd;
+	m_rootPath = QCoreApplication::applicationDirPath();
+}
+
+iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(nullptr)
+{
+	m_rootPath = rootPath;
 }
 
 void CloseLibrary(iALoadedModule & module)
@@ -74,15 +82,20 @@ void CloseLibrary(iALoadedModule & module)
 #endif
 }
 
-QFileInfoList GetLibraryList()
+QFileInfoList GetLibraryList(QString const & rootPath)
 {
-	QDir root(QCoreApplication::applicationDirPath() + "/plugins");
+	QDir root(rootPath + "/plugins");
 	QStringList nameFilter;
+
 #ifdef _MSC_VER
 	nameFilter << "*.dll";
+#elif defined(__APPLE__) && defined(__MACH__)
+	nameFilter << "*.dylib";
 #else
 	nameFilter << "*.so";
 #endif
+	
+	QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
 	return root.entryInfoList(nameFilter, QDir::Files);
 }
 
@@ -142,12 +155,12 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 	MODULE_HANDLE handle = LoadModule(fi);
 	if (!handle)
 	{
-		logger->log(QString("Could not load the dynamic library '%1'").arg(fi.absoluteFilePath()));
+		logger->Log(QString("Could not load the dynamic library '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	iAModuleInterface * m = LoadModuleInterface(handle);
 	if (!m) {
-		logger->log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
+		logger->Log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	InitializeModuleInterface(m);
@@ -157,11 +170,42 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 
 void iAModuleDispatcher::InitializeModules(iALogger* logger)
 {
-	QFileInfoList fList = GetLibraryList();
+	QFileInfoList fList = GetLibraryList(m_rootPath);
 	for (QFileInfo fi : fList)
 	{
 		LoadModuleAndInterface(fi, logger);
 	}
+	if (!m_mainWnd)	// all non-GUI related stuff already done
+	{
+		return;
+	}
+	auto filterFactories = iAFilterRegistry::FilterFactories();
+	for (int i=0; i<filterFactories.size(); ++i)
+	{
+		auto filterFactory = filterFactories[i];
+		auto filter = filterFactory->Create();
+		QMenu * filterMenu = m_mainWnd->getFiltersMenu();
+		QStringList categories = filter->FullCategory().split("/");
+		for (auto cat : categories)
+			if (!cat.isEmpty())
+				filterMenu = getMenuWithTitle(filterMenu, cat);
+		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->Name().toStdString().c_str(), 0), m_mainWnd);
+		AddActionToMenuAlphabeticallySorted(filterMenu, filterAction);
+		filterAction->setData(i);
+		connect(filterAction, SIGNAL(triggered()), this, SLOT(ExecuteFilter()));
+	}
+	// enable Tools and Filters only if any modules were loaded that put something into them:
+	m_mainWnd->getToolsMenu()->menuAction()->setVisible(m_mainWnd->getToolsMenu()->actions().size() > 0);
+	m_mainWnd->getFiltersMenu()->menuAction()->setVisible(m_mainWnd->getFiltersMenu()->actions().size() > 0);
+}
+
+void iAModuleDispatcher::ExecuteFilter()
+{
+	int filterID = qobject_cast<QAction *>(sender())->data().toInt();
+	auto factory = iAFilterRegistry::FilterFactories()[filterID];
+	auto runner = RunFilter(factory->Create(), m_mainWnd);
+	if (iAFilterRegistry::FilterCallback(factory))
+		iAFilterRegistry::FilterCallback(factory)->FilterStarted(runner);
 }
 
 void iAModuleDispatcher::SaveModulesSettings() const
@@ -192,10 +236,8 @@ void iAModuleDispatcher::SetModuleActionsEnabled( bool isEnabled )
 			QMenu * actMenu = m_moduleActions[i].action->menu();
 			if (actMenu)
 				actMenu->setEnabled(isEnabled);
-			
 		}
 }
-
 
 void iAModuleDispatcher::ChildCreated(MdiChild* child)
 {
@@ -204,4 +246,34 @@ void iAModuleDispatcher::ChildCreated(MdiChild* child)
 	{
 		m.moduleInterface->ChildCreated(child);
 	}
+}
+
+
+QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+			return  submenus.at(i);
+	}
+	QMenu * result = new QMenu(parentMenu);
+	result->setTitle(title);
+	AddActionToMenuAlphabeticallySorted(parentMenu, result->menuAction(), isDisablable);
+	return result;
+}
+
+
+void  iAModuleDispatcher::AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable)
+{
+	AddModuleAction(action, isDisablable);
+	foreach(QAction * curAct, menu->actions())
+	{
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
+	}
+	menu->addAction(action);
 }

@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -76,12 +76,14 @@ public:
 	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
 	void SelectRow(int idx);
 	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
+	void EnableUI();
 public slots:
 	//! add modality to list, create transfer function, show histogram, add volume to renderers
 	void ModalityAdded(QSharedPointer<iAModality> mod);
+	void InteractorModeSwitched(int newMode);
 signals:
 	void ModalityAvailable();
-	void ShowImage(vtkSmartPointer<vtkImageData> img);
+	void ModalitySelected(int modalityIdx);
 
 	//! @{ for histogram:
 	void PointSelected();
@@ -90,6 +92,8 @@ signals:
 	void Active();
 	void AutoUpdateChanged(bool toogled);
 	void UpdateViews();
+	void ModalitiesChanged();
+	void ModalityTFChanged();	// ideally we would also emit here which modality (idx?) has changed
 	//! @}
 
 private slots:
@@ -103,12 +107,13 @@ private slots:
 
 	void EnableButtons();
 	void ListClicked(QListWidgetItem* item);
+	void ShowChecked(QListWidgetItem* item);
 
 private:
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
-	int m_numBin;
+	int m_numBin;	// only serves to store the numBin from preferences in the MdiChild; this should be a direct reference there to always have the newest value!
 	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_currentHistogram;
 	bool m_showSlicePlanes;

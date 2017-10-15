@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,13 +15,9 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email:                           *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#ifndef iAExtendedTypedCallHelper_h__
-#define iAExtendedTypedCallHelper_h__
-
 #pragma once
 
 #include <QString>
@@ -35,7 +31,6 @@
 // and such |foo| function definition:
 //   template <ColumnType T>
 //   void foo(t1 arg1, t2 arg2) {
-//     …
 //   }
 //
 // instead of writing (won't compile):
@@ -49,7 +44,7 @@
 //
 #define ITK_EXTENDED_TYPED_CALL(function, itk_scalar_type, itk_image_type, ...)		\
 {																			\
-	if(itk_image_type == itk::ImageIOBase::SCALAR)							\
+	if (itk_image_type == itk::ImageIOBase::SCALAR)							\
 	{																		\
 		switch ( itk_scalar_type )											\
 		{																	\
@@ -85,16 +80,55 @@
 				break;														\
 			default:														\
 				throw itk::ExceptionObject( __FILE__, __LINE__,				\
-				QString( "Typed Call: Unknown component type." ).			\
-				toLatin1().data() );										\
-				break;														\
+					QString( "Typed Call: Unknown scalar pixel type." ).	\
+					toLatin1().data() );									\
 		}																	\
 	}																		\
-	if ( itk_image_type == itk::ImageIOBase::RGBA ||						\
-		 itk_image_type == itk::ImageIOBase::VECTOR )						\
-		{																	\
+	else if (itk_image_type == itk::ImageIOBase::RGB)						\
+	{                                                                       \
 		switch ( itk_scalar_type )											\
-				{															\
+		{																	\
+			case itk::ImageIOBase::UCHAR:									\
+				function<itk::RGBPixel< unsigned char >>( __VA_ARGS__ );	\
+				break;														\
+			case itk::ImageIOBase::CHAR:									\
+				function<itk::RGBPixel<char>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::SHORT:									\
+				function<itk::RGBPixel<short>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::USHORT:									\
+				function<itk::RGBPixel<unsigned short>>( __VA_ARGS__ );     \
+				break;														\
+			case itk::ImageIOBase::INT:										\
+				function<itk::RGBPixel<int>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::UINT:									\
+				function<itk::RGBPixel<unsigned int>>( __VA_ARGS__ );		\
+				break;														\
+			case itk::ImageIOBase::LONG:									\
+				function<itk::RGBPixel<long>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::ULONG:									\
+				function<itk::RGBPixel<unsigned long>>( __VA_ARGS__ );		\
+				break;														\
+			case itk::ImageIOBase::FLOAT:									\
+				function<itk::RGBPixel<float>>( __VA_ARGS__ );				\
+				break;														\
+			case itk::ImageIOBase::DOUBLE:									\
+				function<itk::RGBPixel<double>>( __VA_ARGS__ );				\
+				break;														\
+			default:														\
+				throw itk::ExceptionObject( __FILE__, __LINE__,				\
+					QString( "Typed Call: Unknown scalar pixel type." ).	\
+					toLatin1().data() );									\
+		}																	\
+	}																		\
+	else if ( itk_image_type == itk::ImageIOBase::RGBA ||					\
+		 itk_image_type == itk::ImageIOBase::VECTOR )						\
+	{																		\
+		switch ( itk_scalar_type )											\
+		{																	\
 			case itk::ImageIOBase::UCHAR:									\
 				function<itk::RGBAPixel< unsigned char >>( __VA_ARGS__ );	\
 				break;														\
@@ -127,12 +161,16 @@
 				break;														\
 			default:														\
 				throw itk::ExceptionObject( __FILE__, __LINE__,				\
-				QString( "Typed Call: Unknown pixel type." ).				\
-				toLatin1().data() );										\
-				break;														\
-				}															\
+					QString( "Typed Call: Unknown scalar pixel type." ).	\
+					toLatin1().data() );									\
 		}																	\
-}																			
+	}																		\
+	else																	\
+	{																		\
+		throw itk::ExceptionObject(__FILE__, __LINE__,						\
+			QString("Typed Call: Unknown pixel type.").toLatin1().data() );	\
+	}																		\
+}
 
 #define VTK_EXTENDED_TYPED_CALL(function, vtk_scalar_type, number_of_components,...)		\
 {																							\
@@ -172,8 +210,7 @@
 				break;																		\
 			default:																		\
 				throw itk::ExceptionObject( __FILE__, __LINE__,								\
-				QString( "Typed Call: Unknown component type." ).toLatin1().data() );		\
-				break;																		\
+					QString( "Typed Call: Unknown component type." ).toLatin1().data() );	\
 		}																					\
 	}																						\
 	else             																		\
@@ -212,9 +249,7 @@
 				break;																		\
 			default:																		\
 				throw itk::ExceptionObject( __FILE__, __LINE__,								\
-				QString( "Typed Call: Unknown pixel type." ).toLatin1().data() );			\
-				break;																		\
+					QString( "Typed Call: Unknown pixel type." ).toLatin1().data() );		\
 		}																					\
 	}																						\
-}																							
-#endif // iAExtendedTypedCallHelper_h__
+}

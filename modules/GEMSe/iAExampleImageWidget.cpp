@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,14 +15,14 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
 #include "iAExampleImageWidget.h"
 
 #include "iAConsole.h"
-#include "iAImageTree.h"
+#include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
 #include "iAMathUtility.h"
 #include "iAQtCaptionWidget.h"
@@ -31,6 +31,7 @@
 
 #include <QGridLayout>
 #include <QPainter>
+#include <QPushButton>
 #include <QTimerEvent>
 
 namespace
@@ -61,7 +62,7 @@ protected:
 };
 
 
-iAExampleImageWidget::iAExampleImageWidget(QWidget* parent, double aspectRatio, iAPreviewWidgetPool * previewPool, ClusterImageType nullImage):
+iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool * previewPool, ClusterImageType nullImage):
 	m_layout(new QGridLayout()),
 	m_aspectRatio(aspectRatio),
 	m_previewPool(previewPool),
@@ -73,9 +74,19 @@ iAExampleImageWidget::iAExampleImageWidget(QWidget* parent, double aspectRatio, 
 	m_layout->setSpacing(ExampleViewSpacing);
 	m_layout->setContentsMargins(ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing);
 	m_gridWidget->setLayout(m_layout);
+
+	QWidget* container = new QWidget();
+	QPushButton* refreshButton = new QPushButton(">");
+	refreshButton->setFixedWidth(30);
+	connect(refreshButton, SIGNAL(clicked()), this, SLOT(UpdateImages()));
+	m_gridWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	container->setLayout(new QHBoxLayout());
+	container->layout()->addWidget(m_gridWidget);
+	container->layout()->addWidget(refreshButton);
 	
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	SetCaptionedContent(this, "Examples", m_gridWidget);
+	SetCaptionedContent(this, "Examples", container);
 
 	AdaptLayout();
 }
@@ -86,13 +97,10 @@ void iAExampleImageWidget::AdaptLayout()
 	double aspectRatio  = 1;
 	if (m_gridWidget->m_previews.size() > 0)
 	{
-		aspectRatio = m_gridWidget->m_previews[0]->GetAspectRatio();
+		aspectRatio = clamp(0.5, 2.0, m_gridWidget->m_previews[0]->GetAspectRatio());
 	}
-	
 	int widthFromHeight = (geometry().width() / static_cast<double>(geometry().height()) ) * aspectRatio;
-
 	int newWidth = clamp(1, 12, widthFromHeight);
-
 	if (newWidth == m_width)
 	{
 		return;
@@ -103,13 +111,14 @@ void iAExampleImageWidget::AdaptLayout()
 	for (int i=0; i<m_gridWidget->m_previews.size(); ++i)
 	{
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(Clicked()), this, SLOT(ImageClicked()));
+		disconnect(m_gridWidget->m_previews[i], SIGNAL(RightClicked()), this, SLOT(ImageRightClicked()));
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
 		disconnect(m_gridWidget->m_previews[i], SIGNAL(Updated()), this, SLOT(ImageUpdated()));
 		m_layout->removeWidget(m_gridWidget->m_previews[i]);
 		m_previewPool->ReturnWidget(m_gridWidget->m_previews[i]);
 	}
 	m_gridWidget->m_previews.clear();
-	// in case not all widgets were created yet:
+	// get new widgets:
 	for (int i=0; i<m_width*m_height; ++i)
 	{
 		iAImagePreviewWidget * imgWidget = m_previewPool->GetWidget(this);
@@ -131,15 +140,15 @@ void iAExampleImageWidget::AdaptLayout()
 			imgWidget->show();
 			m_layout->addWidget(imgWidget, y, x);
 			connect(imgWidget, SIGNAL(Clicked()), this, SLOT(ImageClicked()));
+			connect(imgWidget, SIGNAL(RightClicked()), this, SLOT(ImageRightClicked()));
 			connect(imgWidget, SIGNAL(MouseHover()), this, SLOT(ImageHovered()));
 			connect(imgWidget, SIGNAL(Updated()), this, SLOT(ImageUpdated()) );
 		}
 	}
 	UpdateImages();
-	update();
 }
 
-void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageClusterNode> node)
+void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageTreeNode> node)
 {
 	m_rootNode = node;
 	UpdateImages();
@@ -147,13 +156,19 @@ void iAExampleImageWidget::SetSelectedNode(QSharedPointer<iAImageClusterNode> no
 
 void iAExampleImageWidget::UpdateImages()
 {
-	if (!m_rootNode || m_width*m_height == 0)
+	int numOfImages = m_width*m_height;
+	if (!m_rootNode || numOfImages == 0)
 	{
 		return;
 	}
+	if (m_rootNode->GetDistance() == 0)
+	{
+		numOfImages = 1;
+	}
 	m_gridWidget->m_selectedIndex = NoImageSelected;
 	m_nodes.clear();
-	m_rootNode->GetExampleImages(m_nodes, m_width*m_height);
+
+	m_rootNode->GetExampleImages(m_nodes, numOfImages);
 
 	if (m_nodes.size() > m_rootNode->GetFilteredSize() )
 	{
@@ -168,7 +183,6 @@ void iAExampleImageWidget::UpdateImages()
 			int idx = y*m_width+x;
 			if (idx < m_nodes.size())
 			{
-				
 				m_gridWidget->m_previews[idx]->SetImage(m_nodes[idx]->GetLargeImage(), false, true);
 			}
 			else
@@ -206,7 +220,32 @@ void iAExampleImageWidget::ImageClicked()
 	}
 }
 
-void iAExampleImageWidget::SetSelectedImage(iAImageClusterLeaf * leaf)
+void iAExampleImageWidget::ImageRightClicked()
+{
+	iAImagePreviewWidget* imgWdgt = dynamic_cast<iAImagePreviewWidget*>(sender());
+	assert(imgWdgt);
+	if (!imgWdgt)
+	{
+		DEBUG_LOG("ExampleWidget click: sender not an image widget!\n");
+		return;
+	}
+	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
+	assert(idx != -1);
+	if (idx == -1)
+	{
+		DEBUG_LOG("ExampleWidget click: didn't find originating image widget!\n");
+		// something wrong...
+		return;
+	}
+	if (idx < m_nodes.size())
+	{
+		m_gridWidget->m_selectedIndex = idx;
+		emit AlternateSelected(m_nodes[idx]);
+		//update();
+	}
+}
+
+void iAExampleImageWidget::SetSelectedImage(iAImageTreeLeaf * leaf)
 {
 	int idx = m_nodes.indexOf(leaf);
 	if (idx == -1)

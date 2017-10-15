@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,27 +15,30 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iASegmentationModuleInterface.h"
 
-#include "iAMaximumDistance.h"
-#include "iARegionGrowing.h"
-#include "iASegmentation.h"
+#include "iAFuzzyCMeans.h"
+#include "iAThresholding.h"
 #include "iAWatershedSegmentation.h"
 
 #include "dlg_commoninput.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAFilterRegistry.h"
+#include "iAFilterRunnerGUI.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
 
 #include <vtkImageAccumulate.h>
+#include <vtkImageData.h>
 
 #include <QFileDialog>
 #include <QMdiSubWindow>
@@ -45,39 +48,31 @@
 
 void iASegmentationModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iABinaryThreshold);
+	REGISTER_FILTER(iAOtsuThreshold);
+	REGISTER_FILTER(iAOtsuMultipleThreshold);
+	REGISTER_FILTER(iAMaximumDistance);
+	REGISTER_FILTER(iARatsThreshold);
+	REGISTER_FILTER(iAAdaptiveOtsuThreshold);
+
+	REGISTER_FILTER(iAWatershed);
+	REGISTER_FILTER(iAMorphologicalWatershed);
+
+	if (!m_mainWnd)
+	{
+		REGISTER_FILTER(iAFCMFilter);
+		REGISTER_FILTER(iAKFCMFilter);
+		REGISTER_FILTER(iAMSKFCMFilter);
+		return;
+	}
+
+	REGISTER_FILTER_WITH_CALLBACK(iAFCMFilter, this);
+	REGISTER_FILTER_WITH_CALLBACK(iAKFCMFilter, this);
+	REGISTER_FILTER_WITH_CALLBACK(iAMSKFCMFilter, this);
+
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString( "Segmentation" ) );
-	QMenu * menuRegion_Growing = getMenuWithTitle( menuSegmentation, QString( "Region Growing" ) );
-	QMenu * menuSegmentation_based_on_Watersheds = getMenuWithTitle( menuSegmentation, QString( "Segmentation based on Watersheds" ) );
-	menuSegmentation->addAction( menuRegion_Growing->menuAction() );
-	menuSegmentation->addAction( menuSegmentation_based_on_Watersheds->menuAction() );
-
-	QAction * actionOtsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Otsu threshold filter", 0), m_mainWnd );
-	QAction * actionMaximum_distance_filter = new QAction(QApplication::translate("MainWindow", "Maximum distance filter", 0), m_mainWnd );
-	QAction * actionWatershed_Segmentation_Filter = new QAction(QApplication::translate("MainWindow", "Watershed Segmentation Filter", 0), m_mainWnd );
-	QAction * actionMorphological_Watershed_Segmentation_Filter = new QAction( QApplication::translate( "MainWindow", "Morphological Watershed Segmentation Filter", 0 ), m_mainWnd );
-	QAction * actionAdaptive_otsu_threshold_filter = new QAction(QApplication::translate("MainWindow", "Adaptive Otsu threshold filter", 0), m_mainWnd );
-	QAction * actionRats_threshold_filter = new QAction(QApplication::translate("MainWindow", "Rats threshold filter", 0), m_mainWnd );
-	QAction * actionOtsu_Multiple_Threshold_Filter = new QAction(QApplication::translate("MainWindow", "Otsu multiple threshold filter", 0), m_mainWnd );
-
-	menuRegion_Growing->addAction( actionOtsu_threshold_filter );
-	menuRegion_Growing->addAction( actionAdaptive_otsu_threshold_filter );
-	menuRegion_Growing->addAction( actionRats_threshold_filter );
-	menuRegion_Growing->addAction( actionOtsu_Multiple_Threshold_Filter );
-	menuSegmentation->addAction( actionMaximum_distance_filter );
-	menuSegmentation_based_on_Watersheds->addAction( actionWatershed_Segmentation_Filter );
-	menuSegmentation_based_on_Watersheds->addAction( actionMorphological_Watershed_Segmentation_Filter );
-
-	connect( actionOtsu_threshold_filter, SIGNAL( triggered() ), this, SLOT( otsu_Threshold_Filter() ) );
-	connect( actionMaximum_distance_filter, SIGNAL( triggered() ), this, SLOT( maximum_Distance_Filter() ) );
-	connect( actionWatershed_Segmentation_Filter, SIGNAL( triggered() ), this, SLOT( watershed_seg() ) );
-	connect( actionMorphological_Watershed_Segmentation_Filter, SIGNAL( triggered() ), this, SLOT( morph_watershed_seg() ) );
-	connect( actionAdaptive_otsu_threshold_filter, SIGNAL( triggered() ), this, SLOT( adaptive_Otsu_Threshold_Filter() ) );
-	connect( actionRats_threshold_filter, SIGNAL( triggered() ), this, SLOT( rats_Threshold_Filter() ) );
-	connect( actionOtsu_Multiple_Threshold_Filter, SIGNAL( triggered() ), this, SLOT( otsu_Multiple_Threshold_Filter() ) );
-
-	QAction * actionSegmMetric = new QAction(m_mainWnd);
-	actionSegmMetric->setText(QApplication::translate("MainWindow", "Quality Metrics to Console", 0));
+	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString("Segmentation"));
+	QAction * actionSegmMetric = new QAction(QApplication::translate("MainWindow", "Quality Metrics to Console", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionSegmMetric, true);
 	connect(actionSegmMetric, SIGNAL(triggered()), this, SLOT(CalculateSegmentationMetrics()));
 }
@@ -166,20 +161,19 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		}
 	}
 	inPara << list << list;
-	dlg_commoninput dlg(m_mainWnd, "Segmentation Quality Metric", 2, inList, inPara, fDescr, true);
+	dlg_commoninput dlg(m_mainWnd, "Segmentation Quality Metric", inList, inPara, fDescr, true);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
 	}
 
-	QList<int> fileIndices = dlg.getComboBoxIndices();
-	if (fileIndices[0] == fileIndices[1])
+	if (dlg.getComboBoxIndex(0) == dlg.getComboBoxIndex(1))
 	{
 		QMessageBox::warning(m_mainWnd, tr("Segmentation Quality Metric"),
 			tr("Same file selected for both ground truth and segmented image!"));
 	}
-	vtkImageData * groundTruthVTK = qobject_cast<MdiChild *>(mdiwindows[fileIndices[0]]->widget())->getImageData();
-	vtkImageData * segmentedVTK = qobject_cast<MdiChild *>(mdiwindows[fileIndices[1]]->widget())->getImageData();
+	vtkImageData * groundTruthVTK = qobject_cast<MdiChild *>(mdiwindows[dlg.getComboBoxIndex(0)]->widget())->getImageData();
+	vtkImageData * segmentedVTK = qobject_cast<MdiChild *>(mdiwindows[dlg.getComboBoxIndex(1)]->widget())->getImageData();
 	iAConnector groundTruthCon;
 	groundTruthCon.SetImage(groundTruthVTK);
 	iAConnector segmentedCon;
@@ -222,208 +216,28 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 	return true;
 }
 
-vtkImageData* iASegmentationModuleInterface::filter_particleCharacterization(double l, double t, MdiChild* child)
+void iASegmentationModuleInterface::FuzzyCMeansFinished()
 {
-	QString filtername = tr("Batch Mode - Watershed segmentation");
-	child->addStatusMsg(filtername);
-
-	iAWatershedSegmentation* thread = new iAWatershedSegmentation(filtername, WATERSHED, child->getImagePointer(), child->getPolyData(), child->getLogger(), child);
-	child->connectThreadSignalsToChildSlots(thread);
-	thread->setWParameters(l, t);
-	thread->blockSignals(true);  //?
-	thread->start();
-	thread->wait();
-	return thread->getImageDataNew();
-}
-
-void iASegmentationModuleInterface::otsu_Threshold_Filter()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ) << tr( "$Remove Peaks" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( otBins ) << tr( "%1" ).arg( otoutside ) << tr( "%1" ).arg( otinside ) << (otremovepeaks ? tr( "true" ) : tr( "false" ));
-	dlg_commoninput dlg( m_mainWnd, "Otsu Threshold", 4, inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
+	auto thread = dynamic_cast<iAFilterRunnerGUI*>(sender());
+	iAProbabilitySource* probSource = m_probSources[thread];
+	if (!thread || !probSource)
+	{
+		DEBUG_LOG("Invalid FCM finished call!");
 		return;
-
-	otBins = dlg.getValues()[0]; otoutside = dlg.getValues()[1]; otinside = dlg.getValues()[2]; otremovepeaks = dlg.getCheckValues()[3];
-
-	//prepare
-	QString filterName = tr( "Otsu threshold filter" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iARegionGrowing* thread = new iARegionGrowing( filterName, OTSU_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setOTParameters( otBins, otoutside, otinside, otremovepeaks );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+	}
+	auto & probs = probSource->Probabilities();
+	for (int p = 0; p < probs.size(); ++p)
+	{
+		qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
+			new iAModality(QString("FCM Prob. %1").arg(p), "", -1, probs[p], 0)));
+	}
+	m_probSources.remove(thread);
 }
 
-void iASegmentationModuleInterface::maximum_Distance_Filter()
+void iASegmentationModuleInterface::FilterStarted(iAFilterRunnerGUI* thread)
 {
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Intensity" ) << tr( "#Low Intensity" ) << tr( "$Use Low Intensity" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( mdfbins ) << tr( "%1" ).arg( mdfli ) << tr( "%1" ).arg( mdfuli );
-	dlg_commoninput dlg( m_mainWnd, "Maximum Distance Filter", 3, inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
+	if (!thread)
 		return;
-
-	mdfbins = dlg.getValues()[0]; mdfli = dlg.getValues()[1]; mdfuli = dlg.getCheckValues()[2];
-
-	//prepare
-	QString filterName = tr( "Maximum distance filter" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAMaximumDistance* thread = new iAMaximumDistance( filterName, MAXIMUM_DISTANCE_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setMDFParameters( mdfli, mdfbins, mdfuli );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+	m_probSources.insert(thread, dynamic_cast<iAProbabilitySource*>(thread->Filter().data()));
+	connect(thread, SIGNAL(workDone()), this, SLOT(FuzzyCMeansFinished()));
 }
-
-void iASegmentationModuleInterface::watershed_seg()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Level" ) << tr( "#Threshold" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( wsLevel ) << tr( "%1" ).arg( wsThreshold );
-	dlg_commoninput dlg( m_mainWnd, "Watershed segmentation", 2, inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	wsLevel = dlg.getValues()[0]; wsThreshold = dlg.getValues()[1];
-
-	//prepare
-	QString filterName = tr( "Watershed segmentation" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, WATERSHED,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setWParameters( wsLevel, wsThreshold );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::morph_watershed_seg()
-{
-	//set parameters
-	QSettings settings;
-	mwsLevel = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel" ).toDouble();
-	mwsMarkWSLines = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines" ).toBool();
-	mwsFullyConnected = settings.value( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected" ).toBool();
-
-	QTextDocument *fDescr = new QTextDocument( 0 );
-	fDescr->setHtml(
-		"<p><font size=+1>Calculates the Morphological Watershed Transformation.</font></p>"
-		"<p>For further details see: http://www.insight-journal.org/browse/publication/92Select <br>"
-		"Note 1: As input image use e.g., a gradient magnitude image.<br>"
-		"Note 2: Mark WS Lines label whatershed lines with 0, background with 1. )</p>"
-		);
-
-	QStringList inList = ( QStringList() << tr( "#Level" ) << tr( "$Mark WS Lines" ) << tr( "$Fully Connected" ) );
-	QList<QVariant> inPara;
-	inPara << tr( "%1" ).arg( mwsLevel ) << tr( "%1" ).arg( mwsMarkWSLines ) << tr( "%1" ).arg( mwsFullyConnected );
-	dlg_commoninput dlg( m_mainWnd, "Morphological Watershed Segmentation", 3, inList, inPara, fDescr );
-
-	if ( dlg.exec() != QDialog::Accepted )
-		return;
-		
-	mwsLevel = dlg.getValues()[0]; 
-	mwsMarkWSLines = dlg.getCheckValues()[1]; 
-	mwsFullyConnected = dlg.getCheckValues()[2];
-	
-	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsLevel", mwsLevel );
-	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsMarkWSLines", mwsMarkWSLines );
-	settings.setValue( "Filters/Segmentations/MorphologicalWatershedSegmentation/mwsFullyConnected", mwsFullyConnected );
-
-	//prepare
-	QString filterName = tr( "Morphological Watershed Segmentation" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAWatershedSegmentation* thread = new iAWatershedSegmentation( filterName, MORPH_WATERSHED,
-																   m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setMWSParameters( mwsLevel, mwsMarkWSLines, mwsFullyConnected );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::adaptive_Otsu_Threshold_Filter()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ) << tr( "#Radius" ) << tr( "#Samples" ) << tr( "#Levels" ) << tr( "#Control Points" ));
-	QList<QVariant> inPara; inPara << tr( "%1" ).arg( aotBins ) << tr( "%1" ).arg( aotOutside ) << tr( "%1" ).arg( aotInside ) << tr( "%1" ).arg( aotRadius ) << tr( "%1" ).arg( aotSamples ) << tr( "%1" ).arg( aotLevels ) << tr( "%1" ).arg( aotControlpoints );
-	dlg_commoninput dlg( m_mainWnd, "Adaptive otsu threshold", 7, inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-
-	aotBins = dlg.getValues()[0]; aotOutside = dlg.getValues()[1]; aotInside = dlg.getValues()[2]; aotRadius = dlg.getValues()[3];
-	aotSamples = dlg.getValues()[4]; aotLevels = dlg.getValues()[5]; aotControlpoints = dlg.getValues()[6];
-	//prepare
-	QString filterName = tr( "Adaptive otsu threshold filter" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iARegionGrowing* thread = new iARegionGrowing( filterName, ADAPTIVE_OTSU_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setAOTParameters( aotRadius, aotSamples, aotLevels, aotControlpoints, aotBins, aotOutside, aotInside );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::rats_Threshold_Filter()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Power" ) << tr( "#Outside Value" ) << tr( "#Inside Value" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( rtPow ) << tr( "%1" ).arg( rtOutside ) << tr( "%1" ).arg( rtInside );
-	dlg_commoninput dlg( m_mainWnd, "Rats Threshold", 3, inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	
-	rtPow = dlg.getValues()[0]; rtOutside = dlg.getValues()[1]; rtInside = dlg.getValues()[2];
-	//prepare
-	QString filterName = tr( "Rats threshold filter" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iARegionGrowing* thread = new iARegionGrowing( filterName, RATS_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setRTParameters( rtPow, rtOutside, rtInside );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-
-void iASegmentationModuleInterface::otsu_Multiple_Threshold_Filter()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Number of Histogram Bins" ) << tr( "#Number of Thresholds" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( omtBins ) << tr( "%1" ).arg( omtThreshs ) << tr( "%1" ).arg( otinside );
-	dlg_commoninput dlg( m_mainWnd, "Otsu Multiple Thresholds", 2, inList, inPara, NULL );
-
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-
-	omtBins = dlg.getValues()[0]; omtThreshs = dlg.getValues()[1];;
-	//prepare
-	QString filterName = tr( "Otsu multiple threshold filter" );
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iARegionGrowing* thread = new iARegionGrowing( filterName, OTSU_MULTIPLE_THRESHOLD,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setOMTParameters( omtBins, omtThreshs );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-

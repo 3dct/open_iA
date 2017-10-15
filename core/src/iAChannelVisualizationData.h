@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
@@ -60,11 +60,16 @@ public:
 	void UpdateResliceAxesDirectionCosines( int mode );
 	void assignTransform( vtkTransform * transform );
 	void updateReslicer();
+	void UpdateLUT();
 
 	vtkImageActor*						imageActor;
 	vtkSmartPointer<vtkImageData>		image;
 	vtkImageReslice*					reslicer;
 
+	QString GetName() const;
+
+	// TODO: contour functionality should be moved into separate class:
+	// {
 	vtkSmartPointer<vtkMarchingContourFilter>	cFilter;
 	vtkSmartPointer<vtkPolyDataMapper>			cMapper;
 	vtkSmartPointer<vtkActor>					cActor;
@@ -73,10 +78,11 @@ public:
 	void SetContoursOpacity( double opacity );
 	void SetShowContours( bool show );
 	void SetContourLineParams( double lineWidth, bool dashed = false );
+	// }
 private:
 	iAChannelSlicerData(iAChannelSlicerData const & other);
 
-	void InitContours();
+	void InitContours();	// TODO: contour functionality should be moved into separate class
 
 	iAChannelSlicerData& operator=(iAChannelSlicerData const & other);
 	void Assign(vtkSmartPointer<vtkImageData> imageData, QColor const & col);
@@ -86,13 +92,15 @@ private:
 	bool								m_isInitialized;
 	QColor								color;
 	vtkSmartPointer<vtkLookupTable>		m_lut;
-};
+
+	vtkScalarsToColors*					m_ctf;
+	vtkPiecewiseFunction*				m_otf;
+	QString                             m_name;};
 
 
 class open_iA_Core_API iAChannelVisualizationData
 {
 public:
-	// TODO: VOLUME: new channel vis. shouldn't have the Maximum3DChannels Limit!
 	static const size_t Maximum3DChannels = 3;
 
 	iAChannelVisualizationData();
@@ -113,6 +121,9 @@ public:
 	void SetColorTF(vtkScalarsToColors* cTF);
 	void SetOpacityTF(vtkPiecewiseFunction* oTF);
 
+	void SetName(QString name);
+	QString GetName() const;
+
 	// check if this can be somehow refactored (not needed for each kind of channel):
 	// begin
 	void SetColor(QColor const & col);
@@ -131,9 +142,10 @@ private:
 	bool threeD;
 	QColor color;
 	bool similarityRenderingEnabled;
-	vtkSmartPointer<vtkImageData>		image;
-	vtkPiecewiseFunction*				piecewiseFunction;
-	vtkScalarsToColors*			colorTransferFunction;
+	vtkSmartPointer<vtkImageData>       image;
+	vtkPiecewiseFunction*               piecewiseFunction;
+	vtkScalarsToColors*                 colorTransferFunction;
+	QString                             m_name;
 };
 
 void open_iA_Core_API ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
