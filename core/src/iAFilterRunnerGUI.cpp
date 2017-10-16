@@ -40,23 +40,27 @@ class iAFilter;
 
 class vtkImageData;
 
-iAFilterRunnerGUI::iAFilterRunnerGUI(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
+
+iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
 	iAAlgorithm(filter->Name(), mdiChild->getImagePointer(), mdiChild->getPolyData(), mdiChild->getLogger(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues)
 {}
 
-void iAFilterRunnerGUI::performWork()
+
+void iAFilterRunnerGUIThread::performWork()
 {
 	m_filter->SetUp(getConnector(), qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress());
 	m_filter->Run(m_paramValues);
 	emit workDone();
 }
 
-QSharedPointer<iAFilter> iAFilterRunnerGUI::Filter()
+
+QSharedPointer<iAFilter> iAFilterRunnerGUIThread::Filter()
 {
 	return m_filter;
 }
+
 
 namespace
 {
@@ -81,10 +85,35 @@ namespace
 	}
 }
 
-iAFilterRunnerGUI* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+
+QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter)
+{
+	auto params = filter->Parameters();
+	QMap<QString, QVariant> result;
+	QSettings settings;
+	for (auto param : params)
+	{
+		QVariant default = (param->ValueType() == Categorical) ? "" : param->DefaultValue();
+		result.insert(param->Name(), settings.value(SettingName(filter, param), default));
+	}
+	return result;
+}
+
+
+void StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues)
 {
 	auto params = filter->Parameters();
 	QSettings settings;
+	for (auto param : params)
+	{
+		settings.setValue(SettingName(filter, param), paramValues[param->Name()]);
+	}
+}
+
+
+bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues, MainWindow* mainWnd)
+{
+	auto params = filter->Parameters();
 	QStringList dlgParamNames;
 	QList<QVariant> dlgParamValues;
 	for (auto param : params)
@@ -93,7 +122,7 @@ iAFilterRunnerGUI* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWn
 		if (param->ValueType() == Categorical)
 		{
 			QStringList comboValues = param->DefaultValue().toStringList();
-			QString storedValue = settings.value(SettingName(filter, param), "").toString();
+			QString storedValue = paramValues[param->Name()].toString();
 			for (int i = 0; i < comboValues.size(); ++i)
 				if (comboValues[i] == storedValue)
 					comboValues[i] = "!" + comboValues[i];
@@ -101,16 +130,15 @@ iAFilterRunnerGUI* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWn
 		}
 		else
 		{
-			dlgParamValues << settings.value(SettingName(filter, param), param->DefaultValue());
+			dlgParamValues << paramValues[param->Name()];
 		}
 	}
 	QTextDocument *fDescr = new QTextDocument(0);
 	fDescr->setHtml(filter->Description());
 	dlg_commoninput dlg(mainWnd, filter->Name(), dlgParamNames, dlgParamValues, fDescr);
 	if (dlg.exec() != QDialog::Accepted)
-		return nullptr;
+		return false;
 
-	QMap<QString, QVariant> paramValues;
 	int idx = 0;
 	for (auto param : params)
 	{
@@ -124,9 +152,19 @@ iAFilterRunnerGUI* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWn
 		case Categorical: value = dlg.getComboBoxValue(idx); break;
 		}
 		paramValues[param->Name()] = value;
-		settings.setValue(SettingName(filter, param), value);
 		++idx;
 	}
+	return true;
+}
+
+
+iAFilterRunnerGUIThread* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+{
+	QMap<QString, QVariant> paramValues = LoadParameters(filter);
+	if (!AskForParameters(filter, paramValues, mainWnd))
+		return nullptr;
+	StoreParameters(filter, paramValues);
+	
 	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->CheckParameters(paramValues))
 	{
@@ -138,7 +176,7 @@ iAFilterRunnerGUI* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWn
 		mainWnd->statusBar()->showMessage("Cannot get result child from main window!", 5000);
 		return nullptr;
 	}
-	iAFilterRunnerGUI* thread = new iAFilterRunnerGUI(filter, paramValues, mdiChild);
+	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
 	mdiChild->connectThreadSignalsToChildSlots(thread);
 	mdiChild->addStatusMsg(filter->Name());
 	mainWnd->statusBar()->showMessage(filter->Name(), 5000);

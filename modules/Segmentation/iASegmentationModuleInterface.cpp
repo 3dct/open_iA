@@ -218,7 +218,7 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 
 void iASegmentationModuleInterface::FuzzyCMeansFinished()
 {
-	auto thread = dynamic_cast<iAFilterRunnerGUI*>(sender());
+	auto thread = dynamic_cast<iAFilterRunnerGUIThread*>(sender());
 	iAProbabilitySource* probSource = m_probSources[thread];
 	if (!thread || !probSource)
 	{
@@ -234,7 +234,7 @@ void iASegmentationModuleInterface::FuzzyCMeansFinished()
 	m_probSources.remove(thread);
 }
 
-void iASegmentationModuleInterface::FilterStarted(iAFilterRunnerGUI* thread)
+void iASegmentationModuleInterface::FilterStarted(iAFilterRunnerGUIThread* thread)
 {
 	if (!thread)
 		return;

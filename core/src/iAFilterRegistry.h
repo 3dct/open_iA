@@ -27,7 +27,7 @@
 #include <QVector>
 
 class iAFilter;
-class iAFilterRunnerGUI;
+class iAFilterRunnerGUIThread;
 
 //! Class for internal use in iAFilterRegistry and iAFilterFactory only
 //! There should be no need to use this class directly; use REGISTER_FILTER or
@@ -45,7 +45,7 @@ public:
 class open_iA_Core_API iAFilterRunGUICallback
 {
 public:
-	virtual void FilterStarted(iAFilterRunnerGUI* runner) = 0;
+	virtual void FilterStarted(iAFilterRunnerGUIThread* runner) = 0;
 };
 
 //! Registry for image filters.
