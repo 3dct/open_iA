@@ -41,6 +41,9 @@ class iAFilter;
 class vtkImageData;
 
 
+// iAFilterRunnerGUIThread
+
+
 iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
 	iAAlgorithm(filter->Name(), mdiChild->getImagePointer(), mdiChild->getPolyData(), mdiChild->getLogger(), mdiChild),
 	m_filter(filter),
@@ -52,7 +55,6 @@ void iAFilterRunnerGUIThread::performWork()
 {
 	m_filter->SetUp(getConnector(), qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress());
 	m_filter->Run(m_paramValues);
-	emit workDone();
 }
 
 
@@ -86,7 +88,16 @@ namespace
 }
 
 
-QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter)
+// iAFilterRunnerGUI
+
+
+QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::Create()
+{
+	return QSharedPointer<iAFilterRunnerGUI>(new iAFilterRunnerGUI());
+}
+
+
+QMap<QString, QVariant> iAFilterRunnerGUI::LoadParameters(QSharedPointer<iAFilter> filter)
 {
 	auto params = filter->Parameters();
 	QMap<QString, QVariant> result;
@@ -100,7 +111,7 @@ QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter)
 }
 
 
-void StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues)
+void iAFilterRunnerGUI::StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues)
 {
 	auto params = filter->Parameters();
 	QSettings settings;
@@ -111,7 +122,7 @@ void StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & 
 }
 
 
-bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues, MainWindow* mainWnd)
+bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues, MainWindow* mainWnd)
 {
 	auto params = filter->Parameters();
 	QStringList dlgParamNames;
@@ -158,28 +169,37 @@ bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> &
 }
 
 
-iAFilterRunnerGUIThread* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	QMap<QString, QVariant> paramValues = LoadParameters(filter);
 	if (!AskForParameters(filter, paramValues, mainWnd))
-		return nullptr;
+		return;
 	StoreParameters(filter, paramValues);
 	
 	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->CheckParameters(paramValues))
-	{
-		return nullptr;
-	}
+		return;
+
 	auto mdiChild = mainWnd->GetResultChild(filter->Name() + " " + mainWnd->activeMdiChild()->windowTitle());
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot get result child from main window!", 5000);
-		return nullptr;
+		return;
 	}
 	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
-	mdiChild->connectThreadSignalsToChildSlots(thread);
+	if (!thread)
+	{
+		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
+		return;
+	}
+	ConnectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->Name());
 	mainWnd->statusBar()->showMessage(filter->Name(), 5000);
 	thread->start();
-	return thread;
+}
+
+void iAFilterRunnerGUI::ConnectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
+{
+	mdiChild->connectThreadSignalsToChildSlots(thread);
+	connect(thread, SIGNAL(finished()), this, SIGNAL(finished()));
 }

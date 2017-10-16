@@ -21,15 +21,20 @@
 
 #include "iAFilterRegistry.h"
 
+#include "iAFilterRunnerGUI.h"
+
+
 void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory)
 {
 	m_filters.push_back(factory);
+	m_runner.insert(factory, QSharedPointer<iAAbstractFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
 }
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory, iAFilterRunGUICallback* callback)
+void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory,
+	QSharedPointer<iAAbstractFilterRunnerGUIFactory> runner)
 {
-	AddFilterFactory(factory);
-	m_callback.insert(factory, callback);
+	m_filters.push_back(factory);
+	m_runner.insert(factory, runner);
 }
 
 QVector<QSharedPointer<iAAbstractFilterFactory>> const & iAFilterRegistry::FilterFactories()
@@ -37,10 +42,10 @@ QVector<QSharedPointer<iAAbstractFilterFactory>> const & iAFilterRegistry::Filte
 	return m_filters;
 }
 
-iAFilterRunGUICallback* iAFilterRegistry::FilterCallback(QSharedPointer<iAAbstractFilterFactory> factory)
+QSharedPointer<iAAbstractFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(QSharedPointer<iAAbstractFilterFactory> factory)
 {
-	return m_callback.contains(factory)? m_callback[factory] : nullptr;
+	return m_runner[factory];
 }
 
 QVector<QSharedPointer<iAAbstractFilterFactory>> iAFilterRegistry::m_filters;
-QMap<QSharedPointer<iAAbstractFilterFactory>, iAFilterRunGUICallback*> iAFilterRegistry::m_callback;
+QMap<QSharedPointer<iAAbstractFilterFactory>, QSharedPointer<iAAbstractFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;

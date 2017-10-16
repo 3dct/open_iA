@@ -28,10 +28,9 @@
 #include "dlg_commoninput.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAFCMGUIRunner.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -45,6 +44,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QCheckBox>
+
 
 void iASegmentationModuleInterface::Initialize()
 {
@@ -66,9 +66,9 @@ void iASegmentationModuleInterface::Initialize()
 		return;
 	}
 
-	REGISTER_FILTER_WITH_CALLBACK(iAFCMFilter, this);
-	REGISTER_FILTER_WITH_CALLBACK(iAKFCMFilter, this);
-	REGISTER_FILTER_WITH_CALLBACK(iAMSKFCMFilter, this);
+	REGISTER_FILTER_WITH_RUNNER(iAFCMFilter,    iAFCMGUIRunner);
+	REGISTER_FILTER_WITH_RUNNER(iAKFCMFilter,   iAFCMGUIRunner);
+	REGISTER_FILTER_WITH_RUNNER(iAMSKFCMFilter, iAFCMGUIRunner);
 
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString("Segmentation"));
@@ -214,30 +214,4 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		return false;
 	}
 	return true;
-}
-
-void iASegmentationModuleInterface::FuzzyCMeansFinished()
-{
-	auto thread = dynamic_cast<iAFilterRunnerGUIThread*>(sender());
-	iAProbabilitySource* probSource = m_probSources[thread];
-	if (!thread || !probSource)
-	{
-		DEBUG_LOG("Invalid FCM finished call!");
-		return;
-	}
-	auto & probs = probSource->Probabilities();
-	for (int p = 0; p < probs.size(); ++p)
-	{
-		qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
-			new iAModality(QString("FCM Prob. %1").arg(p), "", -1, probs[p], 0)));
-	}
-	m_probSources.remove(thread);
-}
-
-void iASegmentationModuleInterface::FilterStarted(iAFilterRunnerGUIThread* thread)
-{
-	if (!thread)
-		return;
-	m_probSources.insert(thread, dynamic_cast<iAProbabilitySource*>(thread->Filter().data()));
-	connect(thread, SIGNAL(workDone()), this, SLOT(FuzzyCMeansFinished()));
 }

@@ -26,14 +26,15 @@
 
 #include <QMap>
 #include <QSharedPointer>
+#include <QVariant>
 
 class iAFilter;
 class MainWindow;
 class MdiChild;
 
-//! GUI Runner for descendants of iAFilter
+//! GUI Runner Thread for descendants of iAFilter
 //!
-//! Used in RunFilter (see below) to run a descendant of iAFilter inside its
+//! Used in RunFilter (see below) as thread to run a descendant of iAFilter inside its
 //! own thread
 class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm
 {
@@ -45,10 +46,10 @@ public:
 private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;
-signals:
-	void workDone();
 };
 
+
+//! Default GUI runner for an iAFilter.
 //! For the given descendant of iAFilter, this method loads its settings from
 //! the platform-specific settings store (Registry under Windows, .config
 //! folder under Unix, ...).
@@ -58,4 +59,44 @@ signals:
 //! Subsequently it creates a thread for the given filter, assigns the slots
 //! required for progress indication, final display and cleanup, and finally
 //! it runs the filter with the parameters.
-open_iA_Core_API iAFilterRunnerGUIThread* RunFilter(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);
+class open_iA_Core_API iAFilterRunnerGUI: public QObject
+{
+	Q_OBJECT
+public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+
+	//! Main run method. Calls all the other (non-static) methods in this class.
+	//! Override only if you want to change the whole way the filter running works;
+	//! typically you will only want to override one of the methods below
+	//! @param filter the filter to run
+	//! @param mainWnd access to the main window
+	virtual void Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);
+
+	//! Prompts the user to adapt the parameters to his needs for the current filter run.
+	//! @param filter the filter that should be run
+	//! @param paramValues the parameter values as loaded from the platform-specific settings store
+	//! @param mainWnd access to the main window (as parent for GUI windows)
+	virtual bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues, MainWindow* mainWnd);
+
+	//! Loads parameters from the platform-specific store.
+	//! @param filter the filter for which to load the parameters
+	//! @return a map containing for each parameter name the stored value
+	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter);
+
+	//! Store parameters in the platform-specific store.
+	//! @param filter the filter for which to store the parameters
+	//! @return a map containing for each parameter name the stored value, as set
+	//!     by the user
+	virtual void StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues);
+	
+	//! Connect the filter thread to the appropriate signals. If you override this,
+	//! you probably will want to still make sure to call this method to make sure
+	//! the result gets updated in the mdi child
+	//! @param mdiChild the child window into which the results should go
+	//! @param thread the thread used to run the filter
+	virtual void ConnectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread);
+signals:
+	//! Signal which by default (in the default ConnectThreadSignals) is connected
+	//! to be emitted at the end of the filter thread run
+	void finished();
+};

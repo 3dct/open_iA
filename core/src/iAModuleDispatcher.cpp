@@ -202,10 +202,24 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 void iAModuleDispatcher::ExecuteFilter()
 {
 	int filterID = qobject_cast<QAction *>(sender())->data().toInt();
-	auto factory = iAFilterRegistry::FilterFactories()[filterID];
-	auto runner = RunFilter(factory->Create(), m_mainWnd);
-	if (iAFilterRegistry::FilterCallback(factory))
-		iAFilterRegistry::FilterCallback(factory)->FilterStarted(runner);
+	auto filterFactory = iAFilterRegistry::FilterFactories()[filterID];
+	auto runner = iAFilterRegistry::FilterRunner(filterFactory)->Create();
+	m_runningFilters.push_back(runner);
+	connect(runner.data(), SIGNAL(finished()), this, SLOT(RemoveFilter()));
+	runner->Run(filterFactory->Create(), m_mainWnd);
+}
+
+void iAModuleDispatcher::RemoveFilter()
+{
+	auto filterRunner = qobject_cast<iAFilterRunnerGUI*>(sender());
+	for (int i = 0; i < m_runningFilters.size(); ++i)
+	{
+		if (m_runningFilters[i].data() == filterRunner)
+		{
+			m_runningFilters.remove(i);
+			break;
+		}
+	}
 }
 
 void iAModuleDispatcher::SaveModulesSettings() const

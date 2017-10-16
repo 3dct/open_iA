@@ -30,6 +30,7 @@
 #include <windows.h> // for HINSTANCE / LPCWSTR
 #endif
 
+class iAFilterRunnerGUI;
 class iALogger;
 class MdiChild;
 class MainWindow;
@@ -82,10 +83,12 @@ public:
 	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
 private slots:
 	void ExecuteFilter();
+	void RemoveFilter();
 private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;
 	QVector < iALoadedModule > m_loadedModules;
+	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;
 	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, iALogger* logger);
 	void InitializeModuleInterface(iAModuleInterface* m);
