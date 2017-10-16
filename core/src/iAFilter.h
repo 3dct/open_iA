@@ -85,10 +85,10 @@ public:
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
-	virtual bool CheckParameters(QMap<QString, QVariant> parameters);
+	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
-	virtual void Run(QMap<QString, QVariant> parameters) = 0;
+	virtual void Run(QMap<QString, QVariant> const & parameters) = 0;
 	//! Adds the description of a parameter to the filter
 	//! @param name the parameter's name
 	//! @param valueType the type of value this parameter can have

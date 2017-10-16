@@ -26,7 +26,7 @@ class iASimpleConnectedComponents: public iAFilter
 {
 public:
 	static QSharedPointer<iASimpleConnectedComponents> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iASimpleConnectedComponents();
 };
@@ -35,7 +35,7 @@ class iAScalarConnectedComponents : public iAFilter
 {
 public:
 	static QSharedPointer<iAScalarConnectedComponents> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAScalarConnectedComponents();
 };
@@ -44,8 +44,8 @@ class iASimpleRelabelConnectedComponents : public iAFilter
 {
 public:
 	static QSharedPointer<iASimpleRelabelConnectedComponents> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
-	bool CheckParameters(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
+	bool CheckParameters(QMap<QString, QVariant> & parameters) override;
 private:
 	iASimpleRelabelConnectedComponents();
 	QString m_outFile;

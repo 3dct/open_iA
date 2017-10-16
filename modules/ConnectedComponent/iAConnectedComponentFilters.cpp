@@ -52,7 +52,7 @@ void SimpleConnectedComponentFilter_template(bool fullyConnected, iAProgress* p,
 
 IAFILTER_CREATE(iASimpleConnectedComponents)
 
-void iASimpleConnectedComponents::Run(QMap<QString, QVariant> parameters)
+void iASimpleConnectedComponents::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, pixelType,
@@ -91,7 +91,7 @@ void ScalarConnectedComponentFilter_template( double distTreshold, iAProgress* p
 
 IAFILTER_CREATE(iAScalarConnectedComponents)
 
-void iAScalarConnectedComponents::Run(QMap<QString, QVariant> parameters)
+void iAScalarConnectedComponents::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, pixelType,
@@ -141,7 +141,7 @@ void SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAPro
 
 IAFILTER_CREATE(iASimpleRelabelConnectedComponents)
 
-void iASimpleRelabelConnectedComponents::Run(QMap<QString, QVariant> parameters)
+void iASimpleRelabelConnectedComponents::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, pixelType,
@@ -151,7 +151,7 @@ void iASimpleRelabelConnectedComponents::Run(QMap<QString, QVariant> parameters)
 		m_progress, m_con);
 }
 
-bool iASimpleRelabelConnectedComponents::CheckParameters(QMap<QString, QVariant> parameters)
+bool iASimpleRelabelConnectedComponents::CheckParameters(QMap<QString, QVariant> & parameters)
 {
 	if (parameters["Write labels to file"].toBool())
 	{

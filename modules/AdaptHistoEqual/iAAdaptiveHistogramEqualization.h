@@ -26,7 +26,7 @@ class iAAdaptiveHistogramEqualization : public iAFilter
 {
 public:
 	static QSharedPointer<iAAdaptiveHistogramEqualization> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAAdaptiveHistogramEqualization();
 };

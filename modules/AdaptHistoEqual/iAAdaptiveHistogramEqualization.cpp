@@ -47,7 +47,7 @@ template<class T> void iAAdaptiveHistogramEqualization_template( double alpha, d
 
 IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
 
-void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> parameters)
+void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, pixelType,

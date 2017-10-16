@@ -239,7 +239,7 @@ void ConvertToRGB(iAProgress* p, iAConnector* image)
 
 IAFILTER_CREATE(iACastImageFilter)
 
-void iACastImageFilter::Run(QMap<QString, QVariant> parameters)
+void iACastImageFilter::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	if (parameters["Data Type"].toString() == "Label image to color-coded RGBA image")

@@ -26,7 +26,7 @@ class iAMedianFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAMedianFilter> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAMedianFilter();
 };

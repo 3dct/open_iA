@@ -64,7 +64,7 @@ void binary_threshold_template(double l, double u, double o, double i, iAProgres
 
 IAFILTER_CREATE(iABinaryThreshold)
 
-void iABinaryThreshold::Run(QMap<QString, QVariant> parameters)
+void iABinaryThreshold::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(binary_threshold_template, itkType,
@@ -123,7 +123,7 @@ void rats_threshold_template(double & rthresh_ptr, double pow, double o, double 
 
 IAFILTER_CREATE(iARatsThreshold)
 
-void iARatsThreshold::Run(QMap<QString, QVariant> parameters)
+void iARatsThreshold::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	double threshold;
@@ -195,7 +195,7 @@ void otsu_threshold_template(double & othresh, double b, double o, double i, boo
 
 IAFILTER_CREATE(iAOtsuThreshold)
 
-void iAOtsuThreshold::Run(QMap<QString, QVariant> parameters)
+void iAOtsuThreshold::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	double threshold;
@@ -257,7 +257,7 @@ void adaptive_otsu_threshold(double r, unsigned int s, unsigned int l, unsigned 
 
 IAFILTER_CREATE(iAAdaptiveOtsuThreshold)
 
-void iAAdaptiveOtsuThreshold::Run(QMap<QString, QVariant> parameters)
+void iAAdaptiveOtsuThreshold::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(adaptive_otsu_threshold, itkType,
@@ -313,7 +313,7 @@ void otsu_multiple_threshold_template( std::vector<double>& omthresh, double b, 
 
 IAFILTER_CREATE(iAOtsuMultipleThreshold)
 
-void iAOtsuMultipleThreshold::Run(QMap<QString, QVariant> parameters)
+void iAOtsuMultipleThreshold::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	std::vector<double> omthresh;
@@ -366,7 +366,7 @@ void maximum_distance_template(int* mdfHighInt_ptr, int* mdfLowInt_ptr, int* mdf
 	image->Modified();
 }
 
-void iAMaximumDistance::Run(QMap<QString, QVariant> parameters)
+void iAMaximumDistance::Run(QMap<QString, QVariant> const & parameters)
 {
 	int mdfHighInt, mdfLowInt, mdfThresh;
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();

@@ -66,7 +66,7 @@ void iAFilter::SetUp(iAConnector* con, iALogger* log, iAProgress* progress)
 	m_progress = progress;
 }
 
-bool iAFilter::CheckParameters(QMap<QString, QVariant> parameters)
+bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 {
 	bool ok;
 	for (auto param: m_parameters)

@@ -52,7 +52,7 @@ template<class T> void median_template( unsigned int r_x, unsigned int r_y, unsi
 	filter->ReleaseDataFlagOn();
 }
 
-void iAMedianFilter::Run(QMap<QString, QVariant> parameters)
+void iAMedianFilter::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(median_template, itkType,

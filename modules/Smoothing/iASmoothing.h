@@ -26,7 +26,7 @@ class iADiscreteGaussian: public iAFilter
 {
 public:
 	static QSharedPointer<iADiscreteGaussian> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iADiscreteGaussian();
 };
@@ -35,7 +35,7 @@ class iAGradientAnisotropicDiffusion : public iAFilter
 {
 public:
 	static QSharedPointer<iAGradientAnisotropicDiffusion> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAGradientAnisotropicDiffusion();
 };
@@ -44,7 +44,7 @@ class iACurvatureAnisotropicDiffusion : public iAFilter
 {
 public:
 	static QSharedPointer<iACurvatureAnisotropicDiffusion> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iACurvatureAnisotropicDiffusion();
 };
@@ -53,7 +53,7 @@ class iABilateral : public iAFilter
 {
 public:
 	static QSharedPointer<iABilateral> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iABilateral();
 };

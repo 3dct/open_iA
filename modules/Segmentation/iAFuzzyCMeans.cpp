@@ -167,12 +167,12 @@ iAFCMFilter::iAFCMFilter() :
 	AddFCMParameters(*this);
 }
 
-bool iAFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
+bool iAFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 {
 	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
 }
 
-void iAFCMFilter::Run(QMap<QString, QVariant> parameters)
+void iAFCMFilter::Run(QMap<QString, QVariant> const & parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
@@ -207,7 +207,7 @@ iAKFCMFilter::iAKFCMFilter() :
 	AddKFCMParameters(*this);
 }
 
-bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
+bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 {
 	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
 }
@@ -264,7 +264,7 @@ void kfcm_template(iAConnector * con, unsigned int maxIter, double maxError, dou
 	con->SetImage(labelClass->GetOutput());
 }
 
-void iAKFCMFilter::Run(QMap<QString, QVariant> parameters)
+void iAKFCMFilter::Run(QMap<QString, QVariant> const & parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
@@ -311,7 +311,7 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 	AddParameter("Q", Continuous, 1);
 }
 
-bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> parameters)
+bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 {
 	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
 }
@@ -373,7 +373,7 @@ void mskfcm_template(iAConnector * con, unsigned int maxIter, double maxError, d
 	con->SetImage(labelClass->GetOutput());
 }
 
-void iAMSKFCMFilter::Run(QMap<QString, QVariant> parameters)
+void iAMSKFCMFilter::Run(QMap<QString, QVariant> const & parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;

@@ -26,7 +26,7 @@ class iAWatershed : public iAFilter
 {
 public:
 	static QSharedPointer<iAWatershed> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAWatershed();
 };
@@ -35,7 +35,7 @@ class iAMorphologicalWatershed : public iAFilter
 {
 public:
 	static QSharedPointer<iAMorphologicalWatershed> Create();
-	void Run(QMap<QString, QVariant> parameters) override;
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAMorphologicalWatershed();
 };

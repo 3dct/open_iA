@@ -73,7 +73,7 @@ iAWatershed::iAWatershed() :
 	AddParameter("Threshold", Continuous, 0);
 }
 
-void iAWatershed::Run(QMap<QString, QVariant> parameters)
+void iAWatershed::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(watershed_template, itkType,
@@ -124,7 +124,7 @@ iAMorphologicalWatershed::iAMorphologicalWatershed() :
 	AddParameter("Fully Connected", Boolean, false);
 }
 
-void iAMorphologicalWatershed::Run(QMap<QString, QVariant> parameters)
+void iAMorphologicalWatershed::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(morph_watershed_template, itkType,
