@@ -28,21 +28,8 @@ class iAAstraReconstructionModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 private slots:
-	void ForwardProject();
-	void Reconstruct();
 	void FreeBeamIntensity();
-private:	
-	QString projGeomType;
-	double detSpacingX, detSpacingY, distOrigDet, 
-		distOrigSource, projAngleStart, projAngleEnd;
-	int detRowCnt, detColCnt, projAnglesCount,
-		detRowDim, detColDim, projAngleDim,
-		algorithmType, numberOfIterations;
-	int volDim[3];
-	double volSpacing[3];
-	bool correctCenterOfRotation;
-	double correctCenterOfRotationOffset;
-
+private:
 	bool m_childClosed;
 	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
 	bool manualMeanFreeBeamIntensity;

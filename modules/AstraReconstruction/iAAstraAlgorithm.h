@@ -20,48 +20,37 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-namespace astra
-{
-	struct Config;
-}
-
-class iAAstraAlgorithm : public iAAlgorithm
+class iAASTRAForwardProject: public iAFilter
 {
 public:
-	enum AlgorithmType
+	static QSharedPointer<iAASTRAForwardProject> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
+private:
+	iAASTRAForwardProject();
+};
+
+class iAASTRAReconstruct: public iAFilter
+{
+public:
+	enum
 	{
-		FP3D,
 		BP3D,
 		FDK3D,
 		SIRT3D,
 		CGLS3D
 	};
-	iAAstraAlgorithm(AlgorithmType type, QString const & filterName, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent);
-	void SetFwdProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
-		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
-	void SetReconstructParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
-		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
-		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations,
-		bool correctCenterOfRotation = false, double correctCenterOfRotationOffset = 0.0);
+	static QSharedPointer<iAASTRAReconstruct> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	virtual void performWork();
-	void ForwardProject();
-	void Reconstruct(AlgorithmType type);
-	
-	void CreateConeProjGeom(astra::Config & projectorConfig);
-	void CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset);
+	iAASTRAReconstruct();
+};
 
-	AlgorithmType m_type;
-	QString m_projGeomType;
-	double m_detSpacingX, m_detSpacingY, m_distOrigDet,
-		m_distOrigSource, m_projAngleStart, m_projAngleEnd;
-	int m_detRowCnt, m_detColCnt, m_projAnglesCount,
-		m_detRowDim, m_detColDim, m_projAngleDim,
-		m_numberOfIterations;
-	int m_volDim[3];
-	double m_volSpacing[3];
-	bool m_correctCenterOfRotation;
-	double m_correctCenterOfRotationOffset;
+class iAASTRAFilterRunner : public iAFilterRunnerGUI
+{
+public:
+	void Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd) override;
+	bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues, MainWindow* mainWnd) override;
 };
