@@ -22,20 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAGPU_GradientAnisotropicDiffusionModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void gpu_grad_aniso_diffusion();
-
-protected:
-	//settings
-	unsigned int gadIterations;
-	double gadTimeStep, gadConductance;
 };
