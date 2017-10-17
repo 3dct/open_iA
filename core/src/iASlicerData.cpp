@@ -519,6 +519,7 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTra
 	}
 
 	colormapper->Update();
+	ren->ResetCamera();
 }
 
 
