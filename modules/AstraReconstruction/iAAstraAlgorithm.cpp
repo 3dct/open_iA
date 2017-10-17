@@ -525,6 +525,11 @@ void iAASTRAFilterRunner::Run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 		QMessageBox::warning(mainWnd, "ASTRA", "No CUDA device available. ASTRA toolbox operations require a CUDA-capable device.");
 		return;
 	}
+	/*
+	// To debug ASTRA Toolbox, uncomment this (errors are printed to stdout):
+	AllocConsole();
+	freopen("CON", "w", stdout);
+	*/
 	iAFilterRunnerGUI::Run(filter, mainWnd);
 }
 
