@@ -119,29 +119,30 @@ namespace
 		projGeomNode.addChildNode("Vectors", vectors.toStdString());
 	}
 
-	void FillVolumeGeometryNode(astra::XMLNode & volGeomNode, QMap<QString, QVariant> const & parameters, double const volSpacing[3])
+	void FillVolumeGeometryNode(astra::XMLNode & volGeomNode, int const volDim[3], double const volSpacing[3])
 	{
-		volGeomNode.addChildNode("GridColCount",   parameters["Volume Dimension X"].toDouble());      // columns are "y-direction" (second index component in buffer) in astra
-		volGeomNode.addChildNode("GridRowCount",   parameters["Volume Dimension Y"].toDouble());      // rows are "x-direction" (first index component in buffer) in astra
-		volGeomNode.addChildNode("GridSliceCount", parameters["Volume Dimension Z"].toDouble());
+		volGeomNode.addChildNode("GridColCount",   volDim[1]);      // columns are "y-direction" (second index component in buffer) in astra
+		volGeomNode.addChildNode("GridRowCount",   volDim[0]);      // rows are "x-direction" (first index component in buffer) in astra
+		volGeomNode.addChildNode("GridSliceCount", volDim[2]);
+
 		astra::XMLNode winMinXOption = volGeomNode.addChildNode("Option");
 		winMinXOption.addAttribute("key", "WindowMinX");
-		winMinXOption.addAttribute("value", -parameters["Volume Dimension Y"].toDouble() * volSpacing[1] / 2.0);
+		winMinXOption.addAttribute("value", -volDim[1] * volSpacing[1] / 2.0);
 		astra::XMLNode winMaxXOption = volGeomNode.addChildNode("Option");
 		winMaxXOption.addAttribute("key", "WindowMaxX");
-		winMaxXOption.addAttribute("value", parameters["Volume Dimension Y"].toDouble() * volSpacing[1] / 2.0);
+		winMaxXOption.addAttribute("value", volDim[1] * volSpacing[1] / 2.0);
 		astra::XMLNode winMinYOption = volGeomNode.addChildNode("Option");
 		winMinYOption.addAttribute("key", "WindowMinY");
-		winMinYOption.addAttribute("value", -parameters["Volume Dimension X"].toDouble() * volSpacing[0] / 2.0);
+		winMinYOption.addAttribute("value", -volDim[0] * volSpacing[0] / 2.0);
 		astra::XMLNode winMaxYOption = volGeomNode.addChildNode("Option");
 		winMaxYOption.addAttribute("key", "WindowMaxY");
-		winMaxYOption.addAttribute("value", parameters["Volume Dimension X"].toDouble() * volSpacing[0] / 2.0);
+		winMaxYOption.addAttribute("value", volDim[0] * volSpacing[0] / 2.0);
 		astra::XMLNode winMinZOption = volGeomNode.addChildNode("Option");
 		winMinZOption.addAttribute("key", "WindowMinZ");
-		winMinZOption.addAttribute("value", -parameters["Volume Dimension Z"].toDouble() * volSpacing[2] / 2.0);
+		winMinZOption.addAttribute("value", -volDim[2] * volSpacing[2] / 2.0);
 		astra::XMLNode winMaxZOption = volGeomNode.addChildNode("Option");
 		winMaxZOption.addAttribute("key", "WindowMaxZ");
-		winMaxZOption.addAttribute("value", parameters["Volume Dimension Z"].toDouble() * volSpacing[2] / 2.0);
+		winMaxZOption.addAttribute("value", volDim[2] * volSpacing[2] / 2.0);
 	}
 
 
@@ -235,7 +236,7 @@ namespace
 		filter->AddParameter("Projection Angle Start", Continuous, 0.0);
 		filter->AddParameter("Projection Angle End", Continuous, 359.0);
 		filter->AddParameter("Distance Origin-Detector", Continuous, 1.0);
-		filter->AddParameter("Distance Source-Origin", Continuous, 1.0);
+		filter->AddParameter("Distance Origin-Source", Continuous, 1.0);
 	}
 }
 
@@ -248,15 +249,15 @@ iAASTRAForwardProject::iAASTRAForwardProject() :
 {
 	AddCommonForwardReconstructParams(this);
 	AddParameter("Detector Row Count", Discrete, 512);
-	AddParameter("Detector Row Count", Discrete, 512);
+	AddParameter("Detector Column Count", Discrete, 512);
 	AddParameter("Projection Angle Count", Discrete, 360);
 }
 
 
 void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkImageData> img = m_con->GetVTKImage();
-	int * dim = img->GetDimensions();
+	vtkSmartPointer<vtkImageData> volImg = m_con->GetVTKImage();
+	int * volDim = volImg->GetDimensions();
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
 	astra::XMLNode gpuIndexOption = projectorConfig.self.addChildNode("Option");
@@ -272,10 +273,10 @@ void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 	CreateConeProjGeom(projectorConfig, parameters);
 
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
-	FillVolumeGeometryNode(volGeomNode, parameters, img->GetSpacing());
+	FillVolumeGeometryNode(volGeomNode, volDim, volImg->GetSpacing());
 
-	astra::float32* buf = new astra::float32[dim[0] * dim[1] * dim[2]];
-	VTK_TYPED_CALL(SwapXYandCastToFloat, img->GetScalarType(), img, buf);
+	astra::float32* buf = new astra::float32[volDim[0] * volDim[1] * volDim[2]];
+	VTK_TYPED_CALL(SwapXYandCastToFloat, volImg->GetScalarType(), volImg, buf);
 
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
@@ -285,7 +286,9 @@ void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
 
-	int projDim[3] = { parameters["Detector Columne Count"].toInt(), parameters["Detector Row Count"].toInt(),
+	int projDim[3] = {
+		parameters["Detector Columne Count"].toInt(),
+		parameters["Detector Row Count"].toInt(),
 		parameters["Projection Angle Count"].toInt() };
 	double projSpacing[3] = {
 		parameters["Detector Spacing X"].toDouble(),
@@ -330,8 +333,8 @@ iAASTRAReconstruct::iAASTRAReconstruct() :
 {
 	AddCommonForwardReconstructParams(this);
 	AddParameter("Detector Row Dimension", Discrete, 1);
-	AddParameter("Detector Row Dimension", Discrete, 0);
-	AddParameter("Projection Angle Dimension", Discrete, 2);
+	AddParameter("Detector Column Dimension", Discrete, 3);
+	AddParameter("Projection Angle Dimension", Discrete, 5);
 
 	AddParameter("Volume Dimension X", Discrete, 512);
 	AddParameter("Volume Dimension Y", Discrete, 512);
@@ -379,12 +382,12 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 
 void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkImageData> img = m_con->GetVTKImage();
-	int * dim = img->GetDimensions();
+	vtkSmartPointer<vtkImageData> projImg = m_con->GetVTKImage();
+	int * projDim = projImg->GetDimensions();
 
-	astra::float32* buf = new astra::float32[dim[0] * dim[1] * dim[2]];
+	astra::float32* projBuf = new astra::float32[projDim[0] * projDim[1] * projDim[2]];
 	//VTK_TYPED_CALL(SwapDimensions, img->GetScalarType(), img, buf, m_detColDim, m_detRowDim, m_projAngleDim, m_detRowCnt, m_detColCnt, m_projAnglesCount);
-	VTK_TYPED_CALL(SwapDimensions, img->GetScalarType(), img, buf,
+	VTK_TYPED_CALL(SwapDimensions, projImg->GetScalarType(), projImg, projBuf,
 		parameters["Detector Column Dimension"].toUInt(),
 		parameters["Detector Row Dimension"].toUInt(),
 		parameters["Projection Angle Dimension"].toUInt());
@@ -410,12 +413,17 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 		parameters["Volume Spacing Y"].toDouble(),
 		parameters["Volume Spacing Z"].toDouble()
 	};
-	FillVolumeGeometryNode(volGeomNode, parameters, volSpacing);
+	int volDim[3] = {
+		parameters["Volume Dimension X"].toInt(),
+		parameters["Volume Dimension Y"].toInt(),
+		parameters["Volume Dimension Z"].toInt()
+	};
+	FillVolumeGeometryNode(volGeomNode, volDim, volSpacing);
 
 	// create Algorithm and run:
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
-	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), buf);
+	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), projBuf);
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), 0.0f);
 	switch (MapAlgoStringToIndex(parameters["Algorithm Type"].toString()))
 	{
@@ -452,11 +460,6 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 	}
 
 	// retrieve result image:
-	int volDim[3] = {
-		parameters["Volume Dimension X"].toInt(),
-		parameters["Volume Dimension Y"].toInt(),
-		parameters["Volume Dimension Z"].toInt()
-	};
 	auto volImg = AllocateImage(VTK_FLOAT, volDim, volSpacing);
 	float* volImgBuf = static_cast<float*>(volImg->GetScalarPointer());
 	astra::float32*** volData3D = volumeData->getData3D();
@@ -476,7 +479,7 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 	m_con->SetImage(volImg);
 	m_con->Modified();
 
-	delete[] buf;
+	delete[] projBuf;
 	delete volumeData;
 	delete projectionData;
 	delete projector;
@@ -545,7 +548,10 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 			parameters["Detector Column Dimension"].toInt(), 
 			parameters["Projection Angle Dimension"].toInt(),
 			img->GetDimensions());
-		dlg.fillAlgorithmValues(MapAlgoStringToIndex(parameters["Algorithm Type"].toString()), parameters["Number of Iterations"].toUInt());
+		if (parameters["Algorithm Type"].toString().isEmpty())
+			parameters["Algorithm Type"] = AlgorithmStrings()[1];
+		dlg.fillAlgorithmValues(MapAlgoStringToIndex(parameters["Algorithm Type"].toString()),
+			parameters["Number of Iterations"].toUInt());
 		dlg.fillCorrectionValues(parameters["Center of Rotation Correction"].toBool(),
 			parameters["Center of Rotation Offset"].toDouble());
 	}
