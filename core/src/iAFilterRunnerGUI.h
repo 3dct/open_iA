@@ -63,6 +63,9 @@ class open_iA_Core_API iAFilterRunnerGUI: public QObject
 {
 	Q_OBJECT
 public:
+	//! Method to create an instance of this runner. If you override this class,
+	//! don't forget to create your own Create method (called from the factory
+	//! template), otherwise still an iAFilterRunnerGUI will be created!
 	static QSharedPointer<iAFilterRunnerGUI> Create();
 
 	//! Main run method. Calls all the other (non-static) methods in this class.

@@ -22,7 +22,6 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QMap>
 #include <QSharedPointer>
 #include <QVector>
 
@@ -73,11 +72,11 @@ public:
 	static QVector<QSharedPointer<iAAbstractFilterFactory>> const & FilterFactories();
 	//! Retrieve the callback for a given factory (if the given factory does not
 	//! have a callback, nullptr is returned).
-	static QSharedPointer<iAAbstractFilterRunnerGUIFactory> FilterRunner(QSharedPointer<iAAbstractFilterFactory>);
+	static QSharedPointer<iAAbstractFilterRunnerGUIFactory> FilterRunner(int filterID);
 private:
 	iAFilterRegistry();	//!< iAFilterRegistry is meant to be used as a singleton, thus prevent creation of objects
-	static QVector<QSharedPointer<iAAbstractFilterFactory>> m_filters;
-	static QMap<QSharedPointer<iAAbstractFilterFactory>, QSharedPointer<iAAbstractFilterRunnerGUIFactory>> m_runner;
+	static QVector<QSharedPointer<iAAbstractFilterFactory> > m_filters;
+	static QVector<QSharedPointer<iAAbstractFilterRunnerGUIFactory> > m_runner;
 };
 
 //! Factory for an iAFilter.

@@ -27,14 +27,14 @@
 void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory)
 {
 	m_filters.push_back(factory);
-	m_runner.insert(factory, QSharedPointer<iAAbstractFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
+	m_runner.push_back(QSharedPointer<iAAbstractFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
 }
 
 void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory,
 	QSharedPointer<iAAbstractFilterRunnerGUIFactory> runner)
 {
 	m_filters.push_back(factory);
-	m_runner.insert(factory, runner);
+	m_runner.push_back(runner);
 }
 
 QVector<QSharedPointer<iAAbstractFilterFactory>> const & iAFilterRegistry::FilterFactories()
@@ -42,10 +42,10 @@ QVector<QSharedPointer<iAAbstractFilterFactory>> const & iAFilterRegistry::Filte
 	return m_filters;
 }
 
-QSharedPointer<iAAbstractFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(QSharedPointer<iAAbstractFilterFactory> factory)
+QSharedPointer<iAAbstractFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(int filterID)
 {
-	return m_runner[factory];
+	return m_runner[filterID];
 }
 
-QVector<QSharedPointer<iAAbstractFilterFactory>> iAFilterRegistry::m_filters;
-QMap<QSharedPointer<iAAbstractFilterFactory>, QSharedPointer<iAAbstractFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;
+QVector<QSharedPointer<iAAbstractFilterFactory> > iAFilterRegistry::m_filters;
+QVector<QSharedPointer<iAAbstractFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;

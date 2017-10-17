@@ -484,6 +484,12 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 
 
 
+QSharedPointer<iAFilterRunnerGUI> iAASTRAFilterRunner::Create()
+{
+	return QSharedPointer<iAASTRAFilterRunner>(new iAASTRAFilterRunner());
+}
+
+
 void iAASTRAFilterRunner::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	if (!IsCUDAAvailable())
