@@ -1,8 +1,8 @@
-/*************************************  open_iA  ************************************ *
+﻿/*********************************  open_iA 2016 06  ******************************** *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
+*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,42 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-// Ui
-#include "ui_iA4DCTPlaneDockWidget.h"
-// Qt
-#include <QDockWidget>
+#ifndef IA4DCTREGIONMARKERMODULE_H
+#define IA4DCTREGIONMARKERMODULE_H
+// iA
+#include "iAVisModule.h"
 
-class iAPlaneVisModule;
-class iA4DCTVisWin;
-
-class iA4DCTPlaneDockWidget : public QDockWidget, public Ui::PlaneDockWidget
+class iA4DCTRegionMarkerModule : public iAVisModule
 {
-	Q_OBJECT
 public:
-				iA4DCTPlaneDockWidget( iA4DCTVisWin * parent );
-	void		attachTo( iAPlaneVisModule * module );
-
-signals:
-	void		updateRenderWindow( );
-
-private slots:
-	void		changedSlice( int val );
-	void		changedOpacity( int val );
-	void		enableShading( int state );
-	void		setXYDir( );
-	void		setXZDir( );
-	void		setYZDir( );
-	void		hightlightDefectsButtonClicked( );
-	void		densityMapButtonClicked( );
-	void		nextSlice( );
-	void		previousSlice( );
-	void		enableHighlighting( int state );
-
-private:
-	void		rescaleSliceSlider( int max, int val );
-
-	iAPlaneVisModule *		m_visModule;
-	iA4DCTVisWin *			m_visWin;
+			iA4DCTRegionMarkerModule( );
+	void	show( );
+	void	hide( );
+	void	addRegion( double* pos );
 };
+
+#endif // IA4DCTREGIONMARKERMODULE_H

@@ -71,9 +71,7 @@ iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
 }
 
 iA4DCTMainWin::~iA4DCTMainWin( )
-{
-
-}
+{ }
 
 void iA4DCTMainWin::load( QString settingsFile )
 {

@@ -72,7 +72,7 @@ void iAFast3DMagicLensWidget::updateLens()
 	if( magicLensCam->GetUseOffAxisProjection() == 0 )
 	{
 		magicLensCam->UseOffAxisProjectionOn();
-	}	
+	}
 
 	int * pos = GetInteractor()->GetEventPosition();
 
@@ -113,9 +113,9 @@ inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 
 void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
 {
-	if (Qt::RightButton == event->button())
-		emit rightButtonReleasedSignal();
-	else if (Qt::LeftButton == event->button())
-		emit leftButtonReleasedSignal();
-	QVTKWidget2::mouseReleaseEvent(event);
+	if( Qt::RightButton == event->button( ) )
+		emit rightButtonReleasedSignal( );
+	else if( Qt::LeftButton == event->button( ) )
+		emit leftButtonReleasedSignal( );
+	QVTKWidget2::mouseReleaseEvent( event );
 }

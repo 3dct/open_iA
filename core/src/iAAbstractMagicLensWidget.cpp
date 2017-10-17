@@ -46,26 +46,25 @@ iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ 
 	, m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
 	, m_viewMode( iAAbstractMagicLensWidget::OFFSET )
-{
-}
+{ }
 
 iAAbstractMagicLensWidget::~iAAbstractMagicLensWidget( )
 { /* not impemented */ }
 
-void iAAbstractMagicLensWidget::magicLensOn()
+void iAAbstractMagicLensWidget::magicLensOn( )
 {
 	setCursor( Qt::BlankCursor );
-	GetRenderWindow()->AddRenderer( m_lensRen );
-	GetRenderWindow()->AddRenderer( m_GUIRen );
-	GetRenderWindow()->Render();
+	GetRenderWindow( )->AddRenderer( m_lensRen );
+	GetRenderWindow( )->AddRenderer( m_GUIRen );
+	GetRenderWindow( )->Render( );
 }
 
-void iAAbstractMagicLensWidget::magicLensOff()
+void iAAbstractMagicLensWidget::magicLensOff( )
 {
 	setCursor( Qt::ArrowCursor );
-	GetRenderWindow()->RemoveRenderer( m_lensRen );
-	GetRenderWindow()->RemoveRenderer( m_GUIRen );
-	GetRenderWindow()->Render();
+	GetRenderWindow( )->RemoveRenderer( m_lensRen );
+	GetRenderWindow( )->RemoveRenderer( m_GUIRen );
+	GetRenderWindow( )->Render( );
 }
 
 void iAAbstractMagicLensWidget::setLensSize( int sizeX, int sizeY )
@@ -87,17 +86,17 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
 	QVTKWidget2::mouseMoveEvent( event );
-	int * pos = GetInteractor()->GetEventPosition();
+	int * pos = GetInteractor( )->GetEventPosition( );
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );
 	updateGUI( );
-	emit MouseMoved();
-	GetRenderWindow()->Render();
+	emit MouseMoved( );
+	GetRenderWindow( )->Render( );
 }
 
-void iAAbstractMagicLensWidget::updateLens()
+void iAAbstractMagicLensWidget::updateLens( )
 {
-	if( GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0 )
+	if( GetRenderWindow( )->GetRenderers( )->GetNumberOfItems( ) <= 0 )
 		return;
 	double points[4];
 	getViewportPoints( points );
@@ -106,14 +105,14 @@ void iAAbstractMagicLensWidget::updateLens()
 
 void iAAbstractMagicLensWidget::updateGUI( )
 {
-	vtkSmartPointer<vtkPoints> points =	vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New( );
+	vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New( );
 
 	switch( m_viewMode )
 	{
 	case ViewMode::CENTERED:
-		{
-		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+	{
+		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New( );
 		double p0[3] = { m_pos[0] - m_halfSize[0], m_pos[1] - m_halfSize[1], 0. };
 		double p1[3] = { m_pos[0] - m_halfSize[0], m_pos[1] + m_halfSize[1], 0. };
 		double p2[3] = { m_pos[0] + m_halfSize[0], m_pos[1] + m_halfSize[1], 0. };
@@ -122,27 +121,27 @@ void iAAbstractMagicLensWidget::updateGUI( )
 		points->InsertNextPoint( p1 );
 		points->InsertNextPoint( p2 );
 		points->InsertNextPoint( p3 );
-		line->GetPointIds()->SetNumberOfIds( 5 );
-		for(int i = 0; i < 5; i++)
-			line->GetPointIds()->SetId( i, i % 4 );
+		line->GetPointIds( )->SetNumberOfIds( 5 );
+		for( int i = 0; i < 5; i++ )
+			line->GetPointIds( )->SetId( i, i % 4 );
 		cells->InsertNextCell( line );
 		break;
-		}
+	}
 	case ViewMode::OFFSET:
-		{
-		vtkSmartPointer<vtkPolyLine> leftRect = vtkSmartPointer<vtkPolyLine>::New();
-		vtkSmartPointer<vtkPolyLine> rightRect = vtkSmartPointer<vtkPolyLine>::New();
-		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+	{
+		vtkSmartPointer<vtkPolyLine> leftRect = vtkSmartPointer<vtkPolyLine>::New( );
+		vtkSmartPointer<vtkPolyLine> rightRect = vtkSmartPointer<vtkPolyLine>::New( );
+		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New( );
 		double p0[3] = { m_pos[0] - m_halfSize[0]			  , m_pos[1] - m_halfSize[1], 0. };	// left
 		double p1[3] = { m_pos[0] - m_halfSize[0]			  , m_pos[1] + m_halfSize[1], 0. };	// left
 		double p2[3] = { m_pos[0] + m_halfSize[0]			  , m_pos[1] + m_halfSize[1], 0. };	// left
 		double p3[3] = { m_pos[0] + m_halfSize[0]			  , m_pos[1] - m_halfSize[1], 0. };	// left
-		double p4[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] - m_halfSize[1], 0. };	// right
-		double p5[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] + m_halfSize[1], 0. };	// right
-		double p6[3] = { m_pos[0] + m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] + m_halfSize[1], 0. };	// right
-		double p7[3] = { m_pos[0] + m_halfSize[0] + (m_size[0] + OFFSET_VAL), m_pos[1] - m_halfSize[1], 0. };	// right
-		double p8[3] = { m_pos[0] + m_halfSize[0]			  , static_cast<double>(m_pos[1])	  , 0. };	// line
-		double p9[3] = { m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL), static_cast<double>(m_pos[1]), 0. };	// line
+		double p4[3] = { m_pos[0] - m_halfSize[0] + ( m_size[0] + OFFSET_VAL ), m_pos[1] - m_halfSize[1], 0. };	// right
+		double p5[3] = { m_pos[0] - m_halfSize[0] + ( m_size[0] + OFFSET_VAL ), m_pos[1] + m_halfSize[1], 0. };	// right
+		double p6[3] = { m_pos[0] + m_halfSize[0] + ( m_size[0] + OFFSET_VAL ), m_pos[1] + m_halfSize[1], 0. };	// right
+		double p7[3] = { m_pos[0] + m_halfSize[0] + ( m_size[0] + OFFSET_VAL ), m_pos[1] - m_halfSize[1], 0. };	// right
+		double p8[3] = { m_pos[0] + m_halfSize[0]			  , static_cast<double>( m_pos[1] )	  , 0. };	// line
+		double p9[3] = { m_pos[0] - m_halfSize[0] + ( m_size[0] + OFFSET_VAL ), static_cast<double>( m_pos[1] ), 0. };	// line
 		points->InsertNextPoint( p0 );
 		points->InsertNextPoint( p1 );
 		points->InsertNextPoint( p2 );
@@ -153,35 +152,35 @@ void iAAbstractMagicLensWidget::updateGUI( )
 		points->InsertNextPoint( p7 );
 		points->InsertNextPoint( p8 );
 		points->InsertNextPoint( p9 );
-		leftRect->GetPointIds()->SetNumberOfIds( 5 );
-		leftRect->GetPointIds()->SetId( 0, 0 );
-		leftRect->GetPointIds()->SetId( 1, 1 );
-		leftRect->GetPointIds()->SetId( 2, 2 );
-		leftRect->GetPointIds()->SetId( 3, 3 );
-		leftRect->GetPointIds()->SetId( 4, 0 );
-		rightRect->GetPointIds()->SetNumberOfIds( 5 );
-		rightRect->GetPointIds()->SetId( 0, 4 );
-		rightRect->GetPointIds()->SetId( 1, 5 );
-		rightRect->GetPointIds()->SetId( 2, 6 );
-		rightRect->GetPointIds()->SetId( 3, 7 );
-		rightRect->GetPointIds()->SetId( 4, 4 );
-		line->GetPointIds()->SetNumberOfIds( 2 );
-		line->GetPointIds()->SetId( 0, 8 );
-		line->GetPointIds()->SetId( 1, 9 );
+		leftRect->GetPointIds( )->SetNumberOfIds( 5 );
+		leftRect->GetPointIds( )->SetId( 0, 0 );
+		leftRect->GetPointIds( )->SetId( 1, 1 );
+		leftRect->GetPointIds( )->SetId( 2, 2 );
+		leftRect->GetPointIds( )->SetId( 3, 3 );
+		leftRect->GetPointIds( )->SetId( 4, 0 );
+		rightRect->GetPointIds( )->SetNumberOfIds( 5 );
+		rightRect->GetPointIds( )->SetId( 0, 4 );
+		rightRect->GetPointIds( )->SetId( 1, 5 );
+		rightRect->GetPointIds( )->SetId( 2, 6 );
+		rightRect->GetPointIds( )->SetId( 3, 7 );
+		rightRect->GetPointIds( )->SetId( 4, 4 );
+		line->GetPointIds( )->SetNumberOfIds( 2 );
+		line->GetPointIds( )->SetId( 0, 8 );
+		line->GetPointIds( )->SetId( 1, 9 );
 		cells->InsertNextCell( leftRect );
 		cells->InsertNextCell( rightRect );
 		cells->InsertNextCell( line );
 		break;
-		}
+	}
 	default:
 		break;
 	}
 
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New( );
 	polyData->SetPoints( points );
-	polyData->SetLines( cells ); 
+	polyData->SetLines( cells );
 	// Setup actor and mapper
-	vtkSmartPointer<vtkPolyDataMapper2D> mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+	vtkSmartPointer<vtkPolyDataMapper2D> mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New( );
 	mapper->SetInputData( polyData );
 	m_GUIActor->SetMapper( mapper );
 }
@@ -189,7 +188,7 @@ void iAAbstractMagicLensWidget::updateGUI( )
 // input points: xmin, ymin, xmax, ymax
 void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 {
-	int * winSize = GetRenderWindow()->GetSize();
+	int * winSize = GetRenderWindow( )->GetSize( );
 	switch( m_viewMode )
 	{
 	case ViewMode::CENTERED:
@@ -199,10 +198,10 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 		points[3] = ( m_pos[1] + m_halfSize[1] ) / winSize[1];
 		break;
 	case ViewMode::OFFSET:
-		points[0] = (m_pos[0] - m_halfSize[0] + (m_size[0] + OFFSET_VAL)) / winSize[0];
-		points[1] = ( m_pos[1] - m_halfSize[1]				) / winSize[1];
-		points[2] = (m_pos[0] + m_halfSize[0] + (m_size[0] + OFFSET_VAL)) / winSize[0];
-		points[3] = ( m_pos[1] + m_halfSize[1]				) / winSize[1];
+		points[0] = ( m_pos[0] - m_halfSize[0] + ( m_size[0] + OFFSET_VAL ) ) / winSize[0];
+		points[1] = ( m_pos[1] - m_halfSize[1] ) / winSize[1];
+		points[2] = ( m_pos[0] + m_halfSize[0] + ( m_size[0] + OFFSET_VAL ) ) / winSize[0];
+		points[3] = ( m_pos[1] + m_halfSize[1] ) / winSize[1];
 		break;
 	default:
 		break;
@@ -210,22 +209,22 @@ void iAAbstractMagicLensWidget::getViewportPoints( double points[4] )
 }
 
 
-void iAAbstractMagicLensWidget::SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin)
+void iAAbstractMagicLensWidget::SetMainRenderWindow( vtkGenericOpenGLRenderWindow* renWin )
 {
-	SetRenderWindow(renWin);
+	SetRenderWindow( renWin );
 
 	// TODO: VOLUME: move somewhere else?
-	renWin->SetNumberOfLayers(5);
+	renWin->SetNumberOfLayers( 5 );
 
-	m_lensRen->SetLayer(0);
-	m_GUIRen->SetLayer(1);
-	m_lensRen->InteractiveOff();
-	m_lensRen->SetBackground(0.5, 0.5, 0.5);
-	m_GUIRen->InteractiveOff();
-	m_GUIRen->AddActor(m_GUIActor);
-	m_GUIActor->GetProperty()->SetLineWidth(2.);
-	m_GUIActor->GetProperty()->SetColor(1., 1., 0);
+	m_lensRen->SetLayer( 0 );
+	m_GUIRen->SetLayer( 1 );
+	m_lensRen->InteractiveOff( );
+	m_lensRen->SetBackground( 0.5, 0.5, 0.5 );
+	m_GUIRen->InteractiveOff( );
+	m_GUIRen->AddActor( m_GUIActor );
+	m_GUIActor->GetProperty( )->SetLineWidth( 2. );
+	m_GUIActor->GetProperty( )->SetColor( 1., 1., 0 );
 
 	// default values
-	setLensSize(DefaultMagicLensSize, DefaultMagicLensSize);
+	setLensSize( DefaultMagicLensSize, DefaultMagicLensSize );
 }

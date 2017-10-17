@@ -281,7 +281,7 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	
 	UpdateResliceAxesDirectionCosines();
 	UpdateBackground();
-	pointPicker->SetTolerance(PickTolerance);
+	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
 
 	if (m_decorations)
 	{

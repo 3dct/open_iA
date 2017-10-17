@@ -61,23 +61,15 @@ iAFractureVisModule::iAFractureVisModule( )
 	//m_surfActor->GetProperty()->SetOpacity(0.5);
 }
 
-void iAFractureVisModule::enable( )
+void iAFractureVisModule::show( )
 {
-	if( !isAttached( ) ) return;
-	if( !isEnabled( ) ) {
-		m_surfActor->GetProperty( )->SetInterpolationToPhong( );
-		m_renderer->AddActor( m_surfActor );
-	}
-	iAVisModule::enable( );
+	m_surfActor->GetProperty( )->SetInterpolationToPhong( );
+	m_renderer->AddActor( m_surfActor );
 }
 
-void iAFractureVisModule::disable( )
+void iAFractureVisModule::hide( )
 {
-	if( !isAttached( ) ) return;
-	if( isEnabled( ) ) {
-		m_renderer->RemoveActor( m_surfActor );
-	}
-	iAVisModule::disable( );
+	m_renderer->RemoveActor( m_surfActor );
 }
 
 void iAFractureVisModule::load( QString fileName )

@@ -40,16 +40,19 @@ public:
 	};
 						iAAbstractMagicLensWidget( QWidget * parent = 0 );
 	virtual				~iAAbstractMagicLensWidget( );
-	void				magicLensOn();
-	void				magicLensOff();
+	void				magicLensOn( );
+	void				magicLensOff( );
 	void				setLensSize( int sizeX, int sizeY );
 	vtkRenderer*		getLensRenderer( );
 	void				setViewMode( ViewMode mode );
 
 	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
 
+
 signals:
-	void MouseMoved();
+	void MouseMoved( );
+
+
 protected:
 	virtual void		mouseMoveEvent( QMouseEvent * event );
 	virtual void		updateLens( );

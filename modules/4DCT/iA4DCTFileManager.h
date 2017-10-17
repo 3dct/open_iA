@@ -1,8 +1,8 @@
-/*************************************  open_iA  ************************************ *
+﻿/*********************************  open_iA 2016 06  ******************************** *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
+*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,31 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-// iA
-#include "iAVisModule.h"
+#ifndef IA4DCTFILEMANAGER_H
+#define IA4DCTFILEMANAGER_H
+
+#include "iA4DCTFileData.h"
+// std
+#include <map>
 // vtk
 #include <vtkSmartPointer.h>
-// Qt
-#include <QString>
 
-class vtkPolyDataMapper;
-class vtkActor;
-class vtkOBJReader;
+class vtkAlgorithmOutput;
+class vtkMetaImageReader;
+class vtkImageData;
 
-class iADefectVisModule : public iAVisModule
+using namespace std;
+
+class iA4DCTFileManager
 {
-public:
-			iADefectVisModule( );
-	void	setInputFile( QString path );
-	void	setColor( double r, double g, double b );
-	void	setOpacity( double opacity );
-	void	show( );
-	void	hide( );
-
 private:
-	vtkSmartPointer<vtkOBJReader>		m_reader;
-	vtkSmartPointer<vtkPolyDataMapper>	m_mapper;
-	vtkSmartPointer<vtkActor>			m_actor;
+	typedef vtkSmartPointer<vtkMetaImageReader> ReaderType;
+
+public:
+	static iA4DCTFileManager&	getInstance( );
+	vtkImageData*				getImage( iA4DCTFileData file );
+	vtkAlgorithmOutput*			getOutputPort( iA4DCTFileData file );
+	
+private:
+			iA4DCTFileManager( ) { }
+			~iA4DCTFileManager( ) { }
+
+			iA4DCTFileManager( iA4DCTFileManager const& ) = delete;
+	void	operator=( iA4DCTFileManager const& ) = delete;
+
+	ReaderType	findOrCreateImage( iA4DCTFileData file );
+	ReaderType	findReader( iA4DCTFileData file );
+
+	map<std::string, ReaderType> m_map;
 };
+
+#endif // IA4DCTFILEMANAGER_H

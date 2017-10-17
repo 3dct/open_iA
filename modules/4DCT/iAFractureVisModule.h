@@ -43,8 +43,8 @@ public:
 	enum MapName { Heightmap, Colormap };
 
 				iAFractureVisModule( );
-	void		enable( );
-	void		disable( );
+	void		show( );
+	void		hide( );
 	void		setData( vtkPoints* points, vtkCellArray* polys, vtkUnsignedCharArray* colors = 0 );
 	void		load( QString fileName );
 	void		save( QString fileName );

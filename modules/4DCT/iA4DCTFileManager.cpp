@@ -1,8 +1,8 @@
-/*************************************  open_iA  ************************************ *
+﻿/*********************************  open_iA 2016 06  ******************************** *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
+*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,31 +18,37 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-// iA
-#include "iAVisModule.h"
+#include "iA4DCTFileManager.h"
 // vtk
-#include <vtkSmartPointer.h>
-// Qt
-#include <QString>
+#include <vtkMetaImageReader.h>
+#include <vtkImageData.h>
 
-class vtkPolyDataMapper;
-class vtkActor;
-class vtkOBJReader;
-
-class iADefectVisModule : public iAVisModule
+iA4DCTFileManager& iA4DCTFileManager::getInstance( )
 {
-public:
-			iADefectVisModule( );
-	void	setInputFile( QString path );
-	void	setColor( double r, double g, double b );
-	void	setOpacity( double opacity );
-	void	show( );
-	void	hide( );
+	static iA4DCTFileManager instance;
+	return instance;
+}
 
-private:
-	vtkSmartPointer<vtkOBJReader>		m_reader;
-	vtkSmartPointer<vtkPolyDataMapper>	m_mapper;
-	vtkSmartPointer<vtkActor>			m_actor;
-};
+vtkImageData* iA4DCTFileManager::getImage( iA4DCTFileData file )
+{
+	return findOrCreateImage( file )->GetOutput( );
+}
+
+vtkAlgorithmOutput* iA4DCTFileManager::getOutputPort( iA4DCTFileData file )
+{
+	return findOrCreateImage( file )->GetOutputPort( );
+}
+
+iA4DCTFileManager::ReaderType iA4DCTFileManager::findOrCreateImage( iA4DCTFileData file )
+{
+	string key = file.Name.toStdString( );
+	if( m_map.find( key ) == m_map.end( ) )
+	{	// the key does not exist
+		ReaderType reader = ReaderType::New( );
+		reader->SetFileName( file.Path.toStdString( ).c_str( ) );
+		reader->Update( );
+		m_map[ key ] = reader;
+	}
+	return m_map[ key ];
+}

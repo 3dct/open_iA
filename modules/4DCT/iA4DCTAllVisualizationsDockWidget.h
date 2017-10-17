@@ -34,6 +34,7 @@ class iAVisModule;
 class iA4DCTAllVisualizationsDockWidget : public QDockWidget, public Ui::AllVisualizationsDockWidget
 {
 	Q_OBJECT
+
 public:
 				iA4DCTAllVisualizationsDockWidget( QWidget * parent );
 				~iA4DCTAllVisualizationsDockWidget( );

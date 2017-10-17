@@ -42,6 +42,8 @@ private slots:
 	void				openProj( );
 	void				newProj( );
 	void				saveProj( );
+	void				extractFeaturesToFile();
+	void				defectClassification();
 	//void				enableDensityMap();
 
 private:
