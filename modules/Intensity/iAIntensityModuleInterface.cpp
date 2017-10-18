@@ -34,6 +34,7 @@ void iAIntensityModuleInterface::Initialize()
 	REGISTER_FILTER(iANormalizeIntensityFilter);
 	REGISTER_FILTER(iAIntensityWindowingFilter)
 	REGISTER_FILTER(iARescaleIntensityFilter);
+	REGISTER_FILTER(iAShiftScaleIntensityFilter);
 	REGISTER_FILTER(iAMaskIntensityFilter);
 	REGISTER_FILTER(iAHistogramMatchingFilter);
 }
