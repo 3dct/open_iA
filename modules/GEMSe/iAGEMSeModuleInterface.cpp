@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAGEMSeModuleInterface.h"
 
@@ -47,17 +46,19 @@ iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 
 void iAGEMSeModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiChannelSegm = getMenuWithTitle( toolsMenu, QString( "GEMSe" ), false );
+	QMenu * menuSegmEnsembles = getMenuWithTitle( toolsMenu, QString( "Segmentation Ensembles" ), false );
 	
-	QAction * actionMetricVis = new QAction( m_mainWnd );
-	actionMetricVis->setText( QApplication::translate( "MainWindow", "GEMSe", 0 ) );
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionMetricVis, true);
-	connect(actionMetricVis, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
+	QAction * actionGEMSe = new QAction( m_mainWnd );
+	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+	AddActionToMenuAlphabeticallySorted(menuSegmEnsembles, actionGEMSe, true);
+	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
 
 	QAction * actionPreCalculated = new QAction( m_mainWnd );
 	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Pre-Calculated Results", 0 ));
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionPreCalculated, false);
+	AddActionToMenuAlphabeticallySorted(menuSegmEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }
 
@@ -86,8 +87,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Precalculated Sampling & Clustering Data"),
-		QString() // TODO get directory of current file
-		,
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
 		tr("GEMSe project (*.sea );;") );
 	if (fileName != "")
 	{
@@ -147,27 +147,13 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
 }
 
-#include <QToolBar>
-
-#include "ui_GEMSeToolBar.h"
-#include "iAQTtoUIConnector.h"
-
-class iAGEMSeToolbar : public QToolBar, public Ui_GEMSeToolBar
-{
-public:
-	iAGEMSeToolbar(QWidget* parent) : QToolBar("GEMSe ToolBar", parent)
-	{
-		this->setupUi(this);
-	}
-};
-
 void iAGEMSeModuleInterface::SetupToolbar()
 {
 	if (m_toolbar)
 	{
 		return;
 	}
-	m_toolbar = new iAGEMSeToolbar(m_mainWnd);
+	m_toolbar = new iAGEMSeToolbar("GEMSe ToolBar", m_mainWnd);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
 	connect(m_toolbar->action_ResetFilter, SIGNAL(triggered()), this, SLOT(ResetFilter()));

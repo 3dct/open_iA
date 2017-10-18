@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAMorphologyModuleInterface.h"
 
@@ -29,6 +28,8 @@
 
 void iAMorphologyModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menu_Morphology_Filters = getMenuWithTitle(filtersMenu, QString( "Morphology" ) );
 	QAction * actionDilation_Filter = new QAction(QApplication::translate("MainWindow", "Dilation", 0), m_mainWnd );
@@ -55,7 +56,7 @@ void iAMorphologyModuleInterface::dilation_filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	dilrad = dlg.getValues()[0];
+	dilrad = dlg.getDblValue(0);
 	//prepare
 	QString filterName = "Dilated " + QString::number(dilrad);
 	PrepareResultChild( filterName );
@@ -80,7 +81,7 @@ void iAMorphologyModuleInterface::erosion_filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	errad = dlg.getValues()[0];
+	errad = dlg.getDblValue(0);
 
 	//prepare
 	QString filterName = "Eroded " + QString::number(errad);
@@ -107,7 +108,7 @@ void iAMorphologyModuleInterface::vessel_enhancement_filter()
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 	
-	sigmaenh = dlg.getValues()[0];
+	sigmaenh = dlg.getDblValue(0);
 	//prepare
 	QString filterName = "Vessel Enhancement";
 	PrepareResultChild( filterName );

@@ -42,7 +42,7 @@ class open_iA_Core_API dlg_bezier : public dlg_function
 	std::vector<QPointF> realPoints;
 	
 public:
-	dlg_bezier(iADiagramFctWidget *fctDiagram, QColor &color, bool reset = true);
+	dlg_bezier(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
 	int getType() { return BEZIER; }
 

@@ -31,59 +31,47 @@
 #include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
 
-#include <vtkImageData.h>
 
-#include <QLocale>
-
-iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm(fn, i, p, logger, parent)
-{}
-
-
-/**
-* GPU Gradient anisotropic diffusion template initializes itkGPUGradientAnisotropicDiffusionImageFilter .
-* \param	i		NumberOfIterations.
-* \param	t		TimeStep.
-* \param	c		ConductanceParameter.
-* \param	p		Filter progress information.
-* \param	image	Input image.
-* \param	T		Template datatype.
-* \return	int		Status code.
-*/
 template<class T>
-int GPU_gradient_anisotropic_diffusion_template(unsigned int i, double t, double c, iAProgress* p, iAConnector* image)
+void GPU_gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const & parameters,
+	iAProgress* p, iAConnector* image)
 {
 	// register object factory for GPU image and filter
-
 	itk::ObjectFactoryBase::RegisterFactory(itk::GPUImageFactory::New());
 	itk::ObjectFactoryBase::RegisterFactory(itk::GPUGradientAnisotropicDiffusionImageFilterFactory::New());
 
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< float, DIM >   RealImageType;
-
 	typedef itk::GPUGradientAnisotropicDiffusionImageFilter< InputImageType, RealImageType > GGADIFType;
-	typename GGADIFType::Pointer filter = GGADIFType::New();
 
-	filter->SetNumberOfIterations(i);
-	filter->SetTimeStep(t);
-	filter->SetConductanceParameter(c);
+	auto filter = GGADIFType::New();
+	filter->SetNumberOfIterations(parameters["Number of Iterations"].toUInt());
+	filter->SetTimeStep(parameters["Time Step"].toDouble());
+	filter->SetConductanceParameter(parameters["Conductance"].toDouble());
 	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-
 	p->Observe(filter);
-
 	filter->Update();
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-
-void iAGPUEdgePreservingSmoothing::performWork()
+void iAGPUEdgePreservingSmoothing::Run(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion_template, itkType,
-		iterations, timestep, conductance, getItkProgress(), getConnector());
+	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion_template, m_con->GetITKScalarPixelType(),
+		parameters, m_progress, m_con);
+}
+
+IAFILTER_CREATE(iAGPUEdgePreservingSmoothing)
+
+iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
+	iAFilter("Gradient Anisotropic Diffusion", "Smoothing/Edge preserving smoothing",
+		"Performs GPU-accelerated gradient anisotropic diffusion.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GPUGradientAnisotropicDiffusionImageFilter.html\">"
+		"GPU Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
+{
+	AddParameter("Number of Iterations", Discrete, 100, 1);
+	AddParameter("Time Step", Continuous, 0.0625);
+	AddParameter("Conductance", Continuous, 1);
 }

@@ -20,27 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-/**
- * An implementation of itkMedianImageFilter.
- * For itkMedianImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html
- */
-class iAMedianFilter : public iAAlgorithm
+class iAMedianFilter : public iAFilter
 {
 public:
-	iAMedianFilter( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets iAMedianFilter parameters. 
-	 * \param	r_x		radius along x.
-	 * \param	r_y		radius along y.
-	 * \param	r_z		radius along z.
-	 */
-	void setDParameters(unsigned int r_x, unsigned int r_y, unsigned int r_z) { iRx = r_x; iRy = r_y; iRz = r_z; };
-
-protected:
-	virtual void performWork();
+	static QSharedPointer<iAMedianFilter> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	unsigned int iRx, iRy, iRz;
+	iAMedianFilter();
 };

@@ -82,7 +82,6 @@ public:
 	void updateTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
-	int getChartHeight() const;
 	std::vector<dlg_function*> &getFunctions();
 	iAAbstractDiagramData::DataType GetMaxYValue() const;
 	iAAbstractDiagramData::DataType GetMaxYAxisValue() const;
@@ -91,9 +90,12 @@ public:
 
 	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData() =0;
 	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const =0;
-	
-	void GetDataRange(double* range);
-	double GetDataRange();
+
+	int ChartHeight() const;
+	int GetTFGradientHeight() const;
+	virtual int BottomMargin() const;
+	double const * XBounds() const;
+	double XRange() const;
 
 	void AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset);
 	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);
@@ -115,10 +117,6 @@ public:
 
 	void SetAllowTrfReset(bool allow);
 	void SetEnableAdditionalFunctions(bool enable);
-
-	int GetTFGradientHeight() const;
-
-	virtual int getBottomMargin() const;
 
 	bool IsDrawnDiscrete() const;
 	void SetXCaption(QString const & caption);
@@ -159,7 +157,7 @@ protected:
 	virtual void drawDatasets(QPainter &painter);
 	virtual void drawImageOverlays(QPainter &painter);
 	virtual void drawAxes(QPainter &painter);
-	virtual void changeMode(int mode, QMouseEvent *event);
+	virtual void changeMode(int newMode, QMouseEvent *event) override;
 
 	// conversion between screen and data coordinates/bins:
 	int diagram2PaintX(double x);

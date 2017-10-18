@@ -20,39 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <string>
+#include "iAFilter.h"
 
-#include "iAAlgorithm.h"
-
-/**
- * An itk cast image filter. Basic filter is itkCastImageFilter.
- * Further details at http://www.itk.org/Doxygen/html/classitk_1_1CastImageFilter.html
- * \remarks	Kana, 01/12/2010.
- */
-
-enum iACastType
-{
-	FHW_CAST_IMAGE,
-	DATATYPE_CONVERSION,
-};
-
-class iACastImageFilter : public iAAlgorithm
+class iACastImageFilter : public iAFilter
 {
 public:
-	iACastImageFilter( QString fn, iACastType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets an odt parameters.
-	 * \param	odt	Output image datatype.
-	 */
-	void setODTParameters( std::string odt ) { m_odt = odt; };
-	void setDTCParameters( std::string type, float min, float max, double outmin, double outmax, int dtcdov ) { m_type = type; m_min = min; m_max = max; m_outmin = outmin; m_outmax = outmax; m_dov = dtcdov; };
-protected:
-	virtual void performWork();
+	static QSharedPointer<iACastImageFilter> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	std::string m_odt;
-	std::string m_type; float m_min, m_max; int m_dov; double m_outmin, m_outmax;
-	iACastType m_castType;
-	void fhwCastImage();
-	void DataTypeConversion();
+	iACastImageFilter();
 };

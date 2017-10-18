@@ -74,8 +74,8 @@ public:
 	QString getPath() { return path; };
 
 	void LoadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack);
-	void loadFiles(QStringList fileNames);
+	void LoadFile(QString fileName, bool isStack);
+	void LoadFiles(QStringList fileNames);
 
 	QDomDocument loadSettingsFile(QString filename);
 	void saveSettingsFile(QDomDocument &doc, QString filename);
@@ -107,7 +107,6 @@ public:
 	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
 	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	int SelectInputs(QString winTitel, QStringList inList, int * out_inputIndxs, bool modal = true);
 	void addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);
@@ -187,9 +186,10 @@ public slots:
 	void setHistogramFocus();
 	void tabChanged(int index);
 
+signals:
+	void StyleChanged();
 private:
 	void connectSignalsToSlots();
-	void setupToolBars();
 	void setupStatusBar();
 	void readSettings();
 	void writeSettings();
@@ -197,38 +197,28 @@ private:
 	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
-	void loadFileInternal(QString fileName, bool isStack);
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void LoadProject(QString const & fileName);
 	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
-
-	QSplashScreen *splashScreen;
-		
 	QMdiSubWindow *findMdiChild(const QString &fileName);
 	QString strippedName(const QString &fullFileName);
-
 	double neighborhood(vtkImageData *imageData, int x0, int y0, int z0);
 
+	QSplashScreen *splashScreen;
 	QAction *separatorAct;
 	enum { MaxRecentFiles = 8 };
 	QAction *recentFileActs[MaxRecentFiles];
 	QActionGroup *slicerToolsGroup;
-
 	QSignalMapper *windowMapper;
-	
 	QString qssName;
-
 	iAVolumeSettings defaultVolumeSettings;	
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;
 
-	//! @{ DataType Conversion settings
-	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
-	//! @}
 	//! @{ Open with DataType Conversion settings
 	int owdtcs,
 		owdtcx, owdtcy, owdtcz,
@@ -244,18 +234,9 @@ private:
 	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
 
 	QString defaultLayout;
-
-	QString movFileName; //mean object visualization parameter
-
-	int fvDiscretizationFactor;
-	QString fvFileName;
-
 	QString curFile, path;
-
 	QTimer *timer;
-
 	QComboBox * layout;
-
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList layoutNames;
 	QString m_gitVersion;

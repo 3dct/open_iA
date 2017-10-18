@@ -6,6 +6,7 @@ General
 	QWidget
 	{
 		background-color: rgba(0, 0, 0, 255);
+		color: rgba(230, 230, 230, 255);
 	}
 	
 	QWidget#page, page_2
@@ -488,21 +489,25 @@ QProgressBar
 /****************************************************************************
 QListView
 ****************************************************************************/
-	QListView
+	QListView,
+	QListWidget,
+	QTextEdit
 	{
 		background: rgba(0, 0, 0, 255);
 		color: rgba(230, 230, 230, 255);
 	}
 	
-	QListView::item
+	QListView::item,
+	QListWidget::item
 	{
 		background: rgba(0, 0, 0, 255);
 		color: rgba(230, 230, 230, 255);
 	}
 	
-	QListView::item:selected 
+	QListView::item:selected,
+	QListWidget::item:selected
 	{
-		background: rgba(180, 180, 180, 255);
+		background: rgba(75, 75, 75, 255);
 		color: rgba(230, 230, 230, 255);
 		border-top: 1px solid 		rgba(120, 120, 120, 255);
 		border-bottom: 1px solid 	rgba(40, 40, 40, 255);
@@ -510,21 +515,23 @@ QListView
 		border-right: 1px solid		rgba(50, 50, 50, 255);
 	}
 	
-	QListView::item:alternate
+	QListView::item:alternate,
+	QListWidget::item:alternate
 	{
 		background: rgba(20, 20, 20, 255);
 		color: rgba(230, 230, 230, 255);
 	}
 	
-	QListView::item:hover
+	QListView::item:hover,
+	QListWidget::item:hover
 	{
-		background: rgba(10, 10, 10, 255);
 		color: rgba(255, 255, 255, 255);
 		border: 1px solid rgba(120, 120, 120, 255);
 	}
-	QListView::item:alternate:hover
+	
+	QListView::item:alternate:hover,
+	QListWidget::item:alternate:hover
 	{
-		background: rgba(30, 30, 30, 255);
 		color: rgba(255, 255, 255, 255);
 		border: 1px solid rgba(120, 120, 120, 255);
 	}

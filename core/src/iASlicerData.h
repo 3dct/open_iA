@@ -104,6 +104,7 @@ public:
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setSliceNumber(int sliceNumber);
+	int getSliceNumber() const;
 	//! set the position of the position marker (in slicer coordinates)
 	void setPositionMarkerCenter(double x, double y);
 	void setContours(int n, double mi, double ma);
@@ -160,7 +161,7 @@ protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();
 	//mouse move
-	void printVoxelInformation(int xCoord, int yCoord, int zCoord, double* result);
+	void printVoxelInformation(double xCoord, double yCoord, double zCoord);
 	void executeKeyPressEvent();
 	void defaultOutput();
 
@@ -274,7 +275,7 @@ private:
 	double m_startMeasurePoint[2];
 
 	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
-	void GetMouseCoord(int & xCoord, int & yCoord, int & zCoord, double* result);
+	void GetMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
 	void UpdatePositionMarkerExtent();
 
 	QCursor m_mouseCursor;

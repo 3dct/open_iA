@@ -21,23 +21,9 @@
 #pragma once
 
 #include "iAModuleInterface.h"
-#include <QScopedPointer>
-
-class MdiChild;
 
 class iAGradientsModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void gradientMagnitude();
-	void derivative_Filter();
-	void higherOrderDerivative();
-
-protected:
-	//settings
-	unsigned int dfOrder, dfDirection;
 };

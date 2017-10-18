@@ -25,7 +25,7 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 
-void CheckSCIFIO()
+void CheckSCIFIO(QString const & applicationPath)
 {
 #ifdef USE_SCIFIO
 	// Workaround for ITK requiring SCIFIO_PATH to be set when compiled with SCIFIO
@@ -37,7 +37,7 @@ void CheckSCIFIO()
 		return;
 	}
 
-	QFileInfo fi(QCoreApplication::applicationDirPath());
+	QFileInfo fi(applicationPath);
 	QString scifioPath(fi.absoluteFilePath() + "/scifio_jars");
 	if (!QFile::exists(scifioPath))
 	{

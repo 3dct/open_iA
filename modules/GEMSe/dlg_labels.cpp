@@ -496,7 +496,7 @@ void dlg_labels::Store()
 		DEBUG_LOG("Selection of format aborted, aborting seed file storing");
 		return;
 	}
-	if (!Store(fileName, extendedFormatInput.getCheckValues()[0]))
+	if (!Store(fileName, extendedFormatInput.getCheckValue(0)))
 	{
 		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
 	}
@@ -563,8 +563,8 @@ void dlg_labels::Sample()
 	{
 		return;
 	}
-	int numOfSeeds = input.getSpinBoxValues()[0];
-	bool reduceNum = input.getCheckValues()[1];
+	int numOfSeeds = input.getIntValue(0);
+	bool reduceNum = input.getCheckValue(1);
 
 	std::vector<int> numOfSeedsPerLabel(labelCount, numOfSeeds);
 	// check that there is at least numOfSeedsPerLabel pixels per label

@@ -170,14 +170,14 @@ void AdjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 {
 	bool ok;
 	double value = valueText.toDouble(&ok);
-	if (desc->GetValueType() == Categorical ||
-		desc->GetValueType() == Discrete)
+	if (desc->ValueType() == Categorical ||
+		desc->ValueType() == Discrete)
 	{
 		int value = valueText.toInt(&ok);
 	}
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->GetName()));
+		DEBUG_LOG(QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->Name()));
 		return;
 	}
 	desc->AdjustMinMax(value);
@@ -185,13 +185,13 @@ void AdjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 
 QSharedPointer<iAAttributeDescriptor> NumberParameterInputs::GetCurrentDescriptor()
 {
-	assert(descriptor->GetValueType() == Discrete || descriptor->GetValueType() == Continuous);
+	assert(descriptor->ValueType() == Discrete || descriptor->ValueType() == Continuous);
 	QString pName(label->text());
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
-		descriptor->GetValueType()));
-	desc->SetNameMapper(descriptor->GetNameMapper());	// might not be needed, namemapper should only be necessary for categorical attributes
+		descriptor->ValueType()));
+	desc->SetNameMapper(descriptor->NameMapper());	// might not be needed, namemapper should only be necessary for categorical attributes
 	AdjustMinMax(desc, from->text());
 	AdjustMinMax(desc, to->text());
 	if (logScale)
@@ -214,7 +214,7 @@ QString CategoryParameterInputs::GetFeatureString()
 			}
 			result += m_features[i]->text();
 			// distinguish between short name for storing and long name for display?
-			// descriptor->GetNameMapper()->GetShortName(i + descriptor->GetMin());
+			// descriptor->NameMapper()->GetShortName(i + descriptor->Min());
 		}
 	}
 	return result;
@@ -235,7 +235,7 @@ void CategoryParameterInputs::ChangeInputValues(QMap<QString, QString> const & v
 	QStringList enabledOptions = values[name].split(",");
 	int curOption = 0;
 	for (int i = 0; i < m_features.size() && curOption < enabledOptions.size(); ++i)
-	{	// short names? descriptor->GetNameMapper()->GetShortName(i + descriptor->GetMin())
+	{	// short names? descriptor->NameMapper()->GetShortName(i + descriptor->Min())
 		if (m_features[i]->text() == enabledOptions[curOption])
 		{
 			m_features[i]->setChecked(true);
@@ -259,11 +259,11 @@ void CategoryParameterInputs::DeleteGUIComponents()
 QSharedPointer<iAAttributeDescriptor> CategoryParameterInputs::GetCurrentDescriptor()
 {
 	QString pName(label->text());
-	assert(descriptor->GetValueType() == Categorical);
+	assert(descriptor->ValueType() == Categorical);
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
-		descriptor->GetValueType()));
+		descriptor->ValueType()));
 	QStringList names;
 	for (int i = 0; i < m_features.size(); ++i)
 	{
@@ -429,16 +429,16 @@ QSharedPointer<ParameterInputs> CreateParameterLine(
 {
 	QSharedPointer<ParameterInputs> result;
 
-	if (descriptor->GetValueType() == Categorical)
+	if (descriptor->ValueType() == Categorical)
 	{
 		auto categoryInputs = new CategoryParameterInputs();
 		QWidget* w = new QWidget();
 		QGridLayout* checkGridLay = new QGridLayout();
-		for (int categoryIdx = descriptor->GetMin(); categoryIdx <= descriptor->GetMax(); ++categoryIdx)
+		for (int categoryIdx = descriptor->Min(); categoryIdx <= descriptor->Max(); ++categoryIdx)
 		{
-			QCheckBox* checkBox = new QCheckBox(descriptor->GetNameMapper()->GetName(categoryIdx));
+			QCheckBox* checkBox = new QCheckBox(descriptor->NameMapper()->GetName(categoryIdx));
 			categoryInputs->m_features.push_back(checkBox);
-			checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->GetMin()) / 3, static_cast<int>(categoryIdx - descriptor->GetMin()) % 3);
+			checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->Min()) / 3, static_cast<int>(categoryIdx - descriptor->Min()) % 3);
 		}
 		w->setLayout(checkGridLay);
 		gridLay->addWidget(w, curGridLine, 1, 1, 3);
@@ -447,12 +447,12 @@ QSharedPointer<ParameterInputs> CreateParameterLine(
 	else
 	{
 		auto numberInputs = new NumberParameterInputs();
-		numberInputs->from = new QLineEdit(QString::number(descriptor->GetMin(),
-			descriptor->GetValueType() != Continuous? 'd' : 'g',
-			descriptor->GetValueType() != Continuous ? 0 : 6));
-		numberInputs->to = new QLineEdit(QString::number(descriptor->GetMax(),
-			descriptor->GetValueType() != Continuous ? 'd' : 'g',
-			descriptor->GetValueType() != Continuous ? 0 : 6));
+		numberInputs->from = new QLineEdit(QString::number(descriptor->Min(),
+			descriptor->ValueType() != Continuous? 'd' : 'g',
+			descriptor->ValueType() != Continuous ? 0 : 6));
+		numberInputs->to = new QLineEdit(QString::number(descriptor->Max(),
+			descriptor->ValueType() != Continuous ? 'd' : 'g',
+			descriptor->ValueType() != Continuous ? 0 : 6));
 		gridLay->addWidget(numberInputs->from, curGridLine, 1);
 		gridLay->addWidget(numberInputs->to, curGridLine, 2);
 		numberInputs->logScale = new QCheckBox("Log Scale");
@@ -497,7 +497,7 @@ void dlg_samplingSettings::LoadDescriptor(QString const & fileName)
 	QGridLayout* gridLay = dynamic_cast<QGridLayout*>(layout());
 	for (int i = 0; i < m_descriptor->size(); ++i)
 	{
-		QString pName(m_descriptor->at(i)->GetName());
+		QString pName(m_descriptor->at(i)->Name());
 		if (pName.startsWith("Mod "))
 		{
 			for (int m = 0; m < m_modalityCount; ++m)

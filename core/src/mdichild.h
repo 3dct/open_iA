@@ -192,6 +192,7 @@ public:
 	dlg_sliceXY * getSlicerDlgXY();
 	dlg_sliceXZ	* getSlicerDlgXZ();
 	dlg_sliceYZ	* getSlicerDlgYZ();
+	dlg_renderer * getRendererDlg();
 	dlg_imageproperty * getImagePropertyDlg();
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return preferences.ResultInNewWindow; }

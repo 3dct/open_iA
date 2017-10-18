@@ -22,19 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAAdaptHistoEqualModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void adaptive_Histogram_Equalization();
-
-protected:
-	//settings
-	double aheAlpha, aheBeta; //AdpativeHistogramEqualization
 };

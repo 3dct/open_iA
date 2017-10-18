@@ -383,7 +383,8 @@ QProgressBar
 QListView
 ****************************************************************************/
 	QListView,
-	QListWidget
+	QListWidget,
+	QTextEdit
 	{
 		background: rgba(30, 30, 30, 255);
 		color: rgba(230, 230, 230, 255);

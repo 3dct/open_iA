@@ -28,9 +28,7 @@ class iAModalityExplorerAttachment;
 class iAModalityExplorerModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
-	iAModalityExplorerModuleInterface();
 	void Initialize();
 protected:
 	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);

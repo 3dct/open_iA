@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "pch.h"
 #include "iAGradients.h"
+
+#include "defines.h" // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
@@ -30,126 +32,123 @@
 #include <itkImageIOBase.h>
 #include <itkHigerOrderAccurateGradient/itkHigherOrderAccurateDerivativeImageFilter.h>
 
-#include <vtkImageData.h>
 
-#include <QLocale>
 
-template<class T> 
-int derivative_template( unsigned int o, unsigned int d, iAProgress* p, iAConnector* image )
+// iAGradientMagnitude
+
+template<class T> void gradient_magnitude_template(iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
+	typedef itk::GradientMagnitudeImageFilter< InputImageType, InputImageType > GMFType;
 
-	typedef itk::CastImageFilter< InputImageType, RealImageType> CastToRealFilterType;
-	typename CastToRealFilterType::Pointer toReal = CastToRealFilterType::New();
-	toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	auto filter = GMFType::New();
+	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
+	p->Observe(filter);
+	filter->Update();
+	image->SetImage(filter->GetOutput());
+	image->Modified();
+	filter->ReleaseDataFlagOn();
+}
 
-	typedef itk::DerivativeImageFilter< RealImageType, RealImageType > DIFType;
-	DIFType::Pointer filter = DIFType::New();
+void iAGradientMagnitude::Run(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(gradient_magnitude_template, m_con->GetITKScalarPixelType(), m_progress, m_con);
+}
 
+IAFILTER_CREATE(iAGradientMagnitude)
+
+iAGradientMagnitude::iAGradientMagnitude() :
+	iAFilter("Gradient Magnitude", "Gradients",
+		"Computes the gradient magnitude at each image element.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html\">"
+		"Gradient Magnitude Filter</a> in the ITK documentation.")
+{	// no parameters
+}
+
+// iADerivative:
+
+template<class T> 
+void derivative_template( unsigned int o, unsigned int d, iAProgress* p, iAConnector* image )
+{
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<float, DIM> RealImageType;
+	//typedef itk::CastImageFilter< InputImageType, RealImageType> CastToRealFilterType;
+	typedef itk::DerivativeImageFilter< InputImageType, RealImageType > DIFType;
+
+	//auto toReal = CastToRealFilterType::New();
+	//toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	auto filter = DIFType::New();
 	filter->SetOrder( o );
 	filter->SetDirection( d );
-	filter->SetInput( toReal->GetOutput() );
-
+	filter->SetInput( dynamic_cast< InputImageType * >(image->GetITKImage()) );
 	p->Observe( filter );
-
 	filter->Update(); 
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
+
+void iADerivative::Run(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(derivative_template, m_con->GetITKScalarPixelType(),
+		parameters["Order"].toUInt(), parameters["Direction"].toUInt(), m_progress, m_con);
+}
+
+IAFILTER_CREATE(iADerivative)
+
+iADerivative::iADerivative() :
+	iAFilter("Derivative", "Gradients",
+		"Computes the directional derivative for each image element.<br/>"
+		"The <em>order</em> of the derivative can be specified, as well as the desired <em>direction</em> (0=x, 1=y, 2=z).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DerivativeImageFilter.html\">"
+		"Derivative Filter</a> in the ITK documentation.")
+{
+	AddParameter("Order", Discrete, 1, 1);
+	AddParameter("Direction", Discrete, 0, 0, DIM-1);
+}
+
+
+// iAHigherOrderAccurateGradient
 
 template<class T>
-int hoa_derivative_template(const HOAccGradientDerrivativeSettings &settings, iAProgress* p, iAConnector* image, T)
+void hoa_derivative_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	InputImageType * inputImg = dynamic_cast<InputImageType *>(image->GetITKImage());
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<double, DIM> OutputImageType;
+	typedef itk::HigherOrderAccurateDerivativeImageFilter< InputImageType, OutputImageType > HOAGDFilter;
 
-	typedef itk::HigherOrderAccurateDerivativeImageFilter< InputImageType, InputImageType > HOAGDFilter;
-	typename HOAGDFilter::Pointer filter = HOAGDFilter::New();
-
-	filter->SetOrder(settings.order);
-	filter->SetDirection(settings.direction);
-	filter->SetOrderOfAccuracy(settings.orderOfAcc);
-	filter->SetInput(inputImg);
-
+	auto filter = HOAGDFilter::New();
+	filter->SetOrder(parameters["Order"].toUInt());
+	filter->SetDirection(parameters["Direction"].toUInt());
+	filter->SetOrderOfAccuracy(parameters["Order of Accuracy"].toUInt());
+	filter->SetInput(dynamic_cast<InputImageType *>(image->GetITKImage()));
 	p->Observe(filter);
-
 	filter->Update();
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
+}
+		
+void iAHigherOrderAccurateDerivative::Run(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(hoa_derivative_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }
 
-template<class T> 
-int gradient_magnitude_template( iAProgress* p, iAConnector* image  )
+IAFILTER_CREATE(iAHigherOrderAccurateDerivative)
+
+iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :
+	iAFilter("Higher Order Accurate Derivative", "Gradients",
+		"Computes the higher order accurate directional derivative of an image.<br/>"
+		"The <em>order</em> of the derivative can be specified, as well as the desired <em>direction</em> (0=x, 1=y, 2=z)."
+		"The approximation will be accurate to two times the <em>Order of Accuracy</em> in terms of Taylor series terms.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HigherOrderAccurateDerivativeImageFilter.html\">"
+		"Higher Order Accurate Derivative Filter</a> in the ITK documentation.")
 {
-
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< float, 3 >   RealImageType;
-
-	typedef itk::GradientMagnitudeImageFilter< InputImageType, InputImageType > GMFType;
-	typename GMFType::Pointer filter = GMFType::New();
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-
-	p->Observe( filter );
-
-	filter->Update(); 
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-
-	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
-}
-
-iAGradients::iAGradients( QString fn, iAGradientType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
-{}
-
-
-void iAGradients::performWork()
-{
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	switch (m_type)
-	{
-	case DERIVATIVE:
-		ITK_TYPED_CALL(derivative_template, itkType,
-			order, direction, getItkProgress(), getConnector());
-		break;
-	case GRADIENT_MAGNITUDE:
-		ITK_TYPED_CALL(gradient_magnitude_template, itkType,
-			getItkProgress(), getConnector());
-		break;
-	case HIGHER_ORDER_ACCURATE_DERIVATIVE:
-		switch (itkType)
-		{
-			case itk::ImageIOBase::CHAR:
-				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<char>(0)); break;
-			case itk::ImageIOBase::SHORT:
-				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<short>(0)); break;
-			case itk::ImageIOBase::INT:
-				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<int>(0)); break;
-			case itk::ImageIOBase::LONG:
-				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<long>(0)); break;
-			case itk::ImageIOBase::FLOAT:
-				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<float>(0)); break;
-			case itk::ImageIOBase::DOUBLE:
-				hoa_derivative_template(m_HOAGDSettings, getItkProgress(), getConnector(), static_cast<double>(0)); break;
-			default:
-				throw std::runtime_error("Unsupported pixel type!");
-				return;
-		}
-		break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	AddParameter("Order", Discrete, 1, 1);
+	AddParameter("Direction", Discrete, 0, 0, DIM-1);
+	AddParameter("Order of Accuracy", Discrete, 2, 1);
 }

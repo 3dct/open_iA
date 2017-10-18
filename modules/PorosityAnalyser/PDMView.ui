@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>402</width>
+    <width>408</width>
     <height>377</height>
    </rect>
   </property>
@@ -58,7 +58,25 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="cbHistoRange">
+       <widget class="QComboBox" name="cbPorosityRange">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>ROI Porosity Range</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2% Porosity Range</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>5% Porosity Range</string>
+         </property>
+        </item>
         <item>
          <property name="text">
           <string>10% Porosity Range</string>
@@ -66,7 +84,12 @@
         </item>
         <item>
          <property name="text">
-          <string>ROI Porosity Range</string>
+          <string>15% Porosity Range</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>100% Porosity Range</string>
          </property>
         </item>
        </widget>
@@ -206,7 +229,8 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../open_iA/core/open_iA.qrc"/>
+  <include location="../../core/open_iA.qrc"/>
+  <include location="../../core/open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>

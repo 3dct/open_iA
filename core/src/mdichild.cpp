@@ -867,7 +867,7 @@ int MdiChild::chooseModalityNr(QString const & caption)
 	{
 		return -1;
 	}
-	return modalityChoice.getComboBoxIndices()[0];
+	return modalityChoice.getComboBoxIndex(0);
 }
 
 int MdiChild::chooseComponentNr(int modalityNr)
@@ -889,7 +889,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	{
 		return -1;
 	}
-	return componentChoice.getComboBoxIndices()[0];
+	return componentChoice.getComboBoxIndex(0);
 }
 
 bool MdiChild::save()
@@ -1854,9 +1854,9 @@ void MdiChild::resetTrf()
 	addMsg(tr("Resetting Transfer Functions."));
 	iAHistogramWidget const *  hist = getHistogram();
 	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-		.arg(hist->GetData()->GetDataRange(0)));
+		.arg(hist->XBounds()[0]));
 	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-		.arg(hist->GetData()->GetDataRange(1)));
+		.arg(hist->XBounds()[1]));
 }
 
 std::vector<dlg_function*> & MdiChild::getFunctions()
@@ -1904,8 +1904,8 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	dlg_commoninput dlg(this, "Save movie options", inList, inPara, NULL);
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		mode =  dlg.getComboBoxValues()[0];
-		imode = dlg.getComboBoxIndices()[0];
+		mode =  dlg.getComboBoxValue(0);
+		imode = dlg.getComboBoxIndex(0);
 	}
 
 
@@ -2727,6 +2727,12 @@ dlg_sliceXZ	* MdiChild::getSlicerDlgXZ()
 dlg_sliceYZ	* MdiChild::getSlicerDlgYZ()
 {
 	return sYZ;
+}
+
+
+dlg_renderer * MdiChild::getRendererDlg()
+{
+	return r;
 }
 
 dlg_imageproperty * MdiChild::getImagePropertyDlg()

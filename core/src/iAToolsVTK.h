@@ -36,7 +36,7 @@ open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int co
 open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents);
 
 // image I/O (using ITK methods of iAITKIO)
-void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
+open_iA_Core_API void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
 vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
 
 void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
@@ -50,6 +50,9 @@ bool isVtkIntegerType(int type);
 QStringList const & VTKDataTypeList();
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \
-    for (int x = 0; x < img->GetDimensions()[0]; ++x) \
-        for (int y = 0; y < img->GetDimensions()[1]; ++y) \
-            for (int z = 0; z < img->GetDimensions()[2]; ++z)
+for (int z = 0; z < img->GetDimensions()[2]; ++z) \
+	for (int y = 0; y < img->GetDimensions()[1]; ++y) \
+		for (int x = 0; x < img->GetDimensions()[0]; ++x)
+
+#define FOR_VTKIMG_PIXELS_IDX(img, idx) \
+for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)

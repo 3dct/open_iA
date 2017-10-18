@@ -26,8 +26,7 @@
 
 iAVisModule::iAVisModule( )
 	: m_enabled( false )
-{ /* not implemented */
-}
+{ /* not implemented */ }
 
 bool iAVisModule::isAttached( )
 {
@@ -50,12 +49,20 @@ void iAVisModule::reset( )
 
 void iAVisModule::enable( )
 {
-	m_enabled = true;
+	if( !m_enabled && isAttached( ) )
+	{
+		show( );
+		m_enabled = true;
+	}
 }
 
 void iAVisModule::disable( )
 {
-	m_enabled = false;
+	if( m_enabled && isAttached( ) )
+	{
+		hide( );
+		m_enabled = false;
+	}
 }
 
 bool iAVisModule::isEnabled( )

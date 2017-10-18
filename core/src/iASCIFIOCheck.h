@@ -22,4 +22,6 @@
 
 #include "open_iA_Core_export.h"
 
-open_iA_Core_API void CheckSCIFIO();
+class QString;
+
+open_iA_Core_API void CheckSCIFIO(QString const & applicationPath);

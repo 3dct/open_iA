@@ -50,22 +50,14 @@ iADefectVisModule::iADefectVisModule( )
 	m_actor->SetMapper( m_mapper );
 }
 
-void iADefectVisModule::enable( )
+void iADefectVisModule::show( )
 {
-	if( !isAttached( ) ) return;
-	if( !isEnabled( ) ) {
-		m_renderer->AddActor( m_actor );
-	}
-	iAVisModule::enable( );
+	m_renderer->AddActor( m_actor );
 }
 
-void iADefectVisModule::disable( )
+void iADefectVisModule::hide( )
 {
-	if( !isAttached( ) ) return;
-	if( isEnabled( ) ) {
-		m_renderer->RemoveActor( m_actor );
-	}
-	iAVisModule::disable( );
+	m_renderer->RemoveActor( m_actor );
 }
 
 void iADefectVisModule::setInputFile( QString path )

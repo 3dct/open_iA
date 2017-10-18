@@ -20,30 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-/**
- * Application of edge detection filter. Basic filter is itkCannyEdgeDetectionImageFilter.
- * For further details refer http://www.itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html.
- */
-class iAEdgeDetectionFilters : public iAAlgorithm
+class iACannyEdgeDetection : public iAFilter
 {
-
 public:
-	iAEdgeDetectionFilters( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets canny edge detection parameters.
-	 * \param	v	The variance.
-	 * \param	m	The maximum error.
-	 * \param	u	The upper threshold.
-	 * \param	l	Thelower threshold.
-	 */
-	void setCEDParameters( double v, double m, double u, double l )
-		{ variance = v; maximumError = m; upper = u; lower = l; };
-
-protected:
-	virtual void performWork();
+	static QSharedPointer<iACannyEdgeDetection> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	double variance, maximumError, upper, lower;
+	iACannyEdgeDetection();
 };

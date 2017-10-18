@@ -90,7 +90,7 @@ MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 	else if( mdiwindows.size() < 2 )
 	{
 		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
-			tr( "Only one dataset available. Please load second dataset for fusion!" ) );
+			tr( "Only one dataset available. Please load another one!" ) );
 		return 0;
 	}
 	MdiChild * activeChild = m_mainWnd->activeMdiChild();
@@ -104,16 +104,7 @@ MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 
 QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const & title, bool isDisablable /*= true*/  )
 {
-	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
-	for( int i = 0; i < submenus.size(); ++i )
-	{
-		if( submenus.at( i )->title() == title )
-			return  submenus.at( i );
-	}
-	QMenu * result = new QMenu(parentMenu);
-	result->setTitle( title );
-	AddActionToMenuAlphabeticallySorted( parentMenu, result->menuAction(), isDisablable );
-	return result;
+	return m_dispatcher->getMenuWithTitle(parentMenu, title, isDisablable);
 }
 
 void iAModuleInterface::SaveSettings() const {}
@@ -180,16 +171,7 @@ bool iAModuleInterface::isAttached()
 
 void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable /*= true */ )
 {
-	m_dispatcher->AddModuleAction( action, isDisablable );
-	foreach( QAction * curAct, menu->actions() )
-	{
-		if( curAct->text() > action->text() )
-		{
-			menu->insertAction( curAct, action );
-			return;
-		}
-	}
-	menu->addAction( action );
+	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
 }
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )

@@ -22,19 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAEdgeDetectionModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-	private slots:
-	void canny_Edge_Detection();
-
-protected:
-	//settings
-	double cedfVariance, cedfMaximumError, cedfUpper, cedfLower;
 };

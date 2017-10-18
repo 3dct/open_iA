@@ -29,15 +29,23 @@
 
 #include <fstream>
 
-void iAConsole::Log(std::string const & text)
+
+// iAGlobalLogger
+
+iALogger* iAGlobalLogger::m_globalLogger(nullptr);
+
+
+void iAGlobalLogger::SetLogger(iALogger* logger)
 {
-	Log(QString::fromStdString(text));
+	m_globalLogger = logger;
+}
+iALogger* iAGlobalLogger::Get()
+{
+	return m_globalLogger;
 }
 
-void iAConsole::Log(char const * text)
-{
-	Log(QString(text));
-}
+
+// iAConsole
 
 void iAConsole::Log(QString const & text)
 {
@@ -58,13 +66,14 @@ void iAConsole::LogSlot(QString const & text)
 	if (m_logToFile)
 	{
 		std::ofstream logfile(m_logFileName.toStdString().c_str(), std::ofstream::out | std::ofstream::app);
-			logfile << QString("%1 %2\n")
-				.arg(QLocale().toString(
-					QDateTime::currentDateTime(),
-					QLocale::ShortFormat))
-				.arg(text)
-				.toStdString();
-			logfile.close();
+		logfile << QString("%1 %2\n")
+			.arg(QLocale().toString(
+				QDateTime::currentDateTime(),
+				QLocale::ShortFormat))
+			.arg(text)
+			.toStdString();
+		logfile.flush();
+		logfile.close();
 		if (logfile.bad())
 		{
 			m_console->Log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
@@ -123,10 +132,10 @@ iAConsole::~iAConsole()
 	delete m_console;
 }
 
-iAConsole& iAConsole::GetInstance()
+iAConsole* iAConsole::GetInstance()
 {
 	static iAConsole instance;
-	return instance;
+	return &instance;
 }
 
 
@@ -139,5 +148,47 @@ void iAConsole::close()
 
 void iAConsole::Close()
 {
-	GetInstance().close();
+	GetInstance()->close();
 }
+
+
+// iALogger
+
+iALogger::~iALogger()
+{}
+
+
+
+// iAConsoleLogger
+
+void iAConsoleLogger::Log(QString const & msg)
+{
+	iAConsole::GetInstance()->Log(msg);
+}
+
+iAConsoleLogger * iAConsoleLogger::Get()
+{
+	static iAConsoleLogger GlobalConsoleLogger;
+	return &GlobalConsoleLogger;
+}
+
+iAConsoleLogger::iAConsoleLogger()
+{}
+
+
+
+// iAStdOutLogger
+
+void iAStdOutLogger::Log(QString const & msg)
+{
+	std::cout << msg.toStdString() << std::endl;
+}
+
+iAStdOutLogger * iAStdOutLogger::Get()
+{
+	static iAStdOutLogger GlobalStdOutLogger;
+	return &GlobalStdOutLogger;
+}
+
+iAStdOutLogger::iAStdOutLogger()
+{}

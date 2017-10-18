@@ -30,20 +30,15 @@ class open_iA_Core_API iAProgress : public QObject
 {
 	Q_OBJECT
 public:
-	typedef itk::MemberCommand< iAProgress >  RedrawCommandType;
+	typedef itk::MemberCommand< iAProgress >  CommandType;
 
 	iAProgress( );
 	~iAProgress();
-	RedrawCommandType * GetRedrawCommand( void ) const;
 	void ProcessEvent(itk::Object * caller, const itk::EventObject & event );
 	void ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event );
 	void Observe( itk::Object *caller );
-
 Q_SIGNALS:
 	void pprogress(int i);
-
 private:
-	unsigned long m_ObserverTag;
-	itk::Object *m_Caller;
-	RedrawCommandType::Pointer m_RedrawCommand;
+	CommandType::Pointer m_Command;
 };

@@ -51,8 +51,8 @@ public:
 	typedef itk::Image<double, 3>		DensityMapType;
 
 				iARegionVisModule( );
-	void		enable( );
-	void		disable( );
+	void		show( );
+	void		hide( );
 	void		setData( vtkImageData * image );
 	void		setPosition( double * position );
 	void		setSilhoetteOpacity( double opacity );

@@ -38,7 +38,7 @@ class open_iA_Core_API dlg_gaussian : public dlg_function
 	double multiplier;
 	
 public:
-	dlg_gaussian(iADiagramFctWidget *fctDiagram, QColor &color, bool reset = true);
+	dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
 	int getType() { return GAUSSIAN; }
 

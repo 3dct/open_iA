@@ -20,51 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAConnCompType
-{
-	SIMPLE_CONNECTED_COMPONENT_FILTER,
-	SCALAR_CONNECTED_COMPONENT_FILTER,
-	SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER,
-};
-
-/**
- * Implementation of 2 itk filters. The basic filters are itkRelabelComponentImageFilter and itkConnectedComponentImageFilter.
- * For itkRelabelComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html.
- * For itkConnectedComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html.
- */
-class iAConnectedComponentFilters : public iAAlgorithm
+class iASimpleConnectedComponents: public iAFilter
 {
 public:
-	iAConnectedComponentFilters( QString fn, iAConnCompType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets a itkConnectedComponentImageFilter parameters. 
-	 * \param	fullyconnected	The fullyconnected switch. 
-	 */
-	void setSCCFParameters( int fullyconnected ) { c = fullyconnected; };
-
-	/**
-	 * Sets a itkScalarConnectedComponentImageFilter parameters. 
-	 * \param	fullyconnected	The fullyconnected switch. 
-	 */
-	void setScalarCCFParameters( double distanceThreshold ) { distTreshold = distanceThreshold; };
-
-	/**
-	 * Sets a itkRelabelComponentImageFilter parameters. 
-	 * \param	writeroption	The switch writeroption. 
-	 * \param	objectsize		The minimum objectsize. 
-	 * \param	file			The filename. 
-	 */
-	void setSRCIFParameters( bool writeroption, int objectsize, QString file ) { w = writeroption; s = objectsize; f = file; };
-protected:
-	void performWork();
+	static QSharedPointer<iASimpleConnectedComponents> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	double distTreshold;
-	int c;
-	int s;
-	bool w;
-	QString f;
-	iAConnCompType m_type;
+	iASimpleConnectedComponents();
+};
+
+class iAScalarConnectedComponents : public iAFilter
+{
+public:
+	static QSharedPointer<iAScalarConnectedComponents> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
+private:
+	iAScalarConnectedComponents();
+};
+
+class iASimpleRelabelConnectedComponents : public iAFilter
+{
+public:
+	static QSharedPointer<iASimpleRelabelConnectedComponents> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
+	bool CheckParameters(QMap<QString, QVariant> & parameters) override;
+private:
+	iASimpleRelabelConnectedComponents();
+	QString m_outFile;
 };

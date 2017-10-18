@@ -20,11 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
-#include <QWidget>
-#include <QFrame>
-#include <QMainWindow>
-#include <QDialog>
+#include <QToolBar>
 
 template <typename QtContainerType, typename uiType>
 class iAQTtoUIConnector : public QtContainerType, public uiType
@@ -34,7 +30,14 @@ public:
 	{
 		this->setupUi(this);
 	}
-	~iAQTtoUIConnector(void)
+};
+
+template <typename uiType>
+class iAQTtoUIConnector<QToolBar, uiType> : public QToolBar, public uiType
+{
+public:
+	iAQTtoUIConnector(QString const & title, QWidget * parent = 0) : QToolBar(title, parent)
 	{
+		this->setupUi(this);
 	}
 };

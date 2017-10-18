@@ -18,46 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAEdgeDetectionModuleInterface.h"
 
-#include "dlg_commoninput.h"
+#include "iAFilterRegistry.h"
+
 #include "iAEdgeDetectionFilters.h"
-#include "mainwindow.h"
-#include "mdichild.h"
 
 void iAEdgeDetectionModuleInterface::Initialize()
 {
-	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuEdge_detection =getMenuWithTitle(filtersMenu, QApplication::translate("MainWindow", "Edge detection", 0));
-	QAction * actionCanny = new QAction(QApplication::translate("MainWindow", "Canny", 0), m_mainWnd );
-	menuEdge_detection->addAction(actionCanny);
-	connect( actionCanny, SIGNAL( triggered() ), this, SLOT( canny_Edge_Detection() ) );
+	REGISTER_FILTER(iACannyEdgeDetection);
 }
-
-void iAEdgeDetectionModuleInterface::canny_Edge_Detection()
-{
-	//set parameters
-	QStringList inList = (QStringList() << tr( "#Variance" ) << tr( "#Maximum error" ) << tr( "#Upper" ) << tr( "#Lower" ));
-	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( cedfVariance ) << tr( "%1" ).arg( cedfMaximumError ) << tr( "%1" ).arg( cedfUpper ) << tr( "%1" ).arg( cedfLower );
-	dlg_commoninput dlg( m_mainWnd, "Canny Edge Detection", inList, inPara, NULL );
-	if( dlg.exec() != QDialog::Accepted )
-		return;
-	cedfVariance = dlg.getValues()[0];
-	cedfMaximumError = dlg.getValues()[1];
-	cedfUpper = dlg.getValues()[2];
-	cedfLower = dlg.getValues()[3];
-	//prepare
-	QString filterName = "Canny edge detection";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	iAEdgeDetectionFilters* thread = new iAEdgeDetectionFilters( filterName,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setCEDParameters( cedfVariance, cedfMaximumError, cedfUpper, cedfLower );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
-}
-

@@ -31,7 +31,7 @@ enum iADistanceMapType
 /**
  * An itk distance map. Basic filter itkSignedMaurerDistanceMapImageFilter.
  * Input image segmented binary image. Output image float datatype distance map.
- * Further details refer http://www.itk.org/Doxygen/html/classitk_1_1SignedMaurerDistanceMapImageFilter.html.
+ * Further details refer https://itk.org/Doxygen/html/classitk_1_1SignedMaurerDistanceMapImageFilter.html.
  * \remarks	Kana, 01/12/2010. 
  */
 class iADistanceMap : public iAAlgorithm

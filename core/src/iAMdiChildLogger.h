@@ -33,7 +33,7 @@ class MdiChildLogger : public QObject, public iALogger
 	Q_OBJECT
 public:
 	MdiChildLogger(MdiChild* mdiChild);
-	virtual void log(QString const & msg);
+	virtual void Log(QString const & msg);
 signals:
 	void logSignal(QString msg);
 };

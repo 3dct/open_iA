@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAFuzzyFeatureTrackingModuleInterface.h"
 
@@ -31,6 +30,8 @@ iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {
 
 void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QAction * actionFuzzyFeatureTracking = new QAction( m_mainWnd );
 	actionFuzzyFeatureTracking->setText(QApplication::translate("MainWindow", "Fuzzy Feature Tracking (4DCT)", 0));

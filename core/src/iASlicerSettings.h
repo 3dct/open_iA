@@ -28,7 +28,8 @@ public:
 		ShowPosition,
 		ShowAxesCaption;
 	double MinIsoValue, MaxIsoValue;
-	int NumberOfIsoLines;
+	int NumberOfIsoLines,
+		ToolTipFontSize;
 	QString CursorMode;
 	
 	iASingleSlicerSettings() :
@@ -39,6 +40,7 @@ public:
 		MinIsoValue(0),
 		MaxIsoValue(0),
 		NumberOfIsoLines(0),
+		ToolTipFontSize(12),
 		CursorMode(QString())
 	{}
 };

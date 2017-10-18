@@ -52,6 +52,8 @@ private slots:
 	void		enableHighlighting( int state );
 
 private:
+	void		rescaleSliceSlider( int max, int val );
+
 	iAPlaneVisModule *		m_visModule;
 	iA4DCTVisWin *			m_visWin;
 };

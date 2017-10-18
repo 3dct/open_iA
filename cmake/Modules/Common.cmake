@@ -3,9 +3,9 @@
 #-------------------------
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-  message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
-   "cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
-   "and run cmake with a newly created build directory.")
+	message(FATAL_ERROR "In-source builds in ${CMAKE_BINARY_DIR} are disabled to avoid "
+		"cluttering the source repository. Please delete ./CMakeCache.txt and ./CMakeFiles/, "
+		"and run cmake with a newly created build directory.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
 #-------------------------
@@ -40,6 +40,16 @@ ENDIF()
 #-------------------------
 # LIBRARIES
 #-------------------------
+
+
+set (HDF5_LIB_TYPE SHARED)
+string(TOLOWER ${HDF5_LIB_TYPE} HDF5_LIB_SEARCH_TYPE)
+FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE )
+
+IF (HDF5_FOUND)
+	find_library(HDF5_LIBRARY hdf5 PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib )
+	INCLUDE_DIRECTORIES( ${HDF5_INCLUDE_DIR} )
+ENDIF()
 
 # ITK (>= 4)
 FIND_PACKAGE(ITK)
@@ -100,7 +110,11 @@ IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
 	IF (SCIFIO_LOADED)
 		ADD_DEFINITIONS( -DUSE_SCIFIO )
-		MESSAGE(STATUS "ITK has SCIFIO support enabled. Notice that in order to run a build with this library on another machine than the one you built it, the environment variable SCIFIO_PATH has to be set to the path containing the SCIFIO jar files! Otherwise loading images will fail!")
+		MESSAGE(STATUS "ITK has SCIFIO support enabled.\n\
+    Notice that in order to run a build with this library on another machine\n\
+    than the one you built it, the environment variable SCIFIO_PATH\n\
+    has to be set to the path containing the SCIFIO jar files!\n\
+    Otherwise loading images will fail!")
 		SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
 		IF (MSVC)
 			# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
@@ -149,7 +163,10 @@ SET (VTK_LIBRARIES
 	vtkViewsInfovis
 	vtksys)
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+	MESSAGE(STATUS "VTK is using OpenGL2 Backend!")
 	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
+ELSE()
+	MESSAGE(STATUS "VTK is using OpenGL Backend.")
 ENDIF("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRendering${VTK_RENDERING_BACKEND})
 IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 0)
@@ -248,11 +265,13 @@ ELSEIF (UNIX)
 	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
 	ENDIF()
-	# But they are required again for ITK 4.12, yet here they are the only libraries without the version suffix - yay!
-	SET (SPECIAL_ITK_LIBS  itkhdf5_cpp itkhdf5)
-	FOREACH (SPECIAL_ITK_LIB ${SPECIAL_ITK_LIBS})
-		INSTALL (FILES ${ITK_LIB_DIR}/lib${SPECIAL_ITK_LIB}.so.1 DESTINATION .)
-	ENDFOREACH()
+	# But they are required again for ITK 4.12, yet here they are the only libraries without the version suffix:
+	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 11)
+		SET (SPECIAL_ITK_LIBS  itkhdf5_cpp itkhdf5)
+		FOREACH (SPECIAL_ITK_LIB ${SPECIAL_ITK_LIBS})
+			INSTALL (FILES ${ITK_LIB_DIR}/lib${SPECIAL_ITK_LIB}.so.1 DESTINATION .)
+		ENDFOREACH()
+	ENDIF()
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
 	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
 	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
@@ -316,7 +335,7 @@ IF(WIN32)
 	ENDFOREACH(QT_LIBCOLON)
 	INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/qwindows.dll DESTINATION platforms)
 ENDIF(WIN32)
-IF(UNIX)
+IF(UNIX AND NOT APPLE)
 	IF (EXISTS "${Qt5_BASEDIR}/lib")
 		SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
 	ELSE()
@@ -385,7 +404,7 @@ IF (OPENCL_FOUND)
 		ELSE()
 			INSTALL (FILES ${OPENCL_DLL} DESTINATION .)
 		ENDIF()
-	ELSEIF (UNIX)
+	ELSEIF (UNIX AND NOT APPLE)
 		# typically OPENCL_LIBRARIES will only contain the one libOpenCL.so anyway, FOREACH just to make sure
 		FOREACH(OPENCL_LIB ${OPENCL_LIBRARIES})
 			get_filename_component(OPENCL_SHAREDLIB "${OPENCL_LIB}" REALPATH)
@@ -394,12 +413,13 @@ IF (OPENCL_FOUND)
 	ENDIF()
 ENDIF()
 
+# TODO: Get rid of hard-coded "AND Module_AstraReconstruction"
 # CUDA:
-IF (CUDA_FOUND)
+IF (CUDA_FOUND AND Module_AstraReconstruction)
 	IF (WIN32)
 		INSTALL (FILES "${CUDA_TOOLKIT_ROOT_DIR}/bin/cudart64_${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}.dll" DESTINATION .)
 		INSTALL (FILES "${CUDA_TOOLKIT_ROOT_DIR}/bin/cufft64_${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}.dll" DESTINATION .)
-	ELSEIF(UNIX)
+	ELSEIF(UNIX AND NOT APPLE)
 		get_filename_component(CUDART_SHAREDLIB "${CUDA_CUDART_LIBRARY}" REALPATH)
 		get_filename_component(CUFFT_SHAREDLIB "${CUDA_cufft_LIBRARY}" REALPATH)
 		INSTALL (FILES "${CUDART_SHAREDLIB}" DESTINATION . RENAME "libcudart.so.${CUDA_VERSION}")
@@ -408,13 +428,25 @@ IF (CUDA_FOUND)
 ENDIF()
 
 # ASTRA Toolbox
-IF (ASTRA_TOOLBOX_FOUND)
+IF (ASTRA_TOOLBOX_FOUND AND Module_AstraReconstruction)
 	IF (WIN32)
 		STRING (REGEX REPLACE "AstraCuda64.lib" "AstraCuda64.dll" ASTRA_RELEASE_DLL "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}")
 		INSTALL (FILES ${ASTRA_RELEASE_DLL} DESTINATION .)
-	ELSEIF(UNIX)
+	ELSEIF(UNIX AND NOT APPLE)
 		get_filename_component(ASTRA_SHAREDLIB "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}" REALPATH)
 		INSTALL (FILES "${ASTRA_SHAREDLIB}" DESTINATION . RENAME libastra.so.0)
+	ENDIF ()
+ENDIF()
+
+# HDF5
+IF (HDF5_FOUND)
+	IF (WIN32)
+	  STRING(REGEX REPLACE "/cmake" "" HDF5_BASE_DIR ${HDF5_DIR})
+	  SET(HDF5_BIN_DIR ${HDF5_BASE_DIR}/bin)
+  	SET(HDF5_LIBRARIES hdf5 szip zlib)
+	  FOREACH(HDF5_LIB ${HDF5_LIBRARIES})
+		  INSTALL(FILES "${HDF5_BIN_DIR}/${HDF5_LIB}.dll" DESTINATION .)
+	  ENDFOREACH()
 	ENDIF ()
 ENDIF()
 

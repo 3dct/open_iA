@@ -20,18 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-class iAGPUEdgePreservingSmoothing : public iAAlgorithm
+class iAGPUEdgePreservingSmoothing : public iAFilter
 {
 public:
-	iAGPUEdgePreservingSmoothing(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-
-// following was copied from iAEdgePreservingSmoothing to prevent module dependency. TODO: Think of better way
-	void setADParameters(unsigned int i, double t, double c) { iterations = i; timestep = t; conductance = c; };
-protected:
-	virtual void performWork();
+	static QSharedPointer<iAGPUEdgePreservingSmoothing> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	unsigned int iterations;
-	double timestep, conductance;
+	iAGPUEdgePreservingSmoothing();
 };

@@ -25,7 +25,7 @@
 /**
  * An itk general thresholding. Basic filter is itkThresholdImageFilter.
  * Application of general threshold using a range and a replacement value. 
- * For further details see http://www.itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html
+ * For further details see https://itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html
  * \remarks	CH, 01/12/2010. 
  */
 class iAGeneralThresholding: public iAAlgorithm

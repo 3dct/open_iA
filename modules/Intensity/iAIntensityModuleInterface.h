@@ -22,32 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAIntensityModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void difference_Image_Filter();
-	void subtractimage_Filter();
-	void invert_intensity();
-	void mask();
-	void intensity_windowing();
-	void normalize_image();
-	void histogram_match();
-	void rescale();
-
-protected:
-	//difference settings
-	double difDifferenceThreshold, difToleranceRadius;
-	//windowing intensity settings
-	double windowMinimum, windowMaximum, outputMinimum, outputMaximum;
-	// histogram match settings
-	int hmHistogramLevels, hmMatchPoints; bool hmThresholdAtMeanIntensity;
-	// rescale intensity settings
-	double outputMin, outputMax;
 };

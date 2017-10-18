@@ -28,13 +28,6 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
-#include <QFileDialog>
-#include <QMdiSubWindow>
-#include <QMessageBox>
-#include <QPainter>
-#include <QToolTip>
-#include <QXmlStreamWriter>
-
 iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkImageAccumulate* accumulate,
 		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label, bool reset) 
 	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
@@ -113,6 +106,6 @@ QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramWidget::GetData() c
 
 void iAHistogramWidget::UpdateData()
 {
-	data->Update();
-	SetMaxYAxisValue(data->GetMaxValue());
+	data->UpdateData();
+	SetMaxYAxisValue(data->YBounds()[1]);
 }

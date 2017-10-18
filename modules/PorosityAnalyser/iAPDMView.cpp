@@ -59,7 +59,7 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 
 	m_selectedIndices.clear();
 	ShowDeviationControls( false );
-	ShowHistogramControls( false );
+	ShowPorosityRangeControls( false );
 	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( m_lut, -2.0, 2.0, 256 );
 	m_sbRen->SetBackground( 1.0, 1.0, 1.0 );
 	m_sbRen->AddActor( m_sbActor );
@@ -87,7 +87,7 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	cbRepresentation->setEnabled( false );
 	connect( cbRepresentation, SIGNAL( currentIndexChanged( int ) ), this, SLOT( UpdateTable() ) );
 	connect( cbTableFit, SIGNAL( currentIndexChanged( int ) ), this, SLOT( FitTable() ) );
-	connect( cbHistoRange, SIGNAL( currentIndexChanged( int ) ), this, SLOT( ChangeHistogramRange() ) );
+	connect( cbPorosityRange, SIGNAL( currentIndexChanged( int ) ), this, SLOT( UpdateRepresentation() ) );
 	connect( this->dsbCMRange, SIGNAL( valueChanged( double ) ), this, SLOT( UpdateColormapSettings( double ) ) );
 }
 
@@ -132,25 +132,25 @@ void iAPDMView::UpdateTableDeviation()
 
 void iAPDMView::UpdateTableBoxPlot()
 {
+	ShowPorosityRangeControls( true );
 	for( int i = 0; i < m_filters->size(); ++i )
 		for( int j = 0; j < m_datasets->size(); ++j )
 		{
 			QCustomPlot * customPlot = new QCustomPlot( 0 );
 			// create empty statistical box plottables:
 			QCPStatisticalBox *sample1 = new QCPStatisticalBox( customPlot->yAxis, customPlot->xAxis );
-			customPlot->addPlottable( sample1 );
 			QBrush boxBrush( QColor( 60, 60, 255, 100 ) );
 			boxBrush.setStyle( Qt::Dense6Pattern ); // make it look oldschool
 			sample1->setBrush( boxBrush );
+			customPlot->setInteractions( QCP::iRangeDrag | QCP::iRangeZoom );
+			customPlot->setMinimumWidth( 250 );
+			customPlot->setMinimumHeight( 80 );
 
 			// set data:
-			sample1->setKey( 1 );
-			sample1->setMinimum( (*m_boxPlots)[i][j].min );
-			sample1->setLowerQuartile( (*m_boxPlots)[i][j].q25 );
-			sample1->setMedian( (*m_boxPlots)[i][j].med );
-			sample1->setUpperQuartile( (*m_boxPlots)[i][j].q75 );
-			sample1->setMaximum( (*m_boxPlots)[i][j].max );
-			sample1->setOutliers( QVector<double>::fromList( (*m_boxPlots)[i][j].outliers ) );
+			sample1->addData( 1, ( *m_boxPlots )[i][j].min,
+				( *m_boxPlots )[i][j].q25, ( *m_boxPlots )[i][j].med,
+				( *m_boxPlots )[i][j].q75, ( *m_boxPlots )[i][j].max,
+				QVector<double>::fromList( ( *m_boxPlots )[i][j].outliers ) );
 
 			// Fetch ground truth data
 			QVector<double> valueData;
@@ -174,29 +174,33 @@ void iAPDMView::UpdateTableBoxPlot()
 			customPlot->yAxis->setVisible( false );
 
 			// prepare axes:
-			//customPlot->xAxis->setLabel( QString::fromUtf8( "Porosity" ) );
+			customPlot->xAxis->setLabel( "Porosity" );
 			customPlot->rescaleAxes();
 			customPlot->yAxis->scaleRange( 1.7, customPlot->yAxis->range().center() );
-			double offset = (*m_boxPlots)[i][j].range[1] - (*m_boxPlots)[i][j].range[0]; offset *= 0.1;
-			double xRange[2] = { (*m_boxPlots)[i][j].range[0], (*m_boxPlots)[i][j].range[1] };
-			if( xGroundTruth[0] < xRange[0] )
-				xRange[0] = xGroundTruth[0];
-			if( xGroundTruth[0] > xRange[1] )
-				xRange[1] = xGroundTruth[0];
-			
-			customPlot->xAxis->setRange( xRange[0] - offset, xRange[1] + offset );
-			customPlot->setInteractions( QCP::iRangeDrag | QCP::iRangeZoom );
-
+			QString str = cbPorosityRange->currentText();
+			if ( !str.contains( "%" ) )	// ROI Porosity Range
+			{
+				double offset = ( *m_boxPlots )[i][j].range[1] - ( *m_boxPlots )[i][j].range[0]; offset *= 0.1;
+				double xRange[2] = { ( *m_boxPlots )[i][j].range[0], ( *m_boxPlots )[i][j].range[1] };
+				if ( xGroundTruth[0] < xRange[0] )
+					xRange[0] = xGroundTruth[0];
+				if ( xGroundTruth[0] > xRange[1] )
+					xRange[1] = xGroundTruth[0];
+				customPlot->xAxis->setRange( xRange[0] - offset, xRange[1] + offset );
+			}
+			else
+			{
+				customPlot->xAxis->setRange( 0.0, str.section( "%", 0, 0 ).toDouble() );
+			}
 			addWidgetToTable( j + 1, i + 1, customPlot );
-			customPlot->setMinimumWidth( 250 );
-			customPlot->setMinimumHeight( 80 );
 		}
 }
 
 void iAPDMView::UpdateTableHistogram()
 {
-	ShowHistogramControls( true );
+	ShowPorosityRangeControls( true );
 	for ( int i = 0; i < m_filters->size(); ++i )
+	{
 		for ( int j = 0; j < m_datasets->size(); ++j )
 		{
 			// Fetch histogram data
@@ -226,6 +230,8 @@ void iAPDMView::UpdateTableHistogram()
 			// Create histogram plot
 			QCustomPlot * customPlot = new QCustomPlot( 0 );
 			customPlot->setInteractions( QCP::iRangeDrag | QCP::iRangeZoom );
+			customPlot->setMinimumWidth( 250 );
+			customPlot->setMinimumHeight( 120 );
 			QCPGraph * mainGraph = customPlot->addGraph();
 			mainGraph->setData( keyData, valueData );
 			mainGraph->setLineStyle( QCPGraph::lsStepLeft );
@@ -244,22 +250,15 @@ void iAPDMView::UpdateTableHistogram()
 			gtGraph->setPen( QPen( QColor( Qt::red ), 1.2, Qt::DashLine ) );
 			gtGraph->setBrush( QBrush( QColor( 60, 60, 255, 100 ), Qt::Dense6Pattern ) );
 
-			// add green backround 
-			//double gt_porosity = xGroundTruth.at( 0 );
-			//if ( gt_porosity <= meanHigestHistoFrequencyBucket + 0.05 && 
-			//	 gt_porosity >= meanHigestHistoFrequencyBucket - 0.05 )
-			//	 customPlot->axisRect()->setBackground( QBrush( QColor( 77, 172, 38, 40 ) ) );
-
 			// prepare axes:
 			customPlot->xAxis->setLabel( "Porosity" );
 			customPlot->yAxis->setLabel( "Frequency" );
 			customPlot->rescaleAxes();
 			customPlot->yAxis->scaleRange( 1.7, customPlot->yAxis->range().center() );
-			customPlot->setInteractions( QCP::iRangeDrag | QCP::iRangeZoom );
 
-			if ( cbHistoRange->currentText() == "ROI Porosity Range" )
+			QString str = cbPorosityRange->currentText();
+			if ( !str.contains( "%" ) )	// ROI Porosity Range
 			{
-
 				double offset = ( *m_histogramPlots )[i][j].range[1] - ( *m_histogramPlots )[i][j].range[0]; offset *= 0.1;
 				double xRange[2] = { ( *m_histogramPlots )[i][j].range[0], ( *m_histogramPlots )[i][j].range[1] };
 				if ( xGroundTruth[0] < xRange[0] )
@@ -268,15 +267,13 @@ void iAPDMView::UpdateTableHistogram()
 					xRange[1] = xGroundTruth[0];
 				customPlot->xAxis->setRange( xRange[0] - offset, xRange[1] + offset );
 			}
-			else if ( cbHistoRange->currentText() == "10% Porosity Range" )
+			else
 			{
-				customPlot->xAxis->setRange( 0, 10 );
+				customPlot->xAxis->setRange( 0.0, str.section( "%", 0, 0 ).toDouble() );
 			}
-
 			addWidgetToTable( j + 1, i + 1, customPlot );
-			customPlot->setMinimumWidth( 250 );
-			customPlot->setMinimumHeight( 120 );
 		}
+	}
 }
 
 void iAPDMView::UpdateTable()
@@ -301,19 +298,8 @@ void iAPDMView::UpdateTable()
 	for( int i = 0; i < m_datasets->size(); ++i )
 		tableWidget->setItem( i + 1, 0, new QTableWidgetItem( (*m_datasets)[i] ) );
 	ShowDeviationControls( false );
-	ShowHistogramControls( false );
-	switch( cbRepresentation->currentIndex() )
-	{
-		case 0: //Deviation
-			UpdateTableDeviation();
-			break;
-		case 1: //Box Plot
-			UpdateTableBoxPlot();
-			break;
-		case 2: //Histogram
-			UpdateTableHistogram();
-			break;
-	}
+	ShowPorosityRangeControls( false );
+	UpdateRepresentation();
 	m_selectedIndices.clear();
 	FitTable();
 	tableWidget->resizeRowsToContents();
@@ -336,9 +322,20 @@ void iAPDMView::FitTable()
 		tableWidget->resizeColumnsToContents();
 }
 
-void iAPDMView::ChangeHistogramRange()
+void iAPDMView::UpdateRepresentation()
 {
-	UpdateTableHistogram();
+	switch ( cbRepresentation->currentIndex() )
+	{
+		case 0: //Deviation
+			UpdateTableDeviation();
+			break;
+		case 1: //Box Plot
+			UpdateTableBoxPlot();
+			break;
+		case 2: //Histogram
+			UpdateTableHistogram();
+			break;
+	}
 }
 
 void iAPDMView::HighlightSelected( QObject * obj )
@@ -404,17 +401,17 @@ void iAPDMView::ShowDeviationControls( bool visible )
 	}
 }
 
-void iAPDMView::ShowHistogramControls( bool visible )
+void iAPDMView::ShowPorosityRangeControls( bool visible )
 {
 	if ( visible )
 	{
-		cbHistoRange->show();
+		cbPorosityRange->show();
 		cmFrame->hide();
 		cbTableFit->hide();
 	}
 	else
 	{
-		cbHistoRange->hide();
+		cbPorosityRange->hide();
 	}
 }
 

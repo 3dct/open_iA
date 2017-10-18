@@ -54,22 +54,14 @@ iAPlaneVisModule::iAPlaneVisModule( )
 	disableShading( );
 }
 
-void iAPlaneVisModule::enable( )
+void iAPlaneVisModule::show( )
 {
-	if( !isAttached( ) ) return;
-	if( !isEnabled( ) ) {
-		m_renderer->AddActor( m_actor );
-	}
-	iAVisModule::enable( );
+	m_renderer->AddActor( m_actor );
 }
 
-void iAPlaneVisModule::disable( )
+void iAPlaneVisModule::hide( )
 {
-	if( !isAttached( ) ) return;
-	if( isEnabled( ) ) {
-		m_renderer->RemoveActor( m_actor );
-	}
-	iAVisModule::disable( );
+	m_renderer->RemoveActor( m_actor );
 }
 
 void iAPlaneVisModule::setSize( double * size )
@@ -78,18 +70,14 @@ void iAPlaneVisModule::setSize( double * size )
 	setPlanePosition( 0 );
 }
 
-void iAPlaneVisModule::setImage( QString fileName )
+void iAPlaneVisModule::setImage( iA4DCTFileData fileName )
 {
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( fileName.toStdString( ).c_str( ) );
-	reader->Update( );
-
 	double scale = (double)0xff / 0xffff;
 	vtkSmartPointer<vtkImageShiftScale> shifter = vtkSmartPointer<vtkImageShiftScale>::New( );
 	shifter->SetShift( 0. );
 	shifter->SetScale( scale );
 	shifter->SetOutputScalarTypeToUnsignedChar( );
-	shifter->SetInputConnection( reader->GetOutputPort( ) );
+	shifter->SetInputConnection( iA4DCTFileManager::getInstance( ).getOutputPort( fileName ) );
 	shifter->ReleaseDataFlagOff( );
 	shifter->Update( );
 
@@ -111,9 +99,6 @@ void iAPlaneVisModule::setImage( QString fileName )
 
 void iAPlaneVisModule::setSlice( int slice )
 {
-	// set settings
-	settings.Slice = slice;
-
 	// update visualization
 	if( m_reslice.GetPointer( ) == nullptr )
 		return;
@@ -140,14 +125,17 @@ void iAPlaneVisModule::setSlice( int slice )
 	double sliceNum;
 	switch( settings.Dir ) {
 	case iAPlaneVisSettings::Direction::XY:
+		settings.Slice[0] = slice;
 		sliceNum = slice * m_imgSpacing[2];
 		resliceAxes->DeepCopy( axialElementsXY );
 		break;
 	case iAPlaneVisSettings::Direction::XZ:
+		settings.Slice[1] = slice;
 		sliceNum = slice * m_imgSpacing[1];
 		resliceAxes->DeepCopy( axialElementsXZ );
 		break;
 	case iAPlaneVisSettings::Direction::YZ:
+		settings.Slice[2] = slice;
 		sliceNum = slice * m_imgSpacing[0];
 		resliceAxes->DeepCopy( axialElementsYZ );
 		break;
@@ -193,19 +181,19 @@ void iAPlaneVisModule::disableShading( )
 void iAPlaneVisModule::setDirXY( )
 {
 	settings.Dir = iAPlaneVisSettings::Direction::XY;
-	setSlice( settings.Slice );
+	setSlice( settings.Slice[0] );
 }
 
 void iAPlaneVisModule::setDirXZ( )
 {
 	settings.Dir = iAPlaneVisSettings::Direction::XZ;
-	setSlice( settings.Slice );
+	setSlice( settings.Slice[1] );
 }
 
 void iAPlaneVisModule::setDirYZ( )
 {
 	settings.Dir = iAPlaneVisSettings::Direction::YZ;
-	setSlice( settings.Slice );
+	setSlice( settings.Slice[2] );
 }
 
 void iAPlaneVisModule::setPlanePosition( int slice )

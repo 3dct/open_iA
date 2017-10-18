@@ -20,35 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-struct HOAccGradientDerrivativeSettings
-{
-	unsigned int order, direction, orderOfAcc;
-};
-
-enum iAGradientType
-{
-	DERIVATIVE,
-	GRADIENT_MAGNITUDE,
-	HIGHER_ORDER_ACCURATE_DERIVATIVE,
-};
-
-/**
- * An implementation of itkDerivativeImageFilter and itkGradientMagnitudeImageFilter.
- * For itkDerivativeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DerivativeImageFilter.html
- * For itkGradientMagnitudeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html
- */
-class iAGradients : public iAAlgorithm
+class iADerivative : public iAFilter
 {
 public:
-	iAGradients( QString fn, iAGradientType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	void setDParameters(double o, double d) { order = o; direction = d; };
-	void setHOAGDParameters(const HOAccGradientDerrivativeSettings * settings) { m_HOAGDSettings = *settings; };
-protected:
-	virtual void performWork();
+	static QSharedPointer<iADerivative> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	unsigned int order, direction;
-	HOAccGradientDerrivativeSettings m_HOAGDSettings;
-	iAGradientType m_type;
+	iADerivative();
+};
+
+
+class iAGradientMagnitude : public iAFilter
+{
+public:
+	static QSharedPointer<iAGradientMagnitude> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
+private:
+	iAGradientMagnitude();
+};
+
+
+class iAHigherOrderAccurateDerivative : public iAFilter
+{
+public:
+	static QSharedPointer<iAHigherOrderAccurateDerivative> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
+private:
+	iAHigherOrderAccurateDerivative();
 };

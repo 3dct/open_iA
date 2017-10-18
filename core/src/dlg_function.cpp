@@ -35,7 +35,7 @@
 
 double dlg_function::v2dY(int y)
 {
-	return y / (double)(histogram->geometry().height() - histogram->getBottomMargin());
+	return y / (double)(histogram->geometry().height() - histogram->BottomMargin());
 }
 
 int dlg_function::d2vX(double x)
@@ -48,5 +48,5 @@ int dlg_function::d2vX(double x)
 
 int dlg_function::d2vY(double y)
 {
-	return (int)(y *(double)(histogram->geometry().height() - histogram->getBottomMargin()));
+	return (int)(y *(double)(histogram->geometry().height() - histogram->BottomMargin()));
 }*/

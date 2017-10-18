@@ -26,19 +26,16 @@
 #include <QApplication>
 #include <QDate>
 
-#include <vtkSmartPointer.h>
-
 int main(int argc, char *argv[])
 {
 	MainWindow::InitResources();
 	QApplication app(argc, argv);
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 
+	iAGlobalLogger::SetLogger(iAConsole::GetInstance());
 	MainWindow mainWin("open_iA", VERSION, ":/images/splashscreen.png");
 
-	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
-
-	CheckSCIFIO();
+	CheckSCIFIO(QCoreApplication::applicationDirPath());
 
 	mainWin.LoadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
@@ -50,7 +47,6 @@ int main(int argc, char *argv[])
 		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}
-
 	mainWin.show();
 
 	return app.exec();

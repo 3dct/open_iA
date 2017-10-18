@@ -16,6 +16,7 @@ ADD_SUBDIRECTORY(core)
 ADD_SUBDIRECTORY(modules)
 ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(gui)
+ADD_SUBDIRECTORY(cmd)
 
 #-------------------------
 # Testing

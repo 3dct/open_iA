@@ -22,19 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iANeighbourhoodModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void median_Filter();
-
-protected:
-	//settings
-	unsigned int medR_x, medR_y, medR_z; //median filter
 };

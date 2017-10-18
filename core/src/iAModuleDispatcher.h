@@ -20,20 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVector>
+#include <QObject>
 #include <QString>
+#include <QVector>
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h> // for HINSTANCE / LPCWSTR
 #endif
 
+class iAFilterRunnerGUI;
 class iALogger;
 class MdiChild;
 class MainWindow;
 
 class QAction;
 class QFileInfo;
+class QMenu;
 
 struct iAModuleAction
 {
@@ -61,10 +65,12 @@ struct iALoadedModule
 	iAModuleInterface* moduleInterface;
 };
 
-class iAModuleDispatcher
+class iAModuleDispatcher: public QObject
 {
+	Q_OBJECT
 public:
 	iAModuleDispatcher( MainWindow * mainWnd );
+	iAModuleDispatcher(QString const & rootPath);
 	~iAModuleDispatcher();
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
@@ -73,11 +79,17 @@ public:
 	void SetModuleActionsEnabled( bool isEnabled );
 	template <typename T> T* GetModule(T* type);
 	void ChildCreated(MdiChild* child);
+	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
+	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
+private slots:
+	void ExecuteFilter();
+	void RemoveFilter();
 private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;
 	QVector < iALoadedModule > m_loadedModules;
-	
+	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
+	QString m_rootPath;
 	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, iALogger* logger);
 	void InitializeModuleInterface(iAModuleInterface* m);
 };

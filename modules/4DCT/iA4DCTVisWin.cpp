@@ -44,6 +44,7 @@
 #include "iARegionVisModule.h"
 #include "iAVisModule.h"
 #include "iAVisModuleItem.h"
+#include "iA4DCTRegionMarkerModule.h"
 // Qt
 #include <QFileDialog>
 #include <QSettings>
@@ -64,6 +65,7 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkLegendScaleActor.h>
 
 iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	: QMainWindow( parent )
@@ -89,6 +91,8 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	m_mainRen->InteractiveOn( );
 	qvtkWidget->GetRenderWindow( )->AddRenderer( m_mainRen );
 	m_magicLensRen = qvtkWidget->getLensRenderer( );
+
+	m_renList = vtkSmartPointer<vtkRendererCollection>::New( );
 
 	setOrientationWidgetEnabled( true );
 
@@ -157,11 +161,20 @@ iA4DCTVisWin::iA4DCTVisWin( iA4DCTMainWin * parent /*= 0*/ )
 	connect( actionYZBackView, SIGNAL( triggered( ) ), this, SLOT( setYZBackView( ) ) );
 	connect( actionOrientationMarker, SIGNAL( toggled( bool ) ), this, SLOT( setOrientationWidgetEnabled( bool ) ) );
 	connect( actionOrientationMarker, SIGNAL( toggled( bool ) ), this, SLOT( updateRenderWindow( ) ) );
+	connect( actionSideBySideView, SIGNAL( toggled( bool ) ), this, SLOT( enableSideBySideView( bool ) ) );
+
+	iA4DCTRegionMarkerModule* regionMarker = new iA4DCTRegionMarkerModule;
+	regionMarker->attachTo( m_mainRen );
+	regionMarker->enable( );
+	m_visModules.addModule( regionMarker, "Region marker" );
+	m_dwAllVis->updateContext( );
+
+	vtkSmartPointer<vtkLegendScaleActor> legendScaleActor = vtkSmartPointer<vtkLegendScaleActor>::New();
+	m_mainRen->AddActor( legendScaleActor );
 }
 
 iA4DCTVisWin::~iA4DCTVisWin( )
-{ /* not implemented */
-}
+{ }
 
 void iA4DCTVisWin::setImageSize( double * size )
 {
@@ -173,6 +186,15 @@ void iA4DCTVisWin::setImageSize( double * size )
 void iA4DCTVisWin::setNumberOfStages( int number )
 {
 	sStage->setMaximum( number - 1 );
+
+	for( int i = 0; i < number; i++ )
+	{
+		vtkSmartPointer<vtkRenderer> ren = vtkSmartPointer<vtkRenderer>::New( );
+		ren->SetLayer( 0 );
+		ren->SetBackground( 0.5, 0.5, 0.5 );
+		ren->InteractiveOn( );
+		m_renList->AddItem( ren );
+	}
 }
 
 void iA4DCTVisWin::updateRenderWindow( )
@@ -334,7 +356,7 @@ void iA4DCTVisWin::addDefectView( )
 	{
 		planeVis->attachTo( m_mainRen );
 	}
-	planeVis->setImage( fileData.Path );
+	planeVis->setImage( fileData );
 	planeVis->setSize( m_size );
 	static int number = 0;
 	m_visModules.addModule( planeVis, "Defect Viewer (" + fileData.Name + ") " + QString::number( number++ ) );
@@ -546,4 +568,60 @@ void iA4DCTVisWin::changeBackground( QColor col )
 {
 	m_mainRen->SetBackground( col.redF( ), col.greenF( ), col.blueF( ) );
 	updateRenderWindow( );
+}
+
+void iA4DCTVisWin::enableSideBySideView( bool enabled )
+{
+	qvtkWidget->GetRenderWindow( )->GetRenderers( )->RemoveAllItems( );
+
+	if( enabled )
+	{
+		double width = 1. / m_renList->GetNumberOfItems( );
+		double start = 0.;
+
+		vtkSmartPointer<vtkRenderer> screenRen = vtkSmartPointer<vtkRenderer>::New( );
+		qvtkWidget->GetRenderWindow( )->AddRenderer( screenRen );
+
+		vtkSmartPointer<vtkCamera> cam = vtkSmartPointer<vtkCamera>::New( );
+		cam->ShallowCopy( m_mainRen->GetActiveCamera( ) );
+
+		m_renList->InitTraversal( );
+		while( vtkRenderer* ren = m_renList->GetNextItem( ) )
+		{
+			ren->SetViewport( start, 0.5 - width / 2, start + width, 0.5 + width / 2 );
+			//ren->SetViewport( start, 0, start + width, 1 );
+			start += width;
+
+			//ren->SetActiveCamera( m_mainRen->GetActiveCamera( ) );
+			ren->SetActiveCamera( cam );
+			qvtkWidget->GetRenderWindow( )->AddRenderer( ren );
+		}
+
+		QList<iAVisModuleItem *> modules = m_visModules.getModules( );
+		for( auto m : modules ) {
+			m->module->disable( );
+			if( m->stages.count( ) == 0 ) continue;
+			int step = m->stages[0];
+			if( vtkRenderer* ren = static_cast<vtkRenderer*>( m_renList->GetItemAsObject( step ) ) ) {
+				m->module->attachTo( ren );
+				m->module->enable( );
+			}
+		}
+		updateRenderWindow( );
+	}
+	else
+	{
+		qvtkWidget->GetRenderWindow( )->AddRenderer( m_mainRen );
+		QList<iAVisModuleItem *> modules = m_visModules.getModules( );
+		for( auto m : modules ) {
+			m->module->disable( );
+			if( m->stages.count( ) == 0 ) continue;
+			int step = m->stages[0];
+			if( step == m_currentStage ) {
+				m->module->attachTo( m_mainRen );
+				m->module->enable( );
+			}
+		}
+		updateRenderWindow( );
+	}
 }

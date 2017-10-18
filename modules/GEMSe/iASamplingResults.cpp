@@ -18,16 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iASamplingResults.h"
 
 #include "iAAttributes.h"
 #include "iAAttributeDescriptor.h"
-#include "iAFileUtils.h"
 #include "iAGEMSeConstants.h"
 #include "iASingleResult.h"
 
 #include "iAConsole.h"
+#include "iAFileUtils.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -56,6 +55,19 @@ iASamplingResults::iASamplingResults(
 // TODO: replace with QSettings?
 namespace
 {
+
+	struct Output
+	{
+		static const QString NameSeparator;
+		static const QString ValueSeparator;
+		static const QString OptionalParamSeparator;
+	};
+
+
+	const QString Output::NameSeparator(": ");
+	const QString Output::ValueSeparator(",");
+	const QString Output::OptionalParamSeparator(" ");
+
 	bool GetNameValue(QString const & name, QString & value, QTextStream & in)
 	{
 		QString currentLine = in.readLine();

@@ -184,6 +184,7 @@
    <addaction name="actionAddToMagicLens"/>
    <addaction name="actionMagicLens"/>
    <addaction name="actionOrientationMarker"/>
+   <addaction name="actionSideBySideView"/>
   </widget>
   <action name="actionAddToMagicLens">
    <property name="checkable">
@@ -254,6 +255,14 @@
    </property>
    <property name="text">
     <string>Orientation marker</string>
+   </property>
+  </action>
+  <action name="actionSideBySideView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Side-by-side view</string>
    </property>
   </action>
  </widget>

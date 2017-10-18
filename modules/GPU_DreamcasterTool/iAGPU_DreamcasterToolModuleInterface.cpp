@@ -31,6 +31,8 @@
 
 void iAGPU_DreamcasterToolModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QAction * actionDreamcaster_Open_file = new QAction( m_mainWnd );
 	actionDreamcaster_Open_file->setText( QApplication::translate( "MainWindow", "Dreamcaster", 0 ) );

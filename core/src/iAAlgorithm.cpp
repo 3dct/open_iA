@@ -45,8 +45,7 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	m_image = idata;
 	m_polyData = p;
 	m_logger = logger;
-	for (int i = 0; i < 2; ++i)
-		m_connectors.push_back(new iAConnector());
+	m_connectors.push_back(new iAConnector());
 	m_itkProgress = new iAProgress;
 
 	connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
@@ -59,8 +58,7 @@ iAAlgorithm::iAAlgorithm( vtkImageData* idata, vtkPolyData* p, iALogger* logger,
 	m_image = idata;
 	m_polyData = p;
 	m_logger = logger;
-	for (int i = 0; i < 2; ++i)
-		m_connectors.push_back(new iAConnector());
+	m_connectors.push_back(new iAConnector());
 	m_itkProgress = new iAProgress;
 }
 
@@ -151,10 +149,9 @@ void iAAlgorithm::addMsg(QString txt)
 {
 	if (m_logger)
 	{
-		m_logger->log(txt);
+		m_logger->Log(txt);
 	}
 }
-
 
 iALogger* iAAlgorithm::getLogger() const
 {
@@ -176,32 +173,22 @@ vtkPolyData* iAAlgorithm::getVtkPolyData()
 	return m_polyData;
 }
 
-iAConnector *iAAlgorithm::getConnector(int c)
-{
-	while (m_connectors.size() <= c)
-		m_connectors.push_back(new iAConnector());
-	return m_connectors[c];
-}
-
-
 iAConnector* iAAlgorithm::getConnector() const
 {
 	return m_connectors[0];
 }
 
-iAConnector *const * iAAlgorithm::getConnectorArray() const
+QVector<iAConnector*> const iAAlgorithm::Connectors() const
 {
-	return m_connectors.data();
+	return m_connectors;
 }
 
-iAConnector ** iAAlgorithm::getConnectorArray()
+void iAAlgorithm::AddImage(vtkImageData* i)
 {
-	return m_connectors.data();
-}
-
-iAConnector* iAAlgorithm::getFixedConnector() const
-{
-	return m_connectors[1];
+	auto con = new iAConnector();
+	con->SetImage(i);
+	con->Modified();
+	m_connectors.push_back(con);
 }
 
 bool iAAlgorithm::deleteConnector(iAConnector* c)

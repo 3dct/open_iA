@@ -28,6 +28,8 @@
 
 void iAHessianModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menucomputeHessianEigenanalysis = getMenuWithTitle(filtersMenu, QString( "Hessian and Eigenanalysis" ) );
 	QAction * actioncomputeHessianEigenanalysis = new QAction(QApplication::translate("MainWindow", "Compute Hessian and Eigenanalysis", 0), m_mainWnd);
@@ -61,7 +63,7 @@ void iAHessianModuleInterface::computeHessianEigenanalysis( int nr )
 	if( dlg.exec() != QDialog::Accepted )
 		return;
 
-	chefSigma = dlg.getValues()[0];
+	chefSigma = dlg.getDblValue(0);
 	//prepare
 	QString filterName = "Hessian and Eigenanalyis";
 	PrepareResultChild( filterName );
@@ -111,7 +113,7 @@ void iAHessianModuleInterface::computeLaplacian()
 
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	chefSigma = dlg.getValues()[0];
+	chefSigma = dlg.getDblValue(0);
 
 	//prepare
 	QString filterName = "Laplacian of Gaussian";

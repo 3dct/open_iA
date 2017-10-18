@@ -29,7 +29,7 @@
 class iASPLOMData
 {
 public:
-	iASPLOMData() : m_numParams( 0 ), m_numPoints( 0 ) {};
+	iASPLOMData() {};
 	explicit iASPLOMData( const QTableWidget * tw ) { import( tw ); }
 
 	//! Free all the data.
@@ -44,19 +44,21 @@ public:
 	{
 		clear();
 
-		m_numParams = tw->columnCount();
-		m_numPoints = tw->rowCount() - 1;
-		if( m_numPoints < 0 )
-			m_numPoints = 0;
-		for( unsigned long c = 0; c < m_numParams; ++c )
+		int numParams = tw->columnCount();
+		int numPoints = tw->rowCount() - 1;
+		if( numPoints < 0 )
+			numPoints = 0;
+		for( unsigned long c = 0; c < numParams; ++c )
 		{
 			m_paramNames.push_back( tw->item( 0, c )->text() );
 			m_dataPoints.push_back( QList<double>() );
 			QList<double> * paramData = &m_dataPoints[c];
-			for( unsigned long r = 1; r < m_numPoints + 1; ++r )
+			for( unsigned long r = 1; r < numPoints + 1; ++r )
 				paramData->push_back( tw->item( r, c )->text().toDouble() );
 		}
 	}
+	QList<QList<double>> & data() { return m_dataPoints; }
+	QList<QString> & paramNames()  { return m_paramNames; }
 
 	//! Get constant reference to the lists containing raw data points.
 	const QList<QList<double>> & data() const { return m_dataPoints; }
@@ -68,14 +70,12 @@ public:
 	QString parameterName( int paramIndex ) const { return m_paramNames[paramIndex]; }
 
 	//! Get number of data point parameters.
-	unsigned long numParams() const { return m_numParams; }
+	unsigned long numParams() const { return m_paramNames.size(); }
 
 	//! Get number of data points.
-	unsigned long numPoints() const { return m_numPoints; }
+	unsigned long numPoints() const { return m_dataPoints.size() < 1 ? 0 : m_dataPoints[0].size(); }
 
 protected:
 	QList<QString> m_paramNames;		///< list of parameter names
 	QList<QList<double>> m_dataPoints;	///< lists containing data points
-	unsigned long m_numParams;			///< total number of data point parameters
-	unsigned long m_numPoints;			///< total number of data points
 };

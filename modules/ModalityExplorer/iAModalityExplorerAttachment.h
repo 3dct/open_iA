@@ -22,15 +22,6 @@
 
 #include "iAModuleAttachmentToChild.h"
 
-#include <QSharedPointer>
-#include <vtkSmartPointer.h>
-
-class dlg_modalities;
-class iAModalityList;
-
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
-
 class iAModalityExplorerAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT

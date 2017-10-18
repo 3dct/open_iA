@@ -86,7 +86,7 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 	}
 	catch (itk::ExceptionObject & e)
 	{
-		DEBUG_LOG(QString("itk Exception: %1\n").arg(e.GetDescription()).toStdString());
+		DEBUG_LOG(QString("itk Exception: %1\n").arg(e.GetDescription()));
 		return 0.0;
 	}
 	if (isNaN(meanOverlap))

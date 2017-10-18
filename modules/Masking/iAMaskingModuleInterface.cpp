@@ -30,9 +30,10 @@
 
 void iAMaskingModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuMask = getMenuWithTitle(filtersMenu, QString("Mask"));
-
 	QAction * actionGeneral_threshold_filter = new QAction(QApplication::translate( "MainWindow", "General threshold filter", 0 ), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuMask, actionGeneral_threshold_filter);
 	connect( actionGeneral_threshold_filter, SIGNAL( triggered() ), this, SLOT( general_threshold() ) );
@@ -51,9 +52,9 @@ void iAMaskingModuleInterface::general_threshold()
 	dlg_commoninput dlg( m_mainWnd, "General Threshold", inList, inPara, NULL );
 	if( dlg.exec() != QDialog::Accepted )
 		return;
-	gtlower = dlg.getValues()[0];
-	gtupper = dlg.getValues()[1];
-	gtoutside = dlg.getValues()[2];
+	gtlower = dlg.getDblValue(0);
+	gtupper = dlg.getDblValue(1);
+	gtoutside = dlg.getDblValue(2);
 
 	settings.setValue( "Filters/Masking/GeneralThresholding/gtlower", gtlower );
 	settings.setValue( "Filters/Masking/GeneralThresholding/gtupper", gtupper );

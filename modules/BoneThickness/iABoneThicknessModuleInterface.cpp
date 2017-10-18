@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iABoneThicknessModuleInterface.h"
 #include "iABoneThicknessAttachment.h"
 #include "mainwindow.h"
@@ -33,6 +32,8 @@ iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
 
 void iABoneThicknessModuleInterface::Initialize( )
 {
+	if (!m_mainWnd)
+		return;
 	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
 
 	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));

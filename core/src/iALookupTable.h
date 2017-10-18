@@ -22,6 +22,7 @@
 
 //#define iALookupTable_USE_VTK //!! uncomment if you want to allow VTK lookup table input
 
+#include <QColor>
 #include <QList>
 #include <vtkLookupTable.h>
 

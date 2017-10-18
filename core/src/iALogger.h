@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QString>
 
-class iALogger
+class open_iA_Core_API iALogger
 {
 public:
-	virtual ~iALogger() {}
-	virtual void log(QString const & msg) =0;
+	virtual ~iALogger();
+	virtual void Log(QString const & msg) =0;
 };

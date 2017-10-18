@@ -22,24 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAConnectedComponentModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-	private slots:
-	void simple_connected_component();
-	void scalar_connected_component();
-	void simple_relabel_connected_component();
-
-protected:
-	//settings
-	int sccff; //simple connected component filter 
-	double scalccDistThresh; //scalar connected component filter parameters
-	int srcifs ; //simple relabel component filter
-	bool srcifw; //simple relabel component filter
 };

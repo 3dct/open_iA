@@ -23,17 +23,21 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAAttributes.h"
-#include "iAFileUtils.h"
-#include "iAGEMSeConstants.h"
 #include "iANameMapper.h"
 #include "iASamplingResults.h"
 
 #include "iAConsole.h"
-#include "iAToolsITK.h"
+#include "iAFileUtils.h"
 #include "iAITKIO.h"
+#include "iAToolsITK.h"
 
 #include <QFile>
 #include <QFileInfo>
+
+namespace
+{
+	const QString ValueSplitString(" ");
+}
 
 QSharedPointer<iASingleResult> iASingleResult::Create(
 	QString const & line,
@@ -61,7 +65,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 	for (int i = 0; i < attributes->size(); ++i)
 	{
 		double value = -1;
-		int valueType = attributes->at(i)->GetValueType();
+		int valueType = attributes->at(i)->ValueType();
 		QString curToken = tokens[i + 1];
 		switch (valueType)
 		{
@@ -72,7 +76,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 				value = curToken.toInt(&ok);
 				break;
 			case Categorical:
-				value = attributes->at(i)->GetNameMapper()->GetIdx(curToken, ok);
+				value = attributes->at(i)->NameMapper()->GetIdx(curToken, ok);
 				break;
 		}
 		if (!ok)
@@ -116,19 +120,19 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 	}
 	for (int i = 0; i < m_attributeValues.size(); ++i)
 	{
-		if (attributes->at(i)->GetAttribType() == type)
+		if (attributes->at(i)->AttribType() == type)
 		{
 			if (!result.isEmpty())
 			{
 				result += ValueSplitString;
 			}
-			if (attributes->at(i)->GetNameMapper())
+			if (attributes->at(i)->NameMapper())
 			{
-				result += attributes->at(i)->GetNameMapper()->GetName(m_attributeValues[i]);
+				result += attributes->at(i)->NameMapper()->GetName(m_attributeValues[i]);
 			}
 			else
 			{
-				result += (attributes->at(i)->GetValueType() == iAValueType::Discrete) ?
+				result += (attributes->at(i)->ValueType() == iAValueType::Discrete) ?
 					QString::number(static_cast<int>(m_attributeValues[i])) :
 					QString::number(m_attributeValues[i]);
 			}
