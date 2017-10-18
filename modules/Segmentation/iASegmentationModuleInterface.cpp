@@ -28,15 +28,12 @@
 #include "dlg_commoninput.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "iAFCMGUIRunner.h"
 #include "iAFilterRegistry.h"
-#include "iAFilterRunnerGUI.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
 
-#include <vtkImageAccumulate.h>
 #include <vtkImageData.h>
 
 #include <QFileDialog>
@@ -58,17 +55,12 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAWatershed);
 	REGISTER_FILTER(iAMorphologicalWatershed);
 
+	REGISTER_FILTER(iAFCMFilter);
+	REGISTER_FILTER(iAKFCMFilter);
+	REGISTER_FILTER(iAMSKFCMFilter);
+	
 	if (!m_mainWnd)
-	{
-		REGISTER_FILTER(iAFCMFilter);
-		REGISTER_FILTER(iAKFCMFilter);
-		REGISTER_FILTER(iAMSKFCMFilter);
 		return;
-	}
-
-	REGISTER_FILTER_WITH_RUNNER(iAFCMFilter,    iAFCMGUIRunner);
-	REGISTER_FILTER_WITH_RUNNER(iAKFCMFilter,   iAFCMGUIRunner);
-	REGISTER_FILTER_WITH_RUNNER(iAMSKFCMFilter, iAFCMGUIRunner);
 
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuSegmentation = getMenuWithTitle(filtersMenu, QString("Segmentation"));

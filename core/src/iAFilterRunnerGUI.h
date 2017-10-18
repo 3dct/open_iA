@@ -105,6 +105,8 @@ public:
 	//! @param mdiChild the child window into which the results should go
 	//! @param thread the thread used to run the filter
 	virtual void ConnectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread);
+private slots:
+	void FilterFinished();
 signals:
 	//! Signal which by default (in the default ConnectThreadSignals) is connected
 	//! to be emitted at the end of the filter thread run

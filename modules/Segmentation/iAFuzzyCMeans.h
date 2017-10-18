@@ -20,34 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAttributeDescriptor.h"
 #include "iAFilter.h"
-#include "iAITKIO.h"
-
-#include <itkKFCMSClassifierInitializationImageFilter.h>
-#include <itkSimpleFilterWatcher.h>
-#include <itkFuzzyClassifierImageFilter.h>
-
-#include <vtkSmartPointer.h>
-
-class vtkImageData;
-
-const unsigned int ImageDimension = 3;
-typedef double ProbabilityPixelType;
-typedef itk::VectorImage<ProbabilityPixelType, ImageDimension> VectorImageType;
-
-class iAProbabilitySource
-{
-public:
-	virtual QVector<vtkSmartPointer<vtkImageData> > & Probabilities();
-	void SetProbabilities(VectorImageType::Pointer vectorImg);
-private:
-	QVector<vtkSmartPointer<vtkImageData> > m_probOut;
-};
 
 typedef iAAttributeDescriptor ParamDesc;
 
-class iAFCMFilter : public iAFilter, public iAProbabilitySource
+class iAFCMFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAFCMFilter> Create();
@@ -57,7 +34,7 @@ private:
 	iAFCMFilter();
 };
 
-class iAKFCMFilter : public iAFilter, public iAProbabilitySource
+class iAKFCMFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAKFCMFilter> Create();
@@ -67,7 +44,7 @@ private:
 	iAKFCMFilter();
 };
 
-class iAMSKFCMFilter : public iAFilter, public iAProbabilitySource
+class iAMSKFCMFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAMSKFCMFilter> Create();

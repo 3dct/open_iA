@@ -28,6 +28,8 @@
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iALogger.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -251,6 +253,23 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 void iAFilterRunnerGUI::ConnectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
 {
+	connect(thread, SIGNAL(finished()), this, SLOT(FilterFinished()));
 	mdiChild->connectThreadSignalsToChildSlots(thread);
-	connect(thread, SIGNAL(finished()), this, SIGNAL(finished()));
+}
+
+void iAFilterRunnerGUI::FilterFinished()
+{
+	auto thread = qobject_cast<iAFilterRunnerGUIThread*>(sender());
+	// add additional output as additional modalities here
+	// "default" output 0 is handled elsewhere
+	if (thread->Filter()->OutputCount() > 1)
+	{
+		for (int p = 1; p < thread->Filter()->Connectors().size() && p < thread->Filter()->OutputCount(); ++p)
+		{
+			qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
+				new iAModality(QString("Additional Out %1").arg(p), "", -1,
+					thread->Filter()->Connectors()[p]->GetVTKImage(), 0)));
+		}
+	}
+	emit finished();
 }
