@@ -27,6 +27,7 @@
 #include "dlg_commoninput.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
+#include "iAConsole.h"
 #include "iALogger.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -91,8 +92,9 @@ namespace
 		case Discrete   : return "*";
 		case Boolean    : return "$";
 		case Categorical: return "+";
+		case Text       : return "=";
 		default:
-		case String: return "#";
+		case String     : return "#";
 		}
 	}
 }
@@ -196,6 +198,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 		case Continuous:  value = dlg.getDblValue(idx);      break;
 		case Discrete:    value = dlg.getIntValue(idx);      break;
+		case Text:
 		case String:      value = dlg.getText(idx);          break;
 		case Boolean:     value = dlg.getCheckValue(idx);    break;
 		case Categorical: value = dlg.getComboBoxValue(idx); break;
@@ -241,9 +244,18 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
 		return;
 	}
+	// TODO: move all image adding here?
+	for (int m = 1; m < sourceMdi->GetModalities()->size(); ++m)
+	{
+		thread->AddImage(sourceMdi->GetModality(m)->GetImage());
+	}
 	for (auto img : m_additionalInput)
 	{
 		thread->AddImage(img);
+	}
+	if (!m_additionalInput.empty() && sourceMdi->GetModalities()->size() > 1)
+	{
+		DEBUG_LOG("Note: Added additional filter input both from selected input as well as from active window modalities!");
 	}
 	ConnectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->Name());
@@ -267,7 +279,7 @@ void iAFilterRunnerGUI::FilterFinished()
 		for (int p = 1; p < thread->Filter()->Connectors().size() && p < thread->Filter()->OutputCount(); ++p)
 		{
 			qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
-				new iAModality(QString("Additional Out %1").arg(p), "", -1,
+				new iAModality(QString("Extra Out %1").arg(p), "", -1,
 					thread->Filter()->Connectors()[p]->GetVTKImage(), 0)));
 		}
 	}

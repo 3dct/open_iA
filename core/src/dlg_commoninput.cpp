@@ -31,6 +31,7 @@
 #include <QSpinBox>
 #include <QScrollArea>
 #include <QTextBrowser>
+#include <QPlainTextEdit>
 
 enum ContainerSize {
 	WIDTH=530, HEIGHT=600
@@ -80,7 +81,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	{
 		QString tStr = inList[i];
 			
-		if ( !tStr.contains(QRegExp("[$#+*^?]")) )
+		if ( !tStr.contains(QRegExp("[$#+*^?=]")) )
 			eMessage->showMessage(QString("Unknown widget prefix '").append(inList[i][0]).append("' for label \"").append(tStr.remove(0, 1)).append("\""));
 		else
 			tStr.remove(0, 1);
@@ -100,28 +101,28 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 			{
 				newWidget = new QCheckBox(container);
 				newWidget->setObjectName(tempStr.append("CheckBox"));
+				break;
 			}
-			break;
 			case '#':
 			{
 				newWidget = new QLineEdit(container);
 				newWidget->setObjectName(tempStr.append("LineEdit"));
+				break;
 			}
-			break;
 			case '+':
 			{
 				newWidget = new QComboBox(container);
 				newWidget->setObjectName(tempStr.append("ComboBox"));
+				break;
 
 			}
-			break;
 			case '*':
 			{
 				newWidget = new QSpinBox(container);
 				newWidget->setObjectName(tempStr.append("SpinBox"));
 				((QSpinBox*)newWidget)->setRange(0, 65536);
+				break;
 			}
-			break;
 			case '^':
 			{
 				newWidget = new QDoubleSpinBox(container);
@@ -129,9 +130,15 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 				((QDoubleSpinBox*)newWidget)->setSingleStep (0.001);
 				((QDoubleSpinBox*)newWidget)->setDecimals(6);
 				((QDoubleSpinBox*)newWidget)->setRange(-999999, 999999);
+				break;
 			}
-			break;
-			case '?':	
+			case '=':
+			{
+				newWidget = new QPlainTextEdit(container);
+				newWidget->setObjectName(tempStr.append("PlainTextEdit"));
+				break;
+			}
+			case '?':
 			{
 				label->setStyleSheet("background-color : lightGray");
 				QFont font = label->font();
@@ -305,5 +312,8 @@ int dlg_commoninput::getComboBoxIndex(int index) const
 QString dlg_commoninput::getText(int index) const
 {
 	QLineEdit *t = container->findChild<QLineEdit*>(widgetList[index]);
-	return t ? t->text() : "";
+	if (t)
+		return t->text();
+	QPlainTextEdit *t2 = container->findChild<QPlainTextEdit*>(widgetList[index]);
+	return t2 ? t2->toPlainText() : "";
 }

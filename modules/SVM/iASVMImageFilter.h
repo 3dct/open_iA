@@ -20,54 +20,6 @@
 **************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
-#include "iASeedType.h"
+#include "iAFilter.h"
 
-#include <vtkSmartPointer.h>
-
-#include <QList>
-#include <QSharedPointer>
-#include <QVector>
-
-struct iAImageCoordinate;
-
-class vtkImageData;
-
-/*
-typedef double TrainingValueType;
-typedef std::pair<int, QVector<TrainingValueType> > iATrainingValue;
-typedef QSharedPointer<QVector<iATrainingValue> > iATrainingValuesPointer;
-*/
-
-class iASVMImageFilter: public iAAlgorithm
-{
-	Q_OBJECT
-public:
-	typedef vtkSmartPointer<vtkImageData>	ImagePointer;
-	typedef QSharedPointer<QVector<ImagePointer> > ImagesPointer;
-
-	iASVMImageFilter(vtkImageData* i, iALogger* l, QObject* mdiChild);
-	void AddInput(ImagePointer input);
-	void SetParameters(int kernel, double c, double gamma, int degree, double coef0);
-	void SetSeeds(iASeedsPointer seeds);
-	// void SetTrainingValues(iATrainingValuesPointer trainingValues);
-	void performWork();
-	ImagesPointer GetResult();
-private:
-	//! @{
-	//! Input
-	double m_c;
-	double m_gamma;
-	double m_coef0;
-	int m_degree;
-	int m_kernel;
-	iASeedsPointer m_seeds;
-	// iATrainingValuesPointer m_trainingValues;
-	QVector<ImagePointer> m_input;
-	//! @}
-	//! @{
-	//! Output
-	ImagesPointer m_probabilities;
-	QString m_error;
-	//! @}
-};
+IAFILTER_DEFAULT_CLASS(iASVMImageFilter);

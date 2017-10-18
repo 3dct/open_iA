@@ -24,11 +24,6 @@
 
 class iASVMModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-private slots:
-	bool CalculateSVM();
-	void SVMFinished();
 };
