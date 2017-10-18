@@ -451,7 +451,7 @@ void iAHistogramMatchingFilter::Run(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iAHistogramMatchingFilter)
 
 iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
-	iAFilter("Invert", "Intensity",
+	iAFilter("Histogram Match", "Intensity",
 		"Normalizes the grayscale values between two images by histogram matching.<br/>"
 		"The Histogram Matching Image Filter normalizes the grayscale values of a source "
 		"image based on the grayscale values of a reference image. This filter uses a histogram "
