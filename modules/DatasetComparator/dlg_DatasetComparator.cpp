@@ -30,6 +30,7 @@
 #include "iATypedCallHelper.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
+#include "iANonLinearAxisTicker.h"
 
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
@@ -60,102 +61,6 @@
 //#include <sys/timeb.h>
 #include "iAConsole.h"
 
-
-class NonLinearAxisTicker : public QCPAxisTicker
-{
-public:
-	NonLinearAxisTicker();
-
-	void setTickData(QVector<double> tickVector);
-	void setAxis(QCPAxis *axis);
-
-protected:
-	QVector<double> m_tickVector;
-	QCPAxis *m_xAxis;
-	int m_tickStep;
-
-	virtual QVector<double> createTickVector(double tickStep,
-		const QCPRange &range) Q_DECL_OVERRIDE;
-
-	virtual QVector<double> createSubTickVector(int subTickCount,
-		const QVector<double> &ticks) Q_DECL_OVERRIDE;
-
-	virtual QVector<QString> createLabelVector(const QVector<double> &ticks,
-		const QLocale &locale, QChar formatChar, int precision) Q_DECL_OVERRIDE;
-};
-
-NonLinearAxisTicker::NonLinearAxisTicker() :
-	m_tickVector(QVector<double>(0)),
-	m_tickStep(0)
-{
-}
-
-void NonLinearAxisTicker::setTickData(QVector<double> tickVector)
-{
-	m_tickVector = tickVector;
-	m_tickVector.size() < 10 ? m_tickStep = 1 :
-		m_tickStep = pow(10, (floor(log10(m_tickVector.size())) - 1));
-}
-
-void NonLinearAxisTicker::setAxis(QCPAxis *xAxis)
-{
-	m_xAxis = xAxis;
-}
-
-QVector<double> NonLinearAxisTicker::createTickVector(double tickStep, 
-	const QCPRange &range)
-{
-	Q_UNUSED(tickStep)  Q_UNUSED(range)
-	QVector<double> result;
-	for (int i = 0; i < m_tickVector.size(); ++i)
-		if ((i % m_tickStep) == 0)
-			result.append(m_tickVector[i]);
-	return result;
-}
-
-QVector<double> NonLinearAxisTicker::createSubTickVector(int subTickCount, 
-	const QVector<double> &ticks)
-{
-	QVector<double> result;
-	int startIdx = m_tickVector.indexOf(ticks.first());
-	int endIdx = m_tickVector.indexOf(ticks.last());
-	for (int i = startIdx; i <= endIdx; ++i)
-	{
-		if ((i % m_tickStep) == 0)
-			continue;
-		result.append(m_tickVector[i]);
-	}
-	return result;
-}
-
-QVector<QString> NonLinearAxisTicker::createLabelVector(const QVector<double> &ticks, 
-	const QLocale &locale, QChar formatChar, int precision)
-{
-	//TODO: set dist automatically
-	QVector<QString> result;
-	if (ticks.size() == 0)
-		return result;
-
-	int prev = 1;
-	for (int i = 0; i < ticks.size(); ++i)
-	{
-		if (i > 0)
-		{
-			double dist = m_xAxis->coordToPixel(ticks[i]) -
-				m_xAxis->coordToPixel(ticks[i - prev]);
-			if (dist < 20.0)
-			{
-				prev++;
-				result.append(QString(""));
-				continue;
-			}
-		}
-		prev = 1;
-		result.append(QCPAxisTicker::getTickLabel(
-			m_tickVector.indexOf(ticks[i]), locale, formatChar, precision));
-	}
-	return result;
-}
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -205,8 +110,8 @@ void dlg_DatasetComparator::setupQCustomPlot()
 	m_nonlinearScaledPlot->xAxis->grid()->setVisible(false);
 	m_nonlinearScaledPlot->xAxis->grid()->setSubGridVisible(false);
 	m_nonlinearScaledPlot->xAxis->setTickLabels(true);
-	m_nonlinearScaledPlot->xAxis->setSubTicks(true);
-	m_nonlinearScaledPlot->xAxis->setNumberFormat("fb");  // instead of 'f' try 'e' or 'g'
+	m_nonlinearScaledPlot->xAxis->setSubTicks(true);	  // set to 'false if too many ticks
+	m_nonlinearScaledPlot->xAxis->setNumberFormat("fb");  // Instead of 'f' try 'e' or 'g'
 	m_nonlinearScaledPlot->xAxis->setNumberPrecision(0);
 	m_nonlinearScaledPlot->yAxis->setLabel("Gray Value Intensity");
 	m_nonlinearScaledPlot->yAxis->grid()->setSubGridVisible(false);
@@ -241,17 +146,16 @@ void dlg_DatasetComparator::setupMultiRendererView()
 	auto mrvWinModCallback = vtkSmartPointer<vtkCallbackCommand>::New();
 	mrvWinModCallback->SetCallback(winModCallback);
 	m_mrvBGRen->AddObserver(vtkCommand::ModifiedEvent, mrvWinModCallback);
-	
 	m_mrvBGRen->SetLayer(0);
 	m_mrvBGRen->InteractiveOff();
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
+	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 
 	m_mrvTxtAct->SetInput("No Hilbert index selected");
 	m_mrvTxtAct->GetTextProperty()->SetFontSize(24);
 	m_mrvTxtAct->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 	m_mrvTxtAct->GetTextProperty()->SetJustificationToCentered();
 	m_mrvTxtAct->GetTextProperty()->SetVerticalJustificationToCentered();
-	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 	
 	m_mrvRenWin->SetNumberOfLayers(2);
 	m_MultiRendererView->wgtContainer->SetRenderWindow(m_mrvRenWin);
@@ -268,85 +172,33 @@ void dlg_DatasetComparator::setupMultiRendererView()
 
 void dlg_DatasetComparator::showLinePlots()
 {
-	//showDebugPlot();	
-	
-	QList<double> innerEnsembleDistList;
-	for (int i = 0; i < m_DatasetIntensityMap[0].second.size(); ++i)
-	{
-		double innerEnsembleDist = 0.0;
-		QList<double> localIntValList;
-		for (int j = 0; j < m_DatasetIntensityMap.size(); ++j)
-			localIntValList.append(m_DatasetIntensityMap[j].second[i].intensity);
-		auto minLocalVal = *std::min_element(std::begin(localIntValList), std::end(localIntValList));
-		auto maxLocalVal = *std::max_element(std::begin(localIntValList), std::end(localIntValList));
-		innerEnsembleDist = maxLocalVal - minLocalVal;
-		innerEnsembleDistList.append(innerEnsembleDist);
-	}
-	auto maxInnerEnsableDist = *std::max_element(std::begin(innerEnsembleDistList), std::end(innerEnsembleDistList));
-
-	for (int i = 0; i < m_DatasetIntensityMap[0].second.size(); ++i)
-	{
-		double imp = 0.0;
-		QList<double> localIntValList;
-		for (int j = 0; j < m_DatasetIntensityMap.size(); ++j)
-			localIntValList.append(m_DatasetIntensityMap[j].second[i].intensity);
-		auto minLocalVal = *std::min_element(std::begin(localIntValList), std::end(localIntValList));
-		auto maxLocalVal = *std::max_element(std::begin(localIntValList), std::end(localIntValList));
-		imp = maxLocalVal - minLocalVal;
-		imp /= maxInnerEnsableDist;
-		//imp = pow(imp*2,-0.9);
-		imp = pow(imp * 2, 1.4);
-		m_integralValList.append(i == 0 ? imp : m_integralValList[i - 1] + imp);
-	}
-
-	QSharedPointer<NonLinearAxisTicker> myTicker(new NonLinearAxisTicker);
-	myTicker->setTickData(m_integralValList.toVector());
-	myTicker->setAxis(m_nonlinearScaledPlot->xAxis);
-	m_nonlinearScaledPlot->xAxis->setTicker(myTicker);
-	m_nonlinearScaledPlot->xAxis2->setTicker(myTicker);
-	
 	m_nonlinearScaledPlot->clearGraphs();
-	QList<QPair<QString, QList<icData>>>::iterator it;
-	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme("Metro Colors (max. 20)");
-	QColor graphPenColor;
-	QPen graphPen;
-	graphPen.setWidth(2);  // For better perfromance setOpenGl(true) on qcustomplot;
-	int datasetIdx = 0;
+	showDebugPlot(calcNonLinearMapping(false));
+	QSharedPointer<iANonLinearAxisTicker> nonLinearTicker(new iANonLinearAxisTicker);
+	nonLinearTicker->setTickData(m_integralValList.toVector());
+	nonLinearTicker->setAxis(m_nonlinearScaledPlot->xAxis);
+	m_nonlinearScaledPlot->xAxis->setTicker(nonLinearTicker);
+	m_nonlinearScaledPlot->xAxis2->setTicker(nonLinearTicker);
 	std::vector<iAFunction<double, double> *> functions;
-	
-	for (it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
+	for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
-		if (m_DatasetIntensityMap.size() <= theme->size())
-		{
-			graphPenColor = theme->GetColor(datasetIdx);
-			++datasetIdx;
-		}
-		else
-		{
-			// https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-			float h = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			h += golden_ratio;
-			h = fmodf(h, 1.0);
-			graphPenColor = QColor::fromHsvF(h, 0.95, 0.95, 1.0);
-		}
-
 		m_nonlinearScaledPlot->addGraph();
 		m_nonlinearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
-		graphPen.setColor(graphPenColor);
-		m_nonlinearScaledPlot->graph()->setPen(graphPen);
+		m_nonlinearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
+			m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
 		m_nonlinearScaledPlot->graph()->setName(it->first);
 		QCPScatterStyle myScatter;
-		myScatter.setShape(QCPScatterStyle::ssDot);	// Check ssDisc to show single selected points
+		myScatter.setShape(QCPScatterStyle::ssDot);	 // Check ssDisc to show single selected points
 		myScatter.setSize(3.0);
 		m_nonlinearScaledPlot->graph()->setScatterStyle(myScatter);
 		QPen p = m_nonlinearScaledPlot->graph()->selectionDecorator()->pen();
 		p.setWidth(5);
-		p.setColor(QColor(255, 0, 0));	// Selection color: red
+		p.setColor(QColor(255, 0, 0));  // Selection color: red
 		m_nonlinearScaledPlot->graph()->selectionDecorator()->setPen(p);  
 
 		QSharedPointer<QCPGraphDataContainer> nonlinearScaledPlotData(new QCPGraphDataContainer);
-		iAFunction<double, double> * funct = new iAFunction<double, double>();
-		for (unsigned int i = 0; i < m_integralValList.size(); ++i)
+		auto * funct = new iAFunction<double, double>();
+		for (int i = 0; i < m_integralValList.size(); ++i)
 		{
 			nonlinearScaledPlotData->add(QCPGraphData(m_integralValList[i], it->second[i].intensity));
 			funct->insert(std::make_pair(m_integralValList[i], it->second[i].intensity));
@@ -357,19 +209,21 @@ void dlg_DatasetComparator::showLinePlots()
 
 	ModifiedDepthMeasure<double, double> measure;
 	auto functionalBoxplotData = new iAFunctionalBoxplot<double, double>(functions, &measure, 2);
-	createFBPGraphs(functionalBoxplotData);
+	setupFBPGraphs(functionalBoxplotData);
 
+	PlotsContainer_verticalLayout->addWidget(m_nonlinearScaledPlot);
 	m_nonlinearScaledPlot->graph(0)->rescaleAxes();
 	m_nonlinearScaledPlot->replot();
-	PlotsContainer_verticalLayout->addWidget(m_nonlinearScaledPlot);
 }
 
-void dlg_DatasetComparator::showDebugPlot()
+void dlg_DatasetComparator::showDebugPlot(bool show)
 {
+	if (!show) return;
+
 	m_helperPlot = new QCustomPlot(dockWidgetContents);
 	m_helperPlot->installEventFilter(this);
 	m_helperPlot->plotLayout()->insertRow(0);
-	QCPTextElement *title = new QCPTextElement(m_helperPlot, "DebugPlot", QFont("sans", 14));
+	auto *title = new QCPTextElement(m_helperPlot, "DebugPlot", QFont("sans", 14));
 	m_helperPlot->plotLayout()->addElement(0, 0, title);
 	m_helperPlot->setOpenGl(true);
 	m_helperPlot->setNoAntialiasingOnDrag(true);
@@ -391,12 +245,22 @@ void dlg_DatasetComparator::showDebugPlot()
 	m_helperPlot->xAxis2->setLabel("HilbertIdx");
 	m_helperPlot->yAxis2->setVisible(true);
 	m_helperPlot->yAxis2->setLabel("cummulative Importance");
-
-	QSharedPointer<QCPGraphDataContainer> impFuncPlotData(new QCPGraphDataContainer);
-	QSharedPointer<QCPGraphDataContainer> integralImpFuncPlotData(new QCPGraphDataContainer);
-	QList<double> integralValList;
-	QList<double> innerEnsembleDistList;
 	
+	m_helperPlot->addGraph();
+	m_helperPlot->graph()->setPen(QPen(Qt::blue));
+	m_helperPlot->graph()->setName("Importance Function");
+	m_helperPlot->graph()->setData(m_impFuncPlotData);
+	m_helperPlot->addGraph(m_helperPlot->xAxis2, m_helperPlot->yAxis2);
+	m_helperPlot->graph()->setPen(QPen(Qt::red));
+	m_helperPlot->graph()->setName("Cummulative Importance Function");
+	m_helperPlot->graph()->setData(m_integralImpFuncPlotData);
+	m_helperPlot->graph(0)->rescaleAxes();
+	m_helperPlot->replot();
+}
+
+bool dlg_DatasetComparator::calcNonLinearMapping(bool showDebugPlot)
+{
+	QList<double> innerEnsembleDistList;
 	for (int i = 0; i < m_DatasetIntensityMap[0].second.size(); ++i)
 	{
 		double innerEnsembleDist = 0.0;
@@ -408,8 +272,14 @@ void dlg_DatasetComparator::showDebugPlot()
 		innerEnsembleDist = maxLocalVal - minLocalVal;
 		innerEnsembleDistList.append(innerEnsembleDist);
 	}
-	
+
 	auto maxInnerEnsableDist = *std::max_element(std::begin(innerEnsembleDistList), std::end(innerEnsembleDistList));
+
+	if (showDebugPlot)
+	{
+		m_impFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
+		m_integralImpFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
+	}
 
 	for (int i = 0; i < m_DatasetIntensityMap[0].second.size(); ++i)
 	{
@@ -423,27 +293,20 @@ void dlg_DatasetComparator::showDebugPlot()
 		imp /= maxInnerEnsableDist;
 		//imp = pow(imp*2,-0.9);
 		imp = pow(imp * 2, 1.4);
-		integralValList.append(i == 0 ? imp : integralValList[i - 1] + imp);
-		impFuncPlotData->add(QCPGraphData(double(i), imp));
-		integralImpFuncPlotData->add(QCPGraphData(double(i), i == 0 ? imp : integralValList[i - 1] + imp));
+		m_integralValList.append(i == 0 ? imp : m_integralValList[i - 1] + imp);
+		if (showDebugPlot)
+		{
+			m_impFuncPlotData->add(QCPGraphData(double(i), imp));
+			m_integralImpFuncPlotData->add(QCPGraphData(double(i), i == 0 ? imp : m_integralValList[i - 1] + imp));
+		}
 	}
-	
-	m_helperPlot->addGraph();
-	m_helperPlot->graph()->setPen(QPen(Qt::blue));
-	m_helperPlot->graph()->setName("Importance Function");
-	m_helperPlot->graph()->setData(impFuncPlotData);
-	m_helperPlot->addGraph(m_helperPlot->xAxis2, m_helperPlot->yAxis2);
-	m_helperPlot->graph()->setPen(QPen(Qt::red));
-	m_helperPlot->graph()->setName("Cummulative Importance Function");
-	m_helperPlot->graph()->setData(integralImpFuncPlotData);
-	m_helperPlot->graph(0)->rescaleAxes();
-	m_helperPlot->replot();
+	return showDebugPlot;
 }
 
 void dlg_DatasetComparator::visualizePath()
 {
 	auto pts = vtkSmartPointer<vtkPoints>::New();
-	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
+	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
 	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
 	for (unsigned int i = 0; i < pathSteps; ++i)
 	{
@@ -549,7 +412,7 @@ void setVoxelIntensity(
 	*v = intensity;
 }
 
-void dlg_DatasetComparator::createFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData)
+void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData)
 {
 	QSharedPointer<QCPGraphDataContainer> fb_075Data(new QCPGraphDataContainer);
 	for (auto it = fbpData->getMedian().begin(); it != fbpData->getMedian().end(); ++it)
@@ -713,8 +576,8 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 
-	QStringList datasetsList = m_datasetsDir.entryList();
-	QList<QCPGraph *> selGraphsList = m_nonlinearScaledPlot->selectedGraphs();
+	auto datasetsList = m_datasetsDir.entryList();
+	auto selGraphsList = m_nonlinearScaledPlot->selectedGraphs();
 	QList<QCPGraph *> visSelGraphList;
 	for (auto selGraph : selGraphsList)
 		if (selGraph->visible())
@@ -726,9 +589,9 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
 	{
 		int idx = datasetsList.indexOf(visSelGraphList[i]->name());
-		QList<QCPDataRange> selHilberIndices = visSelGraphList[i]->selection().dataRanges();
-		unsigned int pathSteps = m_DatasetIntensityMap[idx].second.size(); 
-		QList<icData>  data = m_DatasetIntensityMap[idx].second;
+		auto selHilberIndices = visSelGraphList[i]->selection().dataRanges();
+		auto pathSteps = m_DatasetIntensityMap[idx].second.size(); 
+		auto  data = m_DatasetIntensityMap[idx].second;
 		int scalarType = m_imgDataList[idx]->GetScalarType();
 
 		if (selHilberIndices.size() < 1)
@@ -840,8 +703,8 @@ void dlg_DatasetComparator::legendClick(QCPLegend *legend, QCPAbstractLegendItem
 
 void dlg_DatasetComparator::setSelectionFromRenderer(vtkPoints *selCellPoints)
 {
-	unsigned int pathSteps = m_DatasetIntensityMap.at(0).second.size();
-	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
+	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
+	auto data = m_DatasetIntensityMap.at(0).second;
 	QList<bool> selHilbertIdxList;
 	for (int i = 0; i < pathSteps; ++i)
 	{

@@ -21,6 +21,7 @@
 #pragma once
 
 #include "qcustomplot.h"
+#include "iAColorTheme.h"
 
 #include <itkImageBase.h>
 #include <itkImage.h>
@@ -74,4 +75,25 @@ inline void updateLegendAndGraphVisibility(QCPPlottableLegendItem *plItem, float
 	c.setAlphaF(alpha);
 	plItem->setTextColor(c);
 	g->setVisible(visibility);
+}
+
+inline QPen getDatasetPen(int datasetIdx, int datasetCnt, int penWidth, QString themeName)
+{
+	auto theme = iAColorThemeManager::GetInstance().GetTheme(themeName);
+	QPen datasetPen; datasetPen.setWidth(penWidth);
+	QColor datasetColor;
+	if (datasetCnt <= theme->size())
+	{
+		datasetColor = theme->GetColor(datasetIdx);
+	}
+	else
+	{
+		// https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+		float h = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		h += golden_ratio;
+		h = fmodf(h, 1.0);
+		datasetColor = QColor::fromHsvF(h, 0.95, 0.95, 1.0);
+	}
+	datasetPen.setColor(datasetColor);
+	return datasetPen;
 }

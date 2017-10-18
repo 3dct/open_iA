@@ -75,11 +75,14 @@ private:
 	QSharedPointer<iAVolumeRenderer> m_volRen;
 	QList<QCPPlottableLegendItem*> m_selLegendItemList;
 	QList<double> m_integralValList;
+	QSharedPointer<QCPGraphDataContainer> m_impFuncPlotData;
+	QSharedPointer<QCPGraphDataContainer> m_integralImpFuncPlotData;
 	
 	void generateHilbertIdx();
-	void createFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData);
+	void setupFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData);
 	void setupQCustomPlot();
 	void setupGUIConnections();
 	void setupMultiRendererView();
-	void showDebugPlot();
+	void showDebugPlot(bool show);
+	bool calcNonLinearMapping(bool showDebugPlot);
 };
