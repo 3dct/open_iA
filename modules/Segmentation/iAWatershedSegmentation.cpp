@@ -64,7 +64,11 @@ IAFILTER_CREATE(iAWatershed)
 
 iAWatershed::iAWatershed() :
 	iAFilter("Watershed", "Segmentation/Based on Watershed",
-		"Both parameters <em>Threshold</em> and <em>Level</em> are percentage points of the maximum height value in the input (they must be in the interval [0..1])."
+		"Computes a watershed segmentation the input image.<br/>"
+		"As input image use for example a gradient magnitude image.<br/>"
+		"Both parameters <em>Threshold</em> and <em>Level</em> are percentage "
+		"points of the maximum height value in the input (they must be in the "
+		"interval [0..1]).<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html\">"
 		"Watershed filter</a> in the ITK documentation.")
@@ -112,8 +116,8 @@ IAFILTER_CREATE(iAMorphologicalWatershed)
 
 iAMorphologicalWatershed::iAMorphologicalWatershed() :
 	iAFilter("Morphological Watershed", "Segmentation/Based on Watershed",
-		"<p><font size=+1>Calculates the Morphological Watershed Transformation.</font></p>"
-		"<p>As input image use for example a gradient magnitude image.<br/>"
+		"Calculates the Morphological Watershed Transformation.<br/>"
+		"As input image use for example a gradient magnitude image.<br/>"
 		"<em>Mark WS Line</em> labels watershed lines with 0, background with 1.<br/>"
 		"For further information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MorphologicalWatershedImageFilter.html\">"

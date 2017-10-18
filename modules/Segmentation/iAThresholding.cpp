@@ -77,6 +77,7 @@ void iABinaryThreshold::Run(QMap<QString, QVariant> const & parameters)
 
 iABinaryThreshold::iABinaryThreshold() :
 	iAFilter("Binary Thresholding", "Segmentation/Global Thresholding",
+		"Computes a segmented image based on whether the intensity is inside a given interval.<br/>"
 		"Two thresholds (lower, upper) can be specified; "
 		"if a voxel value is between these two (including the threshold values themselves), "
 		"then the output is set to the <em>inside</em> value at this voxel, "
@@ -212,8 +213,9 @@ void iAOtsuThreshold::Run(QMap<QString, QVariant> const & parameters)
 
 iAOtsuThreshold::iAOtsuThreshold() :
 	iAFilter("Otsu Threshold", "Segmentation/Global Thresholding",
-		"Creates an image segmented into foreground (inside value) and background (outside value) using Otsu's method, "
-		"which tries to maximize the between-class variance using a histogram.<br/>"
+		"Creates an segmented image using Otsu's method.<br/>"
+		"The result is segmented into foreground (inside value) and background (outside value), "
+		"the method tries to maximize the between-class variance using a histogram.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
 		"Otsu Threshold Filter</a> in the ITK documentation.")

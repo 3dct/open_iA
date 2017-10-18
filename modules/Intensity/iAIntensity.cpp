@@ -73,7 +73,7 @@ IAFILTER_CREATE(iAInvertIntensityFilter)
 
 iAInvertIntensityFilter::iAInvertIntensityFilter() :
 	iAFilter("Invert", "Intensity",
-		"Inverts all intensity values in the image, by subtracting each voxel value from a maximum. "
+		"Inverts all intensity values in the image, by subtracting each voxel value from a maximum.<br/>"
 		"If you <em>Set Maximum</em>, then the <em>Maximum</em> value will be used, otherwise it "
 		"defaults to the maximum of the input pixel type.<br/>"
 		"For more information, see the "
