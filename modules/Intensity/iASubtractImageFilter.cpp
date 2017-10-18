@@ -42,7 +42,7 @@
 * \return	int Status-Code. 
 */
 template<class T> 
-int subtract_image_template( iAProgress* p, iAConnector** images  )
+int subtract_image_template( iAProgress* p, QVector<iAConnector*> images  )
 {
 	typedef itk::Image< T, 3 > InputImageType;
 	typedef itk::Image< T, 3 > OutputImageType;
@@ -71,8 +71,8 @@ iASubtractImageFilter::iASubtractImageFilter( QString fn, vtkImageData* i, vtkPo
 
 void iASubtractImageFilter::performWork()
 {
-	getFixedConnector()->SetImage(m_Image); getFixedConnector()->Modified();
+	AddImage(m_Image);
 	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	ITK_TYPED_CALL(subtract_image_template, itkType,
-		getItkProgress(), getConnectorArray());
+		getItkProgress(), Connectors());
 }

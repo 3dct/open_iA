@@ -23,11 +23,13 @@
 #include "iAConsole.h"
 #include "iAAttributeDescriptor.h"
 
-iAFilter::iAFilter(QString const & name, QString const & category, QString const & description):
+iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
+	unsigned int requiredInputs):
 	m_name(name),
 	m_category(category),
 	m_description(description),
-	m_log(iAStdOutLogger::Get())
+	m_log(iAStdOutLogger::Get()),
+	m_requiredInputs(requiredInputs)
 {}
 
 iAFilter::~iAFilter()
@@ -59,11 +61,23 @@ QVector<pParameter> const & iAFilter::Parameters() const
 	return m_parameters;
 }
 
-void iAFilter::SetUp(iAConnector* con, iALogger* log, iAProgress* progress)
+unsigned int iAFilter::RequiredInputs() const
 {
-	m_con = con;
+	return m_requiredInputs;
+}
+
+bool iAFilter::SetUp(QVector<iAConnector*> const & con, iALogger* log, iAProgress* progress)
+{
+	if (con.size() < m_requiredInputs)
+	{
+		log->Log(QString("Not enough inputs specified, filter %1 requires %2 input images!").arg(m_name).arg(m_requiredInputs));
+		return false;
+	}
+	m_cons = con;
+	m_con = con[0];
 	m_log = log;
 	m_progress = progress;
+	return true;
 }
 
 bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)

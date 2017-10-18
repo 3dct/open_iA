@@ -40,166 +40,129 @@
 #include <QLocale>
 
 template<class T>
-int histomatch_template( int histogramLevels, int matchPoints, bool ThresholdAtMeanIntensity,  iAProgress* p, iAConnector* image2, iAConnector* image )
+void histomatch_template( int histogramLevels, int matchPoints, bool ThresholdAtMeanIntensity,  iAProgress* p, QVector<iAConnector*> images)
 {
 	typedef itk::Image< T, DIM > ImageType;
-
 	typedef double InternalPixelType;
 	typedef itk::Image< InternalPixelType, DIM > InternalImageType;
 	typedef itk::CastImageFilter< ImageType, InternalImageType > FixedImageCasterType;
 	typedef itk::CastImageFilter< ImageType, InternalImageType > MovingImageCasterType;
-	typename FixedImageCasterType::Pointer fixedImageCaster = FixedImageCasterType::New();
-	typename MovingImageCasterType::Pointer movingImageCaster = MovingImageCasterType::New();
-	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
-	movingImageCaster->SetInput( dynamic_cast< ImageType * >( image2->GetITKImage() ) );
-
 	typedef itk::HistogramMatchingImageFilter<InternalImageType, InternalImageType > MatchingFilterType;
-	MatchingFilterType::Pointer matcher = MatchingFilterType::New();
+
+	auto fixedImageCaster = FixedImageCasterType::New();
+	auto movingImageCaster = MovingImageCasterType::New();
+	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( images[0]->GetITKImage() ) );
+	movingImageCaster->SetInput( dynamic_cast< ImageType * >( images[1]->GetITKImage() ) );
+	auto matcher = MatchingFilterType::New();
 	matcher->SetInput( movingImageCaster->GetOutput() );
 	matcher->SetReferenceImage( fixedImageCaster->GetOutput() );
 	matcher->SetNumberOfHistogramLevels( histogramLevels );
 	matcher->SetNumberOfMatchPoints( matchPoints );
 	matcher->ThresholdAtMeanIntensityOn();
-
 	p->Observe( matcher );
 	matcher->Update();
-	image->SetImage( matcher->GetOutput() );
-	image->Modified();
-
+	images[0]->SetImage( matcher->GetOutput() );
+	images[0]->Modified();
 	matcher->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-template<class T>
-int normalize_template(iAProgress* p, iAConnector* image )
+template<class T> void normalize_template(iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
-	typename NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
+
+	auto normalizeFilter = NormalizeFilterType::New();
 	normalizeFilter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
 	normalizeFilter->Update( );
-
 	p->Observe( normalizeFilter );
 	normalizeFilter->Update();
 	image->SetImage( normalizeFilter->GetOutput() );
 	image->Modified();
-
 	normalizeFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class T> 
-int intensity_windowing_template( double wmin, double wmax, double omin, double omax, iAProgress* p, iAConnector* image )
+void intensity_windowing_template( double wmin, double wmax, double omin, double omax, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::IntensityWindowingImageFilter <ImageType, ImageType> IntensityWindowingImageFilterType;
-	typename IntensityWindowingImageFilterType::Pointer intensityWindowingFilter = IntensityWindowingImageFilterType::New();
+
+	auto intensityWindowingFilter = IntensityWindowingImageFilterType::New();
 	intensityWindowingFilter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
 	intensityWindowingFilter->SetWindowMinimum( wmin );
 	intensityWindowingFilter->SetWindowMaximum( wmax );
 	intensityWindowingFilter->SetOutputMinimum( omin );
 	intensityWindowingFilter->SetOutputMaximum( omax );
 	intensityWindowingFilter->Update();
-
 	p->Observe( intensityWindowingFilter );
 	intensityWindowingFilter->Update();
 	image->SetImage( intensityWindowingFilter->GetOutput() );
 	image->Modified();
-
 	intensityWindowingFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-template<class T>
-int rescaleImage_template(double outMin, double outMax, iAProgress* p, iAConnector* image)
+
+template<class T> void rescaleImage_template(double outMin, double outMax, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
-
 	typedef itk::RescaleIntensityImageFilter< InputImageType, OutputImageType > RescalerType;
-	typename RescalerType::Pointer filter = RescalerType::New();
-
+	
+	auto filter = RescalerType::New();
 	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-
 	filter->SetOutputMinimum(outMin);
 	filter->SetOutputMaximum(outMax);
-
 	p->Observe(filter);
 	filter->Update();
-
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-template<class T> 
-int mask_template( iAProgress* p, iAConnector* image2, iAConnector* image )
+template<class T> void mask_template( iAProgress* p, QVector<iAConnector*> images)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::MaskImageFilter< ImageType, ImageType > MaskFilterType;
-	typename MaskFilterType::Pointer filter = MaskFilterType::New();
-	filter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
-	filter->SetMaskImage( dynamic_cast< ImageType * >( image2->GetITKImage() ) );
 
+	auto filter = MaskFilterType::New();
+	filter->SetInput( dynamic_cast< ImageType * >( images[0]->GetITKImage() ) );
+	filter->SetMaskImage( dynamic_cast< ImageType * >( images[1]->GetITKImage() ) );
 	p->Observe( filter );
 	filter->Update();
-	image->SetImage( filter->GetOutput() );
-	image->Modified();
-
+	images[0]->SetImage( filter->GetOutput() );
+	images[0]->Modified();
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-template<class T> 
-int difference_template( double DifferenceThreshold, double ToleranceRadius, iAProgress* p, iAConnector* image2, iAConnector* image )
+template<class T> void difference_template( double DifferenceThreshold, double ToleranceRadius, iAProgress* p, QVector<iAConnector*> images)
 {
 	typedef itk::Image< T, DIM > ImageType;
-
 	typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> FilterType;
 
-
-	typename FilterType::Pointer filter = FilterType::New();
-
+	auto filter = FilterType::New();
 	filter->SetDifferenceThreshold(DifferenceThreshold);
 	filter->SetToleranceRadius(ToleranceRadius);
-
-	filter->SetInput(dynamic_cast< ImageType * >( image->GetITKImage() ) );
-	filter->SetInput(1,dynamic_cast< ImageType * >( image2->GetITKImage() ) );
-
-
+	filter->SetInput(dynamic_cast< ImageType * >( images[0]->GetITKImage() ) );
+	filter->SetInput(1, dynamic_cast< ImageType * >( images[1]->GetITKImage() ) );
 	p->Observe( filter );
 	filter->Update(); 
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-
+	images[0]->SetImage(filter->GetOutput());
+	images[0]->Modified();
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-template<class T> int invert_intensity_template(  iAProgress* p, iAConnector* image )
+template<class T> void invert_intensity_template(  iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, DIM > ImageType;
-
 	typedef itk::InvertIntensityImageFilter< ImageType, ImageType> FilterType;
-	typename FilterType::Pointer filter = FilterType::New();
-	filter->SetInput(0, dynamic_cast< ImageType * >( image->GetITKImage() ) );
-
+	
+	auto filter = FilterType::New();
+	filter->SetInput(0, dynamic_cast< ImageType * >(image->GetITKImage() ) );
 	p->Observe( filter );
 	filter->Update(); 
 	image->SetImage(filter->GetOutput());
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 iAIntensity::iAIntensity( QString fn, iAIntensityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
@@ -213,18 +176,16 @@ void iAIntensity::performWork()
 	switch (m_type)
 	{
 	case DIFFERENCE_IMAGE:
-		getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
+		AddImage(image2);
 		ITK_TYPED_CALL(difference_template, itkType,
-			DifferenceThreshold, ToleranceRadius, getItkProgress(), getFixedConnector(), getConnector());
+			DifferenceThreshold, ToleranceRadius, getItkProgress(), Connectors());
 		break;
 	case INVERT_INTENSITY:
-		ITK_TYPED_CALL(invert_intensity_template, itkType,
-			getItkProgress(), getConnector());
+		ITK_TYPED_CALL(invert_intensity_template, itkType, getItkProgress(), getConnector());
 		break;
 	case MASK_IMAGE:
-		getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
-		ITK_TYPED_CALL(mask_template, itkType,
-			getItkProgress(), getFixedConnector(), getConnector());
+		AddImage(image2);
+		ITK_TYPED_CALL(mask_template, itkType, getItkProgress(), Connectors());
 		break;
 	case INTENSITY_WINDOWING:
 		ITK_TYPED_CALL(intensity_windowing_template, itkType,
@@ -234,9 +195,9 @@ void iAIntensity::performWork()
 		ITK_TYPED_CALL(normalize_template, itkType, getItkProgress(), getConnector());
 		break;
 	case HISTOGRAM_MATCH:
-		getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
+		AddImage(image2);
 		ITK_TYPED_CALL(histomatch_template, itkType,
-			histogramLevels, matchPoints, thresholdAtMeanIntensity, getItkProgress(), getFixedConnector(), getConnector());
+			histogramLevels, matchPoints, thresholdAtMeanIntensity, getItkProgress(), Connectors());
 		break;
 	case RESCALE_IMAGE:
 		ITK_TYPED_CALL(rescaleImage_template, itkType,

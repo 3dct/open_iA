@@ -27,14 +27,18 @@
 #include "dlg_commoninput.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
+#include "iALogger.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
 
+#include <QMdiSubWindow>
+#include <QMessageBox>
 #include <QSharedPointer>
 #include <QString>
 #include <QTextDocument>
+#include <QVariant>
 
 class iAFilter;
 
@@ -53,7 +57,11 @@ iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter
 
 void iAFilterRunnerGUIThread::performWork()
 {
-	m_filter->SetUp(getConnector(), qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress());
+	if (!m_filter->SetUp(Connectors(), qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress()))
+	{
+		qobject_cast<MdiChild*>(parent())->getLogger()->Log("Filter SetUp failed!");
+		return;
+	}
 	m_filter->Run(m_paramValues);
 }
 
@@ -127,6 +135,20 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	auto params = filter->Parameters();
 	QStringList dlgParamNames;
 	QList<QVariant> dlgParamValues;
+	QVector<MdiChild*> otherMdis;
+	for (auto childWin : mainWnd->MdiChildList())
+	{
+		auto mdi = qobject_cast<MdiChild*>(childWin->widget());
+		if (mdi != mainWnd->activeMdiChild())	// TODO: check if this is the window that was active when the filter was started, exclude from list
+			otherMdis.push_back(mdi);
+	}	
+	if (filter->RequiredInputs() > (otherMdis.size()+1) )
+	{
+		QMessageBox::warning(mainWnd, filter->Name(),
+			QString("This filter requires %1 datasets, only %2 open file(s)!")
+			.arg(filter->RequiredInputs()).arg(otherMdis.size()+1));
+		return false;
+	}
 	for (auto param : params)
 	{
 		dlgParamNames << (ValueTypePrefix(param->ValueType()) + param->Name());
@@ -142,6 +164,19 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		else
 		{
 			dlgParamValues << paramValues[param->Name()];
+		}
+	}
+	if (filter->RequiredInputs() > 1)
+	{
+		QStringList mdiChildrenNames;
+		for (auto mdi: otherMdis)
+		{
+			mdiChildrenNames << mdi->windowTitle().replace("[*]", "");
+		}
+		for (int i = 0; i < filter->RequiredInputs()-1; ++i)
+		{
+			dlgParamNames << QString("+Additional Input %1").arg(i+1);
+			dlgParamValues << mdiChildrenNames;
 		}
 	}
 	QTextDocument *fDescr = new QTextDocument(0);
@@ -164,6 +199,16 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		}
 		paramValues[param->Name()] = value;
 		++idx;
+	}
+	if (filter->RequiredInputs() > 1)
+	{
+		for (int i = 0; i < filter->RequiredInputs()-1; ++i)
+		{
+			int mdiIdx = dlg.getComboBoxIndex(idx);
+			m_additionalInput.push_back(otherMdis[mdiIdx]->getImageData());
+			++idx;
+
+		}
 	}
 	return true;
 }
@@ -191,6 +236,10 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
 		return;
+	}
+	for (auto img : m_additionalInput)
+	{
+		thread->AddImage(img);
 	}
 	ConnectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->Name());

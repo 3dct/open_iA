@@ -24,13 +24,18 @@
 
 #include "iAAlgorithm.h"
 
+#include <vtkSmartPointer.h>
+
 #include <QMap>
 #include <QSharedPointer>
 #include <QVariant>
+#include <QVector>
 
 class iAFilter;
 class MainWindow;
 class MdiChild;
+
+class vtkImageData;
 
 //! GUI Runner Thread for descendants of iAFilter
 //!
@@ -102,4 +107,6 @@ signals:
 	//! Signal which by default (in the default ConnectThreadSignals) is connected
 	//! to be emitted at the end of the filter thread run
 	void finished();
+private:
+	QVector<vtkSmartPointer<vtkImageData> > m_additionalInput;
 };

@@ -38,25 +38,25 @@
 #include <QLocale>
 
 template<class T>
-int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector* image, bool ms, bool nc, bool mi, int miHistoBins,
+void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, bool ms, bool nc, bool mi, int miHistoBins,
 	double &msVal, double &ncVal, double &entr1, double &entr2, double &jointEntr, double &mutInf, double &norMutInf1, double &norMutInf2)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::TranslationTransform < double, DIM > TransformType;
-	typename TransformType::Pointer transform = TransformType::New();
-	transform->SetIdentity();
 	typedef itk::LinearInterpolateImageFunction<ImageType, double >	InterpolatorType;
-	typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-	interpolator->SetInputImage(dynamic_cast<ImageType *>(image->GetITKImage()));
+	auto transform = TransformType::New();
+	transform->SetIdentity();
+	auto interpolator = InterpolatorType::New();
+	interpolator->SetInputImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
 	TransformType::ParametersType params(transform->GetNumberOfParameters());
 
 	if (ms)
 	{
 		typedef itk::MeanSquaresImageToImageMetric<	ImageType, ImageType > MSMetricType;
-		typename MSMetricType::Pointer msmetric = MSMetricType::New();
-		msmetric->SetFixedImage(dynamic_cast<ImageType *>(image->GetITKImage()));
-		msmetric->SetFixedImageRegion(dynamic_cast<ImageType *>(image->GetITKImage())->GetLargestPossibleRegion());
-		msmetric->SetMovingImage(dynamic_cast<ImageType *>(image2->GetITKImage()));
+		auto msmetric = MSMetricType::New();
+		msmetric->SetFixedImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
+		msmetric->SetFixedImageRegion(dynamic_cast<ImageType *>(images[0]->GetITKImage())->GetLargestPossibleRegion());
+		msmetric->SetMovingImage(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
 		msmetric->SetTransform(transform);
 		msmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
@@ -66,10 +66,10 @@ int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector
 	if (nc)
 	{
 		typedef itk::NormalizedCorrelationImageToImageMetric< ImageType, ImageType > NCMetricType;
-		typename NCMetricType::Pointer ncmetric = NCMetricType::New();
-		ncmetric->SetFixedImage(dynamic_cast<ImageType *>(image->GetITKImage()));
-		ncmetric->SetFixedImageRegion(dynamic_cast<ImageType *>(image->GetITKImage())->GetLargestPossibleRegion());
-		ncmetric->SetMovingImage(dynamic_cast<ImageType *>(image2->GetITKImage()));
+		auto ncmetric = NCMetricType::New();
+		ncmetric->SetFixedImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
+		ncmetric->SetFixedImageRegion(dynamic_cast<ImageType *>(images[0]->GetITKImage())->GetLargestPossibleRegion());
+		ncmetric->SetMovingImage(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
 		ncmetric->SetTransform(transform);
 		ncmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
@@ -80,14 +80,14 @@ int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector
 	{
 		//ITK-Example: https://itk.org/Doxygen/html/Examples_2Statistics_2ImageMutualInformation1_8cxx-example.html
 		typedef itk::JoinImageFilter< ImageType, ImageType > JoinFilterType;
-		typename JoinFilterType::Pointer joinFilter = JoinFilterType::New();
-		joinFilter->SetInput1(dynamic_cast<ImageType *>(image->GetITKImage()));
-		joinFilter->SetInput2(dynamic_cast<ImageType *>(image2->GetITKImage()));
+		auto joinFilter = JoinFilterType::New();
+		joinFilter->SetInput1(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
+		joinFilter->SetInput2(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
 		joinFilter->Update();
 
 		typedef typename JoinFilterType::OutputImageType  VectorImageType;
 		typedef itk::Statistics::ImageToHistogramFilter<VectorImageType >  HistogramFilterType;
-		typename HistogramFilterType::Pointer histogramFilter = HistogramFilterType::New();
+		auto histogramFilter = HistogramFilterType::New();
 		histogramFilter->SetInput(joinFilter->GetOutput());
 		histogramFilter->SetMarginalScale(10.0);
 		typedef typename HistogramFilterType::HistogramSizeType   HistogramSizeType;
@@ -109,8 +109,8 @@ int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector
 		histogramFilter->Update();
 		typedef typename HistogramFilterType::HistogramType  HistogramType;
 		const HistogramType * histogram = histogramFilter->GetOutput();
-		typename HistogramType::ConstIterator itr = histogram->Begin();
-		typename HistogramType::ConstIterator end = histogram->End();
+		auto itr = histogram->Begin();
+		auto end = histogram->End();
 		const double Sum = histogram->GetTotalFrequency();
 
 		while (itr != end)
@@ -162,7 +162,6 @@ int similarity_metrics_template( iAProgress* p, iAConnector* image2, iAConnector
 		norMutInf1 = 2.0 * mutInf / (entr1 + entr2);
 		norMutInf2 = (entr1 + entr2) / jointEntr;
 	}
-	return EXIT_SUCCESS;
 }
 
 
@@ -187,14 +186,14 @@ void iASimilarity::calcSimilarityMetrics()
 		.arg(getFilterName()));
 
 	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	getFixedConnector()->SetImage(image2); getFixedConnector()->Modified();
+	AddImage(image2);
 	double msVal = 0.0, ncVal = -1.0, entr1Val = 0.0, entr2Val = 0.0, jointEntrVal = 0.0, mutInfVal = 0.0, norMutInf1Val = 0.0, norMutInf2Val = 0.0;
 	
 	try
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 
-		ITK_TYPED_CALL(similarity_metrics_template, itkType, getItkProgress(), getFixedConnector(), getConnector(),
+		ITK_TYPED_CALL(similarity_metrics_template, itkType, getItkProgress(), Connectors(),
 			meanSqaures, normalizedCorrelation, mutualInformation, miHistoBins, msVal, ncVal, entr1Val, entr2Val, jointEntrVal, mutInfVal, norMutInf1Val, norMutInf2Val);
 	}
 	catch (itk::ExceptionObject &excep)

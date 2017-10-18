@@ -44,28 +44,13 @@ const QString iAGeometricTransformations::InterpBSpline("BSpline");
 const QString iAGeometricTransformations::InterpWindowedSinc("Windowed Sinc");
 
 
-/**
-* template extractImage
-* 
-* This template extracts a subimage, allowing a reduction of dimensions. 
-* \param	indexX	The index x coordinate. 
-* \param	indexY	The index y coordinate. 
-* \param	indexZ	The index z coordinate. 
-* \param	sizeX	The size x coordinate. 
-* \param	sizeY	The size y coordinate. 
-* \param	sizeZ	The size z coordinate. 
-* \param	p		If non-null, the. 
-* \param	image	If non-null, the image.
-* \param	T		Template datatype.
-* \return	int Status-Code. 
-*/
 template<class T> 
-int extractImage_template( double indexX, double indexY, double indexZ, double sizeX, double sizeY, double sizeZ, iAProgress* p, iAConnector* image  )
+void extractImage_template( double indexX, double indexY, double indexZ, double sizeX, double sizeY, double sizeZ, iAProgress* p, iAConnector* image  )
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
 	typedef itk::ExtractImageFilter< InputImageType, OutputImageType > EIFType;
-	typename EIFType::Pointer filter = EIFType::New();
+	auto filter = EIFType::New();
 
 	typename EIFType::InputImageRegionType::SizeType size; size[0] = sizeX; size[1] = sizeY; size[2] = sizeZ;
 	typename EIFType::InputImageRegionType::IndexType index; index[0] = indexX; index[1] = indexY; index[2] = indexZ;
@@ -84,48 +69,27 @@ int extractImage_template( double indexX, double indexY, double indexZ, double s
 	typename OutputImageType::RegionType outreg;
 	outreg.SetIndex(idx); 
 	outreg.SetSize(outsize);
-	typename OutputImageType::Pointer refimage = OutputImageType::New();
+	auto refimage = OutputImageType::New();
 	refimage->SetRegions(outreg);
 	refimage->SetOrigin(origin);
 	refimage->SetSpacing(filter->GetOutput()->GetSpacing());
 	refimage->Allocate();
 
 	typedef itk::ChangeInformationImageFilter<OutputImageType> CIIFType;
-	typename CIIFType::Pointer changefilter = CIIFType::New();
+	auto changefilter = CIIFType::New();
 	changefilter->SetInput(filter->GetOutput());
 	changefilter->UseReferenceImageOn();
 	changefilter->SetReferenceImage(refimage);
 	changefilter->SetChangeRegion(1);
 	changefilter->Update( );
-
 	image->SetImage( changefilter->GetOutput() );
 	image->Modified();
-
 	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
-/**
-* template resampler
-* 
-* This template resamples a grid. 
-* \param	originX		The origin x coordinate. 
-* \param	originY		The origin y coordinate. 
-* \param	originZ		The origin z coordinate. 
-* \param	spacingX	The spacing x coordinate. 
-* \param	spacingY	The spacing y coordinate. 
-* \param	spacingZ	The spacing z coordinate. 
-* \param	sizeX		The size x coordinate. 
-* \param	sizeY		The size y coordinate. 
-* \param	sizeZ		The size z coordinate. 
-* \param	p			If non-null, the. 
-* \param	image		If non-null, the image. 
-* \param				The. 
-* \return	int Status-Code. 
-*/
+
 template<class T> 
-int resampler_template(
+void resampler_template(
 	double originX, double originY, double originZ,
 	double spacingX, double spacingY, double spacingZ,
 	double sizeX, double sizeY, double sizeZ,
@@ -176,15 +140,11 @@ int resampler_template(
 	resampler->SetOutputSpacing( spacing );
 	resampler->SetSize( size );
 	resampler->SetDefaultPixelValue( 0 );
-
 	p->Observe( resampler );
 	resampler->Update( );
 	image->SetImage( resampler->GetOutput() );
 	image->Modified();
-
 	resampler->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 iAGeometricTransformations::iAGeometricTransformations( QString fn, iAGeometricTransformationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )

@@ -73,7 +73,7 @@ void CalculateRW_template(
 
 template <typename ImagePixelType>
 void CalculateERW_template(
-	iAConnector** connectors,
+	QVector<iAConnector*> connectors,
 	int connectorCount
 	)
 {
@@ -130,8 +130,7 @@ private:
 	virtual void performWork()
 	{
 		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		ITK_TYPED_CALL(CalculateERW_template, itkType,
-			getConnectorArray(), m_priorCount + 1);
+		ITK_TYPED_CALL(CalculateERW_template, itkType, Connectors(), m_priorCount + 1);
 	}
 };
 

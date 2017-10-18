@@ -107,7 +107,6 @@ public:
 	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
 	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	int SelectInputs(QString winTitel, QStringList inList, int * out_inputIndxs, bool modal = true);
 	void addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);

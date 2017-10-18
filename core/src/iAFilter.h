@@ -60,7 +60,8 @@ public:
 	//!     When left empty, the filter will be added directly in the Filter menu
 	//! @param description An (optional) description of the filter algorithm, and
 	//!     ideally its settings. Can contain HTML (e.g. links)
-	iAFilter(QString const & name, QString const & category, QString const & description);
+	iAFilter(QString const & name, QString const & category, QString const & description,
+		unsigned int requiredInputs = 1);
 	//! Destructor
 	virtual ~iAFilter();
 	//! Retrieve the filter name
@@ -76,7 +77,7 @@ public:
 	QVector<pParameter> const & Parameters() const;
 	//! Used internally by the filter runner to set up the resources required in the
 	//! filter
-	void SetUp(iAConnector* con, iALogger* logger, iAProgress* progress);
+	bool SetUp(QVector<iAConnector*> const & cons, iALogger* logger, iAProgress* progress);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with
@@ -101,6 +102,10 @@ public:
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
+	//! Returns the number of image inputs required by this algorithm;
+	//! for typical image filters, this returns 1.
+	//! @return the number of images required as input
+	unsigned int RequiredInputs() const;
 protected:
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
@@ -108,6 +113,8 @@ protected:
 	void AddMsg(QString msg);
 	//! An accessor to the image to be processed by the filter
 	iAConnector* m_con;
+	//! An accessor to all input images (if more than one input is required
+	QVector<iAConnector*> m_cons;
 	//! The class that is watched for progress. Typically you will call
 	//! m_progress->Observe(someItkFilter) to set up the progress observation
 	iAProgress* m_progress;
@@ -115,6 +122,7 @@ private:
 	QVector<pParameter> m_parameters;
 	QString m_name, m_category, m_description;
 	iALogger* m_log;
+	unsigned int m_requiredInputs;
 };
 
 //! Convenience Macro for creating the static Create method for your filter

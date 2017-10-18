@@ -2217,34 +2217,6 @@ QList<QMdiSubWindow*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
 }
 
 
-int MainWindow::SelectInputs( QString winTitel, QStringList inList, int * out_inputIndxs, bool modal /*= true*/ )
-{
-	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
-	//check if sufficient number of datasets are opened
-	if (mdiwindows.size() == 0)
-	{
-		QMessageBox::warning(this, winTitel, tr("At least one dataset should be opened. Please open the dataset."));
-		return QDialog::Rejected;
-	}
-	QList<QVariant> inPara;
-	QStringList mdiChildrenNames;
-	for (int childInd=0; childInd<mdiwindows.size(); childInd++)
-		mdiChildrenNames << mdiwindows.at(childInd)->windowTitle();
-	for (int inputInd = 0; inputInd<inList.size(); inputInd++)
-		inPara << mdiChildrenNames;
-
-	dlg_commoninput inputs(this, winTitel + ": Inputs Selection", inList, inPara, NULL);
-	if( QDialog::Accepted == inputs.exec() )
-	{
-		for (int inputInd = 0; inputInd<inList.size(); inputInd++)
-			out_inputIndxs[inputInd] = inputs.getComboBoxIndex(inputInd);
-		return QDialog::Accepted;
-	}
-
-	return QDialog::Rejected;
-}
-
-
 void MainWindow::groupActions()
 {
 	slicerToolsGroup->setExclusive(false);

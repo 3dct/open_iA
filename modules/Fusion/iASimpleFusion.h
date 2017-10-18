@@ -20,16 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-
-class iASimpleFusion : public iAAlgorithm
+class iAAddImage : public iAFilter
 {
 public:
-	iASimpleFusion( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	void setInput2(vtkImageData* i2) { image2 = i2; }
-protected:
-	virtual void performWork();
+	static QSharedPointer<iAAddImage> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
 private:
-	vtkImageData* image2;
+	iAAddImage();
 };

@@ -65,10 +65,8 @@ public:
 	vtkImageData* getVtkImageData();
 	vtkPolyData* getVtkPolyData();
 	iAConnector* getConnector() const;
-	iAConnector* getFixedConnector() const;
-	iAConnector* getConnector(int c);
-	iAConnector *const * getConnectorArray() const;
-	iAConnector ** getConnectorArray();
+	void AddImage(vtkImageData* i);
+	QVector<iAConnector*> const Connectors() const;
 	bool deleteConnector(iAConnector* c);
 	void allocConnectors(int size);
 
@@ -108,7 +106,5 @@ private:
 	vtkPolyData *m_polyData;
 	iAProgress *m_itkProgress;
 	iALogger * m_logger;
-	QMutex m_mutex;
-	QWaitCondition m_condition;
 	QVector<iAConnector*> m_connectors;
 };

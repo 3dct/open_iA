@@ -21,57 +21,53 @@
 #include "pch.h"
 #include "iASimpleFusion.h"
 
+#include "defines.h" // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
-#include <vtkImageData.h>
-
 #include <itkAddImageFilter.h>
 
-#include <QLocale>
-
-/**
-* Fuses two images using  itk::AddImageFilter.
-* \param	p				If non-null, the.
-* \param [in,out]	image2	If non-null, the second image.
-* \param	image			If non-null, the image.
-* \param					The.
-* \return	int Status-Code.
-*/
-template<class T> 
-int addImages_template(iAProgress* p, iAConnector* image2, iAConnector* image)
+template<class T> void addImages_template(iAProgress* p, QVector<iAConnector*> images, bool &ok)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
-	typedef itk::AddImageFilter< InputImageType, InputImageType, OutputImageType> AddImageFilter;
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::AddImageFilter<InputImageType, InputImageType> AddImageFilter;
 
-	typename AddImageFilter::Pointer fusion = AddImageFilter::New();
+	auto fusion = AddImageFilter::New();
 	fusion->InPlaceOff();
-	//fusion->ReleaseDataFlagOn();
-	InputImageType * input1 = dynamic_cast<InputImageType *>(image->GetITKImage());
-	InputImageType * input2 = dynamic_cast<InputImageType *>(image2->GetITKImage());
-	fusion->SetInput1(input1);
-	fusion->SetInput2(input2);
-
+	auto img1 = dynamic_cast<InputImageType *>(images[0]->GetITKImage());
+	auto img2 = dynamic_cast<InputImageType *>(images[1]->GetITKImage());
+	if (!img2)
+	{
+		ok = false;
+		return;
+	}
+	fusion->SetInput1(img1);
+	fusion->SetInput2(img2);
 	p->Observe(fusion);
 	fusion->Update();
-
-	image->SetImage(fusion->GetOutput());
-	image->Modified();
-
-	return EXIT_SUCCESS;
+	images[0]->SetImage(fusion->GetOutput());
+	images[0]->Modified();
+	ok = true;
 }
 
-iASimpleFusion::iASimpleFusion( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, i, p, logger, parent )
-{}
-
-void iASimpleFusion::performWork()
+void iAAddImage::Run(QMap<QString, QVariant> const & parameters)
 {
-	getFixedConnector()->SetImage(image2);
-	getFixedConnector()->Modified();
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(addImages_template, itkType,
-		getItkProgress(), getFixedConnector(), getConnector());
+	bool ok;
+	ITK_TYPED_CALL(addImages_template, m_con->GetITKScalarPixelType(), m_progress, m_cons, ok);
+	if (!ok)
+	{
+		AddMsg("Images to be added need to be of the same type!");
+	}
+}
+
+IAFILTER_CREATE(iAAddImage)
+
+iAAddImage::iAAddImage() :
+	iAFilter("Add Images", "Intensity",
+		"Adds the intensities at each element of the two given images.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AddImageFilter.html\">"
+		"Add Image Filter</a> in the ITK documentation.", 2)
+{	// no parameters
 }

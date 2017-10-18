@@ -24,9 +24,5 @@
 
 class iAFusionModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-public:
 	void Initialize();
-private slots:
-	void addImages();
 };

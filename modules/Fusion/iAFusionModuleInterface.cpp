@@ -19,46 +19,13 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-
 #include "iAFusionModuleInterface.h"
-#include "iASimpleFusion.h"
-#include "mainwindow.h"
-#include "mdichild.h"
 
-#include <QDialog>
-#include <QMdiSubWindow>
+#include "iASimpleFusion.h"
+
+#include "iAFilterRegistry.h"
 
 void iAFusionModuleInterface::Initialize()
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * filterMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuFusion = getMenuWithTitle(filterMenu, QString( "Fusion" ) );
-	QAction * actionAddImages = new QAction(m_mainWnd);
-	actionAddImages->setText(QApplication::translate("MainWindow", "Add Images", 0));
-	menuFusion->addAction( actionAddImages);
-	connect(actionAddImages, SIGNAL(triggered()), this, SLOT(addImages()));
-}
-
-
-void iAFusionModuleInterface::addImages()
-{
-	//set parameters
-	QList<QMdiSubWindow *> mdiwindows = m_mainWnd->MdiChildList();
-	QStringList inList = (QStringList() << tr("+Input 1") << tr("+Input 2"));
-	int inputIndxs[2];
-	if (QDialog::Accepted != m_mainWnd->SelectInputs("Threshold Fusion", inList, inputIndxs))
-		return;
-	vtkImageData * secondChildImgData = qobject_cast<MdiChild *>(mdiwindows.at(inputIndxs[1])->widget())->getImageData();
-	//prepare
-	QString filterName = "Add Images Fusion";
-	PrepareResultChild(inputIndxs[0], filterName);
-	m_mdiChild->addStatusMsg(filterName);
-	//execute
-	iASimpleFusion* thread = new iASimpleFusion(filterName,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
-	thread->setInput2( secondChildImgData );
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-	thread->start();
-	m_mainWnd->statusBar()->showMessage(filterName, 5000);
+	REGISTER_FILTER(iAAddImage);
 }

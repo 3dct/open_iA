@@ -236,14 +236,19 @@ namespace
 		try
 		{
 			// read input file(s)
-			if (!quiet)
+			QVector<iAConnector*> cons;
+			for (int i = 0; i < inputFiles.size(); ++i)
 			{
-				std::cout << "Reading input file '" << inputFiles[0].toStdString() << "'" << std::endl;
+				if (!quiet)
+				{
+					std::cout << "Reading input file '" << inputFiles[i].toStdString() << "'" << std::endl;
+				}
+				iAITKIO::ScalarPixelType pixelType;
+				iAITKIO::ImagePointer img = iAITKIO::readFile(inputFiles[i], pixelType, false);
+				iAConnector * con = new iAConnector();
+				con->SetImage(img);
+				cons.push_back(con);
 			}
-			iAITKIO::ScalarPixelType pixelType;
-			iAITKIO::ImagePointer img = iAITKIO::readFile(inputFiles[0], pixelType, false);
-			iAConnector con;
-			con.SetImage(img);
 
 			if (!quiet)
 			{
@@ -257,7 +262,7 @@ namespace
 			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
 			QObject::connect(&progress, SIGNAL(pprogress(int)), &progressIndicator, SLOT(Progress(int)));
-			filter->SetUp(&con, iAStdOutLogger::Get(), &progress);
+			filter->SetUp(cons, iAStdOutLogger::Get(), &progress);
 			if (!filter->CheckParameters(parameters))
 			{   // output already happened in CheckParameters via logger
 				return 1;
@@ -270,7 +275,7 @@ namespace
 					.arg(outputFiles[0]).arg(compress?"on":"off").toStdString()
 					<< std::endl;
 			}
-			iAITKIO::writeFile(outputFiles[0], con.GetITKImage(), con.GetITKScalarPixelType(), compress);
+			iAITKIO::writeFile(outputFiles[0], cons[0]->GetITKImage(), cons[0]->GetITKScalarPixelType(), compress);
 			return 0;
 		}
 		catch (std::exception & e)
