@@ -56,7 +56,7 @@ void iASimilarityModuleInterface::calc_similarity_metrics()
 		"metric be optimal when its minimum is reached.The optimal value of the metric is then minus one. Misalignment "
 		"between the images results in small measure values.</p>"
 		"<p>More Information on Mutual Information is given in the "
-		"<a href=\"https://www.itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
+		"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
 		"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471) </p>");
 
 	QSettings settings;

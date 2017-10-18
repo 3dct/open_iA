@@ -30,8 +30,8 @@ enum iAGeometricTransformationType
 
 /**
  * Geometric transformation filters
- * For Resample ImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html.
- * For Extract ImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
+ * For Resample ImageFilter refer to https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html.
+ * For Extract ImageFilter refer to https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
  */
 class iAGeometricTransformations : public iAAlgorithm
 {

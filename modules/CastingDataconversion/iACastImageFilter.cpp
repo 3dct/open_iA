@@ -272,7 +272,7 @@ iACastImageFilter::iACastImageFilter() :
 		"If <em>Use Full Output Range</em> is checked, then Output Min and Max are ignored, instead the minimum and maximum possible values "
 		"of the chosen output datatype are used.<br/>"
 		"For more information, see the "
-		"<a href=\"http://www.itk.org/Doxygen/html/classitk_1_1CastImageFilter.html\">"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CastImageFilter.html\">"
 		"Cast Image Filter</a> and the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
 		"Rescale Image Filter</a> in the ITK documentation.")

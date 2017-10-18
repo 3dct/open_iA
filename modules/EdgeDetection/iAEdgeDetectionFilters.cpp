@@ -68,7 +68,7 @@ iACannyEdgeDetection::iACannyEdgeDetection() :
 		"<em>Variance</em> and <em>Maximum</em> parameters are used to perform "
 		"a Gaussian smoothing of the image.<br/>"
 		"For more information, see the "
-		"<a href=\"http://www.itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html\">"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html\">"
 		"Canny Edge Detection Filter</a> in the ITK documentation.")
 {
 	AddParameter("Variance", Continuous, 0.01);

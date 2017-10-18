@@ -144,7 +144,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 							 "value of the the pixels in a neighborhood about the corresponding input pixel. A median filter "
 							 "is one of the family of nonlinear filters.It is used to smooth an image without being biased "
 							 "by outliers or shot noise.</p>"
-							 "<p>http://www.itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html</p>" );
+							 "<p>https://itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html</p>" );
 		med->move( columnGutter * xIdx++, yIdx * rowStartOffset );
 		med->show();
 		med->setAttribute( Qt::WA_DeleteOnClose );
@@ -323,7 +323,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 								"values (OutsideValue or InsideValue), depending on whether the corresponding input image "
 								"pixels lie between the two thresholds (LowerThreshold and UpperThreshold). Values equal to "
 								"either threshold is considered to be between the thresholds.</p>"
-								"<p>http://www.itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>" );
+								"<p>https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>" );
 		binary->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		binary->show();
 		binary->setAttribute( Qt::WA_DeleteOnClose );

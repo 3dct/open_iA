@@ -29,7 +29,7 @@ enum iAFreeBeamCalculationType
 
 /**
  * FreeBeamCalculation filter
- * refer to http://www.itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
+ * refer to https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
  */
 class iAFreeBeamCalculation : public iAAlgorithm
 {

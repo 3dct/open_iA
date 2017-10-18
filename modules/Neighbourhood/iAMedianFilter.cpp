@@ -72,7 +72,7 @@ iAMedianFilter::iAMedianFilter() :
 		"biased by outliers or shot noise.<br/>"
 		"The parameters define the radius of the kernel x,y and z direction.<br/>"
 		"For more information, see the "
-		"<a href=\"http://www.itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html\">"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html\">"
 		"Median Image Filter</a> in the ITK documentation.")
 {
 	AddParameter("Kernel Radius X", Discrete, 1, 1);
