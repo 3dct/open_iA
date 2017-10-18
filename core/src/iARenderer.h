@@ -106,7 +106,7 @@ public:
 	void setupCube();
 	void setupAxes(double spacing[3]);
 	void setupOrientationMarker();
-	void setupRenderer(vtkImageData* ds);
+	void setupRenderer();
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);

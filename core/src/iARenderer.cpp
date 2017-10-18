@@ -168,7 +168,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	setupCube();
 	setupAxes(spacing);
 	setupOrientationMarker();
-	setupRenderer(ds);
+	setupRenderer();
 
 	labelRen->SetActiveCamera(cam);
 	ren->SetActiveCamera(cam);
@@ -265,7 +265,7 @@ void iARenderer::setupOrientationMarker()
 	orientationMarkerWidget->InteractiveOff();
 }
 
-void iARenderer::setupRenderer(vtkImageData* ds)
+void iARenderer::setupRenderer()
 {
 	polyMapper->SetInputData(polyData);
 	polyMapper->SelectColorArray("Colors");
