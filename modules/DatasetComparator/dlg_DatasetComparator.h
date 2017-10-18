@@ -59,9 +59,13 @@ public slots:
 	void legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*);
 	void setSelectionFromRenderer(vtkPoints* selCellPoints);
 
+protected:
+	virtual bool eventFilter(QObject * obj, QEvent * event);
+
 private:
 	MdiChild *m_mdiChild;
-	QCustomPlot *m_customPlot;
+	QCustomPlot *m_nonlinearScaledPlot;
+	QCustomPlot *m_helperPlot;
 	QCPItemText *m_dataPointInfo;
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
@@ -70,10 +74,12 @@ private:
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
 	QSharedPointer<iAVolumeRenderer> m_volRen;
 	QList<QCPPlottableLegendItem*> m_selLegendItemList;
+	QList<double> m_integralValList;
 	
 	void generateHilbertIdx();
-	void createFBPGraphs(iAFunctionalBoxplot<unsigned int, double> *fbpData);
+	void createFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData);
 	void setupQCustomPlot();
 	void setupGUIConnections();
 	void setupMultiRendererView();
+	void showDebugPlot();
 };

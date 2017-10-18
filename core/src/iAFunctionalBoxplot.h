@@ -38,16 +38,10 @@ template <typename ArgType, typename ValType>
 class iAFunctionBand
 {
 public:
-	iAFunctionBand(size_t size);
-	/**
-	 * create the function band as a copy of another
-	 */
-	iAFunctionBand(iAFunctionBand const & f);
-	iAFunctionBand const & operator=(iAFunctionBand const & other);
 	/**
 	 * merge the given function so that it also lies inside the band
 	 */
-	void merge(iAFunction<ArgType, ValType> const & f, ArgType argMin, ArgType argMax, size_t functionIdx);
+	void merge(iAFunction<ArgType, ValType> const & f, size_t functionIdx);
 
 	/** @{ getters/setters */
 	ValType getMin(ArgType a) const;
@@ -57,10 +51,9 @@ public:
 	/** @} */
 	
 	bool contains(ArgType idx, ValType value) const;
-	bool contains(iAFunction<ArgType, ValType> const & func, ArgType argMin, ArgType argMax) const;
+	bool contains(iAFunction<ArgType, ValType> const & func) const;
 private:
-	std::vector<ValType> m_Minimum;
-	std::vector<ValType> m_Maximum;
+	std::map<ArgType, std::pair<ValType, ValType>> m_Bounds;
 	std::set<size_t>  m_Functions;
 	// template<typename AT, typename VT>
 	// friend std::ostream & operator<<(std::ostream& out, iAFunctionBand<AT, VT> const & fb);
@@ -76,8 +69,7 @@ class DepthMeasure
 public:
 	virtual double calculate(iAFunction<ArgType, ValType> const & curFunc,
 		iAFunction<ArgType, ValType> const & limFunc1,
-		iAFunction<ArgType, ValType> const & limFunc2,
-		ArgType argMin, ArgType argMax, ArgType argStepSize) = 0;
+		iAFunction<ArgType, ValType> const & limFunc2) = 0;
 };
 
 
@@ -110,8 +102,6 @@ public:
 	 *    as a combination of all band sizes from 2 to maxBandSize
 	 */
 	iAFunctionalBoxplot(std::vector<iAFunction<ArgType, ValType> *> & functions,
-		ArgType argMin,
-		ArgType argMax,
 		DepthMeasure<ArgType, ValType>* measure,
 		size_t maxBandSize = 2);
 	iAFunction<ArgType, ValType> const & getMedian() const;
@@ -130,84 +120,66 @@ private:
 #include <limits>
 
 template <typename ArgType, typename ValType>
-iAFunctionBand<ArgType, ValType>::iAFunctionBand(size_t size) :
-m_Minimum(size, std::numeric_limits<ValType>::max()),
-m_Maximum(size, std::numeric_limits<ValType>::lowest())
+void iAFunctionBand<ArgType, ValType>::merge(iAFunction<ArgType, ValType> const & f, size_t funcIdx)
 {
-
-}
-
-template <typename ArgType, typename ValType>
-iAFunctionBand<ArgType, ValType>::iAFunctionBand(iAFunctionBand<ArgType, ValType> const & fb) :
-m_Minimum(fb.m_Minimum),
-m_Maximum(fb.m_Maximum),
-m_Functions(fb.m_Functions)
-{
-}
-
-template <typename ArgType, typename ValType>
-iAFunctionBand<ArgType, ValType> const & iAFunctionBand<ArgType, ValType>::operator=(iAFunctionBand const & other)
-{
-	m_Minimum = other.m_Minimum;
-	m_Maximum = other.m_Maximum;
-	m_Functions = other.m_Functions;
-	return *this;
-}
-
-template <typename ArgType, typename ValType>
-void iAFunctionBand<ArgType, ValType>::merge(iAFunction<ArgType, ValType> const & f, ArgType argMin, ArgType argMax, size_t funcIdx)
-{
-	// TODO: ++ limits FunctionBand to steps of 1!
-	m_Functions.insert(funcIdx);
-	for (ArgType i = argMin; i <= argMax; ++i)
+	if (m_Functions.empty())
 	{
-		if (f.get(i) < getMin(i))
+		for (auto it = f.begin(); it != f.end(); ++it)
+			m_Bounds.insert(std::make_pair(it->first, std::make_pair(it->second, it->second)));
+	}
+	else
+	{
+		for (auto it = f.begin(); it != f.end(); ++it)
 		{
-			m_Minimum[i] = f.get(i);
-		}
-		if (f.get(i) > getMax(i))
-		{
-			m_Maximum[i] = f.get(i);
+			if (it->second < getMin(it->first))
+			{
+				m_Bounds[it->first].first = it->second;
+			}
+			if (it->second > getMax(it->first))
+			{
+				m_Bounds[it->first].second = it->second;
+			}
 		}
 	}
+	m_Functions.insert(funcIdx);
 }
 
 template <typename ArgType, typename ValType>
 ValType iAFunctionBand<ArgType, ValType>::getMin(ArgType a) const
 {
-	return m_Minimum[a];
+	return m_Bounds.at(a).first;
 }
 
 template <typename ArgType, typename ValType>
 ValType iAFunctionBand<ArgType, ValType>::getMax(ArgType a) const
 {
-	return m_Maximum[a];
+	return m_Bounds.at(a).second;
 }
 
 template <typename ArgType, typename ValType>
 void iAFunctionBand<ArgType, ValType>::setMin(ArgType a, ValType val)
 {
-	m_Minimum[a] = val;
+	m_Bounds.at(a).first = val;
 }
 
 template <typename ArgType, typename ValType>
 void iAFunctionBand<ArgType, ValType>::setMax(ArgType a, ValType val)
 {
-	m_Maximum[a] = val;
+	m_Bounds.at(a).second = val;
 }
 
 template <typename ArgType, typename ValType>
 bool iAFunctionBand<ArgType, ValType>::contains(ArgType idx, ValType value) const
 {
-	return (value >= m_Minimum[idx] && value <= m_Maximum[idx]);
+	return (value >= getMin(idx) && value <= getMax(idx));
 }
 
 template <typename ArgType, typename ValType>
-bool iAFunctionBand<ArgType, ValType>::contains(iAFunction<ArgType, ValType> const & func, ArgType argMin, ArgType argMax) const
+bool iAFunctionBand<ArgType, ValType>::contains(iAFunction<ArgType, ValType> const & func) const
 {
-	for (ArgType a = argMin; a <= argMax; ++a)
+	for (auto it = func.begin(); it != func.end(); ++it)
 	{
-		if (!contains(a, func.get(a)))
+		if (!contains(it->first, it->second))
 		{
 			return false;
 		}
@@ -221,12 +193,10 @@ void createFunctionBands(
 	std::vector<iAFunction<ArgType, ValType> *> const & functions,
 	iAFunctionBand<ArgType, ValType> const & current,
 	size_t curIdx,
-	size_t curSize,
-	ArgType argMin,
-	ArgType argMax)
+	size_t curSize)
 {
 	iAFunctionBand<ArgType, ValType> fb(current);
-	fb.merge(*functions[curIdx], argMin, argMax, curIdx);
+	fb.merge(*functions[curIdx], curIdx);
 	if (curSize == 1)
 	{
 		result.push_back(fb);
@@ -235,7 +205,7 @@ void createFunctionBands(
 	{
 		if (curSize > 1 && curIdx+curSize-1 < functions.size())
 		{
-			createFunctionBands(result, functions, fb, i, curSize - 1, argMin, argMax);
+			createFunctionBands(result, functions, fb, i, curSize - 1);
 		}
 	}
 }
@@ -244,14 +214,12 @@ template <typename ArgType, typename ValType>
 void createFunctionBands(
 	std::vector<iAFunctionBand<ArgType, ValType> > & result,
 	std::vector<iAFunction<ArgType, ValType> *> const & functions,
-	ArgType argMin,
-	ArgType argMax,
 	size_t size)
 {
-	iAFunctionBand<unsigned int, unsigned int> fb(argMax - argMin + 1);
+	iAFunctionBand<unsigned int, unsigned int> fb();
 	for (size_t i = 0; i < functions.size()-size+1; ++i)
 	{
-		createFunctionBands(result, functions, fb, i, size, argMin, argMax);
+		createFunctionBands(result, functions, fb, i, size);
 	}
 }
 
@@ -290,29 +258,28 @@ class ModifiedDepthMeasure: public DepthMeasure<ArgType, ValType>
 public:
 	double calculate(iAFunction<ArgType, ValType> const & curFunc,
 		iAFunction<ArgType, ValType> const & limFunc1,
-		iAFunction<ArgType, ValType> const & limFunc2,
-		ArgType argMin, ArgType argMax, ArgType argStepSize)
+		iAFunction<ArgType, ValType> const & limFunc2)
 	{
 		double result = 0;
-		for (ArgType a=argMin; a<argMax; a += argStepSize)
+
+		for (auto it1 = limFunc1.begin(), it2 = limFunc2.begin(), it3 = curFunc.begin();
+			it1 != limFunc1.end() && it2 != limFunc2.end() && it3 != curFunc.end(); ++it1, ++it2, ++it3)
 		{
-			if (curFunc.get(a) >= std::min(limFunc1.get(a), limFunc2.get(a)) &&
-				curFunc.get(a) <= std::max(limFunc1.get(a), limFunc2.get(a)))
+			if (it3->second >= std::min(it1->second, it2->second) &&
+				it3->second <= std::max(it1->second, it2->second))
 			{
 				result += 1;
 			}
 		}
+	
 		return result;
 	}
 };
 
 template <typename ArgType, typename ValType>
 iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunction<ArgType, ValType> *> & functions,
-	ArgType argMin, ArgType argMax,
 	DepthMeasure<ArgType, ValType>* measure,
-	size_t maxBandSize) :
-	m_centralRegion(argMax - argMin + 1),
-	m_envelope(argMax - argMin + 1)
+	size_t maxBandSize)
 {
 	assert(maxBandSize <= functions.size());
 	assert(maxBandSize >= 2);
@@ -342,19 +309,20 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
                                static_cast<unsigned long long>(std::sqrt(static_cast<double>(iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops / (functions.size() * argStepCnt))))
 		);
 
-		if ((functions.size() * funcStepCnt * funcStepCnt * argStepCnt) < iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops)
-		{
-			argStepCnt = std::min(static_cast<unsigned long long>(argMax-argMin),
-				static_cast<unsigned long long>(iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops / (functions.size() * funcStepCnt * funcStepCnt))
-			);
-		}
+		//if ((functions.size() * funcStepCnt * funcStepCnt * argStepCnt) < iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops)
+		//{
+		//	argStepCnt = std::min(static_cast<unsigned long long>(argMax-argMin),
+		//		static_cast<unsigned long long>(iAFunctionalBoxplot::MaxOverallFctBoxPlotLoops / (functions.size() * funcStepCnt * funcStepCnt))
+		//	);
+		//}
 	}
 	// calculate final step sizes:
     unsigned long long funcStepSize = std::sqrt(static_cast<double>((functions.size()*functions.size()) / funcStepCnt));
-	unsigned long long argStepSize = (argMax-argMin) / argStepCnt;
+	//unsigned long long argStepSize = (argMax-argMin) / argStepCnt;
 	// factor which should normalize everything to 0..1
-	double normalizeFactor = (2 * funcStepCnt * funcStepCnt * argStepCnt) /
-		(functions.size()*(functions.size()-1)*(argMax-argMin+1));
+	//double normalizeFactor = (2 * funcStepCnt * funcStepCnt * argStepCnt) /
+	//	(functions.size()*(functions.size()-1)*(argMax-argMin+1));
+	double normalizeFactor = 1.0;
 
 #pragma omp parallel for
 	for (long func_nr = 0; func_nr < functions.size(); ++func_nr)
@@ -368,8 +336,7 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 					bandDepth[func_nr] += measure->calculate(
 						*functions[func_nr],
 						*functions[func1],
-						*functions[func2],
-						argMin, argMax, argStepSize);
+						*functions[func2]);
 				}
 				else
 				{
@@ -397,29 +364,29 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 	// get band for first 50%
 	for (size_t f = 0; f < centralRegionEnd; ++f)
 	{
-		m_centralRegion.merge(*functions[bandDepthList[f].second], argMin, argMax, f);
+		m_centralRegion.merge(*functions[bandDepthList[f].second], f);
 	}
 
 	m_envelope = m_centralRegion;
 	for (size_t f = centralRegionEnd; f < envelopeEnd; ++f)
 	{
-		m_envelope.merge(*functions[bandDepthList[f].second], argMin, argMax,f );
+		m_envelope.merge(*functions[bandDepthList[f].second], f );
 	}
 
-	for (size_t a = argMin; a <= argMax; ++a)
+	for (auto it = functions[0]->begin(); it != functions[0]->end(); ++it)
 	{
-		double iqr15 = 1.5*(m_centralRegion.getMax(a) - m_centralRegion.getMin(a));
-		m_envelope.setMin(a, std::max(m_envelope.getMin(a),
-			static_cast<ValType>(m_centralRegion.getMin(a) - iqr15 ) ) );
-		m_envelope.setMax(a, std::min(m_envelope.getMax(a),
-			static_cast<ValType>(m_centralRegion.getMax(a) + iqr15 ) ) );
+		double iqr15 = 1.5*(m_centralRegion.getMax(it->first) - m_centralRegion.getMin(it->first));
+		m_envelope.setMin(it->first, std::max(m_envelope.getMin(it->first),
+			static_cast<ValType>(m_centralRegion.getMin(it->first) - iqr15 ) ) );
+		m_envelope.setMax(it->first, std::min(m_envelope.getMax(it->first),
+			static_cast<ValType>(m_centralRegion.getMax(it->first) + iqr15 ) ) );
 		// TODO: find next data value which is still inside envelope and use that
 	}
 
 	// determine outliers -> everything outside envelope
 	for (size_t f = centralRegionEnd; f < bandDepthList.size(); ++f)
 	{
-		if (!m_envelope.contains(*functions[bandDepthList[f].second], argMin, argMax)) {
+		if (!m_envelope.contains(*functions[bandDepthList[f].second])) {
 			m_outliers.push_back(functions[bandDepthList[f].second]);
 		}
 	}

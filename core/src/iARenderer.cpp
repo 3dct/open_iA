@@ -246,7 +246,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	selectedMapper->SetScalarModeToUseCellData();
 	selectedMapper->SetInputData(finalSelection);
 	selectedActor = vtkSmartPointer<vtkActor>::New();
-	QColor c(254, 153, 41);	//  // Selection color: orange
+	QColor c(255, 0, 0);	//  // Selection color: red
 	selectedActor->SetMapper(selectedMapper);
 	selectedActor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
 	selectedActor->GetProperty()->SetRepresentationToWireframe();
