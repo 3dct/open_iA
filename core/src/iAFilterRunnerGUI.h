@@ -83,8 +83,10 @@ public:
 	//! Prompts the user to adapt the parameters to his needs for the current filter run.
 	//! @param filter the filter that should be run
 	//! @param paramValues the parameter values as loaded from the platform-specific settings store
+	//! @param sourceMdi the mdi child that is the main image source for this filter
 	//! @param mainWnd access to the main window (as parent for GUI windows)
-	virtual bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues, MainWindow* mainWnd);
+	virtual bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
+		MdiChild* sourceMdi, MainWindow* mainWnd);
 
 	//! Loads parameters from the platform-specific store.
 	//! @param filter the filter for which to load the parameters

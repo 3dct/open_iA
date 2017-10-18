@@ -533,20 +533,22 @@ void iAASTRAFilterRunner::Run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 	iAFilterRunnerGUI::Run(filter, mainWnd);
 }
 
-bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & parameters, MainWindow* mainWnd)
+bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & parameters,
+	MdiChild* sourceMdi, MainWindow* mainWnd)
 {
 	dlg_ProjectionParameters dlg;
 	dlg.setWindowTitle(filter->Name());
+	int const * inputDim = sourceMdi->getImageData()->GetDimensions();
 	if (filter->Name() == "ASTRA Forward Projection")
 	{
 		dlg.fillProjectionGeometryValues(
-			parameters[ProjGeometry]   .toString(),
-			parameters[DetSpcX]    .toDouble(),
-			parameters[DetSpcY]    .toDouble(),
-			parameters[DetRowCnt]    .toUInt(),
-			parameters[DetColCnt] .toUInt(),
+			parameters[ProjGeometry].toString(),
+			parameters[DetSpcX].toDouble(),
+			parameters[DetSpcY].toDouble(),
+			parameters[DetRowCnt].toUInt(),
+			parameters[DetColCnt].toUInt(),
 			parameters[ProjAngleStart].toDouble(),
-			parameters[ProjAngleEnd]  .toDouble(),
+			parameters[ProjAngleEnd].toDouble(),
 			parameters[ProjAngleCnt].toUInt(),
 			parameters[DstOrigDet].toDouble(),
 			parameters[DstOrigSrc].toDouble());
@@ -572,12 +574,10 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 			parameters[VolSpcZ].toDouble()
 		};
 		dlg.fillVolumeGeometryValues(volDim, volSpacing);
-		MdiChild* child = mainWnd->activeMdiChild();
-		vtkSmartPointer<vtkImageData> img = child->getImageData();
 		dlg.fillProjInputMapping(parameters[DetRowDim].toInt(),
 			parameters[DetColDim].toInt(),
 			parameters[ProjAngleDim].toInt(),
-			img->GetDimensions());
+			inputDim);
 		if (parameters[AlgoType].toString().isEmpty())
 			parameters[AlgoType] = AlgorithmStrings()[1];
 		dlg.fillAlgorithmValues(MapAlgoStringToIndex(parameters[AlgoType].toString()),
@@ -588,18 +588,18 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 	if (dlg.exec() != QDialog::Accepted)
 		return false;
 
-	parameters[ProjGeometry]      = dlg.ProjGeomType->currentText();
+	parameters[ProjGeometry] = dlg.ProjGeomType->currentText();
 	parameters[DetSpcX] = dlg.ProjGeomDetectorSpacingX->value();
-	parameters[DetSpcY]       = dlg.ProjGeomDetectorSpacingY->value();
+	parameters[DetSpcY] = dlg.ProjGeomDetectorSpacingY->value();
 	parameters[ProjAngleStart] = dlg.ProjGeomProjAngleStart->value();
-	parameters[ProjAngleEnd]     = dlg.ProjGeomProjAngleEnd->value();
+	parameters[ProjAngleEnd] = dlg.ProjGeomProjAngleEnd->value();
 	parameters[DstOrigDet] = dlg.ProjGeomDistOriginDetector->value();
-	parameters[DstOrigSrc]   = dlg.ProjGeomDistOriginSource->value();
+	parameters[DstOrigSrc] = dlg.ProjGeomDistOriginSource->value();
 	if (filter->Name() == "ASTRA Forward Projection")
 	{
 		parameters[DetRowCnt] = dlg.ProjGeomDetectorPixelsY->value();
-		parameters[DetColCnt]    = dlg.ProjGeomDetectorPixelsX->value();
-		parameters[ProjAngleCnt]   = dlg.ProjGeomProjCount->value();
+		parameters[DetColCnt] = dlg.ProjGeomDetectorPixelsX->value();
+		parameters[ProjAngleCnt] = dlg.ProjGeomProjCount->value();
 	}
 	else    // Reconstruction:
 	{
@@ -626,13 +626,9 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 		parameters[DetRowDim] = detRowDim;
 		parameters[DetColDim] = detColDim;
 		parameters[ProjAngleDim] = projAngleDim;
-
-		MdiChild* child = mainWnd->activeMdiChild();
-		vtkSmartPointer<vtkImageData> img = child->getImageData();
-		int const * dim = img->GetDimensions();
-		parameters[DetRowCnt] = dim[detRowDim % 3];
-		parameters[DetColCnt] = dim[detColDim % 3];
-		parameters[ProjAngleCnt] = dim[projAngleDim % 3];
+		parameters[DetRowCnt] = inputDim[detRowDim % 3];
+		parameters[DetColCnt] = inputDim[detColDim % 3];
+		parameters[ProjAngleCnt] = inputDim[projAngleDim % 3];
 	}
 	return true;
 }

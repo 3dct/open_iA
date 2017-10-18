@@ -130,7 +130,8 @@ void iAFilterRunnerGUI::StoreParameters(QSharedPointer<iAFilter> filter, QMap<QS
 }
 
 
-bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues, MainWindow* mainWnd)
+bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
+	MdiChild* sourceMdi, MainWindow* mainWnd)
 {
 	auto params = filter->Parameters();
 	QStringList dlgParamNames;
@@ -139,7 +140,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	for (auto childWin : mainWnd->MdiChildList())
 	{
 		auto mdi = qobject_cast<MdiChild*>(childWin->widget());
-		if (mdi != mainWnd->activeMdiChild())	// TODO: check if this is the window that was active when the filter was started, exclude from list
+		if (mdi != sourceMdi)
 			otherMdis.push_back(mdi);
 	}	
 	if (filter->RequiredInputs() > (otherMdis.size()+1) )
@@ -217,7 +218,8 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	QMap<QString, QVariant> paramValues = LoadParameters(filter);
-	if (!AskForParameters(filter, paramValues, mainWnd))
+	MdiChild* sourceMdi = mainWnd->activeMdiChild();
+	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd))
 		return;
 	StoreParameters(filter, paramValues);
 	
@@ -225,10 +227,10 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (!filter->CheckParameters(paramValues))
 		return;
 
-	auto mdiChild = mainWnd->GetResultChild(filter->Name() + " " + mainWnd->activeMdiChild()->windowTitle());
+	auto mdiChild = mainWnd->GetResultChild(filter->Name() + " " + sourceMdi->windowTitle());
 	if (!mdiChild)
 	{
-		mainWnd->statusBar()->showMessage("Cannot get result child from main window!", 5000);
+		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
 		return;
 	}
 	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
