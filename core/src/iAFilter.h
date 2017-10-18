@@ -86,6 +86,8 @@ public:
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
+	//! TODO: also allow to check input files here (e.g. for AddImage to check
+	//!     if input images are all of the same type!
 	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
@@ -132,3 +134,12 @@ QSharedPointer<FilterName> FilterName::Create() \
 	return QSharedPointer<FilterName>(new FilterName()); \
 }
 
+#define IAFILTER_DEFAULT_CLASS(FilterName) \
+class FilterName : public iAFilter \
+{ \
+public: \
+	static QSharedPointer<FilterName> Create(); \
+	void Run(QMap<QString, QVariant> const & parameters) override; \
+private: \
+	FilterName(); \
+};
