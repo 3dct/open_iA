@@ -193,7 +193,11 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 	{
 		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(children.at(i));
 		if (lineEdit)
-			lineEdit->setText(inPara[paramIdx++].toString()); 
+			lineEdit->setText(inPara[paramIdx++].toString());
+
+		QPlainTextEdit *plainTextEdit = dynamic_cast<QPlainTextEdit*>(children.at(i));
+		if (plainTextEdit)
+			plainTextEdit->setPlainText(inPara[paramIdx++].toString());
 
 		QComboBox *comboBox = dynamic_cast<QComboBox*>(children.at(i));
 		if (comboBox)
