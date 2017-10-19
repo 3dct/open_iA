@@ -256,10 +256,6 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	{
 		thread->AddImage(img);
 	}
-	if (!m_additionalInput.empty() && sourceMdi->GetModalities()->size() > 1)
-	{
-		DEBUG_LOG("Note: Added additional filter input both from selected input as well as from active window modalities!");
-	}
 	ConnectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->Name());
 	mainWnd->statusBar()->showMessage(filter->Name(), 5000);
@@ -282,6 +278,9 @@ void iAFilterRunnerGUI::FilterFinished()
 		for (int p = 1; p < thread->Filter()->Connectors().size() && p < thread->Filter()->OutputCount(); ++p)
 		{
 			auto img = vtkSmartPointer<vtkImageData>::New();
+			// some filters apparently clean up the result image
+			// (disregarding that a smart pointer still points to it...)
+			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->Filter()->Connectors()[p]->GetVTKImage());
 			qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
 				new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0)));
