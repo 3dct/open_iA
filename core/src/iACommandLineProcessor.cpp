@@ -60,7 +60,7 @@ namespace
 		{
 			auto filter = factory->Create();
 			std::cout << filter->Name().toStdString() << std::endl
-				<< "        " << StripHTML(AbbreviateDesc(filter->Description())).toStdString() << std::endl;
+				<< "        " << StripHTML(AbbreviateDesc(filter->Description())).toStdString() << std::endl << std::endl;
 		}
 	}
 
