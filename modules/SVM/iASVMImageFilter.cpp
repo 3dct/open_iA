@@ -220,12 +220,12 @@ iASVMImageFilter::iASVMImageFilter() :
 		"Under seeds, specify text with one seed point per line in the following format :"
 		"<pre>x y z label</pre>"
 		"where x, y and z are the coordinates(set z = 0 for 2D images) and label is the index of the label "
-		"for this seed point.Label indices should start at 0 and be contiguous(so if you have N different "
+		"for this seed point. Label indices should start at 0 and be contiguous (so if you have N different "
 		"labels, you should use label indices 0..N - 1 and make sure that there is at least one seed per label).")
 {
 	QStringList kernels; kernels
 		<< "Linear" << "Polynomial" << "RBF" << "Sigmoid";
-	AddParameter("Kernel", Categorical, kernels);
+	AddParameter("Kernel Type", Categorical, kernels);
 	AddParameter("Gamma", Continuous, 0.1);
 	AddParameter("Dimension", Discrete, 2);
 	AddParameter("Coef0", Continuous, 1);
