@@ -223,7 +223,7 @@ namespace
 
 
 iARandomWalker::iARandomWalker() :
-	iAFilter("Random Walker (Seed Points)", "Segmentation/Graph-based",
+	iAFilter("Random Walker", "Segmentation/Graph-based",
 		"Computes the Random Walker segmentation. " +
 		CommonRWParameterDescription + 
 		"As <em>Seeds</em>, specify text with one seed point per line in the following format:"
@@ -426,7 +426,7 @@ void iARandomWalker::Run(QMap<QString, QVariant> const & parameters)
 // iAExtendedRandomWalker
 
 iAExtendedRandomWalker::iAExtendedRandomWalker() :
-	iAFilter("Extended Random Walker (Prior)", "Segmentation/Graph-based",
+	iAFilter("Extended Random Walker", "Segmentation/Graph-based",
 		"Computes the Extended Random Walker segmentation.<br/>"
 		"This requires a prior, a multi-channel image containing for each "
 		"voxel and label the probability that the voxel belongs to that "
