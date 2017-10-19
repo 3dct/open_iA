@@ -26,8 +26,8 @@
 
 #include "iAImageCoordinate.h"	// for iAVoxelIndexType
 
-typedef int iAEdgeIndexType;
-typedef int iAVertexIndexType;
+typedef unsigned int iAEdgeIndexType;
+typedef unsigned int iAVertexIndexType;
 typedef int iALabelType;
 typedef double iAEdgeWeightType;
 typedef std::pair<iAVoxelIndexType, iAVoxelIndexType> iAEdgeType;

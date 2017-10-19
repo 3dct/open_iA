@@ -210,7 +210,10 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		for (int i = 0; i < filter->RequiredInputs()-1; ++i)
 		{
 			int mdiIdx = dlg.getComboBoxIndex(idx);
-			m_additionalInput.push_back(otherMdis[mdiIdx]->getImageData());
+			for (int m = 0; m < otherMdis[mdiIdx]->GetModalities()->size(); ++m)
+			{
+				m_additionalInput.push_back(otherMdis[mdiIdx]->GetModality(m)->GetImage());
+			}
 			++idx;
 
 		}
@@ -248,6 +251,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	{
 		thread->AddImage(sourceMdi->GetModality(m)->GetImage());
 	}
+	filter->SetFirstInputChannels(sourceMdi->GetModalities()->size());
 	for (auto img : m_additionalInput)
 	{
 		thread->AddImage(img);
@@ -277,9 +281,10 @@ void iAFilterRunnerGUI::FilterFinished()
 	{
 		for (int p = 1; p < thread->Filter()->Connectors().size() && p < thread->Filter()->OutputCount(); ++p)
 		{
+			auto img = vtkSmartPointer<vtkImageData>::New();
+			img->DeepCopy(thread->Filter()->Connectors()[p]->GetVTKImage());
 			qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
-				new iAModality(QString("Extra Out %1").arg(p), "", -1,
-					thread->Filter()->Connectors()[p]->GetVTKImage(), 0)));
+				new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0)));
 		}
 	}
 	emit finished();

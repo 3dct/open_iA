@@ -24,12 +24,6 @@
 
 class iARandomWalkerModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-private slots:
-	bool CalculateRW();
-	bool CalculateERW();
-	void erwFinished();
 };

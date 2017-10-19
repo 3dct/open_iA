@@ -26,6 +26,10 @@ iAVectorArray::~iAVectorArray()
 {}
 
 
+iAvtkPixelVectorArray::iAvtkPixelVectorArray(int const * dim):
+	m_coordConv(dim[0], dim[1], dim[2])
+{
+}
 
 iAvtkPixelVectorArray::iAvtkPixelVectorArray(size_t width, size_t height, size_t depth):
 	m_coordConv(width, height, depth)

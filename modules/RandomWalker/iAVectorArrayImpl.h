@@ -35,6 +35,7 @@
 class iAvtkPixelVectorArray: public iAVectorArray
 {
 public:
+	iAvtkPixelVectorArray(int const * dim);
 	iAvtkPixelVectorArray(size_t width, size_t height, size_t depth);
 	virtual size_t size() const;
 	virtual size_t channelCount() const;
