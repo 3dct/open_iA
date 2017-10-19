@@ -22,8 +22,6 @@
 
 #include "iAFilter.h"
 
-#include <QSettings>
-
 #include "dlg_commoninput.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
@@ -38,6 +36,7 @@
 
 #include <QMdiSubWindow>
 #include <QMessageBox>
+#include <QSettings>
 #include <QSharedPointer>
 #include <QString>
 #include <QTextDocument>
@@ -116,8 +115,8 @@ QMap<QString, QVariant> iAFilterRunnerGUI::LoadParameters(QSharedPointer<iAFilte
 	QSettings settings;
 	for (auto param : params)
 	{
-		QVariant default = (param->ValueType() == Categorical) ? "" : param->DefaultValue();
-		result.insert(param->Name(), settings.value(SettingName(filter, param), default));
+		QVariant defaultValue = (param->ValueType() == Categorical) ? "" : param->DefaultValue();
+		result.insert(param->Name(), settings.value(SettingName(filter, param), defaultValue));
 	}
 	return result;
 }
