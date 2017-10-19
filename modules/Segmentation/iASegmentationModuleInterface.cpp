@@ -22,6 +22,7 @@
 #include "iASegmentationModuleInterface.h"
 
 #include "iAFuzzyCMeans.h"
+#include "iASVMImageFilter.h"
 #include "iAThresholding.h"
 #include "iAWatershedSegmentation.h"
 
@@ -58,6 +59,8 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAFCMFilter);
 	REGISTER_FILTER(iAKFCMFilter);
 	REGISTER_FILTER(iAMSKFCMFilter);
+
+	REGISTER_FILTER(iASVMImageFilter);
 	
 	if (!m_mainWnd)
 		return;
