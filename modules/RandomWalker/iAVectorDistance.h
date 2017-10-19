@@ -20,17 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASpectrumType.h"
+#include "iAVectorType.h"
 
 #include <QSharedPointer>
 
-class iASpectraDistance
+//! abstract base class for the distance between two vectors of same length
+class iAVectorDistance
 {
 public:
 	static double EPSILON;
-	virtual ~iASpectraDistance();
+	virtual ~iAVectorDistance();
 	virtual char const * GetShortName() const =0;
 	virtual char const * GetName() const =0;
-	virtual double GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const = 0;
+	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const = 0;
 	virtual bool isSymmetric() const;
 };

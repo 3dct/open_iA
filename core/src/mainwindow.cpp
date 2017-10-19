@@ -156,7 +156,7 @@ bool MainWindow::KeepOpen()
 	bool childHasChanges = false;
 	foreach(QMdiSubWindow *window, MdiChildList()) {
 		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
-		childHasChanges |= mdiChild->HasUnsavedChanges();
+		childHasChanges |= mdiChild->isWindowModified();
 	}
 	if (childHasChanges)
 	{
@@ -168,10 +168,10 @@ bool MainWindow::KeepOpen()
 			return true;
 		}
 		else
-		{ // remove m_unsavedChanges flag to avoid individual questions for each window
+		{ // avoid individual questions for each window
 			foreach(QMdiSubWindow *window, MdiChildList()) {
 				MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
-				mdiChild->SetUnsavedChanges(false);
+				mdiChild->setWindowModified(false);
 			}
 		}
 	}
@@ -1561,6 +1561,7 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 {
 	if (oldChild->getResultInNewWindow())
 	{
+		// TODO: copy all modality images, or don't copy anything here and use image from old image directly!
 		vtkSmartPointer<vtkImageData> imageData = oldChild->getImagePointer();
 		MdiChild* newChild = createMdiChild(true);
 		newChild->show();
@@ -1570,7 +1571,7 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 	}
 	else
 	{
-		oldChild->SetUnsavedChanges(true);
+		oldChild->setWindowModified(true);
 	}
 	return oldChild;
 }
@@ -2490,7 +2491,6 @@ void MainWindow::LoadProject(QString const & fileName)
 	if (fileName.isEmpty())
 		return;
 	MdiChild* child = createMdiChild(false);
-	child->newFile();
 	if (child->LoadProject(fileName))
 	{
 		child->show();

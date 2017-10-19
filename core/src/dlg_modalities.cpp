@@ -497,3 +497,10 @@ void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString cons
 	QSharedPointer<iAModality> newModality(new iAModality(name, "", -1, img, iAModality::MainRenderer));
 	modalities->Add(newModality);
 }
+
+
+void dlg_modalities::SetFileName(int modality, QString const & fileName)
+{
+	modalities->Get(modality)->SetFileName(fileName);
+	lwModalities->item(modality)->setText(GetCaption(*modalities->Get(modality).data()));
+}

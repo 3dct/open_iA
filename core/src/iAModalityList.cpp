@@ -101,7 +101,6 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		QFileInfo modalityFileInfo(m_modalities[i]->GetFileName());
 		if (!modalityFileInfo.exists() || !modalityFileInfo.isFile())
 		{	// TODO: provide option to store as .mhd?
-			//DEBUG_LOG(QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(fileName));
 			QMessageBox::warning(nullptr, "Save Project",
 				QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(m_modalities[i]->GetFileName()));
 			if (fi.exists())
@@ -356,4 +355,17 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 		result.push_back(newModality);
 	}
 	return result;
+}
+
+
+bool iAModalityList::HasUnsavedModality() const
+{
+	for (int i = 0; i < m_modalities.size(); ++i)
+	{
+		if (m_modalities[i]->GetFileName().isEmpty() || !QFileInfo(m_modalities[i]->GetFileName()).exists())
+		{
+			return true;
+		}
+	}
+	return false;
 }

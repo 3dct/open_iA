@@ -49,6 +49,7 @@ public:
 class iALinearNormalizer: public iANormalizer
 {
 public:
+	iALinearNormalizer();
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
 	virtual char const * const GetName() const;
@@ -73,4 +74,4 @@ private:
 };
 
 char const * const * const GetNormalizerNames();
-QSharedPointer<iANormalizer> CreateNormalizer(QString const & name);
+QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta);

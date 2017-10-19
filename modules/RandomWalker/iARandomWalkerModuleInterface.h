@@ -20,18 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <cstddef> // for size_t
-#include <utility> // for std::pair
+#include "iAModuleInterface.h"
 
-#include <QVector>
-
-#include "iASpectrumType.h"
-#include "iAImageCoordinate.h"
-
-typedef int iAEdgeIndexType;
-typedef int iAVertexIndexType;
-typedef int iALabelType;
-typedef double iAEdgeWeightType;
-typedef std::pair<iAVoxelIndexType, iAVoxelIndexType> iAEdgeType;
-
-typedef QVector<iALabelType> iALabelData;
+class iARandomWalkerModuleInterface : public iAModuleInterface
+{
+public:
+	void Initialize();
+};

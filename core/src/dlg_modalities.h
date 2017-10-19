@@ -57,9 +57,9 @@ public:
 	dlg_modalities(iAFast3DMagicLensWidget* renderer,
 		vtkRenderer* mainRenderer, int numBin, QDockWidget* histogramContainer);
 	void SetModalities(QSharedPointer<iAModalityList> modalities);
-	QSharedPointer<iAModalityList const>  GetModalities() const;
-	QSharedPointer<iAModalityList>  GetModalities();
-	int						GetSelected() const;
+	QSharedPointer<iAModalityList const> GetModalities() const;
+	QSharedPointer<iAModalityList> GetModalities();
+	int GetSelected() const;
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
 	void ChangeRenderSettings(iAVolumeSettings const & rs);
@@ -77,6 +77,7 @@ public:
 	void SelectRow(int idx);
 	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
 	void EnableUI();
+	void SetFileName(int modality, QString const & fileName);
 public slots:
 	//! add modality to list, create transfer function, show histogram, add volume to renderers
 	void ModalityAdded(QSharedPointer<iAModality> mod);

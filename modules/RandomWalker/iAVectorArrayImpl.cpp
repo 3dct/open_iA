@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,45 +15,56 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFCMGUIRunner.h"
+#include "pch.h"
+#include "iAVectorArrayImpl.h"
 
-#include "iAFuzzyCMeans.h"
 
-#include "iAConsole.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "mdichild.h"
-
-QSharedPointer<iAFilterRunnerGUI> iAFCMGUIRunner::Create()
-{
-	return QSharedPointer<iAFCMGUIRunner>(new iAFCMGUIRunner());
-}
-
-void iAFCMGUIRunner::ConnectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
-{
-	QObject::connect(thread, SIGNAL(finished()), this, SLOT(FCMFinished()));
-	iAFilterRunnerGUI::ConnectThreadSignals(mdiChild, thread);
-}
-
-void iAFCMGUIRunner::FCMFinished()
-{
-	auto thread = dynamic_cast<iAFilterRunnerGUIThread*>(sender());
-	iAProbabilitySource* probSource = dynamic_cast<iAProbabilitySource*>(thread->Filter().data());
-	if (!thread || !probSource)
-	{
-		DEBUG_LOG("Invalid FCM finished call!");
-		return;
-	}
-	auto & probs = probSource->Probabilities();
-	for (int p = 0; p < probs.size(); ++p)
-	{
-		qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
-			new iAModality(QString("FCM Prob. %1").arg(p), "", -1, probs[p], 0)));
-	}
-}
-
-iAFCMGUIRunner::iAFCMGUIRunner()
+iAVectorArray::~iAVectorArray()
 {}
+
+
+iAvtkPixelVectorArray::iAvtkPixelVectorArray(int const * dim):
+	m_coordConv(dim[0], dim[1], dim[2])
+{
+}
+
+iAvtkPixelVectorArray::iAvtkPixelVectorArray(size_t width, size_t height, size_t depth):
+	m_coordConv(width, height, depth)
+{
+}
+
+	
+void iAvtkPixelVectorArray::AddImage(vtkSmartPointer<vtkImageData> img)
+{
+	int extent[6];
+	img->GetExtent(extent);
+	assert((extent[1]-extent[0]+1) == m_coordConv.GetWidth() &&
+		(extent[3]-extent[2]+1) == m_coordConv.GetHeight() &&
+		(extent[5]-extent[4]+1) == m_coordConv.GetDepth());
+	m_images.push_back(img);
+}
+
+size_t iAvtkPixelVectorArray::size() const
+{
+	return m_coordConv.GetVertexCount();
+}
+
+size_t iAvtkPixelVectorArray::channelCount() const
+{
+	return m_images.size();
+}
+
+QSharedPointer<iAVectorType const> iAvtkPixelVectorArray::get(size_t voxelIdx) const
+{
+	return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
+}
+
+iAVectorDataType iAvtkPixelVectorArray::get(size_t voxelIdx, size_t channelIdx) const
+{
+	iAImageCoordinate coords = m_coordConv.GetCoordinatesFromIndex(voxelIdx);
+	iAVectorDataType value = m_images[channelIdx]->GetScalarComponentAsDouble(coords.x, coords.y, coords.z, 0);
+	return value;
+}

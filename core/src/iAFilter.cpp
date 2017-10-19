@@ -24,12 +24,14 @@
 #include "iAAttributeDescriptor.h"
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
-	unsigned int requiredInputs):
+	unsigned int requiredInputs) :
 	m_name(name),
 	m_category(category),
 	m_description(description),
 	m_log(iAStdOutLogger::Get()),
-	m_requiredInputs(requiredInputs)
+	m_requiredInputs(requiredInputs),
+	m_outputCount(1),
+	m_firstInputChannels(1)
 {}
 
 iAFilter::~iAFilter()
@@ -64,6 +66,31 @@ QVector<pParameter> const & iAFilter::Parameters() const
 unsigned int iAFilter::RequiredInputs() const
 {
 	return m_requiredInputs;
+}
+
+unsigned int iAFilter::OutputCount() const
+{
+	return m_outputCount;
+}
+
+unsigned int iAFilter::FirstInputChannels() const
+{
+	return m_firstInputChannels;
+}
+
+void iAFilter::SetFirstInputChannels(unsigned int c)
+{
+	m_firstInputChannels = c;
+}
+
+QVector<iAConnector*> iAFilter::Connectors()
+{
+	return m_cons;
+}
+
+void iAFilter::SetOutputCount(unsigned int outputCount)
+{
+	m_outputCount = outputCount;
 }
 
 bool iAFilter::SetUp(QVector<iAConnector*> const & con, iALogger* log, iAProgress* progress)

@@ -27,6 +27,7 @@ enum iAValueType
 	Discrete,
 	Categorical,
 	String,
+	Text,
 	Boolean
 };
 

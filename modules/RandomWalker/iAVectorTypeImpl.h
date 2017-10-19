@@ -20,60 +20,36 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iARandomWalker.h"
+#include "iAVectorType.h"	// for iAVectorDataType
+#include "iAVectorArray.h"
 
-// wrapper classes to make the (extended) random walker applicable for arbitrary itk imges
+#include <QSharedPointer>
 
-template <class TInputImage>
-class iAitkRandomWalker
+#include <vector>
+#include <cstddef> // for size_t
+
+// implementation of a standalone vector of values
+class iAStandaloneVector: public iAVectorType
 {
-public:
-	typedef iAitkRandomWalker				  Self;
-	iAitkRandomWalker();
-	~iAitkRandomWalker();
-	void SetInput(TInputImage* image, SeedVector, double beta);
-	bool Success() const;
-	LabelImagePointer GetLabelImage();
-	QVector<iAITKIO::ImagePointer> GetProbabilityImages();
-	void Calculate();
 private:
-	// not implemented on purpose:
-	iAitkRandomWalker(const Self &);
-	void operator=(const Self &);
-	
-	QSharedPointer<iARandomWalker> m_randomWalker;
-	
-	TInputImage* m_input;
-	SeedVector m_seeds;
-	double m_beta;
-	QSharedPointer<iARWResult> m_result;
+	std::vector<iAVectorDataType> m_data;
+public:
+	iAStandaloneVector(IndexType size);
+	virtual iAVectorDataType get(size_t channelIdx) const;
+	virtual IndexType size() const;
+	void set(IndexType, iAVectorDataType);
 };
 
-template <class TInputImage>
-class iAitkExtendedRandomWalker
+//! a single vector accessing its data via the iAVectorArray it is contained in
+//! (mainly to directly access the vector for a single pixel from a iAVectorArray
+//! drawing its data from a collection of images)
+class iAPixelVector: public iAVectorType
 {
-public:
-	typedef iAitkExtendedRandomWalker				  Self;
-	iAitkExtendedRandomWalker();
-	~iAitkExtendedRandomWalker();
-	void SetInput(TInputImage* image);
-	void AddPriorModel(PriorModelImagePointer priorModel);
-	bool Success() const;
-	LabelImagePointer GetLabelImage();
-	QVector<iAITKIO::ImagePointer> GetProbabilityImages();
-	void Calculate(); 
 private:
-	// not implemented on purpose:
-	iAitkExtendedRandomWalker(const Self &);
-	void operator=(const Self &);
-	
-	QSharedPointer<iAExtendedRandomWalker> m_extendedRandomWalker;
-	
-	TInputImage* m_input;
-	QSharedPointer<QVector<PriorModelImagePointer> > m_priorModel;
-	QSharedPointer<iARWResult> m_result;
+	iAVectorArray const & m_data;
+	size_t m_voxelIdx;
+public:
+	iAPixelVector(iAVectorArray const & data, size_t voxelIdx);
+	iAVectorDataType get(size_t channelIdx) const;
+	IndexType size() const;
 };
-
-#ifndef ITK_MANUAL_INSTANTIATION
-#include "iAitkRandomWalker.hxx"
-#endif

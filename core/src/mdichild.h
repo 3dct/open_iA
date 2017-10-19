@@ -268,8 +268,6 @@ public:
 	void ApplyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
 	void ApplyVolumeSettings();
-	bool HasUnsavedChanges() const;
-	void SetUnsavedChanges(bool b);
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
 
@@ -505,7 +503,6 @@ private:
 	int m_currentModality;
 	int m_currentComponent;
 	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
-	bool m_unsavedChanges;
 	int m_storedModalityNr;		// modality nr being stored
 private slots:
 	void ChangeModality(int chg);

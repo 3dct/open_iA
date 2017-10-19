@@ -29,7 +29,6 @@
 #include "iADurationEstimator.h"
 #include "iAParameterGenerator.h"
 #include "iAPerformanceHelper.h"
-#include "iASpectrumType.h"
 
 class iAAttributes;
 class iAModalityList;

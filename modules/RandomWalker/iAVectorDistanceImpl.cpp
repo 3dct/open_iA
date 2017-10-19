@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
-#include "iASpectraDistanceImpl.h"
+#include "iAVectorDistanceImpl.h"
 
 #include "iAMathUtility.h"
 
@@ -31,31 +30,15 @@
 
 namespace
 {
-	double VectorLength(QSharedPointer<iASpectrumType const> spec)
+	double VectorLength(QSharedPointer<iAVectorType const> spec)
 	{
 		double sum = 0.0;
-		for(iASpectrumType::IndexType i = 0; i<spec->size(); ++i)
+		for(iAVectorType::IndexType i = 0; i<spec->size(); ++i)
 		{
 			sum += static_cast<double>(spec->get(i)) * spec->get(i);
 		}
 		return sqrt(sum);
 	}
-
-	enum MeasureIndices
-	{
-		dmL1,
-		dmL2,
-		dmLinf,
-		dmCosine,
-		dmJensenShannon,
-		dmKullbackLeibler,
-		dmChiSquare,
-		dmEarthMovers,
-		dmSquared,
-
-		dmCount,
-		dmInvalid=dmCount
-	};
 
 	const char * const MeasureNames[dmCount+1] =
 	{
@@ -96,19 +79,19 @@ namespace
 		, "Hausdorff distance"
 		*/
 	};
-	QSharedPointer<iASpectraDistance> const Measure [dmCount+1] =
+	QSharedPointer<iAVectorDistance> const Measure [dmCount+1] =
 	{
-		QSharedPointer<iASpectraDistance>(new iAL1NormDistance()),
-		QSharedPointer<iASpectraDistance>(new iAL2NormDistance()),
-		QSharedPointer<iASpectraDistance>(new iALInfNormDistance()),
-		QSharedPointer<iASpectraDistance>(new iASpectralAngularDistance()),
-		QSharedPointer<iASpectraDistance>(new iAJensenShannonDistance()),
-		QSharedPointer<iASpectraDistance>(new iAKullbackLeiblerDivergence()),
-		QSharedPointer<iASpectraDistance>(new iAChiSquareDistance()),
-		QSharedPointer<iASpectraDistance>(new iAEarthMoversDistance()),
-		QSharedPointer<iASpectraDistance>(new iASquaredDistance()),
+		QSharedPointer<iAVectorDistance>(new iAL1NormDistance()),
+		QSharedPointer<iAVectorDistance>(new iAL2NormDistance()),
+		QSharedPointer<iAVectorDistance>(new iALInfNormDistance()),
+		QSharedPointer<iAVectorDistance>(new iASpectralAngularDistance()),
+		QSharedPointer<iAVectorDistance>(new iAJensenShannonDistance()),
+		QSharedPointer<iAVectorDistance>(new iAKullbackLeiblerDivergence()),
+		QSharedPointer<iAVectorDistance>(new iAChiSquareDistance()),
+		QSharedPointer<iAVectorDistance>(new iAEarthMoversDistance()),
+		QSharedPointer<iAVectorDistance>(new iASquaredDistance()),
 		// ----------
-		QSharedPointer<iASpectraDistance>(new iANullDistance())
+		QSharedPointer<iAVectorDistance>(new iANullDistance())
 	};
 }
 
@@ -130,7 +113,7 @@ char const * const * const GetShortMeasureNames()
 }
 
 
-QSharedPointer<iASpectraDistance> GetDistanceMeasure(QString const & distFuncName)
+QSharedPointer<iAVectorDistance> GetDistanceMeasure(QString const & distFuncName)
 {
 	// TODO: static array of all distance measures, only return reference to that
 	if (distFuncName == MeasureNames[dmL1])                   return Measure[dmL1];
@@ -147,7 +130,7 @@ QSharedPointer<iASpectraDistance> GetDistanceMeasure(QString const & distFuncNam
 	return Measure[dmInvalid];
 }
 
-QSharedPointer<iASpectraDistance> GetDistanceMeasureFromShortName(QString const & distFuncName)
+QSharedPointer<iAVectorDistance> GetDistanceMeasureFromShortName(QString const & distFuncName)
 {
 	if (distFuncName == MeasureShortNames[dmL1])                   return Measure[dmL1];
 	else if (distFuncName == MeasureShortNames[dmL2])			   return Measure[dmL2];
@@ -164,16 +147,16 @@ QSharedPointer<iASpectraDistance> GetDistanceMeasureFromShortName(QString const 
 }
 
 
-iASpectraDistance::~iASpectraDistance()
+iAVectorDistance::~iAVectorDistance()
 {}
 
-bool iASpectraDistance::isSymmetric() const
+bool iAVectorDistance::isSymmetric() const
 {
 	return true;
 }
 
 
-double iASpectraDistance::EPSILON = 10e-6;
+double iAVectorDistance::EPSILON = 10e-6;
 
 char const * iASpectralAngularDistance::GetShortName() const
 {
@@ -185,11 +168,11 @@ char const * iASpectralAngularDistance::GetName() const
 	return MeasureNames[dmCosine];
 }
 
-double iASpectralAngularDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iASpectralAngularDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
 	double prod = 0;
-	for(iASpectrumType::IndexType i = 0; i<spec1->size(); ++i)
+	for(iAVectorType::IndexType i = 0; i<spec1->size(); ++i)
 	{
 		prod += static_cast<double>(spec1->get(i)) * spec2->get(i);
 	}
@@ -216,11 +199,11 @@ char const * iAL1NormDistance::GetName() const
 	return MeasureNames[dmL1];
 }
 
-double iAL1NormDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAL1NormDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
 	double sum = 0;
-	for(iASpectrumType::IndexType i = 0; i<spec1->size(); ++i)
+	for(iAVectorType::IndexType i = 0; i<spec1->size(); ++i)
 	{
 		sum += std::abs(static_cast<double>(spec1->get(i)) - spec2->get(i));
 	}
@@ -237,11 +220,11 @@ char const * iAL2NormDistance::GetName() const
 	return MeasureNames[dmL2];
 }
 
-double iAL2NormDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAL2NormDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
 	double sum = 0;
-	for(iASpectrumType::IndexType i = 0; i<spec1->size(); ++i)
+	for(iAVectorType::IndexType i = 0; i<spec1->size(); ++i)
 	{
 		double a = static_cast<double>(spec1->get(i)) - spec2->get(i);
 		sum += std::pow(a, 2);
@@ -259,11 +242,11 @@ char const * iALInfNormDistance::GetName() const
 	return MeasureNames[dmLinf];
 }
 
-double iALInfNormDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iALInfNormDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
 	double maxDist=0;
-	for(iASpectrumType::IndexType i = 0; i<spec1->size(); ++i)
+	for(iAVectorType::IndexType i = 0; i<spec1->size(); ++i)
 	{
 		double dist = std::abs(static_cast<double>(spec1->get(i)) - spec2->get(i));
 		if (dist > maxDist)
@@ -284,7 +267,7 @@ char const * iAJensenShannonDistance::GetName() const
 	return MeasureNames[dmJensenShannon];
 }
 
-double iAJensenShannonDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAJensenShannonDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	iAKullbackLeiblerDivergence kld;
 	return std::sqrt(0.5 * kld.GetDistance(spec1, spec2) + 0.5 * kld.GetDistance(spec2, spec1));
@@ -300,13 +283,13 @@ char const * iAKullbackLeiblerDivergence::GetName() const
 	return MeasureNames[dmKullbackLeibler];
 }
 
-double iAKullbackLeiblerDivergence::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAKullbackLeiblerDivergence::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
 	double kldiv = 0;
-	QSharedPointer<iASpectrumType const> s1 = spec1->normalized();
-	QSharedPointer<iASpectrumType const> s2 = spec2->normalized();
-	for(iASpectrumType::IndexType i = 0; i<s1->size(); ++i)
+	QSharedPointer<iAVectorType const> s1 = spec1->normalized();
+	QSharedPointer<iAVectorType const> s2 = spec2->normalized();
+	for(iAVectorType::IndexType i = 0; i<s1->size(); ++i)
 	{
 		double logTerm = (s2->get(i) == 0)? 0 : (s1->get(i) / s2->get(i));
 		if (isInf(logTerm) || isNaN(logTerm))
@@ -332,13 +315,13 @@ char const * iAChiSquareDistance::GetName() const
 	return MeasureNames[dmChiSquare];
 }
 
-double iAChiSquareDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAChiSquareDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
 	double chiSquare = 0;
-	QSharedPointer<iASpectrumType const> s1 = spec1->normalized();
-	QSharedPointer<iASpectrumType const> s2 = spec2->normalized();
-	for(iASpectrumType::IndexType i = 0; i<s1->size(); ++i)
+	QSharedPointer<iAVectorType const> s1 = spec1->normalized();
+	QSharedPointer<iAVectorType const> s2 = spec2->normalized();
+	for(iAVectorType::IndexType i = 0; i<s1->size(); ++i)
 	{
 		chiSquare += std::pow(s1->get(i) - s2->get(i), 2) / (s1->get(i) + s2->get(i));
 	}
@@ -356,14 +339,14 @@ char const * iAEarthMoversDistance::GetName() const
 }
 
 
-double iAEarthMoversDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAEarthMoversDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	assert(spec1->size() == spec2->size());
 	double emd = 0;
 	double lastEmd = 0;
-	QSharedPointer<iASpectrumType const> s1 = spec1->normalized();
-	QSharedPointer<iASpectrumType const> s2 = spec2->normalized();
-	for(iASpectrumType::IndexType i = 0; i<s1->size(); ++i)
+	QSharedPointer<iAVectorType const> s1 = spec1->normalized();
+	QSharedPointer<iAVectorType const> s2 = spec2->normalized();
+	for(iAVectorType::IndexType i = 0; i<s1->size(); ++i)
 	{
 		double newEmd = s1->get(i) + lastEmd - s2->get(i);
 		emd += std::abs(newEmd);
@@ -382,10 +365,10 @@ char const * iASquaredDistance::GetName() const
 	return MeasureNames[dmSquared];
 }
 
-double iASquaredDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iASquaredDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	double sum = 0;
-	for(iASpectrumType::IndexType i = 0; i<spec1->size(); ++i)
+	for(iAVectorType::IndexType i = 0; i<spec1->size(); ++i)
 	{
 		double a = static_cast<double>(spec1->get(i)) - spec2->get(i);
 		sum += std::pow(a, 2);
@@ -396,22 +379,22 @@ double iASquaredDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1
 
 /*
 
-double iAMutualInformation::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAMutualInformation::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	return 0.5;
 }
 
-double iACrossCorrelation::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iACrossCorrelation::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	return 0.5;
 }
 
-double iAMahalanobisDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAMahalanobisDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	return 0.5;
 }
 
-double iAHausdorffDistance::GetDistance(QSharedPointer<iASpectrumType const> spec1, QSharedPointer<iASpectrumType const> spec2) const
+double iAHausdorffDistance::GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const
 {
 	return 0.5;
 }

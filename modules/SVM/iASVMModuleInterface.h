@@ -18,44 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "iAitkImagesMultiChannelAdapter.h"
+#pragma once
 
-iAvtkImagesMultiChannelAdapter::iAvtkImagesMultiChannelAdapter(size_t width, size_t height, size_t depth):
-	m_coordConv(width, height, depth)
-{
-}
+#include "iAModuleInterface.h"
 
-	
-void iAvtkImagesMultiChannelAdapter::AddImage(vtkSmartPointer<vtkImageData> img)
+class iASVMModuleInterface : public iAModuleInterface
 {
-	int extent[6];
-	img->GetExtent(extent);
-	assert((extent[1]-extent[0]+1) == m_coordConv.GetWidth() &&
-		(extent[3]-extent[2]+1) == m_coordConv.GetHeight() &&
-		(extent[5]-extent[4]+1) == m_coordConv.GetDepth());
-	m_images.push_back(img);
-}
-
-size_t iAvtkImagesMultiChannelAdapter::size() const
-{
-	return m_coordConv.GetVertexCount();
-}
-
-size_t iAvtkImagesMultiChannelAdapter::channelCount() const
-{
-	return m_images.size();
-}
-
-QSharedPointer<iASpectrumType const> iAvtkImagesMultiChannelAdapter::get(size_t voxelIdx) const
-{
-	return QSharedPointer<iASpectrumType const>(new iADirectAccessSpectrumType(*this, voxelIdx));
-}
-
-iASpectrumDataType iAvtkImagesMultiChannelAdapter::get(size_t voxelIdx, size_t channelIdx) const
-{
-	iAImageCoordinate coords = m_coordConv.GetCoordinatesFromIndex(voxelIdx);
-	iASpectrumDataType value = m_images[channelIdx]->GetScalarComponentAsDouble(coords.x, coords.y, coords.z, 0);
-	return value;
-}
+public:
+	void Initialize();
+};

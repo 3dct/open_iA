@@ -48,6 +48,7 @@ public:
 	void Remove(int idx);
 	QString const & GetFileName() const;
 	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
+	bool HasUnsavedModality() const;
 signals:
 	void Added(QSharedPointer<iAModality> mod);
 private:

@@ -18,17 +18,69 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+ 
+#include "pch.h"
+#include "iAVectorTypeImpl.h"
 
-#include "iAModuleInterface.h"
 
-class iASegmentationRandomWalkerModuleInterface : public iAModuleInterface
+
+iAVectorDataType iAVectorType::operator[](size_t channelIdx) const
 {
-	Q_OBJECT
+	return get(channelIdx);
+}
 
-public:
-	void Initialize();
-private slots:
-	bool CalculateRW();
-	bool CalculateERW();
-};
+QSharedPointer<iAVectorType const> iAVectorType::normalized() const
+{
+	QSharedPointer<iAStandaloneVector> result(new iAStandaloneVector(size()));
+	iAVectorDataType sum = 0;
+	for(iAVectorType::IndexType i = 0; i<size(); ++i)
+	{
+		sum += get(i);
+	}
+	for(iAVectorType::IndexType i = 0; i<size(); ++i)
+	{
+		result->set(i, get(i) / sum);
+	}
+	return result;
+}
+
+
+
+
+iAPixelVector::iAPixelVector(iAVectorArray const & data, size_t voxelIdx):
+	m_data(data),
+	m_voxelIdx(voxelIdx)
+{}
+
+iAVectorDataType iAPixelVector::get(size_t channelIdx) const
+{
+	iAVectorDataType value = m_data.get(m_voxelIdx, channelIdx);
+	return value;
+}
+
+iAVectorType::IndexType iAPixelVector::size() const
+{
+	return m_data.channelCount();
+}
+
+
+
+
+iAStandaloneVector::iAStandaloneVector(IndexType size):
+	m_data(size)
+{}
+
+iAVectorDataType iAStandaloneVector::get(size_t idx) const
+{
+	return m_data[idx];
+}
+
+iAVectorType::IndexType iAStandaloneVector::size() const
+{
+	return m_data.size();
+}
+
+void iAStandaloneVector::set(iAVectorType::IndexType idx, iAVectorDataType value)
+{
+	m_data[idx] = value;
+}

@@ -18,20 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#include "iASpectrumType.h"
+#include "open_iA_Core_export.h"
 
-#include <QThread>
+#include <QSharedPointer>
+#include <QString>
+#include <QVector>
 
-class iAImageCoordConverter;
+struct iAImageCoordinate;
 
-class iAPCA: public QThread
-{
-public:
-	iAPCA(QSharedPointer<iASpectralVoxelData const> spectralData);
-	QSharedPointer<iASpectralVoxelData const> GetReduced(iAImageCoordConverter const & convert, int cutOff);
-private:
-	virtual void run();
+typedef std::pair<iAImageCoordinate, int> iASeedType;
+typedef QVector<iASeedType> iASeedVector;
+typedef QSharedPointer<iASeedVector> iASeedsPointer;
 
-	QSharedPointer<iASpectralVoxelData const> m_spectralData;
-};
+open_iA_Core_API iASeedsPointer ExtractSeedVector(QString const & seedString, int width, int height, int depth);

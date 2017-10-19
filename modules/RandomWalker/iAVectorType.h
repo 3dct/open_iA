@@ -20,35 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAImageGraphTypes.h"
+typedef double iAVectorDataType;
 
 #include <QSharedPointer>
-#include <QVector>
 
-class iANormalizer;
-class iAImageGraph;
-class iASpectraDistance;
-
-class iAGraphWeights
+//! abstract base class for an arbitrary-sized vector
+class iAVectorType
 {
 public:
-	iAGraphWeights(iAEdgeIndexType edgeCount);
-	void Normalize(QSharedPointer<iANormalizer> normalizeFunc);
-	iAEdgeWeightType GetMaxWeight() const;
-	iAEdgeWeightType GetWeight(iAEdgeIndexType edgeIdx) const;
-	void SetWeight(iAEdgeIndexType edgeIdx, iAEdgeWeightType weight);
-	int GetEdgeCount() const;
-private:
-	QVector<iAEdgeWeightType> m_weights;
+	typedef size_t IndexType;
+	virtual iAVectorDataType operator[](size_t channelIdx) const;
+	virtual iAVectorDataType get(size_t channelIdx) const = 0;
+	virtual IndexType size() const = 0;
+	virtual QSharedPointer<iAVectorType const> normalized() const;
 };
-
-QSharedPointer<iAGraphWeights> CalculateGraphWeights(
-	iAImageGraph const & graph,
-	iASpectralVoxelData const & voxelData,
-	iASpectraDistance const & distanceFunc
-);
-
-QSharedPointer<iAGraphWeights const> CombineGraphWeights(
-	QVector<QSharedPointer<iAGraphWeights>> const & graphWeights,
-	QVector<double> const & weight
-);

@@ -22,11 +22,4 @@
 
 #include "iAFilter.h"
 
-class iACastImageFilter : public iAFilter
-{
-public:
-	static QSharedPointer<iACastImageFilter> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iACastImageFilter();
-};
+IAFILTER_DEFAULT_CLASS(iACastImageFilter);

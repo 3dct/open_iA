@@ -21,37 +21,41 @@
 #pragma once
 
 #include "iAImageCoordinate.h"
-#include "open_iA_Core_export.h"
-#include "iASpectrumType.h"
+#include "iAVectorArray.h"
+#include "iAVectorType.h"
+#include "iAVectorTypeImpl.h"
+
+#include <itkImage.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 
-class open_iA_Core_API iAvtkImagesMultiChannelAdapter: public iASpectralVoxelData
+#include <QSharedPointer>
+
+class iAvtkPixelVectorArray: public iAVectorArray
 {
 public:
-	iAvtkImagesMultiChannelAdapter(size_t width, size_t height, size_t depth);
+	iAvtkPixelVectorArray(int const * dim);
+	iAvtkPixelVectorArray(size_t width, size_t height, size_t depth);
 	virtual size_t size() const;
 	virtual size_t channelCount() const;
-	virtual QSharedPointer<iASpectrumType const> get(size_t voxelIdx) const;
-	virtual iASpectrumDataType get(size_t voxelIdx, size_t channelIdx) const;
+	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const;
+	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const;
 	void AddImage(vtkSmartPointer<vtkImageData> img);
 private:
 	std::vector<vtkSmartPointer<vtkImageData> > m_images;
 	iAImageCoordConverter m_coordConv;
 };
 
-#include <itkImage.h>
-
 template <typename ImageType>
-class iAitkImagesMultiChannelAdapter: public iASpectralVoxelData
+class iAitkPixelVectorArray : public iAVectorArray
 {
 public:
-	iAitkImagesMultiChannelAdapter(size_t width, size_t height, size_t depth);
+	iAitkPixelVectorArray(size_t width, size_t height, size_t depth);
 	virtual size_t size() const;
 	virtual size_t channelCount() const;
-	virtual QSharedPointer<iASpectrumType const> get(size_t voxelIdx) const;
-	virtual iASpectrumDataType get(size_t voxelIdx, size_t channelIdx) const;
+	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const;
+	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const;
 	void AddImage(itk::SmartPointer<ImageType> img);
 private:
 	std::vector<itk::SmartPointer<ImageType> > m_images;
@@ -60,14 +64,14 @@ private:
 
 
 template <typename ImageType>
-iAitkImagesMultiChannelAdapter<ImageType>::iAitkImagesMultiChannelAdapter(size_t width, size_t height, size_t depth):
+iAitkPixelVectorArray<ImageType>::iAitkPixelVectorArray(size_t width, size_t height, size_t depth):
 	m_coordConv(width, height, depth)
 {
 }
 
 
 template <typename ImageType>
-void iAitkImagesMultiChannelAdapter<ImageType>::AddImage(itk::SmartPointer<ImageType> img)
+void iAitkPixelVectorArray<ImageType>::AddImage(itk::SmartPointer<ImageType> img)
 {
 	typename ImageType::RegionType region = img->GetLargestPossibleRegion();
 	typename ImageType::SizeType size = region.GetSize();
@@ -78,31 +82,31 @@ void iAitkImagesMultiChannelAdapter<ImageType>::AddImage(itk::SmartPointer<Image
 }
 
 template <typename ImageType>
-size_t iAitkImagesMultiChannelAdapter<ImageType>::size() const
+size_t iAitkPixelVectorArray<ImageType>::size() const
 {
 	return m_coordConv.GetVertexCount();
 }
 
 template <typename ImageType>
-size_t iAitkImagesMultiChannelAdapter<ImageType>::channelCount() const
+size_t iAitkPixelVectorArray<ImageType>::channelCount() const
 {
 	return m_images.size();
 }
 
 template <typename ImageType>
-QSharedPointer<iASpectrumType const> iAitkImagesMultiChannelAdapter<ImageType>::get(size_t voxelIdx) const
+QSharedPointer<iAVectorType const> iAitkPixelVectorArray<ImageType>::get(size_t voxelIdx) const
 {
-	return QSharedPointer<iASpectrumType const>(new iADirectAccessSpectrumType(*this, voxelIdx));
+	return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
 }
 
 template <typename ImageType>
-iASpectrumDataType iAitkImagesMultiChannelAdapter<ImageType>::get(size_t voxelIdx, size_t channelIdx) const
+iAVectorDataType iAitkPixelVectorArray<ImageType>::get(size_t voxelIdx, size_t channelIdx) const
 {
 	typename ImageType::IndexType idx;
 	iAImageCoordinate coords = m_coordConv.GetCoordinatesFromIndex(voxelIdx);
 	idx[0] = coords.x;
 	idx[1] = coords.y;
 	idx[2] = coords.z;
-	iASpectrumDataType value = m_images[channelIdx]->GetPixel(idx);
+	iAVectorDataType value = m_images[channelIdx]->GetPixel(idx);
 	return value;
 }

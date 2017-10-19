@@ -20,39 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "iAVectorType.h"  // for iAVectorDataType
 
-#include <vtkSmartPointer.h>
+#include <cstddef> // for size_t
 
-class vtkImageData;
+#include <QSharedPointer>
 
-class QString;
-class QStringList;
-
-// image creation:
-void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3]);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents);
-
-// image I/O (using ITK methods of iAITKIO)
-open_iA_Core_API void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
-vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
-
-void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
-
-int MapVTKTypeStringToInt(QString const & vtkTypeName);
-
-int MapVTKTypeStringToSize(QString const & vtkTypeString);
-
-bool isVtkIntegerType(int type);
-
-QStringList const & VTKDataTypeList();
-
-#define FOR_VTKIMG_PIXELS(img, x, y, z) \
-for (int z = 0; z < img->GetDimensions()[2]; ++z) \
-	for (int y = 0; y < img->GetDimensions()[1]; ++y) \
-		for (int x = 0; x < img->GetDimensions()[0]; ++x)
-
-#define FOR_VTKIMG_PIXELS_IDX(img, idx) \
-for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)
+//! abstract base class for access to multi-channel/vector data, arranged as array
+class iAVectorArray
+{
+public:
+	virtual ~iAVectorArray();
+	virtual size_t size() const =0;
+	virtual size_t channelCount() const =0;
+	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const =0;
+	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const =0;
+};

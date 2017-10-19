@@ -104,10 +104,22 @@ public:
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
-	//! Returns the number of image inputs required by this algorithm;
+	//! Returns the number of image inputs required by this filter.
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
 	unsigned int RequiredInputs() const;
+	//! Returns the number of output images returned by this filter.
+	//! for typical image filters, this returns 1. The filter can modify
+	//! this through SetOutputCount at the moment
+	unsigned int OutputCount() const;
+	//! sets the output count
+	void SetOutputCount(unsigned int outputCount);
+	//! input/output connectors
+	QVector<iAConnector*> Connectors();
+	//! returns the number of input channels from the first input image
+	unsigned int FirstInputChannels() const;
+	//! sets the first input channels
+	void SetFirstInputChannels(unsigned int c);
 protected:
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
@@ -124,7 +136,7 @@ private:
 	QVector<pParameter> m_parameters;
 	QString m_name, m_category, m_description;
 	iALogger* m_log;
-	unsigned int m_requiredInputs;
+	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };
 
 //! Convenience Macro for creating the static Create method for your filter

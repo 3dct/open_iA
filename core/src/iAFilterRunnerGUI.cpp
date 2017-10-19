@@ -22,12 +22,13 @@
 
 #include "iAFilter.h"
 
-#include <QSettings>
-
 #include "dlg_commoninput.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
+#include "iAConsole.h"
 #include "iALogger.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -35,6 +36,7 @@
 
 #include <QMdiSubWindow>
 #include <QMessageBox>
+#include <QSettings>
 #include <QSharedPointer>
 #include <QString>
 #include <QTextDocument>
@@ -89,8 +91,9 @@ namespace
 		case Discrete   : return "*";
 		case Boolean    : return "$";
 		case Categorical: return "+";
+		case Text       : return "=";
 		default:
-		case String: return "#";
+		case String     : return "#";
 		}
 	}
 }
@@ -112,8 +115,8 @@ QMap<QString, QVariant> iAFilterRunnerGUI::LoadParameters(QSharedPointer<iAFilte
 	QSettings settings;
 	for (auto param : params)
 	{
-		QVariant default = (param->ValueType() == Categorical) ? "" : param->DefaultValue();
-		result.insert(param->Name(), settings.value(SettingName(filter, param), default));
+		QVariant defaultValue = (param->ValueType() == Categorical) ? "" : param->DefaultValue();
+		result.insert(param->Name(), settings.value(SettingName(filter, param), defaultValue));
 	}
 	return result;
 }
@@ -194,6 +197,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 		case Continuous:  value = dlg.getDblValue(idx);      break;
 		case Discrete:    value = dlg.getIntValue(idx);      break;
+		case Text:
 		case String:      value = dlg.getText(idx);          break;
 		case Boolean:     value = dlg.getCheckValue(idx);    break;
 		case Categorical: value = dlg.getComboBoxValue(idx); break;
@@ -206,7 +210,10 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		for (int i = 0; i < filter->RequiredInputs()-1; ++i)
 		{
 			int mdiIdx = dlg.getComboBoxIndex(idx);
-			m_additionalInput.push_back(otherMdis[mdiIdx]->getImageData());
+			for (int m = 0; m < otherMdis[mdiIdx]->GetModalities()->size(); ++m)
+			{
+				m_additionalInput.push_back(otherMdis[mdiIdx]->GetModality(m)->GetImage());
+			}
 			++idx;
 
 		}
@@ -239,6 +246,12 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
 		return;
 	}
+	// TODO: move all image adding here?
+	for (int m = 1; m < sourceMdi->GetModalities()->size(); ++m)
+	{
+		thread->AddImage(sourceMdi->GetModality(m)->GetImage());
+	}
+	filter->SetFirstInputChannels(sourceMdi->GetModalities()->size());
 	for (auto img : m_additionalInput)
 	{
 		thread->AddImage(img);
@@ -251,6 +264,27 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 void iAFilterRunnerGUI::ConnectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
 {
+	connect(thread, SIGNAL(finished()), this, SLOT(FilterFinished()));
 	mdiChild->connectThreadSignalsToChildSlots(thread);
-	connect(thread, SIGNAL(finished()), this, SIGNAL(finished()));
+}
+
+void iAFilterRunnerGUI::FilterFinished()
+{
+	auto thread = qobject_cast<iAFilterRunnerGUIThread*>(sender());
+	// add additional output as additional modalities here
+	// "default" output 0 is handled elsewhere
+	if (thread->Filter()->OutputCount() > 1)
+	{
+		for (int p = 1; p < thread->Filter()->Connectors().size() && p < thread->Filter()->OutputCount(); ++p)
+		{
+			auto img = vtkSmartPointer<vtkImageData>::New();
+			// some filters apparently clean up the result image
+			// (disregarding that a smart pointer still points to it...)
+			// so let's copy it to be on the safe side!
+			img->DeepCopy(thread->Filter()->Connectors()[p]->GetVTKImage());
+			qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
+				new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0)));
+		}
+	}
+	emit finished();
 }

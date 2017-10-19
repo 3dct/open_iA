@@ -18,10 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "pch.h"
+#include "iASVMModuleInterface.h"
 
-#include <QVector>
-struct iAImageCoordinate;
+#include "iASVMImageFilter.h"
 
-typedef std::pair<iAImageCoordinate, int> SeedType;
-typedef QVector<SeedType> SeedVector;
+#include "iAFilterRegistry.h"
+
+
+void iASVMModuleInterface::Initialize()
+{
+	REGISTER_FILTER(iASVMImageFilter);
+}
