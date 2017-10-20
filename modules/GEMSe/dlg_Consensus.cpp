@@ -35,6 +35,7 @@
 
 #include "ParametrizableLabelVotingImageFilter.h"
 #include "FilteringLabelOverlapMeasuresImageFilter.h"
+#include "UndecidedPixelClassifierImageFilter.h"
 
 #include <itkCastImageFilter.h>
 #include <itkMultiLabelSTAPLEImageFilter.h>
@@ -384,7 +385,25 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 	if (!labelVotingFilter)
 		return iAITKIO::ImagePointer();
 	LabelImagePointer labelResult = labelVotingFilter->GetOutput();
-	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(labelResult.GetPointer());
+
+	auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
+	typedef LabelVotingType::DoubleImg DblImg;
+	typedef DblImg::Pointer DblImgPtr;
+	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
+	{
+		std::vector<DblImgPtr> probImgs;
+		for (int l = 0; l < labelCount; ++l)
+		{
+			iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
+			DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
+			probImgs.push_back(dp);
+		}
+		undec->SetProbabilityImages(i, probImgs);
+	}
+	undec->SetInput(labelResult);
+	undec->Update();
+	LabelImagePointer undecResult = undec->GetOutput();
+	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
 	return result;
 }
 

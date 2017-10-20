@@ -49,23 +49,26 @@ public:
 
 	void SetUndecidedPixelLabel(const OutputPixelType l)
 	{
-		m_UndecidedPixelLabel = l;
+		m_undecidedPixelLabel = l;
 		this->Modified();
 	}
 
 	OutputPixelType GetUndecidedPixelLabel() const
 	{
-		return m_UndecidedPixelLabel;
+		return m_undecidedPixelLabel;
 	}
 
-	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
-	{
-		m_probImgs = probImgs;
-	}
-
-	void SetRadius(InputImageType::SizeType radius)
+	void SetRadius(itk::Size<TInputImage::ImageDimension> radius)
 	{
 		m_radius = radius;
+	}
+
+	//! set probabilities for each label for one input
+	//! in order for probability-related functionality to work, this method needs to be
+	//! called once with each input idx
+	void SetProbabilityImages(int inputIdx, std::vector<DoubleImg::Pointer> const & probImgs)
+	{
+		m_probImgs.insert(std::make_pair(inputIdx, probImgs));
 	}
 
 #ifdef ITK_USE_CONCEPT_CHECKING
@@ -95,12 +98,11 @@ private:
 	UndecidedPixelClassifierImageFilter(const Self &) ITK_DELETE_FUNCTION;
 	void operator=(const Self &) ITK_DELETE_FUNCTION;
 
-	OutputPixelType m_UndecidedPixelLabel;
-	bool            m_HasUndecidedPixelLabel;
-	size_t          m_TotalLabelCount;
-	InputImageType::SizeType m_sizeType;
+	OutputPixelType m_undecidedPixelLabel;
+	size_t          m_labelCount;
+	itk::Size<TInputImage::ImageDimension> m_radius;
 
-	std::vector<DoubleImg::Pointer> m_probImgs;
+	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

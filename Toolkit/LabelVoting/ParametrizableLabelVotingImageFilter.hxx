@@ -86,12 +86,8 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 ::ComputeMaximumInputValue()
 {
 	InputPixelType maxLabel = 0;
-
-	typedef itk::ImageRegionConstIterator< TInputImage > IteratorType;
-
-	// Record the number of input files.
 	const size_t numberOfInputFiles = this->GetNumberOfIndexedInputs();
-
+	typedef itk::ImageRegionConstIterator<TInputImage> IteratorType;
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
 		const InputImageType *inputImage = this->GetInput(i);
@@ -101,7 +97,6 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 			maxLabel = std::max(maxLabel, it.Get());
 		}
 	}
-
 	return maxLabel;
 }
 
