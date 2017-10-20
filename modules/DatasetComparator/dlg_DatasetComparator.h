@@ -77,6 +77,7 @@ private:
 	QList<double> m_integralValList;
 	QSharedPointer<QCPGraphDataContainer> m_impFuncPlotData;
 	QSharedPointer<QCPGraphDataContainer> m_integralImpFuncPlotData;
+	QList<QCPRange> m_bkgrdRangeList;
 	
 	void generateHilbertIdx();
 	void setupFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData);

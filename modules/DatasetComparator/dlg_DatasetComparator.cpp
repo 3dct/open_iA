@@ -22,44 +22,40 @@
 #include "pch.h"
 #include "dlg_DatasetComparator.h"
 #include "iAColorTheme.h"
-#include "iAHistogramWidget.h"
-#include "iAIntensityMapper.h"
-#include "iARenderer.h"
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
-#include "iATypedCallHelper.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
+#include "iAHistogramWidget.h"
+#include "iAIntensityMapper.h"
 #include "iANonLinearAxisTicker.h"
+#include "iARenderer.h"
+#include "iATransferFunction.h"
+#include "iATypedCallHelper.h"
+#include "iAVolumeRenderer.h"
 
-#include <vtkPoints.h>
-#include <vtkCellArray.h>
-#include <vtkImageData.h>
-#include <vtkLine.h>
-#include <vtkPolyData.h>
-#include <vtkInteractorStyleTrackballCamera.h>
-#include <vtkRenderer.h>
-#include <vtkCamera.h>
-#include <vtkActor.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkAbstractVolumeMapper.h>
-#include <vtkVolumeProperty.h>
-#include <vtkProperty.h>
-#include <vtkCornerAnnotation.h>
-#include <vtkTextProperty.h>
-#include <vtkRenderWindow.h>
-#include <vtkRendererCollection.h>
-#include <vtkTextActor.h>
-#include <vtkCallbackCommand.h>
+#include <vtkActor.h>
 #include <vtkActor2DCollection.h>
+#include <vtkCallbackCommand.h>
+#include <vtkCamera.h>
+#include <vtkCellArray.h>
+#include <vtkCornerAnnotation.h>
+#include <vtkImageData.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkLine.h>
 #include <vtkPoints.h>
-
-#include "iARenderObserver.h"
-#include "mainwindow.h"
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
+#include <vtkVolumeProperty.h>
 
 //#include <omp.h>
 //#include <sys/timeb.h>
-#include "iAConsole.h"
+//#include "iAConsole.h"
 
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
@@ -95,7 +91,7 @@ dlg_DatasetComparator::~dlg_DatasetComparator()
 
 void dlg_DatasetComparator::setupQCustomPlot()
 {
-	m_nonlinearScaledPlot->installEventFilter(this);  // To catche 'r' or 'R' key press event
+	m_nonlinearScaledPlot->installEventFilter(this);  // To catche key press event
 	m_nonlinearScaledPlot->setOpenGl(true);
 	m_nonlinearScaledPlot->setNoAntialiasingOnDrag(true);
 	m_nonlinearScaledPlot->setNotAntialiasedElements(QCP::aeAll);
@@ -173,7 +169,7 @@ void dlg_DatasetComparator::setupMultiRendererView()
 void dlg_DatasetComparator::showLinePlots()
 {
 	m_nonlinearScaledPlot->clearGraphs();
-	showDebugPlot(calcNonLinearMapping(false));
+	showDebugPlot(calcNonLinearMapping(true));
 	QSharedPointer<iANonLinearAxisTicker> nonLinearTicker(new iANonLinearAxisTicker);
 	nonLinearTicker->setTickData(m_integralValList.toVector());
 	nonLinearTicker->setAxis(m_nonlinearScaledPlot->xAxis);
@@ -207,6 +203,27 @@ void dlg_DatasetComparator::showLinePlots()
 		m_nonlinearScaledPlot->graph()->setData(nonlinearScaledPlotData);
 	}
 
+	//TODO: check DoubleSpinBox + code below in separated function 
+	for (auto it = m_bkgrdRangeList.begin(); it != m_bkgrdRangeList.end(); ++it)
+	{
+		QCPItemRect *xRectItem = new QCPItemRect(m_nonlinearScaledPlot);
+		xRectItem->setAntialiased(false);
+		xRectItem->setLayer("background");
+		xRectItem->setPen(QPen(Qt::NoPen));
+		xRectItem->setBrush(QBrush(Qt::lightGray));
+		xRectItem->topLeft->setTypeX(QCPItemPosition::ptPlotCoords);
+		xRectItem->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
+		xRectItem->topLeft->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
+		xRectItem->topLeft->setAxisRect(m_nonlinearScaledPlot->axisRect());
+		xRectItem->topLeft->setCoords(it->lower, 0.0);
+		xRectItem->bottomRight->setTypeX(QCPItemPosition::ptPlotCoords);
+		xRectItem->bottomRight->setTypeY(QCPItemPosition::ptAxisRectRatio);
+		xRectItem->bottomRight->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
+		xRectItem->bottomRight->setAxisRect(m_nonlinearScaledPlot->axisRect());
+		xRectItem->bottomRight->setCoords(it->upper , 1.0);
+		xRectItem->setClipToAxisRect(true);  
+	}
+
 	ModifiedDepthMeasure<double, double> measure;
 	auto functionalBoxplotData = new iAFunctionalBoxplot<double, double>(functions, &measure, 2);
 	setupFBPGraphs(functionalBoxplotData);
@@ -218,6 +235,8 @@ void dlg_DatasetComparator::showLinePlots()
 
 void dlg_DatasetComparator::showDebugPlot(bool show)
 {
+	//TODO: Add linear scaled Hilbert plot
+	
 	if (!show) return;
 
 	m_helperPlot = new QCustomPlot(dockWidgetContents);
@@ -260,46 +279,66 @@ void dlg_DatasetComparator::showDebugPlot(bool show)
 
 bool dlg_DatasetComparator::calcNonLinearMapping(bool showDebugPlot)
 {
-	QList<double> innerEnsembleDistList;
-	for (int i = 0; i < m_DatasetIntensityMap[0].second.size(); ++i)
-	{
-		double innerEnsembleDist = 0.0;
-		QList<double> localIntValList;
-		for (int j = 0; j < m_DatasetIntensityMap.size(); ++j)
-			localIntValList.append(m_DatasetIntensityMap[j].second[i].intensity);
-		auto minLocalVal = *std::min_element(std::begin(localIntValList), std::end(localIntValList));
-		auto maxLocalVal = *std::max_element(std::begin(localIntValList), std::end(localIntValList));
-		innerEnsembleDist = maxLocalVal - minLocalVal;
-		innerEnsembleDistList.append(innerEnsembleDist);
-	}
-
-	auto maxInnerEnsableDist = *std::max_element(std::begin(innerEnsembleDistList), std::end(innerEnsembleDistList));
-
 	if (showDebugPlot)
 	{
 		m_impFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
 		m_integralImpFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
 	}
 
+	QList<double> innerEnsembleDistList;
+	double maxInnerEnsableDist = 0.0;
+	double thr = 10000;
+
 	for (int i = 0; i < m_DatasetIntensityMap[0].second.size(); ++i)
 	{
-		double imp = 0.0;
-		QList<double> localIntValList;
-		for (int j = 0; j < m_DatasetIntensityMap.size(); ++j)
-			localIntValList.append(m_DatasetIntensityMap[j].second[i].intensity);
-		auto minLocalVal = *std::min_element(std::begin(localIntValList), std::end(localIntValList));
-		auto maxLocalVal = *std::max_element(std::begin(localIntValList), std::end(localIntValList));
-		imp = maxLocalVal - minLocalVal;
-		imp /= maxInnerEnsableDist;
-		//imp = pow(imp*2,-0.9);
-		imp = pow(imp * 2, 1.4);
+		double innerEnsembleDist = -1.0;
+		if (m_DatasetIntensityMap[0].second[i].intensity > thr)
+		{
+			QList<double> localIntValList;
+			for (int j = 0; j < m_DatasetIntensityMap.size(); ++j)
+				localIntValList.append(m_DatasetIntensityMap[j].second[i].intensity);
+			auto minLocalVal = *std::min_element(std::begin(localIntValList), std::end(localIntValList));
+			auto maxLocalVal = *std::max_element(std::begin(localIntValList), std::end(localIntValList));
+			innerEnsembleDist = maxLocalVal - minLocalVal;
+		}
+		innerEnsembleDistList.append(innerEnsembleDist);
+		if (maxInnerEnsableDist < innerEnsembleDist)
+			maxInnerEnsableDist = innerEnsembleDist;
+	}
+	
+	double sectionStart = -1.0;
+
+	for (int i = 0; i < innerEnsembleDistList.size(); ++i)
+	{
+		double imp = 0.005;
+		if (innerEnsembleDistList[i] >= 0.0)
+		{
+			imp = innerEnsembleDistList[i];
+			imp /= maxInnerEnsableDist;
+		}
+
+		imp = pow(imp * 2, 1.4); // //imp = pow(imp*2,-0.9);
 		m_integralValList.append(i == 0 ? imp : m_integralValList[i - 1] + imp);
+
+		if ((innerEnsembleDistList[i] >= 0.0 || i == innerEnsembleDistList.size()-1) 
+			&& sectionStart >= 0.0)
+		{
+			m_bkgrdRangeList.append(QCPRange(sectionStart, m_integralValList[i - 1]));
+			sectionStart = -1.0;
+		}
+		else if(innerEnsembleDistList[i] == -1.0 && sectionStart == -1.0)
+		{
+			sectionStart = (i == 0 ? 0.0 : m_integralValList[i]);
+		}
+
 		if (showDebugPlot)
 		{
 			m_impFuncPlotData->add(QCPGraphData(double(i), imp));
-			m_integralImpFuncPlotData->add(QCPGraphData(double(i), i == 0 ? imp : m_integralValList[i - 1] + imp));
+			m_integralImpFuncPlotData->add(QCPGraphData(double(i),
+				i == 0 ? imp : m_integralValList[i - 1] + imp));
 		}
 	}
+
 	return showDebugPlot;
 }
 
@@ -362,6 +401,12 @@ bool dlg_DatasetComparator::eventFilter(QObject * o, QEvent *e)
 		if (keyStr == "r" || keyStr == "R")
 		{
 			plot->rescaleAxes();
+			plot->replot();
+		}
+		if ((keyStr == "h" || keyStr == "H") &&
+			plot->legend->itemCount())
+		{
+			plot->legend->setVisible(!plot->legend->visible());
 			plot->replot();
 		}
 		return true;

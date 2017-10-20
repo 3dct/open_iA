@@ -147,18 +147,49 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="visible">
+             <bool>false</bool>
+            </property>
             <property name="sliderPosition">
              <number>99</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-			<property name="visible">
-			 <bool>false</bool>
-			</property>
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string/>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QCheckBox" name="checkBox">
+            <property name="text">
+             <string>BackgroundThreshold</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="sb_BkgrdThr">
+            <property name="maximum">
+             <double>65535.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>30000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+         <zorder>checkBox</zorder>
+         <zorder>checkBox</zorder>
+         <zorder>sb_BkgrdThr</zorder>
+         <zorder>checkBox</zorder>
+         <zorder>sb_BkgrdThr</zorder>
         </widget>
        </item>
        <item>
