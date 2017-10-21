@@ -219,12 +219,12 @@ LabelGeometryImageFilter2< TLabelImage, TIntensityImage >
   m_AllLabels.clear();
 
   std::map<LabelPixelType, std::ofstream*> files;
-  std::map<LabelPixelType, std::ofstream*>::iterator fileIt;
+  typename std::map<LabelPixelType, std::ofstream*>::iterator fileIt;
 
   if(m_CalculatePixelIndices)
   {
 	typedef itk::LabelImageToLabelMapFilter<LabelImageType, LabelMapType> ConverterType;
-	ConverterType::Pointer converter = ConverterType::New();
+	typename ConverterType::Pointer converter = ConverterType::New();
 	converter->SetInput( this->GetInput() );
 	converter->Update();
 	m_LabelMap = converter->GetOutput();
@@ -524,7 +524,7 @@ LabelGeometryImageFilter2< TLabelImage, TIntensityImage >
 // 		  ++size;
 //   f.seekg(0);
   //MatrixType pixelLocations(ImageDimension, labelGeometry.m_PixelIndices.size(), 0);
-  LabelObjectType::Pointer labelObj = m_LabelMap->GetLabelObject(label);
+  auto labelObj = m_LabelMap->GetLabelObject(label);
   MatrixType pixelLocations(ImageDimension, labelObj->Size(), 0);
   //for ( unsigned int i = 0; i < labelGeometry.m_PixelIndices.size(); i++ )
   for ( unsigned int pixelId = 0; pixelId < labelObj->Size(); pixelId++ )

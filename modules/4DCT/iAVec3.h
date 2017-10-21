@@ -31,33 +31,15 @@ public:
 	T &			operator[]( std::size_t ind );
 	const T&	operator[]( std::size_t ind ) const;
 
-	template<typename T>
-	friend Vec3<T> operator+( const Vec3<T> & lhs, const Vec3<T> & rhs );
-
-	template<typename T>
-	friend Vec3<T> operator-( const Vec3<T> & lhs, const Vec3<T> & rhs );
-
-	template<typename T, typename ParamType>
-	friend Vec3<T> operator+( ParamType lhs, const Vec3<T> & rhs );
-
-	template<typename T, typename ParamType>
-	friend Vec3<T> operator+( const Vec3<T> & lhs, ParamType rhs );
-
-	template<typename T, typename ParamType>
-	friend Vec3<T> operator*( const Vec3<T> & lhs, ParamType rhs );
-
-	template<typename T, typename ParamType>
-	friend Vec3<T> operator*( ParamType lhs, const Vec3<T> & rhs );
-
-	template<typename T, typename ParamType>
-	friend Vec3<T> operator/( const Vec3<T> & lhs, const ParamType & rhs );
-
-	template<typename T, typename ParamType>
-	friend Vec3<T> operator/( const ParamType & lhs, const Vec3<T> & rhs );
-
-	template<typename T>
-	friend T operator&( const Vec3<T> & lhs, const Vec3<T> & rhs ); // dot production
-
+	template<typename Tf> friend Vec3<Tf> operator+( const Vec3<Tf> & lhs, const Vec3<Tf> & rhs );
+	template<typename Tf> friend Vec3<Tf> operator-( const Vec3<Tf> & lhs, const Vec3<Tf> & rhs );
+	template<typename Tf, typename ParamType> friend Vec3<Tf> operator+( ParamType lhs, const Vec3<Tf> & rhs );
+	template<typename Tf, typename ParamType> friend Vec3<Tf> operator+( const Vec3<Tf> & lhs, ParamType rhs );
+	template<typename Tf, typename ParamType> friend Vec3<Tf> operator*( const Vec3<Tf> & lhs, ParamType rhs );
+	template<typename Tf, typename ParamType> friend Vec3<Tf> operator*( ParamType lhs, const Vec3<Tf> & rhs );
+	template<typename Tf, typename ParamType> friend Vec3<Tf> operator/( const Vec3<Tf> & lhs, const ParamType & rhs );
+	template<typename Tf, typename ParamType> friend Vec3<Tf> operator/( const ParamType & lhs, const Vec3<Tf> & rhs );
+	template<typename Tf> friend Tf operator&( const Vec3<Tf> & lhs, const Vec3<Tf> & rhs ); // dot production
 private:
 	T m_val[3];
 };

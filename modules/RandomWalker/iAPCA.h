@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer.h>
+#include <QSharedPointer>
 #include <QThread>
 
 class iAImageCoordConverter;

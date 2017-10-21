@@ -75,7 +75,7 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 		FibersData neighborFibersP = findNeighboringFibers( *fibers, defInfo, m_param.NeighborhoodDistP );
 		FibersData neighborFibersFF = findNeighboringFibers( *fibers, defInfo, m_param.NeighborhoodDistFF );
 
-		const enum DefectNames { Fracture, Pulloout, Debonding, Breakage };
+		enum DefectNames { Fracture, Pulloout, Debonding, Breakage };
 		DefectNames looksLike = DefectNames::Fracture;
 
 		// pull-outs
