@@ -38,7 +38,7 @@ iAPCA::iAPCA() :
 		"performs a transformation and reduces the number of output channels to the "
 		"number given in the <em>Cutoff</em> parameter.<br/>"
 		"Note that you will receive one more image than specified in the Cutoff parameter "
-		"- the first image returned is the mean image."
+		"- the first image returned is the mean image.<br/>"
 		"For more information see "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ImagePCAShapeModelEstimator.html/\">"
 		"Image PCA Shape Model Estimator</a> ITK documentation.")
