@@ -18,91 +18,68 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAPCA.h"
 
-#include "iAImageCoordinate.h"
-#include "iAVectorArrayImpl.h"
+#include "defines.h"    // for DIM
+#include "iAConnector.h"
+#include "iATypedCallHelper.h"
 
 #include <itkImage.h>
 #include <itkMultiplyImageFilter.h>
 #include <itkImagePCAShapeModelEstimator.h>
 #include <itkNumericSeriesFileNames.h>
 
-iAPCA::iAPCA(QSharedPointer<iAVectorArray const> spectralData):
-	m_spectralData(spectralData)
+
+iAPCA::iAPCA() :
+	iAFilter("Principal Component Analysis", "Dimensionality Reduction",
+		"Computes the principal component analysis on a collection of input images.<br/>"
+		"Given a number of input channels or images of same dimensions, this filter "
+		"performs a transformation and reduces the number of output channels to the "
+		"number given in the <em>Cutoff</em> parameter.<br/>"
+		"Note that you will receive one more image than specified in the Cutoff parameter "
+		"- the first image returned is the mean image."
+		"For more information see "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ImagePCAShapeModelEstimator.html/\">"
+		"Image PCA Shape Model Estimator</a> ITK documentation.")
 {
+	AddParameter("Cutoff", Discrete, 1);
 }
 
-QSharedPointer<iAVectorArray const> iAPCA::GetReduced(iAImageCoordConverter const & convert, int cutOff)
-{
-	const int spectraCount = m_spectralData->size();
-	assert(spectraCount > 0);
-	const int spectrumBinCount = m_spectralData->channelCount();
+IAFILTER_CREATE(iAPCA)
 
-	const unsigned int Dimensions = 3;
-	typedef iAVectorDataType PixelType;
-	typedef itk::Image<PixelType, Dimensions> ImageType;
+
+template <typename PixelType>
+void pca_template(QVector<iAConnector*> cons, QMap<QString, QVariant> const & parameters)
+{
+	typedef itk::Image<PixelType, DIM> ImageType;
 	typedef itk::MultiplyImageFilter<ImageType, ImageType, ImageType> ScaleType;
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
- 
-	EstimatorType::Pointer filter = EstimatorType::New();
-	filter->SetNumberOfTrainingImages(spectrumBinCount);
-	filter->SetNumberOfPrincipalComponentsRequired(cutOff);
 
-	std::vector<ImageType::Pointer> trainingImages(spectrumBinCount);
-	// allocate and fill input images:
-
-	// TODO: reuse existing images ???
-	for ( unsigned int k = 0; k < spectrumBinCount; k++ )
+	auto filter = EstimatorType::New();
+	filter->SetNumberOfTrainingImages(cons.size());
+	filter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
+	for (unsigned int k = 0; k < cons.size(); k++)
 	{
-		ImageType::Pointer myImg(ImageType::New());
-		ImageType::IndexType orig;
-		orig.Fill(0);
-		ImageType::SizeType size;
-		size[0] = convert.GetWidth();
-		size[1] = convert.GetHeight();
-		size[2] = convert.GetDepth();
-		ImageType::RegionType reg;
-		reg.SetIndex(orig); 
-		reg.SetSize(size);
-		myImg->SetRegions(reg);
-		myImg->Allocate();
-
-		ImageType::IndexType idx;
-		for (idx[0] = 0; idx[0] < convert.GetWidth(); ++idx[0])
-		{
-			for (idx[1] = 0; idx[1] < convert.GetHeight(); ++idx[1])
-			{
-				for (idx[2] = 0; idx[2] < convert.GetDepth(); ++idx[2])
-				{
-					int specIdx = convert.GetIndexFromCoordinates(iAImageCoordinate(idx[0], idx[1], idx[2]));
-					iAVectorDataType voxelValue = m_spectralData->get(specIdx, k);
-					myImg->SetPixel(idx, voxelValue);
-				}
-			}
-		}
-		trainingImages[k] = myImg;
-		filter->SetInput(k, trainingImages[k] );
+		filter->SetInput(k, dynamic_cast<ImageType*>(cons[k]->GetITKImage()));
 	}
- 
+
 	// actual PCA calculation:
 	filter->Update();
-	EstimatorType::VectorOfDoubleType v = filter->GetEigenValues();
-	double sv_mean=sqrt(v[0]);
-
-	// create output in required format:
-	QSharedPointer<iAitkPixelVectorArray<ImageType> >
-		result(new iAitkPixelVectorArray<ImageType>(convert.GetWidth(), convert.GetHeight(), convert.GetDepth()));
-	for (int binIdx = 0; binIdx < cutOff; ++binIdx)
+	//EstimatorType::VectorOfDoubleType v = filter->GetEigenValues();
+	for (int o = cons.size(); o < parameters["Cutoff"].toUInt() + 1; ++o)
 	{
-		ImageType::Pointer binImg = filter->GetOutput(binIdx);
-		result->AddImage(binImg);
+		cons.push_back(new iAConnector);
 	}
-	return result;
+	for (int o = 0; o < parameters["Cutoff"].toUInt() + 1; ++o)
+	{
+		ImageType::Pointer binImg = filter->GetOutput(o);
+		cons[o]->SetImage(binImg);
+	}
 }
 
-void iAPCA::run()
+void iAPCA::Run(QMap<QString, QVariant> const & parameters)
 {
+	ITK_TYPED_CALL(pca_template, m_con->GetITKScalarPixelType(), m_cons, parameters);
+	SetOutputCount(parameters["Cutoff"].toUInt() + 1);
 }
