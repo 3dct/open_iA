@@ -186,6 +186,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			int fgCand = 0, sgCand = -1;
 			for (size_t l = 1; l < m_labelCount; ++l)
 			{
+				// what if another label has the same frequency?
 				if (fbgLabelFreq[l] > fbgLabelFreq[fgCand])
 				{
 					sgCand = fgCand;
@@ -206,6 +207,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			int neCand = 0;
 			for (size_t l = 1; l < m_labelCount; ++l)
 			{
+				// what if another label has the same frequency?
 				if (neiLabelFreq[l] > neiLabelFreq[neCand])
 				{
 					neCand = l;
@@ -246,7 +248,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 					maxFNCount = fnCount; maxFNLabel = l;
 				}
 			}
-			if (maxFNCount != maxFSNCount)
+			if (maxFNLabel != maxFSNLabel)
 			{
 				DEBUG_LOG(QString("Ambiguous result in pixel (%1, %2, %3)")
 					.arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]));
