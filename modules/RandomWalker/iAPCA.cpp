@@ -32,7 +32,7 @@
 
 
 iAPCA::iAPCA() :
-	iAFilter("Principal Component Analysis", "Dimensionality Reduction",
+	iAFilter("Principal Component Analysis", "Shape Analysis",
 		"Computes the principal component analysis on a collection of input images.<br/>"
 		"Given a number of input channels or images of same dimensions, this filter "
 		"performs a transformation and reduces the number of output channels to the "
@@ -66,15 +66,20 @@ void pca_template(QVector<iAConnector*> cons, QMap<QString, QVariant> const & pa
 
 	// actual PCA calculation:
 	filter->Update();
-	//EstimatorType::VectorOfDoubleType v = filter->GetEigenValues();
+	auto scaler = ScaleType::New();
+	EstimatorType::VectorOfDoubleType v = filter->GetEigenValues();
+	double sv_mean = sqrt(v[0]);
 	for (int o = cons.size(); o < parameters["Cutoff"].toUInt() + 1; ++o)
 	{
 		cons.push_back(new iAConnector);
 	}
 	for (int o = 0; o < parameters["Cutoff"].toUInt() + 1; ++o)
 	{
-		ImageType::Pointer binImg = filter->GetOutput(o);
-		cons[o]->SetImage(binImg);
+		double sv = sqrt(v[o]);
+		double sv_n = sv / sv_mean;
+		scaler->SetConstant(sv_n);
+		scaler->SetInput(filter->GetOutput(o));
+		cons[o]->SetImage(scaler->GetOutput());
 	}
 }
 
