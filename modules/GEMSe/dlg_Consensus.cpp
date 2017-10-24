@@ -36,6 +36,7 @@
 #include "ParametrizableLabelVotingImageFilter.h"
 #include "FilteringLabelOverlapMeasuresImageFilter.h"
 #include "UndecidedPixelClassifierImageFilter.h"
+#include "ProbabilisticVotingImageFilter.h"
 
 #include <itkCastImageFilter.h>
 #include <itkMultiLabelSTAPLEImageFilter.h>
@@ -193,6 +194,7 @@ void dlg_Consensus::EnableUI()
 	connect(pbLoadConfig, SIGNAL(clicked()), this, SLOT(LoadConfig()));
 	connect(pbSTAPLE, SIGNAL(clicked()), this, SLOT(CalcSTAPLE()));
 	connect(pbMajorityVoting, SIGNAL(clicked()), this, SLOT(CalcMajorityVote()));
+	connect(pbProbRuleVote, SIGNAL(clicked()), this, SLOT(CalcProbRuleVote()));
 	connect(slAbsMinPercent, SIGNAL(valueChanged(int)), this, SLOT(AbsMinPercentSlider(int)));
 	connect(slMinDiffPercent, SIGNAL(valueChanged(int)), this, SLOT(MinDiffPercentSlider(int)));
 	connect(slMinRatio, SIGNAL(valueChanged(int)), this, SLOT(MinRatioSlider(int)));
@@ -406,6 +408,59 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
 	return result;
 }
+
+
+iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
+	double threshold, VotingRule rule, int labelCount)
+{
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return iAITKIO::ImagePointer();
+	}
+	auto filter = ProbabilisticVotingImageFilter<LabelImageType>::New();
+	filter->SetVotingRule(rule);
+	// set one "alibi" input to automatically create output:
+	filter->SetInput(0, dynamic_cast<LabelImageType*>(selection[0]->GetLabelledImage().GetPointer()));
+	typedef LabelVotingType::DoubleImg DblImg;
+	typedef DblImg::Pointer DblImgPtr;
+	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
+	{
+		std::vector<DblImgPtr> probImgs;
+		for (int l = 0; l < labelCount; ++l)
+		{
+			iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
+			DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
+			probImgs.push_back(dp);
+		}
+		filter->SetProbabilityImages(i, probImgs);
+	}
+	// TODO: consider weights? Though according to Al-Taie et al., weighted voting doesn't have benefits
+	// filter->SetWeights()
+	filter->Update();
+	LabelImagePointer labelResult = filter->GetOutput();
+
+	auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
+	typedef LabelVotingType::DoubleImg DblImg;
+	typedef DblImg::Pointer DblImgPtr;
+	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
+	{
+		std::vector<DblImgPtr> probImgs;
+		for (int l = 0; l < labelCount; ++l)
+		{
+			iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
+			DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
+			probImgs.push_back(dp);
+		}
+		undec->SetProbabilityImages(i, probImgs);
+	}
+	undec->SetInput(labelResult);
+	undec->Update();
+	LabelImagePointer undecResult = undec->GetOutput();
+	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
+	return result;
+}
+
 
 iAITKIO::ImagePointer GetVotingNumbers(QVector<QSharedPointer<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
@@ -1320,6 +1375,26 @@ void dlg_Consensus::CalcMajorityVote()
 	castback->Update();
 	m_lastMVResult = castback->GetOutput();
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("Majority Vote (%1)").arg(CollectedIDs(selection)));
+	lbValue->setText("Value: Majority Vote");
+	lbWeight->setText("Weignt: Equal");
+}
+
+
+void dlg_Consensus::CalcProbRuleVote()
+{
+	QVector<QSharedPointer<iASingleResult> > selection;
+	m_dlgGEMSe->GetSelection(selection);
+	if (selection.size() == 0)
+	{
+		DEBUG_LOG("Please select a cluster from the tree!");
+		return;
+	}
+	m_lastMVResult = GetProbVotingImage(selection, sbUndecidedThresh->value(), static_cast<VotingRule>(cbProbRule->currentIndex())
+		, m_labelCount);
+	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("Probability Vote rule=%1, thresh=%2, (%3)")
+		.arg(cbProbRule->currentIndex())
+		.arg(sbUndecidedThresh->value())
+		.arg(CollectedIDs(selection)));
 	lbValue->setText("Value: Majority Vote");
 	lbWeight->setText("Weignt: Equal");
 }

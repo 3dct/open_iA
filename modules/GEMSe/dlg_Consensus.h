@@ -70,6 +70,7 @@ private slots:
 	void SamplerFinished();
 	void CalcSTAPLE();
 	void CalcMajorityVote();
+	void CalcProbRuleVote();
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
