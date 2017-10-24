@@ -27,6 +27,7 @@
 #include "iAQTtoUIConnector.h"
 
 class iAVolumeRenderer;
+class iANonLinearAxisTicker;
 
 class vtkRenderWindow;
 class vtkTextActor;
@@ -58,6 +59,7 @@ public slots:
 	void selectionChangedByUser();
 	void legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*);
 	void setSelectionFromRenderer(vtkPoints* selCellPoints);
+	void showBkgrdThrLine();
 
 protected:
 	virtual bool eventFilter(QObject * obj, QEvent * event);
@@ -65,8 +67,10 @@ protected:
 private:
 	MdiChild *m_mdiChild;
 	QCustomPlot *m_nonlinearScaledPlot;
+	QCustomPlot *m_linearScaledPlot;
 	QCustomPlot *m_helperPlot;
-	QCPItemText *m_dataPointInfo;
+	QCPItemText *m_nonLinearDataPointInfo;
+	QCPItemText *m_linearDataPointInfo;
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
 	vtkSmartPointer<vtkRenderWindow> m_mrvRenWin;
@@ -74,16 +78,20 @@ private:
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
 	QSharedPointer<iAVolumeRenderer> m_volRen;
 	QList<QCPPlottableLegendItem*> m_selLegendItemList;
-	QList<double> m_integralValList;
+	QVector<double> m_nonLinearMappingVector;
 	QSharedPointer<QCPGraphDataContainer> m_impFuncPlotData;
 	QSharedPointer<QCPGraphDataContainer> m_integralImpFuncPlotData;
-	QList<QCPRange> m_bkgrdRangeList;
+	QSharedPointer<iANonLinearAxisTicker> m_nonLinearTicker;
+	QList<QCPRange> m_bkgrdThrRangeList;
+
+	bool m_debugPlotsPainted;
 	
 	void generateHilbertIdx();
 	void setupFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData);
 	void setupQCustomPlot();
 	void setupGUIConnections();
 	void setupMultiRendererView();
-	void showDebugPlot(bool show);
-	bool calcNonLinearMapping(bool showDebugPlot);
+	void showDebugPlots(bool show);
+	bool calcNonLinearMapping(bool showDebugPlots);
+	void showBkgrdThrRanges();
 };

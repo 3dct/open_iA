@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>730</width>
+    <width>1010</width>
     <height>377</height>
    </rect>
   </property>
@@ -63,7 +63,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string/>
+          <string>Functional Boxplots</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <property name="leftMargin">
@@ -93,7 +93,7 @@
              </size>
             </property>
             <property name="text">
-             <string>show Functional Boxplots</string>
+             <string>show</string>
             </property>
            </widget>
           </item>
@@ -164,20 +164,26 @@
        <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
-          <string/>
+          <string>Background Threshold</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="cb_BkgrdThrLine">
             <property name="text">
-             <string>BackgroundThreshold</string>
+             <string>show BkgrdThr Line</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QDoubleSpinBox" name="sb_BkgrdThr">
+            <property name="keyboardTracking">
+             <bool>false</bool>
+            </property>
             <property name="maximum">
              <double>65535.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>500.000000000000000</double>
             </property>
             <property name="value">
              <double>30000.000000000000000</double>
@@ -185,11 +191,6 @@
            </widget>
           </item>
          </layout>
-         <zorder>checkBox</zorder>
-         <zorder>checkBox</zorder>
-         <zorder>sb_BkgrdThr</zorder>
-         <zorder>checkBox</zorder>
-         <zorder>sb_BkgrdThr</zorder>
         </widget>
        </item>
        <item>

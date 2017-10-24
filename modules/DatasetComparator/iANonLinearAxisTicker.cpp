@@ -30,6 +30,7 @@ iANonLinearAxisTicker::iANonLinearAxisTicker() :
 void iANonLinearAxisTicker::setTickData(QVector<double> tickVector)
 {
 	m_tickVector = tickVector;
+	// TODO: check getMantissa?
 	m_tickVector.size() < 10 ? m_tickStep = 1 :
 		m_tickStep = pow(10, (floor(log10(m_tickVector.size())) - 1));
 }
@@ -43,10 +44,9 @@ QVector<double> iANonLinearAxisTicker::createTickVector(double tickStep,
 	const QCPRange &range)
 {
 	Q_UNUSED(tickStep)  Q_UNUSED(range)
-		QVector<double> result;
-	for (int i = 0; i < m_tickVector.size(); ++i)
-		if ((i % m_tickStep) == 0)
-			result.append(m_tickVector[i]);
+	QVector<double> result;
+	for (int i = 0; i < m_tickVector.size(); i+=m_tickStep)
+		result.append(m_tickVector[i]);
 	return result;
 }
 
@@ -54,15 +54,17 @@ QVector<double> iANonLinearAxisTicker::createSubTickVector(int subTickCount,
 	const QVector<double> &ticks)
 {
 	Q_UNUSED(subTickCount)
-		QVector<double> result;
+	QVector<double> result;
 	int startIdx = m_tickVector.indexOf(ticks.first());
 	int endIdx = m_tickVector.indexOf(ticks.last());
-	for (int i = startIdx; i <= endIdx; ++i)
-	{
-		if ((i % m_tickStep) == 0)
-			continue;
-		result.append(m_tickVector[i]);
-	}
+	int indicesAfterLastMajorTick = 0;
+	
+	if ((endIdx + m_tickStep) > m_tickVector.size() - 1)
+		indicesAfterLastMajorTick = m_tickVector.size() - 1 - endIdx;
+	
+	for (int i = startIdx; i <= endIdx + indicesAfterLastMajorTick; ++i)
+		if ((i % m_tickStep) != 0)
+			result.append(m_tickVector[i]);
 	return result;
 }
 
