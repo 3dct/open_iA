@@ -166,10 +166,12 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 
 		// determine max probability:
 		int maxProbIdx = 0;
+		/*
 		if (std::abs(normalizationSum - 1.0) > std::numeric_limits<float>::epsilon())
 		{
 			DEBUG_LOG("Normalization Sum != 1!");
 		}
+		*/
 		for (int l = 0; l < m_labelCount; ++l)
 		{
 			combinedPixelProbs[l] /= normalizationSum;

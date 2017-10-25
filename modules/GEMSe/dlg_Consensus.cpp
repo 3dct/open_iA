@@ -34,7 +34,6 @@
 #include "mdichild.h"
 
 #include "ParametrizableLabelVotingImageFilter.h"
-#include "FilteringLabelOverlapMeasuresImageFilter.h"
 #include "UndecidedPixelClassifierImageFilter.h"
 #include "ProbabilisticVotingImageFilter.h"
 
@@ -1190,7 +1189,6 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		double labelVoterMin = 1;
 		double labelVoterMax = selection.size();
 
-		typedef fhw::FilteringLabelOverlapMeasuresImageFilter<LabelImageType> DiceFilter;
 		typedef itk::LabelStatisticsImageFilter<LabelImageType, LabelImageType> StatFilter;
 
 		auto region = m_groundTruthImage->GetLargestPossibleRegion();
