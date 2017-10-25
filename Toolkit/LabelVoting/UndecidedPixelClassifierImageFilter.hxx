@@ -317,6 +317,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 						finalLabel = candidateLabels[c];
 					}
 				}
+				/*
 				DEBUG_LOG(QString("Ambiguous result in pixel (%1): candidates=%2, prob.=%3, final label=%4")
 					.arg(QString("%1, %2, %3")
 						.arg(it.GetIndex()[0])
@@ -331,6 +332,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 						.arg(candLabelUncertaintySum[1] / candLabelUncertaintyCnt[1])
 						.arg(candidateLabels.size() > 2 ? candLabelUncertaintySum[2] / candLabelUncertaintyCnt[2] : 0))
 					.arg(finalLabel));
+				*/
 				maxFSNLabel = finalLabel;
 			}
 			out.Set(maxFSNLabel);

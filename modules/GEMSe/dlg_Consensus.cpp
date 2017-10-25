@@ -1165,17 +1165,26 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		columnNames.push_back("Mean Dice");
 
 		const int SampleCount = sbSampleCount->value();
-		const int ResultCount = 5;
+		const int ResultCount = 10;
 		const int UndecidedLabel = m_labelCount;
 
+
 		vtkSmartPointer<vtkTable> tables[ResultCount];
+		// TODO: sample all for different undecided pixel types:
 		QString titles[ResultCount] =
 		{
+			// TODO: sample first five for each weight type:
 			QString("Min. Absolute Percentage"),
 			QString("Min. Percentage Difference"),
 			QString("Ratio"),
 			QString("Max. Pixel Uncertainty"),
-			QString("Max. Label Voters")
+			QString("Max. Label Voters"),
+
+			QString("Probab. Voting/Sum Rule"),
+			QString("Probab. Voting/Max Rule"),
+			QString("Probab. Voting/Min Rule"),
+			QString("Probab. Voting/Median Rule"),
+			QString("Probab. Voting/Majority Rule"),
 		};
 		for (int r = 0; r < ResultCount; ++r)
 		{
@@ -1208,17 +1217,31 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 				norm,											// minimum relative percentage
 				mapNormTo(ratioMin, ratioMax, norm),			// ratio
 				norm,											// maximum pixel uncertainty
-				mapNormTo(labelVoterMin, labelVoterMax, norm)
+				mapNormTo(labelVoterMin, labelVoterMax, norm),
+				norm,
+				norm,
+				norm,
+				norm,
+				norm,
 			};
 
 			// calculate voting using these values:
 			iAITKIO::ImagePointer result[ResultCount];
 
-			result[0] = GetVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
-			result[1] = GetVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
-			result[2] = GetVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
-			result[3] = GetVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
-			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount, cbUndecidedPixels->isChecked());
+			// TODO:
+			/*
+				- also test with different undecided pixel classification schemes!
+			*/
+			result[0] = GetVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount, true);
+			result[1] = GetVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount, true);
+			result[2] = GetVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount, true);
+			result[3] = GetVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount, true);
+			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount, true);
+			for (int i = 0; i < 5; ++i)
+			{
+				result[i + 5] = GetProbVotingImage(selection, value[i + 5],
+					static_cast<VotingRule>(i), m_labelCount, true);
+			}
 
 			//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
 			// calculate dice coefficient and percentage of undetermined pixels
