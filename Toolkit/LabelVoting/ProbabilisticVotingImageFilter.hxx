@@ -166,13 +166,13 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 		}
 
 		// determine max probability:
-		int maxProbIdx = 0;
 		/*
 		if (std::abs(normalizationSum - 1.0) > std::numeric_limits<float>::epsilon())
 		{
 			DEBUG_LOG("Normalization Sum != 1!");
 		}
 		*/
+		int maxProbIdx = 0;
 		double entropy = 0.0;
 		for (int l = 0; l < m_labelCount; ++l)
 		{
@@ -188,9 +188,7 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 		}
 		entropy = clamp(0.0, 1.0, -entropy*normalizeFactor);
 
-		int finalLabel = entropy > m_undecidedUncertaintyThresh
-			? m_labelCount
-			: maxProbIdx;
+		int finalLabel = (entropy < m_undecidedUncertaintyThresh)? maxProbIdx: m_labelCount;
 
 		// with probabilities, set output (TODO: also output probabilities?)
 		out.Set(finalLabel);
