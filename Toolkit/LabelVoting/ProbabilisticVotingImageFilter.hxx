@@ -90,6 +90,7 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 	OutIteratorType out = OutIteratorType(output, outputRegionForThread);
 
 	double * combinedPixelProbs = new double[m_labelCount];
+	double normalizeFactor = 1.0 / -std::log(1.0 / m_numberOfClassifiers);
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		double normalizationSum = 0;
@@ -172,6 +173,7 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 			DEBUG_LOG("Normalization Sum != 1!");
 		}
 		*/
+		double entropy = 0.0;
 		for (int l = 0; l < m_labelCount; ++l)
 		{
 			combinedPixelProbs[l] /= normalizationSum;
@@ -179,11 +181,16 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 			{
 				maxProbIdx = l;
 			}
+			if (combinedPixelProbs[l] > 0)
+			{
+				entropy += (combinedPixelProbs[l] * std::log(combinedPixelProbs[l]));
+			}
 		}
+		entropy = clamp(0.0, 1.0, -entropy*normalizeFactor);
 
-		int finalLabel = combinedPixelProbs[maxProbIdx] > m_undecidedUncertaintyThresh
-			? maxProbIdx
-			: m_labelCount;
+		int finalLabel = entropy > m_undecidedUncertaintyThresh
+			? m_labelCount
+			: maxProbIdx;
 
 		// with probabilities, set output (TODO: also output probabilities?)
 		out.Set(finalLabel);
