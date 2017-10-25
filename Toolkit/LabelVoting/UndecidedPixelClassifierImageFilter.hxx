@@ -38,7 +38,8 @@ UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 ::UndecidedPixelClassifierImageFilter():
 	m_undecidedPixelLabel(0),
 	m_labelCount(0),
-	m_uncertaintyTieSolver(true)
+	m_uncertaintyTieSolver(true),
+	m_hasUndecidedPixelLabel(false)
 {
 	m_radius.Fill(1);
 }
@@ -76,7 +77,10 @@ UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 {
 	Superclass::BeforeThreadedGenerateData();
 	m_labelCount = static_cast<size_t>(this->ComputeMaximumInputValue());
-	m_undecidedPixelLabel = static_cast<OutputPixelType>(this->m_labelCount);
+	if (!m_hasUndecidedPixelLabel)
+	{
+		m_undecidedPixelLabel = static_cast<OutputPixelType>(this->m_labelCount);
+	}
 	typename TOutputImage::Pointer output = this->GetOutput();
 	output->SetBufferedRegion(output->GetRequestedRegion());
 	output->Allocate();
@@ -178,7 +182,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			{
 				double maxProb = 0;
 				int label = -1;
-				int selectedNeighbor;
+				int selectedNeighbor = -1;
 				for (size_t l = 0; l < m_labelCount; ++l)
 				{
 					for (int n = 0; n < probIt[i][l].Size(); ++n)
@@ -192,6 +196,10 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 							selectedNeighbor = n;
 						}
 					}
+				}
+				if (selectedNeighbor == -1)
+				{
+					DEBUG_LOG("No neighbor found with probability higher than 0!");
 				}
 				double entropy = 0.0;
 				for (size_t l = 0; l < m_labelCount; ++l)

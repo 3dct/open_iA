@@ -405,6 +405,7 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 			undec->SetProbabilityImages(i, probImgs);
 		}
 		undec->SetInput(labelResult);
+		undec->SetUndecidedPixelLabel(labelCount);
 		undec->Update();
 		LabelImagePointer undecResult = undec->GetOutput();
 		result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
@@ -465,6 +466,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 			undec->SetProbabilityImages(i, probImgs);
 		}
 		undec->SetInput(labelResult);
+		undec->SetUndecidedPixelLabel(labelCount);
 		undec->Update();
 		LabelImagePointer undecResult = undec->GetOutput();
 		result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());

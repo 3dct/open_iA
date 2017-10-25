@@ -49,6 +49,7 @@ public:
 
 	void SetUndecidedPixelLabel(const OutputPixelType l)
 	{
+		m_hasUndecidedPixelLabel = true;
 		m_undecidedPixelLabel = l;
 		this->Modified();
 	}
@@ -101,6 +102,7 @@ private:
 	void operator=(const Self &) ITK_DELETE_FUNCTION;
 
 	OutputPixelType m_undecidedPixelLabel;
+	bool m_hasUndecidedPixelLabel;
 	size_t m_labelCount;
 	itk::Size<TInputImage::ImageDimension> m_radius;
 	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
