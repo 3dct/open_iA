@@ -6,14 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>349</width>
-    <height>411</height>
+    <width>329</width>
+    <height>382</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>200</width>
-    <height>200</height>
+    <width>150</width>
+    <height>150</height>
    </size>
   </property>
   <property name="features">
@@ -371,7 +377,7 @@
       </layout>
      </widget>
     </item>
-    <item row="17" column="0" rowspan="4" colspan="2">
+    <item row="19" column="0" rowspan="4" colspan="2">
      <widget class="QTableWidget" name="twSampleResults">
       <property name="rowCount">
        <number>0</number>
@@ -392,7 +398,7 @@
       <column/>
      </widget>
     </item>
-    <item row="18" column="2">
+    <item row="20" column="2">
      <widget class="QSpinBox" name="sbSampleCount">
       <property name="minimum">
        <number>2</number>
@@ -405,7 +411,7 @@
       </property>
      </widget>
     </item>
-    <item row="19" column="2">
+    <item row="21" column="2">
      <widget class="QPushButton" name="pbClusterUncertaintyDice">
       <property name="enabled">
        <bool>false</bool>
@@ -415,7 +421,7 @@
       </property>
      </widget>
     </item>
-    <item row="17" column="2">
+    <item row="19" column="2">
      <widget class="QPushButton" name="pbSample">
       <property name="enabled">
        <bool>false</bool>
@@ -445,11 +451,17 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0" colspan="3">
+    <item row="12" column="0" colspan="3">
      <widget class="QWidget" name="widget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <property name="spacing">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="leftMargin">
         <number>0</number>
@@ -529,35 +541,62 @@
       </layout>
      </widget>
     </item>
-    <item row="12" column="0" colspan="2">
-     <widget class="QCheckBox" name="cbUndecidedPixels">
-      <property name="text">
-       <string>Undecided Pixel Classification</string>
+    <item row="13" column="0" colspan="3">
+     <widget class="QWidget" name="widget_2" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-     </widget>
-    </item>
-    <item row="12" column="2">
-     <widget class="QComboBox" name="comboBox">
-      <item>
-       <property name="text">
-        <string>Al-Taie (only majority)</string>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>2</number>
        </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Al-Taie (uncertainty tie-breaker)</string>
+       <property name="leftMargin">
+        <number>0</number>
        </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Majority Voting in Neighborhood</string>
+       <property name="topMargin">
+        <number>0</number>
        </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Max. Probability in Neighborhood</string>
+       <property name="rightMargin">
+        <number>0</number>
        </property>
-      </item>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="cbUndecidedPixels">
+         <property name="text">
+          <string>Undecided Pixel Classification</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBox">
+         <item>
+          <property name="text">
+           <string>Al-Taie (only majority)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Al-Taie (uncertainty tie-breaker)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Majority Voting in Neighborhood</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Max. Probability in Neighborhood</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
