@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>320</width>
-    <height>389</height>
+    <width>349</width>
+    <height>411</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -527,6 +527,37 @@
         </widget>
        </item>
       </layout>
+     </widget>
+    </item>
+    <item row="12" column="0" colspan="2">
+     <widget class="QCheckBox" name="cbUndecidedPixels">
+      <property name="text">
+       <string>Undecided Pixel Classification</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="2">
+     <widget class="QComboBox" name="comboBox">
+      <item>
+       <property name="text">
+        <string>Al-Taie (only majority)</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Al-Taie (uncertainty tie-breaker)</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Majority Voting in Neighborhood</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Max. Probability in Neighborhood</string>
+       </property>
+      </item>
      </widget>
     </item>
    </layout>

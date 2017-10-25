@@ -32,7 +32,9 @@
 template< typename TInputImage, typename TOutputImage >
 ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ProbabilisticVotingImageFilter():
 	m_votingRule(MajorityVoteRule),
-	m_labelCount(0)
+	m_labelCount(0),
+	m_numberOfClassifiers(0),
+	m_undecidedUncertaintyThresh(0.5)
 {
 	
 }
@@ -56,7 +58,6 @@ void ProbabilisticVotingImageFilter< TInputImage, TOutputImage >
 
 	assert(m_weights.size() == m_numberOfClassifiers);
 
-	// Allocate m_LabelCount output images
 	typename TOutputImage::Pointer output = this->GetOutput();
 	output->SetBufferedRegion(output->GetRequestedRegion());
 	output->Allocate();
@@ -89,10 +90,9 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 	OutIteratorType out = OutIteratorType(output, outputRegionForThread);
 
 	double * combinedPixelProbs = new double[m_labelCount];
-	double * normalizationSum = new double[m_labelCount];
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
-		std::fill(normalizationSum, normalizationSum + m_labelCount, 0);
+		double normalizationSum = 0;
 		std::fill(combinedPixelProbs, combinedPixelProbs + m_labelCount, 0);
 		for (int l = 0; l < m_labelCount; ++l)
 		{
@@ -140,39 +140,51 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 					for (int l2 = 0; l2 < m_labelCount; ++l2)
 					{
 						if (l == l2)
+						{
 							continue;
+						}
 						if (probIt[c][l2].Get() > probIt[c][l].Get() ||
 							(l2 < l && probIt[c][l2].Get() == probIt[c][l].Get()))
 							// if two highest probabilities are the same, only count it
 							// as a vote towards the lower label index (to not count doubles)
 						{
 							isMajority = false;
+							break;
 						}
 					}
 					if (isMajority)
+					{
 						majorityCount += m_weights[c];
+					}
 				}
+				combinedPixelProbs[l] = majorityCount / m_numberOfClassifiers;
 				break;
 			}
 			}
-			normalizationSum[l] += combinedPixelProbs[l];
+			normalizationSum += combinedPixelProbs[l];
 		}
 
 		// determine max probability:
 		int maxProbIdx = 0;
+		if (std::abs(normalizationSum - 1.0) > std::numeric_limits<float>::epsilon())
+		{
+			DEBUG_LOG("Normalization Sum != 1!");
+		}
 		for (int l = 0; l < m_labelCount; ++l)
 		{
-			combinedPixelProbs[l] /= normalizationSum[l];
+			combinedPixelProbs[l] /= normalizationSum;
 			if (combinedPixelProbs[l] > combinedPixelProbs[maxProbIdx])
 			{
 				maxProbIdx = l;
 			}
 		}
 
-		// with probabilities, set output (TODO: also output probabilities?)
-		out.Set(combinedPixelProbs[maxProbIdx] > m_undecidedUncertaintyThresh
+		int finalLabel = combinedPixelProbs[maxProbIdx] > m_undecidedUncertaintyThresh
 			? maxProbIdx
-			: m_labelCount);
+			: m_labelCount;
+
+		// with probabilities, set output (TODO: also output probabilities?)
+		out.Set(finalLabel);
 
 		// advance to next pixel:
 		for (size_t c = 0; c < m_numberOfClassifiers; ++c)
@@ -182,7 +194,6 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 				++(probIt[c][l]);
 			}
 		}
-		++out;
 		progress.CompletedPixel();
 
 	}

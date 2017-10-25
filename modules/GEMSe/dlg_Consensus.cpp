@@ -375,7 +375,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 
 iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
 	double minAbsPercentage, double minDiffPercentage, double minRatio, double maxPixelEntropy,
-	int labelVoters, int weightType, int labelCount)
+	int labelVoters, int weightType, int labelCount, bool undecidedPixels)
 {
 	if (selection.size() == 0)
 	{
@@ -388,30 +388,38 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 		return iAITKIO::ImagePointer();
 	LabelImagePointer labelResult = labelVotingFilter->GetOutput();
 
-	auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
-	typedef LabelVotingType::DoubleImg DblImg;
-	typedef DblImg::Pointer DblImgPtr;
-	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
+	iAITKIO::ImagePointer result;
+	if (undecidedPixels)
 	{
-		std::vector<DblImgPtr> probImgs;
-		for (int l = 0; l < labelCount; ++l)
+		auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
+		typedef LabelVotingType::DoubleImg DblImg;
+		typedef DblImg::Pointer DblImgPtr;
+		for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
 		{
-			iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
-			DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
-			probImgs.push_back(dp);
+			std::vector<DblImgPtr> probImgs;
+			for (int l = 0; l < labelCount; ++l)
+			{
+				iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
+				DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
+				probImgs.push_back(dp);
+			}
+			undec->SetProbabilityImages(i, probImgs);
 		}
-		undec->SetProbabilityImages(i, probImgs);
+		undec->SetInput(labelResult);
+		undec->Update();
+		LabelImagePointer undecResult = undec->GetOutput();
+		result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
 	}
-	undec->SetInput(labelResult);
-	undec->Update();
-	LabelImagePointer undecResult = undec->GetOutput();
-	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
+	else
+	{
+		result = dynamic_cast<iAITKIO::ImageBaseType *>(labelResult.GetPointer());
+	}
 	return result;
 }
 
 
 iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
-	double threshold, VotingRule rule, int labelCount)
+	double threshold, VotingRule rule, int labelCount, bool undecidedPixels)
 {
 	if (selection.size() == 0)
 	{
@@ -420,6 +428,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 	}
 	auto filter = ProbabilisticVotingImageFilter<LabelImageType>::New();
 	filter->SetVotingRule(rule);
+	filter->SetUndecidedUncertaintyThreshold(threshold);
 	// set one "alibi" input to automatically create output:
 	filter->SetInput(0, dynamic_cast<LabelImageType*>(selection[0]->GetLabelledImage().GetPointer()));
 	typedef LabelVotingType::DoubleImg DblImg;
@@ -439,25 +448,32 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 	// filter->SetWeights()
 	filter->Update();
 	LabelImagePointer labelResult = filter->GetOutput();
-
-	auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
-	typedef LabelVotingType::DoubleImg DblImg;
-	typedef DblImg::Pointer DblImgPtr;
-	for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
+	iAITKIO::ImagePointer result;
+	if (undecidedPixels)
 	{
-		std::vector<DblImgPtr> probImgs;
-		for (int l = 0; l < labelCount; ++l)
+		auto undec = UndecidedPixelClassifierImageFilter<LabelImageType>::New();
+		typedef LabelVotingType::DoubleImg DblImg;
+		typedef DblImg::Pointer DblImgPtr;
+		for (unsigned int i = 0; i < static_cast<unsigned int>(selection.size()); ++i)
 		{
-			iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
-			DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
-			probImgs.push_back(dp);
+			std::vector<DblImgPtr> probImgs;
+			for (int l = 0; l < labelCount; ++l)
+			{
+				iAITKIO::ImagePointer p = selection[i]->GetProbabilityImg(l);
+				DblImgPtr dp = dynamic_cast<DblImg *>(p.GetPointer());
+				probImgs.push_back(dp);
+			}
+			undec->SetProbabilityImages(i, probImgs);
 		}
-		undec->SetProbabilityImages(i, probImgs);
+		undec->SetInput(labelResult);
+		undec->Update();
+		LabelImagePointer undecResult = undec->GetOutput();
+		result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
 	}
-	undec->SetInput(labelResult);
-	undec->Update();
-	LabelImagePointer undecResult = undec->GetOutput();
-	iAITKIO::ImagePointer result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
+	else
+	{
+		result = dynamic_cast<iAITKIO::ImageBaseType *>(labelResult.GetPointer());
+	}
 	return result;
 }
 
@@ -505,7 +521,7 @@ void dlg_Consensus::AbsMinPercentSlider(int)
 	QString name = QString("Voting FBG > %1 % (%2)").arg(QString::number(minAbs * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetVotingImage(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetVotingImage(selection, minAbs, -1, -1, -1, -1, GetWeightType(), m_labelCount, cbUndecidedPixels->isChecked());
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name );
 }
 
@@ -522,7 +538,7 @@ void dlg_Consensus::MinDiffPercentSlider(int)
 	QString name = QString("Voting FBG-SBG > %1 % (%2)").arg(QString::number(minDiff * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetVotingImage(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetVotingImage(selection, -1, minDiff, -1, -1, -1, GetWeightType(), m_labelCount, cbUndecidedPixels->isChecked());
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
@@ -539,7 +555,7 @@ void dlg_Consensus::MinRatioSlider(int)
 	QString name = QString("Voting FBG/SBG > %1 (%2)").arg(QString::number(minRatio, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetVotingImage(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetVotingImage(selection, -1, -1, minRatio, -1, -1, GetWeightType(), m_labelCount, cbUndecidedPixels->isChecked());
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
@@ -556,7 +572,7 @@ void dlg_Consensus::MaxPixelEntropySlider(int)
 	QString name = QString("Voting Entropy < %1 (%2)").arg(QString::number(maxPixelEntropy * 100, 'f', 2).arg(CollectedIDs(selection)));
 	lbValue->setText(name);
 	UpdateWeightPlot();
-	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, maxPixelEntropy, -1, GetWeightType(), m_labelCount, cbUndecidedPixels->isChecked());
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
@@ -579,7 +595,7 @@ void dlg_Consensus::LabelVoters(int)
 	lbValue->setText(name);
 	lbValue->setMinimumWidth(10);
 	UpdateWeightPlot();
-	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount);
+	m_lastMVResult = GetVotingImage(selection, -1, -1, -1, -1, labelVoters, GetWeightType(), m_labelCount, cbUndecidedPixels->isChecked());
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, name);
 }
 
@@ -1198,11 +1214,11 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 			// calculate voting using these values:
 			iAITKIO::ImagePointer result[ResultCount];
 
-			result[0] = GetVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount);
-			result[1] = GetVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount);
-			result[2] = GetVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount);
-			result[3] = GetVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount);
-			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount);
+			result[0] = GetVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
+			result[1] = GetVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
+			result[2] = GetVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
+			result[3] = GetVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount, cbUndecidedPixels->isChecked());
+			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount, cbUndecidedPixels->isChecked());
 
 			//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
 			// calculate dice coefficient and percentage of undetermined pixels
@@ -1390,7 +1406,7 @@ void dlg_Consensus::CalcProbRuleVote()
 		return;
 	}
 	m_lastMVResult = GetProbVotingImage(selection, sbUndecidedThresh->value(), static_cast<VotingRule>(cbProbRule->currentIndex())
-		, m_labelCount);
+		, m_labelCount, cbUndecidedPixels->isChecked());
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("Probability Vote rule=%1, thresh=%2, (%3)")
 		.arg(cbProbRule->currentIndex())
 		.arg(sbUndecidedThresh->value())
