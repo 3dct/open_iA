@@ -278,33 +278,52 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			}
 			if (maxFNLabel != maxFSNLabel && m_uncertaintyTieSolver)
 			{
+				std::vector<double> candLabelUncertaintySum(candidateLabels.size());
+				std::vector<int> candLabelUncertaintyCnt(candidateLabels.size());
+				std::fill(candLabelUncertaintySum.begin(), candLabelUncertaintySum.end(), 0);
+				std::fill(candLabelUncertaintyCnt.begin(), candLabelUncertaintyCnt.end(), 0);
+				for (int i = 0; i < numberOfClassifiers; ++i)
+				{
+					for (int c = 0; c < candidateLabels.size(); ++c)
+					{
+						if (fbgLabels[i] == candidateLabels[c])
+						{
+							candLabelUncertaintySum[c] += curUncertainty[i];
+							++candLabelUncertaintyCnt[c];
+						}
+						if (neiLabels[i] == candidateLabels[c])
+						{
+							candLabelUncertaintySum[c] += neiUncertainty[i];
+							++candLabelUncertaintyCnt[c];
+						}
+					}
+				}
 				double minUncertainty = 1;
 				int finalLabel = -1;
-				for (int i = 0; i < numberOfClassifiers; ++i)
+				for (int c = 0; c < candidateLabels.size(); ++c)
 				{
-					if (std::find(candidateLabels.begin(), candidateLabels.end(), fbgLabels[i]) != candidateLabels.end() &&
-						curUncertainty[i] < minUncertainty)
+					double uncertainty = candLabelUncertaintySum[c] / candLabelUncertaintyCnt[c];
+					if (uncertainty < minUncertainty)
 					{
-						minUncertainty = curUncertainty[i];
-						finalLabel = fbgLabels[i];
+						minUncertainty = uncertainty;
+						finalLabel = candidateLabels[c];
 					}
 				}
-				for (int i = 0; i < numberOfClassifiers; ++i)
-				{
-					if (std::find(candidateLabels.begin(), candidateLabels.end(), neiLabels[i]) != candidateLabels.end() &&
-						neiUncertainty[i] < minUncertainty)
-					{
-						minUncertainty = neiUncertainty[i];
-						finalLabel = fbgLabels[i];
-					}
-				}
-				DEBUG_LOG(QString("Ambiguous result in pixel (%1, %2, %3): maxFSN=%4, maxFN=%5, maxProbLabel=%6, candidates=%7,%8,%9")
-					.arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2])
-					.arg(maxFSNLabel).arg(maxFNLabel).arg(finalLabel)
-					.arg(candidateLabels[0])
-					.arg(candidateLabels[1])
-					.arg(candidateLabels.size() > 2 ? candidateLabels[2]: -1));
-					maxFSNLabel = finalLabel;
+				DEBUG_LOG(QString("Ambiguous result in pixel (%1): candidates=%2, prob.=%3, final label=%4")
+					.arg(QString("%1, %2, %3")
+						.arg(it.GetIndex()[0])
+						.arg(it.GetIndex()[1])
+						.arg(it.GetIndex()[2]))
+					.arg(QString("%1, %2, %3")
+						.arg(candidateLabels[0])
+						.arg(candidateLabels[1])
+						.arg(candidateLabels.size() > 2 ? candidateLabels[2] : -1))
+					.arg(QString("%1, %2, %3")
+						.arg(candLabelUncertaintySum[0] / candLabelUncertaintyCnt[0])
+						.arg(candLabelUncertaintySum[1] / candLabelUncertaintyCnt[1])
+						.arg(candidateLabels.size() > 2 ? candLabelUncertaintySum[2] / candLabelUncertaintyCnt[2] : 0))
+					.arg(finalLabel));
+				maxFSNLabel = finalLabel;
 			}
 			out.Set(maxFSNLabel);
 		}
