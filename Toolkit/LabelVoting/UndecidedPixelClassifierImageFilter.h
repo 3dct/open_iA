@@ -68,6 +68,11 @@ public:
 		m_probImgs.insert(std::make_pair(inputIdx, probImgs));
 	}
 
+	void SetUncertaintyAsTieSolver(bool uncertaintyTieSolver)
+	{
+		m_uncertaintyTieSolver = uncertaintyTieSolver;
+	}
+
 #ifdef ITK_USE_CONCEPT_CHECKING
 	itkConceptMacro(InputConvertibleToOutputCheck, (itk::Concept::Convertible< InputPixelType, OutputPixelType >));
 	itkConceptMacro(IntConvertibleToInputCheck, (itk::Concept::Convertible< int, InputPixelType >));
@@ -96,10 +101,10 @@ private:
 	void operator=(const Self &) ITK_DELETE_FUNCTION;
 
 	OutputPixelType m_undecidedPixelLabel;
-	size_t          m_labelCount;
+	size_t m_labelCount;
 	itk::Size<TInputImage::ImageDimension> m_radius;
-
 	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
+	bool m_uncertaintyTieSolver;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

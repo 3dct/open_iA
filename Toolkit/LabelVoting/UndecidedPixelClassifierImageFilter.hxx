@@ -37,7 +37,8 @@ template< typename TInputImage, typename TOutputImage >
 UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 ::UndecidedPixelClassifierImageFilter():
 	m_undecidedPixelLabel(0),
-	m_labelCount(0)
+	m_labelCount(0),
+	m_uncertaintyTieSolver(true)
 {
 	m_radius.Fill(1);
 }
@@ -85,8 +86,8 @@ template< typename TInputImage, typename TOutputImage >
 void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
 	itk::ThreadIdType threadId)
 {
-	const size_t numberOfInputFiles = m_probImgs.size();
-	if (numberOfInputFiles < 2)
+	const size_t numberOfClassifiers = m_probImgs.size();
+	if (numberOfClassifiers < 2)
 	{
 		DEBUG_LOG("Expected at least 2 input images!");
 		return;
@@ -107,7 +108,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 	IntConstNeighborIt it(m_radius, GetInput(0), outputRegionForThread);
 	it.GoToBegin();
 	std::vector<std::vector<DblConstNeighborIt> > probIt;
-	for (size_t i = 0; i < numberOfInputFiles; ++i)
+	for (size_t i = 0; i < numberOfClassifiers; ++i)
 	{
 		probIt.push_back(std::vector<DblConstNeighborIt>());
 		for (size_t l = 0; l < m_labelCount; ++l)
@@ -117,6 +118,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 		}
 	}
 	auto out = itk::ImageRegionIterator<TOutputImage>(output, outputRegionForThread);
+	double normalizeFactor = 1.0 / -std::log(1.0 / numberOfClassifiers);
 	for (out.GoToBegin(); !out.IsAtEnd(); ++out)
 	{
 		if (it.GetCenterPixel() == m_undecidedPixelLabel) // only change currently undecided
@@ -124,6 +126,10 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			std::vector<int> fbgLabelFreq(m_labelCount);
 			std::vector<int> sbgLabelFreq(m_labelCount);
 			std::vector<int> neiLabelFreq(m_labelCount);
+			std::vector<int> fbgLabels(numberOfClassifiers);
+			std::vector<int> neiLabels(numberOfClassifiers);
+			std::vector<double> curUncertainty(numberOfClassifiers);
+			std::vector<double> neiUncertainty(numberOfClassifiers);
 
 			// for first/second best set:
 			// for each classifier:
@@ -132,23 +138,33 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			//          else if higher than sbg, make new sbg
 			//     add fbg label to F, add sbg label to S
 			//     (=increase counter for fbg and sbg label in frequency histograms F and S)
-			for (size_t i = 0; i < numberOfInputFiles; ++i)
+
+			for (size_t i = 0; i < numberOfClassifiers; ++i)
 			{
 				int fbgLabel = 0, sbgLabel = -1;
+				double entropy = 0.0;
 				for (size_t l = 1; l < m_labelCount; ++l)
 				{
-					if (probIt[i][l].GetCenterPixel() > probIt[i][fbgLabel].GetCenterPixel())
+					double probValue = probIt[i][l].GetCenterPixel();
+					if (probValue > 0)
+					{
+						entropy += (probValue * std::log(probValue));
+					}
+					if (probValue > probIt[i][fbgLabel].GetCenterPixel())
 					{
 						sbgLabel = fbgLabel;
 						fbgLabel = l;
 					}
-					else if (sbgLabel == -1 || probIt[i][l].GetCenterPixel() > probIt[i][sbgLabel].GetCenterPixel())
+					else if (sbgLabel == -1 || probValue > probIt[i][sbgLabel].GetCenterPixel())
 					{
 						sbgLabel = l;
 					}
 				}
-				++fbgLabelFreq[fbgLabel];
-				++sbgLabelFreq[sbgLabel];
+				entropy = clamp(0.0, 1.0, -entropy*normalizeFactor);
+				curUncertainty[i] = entropy;
+				fbgLabels[i] = fbgLabel;
+				fbgLabelFreq[fbgLabel]++;
+				sbgLabelFreq[sbgLabel]++;
 			}
 
 			// for "best guess of each classifier in neighbourhood":
@@ -158,12 +174,12 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			//             if highest, make new highest
 			//     add highest label to N
 			std::vector<int> selectedNeighbors;
-			for (size_t i = 0; i < numberOfInputFiles; ++i)
+			for (size_t i = 0; i < numberOfClassifiers; ++i)
 			{
 				double maxProb = 0;
 				int label = -1;
 				int selectedNeighbor;
-				for (size_t l = 1; l < m_labelCount; ++l)
+				for (size_t l = 0; l < m_labelCount; ++l)
 				{
 					for (int n = 0; n < probIt[i][l].Size(); ++n)
 					{
@@ -177,6 +193,18 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 						}
 					}
 				}
+				double entropy = 0.0;
+				for (size_t l = 0; l < m_labelCount; ++l)
+				{
+					double probValue = probIt[i][l].GetPixel(selectedNeighbor);
+					if (probValue > 0)
+					{
+						entropy += (probValue * std::log(probValue));
+					}
+				}
+				entropy = clamp(0.0, 1.0, -entropy*normalizeFactor);
+				neiLabels[i] = label;
+				neiUncertainty[i] = entropy;
 				++neiLabelFreq[label];
 			}
 
@@ -248,10 +276,35 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 					maxFNCount = fnCount; maxFNLabel = l;
 				}
 			}
-			if (maxFNLabel != maxFSNLabel)
+			if (maxFNLabel != maxFSNLabel && m_uncertaintyTieSolver)
 			{
-				DEBUG_LOG(QString("Ambiguous result in pixel (%1, %2, %3)")
-					.arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]));
+				double maxProb = 0;
+				int finalLabel = -1;
+				for (int i = 0; i < numberOfClassifiers; ++i)
+				{
+					if (std::find(candidateLabels.begin(), candidateLabels.end(), fbgLabels[i]) != candidateLabels.end() &&
+						curUncertainty[i] > maxProb)
+					{
+						maxProb = curUncertainty[i];
+						finalLabel = fbgLabels[i];
+					}
+				}
+				for (int i = 0; i < numberOfClassifiers; ++i)
+				{
+					if (std::find(candidateLabels.begin(), candidateLabels.end(), neiLabels[i]) != candidateLabels.end() &&
+						neiUncertainty[i] > maxProb)
+					{
+						maxProb = neiUncertainty[i];
+						finalLabel = fbgLabels[i];
+					}
+				}
+				DEBUG_LOG(QString("Ambiguous result in pixel (%1, %2, %3): maxFSN=%4, maxFN=%5, maxProbLabel=%6, candidates=%7,%8,%9")
+					.arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2])
+					.arg(maxFSNLabel).arg(maxFNLabel).arg(finalLabel)
+					.arg(candidateLabels[0])
+					.arg(candidateLabels[1])
+					.arg(candidateLabels.size() > 2 ? candidateLabels[2]: -1));
+					maxFSNLabel = finalLabel;
 			}
 			out.Set(maxFSNLabel);
 		}
@@ -261,7 +314,7 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 		}
 		// advance to next pixel in input:
 		++it;
-		for (size_t i = 0; i < numberOfInputFiles; ++i)
+		for (size_t i = 0; i < numberOfClassifiers; ++i)
 		{
 			for (size_t l = 0; l < m_labelCount; ++l)
 			{
