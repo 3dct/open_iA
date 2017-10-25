@@ -278,23 +278,23 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 			}
 			if (maxFNLabel != maxFSNLabel && m_uncertaintyTieSolver)
 			{
-				double maxProb = 0;
+				double minUncertainty = 1;
 				int finalLabel = -1;
 				for (int i = 0; i < numberOfClassifiers; ++i)
 				{
 					if (std::find(candidateLabels.begin(), candidateLabels.end(), fbgLabels[i]) != candidateLabels.end() &&
-						curUncertainty[i] > maxProb)
+						curUncertainty[i] < minUncertainty)
 					{
-						maxProb = curUncertainty[i];
+						minUncertainty = curUncertainty[i];
 						finalLabel = fbgLabels[i];
 					}
 				}
 				for (int i = 0; i < numberOfClassifiers; ++i)
 				{
 					if (std::find(candidateLabels.begin(), candidateLabels.end(), neiLabels[i]) != candidateLabels.end() &&
-						neiUncertainty[i] > maxProb)
+						neiUncertainty[i] < minUncertainty)
 					{
-						maxProb = neiUncertainty[i];
+						minUncertainty = neiUncertainty[i];
 						finalLabel = fbgLabels[i];
 					}
 				}
