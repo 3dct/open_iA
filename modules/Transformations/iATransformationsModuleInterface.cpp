@@ -20,18 +20,18 @@
 * ************************************************************************************/
 #include "pch.h"
 #include "iATransformationsModuleInterface.h"
+#include "iATransformations.h"
+
+#include "iAFilterRegistry.h"
 
 #include "dlg_commoninput.h"
-#include "dlg_gaussian.h"
-#include "dlg_bezier.h"
-#include "dlg_function.h"
-#include "iAHistogramWidget.h"
-#include "iATransformations.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
 void iATransformationsModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iARotate);
+
 	if (!m_mainWnd)
 		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
@@ -62,14 +62,10 @@ void iATransformationsModuleInterface::Initialize()
 		connect(actionFlip, SIGNAL(triggered()), this, SLOT(flip()));
 	}
 	menuTransformations->addSeparator();
-
-	QAction * action_transforms_rotate = new QAction(QApplication::translate("MainWindow", "Rotate", 0), m_mainWnd);
 	QAction * action_transforms_translate = new QAction(QApplication::translate("MainWindow", "Translate", 0), m_mainWnd);
 	
-	menuTransformations->addAction( action_transforms_rotate );
 	menuTransformations->addAction( action_transforms_translate );
 	
-	connect( action_transforms_rotate, SIGNAL( triggered() ), this, SLOT( rotate() ) );
 	connect( action_transforms_translate, SIGNAL( triggered() ), this, SLOT( translate() ) );
 }
 
@@ -82,48 +78,6 @@ vtkImageData * iATransformationsModuleInterface::prepare(const QString & caption
 	m_mdiChild->addStatusMsg(caption);
 	m_mainWnd->statusBar()->showMessage(caption, 5000);
 	return m_childData.imgData;
-}
-
-void iATransformationsModuleInterface::rotate()
-{
-	const iATransformations::RotationAxesType axes[] = { iATransformations::RotateAlongX, iATransformations::RotateAlongY, iATransformations::RotateAlongZ };
-	const iATransformations::RotationCenterType center[] = { iATransformations::RCCenter, iATransformations::RCOrigin, iATransformations::RCCustom };
-	QStringList rotAxes = QStringList() << tr("Rotation along X") << tr("Rotation along Y") << tr("Rotation along Z");
-	QStringList rotCenter = QStringList() << tr("Image center") << tr("Origin") << tr("Specify coordinate");
-	QStringList inList = (QStringList()
-		<< tr("#Rotation angle (deg)")) << tr("+Rotation axes") << tr("+Rotation center")
-		<< tr("#Center X") << tr("#Center Y") << tr("#Center Z");
-	QList<QVariant> inPara; 	inPara
-		<< 0 << rotAxes << rotCenter << 0 << 0 << 0;
-
-	dlg_commoninput dlg(m_mainWnd, tr("Rotation parameters"), inList, inPara, NULL);
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-
-	//get rot axes
-	int k = 0;
-	qreal rotAngle = dlg.getDblValue(k++);
-	int rotAxesIdx = dlg.getComboBoxIndex(k++);
-	int rotCenterIdx = dlg.getComboBoxIndex(k++);
-	qreal cx = dlg.getDblValue(k++);
-	qreal cy = dlg.getDblValue(k++);
-	qreal cz = dlg.getDblValue(k++);
-
-	QString filterName = "Rotated";
-	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage == NULL)
-	{
-		return;
-	}
-	iATransformations * thread = new iATransformations(filterName,
-		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-	thread->setTransformationType(iATransformations::Rotation);
-	thread->setRotationCenterCoordinate(cx, cy, cz);
-	thread->setRotationAngle(rotAngle);
-	thread->setRotationAxes(axes[rotAxesIdx]);
-	thread->setRotationCenter(center[rotCenterIdx]);
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-	thread->start();
 }
 
 void iATransformationsModuleInterface::translate()

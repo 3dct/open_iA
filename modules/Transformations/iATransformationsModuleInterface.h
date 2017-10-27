@@ -32,7 +32,6 @@ public:
 	void Initialize();
 
 private slots:
-	void rotate();
 	void translate();
 	void flip();
 	void permute();

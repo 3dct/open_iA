@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iATransformations.h"
 
+#include "iAConnector.h"
 #include "iAProgress.h"
 #include "mdichild.h"
 
@@ -32,6 +33,8 @@
 #include <itkImageRegion.h>
 
 #include <vtkImageData.h>
+
+#include "iATypedCallHelper.h"
 
 template <class TImageType>
 static typename TImageType::PointType image_center(TImageType * image)
@@ -90,40 +93,36 @@ static void flip_template(iATransformations * caller)
 }
 
 template<class TPixelType, class TPrecision>
-static void affine_template(iATransformations * caller, 
+static void affine_template(iAProgress * progress, iAConnector* connector,
 	itk::AffineTransform<TPrecision, iAConnector::ImageBaseType::ImageDimension> * transform)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         			ImageType;
 	typedef itk::ResampleImageFilter<ImageType, ImageType, TPrecision>	FilterType;
 
-	ImageType * inpImage = dynamic_cast<ImageType *>(caller->getConnector()->GetITKImage());
+	ImageType * inpImage = dynamic_cast<ImageType *>(connector->GetITKImage());
 	typename ImageType::PointType inpOrigin = inpImage->GetOrigin();
 	typename ImageType::SizeType inpSize = inpImage->GetLargestPossibleRegion().GetSize();
 	typename ImageType::SpacingType inpSpacing = inpImage->GetSpacing();
 
-	//resample filter setup
-	typename FilterType::Pointer resample = FilterType::New();
+	auto resample = FilterType::New();
 	resample->SetSize(inpSize);
 	resample->SetOutputSpacing(inpSpacing);
 	resample->SetOutputOrigin(inpOrigin);
 	resample->SetOutputDirection(inpImage->GetDirection());
 	resample->SetInput(inpImage);
-
-	//run pipeline
 	resample->SetTransform(transform);
-	caller->getItkProgress()->Observe(resample);
+	progress->Observe(resample);
 	resample->Update();
-
-	caller->getConnector()->SetImage(resample->GetOutput());
-	caller->getConnector()->Modified();
-
+	connector->SetImage(resample->GetOutput());
+	connector->Modified();
 	resample->ReleaseDataFlagOn();
 }
 
+typedef double TPrecision;
 
-template<class TPixelType, class TPrecision> 
-static void rotate_template(iATransformations * caller)
+template<class TPixelType>
+static void rotate_template(QMap<QString, QVariant> const & parameters, iAProgress* progress, iAConnector* connector)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         			ImageType;
@@ -138,37 +137,62 @@ static void rotate_template(iATransformations * caller)
 	typename TransformType::OutputVectorType rotationAxis;
 
 	//setup rotation axis
-	rotationAxis[0] = caller->getRotationAxes() == iATransformations::RotateAlongX ? 1 : 0;
-	rotationAxis[1] = caller->getRotationAxes() == iATransformations::RotateAlongY ? 1 : 0;
-	rotationAxis[2] = caller->getRotationAxes() == iATransformations::RotateAlongZ ? 1 : 0;
+	rotationAxis[0] = parameters["Rotation axis"].toString() == "Rotation along X" ? 1 : 0;
+	rotationAxis[1] = parameters["Rotation axis"].toString() == "Rotation along Y" ? 1 : 0;
+	rotationAxis[2] = parameters["Rotation axis"].toString() == "Rotation along Z" ? 1 : 0;
 
 	//get rotation center
-	ImageType * inpImage = dynamic_cast<ImageType *>(caller->getConnector()->GetITKImage());
-	switch (caller->getRotationCenter())
+	ImageType * inpImage = dynamic_cast<ImageType *>(connector->GetITKImage());
+	if (parameters["Rotation center"] == "Image center")
 	{
-	case iATransformations::RCOrigin:
-		center = inpImage->GetOrigin();		
-		break;
-	case iATransformations::RCCenter:
 		center = image_center(inpImage);
-		break;
-	case iATransformations::RCCustom:
-		for (int k = 0; k < Dim; k++)
-			center[k] = caller->getRotationCenterCoordinate()[k];
-		break;
 	}
-
-	//apply rotation
+	else if (parameters["Rotation center"] == "Origin")
+	{
+		center = inpImage->GetOrigin();
+	}
+	else // == "Specify coordinate"
+	{
+		center[0] = parameters["Center X"].toDouble();
+		center[1] = parameters["Center Y"].toDouble();
+		center[2] = parameters["Center Z"].toDouble();
+	}
 	for (int k = 0; k < Dim; k++)
 	{
 		translation1[k] = -center[k];
-		translation2[k] = center[k];
+		translation2[k] =  center[k];
 	}
 	transform->Translate(translation1);
-	transform->Rotate3D(rotationAxis, caller->getRotationAngle(false), false);
+	transform->Rotate3D(rotationAxis, (parameters["Rotation angle"].toDouble() * vnl_math::pi / 180.0), false);
 	transform->Translate(translation2);
+	affine_template<TPixelType, TPrecision>(progress, connector, transform);
+}
 
-	affine_template<TPixelType, TPrecision>(caller, transform);
+void iARotate::Run(QMap<QString, QVariant> const & parameters)
+{
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(rotate_template, pixelType, parameters, m_progress, m_con);
+}
+
+IAFILTER_CREATE(iARotate)
+
+iARotate::iARotate() :
+	iAFilter("Rotate", "Transformations",
+		"Rotate the image around one of the three coordinate axes.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AffineTransform.html\">"
+		"Affine Transform</a> and the <a href=\""
+		"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"Resample Image Filter</a> in the ITK documentation.")
+{
+	AddParameter("Rotation angle", Continuous, 0.0, 0.0, 360.0);
+	QStringList rotAxes = QStringList() << "Rotation along X" << "Rotation along Y" << "Rotation along Z";
+	AddParameter("Rotation axis", Categorical, rotAxes);
+	QStringList rotCenter = QStringList() << "Image center" << "Origin" << "Specify coordinate";
+	AddParameter("Rotation center", Categorical, rotCenter);
+	AddParameter("Center X", Continuous, 0);
+	AddParameter("Center Y", Continuous, 0);
+	AddParameter("Center Z", Continuous, 0);
 }
 
 template<class TPixelType, class TPrecision>
@@ -184,7 +208,7 @@ static void translate_template(iATransformations * caller)
 		translation[k] = caller->getTranslation()[k];
 	transform->Translate(translation);
 
-	affine_template<TPixelType, TPrecision>(caller, transform);
+	affine_template<TPixelType, TPrecision>(caller->getItkProgress(), caller->getConnector(), transform);
 }
 
 template<class TPixelType, class TPrecision>
@@ -222,8 +246,6 @@ static void transform_template(iATransformations * caller)
 	auto type = caller->getTransformationType();
 	switch (type)
 	{
-	case iATransformations::Rotation:
-		rotate_template<TPixelType, TPrecision>(caller);
 	case iATransformations::Translation:
 		translate_template<TPixelType, TPrecision>(caller);
 	case iATransformations::Flip:
@@ -244,8 +266,6 @@ iATransformations::iATransformations( QString fn, vtkImageData* i, vtkPolyData* 
 	}
 	m_rotAngle = 0;
 	m_transType = iATransformations::Unknown;
-	m_rotCenterType = iATransformations::RCCenter;
-	m_rotAxesType = iATransformations::RotateAlongX;
 	m_flipAxesType = iATransformations::FlipAxesNone;
 }
 
@@ -256,22 +276,6 @@ iATransformations::TransformationType iATransformations::getTransformationType()
 void iATransformations::setTransformationType(TransformationType transType)
 {
 	m_transType = transType;
-}
-iATransformations::RotationCenterType iATransformations::getRotationCenter() const
-{
-	return m_rotCenterType;
-}
-void iATransformations::setRotationCenter(RotationCenterType rotCenter)
-{
-	m_rotCenterType = rotCenter;
-}
-iATransformations::RotationAxesType iATransformations::getRotationAxes() const
-{
-	return m_rotAxesType;
-}
-void iATransformations::setRotationAxes(RotationAxesType rotAxes)
-{
-	m_rotAxesType = rotAxes;
 }
 iATransformations::FlipAxesType iATransformations::getFlipAxes() const
 {
@@ -292,24 +296,6 @@ void iATransformations::setFlipAxes(const QChar & axes)
 		m_flipAxesType = FlipAxesZ;
 	else
 		m_flipAxesType = FlipAxesNone;
-}
-qreal iATransformations::getRotationAngle(bool inDegree) const
-{
-	return inDegree ? m_rotAngle : (m_rotAngle * vnl_math::pi / 180.0);
-}
-void iATransformations::setRotationAngle(qreal deg)
-{
-	m_rotAngle = deg;
-}
-const qreal * iATransformations::getRotationCenterCoordinate() const
-{
-	return &m_rotCenterCoord[0];
-}
-void iATransformations::setRotationCenterCoordinate(qreal x, qreal y, qreal z)
-{
-	m_rotCenterCoord[0] = x;
-	m_rotCenterCoord[1] = y;
-	m_rotCenterCoord[2] = z;
 }
 const qreal * iATransformations::getTranslation() const
 {
