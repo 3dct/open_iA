@@ -31,25 +31,12 @@
 void iATransformationsModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iARotate);
+	REGISTER_FILTER(iAPermuteAxes);
 
 	if (!m_mainWnd)
 		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuTransformations = getMenuWithTitle(filtersMenu, QString( "Transformations" ) );
-
-	//permute axis type
-	const QString order[] = { "XZY", "YXZ", "YZX", "ZXY", "ZYX" };
-	const int Npermute = sizeof(order) / sizeof(QString);
-	for (int k = 0; k < Npermute; k++)
-	{
-		QAction * actionPermute = new QAction(QApplication::translate("MainWindow", "Coordinate ", 0) + order[k], m_mainWnd);
-		actionPermute->setData(order[k]);
-		menuTransformations->addAction(actionPermute);
-
-		connect(actionPermute, SIGNAL(triggered()), this, SLOT(permute()));
-	}
-	menuTransformations->addSeparator();
-
 	//flip axis
 	const QChar flipLabel[] = { 'X', 'Y', 'Z' };
 	const int NAxes = sizeof(flipLabel) / sizeof(QChar);
@@ -130,26 +117,6 @@ void iATransformationsModuleInterface::flip()
 		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
 	thread->setFlipAxes(flipAxes);
 	thread->setTransformationType(iATransformations::Flip);
-	m_mdiChild->connectThreadSignalsToChildSlots(thread);
-	thread->start();
-}
-
-void iATransformationsModuleInterface::permute()
-{
-	QAction * action = qobject_cast<QAction *>(QObject::sender());
-	if (action == NULL)
-		return;
-	QString order = action->data().toString();
-	QString filterName = "Changed coordinate " + order;
-	vtkImageData * inpImage = prepare(filterName);
-	if (inpImage == NULL)
-	{
-		return;
-	}
-	iATransformations * thread = new iATransformations(filterName,
-		inpImage, NULL, m_mdiChild->getLogger(), m_mdiChild);
-	thread->setPermuteAxesOrder(order);
-	thread->setTransformationType(iATransformations::PermuteAxes);
 	m_mdiChild->connectThreadSignalsToChildSlots(thread);
 	thread->start();
 }

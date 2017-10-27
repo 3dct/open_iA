@@ -59,7 +59,7 @@ static typename TImageType::PointType center_image(TImageType * image, typename 
 	return center;
 }
 
-template<class TPixelType, class TPrecision>
+template<class TPixelType>
 static void flip_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
@@ -195,7 +195,7 @@ iARotate::iARotate() :
 	AddParameter("Center Z", Continuous, 0);
 }
 
-template<class TPixelType, class TPrecision>
+template<class TPixelType>
 static void translate_template(iATransformations * caller)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
@@ -211,47 +211,60 @@ static void translate_template(iATransformations * caller)
 	affine_template<TPixelType, TPrecision>(caller->getItkProgress(), caller->getConnector(), transform);
 }
 
-template<class TPixelType, class TPrecision>
-static void permute_template(iATransformations * caller)
+template<class TPixelType>
+void permute_template(QString  const & orderStr, iAProgress* progress, iAConnector * connector)
 {
 	const int Dim = iAConnector::ImageBaseType::ImageDimension;
 	typedef itk::Image<TPixelType, Dim>         			ImageType;
 	typedef itk::PermuteAxesImageFilter<ImageType>			FilterType;
-	
-	ImageType * inpImage = dynamic_cast<ImageType *>(caller->getConnector()->GetITKImage());
-	typename FilterType::Pointer filter = FilterType::New();
+
+	auto filter = FilterType::New();
 	typename FilterType::PermuteOrderArrayType order;
-	
-	//order XYY --> ZXY: 2, 0, 1
-	const int * porder = caller->getPermuteAxesOrder();
-	filter->SetInput(inpImage);
-	order[0] = porder[0];
-	order[1] = porder[1];
-	order[2] = porder[2];
+	filter->SetInput(dynamic_cast<ImageType *>(connector->GetITKImage()));
+	for (int k = 0; k < 3; k++)
+	{
+		char axes = orderStr.at(k).toUpper().toLatin1();
+		order[k] = axes - QChar('X').toLatin1();
+	}
 	filter->SetOrder(order);
-
-	//run pipeline
-	caller->getItkProgress()->Observe(filter);
+	progress->Observe(filter);
 	filter->Update();
-
-	caller->getConnector()->SetImage(filter->GetOutput());
-	caller->getConnector()->Modified();
-
+	connector->SetImage(filter->GetOutput());
+	connector->Modified();
 	filter->ReleaseDataFlagOn();
 }
 
-template <class TPixelType, class TPrecision>
+void iAPermuteAxes::Run(QMap<QString, QVariant> const & parameters)
+{
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(permute_template, pixelType, parameters["Order"].toString(), m_progress, m_con);
+}
+
+IAFILTER_CREATE(iAPermuteAxes)
+
+iAPermuteAxes::iAPermuteAxes() :
+	iAFilter("Permute Axes", "Transformations",
+		"Permutes the image axes according to a user specified order.<br/>"
+		"The i-th axis of the output image corresponds with the order[i]-th "
+		"axis of the input image.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1PermuteAxesImageFilter.html\">"
+		"Permute Axes Filter</a> in the ITK documentation.")
+{
+	QStringList permutationOrder = QStringList() << "XZY" << "YXZ" << "YZX" << "ZXY" << "ZYX";
+	AddParameter("Order", Categorical, permutationOrder);
+}
+
+template <class TPixelType>
 static void transform_template(iATransformations * caller)
 {
 	auto type = caller->getTransformationType();
 	switch (type)
 	{
 	case iATransformations::Translation:
-		translate_template<TPixelType, TPrecision>(caller);
+		translate_template<TPixelType>(caller);
 	case iATransformations::Flip:
-		flip_template<TPixelType, TPrecision>(caller);
-	case iATransformations::PermuteAxes:
-		permute_template<TPixelType, TPrecision>(caller);
+		flip_template<TPixelType>(caller);
 	}
 }
 
@@ -260,7 +273,6 @@ iATransformations::iATransformations( QString fn, vtkImageData* i, vtkPolyData* 
 {
 	for (int k = 0; k < Dim; k++)
 	{
-		m_permuteOrder[k] = k;
 		m_rotCenterCoord[k] = 0.0;
 		m_translation[k] = 0.0;
 	}
@@ -308,52 +320,30 @@ void iATransformations::setTranslation(qreal tx, qreal ty, qreal tz)
 	m_translation[2] = tz;
 }
 
-const int * iATransformations::getPermuteAxesOrder() const
-{
-	return &m_permuteOrder[0];
-}
-void iATransformations::setPermuteAxesOrder(int ox, int oy, int oz)
-{
-	m_permuteOrder[0] = ox;
-	m_permuteOrder[1] = oy;
-	m_permuteOrder[2] = oz;
-}
-
-void iATransformations::setPermuteAxesOrder(const QString &order)
-{
-	if (order.size() >= 3)
-	{
-		for (int k = 0; k < 3; k++) {
-			char axes = order.at(k).toUpper().toLatin1();
-			m_permuteOrder[k] = axes - QChar('X').toLatin1();			
-		}
-	}
-}
-
 void iATransformations::performWork()
 {
 	switch (getConnector()->GetVTKImage()->GetScalarType()) // This filter handles all types
 	{
 	case VTK_UNSIGNED_CHAR:
-		transform_template<unsigned char, double>(this); break;
+		transform_template<unsigned char>(this); break;
 	case VTK_CHAR:
-		transform_template<char, double>(this); break;
+		transform_template<char>(this); break;
 	case VTK_UNSIGNED_SHORT:
-		transform_template<unsigned short, double>(this); break;
+		transform_template<unsigned short>(this); break;
 	case VTK_SHORT:
-		transform_template<short, double>(this); break;
+		transform_template<short>(this); break;
 	case VTK_UNSIGNED_INT:
-		transform_template<unsigned int, double>(this);  break;
+		transform_template<unsigned int>(this);  break;
 	case VTK_INT:
-		transform_template<int, double>(this); break;
+		transform_template<int>(this); break;
 	case VTK_UNSIGNED_LONG:
-		transform_template<unsigned long, double>(this); break;
+		transform_template<unsigned long>(this); break;
 	case VTK_LONG:
-		transform_template<long, double>(this); break;
+		transform_template<long>(this); break;
 	case VTK_FLOAT:
-		transform_template<float, double>(this); break;
+		transform_template<float>(this); break;
 	case VTK_DOUBLE:
-		transform_template<double, double>(this); break;
+		transform_template<double>(this); break;
 	default:
 		addMsg(tr("  unknown component type"));
 		return;

@@ -23,6 +23,7 @@
 #include "iAFilter.h"
 
 IAFILTER_DEFAULT_CLASS(iARotate);
+IAFILTER_DEFAULT_CLASS(iAPermuteAxes);
 
 #include "iAAlgorithm.h"
 
@@ -44,16 +45,10 @@ public:
 	void setFlipAxes(const QChar & axes);
 	const qreal * getTranslation() const;
 	void setTranslation(qreal tx, qreal ty, qreal tz);
-	const int * getPermuteAxesOrder() const;
-	void setPermuteAxesOrder(int ox, int oy, int oz);
-	void setPermuteAxesOrder(const QString & order);
-
 protected:
 	virtual void performWork();
 private:
 	const static int Dim = iAConnector::ImageBaseType::ImageDimension;
-
-	int m_permuteOrder[Dim];
 	qreal m_rotAngle;
 	qreal m_rotCenterCoord[Dim];
 	qreal m_translation[Dim];
