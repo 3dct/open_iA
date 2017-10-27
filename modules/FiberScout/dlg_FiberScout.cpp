@@ -2481,7 +2481,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 				range[1] = range[0] + 1.0;
 
 			int numberOfBins = dlg.getDblValue(4 * row + 5);
-			//int numberOfBins = dlg.getValues()[row+2];
+			//int numberOfBins = dlg.getDblValue(row+2);
 			//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
 			double inc = ( range[1] - range[0] ) / ( numberOfBins );
 			double halfInc = inc / 2.0;

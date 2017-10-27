@@ -50,8 +50,6 @@ void SimpleConnectedComponentFilter_template(bool fullyConnected, iAProgress* p,
 	filter->ReleaseDataFlagOn();
 }
 
-IAFILTER_CREATE(iASimpleConnectedComponents)
-
 void iASimpleConnectedComponents::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
@@ -59,6 +57,8 @@ void iASimpleConnectedComponents::Run(QMap<QString, QVariant> const & parameters
 		parameters["Fully Connected"].toBool(),
 		m_progress, m_con);
 }
+
+IAFILTER_CREATE(iASimpleConnectedComponents)
 
 iASimpleConnectedComponents::iASimpleConnectedComponents() :
 	iAFilter("Simple Connected Component Filter", "Connected Component Filters",
