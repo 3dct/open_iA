@@ -67,7 +67,7 @@ void pca_template(QVector<iAConnector*> cons, QMap<QString, QVariant> const & pa
 	// actual PCA calculation:
 	filter->Update();
 	auto scaler = ScaleType::New();
-	EstimatorType::VectorOfDoubleType v = filter->GetEigenValues();
+	auto v = filter->GetEigenValues();
 	double sv_mean = sqrt(v[0]);
 	for (int o = cons.size(); o < parameters["Cutoff"].toUInt() + 1; ++o)
 	{
