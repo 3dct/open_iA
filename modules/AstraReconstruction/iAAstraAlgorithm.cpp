@@ -379,7 +379,7 @@ iAASTRAReconstruct::iAASTRAReconstruct() :
 template <typename T>
 void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int detColDim, int detRowDim, int projAngleDim)
 {
-	float* imgBuf = static_cast<float*>(img->GetScalarPointer());
+	T* imgBuf = static_cast<T*>(img->GetScalarPointer());
 	int * dim = img->GetDimensions();
 	int detColDimIdx = detColDim % 3;		// only do modulus once before loop
 	int detRowDimIdx = detRowDim % 3;
