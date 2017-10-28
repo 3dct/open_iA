@@ -1,33 +1,37 @@
-/************************************  SVMERW  ****************************************
-* **  Command line tool for segmenting multi-modal 3D data with a Support Vector   ** *
-* **  Machine (SVM) and the Extended Random Walker (ERW)                           ** *
-***************************************************************************************
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
-***************************************************************************************
-* This program is free software: you can redistribute it and/or modify it under the   *
-* terms of the GNU General Public License as published by the Free Software           *
-* Foundation, either version 3 of the License, or (at your option) any later version. *
-*                                                                                     *
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
-* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
-* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
-*                                                                                     *
-* You should have received a copy of the GNU General Public License along with this   *
-* program.  If not, see http://www.gnu.org/licenses/                                  *
-***************************************************************************************
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*       Stelzhamerstraße 23, 4600 Wels / Austria, Email: bernhard.froehler@fh-wels.at *
-**************************************************************************************/
+/*************************************  open_iA  ************************************ *
+ * * **********  A tool for scientific visualisation and 3D image processing  ********** *
+ * * *********************************************************************************** *
+ * * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+ * *                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+ * * *********************************************************************************** *
+ * * This program is free software: you can redistribute it and/or modify it under the   *
+ * * terms of the GNU General Public License as published by the Free Software           *
+ * * Foundation, either version 3 of the License, or (at your option) any later version. *
+ * *                                                                                     *
+ * * This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+ * * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+ * * PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+ * *                                                                                     *
+ * * You should have received a copy of the GNU General Public License along with this   *
+ * * program.  If not, see http://www.gnu.org/licenses/                                  *
+ * * *********************************************************************************** *
+ * * Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+ * *          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+ * * ************************************************************************************/
 #include "iASVMImageFilter.h"
 
+#include "defines.h"    // for DIM
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAImageCoordinate.h"
+#include "iAProgress.h"
 #include "iASeedType.h"
 #include "iAVtkDraw.h"
 #include "iAToolsVTK.h"
+#include "iATypedCallHelper.h"
 #include "svm.h"
+
+#include <itkScalarImageKmeansImageFilter.h>
 
 #include <vtkImageData.h>
 
@@ -231,4 +235,50 @@ iASVMImageFilter::iASVMImageFilter() :
 	AddParameter("Coef0", Continuous, 1);
 	AddParameter("C", Continuous, 10);
 	AddParameter("Seeds", Text);
+}
+
+
+
+template<class T> void kmeanscluster_template(iAConnector* image, iAProgress* p,
+		QMap<QString, QVariant> const & parameters)
+{
+	typedef itk::Image<T, DIM> ImageType;
+	typedef itk::Image<int, DIM> IntImageType;
+
+	typedef itk::ScalarImageKmeansImageFilter<ImageType, IntImageType> KMeansFilterType;
+	auto filter = KMeansFilterType::New();
+	filter->SetInput(dynamic_cast<ImageType*> (image->GetITKImage()));
+	filter->SetUseNonContiguousLabels(parameters["Non-contiguous labels"].toBool());
+	QStringList means = parameters["Initial means"].toString().split(" ");
+	for (QString mean: means)
+	{
+		filter->AddClassWithInitialMean(mean.toDouble());
+	}
+	p->Observe(filter);
+	filter->Update();
+	image->SetImage(filter->GetOutput());
+	image->Modified();
+}
+
+void iAKMeans::Run(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(kmeanscluster_template, m_con->GetITKScalarPixelType(), m_con, m_progress, parameters);
+}
+
+IAFILTER_CREATE(iAKMeans)
+
+iAKMeans::iAKMeans() :
+	iAFilter("K-Means", "Segmentation/Pixelwise Classification",
+		"Classifies the intensity values of a scalar image using the K-Means algorithm..<br/>"
+		"Given an input image with scalar values, it uses the K-Means statistical classifier "
+		"in order to define labels for every pixel in the image. Under <em>initial means</em>, specify "
+		"your estimate for the mean intensity value for each cluster you suspect in the image,"
+		"separate the means by spaces. If <em>Non-contiguous labels</em> is checked, the labels "
+		"are selected in order to span the dynamic range of the output image.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarImageKmeansImageFilter.html\">"
+		"Scalar Image K-Means Filter</a> in the ITK documentation.", 2)
+{
+	AddParameter("Initial means", Text, "");
+	AddParameter("Non-contiguous labels", Boolean, false);
 }

@@ -61,6 +61,7 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAMSKFCMFilter);
 
 	REGISTER_FILTER(iASVMImageFilter);
+	REGISTER_FILTER(iAKMeans);
 	
 	if (!m_mainWnd)
 		return;
