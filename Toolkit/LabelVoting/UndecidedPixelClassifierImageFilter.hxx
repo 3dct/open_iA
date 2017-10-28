@@ -59,7 +59,7 @@ UndecidedPixelClassifierImageFilter< TInputImage, TOutputImage >
 ::ComputeMaximumInputValue()
 {
 	InputPixelType maxLabel = 0;
-	itk::ImageRegionConstIterator<TInputImage> it(GetInput(0), GetInput(0)->GetBufferedRegion());
+	itk::ImageRegionConstIterator<TInputImage> it(this->GetInput(0), this->GetInput(0)->GetBufferedRegion());
 	for (it.GoToBegin(); !it.IsAtEnd(); ++it)
 	{
 		if (it.Get() > maxLabel)
@@ -107,9 +107,9 @@ void UndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedGen
 	typedef itk::ConstNeighborhoodIterator<TInputImage> IntConstNeighborIt;
 	typedef itk::ConstNeighborhoodIterator<DoubleImg>   DblConstNeighborIt;
 
-	auto output = GetOutput();
+	auto output = this->GetOutput();
 	
-	IntConstNeighborIt it(m_radius, GetInput(0), outputRegionForThread);
+	IntConstNeighborIt it(m_radius, this->GetInput(0), outputRegionForThread);
 	it.GoToBegin();
 	std::vector<std::vector<DblConstNeighborIt> > probIt;
 	for (size_t i = 0; i < numberOfClassifiers; ++i)
