@@ -21,17 +21,9 @@
 #pragma once
 
 #include "iAModuleInterface.h"
-#include "defines.h"
 
 class iAConvolutionModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize();
-private slots:
-	void convolve();
-	void FFT_convolve();
-	void correlate();
-	void FFT_correlate();
-	void FFT_CPP_correlate();
 };
