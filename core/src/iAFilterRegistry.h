@@ -36,6 +36,7 @@ class open_iA_Core_API iAAbstractFilterFactory
 {
 public:
 	virtual QSharedPointer<iAFilter> Create() =0;
+	virtual ~iAAbstractFilterFactory();
 };
 
 //! Class for internal use in iAFilterRegistry and iAFilterFactory only.
@@ -45,6 +46,7 @@ class open_iA_Core_API iAAbstractFilterRunnerGUIFactory
 {
 public:
 	virtual QSharedPointer<iAFilterRunnerGUI> Create() =0;
+	virtual ~iAAbstractFilterRunnerGUIFactory();
 };
 
 //! Registry for image filters.
