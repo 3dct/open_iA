@@ -22,20 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAMorphologyModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void dilation_filter();
-	void erosion_filter();
-	void vessel_enhancement_filter();
-protected:
-	//settings
-	int dilrad, errad, sigmaenh; //morphology filter parameters
 };
