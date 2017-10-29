@@ -189,7 +189,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	worldProfilePoints = vtkPoints::New();
 	worldProfilePoints->Allocate(2);
 
-	hessianComputed = false;
 	updateSliceIndicator = true;
 	raycasterInitialized = false;
 }

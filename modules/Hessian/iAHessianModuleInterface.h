@@ -22,24 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAHessianModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void computeHessianEigenanalysis();
-	void computeHessianEigenanalysis1();
-	void computeHessianEigenanalysis2();
-	void computeHessianEigenanalysis3();
-	void computeLaplacian();
-
-protected:
-	//settings
-	unsigned int chefSigma;
-	void computeHessianEigenanalysis(int nr);
 };
