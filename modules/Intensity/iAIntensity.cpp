@@ -37,8 +37,7 @@
 #include <itkShiftScaleImageFilter.h>
 #include <itkSubtractImageFilter.h>
 #include <itkTestingComparisonImageFilter.h>
-
-#include <vtkImageData.h>
+#include <itkThresholdImageFilter.h>
 
 
 // Filters requiring 1 input image:
@@ -168,6 +167,47 @@ iAIntensityWindowingFilter::iAIntensityWindowingFilter() :
 	AddParameter("Output Minimum", Continuous, 0);
 	AddParameter("Output Maximum", Continuous, 1);
 }
+
+
+// iAGeneralThreshold
+
+template<class T> void threshold_template(iAProgress* p,
+		iAConnector* image, QMap<QString, QVariant> const & parameters)
+{
+	typedef itk::Image< T, 3 >   ImageType;
+	typedef itk::ThresholdImageFilter <ImageType> GTIFType;
+	auto filter = GTIFType::New();
+	filter->SetOutsideValue( parameters["Outside value"].toDouble() );
+	filter->ThresholdOutside( parameters["Lower threshold"].toDouble(),
+			parameters["Upper threshold"].toDouble());
+	filter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
+	p->Observe( filter );
+	filter->Update();
+	image->SetImage(filter->GetOutput());
+	image->Modified();
+	filter->ReleaseDataFlagOn();
+}
+
+void iAGeneralThreshold::Run(QMap<QString, QVariant> const & parameters)
+{
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(threshold_template, itkType, m_progress, m_con, parameters);
+}
+
+IAFILTER_CREATE(iAGeneralThreshold)
+
+iAGeneralThreshold::iAGeneralThreshold() :
+	iAFilter("General threshold filter", "Intensity",
+		"Set image values to outside value if they outside of the given interval.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html\">"
+		"Threshold Filter</a> in the ITK documentation.")
+{
+	AddParameter("Lower threshold", Continuous, 0);
+	AddParameter("Upper threshold", Continuous, 1);
+	AddParameter("Outside value", Continuous, 0);
+}
+
 
 
 // iARescaleIntensityFilter

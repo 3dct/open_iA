@@ -23,12 +23,13 @@
 #include "iAFilter.h"
 
 IAFILTER_DEFAULT_CLASS(iAAddFilter);
-IAFILTER_DEFAULT_CLASS(iASubtractFilter);
 IAFILTER_DEFAULT_CLASS(iADifferenceFilter);
-IAFILTER_DEFAULT_CLASS(iAInvertIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);
 IAFILTER_DEFAULT_CLASS(iAIntensityWindowingFilter);
+IAFILTER_DEFAULT_CLASS(iAInvertIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAMaskIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iARescaleIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iAShiftScaleIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iAMaskIntensityFilter);
-IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);
+IAFILTER_DEFAULT_CLASS(iASubtractFilter);
+IAFILTER_DEFAULT_CLASS(iAGeneralThreshold);
