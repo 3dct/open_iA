@@ -24,57 +24,9 @@
 
 #include "iAFilter.h"
 
-class iABinaryThreshold : public iAFilter
-{
-public:
-	static QSharedPointer<iABinaryThreshold> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iABinaryThreshold();
-};
-
-class iARatsThreshold : public iAFilter
-{
-public:
-	static QSharedPointer<iARatsThreshold> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iARatsThreshold();
-};
-
-class iAOtsuThreshold : public iAFilter
-{
-public:
-	static QSharedPointer<iAOtsuThreshold> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAOtsuThreshold();
-};
-
-class iAAdaptiveOtsuThreshold : public iAFilter
-{
-public:
-	static QSharedPointer<iAAdaptiveOtsuThreshold> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAAdaptiveOtsuThreshold();
-};
-
-class iAOtsuMultipleThreshold : public iAFilter
-{
-public:
-	static QSharedPointer<iAOtsuMultipleThreshold> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAOtsuMultipleThreshold();
-};
-
-
-class iAMaximumDistance : public iAFilter
-{
-public:
-	static QSharedPointer<iAMaximumDistance> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAMaximumDistance();
-};
+IAFILTER_DEFAULT_CLASS(iABinaryThreshold)
+IAFILTER_DEFAULT_CLASS(iARatsThreshold)
+IAFILTER_DEFAULT_CLASS(iAOtsuThreshold)
+IAFILTER_DEFAULT_CLASS(iAAdaptiveOtsuThreshold)
+IAFILTER_DEFAULT_CLASS(iAOtsuMultipleThreshold)
+IAFILTER_DEFAULT_CLASS(iAMaximumDistance)
