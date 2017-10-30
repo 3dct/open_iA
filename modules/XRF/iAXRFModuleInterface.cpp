@@ -21,14 +21,9 @@
 #include "pch.h"
 #include "iAXRFModuleInterface.h"
 
-#include "dlg_commoninput.h"
-#include "extension2id.h"
-#include "iAIO.h"
 #include "iAXRFAttachment.h"
 #include "mainwindow.h"
 #include "mdichild.h"
-
-#include <QFileDialog>
 
 
 void iAXRFModuleInterface::Initialize()

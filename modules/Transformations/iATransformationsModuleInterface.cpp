@@ -24,10 +24,6 @@
 
 #include "iAFilterRegistry.h"
 
-#include "dlg_commoninput.h"
-#include "mainwindow.h"
-#include "mdichild.h"
-
 void iATransformationsModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iARotate);

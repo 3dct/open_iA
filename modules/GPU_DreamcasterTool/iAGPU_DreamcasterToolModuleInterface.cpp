@@ -24,7 +24,6 @@
 
 #include "mainwindow.h"
 #include "mdichild.h"
-#include "dlg_commoninput.h"
 #include "dreamcaster.h"
 
 #include <QFileDialog>

@@ -31,8 +31,6 @@ class vtkImageData;
 class vtkImageAccumulate;
 class MdiChild;
 class iAVolumeStack;
-class dlg_commoninput;
-class MdiChild;
 
 const int CHANNELS_COUNT = 2;
 
