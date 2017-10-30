@@ -154,10 +154,8 @@ void MainWindow::timeout()
 bool MainWindow::KeepOpen()
 {
 	bool childHasChanges = false;
-	foreach(QMdiSubWindow *window, MdiChildList()) {
-		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+	for (MdiChild* mdiChild: MdiChildList())
 		childHasChanges |= mdiChild->isWindowModified();
-	}
 	if (childHasChanges)
 	{
 		auto reply = QMessageBox::question(this, "Unsaved changes",
@@ -169,10 +167,8 @@ bool MainWindow::KeepOpen()
 		}
 		else
 		{ // avoid individual questions for each window
-			foreach(QMdiSubWindow *window, MdiChildList()) {
-				MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+			for (MdiChild* mdiChild: MdiChildList())
 				mdiChild->setWindowModified(false);
-			}
 		}
 	}
 	return false;
@@ -1046,12 +1042,8 @@ void MainWindow::maxXY()
 QList<QString> MainWindow::mdiWindowTitles()
 {
 	QList<QString> windowTitles;
-	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
-
-	for (int i = 0; i < mdiwindows.size(); ++i)
-	{
-		windowTitles.append(mdiwindows.at(i)->widget()->windowTitle());
-	}
+	for (MdiChild* mdiChild: MdiChildList())
+		windowTitles.append(mdiChild->windowTitle());
 	return windowTitles;
 }
 
@@ -1488,7 +1480,7 @@ void MainWindow::raycasterCamIso()
 
 void MainWindow::raycasterAssignIso()
 {
-	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
+	QList<MdiChild *> mdiwindows = MdiChildList();
 	int sizeMdi = mdiwindows.size();
 	if (sizeMdi > 1)
 	{
@@ -1496,7 +1488,7 @@ void MainWindow::raycasterAssignIso()
 		if (activeMdiChild())  activeMdiChild()->getCamPosition(camOptions);
 		for(int i = 0; i < sizeMdi; i++)
 		{
-			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+			MdiChild *tmpChild = mdiwindows.at(i);
 
 			// check dimension and spacing here, if not the same with active mdichild, skip.
 			tmpChild->setCamPosition(camOptions, defaultRenderSettings.ParallelProjection);
@@ -1619,45 +1611,7 @@ MdiChild * MainWindow::GetResultChild( QString const & title )
 
 MdiChild * MainWindow::GetResultChild( int childInd, QString const & f )
 {
-	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
-	MdiChild *oldChild = qobject_cast<MdiChild *>(mdiwindows.at(childInd)->widget());
-	return GetResultChild(oldChild, f);
-}
-
-
-double MainWindow::neighborhood(vtkImageData *imageData, int x0, int y0, int z0)
-{
-	int extents[6];
-	imageData->GetExtent(extents);
-
-	int startX = x0-1;
-	int startY = y0-1;
-	int startZ = z0-1;
-	int endX = x0+1;
-	int endY = y0+1;
-	int endZ = z0+1;
-
-	if (startX < extents[0]) startX = extents[0];
-	if (startY < extents[2]) startY = extents[2];
-	if (startZ < extents[4]) startZ = extents[4];
-	if (endX > extents[1]) endX = extents[1];
-	if (endY > extents[3]) endY = extents[3];
-	if (endZ > extents[5]) endZ = extents[5];
-
-	double n = 0;
-
-	for (int x = startX; x <= endX; x++)
-		for (int y = startY; y <= endY; y++)
-			for (int z = startZ; z <= endZ; z++)
-			{
-				double value = imageData->GetScalarComponentAsDouble(x,y,z,0);
-				if (1.0-value < value)
-					n += 1.0-value;
-				else
-					n += value;
-			}
-
-			return n;
+	return GetResultChild(MdiChildList().at(childInd), f);
 }
 
 
@@ -1770,10 +1724,10 @@ void MainWindow::updateMenus()
 
 void MainWindow::updateWindowMenu()
 {
-	QList<QMdiSubWindow *> windows = MdiChildList();
+	QList<MdiChild *> windows = MdiChildList();
 
 	for (int i = 0; i < windows.size(); ++i) {
-		MdiChild *child = qobject_cast<MdiChild *>(windows.at(i)->widget());
+		MdiChild *child = windows.at(i);
 
 		QString text;
 		if (i < 9) {
@@ -2127,22 +2081,20 @@ MdiChild* MainWindow::activeMdiChild()
 	int subWndCnt = MdiChildList().size();
 	if(subWndCnt>0)
 	{
-		return qobject_cast<MdiChild *>(MdiChildList(QMdiArea::ActivationHistoryOrder).last()->widget());
+		return MdiChildList(QMdiArea::ActivationHistoryOrder).last();
 	}
 
 	return 0;
 }
 
 
-QMdiSubWindow *MainWindow::findMdiChild(const QString &fileName)
+MdiChild* MainWindow::findMdiChild(const QString &fileName)
 {
 	QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
-	foreach (QMdiSubWindow *window, MdiChildList()) {
-		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+	for (MdiChild* mdiChild: MdiChildList())
 		if (mdiChild->currentFile() == canonicalFilePath)
-			return window;
-	}
+			return mdiChild;
 	return 0;
 }
 
@@ -2204,15 +2156,14 @@ QString MainWindow::strippedName(const QString &fullFileName)
 }
 
 
-QList<QMdiSubWindow*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
+QList<MdiChild*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
 {
-	QList<QMdiSubWindow*> res;
-
+	QList<MdiChild*> res;
 	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
 	{
 		MdiChild * child = qobject_cast<MdiChild*>(window->widget());
 		if (child)
-			res.append(window);
+			res.append(child);
 	}
 	return res;
 }

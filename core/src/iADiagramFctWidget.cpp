@@ -41,7 +41,6 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
-#include <QMdiSubWindow>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>

@@ -106,7 +106,7 @@ public:
 	MdiChild *GetResultChild( int childInd, QString const & title );
 	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
-	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	QList<MdiChild*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	void addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);
@@ -203,9 +203,8 @@ private:
 	void LoadProject(QString const & fileName);
 	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
-	QMdiSubWindow *findMdiChild(const QString &fileName);
+	MdiChild* findMdiChild(const QString &fileName);
 	QString strippedName(const QString &fullFileName);
-	double neighborhood(vtkImageData *imageData, int x0, int y0, int z0);
 
 	QSplashScreen *splashScreen;
 	QAction *separatorAct;

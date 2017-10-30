@@ -1231,9 +1231,9 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		}
 		if (mdi_parent->getLinkedMDIs())
 		{
-			QList<QMdiSubWindow *> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
+			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
 			for (int i = 0; i < mdiwindows.size(); i++) {
-				MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+				MdiChild *tmpChild = mdiwindows.at(i);
 				if (tmpChild != mdi_parent) {
 					double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
 					double const * const origImgSpacing = imageData->GetSpacing();

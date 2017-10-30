@@ -30,7 +30,6 @@
 #include <itkMacro.h>  // for itk::ExceptionObject
 
 #include <QMessageBox>
-#include <QMdiSubWindow>
 
 void iAModuleInterface::PrepareResultChild( QString const & wndTitle )
 {
@@ -79,7 +78,7 @@ void iAModuleInterface::PrepareActiveChild()
 
 MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 {
-	QList<QMdiSubWindow *> mdiwindows = m_mainWnd->MdiChildList();
+	QList<MdiChild *> mdiwindows = m_mainWnd->MdiChildList();
 	if( mdiwindows.size() > 2 )
 	{
 		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
@@ -93,13 +92,8 @@ MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 			tr( "Only one dataset available. Please load another one!" ) );
 		return 0;
 	}
-	MdiChild * activeChild = m_mainWnd->activeMdiChild();
-	MdiChild * result;
-	if( activeChild == qobject_cast<MdiChild *>(mdiwindows.at( 0 )->widget()) )
-		result = qobject_cast<MdiChild *>(mdiwindows.at( 1 )->widget());
-	else
-		result = qobject_cast<MdiChild *>(mdiwindows.at( 0 )->widget());
-	return result;
+	return m_mainWnd->activeMdiChild() == mdiwindows.at(0) ?
+		mdiwindows.at(1) : mdiwindows.at(0);
 }
 
 QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const & title, bool isDisablable /*= true*/  )

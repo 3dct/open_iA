@@ -24,7 +24,6 @@
 #include "iAMathUtility.h"
 
 #include <QMessageBox>
-#include <QMdiSubWindow>
 #include <QPainter>
 #include <QToolTip>
 

@@ -34,7 +34,6 @@
 
 #include <vtkImageData.h>
 
-#include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QSettings>
 #include <QSharedPointer>
@@ -140,9 +139,8 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	QStringList dlgParamNames;
 	QList<QVariant> dlgParamValues;
 	QVector<MdiChild*> otherMdis;
-	for (auto childWin : mainWnd->MdiChildList())
+	for (auto mdi : mainWnd->MdiChildList())
 	{
-		auto mdi = qobject_cast<MdiChild*>(childWin->widget());
 		if (mdi != sourceMdi)
 			otherMdis.push_back(mdi);
 	}	
