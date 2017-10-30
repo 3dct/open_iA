@@ -50,13 +50,11 @@ QT_END_NAMESPACE
 
 class vtkCamera;
 class vtkImageData;
-class vtkImageViewer2;
 class vtkRenderer;
 
 class dlg_transfer;
 class iAModalityList;
 class iAModuleDispatcher;
-class iATLGICTLoader;
 class MdiChild;
 
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
@@ -178,7 +176,6 @@ public slots:
 	void updateMenus();
 	void updateWindowMenu();
 	MdiChild *createMdiChild(bool unsavedChanges);
-	void switchLayoutDirection();
 	void setActiveSubWindow(QWidget *window);
 	void pointSelected();
 	void noPointSelected();
@@ -190,11 +187,9 @@ signals:
 	void StyleChanged();
 private:
 	void connectSignalsToSlots();
-	void setupStatusBar();
 	void readSettings();
 	void writeSettings();
 	void createRecentFileActions();
-	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
 	void loadCamera(QDomNode const & node, vtkCamera* camera);

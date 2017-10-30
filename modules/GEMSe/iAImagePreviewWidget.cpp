@@ -26,6 +26,7 @@
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
+#include "iASlicerSettings.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"

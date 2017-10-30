@@ -22,6 +22,7 @@
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
+#include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
 #include "iAIOProvider.h"
 #include "iAMagicLens.h"
@@ -37,7 +38,9 @@
 #include "iAStringHelper.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
+#include "iAWrapperText.h"
 #include "mdichild.h"
+#include "mainwindow.h"
 
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
@@ -81,10 +84,12 @@
 #include <vtkWindowToImageFilter.h>
 #include <vtkCommand.h>
 
+#include <QBitmap>
+#include <QDate>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QString>
-#include <QBitmap>
+#include <QThread>
 
 #include <string>
 #include <sstream>
@@ -634,7 +639,19 @@ void iASlicerData::setPositionMarkerCenter(double x, double y)
 		m_positionMarkerMapper->Update();
 		update();
 	}
-};
+}
+
+
+void iASlicerData::disableInteractor()
+{
+	interactor->Disable(); disabled = true;
+}
+
+
+void iASlicerData::enableInteractor()
+{
+	interactor->ReInitialize(); disabled = false;
+}
 
 
 void iASlicerData::showIsolines(bool s) 

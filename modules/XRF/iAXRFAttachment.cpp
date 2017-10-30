@@ -31,6 +31,7 @@
 
 #include "dlg_commoninput.h"
 #include "extension2id.h"
+#include "iAChannelVisualizationData.h"
 #include "iAIO.h"
 #include "iAObserverProgress.h"
 #include "iASlicer.h"

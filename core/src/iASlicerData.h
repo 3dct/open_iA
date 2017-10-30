@@ -21,30 +21,20 @@
 #pragma once
 
 #include "iAChannelID.h"
-#include "iAChannelVisualizationData.h"
 #include "open_iA_Core_export.h"
-#include "iASlicer.h"
-#include "iAWrapperText.h"
+#include "iASlicerMode.h"
 
-#include <vtkRenderWindowInteractor.h>
-#include <vtkDiskSource.h>
 #include <vtkSmartPointer.h>
 
-#include <QThread>
-#include <QLocale>
-#include <QDateTime>
+#include <QCursor>
+#include <QMap>
 #include <QSharedPointer>
 
-#include <string>
-#include <QMdiSubWindow>
-#include "mainwindow.h"
-#include "ui_sliceXY.h"
-#include "ui_sliceXZ.h"
-#include "ui_sliceYZ.h"
-
 class vtkActor;
+class vtkAlgorithmOutput;
 class vtkCamera;
 class vtkColorTransferFunction;
+class vtkDiskSource;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkImageData;
@@ -67,10 +57,14 @@ class vtkTextProperty;
 class vtkTextActor3D;
 class vtkTransform;
 
-class iARulerWidget;
-class iAMagicLens;
-
+class iAChannelSlicerData;
+class iAChannelVisualizationData;
 class iAInteractorStyleImage;
+class iAMagicLens;
+class iARulerWidget;
+class iASingleSlicerSettings;
+class iASlicer;
+class iAWrapperText;
 
 /**
  * \brief	implements a slicer widget
@@ -113,8 +107,8 @@ public:
 	void setShowText(bool isVisible);
 	void setMouseCursor( QString s );
 
-	void disableInteractor() { interactor->Disable(); disabled = true; }
-	void enableInteractor() { interactor->ReInitialize(); disabled = false; }
+	void disableInteractor();
+	void enableInteractor();
 	void showIsolines(bool s);
 	void showPosition(bool s);	
 	void saveMovie(QString& fileName, int qual = 2);
