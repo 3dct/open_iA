@@ -152,7 +152,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	textInfo(0),
 	rulerWidget(0),
 	interactor(0),
-	m_showPositionMarker(false)
+	m_showPositionMarker(false),
+	colorTransferFunction(nullptr)
 {
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();

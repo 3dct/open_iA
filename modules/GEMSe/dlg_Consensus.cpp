@@ -101,7 +101,8 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_chartValueVsDice(vtkSmartPointer<vtkChartXY>::New()),
 	m_chartValueVsUndec(vtkSmartPointer<vtkChartXY>::New()),
 	m_folder(folder),
-	m_dlgSamplings(dlgSamplings)
+	m_dlgSamplings(dlgSamplings),
+	m_dlgProgress(nullptr)
 {
 	QString defaultTheme("Brewer Set3 (max. 12)");
 	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);

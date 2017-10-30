@@ -29,6 +29,7 @@
 class iAColorable
 {
 public:
+	virtual ~iAColorable();
 	static QColor const DefaultColor;
 	iAColorable();
 	iAColorable(QColor const & color);

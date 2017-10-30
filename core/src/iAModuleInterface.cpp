@@ -63,7 +63,9 @@ void iAModuleInterface::SetDispatcher( iAModuleDispatcher * dispatcher )
 	m_dispatcher = dispatcher;
 }
 
-iAModuleInterface::iAModuleInterface() {}
+iAModuleInterface::iAModuleInterface():
+	m_dispatcher(nullptr)
+{}
 
 void iAModuleInterface::PrepareActiveChild()
 {
