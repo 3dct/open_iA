@@ -12,15 +12,15 @@ General
 	{
 		background: transparent;
 	}
-		
-	QWidgetToolbar
+	
+	QToolBar
 	{
 		background: qlineargradient(spread:pad, 
 		x1:0, y1:0, 
 		x2:0, y2:1, 
-		stop:0 rgba(235, 235, 235, 255), 
-		stop:0.617 rgba(228, 228, 228, 255), 
-		stop:0.618 rgba(228, 228, 228, 255), 
+		stop:0 rgba(235, 235, 235, 255),
+		stop:0.617 rgba(228, 228, 228, 255),
+		stop:0.618 rgba(228, 228, 228, 255),
 		stop:1 rgba(225, 225, 225, 255));
 		color: rgba(25, 25, 25, 255);
 		border-top: 1px solid 		rgba(255, 255, 255, 255);

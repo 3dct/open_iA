@@ -14,7 +14,7 @@ General
 		background: transparent;
 	}
 		
-	QWidgetToolbar
+	QToolbar
 	{
 		background: qlineargradient(spread:pad, 
 		x1:0, y1:0, 
@@ -37,7 +37,7 @@ General
 	{
 		background: none;
 	}
-		
+	
 	QMdiArea::background
 	{
 		background-color: rgba(40, 40, 40, 255);
