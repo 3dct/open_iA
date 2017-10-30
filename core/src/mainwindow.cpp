@@ -141,15 +141,13 @@ MainWindow::~MainWindow()
 	m_moduleDispatcher->SaveModulesSettings();
 	delete windowMapper;
 	windowMapper = 0;
-
-	delete timer;
-	timer = 0;
 }
 
 
 void MainWindow::timeout()
 {
 	splashScreen->finish(this);
+	delete timer;
 }
 
 
@@ -1762,7 +1760,6 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
 	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
 	connect( child, SIGNAL( autoUpdateChanged( bool ) ), actionUpdate_automatically, SLOT( setChecked( bool ) ) );
-	connect( child, SIGNAL( currentChanged( int ) ), this, SLOT( tabChanged( int ) ) );
 	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
 
 	SetModuleActionsEnabled( true );
@@ -2128,12 +2125,6 @@ void MainWindow::setHistogramFocus()
 {
 	if (activeMdiChild())
 		activeMdiChild()->setHistogramFocus();
-}
-
-
-void MainWindow::tabChanged(int index)
-{
-	histogramToolbar->setEnabled(index == 1);
 }
 
 

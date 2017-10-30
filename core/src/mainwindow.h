@@ -181,7 +181,6 @@ public slots:
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
-	void tabChanged(int index);
 
 signals:
 	void StyleChanged();

@@ -287,7 +287,6 @@ Q_SIGNALS:
 	void endPointSelected();
 	void active();
 	void autoUpdateChanged(bool toogled);
-	void currentChanged(int index);
 	void magicLensToggled( bool isToggled );
 	void closed();
 	void updatedViews();
