@@ -68,7 +68,7 @@ void iAMedianFilter::Run(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iAMedianFilter)
 
 iAMedianFilter::iAMedianFilter() :
-	iAFilter("Median Filter", "Neighbourhood",
+	iAFilter("Median Filter", "Smoothing/Blurring",
 		"Applies a median filter to the volume.<br/>"
 		"Computes an image where an output voxel is assigned the median value of the voxels "
 		"in a neighborhood around the input voxel at that position. The median filter belongs "
