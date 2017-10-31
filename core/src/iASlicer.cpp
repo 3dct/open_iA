@@ -154,11 +154,6 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 	m_data->setPositionMarkerCenter(x, y);
 }
 
-void iASlicer::updateROI()
-{
-	m_data->updateROI();
-}
-
 void iASlicer::update()
 {
 	m_data->update();
@@ -243,15 +238,14 @@ void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 	m_data->initialize(ds, tr, ctf, sil, sp);
 }
 
-void iASlicer::setROI( int r[6] )
+void iASlicer::UpdateROI(int const roi[6])
 {
-	m_data->setROI(r);
-	m_data->updateROI();
+	m_data->UpdateROI(roi);
 }
 
-void iASlicer::setROIVisible( bool isVisible )
+void iASlicer::SetROIVisible(bool isVisible)
 {
-	m_data->SetROIVisibility(isVisible);
+	m_data->SetROIVisible(isVisible);
 }
 
 void iASlicer::changeImageData( vtkImageData *idata )

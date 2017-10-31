@@ -34,15 +34,12 @@
 #include <itkImageSliceIteratorWithIndex.h>
 #include <itkStatisticsImageFilter.h>
 
-#include <vtkImageData.h>
-
 #include <qmath.h>
-#include <QLocale>
 
 
 template<class T> 
-int freeBeamCalculation_template( double indexX, double indexY, double indexZ, double sizeX, double sizeY, double sizeZ, 
-	bool manualMeanFreeBeamIntensity, int manualMeanFreeBeamIntensityValue, iAProgress* p, iAConnector* image  )
+void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsigned int sizeX, unsigned sizeY,
+	bool manualMeanFreeBeamIntensity, double manualMeanFreeBeamIntensityValue, iAProgress* p, iAConnector* image  )
 {
 	double I0 = manualMeanFreeBeamIntensityValue;
 	typedef itk::Image< T, DIM > InputImageType;
@@ -72,8 +69,12 @@ int freeBeamCalculation_template( double indexX, double indexY, double indexZ, d
 
 		typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
 		typename EIFType::Pointer roiFilter = EIFType::New();
-		typename EIFType::InputImageRegionType::SizeType roiSize; roiSize[0] = sizeX; roiSize[1] = sizeY; roiSize[2] = sizeZ;
-		typename EIFType::InputImageRegionType::IndexType roiIndex; roiIndex[0] = indexX; roiIndex[1] = indexY; roiIndex[2] = indexZ;
+		typename EIFType::InputImageRegionType::SizeType roiSize;
+		roiSize[0] = sizeX;
+		roiSize[1] = sizeY;
+		roiSize[2] = image->GetITKImage()->GetLargestPossibleRegion().GetSize()[2];
+		typename EIFType::InputImageRegionType::IndexType roiIndex;
+		roiIndex[0] = indexX; roiIndex[1] = indexY; roiIndex[2] = 0;
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
 		roiFilter->SetInput(dynamic_cast<InputImageType *>(image->GetITKImage()));
 		roiFilter->SetExtractionRegion(roiRegion);
@@ -175,27 +176,36 @@ int freeBeamCalculation_template( double indexX, double indexY, double indexZ, d
 			++outputIt;
 		}
 	}
-
 	image->SetImage(outputImage);
 	image->Modified();
-	return EXIT_SUCCESS;
 }
 
-iAFreeBeamCalculation::iAFreeBeamCalculation( QString fn, iAFreeBeamCalculationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, i, p, logger, parent ), m_operation(fid)
+void iAFreeBeamCalculation::Run(QMap<QString, QVariant> const & parameters)
 {
+	ITK_TYPED_CALL(freeBeamCalculation_template, m_con->GetITKScalarPixelType(),
+		parameters["Origin X"].toUInt(), parameters["Origin Y"].toUInt(),
+		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(),
+		parameters["Set intensity manually"].toBool(),
+		parameters["Manual I0"].toDouble(), m_progress, m_con);
 }
 
-void iAFreeBeamCalculation::performWork()
+IAFILTER_CREATE(iAFreeBeamCalculation)
+
+iAFreeBeamCalculation::iAFreeBeamCalculation() :
+	iAFilter("Free Beam Intensity", "Reconstruction",
+		"Convert the intensity values to attenuation values via free beam intensity transform.<br/>"
+		"You can specify the mean intensity I0 of the surrounding air manually. "
+		"The given <em>Manual I0</em> is considered when <em>Set I0 manually</em> "
+		"is checked.<br/>"
+		"Or you can specify the region for each projection image (assumed to be in "
+		"the XY plane) where there is just air; the mean intensity in that region "
+		"will be taken as I0 image (separately for each projection image)."
+		"Both <em>Index</em> and <em>Size</em> values are in pixel units.<br/>")
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	switch (m_operation)
-	{
-	case FREEBEAMCALCULATION:
-		ITK_TYPED_CALL(freeBeamCalculation_template, itkType,
-			originX, originY, originZ, sizeX, sizeY, sizeZ, manualMeanFreeBeamIntensity, manualMeanFreeBeamIntensityValue, getItkProgress(), getConnector());
-		break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	AddParameter("Index X", Discrete, 0);
+	AddParameter("Index Y", Discrete, 0);
+	AddParameter("Size X", Discrete, 1, 1);
+	AddParameter("Size Y", Discrete, 1, 1);
+	AddParameter("Set I0 manually", Boolean, false);
+	AddParameter("Manual I0", Continuous, 0);
 }

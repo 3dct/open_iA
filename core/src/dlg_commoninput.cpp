@@ -23,6 +23,8 @@
 
 #include "mdichild.h"
 
+#include <vtkImageData.h>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QErrorMessage>
@@ -37,12 +39,15 @@ enum ContainerSize {
 	WIDTH=530, HEIGHT=600
 };
 
-dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, bool modal) : QDialog (parent)
+
+dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr)
+	: QDialog (parent),
+	m_roiMdiChild(nullptr),
+	m_roiMdiChildClosed(false)
 {
 	//initialize a instance of error message dialog box
 	auto eMessage = new QErrorMessage(this);
-
-	this->setModal(modal);
+	setModal(true);
 
 	if (winTitle.isEmpty())
 	{
@@ -184,6 +189,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	updateValues(inPara);
 }
 
+
 void dlg_commoninput::updateValues(QList<QVariant> inPara)
 {
 	QObjectList children = container->children();
@@ -241,41 +247,68 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 	}
 }
 
-void dlg_commoninput::connectMdiChild(MdiChild *child)
-{
-	QObjectList children = container->children();
 
+void dlg_commoninput::showROI(MdiChild *child)
+{
+	m_roiMdiChild = child;
+	setModal(false);
+	connect(child, SIGNAL(closed()), this, SLOT(ROIChildClosed()));
+	QObjectList children = container->children();
+	for (int i = 0; i < 3; ++i)
+	{
+		m_roi[i] = 0;
+		m_roi[i + 3] = child->getImagePointer()->GetDimensions()[i];
+	}
 	for (int i = 0; i < children.size(); i++)
 	{
-		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(children.at(i));
-		if (lineEdit)
+		QSpinBox *lineEdit = dynamic_cast<QSpinBox*>(children.at(i));
+		if (lineEdit && (lineEdit->objectName().contains("Index") || lineEdit->objectName().contains("Size")))
 		{
-			QString objectName = lineEdit->objectName();
-			connect(lineEdit, SIGNAL(textEdited(QString)), child, SLOT(updated(QString)));
-		}
-
-		QComboBox *comboBox = dynamic_cast<QComboBox*>(children.at(i));
-		if (comboBox)
-		{
-			QString objectName = comboBox->objectName();
-			connect(comboBox, SIGNAL(currentIndexChanged(QString)), child, SLOT(updated(i, QString)));
-		}
-
-		QCheckBox *checkBox = dynamic_cast<QCheckBox*>(children.at(i));
-		if (checkBox)
-		{
-			QString objectName = checkBox->objectName();
-			connect(checkBox, SIGNAL(stateChanged(int)), child, SLOT(updated(i)));
-		}
-
-		QSpinBox *spinBox = dynamic_cast<QSpinBox*>(children.at(i));
-		if (spinBox)
-		{
-			QString objectName = spinBox->objectName();
-			connect(spinBox, SIGNAL(valueChanged(QString)), child, SLOT(updated(QString)));
+			connect(lineEdit, SIGNAL(valueChanged(QString)), this, SLOT(ROIUpdated(QString)));
+			UpdateROIPart(lineEdit->objectName(), lineEdit->text());
 		}
 	}
+	m_roiMdiChild->SetROIVisible(true);
+	m_roiMdiChild->UpdateROI(m_roi);
 }
+
+
+void dlg_commoninput::ROIUpdated(QString text)
+{
+	if (m_roiMdiChildClosed)
+		return;
+	QString senderName = QObject::sender()->objectName();
+	UpdateROIPart(senderName, text);
+	// size may not be smaller than 1 (otherwise there's a vtk error):
+	if (m_roi[3] <= 0) m_roi[3] = 1;
+	if (m_roi[4] <= 0) m_roi[4] = 1;
+	if (m_roi[5] <= 0) m_roi[5] = 1;
+	m_roiMdiChild->UpdateROI(m_roi);
+}
+
+
+void dlg_commoninput::UpdateROIPart(QString const & partName, QString const & value)
+{
+	if (partName.contains("Index X"))
+		m_roi[0] = value.toInt();
+	else if (partName.contains("Index Y"))
+		m_roi[1] = value.toInt();
+	else if (partName.contains("Index Z"))
+		m_roi[2] = value.toInt();
+	else if (partName.contains("Size X"))
+		m_roi[3] = value.toInt();
+	else if (partName.contains("Size Y"))
+		m_roi[4] = value.toInt();
+	else if (partName.contains("Size Z"))
+		m_roi[5] = value.toInt();
+}
+
+
+void dlg_commoninput::ROIChildClosed()
+{
+	m_roiMdiChildClosed = true;
+}
+
 
 int dlg_commoninput::getIntValue(int index) const
 {
@@ -286,6 +319,7 @@ int dlg_commoninput::getIntValue(int index) const
 	return t2 ? t2->text().toInt() : 0;
 }
 
+
 double dlg_commoninput::getDblValue(int index) const
 {
 	QDoubleSpinBox *t = container->findChild<QDoubleSpinBox*>(widgetList[index]);
@@ -295,11 +329,13 @@ double dlg_commoninput::getDblValue(int index) const
 	return t2 ? t2->text().toDouble() : 0.0;
 }
 
+
 int dlg_commoninput::getCheckValue(int index) const
 {
 	QCheckBox *t = container->findChild<QCheckBox*>(widgetList[index]);
 	return t? t->checkState(): 0;
 }
+
 
 QString dlg_commoninput::getComboBoxValue(int index) const
 {
@@ -307,11 +343,13 @@ QString dlg_commoninput::getComboBoxValue(int index) const
 	return t? t->currentText(): QString();
 }
 
+
 int dlg_commoninput::getComboBoxIndex(int index) const
 {
 	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
 	return t ? t->currentIndex() : -1;
 }
+
 
 QString dlg_commoninput::getText(int index) const
 {
@@ -320,4 +358,15 @@ QString dlg_commoninput::getText(int index) const
 		return t->text();
 	QPlainTextEdit *t2 = container->findChild<QPlainTextEdit*>(widgetList[index]);
 	return t2 ? t2->toPlainText() : "";
+}
+
+
+int dlg_commoninput::exec()
+{
+	int result = QDialog::exec();
+	if (m_roiMdiChildClosed || (m_roiMdiChild && !qobject_cast<QWidget*>(parent())->isVisible()))
+		return QDialog::Rejected;
+	if (m_roiMdiChild)
+		m_roiMdiChild->SetROIVisible(false);
+	return result;
 }

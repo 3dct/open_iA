@@ -156,7 +156,7 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		}
 	}
 	inPara << list << list;
-	dlg_commoninput dlg(m_mainWnd, "Segmentation Quality Metric", inList, inPara, fDescr, true);
+	dlg_commoninput dlg(m_mainWnd, "Segmentation Quality Metric", inList, inPara, fDescr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;

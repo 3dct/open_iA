@@ -39,11 +39,9 @@ public:
 	* \param	extentIndex2	Index of the line edit with  Y extent.
 	* \param	extentIndex3	Index of the line edit with  Z extent.
 	* \param	datatypeIndex	Index of the check box with  datatype stored in file.
-	* \param	modal			true to modal.
 	*/
 	dlg_openfile_sizecheck (bool isVolumeStack, QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *text, QString fileName,
-		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10,
-		bool modal = true);
+		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10);
 private:
 	qint64 fileSize;
 	QLabel *actualSizeLabel;

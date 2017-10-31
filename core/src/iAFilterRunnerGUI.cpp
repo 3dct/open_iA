@@ -151,9 +151,12 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			.arg(filter->RequiredInputs()).arg(otherMdis.size()+1));
 		return false;
 	}
+	bool showROI = false;
 	for (auto param : params)
 	{
 		dlgParamNames << (ValueTypePrefix(param->ValueType()) + param->Name());
+		if (param->Name() == "Index X")	// TODO: find better way to check this?
+			showROI = true;
 		if (param->ValueType() == Categorical)
 		{
 			QStringList comboValues = param->DefaultValue().toStringList();
@@ -184,9 +187,11 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	QTextDocument *fDescr = new QTextDocument(0);
 	fDescr->setHtml(filter->Description());
 	dlg_commoninput dlg(mainWnd, filter->Name(), dlgParamNames, dlgParamValues, fDescr);
+	if (showROI)
+		dlg.showROI(sourceMdi);
 	if (dlg.exec() != QDialog::Accepted)
 		return false;
-
+	
 	int idx = 0;
 	for (auto param : params)
 	{
@@ -232,7 +237,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (!filter->CheckParameters(paramValues))
 		return;
 
-	auto mdiChild = mainWnd->GetResultChild(filter->Name() + " " + sourceMdi->windowTitle());
+	auto mdiChild = mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + sourceMdi->windowTitle());
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);

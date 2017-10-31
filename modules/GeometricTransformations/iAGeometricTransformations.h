@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
 IAFILTER_DEFAULT_CLASS(iAResampleFilter);
+IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
 
 class iAResampleFilterRunner : public iAFilterRunnerGUI
 {
@@ -33,28 +33,9 @@ public:
 	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
 };
 
-/**
- * Geometric transformation filters
- * For Extract ImageFilter refer to https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
- */
-class iAGeometricTransformations : public iAAlgorithm
+class iAExtractImageFilterRunner : public iAFilterRunnerGUI
 {
 public:
-
-	iAGeometricTransformations( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	void setEParameters(double oX, double oY, double oZ, double sX, double sY, double sZ)
-	{
-		originX = oX;
-		originY = oY;
-		originZ = oZ;
-		sizeX = sX;
-		sizeY = sY;
-		sizeZ = sZ;
-	}
-protected:
-	virtual void performWork();
-private:
-	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
-	QString interpolator;
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
 };

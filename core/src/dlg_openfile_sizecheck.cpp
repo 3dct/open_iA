@@ -30,8 +30,8 @@
 #include <QObject>
 
 
-dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, QString fileName, int extentIndex1, int extentIndex2, int extentIndex3, int datatypeIndex, bool modal) :
-	dlg_commoninput(parent, winTitle, inList, inPara, fDescr, modal)
+dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, QString fileName, int extentIndex1, int extentIndex2, int extentIndex3, int datatypeIndex) :
+	dlg_commoninput(parent, winTitle, inList, inPara, fDescr)
 {
 	this->isVolumeStack = isVolumeStack;
 	QFileInfo info1(fileName);

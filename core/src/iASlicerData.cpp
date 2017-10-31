@@ -299,7 +299,6 @@ void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTrans
 		roiSource->SetOrigin(0, 0, 0);
 		roiSource->SetPoint1(-3, 0, 0);
 		roiSource->SetPoint2(0, -3, 0);
-		roi = NULL;
 
 		QImage img;
 		if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
@@ -529,46 +528,45 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTra
 }
 
 
-void iASlicerData::updateROI()
+void iASlicerData::SetROIVisible(bool visible)
 {
 	if (!m_decorations)
-	{
 		return;
-	}
-	if (roi != NULL && roiActor->GetVisibility())
-	{
-		double* spacing = reslicer->GetOutput()->GetSpacing();
-
-		// apparently, image actor starts output at -0,5spacing, -0.5spacing (probably a side effect of BorderOn)
-		// That's why we have to subtract 0.5 from the coordinates!
-		if (m_mode == iASlicerMode::YZ)
-		{
-			roiSource->SetOrigin((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]                  , 0);
-			roiSource->SetPoint1((roi[1]-0.5)*spacing[1]+roi[4]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
-			roiSource->SetPoint2((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
-		}
-		else if (m_mode == iASlicerMode::XY)
-		{
-			roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]                  , 0);
-			roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[1]-0.5)*spacing[1]                  , 0);
-			roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]+roi[4]*spacing[1], 0);
-		}
-		else if (m_mode == iASlicerMode::XZ)
-		{
-			roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]                  , 0);
-			roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
-			roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
-		}
-
-		roiMapper->Update();
-		interactor->Render();
-	}
+	roiActor->SetVisibility(visible);
 }
 
 
-void iASlicerData::SetROIVisibility(bool visible)
+void iASlicerData::UpdateROI(int const roi[6])
 {
-	roiActor->SetVisibility(visible);
+	if (!m_decorations || !roiActor->GetVisibility())
+	{
+		return;
+	}
+	double* spacing = reslicer->GetOutput()->GetSpacing();
+
+	// apparently, image actor starts output at -0,5spacing, -0.5spacing (probably a side effect of BorderOn)
+	// That's why we have to subtract 0.5 from the coordinates!
+	if (m_mode == iASlicerMode::YZ)
+	{
+		roiSource->SetOrigin((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]                  , 0);
+		roiSource->SetPoint1((roi[1]-0.5)*spacing[1]+roi[4]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
+		roiSource->SetPoint2((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
+	}
+	else if (m_mode == iASlicerMode::XY)
+	{
+		roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]                  , 0);
+		roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[1]-0.5)*spacing[1]                  , 0);
+		roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]+roi[4]*spacing[1], 0);
+	}
+	else if (m_mode == iASlicerMode::XZ)
+	{
+		roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]                  , 0);
+		roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
+		roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
+	}
+
+	roiMapper->Update();
+	interactor->Render();
 }
 
 

@@ -23,7 +23,6 @@
 #include "dlg_volumePlayer.h"
 
 #include "dlg_commoninput.h"
-#include "dlg_openfile_sizecheck.h"
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
 #include "iARenderer.h"

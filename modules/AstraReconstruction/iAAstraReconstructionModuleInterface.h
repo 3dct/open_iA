@@ -24,14 +24,6 @@
 
 class iAAstraReconstructionModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize();
-private slots:
-	void FreeBeamIntensity();
-private:
-	bool m_childClosed;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	bool manualMeanFreeBeamIntensity;
-	int manualMeanFreeBeamIntensityValue;
 };

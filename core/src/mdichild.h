@@ -99,8 +99,6 @@ public:
 	dlg_logs * logs;
 	QProgressBar * pbar;
 
-	enum ConnectionState {cs_NONE, cs_ROI};
-
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
 	void waitForPreviousIO();
 
@@ -115,7 +113,6 @@ public:
 	bool save();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
-	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
 	bool multiview() { changeVisibility(MULTI); return true; };
@@ -207,17 +204,14 @@ public:
 	bool isUpdateAutomatically();
 	void setHistogramFocus();
 	bool isMaximized();
-	void setROI(int indexX, int indexY, int indexZ, int sizeX, int sizeY, int sizeZ);
-	void hideROI();
-	void showROI();
-	void setCurrentFile(const QString &f);
 
+	void UpdateROI(int const roi[6]);
+	void SetROIVisible(bool visible);
+
+	void setCurrentFile(const QString &f);
 	QString userFriendlyCurrentFile();
 	QString currentFile() const { return curFile; }
 	QFileInfo getFileInfo() const { return fileInfo; }
-
-	void activate(ConnectionState state) { connectionState = state; }
-	void deactivate() { connectionState = cs_NONE; }
 
 	int getSliceXY();
 	int getSliceYZ();
@@ -333,9 +327,6 @@ private slots:
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
 	void paintEvent(QPaintEvent * );
-	void updated(QString text);
-	void updated(int state);
-	void updated(int state, QString text);
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
@@ -448,9 +439,6 @@ private:
 	iAPreferences preferences;
 
 	unsigned char visibility;
-
-	ConnectionState connectionState;
-	int roi[6];
 
 	bool snakeSlicer;           //!< whether snake slicer is enabled
 	bool isSliceProfileEnabled; //!< slice profile, shown in slices

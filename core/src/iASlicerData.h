@@ -114,9 +114,8 @@ public:
 	void saveMovie(QString& fileName, int qual = 2);
 	void update();
 
-	void updateROI();
-	void setROI(int r[6]) { roi = r; };
-	void SetROIVisibility(bool visible);
+	void UpdateROI(int const r[6]);
+	void SetROIVisible(bool visible);
 
 	vtkImageReslice *GetReslicer() { return reslicer; }
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
@@ -240,7 +239,6 @@ private:
 	vtkSmartPointer<vtkPlaneSource> roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> roiMapper;
 	vtkSmartPointer<vtkActor> roiActor;
-	int *roi;
 
 	vtkSmartPointer<vtkTransform> axisTransform[2];
 	vtkSmartPointer<vtkTextActor3D> axisTextActor[2];

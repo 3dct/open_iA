@@ -204,21 +204,21 @@ namespace
 		// TODO: Allow choosing a device to use?
 		else
 		{
-		for (int dev = 0; dev < deviceCount; dev++)
-		{
-		cudaDeviceProp deviceProp;
-		cudaGetDeviceProperties(&deviceProp, dev);
-		DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
-		.arg(deviceProp.name)
-		.arg(deviceProp.major)
-		.arg(deviceProp.minor)
-		.arg(deviceProp.clockRate)
-		.arg(deviceProp.memoryClockRate)
-		.arg(deviceProp.memoryBusWidth)
-		.arg(deviceProp.concurrentKernels)
-		.arg(deviceProp.totalGlobalMem)
-		);
-		}
+			for (int dev = 0; dev < deviceCount; dev++)
+			{
+				cudaDeviceProp deviceProp;
+				cudaGetDeviceProperties(&deviceProp, dev);
+				DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
+					.arg(deviceProp.name)
+					.arg(deviceProp.major)
+					.arg(deviceProp.minor)
+					.arg(deviceProp.clockRate)
+					.arg(deviceProp.memoryClockRate)
+					.arg(deviceProp.memoryBusWidth)
+					.arg(deviceProp.concurrentKernels)
+					.arg(deviceProp.totalGlobalMem)
+				);
+			}
 		}
 		*/
 		return true;
@@ -270,7 +270,8 @@ IAFILTER_CREATE(iAASTRAForwardProject)
 
 
 iAASTRAForwardProject::iAASTRAForwardProject() :
-	iAFilter("ASTRA Forward Projection", "ASTRA Toolbox", "Forward Projection with the ASTRA Toolbox")
+	iAFilter("ASTRA Forward Projection", "Reconstruction/ASTRA Toolbox",
+		"Forward Projection with the ASTRA Toolbox")
 {
 	AddCommonForwardReconstructParams(this);
 	AddParameter(DetRowCnt, Discrete, 512);
@@ -354,7 +355,8 @@ IAFILTER_CREATE(iAASTRAReconstruct)
 
 
 iAASTRAReconstruct::iAASTRAReconstruct() :
-	iAFilter("ASTRA Reconstruction", "ASTRA Toolbox", "Reconstruction with the ASTRA Toolbox")
+	iAFilter("ASTRA Reconstruction", "Reconstruction/ASTRA Toolbox",
+		"Reconstruction with the ASTRA Toolbox")
 {
 	AddCommonForwardReconstructParams(this);
 	AddParameter(DetRowDim, Discrete, 1);

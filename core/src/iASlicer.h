@@ -106,9 +106,8 @@ public:
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 
 	void setPositionMarkerCenter(double x, double y);
-	void setROI(int r[6]);
-	void setROIVisible(bool isVisible);
-	void updateROI();
+	void SetROIVisible(bool isVisible);
+	void UpdateROI(int const roi[6]);
 	void update();
 	void saveMovie(QString& fileName, int qual = 2);
 	void saveImageStack();

@@ -24,14 +24,6 @@
 
 class iAGeometricTransformationsModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize();
-private slots:
-	void extractImage();
-	void childClosed();
-protected:
-	//settings
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	bool m_childClosed;
 };

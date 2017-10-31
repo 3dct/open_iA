@@ -133,8 +133,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	isUntitled = true;
 	visibility = MULTI;
 	xCoord = 0, yCoord = 0, zCoord = 0;
-	connectionState = cs_NONE;
-	for (int i = 0; i < 6; i++) roi[i] = 0;
 
 	imageData = vtkSmartPointer<vtkImageData>::New();
 	imageData->AllocateScalars(VTK_DOUBLE, 1);
@@ -791,62 +789,6 @@ void MdiChild::paintEvent(QPaintEvent * )
 {
 }
 
-
-void MdiChild::updated(QString text)
-{
-	QString senderName = QObject::sender()->objectName();
-
-	switch(connectionState)
-	{
-	case cs_ROI:
-		{
-			if (senderName.compare("IndexXSpinBox") == 0)
-			{
-				roi[0] = text.toInt();
-			}
-			else if (senderName.compare("IndexYSpinBox") == 0)
-			{
-				roi[1] = text.toInt();
-			}
-			else if (senderName.compare("IndexZSpinBox") == 0)
-			{
-				roi[2] = text.toInt();
-			}
-			else if (senderName.compare("SizeXSpinBox") == 0)
-			{
-				roi[3] = text.toInt();
-			}
-			else if (senderName.compare("SizeYSpinBox") == 0)
-			{
-				roi[4] = text.toInt();
-			}
-			else if (senderName.compare("SizeZSpinBox") == 0)
-			{
-				roi[5] = text.toInt();
-			}
-			// size may not be smaller than 1 (otherwise there's a vtk error):
-			if (roi[3] <= 0) roi[3] = 1;
-			if (roi[4] <= 0) roi[4] = 1;
-			if (roi[5] <= 0) roi[5] = 1;
-
-			slicerXY->updateROI();
-			slicerYZ->updateROI();
-			slicerXZ->updateROI();
-		}
-		break;
-	}
-}
-
-void MdiChild::updated( int i )
-{
-	this->addMsg(tr("mdiCild: updated: %1").arg(i));
-
-}
-
-void MdiChild::updated(int i, QString text)
-{
-	this->addMsg(tr("mdiCild: updated(i,string): %1  %2").arg(i).arg(text));
-}
 
 int MdiChild::chooseModalityNr(QString const & caption)
 {
@@ -2306,35 +2248,18 @@ bool MdiChild::isMaximized()
 	return visibility != MULTI;
 }
 
-void MdiChild::setROI(int indexX, int indexY, int indexZ, int sizeX, int sizeY, int sizeZ)
+void MdiChild::UpdateROI(int const roi[6])
 {
-	roi[0] = indexX;
-	roi[1] = indexY;
-	roi[2] = indexZ;
-	roi[3] = sizeX;
-	roi[4] = sizeY;
-	roi[5] = sizeZ;
-
-	slicerXY->setROI(roi);
-	slicerYZ->setROI(roi);
-	slicerXZ->setROI(roi);
+	slicerXY->UpdateROI(roi);
+	slicerYZ->UpdateROI(roi);
+	slicerXZ->UpdateROI(roi);
 }
 
-void MdiChild::hideROI()
+void MdiChild::SetROIVisible(bool visible)
 {
-	slicerXY->setROIVisible(false);
-	slicerYZ->setROIVisible(false);
-	slicerXZ->setROIVisible(false);
-}
-
-void MdiChild::showROI()
-{
-	slicerYZ->setROIVisible(true);
-	slicerXY->setROIVisible(true);
-	slicerXZ->setROIVisible(true);
-	slicerYZ->updateROI();
-	slicerXY->updateROI();
-	slicerXZ->updateROI();
+	slicerXY->SetROIVisible(visible);
+	slicerYZ->SetROIVisible(visible);
+	slicerXZ->SetROIVisible(visible);
 }
 
 QString MdiChild::userFriendlyCurrentFile()
@@ -3022,7 +2947,6 @@ void MdiChild::SaveFinished()
 	m_dlgModalities->SetFileName(m_storedModalityNr, ioThread->getFileName());
 	setWindowModified(GetModalities()->HasUnsavedModality());
 }
-
 
 void MdiChild::SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation)
 {

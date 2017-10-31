@@ -46,15 +46,14 @@ namespace
 }
 
 template<class T> void resampler_template(
-	double originX, double originY, double originZ,
+	unsigned int originX, unsigned int originY, unsigned int originZ,
 	double spacingX, double spacingY, double spacingZ,
-	double sizeX, double sizeY, double sizeZ,
+	unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ,
 	QString const & interpolator,
 	iAProgress* p, iAConnector* image  )
 {
 	typedef itk::Image< T, DIM > InputImageType;
-	typedef itk::Image< T, DIM > OutputImageType;
-	typedef itk::ResampleImageFilter< InputImageType, OutputImageType >    ResampleFilterType;
+	typedef itk::ResampleImageFilter< InputImageType, InputImageType >    ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
 
 	typename ResampleFilterType::OriginPointType origin; origin[0] = originX; origin[1] = originY; origin[2] = originZ;
@@ -108,9 +107,9 @@ IAFILTER_CREATE(iAResampleFilter)
 void iAResampleFilter::Run(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(resampler_template, m_con->GetITKScalarPixelType(),
-		parameters["Origin X"].toDouble(), parameters["Origin Y"].toDouble(), parameters["Origin Z"].toDouble(),
+		parameters["Origin X"].toUInt(), parameters["Origin Y"].toUInt(), parameters["Origin Z"].toUInt(),
 		parameters["Spacing X"].toDouble(), parameters["Spacing Y"].toDouble(), parameters["Spacing Z"].toDouble(),
-		parameters["Size X"].toDouble(), parameters["Size Y"].toDouble(), parameters["Size Z"].toDouble(),
+		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(), parameters["Size Z"].toUInt(),
 		parameters["Interpolator"].toString(),
 		m_progress, m_con);
 }
@@ -122,15 +121,15 @@ iAResampleFilter::iAResampleFilter() :
 		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Filter</a> in the ITK documentation.")
 {
-	AddParameter("Origin X", Continuous, 0);
-	AddParameter("Origin Y", Continuous, 0);
-	AddParameter("Origin Z", Continuous, 0);
+	AddParameter("Origin X", Discrete, 0);
+	AddParameter("Origin Y", Discrete, 0);
+	AddParameter("Origin Z", Discrete, 0);
 	AddParameter("Spacing X", Continuous, 0);
 	AddParameter("Spacing Y", Continuous, 0);
 	AddParameter("Spacing Z", Continuous, 0);
-	AddParameter("Size X", Continuous, 0);
-	AddParameter("Size Y", Continuous, 0);
-	AddParameter("Size Z", Continuous, 0);
+	AddParameter("Size X", Discrete, 1, 1);
+	AddParameter("Size Y", Discrete, 1, 1);
+	AddParameter("Size Z", Discrete, 1, 1);
 	QStringList interpolators;
 	interpolators
 		<< InterpLinear
@@ -159,7 +158,8 @@ QMap<QString, QVariant> iAResampleFilterRunner::LoadParameters(QSharedPointer<iA
 
 
 template<class T>
-void extractImage_template(double indexX, double indexY, double indexZ, double sizeX, double sizeY, double sizeZ,
+void extractImage_template(unsigned int indexX, unsigned int indexY, unsigned int indexZ,
+	unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ,
 	iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, DIM > InputImageType;
@@ -201,14 +201,42 @@ void extractImage_template(double indexX, double indexY, double indexZ, double s
 	filter->ReleaseDataFlagOn();
 }
 
-iAGeometricTransformations::iAGeometricTransformations(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm( fn, i, p, logger, parent )
+IAFILTER_CREATE(iAExtractImageFilter)
+
+void iAExtractImageFilter::Run(QMap<QString, QVariant> const & parameters)
 {
+	ITK_TYPED_CALL(extractImage_template, m_con->GetITKScalarPixelType(),
+		parameters["Index X"].toUInt(), parameters["Index Y"].toUInt(), parameters["Index Z"].toUInt(),
+		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(), parameters["Size Z"].toUInt(),
+		m_progress, m_con);
 }
 
-void iAGeometricTransformations::performWork()
+iAExtractImageFilter::iAExtractImageFilter() :
+	iAFilter("Extract Image", "Geometric Transformations",
+		"Extract a part of the image.<br/>"
+		"Both <em>Index</em> and <em>Size</em> values are in pixel units.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html\">"
+		"Extract Image Filter</a> in the ITK documentation.")
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(extractImage_template, itkType,
-		originX, originY, originZ, sizeX, sizeY, sizeZ, getItkProgress(), getConnector());
+	AddParameter("Index X", Discrete, 0);
+	AddParameter("Index Y", Discrete, 0);
+	AddParameter("Index Z", Discrete, 0);
+	AddParameter("Size X", Discrete, 1, 1);
+	AddParameter("Size Y", Discrete, 1, 1);
+	AddParameter("Size Z", Discrete, 1, 1);
+}
+
+QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::Create()
+{
+	return QSharedPointer<iAFilterRunnerGUI>(new iAExtractImageFilterRunner());
+}
+
+QMap<QString, QVariant> iAExtractImageFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+{
+	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
+	params["Size X"] = sourceMdi->getImagePointer()->GetDimensions()[0];
+	params["Size Y"] = sourceMdi->getImagePointer()->GetDimensions()[1];
+	params["Size Z"] = sourceMdi->getImagePointer()->GetDimensions()[2];
+	return params;
 }

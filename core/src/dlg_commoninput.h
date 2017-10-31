@@ -39,17 +39,25 @@ class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
 {
 	Q_OBJECT
 public:
-	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ), bool modal = true);
+	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ));
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;
 	QString getText(int index) const;
 	int getIntValue(int index) const;
 	double getDblValue(int index) const;
-	void connectMdiChild(MdiChild *child);
+	void showROI(MdiChild *child);
+	int exec() override;
 private:
 	QWidget *container;
+	int m_roi[6];
+	MdiChild *m_roiMdiChild;
+	bool m_roiMdiChildClosed;
 	void updateValues(QList<QVariant>);
+	void UpdateROIPart(QString const & partName, QString const & value);
+private slots:
+	void ROIUpdated(QString text);
+	void ROIChildClosed();
 protected:
 	QStringList widgetList;
 };
