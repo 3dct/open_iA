@@ -121,9 +121,9 @@ template<class T> void hessianEigenAnalysis_template(double sigma,
 	// TODO: check if the following code in its current form does anything useful
 	// Iteration through eigenvalues to compute Ra, Rb and S values
 	auto eigenImage = eigenFilter->GetOutput();
-	auto eigenRaRbS = eigenFilter->GetOutput();
+	auto eigenRaRbS = eigenFilter->GetOutput(); // this is the same as eigenImage, right?
 	typedef itk::ImageRegionIterator<EigenValueImageType> EigenIteratorType;
-	EigenIteratorType eigenRaRbSIt(eigenRaRbS,eigenRaRbS->GetLargestPossibleRegion());
+	EigenIteratorType eigenRaRbSIt(eigenRaRbS, eigenRaRbS->GetLargestPossibleRegion());
 	EigenIteratorType eigenImageIt(eigenImage, eigenImage->GetLargestPossibleRegion());
 
 	// iterate through image and get each eigen value
