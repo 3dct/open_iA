@@ -25,6 +25,7 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include "mdichild.h"
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkChangeInformationImageFilter.h>
@@ -36,60 +37,15 @@
 
 #include <vtkImageData.h>
 
-#include <QLocale>
-
-const QString iAGeometricTransformations::InterpLinear("Linear");
-const QString iAGeometricTransformations::InterpNearestNeighbour("Nearest Neighbour");
-const QString iAGeometricTransformations::InterpBSpline("BSpline");
-const QString iAGeometricTransformations::InterpWindowedSinc("Windowed Sinc");
-
-
-template<class T> 
-void extractImage_template( double indexX, double indexY, double indexZ, double sizeX, double sizeY, double sizeZ, iAProgress* p, iAConnector* image  )
+namespace
 {
-	typedef itk::Image< T, DIM > InputImageType;
-	typedef itk::Image< T, DIM > OutputImageType;
-	typedef itk::ExtractImageFilter< InputImageType, OutputImageType > EIFType;
-	auto filter = EIFType::New();
-
-	typename EIFType::InputImageRegionType::SizeType size; size[0] = sizeX; size[1] = sizeY; size[2] = sizeZ;
-	typename EIFType::InputImageRegionType::IndexType index; index[0] = indexX; index[1] = indexY; index[2] = indexZ;
-	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
-
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-
-	filter->SetExtractionRegion(region);
-	p->Observe( filter );
-	filter->Update();
-
-	//change the output image information - offset change to zero
-	typename OutputImageType::IndexType idx; idx.Fill(0);
-	typename OutputImageType::PointType origin; origin.Fill(0);
-	typename OutputImageType::SizeType outsize; outsize[0] = sizeX;	outsize[1] = sizeY;	outsize[2] = sizeZ;
-	typename OutputImageType::RegionType outreg;
-	outreg.SetIndex(idx); 
-	outreg.SetSize(outsize);
-	auto refimage = OutputImageType::New();
-	refimage->SetRegions(outreg);
-	refimage->SetOrigin(origin);
-	refimage->SetSpacing(filter->GetOutput()->GetSpacing());
-	refimage->Allocate();
-
-	typedef itk::ChangeInformationImageFilter<OutputImageType> CIIFType;
-	auto changefilter = CIIFType::New();
-	changefilter->SetInput(filter->GetOutput());
-	changefilter->UseReferenceImageOn();
-	changefilter->SetReferenceImage(refimage);
-	changefilter->SetChangeRegion(1);
-	changefilter->Update( );
-	image->SetImage( changefilter->GetOutput() );
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+	const QString InterpLinear("Linear");
+	const QString InterpNearestNeighbour("Nearest Neighbour");
+	const QString InterpBSpline("BSpline");
+	const QString InterpWindowedSinc("Windowed Sinc");
 }
 
-
-template<class T> 
-void resampler_template(
+template<class T> void resampler_template(
 	double originX, double originY, double originZ,
 	double spacingX, double spacingY, double spacingZ,
 	double sizeX, double sizeY, double sizeZ,
@@ -99,31 +55,31 @@ void resampler_template(
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
 	typedef itk::ResampleImageFilter< InputImageType, OutputImageType >    ResampleFilterType;
-	typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+	auto resampler = ResampleFilterType::New();
 
 	typename ResampleFilterType::OriginPointType origin; origin[0] = originX; origin[1] = originY; origin[2] = originZ;
 	typename ResampleFilterType::SpacingType spacing; spacing[0] = spacingX; spacing[1] = spacingY; spacing[2] = spacingZ;
 	typename ResampleFilterType::SizeType size; size[0] = sizeX; size[1] = sizeY; size[2] = sizeZ;
 
-	if (interpolator == iAGeometricTransformations::InterpLinear)
+	if (interpolator == InterpLinear)
 	{
 		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	else if (interpolator == iAGeometricTransformations::InterpNearestNeighbour)
+	else if (interpolator == InterpNearestNeighbour)
 	{
 		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	else if (interpolator == iAGeometricTransformations::InterpBSpline)
+	else if (interpolator == InterpBSpline)
 	{
 		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
-		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	else if (interpolator == iAGeometricTransformations::InterpWindowedSinc)
+	else if (interpolator == InterpWindowedSinc)
 	{
 		typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
 		typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
@@ -132,7 +88,7 @@ void resampler_template(
 			WindowFunctionType,
 			ConditionType,
 			double> InterpolatorType;
-		typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
 	resampler->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
@@ -147,30 +103,112 @@ void resampler_template(
 	resampler->ReleaseDataFlagOn();
 }
 
-iAGeometricTransformations::iAGeometricTransformations( QString fn, iAGeometricTransformationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent  )
-	: iAAlgorithm( fn, i, p, logger, parent ), m_operation(fid)
+IAFILTER_CREATE(iAResampleFilter)
+
+void iAResampleFilter::Run(QMap<QString, QVariant> const & parameters)
 {
+	ITK_TYPED_CALL(resampler_template, m_con->GetITKScalarPixelType(),
+		parameters["Origin X"].toDouble(), parameters["Origin Y"].toDouble(), parameters["Origin Z"].toDouble(),
+		parameters["Spacing X"].toDouble(), parameters["Spacing Y"].toDouble(), parameters["Spacing Z"].toDouble(),
+		parameters["Size X"].toDouble(), parameters["Size Y"].toDouble(), parameters["Size Z"].toDouble(),
+		parameters["Interpolator"].toString(),
+		m_progress, m_con);
 }
 
+iAResampleFilter::iAResampleFilter() :
+	iAFilter("Resample", "Geometric Transformations",
+		"Resample the image to a new size.<br/>"
+		"For more information, see the "
+		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"Resample Filter</a> in the ITK documentation.")
+{
+	AddParameter("Origin X", Continuous, 0);
+	AddParameter("Origin Y", Continuous, 0);
+	AddParameter("Origin Z", Continuous, 0);
+	AddParameter("Spacing X", Continuous, 0);
+	AddParameter("Spacing Y", Continuous, 0);
+	AddParameter("Spacing Z", Continuous, 0);
+	AddParameter("Size X", Continuous, 0);
+	AddParameter("Size Y", Continuous, 0);
+	AddParameter("Size Z", Continuous, 0);
+	QStringList interpolators;
+	interpolators
+		<< InterpLinear
+		<< InterpNearestNeighbour
+		<< InterpBSpline
+		<< InterpWindowedSinc;
+	AddParameter("Interpolator", Categorical, interpolators);
+}
+
+QSharedPointer<iAFilterRunnerGUI> iAResampleFilterRunner::Create()
+{
+	return QSharedPointer<iAFilterRunnerGUI>(new iAResampleFilterRunner());
+}
+
+QMap<QString, QVariant> iAResampleFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+{
+	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
+	params["Spacing X"] = sourceMdi->getImagePointer()->GetSpacing()[0];
+	params["Spacing Y"] = sourceMdi->getImagePointer()->GetSpacing()[1];
+	params["Spacing Z"] = sourceMdi->getImagePointer()->GetSpacing()[2];
+	params["Size X"] = sourceMdi->getImagePointer()->GetDimensions()[0];
+	params["Size Y"] = sourceMdi->getImagePointer()->GetDimensions()[1];
+	params["Size Z"] = sourceMdi->getImagePointer()->GetDimensions()[2];
+	return params;
+}
+
+
+template<class T>
+void extractImage_template(double indexX, double indexY, double indexZ, double sizeX, double sizeY, double sizeZ,
+	iAProgress* p, iAConnector* image)
+{
+	typedef itk::Image< T, DIM > InputImageType;
+	typedef itk::Image< T, DIM > OutputImageType;
+	typedef itk::ExtractImageFilter< InputImageType, OutputImageType > EIFType;
+
+	typename EIFType::InputImageRegionType::SizeType size; size[0] = sizeX; size[1] = sizeY; size[2] = sizeZ;
+	typename EIFType::InputImageRegionType::IndexType index; index[0] = indexX; index[1] = indexY; index[2] = indexZ;
+	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
+
+	auto filter = EIFType::New();
+	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
+	filter->SetExtractionRegion(region);
+	p->Observe(filter);
+	filter->Update();
+
+	//change the output image information - offset change to zero
+	typename OutputImageType::IndexType idx; idx.Fill(0);
+	typename OutputImageType::PointType origin; origin.Fill(0);
+	typename OutputImageType::SizeType outsize; outsize[0] = sizeX;	outsize[1] = sizeY;	outsize[2] = sizeZ;
+	typename OutputImageType::RegionType outreg;
+	outreg.SetIndex(idx);
+	outreg.SetSize(outsize);
+	auto refimage = OutputImageType::New();
+	refimage->SetRegions(outreg);
+	refimage->SetOrigin(origin);
+	refimage->SetSpacing(filter->GetOutput()->GetSpacing());
+	refimage->Allocate();
+
+	typedef itk::ChangeInformationImageFilter<OutputImageType> CIIFType;
+	auto changefilter = CIIFType::New();
+	changefilter->SetInput(filter->GetOutput());
+	changefilter->UseReferenceImageOn();
+	changefilter->SetReferenceImage(refimage);
+	changefilter->SetChangeRegion(1);
+	changefilter->Update();
+	image->SetImage(changefilter->GetOutput());
+	image->Modified();
+	filter->ReleaseDataFlagOn();
+}
+
+iAGeometricTransformations::iAGeometricTransformations(QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
+	: iAAlgorithm( fn, i, p, logger, parent )
+{
+}
 
 void iAGeometricTransformations::performWork()
 {
 	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	switch (m_operation)
-	{
-	case EXTRACT_IMAGE:
-		ITK_TYPED_CALL(extractImage_template, itkType,
-			originX, originY, originZ, sizeX, sizeY, sizeZ, getItkProgress(), getConnector());
-		break;
-	case RESAMPLER:
-		ITK_TYPED_CALL(resampler_template, itkType,
-			originX, originY, originZ,
-			spacingX, spacingY, spacingZ,
-			sizeX, sizeY, sizeZ,
-			interpolator,
-			getItkProgress(), getConnector());
-		break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	ITK_TYPED_CALL(extractImage_template, itkType,
+		originX, originY, originZ, sizeX, sizeY, sizeZ, getItkProgress(), getConnector());
 }

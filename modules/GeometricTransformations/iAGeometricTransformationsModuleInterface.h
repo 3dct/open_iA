@@ -22,21 +22,16 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAGeometricTransformationsModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize();
 private slots:
-	void resampler();
 	void extractImage();
 	void childClosed();
 protected:
 	//settings
-	double rOriginX, rOriginY, rOriginZ, rSpacingX, rSpacingY, rSpacingZ, rSizeX, rSizeY, rSizeZ;
-	QString rInterpolator;
 	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
 	bool m_childClosed;
 };

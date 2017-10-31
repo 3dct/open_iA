@@ -21,71 +21,29 @@
 #pragma once
 
 #include "iAAlgorithm.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-enum iAGeometricTransformationType
+IAFILTER_DEFAULT_CLASS(iAResampleFilter);
+
+class iAResampleFilterRunner : public iAFilterRunnerGUI
 {
-	EXTRACT_IMAGE,
-	RESAMPLER,
+public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
 };
 
 /**
  * Geometric transformation filters
- * For Resample ImageFilter refer to https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html.
  * For Extract ImageFilter refer to https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
  */
 class iAGeometricTransformations : public iAAlgorithm
 {
 public:
-	static const QString InterpLinear;
-	static const QString InterpNearestNeighbour;
-	static const QString InterpBSpline;
-	static const QString InterpWindowedSinc;
 
-	iAGeometricTransformations( QString fn, iAGeometricTransformationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
+	iAGeometricTransformations( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
 
-	/**
-	 * Sets a r parameters. 
-	 * \param	oX	Origin x coordinate. 
-	 * \param	oY	Origin y coordinate. 
-	 * \param	oZ	Origin z coordinate. 
-	 * \param	spX	Spacing x coordinate. 
-	 * \param	spY	Spacing y coordinate. 
-	 * \param	spZ	Spacing z coordinate. 
-	 * \param	sX	Size x coordinate. 
-	 * \param	sY	Size y coordinate. 
-	 * \param	sZ	Size z coordinate. 
-	 */
-
-	void setRParameters(double oX, double oY, double oZ, 
-		double spX, double spY, double spZ, 
-		double sX, double sY, double sZ,
-		QString const & interp)
-	{
-		originX = oX;
-		originY = oY;
-		originZ = oZ;
-		spacingX = spX;
-		spacingY = spY;
-		spacingZ = spZ;
-		sizeX = sX;
-		sizeY = sY;
-		sizeZ = sZ;
-		interpolator = interp;
-	}
-
-	/**
-	 * Sets an e parameters. 
-	 * \param	oX	Origin x coordinate. 
-	 * \param	oY	Origin y coordinate. 
-	 * \param	oZ	Origin z coordinate. 
-	 * \param	sX	Size x coordinate. 
-	 * \param	sY	Size y coordinate. 
-	 * \param	sZ	Size z coordinate. 
-	 * \param	d	Dimensions. 
-	 */
-
-	void setEParameters(double oX, double oY, double oZ, 
-		double sX, double sY, double sZ, unsigned int d = 3)
+	void setEParameters(double oX, double oY, double oZ, double sX, double sY, double sZ)
 	{
 		originX = oX;
 		originY = oY;
@@ -93,14 +51,10 @@ public:
 		sizeX = sX;
 		sizeY = sY;
 		sizeZ = sZ;
-		dim = d; 
 	}
-
 protected:
 	virtual void performWork();
 private:
 	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
 	QString interpolator;
-	unsigned int dim;
-	iAGeometricTransformationType m_operation;
 };

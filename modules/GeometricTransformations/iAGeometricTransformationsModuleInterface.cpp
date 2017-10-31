@@ -35,77 +35,9 @@ void iAGeometricTransformationsModuleInterface::Initialize()
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuGeometric_Transformations = getMenuWithTitle(filtersMenu, QApplication::translate("MainWindow", "Geometric Transformations", 0));
 	
-	QAction * actionResampler = new QAction(QApplication::translate("MainWindow", "Resampler", 0), m_mainWnd );
-	menuGeometric_Transformations->addAction(actionResampler);
-	connect( actionResampler, SIGNAL( triggered() ), this, SLOT( resampler() ) );
-
 	QAction * actionExtract_Image = new QAction(QApplication::translate("MainWindow", "Extract Image", 0), m_mainWnd);
 	menuGeometric_Transformations->addAction(actionExtract_Image);
 	connect( actionExtract_Image, SIGNAL( triggered() ), this, SLOT( extractImage() ) );
-}
-
-void iAGeometricTransformationsModuleInterface::resampler()
-{
-	PrepareActiveChild();
-	if (!m_mdiChild)
-		return;
-	QStringList inList = (QStringList() 
-		<< tr("#OriginX") << tr("#OriginY") << tr("#OriginZ")
-		<< tr("#SpacingX") << tr("#SpacingY") << tr("#SpacingZ")
-		<< tr("#SizeX") << tr("#SizeY") << tr("#SizeZ" ))
-		<< tr("+Interpolator");
-
-	QStringList interpolators;
-	interpolators
-		<< QString("!")+iAGeometricTransformations::InterpLinear
-		<< iAGeometricTransformations::InterpNearestNeighbour
-		<< iAGeometricTransformations::InterpBSpline
-		<< iAGeometricTransformations::InterpWindowedSinc
-	;
-	QList<QVariant> inPara;
-	inPara
-		<< tr( "%1" ).arg( rOriginX ) << tr( "%1" ).arg( rOriginY ) << tr( "%1" ).arg( rOriginZ )
-		<< tr( "%1" ).arg( m_childData.imgData->GetSpacing()[1] )
-		<< tr( "%1" ).arg( m_childData.imgData->GetSpacing()[0] )
-		<< tr( "%1" ).arg( m_childData.imgData->GetSpacing()[2] )
-		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[1] )
-		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[3] )
-		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[5] )
-		<< interpolators;
-
-
-	dlg_commoninput dlg( m_mainWnd, "Resampler", inList, inPara, NULL );
-
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-	rOriginX = dlg.getDblValue(0);
-	rOriginY = dlg.getDblValue(1);
-	rOriginZ = dlg.getDblValue(2);
-	rSpacingX = dlg.getDblValue(3);
-	rSpacingY = dlg.getDblValue(4);
-	rSpacingZ = dlg.getDblValue(5);
-	rSizeX = dlg.getDblValue(6);
-	rSizeY = dlg.getDblValue(7);
-	rSizeZ = dlg.getDblValue(8);
-	rInterpolator = dlg.getComboBoxValue(9);
-
-	//prepare
-	QString filterName = "Resampled";
-	PrepareResultChild( filterName );
-	m_mdiChild->addStatusMsg( filterName );
-	//execute
-	rSizeX++; rSizeY++; rSizeZ++;
-	iAGeometricTransformations* thread = new iAGeometricTransformations( filterName, RESAMPLER,
-		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild );
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
-	thread->setRParameters(
-		rOriginX, rOriginY, rOriginZ,
-		rSpacingX, rSpacingY, rSpacingZ,
-		rSizeX, rSizeY, rSizeZ,
-		rInterpolator
-	);
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }
 
 void iAGeometricTransformationsModuleInterface::extractImage()
@@ -116,22 +48,18 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	MdiChild* origChild = m_mdiChild;
 	m_childClosed = false;
 	connect(origChild, SIGNAL(closed()), this, SLOT(childClosed()));
+	int const * dim = m_childData.imgData->GetDimensions();
 	QStringList inList = (QStringList() << tr( "*IndexX" ) << tr( "*IndexY" ) << tr( "*IndexZ" )
 		<< tr( "*SizeX" ) << tr( "*SizeY" ) << tr( "*SizeZ" ) );
 	QList<QVariant> inPara; 	inPara << tr( "%1" ).arg( eiIndexX ) << tr( "%1" ).arg( eiIndexY ) << tr( "%1" ).arg( eiIndexZ )
-		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[1] + 1 )
-		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[3] + 1 )
-		<< tr( "%1" ).arg( m_childData.imgData->GetExtent()[5] + 1 );
+		<< tr("%1").arg(dim[0]) << tr("%1").arg(dim[1])	<< tr("%1").arg(dim[2]);
 
 	dlg_commoninput dlg( m_mainWnd, "Extract Image", inList, inPara, NULL );
 	dlg.connectMdiChild(origChild);
 	dlg.setModal( false );
 	dlg.show();
 	origChild->activate( MdiChild::cs_ROI );
-	origChild->setROI( eiIndexX, eiIndexY, eiIndexZ,
-		m_childData.imgData->GetExtent()[1]+1,
-		m_childData.imgData->GetExtent()[3]+1,
-		m_childData.imgData->GetExtent()[5]+1);
+	origChild->setROI( eiIndexX, eiIndexY, eiIndexZ, dim[0], dim[1], dim[2]);
 	origChild->showROI();
 	int result = dlg.exec();
 	if (!m_mainWnd->isVisible() || m_childClosed)	// main window  or mdi child was closed in the meantime
@@ -159,7 +87,7 @@ void iAGeometricTransformationsModuleInterface::extractImage()
 	UpdateChildData();
 	//execute
 	m_mdiChild->setUpdateSliceIndicator( true );
-	iAGeometricTransformations* thread = new iAGeometricTransformations( filterName, EXTRACT_IMAGE,
+	iAGeometricTransformations* thread = new iAGeometricTransformations( filterName,
 		m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild);
 	m_mdiChild->connectThreadSignalsToChildSlots( thread );
 	thread->setEParameters( eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ );
