@@ -22,14 +22,17 @@
 
 #include "iAFilter.h"
 
-IAFILTER_DEFAULT_CLASS(iAAddFilter);
-IAFILTER_DEFAULT_CLASS(iADifferenceFilter);
+// Filters requiring 1 input image:
+IAFILTER_DEFAULT_CLASS(iAAdaptiveHistogramEqualization);
 IAFILTER_DEFAULT_CLASS(iAGeneralThreshold);
-IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);
 IAFILTER_DEFAULT_CLASS(iAIntensityWindowingFilter);
 IAFILTER_DEFAULT_CLASS(iAInvertIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iAMaskIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iARescaleIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iAShiftScaleIntensityFilter);
+// Filters requiring 2 input images:
+IAFILTER_DEFAULT_CLASS(iAAddFilter);
+IAFILTER_DEFAULT_CLASS(iADifferenceFilter);
 IAFILTER_DEFAULT_CLASS(iASubtractFilter);
+IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);
