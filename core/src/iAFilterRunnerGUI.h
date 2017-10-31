@@ -91,7 +91,7 @@ public:
 	//! Loads parameters from the platform-specific store.
 	//! @param filter the filter for which to load the parameters
 	//! @return a map containing for each parameter name the stored value
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter);
+	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
 
 	//! Store parameters in the platform-specific store.
 	//! @param filter the filter for which to store the parameters

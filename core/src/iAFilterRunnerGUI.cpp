@@ -107,7 +107,7 @@ QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::Create()
 }
 
 
-QMap<QString, QVariant> iAFilterRunnerGUI::LoadParameters(QSharedPointer<iAFilter> filter)
+QMap<QString, QVariant> iAFilterRunnerGUI::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
 	auto params = filter->Parameters();
 	QMap<QString, QVariant> result;
@@ -222,8 +222,8 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
-	QMap<QString, QVariant> paramValues = LoadParameters(filter);
 	MdiChild* sourceMdi = mainWnd->activeMdiChild();
+	QMap<QString, QVariant> paramValues = LoadParameters(filter, sourceMdi);
 	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd))
 		return;
 	StoreParameters(filter, paramValues);
