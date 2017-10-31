@@ -21,14 +21,16 @@
 #pragma once
 
 #include <QColor>
+#include "open_iA_Core_export.h"
 
 /**
  * \class iAColorable
  * \brief simple base class for anything that can be given a color
  */
-class iAColorable
+class open_iA_Core_API iAColorable
 {
 public:
+	virtual ~iAColorable();
 	static QColor const DefaultColor;
 	iAColorable();
 	iAColorable(QColor const & color);

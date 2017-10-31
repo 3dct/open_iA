@@ -20,31 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAConvolutionType
-{
-	CONVOLUTION_FILTER,
-	FFT_CONVOLUTION_FILTER,
-	CORRELATION_FILTER,
-	FFT_CORRELATION_FILTER,
-	FFT_NCC_CPP_FILTER,
-};
-
-class iAConvolutionFilter : public iAAlgorithm
-{
-public: 
-	iAConvolutionFilter(QString fn, iAConvolutionType fid, vtkImageData* i = 0, vtkPolyData* p = 0, iALogger* logger = 0, QObject *parent = 0);
-	~iAConvolutionFilter();
-
-	void setParameters(std::string templateFileName)
-	{
-		this->templFileName = templateFileName; 
-	}
-protected: 
-	virtual void performWork();
-private: 
-	vtkPolyData* pData;
-	std::string templFileName; 
-	iAConvolutionType m_type;
-};
+IAFILTER_DEFAULT_CLASS(iAConvolution);
+IAFILTER_DEFAULT_CLASS(iAFFTConvolution);
+IAFILTER_DEFAULT_CLASS(iACorrelation);
+IAFILTER_DEFAULT_CLASS(iAFFTCorrelation);
+IAFILTER_DEFAULT_CLASS(iAStreamedFFTCorrelation);

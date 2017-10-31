@@ -22,21 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iATransformationsModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void rotate();
-	void translate();
-	void flip();
-	void permute();
-
-protected:
-	vtkImageData * prepare(const QString & caption);
 };

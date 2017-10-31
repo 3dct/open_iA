@@ -30,6 +30,7 @@ class QPainter;
 class CoordinateConverter
 {
 public:
+	virtual ~CoordinateConverter() {}
 	virtual double Diagram2ScreenY(double y) const =0;
 	virtual double Screen2DiagramY(double y) const =0;
 	virtual void update(double yZoom, double yDataMax, double yMinValueBiggerThanZero, int height) =0;
@@ -51,6 +52,7 @@ class iAAbstractDrawableFunction: public iAColorable
 {
 public:
 	iAAbstractDrawableFunction(QColor const & color);
+	virtual ~iAAbstractDrawableFunction() {}
 	/**
 	* \brief makes sure the next call to draw will completely redraw the function, without any caching
 	*/

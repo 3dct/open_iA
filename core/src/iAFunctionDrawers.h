@@ -35,8 +35,8 @@ class open_iA_Core_API iASelectedBinDrawer : public iAAbstractDrawableFunction
 public:
 	iASelectedBinDrawer( int position = 0, QColor const & color = Qt::red );
 	void setPosition( int position );
-	void draw( QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter ) const;
-	void update(){}
+	void draw( QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter ) const override;
+	void update() override {}
 private:
 	int m_position;
 };
@@ -45,8 +45,8 @@ class open_iA_Core_API iAPolygonBasedFunctionDrawer: public iAAbstractDrawableFu
 {
 public:
 	iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
-	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const;
-	void update();
+	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
+	void update() override;
 private:
 	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
 	virtual void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const = 0;
@@ -66,8 +66,8 @@ class open_iA_Core_API iALineFunctionDrawer: public iAPolygonBasedFunctionDrawer
 public:
 	iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
 private:
-	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
-	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const;
+	bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
+	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
 };
 
 
@@ -76,9 +76,9 @@ class open_iA_Core_API iAStepFunctionDrawer : public iAPolygonBasedFunctionDrawe
 public:
 	iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
 private:
-	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
-	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const;
-	virtual QColor getFillColor() const;
+	bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
+	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
+	QColor getFillColor() const;
 };
 
 class open_iA_Core_API iAFilledLineFunctionDrawer : public iAPolygonBasedFunctionDrawer
@@ -86,9 +86,9 @@ class open_iA_Core_API iAFilledLineFunctionDrawer : public iAPolygonBasedFunctio
 public:
 	iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
 private:
-	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const;
-	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const;
-	virtual QColor getFillColor() const;
+	bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
+	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
+	QColor getFillColor() const;
 };
 
 
@@ -96,8 +96,8 @@ class open_iA_Core_API iABarGraphDrawer: public iAAbstractDrawableFunction
 {
 public:
 	iABarGraphDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, int margin=0);
-	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const;
-	void update();
+	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
+	void update() override;
 private:
 	QSharedPointer<iAAbstractDiagramData> m_data;
 	int m_margin;
@@ -108,11 +108,11 @@ class open_iA_Core_API iAMultipleFunctionDrawer: public iAAbstractDrawableFuncti
 {
 public:
 	iAMultipleFunctionDrawer();
-	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const;
+	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
 	void add (QSharedPointer<iAAbstractDrawableFunction> drawer);
-	void update();
+	void update() override;
 	void clear();
-	void setColor(QColor const & color);
+	void setColor(QColor const & color) override;
 private:
 	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_drawers;
 };

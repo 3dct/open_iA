@@ -22,6 +22,9 @@
 #include "pch.h"
 #include "iAColorable.h"
 
+iAColorable::~iAColorable()
+{}
+
 const QColor iAColorable::DefaultColor(0, 0, 0, 255);
 
 iAColorable::iAColorable():

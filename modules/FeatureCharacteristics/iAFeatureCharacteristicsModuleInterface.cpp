@@ -28,7 +28,6 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 
 void iAFeatureCharacteristicsModuleInterface::Initialize()
 {

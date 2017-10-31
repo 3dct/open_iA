@@ -22,20 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iADistanceMapModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-	private slots:
-	void signed_maurer_distance_map();
-	void danielsson_distance_map();
-
-protected:
-	//settings
-	int smdmi, smdms, smdmp, smdmn; //Signed_Maurer_Distance_Map
 };

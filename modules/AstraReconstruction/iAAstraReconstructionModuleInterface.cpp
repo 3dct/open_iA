@@ -21,11 +21,11 @@
 #include "pch.h"
 #include "iAAstraReconstructionModuleInterface.h"
 
+#include "dlg_commoninput.h"
 #include "iAFilterRegistry.h"
 #include "iAConsole.h"
 #include "mainwindow.h"
 #include "mdichild.h"
-#include "dlg_commoninput.h"
 
 #include "iAAstraAlgorithm.h"
 #include "iAFreeBeamCalculation.h"

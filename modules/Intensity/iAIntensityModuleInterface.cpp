@@ -27,14 +27,18 @@
 
 void iAIntensityModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iAAddFilter);
-	REGISTER_FILTER(iASubtractFilter);
-	REGISTER_FILTER(iADifferenceFilter);
+	// Filters requiring 1 input image:
+	REGISTER_FILTER(iAAdaptiveHistogramEqualization);
+	REGISTER_FILTER(iAGeneralThreshold);
+	REGISTER_FILTER(iAIntensityWindowingFilter);
 	REGISTER_FILTER(iAInvertIntensityFilter);
+	REGISTER_FILTER(iAMaskIntensityFilter);
 	REGISTER_FILTER(iANormalizeIntensityFilter);
-	REGISTER_FILTER(iAIntensityWindowingFilter)
 	REGISTER_FILTER(iARescaleIntensityFilter);
 	REGISTER_FILTER(iAShiftScaleIntensityFilter);
-	REGISTER_FILTER(iAMaskIntensityFilter);
+	// Filters requiring 2 input images:
+	REGISTER_FILTER(iAAddFilter);
+	REGISTER_FILTER(iADifferenceFilter);
 	REGISTER_FILTER(iAHistogramMatchingFilter);
+	REGISTER_FILTER(iASubtractFilter);
 }

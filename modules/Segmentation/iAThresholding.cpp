@@ -28,8 +28,6 @@
 
 #include "itkMaximumDistance.h"
 
-#include <vtkImageData.h>
-
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
@@ -39,7 +37,6 @@
 #include <itkRemovePeaksOtsuThresholdImageFilter.h>
 
 #include <QLocale>
-
 
 // Binary Threshold
 

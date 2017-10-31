@@ -83,7 +83,6 @@
     <addaction name="separator"/>
     <addaction name="loadSettingsAct"/>
     <addaction name="saveSettingsAct"/>
-    <addaction name="switchAct"/>
     <addaction name="exitAct"/>
    </widget>
    <widget class="QMenu" name="menu_Window">
@@ -367,11 +366,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
-   </property>
-  </action>
-  <action name="switchAct">
-   <property name="text">
-    <string>Switch layout direction</string>
    </property>
   </action>
   <action name="closeAct">

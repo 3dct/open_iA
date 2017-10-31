@@ -23,6 +23,8 @@
 
 #include "iAFilterRunnerGUI.h"
 
+iAAbstractFilterFactory::~iAAbstractFilterFactory() {}
+iAAbstractFilterRunnerGUIFactory::~iAAbstractFilterRunnerGUIFactory() {}
 
 void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory)
 {

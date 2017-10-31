@@ -20,19 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer>
-#include <QThread>
+#include "iAFilter.h"
 
-class iAImageCoordConverter;
-class iAVectorArray;
-
-class iAPCA: public QThread
-{
-public:
-	iAPCA(QSharedPointer<iAVectorArray const> spectralData);
-	QSharedPointer<iAVectorArray const> GetReduced(iAImageCoordConverter const & convert, int cutOff);
-private:
-	virtual void run();
-
-	QSharedPointer<iAVectorArray const> m_spectralData;
-};
+IAFILTER_DEFAULT_CLASS(iAPCA);

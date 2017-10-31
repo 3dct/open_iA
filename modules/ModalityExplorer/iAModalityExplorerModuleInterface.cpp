@@ -21,7 +21,6 @@
 #include "pch.h"
 #include "iAModalityExplorerModuleInterface.h"
 
-#include "dlg_commoninput.h"
 #include "iAConsole.h"
 #include "iAIO.h"
 #include "mainwindow.h"

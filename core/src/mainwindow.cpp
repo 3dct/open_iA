@@ -100,10 +100,11 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	createRecentFileActions();
 	connectSignalsToSlots();
-	setupStatusBar();
 	updateMenus();
 	slicerToolsGroup = new QActionGroup(this);
-	groupActions();
+	slicerToolsGroup->setExclusive(false);
+	slicerToolsGroup->addAction(actionSnake_Slicer);
+	slicerToolsGroup->addAction(actionRawProfile);
 
 	actionDelete_point->setEnabled(false);
 	actionChange_color->setEnabled(false);
@@ -126,6 +127,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_moduleDispatcher->InitializeModules(iAConsoleLogger::Get());
 	SetModuleActionsEnabled( false );
+	statusBar()->showMessage(tr("Ready"));
 }
 
 
@@ -139,25 +141,21 @@ MainWindow::~MainWindow()
 	m_moduleDispatcher->SaveModulesSettings();
 	delete windowMapper;
 	windowMapper = 0;
-
-	delete timer;
-	timer = 0;
 }
 
 
 void MainWindow::timeout()
 {
 	splashScreen->finish(this);
+	delete timer;
 }
 
 
 bool MainWindow::KeepOpen()
 {
 	bool childHasChanges = false;
-	foreach(QMdiSubWindow *window, MdiChildList()) {
-		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+	for (MdiChild* mdiChild: MdiChildList())
 		childHasChanges |= mdiChild->isWindowModified();
-	}
 	if (childHasChanges)
 	{
 		auto reply = QMessageBox::question(this, "Unsaved changes",
@@ -169,10 +167,8 @@ bool MainWindow::KeepOpen()
 		}
 		else
 		{ // avoid individual questions for each window
-			foreach(QMdiSubWindow *window, MdiChildList()) {
-				MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+			for (MdiChild* mdiChild: MdiChildList())
 				mdiChild->setWindowModified(false);
-			}
 		}
 	}
 	return false;
@@ -349,7 +345,8 @@ void MainWindow::LoadFile(QString fileName, bool isStack)
 		child->show();
 		child->showMaximized();
 	}
-	else {
+	else
+	{
 		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 		child->close();
 	}
@@ -1046,12 +1043,8 @@ void MainWindow::maxXY()
 QList<QString> MainWindow::mdiWindowTitles()
 {
 	QList<QString> windowTitles;
-	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
-
-	for (int i = 0; i < mdiwindows.size(); ++i)
-	{
-		windowTitles.append(mdiwindows.at(i)->widget()->windowTitle());
-	}
+	for (MdiChild* mdiChild: MdiChildList())
+		windowTitles.append(mdiChild->windowTitle());
 	return windowTitles;
 }
 
@@ -1488,7 +1481,7 @@ void MainWindow::raycasterCamIso()
 
 void MainWindow::raycasterAssignIso()
 {
-	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
+	QList<MdiChild *> mdiwindows = MdiChildList();
 	int sizeMdi = mdiwindows.size();
 	if (sizeMdi > 1)
 	{
@@ -1496,7 +1489,7 @@ void MainWindow::raycasterAssignIso()
 		if (activeMdiChild())  activeMdiChild()->getCamPosition(camOptions);
 		for(int i = 0; i < sizeMdi; i++)
 		{
-			MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+			MdiChild *tmpChild = mdiwindows.at(i);
 
 			// check dimension and spacing here, if not the same with active mdichild, skip.
 			tmpChild->setCamPosition(camOptions, defaultRenderSettings.ParallelProjection);
@@ -1619,45 +1612,7 @@ MdiChild * MainWindow::GetResultChild( QString const & title )
 
 MdiChild * MainWindow::GetResultChild( int childInd, QString const & f )
 {
-	QList<QMdiSubWindow *> mdiwindows = MdiChildList();
-	MdiChild *oldChild = qobject_cast<MdiChild *>(mdiwindows.at(childInd)->widget());
-	return GetResultChild(oldChild, f);
-}
-
-
-double MainWindow::neighborhood(vtkImageData *imageData, int x0, int y0, int z0)
-{
-	int extents[6];
-	imageData->GetExtent(extents);
-
-	int startX = x0-1;
-	int startY = y0-1;
-	int startZ = z0-1;
-	int endX = x0+1;
-	int endY = y0+1;
-	int endZ = z0+1;
-
-	if (startX < extents[0]) startX = extents[0];
-	if (startY < extents[2]) startY = extents[2];
-	if (startZ < extents[4]) startZ = extents[4];
-	if (endX > extents[1]) endX = extents[1];
-	if (endY > extents[3]) endY = extents[3];
-	if (endZ > extents[5]) endZ = extents[5];
-
-	double n = 0;
-
-	for (int x = startX; x <= endX; x++)
-		for (int y = startY; y <= endY; y++)
-			for (int z = startZ; z <= endZ; z++)
-			{
-				double value = imageData->GetScalarComponentAsDouble(x,y,z,0);
-				if (1.0-value < value)
-					n += 1.0-value;
-				else
-					n += value;
-			}
-
-			return n;
+	return GetResultChild(MdiChildList().at(childInd), f);
 }
 
 
@@ -1770,10 +1725,10 @@ void MainWindow::updateMenus()
 
 void MainWindow::updateWindowMenu()
 {
-	QList<QMdiSubWindow *> windows = MdiChildList();
+	QList<MdiChild *> windows = MdiChildList();
 
 	for (int i = 0; i < windows.size(); ++i) {
-		MdiChild *child = qobject_cast<MdiChild *>(windows.at(i)->widget());
+		MdiChild *child = windows.at(i);
 
 		QString text;
 		if (i < 9) {
@@ -1805,7 +1760,6 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
 	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
 	connect( child, SIGNAL( autoUpdateChanged( bool ) ), actionUpdate_automatically, SLOT( setChecked( bool ) ) );
-	connect( child, SIGNAL( currentChanged( int ) ), this, SLOT( tabChanged( int ) ) );
 	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
 
 	SetModuleActionsEnabled( true );
@@ -1828,7 +1782,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(saveScreenAct, SIGNAL(triggered()), this, SLOT(saveScreen()));
 	connect(loadSettingsAct, SIGNAL(triggered()), this, SLOT(loadSettings()));
 	connect(saveSettingsAct, SIGNAL(triggered()), this, SLOT(saveSettings()));
-	connect(switchAct, SIGNAL(triggered()), this, SLOT(switchLayoutDirection()));
 	connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 	connect(closeAct, SIGNAL(triggered()), mdiArea, SLOT(closeActiveSubWindow()));
 	connect(closeAllAct, SIGNAL(triggered()), this, SLOT(CloseAllSubWindows()));
@@ -1891,12 +1844,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionOpen_Project, SIGNAL(triggered()), this, SLOT(LoadProject()));
 	connect(actionSave_Project, SIGNAL(triggered()), this, SLOT(SaveProject()));
 	connect(actionOpen_TLGI_CT_Data, SIGNAL(triggered()), this, SLOT(OpenTLGICTData()));
-}
-
-
-void MainWindow::setupStatusBar()
-{
-	statusBar()->showMessage(tr("Ready"));
 }
 
 
@@ -2127,32 +2074,21 @@ MdiChild* MainWindow::activeMdiChild()
 	int subWndCnt = MdiChildList().size();
 	if(subWndCnt>0)
 	{
-		return qobject_cast<MdiChild *>(MdiChildList(QMdiArea::ActivationHistoryOrder).last()->widget());
+		return MdiChildList(QMdiArea::ActivationHistoryOrder).last();
 	}
 
 	return 0;
 }
 
 
-QMdiSubWindow *MainWindow::findMdiChild(const QString &fileName)
+MdiChild* MainWindow::findMdiChild(const QString &fileName)
 {
 	QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
-	foreach (QMdiSubWindow *window, MdiChildList()) {
-		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+	for (MdiChild* mdiChild: MdiChildList())
 		if (mdiChild->currentFile() == canonicalFilePath)
-			return window;
-	}
+			return mdiChild;
 	return 0;
-}
-
-
-void MainWindow::switchLayoutDirection()
-{
-	if (layoutDirection() == Qt::LeftToRight)
-		qApp->setLayoutDirection(Qt::RightToLeft);
-	else
-		qApp->setLayoutDirection(Qt::LeftToRight);
 }
 
 
@@ -2192,37 +2128,22 @@ void MainWindow::setHistogramFocus()
 }
 
 
-void MainWindow::tabChanged(int index)
-{
-	histogramToolbar->setEnabled(index == 1);
-}
-
-
 QString MainWindow::strippedName(const QString &fullFileName)
 {
 	return QFileInfo(fullFileName).fileName();
 }
 
 
-QList<QMdiSubWindow*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
+QList<MdiChild*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
 {
-	QList<QMdiSubWindow*> res;
-
+	QList<MdiChild*> res;
 	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
 	{
 		MdiChild * child = qobject_cast<MdiChild*>(window->widget());
 		if (child)
-			res.append(window);
+			res.append(child);
 	}
 	return res;
-}
-
-
-void MainWindow::groupActions()
-{
-	slicerToolsGroup->setExclusive(false);
-	slicerToolsGroup->addAction(actionSnake_Slicer);
-	slicerToolsGroup->addAction(actionRawProfile);
 }
 
 
@@ -2237,6 +2158,230 @@ void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)
 		actionMagicLens->setChecked(activeChild->isMagicLensToggled());
 	}
 }
+
+
+void MainWindow::applyQSS()
+{
+	// Load an application style
+	QFile styleFile(qssName);
+	if (styleFile.open( QFile::ReadOnly ))
+	{
+		QTextStream styleIn(&styleFile);
+		QString style = styleIn.readAll();
+		styleFile.close();
+		qApp->setStyleSheet(style);
+		emit StyleChanged();
+	}
+}
+
+
+void MainWindow::saveLayout()
+{
+	MdiChild *child = activeMdiChild();
+	if(child)
+	{
+		QByteArray state = child->saveState(0);
+		QSettings settings;
+		QString layoutName(layout->currentText());
+		QStringList inList = (QStringList() << tr("#Layout Name:") );
+		QList<QVariant> inPara;
+		inPara << tr("%1").arg(layoutName);
+		dlg_commoninput dlg(this, "Layout Name", inList, inPara, NULL);
+		if (dlg.exec() == QDialog::Accepted)
+		{
+			layoutName =  dlg.getText(0);
+			if (layoutName == "")
+			{
+				QMessageBox::warning(this, "Save Layout", "Layout Name cannot be empty!");
+				return;
+			}
+			if (layout->findText(layoutName) == -1)
+			{
+				layout->addItem(layoutName);
+			}
+			else
+			{
+				if (QMessageBox::question(
+					this,
+					"Save Layout",
+					"Do you want to overwrite the existing layout with this name?"
+					) != QMessageBox::Yes)
+				{
+					return;
+				}
+			}
+			settings.setValue( "Layout/state" + layoutName, state );
+			layout->setCurrentIndex(layout->findText(layoutName));
+		}
+	}
+}
+
+
+void MainWindow::loadLayout()
+{
+	MdiChild *child = activeMdiChild();
+	assert(child);
+	if (!child)
+	{
+		return;
+	}
+	child->LoadLayout(layout->currentText());
+}
+
+
+void MainWindow::deleteLayout()
+{
+	if (QMessageBox::question(this, "Delete Layout",
+		QString("Do you want to delete the layout '")+layout->currentText()+"'?")
+		== QMessageBox::Yes)
+	{
+		QSettings settings;
+		settings.remove("Layout/state" + layout->currentText());
+		layout->removeItem(layout->currentIndex());
+	}
+}
+
+
+void MainWindow::resetLayout()
+{
+	activeMdiChild()->resetLayout();
+}
+
+
+QMenu * MainWindow::getToolsMenu()
+{
+	return this->menu_Tools;
+}
+
+
+void MainWindow::ToggleMainWindowStatusBar()
+{
+	statusBar()->setVisible(action_MainWindowStatusBar->isChecked());
+}
+
+
+void MainWindow::ToggleChildStatusBar()
+{
+	if (!activeMdiChild())
+	{
+		return;
+	}
+	activeMdiChild()->statusBar()->setVisible(action_ChildStatusBar->isChecked());
+}
+
+
+QMenu * MainWindow::getFiltersMenu()
+{
+	return this->menu_Filters;
+}
+
+
+void MainWindow::addSubWindow( QWidget * child )
+{
+	mdiArea->addSubWindow( child );
+}
+
+
+QMenu * MainWindow::getHelpMenu()
+{
+	return this->menu_Help;
+}
+
+
+QMenu * MainWindow::getFileMenu()
+{
+	return this->menu_File;
+}
+
+
+void MainWindow::SetModuleActionsEnabled( bool isEnabled )
+{
+	m_moduleDispatcher->SetModuleActionsEnabled(isEnabled);
+}
+
+
+void MainWindow::childClosed()
+{
+	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
+	if (!sender)
+		return;
+	// magic lens size can be modified in the slicers as well; make sure to store this change:
+	defaultPreferences.MagicLensSize = sender->GetMagicLensSize();
+	if( mdiArea->subWindowList().size() == 1 )
+	{
+		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );
+		if(!child)
+			return;
+		if( child == sender )
+			SetModuleActionsEnabled( false );
+	}
+}
+
+
+void MainWindow::InitResources()
+{
+	Q_INIT_RESOURCE(open_iA);
+}
+
+
+void MainWindow::LoadProject()
+{
+	QString fileName = QFileDialog::getOpenFileName(
+		QApplication::activeWindow(),
+		tr("Open Input File"),
+		path,
+		iAIOProvider::ProjectFileTypeFilter);
+	LoadProject(fileName);
+}
+
+
+void MainWindow::LoadProject(QString const & fileName)
+{
+	if (fileName.isEmpty())
+		return;
+	MdiChild* child = createMdiChild(false);
+	if (child->LoadProject(fileName))
+	{
+		child->show();
+	}
+	else
+	{
+		delete child;
+	}
+}
+
+
+void MainWindow::SaveProject()
+{
+	QString modalitiesFileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		tr("Select Output File"),
+		path,
+		iAIOProvider::ProjectFileTypeFilter);
+	MdiChild * activeChild = activeMdiChild();
+	if (!activeChild || modalitiesFileName.isEmpty())
+	{
+		return;
+	}
+	activeChild->StoreProject(modalitiesFileName);
+}
+
+
+void MainWindow::LoadArguments(int argc, char** argv)
+{
+	QStringList files;
+	for (int a = 1; a < argc; ++a) files << argv[a];
+	LoadFiles(files);
+}
+
+
+iAPreferences const & MainWindow::GetDefaultPreferences() const
+{
+	return defaultPreferences;
+}
+
+
+// Move to other places (modules?):
 
 
 void MainWindow::OpenWithDataTypeConversion()
@@ -2324,198 +2469,6 @@ void MainWindow::OpenWithDataTypeConversion()
 	LoadFile(testfinalfilename, false);
 }
 
-void MainWindow::applyQSS()
-{
-	// Load an application style
-	QFile styleFile(qssName);
-	if (styleFile.open( QFile::ReadOnly ))
-	{
-		QTextStream styleIn(&styleFile);
-		QString style = styleIn.readAll();
-		styleFile.close();
-		qApp->setStyleSheet(style);
-		emit StyleChanged();
-	}
-}
-
-void MainWindow::saveLayout()
-{
-	MdiChild *child = activeMdiChild();
-	if(child)
-	{
-		QByteArray state = child->saveState(0);
-		QSettings settings;
-		QString layoutName(layout->currentText());
-		QStringList inList = (QStringList() << tr("#Layout Name:") );
-		QList<QVariant> inPara;
-		inPara << tr("%1").arg(layoutName);
-		dlg_commoninput dlg(this, "Layout Name", inList, inPara, NULL);
-		if (dlg.exec() == QDialog::Accepted)
-		{
-			layoutName =  dlg.getText(0);
-			if (layoutName == "")
-			{
-				QMessageBox::warning(this, "Save Layout", "Layout Name cannot be empty!");
-				return;
-			}
-			if (layout->findText(layoutName) == -1)
-			{
-				layout->addItem(layoutName);
-			}
-			else
-			{
-				if (QMessageBox::question(
-					this,
-					"Save Layout",
-					"Do you want to overwrite the existing layout with this name?"
-					) != QMessageBox::Yes)
-				{
-					return;
-				}
-			}
-			settings.setValue( "Layout/state" + layoutName, state );
-			layout->setCurrentIndex(layout->findText(layoutName));
-		}
-	}
-}
-
-void MainWindow::loadLayout()
-{
-	MdiChild *child = activeMdiChild();
-	assert(child);
-	if (!child)
-	{
-		return;
-	}
-	child->LoadLayout(layout->currentText());
-}
-
-void MainWindow::deleteLayout()
-{
-	if (QMessageBox::question(this, "Delete Layout",
-		QString("Do you want to delete the layout '")+layout->currentText()+"'?")
-		== QMessageBox::Yes)
-	{
-		QSettings settings;
-		settings.remove("Layout/state" + layout->currentText());
-		layout->removeItem(layout->currentIndex());
-	}
-}
-
-void MainWindow::resetLayout()
-{
-	activeMdiChild()->resetLayout();
-}
-
-QMenu * MainWindow::getToolsMenu()
-{
-	return this->menu_Tools;
-}
-
-
-void MainWindow::ToggleMainWindowStatusBar()
-{
-	statusBar()->setVisible(action_MainWindowStatusBar->isChecked());
-}
-
-void MainWindow::ToggleChildStatusBar()
-{
-	if (!activeMdiChild())
-	{
-		return;
-	}
-	activeMdiChild()->statusBar()->setVisible(action_ChildStatusBar->isChecked());
-}
-
-QMenu * MainWindow::getFiltersMenu()
-{
-	return this->menu_Filters;
-}
-
-void MainWindow::addSubWindow( QWidget * child )
-{
-	mdiArea->addSubWindow( child );
-}
-
-QMenu * MainWindow::getHelpMenu()
-{
-	return this->menu_Help;
-}
-
-QMenu * MainWindow::getFileMenu()
-{
-	return this->menu_File;
-}
-
-void MainWindow::SetModuleActionsEnabled( bool isEnabled )
-{
-	m_moduleDispatcher->SetModuleActionsEnabled(isEnabled);
-}
-
-void MainWindow::childClosed()
-{
-	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
-	if (!sender)
-		return;
-	// magic lens size can be modified in the slicers as well; make sure to store this change:
-	defaultPreferences.MagicLensSize = sender->GetMagicLensSize();
-	if( mdiArea->subWindowList().size() == 1 )
-	{
-		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );
-		if(!child)
-			return;
-		if( child == sender )
-			SetModuleActionsEnabled( false );
-	}
-}
-
-
-void MainWindow::InitResources()
-{
-	Q_INIT_RESOURCE(open_iA);
-}
-
-
-void MainWindow::LoadProject()
-{
-	QString fileName = QFileDialog::getOpenFileName(
-		QApplication::activeWindow(),
-		tr("Open Input File"),
-		path,
-		iAIOProvider::ProjectFileTypeFilter);
-	LoadProject(fileName);
-}
-
-void MainWindow::LoadProject(QString const & fileName)
-{
-	if (fileName.isEmpty())
-		return;
-	MdiChild* child = createMdiChild(false);
-	if (child->LoadProject(fileName))
-	{
-		child->show();
-	}
-	else
-	{
-		delete child;
-	}
-}
-
-
-void MainWindow::SaveProject()
-{
-	QString modalitiesFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Select Output File"),
-		path,
-		iAIOProvider::ProjectFileTypeFilter);
-	MdiChild * activeChild = activeMdiChild();
-	if (!activeChild || modalitiesFileName.isEmpty())
-	{
-		return;
-	}
-	activeChild->StoreProject(modalitiesFileName);
-}
 
 void MainWindow::OpenTLGICTData()
 {
@@ -2527,6 +2480,7 @@ void MainWindow::OpenTLGICTData()
 	LoadTLGICTData(baseDirectory);
 }
 
+
 void MainWindow::LoadTLGICTData(QString const & baseDirectory)
 {
 	iATLGICTLoader* tlgictLoader = new iATLGICTLoader();
@@ -2534,16 +2488,4 @@ void MainWindow::LoadTLGICTData(QString const & baseDirectory)
 		return;
 	tlgictLoader->start(createMdiChild(false));
 	// tlgictLoader will delete itself when finished!
-}
-
-void MainWindow::LoadArguments(int argc, char** argv)
-{
-	QStringList files;
-	for (int a = 1; a < argc; ++a) files << argv[a];
-	LoadFiles(files);
-}
-
-iAPreferences const & MainWindow::GetDefaultPreferences() const
-{
-	return defaultPreferences;
 }

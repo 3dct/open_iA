@@ -73,15 +73,15 @@ void iASimilarityModuleInterface::calc_similarity_metrics()
 		<< (smNormalizedCorrelation ? tr("true") : tr("false"))
 		<< (smMutualInformation ? tr("true") : tr("false"))
 		<< tr("%1").arg(smMIHistogramBins));
-	dlg_commoninput *dlg = new dlg_commoninput(m_mainWnd, "Similarity Metrics", inList, inPara, fDescr);
-	if (dlg->exec() != QDialog::Accepted)
+	dlg_commoninput dlg(m_mainWnd, "Similarity Metrics", inList, inPara, fDescr);
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	smMeanSquares = dlg->getCheckValue(0);
-	smNormalizedCorrelation = dlg->getCheckValue(1);
-	smMutualInformation = dlg->getCheckValue(2);
-	smMIHistogramBins = dlg->getIntValue(3);
+	smMeanSquares = dlg.getCheckValue(0);
+	smNormalizedCorrelation = dlg.getCheckValue(1);
+	smMutualInformation = dlg.getCheckValue(2);
+	smMIHistogramBins = dlg.getIntValue(3);
 
 	settings.setValue("Filters/Similarity/smMeanSquares", smMeanSquares);
 	settings.setValue("Filters/Similarity/msNormalizedCorrelation", smNormalizedCorrelation);

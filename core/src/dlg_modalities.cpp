@@ -136,10 +136,14 @@ void dlg_modalities::AddClicked()
 	if (CanHaveMultipleChannels(fileName))
 	{
 		QStringList inList;
-		inList << tr("$Split Channels (input file potentially has multiple channels. Should they be split into separate datasets, or kept as one dataset with multiple components?)");
+		inList << tr("$Split Channels");
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(true);
-		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, nullptr);
+		QTextDocument * descr = new QTextDocument;
+		descr->setHtml("Input file potentially has multiple channels. "
+			"Should they be split into separate datasets, "
+			"or kept as one dataset with multiple components ?");
+		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, descr);
 		if (splitInput.exec() != QDialog::Accepted)
 		{
 			DEBUG_LOG("Aborted by user.");

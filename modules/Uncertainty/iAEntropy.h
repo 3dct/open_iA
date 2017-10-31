@@ -20,21 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_RWSeeds.h"
-#include <iAQTtoUIConnector.h>
-typedef iAQTtoUIConnector<QDialog, Ui_RWSeeds> dlg_RWSeedsUI;
+#include "iAFilter.h"
 
-class dlg_RWSeeds : public dlg_RWSeedsUI
-{
-	Q_OBJECT
-public:
-	dlg_RWSeeds(QWidget* parent): dlg_RWSeedsUI(parent) {}
-	QString GetSeeds() const
-	{
-		return teSeeds->toPlainText();
-	}
-	double GetBeta() const
-	{
-		return leBeta->text().toDouble();
-	}
-};
+IAFILTER_DEFAULT_CLASS(iAEntropy)

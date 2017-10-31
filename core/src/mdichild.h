@@ -168,8 +168,6 @@ public:
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
 	void connectIOThreadSignals(iAIO* thread);
-	bool isHessianComputed() { return hessianComputed; }
-	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
 	vtkPiecewiseFunction * getPiecewiseFunction();
 	vtkColorTransferFunction * getColorTransferFunction();
 	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
@@ -289,7 +287,6 @@ Q_SIGNALS:
 	void endPointSelected();
 	void active();
 	void autoUpdateChanged(bool toogled);
-	void currentChanged(int index);
 	void magicLensToggled( bool isToggled );
 	void closed();
 	void updatedViews();
@@ -484,7 +481,6 @@ private:
 
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;
 
-	bool hessianComputed;	//!< belongs to Hessian module, move there!
 	bool updateSliceIndicator;
 	int numberOfVolumes;
 	int previousIndexOfVolume;

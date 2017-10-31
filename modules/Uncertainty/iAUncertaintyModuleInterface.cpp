@@ -21,8 +21,11 @@
 #include "pch.h"
 #include "iAUncertaintyModuleInterface.h"
 
-#include "iAConsole.h"
+#include "iAEntropy.h"
 #include "iAUncertaintyAttachment.h"
+
+#include "iAConsole.h"
+#include "iAFilterRegistry.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -31,6 +34,7 @@
 
 void iAUncertaintyModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iAEntropy);
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();

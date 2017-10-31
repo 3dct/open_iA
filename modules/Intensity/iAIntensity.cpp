@@ -26,6 +26,7 @@
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
+#include <itkAdaptiveHistogramEqualizationImageFilter.h>
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
 #include <itkHistogramMatchingImageFilter.h>
@@ -37,8 +38,7 @@
 #include <itkShiftScaleImageFilter.h>
 #include <itkSubtractImageFilter.h>
 #include <itkTestingComparisonImageFilter.h>
-
-#include <vtkImageData.h>
+#include <itkThresholdImageFilter.h>
 
 
 // Filters requiring 1 input image:
@@ -170,6 +170,47 @@ iAIntensityWindowingFilter::iAIntensityWindowingFilter() :
 }
 
 
+// iAGeneralThreshold
+
+template<class T> void threshold_template(iAProgress* p,
+		iAConnector* image, QMap<QString, QVariant> const & parameters)
+{
+	typedef itk::Image< T, 3 >   ImageType;
+	typedef itk::ThresholdImageFilter <ImageType> GTIFType;
+	auto filter = GTIFType::New();
+	filter->SetOutsideValue( parameters["Outside value"].toDouble() );
+	filter->ThresholdOutside( parameters["Lower threshold"].toDouble(),
+			parameters["Upper threshold"].toDouble());
+	filter->SetInput( dynamic_cast< ImageType * >( image->GetITKImage() ) );
+	p->Observe( filter );
+	filter->Update();
+	image->SetImage(filter->GetOutput());
+	image->Modified();
+	filter->ReleaseDataFlagOn();
+}
+
+void iAGeneralThreshold::Run(QMap<QString, QVariant> const & parameters)
+{
+	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(threshold_template, itkType, m_progress, m_con, parameters);
+}
+
+IAFILTER_CREATE(iAGeneralThreshold)
+
+iAGeneralThreshold::iAGeneralThreshold() :
+	iAFilter("General threshold filter", "Intensity",
+		"Set image values to outside value if they outside of the given interval.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html\">"
+		"Threshold Filter</a> in the ITK documentation.")
+{
+	AddParameter("Lower threshold", Continuous, 0);
+	AddParameter("Upper threshold", Continuous, 1);
+	AddParameter("Outside value", Continuous, 0);
+}
+
+
+
 // iARescaleIntensityFilter
 
 template<class T> void rescaleImage_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
@@ -256,6 +297,56 @@ iAShiftScaleIntensityFilter::iAShiftScaleIntensityFilter() :
 	AddParameter("Shift", Continuous, 0);
 	AddParameter("Scale", Continuous, 1);
 }
+
+
+
+template<class T> void iAAdaptiveHistogramEqualization_template(double alpha, double beta, iAProgress* p, iAConnector* image)
+{
+	typedef itk::Image< T, DIM >   InputImageType;
+	typedef  itk::AdaptiveHistogramEqualizationImageFilter< InputImageType > AdaptiveHistogramEqualizationImageFilterType;
+	auto castImage = dynamic_cast< InputImageType * >(image->GetITKImage());
+	auto adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
+	adaptiveHistogramEqualizationImageFilter->SetInput(castImage);
+	adaptiveHistogramEqualizationImageFilter->SetAlpha(alpha);
+	adaptiveHistogramEqualizationImageFilter->SetBeta(beta);
+	adaptiveHistogramEqualizationImageFilter->SetRadius(1);
+	p->Observe(adaptiveHistogramEqualizationImageFilter);
+	adaptiveHistogramEqualizationImageFilter->Update();
+	image->SetImage(adaptiveHistogramEqualizationImageFilter->GetOutput());
+	image->Modified();
+	adaptiveHistogramEqualizationImageFilter->ReleaseDataFlagOn();
+}
+
+IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
+
+void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> const & parameters)
+{
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, pixelType,
+		parameters["Alpha"].toDouble(),
+		parameters["Beta"].toDouble(),
+		m_progress, m_con);
+}
+
+iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
+	iAFilter("Adaptive Histogram Equalization", "",
+		"This filter is a superset of many contrast enhancing filters.<br/>"
+		"By modifying its parameters (alpha, beta), the filter can produce an "
+		"adaptively equalized histogram or a version of unsharp mask (local "
+		"mean subtraction).<br/>"
+		"The parameter alpha controls how much the filter acts like the "
+		"classical histogram equalization method (alpha=0) to how much the "
+		"filter acts like an unsharp mask (alpha=1). The parameter beta "
+		"controls how much the filter acts like an unsharp mask (beta=0) to "
+		"how much the filter acts like pass through (beta=1, with alpha=1)."
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
+		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
+{
+	AddParameter("Alpha", Continuous, 0, 0, 1);
+	AddParameter("Beta", Continuous, 0, 0, 1);
+}
+
 
 
 

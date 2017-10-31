@@ -61,6 +61,7 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAMSKFCMFilter);
 
 	REGISTER_FILTER(iASVMImageFilter);
+	REGISTER_FILTER(iAKMeans);
 	
 	if (!m_mainWnd)
 		return;
@@ -123,7 +124,7 @@ void CalculateSegmentationMetrics_template(iAConnector & groundTruthCon, iAConne
 
 bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 {
-	QList<QMdiSubWindow *> mdiwindows = m_mainWnd->MdiChildList();
+	QList<MdiChild *> mdiwindows = m_mainWnd->MdiChildList();
 	if (mdiwindows.size() < 2) {
 		QMessageBox::warning(m_mainWnd, tr("Segmentation Quality Metric"),
 			tr("This operation requires at least two datasets to be loaded, "
@@ -142,9 +143,8 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 	QList<QVariant> inPara;
 	QStringList list;
 	QString::SplitBehavior behavior = QString::SplitBehavior::SkipEmptyParts;
-	for (int i = 0; i<mdiwindows.size(); ++i)
+	for (MdiChild* mdiChild: mdiwindows)
 	{
-		MdiChild* mdiChild = qobject_cast<MdiChild *>(mdiwindows[i]->widget());
 		QString fileName = mdiChild->currentFile();
 		if (!fileName.isEmpty())
 		{
@@ -167,8 +167,8 @@ bool iASegmentationModuleInterface::CalculateSegmentationMetrics()
 		QMessageBox::warning(m_mainWnd, tr("Segmentation Quality Metric"),
 			tr("Same file selected for both ground truth and segmented image!"));
 	}
-	vtkImageData * groundTruthVTK = qobject_cast<MdiChild *>(mdiwindows[dlg.getComboBoxIndex(0)]->widget())->getImageData();
-	vtkImageData * segmentedVTK = qobject_cast<MdiChild *>(mdiwindows[dlg.getComboBoxIndex(1)]->widget())->getImageData();
+	vtkImageData * groundTruthVTK = mdiwindows[dlg.getComboBoxIndex(0)]->getImageData();
+	vtkImageData * segmentedVTK = mdiwindows[dlg.getComboBoxIndex(1)]->getImageData();
 	iAConnector groundTruthCon;
 	groundTruthCon.SetImage(groundTruthVTK);
 	iAConnector segmentedCon;

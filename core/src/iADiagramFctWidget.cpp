@@ -41,7 +41,6 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
-#include <QMdiSubWindow>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>
@@ -67,24 +66,24 @@ public:
 	{
 		LinearConverter::update(yZoom, yMax, 0, height);
 	}
-	virtual double Diagram2ScreenY(double y) const
+	double Diagram2ScreenY(double y) const override
 	{
 		return y * yScaleFactor;
 	}
-	virtual double Screen2DiagramY(double y) const
+	double Screen2DiagramY(double y) const override
 	{
 		return y / yScaleFactor;
 	}
-	virtual bool equals(QSharedPointer<CoordinateConverter> other) const
+	bool equals(QSharedPointer<CoordinateConverter> other) const override
 	{
 		LinearConverter* linearOther = dynamic_cast<LinearConverter*>(other.data());
 		return (linearOther != 0 && yScaleFactor == linearOther->yScaleFactor);
 	}
-	virtual QSharedPointer<CoordinateConverter> clone()
+	QSharedPointer<CoordinateConverter> clone() override
 	{
 		return QSharedPointer<CoordinateConverter>(new LinearConverter(*this));
 	}
-	virtual void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height)
+	void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override
 	{
 		if (yMax)
 			yScaleFactor = (double)(height-1) / yMax *yZoom;
@@ -107,7 +106,7 @@ public:
 		LogarithmicConverter::update(yZoom, yMax, yMinValueBiggerThanZero, height);
 	}
 
-	virtual double Diagram2ScreenY(double y) const
+	double Diagram2ScreenY(double y) const override
 	{
 		if (y <= 0)
 			return 0;
@@ -122,7 +121,7 @@ public:
 			yLog
 		);
 	}
-	virtual double Screen2DiagramY(double y) const
+	double Screen2DiagramY(double y) const override
 	{
 		double yLog = mapValue(
 			0.0, static_cast<double>(height * yZoom),
@@ -131,18 +130,18 @@ public:
 		);
 		return std::pow(LogBase, yLog);
 	}
-	virtual bool equals(QSharedPointer<CoordinateConverter> other) const
+	bool equals(QSharedPointer<CoordinateConverter> other) const  override
 	{
 		LogarithmicConverter* logOther = dynamic_cast<LogarithmicConverter*>(other.data());
 		return (logOther && yZoom == logOther->yZoom &&
 			yMaxLog == logOther->yMaxLog && yMinLog == logOther->yMinLog &&
 			height == logOther->height);
 	}
-	virtual QSharedPointer<CoordinateConverter> clone()
+	QSharedPointer<CoordinateConverter> clone() override
 	{
 		return QSharedPointer<CoordinateConverter>(new LogarithmicConverter(*this));
 	}
-	virtual void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height)
+	void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override
 	{
 		this->yZoom = yZoom;
 		yMaxLog = LogFunc(yMax);

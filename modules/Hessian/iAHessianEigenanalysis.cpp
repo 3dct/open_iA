@@ -28,215 +28,183 @@
 #include "iATypedCallHelper.h"
 
 #include <itkCastImageFilter.h>
-#include <itkDerivativeImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkImageAdaptor.h>
 #include <itkLaplacianRecursiveGaussianImageFilter.h>
-#include <itkLaplacianSegmentationLevelSetFunction.h>
 #include <itkLaplacianImageFilter.h>
 #include <itkSymmetricEigenAnalysisImageFilter.h>
-#include <itkZeroCrossingImageFilter.h>
 
-#include <vtkImageData.h>
 
-#include <QLocale>
 
-/**
-* template computeHessian
-* 
-* This template is used for calculating the hessian matrix
-* \param	sigma			Sigma
-* \param	hessianComputed Is the hessian matrix already computed.
-* \param	p				Filter progress information. 
-* \param	image			Input image. 
-* \param	T				Input type 
-* \return	int Status-Code. 
-*/
-template<class T> int computeHessian_template( int sigma, bool hessianComputed, int nr, iAProgress* p, iAConnector* image)
+template<class T> void hessianEigenAnalysis_template(double sigma,
+		iAProgress* p, QVector<iAConnector*> image)
 {
-	/************************************** Data and type definitions *********************/
-	typedef itk::Vector<double, 3>	VectorPixelType;
+	typedef itk::Vector<double, 3> VectorPixelType;
 	VectorPixelType eigenTempVector;
-	typedef itk::Image< T, 3 >	InputImageType;
+	typedef itk::Image< T, 3 > InputImageType;
 	typedef	itk::HessianRecursiveGaussianImageFilter<InputImageType >	HessianFilterType;
 	typedef	typename HessianFilterType::OutputImageType	HessianImageType;
 
 	typedef	typename HessianImageType::PixelType HessianPixelType;
 	typedef	itk::FixedArray< double, HessianPixelType::Dimension > EigenValueArrayType;
 	typedef	itk::Image< EigenValueArrayType, HessianImageType::ImageDimension > EigenValueImageType;
-	typedef	itk::SymmetricEigenAnalysisImageFilter< HessianImageType, EigenValueImageType >     EigenAnalysisFilterType;
+	typedef	itk::SymmetricEigenAnalysisImageFilter< HessianImageType, EigenValueImageType > EigenAnalysisFilterType;
 
-	itkStaticConstMacro(Dimension,unsigned int,3);
-	typedef	float	MeshPixelType;
+	typedef	float EigenValuePixelType;
 	typedef itk::ImageAdaptor<  EigenValueImageType, EigenValueAccessor< EigenValueArrayType > > ImageAdaptorType;
-	typedef itk::Image< MeshPixelType, Dimension > EachEigenValueImageType;
+	typedef itk::Image< EigenValuePixelType, DIM > EachEigenValueImageType;
 	typedef itk::CastImageFilter< ImageAdaptorType, EachEigenValueImageType >  CastImageFilterType;
-	/************************************** Data and type definitions end *****************/
 
-	/************************************** Hessian part **********************************/
-	typename HessianFilterType::Pointer	m_Hessian;	// In m_Hessian werden die Matrizen f?r jedes Voxel gepsichert. MA
-	m_Hessian = HessianFilterType::New();	// Objekt f?r die Matrizen deklariert. MA
+	// Compute Hessian
+	auto hessianFilter = HessianFilterType::New();
+	hessianFilter->SetInput( dynamic_cast< InputImageType * >( image[0]->GetITKImage() ) );
+	hessianFilter->SetSigma(sigma);
+	p->Observe(hessianFilter);
+	hessianFilter->Update();
 
-	m_Hessian->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	m_Hessian->SetSigma(sigma);
-	if(!hessianComputed)
-		m_Hessian->Update();
-	/************************************** Hessian part end ******************************/
+	// Compute eigen values, order them in ascending order
+	auto eigenFilter = EigenAnalysisFilterType::New();
+	eigenFilter->SetDimension( HessianPixelType::Dimension );
+	eigenFilter->SetInput( hessianFilter->GetOutput() );
+	auto hessianImage = hessianFilter->GetOutput();
+	eigenFilter->OrderEigenValuesBy( EigenAnalysisFilterType::FunctorType::OrderByValue );
 
-	/************************************** Eigen values part *****************************/
-	// Compute eigen values.. order them in ascending order
-	typename EigenAnalysisFilterType::Pointer m_EigenFilter;
-
-	m_EigenFilter = EigenAnalysisFilterType::New();
-	m_EigenFilter->SetDimension( HessianPixelType::Dimension );
-	m_EigenFilter->SetInput( m_Hessian->GetOutput() );
-	typename HessianImageType::Pointer hessianImage = m_Hessian->GetOutput();
-	m_EigenFilter->OrderEigenValuesBy( EigenAnalysisFilterType::FunctorType::OrderByValue );
-	/************************************** Eigen values part end **********************************/
-
-	/************************************** Eigen analysis **********************************/
-	// Conversion or extraction of data from class itk::Image<class itk::FixedArray<double,3>,3> * __ptr64 to class itk::Image<float,3> * __ptr64
-	typename ImageAdaptorType::Pointer               m_EigenAdaptor1;
-	typename ImageAdaptorType::Pointer               m_EigenAdaptor2;
-	typename ImageAdaptorType::Pointer               m_EigenAdaptor3;
-
-	typename CastImageFilterType::Pointer            m_EigenCastfilter1;
-	typename CastImageFilterType::Pointer            m_EigenCastfilter2;
-	typename CastImageFilterType::Pointer            m_EigenCastfilter3;
-
-	typename EigenValueImageType::Pointer eigenImage1;
+	// Eigen analysis
+	// Conversion or extraction of data
+	//    from class itk::Image<class itk::FixedArray<double,3>,3> *
+	//    to class itk::Image<float,3> *
 
 	// Create an adaptor and plug the output to the parametric space
-	m_EigenAdaptor1 = ImageAdaptorType::New();
+	auto eigenAdaptor1 = ImageAdaptorType::New();
 	EigenValueAccessor< EigenValueArrayType > accessor1;
 	accessor1.SetEigenIdx( 0 );
-	m_EigenAdaptor1->SetImage( m_EigenFilter->GetOutput() );
-	m_EigenAdaptor1->SetPixelAccessor( accessor1 );
+	eigenAdaptor1->SetImage( eigenFilter->GetOutput() );
+	eigenAdaptor1->SetPixelAccessor( accessor1 );
 
-	m_EigenAdaptor2 = ImageAdaptorType::New();
+	auto eigenAdaptor2 = ImageAdaptorType::New();
 	EigenValueAccessor< EigenValueArrayType > accessor2;
 	accessor2.SetEigenIdx( 1 );
-	m_EigenAdaptor2->SetImage( m_EigenFilter->GetOutput() );
-	m_EigenAdaptor2->SetPixelAccessor( accessor2 );
+	eigenAdaptor2->SetImage( eigenFilter->GetOutput() );
+	eigenAdaptor2->SetPixelAccessor( accessor2 );
 
-	m_EigenAdaptor3 = ImageAdaptorType::New();
+	auto eigenAdaptor3 = ImageAdaptorType::New();
 	EigenValueAccessor< EigenValueArrayType > accessor3;
 	accessor3.SetEigenIdx( 2 );
-	m_EigenAdaptor3->SetImage( m_EigenFilter->GetOutput() );
-	m_EigenAdaptor3->SetPixelAccessor( accessor3 );
-
-	eigenImage1 = m_EigenFilter->GetOutput();
-	typename EigenValueImageType::Pointer eigenRaRbS = m_EigenFilter->GetOutput();
+	eigenAdaptor3->SetImage( eigenFilter->GetOutput() );
+	eigenAdaptor3->SetPixelAccessor( accessor3 );
 
 	// m_EigenCastfilter1 will give the eigen values with the maximum eigen
 	// value. m_EigenCastfilter3 will give the eigen values with the 
 	// minimum eigen value.
-	m_EigenCastfilter1 = CastImageFilterType::New();
-	m_EigenCastfilter1->SetInput( m_EigenAdaptor3 );
-	m_EigenCastfilter2 = CastImageFilterType::New();
-	m_EigenCastfilter2->SetInput( m_EigenAdaptor2 );
-	m_EigenCastfilter3 = CastImageFilterType::New();
-	m_EigenCastfilter3->SetInput( m_EigenAdaptor1 );
-	/************************************** Eigen analysis part end **********************************/
+	auto eigenCastfilter1 = CastImageFilterType::New();
+	eigenCastfilter1->SetInput( eigenAdaptor3 );
+	eigenCastfilter1->Update();
+	image[0]->SetImage(eigenCastfilter1->GetOutput() );
+	image[0]->Modified();
+	eigenCastfilter1->ReleaseDataFlagOn();
 
+	auto eigenCastfilter2 = CastImageFilterType::New();
+	eigenCastfilter2->SetInput( eigenAdaptor2 );
+	eigenCastfilter2->Update();
+	image[1]->SetImage(eigenCastfilter2->GetOutput() );
+	image[1]->Modified();
+	eigenCastfilter2->ReleaseDataFlagOn();
 
-	/************************************** Define output **********************************/
-	if(nr==1 || nr==0){
-		p->Observe( m_EigenCastfilter1 );
-		m_EigenCastfilter1->Update();
-		image->SetImage( m_EigenCastfilter1->GetOutput() );
-		m_EigenCastfilter1->ReleaseDataFlagOn();
-	}
-	else if(nr==2){
-		p->Observe( m_EigenCastfilter2 );
-		m_EigenCastfilter2->Update();
-		image->SetImage( m_EigenCastfilter2->GetOutput() );
-		m_EigenCastfilter2->ReleaseDataFlagOn();
-	}
-	else if(nr==3){
-		p->Observe( m_EigenCastfilter3 );
-		m_EigenCastfilter3->Update();
-		image->SetImage( m_EigenCastfilter3->GetOutput() );
-		m_EigenCastfilter3->ReleaseDataFlagOn();
-	}
-	/************************************** Define output end **********************************/
-	image->Modified();
+	auto eigenCastfilter3 = CastImageFilterType::New();
+	eigenCastfilter3->SetInput( eigenAdaptor1 );
+	eigenCastfilter3->Update();
+	image[2]->SetImage(eigenCastfilter3->GetOutput() );
+	image[2]->Modified();
+	eigenCastfilter3->ReleaseDataFlagOn();
 
-	/************************************** Iteration through eigenvalues to compute Ra, Rb and S values **********************************/
+/*
+	// TODO: check if the following code in its current form does anything useful
+	// Iteration through eigenvalues to compute Ra, Rb and S values
+	auto eigenImage = eigenFilter->GetOutput();
+	auto eigenRaRbS = eigenFilter->GetOutput(); // this is the same as eigenImage, right?
 	typedef itk::ImageRegionIterator<EigenValueImageType> EigenIteratorType;
-	EigenIteratorType eigenImageIterator(eigenRaRbS,eigenRaRbS->GetLargestPossibleRegion());
-	EigenIteratorType eigenImageIt(eigenImage1,eigenImage1->GetLargestPossibleRegion());
+	EigenIteratorType eigenRaRbSIt(eigenRaRbS, eigenRaRbS->GetLargestPossibleRegion());
+	EigenIteratorType eigenImageIt(eigenImage, eigenImage->GetLargestPossibleRegion());
 
 	// iterate through image and get each eigen value
-	int j=0;
-	eigenImageIterator.GoToBegin();
-	for (eigenImageIt.GoToBegin(); !eigenImageIt.IsAtEnd() && !eigenImageIterator.IsAtEnd(); ++eigenImageIt)
+	//unsigned int j=0;
+	eigenRaRbSIt.GoToBegin();
+	for (eigenImageIt.GoToBegin(); !eigenImageIt.IsAtEnd() && !eigenRaRbSIt.IsAtEnd(); ++eigenImageIt)
 	{
-		std::cout << j << " -> " ;
+		//DEBUG_LOG(QString("%1 -> ").arg(j));
 		EigenValueArrayType eigenArray = eigenImageIt.Get();
 
 		eigenTempVector[0] = fabs(eigenArray[1])/fabs(eigenArray[2]);
 		eigenTempVector[1] = fabs(eigenArray[0])/(sqrt(fabs(eigenArray[1]*eigenArray[2])));
 		eigenTempVector[2] = sqrt(pow(eigenArray[0],2)+pow(eigenArray[1],2)+pow(eigenArray[2],2));
 
-		eigenImageIterator.Set(eigenTempVector);
-		++eigenImageIterator;
-		j++;
+		eigenRaRbSIt.Set(eigenTempVector);
+		++eigenRaRbSIt;
+		//++j;
 	}
-	/************************************** Iteration through eigenvalues to compute Ra, Rb and S values end **********************************/
+*/
+}
 
-	return EXIT_SUCCESS;
+void iAHessianEigenanalysis::Run(QMap<QString, QVariant> const & parameters)
+{
+	m_cons.push_back(new iAConnector());
+	m_cons.push_back(new iAConnector());
+	SetOutputCount(3);
+	ITK_TYPED_CALL(hessianEigenAnalysis_template,
+		m_con->GetITKScalarPixelType(), parameters["Sigma"].toDouble(),
+		m_progress, m_cons);
+}
+
+IAFILTER_CREATE(iAHessianEigenanalysis)
+
+iAHessianEigenanalysis::iAHessianEigenanalysis() :
+	iAFilter("Eigen analysis of Hessian", "Hessian and Eigenanalysis",
+		"Computes the Eigen analysis of the Hessian of an image.<br/>"
+		"Computes first the Hessian of an image, and then the eigen analysis "
+		"of the Hessian, and outputs the three lambda images from this eigen"
+		"analysis.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HessianRecursiveGaussianImageFilter.html\">"
+		"Hessian Recursive Gaussian Filter</a> and the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SymmetricEigenAnalysisImageFilter.html\">"
+		"Symmetric Eigen Analysis Filter</a> in the ITK documentation.")
+{
+	AddParameter("Sigma", Continuous, 1.0);
 }
 
 
 
-/**
-* template computeLaplacian
-* This template is used for calculating the Laplacian of Gaussian (LoG)
-* \param	sigma			Sigma
-* \param	p				Filter progress information.
-* \param	image			Input image.
-* \param	T				Input type
-* \return	int Status-Code.
-*/
-template<class T> int computeLaplacian_template(unsigned int sigma, iAProgress* p, iAConnector* image)
+template<class T> void Laplacian_template(double sigma, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::Image<float, DIM> OutputImageType; 
 	typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, OutputImageType> LoGFilterType;
 
-	typename LoGFilterType::RealType sigmaType (sigma); 
-
-	typename LoGFilterType::Pointer filter = LoGFilterType::New(); 
+	auto filter = LoGFilterType::New();
 	filter->SetInput(dynamic_cast< ImageType * >(image->GetITKImage()));
-	filter->SetSigma(sigmaType);
-
+	filter->SetSigma(sigma);
 	image->SetImage(filter->GetOutput()); 
-	image->Modified(); 
-
-	return EXIT_SUCCESS;
+	image->Modified();
 }
 
-
-iAHessianEigenanalysis::iAHessianEigenanalysis( QString fn, iAEigenAnalysisType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
-{}
-
-
-void iAHessianEigenanalysis::performWork()
+void iALaplacian::Run(QMap<QString, QVariant> const & parameters)
 {
-	switch (m_type)
-	{
-	case HESSIANEIGENANALYSIS:
-		VTK_TYPED_CALL(computeHessian_template, getVtkImageData()->GetScalarType(),
-			sigma, hessianComputed, nr, getItkProgress(), getConnector());
-		break;
-	case LAPLACIAN:
-		addMsg(tr("    Sigma: %3").arg(this->sigma));
-		VTK_TYPED_CALL(computeLaplacian_template, getVtkImageData()->GetScalarType(),
-			this->sigma, getItkProgress(), getConnector());
-		break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	ITK_TYPED_CALL(Laplacian_template, m_con->GetITKScalarPixelType(),
+			parameters["Sigma"].toDouble(), m_progress, m_con);
+}
+
+IAFILTER_CREATE(iALaplacian)
+
+iALaplacian::iALaplacian() :
+	iAFilter("Laplacian of Gaussian", "Hessian and Eigenanalysis",
+		"Computes the Laplacian of Gaussian (LoG) of an image.<br/>"
+		"Computes the Laplacian of Gaussian (LoG) of an image by convolution "
+		"with the second derivative of a Gaussian. This filter is "
+		"implemented using the recursive gaussian filters.<em>Sigma</em> is "
+		"measured in the units of image spacing.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LaplacianRecursiveGaussianImageFilter.html\">"
+		"Laplacian Recursive Gaussian Filter</a> in the ITK documentation.")
+{
+	AddParameter("Sigma", Continuous, 1.0);
 }

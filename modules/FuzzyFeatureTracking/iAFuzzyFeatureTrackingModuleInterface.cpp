@@ -21,7 +21,6 @@
 #include "pch.h"
 #include "iAFuzzyFeatureTrackingModuleInterface.h"
 
-#include "dlg_commoninput.h"
 #include "iAFuzzyFeatureTrackingAttachment.h"
 #include "mainwindow.h"
 #include "mdichild.h"

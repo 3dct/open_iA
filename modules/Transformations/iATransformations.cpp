@@ -21,17 +21,18 @@
 #include "pch.h"
 #include "iATransformations.h"
 
+#include "defines.h"    // for DIM
+#include "iAConnector.h"
 #include "iAProgress.h"
 #include "mdichild.h"
 
 #include <itkResampleImageFilter.h>
 #include <itkAffineTransform.h>
-#include <itkChangeInformationImageFilter.h>
+//#include <itkChangeInformationImageFilter.h>
 #include <itkPermuteAxesImageFilter.h>
 #include <itkFlipImageFilter.h>
-#include <itkImageRegion.h>
 
-#include <vtkImageData.h>
+#include "iATypedCallHelper.h"
 
 template <class TImageType>
 static typename TImageType::PointType image_center(TImageType * image)
@@ -41,7 +42,7 @@ static typename TImageType::PointType image_center(TImageType * image)
 	typename TImageType::SpacingType spacing = image->GetSpacing();
 	typename TImageType::PointType center = origin;
 
-	for (int k = 0; k < TImageType::ImageDimension; k++)
+	for (int k = 0; k < DIM; k++)
 		center[k] += (spacing[k] * size[k]) / 2.0;
 	return center;
 }
@@ -56,81 +57,86 @@ static typename TImageType::PointType center_image(TImageType * image, typename 
 	return center;
 }
 
-template<class TPixelType, class TPrecision>
-static void flip_template(iATransformations * caller)
+template<class TPixelType> void flip_template(QString const & axis, iAProgress* progress, iAConnector* connector)
 {
-	const int Dim = iAConnector::ImageBaseType::ImageDimension;
-	typedef itk::Image<TPixelType, Dim>         	ImageType;
+	typedef itk::Image<TPixelType, DIM>         	ImageType;
 	typedef itk::FlipImageFilter<ImageType>			FilterType;
 
-	ImageType * inpImage = dynamic_cast<ImageType *>(caller->getConnector()->GetITKImage());
-	typename FilterType::Pointer filter = FilterType::New();
+	auto filter = FilterType::New();
 	typename FilterType::FlipAxesArrayType flip;
-
-	//center image
 	typename ImageType::PointType origin;
-	center_image<ImageType>(inpImage, &origin);
-
-	filter->SetInput(inpImage);
-	flip[0] = caller->getFlipAxes() == iATransformations::FlipAxesX;
-	flip[1] = caller->getFlipAxes() == iATransformations::FlipAxesY;
-	flip[2] = caller->getFlipAxes() == iATransformations::FlipAxesZ;
+	center_image<ImageType>(dynamic_cast<ImageType *>(connector->GetITKImage()), &origin);
+	filter->SetInput(dynamic_cast<ImageType *>(connector->GetITKImage()));
+	flip[0] = (axis == "X");
+	flip[1] = (axis == "Y");
+	flip[2] = (axis == "Z");
 	filter->SetFlipAxes(flip);
-
-	//run pipeline
-	caller->getItkProgress()->Observe(filter);
+	progress->Observe(filter);
 	filter->Update();
-
 	ImageType * outImage = filter->GetOutput();
 	outImage->SetOrigin(origin);
-	caller->getConnector()->SetImage(outImage);
-	caller->getConnector()->Modified();
-
+	connector->SetImage(outImage);
+	connector->Modified();
 	filter->ReleaseDataFlagOn();
 }
 
-template<class TPixelType, class TPrecision>
-static void affine_template(iATransformations * caller, 
-	itk::AffineTransform<TPrecision, iAConnector::ImageBaseType::ImageDimension> * transform)
+void iAFlipAxis::Run(QMap<QString, QVariant> const & parameters)
 {
-	const int Dim = iAConnector::ImageBaseType::ImageDimension;
-	typedef itk::Image<TPixelType, Dim>         			ImageType;
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(flip_template, pixelType, parameters["Flip axis"].toString(), m_progress, m_con);
+}
+
+IAFILTER_CREATE(iAFlipAxis)
+
+iAFlipAxis::iAFlipAxis() :
+	iAFilter("Flip Axis", "Transformations",
+		"Flip the image across one of the three coordinate axes.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlipImageFilter.html\">"
+		"Flip Filter</a> in the ITK documentation.")
+{
+	QStringList flipAxis = { "X", "Y", "Z" };
+	AddParameter("Flip axis", Categorical, flipAxis);
+}
+
+
+
+template<class TPixelType, class TPrecision>
+static void affine_template(iAProgress * progress, iAConnector* connector,
+	itk::AffineTransform<TPrecision, DIM> * transform)
+{
+	typedef itk::Image<TPixelType, DIM>         			ImageType;
 	typedef itk::ResampleImageFilter<ImageType, ImageType, TPrecision>	FilterType;
 
-	ImageType * inpImage = dynamic_cast<ImageType *>(caller->getConnector()->GetITKImage());
-	typename ImageType::PointType inpOrigin = inpImage->GetOrigin();
-	typename ImageType::SizeType inpSize = inpImage->GetLargestPossibleRegion().GetSize();
-	typename ImageType::SpacingType inpSpacing = inpImage->GetSpacing();
+	ImageType * inpImage = dynamic_cast<ImageType *>(connector->GetITKImage());
+	auto inpOrigin = inpImage->GetOrigin();
+	auto inpSize = inpImage->GetLargestPossibleRegion().GetSize();
+	auto inpSpacing = inpImage->GetSpacing();
 
-	//resample filter setup
-	typename FilterType::Pointer resample = FilterType::New();
+	auto resample = FilterType::New();
 	resample->SetSize(inpSize);
 	resample->SetOutputSpacing(inpSpacing);
 	resample->SetOutputOrigin(inpOrigin);
 	resample->SetOutputDirection(inpImage->GetDirection());
 	resample->SetInput(inpImage);
-
-	//run pipeline
 	resample->SetTransform(transform);
-	caller->getItkProgress()->Observe(resample);
+	progress->Observe(resample);
 	resample->Update();
-
-	caller->getConnector()->SetImage(resample->GetOutput());
-	caller->getConnector()->Modified();
-
+	connector->SetImage(resample->GetOutput());
+	connector->Modified();
 	resample->ReleaseDataFlagOn();
 }
 
+typedef double TPrecision;
 
-template<class TPixelType, class TPrecision> 
-static void rotate_template(iATransformations * caller)
+template<class TPixelType>
+static void rotate_template(QMap<QString, QVariant> const & parameters, iAProgress* progress, iAConnector* connector)
 {
-	const int Dim = iAConnector::ImageBaseType::ImageDimension;
-	typedef itk::Image<TPixelType, Dim>         			ImageType;
-	typedef itk::AffineTransform<TPrecision, Dim>			TransformType;
+	typedef itk::Image<TPixelType, DIM> ImageType;
+	typedef itk::AffineTransform<TPrecision, DIM> TransformType;
 	
-	//set center of transformation
-	typename TransformType::Pointer transform = TransformType::New();
+
+	auto transform = TransformType::New();
 	typename ImageType::PointType center;
 	typename TransformType::OutputVectorType rotation;
 	typename TransformType::OutputVectorType translation1;
@@ -138,238 +144,141 @@ static void rotate_template(iATransformations * caller)
 	typename TransformType::OutputVectorType rotationAxis;
 
 	//setup rotation axis
-	rotationAxis[0] = caller->getRotationAxes() == iATransformations::RotateAlongX ? 1 : 0;
-	rotationAxis[1] = caller->getRotationAxes() == iATransformations::RotateAlongY ? 1 : 0;
-	rotationAxis[2] = caller->getRotationAxes() == iATransformations::RotateAlongZ ? 1 : 0;
+	rotationAxis[0] = parameters["Rotation axis"].toString() == "Rotation along X" ? 1 : 0;
+	rotationAxis[1] = parameters["Rotation axis"].toString() == "Rotation along Y" ? 1 : 0;
+	rotationAxis[2] = parameters["Rotation axis"].toString() == "Rotation along Z" ? 1 : 0;
 
 	//get rotation center
-	ImageType * inpImage = dynamic_cast<ImageType *>(caller->getConnector()->GetITKImage());
-	switch (caller->getRotationCenter())
+	ImageType * inpImage = dynamic_cast<ImageType *>(connector->GetITKImage());
+	if (parameters["Rotation center"] == "Image center")
 	{
-	case iATransformations::RCOrigin:
-		center = inpImage->GetOrigin();		
-		break;
-	case iATransformations::RCCenter:
 		center = image_center(inpImage);
-		break;
-	case iATransformations::RCCustom:
-		for (int k = 0; k < Dim; k++)
-			center[k] = caller->getRotationCenterCoordinate()[k];
-		break;
 	}
-
-	//apply rotation
-	for (int k = 0; k < Dim; k++)
+	else if (parameters["Rotation center"] == "Origin")
+	{
+		center = inpImage->GetOrigin();
+	}
+	else // == "Specify coordinate"
+	{
+		center[0] = parameters["Center X"].toDouble();
+		center[1] = parameters["Center Y"].toDouble();
+		center[2] = parameters["Center Z"].toDouble();
+	}
+	for (int k = 0; k < DIM; k++)
 	{
 		translation1[k] = -center[k];
-		translation2[k] = center[k];
+		translation2[k] =  center[k];
 	}
 	transform->Translate(translation1);
-	transform->Rotate3D(rotationAxis, caller->getRotationAngle(false), false);
+	transform->Rotate3D(rotationAxis, (parameters["Rotation angle"].toDouble() * vnl_math::pi / 180.0), false);
 	transform->Translate(translation2);
-
-	affine_template<TPixelType, TPrecision>(caller, transform);
+	affine_template<TPixelType, TPrecision>(progress, connector, transform);
 }
 
-template<class TPixelType, class TPrecision>
-static void translate_template(iATransformations * caller)
+void iARotate::Run(QMap<QString, QVariant> const & parameters)
 {
-	const int Dim = iAConnector::ImageBaseType::ImageDimension;
-	typedef itk::AffineTransform<TPrecision, Dim>			TransformType;
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(rotate_template, pixelType, parameters, m_progress, m_con);
+}
 
-	//set translation
-	typename TransformType::Pointer transform = TransformType::New();
+IAFILTER_CREATE(iARotate)
+
+iARotate::iARotate() :
+	iAFilter("Rotate", "Transformations",
+		"Rotate the image around one of the three coordinate axes.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AffineTransform.html\">"
+		"Affine Transform</a> and the <a href=\""
+		"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"Resample Image Filter</a> in the ITK documentation.")
+{
+	AddParameter("Rotation angle", Continuous, 0.0, 0.0, 360.0);
+	QStringList rotAxes = QStringList() << "Rotation along X" << "Rotation along Y" << "Rotation along Z";
+	AddParameter("Rotation axis", Categorical, rotAxes);
+	QStringList rotCenter = QStringList() << "Image center" << "Origin" << "Specify coordinate";
+	AddParameter("Rotation center", Categorical, rotCenter);
+	AddParameter("Center X", Continuous, 0);
+	AddParameter("Center Y", Continuous, 0);
+	AddParameter("Center Z", Continuous, 0);
+}
+
+
+
+template<class TPixelType>
+static void translate_template(QMap<QString, QVariant> const & parameters, iAProgress* progress, iAConnector* connector)
+{
+	typedef itk::AffineTransform<TPrecision, DIM> TransformType;
+	auto transform = TransformType::New();
 	typename TransformType::OutputVectorType translation;
-	for (int k = 0; k < Dim; k++)
-		translation[k] = caller->getTranslation()[k];
+	translation[0] = parameters["Translate X"].toDouble();
+	translation[1] = parameters["Translate Y"].toDouble();
+	translation[2] = parameters["Translate Z"].toDouble();
 	transform->Translate(translation);
-
-	affine_template<TPixelType, TPrecision>(caller, transform);
+	affine_template<TPixelType, TPrecision>(progress, connector, transform);
 }
 
-template<class TPixelType, class TPrecision>
-static void permute_template(iATransformations * caller)
+void iATranslate::Run(QMap<QString, QVariant> const & parameters)
 {
-	const int Dim = iAConnector::ImageBaseType::ImageDimension;
-	typedef itk::Image<TPixelType, Dim>         			ImageType;
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(translate_template, pixelType, parameters, m_progress, m_con);
+}
+
+IAFILTER_CREATE(iATranslate)
+
+iATranslate::iATranslate() :
+	iAFilter("Translate", "Transformations",
+		"Translate the image.<br/>"
+		".<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AffineTransform.html\">"
+		"Affine Transform</a> and the <a href=\""
+		"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"Resample Image Filter</a> in the ITK documentation.")
+{
+	AddParameter("Translate X", Continuous, 0);
+	AddParameter("Translate Y", Continuous, 0);
+	AddParameter("Translate Z", Continuous, 0);
+}
+
+
+template<class TPixelType> void permute_template(QString  const & orderStr, iAProgress* progress, iAConnector * connector)
+{
+	typedef itk::Image<TPixelType, DIM>         			ImageType;
 	typedef itk::PermuteAxesImageFilter<ImageType>			FilterType;
-	
-	ImageType * inpImage = dynamic_cast<ImageType *>(caller->getConnector()->GetITKImage());
-	typename FilterType::Pointer filter = FilterType::New();
+
+	auto filter = FilterType::New();
 	typename FilterType::PermuteOrderArrayType order;
-	
-	//order XYY --> ZXY: 2, 0, 1
-	const int * porder = caller->getPermuteAxesOrder();
-	filter->SetInput(inpImage);
-	order[0] = porder[0];
-	order[1] = porder[1];
-	order[2] = porder[2];
+	filter->SetInput(dynamic_cast<ImageType *>(connector->GetITKImage()));
+	for (int k = 0; k < 3; k++)
+	{
+		char axes = orderStr.at(k).toUpper().toLatin1();
+		order[k] = axes - QChar('X').toLatin1();
+	}
 	filter->SetOrder(order);
-
-	//run pipeline
-	caller->getItkProgress()->Observe(filter);
+	progress->Observe(filter);
 	filter->Update();
-
-	caller->getConnector()->SetImage(filter->GetOutput());
-	caller->getConnector()->Modified();
-
+	connector->SetImage(filter->GetOutput());
+	connector->Modified();
 	filter->ReleaseDataFlagOn();
 }
 
-template <class TPixelType, class TPrecision>
-static void transform_template(iATransformations * caller)
+void iAPermuteAxes::Run(QMap<QString, QVariant> const & parameters)
 {
-	auto type = caller->getTransformationType();
-	switch (type)
-	{
-	case iATransformations::Rotation:
-		rotate_template<TPixelType, TPrecision>(caller);
-	case iATransformations::Translation:
-		translate_template<TPixelType, TPrecision>(caller);
-	case iATransformations::Flip:
-		flip_template<TPixelType, TPrecision>(caller);
-	case iATransformations::PermuteAxes:
-		permute_template<TPixelType, TPrecision>(caller);
-	}
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(permute_template, pixelType, parameters["Order"].toString(), m_progress, m_con);
 }
 
-iATransformations::iATransformations( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent )
-	: iAAlgorithm( fn, i, p, logger, parent )
-{
-	for (int k = 0; k < Dim; k++)
-	{
-		m_permuteOrder[k] = k;
-		m_rotCenterCoord[k] = 0.0;
-		m_translation[k] = 0.0;
-	}
-	m_rotAngle = 0;
-	m_transType = iATransformations::Unknown;
-	m_rotCenterType = iATransformations::RCCenter;
-	m_rotAxesType = iATransformations::RotateAlongX;
-	m_flipAxesType = iATransformations::FlipAxesNone;
-}
+IAFILTER_CREATE(iAPermuteAxes)
 
-iATransformations::TransformationType iATransformations::getTransformationType() const
+iAPermuteAxes::iAPermuteAxes() :
+	iAFilter("Permute Axes", "Transformations",
+		"Permutes the image axes according to a user specified order.<br/>"
+		"The i-th axis of the output image corresponds with the order[i]-th "
+		"axis of the input image.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1PermuteAxesImageFilter.html\">"
+		"Permute Axes Filter</a> in the ITK documentation.")
 {
-	return m_transType;
-}
-void iATransformations::setTransformationType(TransformationType transType)
-{
-	m_transType = transType;
-}
-iATransformations::RotationCenterType iATransformations::getRotationCenter() const
-{
-	return m_rotCenterType;
-}
-void iATransformations::setRotationCenter(RotationCenterType rotCenter)
-{
-	m_rotCenterType = rotCenter;
-}
-iATransformations::RotationAxesType iATransformations::getRotationAxes() const
-{
-	return m_rotAxesType;
-}
-void iATransformations::setRotationAxes(RotationAxesType rotAxes)
-{
-	m_rotAxesType = rotAxes;
-}
-iATransformations::FlipAxesType iATransformations::getFlipAxes() const
-{
-	return m_flipAxesType;
-}
-void iATransformations::setFlipAxes(FlipAxesType axes)
-{
-	m_flipAxesType = axes;
-}
-void iATransformations::setFlipAxes(const QChar & axes)
-{
-	QChar ax = axes.toUpper();
-	if (ax == QChar('X'))
-		m_flipAxesType = FlipAxesX;
-	else if (ax == QChar('Y'))
-		m_flipAxesType = FlipAxesY;
-	else if (ax == QChar('Z'))
-		m_flipAxesType = FlipAxesZ;
-	else
-		m_flipAxesType = FlipAxesNone;
-}
-qreal iATransformations::getRotationAngle(bool inDegree) const
-{
-	return inDegree ? m_rotAngle : (m_rotAngle * vnl_math::pi / 180.0);
-}
-void iATransformations::setRotationAngle(qreal deg)
-{
-	m_rotAngle = deg;
-}
-const qreal * iATransformations::getRotationCenterCoordinate() const
-{
-	return &m_rotCenterCoord[0];
-}
-void iATransformations::setRotationCenterCoordinate(qreal x, qreal y, qreal z)
-{
-	m_rotCenterCoord[0] = x;
-	m_rotCenterCoord[1] = y;
-	m_rotCenterCoord[2] = z;
-}
-const qreal * iATransformations::getTranslation() const
-{
-	return &m_translation[0];
-}
-void iATransformations::setTranslation(qreal tx, qreal ty, qreal tz)
-{
-	m_translation[0] = tx;
-	m_translation[1] = ty;
-	m_translation[2] = tz;
-}
-
-const int * iATransformations::getPermuteAxesOrder() const
-{
-	return &m_permuteOrder[0];
-}
-void iATransformations::setPermuteAxesOrder(int ox, int oy, int oz)
-{
-	m_permuteOrder[0] = ox;
-	m_permuteOrder[1] = oy;
-	m_permuteOrder[2] = oz;
-}
-
-void iATransformations::setPermuteAxesOrder(const QString &order)
-{
-	if (order.size() >= 3)
-	{
-		for (int k = 0; k < 3; k++) {
-			char axes = order.at(k).toUpper().toLatin1();
-			m_permuteOrder[k] = axes - QChar('X').toLatin1();			
-		}
-	}
-}
-
-void iATransformations::performWork()
-{
-	switch (getConnector()->GetVTKImage()->GetScalarType()) // This filter handles all types
-	{
-	case VTK_UNSIGNED_CHAR:
-		transform_template<unsigned char, double>(this); break;
-	case VTK_CHAR:
-		transform_template<char, double>(this); break;
-	case VTK_UNSIGNED_SHORT:
-		transform_template<unsigned short, double>(this); break;
-	case VTK_SHORT:
-		transform_template<short, double>(this); break;
-	case VTK_UNSIGNED_INT:
-		transform_template<unsigned int, double>(this);  break;
-	case VTK_INT:
-		transform_template<int, double>(this); break;
-	case VTK_UNSIGNED_LONG:
-		transform_template<unsigned long, double>(this); break;
-	case VTK_LONG:
-		transform_template<long, double>(this); break;
-	case VTK_FLOAT:
-		transform_template<float, double>(this); break;
-	case VTK_DOUBLE:
-		transform_template<double, double>(this); break;
-	default:
-		addMsg(tr("  unknown component type"));
-		return;
-	}
+	QStringList permutationOrder = QStringList() << "XZY" << "YXZ" << "YZX" << "ZXY" << "ZYX";
+	AddParameter("Order", Categorical, permutationOrder);
 }

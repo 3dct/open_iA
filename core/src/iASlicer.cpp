@@ -30,9 +30,12 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
+#include <vtkRenderWindowInteractor.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
+
+#include <cassert>
 
 iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0*/,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :

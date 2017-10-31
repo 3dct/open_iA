@@ -50,13 +50,11 @@ QT_END_NAMESPACE
 
 class vtkCamera;
 class vtkImageData;
-class vtkImageViewer2;
 class vtkRenderer;
 
 class dlg_transfer;
 class iAModalityList;
 class iAModuleDispatcher;
-class iATLGICTLoader;
 class MdiChild;
 
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
@@ -106,7 +104,7 @@ public:
 	MdiChild *GetResultChild( int childInd, QString const & title );
 	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
-	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	QList<MdiChild*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	void addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);
@@ -178,23 +176,19 @@ public slots:
 	void updateMenus();
 	void updateWindowMenu();
 	MdiChild *createMdiChild(bool unsavedChanges);
-	void switchLayoutDirection();
 	void setActiveSubWindow(QWidget *window);
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
-	void tabChanged(int index);
 
 signals:
 	void StyleChanged();
 private:
 	void connectSignalsToSlots();
-	void setupStatusBar();
 	void readSettings();
 	void writeSettings();
 	void createRecentFileActions();
-	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
@@ -203,9 +197,8 @@ private:
 	void LoadProject(QString const & fileName);
 	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
-	QMdiSubWindow *findMdiChild(const QString &fileName);
+	MdiChild* findMdiChild(const QString &fileName);
 	QString strippedName(const QString &fullFileName);
-	double neighborhood(vtkImageData *imageData, int x0, int y0, int z0);
 
 	QSplashScreen *splashScreen;
 	QAction *separatorAct;

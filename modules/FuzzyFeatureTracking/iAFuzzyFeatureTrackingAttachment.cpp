@@ -22,7 +22,6 @@
 #include "pch.h"
 #include "iAFuzzyFeatureTrackingAttachment.h"
 
-#include "dlg_commoninput.h"
 #include "dlg_dataView4DCT.h"
 #include "dlg_eventExplorer.h"
 #include "dlg_trackingGraph.h"

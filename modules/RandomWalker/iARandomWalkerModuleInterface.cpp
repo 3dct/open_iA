@@ -21,12 +21,14 @@
 #include "pch.h"
 #include "iARandomWalkerModuleInterface.h"
 
+#include "iAPCA.h"
 #include "iARandomWalker.h"
 
 #include "iAFilterRegistry.h"
 
 void iARandomWalkerModuleInterface::Initialize()
 {
+	REGISTER_FILTER(iAPCA);
 	REGISTER_FILTER(iARandomWalker);
 	REGISTER_FILTER(iAExtendedRandomWalker);
 }

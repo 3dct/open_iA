@@ -22,10 +22,8 @@
 #include "pch.h"
 #include "iA4DCTModuleInterface.h"
 // iA
-#include "dlg_commoninput.h"
 #include "iA4DCTMainWin.h"
 #include "iA4DCTSettings.h"
-#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iASlicer.h"
 #include "iASlicerWidget.h"

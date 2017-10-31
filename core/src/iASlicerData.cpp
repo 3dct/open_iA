@@ -22,6 +22,7 @@
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
+#include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
 #include "iAIOProvider.h"
 #include "iAMagicLens.h"
@@ -37,7 +38,9 @@
 #include "iAStringHelper.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
+#include "iAWrapperText.h"
 #include "mdichild.h"
+#include "mainwindow.h"
 
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
@@ -81,10 +84,12 @@
 #include <vtkWindowToImageFilter.h>
 #include <vtkCommand.h>
 
+#include <QBitmap>
+#include <QDate>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QString>
-#include <QBitmap>
+#include <QThread>
 
 #include <string>
 #include <sstream>
@@ -147,7 +152,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	textInfo(0),
 	rulerWidget(0),
 	interactor(0),
-	m_showPositionMarker(false)
+	m_showPositionMarker(false),
+	colorTransferFunction(nullptr)
 {
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
@@ -634,7 +640,19 @@ void iASlicerData::setPositionMarkerCenter(double x, double y)
 		m_positionMarkerMapper->Update();
 		update();
 	}
-};
+}
+
+
+void iASlicerData::disableInteractor()
+{
+	interactor->Disable(); disabled = true;
+}
+
+
+void iASlicerData::enableInteractor()
+{
+	interactor->ReInitialize(); disabled = false;
+}
 
 
 void iASlicerData::showIsolines(bool s) 
@@ -1231,9 +1249,9 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		}
 		if (mdi_parent->getLinkedMDIs())
 		{
-			QList<QMdiSubWindow *> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
+			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
 			for (int i = 0; i < mdiwindows.size(); i++) {
-				MdiChild *tmpChild = qobject_cast<MdiChild *>(mdiwindows.at(i)->widget());
+				MdiChild *tmpChild = mdiwindows.at(i);
 				if (tmpChild != mdi_parent) {
 					double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
 					double const * const origImgSpacing = imageData->GetSpacing();
