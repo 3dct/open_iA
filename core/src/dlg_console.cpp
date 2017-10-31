@@ -33,7 +33,6 @@ dlg_console::dlg_console()
 
 dlg_console::~dlg_console()
 {
-	std::cout << "Exiting console!" << std::endl;
 }
 
 void dlg_console::Log(QString text)

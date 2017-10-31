@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAModuleDispatcher.h"
 
+#include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
@@ -77,7 +78,7 @@ void CloseLibrary(iALoadedModule & module)
 #else
 	if (dlclose(module.handle) != 0)
 	{
-		// log?
+		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(dlerror()));
 	}
 #endif
 }
@@ -118,7 +119,10 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo)
  * 	RTLD_NOW  2
  * 	RTLD_GLOBAL 4
  */
-	return dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
+	auto handle = dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
+	if (handle == NULL)
+		DEBUG_LOG(QString("Error loading library %1: %2").arg(fileInfo.fileName()).arg(dlerror()));
+	return handle;
 #endif
 }
 
@@ -138,7 +142,10 @@ iAModuleDispatcher::~iAModuleDispatcher()
 	for (int i = 0; i < m_loadedModules.size(); ++i)
 	{
 		delete m_loadedModules[i].moduleInterface;
+#ifdef _MSC_VER
+		// for unknown reason, unloading modules causes segmentation fault under Linux
 		CloseLibrary(m_loadedModules[i]);
+#endif
 	}
 	m_loadedModules.clear();
 }
