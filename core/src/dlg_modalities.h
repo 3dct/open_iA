@@ -38,7 +38,6 @@ class iAModality;
 class iAModalityList;
 class iAVolumeRenderer;
 class iAVolumeSettings;
-class MdiChild;
 class iAModalityTransfer;
 
 class vtkActor;

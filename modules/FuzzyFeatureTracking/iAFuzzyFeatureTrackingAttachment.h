@@ -23,7 +23,6 @@
 #include "iAModuleInterface.h"
 #include "iAModuleAttachmentToChild.h"
 
-class MdiChild;
 class dlg_trackingGraph;
 class dlg_dataView4DCT;
 class dlg_trackingGraph;

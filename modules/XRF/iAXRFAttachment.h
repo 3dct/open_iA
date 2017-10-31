@@ -26,7 +26,6 @@
 #include <vtkSmartPointer.h>
 
 class MainWindow;
-class MdiChild;
 class dlg_periodicTable;
 class dlg_RefSpectra;
 class dlg_SimilarityMap;

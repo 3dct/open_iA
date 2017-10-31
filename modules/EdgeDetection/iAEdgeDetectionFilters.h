@@ -22,11 +22,4 @@
 
 #include "iAFilter.h"
 
-class iACannyEdgeDetection : public iAFilter
-{
-public:
-	static QSharedPointer<iACannyEdgeDetection> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iACannyEdgeDetection();
-};
+IAFILTER_DEFAULT_CLASS(iACannyEdgeDetection);

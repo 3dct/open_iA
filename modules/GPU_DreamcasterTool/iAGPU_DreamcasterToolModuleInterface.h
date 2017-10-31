@@ -22,18 +22,11 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAGPU_DreamcasterToolModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
 	void Initialize();
-
 private slots:
 	void dreamcasterOpenFile();
-
-protected:
-	//settings
 };

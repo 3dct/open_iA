@@ -21,14 +21,6 @@
 #pragma once
 
 #include "iAModuleInterface.h"
-#include "iAFilterRegistry.h"
-
-#include <QMap>
-
-class MdiChild;
-class iAProbabilitySource;
-class iAFilter;
-class iAFilterRunnerGUIThread;
 
 class iASegmentationModuleInterface : public iAModuleInterface
 {

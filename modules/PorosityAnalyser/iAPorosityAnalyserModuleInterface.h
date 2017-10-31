@@ -35,10 +35,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-struct RunInfo;
-class MdiChild;
 class iAPorosityAnalyser;
-class iACalculatePoreProperties;
 
 class iAPorosityAnalyserModuleInterface : public iAModuleInterface
 {
@@ -95,7 +92,6 @@ protected:
 	QString m_cpuVendor;
 	QString m_cpuBrand;	
 	iAPorosityAnalyser * m_porosityAnalyser;
-	//iACalculatePorePropeties * m_calcPoreProps;
 	QAction *removeRowAction;
 	QAction *saveTableToCSVAction;
 	QAction *loadTableFromCSVAction;

@@ -31,7 +31,6 @@
 
 #include "ui_ParamSpaceSampling.h"
 
-class MdiChild;
 class QWidget;
 class QErrorMessage;
 class QLabel;

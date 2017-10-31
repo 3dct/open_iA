@@ -22,18 +22,13 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iASimilarityModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
 	void Initialize();
-
 private slots:
 	void calc_similarity_metrics();
-
 protected:
 	// similarity metrics 
 	bool smMeanSquares, smNormalizedCorrelation, smMutualInformation;

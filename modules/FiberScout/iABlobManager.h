@@ -40,7 +40,6 @@ class vtkRenderWindowInteractor;
 
 class iABlobCluster;
 class iARenderer;
-class MdiChild;
 
 
 class iABlobManager
