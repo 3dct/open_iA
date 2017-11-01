@@ -162,7 +162,6 @@ private slots:
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
-	void CloseAllSubWindows();
 
 public slots:
 	void saveLayout();
@@ -181,6 +180,7 @@ public slots:
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
+	void CloseAllSubWindows();
 
 signals:
 	void StyleChanged();
