@@ -100,7 +100,7 @@ QFileInfoList GetLibraryList(QString const & rootPath)
 	return root.entryInfoList(nameFilter, QDir::Files);
 }
 
-MODULE_HANDLE LoadModule(QFileInfo fileInfo)
+MODULE_HANDLE LoadModule(QFileInfo fileInfo, iALogger* logger)
 {
 #ifdef _MSC_VER
 	QString dllWinName(fileInfo.absoluteFilePath());
@@ -111,6 +111,10 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo)
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);  // to suppress message box on error
 	HINSTANCE hGetProcIDDLL = LoadLibrary(dllName);
 	SetErrorMode(prevErrorMode);
+	if (!hGetProcIDDLL)
+	{
+		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName().arg(GetLastError());
+	}
 	return hGetProcIDDLL;
 #else
 /*
@@ -120,8 +124,10 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo)
  * 	RTLD_GLOBAL 4
  */
 	auto handle = dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
-	if (handle == NULL)
-		DEBUG_LOG(QString("Error loading library %1: %2").arg(fileInfo.fileName()).arg(dlerror()));
+	if (!handle)
+	{
+		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(dlerror()));
+	}
 	return handle;
 #endif
 }
@@ -159,14 +165,14 @@ void iAModuleDispatcher::InitializeModuleInterface(iAModuleInterface* m)
 
 iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALogger* logger)
 {
-	MODULE_HANDLE handle = LoadModule(fi);
+	MODULE_HANDLE handle = LoadModule(fi, logger);
 	if (!handle)
 	{
-		logger->Log(QString("Could not load the dynamic library '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	iAModuleInterface * m = LoadModuleInterface(handle);
-	if (!m) {
+	if (!m)
+	{
 		logger->Log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
