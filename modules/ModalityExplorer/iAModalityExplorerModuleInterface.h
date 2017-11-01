@@ -33,7 +33,6 @@ public:
 protected:
 	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 private slots:
-	void ModalitySlicer();
 	void ModalitySPLOM();
 private:
 	dlg_modalitySPLOM* m_dlgModalitySPLOM;
