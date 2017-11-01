@@ -41,7 +41,7 @@ class QMenu;
 
 struct iAModuleAction
 {
-	iAModuleAction() {}
+	iAModuleAction(): action(nullptr), isDisablable(true) {}
 	iAModuleAction( QAction * _action, bool _isDisablable ) : action( _action ), isDisablable( _isDisablable ) {}
 
 	QAction * action;

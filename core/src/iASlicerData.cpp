@@ -1110,6 +1110,7 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 		double x, y, z;
 		GetMouseCoord(x, y, z, result);
 		emit rightClicked(x, y, z);
+		break;
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
