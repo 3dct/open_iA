@@ -611,6 +611,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 		CalculateMeasures(refImg, lblImg, labelCount, measures);
 		// {
 		// write measures and parameters to debug out:
+		/*
 		QString debugOut = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
 			.arg(leaf->GetDatasetID())
 			.arg(leaf->GetID())
@@ -628,6 +629,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 			}
 		}
 		DEBUG_LOG(debugOut);
+		*/
 		// }
 		for (int i=0; i<measures.size(); ++i)
 		{
@@ -699,7 +701,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
 
-	DEBUG_LOG("Measures for ENSEMBLE:");
+	//DEBUG_LOG("Measures for ENSEMBLE:");
 	CalculateRefImgComp(GetRoot(), refImg, labelCount);	// rewrite using VisitLeafs !
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();

@@ -47,12 +47,13 @@
 
 #include "ParametrizableLabelVotingImageFilter.h"
 
+#include "iAConsole.h"
+#include "iAMathUtility.h"
+
 #include <itkImageRegionIterator.h>
 #include <itkMath.h>
 #include <itkProgressReporter.h>
 #include <itkStatisticsImageFilter.h>
-
-#include "iAMathUtility.h"
 
 template< typename TInputImage, typename TOutputImage >
 ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
@@ -134,7 +135,8 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	{
 		if (this->m_TotalLabelCount > itk::NumericTraits<OutputPixelType>::max())
 		{
-			DEBUG_LOG("No new label for undecided pixels, using zero.");
+			DEBUG_LOG("No label left for undecided pixels, using zero.");
+			this->m_LabelForUndecidedPixels = 0;
 		}
 		this->m_LabelForUndecidedPixels = static_cast<OutputPixelType>(this->m_TotalLabelCount);
 	}

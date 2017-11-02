@@ -21,21 +21,26 @@
 #include "pch.h"
 #include "dlg_Consensus.h"
 
+// GEMSe:
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
+#include "iAImageTreeNode.h"
+#include "iASingleResult.h"
+
+// LabelVoting:
+#include "ParametrizableLabelVotingImageFilter.h"
+#include "UndecidedPixelClassifierImageFilter.h"
+#include "ProbabilisticVotingImageFilter.h"
+
+// Core:
 #include "dlg_commoninput.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "iAImageTreeNode.h"
 #include "iAIOProvider.h"
 #include "iALookupTable.h"
-#include "iASingleResult.h"
+#include "iAToolsITK.h"
 #include "mdichild.h"
-
-#include "ParametrizableLabelVotingImageFilter.h"
-#include "UndecidedPixelClassifierImageFilter.h"
-#include "ProbabilisticVotingImageFilter.h"
 
 #include <itkCastImageFilter.h>
 #include <itkMultiLabelSTAPLEImageFilter.h>
@@ -105,7 +110,7 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_dlgProgress(nullptr),
 	m_comparisonWeightType(Equal)
 {
-	QString defaultTheme("Brewer Set3 (max. 12)");
+	QString defaultTheme("Brewer Paired (max. 12)");
 	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);
 
 	auto vtkWidget = new QVTKWidget2();
@@ -128,12 +133,12 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_chartValueVsDice->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	auto xAxis2 = m_chartValueVsDice->GetAxis(vtkAxis::BOTTOM);
 	auto yAxis2 = m_chartValueVsDice->GetAxis(vtkAxis::LEFT);
-	xAxis2->SetTitle("Value");
+	xAxis2->SetTitle("Consensus Method Parameter");
 	xAxis2->SetLogScale(false);
 	yAxis2->SetTitle("Mean Dice");
 	yAxis2->SetLogScale(false);
 	contextView2->GetScene()->AddItem(m_chartValueVsDice);
-	iADockWidgetWrapper * w2(new iADockWidgetWrapper(vtkWidget2, "Value vs. Dice", "ChartValueVsDice"));
+	iADockWidgetWrapper * w2(new iADockWidgetWrapper(vtkWidget2, "Parameter vs. Dice", "ChartValueVsDice"));
 	mdiChild->SplitDockWidget(this, w2, Qt::Vertical);
 
 	auto vtkWidget3 = new QVTKWidget2();
@@ -142,12 +147,12 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_chartValueVsUndec->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	auto xAxis3 = m_chartValueVsUndec->GetAxis(vtkAxis::BOTTOM);
 	auto yAxis3 = m_chartValueVsUndec->GetAxis(vtkAxis::LEFT);
-	xAxis3->SetTitle("Value");
+	xAxis3->SetTitle("Consensus Method Parameter");
 	xAxis3->SetLogScale(false);
 	yAxis3->SetTitle("Undecided Pixels");
 	yAxis3->SetLogScale(false);
 	contextView3->GetScene()->AddItem(m_chartValueVsUndec);
-	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Value vs. Undecided", "ChartValueVsUndec"));
+	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Parameter vs. Undecided", "ChartValueVsUndec"));
 	mdiChild->SplitDockWidget(this, w3, Qt::Vertical);
 
 	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
@@ -1093,7 +1098,7 @@ void dlg_Consensus::SamplerFinished()
 
 	// create charts for these selection:
 	SelectionUncertaintyDice(m_comparisonBestSelection, "Best Parameter Sets from Comparison dataset");
-	Sample(m_comparisonMVSelection, m_comparisonWeightType);
+	Sample(m_comparisonMVSelection, -1, m_comparisonWeightType);
 
 	// ignore label based input weight for now
 	// labelVotingFilter->SetInputLabelWeightMap(inputLabelWeightMap);
@@ -1154,10 +1159,10 @@ void dlg_Consensus::Sample()
 {
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
-	Sample(selection, GetWeightType());
+	Sample(selection, m_dlgGEMSe->GetSelectedCluster()->GetID(), GetWeightType());
 }
 
-void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType)
+void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int selectedClusterID, int weightType)
 {
 	try
 	{
@@ -1167,10 +1172,21 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 			return;
 		}
 
+		if (m_cachePath.isEmpty())
+		{
+			m_cachePath = QFileDialog::getExistingDirectory(this, "Consensus Sampling Cache Folder", "");
+			if (m_cachePath.isEmpty())
+				return;
+		}
+
 		QVector<QString> columnNames;
 		columnNames.push_back("Value");
 		columnNames.push_back("Undecided Pixels");
 		columnNames.push_back("Mean Dice");
+		for (int l = 0; l < m_labelCount; ++l)
+		{
+			columnNames.push_back(QString("Dice Label %1").arg(l));
+		}
 
 		const int SampleCount = sbSampleCount->value();
 		const int ResultCount = 10;
@@ -1201,10 +1217,8 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 
 		double absPercMin = 1.0 / m_labelCount;
 		double absPercMax = 1;
-
 		double ratioMin = 1;
 		double ratioMax = selection.size();
-
 		double labelVoterMin = 1;
 		double labelVoterMax = selection.size();
 
@@ -1214,9 +1228,13 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		auto size = region.GetSize();
 		double pixelCount = size[0] * size[1] * size[2];
 		
-		DEBUG_LOG("Measures for SAMPLING:");
+		// DEBUG_LOG("Measures for SAMPLING:");
 
-		// TODO: also sample over weight types...
+		// TODO:
+		/*
+		- also sample over weight types...
+		- also test with different undecided pixel classification schemes!
+		*/
 		for (int i = 0; i < SampleCount; ++i)
 		{
 			// calculate current value:
@@ -1237,11 +1255,6 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 
 			// calculate voting using these values:
 			iAITKIO::ImagePointer result[ResultCount];
-
-			// TODO:
-			/*
-				- also test with different undecided pixel classification schemes!
-			*/
 			QVector<double> undecided(ResultCount);
 			result[0] = GetVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount, true, undecided[0]);
 			result[1] = GetVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount, true, undecided[1]);
@@ -1253,20 +1266,11 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 				result[i + 5] = GetProbVotingImage(selection, value[i + 5],
 					static_cast<VotingRule>(i), m_labelCount, true, undecided[i+5]);
 			}
-
-			//QString out(QString("absPerc=%1, relPerc=%2, ratio=%3, pixelUnc=%4\t").arg(absPerc).arg(relPerc).arg(ratio).arg(pixelUnc));
-			// calculate dice coefficient and percentage of undetermined pixels
-			// (percentage of voxels with label = difference marker = max. label + 1)
 			for (int r = 0; r < ResultCount; ++r)
 			{
 				LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
-				/*
-				auto diceFilter = DiceFilter::New();
-				diceFilter->SetSourceImage(m_groundTruthImage);
-				diceFilter->SetTargetImage(labelImg);
-				diceFilter->SetIgnoredLabel(UndecidedLabel);
-				diceFilter->Update();
-				*/
+				QString filename(m_cachePath + QString("/sample-method%1-sample%2.mhd").arg(r).arg(i));
+				StoreImage(labelImg, filename, true);
 				auto statFilter = StatFilter::New();
 				statFilter->SetInput(labelImg);
 				statFilter->SetLabelInput(labelImg);
@@ -1276,18 +1280,16 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 				CalculateMeasures(m_groundTruthImage, labelImg, m_labelCount, measures, true);
 
 				double meanDice = measures[0];
+				double undecidedPerc = undecided[r] / pixelCount;
 
-				double undefinedPerc =
-					statFilter->HasLabel(UndecidedLabel)
-					? static_cast<double>(statFilter->GetCount(UndecidedLabel)) / pixelCount
-					: 0;
-				//out += QString("%1 %2\t").arg(meanDice).arg(undefinedPerc);
-
-				// add values to table
 				tables[r]->SetValue(i, 0, value[r]);
-				tables[r]->SetValue(i, 1, undecided[r]);
+				tables[r]->SetValue(i, 1, undecidedPerc);
 				tables[r]->SetValue(i, 2, meanDice);
-
+				for (int l = 0; l < m_labelCount; ++l)
+				{
+					tables[r]->SetValue(i, 3 + l, measures[4+l]);
+				}
+				/*
 				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
 					.arg(r)
 					.arg(i)
@@ -1295,25 +1297,14 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 					.arg(measures[2]) // accuracy
 					.arg(measures[3]) // precision
 					.arg(measures[4]) // recall
-					.arg(measures[measures.size() - 1]) // undecided
+					.arg(undecidedPerc) // undecided
 				);
+				*/
 			}
 		}
-
-		QString ids;
-		for (int s = 0; s < selection.size(); ++s)
-		{
-			ids += QString::number(selection[s]->GetDatasetID()) + "-" + QString::number(selection[s]->GetID());
-			if (s < selection.size() - 1)
-			{
-				ids += ", ";
-			}
-		}
-
-		int startIdx = twSampleResults->rowCount();
 		for (int i = 0; i < ResultCount; ++i)
 		{
-			AddResult(tables[i], "Sampling(w=" + GetWeightName(weightType) + ",value=" + titles[i] + ",ids=" + ids);
+			AddResult(tables[i], "Sampling(method=" + titles[i] + ", weight=" + GetWeightName(weightType) + ", cluster=" + selectedClusterID);
 		}
 	}
 	catch (std::exception & e)

@@ -75,7 +75,7 @@ private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
 	void UpdateWeightPlot();
-	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType);
+	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int selectedClusterID, int weightType);
 	void SelectionUncertaintyDice(
 		QVector<QSharedPointer<iASingleResult> > const & selection,
 		QString const & name);
@@ -107,4 +107,5 @@ private:
 	QVector<QSharedPointer<iASingleResult> > m_comparisonMVSelection;
 	int m_comparisonWeightType;
 	dlg_samplings * m_dlgSamplings;
+	QString m_cachePath;
 };
