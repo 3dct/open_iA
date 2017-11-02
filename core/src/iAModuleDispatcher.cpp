@@ -113,7 +113,7 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo, iALogger* logger)
 	SetErrorMode(prevErrorMode);
 	if (!hGetProcIDDLL)
 	{
-		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName().arg(GetLastError());
+		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastError()));
 	}
 	return hGetProcIDDLL;
 #else
