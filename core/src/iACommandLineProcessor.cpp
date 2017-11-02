@@ -12,7 +12,8 @@
 #include "iAStringHelper.h"
 #include "iAValueType.h"
 
-#include "QFileInfo"
+#include <QFileInfo>
+#include <QTextStream>
 
 #include <iostream>
 
@@ -183,7 +184,20 @@ namespace
 						{
 							int paramIdx = parameters.size();
 							QString paramName = filter->Parameters()[paramIdx]->Name();
-							parameters.insert(paramName, args[a]);
+							QString value(args[a]);
+							if (filter->Parameters()[paramIdx]->ValueType() == Text)
+							{
+								QFile f(value);
+								if (!f.open(QFile::ReadOnly | QFile::Text))
+								{
+									std::cout << QString("Expected a filename as input for text parameter '%1', but could not open '%2' as a text file.")
+										.arg(paramName).arg(value).toStdString() << std::endl;
+									return 1;
+								}
+								QTextStream in(&f);
+								value = in.readAll();
+							}
+							parameters.insert(paramName, value);
 						}
 					}
 				}
