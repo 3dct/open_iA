@@ -127,10 +127,11 @@ namespace
 			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c]" << std::endl
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output" << std::endl
 			<< "           -q   quiet - no output except for error messages" << std::endl
-			<< "           -c   compress output" << std::endl;
+			<< "           -c   compress output" << std::endl
+			<< "           -o   overwrite output if it exists" << std::endl;
 	}
 
-	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress};
+	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite};
 
 	ParseMode GetMode(QString arg)
 	{
@@ -139,6 +140,7 @@ namespace
 		else if (arg == "-p") return Parameter;
 		else if (arg == "-q") return Quiet;
 		else if (arg == "-c") return Compress;
+		else if (arg == "-o") return Overwrite;
 		else return InvalidParameter;
 	}
 
@@ -157,6 +159,7 @@ namespace
 		QMap<QString, QVariant> parameters;
 		bool quiet = false;
 		bool compress = false;
+		bool overwrite = false;
 		int mode = None;
 		for (int a = 1; a < args.size(); ++a)
 		{
@@ -165,6 +168,7 @@ namespace
 			case None:
 			case Quiet:
 			case Compress:
+			case Overwrite:
 				mode = GetMode(args[a]);
 				break;
 			case Input:
@@ -216,6 +220,10 @@ namespace
 			{
 				compress = true;
 			}
+			if (mode == Overwrite)
+			{
+				overwrite = true;
+			}
 		}
 
 		// Argument checks:
@@ -224,18 +232,10 @@ namespace
 			std::cout << "Missing input files - please specify at least one after the -i parameter" << std::endl;
 			return 1;
 		}
-		else if (inputFiles.size() > 1)
-		{
-			std::cout << "WARNING: More than one input file specified - this is not yet supported!" << std::endl;
-		}
 		if (outputFiles.size() == 0)
 		{
 			std::cout << "Missing output files - please specify at least one after the -o parameter" << std::endl;
 			return 1;
-		}
-		else if (outputFiles.size() > 1)
-		{
-			std::cout << "WARNING: More than one output file specified - this is not yet supported!" << std::endl;
 		}
 		if (parameters.size() != filter->Parameters().size())
 		{
@@ -245,7 +245,6 @@ namespace
 				<< std::endl;
 			return 1;
 		}
-
 
 		try
 		{
@@ -283,13 +282,32 @@ namespace
 			}
 			filter->Run(parameters);
 			// write output file(s)
-			if (!quiet)
+			for (int o = 0; o < filter->OutputCount(); ++o)
 			{
-				std::cout << QString("Writing output to file '%1' (compression: %2)")
-					.arg(outputFiles[0]).arg(compress?"on":"off").toStdString()
-					<< std::endl;
+				if (!quiet)
+				{
+					std::cout << QString("Writing output %1 to file: '%2' (compression: %3)")
+						.arg(o).arg(outputFiles[0]).arg(compress ? "on" : "off").toStdString()
+						<< std::endl;
+				}
+				QString outFileName;
+				if (o < outputFiles.size())
+				{
+					outFileName = outputFiles[o];
+				}
+				else
+				{
+					QFileInfo fi(outputFiles[outputFiles.size() - 1]);
+					outFileName = QString("%1-%2.%3").arg(fi.baseName()).arg(o-outputFiles.size()+1).arg(fi.completeSuffix());
+				}
+				if (QFile(outFileName).exists() && !overwrite)
+				{
+					// TODO: check at beginning to avoid aborting after long operation? But output count might not be known then...
+					std::cout << QString("Output file '%1' already exists! Aborting. Specify -o to overwrite existing files.").arg(outFileName).toStdString();
+					return 1;
+				}
+				iAITKIO::writeFile(outFileName, cons[0]->GetITKImage(), cons[0]->GetITKScalarPixelType(), compress);
 			}
-			iAITKIO::writeFile(outputFiles[0], cons[0]->GetITKImage(), cons[0]->GetITKScalarPixelType(), compress);
 			return 0;
 		}
 		catch (std::exception & e)
