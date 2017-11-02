@@ -288,10 +288,12 @@ iACastImageFilter::iACastImageFilter() :
 		<< QString("VTK_UNSIGNED_LONG")
 		<< QString("VTK_FLOAT")
 		<< QString("VTK_DOUBLE")
+		/*	// not yet currently supported by ITK and VTK!
 		<< QString("VTK_LONG_LONG")
 		<< QString("VTK_UNSIGNED_LONG_LONG")
 		<< QString("VTK__INT64")
 		<< QString("VTK_UNSIGNED__INT64")
+		*/
 		<< ("Label image to color-coded RGBA image"));
 	AddParameter("Data Type", Categorical, datatypes);
 	AddParameter("Rescale Range", Boolean, false);
