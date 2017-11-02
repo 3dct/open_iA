@@ -284,12 +284,6 @@ namespace
 			// write output file(s)
 			for (int o = 0; o < filter->OutputCount(); ++o)
 			{
-				if (!quiet)
-				{
-					std::cout << QString("Writing output %1 to file: '%2' (compression: %3)")
-						.arg(o).arg(outputFiles[0]).arg(compress ? "on" : "off").toStdString()
-						<< std::endl;
-				}
 				QString outFileName;
 				if (o < outputFiles.size())
 				{
@@ -298,13 +292,21 @@ namespace
 				else
 				{
 					QFileInfo fi(outputFiles[outputFiles.size() - 1]);
-					outFileName = QString("%1-%2.%3").arg(fi.baseName()).arg(o-outputFiles.size()+1).arg(fi.completeSuffix());
+					outFileName = QString("%1-%2.%3").arg(fi.baseName())
+						.arg(o-outputFiles.size()+1).arg(fi.completeSuffix());
 				}
 				if (QFile(outFileName).exists() && !overwrite)
 				{
 					// TODO: check at beginning to avoid aborting after long operation? But output count might not be known then...
-					std::cout << QString("Output file '%1' already exists! Aborting. Specify -o to overwrite existing files.").arg(outFileName).toStdString();
+					std::cout << QString("Output file '%1' already exists! Aborting. "
+						"Specify -o to overwrite existing files.").arg(outFileName).toStdString();
 					return 1;
+				}
+				if (!quiet)
+				{
+					std::cout << QString("Writing output %1 to file: '%2' (compression: %3)")
+						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
+						<< std::endl;
 				}
 				iAITKIO::writeFile(outFileName, cons[0]->GetITKImage(), cons[0]->GetITKScalarPixelType(), compress);
 			}
