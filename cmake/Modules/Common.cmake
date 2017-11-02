@@ -459,6 +459,7 @@ IF (HDF5_FOUND)
 	ELSE()
 		STRING(REGEX REPLACE "/share/cmake" "" HDF5_BASE_DIR ${HDF5_DIR})
 		SET (HDF5_LIB_DIR ${HDF5_BASE_DIR}/lib)
+		# for some strange reason, hdf5 links to the .100.1.0 version...
 		INSTALL(FILES "${HDF5_LIB_DIR}/libhdf5.so.${HDF5_VERSION}" RENAME libhdf5.so.100.1.0 DESTINATION .)
 		INSTALL(FILES "${HDF5_LIB_DIR}/libszip.so.2.1" DESTINATION .)
 		INSTALL(FILES "${HDF5_LIB_DIR}/libz.so.1.2" DESTINATION .)

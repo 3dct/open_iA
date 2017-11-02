@@ -42,6 +42,7 @@
 #include "iAToolsITK.h"
 #include "mdichild.h"
 
+// Libraries:
 #include <itkCastImageFilter.h>
 #include <itkMultiLabelSTAPLEImageFilter.h>
 #include <itkSTAPLEImageFilter.h>
@@ -64,7 +65,7 @@
 #include <QVector>
 
 
-// Where to put temporary output
+// Where to show (temporary?) output of consensus algorithms:
 
 // currently chosen option:
 //  * detail view
@@ -162,6 +163,9 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	twSampleResults->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 	twSampleResults->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 }
+
+dlg_Consensus::~dlg_Consensus()
+{}
 
 int dlg_Consensus::GetWeightType()
 {

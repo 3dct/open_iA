@@ -62,7 +62,10 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	m_numBin(numBin),
 	m_histogramContainer(histogramContainer),
 	m_currentHistogram(0),
-	m_showSlicePlanes(false)
+	m_showSlicePlanes(false),
+	m_plane1(nullptr),
+	m_plane2(nullptr),
+	m_plane3(nullptr)
 {
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
@@ -490,7 +493,6 @@ void dlg_modalities::ShowSlicePlanes(bool enabled)
 
 void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
 {
-
 	m_plane1 = plane1;
 	m_plane2 = plane2;
 	m_plane3 = plane3;
