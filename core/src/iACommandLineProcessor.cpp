@@ -308,7 +308,7 @@ namespace
 						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
 						<< std::endl;
 				}
-				iAITKIO::writeFile(outFileName, cons[0]->GetITKImage(), cons[0]->GetITKScalarPixelType(), compress);
+				iAITKIO::writeFile(outFileName, cons[0]->GetITKImage(), cons[o]->GetITKScalarPixelType(), compress);
 			}
 			return 0;
 		}
