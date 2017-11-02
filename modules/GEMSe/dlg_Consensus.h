@@ -29,6 +29,7 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_Consensus>   dlg_ConsensusUI;
 
+struct ChartWidgetData;
 class dlg_GEMSe;
 class dlg_progress;
 class dlg_samplings;
@@ -90,9 +91,7 @@ private:
 	QVector<vtkSmartPointer<vtkTable> > m_results;
 	QMap<QCheckBox*, int> m_checkBoxResultIDMap;
 	QMap<int, QVector<vtkIdType> > m_plotMap;
-	vtkSmartPointer<vtkChartXY> m_chartDiceVsUndec;
-	vtkSmartPointer<vtkChartXY> m_chartValueVsDice;
-	vtkSmartPointer<vtkChartXY> m_chartValueVsUndec;
+	QVector<ChartWidgetData> m_consensusCharts;
 
 	iAColorTheme const * m_colorTheme;
 	iAITKIO::ImagePointer m_lastMVResult;

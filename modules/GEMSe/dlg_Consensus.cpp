@@ -98,14 +98,39 @@
 //      - detached from current design
 //      +/- theoretically easier to do/practically probably also not little work to make it happen
 
+struct ChartWidgetData
+{
+	QVTKWidget2* vtkWidget;
+	vtkSmartPointer<vtkChartXY> chart;
+};
+
+ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
+		MdiChild* mdiChild)
+{
+	ChartWidgetData result;
+	result.vtkWidget = new QVTKWidget2();
+	auto contextView = vtkSmartPointer<vtkContextView>::New();
+	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
+	result.chart = vtkSmartPointer<vtkChartXY>::New();
+	result.chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
+	auto xAxis1 = result.chart->GetAxis(vtkAxis::BOTTOM);
+	auto yAxis1 = result.chart->GetAxis(vtkAxis::LEFT);
+	xAxis1->SetTitle(xTitle);
+	xAxis1->SetLogScale(false);
+	yAxis1->SetTitle(yTitle);
+	yAxis1->SetLogScale(false);
+	contextView->GetScene()->AddItem(result.chart);
+	iADockWidgetWrapper * w(new iADockWidgetWrapper(result.vtkWidget,
+			QString("%1 vs. %2").arg(xTitle).arg(yTitle),
+			QString("%1%2").arg(xTitle).arg(yTitle).replace(" ", "") ));
+	mdiChild->SplitDockWidget(mdiChild->logs, w, Qt::Vertical);
+	return result;
+}
 
 dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
-	m_chartDiceVsUndec(vtkSmartPointer<vtkChartXY>::New()),
-	m_chartValueVsDice(vtkSmartPointer<vtkChartXY>::New()),
-	m_chartValueVsUndec(vtkSmartPointer<vtkChartXY>::New()),
 	m_folder(folder),
 	m_dlgSamplings(dlgSamplings),
 	m_dlgProgress(nullptr),
@@ -114,47 +139,9 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	QString defaultTheme("Brewer Paired (max. 12)");
 	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);
 
-	auto vtkWidget = new QVTKWidget2();
-	auto contextView = vtkSmartPointer<vtkContextView>::New();
-	contextView->SetRenderWindow(vtkWidget->GetRenderWindow());
-	m_chartDiceVsUndec->SetSelectionMode(vtkContextScene::SELECTION_NONE);
-	auto xAxis1 = m_chartDiceVsUndec->GetAxis(vtkAxis::BOTTOM);
-	auto yAxis1 = m_chartDiceVsUndec->GetAxis(vtkAxis::LEFT);
-	xAxis1->SetTitle("Undecided Pixels");
-	xAxis1->SetLogScale(false);
-	yAxis1->SetTitle("Mean Dice");
-	yAxis1->SetLogScale(false);
-	contextView->GetScene()->AddItem(m_chartDiceVsUndec);
-	iADockWidgetWrapper * w(new iADockWidgetWrapper(vtkWidget, "Mean Dice vs. Undecided", "ChartDiceVsUndec"));
-	mdiChild->SplitDockWidget(this, w, Qt::Vertical);
-
-	auto vtkWidget2 = new QVTKWidget2();
-	auto contextView2 = vtkSmartPointer<vtkContextView>::New();
-	contextView2->SetRenderWindow(vtkWidget2->GetRenderWindow());
-	m_chartValueVsDice->SetSelectionMode(vtkContextScene::SELECTION_NONE);
-	auto xAxis2 = m_chartValueVsDice->GetAxis(vtkAxis::BOTTOM);
-	auto yAxis2 = m_chartValueVsDice->GetAxis(vtkAxis::LEFT);
-	xAxis2->SetTitle("Consensus Method Parameter");
-	xAxis2->SetLogScale(false);
-	yAxis2->SetTitle("Mean Dice");
-	yAxis2->SetLogScale(false);
-	contextView2->GetScene()->AddItem(m_chartValueVsDice);
-	iADockWidgetWrapper * w2(new iADockWidgetWrapper(vtkWidget2, "Parameter vs. Dice", "ChartValueVsDice"));
-	mdiChild->SplitDockWidget(this, w2, Qt::Vertical);
-
-	auto vtkWidget3 = new QVTKWidget2();
-	auto contextView3 = vtkSmartPointer<vtkContextView>::New();
-	contextView3->SetRenderWindow(vtkWidget3->GetRenderWindow());
-	m_chartValueVsUndec->SetSelectionMode(vtkContextScene::SELECTION_NONE);
-	auto xAxis3 = m_chartValueVsUndec->GetAxis(vtkAxis::BOTTOM);
-	auto yAxis3 = m_chartValueVsUndec->GetAxis(vtkAxis::LEFT);
-	xAxis3->SetTitle("Consensus Method Parameter");
-	xAxis3->SetLogScale(false);
-	yAxis3->SetTitle("Undecided Pixels");
-	yAxis3->SetLogScale(false);
-	contextView3->GetScene()->AddItem(m_chartValueVsUndec);
-	iADockWidgetWrapper * w3(new iADockWidgetWrapper(vtkWidget3, "Parameter vs. Undecided", "ChartValueVsUndec"));
-	mdiChild->SplitDockWidget(this, w3, Qt::Vertical);
+	m_consensusCharts.push_back(CreateChartWidget("Mean Dice", "Undecided Pixels", mdiChild));
+	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Mean Dice", mdiChild));
+	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Undecided Pixels", mdiChild));
 
 	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
 	int ensembleSize = root->GetClusterSize();
@@ -1330,16 +1317,16 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 		QVector<vtkIdType> plots;
 		if (m_results[id]->GetNumberOfColumns() == 3)
 		{
-			vtkIdType plot1 = AddPlot(vtkChart::POINTS, m_chartDiceVsUndec, m_results[id], 1, 2, plotColor);
-			vtkIdType plot2 = AddPlot(vtkChart::LINE, m_chartValueVsDice, m_results[id], 0, 2, plotColor);
-			vtkIdType plot3 = AddPlot(vtkChart::LINE, m_chartValueVsUndec, m_results[id], 0, 1, plotColor);
+			vtkIdType plot1 = AddPlot(vtkChart::POINTS, m_consensusCharts[0].chart, m_results[id], 1, 2, plotColor);
+			vtkIdType plot2 = AddPlot(vtkChart::LINE, m_consensusCharts[1].chart, m_results[id], 0, 2, plotColor);
+			vtkIdType plot3 = AddPlot(vtkChart::LINE, m_consensusCharts[2].chart, m_results[id], 0, 1, plotColor);
 			plots.push_back(plot1);
 			plots.push_back(plot2);
 			plots.push_back(plot3);
 		}
 		else
 		{
-			vtkIdType plotID = AddPlot(vtkChart::POINTS, m_chartValueVsDice, m_results[id], 0, 1, plotColor);
+			vtkIdType plotID = AddPlot(vtkChart::POINTS, m_consensusCharts[1].chart, m_results[id], 0, 1, plotColor);
 			plots.push_back(plotID);
 		}
 		m_plotMap.insert(id, plots);
@@ -1351,13 +1338,13 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 		QVector<vtkIdType> plots = m_plotMap[id];
 		if (m_results[id]->GetNumberOfColumns() == 3)
 		{
-			m_chartDiceVsUndec->RemovePlot(plots[0]);
-			m_chartValueVsDice->RemovePlot(plots[1]);
-			m_chartValueVsUndec->RemovePlot(plots[2]);
+			m_consensusCharts[0].chart->RemovePlot(plots[0]);
+			m_consensusCharts[1].chart->RemovePlot(plots[1]);
+			m_consensusCharts[2].chart->RemovePlot(plots[2]);
 		}
 		else
 		{
-			m_chartValueVsDice->RemovePlot(plots[0]);
+			m_consensusCharts[1].chart->RemovePlot(plots[0]);
 		}
 		m_plotMap.remove(id);
 	}
@@ -1421,7 +1408,7 @@ void dlg_Consensus::CalcMajorityVote()
 	m_lastMVResult = castback->GetOutput();
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("Majority Vote (%1)").arg(CollectedIDs(selection)));
 	lbValue->setText("Value: Majority Vote");
-	lbWeight->setText("Weignt: Equal");
+	lbWeight->setText("Weight: Equal");
 }
 
 
@@ -1442,5 +1429,5 @@ void dlg_Consensus::CalcProbRuleVote()
 		.arg(sbUndecidedThresh->value())
 		.arg(CollectedIDs(selection)));
 	lbValue->setText("Value: Majority Vote");
-	lbWeight->setText("Weignt: Equal");
+	lbWeight->setText("Weight: Equal");
 }
