@@ -32,6 +32,7 @@ namespace
 	const QString CategoricalStr("Categorical");
 	const QString StringStr("String");
 	const QString BooleanStr("Boolean");
+	const QString TextStr("Text(file)");
 	const QString UnknownStr("Unknown");
 }
 
@@ -58,6 +59,10 @@ iAValueType Str2ValueType(QString const & str)
 	{
 		return iAValueType::String;
 	}
+	else if (str == TextStr)
+	{
+		return iAValueType::Text;
+	}
 	else
 	{
 		DEBUG_LOG(QString("Unknown value type '%1'\n").arg(str));
@@ -79,6 +84,8 @@ QString ValueType2Str(iAValueType type)
 		return BooleanStr;
 	case iAValueType::String:
 		return StringStr;
+	case iAValueType::Text:
+		return TextStr;
 	default:
 		return UnknownStr;
 	}
