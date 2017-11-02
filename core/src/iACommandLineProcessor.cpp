@@ -128,7 +128,7 @@ namespace
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output" << std::endl
 			<< "           -q   quiet - no output except for error messages" << std::endl
 			<< "           -c   compress output" << std::endl
-			<< "           -o   overwrite output if it exists" << std::endl;
+			<< "           -f   overwrite output if it exists" << std::endl;
 	}
 
 	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite};
@@ -140,7 +140,7 @@ namespace
 		else if (arg == "-p") return Parameter;
 		else if (arg == "-q") return Quiet;
 		else if (arg == "-c") return Compress;
-		else if (arg == "-o") return Overwrite;
+		else if (arg == "-f") return Overwrite;
 		else return InvalidParameter;
 	}
 
@@ -285,7 +285,7 @@ namespace
 			for (int o = 0; o < filter->OutputCount(); ++o)
 			{
 				QString outFileName;
-				if (o < outputFiles.size())
+				if (filter->OutputCount() == 1 ||  o < outputFiles.size()-1)
 				{
 					outFileName = outputFiles[o];
 				}
@@ -299,7 +299,7 @@ namespace
 				{
 					// TODO: check at beginning to avoid aborting after long operation? But output count might not be known then...
 					std::cout << QString("Output file '%1' already exists! Aborting. "
-						"Specify -o to overwrite existing files.").arg(outFileName).toStdString();
+						"Specify -f to overwrite existing files.").arg(outFileName).toStdString();
 					return 1;
 				}
 				if (!quiet)
@@ -308,7 +308,7 @@ namespace
 						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
 						<< std::endl;
 				}
-				iAITKIO::writeFile(outFileName, cons[0]->GetITKImage(), cons[o]->GetITKScalarPixelType(), compress);
+				iAITKIO::writeFile(outFileName, filter->Connectors()[o]->GetITKImage(), filter->Connectors()[o]->GetITKScalarPixelType(), compress);
 			}
 			return 0;
 		}
