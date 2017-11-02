@@ -376,23 +376,6 @@ void MainWindow::saveAs()
 }
 
 
-void MainWindow::saveScreen()
-{
-	QWidget *child = (QWidget*)activeMdiChild();
-	if (child != NULL) {
-		QString file = QFileDialog::getSaveFileName(this, tr("Save"), path, tr("PNG (*.png  )" ) );
-
-		if (file.isEmpty()) return;
-
-		QPixmap pixmap(child->size());
-		child->render(&pixmap);
-
-		pixmap.save(file.toLatin1(), "PNG", 100);
-	} else
-		QMessageBox::warning(this, tr("Screenshot"), tr("No window selected!"));
-}
-
-
 QDomDocument MainWindow::loadSettingsFile(QString filename)
 {
 	QDomDocument doc;
@@ -1642,7 +1625,6 @@ void MainWindow::updateMenus()
 	saveAct->setEnabled(hasMdiChild);
 	saveAsAct->setEnabled(hasMdiChild);
 	actionSave_Image_Stack->setEnabled(hasMdiChild);
-	saveScreenAct->setEnabled(hasMdiChild);
 	loadSettingsAct->setEnabled(hasMdiChild);
 	saveSettingsAct->setEnabled(hasMdiChild);
 	closeAct->setEnabled(hasMdiChild);
@@ -1779,7 +1761,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionOpen_With_DataTypeConversion, SIGNAL(triggered()), this, SLOT(OpenWithDataTypeConversion()));
 	connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 	connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-	connect(saveScreenAct, SIGNAL(triggered()), this, SLOT(saveScreen()));
 	connect(loadSettingsAct, SIGNAL(triggered()), this, SLOT(loadSettings()));
 	connect(saveSettingsAct, SIGNAL(triggered()), this, SLOT(saveSettings()));
 	connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));

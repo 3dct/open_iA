@@ -76,7 +76,6 @@
     <addaction name="separator"/>
     <addaction name="saveAct"/>
     <addaction name="saveAsAct"/>
-    <addaction name="saveScreenAct"/>
     <addaction name="separator"/>
     <addaction name="actionOpen_Project"/>
     <addaction name="actionSave_Project"/>
@@ -182,7 +181,6 @@
    <addaction name="openAct"/>
    <addaction name="saveAct"/>
    <addaction name="saveAsAct"/>
-   <addaction name="saveScreenAct"/>
    <addaction name="actionPreferences"/>
    <addaction name="actionRendererSettings"/>
    <addaction name="actionSlicerSettings"/>

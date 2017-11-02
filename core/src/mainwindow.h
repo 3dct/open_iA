@@ -122,7 +122,6 @@ private slots:
 	void OpenTLGICTData();
 	void save();
 	void saveAs();
-	void saveScreen();
 	bool loadSettings();
 	bool saveSettings();
 	void LoadProject();
