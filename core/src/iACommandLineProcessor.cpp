@@ -292,7 +292,7 @@ namespace
 				else
 				{
 					QFileInfo fi(outputFiles[outputFiles.size() - 1]);
-					outFileName = QString("%1-%2.%3").arg(fi.baseName())
+					outFileName = QString("%1/%2%3.%4").arg(fi.absolutePath()).arg(fi.baseName())
 						.arg(o-outputFiles.size()+1).arg(fi.completeSuffix());
 				}
 				if (QFile(outFileName).exists() && !overwrite)
