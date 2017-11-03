@@ -621,3 +621,33 @@ void iAExtendedRandomWalker::Run(QMap<QString, QVariant> const & parameters)
 	m_cons[0]->Modified();
 	SetOutputCount(labelCount + 1);
 }
+
+
+iAMaximumDecisionRule::iAMaximumDecisionRule() :
+	iAFilter("Maximum Decision Rule", "Segmentation",
+		"Assign each pixel the label with maximum probability.<br/>"
+		"Applies the maximum decision rule to a multichannel input which "
+		"represents a probability distribution over labels.")
+{
+}
+
+IAFILTER_CREATE(iAMaximumDecisionRule)
+
+void iAMaximumDecisionRule::Run(QMap<QString, QVariant> const & parameters)
+{
+	if (m_cons.size() <= 1)
+	{
+		throw std::invalid_argument("Input has to have at least two channels!");
+		return;
+	}
+	int const * dim = m_cons[0]->GetVTKImage()->GetDimensions();
+	double const * spc = m_cons[0]->GetVTKImage()->GetSpacing();
+	QVector<iAITKIO::ImagePointer> probImgs;
+	for (int i = 0; i < m_cons.size(); ++i)
+	{
+		probImgs.push_back(m_cons[i]->GetITKImage());
+	}
+	auto labelImg = CreateLabelImage(dim, spc, probImgs, m_cons.size());
+	m_cons[0]->SetImage(labelImg);
+	m_cons[0]->Modified();
+}
