@@ -24,3 +24,5 @@
 
 IAFILTER_DEFAULT_CLASS(iARandomWalker);
 IAFILTER_DEFAULT_CLASS(iAExtendedRandomWalker);
+
+IAFILTER_DEFAULT_CLASS(iAMaximumDecisionRule);
