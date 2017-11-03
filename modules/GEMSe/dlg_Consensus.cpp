@@ -139,9 +139,10 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	QString defaultTheme("Brewer Paired (max. 12)");
 	m_colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultTheme);
 
-	m_consensusCharts.push_back(CreateChartWidget("Mean Dice", "Undecided Pixels", mdiChild));
+	m_consensusCharts.push_back(CreateChartWidget("Undecided Pixels", "Mean Dice", mdiChild));
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Mean Dice", mdiChild));
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Undecided Pixels", mdiChild));
+	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Label Dice", mdiChild));
 
 	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
 	int ensembleSize = root->GetClusterSize();
@@ -149,6 +150,7 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	slLabelVoters->setMaximum(ensembleSize);
 	twSampleResults->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 	twSampleResults->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+	connect(twSampleResults, SIGNAL(itemClicked(QTableWidgetItem *)), this, SLOT(SampledItemClicked(QTableWidgetItem *)));
 }
 
 dlg_Consensus::~dlg_Consensus()
@@ -1100,7 +1102,7 @@ void dlg_Consensus::SamplerFinished()
 vtkIdType AddPlot(int plotType,
 	vtkSmartPointer<vtkChartXY> chart,
 	vtkSmartPointer<vtkTable> table,
-	int col1, int col2,
+	int xcol, int ycol,
 	QColor const & color)
 {
 	vtkSmartPointer<vtkPlot> plot;
@@ -1117,8 +1119,8 @@ vtkIdType AddPlot(int plotType,
 		static_cast<unsigned char>(color.alpha())
 	);
 	plot->SetTooltipLabelFormat("%x, %l: %y");
-	plot->SetWidth(1.0);
-	plot->SetInputData(table, col1, col2);
+	plot->SetWidth(2.0);
+	plot->SetInputData(table, xcol, ycol);
 	vtkIdType plotID = chart->AddPlot(plot);
 	return plotID;
 }
@@ -1277,8 +1279,8 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 				tables[r]->SetValue(i, 1, undecidedPerc);
 				tables[r]->SetValue(i, 2, meanDice);
 				for (int l = 0; l < m_labelCount; ++l)
-				{
-					tables[r]->SetValue(i, 3 + l, measures[4+l]);
+				{                                // hacky workaround for label 0 having "wrong" dice values"
+					tables[r]->SetValue(i, 3 + l, (l==0)? measures[4+l]/ m_labelCount : measures[4 + l]);
 				}
 				/*
 				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
@@ -1315,9 +1317,9 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 		QColor plotColor = m_colorTheme->GetColor(colorIdx);
 
 		QVector<vtkIdType> plots;
-		if (m_results[id]->GetNumberOfColumns() == 3)
+		if (m_results[id]->GetNumberOfColumns() >= 3)
 		{
-			vtkIdType plot1 = AddPlot(vtkChart::POINTS, m_consensusCharts[0].chart, m_results[id], 1, 2, plotColor);
+			vtkIdType plot1 = AddPlot(vtkChart::LINE, m_consensusCharts[0].chart, m_results[id], 1, 2, plotColor);
 			vtkIdType plot2 = AddPlot(vtkChart::LINE, m_consensusCharts[1].chart, m_results[id], 0, 2, plotColor);
 			vtkIdType plot3 = AddPlot(vtkChart::LINE, m_consensusCharts[2].chart, m_results[id], 0, 1, plotColor);
 			plots.push_back(plot1);
@@ -1326,7 +1328,7 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 		}
 		else
 		{
-			vtkIdType plotID = AddPlot(vtkChart::POINTS, m_consensusCharts[1].chart, m_results[id], 0, 1, plotColor);
+			vtkIdType plotID = AddPlot(vtkChart::LINE, m_consensusCharts[1].chart, m_results[id], 0, 1, plotColor);
 			plots.push_back(plotID);
 		}
 		m_plotMap.insert(id, plots);
@@ -1336,7 +1338,7 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 	{
 		twSampleResults->item(id, 1)->setBackgroundColor(Qt::white);
 		QVector<vtkIdType> plots = m_plotMap[id];
-		if (m_results[id]->GetNumberOfColumns() == 3)
+		if (m_results[id]->GetNumberOfColumns() >= 3)
 		{
 			m_consensusCharts[0].chart->RemovePlot(plots[0]);
 			m_consensusCharts[1].chart->RemovePlot(plots[1]);
@@ -1349,6 +1351,19 @@ void dlg_Consensus::CheckBoxStateChanged(int state)
 		m_plotMap.remove(id);
 	}
 }
+
+
+void dlg_Consensus::SampledItemClicked(QTableWidgetItem * item)
+{
+	m_consensusCharts[3].chart->ClearPlots();
+	int row = item->row();
+	for (int l = 0; l < m_labelCount; ++l)
+	{
+		QColor plotColor = m_colorTheme->GetColor(l);
+		AddPlot(vtkChart::LINE, m_consensusCharts[3].chart, m_results[row], 0, 3+l, plotColor);
+	}
+}
+
 
 typedef itk::Image<unsigned int, 3> UIntImage;
 typedef itk::CastImageFilter<LabelImageType, UIntImage> CastIntToUInt;

@@ -74,6 +74,7 @@ private slots:
 	void CalcSTAPLE();
 	void CalcMajorityVote();
 	void CalcProbRuleVote();
+	void SampledItemClicked(QTableWidgetItem *);
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();

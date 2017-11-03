@@ -809,6 +809,8 @@ void dlg_GEMSe::SetProbabilityProbing(bool enabled)
 
 void dlg_GEMSe::DataTFChanged()
 {
+	if (!m_detailView)
+		return;
 	m_detailView->UpdateMagicLensColors();
 }
 
