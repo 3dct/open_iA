@@ -179,7 +179,7 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkR
 	oTF( parent->getPiecewiseFunction() ),
 	cTF( parent->getColorTransferFunction() ),
 	csvTable( csvtbl ),
-	raycaster( parent->getRaycaster() ),
+	raycaster( parent->getRenderer() ),
 	elementTableModel( 0 ),
 	iovSPM( 0 ),
 	iovPP( 0 ),

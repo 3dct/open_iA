@@ -1017,7 +1017,7 @@ void dlg_XRF::showLinkedElementMaps( int show )
 		m_rendererManager.addToBundle(elemRend->GetRenderer());
 		m_elementRenderers.push_back( elemRend );
 		if(isFirst)
-			mdiChild->splitDockWidget(mdiChild->r, elemRend, Qt::Horizontal);
+			mdiChild->splitDockWidget(mdiChild->renderer, elemRend, Qt::Horizontal);
 		else
 			mdiChild->splitDockWidget(m_elementRenderers[m_elementRenderers.size()-2], elemRend, Qt::Vertical);
 		isFirst = false;

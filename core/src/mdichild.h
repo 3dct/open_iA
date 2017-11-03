@@ -92,7 +92,7 @@ class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
 {
 	Q_OBJECT
 public:
-	dlg_renderer * r;
+	dlg_renderer * renderer;
 	dlg_sliceXY * sXY;
 	dlg_sliceXZ * sXZ;
 	dlg_sliceYZ * sYZ;
@@ -161,7 +161,6 @@ public:
 	iAVolumeSettings const & GetVolumeSettings() const;
 	iASlicerSettings const & GetSlicerSettings() const;
 	iAPreferences    const & GetPreferences()    const;
-	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
 	void connectIOThreadSignals(iAIO* thread);

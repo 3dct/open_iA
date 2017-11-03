@@ -49,9 +49,9 @@ void iAFiberScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl
 	blobRen->UseDepthPeelingOn();
 	blobRen->SetMaximumNumberOfPeels(12);
 
-	m_childData.child->getRaycaster()->AddRenderer(blobRen);
-	blobRen->SetActiveCamera(m_childData.child->getRaycaster()->getCamera());
-	connect(m_childData.child->getRaycaster(), SIGNAL(onSetCamera()), this, SLOT(rendererSetCamera()));
+	m_childData.child->getRenderer()->AddRenderer(blobRen);
+	blobRen->SetActiveCamera(m_childData.child->getRenderer()->getCamera());
+	connect(m_childData.child->getRenderer(), SIGNAL(onSetCamera()), this, SLOT(rendererSetCamera()));
 }
 
 void iAFiberScoutAttachment::disableBlobVisualization()
@@ -80,7 +80,7 @@ void iAFiberScoutAttachment::enableBlobVisualization()
 
 void iAFiberScoutAttachment::rendererSetCamera()
 {
-	blobRen->SetActiveCamera(m_childData.child->getRaycaster()->getCamera());
+	blobRen->SetActiveCamera(m_childData.child->getRenderer()->getCamera());
 }
 
 bool iAFiberScoutAttachment::FiberScout_Options(int idx)

@@ -109,7 +109,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 
 	//insert default dock widgets and arrange them in a simple layout
-	r = new dlg_renderer(this);
+	renderer = new dlg_renderer(this);
 	sXY = new dlg_sliceXY(this);
 	sXZ = new dlg_sliceXZ(this);
 	sYZ = new dlg_sliceYZ(this);
@@ -120,12 +120,12 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	this->statusBar()->addPermanentWidget(pbar);
 	m_pbarMaxVal = pbar->maximum();
 	logs = new dlg_logs(this);
-	addDockWidget(Qt::LeftDockWidgetArea, r);
+	addDockWidget(Qt::LeftDockWidgetArea, renderer);
 	m_initialLayoutState = saveState();
 
-	splitDockWidget(r, logs, Qt::Vertical);
-	splitDockWidget(r, sXZ, Qt::Horizontal);
-	splitDockWidget(r, sYZ, Qt::Vertical);
+	splitDockWidget(renderer, logs, Qt::Vertical);
+	splitDockWidget(renderer, sXZ, Qt::Horizontal);
+	splitDockWidget(renderer, sYZ, Qt::Vertical);
 	splitDockWidget(sXZ, sXY, Qt::Vertical);
 
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -146,11 +146,11 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	slicerYZ = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget);
 
 	Raycaster = new iARenderer(this);
-	connect(r->vtkWidgetRC, SIGNAL(rightButtonReleasedSignal()), Raycaster, SLOT(mouseRightButtonReleasedSlot()) );
-	connect(r->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), Raycaster, SLOT(mouseLeftButtonReleasedSlot()) );
+	connect(renderer->vtkWidgetRC, SIGNAL(rightButtonReleasedSignal()), Raycaster, SLOT(mouseRightButtonReleasedSlot()) );
+	connect(renderer->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), Raycaster, SLOT(mouseLeftButtonReleasedSlot()) );
 	Raycaster->setAxesTransform(axesTransform);
 
-	m_dlgModalities = new dlg_modalities(r->vtkWidgetRC, Raycaster->GetRenderer(),
+	m_dlgModalities = new dlg_modalities(renderer->vtkWidgetRC, Raycaster->GetRenderer(),
 		preferences.HistogramBins, histogramContainer);
 	connect(m_dlgModalities, SIGNAL(UpdateViews()), this, SLOT(updateViews()));
 	connect(m_dlgModalities, SIGNAL(PointSelected()), this, SIGNAL(pointSelected()));
@@ -211,7 +211,7 @@ MdiChild::~MdiChild()
 
 void MdiChild::connectSignalsToSlots()
 {
-	connect(r->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
+	connect(renderer->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
 	connect(sXY->pushMaxXY, SIGNAL(clicked()), this, SLOT(maximizeXY()));
 	connect(sXZ->pushMaxXZ, SIGNAL(clicked()), this, SLOT(maximizeXZ()));
 	connect(sYZ->pushMaxYZ, SIGNAL(clicked()), this, SLOT(maximizeYZ()));
@@ -219,16 +219,16 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXY->pushStopXY, SIGNAL(clicked()), this, SLOT(triggerInteractionXY()));
 	connect(sXZ->pushStopXZ, SIGNAL(clicked()), this, SLOT(triggerInteractionXZ()));
 	connect(sYZ->pushStopYZ, SIGNAL(clicked()), this, SLOT(triggerInteractionYZ()));
-	connect(r->pushStopRC, SIGNAL(clicked()), this, SLOT(triggerInteractionRaycaster()));
+	connect(renderer->pushStopRC, SIGNAL(clicked()), this, SLOT(triggerInteractionRaycaster()));
 
-	connect(r->pushPX, SIGNAL(clicked()), this, SLOT(camPX()));
-	connect(r->pushPY, SIGNAL(clicked()), this, SLOT(camPY()));
-	connect(r->pushPZ, SIGNAL(clicked()), this, SLOT(camPZ()));
-	connect(r->pushMX, SIGNAL(clicked()), this, SLOT(camMX()));
-	connect(r->pushMY, SIGNAL(clicked()), this, SLOT(camMY()));
-	connect(r->pushMZ, SIGNAL(clicked()), this, SLOT(camMZ()));
-	connect(r->pushIso, SIGNAL(clicked()), this, SLOT(camIso()));
-	connect(r->pushSaveRC, SIGNAL(clicked()), this, SLOT(saveRC()));
+	connect(renderer->pushPX, SIGNAL(clicked()), this, SLOT(camPX()));
+	connect(renderer->pushPY, SIGNAL(clicked()), this, SLOT(camPY()));
+	connect(renderer->pushPZ, SIGNAL(clicked()), this, SLOT(camPZ()));
+	connect(renderer->pushMX, SIGNAL(clicked()), this, SLOT(camMX()));
+	connect(renderer->pushMY, SIGNAL(clicked()), this, SLOT(camMY()));
+	connect(renderer->pushMZ, SIGNAL(clicked()), this, SLOT(camMZ()));
+	connect(renderer->pushIso, SIGNAL(clicked()), this, SLOT(camIso()));
+	connect(renderer->pushSaveRC, SIGNAL(clicked()), this, SLOT(saveRC()));
 	connect(sXY->pushSaveXY, SIGNAL(clicked()), this, SLOT(saveXY()));
 	connect(sXZ->pushSaveXZ, SIGNAL(clicked()), this, SLOT(saveXZ()));
 	connect(sYZ->pushSaveYZ, SIGNAL(clicked()), this, SLOT(saveYZ()));
@@ -240,11 +240,11 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXY->pushMovXY, SIGNAL(clicked()), this, SLOT(saveMovXY()));
 	connect(sXZ->pushMovXZ, SIGNAL(clicked()), this, SLOT(saveMovXZ()));
 	connect(sYZ->pushMovYZ, SIGNAL(clicked()), this, SLOT(saveMovYZ()));
-	connect(r->pushMovRC, SIGNAL(clicked()), this, SLOT(saveMovRC()));
+	connect(renderer->pushMovRC, SIGNAL(clicked()), this, SLOT(saveMovRC()));
 
 	connect(logs->pushClearLogs, SIGNAL(clicked()), this, SLOT(clearLogs()));
 
-	connect(r->spinBoxRC, SIGNAL(valueChanged(int)), this, SLOT(setChannel(int)));
+	connect(renderer->spinBoxRC, SIGNAL(valueChanged(int)), this, SLOT(setChannel(int)));
 
 	connect(sXY->spinBoxXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYSpinBox(int)));
 	connect(sXZ->spinBoxXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZSpinBox(int)));
@@ -295,21 +295,21 @@ void MdiChild::addAlgorithm(iAAlgorithm* thread)
 
 void MdiChild::SetRenderWindows()
 {
-	r->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
+	renderer->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)Raycaster->GetRenderWindow());
 }
 
 void MdiChild::updateRenderWindows(int channels)
 {
 	if (channels > 1)
 	{
-		r->spinBoxRC->setRange(0, channels-1);
-		r->stackedWidgetRC->setCurrentIndex(1);
-		r->channelLabelRC->setEnabled(true);
+		renderer->spinBoxRC->setRange(0, channels-1);
+		renderer->stackedWidgetRC->setCurrentIndex(1);
+		renderer->channelLabelRC->setEnabled(true);
 	}
 	else
 	{
-		r->stackedWidgetRC->setCurrentIndex(0);
-		r->channelLabelRC->setEnabled(false);
+		renderer->stackedWidgetRC->setCurrentIndex(0);
+		renderer->channelLabelRC->setEnabled(false);
 	}
 	disableRenderWindows(0);
 }
@@ -454,12 +454,12 @@ void MdiChild::newFile()
 void MdiChild::showPoly()
 {
 	hideVolumeWidgets();
-	setVisibility(QList<QWidget*>() << r->stackedWidgetRC << r->pushSaveRC << r->pushMaxRC << r->pushStopRC, true);
+	setVisibility(QList<QWidget*>() << renderer->stackedWidgetRC << renderer->pushSaveRC << renderer->pushMaxRC << renderer->pushStopRC, true);
 
-	r->vtkWidgetRC->setGeometry(0, 0, 300, 200);
-	r->vtkWidgetRC->setMaximumSize(QSize(16777215, 16777215));
-	r->vtkWidgetRC->adjustSize();
-	r->show();
+	renderer->vtkWidgetRC->setGeometry(0, 0, 300, 200);
+	renderer->vtkWidgetRC->setMaximumSize(QSize(16777215, 16777215));
+	renderer->vtkWidgetRC->adjustSize();
+	renderer->show();
 	visibility &= (RC | TAB);
 	changeVisibility(visibility);
 }
@@ -736,14 +736,14 @@ void MdiChild::setupViewInternal(bool active)
 	if (imageData->GetNumberOfScalarComponents() > 1 &&
 		imageData->GetNumberOfScalarComponents() < 4 )
 	{
-		r->spinBoxRC->setRange(0, imageData->GetNumberOfScalarComponents() - 1);
-		r->stackedWidgetRC->setCurrentIndex(1);
-		r->channelLabelRC->setEnabled(true);
+		renderer->spinBoxRC->setRange(0, imageData->GetNumberOfScalarComponents() - 1);
+		renderer->stackedWidgetRC->setCurrentIndex(1);
+		renderer->channelLabelRC->setEnabled(true);
 	}
 	else
 	{
-		r->stackedWidgetRC->setCurrentIndex(0);
-		r->channelLabelRC->setEnabled(false);
+		renderer->stackedWidgetRC->setCurrentIndex(0);
+		renderer->channelLabelRC->setEnabled(false);
 	}
 	// only after everything in the window is set up
 	InitVolumeRenderers();
@@ -1062,7 +1062,7 @@ void MdiChild::maximizeYZ()
 
 void MdiChild::maximizeRC()
 {
-	resizeDockWidget(r);
+	resizeDockWidget(renderer);
 }
 
 
@@ -1542,7 +1542,7 @@ void MdiChild::ApplyViewerPreferences()
 	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
 	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
 	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
-	r->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
+	renderer->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
 	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
 	slicerYZ->setStatisticalExtent(preferences.StatisticalExtent);
 	slicerXZ->setStatisticalExtent(preferences.StatisticalExtent);
@@ -1688,7 +1688,7 @@ bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSetting
 	setRenderSettings(rs, vs);
 	ApplyRenderSettings(Raycaster);
 	ApplyVolumeSettings();
-	r->vtkWidgetRC->show();
+	renderer->vtkWidgetRC->show();
 	emit renderSettingsChanged();
 	return true;
 }
@@ -2151,7 +2151,7 @@ bool MdiChild::initView( QString const & title )
 	slicerXY->initializeData(imageData, slicerTransform, colorFunction);
 	slicerYZ->initializeData(imageData, slicerTransform, colorFunction);
 
-	r->stackedWidgetRC->setCurrentIndex(0);
+	renderer->stackedWidgetRC->setCurrentIndex(0);
 
 	updateSliceIndicators();
 
@@ -2313,7 +2313,7 @@ void MdiChild::changeVisibility(unsigned char mode)
 	bool  yz = (mode & YZ)  == YZ;
 	bool  xz = (mode & XZ)  == XZ;
 	bool tab = (mode & TAB) == TAB;
-	r->setVisible(rc);
+	renderer->setVisible(rc);
 	sXY->setVisible(xy);
 	sYZ->setVisible(yz);
 	sXZ->setVisible(xz);
@@ -2327,7 +2327,7 @@ void MdiChild::changeVisibility(unsigned char mode)
 
 void MdiChild::hideVolumeWidgets()
 {
-	setVisibility(QList<QWidget*>() << sXY << sXZ << sYZ << r, false);
+	setVisibility(QList<QWidget*>() << sXY << sXZ << sYZ << renderer, false);
 	this->update();
 }
 
@@ -2656,7 +2656,7 @@ dlg_sliceYZ	* MdiChild::getSlicerDlgYZ()
 
 dlg_renderer * MdiChild::getRendererDlg()
 {
-	return r;
+	return renderer;
 }
 
 dlg_imageproperty * MdiChild::getImagePropertyDlg()
