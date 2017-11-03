@@ -152,9 +152,9 @@ IAFILTER_CREATE(iAFCMFilter)
 
 iAFCMFilter::iAFCMFilter() :
 	iAFilter("FCM", "Segmentation/Fuzzy C-Means",
-		"Fuzzy C-Means (FCM) Classification<br/>"
-		"This implementation is based on Bezdek et al.'s paper \"FCM: The fuzzy"
-		"c-means clustering algorithm\" (Computers & Geosciences, 10 (2), 191-203.,"
+		"Pixel Classification based on Fuzzy C-Means (FCM). <br/>"
+		"This implementation is based on Bezdek et al.'s paper \"FCM: The fuzzy "
+		"c-means clustering algorithm\" (Computers & Geosciences, 10 (2), 191-203., "
 		"1984).")
 {
 	AddFCMParameters(*this);
@@ -193,9 +193,9 @@ IAFILTER_CREATE(iAKFCMFilter)
 
 iAKFCMFilter::iAKFCMFilter() :
 	iAFilter("Kernelized FCM", "Segmentation/Fuzzy C-Means",
-		"Spatially Constrained Fuzzy C-Means based on kernel-induced distance (KFCMS)<br/>"
-		"This implementation is based on S.C.Chen. and D.Q.Zhang, \"Robust image segmentation using"
-		"FCM with spatial constraints based on new kernel - induced distance measure\". Systems, Man, and"
+		"Spatially Constrained Fuzzy C-Means based on kernel-induced distance (KFCMS). <br/>"
+		"This implementation is based on S.C.Chen. and D.Q.Zhang, \"Robust image segmentation using "
+		"FCM with spatial constraints based on new kernel - induced distance measure\". Systems, Man, and "
 		"Cybernetics, Part B : Cybernetics, IEEE Transactions on, 34(4) : 1907–1916, 2004. 1, 2.2")
 {
 	AddKFCMParameters(*this);
@@ -251,6 +251,7 @@ void kfcm_template(QVector<iAConnector*> & cons, unsigned int maxIter, double ma
 	classifier->SetInput(dynamic_cast<InputImageType *>(cons[0]->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
+	SetProbabilities(probs, cons);
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
@@ -293,11 +294,11 @@ IAFILTER_CREATE(iAMSKFCMFilter)
 
 iAMSKFCMFilter::iAMSKFCMFilter() :
 	iAFilter("MSKFCM", "Segmentation/Fuzzy C-Means",
-		"Modified Spatial Kernelized Fuzzy C-Means.<br/>"
-		"This implementation is a modified version of the algorithm MSFKCM proposed"
-		"by Castro et al.in the paper \"Comparison of various fuzzy clustering"
-		"algorithms in the detection of ROI in lung CT and a modified"
-		"kernelized - spatial fuzzy c-means algorithm\" (Proc. of 10th IEEE Int. Conf."
+		"Modified Spatial Kernelized Fuzzy C-Means. <br/>"
+		"This implementation is a modified version of the algorithm MSFKCM proposed "
+		"by Castro et al. in the paper \"Comparison of various fuzzy clustering "
+		"algorithms in the detection of ROI in lung CT and a modified "
+		"kernelized - spatial fuzzy c-means algorithm\" (Proc. of 10th IEEE Int. Conf. "
 		"On Inf.Tech. and Appl.in Biom., Corfu, Greece, 2010).")
 {
 	AddKFCMParameters(*this);
