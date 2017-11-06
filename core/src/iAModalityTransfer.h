@@ -51,6 +51,7 @@ private:
 	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount);
 public:
 	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
+	void SetName(QString name);
 	iAHistogramWidget* GetHistogram();
 	void SetHistogramBinCount(int binCount);
 	void Update(vtkSmartPointer<vtkImageData> imgData, int binCount);
