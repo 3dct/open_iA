@@ -870,6 +870,11 @@ bool MdiChild::saveAs()
 	{
 		return false;
 	}
+	saveAs(modalityNr);
+}
+
+bool MdiChild::saveAs(int modalityNr)
+{
 	int componentNr = chooseComponentNr(modalityNr);
 	if (componentNr == -1)
 	{
@@ -880,7 +885,7 @@ bool MdiChild::saveAs()
 		this,
 		tr("Save As"),
 		filePath,
-		iAIOProvider::GetSupportedSaveFormats()+
+		iAIOProvider::GetSupportedSaveFormats() +
 		tr(";;TIFF stack (*.tif);; PNG stack (*.png);; BMP stack (*.bmp);; JPEG stack (*.jpg);; DICOM serie (*.dcm)"));
 
 	if (f.isEmpty())
@@ -2921,9 +2926,33 @@ bool MdiChild::LoadProject(QString const & fileName)
 	return true;
 }
 
-void MdiChild::StoreProject(QString const & fileName)
+void MdiChild::StoreProject()
 {
-	m_dlgModalities->Store(fileName);
+	QVector<int> unsavedModalities;
+	for (int i=0; i<GetModalities()->size(); ++i)
+	{
+		if (GetModality(i)->GetFileName().isEmpty())
+			unsavedModalities.push_back(i);
+	}
+	if (unsavedModalities.size() > 0)
+	{
+		if (QMessageBox::question(m_mainWnd, "Unsaved modalities",
+			"This window has some unsaved modalities, you need to save them before you can store the project. Save them now?",
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) != QMessageBox::Yes)
+			return;
+		for (int modNr : unsavedModalities)
+			if (!saveAs(modNr))
+				return;
+	}
+	QString modalitiesFileName = QFileDialog::getSaveFileName(
+		QApplication::activeWindow(),
+		tr("Select Output File"),
+		path,
+		iAIOProvider::ProjectFileTypeFilter);
+	if (modalitiesFileName.isEmpty())
+		return;
+	m_dlgModalities->Store(modalitiesFileName);
+	setCurrentFile(modalitiesFileName);
 }
 
 MainWindow* MdiChild::getMainWnd()

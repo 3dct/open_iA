@@ -2334,17 +2334,10 @@ void MainWindow::LoadProject(QString const & fileName)
 
 void MainWindow::SaveProject()
 {
-	QString modalitiesFileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Select Output File"),
-		path,
-		iAIOProvider::ProjectFileTypeFilter);
 	MdiChild * activeChild = activeMdiChild();
-	if (!activeChild || modalitiesFileName.isEmpty())
-	{
+	if (!activeChild)
 		return;
-	}
-	activeChild->StoreProject(modalitiesFileName);
+	activeChild->StoreProject();
 }
 
 

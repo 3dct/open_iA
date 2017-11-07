@@ -87,6 +87,7 @@ QString iAModality::GetTransferFileName() const
 void iAModality::SetName(QString const & name)
 {
 	m_name = name;
+	m_transfer->SetName(name);
 }
 
 void iAModality::SetFileName(QString const & fileName)

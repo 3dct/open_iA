@@ -138,3 +138,9 @@ QWidget* iAModalityTransfer::NoHistogramAvailableWidget()
 	NoHistogramLabel->setAlignment(Qt::AlignCenter);
 	return NoHistogramLabel;
 }
+
+
+void iAModalityTransfer::SetName(QString name)
+{
+	histogram->SetXCaption(name + QString(" Histogram"));
+}

@@ -372,8 +372,7 @@ private:
 	bool addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
 	bool addProfile( );
-	int profileWidgetIndex;
-
+	bool saveAs(int modalityNr);
 	bool initView(QString const & title);
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
@@ -387,6 +386,7 @@ private:
 	void cleanWorkingAlgorithms();
 	virtual void resizeEvent ( QResizeEvent * event );
 
+	int profileWidgetIndex;
 	QByteArray m_beforeMaximizeState;
 	bool m_isSmthMaximized;
 	QDockWidget * m_whatMaximized;
@@ -502,6 +502,6 @@ public:
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
 	bool LoadProject(QString const & fileName);
-	void StoreProject(QString const & fileName);
+	void StoreProject();
 	//! @}
 };
