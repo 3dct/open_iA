@@ -92,10 +92,10 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_isSmthMaximized(false),
 	volumeStack(new iAVolumeStack),
 	isMagicLensEnabled(false),
-	ioThread(0),
+	ioThread(nullptr),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
-	histogramContainer(new iADockWidgetWrapper(0, "Histogram", "Histogram")),
+	histogramContainer(new iADockWidgetWrapper(nullptr, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	preferences(prefs),
 	m_currentModality(0),
@@ -105,7 +105,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_mainWnd = mainWnd;
 	setupUi(this);
 	//prepare window for handling dock widgets
-	this->setCentralWidget(0);
+	this->setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 
 	//insert default dock widgets and arrange them in a simple layout
@@ -165,8 +165,8 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
 	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	ApplyViewerPreferences();
-	imgProperty = 0;
-	imgProfile = 0;
+	imgProperty = nullptr;
+	imgProfile = nullptr;
 	SetRenderWindows();
 	connectSignalsToSlots();
 	pbar->setValue(100);
@@ -203,7 +203,7 @@ MdiChild::~MdiChild()
 	delete slicerXZ;
 	delete slicerXY;
 	delete slicerYZ;
-	delete Raycaster; Raycaster = 0;
+	delete Raycaster; Raycaster = nullptr;
 
 	if(imgProperty)		delete imgProperty;
 	if(imgProfile)		delete imgProfile;
@@ -469,12 +469,12 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	// TODO: image is actually not the final imagedata here (or at least not always)
 	//    -> maybe skip all image-related initializations?
 	addStatusMsg("Creating Result View");
-	if (poly != NULL){
+	if (poly) {
 		polyData->ReleaseData();
 		polyData->DeepCopy(poly);
 	}
 
-	if (image != NULL){
+	if (image) {
 		imageData->ReleaseData();
 		imageData->DeepCopy(image);
 	}
@@ -530,7 +530,7 @@ bool MdiChild::loadRaw(const QString &f)
 		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	setCurrentFile(f);
 	waitForPreviousIO();
-	ioThread = new iAIO(imageData, 0, m_logger, this);
+	ioThread = new iAIO(imageData, nullptr, m_logger, this);
 	connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
 	connectIOThreadSignals(ioThread);
 	connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
@@ -803,7 +803,7 @@ int MdiChild::chooseModalityNr(QString const & caption)
 		modalities << GetModality(i)->GetName();
 	}
 	QList<QVariant> values = (QList<QVariant>() << modalities);
-	dlg_commoninput modalityChoice(this, caption, parameters, values, NULL);
+	dlg_commoninput modalityChoice(this, caption, parameters, values, nullptr);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
@@ -825,7 +825,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 		components << QString::number(i);
 	}
 	QList<QVariant> values = (QList<QVariant>() << components);
-	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, NULL);
+	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, nullptr);
 	if (componentChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
@@ -901,7 +901,7 @@ void MdiChild::waitForPreviousIO()
 	{
 		addMsg(tr("%1  Waiting for I/O operation to complete...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 		ioThread->wait();
-		ioThread = 0;
+		ioThread = nullptr;
 	}
 }
 
@@ -1257,8 +1257,8 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 	double t2[3] = { length_percent*mf2 / 100, length_percent*mf2 / 100, length_percent*mf2 / 100 };
 	double point1[3], point2[3];
 	//calculate the points
-	parametricSpline->Evaluate(t1, point1, NULL);
-	parametricSpline->Evaluate(t2, point2, NULL);
+	parametricSpline->Evaluate(t1, point1, nullptr);
+	parametricSpline->Evaluate(t2, point2, nullptr);
 
 	//calculate normal
 	double normal[3];
@@ -1847,7 +1847,7 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
 
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara, NULL);
+	dlg_commoninput dlg(this, "Save movie options", inList, inPara);
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		mode =  dlg.getComboBoxValue(0);
@@ -1893,7 +1893,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		parametricSpline->Modified();
 		double emptyper[3]; emptyper[0] = 0; emptyper[1] = 0; emptyper[2] = 0;
 		double emptyp[3]; emptyp[0] = 0; emptyp[1] = 0; emptyp[2] = 0;
-		parametricSpline->Evaluate(emptyper, emptyp, NULL);
+		parametricSpline->Evaluate(emptyper, emptyp, nullptr);
 
 		sXY->spinBoxXY->setValue(0);//set initial value
 		sXZ->spinBoxXZ->setValue(0);//set initial value
@@ -2102,15 +2102,15 @@ void MdiChild::getSnakeNormal(int index, double point[3], double normal[3])
 		double t1[3] =
 		{ (double)i1/(snakeSlices-1), (double)i1/(snakeSlices-1), (double)i1/(snakeSlices-1) };
 		double t2[3] = { (double)i2/(snakeSlices-1), (double)i2/(snakeSlices-1), (double)i2/(snakeSlices-1) };
-		parametricSpline->Evaluate(t1, p1, NULL);
-		parametricSpline->Evaluate(t2, p2, NULL);
+		parametricSpline->Evaluate(t1, p1, nullptr);
+		parametricSpline->Evaluate(t2, p2, nullptr);
 
 		//calculate the points
 		p1[0] /= spacing[0]; p1[1] /= spacing[1]; p1[2] /= spacing[2];
 		p2[0] /= spacing[0]; p2[1] /= spacing[1]; p2[2] /= spacing[2];
 
 		//calculate the vector between to points
-		if (normal != NULL)
+		if (normal)
 		{
 			normal[0] = p2[0]-p1[0];
 			normal[1] = p2[1]-p1[1];
@@ -2409,7 +2409,7 @@ iAChannelVisualizationData * MdiChild::GetChannelData(iAChannelID id)
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> >::const_iterator it = m_channels.find(id);
 	if (it == m_channels.end())
 	{
-		return 0;
+		return nullptr;
 	}
 	return it->data();
 }
@@ -2419,7 +2419,7 @@ iAChannelVisualizationData const * MdiChild::GetChannelData(iAChannelID id) cons
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> >::const_iterator it = m_channels.find(id);
 	if (it == m_channels.end())
 	{
-		return 0;
+		return nullptr;
 	}
 	return it->data();
 }

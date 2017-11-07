@@ -109,7 +109,7 @@ public:
 	void showPoly();
 	bool loadFile(const QString &f, bool isStack);
 	bool loadRaw(const QString &f);
-	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
+	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr);
 	bool save();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
