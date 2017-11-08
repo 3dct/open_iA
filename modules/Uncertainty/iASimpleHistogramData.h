@@ -28,7 +28,7 @@
 #include "iAAbstractDiagramData.h"
 #include "iAFunctionDrawers.h"
 
-class iASimpleHistogramData : public iAAbstractDiagramRangedData
+class iASimpleHistogramData : public iAPlotData
 {
 public:
 	virtual ~iASimpleHistogramData();
@@ -36,12 +36,12 @@ public:
 	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType);
 
 	// Inherited via iAAbstractDiagramRangedData
-	virtual DataType const * GetData() const override;
-	virtual size_t GetNumBin() const override;
-	virtual double GetSpacing() const override;
-	virtual double const * XBounds() const override;
-	virtual DataType const * YBounds() const override;
-	virtual iAValueType GetRangeType() const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
+	iAValueType GetRangeType() const override;
 
 	void SetBin(size_t binIdx, DataType value);
 	//void AddValue(DataType value);

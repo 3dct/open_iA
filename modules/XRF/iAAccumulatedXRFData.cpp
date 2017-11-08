@@ -58,7 +58,7 @@ double const * iAAccumulatedXRFData::XBounds() const
 	return m_xBounds;
 }
 
-iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetData() const
+iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetRawData() const
 {
 	switch (m_accumulateFct)
 	{

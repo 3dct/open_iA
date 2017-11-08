@@ -80,7 +80,7 @@ private:
 	void drawAxes(QPainter &painter);
 	void drawXAxis(QPainter &painter);
 	void drawYAxis(QPainter &painter);
-	void selectBin(QMouseEvent *event);
+	void showDataTooltip(QMouseEvent *event);
 
 Q_SIGNALS:
 	void binSelected(int newBin);

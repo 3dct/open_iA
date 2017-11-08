@@ -96,7 +96,7 @@ void iAProfileWidget::redraw()
 }
 
 
-void iAProfileWidget::selectBin(QMouseEvent *event)
+void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (!scalars)
 		return;

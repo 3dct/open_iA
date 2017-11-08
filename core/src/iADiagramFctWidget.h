@@ -83,13 +83,10 @@ public:
 
 	dlg_function *getSelectedFunction();
 	std::vector<dlg_function*> &getFunctions();
-	iAAbstractDiagramData::DataType GetMaxYValue() const;
-	iAAbstractDiagramData::DataType GetMaxYAxisValue() const;
-	void SetMaxYAxisValue(iAAbstractDiagramData::DataType val);
+	iAPlotData::DataType GetMaxYValue() const;
+	iAPlotData::DataType GetMaxYAxisValue() const;
+	void SetMaxYAxisValue(iAPlotData::DataType val);
 	void ResetMaxYAxisValue();
-
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData() =0;
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const =0;
 
 	int ChartHeight() const;
 	int GetTFGradientHeight() const;
@@ -97,15 +94,12 @@ public:
 	double const * XBounds() const;
 	double XRange() const;
 
-	void AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset);
+	void AddPlot(QSharedPointer<iAAbstractDrawableFunction> dataset);
+	void RemovePlot(QSharedPointer<iAAbstractDrawableFunction> dataset);
+	QVector< QSharedPointer< iAAbstractDrawableFunction > > const & Plots();
 	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void RemoveImageOverlay(QImage * imgOverlay);
-	void RemoveDataset(QSharedPointer<iAAbstractDrawableFunction> dataset);
 
-	void UpdatePrimaryDrawer();
-	void SetShowPrimaryDrawer(bool showPrimaryDrawer);
-	QSharedPointer< iAAbstractDrawableFunction > GetPrimaryDrawer();
-	
 	void SetYDrawMode(DrawModeType drawMode);
 
 	QSharedPointer<CoordinateConverter> const GetCoordinateConverter() const;
@@ -150,7 +144,7 @@ protected:
 	unsigned int selectedFunction;
 	double min_intensity[3];
 	double max_intensity[3];
-	iAAbstractDiagramData::DataType m_maxYAxisValue;
+	iAPlotData::DataType m_maxYAxisValue;
 
 	QString xCaption, yCaption;
 
@@ -205,9 +199,7 @@ protected:
 
 private:
 	QList< QSharedPointer< QImage > >						m_overlays;
-	QVector< QSharedPointer< iAAbstractDrawableFunction > >	m_datasets;
-	QSharedPointer< iAAbstractDrawableFunction >			m_primaryDrawer;
-	bool													m_showPrimaryDrawer;
+	QVector< QSharedPointer< iAAbstractDrawableFunction > >	m_plots;
 	bool													m_allowTrfReset;
 	bool													m_enableAdditionalFunctions;
 	DrawModeType											m_yDrawMode;
@@ -218,12 +210,10 @@ private:
 	int m_yAxisSteps;
 	int m_requiredPlacesAfterComma;
 
-	virtual QSharedPointer<iAAbstractDrawableFunction> CreatePrimaryDrawer();
-
 	virtual void drawXAxis(QPainter &painter);
 	virtual void drawYAxis(QPainter &painter);
 	virtual double getMaxXZoom() const;
-	virtual void selectBin(QMouseEvent *event);
+	virtual void showDataTooltip(QMouseEvent *event);
 
 	void CreateYConverter();
 };

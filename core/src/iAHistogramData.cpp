@@ -46,7 +46,7 @@ double const * iAHistogramData::XBounds() const
 	return xBounds;
 }
 
-iAHistogramData::DataType const * iAHistogramData::GetData() const
+iAHistogramData::DataType const * iAHistogramData::GetRawData() const
 {
 	return rawData;
 }
@@ -58,9 +58,8 @@ void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate)
 }
 
 void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
-	iAAbstractDiagramData::DataType* data, size_t bins, double space,
-	iAAbstractDiagramData::DataType min,
-	iAAbstractDiagramData::DataType max)
+	iAPlotData::DataType* data, size_t bins, double space,
+	iAPlotData::DataType min, iAPlotData::DataType max)
 {
 	accumulate = imgAccumulate;
 	rawData = data;
@@ -102,7 +101,7 @@ size_t iAHistogramData::GetNumBin() const
 	return numBin;
 }
 
-iAAbstractDiagramData::DataType const * iAHistogramData::YBounds() const
+iAPlotData::DataType const * iAHistogramData::YBounds() const
 {
 	return yBounds;
 }
@@ -118,12 +117,10 @@ iAValueType iAHistogramData::GetRangeType() const
 
 void iAHistogramData::SetMaxFreq()
 {
-	if(rawData)
-	{
-		yBounds[1] = 1;
-		for ( int i = 0; i < GetNumBin(); i++ ) {
-			if (rawData[i] > yBounds[1])
-				yBounds[1] = rawData[i];
-		}
-	}
+	if (!rawData)
+		return;
+	yBounds[1] = 1;
+	for ( int i = 0; i < GetNumBin(); i++ )
+		if (rawData[i] > yBounds[1])
+			yBounds[1] = rawData[i];
 }

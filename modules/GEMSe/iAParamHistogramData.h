@@ -32,7 +32,7 @@ class iAChartAttributeMapper;
 class iAImageTreeNode;
 class iAImageTreeLeaf;
 
-class iAParamHistogramData: public iAAbstractDiagramRangedData
+class iAParamHistogramData: public iAPlotData
 {
 public:
 	// TODO: extract creation?
@@ -56,18 +56,18 @@ public:
 		iAValueType rangeType);
 	void Reset();
 	virtual ~iAParamHistogramData();
-	virtual DataType const * GetData() const override;
-	virtual size_t GetNumBin() const override;
-	virtual double GetSpacing() const override;
-	virtual double const * XBounds() const override;
-	virtual DataType const * YBounds() const override;
-	virtual double GetBinStart(int binNr) const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
+	double GetBinStart(int binNr) const override;
 	double MapValueToBin(double value) const;
 	double MapBinToValue(double bin) const;
 	iAValueType GetRangeType() const;
 	bool IsLogarithmic() const;
-	virtual double GetMinX() const override;
-	virtual double GetMaxX() const override;
+	double GetMinX() const override;
+	double GetMaxX() const override;
 	void SetMinX(double x);
 	void SetMaxX(double x);
 	void AddValue(double value);

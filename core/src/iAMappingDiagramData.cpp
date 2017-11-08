@@ -41,22 +41,22 @@ iAMappingDiagramData::iAMappingDiagramData(DataType const * data,
 	m_data(new DataType[m_numBin])
 {
 	double srcSpacing = (srcMaxX - srcMinX) / (srcNumBin-1);
-	double targetSpacing = (targetMaxX - targetMinX) / (targetNumBin-1);
+	m_spacing = (targetMaxX - targetMinX) / (targetNumBin-1);
+	m_xBounds[0] = targetMinX;
+	m_xBounds[1] = targetMaxX;
+	m_yBounds[0] = 0;
+	m_yBounds[1] = maxValue;
 	// get scale factor from all source data
 	DataType myMax = 0;
 	for (int i=0; i<srcNumBin; ++i)
-	{
 		if (data[i] > myMax)
-		{
 			myMax = data[i];
-		}
-	}
 	double scaleFactor = static_cast<double>(maxValue) / myMax;
 		
 	// map source data to target indices:
 	for (int i=0; i<targetNumBin; ++i)
 	{
-		double sourceIdxDbl = ((i * targetSpacing) + targetMinX - srcMinX) / srcSpacing ;
+		double sourceIdxDbl = ((i * m_spacing) + targetMinX - srcMinX) / srcSpacing ;
 		int sourceIdx = static_cast<int>(Round(sourceIdxDbl));
 
 		m_data[i] = (sourceIdx >= 0 && sourceIdx < srcNumBin) ?
@@ -74,7 +74,22 @@ size_t iAMappingDiagramData::GetNumBin() const
 	return m_numBin;
 }
 
-iAMappingDiagramData::DataType const * iAMappingDiagramData::GetData() const
+iAMappingDiagramData::DataType const * iAMappingDiagramData::GetRawData() const
 {
 	return m_data;
+}
+
+double iAMappingDiagramData::GetSpacing() const
+{
+	return m_spacing;
+}
+
+double const * iAMappingDiagramData::XBounds() const
+{
+	return m_xBounds;
+}
+
+iAPlotData::DataType const * iAMappingDiagramData::YBounds() const
+{
+	return m_yBounds;
 }

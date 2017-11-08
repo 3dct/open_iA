@@ -870,7 +870,7 @@ bool MdiChild::saveAs()
 	{
 		return false;
 	}
-	saveAs(modalityNr);
+	return saveAs(modalityNr);
 }
 
 bool MdiChild::saveAs(int modalityNr)

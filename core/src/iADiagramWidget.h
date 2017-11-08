@@ -90,7 +90,7 @@ protected:
 
 	virtual void mousePressEvent(QMouseEvent *event);
 	virtual void changeMode(int newMode, QMouseEvent *event);
-	virtual void selectBin(QMouseEvent *event) =0;
+	virtual void showDataTooltip(QMouseEvent *event) =0;
 	virtual void mouseMoveEvent(QMouseEvent *event);
 private:
 	virtual void wheelEvent(QWheelEvent *event);

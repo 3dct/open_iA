@@ -27,16 +27,16 @@
 class vtkImageData;
 class vtkImageAccumulate;
 
-class iAHistogramData: public iAAbstractDiagramRangedData
+class iAHistogramData: public iAPlotData
 {
 public:
 	iAHistogramData();
-	virtual double GetSpacing() const;
-	virtual double const * XBounds() const;
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
-	virtual DataType const * YBounds() const;
-	virtual iAValueType GetRangeType() const;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	DataType const * YBounds() const override;
+	iAValueType GetRangeType() const override;
 
 	void initialize(vtkImageAccumulate* imgAccumulate);
 	void initialize(vtkImageAccumulate* imgAccumulate, DataType* data, size_t numBin, double space, DataType min, DataType max);
@@ -46,8 +46,8 @@ private:
 	vtkImageAccumulate* accumulate;
 	size_t				numBin;
 	vtkSmartPointer<vtkImageData> rawImg;
-	iAAbstractDiagramData::DataType*	rawData;
-	iAAbstractDiagramData::DataType		yBounds[2];
+	iAPlotData::DataType*	rawData;
+	iAPlotData::DataType		yBounds[2];
 	double				accSpacing;
 	double				xBounds[2];
 	iAValueType			m_type;

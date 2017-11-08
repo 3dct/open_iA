@@ -27,15 +27,27 @@
 #include <cstddef> // for size_t
 #include <cmath>   // for log
 
-class open_iA_Core_API iAAbstractDiagramData
+class open_iA_Core_API iAPlotData
 {
 public:
 	typedef double DataType;
-	virtual ~iAAbstractDiagramData() {}
-	virtual DataType const * GetData() const =0;
+	virtual ~iAPlotData() {}
+	virtual DataType const * GetRawData() const =0;
 	virtual size_t GetNumBin() const =0;
 	virtual double GetMinX() const { return 0; }
 	virtual double GetMaxX() const { return GetNumBin(); }
+	virtual double GetSpacing() const = 0;
+	virtual double const * XBounds() const = 0;
+	virtual DataType const * YBounds() const = 0;
+
+	virtual double GetBinStart(int binNr) const		// default: assume constant (i.e. linear) spacing
+	{
+		return GetSpacing() * binNr + XBounds()[0];
+	}
+	virtual iAValueType GetRangeType() const
+	{
+		return Continuous;
+	}
 };
 
 
@@ -53,20 +65,3 @@ T LogFunc(T value)
 {
 	return std::log(value) / std::log(LogBase);
 }
-
-class iAAbstractDiagramRangedData: public iAAbstractDiagramData
-{
-public:
-	virtual double GetSpacing() const =0;
-	virtual double const * XBounds() const =0;
-	virtual DataType const * YBounds() const = 0;
-
-	virtual double GetBinStart(int binNr) const		// default: assume constant (i.e. linear) spacing
-	{
-		return GetSpacing() * binNr + XBounds()[0];
-	}
-	virtual iAValueType GetRangeType() const
-	{
-		return Continuous;
-	}
-};

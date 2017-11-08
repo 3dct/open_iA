@@ -39,21 +39,17 @@ public:
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel);
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 	void AddElementLines(iACharacteristicEnergy* element, QColor const & color);
 	void RemoveElementLines(iACharacteristicEnergy* element);
 protected:
-	virtual void mousePressEvent(QMouseEvent *event);
-	virtual void mouseReleaseEvent(QMouseEvent *event);
-	virtual void mouseMoveEvent(QMouseEvent *event);
-	virtual void drawDatasets(QPainter& painter);
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void drawDatasets(QPainter& painter) override;
 private:
 	void NotifySelectionUpdateListener();
 
 	QSharedPointer<iAAccumulatedXRFData>	m_data;
-
-	QSharedPointer<iAAbstractDrawableFunction> CreatePrimaryDrawer();
 
 	QPoint selectionOrigin;
 	QRubberBand* selectionRubberBand;

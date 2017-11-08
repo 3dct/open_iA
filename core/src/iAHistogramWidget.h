@@ -48,22 +48,18 @@ public:
 		vtkImageAccumulate* accumulate,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
-		iAAbstractDiagramData::DataType* histData,
-		iAAbstractDiagramData::DataType min,
-		iAAbstractDiagramData::DataType max,
+		iAPlotData::DataType* histData,
+		iAPlotData::DataType min,
+		iAPlotData::DataType max,
 		int bins,
 		double space,
 		QString label,
 		bool reset = true);
 	void initialize(vtkImageAccumulate* histData, bool reset);
-	void datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histData, bool reset,
-		iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space);
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
+	void datatypehistograminitialize(vtkImageAccumulate* hData, iAPlotData::DataType* histData, bool reset,
+		iAPlotData::DataType min, iAPlotData::DataType max, int bins, double space);
 	void UpdateData();
-
 private:
-	QSharedPointer<iAHistogramData> data;
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
 	void reInitialize(bool resetFunction);
-
+	QSharedPointer<iAHistogramData> m_data;
 };

@@ -66,7 +66,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
 	m_charts.push_back(new iAFilterChart(this, "Entropy", m_entropyChartData,
 		QSharedPointer<iANameMapper>(), true));
-	m_charts[0]->GetPrimaryDrawer()->setColor(QColor(64, 64, 64));
+	m_charts[0]->Plots()[0]->setColor(QColor(64, 64, 64));
 
 	// label distribution chart:
 	for (int label = 0; label < m_labelInfo->count(); ++label)
@@ -75,13 +75,13 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	}
 	m_charts.push_back(new iAFilterChart(this, "Label Distribution", m_labelDistributionChartData[0],
 		QSharedPointer<iANameMapper>(), true));
-	m_charts[1]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(0));
+	m_charts[1]->Plots()[0]->setColor(m_labelInfo->GetColor(0));
 	for (int label = 1; label < m_labelInfo->count(); ++label)
 	{
 		m_drawers.push_back(QSharedPointer<iAAbstractDrawableFunction>(
 			new iABarGraphDrawer(m_labelDistributionChartData[label],
 				m_labelInfo->GetColor(label), 2)));
-		m_charts[1]->AddDataset(m_drawers[m_drawers.size()-1]);
+		m_charts[1]->AddPlot(m_drawers[m_drawers.size()-1]);
 	}
 
 	// highest probability distribution charts:
@@ -103,7 +103,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 void iAProbingWidget::SetLabelInfo(iALabelInfo const * labelInfo)
 {
 	m_labelInfo = labelInfo;
-	m_charts[1]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(0));
+	m_charts[1]->Plots()[0]->setColor(m_labelInfo->GetColor(0));
 	for (int l = 0; l < m_drawers.size(); ++l)
 	{
 		m_drawers[l]->setColor(m_labelInfo->GetColor(l+1));
@@ -185,7 +185,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 			m_probabilitiesChartData[i]->AddValue(probValue);
 		});
 		m_charts[m_probChartStart+i]->SetXCaption(QString("Probability Distribution Label %1").arg(labelValue));
-		m_charts[m_probChartStart+i]->GetPrimaryDrawer()->setColor(m_labelInfo->GetColor(labelValue));
+		m_charts[m_probChartStart+i]->Plots()[0]->setColor(m_labelInfo->GetColor(labelValue));
 	}
 
 	// redraw all charts:

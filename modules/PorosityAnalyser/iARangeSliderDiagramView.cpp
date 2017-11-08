@@ -301,7 +301,7 @@ void iARangeSliderDiagramView::setupHistogram()
 	iARangeSliderDiagramWidget *rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), NULL, m_oTFList.at( 0 ),
 													 m_cTFList.at( 0 ), m_rangeSliderData, &m_histogramMap, m_rawTable,"Porosity", "Frequency" );
 
-	rangeSliderDiagramWidget->AddDataset( m_rangeSliderDiagramDrawer );
+	rangeSliderDiagramWidget->AddPlot( m_rangeSliderDiagramDrawer );
 	m_widgetList.append( rangeSliderDiagramWidget );
 	m_layoutVBMainContainer->addWidget( rangeSliderDiagramWidget );
 }
@@ -350,7 +350,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 		connect( m_widgetList[0], SIGNAL( deselected() ), rangeSliderDiagramWidget, SLOT( deleteSlot() ) );
 		connect( rangeSliderDiagramWidget, SIGNAL( selectionRelesedSignal() ), this, SLOT( loadSelectionToSPMView() ) );
 
-		rangeSliderDiagramWidget->AddDataset( m_rangeSliderDiagramDrawer );
+		rangeSliderDiagramWidget->AddPlot( m_rangeSliderDiagramDrawer );
 		m_widgetList.append( rangeSliderDiagramWidget );
 		m_layoutVBMainContainer->addWidget( rangeSliderDiagramWidget );
 	}

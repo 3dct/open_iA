@@ -105,7 +105,7 @@ double iAParamHistogramData::GetBinStart(int binNr) const
 {
 	if (!m_log)
 	{
-		return iAAbstractDiagramRangedData::GetBinStart(binNr);
+		return iAPlotData::GetBinStart(binNr);
 	}
 	double minLog = std::floor(LogFunc(m_xBounds[0]));
 	double maxLog = std::ceil (LogFunc(m_xBounds[1]));
@@ -185,7 +185,7 @@ iAParamHistogramData::~iAParamHistogramData()
 	delete [] m_data;
 }
 
-iAParamHistogramData::DataType const * iAParamHistogramData::GetData() const
+iAParamHistogramData::DataType const * iAParamHistogramData::GetRawData() const
 {
 	return m_data;
 }

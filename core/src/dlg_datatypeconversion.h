@@ -47,7 +47,7 @@ public:
 
 	void DataTypeConversion(QString const & m_filename, double* b);
 	void DataTypeConversionROI(QString const & m_filename, double* b, double *roi);
-	void histogramdrawing(iAAbstractDiagramData::DataType* histbinlist, float min, float max, int m_bins, double discretization);
+	void histogramdrawing(iAPlotData::DataType* histbinlist, float min, float max, int m_bins, double discretization);
 
 	void xyprojectslices();
 	void xzprojectslices();
@@ -83,7 +83,7 @@ private:
 	int m_intype;
 	double m_sliceskip, m_insizex,	m_insizey, m_insizez, m_inspacex, m_inspacey, m_inspacez;
 	QString m_filename;
-	iAAbstractDiagramData::DataType * m_histbinlist;
+	iAPlotData::DataType * m_histbinlist;
 	float m_min, m_max, m_dis;
 	vtkImageData* m_testxyimage, * m_testxzimage, * m_testyzimage, * m_roiimage;
 	QVTKWidget2* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;

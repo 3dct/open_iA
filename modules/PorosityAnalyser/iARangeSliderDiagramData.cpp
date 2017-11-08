@@ -53,7 +53,7 @@ void iARangeSliderDiagramData::updateRangeSliderFunction()
 	}
 }
 
-iAAbstractDiagramData::DataType const * iARangeSliderDiagramData::GetData() const
+iAPlotData::DataType const * iARangeSliderDiagramData::GetRawData() const
 {
 	return m_rangeSliderFunction;
 }

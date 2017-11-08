@@ -35,7 +35,7 @@ template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot;
 typedef iAFunctionalBoxplot<size_t, unsigned int> FunctionalBoxPlot;
 
-class iAAccumulatedXRFData: public iAAbstractDiagramRangedData
+class iAAccumulatedXRFData: public iAPlotData
 {
 public:
 	enum AccumulateFct
@@ -47,11 +47,11 @@ public:
 		fctDefault = fctMax,
 	};
 	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
-	virtual double GetSpacing() const override;
-	virtual double const * XBounds() const override;
-	virtual DataType const * YBounds() const override;
-	virtual DataType const * GetData() const override;
-	virtual size_t GetNumBin() const override;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
 	void SetFct(int fctIdx);
 	void RetrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType GetSpectraHistogramMax() const;

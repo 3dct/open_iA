@@ -24,6 +24,8 @@
 
 #include <QSharedPointer>
 
+class iAPlotData;
+
 class QColor;
 class QPainter;
 
@@ -62,4 +64,15 @@ public:
 	* it is allowed to cache the result; when the data has changed, update() needs to be called
 	*/
 	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
+	/**
+	* retrieves the data used for drawing
+	*/
+	virtual QSharedPointer<iAPlotData> GetData()
+	{
+		return QSharedPointer<iAPlotData>();
+	}
+	virtual bool Visible() { return m_visible; }
+	virtual void SetVisible(bool visible) { m_visible = visible; }
+private:
+	bool m_visible;
 };

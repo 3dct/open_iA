@@ -26,7 +26,7 @@
 #include <QVector>
 #include <QSharedPointer>
 
-class iAAbstractDiagramData;
+class iAPlotData;
 
 class QPolygon;
 
@@ -44,14 +44,15 @@ private:
 class open_iA_Core_API iAPolygonBasedFunctionDrawer: public iAAbstractDrawableFunction
 {
 public:
-	iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
+	iAPolygonBasedFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
 	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
 	void update() override;
 private:
 	virtual bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
 	virtual void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const = 0;
+	QSharedPointer<iAPlotData> GetData() override;
 protected:
-	QSharedPointer<iAAbstractDiagramData> m_data;
+	QSharedPointer<iAPlotData> m_data;
 	//! @{
 	//! just for caching:
 	mutable QSharedPointer<QPolygon> m_poly;
@@ -64,7 +65,7 @@ protected:
 class open_iA_Core_API iALineFunctionDrawer: public iAPolygonBasedFunctionDrawer
 {
 public:
-	iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
+	iALineFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
 	bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
@@ -74,7 +75,7 @@ private:
 class open_iA_Core_API iAStepFunctionDrawer : public iAPolygonBasedFunctionDrawer
 {
 public:
-	iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
+	iAStepFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
 	bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
@@ -84,7 +85,7 @@ private:
 class open_iA_Core_API iAFilledLineFunctionDrawer : public iAPolygonBasedFunctionDrawer
 {
 public:
-	iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color);
+	iAFilledLineFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
 	bool computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
@@ -95,11 +96,12 @@ private:
 class open_iA_Core_API iABarGraphDrawer: public iAAbstractDrawableFunction
 {
 public:
-	iABarGraphDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, int margin=0);
+	iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
 	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
 	void update() override;
+	QSharedPointer<iAPlotData> GetData() override;
 private:
-	QSharedPointer<iAAbstractDiagramData> m_data;
+	QSharedPointer<iAPlotData> m_data;
 	int m_margin;
 };
 

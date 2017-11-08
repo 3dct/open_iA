@@ -24,6 +24,7 @@
 
 #include "dlg_function.h"
 #include "iAHistogramData.h"
+#include "iAFunctionDrawers.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -32,9 +33,9 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkIm
 		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label, bool reset) 
 	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
 {
-	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
-	
+	m_data = QSharedPointer<iAHistogramData>(new iAHistogramData());
 	initialize(accumulate, reset);
+	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
 iAHistogramWidget::iAHistogramWidget(QWidget *parent,
@@ -42,30 +43,31 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 	vtkImageAccumulate* accumulate,
 	vtkPiecewiseFunction* oTF,
 	vtkColorTransferFunction* cTF,
-	iAAbstractDiagramData::DataType* histData,
-	iAAbstractDiagramData::DataType dataMin,
-	iAAbstractDiagramData::DataType dataMax,
+	iAPlotData::DataType* histData,
+	iAPlotData::DataType dataMin,
+	iAPlotData::DataType dataMax,
 	int bins,
 	double space,
 	QString label,
 	bool reset)
 	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
 {
-	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
+	m_data = QSharedPointer<iAHistogramData>(new iAHistogramData());
 	datatypehistograminitialize(accumulate, histData, reset, dataMin, dataMax, bins, space);
+	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
 void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, bool reset)
 {
-	data->initialize(accumulate);
+	m_data->initialize(accumulate);
 	reInitialize(reset);
 }
 
 
-void iAHistogramWidget::datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histlistptr, bool reset,
-	iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space)
+void iAHistogramWidget::datatypehistograminitialize(vtkImageAccumulate* hData, iAPlotData::DataType* histlistptr, bool reset,
+	iAPlotData::DataType min, iAPlotData::DataType max, int bins, double space)
 {
-	data->initialize(hData, histlistptr, bins, space, min, max);
+	m_data->initialize(hData, histlistptr, bins, space, min, max);
 	reInitialize(reset);
 }
 
@@ -93,19 +95,8 @@ void iAHistogramWidget::reInitialize(bool resetFunction)
 	}
 }
 
-
-QSharedPointer<iAAbstractDiagramRangedData> iAHistogramWidget::GetData()
-{
-	return data;
-}
-
-QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramWidget::GetData() const
-{
-	return data;
-}
-
 void iAHistogramWidget::UpdateData()
 {
-	data->UpdateData();
-	SetMaxYAxisValue(data->YBounds()[1]);
+	m_data->UpdateData();
+	SetMaxYAxisValue(m_data->YBounds()[1]);
 }
