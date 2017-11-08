@@ -32,6 +32,8 @@
 #include "UndecidedPixelClassifierImageFilter.h"
 #include "ProbabilisticVotingImageFilter.h"
 
+#include "MaskingLabelOverlapMeasuresImageFilter.h"
+
 // Core:
 #include "dlg_commoninput.h"
 #include "iAColorTheme.h"
@@ -419,7 +421,8 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 
 
 iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
-	double threshold, VotingRule rule, int labelCount, bool undecidedPixels, double & undecided)
+	double threshold, VotingRule rule, int labelCount, bool undecidedPixels, double & undecided,
+	QVector<double> & diceMV, QVector<double> & diceUndecided, LabelImagePointer groundTruth)
 {
 	if (selection.size() == 0)
 	{
@@ -449,6 +452,21 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 	filter->Update();
 	LabelImagePointer labelResult = filter->GetOutput();
 	undecided = filter->GetUndecided();
+
+	// calculate dice for those voxels decided by the Prob. Vote:
+	auto pvdicefilter = fhw::MaskingLabelOverlapMeasuresImageFilter<LabelImageType>::New() ;
+	pvdicefilter->SetSourceImage(groundTruth);
+	pvdicefilter->SetTargetImage(labelResult);
+	pvdicefilter->SetIgnoredLabel(labelCount);
+	pvdicefilter->Update();
+	diceMV.push_back(pvdicefilter->GetMeanOverlap());
+	for (int l = 0; l < labelCount; ++l)
+	{
+		diceMV.push_back(pvdicefilter->GetMeanOverlap(l));
+	}
+	auto undecidedPixelIndices = pvdicefilter->IgnoredIndices();
+
+
 	iAITKIO::ImagePointer result;
 	if (undecidedPixels)
 	{
@@ -471,6 +489,18 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 		undec->Update();
 		LabelImagePointer undecResult = undec->GetOutput();
 		result = dynamic_cast<iAITKIO::ImageBaseType *>(undecResult.GetPointer());
+		
+		// calculate dice for undecided pixels:
+		auto undicefilter = fhw::MaskingLabelOverlapMeasuresImageFilter<LabelImageType>::New();
+		undicefilter->SetSourceImage(groundTruth);
+		undicefilter->SetTargetImage(undecResult);
+		undicefilter->SetIgnoredIndices(undecidedPixelIndices);
+		undicefilter->Update();
+		diceUndecided.push_back(undicefilter->GetMeanOverlap());
+		for (int l = 0; l < labelCount; ++l)
+		{
+			diceUndecided.push_back(undicefilter->GetMeanOverlap(l));
+		}
 	}
 	else
 	{
@@ -1197,11 +1227,11 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 			QString("Max. Pixel Uncertainty"),
 			QString("Max. Label Voters"),
 
-			QString("Probab. Voting/Sum Rule"),
-			QString("Probab. Voting/Max Rule"),
-			QString("Probab. Voting/Min Rule"),
-			QString("Probab. Voting/Median Rule"),
-			QString("Probab. Voting/Majority Rule"),
+			QString("Prob.Voting/Sum Rule"),
+			QString("Prob.Voting/Max Rule"),
+			QString("Prob.Voting/Min Rule"),
+			QString("Prob.Voting/Median Rule"),
+			QString("Prob.Voting/Majority Rule"),
 		};
 		for (int r = 0; r < ResultCount; ++r)
 		{
@@ -1249,15 +1279,21 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 			// calculate voting using these values:
 			iAITKIO::ImagePointer result[ResultCount];
 			QVector<double> undecided(ResultCount);
+			const int ProbVoteCount = 5;
 			result[0] = GetVotingImage(selection, value[0], -1, -1, -1, -1, weightType, m_labelCount, true, undecided[0]);
 			result[1] = GetVotingImage(selection, -1, value[1], -1, -1, -1, weightType, m_labelCount, true, undecided[1]);
 			result[2] = GetVotingImage(selection, -1, -1, value[2], -1, -1, weightType, m_labelCount, true, undecided[2]);
 			result[3] = GetVotingImage(selection, -1, -1, -1, value[3], -1, weightType, m_labelCount, true, undecided[3]);
 			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount, true, undecided[4]);
-			for (int i = 0; i < 5; ++i)
+			QVector<QVector<double>>  probVoteDice;
+			QVector<QVector<double>> undecidedDice;
+			for (int i = 0; i < ProbVoteCount; ++i)
 			{
+				probVoteDice.push_back(QVector<double>());
+				undecidedDice.push_back(QVector<double>());
 				result[i + 5] = GetProbVotingImage(selection, value[i + 5],
-					static_cast<VotingRule>(i), m_labelCount, true, undecided[i+5]);
+					static_cast<VotingRule>(i), m_labelCount, true, undecided[i+5],
+					probVoteDice[i], undecidedDice[i], m_groundTruthImage);
 			}
 			for (int r = 0; r < ResultCount; ++r)
 			{
@@ -1437,8 +1473,10 @@ void dlg_Consensus::CalcProbRuleVote()
 		return;
 	}
 	double undecided;
+	QVector<double> mv, un;
 	m_lastMVResult = GetProbVotingImage(selection, sbUndecidedThresh->value(), static_cast<VotingRule>(cbProbRule->currentIndex())
-		, m_labelCount, cbUndecidedPixels->isChecked(), undecided);
+		, m_labelCount, cbUndecidedPixels->isChecked(), undecided,
+		mv, un, m_groundTruthImage);
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("Probability Vote rule=%1, thresh=%2, (%3)")
 		.arg(cbProbRule->currentIndex())
 		.arg(sbUndecidedThresh->value())
