@@ -22,15 +22,16 @@
 
 #include "iAAbstractDiagramData.h"
 
-#include <vtkSmartPointer.h>
+#include <QSharedPointer>
 
 class vtkImageData;
-class vtkImageAccumulate;
+
+class iAImageInfo;
 
 class iAHistogramData: public iAPlotData
 {
 public:
-	iAHistogramData();
+	~iAHistogramData();
 	double GetSpacing() const override;
 	double const * XBounds() const override;
 	DataType const * GetRawData() const override;
@@ -38,18 +39,17 @@ public:
 	DataType const * YBounds() const override;
 	iAValueType GetRangeType() const override;
 
-	void initialize(vtkImageAccumulate* imgAccumulate);
-	void initialize(vtkImageAccumulate* imgAccumulate, DataType* data, size_t numBin, double space, DataType min, DataType max);
-	void UpdateData();
-
+	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, int binCount,
+		QSharedPointer<iAImageInfo> imageInfo = QSharedPointer<iAImageInfo>());
+	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t numBin, double space, DataType min, DataType max);
 private:
-	vtkImageAccumulate* accumulate;
-	size_t				numBin;
-	vtkSmartPointer<vtkImageData> rawImg;
-	iAPlotData::DataType*	rawData;
-	iAPlotData::DataType		yBounds[2];
-	double				accSpacing;
-	double				xBounds[2];
-	iAValueType			m_type;
+	iAHistogramData();
 	void SetMaxFreq();
+
+	size_t numBin;
+	iAPlotData::DataType* rawData;
+	iAPlotData::DataType yBounds[2];
+	double accSpacing;
+	double xBounds[2];
+	iAValueType m_type;
 };

@@ -89,7 +89,6 @@ void iAModality::SetName(QString const & name)
 {
 	m_name = name;
 	assert(m_transfer);
-	m_transfer->SetName(name);
 }
 
 void iAModality::SetFileName(QString const & fileName)

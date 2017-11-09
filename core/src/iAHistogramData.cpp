@@ -22,6 +22,7 @@
 #include "pch.h"
 #include "iAHistogramData.h"
 
+#include "iAImageInfo.h"
 #include "iAVtkDataTypeMapper.h"
 #include "iAToolsVTK.h"
 
@@ -30,10 +31,15 @@
 #include <vtkImageData.h>
 
 iAHistogramData::iAHistogramData()
-	: accumulate(0), numBin(0), rawData(0), rawImg(0), accSpacing(0)
+	: numBin(0), rawData(nullptr), accSpacing(0)
 {
 	xBounds[0] = xBounds[1] = 0;
 	yBounds[0] = yBounds[1] = 0;
+}
+
+iAHistogramData::~iAHistogramData()
+{
+	delete[] rawData;
 }
 
 double iAHistogramData::GetSpacing() const
@@ -51,49 +57,79 @@ iAHistogramData::DataType const * iAHistogramData::GetRawData() const
 	return rawData;
 }
 
-void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate)
+QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, int binCount,
+	QSharedPointer<iAImageInfo> info)
 {
-	accumulate = imgAccumulate;
-	UpdateData();
-}
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
+	auto accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
+	accumulate->ReleaseDataFlagOn();
+	accumulate->SetInputData(img);
+	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
+	double * const scalarRange = img->GetScalarRange();
+	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
+		binCount = std::min(binCount, static_cast<int>(scalarRange[1] - scalarRange[0] + 1));
 
-void iAHistogramData::initialize(vtkImageAccumulate* imgAccumulate,
-	iAPlotData::DataType* data, size_t bins, double space,
-	iAPlotData::DataType min, iAPlotData::DataType max)
-{
-	accumulate = imgAccumulate;
-	rawData = data;
-	numBin = bins;
-	accSpacing = space;
-	xBounds[0] = min;
-	xBounds[1] = max;
-	SetMaxFreq();
-}
+	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
+	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
+	accumulate->SetComponentSpacing(((scalarRange[1] - scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
+	accumulate->Update();
 
-
-void iAHistogramData::UpdateData()
-{
 	int extent[6];
 	accumulate->GetComponentExtent(extent);
-	numBin = extent[1] + 1;
-	xBounds[0] = accumulate->GetMin()[0];
-	xBounds[1] = accumulate->GetMax()[0];
 	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
 	caster->SetInputData(accumulate->GetOutput());
 	caster->SetOutputScalarType(VtkDataType<DataType>::value);
 	caster->Update();
-	rawImg = caster->GetOutput();
-	rawData = static_cast<DataType* >(rawImg->GetScalarPointer());
+	auto rawImg = caster->GetOutput();
+
+	result->numBin = extent[1] + 1;
+	result->xBounds[0] = accumulate->GetMin()[0];
+	result->xBounds[1] = accumulate->GetMax()[0];
+	result->rawData = new double[result->numBin];
+	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
+	std::copy(vtkRawData, vtkRawData + result->numBin, result->rawData);
 	double null1, null2;
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
 	{	// for int types, the last value is inclusive:
-		accSpacing = (xBounds[1] - xBounds[0] + 1) / numBin;
+		result->accSpacing = (result->xBounds[1] - result->xBounds[0] + 1) / result->numBin;
 	}
 	else
 	{
-		accumulate->GetComponentSpacing(accSpacing, null1, null2);
+		accumulate->GetComponentSpacing(result->accSpacing, null1, null2);
 	}
-	SetMaxFreq();
+	result->SetMaxFreq();
+	result->m_type = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
+		? Discrete
+		: Continuous;
+	if (info)
+		*info = iAImageInfo(accumulate->GetVoxelCount(),
+			*accumulate->GetMin(), *accumulate->GetMax(),
+			*accumulate->GetMean(), *accumulate->GetStandardDeviation());
+	return result;
+}
+
+QSharedPointer<iAHistogramData> iAHistogramData::Create(
+	iAPlotData::DataType* data, size_t bins, double space,
+	iAPlotData::DataType min, iAPlotData::DataType max)
+{
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
+	result->rawData = data;
+	result->numBin = bins;
+	result->accSpacing = space;
+	result->xBounds[0] = min;
+	result->xBounds[1] = max;
+	result->SetMaxFreq();
+	return result;
+}
+
+void iAHistogramData::SetMaxFreq()
+{
+	if (!rawData)
+		return;
+	yBounds[1] = 1;
+	for ( int i = 0; i < GetNumBin(); i++ )
+		if (rawData[i] > yBounds[1])
+			yBounds[1] = rawData[i];
 }
 
 size_t iAHistogramData::GetNumBin() const
@@ -108,19 +144,5 @@ iAPlotData::DataType const * iAHistogramData::YBounds() const
 
 iAValueType iAHistogramData::GetRangeType() const
 {
-	vtkImageData* img = dynamic_cast<vtkImageData*>(accumulate->GetInput());
-	if (!img)
-		return Continuous;
-	int type = img->GetScalarType();
-	return ((type != VTK_FLOAT) && (type != VTK_DOUBLE)) ? Discrete : Continuous;
-}
-
-void iAHistogramData::SetMaxFreq()
-{
-	if (!rawData)
-		return;
-	yBounds[1] = 1;
-	for ( int i = 0; i < GetNumBin(); i++ )
-		if (rawData[i] > yBounds[1])
-			yBounds[1] = rawData[i];
+	return m_type;
 }

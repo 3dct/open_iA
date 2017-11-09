@@ -29,7 +29,6 @@
 class QWidget;
 class QString;
 
-class vtkImageAccumulate;
 class vtkImageActor;
 class vtkImageData;
 class vtkImageMapToColors;

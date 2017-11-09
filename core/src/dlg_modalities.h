@@ -33,7 +33,6 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
 class dlg_planeSlicer;
 class iAFast3DMagicLensWidget;
-class iAHistogramWidget;
 class iAModality;
 class iAModalityList;
 class iAVolumeRenderer;
@@ -53,8 +52,7 @@ class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalities(iAFast3DMagicLensWidget* renderer,
-		vtkRenderer* mainRenderer, int numBin, QDockWidget* histogramContainer);
+	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, int numBin);
 	void SetModalities(QSharedPointer<iAModalityList> modalities);
 	QSharedPointer<iAModalityList const> GetModalities() const;
 	QSharedPointer<iAModalityList> GetModalities();
@@ -64,7 +62,6 @@ public:
 	void ChangeRenderSettings(iAVolumeSettings const & rs);
 	void Store(QString const & filename);
 	bool Load(QString const & filename);
-	iAHistogramWidget* GetHistogram();
 	void ShowSlicePlanes(bool enabled);
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 	//! double responsibility function, adding modality to list and initializing its transfer function
@@ -74,27 +71,16 @@ public:
 	void InitDisplay(QSharedPointer<iAModality> mod);
 	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
 	void SelectRow(int idx);
-	void SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans);
 	void EnableUI();
 	void SetFileName(int modality, QString const & fileName);
 public slots:
-	//! add modality to list, create transfer function, show histogram, add volume to renderers
+	//! add modality to list, create transfer function, add volume to renderers
 	void ModalityAdded(QSharedPointer<iAModality> mod);
 	void InteractorModeSwitched(int newMode);
 signals:
-	void ModalityAvailable();
+	void ModalityAvailable(int modalityIdx);
 	void ModalitySelected(int modalityIdx);
-
-	//! @{ for histogram:
-	void PointSelected();
-	void NoPointSelected();
-	void EndPointSelected();
-	void Active();
-	void AutoUpdateChanged(bool toogled);
-	void UpdateViews();
 	void ModalitiesChanged();
-	void ModalityTFChanged();	// ideally we would also emit here which modality (idx?) has changed
-	//! @}
 
 private slots:
 	void AddClicked();
@@ -114,8 +100,6 @@ private:
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
 	int m_numBin;	// only serves to store the numBin from preferences in the MdiChild; this should be a direct reference there to always have the newest value!
-	QDockWidget* m_histogramContainer;
-	iAHistogramWidget* m_currentHistogram;
 	bool m_showSlicePlanes;
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 	vtkRenderer* m_mainRenderer;

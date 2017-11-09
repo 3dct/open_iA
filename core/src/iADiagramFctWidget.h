@@ -145,6 +145,7 @@ protected:
 	double min_intensity[3];
 	double max_intensity[3];
 	iAPlotData::DataType m_maxYAxisValue;
+	bool m_customYAxisValue;
 
 	QString xCaption, yCaption;
 

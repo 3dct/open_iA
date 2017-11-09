@@ -29,19 +29,22 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
-iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkImageAccumulate* accumulate,
-		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label, bool reset) 
+iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, QString const & label):
+	iADiagramFctWidget(parent, mdiChild, label)
+{}
+
+iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild,
+		vtkImageData* img, int binCount,
+		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString const & label, bool reset) 
 	: iADiagramFctWidget(parent, mdiChild, label)
 {
 	SetTransferFunctions(cTF, oTF);
-	m_data = QSharedPointer<iAHistogramData>(new iAHistogramData());
-	initialize(accumulate, reset);
+	initialize(img, binCount, reset);
 	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
 iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 	MdiChild * mdiChild,
-	vtkImageAccumulate* accumulate,
 	vtkPiecewiseFunction* oTF,
 	vtkColorTransferFunction* cTF,
 	iAPlotData::DataType* histData,
@@ -49,27 +52,26 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 	iAPlotData::DataType dataMax,
 	int bins,
 	double space,
-	QString label,
+	QString const & label,
 	bool reset)
 	: iADiagramFctWidget(parent, mdiChild, label)
 {
 	SetTransferFunctions(cTF, oTF);
-	m_data = QSharedPointer<iAHistogramData>(new iAHistogramData());
-	datatypehistograminitialize(accumulate, histData, reset, dataMin, dataMax, bins, space);
+	datatypehistograminitialize(histData, reset, dataMin, dataMax, bins, space);
 	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
-void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, bool reset)
+void iAHistogramWidget::initialize(vtkImageData* img, int binCount, bool reset)
 {
-	m_data->initialize(accumulate);
+	m_data = iAHistogramData::Create(img, binCount);
 	reInitialize(reset);
 }
 
 
-void iAHistogramWidget::datatypehistograminitialize(vtkImageAccumulate* hData, iAPlotData::DataType* histlistptr, bool reset,
+void iAHistogramWidget::datatypehistograminitialize(iAPlotData::DataType* histlistptr, bool reset,
 	iAPlotData::DataType min, iAPlotData::DataType max, int bins, double space)
 {
-	m_data->initialize(hData, histlistptr, bins, space, min, max);
+	m_data = iAHistogramData::Create(histlistptr, bins, space, min, max);
 	reInitialize(reset);
 }
 
@@ -95,10 +97,4 @@ void iAHistogramWidget::reInitialize(bool resetFunction)
 	{
 		functions[0]->reset();
 	}
-}
-
-void iAHistogramWidget::UpdateData()
-{
-	m_data->UpdateData();
-	SetMaxYAxisValue(m_data->YBounds()[1]);
 }

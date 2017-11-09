@@ -67,6 +67,7 @@ class dlg_modalities;
 class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
+class iAAbstractDrawableFunction;
 class iAAlgorithm;
 class iAChannelVisualizationData;
 class iAHistogramWidget;
@@ -195,7 +196,7 @@ public:
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
-	iAHistogramWidget * getHistogram();
+	iAHistogramWidget* getHistogram();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -458,7 +459,10 @@ private:
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
 
-	QDockWidget* histogramContainer;
+	QDockWidget* m_histogramContainer;
+	iAHistogramWidget* m_histogram;
+	QSharedPointer<iAAbstractDrawableFunction> m_histogramPlot;
+
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
@@ -495,6 +499,7 @@ private:
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();
+	void SetHistogramModality(int modalityIdx);
 public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);
 	QSharedPointer<iAModalityList> GetModalities();

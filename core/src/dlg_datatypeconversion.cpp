@@ -682,7 +682,7 @@ void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist,
 	vtkPiecewiseFunction* piecewiseFunction = vtkPiecewiseFunction::New();
 	vtkColorTransferFunction* colorTransferFunction = vtkColorTransferFunction::New();
 
-	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction,
+	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), piecewiseFunction, colorTransferFunction,
 		histbinlist, min, max , m_bins, discretization, "Histogram (Intensities)");
 	imgHistogram->updateTrf();
 	imgHistogram->redraw();

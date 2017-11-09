@@ -162,7 +162,7 @@ private:
 }
 
 iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
-	QString const & xLabel,	QString const & yLabel) :
+	QString const & xLabel, QString const & yLabel) :
 	iADiagramWidget(parent),
 	TFTable(0),
 	contextMenu(new QMenu(this)),
@@ -178,7 +178,8 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
 	m_maxYAxisValue(std::numeric_limits<iAPlotData::DataType>::lowest()),
 	contextMenuVisible(false),
-	m_showFunctions(false)
+	m_showFunctions(false),
+	m_customYAxisValue(false)
 {
 	leftMargin   = (yLabel == "") ? 0 : 60;
 	selectedFunction = 0;
@@ -1148,6 +1149,7 @@ iAPlotData::DataType iADiagramFctWidget::GetMaxYAxisValue() const
 
 void iADiagramFctWidget::SetMaxYAxisValue(iAPlotData::DataType val)
 {
+	m_customYAxisValue = true;
 	m_maxYAxisValue = val;
 	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
 		(*it)->update();
@@ -1155,6 +1157,7 @@ void iADiagramFctWidget::SetMaxYAxisValue(iAPlotData::DataType val)
 
 void iADiagramFctWidget::ResetMaxYAxisValue()
 {
+	m_customYAxisValue = false;
 	m_maxYAxisValue = GetMaxYValue();
 }
 
@@ -1164,6 +1167,8 @@ void iADiagramFctWidget::AddPlot(QSharedPointer<iAAbstractDrawableFunction> plot
 	if (!plot)
 		return;
 	m_plots.push_back(plot);
+	if (!m_customYAxisValue)
+		m_maxYAxisValue = GetMaxYValue();
 }
 
 void iADiagramFctWidget::RemovePlot(QSharedPointer<iAAbstractDrawableFunction> plot)

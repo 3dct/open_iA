@@ -27,18 +27,14 @@
 
 #include <QSharedPointer>
 
-class iAHistogramWidget;
+class iAHistogramData;
 class iAImageInfo;
 
 class vtkColorTransferFunction;
-class vtkImageAccumulate;
 class vtkImageData;
 class vtkPiecewiseFunction;
 
-class QColor;
-class QDockWidget;
 class QString;
-class QWidget;
 
 //! class uniting a color transfer function, an opacity transfer function
 //! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
@@ -46,27 +42,17 @@ class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
 private:
 	QSharedPointer<iAImageInfo> m_imageInfo;
-	vtkSmartPointer<vtkImageAccumulate> accumulate;
-	iAHistogramWidget* histogram;
-	vtkSmartPointer<vtkColorTransferFunction> ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> otf;
-	double m_scalarRange[2];
-	bool m_useAccumulate;
-	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount);
+	QSharedPointer<iAHistogramData> m_histogramData;
+	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+	void UpdateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount);
 public:
 	iAImageInfo const & Info() const;
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
-	void SetName(QString name);
-	iAHistogramWidget* GetHistogram();
-	void SetHistogramBinCount(int binCount);
+	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, int binCount);
 	void Update(vtkSmartPointer<vtkImageData> imgData, int binCount);
+	QSharedPointer<iAHistogramData> const GetHistogramData() const;
 
 	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
 	vtkPiecewiseFunction* GetOpacityFunction();
 	vtkColorTransferFunction* GetColorFunction();
-
-	vtkSmartPointer<vtkImageAccumulate> GetAccumulate();
-	iAHistogramWidget* ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions = false);
-
-	static QWidget* NoHistogramAvailableWidget();
 };

@@ -26,7 +26,6 @@
 #include <QSharedPointer>
 
 class vtkImageData;
-class vtkImageAccumulate;
 
 class iAHistogramData;
 
@@ -36,16 +35,14 @@ class open_iA_Core_API iAHistogramWidget : public iADiagramFctWidget
 	Q_OBJECT
 
 public:
-	iAHistogramWidget(QWidget *parent,
-		MdiChild * mdiChild,
-		vtkImageAccumulate* histData,
-		vtkPiecewiseFunction* oTF,
-		vtkColorTransferFunction* cTF,
-		QString label = "Greyvalue",
+	iAHistogramWidget(QWidget *parent, MdiChild* mdiChild, QString const & label);
+	iAHistogramWidget(QWidget *parent, MdiChild * mdiChild,
+		vtkImageData* img, int binCount,
+		vtkPiecewiseFunction* oTF,	vtkColorTransferFunction* cTF,
+		QString const & label = "Greyvalue",
 		bool reset = true);
 	iAHistogramWidget(QWidget *parent,
 		MdiChild * mdiChild,
-		vtkImageAccumulate* accumulate,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		iAPlotData::DataType* histData,
@@ -53,12 +50,11 @@ public:
 		iAPlotData::DataType max,
 		int bins,
 		double space,
-		QString label,
+		QString const & label,
 		bool reset = true);
-	void initialize(vtkImageAccumulate* histData, bool reset);
-	void datatypehistograminitialize(vtkImageAccumulate* hData, iAPlotData::DataType* histData, bool reset,
+	void initialize(vtkImageData* img, int binCount, bool reset);
+	void datatypehistograminitialize(iAPlotData::DataType* histData, bool reset,
 		iAPlotData::DataType min, iAPlotData::DataType max, int bins, double space);
-	void UpdateData();
 private:
 	void reInitialize(bool resetFunction);
 	QSharedPointer<iAHistogramData> m_data;
