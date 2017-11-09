@@ -522,9 +522,11 @@ int iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 		static_cast<int>(2 * ptRad / m_locRect.height() * ( (double) m_gridDims[1] ) + 1)
 	};
 	int xrange[2] = { xbin - delta[0], xbin + delta[0] };
-	if ( xrange[0] < 0 ) xrange[0] = 0; if ( xrange[1] > m_gridDims[0] ) xrange[1] = m_gridDims[0];
+	if ( xrange[0] < 0 ) xrange[0] = 0;
+	if ( xrange[1] > m_gridDims[0] ) xrange[1] = m_gridDims[0];
 	int yrange[2] = { ybin - delta[1], ybin + delta[1] };
-	if ( yrange[0] < 0 ) yrange[0] = 0; if ( yrange[1] > m_gridDims[1] ) yrange[1] = m_gridDims[1];
+	if ( yrange[0] < 0 ) yrange[0] = 0;
+	if ( yrange[1] > m_gridDims[1] ) yrange[1] = m_gridDims[1];
 
 	double minDist = pow( pPtMag * ptRad, 2 );
 	int res = -1;

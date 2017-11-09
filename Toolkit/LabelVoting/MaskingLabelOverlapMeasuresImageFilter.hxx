@@ -20,6 +20,7 @@
 #include "MaskingLabelOverlapMeasuresImageFilter.h"
 
 #include "itkImageRegionConstIterator.h"
+#include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkProgressReporter.h"
 
 namespace fhw {

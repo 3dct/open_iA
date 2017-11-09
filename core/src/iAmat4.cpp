@@ -115,19 +115,15 @@ iAMat4&	iAMat4 :: operator *= ( float v )
 iAMat4&	iAMat4 :: operator *= ( const iAMat4& a )
 {
 	iAMat4	res ( *this );
-
 	for ( int i = 0; i < 4; i++ )
 		for ( int j = 0; j < 4; j++ )
 		{
 			float sum = 0;
-
 			for ( int k = 0; k < 4; k++ )
 				sum += res.x [i][k] * a.x [k][j];
-
 			x [i][j] = sum;
 		}
-
-		return *this;
+	return *this;
 }
 
 iAMat4	operator + ( const iAMat4& a, const iAMat4& b )
@@ -155,19 +151,15 @@ iAMat4	operator - ( const iAMat4& a, const iAMat4& b )
 iAMat4	operator * ( const iAMat4& a, const iAMat4& b )
 {
 	iAMat4	res;
-
 	for ( register int i = 0; i < 4; i++ )
 		for ( register int j = 0; j < 4; j++ )
 		{
 			float sum = 0;
-
 			for ( register int k = 0; k < 4; k++ )
 				sum += a.x [i][k] * b.x [k][j];
-
 			res.x [i][j] = sum;
 		}
-
-		return res;
+	return res;
 }
 
 iAMat4	operator * ( const iAMat4& a, float v )

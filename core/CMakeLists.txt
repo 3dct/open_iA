@@ -62,7 +62,7 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
 	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
 ENDIF()
 IF( "${CMAKE_SYSTEM_NAME}" MATCHES "Darwin" )
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL")
 ENDIF()
 
 # Installation
