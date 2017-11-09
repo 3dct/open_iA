@@ -31,9 +31,18 @@ General
 	{
 		background: none;
 	}
+	QTableWidget,
 	QMdiArea::background
 	{
 		background-color: rgba(40, 40, 40, 255);
+	}
+	QHeaderView::section
+	{
+		background-color: rgba(40, 40, 40, 255);
+	}
+	QTableWidget
+	{
+		background-color: rgba(0, 0, 0, 255);
 	}
 	QLineEdit,
 	QSpinBox,
