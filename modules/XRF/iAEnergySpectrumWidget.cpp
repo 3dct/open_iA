@@ -51,11 +51,12 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChi
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel)
-	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, xLabel, "Count"),
+	: iADiagramFctWidget(parent, mdiChild, xLabel, "Count"),
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	filterListener(filterListener)
 {
+	SetTransferFunctions(cTF, oTF);
 	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iAStepFunctionDrawer(m_data, QColor(70, 70, 70, 255))));
 	selectionRubberBand->hide();
 	SetAllowTrfReset(false);

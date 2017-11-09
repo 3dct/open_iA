@@ -161,12 +161,8 @@ private:
 };
 }
 
-iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
-	MdiChild *mdiChild,
-	vtkPiecewiseFunction* oTF,
-	vtkColorTransferFunction* cTF,
-	QString const & xLabel,
-	QString const & yLabel) :
+iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
+	QString const & xLabel,	QString const & yLabel) :
 	iADiagramWidget(parent),
 	TFTable(0),
 	contextMenu(new QMenu(this)),
@@ -181,18 +177,11 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
 	m_maxYAxisValue(std::numeric_limits<iAPlotData::DataType>::lowest()),
-	contextMenuVisible(false)
+	contextMenuVisible(false),
+	m_showFunctions(false)
 {
 	leftMargin   = (yLabel == "") ? 0 : 60;
 	selectedFunction = 0;
-	m_showFunctions = oTF && cTF;
-	if (m_showFunctions)
-	{
-		dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
-		transferFunction->setOpacityFunction(oTF);
-		transferFunction->setColorFunction(cTF);
-		functions.push_back(transferFunction);
-	}
 	activeChild = mdiChild;
 }
 
@@ -207,6 +196,7 @@ iADiagramFctWidget::~iADiagramFctWidget()
 		++it;
 	}
 }
+
 
 int iADiagramFctWidget::getSelectedFuncPoint() const
 {
@@ -242,7 +232,7 @@ void iADiagramFctWidget::CreateYConverter()
 {
 	if (m_maxYAxisValue == std::numeric_limits<iAPlotData::DataType>::lowest())
 	{
-		m_maxYAxisValue = GetMaxYAxisValue();
+		m_maxYAxisValue = GetMaxYValue();
 	}
 	if (m_yDrawMode == Linear)
 	{
@@ -1064,11 +1054,18 @@ void iADiagramFctWidget::removeFunction()
 	emit updateViews();
 }
 
-void iADiagramFctWidget::updateTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
+void iADiagramFctWidget::SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
 {
+	m_showFunctions = ctf && pwf;
+	if (!m_showFunctions)
+		return;
+	if (functions.empty())
+	{
+		dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
+		functions.push_back(transferFunction);
+	}
 	((dlg_transfer*)functions[0])->setColorFunction(ctf);
 	((dlg_transfer*)functions[0])->setOpacityFunction(pwf);
-
 	redraw();
 	emit updateTFTable();
 	emit updateViews();

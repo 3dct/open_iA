@@ -68,7 +68,7 @@ public:
 		Logarithmic
 	};
 
-	iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild, vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF,
+	iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 		QString const & label = "Greyvalue", QString const & yLabel = "");
 	virtual ~iADiagramFctWidget();
 
@@ -79,7 +79,7 @@ public:
 	virtual void drawEverything();
 	void redraw();
 
-	void updateTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
+	void SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
 	std::vector<dlg_function*> &getFunctions();

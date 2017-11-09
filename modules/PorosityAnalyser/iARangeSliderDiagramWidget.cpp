@@ -32,7 +32,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 							const QTableWidget *rawTable,
 							QString const & xlabel,
 							QString const & yLabel)
-							: iADiagramFctWidget( parent, mdiChild, oTF, cTF, xlabel, yLabel ),
+							: iADiagramFctWidget( parent, mdiChild, xlabel, yLabel ),
 							m_data( data ),
 							m_selectionOrigin( QPoint( 0, 0 ) ),
 							m_selectionRubberBand( new QRubberBand( QRubberBand::Rectangle, this ) ),
@@ -44,6 +44,8 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 							m_xLabel( xlabel ),
 							m_yLabel( yLabel )
 {
+	SetTransferFunctions(cTF, oTF);
+	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 	m_selectionRubberBand->hide();
 	( (dlg_transfer*) functions[0] )->enableRangeSliderHandles( true );
 	iADiagramFctWidget::SetYAxisSteps( 2 );

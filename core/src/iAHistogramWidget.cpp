@@ -31,8 +31,9 @@
 
 iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkImageAccumulate* accumulate,
 		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label, bool reset) 
-	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
+	: iADiagramFctWidget(parent, mdiChild, label)
 {
+	SetTransferFunctions(cTF, oTF);
 	m_data = QSharedPointer<iAHistogramData>(new iAHistogramData());
 	initialize(accumulate, reset);
 	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
@@ -50,8 +51,9 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 	double space,
 	QString label,
 	bool reset)
-	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
+	: iADiagramFctWidget(parent, mdiChild, label)
 {
+	SetTransferFunctions(cTF, oTF);
 	m_data = QSharedPointer<iAHistogramData>(new iAHistogramData());
 	datatypehistograminitialize(accumulate, histData, reset, dataMin, dataMax, bins, space);
 	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));

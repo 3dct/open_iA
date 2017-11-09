@@ -639,7 +639,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll) {
 	// TODO: VOLUME: update all histograms?
 	if (getHistogram())
 	{
-		getHistogram()->updateTransferFunctions(colorTransferFunction, piecewiseFunction);
+		getHistogram()->SetTransferFunctions(colorTransferFunction, piecewiseFunction);
 		getHistogram()->initialize(imageAccumulate, false);
 		getHistogram()->updateTrf();
 		getHistogram()->redraw();

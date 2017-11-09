@@ -46,7 +46,7 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	QSharedPointer<iANameMapper> nameMapper,
 	bool showCaption)
 :
-	iADiagramFctWidget(parent, 0, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption),
+	iADiagramFctWidget(parent, 0, caption),
 	m_data(data),
 	m_markedLocation(InvalidMarker),
 	m_nameMapper(nameMapper),

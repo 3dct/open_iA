@@ -32,7 +32,7 @@
 #include <QHBoxLayout>
 
 iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption):
-	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, "Frequency (Pixels)"),
+	iADiagramFctWidget(nullptr, nullptr, caption, "Frequency (Pixels)"),
 	m_data(data) {
 	setMinimumHeight(120);
 	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2)));
