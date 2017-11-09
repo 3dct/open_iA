@@ -2206,7 +2206,7 @@ void MdiChild::updateImageProperties()
 	imgProperty->Clear();
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
-		imgProperty->AddInfo(GetModality(i)->GetImage(), GetModality(i)->GetTransfer()->GetAccumulate(), GetModality(i)->GetName(),
+		imgProperty->AddInfo(GetModality(i)->GetImage(), GetModality(i)->Info(), GetModality(i)->GetName(),
 			(i == 0 &&
 			GetModality(i)->ComponentCount() == 1 &&
 			volumeStack->getNumberOfVolumes() > 1) ?
@@ -2218,8 +2218,7 @@ void MdiChild::updateImageProperties()
 
 bool MdiChild::addVolumePlayer(iAVolumeStack* volumeStack)
 {
-	volumePlayer = new dlg_volumePlayer(this, imageData,
-		GetModality(0)->GetTransfer()->GetAccumulate(), fileInfo.canonicalFilePath(), volumeStack);
+	volumePlayer = new dlg_volumePlayer(this, volumeStack);
 	tabifyDockWidget(logs, volumePlayer);
 	for (int id=0; id<volumeStack->getNumberOfVolumes(); id++) {
 		CheckedList.append(0);
@@ -2746,12 +2745,6 @@ void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> img
 	slicerYZ->reInitializeChannel(id, &chData);
 	SetMagicLensInput( id, true);
 	updateSlicers();
-}
-
-
-vtkImageAccumulate * MdiChild::getImageAccumulate()
-{
-	return GetModality(m_dlgModalities->GetSelected())->GetTransfer()->GetAccumulate();
 }
 
 

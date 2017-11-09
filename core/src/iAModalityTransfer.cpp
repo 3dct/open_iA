@@ -23,6 +23,7 @@
 #include "iAModalityTransfer.h"
 
 #include "iAHistogramWidget.h"
+#include "iAImageInfo.h"
 #include "iAToolsVTK.h"
 
 #include <vtkColorTransferFunction.h>
@@ -81,6 +82,8 @@ void iAModalityTransfer::SetHistogramBinCount(int binCount)
 	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
 	accumulate->SetComponentSpacing(((m_scalarRange[1] - m_scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
 	accumulate->Update();
+	m_imageInfo.reset(new iAImageInfo(accumulate->GetVoxelCount(), *accumulate->GetMin(), *accumulate->GetMax(),
+		*accumulate->GetMean(), *accumulate->GetStandardDeviation()));
 	if (histogram)
 	{
 		histogram->UpdateData();
@@ -121,6 +124,11 @@ vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
 {
 	return accumulate;
+}
+
+iAImageInfo const & iAModalityTransfer::Info() const
+{
+	return *(m_imageInfo.data());
 }
 
 void iAModalityTransfer::Update(vtkSmartPointer<vtkImageData> imgData, int binCount)

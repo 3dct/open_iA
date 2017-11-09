@@ -20,21 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
-#include "ui_ImageProperty.h"
-
-class iAImageInfo;
-
-class vtkImageData;
-
-class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
+class iAImageInfo
 {
-	Q_OBJECT
-
 public:
-	dlg_imageproperty(QWidget *parent);
-	void AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, int channelCount);
-	void Clear();
+	iAImageInfo(size_t voxelCount, double min, double max, double mean, double stdDev) :
+		m_voxelCount(voxelCount), m_min(min), m_max(max), m_mean(mean), m_stdDev(stdDev) {}
+	size_t VoxelCount() const { return m_voxelCount; }
+	double Min() const { return m_min; }
+	double Max() const { return m_max; }
+	double Mean() const { return m_mean; }
+	double StandardDeviation() const { return m_stdDev; }
 private:
-	void EnterMsg(QString txt);
+	size_t m_voxelCount;
+	double m_min, m_max, m_mean, m_stdDev;
 };

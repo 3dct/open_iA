@@ -38,7 +38,8 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	m_filename(filename),
 	renderFlags(renderFlags),
 	m_channel(channel),
-	m_imgs(1)
+	m_imgs(1),
+	m_transfer(nullptr)
 {
 	SetData(imgData);
 }
@@ -87,6 +88,7 @@ QString iAModality::GetTransferFileName() const
 void iAModality::SetName(QString const & name)
 {
 	m_name = name;
+	assert(m_transfer);
 	m_transfer->SetName(name);
 }
 
@@ -159,6 +161,12 @@ QString iAModality::GetImageName(int componentIdx)
 	return name;
 }
 
+iAImageInfo const & iAModality::Info() const
+{
+	assert(m_transfer);
+	return m_transfer->Info();
+}
+
 bool iAModality::hasRenderFlag(RenderFlag loc) const
 {
 	return (renderFlags & loc) == loc;
@@ -188,6 +196,7 @@ void iAModality::LoadTransferFunction()
 
 QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
 {
+	assert(m_transfer);
 	return m_transfer;
 }
 

@@ -21,9 +21,9 @@
  
 #include "pch.h"
 #include "dlg_imageproperty.h"
+#include "iAImageInfo.h"
 
 #include <vtkImageData.h>
-#include <vtkImageAccumulate.h>
 
 dlg_imageproperty::dlg_imageproperty(QWidget *parent) : QDockWidget(parent)
 {
@@ -41,7 +41,7 @@ void dlg_imageproperty::Clear()
 	lWidget->clear();
 }
 
-void dlg_imageproperty::AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name, int channelCount)
+void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, int channelCount)
 {
 	EnterMsg(name);
 	EnterMsg( QString( "    %1: [%2 %3]  [%4 %5]  [%6 %7]" )
@@ -91,11 +91,9 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QS
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
 		EnterMsg(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
-			.arg(accum->GetVoxelCount())
-			.arg(*accum->GetMin())
-			.arg(*accum->GetMax())
-			.arg(*accum->GetMean())
-			.arg(*accum->GetStandardDeviation()));
+			.arg(info.VoxelCount())
+			.arg(info.Min()).arg(info.Max())
+			.arg(info.Mean()).arg(info.StandardDeviation()));
 	}
 	this->show();
 }

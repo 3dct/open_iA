@@ -196,7 +196,6 @@ public:
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
 	iAHistogramWidget * getHistogram();
-	vtkImageAccumulate * getImageAccumulate();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);

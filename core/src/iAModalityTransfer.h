@@ -25,7 +25,10 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QSharedPointer>
+
 class iAHistogramWidget;
+class iAImageInfo;
 
 class vtkColorTransferFunction;
 class vtkImageAccumulate;
@@ -42,6 +45,7 @@ class QWidget;
 class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
 private:
+	QSharedPointer<iAImageInfo> m_imageInfo;
 	vtkSmartPointer<vtkImageAccumulate> accumulate;
 	iAHistogramWidget* histogram;
 	vtkSmartPointer<vtkColorTransferFunction> ctf;
@@ -50,6 +54,7 @@ private:
 	bool m_useAccumulate;
 	void UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount);
 public:
+	iAImageInfo const & Info() const;
 	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount);
 	void SetName(QString name);
 	iAHistogramWidget* GetHistogram();
