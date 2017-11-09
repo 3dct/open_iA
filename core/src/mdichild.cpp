@@ -2882,10 +2882,7 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	m_histogram->AddPlot(m_histogramPlot);
 	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
-	if (m_histogram->isTFTableCreated())
-		m_histogram->updateTFTable();
-	m_histogram->updateTrf();
-	m_histogram->redraw();
+	m_histogram->updateTrf();	// will also redraw() the histogram
 }
 
 void MdiChild::InitVolumeRenderers()

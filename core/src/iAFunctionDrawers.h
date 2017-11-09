@@ -36,7 +36,6 @@ public:
 	iASelectedBinDrawer( int position = 0, QColor const & color = Qt::red );
 	void setPosition( int position );
 	void draw( QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter ) const override;
-	void update() override {}
 private:
 	int m_position;
 };
@@ -98,7 +97,6 @@ class open_iA_Core_API iABarGraphDrawer: public iAAbstractDrawableFunction
 public:
 	iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
 	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
-	void update() override;
 	QSharedPointer<iAPlotData> GetData() override;
 private:
 	QSharedPointer<iAPlotData> m_data;
@@ -112,7 +110,6 @@ public:
 	iAMultipleFunctionDrawer();
 	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
 	void add (QSharedPointer<iAAbstractDrawableFunction> drawer);
-	void update() override;
 	void clear();
 	void setColor(QColor const & color) override;
 private:

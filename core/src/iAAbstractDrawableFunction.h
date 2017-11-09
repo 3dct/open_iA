@@ -54,25 +54,18 @@ class iAAbstractDrawableFunction: public iAColorable
 {
 public:
 	iAAbstractDrawableFunction(QColor const & color);
-	virtual ~iAAbstractDrawableFunction() {}
-	/**
-	* \brief makes sure the next call to draw will completely redraw the function, without any caching
-	*/
-	virtual void update() =0;
+	virtual ~iAAbstractDrawableFunction();
+	/** in case your drawer implements caching, clear the cache when this is called */
+	virtual void update();
 	/**
 	* \brief method which draws the function
 	* it is allowed to cache the result; when the data has changed, update() needs to be called
 	*/
 	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
-	/**
-	* retrieves the data used for drawing
-	*/
-	virtual QSharedPointer<iAPlotData> GetData()
-	{
-		return QSharedPointer<iAPlotData>();
-	}
-	virtual bool Visible() { return m_visible; }
-	virtual void SetVisible(bool visible) { m_visible = visible; }
+	/** retrieves the data used for drawing */
+	virtual QSharedPointer<iAPlotData> GetData();
+	virtual bool Visible() const;
+	virtual void SetVisible(bool visible);
 private:
 	bool m_visible;
 };
