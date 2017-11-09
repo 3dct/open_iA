@@ -459,8 +459,8 @@ private:
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
 
-	QDockWidget* m_histogramContainer;
 	iAHistogramWidget* m_histogram;
+	QDockWidget* m_histogramContainer;
 	QSharedPointer<iAAbstractDrawableFunction> m_histogramPlot;
 
 	dlg_imageproperty* imgProperty;

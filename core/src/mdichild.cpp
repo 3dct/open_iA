@@ -98,7 +98,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
 	m_histogram(new iAHistogramWidget(nullptr, this, " Histogram")),
-	m_histogramContainer(new iADockWidgetWrapper(nullptr, "Histogram", "Histogram")),
+	m_histogramContainer(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	preferences(prefs),
 	m_currentModality(0),
@@ -265,6 +265,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
 	connect(m_histogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
+	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SIGNAL(ModalityTFChanged()));
 
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
@@ -2155,7 +2156,6 @@ bool MdiChild::initView( QString const & title )
 		this->addImageProperty();
 		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram for rgb, rgba or vector pixel type images
 		{
-			m_histogramContainer->setWidget(m_histogram);
 			tabifyDockWidget(logs, m_histogramContainer);
 			this->addProfile();
 		}
@@ -2863,10 +2863,6 @@ void MdiChild::InitModalities()
 	for (int i = 0; i < GetModalities()->size(); ++i)
 		m_dlgModalities->AddListItemAndTransfer(GetModality(i));
 	SetHistogramModality(0);
-	assert(m_histogram->getFunctions().size() > 0);
-	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()),
-		this, SIGNAL(ModalityTFChanged())
-	);
 	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
 	m_initVolumeRenderers = true;
 	setImageData(

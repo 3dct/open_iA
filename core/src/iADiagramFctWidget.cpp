@@ -179,11 +179,14 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	m_maxYAxisValue(std::numeric_limits<iAPlotData::DataType>::lowest()),
 	contextMenuVisible(false),
 	m_showFunctions(false),
-	m_customYAxisValue(false)
+	m_customYAxisValue(false),
+	selectedFunction(0),
+	activeChild(mdiChild),
+	updateAutomatically(true)
 {
+	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
+	functions.push_back(transferFunction);
 	leftMargin   = (yLabel == "") ? 0 : 60;
-	selectedFunction = 0;
-	activeChild = mdiChild;
 }
 
 
@@ -884,7 +887,6 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 void iADiagramFctWidget::autoUpdate(bool toggled)
 {
 	updateAutomatically = toggled;
-
 	emit autoUpdateChanged(toggled);
 }
 
@@ -1058,11 +1060,6 @@ void iADiagramFctWidget::SetTransferFunctions(vtkColorTransferFunction* ctf, vtk
 	m_showFunctions = ctf && pwf;
 	if (!m_showFunctions)
 		return;
-	if (functions.empty())
-	{
-		dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
-		functions.push_back(transferFunction);
-	}
 	((dlg_transfer*)functions[0])->setColorFunction(ctf);
 	((dlg_transfer*)functions[0])->setOpacityFunction(pwf);
 	redraw();
