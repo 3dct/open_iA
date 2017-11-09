@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAImageInfo.h"
 #include "iATransferFunction.h"
 #include "open_iA_Core_export.h"
 
@@ -41,7 +42,7 @@ class QString;
 class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
 private:
-	QSharedPointer<iAImageInfo> m_imageInfo;
+	iAImageInfo m_imageInfo;
 	QSharedPointer<iAHistogramData> m_histogramData;
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;

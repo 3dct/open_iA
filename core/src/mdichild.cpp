@@ -97,8 +97,8 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	ioThread(nullptr),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
-	m_histogram(new iAHistogramWidget(this, this, " Histogram")),
-	m_histogramContainer(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
+	m_histogram(new iAHistogramWidget(nullptr, this, " Histogram")),
+	m_histogramContainer(new iADockWidgetWrapper(nullptr, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	preferences(prefs),
 	m_currentModality(0),
@@ -335,6 +335,7 @@ void MdiChild::enableRenderWindows()
 			GetModality(i)->LoadTransferFunction();	// should be moved to load project (once this is asynchronous)
 		}
 		int modalityIdx = 0;
+		SetHistogramModality(modalityIdx);
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 		Raycaster->enableInteractor();
 
@@ -640,15 +641,9 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 
 	// TODO: VOLUME: update all histograms?
 	if (GetModality(0)->GetTransfer()->GetHistogramData())
-	{
 		SetHistogramModality(0);
-		m_histogram->updateTrf(); // also move to SetHistogramModality?
-		m_histogram->redraw();
-	}
 	else
-	{
 		DEBUG_LOG("Histogram is not set!");
-	}
 
 	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
@@ -2142,8 +2137,8 @@ bool MdiChild::initView( QString const & title )
 		QSharedPointer<iAModality> mod(new iAModality(name,
 			currentFile(), -1, imageData, iAModality::MainRenderer));
 		GetModalities()->Add(mod);
+		// TODO: duplicate to enableRenderWindows - histogram is calculated twice!
 		m_dlgModalities->AddListItemAndTransfer(mod);
-		SetHistogramModality(0);
 		m_initVolumeRenderers = true;
 	}
 	vtkColorTransferFunction* colorFunction = (GetModalities()->size() > 0) ? GetModality(0)->GetTransfer()->GetColorFunction() : vtkColorTransferFunction::New();
@@ -2160,6 +2155,7 @@ bool MdiChild::initView( QString const & title )
 		this->addImageProperty();
 		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram for rgb, rgba or vector pixel type images
 		{
+			m_histogramContainer->setWidget(m_histogram);
 			tabifyDockWidget(logs, m_histogramContainer);
 			this->addProfile();
 		}
@@ -2892,6 +2888,8 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	if (m_histogram->isTFTableCreated())
 		m_histogram->updateTFTable();
+	m_histogram->updateTrf();
+	m_histogram->redraw();
 }
 
 void MdiChild::InitVolumeRenderers()

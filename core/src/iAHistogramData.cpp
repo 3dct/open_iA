@@ -58,7 +58,7 @@ iAHistogramData::DataType const * iAHistogramData::GetRawData() const
 }
 
 QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, int binCount,
-	QSharedPointer<iAImageInfo> info)
+	iAImageInfo* info)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
 	auto accumulate = vtkSmartPointer<vtkImageAccumulate>::New();

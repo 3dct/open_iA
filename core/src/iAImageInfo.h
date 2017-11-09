@@ -20,9 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#include <cstddef>    // for size_t (in linux)
+
 class iAImageInfo
 {
 public:
+	iAImageInfo():
+		m_voxelCount(0), m_min(0), m_max(0), m_mean(0), m_stdDev(0) {}
 	iAImageInfo(size_t voxelCount, double min, double max, double mean, double stdDev) :
 		m_voxelCount(voxelCount), m_min(min), m_max(max), m_mean(mean), m_stdDev(stdDev) {}
 	size_t VoxelCount() const { return m_voxelCount; }

@@ -39,8 +39,7 @@ public:
 	DataType const * YBounds() const override;
 	iAValueType GetRangeType() const override;
 
-	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, int binCount,
-		QSharedPointer<iAImageInfo> imageInfo = QSharedPointer<iAImageInfo>());
+	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, int binCount, iAImageInfo* imageInfo = nullptr);
 	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t numBin, double space, DataType min, DataType max);
 private:
 	iAHistogramData();

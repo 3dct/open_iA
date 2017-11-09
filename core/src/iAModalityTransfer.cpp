@@ -23,7 +23,6 @@
 #include "iAModalityTransfer.h"
 
 #include "iAHistogramData.h"
-#include "iAImageInfo.h"
 //#include "iAToolsVTK.h"
 
 #include <vtkColorTransferFunction.h>
@@ -41,7 +40,7 @@ void iAModalityTransfer::Update(vtkSmartPointer<vtkImageData> imgData, int binCo
 {
 	if (imgData->GetNumberOfScalarComponents() != 1)
 		return;
-	m_histogramData = iAHistogramData::Create(imgData, binCount, m_imageInfo);
+	m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
 }
 
 
@@ -62,5 +61,5 @@ vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 
 iAImageInfo const & iAModalityTransfer::Info() const
 {
-	return *(m_imageInfo.data());
+	return m_imageInfo;
 }

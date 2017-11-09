@@ -190,28 +190,26 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 iADiagramFctWidget::~iADiagramFctWidget()
 {
 	delete contextMenu;
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	while(it != functions.end())
-	{
-		delete *it;
-		++it;
-	}
+	for (auto fct: functions)
+		delete fct;
 }
 
 
 int iADiagramFctWidget::getSelectedFuncPoint() const
 {
-	std::vector<dlg_function*>::const_iterator it = functions.begin();
+	auto it = functions.begin();
+	if (it == functions.end())
+		return -1;
 	dlg_function *func = *(it + selectedFunction);
-
 	return func->getSelectedPoint();
 }
 
 bool iADiagramFctWidget::isFuncEndPoint(int index) const
 {
-	std::vector<dlg_function*>::const_iterator it = functions.begin();
+	auto it = functions.begin();
+	if (it == functions.end())
+		return false;
 	dlg_function *func = *(it + selectedFunction);
-
 	return func->isEndPoint(index);
 }
 
