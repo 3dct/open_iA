@@ -36,6 +36,13 @@ class iASnakeSpline;
 class iAMagicLens;
 class iAPieChartGlyph;
 
+class vtkRenderWindow;
+class vtkActor;
+class vtkThinPlateSplineTransform;
+class vtkPoints;
+class vtkRegularPolygonSource;
+class vtkPolyDataMapper;
+
 class open_iA_Core_API iASlicerWidget : public QVTKWidget2
 {
 	Q_OBJECT
@@ -108,6 +115,11 @@ protected:			//overloaded events of QWidget
 	virtual void resizeEvent ( QResizeEvent * event );
 	virtual void wheelEvent(QWheelEvent*);
 
+private:
+	void	initializeFisheyeLens(vtkImageReslice* reslicer);
+	void updateFisheyeTransform( double focalPt[3], iASlicerData *slicerData, double lensRadius, double innerLensRadius);
+
+
 protected slots:	//overloaded events of QVTKWidget2
 	virtual void Frame();
 
@@ -163,4 +175,27 @@ signals:
 
 private:
 	bool m_decorations;
+
+	bool fisheyeLensActivated;
+	double fisheyeRadius = 80.0; // 110.0;
+	double fisheyeRadiusDefault = 80.0;
+	double minFisheyeRadius = 2.0;
+	double maxFisheyeRadius = 220.0;
+	double innerFisheyeRadius =  70.0; // 86
+	double innerFisheyeRadiusDefault = 70.0;
+	double innerFisheyeMinRadius = 58; // for default radius 70.0
+
+	// variables for transformation
+	vtkSmartPointer<vtkThinPlateSplineTransform> fisheyeTransform;
+	vtkSmartPointer<vtkPoints> p_source;
+	vtkSmartPointer<vtkPoints> p_target;
+	// variables for lens appearance
+	vtkSmartPointer<vtkRegularPolygonSource> fisheye;
+	vtkSmartPointer<vtkPolyDataMapper> fisheyeMapper;
+	vtkSmartPointer<vtkActor> fisheyeActor;
+
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle1List;
+	QList<vtkSmartPointer<vtkActor>> circle1ActList;
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
+	QList<vtkSmartPointer<vtkActor>> circle2ActList;
 };

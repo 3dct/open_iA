@@ -150,6 +150,10 @@ public:
 	vtkImageActor* GetImageActor();
 	QCursor getMouseCursor();
 
+	vtkColorTransferFunction * GetColorTransferFunction();
+
+	int getSliceNumber(); // for fisheye transformation
+
 protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();
@@ -261,6 +265,9 @@ private:
 
 	bool m_userSetBackground;
 	double rgb[3];
+
+
+	int m_sliceNumber; // for fisheye transformation
 
 	//mouse move
 	double m_ptMapped[3];
