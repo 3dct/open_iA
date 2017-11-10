@@ -67,7 +67,6 @@ class dlg_modalities;
 class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
-class iAAbstractDrawableFunction;
 class iAAlgorithm;
 class iAChannelVisualizationData;
 class iAHistogramWidget;
@@ -76,6 +75,7 @@ class iALogger;
 class iAModality;
 class iAModalityList;
 class iAParametricSpline;
+class iAPlot;
 struct iAProfileProbe;
 class iARenderer;
 class iASlicer;
@@ -461,7 +461,7 @@ private:
 
 	iAHistogramWidget* m_histogram;
 	QDockWidget* m_histogramContainer;
-	QSharedPointer<iAAbstractDrawableFunction> m_histogramPlot;
+	QSharedPointer<iAPlot> m_histogramPlot;
 
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;

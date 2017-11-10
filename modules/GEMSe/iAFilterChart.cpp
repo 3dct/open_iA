@@ -23,7 +23,7 @@
 #include "iAFilterChart.h"
 
 #include "iAParamHistogramData.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iAMathUtility.h"
 #include "iANameMapper.h"
 
@@ -74,13 +74,13 @@ double iAFilterChart::mapValueToBin(double value) const
 	return m_data->MapValueToBin(value);
 }
 
-QSharedPointer<iAAbstractDrawableFunction> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
+QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
 {
 	return
 		IsDrawnDiscrete() ?
-		QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(data, color, 2))
-		: QSharedPointer<iAAbstractDrawableFunction>(new iAFilledLineFunctionDrawer(data, color))
-		//: QSharedPointer<iAAbstractDrawableFunction>(new iALineFunctionDrawer(data, color))
+		QSharedPointer<iAPlot>(new iABarGraphDrawer(data, color, 2))
+		: QSharedPointer<iAPlot>(new iAFilledLineFunctionDrawer(data, color))
+		//: QSharedPointer<iAPlot>(new iALineFunctionDrawer(data, color))
 		;
 }
 

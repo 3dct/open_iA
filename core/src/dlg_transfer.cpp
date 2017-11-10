@@ -23,7 +23,7 @@
 #include "dlg_transfer.h"
 
 #include "iAConsole.h"
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 #include "iAMathUtility.h"
 #include "mdichild.h"
 

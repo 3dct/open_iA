@@ -22,7 +22,7 @@
 #include "pch.h"
 #include "dlg_profile.h"
 
-#include "iAProfileWidget.h"
+#include "charts/iAProfileWidget.h"
 
 #include <QGridLayout>
 

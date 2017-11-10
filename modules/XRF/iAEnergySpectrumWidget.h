@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 
 #include <QRubberBand>
 #include <QMap>
 
-class iAAbstractDiagramData;
 class iAAccumulatedXRFData;
-class iASpectrumFilterListener;
 struct iACharacteristicEnergy;
+class iAPlotData;
+class iASpectrumFilterListener;
 
 class iAEnergySpectrumWidget: public iADiagramFctWidget
 {

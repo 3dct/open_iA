@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDrawableFunction.h"
+#include "iAPlot.h"
 #include "open_iA_Core_export.h"
 
 #include <QVector>
@@ -30,7 +30,7 @@ class iAPlotData;
 
 class QPolygon;
 
-class open_iA_Core_API iASelectedBinDrawer : public iAAbstractDrawableFunction
+class open_iA_Core_API iASelectedBinDrawer : public iAPlot
 {
 public:
 	iASelectedBinDrawer( int position = 0, QColor const & color = Qt::red );
@@ -40,7 +40,7 @@ private:
 	int m_position;
 };
 
-class open_iA_Core_API iAPolygonBasedFunctionDrawer: public iAAbstractDrawableFunction
+class open_iA_Core_API iAPolygonBasedFunctionDrawer: public iAPlot
 {
 public:
 	iAPolygonBasedFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
@@ -92,7 +92,7 @@ private:
 };
 
 
-class open_iA_Core_API iABarGraphDrawer: public iAAbstractDrawableFunction
+class open_iA_Core_API iABarGraphDrawer: public iAPlot
 {
 public:
 	iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
@@ -104,14 +104,14 @@ private:
 };
 
 
-class open_iA_Core_API iAMultipleFunctionDrawer: public iAAbstractDrawableFunction
+class open_iA_Core_API iAMultipleFunctionDrawer: public iAPlot
 {
 public:
 	iAMultipleFunctionDrawer();
 	void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const override;
-	void add (QSharedPointer<iAAbstractDrawableFunction> drawer);
+	void add (QSharedPointer<iAPlot> drawer);
 	void clear();
 	void setColor(QColor const & color) override;
 private:
-	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_drawers;
+	QVector<QSharedPointer<iAPlot> > m_drawers;
 };

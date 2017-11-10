@@ -20,53 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAColorable.h"
-#include "open_iA_Core_export.h"
+#include "iAPlotData.h"
 
 #include <QSharedPointer>
 
-class iAPlotData;
+class vtkImageData;
 
-class QColor;
-class QPainter;
+class iAImageInfo;
 
-class CoordinateConverter
+class iAHistogramData: public iAPlotData
 {
 public:
-	virtual ~CoordinateConverter() {}
-	virtual double Diagram2ScreenY(double y) const =0;
-	virtual double Screen2DiagramY(double y) const =0;
-	virtual void update(double yZoom, double yDataMax, double yMinValueBiggerThanZero, int height) =0;
-	virtual bool equals(QSharedPointer<CoordinateConverter> other) const
-	{
-		return false;
-	}
-	virtual QSharedPointer<CoordinateConverter> clone() =0;
-};
+	~iAHistogramData();
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	DataType const * YBounds() const override;
+	iAValueType GetRangeType() const override;
 
-/**
- * \class	iAAbstractDrawableFunction
- *
- * \brief	Interface for a function which is drawable in a diagram
- *			encapsulates both the data of the function and the drawing method
- *
- */
-class open_iA_Core_API iAAbstractDrawableFunction: public iAColorable
-{
-public:
-	iAAbstractDrawableFunction(QColor const & color);
-	virtual ~iAAbstractDrawableFunction();
-	/** in case your drawer implements caching, clear the cache when this is called */
-	virtual void update();
-	/**
-	* \brief method which draws the function
-	* it is allowed to cache the result; when the data has changed, update() needs to be called
-	*/
-	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
-	/** retrieves the data used for drawing */
-	virtual QSharedPointer<iAPlotData> GetData();
-	virtual bool Visible() const;
-	virtual void SetVisible(bool visible);
+	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, int binCount, iAImageInfo* imageInfo = nullptr);
+	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t numBin, double space, DataType min, DataType max);
 private:
-	bool m_visible;
+	iAHistogramData();
+	void SetMaxFreq();
+
+	size_t numBin;
+	iAPlotData::DataType* rawData;
+	iAPlotData::DataType yBounds[2];
+	double accSpacing;
+	double xBounds[2];
+	iAValueType m_type;
 };

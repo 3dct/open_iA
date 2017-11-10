@@ -21,7 +21,7 @@
  
 #include "dlg_TFTable.h"
 #include "dlg_transfer.h"
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkPiecewiseFunction.h>

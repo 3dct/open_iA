@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
+#include "charts/iAPlotData.h"
 #include "ui_DataTypeConversion.h"
 
 class iAConnector;

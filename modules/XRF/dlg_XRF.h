@@ -46,9 +46,9 @@ class vtkLookupTable;
 class vtkPiecewiseFunction;
 class vtkScalarBarActor;
 
-class iAAbstractDrawableFunction;
 class iAEnergySpectrumWidget;
 class iAMultipleFunctionDrawer;
+class iAPlot;
 class iAPlotData;
 class iAStepFunctionDrawer;
 class iAWidgetAddHelper;
@@ -176,7 +176,7 @@ private:
 	QSharedPointer<iAReferenceSpectraLibrary>				m_refSpectraLib;
 	
 	QSharedPointer<iAMultipleFunctionDrawer>				m_spectraLinesDrawer;
-	QSharedPointer<iAAbstractDrawableFunction>				m_voxelSpectrumDrawer;
+	QSharedPointer<iAPlot>									m_voxelSpectrumDrawer;
 
 	QSharedPointer<iAElementConcentrations>					m_elementConcentrations;
 	QSharedPointer<iADecompositionCalculator>				m_decompositionCalculator;

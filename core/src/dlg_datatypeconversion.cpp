@@ -22,7 +22,7 @@
 #include "dlg_datatypeconversion.h"
 
 #include "iAConnector.h"
-#include "iAHistogramWidget.h"
+#include "charts/iAHistogramWidget.h"
 #include "iAToolsVTK.h"
 #include <iATransferFunction.h>
 #include "iATypedCallHelper.h"

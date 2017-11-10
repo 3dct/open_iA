@@ -24,7 +24,7 @@
 
 #include "iAAccumulatedXRFData.h"
 #include "iACharacteristicEnergy.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iASpectrumFilter.h"
 
 #include <QFontMetrics>
@@ -57,7 +57,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChi
 	filterListener(filterListener)
 {
 	SetTransferFunctions(cTF, oTF);
-	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iAStepFunctionDrawer(m_data, QColor(70, 70, 70, 255))));
+	AddPlot(QSharedPointer<iAPlot>(new iAStepFunctionDrawer(m_data, QColor(70, 70, 70, 255))));
 	selectionRubberBand->hide();
 	SetAllowTrfReset(false);
 	SetEnableAdditionalFunctions(false);

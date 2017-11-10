@@ -25,8 +25,8 @@
 #include <itkImage.h>
 #include <itkImageRegionConstIterator.h>
 
-#include "iAAbstractDiagramData.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotData.h"
+#include "charts/iAPlotTypes.h"
 
 class iASimpleHistogramData : public iAPlotData
 {

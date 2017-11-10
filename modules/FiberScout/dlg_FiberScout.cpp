@@ -29,7 +29,7 @@
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAFiberScoutScatterPlotMatrix.h"
-#include "iAHistogramWidget.h"
+#include "charts/iAHistogramWidget.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"

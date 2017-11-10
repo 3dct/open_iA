@@ -22,7 +22,7 @@
 
 #include "iAFilterChart.h"
 #include "iAConsole.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iAImageTreeLeaf.h"
 #include "iALabelInfo.h"
 #include "iAMathUtility.h"
@@ -78,7 +78,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_charts[1]->Plots()[0]->setColor(m_labelInfo->GetColor(0));
 	for (int label = 1; label < m_labelInfo->count(); ++label)
 	{
-		m_drawers.push_back(QSharedPointer<iAAbstractDrawableFunction>(
+		m_drawers.push_back(QSharedPointer<iAPlot>(
 			new iABarGraphDrawer(m_labelDistributionChartData[label],
 				m_labelInfo->GetColor(label), 2)));
 		m_charts[1]->AddPlot(m_drawers[m_drawers.size()-1]);

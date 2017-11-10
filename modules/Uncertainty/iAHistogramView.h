@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 
 #include <itkMinimumMaximumImageCalculator.h>
 #include <itkImageRegionConstIterator.h>

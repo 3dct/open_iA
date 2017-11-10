@@ -21,7 +21,7 @@
 #include "pch.h"
 #include "iAClusterAttribChart.h"
 
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iAMathUtility.h"
 #include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
@@ -67,7 +67,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 }
 
 
-void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFunction>& drawer, QSharedPointer<iAAbstractDrawableFunction> newDrawer)
+void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer)
 {
 	if (drawer)
 	{
@@ -88,7 +88,7 @@ void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> 
 void iAClusterAttribChart::ClearClusterData()
 {
 	m_charts->RemoveMarker();
-	foreach (QSharedPointer<iAAbstractDrawableFunction> drawer, m_clusterDrawer)
+	foreach (QSharedPointer<iAPlot> drawer, m_clusterDrawer)
 	{
 		m_charts->RemovePlot(drawer);
 	}

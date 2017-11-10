@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
-#include "iAAbstractDrawableFunction.h"
+#include "iAPlotData.h"
+#include "iAPlot.h"
 #include "iADiagramWidget.h"
 #include "open_iA_Core_export.h"
 
@@ -94,9 +94,9 @@ public:
 	double const * XBounds() const;
 	double XRange() const;
 
-	void AddPlot(QSharedPointer<iAAbstractDrawableFunction> dataset);
-	void RemovePlot(QSharedPointer<iAAbstractDrawableFunction> dataset);
-	QVector< QSharedPointer< iAAbstractDrawableFunction > > const & Plots();
+	void AddPlot(QSharedPointer<iAPlot> plot);
+	void RemovePlot(QSharedPointer<iAPlot> plot);
+	QVector< QSharedPointer< iAPlot > > const & Plots();
 	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void RemoveImageOverlay(QImage * imgOverlay);
 
@@ -200,7 +200,7 @@ protected:
 
 private:
 	QList< QSharedPointer< QImage > >						m_overlays;
-	QVector< QSharedPointer< iAAbstractDrawableFunction > >	m_plots;
+	QVector< QSharedPointer< iAPlot > >	m_plots;
 	bool													m_allowTrfReset;
 	bool													m_enableAdditionalFunctions;
 	DrawModeType											m_yDrawMode;

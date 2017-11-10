@@ -1,9 +1,9 @@
-FILE( GLOB open_iA_core_SRCS "src/*.cpp" "src/*.h" )
-FILE( GLOB open_iA_core_test_srcs "src/*Test.cpp" "src/*Test.cxx" )
+FILE( GLOB_RECURSE open_iA_core_SRCS "src/*.cpp" "src/*.h" )
+FILE( GLOB_RECURSE open_iA_core_test_srcs "src/*Test.cpp" "src/*Test.cxx" )
 IF ( NOT "${open_iA_core_test_srcs}" STREQUAL "" )
 	LIST( REMOVE_ITEM open_iA_core_SRCS ${open_iA_core_test_srcs} )
 ENDIF ()
-FILE( GLOB open_iA_core_UI "src/*.ui" )
+FILE( GLOB_RECURSE open_iA_core_UI "src/*.ui" )
 SET( open_iA_core_QRC open_iA.qrc)
 
 QT5_WRAP_UI( open_iA_core_SRCS ${open_iA_core_UI})

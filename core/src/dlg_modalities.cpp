@@ -26,7 +26,6 @@
 #include "dlg_transfer.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
-#include "iAHistogramWidget.h"
 #include "iAIOProvider.h"
 #include "iAModality.h"
 #include "iAModalityList.h"

@@ -24,6 +24,9 @@
 
 #include "iACSVToQTableWidgetConverter.h"
 
+#include "dlg_function.h"
+#include "dlg_transfer.h"
+
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChild *mdiChild,
 							vtkPiecewiseFunction* oTF,
 							vtkColorTransferFunction* cTF,
@@ -45,7 +48,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 							m_yLabel( yLabel )
 {
 	SetTransferFunctions(cTF, oTF);
-	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
+	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 	m_selectionRubberBand->hide();
 	( (dlg_transfer*) functions[0] )->enableRangeSliderHandles( true );
 	iADiagramFctWidget::SetYAxisSteps( 2 );

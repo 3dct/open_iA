@@ -32,9 +32,9 @@
 #include "iAChildData.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "iAFunctionDrawers.h"
-#include "iAHistogramData.h"
-#include "iAHistogramWidget.h"
+#include "charts/iAPlotTypes.h"
+#include "charts/iAHistogramData.h"
+#include "charts/iAHistogramWidget.h"
 #include "iAIO.h"
 #include "iAIOProvider.h"
 #include "iALogger.h"
@@ -47,7 +47,7 @@
 #include "iAParametricSpline.h"
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"
-#include "iAProfileWidget.h"
+#include "charts/iAProfileWidget.h"
 #include "iARenderer.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
@@ -2876,7 +2876,7 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	if (!m_histogram || !GetModality(modalityIdx)->GetTransfer()->GetHistogramData())
 		return;
 	m_histogram->RemovePlot(m_histogramPlot);
-	m_histogramPlot = QSharedPointer<iAAbstractDrawableFunction>(new
+	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iAStepFunctionDrawer(GetModality(modalityIdx)->GetTransfer()->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
 	m_histogram->AddPlot(m_histogramPlot);

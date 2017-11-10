@@ -22,7 +22,7 @@
 
 #include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iASimpleHistogramData.h"
 
 #include <vtkColorTransferFunction.h>
@@ -35,7 +35,7 @@ iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramD
 	iADiagramFctWidget(nullptr, nullptr, caption, "Frequency (Pixels)"),
 	m_data(data) {
 	setMinimumHeight(120);
-	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2)));
+	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2)));
 }
 
 

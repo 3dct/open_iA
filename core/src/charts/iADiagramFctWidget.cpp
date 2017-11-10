@@ -29,9 +29,9 @@
 #include "dlg_gaussian.h"
 #include "dlg_TFTable.h"
 #include "dlg_transfer.h"
-#include "iAAbstractDiagramData.h"
-#include "iAAbstractDrawableFunction.h"
-#include "iAFunctionDrawers.h"
+#include "iAPlotData.h"
+#include "iAPlot.h"
+#include "iAPlotTypes.h"
 #include "iAMathUtility.h"
 #include "iASettings.h"
 #include "mainwindow.h"		// TODO: get rid of this inclusion!
@@ -1156,7 +1156,7 @@ void iADiagramFctWidget::ResetMaxYAxisValue()
 	m_maxYAxisValue = GetMaxYValue();
 }
 
-void iADiagramFctWidget::AddPlot(QSharedPointer<iAAbstractDrawableFunction> plot)
+void iADiagramFctWidget::AddPlot(QSharedPointer<iAPlot> plot)
 {
 	assert(plot);
 	if (!plot)
@@ -1166,7 +1166,7 @@ void iADiagramFctWidget::AddPlot(QSharedPointer<iAAbstractDrawableFunction> plot
 		m_maxYAxisValue = GetMaxYValue();
 }
 
-void iADiagramFctWidget::RemovePlot(QSharedPointer<iAAbstractDrawableFunction> plot)
+void iADiagramFctWidget::RemovePlot(QSharedPointer<iAPlot> plot)
 {
 	if (!plot)
 		return;
@@ -1175,7 +1175,7 @@ void iADiagramFctWidget::RemovePlot(QSharedPointer<iAAbstractDrawableFunction> p
 		m_plots.remove(idx);
 }
 
-QVector<QSharedPointer<iAAbstractDrawableFunction> > const & iADiagramFctWidget::Plots()
+QVector<QSharedPointer<iAPlot> > const & iADiagramFctWidget::Plots()
 {
 	return m_plots;
 }

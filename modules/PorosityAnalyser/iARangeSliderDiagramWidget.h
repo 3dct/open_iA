@@ -19,10 +19,10 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-
-#include "iADiagramFctWidget.h"
-#include "iAFunctionDrawers.h"
 #include "iARangeSliderDiagramData.h"
+
+#include "charts/iADiagramFctWidget.h"
+#include "charts/iAPlotTypes.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -31,9 +31,6 @@
 #include <QRubberBand>
 #include <QToolTip>
 #include <QTableWidget>
-
-#include "dlg_function.h"
-#include "dlg_transfer.h"
 
 
 class iAFilteringDiagramData : public iAPlotData

@@ -24,7 +24,7 @@
 
 #include "dlg_function.h"
 #include "iAHistogramData.h"
-#include "iAFunctionDrawers.h"
+#include "iAPlotTypes.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -40,7 +40,7 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild,
 {
 	SetTransferFunctions(cTF, oTF);
 	initialize(img, binCount, reset);
-	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
+	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
 iAHistogramWidget::iAHistogramWidget(QWidget *parent,
@@ -58,7 +58,7 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 {
 	SetTransferFunctions(cTF, oTF);
 	datatypehistograminitialize(histData, reset, dataMin, dataMax, bins, space);
-	AddPlot(QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
+	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
 void iAHistogramWidget::initialize(vtkImageData* img, int binCount, bool reset)

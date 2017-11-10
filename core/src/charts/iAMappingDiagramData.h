@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
+#include "iAPlotData.h"
 #include "open_iA_Core_export.h"
 
 class open_iA_Core_API iAMappingDiagramData: public iAPlotData

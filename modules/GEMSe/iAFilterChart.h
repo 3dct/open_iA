@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 
 #include "iAValueType.h"
 
@@ -38,7 +38,7 @@ public:
 		bool showCaption = false);
 	double mapBinToValue(double bin) const;
 	double mapValueToBin(double value) const;
-	QSharedPointer<iAAbstractDrawableFunction> GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color);
+	QSharedPointer<iAPlot> GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color);
 	void RemoveMarker();
 	void SetMarker(double value);
 	virtual iAValueType GetRangeType() const;

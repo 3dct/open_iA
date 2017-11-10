@@ -22,7 +22,7 @@
 #include "pch.h"
 #include "iAModalityTransfer.h"
 
-#include "iAHistogramData.h"
+#include "charts/iAHistogramData.h"
 //#include "iAToolsVTK.h"
 
 #include <vtkColorTransferFunction.h>

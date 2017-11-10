@@ -19,9 +19,9 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iAFunctionDrawers.h"
+#include "iAPlotTypes.h"
 
-#include "iAAbstractDiagramData.h"
+#include "iAPlotData.h"
 
 #include <QPainter>
 #include <QPolygon>
@@ -29,33 +29,33 @@
 #include <cmath>
 
 
-iAAbstractDrawableFunction::iAAbstractDrawableFunction(QColor const & color):
+iAPlot::iAPlot(QColor const & color):
 	iAColorable(color),
 	m_visible(true)
 {}
 
-iAAbstractDrawableFunction::~iAAbstractDrawableFunction() {}
+iAPlot::~iAPlot() {}
 
-QSharedPointer<iAPlotData> iAAbstractDrawableFunction::GetData()
+QSharedPointer<iAPlotData> iAPlot::GetData()
 {
 	return QSharedPointer<iAPlotData>();
 }
 
-bool iAAbstractDrawableFunction::Visible() const
+bool iAPlot::Visible() const
 {
 	return m_visible;
 }
 
-void iAAbstractDrawableFunction::SetVisible(bool visible)
+void iAPlot::SetVisible(bool visible)
 {
 	m_visible = visible;
 }
 
-void iAAbstractDrawableFunction::update() {}
+void iAPlot::update() {}
 
 
 iASelectedBinDrawer::iASelectedBinDrawer( int position /*= 0*/, QColor const & color /*= Qt::red */ )
-: iAAbstractDrawableFunction( color ), m_position( position )
+: iAPlot( color ), m_position( position )
 {}
 
 void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter ) const
@@ -74,7 +74,7 @@ void iASelectedBinDrawer::setPosition( int position )
 
 
 iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color):
-	iAAbstractDrawableFunction(color),
+	iAPlot(color),
 	m_data(data),
 	m_cachedBinWidth(0.0),
 	m_cachedCoordConv(0)
@@ -248,7 +248,7 @@ QSharedPointer<iAPlotData> iABarGraphDrawer::GetData()
 }
 
 iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const & color, int margin):
-	iAAbstractDrawableFunction(color),
+	iAPlot(color),
 	m_data(data),
 	m_margin(margin)
 {
@@ -276,7 +276,7 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<C
 
 
 iAMultipleFunctionDrawer::iAMultipleFunctionDrawer():
-	iAAbstractDrawableFunction(QColor())
+	iAPlot(QColor())
 {}
 
 void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const
@@ -293,7 +293,7 @@ void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedP
 	painter.setPen(pen);
 }
 
-void iAMultipleFunctionDrawer::add(QSharedPointer<iAAbstractDrawableFunction> drawer)
+void iAMultipleFunctionDrawer::add(QSharedPointer<iAPlot> drawer)
 {
 	m_drawers.push_back(drawer);
 }
