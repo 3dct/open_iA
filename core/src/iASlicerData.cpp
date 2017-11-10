@@ -24,7 +24,7 @@
 #include "dlg_commoninput.h"
 #include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
-#include "iAIOProvider.h"
+#include "io/iAIOProvider.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"

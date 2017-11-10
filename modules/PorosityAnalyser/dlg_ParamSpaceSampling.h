@@ -27,7 +27,7 @@
 #include <QTextDocument>
 #include <QTextEdit>
 
-#include "qcustomplot.h"
+#include "charts/qcustomplot.h"
 
 #include "ui_ParamSpaceSampling.h"
 

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "iAITKIO.h" // for image type
+#include "io/iAITKIO.h" // for image type
 #include "open_iA_Core_export.h"
 
 struct open_iA_Core_API iAImageComparisonResult

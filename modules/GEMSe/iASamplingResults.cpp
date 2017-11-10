@@ -26,7 +26,7 @@
 #include "iASingleResult.h"
 
 #include "iAConsole.h"
-#include "iAFileUtils.h"
+#include "io/iAFileUtils.h"
 
 #include <QFile>
 #include <QTextStream>

@@ -35,8 +35,8 @@
 #include "charts/iAPlotTypes.h"
 #include "charts/iAHistogramData.h"
 #include "charts/iAHistogramWidget.h"
-#include "iAIO.h"
-#include "iAIOProvider.h"
+#include "io/iAIO.h"
+#include "io/iAIOProvider.h"
 #include "iALogger.h"
 #include "iAMdiChildLogger.h"
 #include "iAModality.h"
@@ -60,7 +60,7 @@
 #include "iAWidgetAddHelper.h"
 #include "mainwindow.h"
 
-#include "extension2id.h"
+#include "io/extension2id.h"
 
 #include <vtkCamera.h>
 #include <vtkCornerAnnotation.h>

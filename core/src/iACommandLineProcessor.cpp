@@ -5,7 +5,7 @@
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iAProgress.h"

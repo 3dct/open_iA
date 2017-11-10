@@ -39,7 +39,7 @@
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
 #include "iAToolsITK.h"
-#include "iAIOProvider.h"
+#include "io/iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
