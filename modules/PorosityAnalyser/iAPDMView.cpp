@@ -26,7 +26,7 @@
 #include "iABPMData.h"
 #include "iAHMData.h"
 #include "iAPerceptuallyUniformLUT.h"
-#include "qcustomplot.h"
+#include "charts/qcustomplot.h"
 
 #include <QVTKWidget.h>
 #include <vtkColorTransferFunction.h>
