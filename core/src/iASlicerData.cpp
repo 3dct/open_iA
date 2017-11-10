@@ -595,6 +595,7 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 		axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
 		axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
 		textInfo->GetTextMapper()->GetTextProperty()->SetFontSize(settings.ToolTipFontSize);
+		textInfo->GetActor()->SetVisibility(settings.ShowTooltip);
 	}
 }
 

@@ -1302,6 +1302,7 @@ void MainWindow::slicerSettings()
 		<< tr("+Mouse Coursor Types")
 		<< tr("$Show Axes Caption")
 		<< tr("#Tooltip Font Size (pt)")
+		<< tr("$Show Tooltip")
 		);
 	
 	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
@@ -1320,7 +1321,8 @@ void MainWindow::slicerSettings()
 		<< (child->getLinkedMDIs() ? tr("true") : tr("false"))
 		<< mouseCursorTypes
 		<< (slicerSettings.SingleSlicer.ShowAxesCaption ? tr("true") : tr("false"))
-		<< QString("%1").arg(slicerSettings.SingleSlicer.ToolTipFontSize);
+		<< QString("%1").arg(slicerSettings.SingleSlicer.ToolTipFontSize)
+		<< (slicerSettings.SingleSlicer.ShowTooltip ? tr("true") : tr("false"));
 
 	dlg_commoninput dlg(this, "Slicer settings", inList, inPara, NULL);
 
@@ -1338,6 +1340,7 @@ void MainWindow::slicerSettings()
 		defaultSlicerSettings.SingleSlicer.CursorMode = dlg.getComboBoxValue(9);
 		defaultSlicerSettings.SingleSlicer.ShowAxesCaption = dlg.getCheckValue(10) != 0;
 		defaultSlicerSettings.SingleSlicer.ToolTipFontSize = dlg.getIntValue(11);
+		defaultSlicerSettings.SingleSlicer.ShowTooltip = dlg.getCheckValue(12) != 0;
 
 		if (activeMdiChild() && activeMdiChild()->editSlicerSettings(defaultSlicerSettings))
 			statusBar()->showMessage(tr("Edit slicer settings"), 5000);

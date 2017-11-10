@@ -26,7 +26,8 @@ public:
 	bool LinearInterpolation,
 		ShowIsoLines,
 		ShowPosition,
-		ShowAxesCaption;
+		ShowAxesCaption,
+		ShowTooltip;
 	double MinIsoValue, MaxIsoValue;
 	int NumberOfIsoLines,
 		ToolTipFontSize;
@@ -41,7 +42,8 @@ public:
 		MaxIsoValue(0),
 		NumberOfIsoLines(0),
 		ToolTipFontSize(12),
-		CursorMode(QString())
+		CursorMode(QString()),
+		ShowTooltip(true)
 	{}
 };
 
