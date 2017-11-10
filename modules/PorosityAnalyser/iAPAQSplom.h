@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAQSplom.h"
+#include "charts/iAQSplom.h"
 #include <QStringList>
 
 class QMenu;

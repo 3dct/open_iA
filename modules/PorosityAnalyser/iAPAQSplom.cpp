@@ -22,8 +22,8 @@
 #include "pch.h"
 #include "iAPAQSplom.h"
 #include "iAMathUtility.h"
-#include "iASPLOMData.h"
-#include "iAScatterPlot.h"
+#include "charts/iASPLOMData.h"
+#include "charts/iAScatterPlot.h"
 #include "PorosityAnalyserHelpers.h"
 
 #include <QDir>
