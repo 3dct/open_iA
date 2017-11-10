@@ -30,14 +30,14 @@
 #include "dlg_transfer.h"
 #include "iAConsole.h"
 #include "charts/iAHistogramWidget.h"
-#include "iAIOProvider.h"
+#include "io/iAIOProvider.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iARenderer.h"
 #include "iASlicerData.h"
 #include "iAToolsVTK.h"
-#include "iATLGICTLoader.h"
+#include "io/iATLGICTLoader.h"
 #include "mdichild.h"
 
 #include <vtkCamera.h>

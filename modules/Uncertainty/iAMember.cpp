@@ -27,9 +27,9 @@
 #include "iASamplingResults.h"
 
 #include "iAConsole.h"
-#include "iAFileUtils.h"
+#include "io/iAFileUtils.h"
 #include "iAToolsITK.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 
 #include <QFile>
 #include <QFileInfo>

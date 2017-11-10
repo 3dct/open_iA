@@ -27,7 +27,7 @@
 #include "iAImageCoordinate.h"
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
-#include "iAFileUtils.h"
+#include "io/iAFileUtils.h"
 #include "iALabelOverlayThread.h"
 #include "iAModality.h"
 #include "iAModalityList.h"

@@ -34,7 +34,7 @@
 #include <itkVectorIndexSelectionCastImageFilter.h>
 
 #include <vtkImageData.h>
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 
 typedef double ProbabilityPixelType;
 typedef itk::VectorImage<ProbabilityPixelType, DIM> VectorImageType;

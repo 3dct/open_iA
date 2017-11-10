@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iAModalityList.h"
 
-#include "extension2id.h"
+#include "io/extension2id.h"
 #include "iAConsole.h"
-#include "iAFileUtils.h"
-#include "iAIO.h"
+#include "io/iAFileUtils.h"
+#include "io/iAIO.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"

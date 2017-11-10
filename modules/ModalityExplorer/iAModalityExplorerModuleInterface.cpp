@@ -22,7 +22,7 @@
 #include "iAModalityExplorerModuleInterface.h"
 
 #include "iAConsole.h"
-#include "iAIO.h"
+#include "io/iAIO.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 

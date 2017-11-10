@@ -26,7 +26,6 @@
 #include "dlg_transfer.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
-#include "iAIOProvider.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -35,6 +34,9 @@
 #include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
 #include "iAVolumeSettings.h"
+#include "io/iAIO.h"
+#include "io/iAIOProvider.h"
+#include "io/extension2id.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -113,9 +115,6 @@ QString GetCaption(iAModality const & mod)
 	QFileInfo fi(mod.GetFileName());
 	return mod.GetName()+" ("+fi.fileName()+")";
 }
-
-#include "iAIO.h"
-#include "extension2id.h"
 
 bool CanHaveMultipleChannels(QString const & fileName)
 {

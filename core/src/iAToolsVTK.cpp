@@ -22,7 +22,7 @@
 
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "iAVtkDraw.h"
 
 #include <vtkBMPWriter.h>

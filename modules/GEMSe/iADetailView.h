@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAITKIO.h" // TODO: replace?
+#include "io/iAITKIO.h" // TODO: replace?
 typedef iAITKIO::ImagePointer ClusterImageType;
 
 #include "iAChartFilter.h"   // for iAResultFilter

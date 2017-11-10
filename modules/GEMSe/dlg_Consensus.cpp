@@ -25,6 +25,7 @@
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
 #include "iAImageTreeNode.h"
+#include "iASamplingResults.h"
 #include "iASingleResult.h"
 
 // LabelVoting:
@@ -39,10 +40,13 @@
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "iAIOProvider.h"
+#include "io/iAFileUtils.h"
+#include "io/iAIOProvider.h"
 #include "iALookupTable.h"
 #include "iAToolsITK.h"
 #include "mdichild.h"
+
+#include <QSettings>
 
 // Libraries:
 #include <itkCastImageFilter.h>
@@ -712,11 +716,6 @@ void dlg_Consensus::StoreResult()
 	}
 	iAITKIO::writeFile(fileName, m_lastMVResult, pixelType);
 }
-
-#include "iAFileUtils.h"
-#include "iASamplingResults.h"
-
-#include <QSettings>
 
 namespace
 {
