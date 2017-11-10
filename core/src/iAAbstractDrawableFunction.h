@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAColorable.h"
+#include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
 
@@ -50,7 +51,7 @@ public:
  *			encapsulates both the data of the function and the drawing method
  *
  */
-class iAAbstractDrawableFunction: public iAColorable
+class open_iA_Core_API iAAbstractDrawableFunction: public iAColorable
 {
 public:
 	iAAbstractDrawableFunction(QColor const & color);
