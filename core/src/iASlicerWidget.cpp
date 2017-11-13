@@ -39,13 +39,21 @@
 
 #include <QVTKInteractorAdapter.h>
 #include <QVTKInteractor.h>
+#include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPointPicker.h>
+#include <vtkPoints.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkRegularPolygonSource.h>
 #include <vtkRendererCollection.h>
+#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
+#include <vtkThinPlateSplineTransform.h>
 
 #include <QErrorMessage>
 #include <QMenu>
@@ -54,20 +62,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QBitmap>
-
-#include <vtkActor.h>
-#include <vtkPoints.h>
-#include <vtkImageActor.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
-
-#include <vtkThinPlateSplineTransform.h>
-#include <vtkRegularPolygonSource.h>
 #include <qmath.h>
-#include <vtkPolyDataMapper.h>
-
-#include <QDebug.h>
-#include <vtkSphereSource.h>
 
 #define EPSILON 0.0015
 
