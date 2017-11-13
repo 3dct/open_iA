@@ -146,7 +146,7 @@ static float calcPorosity( const MaskImageType::Pointer image, int surroundingVo
 }
 
 template<class T>
-int computeBinaryThreshold( ImagePointer & image, RunInfo & results, float upThr, bool releaseData = false )
+void computeBinaryThreshold( ImagePointer & image, RunInfo & results, float upThr, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
@@ -159,9 +159,6 @@ int computeBinaryThreshold( ImagePointer & image, RunInfo & results, float upThr
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	QTime t;
-	t.start();
-
 	binaryThresholdFilter->SetLowerThreshold( 0 );
 	binaryThresholdFilter->SetUpperThreshold( upThr );
 	binaryThresholdFilter->SetInsideValue( 1 );
@@ -171,14 +168,12 @@ int computeBinaryThreshold( ImagePointer & image, RunInfo & results, float upThr
 	binaryThresholdFilter->Update();
 	results.maskImage = binaryThresholdFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	if( releaseData )
 		binaryThresholdFilter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeRatsThreshold( ImagePointer & image, RunInfo & results, float ratsThr, bool releaseData = false )
+void computeRatsThreshold( ImagePointer & image, RunInfo & results, float ratsThr, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   GradientImageType;
@@ -189,9 +184,6 @@ int computeRatsThreshold( ImagePointer & image, RunInfo & results, float ratsThr
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
 	typename GMFType::Pointer gmfilter = GMFType::New();
@@ -209,17 +201,14 @@ int computeRatsThreshold( ImagePointer & image, RunInfo & results, float ratsThr
 	ratsFilter->Update();
 	results.maskImage = ratsFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	results.threshold = ratsFilter->GetThreshold();
 	gmfilter->ReleaseDataFlagOn();
 	if( releaseData )
 		ratsFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeMorphWatershed( ImagePointer & image, RunInfo & results, float level, int fullyConnected, bool meyer, bool releaseData = false )
+void computeMorphWatershed( ImagePointer & image, RunInfo & results, float level, int fullyConnected, bool meyer, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   GradientImageType;
@@ -231,9 +220,6 @@ int computeMorphWatershed( ImagePointer & image, RunInfo & results, float level,
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	// Gradient Magnitude
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
@@ -273,17 +259,15 @@ int computeMorphWatershed( ImagePointer & image, RunInfo & results, float level,
 
 	results.maskImage = binaryThresholdFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	gmfilter->ReleaseDataFlagOn();
 	mWSFilter->ReleaseDataFlagOn();
 	relabelFilter->ReleaseDataFlagOn();
 	if( releaseData )
 		binaryThresholdFilter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
+void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -293,9 +277,6 @@ int computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo &
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::HistogramThresholdImageFilter<InputImageType, MaskImageType> parameterFreeThrFilterType;
 	typename parameterFreeThrFilterType::Pointer filter;
@@ -387,17 +368,15 @@ int computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo &
 
 	results.maskImage = binaryThresholdFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	results.threshold = filter->GetThreshold();
 	results.parameters.push_back( QString::number( filter->GetThreshold() ) );
 	results.parameterNames << filterNames.at( filterId );
 	if( releaseData )
 		filter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeConnThr( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, bool releaseData = false )
+void computeConnThr( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	const InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
@@ -407,9 +386,6 @@ int computeConnThr( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::ConnectedThresholdImageFilter< InputImageType, MaskImageType > ConnThrFilterType;
 	typename ConnThrFilterType::Pointer connThrfilter = ConnThrFilterType::New();
@@ -431,14 +407,12 @@ int computeConnThr( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo
 	connThrfilter->Update();
 	results.maskImage = connThrfilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime = t.elapsed();
 	if( releaseData )
 		connThrfilter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeConfiConn( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int initNeighbRadius, float multip, int numbIter, bool releaseData = false )
+void computeConfiConn( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int initNeighbRadius, float multip, int numbIter, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
@@ -448,9 +422,6 @@ int computeConfiConn( ImagePointer & inputImage, ImagePointer & seedImage, RunIn
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::ConfidenceConnectedImageFilter< InputImageType, MaskImageType > ConfiConnFilterType;
 	typename ConfiConnFilterType::Pointer confiConnFilter = ConfiConnFilterType::New();
@@ -473,14 +444,12 @@ int computeConfiConn( ImagePointer & inputImage, ImagePointer & seedImage, RunIn
 	confiConnFilter->Update();
 	results.maskImage = confiConnFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	if( releaseData )
 		confiConnFilter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, int neighbRadius, bool releaseData = false )
+void computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, RunInfo & results, int loConnThr, int upConnThr, int neighbRadius, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(inputImage.GetPointer());
@@ -490,9 +459,6 @@ int computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, RunI
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typename InputImageType::SizeType	radius;
 	radius[0] = neighbRadius;
@@ -520,14 +486,12 @@ int computeNeighbConn( ImagePointer & inputImage, ImagePointer & seedImage, RunI
 	neighbConnfilter->Update();
 	results.maskImage = neighbConnfilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	if( releaseData )
 		neighbConnfilter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
+void computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int NbOfThr, int ValleyEmphasis, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -537,9 +501,6 @@ int computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo &
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef typename itk::OtsuMultipleThresholdsImageFilter < InputImageType, MaskImageType > multiOtsuFilterType;
 	typename multiOtsuFilterType::Pointer multiOtsufilter = multiOtsuFilterType::New();
@@ -562,16 +523,14 @@ int computeMultiOtsu( ImagePointer & image, PorosityFilterID filterId, RunInfo &
 
 	results.maskImage = binaryThresholdFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	results.threshold = thresholds[0];
 	multiOtsufilter->ReleaseDataFlagOn();
 	if( releaseData )
 		binaryThresholdFilter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float upSurrThr, bool releaseData = false )
+void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float upSurrThr, bool releaseData = false )
 {
 	// Use this filter together with computeRemoveSurrounding
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -582,9 +541,6 @@ int computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, R
 	typename DuplicatorType::Pointer duplicator1 = DuplicatorType::New();
 	duplicator1->SetInputImage( input );
 	duplicator1->Update();
-
-	QTime t;
-	t.start();
 
 	// Defines a dummy image (input size) with a white core (input size without surface border voxels )
 	MaskImageType::Pointer dummyImage = MaskImageType::New();
@@ -655,15 +611,12 @@ int computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, R
 	results.surroundingMaskImage->Modified();
 	results.maskImage = image;
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	if ( releaseData )
 		connThrfilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
+void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, bool releaseData = false )
 {
 	// Use this filter together with computeCreateSurrounding
 	MaskImageType * surMask = dynamic_cast<MaskImageType*>( results.surroundingMaskImage.GetPointer() );
@@ -683,9 +636,6 @@ int computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, R
 	typename DuplicatorType::Pointer resMaskDup = DuplicatorType::New();
 	resMaskDup->SetInputImage( resMask );
 	resMaskDup->Update();
-
-	QTime t;
-	t.start();
 	
 	typedef itk::AndImageFilter <MaskImageType> AndImageFilterType;
 	AndImageFilterType::Pointer andFilter = AndImageFilterType::New();
@@ -695,15 +645,12 @@ int computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, R
 
 	results.maskImage = andFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	if ( releaseData )
 		andFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   GADSFImageType;
@@ -714,10 +661,6 @@ int computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId,
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-	
-	QTime t;
-	// results.startTime = QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat );
-	t.start();
 	
 	typedef itk::GradientAnisotropicDiffusionImageFilter< InputImageType, GADSFImageType > GADSFType;
 	typename GADSFType::Pointer gadsfilter = GADSFType::New();
@@ -736,19 +679,16 @@ int computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId,
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 
 	if ( releaseData )
 	{
 		gadsfilter->ReleaseDataFlagOn();
 		caster->ReleaseDataFlagOn();
 	}
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
+void computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, float condParam, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   CADSFImageType;
@@ -759,10 +699,6 @@ int computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId,
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	//results.startTime = QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat );
-	t.start();
 
 	typedef itk::CurvatureAnisotropicDiffusionImageFilter< InputImageType, CADSFImageType > CADSFType;
 	typename CADSFType::Pointer cadsfilter = CADSFType::New();
@@ -779,19 +715,16 @@ int computeCurvAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId,
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 
 	if ( releaseData )
 	{
 		cadsfilter->ReleaseDataFlagOn();
 		caster->ReleaseDataFlagOn();
 	}
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float sigma, bool releaseData = false )
+void computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float sigma, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   RGSFImageType;
@@ -802,9 +735,6 @@ int computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterId
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::RecursiveGaussianImageFilter<InputImageType, RGSFImageType > RGSFXType;
 	typename RGSFXType::Pointer rgsfilterX = RGSFXType::New();
@@ -835,7 +765,6 @@ int computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterId
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 
 	if ( releaseData )
 	{
@@ -844,12 +773,10 @@ int computeRecursiveGaussSmooth( ImagePointer & image, PorosityFilterID filterId
 		rgsfilterZ->ReleaseDataFlagOn();
 		caster->ReleaseDataFlagOn();
 	}
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
+void computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, float domainSigma, float rangeSigma, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   BSFImageType;
@@ -860,9 +787,6 @@ int computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, Run
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::BilateralImageFilter<InputImageType, BSFImageType > BSFType;
 	typename BSFType::Pointer bsfilter = BSFType::New();
@@ -883,19 +807,16 @@ int computeBilateralSmooth( ImagePointer & image, PorosityFilterID filterId, Run
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 
 	if ( releaseData )
 	{
 		bsfilter->ReleaseDataFlagOn();
 		caster->ReleaseDataFlagOn();
 	}
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
+void computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int nbOfIt, float timeStep, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   CFSFImageType;
@@ -906,9 +827,6 @@ int computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, RunI
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::CurvatureFlowImageFilter<InputImageType, CFSFImageType > CFFType;
 	typename CFFType::Pointer cffilter = CFFType::New();
@@ -924,19 +842,16 @@ int computeCurvFlowSmooth( ImagePointer & image, PorosityFilterID filterId, RunI
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 
 	if ( releaseData )
 	{
 		cffilter->ReleaseDataFlagOn();
 		caster->ReleaseDataFlagOn();
 	}
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int radius, bool releaseData = false )
+void computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int radius, bool releaseData = false )
 {
 	typedef typename itk::Image< T, DIM >   InputImageType;
 	typedef typename itk::Image< float, DIM >   MSFImageType;
@@ -947,9 +862,6 @@ int computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunInf
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	typedef itk::MedianImageFilter<InputImageType, MSFImageType > MSFType;
 	typename MSFType::Pointer mfilter = MSFType::New();
@@ -968,19 +880,16 @@ int computeMedianSmooth( ImagePointer & image, PorosityFilterID filterId, RunInf
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 
 	if ( releaseData )
 	{
 		mfilter->ReleaseDataFlagOn();
 		caster->ReleaseDataFlagOn();
 	}
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int isoX, bool releaseData = false )
+void computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int isoX, bool releaseData = false )
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
@@ -993,9 +902,6 @@ int computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	duplicator->SetInputImage( input );
 	duplicator->Update();
 
-	QTime t;
-	t.start();
-
 	binaryThresholdFilter->SetLowerThreshold( 0 );
 	binaryThresholdFilter->SetUpperThreshold( isoX );	
 	binaryThresholdFilter->SetInsideValue( 1 );
@@ -1005,16 +911,13 @@ int computeIsoXThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	binaryThresholdFilter->Update();
 	results.maskImage = binaryThresholdFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	results.threshold = isoX;
 	if ( releaseData )
 		binaryThresholdFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
-int computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
+void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunInfo & results, int airporeGV, int fhwWeight, bool releaseData = false )
 {
 	int mdThr, omThr, fhwThr;
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -1025,9 +928,6 @@ int computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunInf
 	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage( input );
 	duplicator->Update();
-
-	QTime t;
-	t.start();
 
 	// Calculate Maximum Distance Threshold
 	typedef itk::MaximumDistance< InputImageType >   MaximumDistanceType;
@@ -1067,12 +967,9 @@ int computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunInf
 
 	results.maskImage = binaryThresholdFilter->GetOutput();
 	results.maskImage->Modified();
-	results.elapsedTime += t.elapsed();
 	results.threshold = fhwThr;
 	if ( releaseData )
 		binaryThresholdFilter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
 }
 
 template<class T>
@@ -1083,9 +980,9 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	int pind = 0;
 	foreach( PorosityFilterID fid, filterIds )
 	{
-		bool releaseData = true;
-		if( fid == filterIds.last() )
-			releaseData = false;
+		QTime t;
+		t.start();
+		bool releaseData = (fid != filterIds.last());
 		switch( fid )
 		{
 			case P_BINARY_THRESHOLD:
@@ -1101,41 +998,17 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 				computeMorphWatershed<T>( curImage, results, params[pind]->asFloat(), params[pind + 1]->asInt(), false, releaseData );
 				break;
 			case P_OTSU_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_ISODATA_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_MAXENTROPY_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_MOMENTS_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_YEN_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_RENYI_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_SHANBHAG_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_INTERMODES_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_HUANG_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_LI_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_KITTLERILLINGWORTH_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_TRIANGLE_THRESHOLD:
-				computeParamFree<T>( curImage, fid, results, releaseData );
-				break;
 			case P_MINIMUM_THRESHOLD:
 				computeParamFree<T>( curImage, fid, results, releaseData );
 				break;
@@ -1182,7 +1055,7 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 				computeCreateSurrounding<T>( curImage, fid, results, params[pind]->asFloat(), releaseData );
 				break;
 		}
-		
+		results.elapsedTime += t.elapsed();
 		curImage = results.maskImage;
 		pind += FilterIdToParamList[fid].size();
 	}
