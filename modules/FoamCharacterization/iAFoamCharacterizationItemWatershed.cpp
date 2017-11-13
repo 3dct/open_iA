@@ -27,6 +27,7 @@
 
 #include <itkGradientMagnitudeImageFilter.h>
 #include <itkWatershedImageFilter.h>
+#include <itkCastImageFilter.h>
 
 #include "itkImageIOBase.h"
 
@@ -34,6 +35,8 @@
 #include "iAProgress.h"
 
 #include "iAFoamCharacterizationDialogWatershed.h"
+
+#include <vtkImageData.h>
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)

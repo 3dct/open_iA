@@ -35,6 +35,8 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 
+#include <vtkImageData.h>
+
 iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
 							   : iAFoamCharacterizationItem(_pTable ,_pImageData, iAFoamCharacterizationItem::itDistanceTransform)

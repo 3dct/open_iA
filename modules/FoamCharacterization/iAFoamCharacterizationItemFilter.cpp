@@ -39,6 +39,8 @@
 #include "iAFoamCharacterizationDialogFilter.h"
 #include "iAFoamCharacterizationTable.h"
 
+#include <vtkImageData.h>
+
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
 	                                      : iAFoamCharacterizationItem(_pTable, _pImageData, iAFoamCharacterizationItem::itFilter)

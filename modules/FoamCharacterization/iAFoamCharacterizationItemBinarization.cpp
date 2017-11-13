@@ -32,6 +32,7 @@
 #include "iAProgress.h"
 
 #include "iAFoamCharacterizationDialogBinarization.h"
+#include <vtkImageData.h>
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
