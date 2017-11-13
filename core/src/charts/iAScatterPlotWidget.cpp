@@ -26,6 +26,7 @@
 #include "iASPLOMData.h"
 
 #include <vtkLookupTable.h>
+#include <vtkSmartPointer.h>
 
 #include <QMouseEvent>
 

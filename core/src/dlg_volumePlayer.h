@@ -24,13 +24,12 @@
 #include <QtGui/QPalette>
 #include <QTimer>
 #include <vector>
-#include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
-class vtkImageData;
-class vtkImageAccumulate;
 class MdiChild;
 class iAVolumeStack;
+
+class vtkPiecewiseFunction;
 
 const int CHANNELS_COUNT = 2;
 
@@ -39,7 +38,7 @@ class dlg_volumePlayer : public QDockWidget, public Ui_VolumePlayer
 	Q_OBJECT
 
 public:
-	dlg_volumePlayer(QWidget *parent, vtkImageData* s , vtkImageAccumulate* a, QString f, iAVolumeStack *volumeStack);
+	dlg_volumePlayer(QWidget *parent, iAVolumeStack *volumeStack);
 	~dlg_volumePlayer();
 
 private:

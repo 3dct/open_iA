@@ -24,48 +24,54 @@
 
 #include "dlg_function.h"
 #include "iAHistogramData.h"
+#include "iAPlotTypes.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
-iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, vtkImageAccumulate* accumulate,
-		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label, bool reset) 
-	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
+iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, QString const & label):
+	iADiagramFctWidget(parent, mdiChild, label)
+{}
+
+iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild,
+		vtkImageData* img, int binCount,
+		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString const & label, bool reset) 
+	: iADiagramFctWidget(parent, mdiChild, label)
 {
-	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
-	
-	initialize(accumulate, reset);
+	SetTransferFunctions(cTF, oTF);
+	initialize(img, binCount, reset);
+	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
 iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 	MdiChild * mdiChild,
-	vtkImageAccumulate* accumulate,
 	vtkPiecewiseFunction* oTF,
 	vtkColorTransferFunction* cTF,
-	iAAbstractDiagramData::DataType* histData,
-	iAAbstractDiagramData::DataType dataMin,
-	iAAbstractDiagramData::DataType dataMax,
+	iAPlotData::DataType* histData,
+	iAPlotData::DataType dataMin,
+	iAPlotData::DataType dataMax,
 	int bins,
 	double space,
-	QString label,
+	QString const & label,
 	bool reset)
-	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, label)
+	: iADiagramFctWidget(parent, mdiChild, label)
 {
-	data = QSharedPointer<iAHistogramData>(new iAHistogramData());
-	datatypehistograminitialize(accumulate, histData, reset, dataMin, dataMax, bins, space);
+	SetTransferFunctions(cTF, oTF);
+	datatypehistograminitialize(histData, reset, dataMin, dataMax, bins, space);
+	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
-void iAHistogramWidget::initialize(vtkImageAccumulate* accumulate, bool reset)
+void iAHistogramWidget::initialize(vtkImageData* img, int binCount, bool reset)
 {
-	data->initialize(accumulate);
+	m_data = iAHistogramData::Create(img, binCount);
 	reInitialize(reset);
 }
 
 
-void iAHistogramWidget::datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histlistptr, bool reset,
-	iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space)
+void iAHistogramWidget::datatypehistograminitialize(iAPlotData::DataType* histlistptr, bool reset,
+	iAPlotData::DataType min, iAPlotData::DataType max, int bins, double space)
 {
-	data->initialize(hData, histlistptr, bins, space, min, max);
+	m_data = iAHistogramData::Create(histlistptr, bins, space, min, max);
 	reInitialize(reset);
 }
 
@@ -91,21 +97,4 @@ void iAHistogramWidget::reInitialize(bool resetFunction)
 	{
 		functions[0]->reset();
 	}
-}
-
-
-QSharedPointer<iAAbstractDiagramRangedData> iAHistogramWidget::GetData()
-{
-	return data;
-}
-
-QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramWidget::GetData() const
-{
-	return data;
-}
-
-void iAHistogramWidget::UpdateData()
-{
-	data->UpdateData();
-	SetMaxYAxisValue(data->YBounds()[1]);
 }

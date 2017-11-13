@@ -20,50 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADiagramFctWidget.h"
+#include "iAPlotData.h"
 #include "open_iA_Core_export.h"
 
-#include <QSharedPointer>
-
-class vtkImageData;
-class vtkImageAccumulate;
-
-class iAHistogramData;
-
-
-class open_iA_Core_API iAHistogramWidget : public iADiagramFctWidget
+class open_iA_Core_API iAMappingDiagramData: public iAPlotData
 {
-	Q_OBJECT
-
-public:
-	iAHistogramWidget(QWidget *parent,
-		MdiChild * mdiChild,
-		vtkImageAccumulate* histData,
-		vtkPiecewiseFunction* oTF,
-		vtkColorTransferFunction* cTF,
-		QString label = "Greyvalue",
-		bool reset = true);
-	iAHistogramWidget(QWidget *parent,
-		MdiChild * mdiChild,
-		vtkImageAccumulate* accumulate,
-		vtkPiecewiseFunction* oTF,
-		vtkColorTransferFunction* cTF,
-		iAAbstractDiagramData::DataType* histData,
-		iAAbstractDiagramData::DataType min,
-		iAAbstractDiagramData::DataType max,
-		int bins,
-		double space,
-		QString label,
-		bool reset = true);
-	void initialize(vtkImageAccumulate* histData, bool reset);
-	void datatypehistograminitialize(vtkImageAccumulate* hData, iAAbstractDiagramData::DataType* histData, bool reset,
-		iAAbstractDiagramData::DataType min, iAAbstractDiagramData::DataType max, int bins, double space);
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
-	void UpdateData();
-
 private:
-	QSharedPointer<iAHistogramData> data;
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	void reInitialize(bool resetFunction);
-
+	size_t m_numBin;
+	DataType * m_data;
+	double m_spacing;
+	double m_xBounds[2];
+	double m_yBounds[2];
+public:
+	iAMappingDiagramData(DataType const * data,
+		int srcNumBin, double srcMinX, double srcMaxX,
+		size_t targetNumBin, double targetMinX, double targetMaxX,
+		DataType const maxValue);
+	~iAMappingDiagramData();
+	size_t GetNumBin() const override;
+	DataType const * GetRawData() const override;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
 };

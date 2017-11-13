@@ -436,11 +436,14 @@ void iARenderObserver::CheckPos(int dim)
 	m_pImageData->GetDimensions(dims);
 
 	if (dim == 0){
-		if ( pos[0] < 0 ) pos[0] = dims[0]-1;	if ( pos[0] > dims[0]-1 ) pos[0] = 0;
+		if ( pos[0] < 0 ) pos[0] = dims[0]-1;
+		if ( pos[0] > dims[0]-1 ) pos[0] = 0;
 	} else if (dim == 1) {
-		if ( pos[1] < 0 ) pos[1] = dims[1]-1; if ( pos[1] > dims[1]-1 ) pos[1] = 0;
+		if ( pos[1] < 0 ) pos[1] = dims[1]-1;
+		if ( pos[1] > dims[1]-1 ) pos[1] = 0;
 	} else {
-		if ( pos[2] < 0 ) pos[2] = dims[2]-1; if ( pos[2] > dims[2]-1 ) pos[2] = 0;
+		if ( pos[2] < 0 ) pos[2] = dims[2]-1;
+		if ( pos[2] > dims[2]-1 ) pos[2] = 0;
 	}
 }
 

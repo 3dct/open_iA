@@ -24,7 +24,7 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class iAAbstractDrawableFunction;
+class iAPlot;
 class iAFilterChart;
 class iAImageTreeNode;
 class iALabelInfo;
@@ -47,7 +47,7 @@ private:
 	QVector<QSharedPointer<iAParamHistogramData> > m_labelDistributionChartData;
 	QVector<QSharedPointer<iAParamHistogramData> > m_probabilitiesChartData;
 	QSharedPointer<iAParamHistogramData> m_entropyChartData;
-	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_drawers;
+	QVector<QSharedPointer<iAPlot> > m_drawers;
 	iAImageTreeNode const * m_selectedNode;
 	QLabel* m_lbInfo;
 	int m_probChartStart;

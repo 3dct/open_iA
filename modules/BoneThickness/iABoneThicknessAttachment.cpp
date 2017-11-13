@@ -50,7 +50,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	m_pBoneThicknessChartBar = new iABoneThicknessChartBar(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
 	
-	m_pBoneThickness->set(m_childData.child->getRaycaster(), m_childData.polyData, m_pBoneThicknessChartBar, m_pBoneThicknessTable);
+	m_pBoneThickness->set(m_childData.child->getRenderer(), m_childData.polyData, m_pBoneThicknessChartBar, m_pBoneThicknessTable);
 	m_pBoneThicknessChartBar->set(m_pBoneThickness.data(), m_pBoneThicknessTable);
 	m_pBoneThicknessTable->set(m_pBoneThickness.data(), m_pBoneThicknessChartBar);
 
@@ -143,7 +143,7 @@ void iABoneThicknessAttachment::slotCheckBoxShowThickness(const bool& _bChecked)
 {
 	m_pBoneThickness->setShowThickness(_bChecked);
 	m_pBoneThickness->setWindowSpheres();
-	m_childData.child->getRaycaster()->update();
+	m_childData.child->getRenderer()->update();
 }
 
 void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
@@ -163,7 +163,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindowSpheres();
-		m_childData.child->getRaycaster()->update();
+		m_childData.child->getRenderer()->update();
 		qApp->restoreOverrideCursor();
 	}
 }

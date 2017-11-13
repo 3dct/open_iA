@@ -20,30 +20,42 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAHistogramWidget.h"
+#include "iADiagramFctWidget.h"
 #include "open_iA_Core_export.h"
-#include "iAQTtoUIConnector.h"
-#include "ui_Histogram.h"
 
-#include <vtkImageData.h>
+#include <QSharedPointer>
 
-#include <QDockWidget>
-#include <QString>
+class vtkImageData;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_Histogram>   dlg_histogramContainer;
+class iAHistogramData;
 
-class open_iA_Core_API dlg_histogram : public dlg_histogramContainer
+
+class open_iA_Core_API iAHistogramWidget : public iADiagramFctWidget
 {
 	Q_OBJECT
+
 public:
-	iAHistogramWidget *histogram;
-public:
-	dlg_histogram(QWidget *parent, vtkImageData* input, vtkImageAccumulate* histData, vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString label = "Greyvalue")
-					: dlg_histogramContainer( parent )
-	{
-		histogram = new iAHistogramWidget(parent, (MdiChild*)parent, histData, oTF, cTF, label);
-		histogram->setObjectName(QString::fromUtf8("histogram"));
-		this->setWidget(histogram);
-	}
-	~dlg_histogram() {}
+	iAHistogramWidget(QWidget *parent, MdiChild* mdiChild, QString const & label);
+	iAHistogramWidget(QWidget *parent, MdiChild * mdiChild,
+		vtkImageData* img, int binCount,
+		vtkPiecewiseFunction* oTF,	vtkColorTransferFunction* cTF,
+		QString const & label = "Greyvalue",
+		bool reset = true);
+	iAHistogramWidget(QWidget *parent,
+		MdiChild * mdiChild,
+		vtkPiecewiseFunction* oTF,
+		vtkColorTransferFunction* cTF,
+		iAPlotData::DataType* histData,
+		iAPlotData::DataType min,
+		iAPlotData::DataType max,
+		int bins,
+		double space,
+		QString const & label,
+		bool reset = true);
+	void initialize(vtkImageData* img, int binCount, bool reset);
+	void datatypehistograminitialize(iAPlotData::DataType* histData, bool reset,
+		iAPlotData::DataType min, iAPlotData::DataType max, int bins, double space);
+private:
+	void reInitialize(bool resetFunction);
+	QSharedPointer<iAHistogramData> m_data;
 };

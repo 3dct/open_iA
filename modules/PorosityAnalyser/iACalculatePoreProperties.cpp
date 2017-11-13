@@ -23,7 +23,7 @@
 #include "iACalculatePoreProperties.h"
 
 #include "iACSVToQTableWidgetConverter.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "defines.h"
 
 #include <itkImageBase.h>

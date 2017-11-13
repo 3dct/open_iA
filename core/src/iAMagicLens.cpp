@@ -48,7 +48,7 @@ const int iAMagicLens::OFFSET_MODE_X_OFFSET = 10;
 
 namespace
 {
-	const int CaptionFrameDistance = 2;
+	const int CaptionFrameDistance = 0;
 	const int CaptionFontSize = 13;
 }
 
@@ -76,7 +76,7 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 
 	m_imageActor->SetInputData(m_imageToColors->GetOutput());
 	m_imageActor->GetMapper()->BorderOn();
-	m_imageActor->SetOpacity(1.0);
+	m_imageActor->SetOpacity(1.0); // opacity of the lens image
 	m_imageActor->SetInterpolate(interpolate);
 /*
 	// ORIENTATION / ROTATION FIX:
@@ -84,10 +84,8 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 	m_imageActor->SetOrientation(orientation);
 */
 	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
-#if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
 	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
 	m_textActor->GetTextProperty()->SetBackgroundOpacity(0.5);
-#endif
 	m_textActor->GetTextProperty()->SetFontSize(CaptionFontSize);
 	double textMargin = m_qvtkWidget->GetFrameWidth() + CaptionFrameDistance;
 	m_textActor->SetPosition(textMargin, textMargin);
@@ -134,6 +132,7 @@ void iAMagicLens::SetFrameWidth(qreal frameWidth)
 	}
 }
 
+// width of the frame line
 qreal iAMagicLens::GetFrameWidth() const
 {
 	if (m_lenses.size() > 0)
@@ -159,6 +158,7 @@ void iAMagicLens::Render()
 		}
 }
 
+// shows or hides the magic lense on the sliced image
 void iAMagicLens::SetEnabled( bool isEnabled )
 {
 	m_isEnabled = isEnabled;
@@ -196,6 +196,7 @@ void iAMagicLens::InitWidget( QWidget * parent, const QGLWidget * shareWidget, Q
 	m_shareWidget = shareWidget;
 	m_flags = f;
 }
+
 
 void iAMagicLens::SetScaleCoefficient( double scaleCoefficient )
 {
@@ -298,6 +299,8 @@ void iAMagicLens::UpdateOffset()
 	}
 }
 
+// shows the image in the lens either next to the part of the image focused in the lens,
+// or the lens frames the part of the image it is currently hovering over
 void iAMagicLens::UpdateShowFrame()
 {
 	if (m_viewMode == SIDE_BY_SIDE)
@@ -320,6 +323,8 @@ QRect iAMagicLens::GetViewRect() const
 	return m_viewedRect;
 }
 
+// sets a frame for the lense: either framed, not framed, or framed on the left side
+// of the original image
 void iAMagicLens::SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle )
 {
 	for (LensData & l : m_lenses)

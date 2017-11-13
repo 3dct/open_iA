@@ -75,6 +75,7 @@ class iALogger;
 class iAModality;
 class iAModalityList;
 class iAParametricSpline;
+class iAPlot;
 struct iAProfileProbe;
 class iARenderer;
 class iASlicer;
@@ -92,7 +93,7 @@ class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
 {
 	Q_OBJECT
 public:
-	dlg_renderer * r;
+	dlg_renderer * renderer;
 	dlg_sliceXY * sXY;
 	dlg_sliceXZ * sXZ;
 	dlg_sliceYZ * sYZ;
@@ -109,7 +110,7 @@ public:
 	void showPoly();
 	bool loadFile(const QString &f, bool isStack);
 	bool loadRaw(const QString &f);
-	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
+	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr);
 	bool save();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
@@ -161,7 +162,6 @@ public:
 	iAVolumeSettings const & GetVolumeSettings() const;
 	iASlicerSettings const & GetSlicerSettings() const;
 	iAPreferences    const & GetPreferences()    const;
-	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
 	void connectIOThreadSignals(iAIO* thread);
@@ -196,8 +196,7 @@ public:
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
-	iAHistogramWidget * getHistogram();
-	vtkImageAccumulate * getImageAccumulate();
+	iAHistogramWidget* getHistogram();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -460,7 +459,10 @@ private:
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
 
-	QDockWidget* histogramContainer;
+	iAHistogramWidget* m_histogram;
+	QDockWidget* m_histogramContainer;
+	QSharedPointer<iAPlot> m_histogramPlot;
+
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
@@ -497,6 +499,7 @@ private:
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();
+	void SetHistogramModality(int modalityIdx);
 public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);
 	QSharedPointer<iAModalityList> GetModalities();

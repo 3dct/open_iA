@@ -19,9 +19,9 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iAFunctionDrawers.h"
+#include "iAPlotTypes.h"
 
-#include "iAAbstractDiagramData.h"
+#include "iAPlotData.h"
 
 #include <QPainter>
 #include <QPolygon>
@@ -29,12 +29,33 @@
 #include <cmath>
 
 
-iAAbstractDrawableFunction::iAAbstractDrawableFunction(QColor const & color):
-	iAColorable(color)
+iAPlot::iAPlot(QColor const & color):
+	iAColorable(color),
+	m_visible(true)
 {}
 
+iAPlot::~iAPlot() {}
+
+QSharedPointer<iAPlotData> iAPlot::GetData()
+{
+	return QSharedPointer<iAPlotData>();
+}
+
+bool iAPlot::Visible() const
+{
+	return m_visible;
+}
+
+void iAPlot::SetVisible(bool visible)
+{
+	m_visible = visible;
+}
+
+void iAPlot::update() {}
+
+
 iASelectedBinDrawer::iASelectedBinDrawer( int position /*= 0*/, QColor const & color /*= Qt::red */ )
-: iAAbstractDrawableFunction( color ), m_position( position )
+: iAPlot( color ), m_position( position )
 {}
 
 void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter ) const
@@ -52,8 +73,8 @@ void iASelectedBinDrawer::setPosition( int position )
 
 
 
-iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
-	iAAbstractDrawableFunction(color),
+iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color):
+	iAPlot(color),
 	m_data(data),
 	m_cachedBinWidth(0.0),
 	m_cachedCoordConv(0)
@@ -73,16 +94,20 @@ void iAPolygonBasedFunctionDrawer::draw(QPainter& painter, double binWidth, QSha
 	drawPoly(painter, m_poly);
 }
 
-
 void iAPolygonBasedFunctionDrawer::update()
 {
 	// reset the polygon; next time we draw, it will be recreated!
 	m_poly.clear();
 }
 
+QSharedPointer<iAPlotData> iAPolygonBasedFunctionDrawer::GetData()
+{
+	return m_data;
+}
 
 
-iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
+
+iALineFunctionDrawer::iALineFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color):
 	iAPolygonBasedFunctionDrawer(data, color)
 {
 }
@@ -95,10 +120,9 @@ void iALineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> 
 	painter.drawPolyline(*poly.data());
 }
 
-
 bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
 {
-	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
+	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
 		return false;
 	int binWidthHalf = binWidth / 2;
@@ -115,8 +139,7 @@ bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 }
 
 
-
-iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color):
+iAFilledLineFunctionDrawer::iAFilledLineFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color):
 	iAPolygonBasedFunctionDrawer(data, color)
 {
 }
@@ -136,7 +159,7 @@ void iAFilledLineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPol
 
 bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
 {
-	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
+	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
 		return false;
 	m_poly = QSharedPointer<QPolygon>(new QPolygon);
@@ -176,14 +199,11 @@ bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer
 			m_poly->push_back(QPoint(maxX, 0));
 		}
 	}
-
-	//m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0));
 	return true;
 }
 
 
-
-iAStepFunctionDrawer::iAStepFunctionDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color) :
+iAStepFunctionDrawer::iAStepFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color) :
 	iAPolygonBasedFunctionDrawer(data, color)
 {
 }
@@ -204,7 +224,7 @@ void iAStepFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> 
 
 bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
 {
-	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
+	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
 		return false;
 	m_poly = QSharedPointer<QPolygon>(new QPolygon);
@@ -222,9 +242,13 @@ bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 }
 
 
+QSharedPointer<iAPlotData> iABarGraphDrawer::GetData()
+{
+	return m_data;
+}
 
-iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAAbstractDiagramData> data, QColor const & color, int margin):
-	iAAbstractDrawableFunction(color),
+iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const & color, int margin):
+	iAPlot(color),
 	m_data(data),
 	m_margin(margin)
 {
@@ -232,7 +256,7 @@ iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAAbstractDiagramData> data, Q
 
 void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const
 {
-	iAAbstractDiagramData::DataType const * rawData = m_data->GetData();
+	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	int intBinWidth = static_cast<int>(std::ceil(binWidth)) - m_margin;
 
 	if (!rawData)
@@ -250,13 +274,9 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<C
 	}
 }
 
-void iABarGraphDrawer::update()
-{
-	// nothing to do here, no caching implemented for this drawer
-}
 
 iAMultipleFunctionDrawer::iAMultipleFunctionDrawer():
-	iAAbstractDrawableFunction(QColor())
+	iAPlot(QColor())
 {}
 
 void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const
@@ -273,20 +293,15 @@ void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedP
 	painter.setPen(pen);
 }
 
-void iAMultipleFunctionDrawer::add(QSharedPointer<iAAbstractDrawableFunction> drawer)
+void iAMultipleFunctionDrawer::add(QSharedPointer<iAPlot> drawer)
 {
 	m_drawers.push_back(drawer);
 }
 
-void iAMultipleFunctionDrawer::update()
-{
-	// no caching (yet!)
-}
 void iAMultipleFunctionDrawer::clear()
 {
 	m_drawers.clear();
 }
-
 
 void iAMultipleFunctionDrawer::setColor(QColor const & color)
 {

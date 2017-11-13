@@ -20,68 +20,48 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QPoint>
-#include <QMouseEvent>
-#include <QKeyEvent>
+#include "iAColorable.h"
+#include "open_iA_Core_export.h"
 
-#include "vtkPolyData.h"
+#include <QSharedPointer>
 
-#include "iADiagramWidget.h"
+class iAPlotData;
 
-// FORWARD DECLARATIONS
-class vtkPolyData;
-class vtkDataArray;
-
-class QPaintEvent;
+class QColor;
 class QPainter;
 
-class iAProfileWidget : public iADiagramWidget
+class CoordinateConverter
 {
-	Q_OBJECT
-
 public:
-	static const int SELECTED_POINT_RADIUS = 8;
-	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
-	static const int POINT_RADIUS = 6;
-	static const int POINT_SIZE = 2*POINT_RADIUS;
-	static const int TEXT_Y = 15;
-	static const int TEXT_X = 15;
+	virtual ~CoordinateConverter() {}
+	virtual double Diagram2ScreenY(double y) const =0;
+	virtual double Screen2DiagramY(double y) const =0;
+	virtual void update(double yZoom, double yDataMax, double yMinValueBiggerThanZero, int height) =0;
+	virtual bool equals(QSharedPointer<CoordinateConverter> other) const
+	{
+		return false;
+	}
+	virtual QSharedPointer<CoordinateConverter> clone() =0;
+};
 
-	// Constructor/Destructor
-	iAProfileWidget(QWidget *parent, vtkPolyData* profData, double rayLength, QString yCapt = "Y Axis", QString xCapt = "X Axis");
-	void initialize(vtkPolyData* profData, double rayLength);
-
-	//draw the histogram
-	void drawProfilePlot();
-	void redraw();
-
-	int getMax() { return yHeight; }
-protected:
-	void paintEvent(QPaintEvent * );
-
+/** Interface for a function which is drawable in a diagram
+ *	encapsulates both the data of the function and the drawing method */
+class open_iA_Core_API iAPlot: public iAColorable
+{
+public:
+	iAPlot(QColor const & color);
+	virtual ~iAPlot();
+	/** in case your drawer implements caching, clear the cache when this is called */
+	virtual void update();
+	/**
+	* \brief method which draws the function
+	* it is allowed to cache the result; when the data has changed, update() needs to be called
+	*/
+	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
+	/** retrieves the data used for drawing */
+	virtual QSharedPointer<iAPlotData> GetData();
+	virtual bool Visible() const;
+	virtual void SetVisible(bool visible);
 private:
-	vtkPolyData*       profileData;
-	
-	QPoint		lastpoint;
-	QWidget		* activeChild;
-	QPoint		contextPos;
-
-	int xPos;
-	double numBin, rayLen;
-	double yDataRange[2];
-	double min_intensity[3];
-	double max_intensity[3];
-	vtkDataArray * scalars;
-	double yHeight;
-
-	QString yCaption, xCaption;
-
-	void drawHistogram(QPainter &painter);
-	void drawAxes(QPainter &painter);
-	void drawXAxis(QPainter &painter);
-	void drawYAxis(QPainter &painter);
-	void selectBin(QMouseEvent *event);
-
-Q_SIGNALS:
-	void binSelected(int newBin);
+	bool m_visible;
 };

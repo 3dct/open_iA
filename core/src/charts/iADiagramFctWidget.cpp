@@ -29,9 +29,9 @@
 #include "dlg_gaussian.h"
 #include "dlg_TFTable.h"
 #include "dlg_transfer.h"
-#include "iAAbstractDiagramData.h"
-#include "iAAbstractDrawableFunction.h"
-#include "iAFunctionDrawers.h"
+#include "iAPlotData.h"
+#include "iAPlot.h"
+#include "iAPlotTypes.h"
 #include "iAMathUtility.h"
 #include "iASettings.h"
 #include "mainwindow.h"		// TODO: get rid of this inclusion!
@@ -161,18 +161,13 @@ private:
 };
 }
 
-iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
-	MdiChild *mdiChild,
-	vtkPiecewiseFunction* oTF,
-	vtkColorTransferFunction* cTF,
-	QString const & xLabel,
-	QString const & yLabel) :
+iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
+	QString const & xLabel, QString const & yLabel) :
 	iADiagramWidget(parent),
 	TFTable(0),
 	contextMenu(new QMenu(this)),
 	xCaption(xLabel),
 	yCaption(yLabel),
-	m_showPrimaryDrawer(true),
 	m_yAxisSteps(Y_AXIS_STEPS),
 	m_xAxisSteps(X_AXIS_STEPS),
 	m_requiredPlacesAfterComma(0),
@@ -181,47 +176,43 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent,
 	m_enableAdditionalFunctions(true),
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
-	m_maxYAxisValue(std::numeric_limits<iAAbstractDiagramData::DataType>::lowest()),
-	contextMenuVisible(false)
+	m_maxYAxisValue(std::numeric_limits<iAPlotData::DataType>::lowest()),
+	contextMenuVisible(false),
+	m_showFunctions(false),
+	m_customYAxisValue(false),
+	selectedFunction(0),
+	activeChild(mdiChild),
+	updateAutomatically(true)
 {
+	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
+	functions.push_back(transferFunction);
 	leftMargin   = (yLabel == "") ? 0 : 60;
-	selectedFunction = 0;
-	m_showFunctions = oTF && cTF;
-	if (m_showFunctions)
-	{
-		dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
-		transferFunction->setOpacityFunction(oTF);
-		transferFunction->setColorFunction(cTF);
-		functions.push_back(transferFunction);
-	}
-	activeChild = mdiChild;
 }
 
 
 iADiagramFctWidget::~iADiagramFctWidget()
 {
 	delete contextMenu;
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	while(it != functions.end())
-	{
-		delete *it;
-		++it;
-	}
+	for (auto fct: functions)
+		delete fct;
 }
+
 
 int iADiagramFctWidget::getSelectedFuncPoint() const
 {
-	std::vector<dlg_function*>::const_iterator it = functions.begin();
+	auto it = functions.begin();
+	if (it == functions.end())
+		return -1;
 	dlg_function *func = *(it + selectedFunction);
-
 	return func->getSelectedPoint();
 }
 
 bool iADiagramFctWidget::isFuncEndPoint(int index) const
 {
-	std::vector<dlg_function*>::const_iterator it = functions.begin();
+	auto it = functions.begin();
+	if (it == functions.end())
+		return false;
 	dlg_function *func = *(it + selectedFunction);
-
 	return func->isEndPoint(index);
 }
 
@@ -241,9 +232,9 @@ void iADiagramFctWidget::paintEvent(QPaintEvent * e)
 
 void iADiagramFctWidget::CreateYConverter()
 {
-	if (m_maxYAxisValue == std::numeric_limits<iAAbstractDiagramData::DataType>::lowest())
+	if (m_maxYAxisValue == std::numeric_limits<iAPlotData::DataType>::lowest())
 	{
-		m_maxYAxisValue = GetData()->YBounds()[1];
+		m_maxYAxisValue = GetMaxYValue();
 	}
 	if (m_yDrawMode == Linear)
 	{
@@ -428,7 +419,7 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 				redraw();
 				emit updateTFTable();
 			}
-			selectBin(event);
+			showDataTooltip(event);
 		}
 		break;
 		default:
@@ -436,21 +427,26 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 	}
 }	
 	
-void iADiagramFctWidget::selectBin(QMouseEvent *event)
+void iADiagramFctWidget::showDataTooltip(QMouseEvent *event)
 {
-	iAAbstractDiagramData::DataType const * rawData = GetData()->GetData();
-	if (!rawData)
-	{
+	if (m_plots.empty())
 		return;
-	}
 	int xPos = clamp(0, width-1, event->x());
-	//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (numBin / width)
-	int nthBin = (int)((((xPos-translationX-LeftMargin()) * GetData()->GetNumBin()) / (ActiveWidth())) / xZoom);
-	assert( GetData()->GetNumBin() > 0 );
-	if (nthBin >= GetData()->GetNumBin() || xPos == width-1) nthBin = static_cast<int>(GetData()->GetNumBin())-1;
-	if (nthBin < 0) nthBin = 0;
-	QString text( tr("Value: %1 Frequency: %3").arg( GetData()->GetBinStart(nthBin)).arg( rawData[nthBin] ));
-	QToolTip::showText( event->globalPos(), text, this );
+	size_t numBin = m_plots[0]->GetData()->GetNumBin();
+	assert(numBin > 0);
+	int nthBin = static_cast<int>((((xPos - translationX - LeftMargin()) * numBin) / (ActiveWidth())) / xZoom);
+	nthBin = clamp(0, static_cast<int>(numBin), nthBin);
+	if (xPos == width - 1)
+		nthBin = static_cast<int>(numBin) - 1;
+	QString toolTip(QString("%1: %2\n%3:").arg(xCaption).arg(m_plots[0]->GetData()->GetBinStart(nthBin)).arg(yCaption));
+	for (auto plot : m_plots)
+	{
+		auto data = plot->GetData();
+		if (!data || !data->GetRawData())
+			continue;
+		toolTip += QString::number(data->GetRawData()[nthBin]);
+	}
+	QToolTip::showText( event->globalPos(), toolTip, this);
 }
 
 void iADiagramFctWidget::enterEvent(QEvent*)
@@ -556,19 +552,13 @@ QSharedPointer<CoordinateConverter> const iADiagramFctWidget::GetCoordinateConve
 
 void iADiagramFctWidget::drawDatasets(QPainter &painter)
 {
-	double binWidth = ActiveWidth() * xZoom / GetData()->GetNumBin();
-	if (!m_primaryDrawer)
+	if (m_plots.empty())
+		return;
+	double binWidth = ActiveWidth() * xZoom / m_plots[0]->GetData()->GetNumBin();
+	for (auto it = m_plots.constBegin(); it != m_plots.constEnd();	++it)
 	{
-		m_primaryDrawer = CreatePrimaryDrawer();
-	}
-
-	if (m_showPrimaryDrawer)
-		m_primaryDrawer->draw(painter, binWidth, m_yConverter);
-	for (QVector<QSharedPointer<iAAbstractDrawableFunction> >::const_iterator it = m_datasets.constBegin();
-		it != m_datasets.constEnd();
-		++it)
-	{
-		(*it)->draw(painter, binWidth, m_yConverter);
+		if ((*it)->Visible())
+			(*it)->draw(painter, binWidth, m_yConverter);
 	}
 }
 
@@ -632,11 +622,16 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 	const int MINIMUM_MARGIN = 8;
 	const int TextAxisDistance = 2;
 	QFontMetrics fm = painter.fontMetrics();
+	// TODO: find better solution than just use first plot here:
+	if (m_plots.empty())
+		return;
+	auto data = m_plots[0]->GetData();
 	
-	int stepNumber = static_cast<int>(GetData()->GetNumBin());
+	int stepNumber = static_cast<int>(data->GetNumBin());
+	size_t numBin = data->GetNumBin();
 	int stepSize = 1;
 	
-	if (GetData()->GetRangeType() != Categorical)
+	if (data->GetRangeType() != Categorical)
 	{
 		bool overlap;
 		do
@@ -644,17 +639,17 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 			overlap =  false;
 			for (int i=0; i<stepNumber && !overlap; ++i)
 			{
-				int nthBin = static_cast<int>(static_cast<double>(i) / stepNumber * GetData()->GetNumBin());
-				double value = GetData()->GetBinStart(nthBin);
+				int nthBin = static_cast<int>(static_cast<double>(i) / stepNumber * numBin);
+				double value = data->GetBinStart(nthBin);
 				int placesBeforeComma = requiredDigits(value);
-				double stepToNextBin = GetData()->GetBinStart(i < GetData()->GetNumBin()-1? i+1: i)
-					- GetData()->GetBinStart(i < GetData()->GetNumBin()-1? i: i-1);
+				double stepToNextBin = data->GetBinStart(i < numBin -1? i+1: i)
+					- data->GetBinStart(i < numBin -1? i: i-1);
 				m_requiredPlacesAfterComma = (stepToNextBin < 10) ? requiredDigits(10 / stepToNextBin) : 0;
 				QString text = GetXAxisCaption(value, placesBeforeComma, m_requiredPlacesAfterComma);
 
-				int markerX = markerPos(i, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
+				int markerX = markerPos(i, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), numBin);
 				int textX = textPos(markerX, i, stepNumber, fm.width(text));
-				int next_markerX = markerPos(i+1, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
+				int next_markerX = markerPos(i+1, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), numBin);
 				int next_textX = textPos(next_markerX, i+1, stepNumber, fm.width(text));
 				int textWidth = fm.width(text) + fm.width("M");
 				overlap = (textX + textWidth) >= next_textX;
@@ -665,10 +660,10 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 				{
 					++stepSize;
 				}
-				while (stepSize < GetData()->GetNumBin() && GetData()->GetNumBin() % stepSize != 0);
-				stepNumber = static_cast<int>(GetData()->GetNumBin() / stepSize);
+				while (stepSize < numBin && numBin % stepSize != 0);
+				stepNumber = static_cast<int>(numBin / stepSize);
 			}
-		} while (overlap && stepSize < GetData()->GetNumBin());
+		} while (overlap && stepSize < numBin);
 	}
 	else
 	{
@@ -681,21 +676,21 @@ void iADiagramFctWidget::drawXAxis(QPainter &painter)
 	stepNumber = std::max(1, stepNumber); // at least two steps
 	for (int i=0; i <= stepNumber; ++i)
 	{
-		int nthBin = (int)(static_cast<double>(i) / stepNumber * GetData()->GetNumBin());
-		double value = GetData()->GetBinStart(nthBin);
+		int nthBin = (int)(static_cast<double>(i) / stepNumber * numBin);
+		double value = data->GetBinStart(nthBin);
 		int placesBeforeComma = requiredDigits(value);
-		double stepToNextBin = GetData()->GetBinStart(nthBin < GetData()->GetNumBin()-1? nthBin+1: nthBin)
-			- GetData()->GetBinStart(nthBin < GetData()->GetNumBin()-1? nthBin: nthBin-1);
+		double stepToNextBin = data->GetBinStart(nthBin < numBin-1? nthBin+1: nthBin)
+			- data->GetBinStart(nthBin < numBin -1? nthBin: nthBin-1);
 		m_requiredPlacesAfterComma = (stepToNextBin < 10) ? requiredDigits(10 / stepToNextBin) : 0;
 
 		QString text = GetXAxisCaption(value, placesBeforeComma, m_requiredPlacesAfterComma);
 
 		// dirty hack to avoid last tick for discrete ranges:
-		if (GetData()->GetRangeType() == Discrete && i == stepNumber && text.length() < 3)
+		if (data->GetRangeType() == Discrete && i == stepNumber && text.length() < 3)
 		{
 			break;
 		}
-		int markerX = markerPos(i, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), GetData()->GetNumBin());
+		int markerX = markerPos(i, stepNumber, ActiveWidth()*xZoom, IsDrawnDiscrete(), numBin);
 		painter.drawLine(markerX, (int)(BottomMargin()*0.1), markerX, -1);
 
 		int textX = textPos(markerX, i, stepNumber, fm.width(text));
@@ -892,7 +887,6 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 void iADiagramFctWidget::autoUpdate(bool toggled)
 {
 	updateAutomatically = toggled;
-
 	emit autoUpdateChanged(toggled);
 }
 
@@ -1061,11 +1055,13 @@ void iADiagramFctWidget::removeFunction()
 	emit updateViews();
 }
 
-void iADiagramFctWidget::updateTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
+void iADiagramFctWidget::SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
 {
+	m_showFunctions = ctf && pwf;
+	if (!m_showFunctions)
+		return;
 	((dlg_transfer*)functions[0])->setColorFunction(ctf);
 	((dlg_transfer*)functions[0])->setOpacityFunction(pwf);
-
 	redraw();
 	emit updateTFTable();
 	emit updateViews();
@@ -1073,6 +1069,8 @@ void iADiagramFctWidget::updateTransferFunctions(vtkColorTransferFunction* ctf, 
 
 void iADiagramFctWidget::ExportData()
 {
+	if (m_plots.empty())
+		return;
 	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
 	QString fileName = QFileDialog::getSaveFileName(
 		this,
@@ -1084,22 +1082,36 @@ void iADiagramFctWidget::ExportData()
 		return;
 	}
 	std::ofstream out(fileName.toStdString());
-	out << tr("Start of Bin").toStdString() << "," << tr("Frequency").toStdString() << endl;
-	for (int b = 0; b < GetData()->GetNumBin(); ++b)
+	out << tr("Start of Bin").toStdString();
+	for (int p = 0; p < m_plots.size(); ++p)
 	{
-		out << GetData()->GetBinStart(b) << "," << GetData()->GetData()[b] << std::endl;
+		out << "," << QString("%1%2").arg(yCaption).arg(p).toStdString();
+	}
+	out << endl;
+	for (int b = 0; b < m_plots[0]->GetData()->GetNumBin(); ++b)
+	{
+		out << m_plots[0]->GetData()->GetBinStart(b);
+		for (int p = 0; p < m_plots.size(); ++p)
+		{
+			out << "," << m_plots[p]->GetData()->GetRawData()[b];
+		}
+		out << std::endl;
 	}
 	out.close();
 }
 
 double const * iADiagramFctWidget::XBounds() const
 {
-	return GetData()->XBounds();
+	// TODO: use all plots here?
+	assert(!m_plots.empty());
+	return m_plots[0]->GetData()->XBounds();
 }
 
 double iADiagramFctWidget::XRange() const
 {
-	return GetData()->XBounds()[1] - GetData()->XBounds()[0];
+	// TODO: use all plots here?
+	assert(!m_plots.empty());
+	return m_plots[0]->GetData()->XBounds()[1] - m_plots[0]->GetData()->XBounds()[0];
 }
 
 dlg_function *iADiagramFctWidget::getSelectedFunction()
@@ -1117,74 +1129,55 @@ std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
 	return functions;
 }
 
-iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYValue() const
+iAPlotData::DataType iADiagramFctWidget::GetMaxYValue() const
 {
-	return GetData()->YBounds()[1];
+	iAPlotData::DataType maxVal = std::numeric_limits<iAPlotData::DataType>::lowest();
+	for (auto plot : m_plots)
+		maxVal = std::max(plot->GetData()->YBounds()[1], maxVal);
+	return maxVal;
 }
 
-iAAbstractDiagramData::DataType iADiagramFctWidget::GetMaxYAxisValue() const
+iAPlotData::DataType iADiagramFctWidget::GetMaxYAxisValue() const
 {
 	return m_maxYAxisValue;
 }
 
-void iADiagramFctWidget::SetMaxYAxisValue(iAAbstractDiagramData::DataType val)
+void iADiagramFctWidget::SetMaxYAxisValue(iAPlotData::DataType val)
 {
+	m_customYAxisValue = true;
 	m_maxYAxisValue = val;
-	if (m_primaryDrawer)
-		m_primaryDrawer->update();
-	for (QVector<QSharedPointer<iAAbstractDrawableFunction> >::const_iterator it = m_datasets.constBegin();
-		it != m_datasets.constEnd();
-		++it)
-	{
+	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
 		(*it)->update();
-	}
 }
 
 void iADiagramFctWidget::ResetMaxYAxisValue()
 {
-	m_maxYAxisValue = GetData()->YBounds()[1];
+	m_customYAxisValue = false;
+	m_maxYAxisValue = GetMaxYValue();
 }
 
-void iADiagramFctWidget::AddDataset(QSharedPointer<iAAbstractDrawableFunction> dataset)
+void iADiagramFctWidget::AddPlot(QSharedPointer<iAPlot> plot)
 {
-	assert(dataset);
-	if (!dataset)
-	{
+	assert(plot);
+	if (!plot)
 		return;
-	}
-	m_datasets.push_back(dataset);
+	m_plots.push_back(plot);
+	if (!m_customYAxisValue)
+		m_maxYAxisValue = GetMaxYValue();
 }
 
-void iADiagramFctWidget::RemoveDataset(QSharedPointer<iAAbstractDrawableFunction> dataset)
+void iADiagramFctWidget::RemovePlot(QSharedPointer<iAPlot> plot)
 {
-	if (!dataset)
-	{
+	if (!plot)
 		return;
-	}
-	int idx = m_datasets.indexOf(dataset);
+	int idx = m_plots.indexOf(plot);
 	if (idx != -1)
-	{
-		m_datasets.remove(idx);
-	}
+		m_plots.remove(idx);
 }
 
-QSharedPointer<iAAbstractDrawableFunction> iADiagramFctWidget::CreatePrimaryDrawer()
+QVector<QSharedPointer<iAPlot> > const & iADiagramFctWidget::Plots()
 {
-	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(GetData(), QColor(70,70,70,255)));
-}
-
-void iADiagramFctWidget::UpdatePrimaryDrawer()
-{
-	m_primaryDrawer->update();
-}
-
-QSharedPointer< iAAbstractDrawableFunction > iADiagramFctWidget::GetPrimaryDrawer()
-{
-	if (!m_primaryDrawer)
-	{
-		m_primaryDrawer = CreatePrimaryDrawer();
-	}
-	return m_primaryDrawer;
+	return m_plots;
 }
 
 void iADiagramFctWidget::AddImageOverlay( QSharedPointer<QImage> imgOverlay )
@@ -1213,7 +1206,7 @@ int iADiagramFctWidget::diagram2PaintX(double x)
 
 long iADiagramFctWidget::screenX2DataBin(int x)
 {
-	double numBin = GetData()->GetNumBin();
+	double numBin = m_plots[0]->GetData()->GetNumBin();
 	double diagX = static_cast<double>(x-translationX-LeftMargin()) * numBin / (ActiveWidth() * xZoom);
 	diagX = clamp(0.0, numBin, diagX);
 	return static_cast<long>(round(diagX));
@@ -1221,20 +1214,16 @@ long iADiagramFctWidget::screenX2DataBin(int x)
 
 int iADiagramFctWidget::dataBin2ScreenX(long x)
 {
-	double screenX = static_cast<double>(x) * ActiveWidth() * xZoom / (GetData()->GetNumBin());
+	double numBin = m_plots[0]->GetData()->GetNumBin();
+	double screenX = static_cast<double>(x) * ActiveWidth() * xZoom / (numBin);
 	screenX = clamp(0.0, ActiveWidth()*xZoom, screenX);
 	return static_cast<int>(round(screenX));
 }
 
-void iADiagramFctWidget::SetShowPrimaryDrawer( bool showPrimaryDrawer )
-{
-	m_showPrimaryDrawer = showPrimaryDrawer;
-}
-
-
 double iADiagramFctWidget::getMaxXZoom() const
 {
-	return (std::max)((std::min)( iADiagramWidget::getMaxXZoom(), (double)GetData()->GetNumBin() ), 1.0);
+	double numBin = m_plots[0]->GetData()->GetNumBin();
+	return (std::max)((std::min)( iADiagramWidget::getMaxXZoom(), numBin), 1.0);
 }
 
 void iADiagramFctWidget::SetYDrawMode(DrawModeType drawMode)
@@ -1277,7 +1266,7 @@ int iADiagramFctWidget::GetTFGradientHeight() const
 
 QString iADiagramFctWidget::GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma)
 {
-	if (GetData()->GetRangeType() == Continuous && requiredPlacesAfterComma > 0 )
+	if (!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Continuous && requiredPlacesAfterComma > 0 )
 	{
 		QString result =  QString::number(value, 'g', ((value > 0) ? placesBeforeComma + requiredPlacesAfterComma : requiredPlacesAfterComma ));
 		if (result.contains("e")) // only 2 digits for scientific notation:
@@ -1291,9 +1280,10 @@ QString iADiagramFctWidget::GetXAxisCaption(double value, int placesBeforeComma,
 
 bool iADiagramFctWidget::IsDrawnDiscrete() const
 {
-	return ((GetData()->GetRangeType() == Discrete &&
-		(XRange() <= GetData()->GetNumBin()))
-		|| GetData()->GetRangeType() == Categorical);
+	return (!m_plots.empty() && (
+		(m_plots[0]->GetData()->GetRangeType() == Discrete &&
+		(XRange() <= m_plots[0]->GetData()->GetNumBin()))
+		|| m_plots[0]->GetData()->GetRangeType() == Categorical));
 }
 
 void iADiagramFctWidget::SetXCaption(QString const & caption)

@@ -22,7 +22,7 @@
 #include "pch.h"
 #include "dlg_gaussian.h"
 
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 #include "iAMathUtility.h"
 
 #include <QPen>

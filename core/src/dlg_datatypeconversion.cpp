@@ -22,7 +22,7 @@
 #include "dlg_datatypeconversion.h"
 
 #include "iAConnector.h"
-#include "iAHistogramWidget.h"
+#include "charts/iAHistogramWidget.h"
 #include "iAToolsVTK.h"
 #include <iATransferFunction.h>
 #include "iATypedCallHelper.h"
@@ -61,7 +61,7 @@
 #include <QVariant>
 
 
-template<class T> int DataTypeConversion_template(QString const & m_filename, double* b, iAAbstractDiagramData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
+template<class T> int DataTypeConversion_template(QString const & m_filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
@@ -478,7 +478,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	m_min = 0; m_max = 0; m_dis = 0;
 	m_roi[0]= 0; m_roi[1] = 0; m_roi[2]= 0; m_roi[3]= m_insizex; m_roi[4] = m_insizey; m_roi[5] = m_insizez;
 
-	m_histbinlist = new iAAbstractDiagramData::DataType[m_bins];
+	m_histbinlist = new iAPlotData::DataType[m_bins];
 
 	DataTypeConversion(m_filename, b);
 
@@ -676,13 +676,13 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 	leZSize->setText(str[10].toString());
 }
 
-void dlg_datatypeconversion::histogramdrawing(iAAbstractDiagramData::DataType* histbinlist, float min, float max, int m_bins, double discretization )
+void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist, float min, float max, int m_bins, double discretization )
 {
 	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
 	vtkPiecewiseFunction* piecewiseFunction = vtkPiecewiseFunction::New();
 	vtkColorTransferFunction* colorTransferFunction = vtkColorTransferFunction::New();
 
-	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), imageAccumulate, piecewiseFunction, colorTransferFunction,
+	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), piecewiseFunction, colorTransferFunction,
 		histbinlist, min, max , m_bins, discretization, "Histogram (Intensities)");
 	imgHistogram->updateTrf();
 	imgHistogram->redraw();

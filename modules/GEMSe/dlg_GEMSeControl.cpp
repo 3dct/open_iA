@@ -39,7 +39,7 @@
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
 #include "iAToolsITK.h"
-#include "iAIOProvider.h"
+#include "io/iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -159,7 +159,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(StoreDerivedOutput()));
 	connect(pbFreeMemory, SIGNAL(clicked()), this, SLOT(FreeMemory()));
 
-	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
+	connect(m_dlgModalities,  SIGNAL(ModalityAvailable(int)), this, SLOT(DataAvailable()));
 	connect(m_dlgModalities,  SIGNAL(ModalitySelected(int)), this, SLOT(ModalitySelected(int)));
 
 	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));

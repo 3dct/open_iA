@@ -22,7 +22,7 @@
 
 #include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iASimpleHistogramData.h"
 
 #include <vtkColorTransferFunction.h>
@@ -32,24 +32,13 @@
 #include <QHBoxLayout>
 
 iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption):
-	iADiagramFctWidget(nullptr, nullptr, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption, "Frequency (Pixels)"),
+	iADiagramFctWidget(nullptr, nullptr, caption, "Frequency (Pixels)"),
 	m_data(data) {
 	setMinimumHeight(120);
+	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2)));
 }
 
-QSharedPointer<iAAbstractDiagramRangedData> iAHistogramChartWidget::GetData()
-{
-	return m_data;
-}
 
-QSharedPointer<iAAbstractDiagramRangedData> const iAHistogramChartWidget::GetData() const
-{
-	return m_data;
-}
-QSharedPointer<iAAbstractDrawableFunction> iAHistogramChartWidget::CreatePrimaryDrawer()
-{
-	return QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2));
-}
 
 iAHistogramView::iAHistogramView()
 {

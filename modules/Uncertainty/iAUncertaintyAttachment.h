@@ -22,7 +22,7 @@
 
 #include "iAModuleAttachmentToChild.h"
 
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 
 #include <QSharedPointer>
 #include <QVector>

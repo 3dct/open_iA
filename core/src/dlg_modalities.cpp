@@ -26,8 +26,6 @@
 #include "dlg_transfer.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
-#include "iAHistogramWidget.h"
-#include "iAIOProvider.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -36,6 +34,9 @@
 #include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
 #include "iAVolumeSettings.h"
+#include "io/iAIO.h"
+#include "io/iAIOProvider.h"
+#include "io/extension2id.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -53,16 +54,16 @@
 
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
-	vtkRenderer* mainRenderer,
-	int numBin, QDockWidget* histogramContainer) :
+	vtkRenderer* mainRenderer, int numBin) :
 
 	modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
 	m_numBin(numBin),
-	m_histogramContainer(histogramContainer),
-	m_currentHistogram(0),
-	m_showSlicePlanes(false)
+	m_showSlicePlanes(false),
+	m_plane1(nullptr),
+	m_plane2(nullptr),
+	m_plane3(nullptr)
 {
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
@@ -104,7 +105,7 @@ bool dlg_modalities::Load(QString const & filename)
 	{
 		SelectRow(0);
 		EnableButtons();
-		emit ModalityAvailable();
+		emit ModalityAvailable(0);
 	}
 	return result;
 }
@@ -114,9 +115,6 @@ QString GetCaption(iAModality const & mod)
 	QFileInfo fi(mod.GetFileName());
 	return mod.GetName()+" ("+fi.fileName()+")";
 }
-
-#include "iAIO.h"
-#include "extension2id.h"
 
 bool CanHaveMultipleChannels(QString const & fileName)
 {
@@ -174,11 +172,7 @@ void dlg_modalities::MagicLens()
 void dlg_modalities::InitTransfer(QSharedPointer<iAModality> mod)
 {
 	vtkSmartPointer<vtkImageData> imgData = mod->GetImage();
-	QSharedPointer<iAModalityTransfer> modTransfer(new iAModalityTransfer(
-		imgData,
-		mod->GetName(),
-		this,
-		m_numBin));
+	QSharedPointer<iAModalityTransfer> modTransfer(new iAModalityTransfer(imgData, m_numBin));
 	mod->SetTransfer(modTransfer);
 }
 
@@ -215,58 +209,20 @@ void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
 	AddToList(mod);
 	EnableButtons();
 	InitTransfer(mod);
-	if (mod->GetTransfer()->GetHistogram())
-	{
-		connect(
-			(dlg_transfer*)(mod->GetTransfer()->GetHistogram()->getFunctions()[0]),
-			SIGNAL(Changed()),
-			this, SIGNAL(ModalityTFChanged())
-		);
-	}
 }
 
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 {
 	// TODO: VOLUME: split up somehow
 	AddListItemAndTransfer(mod);
-	SwitchHistogram(mod->GetTransfer());
 	InitDisplay(mod);
-	emit ModalityAvailable();
+	emit ModalityAvailable(lwModalities->count());
 }
 
 void dlg_modalities::InteractorModeSwitched(int newMode)
 {
 	cbManualRegistration->setChecked(newMode == 'a');
 }
-
-void  dlg_modalities::SwitchHistogram(QSharedPointer<iAModalityTransfer> modTrans)
-{
-	bool TFTableCreated = false;
-	QPoint TFTablePosOnClose;
-	if (m_currentHistogram)
-	{
-		m_currentHistogram->disconnect();
-		TFTableCreated = m_currentHistogram->isTFTableCreated();
-		if ( TFTableCreated )
-		{
-			TFTablePosOnClose = m_currentHistogram->getTFTablePos();
-			m_currentHistogram->closeTFTable();
-		}
-	}
-	m_currentHistogram = modTrans->ShowHistogram(m_histogramContainer);
-	if ( TFTableCreated )
-	{
-		m_currentHistogram->showTFTable();
-		m_currentHistogram->setTFTablePos( TFTablePosOnClose );
-	}
-	connect(m_currentHistogram, SIGNAL(updateViews()), this, SIGNAL(UpdateViews()));
-	connect(m_currentHistogram, SIGNAL(pointSelected()), this, SIGNAL(PointSelected()));
-	connect(m_currentHistogram, SIGNAL(noPointSelected()), this, SIGNAL(NoPointSelected()));
-	connect(m_currentHistogram, SIGNAL(endPointSelected()), this, SIGNAL(EndPointSelected()));
-	connect(m_currentHistogram, SIGNAL(active()), this, SIGNAL(Active()));
-	connect(m_currentHistogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(AutoUpdateChanged(bool)));
-}
-
 
 void dlg_modalities::EnableUI()
 {
@@ -393,7 +349,6 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 		QSharedPointer<iAModality> mod = modalities->Get(i);
 		mod->GetRenderer()->SetMovable(mod == currentData);
 	}
-	SwitchHistogram(modTransfer);
 	emit ModalitySelected(selectedRow);
 }
 
@@ -461,11 +416,6 @@ void dlg_modalities::RendererMouseMoved()
 	}
 }
 
-iAHistogramWidget* dlg_modalities::GetHistogram()
-{
-	return m_currentHistogram;
-}
-
 void dlg_modalities::ShowSlicePlanes(bool enabled)
 {
 	m_showSlicePlanes = enabled;
@@ -490,7 +440,6 @@ void dlg_modalities::ShowSlicePlanes(bool enabled)
 
 void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
 {
-
 	m_plane1 = plane1;
 	m_plane2 = plane2;
 	m_plane3 = plane3;

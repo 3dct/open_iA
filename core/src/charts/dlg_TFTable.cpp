@@ -21,7 +21,7 @@
  
 #include "dlg_TFTable.h"
 #include "dlg_transfer.h"
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkPiecewiseFunction.h>
@@ -179,7 +179,7 @@ void dlg_TFTable::updateHistogram()
 		m_oTF->AddPoint( x, y );
 		m_cTF->AddRGBPoint( x, c.redF(), c.greenF(), c.blueF() );
 	}
-	m_parent->updateTransferFunctions( m_cTF, m_oTF );
+	m_parent->SetTransferFunctions( m_cTF, m_oTF );
 }
 
 void dlg_TFTable::itemClicked( QTableWidgetItem * item )

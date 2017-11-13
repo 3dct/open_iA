@@ -22,7 +22,7 @@
 #include "pch.h"
 #include "dlg_bezier.h"
 
-#include "iAHistogramWidget.h"
+#include "charts/iADiagramFctWidget.h"
 #include "iAMathUtility.h"
 
 #include <vtkImageData.h>

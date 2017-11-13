@@ -23,7 +23,7 @@
 #include "iAFilterChart.h"
 
 #include "iAParamHistogramData.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iAMathUtility.h"
 #include "iANameMapper.h"
 
@@ -46,12 +46,13 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	QSharedPointer<iANameMapper> nameMapper,
 	bool showCaption)
 :
-	iADiagramFctWidget(parent, 0, vtkSmartPointer<vtkPiecewiseFunction>(), vtkSmartPointer<vtkColorTransferFunction>(), caption),
+	iADiagramFctWidget(parent, 0, caption),
 	m_data(data),
 	m_markedLocation(InvalidMarker),
 	m_nameMapper(nameMapper),
 	m_selectedHandle(-1)
 {
+	AddPlot(GetDrawer(m_data, DefaultColors::AllDataChartColor));
 	m_minSliderPos = m_data->MapBinToValue(0);
 	m_maxSliderPos = m_data->MapBinToValue(m_data->GetNumBin());
 	m_captionPosition = Qt::AlignLeft | Qt::AlignTop;
@@ -61,16 +62,6 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	{
 		m_binColors.push_back(QColor(0, 0, 0, 0));
 	}
-}
-
-QSharedPointer<iAAbstractDiagramRangedData> iAFilterChart::GetData()
-{
-	return m_data;
-}
-
-QSharedPointer<iAAbstractDiagramRangedData> const iAFilterChart::GetData() const
-{
-	return m_data;
 }
 
 double iAFilterChart::mapBinToValue(double bin) const
@@ -83,19 +74,14 @@ double iAFilterChart::mapValueToBin(double value) const
 	return m_data->MapValueToBin(value);
 }
 
-QSharedPointer<iAAbstractDrawableFunction> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
+QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
 {
 	return
 		IsDrawnDiscrete() ?
-		QSharedPointer<iAAbstractDrawableFunction>(new iABarGraphDrawer(data, color, 2))
-		: QSharedPointer<iAAbstractDrawableFunction>(new iAFilledLineFunctionDrawer(data, color))
-		//: QSharedPointer<iAAbstractDrawableFunction>(new iALineFunctionDrawer(data, color))
+		QSharedPointer<iAPlot>(new iABarGraphDrawer(data, color, 2))
+		: QSharedPointer<iAPlot>(new iAFilledLineFunctionDrawer(data, color))
+		//: QSharedPointer<iAPlot>(new iALineFunctionDrawer(data, color))
 		;
-}
-
-QSharedPointer<iAAbstractDrawableFunction> iAFilterChart::CreatePrimaryDrawer()
-{
-	return GetDrawer(m_data, DefaultColors::AllDataChartColor);
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
@@ -187,7 +173,8 @@ double iAFilterChart::GetMaxVisibleBin() const
 
 QString iAFilterChart::GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma)
 {
-	if (GetData()->GetRangeType() == Categorical)
+	assert(Plots().size() > 0);
+	if (Plots()[0]->GetData()->GetRangeType() == Categorical)
 	{
 		assert(m_nameMapper);
 		return (value < m_nameMapper->size()) ? m_nameMapper->GetName(static_cast<int>(value)):

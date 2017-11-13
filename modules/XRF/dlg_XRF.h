@@ -46,25 +46,25 @@ class vtkLookupTable;
 class vtkPiecewiseFunction;
 class vtkScalarBarActor;
 
+class iAEnergySpectrumWidget;
+class iAMultipleFunctionDrawer;
+class iAPlot;
+class iAPlotData;
+class iAStepFunctionDrawer;
+class iAWidgetAddHelper;
+
 class dlg_periodicTable;
 class dlg_RefSpectra;
-
-class iAXRFData;
 class iAAccumulatedXRFData;
-class iAAbstractDiagramData;
 struct iACharacteristicEnergy;
 class iADecompositionCalculator;
-class iAEnergySpectrumWidget;
-class iAPieChartWidget;
-class iAEnergySpectrumDiagramData;
-class iAReferenceSpectraLibrary;
-class iAAbstractDrawableFunction;
-class iAMultipleFunctionDrawer;
-class iAStepFunctionDrawer;
 class iAElementConcentrations;
+class iAEnergySpectrumDiagramData;
+class iAPieChartWidget;
+class iAReferenceSpectraLibrary;
 class iASelectedBinDrawer;
-class iAWidgetAddHelper;
 class iAPeriodicTableListener;
+class iAXRFData;
 
 class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 {
@@ -81,9 +81,9 @@ public:
 	QObject* UpdateForVisualization();
 	QSharedPointer<iAXRFData> GetXRFData();
 	QSharedPointer<iAElementConcentrations> GetElementConcentrations();
-	QSharedPointer<iAAbstractDiagramData> GetVoxelSpectrum();
+	QSharedPointer<iAPlotData> GetVoxelSpectrum();
 
-	void UpdateSecondaryData(QSharedPointer<iAAbstractDiagramData> secondary);
+	void UpdateSecondaryData(QSharedPointer<iAPlotData> secondary);
 	void UpdateVoxelSpectrum(int x, int y, int z);
 	void UpdateConcentrationViews(int x, int y, int z);
 	bool IsInitialized();
@@ -176,7 +176,7 @@ private:
 	QSharedPointer<iAReferenceSpectraLibrary>				m_refSpectraLib;
 	
 	QSharedPointer<iAMultipleFunctionDrawer>				m_spectraLinesDrawer;
-	QSharedPointer<iAAbstractDrawableFunction>				m_voxelSpectrumDrawer;
+	QSharedPointer<iAPlot>									m_voxelSpectrumDrawer;
 
 	QSharedPointer<iAElementConcentrations>					m_elementConcentrations;
 	QSharedPointer<iADecompositionCalculator>				m_decompositionCalculator;

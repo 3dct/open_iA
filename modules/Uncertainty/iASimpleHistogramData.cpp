@@ -25,7 +25,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 
-iASimpleHistogramData::DataType const * iASimpleHistogramData::GetData() const
+iASimpleHistogramData::DataType const * iASimpleHistogramData::GetRawData() const
 {
 	return m_data;
 }
@@ -59,11 +59,11 @@ iAValueType iASimpleHistogramData::GetRangeType() const
 /*
 void iASimpleHistogramData::AddValue(DataType value)
 {
-size_t bin = mapValue(GetDataRange()[0], GetDataRange()[1], 0.0, static_cast<DataType>(m_numBin), value);
-bin = clamp(static_cast<size_t>(0), m_numBin, bin);
-m_data[bin]++;
-if (value > m_rangeY[1])
-m_rangeY[1] = value;
+	size_t bin = mapValue(GetDataRange()[0], GetDataRange()[1], 0.0, static_cast<DataType>(m_numBin), value);
+	bin = clamp(static_cast<size_t>(0), m_numBin, bin);
+	m_data[bin]++;
+	if (value > m_rangeY[1])
+	m_rangeY[1] = value;
 }
 */
 

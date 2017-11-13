@@ -24,7 +24,7 @@
 
 #include "iAAccumulatedXRFData.h"
 #include "iACharacteristicEnergy.h"
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iASpectrumFilter.h"
 
 #include <QFontMetrics>
@@ -51,30 +51,17 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChi
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel)
-	: iADiagramFctWidget(parent, mdiChild, oTF, cTF, xLabel, "Count"),
+	: iADiagramFctWidget(parent, mdiChild, xLabel, "Count"),
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	filterListener(filterListener)
 {
+	SetTransferFunctions(cTF, oTF);
+	AddPlot(QSharedPointer<iAPlot>(new iAStepFunctionDrawer(m_data, QColor(70, 70, 70, 255))));
 	selectionRubberBand->hide();
 	SetAllowTrfReset(false);
 	SetEnableAdditionalFunctions(false);
 	setMinimumHeight(150);
-}
-
-QSharedPointer<iAAbstractDiagramRangedData> iAEnergySpectrumWidget::GetData()
-{
-	return m_data;
-}
-
-QSharedPointer<iAAbstractDiagramRangedData> const iAEnergySpectrumWidget::GetData() const
-{
-	return m_data;
-}
-
-QSharedPointer<iAAbstractDrawableFunction> iAEnergySpectrumWidget::CreatePrimaryDrawer()
-{
-	return QSharedPointer<iAAbstractDrawableFunction>(new iAStepFunctionDrawer(GetData(), QColor(70,70,70,255)));
 }
 
 void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
@@ -132,9 +119,9 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 			diagramRect.setTop(0);
 		}
 
-		if (diagramRect.bottom() > GetData()->YBounds()[1])
+		if (diagramRect.bottom() > Plots()[0]->GetData()->YBounds()[1])
 		{
-			diagramRect.setBottom(GetData()->YBounds()[1]);
+			diagramRect.setBottom(Plots()[0]->GetData()->YBounds()[1]);
 		}
 
 		// .width() and .height() counter-intuitively report 1 if x1=x2/y1=y2

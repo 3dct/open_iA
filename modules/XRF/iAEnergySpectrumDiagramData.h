@@ -20,23 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
+#include "charts/iAPlotData.h"
 
 #include <QSharedPointer>
 
 class iAXRFData;
 
-class iAEnergySpectrumDiagramData: public iAAbstractDiagramData
+class iAEnergySpectrumDiagramData: public iAPlotData
 {
 public:
-	iAEnergySpectrumDiagramData(iAXRFData * xrfData);
+	iAEnergySpectrumDiagramData(iAXRFData * xrfData, iAPlotData* other);
 	~iAEnergySpectrumDiagramData();
 	void updateEnergyFunction(int x, int y, int z);
-	
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
-
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
 private:
 	DataType* m_energyFunction;
 	iAXRFData * m_xrfData_ext;
+	iAPlotData* m_other;
 };

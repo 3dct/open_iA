@@ -2682,7 +2682,7 @@ void DreamCaster::ClearPrevData()
 		{
 			if(placementsParams[x])
 				delete [] placementsParams[x];
-				placementsParams[x] = 0;
+			placementsParams[x] = 0;
 		}
 		delete [] placementsParams;
 		placementsParams=0;

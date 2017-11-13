@@ -34,7 +34,8 @@ ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ProbabilisticVotingIm
 	m_votingRule(MajorityVoteRule),
 	m_labelCount(0),
 	m_numberOfClassifiers(0),
-	m_undecidedUncertaintyThresh(0.5)
+	m_undecidedUncertaintyThresh(0.5),
+	m_undecidedPixels(0)
 {
 	
 }
@@ -188,7 +189,12 @@ void ProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenerate
 		}
 		entropy = clamp(0.0, 1.0, -entropy*normalizeFactor);
 
-		int finalLabel = (entropy < m_undecidedUncertaintyThresh)? maxProbIdx: m_labelCount;
+		int finalLabel = maxProbIdx;
+		if (entropy >= m_undecidedUncertaintyThresh)
+		{
+			finalLabel = m_labelCount;
+			m_undecidedPixels += 1;
+		}
 
 		// with probabilities, set output (TODO: also output probabilities?)
 		out.Set(finalLabel);

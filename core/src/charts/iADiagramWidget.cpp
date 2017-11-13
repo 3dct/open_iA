@@ -304,5 +304,5 @@ void iADiagramWidget::mouseMoveEvent(QMouseEvent *event)
 		}
 		break;
 	}
-	selectBin(event);
+	showDataTooltip(event);
 }

@@ -26,11 +26,11 @@
 
 #include <vtkImageData.h>
 
-iAEnergySpectrumDiagramData::iAEnergySpectrumDiagramData(iAXRFData * xrfData):
+iAEnergySpectrumDiagramData::iAEnergySpectrumDiagramData(iAXRFData * xrfData, iAPlotData* other):
 	m_energyFunction(NULL),
-	m_xrfData_ext(xrfData)
-{
-}
+	m_xrfData_ext(xrfData),
+	m_other(other)
+{}
 
 iAEnergySpectrumDiagramData::~iAEnergySpectrumDiagramData()
 {
@@ -62,7 +62,7 @@ void iAEnergySpectrumDiagramData::updateEnergyFunction(int x, int y, int z)
 	}
 }
 
-iAAbstractDiagramData::DataType const * iAEnergySpectrumDiagramData::GetData() const
+iAPlotData::DataType const * iAEnergySpectrumDiagramData::GetRawData() const
 {
 	return m_energyFunction;
 }
@@ -72,3 +72,6 @@ size_t iAEnergySpectrumDiagramData::GetNumBin() const
 	return m_xrfData_ext->size();
 }
 
+double iAEnergySpectrumDiagramData::GetSpacing() const                    { return m_other->GetSpacing(); }
+double const * iAEnergySpectrumDiagramData::XBounds() const               { return m_other->XBounds();    }
+iAPlotData::DataType const * iAEnergySpectrumDiagramData::YBounds() const { return m_other->YBounds();    }

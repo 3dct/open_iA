@@ -24,7 +24,7 @@
 
 #include "defines.h"
 #include "iACSVToQTableWidgetConverter.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "iAPCView.h"
 #include "iAPDMView.h"
 #include "iAPreviewSPLOMView.h"

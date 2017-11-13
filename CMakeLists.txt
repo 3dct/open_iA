@@ -9,6 +9,13 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 INCLUDE(Common)
 
+IF (CMAKE_COMPILER_IS_GNUCXX)
+	IF ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+		SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3")
+		SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb3")
+	ENDIF()
+ENDIF()
+
 #-------------------------
 # Subdirectories
 #-------------------------

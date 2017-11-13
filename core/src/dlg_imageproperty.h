@@ -23,8 +23,9 @@
 #include <QDockWidget>
 #include "ui_ImageProperty.h"
 
+class iAImageInfo;
+
 class vtkImageData;
-class vtkImageAccumulate;
 
 class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 {
@@ -32,7 +33,7 @@ class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 
 public:
 	dlg_imageproperty(QWidget *parent);
-	void AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name, int channelCount);
+	void AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, int channelCount);
 	void Clear();
 private:
 	void EnterMsg(QString txt);

@@ -20,53 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <cstddef>    // for size_t (in linux)
 
-#include "iAValueType.h"
-
-#include <cstddef> // for size_t
-#include <cmath>   // for log
-
-class open_iA_Core_API iAAbstractDiagramData
+class iAImageInfo
 {
 public:
-	typedef double DataType;
-	virtual ~iAAbstractDiagramData() {}
-	virtual DataType const * GetData() const =0;
-	virtual size_t GetNumBin() const =0;
-	virtual double GetMinX() const { return 0; }
-	virtual double GetMaxX() const { return GetNumBin(); }
-};
-
-
-namespace
-{
-	//! Logarithmic base used for diagram axes
-	const double LogBase = 2.0;
-}
-
-/**
- * Logarithmic convenience function for axes, using base above
- */
-template <typename T>
-T LogFunc(T value)
-{
-	return std::log(value) / std::log(LogBase);
-}
-
-class iAAbstractDiagramRangedData: public iAAbstractDiagramData
-{
-public:
-	virtual double GetSpacing() const =0;
-	virtual double const * XBounds() const =0;
-	virtual DataType const * YBounds() const = 0;
-
-	virtual double GetBinStart(int binNr) const		// default: assume constant (i.e. linear) spacing
-	{
-		return GetSpacing() * binNr + XBounds()[0];
-	}
-	virtual iAValueType GetRangeType() const
-	{
-		return Continuous;
-	}
+	iAImageInfo():
+		m_voxelCount(0), m_min(0), m_max(0), m_mean(0), m_stdDev(0) {}
+	iAImageInfo(size_t voxelCount, double min, double max, double mean, double stdDev) :
+		m_voxelCount(voxelCount), m_min(min), m_max(max), m_mean(mean), m_stdDev(stdDev) {}
+	size_t VoxelCount() const { return m_voxelCount; }
+	double Min() const { return m_min; }
+	double Max() const { return m_max; }
+	double Mean() const { return m_mean; }
+	double StandardDeviation() const { return m_stdDev; }
+private:
+	size_t m_voxelCount;
+	double m_min, m_max, m_mean, m_stdDev;
 };

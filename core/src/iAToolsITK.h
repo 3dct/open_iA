@@ -21,7 +21,7 @@
 #pragma once
 
 #include "iAConsole.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "open_iA_Core_export.h"
 
 #include <itkCastImageFilter.h>

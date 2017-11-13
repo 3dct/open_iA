@@ -41,7 +41,7 @@ public:
 	void SetFrameWidth(qreal newWidth);
 
 	void SetCrossHair(bool enabled);
-	
+
 protected slots:
 	//overloaded events of QVTKWidget2
 	virtual void Frame();

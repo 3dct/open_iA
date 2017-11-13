@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 
 #include <itkMinimumMaximumImageCalculator.h>
 #include <itkImageRegionConstIterator.h>
@@ -34,9 +34,6 @@ class iAHistogramChartWidget : public iADiagramFctWidget
 {
 public:
 	iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption);
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
-	QSharedPointer<iAAbstractDrawableFunction> CreatePrimaryDrawer();
 private:
 	QSharedPointer<iASimpleHistogramData> m_data;
 };

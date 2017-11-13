@@ -20,21 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
+#include "charts/iAPlotData.h"
 
 #include <QSharedPointer>
 
-class iARangeSliderDiagramData : public iAAbstractDiagramRangedData
+class iARangeSliderDiagramData : public iAPlotData
 {
 public:
 	iARangeSliderDiagramData( QList<double> m_rangeSliderData, double min, double max );
 	~iARangeSliderDiagramData();
 	void updateRangeSliderFunction();
 	
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
 
-	virtual double GetSpacing() const override
+	double GetSpacing() const override
 	{
 		if ( GetNumBin() <= 1 )
 			return 0.0;
@@ -42,12 +42,12 @@ public:
 		return ( m_xBounds[1] - m_xBounds[0] ) / (GetNumBin() - 1.0);
 	}
 
-	virtual double const * XBounds() const override
+	double const * XBounds() const override
 	{
 		return m_xBounds;
 	}
 
-	virtual DataType const * YBounds() const override
+	DataType const * YBounds() const override
 	{
 		return m_yBounds;
 	}

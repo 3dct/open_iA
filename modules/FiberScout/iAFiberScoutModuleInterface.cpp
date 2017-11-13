@@ -22,7 +22,7 @@
 #include "iAFiberScoutModuleInterface.h"
 
 #include "iAConsole.h"
-#include "iACsvIO.h"
+#include "io/iACsvIO.h"
 #include "iAFiberScoutAttachment.h"
 #include "iAFiberScoutToolbar.h"
 #include "mainwindow.h"

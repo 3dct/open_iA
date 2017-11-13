@@ -24,7 +24,7 @@
 #include "dlg_commoninput.h"
 #include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
-#include "iAIOProvider.h"
+#include "io/iAIOProvider.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
@@ -152,6 +152,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	textInfo(0),
 	rulerWidget(0),
 	interactor(0),
+	m_sliceNumber(0), // for fisheye transformation
 	m_showPositionMarker(false),
 	colorTransferFunction(nullptr)
 {
@@ -257,6 +258,9 @@ private:
 	}
 	iASlicerData* m_redirect;
 };
+vtkColorTransferFunction * iASlicerData::GetColorTransferFunction() {
+	return colorTransferFunction;
+}
 
 void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction *ctf,
 	bool showIsoLines, bool showPolygon)
@@ -591,6 +595,7 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 		axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
 		axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
 		textInfo->GetTextMapper()->GetTextProperty()->SetFontSize(settings.ToolTipFontSize);
+		textInfo->GetActor()->SetVisibility(settings.ShowTooltip);
 	}
 }
 
@@ -1052,7 +1057,6 @@ void iASlicerData::SetManualBackground(double r, double g, double b)
 	UpdateBackground();
 }
 
-
 void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * callData )
 {
 	if (eventId == vtkCommand::LeftButtonPressEvent)
@@ -1114,9 +1118,16 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
+
 		double result[4];
 		double xCoord, yCoord, zCoord;
 		GetMouseCoord(xCoord, yCoord, zCoord, result);
+
+		double mouseCoord[3] = { result[0], result[1], result[2] };
+
+		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
+
+
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1675,6 +1686,10 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 	default://ERROR
 		break;
 	}
+
+	// for fisheye transformation in slicers
+	m_sliceNumber = sliceNumber;
+
 	double * spacing = imageData->GetSpacing();
 	//also apply to enabled channels
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
@@ -1889,4 +1904,10 @@ vtkImageActor* iASlicerData::GetImageActor()
 QCursor iASlicerData::getMouseCursor()
 {
 	return m_mouseCursor;
+}
+
+// for fisheye transformation in slicers
+int iASlicerData::getSliceNumber()
+{
+	return m_sliceNumber;
 }

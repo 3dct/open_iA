@@ -18,13 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAAccumulatedXRFData.h"
-
-#include "iAFunctionalBoxplot.h"
 #include "iASpectraHistograms.h"
 #include "iAXRFData.h"
+
+#include "iAFunctionalBoxplot.h"
+#include "iATypedCallHelper.h"
+
+#include <itkMacro.h>
 
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
@@ -40,12 +42,12 @@ iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, doubl
 	m_average(new CountType[m_xrfData->size()]),
 	m_functionalBoxplotData(0)
 {
-	calculateStatistics();
-	SetFct(fctDefault);
 	m_xBounds[0] = minEnergy;
 	m_xBounds[1] = maxEnergy;
 	m_yBounds[1] = 0;
 	m_yBounds[0] = std::numeric_limits<double>::max();
+	calculateStatistics();
+	SetFct(fctDefault);
 }
 
 double iAAccumulatedXRFData::GetSpacing() const
@@ -58,7 +60,7 @@ double const * iAAccumulatedXRFData::XBounds() const
 	return m_xBounds;
 }
 
-iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetData() const
+iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetRawData() const
 {
 	switch (m_accumulateFct)
 	{
@@ -123,8 +125,9 @@ namespace
 	}
 
 	template <typename T>
-	void calculateLevelStats(T* data, int count, double &avg, double &max, double &min)
+	void calculateLevelStats(void* dataVoidPtr, int count, double &avg, double &max, double &min)
 	{
+		T* data = static_cast<T*>(dataVoidPtr);
 		double sum = 0;
 		unsigned long relevantCount = 0;
 		for (int i=0; i<count; ++i)
@@ -176,47 +179,7 @@ void iAAccumulatedXRFData::calculateStatistics()
 		double avg = 0.0;
 		double max = 0.0;
 		double min = std::numeric_limits<double>::max();
-		switch (type)
-		{
-		case VTK_CHAR:
-			calculateLevelStats<char>(static_cast<char*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_SIGNED_CHAR:
-			calculateLevelStats<char>(static_cast<char*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_UNSIGNED_CHAR:
-			calculateLevelStats<unsigned char>(static_cast<unsigned char*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_SHORT:
-			calculateLevelStats<short>(static_cast<short*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_UNSIGNED_SHORT:
-			calculateLevelStats<unsigned short>(static_cast<unsigned short*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_INT:
-			calculateLevelStats<int>(static_cast<int*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_UNSIGNED_INT:
-			calculateLevelStats<unsigned int>(static_cast<unsigned int*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_LONG:
-			calculateLevelStats<long>(static_cast<long*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_UNSIGNED_LONG:
-			calculateLevelStats<unsigned long>(static_cast<unsigned long*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_FLOAT:
-			calculateLevelStats<float>(static_cast<float*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		case VTK_DOUBLE:
-			calculateLevelStats<double>(static_cast<double*>(img1->GetScalarPointer()), count, avg, max, min);
-			break;
-		default:
-			avg = 0.0;
-			max = 0.0;
-			// TODO: LOG ERROR!
-			break;
-		}
+		VTK_TYPED_CALL(calculateLevelStats, type, img1->GetScalarPointer(), count, avg, max, min);
 		m_average[i] = avg;
 		m_maximum[i] = max;
 		m_minimum[i] = min;

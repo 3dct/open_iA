@@ -74,14 +74,13 @@ public:
 		m_weights = weights;
 	}
 
+	double GetUndecided() const
+	{
+		return m_undecidedPixels;
+	}
+
 #ifdef ITK_USE_CONCEPT_CHECKING
-	//itkConceptMacro(InputConvertibleToOutputCheck, (itk::Concept::Convertible< InputPixelType, OutputPixelType >));
-	//itkConceptMacro(IntConvertibleToInputCheck, (itk::Concept::Convertible< int, InputPixelType >));
-	//itkConceptMacro(SameDimensionCheck, (itk::Concept::SameDimension< InputImageDimension, ImageDimension >));
-	//itkConceptMacro(InputIntCheck, (itk::Concept::IsInteger< InputPixelType >));
 	itkConceptMacro(IntConvertibleToOutputPixelType, (itk::Concept::Convertible< int, OutputPixelType >));
-	//itkConceptMacro(InputPlusIntCheck, (itk::Concept::AdditiveOperators< InputPixelType, int >));
-	//itkConceptMacro(InputIncrementDecrementOperatorsCheck, (itk::Concept::IncrementDecrementOperators< InputPixelType >));
 	itkConceptMacro(OutputOStreamWritableCheck, (itk::Concept::OStreamWritable< OutputPixelType >));
 #endif
 
@@ -104,6 +103,7 @@ private:
 	size_t m_labelCount;
 	size_t m_numberOfClassifiers;
 	double m_undecidedUncertaintyThresh;
+	double m_undecidedPixels;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

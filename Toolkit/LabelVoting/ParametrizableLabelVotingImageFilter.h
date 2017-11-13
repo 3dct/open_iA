@@ -254,6 +254,11 @@ public:
 		}
 	}
 
+	double GetUndecided() const
+	{
+		return m_undecidedPixels;
+	}
+
 #ifdef ITK_USE_CONCEPT_CHECKING
 	// Begin concept checking
 	itkConceptMacro(InputConvertibleToOutputCheck,
@@ -313,6 +318,7 @@ private:
 	std::set<std::pair<int, int> > m_inputLabelVotersSet;
 	std::map<std::pair<int, int>, double> m_inputLabelWeightMap;
 	WeightType       m_weightType;
+	double           m_undecidedPixels;
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

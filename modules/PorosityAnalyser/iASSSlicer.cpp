@@ -25,7 +25,7 @@
 #include "iAChanData.h"
 #include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "iASlicer.h"
 #include "iASlicerSettings.h"
 #include "PorosityAnalyserHelpers.h"

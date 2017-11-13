@@ -30,6 +30,7 @@
 #include <vector>
 
 class iAImageCoordConverter;
+class iAImageInfo;
 class iAModalityTransfer;
 class iAVolumeRenderer;
 
@@ -78,6 +79,8 @@ public:
 	vtkSmartPointer<vtkImageData> GetImage() const;
 	//! return the name of the given component
 	QString GetImageName(int componentIdx);
+	//! return statistical information about the image
+	iAImageInfo const & Info() const;
 
 	QString GetOrientationString();
 	QString GetPositionString();

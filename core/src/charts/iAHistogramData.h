@@ -20,20 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
-#include "open_iA_Core_export.h"
+#include "iAPlotData.h"
 
-class open_iA_Core_API iAMappingDiagramData: public iAAbstractDiagramData
+#include <QSharedPointer>
+
+class vtkImageData;
+
+class iAImageInfo;
+
+class iAHistogramData: public iAPlotData
 {
-private:
-	size_t m_numBin;
-	DataType * m_data;
 public:
-	iAMappingDiagramData(DataType const * data,
-		int srcNumBin, double srcMinX, double srcMaxX,
-		size_t targetNumBin, double targetMinX, double targetMaxX,
-		DataType const maxValue);
-	~iAMappingDiagramData();
-	virtual size_t GetNumBin() const override;
-	virtual DataType const * GetData() const override;
+	~iAHistogramData();
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	DataType const * YBounds() const override;
+	iAValueType GetRangeType() const override;
+
+	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, int binCount, iAImageInfo* imageInfo = nullptr);
+	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t numBin, double space, DataType min, DataType max);
+private:
+	iAHistogramData();
+	void SetMaxFreq();
+
+	size_t numBin;
+	iAPlotData::DataType* rawData;
+	iAPlotData::DataType yBounds[2];
+	double accSpacing;
+	double xBounds[2];
+	iAValueType m_type;
 };

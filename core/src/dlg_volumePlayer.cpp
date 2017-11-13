@@ -31,7 +31,7 @@
 #include "mdichild.h"
 
 #include <vtkImageData.h>
-#include <vtkImageAccumulate.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
 #include <QCheckBox>
@@ -42,19 +42,15 @@ const float TIMER_MAX_SPEED = 50.0f;	// frames per second
 const int SECONDS_TO_MILISECONDS = 1000;
 const int DIVISIONS_PER_VOLUME = 200;
 
-dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, vtkImageData* src, vtkImageAccumulate* accum, QString Filename, iAVolumeStack* volumeStack) 
+dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	: QDockWidget(parent),
-	m_parent(parent),
 	m_mask(0),
 	m_volumeStack(volumeStack),
 	m_multiChannelIsInitialized(false)
 {
 	setupUi(this);
-
 	m_isBlendingOn = blending->isChecked();
-
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-
 	m_numberOfVolumes=m_volumeStack->getNumberOfVolumes();
 	for (int i = 0; i < m_numberOfVolumes; i++) {
 		showVolume(i);
@@ -211,7 +207,7 @@ void dlg_volumePlayer::editMaxSpeed() {
 	QStringList inList		= (QStringList() << tr("#Speed (one step/msec)"));
 	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
 
-	dlg_commoninput dlg(m_parent, "Set speed", inList, inPara, NULL);
+	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, NULL);
 	
 	if (dlg.exec() == QDialog::Accepted){
 		float speed = (float)dlg.getDblValue(0);
