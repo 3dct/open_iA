@@ -21,6 +21,10 @@
 #include "pch.h"
 #include "mdichild.h"
 
+#include "charts/iAHistogramData.h"
+#include "charts/iAHistogramWidget.h"
+#include "charts/iAPlotTypes.h"
+#include "charts/iAProfileWidget.h"
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
@@ -32,11 +36,6 @@
 #include "iAChildData.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iAHistogramWidget.h"
-#include "io/iAIO.h"
-#include "io/iAIOProvider.h"
 #include "iALogger.h"
 #include "iAMdiChildLogger.h"
 #include "iAModality.h"
@@ -47,7 +46,6 @@
 #include "iAParametricSpline.h"
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"
-#include "charts/iAProfileWidget.h"
 #include "iARenderer.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
@@ -58,9 +56,10 @@
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
 #include "iAWidgetAddHelper.h"
-#include "mainwindow.h"
-
 #include "io/extension2id.h"
+#include "io/iAIO.h"
+#include "io/iAIOProvider.h"
+#include "mainwindow.h"
 
 #include <vtkCamera.h>
 #include <vtkCornerAnnotation.h>

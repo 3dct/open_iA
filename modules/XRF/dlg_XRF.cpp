@@ -41,7 +41,6 @@
 #include "iAFunctionalBoxplotQtDrawer.h"
 #include "charts/iAPlotTypes.h"
 #include "charts/iAMappingDiagramData.h"
-#include "iAIO.h"
 #include "iAMathUtility.h"
 #include "iAPeriodicTableListener.h"
 #include "iAPieChartWidget.h"
@@ -50,6 +49,7 @@
 #include "iAWidgetAddHelper.h"
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
+#include "io/iAIO.h"
 #include "mdichild.h"
 
 #include <itkLabelStatisticsImageFilter.h>
