@@ -31,12 +31,14 @@
 #include "mdichild.h"
 
 #define ASTRA_CUDA
+//#include <astra/CompositeGeometryManager.h>
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
 #include <astra/CudaCglsAlgorithm3D.h>
 #include <astra/CudaSirtAlgorithm3D.h>
 #include <astra/CudaForwardProjectionAlgorithm3D.h>
 #include <astra/CudaProjector3D.h>
+#include <astra/Logging.h>
 
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
@@ -200,10 +202,11 @@ namespace
 		cudaGetDeviceCount(&deviceCount);
 		if (deviceCount == 0)
 			return false;
-		/*
-		// TODO: Allow choosing a device to use?
+		// TODO: Allow choosing which device(s) to use!
 		else
 		{
+			/*
+			size_t mostMem = 0;	int idx = -1;
 			for (int dev = 0; dev < deviceCount; dev++)
 			{
 				cudaDeviceProp deviceProp;
@@ -218,9 +221,18 @@ namespace
 					.arg(deviceProp.concurrentKernels)
 					.arg(deviceProp.totalGlobalMem)
 				);
+				if (deviceProp.totalGlobalMem > mostMem)
+				{
+					mostMem = deviceProp.totalGlobalMem;
+					idx = dev;
+				}
 			}
+			astra::SGPUParams gpuParams;
+			gpuParams.GPUIndices.push_back(idx);
+			gpuParams.memory = mostMem ;
+			astra::CCompositeGeometryManager::setGlobalGPUParams(gpuParams);
+			*/
 		}
-		*/
 		return true;
 	}
 
@@ -279,6 +291,18 @@ iAASTRAForwardProject::iAASTRAForwardProject() :
 	AddParameter(ProjAngleCnt, Discrete, 360);
 }
 
+class CPPAstraCustomMemory: public astra::CFloat32CustomMemory
+{
+public:
+	CPPAstraCustomMemory(size_t size)
+	{
+		m_fPtr = new astra::float32[size];
+	}
+	virtual ~CPPAstraCustomMemory() override
+	{
+		delete [] m_fPtr;
+	}
+};
 
 void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 {
@@ -301,13 +325,13 @@ void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	FillVolumeGeometryNode(volGeomNode, volDim, volImg->GetSpacing());
 
-	astra::float32* buf = new astra::float32[volDim[0] * volDim[1] * volDim[2]];
-	VTK_TYPED_CALL(SwapXYandCastToFloat, volImg->GetScalarType(), volImg, buf);
+	CPPAstraCustomMemory * volumeBuf = new CPPAstraCustomMemory(static_cast<size_t>(volDim[0]) * volDim[1] * volDim[2]);
+	VTK_TYPED_CALL(SwapXYandCastToFloat, volImg->GetScalarType(), volImg, volumeBuf->m_fPtr);
 
 	astra::CCudaProjector3D* projector = new astra::CCudaProjector3D();
 	projector->initialize(projectorConfig);
-	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry());
-	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), buf);
+	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), 0.0);
+	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), volumeBuf);
 	astra::CCudaForwardProjectionAlgorithm3D* algorithm = new astra::CCudaForwardProjectionAlgorithm3D();
 	algorithm->initialize(projector, projectionData, volumeData);
 	algorithm->run();
@@ -342,7 +366,6 @@ void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 	m_con->SetImage(projImg);
 	m_con->Modified();
 
-	delete[] buf;
 	delete algorithm;
 	delete volumeData;
 	delete projectionData;
@@ -411,10 +434,10 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = m_con->GetVTKImage();
 	int * projDim = projImg->GetDimensions();
-
-	astra::float32* projBuf = new astra::float32[projDim[0] * projDim[1] * projDim[2]];
+	
+	CPPAstraCustomMemory * projBuf = new CPPAstraCustomMemory(static_cast<size_t>(projDim[0]) * projDim[1] * projDim[2]);
 	//VTK_TYPED_CALL(SwapDimensions, img->GetScalarType(), img, buf, m_detColDim, m_detRowDim, m_projAngleDim, m_detRowCnt, m_detColCnt, m_projAnglesCount);
-	VTK_TYPED_CALL(SwapDimensions, projImg->GetScalarType(), projImg, projBuf,
+	VTK_TYPED_CALL(SwapDimensions, projImg->GetScalarType(), projImg, projBuf->m_fPtr,
 		parameters[DetColDim].toUInt(),
 		parameters[DetRowDim].toUInt(),
 		parameters[ProjAngleDim].toUInt());
@@ -506,7 +529,6 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 	m_con->SetImage(volImg);
 	m_con->Modified();
 
-	delete[] projBuf;
 	delete volumeData;
 	delete projectionData;
 	delete projector;
@@ -519,6 +541,17 @@ QSharedPointer<iAFilterRunnerGUI> iAASTRAFilterRunner::Create()
 	return QSharedPointer<iAASTRAFilterRunner>(new iAASTRAFilterRunner());
 }
 
+namespace
+{
+	void  astraLogCallback(const char *msg, size_t len)
+	{
+		char * allMsg = new char[len + 1];
+		std::memcpy(allMsg, msg, len);
+		allMsg[len] = 0;
+		QString qtStr(allMsg);
+		DEBUG_LOG(qtStr.trimmed());
+	}
+}
 
 void iAASTRAFilterRunner::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
@@ -527,11 +560,10 @@ void iAASTRAFilterRunner::Run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 		QMessageBox::warning(mainWnd, "ASTRA", "No CUDA device available. ASTRA toolbox operations require a CUDA-capable device.");
 		return;
 	}
-	/*
-	// To debug ASTRA Toolbox, uncomment this (errors are printed to stdout):
-	AllocConsole();
-	freopen("CON", "w", stdout);
-	*/
+	astra::CLogger::setOutputScreen(1, astra::LOG_INFO);
+	bool success = astra::CLogger::setCallbackScreen(astraLogCallback);
+	if (!success)
+		DEBUG_LOG("Setting Astra log callback failed!");
 	iAFilterRunnerGUI::Run(filter, mainWnd);
 }
 
