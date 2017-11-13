@@ -21,13 +21,13 @@
 #include "pch.h"
 #include "iAGEMSeModuleInterface.h"
 
+#include "iAGEMSeAttachment.h"
+#include "iASEAFile.h"
+
 #include "dlg_modalities.h"
 #include "iAConsole.h"
-#include "iAFileUtils.h"
-#include "iAGEMSeAttachment.h"
 #include "iAModality.h"
 #include "iAModuleDispatcher.h"
-#include "iASEAFile.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 

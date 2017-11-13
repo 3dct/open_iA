@@ -18,12 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iADatasetInfo.h"
 
 #include "PorosityAnalyserHelpers.h"
-#include "iAITKIO.h"
+
+#include "io/iAITKIO.h"
 
 #include <itkImageFileWriter.h>
 #include <itkExtractImageFilter.h>
