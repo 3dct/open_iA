@@ -21,33 +21,50 @@
 
 #include "iAFilterRegistry.h"
 
+#include "iAConsole.h"
+#include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
-iAAbstractFilterFactory::~iAAbstractFilterFactory() {}
-iAAbstractFilterRunnerGUIFactory::~iAAbstractFilterRunnerGUIFactory() {}
+iAIFilterFactory::~iAIFilterFactory() {}
+iAIFilterRunnerGUIFactory::~iAIFilterRunnerGUIFactory() {}
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory)
+void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory)
 {
 	m_filters.push_back(factory);
-	m_runner.push_back(QSharedPointer<iAAbstractFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
+	m_runner.push_back(QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
 }
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory,
-	QSharedPointer<iAAbstractFilterRunnerGUIFactory> runner)
+void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory,
+	QSharedPointer<iAIFilterRunnerGUIFactory> runner)
 {
 	m_filters.push_back(factory);
 	m_runner.push_back(runner);
 }
 
-QVector<QSharedPointer<iAAbstractFilterFactory>> const & iAFilterRegistry::FilterFactories()
+QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::FilterFactories()
 {
 	return m_filters;
 }
 
-QSharedPointer<iAAbstractFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(int filterID)
+
+QSharedPointer<iAFilter> iAFilterRegistry::Filter(QString const & name)
+{
+	for (auto filterFactory : m_filters)
+	{
+		auto filter = filterFactory->Create();
+		if (filter->Name() == name)
+		{
+			return filter;
+		}
+	}
+	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));
+	return QSharedPointer<iAFilter>();
+}
+
+QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(int filterID)
 {
 	return m_runner[filterID];
 }
 
-QVector<QSharedPointer<iAAbstractFilterFactory> > iAFilterRegistry::m_filters;
-QVector<QSharedPointer<iAAbstractFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;
+QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
+QVector<QSharedPointer<iAIFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;

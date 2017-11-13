@@ -25,29 +25,9 @@
 #include <QSharedPointer>
 #include <QVector>
 
+class iAIFilterFactory;
+class iAIFilterRunnerGUIFactory;
 class iAFilter;
-class iAFilterRunnerGUI;
-class iAFilterRunnerGUIThread;
-
-//! Class for internal use in iAFilterRegistry and iAFilterFactory only.
-//! There should be no need to use this class directly; use REGISTER_FILTER or
-//! REGISTER_FILTER_WITH_RUNNER macros below instead!
-class open_iA_Core_API iAAbstractFilterFactory
-{
-public:
-	virtual QSharedPointer<iAFilter> Create() =0;
-	virtual ~iAAbstractFilterFactory();
-};
-
-//! Class for internal use in iAFilterRegistry and iAFilterFactory only.
-//! There should be no need to use this class directly; use REGISTER_FILTER or
-//! REGISTER_FILTER_WITH_RUNNER macros below instead!
-class open_iA_Core_API iAAbstractFilterRunnerGUIFactory
-{
-public:
-	virtual QSharedPointer<iAFilterRunnerGUI> Create() =0;
-	virtual ~iAAbstractFilterRunnerGUIFactory();
-};
 
 //! Registry for image filters.
 //! Use REGISTER_FILTER and REGISTER_FILTER_WITH_RUNNER macros add a filter
@@ -64,28 +44,53 @@ class open_iA_Core_API iAFilterRegistry
 public:
 	//! Adds a given filter factory to the registry, which will be run with the default
 	//! GUI runner. REGISTER_FILTER provide simplified access to this method.
-	static void AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory);
+	static void AddFilterFactory(QSharedPointer<iAIFilterFactory> factory);
 	//! Adds a given filter factory to the registry, which will be run with the runner for
 	//! which the factory is supplied. REGISTER_FILTER_WITH_RUNNER
 	//! provides simplified access to this method.
-	static void AddFilterFactory(QSharedPointer<iAAbstractFilterFactory> factory,
-		QSharedPointer<iAAbstractFilterRunnerGUIFactory> runner);
+	static void AddFilterFactory(QSharedPointer<iAIFilterFactory> factory,
+		QSharedPointer<iAIFilterRunnerGUIFactory> runner);
 	//! Retrieve a list of all currently registered filter (factories)
-	static QVector<QSharedPointer<iAAbstractFilterFactory>> const & FilterFactories();
+	static QVector<QSharedPointer<iAIFilterFactory>> const & FilterFactories();
+	//! Retrieve the filter with the given name.
+	//! If there is no such filter, a "null" shared pointer is returned
+	static QSharedPointer<iAFilter> Filter(QString const & name);
 	//! Retrieve the callback for a given factory (if the given factory does not
 	//! have a callback, nullptr is returned).
-	static QSharedPointer<iAAbstractFilterRunnerGUIFactory> FilterRunner(int filterID);
+	static QSharedPointer<iAIFilterRunnerGUIFactory> FilterRunner(int filterID);
 private:
 	iAFilterRegistry();	//!< iAFilterRegistry is meant to be used as a singleton, thus prevent creation of objects
-	static QVector<QSharedPointer<iAAbstractFilterFactory> > m_filters;
-	static QVector<QSharedPointer<iAAbstractFilterRunnerGUIFactory> > m_runner;
+	static QVector<QSharedPointer<iAIFilterFactory> > m_filters;
+	static QVector<QSharedPointer<iAIFilterRunnerGUIFactory> > m_runner;
+};
+
+class iAFilterRunnerGUI;
+
+//! Class for internal use in iAFilterRegistry and iAFilterFactory only.
+//! There should be no need to use this class directly; use REGISTER_FILTER or
+//! REGISTER_FILTER_WITH_RUNNER macros below instead!
+class open_iA_Core_API iAIFilterFactory
+{
+public:
+	virtual QSharedPointer<iAFilter> Create() = 0;
+	virtual ~iAIFilterFactory();
+};
+
+//! Class for internal use in iAFilterRegistry and iAFilterFactory only.
+//! There should be no need to use this class directly; use REGISTER_FILTER or
+//! REGISTER_FILTER_WITH_RUNNER macros below instead!
+class open_iA_Core_API iAIFilterRunnerGUIFactory
+{
+public:
+	virtual QSharedPointer<iAFilterRunnerGUI> Create() = 0;
+	virtual ~iAIFilterRunnerGUIFactory();
 };
 
 //! Factory for an iAFilter.
 //! There should be no need to use this class directly; use REGISTER_FILTER or
 //! REGISTER_FILTER_WITH_RUNNER macros below instead!
 template <typename FilterType>
-class iAFilterFactory: public iAAbstractFilterFactory
+class iAFilterFactory: public iAIFilterFactory
 {
 public:
 	QSharedPointer<iAFilter> Create() override
@@ -99,7 +104,7 @@ public:
 //! There should be no need to use this class directly; use
 //! REGISTER_FILTER_WITH_RUNNER macro below instead!
 template <typename FilterRunnerGUIType>
-class iAFilterRunnerGUIFactory : public iAAbstractFilterRunnerGUIFactory
+class iAFilterRunnerGUIFactory : public iAIFilterRunnerGUIFactory
 {
 public:
 	QSharedPointer<iAFilterRunnerGUI> Create() override
@@ -111,7 +116,7 @@ public:
 //! Macro to register a class derived from iAFilter in the iAFilterRegistry, with
 //! a default GUI runner. See iAFilterRegistry for more details
 #define REGISTER_FILTER(FilterType) \
-iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()));
+iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()));
 
 //! Macro to register a class derived from iAFilter in the iAFilterRegistry,
 //! along with a runner. In comparison to the macro above, you can provide your
@@ -119,5 +124,5 @@ iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new i
 //! behavior of the filter when run from the GUI.
 //! See iAFilterRegistry for more details
 #define REGISTER_FILTER_WITH_RUNNER(FilterType, FilterRunnerType) \
-iAFilterRegistry::AddFilterFactory(QSharedPointer<iAAbstractFilterFactory>(new iAFilterFactory<FilterType>()), \
-	QSharedPointer<iAAbstractFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<FilterRunnerType>()));
+iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()), \
+	QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<FilterRunnerType>()));

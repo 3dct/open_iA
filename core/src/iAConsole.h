@@ -85,7 +85,7 @@ private:
 
 // Some default loggers:
 
-class iAConsoleLogger : public iALogger
+class open_iA_Core_API iAConsoleLogger : public iALogger
 {
 public:
 	void Log(QString const & msg) override;
