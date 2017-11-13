@@ -25,7 +25,7 @@
 #include "CPUID.h"
 #include "defines.h"
 #include "iACSVToQTableWidgetConverter.h"
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "iAPorosityAnalyserModuleInterface.h"
 #include "iATypedCallHelper.h"
 
