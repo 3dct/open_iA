@@ -275,10 +275,7 @@ void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
 {
 	connect(thread, SIGNAL( startUpdate(int) ), this, SLOT( updateRenderWindows(int) ));
 	connect(thread, SIGNAL( finished() ), this, SLOT( enableRenderWindows() ));
-	connect(thread, SIGNAL( aprogress(int) ), this, SLOT( updateProgressBar(int) ));
-	connect(thread, SIGNAL( started() ), this, SLOT( initProgressBar() ));
-	connect(thread, SIGNAL( finished() ), this, SLOT( hideProgressBar() ));
-	addAlgorithm(thread);
+	connectAlgorithmSignalsToChildSlots(thread);
 }
 
 void MdiChild::connectIOThreadSignals(iAIO * thread)
@@ -287,6 +284,14 @@ void MdiChild::connectIOThreadSignals(iAIO * thread)
 	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
 	connect(thread, SIGNAL(finished()), this, SLOT(ioFinished()));
 	connect(thread->getObserverProgress(), SIGNAL(oprogress(int)), this, SLOT(updateProgressBar(int)));
+	addAlgorithm(thread);
+}
+
+void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
+{
+	connect(thread, SIGNAL(aprogress(int)), this, SLOT(updateProgressBar(int)));
+	connect(thread, SIGNAL(started()), this, SLOT(initProgressBar()));
+	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
 	addAlgorithm(thread);
 }
 

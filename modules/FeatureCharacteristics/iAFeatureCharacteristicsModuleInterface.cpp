@@ -68,7 +68,7 @@ void iAFeatureCharacteristicsModuleInterface::calcFeatureCharacteristics()
 	//execute
 	iACalcFeatureCharacteristics* thread = new iACalcFeatureCharacteristics( filterName,
 		 m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild, filename, feretDiameter);
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
+	m_mdiChild->connectAlgorithmSignalsToChildSlots( thread );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

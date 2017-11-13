@@ -28,6 +28,7 @@
 #include "mainwindow.h"
 
 #include <vtkTable.h>
+#include <vtkSmartVolumeMapper.h>
 
 #include <QFileDialog>
 #include <QInputDialog>
@@ -79,6 +80,9 @@ void iAFiberScoutModuleInterface::FiberScout()
 				{
 					SetupToolbar();
 					m_mdiChild->addStatusMsg( filterName );
+					setFiberScoutRenderSettings();
+					m_mdiChild->addMsg("The render settings of the current mdiChild"
+						" window have been adapted to the FeatureScout!");
 				}
 			}
 			else
@@ -105,6 +109,22 @@ void iAFiberScoutModuleInterface::SetupToolbar()
 	connect( tlbFiberScout->actionOrientation_Rendering, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
 	connect( tlbFiberScout->actionActivate_SPM, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
 	tlbFiberScout->setVisible( true );
+}
+
+void iAFiberScoutModuleInterface::setFiberScoutRenderSettings()
+{
+	iARenderSettings FS_RenderSettings = m_mdiChild->GetRenderSettings();
+	iAVolumeSettings FS_VolumeSettings = m_mdiChild->GetVolumeSettings();
+	FS_RenderSettings.ParallelProjection = true;
+	FS_RenderSettings.ShowHelpers = true;
+	FS_RenderSettings.ShowRPosition = true;
+	FS_RenderSettings.ShowSlicers = true;
+	FS_VolumeSettings.LinearInterpolation = false;
+	FS_VolumeSettings.DiffuseLighting = 1.6;
+	FS_VolumeSettings.Shading = true;
+	FS_VolumeSettings.SpecularLighting = 0.0;
+	FS_VolumeSettings.Mode = vtkSmartVolumeMapper::RayCastRenderMode;
+	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
 bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )

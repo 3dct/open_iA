@@ -44,5 +44,6 @@ private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 	bool filter_FiberScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID);
 	void SetupToolbar();
+	void setFiberScoutRenderSettings();
 	iAFiberScoutToolbar * tlbFiberScout;
 };

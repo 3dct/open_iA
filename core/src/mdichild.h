@@ -165,6 +165,7 @@ public:
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
 	void connectIOThreadSignals(iAIO* thread);
+	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 	vtkPiecewiseFunction * getPiecewiseFunction();
 	vtkColorTransferFunction * getColorTransferFunction();
 	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
