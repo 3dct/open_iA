@@ -779,11 +779,6 @@ void MdiChild::updateSliceIndicators()
 }
 
 
-void MdiChild::paintEvent(QPaintEvent * )
-{
-}
-
-
 int MdiChild::chooseModalityNr(QString const & caption)
 {
 	if (GetModalities()->size() == 1)
@@ -2474,11 +2469,6 @@ void MdiChild::cleanWorkingAlgorithms()
 		}
 	}
 	workingAlgorithms.clear();
-}
-
-void MdiChild::resizeEvent( QResizeEvent * event )
-{
-	QMainWindow::resizeEvent(event);
 }
 
 bool MdiChild::addProfile()

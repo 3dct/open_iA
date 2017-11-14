@@ -38,7 +38,6 @@
 #include <vtkImageData.h>
 
 #include <QFileDialog>
-#include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QSettings>
 #include <QCheckBox>

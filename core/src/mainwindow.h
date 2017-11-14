@@ -105,7 +105,7 @@ public:
 	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
 	QList<MdiChild*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	void addSubWindow(QWidget * child);
+	QMdiSubWindow* addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);
 	iAPreferences const & GetDefaultPreferences() const;

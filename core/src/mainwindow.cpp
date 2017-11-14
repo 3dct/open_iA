@@ -1735,7 +1735,8 @@ void MainWindow::updateWindowMenu()
 MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 {
 	MdiChild *child = new MdiChild(this, defaultPreferences, unsavedChanges);
-	mdiArea->addSubWindow(child);
+	QMdiSubWindow* subWin = mdiArea->addSubWindow(child);
+	subWin->setOption(QMdiSubWindow::RubberBandResize);
 
 	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
 	child->setupSlicers(defaultSlicerSettings, false);
@@ -2260,9 +2261,9 @@ QMenu * MainWindow::getFiltersMenu()
 }
 
 
-void MainWindow::addSubWindow( QWidget * child )
+QMdiSubWindow* MainWindow::addSubWindow( QWidget * child )
 {
-	mdiArea->addSubWindow( child );
+	return mdiArea->addSubWindow( child );
 }
 
 

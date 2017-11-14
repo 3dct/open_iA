@@ -325,7 +325,6 @@ private slots:
 	void setRotationXZ(double a);
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
-	void paintEvent(QPaintEvent * );
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
@@ -385,8 +384,6 @@ private:
 	void hideVolumeWidgets();
 	void setVisibility(QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
-	virtual void resizeEvent ( QResizeEvent * event );
-
 	int profileWidgetIndex;
 	QByteArray m_beforeMaximizeState;
 	bool m_isSmthMaximized;
