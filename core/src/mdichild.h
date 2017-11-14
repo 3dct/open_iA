@@ -331,6 +331,7 @@ private slots:
 	void updateImageProperties();
 	void clearLogs();
 	void ModalityTFChanged();
+	void HistogramDataAvailable(int modalityIdx);
 
 public slots:
 	void updateProgressBar(int i);

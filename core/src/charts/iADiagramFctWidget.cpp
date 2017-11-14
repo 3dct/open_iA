@@ -553,7 +553,12 @@ QSharedPointer<CoordinateConverter> const iADiagramFctWidget::GetCoordinateConve
 void iADiagramFctWidget::drawDatasets(QPainter &painter)
 {
 	if (m_plots.empty())
+	{
+		painter.scale(1, -1);
+		painter.drawText(QRect(0, 0, ActiveWidth(), -ActiveHeight()), Qt::AlignCenter, "Chart not (yet) available.");
+		painter.scale(1, -1);
 		return;
+	}
 	double binWidth = ActiveWidth() * xZoom / m_plots[0]->GetData()->GetNumBin();
 	for (auto it = m_plots.constBegin(); it != m_plots.constEnd();	++it)
 	{
@@ -1199,6 +1204,8 @@ void iADiagramFctWidget::RemoveImageOverlay( QImage * imgOverlay )
 
 int iADiagramFctWidget::diagram2PaintX(double x)
 {
+	if (m_plots.empty())
+		return x;
 	double screenX = (x - XBounds()[0]) * ActiveWidth() * xZoom / XRange();
 	screenX = clamp(0.0, ActiveWidth()*xZoom, screenX);
 	return static_cast<int>(round(screenX));
@@ -1206,6 +1213,8 @@ int iADiagramFctWidget::diagram2PaintX(double x)
 
 long iADiagramFctWidget::screenX2DataBin(int x)
 {
+	if (m_plots.empty())
+		return x;
 	double numBin = m_plots[0]->GetData()->GetNumBin();
 	double diagX = static_cast<double>(x-translationX-LeftMargin()) * numBin / (ActiveWidth() * xZoom);
 	diagX = clamp(0.0, numBin, diagX);
@@ -1214,6 +1223,8 @@ long iADiagramFctWidget::screenX2DataBin(int x)
 
 int iADiagramFctWidget::dataBin2ScreenX(long x)
 {
+	if (m_plots.empty())
+		return x;
 	double numBin = m_plots[0]->GetData()->GetNumBin();
 	double screenX = static_cast<double>(x) * ActiveWidth() * xZoom / (numBin);
 	screenX = clamp(0.0, ActiveWidth()*xZoom, screenX);
@@ -1222,6 +1233,8 @@ int iADiagramFctWidget::dataBin2ScreenX(long x)
 
 double iADiagramFctWidget::getMaxXZoom() const
 {
+	if (m_plots.empty())
+		return 1;
 	double numBin = m_plots[0]->GetData()->GetNumBin();
 	return (std::max)((std::min)( iADiagramWidget::getMaxXZoom(), numBin), 1.0);
 }

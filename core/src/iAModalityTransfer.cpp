@@ -18,12 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAModalityTransfer.h"
 
 #include "charts/iAHistogramData.h"
-//#include "iAToolsVTK.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -36,13 +34,15 @@ iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData)
 	m_otf = GetDefaultPiecewiseFunction(imgData);
 }
 
-
-QSharedPointer<iAHistogramData> const iAModalityTransfer::GetHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
+void iAModalityTransfer::ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
 {
-	if (imgData->GetNumberOfScalarComponents() == 1 && (!m_histogramData || m_histogramData->GetNumBin() != binCount))
-	{
-		m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
-	}
+	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->GetNumBin() == binCount))
+		return;
+	m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
+}
+
+QSharedPointer<iAHistogramData> const iAModalityTransfer::GetHistogramData() const
+{
 	return m_histogramData;
 }
 
@@ -60,9 +60,4 @@ iAImageInfo const & iAModalityTransfer::Info() const
 {
 	// TODO: make sure image info is initialzed!
 	return m_imageInfo;
-}
-
-size_t iAModalityTransfer::HistogramBins() const
-{
-	return (m_histogramData) ? m_histogramData->GetNumBin() : 0;
 }

@@ -247,8 +247,23 @@ QString iAModality::GetPositionString()
 	return m_renderer ? Vec3D2String(m_renderer->GetPosition()) : QString();
 }
 
-
-QSharedPointer<iAHistogramData> const  iAModality::GetHistogramData(size_t numBin)
+void iAModality::ComputeHistogramData(size_t numBin)
 {
-	return m_transfer->GetHistogramData(GetImage(), numBin);
+	return m_transfer->ComputeHistogramData(GetImage(), numBin);
 }
+
+QSharedPointer<iAHistogramData> const iAModality::GetHistogramData() const
+{
+	return m_transfer->GetHistogramData();
+}
+
+void iAHistogramUpdater::run()
+{
+	m_modality->ComputeHistogramData(m_binCount);
+	emit resultReady(m_modalityIdx);
+}
+iAHistogramUpdater::iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount) :
+	m_modalityIdx(modalityIdx),
+	m_modality(modality),
+	m_binCount(binCount)
+{}

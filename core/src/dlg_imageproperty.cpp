@@ -90,10 +90,13 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 	
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
-		EnterMsg(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
-			.arg(info.VoxelCount())
-			.arg(info.Min()).arg(info.Max())
-			.arg(info.Mean()).arg(info.StandardDeviation()));
+		if (info.VoxelCount() == 0)
+			EnterMsg("    Statistics not computed yet. Activate modality (by clicking on it) to do so.");
+		else
+			EnterMsg(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
+				.arg(info.VoxelCount())
+				.arg(info.Min()).arg(info.Max())
+				.arg(info.Mean()).arg(info.StandardDeviation()));
 	}
 	this->show();
 }

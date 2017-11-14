@@ -1512,8 +1512,7 @@ void MdiChild::enableInteraction( bool b)
 bool MdiChild::editPrefs(iAPreferences const & prefs)
 {
 	preferences = prefs;
-	if (m_histogram && GetModality(m_currentModality)->GetTransfer()->HistogramBins() != prefs.HistogramBins)
-		SetHistogramModality(m_currentModality);
+	SetHistogramModality(m_currentModality);	// to update Histogram bin count
 	ApplyViewerPreferences();
 	if (isMagicLensToggled())
 	{
@@ -2859,14 +2858,26 @@ void MdiChild::InitModalities()
 	);
 }
 
+
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	// TODO: create thread, on thread finish set histogram & modality infos
-	if (!m_histogram || !GetModality(modalityIdx)->GetHistogramData(GetPreferences().HistogramBins))
+	if (!m_histogram)
 		return;
+	auto workerThread = new iAHistogramUpdater(modalityIdx,
+		GetModality(modalityIdx), preferences.HistogramBins);
+	connect(workerThread, &iAHistogramUpdater::resultReady, this, &MdiChild::HistogramDataAvailable);
+	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
+	addMsg(QString("Computing Histogram for modality %1...").arg(modalityIdx));
+	workerThread->start();
+}
+
+
+void MdiChild::HistogramDataAvailable(int modalityIdx)
+{
+	addMsg(QString("Histogram for modality %1 available.").arg(modalityIdx));
 	m_histogram->RemovePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
-		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(GetPreferences().HistogramBins),
+		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
 	m_histogram->AddPlot(m_histogramPlot);
 	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
@@ -2874,12 +2885,11 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	m_histogram->updateTrf();	// will also redraw() the histogram
 }
 
+
 void MdiChild::InitVolumeRenderers()
 {
 	if (!m_initVolumeRenderers)
-	{
 		return;
-	}
 	m_initVolumeRenderers = false;
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{

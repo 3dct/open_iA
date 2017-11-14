@@ -26,6 +26,7 @@
 
 #include <QSharedPointer>
 #include <QString>
+#include <QThread>
 
 #include <vector>
 
@@ -105,7 +106,8 @@ public:
 
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
-	QSharedPointer<iAHistogramData> const GetHistogramData(size_t numBin);
+	void ComputeHistogramData(size_t numBin);
+	QSharedPointer<iAHistogramData> const GetHistogramData() const;
 private:
 
 	QString m_name;
@@ -122,4 +124,20 @@ private:
 	QString positionSettings;
 	QString orientationSettings;
 	QString tfFileName;
+};
+
+
+//! class for updating the histogram of a modality
+class iAHistogramUpdater : public QThread
+{
+Q_OBJECT
+	void run() override;
+signals:
+	void resultReady(int modalityIdx);
+private:
+	int m_modalityIdx;
+	size_t m_binCount;
+	QSharedPointer<iAModality> m_modality;
+public:
+	iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount);
 };
