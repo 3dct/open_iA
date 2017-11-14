@@ -25,6 +25,7 @@
 #include "iALogger.h"
 
 #include <vtkSmartPointer.h>
+#include <itkSmartPointer.h>
 
 #include <QObject>
 
@@ -34,6 +35,7 @@
 
 class dlg_console;
 class iARedirectVtkOutput;
+class iARedirectItkOutput;
 
 class open_iA_Core_API iAGlobalLogger
 {
@@ -80,6 +82,7 @@ private:
 	bool m_closed;
 	bool m_fileLogError;
 	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
+	itk::SmartPointer<iARedirectItkOutput> m_itkOutputWindow;
 };
 
 
