@@ -2873,6 +2873,7 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
+	updateImageProperties();
 }
 
 
