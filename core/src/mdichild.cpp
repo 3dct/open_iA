@@ -966,7 +966,7 @@ bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
 				if (supportedPixelTypes.contains(ioID) &&
 					!supportedPixelTypes[ioID].contains(imageData->GetScalarType()))
 				{
-					addMsg(QString("%1 Writer only supports %2 input!")
+					addMsg(QString("%1  Writer only supports %2 input!")
 						.arg(suffix)
 						.arg(GetSupportedPixelTypeString(supportedPixelTypes[ioID])));
 					return false;
@@ -2857,14 +2857,17 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 		GetModality(modalityIdx), preferences.HistogramBins);
 	connect(workerThread, &iAHistogramUpdater::resultReady, this, &MdiChild::HistogramDataAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
-	addMsg(QString("Computing Histogram for modality %1...").arg(modalityIdx));
+	addMsg(QString("%1  Computing Histogram for modality %2...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(modalityIdx));
 	workerThread->start();
 }
 
 
 void MdiChild::HistogramDataAvailable(int modalityIdx)
 {
-	addMsg(QString("Histogram for modality %1 available.").arg(modalityIdx));
+	addMsg(QString("%1  Histogram for modality %2 computed, displaying.")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(modalityIdx));
 	m_histogram->RemovePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
