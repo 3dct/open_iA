@@ -179,12 +179,12 @@ namespace
 		T* imgBuf = static_cast<T*>(img->GetScalarPointer());
 		int * dim = img->GetDimensions();
 		size_t inIdx = 0;
-		for (int z = 0; z < dim[2]; ++z)
+		for (size_t z = 0; z < dim[2]; ++z)
 		{
-			for (int y = 0; y < dim[1]; ++y)
+			for (size_t y = 0; y < dim[1]; ++y)
 			{
 #pragma omp parallel for
-				for (int x = 0; x < dim[0]; ++x)
+				for (size_t x = 0; x < dim[0]; ++x)
 
 				{
 					size_t outIdx = y + ((x + z * dim[0]) * dim[1]);
@@ -347,18 +347,20 @@ void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 		parameters[DetSpcX].toDouble() * 180 / parameters[ProjAngleCnt].toDouble() };
 	auto projImg = AllocateImage(VTK_FLOAT, projDim, projSpacing);
 	float* projImgBuf = static_cast<float*>(projImg->GetScalarPointer());
-	astra::float32*** projData3D = projectionData->getData3D();
+	astra::float32* projData = projectionData->getData();
 	size_t imgIndex = 0;
 	unsigned int projAngleCount = parameters[ProjAngleCnt].toUInt();
 	unsigned int detectorColCnt = parameters[DetColCnt].toUInt();
-	for (int z = 0; z < projDim[2]; ++z)
+	for (size_t z = 0; z < projDim[2]; ++z)
 	{
-		for (int y = 0; y < projDim[1]; ++y)
+		for (size_t y = 0; y < projDim[1]; ++y)
 		{
+			size_t startIdx = ((y * projDim[2]) + (projAngleCount - z - 1)) * projDim[0];
+			astra::float32* row = &(projData[startIdx]);
 #pragma omp parallel for
-			for (int x = 0; x < projDim[0]; ++x)
+			for (size_t x = 0; x < projDim[0]; ++x)
 			{
-				projImgBuf[imgIndex + x] = projData3D[y][projAngleCount - z - 1][detectorColCnt - x - 1];
+				projImgBuf[imgIndex + x] = row[detectorColCnt - x - 1];
 			}
 			imgIndex += projDim[0];
 		}
@@ -512,19 +514,21 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 	// retrieve result image:
 	auto volImg = AllocateImage(VTK_FLOAT, volDim, volSpacing);
 	float* volImgBuf = static_cast<float*>(volImg->GetScalarPointer());
-	astra::float32*** volData3D = volumeData->getData3D();
 	size_t imgIndex = 0;
-	for (int z = 0; z < volDim[2]; ++z)
+	size_t sliceOffset = static_cast<size_t>(volDim[1]) * volDim[0];
+	astra::float32* slice = volumeData->getData()
+	for (size_t z = 0; z < volDim[2]; ++z)
 	{
-		for (int y = 0; y < volDim[1]; ++y)
+		for (size_t y = 0; y < volDim[1]; ++y)
 		{
 			#pragma omp parallel for
-			for (int x = 0; x < volDim[0]; ++x)
+			for (size_t x = 0; x < volDim[0]; ++x)
 			{
-				volImgBuf[imgIndex + x] = volData3D[z][x][y];
+				volImgBuf[imgIndex + x] = slice[x*volDim[1] + y];
 			}
 			imgIndex += volDim[0];
 		}
+		slice += sliceOffset;
 	}
 	m_con->SetImage(volImg);
 	m_con->Modified();
