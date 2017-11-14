@@ -52,6 +52,7 @@ iADiagramWidget::iADiagramWidget(QWidget* parent):
 	draw(true),
 	mode(NO_MODE)
 {
+	setFocusPolicy(Qt::WheelFocus);
 	setNewSize();
 	image = QImage(width, height, QImage::Format_ARGB32);
 	setAutoFillBackground(false);

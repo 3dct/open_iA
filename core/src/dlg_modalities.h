@@ -64,9 +64,7 @@ public:
 	bool Load(QString const & filename);
 	void ShowSlicePlanes(bool enabled);
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
-	//! double responsibility function, adding modality to list and initializing its transfer function
-	// TODO: VOLUME: split up!
-	void AddListItemAndTransfer(QSharedPointer<iAModality> mod);
+	void AddListItem(QSharedPointer<iAModality> mod);
 	//! initialize a modality's display in renderers
 	void InitDisplay(QSharedPointer<iAModality> mod);
 	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
@@ -99,7 +97,6 @@ private:
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
-	int m_numBin;	// only serves to store the numBin from preferences in the MdiChild; this should be a direct reference there to always have the newest value!
 	bool m_showSlicePlanes;
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 	vtkRenderer* m_mainRenderer;

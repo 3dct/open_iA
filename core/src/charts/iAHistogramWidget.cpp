@@ -29,19 +29,6 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
-iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild, QString const & label):
-	iADiagramFctWidget(parent, mdiChild, label)
-{}
-
-iAHistogramWidget::iAHistogramWidget(QWidget *parent, MdiChild * mdiChild,
-		vtkImageData* img, int binCount,
-		vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QString const & label, bool reset) 
-	: iADiagramFctWidget(parent, mdiChild, label)
-{
-	SetTransferFunctions(cTF, oTF);
-	initialize(img, binCount, reset);
-	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
-}
 
 iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 	MdiChild * mdiChild,
@@ -61,40 +48,11 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 }
 
-void iAHistogramWidget::initialize(vtkImageData* img, int binCount, bool reset)
-{
-	m_data = iAHistogramData::Create(img, binCount);
-	reInitialize(reset);
-}
 
-
-void iAHistogramWidget::datatypehistograminitialize(iAPlotData::DataType* histlistptr, bool reset,
+void iAHistogramWidget::datatypehistograminitialize(iAPlotData::DataType* histlistptr, bool resetFunction,
 	iAPlotData::DataType min, iAPlotData::DataType max, int bins, double space)
 {
 	m_data = iAHistogramData::Create(histlistptr, bins, space, min, max);
-	reInitialize(reset);
-}
-
-
-void iAHistogramWidget::reInitialize(bool resetFunction)
-{
-	//set attribute, so that the objects are deleted while
-	//this widget is closed
-	this->setAttribute(Qt::WA_DeleteOnClose);
-	this->setFocusPolicy(Qt::WheelFocus);
-	
-	mode = NO_MODE;
-	
-	draw = false;
-	contextMenuVisible = false;
-	updateAutomatically = true;
-	
-	setNewSize();
-
-	selectedFunction = 0;
-	//reset transfer function
 	if (resetFunction)
-	{
 		functions[0]->reset();
-	}
 }

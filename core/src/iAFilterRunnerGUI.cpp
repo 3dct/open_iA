@@ -285,7 +285,8 @@ void iAFilterRunnerGUI::FilterFinished()
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->Filter()->Connectors()[p]->GetVTKImage());
-			qobject_cast<MdiChild*>(thread->parent())->GetModalities()->Add(QSharedPointer<iAModality>(
+			auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
+			mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
 				new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0)));
 		}
 	}

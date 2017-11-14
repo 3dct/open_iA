@@ -39,13 +39,13 @@ public:
 	DataType const * YBounds() const override;
 	iAValueType GetRangeType() const override;
 
-	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, int binCount, iAImageInfo* imageInfo = nullptr);
-	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t numBin, double space, DataType min, DataType max);
+	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
+	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t binCount, double space, DataType min, DataType max);
 private:
 	iAHistogramData();
 	void SetMaxFreq();
 
-	size_t numBin;
+	size_t m_binCount;
 	iAPlotData::DataType* rawData;
 	iAPlotData::DataType yBounds[2];
 	double accSpacing;

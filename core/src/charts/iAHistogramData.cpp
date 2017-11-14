@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 #include "iAHistogramData.h"
 
@@ -30,8 +29,9 @@
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
 
+
 iAHistogramData::iAHistogramData()
-	: numBin(0), rawData(nullptr), accSpacing(0)
+	: m_binCount(0), rawData(nullptr), accSpacing(0)
 {
 	xBounds[0] = xBounds[1] = 0;
 	yBounds[0] = yBounds[1] = 0;
@@ -57,7 +57,8 @@ iAHistogramData::DataType const * iAHistogramData::GetRawData() const
 	return rawData;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, int binCount,
+
+QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_t binCount,
 	iAImageInfo* info)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
@@ -67,7 +68,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, int b
 	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
 	double * const scalarRange = img->GetScalarRange();
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
-		binCount = std::min(binCount, static_cast<int>(scalarRange[1] - scalarRange[0] + 1));
+		binCount = std::min(binCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
 
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
 	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
@@ -82,16 +83,16 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, int b
 	caster->Update();
 	auto rawImg = caster->GetOutput();
 
-	result->numBin = extent[1] + 1;
+	result->m_binCount = extent[1] + 1;
 	result->xBounds[0] = accumulate->GetMin()[0];
 	result->xBounds[1] = accumulate->GetMax()[0];
-	result->rawData = new double[result->numBin];
+	result->rawData = new double[result->m_binCount];
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
-	std::copy(vtkRawData, vtkRawData + result->numBin, result->rawData);
+	std::copy(vtkRawData, vtkRawData + result->m_binCount, result->rawData);
 	double null1, null2;
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
 	{	// for int types, the last value is inclusive:
-		result->accSpacing = (result->xBounds[1] - result->xBounds[0] + 1) / result->numBin;
+		result->accSpacing = (result->xBounds[1] - result->xBounds[0] + 1) / result->m_binCount;
 	}
 	else
 	{
@@ -105,6 +106,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, int b
 		*info = iAImageInfo(accumulate->GetVoxelCount(),
 			*accumulate->GetMin(), *accumulate->GetMax(),
 			*accumulate->GetMean(), *accumulate->GetStandardDeviation());
+
 	return result;
 }
 
@@ -114,7 +116,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
 	result->rawData = data;
-	result->numBin = bins;
+	result->m_binCount = bins;
 	result->accSpacing = space;
 	result->xBounds[0] = min;
 	result->xBounds[1] = max;
@@ -134,7 +136,7 @@ void iAHistogramData::SetMaxFreq()
 
 size_t iAHistogramData::GetNumBin() const
 {
-	return numBin;
+	return m_binCount;
 }
 
 iAPlotData::DataType const * iAHistogramData::YBounds() const

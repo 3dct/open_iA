@@ -29,6 +29,7 @@
 
 #include <vector>
 
+class iAHistogramData;
 class iAImageCoordConverter;
 class iAImageInfo;
 class iAModalityTransfer;
@@ -98,13 +99,13 @@ public:
 	int RenderFlags() const;
 
 	void LoadTransferFunction();
-	void SetTransfer(QSharedPointer<iAModalityTransfer> transfer);
 	QSharedPointer<iAModalityTransfer> GetTransfer();
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
 
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
+	QSharedPointer<iAHistogramData> const GetHistogramData(size_t numBin);
 private:
 
 	QString m_name;

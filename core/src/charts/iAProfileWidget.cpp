@@ -51,8 +51,6 @@ void iAProfileWidget::initialize(vtkPolyData* profData, double rayLength)
 	profileData->GetScalarRange(yDataRange);
 	scalars = profData->GetPointData()->GetScalars();
 	yHeight = yDataRange[1] - yDataRange[0];
-	this->setAttribute(Qt::WA_DeleteOnClose);
-	this->setFocusPolicy(Qt::WheelFocus);
 	mode = NO_MODE;
 	draw = false;
 }

@@ -22,7 +22,7 @@
 #include "mdichild.h"
 
 #include "charts/iAHistogramData.h"
-#include "charts/iAHistogramWidget.h"
+#include "charts/iADiagramFctWidget.h"
 #include "charts/iAPlotTypes.h"
 #include "charts/iAProfileWidget.h"
 #include "dlg_commoninput.h"
@@ -64,7 +64,6 @@
 #include <vtkCamera.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageAccumulate.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -96,7 +95,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	ioThread(nullptr),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
-	m_histogram(new iAHistogramWidget(nullptr, this, " Histogram")),
+	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram")),
 	m_histogramContainer(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	preferences(prefs),
@@ -335,10 +334,8 @@ void MdiChild::enableRenderWindows()
 	if (IsVolumeDataLoaded() && reInitializeRenderWindows)
 	{
 		for (int i = 0; i < GetModalities()->size(); ++i)
-		{
-			GetModality(i)->GetTransfer()->Update(GetModality(i)->GetImage(), preferences.HistogramBins);
 			GetModality(i)->LoadTransferFunction();	// should be moved to load project (once this is asynchronous)
-		}
+
 		int modalityIdx = 0;
 		SetHistogramModality(modalityIdx);
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
@@ -644,11 +641,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	colorTransferFunction->DeepCopy(volumeStack->getColorTransferFunction(updateIndex));
 	piecewiseFunction->DeepCopy(volumeStack->getPiecewiseFunction(updateIndex));
 
-	// TODO: VOLUME: update all histograms?
-	if (GetModality(0)->GetTransfer()->GetHistogramData())
-		SetHistogramModality(0);
-	else
-		DEBUG_LOG("Histogram is not set!");
+	SetHistogramModality(0);
 
 	Raycaster->reInitialize(imageData, polyData);
 	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
@@ -1519,16 +1512,8 @@ void MdiChild::enableInteraction( bool b)
 bool MdiChild::editPrefs(iAPreferences const & prefs)
 {
 	preferences = prefs;
-	if (m_histogram)
-	{
-		// apply histogram bin number to all modalities
-		for (int i = 0; i < GetModalities()->size(); ++i)
-		{
-			QSharedPointer<iAModalityTransfer> modTrans = GetModality(i)->GetTransfer();
-			modTrans->Update(GetModality(i)->GetImage(), preferences.HistogramBins);
-		}
-		m_histogram->redraw();
-	}
+	if (m_histogram && GetModality(m_currentModality)->GetTransfer()->HistogramBins() != prefs.HistogramBins)
+		SetHistogramModality(m_currentModality);
 	ApplyViewerPreferences();
 	if (isMagicLensToggled())
 	{
@@ -1799,11 +1784,10 @@ void MdiChild::resetTrf()
 	if (!m_histogram) return;
 	m_histogram->resetTrf();
 	addMsg(tr("Resetting Transfer Functions."));
-	iAHistogramWidget const *  hist = m_histogram;
 	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-		.arg(hist->XBounds()[0]));
+		.arg(m_histogram->XBounds()[0]));
 	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-		.arg(hist->XBounds()[1]));
+		.arg(m_histogram->XBounds()[1]));
 }
 
 std::vector<dlg_function*> & MdiChild::getFunctions()
@@ -1816,7 +1800,7 @@ std::vector<dlg_function*> & MdiChild::getFunctions()
 	return m_histogram->getFunctions();
 }
 
-iAHistogramWidget* MdiChild::getHistogram()
+iADiagramFctWidget* MdiChild::getHistogram()
 {
 	return m_histogram;
 }
@@ -2143,7 +2127,7 @@ bool MdiChild::initView( QString const & title )
 			currentFile(), -1, imageData, iAModality::MainRenderer));
 		GetModalities()->Add(mod);
 		// TODO: duplicate to enableRenderWindows - histogram is calculated twice!
-		m_dlgModalities->AddListItemAndTransfer(mod);
+		m_dlgModalities->AddListItem(mod);
 		m_initVolumeRenderers = true;
 	}
 	vtkColorTransferFunction* colorFunction = (GetModalities()->size() > 0) ? GetModality(0)->GetTransfer()->GetColorFunction() : vtkColorTransferFunction::New();
@@ -2865,7 +2849,7 @@ QSharedPointer<iAModality> MdiChild::GetModality(int idx)
 void MdiChild::InitModalities()
 {
 	for (int i = 0; i < GetModalities()->size(); ++i)
-		m_dlgModalities->AddListItemAndTransfer(GetModality(i));
+		m_dlgModalities->AddListItem(GetModality(i));
 	SetHistogramModality(0);
 	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
 	m_initVolumeRenderers = true;
@@ -2877,11 +2861,12 @@ void MdiChild::InitModalities()
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	if (!m_histogram || !GetModality(modalityIdx)->GetTransfer()->GetHistogramData())
+	// TODO: create thread, on thread finish set histogram & modality infos
+	if (!m_histogram || !GetModality(modalityIdx)->GetHistogramData(GetPreferences().HistogramBins))
 		return;
 	m_histogram->RemovePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
-		iAStepFunctionDrawer(GetModality(modalityIdx)->GetTransfer()->GetHistogramData(),
+		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(GetPreferences().HistogramBins),
 			QColor(70, 70, 70, 255)));
 	m_histogram->AddPlot(m_histogramPlot);
 	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),

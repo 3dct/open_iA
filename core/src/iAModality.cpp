@@ -33,13 +33,13 @@
 
 #include <cassert>
 
-iAModality::iAModality(QString const & name, QString const & filename, int channel, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
+iAModality::iAModality(QString const & name, QString const & filename, int channel,
+	vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
 	renderFlags(renderFlags),
 	m_channel(channel),
-	m_imgs(1),
-	m_transfer(nullptr)
+	m_imgs(1)
 {
 	SetData(imgData);
 }
@@ -177,12 +177,6 @@ int iAModality::RenderFlags() const
 	return renderFlags;
 }
 
-void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
-{
-	// TODO: VOLUME: rewrite / move to iAModalityTransfer constructor if possible!
-	m_transfer = transfer;
-}
-
 void iAModality::LoadTransferFunction()
 {
 	if (tfFileName.isEmpty())
@@ -230,6 +224,7 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	imgData->GetExtent(extent);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
 		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
+	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(imgData));
 }
 
 
@@ -250,4 +245,10 @@ QString iAModality::GetOrientationString()
 QString iAModality::GetPositionString()
 {
 	return m_renderer ? Vec3D2String(m_renderer->GetPosition()) : QString();
+}
+
+
+QSharedPointer<iAHistogramData> const  iAModality::GetHistogramData(size_t numBin)
+{
+	return m_transfer->GetHistogramData(GetImage(), numBin);
 }

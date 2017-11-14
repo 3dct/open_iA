@@ -59,7 +59,6 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
-	m_numBin(numBin),
 	m_showSlicePlanes(false),
 	m_plane1(nullptr),
 	m_plane2(nullptr),
@@ -169,13 +168,6 @@ void dlg_modalities::MagicLens()
 	}
 }
 
-void dlg_modalities::InitTransfer(QSharedPointer<iAModality> mod)
-{
-	vtkSmartPointer<vtkImageData> imgData = mod->GetImage();
-	QSharedPointer<iAModalityTransfer> modTransfer(new iAModalityTransfer(imgData, m_numBin));
-	mod->SetTransfer(modTransfer);
-}
-
 void dlg_modalities::InitDisplay(QSharedPointer<iAModality> mod)
 {
 	QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->GetTransfer().data(), mod->GetImage()));
@@ -203,18 +195,16 @@ void dlg_modalities::AddToList(QSharedPointer<iAModality> mod)
 	listItem->setCheckState(Qt::Checked);
 }
 
-void dlg_modalities::AddListItemAndTransfer(QSharedPointer<iAModality> mod)
+void dlg_modalities::AddListItem(QSharedPointer<iAModality> mod)
 {
-	// TODO: VOLUME: split up somehow
 	AddToList(mod);
 	EnableButtons();
-	InitTransfer(mod);
 }
 
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 {
 	// TODO: VOLUME: split up somehow
-	AddListItemAndTransfer(mod);
+	AddListItem(mod);
 	InitDisplay(mod);
 	emit ModalityAvailable(lwModalities->count());
 }

@@ -29,7 +29,7 @@
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAFiberScoutScatterPlotMatrix.h"
-#include "charts/iAHistogramWidget.h"
+#include "charts/iADiagramFctWidget.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
@@ -1454,7 +1454,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 			moHistName.append( " Fiber Mean Object" );
 		else
 			moHistName.append( " Void Mean Object" );
-		iAModalityTransfer* moHistogram = new iAModalityTransfer( m_MOData.moImageDataList[currClass - 1], 100 );
+		iAModalityTransfer* moHistogram = new iAModalityTransfer( m_MOData.moImageDataList[currClass - 1] );
 		m_MOData.moHistogramList.append( moHistogram );
 
 		// Create MObject default Transfer Tunctions
@@ -1654,7 +1654,7 @@ void dlg_FiberScout::modifyMeanObjectTF()
 		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Fiber Mean Object Transfer Function" ));
 	else
 		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Void Mean Object Transfer Function" ) );
-	iAHistogramWidget* histogram = static_cast<MdiChild*>(activeChild)->getHistogram();
+	iADiagramFctWidget* histogram = static_cast<MdiChild*>(activeChild)->getHistogram();
 	connect( histogram, SIGNAL( updateViews() ), this, SLOT( updateMOView() ) );
 	m_motfView->horizontalLayout->addWidget( histogram );
 	histogram->show();

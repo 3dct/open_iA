@@ -46,12 +46,11 @@ private:
 	QSharedPointer<iAHistogramData> m_histogramData;
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	void UpdateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount);
 public:
 	iAImageInfo const & Info() const;
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, int binCount);
-	void Update(vtkSmartPointer<vtkImageData> imgData, int binCount);
-	QSharedPointer<iAHistogramData> const GetHistogramData() const;
+	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData);
+	QSharedPointer<iAHistogramData> const GetHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);
+	size_t HistogramBins() const;
 
 	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
 	vtkPiecewiseFunction* GetOpacityFunction();

@@ -51,7 +51,6 @@ class vtkAbstractTransform;
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkCornerAnnotation;
-class vtkImageAccumulate;
 class vtkImageCast;
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -69,7 +68,7 @@ class dlg_profile;
 class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelVisualizationData;
-class iAHistogramWidget;
+class iADiagramFctWidget;
 class iAIO;
 class iALogger;
 class iAModality;
@@ -197,7 +196,7 @@ public:
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
-	iAHistogramWidget* getHistogram();
+	iADiagramFctWidget* getHistogram();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -460,7 +459,7 @@ private:
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
 
-	iAHistogramWidget* m_histogram;
+	iADiagramFctWidget* m_histogram;
 	QDockWidget* m_histogramContainer;
 	QSharedPointer<iAPlot> m_histogramPlot;
 

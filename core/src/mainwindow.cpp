@@ -29,7 +29,7 @@
 #include "dlg_gaussian.h"
 #include "dlg_transfer.h"
 #include "iAConsole.h"
-#include "charts/iAHistogramWidget.h"
+#include "charts/iADiagramFctWidget.h"
 #include "io/iAIOProvider.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"

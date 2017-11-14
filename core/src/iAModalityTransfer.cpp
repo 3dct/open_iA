@@ -29,23 +29,20 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
-iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, int binCount)
+
+iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData)
 {
 	m_ctf = GetDefaultColorTransferFunction(imgData);
 	m_otf = GetDefaultPiecewiseFunction(imgData);
-	Update(imgData, binCount);
-}
-
-void iAModalityTransfer::Update(vtkSmartPointer<vtkImageData> imgData, int binCount)
-{
-	if (imgData->GetNumberOfScalarComponents() != 1)
-		return;
-	m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
 }
 
 
-QSharedPointer<iAHistogramData> const iAModalityTransfer::GetHistogramData() const
+QSharedPointer<iAHistogramData> const iAModalityTransfer::GetHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
 {
+	if (imgData->GetNumberOfScalarComponents() == 1 && (!m_histogramData || m_histogramData->GetNumBin() != binCount))
+	{
+		m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
+	}
 	return m_histogramData;
 }
 
@@ -61,5 +58,11 @@ vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 
 iAImageInfo const & iAModalityTransfer::Info() const
 {
+	// TODO: make sure image info is initialzed!
 	return m_imageInfo;
+}
+
+size_t iAModalityTransfer::HistogramBins() const
+{
+	return (m_histogramData) ? m_histogramData->GetNumBin() : 0;
 }

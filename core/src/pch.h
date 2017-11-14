@@ -327,7 +327,6 @@
 #include <vtkHomogeneousTransform.h>
 #include <vtkIdList.h>
 #include <vtkIdTypeArray.h>
-#include <vtkImageAccumulate.h>
 #include <vtkImageActor.h>
 #include <vtkImageAlgorithm.h>
 #include <vtkImageBlend.h>
