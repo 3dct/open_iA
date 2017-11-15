@@ -76,7 +76,8 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
 	auto transform = vtkSmartPointer<vtkTransform>::New();
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initializeData(img, transform, ctf, false, false);
+	m_slicer->initializeData(img, transform);
+	m_slicer->reInitialize(img, transform, ctf);
 	m_slicer->initializeWidget(img);
 	StyleChanged();
 }

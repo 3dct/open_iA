@@ -36,12 +36,9 @@
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellLocator.h>
-#include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericRenderWindowInteractor.h>
-#include <vtkImageAppendComponents.h>
-#include <vtkImageBlend.h>
 #include <vtkImageData.h>
 #include <vtkImageCast.h>
 #include <vtkInteractorStyleSwitch.h>
@@ -50,7 +47,6 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
-#include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -58,7 +54,6 @@
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkTransform.h>
-#include <vtkVolumeProperty.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QApplication>

@@ -154,7 +154,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	interactor(0),
 	m_sliceNumber(0), // for fisheye transformation
 	m_showPositionMarker(false),
-	colorTransferFunction(nullptr)
+	colorTransferFunction(nullptr),
+	isolines(false),
+	poly(false)
 {
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
@@ -262,14 +264,11 @@ vtkColorTransferFunction * iASlicerData::GetColorTransferFunction() {
 	return colorTransferFunction;
 }
 
-void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction *ctf,
-	bool showIsoLines, bool showPolygon)
+void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr)
 {
 	imageData = ds;
 	transform = tr;
-	colorTransferFunction = ctf;
-	isolines = showIsoLines;
-	poly = showPolygon;
+	colorTransferFunction = vtkColorTransferFunction::New();
 
 	renWin->AddRenderer(ren);
 	interactor = renWin->GetInteractor();

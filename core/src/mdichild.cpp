@@ -333,22 +333,11 @@ void MdiChild::enableRenderWindows()
 {
 	if (IsVolumeDataLoaded() && reInitializeRenderWindows)
 	{
-		for (int i = 0; i < GetModalities()->size(); ++i)
-			GetModality(i)->LoadTransferFunction();	// should be moved to load project (once this is asynchronous)
-
-		int modalityIdx = 0;
-		SetHistogramModality(modalityIdx);
-		QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
+		SetHistogramModality(0);
 		Raycaster->enableInteractor();
-
 		slicerXZ->enableInteractor();
-		slicerXZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
-
 		slicerXY->enableInteractor();
-		slicerXY->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
-
 		slicerYZ->enableInteractor();
-		slicerYZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
 	}
 	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
 	// unless explicitly set otherwise)
@@ -357,18 +346,16 @@ void MdiChild::enableRenderWindows()
 	Raycaster->reInitialize(imageData, polyData);
 
 	if (!IsVolumeDataLoaded())
-	{
 		return;
-	}
-	if(updateSliceIndicator){
+	if (updateSliceIndicator)
+	{
 		updateSliceIndicators();
 		camIso();
 		vtkCamera* cam = Raycaster->getCamera();
 		GetModalities()->ApplyCameraSettings(cam);
 	}
-	else{
+	else
 		updateSliceIndicator = true;
-	}
 
 	QList<iAChannelID> keys = m_channels.keys();
 	for (QList<iAChannelID>::iterator it = keys.begin();
@@ -388,19 +375,8 @@ void MdiChild::enableRenderWindows()
 			slicerXZ->reInitializeChannel(key, chData);
 			slicerXY->reInitializeChannel(key, chData);
 			slicerYZ->reInitializeChannel(key, chData);
-
-			/*
-			// TODO: VOLUME: check!
-			// if 3d enabled
-			// for 3d renderer, volumes are now enabled through modality explorer!
-			if (chData->Uses3D())
-			{
-				Raycaster->updateChannelImages();
-			}
-			*/
 		}
 	}
-	updateImageProperties();
 	m_dlgModalities->EnableUI();
 }
 
@@ -659,6 +635,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 
 bool MdiChild::setupStackView(bool active)
 {
+	// TODO: check!
 	previousIndexOfVolume = 0;
 
 	int numberOfVolumes=volumeStack->getNumberOfVolumes();
@@ -739,8 +716,6 @@ void MdiChild::setupViewInternal(bool active)
 		renderer->stackedWidgetRC->setCurrentIndex(0);
 		renderer->channelLabelRC->setEnabled(false);
 	}
-	// only after everything in the window is set up
-	InitVolumeRenderers();
 }
 
 
@@ -2120,14 +2095,12 @@ bool MdiChild::initView( QString const & title )
 		QSharedPointer<iAModality> mod(new iAModality(name,
 			currentFile(), -1, imageData, iAModality::MainRenderer));
 		GetModalities()->Add(mod);
-		// TODO: duplicate to enableRenderWindows - histogram is calculated twice!
 		m_dlgModalities->AddListItem(mod);
 		m_initVolumeRenderers = true;
 	}
-	vtkColorTransferFunction* colorFunction = (GetModalities()->size() > 0) ? GetModality(0)->GetTransfer()->GetColorFunction() : vtkColorTransferFunction::New();
-	slicerXZ->initializeData(imageData, slicerTransform, colorFunction);
-	slicerXY->initializeData(imageData, slicerTransform, colorFunction);
-	slicerYZ->initializeData(imageData, slicerTransform, colorFunction);
+	slicerXZ->initializeData(imageData, slicerTransform);
+	slicerXY->initializeData(imageData, slicerTransform);
+	slicerYZ->initializeData(imageData, slicerTransform);
 
 	renderer->stackedWidgetRC->setCurrentIndex(0);
 
@@ -2855,7 +2828,8 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 		return;
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
 		GetModality(modalityIdx), preferences.HistogramBins);
-	connect(workerThread, &iAHistogramUpdater::resultReady, this, &MdiChild::HistogramDataAvailable);
+	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
+	connect(workerThread, &iAHistogramUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
 	addMsg(QString("%1  Computing Histogram for modality %2...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(modalityIdx));
@@ -2877,6 +2851,16 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
 	updateImageProperties();
+}
+
+
+void MdiChild::StatisticsAvailable(int modalityIdx)
+{
+	QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
+	slicerXZ->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+	slicerXY->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+	slicerYZ->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+	InitVolumeRenderers();
 }
 
 

@@ -27,11 +27,18 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
+#include <cassert>
 
 iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData)
 {
-	m_ctf = GetDefaultColorTransferFunction(imgData->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
-	m_otf = GetDefaultPiecewiseFunction(imgData->GetScalarRange(), imgData->GetNumberOfScalarComponents() == 1);
+}
+
+void iAModalityTransfer::ComputeStatistics(vtkSmartPointer<vtkImageData> img)
+{
+	if (m_ctf)	// already calculated
+		return;
+	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
+	m_otf = GetDefaultPiecewiseFunction(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
 }
 
 void iAModalityTransfer::ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
@@ -48,11 +55,13 @@ QSharedPointer<iAHistogramData> const iAModalityTransfer::GetHistogramData() con
 
 vtkPiecewiseFunction* iAModalityTransfer::GetOpacityFunction()
 {
+	assert(m_otf);
 	return m_otf;
 }
 
 vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 {
+	assert(m_ctf);
 	return m_ctf;
 }
 

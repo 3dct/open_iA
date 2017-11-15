@@ -233,9 +233,9 @@ vtkRenderer * iASlicer::GetRenderer() const
 	return m_data->GetRenderer();
 }
 
-void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool sil /*= false*/, bool sp /*= false*/)
+void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr)
 {
-	m_data->initialize(ds, tr, ctf, sil, sp);
+	m_data->initialize(ds, tr);
 }
 
 void iASlicer::UpdateROI(int const roi[6])

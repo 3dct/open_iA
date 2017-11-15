@@ -106,6 +106,7 @@ public:
 
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
+	void ComputeImageStatistics();
 	void ComputeHistogramData(size_t numBin);
 	QSharedPointer<iAHistogramData> const GetHistogramData() const;
 private:
@@ -133,7 +134,8 @@ class iAHistogramUpdater : public QThread
 Q_OBJECT
 	void run() override;
 signals:
-	void resultReady(int modalityIdx);
+	void StatisticsReady(int modalityIdx);
+	void HistogramReady(int modalityIdx);
 private:
 	int m_modalityIdx;
 	size_t m_binCount;
