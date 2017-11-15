@@ -506,9 +506,8 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 bool MdiChild::loadRaw(const QString &f)
 {
 	if (!QFile::exists(f))	return false;
-	addMsg(tr("%1  Loading sequence started... \n"
-		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
-		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("%1  Loading file '%2', please wait...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
 	setCurrentFile(f);
 	waitForPreviousIO();
 	ioThread = new iAIO(imageData, nullptr, m_logger, this);
@@ -542,9 +541,8 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 {
 	if(!QFile::exists(f))	return false;
 
-	addMsg(tr("%1  Loading sequence started... \n"
-		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
-		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("%1  Loading file '%2', please wait...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
 	setCurrentFile(f);
 
 	waitForPreviousIO();
@@ -981,9 +979,8 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 		return false;
 	}
 
-	addMsg(tr("%1  Saving sequence started... \n"
-		"  The duration of the saving sequence depends on the size of your data set and may last several minutes. \n"
-		"  Please wait...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("%1  Loading file '%2', please wait...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
 	ioThread->start();
 
 	return true;
@@ -2831,7 +2828,7 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
 	connect(workerThread, &iAHistogramUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
-	addMsg(QString("%1  Computing Histogram for modality %2...")
+	addMsg(QString("%1  Computing Statistics and Histogram for modality %2...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(modalityIdx));
 	workerThread->start();
 }
@@ -2856,6 +2853,9 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 
 void MdiChild::StatisticsAvailable(int modalityIdx)
 {
+	addMsg(QString("%1  Statistics for modality %2 computed, displaying.")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(modalityIdx));
 	QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
 	slicerXZ->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
 	slicerXY->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());

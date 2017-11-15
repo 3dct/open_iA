@@ -1062,14 +1062,8 @@ bool iAIO::readVolumeMHDStack()
 		int progress = (fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
-
-	emit msg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	emit msg("  File: "+ fileName );
-	if(getVtkImageData()) 
-		printFileInfos();
-
+	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 	iosettingswriter();
-
 	return true;
 }
 
@@ -1094,12 +1088,8 @@ bool iAIO::readVolumeStack()
 		int progress = (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
-
-	emit msg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	emit msg("  File: "+ fileName );
-	printFileInfos();
+	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 	iosettingswriter();
-
 	return true;
 }
 
@@ -1164,10 +1154,7 @@ void iAIO::postImageReadActions()
 	getVtkImageData()->Initialize();
 	getVtkImageData()->DeepCopy(getConnector()->GetVTKImage());
 	getVtkImageData()->CopyInformationFromPipeline(getConnector()->GetVTKImage()->GetInformation());
-
-	emit msg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	emit msg("  File: " + fileName);
-	printFileInfos();
+	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 }
 
 
@@ -1178,9 +1165,7 @@ bool iAIO::readImageData()
 		return false;
 	}
 	postImageReadActions();
-
 	iosettingswriter();
-	
 	return true;
 }
 
@@ -1192,7 +1177,6 @@ bool iAIO::readMetaImage( )
 		return false;
 	}
 	postImageReadActions();
-	
 	return true;
 }
 
@@ -1203,12 +1187,8 @@ bool iAIO::readSTL( )
 	stlReader->SetFileName(fileName.toLatin1());
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
-
 	printSTLFileInfos();
-	
-	emit msg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	emit msg("  File: "+ fileName );
-	
+	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 	return true;
 }
 
@@ -1783,35 +1763,9 @@ bool iAIO::readImageStack()
 		return false;
 	}
 
-	printFileInfos();
+	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 
-	emit msg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	emit msg("  File: "+ fileName );
-		
 	return true;
-}
-
-
-void iAIO::printFileInfos()
-{
-	emit msg(tr("  Extent: [%1 %2]  [%3 %4]  [%5 %6]").arg(getVtkImageData()->GetExtent()[0])
-															.arg(getVtkImageData()->GetExtent()[1])
-															.arg(getVtkImageData()->GetExtent()[2])
-															.arg(getVtkImageData()->GetExtent()[3])
-															.arg(getVtkImageData()->GetExtent()[4])
-															.arg(getVtkImageData()->GetExtent()[5]));
-
-	emit msg(tr("  Spacing: %1 %2 %3").arg(getVtkImageData()->GetSpacing()[0])
-								   .arg(getVtkImageData()->GetSpacing()[1])
-								   .arg(getVtkImageData()->GetSpacing()[2]));
-
-	emit msg(tr("  Origin: %1 %2 %3").arg(getVtkImageData()->GetOrigin()[0])
-								   .arg(getVtkImageData()->GetOrigin()[1])
-								   .arg(getVtkImageData()->GetOrigin()[2]));
-
-	emit msg("  DataType: " + tr(getVtkImageData()->GetScalarTypeAsString()));
-
-	emit msg( tr("  Components: %1").arg(getVtkImageData()->GetNumberOfScalarComponents() ) );
 }
 
 
