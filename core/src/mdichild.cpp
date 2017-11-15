@@ -2861,6 +2861,8 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 	slicerXY->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
 	slicerYZ->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
 	InitVolumeRenderers();
+	ModalityTFChanged();
+	updateViews();
 }
 
 
@@ -2876,6 +2878,7 @@ void MdiChild::InitVolumeRenderers()
 	ApplyVolumeSettings();
 	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
 		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
+	Raycaster->GetRenderer()->ResetCamera();
 }
 
 
