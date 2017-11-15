@@ -720,7 +720,7 @@ void dlg_datatypeconversion::xyprojectslices()
 {
 	// Map the image through the lookup table
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
-	auto table = GetDefaultColorTransferFunction(m_testxyimage);
+	auto table = GetDefaultColorTransferFunction(m_testxyimage->GetScalarRange());
 	color->SetLookupTable(table);
 	color->SetInputData(m_testxyimage);
 	color->Update();
@@ -763,7 +763,7 @@ void dlg_datatypeconversion::xzprojectslices()
 
 	// Map the image through the lookup table
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
-	auto table = GetDefaultColorTransferFunction(m_testxyimage);
+	auto table = GetDefaultColorTransferFunction(m_testxyimage->GetScalarRange());
 	color->SetLookupTable(table);
 	color->SetInputConnection(reslice->GetOutputPort());
 	color->Update();

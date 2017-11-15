@@ -50,5 +50,5 @@ private:
 };
 
 // double range? pass in vtk variables?
-open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData);
-open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(vtkSmartPointer<vtkImageData> imageData);
+open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(double const range[2]);
+open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(double const range[2], bool opaqueRamp);

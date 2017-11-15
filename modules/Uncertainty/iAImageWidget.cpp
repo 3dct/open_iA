@@ -72,7 +72,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	SetRenderWindow(renderWindow);
 	*/
 
-	auto ctf = GetDefaultColorTransferFunction(img);
+	auto ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
 	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
 	auto transform = vtkSmartPointer<vtkTransform>::New();
 	m_slicer->setup(iASingleSlicerSettings());

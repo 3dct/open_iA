@@ -39,24 +39,24 @@ vtkPiecewiseFunction * iASimpleTransferFunction::GetOpacityFunction()
 	return m_otf;
 }
 
-vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData)
+vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(double const range[2])
 {
 	auto cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTF->RemoveAllPoints();
-	cTF->AddRGBPoint(imageData->GetScalarRange()[0], 0.0, 0.0, 0.0);
-	cTF->AddRGBPoint(imageData->GetScalarRange()[1], 1.0, 1.0, 1.0);
+	cTF->AddRGBPoint(range[0], 0.0, 0.0, 0.0);
+	cTF->AddRGBPoint(range[1], 1.0, 1.0, 1.0);
 	cTF->Build();
 	return cTF;
 }
 
-vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(vtkSmartPointer<vtkImageData> imageData)
+vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(double const range[2], bool opaqueRamp)
 {
 	auto pWF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	pWF->RemoveAllPoints();
-	if ( imageData->GetNumberOfScalarComponents() == 1 )
-		pWF->AddPoint ( imageData->GetScalarRange()[0], 0.0 );
-	else //Set range of rgb, rgba or vector pixel type images to fully opaque
-		pWF->AddPoint( imageData->GetScalarRange()[0], 1.0 );
-	pWF->AddPoint(imageData->GetScalarRange()[1], 1.0);
+	if (opaqueRamp)
+		pWF->AddPoint ( range[0], 0.0 );
+	else
+		pWF->AddPoint( range[0], 1.0 );
+	pWF->AddPoint(range[1], 1.0);
 	return pWF;
 }

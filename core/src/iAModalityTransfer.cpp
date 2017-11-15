@@ -30,8 +30,8 @@
 
 iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData)
 {
-	m_ctf = GetDefaultColorTransferFunction(imgData);
-	m_otf = GetDefaultPiecewiseFunction(imgData);
+	m_ctf = GetDefaultColorTransferFunction(imgData->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
+	m_otf = GetDefaultPiecewiseFunction(imgData->GetScalarRange(), imgData->GetNumberOfScalarComponents() == 1);
 }
 
 void iAModalityTransfer::ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)

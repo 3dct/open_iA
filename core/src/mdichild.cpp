@@ -674,8 +674,8 @@ bool MdiChild::setupStackView(bool active)
 	imageData->DeepCopy(volumeStack->getVolume(currentIndexOfVolume));
 	setupViewInternal(active);
 	for (int i=0; i<numberOfVolumes; i++) {
-		vtkSmartPointer<vtkColorTransferFunction> cTF = GetDefaultColorTransferFunction(imageData);
-		vtkSmartPointer<vtkPiecewiseFunction> pWF = GetDefaultPiecewiseFunction(imageData);
+		vtkSmartPointer<vtkColorTransferFunction> cTF = GetDefaultColorTransferFunction(imageData->GetScalarRange());
+		vtkSmartPointer<vtkPiecewiseFunction> pWF = GetDefaultPiecewiseFunction(imageData->GetScalarRange(), imageData->GetNumberOfScalarComponents() == 1);
 		volumeStack->addColorTransferFunction(cTF);
 		volumeStack->addPiecewiseFunction(pWF);
 	}
