@@ -61,6 +61,7 @@ void iAScalingWidget::setCursorPositions(double lcp, double nlcp)
 
 void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 {
+	// TODO: whole widget is always painted (not needed if only red line moves) 
 	if (m_nonlinearScalingVec.size() == 0)
 		return;
 

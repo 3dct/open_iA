@@ -40,7 +40,7 @@ public:
 	void setCursorPositions(double, double);
 
 protected:
-    void paintEvent(QPaintEvent* event) override;
+    virtual void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 
 private:
 	QCPAxis *m_nonlinearAxis;

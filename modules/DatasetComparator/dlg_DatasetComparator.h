@@ -66,6 +66,10 @@ public slots:
 	void legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*);
 	void setSelectionFromRenderer(vtkPoints* selCellPoints);
 	void showBkgrdThrLine();
+	void syncLinearXAxis(QCPRange);
+	void syncLinearYAxis(QCPRange);
+	void syncNonlinearXAxis(QCPRange);
+	void syncNonlinearYAxis(QCPRange);
 
 protected:
 	virtual bool eventFilter(QObject * obj, QEvent * event);
