@@ -2774,6 +2774,8 @@ int MdiChild::GetCurrentModality() const
 
 void MdiChild::ShowModality(int modIdx)
 {
+	if (m_currentModality == modIdx)
+		return;
 	m_currentModality = modIdx;
 	m_currentComponent = 0;
 	SetHistogramModality(modIdx);
@@ -2812,7 +2814,6 @@ void MdiChild::InitModalities()
 {
 	for (int i = 0; i < GetModalities()->size(); ++i)
 		m_dlgModalities->AddListItem(GetModality(i));
-	SetHistogramModality(0);
 	// TODO: VOLUME: rework - workaround: "initializes" renderer and slicers with modality 0
 	m_initVolumeRenderers = true;
 	setImageData(
