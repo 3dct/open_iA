@@ -28,10 +28,16 @@
 
 class iAVolumeRenderer;
 class iANonLinearAxisTicker;
+class iAScalingWidget;
 
 class vtkRenderWindow;
 class vtkTextActor;
 class vtkPoints;
+class QVTKWidget;
+class vtkRenderer;
+class vtkLookupTable;
+class vtkScalarBarActor;
+
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
@@ -41,7 +47,7 @@ class dlg_DatasetComparator : public DatasetComparatorConnector
 	Q_OBJECT
 
 public:
-	dlg_DatasetComparator(QWidget *parent, QDir datasetsDir, Qt::WindowFlags f = 0);
+	dlg_DatasetComparator(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = 0);
 	~dlg_DatasetComparator();
 
 	QDir m_datasetsDir;
@@ -52,7 +58,7 @@ public slots:
 	void mouseMove(QMouseEvent*);
 	void setFbpTransparency(int);
 	void showFBPGraphs();
-	void showLinePlots();
+	void visualize();
 	void updateDatasetComparator();
 	void updateFBPView();
 	void visualizePath();
@@ -68,9 +74,13 @@ private:
 	MdiChild *m_mdiChild;
 	QCustomPlot *m_nonlinearScaledPlot;
 	QCustomPlot *m_linearScaledPlot;
-	QCustomPlot *m_helperPlot;
-	QCPItemText *m_nonLinearDataPointInfo;
+	QCustomPlot *m_debugPlot;
+
+	QCPItemText *m_nonlinearDataPointInfo;
 	QCPItemText *m_linearDataPointInfo;
+	QCPItemStraightLine *m_nonlinearIdxLine;
+	QCPItemStraightLine *m_linearIdxLine;
+
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
 	vtkSmartPointer<vtkRenderWindow> m_mrvRenWin;
@@ -78,20 +88,26 @@ private:
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
 	QSharedPointer<iAVolumeRenderer> m_volRen;
 	QList<QCPPlottableLegendItem*> m_selLegendItemList;
-	QVector<double> m_nonLinearMappingVector;
+
+	QVector<double> m_nonlinearMappingVec;
+	QVector<double> m_impFunctVec;
 	QSharedPointer<QCPGraphDataContainer> m_impFuncPlotData;
 	QSharedPointer<QCPGraphDataContainer> m_integralImpFuncPlotData;
-	QSharedPointer<iANonLinearAxisTicker> m_nonLinearTicker;
+	QSharedPointer<iANonLinearAxisTicker> m_nonlinearTicker;
 	QList<QCPRange> m_bkgrdThrRangeList;
-
-	bool m_debugPlotsPainted;
+	iAScalingWidget *m_scalingWidget;
+	vtkSmartPointer<vtkLookupTable> m_lut;
 	
 	void generateHilbertIdx();
-	void setupFBPGraphs(iAFunctionalBoxplot<double, double> *fbpData);
-	void setupQCustomPlot();
+	void setupFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
+	void setupNonlinearScaledPlot();
+	void setupLinearScaledPlot();
+	void setupDebugPlot();
 	void setupGUIConnections();
 	void setupMultiRendererView();
-	void showDebugPlots(bool show);
-	bool calcNonLinearMapping(bool showDebugPlots);
+	void showDebugPlot();
+	void calcNonLinearMapping();
 	void showBkgrdThrRanges();
+	void showCompressionLevel();
+	void setupColorScaleBar();
 };

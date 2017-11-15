@@ -28,7 +28,7 @@ public:
 	iANonLinearAxisTicker();
 
 	void setTickData(QVector<double> tickVector);
-	void setAxis(QCPAxis *axis);
+	void setAxis(QCPAxis* axis);
 
 protected:
 	QVector<double> m_tickVector;

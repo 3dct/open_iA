@@ -31,7 +31,8 @@
 //#include "iAConsole.h"
 
 template<class T>
-void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList)
+void getIntensities(PathID m_pathID, ImagePointer &image, 
+	QList<icData> &intensityList, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList)
 {
 	// TODO: Typecheck QList for e.g., float images + cubic region only check
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -92,7 +93,8 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 	itkToVTKConverter->ReleaseDataFlagOn();
 }
 
-iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList):
+iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString,
+	QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList):
 	m_DatasetIntensityMap(datasetIntensityMap),
 	m_datasetsDir(datasetsDir),
 	m_pathID(pathID),

@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,32 +15,25 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_DatasetComparator.h"
+#include <QWidget>
 
-class iAIntensityMapper : public QObject
+class iALinearColorGradientBar : public QWidget
 {
-	Q_OBJECT
 
 public:
-	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, 
-		QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList);
-	~iAIntensityMapper();
+	iALinearColorGradientBar(QWidget *parent, QMap<double, QColor>);
 
-public slots:
-	void process();
+	QSize minimumSizeHint() const override;
+	QSize sizeHint() const override;
 
-signals:
-	void finished();
-	void error(QString err);
+protected:
+	void paintEvent(QPaintEvent *e) override;
 
 private:
-	QDir m_datasetsDir;
-	PathID m_pathID;
-	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;
-	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList;
+	QMap<double, QColor> m_colormap;
 };

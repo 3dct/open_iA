@@ -30,4 +30,7 @@ namespace iAPerceptuallyUniformLUT
 {
 	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols = 256 );
 	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols = 256 );
+
+	void open_iA_Core_API BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols = 256);
+	void open_iA_Core_API BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols = 256);
 }

@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,32 +15,37 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "dlg_DatasetComparator.h"
+#include <QApplication>
+#include <QPainter>
+#include "iALinearColorGradientBar.h"
 
-class iAIntensityMapper : public QObject
+iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QMap<double, QColor> colormap)
+	: QWidget(parent)
 {
-	Q_OBJECT
+	m_colormap = colormap;
+}
 
-public:
-	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, 
-		QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList);
-	~iAIntensityMapper();
+QSize iALinearColorGradientBar::sizeHint() const
+{
+	return QSize(100, 20);
+}
 
-public slots:
-	void process();
+QSize iALinearColorGradientBar::minimumSizeHint() const
+{
+	return QSize(100, 20);
+}
 
-signals:
-	void finished();
-	void error(QString err);
-
-private:
-	QDir m_datasetsDir;
-	PathID m_pathID;
-	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;
-	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList;
-};
+void iALinearColorGradientBar::paintEvent(QPaintEvent *e)
+{
+	Q_UNUSED(e);
+	QPainter painter(this);
+	QLinearGradient grad(0.0, 0.0, width(), height());
+	QMap<double, QColor>::iterator it;
+	for (it = m_colormap.begin(); it != m_colormap.end(); ++it)
+		grad.setColorAt(it.key(), it.value());
+	painter.fillRect(0, 0, width(), height(), grad);
+}

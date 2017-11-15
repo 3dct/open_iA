@@ -22,6 +22,8 @@
 #include "pch.h"
 #include "iAPerceptuallyUniformLUT.h"
 
+#include <QColor>
+
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
 
@@ -50,3 +52,38 @@ void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkL
 	BuildPerceptuallyUniformLUT( pLUT, lutRange, numCols );
 }
 
+void iAPerceptuallyUniformLUT::BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double* lutRange, int numCols /*= 256 */)
+{
+	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+	ctf->SetColorSpaceToLab();
+	//// ColorBrewer Single hue 5-class Oranges
+	//QColor c(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+	//c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+	//c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+	//c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+	//c.setRgb(254, 237, 222); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+
+	// ColorBrewer Single hue 5-class Grays
+	QColor c(37, 37, 37);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+	c.setRgb(99, 99, 99);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+	c.setRgb(150, 150, 150); ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+	c.setRgb(204, 204, 204); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+	c.setRgb(247, 247, 247); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+
+	pLUT->SetRange(lutRange);
+	pLUT->SetTableRange(lutRange);
+	pLUT->SetNumberOfColors(numCols);
+	for (int i = 0; i < numCols; ++i)
+	{
+		double rgb[3];
+		ctf->GetColor((double)i / numCols, rgb);
+		pLUT->SetTableValue(i, rgb[0], rgb[1], rgb[2]);
+	}
+	pLUT->Build();
+}
+
+void iAPerceptuallyUniformLUT::BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols /*= 256 */)
+{
+	double lutRange[2] = { rangeFrom, rangeTo };
+	BuildLinearLUT(pLUT, lutRange, numCols);
+}
