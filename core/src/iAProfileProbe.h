@@ -43,6 +43,9 @@ public:
 			positions[ptIndex][i] = newPos[i];
 		lineSrc->SetPoint1(positions[0]);
 		lineSrc->SetPoint2(positions[1]);
+	}
+	void UpdateData()
+	{
 		probe->Update();
 		profileData = probe->GetPolyDataOutput();
 	}

@@ -358,9 +358,6 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 		return;
 	}
 
-	double spacing[3];
-	m_imageData->GetSpacing(spacing);
-
 	if(m_isSliceProfEnabled
 		&& (event->modifiers() == Qt::NoModifier)
 		&& event->button() == Qt::LeftButton)//if slice profile m_viewMode is enabled do all the necessary operations
@@ -864,10 +861,9 @@ void iASlicerWidget::setMode( iASlicerMode slicerMode )
 void iASlicerWidget::changeImageData( vtkImageData * imageData )
 {
 	m_imageData = imageData;
-	
-	double	* origin	= m_imageData->GetOrigin();
-	int		* dim		= m_imageData->GetDimensions();
-	double	* spacing	= m_imageData->GetSpacing();
+	double  * origin = m_imageData->GetOrigin();
+	int        * dim = m_imageData->GetDimensions();
+	double * spacing = m_imageData->GetSpacing();
 	double end[3];
 	// unify this with MdiChild::addProfile somehow?
 	for (int i=0; i<3; i++)

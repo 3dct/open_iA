@@ -1454,7 +1454,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 			moHistName.append( " Fiber Mean Object" );
 		else
 			moHistName.append( " Void Mean Object" );
-		iAModalityTransfer* moHistogram = new iAModalityTransfer( m_MOData.moImageDataList[currClass - 1] );
+		iAModalityTransfer* moHistogram = new iAModalityTransfer( m_MOData.moImageDataList[currClass - 1]->GetScalarRange() );
 		m_MOData.moHistogramList.append( moHistogram );
 
 		// Create MObject default Transfer Tunctions

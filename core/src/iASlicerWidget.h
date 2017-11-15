@@ -88,7 +88,7 @@ public:
 	~iASlicerWidget();
 
 	void	initialize(vtkImageData * imageData, vtkPoints * points);
-	void	changeImageData(vtkImageData * imageData);
+	void    changeImageData(vtkImageData * imageData);
 	void	setIndex( int x, int y, int z ) { m_xInd = x; m_yInd = y; m_zInd = z; };
 	void	setMode(iASlicerMode slicerMode);
 	void	SetSlicer(iASlicerData * slicer);

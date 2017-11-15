@@ -65,7 +65,7 @@ void iAGPUEdgePreservingSmoothing::Run(QMap<QString, QVariant> const & parameter
 IAFILTER_CREATE(iAGPUEdgePreservingSmoothing)
 
 iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
-	iAFilter("Gradient Anisotropic Diffusion", "Smoothing/Edge preserving smoothing",
+	iAFilter("Gradient Anisotropic Diffusion (GPU)", "Smoothing/Edge preserving smoothing",
 		"Performs GPU-accelerated gradient anisotropic diffusion.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GPUGradientAnisotropicDiffusionImageFilter.html\">"

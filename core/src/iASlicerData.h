@@ -78,8 +78,8 @@ public:
 	iASlicerData( iASlicer const * slicerMaster, QObject * parent = 0, bool decorations=true);
 	virtual ~iASlicerData();
 
-	void initialize( vtkImageData *ds, vtkTransform *tr);
-	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showisolines = false, bool showpolygon = false );
+	void initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf);
+	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showisolines = false, bool showpolygon = false);
 	void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
 	

@@ -31,7 +31,10 @@
 #include <vtkImageData.h>
 #include <vtkVolume.h>
 
+#include "iATypedCallHelper.h"
+
 #include <cassert>
+#include <limits>
 
 iAModality::iAModality(QString const & name, QString const & filename, int channel,
 	vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
@@ -212,6 +215,13 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
+template <typename T>
+void getTypeMinMaxRange(double & minR, double & maxR)
+{
+	minR = std::numeric_limits<T>::lowest();
+	maxR = std::numeric_limits<T>::max();
+}
+
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);
@@ -220,7 +230,9 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	imgData->GetExtent(extent);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
 		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
-	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(imgData));
+	double maxRange[2];
+	VTK_TYPED_CALL(getTypeMinMaxRange, imgData->GetScalarType(), maxRange[0], maxRange[1])
+	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(maxRange));
 }
 
 

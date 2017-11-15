@@ -89,7 +89,7 @@ public:
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor(); 
 	void enableInteractor(); //also updates widget
-	void initializeData( vtkImageData *ds, vtkTransform *tr);
+	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf);
 	void reInitialize(	vtkImageData *ds, 
 						vtkTransform *tr, 
 						vtkColorTransferFunction* ctf, 

@@ -87,8 +87,7 @@ void iAImagePreviewWidget::InitializeSlicer()
 	BuildCTF();
 	
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initializeData(m_imageData, m_slicerTransform);
-	m_slicer->reInitialize(m_imageData, m_slicerTransform, m_ctf);
+	m_slicer->initializeData(m_imageData, m_slicerTransform, m_ctf);
 	m_slicer->initializeWidget(m_imageData);
 	m_slicer->SetBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	

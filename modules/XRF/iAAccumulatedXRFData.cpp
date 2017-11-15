@@ -26,8 +26,6 @@
 #include "iAFunctionalBoxplot.h"
 #include "iATypedCallHelper.h"
 
-#include <itkMacro.h>
-
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
 

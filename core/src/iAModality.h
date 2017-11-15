@@ -37,11 +37,6 @@ class iAModalityTransfer;
 class iAVolumeRenderer;
 
 class vtkImageData;
-class vtkVolume;
-class vtkSmartVolumeMapper;
-class vtkVolumeProperty;
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
 
 //! class holding the data of a single image channel
 class open_iA_Core_API iAModality

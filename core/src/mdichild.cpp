@@ -329,7 +329,7 @@ void MdiChild::disableRenderWindows(int ch)
 	emit rendererDeactivated(ch);
 }
 
-void MdiChild::enableRenderWindows()
+void MdiChild::enableRenderWindows()	// = image data available
 {
 	if (IsVolumeDataLoaded() && reInitializeRenderWindows)
 	{
@@ -338,6 +338,9 @@ void MdiChild::enableRenderWindows()
 		slicerXZ->enableInteractor();
 		slicerXY->enableInteractor();
 		slicerYZ->enableInteractor();
+		updateViews();
+		updateImageProperties();
+		UpdateProfile();
 	}
 	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
 	// unless explicitly set otherwise)
@@ -445,7 +448,7 @@ void MdiChild::showPoly()
 	changeVisibility(visibility);
 }
 
-bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPolyData* poly)
+bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
 {
 	// TODO: image is actually not the final imagedata here (or at least not always)
 	//    -> maybe skip all image-related initializations?
@@ -463,7 +466,6 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	initView( title );
 	setWindowTitle( title );
 	Raycaster->ApplySettings(renderSettings);
-	InitVolumeRenderers();
 	setupSlicers(slicerSettings, true );
 
 	if (imageData->GetExtent()[1] <= 1)
@@ -472,9 +474,7 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 		visibility &= (XZ | TAB);
 	else if (imageData->GetExtent()[5] <= 1)
 		visibility &= (XY | TAB);
-
 	changeVisibility(visibility);
-
 	addStatusMsg("Ready");
 	return true;
 }
@@ -2095,18 +2095,19 @@ bool MdiChild::initView( QString const & title )
 		m_dlgModalities->AddListItem(mod);
 		m_initVolumeRenderers = true;
 	}
-	slicerXZ->initializeData(imageData, slicerTransform);
-	slicerXY->initializeData(imageData, slicerTransform);
-	slicerYZ->initializeData(imageData, slicerTransform);
+	vtkColorTransferFunction* colorFunction = (GetModalities()->size() > 0)
+		? GetModality(0)->GetTransfer()->GetColorFunction() : vtkColorTransferFunction::New();
+	slicerXZ->initializeData(imageData, slicerTransform, colorFunction);
+	slicerXY->initializeData(imageData, slicerTransform, colorFunction);
+	slicerYZ->initializeData(imageData, slicerTransform, colorFunction);
 
 	renderer->stackedWidgetRC->setCurrentIndex(0);
-
 	updateSliceIndicators();
 
 	if (IsVolumeDataLoaded())
 	{
 		this->addImageProperty();
-		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram for rgb, rgba or vector pixel type images
+		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
 		{
 			tabifyDockWidget(logs, m_histogramContainer);
 			this->addProfile();
@@ -2129,15 +2130,12 @@ void MdiChild::HideHistogram()
 	m_histogramContainer->hide();
 }
 
-bool MdiChild::addImageProperty()
+void MdiChild::addImageProperty()
 {
-	if (!imgProperty)
-	{
-		imgProperty = new dlg_imageproperty(this);
-		tabifyDockWidget(logs, imgProperty);
-	}
-	updateImageProperties();
-	return true;
+	if (imgProperty)
+		return;
+	imgProperty = new dlg_imageproperty(this);
+	tabifyDockWidget(logs, imgProperty);
 }
 
 void MdiChild::updateImageProperties()
@@ -2441,23 +2439,22 @@ void MdiChild::cleanWorkingAlgorithms()
 	workingAlgorithms.clear();
 }
 
-bool MdiChild::addProfile()
+void MdiChild::addProfile()
 {
-	delete imgProfile;
-	double end[3];
 	// unify this with iASlicerWidget::changeImageData somehow?
+	profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(imageData));
 	double const * const start = imageData->GetOrigin();
 	int const * const dim = imageData->GetDimensions();
 	double const * const spacing = imageData->GetSpacing();
+	double end[3];
 	for (int i = 0; i<3; i++)
-		end[i] = start[i] + (dim[i]-1) * spacing[i];
-	profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(imageData));
+		end[i] = start[i] + (dim[i] - 1) * spacing[i];
 	profileProbe->UpdateProbe(0, start);
 	profileProbe->UpdateProbe(1, end);
+	profileProbe->UpdateData();
 	imgProfile = new dlg_profile(this, profileProbe->profileData, profileProbe->GetRayLength());
 	tabifyDockWidget(logs, imgProfile);
 	connect(imgProfile->profileMode, SIGNAL(toggled(bool)), this, SLOT(toggleArbitraryProfile(bool)));
-	return true;
 }
 
 void MdiChild::toggleArbitraryProfile( bool isChecked )
@@ -2471,6 +2468,12 @@ void MdiChild::toggleArbitraryProfile( bool isChecked )
 void MdiChild::UpdateProbe( int ptIndex, double * newPos )
 {
 	profileProbe->UpdateProbe(ptIndex, newPos);
+	UpdateProfile();
+}
+
+void MdiChild::UpdateProfile()
+{
+	profileProbe->UpdateData();
 	imgProfile->profileWidget->initialize(profileProbe->profileData, profileProbe->GetRayLength());
 	imgProfile->profileWidget->redraw();
 }
@@ -2856,11 +2859,14 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 	addMsg(QString("%1  Statistics for modality %2 computed, displaying.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(modalityIdx));
-	QSharedPointer<iAModalityTransfer> modTrans = GetModality(modalityIdx)->GetTransfer();
-	slicerXZ->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
-	slicerXY->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
-	slicerYZ->reInitialize(GetModality(modalityIdx)->GetImage(), slicerTransform, modTrans->GetColorFunction());
 	InitVolumeRenderers();
+	if (modalityIdx == 0)
+	{
+		QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
+		slicerXZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerXY->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerYZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+	}
 	ModalityTFChanged();
 	updateViews();
 }

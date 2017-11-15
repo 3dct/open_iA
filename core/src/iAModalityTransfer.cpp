@@ -29,16 +29,20 @@
 
 #include <cassert>
 
-iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData)
+iAModalityTransfer::iAModalityTransfer(double range[2]):
+	m_tfInitialized(false)
 {
+	m_ctf = GetDefaultColorTransferFunction(range);
+	m_otf = GetDefaultPiecewiseFunction(range, true);
 }
 
 void iAModalityTransfer::ComputeStatistics(vtkSmartPointer<vtkImageData> img)
 {
-	if (m_ctf)	// already calculated
+	if (m_tfInitialized)	// already calculated
 		return;
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
 	m_otf = GetDefaultPiecewiseFunction(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+	m_tfInitialized = true;
 }
 
 void iAModalityTransfer::ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)

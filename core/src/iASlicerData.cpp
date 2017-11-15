@@ -264,11 +264,11 @@ vtkColorTransferFunction * iASlicerData::GetColorTransferFunction() {
 	return colorTransferFunction;
 }
 
-void iASlicerData::initialize( vtkImageData *ds, vtkTransform *tr)
+void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf)
 {
 	imageData = ds;
 	transform = tr;
-	colorTransferFunction = vtkColorTransferFunction::New();
+	colorTransferFunction = ctf;
 
 	renWin->AddRenderer(ren);
 	interactor = renWin->GetInteractor();

@@ -46,9 +46,10 @@ private:
 	QSharedPointer<iAHistogramData> m_histogramData;
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+	bool m_tfInitialized;
 public:
 	iAImageInfo const & Info() const;
-	iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData);
+	iAModalityTransfer(double range[2]);
 	QSharedPointer<iAHistogramData> const GetHistogramData() const;
 	void ComputeStatistics(vtkSmartPointer<vtkImageData> img);
 	void ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);

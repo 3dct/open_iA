@@ -370,9 +370,10 @@ public slots:
 	void resetLayout();
 private:
 	void closeEvent(QCloseEvent *event);
-	bool addImageProperty( );
+	void addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
-	bool addProfile( );
+	void addProfile();
+	void UpdateProfile();
 	bool saveAs(int modalityNr);
 	bool initView(QString const & title);
 	int EvaluatePosition(int pos, int i, bool invert = false);

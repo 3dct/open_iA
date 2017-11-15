@@ -118,8 +118,9 @@
 		function<double>(__VA_ARGS__);						\
 		break;												\
 	default:												\
-	throw itk::ExceptionObject(__FILE__, __LINE__,			\
-		"Typed Call: Unknown component type.");				\
+	throw std::exception(QString(							\
+		"Typed Call: Unknown component type. File: %1:%2")	\
+		.arg(__FILE__).arg(__LINE__).toStdString().c_str());\
 	break;													\
 	}														\
 }
