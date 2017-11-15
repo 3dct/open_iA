@@ -63,7 +63,8 @@ void iAFoamCharacterizationTableAnalysis::setRow ( const int& _iRow
 
 	const QModelIndex miValue0(pModel->index(_iRow, 0));
 	pModel->setData(miValue0, Qt::AlignCenter, Qt::TextAlignmentRole);
-	pModel->setData(miValue0, _lLabel, Qt::DisplayRole);
+	int label = _lLabel;
+	pModel->setData(miValue0, label, Qt::DisplayRole);
 
 	const QModelIndex miValue1(pModel->index(_iRow, 1));
 	pModel->setData(miValue1, Qt::AlignCenter, Qt::TextAlignmentRole);

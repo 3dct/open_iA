@@ -25,7 +25,7 @@
 #include <QHeaderView>
 #include <QMessageBox>
 
-#include <vtkImagedata.h>
+#include <vtkImageData.h>
 
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationItemDistanceTransform.h"

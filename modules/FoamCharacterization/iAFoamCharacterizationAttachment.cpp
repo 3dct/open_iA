@@ -31,7 +31,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QGroupBox>
-#include <QGridlayout>
+#include <QGridLayout>
 
 #include <vtkImageData.h>
 
