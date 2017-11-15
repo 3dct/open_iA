@@ -53,6 +53,7 @@ public:
 	QSharedPointer<iAHistogramData> const GetHistogramData() const;
 	void ComputeStatistics(vtkSmartPointer<vtkImageData> img);
 	void ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);
+	void Reset();
 
 	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
 	vtkPiecewiseFunction* GetOpacityFunction();

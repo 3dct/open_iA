@@ -480,6 +480,13 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 }
 
 
+void MdiChild::PrepareForResult()
+{
+	setWindowModified(true);
+	GetModality(0)->GetTransfer()->Reset();
+}
+
+
 bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 {
 	polyData->ReleaseData();
@@ -2825,7 +2832,8 @@ void MdiChild::InitModalities()
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	if (!m_histogram)
+	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
+	if (!m_histogram ||	(histData && histData->GetNumBin() == preferences.HistogramBins))
 		return;
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
 		GetModality(modalityIdx), preferences.HistogramBins);
@@ -2876,7 +2884,11 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 void MdiChild::InitVolumeRenderers()
 {
 	if (!m_initVolumeRenderers)
+	{
+		for (int i = 0; i < GetModalities()->size(); ++i)
+			GetModality(i)->UpdateRenderer();
 		return;
+	}
 	m_initVolumeRenderers = false;
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{

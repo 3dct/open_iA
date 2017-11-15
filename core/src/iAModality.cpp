@@ -215,6 +215,11 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
+void iAModality::UpdateRenderer()
+{
+	GetRenderer()->SetImage(GetTransfer().data(), GetImage());
+}
+
 template <typename T>
 void getTypeMinMaxRange(double & minR, double & maxR)
 {

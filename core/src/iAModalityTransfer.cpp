@@ -45,6 +45,12 @@ void iAModalityTransfer::ComputeStatistics(vtkSmartPointer<vtkImageData> img)
 	m_tfInitialized = true;
 }
 
+void iAModalityTransfer::Reset()
+{
+	m_tfInitialized = false;
+	m_histogramData.clear();
+}
+
 void iAModalityTransfer::ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
 {
 	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->GetNumBin() == binCount))

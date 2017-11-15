@@ -98,6 +98,7 @@ public:
 	QSharedPointer<iAModalityTransfer> GetTransfer();
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
+	void UpdateRenderer();
 
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
