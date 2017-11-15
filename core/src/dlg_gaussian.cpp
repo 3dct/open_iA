@@ -70,7 +70,7 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 	double Y2 = Y1;
 	
 	double smallStep = std::max(6 * sigma / 100, 0.25*i2dX(1));
-	while(X2 <= chart->XBounds()[1]+step)
+	while (X2 <= chart->XBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
 	{
 		Y1 = Y2;
 		Y2 = 1.0/(sigma*sqrt(2*PI))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
@@ -185,6 +185,8 @@ void dlg_gaussian::moveSelectedPoint(int x, int y)
 			case 1: case 2:
 			{
 				sigma = fabs(mean -v2dX(x));
+				if (sigma <= std::numeric_limits<double>::epsilon())
+					sigma = fabs(mean - v2dX(x+1));
 			}
 		}
 

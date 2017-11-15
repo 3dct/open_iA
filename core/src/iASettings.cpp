@@ -31,13 +31,13 @@
 #include <QMessageBox>
 #include <QTextStream>
 
-Settings::Settings()
+iASettings::iASettings()
 {
 	QDomElement root = domDocument.createElement("settings");
 	domDocument.appendChild(root);
 }
 
-Settings::Settings(QString const & filename)
+iASettings::iASettings(QString const & filename)
 {
 	QFile file(filename);
 	// TODO: better error handling!
@@ -63,31 +63,33 @@ Settings::Settings(QString const & filename)
 	file.close();
 }
 
-void Settings::LoadTransferFunction(iATransferFunction* transferFunction)
+void iASettings::LoadTransferFunction(iATransferFunction* transferFunction)
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
 	if (!functionsNode.isElement())
 		return;
-	QDomNode transferElement = functionsNode.namedItem("transfer");
-	if (!transferElement.isElement())
-		return;
+	iASettings::LoadTransferFunction(functionsNode, transferFunction);
+}
 
+
+void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
+{
+	QDomNode transferNode = functionsNode.namedItem("transfer");
+	if (!transferNode.isElement())
+		return;
 	transferFunction->GetOpacityFunction()->RemoveAllPoints();
 	transferFunction->GetColorFunction()->RemoveAllPoints();
-
-	QDomNodeList list = transferElement.childNodes();
+	QDomNodeList list = transferNode.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
 	{
 		QDomNode node = list.item(n);
-
 		QDomNamedNodeMap attributes = node.attributes();
 		double value = attributes.namedItem("value").nodeValue().toDouble();
 		double opacity = attributes.namedItem("opacity").nodeValue().toDouble();
 		double red = attributes.namedItem("red").nodeValue().toDouble();
 		double green = attributes.namedItem("green").nodeValue().toDouble();
 		double blue = attributes.namedItem("blue").nodeValue().toDouble();
-
 		//value = clamp(range[0], range[1], value);
 		transferFunction->GetOpacityFunction()->AddPoint(value, opacity);
 		transferFunction->GetColorFunction()->AddRGBPoint(value, red, green, blue);
@@ -95,7 +97,7 @@ void Settings::LoadTransferFunction(iATransferFunction* transferFunction)
 	transferFunction->GetColorFunction()->Build();
 }
 
-void Settings::StoreTransferFunction(iATransferFunction* transferFunction)
+void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
 {
 	// does functions node exist
 	QDomNode functionsNode = domDocument.documentElement().namedItem("functions");
@@ -127,7 +129,7 @@ void Settings::StoreTransferFunction(iATransferFunction* transferFunction)
 	functionsNode.appendChild(transferElement);
 }
 
-void Settings::Save(QString const & filename)
+void iASettings::Save(QString const & filename)
 {
 	QFile file(filename);
 	file.open(QIODevice::WriteOnly);
@@ -136,7 +138,7 @@ void Settings::Save(QString const & filename)
 	file.close();
 }
 
-void Settings::removeNode(QString const & str)
+void iASettings::removeNode(QString const & str)
 {
 	QDomNode rootNode = domDocument.documentElement();
 	QDomNodeList list = rootNode.childNodes();

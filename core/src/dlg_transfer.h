@@ -81,9 +81,7 @@ public:
 
 	vtkPiecewiseFunction* GetOpacityFunction() { return opacityTF; }
 	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
-
-	// TODO: remove!
-	void loadTransferFunction(QDomNode &functionsNode, double const range[2]);
+	void triggerOnChange();
 signals:
 	void Changed();
 private:
@@ -105,8 +103,6 @@ private:
 	//convert data to image
 	int d2iX(double x);
 	int d2iY(double y);
-
-	void triggerOnChange();
 
 	bool m_rangeSliderHandles;
 };

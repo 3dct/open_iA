@@ -183,7 +183,7 @@ void iAModality::LoadTransferFunction()
 	{
 		return;
 	}
-	Settings s(tfFileName);
+	iASettings s(tfFileName);
 	s.LoadTransferFunction(GetTransfer().data());
 }
 

@@ -27,15 +27,16 @@
 class dlg_transfer;
 class iATransferFunction;
 
-class open_iA_Core_API Settings
+class open_iA_Core_API iASettings
 {
 private:
 	QDomDocument domDocument;
 public:
-	Settings();
-	Settings(QString const & filename);
+	iASettings();
+	iASettings(QString const & filename);
 	void LoadTransferFunction(iATransferFunction* transferFunction);
 	void StoreTransferFunction(iATransferFunction* transferFunction);
+	static void LoadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
 	void Save(QString const & fileName);
 private:
 	void removeNode(QString const & str);

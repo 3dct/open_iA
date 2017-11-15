@@ -135,7 +135,7 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
-		Settings s;
+		iASettings s;
 		s.StoreTransferFunction(m_modalities[i]->GetTransfer().data());
 		s.Save(absoluteTFFileName);
 	}

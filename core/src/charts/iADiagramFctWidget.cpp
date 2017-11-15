@@ -917,27 +917,32 @@ void iADiagramFctWidget::updateTrf()
 	redraw();
 }
 
+void iADiagramFctWidget::NewTransferFunction()
+{
+	redraw();
+	emit noPointSelected();
+	emit updateTFTable();
+	dynamic_cast<dlg_transfer*>(functions[0])->triggerOnChange();
+	emit updateViews();
+}
+
 bool iADiagramFctWidget::loadTransferFunction()
 {
 	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
-		Settings s(fileName);
-		s.LoadTransferFunction((dlg_transfer*)functions[0], XBounds());
-
-		emit noPointSelected();
-
-		redraw();
-		emit updateTFTable();
-		emit updateViews();
+		iASettings s(fileName);
+		s.LoadTransferFunction((dlg_transfer*)functions[0]);
+		NewTransferFunction();
 	}
 	return true;
 }
 
 void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 {
-	((dlg_transfer*)functions[0])->loadTransferFunction(functionsNode, XBounds());
+	iASettings::LoadTransferFunction(functionsNode, (dlg_transfer*)functions[0]);
+	NewTransferFunction();
 }
 
 bool iADiagramFctWidget::saveTransferFunction()
@@ -945,12 +950,12 @@ bool iADiagramFctWidget::saveTransferFunction()
 	dlg_transfer *transferFunction = (dlg_transfer*)functions[0];
 	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
-	if (!fileName.isEmpty()) {
-		Settings s;
+	if (!fileName.isEmpty())
+	{
+		iASettings s;
 		s.StoreTransferFunction(transferFunction);
 		s.Save(fileName);
 	}
-
 	return true;
 }
 
@@ -1015,10 +1020,8 @@ bool iADiagramFctWidget::loadFunctions()
 				mw->loadProbabilityFunctions(functionsNode);
 		
 		emit noPointSelected();
-		
-		redraw();
-
 		emit updateViews();
+		redraw();
 	}
 
 	return true;
@@ -1050,13 +1053,9 @@ void iADiagramFctWidget::removeFunction()
 	std::vector<dlg_function*>::iterator it = functions.begin()+selectedFunction;
 	dlg_function *function = *it;
 	functions.erase(it);
-
 	delete function;
-
 	selectedFunction--;
-
 	redraw();
-
 	emit updateViews();
 }
 
@@ -1067,9 +1066,7 @@ void iADiagramFctWidget::SetTransferFunctions(vtkColorTransferFunction* ctf, vtk
 		return;
 	((dlg_transfer*)functions[0])->setColorFunction(ctf);
 	((dlg_transfer*)functions[0])->setOpacityFunction(pwf);
-	redraw();
-	emit updateTFTable();
-	emit updateViews();
+	NewTransferFunction();
 }
 
 void iADiagramFctWidget::ExportData()

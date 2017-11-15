@@ -554,35 +554,6 @@ void dlg_transfer::triggerOnChange()
 	emit Changed();
 }
 
-void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double const bounds[2])
-{
-	QDomNode transferElement = functionsNode.namedItem("transfer");
-	if (!transferElement.isElement())
-		return;
-
-	// does functions node exist
-	double value, opacity, red, green, blue;
-
-	GetOpacityFunction()->RemoveAllPoints();
-	GetColorFunction()->RemoveAllPoints();
-
-	QDomNodeList list = transferElement.childNodes();
-	for (int n = 0; n < int(list.length()); n++)
-	{
-		QDomNode node = list.item(n);
-
-		QDomNamedNodeMap attributes = node.attributes();
-		value = clamp(bounds[0], bounds[1], attributes.namedItem("value").nodeValue().toDouble());
-		opacity = attributes.namedItem("opacity").nodeValue().toDouble();
-		red = attributes.namedItem("red").nodeValue().toDouble();
-		green = attributes.namedItem("green").nodeValue().toDouble();
-		blue = attributes.namedItem("blue").nodeValue().toDouble();
-		GetOpacityFunction()->AddPoint(value, opacity);
-		GetColorFunction()->AddRGBPoint(value, red, green, blue);
-	}
-	triggerOnChange();
-}
-
 void dlg_transfer::enableRangeSliderHandles( bool rangeSliderHandles )
 {
 	m_rangeSliderHandles = rangeSliderHandles;

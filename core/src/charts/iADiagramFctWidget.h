@@ -215,6 +215,6 @@ private:
 	virtual void drawYAxis(QPainter &painter);
 	virtual double getMaxXZoom() const;
 	virtual void showDataTooltip(QMouseEvent *event);
-
 	void CreateYConverter();
+	void NewTransferFunction();
 };
