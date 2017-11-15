@@ -118,7 +118,7 @@
 		function<double>(__VA_ARGS__);						\
 		break;												\
 	default:												\
-	throw std::exception(QString(							\
+	throw std::runtime_error(QString(						\
 		"Typed Call: Unknown component type. File: %1:%2")	\
 		.arg(__FILE__).arg(__LINE__).toStdString().c_str());\
 	break;													\
