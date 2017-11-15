@@ -33,8 +33,9 @@ iAFoamCharacterizationModuleInterface::~iAFoamCharacterizationModuleInterface( )
 
 void iAFoamCharacterizationModuleInterface::Initialize( )
 {
+	if (!m_mainWnd)
+		return;
 	QMenu* toolsMenu (m_mainWnd->getToolsMenu());
-
 	QAction* pFoamCharacterization(new QAction(QApplication::translate("MainWindows", "Foam characterization", 0), m_mainWnd));
 	connect(pFoamCharacterization, SIGNAL(triggered()), this, SLOT(slotFoamCharacterization()));
 	AddActionToMenuAlphabeticallySorted(toolsMenu, pFoamCharacterization);

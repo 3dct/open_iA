@@ -65,27 +65,12 @@ namespace
 		}
 	}
 
-	QSharedPointer<iAFilter> FindFilter(QString filterName)
-	{
-		auto filterFactories = iAFilterRegistry::FilterFactories();
-		for (auto factory : filterFactories)
-		{
-			auto filter = factory->Create();
-			if (filter->Name() == filterName)
-			{
-				return filter;
-			}
-		}
-		return QSharedPointer<iAFilter>();
-	}
-	
 	void PrintFilterHelp(QString filterName)
 	{
-		auto filter = FindFilter(filterName);
+		auto filter = iAFilterRegistry::Filter(filterName);
 		if (!filter)
 		{
-			std::cout << QString("Filter '%1' does not exist!").arg(filterName).toStdString() << std::endl
-				<< "For a full list of all available filters, execute 'open_iA_cmd -l'" << std::endl;
+			std::cout << "For a full list of all available filters, execute 'open_iA_cmd -l'" << std::endl;
 			return;
 		}
 		std::cout << filter->Name().toStdString() << ":" << std::endl
@@ -116,6 +101,27 @@ namespace
 		}
 	}
 
+	void PrintParameterDescriptor(QString filterName)
+	{
+		auto filter = iAFilterRegistry::Filter(filterName);
+		if (!filter)
+		{
+			std::cout << "For a full list of all available filters, execute 'open_iA_cmd -l'" << std::endl;
+			return;
+		}
+		std::cout << filter->Name().toStdString() << ":" << std::endl;
+		for (auto p : filter->Parameters())
+		{
+			std::cout << p->Name().toStdString() << "\tParameter\t"
+					<< ValueType2Str(p->ValueType()).toStdString() << "\t";
+			if (p->ValueType() == Continuous || p->ValueType() == Discrete)
+				std::cout << p->Min() << "\t" << p->Min() << "\tLinear";
+			else if (p->ValueType() == Categorical)
+				std::cout << "\t" << p->DefaultValue().toStringList().join(",").toStdString();
+			std::cout << std::endl;
+		}
+	}
+
 	void PrintUsage()
 	{
 		std::cout << "open_iA command line tool. Usage:" << std::endl
@@ -128,7 +134,9 @@ namespace
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output" << std::endl
 			<< "           -q   quiet - no output except for error messages" << std::endl
 			<< "           -c   compress output" << std::endl
-			<< "           -f   overwrite output if it exists" << std::endl;
+			<< "           -f   overwrite output if it exists" << std::endl
+			<< "     -p FilterName" << std::endl
+			<< "         Output the Parameter Descriptor for the given filter (required for sampling)." << std::endl;
 	}
 
 	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite};
@@ -147,7 +155,7 @@ namespace
 	int RunFilter(QStringList const & args)
 	{
 		QString filterName = args[0];
-		auto filter = FindFilter(filterName);
+		auto filter = iAFilterRegistry::Filter(filterName);
 		if (!filter)
 		{
 			std::cout << QString("Filter '%1' does not exist!").arg(filterName).toStdString() << std::endl
@@ -340,6 +348,10 @@ int ProcessCommandLine(int argc, char const * const * argv)
 			args << argv[a];
 		}
 		return RunFilter(args);
+	}
+	else if (argc > 2 && QString(argv[1]) == "-p")
+	{
+		PrintParameterDescriptor(argv[2]);
 	}
 	else
 	{
