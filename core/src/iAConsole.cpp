@@ -121,7 +121,7 @@ iAConsole::iAConsole() :
 	m_fileLogError(false),
 	m_logFileName("debug.log")
 {
-	// redirect VTK output to console window:
+	// redirect VTK and ITK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
 	m_itkOutputWindow = iARedirectItkOutput::New();
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);

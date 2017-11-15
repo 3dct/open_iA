@@ -63,7 +63,7 @@ Settings::Settings(QString const & filename)
 	file.close();
 }
 
-void Settings::LoadTransferFunction(iATransferFunction* transferFunction, double const range[2])
+void Settings::LoadTransferFunction(iATransferFunction* transferFunction)
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
@@ -88,8 +88,7 @@ void Settings::LoadTransferFunction(iATransferFunction* transferFunction, double
 		double green = attributes.namedItem("green").nodeValue().toDouble();
 		double blue = attributes.namedItem("blue").nodeValue().toDouble();
 
-		//if (value < range[0]) value = range[0];
-		//if (value > range[1]) value = range[1];
+		//value = clamp(range[0], range[1], value);
 		transferFunction->GetOpacityFunction()->AddPoint(value, opacity);
 		transferFunction->GetColorFunction()->AddRGBPoint(value, red, green, blue);
 	}

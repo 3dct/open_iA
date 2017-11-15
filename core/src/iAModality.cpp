@@ -184,7 +184,7 @@ void iAModality::LoadTransferFunction()
 		return;
 	}
 	Settings s(tfFileName);
-	s.LoadTransferFunction(GetTransfer().data(), GetImage()->GetScalarRange());
+	s.LoadTransferFunction(GetTransfer().data());
 }
 
 QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
