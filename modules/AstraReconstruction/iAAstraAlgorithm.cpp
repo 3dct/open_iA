@@ -89,32 +89,32 @@ namespace
 		return result;
 	}
 
-	void CreateConeProjGeom(astra::Config & projectorConfig, QMap<QString, QVariant> const & parameters)
+	void CreateConeProjGeom(astra::Config & projectorConfig, QMap<QString, QVariant> const & parameters, size_t detRowCnt, size_t detColCnt, size_t projAngleCnt)
 	{
 		astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 		projGeomNode.addAttribute("type", "cone");
 		projGeomNode.addChildNode("DetectorSpacingX", parameters[DetSpcX].toDouble());
 		projGeomNode.addChildNode("DetectorSpacingY", parameters[DetSpcY].toDouble());
-		projGeomNode.addChildNode("DetectorRowCount", parameters[DetRowCnt].toDouble());
-		projGeomNode.addChildNode("DetectorColCount", parameters[DetColCnt].toDouble());
+		projGeomNode.addChildNode("DetectorRowCount", detRowCnt);
+		projGeomNode.addChildNode("DetectorColCount", detColCnt);
 		projGeomNode.addChildNode("ProjectionAngles", linspace(
 			qDegreesToRadians(parameters[ProjAngleStart].toDouble()),
 			qDegreesToRadians(parameters[ProjAngleEnd].toDouble()),
-			parameters[ProjAngleCnt].toUInt()).toStdString());
+			projAngleCnt).toStdString());
 		projGeomNode.addChildNode("DistanceOriginDetector", parameters[DstOrigDet].toDouble());
 		projGeomNode.addChildNode("DistanceOriginSource",   parameters[DstOrigSrc].toDouble());
 	}
 
 
-	void CreateConeVecProjGeom(astra::Config & projectorConfig, QMap<QString, QVariant> const & parameters)
+	void CreateConeVecProjGeom(astra::Config & projectorConfig, QMap<QString, QVariant> const & parameters, size_t detRowCnt, size_t detColCnt, size_t projAngleCnt)
 	{
 		QString vectors;
-		for (int i = 0; i<parameters[ProjAngleCnt].toUInt(); ++i)
+		for (size_t i = 0; i<projAngleCnt; ++i)
 		{
 			double curAngle = qDegreesToRadians(parameters[ProjAngleStart].toDouble()) +
 				i*(qDegreesToRadians(parameters[ProjAngleEnd].toDouble())
 					- qDegreesToRadians(parameters[ProjAngleStart].toDouble())) /
-				(parameters[ProjAngleCnt].toUInt() - 1);
+				(projAngleCnt - 1);
 			iAVec3 sourcePos(
 				sin(curAngle) * parameters[DstOrigSrc].toDouble(),
 				-cos(curAngle) * parameters[DstOrigSrc].toDouble(),
@@ -141,8 +141,8 @@ namespace
 		}
 		astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 		projGeomNode.addAttribute("type", "cone_vec");
-		projGeomNode.addChildNode("DetectorRowCount", parameters[DetRowCnt].toDouble());
-		projGeomNode.addChildNode("DetectorColCount", parameters[DetColCnt].toDouble());
+		projGeomNode.addChildNode("DetectorRowCount", detRowCnt);
+		projGeomNode.addChildNode("DetectorColCount", detColCnt);
 		projGeomNode.addChildNode("Vectors", vectors.toStdString());
 	}
 
@@ -320,7 +320,7 @@ void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
 	"DetectorSuperSampling"
 	"DensityWeighting"
 	*/
-	CreateConeProjGeom(projectorConfig, parameters);
+	CreateConeProjGeom(projectorConfig, parameters, parameters[DetRowCnt].toUInt(), parameters[DetColCnt].toUInt(), parameters[ProjAngleCnt].toUInt());
 
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	FillVolumeGeometryNode(volGeomNode, volDim, volImg->GetSpacing());
@@ -436,7 +436,9 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = m_con->GetVTKImage();
 	int * projDim = projImg->GetDimensions();
-	
+	size_t detRowCnt = projDim[parameters[DetRowDim].toUInt() % 3];
+	size_t detColCnt = projDim[parameters[DetColDim].toUInt() % 3];
+	size_t projAngleCnt = projDim[parameters[ProjAngleDim].toUInt() % 3];
 	CPPAstraCustomMemory * projBuf = new CPPAstraCustomMemory(static_cast<size_t>(projDim[0]) * projDim[1] * projDim[2]);
 	//VTK_TYPED_CALL(SwapDimensions, img->GetScalarType(), img, buf, m_detColDim, m_detRowDim, m_projAngleDim, m_detRowCnt, m_detColCnt, m_projAnglesCount);
 	VTK_TYPED_CALL(SwapDimensions, projImg->GetScalarType(), projImg, projBuf->m_fPtr,
@@ -453,11 +455,11 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 	assert(parameters[ProjGeometry].toString() == "cone");
 	if (parameters[CenterOfRotCorr].toBool())
 	{
-		CreateConeVecProjGeom(projectorConfig, parameters);
+		CreateConeVecProjGeom(projectorConfig, parameters, detRowCnt, detColCnt, projAngleCnt);
 	}
 	else
 	{
-		CreateConeProjGeom(projectorConfig, parameters);
+		CreateConeProjGeom(projectorConfig, parameters, detRowCnt, detColCnt, projAngleCnt);
 	}
 	astra::XMLNode volGeomNode = projectorConfig.self.addChildNode("VolumeGeometry");
 	double volSpacing[3] = {
@@ -664,9 +666,6 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 		parameters[DetRowDim] = detRowDim;
 		parameters[DetColDim] = detColDim;
 		parameters[ProjAngleDim] = projAngleDim;
-		parameters[DetRowCnt] = inputDim[detRowDim % 3];
-		parameters[DetColCnt] = inputDim[detColDim % 3];
-		parameters[ProjAngleCnt] = inputDim[projAngleDim % 3];
 	}
 	return true;
 }
