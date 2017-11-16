@@ -113,5 +113,6 @@ private:
 	void calcNonLinearMapping();
 	void showBkgrdThrRanges();
 	void showCompressionLevel();
-	void setupColorScaleBar();
+	void setupGUIElements();
+	void setupScalingWidget();
 };

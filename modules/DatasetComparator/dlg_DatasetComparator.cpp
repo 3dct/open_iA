@@ -87,17 +87,10 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 	m_scalingWidget(0),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New())
 {
-	setupColorScaleBar();
-
+	setupGUIElements();
 	setupNonlinearScaledPlot();
-
-	m_scalingWidget = new iAScalingWidget(this);
-	PlotsContainer_verticalLayout->addWidget(m_scalingWidget);
-	m_scalingWidget->setNonlinearAxis(m_nonlinearScaledPlot->xAxis);
-	m_scalingWidget->setNonlinearScalingVector(m_nonlinearMappingVec, m_impFunctVec);
-
+	setupScalingWidget();
 	setupLinearScaledPlot();
-
 	//setupDebugPlot();
 	setupGUIConnections();
 	setupMultiRendererView();
@@ -107,14 +100,17 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir dat
 dlg_DatasetComparator::~dlg_DatasetComparator()
 {}
 
-void dlg_DatasetComparator::setupColorScaleBar()
+void dlg_DatasetComparator::setupGUIElements()
 {
+	l_opacity->hide();
+	sl_fbpTransparency->hide();
+
 	QMap<double, QColor> colormap;
 	iAPerceptuallyUniformLUT::BuildLinearLUT(m_lut, 0.0, 1.0, 256);
 	for (double i = 0.0; i <= 1.0; i += 0.25)
 	{
 		double c[3];
-		m_lut->GetColor(1.0 - i, c);
+		m_lut->GetColor(i, c);
 		QColor color;
 		color.setRgbF(c[0], c[1], c[2]);
 		colormap.insert(i, color);
@@ -125,6 +121,14 @@ void dlg_DatasetComparator::setupColorScaleBar()
 	lutLayoutHB->addWidget(colorBar);
 	lutLayoutHB->update();
 	scalarBarWidget->setLayout(lutLayoutHB);
+}
+
+void dlg_DatasetComparator::setupScalingWidget()
+{
+	m_scalingWidget = new iAScalingWidget(this);
+	PlotsContainer_verticalLayout->addWidget(m_scalingWidget);
+	m_scalingWidget->setNonlinearAxis(m_nonlinearScaledPlot->xAxis);
+	m_scalingWidget->setNonlinearScalingVector(m_nonlinearMappingVec, m_impFunctVec);
 }
 
 void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
@@ -166,7 +170,7 @@ void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 	m_nonlinearScaledPlot->xAxis->blockSignals(true);
 	m_nonlinearScaledPlot->xAxis->setRange(
 		linearXRange.lower < 0 ?
-		m_nonlinearMappingVec.first() : m_nonlinearMappingVec[(int)linearXRange.lower],
+		0 : m_nonlinearMappingVec[(int)linearXRange.lower],
 		linearXRange.upper > m_nonlinearMappingVec.size() - 1 ?
 		m_nonlinearMappingVec.last() : m_nonlinearMappingVec[(int)linearXRange.upper]);
 	m_nonlinearScaledPlot->xAxis->blockSignals(false);
@@ -182,10 +186,13 @@ void dlg_DatasetComparator::syncNonlinearYAxis(QCPRange linearYRange)
 void dlg_DatasetComparator::setupLinearScaledPlot()
 {
 	m_linearScaledPlot = new QCustomPlot(dockWidgetContents);
+	m_linearScaledPlot->axisRect()->setAutoMargins(QCP::msNone);
+	m_linearScaledPlot->axisRect()->setMargins(QMargins(58, 0, 3, 32));
 	m_linearScaledPlot->setCursor(QCursor(Qt::CrossCursor));
 	m_linearScaledPlot->installEventFilter(this);  // To catche key press event
 	m_linearScaledPlot->plotLayout()->insertRow(0);
-	auto *linearScaledPlotTitle = new QCPTextElement(m_linearScaledPlot, "Normal Scaled Hilbert Plot", QFont("sans", 14));
+	auto *linearScaledPlotTitle = new QCPTextElement(m_linearScaledPlot,
+		"Normal Scaled Hilbert Plot", QFont("Helvetica", 11, QFont::Bold));
 	m_linearScaledPlot->plotLayout()->addElement(0, 0, linearScaledPlotTitle);
 	m_linearScaledPlot->setOpenGl(true);
 	//m_linearScaledPlot->setNoAntialiasingOnDrag(true);
@@ -193,7 +200,7 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 	m_linearScaledPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
 	m_linearScaledPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 	m_linearScaledPlot->legend->setVisible(true);
-	m_linearScaledPlot->legend->setFont(QFont("Helvetica", 11));
+	m_linearScaledPlot->legend->setFont(QFont("Helvetica", 9));
 	m_linearScaledPlot->xAxis->setLabel("Hilbert index");
 	m_linearScaledPlot->xAxis->grid()->setVisible(false);
 	m_linearScaledPlot->xAxis->grid()->setSubGridVisible(false);
@@ -216,9 +223,6 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 
 	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearXAxis(QCPRange)));
 	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearYAxis(QCPRange)));
-
-	//connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_linearScaledPlot->xAxis2, SLOT(setRange(QCPRange)));
-	//connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_linearScaledPlot->yAxis2, SLOT(setRange(QCPRange)));
 	//connect(m_linearScaledPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
 	connect(m_linearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
@@ -227,10 +231,13 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 void dlg_DatasetComparator::setupNonlinearScaledPlot()
 {
 	m_nonlinearScaledPlot = new QCustomPlot(dockWidgetContents);
+	m_nonlinearScaledPlot->axisRect()->setAutoMargins(QCP::msNone);
+	m_nonlinearScaledPlot->axisRect()->setMargins(QMargins(58, 0, 3, 32));
 	m_nonlinearScaledPlot->setCursor(QCursor(Qt::CrossCursor));
 	m_nonlinearScaledPlot->installEventFilter(this);  // To catch key press event
 	m_nonlinearScaledPlot->plotLayout()->insertRow(0);
-	auto *nonlinearScaledPlotTitle = new QCPTextElement(m_nonlinearScaledPlot, "Nonlinear Scaled Hilbert Plot", QFont("sans", 14));
+	auto *nonlinearScaledPlotTitle = new QCPTextElement(m_nonlinearScaledPlot,
+		"Nonlinear Scaled Hilbert Plot", QFont("Helvetica", 11, QFont::Bold));
 	m_nonlinearScaledPlot->plotLayout()->addElement(0, 0, nonlinearScaledPlotTitle);
 	m_nonlinearScaledPlot->setOpenGl(true);
 	//m_nonlinearScaledPlot->setNoAntialiasingOnDrag(true);
@@ -240,7 +247,7 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	m_nonlinearScaledPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_nonlinearScaledPlot->setMultiSelectModifier(Qt::ShiftModifier);
 	m_nonlinearScaledPlot->legend->setVisible(true);
-	m_nonlinearScaledPlot->legend->setFont(QFont("Helvetica", 11));
+	m_nonlinearScaledPlot->legend->setFont(QFont("Helvetica", 9));
 	m_nonlinearScaledPlot->xAxis->setLabel("Hilbert index");
 	m_nonlinearScaledPlot->xAxis->grid()->setVisible(false);
 	m_nonlinearScaledPlot->xAxis->grid()->setSubGridVisible(false);
@@ -306,9 +313,6 @@ void dlg_DatasetComparator::setupDebugPlot()
 	//m_debugPlot->yAxis2->setTicks(false);
 
 	PlotsContainer_verticalLayout->addWidget(m_debugPlot);
-
-	//connect(m_debugPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_debugPlot->xAxis2, SLOT(setRange(QCPRange)));
-	//connect(m_debugPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_debugPlot->yAxis2, SLOT(setRange(QCPRange)));
 }
 
 void dlg_DatasetComparator::setupGUIConnections()
@@ -357,7 +361,7 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearScaledPlot->clearItems();
 	m_linearScaledPlot->clearItems();
 	//m_debugPlot->clearGraphs();
-
+	
 	calcNonLinearMapping();
 	//showDebugPlot();
 	
@@ -381,6 +385,7 @@ void dlg_DatasetComparator::visualize()
 	}
 
 	m_linearDataPointInfo = new QCPItemText(m_linearScaledPlot);
+	m_linearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
 	m_linearDataPointInfo->setLayer("overlay");
 	m_linearDataPointInfo->setVisible(true);
 	m_linearDataPointInfo->setColor(Qt::red);
@@ -441,6 +446,7 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearScaledPlot->xAxis2->setTicker(m_nonlinearTicker);
 
 	m_nonlinearDataPointInfo = new QCPItemText(m_nonlinearScaledPlot);
+	m_nonlinearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
 	m_nonlinearDataPointInfo->setLayer("overlay");
 	m_nonlinearDataPointInfo->setVisible(true);
 	m_nonlinearDataPointInfo->setColor(Qt::red);
@@ -463,7 +469,7 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearIdxLine->setClipToAxisRect(true);
 
 	showBkgrdThrRanges();
-	showCompressionLevel();
+	//showCompressionLevel();
 
 	/*m_debugPlot->rescaleAxes();
 	m_debugPlot->replot();*/
@@ -737,21 +743,23 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 {
 	if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
 		return;
-	
-	QPoint p(e->pos().x(), e->pos().y());
+
+	if (e->pos().x() < m_nonlinearScaledPlot->axisRect()->left() ||
+		e->pos().x() > m_nonlinearScaledPlot->axisRect()->right())
+		return;
+
 	QVector<double> distList;
 	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
-		distList.append(m_nonlinearScaledPlot->graph(i)->selectTest(p, true));
+		distList.append(m_nonlinearScaledPlot->graph(i)->selectTest(
+			QPoint(e->pos().x(), e->pos().y()), true));
 	auto minDist = std::min_element(distList.begin(), distList.end());
-	auto idx = minDist-distList.begin();
-
+	auto idx = minDist - distList.begin();
 	auto x = m_nonlinearScaledPlot->xAxis->pixelToCoord(e->pos().x());
 	auto y = m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y());
 	m_nonlinearIdxLine->point1->setCoords(x, 0.0);
 	m_nonlinearIdxLine->point2->setCoords(x, 1.0);
 	m_nonlinearDataPointInfo->position->setPixelPosition(
 		QPoint(e->pos().x() + 40, e->pos().y() - 15));
-
 	auto v = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
 	int hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
 	if (v - m_nonlinearMappingVec.begin() == 0) hilbertIdx = 0;
@@ -761,13 +769,12 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 		m_nonlinearDataPointInfo->setText(QString("%1\n%2, %3")
 			.arg(m_nonlinearScaledPlot->graph(idx)->name())
 			.arg(hilbertIdx)
-			.arg(y));
+			.arg((int)y));
 	}
 	else
 	{
-		m_nonlinearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg(y));
+		m_nonlinearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg((int)y));
 	}
-	m_nonlinearScaledPlot->layer("overlay")->replot();
 
 	double nonlinearVecPosDist = 1.0, currNonlinearDist = 0.0;
 	if (v - m_nonlinearMappingVec.begin() < m_nonlinearMappingVec.size())
@@ -775,18 +782,22 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 		nonlinearVecPosDist = m_nonlinearMappingVec[hilbertIdx + 1] - m_nonlinearMappingVec[hilbertIdx];
 		currNonlinearDist = x - m_nonlinearMappingVec[hilbertIdx];
 	}
+
 	m_linearIdxLine->point1->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 0.0);
 	m_linearIdxLine->point2->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 1.0);
-	m_linearDataPointInfo->position->setPixelPosition( QPointF(m_linearScaledPlot->xAxis->coordToPixel(
+	m_linearDataPointInfo->position->setPixelPosition(QPointF(m_linearScaledPlot->xAxis->coordToPixel(
 		hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)) + 40,
 		m_linearScaledPlot->yAxis->coordToPixel(y) - 15));
-	m_linearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg(y));
+	m_linearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg((int)y));
+	
+	m_nonlinearScaledPlot->layer("overlay")->replot();
 	m_linearScaledPlot->layer("overlay")->replot();
 
-	m_scalingWidget->setCursorPositions( m_linearScaledPlot->xAxis->coordToPixel(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)), e->pos().x());
+	m_scalingWidget->setCursorPositions(m_linearScaledPlot->xAxis->coordToPixel(
+		hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)), e->pos().x());
 }
 
-template <typename  T>
+template <typename T>
 void setVoxelIntensity(
 	vtkImageData* inputImage, unsigned int x, unsigned int y, 
 	unsigned int z, double intensity)
@@ -863,6 +874,7 @@ void dlg_DatasetComparator::showFBPGraphs()
 		if (cb_showFbp->isChecked())
 		{
 			sl_fbpTransparency->show();
+			l_opacity->show();
 			if (cb_fbpView->currentText() == "Alone")
 			{
 				if (i >= m_DatasetIntensityMap.size())
@@ -897,6 +909,7 @@ void dlg_DatasetComparator::showFBPGraphs()
 		else
 		{
 			sl_fbpTransparency->hide();
+			l_opacity->hide();
 			if (i >= m_DatasetIntensityMap.size())
 			{
 				m_nonlinearScaledPlot->graph(i)->setVisible(false);

@@ -37,7 +37,7 @@ public:
 
 	void setNonlinearScalingVector(QVector<double> nls, QVector<double> impfv);
 	void setNonlinearAxis(QCPAxis *nla);
-	void setCursorPositions(double, double);
+	void setCursorPositions(double lcp, double nlcp);
 
 protected:
     virtual void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

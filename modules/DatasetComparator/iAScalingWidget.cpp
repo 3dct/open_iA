@@ -68,8 +68,8 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setPen(QPen(Qt::black));
-	painter.drawStaticText(5, 10, m_normalText);
-	painter.drawStaticText(5, 70, m_nonlinearText);
+	painter.drawStaticText(5, 10, m_nonlinearText);
+	painter.drawStaticText(5, 70, m_normalText);
 
 	int leftOffset = m_nonlinearAxis->axisRect()->left();
 	double linearBarStartPos = 0.0, nonlinearBarStartPos = 0.0, 
@@ -82,7 +82,7 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 	{
 		double nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - m_nonlinearScalingVec[hIdx - 1]) * scalingFactor;
 		QRect nonlinearBar(leftOffset + nonlinearBarStartPos, 10, nonlinearBarWidth, 10);
-		m_lut->GetColor(1- m_impFunctVec[hIdx], rgb);
+		m_lut->GetColor(1 - m_impFunctVec[hIdx], rgb);
 		c.setRgbF(rgb[0], rgb[1], rgb[2]);
 		painter.setBrush(QBrush(c));
 		painter.setPen(QPen(c));
@@ -93,14 +93,14 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 		painter.drawLine(leftOffset + nonlinearBarStartPos, 20, leftOffset + linearBarStartPos, 70);
 		painter.setRenderHint(QPainter::Antialiasing, false);
 
+		// TODO: one bar for all?
 		QRect linearBar(leftOffset + linearBarStartPos, 70, linearBarWidth, 10);
-		//m_lut->GetColor(hIdx, rgb);
-		//c.setRgbF(rgb[0], rgb[1], rgb[2]);
 		painter.setBrush(QBrush(Qt::lightGray));
 		painter.setPen(QPen(Qt::lightGray));
 		painter.drawRect(linearBar);
 		linearBarStartPos += linearBarWidth;
 	}
+
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.setPen(QPen(Qt::red));
 	painter.drawLine(m_nonlinearBarCursorPos, 10, m_nonlinearBarCursorPos, 20);
