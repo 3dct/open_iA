@@ -107,23 +107,19 @@ QString AttribType2Str(iAAttributeDescriptor::iAAttributeType type)
 QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString const & def)
 {
 	QStringList defTokens = def.split(AttributeSplitString);
-	assert(defTokens.size() >= 3);
 	if (defTokens.size() < 3)
 	{
-		DEBUG_LOG(QString("Not enough tokens in attribute descriptor %1").arg(def));
+		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
-	QString name = defTokens[0];
-	
-	QSharedPointer<iAAttributeDescriptor> result(
-		new iAAttributeDescriptor(
-			name, Str2AttribType(defTokens[1]), Str2ValueType(defTokens[2])
-		)
-	);
-	int requiredTokens = result->ValueType() == Categorical ? 4 : 5;
+	QSharedPointer<iAAttributeDescriptor> result(new iAAttributeDescriptor(
+			defTokens[0], Str2AttribType(defTokens[1]), Str2ValueType(defTokens[2])
+	));
+	int requiredTokens = (result->ValueType() == Boolean) ? 3 :
+		((result->ValueType() == Categorical) ? 4 : 5);
 	if (defTokens.size() < requiredTokens)
 	{
-		DEBUG_LOG(QString("Not enough tokens in continuous attribute descriptor %1").arg(def));
+		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	switch (result->ValueType())
@@ -141,13 +137,9 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 				return QSharedPointer<iAAttributeDescriptor>();
 			}
 			if (defTokens.size() >= 6)
-			{
 				result->m_logarithmic = (defTokens[5] == LogarithmicStr);
-			}
 			if (defTokens.size() > 6)
-			{
 				DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
-			}
 			break;
 		}
 		case Categorical:
@@ -157,9 +149,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::Create(QString cons
 			result->m_max = categories.size()-1;
 			result->m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(categories));
 			if (defTokens.size() > 5)
-			{
 				DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
-			}
 			break;
 		}
 	}
