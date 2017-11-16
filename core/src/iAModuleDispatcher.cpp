@@ -36,6 +36,22 @@
 
 #ifdef _MSC_VER
 #define CALLCONV __stdcall
+
+//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
+QString GetLastErrorAsString()
+{
+	DWORD errorMessageID = ::GetLastError();
+	if (errorMessageID == 0)
+		return QString();
+	LPSTR messageBuffer = nullptr;
+	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+	std::string message(messageBuffer, size);
+	LocalFree(messageBuffer);
+	QString result(message.c_str());
+	return result.trimmed();
+}
+
 #else
 #define CALLCONV
 #include <dlfcn.h>
@@ -72,14 +88,17 @@ void CloseLibrary(iALoadedModule & module)
 	// created by modules first!
 	if (FreeLibrary(module.handle) != TRUE)
 	{
-		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(GetLastError()));
+		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(GetLastErrorAsString()));
 	}
 */
 #else
+/*
+	// for unknown reason, unloading modules causes a segmentation fault under Linux
 	if (dlclose(module.handle) != 0)
 	{
 		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(dlerror()));
 	}
+*/
 #endif
 }
 
@@ -113,16 +132,10 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo, iALogger* logger)
 	SetErrorMode(prevErrorMode);
 	if (!hGetProcIDDLL)
 	{
-		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastError()));
+		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastErrorAsString()));
 	}
 	return hGetProcIDDLL;
 #else
-/*
- * 	mode:
- * 	RTLD_LAZY 1
- * 	RTLD_NOW  2
- * 	RTLD_GLOBAL 4
- */
 	auto handle = dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
 	if (!handle)
 	{
@@ -148,10 +161,7 @@ iAModuleDispatcher::~iAModuleDispatcher()
 	for (int i = 0; i < m_loadedModules.size(); ++i)
 	{
 		delete m_loadedModules[i].moduleInterface;
-#ifdef _MSC_VER
-		// for unknown reason, unloading modules causes segmentation fault under Linux
 		CloseLibrary(m_loadedModules[i]);
-#endif
 	}
 	m_loadedModules.clear();
 }
