@@ -345,13 +345,10 @@ QString iACartesianGridParameterGenerator::GetName() const
 
 ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
+	DEBUG_LOG("Cartesian grid sampling broken at the moment!");
 	ParameterSetsPointer result(new ParameterSets);
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
-	
-	if (samplesPerParameter = 1) // make sure we use at least 2 sample values per parameter (otherwise we only have a single sample!)
-	{
-		samplesPerParameter = 2;
-	}
+	samplesPerParameter = std::max(2, samplesPerParameter); // at least 2 sample values per parameter
 
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
@@ -416,7 +413,7 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 	{
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iARandomParameterGenerator()));
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iALatinHypercubeParameterGenerator()));
-		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
+		//parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
 	}
 	return parameterGenerators;
 }

@@ -91,6 +91,16 @@ void iAImageSampler::StatusMsg(QString const & msg)
 void iAImageSampler::run()
 {
 	m_overallTimer.start();
+	if (!QFile(m_executable).exists())
+	{
+		DEBUG_LOG("Executable doesn't exist!");
+		return;
+	}
+	if (m_parameters->size() == 0)
+	{
+		DEBUG_LOG("Algorithm has no parameters, nothing to sample!");
+		return;
+	}
 	StatusMsg("Generating sampling parameter sets...");
 	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameters, m_sampleCount);
 	if (!m_parameterSets)
@@ -98,7 +108,6 @@ void iAImageSampler::run()
 		DEBUG_LOG("No Parameters available!");
 		return;
 	}
-
 	m_parameterCount = m_parameters->Count(iAAttributeDescriptor::Parameter);
 
 	QStringList additionalArgumentList = SplitPossiblyQuotedString(m_additionalArguments);

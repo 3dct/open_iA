@@ -294,7 +294,6 @@ void dlg_GEMSeControl::SamplingFinished()
 
 	if (!samplingResults || m_sampler->IsAborted())
 	{
-		DEBUG_LOG("Sampling was aborted, skipping clustering.");
 		m_sampler.clear();
 		return;
 	}
