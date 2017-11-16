@@ -268,8 +268,8 @@ namespace
 	{
 		QStringList projectionGeometries; projectionGeometries << "cone";
 		filter->AddParameter(ProjGeometry, Categorical, projectionGeometries);
-		filter->AddParameter(DetSpcX, Continuous, 1.0);
-		filter->AddParameter(DetSpcY, Continuous, 1.0);
+		filter->AddParameter(DetSpcX, Continuous, 1.0, 0.0);
+		filter->AddParameter(DetSpcY, Continuous, 1.0, 0.0);
 		filter->AddParameter(ProjAngleStart, Continuous, 0.0);
 		filter->AddParameter(ProjAngleEnd, Continuous, 359.0);
 		filter->AddParameter(DstOrigDet, Continuous, 1.0);
@@ -384,20 +384,20 @@ iAASTRAReconstruct::iAASTRAReconstruct() :
 		"Reconstruction with the ASTRA Toolbox")
 {
 	AddCommonForwardReconstructParams(this);
-	AddParameter(DetRowDim, Discrete, 1);
-	AddParameter(DetColDim, Discrete, 3);
-	AddParameter(ProjAngleDim, Discrete, 5);
+	AddParameter(DetRowDim, Discrete, 1, 0, 5);
+	AddParameter(DetColDim, Discrete, 3, 0, 5);
+	AddParameter(ProjAngleDim, Discrete, 5, 0, 5);
 
-	AddParameter(VolDimX, Discrete, 512);
-	AddParameter(VolDimY, Discrete, 512);
-	AddParameter(VolDimZ, Discrete, 512);
+	AddParameter(VolDimX, Discrete, 512, 1);
+	AddParameter(VolDimY, Discrete, 512, 1);
+	AddParameter(VolDimZ, Discrete, 512, 1);
 	AddParameter(VolSpcX, Continuous, 1.0);
 	AddParameter(VolSpcY, Continuous, 1.0);
 	AddParameter(VolSpcZ, Continuous, 1.0);
 
 	AddParameter(AlgoType, Categorical, AlgorithmStrings());
 
-	AddParameter(NumberOfIterations, Discrete, 100);
+	AddParameter(NumberOfIterations, Discrete, 100, 0);
 	AddParameter(CenterOfRotCorr, Boolean, false);
 	AddParameter(CenterOfRotOfs, Continuous, 0.0);
 }
