@@ -23,11 +23,9 @@
 #include "iAvec3.h"
 #include "open_iA_Core_export.h"
 
-#include <memory.h>
+#include <memory.h>    // for memcpy
 
-/**	\class Mat4.
-	\brief Class representing 4x4 float matrix.
-*/
+/** Class representing 4x4 float matrix. */
 class open_iA_Core_API iAMat4
 {
 public:
