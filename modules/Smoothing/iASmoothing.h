@@ -22,8 +22,14 @@
 
 #include "iAFilter.h"
 
+// Blurring
 IAFILTER_DEFAULT_CLASS(iAMedianFilter);
 IAFILTER_DEFAULT_CLASS(iADiscreteGaussian);
+
+
+IAFILTER_DEFAULT_CLASS(iANonLocalMeans);
+
+// Edge-Preserving
 IAFILTER_DEFAULT_CLASS(iAGradientAnisotropicDiffusion);
 IAFILTER_DEFAULT_CLASS(iACurvatureAnisotropicDiffusion);
 IAFILTER_DEFAULT_CLASS(iABilateral);

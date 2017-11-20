@@ -28,6 +28,9 @@
 void iASmoothingModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iADiscreteGaussian);
+	REGISTER_FILTER(iAMedianFilter);
+	REGISTER_FILTER(iANonLocalMeans);
+
 	REGISTER_FILTER(iAGradientAnisotropicDiffusion);
 	REGISTER_FILTER(iACurvatureAnisotropicDiffusion);
 	REGISTER_FILTER(iABilateral);

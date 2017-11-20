@@ -32,6 +32,7 @@
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkMedianImageFilter.h>
+#include <itkPatchBasedDenoisingImageFilter.h>
 
 template<class T> void median_template( unsigned int r_x, unsigned int r_y, unsigned int r_z, iAProgress* p, iAConnector* image  )
 {
@@ -142,8 +143,69 @@ iADiscreteGaussian::iADiscreteGaussian() :
 		"Discrete Gaussian Filter</a> in the ITK documentation.")
 {
 	AddParameter("Variance", Continuous, 0);
-	AddParameter("Maximum Error", Continuous, 0.01, 0+std::numeric_limits<double>::epsilon(), 1-std::numeric_limits<double>::epsilon());
+	AddParameter("Maximum Error", Continuous, 0.01, 0 + std::numeric_limits<double>::epsilon(), 1 - std::numeric_limits<double>::epsilon());
 	AddParameter("Input Type Output", Boolean, false);
+}
+
+template<class T>
+void gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* con)
+{
+	typedef itk::Image<T, DIM> ImageType;
+	typedef itk::PatchBasedDenoisingImageFilter<ImageType, ImageType> NonLocalMeansFilter;
+	auto filter(NonLocalMeansFilter::New());
+	filter->SetInput(dynamic_cast<ImageType*>(con->GetITKImage()));
+	filter->SetNumberOfIterations(params["Number of iterations"].toDouble());
+	filter->SetKernelBandwidthEstimation(params["Kernel bandwidth estimation"].toBool());
+	filter->SetPatchRadius(params["Patch radius"].toDouble());
+	p->Observe(filter);
+	filter->Update();
+	con->SetImage(filter->GetOutput());
+	con->Modified();
+}
+
+IAFILTER_CREATE(iANonLocalMeans)
+
+void iANonLocalMeans::Run(QMap<QString, QVariant> const & parameters)
+{
+	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	ITK_TYPED_CALL(gradient_anisotropic_diffusion_template, pixelType, parameters, m_progress, m_con);
+}
+
+iANonLocalMeans::iANonLocalMeans() :
+	iAFilter("Non-Local Means", "Smoothing/",
+		"Performs a non-local means (= patch-based denoising).<br/>"
+		"Implements a denoising filter that uses iterative non-local, "
+		"or semi-local, weighted averaging of image patches for image denoising.<br/>"
+		"<em>Patch radius</em> specified in physical coordinates (that is, in a unit of pixels,"
+		"rather than considering spacing, preferrable it's an even number). "
+		"<em>Number of iterations</em> determines how many iterations to perform (default=1). "
+		"<em>Kernel bandwidth estimation<em> determines whether kernel-bandwidth should be "
+		"estimated automatically from the image data (default=false). <br/>"
+		//<em>Noise Sigma</em> specifies the sigma of the noise model, where appropriate (in percent of the image intensity range)."
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1PatchBasedDenoisingImageFilter.html\">"
+		"Patch Based Denoising Filter</a> in the ITK documentation.")
+{
+	// parameters in base class:
+	// Patch Weights
+	AddParameter("Patch radius", Discrete, 2, 0);
+	// Noise Model
+	// Smoothing Weight
+	// Noise Model Fidelity Weight
+	AddParameter("Kernel bandwidth estimation", Boolean, false);
+	// Kernel Bandwidth Update Frequency
+	AddParameter("Number of iterations", Discrete, 1, 1);
+	// Always Treat Components as Euclidean
+
+	// in actual filter class:
+	// AddParameter("Noise Sigma", Continuous, 5, 0, 100);
+	// Smooth Disc Patch Weigts, Boolean
+	// Kernel Bandwidth Sigma, Continuous
+	// Kernel Bandwitdh Fraction Pixels for Estimation, Continuous
+	// Compute Conditional Derivatives, Boolean
+	// Use Fast Tensor Computation, Boolean
+	// Kernel Bandwith Multiplication Factor
+	// Sampler
 }
 
 
