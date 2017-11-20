@@ -32,12 +32,12 @@ class open_iA_Core_API iADiagramWidget : public QGLWidget
 	Q_OBJECT
 public:
 	static const int BOTTOM_MARGIN;
-	enum Mode { NO_MODE, MOVE_POINT_MODE, MOVE_VIEW_MODE, X_ZOOM_MODE, Y_ZOOM_MODE };
-	iADiagramWidget(QWidget* parent);
+	enum Mode { NO_MODE, MOVE_VIEW_MODE, X_ZOOM_MODE, Y_ZOOM_MODE };
+	iADiagramWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
 	virtual ~iADiagramWidget();
 
-	double XZoom()  const { return xZoom;         }
-	double YZoom()  const { return yZoom;         }
+	double XZoom()  const { return xZoom;        }
+	double YZoom()  const { return yZoom;        }
 	int    XShift() const { return translationX; }
 	int    YShift() const { return translationY; }
 	virtual int BottomMargin() const { return BOTTOM_MARGIN; }
@@ -45,9 +45,9 @@ public:
 	int ActiveWidth()  const;
 	int ActiveHeight() const;
 	int Height() const;
+	void SetXCaption(QString const & caption);
 
 	virtual void redraw() =0;
-
 public slots:
 	void resetView();
 signals:
@@ -59,6 +59,7 @@ protected:
 	static const int LEFT_MARGIN;
 	virtual void resizeEvent (QResizeEvent *event);
 
+	QString xCaption, yCaption;
 	int zoomX;
 	int zoomY;
 	double yZoom;

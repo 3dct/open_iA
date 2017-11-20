@@ -38,8 +38,10 @@ namespace
 	const int MAX_X_ZOOM = 1000;
 }
 
-iADiagramWidget::iADiagramWidget(QWidget* parent):
+iADiagramWidget::iADiagramWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
 	QGLWidget(parent),
+	xCaption(xLabel),
+	yCaption(yLabel),
 	yZoom(1.0),
 	yZoomStart(1.0),
 	xZoom(1.0),
@@ -186,6 +188,11 @@ int iADiagramWidget::Height() const
 	return height;
 }
 
+void iADiagramWidget::SetXCaption(QString const & caption)
+{
+	xCaption = caption;
+}
+
 void iADiagramWidget::drawBackground(QPainter &painter)
 {
 	painter.fillRect( rect(), QWidget::palette().color(QWidget::backgroundRole()));
@@ -204,8 +211,6 @@ void iADiagramWidget::changeMode(int newMode, QMouseEvent *event)
 {
 	switch(newMode)
 	{
-	case MOVE_POINT_MODE:
-		break;
 	case MOVE_VIEW_MODE:
 		dragStartPosX = event->x();
 		dragStartPosY = event->y();
@@ -278,11 +283,6 @@ void iADiagramWidget::mouseMoveEvent(QMouseEvent *event)
 	switch(mode)
 	{
 	case NO_MODE: /* do nothing */ break;
-	case MOVE_POINT_MODE:
-		{
-			redraw();
-		}
-		break;
 	case MOVE_VIEW_MODE:
 		translationX = clamp(-static_cast<int>(ActiveWidth() * (xZoom-1)), 0,
 			translationStartX + event->x() - dragStartPosX);

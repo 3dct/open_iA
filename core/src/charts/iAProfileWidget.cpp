@@ -30,11 +30,9 @@
 #include <vtkPointData.h>
 
 iAProfileWidget::iAProfileWidget(QWidget *parent, vtkPolyData* profData, double rayLength, QString yCapt, QString xCapt) 
-	: iADiagramWidget (parent),
+	: iADiagramWidget (parent, xCapt, yCapt),
 	xPos(0),
-	scalars(nullptr),
-	xCaption(xCapt),
-	yCaption(yCapt)
+	scalars(nullptr)
 {
 	min_intensity[0] = min_intensity[1] = min_intensity[2] = 0.0;
 	max_intensity[0] = max_intensity[1] = max_intensity[2] = 0.0;

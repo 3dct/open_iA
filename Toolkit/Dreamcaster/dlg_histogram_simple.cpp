@@ -605,7 +605,7 @@ void dlg_histogram_simple::drawAxes(QPainter &painter)
 /**
 * \brief  changeMode
 *
-*   Changes the mode of interaction. Possible modes are NO_MODE, MOVE_POINT_MODE, MOVE_NEW_POINT_MODE, MOVE_VIEW_MODE
+*   Changes the mode of interaction. Possible modes are NO_MODE, MOVE_VIEW_MODE
 *
 * \return
 */

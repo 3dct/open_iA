@@ -48,7 +48,7 @@ class open_iA_Core_API iADiagramFctWidget : public iADiagramWidget
 	Q_OBJECT
 
 public:
-	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1 };
+	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1, MOVE_POINT_MODE};
 	
 	static const int SELECTED_POINT_RADIUS = 10;
 	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
@@ -113,7 +113,6 @@ public:
 	void SetEnableAdditionalFunctions(bool enable);
 
 	bool IsDrawnDiscrete() const;
-	void SetXCaption(QString const & caption);
 
 	bool isTFTableCreated();
 	void closeTFTable();
@@ -146,8 +145,6 @@ protected:
 	double max_intensity[3];
 	iAPlotData::DataType m_maxYAxisValue;
 	bool m_customYAxisValue;
-
-	QString xCaption, yCaption;
 
 	virtual void drawDatasets(QPainter &painter);
 	virtual void drawImageOverlays(QPainter &painter);

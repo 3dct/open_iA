@@ -163,11 +163,9 @@ private:
 
 iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	QString const & xLabel, QString const & yLabel) :
-	iADiagramWidget(parent),
+	iADiagramWidget(parent, xLabel, yLabel),
 	TFTable(0),
 	contextMenu(new QMenu(this)),
-	xCaption(xLabel),
-	yCaption(yLabel),
 	m_yAxisSteps(Y_AXIS_STEPS),
 	m_xAxisSteps(X_AXIS_STEPS),
 	m_requiredPlacesAfterComma(0),
@@ -531,14 +529,12 @@ void iADiagramFctWidget::contextMenuEvent(QContextMenuEvent *event)
 		contextMenu->addAction(showTooltipAction);
 
 		contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
+		if (m_allowTrfReset)
+			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
 	}
 
 	contextMenu->addAction(QIcon(":/images/save.png"), tr("Export data"), this, SLOT(ExportData()));
 
-	if (m_showFunctions && m_allowTrfReset)
-	{
-		contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
-	}
 	contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset view"), this, SLOT(resetView()));
 	contextMenu->addSeparator();
 
@@ -1311,11 +1307,6 @@ bool iADiagramFctWidget::IsDrawnDiscrete() const
 		(m_plots[0]->GetData()->GetRangeType() == Discrete &&
 		(XRange() <= m_plots[0]->GetData()->GetNumBin()))
 		|| m_plots[0]->GetData()->GetRangeType() == Categorical));
-}
-
-void iADiagramFctWidget::SetXCaption(QString const & caption)
-{
-	xCaption = caption;
 }
 
 void iADiagramFctWidget::showTFTable()

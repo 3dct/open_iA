@@ -74,8 +74,6 @@ private:
 	vtkDataArray * scalars;
 	double yHeight;
 
-	QString yCaption, xCaption;
-
 	void drawHistogram(QPainter &painter);
 	void drawAxes(QPainter &painter);
 	void drawXAxis(QPainter &painter);
