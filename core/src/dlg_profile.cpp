@@ -32,7 +32,6 @@ dlg_profile::dlg_profile(QWidget *parent, vtkPolyData* profData, double rayLengt
 	QString yCapt = "Greyvalue";
 	QString xCapt = "Distance";
 	profileWidget = new iAProfileWidget(profileAreaWidget, profData, rayLength, yCapt, xCapt);
-	profileWidget->setMouseTracking(true);
 	layout = new QGridLayout(profileAreaWidget);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setObjectName(QString::fromUtf8("ProfileLayout"));

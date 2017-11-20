@@ -174,6 +174,7 @@ public slots:
 	int deletePoint();
 	void changeColor(QMouseEvent *event = NULL);
 	void autoUpdate(bool toggled);
+	void showTooltip(bool toggled);
 	void resetView();
 	void resetTrf();
 	void updateTrf();
@@ -210,6 +211,7 @@ private:
 	int m_xAxisSteps;
 	int m_yAxisSteps;
 	int m_requiredPlacesAfterComma;
+	bool m_showTooltip;
 
 	virtual void drawXAxis(QPainter &painter);
 	virtual void drawYAxis(QPainter &painter);

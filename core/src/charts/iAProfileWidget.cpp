@@ -157,8 +157,7 @@ void iAProfileWidget::drawXAxis(QPainter &painter)
 	while (i <= stepNumber)
 	{
 		double pos = step * i;
-		int nthBin = (int)(pos * rayLen);
-		double value = nthBin;
+		double value = pos * rayLen;
 		QString text = (value < 1.0) ? QString::number(value, 'g', 3) : QString::number((int)value, 10);
 		int x = (int)(pos * ActiveWidth() * xZoom);
 		painter.drawLine(x, (int)(BottomMargin()*0.1), x, -1);		// draw a small indicator line

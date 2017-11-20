@@ -182,7 +182,8 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	m_customYAxisValue(false),
 	selectedFunction(0),
 	activeChild(mdiChild),
-	updateAutomatically(true)
+	updateAutomatically(true),
+	m_showTooltip(true)
 {
 	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
 	functions.push_back(transferFunction);
@@ -403,6 +404,8 @@ void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 {
+	if (m_showTooltip)
+		showDataTooltip(event);
 	switch (mode)
 	{
 		case NO_MODE: /* do nothing */ break;
@@ -419,7 +422,6 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 				redraw();
 				emit updateTFTable();
 			}
-			showDataTooltip(event);
 		}
 		break;
 		default:
@@ -438,7 +440,11 @@ void iADiagramFctWidget::showDataTooltip(QMouseEvent *event)
 	nthBin = clamp(0, static_cast<int>(numBin), nthBin);
 	if (xPos == width - 1)
 		nthBin = static_cast<int>(numBin) - 1;
-	QString toolTip(QString("%1: %2\n%3:").arg(xCaption).arg(m_plots[0]->GetData()->GetBinStart(nthBin)).arg(yCaption));
+	QString toolTip;
+	if (yCaption.isEmpty())
+		toolTip = QString("%1:").arg(m_plots[0]->GetData()->GetBinStart(nthBin));
+	else
+		toolTip = QString("%1: %2\n%3:").arg(xCaption).arg(m_plots[0]->GetData()->GetBinStart(nthBin)).arg(yCaption);
 	for (auto plot : m_plots)
 	{
 		auto data = plot->GetData();
@@ -517,6 +523,12 @@ void iADiagramFctWidget::contextMenuEvent(QContextMenuEvent *event)
 		autoUpdateAction->setChecked(updateAutomatically);
 		connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 		contextMenu->addAction(autoUpdateAction);
+
+		QAction *showTooltipAction = new QAction(tr("Show tooltip"), this);
+		showTooltipAction->setCheckable(true);
+		showTooltipAction->setChecked(m_showTooltip);
+		connect(showTooltipAction, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
+		contextMenu->addAction(showTooltipAction);
 
 		contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
 	}
@@ -893,6 +905,11 @@ void iADiagramFctWidget::autoUpdate(bool toggled)
 {
 	updateAutomatically = toggled;
 	emit autoUpdateChanged(toggled);
+}
+
+void iADiagramFctWidget::showTooltip(bool toggled)
+{
+	m_showTooltip = toggled;
 }
 
 void iADiagramFctWidget::resetView()
