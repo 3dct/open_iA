@@ -30,17 +30,21 @@ class vtkLookupTable;
 
 class iAScalingWidget : public QWidget
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 	iAScalingWidget(QWidget* parent = 0);
 
+	QSize minimumSizeHint() const override;
+	QSize sizeHint() const override;
+
 	void setNonlinearScalingVector(QVector<double> nls, QVector<double> impfv);
 	void setNonlinearAxis(QCPAxis *nla);
 	void setCursorPositions(double lcp, double nlcp);
+	void setRange(double lower, double upper, double lowerRest, double upperRest, double linearLowerRest, double linearUpperRest);
 
 protected:
-    virtual void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+	virtual void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 
 private:
 	QCPAxis *m_nonlinearAxis;
@@ -49,5 +53,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	QStaticText m_normalText;
 	QStaticText m_nonlinearText;
-	double m_linearBarCursorPos, m_nonlinearBarCursorPos;
+	double m_linearBarCursorPos, m_nonlinearBarCursorPos,
+		m_nonlinearLower, m_nonlinearUpper, m_rangeLowerRest, m_rangeUpperRest,
+		m_linearLowerRest, m_linearUpperRest;
 };

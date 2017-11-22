@@ -70,6 +70,7 @@ public slots:
 	void syncLinearYAxis(QCPRange);
 	void syncNonlinearXAxis(QCPRange);
 	void syncNonlinearYAxis(QCPRange);
+	void changePlotVisibility();
 
 protected:
 	virtual bool eventFilter(QObject * obj, QEvent * event);
@@ -79,6 +80,8 @@ private:
 	QCustomPlot *m_nonlinearScaledPlot;
 	QCustomPlot *m_linearScaledPlot;
 	QCustomPlot *m_debugPlot;
+	QToolButton *m_nlVisibilityButton;
+	QToolButton *m_lVisibilityButton;
 
 	QCPItemText *m_nonlinearDataPointInfo;
 	QCPItemText *m_linearDataPointInfo;

@@ -40,6 +40,16 @@ iAScalingWidget::iAScalingWidget(QWidget* parent) :
 	setAutoFillBackground(true);
 }
 
+QSize iAScalingWidget::sizeHint() const
+{
+	return QSize(2560, 90);
+}
+
+QSize iAScalingWidget::minimumSizeHint() const
+{
+	return QSize(400, 90);
+}
+
 void iAScalingWidget::setNonlinearAxis(QCPAxis* nla)
 {
 	m_nonlinearAxis = nla;
@@ -59,6 +69,16 @@ void iAScalingWidget::setCursorPositions(double lcp, double nlcp)
 	update();
 }
 
+void iAScalingWidget::setRange(double lower, double upper, double lowerRest, double upperRest, double linearLowerRest, double linearUpperRest)
+{
+	m_nonlinearLower = lower;
+	m_nonlinearUpper = upper;
+	m_rangeLowerRest = lowerRest;
+	m_rangeUpperRest = upperRest;
+	m_linearLowerRest = linearLowerRest;
+	m_linearUpperRest = linearUpperRest;
+}
+
 void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 {
 	// TODO: whole widget is always painted (not needed if only red line moves) 
@@ -66,42 +86,59 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 		return;
 
 	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing, false);
+	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.setPen(QPen(Qt::black));
 	painter.drawStaticText(5, 10, m_nonlinearText);
 	painter.drawStaticText(5, 70, m_normalText);
 
-	int leftOffset = m_nonlinearAxis->axisRect()->left();
-	double linearBarStartPos = 0.0, nonlinearBarStartPos = 0.0, 
-		linearBarWidth = m_nonlinearAxis->axisRect()->width() / (double) m_nonlinearScalingVec.size();
-	double scalingFactor = m_nonlinearAxis->axisRect()->width() /
-		(m_nonlinearScalingVec.last() - m_nonlinearScalingVec.first());
 	double rgb[3]; QColor c;
+	int leftOffset = m_nonlinearAxis->axisRect()->left();
+	double linearBarStartPos = 0.0, nonlinearBarStartPos = 0.0, nonlinearBarWidth, linearBarWidth,
+		linearScalingFactor = m_nonlinearAxis->axisRect()->width() /
+		(m_nonlinearUpper-1 + m_linearUpperRest - (m_nonlinearLower + m_linearLowerRest)),
+		scalingFactor = m_nonlinearAxis->axisRect()->width() /
+		(m_nonlinearScalingVec[m_nonlinearUpper] - m_rangeUpperRest - (m_nonlinearScalingVec[m_nonlinearLower] + m_rangeLowerRest));
 
-	for (int hIdx = 1; hIdx < m_nonlinearScalingVec.size(); ++hIdx)
+	for (int hIdx = m_nonlinearLower + 1; hIdx <= m_nonlinearUpper; ++hIdx)
 	{
-		double nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - m_nonlinearScalingVec[hIdx - 1]) * scalingFactor;
-		QRect nonlinearBar(leftOffset + nonlinearBarStartPos, 10, nonlinearBarWidth, 10);
+		if (hIdx == m_nonlinearLower + 1)
+		{
+			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
+				(m_nonlinearScalingVec[hIdx - 1] + m_rangeLowerRest)) * scalingFactor;
+			linearBarWidth = (m_nonlinearLower + 1 - m_nonlinearLower - m_linearLowerRest) * linearScalingFactor;
+		}
+		else if (hIdx == m_nonlinearUpper)
+		{
+			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
+				(m_nonlinearScalingVec[hIdx - 1] + m_rangeUpperRest)) * scalingFactor;
+			linearBarWidth = m_linearUpperRest * linearScalingFactor;
+		}
+		else
+		{
+			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
+				m_nonlinearScalingVec[hIdx - 1]) * scalingFactor;
+			linearBarWidth = linearScalingFactor;
+		}
+
+		QRectF nonlinearBar(leftOffset + nonlinearBarStartPos, 10.0, nonlinearBarWidth, 10.0);
 		m_lut->GetColor(1 - m_impFunctVec[hIdx], rgb);
 		c.setRgbF(rgb[0], rgb[1], rgb[2]);
 		painter.setBrush(QBrush(c));
-		painter.setPen(QPen(c));
+		painter.setPen(QPen(Qt::black));
 		painter.drawRect(nonlinearBar);
+		
 		nonlinearBarStartPos += nonlinearBarWidth;
-
-		painter.setRenderHint(QPainter::Antialiasing, true);
-		painter.drawLine(leftOffset + nonlinearBarStartPos, 20, leftOffset + linearBarStartPos, 70);
-		painter.setRenderHint(QPainter::Antialiasing, false);
-
-		// TODO: one bar for all?
-		QRect linearBar(leftOffset + linearBarStartPos, 70, linearBarWidth, 10);
-		painter.setBrush(QBrush(Qt::lightGray));
-		painter.setPen(QPen(Qt::lightGray));
-		painter.drawRect(linearBar);
 		linearBarStartPos += linearBarWidth;
+
+		if (hIdx < m_nonlinearUpper)
+			painter.drawLine(leftOffset + nonlinearBarStartPos, 20.0, leftOffset + linearBarStartPos, 70.0);
 	}
 
-	painter.setRenderHint(QPainter::Antialiasing, true);
+	QRectF linearBar(leftOffset + 0.0, 70, linearBarStartPos, 10);
+	painter.setBrush(QBrush(Qt::lightGray));
+	painter.setPen(QPen(Qt::lightGray));
+	painter.drawRect(linearBar);
+
 	painter.setPen(QPen(Qt::red));
 	painter.drawLine(m_nonlinearBarCursorPos, 10, m_nonlinearBarCursorPos, 20);
 	painter.drawLine(m_nonlinearBarCursorPos, 20, m_linearBarCursorPos, 70);
