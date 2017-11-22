@@ -108,8 +108,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction
-		diagramRect.setTop(    GetCoordinateConverter()->Screen2DiagramY(ActiveHeight() - selectionRect.bottom()) );
-		diagramRect.setBottom( GetCoordinateConverter()->Screen2DiagramY(ActiveHeight() - selectionRect.top()   ) );
+		diagramRect.setTop(    YMapper()->Screen2DiagramY(ActiveHeight() - selectionRect.bottom()) );
+		diagramRect.setBottom( YMapper()->Screen2DiagramY(ActiveHeight() - selectionRect.top()   ) );
 		diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
 		diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
 		diagramRect = diagramRect.normalized();
@@ -152,9 +152,8 @@ void iAEnergySpectrumWidget::mouseMoveEvent(QMouseEvent *event)
 }
 
 
-void iAEnergySpectrumWidget::drawDatasets(QPainter& painter)
+void iAEnergySpectrumWidget::DrawAfterPlots(QPainter& painter)
 {
-	iADiagramFctWidget::drawDatasets(painter);
 	QPen pen(Qt::red);
 	pen.setWidth(2);
 	painter.setPen(pen);
@@ -162,8 +161,8 @@ void iAEnergySpectrumWidget::drawDatasets(QPainter& painter)
 	for (int i=0; i<selectionRects.size(); ++i)
 	{
 		QRect drawRect;
-		drawRect.setTop(   GetCoordinateConverter()->Diagram2ScreenY(selectionRects[i].top()));
-		drawRect.setBottom(GetCoordinateConverter()->Diagram2ScreenY(selectionRects[i].bottom())-1);
+		drawRect.setTop(   YMapper()->Diagram2ScreenY(selectionRects[i].top()));
+		drawRect.setBottom(YMapper()->Diagram2ScreenY(selectionRects[i].bottom())-1);
 		drawRect.setLeft(  dataBin2ScreenX(selectionRects[i].left()));
 		drawRect.setRight( dataBin2ScreenX(selectionRects[i].right())-2);
 		drawRect = drawRect.normalized();

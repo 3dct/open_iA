@@ -51,8 +51,6 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
 	m_selectionRubberBand->hide();
 	( (dlg_transfer*) functions[0] )->enableRangeSliderHandles( true );
-	iADiagramFctWidget::SetYAxisSteps( 2 );
-	iADiagramFctWidget::SetRequiredPlacesAfterComma( 2 );
 }
 
 void iARangeSliderDiagramWidget::drawFunctions( QPainter &painter )

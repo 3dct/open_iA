@@ -177,12 +177,12 @@ iAValueType iAClusterAttribChart::GetRangeType() const
 
 double iAClusterAttribChart::GetMaxYValue() const
 {
-	return m_charts->GetMaxYValue();
+	return m_charts->GetMaxYDataValue();
 }
 
 void iAClusterAttribChart::SetMaxYAxisValue(double val)
 {
-	m_charts->SetMaxYAxisValue(val);
+	m_charts->SetYBounds(0, val);
 }
 
 void iAClusterAttribChart::ResetSpan()
@@ -216,5 +216,5 @@ void iAClusterAttribChart::UpdateChart()
 
 void iAClusterAttribChart::ResetMaxYAxisValue()
 {
-	m_charts->ResetMaxYAxisValue();
+	m_charts->ResetYBounds();
 }

@@ -23,23 +23,17 @@
 
 #include "iAMathUtility.h"
 
-#include <QMessageBox>
 #include <QPainter>
 #include <QToolTip>
 
 #include <vtkPointData.h>
+#include <vtkPolyData.h>
 
-iAProfileWidget::iAProfileWidget(QWidget *parent, vtkPolyData* profData, double rayLength, QString yCapt, QString xCapt) 
-	: iADiagramWidget (parent, xCapt, yCapt),
-	xPos(0),
-	scalars(nullptr)
+iAProfileWidget::iAProfileWidget(QWidget *parent, vtkPolyData* profData, double rayLength, QString yCapt, QString xCapt)
+	: iADiagramWidget(parent, xCapt, yCapt)
 {
-	min_intensity[0] = min_intensity[1] = min_intensity[2] = 0.0;
-	max_intensity[0] = max_intensity[1] = max_intensity[2] = 0.0;
 	initialize(profData, rayLength);
-	activeChild = parent->parentWidget();
 }
-
 
 void iAProfileWidget::initialize(vtkPolyData* profData, double rayLength)
 {
@@ -49,55 +43,16 @@ void iAProfileWidget::initialize(vtkPolyData* profData, double rayLength)
 	profileData->GetScalarRange(yDataRange);
 	scalars = profData->GetPointData()->GetScalars();
 	yHeight = yDataRange[1] - yDataRange[0];
-	mode = NO_MODE;
-	draw = false;
+	SetXBounds(0, rayLength);
+	SetYBounds(yDataRange[0], yDataRange[1]);
 }
-
-
-void iAProfileWidget::paintEvent(QPaintEvent * )
-{
-	if (draw)
-		this->drawProfilePlot();
-	QPainter painter(this);
-	painter.drawImage(QRectF(0, 0, width, height), image);
-}
-
-
-void iAProfileWidget::drawProfilePlot()
-{
-	QPainter painter(&image);
-	painter.setRenderHint(QPainter::Antialiasing);
-	drawBackground(painter);
-
-	//change the origin of the window to left bottom
-	painter.translate(translationX+LeftMargin(), height-BottomMargin());
-	painter.scale(1, -1);
-
-	drawHistogram(painter);
-
-	painter.scale(1, -1);
-	painter.setRenderHint(QPainter::Antialiasing, false);
-
-	drawAxes(painter);
-
-	update();
-	draw = false;
-}
-
-
-void iAProfileWidget::redraw()
-{
-	draw = true;
-	update();
-}
-
 
 void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (!scalars)
 		return;
 
-	xPos = clamp(0, ActiveWidth() - 1, event->x() - LeftMargin());
+	int xPos = clamp(0, ActiveWidth() - 1, event->x() - LeftMargin());
 	int nthBin = (int)((((xPos-translationX) * numBin) / ActiveWidth()) / xZoom);
 	double len = (((xPos-translationX) * rayLen) / ActiveWidth()) / xZoom;
 	if (nthBin >= numBin || xPos == ActiveWidth()-1)
@@ -115,8 +70,7 @@ void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 	emit binSelected(nthBin);
 }
 
-
-void iAProfileWidget::drawHistogram(QPainter &painter)
+void iAProfileWidget::DrawPlots(QPainter &painter)
 {
 	if (!scalars)
 		return;
@@ -135,74 +89,4 @@ void iAProfileWidget::drawHistogram(QPainter &painter)
 		double y2 = (scalars->GetTuple1(j+1) - yDataRange[0]) * scalingCoef;
 		painter.drawLine(x1, y1, x2, y2);
 	}
-}
-
-
-void iAProfileWidget::drawAxes(QPainter &painter)
-{
-	drawXAxis(painter);
-	drawYAxis(painter);
-}
-
-
-void iAProfileWidget::drawXAxis(QPainter &painter)
-{
-	painter.setPen(QWidget::palette().color(QPalette::Text));
-	int i = 0;
-	int stepNumber = (int)(10.0*xZoom);
-	double step = 1.0 / stepNumber;
-	QFontMetrics fm = painter.fontMetrics();
-	while (i <= stepNumber)
-	{
-		double pos = step * i;
-		double value = pos * rayLen;
-		QString text = (value < 1.0) ? QString::number(value, 'g', 3) : QString::number((int)value, 10);
-		int x = (int)(pos * ActiveWidth() * xZoom);
-		painter.drawLine(x, (int)(BottomMargin()*0.1), x, -1);		// draw a small indicator line
-		if (i <= 0)
-			painter.drawText(x, TEXT_Y, text );						// write the text right aligned to indicator line
-		else if(stepNumber == i)
-			painter.drawText(x - fm.width(text), TEXT_Y, text);		// write the text left aligned to the indicator line
-		else
-			painter.drawText(x - 0.5*fm.width(text), TEXT_Y, text); // write the text centered to the indicator line
-		i++;
-	}
-	painter.drawLine(0, -1, (int)(ActiveWidth()*xZoom), -1);		// draw the x axis
-	painter.drawText(												// write the x axis label
-		QPointF((int)(ActiveWidth() * 0.45), BottomMargin() - 2),
-		xCaption);
-}
-
-
-void iAProfileWidget::drawYAxis(QPainter &painter)
-{
-	painter.setPen(QWidget::palette().color(QPalette::Text));
-	QFontMetrics fm = painter.fontMetrics();
-	int fontHeight = fm.height();
-	int i = 0;
-	int stepNumber = 5;
-	double step = 1.0 / (stepNumber*yZoom);
-	while (i <= stepNumber)
-	{
-		double pos = step * i;
-		double yValue = pos * yHeight + yDataRange[0];
-		QString text = (yValue < 1.0) ? QString::number(yValue, 'g', 3) : QString::number((int)yValue, 10);
-		int y = -(int)(pos * ActiveHeight() * yZoom)-1;
-		painter.drawLine((int)(-LeftMargin()*0.1), y, 0, y);				// draw a small indicator line
-
-		if(i == stepNumber)
-			painter.drawText(TEXT_X-LeftMargin(), y+0.6*fontHeight, text);	// write the text left aligned to the indicator line
-		else
-			painter.drawText(TEXT_X-LeftMargin(), y+0.25*fontHeight, text);	// write the text centered to the indicator line
-		i++;
-	}
-	painter.drawLine(0, -1, 0, -(int)(ActiveHeight()*yZoom));				// draw the y axis
-	painter.save();
-	painter.rotate(-90);
-	painter.drawText(														// write the y axis label
-		QPointF(
-			ActiveHeight()*0.5 - 0.5*fm.width(yCaption),
-			-LeftMargin() + fontHeight - 5),
-		yCaption);
-	painter.restore();
 }

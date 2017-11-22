@@ -23,6 +23,7 @@
 #include "dlg_gaussian.h"
 
 #include "charts/iADiagramFctWidget.h"
+#include "charts/iAPlot.h"	// for CoordinateConverter
 #include "iAMathUtility.h"
 
 #include <QPen>
@@ -191,7 +192,7 @@ void dlg_gaussian::moveSelectedPoint(int x, int y)
 		}
 
 		double meanValue = 1.0/(sigma*sqrt(2*PI))*chart->YZoom();
-		multiplier  = (double)y /(chart->geometry().height() - chart->BottomMargin()-1)*chart->GetMaxYAxisValue() /meanValue;
+		multiplier  = (double)y /(chart->geometry().height() - chart->BottomMargin()-1)*chart->YBounds()[1] /meanValue;
 	}
 }
 
@@ -212,7 +213,7 @@ double dlg_gaussian::v2dX(int x)
 
 double dlg_gaussian::v2dY(int y)
 {
-	return chart->GetCoordinateConverter()->Diagram2ScreenY(y) *chart->GetMaxYAxisValue() /chart->YZoom();
+	return chart->YMapper()->Diagram2ScreenY(y) *chart->YBounds()[1] /chart->YZoom();
 }
 
 int dlg_gaussian::d2vX(double x)
@@ -222,7 +223,7 @@ int dlg_gaussian::d2vX(double x)
 
 int dlg_gaussian::d2vY(double y)
 {
-	return (int)(y /chart->GetMaxYAxisValue() *(double)(chart->geometry().height() - chart->BottomMargin()-1) *chart->YZoom());
+	return (int)(y /chart->YBounds()[1] *(double)(chart->geometry().height() - chart->BottomMargin()-1) *chart->YZoom());
 }
 
 int dlg_gaussian::d2iX(double x)

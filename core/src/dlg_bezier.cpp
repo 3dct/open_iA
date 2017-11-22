@@ -23,6 +23,7 @@
 #include "dlg_bezier.h"
 
 #include "charts/iADiagramFctWidget.h"
+#include "charts/iAPlot.h"	// for CoordinateConverter
 #include "iAMathUtility.h"
 
 #include <vtkImageData.h>
@@ -459,13 +460,13 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 		{
 			QPointF functionPoint = realPoints[functionPointIndex];
 			
-			if (pointX < chart->XBounds()[0] || pointY < 0 || pointX > chart->XBounds()[1] || pointY > chart->GetMaxYAxisValue()/chart->YZoom())
+			if (pointX < chart->XBounds()[0] || pointY < 0 || pointX > chart->XBounds()[1] || pointY > chart->YBounds()[1]/chart->YZoom())
 			{
 				//calculate intersection with horizontal borders
 				double dx = realPoints[selectedPoint].x() -functionPoint.x();
 				double dy = realPoints[selectedPoint].y() -functionPoint.y();
 
-				double t = ((pointY < 0 ? 0.0 : chart->GetMaxYAxisValue()/chart->YZoom())-functionPoint.y())/dy;
+				double t = ((pointY < 0 ? 0.0 : chart->YBounds()[1]/chart->YZoom())-functionPoint.y())/dy;
 				double x = functionPoint.x() +t*dx;
 
 				//calculate intersection with vertical borders
@@ -474,7 +475,7 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 				if (x >= chart->XBounds()[0] && x <= chart->XBounds()[1] && t > 0)
 				{
 					viewPoints[selectedPoint].setX(x);
-					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: chart->GetMaxYAxisValue()/ chart->YZoom());
+					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: chart->YBounds()[1]/ chart->YZoom());
 				}
 				else
 				{
@@ -546,7 +547,7 @@ double dlg_bezier::v2dX(int x)
 
 double dlg_bezier::v2dY(int y)
 {
-	return chart->GetCoordinateConverter()->Diagram2ScreenY(y) *chart->GetMaxYAxisValue() / chart->YZoom();
+	return chart->YMapper()->Diagram2ScreenY(y) *chart->YBounds()[1] / chart->YZoom();
 }
 
 int dlg_bezier::d2vX(double x)
@@ -556,7 +557,7 @@ int dlg_bezier::d2vX(double x)
 
 int dlg_bezier::d2vY(double y)
 {
-	return (int)(y / chart->GetMaxYAxisValue() *(double)(chart->geometry().height() - chart->BottomMargin()-1) *chart->YZoom());
+	return (int)(y / chart->YBounds()[1] *(double)(chart->geometry().height() - chart->BottomMargin()-1) *chart->YZoom());
 }
 
 int dlg_bezier::d2iX(double x)

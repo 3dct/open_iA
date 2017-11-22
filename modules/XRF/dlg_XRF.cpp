@@ -277,7 +277,7 @@ void dlg_XRF::setLogDrawMode(bool checked)
 {
 	if (checked)
 	{
-		m_spectrumDiagram->SetYDrawMode(iAEnergySpectrumWidget::Logarithmic);
+		m_spectrumDiagram->SetYMappingMode(iAEnergySpectrumWidget::Logarithmic);
 		m_spectrumDiagram->redraw();
 	}
 }
@@ -287,7 +287,7 @@ void dlg_XRF::setLinDrawMode(bool checked)
 {
 	if (checked)
 	{
-		m_spectrumDiagram->SetYDrawMode(iAEnergySpectrumWidget::Linear);
+		m_spectrumDiagram->SetYMappingMode(iAEnergySpectrumWidget::Linear);
 		m_spectrumDiagram->redraw();
 	}
 }

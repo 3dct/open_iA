@@ -55,9 +55,8 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	AddPlot(GetDrawer(m_data, DefaultColors::AllDataChartColor));
 	m_minSliderPos = m_data->MapBinToValue(0);
 	m_maxSliderPos = m_data->MapBinToValue(m_data->GetNumBin());
-	m_captionPosition = Qt::AlignLeft | Qt::AlignTop;
-	m_showXAxisLabel = showCaption;
-	SetXAxisSteps(std::min(static_cast<int>(m_data->GetNumBin()), 20));
+	SetCaptionPosition(Qt::AlignLeft | Qt::AlignTop);
+	SetShowXAxisLabel(showCaption);
 	for (int i = 0; i < m_data->GetNumBin(); ++i)
 	{
 		m_binColors.push_back(QColor(0, 0, 0, 0));
@@ -104,7 +103,7 @@ void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen c
 	*/
 }
 
-void iAFilterChart::drawAxes(QPainter& painter)
+void iAFilterChart::DrawAxes(QPainter& painter)
 {
 	// draw bin colors: m_binColors
 	{
@@ -131,7 +130,7 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	drawMarker(painter, m_minSliderPos, DefaultColors::ChartSliderPen, DefaultColors::ChartSliderBrush);
 	drawMarker(painter, m_maxSliderPos, DefaultColors::ChartSliderPen, DefaultColors::ChartSliderBrush);
 
-	iADiagramFctWidget::drawAxes(painter);
+	iADiagramFctWidget::DrawAxes(painter);
 }
 
 
@@ -171,7 +170,7 @@ double iAFilterChart::GetMaxVisibleBin() const
 	return maxVisXBin;
 }
 
-QString iAFilterChart::GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma)
+QString iAFilterChart::GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma)
 {
 	assert(Plots().size() > 0);
 	if (Plots()[0]->GetData()->GetRangeType() == Categorical)
@@ -180,7 +179,7 @@ QString iAFilterChart::GetXAxisCaption(double value, int placesBeforeComma, int 
 		return (value < m_nameMapper->size()) ? m_nameMapper->GetName(static_cast<int>(value)):
 			"";
 	}
-	return iADiagramFctWidget::GetXAxisCaption(value, placesBeforeComma, requiredPlacesAfterComma);
+	return iADiagramFctWidget::GetXAxisTickMarkLabel(value, placesBeforeComma, requiredPlacesAfterComma);
 }
 
 void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)

@@ -150,7 +150,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 		m_labelDistributionChartData[label]->AddValue(label);
 		valueCount++;
 	});
-	m_charts[1]->SetMaxYAxisValue(valueCount);
+	m_charts[1]->SetYBounds(0, valueCount);
 
 	// find the NumOfChartsShown highest probabilities
 	for (int i = 0; i < m_probabilitiesChartData.size(); ++i)
@@ -192,7 +192,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 	for (int i = 0; i < m_charts.size(); ++i)
 	{
 		if (i != 1)	// not for label distribution!
-			m_charts[i]->ResetMaxYAxisValue();
+			m_charts[i]->ResetYBounds();
 		m_charts[i]->redraw();
 	}
 }

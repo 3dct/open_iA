@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iAPlotData.h"
-#include "iAPlot.h"
 #include "iADiagramWidget.h"
 #include "open_iA_Core_export.h"
 
@@ -54,19 +53,11 @@ public:
 	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
 	static const int POINT_RADIUS = 4;
 	static const int POINT_SIZE = 2*POINT_RADIUS;
-	//static const int OFFSET_FROM_TOP = 5; // Offset from the highest bar to the top in pixels AMA 08.03.2010
-	static const int TEXT_Y = 15;
-	static const int TEXT_X = 15;
 	
 	static const int SELECTED_PIE_RADIUS = 16;
 	static const int SELECTED_PIE_SIZE = 2 * SELECTED_PIE_RADIUS;
 	static const int PIE_RADIUS = 16;
 	static const int PIE_SIZE = 2 * PIE_RADIUS;
-
-	enum DrawModeType {
-		Linear,
-		Logarithmic
-	};
 
 	iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 		QString const & label = "Greyvalue", QString const & yLabel = "");
@@ -75,87 +66,35 @@ public:
 	int getSelectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
 	bool isUpdateAutomatically() const;
-
-	virtual void drawEverything();
-	void redraw();
+	int ChartHeight() const;
 
 	void SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
 	std::vector<dlg_function*> &getFunctions();
-	iAPlotData::DataType GetMaxYValue() const;
-	iAPlotData::DataType GetMaxYAxisValue() const;
-	void SetMaxYAxisValue(iAPlotData::DataType val);
-	void ResetMaxYAxisValue();
-
-	int ChartHeight() const;
-	int GetTFGradientHeight() const;
-	virtual int BottomMargin() const;
-	double const * XBounds() const;
-	double XRange() const;
-
-	void AddPlot(QSharedPointer<iAPlot> plot);
-	void RemovePlot(QSharedPointer<iAPlot> plot);
-	QVector< QSharedPointer< iAPlot > > const & Plots();
-	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);
-	void RemoveImageOverlay(QImage * imgOverlay);
-
-	void SetYDrawMode(DrawModeType drawMode);
-
-	QSharedPointer<CoordinateConverter> const GetCoordinateConverter() const;
-
-	void SetXAxisSteps( int xSteps );
-	void SetYAxisSteps( int ySteps );
-
-	void SetRequiredPlacesAfterComma( int requiredPlaces );
 
 	void SetAllowTrfReset(bool allow);
 	void SetEnableAdditionalFunctions(bool enable);
 
-	bool IsDrawnDiscrete() const;
-
-	bool isTFTableCreated();
+	bool isTFTableCreated() const;
 	void closeTFTable();
-	QPoint getTFTablePos();
+	QPoint getTFTablePos() const;
 	void setTFTablePos(QPoint pos);
 
 protected:
-	void paintEvent(QPaintEvent * );
 	void mousePressEvent(QMouseEvent *event);
 	void mouseReleaseEvent(QMouseEvent *event); 
 	void mouseMoveEvent(QMouseEvent *event);
 	void mouseDoubleClickEvent(QMouseEvent *event);
 	void enterEvent(QEvent *event);
 	void keyPressEvent(QKeyEvent *event);
-	void keyReleaseEvent(QKeyEvent *event);
-	void contextMenuEvent(QContextMenuEvent *event);
-
-	QPoint        lastpoint;
-	MdiChild*      activeChild;
-	QMenu*        contextMenu;
-	QAction*      contextMenuResult;
-	QPoint        contextPos;
-
-	std::vector<dlg_function*> functions;
-
-	bool contextMenuVisible;
-	bool updateAutomatically;
-	unsigned int selectedFunction;
-	double min_intensity[3];
-	double max_intensity[3];
-	iAPlotData::DataType m_maxYAxisValue;
-	bool m_customYAxisValue;
-
-	virtual void drawDatasets(QPainter &painter);
-	virtual void drawImageOverlays(QPainter &painter);
-	virtual void drawAxes(QPainter &painter);
+	void AddContextMenuEntries(QMenu* contextMenu) override;
 	virtual void changeMode(int newMode, QMouseEvent *event) override;
 
-	// conversion between screen and data coordinates/bins:
-	int diagram2PaintX(double x);
-	long screenX2DataBin(int x);
-	int  dataBin2ScreenX(long x);
-
+	MdiChild*      activeChild;
+	std::vector<dlg_function*> functions;
+	bool updateAutomatically;
+	unsigned int selectedFunction;
 signals:
 	void updateViews();
 	void pointSelected();
@@ -171,7 +110,6 @@ public slots:
 	int deletePoint();
 	void changeColor(QMouseEvent *event = NULL);
 	void autoUpdate(bool toggled);
-	void showTooltip(bool toggled);
 	void resetView();
 	void resetTrf();
 	void updateTrf();
@@ -186,34 +124,14 @@ public slots:
 	void removeFunction();
 	void showTFTable();
 	void TFTableIsFinished();
-	void ExportData();
 
 protected:
 	virtual void drawFunctions(QPainter &painter);
-	virtual QString GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma);
-
-	QFlags<Qt::AlignmentFlag> m_captionPosition;
-	bool                      m_showXAxisLabel;
-	bool                      m_showFunctions;
-
+	bool m_showFunctions;
 private:
-	QList< QSharedPointer< QImage > >						m_overlays;
-	QVector< QSharedPointer< iAPlot > >	m_plots;
-	bool													m_allowTrfReset;
-	bool													m_enableAdditionalFunctions;
-	DrawModeType											m_yDrawMode;
-	QSharedPointer<CoordinateConverter>						m_yConverter;
+	bool m_allowTrfReset;
+	bool m_enableAdditionalFunctions;
 	dlg_TFTable* TFTable;
-	
-	int m_xAxisSteps;
-	int m_yAxisSteps;
-	int m_requiredPlacesAfterComma;
-	bool m_showTooltip;
-
-	virtual void drawXAxis(QPainter &painter);
-	virtual void drawYAxis(QPainter &painter);
-	virtual double getMaxXZoom() const;
-	virtual void showDataTooltip(QMouseEvent *event);
-	void CreateYConverter();
 	void NewTransferFunction();
+	void DrawAfterPlots(QPainter& painter) override;
 };

@@ -89,12 +89,12 @@ public:
 								QString const & xlabel = "Greyvalue",
 								QString const & yLabel = "Frequency" );
 
-	virtual void drawFunctions( QPainter &painter );
-	virtual void mouseDoubleClickEvent( QMouseEvent *event );
-	virtual void mousePressEvent( QMouseEvent *event );
-	virtual void mouseReleaseEvent( QMouseEvent *event );
-	virtual void mouseMoveEvent( QMouseEvent *event );
-	virtual void contextMenuEvent( QContextMenuEvent *event );
+	void drawFunctions( QPainter &painter ) override;
+	void mouseDoubleClickEvent( QMouseEvent *event ) override;
+	void mousePressEvent( QMouseEvent *event ) override;
+	void mouseReleaseEvent( QMouseEvent *event ) override;
+	void mouseMoveEvent( QMouseEvent *event ) override;
+	void contextMenuEvent( QContextMenuEvent *event ) override;
 	void updateSelectedDiagrams();
 	QList<int> getSelectedRawTableRows();
 

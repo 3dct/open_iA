@@ -20,11 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QPoint>
 #include <QMouseEvent>
-#include <QKeyEvent>
-
-#include "vtkPolyData.h"
 
 #include "iADiagramWidget.h"
 
@@ -32,7 +28,6 @@
 class vtkPolyData;
 class vtkDataArray;
 
-class QPaintEvent;
 class QPainter;
 
 class iAProfileWidget : public iADiagramWidget
@@ -40,46 +35,17 @@ class iAProfileWidget : public iADiagramWidget
 	Q_OBJECT
 
 public:
-	static const int SELECTED_POINT_RADIUS = 8;
-	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
-	static const int POINT_RADIUS = 6;
-	static const int POINT_SIZE = 2*POINT_RADIUS;
 	static const int TEXT_Y = 15;
-	static const int TEXT_X = 15;
-
-	// Constructor/Destructor
 	iAProfileWidget(QWidget *parent, vtkPolyData* profData, double rayLength, QString yCapt = "Y Axis", QString xCapt = "X Axis");
 	void initialize(vtkPolyData* profData, double rayLength);
-
-	//draw the histogram
-	void drawProfilePlot();
-	void redraw();
-
-	int getMax() { return yHeight; }
-protected:
-	void paintEvent(QPaintEvent * );
-
 private:
-	vtkPolyData*       profileData;
-	
-	QPoint		lastpoint;
-	QWidget		* activeChild;
-	QPoint		contextPos;
-
-	int xPos;
+	vtkPolyData* profileData;
 	double numBin, rayLen;
 	double yDataRange[2];
-	double min_intensity[3];
-	double max_intensity[3];
 	vtkDataArray * scalars;
 	double yHeight;
-
-	void drawHistogram(QPainter &painter);
-	void drawAxes(QPainter &painter);
-	void drawXAxis(QPainter &painter);
-	void drawYAxis(QPainter &painter);
+	void DrawPlots(QPainter &painter) override;
 	void showDataTooltip(QMouseEvent *event);
-
 Q_SIGNALS:
 	void binSelected(int newBin);
 };

@@ -185,7 +185,7 @@ void dlg_transfer::drawOnTop(QPainter &painter)
 	{
 		double gradientWidth = chart->ActiveWidth()*chart->XZoom();
 
-		painter.fillRect( 0, 0, gradientWidth, -chart->GetTFGradientHeight(), gradient );
+		painter.fillRect( 0, 0, gradientWidth, -chart->BottomMargin(), gradient );
 	}
 }
 

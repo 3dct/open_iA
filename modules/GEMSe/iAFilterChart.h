@@ -51,13 +51,13 @@ public:
 signals:
 	void SelectionChanged();
 protected:
-	void drawAxes(QPainter& painter) override;
+	void DrawAxes(QPainter& painter) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void mousePressEvent( QMouseEvent *event ) override;
 	void mouseReleaseEvent( QMouseEvent *event ) override;
 	void mouseMoveEvent( QMouseEvent *event ) override;
 private:
-	QString GetXAxisCaption(double value, int placesBeforeComma, int requiredPlacesAfterComma) override;
+	QString GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma) override;
 	int value2X(double value) const;
 	double x2value(int x) const;
 	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
