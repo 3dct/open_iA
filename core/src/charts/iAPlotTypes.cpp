@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAPlotTypes.h"
 
+#include "iAMapper.h"
 #include "iAPlotData.h"
 
 #include <QPainter>
@@ -58,7 +59,7 @@ iASelectedBinDrawer::iASelectedBinDrawer( int position /*= 0*/, QColor const & c
 : iAPlot( color ), m_position( position )
 {}
 
-void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter ) const
+void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter ) const
 {
 	int x = (int)(m_position * binWidth);
 	int h = painter.device()->height();
@@ -80,7 +81,7 @@ iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAPlot
 	m_cachedCoordConv(0)
 {}
 
-void iAPolygonBasedFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const
+void iAPolygonBasedFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const
 {
 	if (!m_poly || m_cachedBinWidth != binWidth || !m_cachedCoordConv || !m_cachedCoordConv->equals(converter) )
 	{
@@ -120,7 +121,7 @@ void iALineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> 
 	painter.drawPolyline(*poly.data());
 }
 
-bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
+bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
@@ -131,7 +132,7 @@ bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 	for (int j = 0; j < m_data->GetNumBin(); j++)
 	{
 		int curX = (int)(j * binWidth) + binWidthHalf;
-		int curY = converter->Diagram2ScreenY(rawData[j]);
+		int curY = converter->SrcToDest(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
 	}
 	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0 ));
@@ -157,7 +158,7 @@ void iAFilledLineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPol
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
-bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
+bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
@@ -192,7 +193,7 @@ bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer
 		{
 			curX = ((int)(j*binWidth) + maxX) / 2;
 		}
-		int curY = converter->Diagram2ScreenY(rawData[j]);
+		int curY = converter->SrcToDest(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
 		if (j == maxBin)
 		{
@@ -222,7 +223,7 @@ void iAStepFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> 
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
-bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<CoordinateConverter> converter) const
+bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
@@ -233,7 +234,7 @@ bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<Coord
 	{
 		int curX1 = 1 + (int)(j * binWidth);
 		int curX2 = 1 + (int)(j * binWidth) + binWidth;
-		int curY = converter->Diagram2ScreenY(rawData[j]);
+		int curY = converter->SrcToDest(rawData[j]);
 		m_poly->push_back(QPoint(curX1, curY));
 		m_poly->push_back(QPoint(curX2, curY));
 	}
@@ -254,7 +255,7 @@ iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const
 {
 }
 
-void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const
+void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	int intBinWidth = static_cast<int>(std::ceil(binWidth)) - m_margin;
@@ -269,7 +270,7 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<C
 	for ( int j = 0; j < m_data->GetNumBin(); j++ )
 	{
 		x = (int)(j * binWidth) + halfMargin;
-		h = converter->Diagram2ScreenY(rawData[j]);
+		h = converter->SrcToDest(rawData[j]);
 		painter.fillRect(QRect(x, 1, intBinWidth, h), fillColor);
 	}
 }
@@ -279,7 +280,7 @@ iAMultipleFunctionDrawer::iAMultipleFunctionDrawer():
 	iAPlot(QColor())
 {}
 
-void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const
+void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const
 {
 	qreal oldPenWidth = painter.pen().widthF();
 	QPen pen = painter.pen();

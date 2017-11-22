@@ -30,7 +30,7 @@
 #include <QImage>
 
 class iAPlot;
-class CoordinateConverter;
+class iAMapper;
 
 class QMenu;
 
@@ -53,7 +53,7 @@ public:
 	int ActiveHeight() const;
 	int Height() const;
 	iAPlotData::DataType GetMaxYDataValue() const;
-	QSharedPointer<CoordinateConverter> const YMapper() const;
+	QSharedPointer<iAMapper> const YMapper() const;
 	virtual iAPlotData::DataType const * YBounds() const;
 	virtual double const * XBounds() const;
 	virtual size_t MaxXAxisSteps() const;
@@ -105,7 +105,7 @@ protected:
 	int leftMargin;
 	int width, height;
 	int mode;
-	QSharedPointer<CoordinateConverter> m_yConverter;
+	QSharedPointer<iAMapper> m_yConverter;
 	AxisMappingType m_yMappingMode;
 	bool m_contextMenuVisible;
 

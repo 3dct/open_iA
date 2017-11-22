@@ -24,6 +24,7 @@
 #include <cmath>
 
 #include "iADiagramWidget.h"
+#include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
 #include "iAStringHelper.h"
@@ -53,109 +54,6 @@ namespace
 	const int TEXT_X = 15;
 	const int Y_AXIS_STEPS = 5;
 	const size_t MAX_X_AXIS_STEPS = 32 * static_cast<size_t>(MAX_X_ZOOM);
-
-	class LinearConverter : public CoordinateConverter
-	{
-	public:
-		LinearConverter(double yZoom, double yMin, double yMax, int height)
-		{
-			LinearConverter::update(yZoom, yMax, yMin, height);
-		}
-		double Diagram2ScreenY(double y) const override
-		{
-			return (y-yMin) * yScaleFactor;
-		}
-		double Screen2DiagramY(double y) const override
-		{
-			return y / yScaleFactor + yMin;
-		}
-		bool equals(QSharedPointer<CoordinateConverter> other) const override
-		{
-			LinearConverter* linearOther = dynamic_cast<LinearConverter*>(other.data());
-			return (linearOther != 0 && yScaleFactor == linearOther->yScaleFactor);
-		}
-		QSharedPointer<CoordinateConverter> clone() override
-		{
-			return QSharedPointer<CoordinateConverter>(new LinearConverter(*this));
-		}
-		void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override
-		{
-			yMin = yMinValueBiggerThanZero;
-			if (yMax)
-				yScaleFactor = (double)(height - 1) / (yMax-yMin) *yZoom;
-			else
-				yScaleFactor = 1;
-		}
-	private:
-		LinearConverter(LinearConverter const & other) :
-			yScaleFactor(other.yScaleFactor)
-		{
-		}
-		double yScaleFactor;
-		double yMin;
-	};
-
-	class LogarithmicConverter : public CoordinateConverter
-	{
-	public:
-		LogarithmicConverter(double yZoom, double yMax, double yMinValueBiggerThanZero, int height)
-		{
-			LogarithmicConverter::update(yZoom, yMax, yMinValueBiggerThanZero, height);
-		}
-
-		double Diagram2ScreenY(double y) const override
-		{
-			if (y <= 0)
-				return 0;
-
-			double yLog = LogFunc(y);
-
-			yLog = clamp(yMinLog, yMaxLog, yLog);
-
-			return mapValue(
-				yMinLog, yMaxLog,
-				0.0, static_cast<double>(height * yZoom),
-				yLog
-			);
-		}
-		double Screen2DiagramY(double y) const override
-		{
-			double yLog = mapValue(
-				0.0, static_cast<double>(height * yZoom),
-				yMinLog, yMaxLog,
-				y
-			);
-			return std::pow(LogBase, yLog);
-		}
-		bool equals(QSharedPointer<CoordinateConverter> other) const  override
-		{
-			LogarithmicConverter* logOther = dynamic_cast<LogarithmicConverter*>(other.data());
-			return (logOther && yZoom == logOther->yZoom &&
-				yMaxLog == logOther->yMaxLog && yMinLog == logOther->yMinLog &&
-				height == logOther->height);
-		}
-		QSharedPointer<CoordinateConverter> clone() override
-		{
-			return QSharedPointer<CoordinateConverter>(new LogarithmicConverter(*this));
-		}
-		void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override
-		{
-			this->yZoom = yZoom;
-			yMaxLog = LogFunc(yMax);
-			yMinLog = LogFunc(yMinValueBiggerThanZero) - 1;
-			this->height = height;
-		}
-	private:
-		LogarithmicConverter(LogarithmicConverter const & other) :
-			yZoom(other.yZoom),
-			yMaxLog(other.yMaxLog),
-			yMinLog(other.yMinLog),
-			height(other.height)
-		{}
-		double yZoom;
-		double yMaxLog, yMinLog;
-		int height;
-	};
 }
 
 iADiagramWidget::iADiagramWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
@@ -339,7 +237,7 @@ iAPlotData::DataType const * iADiagramWidget::YBounds() const
 	return m_yBounds;
 }
 
-QSharedPointer<CoordinateConverter> const iADiagramWidget::YMapper() const
+QSharedPointer<iAMapper> const iADiagramWidget::YMapper() const
 {
 	return m_yConverter;
 }
@@ -348,10 +246,10 @@ QSharedPointer<CoordinateConverter> const iADiagramWidget::YMapper() const
 void iADiagramWidget::CreateYConverter()
 {
 	if (m_yMappingMode == Linear)
-		m_yConverter = QSharedPointer<CoordinateConverter>(new LinearConverter(yZoom, m_yBounds[0], m_yBounds[1], ActiveHeight() - 1));
+		m_yConverter = QSharedPointer<iAMapper>(new iALinearMapper(yZoom, m_yBounds[0], m_yBounds[1], ActiveHeight() - 1));
 	else
 		// 1 - smallest value larger than 0. TODO: find that from data!
-		m_yConverter = QSharedPointer<CoordinateConverter>(new LogarithmicConverter(yZoom, m_yBounds[1], 1, ActiveHeight() - 1));
+		m_yConverter = QSharedPointer<iAMapper>(new iALogarithmicMapper(yZoom, m_yBounds[1], 1, ActiveHeight() - 1));
 }
 
 

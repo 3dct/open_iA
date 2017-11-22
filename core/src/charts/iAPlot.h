@@ -26,23 +26,10 @@
 #include <QSharedPointer>
 
 class iAPlotData;
+class iAMapper;
 
 class QColor;
 class QPainter;
-
-class CoordinateConverter
-{
-public:
-	virtual ~CoordinateConverter() {}
-	virtual double Diagram2ScreenY(double y) const =0;
-	virtual double Screen2DiagramY(double y) const =0;
-	virtual void update(double yZoom, double yDataMax, double yMinValueBiggerThanZero, int height) =0;
-	virtual bool equals(QSharedPointer<CoordinateConverter> other) const
-	{
-		return false;
-	}
-	virtual QSharedPointer<CoordinateConverter> clone() =0;
-};
 
 /** Interface for a function which is drawable in a diagram
  *	encapsulates both the data of the function and the drawing method */
@@ -57,7 +44,7 @@ public:
 	* \brief method which draws the function
 	* it is allowed to cache the result; when the data has changed, update() needs to be called
 	*/
-	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<CoordinateConverter> converter) const =0;
+	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const =0;
 	/** retrieves the data used for drawing */
 	virtual QSharedPointer<iAPlotData> GetData();
 	virtual bool Visible() const;

@@ -23,7 +23,7 @@
 #include "dlg_bezier.h"
 
 #include "charts/iADiagramFctWidget.h"
-#include "charts/iAPlot.h"	// for CoordinateConverter
+#include "iAMapper.h"
 #include "iAMathUtility.h"
 
 #include <vtkImageData.h>
@@ -547,7 +547,7 @@ double dlg_bezier::v2dX(int x)
 
 double dlg_bezier::v2dY(int y)
 {
-	return chart->YMapper()->Diagram2ScreenY(y) *chart->YBounds()[1] / chart->YZoom();
+	return chart->YMapper()->SrcToDest(y) *chart->YBounds()[1] / chart->YZoom();
 }
 
 int dlg_bezier::d2vX(double x)

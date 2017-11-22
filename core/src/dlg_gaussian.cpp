@@ -23,7 +23,7 @@
 #include "dlg_gaussian.h"
 
 #include "charts/iADiagramFctWidget.h"
-#include "charts/iAPlot.h"	// for CoordinateConverter
+#include "iAMapper.h"
 #include "iAMathUtility.h"
 
 #include <QPen>
@@ -213,7 +213,7 @@ double dlg_gaussian::v2dX(int x)
 
 double dlg_gaussian::v2dY(int y)
 {
-	return chart->YMapper()->Diagram2ScreenY(y) *chart->YBounds()[1] /chart->YZoom();
+	return chart->YMapper()->SrcToDest(y) *chart->YBounds()[1] /chart->YZoom();
 }
 
 int dlg_gaussian::d2vX(double x)

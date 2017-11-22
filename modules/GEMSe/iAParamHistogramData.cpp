@@ -26,6 +26,7 @@
 #include "iAChartAttributeMapper.h"
 #include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
+#include "iAMapperImpl.h"    // for LogFunc -> TODO: use iAMapper-derived classes here!
 #include "iAMathUtility.h"
 
 #include <algorithm> // for std::fill

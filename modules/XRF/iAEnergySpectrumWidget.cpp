@@ -24,6 +24,7 @@
 
 #include "iAAccumulatedXRFData.h"
 #include "iACharacteristicEnergy.h"
+#include "iAMapper.h"
 #include "charts/iAPlotTypes.h"
 #include "iASpectrumFilter.h"
 
@@ -108,8 +109,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction
-		diagramRect.setTop(    YMapper()->Screen2DiagramY(ActiveHeight() - selectionRect.bottom()) );
-		diagramRect.setBottom( YMapper()->Screen2DiagramY(ActiveHeight() - selectionRect.top()   ) );
+		diagramRect.setTop(    YMapper()->DestToSrc(ActiveHeight() - selectionRect.bottom()) );
+		diagramRect.setBottom( YMapper()->DestToSrc(ActiveHeight() - selectionRect.top()   ) );
 		diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
 		diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
 		diagramRect = diagramRect.normalized();
@@ -161,8 +162,8 @@ void iAEnergySpectrumWidget::DrawAfterPlots(QPainter& painter)
 	for (int i=0; i<selectionRects.size(); ++i)
 	{
 		QRect drawRect;
-		drawRect.setTop(   YMapper()->Diagram2ScreenY(selectionRects[i].top()));
-		drawRect.setBottom(YMapper()->Diagram2ScreenY(selectionRects[i].bottom())-1);
+		drawRect.setTop(   YMapper()->SrcToDest(selectionRects[i].top()));
+		drawRect.setBottom(YMapper()->SrcToDest(selectionRects[i].bottom())-1);
 		drawRect.setLeft(  dataBin2ScreenX(selectionRects[i].left()));
 		drawRect.setRight( dataBin2ScreenX(selectionRects[i].right())-2);
 		drawRect = drawRect.normalized();

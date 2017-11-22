@@ -20,32 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <QSharedPointer>
 
-#include "iAValueType.h"
-
-#include <cstddef> // for size_t
-#include <cmath>   // for log
-
-class open_iA_Core_API iAPlotData
+class iAMapper
 {
 public:
-	typedef double DataType;
-	virtual ~iAPlotData() {}
-	virtual DataType const * GetRawData() const =0;
-	virtual size_t GetNumBin() const =0;
-	virtual double GetMinX() const { return 0; }
-	virtual double GetMaxX() const { return GetNumBin(); }
-	virtual double GetSpacing() const = 0;
-	virtual double const * XBounds() const = 0;
-	virtual DataType const * YBounds() const = 0;
-
-	virtual double GetBinStart(int binNr) const		// default: assume constant (i.e. linear) spacing
-	{
-		return GetSpacing() * binNr + XBounds()[0];
-	}
-	virtual iAValueType GetRangeType() const
-	{
-		return Continuous;
-	}
+	virtual ~iAMapper();
+	virtual double SrcToDest(double y) const = 0;
+	virtual double DestToSrc(double y) const = 0;
+	virtual void update(double yZoom, double yDataMax, double yDataMin, int height) = 0;
+	virtual bool equals(QSharedPointer<iAMapper> other) const;
+	virtual QSharedPointer<iAMapper> clone() = 0;
 };
