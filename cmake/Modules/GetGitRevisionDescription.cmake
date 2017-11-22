@@ -103,26 +103,34 @@ function(git_describe _var)
 	#message(STATUS "Arguments to execute_process: ${ARGN}")
 
 	execute_process(COMMAND
-		"${GIT_EXECUTABLE}"
-		describe
-		${hash}
-		${ARGN}
-		WORKING_DIRECTORY
-		"${CMAKE_SOURCE_DIR}"
-		RESULT_VARIABLE
-		res
-		OUTPUT_VARIABLE
-		out
+		"${GIT_EXECUTABLE}" describe ${hash} ${ARGN}
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		RESULT_VARIABLE res
+		OUTPUT_VARIABLE	out
 		ERROR_QUIET
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
+		
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
 	endif()
 	IF ("${out}" MATCHES "[a-zA-Z0-9.]*-[0-9]*-[0-9a-z]*")
-		STRING(LENGTH ${out} STRLENOUT)
-		MATH(EXPR MINUSOUT "${STRLENOUT}-9" )
-		STRING(SUBSTRING ${out} 0 ${MINUSOUT} substrout)
-		STRING(REGEX REPLACE "-" "." out ${substrout})
+		STRING (FIND "${out}" "-" LASTHYPHENPOS REVERSE)
+		MATH(EXPR SHORTHASHSTART "${LASTHYPHENPOS}+2")
+		STRING(SUBSTRING "${out}" ${SHORTHASHSTART} -1 shorthash)
+		STRING(SUBSTRING "${out}" 0 "${LASTHYPHENPOS}" substrout)
+		STRING(FIND "${substrout}" "-" LASTHYPHENPOS REVERSE)
+		STRING(SUBSTRING "${substrout}" 0 "${LASTHYPHENPOS}" versionstr)
+		execute_process(COMMAND
+			"${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
+			WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+			RESULT_VARIABLE res
+			OUTPUT_VARIABLE	branch
+			ERROR_QUIET
+			OUTPUT_STRIP_TRAILING_WHITESPACE)
+		if(NOT res EQUAL 0)
+			set(branch "${branch}-${res}-error")
+		endif()
+		STRING(CONCAT out "${versionstr}" "-" "${branch}" "-" "${shorthash}")
 	ENDIF()
 	set(${_var} "${out}" PARENT_SCOPE)
 endfunction()
