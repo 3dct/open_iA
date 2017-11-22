@@ -22,7 +22,7 @@
 
 #include <QMouseEvent>
 
-#include "iADiagramWidget.h"
+#include "iAChartWidget.h"
 
 // FORWARD DECLARATIONS
 class vtkPolyData;
@@ -30,7 +30,7 @@ class vtkDataArray;
 
 class QPainter;
 
-class iAProfileWidget : public iADiagramWidget
+class iAProfileWidget : public iAChartWidget
 {
 	Q_OBJECT
 

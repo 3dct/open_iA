@@ -47,7 +47,7 @@
 
 iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	QString const & xLabel, QString const & yLabel) :
-	iADiagramWidget(parent, xLabel, yLabel),
+	iAChartWidget(parent, xLabel, yLabel),
 	TFTable(0),
 	m_allowTrfReset(true),
 	m_enableAdditionalFunctions(true),
@@ -166,7 +166,7 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 			break;
 		}
 		default:
-			iADiagramWidget::mousePressEvent(event);
+			iAChartWidget::mousePressEvent(event);
 			break;
 	}
 }
@@ -175,7 +175,7 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (!m_showFunctions)
 	{
-		iADiagramWidget::mouseReleaseEvent(event);
+		iAChartWidget::mouseReleaseEvent(event);
 		return;
 	}
 	std::vector<dlg_function*>::iterator it = functions.begin();
@@ -225,7 +225,7 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 		}
 		break;
 		default:
-			iADiagramWidget::mouseMoveEvent(event);
+			iAChartWidget::mouseMoveEvent(event);
 	}
 }
 
@@ -344,7 +344,7 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 		}
 			break;
 		default:
-			iADiagramWidget::changeMode(newMode, event);
+			iAChartWidget::changeMode(newMode, event);
 			break;
 	}
 }

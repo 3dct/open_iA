@@ -89,7 +89,7 @@ void iAEnergySpectrumWidget::mousePressEvent(QMouseEvent *event)
 				event->buttons(),
 				event->modifiers()
 			);
-			iADiagramFctWidget::mousePressEvent(&eventCopy); //if any modifiers, or click is on the bottom panel: process in iADiagramWidget
+			iADiagramFctWidget::mousePressEvent(&eventCopy); //if any modifiers, or click is on the bottom panel: process in base class
 		}
 	}
 }

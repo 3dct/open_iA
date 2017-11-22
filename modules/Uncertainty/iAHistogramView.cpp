@@ -20,24 +20,18 @@
 * ************************************************************************************/
 #include "iAHistogramView.h"
 
-#include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
-#include "charts/iAPlotTypes.h"
 #include "iASimpleHistogramData.h"
+#include "iAUncertaintyColors.h"
+
+#include "charts/iAChartWidget.h"
+#include "charts/iAPlotTypes.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
 #include <QHBoxLayout>
-
-iAHistogramChartWidget::iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption):
-	iADiagramFctWidget(nullptr, nullptr, caption, "Frequency (Pixels)"),
-	m_data(data) {
-	setMinimumHeight(120);
-	AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, iAUncertaintyColors::Chart, 2)));
-}
-
 
 
 iAHistogramView::iAHistogramView()
@@ -47,8 +41,9 @@ iAHistogramView::iAHistogramView()
 
 void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data)
 {
-	m_chart = new iAHistogramChartWidget(data, caption);
-	m_chart->SetEnableAdditionalFunctions(false);
+	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
+	m_chart->setMinimumHeight(120);
+	m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(data, iAUncertaintyColors::Chart, 2)));
 	layout()->setSpacing(5);
 	layout()->addWidget(m_chart);
 }

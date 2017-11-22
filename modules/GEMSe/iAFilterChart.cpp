@@ -46,7 +46,7 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	QSharedPointer<iANameMapper> nameMapper,
 	bool showCaption)
 :
-	iADiagramFctWidget(parent, 0, caption),
+	iAChartWidget(parent, 0, caption),
 	m_data(data),
 	m_markedLocation(InvalidMarker),
 	m_nameMapper(nameMapper),
@@ -130,7 +130,7 @@ void iAFilterChart::DrawAxes(QPainter& painter)
 	drawMarker(painter, m_minSliderPos, DefaultColors::ChartSliderPen, DefaultColors::ChartSliderBrush);
 	drawMarker(painter, m_maxSliderPos, DefaultColors::ChartSliderPen, DefaultColors::ChartSliderBrush);
 
-	iADiagramFctWidget::DrawAxes(painter);
+	iAChartWidget::DrawAxes(painter);
 }
 
 
@@ -179,7 +179,7 @@ QString iAFilterChart::GetXAxisTickMarkLabel(double value, int placesBeforeComma
 		return (value < m_nameMapper->size()) ? m_nameMapper->GetName(static_cast<int>(value)):
 			"";
 	}
-	return iADiagramFctWidget::GetXAxisTickMarkLabel(value, placesBeforeComma, requiredPlacesAfterComma);
+	return iAChartWidget::GetXAxisTickMarkLabel(value, placesBeforeComma, requiredPlacesAfterComma);
 }
 
 void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
@@ -211,7 +211,7 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 		{
 			translationStartX = translationX;
 			translationStartY = translationY;
-			iADiagramWidget::changeMode( MOVE_VIEW_MODE, event );
+			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 			return;
 		}
 		
@@ -235,7 +235,7 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 			}
 		}
 	}
-	iADiagramFctWidget::mousePressEvent(event);
+	iAChartWidget::mousePressEvent(event);
 }
 
 void iAFilterChart::mouseReleaseEvent( QMouseEvent *event )
@@ -249,7 +249,7 @@ void iAFilterChart::mouseReleaseEvent( QMouseEvent *event )
 			return;
 		}
 	}
-	iADiagramFctWidget::mouseReleaseEvent( event );
+	iAChartWidget::mouseReleaseEvent( event );
 }
 
 void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
@@ -292,7 +292,7 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 	}
 	else if ((event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier )
 	{
-		iADiagramWidget::mouseMoveEvent( event );
+		iAChartWidget::mouseMoveEvent( event );
 	}
 }
 

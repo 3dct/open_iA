@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iADiagramFctWidget.h"
+#include "charts/iAChartWidget.h"
 
 #include "iAValueType.h"
 
 class iAParamHistogramData;
 class iANameMapper;
 
-class iAFilterChart: public iADiagramFctWidget
+class iAFilterChart: public iAChartWidget
 {
 	Q_OBJECT
 public:

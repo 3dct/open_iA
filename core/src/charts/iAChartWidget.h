@@ -34,14 +34,14 @@ class iAMapper;
 
 class QMenu;
 
-class open_iA_Core_API iADiagramWidget : public QGLWidget
+class open_iA_Core_API iAChartWidget : public QGLWidget
 {
 	Q_OBJECT
 public:
 	enum Mode { NO_MODE, MOVE_VIEW_MODE, X_ZOOM_MODE, Y_ZOOM_MODE };
 	enum AxisMappingType { Linear, Logarithmic };
-	iADiagramWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
-	virtual ~iADiagramWidget();
+	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
+	virtual ~iAChartWidget();
 
 	double XZoom()  const { return xZoom;        }
 	double YZoom()  const { return yZoom;        }

@@ -143,7 +143,7 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 		{
 			translationStartX = translationX;
 			translationStartY = translationY;
-			iADiagramWidget::changeMode( MOVE_VIEW_MODE, event );
+			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 		}
 	}
 }
@@ -266,7 +266,7 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 		}
 		else if ( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier )
 		{
-			iADiagramWidget::mouseMoveEvent( event );
+			iAChartWidget::mouseMoveEvent( event );
 		}
 	}
 }

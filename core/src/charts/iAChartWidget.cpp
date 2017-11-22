@@ -23,7 +23,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "iADiagramWidget.h"
+#include "iAChartWidget.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
@@ -56,7 +56,7 @@ namespace
 	const size_t MAX_X_AXIS_STEPS = 32 * static_cast<size_t>(MAX_X_ZOOM);
 }
 
-iADiagramWidget::iADiagramWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
+iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
 	QGLWidget(parent),
 	xCaption(xLabel),
 	yCaption(yLabel),
@@ -88,12 +88,12 @@ iADiagramWidget::iADiagramWidget(QWidget* parent, QString const & xLabel, QStrin
 	setAutoFillBackground(false);
 }
 
-iADiagramWidget::~iADiagramWidget()
+iAChartWidget::~iAChartWidget()
 {
 	delete m_contextMenu;
 }
 
-void iADiagramWidget::wheelEvent(QWheelEvent *event)
+void iAChartWidget::wheelEvent(QWheelEvent *event)
 {
 	if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier ||
 		(event->modifiers() & Qt::AltModifier) == Qt::Key_AltGr)
@@ -108,7 +108,7 @@ void iADiagramWidget::wheelEvent(QWheelEvent *event)
 	event->accept();
 }
 
-void iADiagramWidget::resizeEvent(QResizeEvent *event)
+void iAChartWidget::resizeEvent(QResizeEvent *event)
 {
 	if ( (this->geometry().width() != width) || (this->geometry().height() != height) )
 	{
@@ -122,18 +122,18 @@ void iADiagramWidget::resizeEvent(QResizeEvent *event)
 	QWidget::resizeEvent(event);
 }
 
-void iADiagramWidget::leaveEvent(QEvent*)
+void iAChartWidget::leaveEvent(QEvent*)
 {
 	this->clearFocus();
 }
 
-void iADiagramWidget::setNewSize()
+void iAChartWidget::setNewSize()
 {
 	width = this->geometry().width();
 	height = this->geometry().height();
 }
 
-void iADiagramWidget::zoomAlongY(double value, bool deltaMode)
+void iAChartWidget::zoomAlongY(double value, bool deltaMode)
 {
 	if (deltaMode)
 	{
@@ -153,7 +153,7 @@ void iADiagramWidget::zoomAlongY(double value, bool deltaMode)
 	yZoom = clamp(MIN_Y_ZOOM, MAX_Y_ZOOM, yZoom);;
 }
 
-void iADiagramWidget::zoomAlongX(double value, int x, bool deltaMode)
+void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 {
 	int xZoomBefore = xZoom;
 	int translationXBefore = translationX;
@@ -184,38 +184,38 @@ void iADiagramWidget::zoomAlongX(double value, int x, bool deltaMode)
 		emit XAxisChanged();
 }
 
-int iADiagramWidget::ActiveWidth() const
+int iAChartWidget::ActiveWidth() const
 {
 	return width - LeftMargin();
 }
 
-int iADiagramWidget::ActiveHeight() const
+int iAChartWidget::ActiveHeight() const
 {
 	return height - BottomMargin();
 }
 
-int iADiagramWidget::Height() const
+int iAChartWidget::Height() const
 {
 	return height;
 }
 
-void iADiagramWidget::SetXCaption(QString const & caption)
+void iAChartWidget::SetXCaption(QString const & caption)
 {
 	xCaption = caption;
 }
 
-double const * iADiagramWidget::XBounds() const
+double const * iAChartWidget::XBounds() const
 {
 	return m_xBounds;
 }
 
-double iADiagramWidget::XRange() const
+double iAChartWidget::XRange() const
 {
 	return m_xBounds[1] - m_xBounds[0];
 }
 
 
-int iADiagramWidget::BottomMargin() const
+int iAChartWidget::BottomMargin() const
 {
 	if (!m_showXAxisLabel)
 	{
@@ -224,7 +224,7 @@ int iADiagramWidget::BottomMargin() const
 	return BOTTOM_MARGIN;
 }
 
-iAPlotData::DataType iADiagramWidget::GetMaxYDataValue() const
+iAPlotData::DataType iAChartWidget::GetMaxYDataValue() const
 {
 	iAPlotData::DataType maxVal = std::numeric_limits<iAPlotData::DataType>::lowest();
 	for (auto plot : m_plots)
@@ -232,18 +232,18 @@ iAPlotData::DataType iADiagramWidget::GetMaxYDataValue() const
 	return maxVal;
 }
 
-iAPlotData::DataType const * iADiagramWidget::YBounds() const
+iAPlotData::DataType const * iAChartWidget::YBounds() const
 {
 	return m_yBounds;
 }
 
-QSharedPointer<iAMapper> const iADiagramWidget::YMapper() const
+QSharedPointer<iAMapper> const iAChartWidget::YMapper() const
 {
 	return m_yConverter;
 }
 
 
-void iADiagramWidget::CreateYConverter()
+void iAChartWidget::CreateYConverter()
 {
 	if (m_yMappingMode == Linear)
 		m_yConverter = QSharedPointer<iAMapper>(new iALinearMapper(yZoom, m_yBounds[0], m_yBounds[1], ActiveHeight() - 1));
@@ -253,7 +253,7 @@ void iADiagramWidget::CreateYConverter()
 }
 
 
-void iADiagramWidget::DrawEverything()
+void iAChartWidget::DrawEverything()
 {
 	if (!m_yConverter)
 		CreateYConverter();
@@ -277,7 +277,7 @@ void iADiagramWidget::DrawEverything()
 	m_draw = false;
 }
 
-void iADiagramWidget::DrawImageOverlays(QPainter& painter)
+void iAChartWidget::DrawImageOverlays(QPainter& painter)
 {
 	QRect targetRect = geometry();
 	int yTranslate = -(yZoom - 1) * (targetRect.height());
@@ -291,7 +291,7 @@ void iADiagramWidget::DrawImageOverlays(QPainter& painter)
 	}
 }
 
-void iADiagramWidget::DrawAfterPlots(QPainter& painter)
+void iAChartWidget::DrawAfterPlots(QPainter& painter)
 {}
 
 namespace
@@ -324,7 +324,7 @@ namespace
 	}
 }
 
-QString iADiagramWidget::GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma)
+QString iAChartWidget::GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma)
 {
 	if ((!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Continuous) || requiredPlacesAfterComma > 1)
 	{
@@ -337,13 +337,13 @@ QString iADiagramWidget::GetXAxisTickMarkLabel(double value, int placesBeforeCom
 		return QString::number(static_cast<long long>(value), 10);
 }
 
-void iADiagramWidget::DrawAxes(QPainter& painter)
+void iAChartWidget::DrawAxes(QPainter& painter)
 {
 	DrawXAxis(painter);
 	DrawYAxis(painter);
 }
 
-size_t iADiagramWidget::MaxXAxisSteps() const
+size_t iAChartWidget::MaxXAxisSteps() const
 {
 	if (!m_plots.empty())
 		return m_plots[0]->GetData()->GetNumBin();
@@ -351,7 +351,7 @@ size_t iADiagramWidget::MaxXAxisSteps() const
 		return MAX_X_AXIS_STEPS;
 }
 
-bool iADiagramWidget::CategoricalAxis() const
+bool iAChartWidget::CategoricalAxis() const
 {
 	if (!m_plots.empty())
 		return (m_plots[0]->GetData()->GetRangeType() == Categorical);
@@ -359,7 +359,7 @@ bool iADiagramWidget::CategoricalAxis() const
 		return false;
 }
 
-void iADiagramWidget::DrawXAxis(QPainter &painter)
+void iAChartWidget::DrawXAxis(QPainter &painter)
 {
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 
@@ -440,7 +440,7 @@ void iADiagramWidget::DrawXAxis(QPainter &painter)
 	}
 }
 
-void iADiagramWidget::DrawYAxis(QPainter &painter)
+void iAChartWidget::DrawYAxis(QPainter &painter)
 {
 	if (LeftMargin() <= 0)
 	{
@@ -493,13 +493,13 @@ void iADiagramWidget::DrawYAxis(QPainter &painter)
 	painter.restore();
 }
 
-void iADiagramWidget::redraw()
+void iAChartWidget::redraw()
 {
 	m_draw = true;
 	update();
 }
 
-void iADiagramWidget::SetXBounds(double valMin, double valMax)
+void iAChartWidget::SetXBounds(double valMin, double valMax)
 {
 	m_customXBounds = true;
 	m_xBounds[0] = valMin;
@@ -508,7 +508,7 @@ void iADiagramWidget::SetXBounds(double valMin, double valMax)
 		(*it)->update();
 }
 
-void iADiagramWidget::SetYBounds(iAPlotData::DataType valMin, iAPlotData::DataType valMax)
+void iAChartWidget::SetYBounds(iAPlotData::DataType valMin, iAPlotData::DataType valMax)
 {
 	m_customYBounds = true;
 	m_yBounds[0] = valMin;
@@ -517,14 +517,14 @@ void iADiagramWidget::SetYBounds(iAPlotData::DataType valMin, iAPlotData::DataTy
 		(*it)->update();
 }
 
-void iADiagramWidget::ResetYBounds()
+void iAChartWidget::ResetYBounds()
 {
 	m_customYBounds = false;
 	m_yBounds[0] = 0;
 	m_yBounds[1] = GetMaxYDataValue();
 }
 
-void iADiagramWidget::UpdateYBounds()
+void iAChartWidget::UpdateYBounds()
 {
 	if (m_customYBounds)
 		return;
@@ -535,7 +535,7 @@ void iADiagramWidget::UpdateYBounds()
 		m_yBounds[1] = GetMaxYDataValue();
 }
 
-void iADiagramWidget::UpdateXBounds()
+void iAChartWidget::UpdateXBounds()
 {
 	if (m_customXBounds)
 		return;
@@ -556,18 +556,18 @@ void iADiagramWidget::UpdateXBounds()
 	}
 }
 
-void iADiagramWidget::UpdateBounds()
+void iAChartWidget::UpdateBounds()
 {
 	UpdateXBounds();
 	UpdateYBounds();
 }
 
-void iADiagramWidget::DrawBackground(QPainter &painter)
+void iAChartWidget::DrawBackground(QPainter &painter)
 {
 	painter.fillRect( rect(), QWidget::palette().color(QWidget::backgroundRole()));
 }
 
-void iADiagramWidget::resetView()
+void iAChartWidget::resetView()
 {
 	translationX = 0;
 	xZoom = 1.0;
@@ -576,7 +576,7 @@ void iADiagramWidget::resetView()
 	redraw();
 }
 
-int iADiagramWidget::diagram2PaintX(double x) const
+int iAChartWidget::diagram2PaintX(double x) const
 {
 	if (m_plots.empty())
 		return x;
@@ -585,7 +585,7 @@ int iADiagramWidget::diagram2PaintX(double x) const
 	return static_cast<int>(round(screenX));
 }
 
-long iADiagramWidget::screenX2DataBin(int x) const
+long iAChartWidget::screenX2DataBin(int x) const
 {
 	if (m_plots.empty())
 		return x;
@@ -595,7 +595,7 @@ long iADiagramWidget::screenX2DataBin(int x) const
 	return static_cast<long>(round(diagX));
 }
 
-int iADiagramWidget::dataBin2ScreenX(long x) const
+int iAChartWidget::dataBin2ScreenX(long x) const
 {
 	if (m_plots.empty())
 		return x;
@@ -605,17 +605,17 @@ int iADiagramWidget::dataBin2ScreenX(long x) const
 	return static_cast<int>(round(screenX));
 }
 
-bool iADiagramWidget::IsContextMenuVisible() const
+bool iAChartWidget::IsContextMenuVisible() const
 {
 	return m_contextMenuVisible;
 }
 
-QPoint iADiagramWidget::ContextMenuPos() const
+QPoint iAChartWidget::ContextMenuPos() const
 {
 	return m_contextPos;
 }
 
-double iADiagramWidget::MaxXZoom() const
+double iAChartWidget::MaxXZoom() const
 {
 	if (m_plots.empty())
 		return MAX_X_ZOOM;
@@ -623,7 +623,7 @@ double iADiagramWidget::MaxXZoom() const
 	return std::max(std::min(MAX_X_ZOOM, numBin), 1.0);
 }
 
-void iADiagramWidget::SetYMappingMode(AxisMappingType drawMode)
+void iAChartWidget::SetYMappingMode(AxisMappingType drawMode)
 {
 	if (m_yMappingMode == drawMode)
 		return;
@@ -631,17 +631,17 @@ void iADiagramWidget::SetYMappingMode(AxisMappingType drawMode)
 	CreateYConverter();
 }
 
-void iADiagramWidget::SetCaptionPosition(QFlags<Qt::AlignmentFlag> captionPosition)
+void iAChartWidget::SetCaptionPosition(QFlags<Qt::AlignmentFlag> captionPosition)
 {
 	m_captionPosition = captionPosition;
 }
 
-void iADiagramWidget::SetShowXAxisLabel(bool show)
+void iAChartWidget::SetShowXAxisLabel(bool show)
 {
 	m_showXAxisLabel = show;
 }
 
-void iADiagramWidget::AddPlot(QSharedPointer<iAPlot> plot)
+void iAChartWidget::AddPlot(QSharedPointer<iAPlot> plot)
 {
 	assert(plot);
 	if (!plot)
@@ -650,7 +650,7 @@ void iADiagramWidget::AddPlot(QSharedPointer<iAPlot> plot)
 	UpdateBounds();
 }
 
-void iADiagramWidget::RemovePlot(QSharedPointer<iAPlot> plot)
+void iAChartWidget::RemovePlot(QSharedPointer<iAPlot> plot)
 {
 	if (!plot)
 		return;
@@ -660,13 +660,13 @@ void iADiagramWidget::RemovePlot(QSharedPointer<iAPlot> plot)
 	UpdateBounds();
 }
 
-QVector<QSharedPointer<iAPlot> > const & iADiagramWidget::Plots()
+QVector<QSharedPointer<iAPlot> > const & iAChartWidget::Plots()
 {
 	return m_plots;
 }
 
 
-bool iADiagramWidget::IsDrawnDiscrete() const
+bool iAChartWidget::IsDrawnDiscrete() const
 {
 	for (auto plot : m_plots)
 		if (!((plot->GetData()->GetRangeType() == Discrete && (XRange() <= plot->GetData()->GetNumBin()))
@@ -675,12 +675,12 @@ bool iADiagramWidget::IsDrawnDiscrete() const
 	return !m_plots.empty();
 }
 
-void iADiagramWidget::AddImageOverlay(QSharedPointer<QImage> imgOverlay)
+void iAChartWidget::AddImageOverlay(QSharedPointer<QImage> imgOverlay)
 {
 	m_overlays.push_back(imgOverlay);
 }
 
-void iADiagramWidget::RemoveImageOverlay(QImage * imgOverlay)
+void iAChartWidget::RemoveImageOverlay(QImage * imgOverlay)
 {
 	for (int i = 0; i < m_overlays.size(); ++i)
 	{
@@ -692,7 +692,7 @@ void iADiagramWidget::RemoveImageOverlay(QImage * imgOverlay)
 	}
 }
 
-void iADiagramWidget::DrawPlots(QPainter &painter)
+void iAChartWidget::DrawPlots(QPainter &painter)
 {
 	if (m_plots.empty())
 	{
@@ -707,7 +707,7 @@ void iADiagramWidget::DrawPlots(QPainter &painter)
 			(*it)->draw(painter, binWidth, m_yConverter);
 }
 
-void iADiagramWidget::showDataTooltip(QMouseEvent *event)
+void iAChartWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (m_plots.empty() || !m_showTooltip)
 		return;
@@ -733,7 +733,7 @@ void iADiagramWidget::showDataTooltip(QMouseEvent *event)
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }
 
-void iADiagramWidget::changeMode(int newMode, QMouseEvent *event)
+void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
 {
 	switch(newMode)
 	{
@@ -748,14 +748,14 @@ void iADiagramWidget::changeMode(int newMode, QMouseEvent *event)
 	}
 }
 
-void iADiagramWidget::mouseReleaseEvent(QMouseEvent *event)  
+void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 		redraw();
 	this->mode = NO_MODE;
 }
 
-void iADiagramWidget::mousePressEvent(QMouseEvent *event)  
+void iAChartWidget::mousePressEvent(QMouseEvent *event)
 {
 	switch(event->button())
 	{
@@ -796,7 +796,7 @@ void iADiagramWidget::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-void iADiagramWidget::mouseMoveEvent(QMouseEvent *event)
+void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	switch(mode)
 	{
@@ -827,7 +827,7 @@ void iADiagramWidget::mouseMoveEvent(QMouseEvent *event)
 	showDataTooltip(event);
 }
 
-void iADiagramWidget::paintEvent(QPaintEvent * e)
+void iAChartWidget::paintEvent(QPaintEvent * e)
 {
 	if (m_draw)
 		DrawEverything();
@@ -835,7 +835,7 @@ void iADiagramWidget::paintEvent(QPaintEvent * e)
 	painter.drawImage(QRectF(0, 0, geometry().width(), geometry().height()), m_drawBuffer);
 }
 
-void iADiagramWidget::keyReleaseEvent(QKeyEvent *event)
+void iAChartWidget::keyReleaseEvent(QKeyEvent *event)
 {
 	if (event->key() == Qt::Key_Alt ||
 		event->key() == Qt::Key_AltGr ||
@@ -843,10 +843,10 @@ void iADiagramWidget::keyReleaseEvent(QKeyEvent *event)
 		m_contextMenuVisible = false;
 }
 
-void iADiagramWidget::AddContextMenuEntries(QMenu* contextMenu)
+void iAChartWidget::AddContextMenuEntries(QMenu* contextMenu)
 {}
 
-void iADiagramWidget::contextMenuEvent(QContextMenuEvent *event)
+void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
@@ -864,7 +864,7 @@ void iADiagramWidget::contextMenuEvent(QContextMenuEvent *event)
 }
 
 
-void iADiagramWidget::ExportData()
+void iAChartWidget::ExportData()
 {
 	if (m_plots.empty())
 		return;
@@ -897,7 +897,7 @@ void iADiagramWidget::ExportData()
 	out.close();
 }
 
-void iADiagramWidget::showTooltip(bool toggled)
+void iAChartWidget::showTooltip(bool toggled)
 {
 	m_showTooltip = toggled;
 }

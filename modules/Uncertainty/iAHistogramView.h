@@ -20,24 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iADiagramFctWidget.h"
-
 #include <itkMinimumMaximumImageCalculator.h>
 #include <itkImageRegionConstIterator.h>
 
 #include <QWidget>
 
+class iAChartWidget;
 class iAEnsemble;
 class iASimpleHistogramData;
-
-class iAHistogramChartWidget : public iADiagramFctWidget
-{
-public:
-	iAHistogramChartWidget(QSharedPointer<iASimpleHistogramData> data, QString const & caption);
-private:
-	QSharedPointer<iASimpleHistogramData> m_data;
-};
-
 
 class iAHistogramView : public QWidget
 {
@@ -47,5 +37,5 @@ public:
 	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
 private:
 	void AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data);
-	iADiagramFctWidget* m_chart;
+	iAChartWidget* m_chart;
 };

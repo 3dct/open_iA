@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAChartWidget.h"
 #include "iAPlotData.h"
-#include "iADiagramWidget.h"
 #include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
@@ -42,7 +42,7 @@ class dlg_function;
 class dlg_TFTable;
 class MdiChild;
 
-class open_iA_Core_API iADiagramFctWidget : public iADiagramWidget
+class open_iA_Core_API iADiagramFctWidget : public iAChartWidget
 {
 	Q_OBJECT
 

@@ -30,7 +30,7 @@
 #include <vtkPolyData.h>
 
 iAProfileWidget::iAProfileWidget(QWidget *parent, vtkPolyData* profData, double rayLength, QString yCapt, QString xCapt)
-	: iADiagramWidget(parent, xCapt, yCapt)
+	: iAChartWidget(parent, xCapt, yCapt)
 {
 	initialize(profData, rayLength);
 }
