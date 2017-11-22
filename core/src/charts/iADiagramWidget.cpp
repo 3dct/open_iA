@@ -24,10 +24,9 @@
 #include <cmath>
 
 #include "iADiagramWidget.h"
-
-
 #include "iAMathUtility.h"
 #include "iAPlot.h"
+#include "iAStringHelper.h"
 
 #include <QAction>
 #include <QFileDialog>
@@ -41,7 +40,10 @@
 
 namespace
 {
-	const double MAX_X_ZOOM = 1000;
+	const double MIN_X_ZOOM = 1.0;
+	const double MAX_X_ZOOM = 2048;
+	const double MIN_Y_ZOOM = 1.0;		// the y-axis is not adapted (yet) to work with zoom < 1.0
+	const double MAX_Y_ZOOM = 32768;
 	const double X_ZOOM_STEP = 1.5;
 	const double Y_ZOOM_STEP = 1.5;
 	const int CATEGORICAL_TEXT_ROTATION = 15;
@@ -50,7 +52,7 @@ namespace
 	const int BOTTOM_MARGIN = 40;
 	const int TEXT_X = 15;
 	const int Y_AXIS_STEPS = 5;
-	const size_t MAX_X_AXIS_STEPS = 20 * static_cast<size_t>(MAX_X_ZOOM);
+	const size_t MAX_X_AXIS_STEPS = 32 * static_cast<size_t>(MAX_X_ZOOM);
 
 	class LinearConverter : public CoordinateConverter
 	{
@@ -78,6 +80,7 @@ namespace
 		}
 		void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override
 		{
+			yMin = yMinValueBiggerThanZero;
 			if (yMax)
 				yScaleFactor = (double)(height - 1) / (yMax-yMin) *yZoom;
 			else
@@ -170,6 +173,7 @@ iADiagramWidget::iADiagramWidget(QWidget* parent, QString const & xLabel, QStrin
 	leftMargin(LEFT_MARGIN),
 	mode(NO_MODE),
 	m_contextMenuVisible(false),
+	m_customXBounds(false),
 	m_customYBounds(false),
 	m_yMappingMode(Linear),
 	m_contextMenu(new QMenu(this)),
@@ -178,8 +182,7 @@ iADiagramWidget::iADiagramWidget(QWidget* parent, QString const & xLabel, QStrin
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
 	m_draw(true)
 {
-	m_yBounds[0] = 0;
-	m_yBounds[1] = std::numeric_limits<iAPlotData::DataType>::lowest();
+	UpdateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
 	setNewSize();
@@ -249,8 +252,7 @@ void iADiagramWidget::zoomAlongY(double value, bool deltaMode)
 	{
 		yZoom = value;
 	}
-	if (yZoom < 1.0)
-		yZoom = 1.0;
+	yZoom = clamp(MIN_Y_ZOOM, MAX_Y_ZOOM, yZoom);;
 }
 
 void iADiagramWidget::zoomAlongX(double value, int x, bool deltaMode)
@@ -266,21 +268,14 @@ void iADiagramWidget::zoomAlongX(double value, int x, bool deltaMode)
 	int absoluteX = x-translationX-LeftMargin();
 	double absoluteXRatio = (double)absoluteX/((ActiveWidth()-1)*xZoom);
 	if (deltaMode)
-	{
 		if (value /* = delta */ > 0)
-		{
 			xZoom *= X_ZOOM_STEP;
-		}
 		else
-		{
 			xZoom /= X_ZOOM_STEP;
-		}
-	}
 	else
-	{
 		xZoom = value;
-	}
-	xZoom = clamp(1.0, MaxXZoom(), xZoom);
+
+	xZoom = clamp(MIN_X_ZOOM, MaxXZoom(), xZoom);
 
 	int absXAfterZoom = (int)(ActiveWidth()*xZoom*absoluteXRatio);
 
@@ -288,9 +283,7 @@ void iADiagramWidget::zoomAlongX(double value, int x, bool deltaMode)
 		-absXAfterZoom +x -LeftMargin());
 
 	if (xZoomBefore != xZoom || translationXBefore != translationX)
-	{
 		emit XAxisChanged();
-	}
 }
 
 int iADiagramWidget::ActiveWidth() const
@@ -320,9 +313,7 @@ double const * iADiagramWidget::XBounds() const
 
 double iADiagramWidget::XRange() const
 {
-	// TODO: use all plots here?
-	assert(!m_plots.empty());
-	return m_plots[0]->GetData()->XBounds()[1] - m_plots[0]->GetData()->XBounds()[0];
+	return m_xBounds[1] - m_xBounds[0];
 }
 
 
@@ -356,18 +347,11 @@ QSharedPointer<CoordinateConverter> const iADiagramWidget::YMapper() const
 
 void iADiagramWidget::CreateYConverter()
 {
-	if (m_yBounds[1] == std::numeric_limits<iAPlotData::DataType>::lowest())
-	{
-		m_yBounds[1] = GetMaxYDataValue();
-	}
 	if (m_yMappingMode == Linear)
-	{
 		m_yConverter = QSharedPointer<CoordinateConverter>(new LinearConverter(yZoom, m_yBounds[0], m_yBounds[1], ActiveHeight() - 1));
-	}
 	else
-	{																	// 1 - smallest value larger than 0. TODO: find that from data!
+		// 1 - smallest value larger than 0. TODO: find that from data!
 		m_yConverter = QSharedPointer<CoordinateConverter>(new LogarithmicConverter(yZoom, m_yBounds[1], 1, ActiveHeight() - 1));
-	}
 }
 
 
@@ -452,7 +436,7 @@ QString iADiagramWidget::GetXAxisTickMarkLabel(double value, int placesBeforeCom
 		return result;
 	}
 	else
-		return QString::number((int)value, 10);
+		return QString::number(static_cast<long long>(value), 10);
 }
 
 void iADiagramWidget::DrawAxes(QPainter& painter)
@@ -488,13 +472,16 @@ void iADiagramWidget::DrawXAxis(QPainter &painter)
 	double stepWidth;
 	// for discrete x axis variables, marker&caption should be in middle of value; MaxXAxisSteps() = numBin of plot[0]
 	int markerOffset = IsDrawnDiscrete() ? static_cast<int>(0.5 * width / stepCount) : 0;
+	double xRange = XRange();
+	if (!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Discrete)
+		xRange += 1;
 	if (!CategoricalAxis())
 	{
 		// check for overlap:
 		bool overlap;
 		do
 		{
-			stepWidth = (XBounds()[1] - XBounds()[0]) / stepCount;
+			stepWidth = xRange / stepCount;
 			overlap = false;
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
@@ -579,37 +566,12 @@ void iADiagramWidget::DrawYAxis(QPainter &painter)
 
 	for (int i = 0; i <= stepNumber; ++i)
 	{
-		//calculate the nth bin located at a given pixel, actual formula is (i/100 * width) * (rayLength / width)
 		double pos = step * i;
-		//get the intensity value into a string
-
 		double yValue =
 			(m_yMappingMode == Linear) ?
 			pos * m_yBounds[1] :
-			/* Logarithmic: */
-			std::pow(LogBase, logMax / yZoom - (Y_AXIS_STEPS - i));
-
-		QString text;
-		if (yValue < 1.0)
-			text = QString::number(yValue, 'g', 3);
-		else
-			if (yValue > 1000000000)
-			{
-				text = QString::number(yValue / 1000000000.0, 'f', (yValue < 10000000000) ? 2 : 1) + "G";
-			}
-			else if (yValue > 1000000)
-			{
-				text = QString::number(yValue / 1000000, 'f', (yValue < 10000000) ? 2 : 1) + "M";
-			}
-			else if (yValue > 1000)
-			{
-				text = QString::number(yValue / 1000, 'f', (yValue < 10000) ? 2 : 1) + "K";
-			}
-			else
-			{
-				text = QString::number((int)yValue, 10);
-			}
-
+			/* Logarithmic: */ std::pow(LogBase, logMax / yZoom - (Y_AXIS_STEPS - i));
+		QString text = DblToStringWithUnits(yValue);
 		//calculate the y coordinate
 		int y = -(int)(pos * activeHeight * yZoom) - 1;
 		//draw a small indicator line
@@ -660,7 +622,7 @@ void iADiagramWidget::SetYBounds(iAPlotData::DataType valMin, iAPlotData::DataTy
 void iADiagramWidget::ResetYBounds()
 {
 	m_customYBounds = false;
-	m_yBounds[1] = 0;
+	m_yBounds[0] = 0;
 	m_yBounds[1] = GetMaxYDataValue();
 }
 
@@ -698,8 +660,8 @@ void iADiagramWidget::UpdateXBounds()
 
 void iADiagramWidget::UpdateBounds()
 {
-	UpdateYBounds();
 	UpdateXBounds();
+	UpdateYBounds();
 }
 
 void iADiagramWidget::DrawBackground(QPainter &painter)
@@ -758,9 +720,9 @@ QPoint iADiagramWidget::ContextMenuPos() const
 double iADiagramWidget::MaxXZoom() const
 {
 	if (m_plots.empty())
-		return 1;
+		return MAX_X_ZOOM;
 	double numBin = m_plots[0]->GetData()->GetNumBin();
-	return (std::max)((std::min)(MAX_X_ZOOM, numBin), 1.0);
+	return std::max(std::min(MAX_X_ZOOM, numBin), 1.0);
 }
 
 void iADiagramWidget::SetYMappingMode(AxisMappingType drawMode)

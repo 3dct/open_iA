@@ -110,12 +110,11 @@ public slots:
 	int deletePoint();
 	void changeColor(QMouseEvent *event = NULL);
 	void autoUpdate(bool toggled);
-	void resetView();
 	void resetTrf();
 	void updateTrf();
-	bool loadTransferFunction();
+	void loadTransferFunction();
 	void loadTransferFunction(QDomNode &functionsNode);
-	bool saveTransferFunction();
+	void saveTransferFunction();
 	void applyTransferFunctionForAll();
 	void addBezierFunction();
 	void addGaussianFunction();

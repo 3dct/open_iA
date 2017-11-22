@@ -1694,14 +1694,18 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
 
 bool MdiChild::loadTransferFunction()
 {
-	if (!m_histogram) return false;
-	return m_histogram->loadTransferFunction();
+	if (!m_histogram)
+		return false;
+	m_histogram->loadTransferFunction();
+	return true;
 }
 
 bool MdiChild::saveTransferFunction()
 {
-	if (!m_histogram) return false;
-	return m_histogram->saveTransferFunction();
+	if (!m_histogram)
+		return false;
+	m_histogram->saveTransferFunction();
+	return true;
 }
 
 int MdiChild::deletePoint()

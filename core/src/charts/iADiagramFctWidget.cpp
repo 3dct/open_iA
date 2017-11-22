@@ -156,9 +156,7 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 		case Qt::RightButton:
 		{
 			if (!m_showFunctions)
-			{
 				return;
-			}
 			std::vector<dlg_function*>::iterator it = functions.begin();
 			dlg_function *func = *(it + selectedFunction);
 			int selectedPoint = func->selectPoint(event);
@@ -176,7 +174,10 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)  
 {
 	if (!m_showFunctions)
+	{
 		iADiagramWidget::mouseReleaseEvent(event);
+		return;
+	}
 	std::vector<dlg_function*>::iterator it = functions.begin();
 	dlg_function *func = *(it + selectedFunction);
 	if (event->button() == Qt::LeftButton)
@@ -309,9 +310,7 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 		case MOVE_POINT_MODE:
 		{
 			if (!m_showFunctions)
-			{
 				return;
-			}
 			std::vector<dlg_function*>::iterator it = functions.begin();
 			dlg_function *func = *(it + selectedFunction);
 			int x = event->x() - LeftMargin();
@@ -320,14 +319,10 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 
 			// don't do anything if outside of diagram region:
 			if (selectedPoint == -1 && x < 0)
-			{
 				return;
-			}
 			// disallow removal and reinsertion of first point; instead, insert a point after it:
 			if (selectedPoint == -1 && x == 0)
-			{
 				x = 1;
-			}
 			if (selectedPoint == -1)
 			{
 				if (y < 0) y = 0;
@@ -372,9 +367,7 @@ int iADiagramFctWidget::deletePoint()
 void iADiagramFctWidget::changeColor(QMouseEvent *event)
 {
 	if (!m_showFunctions)
-	{
 		return;
-	}
 	std::vector<dlg_function*>::iterator it = functions.begin();
 	dlg_function *func = *(it + selectedFunction);
 
@@ -390,11 +383,6 @@ void iADiagramFctWidget::autoUpdate(bool toggled)
 {
 	updateAutomatically = toggled;
 	emit autoUpdateChanged(toggled);
-}
-
-void iADiagramFctWidget::resetView()
-{
-	iADiagramWidget::resetView();
 }
 
 void iADiagramFctWidget::resetTrf()
@@ -423,7 +411,7 @@ void iADiagramFctWidget::NewTransferFunction()
 	emit updateViews();
 }
 
-bool iADiagramFctWidget::loadTransferFunction()
+void iADiagramFctWidget::loadTransferFunction()
 {
 	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
@@ -433,7 +421,6 @@ bool iADiagramFctWidget::loadTransferFunction()
 		s.LoadTransferFunction((dlg_transfer*)functions[0]);
 		NewTransferFunction();
 	}
-	return true;
 }
 
 void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
@@ -442,7 +429,7 @@ void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 	NewTransferFunction();
 }
 
-bool iADiagramFctWidget::saveTransferFunction()
+void iADiagramFctWidget::saveTransferFunction()
 {
 	dlg_transfer *transferFunction = (dlg_transfer*)functions[0];
 	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
@@ -453,7 +440,6 @@ bool iADiagramFctWidget::saveTransferFunction()
 		s.StoreTransferFunction(transferFunction);
 		s.Save(fileName);
 	}
-	return true;
 }
 
 void iADiagramFctWidget::applyTransferFunctionForAll()
@@ -537,7 +523,6 @@ bool iADiagramFctWidget::saveFunctions()
 		mw->saveProbabilityFunctions(doc);
 		mw->saveSettingsFile(doc, fileName);
 	}
-
 	return true;
 }
 
@@ -631,4 +616,3 @@ void iADiagramFctWidget::TFTableIsFinished()
 {
 	TFTable = NULL;
 }
-

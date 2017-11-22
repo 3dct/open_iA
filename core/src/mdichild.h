@@ -129,7 +129,6 @@ public:
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
 	bool saveTransferFunction();
-	void saveRenderWindow(vtkRenderWindow *renderWindow);
 
 	/**
 	* Provides the possibility to save a slice movie of the given slice view.

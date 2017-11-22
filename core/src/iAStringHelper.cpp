@@ -44,7 +44,6 @@ QStringList SplitPossiblyQuotedString(QString const & str)
 	return result;
 }
 
-
 bool Str2Vec3D(QString const & str, double vec[3])
 {
 	QStringList list = str.split(" ");
@@ -62,12 +61,10 @@ bool Str2Vec3D(QString const & str, double vec[3])
 	return true;
 }
 
-
 QString Vec3D2String(double* vec)
 {
 	return QString("%1 %2 %3").arg(vec[0]).arg(vec[1]).arg(vec[2]);
 }
-
 
 QString PadOrTruncate(QString const & str, int size)
 {
@@ -77,9 +74,28 @@ QString PadOrTruncate(QString const & str, int size)
 		return str.leftJustified(size, ' ');
 }
 
-
 QString StripHTML(QString const & html)
 {
 	QString result(html);
 	return result.remove(QRegExp("<[^>]*>"));
+}
+
+QString DblToStringWithUnits(double value)
+{
+	if (value < 1.0)
+		return QString::number(value, 'g', 3);
+	// also use abbreviations here? 'm', 'µ', 'n', 'p', 'f', ...?
+	else
+		if (value > 1000000000000000)
+			return QString::number(value / 1000000000000000.0, 'f', (value < 10000000000000000) ? 2 : ((value < 100000000000000000) ? 1 : 0)) + "P";
+		else if (value > 1000000000000)
+			return QString::number(value / 1000000000000.0, 'f', (value < 10000000000000) ? 2 : ((value < 100000000000000) ? 1 : 0)) + "T";
+		else if (value > 1000000000)
+			return QString::number(value / 1000000000.0, 'f', (value < 10000000000) ? 2 : ((value < 100000000000) ? 1 : 0)) + "G";
+		else if (value > 1000000)
+			return QString::number(value / 1000000, 'f', (value < 10000000) ? 2 : ((value < 100000000) ? 1 : 0)) + "M";
+		else if (value > 1000)
+			return QString::number(value / 1000, 'f', (value < 10000) ? 2 : ((value < 100000) ? 1 : 0)) + "K";
+		else
+			return QString::number((int)value, 10);
 }

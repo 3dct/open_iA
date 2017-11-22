@@ -56,6 +56,9 @@ QString PadOrTruncate(QString const & str, int size);
 //! @return the input string with all HTML tags (<xyz>, </xyz>, <xyz/>) removed
 QString StripHTML(QString const & html);
 
+//! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
+QString DblToStringWithUnits(double value);
+
 //! join a vector of numeric types T to string, using the given string as item separator
 //!
 //! works similar t QString::join, but on arbitrary QVector types which can be converted to QString
