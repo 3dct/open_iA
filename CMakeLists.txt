@@ -4,6 +4,7 @@ PROJECT ( open_iA LANGUAGES CXX )
 
 CMAKE_POLICY(SET CMP0053 OLD)	# suppress warnings from Qt config
 CMAKE_POLICY(SET CMP0054 NEW)	# suppress warning about variable expansion
+CMAKE_POLICY(SET CMP0071 NEW)
 
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
