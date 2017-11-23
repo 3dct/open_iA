@@ -136,6 +136,8 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	MdiChild* sourceMdi, MainWindow* mainWnd)
 {
 	auto params = filter->Parameters();
+	if (filter->RequiredInputs() == 1 && params.empty())
+		return true;
 	QStringList dlgParamNames;
 	QList<QVariant> dlgParamValues;
 	QVector<MdiChild*> otherMdis;
