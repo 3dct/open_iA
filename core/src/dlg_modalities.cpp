@@ -257,6 +257,11 @@ void dlg_modalities::EditClicked()
 	}
 	int renderFlagsBefore = modalities->Get(idx)->RenderFlags();
 	QSharedPointer<iAModality> editModality(modalities->Get(idx));
+	if (!editModality->GetRenderer())
+	{
+		DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
+		return;
+	}
 	dlg_modalityProperties prop(this, editModality);
 	if (prop.exec() == QDialog::Rejected)
 	{
