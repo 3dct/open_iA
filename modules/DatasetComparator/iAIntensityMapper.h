@@ -28,7 +28,8 @@ class iAIntensityMapper : public QObject
 
 public:
 	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, 
-		QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList);
+		QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList,
+		double &minEnsembleIntensity, double &maxEnsembleIntensity);
 	~iAIntensityMapper();
 
 public slots:
@@ -43,4 +44,5 @@ private:
 	PathID m_pathID;
 	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;
 	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList;
+	double &m_minEnsembleIntensity, &m_maxEnsembleIntensity;
 };

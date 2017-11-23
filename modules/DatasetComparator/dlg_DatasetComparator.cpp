@@ -133,45 +133,117 @@ void dlg_DatasetComparator::setupScalingWidget()
 
 void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 {
-	auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), nonlinearXRange.lower);
+	QCPRange boundedRange;
+	if (nonlinearXRange.lower < m_nonlinearMappingVec.first() &&
+		(nonlinearXRange.upper > m_nonlinearMappingVec.last()))
+	{
+		m_nonlinearScaledPlot->xAxis->blockSignals(true);
+		boundedRange.lower = m_nonlinearMappingVec.first();
+		boundedRange.upper = m_nonlinearMappingVec.last();
+		m_nonlinearScaledPlot->xAxis->setRange(boundedRange);
+		m_nonlinearScaledPlot->xAxis->blockSignals(false);
+		return;
+	}
+	else if (nonlinearXRange.lower < m_nonlinearMappingVec.first())
+	{  
+		m_nonlinearScaledPlot->xAxis->blockSignals(true);
+		boundedRange.lower = m_nonlinearMappingVec.first();
+		boundedRange.upper = m_nonlinearMappingVec.first() + nonlinearXRange.size();
+		nonlinearXRange = boundedRange;
+		m_nonlinearScaledPlot->xAxis->setRange(boundedRange);
+		m_nonlinearScaledPlot->xAxis->blockSignals(false);
+		//return;
+	}
+	else if (nonlinearXRange.upper > m_nonlinearMappingVec.last())
+	{
+		m_nonlinearScaledPlot->xAxis->blockSignals(true);
+		boundedRange.lower = m_nonlinearMappingVec.last() - nonlinearXRange.size();
+		boundedRange.upper = m_nonlinearMappingVec.last();
+		nonlinearXRange = boundedRange;
+		m_nonlinearScaledPlot->xAxis->setRange(boundedRange);
+		m_nonlinearScaledPlot->xAxis->blockSignals(false);
+		//return;
+	}
+
+	auto lower = qLowerBound(m_nonlinearMappingVec.begin(), 
+		m_nonlinearMappingVec.end(), nonlinearXRange.lower);
 	int lowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
-	auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), nonlinearXRange.upper);
+	auto upper = qLowerBound(m_nonlinearMappingVec.begin(), 
+		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
 	int upperIdx = upper - m_nonlinearMappingVec.begin();
 	if (lowerIdx == -1) lowerIdx = 0;
 
-	double lowerDistToNextPoint = m_nonlinearMappingVec[lowerIdx+1] - m_nonlinearMappingVec[lowerIdx];
-	double lowerDistToCurrPoint = nonlinearXRange.lower - m_nonlinearMappingVec[lowerIdx];
+	double lowerDistToNextPoint = 
+		m_nonlinearMappingVec[lowerIdx+1] - m_nonlinearMappingVec[lowerIdx],
+		   lowerDistToCurrPoint = 
+		nonlinearXRange.lower - m_nonlinearMappingVec[lowerIdx];
 	if (lowerDistToCurrPoint < 0) lowerDistToCurrPoint = 0;
 
 	double upperDistToNextPoint = 1.0, upperDistToCurrPoint = 0.0;
 	if (upperIdx < m_nonlinearMappingVec.size())
 	{
-		upperDistToNextPoint = m_nonlinearMappingVec[upperIdx] - m_nonlinearMappingVec[upperIdx-1];
-		upperDistToCurrPoint = nonlinearXRange.upper - m_nonlinearMappingVec[upperIdx-1];
+		upperDistToNextPoint = 
+			m_nonlinearMappingVec[upperIdx] - m_nonlinearMappingVec[upperIdx-1];
+		upperDistToCurrPoint = 
+			nonlinearXRange.upper - m_nonlinearMappingVec[upperIdx-1];
 	}
 
-	m_linearScaledPlot->xAxis->blockSignals(true);
 	double newLower = lowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint, 
-		newUpper = upperIdx-1 + upperDistToCurrPoint / upperDistToNextPoint;
+		   newUpper = upperIdx-1 + upperDistToCurrPoint / upperDistToNextPoint;
+	m_linearScaledPlot->xAxis->blockSignals(true);
 	m_linearScaledPlot->xAxis->setRange(newLower, newUpper);
 	m_linearScaledPlot->xAxis->blockSignals(false);
 	m_linearScaledPlot->replot();
 
 	m_scalingWidget->setRange(
-		lowerIdx, 
-		upperIdx, 
+		lowerIdx, upperIdx, 
 		nonlinearXRange.lower - m_nonlinearMappingVec[lowerIdx], 
 		m_nonlinearMappingVec[upperIdx] - nonlinearXRange.upper,
 		lowerDistToCurrPoint / lowerDistToNextPoint,
 		upperDistToCurrPoint / upperDistToNextPoint);
-	m_scalingWidget->setCursorPositions(m_linearIdxLine->positions()[0]->pixelPosition().x(), 
+
+	m_scalingWidget->setCursorPositions(
+		m_linearIdxLine->positions()[0]->pixelPosition().x(), 
 		m_nonlinearIdxLine->positions()[0]->pixelPosition().x());
 	m_scalingWidget->update();
 }
 
 void dlg_DatasetComparator::syncLinearYAxis(QCPRange nonlinearYRange)
 {
+	if (nonlinearYRange.lower < m_minEnsembleIntensity && 
+		nonlinearYRange.upper > m_maxEnsembleIntensity)
+	{
+		m_nonlinearScaledPlot->yAxis->blockSignals(true);
+		m_nonlinearScaledPlot->yAxis->setRange(
+			m_minEnsembleIntensity,
+			m_maxEnsembleIntensity);
+		m_nonlinearScaledPlot->yAxis->blockSignals(false);
+		return;
+	}
+
+	if (nonlinearYRange.lower < m_minEnsembleIntensity)
+	{
+		m_nonlinearScaledPlot->yAxis->blockSignals(true);
+		m_nonlinearScaledPlot->yAxis->setRange(
+			m_minEnsembleIntensity,
+			m_minEnsembleIntensity + nonlinearYRange.size());
+		m_nonlinearScaledPlot->yAxis->blockSignals(false);
+		return;
+	}
+	
+	if (nonlinearYRange.upper > m_maxEnsembleIntensity)
+	{
+		m_nonlinearScaledPlot->yAxis->blockSignals(true);
+		m_nonlinearScaledPlot->yAxis->setRange(
+			m_maxEnsembleIntensity - nonlinearYRange.size(),
+			m_maxEnsembleIntensity);
+		m_nonlinearScaledPlot->yAxis->blockSignals(false);
+		return;
+	}
+	
+	m_linearScaledPlot->yAxis->blockSignals(true);
 	m_linearScaledPlot->yAxis->setRange(nonlinearYRange);
+	m_linearScaledPlot->yAxis->blockSignals(false);
 	m_linearScaledPlot->replot();
 }
 
@@ -634,7 +706,7 @@ void dlg_DatasetComparator::showBkgrdThrRanges()
 		nonlinearBkgrdRect->setAntialiased(false);
 		nonlinearBkgrdRect->setLayer("background");
 		nonlinearBkgrdRect->setPen(QPen(Qt::NoPen));
-		nonlinearBkgrdRect->setBrush(QBrush(Qt::darkGray));
+		nonlinearBkgrdRect->setBrush(QBrush(QColor(255, 235, 215)));
 		nonlinearBkgrdRect->topLeft->setTypeX(QCPItemPosition::ptPlotCoords);
 		nonlinearBkgrdRect->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
 		nonlinearBkgrdRect->topLeft->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
@@ -651,7 +723,7 @@ void dlg_DatasetComparator::showBkgrdThrRanges()
 		linearBkgrdRect->setAntialiased(false);
 		linearBkgrdRect->setLayer("background");
 		linearBkgrdRect->setPen(QPen(Qt::NoPen));
-		linearBkgrdRect->setBrush(QBrush(Qt::darkGray));
+		linearBkgrdRect->setBrush(QBrush(QColor(255, 235, 215)));
 		linearBkgrdRect->topLeft->setTypeX(QCPItemPosition::ptPlotCoords);
 		linearBkgrdRect->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
 		linearBkgrdRect->topLeft->setAxes(m_linearScaledPlot->xAxis, m_linearScaledPlot->yAxis);
@@ -745,7 +817,8 @@ void dlg_DatasetComparator::updateDatasetComparator()
 void dlg_DatasetComparator::generateHilbertIdx()
 {
 	QThread* thread = new QThread;
-	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()], m_DatasetIntensityMap, m_imgDataList);
+	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()], 
+		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
 	im->moveToThread(thread);
 	connect(im, SIGNAL(error(QString)), this, SLOT(errorString(QString)));		//TODO: Handle error case
 	connect(thread, SIGNAL(started()), im, SLOT(process()));

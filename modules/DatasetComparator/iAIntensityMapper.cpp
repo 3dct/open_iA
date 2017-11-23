@@ -27,16 +27,25 @@
 #include <itkHilbertPath.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageToVTKImageFilter.h>
+#include <itkMinimumMaximumImageCalculator.h>
 
 //#include "iAConsole.h"
 
 template<class T>
-void getIntensities(PathID m_pathID, ImagePointer &image, 
-	QList<icData> &intensityList, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList)
+void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, 
+	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList, 
+	QList<double> &maxEnsembleIntensityList)
 {
 	// TODO: Typecheck QList for e.g., float images + cubic region only check
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
+
+	typedef itk::MinimumMaximumImageCalculator< InputImageType >  MinMaxCalcType;
+	typename MinMaxCalcType::Pointer minMaxCalc = MinMaxCalcType::New();
+	minMaxCalc->SetImage(input);
+	minMaxCalc->Compute();
+	minEnsembleIntensityList.append(minMaxCalc->GetMinimum());
+	maxEnsembleIntensityList.append(minMaxCalc->GetMaximum());
 
 	typedef itk::ImageToVTKImageFilter<InputImageType> ITKTOVTKConverterType;
 	ITKTOVTKConverterType::Pointer itkToVTKConverter = ITKTOVTKConverterType::New();
@@ -76,7 +85,8 @@ void getIntensities(PathID m_pathID, ImagePointer &image,
 
 		case P_SCAN_LINE:
 		{
-			itk::ImageRegionIteratorWithIndex<InputImageType> imageIterator(input, input->GetLargestPossibleRegion());
+			itk::ImageRegionIteratorWithIndex<InputImageType> imageIterator(
+				input, input->GetLargestPossibleRegion());
 			for (imageIterator.GoToBegin(); !imageIterator.IsAtEnd(); ++imageIterator)
 			{
 				InputImageType::IndexType coord = imageIterator.GetIndex();
@@ -94,11 +104,15 @@ void getIntensities(PathID m_pathID, ImagePointer &image,
 }
 
 iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString,
-	QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList):
+	QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList, 
+	double &minEnsembleIntensity, double &maxEnsembleIntensity):
 	m_DatasetIntensityMap(datasetIntensityMap),
 	m_datasetsDir(datasetsDir),
 	m_pathID(pathID),
-	m_imgDataList(imgDataList)
+	m_imgDataList(imgDataList),
+	m_minEnsembleIntensity(minEnsembleIntensity),
+	m_maxEnsembleIntensity(maxEnsembleIntensity)
+
 {
 }
 
@@ -109,7 +123,8 @@ iAIntensityMapper::~iAIntensityMapper()
 void iAIntensityMapper::process()
 {
 	QStringList datasetsList = m_datasetsDir.entryList();
-
+	QList<double> minEnsembleIntensityList;
+	QList<double> maxEnsembleIntensityList;
 	for (int i = 0; i < datasetsList.size(); ++i)
 	{
 		QList<icData> intensityList;
@@ -118,7 +133,8 @@ void iAIntensityMapper::process()
 		ImagePointer image = iAITKIO::readFile( dataset, pixelType, true);
 		try
 		{
-			ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList, m_imgDataList);
+			ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList,
+				m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList);
 		}
 		catch (itk::ExceptionObject &excep)
 		{
@@ -126,5 +142,9 @@ void iAIntensityMapper::process()
 		}
 		m_DatasetIntensityMap.push_back(qMakePair(datasetsList.at(i), intensityList));
 	}
+	m_minEnsembleIntensity = *std::min_element(
+		std::begin(minEnsembleIntensityList), std::end(minEnsembleIntensityList));
+	m_maxEnsembleIntensity = *std::max_element(
+		std::begin(maxEnsembleIntensityList), std::end(maxEnsembleIntensityList));
 	emit finished();
 }

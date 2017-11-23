@@ -104,6 +104,8 @@ private:
 	QList<QCPRange> m_bkgrdThrRangeList;
 	iAScalingWidget *m_scalingWidget;
 	vtkSmartPointer<vtkLookupTable> m_lut;
+
+	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
 	
 	void generateHilbertIdx();
 	void setupFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
