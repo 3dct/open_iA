@@ -36,7 +36,7 @@
 
 // iAGradientMagnitude
 
-template<class T> void gradient_magnitude_template(iAProgress* p, iAConnector* image)
+template<class T> void gradient_magnitude_template(bool useImageSpacing, iAProgress* p, iAConnector* image)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -44,6 +44,7 @@ template<class T> void gradient_magnitude_template(iAProgress* p, iAConnector* i
 
 	auto filter = GMFType::New();
 	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
+	filter->SetUseImageSpacing(useImageSpacing);
 	p->Observe(filter);
 	filter->Update();
 	image->SetImage(filter->GetOutput());
@@ -53,7 +54,7 @@ template<class T> void gradient_magnitude_template(iAProgress* p, iAConnector* i
 
 void iAGradientMagnitude::Run(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(gradient_magnitude_template, m_con->GetITKScalarPixelType(), m_progress, m_con);
+	ITK_TYPED_CALL(gradient_magnitude_template, m_con->GetITKScalarPixelType(), parameters["Use Image Spacing"].toBool(), m_progress, m_con);
 }
 
 IAFILTER_CREATE(iAGradientMagnitude)
@@ -61,10 +62,13 @@ IAFILTER_CREATE(iAGradientMagnitude)
 iAGradientMagnitude::iAGradientMagnitude() :
 	iAFilter("Gradient Magnitude", "Gradients",
 		"Computes the gradient magnitude at each image element.<br/>"
+		"If <em>Use Image Spacing</em> is enabled, the gradient is calculated in the physical space; "
+		"if it not enabled, the gradient is calculated in pixel space.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html\">"
 		"Gradient Magnitude Filter</a> in the ITK documentation.")
-{	// no parameters
+{
+	AddParameter("Use Image Spacing", Boolean, true);
 }
 
 // iADerivative:
