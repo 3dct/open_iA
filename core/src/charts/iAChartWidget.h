@@ -108,6 +108,7 @@ protected:
 	QSharedPointer<iAMapper> m_yConverter;
 	AxisMappingType m_yMappingMode;
 	bool m_contextMenuVisible;
+	QImage m_drawBuffer;
 
 	virtual void DrawPlots(QPainter& painter);
 	virtual void DrawAxes(QPainter& painter);
@@ -119,26 +120,26 @@ protected:
 	virtual void setNewSize();
 	virtual void changeMode(int newMode, QMouseEvent *event);
 	virtual void showDataTooltip(QMouseEvent *event);
+	virtual void DrawEverything();
+	virtual void DrawBackground(QPainter &painter);
 
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
+	void wheelEvent(QWheelEvent *event) override;
+	void leaveEvent(QEvent *event) override;
+	void resizeEvent(QResizeEvent *event) override;
+	void paintEvent(QPaintEvent *) override;
+	void contextMenuEvent(QContextMenuEvent *event) override;
+	void keyReleaseEvent(QKeyEvent *event) override;
 private slots:
 	void showTooltip(bool toggled);
 	void ExportData();
 private:
-	void wheelEvent(QWheelEvent *event) override;
-	void leaveEvent(QEvent *event) override;
-	void resizeEvent(QResizeEvent *event) override;
-	void paintEvent(QPaintEvent *);
-	void contextMenuEvent(QContextMenuEvent *event);
-	void keyReleaseEvent(QKeyEvent *event);
 	virtual void AddContextMenuEntries(QMenu* contextMenu);
 	void CreateYConverter();
-	void DrawEverything();
 	void DrawImageOverlays(QPainter &painter);
 	virtual void DrawAfterPlots(QPainter& painter);
-	virtual void DrawBackground(QPainter &painter);
 	virtual void DrawXAxis(QPainter &painter);
 	virtual void DrawYAxis(QPainter &painter);
 	void UpdateBounds();
@@ -151,7 +152,6 @@ private:
 	QPoint m_contextPos;
 	bool m_showTooltip;
 	bool m_showXAxisLabel;
-	QImage m_drawBuffer;
 	bool m_draw;
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2];

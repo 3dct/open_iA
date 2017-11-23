@@ -19,8 +19,9 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-
 #include "iAPlotData.h"
+
+#include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
 
@@ -28,7 +29,7 @@ class vtkImageData;
 
 class iAImageInfo;
 
-class iAHistogramData: public iAPlotData
+class open_iA_Core_API iAHistogramData: public iAPlotData
 {
 public:
 	~iAHistogramData();
