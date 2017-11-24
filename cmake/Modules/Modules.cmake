@@ -92,8 +92,6 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
                 LIST (APPEND ADDITIONAL_MODULE_INCLUDE_DIRS ${Toolkit_DIR}/${td})
             ENDIF()
         ENDFOREACH()
-	ELSE()
-		MESSAGE(WARNING "Dependency specification file for module ${option_name} is missing!")
     ENDIF()
 ENDMACRO()
 

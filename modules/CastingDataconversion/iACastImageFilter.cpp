@@ -125,7 +125,6 @@ void DataTypeConversion_template2(float min, float max, double outmin, double ou
 	filter->SetInputMaximum(max);
 	if (dov)
 	{
-
 		filter->SetOutputMinimum(std::numeric_limits<OutT>::lowest());
 		filter->SetOutputMaximum(std::numeric_limits<OutT>::max());
 	}
