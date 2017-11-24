@@ -134,70 +134,70 @@ void dlg_DatasetComparator::setupScalingWidget()
 void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 {
 	QCPRange boundedRange;
+	m_nonlinearScaledPlot->xAxis->blockSignals(true);
 	if (nonlinearXRange.lower < m_nonlinearMappingVec.first() &&
 		(nonlinearXRange.upper > m_nonlinearMappingVec.last()))
 	{
-		m_nonlinearScaledPlot->xAxis->blockSignals(true);
 		boundedRange.lower = m_nonlinearMappingVec.first();
 		boundedRange.upper = m_nonlinearMappingVec.last();
 		m_nonlinearScaledPlot->xAxis->setRange(boundedRange);
 		m_nonlinearScaledPlot->xAxis->blockSignals(false);
 		return;
 	}
-	else if (nonlinearXRange.lower < m_nonlinearMappingVec.first())
+	if (nonlinearXRange.lower < m_nonlinearMappingVec.first())
 	{  
-		m_nonlinearScaledPlot->xAxis->blockSignals(true);
 		boundedRange.lower = m_nonlinearMappingVec.first();
 		boundedRange.upper = m_nonlinearMappingVec.first() + nonlinearXRange.size();
 		nonlinearXRange = boundedRange;
 		m_nonlinearScaledPlot->xAxis->setRange(boundedRange);
-		m_nonlinearScaledPlot->xAxis->blockSignals(false);
 	}
 	else if (nonlinearXRange.upper > m_nonlinearMappingVec.last())
 	{
-		m_nonlinearScaledPlot->xAxis->blockSignals(true);
 		boundedRange.lower = m_nonlinearMappingVec.last() - nonlinearXRange.size();
 		boundedRange.upper = m_nonlinearMappingVec.last();
 		nonlinearXRange = boundedRange;
 		m_nonlinearScaledPlot->xAxis->setRange(boundedRange);
-		m_nonlinearScaledPlot->xAxis->blockSignals(false);
 	}
+	m_nonlinearScaledPlot->xAxis->blockSignals(false);
 
-	auto lower = qLowerBound(m_nonlinearMappingVec.begin(), 
+	auto lower = qLowerBound(m_nonlinearMappingVec.begin(),
 		m_nonlinearMappingVec.end(), nonlinearXRange.lower);
 	int lowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
-	if (lowerIdx == -1) lowerIdx = 0;
-	auto upper = qLowerBound(m_nonlinearMappingVec.begin(), 
-		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
-	int upperIdx = upper - m_nonlinearMappingVec.begin();
-	
-
-	double lowerDistToNextPoint = m_nonlinearMappingVec[lowerIdx + 1] -
+	if (lowerIdx < 0) lowerIdx = 0;
+	double lowerDistToNextPoint = m_nonlinearMappingVec[lowerIdx+1] -
 		m_nonlinearMappingVec[lowerIdx];
 	double lowerDistToCurrPoint = nonlinearXRange.lower -
 		m_nonlinearMappingVec[lowerIdx];
 	if (lowerDistToCurrPoint < 0) lowerDistToCurrPoint = 0;
 
-	double upperDistToNextPoint = 1.0, upperDistToCurrPoint = 0.0;
+	auto upper = qLowerBound(m_nonlinearMappingVec.begin(),
+		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
+	int upperIdx = upper - m_nonlinearMappingVec.begin();
+	double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
 	if (upperIdx < m_nonlinearMappingVec.size())
 	{
-		upperDistToNextPoint = 
-			m_nonlinearMappingVec[upperIdx] - m_nonlinearMappingVec[upperIdx-1];
-		upperDistToCurrPoint = 
-			nonlinearXRange.upper - m_nonlinearMappingVec[upperIdx-1];
+		upperDistToNextPoint = m_nonlinearMappingVec[upperIdx] - m_nonlinearMappingVec[upperIdx-1];
+		upperDistToCurrPoint = nonlinearXRange.upper - m_nonlinearMappingVec[upperIdx-1];
+	}
+	else
+	{
+			upperIdx = m_nonlinearMappingVec.size() - 1;
+			upperDistToNextPoint = 1.0;
+			upperDistToCurrPoint = 1.0;
+			nonlinearXRange.upper = m_nonlinearMappingVec.last();
 	}
 
-	double newLower = lowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint, 
-		   newUpper = upperIdx-1 + upperDistToCurrPoint / upperDistToNextPoint;
+	double newLower = lowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint,
+		newUpper = upperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
 	m_linearScaledPlot->xAxis->blockSignals(true);
 	m_linearScaledPlot->xAxis->setRange(newLower, newUpper);
 	m_linearScaledPlot->xAxis->blockSignals(false);
-	m_linearScaledPlot->replot();	//needed?
+	m_linearScaledPlot->replot();	
 
 	m_scalingWidget->setRange(
-		lowerIdx, 
-		upperIdx, 
-		nonlinearXRange.lower - m_nonlinearMappingVec[lowerIdx], 
+		lowerIdx,
+		upperIdx,
+		nonlinearXRange.lower - m_nonlinearMappingVec[lowerIdx],
 		m_nonlinearMappingVec[upperIdx] - nonlinearXRange.upper,
 		lowerDistToCurrPoint / lowerDistToNextPoint,
 		upperDistToCurrPoint / upperDistToNextPoint);
@@ -210,72 +210,65 @@ void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 void dlg_DatasetComparator::syncLinearYAxis(QCPRange nonlinearYRange)
 {
 	QCPRange boundedRange = nonlinearYRange;
+	m_nonlinearScaledPlot->yAxis->blockSignals(true);
 	if (nonlinearYRange.lower < m_minEnsembleIntensity && 
 		nonlinearYRange.upper > m_maxEnsembleIntensity)
 	{
-		m_nonlinearScaledPlot->yAxis->blockSignals(true);
 		boundedRange.lower = m_minEnsembleIntensity;
 		boundedRange.upper = m_maxEnsembleIntensity;
 		m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
 		m_nonlinearScaledPlot->yAxis->blockSignals(false);
 		return;
 	}
-	else if (nonlinearYRange.lower < m_minEnsembleIntensity)
+	if (nonlinearYRange.lower < m_minEnsembleIntensity)
 	{
-		m_nonlinearScaledPlot->yAxis->blockSignals(true);
 		boundedRange.lower = m_minEnsembleIntensity;
 		boundedRange.upper = m_minEnsembleIntensity + nonlinearYRange.size();
 		m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
-		m_nonlinearScaledPlot->yAxis->blockSignals(false);
 	}
 	else if (nonlinearYRange.upper > m_maxEnsembleIntensity)
 	{
-		m_nonlinearScaledPlot->yAxis->blockSignals(true);
 		boundedRange.lower = m_maxEnsembleIntensity - nonlinearYRange.size();
 		boundedRange.upper = m_maxEnsembleIntensity;
 		m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
-		m_nonlinearScaledPlot->yAxis->blockSignals(false);
 	}
-	
+	m_nonlinearScaledPlot->yAxis->blockSignals(false);
+
 	m_linearScaledPlot->yAxis->blockSignals(true);
 	m_linearScaledPlot->yAxis->setRange(boundedRange);
 	m_linearScaledPlot->yAxis->blockSignals(false);
-	m_linearScaledPlot->replot();	//needed?
+	m_linearScaledPlot->replot();
 }
 
 void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 {
 	QCPRange boundedRange = linearXRange;
+	m_linearScaledPlot->xAxis->blockSignals(true);
 	if (linearXRange.lower < 0 &&
 		(linearXRange.upper > m_nonlinearMappingVec.size() - 1))
 	{
-		m_linearScaledPlot->xAxis->blockSignals(true);
 		boundedRange.lower = 0;
 		boundedRange.upper = m_nonlinearMappingVec.size() - 1;
 		m_linearScaledPlot->xAxis->setRange(boundedRange);
 		m_linearScaledPlot->xAxis->blockSignals(false);
 		return;
 	}
-	else if (linearXRange.lower < 0)
+	if (linearXRange.lower < 0)
 	{
-		m_linearScaledPlot->xAxis->blockSignals(true);
 		boundedRange.lower = 0;
 		boundedRange.upper = linearXRange.size();
 		linearXRange = boundedRange;
 		m_linearScaledPlot->xAxis->setRange(boundedRange);
-		m_linearScaledPlot->xAxis->blockSignals(false);
 	}
 	else if (linearXRange.upper > m_nonlinearMappingVec.size() - 1)
 	{
-		m_linearScaledPlot->xAxis->blockSignals(true);
 		boundedRange.lower = m_nonlinearMappingVec.size() - 1 - linearXRange.size();
 		boundedRange.upper = m_nonlinearMappingVec.size() - 1;
 		linearXRange = boundedRange;
 		m_linearScaledPlot->xAxis->setRange(boundedRange);
-		m_linearScaledPlot->xAxis->blockSignals(false);
 	}
+	m_linearScaledPlot->xAxis->blockSignals(false);
 	
-	m_nonlinearScaledPlot->xAxis->blockSignals(true);
 	double lowerDistToNextPoint = m_nonlinearMappingVec[ceil(linearXRange.lower)] - 
 		m_nonlinearMappingVec[floor(linearXRange.lower)];
 	double lowerDistToCurrPoint = linearXRange.lower - floor(linearXRange.lower);
@@ -294,59 +287,53 @@ void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 		lowerDistToCurrPoint * lowerDistToNextPoint;
 	double newUpper = m_nonlinearMappingVec[floor(linearXRange.upper)] + 
 		upperDistToCurrPoint * upperDistToNextPoint;
+
+	m_nonlinearScaledPlot->xAxis->blockSignals(true);
 	m_nonlinearScaledPlot->xAxis->setRange(newLower, newUpper);
 	m_nonlinearScaledPlot->xAxis->blockSignals(false);
-	m_nonlinearScaledPlot->replot();	//needed?
+	m_nonlinearScaledPlot->replot();
 
-
-	// TODO: check right parameters for setRange!
 	m_scalingWidget->setRange(
 		floor(linearXRange.lower), 
 		ceil(linearXRange.upper),
 		lowerDistToCurrPoint * lowerDistToNextPoint,
-		upperDistToCurrPoint * upperDistToNextPoint,
+		(ceil(linearXRange.upper) - linearXRange.upper) * upperDistToNextPoint,
 		lowerDistToCurrPoint,
 		upperDistToCurrPoint);
-	//m_scalingWidget->setCursorPositions(
-	//	m_linearIdxLine->positions()[0]->pixelPosition().x(),
-	//	m_nonlinearIdxLine->positions()[0]->pixelPosition().x());
 	m_scalingWidget->update();
 }
 
 void dlg_DatasetComparator::syncNonlinearYAxis(QCPRange linearYRange)
 {
 	QCPRange boundedRange = linearYRange;
+	m_linearScaledPlot->yAxis->blockSignals(true);
 	if (linearYRange.lower < m_minEnsembleIntensity &&
 		linearYRange.upper > m_maxEnsembleIntensity)
 	{
-		m_linearScaledPlot->yAxis->blockSignals(true);
 		boundedRange.lower = m_minEnsembleIntensity;
 		boundedRange.upper = m_maxEnsembleIntensity;
 		m_linearScaledPlot->yAxis->setRange(boundedRange);
 		m_linearScaledPlot->yAxis->blockSignals(false);
 		return;
 	}
-	else if (linearYRange.lower < m_minEnsembleIntensity)
+	if (linearYRange.lower < m_minEnsembleIntensity)
 	{
-		m_linearScaledPlot->yAxis->blockSignals(true);
 		boundedRange.lower = m_minEnsembleIntensity;
 		boundedRange.upper = m_minEnsembleIntensity + linearYRange.size();
 		m_linearScaledPlot->yAxis->setRange(boundedRange);
-		m_linearScaledPlot->yAxis->blockSignals(false);
 	}
 	else if (linearYRange.upper > m_maxEnsembleIntensity)
 	{
-		m_linearScaledPlot->yAxis->blockSignals(true);
 		boundedRange.lower = m_maxEnsembleIntensity - linearYRange.size();
 		boundedRange.upper = m_maxEnsembleIntensity;
 		m_linearScaledPlot->yAxis->setRange(boundedRange);
-		m_linearScaledPlot->yAxis->blockSignals(false);
 	}
-	
+	m_linearScaledPlot->yAxis->blockSignals(false);
+
 	m_nonlinearScaledPlot->yAxis->blockSignals(true);
 	m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
 	m_nonlinearScaledPlot->yAxis->blockSignals(false);
-	m_nonlinearScaledPlot->replot();	//needed?
+	m_nonlinearScaledPlot->replot();
 }
 
 void dlg_DatasetComparator::setupLinearScaledPlot()

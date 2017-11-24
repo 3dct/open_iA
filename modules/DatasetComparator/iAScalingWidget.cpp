@@ -104,19 +104,19 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 		if (hIdx == m_nonlinearLower + 1)
 		{
 			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
-				(m_nonlinearScalingVec[hIdx - 1] + m_rangeLowerRest)) * nonlinearscalingFactor;
+				(m_nonlinearScalingVec[hIdx-1] + m_rangeLowerRest)) * nonlinearscalingFactor;
 			linearBarWidth = (m_nonlinearLower + 1 - m_nonlinearLower - m_linearLowerRest) * linearScalingFactor;
 		}
 		else if (hIdx == m_nonlinearUpper)
 		{
 			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
-				(m_nonlinearScalingVec[hIdx - 1] + m_rangeUpperRest)) * nonlinearscalingFactor;
+				(m_nonlinearScalingVec[hIdx-1] + m_rangeUpperRest)) * nonlinearscalingFactor;
 			linearBarWidth = m_linearUpperRest * linearScalingFactor;
 		}
 		else
 		{
 			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
-				m_nonlinearScalingVec[hIdx - 1]) * nonlinearscalingFactor;
+				m_nonlinearScalingVec[hIdx-1]) * nonlinearscalingFactor;
 			linearBarWidth = linearScalingFactor;
 		}
 
