@@ -120,4 +120,5 @@ private:
 	void showCompressionLevel();
 	void setupGUIElements();
 	void setupScalingWidget();
+	void setupPlotConnections();
 };

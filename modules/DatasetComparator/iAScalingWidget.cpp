@@ -81,7 +81,7 @@ void iAScalingWidget::setRange(double lower, double upper, double lowerRest, dou
 
 void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 {
-	// TODO: whole widget is always painted (not needed if only red line moves) 
+	// TODO: whole widget is always painted (not needed if only red line moves)? 
 	if (m_nonlinearScalingVec.size() == 0)
 		return;
 
