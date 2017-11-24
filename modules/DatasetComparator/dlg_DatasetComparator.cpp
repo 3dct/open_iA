@@ -257,19 +257,22 @@ void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 	{
 		boundedRange.lower = 0;
 		boundedRange.upper = linearXRange.size();
+		if (boundedRange.upper > m_nonlinearMappingVec.size() - 1)
+			boundedRange.lower = m_nonlinearMappingVec.size() - 1;
 		linearXRange = boundedRange;
 		m_linearScaledPlot->xAxis->setRange(boundedRange);
 	}
 	else if (linearXRange.upper > m_nonlinearMappingVec.size() - 1)
 	{
 		boundedRange.lower = m_nonlinearMappingVec.size() - 1 - linearXRange.size();
+		if (boundedRange.lower < 0) boundedRange.lower = 0;
 		boundedRange.upper = m_nonlinearMappingVec.size() - 1;
 		linearXRange = boundedRange;
 		m_linearScaledPlot->xAxis->setRange(boundedRange);
 	}
 	m_linearScaledPlot->xAxis->blockSignals(false);
 	
-	double lowerDistToNextPoint = m_nonlinearMappingVec[ceil(linearXRange.lower)] - 
+	double lowerDistToNextPoint = m_nonlinearMappingVec[ceil(linearXRange.lower)] -
 		m_nonlinearMappingVec[floor(linearXRange.lower)];
 	double lowerDistToCurrPoint = linearXRange.lower - floor(linearXRange.lower);
 	if (lowerDistToCurrPoint < 0) lowerDistToCurrPoint = 0;
@@ -934,6 +937,9 @@ void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 {
 	//TODO: MouseMove also for linearScaledPlot
+	if (m_nonlinearScaledPlot->graphCount() < 1)
+		return;
+
 	if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
 		return;
 
