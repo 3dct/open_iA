@@ -610,6 +610,12 @@ bool iAChartWidget::IsContextMenuVisible() const
 	return m_contextMenuVisible;
 }
 
+
+bool iAChartWidget::IsTooltipShown() const
+{
+	return m_showTooltip;
+}
+
 QPoint iAChartWidget::ContextMenuPos() const
 {
 	return m_contextPos;

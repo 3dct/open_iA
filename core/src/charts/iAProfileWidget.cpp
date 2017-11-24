@@ -51,22 +51,20 @@ void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (!scalars)
 		return;
-
 	int xPos = clamp(0, ActiveWidth() - 1, event->x() - LeftMargin());
 	int nthBin = (int)((((xPos-translationX) * numBin) / ActiveWidth()) / xZoom);
 	double len = (((xPos-translationX) * rayLen) / ActiveWidth()) / xZoom;
 	if (nthBin >= numBin || xPos == ActiveWidth()-1)
-	{
 		nthBin = numBin-1;
+	if (IsTooltipShown())
+	{
+		QString text = xCaption
+			+ QString(": %1").arg(len)
+			+ "  "
+			+ yCaption
+			+ QString(": %1").arg(scalars->GetTuple1(nthBin));
+		QToolTip::showText(event->globalPos(), text, this);
 	}
-
-	QString text = xCaption 
-		+ QString(": %1").arg(len)
-		+ "  " 
-		+ yCaption 
-		+ QString(": %1").arg(scalars->GetTuple1(nthBin));
-
-	QToolTip::showText( event->globalPos(), text, this );
 	emit binSelected(nthBin);
 }
 

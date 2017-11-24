@@ -64,6 +64,7 @@ public:
 	long screenX2DataBin(int x) const;
 	int  dataBin2ScreenX(long x) const;
 	bool IsContextMenuVisible() const;
+	bool IsTooltipShown() const;
 	QPoint ContextMenuPos() const;
 
 	void SetXBounds(double minVal, double maxVal);
