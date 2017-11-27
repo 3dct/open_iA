@@ -931,64 +931,102 @@ void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 
 void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 {
-	//TODO: MouseMove also for linearScaledPlot
-	if (m_nonlinearScaledPlot->graphCount() < 1)
+	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
+
+	if (plot->graphCount() < 1)
 		return;
 
 	if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
 		return;
 
-	if (e->pos().x() < m_nonlinearScaledPlot->axisRect()->left() ||
-		e->pos().x() > m_nonlinearScaledPlot->axisRect()->right())
+	if (e->pos().x() < plot->axisRect()->left() ||
+		e->pos().x() > plot->axisRect()->right())
 		return;
 
 	QVector<double> distList;
 	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
-		distList.append(m_nonlinearScaledPlot->graph(i)->selectTest(
+		distList.append(plot->graph(i)->selectTest(
 			QPoint(e->pos().x(), e->pos().y()), true));
 	auto minDist = std::min_element(distList.begin(), distList.end());
 	auto idx = minDist - distList.begin();
-	auto x = m_nonlinearScaledPlot->xAxis->pixelToCoord(e->pos().x());
-	auto y = m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y());
-	m_nonlinearIdxLine->point1->setCoords(x, 0.0);
-	m_nonlinearIdxLine->point2->setCoords(x, 1.0);
-	m_nonlinearDataPointInfo->position->setPixelPosition(
-		QPoint(e->pos().x() + 40, e->pos().y() - 15));
-	auto v = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
-	int hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
-	if (v - m_nonlinearMappingVec.begin() == 0) hilbertIdx = 0;
+	auto x = plot->xAxis->pixelToCoord(e->pos().x());
+	auto y = plot->yAxis->pixelToCoord(e->pos().y());
 
-	if (*minDist >= 0 && *minDist < 2.0 && m_nonlinearScaledPlot->graph(idx)->visible())
+	if (plot == m_nonlinearScaledPlot)
 	{
-		m_nonlinearDataPointInfo->setText(QString("%1\n%2, %3")
-			.arg(m_nonlinearScaledPlot->graph(idx)->name())
-			.arg(hilbertIdx)
-			.arg((int)y));
+		m_nonlinearIdxLine->point1->setCoords(x, 0.0);
+		m_nonlinearIdxLine->point2->setCoords(x, 1.0);
+		m_nonlinearDataPointInfo->position->setPixelPosition(
+			QPoint(e->pos().x() + 40, e->pos().y() - 15));
+
+		auto v = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
+		int hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
+		if (v - m_nonlinearMappingVec.begin() == 0) hilbertIdx = 0;
+
+		if (*minDist >= 0 && *minDist < 2.0 && plot->graph(idx)->visible())
+		{
+			m_nonlinearDataPointInfo->setText(QString("%1\n%2, %3")
+				.arg(m_nonlinearScaledPlot->graph(idx)->name())
+				.arg(hilbertIdx).arg((int)y));
+		}
+		else
+		{
+			m_nonlinearDataPointInfo->setText(QString("%1, %2")
+				.arg(hilbertIdx).arg((int)y));
+		}
+
+		double nonlinearVecPosDist = 1.0, currNonlinearDist = 0.0;
+		if (v - m_nonlinearMappingVec.begin() < m_nonlinearMappingVec.size())
+		{
+			nonlinearVecPosDist = m_nonlinearMappingVec[hilbertIdx + 1] - m_nonlinearMappingVec[hilbertIdx];
+			currNonlinearDist = x - m_nonlinearMappingVec[hilbertIdx];
+		}
+
+		m_linearIdxLine->point1->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 0.0);
+		m_linearIdxLine->point2->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 1.0);
+		m_linearDataPointInfo->position->setPixelPosition(QPointF(m_linearScaledPlot->xAxis->coordToPixel(
+			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)) + 40,
+			m_linearScaledPlot->yAxis->coordToPixel(y) - 15));
+		m_linearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg((int)y));
+
+		m_scalingWidget->setCursorPositions(m_linearScaledPlot->xAxis->coordToPixel(
+			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)), e->pos().x());
 	}
 	else
 	{
-		m_nonlinearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg((int)y));
+		m_linearIdxLine->point1->setCoords(x, 0.0);
+		m_linearIdxLine->point2->setCoords(x, 1.0);
+		m_linearDataPointInfo->position->setPixelPosition(QPointF(e->pos().x() + 40, e->pos().y() - 15));
+		m_linearDataPointInfo->setText(QString("%1, %2").arg(int(x)).arg((int)y));
+
+		if (*minDist >= 0 && *minDist < 2.0 && plot->graph(idx)->visible())
+		{
+			m_linearDataPointInfo->setText(QString("%1\n%2, %3")
+				.arg(m_linearScaledPlot->graph(idx)->name())
+				.arg(int(x)).arg((int)y));
+		}
+		else
+		{
+			m_nonlinearDataPointInfo->setText(QString("%1, %2")
+				.arg(int(x)).arg((int)y));
+		}
+
+		double nonlinearDistToNextPoint = m_nonlinearMappingVec[ceil(x)] - m_nonlinearMappingVec[floor(x)];
+		double distToCurrPoint = x - floor(x);
+		double nonlinearXCoord = m_nonlinearMappingVec[floor(x)] + distToCurrPoint * nonlinearDistToNextPoint;
+
+		m_nonlinearIdxLine->point1->setCoords(nonlinearXCoord, 0.0);
+		m_nonlinearIdxLine->point2->setCoords(nonlinearXCoord, 1.0);
+		m_nonlinearDataPointInfo->position->setCoords(
+			m_nonlinearScaledPlot->xAxis->pixelToCoord(m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord) + 40),
+			m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y() - 15));
+		m_nonlinearDataPointInfo->setText(QString("%1, %2").arg(int(x)).arg((int)y));
+
+		m_scalingWidget->setCursorPositions(e->pos().x(), m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));
 	}
 
-	double nonlinearVecPosDist = 1.0, currNonlinearDist = 0.0;
-	if (v - m_nonlinearMappingVec.begin() < m_nonlinearMappingVec.size())
-	{
-		nonlinearVecPosDist = m_nonlinearMappingVec[hilbertIdx + 1] - m_nonlinearMappingVec[hilbertIdx];
-		currNonlinearDist = x - m_nonlinearMappingVec[hilbertIdx];
-	}
-
-	m_linearIdxLine->point1->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 0.0);
-	m_linearIdxLine->point2->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 1.0);
-	m_linearDataPointInfo->position->setPixelPosition(QPointF(m_linearScaledPlot->xAxis->coordToPixel(
-		hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)) + 40,
-		m_linearScaledPlot->yAxis->coordToPixel(y) - 15));
-	m_linearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg((int)y));
-	
 	m_nonlinearScaledPlot->layer("overlay")->replot();
 	m_linearScaledPlot->layer("overlay")->replot();
-
-	m_scalingWidget->setCursorPositions(m_linearScaledPlot->xAxis->coordToPixel(
-		hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)), e->pos().x());
 }
 
 template <typename T>

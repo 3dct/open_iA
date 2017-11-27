@@ -124,7 +124,7 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 		m_lut->GetColor(1 - m_impFunctVec[hIdx], rgb);
 		c.setRgbF(rgb[0], rgb[1], rgb[2]);
 		painter.setBrush(QBrush(c));
-		painter.setPen(QPen(Qt::black));
+		painter.setPen(QPen(c));
 		painter.drawRect(nonlinearBar);
 		
 		nonlinearBarStartPos += nonlinearBarWidth;
