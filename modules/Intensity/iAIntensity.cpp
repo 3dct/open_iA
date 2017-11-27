@@ -199,7 +199,7 @@ IAFILTER_CREATE(iAGeneralThreshold)
 
 iAGeneralThreshold::iAGeneralThreshold() :
 	iAFilter("General threshold filter", "Intensity",
-		"Set image values to outside value if they outside of the given interval.<br/>"
+		"Set image values to <em>Outside value</em> if they are outside of the given interval.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html\">"
 		"Threshold Filter</a> in the ITK documentation.")
@@ -247,8 +247,9 @@ iARescaleIntensityFilter::iARescaleIntensityFilter() :
 		"the input image are computed internally (as the minimum and maximum intensity "
 		"values occurring in the image). If you need a filter where you can "
 		"set the minimum and maximum values of the input, please use the <em>Intensity "
-		"windowing filter</em>. If you want a filter that can use a user-defined linear "
-		"transformation for the intensity, then please use the <em>Shift scale filter</em>.<br/>"
+		"windowing</em> or the <em>Datatype Conversion</em> filter. If you want a filter that "
+		"can perform a user-defined linear transformation on the intensity, then please use "
+		"the <em>Shift scale</em> filter.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
 		"Rescale Intensity Filter</a> in the ITK documentation.")
@@ -331,14 +332,14 @@ void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> const & parame
 iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 	iAFilter("Adaptive Histogram Equalization", "",
 		"This filter is a superset of many contrast enhancing filters.<br/>"
-		"By modifying its parameters (alpha, beta), the filter can produce an "
+		"By modifying its parameters (Alpha, Beta), the filter can produce an "
 		"adaptively equalized histogram or a version of unsharp mask (local "
 		"mean subtraction).<br/>"
-		"The parameter alpha controls how much the filter acts like the "
-		"classical histogram equalization method (alpha=0) to how much the "
-		"filter acts like an unsharp mask (alpha=1). The parameter beta "
-		"controls how much the filter acts like an unsharp mask (beta=0) to "
-		"how much the filter acts like pass through (beta=1, with alpha=1)."
+		"<em>Alpha</em> controls how much the filter acts like the "
+		"classical histogram equalization method (Alpha=0) to how much the "
+		"filter acts like an unsharp mask (Alpha=1). The parameter <em>Beta</em> "
+		"controls how much the filter acts like an unsharp mask (Beta=0) to "
+		"how much the filter acts like pass through (Beta=1, with Alpha=1)."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
 		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
