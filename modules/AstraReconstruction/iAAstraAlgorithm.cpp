@@ -563,7 +563,9 @@ void iAASTRAFilterRunner::Run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 {
 	if (!IsCUDAAvailable())
 	{
-		QMessageBox::warning(mainWnd, "ASTRA", "No CUDA device available. ASTRA toolbox operations require a CUDA-capable device.");
+		QMessageBox::warning(mainWnd, "ASTRA",
+			"ASTRA toolbox operations require a CUDA-capable device, but no CUDA device was found."
+			"In case this machine has an NVidia card, please install the latest driver!");
 		return;
 	}
 	astra::CLogger::setOutputScreen(1, astra::LOG_INFO);
