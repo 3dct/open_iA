@@ -173,13 +173,13 @@ void iANonLocalMeans::Run(QMap<QString, QVariant> const & parameters)
 
 iANonLocalMeans::iANonLocalMeans() :
 	iAFilter("Non-Local Means", "Smoothing/",
-		"Performs a non-local means (= patch-based denoising).<br/>"
+		"Performs a non-local means (= patch-based denoising) filtering.<br/>"
 		"Implements a denoising filter that uses iterative non-local, "
 		"or semi-local, weighted averaging of image patches for image denoising.<br/>"
 		"<em>Patch radius</em> specified in physical coordinates (that is, in a unit of pixels,"
 		"rather than considering spacing, preferrable it's an even number). "
 		"<em>Number of iterations</em> determines how many iterations to perform (default=1). "
-		"<em>Kernel bandwidth estimation<em> determines whether kernel-bandwidth should be "
+		"<em>Kernel bandwidth estimation</em> determines whether kernel-bandwidth should be "
 		"estimated automatically from the image data (default=false). <br/>"
 		//<em>Noise Sigma</em> specifies the sigma of the noise model, where appropriate (in percent of the image intensity range)."
 		"For more information, see the "

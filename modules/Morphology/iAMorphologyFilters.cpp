@@ -63,7 +63,7 @@ IAFILTER_CREATE(iADilation)
 
 iADilation::iADilation() :
 	iAFilter("Dilation", "Morphology",
-		"Dilate an image using grayscale morphology..<br/>"
+		"Dilate an image using grayscale morphology.<br/>"
 		"Dilation takes the maximum of all the pixels identified by the "
 		"structuring element (a ball with the given <em>Radius</em> in all directions).<br/>"
 		"For more information, see the "
@@ -107,7 +107,7 @@ IAFILTER_CREATE(iAErosion)
 
 iAErosion::iAErosion() :
 	iAFilter("Erosion", "Morphology",
-		"Erodes an image using grayscale morphology..<br/>"
+		"Erodes an image using grayscale morphology.<br/>"
 		"Erosion takes the maximum of all the pixels identified by the "
 		"structuring element. (a ball with the given <em>Radius</em> in all directions).<br/>"
 		"For more information, see the "
@@ -148,9 +148,9 @@ IAFILTER_CREATE(iAVesselEnhancement)
 
 iAVesselEnhancement::iAVesselEnhancement() :
 	iAFilter("Vessel Enhancement", "Morphology",
-		"Line filter to provide a vesselness measure for tubular objects from the hessian matrix.<br/>"
+		"Line filter to provide a vesselness measure for tubular objects from the Hessian matrix.<br/>"
 		"<em>Sigma</em> is a parameter to the Hessian calculation via a "
-		"recursive gaussian filter, and is measured in units of image spacing.<br/>"
+		"recursive Gaussian filter, and is measured in units of image spacing.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HessianRecursiveGaussianImageFilter.html\">"
 		"Hessian Recursive Gaussian Filter</a> and the "
