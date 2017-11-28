@@ -38,7 +38,7 @@
 template<class T> int iADatasetInfo::generateInfo( QString datasetPath, QString datasetName, 
 												   ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi, 
 												   int totalFInfoNbToCreate, int currentFInfoNb )
-{	
+{
 	typedef itk::Image<T, DIM>  InputImageType;
 	typedef itk::Image<unsigned char, DIM>  uCharInputImageType;
 	typedef itk::Image<unsigned char, 2>  OutputImageType;
