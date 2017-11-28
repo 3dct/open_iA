@@ -20,20 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAPlotData.h"
+#include "iAPlotTypes.h"
+#include "open_iA_Core_export.h"
+
 #include <QSharedPointer>
 
 #include <itkImage.h>
 #include <itkImageRegionConstIterator.h>
 
-#include "charts/iAPlotData.h"
-#include "charts/iAPlotTypes.h"
-
-class iASimpleHistogramData : public iAPlotData
+class open_iA_Core_API iASimpleHistogramData : public iAPlotData
 {
 public:
 	virtual ~iASimpleHistogramData();
 	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
 	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType);
+	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType);
 
 	// Inherited via iAAbstractDiagramRangedData
 	DataType const * GetRawData() const override;
