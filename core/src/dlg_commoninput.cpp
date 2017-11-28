@@ -252,6 +252,7 @@ void dlg_commoninput::showROI(MdiChild *child)
 {
 	m_roiMdiChild = child;
 	setModal(false);
+	hide();	show(); // required to apply change in modality!
 	connect(child, SIGNAL(closed()), this, SLOT(ROIChildClosed()));
 	QObjectList children = container->children();
 	for (int i = 0; i < 3; ++i)

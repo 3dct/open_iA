@@ -112,7 +112,6 @@ protected:
 
 private slots:
 	void timeout();
-	void newFile();
 	void Open();
 	void OpenRaw();
 	void OpenImageStack();

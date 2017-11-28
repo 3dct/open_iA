@@ -152,11 +152,12 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	textInfo(0),
 	rulerWidget(0),
 	interactor(0),
-	m_sliceNumber(0), // for fisheye transformation
+	m_sliceNumber(0),
 	m_showPositionMarker(false),
 	colorTransferFunction(nullptr),
 	isolines(false),
-	poly(false)
+	poly(false),
+	roiActive(false)
 {
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
@@ -535,39 +536,42 @@ void iASlicerData::SetROIVisible(bool visible)
 {
 	if (!m_decorations)
 		return;
+	roiActive = visible;
 	roiActor->SetVisibility(visible);
 }
 
 
 void iASlicerData::UpdateROI(int const roi[6])
 {
-	if (!m_decorations || !roiActor->GetVisibility())
-	{
+	if (!m_decorations || !roiActive)
 		return;
-	}
+
 	double* spacing = reslicer->GetOutput()->GetSpacing();
 
 	// apparently, image actor starts output at -0,5spacing, -0.5spacing (probably a side effect of BorderOn)
 	// That's why we have to subtract 0.5 from the coordinates!
 	if (m_mode == iASlicerMode::YZ)
 	{
+		roiSlice[0] = roi[0]; roiSlice[1] = roi[0] + roi[3];
 		roiSource->SetOrigin((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]                  , 0);
 		roiSource->SetPoint1((roi[1]-0.5)*spacing[1]+roi[4]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
 		roiSource->SetPoint2((roi[1]-0.5)*spacing[1]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
 	}
 	else if (m_mode == iASlicerMode::XY)
 	{
+		roiSlice[0] = roi[2]; roiSlice[1] = roi[2] + roi[5];
 		roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]                  , 0);
 		roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[1]-0.5)*spacing[1]                  , 0);
 		roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[1]-0.5)*spacing[1]+roi[4]*spacing[1], 0);
 	}
 	else if (m_mode == iASlicerMode::XZ)
 	{
+		roiSlice[0] = roi[1]; roiSlice[1] = roi[1] + roi[4];
 		roiSource->SetOrigin((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]                  , 0);
 		roiSource->SetPoint1((roi[0]-0.5)*spacing[0]+roi[3]*spacing[0], (roi[2]-0.5)*spacing[2]                  , 0);
 		roiSource->SetPoint2((roi[0]-0.5)*spacing[0]                  , (roi[2]-0.5)*spacing[2]+roi[5]*spacing[2], 0);
 	}
-
+	roiActor->SetVisibility(roiSlice[0] <= m_sliceNumber && m_sliceNumber < roiSlice[1]);
 	roiMapper->Update();
 	interactor->Render();
 }
@@ -1667,9 +1671,8 @@ void iASlicerData::setChannelOpacity(iAChannelID id, double opacity )
 void iASlicerData::setSliceNumber( int sliceNumber )
 {
 	if (!imageData)
-	{
 		return;
-	}
+
 	double xyz[3] = {0.0, 0.0, 0.0};
 	switch(m_mode)
 	{
@@ -1686,9 +1689,9 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 		break;
 	}
 
-	// for fisheye transformation in slicers
 	m_sliceNumber = sliceNumber;
-
+	if (roiActive)
+		roiActor->SetVisibility(roiSlice[0] <= m_sliceNumber && m_sliceNumber < (roiSlice[1]));
 	double * spacing = imageData->GetSpacing();
 	//also apply to enabled channels
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
@@ -1905,7 +1908,6 @@ QCursor iASlicerData::getMouseCursor()
 	return m_mouseCursor;
 }
 
-// for fisheye transformation in slicers
 int iASlicerData::getSliceNumber()
 {
 	return m_sliceNumber;

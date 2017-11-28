@@ -202,14 +202,6 @@ void MainWindow::CloseAllSubWindows()
 }
 
 
-void MainWindow::newFile()
-{
-	MdiChild *child = createMdiChild(true);
-	child->newFile();
-	child->show();
-}
-
-
 void MainWindow::Open()
 {
 	LoadFiles(
@@ -1734,6 +1726,7 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	MdiChild *child = new MdiChild(this, defaultPreferences, unsavedChanges);
 	QMdiSubWindow* subWin = mdiArea->addSubWindow(child);
 	subWin->setOption(QMdiSubWindow::RubberBandResize);
+	subWin->setOption(QMdiSubWindow::RubberBandMove);
 
 	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
 	child->setupSlicers(defaultSlicerSettings, false);
@@ -1754,7 +1747,6 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 
 void MainWindow::connectSignalsToSlots()
 {
-	connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 	connect(openAct, SIGNAL(triggered()), this, SLOT(Open()));
 	connect(actionOpen_Raw, SIGNAL(triggered()), this, SLOT(OpenRaw()));
 	connect(actionOpen_Image_Stack, SIGNAL(triggered()), this, SLOT(OpenImageStack()));

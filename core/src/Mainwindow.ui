@@ -66,7 +66,6 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="newAct"/>
     <addaction name="openAct"/>
     <addaction name="actionOpen_Raw"/>
     <addaction name="actionOpen_Image_Stack"/>
@@ -177,7 +176,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="newAct"/>
    <addaction name="openAct"/>
    <addaction name="saveAct"/>
    <addaction name="saveAsAct"/>
@@ -298,21 +296,6 @@
    <addaction name="actionDelete_Layout"/>
    <addaction name="actionResetLayout"/>
   </widget>
-  <action name="newAct">
-   <property name="icon">
-    <iconset resource="../open_iA.qrc">
-     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;New</string>
-   </property>
-   <property name="toolTip">
-    <string>Create a new file</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
-  </action>
   <action name="openAct">
    <property name="icon">
     <iconset resource="../open_iA.qrc">

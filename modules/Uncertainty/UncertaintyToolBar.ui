@@ -52,7 +52,7 @@
   <action name="action_CalculateNewSubEnsemble">
    <property name="icon">
     <iconset resource="../../core/open_iA.qrc">
-     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
+     <normaloff>:/images/paste.png</normaloff>:/images/paste.png</iconset>
    </property>
    <property name="text">
     <string>New Ensemble from selected Members</string>

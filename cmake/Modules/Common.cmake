@@ -409,9 +409,10 @@ IF (OPENCL_FOUND)
 	IF (WIN32)
 		# OPENCL_LIBRARIES is set fixed to the OpenCL.lib file, but we need the dll
 		# at least for AMD APP SDK, the dll is located in a similar location, just "bin" instead of "lib":
-		STRING(REGEX REPLACE "lib/x86_64/OpenCL.lib" "bin/x86_64/OpenCL.dll" OPENCL_DLL ${OPENCL_LIBRARIES})
+		STRING(REGEX REPLACE "lib/x86_64" "bin/x86_64" OPENCL_DLL "${OPENCL_LIBRARIES}")
+		STRING(REGEX REPLACE "OpenCL.lib" "OpenCL.dll" OPENCL_DLL "${OPENCL_DLL}")
 		IF (NOT EXISTS "${OPENCL_DLL}")
-			SET (OPENCL_DLL "C:\\Program Files\\NVIDIA Corporation\\OpenCL") # installed along with NVidia driver
+			SET (OPENCL_DLL "C:/Program Files/NVIDIA Corporation/OpenCL/OpenCL.dll") # installed along with NVidia driver
 		ENDIF()
 		IF (NOT EXISTS "${OPENCL_DLL}")
 			MESSAGE(WARNING "OpenCL.dll was not found. You can continue building, but the program might not run (or it might fail to run when installed/cpacked).")

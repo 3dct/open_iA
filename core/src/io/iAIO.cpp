@@ -1589,9 +1589,7 @@ bool iAIO::writeMetaImage( )
 			.arg(excep.GetLine()));
 		return false;
 	}
-	emit msg(tr("%1  File saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	emit msg("  File: "+ fileName );
-
+	emit msg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 	return true;
 }
 
@@ -1604,8 +1602,7 @@ bool iAIO::writeSTL( )
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
 	stlWriter->Write();
-	emit msg(tr("%1  File saved.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	emit msg("  File: "+ fileName );
+	emit msg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 	stlWriter->ReleaseDataFlagOn();
 	return true;
 }

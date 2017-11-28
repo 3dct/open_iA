@@ -243,6 +243,8 @@ private:
 	vtkSmartPointer<vtkPlaneSource> roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> roiMapper;
 	vtkSmartPointer<vtkActor> roiActor;
+	bool roiActive;
+	int roiSlice[2];
 
 	vtkSmartPointer<vtkTransform> axisTransform[2];
 	vtkSmartPointer<vtkTextActor3D> axisTextActor[2];
