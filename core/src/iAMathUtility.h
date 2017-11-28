@@ -23,6 +23,8 @@
 #include "open_iA_Core_export.h"
 
 #include <cassert>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <vector>
 
 // consistently define isNaN/isInf:
