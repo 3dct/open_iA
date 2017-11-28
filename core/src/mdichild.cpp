@@ -986,7 +986,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 		return false;
 	}
 
-	addMsg(tr("%1  Loading file '%2', please wait...")
+	addMsg(tr("%1  Saving file '%2', please wait...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
 	ioThread->start();
 

@@ -31,8 +31,6 @@
 #include <QMainWindow>
 #include <QSharedPointer>
 
-#include <string>
-
 QT_BEGIN_NAMESPACE
 class QAction;
 class QActionGroup;
