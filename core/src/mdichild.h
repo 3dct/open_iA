@@ -105,7 +105,6 @@ public:
 	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
 
-	void newFile();
 	void showPoly();
 	bool loadFile(const QString &f, bool isStack);
 	bool loadRaw(const QString &f);

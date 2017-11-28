@@ -429,12 +429,6 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 	}
 }
 
-void MdiChild::newFile()
-{
-	hideVolumeWidgets();
-	addMsg(tr("%1  New File.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-}
-
 void MdiChild::showPoly()
 {
 	hideVolumeWidgets();
