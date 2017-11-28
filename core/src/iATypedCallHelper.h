@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <stdexcept>
+
 // Requirements:
 // |function| return type must be void
 //
