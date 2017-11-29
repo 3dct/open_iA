@@ -734,7 +734,7 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 		auto data = plot->GetData();
 		if (!data || !data->GetRawData())
 			continue;
-		toolTip += QString::number(data->GetRawData()[nthBin]);
+		toolTip += ", " + QString::number(data->GetRawData()[nthBin]);
 	}
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }

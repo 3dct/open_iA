@@ -80,6 +80,7 @@ public:
 	void closeTFTable();
 	QPoint getTFTablePos() const;
 	void setTFTablePos(QPoint pos);
+	void addGaussianFunction(double mean, double sigma, double multiplier);
 
 protected:
 	void mousePressEvent(QMouseEvent *event);

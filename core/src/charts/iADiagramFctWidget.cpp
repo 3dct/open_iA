@@ -461,10 +461,15 @@ void iADiagramFctWidget::addBezierFunction()
 
 void iADiagramFctWidget::addGaussianFunction()
 {
+	addGaussianFunction(ContextMenuPos().x(), width / 6, (int)((ActiveHeight() - ContextMenuPos().y())*YZoom()));
+}
+
+void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double multiplier)
+{
 	dlg_gaussian *gaussian = new dlg_gaussian(this, PredefinedColors()[functions.size() % 7]);
-	gaussian->setMean(ContextMenuPos().x());
-	gaussian->setSigma(width/6);
-	gaussian->setMultiplier((int)((ActiveHeight()- ContextMenuPos().y())*YZoom()));
+	gaussian->setMean(mean);
+	gaussian->setSigma(sigma);
+	gaussian->setMultiplier(multiplier);
 	selectedFunction = (unsigned int)functions.size();
 	functions.push_back(gaussian);
 
