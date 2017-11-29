@@ -330,7 +330,7 @@ void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> const & parame
 }
 
 iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
-	iAFilter("Adaptive Histogram Equalization", "",
+	iAFilter("Adaptive Histogram Equalization", "Intensity",
 		"This filter is a superset of many contrast enhancing filters.<br/>"
 		"By modifying its parameters (Alpha, Beta), the filter can produce an "
 		"adaptively equalized histogram or a version of unsharp mask (local "

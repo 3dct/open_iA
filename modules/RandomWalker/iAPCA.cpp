@@ -32,7 +32,7 @@
 
 
 iAPCA::iAPCA() :
-	iAFilter("Principal Component Analysis", "Shape Analysis",
+	iAFilter("Principal Component Analysis", "Segmentation/Shape Analysis",
 		"Computes the principal component analysis on a collection of input images.<br/>"
 		"Given a number of input channels or images of same dimensions, this filter "
 		"performs a transformation and reduces the number of output channels to the "
