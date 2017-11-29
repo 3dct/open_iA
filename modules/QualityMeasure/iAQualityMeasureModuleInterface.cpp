@@ -35,11 +35,11 @@ void iAQualityMeasureModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuSegmEnsembles = getMenuWithTitle(toolsMenu, QString("Quality Measures"), false);
+	QMenu * menuEnsembles = getMenuWithTitle(toolsMenu, QString("Image Ensembles"), false);
 
 	QAction * actionQ = new QAction(m_mainWnd);
 	actionQ->setText(QApplication::translate("MainWindow", "Q Metric", 0));
-	AddActionToMenuAlphabeticallySorted(menuSegmEnsembles, actionQ, true);
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionQ, true);
 	connect(actionQ, SIGNAL(triggered()), this, SLOT(CalculateQ()));
 }
 
@@ -55,7 +55,7 @@ void iAQualityMeasureModuleInterface::Initialize()
 
 template <typename T>
 void calculateQ_template(iAConnector& con, double histogramBinFactor, double minVal, double maxVal,
-	unsigned int numberOfPeaks, double Kderiv, iAChartWidget* chart)
+	unsigned int numberOfPeaks, double Kderiv, double Kminima, iAChartWidget* chart)
 {
 	// 1. calculate histogram:
 	const int ChannelCount = 1;
@@ -88,12 +88,15 @@ void calculateQ_template(iAConnector& con, double histogramBinFactor, double min
 		vecHist.push_back(it.GetFrequency());
 		++b;
 	}
-	auto histoPlotData = iASimpleHistogramData::Create(minVal, maxVal, vecHist, Continuous);
-	chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(histoPlotData, QColor(180,90,90,127))));
+	if (chart)
+	{
+		auto histoPlotData = iASimpleHistogramData::Create(minVal, maxVal, vecHist, Continuous);
+		chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(histoPlotData, QColor(180, 90, 90, 127))));
+	}
 
 	double derivSigma = static_cast<double>(binCount) / Kderiv;
 	// 2. convolute with gaussian to smooth:
-	auto smoothedHist = gaussianSmoothing(vecHist, 0.5, 3);
+	auto smoothedHist = gaussianSmoothing(vecHist, derivSigma, 5, (maxVal-minVal)/binCount);
 
 	b = 0;
 	for (auto it = smoothedHist.begin(); it != smoothedHist.end(); ++it)
@@ -101,8 +104,42 @@ void calculateQ_template(iAConnector& con, double histogramBinFactor, double min
 		DEBUG_LOG(QString(" Smoothed Bin %1: %2").arg(b).arg(*it));
 		++b;
 	}
-	auto smoothedHistoPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHist, Continuous);
-	chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHistoPlotData, QColor(90,180,90,127))));
+	if (chart)
+	{
+		auto smoothedHistoPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHist, Continuous);
+		chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
+	}
+
+	// 3. find peaks: (derivative = 0, 2nd deriv. negative)
+	auto firstDeriv = derivative(smoothedHist);
+	if (chart)
+	{
+		auto firstDerivPlotData = iASimpleHistogramData::Create(minVal, maxVal, firstDeriv, Continuous);
+		chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(firstDerivPlotData, QColor(90, 90, 180, 127))));
+	}
+	// peak is at every 0-crossing, so where:
+	//      - either deriv is 0, deriv is pos before and neg afterwards (pot. use 2nd deriv?)
+	//      - or before deriv. is pos. and afterwards deriv. is neg.:
+	std::vector<std::pair<size_t, double> > peaks;
+	for (size_t i = 0; i < firstDeriv.size(); ++i)
+	{
+		if ((firstDeriv[i] == 0
+				&& i > 0
+				&& i < firstDeriv.size() - 1
+				&& firstDeriv[i-1] > 0
+				&& firstDeriv[i+1] < 0) ||
+			(i < firstDeriv.size()-1
+				&& firstDeriv[i] > 0
+				&& firstDeriv[i+1] < 0))
+			peaks.push_back(std::make_pair(i, smoothedHist[i]));
+	}
+		
+	std::sort(peaks.begin(), peaks.end(), [](std::pair<size_t, double> const & a, std::pair<size_t, double> const & b) {
+		return a.second > b.second;
+	});
+	if (chart)
+		for (size_t p = 0; p<numberOfPeaks; ++p)
+			chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(peaks[p].first, QColor(90, 90, 90, 182))));
 }
 
 
@@ -112,14 +149,15 @@ void iAQualityMeasureModuleInterface::CalculateQ()
 	iAChartWidget * chart = new iAChartWidget(m_mdiChild, "Intensity", "Frequency");
 	iADockWidgetWrapper* wrapper= new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
 	m_mdiChild->SplitDockWidget(m_mdiChild->logs, wrapper, Qt::Horizontal);
-	double HistogramBinFactor = 0.25;	// should be between 1/4 and 1/8, according to [1]
 	unsigned int NumberOfPeaks = 2;
-	double Kderiv = 128; // should be between 64 and 512, according to [1]
+	double HistogramBinFactor = 0.125;	// should be between 1/4 and 1/8, according to [1]
+	double Kderiv = 64; // should be between 64 and 512, according to [1]
+	double Kminima = 8; // should be between 8 and 64, according to [1]
 	iAConnector con;
 	con.SetImage(m_mdiChild->GetModality(0)->GetImage());
 	ITK_TYPED_CALL(calculateQ_template, con.GetITKScalarPixelType(), con, HistogramBinFactor,
 		m_mdiChild->GetModality(0)->Info().Min(), m_mdiChild->GetModality(0)->Info().Max(),
-		NumberOfPeaks, Kderiv, chart);
+		NumberOfPeaks, Kderiv, Kminima, chart);
 
 	// [1] M. Reiter, D. Weiß, C. Gusenbauer, M. Erler, C. Kuhn, S. Kasperl, J. Kastner:
 	//     Evaluation of a histogram-based image quality measure for X-ray computed tomography
