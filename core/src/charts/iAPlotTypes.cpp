@@ -29,6 +29,33 @@
 
 #include <cmath>
 
+class iADummyPlotData : public iAPlotData
+{
+public:
+	DataType const * GetRawData() const override
+	{
+		return nullptr;
+	}
+	size_t GetNumBin() const override
+	{
+		return 0;
+	}
+	double GetSpacing() const override
+	{
+		return 1;
+	}
+	double const * XBounds() const override
+	{
+		static double xbounds[2];
+		xbounds[0] = 0; xbounds[1] = 0;
+		return xbounds;
+	}
+	DataType const * YBounds() const override
+	{
+		static double ybounds[2]; ybounds[0] = 0; ybounds[1] = 0;
+		return ybounds;
+	}
+};
 
 iAPlot::iAPlot(QColor const & color):
 	iAColorable(color),
@@ -39,7 +66,7 @@ iAPlot::~iAPlot() {}
 
 QSharedPointer<iAPlotData> iAPlot::GetData()
 {
-	return QSharedPointer<iAPlotData>();
+	return QSharedPointer<iAPlotData>(new iADummyPlotData);
 }
 
 bool iAPlot::Visible() const
@@ -64,7 +91,8 @@ void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, QSharedPoint
 	int x = (int)(m_position * binWidth);
 	int h = painter.device()->height();
 	int intBinWidth = static_cast<int>(std::ceil(binWidth));
-	painter.fillRect( QRect( x, 0, intBinWidth, h ), getColor() );
+	painter.setPen(getColor());
+	painter.drawRect( QRect( x, 0, intBinWidth, h ) );
 }
 
 void iASelectedBinDrawer::setPosition( int position )
