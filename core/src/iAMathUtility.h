@@ -175,4 +175,7 @@ open_iA_Core_API std::vector<double> gaussianKernel(double kernelSigma, size_t k
 
 //! convolutes the given function with a Gaussian kernel with the given sigma and steps
 //! TODO: steps could be  calculated from sigma (cut off kernel when factor gets very small
-open_iA_Core_API std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, size_t kernelSteps);
+open_iA_Core_API std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps);
+
+
+open_iA_Core_API std::vector<double> derivative(std::vector<double> func);

@@ -26,13 +26,11 @@
 	#define M_PI 3.14159265358979323846
 #endif
 
-
 double gaussian(double x, double sigma)
 {
 	return 1 / std::sqrt(2 * M_PI*std::pow(sigma, 2.0)) *
 		std::exp(-std::pow(x, 2.0) / (2 * std::pow(sigma, 2.0)));
 }
-
 
 std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps)
 {
@@ -44,25 +42,36 @@ std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps)
 	return kernel;
 }
 
-//! convolutes the given function with a Gaussian kernel with the given sigma and steps
-//! TODO: steps could be  calculated from sigma (cut off kernel when factor gets very small
-std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, size_t kernelSteps)
+std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps)
 {
 	std::vector<double> smoothed;
 	auto kernel = gaussianKernel(kernelSigma, kernelSteps);
 	for (size_t i = 0; i < data.size(); ++i)
 	{
-		size_t minIdx = std::max(static_cast<size_t>(0), i - kernelSteps);
+		size_t minIdx = static_cast<size_t>(std::max(static_cast<long long>(0), static_cast<long long>(i) - kernelSteps));
 		size_t maxIdx = std::min(data.size(), i + kernelSteps + 1);
 		double smoothValue = 0;
 		for (size_t cur = minIdx; cur < maxIdx; ++cur)
 		{						// kernel is symmetric around 0
 			size_t kernelIdx = std::abs(static_cast<long long>(cur - i));
 			assert(kernelIdx < kernel.size());
-			smoothValue += kernel[kernelIdx] * data[i];
+			smoothValue += kernel[kernelIdx] * data[cur];
 		}
-		smoothValue /= (maxIdx - minIdx + 1);
 		smoothed.push_back(smoothValue);
 	}
 	return smoothed;
+}
+
+open_iA_Core_API std::vector<double> derivative(std::vector<double> func)
+{
+	std::vector<double> deriv;
+	for (size_t i = 0; i < func.size(); ++i)
+	{
+		double derivValue = ((i > 0) ? (func[i] - func[i - 1])
+			: func[i+1]-func[i]);
+			// calculate as average of(difference between prev and current) and (difference between current and next) ?
+			//(i < func.size()-1) ? (func[i+1] - func[i])
+		deriv.push_back(derivValue);
+	}
+	return deriv;
 }
