@@ -30,8 +30,6 @@
 iAScalingWidget::iAScalingWidget(QWidget* parent) :
 	QWidget(parent),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
-	m_normalText("Normal"),
-	m_nonlinearText("Nonlinear"),
 	m_linearBarCursorPos(0),
 	m_nonlinearBarCursorPos(0)
 {
@@ -69,7 +67,8 @@ void iAScalingWidget::setCursorPositions(double lcp, double nlcp)
 	update();
 }
 
-void iAScalingWidget::setRange(double lower, double upper, double lowerRest, double upperRest, double linearLowerRest, double linearUpperRest)
+void iAScalingWidget::setRange(double lower, double upper, 
+	double lowerRest, double upperRest, double linearLowerRest, double linearUpperRest)
 {
 	m_nonlinearLower = lower;
 	m_nonlinearUpper = upper;
@@ -77,6 +76,11 @@ void iAScalingWidget::setRange(double lower, double upper, double lowerRest, dou
 	m_rangeUpperRest = upperRest;
 	m_linearLowerRest = linearLowerRest;
 	m_linearUpperRest = linearUpperRest;
+}
+
+void iAScalingWidget::setBkgrdThrRanges(QList<QCPRange> bkgrdRangeList)
+{
+	m_bkgrdRangeList = bkgrdRangeList;
 }
 
 void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
@@ -88,8 +92,6 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.setPen(QPen(Qt::black));
-	painter.drawStaticText(5, 10, m_nonlinearText);
-	painter.drawStaticText(5, 70, m_normalText);
 
 	double rgb[3]; QColor c;
 	int leftOffset = m_nonlinearAxis->axisRect()->left();
@@ -97,7 +99,8 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 		linearScalingFactor = m_nonlinearAxis->axisRect()->width() /
 		(m_nonlinearUpper-1 + m_linearUpperRest - (m_nonlinearLower + m_linearLowerRest)),
 		nonlinearscalingFactor = m_nonlinearAxis->axisRect()->width() /
-		(m_nonlinearScalingVec[m_nonlinearUpper] - m_rangeUpperRest - (m_nonlinearScalingVec[m_nonlinearLower] + m_rangeLowerRest));
+		(m_nonlinearScalingVec[m_nonlinearUpper] - m_rangeUpperRest - 
+		(m_nonlinearScalingVec[m_nonlinearLower] + m_rangeLowerRest));
 
 	for (int hIdx = m_nonlinearLower + 1; hIdx <= m_nonlinearUpper; ++hIdx)
 	{

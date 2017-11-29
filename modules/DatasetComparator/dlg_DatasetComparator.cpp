@@ -62,8 +62,9 @@
 
 //#include <omp.h>
 //#include <sys/timeb.h>
-#include "iAConsole.h"
+//#include "iAConsole.h"
 
+const double impInitValue = 0.05;
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -341,7 +342,9 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 	//m_linearScaledPlot->setNoAntialiasingOnDrag(true);
 	//m_linearScaledPlot->setNotAntialiasedElements(QCP::aeAll);
 	m_linearScaledPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
-	m_linearScaledPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+	m_linearScaledPlot->setInteractions(QCP::iRangeDrag | 
+		QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
+	m_linearScaledPlot->setMultiSelectModifier(Qt::ShiftModifier);
 	m_linearScaledPlot->legend->setVisible(true);
 	m_linearScaledPlot->legend->setFont(QFont("Helvetica", 9));
 	m_linearScaledPlot->xAxis->setLabel("Hilbert index");
@@ -390,7 +393,8 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	//m_nonlinearScaledPlot->setNotAntialiasedElements(QCP::aeAll);
 	//m_nonlinearScaledPlot->setBackground(Qt::darkGray);
 	m_nonlinearScaledPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
-	m_nonlinearScaledPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
+	m_nonlinearScaledPlot->setInteractions(QCP::iRangeDrag | 
+		QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_nonlinearScaledPlot->setMultiSelectModifier(Qt::ShiftModifier);
 	m_nonlinearScaledPlot->legend->setVisible(true);
 	m_nonlinearScaledPlot->legend->setFont(QFont("Helvetica", 9));
@@ -440,8 +444,7 @@ void dlg_DatasetComparator::setupDebugPlot()
 	//m_debugPlot->setNoAntialiasingOnDrag(true);
 	//m_debugPlot->setBackground(Qt::darkGray);
 	m_debugPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
-	m_debugPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
-	m_debugPlot->setMultiSelectModifier(Qt::ShiftModifier);
+	m_debugPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 	m_debugPlot->legend->setVisible(true);
 	m_debugPlot->legend->setFont(QFont("Helvetica", 11));
 	m_debugPlot->xAxis->setLabel("x");
@@ -476,7 +479,9 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearXAxis(QCPRange)));
 	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearYAxis(QCPRange)));
 	connect(m_linearScaledPlot, SIGNAL(afterReplot()), m_nonlinearScaledPlot, SLOT(replot()));
+	connect(m_linearScaledPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 	connect(m_linearScaledPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
+	connect(m_linearScaledPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
 	connect(m_linearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
 }
@@ -557,6 +562,7 @@ void dlg_DatasetComparator::visualize()
 		for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 		{
 			m_linearScaledPlot->addGraph();
+			m_linearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 			m_linearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
 				m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
 			m_linearScaledPlot->graph()->setName(it->first);
@@ -564,6 +570,10 @@ void dlg_DatasetComparator::visualize()
 			scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
 			scatter.setSize(3.0);
 			m_linearScaledPlot->graph()->setScatterStyle(scatter);
+			QPen p = m_linearScaledPlot->graph()->selectionDecorator()->pen();
+			p.setWidth(5);
+			p.setColor(QColor(255, 0, 0));  // Selection color: red
+			m_linearScaledPlot->graph()->selectionDecorator()->setPen(p);
 			QSharedPointer<QCPGraphDataContainer> graphData(new QCPGraphDataContainer);
 			for (unsigned int i = 0; i < it->second.size(); ++i)
 				graphData->add(QCPGraphData(double(i), it->second[i].intensity));
@@ -610,7 +620,6 @@ void dlg_DatasetComparator::visualize()
 		p.setWidth(5);
 		p.setColor(QColor(255, 0, 0));  // Selection color: red
 		m_nonlinearScaledPlot->graph()->selectionDecorator()->setPen(p);  
-
 		QSharedPointer<QCPGraphDataContainer> nonlinearScaledPlotData(new QCPGraphDataContainer);
 		auto * funct = new iAFunction<double, double>();
 		for (int i = 0; i < m_nonlinearMappingVec.size(); ++i)
@@ -722,7 +731,7 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 	for (int i = 0; i < innerEnsembleDistList.size(); ++i)
 	{
 		// TODO: set imp start value automatically
-		double imp = 0.005;
+		double imp = impInitValue;
 		if (innerEnsembleDistList[i] >= 0.0)
 		{
 			imp = innerEnsembleDistList[i];
@@ -741,13 +750,15 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 		{
 			sectionStart = m_nonlinearMappingVec[i];
 		}
-		else if (innerEnsembleDistList[i] == -1.0 && sectionStart >= 0.0 && i == innerEnsembleDistList.size()-1)
+		else if (innerEnsembleDistList[i] == -1.0 && 
+			sectionStart >= 0.0 && i == innerEnsembleDistList.size()-1)
 		{
 			m_bkgrdThrRangeList.append(QCPRange(sectionStart, m_nonlinearMappingVec[i]));
 			sectionStart = -1.0;
 		}
 	}
 }
+
 
 void dlg_DatasetComparator::showBkgrdThrRanges()
 {
@@ -796,12 +807,16 @@ void dlg_DatasetComparator::showBkgrdThrRanges()
 		linearBkgrdRect->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
 		linearBkgrdRect->topLeft->setAxes(m_linearScaledPlot->xAxis, m_linearScaledPlot->yAxis);
 		linearBkgrdRect->topLeft->setAxisRect(m_linearScaledPlot->axisRect());
-		linearBkgrdRect->topLeft->setCoords(m_nonlinearMappingVec.indexOf(it->lower), 0.0);
+		auto start = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->lower);
+		int startIdx = start - m_nonlinearMappingVec.begin();
+		linearBkgrdRect->topLeft->setCoords(startIdx, 0.0);
 		linearBkgrdRect->bottomRight->setTypeX(QCPItemPosition::ptPlotCoords);
 		linearBkgrdRect->bottomRight->setTypeY(QCPItemPosition::ptAxisRectRatio);
 		linearBkgrdRect->bottomRight->setAxes(m_linearScaledPlot->xAxis, m_linearScaledPlot->yAxis);
 		linearBkgrdRect->bottomRight->setAxisRect(m_linearScaledPlot->axisRect());
-		linearBkgrdRect->bottomRight->setCoords(m_nonlinearMappingVec.indexOf(it->upper), 1.0);
+		auto end = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->upper);
+		int endIdx = end - m_nonlinearMappingVec.begin();
+		linearBkgrdRect->bottomRight->setCoords(endIdx, 1.0);
 		linearBkgrdRect->setClipToAxisRect(true);
 	}
 }
@@ -923,10 +938,11 @@ bool dlg_DatasetComparator::eventFilter(QObject* o, QEvent* e)
 
 void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 {
+	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
 	if ((e->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
-		m_nonlinearScaledPlot->setSelectionRectMode(QCP::srmSelect);
+		plot->setSelectionRectMode(QCP::srmSelect);
 	else
-		m_nonlinearScaledPlot->setSelectionRectMode(QCP::srmNone);
+		plot->setSelectionRectMode(QCP::srmNone);
 }
 
 void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
@@ -1061,7 +1077,8 @@ void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* 
 	m_nonlinearScaledPlot->graph()->setName("Interquartile Range"); 
 	m_nonlinearScaledPlot->graph()->setPen(QPen(Qt::NoPen));
 	m_nonlinearScaledPlot->graph()->setBrush(QColor(200, 200, 200, 255));
-	m_nonlinearScaledPlot->graph()->setChannelFillGraph(m_nonlinearScaledPlot->graph(m_nonlinearScaledPlot->graphCount() - 2));
+	m_nonlinearScaledPlot->graph()->setChannelFillGraph(
+		m_nonlinearScaledPlot->graph(m_nonlinearScaledPlot->graphCount() - 2));
 	m_nonlinearScaledPlot->graph()->setSelectable(QCP::stNone);
 
 	QSharedPointer<QCPGraphDataContainer> fb_medianData(new QCPGraphDataContainer);
@@ -1199,8 +1216,16 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 
+	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
+	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
+		plot == m_nonlinearScaledPlot ?
+		m_linearScaledPlot->graph(i)->setSelection(
+			m_nonlinearScaledPlot->graph(i)->selection()) :
+		m_nonlinearScaledPlot->graph(i)->setSelection(
+			m_linearScaledPlot->graph(i)->selection());
+
 	auto datasetsList = m_datasetsDir.entryList();
-	auto selGraphsList = m_nonlinearScaledPlot->selectedGraphs();
+	auto selGraphsList = plot->selectedGraphs();
 	QList<QCPGraph *> visSelGraphList;
 	for (auto selGraph : selGraphsList)
 		if (selGraph->visible())
@@ -1284,6 +1309,8 @@ void dlg_DatasetComparator::selectionChangedByUser()
 		m_mrvRenWin->AddRenderer(ren);
 	}
 	m_mrvRenWin->Render();
+	m_nonlinearScaledPlot->layer("overlay")->replot();
+	m_linearScaledPlot->layer("overlay")->replot();
 }
 
 void dlg_DatasetComparator::legendClick(QCPLegend* legend, QCPAbstractLegendItem* item, QMouseEvent* e)
