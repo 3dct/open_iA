@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
+#include <QOpenGLWidget>
 
 #include <qcustomplot.h>
 
@@ -28,7 +28,7 @@
 
 class vtkLookupTable;
 
-class iAScalingWidget : public QWidget
+class iAScalingWidget : public QOpenGLWidget
 {
 	Q_OBJECT
 
@@ -41,21 +41,22 @@ public:
 	void setNonlinearScalingVector(QVector<double> nls, QVector<double> impfv);
 	void setNonlinearAxis(QCPAxis *nla);
 	void setCursorPositions(double lcp, double nlcp);
-	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, double nonlinearUpperRest,
-		double linearLowerRest, double linearUpperRest);
+	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, 
+		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest);
 	void setBkgrdThrRanges(QList<QCPRange> bkgrdRangeList);
 	void setSelection(QCPDataSelection sel);
 
 protected:
-	virtual void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+	virtual void initializeGL();
+	virtual void paintGL();
 
 private:
 	QCPAxis *m_nonlinearAxis;
 	QVector<double> m_nonlinearScalingVec;
 	QVector<double> m_impFunctVec;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	double m_linearBarCursorPos, m_nonlinearBarCursorPos,
-		m_nonlinearLowerIdx, m_nonlinearUpperIdx, m_nonlinearLowerRest, m_nonlinearUpperRest,
+	double m_linearBarCursorPos, m_nonlinearBarCursorPos, m_nonlinearLowerIdx,
+		m_nonlinearUpperIdx, m_nonlinearLowerRest, m_nonlinearUpperRest,
 		m_linearLowerRest, m_linearUpperRest;
 	QList<QCPRange> m_bkgrdRangeList;
 	QCPDataSelection m_sel;

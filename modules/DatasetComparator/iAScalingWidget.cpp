@@ -28,7 +28,7 @@
 
 
 iAScalingWidget::iAScalingWidget(QWidget* parent) :
-	QWidget(parent),
+	QOpenGLWidget(parent),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
 	m_linearBarCursorPos(0),
 	m_nonlinearBarCursorPos(0)
@@ -36,6 +36,11 @@ iAScalingWidget::iAScalingWidget(QWidget* parent) :
 	setFixedHeight(90);
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
+
+	// For multisampling
+	QSurfaceFormat format = QSurfaceFormat();
+	format.setSamples(4);
+	this->setFormat(format);
 }
 
 QSize iAScalingWidget::sizeHint() const
@@ -88,14 +93,19 @@ void iAScalingWidget::setSelection(QCPDataSelection sel)
 	m_sel = sel;
 }
 
-void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
+void iAScalingWidget::initializeGL()
+{
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+}
+
+void iAScalingWidget::paintGL()
 {
 	// TODO: whole widget is always painted (not needed if only red line moves)? 
 	if (m_nonlinearScalingVec.size() == 0)
 		return;
 
 	QPainter painter(this);
-	painter.setClipRegion(QRegion(m_nonlinearAxis->axisRect()->left(), 
+	painter.setClipRegion(QRegion(m_nonlinearAxis->axisRect()->left(),
 		10, m_nonlinearAxis->axisRect()->width(), 70));
 	painter.setPen(QPen(Qt::black));
 
@@ -151,7 +161,7 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 	painter.setBrush(QBrush(Qt::lightGray));
 	painter.setPen(QPen(Qt::lightGray));
 	painter.drawRect(leftOffset, 70, linearBarStartPos, 10);
-	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
 
 	painter.setPen(QPen(Qt::red, 1.5));
 	painter.drawLine(m_nonlinearBarCursorPos, 10, m_nonlinearBarCursorPos, 20);
