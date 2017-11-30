@@ -359,13 +359,16 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 	m_linearScaledPlot->yAxis2->setTicks(false);
 	m_linearScaledPlot->yAxis2->setSubTicks(false);
 
+	m_linearScaledPlot->addLayer("cursor", m_linearScaledPlot->layer("legend"),
+		QCustomPlot::LayerInsertMode::limBelow);
+	m_linearScaledPlot->layer("cursor")->setMode(QCPLayer::lmBuffered);
+
 	m_lVisibilityButton = new QToolButton(this);
 	m_lVisibilityButton->setStyleSheet("border: 1px solid; margin-left: 3px;");
 	m_lVisibilityButton->setMinimumSize(QSize(0, 0));
 	m_lVisibilityButton->setMaximumSize(QSize(13, 10));
 	m_lVisibilityButton->setIcon(QIcon(":/images/minus.png"));
 	m_lVisibilityButton->setIconSize(QSize(10, 10));
-	connect(m_lVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
 	
 	PlotsContainer_verticalLayout->addWidget(m_lVisibilityButton);
 	PlotsContainer_verticalLayout->addWidget(m_linearScaledPlot);
@@ -403,9 +406,10 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	m_nonlinearScaledPlot->yAxis2->setTickLabels(false);
 	m_nonlinearScaledPlot->yAxis2->setTicks(false);
 	m_nonlinearScaledPlot->yAxis2->setSubTicks(false);
-	
-	connect(m_mdiChild->getRaycaster(), SIGNAL(cellsSelected(vtkPoints*)),
-		this, SLOT(setSelectionFromRenderer(vtkPoints*)));
+
+	m_nonlinearScaledPlot->addLayer("cursor", m_nonlinearScaledPlot->layer("legend"), 
+		QCustomPlot::LayerInsertMode::limBelow);
+	m_nonlinearScaledPlot->layer("cursor")->setMode(QCPLayer::lmBuffered);
 
 	m_nlVisibilityButton = new QToolButton(this);
 	m_nlVisibilityButton->setStyleSheet("border: 1px solid; margin-left: 3px;");
@@ -413,7 +417,6 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	m_nlVisibilityButton->setMaximumSize(QSize(13, 10));
 	m_nlVisibilityButton->setIcon(QIcon(":/images/minus.png"));
 	m_nlVisibilityButton->setIconSize(QSize(10, 10));
-	connect(m_nlVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
 
 	PlotsContainer_verticalLayout->addWidget(m_nlVisibilityButton);
 	PlotsContainer_verticalLayout->addWidget(m_nonlinearScaledPlot);
@@ -460,6 +463,9 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_nonlinearScaledPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
 	connect(m_nonlinearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+	connect(m_mdiChild->getRaycaster(), SIGNAL(cellsSelected(vtkPoints*)),
+		this, SLOT(setSelectionFromRenderer(vtkPoints*)));
+	connect(m_nlVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
 
 	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearXAxis(QCPRange)));
 	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearYAxis(QCPRange)));
@@ -469,6 +475,7 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_linearScaledPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
 	connect(m_linearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
+	connect(m_lVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
 }
 
 void dlg_DatasetComparator::setupGUIConnections()
@@ -568,14 +575,14 @@ void dlg_DatasetComparator::visualize()
 
 	m_linearDataPointInfo = new QCPItemText(m_linearScaledPlot);
 	m_linearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
-	m_linearDataPointInfo->setLayer("overlay");
+	m_linearDataPointInfo->setLayer("cursor");
 	m_linearDataPointInfo->setVisible(true);
 	m_linearDataPointInfo->setColor(Qt::red);
 
 	m_linearIdxLine = new QCPItemStraightLine(m_linearScaledPlot);
 	m_linearIdxLine->setVisible(true);
 	m_linearIdxLine->setAntialiased(false);
-	m_linearIdxLine->setLayer("overlay");
+	m_linearIdxLine->setLayer("cursor");
 	m_linearIdxLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
 	m_linearIdxLine->point1->setTypeX(QCPItemPosition::ptPlotCoords);
 	m_linearIdxLine->point1->setTypeY(QCPItemPosition::ptAxisRectRatio);
@@ -628,14 +635,14 @@ void dlg_DatasetComparator::visualize()
 
 	m_nonlinearDataPointInfo = new QCPItemText(m_nonlinearScaledPlot);
 	m_nonlinearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
-	m_nonlinearDataPointInfo->setLayer("overlay");
+	m_nonlinearDataPointInfo->setLayer("cursor");
 	m_nonlinearDataPointInfo->setVisible(true);
 	m_nonlinearDataPointInfo->setColor(Qt::red);
 
 	m_nonlinearIdxLine = new QCPItemStraightLine(m_nonlinearScaledPlot);
 	m_nonlinearIdxLine->setVisible(true);
 	m_nonlinearIdxLine->setAntialiased(false);
-	m_nonlinearIdxLine->setLayer("overlay");
+	m_nonlinearIdxLine->setLayer("cursor");
 	m_nonlinearIdxLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
 	m_nonlinearIdxLine->point1->setTypeX(QCPItemPosition::ptPlotCoords);
 	m_nonlinearIdxLine->point1->setTypeY(QCPItemPosition::ptAxisRectRatio);
@@ -726,6 +733,7 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 		m_impFunctVec.append(imp);
 		m_nonlinearMappingVec.append(i == 0 ? imp : m_nonlinearMappingVec[i - 1] + imp);
 
+		//TODO: Better way to calc bkgrdThrRanges
 		if (innerEnsembleDistList[i] >= 0.0 && sectionStart >= 0.0 && i!= innerEnsembleDistList.size())
 		{
 			m_bkgrdThrRangeList.append(QCPRange(sectionStart, m_nonlinearMappingVec[i-1]));
@@ -1024,8 +1032,8 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 
 		m_scalingWidget->setCursorPositions(e->pos().x(), m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));
 	}
-	m_nonlinearScaledPlot->layer("overlay")->replot();
-	m_linearScaledPlot->layer("overlay")->replot();
+	m_nonlinearScaledPlot->layer("cursor")->replot();
+	m_linearScaledPlot->layer("cursor")->replot();
 }
 
 template <typename T>
