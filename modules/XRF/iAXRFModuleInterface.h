@@ -29,10 +29,7 @@ public:
 	void Initialize();
 Q_SIGNALS:
 	void xrfLoaded();
-
 private slots:
 	bool XRF_Visualization();
-
-	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData );
-
+	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
 };

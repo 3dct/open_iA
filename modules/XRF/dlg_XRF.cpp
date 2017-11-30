@@ -109,9 +109,6 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	gb_spectraSettings->hide();
 	gb_pieGlyphsSettings->hide();
 
-	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData> (new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
-	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionDrawer>(new iAStepFunctionDrawer(m_voxelEnergy, QColor(150, 0, 0)));
-
 	m_selectedBinXDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 150, 0, 0, 50 ) ) );
 	m_selectedBinYDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 0, 0, 150, 50 ) ) );
 
@@ -188,6 +185,8 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_cTF->Build();
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
 	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>(new iAAccumulatedXRFData(m_xrfData, minEnergy, maxEnergy));
+	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData>(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
+	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionDrawer>(new iAStepFunctionDrawer(m_voxelEnergy, QColor(150, 0, 0)));
 	m_spectrumDiagram = new iAEnergySpectrumWidget(this, dynamic_cast<MdiChild*>(parent()), m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
@@ -381,12 +380,6 @@ void dlg_XRF::UpdateConcentrationViews( int x, int y, int z )
 		}
 		m_periodicTable->repaint();
 	}
-}
-
-
-QSharedPointer<iAPlotData> dlg_XRF::GetVoxelSpectrum()
-{
-	return m_voxelEnergy;
 }
 
 

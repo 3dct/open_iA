@@ -81,9 +81,7 @@ public:
 	QObject* UpdateForVisualization();
 	QSharedPointer<iAXRFData> GetXRFData();
 	QSharedPointer<iAElementConcentrations> GetElementConcentrations();
-	QSharedPointer<iAPlotData> GetVoxelSpectrum();
 
-	void UpdateSecondaryData(QSharedPointer<iAPlotData> secondary);
 	void UpdateVoxelSpectrum(int x, int y, int z);
 	void UpdateConcentrationViews(int x, int y, int z);
 	bool IsInitialized();
