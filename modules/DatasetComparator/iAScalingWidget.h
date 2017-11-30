@@ -41,8 +41,10 @@ public:
 	void setNonlinearScalingVector(QVector<double> nls, QVector<double> impfv);
 	void setNonlinearAxis(QCPAxis *nla);
 	void setCursorPositions(double lcp, double nlcp);
-	void setRange(double lower, double upper, double lowerRest, double upperRest, double linearLowerRest, double linearUpperRest);
+	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, double nonlinearUpperRest,
+		double linearLowerRest, double linearUpperRest);
 	void setBkgrdThrRanges(QList<QCPRange> bkgrdRangeList);
+	void setSelection(QCPDataSelection sel);
 
 protected:
 	virtual void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
@@ -53,7 +55,8 @@ private:
 	QVector<double> m_impFunctVec;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	double m_linearBarCursorPos, m_nonlinearBarCursorPos,
-		m_nonlinearLower, m_nonlinearUpper, m_rangeLowerRest, m_rangeUpperRest,
+		m_nonlinearLowerIdx, m_nonlinearUpperIdx, m_nonlinearLowerRest, m_nonlinearUpperRest,
 		m_linearLowerRest, m_linearUpperRest;
 	QList<QCPRange> m_bkgrdRangeList;
+	QCPDataSelection m_sel;
 };

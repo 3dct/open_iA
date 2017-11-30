@@ -67,13 +67,13 @@ void iAScalingWidget::setCursorPositions(double lcp, double nlcp)
 	update();
 }
 
-void iAScalingWidget::setRange(double lower, double upper, 
-	double lowerRest, double upperRest, double linearLowerRest, double linearUpperRest)
+void iAScalingWidget::setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, 
+	double nonlinearUpperRest, double linearLowerRest, double linearUpperRest)
 {
-	m_nonlinearLower = lower;
-	m_nonlinearUpper = upper;
-	m_rangeLowerRest = lowerRest;
-	m_rangeUpperRest = upperRest;
+	m_nonlinearLowerIdx = lowerIdx;
+	m_nonlinearUpperIdx = upperIdx;
+	m_nonlinearLowerRest = nonlinearLowerRest;
+	m_nonlinearUpperRest = nonlinearUpperRest;
 	m_linearLowerRest = linearLowerRest;
 	m_linearUpperRest = linearUpperRest;
 }
@@ -83,6 +83,11 @@ void iAScalingWidget::setBkgrdThrRanges(QList<QCPRange> bkgrdRangeList)
 	m_bkgrdRangeList = bkgrdRangeList;
 }
 
+void iAScalingWidget::setSelection(QCPDataSelection sel)
+{
+	m_sel = sel;
+}
+
 void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 {
 	// TODO: whole widget is always painted (not needed if only red line moves)? 
@@ -90,60 +95,88 @@ void iAScalingWidget::paintEvent(QPaintEvent * /* event */)
 		return;
 
 	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.setClipRegion(QRegion(m_nonlinearAxis->axisRect()->left(), 
+		10, m_nonlinearAxis->axisRect()->width(), 70));
 	painter.setPen(QPen(Qt::black));
 
 	double rgb[3]; QColor c;
 	int leftOffset = m_nonlinearAxis->axisRect()->left();
-	double linearBarStartPos = 0.0, nonlinearBarStartPos = 0.0, nonlinearBarWidth, linearBarWidth,
+	double linearBarStartPos = 0, nonlinearBarStartPos = 0, nonlinearBarWidth, linearBarWidth,
 		linearScalingFactor = m_nonlinearAxis->axisRect()->width() /
-		(m_nonlinearUpper-1 + m_linearUpperRest - (m_nonlinearLower + m_linearLowerRest)),
-		nonlinearscalingFactor = m_nonlinearAxis->axisRect()->width() /
-		(m_nonlinearScalingVec[m_nonlinearUpper] - m_rangeUpperRest - 
-		(m_nonlinearScalingVec[m_nonlinearLower] + m_rangeLowerRest));
+		(m_nonlinearUpperIdx-1 + m_linearUpperRest - (m_nonlinearLowerIdx + m_linearLowerRest)),
+		nonlinearScalingFactor = m_nonlinearAxis->axisRect()->width() /
+		(m_nonlinearScalingVec[m_nonlinearUpperIdx] - m_nonlinearUpperRest -
+		(m_nonlinearScalingVec[m_nonlinearLowerIdx] + m_nonlinearLowerRest));
 
-	for (int hIdx = m_nonlinearLower + 1; hIdx <= m_nonlinearUpper; ++hIdx)
+	for (int hIdx = m_nonlinearLowerIdx + 1; hIdx <= m_nonlinearUpperIdx; ++hIdx)
 	{
-		if (hIdx == m_nonlinearLower + 1)
+		if (hIdx == m_nonlinearLowerIdx + 1)
 		{
 			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
-				(m_nonlinearScalingVec[hIdx-1] + m_rangeLowerRest)) * nonlinearscalingFactor;
-			linearBarWidth = (m_nonlinearLower + 1 - m_nonlinearLower - m_linearLowerRest) * linearScalingFactor;
+				(m_nonlinearScalingVec[hIdx-1] + m_nonlinearLowerRest)) * nonlinearScalingFactor;
+			linearBarWidth = (m_nonlinearLowerIdx + 1 - m_nonlinearLowerIdx - m_linearLowerRest) *
+				linearScalingFactor;
 		}
-		else if (hIdx == m_nonlinearUpper)
+		else if (hIdx == m_nonlinearUpperIdx)
 		{
 			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
-				(m_nonlinearScalingVec[hIdx-1] + m_rangeUpperRest)) * nonlinearscalingFactor;
+				(m_nonlinearScalingVec[hIdx-1] + m_nonlinearLowerRest)) * nonlinearScalingFactor;
 			linearBarWidth = m_linearUpperRest * linearScalingFactor;
 		}
 		else
 		{
 			nonlinearBarWidth = (m_nonlinearScalingVec[hIdx] - 
-				m_nonlinearScalingVec[hIdx-1]) * nonlinearscalingFactor;
+				m_nonlinearScalingVec[hIdx-1]) * nonlinearScalingFactor;
 			linearBarWidth = linearScalingFactor;
 		}
 
-		QRectF nonlinearBar(leftOffset + nonlinearBarStartPos, 10.0, nonlinearBarWidth, 10.0);
-		m_lut->GetColor(1 - m_impFunctVec[hIdx], rgb);
+		painter.setRenderHint(QPainter::Antialiasing, false);
+		m_lut->GetColor(m_impFunctVec[hIdx], rgb);
 		c.setRgbF(rgb[0], rgb[1], rgb[2]);
 		painter.setBrush(QBrush(c));
 		painter.setPen(QPen(c));
-		painter.drawRect(nonlinearBar);
+		painter.drawRect(leftOffset + nonlinearBarStartPos, 10, 
+			nonlinearBarWidth, 10);
+		painter.setRenderHint(QPainter::Antialiasing, true);
 		
 		nonlinearBarStartPos += nonlinearBarWidth;
 		linearBarStartPos += linearBarWidth;
 
-		if (hIdx < m_nonlinearUpper)
-			painter.drawLine(leftOffset + nonlinearBarStartPos, 20.0, leftOffset + linearBarStartPos, 70.0);
+		if (hIdx < m_nonlinearUpperIdx)
+			painter.drawLine(leftOffset + nonlinearBarStartPos, 20, 
+				leftOffset + linearBarStartPos, 70);
 	}
-
-	QRectF linearBar(leftOffset + 0.0, 70, linearBarStartPos, 10);
+	
+	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setBrush(QBrush(Qt::lightGray));
 	painter.setPen(QPen(Qt::lightGray));
-	painter.drawRect(linearBar);
+	painter.drawRect(leftOffset, 70, linearBarStartPos, 10);
+	painter.setRenderHint(QPainter::Antialiasing, true);
 
-	painter.setPen(QPen(Qt::red));
+	painter.setPen(QPen(Qt::red, 1.5));
 	painter.drawLine(m_nonlinearBarCursorPos, 10, m_nonlinearBarCursorPos, 20);
 	painter.drawLine(m_nonlinearBarCursorPos, 20, m_linearBarCursorPos, 70);
 	painter.drawLine(m_linearBarCursorPos, 70, m_linearBarCursorPos, 80);
+
+	if (!m_sel.isEmpty())
+	{
+		double linearStart, linearWidth, nonlinearStart, nonlinearWidth;
+		for (auto range : m_sel.dataRanges())
+		{
+			linearStart = leftOffset + (range.begin() - (m_nonlinearLowerIdx + m_linearLowerRest)) * 
+				linearScalingFactor;
+			linearWidth = (range.end() - 1 - range.begin()) * linearScalingFactor;
+			nonlinearStart = leftOffset + (m_nonlinearScalingVec[range.begin()] -
+				(m_nonlinearScalingVec[m_nonlinearLowerIdx] + m_nonlinearLowerRest)) * 
+				nonlinearScalingFactor;
+			nonlinearWidth = (m_nonlinearScalingVec[range.end() - 1] -
+				m_nonlinearScalingVec[range.begin()]) * nonlinearScalingFactor;
+			painter.setBrush(Qt::NoBrush);
+			painter.drawRect(nonlinearStart, 10, nonlinearWidth, 10);
+			painter.drawRect(linearStart, 70, linearWidth, 10);
+			painter.drawLine(nonlinearStart, 20, linearStart, 70);
+			painter.drawLine(nonlinearStart + nonlinearWidth, 20, 
+				linearStart + linearWidth, 70);
+		}
+	}
 }

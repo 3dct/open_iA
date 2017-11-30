@@ -64,7 +64,7 @@
 //#include <sys/timeb.h>
 //#include "iAConsole.h"
 
-const double impInitValue = 0.05;
+const double impInitValue = 0.025;
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -112,7 +112,7 @@ void dlg_DatasetComparator::setupGUIElements()
 	for (double i = 0.0; i <= 1.0; i += 0.25)
 	{
 		double c[3];
-		m_lut->GetColor(i, c);
+		m_lut->GetColor(1-i, c);
 		QColor color;
 		color.setRgbF(c[0], c[1], c[2]);
 		colormap.insert(i, color);
@@ -334,13 +334,7 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 	m_linearScaledPlot->axisRect()->setMargins(QMargins(58, 1, 3, 32));
 	m_linearScaledPlot->setCursor(QCursor(Qt::CrossCursor));
 	m_linearScaledPlot->installEventFilter(this);  // To catche key press event
-	/*m_linearScaledPlot->plotLayout()->insertRow(0);
-	auto *linearScaledPlotTitle = new QCPTextElement(m_linearScaledPlot,
-		"Normal Scaled Hilbert Plot", QFont("Helvetica", 11, QFont::Bold));
-	m_linearScaledPlot->plotLayout()->addElement(0, 0, linearScaledPlotTitle);*/
 	m_linearScaledPlot->setOpenGl(true);
-	//m_linearScaledPlot->setNoAntialiasingOnDrag(true);
-	//m_linearScaledPlot->setNotAntialiasedElements(QCP::aeAll);
 	m_linearScaledPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
 	m_linearScaledPlot->setInteractions(QCP::iRangeDrag | 
 		QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
@@ -384,14 +378,7 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	m_nonlinearScaledPlot->axisRect()->setMargins(QMargins(58, 1, 3, 32));
 	m_nonlinearScaledPlot->setCursor(QCursor(Qt::CrossCursor));
 	m_nonlinearScaledPlot->installEventFilter(this);  // To catch key press event
-	//m_nonlinearScaledPlot->plotLayout()->insertRow(0);
-	//auto *nonlinearScaledPlotTitle = new QCPTextElement(m_nonlinearScaledPlot,
-	//	"Nonlinear Scaled Hilbert Plot", QFont("Helvetica", 11, QFont::Bold));
-	//m_nonlinearScaledPlot->plotLayout()->addElement(0, 0, nonlinearScaledPlotTitle);
 	m_nonlinearScaledPlot->setOpenGl(true);
-	//m_nonlinearScaledPlot->setNoAntialiasingOnDrag(true);
-	//m_nonlinearScaledPlot->setNotAntialiasedElements(QCP::aeAll);
-	//m_nonlinearScaledPlot->setBackground(Qt::darkGray);
 	m_nonlinearScaledPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
 	m_nonlinearScaledPlot->setInteractions(QCP::iRangeDrag | 
 		QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
@@ -441,8 +428,6 @@ void dlg_DatasetComparator::setupDebugPlot()
 	auto *helperPlotTitle = new QCPTextElement(m_debugPlot, "Debug Plot", QFont("sans", 14));
 	m_debugPlot->plotLayout()->addElement(0, 0, helperPlotTitle);
 	m_debugPlot->setOpenGl(true);
-	//m_debugPlot->setNoAntialiasingOnDrag(true);
-	//m_debugPlot->setBackground(Qt::darkGray);
 	m_debugPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
 	m_debugPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 	m_debugPlot->legend->setVisible(true);
@@ -591,7 +576,7 @@ void dlg_DatasetComparator::visualize()
 	m_linearIdxLine->setVisible(true);
 	m_linearIdxLine->setAntialiased(false);
 	m_linearIdxLine->setLayer("overlay");
-	m_linearIdxLine->setPen(QPen(Qt::red, 0, Qt::SolidLine));
+	m_linearIdxLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
 	m_linearIdxLine->point1->setTypeX(QCPItemPosition::ptPlotCoords);
 	m_linearIdxLine->point1->setTypeY(QCPItemPosition::ptAxisRectRatio);
 	m_linearIdxLine->point1->setAxes(m_linearScaledPlot->xAxis, m_linearScaledPlot->yAxis);
@@ -651,7 +636,7 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearIdxLine->setVisible(true);
 	m_nonlinearIdxLine->setAntialiased(false);
 	m_nonlinearIdxLine->setLayer("overlay");
-	m_nonlinearIdxLine->setPen(QPen(Qt::red, 0, Qt::SolidLine));
+	m_nonlinearIdxLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
 	m_nonlinearIdxLine->point1->setTypeX(QCPItemPosition::ptPlotCoords);
 	m_nonlinearIdxLine->point1->setTypeY(QCPItemPosition::ptAxisRectRatio);
 	m_nonlinearIdxLine->point1->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
@@ -758,7 +743,6 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 		}
 	}
 }
-
 
 void dlg_DatasetComparator::showBkgrdThrRanges()
 {
@@ -1040,7 +1024,6 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 
 		m_scalingWidget->setCursorPositions(e->pos().x(), m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));
 	}
-
 	m_nonlinearScaledPlot->layer("overlay")->replot();
 	m_linearScaledPlot->layer("overlay")->replot();
 }
@@ -1217,13 +1200,6 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
-	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
-		plot == m_nonlinearScaledPlot ?
-		m_linearScaledPlot->graph(i)->setSelection(
-			m_nonlinearScaledPlot->graph(i)->selection()) :
-		m_nonlinearScaledPlot->graph(i)->setSelection(
-			m_linearScaledPlot->graph(i)->selection());
-
 	auto datasetsList = m_datasetsDir.entryList();
 	auto selGraphsList = plot->selectedGraphs();
 	QList<QCPGraph *> visSelGraphList;
@@ -1231,8 +1207,37 @@ void dlg_DatasetComparator::selectionChangedByUser()
 		if (selGraph->visible())
 			visSelGraphList.append(selGraph);
 
-	if (!visSelGraphList.size())
+	QCPDataSelection sel;
+	if (!visSelGraphList.isEmpty())
+	{
+		for (int i = 0; i < visSelGraphList.size(); ++i)
+		{
+			for (auto range : plot->graph(i)->selection().dataRanges())
+				sel.addDataRange(range, false);
+
+			plot == m_nonlinearScaledPlot ?
+				m_linearScaledPlot->graph(i)->setSelection(
+					plot->graph(i)->selection()) :
+				m_nonlinearScaledPlot->graph(i)->setSelection(
+					plot->graph(i)->selection());
+		}
+		sel.simplify();
+	}
+	else
+	{
 		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+		// NOTE: m_linearScaledPlot's has 5 graphs less (no functional box plots) 
+		// than the m_nonlinearScaledPlot
+		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	
+		{
+			plot == m_nonlinearScaledPlot ?
+				m_linearScaledPlot->graph(i)->setSelection(
+					plot->graph(i)->selection()) :
+				m_nonlinearScaledPlot->graph(i)->setSelection(
+					plot->graph(i)->selection());
+		}
+
+	}
 
 	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
 	{
@@ -1308,6 +1313,8 @@ void dlg_DatasetComparator::selectionChangedByUser()
 		m_volRen->AddBoundingBoxTo(ren);
 		m_mrvRenWin->AddRenderer(ren);
 	}
+	m_scalingWidget->setSelection(sel);
+	m_scalingWidget->update();
 	m_mrvRenWin->Render();
 	m_nonlinearScaledPlot->layer("overlay")->replot();
 	m_linearScaledPlot->layer("overlay")->replot();
