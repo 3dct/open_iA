@@ -48,7 +48,7 @@ template<class T> void additiveGaussianNoise_template(iAProgress* p, iAConnector
 
 void iAAdditiveGaussianNoise::Run(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(additiveGaussianNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
+	ITK_TYPED_CALL(additiveGaussianNoise_template, Input()[0]->GetITKScalarPixelType(), m_progress, Input()[0], parameters);
 }
 
 IAFILTER_CREATE(iAAdditiveGaussianNoise)

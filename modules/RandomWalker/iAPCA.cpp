@@ -50,41 +50,34 @@ IAFILTER_CREATE(iAPCA)
 
 
 template <typename PixelType>
-void pca_template(QVector<iAConnector*> cons, QMap<QString, QVariant> const & parameters)
+void pca_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<PixelType, DIM> ImageType;
 	typedef itk::MultiplyImageFilter<ImageType, ImageType, ImageType> ScaleType;
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
 
-	auto filter = EstimatorType::New();
-	filter->SetNumberOfTrainingImages(cons.size());
-	filter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
-	for (unsigned int k = 0; k < cons.size(); k++)
-	{
-		filter->SetInput(k, dynamic_cast<ImageType*>(cons[k]->GetITKImage()));
-	}
-
-	// actual PCA calculation:
-	filter->Update();
+	auto pcaFilter = EstimatorType::New();
+	pcaFilter->SetNumberOfTrainingImages(cons.size());
+	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
+	for (unsigned int k = 0; k < filter->Input().size(); k++)
+		pcaFilter->SetInput(k, dynamic_cast<ImageType*>(filter->Input()[k]->GetITKImage()));
+	pcaFilter->Update();
 	auto scaler = ScaleType::New();
-	auto v = filter->GetEigenValues();
+	auto v = pcaFilter->GetEigenValues();
 	double sv_mean = sqrt(v[0]);
-	for (int o = cons.size(); o < parameters["Cutoff"].toUInt() + 1; ++o)
-	{
-		cons.push_back(new iAConnector);
-	}
 	for (int o = 0; o < parameters["Cutoff"].toUInt() + 1; ++o)
 	{
 		double sv = sqrt(v[o]);
 		double sv_n = sv / sv_mean;
 		scaler->SetConstant(sv_n);
-		scaler->SetInput(filter->GetOutput(o));
-		cons[o]->SetImage(scaler->GetOutput());
+		scaler->SetInput(pcaFilter->GetOutput(o));
+		iAConnector* con = new iAConnector();
+		con->SetImage(scaler->GetOutput());
+		filter->AddOutput(con);
 	}
 }
 
 void iAPCA::Run(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(pca_template, m_con->GetITKScalarPixelType(), m_cons, parameters);
-	SetOutputCount(parameters["Cutoff"].toUInt() + 1);
+	ITK_TYPED_CALL(pca_template, Input()[0]->GetITKScalarPixelType(), this, parameters);
 }

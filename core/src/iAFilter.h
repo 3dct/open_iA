@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include "io/iAITKIO.h"    // for iAITKIO::ImagePointer
 #include "iAValueType.h"
 
 #include <QMap>
@@ -77,7 +78,7 @@ public:
 	QVector<pParameter> const & Parameters() const;
 	//! Used internally by the filter runner to set up the resources required in the
 	//! filter
-	bool SetUp(QVector<iAConnector*> const & cons, iALogger* logger, iAProgress* progress);
+	bool SetUp(iALogger* logger, iAProgress* progress);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with
@@ -86,9 +87,11 @@ public:
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
+	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
 	//! TODO: also allow to check input files here (e.g. for AddImage to check
 	//!     if input images are all of the same type!
-	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
+	//! Adds an image as input
+	void AddInput(iAConnector* con);
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
 	virtual void Run(QMap<QString, QVariant> const & parameters) = 0;
@@ -108,31 +111,27 @@ public:
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
 	unsigned int RequiredInputs() const;
-	//! Returns the number of output images returned by this filter.
-	//! for typical image filters, this returns 1. The filter can modify
-	//! this through SetOutputCount at the moment
-	unsigned int OutputCount() const;
-	//! sets the output count
-	void SetOutputCount(unsigned int outputCount);
 	//! input/output connectors
-	QVector<iAConnector*> Connectors();
+	QVector<iAConnector*> const & Input();
+	//! input/output connectors
+	QVector<iAConnector*> const & Output();
 	//! returns the number of input channels from the first input image
 	unsigned int FirstInputChannels() const;
 	//! sets the first input channels
 	void SetFirstInputChannels(unsigned int c);
 protected:
+	//! Adds an output image
+	void AddOutput(iAITKIO::ImagePointer con);
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
 	void AddMsg(QString msg);
-	//! An accessor to the image to be processed by the filter
-	iAConnector* m_con;
-	//! An accessor to all input images (if more than one input is required
-	QVector<iAConnector*> m_cons;
 	//! The class that is watched for progress. Typically you will call
 	//! m_progress->Observe(someItkFilter) to set up the progress observation
 	iAProgress* m_progress;
 private:
+	QVector<iAConnector*> m_input;
+	QVector<iAConnector*> m_output;
 	QVector<pParameter> m_parameters;
 	QString m_name, m_category, m_description;
 	iALogger* m_log;

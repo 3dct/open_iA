@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAFilter.h"
 
+#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAAttributeDescriptor.h"
 
@@ -68,11 +69,6 @@ unsigned int iAFilter::RequiredInputs() const
 	return m_requiredInputs;
 }
 
-unsigned int iAFilter::OutputCount() const
-{
-	return m_outputCount;
-}
-
 unsigned int iAFilter::FirstInputChannels() const
 {
 	return m_firstInputChannels;
@@ -83,25 +79,31 @@ void iAFilter::SetFirstInputChannels(unsigned int c)
 	m_firstInputChannels = c;
 }
 
-QVector<iAConnector*> iAFilter::Connectors()
+QVector<iAConnector*> const & iAFilter::Output()
 {
-	return m_cons;
+	return m_output;
 }
 
-void iAFilter::SetOutputCount(unsigned int outputCount)
+void iAFilter::AddOutput(iAITKIO::ImagePointer itkImg)
 {
-	m_outputCount = outputCount;
+	iAConnector * con = new iAConnector();
+	con->SetImage(itkImg);
+	con->Modified();
+	m_output.push_back(con);
 }
 
-bool iAFilter::SetUp(QVector<iAConnector*> const & con, iALogger* log, iAProgress* progress)
+void iAFilter::AddInput(iAConnector* con)
 {
-	if (con.size() < m_requiredInputs)
-	{
-		log->Log(QString("Not enough inputs specified, filter %1 requires %2 input images!").arg(m_name).arg(m_requiredInputs));
-		return false;
-	}
-	m_cons = con;
-	m_con = con[0];
+	m_input.push_back(con);
+}
+
+QVector<iAConnector*> const & iAFilter::Input()
+{
+	return m_input;
+}
+
+bool iAFilter::SetUp(iALogger* log, iAProgress* progress)
+{
 	m_log = log;
 	m_progress = progress;
 	return true;
@@ -166,6 +168,14 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 	}
 	return true;
 }
+
+/*
+if (con.size() < m_requiredInputs)
+{
+	log->Log(QString("Not enough inputs specified, filter %1 requires %2 input images!").arg(m_name).arg(m_requiredInputs));
+	return false;
+}
+*/
 
 void iAFilter::AddMsg(QString msg)
 {

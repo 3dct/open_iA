@@ -182,7 +182,7 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 
 void iAFreeBeamCalculation::Run(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(freeBeamCalculation_template, m_con->GetITKScalarPixelType(),
+	ITK_TYPED_CALL(freeBeamCalculation_template, Input()[0]->GetITKScalarPixelType(),
 		parameters["Origin X"].toUInt(), parameters["Origin Y"].toUInt(),
 		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(),
 		parameters["Set intensity manually"].toBool(),

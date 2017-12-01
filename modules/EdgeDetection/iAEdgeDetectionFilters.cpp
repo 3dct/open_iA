@@ -29,7 +29,7 @@
 #include <itkCastImageFilter.h>
 
 template<class T>
-void canny_edge_detection_template( double variance, double maximumError, double upper, double lower, iAProgress* p, iAConnector* image )
+void canny_edge_detection_template(iAFilter* iafilter, QMap<QString, QVariant> const & parameters, iAProgress* p)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -37,29 +37,25 @@ void canny_edge_detection_template( double variance, double maximumError, double
 	typedef itk::CannyEdgeDetectionImageFilter < RealImageType, RealImageType > CannyEDFType;
 
 	auto toReal = CastToRealFilterType::New();
-	toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	toReal->SetInput( dynamic_cast< InputImageType * >( iafilter->Input()[0]->GetITKImage() ) );
 	auto canny = CannyEDFType::New();
-	canny->SetVariance( variance );
-	canny->SetMaximumError( maximumError );
-	canny->SetUpperThreshold( upper );
-	canny->SetLowerThreshold( lower );
+	canny->SetVariance(parameters["Variance"].toDouble());
+	canny->SetMaximumError(parameters["Maximum Error"].toDouble());
+	canny->SetUpperThreshold(parameters["Upper Threshold"].toDouble());
+	canny->SetLowerThreshold(parameters["Lower Threshold"].toDouble());
 	canny->SetInput( toReal->GetOutput() );
 	p->Observe( canny );
 	canny->Update();
-	image->SetImage(canny->GetOutput( ));
-	image->Modified();
-	canny->ReleaseDataFlagOn();
+	iafilter->AddOutput(canny->GetOutput());
 }
 
 IAFILTER_CREATE(iACannyEdgeDetection)
 
 void iACannyEdgeDetection::Run(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	iAConnector::ITKScalarPixelType pixelType = Input()[0]->GetITKScalarPixelType();
 	ITK_TYPED_CALL(canny_edge_detection_template, pixelType,
-		parameters["Variance"].toDouble(), parameters["Maximum Error"].toDouble(),
-		parameters["Upper Threshold"].toDouble(), parameters["Lower Threshold"].toDouble(),
-		m_progress, m_con);
+		this, parameters, m_progress);
 }
 
 iACannyEdgeDetection::iACannyEdgeDetection() :
