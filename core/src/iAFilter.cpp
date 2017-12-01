@@ -83,6 +83,16 @@ void iAFilter::SetFirstInputChannels(unsigned int c)
 	m_firstInputChannels = c;
 }
 
+void iAFilter::AddOutputValue(QString const & name, QVariant value)
+{
+	m_outputValues.push_back(qMakePair(name, value));
+}
+
+QVector<QPair<QString, QVariant> > const & iAFilter::OutputValues() const
+{
+	return m_outputValues;
+}
+
 QVector<iAConnector*> iAFilter::Connectors()
 {
 	return m_cons;

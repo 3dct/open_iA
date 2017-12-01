@@ -120,6 +120,10 @@ public:
 	unsigned int FirstInputChannels() const;
 	//! sets the first input channels
 	void SetFirstInputChannels(unsigned int c);
+	//! adds an output value
+	void AddOutputValue(QString const & name, QVariant value);
+	//! retrieve a list of output values
+	QVector<QPair<QString, QVariant> > const & OutputValues() const;
 protected:
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
@@ -134,6 +138,7 @@ protected:
 	iAProgress* m_progress;
 private:
 	QVector<pParameter> m_parameters;
+	QVector<QPair<QString, QVariant> > m_outputValues;
 	QString m_name, m_category, m_description;
 	iALogger* m_log;
 	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;

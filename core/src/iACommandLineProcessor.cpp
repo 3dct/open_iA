@@ -318,6 +318,10 @@ namespace
 				}
 				iAITKIO::writeFile(outFileName, filter->Connectors()[o]->GetITKImage(), filter->Connectors()[o]->GetITKScalarPixelType(), compress);
 			}
+			for (auto outputValue: filter->OutputValues())
+				std::cout << outputValue.first.toStdString() << ": "
+					<< outputValue.second.toString().toStdString() << std::endl;
+
 			return 0;
 		}
 		catch (std::exception & e)
