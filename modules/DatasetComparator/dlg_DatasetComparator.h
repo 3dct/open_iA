@@ -71,6 +71,7 @@ public slots:
 	void syncNonlinearXAxis(QCPRange);
 	void syncNonlinearYAxis(QCPRange);
 	void changePlotVisibility();
+	void selectCompLevel();
 
 protected:
 	virtual bool eventFilter(QObject * obj, QEvent * event);

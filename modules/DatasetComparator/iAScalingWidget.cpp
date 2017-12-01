@@ -161,7 +161,7 @@ void iAScalingWidget::paintGL()
 	painter.setBrush(QBrush(Qt::lightGray));
 	painter.setPen(QPen(Qt::lightGray));
 	painter.drawRect(leftOffset, 70, linearBarStartPos, 10);
-	painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
+	painter.setRenderHint(QPainter::Antialiasing, true);
 
 	painter.setPen(QPen(Qt::red, 1.5));
 	painter.drawLine(m_nonlinearBarCursorPos, 10, m_nonlinearBarCursorPos, 20);

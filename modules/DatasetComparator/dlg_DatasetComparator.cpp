@@ -487,6 +487,7 @@ void dlg_DatasetComparator::setupGUIConnections()
 	connect(sb_BkgrdThr, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
 	connect(cb_BkgrdThrLine, SIGNAL(stateChanged(int)), this, SLOT(showBkgrdThrLine()));
 	connect(sb_nonlinearScalingFactor, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
+	connect(pB_selectCompLevel, SIGNAL(clicked()), this, SLOT(selectCompLevel()));
 }
 
 void dlg_DatasetComparator::changePlotVisibility()
@@ -1244,7 +1245,6 @@ void dlg_DatasetComparator::selectionChangedByUser()
 				m_nonlinearScaledPlot->graph(i)->setSelection(
 					plot->graph(i)->selection());
 		}
-
 	}
 
 	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
@@ -1324,8 +1324,8 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	m_scalingWidget->setSelection(sel);
 	m_scalingWidget->update();
 	m_mrvRenWin->Render();
-	m_nonlinearScaledPlot->layer("overlay")->replot();
-	m_linearScaledPlot->layer("overlay")->replot();
+	m_nonlinearScaledPlot->replot();
+	m_linearScaledPlot->replot();
 }
 
 void dlg_DatasetComparator::legendClick(QCPLegend* legend, QCPAbstractLegendItem* item, QMouseEvent* e)
@@ -1364,6 +1364,43 @@ void dlg_DatasetComparator::legendClick(QCPLegend* legend, QCPAbstractLegendItem
 		}
 		m_nonlinearScaledPlot->replot();
 	}
+}
+
+void dlg_DatasetComparator::selectCompLevel()
+{
+	// TODO: implement compression level range selection
+	QCPDataSelection selCompLvlRanges;
+	double sectionStart = -1.0;
+	for (int i = 0; i < m_impFunctVec.size(); ++i)
+	{
+		if (m_impFunctVec[i] < sb_LowerCompLevelThr->value() &&
+			sectionStart >= 0.0)
+		{
+			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i-1), false);
+			sectionStart = -1.0;
+		}
+		else if (m_impFunctVec[i] >= sb_LowerCompLevelThr->value() &&
+			sectionStart == -1.0)
+		{
+			sectionStart = i;
+		}
+		else if (m_impFunctVec[i] >= sb_LowerCompLevelThr->value() &&
+			sectionStart >= 0.0 && i == m_impFunctVec.size() - 1)
+		{
+			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i), false);
+		}
+	}
+	// NOTE: m_linearScaledPlot's has 5 graphs less (no functional box plots) 
+	// than the m_nonlinearScaledPlot
+	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
+	{
+		m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
+		m_nonlinearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
+	}
+	m_scalingWidget->setSelection(selCompLvlRanges);
+	m_scalingWidget->update();
+	m_nonlinearScaledPlot->replot();
+	m_linearScaledPlot->replot();
 }
 
 void dlg_DatasetComparator::setSelectionFromRenderer(vtkPoints *selCellPoints)
