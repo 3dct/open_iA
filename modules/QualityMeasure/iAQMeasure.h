@@ -20,4 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-//#include "iAFilter.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
+
+class iAChartWidget;
+class MdiChild;
+
+class iAQMeasure : public iAFilter
+{
+public:
+	static QSharedPointer<iAQMeasure> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
+	void SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild);
+	iAChartWidget* m_chart;
+	MdiChild* m_mdiChild;
+private:
+	iAQMeasure();
+};
+
+
+class iAQMeasureRunner : public iAFilterRunnerGUI
+{
+public:
+	bool ModifiesImage() const override;
+	void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
+};

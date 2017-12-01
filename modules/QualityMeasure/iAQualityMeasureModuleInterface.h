@@ -24,9 +24,6 @@
 
 class iAQualityMeasureModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize();
-private slots:
-	void CalculateQ();
 };
