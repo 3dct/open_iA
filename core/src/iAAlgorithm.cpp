@@ -178,7 +178,7 @@ iAConnector* iAAlgorithm::getConnector() const
 	return m_connectors[0];
 }
 
-QVector<iAConnector*> const iAAlgorithm::Connectors() const
+QVector<iAConnector*> const & iAAlgorithm::Connectors() const
 {
 	return m_connectors;
 }

@@ -66,7 +66,7 @@ public:
 	vtkPolyData* getVtkPolyData();
 	iAConnector* getConnector() const;
 	void AddImage(vtkImageData* i);
-	QVector<iAConnector*> const Connectors() const;
+	QVector<iAConnector*> const & Connectors() const;
 	bool deleteConnector(iAConnector* c);
 	void allocConnectors(int size);
 

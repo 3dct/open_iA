@@ -83,7 +83,7 @@ void iAFilter::SetFirstInputChannels(unsigned int c)
 	m_firstInputChannels = c;
 }
 
-QVector<iAConnector*> iAFilter::Connectors()
+QVector<iAConnector*> & iAFilter::Connectors()
 {
 	return m_cons;
 }

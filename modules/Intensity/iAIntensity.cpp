@@ -356,7 +356,7 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 
 // iAAddFilter
 
-template<class T> void addImages_template(iAProgress* p, QVector<iAConnector*> images)
+template<class T> void addImages_template(iAProgress* p, QVector<iAConnector*> & images)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::AddImageFilter<InputImageType, InputImageType> AddImageFilter;
@@ -393,7 +393,7 @@ iAAddFilter::iAAddFilter() :
 
 // iASubtractFilter
 
-template<class T> void subtractImages_template(iAProgress* p, QVector<iAConnector*> images)
+template<class T> void subtractImages_template(iAProgress* p, QVector<iAConnector*> & images)
 {
 	typedef itk::Image< T, 3 > InputImageType;
 	typedef itk::Image< T, 3 > OutputImageType;
@@ -428,7 +428,7 @@ iASubtractFilter::iASubtractFilter() :
 
 // iADifferenceFilter
 
-template<class T> void difference_template(QMap<QString, QVariant> const & parameters, iAProgress* p, QVector<iAConnector*> images)
+template<class T> void difference_template(QMap<QString, QVariant> const & parameters, iAProgress* p, QVector<iAConnector*> & images)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::Testing::ComparisonImageFilter<ImageType, ImageType> FilterType;
@@ -469,7 +469,7 @@ iADifferenceFilter::iADifferenceFilter() :
 
 // iAMaskIntensityFilter
 
-template<class T> void mask_template(iAProgress* p, QVector<iAConnector*> images)
+template<class T> void mask_template(iAProgress* p, QVector<iAConnector*> & images)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::MaskImageFilter< ImageType, ImageType > MaskFilterType;
@@ -507,7 +507,7 @@ iAMaskIntensityFilter::iAMaskIntensityFilter() :
 // iAHistogramMatchingFilter
 
 template<class T>
-void histomatch_template(QMap<QString, QVariant> const & parameters, iAProgress* p, QVector<iAConnector*> images)
+void histomatch_template(QMap<QString, QVariant> const & parameters, iAProgress* p, QVector<iAConnector*> & images)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef double InternalPixelType;
