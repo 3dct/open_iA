@@ -78,6 +78,11 @@ void getMeanVariance(std::vector<double> hist, double minVal, double maxVal, siz
 	variance /= histSum;
 }
 
+double calculateQ(double mean1, double mean2, double variance1, double variance2)
+{
+	return std::abs(mean2 - mean1) / std::sqrt(variance1 + variance2);
+}
+
 template <typename T>
 void calculateQ_template(iAConnector& con, double histogramBinFactor, double minVal, double maxVal,
 	unsigned int numberOfPeaks, double Kderiv, double Kminima, double & Q, iAChartWidget* chart, MdiChild* mdichild)
@@ -127,92 +132,137 @@ void calculateQ_template(iAConnector& con, double histogramBinFactor, double min
 
 	// 3. find peaks: (derivative = 0, 2nd deriv. negative)
 	auto firstDeriv = derivative(smoothedHist);
+	auto smoothedDeriv = gaussianSmoothing(firstDeriv, derivSigma, 5);
 	if (chart)
 	{
-		auto firstDerivPlotData = iASimpleHistogramData::Create(minVal, maxVal, firstDeriv, Continuous);
+		auto firstDerivPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedDeriv, Continuous);
 		chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(firstDerivPlotData, QColor(90, 90, 180, 127))));
 	}
 	// peak is at every 0-crossing, so where:
 	//      - either deriv is 0, deriv is pos before and neg afterwards (pot. use 2nd deriv?)
 	//      - or before deriv. is pos. and afterwards deriv. is neg.:
 	std::vector<std::pair<size_t, double> > peaks;
-	for (size_t i = 0; i < firstDeriv.size(); ++i)
+	for (size_t i = 0; i < smoothedDeriv.size(); ++i)
 	{
-		if ((firstDeriv[i] == 0
+		if ((smoothedDeriv[i] == 0
 			&& i > 0
-			&& i < firstDeriv.size() - 1
-			&& firstDeriv[i - 1] > 0
-			&& firstDeriv[i + 1] < 0) ||
-			(i < firstDeriv.size() - 1
-				&& firstDeriv[i] > 0
-				&& firstDeriv[i + 1] < 0))
+			&& i < smoothedDeriv.size() - 1
+			&& smoothedDeriv[i - 1] > 0
+			&& smoothedDeriv[i + 1] < 0) ||
+			(i < smoothedDeriv.size() - 1
+				&& smoothedDeriv[i] > 0
+				&& smoothedDeriv[i + 1] < 0))
 			peaks.push_back(std::make_pair(i, smoothedHist[i]));
 	}
-
+	if (peaks.size() < numberOfPeaks)
+	{
+		DEBUG_LOG(QString("Only found %1 peaks in total!").arg(peaks.size()));
+		if (peaks.size() < 2)
+		{
+			DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
+			return;
+		}
+		numberOfPeaks = peaks.size();
+	}
+	// order by peak height, descending:
 	std::sort(peaks.begin(), peaks.end(), [](std::pair<size_t, double> const & a, std::pair<size_t, double> const & b) {
 		return a.second > b.second;
 	});
 	if (chart)
 		for (size_t p = 0; p < numberOfPeaks; ++p)
 			chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(peaks[p].first, QColor(90, 180, 90, 182))));
-	// TODO:
-	//   - take first numberOfPeaks peaks
-	//   - order by index
-	//   - find threshold between each pair
-	//   - only then, calculate mean/stddev/Q
+	
+	peaks.resize(numberOfPeaks);		// only consider numberOfPeaks peaks
 
-	// for now, only consider the first two peaks:
-	size_t peak1 = std::min(peaks[0].first, peaks[1].first);
-	size_t peak2 = std::max(peaks[0].first, peaks[1].first);
-	int peakBinDist = peak2 - peak1;
-	double minSigma = peakBinDist / Kminima;
+	// order peaks by index
+	std::sort(peaks.begin(), peaks.end(), [](std::pair<size_t, double> const & a, std::pair<size_t, double> const & b) {
+		return a.first < b.first;
+	});
 
-	// find minima between the two peaks:
-	auto smoothedHisto2 = gaussianSmoothing(vecHist, minSigma, 10);
-	auto deriv2 = derivative(smoothedHisto2);
-	if (chart)
+	// find threshold=minimum between each pair
+
+	std::vector<size_t> thresholdIndices(numberOfPeaks + 1);
+	std::vector<double> mean(numberOfPeaks);
+	std::vector<double> variance(numberOfPeaks);
+	thresholdIndices[0] = 0;
+	thresholdIndices[numberOfPeaks] = binCount;
+	for (size_t m = 0; m < numberOfPeaks - 1; ++m)
 	{
-		auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHisto2, Continuous);
-		chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
-		//auto firstDeriv2PlotData = iASimpleHistogramData::Create(minVal, maxVal, deriv2, Continuous);
-		//chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(firstDeriv2PlotData, QColor(90, 180, 180, 127))));
-	}
-	int minimum = 0;
-	for (size_t i = peak1; i < peak2; ++i)
-	{
-		if ((deriv2[i] == 0
-			&& i > 0
-			&& i < deriv2.size() - 1
-			&& deriv2[i - 1] < 0
-			&& deriv2[i + 1] > 0) ||
-			(i < deriv2.size() - 1
-				&& deriv2[i] < 0
-				&& deriv2[i + 1] > 0))
+		int peakBinDist = peaks[m + 1].first - peaks[m].first;
+		double minSigma = peakBinDist / Kminima;
+		// find minimum between the two peaks:
+		auto smoothedHistoMin = gaussianSmoothing(vecHist, minSigma, 10);
+		if (chart)
 		{
-			minimum = i;
-			break;
+			//auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHistoMin, Continuous);
+			//chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
 		}
+		int minIdx = peaks[m].first;
+		double curMinFreq = peaks[m].second;
+		for (size_t i = minIdx + 1; i < peaks[m+1].first; ++i)
+		{
+			if (smoothedHistoMin[i] < curMinFreq)
+			{
+				minIdx = i;
+				curMinFreq = smoothedHistoMin[i];
+			}
+		}
+		thresholdIndices[m+1] = minIdx;
+		DEBUG_LOG(QString("threshold %1=%2").arg(m).arg(minIdx));
+		// calculate mean/stddev:
+		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m+1], mean[m], variance[m]);
+		if (chart)
+			chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minVal, QColor(180, 90, 90, 182))));
 	}
-	if (chart)
-		chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minimum, QColor(180, 90, 90, 182))));
+	// for last peak we still have to calculate mean and stddev
+	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks-1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
+	for (int p = 0; p < numberOfPeaks; ++p)
+		DEBUG_LOG(QString("%1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
+	if (mdichild)
+		for (int p = 0; p < numberOfPeaks; ++p)
+			mdichild->getHistogram()->addGaussianFunction(mean[p], std::sqrt(variance[p]), 15);
 
-	double * mean = new double[numberOfPeaks];
-	double * variance = new double[numberOfPeaks];
-	getMeanVariance(vecHist, minVal, maxVal, 0, minimum, mean[0], variance[0]);
-	getMeanVariance(vecHist, minVal, maxVal, minimum+1, vecHist.size()-1, mean[1], variance[1]);
-
-	DEBUG_LOG(QString("minimum=%1").arg(minimum));
+	// find out which of the peaks is closest to 0 (air)
+	double minDistToZero = std::numeric_limits<double>::max();
+	size_t minDistToZeroIdx = -1;
 	for (int p = 0; p < numberOfPeaks; ++p)
 	{
-		DEBUG_LOG(QString("%1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
+		double curDistToZero = std::abs(minVal + peaks[p].first * (maxVal - minVal) / binCount);
+		if (curDistToZero < minDistToZero)
+		{
+			minDistToZero = curDistToZero;
+			minDistToZeroIdx = p;
+		}
 	}
-	if (mdichild)
+
+	// find out which of the non-air peaks is highest:
+	double highestNonAirPeakValue = std::numeric_limits<double>::lowest();
+	size_t highestNonAirPeakIdx = -1;
+	for (int p = 0; p < numberOfPeaks; ++p)
 	{
-		mdichild->getHistogram()->addGaussianFunction(mean[0], std::sqrt(variance[0]), 1);
-		mdichild->getHistogram()->addGaussianFunction(mean[1], std::sqrt(variance[1]), 1);
+		if (p == minDistToZeroIdx)
+			continue;
+		if (peaks[p].second > highestNonAirPeakValue)
+		{
+			highestNonAirPeakValue = peaks[p].second;
+			highestNonAirPeakIdx = p;
+		}
 	}
-	Q = std::abs(mean[1] - mean[0]) / std::sqrt(variance[0] + variance[1]);
-	DEBUG_LOG(QString("Q = %1").arg(Q));
+
+	std::vector<double> q;
+	for(int p1=0; p1<numberOfPeaks; ++p1)
+		for (int p2 = p1 + 1; p2 < numberOfPeaks; ++p2)
+		{
+			double curQ = calculateQ(mean[p1], mean[p2], variance[p1], variance[p2]);
+			if ((p1 == minDistToZeroIdx || p2 == minDistToZeroIdx) &&
+				(p2 == highestNonAirPeakIdx || p2 == highestNonAirPeakIdx))
+			{
+				Q = curQ;
+			}
+			DEBUG_LOG(QString("Q(peak %1, peak %2) = %3").arg(p1).arg(p2)
+				.arg(curQ));
+		}
+	DEBUG_LOG(QString("Final peak (air=%1, material=%2) = %3").arg(minDistToZeroIdx).arg(highestNonAirPeakIdx).arg(Q));
 }
 
 
@@ -227,7 +277,7 @@ void iAQualityMeasureModuleInterface::CalculateQ()
 	iAChartWidget * chart = new iAChartWidget(m_mdiChild, "Intensity", "Frequency");
 	iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
 	m_mdiChild->SplitDockWidget(m_mdiChild->logs, wrapper, Qt::Horizontal);
-	unsigned int NumberOfPeaks = 2;
+	unsigned int NumberOfPeaks = 3;
 	double HistogramBinFactor = 0.125;	// should be between 1/4 and 1/8, according to [1]
 	double Kderiv = 64; // should be between 64 and 512, according to [1]
 	double Kminima = 8; // should be between 8 and 64, according to [1]

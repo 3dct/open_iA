@@ -150,7 +150,7 @@ void iAChartWidget::zoomAlongY(double value, bool deltaMode)
 	{
 		yZoom = value;
 	}
-	yZoom = clamp(MIN_Y_ZOOM, MAX_Y_ZOOM, yZoom);;
+	yZoom = clamp(MIN_Y_ZOOM, MAX_Y_ZOOM, yZoom);
 }
 
 void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
