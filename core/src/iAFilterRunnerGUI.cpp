@@ -226,6 +226,14 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	return true;
 }
 
+bool iAFilterRunnerGUI::ModifiesImage() const
+{
+	return true;
+}
+
+void iAFilterRunnerGUI::FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
+{
+}
 
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
@@ -241,12 +249,15 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
-	auto mdiChild = mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + oldTitle);
+	auto mdiChild = ModifiesImage() ?
+		mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + oldTitle) :
+		sourceMdi;
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
 		return;
 	}
+	FilterGUIPreparations(filter, mdiChild, mainWnd);
 	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
 	if (!thread)
 	{

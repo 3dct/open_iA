@@ -73,6 +73,13 @@ public:
 	//! template), otherwise still an iAFilterRunnerGUI will be created!
 	static QSharedPointer<iAFilterRunnerGUI> Create();
 
+	//! whether or not the filter modifies the image (and thus requires a new
+	//! window in case the option for results in new window is turned on)
+	virtual bool ModifiesImage() const;
+
+	//! do any potentially necessary GUI preparations (directly before the filter is run)
+	virtual void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd);
+
 	//! Main run method. Calls all the other (non-static) methods in this class.
 	//! Override only if you want to change the whole way the filter running works;
 	//! typically you will only want to override one of the methods below
