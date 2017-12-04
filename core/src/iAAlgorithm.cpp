@@ -217,9 +217,10 @@ iAProgress* iAAlgorithm::getItkProgress()
 }
 
 void iAAlgorithm::updateVtkImageData(int ch)
-{
-	// some remainder from working with multichannel images?
-	// seems redundant to the m_image initialization in the constructor!
+{	// updates the vtk image data in the mdi child to be the one contained
+	// in the m_connectors[ch].
+	if (m_image == m_connectors[ch]->GetVTKImage().GetPointer())
+		return;
 	m_image->ReleaseData();
 	m_image->Initialize();
 	m_image->DeepCopy(m_connectors[ch]->GetVTKImage());

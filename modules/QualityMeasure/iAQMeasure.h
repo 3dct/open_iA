@@ -42,6 +42,7 @@ private:
 class iAQMeasureRunner : public iAFilterRunnerGUI
 {
 public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
 	bool ModifiesImage() const override;
 	void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
 };

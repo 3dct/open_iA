@@ -55,7 +55,7 @@ public:
 	virtual ~iAAlgorithm();
 
 	QDateTime Start(); //< Start counting the running time and set the start time
-	int Stop();	//Calculate and get the elapsed time
+	int Stop();        //< Calculate and get the elapsed time
 
 	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);

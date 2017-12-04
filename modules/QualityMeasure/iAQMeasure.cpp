@@ -240,23 +240,33 @@ void calculateQ_template(iAConnector* con, QMap<QString, QVariant> const & param
 			highestNonAirPeakIdx = p;
 		}
 	}
-
-	std::vector<double> q;
-	double Q;
-	for (int p1 = 0; p1 < numberOfPeaks; ++p1)
+	if (parameters["Signal-to-noise ratio"].toBool())
 	{
-		for (int p2 = p1 + 1; p2 < numberOfPeaks; ++p2)
-		{
-			double curQ = calculateQ(mean[p1], mean[p2], variance[p1], variance[p2]);
-			if ((p1 == minDistToZeroIdx || p2 == minDistToZeroIdx) &&
-				(p2 == highestNonAirPeakIdx || p2 == highestNonAirPeakIdx))
-			{
-				Q = curQ;
-			}
-			filter->AddOutputValue(QString("Q(peak %1, peak %2)").arg(p1).arg(p2), curQ);
-		}
+		filter->AddOutputValue("Signal-to-noise ratio", mean[highestNonAirPeakIdx] / std::sqrt(variance[minDistToZeroIdx]));
 	}
-	filter->AddOutputValue("Q", Q);
+	if (parameters["Contrast-to-noise ratio"].toBool())
+	{
+		filter->AddOutputValue("Conrast-to-noise ratio", (mean[highestNonAirPeakIdx]- mean[minDistToZeroIdx]) / std::sqrt(variance[minDistToZeroIdx]));
+	}
+	if (parameters["Q metric"].toBool())
+	{
+		std::vector<double> q;
+		double Q;
+		for (int p1 = 0; p1 < numberOfPeaks; ++p1)
+		{
+			for (int p2 = p1 + 1; p2 < numberOfPeaks; ++p2)
+			{
+				double curQ = calculateQ(mean[p1], mean[p2], variance[p1], variance[p2]);
+				if ((p1 == minDistToZeroIdx || p2 == minDistToZeroIdx) &&
+					(p2 == highestNonAirPeakIdx || p2 == highestNonAirPeakIdx))
+				{
+					Q = curQ;
+				}
+				filter->AddOutputValue(QString("Q(peak %1, peak %2)").arg(p1).arg(p2), curQ);
+			}
+		}
+		filter->AddOutputValue("Q", Q);
+	}
 }
 
 void iAQMeasure::Run(QMap<QString, QVariant> const & parameters)
@@ -268,8 +278,8 @@ IAFILTER_CREATE(iAQMeasure)
 
 iAQMeasure::iAQMeasure() :
 	iAFilter("Image Quality", "Metrics",
-		"Computes the Q metric.<br/>"
-		"For more information, see "
+		"Computes the Signal-to-noise and Contrast-to-noise ratio as well as the Q metric.<br/>"
+		"For more information on the Q metric, see "
 		"<a href=\"http://www.ndt.net/article/ctc2014/papers/273.pdf\">M. Reiter, D. Weiss, C. Gusenbauer, "
 		"J. Kastner, M. Erler, S. Kasperl: Evaluation of a histogram based image quality measure for X-ray "
 		"computed tomography. Proceedings of Conference on Industrial Computed Tomography (iCT2014), Wels, "
@@ -278,6 +288,9 @@ iAQMeasure::iAQMeasure() :
 	m_mdiChild(nullptr)
 {
 	SetOutputCount(0);
+	AddParameter("Signal-to-noise ratio", Boolean, true);
+	AddParameter("Contrast-to-noise ratio", Boolean, true);
+	AddParameter("Q metric", Boolean, true);
 	AddParameter("Number of peaks", Discrete, 2, 2);
 	AddParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
 	AddParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
@@ -289,6 +302,9 @@ void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 	m_chart = chart;
 	m_mdiChild = mdiChild;
 }
+
+
+IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
 bool iAQMeasureRunner::ModifiesImage() const
 {

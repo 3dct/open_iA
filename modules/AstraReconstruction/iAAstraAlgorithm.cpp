@@ -541,11 +541,7 @@ void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
 }
 
 
-
-QSharedPointer<iAFilterRunnerGUI> iAASTRAFilterRunner::Create()
-{
-	return QSharedPointer<iAASTRAFilterRunner>(new iAASTRAFilterRunner());
-}
+IAFILTER_RUNNER_CREATE(iAASTRAFilterRunner);
 
 namespace
 {

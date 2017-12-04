@@ -121,3 +121,9 @@ signals:
 private:
 	QVector<vtkSmartPointer<vtkImageData> > m_additionalInput;
 };
+
+#define IAFILTER_RUNNER_CREATE(FilterRunnerName) \
+QSharedPointer<iAFilterRunnerGUI> FilterRunnerName::Create() \
+{ \
+	return QSharedPointer<FilterRunnerName>(new FilterRunnerName()); \
+}
