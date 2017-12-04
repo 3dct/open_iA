@@ -1212,6 +1212,7 @@ void dlg_DatasetComparator::selectionChangedByUser()
 
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
 	auto selGraphsList = plot->selectedGraphs();
+
 	QCPDataSelection sel;
 	if (!selGraphsList.isEmpty())
 	{
@@ -1219,11 +1220,8 @@ void dlg_DatasetComparator::selectionChangedByUser()
 			for (auto range : graph->selection().dataRanges())
 				sel.addDataRange(range, false);
 		sel.simplify();
-		int graphCount;
-		plot == m_nonlinearScaledPlot ?
-			graphCount = plot->graphCount() - 5 :	/*no FBPs*/
-			graphCount = plot->graphCount();
-		for (int i = 0; i < graphCount; ++i)
+
+		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	/*no FBPs*/
 		{
 			plot == m_nonlinearScaledPlot ?
 				m_linearScaledPlot->graph(i)->setSelection(
@@ -1235,7 +1233,7 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	else
 	{
 		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	
+		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	/*no FBPs*/
 		{
 			plot == m_nonlinearScaledPlot ?
 				m_linearScaledPlot->graph(i)->setSelection(
@@ -1321,7 +1319,7 @@ void dlg_DatasetComparator::selectCompLevel()
 			m_impFunctVec[i] > sb_UpperCompLevelThr->value()) &&
 			sectionStart >= 0.0)
 		{
-			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i-1), false);
+			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i-1));
 			sectionStart = -1.0;
 		}
 		else if (m_impFunctVec[i] >= sb_LowerCompLevelThr->value() &&
@@ -1334,10 +1332,10 @@ void dlg_DatasetComparator::selectCompLevel()
 			m_impFunctVec[i] <= sb_LowerCompLevelThr->value()) &&
 			sectionStart >= 0.0 && i == m_impFunctVec.size() - 1)
 		{
-			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i), false);
+			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i));
 		}
 	}
-	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
+	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	/*no FBPs*/
 	{
 		m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
 		m_nonlinearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
@@ -1376,7 +1374,7 @@ void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGrap
 				bool showVoxel = false;
 				for (int j = 0; j < selHilberIndices.size(); ++j)
 				{
-					if (i >= selHilberIndices.at(j).begin() && i <= selHilberIndices.at(j).end())
+					if (i >= selHilberIndices.at(j).begin() && i < selHilberIndices.at(j).end())
 					{
 						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
 							data[i].x, data[i].y, data[i].z, data[i].intensity);
