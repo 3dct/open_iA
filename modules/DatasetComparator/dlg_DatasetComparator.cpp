@@ -1205,39 +1205,36 @@ void dlg_DatasetComparator::setFbpTransparency(int value)
 
 void dlg_DatasetComparator::selectionChangedByUser()
 {
-	// TODO: change transfer function for "hiden" values should be HistogramRangeMinimum-1 
+	// TODO: change transfer function for "hiden" values; should be HistogramRangeMinimum-1 
 	m_mrvRenWin->GetRenderers()->RemoveAllItems();
 	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
 	auto selGraphsList = plot->selectedGraphs();
-	QList<QCPGraph *> visSelGraphList;
-	for (auto selGraph : selGraphsList)
-		if (selGraph->visible())
-			visSelGraphList.append(selGraph);
-
 	QCPDataSelection sel;
-	if (!visSelGraphList.isEmpty())
+	if (!selGraphsList.isEmpty())
 	{
-		for (int i = 0; i < visSelGraphList.size(); ++i)
-		{
-			for (auto range : plot->graph(i)->selection().dataRanges())
+		for (auto graph : selGraphsList)
+			for (auto range : graph->selection().dataRanges())
 				sel.addDataRange(range, false);
-
+		sel.simplify();
+		int graphCount;
+		plot == m_nonlinearScaledPlot ?
+			graphCount = plot->graphCount() - 5 :	/*no FBPs*/
+			graphCount = plot->graphCount();
+		for (int i = 0; i < graphCount; ++i)
+		{
 			plot == m_nonlinearScaledPlot ?
 				m_linearScaledPlot->graph(i)->setSelection(
 					plot->graph(i)->selection()) :
 				m_nonlinearScaledPlot->graph(i)->setSelection(
 					plot->graph(i)->selection());
 		}
-		sel.simplify();
 	}
 	else
 	{
 		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-		// NOTE: m_linearScaledPlot's has 5 graphs less than 
-		//the m_nonlinearScaledPlot (no functional box plots) 
 		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	
 		{
 			plot == m_nonlinearScaledPlot ?
@@ -1247,7 +1244,7 @@ void dlg_DatasetComparator::selectionChangedByUser()
 					plot->graph(i)->selection());
 		}
 	}
-	setSelectionForRenderer(m_nonlinearScaledPlot->selectedGraphs());
+	setSelectionForRenderer(selGraphsList);
 	m_scalingWidget->setSelection(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
@@ -1340,8 +1337,6 @@ void dlg_DatasetComparator::selectCompLevel()
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i), false);
 		}
 	}
-	// NOTE: m_linearScaledPlot's has 5 graphs less than
-	// the m_nonlinearScaledPlot (no functional box plots)
 	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
 	{
 		m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
