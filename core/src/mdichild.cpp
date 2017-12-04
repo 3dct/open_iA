@@ -267,6 +267,7 @@ void MdiChild::connectSignalsToSlots()
 
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
+	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(SetHistogramModality(int)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
