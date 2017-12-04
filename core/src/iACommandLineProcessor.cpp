@@ -115,7 +115,7 @@ namespace
 			std::cout << p->Name().toStdString() << "\tParameter\t"
 					<< ValueType2Str(p->ValueType()).toStdString() << "\t";
 			if (p->ValueType() == Continuous || p->ValueType() == Discrete)
-				std::cout << p->Min() << "\t" << p->Min() << "\tLinear";
+				std::cout << p->Min() << "\t" << p->Max() << "\tLinear";
 			else if (p->ValueType() == Categorical)
 				std::cout << "\t" << p->DefaultValue().toStringList().join(",").toStdString();
 			std::cout << std::endl;
@@ -240,7 +240,7 @@ namespace
 			std::cout << "Missing input files - please specify at least one after the -i parameter" << std::endl;
 			return 1;
 		}
-		if (outputFiles.size() == 0)
+		if (outputFiles.size() < filter->OutputCount())
 		{
 			std::cout << "Missing output files - please specify at least one after the -o parameter" << std::endl;
 			return 1;
