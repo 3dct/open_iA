@@ -20,40 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iASimilarityFilterType
-{
-	SIMILARITY_METRICS
-};
-
-/**
- * Implementation of Image Similarity Metrics.
- * For Mean Squares refer to https://itk.org/Doxygen/html/classitk_1_1MeanSquaresImageToImageMetric.html
- * For Normalized Correlation refer to https://itk.org/Doxygen/html/classitk_1_1NormalizedCorrelationImageToImageMetric.html
- */
-class iASimilarity : public iAAlgorithm
-{
-public:
-	iASimilarity(QString fn, iASimilarityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-
-	void setSMParameters(bool ms, bool nc, bool mi, int mihb, vtkImageData* i2)
-	{
-		meanSqaures = ms;
-		normalizedCorrelation = nc;
-		mutualInformation = mi;
-		miHistoBins = mihb;
-		image2 = i2;
-	}
-
-protected:
-	void run();
-
-private:
-	bool meanSqaures, normalizedCorrelation, mutualInformation;
-	int miHistoBins;
-	vtkImageData* image2;
-	iASimilarityFilterType m_type;
-
-	void calcSimilarityMetrics();
-};
+IAFILTER_DEFAULT_CLASS(iASimilarity);

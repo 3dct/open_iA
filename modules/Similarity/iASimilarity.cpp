@@ -33,13 +33,9 @@
 #include <itkMeanSquaresImageToImageMetric.h>
 #include <itkTranslationTransform.h>
 
-#include <vtkImageData.h>
-
-#include <QLocale>
-
 template<class T>
-void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, bool ms, bool nc, bool mi, int miHistoBins,
-	double &msVal, double &ncVal, double &entr1, double &entr2, double &jointEntr, double &mutInf, double &norMutInf1, double &norMutInf2)
+void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images,
+	QMap<QString, QVariant> const & parameters, iAFilter* filter)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::TranslationTransform < double, DIM > TransformType;
@@ -50,7 +46,7 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 	interpolator->SetInputImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
 	TransformType::ParametersType params(transform->GetNumberOfParameters());
 
-	if (ms)
+	if (parameters["Mean Squares"].toBool())
 	{
 		typedef itk::MeanSquaresImageToImageMetric<	ImageType, ImageType > MSMetricType;
 		auto msmetric = MSMetricType::New();
@@ -61,9 +57,10 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 		msmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
 		msmetric->Initialize();
-		msVal = msmetric->GetValue(params);
+		double msVal = msmetric->GetValue(params);
+		filter->AddOutputValue("Mean Squares Metric", msVal);
 	}
-	if (nc)
+	if (parameters["Normalized Correlation"].toBool())
 	{
 		typedef itk::NormalizedCorrelationImageToImageMetric< ImageType, ImageType > NCMetricType;
 		auto ncmetric = NCMetricType::New();
@@ -74,9 +71,10 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 		ncmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
 		ncmetric->Initialize();
-		ncVal = ncmetric->GetValue(params);
+		double ncVal = ncmetric->GetValue(params);
+		filter->AddOutputValue("Normalized Correlation Metric", ncVal);
 	}
-	if (mi)
+	if (parameters["Mutual Information"].toBool())
 	{
 		//ITK-Example: https://itk.org/Doxygen/html/Examples_2Statistics_2ImageMutualInformation1_8cxx-example.html
 		typedef itk::JoinImageFilter< ImageType, ImageType > JoinFilterType;
@@ -92,12 +90,14 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 		histogramFilter->SetMarginalScale(10.0);
 		typedef typename HistogramFilterType::HistogramSizeType   HistogramSizeType;
 		HistogramSizeType size(2);
-		size[0] = miHistoBins;  // number of bins for the first  channel
-		size[1] = miHistoBins;  // number of bins for the second channel
+		size[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
+		size[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
 		histogramFilter->SetHistogramSize(size);
+		/*
 		typedef typename HistogramFilterType::HistogramMeasurementVectorType HistogramMeasurementVectorType;
 		HistogramMeasurementVectorType binMinimum(3);
 		HistogramMeasurementVectorType binMaximum(3);
+		// shouldn't this be the min and max DATA values?
 		binMinimum[0] = -0.5;
 		binMinimum[1] = -0.5;
 		binMinimum[2] = -0.5;
@@ -106,13 +106,15 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 		binMaximum[2] = miHistoBins + 0.5;
 		histogramFilter->SetHistogramBinMinimum(binMinimum);
 		histogramFilter->SetHistogramBinMaximum(binMaximum);
+		*/
+		histogramFilter->SetAutoMinimumMaximum(true);
 		histogramFilter->Update();
 		typedef typename HistogramFilterType::HistogramType  HistogramType;
 		const HistogramType * histogram = histogramFilter->GetOutput();
 		auto itr = histogram->Begin();
 		auto end = histogram->End();
 		const double Sum = histogram->GetTotalFrequency();
-
+		double jointEntr = 0;
 		while (itr != end)
 		{
 			const double count = itr.GetFrequency();
@@ -124,12 +126,13 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 			++itr;
 		}
 
-		size[0] = miHistoBins;  // number of bins for the first  channel
+		size[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
 		size[1] = 1;  // number of bins for the second channel
 		histogramFilter->SetHistogramSize(size);
 		histogramFilter->Update();
 		itr = histogram->Begin();
 		end = histogram->End();
+		double entr1 = 0;
 		while (itr != end)
 		{
 			const double count = itr.GetFrequency();
@@ -142,11 +145,12 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 		}
 
 		size[0] = 1;  // number of bins for the first channel
-		size[1] = miHistoBins;  // number of bins for the second channel
+		size[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
 		histogramFilter->SetHistogramSize(size);
 		histogramFilter->Update();
 		itr = histogram->Begin();
 		end = histogram->End();
+		double entr2 = 0;
 		while (itr != end)
 		{
 			const double count = itr.GetFrequency();
@@ -157,76 +161,46 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images, b
 			}
 			++itr;
 		}
-
-		mutInf = entr1 + entr2 - jointEntr;
-		norMutInf1 = 2.0 * mutInf / (entr1 + entr2);
-		norMutInf2 = (entr1 + entr2) / jointEntr;
+		double mutInf = entr1 + entr2 - jointEntr;
+		double norMutInf1 = 2.0 * mutInf / (entr1 + entr2);
+		double norMutInf2 = (entr1 + entr2) / jointEntr;
+		filter->AddOutputValue("Image 1 Entropy", entr1);
+		filter->AddOutputValue("Image 2 Entropy", entr2);
+		filter->AddOutputValue("Joint Entropy", jointEntr);
+		filter->AddOutputValue("Mutual Information", mutInf);
+		filter->AddOutputValue("Normalized Mutual Information 1", norMutInf1);
+		filter->AddOutputValue("Normalized Mutual Information 2", norMutInf2);
 	}
+
 }
 
-
-iASimilarity::iASimilarity(QString fn, iASimilarityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent)
-	: iAAlgorithm(fn, i, p, logger, parent), m_type(fid)
-{}
-
-void iASimilarity::run()
+iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
+	"Calculates the similarity between two images according to different metrics.<br/>"
+	"<strong>NOTE</strong>: Normalize the images before calculating the similarity metrics!<br/>"
+	"<a href=\"https://itk.org/Doxygen/html/ImageSimilarityMetricsPage.html\">General information on ITK similarity metrics</a>.<br/>"
+	"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MeanSquaresImageToImageMetric.html\">"
+	"Mean Squares Metric</a>: The optimal value of the metric is zero. Poor matches between images A and B result in large "
+	"values of the metric. This metric relies on the assumption that intensity representing the same homologous point "
+	"must be the same in both images.<br/>"
+	"<a href=\"https://itk.org/Doxygen/html/classitk_1_1NormalizedCorrelationImageToImageMetric.html\">"
+	"Normalized Correlation Metric</a>: Note the −1 factor in the metric computation. This factor is used to make the "
+	"metric be optimal when its minimum is reached.The optimal value of the metric is then minus one. Misalignment "
+	"between the images results in small measure values.<br/>"
+	"More Information on Mutual Information is given in the "
+	"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
+	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471).", 2)
 {
-	switch (m_type)
-	{
-	case SIMILARITY_METRICS:
-		calcSimilarityMetrics(); break;
-	default:
-		addMsg(tr("unknown filter type"));
-	}
+	SetOutputCount(0);
+	AddParameter("Mean Squares", Boolean, true);
+	AddParameter("Normalized Correlation", Boolean, false);
+	AddParameter("Mutual Information", Boolean, false);
+	AddParameter("Histogram Bins", Discrete, 256, 2);
 }
 
-void iASimilarity::calcSimilarityMetrics()
+IAFILTER_CREATE(iASimilarity)
+
+
+void iASimilarity::Run(QMap<QString, QVariant> const & parameters)
 {
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
-		.arg(getFilterName()));
-
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	AddImage(image2);
-	double msVal = 0.0, ncVal = -1.0, entr1Val = 0.0, entr2Val = 0.0, jointEntrVal = 0.0, mutInfVal = 0.0, norMutInf1Val = 0.0, norMutInf2Val = 0.0;
-	
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-
-		ITK_TYPED_CALL(similarity_metrics_template, itkType, getItkProgress(), Connectors(),
-			meanSqaures, normalizedCorrelation, mutualInformation, miHistoBins, msVal, ncVal, entr1Val, entr2Val, jointEntrVal, mutInfVal, norMutInf1Val, norMutInf2Val);
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return;
-	}
-	
-	addMsg("");
-	if (meanSqaures)
-	{
-		addMsg(QString("    Mean Squares Metric = %1\n").arg(QString::number(msVal)));
-	}
-	if (normalizedCorrelation)
-	{
-		addMsg(QString("    Normalized Correlation Metric = %1\n").arg(QString::number(ncVal)));
-	}
-	if (mutualInformation)
-	{
-		addMsg(QString("    Image 1 Entrop = %1").arg(QString::number(entr1Val)));
-		addMsg(QString("    Image 2 Entrop = %1").arg(QString::number(entr2Val)));
-		addMsg(QString("    Joint Entropy = %1").arg(QString::number(jointEntrVal)));
-		addMsg(QString("    Mutual Information = %1").arg(QString::number(mutInfVal)));
-		addMsg(QString("    Normalized Mutual Information 1 = %1").arg(QString::number(norMutInf1Val)));
-		addMsg(QString("    Normalized Mutual Information 2 = %1\n").arg(QString::number(norMutInf2Val)));
-	}
-	
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(getFilterName())
-		.arg(Stop()));
+	ITK_TYPED_CALL(similarity_metrics_template, m_con->GetITKScalarPixelType(), m_progress, m_cons, parameters, this);
 }
