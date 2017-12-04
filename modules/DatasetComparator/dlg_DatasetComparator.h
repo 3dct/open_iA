@@ -64,7 +64,7 @@ public slots:
 	void visualizePath();
 	void selectionChangedByUser();
 	void legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*);
-	void setSelectionFromRenderer(vtkPoints* selCellPoints);
+	void setSelectionForPlots(vtkPoints* selCellPoints);
 	void showBkgrdThrLine();
 	void syncLinearXAxis(QCPRange);
 	void syncLinearYAxis(QCPRange);
@@ -122,4 +122,5 @@ private:
 	void setupGUIElements();
 	void setupScalingWidget();
 	void setupPlotConnections();
+	void setSelectionForRenderer(QList<QCPGraph *> visSelGraphList);
 };

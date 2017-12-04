@@ -464,7 +464,7 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_nonlinearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
 	connect(m_mdiChild->getRaycaster(), SIGNAL(cellsSelected(vtkPoints*)),
-		this, SLOT(setSelectionFromRenderer(vtkPoints*)));
+		this, SLOT(setSelectionForPlots(vtkPoints*)));
 	connect(m_nlVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
 
 	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearXAxis(QCPRange)));
@@ -560,7 +560,7 @@ void dlg_DatasetComparator::visualize()
 				m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
 			m_linearScaledPlot->graph()->setName(it->first);
 			QCPScatterStyle scatter;
-			scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
+			scatter.setShape(QCPScatterStyle::ssDot);	 // Check ssDisc/ssDot to show single selected points
 			scatter.setSize(3.0);
 			m_linearScaledPlot->graph()->setScatterStyle(scatter);
 			QPen p = m_linearScaledPlot->graph()->selectionDecorator()->pen();
@@ -606,7 +606,7 @@ void dlg_DatasetComparator::visualize()
 			m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
 		m_nonlinearScaledPlot->graph()->setName(it->first);
 		QCPScatterStyle scatter;
-		scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
+		scatter.setShape(QCPScatterStyle::ssDot);	 // Check ssDisc/ssDot to show single selected points
 		scatter.setSize(3.0);
 		m_nonlinearScaledPlot->graph()->setScatterStyle(scatter);
 		QPen p = m_nonlinearScaledPlot->graph()->selectionDecorator()->pen();
@@ -735,12 +735,14 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 		m_nonlinearMappingVec.append(i == 0 ? imp : m_nonlinearMappingVec[i - 1] + imp);
 
 		//TODO: Better way to calc bkgrdThrRanges
-		if (innerEnsembleDistList[i] >= 0.0 && sectionStart >= 0.0 && i!= innerEnsembleDistList.size())
+		if (innerEnsembleDistList[i] >= 0.0 && sectionStart >= 0.0 &&
+			i!= innerEnsembleDistList.size())
 		{
 			m_bkgrdThrRangeList.append(QCPRange(sectionStart, m_nonlinearMappingVec[i-1]));
 			sectionStart = -1.0;
 		}
-		else if(innerEnsembleDistList[i] == -1.0 && sectionStart == -1.0)
+		else if(innerEnsembleDistList[i] == -1.0 &&
+			sectionStart == -1.0)
 		{
 			sectionStart = m_nonlinearMappingVec[i];
 		}
@@ -1209,7 +1211,6 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
-	auto datasetsList = m_datasetsDir.entryList();
 	auto selGraphsList = plot->selectedGraphs();
 	QList<QCPGraph *> visSelGraphList;
 	for (auto selGraph : selGraphsList)
@@ -1246,84 +1247,9 @@ void dlg_DatasetComparator::selectionChangedByUser()
 					plot->graph(i)->selection());
 		}
 	}
-
-	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
-	{
-		int idx = datasetsList.indexOf(visSelGraphList[i]->name());
-		auto selHilberIndices = visSelGraphList[i]->selection().dataRanges();
-		auto pathSteps = m_DatasetIntensityMap[idx].second.size(); 
-		auto  data = m_DatasetIntensityMap[idx].second;
-		int scalarType = m_imgDataList[idx]->GetScalarType();
-
-		if (selHilberIndices.size() < 1)
-		{
-			for (unsigned int i = 0; i < pathSteps; ++i)
-				VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
-					data[i].x, data[i].y, data[i].z, data[i].intensity);
-			m_nonlinearDataPointInfo->setVisible(false);
-		}
-		else
-		{
-			double r[2];
-			m_mdiChild->getHistogram()->GetDataRange(r);
-			for (unsigned int i = 0; i < pathSteps; ++i)
-			{
-				bool showVoxel = false;
-				for (int j = 0; j < selHilberIndices.size(); ++j)
-				{
-					if (i >= selHilberIndices.at(j).begin() && i <= selHilberIndices.at(j).end())
-					{
-						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
-							data[i].x, data[i].y, data[i].z, data[i].intensity);
-						showVoxel = true;
-						break;
-					}
-				}
-				if (!showVoxel)
-					VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
-						data[i].x, data[i].y, data[i].z, r[0]);
-			}
-		}
-		
-		m_imgDataList[idx]->Modified();
-		float viewportCols = visSelGraphList.size() < 3.0 ? fmod(visSelGraphList.size(), 3.0) : 3.0;
-		float viewportRows = ceil(visSelGraphList.size() / viewportCols);
-		float fieldLengthX = 1.0 / viewportCols, fieldLengthY = 1.0 / viewportRows;
-		
-		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
-		cornerAnnotation->SetLinearFontScaleFactor(2);
-		cornerAnnotation->SetNonlinearFontScaleFactor(1);
-		cornerAnnotation->SetMaximumFontSize(14);
-		cornerAnnotation->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
-		cornerAnnotation->GetTextProperty()->SetFontSize(14);
-		cornerAnnotation->SetText(2, visSelGraphList[i]->name().toStdString().c_str());
-		cornerAnnotation->GetTextProperty()->BoldOn();
-		cornerAnnotation->GetTextProperty()->SetColor(
-			visSelGraphList[i]->pen().color().redF(),
-			visSelGraphList[i]->pen().color().greenF(),
-			visSelGraphList[i]->pen().color().blueF());
-		
-		iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
-		auto ren = vtkSmartPointer<vtkRenderer>::New();
-		ren->SetLayer(1);
-		ren->SetActiveCamera(m_mdiChild->getRaycaster()->getCamera());
-		ren->GetActiveCamera()->ParallelProjectionOn();
-		ren->SetViewport(fmod(i, viewportCols) * fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportCols) / viewportRows),
-			fmod(i, viewportCols) * fieldLengthX + fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
-		ren->AddViewProp(cornerAnnotation);
-		ren->ResetCamera();
-		
-		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[idx]));
-		m_volRen->ApplySettings(m_mdiChild->GetVolumeSettings());
-		m_volRen->AddTo(ren);
-		m_volRen->AddBoundingBoxTo(ren);
-		m_mrvRenWin->AddRenderer(ren);
-	}
+	setSelectionForRenderer(m_nonlinearScaledPlot->selectedGraphs());
 	m_scalingWidget->setSelection(sel);
 	m_scalingWidget->update();
-	m_mrvRenWin->Render();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
 }
@@ -1368,7 +1294,28 @@ void dlg_DatasetComparator::legendClick(QCPLegend* legend, QCPAbstractLegendItem
 
 void dlg_DatasetComparator::selectCompLevel()
 {
-	// TODO: update 3D MultiView, see SelectionChangedByUser
+	if ((sb_LowerCompLevelThr->value() > sb_UpperCompLevelThr->value()) ||
+		(sb_UpperCompLevelThr->value() < sb_LowerCompLevelThr->value()))
+	{
+		QMessageBox msgBox;
+		msgBox.setText("Lower/upper ranges are flipped.");
+		msgBox.setInformativeText("Should Dataset Comparator automatically correct the ranges and proceed?");
+		msgBox.setWindowTitle("Dataset Comparator");
+		msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+		int ret = msgBox.exec();
+		double tmp;
+		switch (ret)
+		{
+		case QMessageBox::Ok:
+			tmp = sb_LowerCompLevelThr->value();
+			sb_LowerCompLevelThr->setValue(sb_UpperCompLevelThr->value());
+			sb_UpperCompLevelThr->setValue(tmp);
+			break;
+		case QMessageBox::Cancel:
+			return;
+		}
+	}
+
 	QCPDataSelection selCompLvlRanges;
 	double sectionStart = -1.0;
 	for (int i = 0; i < m_impFunctVec.size(); ++i)
@@ -1400,13 +1347,94 @@ void dlg_DatasetComparator::selectCompLevel()
 		m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
 		m_nonlinearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
 	}
+	setSelectionForRenderer(m_linearScaledPlot->selectedGraphs());
 	m_scalingWidget->setSelection(selCompLvlRanges);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::setSelectionFromRenderer(vtkPoints *selCellPoints)
+void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
+{
+	auto datasetsList = m_datasetsDir.entryList();
+	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
+	{
+		int idx = datasetsList.indexOf(visSelGraphList[i]->name());
+		auto selHilberIndices = visSelGraphList[i]->selection().dataRanges();
+		auto pathSteps = m_DatasetIntensityMap[idx].second.size();
+		auto  data = m_DatasetIntensityMap[idx].second;
+		int scalarType = m_imgDataList[idx]->GetScalarType();
+
+		if (selHilberIndices.size() < 1)
+		{
+			for (unsigned int i = 0; i < pathSteps; ++i)
+				VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
+					data[i].x, data[i].y, data[i].z, data[i].intensity);
+			m_nonlinearDataPointInfo->setVisible(false);
+		}
+		else
+		{
+			double r[2];
+			m_mdiChild->getHistogram()->GetDataRange(r);
+			for (unsigned int i = 0; i < pathSteps; ++i)
+			{
+				bool showVoxel = false;
+				for (int j = 0; j < selHilberIndices.size(); ++j)
+				{
+					if (i >= selHilberIndices.at(j).begin() && i <= selHilberIndices.at(j).end())
+					{
+						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
+							data[i].x, data[i].y, data[i].z, data[i].intensity);
+						showVoxel = true;
+						break;
+					}
+				}
+				if (!showVoxel)
+					VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
+						data[i].x, data[i].y, data[i].z, r[0]);
+			}
+		}
+
+		m_imgDataList[idx]->Modified();
+		float viewportCols = visSelGraphList.size() < 3.0 ? fmod(visSelGraphList.size(), 3.0) : 3.0;
+		float viewportRows = ceil(visSelGraphList.size() / viewportCols);
+		float fieldLengthX = 1.0 / viewportCols, fieldLengthY = 1.0 / viewportRows;
+
+		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
+		cornerAnnotation->SetLinearFontScaleFactor(2);
+		cornerAnnotation->SetNonlinearFontScaleFactor(1);
+		cornerAnnotation->SetMaximumFontSize(14);
+		cornerAnnotation->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+		cornerAnnotation->GetTextProperty()->SetFontSize(14);
+		cornerAnnotation->SetText(2, visSelGraphList[i]->name().toStdString().c_str());
+		cornerAnnotation->GetTextProperty()->BoldOn();
+		cornerAnnotation->GetTextProperty()->SetColor(
+			visSelGraphList[i]->pen().color().redF(),
+			visSelGraphList[i]->pen().color().greenF(),
+			visSelGraphList[i]->pen().color().blueF());
+
+		iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
+		auto ren = vtkSmartPointer<vtkRenderer>::New();
+		ren->SetLayer(1);
+		ren->SetActiveCamera(m_mdiChild->getRaycaster()->getCamera());
+		ren->GetActiveCamera()->ParallelProjectionOn();
+		ren->SetViewport(fmod(i, viewportCols) * fieldLengthX,
+			1 - (ceil((i + 1.0) / viewportCols) / viewportRows),
+			fmod(i, viewportCols) * fieldLengthX + fieldLengthX,
+			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
+		ren->AddViewProp(cornerAnnotation);
+		ren->ResetCamera();
+
+		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[idx]));
+		m_volRen->ApplySettings(m_mdiChild->GetVolumeSettings());
+		m_volRen->AddTo(ren);
+		m_volRen->AddBoundingBoxTo(ren);
+		m_mrvRenWin->AddRenderer(ren);
+	}
+	m_mrvRenWin->Render();
+}
+
+void dlg_DatasetComparator::setSelectionForPlots(vtkPoints *selCellPoints)
 {
 	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
 	auto data = m_DatasetIntensityMap.at(0).second;
