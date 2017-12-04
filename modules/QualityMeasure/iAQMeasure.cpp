@@ -259,7 +259,6 @@ void calculateQ_template(iAConnector* con, QMap<QString, QVariant> const & param
 	filter->AddOutputValue("Q", Q);
 }
 
-
 void iAQMeasure::Run(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(calculateQ_template, m_con->GetITKScalarPixelType(), m_con, parameters, this);
@@ -268,28 +267,28 @@ void iAQMeasure::Run(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iAQMeasure)
 
 iAQMeasure::iAQMeasure() :
-	iAFilter("Q Measure", "Image Quality",
-		"Computes the Q measure.<br/>"
+	iAFilter("Image Quality", "Metrics",
+		"Computes the Q metric.<br/>"
 		"For more information, see "
 		"<a href=\"http://www.ndt.net/article/ctc2014/papers/273.pdf\">M. Reiter, D. Weiss, C. Gusenbauer, "
 		"J. Kastner, M. Erler, S. Kasperl: Evaluation of a histogram based image quality measure for X-ray "
 		"computed tomography. Proceedings of Conference on Industrial Computed Tomography (iCT2014), Wels, "
-		"Österreich, 2014.</a>")
+		"Österreich, 2014.</a>"),
+	m_chart(nullptr),
+	m_mdiChild(nullptr)
 {
+	SetOutputCount(0);
 	AddParameter("Number of peaks", Discrete, 2, 2);
 	AddParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
 	AddParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
 	AddParameter("Minima finding smoothing factor", Continuous, 8, 0.0000001);
 }
 
-
 void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 {
 	m_chart = chart;
 	m_mdiChild = mdiChild;
 }
-
-
 
 bool iAQMeasureRunner::ModifiesImage() const
 {
