@@ -1319,7 +1319,7 @@ void dlg_DatasetComparator::selectCompLevel()
 			m_impFunctVec[i] > sb_UpperCompLevelThr->value()) &&
 			sectionStart >= 0.0)
 		{
-			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i-1));
+			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i));
 			sectionStart = -1.0;
 		}
 		else if (m_impFunctVec[i] >= sb_LowerCompLevelThr->value() &&
@@ -1335,6 +1335,11 @@ void dlg_DatasetComparator::selectCompLevel()
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i));
 		}
 	}
+
+	selCompLvlRanges.dataRanges().size() > 0 ? 
+		m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D()) :
+		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+
 	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	/*no FBPs*/
 	{
 		m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
@@ -1349,6 +1354,8 @@ void dlg_DatasetComparator::selectCompLevel()
 
 void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
 {
+	// TODO: last hilbert index ist not show when slected 
+	// (also when selected via comp level selection)
 	auto datasetsList = m_datasetsDir.entryList();
 	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
 	{
