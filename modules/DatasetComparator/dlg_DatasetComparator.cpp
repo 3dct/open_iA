@@ -1330,9 +1330,9 @@ void dlg_DatasetComparator::selectCompLevel()
 		}
 		else if ((m_impFunctVec[i] >= sb_LowerCompLevelThr->value() || 
 			m_impFunctVec[i] <= sb_LowerCompLevelThr->value()) &&
-			sectionStart >= 0.0 && i == m_impFunctVec.size() - 1)
+			sectionStart >= 0.0 && i == m_impFunctVec.size()-1)
 		{
-			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i));
+			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i+1));
 		}
 	}
 
