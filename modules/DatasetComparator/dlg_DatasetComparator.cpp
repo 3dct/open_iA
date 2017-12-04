@@ -1235,8 +1235,8 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	else
 	{
 		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-		// NOTE: m_linearScaledPlot's has 5 graphs less (no functional box plots) 
-		// than the m_nonlinearScaledPlot
+		// NOTE: m_linearScaledPlot's has 5 graphs less than 
+		//the m_nonlinearScaledPlot (no functional box plots) 
 		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	
 		{
 			plot == m_nonlinearScaledPlot ?
@@ -1368,30 +1368,33 @@ void dlg_DatasetComparator::legendClick(QCPLegend* legend, QCPAbstractLegendItem
 
 void dlg_DatasetComparator::selectCompLevel()
 {
-	// TODO: implement compression level range selection
+	// TODO: update 3D MultiView, see SelectionChangedByUser
 	QCPDataSelection selCompLvlRanges;
 	double sectionStart = -1.0;
 	for (int i = 0; i < m_impFunctVec.size(); ++i)
 	{
-		if (m_impFunctVec[i] < sb_LowerCompLevelThr->value() &&
+		if ((m_impFunctVec[i] < sb_LowerCompLevelThr->value() ||
+			m_impFunctVec[i] > sb_UpperCompLevelThr->value()) &&
 			sectionStart >= 0.0)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i-1), false);
 			sectionStart = -1.0;
 		}
 		else if (m_impFunctVec[i] >= sb_LowerCompLevelThr->value() &&
+			m_impFunctVec[i] <= sb_UpperCompLevelThr->value() &&
 			sectionStart == -1.0)
 		{
 			sectionStart = i;
 		}
-		else if (m_impFunctVec[i] >= sb_LowerCompLevelThr->value() &&
+		else if ((m_impFunctVec[i] >= sb_LowerCompLevelThr->value() || 
+			m_impFunctVec[i] <= sb_LowerCompLevelThr->value()) &&
 			sectionStart >= 0.0 && i == m_impFunctVec.size() - 1)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i), false);
 		}
 	}
-	// NOTE: m_linearScaledPlot's has 5 graphs less (no functional box plots) 
-	// than the m_nonlinearScaledPlot
+	// NOTE: m_linearScaledPlot's has 5 graphs less than
+	// the m_nonlinearScaledPlot (no functional box plots)
 	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
 	{
 		m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
