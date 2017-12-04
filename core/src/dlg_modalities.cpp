@@ -203,10 +203,9 @@ void dlg_modalities::AddListItem(QSharedPointer<iAModality> mod)
 
 void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
 {
-	// TODO: VOLUME: split up somehow
 	AddListItem(mod);
 	InitDisplay(mod);
-	emit ModalityAvailable(lwModalities->count());
+	emit ModalityAvailable(lwModalities->count()-1);
 }
 
 void dlg_modalities::InteractorModeSwitched(int newMode)

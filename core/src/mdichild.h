@@ -487,18 +487,18 @@ private:
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 	int m_currentComponent;
-	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
+	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		// modality nr being stored
 private slots:
 	void ChangeModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
+	void SetHistogramModality(int modalityIdx);
 private:
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();
-	void SetHistogramModality(int modalityIdx);
 public:
 	void SetModalities(QSharedPointer<iAModalityList> modList);
 	QSharedPointer<iAModalityList> GetModalities();

@@ -93,7 +93,7 @@ QVector<QPair<QString, QVariant> > const & iAFilter::OutputValues() const
 	return m_outputValues;
 }
 
-QVector<iAConnector*> iAFilter::Connectors()
+QVector<iAConnector*> & iAFilter::Connectors()
 {
 	return m_cons;
 }

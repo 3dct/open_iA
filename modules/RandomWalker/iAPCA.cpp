@@ -50,7 +50,7 @@ IAFILTER_CREATE(iAPCA)
 
 
 template <typename PixelType>
-void pca_template(QVector<iAConnector*> cons, QMap<QString, QVariant> const & parameters)
+void pca_template(QVector<iAConnector*> & cons, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<PixelType, DIM> ImageType;
 	typedef itk::MultiplyImageFilter<ImageType, ImageType, ImageType> ScaleType;

@@ -115,7 +115,7 @@ public:
 	//! sets the output count
 	void SetOutputCount(unsigned int outputCount);
 	//! input/output connectors
-	QVector<iAConnector*> Connectors();
+	QVector<iAConnector*> & Connectors();
 	//! returns the number of input channels from the first input image
 	unsigned int FirstInputChannels() const;
 	//! sets the first input channels

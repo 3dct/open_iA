@@ -48,7 +48,7 @@ IAFILTER_CREATE(iAEntropy)
 
 
 template <typename PixelType>
-void entropy_template(QVector<iAConnector*> cons, QMap<QString, QVariant> const & parameters)
+void entropy_template(QVector<iAConnector*> & cons, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<PixelType, DIM> InputImageType;
 	typedef fhw::EntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
