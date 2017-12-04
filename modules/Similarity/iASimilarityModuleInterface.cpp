@@ -27,5 +27,5 @@
 
 void iASimilarityModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iASimilarity);
+	REGISTER_FILTER_WITH_RUNNER(iASimilarity, iASimilarityRunner);
 }

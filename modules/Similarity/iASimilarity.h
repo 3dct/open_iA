@@ -21,5 +21,13 @@
 #pragma once
 
 #include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
 IAFILTER_DEFAULT_CLASS(iASimilarity);
+
+class iASimilarityRunner : public iAFilterRunnerGUI
+{
+public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	bool ModifiesImage() const override;
+};
