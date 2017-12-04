@@ -77,15 +77,11 @@ public:
 	QString getFileName();
 
 Q_SIGNALS:
-	void msg(QString s);
 	void done(bool active = false);
 	void failed();
 
 protected:
 	virtual void run();
-
-protected:
-	
 private:
 	bool setupRAWReader( QString f );
 	bool setupPARSReader( QString f );
@@ -112,7 +108,7 @@ private:
 	bool writeDCM (); 
 	bool readNRRD( ); 
 
-	bool writeMetaImage( );
+	bool writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName);
 	bool writeVolumeStack();
 	bool writeSTL( );
 	bool writeImageStack( );
@@ -134,7 +130,6 @@ private:
 	QString prefix;
 	QString fileNamesBase;
 	vtkStringArray* fileNameArray;
-	int dim;
 	unsigned long headersize;
 	int scalarType;
 	int byteOrder;
