@@ -182,7 +182,8 @@ namespace
 			case Input:
 			case Output:
 			case Parameter:
-				if (args[a].startsWith("-"))
+				if (args[a].startsWith("-") &&
+					(mode != Parameter || parameters.size() >= filter->Parameters().size()))
 				{
 					mode = GetMode(args[a]);
 				}
