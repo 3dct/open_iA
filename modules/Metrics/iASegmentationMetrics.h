@@ -18,33 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iASegmentationModuleInterface.h"
+#pragma once
 
-#include "iAFuzzyCMeans.h"
-#include "iASVMImageFilter.h"
-#include "iAThresholding.h"
-#include "iAWatershedSegmentation.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-#include "iAFilterRegistry.h"
+IAFILTER_DEFAULT_CLASS(iASegmentationMetrics)
 
 
-void iASegmentationModuleInterface::Initialize()
+class iASegmentationMetricsRunner : public iAFilterRunnerGUI
 {
-	REGISTER_FILTER(iABinaryThreshold);
-	REGISTER_FILTER(iAOtsuThreshold);
-	REGISTER_FILTER(iAOtsuMultipleThreshold);
-	REGISTER_FILTER(iAMaximumDistance);
-	REGISTER_FILTER(iARatsThreshold);
-	REGISTER_FILTER(iAAdaptiveOtsuThreshold);
-
-	REGISTER_FILTER(iAWatershed);
-	REGISTER_FILTER(iAMorphologicalWatershed);
-
-	REGISTER_FILTER(iAFCMFilter);
-	REGISTER_FILTER(iAKFCMFilter);
-	REGISTER_FILTER(iAMSKFCMFilter);
-
-	REGISTER_FILTER(iASVMImageFilter);
-	REGISTER_FILTER(iAKMeans);
-}
+public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	bool ModifiesImage() const override;
+};

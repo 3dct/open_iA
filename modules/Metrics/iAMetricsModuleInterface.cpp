@@ -23,6 +23,7 @@
 
 #include "iASimilarity.h"
 #include "iAQMeasure.h"
+#include "iASegmentationMetrics.h"
 
 #include "iAFilterRegistry.h"
 
@@ -30,4 +31,5 @@ void iAMetricsModuleInterface::Initialize()
 {
 	REGISTER_FILTER_WITH_RUNNER(iAQMeasure, iAQMeasureRunner)
 	REGISTER_FILTER_WITH_RUNNER(iASimilarity, iASimilarityRunner);
+	REGISTER_FILTER_WITH_RUNNER(iASegmentationMetrics, iASegmentationMetricsRunner);
 }
