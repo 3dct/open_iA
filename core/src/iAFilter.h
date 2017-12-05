@@ -136,11 +136,12 @@ protected:
 	//! The class that is watched for progress. Typically you will call
 	//! m_progress->Observe(someItkFilter) to set up the progress observation
 	iAProgress* m_progress;
+	//! The logger
+	iALogger* m_log;
 private:
 	QVector<pParameter> m_parameters;
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	QString m_name, m_category, m_description;
-	iALogger* m_log;
 	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };
 
