@@ -6,7 +6,7 @@ git_describe(VERSION --tags)
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
 
 # Generate executable:
-SET (MAIN_SOURCES "${CMAKE_SOURCE_DIR}/cmd/main.cpp")
+SET (MAIN_SOURCES "${open_iA_SOURCE_DIR}/cmd/main.cpp")
 ADD_EXECUTABLE( ${EXECUTABLE_NAME} ${MAIN_SOURCES} )
 
 TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} PRIVATE ${CORE_LIBRARY_NAME})
@@ -103,8 +103,8 @@ IF (MSVC)
 		ENDIF()
 	ENDIF()
 
-	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/cmd/open_iA_cmd.vcxproj.user)	# find a way to update this if required
-		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/cmd/open_iA_cmd.vcxproj.user ${CMAKE_BINARY_DIR}/cmd @ONLY)
+	IF (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj.user)	# find a way to update this if required
+		CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmd/open_iA_cmd.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 	ENDIF ()
 ENDIF (MSVC)
 
