@@ -51,25 +51,22 @@ void iAGEMSeModuleInterface::Initialize()
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	
 	QAction * actionGEMSe = new QAction( m_mainWnd );
-	actionGEMSe->setText(QApplication::translate("MainWindow", "Sample", 0));
+	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
 	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
 
 	QAction * actionPreCalculated = new QAction( m_mainWnd );
-	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Ensemble", 0 ));
+	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Segmentation Ensemble in GEMSe", 0 ));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }
 
-bool iAGEMSeModuleInterface::StartGEMSe()
+void iAGEMSeModuleInterface::StartGEMSe()
 {
 	PrepareActiveChild();
 	if (!m_mdiChild)
-	{
-		return false;
-	}
-	bool result = AttachToMdiChild(m_mdiChild);
-	return result;
+		return;
+	AttachToMdiChild(m_mdiChild);
 }
 
 iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
