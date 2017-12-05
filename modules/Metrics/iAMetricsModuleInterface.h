@@ -18,14 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iASimilarityModuleInterface.h"
+#pragma once
 
-#include "iASimilarity.h"
+#include "iAModuleInterface.h"
 
-#include "iAFilterRegistry.h"
-
-void iASimilarityModuleInterface::Initialize()
+class iAMetricsModuleInterface : public iAModuleInterface
 {
-	REGISTER_FILTER_WITH_RUNNER(iASimilarity, iASimilarityRunner);
-}
+public:
+	void Initialize();
+};

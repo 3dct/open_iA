@@ -200,7 +200,7 @@ void calculateQ_template(iAConnector* con, QMap<QString, QVariant> const & param
 			}
 		}
 		thresholdIndices[m + 1] = minIdx;
-		filter->AddOutputValue(QString("Threshold %1").arg(m), minIdx);
+		DEBUG_LOG(QString("Threshold %1: %2 (bin %3)").arg(m).arg(minVal + (minIdx * (maxVal - minVal) / binCount)).arg(minIdx));
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
@@ -209,7 +209,7 @@ void calculateQ_template(iAConnector* con, QMap<QString, QVariant> const & param
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
 	for (int p = 0; p < numberOfPeaks; ++p)
-		DEBUG_LOG(QString("%1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
+		DEBUG_LOG(QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
 	if (filter->m_mdiChild)
 		for (int p = 0; p < numberOfPeaks; ++p)
 			filter->m_mdiChild->getHistogram()->addGaussianFunction(mean[p], std::sqrt(variance[p]), 15);
@@ -262,7 +262,7 @@ void calculateQ_template(iAConnector* con, QMap<QString, QVariant> const & param
 				{
 					Q = curQ;
 				}
-				filter->AddOutputValue(QString("Q(peak %1, peak %2)").arg(p1).arg(p2), curQ);
+				DEBUG_LOG(QString("Q(peak %1, peak %2) = %3").arg(p1).arg(p2).arg(curQ));
 			}
 		}
 		filter->AddOutputValue("Q", Q);
