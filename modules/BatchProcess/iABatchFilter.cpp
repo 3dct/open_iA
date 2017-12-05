@@ -21,18 +21,37 @@
 #include "iABatchFilter.h"
 
 #include "iAAttributeDescriptor.h"
+#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAFilterRegistry.h"
+#include "io/iAITKIO.h"
 #include "iAStringHelper.h"
+
+#include <QDirIterator>
+#include <QFile>
+#include <QTextStream>
 
 iABatchFilter::iABatchFilter():
 	iAFilter("Batch...", "Image Ensembles",
-		"Runs a filter on a selected set of images")
+		"Runs a filter on a selected set of images.<br/>"
+		"Specify an <em>Image folder</em> which contains the images to be processed. "
+		"<em>Recursive</em> toggles whether or not to also consider subdirectories. "
+		"The <em>File mask</em> is applied to match which files in the given folder are processed "
+		"(separate multiple masks via ';', e.g. '*.mhd;*.tif'. "
+		"The specified <em>Filter</em> is applied to all files specified with above settings, "
+		"every time executed with the same set of <em>Parameters</em>. "
+		"When <em>Output file</em> is not empty, all output values produced by the filter "
+		"will be written to the file name given here, one row per image and filter. "
+		"If the output csv file exists, and <em>Append to output</em> is enabled, "
+		"the output values are appended at the end of each line.", 0)
 {
 	AddParameter("Image folder", String, "");
+	AddParameter("Recursive", Boolean, false);
 	AddParameter("File mask", String, "*.mhd");
 	AddParameter("Filter", String, "Image Quality");
 	AddParameter("Parameters", String, "");
+	AddParameter("Output csv file", String, "");
+	AddParameter("Append to output", Boolean, "");
 }
 
 void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
@@ -52,20 +71,75 @@ void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
 			.arg(filterParamStrs.size()));
 		return;
 	}
+
+    iAConnector* con = new iAConnector();
+    QVector<iAConnector*> inputImages;
+    inputImages.push_back(con);
+
 	for (int i=0; i<filterParamStrs.size(); ++i)
-	{
 		filterParams.insert(filter->Parameters()[i]->Name(), filterParamStrs[i]);
-	}
-	
-	// TODO: for each images from given folder with given mask:
 
-
-	filter->SetUp(m_cons, m_log, m_progress);
-	filter->Run(filterParams);
-
-	for (auto outValue : filter->OutputValues())
+	QString outputFile = parameters["Output csv file"].toString();
+	QStringList outputBuffer;
+	if (parameters["Append to output"].toBool() && QFile(outputFile).exists())
 	{
-		DEBUG_LOG(QString("Batch outvalue: %1=%2").arg(outValue.first).arg(outValue.second.toString()));
+		QFile file(outputFile);
+		if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+		{
+			QTextStream textStream(&file);
+			while (!textStream.atEnd())
+				outputBuffer << textStream.readLine();
+		    file.close();
+		}
+	}
+    filter->SetUp(inputImages, m_log, m_progress);
+
+	QStringList filters = parameters["File mask"].toString().split(";");
+	QDirIterator it(parameters["Image folder"].toString(), filters, QDir::Files,
+			parameters["Recursive"].toBool() ?
+					QDirIterator::Subdirectories :
+					QDirIterator::NoIteratorFlags);
+	size_t curLine = 0;
+	while (it.hasNext())
+	{
+	    QString fileName = it.next();
+	    DEBUG_LOG(QString("Processing %1").arg(fileName));
+		iAITKIO::ScalarPixelType pixelType;
+		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+		inputImages[0]->SetImage(img);
+	    filter->Run(filterParams);
+	    if (curLine == 0)
+		{
+			QStringList captions;
+			captions << "filename";
+			for (auto outValue : filter->OutputValues())
+				captions << outValue.first;
+			if (outputBuffer.empty())
+				outputBuffer.append("");
+			outputBuffer[0] += outputBuffer[0].isEmpty() ? "" : "," + captions.join(",");
+			++curLine;
+		}
+		if (curLine >= outputBuffer.size())
+			outputBuffer.append("");
+		QStringList values;
+		values << fileName;
+		for (auto outValue : filter->OutputValues())
+			values.append(outValue.second.toString());
+		QString textToAdd = outputBuffer[curLine].isEmpty() ? "" : "," + values.join(",");
+		DEBUG_LOG(textToAdd);
+		outputBuffer[curLine] += textToAdd;
+		++curLine;
+	}
+	if (!outputFile.isEmpty())
+	{
+		QFile file(outputFile);
+		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+		{
+			QTextStream textStream(&file);
+			for (QString line: outputBuffer)
+				textStream << line;
+		    file.close();
+		}
 	}
 }
 
