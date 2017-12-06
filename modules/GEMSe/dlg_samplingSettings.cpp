@@ -583,3 +583,13 @@ int dlg_samplingSettings::GetLabelCount() const
 	return sbLabelCount->value();
 }
 
+QString dlg_samplingSettings::GetImageBaseName() const
+{
+	return leImageBaseName->text();
+}
+
+bool dlg_samplingSettings::GetSeparateFolder() const
+{
+	return cbSeparateFolder->isChecked();
+}
+
