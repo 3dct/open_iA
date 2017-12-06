@@ -72,9 +72,9 @@ void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
 		return;
 	}
 
-    iAConnector* con = new iAConnector();
-    QVector<iAConnector*> inputImages;
-    inputImages.push_back(con);
+	iAConnector* con = new iAConnector();
+	QVector<iAConnector*> inputImages;
+	inputImages.push_back(con);
 
 	for (int i=0; i<filterParamStrs.size(); ++i)
 		filterParams.insert(filter->Parameters()[i]->Name(), filterParamStrs[i]);
@@ -89,10 +89,10 @@ void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
 			QTextStream textStream(&file);
 			while (!textStream.atEnd())
 				outputBuffer << textStream.readLine();
-		    file.close();
+			file.close();
 		}
 	}
-    filter->SetUp(inputImages, m_log, m_progress);
+	filter->SetUp(inputImages, m_log, m_progress);
 
 	QStringList filters = parameters["File mask"].toString().split(";");
 	QDirIterator it(parameters["Image folder"].toString(), filters, QDir::Files,
@@ -102,13 +102,12 @@ void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
 	size_t curLine = 0;
 	while (it.hasNext())
 	{
-	    QString fileName = it.next();
-	    DEBUG_LOG(QString("Processing %1").arg(fileName));
+		QString fileName = it.next();
 		iAITKIO::ScalarPixelType pixelType;
 		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
 		inputImages[0]->SetImage(img);
-	    filter->Run(filterParams);
-	    if (curLine == 0)
+		filter->Run(filterParams);
+		if (curLine == 0)
 		{
 			QStringList captions;
 			captions << "filename";
@@ -116,7 +115,7 @@ void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
 				captions << outValue.first;
 			if (outputBuffer.empty())
 				outputBuffer.append("");
-			outputBuffer[0] += outputBuffer[0].isEmpty() ? "" : "," + captions.join(",");
+			outputBuffer[0] += (outputBuffer[0].isEmpty() ? "" : ",") + captions.join(",");
 			++curLine;
 		}
 		if (curLine >= outputBuffer.size())
@@ -125,8 +124,7 @@ void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
 		values << fileName;
 		for (auto outValue : filter->OutputValues())
 			values.append(outValue.second.toString());
-		QString textToAdd = outputBuffer[curLine].isEmpty() ? "" : "," + values.join(",");
-		DEBUG_LOG(textToAdd);
+		QString textToAdd = (outputBuffer[curLine].isEmpty() ? "" : ",") + values.join(",");
 		outputBuffer[curLine] += textToAdd;
 		++curLine;
 	}
@@ -136,9 +134,11 @@ void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
 		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
 		{
 			QTextStream textStream(&file);
-			for (QString line: outputBuffer)
-				textStream << line;
-		    file.close();
+			for (QString line : outputBuffer)
+			{
+				textStream << line << endl;
+			}
+			file.close();
 		}
 	}
 }
