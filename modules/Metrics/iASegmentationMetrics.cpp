@@ -77,10 +77,8 @@ iASegmentationMetrics::iASegmentationMetrics() :
 		"the additional input (=second) is used as reference image.<br/>"
 		"For more information, see the <a href="
 		"\"https://itk.org/Doxygen/html/classitk_1_1LabelOverlapMeasuresImageFilter.html\">"
-		"Label Overlap Measures Filter</a> in the ITK documentation.", 2)
-{
-	SetOutputCount(0);
-}
+		"Label Overlap Measures Filter</a> in the ITK documentation.", 2, 0)
+{}
 
 void iASegmentationMetrics::Run(QMap<QString, QVariant> const & parameters)
 {
@@ -99,12 +97,4 @@ void iASegmentationMetrics::Run(QMap<QString, QVariant> const & parameters)
 			"Segmentation Metrics: Only Integer image types are allowed as input!");
 		break;
 	}
-}
-
-
-IAFILTER_RUNNER_CREATE(iASegmentationMetricsRunner);
-
-bool iASegmentationMetricsRunner::ModifiesImage() const
-{
-	return false;
 }

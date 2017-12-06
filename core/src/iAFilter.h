@@ -60,8 +60,19 @@ public:
 	//!     When left empty, the filter will be added directly in the Filter menu
 	//! @param description An (optional) description of the filter algorithm, and
 	//!     ideally its settings. Can contain HTML (e.g. links)
-	iAFilter(QString const & name, QString const & category, QString const & description,
-		unsigned int requiredInputs = 1);
+	//! @param requiredInputs The number of inputs required for this filter;
+	//!     by default, filters are assumed to require exactly one input image; you
+	//!     can override the number of inputs required for your filter with this parameter
+	//! @param outputCount the number of outputs this filter creates. Set it to 0 to
+	//!     disable image output. If you don't know this yet at the time of creating the
+	//!     filter (because it for example depends on the number of input images or the
+	//!     parameters), you can always adapt it at a later point (e.g. during
+	//!     iAFilter::Run) by calling SetOutputCount; but if you have some image output,
+	//!     make sure that you leave it at the default value of 1 or set it to some value
+	//!     other than zero, because setting it to zero has immediate side effects (e.g.
+	//!     not opening a result window if configured, in  the GUI).
+	iAFilter(QString const & name, QString const & category, QString const & description = "",
+		unsigned int requiredInputs = 1, unsigned int outputCount = 0);
 	//! Destructor
 	virtual ~iAFilter();
 	//! Retrieve the filter name
@@ -110,9 +121,13 @@ public:
 	unsigned int RequiredInputs() const;
 	//! Returns the number of output images returned by this filter.
 	//! for typical image filters, this returns 1. The filter can modify
-	//! this through SetOutputCount at the moment
+	//! this through SetOutputCount.
 	unsigned int OutputCount() const;
-	//! sets the output count
+	//! Sets the output count. Note that at this point, it is not supported
+	//! (or at least, it might cause unintended side effects) to switch from
+	//! a non-zero value to zero via SetOutputCount or the other way round; this
+	//! will also cause a warning in the debug console. See also the note for
+	//! the outputCount parameter in the Constructor.
 	void SetOutputCount(unsigned int outputCount);
 	//! input/output connectors
 	QVector<iAConnector*> & Connectors();

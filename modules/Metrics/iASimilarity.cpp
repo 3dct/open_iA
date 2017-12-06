@@ -188,9 +188,8 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"between the images results in small measure values.<br/>"
 	"More Information on Mutual Information is given in the "
 	"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
-	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471).", 2)
+	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471).", 2, 0)
 {
-	SetOutputCount(0);
 	AddParameter("Mean Squares", Boolean, true);
 	AddParameter("Normalized Correlation", Boolean, false);
 	AddParameter("Mutual Information", Boolean, false);
@@ -202,13 +201,4 @@ IAFILTER_CREATE(iASimilarity)
 void iASimilarity::Run(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(similarity_metrics_template, m_con->GetITKScalarPixelType(), m_progress, m_cons, parameters, this);
-}
-
-
-
-IAFILTER_RUNNER_CREATE(iASimilarityRunner)
-
-bool iASimilarityRunner::ModifiesImage() const
-{
-	return false;
 }

@@ -226,11 +226,6 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	return true;
 }
 
-bool iAFilterRunnerGUI::ModifiesImage() const
-{
-	return true;
-}
-
 void iAFilterRunnerGUI::FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
 {
 }
@@ -249,7 +244,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
-	auto mdiChild = ModifiesImage() ?
+	auto mdiChild = filter->OutputCount() > 0 ?
 		mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + oldTitle) :
 		sourceMdi;
 	if (!mdiChild)

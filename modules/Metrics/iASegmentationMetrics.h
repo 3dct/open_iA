@@ -21,14 +21,5 @@
 #pragma once
 
 #include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
 
 IAFILTER_DEFAULT_CLASS(iASegmentationMetrics)
-
-
-class iASegmentationMetricsRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	bool ModifiesImage() const override;
-};

@@ -73,10 +73,6 @@ public:
 	//! template), otherwise still an iAFilterRunnerGUI will be created!
 	static QSharedPointer<iAFilterRunnerGUI> Create();
 
-	//! whether or not the filter modifies the image (and thus requires a new
-	//! window in case the option for results in new window is turned on)
-	virtual bool ModifiesImage() const;
-
 	//! do any potentially necessary GUI preparations (directly before the filter is run)
 	virtual void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd);
 

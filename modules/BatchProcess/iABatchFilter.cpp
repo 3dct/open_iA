@@ -43,7 +43,7 @@ iABatchFilter::iABatchFilter():
 		"When <em>Output file</em> is not empty, all output values produced by the filter "
 		"will be written to the file name given here, one row per image and filter. "
 		"If the output csv file exists, and <em>Append to output</em> is enabled, "
-		"the output values are appended at the end of each line.", 0)
+		"the output values are appended at the end of each line.", 0, 0)
 {
 	AddParameter("Image folder", String, "");
 	AddParameter("Recursive", Boolean, false);
