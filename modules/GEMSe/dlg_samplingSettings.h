@@ -99,6 +99,8 @@ public:
 	int GetSampleCount() const;
 	int GetLabelCount() const;
 	void GetValues(QMap<QString, QString> & values) const;
+	QString GetImageBaseName() const;
+	bool GetSeparateFolder() const;
 private slots:
 	void ChooseOutputFolder();
 	void ChooseParameterDescriptor();

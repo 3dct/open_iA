@@ -56,6 +56,8 @@ iAImageSampler::iAImageSampler(
 		QString const & computationExecutable,
 		QString const & additionalArguments,
 		QString const & pipelineName,
+		QString const & imageBaseName,
+		bool separateOutputDir,
 		int samplingID) :
 	m_modalities(modalities),
 	m_parameters(parameters),
@@ -75,7 +77,9 @@ iAImageSampler::iAImageSampler(
 	m_runningOperations(0),
 	m_computationDuration(0),
 	m_derivedOutputDuration(0),
-	m_samplingID(samplingID)
+	m_samplingID(samplingID),
+	m_imageBaseName(imageBaseName),
+	m_separateOutputDir(separateOutputDir)
 {
 }
 
@@ -146,14 +150,19 @@ void iAImageSampler::run()
 			break;
 		}
 		StatusMsg(QString("Sampling run %1.").arg(m_curLoop));
-		QString outputDirectory = m_outputBaseDir + "/sample" + QString::number(m_curLoop);
+		QString outputDirectory = m_separateOutputDir ?
+			m_outputBaseDir + "/sample" + QString::number(m_curLoop) :
+			m_outputBaseDir;
 		QDir d(QDir::root());
-		if (!d.mkpath(outputDirectory))
+		if (!QDir(outputDirectory).exists() && !d.mkpath(outputDirectory))
 		{
 			DEBUG_LOG(QString("Could not create output directory '%1'").arg(outputDirectory));
 			return;
 		}
-		QString outputFile = outputDirectory + "/label.mhd";
+		QFileInfo fi(m_imageBaseName);
+		QString outputFile = outputDirectory + "/" + (m_separateOutputDir ?
+			m_imageBaseName :
+			QString("%1%2.%3").arg(fi.baseName()).arg(m_curLoop).arg(fi.completeSuffix()));
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
 		argumentList << outputFile;

@@ -54,6 +54,8 @@ public:
 		QString const & computationExecutable,
 		QString const & additionalArguments,
 		QString const & pipelineName,
+		QString const & imageBaseName,
+		bool separateOutputDir,
 		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
@@ -81,6 +83,9 @@ private:
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
 	QString m_derivedOutputFile;
+
+	QString m_imageBaseName;
+	bool m_separateOutputDir;
 	//! @}
 
 	size_t m_curLoop;
