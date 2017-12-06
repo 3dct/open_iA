@@ -145,7 +145,7 @@ template<class T> void hessianEigenAnalysis_template(double sigma,
 */
 }
 
-void iAHessianEigenanalysis::Run(QMap<QString, QVariant> const & parameters)
+void iAHessianEigenanalysis::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	m_cons.push_back(new iAConnector());
 	m_cons.push_back(new iAConnector());
@@ -187,7 +187,7 @@ template<class T> void Laplacian_template(double sigma, iAProgress* p, iAConnect
 	image->Modified();
 }
 
-void iALaplacian::Run(QMap<QString, QVariant> const & parameters)
+void iALaplacian::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(Laplacian_template, m_con->GetITKScalarPixelType(),
 			parameters["Sigma"].toDouble(), m_progress, m_con);

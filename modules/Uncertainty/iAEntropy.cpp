@@ -64,7 +64,7 @@ void entropy_template(QVector<iAConnector*> & cons, QMap<QString, QVariant> cons
 }
 
 
-void iAEntropy::Run(QMap<QString, QVariant> const & parameters)
+void iAEntropy::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(entropy_template, m_con->GetITKScalarPixelType(), m_cons, parameters);
 }

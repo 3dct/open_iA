@@ -201,7 +201,7 @@ void freeBeamCalculation_OutType(QMap<QString, QVariant> const & parameters, iAP
 		freeBeamCalculation<InPixelType, double>(parameters, p, image);
 }
 
-void iAFreeBeamCalculation::Run(QMap<QString, QVariant> const & parameters)
+void iAFreeBeamCalculation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(freeBeamCalculation_OutType, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }

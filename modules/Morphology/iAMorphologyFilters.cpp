@@ -53,7 +53,7 @@ template<class T> void dilation_template(iAProgress* p, iAConnector* image, int 
 	dilateFilter->ReleaseDataFlagOn();
 }
 
-void iADilation::Run(QMap<QString, QVariant> const & parameters)
+void iADilation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(dilation_template, m_con->GetITKScalarPixelType(),
 		m_progress, m_con, parameters["Radius"].toInt());
@@ -97,7 +97,7 @@ template<class T> void erosion_template(iAProgress* p, iAConnector* image, int r
 	erodeFilter->ReleaseDataFlagOn();
 }
 
-void iAErosion::Run(QMap<QString, QVariant> const & parameters)
+void iAErosion::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(erosion_template, m_con->GetITKScalarPixelType(),
 		m_progress, m_con, parameters["Radius"].toInt());
@@ -138,7 +138,7 @@ template<class T> void vesselEnhancement_template(iAProgress* p, iAConnector* im
 	image->Modified();
 }
 
-void iAVesselEnhancement::Run(QMap<QString, QVariant> const & parameters)
+void iAVesselEnhancement::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(vesselEnhancement_template, m_con->GetITKScalarPixelType(),
 		m_progress, m_con, parameters["Sigma"].toDouble());

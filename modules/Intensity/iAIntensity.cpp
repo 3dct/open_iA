@@ -64,7 +64,7 @@ template<class T> void invert_intensity_template(QMap<QString, QVariant> const &
 	filter->ReleaseDataFlagOn();
 }
 
-void iAInvertIntensityFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAInvertIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(invert_intensity_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }
@@ -102,7 +102,7 @@ template<class T> void normalize_template(iAProgress* p, iAConnector* image)
 	normalizeFilter->ReleaseDataFlagOn();
 }
 
-void iANormalizeIntensityFilter::Run(QMap<QString, QVariant> const & parameters)
+void iANormalizeIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(normalize_template, m_con->GetITKScalarPixelType(), m_progress, m_con);
 }
@@ -144,7 +144,7 @@ void intensity_windowing_template(QMap<QString, QVariant> const & parameters, iA
 	intensityWindowingFilter->ReleaseDataFlagOn();
 }
 
-void iAIntensityWindowingFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAIntensityWindowingFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(intensity_windowing_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }
@@ -189,7 +189,7 @@ template<class T> void threshold_template(iAProgress* p,
 	filter->ReleaseDataFlagOn();
 }
 
-void iAGeneralThreshold::Run(QMap<QString, QVariant> const & parameters)
+void iAGeneralThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(threshold_template, itkType, m_progress, m_con, parameters);
@@ -230,7 +230,7 @@ template<class T> void rescaleImage_template(QMap<QString, QVariant> const & par
 	filter->ReleaseDataFlagOn();
 }
 
-void iARescaleIntensityFilter::Run(QMap<QString, QVariant> const & parameters)
+void iARescaleIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(rescaleImage_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }
@@ -278,7 +278,7 @@ template<class T> void shiftScale_template(QMap<QString, QVariant> const & param
 	filter->ReleaseDataFlagOn();
 }
 
-void iAShiftScaleIntensityFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAShiftScaleIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(shiftScale_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }
@@ -320,7 +320,7 @@ template<class T> void iAAdaptiveHistogramEqualization_template(double alpha, do
 
 IAFILTER_CREATE(iAAdaptiveHistogramEqualization)
 
-void iAAdaptiveHistogramEqualization::Run(QMap<QString, QVariant> const & parameters)
+void iAAdaptiveHistogramEqualization::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(iAAdaptiveHistogramEqualization_template, pixelType,
@@ -373,7 +373,7 @@ template<class T> void addImages_template(iAProgress* p, QVector<iAConnector*> &
 	images[0]->Modified();
 }
 
-void iAAddFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAAddFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(addImages_template, m_con->GetITKScalarPixelType(), m_progress, m_cons);
 }
@@ -409,7 +409,7 @@ template<class T> void subtractImages_template(iAProgress* p, QVector<iAConnecto
 	filter->ReleaseDataFlagOn();
 }
 
-void iASubtractFilter::Run(QMap<QString, QVariant> const & parameters)
+void iASubtractFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(subtractImages_template, m_con->GetITKScalarPixelType(), m_progress, m_cons);
 }
@@ -445,7 +445,7 @@ template<class T> void difference_template(QMap<QString, QVariant> const & param
 	filter->ReleaseDataFlagOn();
 }
 
-void iADifferenceFilter::Run(QMap<QString, QVariant> const & parameters)
+void iADifferenceFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(difference_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_cons);
 }
@@ -484,7 +484,7 @@ template<class T> void mask_template(iAProgress* p, QVector<iAConnector*> & imag
 	filter->ReleaseDataFlagOn();
 }
 
-void iAMaskIntensityFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAMaskIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(mask_template, m_con->GetITKScalarPixelType(), m_progress, m_cons);
 }
@@ -535,7 +535,7 @@ void histomatch_template(QMap<QString, QVariant> const & parameters, iAProgress*
 	matcher->ReleaseDataFlagOn();
 }
 
-void iAHistogramMatchingFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAHistogramMatchingFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(histomatch_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_cons);
 }
