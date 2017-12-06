@@ -290,11 +290,10 @@ iAQMeasure::iAQMeasure() :
 		"<a href=\"http://www.ndt.net/article/ctc2014/papers/273.pdf\">M. Reiter, D. Weiss, C. Gusenbauer, "
 		"J. Kastner, M. Erler, S. Kasperl: Evaluation of a histogram based image quality measure for X-ray "
 		"computed tomography. Proceedings of Conference on Industrial Computed Tomography (iCT2014), Wels, "
-		"Österreich, 2014.</a>"),
+		"Österreich, 2014.</a>", 1, 0),
 	m_chart(nullptr),
 	m_mdiChild(nullptr)
 {
-	SetOutputCount(0);
 	AddParameter("Signal-to-noise ratio", Boolean, true);
 	AddParameter("Contrast-to-noise ratio", Boolean, true);
 	AddParameter("Q metric", Boolean, true);
@@ -312,11 +311,6 @@ void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 
 
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
-
-bool iAQMeasureRunner::ModifiesImage() const
-{
-	return false;
-}
 
 void iAQMeasureRunner::FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
 {

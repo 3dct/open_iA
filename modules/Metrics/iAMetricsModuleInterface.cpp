@@ -30,6 +30,6 @@
 void iAMetricsModuleInterface::Initialize()
 {
 	REGISTER_FILTER_WITH_RUNNER(iAQMeasure, iAQMeasureRunner)
-	REGISTER_FILTER_WITH_RUNNER(iASimilarity, iASimilarityRunner);
-	REGISTER_FILTER_WITH_RUNNER(iASegmentationMetrics, iASegmentationMetricsRunner);
+	REGISTER_FILTER(iASimilarity, iASimilarityRunner);
+	REGISTER_FILTER(iASegmentationMetrics, iASegmentationMetricsRunner);
 }
