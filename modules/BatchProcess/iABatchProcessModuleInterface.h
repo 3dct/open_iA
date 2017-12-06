@@ -24,10 +24,9 @@
 
 class iABatchProcessModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
+	//Q_OBJECT
 public:
 	void Initialize();
-private slots:
+//private slots:
 	//void ShowSampleDialog();
-	void ShowBatchDialog();
 };

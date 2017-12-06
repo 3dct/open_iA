@@ -39,13 +39,9 @@ void iABatchProcessModuleInterface::Initialize()
 	actionSample->setText(QApplication::translate("MainWindow", "Sample...", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionSample, true);
 	connect(actionSample, SIGNAL(triggered()), this, SLOT(ShowSampleDialog()));
-
-	QAction * actionBatch = new QAction(m_mainWnd);
-	actionBatch->setText(QApplication::translate("MainWindow", "Batch process...", 0));
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionBatch, false);
-	connect(actionBatch, SIGNAL(triggered()), this, SLOT(ShowBatchDialog()));
 	*/
 }
+
 /*
 void iABatchProcessModuleInterface::ShowSampleDialog()
 {
@@ -54,8 +50,3 @@ void iABatchProcessModuleInterface::ShowSampleDialog()
 		return;
 }
 */
-
-void iABatchProcessModuleInterface::ShowBatchDialog()
-{
-
-}
