@@ -249,7 +249,7 @@ namespace
 		if (AlgorithmStrings().indexOf(algo) == -1)
 		{
 			DEBUG_LOG("Invalid Algorithm Type selection!");
-			return iAASTRAReconstruct::FDK3D;
+			return FDK3D;
 		}
 		return AlgorithmStrings().indexOf(algo);
 	}
@@ -304,7 +304,7 @@ public:
 	}
 };
 
-void iAASTRAForwardProject::Run(QMap<QString, QVariant> const & parameters)
+void iAASTRAForwardProject::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkImageData> volImg = m_con->GetVTKImage();
 	int * volDim = volImg->GetDimensions();
@@ -432,7 +432,7 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 }
 
 
-void iAASTRAReconstruct::Run(QMap<QString, QVariant> const & parameters)
+void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = m_con->GetVTKImage();
 	int * projDim = projImg->GetDimensions();

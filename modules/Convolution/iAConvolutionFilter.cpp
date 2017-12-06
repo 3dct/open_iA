@@ -70,7 +70,7 @@ template<class T> void convolution_template(QVector<iAConnector*> & image, iAPro
 	image[0]->Modified();
 }
 
-void iAConvolution::Run(QMap<QString, QVariant> const & parameters)
+void iAConvolution::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(convolution_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
 }
@@ -111,7 +111,7 @@ template<class T> void fft_convolution_template(QVector<iAConnector*> & image, i
 	image[0]->Modified();
 }
 
-void iAFFTConvolution::Run(QMap<QString, QVariant> const & parameters)
+void iAFFTConvolution::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(fft_convolution_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
 }
@@ -162,7 +162,7 @@ template<class T> void correlation_template(QVector<iAConnector*> & image, iAPro
 	image[0]->Modified();
 }
 
-void iACorrelation::Run(QMap<QString, QVariant> const & parameters)
+void iACorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(correlation_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
 }
@@ -210,7 +210,7 @@ template<class T> void fft_correlation_template(QVector<iAConnector*> & image, i
 	image[0]->Modified();
 }
 
-void iAFFTCorrelation::Run(QMap<QString, QVariant> const & parameters)
+void iAFFTCorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(fft_correlation_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
 }
@@ -267,7 +267,7 @@ template<class T> void streamed_fft_correlation_template(QVector<iAConnector*> &
 	image[0]->Modified();
 }
 
-void iAStreamedFFTCorrelation::Run(QMap<QString, QVariant> const & parameters)
+void iAStreamedFFTCorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(streamed_fft_correlation_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
 }

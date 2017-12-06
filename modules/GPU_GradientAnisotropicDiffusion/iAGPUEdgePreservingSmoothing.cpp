@@ -56,7 +56,7 @@ void GPU_gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const &
 	filter->ReleaseDataFlagOn();
 }
 
-void iAGPUEdgePreservingSmoothing::Run(QMap<QString, QVariant> const & parameters)
+void iAGPUEdgePreservingSmoothing::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion_template, m_con->GetITKScalarPixelType(),
 		parameters, m_progress, m_con);

@@ -54,7 +54,7 @@ iABatchFilter::iABatchFilter():
 	AddParameter("Append to output", Boolean, "");
 }
 
-void iABatchFilter::Run(QMap<QString, QVariant> const & parameters)
+void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	auto filter = iAFilterRegistry::Filter(parameters["Filter"].toString());
 	if (!filter)

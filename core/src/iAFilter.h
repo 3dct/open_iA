@@ -100,9 +100,9 @@ public:
 	//! TODO: also allow to check input files here (e.g. for AddImage to check
 	//!     if input images are all of the same type!
 	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
-	//! The actual implementation of the filter
+	//! Initialize and run the filter
 	//! @param parameters the map of parameters to use in this specific filter run
-	virtual void Run(QMap<QString, QVariant> const & parameters) = 0;
+	void Run(QMap<QString, QVariant> const & parameters);
 	//! Adds the description of a parameter to the filter
 	//! @param name the parameter's name
 	//! @param valueType the type of value this parameter can have
@@ -154,6 +154,9 @@ protected:
 	//! The logger
 	iALogger* m_log;
 private:
+	//! The actual implementation of the filter
+	//! @param parameters the map of parameters to use in this specific filter run
+	virtual void PerformWork(QMap<QString, QVariant> const & parameters) = 0;
 	QVector<pParameter> m_parameters;
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	QString m_name, m_category, m_description;
@@ -172,7 +175,7 @@ class FilterName : public iAFilter \
 { \
 public: \
 	static QSharedPointer<FilterName> Create(); \
-	void Run(QMap<QString, QVariant> const & parameters) override; \
 private: \
+	void PerformWork(QMap<QString, QVariant> const & parameters) override; \
 	FilterName(); \
 };

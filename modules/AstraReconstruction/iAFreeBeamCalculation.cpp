@@ -180,7 +180,7 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 	image->Modified();
 }
 
-void iAFreeBeamCalculation::Run(QMap<QString, QVariant> const & parameters)
+void iAFreeBeamCalculation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(freeBeamCalculation_template, m_con->GetITKScalarPixelType(),
 		parameters["Origin X"].toUInt(), parameters["Origin Y"].toUInt(),

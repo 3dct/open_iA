@@ -55,7 +55,7 @@ namespace
 	}
 }
 
-void iASVMImageFilter::Run(QMap<QString, QVariant> const & parameters)
+void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	if (m_cons.size() == 0)
 	{
@@ -260,7 +260,7 @@ template<class T> void kmeanscluster_template(iAConnector* image, iAProgress* p,
 	image->Modified();
 }
 
-void iAKMeans::Run(QMap<QString, QVariant> const & parameters)
+void iAKMeans::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(kmeanscluster_template, m_con->GetITKScalarPixelType(), m_con, m_progress, parameters);
 }

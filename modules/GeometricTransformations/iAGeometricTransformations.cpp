@@ -104,7 +104,7 @@ template<class T> void resampler_template(
 
 IAFILTER_CREATE(iAResampleFilter)
 
-void iAResampleFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAResampleFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(resampler_template, m_con->GetITKScalarPixelType(),
 		parameters["Origin X"].toUInt(), parameters["Origin Y"].toUInt(), parameters["Origin Z"].toUInt(),
@@ -203,7 +203,7 @@ void extractImage_template(unsigned int indexX, unsigned int indexY, unsigned in
 
 IAFILTER_CREATE(iAExtractImageFilter)
 
-void iAExtractImageFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAExtractImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(extractImage_template, m_con->GetITKScalarPixelType(),
 		parameters["Index X"].toUInt(), parameters["Index Y"].toUInt(), parameters["Index Z"].toUInt(),

@@ -124,6 +124,12 @@ bool iAFilter::SetUp(QVector<iAConnector*> const & con, iALogger* log, iAProgres
 	return true;
 }
 
+void iAFilter::Run(QMap<QString, QVariant> const & parameters)
+{
+	m_outputValues.clear();
+	PerformWork(parameters);
+}
+
 bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 {
 	bool ok;

@@ -63,7 +63,7 @@ void signed_maurer_distancemap_template(iAProgress* p, iAConnector* image, QMap<
 	filter->ReleaseDataFlagOn();
 }
 
-void iASignedMaurerDistanceMap::Run(QMap<QString, QVariant> const & parameters)
+void iASignedMaurerDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(signed_maurer_distancemap_template, m_con->GetITKScalarPixelType(),
 			m_progress, m_con, parameters);
@@ -123,7 +123,7 @@ void danielsson_distancemap_template(iAProgress* p, iAConnector* image, QMap<QSt
 	filter->ReleaseDataFlagOn();
 }
 
-void iADanielssonDistanceMap::Run(QMap<QString, QVariant> const & parameters)
+void iADanielssonDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(danielsson_distancemap_template, m_con->GetITKScalarPixelType(),
 			m_progress, m_con, parameters);

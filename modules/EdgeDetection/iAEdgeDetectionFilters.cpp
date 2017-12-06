@@ -53,7 +53,7 @@ void canny_edge_detection_template( double variance, double maximumError, double
 
 IAFILTER_CREATE(iACannyEdgeDetection)
 
-void iACannyEdgeDetection::Run(QMap<QString, QVariant> const & parameters)
+void iACannyEdgeDetection::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(canny_edge_detection_template, pixelType,

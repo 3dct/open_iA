@@ -57,7 +57,7 @@ template<class T> void median_template( unsigned int r_x, unsigned int r_y, unsi
 	filter->ReleaseDataFlagOn();
 }
 
-void iAMedianFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAMedianFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(median_template, itkType,
@@ -122,7 +122,7 @@ void discrete_gaussian_template( double v, double me, bool outimg, iAProgress* p
 
 IAFILTER_CREATE(iADiscreteGaussian)
 
-void iADiscreteGaussian::Run(QMap<QString, QVariant> const & parameters)
+void iADiscreteGaussian::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(discrete_gaussian_template, pixelType,
@@ -165,7 +165,7 @@ void gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const & par
 
 IAFILTER_CREATE(iANonLocalMeans)
 
-void iANonLocalMeans::Run(QMap<QString, QVariant> const & parameters)
+void iANonLocalMeans::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(gradient_anisotropic_diffusion_template, pixelType, parameters, m_progress, m_con);
@@ -229,7 +229,7 @@ void gradient_anisotropic_diffusion_template(unsigned int i, double t, double c,
 
 IAFILTER_CREATE(iAGradientAnisotropicDiffusion)
 
-void iAGradientAnisotropicDiffusion::Run(QMap<QString, QVariant> const & parameters)
+void iAGradientAnisotropicDiffusion::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(gradient_anisotropic_diffusion_template, pixelType,
@@ -273,7 +273,7 @@ void curvature_anisotropic_diffusion_template(unsigned int i, double t, double c
 
 IAFILTER_CREATE(iACurvatureAnisotropicDiffusion)
 
-void iACurvatureAnisotropicDiffusion::Run(QMap<QString, QVariant> const & parameters)
+void iACurvatureAnisotropicDiffusion::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(curvature_anisotropic_diffusion_template, pixelType,
@@ -316,7 +316,7 @@ void bilateral_template(double r, double d, iAProgress* p, iAConnector* image)
 
 IAFILTER_CREATE(iABilateral)
 
-void iABilateral::Run(QMap<QString, QVariant> const & parameters)
+void iABilateral::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(bilateral_template, pixelType,

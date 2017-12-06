@@ -23,30 +23,17 @@
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
-class iAASTRAForwardProject: public iAFilter
+IAFILTER_DEFAULT_CLASS(iAASTRAForwardProject);
+IAFILTER_DEFAULT_CLASS(iAASTRAReconstruct);
+
+enum AstraReconstructionMethods
 {
-public:
-	static QSharedPointer<iAASTRAForwardProject> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAASTRAForwardProject();
+	BP3D,
+	FDK3D,
+	SIRT3D,
+	CGLS3D
 };
 
-class iAASTRAReconstruct: public iAFilter
-{
-public:
-	enum
-	{
-		BP3D,
-		FDK3D,
-		SIRT3D,
-		CGLS3D
-	};
-	static QSharedPointer<iAASTRAReconstruct> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAASTRAReconstruct();
-};
 
 class iAASTRAFilterRunner : public iAFilterRunnerGUI
 {

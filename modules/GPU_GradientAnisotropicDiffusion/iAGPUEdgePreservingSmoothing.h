@@ -22,11 +22,4 @@
 
 #include "iAFilter.h"
 
-class iAGPUEdgePreservingSmoothing : public iAFilter
-{
-public:
-	static QSharedPointer<iAGPUEdgePreservingSmoothing> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAGPUEdgePreservingSmoothing();
-};
+IAFILTER_DEFAULT_CLASS(iAGPUEdgePreservingSmoothing)

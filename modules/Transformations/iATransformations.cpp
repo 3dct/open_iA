@@ -80,7 +80,7 @@ template<class TPixelType> void flip_template(QString const & axis, iAProgress* 
 	filter->ReleaseDataFlagOn();
 }
 
-void iAFlipAxis::Run(QMap<QString, QVariant> const & parameters)
+void iAFlipAxis::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(flip_template, pixelType, parameters["Flip axis"].toString(), m_progress, m_con);
@@ -175,7 +175,7 @@ static void rotate_template(QMap<QString, QVariant> const & parameters, iAProgre
 	affine_template<TPixelType, TPrecision>(progress, connector, transform);
 }
 
-void iARotate::Run(QMap<QString, QVariant> const & parameters)
+void iARotate::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(rotate_template, pixelType, parameters, m_progress, m_con);
@@ -217,7 +217,7 @@ static void translate_template(QMap<QString, QVariant> const & parameters, iAPro
 	affine_template<TPixelType, TPrecision>(progress, connector, transform);
 }
 
-void iATranslate::Run(QMap<QString, QVariant> const & parameters)
+void iATranslate::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(translate_template, pixelType, parameters, m_progress, m_con);
@@ -262,7 +262,7 @@ template<class TPixelType> void permute_template(QString  const & orderStr, iAPr
 	filter->ReleaseDataFlagOn();
 }
 
-void iAPermuteAxes::Run(QMap<QString, QVariant> const & parameters)
+void iAPermuteAxes::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(permute_template, pixelType, parameters["Order"].toString(), m_progress, m_con);

@@ -52,7 +52,7 @@ template<class T> void gradient_magnitude_template(bool useImageSpacing, iAProgr
 	filter->ReleaseDataFlagOn();
 }
 
-void iAGradientMagnitude::Run(QMap<QString, QVariant> const & parameters)
+void iAGradientMagnitude::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(gradient_magnitude_template, m_con->GetITKScalarPixelType(), parameters["Use Image Spacing"].toBool(), m_progress, m_con);
 }
@@ -94,7 +94,7 @@ void derivative_template( unsigned int o, unsigned int d, iAProgress* p, iAConne
 	filter->ReleaseDataFlagOn();
 }
 
-void iADerivative::Run(QMap<QString, QVariant> const & parameters)
+void iADerivative::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(derivative_template, m_con->GetITKScalarPixelType(),
 		parameters["Order"].toUInt(), parameters["Direction"].toUInt(), m_progress, m_con);
@@ -136,7 +136,7 @@ void hoa_derivative_template(QMap<QString, QVariant> const & parameters, iAProgr
 	filter->ReleaseDataFlagOn();
 }
 		
-void iAHigherOrderAccurateDerivative::Run(QMap<QString, QVariant> const & parameters)
+void iAHigherOrderAccurateDerivative::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(hoa_derivative_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }
