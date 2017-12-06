@@ -24,9 +24,11 @@
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAFilterRegistry.h"
-#include "io/iAITKIO.h"
 #include "iAStringHelper.h"
+#include "io/iAITKIO.h"
+#include "io/iAFileUtils.h"
 
+#include <QCollator>
 #include <QDirIterator>
 #include <QFile>
 #include <QTextStream>
@@ -59,6 +61,64 @@ iABatchFilter::iABatchFilter():
 	AddParameter("Output csv file", String, "");
 	AddParameter("Append to output", Boolean, true);
 	AddParameter("Add filename", Boolean, true);
+}
+
+
+void BatchDirectory(QString const & directory, QStringList filters, bool recurse, size_t & curLine,
+	QStringList & outputBuffer, QMap<QString, QVariant> const & filterParams,
+	QVector<iAConnector*> & inputImages, bool addFileName, QSharedPointer<iAFilter> filter,
+	QString const & baseDir)
+{
+	QDir dir(directory);
+	dir.setSorting(QDir::NoSort);
+	QDir::Filters flags = QDir::Files;
+	if (recurse)
+		flags = QDir::Files | QDir::AllDirs;
+	QStringList entryList = dir.entryList(filters, flags);
+	QCollator collator;
+	collator.setNumericMode(true);
+	std::sort(entryList.begin(), entryList.end(), collator);	// natural sorting
+	for (QString fileName: entryList)
+	{
+		if (fileName == "." || fileName == "..")
+			continue;
+		QFileInfo fi(directory + "/" + fileName);
+		if (fi.isDir())
+			BatchDirectory(fi.absoluteFilePath(), filters, recurse, curLine, outputBuffer,
+				filterParams, inputImages, addFileName, filter, baseDir);
+		else
+		{
+			iAITKIO::ScalarPixelType pixelType;
+			iAITKIO::ImagePointer img = iAITKIO::readFile(fi.absoluteFilePath(), pixelType, false);
+			inputImages[0]->SetImage(img);
+			filter->Run(filterParams);
+			if (curLine == 0)
+			{
+				QStringList captions;
+				if (addFileName)
+					captions << "filename";
+				for (auto outValue : filter->OutputValues())
+					captions << outValue.first;
+				if (outputBuffer.empty())
+					outputBuffer.append("");
+				outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");
+				++curLine;
+			}
+			if (curLine >= outputBuffer.size())
+				outputBuffer.append("");
+			QStringList values;
+			if (addFileName)
+			{
+				QString relFileName = MakeRelative(baseDir, fi.absoluteFilePath());
+				values << relFileName;
+			}
+			for (auto outValue : filter->OutputValues())
+				values.append(outValue.second.toString());
+			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
+			outputBuffer[curLine] += textToAdd;
+			++curLine;
+		}
+	}
 }
 
 void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
@@ -102,41 +162,12 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	filter->SetUp(inputImages, m_log, m_progress);
 
 	QStringList filters = parameters["File mask"].toString().split(";");
-	QDirIterator it(parameters["Image folder"].toString(), filters, QDir::Files,
-			parameters["Recursive"].toBool() ?
-					QDirIterator::Subdirectories :
-					QDirIterator::NoIteratorFlags);
+
 	size_t curLine = 0;
-	while (it.hasNext())
-	{
-		QString fileName = it.next();
-		iAITKIO::ScalarPixelType pixelType;
-		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-		inputImages[0]->SetImage(img);
-		filter->Run(filterParams);
-		if (curLine == 0)
-		{
-			QStringList captions;
-			if (parameters["Add filename"].toBool())
-				captions << "filename";
-			for (auto outValue : filter->OutputValues())
-				captions << outValue.first;
-			if (outputBuffer.empty())
-				outputBuffer.append("");
-			outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");
-			++curLine;
-		}
-		if (curLine >= outputBuffer.size())
-			outputBuffer.append("");
-		QStringList values;
-		if (parameters["Add filename"].toBool())
-			values << fileName;
-		for (auto outValue : filter->OutputValues())
-			values.append(outValue.second.toString());
-		QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
-		outputBuffer[curLine] += textToAdd;
-		++curLine;
-	}
+	BatchDirectory(parameters["Image folder"].toString(), filters, parameters["Recursive"].toBool(),
+		curLine, outputBuffer, filterParams, inputImages, parameters["Add filename"].toBool(),
+		filter, parameters["Image folder"].toString());
+
 	if (!outputFile.isEmpty())
 	{
 		QFile file(outputFile);
