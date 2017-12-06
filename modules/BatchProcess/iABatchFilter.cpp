@@ -42,7 +42,10 @@ iABatchFilter::iABatchFilter():
 		"(separate multiple masks via ';', e.g. '*.mhd;*.tif'. "
 		"The specified <em>Filter</em> is applied to all files specified with above settings, "
 		"every time executed with the same set of <em>Parameters</em>.<br/>"
-		"When <em>Output file</em> is not empty, all output values produced by the filter "
+		"Specify file names under <em>Additional input</em> to pass additional images "
+		"(e.g. a reference image for Segmentation Metrics) to the filter; if the file name "
+		"contains spaces, put it between double quotes.<br/>"
+		"When <em>Output csv file</em> is not empty, all output values produced by the filter "
 		"will be written to the file name given here, one row per image and filter. "
 		"If the output csv file exists, and <em>Append to output</em> is enabled, "
 		"the output values are appended at the end of each line. Note that this tool does not "
@@ -58,6 +61,7 @@ iABatchFilter::iABatchFilter():
 	AddParameter("File mask", String, "*.mhd");
 	AddParameter("Filter", String, "Image Quality");
 	AddParameter("Parameters", String, "");
+	AddParameter("Additional Input", String, "");
 	AddParameter("Output csv file", String, "");
 	AddParameter("Append to output", Boolean, true);
 	AddParameter("Add filename", Boolean, true);
@@ -138,10 +142,21 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			.arg(filterParamStrs.size()));
 		return;
 	}
+	QString batchDir = parameters["Image folder"].toString();
 
 	iAConnector* con = new iAConnector();
 	QVector<iAConnector*> inputImages;
 	inputImages.push_back(con);
+	QStringList additionalInput = SplitPossiblyQuotedString(parameters["Additional Input"].toString());
+	for (QString fileName : additionalInput)
+	{
+		fileName = MakeAbsolute(batchDir, fileName);
+		auto newCon = new iAConnector();
+		iAITKIO::ScalarPixelType pixelType;
+		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+		newCon->SetImage(img);
+		inputImages.push_back(newCon);
+	}
 
 	for (int i=0; i<filterParamStrs.size(); ++i)
 		filterParams.insert(filter->Parameters()[i]->Name(), filterParamStrs[i]);
@@ -164,9 +179,9 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	QStringList filters = parameters["File mask"].toString().split(";");
 
 	size_t curLine = 0;
-	BatchDirectory(parameters["Image folder"].toString(), filters, parameters["Recursive"].toBool(),
+	BatchDirectory(batchDir, filters, parameters["Recursive"].toBool(),
 		curLine, outputBuffer, filterParams, inputImages, parameters["Add filename"].toBool(),
-		filter, parameters["Image folder"].toString());
+		filter, batchDir);
 
 	if (!outputFile.isEmpty())
 	{
