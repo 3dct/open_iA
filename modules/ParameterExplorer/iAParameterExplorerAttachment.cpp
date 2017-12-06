@@ -27,6 +27,10 @@
 #include "iAParamSPLOMView.h"
 #include "iAParamSpatialView.h"
 
+#include "mdichild.h"
+
+#include <QFileDialog>
+
 iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
 {
 	return new iAParameterExplorerAttachment(mainWnd, childData);
@@ -35,8 +39,20 @@ iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow 
 iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData)
 	:iAModuleAttachmentToChild(mainWnd, childData)
 {
-	m_SPLOMView = new iAParamSPLOMView();
+	QString csvFileName = QFileDialog::getOpenFileName(childData.child,
+			tr( "Select CSV File" ), childData.child->getFilePath(), tr( "CSV Files (*.csv);;" ) );
+	m_SPLOMView = new iAParamSPLOMView(csvFileName);
 	m_spatialView = new iAParamSpatialView();
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix View", "ParamSPLOMView"));
+	childData.child->splitDockWidget(childData.child->getSlicerDlgXY(), m_dockWidgets[0], Qt::Horizontal);
+	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Vertical);
+}
+
+void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()
+{
+	for (int i = 0; i < m_dockWidgets.size(); ++i)
+	{
+		m_dockWidgets[i]->toggleTitleBar();
+	}
 }

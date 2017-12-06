@@ -18,8 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "QWidget.h"
+#include <QWidget>
+
+class iAQSplom;
 
 class iAParamSPLOMView: public QWidget
 {
+public:
+	iAParamSPLOMView(QString const & csvFile);
+private:
+	iAQSplom* m_splom;
 };

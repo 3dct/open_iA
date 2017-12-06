@@ -31,4 +31,5 @@ protected:
 	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 private slots:
 	bool StartParameterExplorer();
+	void ToggleDockWidgetTitleBars();
 };

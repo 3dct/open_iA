@@ -23,6 +23,8 @@
 
 #include "iAParameterExplorerAttachment.h"
 
+#include "iAConsole.h"
+#include "iAChildData.h"
 #include "mainwindow.h"
 
 void iAParameterExplorerModuleInterface::Initialize()
@@ -36,6 +38,17 @@ void iAParameterExplorerModuleInterface::Initialize()
 	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
 	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
+}
+
+void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
+{
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		return;
+	}
+	attach->ToggleDockWidgetTitleBars();
 }
 
 bool iAParameterExplorerModuleInterface::StartParameterExplorer()
