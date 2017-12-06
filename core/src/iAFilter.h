@@ -72,7 +72,7 @@ public:
 	//!     other than zero, because setting it to zero has immediate side effects (e.g.
 	//!     not opening a result window if configured, in  the GUI).
 	iAFilter(QString const & name, QString const & category, QString const & description = "",
-		unsigned int requiredInputs = 1, unsigned int outputCount = 0);
+		unsigned int requiredInputs = 1, unsigned int outputCount = 1);
 	//! Destructor
 	virtual ~iAFilter();
 	//! Retrieve the filter name
