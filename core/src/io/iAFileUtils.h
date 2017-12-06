@@ -23,6 +23,10 @@
 #include "open_iA_Core_export.h"
 
 class QString;
+class QStringList;
 
 open_iA_Core_API QString MakeAbsolute(QString const & baseDir, QString const & fileName);
 open_iA_Core_API QString MakeRelative(QString const & baseDir, QString const & fileName);
+
+open_iA_Core_API void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
+	QStringList & filesOut);

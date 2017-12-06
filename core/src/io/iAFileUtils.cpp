@@ -22,6 +22,7 @@
 #include "pch.h"
 #include "iAFileUtils.h"
 
+#include <QCollator>
 #include <QDir>
 #include <QString>
 
@@ -49,4 +50,28 @@ QString MakeRelative(QString const & baseDir,  QString const & fileName)
 		return fileName.right(fileName.length() - baseDir.length() - 1);
 	}
 	return fileName;
+}
+
+void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
+	QStringList & filesOut)
+{
+	QDir dir(directory);
+	dir.setSorting(QDir::NoSort);
+	QDir::Filters flags = QDir::Files;
+	if (recurse)
+		flags = QDir::Files | QDir::AllDirs;
+	QStringList entryList = dir.entryList(filters, flags);
+	QCollator collator;
+	collator.setNumericMode(true);	// natural sorting
+	std::sort(entryList.begin(), entryList.end(), collator);
+	for (QString fileName : entryList)
+	{
+		if (fileName == "." || fileName == "..")
+			continue;
+		QFileInfo fi(directory + "/" + fileName);
+		if (fi.isDir())
+			FindFiles(fi.absoluteFilePath(), filters, recurse, filesOut);
+		else
+			filesOut.append(fi.absoluteFilePath());
+	}
 }
