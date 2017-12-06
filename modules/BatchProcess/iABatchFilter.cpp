@@ -43,7 +43,9 @@ iABatchFilter::iABatchFilter():
 		"When <em>Output file</em> is not empty, all output values produced by the filter "
 		"will be written to the file name given here, one row per image and filter. "
 		"If the output csv file exists, and <em>Append to output</em> is enabled, "
-		"the output values are appended at the end of each line.", 0, 0)
+		"the output values are appended at the end of each line. "
+		"If <em>Add filename</em> is enabled, then the name of the file processed for that "
+		"line will be appended before the first output value from that file.", 0, 0)
 {
 	AddParameter("Image folder", String, "");
 	AddParameter("Recursive", Boolean, false);
@@ -51,7 +53,8 @@ iABatchFilter::iABatchFilter():
 	AddParameter("Filter", String, "Image Quality");
 	AddParameter("Parameters", String, "");
 	AddParameter("Output csv file", String, "");
-	AddParameter("Append to output", Boolean, "");
+	AddParameter("Append to output", Boolean, true);
+	AddParameter("Add filename", Boolean, true);
 }
 
 void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
@@ -110,7 +113,8 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		if (curLine == 0)
 		{
 			QStringList captions;
-			captions << "filename";
+			if (parameters["Add filename"].toBool())
+				captions << "filename";
 			for (auto outValue : filter->OutputValues())
 				captions << outValue.first;
 			if (outputBuffer.empty())
@@ -121,7 +125,8 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		if (curLine >= outputBuffer.size())
 			outputBuffer.append("");
 		QStringList values;
-		values << fileName;
+		if (parameters["Add filename"].toBool())
+			values << fileName;
 		for (auto outValue : filter->OutputValues())
 			values.append(outValue.second.toString());
 		QString textToAdd = (outputBuffer[curLine].isEmpty() ? "" : ",") + values.join(",");
