@@ -31,12 +31,11 @@ class open_iA_Core_API iAProgress : public QObject
 	Q_OBJECT
 public:
 	typedef itk::MemberCommand< iAProgress >  CommandType;
-
 	iAProgress( );
-	~iAProgress();
 	void ProcessEvent(itk::Object * caller, const itk::EventObject & event );
 	void ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event );
 	void Observe( itk::Object *caller );
+	void ManualProgress(int i);
 Q_SIGNALS:
 	void pprogress(int i);
 private:

@@ -53,13 +53,12 @@ void iAProgress::ConstProcessEvent( const itk::Object * caller, const itk::Event
 	}
 }
 
-
 void iAProgress::Observe( itk::Object *caller )
 {
 	caller->AddObserver(  itk::ProgressEvent(), m_Command.GetPointer() );
 }
 
-
-iAProgress::~iAProgress()
+void iAProgress::ManualProgress(int i)
 {
+	emit pprogress(i);
 }
