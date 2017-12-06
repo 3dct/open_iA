@@ -39,11 +39,15 @@ iABatchFilter::iABatchFilter():
 		"The <em>File mask</em> is applied to match which files in the given folder are processed "
 		"(separate multiple masks via ';', e.g. '*.mhd;*.tif'. "
 		"The specified <em>Filter</em> is applied to all files specified with above settings, "
-		"every time executed with the same set of <em>Parameters</em>. "
+		"every time executed with the same set of <em>Parameters</em>.<br/>"
 		"When <em>Output file</em> is not empty, all output values produced by the filter "
 		"will be written to the file name given here, one row per image and filter. "
 		"If the output csv file exists, and <em>Append to output</em> is enabled, "
-		"the output values are appended at the end of each line. "
+		"the output values are appended at the end of each line. Note that this tool does not "
+		"try to find the matching filename in the given output csv, and hence the appending only "
+		"works properly (i.e. appends values to the proper file) if no images have been added or "
+		"removed from the folder, and also the recursive and file mask options are the same as "
+		"with the batch run that created the file in the first place. "
 		"If <em>Add filename</em> is enabled, then the name of the file processed for that "
 		"line will be appended before the first output value from that file.", 0, 0)
 {
@@ -119,7 +123,7 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 				captions << outValue.first;
 			if (outputBuffer.empty())
 				outputBuffer.append("");
-			outputBuffer[0] += (outputBuffer[0].isEmpty() ? "" : ",") + captions.join(",");
+			outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");
 			++curLine;
 		}
 		if (curLine >= outputBuffer.size())
@@ -129,7 +133,7 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			values << fileName;
 		for (auto outValue : filter->OutputValues())
 			values.append(outValue.second.toString());
-		QString textToAdd = (outputBuffer[curLine].isEmpty() ? "" : ",") + values.join(",");
+		QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 		outputBuffer[curLine] += textToAdd;
 		++curLine;
 	}
