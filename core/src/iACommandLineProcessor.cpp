@@ -196,21 +196,29 @@ namespace
 					case Parameter:
 						{
 							int paramIdx = parameters.size();
-							QString paramName = filter->Parameters()[paramIdx]->Name();
-							QString value(args[a]);
-							if (filter->Parameters()[paramIdx]->ValueType() == Text)
+							if (paramIdx >= filter->Parameters().size())
 							{
-								QFile f(value);
-								if (!f.open(QFile::ReadOnly | QFile::Text))
-								{
-									std::cout << QString("Expected a filename as input for text parameter '%1', but could not open '%2' as a text file.")
-										.arg(paramName).arg(value).toStdString() << std::endl;
-									return 1;
-								}
-								QTextStream in(&f);
-								value = in.readAll();
+								std::cout << QString("More parameters (%1) given than expected(%2)!")
+									.arg(paramIdx + 1).arg(filter->Parameters().size()).toStdString() << std::endl;
 							}
-							parameters.insert(paramName, value);
+							else
+							{
+								QString paramName = filter->Parameters()[paramIdx]->Name();
+								QString value(args[a]);
+								if (filter->Parameters()[paramIdx]->ValueType() == Text)
+								{
+									QFile f(value);
+									if (!f.open(QFile::ReadOnly | QFile::Text))
+									{
+										std::cout << QString("Expected a filename as input for text parameter '%1', but could not open '%2' as a text file.")
+											.arg(paramName).arg(value).toStdString() << std::endl;
+										return 1;
+									}
+									QTextStream in(&f);
+									value = in.readAll();
+								}
+								parameters.insert(paramName, value);
+							}
 						}
 					}
 				}
