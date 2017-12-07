@@ -22,20 +22,25 @@
 #include "pch.h"
 #include "iAModalityExplorerAttachment.h"
 
+#include "mdichild.h"
+#include "dlg_modalitySPLOM.h"
+#include "iAModality.h"
 
 iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData)
 {
-}
-
-iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
-{
-	MdiChild * mdiChild = childData.child;
-	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, childData);
+	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
+	m_dlgModalitySPLOM->SetData(childData.child->GetModalities());
+	childData.child->tabifyDockWidget(m_childData.logs, m_dlgModalitySPLOM);
 	/*
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
 	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);
 	planeSlicer->hide();
 	*/
+}
+
+iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
+{
+	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, childData);
 	return newAttachment;
 }

@@ -22,7 +22,6 @@
 
 #include "iAModuleInterface.h"
 
-class dlg_modalitySPLOM;
 class iAModalityExplorerAttachment;
 
 class iAModalityExplorerModuleInterface : public iAModuleInterface
@@ -34,6 +33,4 @@ protected:
 	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 private slots:
 	void ModalitySPLOM();
-private:
-	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };
