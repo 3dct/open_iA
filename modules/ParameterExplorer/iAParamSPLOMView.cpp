@@ -21,6 +21,7 @@
 #include "iAParamSPLOMView.h"
 
 #include "iAParamTableView.h"
+#include "iAParamSpatialView.h"
 
 #include "charts/iAQSplom.h"
 #include "iAConsole.h"
@@ -144,7 +145,9 @@ void iAParamSPLOMView::UpdateFeatVisibilty(int)
 }
 
 
-void iAParamSPLOMView::PointHovered(int)
+void iAParamSPLOMView::PointHovered(int id)
 {
-	// load image in spatial view
+	if (id == 0)	// why is id == 0 even shown????
+		return;
+	m_spatialView->SetImage(id);
 }

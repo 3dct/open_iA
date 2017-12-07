@@ -18,47 +18,28 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAParameterExplorerAttachment.h"
+#pragma once
 
-// IMPAsSE 	  IMage PArameter Space Explorer
+#include <vtkSmartPointer.h>
+#include <QWidget>
 
-#include "iADockWidgetWrapper.h"
+class iASlicer;
 
-#include "iAParamSPLOMView.h"
-#include "iAParamSpatialView.h"
-#include "iAParamTableView.h"
+class vtkImageData;
+class vtkColorTransferFunction;
+class vtkTransform;
 
-#include "mdichild.h"
-
-#include <QFileDialog>
-
-iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
+class iAImageWidget: public QWidget
 {
-	return new iAParameterExplorerAttachment(mainWnd, childData);
-}
-
-iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData)
-	:iAModuleAttachmentToChild(mainWnd, childData)
-{
-	QString csvFileName = QFileDialog::getOpenFileName(childData.child,
-			tr( "Select CSV File" ), childData.child->getFilePath(), tr( "CSV Files (*.csv);;" ) );
-	if (csvFileName.isEmpty())
-		return;
-	m_tableView = new iAParamTableView(csvFileName);
-	m_spatialView = new iAParamSpatialView(m_tableView, QFileInfo(csvFileName).absolutePath());
-	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "ParamSpatialView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix View", "ParamSPLOMView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table View", "ParamTableView"));
-	childData.child->splitDockWidget(childData.child->logs, m_dockWidgets[0], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
-}
-
-void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()
-{
-	for (int i = 0; i < m_dockWidgets.size(); ++i)
-	{
-		m_dockWidgets[i]->toggleTitleBar();
-	}
-}
+public:
+	iAImageWidget(vtkSmartPointer<vtkImageData> img);
+	void StyleChanged();
+	void SetMode(int slicerMode);
+	void SetSlice(int sliceNumber);
+	int GetSliceCount() const;
+	iASlicer* GetSlicer();
+private:
+	iASlicer* m_slicer;
+	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
+	vtkSmartPointer<vtkTransform> m_transform;
+};

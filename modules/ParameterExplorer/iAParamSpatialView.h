@@ -18,8 +18,42 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
+#include <QMap>
 #include <QWidget>
+
+#include <vtkSmartPointer.h>
+
+#include "io/iAITKIO.h"
+
+class iAParamTableView;
+class iAImageWidget;
+
+class vtkImageData;
+
+class QSpinBox;
+class QToolButton;
 
 class iAParamSpatialView: public QWidget
 {
+	Q_OBJECT
+public:
+	iAParamSpatialView(iAParamTableView* table, QString const & basePath);
+	void SetImage(int id);
+private slots:
+	void SlicerModeButtonClicked(bool checked);
+	void SliceChanged(int slice);
+private:
+	iAParamTableView* m_table;
+	QString m_basePath;
+	QMap<int, vtkSmartPointer<vtkImageData>> m_imageCache;
+	QVector<iAITKIO::ImagePointer> m_loadedImgs; // to stop itk from unloading
+	int m_curMode;
+	int m_sliceNr[3];
+	QVector<QToolButton*> slicerModeButton;
+	QSpinBox* m_sliceControl;
+	iAImageWidget* m_imageWidget;
+	QWidget* m_settings;
+	QWidget* m_imageContainer;
+	bool m_sliceNrInitialized;
 };

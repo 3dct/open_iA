@@ -18,47 +18,60 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAParameterExplorerAttachment.h"
+#include "iAImageWidget.h"
 
-// IMPAsSE 	  IMage PArameter Space Explorer
+#include "iATransferFunction.h"
 
-#include "iADockWidgetWrapper.h"
+#include "iASlicerSettings.h"
+#include "iASlicer.h"
 
-#include "iAParamSPLOMView.h"
-#include "iAParamSpatialView.h"
-#include "iAParamTableView.h"
+#include <vtkTransform.h>
 
-#include "mdichild.h"
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
 
-#include <QFileDialog>
-
-iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
+iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 {
-	return new iAParameterExplorerAttachment(mainWnd, childData);
+	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
+	m_transform = vtkSmartPointer<vtkTransform>::New();
+	m_slicer->setup(iASingleSlicerSettings());
+	m_slicer->initializeData(img, m_transform, m_ctf);
+	m_slicer->initializeWidget(img);
+	StyleChanged();
 }
 
-iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData)
-	:iAModuleAttachmentToChild(mainWnd, childData)
+void iAImageWidget::StyleChanged()
 {
-	QString csvFileName = QFileDialog::getOpenFileName(childData.child,
-			tr( "Select CSV File" ), childData.child->getFilePath(), tr( "CSV Files (*.csv);;" ) );
-	if (csvFileName.isEmpty())
-		return;
-	m_tableView = new iAParamTableView(csvFileName);
-	m_spatialView = new iAParamSpatialView(m_tableView, QFileInfo(csvFileName).absolutePath());
-	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "ParamSpatialView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix View", "ParamSPLOMView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table View", "ParamTableView"));
-	childData.child->splitDockWidget(childData.child->logs, m_dockWidgets[0], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
+	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	m_slicer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 }
 
-void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()
+void iAImageWidget::SetMode(int slicerMode)
 {
-	for (int i = 0; i < m_dockWidgets.size(); ++i)
+	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+	m_slicer->update();
+}
+
+void iAImageWidget::SetSlice(int sliceNumber)
+{
+	m_slicer->setSliceNumber(sliceNumber);
+	m_slicer->update();
+}
+
+int iAImageWidget::GetSliceCount() const
+{
+	int * ext = m_slicer->GetImageData()->GetExtent();
+	switch (m_slicer->GetMode())
 	{
-		m_dockWidgets[i]->toggleTitleBar();
+		case XZ: return ext[3] - ext[2] + 1;
+		case YZ: return ext[1] - ext[0] + 1;
+		default:
+		case XY: return ext[5] - ext[4] + 1;
 	}
+}
+
+iASlicer* iAImageWidget::GetSlicer()
+{
+	return m_slicer;
 }
