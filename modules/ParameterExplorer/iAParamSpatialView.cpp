@@ -108,8 +108,11 @@ void iAParamSpatialView::SetImage(int id)
 	auto img = m_imageCache[id];
 
 	if (!m_sliceNrInitialized)
+	{
+		const int sliceAxis[3] = { 0, 2, 1 };
 		for (int i = 0; i < 3; ++i)
-			m_sliceNr[i] = img->GetDimensions()[i] / 2;
+			m_sliceNr[i] = img->GetDimensions()[sliceAxis[i]] / 2;
+	}
 	if (!m_imageWidget)
 	{
 		m_imageWidget = new iAImageWidget(img);

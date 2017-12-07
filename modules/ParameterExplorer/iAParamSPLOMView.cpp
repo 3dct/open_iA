@@ -55,14 +55,13 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
 	connect(m_splom, SIGNAL(currentPointModified(int)), this, SLOT(PointHovered(int)));
 	m_splom->setData(m_tableView->Table());
-	m_splom->setLookupTable(m_lut, QString("Signal-to-noise ratio"));
+	m_splom->setLookupTable(m_lut, "Signal-to-noise ratio");
 	m_splom->setParameterVisibility("filename", false);
 	m_splom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	SetLUTColumn(m_tableView->Table()->item(0, 1)->text());
 
 	// set up settings:
 	m_settings->setLayout(new QVBoxLayout());
-
+	/*
 	QComboBox* lutSourceChoice = new QComboBox();
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
 		lutSourceChoice->addItem(m_tableView->Table()->item(0, c)->text());
@@ -74,6 +73,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	lutSourceLine->setFixedHeight(24);
 	lutSourceLine->layout()->setMargin(0);
 	lutSourceLine->layout()->setSpacing(2);
+	*/
 
 	QWidget* featSelectLine = new QWidget();
 	featSelectLine->setLayout(new QHBoxLayout());
@@ -90,7 +90,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	featSelectLine->setFixedHeight(24);
 	m_settings->layout()->setMargin(0);
 	m_settings->layout()->setSpacing(0);
-	m_settings->layout()->addWidget(lutSourceLine);
+	//m_settings->layout()->addWidget(lutSourceLine);
 	m_settings->layout()->addWidget(featSelectLine);
 
 	setLayout(new QVBoxLayout());
@@ -135,6 +135,8 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 		m_lut->SetTableValue(i, rgba);
 	}
 	m_lut->Build();
+	m_splom->setLookupTable(m_lut, colName);
+	//m_splom->applyLookupTable();
 }
 
 
