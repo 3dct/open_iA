@@ -147,7 +147,5 @@ void iAParamSPLOMView::UpdateFeatVisibilty(int)
 
 void iAParamSPLOMView::PointHovered(int id)
 {
-	if (id == 0)	// why is id == 0 even shown????
-		return;
-	m_spatialView->SetImage(id);
+	m_spatialView->SetImage(id+1);
 }
