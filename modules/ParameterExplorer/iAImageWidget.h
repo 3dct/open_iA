@@ -36,6 +36,7 @@ public:
 	void StyleChanged();
 	void SetMode(int slicerMode);
 	void SetSlice(int sliceNumber);
+	void SetImage(vtkSmartPointer<vtkImageData> img);
 	int GetSliceCount() const;
 	iASlicer* GetSlicer();
 private:

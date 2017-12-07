@@ -108,20 +108,23 @@ void iAParamSpatialView::SetImage(int id)
 	auto img = m_imageCache[id];
 
 	if (!m_sliceNrInitialized)
-	{
 		for (int i = 0; i < 3; ++i)
 			m_sliceNr[i] = img->GetDimensions()[i] / 2;
+	if (!m_imageWidget)
+	{
+		m_imageWidget = new iAImageWidget(img);
+		m_imageContainer->layout()->addWidget(m_imageWidget);
+		m_imageWidget->SetMode(m_curMode);
+		m_imageWidget->SetSlice(m_sliceNr[m_curMode]);
+	}
+	else
+		m_imageWidget->SetImage(img);
+	m_sliceControl->setMaximum(m_imageWidget->GetSliceCount() - 1);
+	if (!m_sliceNrInitialized)
+	{
 		m_sliceNrInitialized = true;
 		m_sliceControl->setValue(m_sliceNr[m_curMode]);
 	}
-
-	delete m_imageWidget;
-
-	m_imageWidget = new iAImageWidget(img);
-	m_imageWidget->SetMode(m_curMode);
-	m_imageWidget->SetSlice(m_sliceNr[m_curMode]);
-	m_sliceControl->setMaximum(m_imageWidget->GetSliceCount() - 1);
-	m_imageContainer->layout()->addWidget(m_imageWidget);
 }
 
 void iAParamSpatialView::SlicerModeButtonClicked(bool checked)
