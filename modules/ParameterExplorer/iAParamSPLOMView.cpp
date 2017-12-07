@@ -20,10 +20,131 @@
 * ************************************************************************************/
 #include "iAParamSPLOMView.h"
 
-#include "charts/iAQSplom.h"
+#include "iAParamTableView.h"
 
-iAParamSPLOMView::iAParamSPLOMView(QString const & csvFile):
-	m_splom(new iAQSplom(this))
+#include "charts/iAQSplom.h"
+#include "iAConsole.h"
+
+#include <vtkColorTransferFunction.h>
+#include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
+
+#include <QCheckBox>
+#include <QComboBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QTableWidget>
+
+
+iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView * spatialView) :
+	m_spatialView(spatialView),
+	m_tableView(tableView),
+	m_splom(new iAQSplom(this)),
+	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
+	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
+	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
+	m_settings(new QWidget)
 {
-	//m_splom->
+	// set up scatter plot matrix:
+	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
+	m_selection_ctf->AddRGBPoint(1, 1.0, 0.0, 0.0);
+	m_selection_otf->AddPoint(0, 0);
+	m_selection_otf->AddPoint(1, 1);
+	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
+	connect(m_splom, SIGNAL(currentPointModified(int)), this, SLOT(PointHovered(int)));
+	m_splom->setData(m_tableView->Table());
+	m_splom->setLookupTable(m_lut, QString("Signal-to-noise ratio"));
+	m_splom->setParameterVisibility("filename", false);
+	m_splom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	SetLUTColumn(m_tableView->Table()->item(0, 1)->text());
+
+	// set up settings:
+	m_settings->setLayout(new QVBoxLayout());
+
+	QComboBox* lutSourceChoice = new QComboBox();
+	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
+		lutSourceChoice->addItem(m_tableView->Table()->item(0, c)->text());
+	connect(lutSourceChoice, SIGNAL(currentTextChanged(const QString &)), this, SLOT(SetLUTColumn(const QString &)));
+	QWidget* lutSourceLine = new QWidget();
+	lutSourceLine->setLayout(new QHBoxLayout());
+	lutSourceLine->layout()->addWidget(new QLabel("LUT Source:"));
+	lutSourceLine->layout()->addWidget(lutSourceChoice);
+	lutSourceLine->setFixedHeight(24);
+	lutSourceLine->layout()->setMargin(0);
+	lutSourceLine->layout()->setSpacing(2);
+
+	QWidget* featSelectLine = new QWidget();
+	featSelectLine->setLayout(new QHBoxLayout());
+	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
+	{
+		QCheckBox* cb = new QCheckBox(m_tableView->Table()->item(0, c)->text());
+		cb->setChecked(true);
+		featSelectLine->layout()->addWidget(cb);
+		m_featCB.push_back(cb);
+		connect(cb, SIGNAL(stateChanged(int)), this, SLOT(UpdateFeatVisibilty(int)));
+	}
+	featSelectLine->layout()->setMargin(0);
+	featSelectLine->layout()->setSpacing(2);
+	featSelectLine->setFixedHeight(24);
+	m_settings->layout()->setMargin(0);
+	m_settings->layout()->setSpacing(0);
+	m_settings->layout()->addWidget(lutSourceLine);
+	m_settings->layout()->addWidget(featSelectLine);
+
+	setLayout(new QVBoxLayout());
+	layout()->addWidget(m_splom);
+	layout()->addWidget(m_settings);
+}
+
+void iAParamSPLOMView::SplomSelection(QVector<unsigned int> * selInds)
+{
+	// set 1 for selection:
+	for (int i = 0; i<selInds->size(); ++i)
+	{
+		// show in spatial view?
+	}
+}
+
+void iAParamSPLOMView::SetLUTColumn(QString const & colName)
+{
+	int col = -1;
+	for (int c = 0; c < m_tableView->Table()->columnCount(); ++c)
+	{
+		if (m_tableView->Table()->item(0, c)->text() == colName)
+		{
+			col = c;
+			break;
+		}
+	}
+	if (col == -1)
+	{
+		DEBUG_LOG(QString("Unknown column: %1").arg(colName));
+		return;
+	}
+	double lutRange[2] = { m_tableView->ColumnMin(col), m_tableView->ColumnMax(col) };
+	m_lut->SetRange(lutRange);
+	m_lut->Build();
+	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
+	double alpha = 0.5;
+	for (vtkIdType i = 0; i < lutColCnt; i++)
+	{
+		double rgba[4]; m_lut->GetTableValue(i, rgba);
+		rgba[3] = alpha;
+		m_lut->SetTableValue(i, rgba);
+	}
+	m_lut->Build();
+}
+
+
+void iAParamSPLOMView::UpdateFeatVisibilty(int)
+{
+	for (int i = 0; i < m_featCB.size(); ++i)
+		m_splom->setParameterVisibility(m_tableView->Table()->item(0, i+1)->text(), m_featCB[i]->isChecked());
+}
+
+
+void iAParamSPLOMView::PointHovered(int)
+{
+	// load image in spatial view
 }

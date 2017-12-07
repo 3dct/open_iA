@@ -18,14 +18,39 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
+#include <vtkSmartPointer.h>
+
+#include <QVector>
 #include <QWidget>
 
+class iAParamSpatialView;
+class iAParamTableView;
 class iAQSplom;
+
+class vtkColorTransferFunction;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+
+class QCheckBox;
 
 class iAParamSPLOMView: public QWidget
 {
+	Q_OBJECT
 public:
-	iAParamSPLOMView(QString const & csvFile);
+	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
+private slots:
+	void SetLUTColumn(QString const & colName);
+	void SplomSelection(QVector<unsigned int> *);
+	void UpdateFeatVisibilty(int);
+	void PointHovered(int);
 private:
+	iAParamSpatialView* m_spatialView;
+	iAParamTableView* m_tableView;
 	iAQSplom* m_splom;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
+	QWidget* m_settings;
+	QVector<QCheckBox*> m_featCB;
 };
