@@ -1199,81 +1199,104 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 
-	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
-	auto selGraphsList = plot->selectedGraphs();
+	QCustomPlot *plotU = qobject_cast<QCustomPlot*>(QObject::sender());
+	QCustomPlot *plotP;
+	plotU == m_nonlinearScaledPlot ?
+		plotP = m_linearScaledPlot :
+		plotP = m_nonlinearScaledPlot;
+
+	auto selGraphsList = plotU->selectedGraphs();
+	QList<QCPGraph *> selGraphsAndVisibleList;
+	for (auto graph : selGraphsList)
+		if (graph->visible())
+			selGraphsAndVisibleList.append(graph);
 
 	QCPDataSelection sel;
-	if (!selGraphsList.isEmpty())
+	if (!selGraphsAndVisibleList.isEmpty())
 	{
-		for (auto graph : selGraphsList)
+		for (auto graph : selGraphsAndVisibleList)
+		{
+			for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+			{
+				if (m_DatasetIntensityMap[i].first == graph->name())
+				{
+					plotP->graph(i)->setSelection(graph->selection());
+					break;
+				}
+			}
 			for (auto range : graph->selection().dataRanges())
 				sel.addDataRange(range, false);
-		sel.simplify();
-
-		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	/*no FBPs*/
-		{
-			plot == m_nonlinearScaledPlot ?
-				m_linearScaledPlot->graph(i)->setSelection(
-					plot->graph(i)->selection()) :
-				m_nonlinearScaledPlot->graph(i)->setSelection(
-					plot->graph(i)->selection());
 		}
+		sel.simplify();			
 	}
 	else
 	{
 		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-		for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	/*no FBPs*/
-		{
-			plot == m_nonlinearScaledPlot ?
-				m_linearScaledPlot->graph(i)->setSelection(
-					plot->graph(i)->selection()) :
-				m_nonlinearScaledPlot->graph(i)->setSelection(
-					plot->graph(i)->selection());
-		}
+		for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+			plotP->graph(i)->setSelection(plotU->graph(i)->selection());
 	}
-	setSelectionForRenderer(selGraphsList);
+
+	setSelectionForRenderer(selGraphsAndVisibleList);
 	m_scalingWidget->setSelection(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::legendClick(QCPLegend* legend, QCPAbstractLegendItem* item, QMouseEvent* e)
+void dlg_DatasetComparator::legendClick(QCPLegend* legendU, 
+	QCPAbstractLegendItem* legendUItem, QMouseEvent* e)
 {
-	if ((e->button() == Qt::LeftButton) && !cb_showFbp->isChecked() && item)
+	QCustomPlot *plotU = qobject_cast<QCustomPlot *>(QObject::sender());
+	QCustomPlot *plotP = plotU == m_linearScaledPlot ?
+		plotP = m_nonlinearScaledPlot : plotP = m_linearScaledPlot;
+	
+	int legendPItemIdx = 0;
+	for (int i = 0; i < legendU->itemCount(); ++i)
 	{
-		QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(item);
-		if (!m_selLegendItemList.contains(plItem))
+		if (legendU->item(i) == legendUItem)
 		{
-			updateLegendAndGraphVisibility(plItem, 1.0, true);
-			m_selLegendItemList.append(plItem);
+			legendPItemIdx = i;
+			break;
+		}
+	}
+
+	if ((e->button() == Qt::LeftButton) && !cb_showFbp->isChecked() && legendUItem)
+	{
+		QCPPlottableLegendItem *ptliU = qobject_cast<QCPPlottableLegendItem*>(
+			legendUItem);
+		QCPPlottableLegendItem *ptliP = qobject_cast<QCPPlottableLegendItem*>(
+			plotP->legend->item(legendPItemIdx));
+		if (!m_selLegendItemList.contains(ptliU))
+		{
+			updateLegendAndGraphVisibility(ptliU, plotP, legendPItemIdx, 1.0, true);
+			m_selLegendItemList.append(ptliU);
+			m_selLegendItemList.append(ptliP);
 		}
 		else
-			m_selLegendItemList.removeOne(plItem);
-
-		for (int i = 0; i < legend->itemCount(); ++i)
 		{
-			QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(legend->item(i));
-			if (!m_selLegendItemList.contains(plItem))
-			{
-				if ((m_selLegendItemList.size() > 0))
-					updateLegendAndGraphVisibility(plItem, 0.3, false);
-				else
-					updateLegendAndGraphVisibility(plItem, 1.0, true);
-			}
+			m_selLegendItemList.removeOne(ptliU);
+			m_selLegendItemList.removeOne(ptliP);
 		}
-		m_nonlinearScaledPlot->replot();
+		for (int i = 0; i < legendU->itemCount(); ++i)
+		{
+			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
+				legendU->item(i));
+			if (!m_selLegendItemList.contains(ptli))
+				updateLegendAndGraphVisibility(ptli, plotP, i, 0.3, false);
+		}
 	}
-	else if ((e->button() == Qt::RightButton) && !cb_showFbp->isChecked() && m_selLegendItemList.size() > 0)
+	else if ((e->button() == Qt::RightButton) && 
+		!cb_showFbp->isChecked() && m_selLegendItemList.size() > 0)
 	{
 		m_selLegendItemList.clear();
-		for (int i = 0; i < legend->itemCount(); ++i)
+		for (int i = 0; i < legendU->itemCount(); ++i)
 		{
-			QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(legend->item(i));
-			updateLegendAndGraphVisibility(plItem, 1.0, true);
+			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
+				legendU->item(i));
+			updateLegendAndGraphVisibility(ptli, plotP, i, 1.0, true);
 		}
-		m_nonlinearScaledPlot->replot();
 	}
+	m_nonlinearScaledPlot->replot();
 }
 
 void dlg_DatasetComparator::selectCompLevel()
@@ -1283,7 +1306,8 @@ void dlg_DatasetComparator::selectCompLevel()
 	{
 		QMessageBox msgBox;
 		msgBox.setText("Lower/upper ranges are flipped.");
-		msgBox.setInformativeText("Should Dataset Comparator automatically correct the ranges and proceed?");
+		msgBox.setInformativeText("Should Dataset Comparator automatically correct "
+			"the ranges and proceed?");
 		msgBox.setWindowTitle("Dataset Comparator");
 		msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 		int ret = msgBox.exec();

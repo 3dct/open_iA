@@ -68,13 +68,16 @@ const MapPathNames2PathID PathNameToId = fill_PathNameToId();
 
 const double golden_ratio = 0.618033988749895;
 
-inline void updateLegendAndGraphVisibility(QCPPlottableLegendItem *plItem, float alpha, bool visibility)
+inline void updateLegendAndGraphVisibility(QCPPlottableLegendItem *ptliU, QCustomPlot *plotP,
+	int legendPItemIdx,  float alpha, bool visibility)
 {
-	QCPGraph *g = qobject_cast<QCPGraph*>(plItem->plottable());
-	QColor c = plItem->textColor();
+	QCPGraph *g = qobject_cast<QCPGraph*>(ptliU->plottable());
+	QColor c = ptliU->textColor();
 	c.setAlphaF(alpha);
-	plItem->setTextColor(c);
+	ptliU->setTextColor(c);
+	plotP->legend->item(legendPItemIdx)->setTextColor(c);
 	g->setVisible(visibility);
+	plotP->graph(legendPItemIdx)->setVisible(visibility);
 }
 
 inline QPen getDatasetPen(int datasetIdx, int datasetCnt, int penWidth, QString themeName)
