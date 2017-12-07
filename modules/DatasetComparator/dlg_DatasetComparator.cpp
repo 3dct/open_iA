@@ -64,7 +64,7 @@
 //#include <sys/timeb.h>
 //#include "iAConsole.h"
 
-const double impInitValue = 0.025;
+const double impInitValue = 0.0025;
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -77,7 +77,8 @@ void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	r->GetActors2D()->GetLastActor2D()->SetPosition(r_centerX, r_centerY);
 }
 
-dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */ )
+dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/,
+	QDir datasetsDir, Qt::WindowFlags f /*= 0 */ )
 	: DatasetComparatorConnector( parent, f ), 
 	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir),
@@ -207,36 +208,6 @@ void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 	m_scalingWidget->update();
 }
 
-void dlg_DatasetComparator::syncLinearYAxis(QCPRange nonlinearYRange)
-{
-	QCPRange boundedRange = nonlinearYRange;
-	if (nonlinearYRange.lower < m_minEnsembleIntensity && 
-		nonlinearYRange.upper > m_maxEnsembleIntensity)
-	{
-		boundedRange.lower = m_minEnsembleIntensity;
-		boundedRange.upper = m_maxEnsembleIntensity;
-		m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
-		return;
-	}
-	if (nonlinearYRange.lower < m_minEnsembleIntensity)
-	{
-		boundedRange.lower = m_minEnsembleIntensity;
-		boundedRange.upper = m_minEnsembleIntensity + nonlinearYRange.size();
-		if (boundedRange.upper > m_maxEnsembleIntensity)
-			boundedRange.upper = m_maxEnsembleIntensity;
-		m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
-	}
-	else if (nonlinearYRange.upper > m_maxEnsembleIntensity)
-	{
-		boundedRange.lower = m_maxEnsembleIntensity - nonlinearYRange.size();
-		boundedRange.upper = m_maxEnsembleIntensity;
-		if (boundedRange.lower < m_minEnsembleIntensity)
-			boundedRange.lower = m_minEnsembleIntensity;
-		m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
-	}
-	m_linearScaledPlot->yAxis->setRange(boundedRange);
-}
-
 void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 {
 	QCPRange boundedRange = linearXRange;
@@ -297,34 +268,42 @@ void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 	m_scalingWidget->update();
 }
 
-void dlg_DatasetComparator::syncNonlinearYAxis(QCPRange linearYRange)
+void dlg_DatasetComparator::syncYAxis(QCPRange linearYRange)
 {
+	QCPAxis *axis = qobject_cast<QCPAxis*>(QObject::sender());
+	QCustomPlot *plotU = qobject_cast<QCustomPlot*>(axis->parentPlot());
+	QCustomPlot *plotP;
+	plotU == m_linearScaledPlot ?
+		plotP = m_nonlinearScaledPlot :
+		plotP = m_linearScaledPlot;
 	QCPRange boundedRange = linearYRange;
-	if (linearYRange.lower < m_minEnsembleIntensity &&
-		linearYRange.upper > m_maxEnsembleIntensity)
+	double lowerLimit = m_minEnsembleIntensity - 1000;
+	double upperLimit = m_maxEnsembleIntensity + 1000;
+	if (linearYRange.lower <  lowerLimit &&
+		linearYRange.upper > upperLimit)
 	{
-		boundedRange.lower = m_minEnsembleIntensity;
-		boundedRange.upper = m_maxEnsembleIntensity;
-		m_linearScaledPlot->yAxis->setRange(boundedRange);
+		boundedRange.lower = lowerLimit;
+		boundedRange.upper = upperLimit;
+		plotU->yAxis->setRange(boundedRange);
 		return;
 	}
-	if (linearYRange.lower < m_minEnsembleIntensity)
+	if (linearYRange.lower < lowerLimit)
 	{
-		boundedRange.lower = m_minEnsembleIntensity;
-		boundedRange.upper = m_minEnsembleIntensity + linearYRange.size();
-		if (boundedRange.upper > m_maxEnsembleIntensity)
-			boundedRange.upper = m_maxEnsembleIntensity;
-		m_linearScaledPlot->yAxis->setRange(boundedRange);
+		boundedRange.lower = lowerLimit;
+		boundedRange.upper = lowerLimit + linearYRange.size();
+		if (boundedRange.upper > upperLimit)
+			boundedRange.upper = upperLimit;
+		plotU->yAxis->setRange(boundedRange);
 	}
-	else if (linearYRange.upper > m_maxEnsembleIntensity)
+	else if (linearYRange.upper > upperLimit)
 	{
-		boundedRange.lower = m_maxEnsembleIntensity - linearYRange.size();
-		boundedRange.upper = m_maxEnsembleIntensity;
-		if (boundedRange.lower < m_minEnsembleIntensity)
-			boundedRange.lower = m_minEnsembleIntensity;
-		m_linearScaledPlot->yAxis->setRange(boundedRange);
+		boundedRange.lower = upperLimit - linearYRange.size();
+		boundedRange.upper = upperLimit;
+		if (boundedRange.lower < lowerLimit)
+			boundedRange.lower = lowerLimit;
+		plotU->yAxis->setRange(boundedRange);
 	}
-	m_nonlinearScaledPlot->yAxis->setRange(boundedRange);
+	plotP->yAxis->setRange(boundedRange);
 }
 
 void dlg_DatasetComparator::setupLinearScaledPlot()
@@ -456,7 +435,7 @@ void dlg_DatasetComparator::setupDebugPlot()
 void dlg_DatasetComparator::setupPlotConnections()
 {
 	connect(m_nonlinearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncLinearXAxis(QCPRange)));
-	connect(m_nonlinearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncLinearYAxis(QCPRange)));
+	connect(m_nonlinearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncYAxis(QCPRange)));
 	connect(m_nonlinearScaledPlot, SIGNAL(afterReplot()), m_linearScaledPlot, SLOT(replot()));
 	connect(m_nonlinearScaledPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 	connect(m_nonlinearScaledPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
@@ -468,7 +447,7 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_nlVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
 
 	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearXAxis(QCPRange)));
-	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncNonlinearYAxis(QCPRange)));
+	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncYAxis(QCPRange)));
 	connect(m_linearScaledPlot, SIGNAL(afterReplot()), m_nonlinearScaledPlot, SLOT(replot()));
 	connect(m_linearScaledPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 	connect(m_linearScaledPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
@@ -1354,8 +1333,6 @@ void dlg_DatasetComparator::selectCompLevel()
 
 void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
 {
-	// TODO: last hilbert index ist not show when slected 
-	// (also when selected via comp level selection)
 	auto datasetsList = m_datasetsDir.entryList();
 	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
 	{

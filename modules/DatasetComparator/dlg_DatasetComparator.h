@@ -67,9 +67,8 @@ public slots:
 	void setSelectionForPlots(vtkPoints* selCellPoints);
 	void showBkgrdThrLine();
 	void syncLinearXAxis(QCPRange);
-	void syncLinearYAxis(QCPRange);
 	void syncNonlinearXAxis(QCPRange);
-	void syncNonlinearYAxis(QCPRange);
+	void syncYAxis(QCPRange);
 	void changePlotVisibility();
 	void selectCompLevel();
 
