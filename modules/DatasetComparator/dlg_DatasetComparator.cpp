@@ -270,8 +270,8 @@ void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 
 void dlg_DatasetComparator::syncYAxis(QCPRange linearYRange)
 {
-	QCPAxis *axis = qobject_cast<QCPAxis*>(QObject::sender());
-	QCustomPlot *plotU = qobject_cast<QCustomPlot*>(axis->parentPlot());
+	QCPAxis *axis = qobject_cast<QCPAxis *>(QObject::sender());
+	QCustomPlot *plotU = qobject_cast<QCustomPlot *>(axis->parentPlot());
 	QCustomPlot *plotP;
 	plotU == m_linearScaledPlot ?
 		plotP = m_nonlinearScaledPlot :
@@ -439,6 +439,7 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_nonlinearScaledPlot, SIGNAL(afterReplot()), m_linearScaledPlot, SLOT(replot()));
 	connect(m_nonlinearScaledPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 	connect(m_nonlinearScaledPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
+	connect(m_nonlinearScaledPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)));
 	connect(m_nonlinearScaledPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
 	connect(m_nonlinearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
@@ -451,6 +452,7 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_linearScaledPlot, SIGNAL(afterReplot()), m_nonlinearScaledPlot, SLOT(replot()));
 	connect(m_linearScaledPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress(QMouseEvent*)));
 	connect(m_linearScaledPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
+	connect(m_linearScaledPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)));
 	connect(m_linearScaledPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChangedByUser()));
 	connect(m_linearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
@@ -1018,13 +1020,21 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 	m_linearScaledPlot->layer("cursor")->replot();
 }
 
-template <typename T>
-void setVoxelIntensity(
-	vtkImageData* inputImage, unsigned int x, unsigned int y, 
-	unsigned int z, double intensity)
+void dlg_DatasetComparator::mouseWheel(QWheelEvent* e)
 {
-	T *v = static_cast< T* >(inputImage->GetScalarPointer(x, y, z));
-	*v = intensity;
+	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
+	switch (e->modifiers())
+	{
+		case Qt::AltModifier:
+			plot->axisRect()->setRangeZoom(Qt::Vertical);
+			break;
+		case Qt::ControlModifier:
+			plot->axisRect()->setRangeZoom(Qt::Horizontal);
+			break;
+		default:
+			plot->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+			break;
+	}
 }
 
 void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData)
@@ -1329,6 +1339,15 @@ void dlg_DatasetComparator::selectCompLevel()
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
+}
+
+template <typename T>
+void setVoxelIntensity(
+	vtkImageData* inputImage, unsigned int x, unsigned int y,
+	unsigned int z, double intensity)
+{
+	T *v = static_cast< T* >(inputImage->GetScalarPointer(x, y, z));
+	*v = intensity;
 }
 
 void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)

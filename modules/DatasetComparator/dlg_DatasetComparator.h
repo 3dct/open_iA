@@ -56,6 +56,7 @@ public:
 public slots:
 	void mousePress(QMouseEvent*);
 	void mouseMove(QMouseEvent*);
+	void mouseWheel(QWheelEvent*);
 	void setFbpTransparency(int);
 	void showFBPGraphs();
 	void visualize();
