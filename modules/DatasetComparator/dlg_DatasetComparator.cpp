@@ -915,7 +915,7 @@ bool dlg_DatasetComparator::eventFilter(QObject* o, QEvent* e)
 void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 {
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
-	if ((e->modifiers() & Qt::ControlModifier) == Qt::ControlModifier)
+	if (e->modifiers() == Qt::ControlModifier)
 		plot->setSelectionRectMode(QCP::srmSelect);
 	else
 		plot->setSelectionRectMode(QCP::srmNone);
@@ -1339,7 +1339,9 @@ void dlg_DatasetComparator::selectCompLevel()
 			m_impFunctVec[i] <= sb_UpperCompLevelThr->value() &&
 			sectionStart == -1.0)
 		{
-			sectionStart = i;
+			sectionStart = i-1;
+			if (sectionStart < 0)
+				sectionStart = 0;
 		}
 		else if ((m_impFunctVec[i] >= sb_LowerCompLevelThr->value() || 
 			m_impFunctVec[i] <= sb_LowerCompLevelThr->value()) &&
@@ -1401,7 +1403,7 @@ void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGrap
 				bool showVoxel = false;
 				for (int j = 0; j < selHilberIndices.size(); ++j)
 				{
-					if (i >= selHilberIndices.at(j).begin() && i < selHilberIndices.at(j).end())
+					if (i > selHilberIndices.at(j).begin() && i < selHilberIndices.at(j).end())
 					{
 						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
 							data[i].x, data[i].y, data[i].z, data[i].intensity);
