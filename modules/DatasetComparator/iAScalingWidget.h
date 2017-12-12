@@ -57,7 +57,8 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	double m_linearBarCursorPos, m_nonlinearBarCursorPos, m_nonlinearLowerIdx,
 		m_nonlinearUpperIdx, m_nonlinearLowerRest, m_nonlinearUpperRest,
-		m_linearLowerRest, m_linearUpperRest;
+		m_linearLowerRest, m_linearUpperRest, m_prevNonlinearBarStartPos, 
+		m_prevLinearBarStartPos;
 	QList<QCPRange> m_bkgrdRangeList;
 	QCPDataSelection m_sel;
 };

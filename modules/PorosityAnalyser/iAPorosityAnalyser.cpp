@@ -404,5 +404,4 @@ void iAPorosityAnalyser::message( QString text )
 //				masksData.setItem( lastRow, 0, new QTableWidgetItem( fi.absoluteFilePath() ) );
 //			}
 //	}
-//	iACSVToQTableWidgetConverter::saveToCSVFile( masksData, "C:/Users/p41036/Desktop/masks.csv" );
 //}

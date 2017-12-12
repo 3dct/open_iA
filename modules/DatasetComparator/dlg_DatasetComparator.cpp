@@ -1446,7 +1446,6 @@ void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGrap
 			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
-
 		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[idx]));
 		m_volRen->ApplySettings(m_mdiChild->GetVolumeSettings());
 		m_volRen->AddTo(ren);

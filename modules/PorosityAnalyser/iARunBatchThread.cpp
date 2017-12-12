@@ -651,7 +651,6 @@ int computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, R
 	}
 
 	results.surroundingMaskImage = connThrfilter->GetOutput();
-	//iAITKIO::writeFile( "C:/Users/p41036/Desktop/mask.mhd", connThrfilter->GetOutput(), itk::ImageIOBase::CHAR, true );
 	results.surroundingMaskImage->Modified();
 	results.maskImage = image;
 	results.maskImage->Modified();
@@ -731,8 +730,6 @@ int computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId,
 	typename CastFilterType::Pointer caster = CastFilterType::New();
 	caster->SetInput( gadsfilter->GetOutput() );
 	caster->Update();
-
-	// iAITKIO::writeFile( "C:/Users/p41036/Desktop/smooth_cast.mhd", caster->GetOutput(), itk::ImageIOBase::USHORT, true );
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
