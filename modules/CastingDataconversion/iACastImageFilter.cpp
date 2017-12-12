@@ -33,6 +33,7 @@
 #include <itkLabelToRGBImageFilter.h>
 #include <itkRGBPixel.h>
 #include <itkRGBAPixel.h>
+#include <itkStatisticsImageFilter.h>
 
 class myRGBATypeException : public std::exception
 {
@@ -114,24 +115,39 @@ template<class T> void CastImage_template(std::string datatype, iAProgress* p, i
 }
 
 template <class InT, class OutT>
-void DataTypeConversion_template2(float min, float max, double outmin, double outmax, bool dov, iAProgress* p, iAConnector* con)
+void DataTypeConversion_template2(bool autoInMinMax, double inMin, double inMax,
+	bool autoOutMinMax, double outMin, double outMax,
+	iAProgress* p, iAConnector* con)
 {
 	typedef itk::Image<InT, DIM>   InputImageType;
 	typedef itk::Image<OutT, DIM> OutputImageType;
 	typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
 	typename RIIFType::Pointer filter = RIIFType::New();
 	filter->SetInput(dynamic_cast<InputImageType *>(con->GetITKImage()));
-	filter->SetInputMinimum(min);
-	filter->SetInputMaximum(max);
-	if (dov)
+	if (autoInMinMax)
+	{
+		typedef itk::StatisticsImageFilter<InputImageType> StatisticsImageFilterType;
+		auto minMaxFilter = StatisticsImageFilterType::New();
+		minMaxFilter->ReleaseDataFlagOff();
+		minMaxFilter->SetInput(dynamic_cast<InputImageType *>(con->GetITKImage()));
+		minMaxFilter->Update();
+		filter->SetInputMinimum(minMaxFilter->GetMinimum());
+		filter->SetInputMaximum(minMaxFilter->GetMaximum());
+	}
+	else
+	{
+		filter->SetInputMinimum(inMin);
+		filter->SetInputMaximum(inMax);
+	}
+	if (autoOutMinMax)
 	{
 		filter->SetOutputMinimum(std::numeric_limits<OutT>::lowest());
 		filter->SetOutputMaximum(std::numeric_limits<OutT>::max());
 	}
 	else
 	{
-		filter->SetOutputMinimum(outmin);
-		filter->SetOutputMaximum(outmax);
+		filter->SetOutputMinimum(outMin);
+		filter->SetOutputMaximum(outMax);
 	}
 	p->Observe(filter);
 	filter->Update();
@@ -141,55 +157,58 @@ void DataTypeConversion_template2(float min, float max, double outmin, double ou
 }
 
 template<class T>
-void DataTypeConversion_template(std::string datatype, float min, float max, double outmin, double outmax, bool dov, iAProgress* p, iAConnector* con)
+void DataTypeConversion_template(std::string datatype,
+	bool autoInMinMax, double inMin, double inMax,
+	bool autoOutMinMax, double outMin, double outMax,
+	iAProgress* p, iAConnector* con)
 {
 	if (datatype.compare("VTK_UNSIGNED_CHAR") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned char>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, unsigned char>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_CHAR") == 0 || datatype.compare("VTK_SIGNED_CHAR") == 0)
 	{
-		DataTypeConversion_template2<T, char>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, char>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_SHORT") == 0)
 	{
-		DataTypeConversion_template2<T, short>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, short>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_SHORT") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned short>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, unsigned short>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_INT") == 0)
 	{
-		DataTypeConversion_template2<T, int>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, int>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_INT") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned int>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, unsigned int>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_LONG") == 0)
 	{
-		DataTypeConversion_template2<T, long>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, long>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_LONG") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned long>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, unsigned long>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_LONG_LONG") == 0 || datatype.compare("VTK__INT64") == 0)
 	{
-		DataTypeConversion_template2<T, long long>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, long long>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_LONG_LONG") == 0 || datatype.compare("VTK_UNSIGNED__INT64") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned long long>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, unsigned long long>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_FLOAT") == 0)
 	{
-		DataTypeConversion_template2<T, float>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, float>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else if (datatype.compare("VTK_DOUBLE") == 0)
 	{
-		DataTypeConversion_template2<T, double>(min, max, outmin, outmax, dov, p, con);
+		DataTypeConversion_template2<T, double>(autoInMinMax, inMin, inMax, autoOutMinMax, outMin, outMax, p, con);
 	}
 	else
 	{
@@ -249,6 +268,7 @@ void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	{
 		ITK_TYPED_CALL(DataTypeConversion_template, pixelType,
 			parameters["Data Type"].toString().toStdString(),
+			parameters["Automatic Input Range"].toBool(),
 			parameters["Input Min"].toDouble(),
 			parameters["Input Max"].toDouble(),
 			parameters["Output Min"].toDouble(),
@@ -266,10 +286,14 @@ void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 
 iACastImageFilter::iACastImageFilter() :
 	iAFilter("Datatype Conversion", "",
-		"Converts image to another datatype.<br/><em>Rescale Range</em> determines whether the intensities are transformed in that process."
-		"Input Minimum and Maximum and Output Minimum amd Maximum are only applicable in the case that Rescale Ranges is checked.<br/>"
-		"If <em>Use Full Output Range</em> is checked, then Output Min and Max are ignored, instead the minimum and maximum possible values "
-		"of the chosen output datatype are used.<br/>"
+		"Converts an image to another datatype.<br/>"
+		"<em>Rescale Range</em> determines whether the intensity values are transformed to another range in that process."
+		"All parameters below are only considered in the case that Rescale Ranges is enabled; if it is disabled, the "
+		"intensity values stay the same (to the extent that they can be represented in the output datatype).<br/>"
+		"<em>Input Minimum</em> and <em>Input Maximum</em> allow to specify the start and end of the input range; "
+		"if you want to just use the minimum and maximum of the input image here, enable <em>Automatic Input Range</em>."
+		"If <em>Use Full Output Range</em> is checked, then <em>Output Minimum</em> and <em>Maximum</em> are ignored, "
+		"instead the minimum and maximum possible values of the chosen output datatype are used.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CastImageFilter.html\">"
 		"Cast Image Filter</a> and the "
@@ -296,6 +320,7 @@ iACastImageFilter::iACastImageFilter() :
 		<< ("Label image to color-coded RGBA image"));
 	AddParameter("Data Type", Categorical, datatypes);
 	AddParameter("Rescale Range", Boolean, false);
+	AddParameter("Automatic Input Range", Boolean, false);
 	AddParameter("Input Min", Continuous, 0);
 	AddParameter("Input Max", Continuous, 1);
 	AddParameter("Use Full Output Range", Boolean, true);

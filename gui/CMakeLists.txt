@@ -113,11 +113,18 @@ IF (MSVC)
 		ENDIF()
 	ENDIF()
 
-	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)	# find a way to update this if required
+	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_DBG_ENV_PATH}")
+		MESSAGE(STATUS "Updating environment variables in .user files")
+		# force cmake to copy the files:
+		file(REMOVE ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)
+		file(REMOVE ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)
+		# create .user files:
 		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/gui/open_iA.vcxproj.user ${CMAKE_BINARY_DIR}/gui @ONLY)
-	ENDIF ()
-	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)		# find a way to update this if required
-		CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/gui/ALL_BUILD.vcxproj.user ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user )
+		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/gui/ALL_BUILD.vcxproj.user ${CMAKE_BINARY_DIR}/ @ONLY)
+		# make sure visual studio reloads the projects:
+		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj)
+		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj)
+		SET (CACHED_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
 	ENDIF ()
 ENDIF (MSVC)
 

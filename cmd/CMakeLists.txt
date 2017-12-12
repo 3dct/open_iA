@@ -103,8 +103,14 @@ IF (MSVC)
 		ENDIF()
 	ENDIF()
 
-	IF (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj.user)	# find a way to update this if required
-		CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmd/open_iA_cmd.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
+	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_DBG_ENV_PATH}")
+		# force cmake to copy the files:
+		file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj.user)
+		# create .user files:
+		CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmd/open_iA_cmd.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR}/ @ONLY)
+		# make sure visual studio reloads the projects:
+		execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj.user)
+		SET (CACHED_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
 	ENDIF ()
 ENDIF (MSVC)
 
