@@ -271,9 +271,9 @@ void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			parameters["Automatic Input Range"].toBool(),
 			parameters["Input Min"].toDouble(),
 			parameters["Input Max"].toDouble(),
+			parameters["Use Full Output Range"].toBool(),
 			parameters["Output Min"].toDouble(),
 			parameters["Output Max"].toDouble(),
-			parameters["Use Full Output Range"].toBool(),
 			m_progress, m_con);
 	}
 	else
