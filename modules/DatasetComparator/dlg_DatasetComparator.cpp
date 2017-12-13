@@ -569,13 +569,13 @@ void dlg_DatasetComparator::visualize()
 	m_linearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
 	m_linearDataPointInfo->setLayer("cursor");
 	m_linearDataPointInfo->setVisible(true);
-	m_linearDataPointInfo->setColor(Qt::red);
+	m_linearDataPointInfo->setColor(QColor(255, 128, 0));
 
 	m_linearIdxLine = new QCPItemStraightLine(m_linearScaledPlot);
 	m_linearIdxLine->setVisible(true);
 	m_linearIdxLine->setAntialiased(false);
 	m_linearIdxLine->setLayer("cursor");
-	m_linearIdxLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
+	m_linearIdxLine->setPen(QPen(QColor(255, 128, 0), 1.5, Qt::SolidLine));
 	m_linearIdxLine->point1->setTypeX(QCPItemPosition::ptPlotCoords);
 	m_linearIdxLine->point1->setTypeY(QCPItemPosition::ptAxisRectRatio);
 	m_linearIdxLine->point1->setAxes(m_linearScaledPlot->xAxis, m_linearScaledPlot->yAxis);
@@ -629,13 +629,13 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
 	m_nonlinearDataPointInfo->setLayer("cursor");
 	m_nonlinearDataPointInfo->setVisible(true);
-	m_nonlinearDataPointInfo->setColor(Qt::red);
+	m_nonlinearDataPointInfo->setColor(QColor(255, 128, 0));
 
 	m_nonlinearIdxLine = new QCPItemStraightLine(m_nonlinearScaledPlot);
 	m_nonlinearIdxLine->setVisible(true);
 	m_nonlinearIdxLine->setAntialiased(false);
 	m_nonlinearIdxLine->setLayer("cursor");
-	m_nonlinearIdxLine->setPen(QPen(Qt::red, 1.5, Qt::SolidLine));
+	m_nonlinearIdxLine->setPen(QPen(QColor(255, 128, 0), 1.5, Qt::SolidLine));
 	m_nonlinearIdxLine->point1->setTypeX(QCPItemPosition::ptPlotCoords);
 	m_nonlinearIdxLine->point1->setTypeY(QCPItemPosition::ptAxisRectRatio);
 	m_nonlinearIdxLine->point1->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
@@ -1097,7 +1097,7 @@ void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* 
 	m_nonlinearScaledPlot->graph()->setVisible(false);
 	m_nonlinearScaledPlot->graph()->removeFromLegend();
 	m_nonlinearScaledPlot->graph()->setData(fb_MaxData);
-	m_nonlinearScaledPlot->graph()->setName("Max");
+	m_nonlinearScaledPlot->graph()->setName("Upper Whisker");
 	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(255, 0, 0, 255), 7));
 	m_nonlinearScaledPlot->graph()->setSelectable(QCP::stNone);
 
@@ -1108,7 +1108,7 @@ void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* 
 	m_nonlinearScaledPlot->graph()->setVisible(false);
 	m_nonlinearScaledPlot->graph()->removeFromLegend();
 	m_nonlinearScaledPlot->graph()->setData(fb_MinData);
-	m_nonlinearScaledPlot->graph()->setName("Min");
+	m_nonlinearScaledPlot->graph()->setName("Lower Whisker");
 	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(0, 0, 255, 255), 7));
 	m_nonlinearScaledPlot->graph()->setSelectable(QCP::stNone);
 }
@@ -1221,15 +1221,15 @@ void dlg_DatasetComparator::selectionChangedByUser()
 		plotP = m_nonlinearScaledPlot;
 
 	auto selGraphsList = plotU->selectedGraphs();
-	QList<QCPGraph *> selGraphsAndVisibleList;
+	QList<QCPGraph *> selVisibleGraphsList;
 	for (auto graph : selGraphsList)
 		if (graph->visible())
-			selGraphsAndVisibleList.append(graph);
+			selVisibleGraphsList.append(graph);
 
 	QCPDataSelection sel;
-	if (!selGraphsAndVisibleList.isEmpty())
+	if (!selVisibleGraphsList.isEmpty())
 	{
-		for (auto graph : selGraphsAndVisibleList)
+		for (auto graph : selVisibleGraphsList)
 		{
 			for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
 			{
@@ -1251,7 +1251,7 @@ void dlg_DatasetComparator::selectionChangedByUser()
 			plotP->graph(i)->setSelection(plotU->graph(i)->selection());
 	}
 
-	setSelectionForRenderer(selGraphsAndVisibleList);
+	setSelectionForRenderer(selVisibleGraphsList);
 	m_scalingWidget->setSelection(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
@@ -1366,16 +1366,26 @@ void dlg_DatasetComparator::selectCompLevel()
 		}
 	}
 
+	m_mrvRenWin->GetRenderers()->RemoveAllItems();
+	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
+	m_mrvRenWin->AddRenderer(m_mrvBGRen);
+
 	selCompLvlRanges.dataRanges().size() > 0 ? 
 		m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D()) :
 		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-
-	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)	/*no FBPs*/
+	
+	QList<QCPGraph *> visibleGraphsList;
+	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
 	{
-		m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
-		m_nonlinearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
+		if (m_linearScaledPlot->graph(i)->visible())
+		{
+			m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
+			m_nonlinearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
+			visibleGraphsList.append(m_linearScaledPlot->graph(i));
+		}
 	}
-	setSelectionForRenderer(m_linearScaledPlot->selectedGraphs());
+
+	setSelectionForRenderer(visibleGraphsList);
 	m_scalingWidget->setSelection(selCompLvlRanges);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
@@ -1397,12 +1407,12 @@ void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGrap
 	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
 	{
 		int idx = datasetsList.indexOf(visSelGraphList[i]->name());
-		auto selHilberIndices = visSelGraphList[i]->selection().dataRanges();
+		auto selHilbertIndices = visSelGraphList[i]->selection().dataRanges();
 		auto pathSteps = m_DatasetIntensityMap[idx].second.size();
-		auto  data = m_DatasetIntensityMap[idx].second;
+		auto data = m_DatasetIntensityMap[idx].second;
 		int scalarType = m_imgDataList[idx]->GetScalarType();
 
-		if (selHilberIndices.size() < 1)
+		if (selHilbertIndices.size() < 1)
 		{
 			for (unsigned int i = 0; i < pathSteps; ++i)
 				VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
@@ -1416,9 +1426,9 @@ void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGrap
 			for (unsigned int i = 0; i < pathSteps; ++i)
 			{
 				bool showVoxel = false;
-				for (int j = 0; j < selHilberIndices.size(); ++j)
+				for (int j = 0; j < selHilbertIndices.size(); ++j)
 				{
-					if (i > selHilberIndices.at(j).begin() && i < selHilberIndices.at(j).end())
+					if (i > selHilbertIndices.at(j).begin() && i < selHilbertIndices.at(j).end())
 					{
 						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
 							data[i].x, data[i].y, data[i].z, data[i].intensity);

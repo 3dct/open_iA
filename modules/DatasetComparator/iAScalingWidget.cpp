@@ -188,7 +188,7 @@ void iAScalingWidget::paintGL()
 	painter.drawRect(leftOffset, linearBarStartPosY, linearBarStartPosX, linearBarHeight);
 	painter.setRenderHint(QPainter::Antialiasing, true);
 
-	painter.setPen(QPen(Qt::red, 1.5));
+	painter.setPen(QPen(QColor(255, 128, 0), 1.5));
 	painter.drawLine(m_nonlinearBarCursorPos, nonlinearBarStartPosY, m_nonlinearBarCursorPos, 
 		nonlinearBarStartPosY + nonlinearBarHeight);
 	painter.drawLine(m_nonlinearBarCursorPos, nonlinearBarStartPosY + nonlinearBarHeight, 
@@ -198,6 +198,7 @@ void iAScalingWidget::paintGL()
 
 	if (!m_sel.isEmpty())
 	{
+		painter.setPen(QPen(Qt::red, 1.5));
 		double linearStart, linearWidth, nonlinearStart, nonlinearWidth;
 		for (auto range : m_sel.dataRanges())
 		{
