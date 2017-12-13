@@ -21,7 +21,6 @@
  
 #include "iANonLinearAxisTicker.h"
 
-
 iANonLinearAxisTicker::iANonLinearAxisTicker() :
 	m_tickVector(QVector<double>(0)),
 	m_tickStep(0)

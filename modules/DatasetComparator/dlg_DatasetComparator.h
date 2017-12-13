@@ -29,6 +29,7 @@
 class iAVolumeRenderer;
 class iANonLinearAxisTicker;
 class iAScalingWidget;
+class iAOrientationWidget;
 
 class vtkRenderWindow;
 class vtkTextActor;
@@ -37,7 +38,6 @@ class QVTKWidget;
 class vtkRenderer;
 class vtkLookupTable;
 class vtkScalarBarActor;
-
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
@@ -83,11 +83,21 @@ private:
 	QCustomPlot *m_debugPlot;
 	QToolButton *m_nlVisibilityButton;
 	QToolButton *m_lVisibilityButton;
-
+	iAScalingWidget *m_scalingWidget;
+	iAOrientationWidget * m_orientationWidget;
 	QCPItemText *m_nonlinearDataPointInfo;
 	QCPItemText *m_linearDataPointInfo;
 	QCPItemStraightLine *m_nonlinearIdxLine;
 	QCPItemStraightLine *m_linearIdxLine;
+	QList<QCPPlottableLegendItem*> m_selLegendItemList;
+	QVector<double> m_nonlinearMappingVec;
+	QVector<double> m_impFunctVec;
+	QSharedPointer<QCPGraphDataContainer> m_impFuncPlotData;
+	QSharedPointer<QCPGraphDataContainer> m_integralImpFuncPlotData;
+	QSharedPointer<iANonLinearAxisTicker> m_nonlinearTicker;
+	QList<QCPRange> m_bkgrdThrRangeList;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
@@ -95,19 +105,7 @@ private:
 	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
 	QSharedPointer<iAVolumeRenderer> m_volRen;
-	QList<QCPPlottableLegendItem*> m_selLegendItemList;
-
-	QVector<double> m_nonlinearMappingVec;
-	QVector<double> m_impFunctVec;
-	QSharedPointer<QCPGraphDataContainer> m_impFuncPlotData;
-	QSharedPointer<QCPGraphDataContainer> m_integralImpFuncPlotData;
-	QSharedPointer<iANonLinearAxisTicker> m_nonlinearTicker;
-	QList<QCPRange> m_bkgrdThrRangeList;
-	iAScalingWidget *m_scalingWidget;
-	vtkSmartPointer<vtkLookupTable> m_lut;
-
-	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
-	
+		
 	void generateHilbertIdx();
 	void setupFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
 	void setupNonlinearScaledPlot();

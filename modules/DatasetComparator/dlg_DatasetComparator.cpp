@@ -34,6 +34,7 @@
 #include "iAScalingWidget.h"
 #include "iAPerceptuallyUniformLUT.h"
 #include "iALinearColorGradientBar.h"
+#include "iAOrientationWidget.h"
 
 #include <vtkAbstractVolumeMapper.h>
 #include <vtkActor.h>
@@ -65,6 +66,7 @@
 //#include "iAConsole.h"
 
 const double impInitValue = 0.0025;
+const double offsetY = 1000;
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -89,12 +91,13 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/,
 	m_scalingWidget(0),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New())
 {
-	setupGUIElements();
+	
 	setupNonlinearScaledPlot();
 	setupScalingWidget();
 	setupLinearScaledPlot();
 	//setupDebugPlot();
 	setupPlotConnections();
+	setupGUIElements();
 	setupGUIConnections();
 	setupMultiRendererView();
 	generateHilbertIdx();
@@ -124,6 +127,25 @@ void dlg_DatasetComparator::setupGUIElements()
 	lutLayoutHB->addWidget(colorBar);
 	lutLayoutHB->update();
 	scalarBarWidget->setLayout(lutLayoutHB);
+
+	m_orientationWidget = new iAOrientationWidget(this);
+	horizontalLayout_3->addWidget(m_orientationWidget);
+	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
+		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
+}
+
+void dlg_DatasetComparator::setupGUIConnections()
+{
+	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
+	connect(cb_showFbp, SIGNAL(stateChanged(int)), this, SLOT(showFBPGraphs()));
+	connect(cb_fbpView, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFBPView()));
+	connect(sl_fbpTransparency, SIGNAL(valueChanged(int)), this, SLOT(setFbpTransparency(int)));
+	connect(sb_BkgrdThr, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
+	connect(cb_BkgrdThrLine, SIGNAL(stateChanged(int)), this, SLOT(showBkgrdThrLine()));
+	connect(sb_nonlinearScalingFactor, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
+	connect(pB_selectCompLevel, SIGNAL(clicked()), this, SLOT(selectCompLevel()));
+	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
+	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
 }
 
 void dlg_DatasetComparator::setupScalingWidget()
@@ -277,8 +299,8 @@ void dlg_DatasetComparator::syncYAxis(QCPRange linearYRange)
 		plotP = m_nonlinearScaledPlot :
 		plotP = m_linearScaledPlot;
 	QCPRange boundedRange = linearYRange;
-	double lowerLimit = m_minEnsembleIntensity - 1000;
-	double upperLimit = m_maxEnsembleIntensity + 1000;
+	double lowerLimit = m_minEnsembleIntensity - offsetY;
+	double upperLimit = m_maxEnsembleIntensity + offsetY;
 	if (linearYRange.lower <  lowerLimit &&
 		linearYRange.upper > upperLimit)
 	{
@@ -457,18 +479,6 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_linearScaledPlot, SIGNAL(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)),
 		this, SLOT(legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)));
 	connect(m_lVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
-}
-
-void dlg_DatasetComparator::setupGUIConnections()
-{
-	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
-	connect(cb_showFbp, SIGNAL(stateChanged(int)), this, SLOT(showFBPGraphs()));
-	connect(cb_fbpView, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFBPView()));
-	connect(sl_fbpTransparency, SIGNAL(valueChanged(int)), this, SLOT(setFbpTransparency(int)));
-	connect(sb_BkgrdThr, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
-	connect(cb_BkgrdThrLine, SIGNAL(stateChanged(int)), this, SLOT(showBkgrdThrLine()));
-	connect(sb_nonlinearScalingFactor, SIGNAL(valueChanged(double)), this, SLOT(visualize()));
-	connect(pB_selectCompLevel, SIGNAL(clicked()), this, SLOT(selectCompLevel()));
 }
 
 void dlg_DatasetComparator::changePlotVisibility()
@@ -652,6 +662,9 @@ void dlg_DatasetComparator::visualize()
 	m_scalingWidget->setNonlinearAxis(m_nonlinearScaledPlot->xAxis);
 	m_scalingWidget->setNonlinearScalingVector(m_nonlinearMappingVec, m_impFunctVec);
 	m_scalingWidget->update();
+
+	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
+		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
 
 void dlg_DatasetComparator::showDebugPlot()
@@ -1010,11 +1023,13 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 		m_nonlinearIdxLine->point1->setCoords(nonlinearXCoord, 0.0);
 		m_nonlinearIdxLine->point2->setCoords(nonlinearXCoord, 1.0);
 		m_nonlinearDataPointInfo->position->setCoords(
-			m_nonlinearScaledPlot->xAxis->pixelToCoord(m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord) + 40),
+			m_nonlinearScaledPlot->xAxis->pixelToCoord(
+				m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord) + 40),
 			m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y() - 15));
 		m_nonlinearDataPointInfo->setText(QString("%1, %2").arg(int(x)).arg((int)y));
 
-		m_scalingWidget->setCursorPositions(e->pos().x(), m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));
+		m_scalingWidget->setCursorPositions(e->pos().x(), 
+			m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));
 	}
 	m_nonlinearScaledPlot->layer("cursor")->replot();
 	m_linearScaledPlot->layer("cursor")->replot();

@@ -26,7 +26,6 @@
 
 #include <QPainter>
 
-
 const int nonlinearBarStartPosY = 10;
 const int nonlinearBarHeight = 10;
 const int linearBarHeight = 10;
