@@ -36,7 +36,7 @@
 #include <itkTranslationTransform.h>
 
 template<class T>
-void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images,
+void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	QMap<QString, QVariant> const & parameters, iAFilter* filter)
 {
 	typedef itk::Image< T, DIM > ImageType;
@@ -90,13 +90,28 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images,
 		if (parameters["RMSE"].toBool())
 			filter->AddOutputValue("RMSE", std::sqrt(mse));
 		if (parameters["Normalized RMSE"].toBool())
-			filter->AddOutputValue("Normalized RMSE", std::sqrt(mse) / range );
+			filter->AddOutputValue("Normalized RMSE", std::sqrt(mse) / range);
 
 	}
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool())
 	{
 		double psnr = 20 * std::log10(range) - 10 * log10(mse);
 		filter->AddOutputValue("Peak Signal-to-Noise Ratio", psnr);
+	}
+	if (parameters["Mean Absolute Error"].toBool())
+	{
+		ImageType* img = dynamic_cast<ImageType *>(images[0]->GetITKImage());
+		ImageType* ref = dynamic_cast<ImageType *>(images[1]->GetITKImage());
+		itk::ImageRegionConstIterator<ImageType> imgIt(img, img->GetLargestPossibleRegion());
+		itk::ImageRegionConstIterator<ImageType> refIt(ref, ref->GetLargestPossibleRegion());
+		imgIt.GoToBegin(); refIt.GoToBegin();
+		double diffSum = 0;	size_t count = 0;
+		while (!imgIt.IsAtEnd() && !refIt.IsAtEnd())
+		{
+			diffSum += std::abs(static_cast<double>(refIt.Get() - imgIt.Get()));
+			++imgIt; ++refIt; ++count;
+		}
+		filter->AddOutputValue("Mean Absolute Error", diffSum / count);
 	}
 	if (parameters["Normalized Correlation"].toBool())
 	{
@@ -263,6 +278,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	AddParameter("RMSE", Boolean, true);
 	AddParameter("Normalized RMSE", Boolean, false);
 	AddParameter("Peak Signal-to-Noise Ratio", Boolean, true);
+	AddParameter("Mean Absolute Error", Boolean, true);
 	AddParameter("Normalized Correlation", Boolean, false);
 	AddParameter("Mutual Information", Boolean, false);
 	AddParameter("Histogram Bins", Discrete, 256, 2);
