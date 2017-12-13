@@ -78,7 +78,6 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
 		roiFilter->SetInput(dynamic_cast<InputImageType *>(image->GetITKImage()));
 		roiFilter->SetExtractionRegion(roiRegion);
-		p->Observe(roiFilter);
 		roiFilter->Update();
 
 		typedef itk::Image< T, 2 > ImageType2D;
@@ -116,6 +115,7 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 		outputROISliceIt.GoToBegin();
 		inputIt.GoToBegin();
 		outputIt.GoToBegin();
+		size_t curSlice = 0;
 		while (!inputROIIt.IsAtEnd())
 		{
 			while (!inputROIIt.IsAtEndOfSlice())
@@ -154,19 +154,26 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 			inputIt.NextSlice();
 			outputROISliceIt.GoToBegin();
 			inputROIIt.NextSlice();
+			++curSlice;
+			p->ManualProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
 		}
 		roiFilter->ReleaseDataFlagOn();
 	}
 	else
 	{
+		auto img = dynamic_cast<InputImageType *>(image->GetITKImage());
 		typedef itk::ImageRegionConstIterator< InputImageType > InputIteratorType;
 		typedef itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
-		InputIteratorType inputIt(dynamic_cast<InputImageType *>(image->GetITKImage()),
-			dynamic_cast<InputImageType *>(image->GetITKImage())->GetLargestPossibleRegion());
+		InputIteratorType inputIt(img, img->GetLargestPossibleRegion());
 		OutputIteratorType outputIt(outputImage, outputRegion);
 		
 		inputIt.GoToBegin();
 		outputIt.GoToBegin();
+		auto size = img->GetLargestPossibleRegion().GetSize();
+		size_t voxelCount = size[0] * size[1] * size[2];
+		size_t progressVoxelDist = voxelCount / 100;
+		size_t curVoxel = 0;
+		size_t lastProgressReportVoxel = 0;
 		while (!inputIt.IsAtEnd())
 		{
 			double I = inputIt.Get();
@@ -174,6 +181,12 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 			outputIt.Set(res);
 			++inputIt;
 			++outputIt;
+			++curVoxel;
+			if (curVoxel > (lastProgressReportVoxel + progressVoxelDist))
+			{
+				p->ManualProgress(static_cast<int>((100.0 * curVoxel) / voxelCount));
+				lastProgressReportVoxel = curVoxel;
+			}
 		}
 	}
 	image->SetImage(outputImage);
@@ -183,9 +196,9 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 void iAFreeBeamCalculation::Run(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(freeBeamCalculation_template, m_con->GetITKScalarPixelType(),
-		parameters["Origin X"].toUInt(), parameters["Origin Y"].toUInt(),
+		parameters["Index X"].toUInt(), parameters["Index Y"].toUInt(),
 		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(),
-		parameters["Set intensity manually"].toBool(),
+		parameters["Set I0 manually"].toBool(),
 		parameters["Manual I0"].toDouble(), m_progress, m_con);
 }
 
