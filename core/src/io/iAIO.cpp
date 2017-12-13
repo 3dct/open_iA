@@ -1515,13 +1515,13 @@ bool iAIO::setupVGIReader( QString f )
 
 bool iAIO::writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName)
 {
-	iAConnector con; con.SetImage(getVtkImageData()); con.Modified();
+	iAConnector con; con.SetImage(imgToWrite); con.Modified();
 	try
 	{
 		iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
 		iAConnector::ITKPixelType itkPixelType = con.GetITKPixelType();
 		ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType,
-			compression, fileName, getItkProgress(), getConnector());
+			compression, fileName, getItkProgress(), &con);
 	}
 	catch( itk::ExceptionObject &excep)
 	{
