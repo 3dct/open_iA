@@ -27,10 +27,12 @@
 #include "iATypedCallHelper.h"
 
 #include <itkCastImageFilter.h>
+#include <itkImageRegionConstIterator.h>
 #include <itkImageToHistogramFilter.h>
 #include <itkJoinImageFilter.h>
 #include <itkNormalizedCorrelationImageToImageMetric.h>
 #include <itkMeanSquaresImageToImageMetric.h>
+#include <itkStatisticsImageFilter.h>
 #include <itkTranslationTransform.h>
 
 template<class T>
@@ -46,7 +48,32 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images,
 	interpolator->SetInputImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
 	TransformType::ParametersType params(transform->GetNumberOfParameters());
 
-	if (parameters["Mean Squares"].toBool())
+	double range = 0, imgMean = 0, imgVar = 0, refMean = 0, refVar = 0, mse = 0;
+	if (parameters["Peak Signal-to-Noise Ratio"].toBool() ||
+		parameters["Structural Similarity Index"].toBool() ||
+		parameters["Normalized RMSE"].toBool())
+	{
+		typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
+		auto imgStatFilter = StatisticsImageFilterType::New();
+		imgStatFilter->SetInput(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
+		imgStatFilter->Update();
+		imgMean = imgStatFilter->GetMean();
+		imgVar = imgStatFilter->GetSigma();
+		double imgMin = imgStatFilter->GetMinimum();
+		double imgMax = imgStatFilter->GetMaximum();
+		auto refStatFilter = StatisticsImageFilterType::New();
+		refStatFilter->SetInput(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
+		refStatFilter->Update();
+		refMean = refStatFilter->GetMean();
+		refVar = refStatFilter->GetSigma();
+		double refMin = refStatFilter->GetMaximum();
+		double refMax = refStatFilter->GetMinimum();
+		range = std::max(refMax, imgMax) - std::min(refMin, imgMin);
+	}
+	if (parameters["Mean Squared Error"].toBool() ||
+		parameters["RMSE"].toBool() ||
+		parameters["Normalized RMSE"].toBool() ||
+		parameters["Peak Signal-to-Noise Ratio"].toBool())
 	{
 		typedef itk::MeanSquaresImageToImageMetric<	ImageType, ImageType > MSMetricType;
 		auto msmetric = MSMetricType::New();
@@ -57,8 +84,19 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images,
 		msmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
 		msmetric->Initialize();
-		double msVal = msmetric->GetValue(params);
-		filter->AddOutputValue("Mean Squares Metric", msVal);
+		mse = msmetric->GetValue(params);
+		if (parameters["Mean Squared Error"].toBool())
+			filter->AddOutputValue("Mean Squared Error", mse);
+		if (parameters["RMSE"].toBool())
+			filter->AddOutputValue("RMSE", std::sqrt(mse));
+		if (parameters["Normalized RMSE"].toBool())
+			filter->AddOutputValue("Normalized RMSE", std::sqrt(mse) / range );
+
+	}
+	if (parameters["Peak Signal-to-Noise Ratio"].toBool())
+	{
+		double psnr = 20 * std::log10(range) - 10 * log10(mse);
+		filter->AddOutputValue("Peak Signal-to-Noise Ratio", psnr);
 	}
 	if (parameters["Normalized Correlation"].toBool())
 	{
@@ -171,29 +209,66 @@ void similarity_metrics_template( iAProgress* p, QVector<iAConnector*> images,
 		filter->AddOutputValue("Normalized Mutual Information 1", norMutInf1);
 		filter->AddOutputValue("Normalized Mutual Information 2", norMutInf2);
 	}
-
+	if (parameters["Structural Similarity Index"].toBool())
+	{
+		ImageType* img = dynamic_cast<ImageType *>(images[0]->GetITKImage());
+		ImageType* ref = dynamic_cast<ImageType *>(images[1]->GetITKImage());
+		itk::ImageRegionConstIterator<ImageType> imgIt(img, img->GetLargestPossibleRegion());
+		itk::ImageRegionConstIterator<ImageType> refIt(ref, ref->GetLargestPossibleRegion());
+		imgIt.GoToBegin(); refIt.GoToBegin();
+		double covSum = 0;	size_t count = 0;
+		while (!imgIt.IsAtEnd() && !refIt.IsAtEnd())
+		{
+			covSum += (imgIt.Get() - imgMean) * (refIt.Get() - refMean);
+			++imgIt; ++refIt; ++count;
+		}
+		double covariance = covSum / count;
+		double c1 = std::pow(parameters["Structural Similarity k1"].toDouble() * range, 2);
+		double c2 = std::pow(parameters["Structural Similarity k2"].toDouble() * range, 2);
+		double ssim = ((2 * imgMean * refMean + c1) * (2 * covariance + c2)) /
+			((imgMean * imgMean + refMean * refMean + c1) * (imgVar + refVar + c2));
+		filter->AddOutputValue("Structural Similarity Index", ssim);
+	}
 }
 
 iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"Calculates the similarity between two images according to different metrics.<br/>"
 	"<strong>NOTE</strong>: Normalize the images before calculating the similarity metrics!<br/>"
 	"<a href=\"https://itk.org/Doxygen/html/ImageSimilarityMetricsPage.html\">General information on ITK similarity metrics</a>.<br/>"
-	"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MeanSquaresImageToImageMetric.html\">"
-	"Mean Squares Metric</a>: The optimal value of the metric is zero. Poor matches between images A and B result in large "
-	"values of the metric. This metric relies on the assumption that intensity representing the same homologous point "
-	"must be the same in both images.<br/>"
+	"<em><a href=\"https://itk.org/Doxygen/html/classitk_1_1MeanSquaresImageToImageMetric.html\">"
+	"Mean Squared Error (MSE) Metric</a></em>: The optimal value of the metric is zero, which means that the two input images are equal. "
+	"Poor matches between images A and B result in large values of the metric. This metric relies on the assumption that intensity "
+	"representing the same homologous point must be the same in both images.<br/>"
+	"<em>RMSE</em> (Root Mean Square Error) yields the square root of the MSE, which is the mean absolute difference in intensity, "
+	"which is a more intuitive measure for difference as it is in the same unit as the intensity values of the image. "
+	"The <em>Normalized RMSE</em> yields a value between 0 and 1, where 0 signifies that the images are equal, "
+	"and 1 that the images are as different as possible (that is, that they have the maximum possible difference at each point). "
+	"It is calculated by dividing the RMSE by the maximum possible difference.<br/>"
+	"The <em>Peak Signal-to-Noise Ratio</em> is computed as 10 * log10(max_intensity² / MSE), where MSE is the Mean Squared Error, "
+	"and max_intensity is the maximum possible intensity difference between the two specified images.<br/>"
 	"<a href=\"https://itk.org/Doxygen/html/classitk_1_1NormalizedCorrelationImageToImageMetric.html\">"
 	"Normalized Correlation Metric</a>: Note the −1 factor in the metric computation. This factor is used to make the "
 	"metric be optimal when its minimum is reached.The optimal value of the metric is then minus one. Misalignment "
 	"between the images results in small measure values.<br/>"
 	"More Information on Mutual Information is given in the "
 	"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
-	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471).", 2, 0)
+	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471)."
+	"The <em>Structural Similarity Index</em> Metric (SSIM) is a metric calculated from mean, variance and covariance "
+	"of the two compared images. For more details see e.g. the "
+	"<a href=\"https://en.wikipedia.org/wiki/Structural_similarity\">Structural Similarity index article in wikipedia</a>, "
+	"the two parameters k1 and k2 are used exactly as defined there.",
+	2, 0)
 {
-	AddParameter("Mean Squares", Boolean, true);
+	AddParameter("Mean Squared Error", Boolean, false);
+	AddParameter("RMSE", Boolean, true);
+	AddParameter("Normalized RMSE", Boolean, false);
+	AddParameter("Peak Signal-to-Noise Ratio", Boolean, true);
 	AddParameter("Normalized Correlation", Boolean, false);
 	AddParameter("Mutual Information", Boolean, false);
 	AddParameter("Histogram Bins", Discrete, 256, 2);
+	AddParameter("Structural Similarity Index", Boolean, true);
+	AddParameter("Structural Similarity k1", Continuous, 0.01);
+	AddParameter("Structural Similarity k2", Continuous, 0.03);
 }
 
 IAFILTER_CREATE(iASimilarity)
