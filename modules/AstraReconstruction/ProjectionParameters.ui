@@ -685,10 +685,22 @@
       <string>Corrections</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="CorrectionCenterOfRotation">
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
-         <string>Center of Rotation Correction</string>
+         <string>Offset:</string>
         </property>
        </widget>
       </item>
@@ -708,22 +720,20 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label_3">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="CorrectionCenterOfRotation">
+        <property name="text">
+         <string>Center of Rotation Correction</string>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>50</width>
-          <height>0</height>
-         </size>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="QLabel" name="CorrectionHint">
+        <property name="autoFillBackground">
+         <bool>true</bool>
         </property>
         <property name="text">
-         <string>Offset:</string>
+         <string/>
         </property>
        </widget>
       </item>

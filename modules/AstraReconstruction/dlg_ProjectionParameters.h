@@ -43,4 +43,5 @@ private slots:
 	void centerOfRotationEnabled(int);
 private:
 	QStringList GetDimStringList(int const imgDims[3]);
+	void checkCenterOfRotationCorrection(int algoIdx, bool centerOfRotCorr);
 };
