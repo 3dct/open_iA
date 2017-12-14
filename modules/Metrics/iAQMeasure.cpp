@@ -253,11 +253,10 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 	}
 	if (parameters["Contrast-to-noise ratio"].toBool())
 	{
-		filter->AddOutputValue("Conrast-to-noise ratio", (mean[highestNonAirPeakIdx]- mean[minDistToZeroIdx]) / std::sqrt(variance[minDistToZeroIdx]));
+		filter->AddOutputValue("Contrast-to-noise ratio", (mean[highestNonAirPeakIdx]- mean[minDistToZeroIdx]) / std::sqrt(variance[minDistToZeroIdx]));
 	}
 	if (parameters["Q metric"].toBool())
 	{
-		std::vector<double> q;
 		double Q;
 		for (int p1 = 0; p1 < numberOfPeaks; ++p1)
 		{
