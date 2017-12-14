@@ -1481,6 +1481,8 @@ void MdiChild::enableInteraction( bool b)
 bool MdiChild::editPrefs(iAPreferences const & prefs)
 {
 	preferences = prefs;
+	if (ioThread)	// don't do any updates if image still loading
+		return true;
 	SetHistogramModality(m_currentModality);	// to update Histogram bin count
 	ApplyViewerPreferences();
 	if (isMagicLensToggled())

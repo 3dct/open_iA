@@ -138,62 +138,45 @@ ENDIF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 FIND_PACKAGE(VTK)
 IF(VTK_FOUND)
 	INCLUDE(${VTK_USE_FILE})
-ELSE(VTK_FOUND)
-	MESSAGE(FATAL_ERROR "Cannot build without VTK.  Please set VTK_DIR.")
-ENDIF(VTK_FOUND)
-IF(VTK_VERSION_MAJOR LESS 6)
-	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 6.0")
-ENDIF(VTK_VERSION_MAJOR LESS 6)
-SET (VTK_LIBRARIES
-	vtkCommonCore
-	vtkChartsCore
-	vtkDICOMParser
-	vtkFiltersCore
-	vtkGUISupportQt
-	vtkGUISupportQtOpenGL
-	vtkImagingCore
-	vtkImagingStatistics
-	vtkInfovisCore
-	vtkIOCore
-	vtkIOMovie
-	vtkIOGeometry
-	vtkIOXML
-	vtkRenderingContext2D
-	vtkRenderingImage
-	vtkViewsCore
-	vtkViewsInfovis
-	vtksys)
+ELSE()
+	MESSAGE(FATAL_ERROR "Cannot build without VTK. Please set VTK_DIR.")
+ENDIF()
+IF(VTK_VERSION_MAJOR LESS 7)
+	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 7.0")
+ENDIF()
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 	MESSAGE(STATUS "VTK is using OpenGL2 Backend!")
 	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
 ELSE()
 	MESSAGE(STATUS "VTK is using OpenGL Backend.")
-ENDIF("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRendering${VTK_RENDERING_BACKEND})
-# Libraries introduced with VTK 6.1:
-IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 0)
-	SET (VTK_LIBRARIES ${VTK_LIBRARIES} vtkRenderingCore vtkRenderingFreeType
-		vtkRenderingQt vtkViewsContext2D vtkRenderingVolume${VTK_RENDERING_BACKEND})
 ENDIF()
-# Libraries introduced with VTK 6.2:
-IF (VTK_VERSION_MAJOR GREATER 6 OR VTK_VERSION_MINOR GREATER 1)
-	SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingContext${VTK_RENDERING_BACKEND})
-ENDIF()
-# Libraries introduced with VTK 7.0:
-IF (VTK_VERSION_MAJOR GREATER 6)
-	SET(VTK_LIBRARIES ${VTK_LIBRARIES} vtkFiltersHybrid vtkFiltersModeling vtkRenderingAnnotation)
-ENDIF()
+SET (VTK_LIBRARIES
+	vtkCommonCore
+	vtkChartsCore
+	vtkDICOMParser
+	vtkFiltersCore vtkFiltersHybrid vtkFiltersModeling
+	vtkGUISupportQt vtkGUISupportQtOpenGL vtkRenderingQt
+	vtkImagingCore vtkImagingStatistics
+	vtkInfovisCore
+	vtkIOCore vtkIOMovie vtkIOGeometry vtkIOXML
+	vtkRenderingCore vtkRenderingAnnotation vtkRenderingContext2D vtkRenderingFreeType vtkRenderingImage
+	vtkRenderingContext${VTK_RENDERING_BACKEND} vtkRendering${VTK_RENDERING_BACKEND} vtkRenderingVolume${VTK_RENDERING_BACKEND}
+	vtkViewsCore vtkViewsContext2D vtkViewsInfovis
+	vtksys)
+	SET (VTK_LIBRARIES ${VTK_LIBRARIES}	)
 # Libraries introduced with VTK 7.1:
 IF (VTK_VERSION_MAJOR GREATER 7 OR (VTK_VERSION_MAJOR EQUAL 7 AND VTK_VERSION_MINOR GREATER 0))
 	SET(VTK_LIBRARIES ${VTK_LIBRARIES} vtkImagingHybrid)
 	IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 		SET (VTK_LIBRARIES ${VTK_LIBRARIES}	vtkRenderingGL2PSOpenGL2 vtkgl2ps)
 	ENDIF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-ENDIF (VTK_VERSION_MAJOR GREATER 7 OR (VTK_VERSION_MAJOR EQUAL 7 AND VTK_VERSION_MINOR GREATER 0))
+ENDIF()
 IF (vtkoggtheora_LOADED)
 	MESSAGE(STATUS "Video: Ogg Theora Encoder available")
 	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
-ENDIF(vtkoggtheora_LOADED)
+ELSE()
+	MESSAGE(WARNING "No video encoder available! You will not be able to record videos.")
+ENDIF()
 
 
 # Qt (>= 5)

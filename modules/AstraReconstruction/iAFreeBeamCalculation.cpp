@@ -37,13 +37,12 @@
 #include <qmath.h>
 
 
-template<class T> 
-void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsigned int sizeX, unsigned sizeY,
-	bool manualMeanFreeBeamIntensity, double manualMeanFreeBeamIntensityValue, iAProgress* p, iAConnector* image  )
+template<class InPixelType, class OutPixelType>
+void freeBeamCalculation(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image )
 {
-	double I0 = manualMeanFreeBeamIntensityValue;
-	typedef itk::Image< T, DIM > InputImageType;
-	typedef itk::Image< double, DIM > OutputImageType;
+	double I0 = params["Manual I0"].toDouble();
+	typedef itk::Image< InPixelType, DIM > InputImageType;
+	typedef itk::Image< OutPixelType, DIM > OutputImageType;
 	const OutputImageType::SpacingType& outputSspacing = dynamic_cast<InputImageType *>(image->GetITKImage())->GetSpacing();
 	const OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(image->GetITKImage())->GetOrigin();
 	OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(image->GetITKImage())->GetLargestPossibleRegion();
@@ -53,7 +52,7 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 	outputImage->SetOrigin(outputOrigin);
 	outputImage->Allocate();
 
-	if (!manualMeanFreeBeamIntensity)
+	if (!params["Set I0 manually"].toBool())
 	{
 		unsigned int projectionDirection = 2;
 		unsigned int i, j;
@@ -70,17 +69,17 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 		typedef itk::ExtractImageFilter< InputImageType, InputImageType > EIFType;
 		typename EIFType::Pointer roiFilter = EIFType::New();
 		typename EIFType::InputImageRegionType::SizeType roiSize;
-		roiSize[0] = sizeX;
-		roiSize[1] = sizeY;
+		roiSize[0] = params["Size X"].toUInt();
+		roiSize[1] = params["Size Y"].toUInt();
 		roiSize[2] = image->GetITKImage()->GetLargestPossibleRegion().GetSize()[2];
 		typename EIFType::InputImageRegionType::IndexType roiIndex;
-		roiIndex[0] = indexX; roiIndex[1] = indexY; roiIndex[2] = 0;
+		roiIndex[0] = params["Index X"].toUInt(); roiIndex[1] = params["Index Y"].toUInt(); roiIndex[2] = 0;
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
 		roiFilter->SetInput(dynamic_cast<InputImageType *>(image->GetITKImage()));
 		roiFilter->SetExtractionRegion(roiRegion);
 		roiFilter->Update();
 
-		typedef itk::Image< T, 2 > ImageType2D;
+		typedef itk::Image< InPixelType, 2 > ImageType2D;
 		typename ImageType2D::RegionType roiSliceRegion;
 		typename ImageType2D::RegionType::SizeType roiSliceSize;
 		typename ImageType2D::RegionType::IndexType roiSliceIndex;
@@ -193,13 +192,18 @@ void freeBeamCalculation_template(unsigned int indexX, unsigned int indexY, unsi
 	image->Modified();
 }
 
+template<class InPixelType>
+void freeBeamCalculation_OutType(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
+{
+	if (parameters["Float output"].toBool())
+		freeBeamCalculation<InPixelType, float>(parameters, p, image);
+	else
+		freeBeamCalculation<InPixelType, double>(parameters, p, image);
+}
+
 void iAFreeBeamCalculation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(freeBeamCalculation_template, m_con->GetITKScalarPixelType(),
-		parameters["Index X"].toUInt(), parameters["Index Y"].toUInt(),
-		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(),
-		parameters["Set I0 manually"].toBool(),
-		parameters["Manual I0"].toDouble(), m_progress, m_con);
+	ITK_TYPED_CALL(freeBeamCalculation_OutType, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
 }
 
 IAFILTER_CREATE(iAFreeBeamCalculation)
@@ -213,7 +217,9 @@ iAFreeBeamCalculation::iAFreeBeamCalculation() :
 		"Or you can specify the region for each projection image (assumed to be in "
 		"the XY plane) where there is just air; the mean intensity in that region "
 		"will be taken as I0 image (separately for each projection image)."
-		"Both <em>Index</em> and <em>Size</em> values are in pixel units.<br/>")
+		"Both <em>Index</em> and <em>Size</em> values are in pixel units.<br/>"
+		"If <em>Float output</em> is enabled, then the output will be in float "
+		"datatype, otherwise double will be used.")
 {
 	AddParameter("Index X", Discrete, 0);
 	AddParameter("Index Y", Discrete, 0);
@@ -221,4 +227,5 @@ iAFreeBeamCalculation::iAFreeBeamCalculation() :
 	AddParameter("Size Y", Discrete, 1, 1);
 	AddParameter("Set I0 manually", Boolean, false);
 	AddParameter("Manual I0", Continuous, 0);
+	AddParameter("Float output", Boolean, true);
 }
