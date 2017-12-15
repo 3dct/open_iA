@@ -56,14 +56,14 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
 	connect(m_splom, SIGNAL(currentPointModified(int)), this, SLOT(PointHovered(int)));
 	m_splom->setData(m_tableView->Table());
-	m_splom->setLookupTable(m_lut, "Signal-to-noise ratio");
+	m_splom->setLookupTable(m_lut, "RMSE");
 	m_splom->setParameterVisibility("filename", false);
 	m_splom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 	// set up settings:
 	m_settings->setLayout(new QVBoxLayout());
-	/*
 	QComboBox* lutSourceChoice = new QComboBox();
+	lutSourceChoice->addItem("None");
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
 		lutSourceChoice->addItem(m_tableView->Table()->item(0, c)->text());
 	connect(lutSourceChoice, SIGNAL(currentTextChanged(const QString &)), this, SLOT(SetLUTColumn(const QString &)));
@@ -74,7 +74,6 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	lutSourceLine->setFixedHeight(24);
 	lutSourceLine->layout()->setMargin(0);
 	lutSourceLine->layout()->setSpacing(2);
-	*/
 
 	QWidget* featSelectLine = new QWidget();
 	featSelectLine->setLayout(new iAQFlowLayout());
@@ -91,7 +90,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	featSelectLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_settings->layout()->setMargin(0);
 	m_settings->layout()->setSpacing(0);
-	//m_settings->layout()->addWidget(lutSourceLine);
+	m_settings->layout()->addWidget(lutSourceLine);
 	m_settings->layout()->addWidget(featSelectLine);
 
 	setLayout(new QVBoxLayout());
@@ -110,34 +109,40 @@ void iAParamSPLOMView::SplomSelection(QVector<unsigned int> * selInds)
 
 void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 {
-	int col = -1;
-	for (int c = 0; c < m_tableView->Table()->columnCount(); ++c)
+	if (colName == "None")
 	{
-		if (m_tableView->Table()->item(0, c)->text() == colName)
+		m_lut = vtkSmartPointer<vtkLookupTable>::New();
+	}
+	else
+	{
+		int col = -1;
+		for (int c = 0; c < m_tableView->Table()->columnCount(); ++c)
 		{
-			col = c;
-			break;
+			if (m_tableView->Table()->item(0, c)->text() == colName)
+			{
+				col = c;
+				break;
+			}
 		}
+		if (col == -1)
+		{
+			DEBUG_LOG(QString("Unknown column: %1").arg(colName));
+			return;
+		}
+		double lutRange[2] = { m_tableView->ColumnMin(col), m_tableView->ColumnMax(col) };
+		m_lut->SetRange(lutRange);
+		m_lut->Build();
+		vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
+		double alpha = 0.5;
+		for (vtkIdType i = 0; i < lutColCnt; i++)
+		{
+			double rgba[4]; m_lut->GetTableValue(i, rgba);
+			rgba[3] = alpha;
+			m_lut->SetTableValue(i, rgba);
+		}
+		m_lut->Build();
 	}
-	if (col == -1)
-	{
-		DEBUG_LOG(QString("Unknown column: %1").arg(colName));
-		return;
-	}
-	double lutRange[2] = { m_tableView->ColumnMin(col), m_tableView->ColumnMax(col) };
-	m_lut->SetRange(lutRange);
-	m_lut->Build();
-	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
-	double alpha = 0.5;
-	for (vtkIdType i = 0; i < lutColCnt; i++)
-	{
-		double rgba[4]; m_lut->GetTableValue(i, rgba);
-		rgba[3] = alpha;
-		m_lut->SetTableValue(i, rgba);
-	}
-	m_lut->Build();
 	m_splom->setLookupTable(m_lut, colName);
-	//m_splom->applyLookupTable();
 }
 
 
