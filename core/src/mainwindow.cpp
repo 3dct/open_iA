@@ -226,11 +226,12 @@ void MainWindow::OpenRaw()
 	MdiChild *child = createMdiChild(false);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	path = t;
-	if (child->loadRaw(fileName)) {
+	if (child->loadRaw(fileName))
+	{
 		child->show();
-		child->showMaximized();
 	}
-	else {
+	else
+	{
 		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 		child->close();
 	}
@@ -322,7 +323,6 @@ void MainWindow::LoadFile(QString fileName, bool isStack)
 				MdiChild *child = createMdiChild(false);
 				if (child->loadFile(fileName, false)) {
 					child->show();
-					child->showMaximized();
 				} else {
 					statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 					child->close();
@@ -335,7 +335,6 @@ void MainWindow::LoadFile(QString fileName, bool isStack)
 	MdiChild *child = createMdiChild(false);
 	if (child->loadFile(fileName, isStack)) {
 		child->show();
-		child->showMaximized();
 	}
 	else
 	{
@@ -356,15 +355,15 @@ void MainWindow::LoadFiles(QStringList fileNames)
 
 void MainWindow::save()
 {
-	if (activeMdiChild() && activeMdiChild()->save())
-		statusBar()->showMessage(tr("File saved"), 5000);
+	if (activeMdiChild())
+		activeMdiChild()->save();
 }
 
 
 void MainWindow::saveAs()
 {
-	if (activeMdiChild() && activeMdiChild()->saveAs())
-		statusBar()->showMessage(tr("File saved"), 5000);
+	if (activeMdiChild())
+		activeMdiChild()->saveAs();
 }
 
 
