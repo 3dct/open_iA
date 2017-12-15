@@ -25,6 +25,7 @@
 
 #include "charts/iAQSplom.h"
 #include "iAConsole.h"
+#include "iAPerceptuallyUniformLUT.h"
 #include "iAQFlowLayout.h"
 
 #include <vtkColorTransferFunction.h>
@@ -38,6 +39,14 @@
 #include <QVBoxLayout>
 #include <QTableWidget>
 
+namespace
+{
+	const double DotAlpha = 0.5;
+	const double DefaultColor[4] = {0.0, 0.0, 1.0, DotAlpha};
+	const int EmptyTableValues = 2;
+	const int FullTableValues = 256;
+	const int DefaultColorColumn = 1;
+}
 
 iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView * spatialView) :
 	m_spatialView(spatialView),
@@ -56,7 +65,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
 	connect(m_splom, SIGNAL(currentPointModified(int)), this, SLOT(PointHovered(int)));
 	m_splom->setData(m_tableView->Table());
-	m_splom->setLookupTable(m_lut, "RMSE");
+	SetLUTColumn("None");
 	m_splom->setParameterVisibility("filename", false);
 	m_splom->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -109,13 +118,13 @@ void iAParamSPLOMView::SplomSelection(QVector<unsigned int> * selInds)
 
 void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 {
+	int col = -1;
 	if (colName == "None")
 	{
-		m_lut = vtkSmartPointer<vtkLookupTable>::New();
+		col = DefaultColorColumn;
 	}
 	else
 	{
-		int col = -1;
 		for (int c = 0; c < m_tableView->Table()->columnCount(); ++c)
 		{
 			if (m_tableView->Table()->item(0, c)->text() == colName)
@@ -129,20 +138,27 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 			DEBUG_LOG(QString("Unknown column: %1").arg(colName));
 			return;
 		}
-		double lutRange[2] = { m_tableView->ColumnMin(col), m_tableView->ColumnMax(col) };
+	}
+	double lutRange[2] = { m_tableView->ColumnMin(col), m_tableView->ColumnMax(col) };
+	if (colName == "None")
+	{
 		m_lut->SetRange(lutRange);
-		m_lut->Build();
-		vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
-		double alpha = 0.5;
-		for (vtkIdType i = 0; i < lutColCnt; i++)
+		m_lut->SetTableRange(lutRange);
+		m_lut->SetNumberOfTableValues(2);
+		double rgba[4];
+		for (vtkIdType i = 0; i < 2; i++)
 		{
-			double rgba[4]; m_lut->GetTableValue(i, rgba);
-			rgba[3] = alpha;
+			for (int i = 0; i < 4; ++i)
+				rgba[i] = DefaultColor[i];
 			m_lut->SetTableValue(i, rgba);
 		}
 		m_lut->Build();
 	}
-	m_splom->setLookupTable(m_lut, colName);
+	else
+	{
+		iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT(m_lut, lutRange, FullTableValues);
+	}
+	m_splom->setLookupTable(m_lut, (colName == "None") ? m_tableView->Table()->item(0, 1)->text() : colName );
 }
 
 
