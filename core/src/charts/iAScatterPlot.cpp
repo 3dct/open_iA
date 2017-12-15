@@ -81,7 +81,8 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_curInd( -1 ),
 	m_pointsBuffer( 0 ),
 	m_isMaximizedPlot( isMaximizedPlot ),
-	m_isPreviewPlot( false )
+	m_isPreviewPlot( false ),
+	m_colInd( 0 )
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
