@@ -29,13 +29,6 @@ dlg_ProjectionParameters::dlg_ProjectionParameters()
 }
 
 
-void dlg_ProjectionParameters::algorithmChanged(int idx)
-{
-	AlgorithmIterations->setVisible(idx > 1); // depends on the order of algorithms!
-	AlgorithmIterationsLabel->setVisible(idx > 1);
-}
-
-
 void dlg_ProjectionParameters::fillProjectionGeometryValues(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
 	double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource)
 {
@@ -129,7 +122,28 @@ int dlg_ProjectionParameters::exec()
 }
 
 
+void dlg_ProjectionParameters::checkCenterOfRotationCorrection(int algoIdx, bool centerOfRotCorr)
+{
+	bool invalidState = algoIdx < 2 && centerOfRotCorr;
+	if (invalidState)
+	{
+		CorrectionHint->setText("Center of Rotation correction only works with SIRT and CGLS reconstruction algorithms!");
+	}
+	CorrectionHint->setVisible(invalidState);
+	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!invalidState);
+}
+
+
+void dlg_ProjectionParameters::algorithmChanged(int idx)
+{
+	AlgorithmIterations->setVisible(idx > 1); // depends on the order of algorithms!
+	AlgorithmIterationsLabel->setVisible(idx > 1);
+	checkCenterOfRotationCorrection(idx, CorrectionCenterOfRotation->isChecked());
+}
+
+
 void dlg_ProjectionParameters::centerOfRotationEnabled(int state)
 {
 	CorrectionCenterOfRotationOffset->setEnabled(state == Qt::Checked);
+	checkCenterOfRotationCorrection(AlgorithmType->currentIndex(), state == Qt::Checked);
 }

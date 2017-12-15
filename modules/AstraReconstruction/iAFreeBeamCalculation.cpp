@@ -43,12 +43,12 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAProgress* p, 
 	double I0 = params["Manual I0"].toDouble();
 	typedef itk::Image< InPixelType, DIM > InputImageType;
 	typedef itk::Image< OutPixelType, DIM > OutputImageType;
-	const OutputImageType::SpacingType& outputSspacing = dynamic_cast<InputImageType *>(image->GetITKImage())->GetSpacing();
-	const OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(image->GetITKImage())->GetOrigin();
-	OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(image->GetITKImage())->GetLargestPossibleRegion();
-	OutputImageType::Pointer outputImage = OutputImageType::New();
+	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(image->GetITKImage())->GetSpacing();
+	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(image->GetITKImage())->GetOrigin();
+	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(image->GetITKImage())->GetLargestPossibleRegion();
+	typename OutputImageType::Pointer outputImage = OutputImageType::New();
 	outputImage->SetRegions(outputRegion);
-	outputImage->SetSpacing(outputSspacing);
+	outputImage->SetSpacing(outputSpacing);
 	outputImage->SetOrigin(outputOrigin);
 	outputImage->Allocate();
 
