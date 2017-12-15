@@ -25,6 +25,7 @@
 
 #include "charts/iAQSplom.h"
 #include "iAConsole.h"
+#include "iAQFlowLayout.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
@@ -76,7 +77,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	*/
 
 	QWidget* featSelectLine = new QWidget();
-	featSelectLine->setLayout(new QHBoxLayout());
+	featSelectLine->setLayout(new iAQFlowLayout());
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
 	{
 		QCheckBox* cb = new QCheckBox(m_tableView->Table()->item(0, c)->text());
@@ -87,7 +88,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	}
 	featSelectLine->layout()->setMargin(0);
 	featSelectLine->layout()->setSpacing(2);
-	featSelectLine->setFixedHeight(24);
+	featSelectLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_settings->layout()->setMargin(0);
 	m_settings->layout()->setSpacing(0);
 	//m_settings->layout()->addWidget(lutSourceLine);
