@@ -85,113 +85,69 @@
 const QString iAIO::VolstackExtension(".volstack");
 
 
-/**
- * \param	d		dim.
- * \param	h		headersize.
- * \param	bO		byteorder.
- * \param	e		extent.
- * \param	sp		spacing.
- * \param	o		origin.
-  * \param	s		filename.
- * \param	p		progress information.
- * \param	image	Input image.
- * \param			The.
- * \return	int Status-Code.
- */
-template<class T> int read_raw_image_template ( int d, unsigned long h, int bO,
-											  int* e, double* sp, double* o, QString f, 
-											  iAProgress* p, iAConnector* image  )
+template<class T>
+void read_raw_image_template (unsigned long headerSize,
+	int byteOrder, int* extent, double* spacing, double* origin,
+	QString const & fileName, iAProgress* p, iAConnector* image  )
 {
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
-	typename RawImageIOType::Pointer io = RawImageIOType::New();
-	
-	io->SetFileName(f.toLatin1().data());
-	io->SetHeaderSize(h);
+	auto io = RawImageIOType::New();
+	io->SetFileName(fileName.toLatin1().data());
+	io->SetHeaderSize(headerSize);
 	for(int i=0; i<DIM; i++)
 	{
-		io->SetDimensions(i, e[2*i+1] + 1);
-		io->SetSpacing(i, sp[i]);
-		io->SetOrigin(i, o[i]);
+		io->SetDimensions(i, extent[2*i+1] + 1);
+		io->SetSpacing(i, spacing[i]);
+		io->SetOrigin(i, origin[i]);
 	}
 	
-	if (bO == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
+	if (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
 		io->SetByteOrderToLittleEndian();
 	else
 		io->SetByteOrderToBigEndian();
 	
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-	
-	reader->SetFileName(f.toLatin1().data());
-	reader->SetImageIO(io);
+	auto reader = ReaderType::New();
+	reader->SetFileName(fileName.toLatin1().data());
+	reader->SetImageIO(io);
 	p->Observe( reader );
-	
 	reader->Modified();
 	reader->Update();
-	
 	image->SetImage(reader->GetOutput());
 	image->Modified();
-	
 	reader->ReleaseDataFlagOn();
-	
-	return EXIT_SUCCESS;
 }
 
 
-/**
- * \param	s		filename.
- * \param	p		progress information.
- * \param	image	Input image.
- * \param			The.
- * \return	int Status-Code.
- */
 template<class T> 
-int read_image_template( QString f, iAProgress* p, iAConnector* image  )
+void read_image_template(QString const & fileName, iAProgress* p, iAConnector* image  )
 {
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
-	typename ReaderType::Pointer reader = ReaderType::New();
-	
-	reader->SetFileName(f.toLatin1().data());
-	
+	auto reader = ReaderType::New();
+	reader->SetFileName(fileName.toLatin1().data());
 	p->Observe( reader );
-	
 	reader->Update();
-	
 	image->SetImage(reader->GetOutput());
 	image->Modified();
-	
 	reader->ReleaseDataFlagOn();
-	
-	return EXIT_SUCCESS;
 }
 
 
-/**
- * \param	comp	If to use compression.
- * \param	f		filename.
- * \param	p		progress information.
- * \param	image	Input image.
- * \param			The datatype.
- * \return	int Status-Code.
- */
-template<class T> 
-int write_image_template(  bool comp, QString f, iAProgress* p, iAConnector* image  )
+template<class T>
+void write_image_template(bool compression, QString const & fileName,
+	iAProgress* p, iAConnector* image  )
 {
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileWriter<InputImageType> WriterType;
-	typename WriterType::Pointer writer = WriterType::New();
-	
-	writer->SetFileName(f.toLatin1().data());
+	auto writer = WriterType::New();
+	writer->SetFileName(fileName.toLatin1().data());
 	writer->SetInput( dynamic_cast< InputImageType * > ( image->GetITKImage() ) );
-	writer->SetUseCompression(comp);
+	writer->SetUseCompression(compression);
 	p->Observe( writer );
 	writer->Update();
-
 	writer->ReleaseDataFlagOn();
-	
-	return EXIT_SUCCESS;
 }
 
 
@@ -1132,7 +1088,8 @@ bool iAIO::readRawImage()
 {
 	try
 	{
-		VTK_TYPED_CALL(read_raw_image_template, scalarType, dim, headersize, byteOrder, extent, spacing, origin, fileName, getItkProgress(), getConnector());
+		VTK_TYPED_CALL(read_raw_image_template, scalarType, headersize, byteOrder,
+			extent, spacing, origin, fileName, getItkProgress(), getConnector());
 	}
 	catch (itk::ExceptionObject &excep)
 	{
