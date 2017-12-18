@@ -62,6 +62,8 @@ class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 public:
 	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
 	~MainWindow();
+	static int RunGUI(int argc, char * argv[], QString const & appName, QString const & version,
+		QString const & splashPath, QString const & iconPath);
 	static void InitResources();
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();

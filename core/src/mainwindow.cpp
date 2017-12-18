@@ -2291,12 +2291,6 @@ void MainWindow::childClosed()
 }
 
 
-void MainWindow::InitResources()
-{
-	Q_INIT_RESOURCE(open_iA);
-}
-
-
 void MainWindow::LoadProject()
 {
 	QString fileName = QFileDialog::getOpenFileName(
@@ -2454,4 +2448,40 @@ void MainWindow::LoadTLGICTData(QString const & baseDirectory)
 		return;
 	tlgictLoader->start(createMdiChild(false));
 	// tlgictLoader will delete itself when finished!
+}
+
+
+#include "iAConsole.h"
+#include "iASCIFIOCheck.h"
+#include <QApplication>
+#include <QDate>
+
+
+void MainWindow::InitResources()
+{
+	Q_INIT_RESOURCE(open_iA);
+}
+
+
+int MainWindow::RunGUI(int argc, char * argv[], QString const & appName, QString const & version,
+	QString const & splashPath, QString const & iconPath)
+{
+	MainWindow::InitResources();
+	QApplication app(argc, argv);
+	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+	iAGlobalLogger::SetLogger(iAConsole::GetInstance());
+	MainWindow mainWin(appName, version, splashPath);
+	CheckSCIFIO(QCoreApplication::applicationDirPath());
+	mainWin.LoadArguments(argc, argv);
+	// TODO: unify with logo in slicer/renderer!
+	app.setWindowIcon(QIcon(QPixmap(iconPath)));
+	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
+	if (QDate::currentDate().dayOfYear() >= 340)
+	{
+		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");
+		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
+		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
+	}
+	mainWin.show();
+	return app.exec();
 }

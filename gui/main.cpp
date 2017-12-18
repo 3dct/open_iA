@@ -18,36 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConsole.h"
-#include "iASCIFIOCheck.h"
 #include "mainwindow.h"
 #include "version.h"
 
-#include <QApplication>
-#include <QDate>
-
 int main(int argc, char *argv[])
 {
-	MainWindow::InitResources();
-	QApplication app(argc, argv);
-	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-
-	iAGlobalLogger::SetLogger(iAConsole::GetInstance());
-	MainWindow mainWin("open_iA", VERSION, ":/images/splashscreen.png");
-
-	CheckSCIFIO(QCoreApplication::applicationDirPath());
-
-	mainWin.LoadArguments(argc, argv);
-	// TODO: unify with logo in slicer/renderer!
-	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
-	mainWin.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
-
-	if( QDate::currentDate().dayOfYear() >= 340 ) {
-		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");
-		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
-		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
-	}
-	mainWin.show();
-
-	return app.exec();
+	return MainWindow::RunGUI(argc, argv, "open_iA", VERSION,
+		":/images/splashscreen.png", ":/images/ia.png");
 }
