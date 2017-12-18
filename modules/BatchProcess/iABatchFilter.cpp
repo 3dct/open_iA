@@ -22,6 +22,7 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
+#include "iAConsole.h"
 #include "iAFilterRegistry.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
@@ -80,6 +81,7 @@ iABatchFilter::iABatchFilter():
 	AddParameter("Output csv file", String, "");
 	AddParameter("Append to output", Boolean, true);
 	AddParameter("Add filename", Boolean, true);
+	AddParameter("Continue on error", Boolean, true);
 }
 
 void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
@@ -169,54 +171,64 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	size_t curLine = 0;
 	for (QString fileName : files)
 	{
-		iAITKIO::ScalarPixelType pixelType;
-		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-		inputImages[0]->SetImage(img);
-		filter->Run(filterParams);
-		if (curLine == 0)
+		try
 		{
-			QStringList captions;
-			if (parameters["Add filename"].toBool())
-				captions << "filename";
-			for (auto outValue : filter->OutputValues())
-				captions << outValue.first;
-			if (outputBuffer.empty())
-				outputBuffer.append("");
-			outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");
-			++curLine;
-		}
-		if (curLine >= outputBuffer.size())
-			outputBuffer.append("");
-		QStringList values;
-		QString relFileName = MakeRelative(batchDir, fileName);
-		if (parameters["Add filename"].toBool())
-		{
-			values << relFileName;
-		}
-		for (auto outValue : filter->OutputValues())
-			values.append(outValue.second.toString());
-		QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
-		outputBuffer[curLine] += textToAdd;
-		++curLine;
-		for (int o = 0; o < filter->OutputCount(); ++o)
-		{
-			QFileInfo fi(outDir + "/" + relFileName);
-			QString multiFileSuffix = filter->OutputCount() > 1 ? QString::number(o) : "";
-			QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(fi.baseName())
-				.arg(outSuffix).arg(multiFileSuffix).arg(fi.completeSuffix());
-			int overwriteSuffix = 0;
-			while (!overwrite && QFile(outName).exists())
+			iAITKIO::ScalarPixelType pixelType;
+			iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+			inputImages[0]->SetImage(img);
+			filter->Run(filterParams);
+			if (curLine == 0)
 			{
-				outName = QString("%1/%2%3%4-%5.%6").arg(fi.absolutePath()).arg(fi.baseName())
-					.arg(outSuffix).arg(multiFileSuffix).arg(overwriteSuffix).arg(fi.completeSuffix());
-				++overwriteSuffix;
+				QStringList captions;
+				if (parameters["Add filename"].toBool())
+					captions << "filename";
+				for (auto outValue : filter->OutputValues())
+					captions << outValue.first;
+				if (outputBuffer.empty())
+					outputBuffer.append("");
+				outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");
+				++curLine;
 			}
-			if (!QDir(fi.absolutePath()).exists() && !QDir(fi.absolutePath()).mkpath("."))
-				AddMsg(QString("Error creating output directory %1, skipping writing output file %2")
-					.arg(fi.absolutePath()).arg(outName) );
+			if (curLine >= outputBuffer.size())
+				outputBuffer.append("");
+			QStringList values;
+			QString relFileName = MakeRelative(batchDir, fileName);
+			if (parameters["Add filename"].toBool())
+			{
+				values << relFileName;
+			}
+			for (auto outValue : filter->OutputValues())
+				values.append(outValue.second.toString());
+			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
+			outputBuffer[curLine] += textToAdd;
+			++curLine;
+			for (int o = 0; o < filter->OutputCount(); ++o)
+			{
+				QFileInfo fi(outDir + "/" + relFileName);
+				QString multiFileSuffix = filter->OutputCount() > 1 ? QString::number(o) : "";
+				QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(fi.baseName())
+					.arg(outSuffix).arg(multiFileSuffix).arg(fi.completeSuffix());
+				int overwriteSuffix = 0;
+				while (!overwrite && QFile(outName).exists())
+				{
+					outName = QString("%1/%2%3%4-%5.%6").arg(fi.absolutePath()).arg(fi.baseName())
+						.arg(outSuffix).arg(multiFileSuffix).arg(overwriteSuffix).arg(fi.completeSuffix());
+					++overwriteSuffix;
+				}
+				if (!QDir(fi.absolutePath()).exists() && !QDir(fi.absolutePath()).mkpath("."))
+					AddMsg(QString("Error creating output directory %1, skipping writing output file %2")
+						.arg(fi.absolutePath()).arg(outName));
+				else
+					iAITKIO::writeFile(outName, filter->Connectors()[o]->GetITKImage(),
+						filter->Connectors()[o]->GetITKScalarPixelType(), useCompression);
+			}
+		}
+		catch (std::exception & e)
+		{
+			if (!parameters["Continue on error"].toBool())
+				throw e;
 			else
-				iAITKIO::writeFile(outName, filter->Connectors()[o]->GetITKImage(),
-					filter->Connectors()[o]->GetITKScalarPixelType(), useCompression);
+				DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 		}
 		m_progress->ManualProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}
