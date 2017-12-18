@@ -207,16 +207,16 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 			}
 		}
 		thresholdIndices[m + 1] = minIdx;
-		DEBUG_LOG(QString("Threshold %1: %2 (bin %3)").arg(m).arg(minVal + (minIdx * (maxVal - minVal) / binCount)).arg(minIdx));
+		//DEBUG_LOG(QString("Threshold %1: %2 (bin %3)").arg(m).arg(minVal + (minIdx * (maxVal - minVal) / binCount)).arg(minIdx));
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
-			filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minVal, QColor(180, 90, 90, 182))));
+			filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minIdx, QColor(180, 90, 90, 182))));
 	}
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
-	for (int p = 0; p < numberOfPeaks; ++p)
-		DEBUG_LOG(QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
+	//for (int p = 0; p < numberOfPeaks; ++p)
+	//	DEBUG_LOG(QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
 	if (filter->m_mdiChild)
 		for (int p = 0; p < numberOfPeaks; ++p)
 			filter->m_mdiChild->getHistogram()->addGaussianFunction(mean[p], std::sqrt(variance[p]), 15);
@@ -249,11 +249,11 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 	}
 	if (parameters["Signal-to-noise ratio"].toBool())
 	{
-		filter->AddOutputValue("Signal-to-noise ratio", mean[highestNonAirPeakIdx] / std::sqrt(variance[minDistToZeroIdx]));
+		filter->AddOutputValue("Signal-to-noise ratio", mean[highestNonAirPeakIdx] / std::sqrt(variance[highestNonAirPeakIdx]));
 	}
 	if (parameters["Contrast-to-noise ratio"].toBool())
 	{
-		filter->AddOutputValue("Contrast-to-noise ratio", (mean[highestNonAirPeakIdx]- mean[minDistToZeroIdx]) / std::sqrt(variance[minDistToZeroIdx]));
+		filter->AddOutputValue("Contrast-to-noise ratio", (mean[highestNonAirPeakIdx]- mean[minDistToZeroIdx]) / std::sqrt(variance[highestNonAirPeakIdx]));
 	}
 	if (parameters["Q metric"].toBool())
 	{
@@ -268,7 +268,10 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 				{
 					Q = curQ;
 				}
-				DEBUG_LOG(QString("Q(peak %1, peak %2) = %3").arg(p1).arg(p2).arg(curQ));
+				if (numberOfPeaks > 2)
+				{
+					DEBUG_LOG(QString("Q(peak %1, peak %2) = %3").arg(p1).arg(p2).arg(curQ));
+				}
 			}
 		}
 		filter->AddOutputValue("Q", Q);
