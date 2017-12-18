@@ -36,7 +36,6 @@
 class vtkImageData;
 class vtkMetaImageWriter;
 class vtkPolyData;
-class vtkSTLReader;
 class vtkSTLWriter;
 class vtkStringArray;
 class vtkTable;
@@ -82,9 +81,7 @@ Q_SIGNALS:
 	void failed();
 
 protected:
-	virtual void run();
-
-protected:
+	void run() override;
 	
 private:
 	bool setupRAWReader( QString f );
@@ -97,30 +94,24 @@ private:
 	bool setupVolumeStackVolStackWriter(QString f);
 	void FillFileNameArray(int * indexRange, int digitsInIndex);
 
-	bool readImageStack();
-
+	void readImageStack();
 	void postImageReadActions();
-	bool readRawImage();
-	bool loadMetaImageFile(QString const & fileName);
+	void readRawImage();
+	void loadMetaImageFile(QString const & fileName);
+	void readVolumeStack( );
+	void readVolumeMHDStack( );
+	void readImageData( );
+	void readMetaImage( );
+	void readSTL( );
+	void readDCM( );
+	void readNRRD( );
 
-	bool readVolumeStack( );
-	bool readVolumeMHDStack( );
-	bool readImageData( );
-	bool readMetaImage( );
-	bool readSTL( );
-	bool readDCM( ); 
-	bool writeDCM (); 
-	bool readNRRD( ); 
+	void writeMetaImage( );
+	void writeVolumeStack();
+	void writeSTL( );
+	void writeImageStack( );
 
-	bool writeMetaImage( );
-	bool writeVolumeStack();
-	bool writeSTL( );
-	bool writeImageStack( );
-	
-	void printFileInfos();
 	void printSTLFileInfos();
-
-	vtkSTLReader* stlReader;
 
 	vtkMetaImageWriter *metaImageWriter;
 	

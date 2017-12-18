@@ -37,29 +37,19 @@
 #include <QMessageBox>
 
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
-	: QThread( parent )
+	: QThread( parent ),
+	m_isRunning(false),
+	m_elapsed(0),
+	m_filterName(fn),
+	m_image(idata),
+	m_polyData(p),
+	m_logger(logger),
+	m_itkProgress(new iAProgress)
 {
-	m_elapsed = 0;
-	m_isRunning = false;
-	m_filterName = fn;
-	m_image = idata;
-	m_polyData = p;
-	m_logger = logger;
 	m_connectors.push_back(new iAConnector());
-	m_itkProgress = new iAProgress;
 
 	connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
 	connect(m_itkProgress, SIGNAL( pprogress(int) ), this, SIGNAL( aprogress(int) ));
-}
-
-iAAlgorithm::iAAlgorithm( vtkImageData* idata, vtkPolyData* p, iALogger* logger, QObject *parent )
-: QThread( parent )
-{
-	m_image = idata;
-	m_polyData = p;
-	m_logger = logger;
-	m_connectors.push_back(new iAConnector());
-	m_itkProgress = new iAProgress;
 }
 
 

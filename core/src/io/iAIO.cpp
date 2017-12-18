@@ -88,7 +88,7 @@ const QString iAIO::VolstackExtension(".volstack");
 template<class T>
 void read_raw_image_template (unsigned long headerSize,
 	int byteOrder, int* extent, double* spacing, double* origin,
-	QString const & fileName, iAProgress* p, iAConnector* image  )
+	QString const & fileName, iAProgress* p, iAConnector* image)
 {
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
 	auto io = RawImageIOType::New();
@@ -151,8 +151,9 @@ void write_image_template(bool compression, QString const & fileName,
 }
 
 
-iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
-	: iAAlgorithm( i, p, logger, par ),
+iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par,
+		vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
+	: iAAlgorithm( "IO", i, p, logger, par ),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {
@@ -160,8 +161,9 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par, vect
 }
 
 
-iAIO::iAIO( iALogger* logger, QObject *parent /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/, vector<QString> * fileNames /*= 0*/ )
-	: iAAlgorithm( 0, 0, logger, parent),
+iAIO::iAIO( iALogger* logger, QObject *parent /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
+		vector<QString> * fileNames /*= 0*/ )
+	: iAAlgorithm( "IO", 0, 0, logger, parent),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {
@@ -172,7 +174,6 @@ iAIO::iAIO( iALogger* logger, QObject *parent /*= 0*/, vector<vtkSmartPointer<vt
 void iAIO::init(QObject *par)
 {
 	parent = (QWidget*)par;
-
 	fileName = "";
 	fileNameArray = vtkStringArray::New();
 	extent[0] = 0; extent[1] = 1; extent[2] = 0; extent[3] = 1; extent[4] = 0, extent[5] = 1;
@@ -182,11 +183,8 @@ void iAIO::init(QObject *par)
 	headersize = 0;
 	scalarType = 0;
 	byteOrder = 1;
-
 	ioID = 0;
 	iosettingsreader();
-
-	stlReader = vtkSTLReader::New();
 	observerProgress = iAObserverProgress::New();
 
 	if (par)
@@ -199,8 +197,6 @@ void iAIO::init(QObject *par)
 iAIO::~iAIO()
 {
 	fileNameArray->Delete();
-	stlReader->ReleaseDataFlagOn();
-	stlReader->Delete();
 	if (observerProgress) observerProgress->Delete();
 }
 
@@ -315,11 +311,11 @@ void printHDF5ErrorsToConsole()
 
 #include <vtkImageImport.h>
 
-bool iAIO::loadHDF5File()
+void iAIO::loadHDF5File()
 {
 	if (m_hdf5Path.size() < 2)
 	{
-		return false;
+		throw std::runtime_error("HDF5 file: Insufficient path length.");
 	}
 	hid_t file = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	m_hdf5Path.removeLast();
@@ -364,8 +360,7 @@ bool iAIO::loadHDF5File()
 	status = H5Sclose(space);
 	if (vtkType == InvalidHDF5Type)
 	{
-		DEBUG_LOG("Can't load a dataset of this data type!");
-		return false;
+		throw std::runtime_error("HDF5: Can't load a dataset of this data type!");
 	}
 
 	// actual reading of data:
@@ -380,9 +375,8 @@ bool iAIO::loadHDF5File()
 	status = H5Dread(dataset_id, GetHDF5ReadType(hdf5Type, numBytes, sign), H5S_ALL, H5S_ALL, H5P_DEFAULT, raw_data);
 	if (status < 0)
 	{
-		DEBUG_LOG("Reading dataset failed!");
 		printHDF5ErrorsToConsole();
-		return false;
+		throw std::runtime_error("Reading dataset failed!");
 	}
 	H5Dclose(dataset_id);
 	while (openGroups.size() > 0)
@@ -403,135 +397,128 @@ bool iAIO::loadHDF5File()
 	getConnector()->SetImage(imgImport->GetOutput());
 	getConnector()->Modified();
 	postImageReadActions();
-
-	return true;
 }
 #endif
 
 void iAIO::run()
 {
 	qApp->processEvents();
-	bool rv = false;
-	
-	// todo: hook for plugins!
-	switch (ioID)
+	try
 	{
-		case MHD_WRITER:
-			rv = writeMetaImage(); break;
-		case VOLUME_STACK_VOLSTACK_WRITER:
-			rv = writeVolumeStack(); break;
-		case STL_WRITER:
-			rv = writeSTL(); break;
-		case TIF_STACK_WRITER:
-		case JPG_STACK_WRITER:
-		case PNG_STACK_WRITER:
-		case BMP_STACK_WRITER:
-		case DCM_WRITER:
-			rv = writeImageStack(); break;
-		case MHD_READER:
-			rv = readMetaImage(); break;
-		case STL_READER:
-			rv = readSTL(); break;
-		case RAW_READER:
-		case PARS_READER:
-		case VGI_READER:
-			rv = readImageData(); break;
-		case VOLUME_STACK_READER:
-			rv = readVolumeStack(); break;
-		case VOLUME_STACK_MHD_READER:
-		case VOLUME_STACK_VOLSTACK_READER:
-			rv = readVolumeMHDStack(); break;
-		case TIF_STACK_READER:
-		case JPG_STACK_READER:
-		case PNG_STACK_READER:
-		case BMP_STACK_READER:
-			rv = readImageStack(); break;
-		case DCM_READER:
-			rv = readDCM(); break;
-		case NRRD_READER:
-			rv = readNRRD(); break;
-		case OIF_READER: {
-			IO::OIF::Reader r;
-			r.read(getFileName(), getConnector(), m_channel, m_volumes);
-			//if (!m_volumes)
-			{
-				postImageReadActions();
-			}
-			rv = true;
-			break;
-		}
-		case AM_READER: {
-			vtkSmartPointer<vtkImageData> img = iAAmiraMeshIO::Load(getFileName());
-			if (!img)
-			{
+		switch (ioID)
+		{
+			case MHD_WRITER:
+				writeMetaImage(); break;
+			case VOLUME_STACK_VOLSTACK_WRITER:
+				writeVolumeStack(); break;
+			case STL_WRITER:
+				writeSTL(); break;
+			case TIF_STACK_WRITER:
+			case JPG_STACK_WRITER:
+			case PNG_STACK_WRITER:
+			case BMP_STACK_WRITER:
+			case DCM_WRITER:
+				writeImageStack(); break;
+			case MHD_READER:
+				readMetaImage(); break;
+			case STL_READER:
+				readSTL(); break;
+			case RAW_READER:
+			case PARS_READER:
+			case VGI_READER:
+				readImageData(); break;
+			case VOLUME_STACK_READER:
+				readVolumeStack(); break;
+			case VOLUME_STACK_MHD_READER:
+			case VOLUME_STACK_VOLSTACK_READER:
+				readVolumeMHDStack(); break;
+			case TIF_STACK_READER:
+			case JPG_STACK_READER:
+			case PNG_STACK_READER:
+			case BMP_STACK_READER:
+				readImageStack(); break;
+			case DCM_READER:
+				readDCM(); break;
+			case NRRD_READER:
+				readNRRD(); break;
+			case OIF_READER: {
+				IO::OIF::Reader r;
+				r.read(getFileName(), getConnector(), m_channel, m_volumes);
+				//if (!m_volumes)
+				{
+					postImageReadActions();
+				}
 				break;
 			}
-			getConnector()->SetImage(img);
-			getConnector()->Modified();
-			postImageReadActions();
-			rv = true;
-			break;
-		}
-		case AM_WRITER: {
-			rv = iAAmiraMeshIO::Write(getFileName(), getVtkImageData());
-			break;
-		}
-		case CSV_WRITER: {
-			// TODO: write more than one modality!
-			auto img = getVtkImageData();
-			int numberOfComponents = img->GetNumberOfScalarComponents();
-			std::ofstream out(getFileName().toStdString());
-			FOR_VTKIMG_PIXELS(img, x, y, z)
-			{
-				for (int c = 0; c < numberOfComponents; ++c)
+			case AM_READER: {
+				vtkSmartPointer<vtkImageData> img = iAAmiraMeshIO::Load(getFileName());
+				if (!img)
 				{
-					out << img->GetScalarComponentAsDouble(x, y, z, 0);
-					if (c < numberOfComponents - 1)
-					{
-						out << ",";
-					}
+					break;
 				}
-				out << std::endl;
+				getConnector()->SetImage(img);
+				getConnector()->Modified();
+				postImageReadActions();
+				break;
 			}
-			out.close();
-			rv = true;
-			break;
+			case AM_WRITER: {
+				iAAmiraMeshIO::Write(getFileName(), getVtkImageData());
+				break;
+			}
+			case CSV_WRITER: {
+				// TODO: write more than one modality!
+				auto img = getVtkImageData();
+				int numberOfComponents = img->GetNumberOfScalarComponents();
+				std::ofstream out(getFileName().toStdString());
+				FOR_VTKIMG_PIXELS(img, x, y, z)
+				{
+					for (int c = 0; c < numberOfComponents; ++c)
+					{
+						out << img->GetScalarComponentAsDouble(x, y, z, 0);
+						if (c < numberOfComponents - 1)
+						{
+							out << ",";
+						}
+					}
+					out << std::endl;
+				}
+				out.close();
+				break;
+			}
+			case VTI_READER: {
+				vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
+				reader->SetFileName(getFileName().toStdString().c_str());
+				reader->Update();
+				getConnector()->SetImage(reader->GetOutput());
+				getConnector()->Modified();
+				postImageReadActions();
+				break;
+			}
+	#ifdef USE_HDF5
+			case HDF5_READER:
+				if (m_isITKHDF5)
+				{
+					readMetaImage();
+				}
+				else
+				{
+					loadHDF5File();
+				}
+				break;
+	#endif
+			case UNKNOWN_READER:
+			default:
+				emit msg(tr("  unknown reader type"));
 		}
-		case VTI_READER: {
-			vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
-			reader->SetFileName(getFileName().toStdString().c_str());
-			reader->Update();
-			getConnector()->SetImage(reader->GetOutput());
-			getConnector()->Modified();
-			postImageReadActions();
-			rv = true;
-			break;
-		}
-#ifdef USE_HDF5
-		case HDF5_READER:
-			if (m_isITKHDF5)
-			{
-				rv = readMetaImage();
-			}
-			else
-			{
-				rv = loadHDF5File();
-			}
-			break;
-#endif
-		case UNKNOWN_READER:
-		default:
-			emit msg(tr("  unknown reader type"));
-	}
-	if (rv) {
-		//emit msg(tr("   File I/O successful!"));
-		if ((ioID == MHD_WRITER) || (ioID == STL_WRITER) || (ioID == TIF_STACK_WRITER) 
+		if ((ioID == MHD_WRITER) || (ioID == STL_WRITER) || (ioID == TIF_STACK_WRITER)
 			|| (ioID == JPG_STACK_WRITER) || (ioID == PNG_STACK_WRITER)|| (ioID == BMP_STACK_WRITER) || (ioID ==DCM_WRITER) )
 			emit done(true);
 		else emit done();
-	} else {
-		emit msg(tr("   FILE I/O FAILED!"));
-		emit failed();
+	}
+	catch (std::exception & e)
+	{
+		addMsg(tr("%1  IO operation failed: %3").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+			.arg(e.what()));
 	}
 }
 
@@ -846,211 +833,129 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 }
 
 
-/**
- * \return	true if successful
- */
-bool iAIO::readNRRD(){
-
-	try	{
-		typedef itk::Vector<signed short, 2>	VectorType; 
-		typedef itk::Image<VectorType, DIM>		DiffusionImageType; 
-		typedef DiffusionImageType::Pointer		DiffusionImagePointer; 
-
-		typedef itk::ImageFileReader<DiffusionImageType> FileReaderType; 
-		FileReaderType::Pointer reader = FileReaderType::New();
-
-		reader->SetFileName(fileName.toStdString()); 
-		reader->Update();
-
-		itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
-		io->SetFileType( itk::ImageIOBase::ASCII);
-
-		iAConnector *image = getConnector(); 
-		image->SetImage(reader->GetOutput());
-		image->Modified();
-		postImageReadActions();
-		iosettingswriter();
-	}
-	catch (itk::ExceptionObject &ex)
-	{
-		emit msg("Error occurred reading NRRD images: " + QString(ex.what()));
-		return false;
-	}
-	return true;
+void iAIO::readNRRD()
+{
+	typedef itk::Vector<signed short, 2>	VectorType;
+	typedef itk::Image<VectorType, DIM>		DiffusionImageType;
+	typedef DiffusionImageType::Pointer		DiffusionImagePointer;
+	typedef itk::ImageFileReader<DiffusionImageType> FileReaderType;
+	auto reader = FileReaderType::New();
+	reader->SetFileName(fileName.toStdString());
+	reader->Update();
+	itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
+	io->SetFileType( itk::ImageIOBase::ASCII);
+	iAConnector *image = getConnector();
+	image->SetImage(reader->GetOutput());
+	image->Modified();
+	postImageReadActions();
+	iosettingswriter();
 }
 
 
 /**
  * \brief	This function reads a series of DICOM images.
  */
-bool iAIO::readDCM()
+void iAIO::readDCM()
 {
 	typedef signed short PixelType; 
-
 	typedef itk::Image<PixelType, DIM> ImageType; 
 	typedef itk::ImageSeriesReader<ImageType> ReaderType; 
-	ReaderType::Pointer reader = ReaderType::New();
-
+	auto reader = ReaderType::New();
 	typedef itk::GDCMImageIO ImageIOType; 
 	ImageIOType::Pointer dicomIO = ImageIOType::New();	
 	reader->SetImageIO( dicomIO );
-
 	typedef itk::GDCMSeriesFileNames NamesGeneratorType;
 	NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
-
 	nameGenerator->SetUseSeriesDetails(true);
 	nameGenerator->SetDirectory(f_dir.canonicalPath().toStdString());
+	typedef std::vector<std::string> SeriesIdContainer;
 
-	try	{
-		typedef std::vector<std::string> SeriesIdContainer; 
+	const SeriesIdContainer & seriesUID = nameGenerator->GetSeriesUIDs();
+	SeriesIdContainer::const_iterator seriesItr = seriesUID.begin();
+	SeriesIdContainer::const_iterator seriesEnd = seriesUID.end();
 
-		const SeriesIdContainer & seriesUID = nameGenerator->GetSeriesUIDs();
-		SeriesIdContainer::const_iterator seriesItr = seriesUID.begin();
-		SeriesIdContainer::const_iterator seriesEnd = seriesUID.end();
+	while (seriesItr != seriesEnd) ++seriesItr;
 
-		while (seriesItr != seriesEnd) ++seriesItr; 		
+	std::string seriesIdentifier = seriesUID.begin()->c_str();
 
-		std::string seriesIdentifier = seriesUID.begin()->c_str();
+	typedef std::vector<std::string> FileNamesContainer;
+	FileNamesContainer fileNames;
+	fileNames = nameGenerator->GetFileNames(seriesIdentifier);
 
-		typedef std::vector<std::string> FileNamesContainer; 
-		FileNamesContainer fileNames; 
-		fileNames = nameGenerator->GetFileNames(seriesIdentifier);
+	reader->SetFileNames(fileNames);
+	reader->Update();
+	reader->Modified();
+	reader->Update();
 
-		reader->SetFileNames(fileNames);
-
-		try	{
-			reader->Update();
-		}
-		catch (itk::ExceptionObject &ex)
-		{
-			emit msg("Error occurred reading Dicom series(reader->Update()): " + QString(ex.what()));
-			return false;
-		}
-
-		reader->Modified();
-		reader->Update();
-
-		iAConnector *image = getConnector(); 
-		image->SetImage(reader->GetOutput());
-		image->Modified();
-		postImageReadActions();
-		iosettingswriter();
-
-	}
-	catch (itk::ExceptionObject &ex)
-	{
-		emit msg("Error occurred reading Dicom series: " + QString(ex.what()));
-		return false;
-	}
-	return true;
+	iAConnector *image = getConnector();
+	image->SetImage(reader->GetOutput());
+	image->Modified();
+	postImageReadActions();
+	iosettingswriter();
 }
 
 
-bool iAIO::loadMetaImageFile(QString const & fileName)
+void iAIO::loadMetaImageFile(QString const & fileName)
 {
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	typedef itk::ImageIOBase::IOPixelType PixelType;
-	itk::ImageIOBase::Pointer imageIO;
-	QString errorMsg;
-	try
-	{
-		imageIO =
-			itk::ImageIOFactory::CreateImageIO(fileName.toLatin1(), itk::ImageIOFactory::ReadMode);
-	} catch(itk::ExceptionObject& e)
-	{
-		imageIO = 0;
-		errorMsg = e.what();
-	}
-
-	if (!imageIO)
-	{
-		emit msg(tr("  Could not open file %1, aborting loading (error message: %2).").arg(fileName).arg(errorMsg));
-		return false;
-	}
-
-	try
-	{
-		imageIO->SetFileName(fileName.toLatin1());
-		imageIO->ReadImageInformation();
-		const ScalarPixelType pixelType = imageIO->GetComponentType();
-		const PixelType imagePixelType = imageIO->GetPixelType();
-		ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType,
-			fileName, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return false;
-	}
-	return true;
+	auto imageIO = itk::ImageIOFactory::CreateImageIO(fileName.toLatin1(), itk::ImageIOFactory::ReadMode);
+	imageIO->SetFileName(fileName.toLatin1());
+	imageIO->ReadImageInformation();
+	const ScalarPixelType pixelType = imageIO->GetComponentType();
+	const PixelType imagePixelType = imageIO->GetPixelType();
+	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType,
+		fileName, getItkProgress(), getConnector());
 }
 
 
-bool iAIO::readVolumeMHDStack()
+void iAIO::readVolumeMHDStack()
 {
 	if (fileNameArray->GetSize() == 0)
-	{
-		emit msg(tr("  No files matched the given criteria!"));
-		return false;
-	}
+		throw std::runtime_error("No files matched the given criteria!");
+
 	for (int m=0; m<=fileNameArray->GetMaxId(); m++)
 	{
 		fileName=(fileNameArray->GetValue(m));
-		if (!loadMetaImageFile(fileName))
-		{
-			return false;
-		}
-		if(m_volumes)
+		loadMetaImageFile(fileName);
+		if (m_volumes)
 		{
 			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 			image->DeepCopy(getConnector()->GetVTKImage());
 			m_volumes->push_back(image);
 		}
-		if(m_fileNames_volstack)
+		if (m_fileNames_volstack)
 			m_fileNames_volstack->push_back(fileName);
 
 		int progress = (fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
-	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	emit msg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
-	return true;
 }
 
 
-bool iAIO::readVolumeStack()
+void iAIO::readVolumeStack()
 {
 	for (int m=0; m<=fileNameArray->GetMaxId(); m++)
 	{
 		fileName=(fileNameArray->GetValue(m));
-		if (!readRawImage())
-		{
-			return false;
-		}
-
+		readRawImage();
 		vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 		image->DeepCopy(getConnector()->GetVTKImage());
 		if(m_volumes)
 			m_volumes->push_back(image);
 		if(m_fileNames_volstack)
 			m_fileNames_volstack->push_back(fileName);
-
 		int progress = (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
-	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	emit msg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
-	return true;
 }
 
 
-bool iAIO::writeVolumeStack()
+void iAIO::writeVolumeStack()
 {
 	// write .volstack file:
 	QFile volstackFile(fileName);
@@ -1070,7 +975,6 @@ bool iAIO::writeVolumeStack()
 			out << m_additionalInfo << "\n";
 		}
 	}
-
 	// write mhd images:
 	for (int m=0; m <= fileNameArray->GetMaxId(); m++)
 	{
@@ -1080,28 +984,13 @@ bool iAIO::writeVolumeStack()
 		int progress = (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
-	return true;
 }
 
 
-bool iAIO::readRawImage()
+void iAIO::readRawImage()
 {
-	try
-	{
-		VTK_TYPED_CALL(read_raw_image_template, scalarType, headersize, byteOrder,
-			extent, spacing, origin, fileName, getItkProgress(), getConnector());
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return false;
-	}
-	return true;
+	VTK_TYPED_CALL(read_raw_image_template, scalarType, headersize, byteOrder,
+		extent, spacing, origin, fileName, getItkProgress(), getConnector());
 }
 
 
@@ -1115,38 +1004,30 @@ void iAIO::postImageReadActions()
 }
 
 
-bool iAIO::readImageData()
+void iAIO::readImageData()
 {
-	if (!readRawImage())
-	{
-		return false;
-	}
+	readRawImage();
 	postImageReadActions();
 	iosettingswriter();
-	return true;
 }
 
 
-bool iAIO::readMetaImage( )
+void iAIO::readMetaImage( )
 {
-	if (!loadMetaImageFile(fileName))
-	{
-		return false;
-	}
+	loadMetaImageFile(fileName);
 	postImageReadActions();
-	return true;
 }
 
 
-bool iAIO::readSTL( )
+void iAIO::readSTL( )
 {
+	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
 	stlReader->AddObserver(vtkCommand::ProgressEvent, observerProgress);
 	stlReader->SetFileName(fileName.toLatin1());
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
 	printSTLFileInfos();
 	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
-	return true;
 }
 
 
@@ -1526,32 +1407,18 @@ bool iAIO::setupVGIReader( QString f )
 }
 
 
-bool iAIO::writeMetaImage( )
+void iAIO::writeMetaImage( )
 {
 	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	try
-	{
-		iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-		iAConnector::ITKPixelType itkPixelType = getConnector()->GetITKPixelType();
-		ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType, 
-			compression, fileName, getItkProgress(), getConnector());
-	}
-	catch( itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return false;
-	}
+	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
+	iAConnector::ITKPixelType itkPixelType = getConnector()->GetITKPixelType();
+	ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType,
+		compression, fileName, getItkProgress(), getConnector());
 	emit msg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
-	return true;
 }
 
 
-bool iAIO::writeSTL( )
+void iAIO::writeSTL( )
 {
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriter->AddObserver(vtkCommand::ProgressEvent, observerProgress);
@@ -1561,7 +1428,6 @@ bool iAIO::writeSTL( )
 	stlWriter->Write();
 	emit msg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 	stlWriter->ReleaseDataFlagOn();
-	return true;
 }
 
 
@@ -1571,10 +1437,10 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<T, DIM-1> OutputImageType;
 	typedef itk::ImageSeriesWriter<InputImageType, OutputImageType> SeriesWriterType;
-	typename SeriesWriterType::Pointer writer = SeriesWriterType::New();
+	auto writer = SeriesWriterType::New();
 
-	typedef itk::NumericSeriesFileNames    NameGeneratorType;
-	typename NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
+	typedef itk::NumericSeriesFileNames NameGeneratorType;
+	auto nameGenerator = NameGeneratorType::New();
 
 	typename InputImageType::RegionType region = dynamic_cast<InputImageType*>(con->GetITKImage())->GetLargestPossibleRegion();
 	typename InputImageType::IndexType start = region.GetIndex();
@@ -1612,34 +1478,20 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 	writer->Update();
 }
 
-bool iAIO::writeImageStack( )
+
+void iAIO::writeImageStack( )
 {
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	typedef itk::ImageIOBase::IOPixelType PixelType;
-	try
-	{
-		getConnector()->SetImage(getVtkImageData());
-		const ScalarPixelType pixelType = getConnector()->GetITKScalarPixelType();
-		const PixelType imagePixelType = getConnector()->GetITKPixelType();
-		ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
-			fileName, getItkProgress(), getConnector(), compression);
-	}
-	catch (itk::ExceptionObject &excep)
-	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
-			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
-		return false;
-	}
+	getConnector()->SetImage(getVtkImageData());
+	const ScalarPixelType pixelType = getConnector()->GetITKScalarPixelType();
+	const PixelType imagePixelType = getConnector()->GetITKPixelType();
+	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
+		fileName, getItkProgress(), getConnector(), compression);
 	emit msg(tr("%1  %2 Image Stack saved.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QFileInfo(fileName).completeSuffix().toUpper()));
 	emit msg("  Base Filename: " + fileName);
-	return true;
 }
 
 //****************************************************
@@ -1686,7 +1538,7 @@ bool iAIO::setupStackReader( QString f )
 }
 
 
-bool iAIO::readImageStack()
+void iAIO::readImageStack()
 {
 	vtkSmartPointer<vtkImageReader2> imgReader;
 	switch (ioID)
@@ -1695,31 +1547,17 @@ bool iAIO::readImageStack()
 		case JPG_STACK_READER: imgReader = vtkSmartPointer<vtkJPEGReader>::New(); break;
 		case PNG_STACK_READER: imgReader = vtkSmartPointer<vtkPNGReader>::New(); break;
 		case BMP_STACK_READER: imgReader = vtkSmartPointer<vtkBMPReader>::New(); break;
-		default: emit msg(tr("%1  Invalid Image Stack IO id, aborting.")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-			return false;
+		default: throw std::runtime_error("Invalid Image Stack IO id, aborting.");
 	}
 	imgReader->ReleaseDataFlagOn();
 	imgReader->AddObserver(vtkCommand::ProgressEvent, observerProgress);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
-	try
-	{
-		imgReader->SetFileNames(fileNameArray);
-		imgReader->SetDataOrigin(origin);
-		imgReader->SetDataSpacing(spacing);
-		imgReader->SetOutput(getVtkImageData());
-		imgReader->Update();
-	}
-	catch (std::exception &e)
-	{
-		emit msg(tr("%1  An error occured while loading image stack (%2), aborting.")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(e.what()));
-		return false;
-	}
-
-	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
-
-	return true;
+	imgReader->SetFileNames(fileNameArray);
+	imgReader->SetDataOrigin(origin);
+	imgReader->SetDataSpacing(spacing);
+	imgReader->SetOutput(getVtkImageData());
+	imgReader->Update();
+	emit msg(tr("%1  Loading image stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 
