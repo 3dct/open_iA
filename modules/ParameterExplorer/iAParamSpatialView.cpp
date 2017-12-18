@@ -96,14 +96,22 @@ void iAParamSpatialView::SetImage(int id)
 			return;
 		}
 		QString fileName = m_table->Table()->item(id, 0)->text();	// assumes filename is in column 0!
-		fileName = MakeAbsolute(m_basePath, fileName);
-		iAITKIO::ScalarPixelType pixelType;
-		auto itkImg = iAITKIO::readFile(fileName, pixelType, false);
-		m_loadedImgs.push_back(itkImg);
-		iAConnector con;
-		con.SetImage(itkImg);
-		con.Modified();
-		m_imageCache.insert(id, con.GetVTKImage());
+		try
+		{
+			fileName = MakeAbsolute(m_basePath, fileName);
+			iAITKIO::ScalarPixelType pixelType;
+			auto itkImg = iAITKIO::readFile(fileName, pixelType, false);
+			m_loadedImgs.push_back(itkImg);
+			iAConnector con;
+			con.SetImage(itkImg);
+			con.Modified();
+			m_imageCache.insert(id, con.GetVTKImage());
+		}
+		catch (std::exception & e)
+		{
+			DEBUG_LOG(QString("Could not load image %1: %2").arg(fileName).arg(e.what()));
+			return;
+		}
 	}
 	auto img = m_imageCache[id];
 
