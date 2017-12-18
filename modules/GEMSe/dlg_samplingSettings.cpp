@@ -289,6 +289,9 @@ void dlg_samplingSettings::SetInputsFromMap(QMap<QString, QString> const & value
 	SetSpinBoxValue(values, "LabelCount", sbLabelCount);
 	SetSpinBoxValue(values, "NumberOfSamples", sbNumberOfSamples);
 	SetComboBoxValue(values, "SamplingMethod", cbSamplingMethod);
+	SetCheckValue(values, "SubfolderPerSample", cbSeparateFolder);
+	SetTextValue(values, "ImageBaseName", leImageBaseName);
+
 	if (SetTextValue(values, "ParameterDescriptor", leParamDescriptor))
 	{
 		ParameterDescriptorChanged();
@@ -311,6 +314,9 @@ void dlg_samplingSettings::GetValues(QMap<QString, QString> & values) const
 	values.insert("NumberOfSamples", sbNumberOfSamples->text());
 	values.insert("ParameterDescriptor", leParamDescriptor->text());
 	values.insert("SamplingMethod", QString("%1").arg(cbSamplingMethod->currentIndex()));
+	values.insert("SubfolderPerSample", cbSeparateFolder->isChecked()? "true" : "false");
+	values.insert("ImageBaseName", leImageBaseName->text());
+
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
 		m_paramInputs[i]->RetrieveInputValues(values);
