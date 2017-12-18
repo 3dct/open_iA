@@ -33,6 +33,7 @@ const int barSpacing = 50;
 const int linearBarStartPosY = nonlinearBarStartPosY + nonlinearBarHeight + barSpacing;
 const int widgetHeight = nonlinearBarStartPosY + nonlinearBarHeight +
 	barSpacing + linearBarHeight + nonlinearBarStartPosY;
+const QColor linearBarColor(212, 212, 212);
 
 iAScalingWidget::iAScalingWidget(QWidget* parent) :
 	QOpenGLWidget(parent),
@@ -123,7 +124,7 @@ void iAScalingWidget::paintGL()
 		nonlinearScalingFactor = m_nonlinearAxis->axisRect()->width() /
 		(m_nonlinearScalingVec[m_nonlinearUpperIdx] - m_nonlinearUpperRest -
 		(m_nonlinearScalingVec[m_nonlinearLowerIdx] + m_nonlinearLowerRest));
-
+	painter.setRenderHint(QPainter::Antialiasing, true);
 	m_prevNonlinearBarStartPosX = 0.0, m_prevLinearBarStartPosX = 0.0;
 	for (int hIdx = m_nonlinearLowerIdx + 1; hIdx <= m_nonlinearUpperIdx; ++hIdx)
 	{
@@ -147,14 +148,14 @@ void iAScalingWidget::paintGL()
 			linearBarWidth = linearScalingFactor;
 		}
 
-		painter.setRenderHint(QPainter::Antialiasing, false);
+		//painter.setRenderHint(QPainter::Antialiasing, false);
 		m_lut->GetColor(m_impFunctVec[hIdx], rgb);
 		c.setRgbF(rgb[0], rgb[1], rgb[2]);
 		painter.setBrush(QBrush(c));
 		painter.setPen(QPen(c));
 		painter.drawRect(leftOffset + nonlinearBarStartPosX, nonlinearBarStartPosY,
 			nonlinearBarWidth, nonlinearBarHeight);
-		painter.setRenderHint(QPainter::Antialiasing, true);
+		//painter.setRenderHint(QPainter::Antialiasing, true);
 		
 		nonlinearBarStartPosX += nonlinearBarWidth;
 		linearBarStartPosX += linearBarWidth;
@@ -163,7 +164,7 @@ void iAScalingWidget::paintGL()
 			leftOffset + m_prevLinearBarStartPosX, 20,
 			leftOffset + m_prevLinearBarStartPosX, 70);
 		gradient.setColorAt(0.0, c);
-		gradient.setColorAt(1.0, Qt::lightGray);
+		gradient.setColorAt(1.0, linearBarColor);
 		painter.setBrush(gradient);
 		painter.setPen(Qt::NoPen);
 
@@ -182,11 +183,11 @@ void iAScalingWidget::paintGL()
 		m_prevLinearBarStartPosX = linearBarStartPosX;
 	}
 	
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	painter.setBrush(QBrush(Qt::lightGray));
-	painter.setPen(QPen(Qt::lightGray));
+	//painter.setRenderHint(QPainter::Antialiasing, false);
+	painter.setBrush(QBrush(linearBarColor));
+	painter.setPen(QPen(linearBarColor));
 	painter.drawRect(leftOffset, linearBarStartPosY, linearBarStartPosX, linearBarHeight);
-	painter.setRenderHint(QPainter::Antialiasing, true);
+	//painter.setRenderHint(QPainter::Antialiasing, true);
 
 	painter.setPen(QPen(QColor(255, 128, 0), 1.5));
 	painter.drawLine(m_nonlinearBarCursorPos, nonlinearBarStartPosY, m_nonlinearBarCursorPos, 

@@ -393,7 +393,7 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	m_nonlinearScaledPlot->xAxis->grid()->setVisible(false);
 	m_nonlinearScaledPlot->xAxis->grid()->setSubGridVisible(false);
 	m_nonlinearScaledPlot->xAxis->setTickLabels(true);
-	m_nonlinearScaledPlot->xAxis->setSubTicks(true);	  // set to 'false if too many ticks
+	m_nonlinearScaledPlot->xAxis->setSubTicks(false);	  // set to 'false if too many ticks
 	m_nonlinearScaledPlot->xAxis->setNumberFormat("f"); 
 	m_nonlinearScaledPlot->xAxis->setNumberPrecision(0);
 	m_nonlinearScaledPlot->yAxis->setLabel("Gray Value Intensity");
@@ -1207,6 +1207,62 @@ void dlg_DatasetComparator::setFbpTransparency(int value)
 	m_nonlinearScaledPlot->replot();
 }
 
+void dlg_DatasetComparator::legendClick(QCPLegend* legendU,
+	QCPAbstractLegendItem* legendUItem, QMouseEvent* e)
+{
+	QCustomPlot *plotU = qobject_cast<QCustomPlot *>(QObject::sender());
+	QCustomPlot *plotP = plotU == m_linearScaledPlot ?
+		plotP = m_nonlinearScaledPlot : plotP = m_linearScaledPlot;
+
+	int legendPItemIdx = 0;
+	for (int i = 0; i < legendU->itemCount(); ++i)
+	{
+		if (legendU->item(i) == legendUItem)
+		{
+			legendPItemIdx = i;
+			break;
+		}
+	}
+
+	if ((e->button() == Qt::LeftButton) && !cb_showFbp->isChecked() && legendUItem)
+	{
+		QCPPlottableLegendItem *ptliU = qobject_cast<QCPPlottableLegendItem*>(
+			legendUItem);
+		QCPPlottableLegendItem *ptliP = qobject_cast<QCPPlottableLegendItem*>(
+			plotP->legend->item(legendPItemIdx));
+		if (!m_selLegendItemList.contains(ptliU))
+		{
+			updateLegendAndGraphVisibility(ptliU, plotP, legendPItemIdx, 1.0, true);
+			m_selLegendItemList.append(ptliU);
+			m_selLegendItemList.append(ptliP);
+		}
+		else
+		{
+			m_selLegendItemList.removeOne(ptliU);
+			m_selLegendItemList.removeOne(ptliP);
+		}
+		for (int i = 0; i < legendU->itemCount(); ++i)
+		{
+			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
+				legendU->item(i));
+			if (!m_selLegendItemList.contains(ptli))
+				updateLegendAndGraphVisibility(ptli, plotP, i, 0.3, false);
+		}
+	}
+	else if ((e->button() == Qt::RightButton) &&
+		!cb_showFbp->isChecked() && m_selLegendItemList.size() > 0)
+	{
+		m_selLegendItemList.clear();
+		for (int i = 0; i < legendU->itemCount(); ++i)
+		{
+			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
+				legendU->item(i));
+			updateLegendAndGraphVisibility(ptli, plotP, i, 1.0, true);
+		}
+	}
+	m_nonlinearScaledPlot->replot();
+}
+
 void dlg_DatasetComparator::selectionChangedByUser()
 {
 	// TODO: change transfer function for "hiden" values; should be HistogramRangeMinimum-1 
@@ -1258,62 +1314,6 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	m_linearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::legendClick(QCPLegend* legendU, 
-	QCPAbstractLegendItem* legendUItem, QMouseEvent* e)
-{
-	QCustomPlot *plotU = qobject_cast<QCustomPlot *>(QObject::sender());
-	QCustomPlot *plotP = plotU == m_linearScaledPlot ?
-		plotP = m_nonlinearScaledPlot : plotP = m_linearScaledPlot;
-	
-	int legendPItemIdx = 0;
-	for (int i = 0; i < legendU->itemCount(); ++i)
-	{
-		if (legendU->item(i) == legendUItem)
-		{
-			legendPItemIdx = i;
-			break;
-		}
-	}
-
-	if ((e->button() == Qt::LeftButton) && !cb_showFbp->isChecked() && legendUItem)
-	{
-		QCPPlottableLegendItem *ptliU = qobject_cast<QCPPlottableLegendItem*>(
-			legendUItem);
-		QCPPlottableLegendItem *ptliP = qobject_cast<QCPPlottableLegendItem*>(
-			plotP->legend->item(legendPItemIdx));
-		if (!m_selLegendItemList.contains(ptliU))
-		{
-			updateLegendAndGraphVisibility(ptliU, plotP, legendPItemIdx, 1.0, true);
-			m_selLegendItemList.append(ptliU);
-			m_selLegendItemList.append(ptliP);
-		}
-		else
-		{
-			m_selLegendItemList.removeOne(ptliU);
-			m_selLegendItemList.removeOne(ptliP);
-		}
-		for (int i = 0; i < legendU->itemCount(); ++i)
-		{
-			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
-				legendU->item(i));
-			if (!m_selLegendItemList.contains(ptli))
-				updateLegendAndGraphVisibility(ptli, plotP, i, 0.3, false);
-		}
-	}
-	else if ((e->button() == Qt::RightButton) && 
-		!cb_showFbp->isChecked() && m_selLegendItemList.size() > 0)
-	{
-		m_selLegendItemList.clear();
-		for (int i = 0; i < legendU->itemCount(); ++i)
-		{
-			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
-				legendU->item(i));
-			updateLegendAndGraphVisibility(ptli, plotP, i, 1.0, true);
-		}
-	}
-	m_nonlinearScaledPlot->replot();
-}
-
 void dlg_DatasetComparator::selectCompLevel()
 {
 	if ((sb_LowerCompLevelThr->value() > sb_UpperCompLevelThr->value()) ||
@@ -1343,23 +1343,23 @@ void dlg_DatasetComparator::selectCompLevel()
 	double sectionStart = -1.0;
 	for (int i = 0; i < m_impFunctVec.size(); ++i)
 	{
-		if ((m_impFunctVec[i] < sb_LowerCompLevelThr->value() ||
-			m_impFunctVec[i] > sb_UpperCompLevelThr->value()) &&
+		if (((1-m_impFunctVec[i]) < sb_LowerCompLevelThr->value() ||
+			(1 - m_impFunctVec[i]) > sb_UpperCompLevelThr->value()) &&
 			sectionStart >= 0.0)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i));
 			sectionStart = -1.0;
 		}
-		else if (m_impFunctVec[i] >= sb_LowerCompLevelThr->value() &&
-			m_impFunctVec[i] <= sb_UpperCompLevelThr->value() &&
+		else if ((1 - m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() &&
+			(1 - m_impFunctVec[i]) <= sb_UpperCompLevelThr->value() &&
 			sectionStart == -1.0)
 		{
 			sectionStart = i-1;
 			if (sectionStart < 0)
 				sectionStart = 0;
 		}
-		else if ((m_impFunctVec[i] >= sb_LowerCompLevelThr->value() || 
-			m_impFunctVec[i] <= sb_LowerCompLevelThr->value()) &&
+		else if (((1 - m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() ||
+			(1 - m_impFunctVec[i]) <= sb_LowerCompLevelThr->value()) &&
 			sectionStart >= 0.0 && i == m_impFunctVec.size()-1)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i+1));
