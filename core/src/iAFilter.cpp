@@ -24,13 +24,13 @@
 #include "iAAttributeDescriptor.h"
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
-	unsigned int requiredInputs) :
+	unsigned int requiredInputs, unsigned int outputCount) :
 	m_name(name),
 	m_category(category),
 	m_description(description),
 	m_log(iAStdOutLogger::Get()),
 	m_requiredInputs(requiredInputs),
-	m_outputCount(1),
+	m_outputCount(outputCount),
 	m_firstInputChannels(1)
 {}
 
@@ -83,6 +83,16 @@ void iAFilter::SetFirstInputChannels(unsigned int c)
 	m_firstInputChannels = c;
 }
 
+void iAFilter::AddOutputValue(QString const & name, QVariant value)
+{
+	m_outputValues.push_back(qMakePair(name, value));
+}
+
+QVector<QPair<QString, QVariant> > const & iAFilter::OutputValues() const
+{
+	return m_outputValues;
+}
+
 QVector<iAConnector*> & iAFilter::Connectors()
 {
 	return m_cons;
@@ -90,6 +100,13 @@ QVector<iAConnector*> & iAFilter::Connectors()
 
 void iAFilter::SetOutputCount(unsigned int outputCount)
 {
+	if (m_outputCount == 0 && outputCount > 0 ||
+		m_outputCount > 0 && outputCount == 0)
+	{
+		AddMsg("Attempting to change output count from %1 to %2. Note that setting "
+			"an output count of zero is recommended to be done in the constructor, "
+			"and later changing of that to something else might cause unintended side effects!");
+	}
 	m_outputCount = outputCount;
 }
 
@@ -97,7 +114,7 @@ bool iAFilter::SetUp(QVector<iAConnector*> const & con, iALogger* log, iAProgres
 {
 	if (con.size() < m_requiredInputs)
 	{
-		log->Log(QString("Not enough inputs specified, filter %1 requires %2 input images!").arg(m_name).arg(m_requiredInputs));
+		AddMsg(QString("Not enough inputs specified, filter %1 requires %2 input images!").arg(m_name).arg(m_requiredInputs));
 		return false;
 	}
 	m_cons = con;
@@ -105,6 +122,12 @@ bool iAFilter::SetUp(QVector<iAConnector*> const & con, iALogger* log, iAProgres
 	m_log = log;
 	m_progress = progress;
 	return true;
+}
+
+void iAFilter::Run(QMap<QString, QVariant> const & parameters)
+{
+	m_outputValues.clear();
+	PerformWork(parameters);
 }
 
 bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
