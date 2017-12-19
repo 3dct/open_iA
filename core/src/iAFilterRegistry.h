@@ -55,6 +55,9 @@ public:
 	//! Retrieve the filter with the given name.
 	//! If there is no such filter, a "null" shared pointer is returned
 	static QSharedPointer<iAFilter> Filter(QString const & name);
+	//! Retrieve the ID of the filter with the given name
+	//! If there is no such filter, -1 is returned
+	static int FilterID(QString const & name);
 	//! Retrieve the callback for a given factory (if the given factory does not
 	//! have a callback, nullptr is returned).
 	static QSharedPointer<iAIFilterRunnerGUIFactory> FilterRunner(int filterID);

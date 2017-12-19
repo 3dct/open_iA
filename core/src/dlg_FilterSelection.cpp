@@ -18,58 +18,54 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
+
+#include "dlg_FilterSelection.h"
 
 #include "iAFilterRegistry.h"
-
-#include "iAConsole.h"
 #include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
 
-iAIFilterFactory::~iAIFilterFactory() {}
-iAIFilterRunnerGUIFactory::~iAIFilterRunnerGUIFactory() {}
+#include <QPushButton>
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+dlg_FilterSelection::dlg_FilterSelection(QWidget * parent):
+	m_curMatches(0)
 {
-	m_filters.push_back(factory);
-	m_runner.push_back(QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
+	connect(leFilterSearch, SIGNAL(textEdited(QString const &)), this, SLOT(FilterChanged(QString const &)));
+	connect(lwFilterList, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),
+		this, SLOT(ListSelectionChanged(QListWidgetItem *, QListWidgetItem *)));
+	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+	for (auto filterFactory : iAFilterRegistry::FilterFactories())
+		lwFilterList->addItem(filterFactory->Create()->Name());
 }
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory,
-	QSharedPointer<iAIFilterRunnerGUIFactory> runner)
+void dlg_FilterSelection::FilterChanged(QString const & filter)
 {
-	m_filters.push_back(factory);
-	m_runner.push_back(runner);
-}
-
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::FilterFactories()
-{
-	return m_filters;
-}
-
-QSharedPointer<iAFilter> iAFilterRegistry::Filter(QString const & name)
-{
-	int filterID = FilterID(name);
-	return filterID == -1 ? QSharedPointer<iAFilter>() : m_filters[filterID]->Create();
-}
-
-int iAFilterRegistry::FilterID(QString const & name)
-{
-	int cur = 0;
-	for (auto filterFactory : m_filters)
+	for (int row=0; row < lwFilterList->count(); ++row)
+		lwFilterList->item(row)->setHidden(true);
+	QList<QListWidgetItem*> matches(lwFilterList->findItems(filter, Qt::MatchFlag::MatchContains));
+	m_curMatches = matches.size();
+	for (QListWidgetItem* item : matches)
 	{
-		auto filter = filterFactory->Create();
-		if (filter->Name() == name)
-			return cur;
-		++cur;
+		item->setHidden(false);
+		if (matches.size() == 1)
+			lwFilterList->setCurrentItem(item);
 	}
-	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));
-	return -1;
+	EnableOKButton();
 }
 
-QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(int filterID)
+void dlg_FilterSelection::EnableOKButton()
 {
-	return m_runner[filterID];
+	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(m_curMatches == 1 ||
+		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden()));
 }
 
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
-QVector<QSharedPointer<iAIFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;
+void dlg_FilterSelection::ListSelectionChanged(QListWidgetItem *current, QListWidgetItem *previous)
+{
+	EnableOKButton();
+}
+
+
+QString dlg_FilterSelection::SelectedFilterName() const
+{
+	return lwFilterList->currentItem() == nullptr ? QString() : lwFilterList->currentItem()->text();
+}

@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAModuleDispatcher.h"
 
+#include "dlg_FilterSelection.h"
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
@@ -220,11 +221,34 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	// enable Tools and Filters only if any modules were loaded that put something into them:
 	m_mainWnd->getToolsMenu()->menuAction()->setVisible(m_mainWnd->getToolsMenu()->actions().size() > 0);
 	m_mainWnd->getFiltersMenu()->menuAction()->setVisible(m_mainWnd->getFiltersMenu()->actions().size() > 0);
+
+	if (m_mainWnd->getFiltersMenu()->actions().size() > 0)
+	{
+		QMenu * filterMenu = m_mainWnd->getFiltersMenu();
+		QAction * selectAndRunFilterAction = new QAction(QApplication::translate("MainWindow", "Select and Run Filter...", 0), m_mainWnd);
+		AddModuleAction(selectAndRunFilterAction, true);
+		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
+		connect(selectAndRunFilterAction, SIGNAL(triggered()), this, SLOT(SelectAndRunFilter()));
+	}
 }
 
 void iAModuleDispatcher::ExecuteFilter()
 {
 	int filterID = qobject_cast<QAction *>(sender())->data().toInt();
+	RunFilter(filterID);
+}
+
+void iAModuleDispatcher::SelectAndRunFilter()
+{
+	dlg_FilterSelection filterSelection(m_mainWnd);
+	if (filterSelection.exec() == QDialog::Accepted)
+		RunFilter(iAFilterRegistry::FilterID(filterSelection.SelectedFilterName()));
+}
+
+void iAModuleDispatcher::RunFilter(int filterID)
+{
+	if (filterID == -1)
+		return;
 	auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
 	m_runningFilters.push_back(runner);
 	connect(runner.data(), SIGNAL(finished()), this, SLOT(RemoveFilter()));

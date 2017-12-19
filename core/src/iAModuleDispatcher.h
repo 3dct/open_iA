@@ -84,6 +84,7 @@ public:
 private slots:
 	void ExecuteFilter();
 	void RemoveFilter();
+	void SelectAndRunFilter();
 private:
 	MainWindow * m_mainWnd;
 	QVector < iAModuleAction > m_moduleActions;
@@ -92,6 +93,7 @@ private:
 	QString m_rootPath;
 	iAModuleInterface* LoadModuleAndInterface(QFileInfo fi, iALogger* logger);
 	void InitializeModuleInterface(iAModuleInterface* m);
+	void RunFilter(int filterID);
 };
 
 template <typename T> T* iAModuleDispatcher::GetModule(T* type)
