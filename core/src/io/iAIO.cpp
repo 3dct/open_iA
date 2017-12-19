@@ -88,7 +88,7 @@ const QString iAIO::VolstackExtension(".volstack");
 template<class T>
 void read_raw_image_template (unsigned long headerSize,
 	int byteOrder, int* extent, double* spacing, double* origin,
-	QString const & fileName, iAProgress* p, iAConnector* image)
+	QString const & fileName, iAProgress* progress, iAConnector* image)
 {
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
 	auto io = RawImageIOType::New();
@@ -100,18 +100,18 @@ void read_raw_image_template (unsigned long headerSize,
 		io->SetSpacing(i, spacing[i]);
 		io->SetOrigin(i, origin[i]);
 	}
-	
+
 	if (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN)
 		io->SetByteOrderToLittleEndian();
 	else
 		io->SetByteOrderToBigEndian();
-	
+
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
 	auto reader = ReaderType::New();
 	reader->SetFileName(fileName.toLatin1().data());
 	reader->SetImageIO(io);
-	p->Observe( reader );
+	progress->Observe( reader );
 	reader->Modified();
 	reader->Update();
 	image->SetImage(reader->GetOutput());
@@ -120,14 +120,14 @@ void read_raw_image_template (unsigned long headerSize,
 }
 
 
-template<class T> 
-void read_image_template(QString const & fileName, iAProgress* p, iAConnector* image  )
+template<class T>
+void read_image_template(QString const & fileName, iAProgress* progress, iAConnector* image  )
 {
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
 	auto reader = ReaderType::New();
 	reader->SetFileName(fileName.toLatin1().data());
-	p->Observe( reader );
+	progress->Observe( reader );
 	reader->Update();
 	image->SetImage(reader->GetOutput());
 	image->Modified();
@@ -137,7 +137,7 @@ void read_image_template(QString const & fileName, iAProgress* p, iAConnector* i
 
 template<class T>
 void write_image_template(bool compression, QString const & fileName,
-	iAProgress* p, iAConnector* image  )
+	iAProgress* progress, iAConnector* image  )
 {
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileWriter<InputImageType> WriterType;
@@ -145,13 +145,13 @@ void write_image_template(bool compression, QString const & fileName,
 	writer->SetFileName(fileName.toLatin1().data());
 	writer->SetInput( dynamic_cast< InputImageType * > ( image->GetITKImage() ) );
 	writer->SetUseCompression(compression);
-	p->Observe( writer );
+	progress->Observe( writer );
 	writer->Update();
 	writer->ReleaseDataFlagOn();
 }
 
 
-iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par,
+iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
 		vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
 	: iAAlgorithm( "IO", i, p, logger, par ),
 	m_volumes(volumes),
@@ -161,36 +161,30 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par,
 }
 
 
-iAIO::iAIO( iALogger* logger, QObject *parent /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
+iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
 		vector<QString> * fileNames /*= 0*/ )
-	: iAAlgorithm( "IO", 0, 0, logger, parent),
+	: iAAlgorithm( "IO", 0, 0, logger, par),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {
-	init(parent);
+	init(par);
 }
 
 
-void iAIO::init(QObject *par)
+void iAIO::init(QWidget *par)
 {
-	parent = (QWidget*)par;
+	parent = par;
 	fileName = "";
 	fileNameArray = vtkStringArray::New();
 	extent[0] = 0; extent[1] = 1; extent[2] = 0; extent[3] = 1; extent[4] = 0, extent[5] = 1;
 	spacing[0] = 1.0; spacing[1] = 1.0; spacing[2] = 1.0;
 	origin[0] = 0.0; origin[1] = 0.0; origin[2] = 0.0;
-	dim = 3;
 	headersize = 0;
 	scalarType = 0;
 	byteOrder = 1;
 	ioID = 0;
 	iosettingsreader();
 	observerProgress = iAObserverProgress::New();
-
-	if (par)
-	{
-		connect(this, SIGNAL(msg(QString)), par, SLOT(addMsg(QString)));
-	}
 }
 
 
@@ -239,7 +233,7 @@ int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sig
 		case 8: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_LONG_LONG : VTK_LONG_LONG;
 		default: return InvalidHDF5Type;
 		}
-	} 
+	}
 	case H5T_FLOAT: {
 		switch (numBytes)
 		{
@@ -342,7 +336,7 @@ void iAIO::loadHDF5File()
 	H5T_order_t order = H5Tget_order(type_id);
 	H5T_sign_t sign = H5Tget_sign(type_id);
 	int vtkType = GetNumericVTKTypeFromHDF5Type(hdf5Type, numBytes, sign);
-	H5Tclose(type_id);						// class=%2; 
+	H5Tclose(type_id);						// class=%2;
 	QString caption = QString("Dataset: %1; type=%2 (%3 bytes, order %4, %5); rank=%6; ")
 		.arg(m_hdf5Path[0])
 		//.arg(MapHDF5ClassToString(hdf5Class))
@@ -408,7 +402,7 @@ void iAIO::run()
 		switch (ioID)
 		{
 			case MHD_WRITER:
-				writeMetaImage(); break;
+				writeMetaImage(getVtkImageData(), fileName); break;
 			case VOLUME_STACK_VOLSTACK_WRITER:
 				writeVolumeStack(); break;
 			case STL_WRITER:
@@ -508,7 +502,7 @@ void iAIO::run()
 	#endif
 			case UNKNOWN_READER:
 			default:
-				emit msg(tr("  unknown reader type"));
+				addMsg(tr("  unknown reader type"));
 		}
 		if ((ioID == MHD_WRITER) || (ioID == STL_WRITER) || (ioID == TIF_STACK_WRITER)
 			|| (ioID == JPG_STACK_WRITER) || (ioID == PNG_STACK_WRITER)|| (ioID == BMP_STACK_WRITER) || (ioID ==DCM_WRITER) )
@@ -687,15 +681,15 @@ typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 #endif
 
 /**
- * \return	true if it succeeds, false if it fails. 
+ * \return	true if it succeeds, false if it fails.
  */
 bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 {
 	ioID = type;
 	m_channel = channel;
 
-	f_dir = QFileInfo(f).absoluteDir();	
-	
+	f_dir = QFileInfo(f).absoluteDir();
+
 	// TODO: hook for plugins!
 	switch (ioID)
 	{
@@ -777,23 +771,23 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			dlg.tree->setModel(model);
 			if (dlg.exec() != QDialog::Accepted)
 			{
-				emit msg("Dataset selection aborted.");
+				addMsg("Dataset selection aborted.");
 				return false;
 			}
 			QModelIndex idx = dlg.tree->currentIndex();
 			if (idx.data(Qt::UserRole + 1) != DATASET)
 			{
-				emit msg("You have to select a dataset!");
+				addMsg("You have to select a dataset!");
 				return false;
 			}
 			if (idx.data(Qt::UserRole + 3).toInt() == -1)
 			{
-				emit msg("Can't read datasets of this data type!");
+				addMsg("Can't read datasets of this data type!");
 				return false;
 			}
 			if (idx.data(Qt::UserRole + 4).toInt() < 1 || idx.data(Qt::UserRole + 4).toInt() > 3)
 			{
-				emit msg(QString("The rank (number of dimensions) of the dataset must be between 1 and 3 (was %1)").arg(idx.data(Qt::UserRole + 4).toInt()));
+				addMsg(QString("The rank (number of dimensions) of the dataset must be between 1 and 3 (was %1)").arg(idx.data(Qt::UserRole + 4).toInt()));
 			}
 			do
 			{
@@ -801,7 +795,6 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 				idx = idx.parent();
 			}
 			while (idx != QModelIndex());
-				
 			DEBUG_LOG(QString("Path: %1").arg(m_hdf5Path.size()));
 			for (int i = 0; i < m_hdf5Path.size(); ++i)
 			{
@@ -809,7 +802,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			}
 			if (m_hdf5Path.size() < 2)
 			{
-				emit msg("Invalid selection!");
+				addMsg("Invalid selection!");
 				return false;
 			}
 			bool okX, okY, okZ;
@@ -818,15 +811,15 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 			m_hdf5Spacing[2] = dlg.edSpacingZ->text().toDouble(&okZ);
 			if (!(okX && okY && okZ))
 			{
-				emit msg("Invalid spacing (has to be a valid floating point number)!");
+				addMsg("Invalid spacing (has to be a valid floating point number)!");
 				return false;
 			}
 			return true;
 		}
 #endif
-		case UNKNOWN_READER: 
+		case UNKNOWN_READER:
 		default:
-			emit msg(tr("  unknown IO type")); 
+			addMsg(tr("  unknown IO type"));
 			return false;
 	}
 	return true;
@@ -930,7 +923,7 @@ void iAIO::readVolumeMHDStack()
 		int progress = (fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
-	emit msg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
 }
 
@@ -950,7 +943,7 @@ void iAIO::readVolumeStack()
 		int progress = (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
-	emit msg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
 }
 
@@ -978,9 +971,7 @@ void iAIO::writeVolumeStack()
 	// write mhd images:
 	for (int m=0; m <= fileNameArray->GetMaxId(); m++)
 	{
-		fileName = (fileNameArray->GetValue(m));
-		setImageData(m_volumes->at(m).GetPointer());
-		writeMetaImage();
+		writeMetaImage(m_volumes->at(m).GetPointer(), fileNameArray->GetValue(m).c_str());
 		int progress = (m * 100) / fileNameArray->GetMaxId();
 		observerProgress->manualProgressUpdate(progress);
 	}
@@ -1000,7 +991,7 @@ void iAIO::postImageReadActions()
 	getVtkImageData()->Initialize();
 	getVtkImageData()->DeepCopy(getConnector()->GetVTKImage());
 	getVtkImageData()->CopyInformationFromPipeline(getConnector()->GetVTKImage()->GetInformation());
-	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 }
 
 
@@ -1027,7 +1018,7 @@ void iAIO::readSTL( )
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
 	printSTLFileInfos();
-	emit msg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 }
 
 
@@ -1038,28 +1029,25 @@ bool iAIO::setupVolumeStackMHDReader(QString f)
 
 	fileNamesBase = f;
 	extension = "." + QFileInfo(f).suffix();
-	QStringList inList		= (QStringList() 
+	QStringList inList		= (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
 		<< tr("#Minimum Index")  << tr("#Maximum Index") );
-	QList<QVariant> inPara	= (QList<QVariant>() 
-		<< fileNamesBase << extension 
-		<< tr("%1").arg(digitsInIndex) 
+	QList<QVariant> inPara	= (QList<QVariant>()
+		<< fileNamesBase << extension
+		<< tr("%1").arg(digitsInIndex)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1]) );
 
 	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 
-	if (dlg.exec() == QDialog::Accepted){
+	if (dlg.exec() != QDialog::Accepted)
+		return false;
 
-		fileNamesBase = dlg.getText(0);
-		extension = dlg.getText(1);
-		digitsInIndex = dlg.getDblValue(2);
-		indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
-	
-		FillFileNameArray(indexRange, digitsInIndex);
-	}
-	else return false;
-
+	fileNamesBase = dlg.getText(0);
+	extension = dlg.getText(1);
+	digitsInIndex = dlg.getDblValue(2);
+	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
+	FillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
 
@@ -1205,8 +1193,8 @@ bool iAIO::setupVolumeStackReader(QString f)
 	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
-	QStringList inList		= (QStringList() 
-		<< tr("#File Names Base") << tr("#Extension") 
+	QStringList inList		= (QStringList()
+		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
 		<< tr("#Minimum Index")  << tr("#Maximum Index")
 		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
@@ -1215,9 +1203,9 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< tr("#Headersize")
 		<< tr("+Data Type")
 		<< tr("+Byte Order") );
-	QList<QVariant> inPara	= (QList<QVariant>() 
-		<< fileNamesBase << extension 
-		<< tr("%1").arg(digitsInIndex) 
+	QList<QVariant> inPara	= (QList<QVariant>()
+		<< fileNamesBase << extension
+		<< tr("%1").arg(digitsInIndex)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(rawSizeX) << tr("%1").arg(rawSizeY) << tr("%1").arg(rawSizeZ)
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
@@ -1227,7 +1215,6 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< byteOrderStr);
 
 	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, parent, "RAW file specs", inList, inPara, NULL, f);
-	
 	if (dlg->exec() == QDialog::Accepted){
 
 		rawSizeX = dlg->getDblValue(5); rawSizeY = dlg->getDblValue(6); rawSizeZ = dlg->getDblValue(7);
@@ -1268,7 +1255,7 @@ bool iAIO::setupRAWReader( QString f )
 	datatype[mapVTKTypeToIdx(rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(rawScalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawByteOrder)];
-	QStringList inList		= (QStringList() 
+	QStringList inList		= (QStringList()
 		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
 		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
 		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z")
@@ -1276,7 +1263,7 @@ bool iAIO::setupRAWReader( QString f )
 		<< tr("+Data Type")
 		<< tr("+Byte Order") );
 
-	QList<QVariant> inPara	= (QList<QVariant>() 
+	QList<QVariant> inPara	= (QList<QVariant>()
 		<< tr("%1").arg(rawSizeX) << tr("%1").arg(rawSizeY) << tr("%1").arg(rawSizeZ)
 		<< tr("%1").arg(rawSpaceX) << tr("%1").arg(rawSpaceY) << tr("%1").arg(rawSpaceZ)
 		<< tr("%1").arg(rawOriginX) << tr("%1").arg(rawOriginY) << tr("%1").arg(rawOriginZ)
@@ -1326,16 +1313,16 @@ bool iAIO::setupPARSReader( QString f )
 	spacing[0] = getParameterValues(f, "det_pitch:", 0).toDouble() / (getParameterValues(f, "geo_SD:", 0).toDouble() / getParameterValues(f, "geo_SO:", 0).toDouble());
 	spacing[1] = getParameterValues(f, "det_pitch:", 1).toDouble() / (getParameterValues(f, "geo_SD:", 0).toDouble() / getParameterValues(f, "geo_SO:", 0).toDouble());
 	spacing[2] = spacing[0] > spacing[1] ? spacing[1] : spacing[0];
-	
+
 	if(getParameterValues(f,"proj_datatype:",0) == "intensity") scalarType = VTK_UNSIGNED_SHORT;
 	else scalarType = VTK_FLOAT;
 
 	fileName = getParameterValues(f,"proj_filename_template_1:",0);
 	QFileInfo pars(f);
 	if(!QFile::exists(fileName))	{
-		if ((fileName.lastIndexOf("\\") == -1) && (fileName.lastIndexOf("/") == -1)) 
+		if ((fileName.lastIndexOf("\\") == -1) && (fileName.lastIndexOf("/") == -1))
 			fileName = pars.canonicalPath() + "/" + fileName;
-		else if (fileName.lastIndexOf("\\") > 0) 
+		else if (fileName.lastIndexOf("\\") > 0)
 			fileName = pars.canonicalPath() + "/" + fileName.section('\\', -1);
 		else if (fileName.lastIndexOf("/") > 0)
 			fileName = pars.canonicalPath() + "/" + fileName.section('/', -1);
@@ -1353,27 +1340,27 @@ bool iAIO::setupPARSReader( QString f )
 
 bool iAIO::setupVGIReader( QString f )
 {
-	extent[1] =	getParameterValues(f,"size", 0, "[file1]", "=").toInt() ; 
-	extent[3] = getParameterValues(f,"size", 1, "[file1]", "=").toInt() ; 
+	extent[1] =	getParameterValues(f,"size", 0, "[file1]", "=").toInt() ;
+	extent[3] = getParameterValues(f,"size", 1, "[file1]", "=").toInt() ;
 	extent[5] = getParameterValues(f,"size", 2, "[file1]", "=").toInt() ;
 	if ((extent[1] == 0) || (extent[3] == 0) || (extent[5] == 0)) {
 		extent[1] = getParameterValues(f,"Size", 0, "[file1]", "=").toInt() ;
-		extent[3] = getParameterValues(f,"Size", 1, "[file1]", "=").toInt() ; 
+		extent[3] = getParameterValues(f,"Size", 1, "[file1]", "=").toInt() ;
 		extent[5] = getParameterValues(f,"Size", 2, "[file1]", "=").toInt() ;
 	}
 	if ((extent[1] == 0) || (extent[3] == 0) || (extent[5] == 0))    return false;
 	extent[1]--; extent[3]--; extent[5]--;
 
 	spacing[0] = getParameterValues(f,"resolution", 0, "[geometry]", "=").toDouble();
-	spacing[1] = getParameterValues(f,"resolution", 1, "[geometry]", "=").toDouble(); 
+	spacing[1] = getParameterValues(f,"resolution", 1, "[geometry]", "=").toDouble();
 	spacing[2] = getParameterValues(f,"resolution", 2, "[geometry]", "=").toDouble();
 	if ((spacing[0] == 0) || (spacing[1] == 0) || (spacing[2] == 0)) spacing[0] = spacing[1] = spacing[2] = 1;
 	if ((spacing[1] == 0) && (spacing[2] == 0)) spacing[1] = spacing[2] = spacing[0];
-	
+
 	int elementSize = getParameterValues(f,"bitsperelement", 0, "[file1]", "=").toInt();
 	if (elementSize == 0) elementSize = getParameterValues(f,"BitsPerElement", 0, "[file1]", "=").toInt();
 	if (elementSize == 0)    return false;
-	
+
 	if (elementSize == 8) scalarType = VTK_UNSIGNED_CHAR;
 	else if (elementSize == 16) scalarType = VTK_UNSIGNED_SHORT;
 	else if (elementSize == 32)	scalarType = VTK_FLOAT;
@@ -1383,14 +1370,14 @@ bool iAIO::setupVGIReader( QString f )
 
 	fileName = getParameterValues(f,"name",0, "[file1]", "=");
 	if (fileName == "") fileName = getParameterValues(f,"Name",0, "[file1]", "=");
-	if (fileName == "") 
+	if (fileName == "")
 		fileName = QFileDialog::getOpenFileName(parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;"));
-	
+
 	QFileInfo pars(f);
 	if(!QFile::exists(fileName))	{
-		if ((fileName.lastIndexOf("\\") == -1) && (fileName.lastIndexOf("/") == -1)) 
+		if ((fileName.lastIndexOf("\\") == -1) && (fileName.lastIndexOf("/") == -1))
 			fileName = pars.canonicalPath() + "/" + fileName;
-		else if (fileName.lastIndexOf("\\") > 0) 
+		else if (fileName.lastIndexOf("\\") > 0)
 			fileName = pars.canonicalPath() + "/" + fileName.section('\\', -1);
 		else if (fileName.lastIndexOf("/") > 0)
 			fileName = pars.canonicalPath() + "/" + fileName.section('/', -1);
@@ -1407,14 +1394,14 @@ bool iAIO::setupVGIReader( QString f )
 }
 
 
-void iAIO::writeMetaImage( )
+void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fileName )
 {
-	getConnector()->SetImage(getVtkImageData()); getConnector()->Modified();
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	iAConnector::ITKPixelType itkPixelType = getConnector()->GetITKPixelType();
+	iAConnector con; con.SetImage(imgToWrite); con.Modified();
+	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
+	iAConnector::ITKPixelType itkPixelType = con.GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType,
-		compression, fileName, getItkProgress(), getConnector());
-	emit msg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+		compression, fileName, getItkProgress(), &con);
+	addMsg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 }
 
 
@@ -1426,7 +1413,7 @@ void iAIO::writeSTL( )
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
 	stlWriter->Write();
-	emit msg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 	stlWriter->ReleaseDataFlagOn();
 }
 
@@ -1488,10 +1475,10 @@ void iAIO::writeImageStack( )
 	const PixelType imagePixelType = getConnector()->GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
 		fileName, getItkProgress(), getConnector(), compression);
-	emit msg(tr("%1  %2 Image Stack saved.")
+	addMsg(tr("%1  %2 Image Stack saved.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QFileInfo(fileName).completeSuffix().toUpper()));
-	emit msg("  Base Filename: " + fileName);
+	addMsg("  Base Filename: " + fileName);
 }
 
 //****************************************************
@@ -1507,15 +1494,15 @@ bool iAIO::setupStackReader( QString f )
 
 	fileNamesBase = f;
 	extension = "." + QFileInfo(f).suffix();
-	QStringList inList		= (QStringList() 
-		<< tr("#File Names Base") << tr("#Extension") 
+	QStringList inList		= (QStringList()
+		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
 		<< tr("#Minimum Index")  << tr("#Maximum Index")
 		<< tr("#Spacing X")  << tr("#Spacing Y")  << tr("#Spacing Z")
 		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z"))	<< tr("+Data Type");
-	QList<QVariant> inPara	= (QList<QVariant>() 
-		<< fileNamesBase << extension 
-		<< tr("%1").arg(digitsInIndex) 
+	QList<QVariant> inPara	= (QList<QVariant>()
+		<< fileNamesBase << extension
+		<< tr("%1").arg(digitsInIndex)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << VTKDataTypeList());
@@ -1557,7 +1544,7 @@ void iAIO::readImageStack()
 	imgReader->SetDataSpacing(spacing);
 	imgReader->SetOutput(getVtkImageData());
 	imgReader->Update();
-	emit msg(tr("%1  Loading image stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("%1  Loading image stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 
@@ -1600,12 +1587,12 @@ void iAIO::iosettingsreader()
 void iAIO::printSTLFileInfos()
 {
 	// TODO: show this information in img properties instead of log
-	emit msg(tr("  Cells: %1").arg(getVtkPolyData()->GetNumberOfCells()));
-	emit msg(tr("  Points: %1").arg(getVtkPolyData()->GetNumberOfPoints()));
-	emit msg(tr("  Polygons: %1").arg(getVtkPolyData()->GetNumberOfPolys()));
-	emit msg(tr("  Lines: %1").arg(getVtkPolyData()->GetNumberOfLines()));
-	emit msg(tr("  Strips: %1").arg(getVtkPolyData()->GetNumberOfStrips()));
-	emit msg(tr("  Pieces: %1").arg(getVtkPolyData()->GetNumberOfPieces()));
+	addMsg(tr("  Cells: %1").arg(getVtkPolyData()->GetNumberOfCells()));
+	addMsg(tr("  Points: %1").arg(getVtkPolyData()->GetNumberOfPoints()));
+	addMsg(tr("  Polygons: %1").arg(getVtkPolyData()->GetNumberOfPolys()));
+	addMsg(tr("  Lines: %1").arg(getVtkPolyData()->GetNumberOfLines()));
+	addMsg(tr("  Strips: %1").arg(getVtkPolyData()->GetNumberOfStrips()));
+	addMsg(tr("  Pieces: %1").arg(getVtkPolyData()->GetNumberOfPieces()));
 }
 
 
@@ -1614,12 +1601,12 @@ void iAIO::printSTLFileInfos()
 * but this class fails in debug mode - this is why serialization is done manually.
 */
 void iAIO::saveTransformFile(QString fName, VersorRigid3DTransformType *transform) {
-	
-	ofstream outFile; 
+
+	ofstream outFile;
 	outFile.open(fName.toStdString());
 
-	outFile 
-		<< transform->GetParameters() 
+	outFile
+		<< transform->GetParameters()
 		<< "\n"
 		<< transform->GetFixedParameters()
 		<< "\n";
@@ -1630,8 +1617,8 @@ void iAIO::saveTransformFile(QString fName, VersorRigid3DTransformType *transfor
 
 VersorRigid3DTransformType * iAIO::readTransformFile(QString fName)
 {
-	std::string line; 
-	ifstream inFile(fName.toStdString()); 
+	std::string line;
+	ifstream inFile(fName.toStdString());
 	if (inFile.is_open())
 	{
 		//read parameter
@@ -1639,12 +1626,11 @@ VersorRigid3DTransformType * iAIO::readTransformFile(QString fName)
 
 		typedef VersorRigid3DTransformType::ParametersType ParametersType;
 		mmFinalTransform = VersorRigid3DTransformType::New();
-		
 		ParametersType parameters(mmFinalTransform->GetNumberOfParameters());
 
-		char * cstr = new char[line.size()+1]; 
+		char * cstr = new char[line.size()+1];
 		strcpy(cstr, line.c_str());
-		std::vector<double> tokens; 
+		std::vector<double> tokens;
 
 		char *p = strtok(cstr, " ,[]");
 		while (p!=NULL)
@@ -1656,13 +1642,12 @@ VersorRigid3DTransformType * iAIO::readTransformFile(QString fName)
 			p = strtok(NULL, " ,[]");
 		}
 
-		parameters[0] = tokens[0]; 
+		parameters[0] = tokens[0];
 		parameters[1] = tokens[1];
 		parameters[2] = tokens[2];
 		parameters[3] = tokens[3];
 		parameters[4] = tokens[4];
 		parameters[5] = tokens[5];
-		
 		mmFinalTransform->SetParameters(parameters);
 
 		//read fixed parameter -> center of rotation
@@ -1678,11 +1663,10 @@ VersorRigid3DTransformType * iAIO::readTransformFile(QString fName)
 		{
 			istringstream iss(p);
 			double d;
-			iss >> d; 
+			iss >> d;
 			fixedTokens.push_back((d));
 			p = strtok(NULL, " ,[]");
 		}
-		
 		fixedParameters[0] = fixedTokens[0];
 		fixedParameters[1] = fixedTokens[1];
 		fixedParameters[2] = fixedTokens[2];
@@ -1695,8 +1679,7 @@ VersorRigid3DTransformType * iAIO::readTransformFile(QString fName)
 		addMsg(tr("unable to load transform file"));
 	}
 
-	return mmFinalTransform; 
-	
+	return mmFinalTransform;
 }
 
 
