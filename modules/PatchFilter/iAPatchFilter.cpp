@@ -95,34 +95,59 @@ namespace
 		QVector<iAConnector*> extractImageInput;
 		extractImageInput.push_back(new iAConnector);
 		bool warnOutputNotSupported = false;
+
+		// iterate over all patches:
 		for (int xBlock = 0; xBlock < blockCount[0]; ++xBlock)
 		{
-			extractParams.insert(qMakePair("Index X", xBlock * xPatchSize));
-			extractParams.insert(qMakePair("Size X", (xBlock < blockCount[0] - 1) || (size[0] % xPatchSize == 0)
-				? xPatchSize : size[0] % xPatchSize));
+			extractParams.insert("Index X", xBlock * xPatchSize);
+			extractParams.insert("Size X", (xBlock < blockCount[0] - 1) || (size[0] % xPatchSize == 0)
+				? xPatchSize : size[0] % xPatchSize);
 			for (int yBlock = 0; yBlock < blockCount[1]; ++yBlock)
 			{
-				extractParams.insert(qMakePair("Index Y", yBlock * yPatchSize));
-				extractParams.insert(qMakePair("Size Y", (yBlock < blockCount[1] - 1) || (size[1] % yPatchSize == 0)
-					? yPatchSize : size[1] % yPatchSize));
+				extractParams.insert("Index Y", yBlock * yPatchSize);
+				extractParams.insert("Size Y", (yBlock < blockCount[1] - 1) || (size[1] % yPatchSize == 0)
+					? yPatchSize : size[1] % yPatchSize);
 				for (int zBlock = 0; zBlock < blockCount[2]; ++zBlock)
 				{
-					extractParams.insert(qMakePair("Index Z", zBlock * zPatchSize));
-					extractParams.insert(qMakePair("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
-						? zPatchSize : size[2] % zPatchSize));
+					// extract patch from all inputs:
+					extractParams.insert("Index Z", zBlock * zPatchSize);
+					extractParams.insert("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
+						? zPatchSize : size[2] % zPatchSize);
 					for (int i = 0; i < inputImages.size(); ++i)
 					{
-						extractImageInput[0]->SetImage(inputImages[i]);
+						extractImageInput[0]->SetImage(inputImages[i]->GetITKImage());
 						extractImageFilter->SetUp(extractImageInput, log, &dummyProgress);
 						extractImageFilter->Run(extractParams);
 						smallImageInput[i]->SetImage(extractImageInput[0]->GetITKImage());
 					}
+
+					// run filter on inputs:
 					filter->SetUp(smallImageInput, log, &dummyProgress);
 					filter->Run(filterParams);
+					
+					// get output images and values from filter:
 					if (filter->OutputCount() > 0)
 						warnOutputNotSupported = true;
 
-					// if (filter->Value)
+					if (filter->OutputValues().size() > 0)
+					{
+						if (curOp == 0)
+						{
+							QStringList captions;
+							captions << "Patch x" << "Patch y" << "Patch z";
+							for (auto outValue : filter->OutputValues())
+								captions << outValue.first;
+							outputBuffer.append(captions.join(","));
+						}
+						QStringList values;
+						values << QString::number(xBlock*xPatchSize)
+							<< QString::number(yBlock*yPatchSize)
+							<< QString::number(zBlock*zPatchSize);
+						for (auto outValue : filter->OutputValues())
+							values.append(outValue.second.toString());
+						outputBuffer.append(values.join(","));
+					}
+					
 					progress->ManualProgress(static_cast<int>(100.0 * curOp / totalOps));
 					++curOp;
 				}
@@ -147,7 +172,7 @@ iAPatchFilter::iAPatchFilter():
 	AddParameter("Output csv file", String, "");
 }
 
-void iAPatchFilter::Run(QMap<QString, QVariant> const & parameters)
+void iAPatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	auto filter = iAFilterRegistry::Filter(parameters["Filter"].toString());
 	if (!filter)
