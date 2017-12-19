@@ -46,7 +46,7 @@ template<class T> void additiveGaussianNoise_template(iAProgress* p, iAConnector
 	image->Modified();
 }
 
-void iAAdditiveGaussianNoise::Run(QMap<QString, QVariant> const & parameters)
+void iAAdditiveGaussianNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(additiveGaussianNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
 }
@@ -81,7 +81,7 @@ template<class T> void saltAndPepperNoise_template(iAProgress* p, iAConnector* i
 	image->Modified();
 }
 
-void iASaltAndPepperNoise::Run(QMap<QString, QVariant> const & parameters)
+void iASaltAndPepperNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(saltAndPepperNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
 }
@@ -115,7 +115,7 @@ template<class T> void shotNoise_template(iAProgress* p, iAConnector* image, QMa
 	image->Modified();
 }
 
-void iAShotNoise::Run(QMap<QString, QVariant> const & parameters)
+void iAShotNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(shotNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
 }
@@ -149,7 +149,7 @@ template<class T> void speckleNoise_template(iAProgress* p, iAConnector* image, 
 	image->Modified();
 }
 
-void iASpeckleNoise::Run(QMap<QString, QVariant> const & parameters)
+void iASpeckleNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(speckleNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
 }

@@ -73,6 +73,9 @@ public:
 	//! template), otherwise still an iAFilterRunnerGUI will be created!
 	static QSharedPointer<iAFilterRunnerGUI> Create();
 
+	//! do any potentially necessary GUI preparations (directly before the filter is run)
+	virtual void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd);
+
 	//! Main run method. Calls all the other (non-static) methods in this class.
 	//! Override only if you want to change the whole way the filter running works;
 	//! typically you will only want to override one of the methods below
@@ -114,3 +117,9 @@ signals:
 private:
 	QVector<vtkSmartPointer<vtkImageData> > m_additionalInput;
 };
+
+#define IAFILTER_RUNNER_CREATE(FilterRunnerName) \
+QSharedPointer<iAFilterRunnerGUI> FilterRunnerName::Create() \
+{ \
+	return QSharedPointer<FilterRunnerName>(new FilterRunnerName()); \
+}

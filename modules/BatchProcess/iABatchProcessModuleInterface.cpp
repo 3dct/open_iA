@@ -18,8 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "pch.h"
+#include "iABatchProcessModuleInterface.h"
 
-#include "iAFilter.h"
+#include "iABatchFilter.h"
 
-IAFILTER_DEFAULT_CLASS(iAGPUEdgePreservingSmoothing)
+#include "iAFilterRegistry.h"
+
+//#include "mainwindow.h"
+
+void iABatchProcessModuleInterface::Initialize()
+{
+	REGISTER_FILTER(iABatchFilter);
+	if (!m_mainWnd)
+		return;
+	/*
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
+	QAction * actionSample = new QAction( m_mainWnd );
+	actionSample->setText(QApplication::translate("MainWindow", "Sample...", 0));
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionSample, true);
+	connect(actionSample, SIGNAL(triggered()), this, SLOT(ShowSampleDialog()));
+	*/
+}
+
+/*
+void iABatchProcessModuleInterface::ShowSampleDialog()
+{
+	PrepareActiveChild();
+	if (!m_mdiChild)
+		return;
+}
+*/

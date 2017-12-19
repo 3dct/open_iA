@@ -50,7 +50,7 @@ void SimpleConnectedComponentFilter_template(bool fullyConnected, iAProgress* p,
 	filter->ReleaseDataFlagOn();
 }
 
-void iASimpleConnectedComponents::Run(QMap<QString, QVariant> const & parameters)
+void iASimpleConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, pixelType,
@@ -91,7 +91,7 @@ void ScalarConnectedComponentFilter_template( double distTreshold, iAProgress* p
 
 IAFILTER_CREATE(iAScalarConnectedComponents)
 
-void iAScalarConnectedComponents::Run(QMap<QString, QVariant> const & parameters)
+void iAScalarConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, pixelType,
@@ -141,7 +141,7 @@ void SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAPro
 
 IAFILTER_CREATE(iASimpleRelabelConnectedComponents)
 
-void iASimpleRelabelConnectedComponents::Run(QMap<QString, QVariant> const & parameters)
+void iASimpleRelabelConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, pixelType,

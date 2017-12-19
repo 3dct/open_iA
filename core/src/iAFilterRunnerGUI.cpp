@@ -226,6 +226,9 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	return true;
 }
 
+void iAFilterRunnerGUI::FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
+{
+}
 
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
@@ -241,12 +244,15 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
-	auto mdiChild = mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + oldTitle);
+	auto mdiChild = filter->OutputCount() > 0 ?
+		mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + oldTitle) :
+		sourceMdi;
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
 		return;
 	}
+	FilterGUIPreparations(filter, mdiChild, mainWnd);
 	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild);
 	if (!thread)
 	{
@@ -280,6 +286,7 @@ void iAFilterRunnerGUI::FilterFinished()
 	auto thread = qobject_cast<iAFilterRunnerGUIThread*>(sender());
 	// add additional output as additional modalities here
 	// "default" output 0 is handled elsewhere
+	auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
 	if (thread->Filter()->OutputCount() > 1)
 	{
 		for (int p = 1; p < thread->Filter()->Connectors().size() && p < thread->Filter()->OutputCount(); ++p)
@@ -289,10 +296,12 @@ void iAFilterRunnerGUI::FilterFinished()
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->Filter()->Connectors()[p]->GetVTKImage());
-			auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
 			mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
 				new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0)));
 		}
 	}
+	for (auto outputValue : thread->Filter()->OutputValues())
+		mdiChild->addMsg(QString("%1: %2").arg(outputValue.first).arg(outputValue.second.toString()));
+
 	emit finished();
 }

@@ -60,8 +60,19 @@ public:
 	//!     When left empty, the filter will be added directly in the Filter menu
 	//! @param description An (optional) description of the filter algorithm, and
 	//!     ideally its settings. Can contain HTML (e.g. links)
-	iAFilter(QString const & name, QString const & category, QString const & description,
-		unsigned int requiredInputs = 1);
+	//! @param requiredInputs The number of inputs required for this filter;
+	//!     by default, filters are assumed to require exactly one input image; you
+	//!     can override the number of inputs required for your filter with this parameter
+	//! @param outputCount the number of outputs this filter creates. Set it to 0 to
+	//!     disable image output. If you don't know this yet at the time of creating the
+	//!     filter (because it for example depends on the number of input images or the
+	//!     parameters), you can always adapt it at a later point (e.g. during
+	//!     iAFilter::Run) by calling SetOutputCount; but if you have some image output,
+	//!     make sure that you leave it at the default value of 1 or set it to some value
+	//!     other than zero, because setting it to zero has immediate side effects (e.g.
+	//!     not opening a result window if configured, in  the GUI).
+	iAFilter(QString const & name, QString const & category, QString const & description = "",
+		unsigned int requiredInputs = 1, unsigned int outputCount = 1);
 	//! Destructor
 	virtual ~iAFilter();
 	//! Retrieve the filter name
@@ -89,9 +100,9 @@ public:
 	//! TODO: also allow to check input files here (e.g. for AddImage to check
 	//!     if input images are all of the same type!
 	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
-	//! The actual implementation of the filter
+	//! Initialize and run the filter
 	//! @param parameters the map of parameters to use in this specific filter run
-	virtual void Run(QMap<QString, QVariant> const & parameters) = 0;
+	void Run(QMap<QString, QVariant> const & parameters);
 	//! Adds the description of a parameter to the filter
 	//! @param name the parameter's name
 	//! @param valueType the type of value this parameter can have
@@ -110,9 +121,13 @@ public:
 	unsigned int RequiredInputs() const;
 	//! Returns the number of output images returned by this filter.
 	//! for typical image filters, this returns 1. The filter can modify
-	//! this through SetOutputCount at the moment
+	//! this through SetOutputCount.
 	unsigned int OutputCount() const;
-	//! sets the output count
+	//! Sets the output count. Note that at this point, it is not supported
+	//! (or at least, it might cause unintended side effects) to switch from
+	//! a non-zero value to zero via SetOutputCount or the other way round; this
+	//! will also cause a warning in the debug console. See also the note for
+	//! the outputCount parameter in the Constructor.
 	void SetOutputCount(unsigned int outputCount);
 	//! input/output connectors
 	QVector<iAConnector*> & Connectors();
@@ -120,6 +135,10 @@ public:
 	unsigned int FirstInputChannels() const;
 	//! sets the first input channels
 	void SetFirstInputChannels(unsigned int c);
+	//! adds an output value
+	void AddOutputValue(QString const & name, QVariant value);
+	//! retrieve a list of output values
+	QVector<QPair<QString, QVariant> > const & OutputValues() const;
 protected:
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
@@ -132,10 +151,15 @@ protected:
 	//! The class that is watched for progress. Typically you will call
 	//! m_progress->Observe(someItkFilter) to set up the progress observation
 	iAProgress* m_progress;
-private:
-	QVector<pParameter> m_parameters;
-	QString m_name, m_category, m_description;
+	//! The logger
 	iALogger* m_log;
+private:
+	//! The actual implementation of the filter
+	//! @param parameters the map of parameters to use in this specific filter run
+	virtual void PerformWork(QMap<QString, QVariant> const & parameters) = 0;
+	QVector<pParameter> m_parameters;
+	QVector<QPair<QString, QVariant> > m_outputValues;
+	QString m_name, m_category, m_description;
 	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };
 
@@ -151,7 +175,7 @@ class FilterName : public iAFilter \
 { \
 public: \
 	static QSharedPointer<FilterName> Create(); \
-	void Run(QMap<QString, QVariant> const & parameters) override; \
 private: \
+	void PerformWork(QMap<QString, QVariant> const & parameters) override; \
 	FilterName(); \
 };

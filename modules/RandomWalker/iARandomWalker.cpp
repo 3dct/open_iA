@@ -241,7 +241,7 @@ iARandomWalker::iARandomWalker() :
 
 IAFILTER_CREATE(iARandomWalker)
 
-void iARandomWalker::Run(QMap<QString, QVariant> const & parameters)
+void iARandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	int const * dim = m_cons[0]->GetVTKImage()->GetDimensions();
 	double const * spc = m_cons[0]->GetVTKImage()->GetSpacing();
@@ -454,7 +454,7 @@ IAFILTER_CREATE(iAExtendedRandomWalker)
 
 const double EPSILON = 1e-6;
 
-void iAExtendedRandomWalker::Run(QMap<QString, QVariant> const & parameters)
+void iAExtendedRandomWalker::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	int const * dim = m_cons[0]->GetVTKImage()->GetDimensions();
 	double const * spc = m_cons[0]->GetVTKImage()->GetSpacing();
@@ -633,7 +633,7 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 
 IAFILTER_CREATE(iAMaximumDecisionRule)
 
-void iAMaximumDecisionRule::Run(QMap<QString, QVariant> const & parameters)
+void iAMaximumDecisionRule::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	if (m_cons.size() <= 1)
 	{

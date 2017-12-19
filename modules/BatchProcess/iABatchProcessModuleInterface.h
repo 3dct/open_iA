@@ -20,6 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include "iAModuleInterface.h"
 
-IAFILTER_DEFAULT_CLASS(iAGPUEdgePreservingSmoothing)
+class iABatchProcessModuleInterface : public iAModuleInterface
+{
+	//Q_OBJECT
+public:
+	void Initialize();
+//private slots:
+	//void ShowSampleDialog();
+};

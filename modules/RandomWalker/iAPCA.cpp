@@ -83,7 +83,7 @@ void pca_template(QVector<iAConnector*> & cons, QMap<QString, QVariant> const & 
 	}
 }
 
-void iAPCA::Run(QMap<QString, QVariant> const & parameters)
+void iAPCA::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(pca_template, m_con->GetITKScalarPixelType(), m_cons, parameters);
 	SetOutputCount(parameters["Cutoff"].toUInt() + 1);

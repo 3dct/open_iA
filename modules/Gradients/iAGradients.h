@@ -22,31 +22,6 @@
 
 #include "iAFilter.h"
 
-class iADerivative : public iAFilter
-{
-public:
-	static QSharedPointer<iADerivative> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iADerivative();
-};
-
-
-class iAGradientMagnitude : public iAFilter
-{
-public:
-	static QSharedPointer<iAGradientMagnitude> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAGradientMagnitude();
-};
-
-
-class iAHigherOrderAccurateDerivative : public iAFilter
-{
-public:
-	static QSharedPointer<iAHigherOrderAccurateDerivative> Create();
-	void Run(QMap<QString, QVariant> const & parameters) override;
-private:
-	iAHigherOrderAccurateDerivative();
-};
+IAFILTER_DEFAULT_CLASS(iADerivative);
+IAFILTER_DEFAULT_CLASS(iAGradientMagnitude);
+IAFILTER_DEFAULT_CLASS(iAHigherOrderAccurateDerivative);
