@@ -893,6 +893,8 @@ void iAIO::loadMetaImageFile(QString const & fileName)
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	typedef itk::ImageIOBase::IOPixelType PixelType;
 	auto imageIO = itk::ImageIOFactory::CreateImageIO(fileName.toLatin1(), itk::ImageIOFactory::ReadMode);
+	if (!imageIO)
+		throw std::invalid_argument("Could not find a reader that could handle the format of the specified file!");
 	imageIO->SetFileName(fileName.toLatin1());
 	imageIO->ReadImageInformation();
 	const ScalarPixelType pixelType = imageIO->GetComponentType();
