@@ -35,7 +35,7 @@
 #include <QTextStream>
 
 iABatchFilter::iABatchFilter():
-	iAFilter("Batch...", "Image Ensembles",
+	iAFilter("Batch...", "",
 		"Runs a filter on a selected set of images.<br/>"
 		"Specify an <em>Image folder</em> which contains the images to be processed. "
 		"<em>Recursive</em> toggles whether or not to also consider subdirectories. "
