@@ -64,6 +64,8 @@ std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSig
 
 open_iA_Core_API std::vector<double> derivative(std::vector<double> func)
 {
+	if (func.size() <= 1)
+		return func;
 	std::vector<double> deriv;
 	for (size_t i = 0; i < func.size(); ++i)
 	{

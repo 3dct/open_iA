@@ -108,7 +108,7 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 	double maxVal = con->GetVTKImage()->GetScalarRange()[1];
 	auto size =	con->GetITKImage()->GetLargestPossibleRegion().GetSize();
 	size_t voxelCount = size[0] * size[1] * size[2];
-	size_t binCount = static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount));
+	size_t binCount = std::max(static_cast<size_t>(2), static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount)));
 	std::vector<double> vecHist;
 
 	ITK_TYPED_CALL(computeHistogram, con->GetITKScalarPixelType(), con, progress, binCount, minVal, maxVal, vecHist);
