@@ -151,7 +151,7 @@ void write_image_template(bool compression, QString const & fileName,
 }
 
 
-iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par,
+iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
 		vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
 	: iAAlgorithm( "IO", i, p, logger, par ),
 	m_volumes(volumes),
@@ -161,19 +161,19 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *par,
 }
 
 
-iAIO::iAIO( iALogger* logger, QObject *parent /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
+iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
 		vector<QString> * fileNames /*= 0*/ )
-	: iAAlgorithm( "IO", 0, 0, logger, parent),
+	: iAAlgorithm( "IO", 0, 0, logger, par),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {
-	init(parent);
+	init(par);
 }
 
 
-void iAIO::init(QObject *par)
+void iAIO::init(QWidget *par)
 {
-	parent = (QWidget*)par;
+	parent = par;
 	fileName = "";
 	fileNameArray = vtkStringArray::New();
 	extent[0] = 0; extent[1] = 1; extent[2] = 0; extent[3] = 1; extent[4] = 0, extent[5] = 1;
@@ -402,7 +402,7 @@ void iAIO::run()
 		switch (ioID)
 		{
 			case MHD_WRITER:
-				writeMetaImage(getVtkImageData(), fileName)); break;
+				writeMetaImage(getVtkImageData(), fileName); break;
 			case VOLUME_STACK_VOLSTACK_WRITER:
 				writeVolumeStack(); break;
 			case STL_WRITER:

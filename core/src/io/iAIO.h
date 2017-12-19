@@ -52,16 +52,15 @@ class open_iA_Core_API iAIO : public iAAlgorithm
 public:
 	static const QString VolstackExtension;
 
-	iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0, std::vector<vtkSmartPointer<vtkImageData> > * volumes = 0, std::vector<QString> * fileNames = 0);
-	iAIO(iALogger* logger, QObject *parent, std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames = 0);//TODO: QNDH for XRF volume stack loading
+	iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *parent = 0, std::vector<vtkSmartPointer<vtkImageData> > * volumes = 0, std::vector<QString> * fileNames = 0);
+	iAIO(iALogger* logger, QWidget *parent, std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames = 0);//TODO: QNDH for XRF volume stack loading
 	virtual ~iAIO();
-	void init(QObject *par);
+	void init(QWidget *par);
 
 	bool setupIO( IOType type, QString f, bool comp = false, int channel=-1);
 	iAObserverProgress* getObserverProgress() { return observerProgress; };
 	void iosettingswriter();
 	void iosettingsreader();
-	QStringList getFibreElementsName(bool withUnit);
 
 	void setAdditionalInfo(QString const & additionalInfo);
 	QString getAdditionalInfo();
