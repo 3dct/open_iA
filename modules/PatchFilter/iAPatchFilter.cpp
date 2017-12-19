@@ -68,8 +68,10 @@ namespace
 		
 		QVector<iAConnector*> inputImages;
 		inputImages.push_back(new iAConnector);
+		inputImages[0]->SetImage(con[0]->GetITKImage());
 		QVector<iAConnector*> smallImageInput;
 		smallImageInput.push_back(new iAConnector);
+		// TODO: read from con array?
 		QStringList additionalInput = SplitPossiblyQuotedString(parameters["Additional input"].toString());
 		for (QString fileName : additionalInput)
 		{
@@ -111,43 +113,55 @@ namespace
 					? yPatchSize : size[1] % yPatchSize);
 				for (int zBlock = 0; zBlock < blockCount[2]; ++zBlock)
 				{
-					// extract patch from all inputs:
-					extractParams.insert("Index Z", zBlock * zPatchSize);
-					extractParams.insert("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
-						? zPatchSize : size[2] % zPatchSize);
-					for (int i = 0; i < inputImages.size(); ++i)
+					try
 					{
-						extractImageInput[0]->SetImage(inputImages[i]->GetITKImage());
-						extractImageFilter->SetUp(extractImageInput, log, &dummyProgress);
-						extractImageFilter->Run(extractParams);
-						smallImageInput[i]->SetImage(extractImageInput[0]->GetITKImage());
-					}
-
-					// run filter on inputs:
-					filter->SetUp(smallImageInput, log, &dummyProgress);
-					filter->Run(filterParams);
-					
-					// get output images and values from filter:
-					if (filter->OutputCount() > 0)
-						warnOutputNotSupported = true;
-
-					if (filter->OutputValues().size() > 0)
-					{
-						if (curOp == 0)
+						// extract patch from all inputs:
+						extractParams.insert("Index Z", zBlock * zPatchSize);
+						extractParams.insert("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
+							? zPatchSize : size[2] % zPatchSize);
+						for (int i = 0; i < inputImages.size(); ++i)
 						{
-							QStringList captions;
-							captions << "Patch x" << "Patch y" << "Patch z";
-							for (auto outValue : filter->OutputValues())
-								captions << outValue.first;
-							outputBuffer.append(captions.join(","));
+							extractImageInput[0]->SetImage(inputImages[i]->GetITKImage());
+							extractImageFilter->SetUp(extractImageInput, log, &dummyProgress);
+							extractImageFilter->Run(extractParams);
+							smallImageInput[i]->SetImage(extractImageInput[0]->GetITKImage());
 						}
-						QStringList values;
-						values << QString::number(xBlock*xPatchSize)
-							<< QString::number(yBlock*yPatchSize)
-							<< QString::number(zBlock*zPatchSize);
-						for (auto outValue : filter->OutputValues())
-							values.append(outValue.second.toString());
-						outputBuffer.append(values.join(","));
+
+						// run filter on inputs:
+						filter->SetUp(smallImageInput, log, &dummyProgress);
+						filter->Run(filterParams);
+
+						// get output images and values from filter:
+						if (filter->OutputCount() > 0)
+							warnOutputNotSupported = true;
+
+						if (filter->OutputValues().size() > 0)
+						{
+							if (curOp == 0)
+							{
+								QStringList captions;
+								captions << "Patch x" << "Patch y" << "Patch z";
+								for (auto outValue : filter->OutputValues())
+									captions << outValue.first;
+								outputBuffer.append(captions.join(","));
+							}
+							QStringList values;
+							values << QString::number(xBlock*xPatchSize)
+								<< QString::number(yBlock*yPatchSize)
+								<< QString::number(zBlock*zPatchSize);
+							for (auto outValue : filter->OutputValues())
+								values.append(outValue.second.toString());
+							outputBuffer.append(values.join(","));
+						}
+					}
+					catch (std::exception& e)
+					{
+						if (parameters["Continue on error"].toBool())
+						{
+							DEBUG_LOG(QString("Patch filter: An error has occurred: %1, continueing anyway.").arg(e.what()));
+						}
+						else
+							throw e;
 					}
 					
 					progress->ManualProgress(static_cast<int>(100.0 * curOp / totalOps));
@@ -176,7 +190,7 @@ namespace
 
 iAPatchFilter::iAPatchFilter():
 	iAFilter("Patch Filter", "Image Ensembles",
-		"Create patches from an input image and apply a filter each patch.<br/>")
+		"Create patches from an input image and apply a filter each patch.<br/>", 1, 0)
 {
 	AddParameter("Patch size X", Discrete, 1, 1);
 	AddParameter("Patch size Y", Discrete, 1, 1);
@@ -185,6 +199,7 @@ iAPatchFilter::iAPatchFilter():
 	AddParameter("Parameters", String, "");
 	AddParameter("Additional input", String, "");
 	AddParameter("Output csv file", String, "");
+	AddParameter("Continue on error", Boolean, true);
 }
 
 void iAPatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
