@@ -32,6 +32,9 @@
 
 #include <itkImage.h>
 
+#include <QFile>
+#include <QTextStream>
+
 namespace
 {
 	int getRequiredParts(int size, int partSize)
@@ -81,7 +84,6 @@ namespace
 
 		iAProgress dummyProgress;
 
-		QString outputFile = parameters["Output csv file"].toString();
 		QStringList outputBuffer;
 
 		QSharedPointer<iAFilter> extractImageFilter = iAFilterRegistry::Filter("Extract Image");
@@ -152,10 +154,23 @@ namespace
 					++curOp;
 				}
 			}
-	
 		}
 		if (warnOutputNotSupported)
 			DEBUG_LOG("Creating output images from each patch not yet supported!");
+
+		QString outputFile = parameters["Output csv file"].toString();
+		QFile file(outputFile);
+		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+		{
+			QTextStream textStream(&file);
+			for (QString line : outputBuffer)
+			{
+				textStream << line << endl;
+			}
+			file.close();
+		}
+		else
+			DEBUG_LOG(QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
 	}
 }
 
