@@ -18,58 +18,24 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#include "iAFilterRegistry.h"
+#include "ui_FilterSelection.h"
+#include "iAQTtoUIConnector.h"
 
-#include "iAConsole.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
 
-iAIFilterFactory::~iAIFilterFactory() {}
-iAIFilterRunnerGUIFactory::~iAIFilterRunnerGUIFactory() {}
+typedef iAQTtoUIConnector<QDialog, Ui_FilterSelectionDlg> dlg_FilterSelectionConnector;
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+class dlg_FilterSelection : public dlg_FilterSelectionConnector
 {
-	m_filters.push_back(factory);
-	m_runner.push_back(QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
-}
-
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory,
-	QSharedPointer<iAIFilterRunnerGUIFactory> runner)
-{
-	m_filters.push_back(factory);
-	m_runner.push_back(runner);
-}
-
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::FilterFactories()
-{
-	return m_filters;
-}
-
-QSharedPointer<iAFilter> iAFilterRegistry::Filter(QString const & name)
-{
-	int filterID = FilterID(name);
-	return filterID == -1 ? QSharedPointer<iAFilter>() : m_filters[filterID]->Create();
-}
-
-int iAFilterRegistry::FilterID(QString const & name)
-{
-	int cur = 0;
-	for (auto filterFactory : m_filters)
-	{
-		auto filter = filterFactory->Create();
-		if (filter->Name() == name)
-			return cur;
-		++cur;
-	}
-	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));
-	return -1;
-}
-
-QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(int filterID)
-{
-	return m_runner[filterID];
-}
-
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
-QVector<QSharedPointer<iAIFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;
+Q_OBJECT
+public:
+	dlg_FilterSelection(QWidget * parent);
+	QString SelectedFilterName() const;
+public slots:
+	void FilterChanged(QString const &);
+	void ListSelectionChanged(QListWidgetItem *, QListWidgetItem *);
+private:
+	void EnableOKButton();
+	int m_curMatches;
+};

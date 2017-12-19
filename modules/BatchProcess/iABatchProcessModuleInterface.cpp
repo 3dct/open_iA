@@ -18,58 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#include "pch.h"
+#include "iABatchProcessModuleInterface.h"
+
+#include "iABatchFilter.h"
 
 #include "iAFilterRegistry.h"
 
-#include "iAConsole.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+//#include "mainwindow.h"
 
-iAIFilterFactory::~iAIFilterFactory() {}
-iAIFilterRunnerGUIFactory::~iAIFilterRunnerGUIFactory() {}
-
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+void iABatchProcessModuleInterface::Initialize()
 {
-	m_filters.push_back(factory);
-	m_runner.push_back(QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
+	REGISTER_FILTER(iABatchFilter);
+	if (!m_mainWnd)
+		return;
+	/*
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
+	QAction * actionSample = new QAction( m_mainWnd );
+	actionSample->setText(QApplication::translate("MainWindow", "Sample...", 0));
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionSample, true);
+	connect(actionSample, SIGNAL(triggered()), this, SLOT(ShowSampleDialog()));
+	*/
 }
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory,
-	QSharedPointer<iAIFilterRunnerGUIFactory> runner)
+/*
+void iABatchProcessModuleInterface::ShowSampleDialog()
 {
-	m_filters.push_back(factory);
-	m_runner.push_back(runner);
+	PrepareActiveChild();
+	if (!m_mdiChild)
+		return;
 }
-
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::FilterFactories()
-{
-	return m_filters;
-}
-
-QSharedPointer<iAFilter> iAFilterRegistry::Filter(QString const & name)
-{
-	int filterID = FilterID(name);
-	return filterID == -1 ? QSharedPointer<iAFilter>() : m_filters[filterID]->Create();
-}
-
-int iAFilterRegistry::FilterID(QString const & name)
-{
-	int cur = 0;
-	for (auto filterFactory : m_filters)
-	{
-		auto filter = filterFactory->Create();
-		if (filter->Name() == name)
-			return cur;
-		++cur;
-	}
-	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));
-	return -1;
-}
-
-QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(int filterID)
-{
-	return m_runner[filterID];
-}
-
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
-QVector<QSharedPointer<iAIFilterRunnerGUIFactory> > iAFilterRegistry::m_runner;
+*/

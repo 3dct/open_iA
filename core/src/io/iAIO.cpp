@@ -77,7 +77,6 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -1595,93 +1594,6 @@ void iAIO::printSTLFileInfos()
 	addMsg(tr("  Lines: %1").arg(getVtkPolyData()->GetNumberOfLines()));
 	addMsg(tr("  Strips: %1").arg(getVtkPolyData()->GetNumberOfStrips()));
 	addMsg(tr("  Pieces: %1").arg(getVtkPolyData()->GetNumberOfPieces()));
-}
-
-
-/**
-* Store transforms to file: itk::TransformFileWriterTemplate,
-* but this class fails in debug mode - this is why serialization is done manually.
-*/
-void iAIO::saveTransformFile(QString fName, VersorRigid3DTransformType *transform) {
-
-	ofstream outFile;
-	outFile.open(fName.toStdString());
-
-	outFile
-		<< transform->GetParameters()
-		<< "\n"
-		<< transform->GetFixedParameters()
-		<< "\n";
-
-	outFile.close();
-}
-
-
-VersorRigid3DTransformType * iAIO::readTransformFile(QString fName)
-{
-	std::string line;
-	ifstream inFile(fName.toStdString());
-	if (inFile.is_open())
-	{
-		//read parameter
-		getline(inFile, line);
-
-		typedef VersorRigid3DTransformType::ParametersType ParametersType;
-		mmFinalTransform = VersorRigid3DTransformType::New();
-		ParametersType parameters(mmFinalTransform->GetNumberOfParameters());
-
-		char * cstr = new char[line.size()+1];
-		strcpy(cstr, line.c_str());
-		std::vector<double> tokens;
-
-		char *p = strtok(cstr, " ,[]");
-		while (p!=NULL)
-		{
-			istringstream iss(p);
-			double d;
-			iss >> d;
-			tokens.push_back((d));
-			p = strtok(NULL, " ,[]");
-		}
-
-		parameters[0] = tokens[0];
-		parameters[1] = tokens[1];
-		parameters[2] = tokens[2];
-		parameters[3] = tokens[3];
-		parameters[4] = tokens[4];
-		parameters[5] = tokens[5];
-		mmFinalTransform->SetParameters(parameters);
-
-		//read fixed parameter -> center of rotation
-		getline(inFile, line);
-		VersorRigid3DTransformType::ParametersType fixedParameters(3);
-
-		cstr = new char[line.size() + 1];
-		strcpy(cstr, line.c_str());
-		std::vector<double> fixedTokens;
-
-		p = strtok(cstr, " ,[]");
-		while (p != NULL)
-		{
-			istringstream iss(p);
-			double d;
-			iss >> d;
-			fixedTokens.push_back((d));
-			p = strtok(NULL, " ,[]");
-		}
-		fixedParameters[0] = fixedTokens[0];
-		fixedParameters[1] = fixedTokens[1];
-		fixedParameters[2] = fixedTokens[2];
-
-		mmFinalTransform->SetFixedParameters(fixedParameters);
-
-		inFile.close();
-
-	} else {
-		addMsg(tr("unable to load transform file"));
-	}
-
-	return mmFinalTransform;
 }
 
 
