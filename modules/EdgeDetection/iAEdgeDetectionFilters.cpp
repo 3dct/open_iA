@@ -29,7 +29,7 @@
 #include <itkCastImageFilter.h>
 
 template<class T>
-void canny_edge_detection_template( double variance, double maximumError, double upper, double lower, iAProgress* p, iAConnector* image )
+void canny_edge_detection_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image )
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -39,10 +39,10 @@ void canny_edge_detection_template( double variance, double maximumError, double
 	auto toReal = CastToRealFilterType::New();
 	toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
 	auto canny = CannyEDFType::New();
-	canny->SetVariance( variance );
-	canny->SetMaximumError( maximumError );
-	canny->SetUpperThreshold( upper );
-	canny->SetLowerThreshold( lower );
+	canny->SetVariance(parameters["Variance"].toDouble());
+	canny->SetMaximumError(parameters["Maximum error"].toDouble());
+	canny->SetUpperThreshold(parameters["Upper threshold"].toDouble());
+	canny->SetLowerThreshold(parameters["Lower threshold"].toDouble());
 	canny->SetInput( toReal->GetOutput() );
 	p->Observe( canny );
 	canny->Update();
@@ -56,23 +56,21 @@ IAFILTER_CREATE(iACannyEdgeDetection)
 void iACannyEdgeDetection::Run(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(canny_edge_detection_template, pixelType,
-		parameters["Variance"].toDouble(), parameters["Maximum Error"].toDouble(),
-		parameters["Upper Threshold"].toDouble(), parameters["Lower Threshold"].toDouble(),
+	ITK_TYPED_CALL(canny_edge_detection_template, pixelType, parameters,
 		m_progress, m_con);
 }
 
 iACannyEdgeDetection::iACannyEdgeDetection() :
 	iAFilter("Canny", "Edge detection",
 		"Canny edge detector for scalar-valued images.<br/>"
-		"<em>Variance</em> and <em>Maximum</em> parameters are used to perform "
+		"<em>Variance</em> and <em>Maximum error</em> parameters are used to perform "
 		"a Gaussian smoothing of the image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html\">"
 		"Canny Edge Detection Filter</a> in the ITK documentation.")
 {
 	AddParameter("Variance", Continuous, 0.01);
-	AddParameter("Maximum error", Continuous, 0.01);
-	AddParameter("Lower Threshold", Continuous, 0);
-	AddParameter("Upper Threshold", Continuous, 1);
+	AddParameter("Maximum error", Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1);
+	AddParameter("Lower threshold", Continuous, 0);
+	AddParameter("Upper threshold", Continuous, 1);
 }
