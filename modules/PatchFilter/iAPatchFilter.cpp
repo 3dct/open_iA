@@ -20,24 +20,134 @@
 * ************************************************************************************/
 #include "iAPatchFilter.h"
 
+#include "defines.h"    // for DIM
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
+#include "iAConsole.h"
 #include "iAFilterRegistry.h"
 #include "iAProgress.h"
+#include "iAStringHelper.h"
+#include "iATypedCallHelper.h"
+#include "io/iAITKIO.h"
+
+#include <itkImage.h>
+
+namespace
+{
+	int getRequiredParts(int size, int partSize)
+	{
+		return size / partSize + ((size % partSize == 0) ? 0 : 1);
+	}
+
+	QString DimName[DIM] = { "X", "Y", "Z" };
+
+	template <typename T>
+	void patch_template(QMap<QString, QVariant> const & parameters, QSharedPointer<iAFilter> filter,
+		QVector<iAConnector*> & con, iAProgress* progress, iALogger* log)
+	{
+		typedef itk::Image<T, DIM> InputImageType;
+		auto size = dynamic_cast<InputImageType*>(con[0]->GetITKImage())->GetLargestPossibleRegion().GetSize();
+		int blockCount[DIM];
+		for (int i=0; i<DIM; ++i)
+			blockCount[i] = getRequiredParts(size[i], parameters[QString("Patch size %1").arg(DimName[i])].toUInt());
+	
+		QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
+		if (filter->Parameters().size() != filterParamStrs.size())
+		{
+			DEBUG_LOG(QString("PatchFilter: Invalid number of parameters: %1 expected, %2 given!")
+				.arg(filter->Parameters().size())
+				.arg(filterParamStrs.size()));
+			return;
+		}
+		QMap<QString, QVariant> filterParams;
+		for (int i = 0; i<filterParamStrs.size(); ++i)
+			filterParams.insert(filter->Parameters()[i]->Name(), filterParamStrs[i]);
+		
+		QVector<iAConnector*> inputImages;
+		inputImages.push_back(new iAConnector);
+		QVector<iAConnector*> smallImageInput;
+		smallImageInput.push_back(new iAConnector);
+		QStringList additionalInput = SplitPossiblyQuotedString(parameters["Additional input"].toString());
+		for (QString fileName : additionalInput)
+		{
+			//fileName = MakeAbsolute(batchDir, fileName);
+			auto newCon = new iAConnector();
+			iAITKIO::ScalarPixelType pixelType;
+			iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+			newCon->SetImage(img);
+			inputImages.push_back(newCon);
+			smallImageInput.push_back(new iAConnector);
+		}
+
+		iAProgress dummyProgress;
+
+		QString outputFile = parameters["Output csv file"].toString();
+		QStringList outputBuffer;
+
+		QSharedPointer<iAFilter> extractImageFilter = iAFilterRegistry::Filter("Extract Image");
+
+		int totalOps = blockCount[0] * blockCount[1] * blockCount[2];
+		int curOp = 0;
+		QMap<QString, QVariant> extractParams;
+		unsigned int xPatchSize = parameters["Patch size X"].toUInt(),
+			yPatchSize = parameters["Patch size Y"].toUInt(),
+			zPatchSize = parameters["Patch size Z"].toUInt();
+		QVector<iAConnector*> extractImageInput;
+		extractImageInput.push_back(new iAConnector);
+		bool warnOutputNotSupported = false;
+		for (int xBlock = 0; xBlock < blockCount[0]; ++xBlock)
+		{
+			extractParams.insert(qMakePair("Index X", xBlock * xPatchSize));
+			extractParams.insert(qMakePair("Size X", (xBlock < blockCount[0] - 1) || (size[0] % xPatchSize == 0)
+				? xPatchSize : size[0] % xPatchSize));
+			for (int yBlock = 0; yBlock < blockCount[1]; ++yBlock)
+			{
+				extractParams.insert(qMakePair("Index Y", yBlock * yPatchSize));
+				extractParams.insert(qMakePair("Size Y", (yBlock < blockCount[1] - 1) || (size[1] % yPatchSize == 0)
+					? yPatchSize : size[1] % yPatchSize));
+				for (int zBlock = 0; zBlock < blockCount[2]; ++zBlock)
+				{
+					extractParams.insert(qMakePair("Index Z", zBlock * zPatchSize));
+					extractParams.insert(qMakePair("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
+						? zPatchSize : size[2] % zPatchSize));
+					for (int i = 0; i < inputImages.size(); ++i)
+					{
+						extractImageInput[0]->SetImage(inputImages[i]);
+						extractImageFilter->SetUp(extractImageInput, log, &dummyProgress);
+						extractImageFilter->Run(extractParams);
+						smallImageInput[i]->SetImage(extractImageInput[0]->GetITKImage());
+					}
+					filter->SetUp(smallImageInput, log, &dummyProgress);
+					filter->Run(filterParams);
+					if (filter->OutputCount() > 0)
+						warnOutputNotSupported = true;
+
+					// if (filter->Value)
+					progress->ManualProgress(static_cast<int>(100.0 * curOp / totalOps));
+					++curOp;
+				}
+			}
+	
+		}
+		if (warnOutputNotSupported)
+			DEBUG_LOG("Creating output images from each patch not yet supported!");
+	}
+}
 
 iAPatchFilter::iAPatchFilter():
 	iAFilter("Patch Filter", "Image Ensembles",
 		"Create patches from an input image and apply a filter each patch.<br/>")
 {
-	AddParameter("Patch Count X", Discrete, 1, 1);
-	AddParameter("Patch Count Y", Discrete, 1, 1);
-	AddParameter("Patch Count Z", Discrete, 1, 1);
+	AddParameter("Patch size X", Discrete, 1, 1);
+	AddParameter("Patch size Y", Discrete, 1, 1);
+	AddParameter("Patch size Z", Discrete, 1, 1);
 	AddParameter("Filter", String, "Image Quality");
 	AddParameter("Parameters", String, "");
-	AddParameter("Additional Input", String, "");
+	AddParameter("Additional input", String, "");
+	AddParameter("Output csv file", String, "");
 }
 
-void iAPatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAPatchFilter::Run(QMap<QString, QVariant> const & parameters)
 {
 	auto filter = iAFilterRegistry::Filter(parameters["Filter"].toString());
 	if (!filter)
@@ -45,8 +155,7 @@ void iAPatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		AddMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
 		return;
 	}
-
-
+	ITK_TYPED_CALL(patch_template, m_con->GetITKScalarPixelType(), parameters, filter, m_cons, m_progress, m_log);
 }
 
 IAFILTER_CREATE(iAPatchFilter);
