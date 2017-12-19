@@ -31,5 +31,5 @@ class iAAmiraMeshIO
 {
 public:
 	static vtkSmartPointer<vtkImageData> Load(QString const & filename);
-	static bool Write(QString const & filename, vtkImageData* img);
+	static void Write(QString const & filename, vtkImageData* img);
 };

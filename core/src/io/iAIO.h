@@ -36,7 +36,6 @@
 class vtkImageData;
 class vtkMetaImageWriter;
 class vtkPolyData;
-class vtkSTLReader;
 class vtkSTLWriter;
 class vtkStringArray;
 class vtkTable;
@@ -81,7 +80,8 @@ Q_SIGNALS:
 	void failed();
 
 protected:
-	virtual void run();
+	void run() override;
+	
 private:
 	bool setupRAWReader( QString f );
 	bool setupPARSReader( QString f );
@@ -93,30 +93,24 @@ private:
 	bool setupVolumeStackVolStackWriter(QString f);
 	void FillFileNameArray(int * indexRange, int digitsInIndex);
 
-	bool readImageStack();
-
+	void readImageStack();
 	void postImageReadActions();
-	bool readRawImage();
-	bool loadMetaImageFile(QString const & fileName);
+	void readRawImage();
+	void loadMetaImageFile(QString const & fileName);
+	void readVolumeStack( );
+	void readVolumeMHDStack( );
+	void readImageData( );
+	void readMetaImage( );
+	void readSTL( );
+	void readDCM( );
+	void readNRRD( );
 
-	bool readVolumeStack( );
-	bool readVolumeMHDStack( );
-	bool readImageData( );
-	bool readMetaImage( );
-	bool readSTL( );
-	bool readDCM( ); 
-	bool writeDCM (); 
-	bool readNRRD( ); 
+	void writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName);
+	void writeVolumeStack();
+	void writeSTL( );
+	void writeImageStack( );
 
-	bool writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName);
-	bool writeVolumeStack();
-	bool writeSTL( );
-	bool writeImageStack( );
-	
-	void printFileInfos();
 	void printSTLFileInfos();
-
-	vtkSTLReader* stlReader;
 
 	vtkMetaImageWriter *metaImageWriter;
 	
@@ -153,5 +147,5 @@ private:
 	QVector<QString> m_hdf5Path;
 	bool m_isITKHDF5;
 	double m_hdf5Spacing[3];
-	bool loadHDF5File();
+	void loadHDF5File();
 };

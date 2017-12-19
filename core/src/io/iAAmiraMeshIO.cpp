@@ -329,7 +329,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 #include <QTextStream>
 #include <QFile>
 
-bool iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
+void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 {
 	int extent[6];
 	img->GetExtent(extent);
@@ -352,8 +352,7 @@ bool iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 		amiraTypeDesc = "Data";
 		break;
 	default:
-		DEBUG_LOG("Avizo/AmiraMesh: (Currently) unsupported data type!");
-		return false;
+		throw std::runtime_error("Avizo/AmiraMesh: (Currently) unsupported data type!");
 	}
 
 	QFile file(filename);
@@ -420,5 +419,4 @@ bool iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 		}
 	}
 	file.close();
-	return true;
 }
