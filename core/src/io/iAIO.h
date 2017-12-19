@@ -24,8 +24,6 @@
 #include "defines.h"          // for IOType
 #include "open_iA_Core_export.h"
 
-#include <itkVersorRigid3DTransform.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QDir>
@@ -42,8 +40,6 @@ class vtkTable;
 
 class iAObserverProgress;
 class iASimReader;
-
-typedef itk::VersorRigid3DTransform<double> VersorRigid3DTransformType;
 
 
 class open_iA_Core_API iAIO : public iAAlgorithm
@@ -64,13 +60,6 @@ public:
 
 	void setAdditionalInfo(QString const & additionalInfo);
 	QString getAdditionalInfo();
-
-	// TODO: move to Multimodal fusion
-	// {
-	void saveTransformFile(QString fName, VersorRigid3DTransformType*);
-	VersorRigid3DTransformType* readTransformFile(QString fName);
-	VersorRigid3DTransformType::Pointer mmFinalTransform;
-	// }
 
 	QString getFileName();
 
