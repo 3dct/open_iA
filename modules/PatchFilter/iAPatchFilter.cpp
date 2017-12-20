@@ -113,12 +113,18 @@ namespace
 					? yPatchSize : size[1] % yPatchSize);
 				for (int zBlock = 0; zBlock < blockCount[2]; ++zBlock)
 				{
+					extractParams.insert("Index Z", zBlock * zPatchSize);
+					extractParams.insert("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
+						? zPatchSize : size[2] % zPatchSize);
+					// apparently some ITK filters (e.g. statistics) have problems with images
+					// with a size of 1 in one dimension, so let's skip such patches for the moment...
+					if (extractParams["Size X"].toUInt() <= 1 ||
+							extractParams["Size Y"].toUInt() <= 1 ||
+							extractParams["Size Z"].toUInt() <= 1)
+						continue;
 					try
 					{
 						// extract patch from all inputs:
-						extractParams.insert("Index Z", zBlock * zPatchSize);
-						extractParams.insert("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
-							? zPatchSize : size[2] % zPatchSize);
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
 							extractImageInput[0]->SetImage(inputImages[i]->GetITKImage());
