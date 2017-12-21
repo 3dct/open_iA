@@ -156,10 +156,10 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 	}
 	if (peaks.size() < numberOfPeaks)
 	{
-		DEBUG_LOG(QString("Only found %1 peaks in total!").arg(peaks.size()));
+		//DEBUG_LOG(QString("Only found %1 peaks in total!").arg(peaks.size()));
 		if (peaks.size() < 2)
 		{
-			DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
+			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
 			return;
 		}
 		numberOfPeaks = peaks.size();
@@ -257,7 +257,7 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 	}
 	if (parameters["Q metric"].toBool())
 	{
-		double Q;
+		/*		double Q;
 		for (int p1 = 0; p1 < numberOfPeaks; ++p1)
 		{
 			for (int p2 = p1 + 1; p2 < numberOfPeaks; ++p2)
@@ -274,6 +274,8 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 				}
 			}
 		}
+		*/
+		double Q = calculateQ(mean[highestNonAirPeakIdx], mean[minDistToZeroIdx], variance[highestNonAirPeakIdx], variance[minDistToZeroIdx]);
 		filter->AddOutputValue("Q", Q);
 	}
 }
@@ -303,6 +305,10 @@ iAQMeasure::iAQMeasure() :
 	AddParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
 	AddParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
 	AddParameter("Minima finding smoothing factor", Continuous, 8, 0.0000001);
+
+	AddOutputValue("Signal-to-noise ratio");
+	AddOutputValue("Contrast-to-noise ratio");
+	AddOutputValue("Q");
 }
 
 void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
