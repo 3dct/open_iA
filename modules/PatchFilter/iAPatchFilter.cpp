@@ -137,10 +137,13 @@ namespace
 		bool center = parameters["Center patch"].toBool();
 		bool doImage = parameters["Write output value image"].toBool();
 		QVector<iAITKIO::ImagePointer> outputImages;
+		QStringList outputNames;
 		if (doImage)
 			while (outputImages.size() < filter->OutputValueNames().size())
+			{
 				outputImages.push_back(AllocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
-		QStringList outputNames;
+				outputNames << filter->OutputValueNames()[outputImages.size() - 1];
+			}
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (int x = 0; x < size[0]; x += stepSize[0])
@@ -179,7 +182,7 @@ namespace
 						extractParams["Size Y"].toUInt() <= 1 ||
 						extractParams["Size Z"].toUInt() <= 1)
 					{
-						DEBUG_LOG("    skipping because one side <= 1.");
+						//DEBUG_LOG("    skipping because one side <= 1.");
 						continue;
 					}
 					try
@@ -210,7 +213,6 @@ namespace
 								for (auto outValue : filter->OutputValues())
 								{
 									captions << outValue.first;
-									outputNames << outValue.first;
 								}
 								outputBuffer.append(captions.join(","));
 							}
@@ -261,7 +263,7 @@ namespace
 		for (int i = 0; i < outputImages.size(); ++i)
 		{
 			QFileInfo fi(parameters["Output image base name"].toString());
-			QString outFileName = QString("%1/%2%3%4.%5")
+			QString outFileName = QString("%1/%2%3.%4")
 				.arg(fi.absolutePath())
 				.arg(fi.baseName())
 				.arg(outputNames[i])
