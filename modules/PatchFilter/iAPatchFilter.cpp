@@ -44,6 +44,25 @@ namespace
 		return size / partSize + ((size % partSize == 0) ? 0 : 1);
 	}
 
+	int getLeft(int x, int patchSizeHalf, bool center)
+	{
+		return center ? std::max(0, x - patchSizeHalf) : x;
+	}
+
+	int getSize(int x, int left, int size, int patchSizeHalf, int patchSize, bool center)
+	{
+		return center ? (
+			(x < patchSizeHalf) ?
+			patchSize - (patchSizeHalf - (x - left)) :
+			(
+			(left >= size - patchSize) ?
+				size - left :
+				patchSize
+				)
+			)
+			: (x < size - patchSize) ? patchSize : size - x;
+	}
+
 	template <typename T>
 	void patch_template(QMap<QString, QVariant> const & parameters, QSharedPointer<iAFilter> filter,
 		QVector<iAConnector*> & con, iAProgress* progress, iALogger* log)
@@ -51,6 +70,7 @@ namespace
 		typedef itk::Image<T, DIM> InputImageType;
 		typedef itk::Image<double, DIM> OutputImageType;
 		auto size = dynamic_cast<InputImageType*>(con[0]->GetITKImage())->GetLargestPossibleRegion().GetSize();
+		//DEBUG_LOG(QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
 		auto inputSpacing = dynamic_cast<InputImageType*>(con[0]->GetITKImage())->GetSpacing();
 	
 		QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
@@ -96,6 +116,7 @@ namespace
 			parameters["Patch size Y"].toInt(),
 			parameters["Patch size Z"].toInt()
 		};
+		int patchSizeHalf[3];
 		int stepSize[3] = {
 			parameters["Step size X"].toInt(),
 			parameters["Step size Y"].toInt(),
@@ -107,6 +128,7 @@ namespace
 		{
 			blockCount[i] = getRequiredParts(size[i], stepSize[i]);
 			outputSpacing[i] = inputSpacing[i] * stepSize[i];
+			patchSizeHalf[i] = patchSize[i] / 2;
 		}
 		int totalOps = blockCount[0] * blockCount[1] * blockCount[2];
 		QVector<iAConnector*> extractImageInput;
@@ -115,38 +137,51 @@ namespace
 		bool center = parameters["Center patch"].toBool();
 		bool doImage = parameters["Write output value image"].toBool();
 		QVector<iAITKIO::ImagePointer> outputImages;
+		if (doImage)
+			while (outputImages.size() < filter->OutputValueNames().size())
+				outputImages.push_back(AllocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
 		QStringList outputNames;
 		// iterate over all patches:
+		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (int x = 0; x < size[0]; x += stepSize[0])
 		{
-			extractParams.insert("Index X", center ? std::max(0, x-patchSize[0]/2) : x);
-			extractParams.insert("Size X", (x < (size[0] - patchSize[0])) ? patchSize[0] - (center ?
-				(std::abs(x-patchSize[0]/2) + (x-patchSize[0]/2)) / 2 : 0)	: size[0]-x);
+			outIdx[1] = 0;
+			int leftX = getLeft(x, patchSizeHalf[0], center);
+			extractParams.insert("Index X", leftX);
+			int xSize = getSize(x, leftX, size[0], patchSizeHalf[0], patchSize[0], center);
+			extractParams.insert("Size X", xSize);
 			for (int y = 0; y < size[1]; y += stepSize[1])
 			{
-				extractParams.insert("Index Y", center ? std::max(0, y - patchSize[1]/2) : y);
-				extractParams.insert("Size Y", (y < (size[1] - patchSize[1])) ? patchSize[1] - (center ?
-					(std::abs(y-patchSize[1]/2) + (y-patchSize[1]/2)) / 2 : 0) : size[1] - y);
+				outIdx[2] = 0;
+				int leftY = getLeft(y, patchSizeHalf[1], center);
+				extractParams.insert("Index Y", leftY);
+				int ySize = getSize(y, leftY, size[1], patchSizeHalf[1], patchSize[1], center);
+				extractParams.insert("Size Y", ySize);
 				for (int z = 0; z < size[2]; z += stepSize[2])
 				{
-					extractParams.insert("Index Z", center ? std::max(0, z - patchSize[2]/2) : z);
-					extractParams.insert("Size Z", (z < (size[2] - patchSize[2])) ? patchSize[2] - (center ?
-						(std::abs(z-patchSize[2]/2) + (z-patchSize[2]/2)) / 2 : 0) : size[2] - z);
-					
-					DEBUG_LOG(QString("Working on patch: upper left=(%1, %2, %3), dim=(%4, %5, %6).")
+					int leftZ = getLeft(z, patchSizeHalf[2], center);
+					extractParams.insert("Index Z", leftZ);
+					int zSize = getSize(z, leftZ, size[2], patchSizeHalf[2], patchSize[2], center);
+					extractParams.insert("Size Z", zSize);
+					/*
+					DEBUG_LOG(QString("Working on patch: upper left=(%1, %2, %3), dim=(%4, %5, %6), outIdx=(%10,%11,%12).")
 						.arg(extractParams["Index X"].toUInt())
 						.arg(extractParams["Index Y"].toUInt())
 						.arg(extractParams["Index Z"].toUInt())
 						.arg(extractParams["Size X"].toUInt())
 						.arg(extractParams["Size Y"].toUInt())
-						.arg(extractParams["Size Z"].toUInt()));
+						.arg(extractParams["Size Z"].toUInt())
+						.arg(outIdx[0]).arg(outIdx[1]).arg(outIdx[2]));
+					*/
 					// apparently some ITK filters (e.g. statistics) have problems with images
 					// with a size of 1 in one dimension, so let's skip such patches for the moment...
 					if (extractParams["Size X"].toUInt() <= 1 ||
 						extractParams["Size Y"].toUInt() <= 1 ||
 						extractParams["Size Z"].toUInt() <= 1)
+					{
 						DEBUG_LOG("    skipping because one side <= 1.");
 						continue;
+					}
 					try
 					{
 						// extract patch from all inputs:
@@ -184,17 +219,9 @@ namespace
 							for (auto outValue : filter->OutputValues())
 								values.append(outValue.second.toString());
 							outputBuffer.append(values.join(","));
-
 							if (doImage)
-							{
-								while (outputImages.size() < filter->OutputValues().size())
-									outputImages.push_back(AllocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
-
-								itk::Index<DIM> idx;
-								idx[0] = x / stepSize[0]; idx[1] = y / stepSize[1]; idx[2] = z / stepSize[2];
-								for (int i=0; i<filter->OutputValues().size(); ++i)
-									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(idx, filter->OutputValues()[i].second.toDouble());
-							}
+								for (int i = 0; i < filter->OutputValues().size(); ++i)
+									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, filter->OutputValues()[i].second.toDouble());
 						}
 					}
 					catch (std::exception& e)
@@ -209,8 +236,11 @@ namespace
 					
 					progress->ManualProgress(static_cast<int>(100.0 * curOp / totalOps));
 					++curOp;
+					++outIdx[2];
 				}
+				++outIdx[1];
 			}
+			++outIdx[0];
 		}
 		if (warnOutputNotSupported)
 			DEBUG_LOG("Creating output images from each patch not yet supported!");
