@@ -269,7 +269,7 @@ namespace
 				.arg(outputNames[i])
 				.arg(fi.completeSuffix());
 			StoreImage(outputImages[i], outFileName, parameters["Compress image"].toBool());
-			DEBUG_LOG(QString("Storing output for '%1' in file '%2'").arg(outputNames[i]).arg(outFileName));
+			//DEBUG_LOG(QString("Storing output for '%1' in file '%2'").arg(outputNames[i]).arg(outFileName));
 		}
 	}
 }
