@@ -64,7 +64,8 @@ iAAlgorithm::~iAAlgorithm()
 
 void iAAlgorithm::run()
 {
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
+	addMsg(tr("%1  %2 started.")
+		.arg(QLocale().toString(Start(), QLocale::ShortFormat))
 		.arg(getFilterName()));
 	getConnector()->SetImage(getVtkImageData());
 	getConnector()->Modified();
@@ -74,22 +75,26 @@ void iAAlgorithm::run()
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3; in File %4, Line %5. Elapsed time: %6 ms.")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
+			.arg(excep.GetDescription())
 			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
+			.arg(excep.GetLine())
+			.arg(Stop()));
 		return;
 	}
 	catch (const std::exception& e)
 	{
-		addMsg(tr("%1  %2 could not continue. %3").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3. Elapsed time: %4 ms.")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 			.arg(getFilterName())
-			.arg(e.what()));
+			.arg(e.what())
+			.arg(Stop()));
 		return;
 	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms.")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(getFilterName())
 		.arg(Stop()));
 	emit startUpdate();
