@@ -156,7 +156,7 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {
-	init(parent);
+	init(par);
 }
 
 
