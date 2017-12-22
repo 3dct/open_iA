@@ -52,7 +52,7 @@ ENDIF (BUILD_TESTING)
 
 # Compiler Flags
 IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
 ENDIF ()
 IF (CMAKE_COMPILER_IS_GNUCXX)
 	# see Ulrich Drepper - How to write Shared Libraries

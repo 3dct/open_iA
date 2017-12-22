@@ -156,7 +156,7 @@ ENDIF ()
 
 # Compiler flags
 IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
 ENDIF (MSVC)
 IF (CMAKE_COMPILER_IS_GNUCXX)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
