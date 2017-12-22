@@ -280,7 +280,7 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 	}
 }
 
-void iAQMeasure::Run(QMap<QString, QVariant> const & parameters)
+void iAQMeasure::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	computeQ(m_con, parameters, this, m_progress);
 }

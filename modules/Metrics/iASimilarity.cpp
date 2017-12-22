@@ -289,7 +289,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 
 IAFILTER_CREATE(iASimilarity)
 
-void iASimilarity::Run(QMap<QString, QVariant> const & parameters)
+void iASimilarity::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(similarity_metrics_template, m_con->GetITKScalarPixelType(), m_progress, m_cons, parameters, this);
 }
