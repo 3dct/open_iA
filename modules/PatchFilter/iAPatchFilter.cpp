@@ -285,8 +285,8 @@ iAPatchFilter::iAPatchFilter():
 	AddParameter("Step size Y", Discrete, 1, 1);
 	AddParameter("Step size Z", Discrete, 1, 1);
 	AddParameter("Center patch", Boolean, true);
-	AddParameter("Filter", String, "Image Quality");
-	AddParameter("Parameters", String, "");
+	AddParameter("Filter", FilterName, "Image Quality");
+	AddParameter("Parameters", FilterParameters, "");
 	AddParameter("Additional input", String, "");
 	AddParameter("Output csv file", String, "");
 	AddParameter("Write output value image", Boolean, true);
