@@ -27,12 +27,14 @@
 #include "iAFilterRegistry.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
+#include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 #include "io/iAITKIO.h"
 
 #include <itkImage.h>
 
 #include <QFile>
+#include <QFileInfo>
 #include <QTextStream>
 
 namespace
@@ -42,17 +44,34 @@ namespace
 		return size / partSize + ((size % partSize == 0) ? 0 : 1);
 	}
 
-	QString DimName[DIM] = { "X", "Y", "Z" };
+	int getLeft(int x, int patchSizeHalf, bool center)
+	{
+		return center ? std::max(0, x - patchSizeHalf) : x;
+	}
+
+	int getSize(int x, int left, int size, int patchSizeHalf, int patchSize, bool center)
+	{
+		return center ? (
+			(x < patchSizeHalf) ?
+			patchSize - (patchSizeHalf - (x - left)) :
+			(
+			(left >= size - patchSize) ?
+				size - left :
+				patchSize
+				)
+			)
+			: (x < size - patchSize) ? patchSize : size - x;
+	}
 
 	template <typename T>
 	void patch_template(QMap<QString, QVariant> const & parameters, QSharedPointer<iAFilter> filter,
 		QVector<iAConnector*> & con, iAProgress* progress, iALogger* log)
 	{
 		typedef itk::Image<T, DIM> InputImageType;
+		typedef itk::Image<double, DIM> OutputImageType;
 		auto size = dynamic_cast<InputImageType*>(con[0]->GetITKImage())->GetLargestPossibleRegion().GetSize();
-		int blockCount[DIM];
-		for (int i=0; i<DIM; ++i)
-			blockCount[i] = getRequiredParts(size[i], parameters[QString("Patch size %1").arg(DimName[i])].toUInt());
+		//DEBUG_LOG(QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
+		auto inputSpacing = dynamic_cast<InputImageType*>(con[0]->GetITKImage())->GetSpacing();
 	
 		QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->Parameters().size() != filterParamStrs.size())
@@ -90,35 +109,85 @@ namespace
 
 		QSharedPointer<iAFilter> extractImageFilter = iAFilterRegistry::Filter("Extract Image");
 
-		int totalOps = blockCount[0] * blockCount[1] * blockCount[2];
 		int curOp = 0;
 		QMap<QString, QVariant> extractParams;
-		unsigned int xPatchSize = parameters["Patch size X"].toUInt(),
-			yPatchSize = parameters["Patch size Y"].toUInt(),
-			zPatchSize = parameters["Patch size Z"].toUInt();
+		int patchSize[3] = {
+			parameters["Patch size X"].toInt(),
+			parameters["Patch size Y"].toInt(),
+			parameters["Patch size Z"].toInt()
+		};
+		int patchSizeHalf[3];
+		int stepSize[3] = {
+			parameters["Step size X"].toInt(),
+			parameters["Step size Y"].toInt(),
+			parameters["Step size Z"].toInt()
+		};
+		int blockCount[DIM];
+		double outputSpacing[DIM];
+		for (int i = 0; i < DIM; ++i)
+		{
+			blockCount[i] = getRequiredParts(size[i], stepSize[i]);
+			outputSpacing[i] = inputSpacing[i] * stepSize[i];
+			patchSizeHalf[i] = patchSize[i] / 2;
+		}
+		int totalOps = blockCount[0] * blockCount[1] * blockCount[2];
 		QVector<iAConnector*> extractImageInput;
 		extractImageInput.push_back(new iAConnector);
 		bool warnOutputNotSupported = false;
-
-		// iterate over all patches:
-		for (int xBlock = 0; xBlock < blockCount[0]; ++xBlock)
-		{
-			extractParams.insert("Index X", xBlock * xPatchSize);
-			extractParams.insert("Size X", (xBlock < blockCount[0] - 1) || (size[0] % xPatchSize == 0)
-				? xPatchSize : size[0] % xPatchSize);
-			for (int yBlock = 0; yBlock < blockCount[1]; ++yBlock)
+		bool center = parameters["Center patch"].toBool();
+		bool doImage = parameters["Write output value image"].toBool();
+		QVector<iAITKIO::ImagePointer> outputImages;
+		QStringList outputNames;
+		if (doImage)
+			while (outputImages.size() < filter->OutputValueNames().size())
 			{
-				extractParams.insert("Index Y", yBlock * yPatchSize);
-				extractParams.insert("Size Y", (yBlock < blockCount[1] - 1) || (size[1] % yPatchSize == 0)
-					? yPatchSize : size[1] % yPatchSize);
-				for (int zBlock = 0; zBlock < blockCount[2]; ++zBlock)
+				outputImages.push_back(AllocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
+				outputNames << filter->OutputValueNames()[outputImages.size() - 1];
+			}
+		// iterate over all patches:
+		itk::Index<DIM> outIdx; outIdx[0] = 0;
+		for (int x = 0; x < size[0]; x += stepSize[0])
+		{
+			outIdx[1] = 0;
+			int leftX = getLeft(x, patchSizeHalf[0], center);
+			extractParams.insert("Index X", leftX);
+			int xSize = getSize(x, leftX, size[0], patchSizeHalf[0], patchSize[0], center);
+			extractParams.insert("Size X", xSize);
+			for (int y = 0; y < size[1]; y += stepSize[1])
+			{
+				outIdx[2] = 0;
+				int leftY = getLeft(y, patchSizeHalf[1], center);
+				extractParams.insert("Index Y", leftY);
+				int ySize = getSize(y, leftY, size[1], patchSizeHalf[1], patchSize[1], center);
+				extractParams.insert("Size Y", ySize);
+				for (int z = 0; z < size[2]; z += stepSize[2])
 				{
+					int leftZ = getLeft(z, patchSizeHalf[2], center);
+					extractParams.insert("Index Z", leftZ);
+					int zSize = getSize(z, leftZ, size[2], patchSizeHalf[2], patchSize[2], center);
+					extractParams.insert("Size Z", zSize);
+					/*
+					DEBUG_LOG(QString("Working on patch: upper left=(%1, %2, %3), dim=(%4, %5, %6), outIdx=(%10,%11,%12).")
+						.arg(extractParams["Index X"].toUInt())
+						.arg(extractParams["Index Y"].toUInt())
+						.arg(extractParams["Index Z"].toUInt())
+						.arg(extractParams["Size X"].toUInt())
+						.arg(extractParams["Size Y"].toUInt())
+						.arg(extractParams["Size Z"].toUInt())
+						.arg(outIdx[0]).arg(outIdx[1]).arg(outIdx[2]));
+					*/
+					// apparently some ITK filters (e.g. statistics) have problems with images
+					// with a size of 1 in one dimension, so let's skip such patches for the moment...
+					if (extractParams["Size X"].toUInt() <= 1 ||
+						extractParams["Size Y"].toUInt() <= 1 ||
+						extractParams["Size Z"].toUInt() <= 1)
+					{
+						//DEBUG_LOG("    skipping because one side <= 1.");
+						continue;
+					}
 					try
 					{
 						// extract patch from all inputs:
-						extractParams.insert("Index Z", zBlock * zPatchSize);
-						extractParams.insert("Size Z", (zBlock < blockCount[2] - 1) || (size[2] % zPatchSize == 0)
-							? zPatchSize : size[2] % zPatchSize);
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
 							extractImageInput[0]->SetImage(inputImages[i]->GetITKImage());
@@ -140,18 +209,21 @@ namespace
 							if (curOp == 0)
 							{
 								QStringList captions;
-								captions << "Patch x" << "Patch y" << "Patch z";
+								captions << "x" << "y" << "z";
 								for (auto outValue : filter->OutputValues())
+								{
 									captions << outValue.first;
+								}
 								outputBuffer.append(captions.join(","));
 							}
 							QStringList values;
-							values << QString::number(xBlock*xPatchSize)
-								<< QString::number(yBlock*yPatchSize)
-								<< QString::number(zBlock*zPatchSize);
+							values << QString::number(x) << QString::number(y) << QString::number(z);
 							for (auto outValue : filter->OutputValues())
 								values.append(outValue.second.toString());
 							outputBuffer.append(values.join(","));
+							if (doImage)
+								for (int i = 0; i < filter->OutputValues().size(); ++i)
+									(dynamic_cast<OutputImageType*>(outputImages[i].GetPointer()))->SetPixel(outIdx, filter->OutputValues()[i].second.toDouble());
 						}
 					}
 					catch (std::exception& e)
@@ -166,8 +238,11 @@ namespace
 					
 					progress->ManualProgress(static_cast<int>(100.0 * curOp / totalOps));
 					++curOp;
+					++outIdx[2];
 				}
+				++outIdx[1];
 			}
+			++outIdx[0];
 		}
 		if (warnOutputNotSupported)
 			DEBUG_LOG("Creating output images from each patch not yet supported!");
@@ -185,6 +260,17 @@ namespace
 		}
 		else
 			DEBUG_LOG(QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
+		for (int i = 0; i < outputImages.size(); ++i)
+		{
+			QFileInfo fi(parameters["Output image base name"].toString());
+			QString outFileName = QString("%1/%2%3.%4")
+				.arg(fi.absolutePath())
+				.arg(fi.baseName())
+				.arg(outputNames[i])
+				.arg(fi.completeSuffix());
+			StoreImage(outputImages[i], outFileName, parameters["Compress image"].toBool());
+			//DEBUG_LOG(QString("Storing output for '%1' in file '%2'").arg(outputNames[i]).arg(outFileName));
+		}
 	}
 }
 
@@ -195,10 +281,17 @@ iAPatchFilter::iAPatchFilter():
 	AddParameter("Patch size X", Discrete, 1, 1);
 	AddParameter("Patch size Y", Discrete, 1, 1);
 	AddParameter("Patch size Z", Discrete, 1, 1);
+	AddParameter("Step size X", Discrete, 1, 1);
+	AddParameter("Step size Y", Discrete, 1, 1);
+	AddParameter("Step size Z", Discrete, 1, 1);
+	AddParameter("Center patch", Boolean, true);
 	AddParameter("Filter", String, "Image Quality");
 	AddParameter("Parameters", String, "");
 	AddParameter("Additional input", String, "");
 	AddParameter("Output csv file", String, "");
+	AddParameter("Write output value image", Boolean, true);
+	AddParameter("Output image base name", String, "output.mhd");
+	AddParameter("Compress image", Boolean, true);
 	AddParameter("Continue on error", Boolean, true);
 }
 

@@ -200,3 +200,13 @@ void iAFilter::AddParameter(QString const & name, iAValueType valueType,
 {
 	m_parameters.push_back(iAAttributeDescriptor::CreateParam(name, valueType, defaultValue, min, max));
 }
+
+QVector<QString> const & iAFilter::OutputValueNames() const
+{
+	return m_outputValueNames;
+}
+
+void iAFilter::AddOutputValue(QString const & name)
+{
+	m_outputValueNames.push_back(name);
+}

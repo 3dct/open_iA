@@ -139,6 +139,10 @@ public:
 	void AddOutputValue(QString const & name, QVariant value);
 	//! retrieve a list of output values
 	QVector<QPair<QString, QVariant> > const & OutputValues() const;
+	//! retrieve a list of names of the output values that this filter can produce
+	QVector<QString> const & OutputValueNames() const;
+	//! adds an output value name
+	void AddOutputValue(QString const & name);
 protected:
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
@@ -159,6 +163,7 @@ private:
 	virtual void PerformWork(QMap<QString, QVariant> const & parameters) = 0;
 	QVector<pParameter> m_parameters;
 	QVector<QPair<QString, QVariant> > m_outputValues;
+	QVector<QString> m_outputValueNames;
 	QString m_name, m_category, m_description;
 	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;
 };
