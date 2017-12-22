@@ -30,7 +30,7 @@ class dlg_FilterSelection : public dlg_FilterSelectionConnector
 {
 Q_OBJECT
 public:
-	dlg_FilterSelection(QWidget * parent);
+	dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter = "");
 	QString SelectedFilterName() const;
 public slots:
 	void FilterChanged(QString const &);

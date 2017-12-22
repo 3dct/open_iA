@@ -25,15 +25,22 @@
 
 #include <QPushButton>
 
-dlg_FilterSelection::dlg_FilterSelection(QWidget * parent):
+dlg_FilterSelection::dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter):
 	m_curMatches(0)
 {
 	connect(leFilterSearch, SIGNAL(textEdited(QString const &)), this, SLOT(FilterChanged(QString const &)));
 	connect(lwFilterList, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),
 		this, SLOT(ListSelectionChanged(QListWidgetItem *, QListWidgetItem *)));
+	connect(lwFilterList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(accept()));
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	for (auto filterFactory : iAFilterRegistry::FilterFactories())
 		lwFilterList->addItem(filterFactory->Create()->Name());
+	if (!preselectedFilter.isEmpty())
+	{
+		auto matching = lwFilterList->findItems(preselectedFilter, Qt::MatchExactly);
+		if (matching.size() > 0)
+			lwFilterList->setCurrentItem(matching[0]);
+	}
 }
 
 void dlg_FilterSelection::FilterChanged(QString const & filter)
@@ -61,7 +68,6 @@ void dlg_FilterSelection::ListSelectionChanged(QListWidgetItem *current, QListWi
 {
 	EnableOKButton();
 }
-
 
 QString dlg_FilterSelection::SelectedFilterName() const
 {
