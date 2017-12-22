@@ -26,9 +26,10 @@
 #include <QDialog>
 #include <QString>
 #include <QStringList>
-#include <QList>
+#include <QVector>
 #include <QTextDocument>
 
+class MainWindow;
 class MdiChild;
 class QWidget;
 class QErrorMessage;
@@ -48,16 +49,20 @@ public:
 	double getDblValue(int index) const;
 	void showROI(MdiChild *child);
 	int exec() override;
+	void setSourceMdi(MdiChild* child, MainWindow* mainWnd);
 private:
 	QWidget *container;
 	int m_roi[6];
-	MdiChild *m_roiMdiChild;
+	QVector<int> m_filterWithParameters;
+	MdiChild *m_roiMdiChild, *m_sourceMdi;
+	MainWindow* m_mainWnd;
 	bool m_roiMdiChildClosed;
 	void updateValues(QList<QVariant>);
 	void UpdateROIPart(QString const & partName, QString const & value);
 private slots:
 	void ROIUpdated(QString text);
 	void ROIChildClosed();
+	void SelectFilter();
 protected:
-	QStringList widgetList;
+	QVector<QWidget*> widgetList;
 };
