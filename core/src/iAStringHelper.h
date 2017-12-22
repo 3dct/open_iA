@@ -36,6 +36,8 @@ class QStringList;
 //! @return a list of strings split up at the whitespaces
 open_iA_Core_API QStringList SplitPossiblyQuotedString(QString const & str);
 
+QString QuoteString(QString const & str);
+
 //! Convert a given string representation to a double vector with three elements
 bool Str2Vec3D(QString const & str, double vec[3]);
 

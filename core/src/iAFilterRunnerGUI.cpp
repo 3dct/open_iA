@@ -91,6 +91,8 @@ namespace
 		case Boolean    : return "$";
 		case Categorical: return "+";
 		case Text       : return "=";
+		case FilterName : return "&";
+		case FilterParameters: return ".";
 		default:
 		case String     : return "#";
 		}
@@ -189,6 +191,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	QTextDocument *fDescr = new QTextDocument(0);
 	fDescr->setHtml(filter->Description());
 	dlg_commoninput dlg(mainWnd, filter->Name(), dlgParamNames, dlgParamValues, fDescr);
+	dlg.setSourceMdi(sourceMdi, mainWnd);
 	if (showROI)
 		dlg.showROI(sourceMdi);
 	if (dlg.exec() != QDialog::Accepted)
@@ -202,6 +205,8 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 		case Continuous:  value = dlg.getDblValue(idx);      break;
 		case Discrete:    value = dlg.getIntValue(idx);      break;
+		case FilterName:
+		case FilterParameters:
 		case Text:
 		case String:      value = dlg.getText(idx);          break;
 		case Boolean:     value = dlg.getCheckValue(idx);    break;

@@ -48,18 +48,19 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 	gridLayout->addWidget(buttonBox, inList.size()+2, 0, 1, 1);
 		
 
-	if (!isVolumeStack) {
-		connect(this->findChild<QLineEdit*>(widgetList[0]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[1]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[2]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QComboBox*>(widgetList[10]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
+	if (!isVolumeStack)
+	{
+		connect(qobject_cast<QLineEdit*>(widgetList[0]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[1]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[2]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QComboBox*>(widgetList[10]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
 	}
-
-	else {
-		connect(this->findChild<QLineEdit*>(widgetList[5]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[6]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[7]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QComboBox*>(widgetList[14]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
+	else
+	{
+		connect(qobject_cast<QLineEdit*>(widgetList[5]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[6]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[7]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QComboBox*>(widgetList[14]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
 	}
 	
 	CheckFileSize();

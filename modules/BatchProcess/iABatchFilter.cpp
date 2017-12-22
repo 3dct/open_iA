@@ -71,8 +71,8 @@ iABatchFilter::iABatchFilter():
 	AddParameter("Image folder", String, "");
 	AddParameter("Recursive", Boolean, false);
 	AddParameter("File mask", String, "*.mhd");
-	AddParameter("Filter", String, "Image Quality");
-	AddParameter("Parameters", String, "");
+	AddParameter("Filter", FilterName, "Image Quality");
+	AddParameter("Parameters", FilterParameters, "");
 	AddParameter("Additional Input", String, "");
 	AddParameter("Output directory", String, "");
 	AddParameter("Output suffix", String, "");

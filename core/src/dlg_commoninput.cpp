@@ -21,6 +21,14 @@
 #include "pch.h"
 #include "dlg_commoninput.h"
 
+#include "iAAttributeDescriptor.h"
+#include "dlg_FilterSelection.h"
+#include "iAConsole.h"
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
+#include "iAFilterRunnerGUI.h"
+#include "iAStringHelper.h"
+
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -43,11 +51,11 @@ enum ContainerSize {
 dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr)
 	: QDialog (parent),
 	m_roiMdiChild(nullptr),
-	m_roiMdiChildClosed(false)
+	m_roiMdiChildClosed(false),
+	widgetList(inList.size())
 {
 	//initialize a instance of error message dialog box
 	auto eMessage = new QErrorMessage(this);
-	setModal(true);
 
 	if (winTitle.isEmpty())
 	{
@@ -85,64 +93,43 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	for ( int i = 0; i < inList.size(); i++)
 	{
 		QString tStr = inList[i];
-			
-		if ( !tStr.contains(QRegExp("[$#+*^?=]")) )
-			eMessage->showMessage(QString("Unknown widget prefix '").append(inList[i][0]).append("' for label \"").append(tStr.remove(0, 1)).append("\""));
-		else
-			tStr.remove(0, 1);
-
-		QString tempStr = tStr;
+		tStr.remove(0, 1);
 		QLabel *label = new QLabel(container);
-		label->setObjectName(tempStr.append("Label"));
-		widgetList.insert(i, tempStr);
 		label->setText(tStr);
-		containerLayout->addWidget(label, i, 0, 1, 1);
-
+		containerLayout->addWidget(label, i, 0);
 		QWidget *newWidget;
-		tempStr = tStr;
 		switch(inList[i].at(0).toLatin1())
 		{
 			case '$':
-			{
 				newWidget = new QCheckBox(container);
-				newWidget->setObjectName(tempStr.append("CheckBox"));
 				break;
-			}
+			case '.':
+				if (inList[i - 1].at(0).toLatin1() == '&')	 // if this is a filter parameter string,
+					m_filterWithParameters.push_back(i - 1); // and previous was a filter name, then
+				// intentional fall-through!				 // remember this for the filter selection
 			case '#':
-			{
 				newWidget = new QLineEdit(container);
-				newWidget->setObjectName(tempStr.append("LineEdit"));
 				break;
-			}
 			case '+':
-			{
 				newWidget = new QComboBox(container);
-				newWidget->setObjectName(tempStr.append("ComboBox"));
 				break;
-
-			}
 			case '*':
-			{
 				newWidget = new QSpinBox(container);
-				newWidget->setObjectName(tempStr.append("SpinBox"));
 				((QSpinBox*)newWidget)->setRange(0, 65536);
 				break;
-			}
 			case '^':
-			{
 				newWidget = new QDoubleSpinBox(container);
-				newWidget->setObjectName(tempStr.append("QDoubleSpinBox"));
 				((QDoubleSpinBox*)newWidget)->setSingleStep (0.001);
 				((QDoubleSpinBox*)newWidget)->setDecimals(6);
 				((QDoubleSpinBox*)newWidget)->setRange(-999999, 999999);
 				break;
-			}
 			case '=':
-			{
 				newWidget = new QPlainTextEdit(container);
-				newWidget->setObjectName(tempStr.append("PlainTextEdit"));
 				break;
-			}
+			case '&':
+				newWidget = new QPushButton(container);
+				connect(newWidget, SIGNAL(clicked()), this, SLOT(SelectFilter()));
+				break;
 			case '?':
 			{
 				label->setStyleSheet("background-color : lightGray");
@@ -152,16 +139,17 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 				label->setFont(font);
 				continue;
 			}
-			break;
+			default:
+				eMessage->showMessage(QString("Unknown widget prefix '%1' for label \"%2\"").arg(inList[i][0]).arg(tStr));
+				continue;
 		}
-		widgetList.insert(i, tempStr);
-		containerLayout->addWidget(newWidget, i, 1, 1, 1);
+		widgetList[i] = newWidget;
+		containerLayout->addWidget(newWidget, i, 1);
 	}
 		
 	//Controls the containers width and sets the correct width for the widgets
 	containerLayout->setColumnMinimumWidth(0, WIDTH/3);
 	containerLayout->setColumnMinimumWidth(1, WIDTH/3);
-	container->setMaximumWidth(WIDTH);
 	container->setLayout(containerLayout);
 
 	//Set scrollbar if needed
@@ -190,6 +178,57 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 }
 
 
+void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
+{
+	m_sourceMdi = child;
+	m_mainWnd = mainWnd;
+}
+
+
+void dlg_commoninput::SelectFilter()
+{
+	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
+	dlg_FilterSelection dlg(this, sender->text());
+	if (dlg.exec())
+	{
+		QString filterName = dlg.SelectedFilterName();
+		int idx = widgetList.indexOf(sender);
+		if (idx < widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
+			m_sourceMdi)	// TODO: if possible, get rid of sourceMdi?
+		{
+			auto filter = iAFilterRegistry::Filter(filterName);
+			int filterID = iAFilterRegistry::FilterID(filterName);
+			auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
+			QMap<QString, QVariant> paramValues = runner->LoadParameters(filter, m_sourceMdi);
+			if (!runner->AskForParameters(filter, paramValues, m_sourceMdi, m_mainWnd))
+				return;
+			QString paramStr;
+			for (auto param: filter->Parameters())
+			{
+				paramStr += (paramStr.isEmpty() ? "" : " ");
+				switch (param->ValueType())
+				{
+				case Boolean:
+					paramStr += paramValues[param->Name()].toBool() ? "true" : "false"; break;
+				case Discrete:
+				case Continuous:
+					paramStr += paramValues[param->Name()].toString(); break;
+				default:
+					paramStr += QuoteString(paramValues[param->Name()].toString()); break;
+				}
+				
+			}
+			QLineEdit* e = qobject_cast<QLineEdit*>(widgetList[idx + 1]);
+			if (e)
+				e->setText(paramStr);
+			else
+				DEBUG_LOG(QString("Parameter string %1 could not be set!").arg(paramStr));
+		}
+		sender->setText(filterName);
+	}
+}
+
+
 void dlg_commoninput::updateValues(QList<QVariant> inPara)
 {
 	QObjectList children = container->children();
@@ -197,15 +236,15 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 	int paramIdx = 0;
 	for ( int i = 0; i < children.size(); i++)
 	{
-		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(children.at(i));
+		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(children.at(i));
 		if (lineEdit)
 			lineEdit->setText(inPara[paramIdx++].toString());
 
-		QPlainTextEdit *plainTextEdit = dynamic_cast<QPlainTextEdit*>(children.at(i));
+		QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit*>(children.at(i));
 		if (plainTextEdit)
 			plainTextEdit->setPlainText(inPara[paramIdx++].toString());
 
-		QComboBox *comboBox = dynamic_cast<QComboBox*>(children.at(i));
+		QComboBox *comboBox = qobject_cast<QComboBox*>(children.at(i));
 		if (comboBox)
 		{
 			for (QString s : inPara[paramIdx++].toStringList())
@@ -224,7 +263,7 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 			}
 		}
 
-		QCheckBox *checkBox = dynamic_cast<QCheckBox*>(children.at(i));
+		QCheckBox *checkBox = qobject_cast<QCheckBox*>(children.at(i));
 		if (checkBox)
 		{
 			if (inPara[paramIdx] == tr("true"))
@@ -237,13 +276,17 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 
 		}
 
-		QSpinBox *spinBox = dynamic_cast<QSpinBox*>(children.at(i));
+		QSpinBox *spinBox = qobject_cast<QSpinBox*>(children.at(i));
 		if (spinBox)
 			spinBox->setValue(inPara[paramIdx++].toDouble());
 
-		QDoubleSpinBox *doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(children.at(i));
+		QDoubleSpinBox *doubleSpinBox = qobject_cast<QDoubleSpinBox*>(children.at(i));
 		if (doubleSpinBox)
 			doubleSpinBox->setValue(inPara[paramIdx++].toDouble());
+
+		QPushButton *button = qobject_cast<QPushButton*>(children.at(i));
+		if (button)
+			button->setText(inPara[paramIdx++].toString());
 	}
 }
 
@@ -313,52 +356,55 @@ void dlg_commoninput::ROIChildClosed()
 
 int dlg_commoninput::getIntValue(int index) const
 {
-	QSpinBox *t = container->findChild<QSpinBox*>(widgetList[index]);
+	QSpinBox *t = qobject_cast<QSpinBox*>(widgetList[index]);
 	if (t)
 		return t->value();
-	QLineEdit *t2 = container->findChild<QLineEdit*>(widgetList[index]);
+	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
 	return t2 ? t2->text().toInt() : 0;
 }
 
 
 double dlg_commoninput::getDblValue(int index) const
 {
-	QDoubleSpinBox *t = container->findChild<QDoubleSpinBox*>(widgetList[index]);
+	QDoubleSpinBox *t = qobject_cast<QDoubleSpinBox*>(widgetList[index]);
 	if (t)
 		return t->value();
-	QLineEdit *t2 = container->findChild<QLineEdit*>(widgetList[index]);
+	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
 	return t2 ? t2->text().toDouble() : 0.0;
 }
 
 
 int dlg_commoninput::getCheckValue(int index) const
 {
-	QCheckBox *t = container->findChild<QCheckBox*>(widgetList[index]);
+	QCheckBox *t = qobject_cast<QCheckBox*>(widgetList[index]);
 	return t? t->checkState(): 0;
 }
 
 
 QString dlg_commoninput::getComboBoxValue(int index) const
 {
-	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
+	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
 	return t? t->currentText(): QString();
 }
 
 
 int dlg_commoninput::getComboBoxIndex(int index) const
 {
-	QComboBox *t = container->findChild<QComboBox*>(widgetList[index]);
+	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
 	return t ? t->currentIndex() : -1;
 }
 
 
 QString dlg_commoninput::getText(int index) const
 {
-	QLineEdit *t = container->findChild<QLineEdit*>(widgetList[index]);
+	QLineEdit *t = qobject_cast<QLineEdit*>(widgetList[index]);
 	if (t)
 		return t->text();
-	QPlainTextEdit *t2 = container->findChild<QPlainTextEdit*>(widgetList[index]);
-	return t2 ? t2->toPlainText() : "";
+	QPlainTextEdit *t2 = qobject_cast<QPlainTextEdit*>(widgetList[index]);
+	if (t2)
+		return t2->toPlainText();
+	QPushButton * t3 = qobject_cast<QPushButton*>(widgetList[index]);
+	return t3? t3->text(): "";
 }
 
 

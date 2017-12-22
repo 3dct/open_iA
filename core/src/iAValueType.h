@@ -28,7 +28,9 @@ enum iAValueType
 	Categorical,
 	String,
 	Text,
-	Boolean
+	Boolean,
+	FilterName,
+	FilterParameters
 };
 
 class QString;
