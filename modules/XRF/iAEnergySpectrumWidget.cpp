@@ -152,7 +152,6 @@ void iAEnergySpectrumWidget::mouseMoveEvent(QMouseEvent *event)
 	selectionRubberBand->setGeometry(QRect(selectionOrigin, event->pos()).normalized());
 }
 
-
 void iAEnergySpectrumWidget::DrawAfterPlots(QPainter& painter)
 {
 	QPen pen(Qt::red);
@@ -229,16 +228,12 @@ void iAEnergySpectrumWidget::NotifySelectionUpdateListener()
 	filterListener->OnSelectionUpdate(filter);
 }
 
-
 void iAEnergySpectrumWidget::AddElementLines(iACharacteristicEnergy* element, QColor const & color)
 {
 	m_elementEnergies.insert(element, color);
 }
 
-
 void iAEnergySpectrumWidget::RemoveElementLines(iACharacteristicEnergy* element)
 {
 	m_elementEnergies.remove(element);
 }
-
-

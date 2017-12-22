@@ -20,16 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-class iAXRFModuleInterface : public iAModuleInterface
+IAFILTER_DEFAULT_CLASS(iASegmentationMetrics)
+
+
+class iASegmentationMetricsRunner : public iAFilterRunnerGUI
 {
-	Q_OBJECT
 public:
-	void Initialize();
-Q_SIGNALS:
-	void xrfLoaded();
-private slots:
-	bool XRF_Visualization();
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	bool ModifiesImage() const override;
 };

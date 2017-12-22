@@ -24,9 +24,6 @@
 
 class iASegmentationModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize();
-private slots:
-	bool CalculateSegmentationMetrics();
 };

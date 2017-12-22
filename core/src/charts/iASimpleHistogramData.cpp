@@ -125,3 +125,15 @@ QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType min
 {
 	return QSharedPointer<iASimpleHistogramData>(new iASimpleHistogramData(minX, maxX, numBin, data, xValueType));
 }
+
+QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType)
+{
+	double* dataArr = new double[data.size()];
+	for (size_t i=0; i<data.size(); ++i)
+	{
+		dataArr[i] = data[i];
+	}
+	auto result = QSharedPointer<iASimpleHistogramData>(new iASimpleHistogramData(minX, maxX, data.size(), dataArr, xValueType));
+	result->m_dataOwner = true;
+	return result;
+}

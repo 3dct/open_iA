@@ -20,17 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-class iASimilarityModuleInterface : public iAModuleInterface
+class iAChartWidget;
+class MdiChild;
+
+class iAQMeasure : public iAFilter
 {
-	Q_OBJECT
 public:
-	void Initialize();
-private slots:
-	void calc_similarity_metrics();
-protected:
-	// similarity metrics 
-	bool smMeanSquares, smNormalizedCorrelation, smMutualInformation;
-	int smMIHistogramBins;
+	static QSharedPointer<iAQMeasure> Create();
+	void Run(QMap<QString, QVariant> const & parameters) override;
+	void SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild);
+	iAChartWidget* m_chart;
+	MdiChild* m_mdiChild;
+private:
+	iAQMeasure();
+};
+
+
+class iAQMeasureRunner : public iAFilterRunnerGUI
+{
+public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	bool ModifiesImage() const override;
+	void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
 };

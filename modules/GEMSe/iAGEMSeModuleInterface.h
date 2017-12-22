@@ -41,7 +41,7 @@ protected:
 	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 private slots:
 	//! @{ Menu entries:
-	bool StartGEMSe();
+	void StartGEMSe();
 	void LoadPreCalculatedData();
 	//! @}
 	//! @{ Toolbar actions:

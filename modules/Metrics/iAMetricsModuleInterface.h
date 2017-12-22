@@ -22,14 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class iAXRFModuleInterface : public iAModuleInterface
+class iAMetricsModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize();
-Q_SIGNALS:
-	void xrfLoaded();
-private slots:
-	bool XRF_Visualization();
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
 };

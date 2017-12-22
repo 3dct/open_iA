@@ -21,7 +21,7 @@
 #include "iAHistogramView.h"
 
 #include "iAEnsemble.h"
-#include "iASimpleHistogramData.h"
+#include "charts/iASimpleHistogramData.h"
 #include "iAUncertaintyColors.h"
 
 #include "charts/iAChartWidget.h"

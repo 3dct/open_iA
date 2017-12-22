@@ -24,6 +24,10 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
+
+iATransferFunction::~iATransferFunction()
+{}
+
 iASimpleTransferFunction::iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf) :
 	m_ctf(ctf),
 	m_otf(otf)

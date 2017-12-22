@@ -20,8 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <cassert>
+#define _USE_MATH_DEFINES
 #include <cmath>
+#include <vector>
 
 // consistently define isNaN/isInf:
 #if (defined(_MSC_VER) && _MSC_VER <= 1600)
@@ -163,3 +167,15 @@ inline T linterp(const T a, const T b, const T t)
 {
 	return a + (b - a)*t;
 }
+
+
+open_iA_Core_API double gaussian(double x, double sigma);
+
+open_iA_Core_API std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps);
+
+//! convolutes the given function with a Gaussian kernel with the given sigma and steps
+//! TODO: steps could be  calculated from sigma (cut off kernel when factor gets very small
+open_iA_Core_API std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps);
+
+
+open_iA_Core_API std::vector<double> derivative(std::vector<double> func);

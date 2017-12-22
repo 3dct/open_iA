@@ -18,14 +18,60 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAMathUtility.h"
 
-#include <vtkSmartPointer.h>
+#include <algorithm>
 
-#include <QVector>
+#ifndef M_PI
+	#define M_PI 3.14159265358979323846
+#endif
 
-class vtkImageData;
-class vtkLookupTable;
+double gaussian(double x, double sigma)
+{
+	return 1 / std::sqrt(2 * M_PI*std::pow(sigma, 2.0)) *
+		std::exp(-std::pow(x, 2.0) / (2 * std::pow(sigma, 2.0)));
+}
 
-vtkSmartPointer<vtkLookupTable> BuildEntropyCTF();
-vtkSmartPointer<vtkImageData> BuildEntropyImage(QVector<vtkSmartPointer<vtkImageData> >  data);
+std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps)
+{
+	std::vector<double> kernel;
+	for (size_t i = 0; i < kernelSteps + 1; ++i)
+	{
+		kernel.push_back(gaussian(i, kernelSigma));
+	}
+	return kernel;
+}
+
+std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps)
+{
+	std::vector<double> smoothed;
+	auto kernel = gaussianKernel(kernelSigma, kernelSteps);
+	for (size_t i = 0; i < data.size(); ++i)
+	{
+		size_t minIdx = static_cast<size_t>(std::max(static_cast<long long>(0), static_cast<long long>(i) - kernelSteps));
+		size_t maxIdx = std::min(data.size(), i + kernelSteps + 1);
+		double smoothValue = 0;
+		for (size_t cur = minIdx; cur < maxIdx; ++cur)
+		{						// kernel is symmetric around 0
+			size_t kernelIdx = std::abs(static_cast<long long>(cur - i));
+			assert(kernelIdx < kernel.size());
+			smoothValue += kernel[kernelIdx] * data[cur];
+		}
+		smoothed.push_back(smoothValue);
+	}
+	return smoothed;
+}
+
+open_iA_Core_API std::vector<double> derivative(std::vector<double> func)
+{
+	std::vector<double> deriv;
+	for (size_t i = 0; i < func.size(); ++i)
+	{
+		double derivValue = ((i > 0) ? (func[i] - func[i - 1])
+			: func[i+1]-func[i]);
+			// calculate as average of(difference between prev and current) and (difference between current and next) ?
+			//(i < func.size()-1) ? (func[i+1] - func[i])
+		deriv.push_back(derivValue);
+	}
+	return deriv;
+}

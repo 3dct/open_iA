@@ -18,18 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "pch.h"
+#include "iAMetricsModuleInterface.h"
 
-#include "iAModuleInterface.h"
+#include "iASimilarity.h"
+#include "iAQMeasure.h"
+#include "iASegmentationMetrics.h"
 
-class iAXRFModuleInterface : public iAModuleInterface
+#include "iAFilterRegistry.h"
+
+void iAMetricsModuleInterface::Initialize()
 {
-	Q_OBJECT
-public:
-	void Initialize();
-Q_SIGNALS:
-	void xrfLoaded();
-private slots:
-	bool XRF_Visualization();
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
-};
+	REGISTER_FILTER_WITH_RUNNER(iAQMeasure, iAQMeasureRunner)
+	REGISTER_FILTER_WITH_RUNNER(iASimilarity, iASimilarityRunner);
+	REGISTER_FILTER_WITH_RUNNER(iASegmentationMetrics, iASegmentationMetricsRunner);
+}

@@ -150,7 +150,7 @@ void iAChartWidget::zoomAlongY(double value, bool deltaMode)
 	{
 		yZoom = value;
 	}
-	yZoom = clamp(MIN_Y_ZOOM, MAX_Y_ZOOM, yZoom);;
+	yZoom = clamp(MIN_Y_ZOOM, MAX_Y_ZOOM, yZoom);
 }
 
 void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
@@ -214,7 +214,6 @@ double iAChartWidget::XRange() const
 	return m_xBounds[1] - m_xBounds[0];
 }
 
-
 int iAChartWidget::BottomMargin() const
 {
 	if (!m_showXAxisLabel)
@@ -242,7 +241,6 @@ QSharedPointer<iAMapper> const iAChartWidget::YMapper() const
 	return m_yConverter;
 }
 
-
 void iAChartWidget::CreateYConverter()
 {
 	if (m_yMappingMode == Linear)
@@ -251,7 +249,6 @@ void iAChartWidget::CreateYConverter()
 		// 1 - smallest value larger than 0. TODO: find that from data!
 		m_yConverter = QSharedPointer<iAMapper>(new iALogarithmicMapper(yZoom, m_yBounds[1], 1, ActiveHeight() - 1));
 }
-
 
 void iAChartWidget::DrawEverything()
 {
@@ -610,7 +607,6 @@ bool iAChartWidget::IsContextMenuVisible() const
 	return m_contextMenuVisible;
 }
 
-
 bool iAChartWidget::IsTooltipShown() const
 {
 	return m_showTooltip;
@@ -670,7 +666,6 @@ QVector<QSharedPointer<iAPlot> > const & iAChartWidget::Plots()
 {
 	return m_plots;
 }
-
 
 bool iAChartWidget::IsDrawnDiscrete() const
 {
@@ -734,7 +729,7 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 		auto data = plot->GetData();
 		if (!data || !data->GetRawData())
 			continue;
-		toolTip += QString::number(data->GetRawData()[nthBin]);
+		toolTip += ", " + QString::number(data->GetRawData()[nthBin]);
 	}
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }
@@ -868,7 +863,6 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 	m_contextMenuVisible = true;
 	m_contextMenu->exec(event->globalPos());
 }
-
 
 void iAChartWidget::ExportData()
 {
