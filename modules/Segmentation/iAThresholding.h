@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
-
 #include "iAFilter.h"
 
 IAFILTER_DEFAULT_CLASS(iABinaryThreshold)
@@ -30,3 +28,4 @@ IAFILTER_DEFAULT_CLASS(iAOtsuThreshold)
 IAFILTER_DEFAULT_CLASS(iAAdaptiveOtsuThreshold)
 IAFILTER_DEFAULT_CLASS(iAOtsuMultipleThreshold)
 IAFILTER_DEFAULT_CLASS(iAMaximumDistance)
+IAFILTER_DEFAULT_CLASS(iAParameterlessThresholding)

@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAThresholding.h"
 
+#include "defines.h"    // for DIM
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iAProgress.h"
@@ -31,10 +32,21 @@
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkGradientMagnitudeImageFilter.h>
+#include <itkHuangThresholdImageFilter.h>
+#include <itkIntermodesThresholdImageFilter.h>
+#include <itkIsoDataThresholdImageFilter.h>
+#include <itkKittlerIllingworthThresholdImageFilter.h>
+#include <itkLiThresholdImageFilter.h>
+#include <itkMaximumEntropyThresholdImageFilter.h>
+#include <itkMomentsThresholdImageFilter.h>
 #include <itkOtsuThresholdImageFilter.h>
 #include <itkOtsuMultipleThresholdsImageFilter.h>
 #include <itkRobustAutomaticThresholdImageFilter.h>
 #include <itkRemovePeaksOtsuThresholdImageFilter.h>
+#include <itkRenyiEntropyThresholdImageFilter.h>
+#include <itkShanbhagThresholdImageFilter.h>
+#include <itkTriangleThresholdImageFilter.h>
+#include <itkYenThresholdImageFilter.h>
 
 #include <QLocale>
 
@@ -65,10 +77,10 @@ void iABinaryThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(binary_threshold_template, itkType,
-		parameters["Lower Threshold"].toDouble(),
-		parameters["Upper Threshold"].toDouble(),
-		parameters["Outside Value"].toDouble(),
-		parameters["Inside Value"].toDouble(),
+		parameters["Lower threshold"].toDouble(),
+		parameters["Upper threshold"].toDouble(),
+		parameters["Outside value"].toDouble(),
+		parameters["Inside value"].toDouble(),
 		m_progress, m_con);
 }
 
@@ -83,10 +95,10 @@ iABinaryThreshold::iABinaryThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html\">"
 		"Binary Threshold Filter</a> in the ITK documentation.")
 {
-	AddParameter("Lower Threshold", Continuous, 0);
-	AddParameter("Upper Threshold", Continuous, 32768);
-	AddParameter("Outside Value", Continuous, 0);
-	AddParameter("Inside Value", Continuous, 1);
+	AddParameter("Lower threshold", Continuous, 0);
+	AddParameter("Upper threshold", Continuous, 32768);
+	AddParameter("Outside value", Continuous, 0);
+	AddParameter("Inside value", Continuous, 1);
 }
 
 
@@ -128,11 +140,10 @@ void iARatsThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
 	ITK_TYPED_CALL(rats_threshold_template, itkType,
 		threshold,
 		parameters["Power"].toDouble(),
-		parameters["Outside Value"].toDouble(),
-		parameters["Inside Value"].toDouble(),
+		parameters["Outside value"].toDouble(),
+		parameters["Inside value"].toDouble(),
 		m_progress, m_con);
-	AddMsg(QString("%1  Rats Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(QString::number(threshold)));
+	AddOutputValue("Rats threshold", threshold);
 }
 
 iARatsThreshold::iARatsThreshold() :
@@ -146,8 +157,8 @@ iARatsThreshold::iARatsThreshold() :
 		"RATS Filter</a> in the ITK documentation.")
 {
 	AddParameter("Power", Continuous, 1);
-	AddParameter("Outside Value", Continuous, 0);
-	AddParameter("Inside Value", Continuous, 1);
+	AddParameter("Outside value", Continuous, 0);
+	AddParameter("Inside value", Continuous, 1);
 }
 
 
@@ -199,13 +210,12 @@ void iAOtsuThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
 	double threshold;
 	ITK_TYPED_CALL(otsu_threshold_template, itkType,
 		threshold,
-		parameters["Number of Histogram Bins"].toDouble(),
-		parameters["Outside Value"].toDouble(),
-		parameters["Inside Value"].toDouble(),
-		parameters["Remove Peaks"].toBool(),
+		parameters["Number of histogram bins"].toDouble(),
+		parameters["Outside value"].toDouble(),
+		parameters["Inside value"].toDouble(),
+		parameters["Remove peaks"].toBool(),
 		m_progress, m_con);
-	AddMsg(QString("%1  Otsu Threshold = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(QString::number(threshold)));
+	AddOutputValue("Otsu threshold", threshold);
 }
 
 iAOtsuThreshold::iAOtsuThreshold() :
@@ -217,10 +227,10 @@ iAOtsuThreshold::iAOtsuThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
 		"Otsu Threshold Filter</a> in the ITK documentation.")
 {
-	AddParameter("Number of Histogram Bins", Discrete, 128, 2);
-	AddParameter("Outside Value", Continuous, 0);
-	AddParameter("Inside Value", Continuous, 1);
-	AddParameter("Remove Peaks", Boolean, false);
+	AddParameter("Number of histogram bins", Discrete, 128, 2);
+	AddParameter("Outside value", Continuous, 0);
+	AddParameter("Inside value", Continuous, 1);
+	AddParameter("Remove peaks", Boolean, false);
 }
 
 
@@ -263,11 +273,11 @@ void iAAdaptiveOtsuThreshold::PerformWork(QMap<QString, QVariant> const & parame
 		parameters["Radius"].toDouble(),
 		parameters["Samples"].toUInt(),
 		parameters["Levels"].toUInt(),
-		parameters["Control Points"].toUInt(),
-		parameters["Number of Histogram Bins"].toUInt(),
-		parameters["Outside Value"].toDouble(),
-		parameters["Inside Value"].toDouble(),
-		parameters["Spline Order"].toUInt(),
+		parameters["Control points"].toUInt(),
+		parameters["Number of histogram bins"].toUInt(),
+		parameters["Outside value"].toDouble(),
+		parameters["Inside value"].toDouble(),
+		parameters["Spline order"].toUInt(),
 		m_progress, m_con);
 }
 
@@ -278,14 +288,14 @@ iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
 		"<a href=\"https://github.com/ITKTools/ITKTools/blob/master/src/thresholdimage/itkAdaptiveOtsuThresholdImageFilter.h\">"
 		"Adaptive Otsu Threshold source code</a> in the ITKTools.")
 {
-	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
-	AddParameter("Outside Value", Continuous, 0);
-	AddParameter("Inside Value", Continuous, 1);
+	AddParameter("Number of histogram bins", Discrete, 256, 2);
+	AddParameter("Outside value", Continuous, 0);
+	AddParameter("Inside value", Continuous, 1);
 	AddParameter("Radius", Continuous, 8);
 	AddParameter("Samples", Discrete, 5000);
 	AddParameter("Levels", Discrete, 3);
-	AddParameter("Control Points", Discrete, 50, 1);
-	AddParameter("Spline Order", Discrete, 3, 2);
+	AddParameter("Control points", Discrete, 50, 1);
+	AddParameter("Spline order", Discrete, 3, 2);
 }
 
 
@@ -318,13 +328,12 @@ void iAOtsuMultipleThreshold::PerformWork(QMap<QString, QVariant> const & parame
 	std::vector<double> omthresh;
 	ITK_TYPED_CALL(otsu_multiple_threshold_template, itkType,
 		omthresh,
-		parameters["Number of Histogram Bins"].toDouble(),
-		parameters["Number of Thresholds"].toDouble(),
-		parameters["Valley Emphasis"].toBool(),
+		parameters["Number of histogram bins"].toDouble(),
+		parameters["Number of thresholds"].toDouble(),
+		parameters["Valley emphasis"].toBool(),
 		m_progress, m_con);
-	AddMsg(QString("%1  Otsu Multiple Thresholds = %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(omthresh.size()));
-	for (int i = 0; i< omthresh.size(); i++) AddMsg(QString("    Threshold number %1 = %2").arg(i).arg(omthresh[i]));
+	for (int i = 0; i< omthresh.size(); i++)
+		AddOutputValue(QString("Otsu multiple threshold %1").arg(i), omthresh[i]);
 }
 
 iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
@@ -334,9 +343,9 @@ iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
 		"Otsu Multiple Threshold Filter</a> in the ITK documentation.")
 {
-	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
-	AddParameter("Number of Thresholds", Discrete, 2, 1);
-	AddParameter("Valley Emphasis", Boolean, 1);
+	AddParameter("Number of histogram bins", Discrete, 256, 2);
+	AddParameter("Number of thresholds", Discrete, 2, 1);
+	AddParameter("Valley emphasis", Boolean, 1);
 }
 
 
@@ -371,13 +380,13 @@ void iAMaximumDistance::PerformWork(QMap<QString, QVariant> const & parameters)
 	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
 	ITK_TYPED_CALL(maximum_distance_template, itkType,
 		&mdfHighInt, &mdfLowInt, &mdfThresh,
-		parameters["Low Intensity"].toDouble(),
-		parameters["Number of Histogram Bins"].toDouble(),
-		parameters["Use Low Intensity"].toBool(),
+		parameters["Low intensity"].toDouble(),
+		parameters["Number of histogram bins"].toDouble(),
+		parameters["Use low intensity"].toBool(),
 		m_progress, m_con);
-	AddMsg(QString("Maximum Distance Threshold = %1").arg(QString::number(mdfThresh, 10)));
-	AddMsg(QString("Maximum Distance Low Peak = %1").arg(QString::number(mdfLowInt, 10)));
-	AddMsg(QString("Maximum Distance High Peak = %1").arg(QString::number(mdfHighInt, 10)));
+	AddOutputValue("Maximum distance threshold", mdfThresh);
+	AddOutputValue("Maximum distance low peak", mdfLowInt);
+	AddOutputValue("Maximum distance high peak", mdfHighInt);
 }
 
 IAFILTER_CREATE(iAMaximumDistance)
@@ -386,7 +395,144 @@ iAMaximumDistance::iAMaximumDistance() :
 	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
 		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.")
 {
-	AddParameter("Number of Histogram Bins", Discrete, 256, 2);
-	AddParameter("Low Intensity", Continuous, 0);
-	AddParameter("Use Low Intensity", Boolean, false);
+	AddParameter("Number of histogram bins", Discrete, 256, 2);
+	AddParameter("Low intensity", Continuous, 0);
+	AddParameter("Use low intensity", Boolean, false);
+}
+
+
+// Parameterless Thresholding Methods
+
+namespace
+{
+	enum ParameterlessThresholdingIDs
+	{
+		P_OTSU_THRESHOLD,
+		P_ISODATA_THRESHOLD,
+		P_MAXENTROPY_THRESHOLD,
+		P_MOMENTS_THRESHOLD,
+		P_YEN_THRESHOLD,
+		P_RENYI_THRESHOLD,
+		P_SHANBHAG_THRESHOLD,
+		P_INTERMODES_THRESHOLD,
+		P_HUANG_THRESHOLD,
+		P_LI_THRESHOLD,
+		P_KITTLERILLINGWORTH_THRESHOLD,
+		P_TRIANGLE_THRESHOLD,
+		P_MINIMUM_THRESHOLD
+	};
+
+	QStringList const & GetParameterlessThresholdingNames()
+	{
+		static QStringList ParameterlessThresholdingNames;
+		if (ParameterlessThresholdingNames.empty())
+		{
+			ParameterlessThresholdingNames.push_back("Otsu Threshold");
+			ParameterlessThresholdingNames.push_back("Isodata Thresold");
+			ParameterlessThresholdingNames.push_back("Maximum Entropy  Thresold");
+			ParameterlessThresholdingNames.push_back("Yen Threshold");
+			ParameterlessThresholdingNames.push_back("Renyi Entropy Thresold");
+			ParameterlessThresholdingNames.push_back("Shanbhag Threshold");
+			ParameterlessThresholdingNames.push_back("Intermodes Threshold");
+			ParameterlessThresholdingNames.push_back("Huang Threshold");
+			ParameterlessThresholdingNames.push_back("Li Threshold");
+			ParameterlessThresholdingNames.push_back("Kittler Illingworth Threshold");
+			ParameterlessThresholdingNames.push_back("Triangle Threshold");
+		}
+		return ParameterlessThresholdingNames;
+	}
+
+	int MapMethodNameToID(QString const & name)
+	{
+		return GetParameterlessThresholdingNames().indexOf(name);
+	}
+}
+
+IAFILTER_CREATE(iAParameterlessThresholding)
+
+iAParameterlessThresholding::iAParameterlessThresholding() :
+	iAFilter("Parameterless Thresholding", "Segmentation/Global Thresholding",
+		"Performs a \"parameterless\" global thresholding, that is, a thresholding"
+		"where the threshold is determined automatically based on the histogram."
+		"Several different <em>Method</em>s for determining the threshold are available, "
+		"you can also set the <em>Number of histogram")
+{
+	AddParameter("Method", Categorical, GetParameterlessThresholdingNames());
+	AddParameter("Number of histogram bins", Discrete, 128, 2);
+	AddParameter("Outside value", Continuous, 0);
+	AddParameter("Inside value", Continuous, 1);
+}
+
+template <typename T>
+void parameterless_template(QMap<QString, QVariant> const & params, double & threshold,
+	iAProgress* p, iAConnector* con)
+{
+	typedef itk::Image<T, DIM > InputImageType;
+	typedef itk::Image<char, DIM> MaskImageType;
+	typedef itk::HistogramThresholdImageFilter<InputImageType, MaskImageType> parameterFreeThrFilterType;
+	typename parameterFreeThrFilterType::Pointer filter;
+	switch (MapMethodNameToID(params["Method"].toString()))
+	{
+	case P_OTSU_THRESHOLD:
+		filter = itk::OtsuThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_ISODATA_THRESHOLD:
+		filter = itk::IsoDataThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_MAXENTROPY_THRESHOLD:
+		filter = itk::MaximumEntropyThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_MOMENTS_THRESHOLD:
+		filter = itk::MomentsThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_YEN_THRESHOLD:
+		filter = itk::YenThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_RENYI_THRESHOLD:
+		filter = itk::RenyiEntropyThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_SHANBHAG_THRESHOLD:
+		filter = itk::ShanbhagThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_INTERMODES_THRESHOLD:
+		filter = itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_HUANG_THRESHOLD:
+		filter = itk::HuangThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_LI_THRESHOLD:
+		filter = itk::LiThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_KITTLERILLINGWORTH_THRESHOLD:
+		filter = itk::KittlerIllingworthThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_TRIANGLE_THRESHOLD:
+		filter = itk::TriangleThresholdImageFilter <InputImageType, MaskImageType>::New();
+		break;
+	case P_MINIMUM_THRESHOLD:
+	{
+		typedef itk::IntermodesThresholdImageFilter <InputImageType, MaskImageType> MinimumFilterType;
+		typename MinimumFilterType::Pointer minimumFilter = MinimumFilterType::New();
+		minimumFilter->SetUseInterMode(false);
+		filter = minimumFilter;
+		break;
+	}
+	}
+	filter->SetInput(dynamic_cast<InputImageType*>(con->GetITKImage()));
+	filter->SetNumberOfHistogramBins(params["Number of histogram bins"].toUInt());
+	filter->SetOutsideValue(params["Outside value"].toDouble());
+	filter->SetInsideValue(params["Inside value"].toDouble());
+	p->Observe(filter);
+	filter->Update();
+	con->SetImage(filter->GetOutput());
+	threshold = filter->GetThreshold();
+	con->Modified();
+}
+
+void iAParameterlessThresholding::PerformWork(QMap<QString, QVariant> const & params)
+{
+	double threshold;
+	ITK_TYPED_CALL(parameterless_template, m_con->GetITKScalarPixelType(),
+		params, threshold, m_progress, m_con);
+	AddOutputValue("Threshold", threshold);
 }

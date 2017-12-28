@@ -37,6 +37,7 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iAMaximumDistance);
 	REGISTER_FILTER(iARatsThreshold);
 	REGISTER_FILTER(iAAdaptiveOtsuThreshold);
+	REGISTER_FILTER(iAParameterlessThresholding);
 
 	REGISTER_FILTER(iAWatershed);
 	REGISTER_FILTER(iAMorphologicalWatershed);
