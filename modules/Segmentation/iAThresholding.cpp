@@ -468,7 +468,7 @@ void parameterless_template(QMap<QString, QVariant> const & params, double & thr
 	iAProgress* p, iAConnector* con)
 {
 	typedef itk::Image<T, DIM > InputImageType;
-	typedef itk::Image<char, DIM> MaskImageType;
+	typedef itk::Image<unsigned char, DIM> MaskImageType;
 	typedef itk::HistogramThresholdImageFilter<InputImageType, MaskImageType> parameterFreeThrFilterType;
 	typename parameterFreeThrFilterType::Pointer filter;
 	switch (MapMethodNameToID(params["Method"].toString()))
