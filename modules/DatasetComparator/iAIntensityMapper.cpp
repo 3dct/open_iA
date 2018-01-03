@@ -41,14 +41,14 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
 
 	typedef itk::MinimumMaximumImageCalculator< InputImageType >  MinMaxCalcType;
-	typename MinMaxCalcType::Pointer minMaxCalc = MinMaxCalcType::New();
+	auto minMaxCalc = MinMaxCalcType::New();
 	minMaxCalc->SetImage(input);
 	minMaxCalc->Compute();
 	minEnsembleIntensityList.append(minMaxCalc->GetMinimum());
 	maxEnsembleIntensityList.append(minMaxCalc->GetMaximum());
 
 	typedef itk::ImageToVTKImageFilter<InputImageType> ITKTOVTKConverterType;
-	ITKTOVTKConverterType::Pointer itkToVTKConverter = ITKTOVTKConverterType::New();
+	auto itkToVTKConverter = ITKTOVTKConverterType::New();
 	itkToVTKConverter->SetInput(input);
 	itkToVTKConverter->Update();
 	auto imageData = vtkSmartPointer<vtkImageData>::New();
@@ -60,10 +60,10 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 		case P_HILBERT:
 		{
 			typedef itk::HilbertPath<unsigned int, DIM> PathType;
-			PathType::Pointer m_HPath = PathType::New();
+			auto m_HPath = PathType::New();
 			typedef PathType::IndexType IndexType;
-			InputImageType::RegionType region = input->GetLargestPossibleRegion();
-			InputImageType::SizeType size = region.GetSize();
+			auto region = input->GetLargestPossibleRegion();
+			auto size = region.GetSize();
 
 			unsigned int order = log(size[0]) / log(2);
 			m_HPath->SetHilbertOrder(order);
@@ -89,7 +89,7 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 				input, input->GetLargestPossibleRegion());
 			for (imageIterator.GoToBegin(); !imageIterator.IsAtEnd(); ++imageIterator)
 			{
-				InputImageType::IndexType coord = imageIterator.GetIndex();
+				auto coord = imageIterator.GetIndex();
 				icData data;
 				data.intensity = input->GetPixel(coord);
 				data.x = coord[0];
