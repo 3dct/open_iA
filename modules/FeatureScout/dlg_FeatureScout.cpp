@@ -25,11 +25,12 @@
 #include "dlg_editPCClass.h"
 #include "dlg_FeatureScout.h"
 #include "dlg_modalities.h"
+#include "charts/iADiagramFctWidget.h"
+#include "charts/iAQSplom.h"
 #include "iAmat4.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAFeatureScoutScatterPlotMatrix.h"
-#include "charts/iADiagramFctWidget.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
@@ -939,7 +940,6 @@ void dlg_FeatureScout::RenderingButton()
 		matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 		matrix->SetClass2Plot( -1 );
 		matrix->UpdateLayout();
-		//iovSPM->dockWidgetContents->setWindowTitle(QString("FeatureScout - Scatter Plot Matrix: Multi Class View"));
 	}
 
 	static_cast<MdiChild*>( activeChild )->updateViews();
@@ -1561,7 +1561,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 
 	if ( iovSPM )
 	{
-		mdiChild->tabifyDockWidget( iovSPM, iovMO );
+		mdiChild->tabifyDockWidget(iovSPM, iovMO );
 		iovMO->show();
 		iovMO->raise();
 	}
@@ -2863,12 +2863,11 @@ void dlg_FeatureScout::ClassLoadButton()
 	if ( this->spmActivated )
 	{
 		// reinitialize spm
-		matrix->Delete();
 		MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 		mdiChild->removeDockWidget( iovSPM );
 		this->layout()->removeWidget( iovSPM );
 		delete iovSPM;
-		iovSPM = 0;
+		iovSPM = nullptr;
 		this->spmActivated = false;
 		changeFeatureScout_Options( 6 );
 	}
@@ -2948,24 +2947,24 @@ void dlg_FeatureScout::ScatterPlotButton()
 {
 	if ( this->spmActivated )
 	{
-		matrix = FeatureScout::iAScatterPlotMatrix::New();
-		vtkSmartPointer<vtkTable> spInput = vtkSmartPointer<vtkTable>::New();
+		matrix = new iAQSplom();
+		// vtkSmartPointer<vtkTable> spInput = vtkSmartPointer<vtkTable>::New();
 		spInput->DeepCopy( csvTable );
 
 		// QVTKWidget setup and initialization
-		if ( !iovSPM )
+		if ( !iovSPM)
 			return;
-		iovSPM->setWindowTitle( QString( "Scatter Plot Matrix" ) );
+		//iovSPM->setWindowTitle( QString( "Scatter Plot Matrix" ) );
 
 		//sp_qvtkWidget->setWindowFlags(Qt::CustomizeWindowHint|Qt::WindowCloseButtonHint);
 
 		//Create vtkContextView and marry it with QVTKWidget
-		VTK_CREATE( vtkContextView, view );
-		view->SetInteractor( iovSPM->dockWidgetContents->GetInteractor() );
-		iovSPM->dockWidgetContents->SetRenderWindow( view->GetRenderWindow() );
+		//VTK_CREATE( vtkContextView, view );
+		//view->SetInteractor( iovSPM->dockWidgetContents->GetInteractor() );
+		//iovSPM->dockWidgetContents->SetRenderWindow( view->GetRenderWindow() );
 
 		// Add a ScatterPlotMatrix to the vtkContextView
-		view->GetScene()->AddItem( matrix );
+		//view->GetScene()->AddItem( matrix );
 
 		//PC-SPM-AnnotationLink-Wedding to get same red selection highlights.
 		pcChart->SetAnnotationLink( matrix->GetAnnotationLink() );
@@ -2996,7 +2995,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 		spUpdateSPColumnVisibility();
 
 		// Creates a popup menu 
-		QMenu* popup1 = new QMenu( iovSPM->dockWidgetContents );
+		QMenu* popup1 = new QMenu( iovSPM );
 		popup1->addAction( "Add Class" );
 		//popup1->addAction( "Suggest Classification" );
 		popup1->addSeparator();
@@ -3125,7 +3124,7 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 	else if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
-		int i = QInputDialog::getInt( iovSPM->dockWidgetContents, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
+		int i = QInputDialog::getInt( iovSPM, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
 
 		if ( ok )
 		{
@@ -4685,19 +4684,19 @@ bool dlg_FeatureScout::changeFeatureScout_Options( int idx )
 
 	if ( idx == 6 && !iovSPM )
 	{
-		iovSPM = new dlg_IOVSPM( this );
+		iovSPM = new iADockWidgetWrapper(matrix, "Scatter Plot Matrix", "FeatureScoutSPM");
 		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovSPM );
 		iovSPM->show();
 
 		if ( iovDV && !iovMO || ( iovDV && iovMO ) )
 		{
-			mdiChild->tabifyDockWidget( iovDV, iovSPM );
+			mdiChild->tabifyDockWidget( iovDV, iovSPM);
 			iovSPM->show();
 			iovSPM->raise();
 		}
 		else if ( !iovDV && iovMO )
 		{
-			mdiChild->tabifyDockWidget( iovMO, iovSPM );
+			mdiChild->tabifyDockWidget( iovMO, iovSPM);
 			iovSPM->show();
 			iovSPM->raise();
 		}

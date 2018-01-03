@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iADockWidgetWrapper.h"
+
 #include "dlg_imageproperty.h"
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAObjectAnalysisType.h"
@@ -27,13 +29,11 @@
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutParallelCoordinates.h"
 #include "ui_FeatureScoutPolarPlot.h"
-#include "ui_FeatureScoutScatterPlotMatrix.h"
 #include "ui_FeatureScoutDistributionView.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPC> dlg_IOVPC;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutSPM> dlg_IOVSPM;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutDV> dlg_IOVDV;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
@@ -68,10 +68,7 @@ class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
 
-namespace FeatureScout
-{
-	class iAScatterPlotMatrix;
-}
+class iAQSPLOM;
 
 struct moData
 {
@@ -268,7 +265,7 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-	FeatureScout::iAScatterPlotMatrix *matrix;
+	iAQSplom *matrix;
 	QVTKWidget *pcWidget;
 	QVTKWidget *pcPolarPlot;
 	QWidget *orientationColorMapSelection;
@@ -285,9 +282,9 @@ private:
 
 	dlg_IOVPC * iovPC;
 	dlg_IOVPP * iovPP;
-	dlg_IOVSPM * iovSPM;
 	dlg_IOVDV * iovDV;
 	dlg_IOVMO * iovMO;
+	QDockWidget* iovSPM;
 
 	//Mean Object Rendering	
 	iAMeanObjectTFView* m_motfView;	
