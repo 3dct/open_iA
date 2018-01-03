@@ -23,12 +23,12 @@
 #include "dlg_blobVisualization.h"
 #include "dlg_commoninput.h"
 #include "dlg_editPCClass.h"
-#include "dlg_FiberScout.h"
+#include "dlg_FeatureScout.h"
 #include "dlg_modalities.h"
 #include "iAmat4.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
-#include "iAFiberScoutScatterPlotMatrix.h"
+#include "iAFeatureScoutScatterPlotMatrix.h"
 #include "charts/iADiagramFctWidget.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
@@ -174,7 +174,7 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
-dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl )
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl )
 	: QDockWidget( parent ),
 	oTF( parent->getPiecewiseFunction() ),
 	cTF( parent->getColorTransferFunction() ),
@@ -244,7 +244,7 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkR
 		this->ScatterPlotButton();
 }
 
-dlg_FiberScout::~dlg_FiberScout()
+dlg_FeatureScout::~dlg_FeatureScout()
 {
 	delete blobManager;
 
@@ -281,7 +281,7 @@ dlg_FiberScout::~dlg_FiberScout()
 		matrix->Delete();
 }
 
-void dlg_FiberScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
+void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
 														 void * client_data, void *, vtkCommand * command )
 {
 	// Gets the mouse button event for pcChart and holds the SPM-Annotations consistent with PC-Annoatations.
@@ -295,7 +295,7 @@ void dlg_FiberScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
 		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
 }
 
-void dlg_FiberScout::setupNewPcView( bool lookupTable )
+void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 {
 	this->pcWidget->setEnabled( true );
 
@@ -372,7 +372,7 @@ void dlg_FiberScout::setupNewPcView( bool lookupTable )
 	}
 }
 
-void dlg_FiberScout::updatePCColumnValues( QStandardItem *item )
+void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 {
 	// new solution for using individual itemchagend signal
 	if ( item->isCheckable() )
@@ -398,7 +398,7 @@ void dlg_FiberScout::updatePCColumnValues( QStandardItem *item )
 	}
 }
 
-void dlg_FiberScout::updatePCColumnVisibility()
+void dlg_FeatureScout::updatePCColumnVisibility()
 {
 	pcChart->SetColumnVisibilityAll( false );
 
@@ -418,9 +418,9 @@ void dlg_FiberScout::updatePCColumnVisibility()
 	this->pcView->Render();
 }
 
-void dlg_FiberScout::setupDefaultElement()
+void dlg_FeatureScout::setupDefaultElement()
 {
-	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )					//Fibers
+	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )                      //Fibers
 	{
 		pcChart->SetColumnVisibilityAll( false );
 		pcChart->SetColumnVisibility( eleString.at( 7 ).toStdString(), true );	//a11
@@ -435,7 +435,7 @@ void dlg_FiberScout::setupDefaultElement()
 		//pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//diameter
 		//pcChart->SetColumnVisibility(eleString.at(22).toStdString(), true);	//volume
 	}
-	else																		//Pores
+	else                                                                         //Pores
 	{
 		pcChart->SetColumnVisibilityAll( false );
 		pcChart->SetColumnVisibility( eleString.at( 0 ).toStdString(), true );	//id	
@@ -453,7 +453,7 @@ void dlg_FiberScout::setupDefaultElement()
 	}
 }
 
-void dlg_FiberScout::setupModel()
+void dlg_FeatureScout::setupModel()
 {
 	// setup header data
 	elementTableModel->setHeaderData( 0, Qt::Horizontal, tr( "Element" ) );
@@ -502,7 +502,7 @@ void dlg_FiberScout::setupModel()
 	this->initClassTreeModel();
 }
 
-void dlg_FiberScout::setupViews()
+void dlg_FeatureScout::setupViews()
 {
 	// declare element table model
 	elementTableModel = new QStandardItemModel( elementNr, 4, this );
@@ -573,7 +573,7 @@ void dlg_FiberScout::setupViews()
 	this->setupPolarPlotView( chartTable );
 }
 
-void dlg_FiberScout::calculateElementTable()
+void dlg_FeatureScout::calculateElementTable()
 {
 	// free table contents first
 	elementTable->Initialize();
@@ -611,7 +611,7 @@ void dlg_FiberScout::calculateElementTable()
 	elementTable->AddColumn( v3Arr );
 }
 
-void dlg_FiberScout::initElementTableModel( int idx )
+void dlg_FeatureScout::initElementTableModel( int idx )
 {
 	// here try to convert the vtkTable values into a QtStandardItemModel
 	// this should be done every time when initialize realtime values for elementTable
@@ -667,7 +667,7 @@ void dlg_FiberScout::initElementTableModel( int idx )
 	}
 }
 
-void dlg_FiberScout::initClassTreeModel()
+void dlg_FeatureScout::initClassTreeModel()
 {
 	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
 	QList<QStandardItem *> stammItem = prepareRow( "Unclassified", QString( "%1" ).arg( objectNr ), "100" );
@@ -685,7 +685,7 @@ void dlg_FiberScout::initClassTreeModel()
 }
 
 // calculate the average value of a 1D array
-float dlg_FiberScout::calculateAverage( vtkDataArray *arr )
+float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 {
 	double av = 0.0;
 	double sum = 0.0;
@@ -697,7 +697,7 @@ float dlg_FiberScout::calculateAverage( vtkDataArray *arr )
 	return av;
 }
 
-QList<QStandardItem *> dlg_FiberScout::prepareRow( const QString &first, const QString &second, const QString &third )
+QList<QStandardItem *> dlg_FeatureScout::prepareRow( const QString &first, const QString &second, const QString &third )
 {
 	// prepare the class header rows for class tree view first grade child unter rootitem
 	// for adding child object to this class, use item.first()->appendRow()
@@ -709,7 +709,7 @@ QList<QStandardItem *> dlg_FiberScout::prepareRow( const QString &first, const Q
 }
 
 // setup connections, define signal and slots
-void dlg_FiberScout::setupConnections()
+void dlg_FeatureScout::setupConnections()
 {
 	// create ClassTreeView context menu actions
 	blobRendering = new QAction( tr( "Enable blob rendering" ), this->classTreeView );
@@ -756,7 +756,7 @@ void dlg_FiberScout::setupConnections()
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 0.0, Qt::UniqueConnection );
 }
 
-void dlg_FiberScout::pcChangeOptions( int idx )
+void dlg_FeatureScout::pcChangeOptions( int idx )
 {
 	//this->raycaster->GetRenderer()->RemoveActor(scalarBar);
 
@@ -777,7 +777,7 @@ void dlg_FiberScout::pcChangeOptions( int idx )
 			break;
 
 		case 4:			// probability Rendering
-			this->RenderingFiberMeanObject();
+			this->RenderingMeanObject();
 			this->classRendering = false;
 			break;
 
@@ -803,7 +803,7 @@ void dlg_FiberScout::pcChangeOptions( int idx )
 	}
 }
 
-void dlg_FiberScout::RenderingButton()
+void dlg_FeatureScout::RenderingButton()
 {
 	//Turns off FLD scalar bar updates polar plot view
 	if ( m_scalarWidgetFLD != NULL )
@@ -939,7 +939,7 @@ void dlg_FiberScout::RenderingButton()
 		matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 		matrix->SetClass2Plot( -1 );
 		matrix->UpdateLayout();
-		//iovSPM->dockWidgetContents->setWindowTitle(QString("FiberScout - Scatter Plot Matrix: Multi Class View"));	
+		//iovSPM->dockWidgetContents->setWindowTitle(QString("FeatureScout - Scatter Plot Matrix: Multi Class View"));
 	}
 
 	static_cast<MdiChild*>( activeChild )->updateViews();
@@ -948,7 +948,7 @@ void dlg_FiberScout::RenderingButton()
 	//static_cast<MdiChild*>(activeChild)->redrawHistogram();
 }
 
-void dlg_FiberScout::SingleRendering( int idx )
+void dlg_FeatureScout::SingleRendering( int idx )
 {
 	int cID = this->activeClassItem->index().row();
 	int itemL = this->activeClassItem->rowCount();
@@ -1060,7 +1060,7 @@ void dlg_FiberScout::SingleRendering( int idx )
 	raycaster->update();
 }
 
-void dlg_FiberScout::RealTimeRendering( vtkIdTypeArray *selection, bool enabled )
+void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection, bool enabled )
 {
 	if ( enabled )
 	{
@@ -1255,7 +1255,7 @@ void dlg_FiberScout::RealTimeRendering( vtkIdTypeArray *selection, bool enabled 
 	}
 }
 
-void dlg_FiberScout::RenderingFiberMeanObject()
+void dlg_FeatureScout::RenderingMeanObject()
 {
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
@@ -1647,7 +1647,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 	}
 }
 
-void dlg_FiberScout::modifyMeanObjectTF()
+void dlg_FeatureScout::modifyMeanObjectTF()
 {
 	m_motfView = new iAMeanObjectTFView( this );
 	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
@@ -1661,12 +1661,12 @@ void dlg_FiberScout::modifyMeanObjectTF()
 	m_motfView->show();
 }
 
-void dlg_FiberScout::updateMOView()
+void dlg_FeatureScout::updateMOView()
 {
 	iovMO->plotWidget->GetRenderWindow()->Render();	
 }
 
-void dlg_FiberScout::browseFolderDialog()
+void dlg_FeatureScout::browseFolderDialog()
 {
 	QString dir = sourcePath;
 	dir.truncate( sourcePath.lastIndexOf( "/" ) );
@@ -1676,7 +1676,7 @@ void dlg_FiberScout::browseFolderDialog()
 	iovMO->le_StlPath->setText( filename );
 }
 
-void dlg_FiberScout::saveStl()
+void dlg_FeatureScout::saveStl()
 {
 	if ( iovMO->le_StlPath->text().isEmpty() )
 	{
@@ -1709,13 +1709,13 @@ void dlg_FiberScout::saveStl()
 	stlWriter->Write();
 }
 
-void dlg_FiberScout::updateMarProgress(int i)
+void dlg_FeatureScout::updateMarProgress(int i)
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->updateProgressBar( i / 2  );
 }
 
-void dlg_FiberScout::updateStlProgress( int i )
+void dlg_FeatureScout::updateStlProgress( int i )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->updateProgressBar( 50 + i / 2 );
@@ -1817,7 +1817,7 @@ void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 	CheckBounds( color_out );
 }
 
-void dlg_FiberScout::RenderingOrientation()
+void dlg_FeatureScout::RenderingOrientation()
 {
 	//Turns off FLD scalar bar and updates polar plot view
 	if ( m_scalarWidgetFLD != NULL )
@@ -1953,7 +1953,7 @@ void dlg_FiberScout::RenderingOrientation()
 	this->orientColormap->show();
 }
 
-void dlg_FiberScout::RenderingFLD()
+void dlg_FeatureScout::RenderingFLD()
 {
 	int numberOfBins;
 	double range[2] = { 0.0, 0.0 };
@@ -2132,7 +2132,7 @@ void dlg_FiberScout::RenderingFLD()
 	this->drawScalarBar( cTFun, this->raycaster->GetRenderer(), 1 );
 	this->raycaster->update();
 
-	// plot fiber length distribution
+	// plot length distribution
 	VTK_CREATE( vtkContextView, view );
 	VTK_CREATE( vtkChartXY, chart );
 
@@ -2157,7 +2157,7 @@ void dlg_FiberScout::RenderingFLD()
 	pcPolarPlot->update();
 }
 
-void dlg_FiberScout::ClassAddButton()
+void dlg_FeatureScout::ClassAddButton()
 {
 	int CountObject = 0;
 	CountObject = pcChart->GetPlot( 0 )->GetSelection()->GetNumberOfTuples();
@@ -2309,7 +2309,7 @@ void dlg_FiberScout::ClassAddButton()
 	}
 }
 
-void dlg_FiberScout::writeWisetex( QXmlStreamWriter *writer )
+void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 {
 	// Write XML tags using WiseTex specification
 	//check if it is a class item
@@ -2397,7 +2397,7 @@ void dlg_FiberScout::writeWisetex( QXmlStreamWriter *writer )
 	}
 }
 
-void dlg_FiberScout::CsvDVSaveButton()
+void dlg_FeatureScout::CsvDVSaveButton()
 {
 	//Gets the selected rows out of elementTable
 	QModelIndexList indexes = elementTableView->selectionModel()->selection().indexes();
@@ -2434,7 +2434,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 	if ( rowList.count() == 0 )
 	{
 		QMessageBox msgBox;
-		msgBox.setText( "No fiber characteristic specified in the element explorer." );
+		msgBox.setText( "No characteristic specified in the element explorer." );
 		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
@@ -2448,7 +2448,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 
 		if ( dlg.getCheckValue(0) == 2 )
 		{
-			filename = QFileDialog::getSaveFileName( this, tr( "Save fiber characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
+			filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
 
 			if ( filename.isEmpty() )
 			{
@@ -2635,7 +2635,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 	}
 }
 
-void dlg_FiberScout::WisetexSaveButton()
+void dlg_FeatureScout::WisetexSaveButton()
 {
 	if ( !classTreeModel->invisibleRootItem()->hasChildren() )
 	{
@@ -2677,7 +2677,7 @@ void dlg_FiberScout::WisetexSaveButton()
 	stream.writeEndDocument();
 }
 
-void dlg_FiberScout::ClassSaveButton()
+void dlg_FeatureScout::ClassSaveButton()
 {
 	if ( classTreeModel->invisibleRootItem()->rowCount() == 1 )
 	{
@@ -2725,7 +2725,7 @@ void dlg_FiberScout::ClassSaveButton()
 	stream.writeEndDocument();
 }
 
-void dlg_FiberScout::ClassLoadButton()
+void dlg_FeatureScout::ClassLoadButton()
 {
 	// open xml file and get meta information
 	QString filename = QFileDialog::getOpenFileName( this, tr( "Load xml file" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
@@ -2870,11 +2870,11 @@ void dlg_FiberScout::ClassLoadButton()
 		delete iovSPM;
 		iovSPM = 0;
 		this->spmActivated = false;
-		changeFiberScout_Options( 6 );
+		changeFeatureScout_Options( 6 );
 	}
 }
 
-void dlg_FiberScout::ClassDeleteButton()
+void dlg_FeatureScout::ClassDeleteButton()
 {
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
 	QStandardItem *stammItem = rootItem->child( 0 );
@@ -2944,11 +2944,11 @@ void dlg_FiberScout::ClassDeleteButton()
 }
 
 
-void dlg_FiberScout::ScatterPlotButton()
+void dlg_FeatureScout::ScatterPlotButton()
 {
 	if ( this->spmActivated )
 	{
-		matrix = FiberScout::iAScatterPlotMatrix::New();
+		matrix = FeatureScout::iAScatterPlotMatrix::New();
 		vtkSmartPointer<vtkTable> spInput = vtkSmartPointer<vtkTable>::New();
 		spInput->DeepCopy( csvTable );
 
@@ -3032,7 +3032,7 @@ void dlg_FiberScout::ScatterPlotButton()
 	}
 }
 
-void dlg_FiberScout::spUpdateSPColumnVisibility()
+void dlg_FeatureScout::spUpdateSPColumnVisibility()
 {
 	// Updates scatter plot matrix if a feature of PC-ElementTableModel is added or removed.
 	if ( this->spmActivated )
@@ -3047,7 +3047,7 @@ void dlg_FiberScout::spUpdateSPColumnVisibility()
 	}
 }
 
-void dlg_FiberScout::spSelInformsPCChart( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spSelInformsPCChart( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
 {
 	// If scatter plot selection changes Parallel Coordinates gets informed and updates.
 	if ( this->spmActivated )
@@ -3059,7 +3059,7 @@ void dlg_FiberScout::spSelInformsPCChart( vtkObject * obj, unsigned long, void *
 	}
 }
 
-void dlg_FiberScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast( obj );
@@ -3067,7 +3067,7 @@ void dlg_FiberScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned lon
 	mousePressedPos[1] = iren->GetEventPosition()[1];
 }
 
-void dlg_FiberScout::spPopup( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
 {
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast( obj );
@@ -3097,7 +3097,7 @@ void dlg_FiberScout::spPopup( vtkObject * obj, unsigned long, void * client_data
 	}
 }
 
-void dlg_FiberScout::spPopupSelection( QAction *selection )
+void dlg_FeatureScout::spPopupSelection( QAction *selection )
 {
 	// Function to handle the scatter plot matrix popup menu selection. 
 	if ( selection->text() == "Add Class" ) { ClassAddButton(); }
@@ -3141,7 +3141,7 @@ void dlg_FiberScout::spPopupSelection( QAction *selection )
 	}
 }
 
-void dlg_FiberScout::autoAddClass( int NbOfClusters )
+void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
 	if ( this->spmActivated )
 	{
@@ -3253,7 +3253,7 @@ void dlg_FiberScout::autoAddClass( int NbOfClusters )
 	}
 }
 
-void dlg_FiberScout::classDoubleClicked( const QModelIndex &index )
+void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 {
 	QStandardItem *item;
 	// Gets right item from ClassTreeModel to remove AccesViolationError on item double click).
@@ -3305,7 +3305,7 @@ void dlg_FiberScout::classDoubleClicked( const QModelIndex &index )
 	}
 }
 
-void dlg_FiberScout::classClicked( const QModelIndex &index )
+void dlg_FeatureScout::classClicked( const QModelIndex &index )
 {
 	//Turns off FLD scalar bar updates polar plot view
 	if ( m_scalarWidgetFLD != NULL )
@@ -3421,7 +3421,7 @@ void dlg_FiberScout::classClicked( const QModelIndex &index )
 	}
 }
 
-double dlg_FiberScout::calculateOpacity( QStandardItem *item )
+double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
 {
 	// chart opacity dependence of number of objects
 	// for multi rendering
@@ -3454,7 +3454,7 @@ double dlg_FiberScout::calculateOpacity( QStandardItem *item )
 	return 1.0;
 }
 
-void dlg_FiberScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandardItem *item )
+void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandardItem *item )
 {
 	// check if it is a class item
 	if ( item->hasChildren() )
@@ -3493,7 +3493,7 @@ void dlg_FiberScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandar
 }
 
 
-void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
+void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 {
 	// check once more, if its really a class item 
 	if ( !item->hasChildren() )
@@ -3547,7 +3547,7 @@ void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
 		return;
 }
 
-void dlg_FiberScout::recalculateChartTable( QStandardItem *item )
+void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 {
 	if ( !item->hasChildren() )
 		return;
@@ -3596,7 +3596,7 @@ void dlg_FiberScout::recalculateChartTable( QStandardItem *item )
 	}
 }
 
-void dlg_FiberScout::updateColumnNames()
+void dlg_FeatureScout::updateColumnNames()
 {
 	eleString.clear();
 	eleString = getNamesOfObjectCharakteristics( false );
@@ -3609,7 +3609,7 @@ void dlg_FiberScout::updateColumnNames()
 	}
 }
 
-void dlg_FiberScout::deletePcViewPointer()
+void dlg_FeatureScout::deletePcViewPointer()
 {
 	if ( this->pcChart != 0 )
 	{
@@ -3623,7 +3623,7 @@ void dlg_FiberScout::deletePcViewPointer()
 	}
 }
 
-void dlg_FiberScout::updateLookupTable( double alpha )
+void dlg_FeatureScout::updateLookupTable( double alpha )
 {
 	int lutNum = colorList.length();
 	lut->SetNumberOfTableValues( lutNum );
@@ -3639,7 +3639,7 @@ void dlg_FiberScout::updateLookupTable( double alpha )
 	lut->SetAlpha( alpha );
 }
 
-void dlg_FiberScout::EnableBlobRendering()
+void dlg_FeatureScout::EnableBlobRendering()
 {
 	if ( !OpenBlobVisDialog() )
 		return;
@@ -3664,10 +3664,10 @@ void dlg_FiberScout::EnableBlobRendering()
 	double maxDim = dims[0] >= dims[1] ? dims[0] : dims[1];
 	maxDim = dims[2] >= maxDim ? dims[2] : maxDim;
 
-	QVector<FiberInfo> fibres;
+	QVector<FeatureInfo> objects;
 	for ( int i = 0; i < chartTable->GetNumberOfRows(); i++ )
 	{
-		FiberInfo fi;
+		FeatureInfo fi;
 		int index = chartTable->GetValue( i, 0 ).ToInt();
 
 		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
@@ -3690,7 +3690,7 @@ void dlg_FiberScout::EnableBlobRendering()
 			fi.z2 = chartTable->GetValue( i, 6 ).ToDouble();
 			fi.diameter = chartTable->GetValue( i, 23 ).ToDouble();;
 		}
-		fibres.append( fi );
+		objects.append( fi );
 	}
 
 	// set right objecttype (for the labeling)
@@ -3700,19 +3700,19 @@ void dlg_FiberScout::EnableBlobRendering()
 		blob->SetObjectType( "Voids" );
 
 	blob->SetLabelScale( 10.0 * maxDim / 100.0 );
-	blob->SetCluster( fibres );
+	blob->SetCluster( objects );
 
 	// set color
 	QColor color = colorList.at( activeClassItem->index().row() );
 	blob->GetSurfaceProperty()->SetColor( color.redF(), color.greenF(), color.blueF() );
 	blob->SetName( activeClassItem->text() );
-	const double fiberCount = activeClassItem->rowCount();
-	const double fiberPercentage = 100.0*fiberCount / objectNr;
-	blob->SetFiberStats( fiberCount, fiberPercentage );
+	const double count = activeClassItem->rowCount();
+	const double percentage = 100.0*count / objectNr;
+	blob->SetStats( count, percentage );
 	blobManager->Update();
 }
 
-void dlg_FiberScout::DisableBlobRendering()
+void dlg_FeatureScout::DisableBlobRendering()
 {
 	// delete blob for class
 	if ( blobMap.contains( this->activeClassItem->text() ) )
@@ -3723,7 +3723,7 @@ void dlg_FiberScout::DisableBlobRendering()
 	}
 }
 
-void dlg_FiberScout::showContextMenu( const QPoint &pnt )
+void dlg_FeatureScout::showContextMenu( const QPoint &pnt )
 {
 	QStandardItem *item = this->classTreeModel->itemFromIndex( this->classTreeView->currentIndex() );
 
@@ -3750,7 +3750,7 @@ void dlg_FiberScout::showContextMenu( const QPoint &pnt )
 		QMenu::exec( actions, this->classTreeView->mapToGlobal( pnt ) );
 }
 
-void dlg_FiberScout::addObject()
+void dlg_FeatureScout::addObject()
 {
 	QMessageBox msgBox;
 	msgBox.setText( "Adding an object to the active class, needs to be done." );
@@ -3760,7 +3760,7 @@ void dlg_FiberScout::addObject()
 	// adding the new object to the active class, update class table, reordering the label id...
 }
 
-void dlg_FiberScout::deleteObject()
+void dlg_FeatureScout::deleteObject()
 {
 	QStandardItem *item = this->classTreeModel->itemFromIndex( this->classTreeView->currentIndex() );
 	if ( item->hasChildren() )
@@ -3817,7 +3817,7 @@ void dlg_FiberScout::deleteObject()
 	}
 }
 
-void dlg_FiberScout::updateClassStatistics( QStandardItem *item )
+void dlg_FeatureScout::updateClassStatistics( QStandardItem *item )
 {
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
 
@@ -3843,14 +3843,14 @@ void dlg_FiberScout::updateClassStatistics( QStandardItem *item )
 	}
 }
 
-void dlg_FiberScout::addLogMsg( const QString &str )
+void dlg_FeatureScout::addLogMsg( const QString &str )
 {
 	static_cast<MdiChild*>( activeChild )->addMsg( str );
 }
 
-int dlg_FiberScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
+int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 {
-	// compute the probability distribution of fiber orientations
+	// compute the probability distribution of orientations
 	ot->Initialize();
 	int maxF = 0;
 	double fp, ft;
@@ -3898,7 +3898,7 @@ int dlg_FiberScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 	return maxF;
 }
 
-void dlg_FiberScout::updateObjectOrientationID( vtkTable *table )
+void dlg_FeatureScout::updateObjectOrientationID( vtkTable *table )
 {
 	double fp, ft;
 	int ip, it, tt;
@@ -3927,7 +3927,7 @@ void dlg_FiberScout::updateObjectOrientationID( vtkTable *table )
 	}
 }
 
-void dlg_FiberScout::drawAnnotations( vtkRenderer *renderer )
+void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 {
 	// annotations for phi
 	vtkIdType numPoints = 12 + 6;
@@ -3987,7 +3987,7 @@ void dlg_FiberScout::drawAnnotations( vtkRenderer *renderer )
 	renderer->AddActor( actor );
 }
 
-void dlg_FiberScout::drawPolarPlotMesh( vtkRenderer *renderer )
+void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 {
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
@@ -4038,7 +4038,7 @@ void dlg_FiberScout::drawPolarPlotMesh( vtkRenderer *renderer )
 }
 
 
-void dlg_FiberScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType )
+void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType )
 {
 	// Default: RenderTpye = 0
 	// 1		RenderFLD
@@ -4092,7 +4092,7 @@ void dlg_FiberScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *render
 	}
 }
 
-void dlg_FiberScout::createPolarPlotLookupTable( vtkLookupTable *lut )
+void dlg_FeatureScout::createPolarPlotLookupTable( vtkLookupTable *lut )
 {
 	// set up an individual color table for LookupTable
 	double rgb[3];
@@ -4114,7 +4114,7 @@ void dlg_FiberScout::createPolarPlotLookupTable( vtkLookupTable *lut )
 	lut->SetTableValue( 0, rgb[0], rgb[1], rgb[2] );
 }
 
-void dlg_FiberScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
+void dlg_FeatureScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
 {
 	if ( Num > 9 )
 		return;
@@ -4133,7 +4133,7 @@ void dlg_FiberScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
 		lut->SetTableValue( 8, 0.5, 0.0, 0.0 );
 }
 
-void dlg_FiberScout::setupPolarPlotView( vtkTable *it )
+void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
 	this->pcPolarPlot->SetRenderWindow( NULL );
@@ -4244,7 +4244,7 @@ void dlg_FiberScout::setupPolarPlotView( vtkTable *it )
 	pcPolarPlot->GetRenderWindow()->Render();
 }
 
-void dlg_FiberScout::updatePolarPlotColorScalar( vtkTable *it )
+void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
 	this->pcPolarPlot->SetRenderWindow( NULL );
@@ -4343,7 +4343,7 @@ void dlg_FiberScout::updatePolarPlotColorScalar( vtkTable *it )
 	pcPolarPlot->GetRenderWindow()->Render();
 }
 
-void dlg_FiberScout::setupPolarPlotResolution( float grad )
+void dlg_FeatureScout::setupPolarPlotResolution( float grad )
 {
 	this->gPhi = vtkMath::Floor( 360.0 / grad );
 	this->gThe = vtkMath::Floor( 90.0 / grad );
@@ -4352,7 +4352,7 @@ void dlg_FiberScout::setupPolarPlotResolution( float grad )
 	gThe = gThe + 1;
 }
 
-int dlg_FiberScout::OpenBlobVisDialog()
+int dlg_FeatureScout::OpenBlobVisDialog()
 {
 	QStringList inList = ( QStringList()
 						   << tr( "^Range:" )
@@ -4422,7 +4422,7 @@ int dlg_FiberScout::OpenBlobVisDialog()
 }
 
 
-QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
+QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 {
 	// manually define new table elements
 	// using unicode to define the unit
@@ -4446,7 +4446,7 @@ QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
 
 	QStringList eleString;
 
-	//Names of the fiber charakteristics
+	//Names of the fiber characteristics
 	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
 	{
 		eleString.append( "Label" );								// 0	
@@ -4531,7 +4531,7 @@ QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
 	return eleString;
 }
 
-void dlg_FiberScout::SaveBlobMovie()
+void dlg_FeatureScout::SaveBlobMovie()
 {
 	QString movie_file_types = GetAvailableMovieFormats();
 
@@ -4651,7 +4651,7 @@ void dlg_FiberScout::SaveBlobMovie()
 		return;
 }
 
-bool dlg_FiberScout::initParallelCoordinates( iAObjectAnalysisType fid )
+bool dlg_FeatureScout::initParallelCoordinates( iAObjectAnalysisType fid )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	if ( !mdiChild )
@@ -4677,7 +4677,7 @@ bool dlg_FiberScout::initParallelCoordinates( iAObjectAnalysisType fid )
 	return true;
 }
 
-bool dlg_FiberScout::changeFiberScout_Options( int idx )
+bool dlg_FeatureScout::changeFeatureScout_Options( int idx )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	if ( !mdiChild )

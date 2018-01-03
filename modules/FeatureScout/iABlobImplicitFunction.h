@@ -47,18 +47,18 @@ public:
 
 	// Description:
 	// Evaluate function at position x-y-z and return value
-	double	EvaluateFunction (double x[3]);
-	double	EvaluateFunction (double x, double y, double z);
-	double	JustEvaluateFunction (double x[3]);
+	double EvaluateFunction (double x[3]);
+	double EvaluateFunction (double x, double y, double z);
+	double JustEvaluateFunction (double x[3]);
 
 	// Description:
 	// Evaluate function gradient at position x-y-z and pass back vector.
-	void	EvaluateGradient (double x[3], double n[3]);
+	void EvaluateGradient (double x[3], double n[3]);
 
 	// Description:
 	// Add fiber to current cluster
-	void	AddFiberInfo (double point1[3], double point2[3], double g);
-	void	 AddFiberInfo (double x1, double y1, double z1,
+	void AddObjectInfo (double point1[3], double point2[3], double g);
+	void AddObjectInfo (double x1, double y1, double z1,
 	                       double x2, double y2, double z2, double g);
 	// Description
 	// Reset information about fibres

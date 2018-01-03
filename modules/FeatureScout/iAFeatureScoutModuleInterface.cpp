@@ -19,12 +19,12 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iAFiberScoutModuleInterface.h"
+#include "iAFeatureScoutModuleInterface.h"
 
 #include "iAConsole.h"
 #include "io/iACsvIO.h"
-#include "iAFiberScoutAttachment.h"
-#include "iAFiberScoutToolbar.h"
+#include "iAFeatureScoutAttachment.h"
+#include "iAFeatureScoutToolbar.h"
 #include "mainwindow.h"
 
 #include <vtkTable.h>
@@ -34,7 +34,7 @@
 #include <QInputDialog>
 #include <QTextStream>
 
-void iAFiberScoutModuleInterface::Initialize()
+void iAFeatureScoutModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
@@ -42,11 +42,11 @@ void iAFiberScoutModuleInterface::Initialize()
 	QAction * actionFibreScout = new QAction( m_mainWnd );
 	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout );
-	tlbFiberScout = 0;
-	connect( actionFibreScout, SIGNAL( triggered() ), this, SLOT( FiberScout() ) );
+	tlbFeatureScout = 0;
+	connect( actionFibreScout, SIGNAL( triggered() ), this, SLOT( FeatureScout() ) );
 }
 
-void iAFiberScoutModuleInterface::FiberScout()
+void iAFeatureScoutModuleInterface::FeatureScout()
 {
 	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
@@ -76,11 +76,11 @@ void iAFiberScoutModuleInterface::FiberScout()
 
 			if ( item == items[0] || item == items[1] )
 			{
-				if ( m_mdiChild && filter_FiberScout( m_mdiChild, fileName, objectMap[item] ) )
+				if ( m_mdiChild && filter_FeatureScout( m_mdiChild, fileName, objectMap[item] ) )
 				{
 					SetupToolbar();
 					m_mdiChild->addStatusMsg( filterName );
-					setFiberScoutRenderSettings();
+					setFeatureScoutRenderSettings();
 					m_mdiChild->addMsg("The render settings of the current mdiChild"
 						" window have been adapted to the FeatureScout!");
 				}
@@ -95,23 +95,23 @@ void iAFiberScoutModuleInterface::FiberScout()
 		m_mdiChild->addMsg( "CSV-file name error." );
 }
 
-void iAFiberScoutModuleInterface::SetupToolbar()
+void iAFeatureScoutModuleInterface::SetupToolbar()
 {
-	if ( tlbFiberScout )
+	if ( tlbFeatureScout )
 	{
 		return;
 	}
-	tlbFiberScout = new iAFiberScoutToolbar( m_mainWnd );
-	m_mainWnd->addToolBar( Qt::BottomToolBarArea, tlbFiberScout );
-	connect( tlbFiberScout->actionLength_Distribution, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
-	connect( tlbFiberScout->actionMeanObject, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
-	connect( tlbFiberScout->actionMultiRendering, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
-	connect( tlbFiberScout->actionOrientation_Rendering, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
-	connect( tlbFiberScout->actionActivate_SPM, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
-	tlbFiberScout->setVisible( true );
+	tlbFeatureScout = new iAFeatureScoutToolbar( m_mainWnd );
+	m_mainWnd->addToolBar( Qt::BottomToolBarArea, tlbFeatureScout );
+	connect( tlbFeatureScout->actionLength_Distribution, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
+	connect( tlbFeatureScout->actionMeanObject, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
+	connect( tlbFeatureScout->actionMultiRendering, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
+	connect( tlbFeatureScout->actionOrientation_Rendering, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
+	connect( tlbFeatureScout->actionActivate_SPM, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
+	tlbFeatureScout->setVisible( true );
 }
 
-void iAFiberScoutModuleInterface::setFiberScoutRenderSettings()
+void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 {
 	iARenderSettings FS_RenderSettings = m_mdiChild->GetRenderSettings();
 	iAVolumeSettings FS_VolumeSettings = m_mdiChild->GetVolumeSettings();
@@ -127,7 +127,7 @@ void iAFiberScoutModuleInterface::setFiberScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )
+bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )
 {
 	iACsvIO io;
 	if ( !io.LoadCsvFile(objectType, fileName ) )
@@ -138,7 +138,7 @@ bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString
 	m_mdiChild->addMsg( filtername );
 	AttachToMdiChild( m_mdiChild );
 	connect( m_mdiChild, SIGNAL( closed() ), this, SLOT( onChildClose() ) );
-	iAFiberScoutAttachment* attach = GetAttachment<iAFiberScoutAttachment>();
+	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
 	{
 		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
@@ -148,7 +148,7 @@ bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString
 	return true;
 }
 
-void iAFiberScoutModuleInterface::FiberScout_Options()
+void iAFeatureScoutModuleInterface::FeatureScout_Options()
 {
 	QAction *action = (QAction *) sender();
 	QString actionText = action->text();
@@ -162,26 +162,26 @@ void iAFiberScoutModuleInterface::FiberScout_Options()
 	if ( actionText.toStdString() == "Activate SPM" ) idx = 6;
 
 	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAFiberScoutAttachment* attach = GetAttachment<iAFiberScoutAttachment>();
+	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
 	{
 		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
-	attach->FiberScout_Options( idx );
+	attach->FeatureScout_Options( idx );
 
 	m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
 }
 
-void iAFiberScoutModuleInterface::onChildClose()
+void iAFeatureScoutModuleInterface::onChildClose()
 {
-	m_mainWnd->removeToolBar( tlbFiberScout );
-	delete tlbFiberScout;
-	tlbFiberScout = 0;
+	m_mainWnd->removeToolBar( tlbFeatureScout );
+	delete tlbFeatureScout;
+	tlbFeatureScout = 0;
 }
 
 
-iAModuleAttachmentToChild * iAFiberScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
 {
-	return new iAFiberScoutAttachment( mainWnd, childData );
+	return new iAFeatureScoutAttachment( mainWnd, childData );
 }

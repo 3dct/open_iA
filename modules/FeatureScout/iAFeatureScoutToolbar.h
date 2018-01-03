@@ -18,19 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+ 
 #pragma once
 
-#include "ui_FiberScoutMOTFView.h"
+#include <QToolBar>
+
+#include "ui_FeatureScoutToolBar.h"
 #include "iAQTtoUIConnector.h"
 
-typedef iAQTtoUIConnector<QDialog, Ui_MOTFView>  iAMeanObjectTFViewConnector;
-
-class iAMeanObjectTFView : public iAMeanObjectTFViewConnector
+class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
 {
-	Q_OBJECT
 public:
-	iAMeanObjectTFView( QWidget * parent = 0, Qt::WindowFlags f = 0 )
-		: iAMeanObjectTFViewConnector( parent, f )
-	{}
-	~iAMeanObjectTFView() {}
+	iAFeatureScoutToolbar(QWidget* parent) : QToolBar("FeatureScout ToolBar", parent)
+	{
+		this->setupUi(this);
+	}
 };

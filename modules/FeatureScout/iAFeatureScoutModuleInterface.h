@@ -25,25 +25,25 @@
 #include "mdichild.h"
 
 class QDockWidget;
-class dlg_FiberScout;
-class iAFiberScoutToolbar;
+class dlg_FeatureScout;
+class iAFeatureScoutToolbar;
 
 
-class iAFiberScoutModuleInterface : public iAModuleInterface
+class iAFeatureScoutModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 
 public:
 	void Initialize();
-	void hideFiberScoutToolbar();
+	void hideFeatureScoutToolbar();
 private slots:
-	void FiberScout();
-	void FiberScout_Options();
+	void FeatureScout();
+	void FeatureScout_Options();
 	void onChildClose();
 private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	bool filter_FiberScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID);
+	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID);
 	void SetupToolbar();
-	void setFiberScoutRenderSettings();
-	iAFiberScoutToolbar * tlbFiberScout;
+	void setFeatureScoutRenderSettings();
+	iAFeatureScoutToolbar * tlbFeatureScout;
 };

@@ -20,7 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "iAFiberScoutScatterPlotMatrix.h"
+#include "iAFeatureScoutScatterPlotMatrix.h"
 #include "iAObjectAnalysisType.h"
 
 #include <itkDecisionRule.h>
@@ -72,7 +72,7 @@
 #include <float.h>
 #include <vector>
 
-namespace FiberScout
+namespace FeatureScout
 {
 
 #define VTK_CREATE(type, name) \

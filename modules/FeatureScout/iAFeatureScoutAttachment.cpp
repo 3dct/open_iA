@@ -19,9 +19,9 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iAFiberScoutAttachment.h"
+#include "iAFeatureScoutAttachment.h"
 
-#include "dlg_FiberScout.h"
+#include "dlg_FeatureScout.h"
 #include "iABlobCluster.h"
 #include "iAObjectAnalysisType.h"
 
@@ -30,19 +30,19 @@
 
 #include <vtkOpenGLRenderer.h>
 
-iAFiberScoutAttachment::iAFiberScoutAttachment(MainWindow* mainWnd, iAChildData childData) :
+iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData) :
 	iAModuleAttachmentToChild(mainWnd, childData)
 {
 	blobRen = vtkSmartPointer<vtkOpenGLRenderer>::New();
 	blobVisEnabled = false;
 }
 
-iAFiberScoutAttachment::~iAFiberScoutAttachment()
+iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {}
 
-void iAFiberScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl)
+void iAFeatureScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl)
 {
-	imgFS = new dlg_FiberScout(m_childData.child, static_cast<iAObjectAnalysisType>(filterID), blobRen, csvtbl);
+	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAObjectAnalysisType>(filterID), blobRen, csvtbl);
 	connect(imgFS, SIGNAL(updateViews()), m_childData.child, SLOT(updateViews()));
 
 	blobRen->SetLayer(1);
@@ -54,7 +54,7 @@ void iAFiberScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl
 	connect(m_childData.child->getRenderer(), SIGNAL(onSetCamera()), this, SLOT(rendererSetCamera()));
 }
 
-void iAFiberScoutAttachment::disableBlobVisualization()
+void iAFeatureScoutAttachment::disableBlobVisualization()
 {
 	// we can't disable blob vis if it is already disabled
 	if (!blobVisEnabled) return;
@@ -64,7 +64,7 @@ void iAFiberScoutAttachment::disableBlobVisualization()
 		delete blobList.takeFirst();
 }
 
-void iAFiberScoutAttachment::enableBlobVisualization()
+void iAFeatureScoutAttachment::enableBlobVisualization()
 {
 	// we can't initialize blob vis twice
 	if (blobVisEnabled) return;
@@ -78,14 +78,13 @@ void iAFiberScoutAttachment::enableBlobVisualization()
 }
 
 
-void iAFiberScoutAttachment::rendererSetCamera()
+void iAFeatureScoutAttachment::rendererSetCamera()
 {
 	blobRen->SetActiveCamera(m_childData.child->getRenderer()->getCamera());
 }
 
-bool iAFiberScoutAttachment::FiberScout_Options(int idx)
-{
+bool iAFeatureScoutAttachment::FeatureScout_Options(int idx) {
 	if (!imgFS)
 		return false;
-	return imgFS->changeFiberScout_Options(idx);
+	return imgFS->changeFeatureScout_Options(idx);
 }

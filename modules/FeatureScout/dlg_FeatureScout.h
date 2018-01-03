@@ -21,21 +21,21 @@
 #pragma once
 
 #include "dlg_imageproperty.h"
-#include "iAFiberScoutModuleInterface.h"
+#include "iAFeatureScoutModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "iAQTtoUIConnector.h"
-#include "ui_FiberScoutClassExplorer.h"
-#include "ui_FiberScoutParallelCoordinates.h"
-#include "ui_FiberScoutPolarPlot.h"
-#include "ui_FiberScoutScatterPlotMatrix.h"
-#include "ui_FiberScoutDistributionView.h"
-#include "ui_FiberScoutMeanObjectView.h"
+#include "ui_FeatureScoutClassExplorer.h"
+#include "ui_FeatureScoutParallelCoordinates.h"
+#include "ui_FeatureScoutPolarPlot.h"
+#include "ui_FeatureScoutScatterPlotMatrix.h"
+#include "ui_FeatureScoutDistributionView.h"
+#include "ui_FeatureScoutMeanObjectView.h"
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutPC> dlg_IOVPC;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutPP> dlg_IOVPP;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutSPM> dlg_IOVSPM;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutDV> dlg_IOVDV;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutMO> dlg_IOVMO;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPC> dlg_IOVPC;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutSPM> dlg_IOVSPM;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutDV> dlg_IOVDV;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
 class iABlobCluster;
 class iABlobManager;
@@ -68,7 +68,7 @@ class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
 
-namespace FiberScout
+namespace FeatureScout
 {
 	class iAScatterPlotMatrix;
 }
@@ -86,13 +86,13 @@ struct moData
 /**
 * \brief	implement vtkChartParallelCoordinates as dialog
 */
-class dlg_FiberScout : public QDockWidget, private Ui_FiberScoutCE
+class dlg_FeatureScout : public QDockWidget, private Ui_FeatureScoutCE
 {
 	Q_OBJECT
 
 public:
-	dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl);
-	~dlg_FiberScout();
+	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl);
+	~dlg_FeatureScout();
 
 	// setups
 	void setupModel();
@@ -149,7 +149,7 @@ public slots:
 
 	void RenderingButton();
 	void RealTimeRendering(vtkIdTypeArray *selection, bool enabled);
-	void RenderingFiberMeanObject();
+	void RenderingMeanObject();
 	void RenderingOrientation();
 	void ScatterPlotButton();
 	void RenderingFLD();
@@ -173,7 +173,7 @@ public slots:
 	void spUpdateSPColumnVisibility();
 
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
-	bool changeFiberScout_Options( int idx );
+	bool changeFeatureScout_Options( int idx );
 
 	void modifyMeanObjectTF();
 	void updateMOView();
@@ -268,7 +268,7 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-	FiberScout::iAScatterPlotMatrix *matrix;
+	FeatureScout::iAScatterPlotMatrix *matrix;
 	QVTKWidget *pcWidget;
 	QVTKWidget *pcPolarPlot;
 	QWidget *orientationColorMapSelection;

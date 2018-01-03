@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FiberScoutDV</class>
- <widget class="QDockWidget" name="FiberScoutDV">
+ <class>FeatureScoutPC</class>
+ <widget class="QDockWidget" name="FeatureScoutPC">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,14 +13,14 @@
   <property name="minimumSize">
    <size>
     <width>0</width>
-    <height>80</height>
+    <height>0</height>
    </size>
   </property>
   <property name="features">
    <set>QDockWidget::DockWidgetFeatureMask</set>
   </property>
   <property name="windowTitle">
-   <string>Distribution View</string>
+   <string>Parallel Coordinates</string>
   </property>
   <widget class="QVTKWidget" name="dockWidgetContents"/>
  </widget>

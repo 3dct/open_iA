@@ -55,7 +55,7 @@ class vtkTable;
 class vtkTextProperty;
 
 
-namespace FiberScout
+namespace FeatureScout
 {
 class iAScatterPlotMatrix : public vtkChartMatrix
 {
@@ -374,5 +374,5 @@ private:
   void operator=(const iAScatterPlotMatrix &); // Not implemented.
 };
 
-} // namespace FiberScout
+} // namespace FeatureScout
 

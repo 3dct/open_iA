@@ -25,28 +25,28 @@
 
 #include <QList>
 
-class dlg_FiberScout;
+class dlg_FeatureScout;
 class iABlobCluster;
 
 class vtkOpenGLRenderer;
 class vtkTable;
 
-class iAFiberScoutAttachment : public iAModuleAttachmentToChild
+class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAFiberScoutAttachment(MainWindow* mainWnd, iAChildData childData);
-	~iAFiberScoutAttachment();
+	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
+	~iAFeatureScoutAttachment();
 	void init(int filterID, vtkSmartPointer<vtkTable> csvtbl);
 	void enableBlobVisualization();
 	void disableBlobVisualization();
-	bool FiberScout_Options(int idx);
+	bool FeatureScout_Options(int idx);
 private:
 	bool blobVisEnabled;
 	iABlobManager m_blobManager;
 	QList<iABlobCluster*> blobList;
 	vtkSmartPointer<vtkOpenGLRenderer> blobRen;
-	dlg_FiberScout * imgFS;
+	dlg_FeatureScout * imgFS;
 private slots:
 	void rendererSetCamera();
 };
