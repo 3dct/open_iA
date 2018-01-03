@@ -64,7 +64,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	}
 	if (inList.size() != inPara.size())
 	{
-		eMessage->showMessage("Implementation Error: The number of of parameter descriptions and the number of given values does not match. Please report this to the developers!");
+		eMessage->showMessage("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
+			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
 		return;
 	}
 	setupUi(this);
@@ -97,7 +98,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 		QLabel *label = new QLabel(container);
 		label->setText(tStr);
 		containerLayout->addWidget(label, i, 0);
-		QWidget *newWidget;
+		QWidget *newWidget = nullptr;
 		switch(inList[i].at(0).toLatin1())
 		{
 			case '$':
@@ -116,6 +117,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 			case '*':
 				newWidget = new QSpinBox(container);
 				((QSpinBox*)newWidget)->setRange(0, 65536);
+				newWidget->setObjectName(tStr);	// required for ROI (parses object name)
 				break;
 			case '^':
 				newWidget = new QDoubleSpinBox(container);
@@ -305,11 +307,11 @@ void dlg_commoninput::showROI(MdiChild *child)
 	}
 	for (int i = 0; i < children.size(); i++)
 	{
-		QSpinBox *lineEdit = dynamic_cast<QSpinBox*>(children.at(i));
-		if (lineEdit && (lineEdit->objectName().contains("Index") || lineEdit->objectName().contains("Size")))
+		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
+		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
 		{
-			connect(lineEdit, SIGNAL(valueChanged(QString)), this, SLOT(ROIUpdated(QString)));
-			UpdateROIPart(lineEdit->objectName(), lineEdit->text());
+			connect(input, SIGNAL(valueChanged(QString)), this, SLOT(ROIUpdated(QString)));
+			UpdateROIPart(input->objectName(), input->text());
 		}
 	}
 	m_roiMdiChild->SetROIVisible(true);
@@ -414,6 +416,9 @@ int dlg_commoninput::exec()
 	if (m_roiMdiChildClosed || (m_roiMdiChild && !qobject_cast<QWidget*>(parent())->isVisible()))
 		return QDialog::Rejected;
 	if (m_roiMdiChild)
+	{
+		disconnect(m_roiMdiChild, SIGNAL(closed()), this, SLOT(ROIChildClosed()));
 		m_roiMdiChild->SetROIVisible(false);
+	}
 	return result;
 }
