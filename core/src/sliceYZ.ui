@@ -12,7 +12,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>40</width>
+    <width>0</width>
     <height>40</height>
    </size>
   </property>
@@ -59,12 +59,6 @@
       </item>
       <item>
        <widget class="QWidgetToolbar" name="widgetYZ" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>2</number>
@@ -83,6 +77,12 @@
          </property>
          <item>
           <widget class="QLabel" name="sliceLabelYZ">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>10</pointsize>
@@ -99,7 +99,7 @@
           <widget class="QSpinBox" name="spinBoxYZ">
            <property name="minimumSize">
             <size>
-             <width>50</width>
+             <width>20</width>
              <height>0</height>
             </size>
            </property>
@@ -117,6 +117,12 @@
          </item>
          <item>
           <widget class="QLabel" name="rotationLabelYZ">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>10</pointsize>
@@ -133,7 +139,7 @@
           <widget class="QDoubleSpinBox" name="doubleSpinBoxYZ">
            <property name="minimumSize">
             <size>
-             <width>50</width>
+             <width>20</width>
              <height>0</height>
             </size>
            </property>
@@ -158,6 +164,12 @@
          </item>
          <item>
           <widget class="QLabel" name="labelYZ">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -184,8 +196,8 @@
           <widget class="QToolButton" name="pushMovYZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -207,8 +219,8 @@
           <widget class="QToolButton" name="pushSaveYZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -230,8 +242,8 @@
           <widget class="QToolButton" name="pushSaveStackYZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -253,8 +265,8 @@
           <widget class="QToolButton" name="pushStopYZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -276,8 +288,8 @@
           <widget class="QToolButton" name="pushMaxYZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="font">
@@ -317,12 +329,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
           </property>
           <property name="font">
            <font>
