@@ -47,8 +47,8 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	m_itkProgress(new iAProgress)
 {
 	m_connectors.push_back(new iAConnector());
-
-	connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
+	if (parent)
+		connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
 	connect(m_itkProgress, SIGNAL( pprogress(int) ), this, SIGNAL( aprogress(int) ));
 }
 
