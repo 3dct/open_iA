@@ -113,6 +113,7 @@
     <addaction name="separator"/>
     <addaction name="actionEnableInteraction"/>
     <addaction name="action_MainWindowStatusBar"/>
+    <addaction name="actionShowToolbar"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -953,6 +954,17 @@
   <action name="actionOpen_Raw">
    <property name="text">
     <string>Open Raw...</string>
+   </property>
+  </action>
+  <action name="actionShowToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Toolbars</string>
    </property>
   </action>
  </widget>
