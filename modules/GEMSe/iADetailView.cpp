@@ -513,6 +513,11 @@ void iADetailView::SetRepresentativeType(int representativeType)
 
 void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 {
+	if (!m_refImg)
+	{
+		DEBUG_LOG("Reference image must be set!");
+		return;
+	}
 	m_correctnessUncertaintyOverlayEnabled = enabled;
 	if (enabled)
 	{
