@@ -401,6 +401,7 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 		font.setPointSize(CATEGORICAL_FONT_SIZE);
 		painter.setFont(font);
 		fm = painter.fontMetrics();
+		stepWidth = xRange / stepCount;
 	}
 
 	stepCount = std::max(static_cast<size_t>(1), stepCount); // at least one step
