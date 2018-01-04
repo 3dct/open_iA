@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>504</width>
-    <height>400</height>
+    <width>240</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>383</width>
-    <height>80</height>
+    <width>40</width>
+    <height>40</height>
    </size>
   </property>
   <property name="features">
@@ -261,12 +261,6 @@
              <height>30</height>
             </size>
            </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
            <property name="text">
             <string/>
            </property>
@@ -288,12 +282,6 @@
             <size>
              <width>30</width>
              <height>30</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -338,12 +326,6 @@
            <size>
             <width>0</width>
             <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
            </size>
           </property>
           <property name="font">
