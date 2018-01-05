@@ -160,12 +160,11 @@ void iAQSplom::applyLookupTable()
 
 void iAQSplom::setParameterVisibility( const QString & paramName, bool isVisible )
 {
-	int paramIndex = -1;
 	for( unsigned long i = 0; i < m_splomData->numParams(); ++i )
 	{
 		if (m_splomData->parameterName(i) == paramName)
 		{
-			setParameterVisibility(paramIndex, isVisible);
+			setParameterVisibility(i, isVisible);
 			break;
 		}
 	}
