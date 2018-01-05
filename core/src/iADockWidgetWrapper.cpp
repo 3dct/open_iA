@@ -30,6 +30,15 @@ iADockWidgetWrapper::iADockWidgetWrapper(QWidget* widget, QString const & window
 }
 
 
+iADockWidgetWrapper::iADockWidgetWrapper(QString const & windowTitle, QString const & objectName):
+	m_titleBar(new QWidget())
+{
+	setWindowTitle(windowTitle);
+	setFeatures(DockWidgetVerticalTitleBar | DockWidgetClosable | DockWidgetMovable | DockWidgetFloatable);
+	setObjectName(objectName);
+}
+
+
 void iADockWidgetWrapper::toggleTitleBar()
 {
 	QWidget* titleBar = titleBarWidget();
