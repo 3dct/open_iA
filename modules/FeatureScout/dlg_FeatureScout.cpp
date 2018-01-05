@@ -2961,13 +2961,17 @@ void dlg_FeatureScout::ScatterPlotButton()
 		QTableWidget* spInput = new QTableWidget();
 
 		spInput->setColumnCount(csvTable->GetNumberOfColumns());
-		spInput->setRowCount(csvTable->GetNumberOfRows());
+		spInput->setRowCount(csvTable->GetNumberOfRows()+1);
 
-		for (int row = 0; row < csvTable->GetNumberOfRows(); ++row)
+		for (int col = 0; col < csvTable->GetNumberOfColumns(); ++col)
+		{
+			spInput->setItem(0, col, new QTableWidgetItem(elementTable->GetValue(col, 0).ToString().c_str()));
+		}
+		for (int row = 1; row < csvTable->GetNumberOfRows()+1; ++row)
 		{
 			for (int col = 0; col < csvTable->GetNumberOfColumns(); ++col)
 			{
-				spInput->setItem(row, col, new QTableWidgetItem(csvTable->GetValue(row, col).ToString().c_str()) );
+				spInput->setItem(row, col, new QTableWidgetItem(csvTable->GetValue(row-1, col).ToString().c_str()) );
 			}
 		}
 
