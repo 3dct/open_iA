@@ -26,6 +26,8 @@
 #include <QList>
 #include <vtkLookupTable.h>
 
+#include "iAMathUtility.h"
+
 //! Class representing lookup table for color coding used in scatter plot matrix (SPLOM).
 /*!
 	Has methods for importing existing VTK lookup table (!if VTK is enabled via a preprocessor flag!) 
@@ -65,25 +67,13 @@ public:
 	//!  Map a scalar value into an RGBA color.
 	void getColor( double val, double * rgba_out )
 	{
-		if( val  < m_range[0] )
-		{
-			for( unsigned long i = 0; i < 4; ++i )
-				rgba_out[i] = m_data[i];
-		}
-		else if( val > m_range[1] )
-		{
-			unsigned long offset = m_data.size() - 4;
-			for( unsigned long i = 0; i < 4; ++i )
-				rgba_out[i] = m_data[offset + i];
-		}
-		else
-		{
-			double t = ( val - m_range[0] ) / m_rangeLen;
-			unsigned long index = t * m_numColors;
-			index *= 4;
-			for( unsigned long i = 0; i < 4; ++i )
-				rgba_out[i] = m_data[index++];
-		}
+		assert(m_data.size() >= 4);
+		double t = ( val - m_range[0] ) / m_rangeLen;
+		unsigned long index = t * m_numColors;
+		index *= 4;
+		index = clamp(0ul, static_cast<unsigned long>(m_data.size() - 4), index);
+		for( unsigned long i = 0; i < 4; ++i )
+			rgba_out[i] = m_data[index++];
 	}
 
 	//!  Allocate place for a given number of colors and fill with zeros.
