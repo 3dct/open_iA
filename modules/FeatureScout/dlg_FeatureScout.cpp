@@ -2956,13 +2956,11 @@ void dlg_FeatureScout::ScatterPlotButton()
 	{
 		assert( !matrix );
 		matrix = new iAQSplom();
-		// vtkSmartPointer<vtkTable> spInput = vtkSmartPointer<vtkTable>::New();
-		//spInput->DeepCopy( csvTable );
+		m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
+		matrix->setLookupTable(m_pointLUT, "");
 		QTableWidget* spInput = new QTableWidget();
-
 		spInput->setColumnCount(csvTable->GetNumberOfColumns());
 		spInput->setRowCount(csvTable->GetNumberOfRows()+1);
-
 		for (int col = 0; col < csvTable->GetNumberOfColumns(); ++col)
 		{
 			spInput->setItem(0, col, new QTableWidgetItem(elementTable->GetValue(col, 0).ToString().c_str()));

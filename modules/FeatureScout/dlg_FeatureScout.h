@@ -291,4 +291,6 @@ private:
 	iAMeanObjectTFView* m_motfView;	
 	moData m_MOData;
 	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
+
+	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 };
