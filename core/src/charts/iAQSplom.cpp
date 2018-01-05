@@ -163,10 +163,12 @@ void iAQSplom::setParameterVisibility( const QString & paramName, bool isVisible
 	int paramIndex = -1;
 	for( unsigned long i = 0; i < m_splomData->numParams(); ++i )
 	{
-		if( m_splomData->parameterName(i) == paramName )
-			paramIndex = i;
+		if (m_splomData->parameterName(i) == paramName)
+		{
+			setParameterVisibility(paramIndex, isVisible);
+			break;
+		}
 	}
-	setParameterVisibility( paramIndex, isVisible );
 }
 
 void iAQSplom::setParameterVisibility( int paramIndex, bool isVisible )
