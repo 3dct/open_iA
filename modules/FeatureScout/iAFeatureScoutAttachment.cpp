@@ -83,7 +83,8 @@ void iAFeatureScoutAttachment::rendererSetCamera()
 	blobRen->SetActiveCamera(m_childData.child->getRenderer()->getCamera());
 }
 
-bool iAFeatureScoutAttachment::FeatureScout_Options(int idx) {
+bool iAFeatureScoutAttachment::FeatureScout_Options(int idx)
+{
 	if (!imgFS)
 		return false;
 	return imgFS->changeFeatureScout_Options(idx);

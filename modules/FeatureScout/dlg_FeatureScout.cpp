@@ -30,7 +30,6 @@
 #include "iAmat4.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
-#include "iAFeatureScoutScatterPlotMatrix.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
@@ -56,6 +55,7 @@
 #include <vtkImageCast.h>
 #include <vtkCamera.h>
 #include <vtkChart.h>
+#include <vtkChartMatrix.h>
 #include <vtkChartParallelCoordinates.h>
 #include <vtkChartXY.h>
 #include <vtkColorTransferFunction.h>
@@ -76,6 +76,7 @@
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
 #include <vtkMetaImageWriter.h>
+#include <vtkNew.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPen.h>
@@ -113,6 +114,7 @@
 #include "QtCore/qmath.h"
 #include <QtCore/QXmlStreamReader>
 #include <QtCore/QXmlStreamWriter>
+#include <QDockWidget>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QInputDialog>
@@ -122,6 +124,7 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTableView>
+#include <QTableWidget>
 #include <QTreeView>
 #include <QProgressBar>
 
@@ -181,12 +184,14 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	cTF( parent->getColorTransferFunction() ),
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
-	elementTableModel( 0 ),
-	iovSPM( 0 ),
-	iovPP( 0 ),
-	iovPC( 0 ),
-	iovDV( 0 ),
-	iovMO( 0 ),
+	elementTableModel(nullptr),
+	iovSPM(nullptr),
+	iovPP(nullptr),
+	iovPC(nullptr),
+	iovDV(nullptr),
+	iovMO(nullptr),
+	matrix(nullptr),
+	spmActivated(false),
 	sourcePath( parent->currentFile() )
 {
 	setupUi( this );
@@ -240,9 +245,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	this->classTreeView->header()->setStretchLastSection( false );
 	this->elementTableView->resizeColumnsToContents();
 	this->classTreeView->setExpandsOnDoubleClick( false );
-	spmActivated = false;	//???
-	if ( this->spmActivated )
-		this->ScatterPlotButton();
 }
 
 dlg_FeatureScout::~dlg_FeatureScout()
@@ -279,7 +281,7 @@ dlg_FeatureScout::~dlg_FeatureScout()
 	this->deletePcViewPointer();
 
 	if ( this->spmActivated )
-		matrix->Delete();
+		delete matrix;
 }
 
 void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
@@ -288,8 +290,9 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 	// Gets the mouse button event for pcChart and holds the SPM-Annotations consistent with PC-Annoatations.
 	if ( this->spmActivated )
 	{
-		matrix->UpdateCustomLegend();
-		matrix->GetAnnotationLink()->SetCurrentSelection( pcChart->GetAnnotationLink()->GetCurrentSelection() );
+		// TODO SPM
+		// matrix->UpdateCustomLegend();
+		// matrix->GetAnnotationLink()->SetCurrentSelection( pcChart->GetAnnotationLink()->GetCurrentSelection() );
 		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
 	}
 	else
@@ -316,7 +319,8 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 	this->pcChart = vtkChartParallelCoordinates::New();
 
 	if ( this->spmActivated )
-		this->pcChart->SetAnnotationLink( matrix->GetAnnotationLink() ); //annLink
+		// TODO SPM
+		//this->pcChart->SetAnnotationLink( matrix->GetAnnotationLink() ); //annLink
 
 	// setup interactor and render window
 	this->pcView->SetInteractor( this->pcWidget->GetInteractor() );
@@ -333,7 +337,7 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 
 	this->pcView->GetScene()->AddItem( pcChart );
 
-	//Creates a popup menu 
+	//Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
 	popup2->addAction( "Add Class" );
 	popup2->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
@@ -425,7 +429,7 @@ void dlg_FeatureScout::setupDefaultElement()
 	{
 		pcChart->SetColumnVisibilityAll( false );
 		pcChart->SetColumnVisibility( eleString.at( 7 ).toStdString(), true );	//a11
-		pcChart->SetColumnVisibility( eleString.at( 8 ).toStdString(), true );	//a22	
+		pcChart->SetColumnVisibility( eleString.at( 8 ).toStdString(), true );	//a22
 		pcChart->SetColumnVisibility( eleString.at( 9 ).toStdString(), true );	//a33
 		pcChart->SetColumnVisibility( eleString.at( 13 ).toStdString(), true );	//theta
 		pcChart->SetColumnVisibility( eleString.at( 14 ).toStdString(), true );	//phi
@@ -439,15 +443,15 @@ void dlg_FeatureScout::setupDefaultElement()
 	else                                                                         //Pores
 	{
 		pcChart->SetColumnVisibilityAll( false );
-		pcChart->SetColumnVisibility( eleString.at( 0 ).toStdString(), true );	//id	
-		pcChart->SetColumnVisibility( eleString.at( 13 ).toStdString(), true );	//dimx	
+		pcChart->SetColumnVisibility( eleString.at( 0 ).toStdString(), true );	//id
+		pcChart->SetColumnVisibility( eleString.at( 13 ).toStdString(), true );	//dimx
 		pcChart->SetColumnVisibility( eleString.at( 14 ).toStdString(), true );	//dimy
 		pcChart->SetColumnVisibility( eleString.at( 15 ).toStdString(), true );	//dimz
 		pcChart->SetColumnVisibility( eleString.at( 16 ).toStdString(), true );	//phi
 		pcChart->SetColumnVisibility( eleString.at( 17 ).toStdString(), true );	//theata
 		pcChart->SetColumnVisibility( eleString.at( 18 ).toStdString(), true );	//Xm
-		pcChart->SetColumnVisibility( eleString.at( 19 ).toStdString(), true );	//Ym	
-		pcChart->SetColumnVisibility( eleString.at( 20 ).toStdString(), true );	//Zm	
+		pcChart->SetColumnVisibility( eleString.at( 19 ).toStdString(), true );	//Ym
+		pcChart->SetColumnVisibility( eleString.at( 20 ).toStdString(), true );	//Zm
 		pcChart->SetColumnVisibility( eleString.at( 21 ).toStdString(), true );	//volume
 		pcChart->SetColumnVisibility( eleString.at( 22 ).toStdString(), true );	//roundness
 		pcChart->SetColumnVisibility( eleString.at( 28 ).toStdString(), true );	//MajorLength
@@ -492,7 +496,7 @@ void dlg_FeatureScout::setupModel()
 	this->calculateElementTable();
 	this->initElementTableModel();
 
-	// class tree model 
+	// class tree model
 	// set up class tree headeritems
 	this->activeClassItem = new QStandardItem();
 	classTreeModel->setHorizontalHeaderItem( 0, new QStandardItem( "Class" ) );
@@ -548,7 +552,7 @@ void dlg_FeatureScout::setupViews()
 	this->pcView->GetScene()->AddItem( pcChart );
 	this->setupDefaultElement();
 
-	// Creates a popup menu 
+	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
 	popup2->addAction( "Add Class" );
 	popup2->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
@@ -648,7 +652,7 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 	else
 	{
 		// if the values of objectID is given and bigger than zero
-		// we then know that is a single selection, and we want to update the 
+		// we then know that is a single selection, and we want to update the
 		// element Table view with the new values
 		elementTableModel->setHeaderData( 1, Qt::Horizontal, tr( "Value" ) );
 		elementTableView->hideColumn( 2 );
@@ -937,9 +941,10 @@ void dlg_FeatureScout::RenderingButton()
 	//Updates SPM
 	if ( this->spmActivated )
 	{
-		matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
-		matrix->SetClass2Plot( -1 );
-		matrix->UpdateLayout();
+		// TODO SPM
+		// matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
+		// matrix->SetClass2Plot( -1 );
+		// matrix->UpdateLayout();
 	}
 
 	static_cast<MdiChild*>( activeChild )->updateViews();
@@ -952,11 +957,11 @@ void dlg_FeatureScout::SingleRendering( int idx )
 {
 	int cID = this->activeClassItem->index().row();
 	int itemL = this->activeClassItem->rowCount();
-	double red = colorList.at( cID ).redF(), 
+	double red = colorList.at( cID ).redF(),
 		   green = colorList.at( cID ).greenF(),
-		   blue = colorList.at( cID ).blueF(), 
-		   alpha = 0.5, 
-		   backAlpha = 0.0, 
+		   blue = colorList.at( cID ).blueF(),
+		   alpha = 0.5,
+		   backAlpha = 0.0,
 		   backRGB[3] = { 0.0, 0.0, 0.0 };
 
 	// clear existing points
@@ -1137,7 +1142,7 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection, bool enable
 					red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
 				}
 
-				// If we are not yet at the last object (of the class) get the next hid 
+				// If we are not yet at the last object (of the class) get the next hid
 				if ( ( j + 1 ) < countClass )
 				{
 					next_hid = this->activeClassItem->child( j + 1 )->text().toInt();
@@ -1266,7 +1271,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		msgBox.exec();
 		return;
 	}
-	
+
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->initProgressBar();
 
@@ -1458,20 +1463,20 @@ void dlg_FeatureScout::RenderingMeanObject()
 		m_MOData.moHistogramList.append( moHistogram );
 
 		// Create MObject default Transfer Tunctions
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION ) // Fibers 
+		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION ) // Fibers
 		{
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 ); 
+			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 );
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.095, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );  
+			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 1.00, 0.0, 0.0, 1.0 );
 			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.01, 0.01 ); 
+			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.01, 0.01 );
 			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.095, 0.01 );
-			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.1, 0.05 ); 
+			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.1, 0.05 );
 			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 1.00, 0.18 );
 		}
-		else // Voids 
+		else // Voids
 		{
 			m_MOData.moHistogramList[currClass - 1]->GetColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
 			m_MOData.moHistogramList[currClass - 1]->GetColorFunction()->AddRGBPoint( 0.0001, 0.0, 0.0, 0.0 );
@@ -1521,7 +1526,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 	outlineActor->GetProperty()->SetLineWidth( 1.0 );
 	outlineActor->GetProperty()->SetOpacity( 0.1 );
 
-	// Calculates the max dimension of the image 
+	// Calculates the max dimension of the image
 	double maxDim = 0.0;
 	for ( int i = 0; i < 6; ++i )
 	{
@@ -1598,8 +1603,8 @@ void dlg_FeatureScout::RenderingMeanObject()
 		{
 			renderer->AddVolume( m_MOData.moVolumesList[i] );
 			renderer->SetActiveCamera( raycaster->GetRenderer()->GetActiveCamera() );
-			renderer->GetActiveCamera()->SetParallelScale( maxDim );	//use maxDim for right scaling to fit the data in the viewports 
-			
+			renderer->GetActiveCamera()->SetParallelScale( maxDim );	//use maxDim for right scaling to fit the data in the viewports
+
 			vtkSmartPointer<vtkCornerAnnotation> cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
 			cornerAnnotation->SetLinearFontScaleFactor( 2 );
 			cornerAnnotation->SetNonlinearFontScaleFactor( 1 );
@@ -1638,7 +1643,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 			cubeAxesActor->GetYAxesLinesProperty()->SetColor( 0.0, 1.0, 0.0 );
 			cubeAxesActor->ZAxisLabelVisibilityOn(); cubeAxesActor->ZAxisTickVisibilityOn(); cubeAxesActor->ZAxisMinorTickVisibilityOff();
 			cubeAxesActor->GetZAxesLinesProperty()->SetColor( 0.0, 0.0, 1.0 );
-			
+
 			renderer->AddViewProp( cornerAnnotation );
 			renderer->AddActor( cubeAxesActor );
 			renderer->AddActor( outlineActor );
@@ -1663,7 +1668,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 
 void dlg_FeatureScout::updateMOView()
 {
-	iovMO->plotWidget->GetRenderWindow()->Render();	
+	iovMO->plotWidget->GetRenderWindow()->Render();
 }
 
 void dlg_FeatureScout::browseFolderDialog()
@@ -1694,7 +1699,7 @@ void dlg_FeatureScout::saveStl()
 	iAObserverProgress* stlWriProgress = iAObserverProgress::New();
 	connect( marCubProgress, SIGNAL( oprogress( int ) ), this, SLOT( updateMarProgress( int ) ) );
 	connect( stlWriProgress, SIGNAL( oprogress( int ) ), this, SLOT( updateStlProgress( int ) ) );
-	
+
 	vtkSmartPointer<vtkMarchingCubes> moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	moSurface->AddObserver( vtkCommand::ProgressEvent, marCubProgress );
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
@@ -2021,17 +2026,17 @@ void dlg_FeatureScout::RenderingFLD()
 	cTFun->SetColorSpaceToRGB();
 	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
 	{
-		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange				
-		cTFun->AddRGBPoint( extents->GetValue( 0 ) + halfInc, 1.0, 0.0, 0.0 ); //rot
-		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magaenta			
-		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 0.0, 1.0 ); //blau	
-		cTFun->AddRGBPoint( extents->GetValue( 7 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan	
+		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange
+		cTFun->AddRGBPoint( extents->GetValue( 0 ) + halfInc, 1.0, 0.0, 0.0 ); //red
+		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magenta
+		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 0.0, 1.0 ); //blue
+		cTFun->AddRGBPoint( extents->GetValue( 7 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan
 	}
 	else
 	{
-		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange				
-		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magaenta			
-		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan	
+		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange
+		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magenta
+		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan
 	}
 
 	// start rendering process with colorlookuptable
@@ -2196,7 +2201,7 @@ void dlg_FeatureScout::ClassAddButton()
 
 		bool ok;
 
-		// class name and color input when calling AddClassDialog.	
+		// class name and color input when calling AddClassDialog.
 		cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
 
 		if ( ok ) // if input correctly
@@ -2206,7 +2211,7 @@ void dlg_FeatureScout::ClassAddButton()
 			QStandardItem *rootItem = classTreeModel->invisibleRootItem();
 			QStandardItem *item;
 
-			// create a first level child under rootItem as new class	
+			// create a first level child under rootItem as new class
 			double percent = 100.0*CountObject / objectNr;
 			QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
 			firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
@@ -2268,7 +2273,7 @@ void dlg_FeatureScout::ClassAddButton()
 			// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
 			for ( int i = 0; i < CountObject; i++ )
 				this->activeClassItem->removeRow( kIdx.value( i ) );
-			
+
 			// update statistics for activeClassItem
 			this->updateClassStatistics( this->activeClassItem );
 			if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
@@ -2293,10 +2298,11 @@ void dlg_FeatureScout::ClassAddButton()
 			//Updates scatter plot matrix when a class is added.
 			if ( this->spmActivated && matrix != NULL )
 			{
-				matrix->UpdateColorInfo( classTreeModel, colorList );
-				matrix->SetClass2Plot( this->activeClassItem->index().row() );
-				matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
-				matrix->UpdateLayout();
+				// TODO SPM
+				// matrix->UpdateColorInfo( classTreeModel, colorList );
+				// matrix->SetClass2Plot( this->activeClassItem->index().row() );
+				// matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
+				// matrix->UpdateLayout();
 			}
 		}
 	}
@@ -2321,7 +2327,7 @@ void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 
 			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
 			{
-				//Gets the fibre class 
+				//Gets the fibre class
 				QStandardItem* fc = classTreeModel->invisibleRootItem()->child( i, 1 );
 
 				writer->writeStartElement( QString( "FibreClass-%1" ).arg( i ) ); //start FibreClass-n tag
@@ -2363,7 +2369,7 @@ void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 
 			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
 			{
-				//Gets the fibre class 
+				//Gets the fibre class
 				QStandardItem* fc = classTreeModel->invisibleRootItem()->child( i, 1 );
 
 				writer->writeStartElement( QString( "VoidClass-%1" ).arg( i ) ); //start VoidClass-n tag
@@ -2385,7 +2391,7 @@ void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 					writer->writeTextElement( "posX", QString( tableList[i]->GetValue( j, 18 ).ToString() ) );
 					writer->writeTextElement( "posY", QString( tableList[i]->GetValue( j, 19 ).ToString() ) );
 					writer->writeTextElement( "posZ", QString( tableList[i]->GetValue( j, 20 ).ToString() ) );
-					//writer->writeTextElement("ShapeFactor", QString(tableList[i]->GetValue(j,22).ToString())); 
+					//writer->writeTextElement("ShapeFactor", QString(tableList[i]->GetValue(j,22).ToString()));
 
 					writer->writeEndElement(); //end Void-n tag
 				}
@@ -2936,9 +2942,10 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 	if ( this->spmActivated )
 	{	//Updates SPM
-		matrix->UpdateColorInfo( classTreeModel, colorList );
-		matrix->SetClass2Plot( this->activeClassItem->index().row() );
-		matrix->UpdateLayout();
+		// TODO SPM
+		// matrix->UpdateColorInfo( classTreeModel, colorList );
+		// matrix->SetClass2Plot( this->activeClassItem->index().row() );
+		// matrix->UpdateLayout();
 	}
 }
 
@@ -2947,12 +2954,25 @@ void dlg_FeatureScout::ScatterPlotButton()
 {
 	if ( this->spmActivated )
 	{
+		assert( !matrix );
 		matrix = new iAQSplom();
 		// vtkSmartPointer<vtkTable> spInput = vtkSmartPointer<vtkTable>::New();
-		spInput->DeepCopy( csvTable );
+		//spInput->DeepCopy( csvTable );
+		QTableWidget* spInput = new QTableWidget();
+
+		spInput->setColumnCount(csvTable->GetNumberOfColumns());
+		spInput->setRowCount(csvTable->GetNumberOfRows());
+
+		for (int row = 0; row < csvTable->GetNumberOfRows(); ++row)
+		{
+			for (int col = 0; col < csvTable->GetNumberOfColumns(); ++col)
+			{
+				spInput->setItem(row, col, new QTableWidgetItem(csvTable->GetValue(row, col).ToString().c_str()) );
+			}
+		}
 
 		// QVTKWidget setup and initialization
-		if ( !iovSPM)
+		if ( !iovSPM )
 			return;
 		//iovSPM->setWindowTitle( QString( "Scatter Plot Matrix" ) );
 
@@ -2962,39 +2982,43 @@ void dlg_FeatureScout::ScatterPlotButton()
 		//VTK_CREATE( vtkContextView, view );
 		//view->SetInteractor( iovSPM->dockWidgetContents->GetInteractor() );
 		//iovSPM->dockWidgetContents->SetRenderWindow( view->GetRenderWindow() );
+		iovSPM->setWidget(matrix);
 
 		// Add a ScatterPlotMatrix to the vtkContextView
 		//view->GetScene()->AddItem( matrix );
 
 		//PC-SPM-AnnotationLink-Wedding to get same red selection highlights.
-		pcChart->SetAnnotationLink( matrix->GetAnnotationLink() );
 
-		// Set input for the scatterplot matrix
-		matrix->SetInput( spInput, this->filterID );
+		// TODO SPM
+		// pcChart->SetAnnotationLink( matrix->GetAnnotationLink() );
+		//matrix->SetInput( spInput, this->filterID );
+		matrix->setData(spInput);
 
-		// Updates scatter plot matrix with up to date (PC tree) information 
-		// about Class_ID and RGB color. IMPORTANT: Set UpdateColorInfo after SetInput() 
-		matrix->UpdateColorInfo( classTreeModel, colorList );
+		// TODO SPM
+
+		// Updates scatter plot matrix with up to date (PC tree) information
+		// about Class_ID and RGB color. IMPORTANT: Set UpdateColorInfo after SetInput()
+		// matrix->UpdateColorInfo( classTreeModel, colorList );
 
 		// If PC-Option 'Multi Rendering' is clicked a scatter plot matrix
 		// with all (colored) plots is shown.
-		matrix->SetClass2Plot( this->activeClassItem->index().row() );
+		// matrix->SetClass2Plot( this->activeClassItem->index().row() );
 
 		// Scatter plot matrix settings
 		if ( this->activeClassItem->rowCount() < 30 )
 		{
-			matrix->SetPlotMarkerSize( 0, 3.0f );
-			matrix->SetPlotMarkerSize( 2, 10.0f );
+			//matrix->SetPlotMarkerSize( 0, 3.0f );
+			//matrix->SetPlotMarkerSize( 2, 10.0f );
 		}
-		matrix->SetScatterPlotSelectedActiveColor( vtkColor4ub( 175, 238, 238, 130 ) );
-		matrix->SetScatterPlotSelectedRowColumnColor( vtkColor4ub( 0, 0, 0, 20 ) );
-		matrix->SetBackgroundColor( 1, vtkColor4ub( 235, 235, 235, 100 ) );
-		matrix->SetGutter( vtkVector2f( 30.0f, 30.0f ) );
+		//matrix->SetScatterPlotSelectedActiveColor( vtkColor4ub( 175, 238, 238, 130 ) );
+		//matrix->SetScatterPlotSelectedRowColumnColor( vtkColor4ub( 0, 0, 0, 20 ) );
+		//matrix->SetBackgroundColor( 1, vtkColor4ub( 235, 235, 235, 100 ) );
+		//matrix->SetGutter( vtkVector2f( 30.0f, 30.0f ) );
 
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
 		spUpdateSPColumnVisibility();
 
-		// Creates a popup menu 
+		// Creates a popup menu
 		QMenu* popup1 = new QMenu( iovSPM );
 		popup1->addAction( "Add Class" );
 		//popup1->addAction( "Suggest Classification" );
@@ -3007,8 +3031,8 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 		connect( popup1, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
 
+		/*
 		vtkEventQtSlotConnect *spConnections = vtkEventQtSlotConnect::New();
-
 		// Gets right button release event (on a scatter plot).
 		spConnections->Connect( iovSPM->dockWidgetContents->GetRenderWindow()->GetInteractor(),
 								vtkCommand::RightButtonReleaseEvent,
@@ -3027,7 +3051,9 @@ void dlg_FeatureScout::ScatterPlotButton()
 								vtkCommand::SelectionChangedEvent,
 								this,
 								SLOT( spSelInformsPCChart( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 1.0 );
-		iovSPM->dockWidgetContents->show();
+		*/
+		//iovSPM->dockWidgetContents->show();
+		connect(matrix, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(spSelInformsPCChart(QVector<unsigned int> *)) );
 	}
 }
 
@@ -3036,23 +3062,25 @@ void dlg_FeatureScout::spUpdateSPColumnVisibility()
 	// Updates scatter plot matrix if a feature of PC-ElementTableModel is added or removed.
 	if ( this->spmActivated )
 	{
-		matrix->SetColumnVisibilityAll( false );
+		// TODO SPM: only update matrix after all parameters visibility set?
 		for ( int j = 0; j < elementNr; ++j )
 		{
-			if ( elementTableModel->item( j, 0 )->checkState() == Qt::Checked )
-				matrix->SetColumnVisibility( elementTable->GetValue( j, 0 ).ToString(), true );
+			matrix->setParameterVisibility( elementTable->GetValue( j, 0 ).ToString().c_str(),
+				elementTableModel->item(j, 0)->checkState() == Qt::Checked );
 		}
-		matrix->Update();
 	}
 }
 
-void dlg_FeatureScout::spSelInformsPCChart( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
+
 {
 	// If scatter plot selection changes Parallel Coordinates gets informed and updates.
 	if ( this->spmActivated )
 	{
 		QCoreApplication::processEvents();
-		this->iovSPM->dockWidgetContents->update();
+		//this->iovSPM->dockWidgetContents->update();
+		// TODO SPM
+		// update selection in PC view!
 		this->pcView->Render();
 		this->RealTimeRendering( pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
 	}
@@ -3098,27 +3126,31 @@ void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_da
 
 void dlg_FeatureScout::spPopupSelection( QAction *selection )
 {
-	// Function to handle the scatter plot matrix popup menu selection. 
+	// Function to handle the scatter plot matrix popup menu selection.
 	if ( selection->text() == "Add Class" ) { ClassAddButton(); }
-	else if ( selection->text() == "Histograms On/Off" ) { matrix->ShowHideHistograms(); }
-	else if ( selection->text() == "Subtraction Selection Mode" ) 
+	// TODO SPM
+	else if ( selection->text() == "Histograms On/Off" )
 	{
-		matrix->SetSelectionMode( vtkContextScene::SELECTION_SUBTRACTION ); 
+		//matrix->ShowHideHistograms();
+	}
+	else if ( selection->text() == "Subtraction Selection Mode" )
+	{
+		//matrix->SetSelectionMode( vtkContextScene::SELECTION_SUBTRACTION );
 		selection->setText( "Toggle Selection Mode" );
 	}
 	else if ( selection->text() == "Toggle Selection Mode" )
 	{
-		matrix->SetSelectionMode( vtkContextScene::SELECTION_DEFAULT );
+		//matrix->SetSelectionMode( vtkContextScene::SELECTION_DEFAULT );
 		selection->setText( "Subtraction Selection Mode" );
 	}
-	else if ( selection->text() == "Polygon Selection Tool" ) 
+	else if ( selection->text() == "Polygon Selection Tool" )
 	{
-		matrix->setPolygonSelectionOn();
+		//matrix->setPolygonSelectionOn();
 		selection->setText( "Rectangle Selection Tool" );
 	}
 	else if ( selection->text() == "Rectangle Selection Tool" )
 	{
-		matrix->setRectangleSelectionOn();
+		//matrix->setRectangleSelectionOn();
 		selection->setText( "Polygon Selection Tool" );
 	}
 	else if ( selection->text() == "Suggest Classification" )
@@ -3128,14 +3160,15 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 
 		if ( ok )
 		{
-			matrix->NumberOfClusters = i;
-			matrix->SetkMeansMode( true );
+
+			//matrix->NumberOfClusters = i;
+			//matrix->SetkMeansMode( true );
 			selection->setText( "Accept Classification" );
 		}
 	}
 	else if ( selection->text() == "Accept Classification" )
 	{
-		autoAddClass( matrix->GetkMeansClusterCount() );
+		//autoAddClass( matrix->GetkMeansClusterCount() );
 		selection->setText( "Suggest Classification" );
 	}
 }
@@ -3149,9 +3182,10 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 		for ( int i = 1; i <= NbOfClusters; ++i )
 		{
 			// recieve the current selections from annotationlink
-			vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
-			int CountObject = SelArr->GetNumberOfTuples();
-
+			// TODO SPM
+			//vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
+			int CountObject = 0; //  SelArr->GetNumberOfTuples();
+			/*
 			if ( CountObject > 0 )
 			{
 				// class name and color
@@ -3182,7 +3216,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 
 				this->colorList.append( cColor );
 
-				// create a first level child under rootItem as new class	
+				// create a first level child under rootItem as new class
 				double percent = 100.0*CountObject / objectNr;
 				QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
 				firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
@@ -3217,6 +3251,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 				msgBox.setWindowTitle( "FeatureScout" );
 				msgBox.exec();
 			}
+			*/
 		}
 
 		//  Mother Class is empty after kMeans auto class added, therefore rows are removed
@@ -3245,9 +3280,10 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 		//Updates scatter plot matrix when a class is added.
 		if ( matrix != NULL )
 		{
-			matrix->UpdateColorInfo( classTreeModel, colorList );
-			matrix->SetClass2Plot( this->activeClassItem->index().row() );
-			matrix->UpdateLayout();
+			// TODO SPM
+			//matrix->UpdateColorInfo( classTreeModel, colorList );
+			//matrix->SetClass2Plot( this->activeClassItem->index().row() );
+			//matrix->UpdateLayout();
 		}
 	}
 }
@@ -3292,12 +3328,13 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 			if ( this->spmActivated )
 			{
 				// Update Scatter Plot Matrix when another class than the active is selected.
-				if ( matrix != NULL )
+				if ( matrix)
 				{
+					// TODO SPM
 					//matrix->SetSelection(annLink->GetCurrentSelection());
-					matrix->UpdateColorInfo( classTreeModel, colorList );
-					matrix->SetClass2Plot( this->activeClassItem->index().row() );
-					matrix->UpdateLayout();
+					// matrix->UpdateColorInfo( classTreeModel, colorList );
+					// matrix->SetClass2Plot( this->activeClassItem->index().row() );
+					// matrix->UpdateLayout();
 				}
 			}
 		}
@@ -3307,7 +3344,7 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 void dlg_FeatureScout::classClicked( const QModelIndex &index )
 {
 	//Turns off FLD scalar bar updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
+	if ( m_scalarWidgetFLD )
 	{
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
@@ -3316,16 +3353,16 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 
-	// Gets right Item from ClassTreeModel 
+	// Gets right Item from ClassTreeModel
 	QStandardItem *item;
 
-	// checks if click on class 'level' 
+	// checks if click on class 'level'
 	if ( index.parent().row() == -1 )
 		item = classTreeModel->item( index.row(), 0 );
 	else
 		item = classTreeModel->itemFromIndex( index );
 
-	// check if unclassified class is empty  
+	// check if unclassified class is empty
 	if ( this->classTreeModel->invisibleRootItem()->child( 0 ) == item && item->rowCount() == 0 )
 	{
 		QMessageBox msgBox;
@@ -3359,11 +3396,10 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			if ( this->spmActivated )
 			{
 				// Update Scatter Plot Matrix when another class than the active is selected.
-				if ( matrix != NULL )
+				if ( matrix )
 				{
-					//matrix->SetSelection(annLink->GetCurrentSelection());
-					matrix->SetClass2Plot( this->activeClassItem->index().row() );
-					matrix->UpdateLayout();
+					//matrix->SetClass2Plot( this->activeClassItem->index().row() );
+					//matrix->UpdateLayout();
 				}
 			}
 		}
@@ -3411,10 +3447,10 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		if ( this->spmActivated )
 		{
 			// Update Scatter Plot Matrix when another class than the active is selected.
-			if ( matrix != NULL )
+			if ( matrix )
 			{
-				matrix->SetClass2Plot( this->activeClassItem->index().row() );
-				matrix->UpdateLayout();
+				//matrix->SetClass2Plot( this->activeClassItem->index().row() );
+				//matrix->UpdateLayout();
 			}
 		}
 	}
@@ -3494,7 +3530,7 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 
 void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 {
-	// check once more, if its really a class item 
+	// check once more, if its really a class item
 	if ( !item->hasChildren() )
 		return;
 
@@ -3504,13 +3540,14 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 		this->activeClassItem = item;
 		// make sure when a class is added, at the same time the tableList should also be updated
 
-		// reload the class table to chartTable 
+		// reload the class table to chartTable
 		int id = item->index().row();
 		chartTable->ShallowCopy( tableList[id] );
 
 		// reset selection to NULL
-		if ( this->spmActivated )
-			this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
+		// TODO SPM
+		//if ( this->spmActivated )
+			//this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
 	else if ( situ == 1 )	// add class
 	{
@@ -3523,13 +3560,14 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 		// set active class
 		this->activeClassItem = item;
 
-		// reload the class table to chartTable 
+		// reload the class table to chartTable
 		int id = item->index().row();
 		chartTable->ShallowCopy( tableList[id] );
 
 		// reset selection to NULL
-		if ( this->spmActivated )
-			this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
+		// TODO SPM
+		// if ( this->spmActivated )
+			// this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
 	else if ( situ == 2 )	// delete class
 	{
@@ -4157,10 +4195,10 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	//cold-warm-map
 	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(   1, 0.0, 1.0, 1.0 );
-	//cTFun->AddRGBPoint(  pcMaxC, 1.0, 0.0, 1.0 );	
+	//cTFun->AddRGBPoint(  pcMaxC, 1.0, 0.0, 1.0 );
 
 	//heatmap
-	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );					//gray			
+	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );					//gray
 	cTFun->AddRGBPoint( pcMaxC * 1 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
 	cTFun->AddRGBPoint( pcMaxC * 4 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
 	cTFun->AddRGBPoint( pcMaxC * 9 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
@@ -4258,13 +4296,13 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 
 	// Create a transfer function mapping scalar value to color
 	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
-	//cold-warm-map	
+	//cold-warm-map
 	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(   1, 0.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(  maxF, 1.0, 0.0, 1.0 );
 
 	//heatmap
-	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );				//gray				
+	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );				//gray
 	cTFun->AddRGBPoint( maxF*1.0 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
 	cTFun->AddRGBPoint( maxF*4.0 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
 	cTFun->AddRGBPoint( maxF*9.0 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
@@ -4448,7 +4486,7 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 	//Names of the fiber characteristics
 	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
 	{
-		eleString.append( "Label" );								// 0	
+		eleString.append( "Label" );								// 0
 		eleString.append( QString( "X1%1" ).arg( micro1 ) );		// 1
 		eleString.append( QString( "Y1%1" ).arg( micro1 ) );		// 2
 		eleString.append( QString( "Z1%1" ).arg( micro1 ) );		// 3
@@ -4494,7 +4532,7 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 	//Names of the pore charakteristics
 	else
 	{
-		eleString.append( "LabelId" );									// 0	
+		eleString.append( "LabelId" );									// 0
 		eleString.append( QString( "X1%1" ).arg( micro1 ) );			// 1
 		eleString.append( QString( "Y1%1" ).arg( micro1 ) );			// 2
 		eleString.append( QString( "Z1%1" ).arg( micro1 ) );			// 3
@@ -4515,7 +4553,7 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 		eleString.append( QString( "Xm%1" ).arg( micro1 ) );			// 18
 		eleString.append( QString( "Ym%1" ).arg( micro1 ) );			// 19
 		eleString.append( QString( "Zm%1" ).arg( micro1 ) );			// 20
-		//eleString.append( "ShapeFactor" );								
+		//eleString.append( "ShapeFactor" );
 		eleString.append( QString( "Volume%1" ).arg( micro3 ) );		// 21
 		eleString.append( "Roundness" );								// 22
 		eleString.append( QString( "FeretDiam%1" ).arg( micro1 ) );		// 23
@@ -4626,7 +4664,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 		for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
 
 		QFileInfo fileInfo = static_cast<MdiChild*>( activeChild )->getFileInfo();
-		
+
 		blobManager->SaveMovie( activeChild,
 								raycaster,
 								raycaster->GetRenderer()->GetActiveCamera(),
@@ -4684,7 +4722,7 @@ bool dlg_FeatureScout::changeFeatureScout_Options( int idx )
 
 	if ( idx == 6 && !iovSPM )
 	{
-		iovSPM = new iADockWidgetWrapper(matrix, "Scatter Plot Matrix", "FeatureScoutSPM");
+		iovSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
 		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovSPM );
 		iovSPM->show();
 

@@ -41,6 +41,7 @@ class iABlobCluster;
 class iABlobManager;
 class iAMeanObjectTFView;
 class iAModalityTransfer;
+class iAQSplom;
 class iARenderer;
 class dlg_blobVisualization;
 class MdiChild;
@@ -166,7 +167,7 @@ public slots:
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopupSelection(QAction *selection);
-	void spSelInformsPCChart(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
+	void spSelInformsPCChart(QVector<unsigned int> * selInds);
 	void spUpdateSPColumnVisibility();
 
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
