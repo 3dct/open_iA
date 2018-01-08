@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>504</width>
-    <height>400</height>
+    <width>240</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>392</width>
-    <height>80</height>
+    <width>0</width>
+    <height>40</height>
    </size>
   </property>
   <property name="features">
@@ -55,12 +55,6 @@
       </property>
       <item>
        <widget class="QWidgetToolbar" name="widgetXZ" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <property name="spacing">
           <number>2</number>
@@ -79,6 +73,12 @@
          </property>
          <item>
           <widget class="QLabel" name="sliceLabelXZ">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <family>MS Shell Dlg 2</family>
@@ -96,14 +96,8 @@
           <widget class="QSpinBox" name="spinBoxXZ">
            <property name="minimumSize">
             <size>
-             <width>50</width>
+             <width>20</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -120,6 +114,12 @@
          </item>
          <item>
           <widget class="QLabel" name="rotationLabelXZ">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <family>MS Shell Dlg 2</family>
@@ -137,14 +137,8 @@
           <widget class="QDoubleSpinBox" name="doubleSpinBoxXZ">
            <property name="minimumSize">
             <size>
-             <width>50</width>
+             <width>20</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -168,6 +162,12 @@
          </item>
          <item>
           <widget class="QLabel" name="labelXZ">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -194,8 +194,8 @@
           <widget class="QToolButton" name="pushMovXZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -217,8 +217,8 @@
           <widget class="QToolButton" name="pushSaveXZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -240,8 +240,8 @@
           <widget class="QToolButton" name="pushSaveStackXZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -263,14 +263,8 @@
           <widget class="QToolButton" name="pushStopXZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
@@ -292,14 +286,8 @@
           <widget class="QToolButton" name="pushMaxXZ">
            <property name="minimumSize">
             <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
+             <width>10</width>
+             <height>0</height>
             </size>
            </property>
            <property name="font">
@@ -339,12 +327,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
           </property>
           <property name="font">
            <font>

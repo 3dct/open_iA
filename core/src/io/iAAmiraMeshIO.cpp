@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <stdexcept>    // for runtime_error
 
 
 // based on code found here:

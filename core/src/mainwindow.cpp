@@ -1805,7 +1805,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionLoad_Layout, SIGNAL(triggered()), this, SLOT(loadLayout()));
 	connect(actionDelete_Layout, SIGNAL(triggered()), this, SLOT(deleteLayout()));
 	connect(actionResetLayout, SIGNAL(triggered()), this, SLOT(resetLayout()));
-
+	connect(actionShowToolbar, SIGNAL(triggered()), this, SLOT(ToggleToolbar()));
 	connect(action_MainWindowStatusBar, SIGNAL(triggered()), this, SLOT(ToggleMainWindowStatusBar()));
 	connect(action_ChildStatusBar, SIGNAL(triggered()), this, SLOT(ToggleChildStatusBar()));
 	
@@ -2230,6 +2230,17 @@ QMenu * MainWindow::getToolsMenu()
 void MainWindow::ToggleMainWindowStatusBar()
 {
 	statusBar()->setVisible(action_MainWindowStatusBar->isChecked());
+}
+
+
+void MainWindow::ToggleToolbar()
+{
+	bool visible = actionShowToolbar->isChecked();
+	QList<QToolBar *> toolbars = findChildren<QToolBar *>();
+	for (auto toolbar : toolbars)
+	{
+		toolbar->setVisible(visible);
+	}
 }
 
 
