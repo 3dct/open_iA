@@ -75,12 +75,10 @@ double iAFilterChart::mapValueToBin(double value) const
 
 QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
 {
-	return
-		IsDrawnDiscrete() ?
-		QSharedPointer<iAPlot>(new iABarGraphDrawer(data, color, 2))
-		: QSharedPointer<iAPlot>(new iAFilledLineFunctionDrawer(data, color))
-		//: QSharedPointer<iAPlot>(new iALineFunctionDrawer(data, color))
-		;
+	return (data->GetRangeType() == Categorical ||
+		(data->GetRangeType() == Discrete && ((data->XBounds()[1]-data->XBounds()[0])  <= data->GetNumBin())))
+		? QSharedPointer<iAPlot>(new iABarGraphDrawer(data, color, 2))
+		: QSharedPointer<iAPlot>(new iAFilledLineFunctionDrawer(data, color));
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
