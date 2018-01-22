@@ -35,6 +35,7 @@
 #include "iAPerceptuallyUniformLUT.h"
 #include "iALinearColorGradientBar.h"
 #include "iAOrientationWidget.h"
+#include "iASegmentTree.h"
 
 #include <vtkAbstractVolumeMapper.h>
 #include <vtkActor.h>
@@ -63,7 +64,8 @@
 
 //#include <omp.h>
 //#include <sys/timeb.h>
-//#include "iAConsole.h"
+#include "iAConsole.h"
+#include <QDebug>
 
 const double impInitValue = 0.0025;
 const double offsetY = 1000;
@@ -539,6 +541,7 @@ void dlg_DatasetComparator::visualize()
 	//m_debugPlot->clearGraphs();
 	
 	calcNonLinearMapping();
+	generateSegmentTree();
 	//showDebugPlot();
 	
 	if (m_linearScaledPlot->graphCount() < 1)
@@ -570,6 +573,8 @@ void dlg_DatasetComparator::visualize()
 	m_linearDataPointInfo->setLayer("cursor");
 	m_linearDataPointInfo->setVisible(true);
 	m_linearDataPointInfo->setColor(QColor(255, 128, 0));
+	m_linearDataPointInfo->setPositionAlignment(Qt::AlignLeft);
+	m_linearDataPointInfo->setTextAlignment(Qt::AlignLeft);
 
 	m_linearIdxLine = new QCPItemStraightLine(m_linearScaledPlot);
 	m_linearIdxLine->setVisible(true);
@@ -630,6 +635,8 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearDataPointInfo->setLayer("cursor");
 	m_nonlinearDataPointInfo->setVisible(true);
 	m_nonlinearDataPointInfo->setColor(QColor(255, 128, 0));
+	m_nonlinearDataPointInfo->setPositionAlignment(Qt::AlignLeft);
+	m_nonlinearDataPointInfo->setTextAlignment(Qt::AlignLeft);
 
 	m_nonlinearIdxLine = new QCPItemStraightLine(m_nonlinearScaledPlot);
 	m_nonlinearIdxLine->setVisible(true);
@@ -747,6 +754,58 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 			sectionStart = -1.0;
 		}
 	}
+}
+
+void dlg_DatasetComparator::generateSegmentTree()
+{
+	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+	{
+		std::vector<int> intensityVec;
+		int n = m_DatasetIntensityMap[i].second.size();
+		for (int j = 0; j < n; ++j)
+			intensityVec.push_back(m_DatasetIntensityMap[i].second[j].intensity);
+		iASegmentTree segmentTree(intensityVec, 8, 0, 65535);
+		// Test input
+		double res1 = segmentTree.avg_query(3, 11);
+		int res2 = segmentTree.min_query(3, 11);
+		int res3 = segmentTree.max_query(3, 11);
+		std::vector<int> res4 = segmentTree.hist_query(3, 11);
+		std::vector<int> res5 = segmentTree.hist_query(0, 320);
+		// Test input
+		segTreeList.append(segmentTree);
+		//qDebug() << (QString("tree %1 of %2 generated").arg(i).arg(m_DatasetIntensityMap.size()));
+	}
+
+	//// Test input
+	//int n = 16;
+	//std::vector<int> intensityVec;
+	//for (int i = 0; i < n; ++i)
+	//	intensityVec.push_back(i);
+	//iASegmentTree segmentTree(intensityVec, 8, 0, 15); // input: segmentTree(intensityVec, 16, 0, 15);
+	//double res1 = segmentTree.avg_query(3, 11);	// res =6.5	
+	//int res2 = segmentTree.min_query(3, 11); // res =3	
+	//int res3 = segmentTree.max_query(3, 11); // res =10	
+	//std::vector<int> res4 = segmentTree.hist_query(3, 11); // res ={0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0}	
+	
+	int pixelBinWidth = 5;
+	int pixelPlotWidth = m_linearScaledPlot->axisRect()->rect().width();
+	int binNumber = ceil(pixelPlotWidth / pixelBinWidth);	// TODO: check if correct
+	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / binNumber;
+	QVector<QCPRange> hIdxToHistogramBin;	// not necassary?
+
+	for (int i = 1; i <= binNumber; ++i)
+	{
+		// TODO: check the not a number issue
+		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (i - 1)*stepSize);
+		int lowerIdx = lower - m_nonlinearMappingVec.begin();
+		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), i*stepSize);
+		int upperIdx = upper - m_nonlinearMappingVec.begin();
+		hIdxToHistogramBin.push_back(QCPRange(lowerIdx, upperIdx));
+		//DEBUG_LOG(QString("bin %1, range %2-%3: ").arg(i).arg(lowerIdx).arg(upperIdx));
+		//for (int j = 0; j < segTreeList.size(); ++j)
+		//	DEBUG_LOG(QString("  dataset_%1: %2").arg(j).arg(segTreeList[j].avg_query(lowerIdx, upperIdx)));
+	}
+	// TODO: Paint graphs/histograms
 }
 
 void dlg_DatasetComparator::showBkgrdThrRanges()
@@ -962,7 +1021,7 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 		m_nonlinearIdxLine->point1->setCoords(x, 0.0);
 		m_nonlinearIdxLine->point2->setCoords(x, 1.0);
 		m_nonlinearDataPointInfo->position->setPixelPosition(
-			QPoint(e->pos().x() + 40, e->pos().y() - 15));
+			QPoint(e->pos().x() + 5, e->pos().y() - 15));
 
 		auto v = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), x);
 		int hilbertIdx = v - m_nonlinearMappingVec.begin() - 1;
@@ -970,13 +1029,13 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 
 		if (*minDist >= 0 && *minDist < 2.0 && plot->graph(idx)->visible())
 		{
-			m_nonlinearDataPointInfo->setText(QString("%1\n%2, %3")
+			m_nonlinearDataPointInfo->setText(QString("%1\nHilbertIdx: %2\nGrayValue: %3")
 				.arg(m_nonlinearScaledPlot->graph(idx)->name())
 				.arg(hilbertIdx).arg((int)y));
 		}
 		else
 		{
-			m_nonlinearDataPointInfo->setText(QString("%1, %2")
+			m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2")
 				.arg(hilbertIdx).arg((int)y));
 		}
 
@@ -990,9 +1049,9 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 		m_linearIdxLine->point1->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 0.0);
 		m_linearIdxLine->point2->setCoords(hilbertIdx + (currNonlinearDist / nonlinearVecPosDist), 1.0);
 		m_linearDataPointInfo->position->setPixelPosition(QPointF(m_linearScaledPlot->xAxis->coordToPixel(
-			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)) + 40,
+			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)) + 5,
 			m_linearScaledPlot->yAxis->coordToPixel(y) - 15));
-		m_linearDataPointInfo->setText(QString("%1, %2").arg(hilbertIdx).arg((int)y));
+		m_linearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(hilbertIdx).arg((int)y));
 
 		m_scalingWidget->setCursorPositions(m_linearScaledPlot->xAxis->coordToPixel(
 			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)), e->pos().x());
@@ -1001,18 +1060,18 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 	{
 		m_linearIdxLine->point1->setCoords(x, 0.0);
 		m_linearIdxLine->point2->setCoords(x, 1.0);
-		m_linearDataPointInfo->position->setPixelPosition(QPointF(e->pos().x() + 40, e->pos().y() - 15));
-		m_linearDataPointInfo->setText(QString("%1, %2").arg(int(x)).arg((int)y));
+		m_linearDataPointInfo->position->setPixelPosition(QPointF(e->pos().x() + 5, e->pos().y() - 15));
+		m_linearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(int(x)).arg((int)y));
 
 		if (*minDist >= 0 && *minDist < 2.0 && plot->graph(idx)->visible())
 		{
-			m_linearDataPointInfo->setText(QString("%1\n%2, %3")
+			m_linearDataPointInfo->setText(QString("%1\nHilbertIdx: %2\nGrayValue: %3")
 				.arg(m_linearScaledPlot->graph(idx)->name())
 				.arg(int(x)).arg((int)y));
 		}
 		else
 		{
-			m_nonlinearDataPointInfo->setText(QString("%1, %2")
+			m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2")
 				.arg(int(x)).arg((int)y));
 		}
 
@@ -1024,9 +1083,9 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 		m_nonlinearIdxLine->point2->setCoords(nonlinearXCoord, 1.0);
 		m_nonlinearDataPointInfo->position->setCoords(
 			m_nonlinearScaledPlot->xAxis->pixelToCoord(
-				m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord) + 40),
+				m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord) + 5),
 			m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y() - 15));
-		m_nonlinearDataPointInfo->setText(QString("%1, %2").arg(int(x)).arg((int)y));
+		m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(int(x)).arg((int)y));
 
 		m_scalingWidget->setCursorPositions(e->pos().x(), 
 			m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));

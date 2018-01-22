@@ -30,7 +30,7 @@ class iAVolumeRenderer;
 class iANonLinearAxisTicker;
 class iAScalingWidget;
 class iAOrientationWidget;
-
+class iASegmentTree;
 class vtkRenderWindow;
 class vtkTextActor;
 class vtkPoints;
@@ -98,6 +98,7 @@ private:
 	QList<QCPRange> m_bkgrdThrRangeList;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
+	QList<iASegmentTree> segTreeList;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
@@ -121,4 +122,5 @@ private:
 	void setupScalingWidget();
 	void setupPlotConnections();
 	void setSelectionForRenderer(QList<QCPGraph *> visSelGraphList);
+	void generateSegmentTree();
 };
