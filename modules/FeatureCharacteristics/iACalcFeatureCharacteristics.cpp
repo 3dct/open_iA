@@ -21,11 +21,10 @@
 #include "pch.h"
 #include "iACalcFeatureCharacteristics.h"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
+#include "iAMathUtility.h"    // for Pi
 #include "iATypedCallHelper.h"
 #include "iAProgressToQtSignal.h"
 
@@ -36,7 +35,7 @@
 
 #include <QLocale>
 
-template<class T> int calcFeatureCharacteristics_template( iAConnector *image, iAProgressToQtSignal & progress,  QString pathCSV, bool feretDiameter )
+template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgressToQtSignal & progress,  QString pathCSV, bool feretDiameter )
 {
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -178,8 +177,8 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 		a13 = cos( phi )*sin( theta )*cos( theta );
 		a23 = sin( phi )*sin( theta )*cos( theta );
 
-		phi = ( phi*180.0f ) / M_PI;
-		theta = ( theta*180.0f ) / M_PI;
+		phi = ( phi*180.0f ) / Pi;
+		theta = ( theta*180.0f ) / Pi;
 
 		// Locating the phi value to quadrant
 		if ( dx < 0 )
@@ -250,10 +249,9 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 			<< minorlength * spacing << ',' 	// unit = microns
 			<< '\n';
 
-		progress.emitProgress(round(labelValue * 100 / allLabels.size()));
+		progress.emitProgress(static_cast<int>(labelValue * 100 / allLabels.size()));
 	}
 	fout.close();
-	return EXIT_SUCCESS;
 }
 
 iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,

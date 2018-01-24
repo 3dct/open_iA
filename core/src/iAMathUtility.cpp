@@ -22,13 +22,9 @@
 
 #include <algorithm>
 
-#ifndef M_PI
-	#define M_PI 3.14159265358979323846
-#endif
-
 double gaussian(double x, double sigma)
 {
-	return 1 / std::sqrt(2 * M_PI*std::pow(sigma, 2.0)) *
+	return 1 / std::sqrt(2 * Pi*std::pow(sigma, 2.0)) *
 		std::exp(-std::pow(x, 2.0) / (2 * std::pow(sigma, 2.0)));
 }
 

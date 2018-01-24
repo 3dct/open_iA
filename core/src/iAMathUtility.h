@@ -23,8 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #include <cassert>
-#define _USE_MATH_DEFINES
-#include <cmath>
+
 #include <cstddef> // for size_t
 #include <vector>
 
@@ -39,6 +38,10 @@
 	#define isNaN(x) isnan(x)
 	#define isInf(x) isinf(x)
 #endif
+
+// define Pi, as an alternative to the not always available M_PI
+const double Pi = 3.14159265358979323846;
+const double PiHalf = Pi / 2;
 
 /**
  * make sure the given value is inside the given interval
