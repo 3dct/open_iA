@@ -96,7 +96,8 @@ private:
 	QSharedPointer<QCPGraphDataContainer> m_integralImpFuncPlotData;
 	QSharedPointer<iANonLinearAxisTicker> m_nonlinearTicker;
 	QList<QCPRange> m_bkgrdThrRangeList;
-	vtkSmartPointer<vtkLookupTable> m_lut;
+	vtkSmartPointer<vtkLookupTable> m_compLvlLUT;
+	vtkSmartPointer<vtkLookupTable> m_histLUT;
 	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
 	QList<iASegmentTree> segTreeList;
 

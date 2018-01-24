@@ -91,9 +91,9 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/,
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New()),
 	m_scalingWidget(0),
-	m_lut(vtkSmartPointer<vtkLookupTable>::New())
+	m_compLvlLUT(vtkSmartPointer<vtkLookupTable>::New()),
+	m_histLUT(vtkSmartPointer<vtkLookupTable>::New())
 {
-	
 	setupNonlinearScaledPlot();
 	setupScalingWidget();
 	setupLinearScaledPlot();
@@ -113,22 +113,39 @@ void dlg_DatasetComparator::setupGUIElements()
 	l_opacity->hide();
 	sl_fbpTransparency->hide();
 
-	QMap<double, QColor> colormap;
-	iAPerceptuallyUniformLUT::BuildLinearLUT(m_lut, 0.0, 1.0, 256);
+	QMap<double, QColor> compLvl_colormap;
+	iAPerceptuallyUniformLUT::BuildLinearLUT(m_compLvlLUT, 0.0, 1.0, 256);
 	for (double i = 0.0; i <= 1.0; i += 0.25)
 	{
 		double c[3];
-		m_lut->GetColor(1-i, c);
+		m_compLvlLUT->GetColor(1-i, c);
 		QColor color;
 		color.setRgbF(c[0], c[1], c[2]);
-		colormap.insert(i, color);
+		compLvl_colormap.insert(i, color);
 	}
-	iALinearColorGradientBar *colorBar = new iALinearColorGradientBar(this, colormap);
-	QVBoxLayout *lutLayoutHB = new QVBoxLayout(this);
-	lutLayoutHB->setMargin(0);
-	lutLayoutHB->addWidget(colorBar);
-	lutLayoutHB->update();
-	scalarBarWidget->setLayout(lutLayoutHB);
+	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this, compLvl_colormap);
+	QVBoxLayout *compLvl_lutLayoutHB = new QVBoxLayout(this);
+	compLvl_lutLayoutHB->setMargin(0);
+	compLvl_lutLayoutHB->addWidget(compLvl_colorBar);
+	compLvl_lutLayoutHB->update();
+	scalarBarWidget->setLayout(compLvl_lutLayoutHB);
+
+	QMap<double, QColor> hist_colormap;
+	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT(m_histLUT, 0.0, 1.0, 256, "Extended Black Body");
+	for (double i = 0.0; i <= 1.0; i += 1.0/7.0)
+	{
+		double c[3];
+		m_histLUT->GetColor(i, c);
+		QColor color;
+		color.setRgbF(c[0], c[1], c[2]);
+		hist_colormap.insert(i, color);
+	}
+	iALinearColorGradientBar *hist_colorBar = new iALinearColorGradientBar(this, hist_colormap);
+	QVBoxLayout *hist_lutLayoutHB = new QVBoxLayout(this);
+	hist_lutLayoutHB->setMargin(0);
+	hist_lutLayoutHB->addWidget(hist_colorBar);
+	hist_lutLayoutHB->update();
+	histBarWidget->setLayout(hist_lutLayoutHB);
 
 	m_orientationWidget = new iAOrientationWidget(this);
 	horizontalLayout_3->addWidget(m_orientationWidget);
@@ -597,6 +614,7 @@ void dlg_DatasetComparator::visualize()
 	for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
 		m_nonlinearScaledPlot->addGraph();
+		m_nonlinearScaledPlot->graph()->setVisible(false);
 		m_nonlinearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		m_nonlinearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
 			m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
@@ -758,54 +776,57 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 
 void dlg_DatasetComparator::generateSegmentTree()
 {
+	int histBinCnt = 32, lowerBnd = 0, upperBnd = 65535, plotBinWidth = 5,
+		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
+		plotBinNumber = ceil(plotWidth / plotBinWidth);
+	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / plotBinNumber;
+	double rgb[3]; QColor c;
+
+
 	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
 	{
 		std::vector<int> intensityVec;
-		int n = m_DatasetIntensityMap[i].second.size();
-		for (int j = 0; j < n; ++j)
+		for (int j = 0; j < m_DatasetIntensityMap[i].second.size(); ++j)
 			intensityVec.push_back(m_DatasetIntensityMap[i].second[j].intensity);
-		iASegmentTree segmentTree(intensityVec, 8, 0, 65535);
-		// Test input
-		double res1 = segmentTree.avg_query(3, 11);
-		int res2 = segmentTree.min_query(3, 11);
-		int res3 = segmentTree.max_query(3, 11);
-		std::vector<int> res4 = segmentTree.hist_query(3, 11);
-		std::vector<int> res5 = segmentTree.hist_query(0, 320);
-		// Test input
+		iASegmentTree segmentTree(intensityVec, histBinCnt, lowerBnd, upperBnd);
 		segTreeList.append(segmentTree);
-		//qDebug() << (QString("tree %1 of %2 generated").arg(i).arg(m_DatasetIntensityMap.size()));
 	}
 
-	//// Test input
-	//int n = 16;
-	//std::vector<int> intensityVec;
-	//for (int i = 0; i < n; ++i)
-	//	intensityVec.push_back(i);
-	//iASegmentTree segmentTree(intensityVec, 8, 0, 15); // input: segmentTree(intensityVec, 16, 0, 15);
-	//double res1 = segmentTree.avg_query(3, 11);	// res =6.5	
-	//int res2 = segmentTree.min_query(3, 11); // res =3	
-	//int res3 = segmentTree.max_query(3, 11); // res =10	
-	//std::vector<int> res4 = segmentTree.hist_query(3, 11); // res ={0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0}	
-	
-	int pixelBinWidth = 5;
-	int pixelPlotWidth = m_linearScaledPlot->axisRect()->rect().width();
-	int binNumber = ceil(pixelPlotWidth / pixelBinWidth);	// TODO: check if correct
-	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / binNumber;
-	QVector<QCPRange> hIdxToHistogramBin;	// not necassary?
-
-	for (int i = 1; i <= binNumber; ++i)
+	for (int i = 0; i < plotBinNumber; ++i)
 	{
-		// TODO: check the not a number issue
 		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (i - 1)*stepSize);
 		int lowerIdx = lower - m_nonlinearMappingVec.begin();
 		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), i*stepSize);
 		int upperIdx = upper - m_nonlinearMappingVec.begin();
-		hIdxToHistogramBin.push_back(QCPRange(lowerIdx, upperIdx));
-		//DEBUG_LOG(QString("bin %1, range %2-%3: ").arg(i).arg(lowerIdx).arg(upperIdx));
-		//for (int j = 0; j < segTreeList.size(); ++j)
-		//	DEBUG_LOG(QString("  dataset_%1: %2").arg(j).arg(segTreeList[j].avg_query(lowerIdx, upperIdx)));
+		std::vector<int> histVec(histBinCnt);
+	
+		for (int j = 0; j < histBinCnt; ++j)
+		{
+			int sum = 0;
+			for (int k = 0; k < segTreeList.size(); ++k)
+				sum += segTreeList[k].hist_query(lowerIdx, upperIdx)[j];
+			histVec[j] = sum;
+
+			QCPItemRect *histRectItem = new QCPItemRect(m_nonlinearScaledPlot);
+			histRectItem->setAntialiased(false);
+			histRectItem->setLayer("background");
+			histRectItem->setPen(QPen(Qt::NoPen));
+			m_histLUT->GetColor((double) histVec[j] / (upperIdx - lowerIdx + 1), rgb);
+			c.setRgbF(rgb[0], rgb[1], rgb[2]);
+			histRectItem->setBrush(QBrush(c));
+			histRectItem->topLeft->setTypeX(QCPItemPosition::ptPlotCoords);
+			histRectItem->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
+			histRectItem->topLeft->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
+			histRectItem->topLeft->setAxisRect(m_nonlinearScaledPlot->axisRect());
+			histRectItem->topLeft->setCoords(*lower, 1-((double)j / histBinCnt));
+			histRectItem->bottomRight->setTypeX(QCPItemPosition::ptPlotCoords);
+			histRectItem->bottomRight->setTypeY(QCPItemPosition::ptAxisRectRatio);
+			histRectItem->bottomRight->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
+			histRectItem->bottomRight->setAxisRect(m_nonlinearScaledPlot->axisRect());
+			histRectItem->bottomRight->setCoords(*upper, 1-((double)(j + 1) / histBinCnt));
+			histRectItem->setClipToAxisRect(true);
+		}
 	}
-	// TODO: Paint graphs/histograms
 }
 
 void dlg_DatasetComparator::showBkgrdThrRanges()
@@ -874,7 +895,7 @@ void dlg_DatasetComparator::showCompressionLevel()
 	double rgb[3];QColor c;
 	for (int hIdx = 1; hIdx < m_nonlinearMappingVec.size(); ++hIdx)
 	{
-		m_lut->GetColor(m_impFunctVec[hIdx], rgb);
+		m_compLvlLUT->GetColor(m_impFunctVec[hIdx], rgb);
 		c.setRgbF(rgb[0], rgb[1], rgb[2]);
 		QCPItemRect *nlRect = new QCPItemRect(m_nonlinearScaledPlot);
 		nlRect->setAntialiased(false);
