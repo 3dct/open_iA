@@ -31,6 +31,7 @@ class iASegmentTree
 //TODO: to unsigned int or other more general type?
 public:
 	iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd, int upperBnd);
+	~iASegmentTree();
 	vector<int> iASegmentTree::hist_query(int l, int r);
 	double avg_query(int l, int r);
 	int min_query(int l, int r);

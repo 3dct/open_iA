@@ -57,6 +57,10 @@ iASegmentTree::iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd,
 	max_build();
 }
 
+iASegmentTree::~iASegmentTree()
+{
+}
+
 void iASegmentTree::hist_build()
 {
 	for (int i = m_inputElemCnt - 1; i > 0; --i)

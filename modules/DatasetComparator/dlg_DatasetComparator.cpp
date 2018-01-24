@@ -165,6 +165,8 @@ void dlg_DatasetComparator::setupGUIConnections()
 	connect(pB_selectCompLevel, SIGNAL(clicked()), this, SLOT(selectCompLevel()));
 	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
 	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
+	connect(sb_histBinWidth, SIGNAL(valueChanged(int)), this, SLOT(visualize()));
+	connect(sb_subHistBinCnt, SIGNAL(valueChanged(int)), this, SLOT(visualize()));
 }
 
 void dlg_DatasetComparator::setupScalingWidget()
@@ -589,9 +591,11 @@ void dlg_DatasetComparator::visualize()
 	m_linearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
 	m_linearDataPointInfo->setLayer("cursor");
 	m_linearDataPointInfo->setVisible(true);
-	m_linearDataPointInfo->setColor(QColor(255, 128, 0));
+	m_linearDataPointInfo->setColor(QColor(0, 0, 0));
 	m_linearDataPointInfo->setPositionAlignment(Qt::AlignLeft);
 	m_linearDataPointInfo->setTextAlignment(Qt::AlignLeft);
+	m_linearDataPointInfo->setBrush(QColor(255, 255, 255, 180));
+	m_linearDataPointInfo->setPadding(QMargins(3, 1, 1, 1));
 
 	m_linearIdxLine = new QCPItemStraightLine(m_linearScaledPlot);
 	m_linearIdxLine->setVisible(true);
@@ -652,9 +656,11 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearDataPointInfo->setFont(QFont("Helvetica", 8, QFont::Bold));
 	m_nonlinearDataPointInfo->setLayer("cursor");
 	m_nonlinearDataPointInfo->setVisible(true);
-	m_nonlinearDataPointInfo->setColor(QColor(255, 128, 0));
+	m_nonlinearDataPointInfo->setColor(QColor(0, 0, 0));
 	m_nonlinearDataPointInfo->setPositionAlignment(Qt::AlignLeft);
 	m_nonlinearDataPointInfo->setTextAlignment(Qt::AlignLeft);
+	m_nonlinearDataPointInfo->setBrush(QColor(255, 255, 255, 180));
+	m_nonlinearDataPointInfo->setPadding(QMargins(3, 1, 1, 1));
 
 	m_nonlinearIdxLine = new QCPItemStraightLine(m_nonlinearScaledPlot);
 	m_nonlinearIdxLine->setVisible(true);
@@ -776,20 +782,22 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 
 void dlg_DatasetComparator::generateSegmentTree()
 {
-	int histBinCnt = 32, lowerBnd = 0, upperBnd = 65535, plotBinWidth = 5,
+	m_segmTreeList.clear();
+	int histBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535, 
+		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
 		plotBinNumber = ceil(plotWidth / plotBinWidth);
 	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / plotBinNumber;
 	double rgb[3]; QColor c;
 
-
+	// TODO only build segmtree in the beginning or if histBinCnt has changed
 	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
 	{
 		std::vector<int> intensityVec;
 		for (int j = 0; j < m_DatasetIntensityMap[i].second.size(); ++j)
 			intensityVec.push_back(m_DatasetIntensityMap[i].second[j].intensity);
-		iASegmentTree segmentTree(intensityVec, histBinCnt, lowerBnd, upperBnd);
-		segTreeList.append(segmentTree);
+		iASegmentTree *segmentTree = new iASegmentTree(intensityVec, histBinCnt, lowerBnd, upperBnd);
+		m_segmTreeList.append(segmentTree);
 	}
 
 	for (int i = 0; i < plotBinNumber; ++i)
@@ -803,8 +811,8 @@ void dlg_DatasetComparator::generateSegmentTree()
 		for (int j = 0; j < histBinCnt; ++j)
 		{
 			int sum = 0;
-			for (int k = 0; k < segTreeList.size(); ++k)
-				sum += segTreeList[k].hist_query(lowerIdx, upperIdx)[j];
+			for (int k = 0; k < m_segmTreeList.size(); ++k)
+				sum += m_segmTreeList[k]->hist_query(lowerIdx, upperIdx)[j];
 			histVec[j] = sum;
 
 			QCPItemRect *histRectItem = new QCPItemRect(m_nonlinearScaledPlot);

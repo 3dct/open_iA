@@ -99,7 +99,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_compLvlLUT;
 	vtkSmartPointer<vtkLookupTable> m_histLUT;
 	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
-	QList<iASegmentTree> segTreeList;
+	QList<iASegmentTree*> m_segmTreeList;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
