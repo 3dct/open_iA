@@ -94,7 +94,7 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 
 	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
 	typedef itk::LabelGeometryImageFilter<LongImageType> LabelGeometryImageFilterType;
-	LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
+	typename LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
 	labelGeometryImageFilter->SetInput( longImage );
 
 	// These generate optional outputs.
@@ -109,20 +109,20 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
 	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
 	typedef itk::LabelImageToShapeLabelMapFilter<LongImageType, LabelMapType> I2LType;
-	I2LType::Pointer i2l = I2LType::New();
+	typename I2LType::Pointer i2l = I2LType::New();
 	i2l->SetInput( longImage );
 	i2l->SetComputePerimeter( false );
 	i2l->SetComputeFeretDiameter( feretDiameter );
 	i2l->Update();
 
 	LabelMapType *labelMap = i2l->GetOutput();
-	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
-	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
+	typename LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
+	typename LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 
 	// Pore Characteristics calculation 
 	for ( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
 	{
-		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
+		typename LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
 		if ( labelValue == 0 )	// label 0 = backround
 			continue;
 

@@ -230,7 +230,7 @@ template<class T> int DataTypeConversion_template(QString const & m_filename, do
 			{
 				typename InputImageType::PixelType value = SliceIter.Get();
 				typename InputImageType::IndexType index = SliceIter.GetIndex();
-				TwoDInputImageType::PixelType xypix = xziter.Get() + value;
+				typename TwoDInputImageType::PixelType xypix = xziter.Get() + value;
 				xziter.Set(xypix);
 				++xziter;
 				++SliceIter;

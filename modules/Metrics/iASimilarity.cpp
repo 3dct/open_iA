@@ -46,7 +46,7 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	transform->SetIdentity();
 	auto interpolator = InterpolatorType::New();
 	interpolator->SetInputImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
-	TransformType::ParametersType params(transform->GetNumberOfParameters());
+	typename TransformType::ParametersType params(transform->GetNumberOfParameters());
 
 	double range = 0, imgMean = 0, imgVar = 0, refMean = 0, refVar = 0, mse = 0;
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool() ||
