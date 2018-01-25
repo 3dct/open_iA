@@ -72,6 +72,7 @@ public slots:
 	void syncYAxis(QCPRange);
 	void changePlotVisibility();
 	void selectCompLevel();
+	void setSubHistBinCntFlag();
 
 protected:
 	virtual bool eventFilter(QObject * obj, QEvent * event);
@@ -100,6 +101,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_histLUT;
 	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
 	QList<iASegmentTree*> m_segmTreeList;
+	bool m_subHistBinCntChanged;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;

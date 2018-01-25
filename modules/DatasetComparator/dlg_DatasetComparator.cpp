@@ -92,7 +92,8 @@ dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/,
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New()),
 	m_scalingWidget(0),
 	m_compLvlLUT(vtkSmartPointer<vtkLookupTable>::New()),
-	m_histLUT(vtkSmartPointer<vtkLookupTable>::New())
+	m_histLUT(vtkSmartPointer<vtkLookupTable>::New()),
+	m_subHistBinCntChanged(false)
 {
 	setupNonlinearScaledPlot();
 	setupScalingWidget();
@@ -166,7 +167,7 @@ void dlg_DatasetComparator::setupGUIConnections()
 	connect(m_linearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
 	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
 	connect(sb_histBinWidth, SIGNAL(valueChanged(int)), this, SLOT(visualize()));
-	connect(sb_subHistBinCnt, SIGNAL(valueChanged(int)), this, SLOT(visualize()));
+	connect(sb_subHistBinCnt, SIGNAL(valueChanged(int)), this, SLOT(setSubHistBinCntFlag()));
 }
 
 void dlg_DatasetComparator::setupScalingWidget()
@@ -782,8 +783,7 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 
 void dlg_DatasetComparator::generateSegmentTree()
 {
-	m_segmTreeList.clear();
-	int histBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535, 
+	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
 		plotBinNumber = ceil(plotWidth / plotBinWidth);
@@ -791,24 +791,29 @@ void dlg_DatasetComparator::generateSegmentTree()
 	double rgb[3]; QColor c;
 
 	// TODO only build segmtree in the beginning or if histBinCnt has changed
-	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+	if (m_segmTreeList.isEmpty() | m_subHistBinCntChanged)
 	{
-		std::vector<int> intensityVec;
-		for (int j = 0; j < m_DatasetIntensityMap[i].second.size(); ++j)
-			intensityVec.push_back(m_DatasetIntensityMap[i].second[j].intensity);
-		iASegmentTree *segmentTree = new iASegmentTree(intensityVec, histBinCnt, lowerBnd, upperBnd);
-		m_segmTreeList.append(segmentTree);
+		m_segmTreeList.clear();
+		m_subHistBinCntChanged = false;
+		for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+		{
+			std::vector<int> intensityVec;
+			for (int j = 0; j < m_DatasetIntensityMap[i].second.size(); ++j)
+				intensityVec.push_back(m_DatasetIntensityMap[i].second[j].intensity);
+			iASegmentTree *segmentTree = new iASegmentTree(intensityVec, subhistBinCnt, lowerBnd, upperBnd);
+			m_segmTreeList.append(segmentTree);
+		}
 	}
 
-	for (int i = 0; i < plotBinNumber; ++i)
+	for (int i = 1; i <= plotBinNumber; ++i)
 	{
 		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (i - 1)*stepSize);
 		int lowerIdx = lower - m_nonlinearMappingVec.begin();
 		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), i*stepSize);
 		int upperIdx = upper - m_nonlinearMappingVec.begin();
-		std::vector<int> histVec(histBinCnt);
+		std::vector<int> histVec(subhistBinCnt);
 	
-		for (int j = 0; j < histBinCnt; ++j)
+		for (int j = 0; j < subhistBinCnt; ++j)
 		{
 			int sum = 0;
 			for (int k = 0; k < m_segmTreeList.size(); ++k)
@@ -826,15 +831,21 @@ void dlg_DatasetComparator::generateSegmentTree()
 			histRectItem->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
 			histRectItem->topLeft->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
 			histRectItem->topLeft->setAxisRect(m_nonlinearScaledPlot->axisRect());
-			histRectItem->topLeft->setCoords(*lower, 1-((double)j / histBinCnt));
+			histRectItem->topLeft->setCoords(*lower, 1-((double)j / subhistBinCnt));
 			histRectItem->bottomRight->setTypeX(QCPItemPosition::ptPlotCoords);
 			histRectItem->bottomRight->setTypeY(QCPItemPosition::ptAxisRectRatio);
 			histRectItem->bottomRight->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
 			histRectItem->bottomRight->setAxisRect(m_nonlinearScaledPlot->axisRect());
-			histRectItem->bottomRight->setCoords(*upper, 1-((double)(j + 1) / histBinCnt));
+			histRectItem->bottomRight->setCoords(*upper, 1-((double)(j + 1) / subhistBinCnt));
 			histRectItem->setClipToAxisRect(true);
 		}
 	}
+}
+
+void dlg_DatasetComparator::setSubHistBinCntFlag()
+{
+	m_subHistBinCntChanged = true;
+	visualize();
 }
 
 void dlg_DatasetComparator::showBkgrdThrRanges()
