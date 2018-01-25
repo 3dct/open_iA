@@ -39,10 +39,10 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 		return;
 	}
 	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	double size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
+	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
 	double sumEqual = 0.0;
 #pragma omp parallel for reduction(+:sumEqual)
-	for (int i = 0; i < size; ++i)
+	for (long long i = 0; i < size; ++i)
 	{
 		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
 		{
