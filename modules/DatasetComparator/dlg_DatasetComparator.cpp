@@ -790,7 +790,6 @@ void dlg_DatasetComparator::generateSegmentTree()
 	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / plotBinNumber;
 	double rgb[3]; QColor c;
 
-	// TODO only build segmtree in the beginning or if histBinCnt has changed
 	if (m_segmTreeList.isEmpty() | m_subHistBinCntChanged)
 	{
 		m_segmTreeList.clear();
@@ -828,15 +827,15 @@ void dlg_DatasetComparator::generateSegmentTree()
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
 			histRectItem->setBrush(QBrush(c));
 			histRectItem->topLeft->setTypeX(QCPItemPosition::ptPlotCoords);
-			histRectItem->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
+			histRectItem->topLeft->setTypeY(QCPItemPosition::ptPlotCoords);
 			histRectItem->topLeft->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
 			histRectItem->topLeft->setAxisRect(m_nonlinearScaledPlot->axisRect());
-			histRectItem->topLeft->setCoords(*lower, 1-((double)j / subhistBinCnt));
+			histRectItem->topLeft->setCoords((i - 1)*stepSize, (((double)j / subhistBinCnt)) * upperBnd);
 			histRectItem->bottomRight->setTypeX(QCPItemPosition::ptPlotCoords);
-			histRectItem->bottomRight->setTypeY(QCPItemPosition::ptAxisRectRatio);
+			histRectItem->bottomRight->setTypeY(QCPItemPosition::ptPlotCoords);
 			histRectItem->bottomRight->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
 			histRectItem->bottomRight->setAxisRect(m_nonlinearScaledPlot->axisRect());
-			histRectItem->bottomRight->setCoords(*upper, 1-((double)(j + 1) / subhistBinCnt));
+			histRectItem->bottomRight->setCoords(i*stepSize, (((double)(j + 1) / subhistBinCnt))*upperBnd);
 			histRectItem->setClipToAxisRect(true);
 		}
 	}
