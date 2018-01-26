@@ -21,19 +21,31 @@
 #pragma once
 
 #include <QWidget>
+#include <QMap>
+
+#include <vtkSmartPointer.h>
+#include <vtkLookupTable.h>
 
 class iALinearColorGradientBar : public QWidget
 {
+	Q_OBJECT
 
 public:
-	iALinearColorGradientBar(QWidget *parent, QMap<double, QColor>);
+	iALinearColorGradientBar(QWidget *parent, QString colormapName, bool modifiable = false);
+	vtkSmartPointer<vtkLookupTable> getLut();
 
-	QSize minimumSizeHint() const override;
-	QSize sizeHint() const override;
+signals:
+	void colorMapChanged(vtkSmartPointer<vtkLookupTable> lut);
 
 protected:
+	QSize minimumSizeHint() const override;
+	QSize sizeHint() const override;
+	bool event(QEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent*) override;
 	void paintEvent(QPaintEvent *e) override;
 
 private:
 	QMap<double, QColor> m_colormap;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	bool m_modifiable;
 };

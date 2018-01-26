@@ -73,6 +73,7 @@ public slots:
 	void changePlotVisibility();
 	void selectCompLevel();
 	void setSubHistBinCntFlag();
+	void updateHistColorMap(vtkSmartPointer<vtkLookupTable> LUT);
 
 protected:
 	virtual bool eventFilter(QObject * obj, QEvent * event);

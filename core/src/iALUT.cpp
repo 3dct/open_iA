@@ -20,25 +20,33 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 
 #include <QColor>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
 
-const QStringList colorMaps = QStringList()\
+const QStringList colormaps = QStringList()\
 << "Diverging blue-gray-red"\
 << "Black Body"\
 << "Extended Black Body"\
-<< "Kindlmann";
+<< "Kindlmann"\
+<< "Kindlmann Extended"\
+<< "ColorBrewer single hue 5-class oranges"\
+<< "ColorBrewer single hue 5-class grays";
 
-void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, 
-	double * lutRange, int numCols /*= 256 */, QString colorMap /*= 0 */ )
+const QStringList& iALUT::GetColorMapNames()
+{
+	return colormaps;
+}
+
+int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, QString colorMap, int numCols /*= 256 */)
 {
 	auto ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToLab();
-	switch(colorMaps.indexOf(colorMap))
+	QColor c;
+	switch(colormaps.indexOf(colorMap))
 	{
 	case 0:
 		// Diverging blue-gray-red
@@ -48,7 +56,7 @@ void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkL
 		break;
 	
 	case 1:
-		// http://www.kennethmoreland.com/color-advice/ Black Body
+		// Black Body http://www.kennethmoreland.com/color-advice/ 
 		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 		ctf->AddRGBPoint(0.142857142857, 0.251720295995, 0.0884210421079, 0.0696046995283);
 		ctf->AddRGBPoint(0.285714285714, 0.493237985431, 0.12134447042, 0.108818616983);
@@ -60,7 +68,7 @@ void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkL
 		break;
 
 	case 2:
-		// http://www.kennethmoreland.com/color-advice/ Extended Black Body
+		// Extended Black Body http://www.kennethmoreland.com/color-advice/ 
 		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 		ctf->AddRGBPoint(0.142857142857, 0.169638222229, 0.0586571629275, 0.420432193125);
 		ctf->AddRGBPoint(0.285714285714, 0.363946896841, 0.0, 0.784994035048);
@@ -72,7 +80,7 @@ void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkL
 		break;
 
 	case 3:
-		// http://www.kennethmoreland.com/color-advice/ Kindlmann
+		// Kindlmann http://www.kennethmoreland.com/color-advice/ 
 		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 		ctf->AddRGBPoint(0.142857142857, 0.2058836328, 0.0200081348995, 0.419451331093);
 		ctf->AddRGBPoint(0.285714285714, 0.0335272327849, 0.22111999029, 0.703052629353);
@@ -81,6 +89,36 @@ void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkL
 		ctf->AddRGBPoint(0.714285714286, 0.395075620074, 0.771599170072, 0.0373892404385);
 		ctf->AddRGBPoint(0.857142857143, 0.976621102575, 0.813785197546, 0.509571446188);
 		ctf->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
+		break;
+
+	case 4:
+		// Kindlmann Extended http://www.kennethmoreland.com/color-advice/ 
+		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+		ctf->AddRGBPoint(0.142857142857, 0.165244050347, 0.0224832200874, 0.47021606479);
+		ctf->AddRGBPoint(0.285714285714, 0.0147354562034, 0.305005386829, 0.208719146502);
+		ctf->AddRGBPoint(0.428571428571, 0.154492186368, 0.456128474882, 0.0218404104551);
+		ctf->AddRGBPoint(0.571428571429, 0.866948968961, 0.388363362964, 0.0413685026023);
+		ctf->AddRGBPoint(0.714285714286, 0.978023338129, 0.539236804307, 0.792434027154);
+		ctf->AddRGBPoint(0.857142857143, 0.898924549826, 0.805934065795, 0.990584977084);
+		ctf->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
+		break;
+
+	case 5:
+		// ColorBrewer single hue 5-class oranges
+		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(254, 237, 222); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+		break;
+
+	case 6:
+		// ColorBrewer single hue 5-class grays
+		c.setRgb(37, 37, 37);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(99, 99, 99);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(150, 150, 150); ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(204, 204, 204); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(247, 247, 247); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
 		break;
 	}
 	pLUT->SetRange( lutRange );
@@ -93,46 +131,11 @@ void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkL
 		pLUT->SetTableValue( i, rgb[0], rgb[1], rgb[2] );
 	}
 	pLUT->Build();
+	return ctf->GetSize();
 }
 
-void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols /*= 256 */, QString colorMap /*= Diverging blue-gray-red */)
+int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols /*= 256 */)
 {
 	double lutRange[2] = { rangeFrom, rangeTo };
-	BuildPerceptuallyUniformLUT( pLUT, lutRange, numCols, colorMap );
-}
-
-void iAPerceptuallyUniformLUT::BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double* lutRange, int numCols /*= 256 */)
-{
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
-	ctf->SetColorSpaceToLab();
-	//// ColorBrewer Single hue 5-class Oranges
-	//QColor c(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-	//c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-	//c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
-	//c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-	//c.setRgb(254, 237, 222); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-
-	// ColorBrewer Single hue 5-class Grays
-	QColor c(37, 37, 37);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-	c.setRgb(99, 99, 99);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-	c.setRgb(150, 150, 150); ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
-	c.setRgb(204, 204, 204); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-	c.setRgb(247, 247, 247); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-
-	pLUT->SetRange(lutRange);
-	pLUT->SetTableRange(lutRange);
-	pLUT->SetNumberOfColors(numCols);
-	for (int i = 0; i < numCols; ++i)
-	{
-		double rgb[3];
-		ctf->GetColor((double)i / numCols, rgb);
-		pLUT->SetTableValue(i, rgb[0], rgb[1], rgb[2]);
-	}
-	pLUT->Build();
-}
-
-void iAPerceptuallyUniformLUT::BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols /*= 256 */)
-{
-	double lutRange[2] = { rangeFrom, rangeTo };
-	BuildLinearLUT(pLUT, lutRange, numCols);
+	return BuildLUT( pLUT, lutRange, colorMap, numCols);
 }

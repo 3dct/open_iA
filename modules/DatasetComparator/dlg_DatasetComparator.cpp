@@ -32,7 +32,7 @@
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 #include "iAScalingWidget.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 #include "iALinearColorGradientBar.h"
 #include "iAOrientationWidget.h"
 #include "iASegmentTree.h"
@@ -81,9 +81,9 @@ void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	r->GetActors2D()->GetLastActor2D()->SetPosition(r_centerX, r_centerY);
 }
 
-dlg_DatasetComparator::dlg_DatasetComparator( QWidget * parent /*= 0*/,
-	QDir datasetsDir, Qt::WindowFlags f /*= 0 */ )
-	: DatasetComparatorConnector( parent, f ), 
+dlg_DatasetComparator::dlg_DatasetComparator(QWidget * parent /*= 0*/,
+	QDir datasetsDir, Qt::WindowFlags f /*= 0 */)
+	: DatasetComparatorConnector(parent, f),
 	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir),
 	m_MultiRendererView(new multi3DRendererView()),
@@ -114,44 +114,36 @@ void dlg_DatasetComparator::setupGUIElements()
 	l_opacity->hide();
 	sl_fbpTransparency->hide();
 
-	QMap<double, QColor> compLvl_colormap;
-	iAPerceptuallyUniformLUT::BuildLinearLUT(m_compLvlLUT, 0.0, 1.0, 256);
-	for (double i = 0.0; i <= 1.0; i += 0.25)
-	{
-		double c[3];
-		m_compLvlLUT->GetColor(1-i, c);
-		QColor color;
-		color.setRgbF(c[0], c[1], c[2]);
-		compLvl_colormap.insert(i, color);
-	}
-	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this, compLvl_colormap);
+	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this, 
+		"ColorBrewer single hue 5-class grays");
+	m_compLvlLUT = compLvl_colorBar->getLut();
 	QVBoxLayout *compLvl_lutLayoutHB = new QVBoxLayout(this);
 	compLvl_lutLayoutHB->setMargin(0);
 	compLvl_lutLayoutHB->addWidget(compLvl_colorBar);
 	compLvl_lutLayoutHB->update();
 	scalarBarWidget->setLayout(compLvl_lutLayoutHB);
 
-	QMap<double, QColor> hist_colormap;
-	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT(m_histLUT, 0.0, 1.0, 256, "Extended Black Body");
-	for (double i = 0.0; i <= 1.0; i += 1.0/7.0)
-	{
-		double c[3];
-		m_histLUT->GetColor(i, c);
-		QColor color;
-		color.setRgbF(c[0], c[1], c[2]);
-		hist_colormap.insert(i, color);
-	}
-	iALinearColorGradientBar *hist_colorBar = new iALinearColorGradientBar(this, hist_colormap);
+	iALinearColorGradientBar *hist_colorBar = new iALinearColorGradientBar(this, 
+		"Extended Black Body", true);
+	m_histLUT = hist_colorBar->getLut();
+	connect(hist_colorBar, SIGNAL(colorMapChanged(vtkSmartPointer<vtkLookupTable>)),
+		this, SLOT(updateHistColorMap(vtkSmartPointer<vtkLookupTable>)));
 	QVBoxLayout *hist_lutLayoutHB = new QVBoxLayout(this);
 	hist_lutLayoutHB->setMargin(0);
 	hist_lutLayoutHB->addWidget(hist_colorBar);
 	hist_lutLayoutHB->update();
 	histBarWidget->setLayout(hist_lutLayoutHB);
-
+	
 	m_orientationWidget = new iAOrientationWidget(this);
 	horizontalLayout_3->addWidget(m_orientationWidget);
 	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
+}
+
+void dlg_DatasetComparator::updateHistColorMap(vtkSmartPointer<vtkLookupTable> lut)
+{
+	m_histLUT = lut;
+	visualize();
 }
 
 void dlg_DatasetComparator::setupGUIConnections()
@@ -569,6 +561,7 @@ void dlg_DatasetComparator::visualize()
 		for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 		{
 			m_linearScaledPlot->addGraph();
+			m_linearScaledPlot->graph()->setVisible(false);
 			m_linearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 			m_linearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
 				m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
@@ -783,6 +776,7 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 
 void dlg_DatasetComparator::generateSegmentTree()
 {
+	// TODO: nach BkgdRanges zeichnen + nur die Histogramme ohne die BkgdRanes zeichnen 	
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
@@ -806,37 +800,50 @@ void dlg_DatasetComparator::generateSegmentTree()
 
 	for (int i = 1; i <= plotBinNumber; ++i)
 	{
+		// TODO: check lower und upper indices -> wegen segmentree Range da diese ja so defineirt is [x, y)
 		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (i - 1)*stepSize);
 		int lowerIdx = lower - m_nonlinearMappingVec.begin();
 		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), i*stepSize);
 		int upperIdx = upper - m_nonlinearMappingVec.begin();
-		std::vector<int> histVec(subhistBinCnt);
+		std::vector<int> nonlinear_histVec(subhistBinCnt);
+		int linearLowerIdx = ceil((i - 1)*((m_nonlinearMappingVec.size() - 1) / plotBinNumber));
+		int linearUpperIdx = ceil(i*((m_nonlinearMappingVec.size() - 1) / plotBinNumber));
+		std::vector<int> linear_histVec(subhistBinCnt);
 	
 		for (int j = 0; j < subhistBinCnt; ++j)
 		{
-			int sum = 0;
+			unsigned int nonlinear_sum = 0, linear_sum = 0;
 			for (int k = 0; k < m_segmTreeList.size(); ++k)
-				sum += m_segmTreeList[k]->hist_query(lowerIdx, upperIdx)[j];
-			histVec[j] = sum;
+			{
+				nonlinear_sum += m_segmTreeList[k]->hist_query(lowerIdx, upperIdx)[j];
+				linear_sum += m_segmTreeList[k]->hist_query(linearLowerIdx, linearUpperIdx)[j];
+			}
+			nonlinear_histVec[j] = nonlinear_sum;
+			linear_histVec[j] = linear_sum;
 
-			QCPItemRect *histRectItem = new QCPItemRect(m_nonlinearScaledPlot);
-			histRectItem->setAntialiased(false);
-			histRectItem->setLayer("background");
-			histRectItem->setPen(QPen(Qt::NoPen));
-			m_histLUT->GetColor((double) histVec[j] / (upperIdx - lowerIdx + 1), rgb);
+			QCPItemRect *nonlin_histRectItem = new QCPItemRect(m_nonlinearScaledPlot);
+			nonlin_histRectItem->setAntialiased(false);
+			nonlin_histRectItem->setLayer("background");
+			nonlin_histRectItem->setPen(QPen(Qt::NoPen));
+			// TODO: Problem bei 256 subhistBinCnt Farbverlauf schlecht sichtbar -> auf anderen 
+			// max wert (Lokales Histogrammmmaximum) skalieren + andere diverging Color Bar 
+			m_histLUT->GetColor((double)nonlinear_histVec[j] / (upperIdx - lowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
-			histRectItem->setBrush(QBrush(c));
-			histRectItem->topLeft->setTypeX(QCPItemPosition::ptPlotCoords);
-			histRectItem->topLeft->setTypeY(QCPItemPosition::ptPlotCoords);
-			histRectItem->topLeft->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
-			histRectItem->topLeft->setAxisRect(m_nonlinearScaledPlot->axisRect());
-			histRectItem->topLeft->setCoords((i - 1)*stepSize, (((double)j / subhistBinCnt)) * upperBnd);
-			histRectItem->bottomRight->setTypeX(QCPItemPosition::ptPlotCoords);
-			histRectItem->bottomRight->setTypeY(QCPItemPosition::ptPlotCoords);
-			histRectItem->bottomRight->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
-			histRectItem->bottomRight->setAxisRect(m_nonlinearScaledPlot->axisRect());
-			histRectItem->bottomRight->setCoords(i*stepSize, (((double)(j + 1) / subhistBinCnt))*upperBnd);
-			histRectItem->setClipToAxisRect(true);
+			nonlin_histRectItem->setBrush(QBrush(c));
+			nonlin_histRectItem->topLeft->setCoords((i - 1)*stepSize, (((double)j / subhistBinCnt)) * upperBnd);
+			nonlin_histRectItem->bottomRight->setCoords(i*stepSize, (((double)(j + 1) / subhistBinCnt))*upperBnd);
+			nonlin_histRectItem->setClipToAxisRect(true);
+
+			QCPItemRect *linear_histRectItem = new QCPItemRect(m_linearScaledPlot);
+			m_histLUT->GetColor((double)linear_histVec[j] / (linearUpperIdx - linearLowerIdx + 1), rgb);
+			c.setRgbF(rgb[0], rgb[1], rgb[2]);
+			linear_histRectItem->setBrush(c);
+			linear_histRectItem->setAntialiased(false);
+			linear_histRectItem->setLayer("background");
+			linear_histRectItem->setPen(QPen(Qt::NoPen));
+			linear_histRectItem->topLeft->setCoords(linearLowerIdx, (((double)j / subhistBinCnt)) * upperBnd);
+			linear_histRectItem->bottomRight->setCoords(linearUpperIdx, (((double)(j + 1) / subhistBinCnt))*upperBnd);
+			linear_histRectItem->setClipToAxisRect(true);
 		}
 	}
 }

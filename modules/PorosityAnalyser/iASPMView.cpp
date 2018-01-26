@@ -26,7 +26,7 @@
 #include "PorosityAnalyserHelpers.h"
 #include "iASelection.h"
 #include "iASPMSettings.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 #include "iAPAQSplom.h"
 
 #include <QVTKWidget.h>
@@ -196,7 +196,7 @@ void iASPMView::SetParameterToColorcode( const QString & paramName )
 void iASPMView::UpdateLookupTable()
 {
 	double lutRange[2] = { m_SPMSettings->sbMin->value(), m_SPMSettings->sbMax->value() };
-	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( m_lut, lutRange, 256 );
+	iALUT::BuildLUT( m_lut, lutRange, "Diverging blue - gray - red" );
 	UpdateLUTOpacity();
 	ApplyLookupTable();
 }

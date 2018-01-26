@@ -28,11 +28,9 @@
 
 class vtkLookupTable;
 
-namespace iAPerceptuallyUniformLUT
+namespace iALUT
 {
-	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols = 256, QString colorMap = "Diverging blue-gray-red" );
-	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols = 256, QString colorMap = "Diverging blue-gray-red");
-
-	void open_iA_Core_API BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols = 256);
-	void open_iA_Core_API BuildLinearLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols = 256);
+	open_iA_Core_API const QStringList&  GetColorMapNames();
+	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, QString colorMap, int numCols = 256 );
+	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
 }

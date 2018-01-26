@@ -20,7 +20,7 @@
 * ************************************************************************************/
 
 #include "iAScalingWidget.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 
 #include <vtkLookupTable.h>
 
@@ -70,7 +70,7 @@ void iAScalingWidget::setNonlinearScalingVector(QVector<double> nlsv, QVector<do
 {
 	m_nonlinearScalingVec = nlsv;
 	m_impFunctVec = impfv;
-	iAPerceptuallyUniformLUT::BuildLinearLUT(m_lut, 0.0, 1.0, 256);
+	iALUT::BuildLUT(m_lut, 0.0, 1.0, "ColorBrewer single hue 5-class grays");
 }
 
 void iAScalingWidget::setCursorPositions(double lcp, double nlcp)
