@@ -23,7 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #include <cassert>
-
+#include <cmath>   // for ceil/floor
 #include <cstddef> // for size_t
 #include <vector>
 
