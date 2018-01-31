@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1479</width>
-    <height>368</height>
+    <width>279</width>
+    <height>80</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
   </property>
   <property name="features">
    <set>QDockWidget::DockWidgetFeatureMask</set>
@@ -63,7 +57,7 @@
        <property name="handleWidth">
         <number>2</number>
        </property>
-       <widget class="QWidget" name="layoutWidget">
+       <widget class="QWidget" name="layoutWidget" native="true">
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
           <layout class="QGridLayout" name="ClassLayout">
@@ -116,18 +110,6 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -176,18 +158,6 @@
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
               </property>
               <property name="font">
                <font>
@@ -241,18 +211,6 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
@@ -304,18 +262,6 @@
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
               </property>
               <property name="font">
                <font>
@@ -433,7 +379,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="layoutWidget_2">
+      <widget class="QWidget" name="layoutWidget_2" native="true">
        <layout class="QGridLayout" name="ElementLayout">
         <property name="horizontalSpacing">
          <number>20</number>
