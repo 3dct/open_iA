@@ -21,11 +21,10 @@
 #include "pch.h"
 #include "iACalcFeatureCharacteristics.h"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
+#include "iAMathUtility.h"    // for Pi
 #include "iATypedCallHelper.h"
 #include "iAProgressToQtSignal.h"
 
@@ -36,7 +35,7 @@
 
 #include <QLocale>
 
-template<class T> int calcFeatureCharacteristics_template( iAConnector *image, iAProgressToQtSignal & progress,  QString pathCSV, bool feretDiameter )
+template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgressToQtSignal & progress,  QString pathCSV, bool feretDiameter )
 {
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -94,7 +93,7 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 
 	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
 	typedef itk::LabelGeometryImageFilter<LongImageType> LabelGeometryImageFilterType;
-	LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
+	typename LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
 	labelGeometryImageFilter->SetInput( longImage );
 
 	// These generate optional outputs.
@@ -109,20 +108,20 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
 	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
 	typedef itk::LabelImageToShapeLabelMapFilter<LongImageType, LabelMapType> I2LType;
-	I2LType::Pointer i2l = I2LType::New();
+	typename I2LType::Pointer i2l = I2LType::New();
 	i2l->SetInput( longImage );
 	i2l->SetComputePerimeter( false );
 	i2l->SetComputeFeretDiameter( feretDiameter );
 	i2l->Update();
 
 	LabelMapType *labelMap = i2l->GetOutput();
-	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
-	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
+	typename LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
+	typename LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
 
 	// Pore Characteristics calculation 
 	for ( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
 	{
-		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
+		typename LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
 		if ( labelValue == 0 )	// label 0 = backround
 			continue;
 
@@ -178,8 +177,8 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 		a13 = cos( phi )*sin( theta )*cos( theta );
 		a23 = sin( phi )*sin( theta )*cos( theta );
 
-		phi = ( phi*180.0f ) / M_PI;
-		theta = ( theta*180.0f ) / M_PI;
+		phi = ( phi*180.0f ) / Pi;
+		theta = ( theta*180.0f ) / Pi;
 
 		// Locating the phi value to quadrant
 		if ( dx < 0 )
@@ -250,10 +249,9 @@ template<class T> int calcFeatureCharacteristics_template( iAConnector *image, i
 			<< minorlength * spacing << ',' 	// unit = microns
 			<< '\n';
 
-		progress.emitProgress(round(labelValue * 100 / allLabels.size()));
+		progress.emitProgress(static_cast<int>(labelValue * 100 / allLabels.size()));
 	}
 	fout.close();
-	return EXIT_SUCCESS;
 }
 
 iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,

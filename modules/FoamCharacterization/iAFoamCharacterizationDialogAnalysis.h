@@ -31,11 +31,6 @@ class iAFoamCharacterizationTableAnalysis;
 class iAFoamCharacterizationDialogAnalysis : public QDialog
 {
 		Q_OBJECT
-
-	#ifndef M_PI
-	#define M_PI 3.14159265359
-	#endif
-
 	public:
 		explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
 

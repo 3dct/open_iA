@@ -22,7 +22,6 @@
 
 #include "iADockWidgetWrapper.h"
 
-#include "dlg_imageproperty.h"
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "iAQTtoUIConnector.h"
@@ -84,7 +83,11 @@ struct moData
 /**
 * \brief	implement vtkChartParallelCoordinates as dialog
 */
+<<<<<<< HEAD:modules/FeatureScout/dlg_FeatureScout.h
 class dlg_FeatureScout : public QDockWidget, private Ui_FeatureScoutCE
+=======
+class dlg_FiberScout : public QDockWidget, public Ui_FiberScoutCE
+>>>>>>> develop:modules/FiberScout/dlg_FiberScout.h
 {
 	Q_OBJECT
 
@@ -193,7 +196,6 @@ private:
 	vtkColorTransferFunction *cTF;
 
 	// private members
-	int	width, height;
 	int elementNr;		// Number of elements in csv inputTable
 	int objectNr;		// Number of objects in the specimen
 	iAObjectAnalysisType filterID;

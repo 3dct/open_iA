@@ -22,10 +22,8 @@
 #include "pch.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAConsole.h"
+#include "iAMathUtility.h"    // for Pi
 
-// std
-#define _USE_MATH_DEFINES
-#include <cmath>
 // vtk
 #include <QVTKInteractor.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -108,7 +106,7 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 
 inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 {
-	return -1. / std::tan( viewAngle * M_PI / 180. );
+	return -1. / std::tan( viewAngle * Pi / 180. );
 }
 
 void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )

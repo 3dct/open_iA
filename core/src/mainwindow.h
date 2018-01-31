@@ -160,7 +160,7 @@ private slots:
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
-
+	void ToggleToolbar();
 public slots:
 	void saveLayout();
 	void loadLayout();

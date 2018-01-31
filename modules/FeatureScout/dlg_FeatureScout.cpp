@@ -24,6 +24,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_editPCClass.h"
 #include "dlg_FeatureScout.h"
+#include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
 #include "charts/iADiagramFctWidget.h"
 #include "charts/iAQSplom.h"
@@ -195,8 +196,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	sourcePath( parent->currentFile() )
 {
 	setupUi( this );
-	this->width = this->geometry().width();
-	this->height = this->geometry().height();
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;

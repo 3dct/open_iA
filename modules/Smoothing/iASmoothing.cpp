@@ -46,7 +46,7 @@ template<class T> void medianFilter(QMap<QString, QVariant> const & params, iAPr
 	typedef itk::MedianImageFilter<RealImageType, RealImageType > FilterType;
 	auto realImage = CastImageTo<RealType>(image->GetITKImage());
 	auto filter = FilterType::New();
-	FilterType::InputSizeType indexRadius;
+	typename FilterType::InputSizeType indexRadius;
 	indexRadius[0] = params["Kernel radius X"].toDouble();
 	indexRadius[1] = params["Kernel radius Y"].toDouble();
 	indexRadius[2] = params["Kernel radius Z"].toDouble();
@@ -157,7 +157,7 @@ void discreteGaussian(QMap<QString, QVariant> const & params, iAProgress* p, iAC
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::DiscreteGaussianImageFilter<RealImageType, RealImageType > DGIFType;
 	auto realImage = CastImageTo<RealType>(dynamic_cast<InputImageType *>(image->GetITKImage()));
-	DGIFType::Pointer filter = DGIFType::New();
+	typename DGIFType::Pointer filter = DGIFType::New();
 	filter->SetVariance(params["Variance"].toDouble());
 	filter->SetMaximumError(params["Maximum error"].toDouble());
 	filter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));

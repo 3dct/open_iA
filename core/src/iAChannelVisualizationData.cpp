@@ -53,7 +53,9 @@ iAChannelSlicerData::iAChannelSlicerData():
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	cFilter( vtkSmartPointer<vtkMarchingContourFilter>::New() ),
 	cMapper( vtkSmartPointer<vtkPolyDataMapper>::New() ),
-	cActor( vtkSmartPointer<vtkActor>::New() )
+	cActor( vtkSmartPointer<vtkActor>::New() ),
+	m_ctf(nullptr),
+	m_otf(nullptr)
 {}
 
 
