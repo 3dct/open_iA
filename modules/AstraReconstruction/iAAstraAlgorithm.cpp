@@ -184,7 +184,7 @@ namespace
 			for (size_t y = 0; y < dim[1]; ++y)
 			{
 #pragma omp parallel for
-				for (size_t x = 0; x < dim[0]; ++x)
+				for (long long x = 0; x < dim[0]; ++x)
 
 				{
 					size_t outIdx = y + ((x + z * dim[0]) * dim[1]);
@@ -358,7 +358,7 @@ void iAASTRAForwardProject::PerformWork(QMap<QString, QVariant> const & paramete
 			size_t startIdx = ((y * projDim[2]) + (projAngleCount - z - 1)) * projDim[0];
 			astra::float32* row = &(projData[startIdx]);
 #pragma omp parallel for
-			for (size_t x = 0; x < projDim[0]; ++x)
+			for (long long x = 0; x < projDim[0]; ++x)
 			{
 				projImgBuf[imgIndex + x] = row[detectorColCnt - x - 1];
 			}
@@ -418,8 +418,9 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 		for (idx[1] = 0; idx[1] < dim[1]; ++idx[1])
 		{
 #pragma omp parallel for
-			for (idx[0] = 0; idx[0] < dim[0]; ++idx[0])
+			for (long long x = 0; x < dim[0]; ++x)
 			{
+				idx[0] = x;
 				int detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
 				int detRow    = idx[detRowDimIdx];     if (detRowDim >= 3)    { detRow    = dim[detRowDimIdx]    - detRow    - 1; }
 				int projAngle = idx[projAngleDimIdx];  if (projAngleDim >= 3) { projAngle = dim[projAngleDimIdx] - projAngle - 1; }
@@ -523,8 +524,8 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 	{
 		for (size_t y = 0; y < volDim[1]; ++y)
 		{
-			#pragma omp parallel for
-			for (size_t x = 0; x < volDim[0]; ++x)
+#pragma omp parallel for
+			for (long long x = 0; x < volDim[0]; ++x)
 			{
 				volImgBuf[imgIndex + x] = slice[x*volDim[1] + y];
 			}
