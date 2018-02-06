@@ -24,6 +24,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_editPCClass.h"
 #include "dlg_FiberScout.h"
+#include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
 #include "iAmat4.h"
 #include "iABlobCluster.h"
@@ -189,8 +190,6 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkR
 	sourcePath( parent->currentFile() )
 {
 	setupUi( this );
-	this->width = this->geometry().width();
-	this->height = this->geometry().height();
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;

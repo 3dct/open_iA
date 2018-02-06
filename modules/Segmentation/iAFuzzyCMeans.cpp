@@ -239,7 +239,7 @@ void kfcm_template(QVector<iAConnector*> & cons, unsigned int maxIter, double ma
 	kernelDistancePtr->SetB(1.0);		// make a parameter?
 	kernelDistancePtr->SetSigma(sigma);
 	classifier->SetKernelDistanceMetric(static_cast<KernelDistMetricPtr>(kernelDistancePtr));
-	StructuringElementType::RadiusType elementRadius;
+	typename StructuringElementType::RadiusType elementRadius;
 	for (int i = 0; i < DIM; i++)
 	{
 		elementRadius[i] = seRadius[i];

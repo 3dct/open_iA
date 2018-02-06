@@ -23,6 +23,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 
 #include <itkGPUImage.h>
@@ -33,7 +34,7 @@
 
 
 template<class T>
-void GPU_gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const & parameters,
+void GPU_gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const & params,
 	iAProgress* p, iAConnector* image)
 {
 	// register object factory for GPU image and filter
@@ -45,13 +46,16 @@ void GPU_gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const &
 	typedef itk::GPUGradientAnisotropicDiffusionImageFilter< InputImageType, RealImageType > GGADIFType;
 
 	auto filter = GGADIFType::New();
-	filter->SetNumberOfIterations(parameters["Number of Iterations"].toUInt());
-	filter->SetTimeStep(parameters["Time Step"].toDouble());
-	filter->SetConductanceParameter(parameters["Conductance"].toDouble());
+	filter->SetNumberOfIterations(params["Number of iterations"].toUInt());
+	filter->SetTimeStep(params["Time Step"].toDouble());
+	filter->SetConductanceParameter(params["Conductance"].toDouble());
 	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
 	p->Observe(filter);
 	filter->Update();
-	image->SetImage(filter->GetOutput());
+	if (params["Convert back to input type"].toBool())
+		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+	else
+		image->SetImage(filter->GetOutput());
 	image->Modified();
 	filter->ReleaseDataFlagOn();
 }
@@ -71,7 +75,8 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GPUGradientAnisotropicDiffusionImageFilter.html\">"
 		"GPU Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
 {
-	AddParameter("Number of Iterations", Discrete, 100, 1);
-	AddParameter("Time Step", Continuous, 0.0625);
+	AddParameter("Number of iterations", Discrete, 100, 1);
+	AddParameter("Time step", Continuous, 0.0625);
 	AddParameter("Conductance", Continuous, 1);
+	AddParameter("Convert back to input type", Boolean, false);
 }

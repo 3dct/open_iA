@@ -21,6 +21,7 @@
  
 #include "pch.h"
 #include "iACalculatePoreProperties.h"
+#include "iAMathUtility.h"    // for Pi
 
 #include "iACSVToQTableWidgetConverter.h"
 #include "io/iAITKIO.h"
@@ -36,10 +37,6 @@
 #include <QTableWidget>
 #include <QDebug>
 #include <QSettings>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
@@ -277,8 +274,8 @@ void iACalculatePorePropertiesThread::run()
 				a13 = cos( phi )*sin( theta )*cos( theta );
 				a23 = sin( phi )*sin( theta )*cos( theta );
 
-				phi = ( phi*180.0f ) / M_PI;
-				theta = ( theta*180.0f ) / M_PI;
+				phi = ( phi*180.0f ) / Pi;
+				theta = ( theta*180.0f ) / Pi;
 
 				// Locating the phi value to quadrant
 				if ( dx < 0 )

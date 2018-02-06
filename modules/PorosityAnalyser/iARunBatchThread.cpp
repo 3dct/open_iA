@@ -229,7 +229,7 @@ void computeMorphWatershed( ImagePointer & image, RunInfo & results, float level
 
 	// Morphological Watershed
 	typedef itk::MorphologicalWatershedImageFilter<GradientImageType, LabelImageType> MorphologicalWatershedFilterType;
-	MorphologicalWatershedFilterType::Pointer mWSFilter = MorphologicalWatershedFilterType::New();
+	typename MorphologicalWatershedFilterType::Pointer mWSFilter = MorphologicalWatershedFilterType::New();
 
 	if( meyer )
 		mWSFilter->MarkWatershedLineOn();
@@ -575,7 +575,7 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 
 	// White surface border 
 	typedef itk::InvertIntensityImageFilter <MaskImageType> InvertIntensityImageFilterType;
-	InvertIntensityImageFilterType::Pointer surfaceBorderMask = InvertIntensityImageFilterType::New();
+	typename InvertIntensityImageFilterType::Pointer surfaceBorderMask = InvertIntensityImageFilterType::New();
 	surfaceBorderMask->SetInput( dummyImage );
 	surfaceBorderMask->SetMaximum( 1 );
 	surfaceBorderMask->Update();
@@ -626,7 +626,7 @@ void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 	surMaskDup->Update();
 
 	typedef itk::InvertIntensityImageFilter <MaskImageType> InvertIntensityImageFilterType;
-	InvertIntensityImageFilterType::Pointer invertedIntensityMask = InvertIntensityImageFilterType::New();
+	typename InvertIntensityImageFilterType::Pointer invertedIntensityMask = InvertIntensityImageFilterType::New();
 	invertedIntensityMask->SetInput( surMaskDup->GetOutput() );
 	invertedIntensityMask->SetMaximum( 1 );
 	invertedIntensityMask->Update();
@@ -638,7 +638,7 @@ void computeRemoveSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 	resMaskDup->Update();
 	
 	typedef itk::AndImageFilter <MaskImageType> AndImageFilterType;
-	AndImageFilterType::Pointer andFilter = AndImageFilterType::New();
+	typename AndImageFilterType::Pointer andFilter = AndImageFilterType::New();
 	andFilter->SetInput( 0, invertedIntensityMask->GetOutput() );
 	andFilter->SetInput( 1, resMaskDup->GetOutput() );
 	andFilter->Update();

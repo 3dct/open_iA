@@ -144,6 +144,8 @@ void iAPAQSplom::reemitFixedPixmap()
 
 int iAPAQSplom::getDatasetIndexFromPointIndex(int pointIndex)
 {
+	if (pointIndex == -1)
+		return -1;
 	int absInd = m_datasetIndices[pointIndex];
 	int relInd = m_dsIndices.indexOf( absInd );
 	return relInd;
@@ -220,8 +222,10 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 void iAPAQSplom::keyPressEvent( QKeyEvent * event )
 {
 	int dsInd = getDatasetIndexFromPointIndex( m_activePlot->getCurrentPoint() );
-	switch ( event->key() )
+	if (dsInd != -1)
 	{
+		switch (event->key())
+		{
 		case Qt::Key_Plus: //if plus is pressed increment slice number for the popup
 			m_sliceNumPopupLst[dsInd] = clamp<int>( 0, m_sliceCntLst[dsInd] - 1, ++m_sliceNumPopupLst[dsInd] );
 			update();
@@ -234,6 +238,7 @@ void iAPAQSplom::keyPressEvent( QKeyEvent * event )
 			updatePreviewPixmap();
 			emit previewSliceChanged( m_sliceNumPopupLst[dsInd] );
 			break;
+		}
 	}
 	iAQSplom::keyPressEvent( event );
 }

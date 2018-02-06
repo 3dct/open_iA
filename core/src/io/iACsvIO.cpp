@@ -21,6 +21,7 @@
 #include "iACsvIO.h"
 
 #include "iAConsole.h"
+#include "iAMathUtility.h"    // for Pi
 
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
@@ -33,9 +34,6 @@
 #include <QStringList>
 #include <QTextStream>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 iACsvIO::iACsvIO():
 	table(vtkSmartPointer<vtkTable>::New())
@@ -128,8 +126,8 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 			a13 = cos(phi)*sin(theta)*cos(theta);
 			a23 = sin(phi)*sin(theta)*cos(theta);
 
-			phi = (phi*180.0f) / M_PI;
-			theta = (theta*180.0f) / M_PI; // finish calculation
+			phi = (phi*180.0f) / Pi;
+			theta = (theta*180.0f) / Pi; // finish calculation
 										   // locat the phi value to quadrant
 			if (dx<0)
 			{

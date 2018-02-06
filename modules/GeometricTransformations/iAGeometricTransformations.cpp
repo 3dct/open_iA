@@ -235,8 +235,15 @@ QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::Create()
 QMap<QString, QVariant> iAExtractImageFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
-	params["Size X"] = sourceMdi->getImagePointer()->GetDimensions()[0];
-	params["Size Y"] = sourceMdi->getImagePointer()->GetDimensions()[1];
-	params["Size Z"] = sourceMdi->getImagePointer()->GetDimensions()[2];
+	int const * dim = sourceMdi->getImagePointer()->GetDimensions();
+	if (params["Index X"].toUInt() >= dim[0])
+		params["Index X"] = 0;
+	if (params["Index Y"].toUInt() >= dim[1])
+		params["Index Y"] = 0;
+	if (params["Index Z"].toUInt() >= dim[2])
+		params["Index Z"] = 0;
+	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
+	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
+	params["Size Z"] = std::min(params["Size Z"].toUInt(), dim[2] - params["Index Z"].toUInt());
 	return params;
 }
