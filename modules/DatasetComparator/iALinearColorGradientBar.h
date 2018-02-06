@@ -31,7 +31,7 @@ class iALinearColorGradientBar : public QWidget
 	Q_OBJECT
 
 public:
-	iALinearColorGradientBar(QWidget *parent, QString colormapName, bool modifiable = false);
+	iALinearColorGradientBar(QWidget *parent, QString colormapName, bool modifiable, bool flipColormap = false);
 	vtkSmartPointer<vtkLookupTable> getLut();
 
 signals:

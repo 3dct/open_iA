@@ -115,7 +115,7 @@ void dlg_DatasetComparator::setupGUIElements()
 	sl_fbpTransparency->hide();
 
 	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this, 
-		"ColorBrewer single hue 5-class grays");
+		"ColorBrewer single hue 5-class grays", false, true);
 	m_compLvlLUT = compLvl_colorBar->getLut();
 	QVBoxLayout *compLvl_lutLayoutHB = new QVBoxLayout(this);
 	compLvl_lutLayoutHB->setMargin(0);
@@ -553,7 +553,7 @@ void dlg_DatasetComparator::visualize()
 	//m_debugPlot->clearGraphs();
 	
 	calcNonLinearMapping();
-	generateSegmentTree();
+	//generateSegmentTree();
 	//showDebugPlot();
 	
 	if (m_linearScaledPlot->graphCount() < 1)
@@ -561,7 +561,7 @@ void dlg_DatasetComparator::visualize()
 		for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 		{
 			m_linearScaledPlot->addGraph();
-			m_linearScaledPlot->graph()->setVisible(false);
+			m_linearScaledPlot->graph()->setVisible(true);
 			m_linearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 			m_linearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
 				m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
@@ -612,7 +612,7 @@ void dlg_DatasetComparator::visualize()
 	for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
 		m_nonlinearScaledPlot->addGraph();
-		m_nonlinearScaledPlot->graph()->setVisible(false);
+		m_nonlinearScaledPlot->graph()->setVisible(true);
 		m_nonlinearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		m_nonlinearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
 			m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
@@ -826,7 +826,7 @@ void dlg_DatasetComparator::generateSegmentTree()
 			nonlin_histRectItem->setLayer("background");
 			nonlin_histRectItem->setPen(QPen(Qt::NoPen));
 			// TODO: Problem bei 256 subhistBinCnt Farbverlauf schlecht sichtbar -> auf anderen 
-			// max wert (Lokales Histogrammmmaximum) skalieren + andere diverging Color Bar 
+			// max wert (Lokales Histogrammmmaximum) skalieren  
 			m_histLUT->GetColor((double)nonlinear_histVec[j] / (upperIdx - lowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
 			nonlin_histRectItem->setBrush(QBrush(c));
@@ -834,6 +834,7 @@ void dlg_DatasetComparator::generateSegmentTree()
 			nonlin_histRectItem->bottomRight->setCoords(i*stepSize, (((double)(j + 1) / subhistBinCnt))*upperBnd);
 			nonlin_histRectItem->setClipToAxisRect(true);
 
+			// TODO: linear rect werden am ende nicht gezeichnet?
 			QCPItemRect *linear_histRectItem = new QCPItemRect(m_linearScaledPlot);
 			m_histLUT->GetColor((double)linear_histVec[j] / (linearUpperIdx - linearLowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);

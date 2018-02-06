@@ -29,7 +29,7 @@
 #include <QEvent>
 #include <QHelpEvent>
 
-iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QString colormapName, bool modifiable) :
+iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QString colormapName, bool modifiable, bool flipColormap) :
 	QWidget(parent),
 	m_modifiable(modifiable)
 {
@@ -39,7 +39,7 @@ iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QString colo
 	for (double i = 0.0; i <= 1.0; i += 1.0 / (colorCnt-1))
 	{
 		double c[3];
-		m_lut->GetColor(i, c);
+		m_lut->GetColor((flipColormap ? 1-i : i), c);
 		color.setRgbF(c[0], c[1], c[2]);
 		m_colormap.insert(i, color);
 	}
