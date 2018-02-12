@@ -25,8 +25,10 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include "mdichild.h"
 
 #include <itkCastImageFilter.h>
+#include <itkExtractImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageToHistogramFilter.h>
 #include <itkJoinImageFilter.h>
@@ -35,19 +37,39 @@
 #include <itkStatisticsImageFilter.h>
 #include <itkTranslationTransform.h>
 
+#include <vtkImageData.h>
+
 template<class T>
 void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	QMap<QString, QVariant> const & parameters, iAFilter* filter)
 {
 	typedef itk::Image< T, DIM > ImageType;
+	typedef itk::ExtractImageFilter< ImageType, ImageType > EIFType;
+	typename EIFType::Pointer activeImage_ROIExtractor = EIFType::New();
+	typename EIFType::Pointer nonActiveImage_ROIExtractor = EIFType::New();
+	typename EIFType::InputImageRegionType::SizeType size; 
+	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	typename EIFType::InputImageRegionType::IndexType index; 
+	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
+	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
+	activeImage_ROIExtractor->InPlaceOn();
+	nonActiveImage_ROIExtractor->InPlaceOn();
+	activeImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(images[0]->GetITKImage()));
+	nonActiveImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(images[1]->GetITKImage()));
+	activeImage_ROIExtractor->SetExtractionRegion(region);
+	nonActiveImage_ROIExtractor->SetExtractionRegion(region);
+	activeImage_ROIExtractor->Update();
+	nonActiveImage_ROIExtractor->Update();
 	typedef itk::TranslationTransform < double, DIM > TransformType;
 	typedef itk::LinearInterpolateImageFunction<ImageType, double >	InterpolatorType;
 	auto transform = TransformType::New();
 	transform->SetIdentity();
 	auto interpolator = InterpolatorType::New();
-	interpolator->SetInputImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
+	interpolator->SetInputImage(activeImage_ROIExtractor->GetOutput());
 	typename TransformType::ParametersType params(transform->GetNumberOfParameters());
-
+	filter->AddMsg(QString("ROI[Origin_XYZ; SIZE_XYZ] = [%1, %2, %3; %4, %5, %6]")
+		.arg(index[0]).arg(index[1]).arg(index[2])
+		.arg(size[0]).arg(size[1]).arg(size[2]));
 	double range = 0, imgMean = 0, imgVar = 0, refMean = 0, refVar = 0, mse = 0;
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool() ||
 		parameters["Structural Similarity Index"].toBool() ||
@@ -55,14 +77,14 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	{
 		typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
 		auto imgStatFilter = StatisticsImageFilterType::New();
-		imgStatFilter->SetInput(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
+		imgStatFilter->SetInput(activeImage_ROIExtractor->GetOutput());
 		imgStatFilter->Update();
 		imgMean = imgStatFilter->GetMean();
 		imgVar = imgStatFilter->GetSigma();
 		double imgMin = imgStatFilter->GetMinimum();
 		double imgMax = imgStatFilter->GetMaximum();
 		auto refStatFilter = StatisticsImageFilterType::New();
-		refStatFilter->SetInput(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
+		refStatFilter->SetInput(nonActiveImage_ROIExtractor->GetOutput());
 		refStatFilter->Update();
 		refMean = refStatFilter->GetMean();
 		refVar = refStatFilter->GetSigma();
@@ -77,9 +99,9 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	{
 		typedef itk::MeanSquaresImageToImageMetric<	ImageType, ImageType > MSMetricType;
 		auto msmetric = MSMetricType::New();
-		msmetric->SetFixedImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
-		msmetric->SetFixedImageRegion(dynamic_cast<ImageType *>(images[0]->GetITKImage())->GetLargestPossibleRegion());
-		msmetric->SetMovingImage(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
+		msmetric->SetFixedImage(activeImage_ROIExtractor->GetOutput());
+		msmetric->SetFixedImageRegion(activeImage_ROIExtractor->GetOutput()->GetLargestPossibleRegion());
+		msmetric->SetMovingImage(nonActiveImage_ROIExtractor->GetOutput());
 		msmetric->SetTransform(transform);
 		msmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
@@ -100,8 +122,8 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	}
 	if (parameters["Mean Absolute Error"].toBool())
 	{
-		ImageType* img = dynamic_cast<ImageType *>(images[0]->GetITKImage());
-		ImageType* ref = dynamic_cast<ImageType *>(images[1]->GetITKImage());
+		ImageType* img = activeImage_ROIExtractor->GetOutput();
+		ImageType* ref = nonActiveImage_ROIExtractor->GetOutput();
 		itk::ImageRegionConstIterator<ImageType> imgIt(img, img->GetLargestPossibleRegion());
 		itk::ImageRegionConstIterator<ImageType> refIt(ref, ref->GetLargestPossibleRegion());
 		imgIt.GoToBegin(); refIt.GoToBegin();
@@ -117,9 +139,9 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	{
 		typedef itk::NormalizedCorrelationImageToImageMetric< ImageType, ImageType > NCMetricType;
 		auto ncmetric = NCMetricType::New();
-		ncmetric->SetFixedImage(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
-		ncmetric->SetFixedImageRegion(dynamic_cast<ImageType *>(images[0]->GetITKImage())->GetLargestPossibleRegion());
-		ncmetric->SetMovingImage(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
+		ncmetric->SetFixedImage(activeImage_ROIExtractor->GetOutput());
+		ncmetric->SetFixedImageRegion(activeImage_ROIExtractor->GetOutput()->GetLargestPossibleRegion());
+		ncmetric->SetMovingImage(nonActiveImage_ROIExtractor->GetOutput());
 		ncmetric->SetTransform(transform);
 		ncmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
@@ -132,8 +154,8 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 		//ITK-Example: https://itk.org/Doxygen/html/Examples_2Statistics_2ImageMutualInformation1_8cxx-example.html
 		typedef itk::JoinImageFilter< ImageType, ImageType > JoinFilterType;
 		auto joinFilter = JoinFilterType::New();
-		joinFilter->SetInput1(dynamic_cast<ImageType *>(images[0]->GetITKImage()));
-		joinFilter->SetInput2(dynamic_cast<ImageType *>(images[1]->GetITKImage()));
+		joinFilter->SetInput1(activeImage_ROIExtractor->GetOutput());
+		joinFilter->SetInput2(nonActiveImage_ROIExtractor->GetOutput());
 		joinFilter->Update();
 
 		typedef typename JoinFilterType::OutputImageType  VectorImageType;
@@ -226,8 +248,8 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	}
 	if (parameters["Structural Similarity Index"].toBool())
 	{
-		ImageType* img = dynamic_cast<ImageType *>(images[0]->GetITKImage());
-		ImageType* ref = dynamic_cast<ImageType *>(images[1]->GetITKImage());
+		ImageType* img = activeImage_ROIExtractor->GetOutput();
+		ImageType* ref = nonActiveImage_ROIExtractor->GetOutput();
 		itk::ImageRegionConstIterator<ImageType> imgIt(img, img->GetLargestPossibleRegion());
 		itk::ImageRegionConstIterator<ImageType> refIt(ref, ref->GetLargestPossibleRegion());
 		imgIt.GoToBegin(); refIt.GoToBegin();
@@ -248,7 +270,8 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 
 iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"Calculates the similarity between two images according to different metrics.<br/>"
-	"<strong>NOTE</strong>: Normalize the images before calculating the similarity metrics!<br/>"
+	"<strong>NOTE</strong>: Normalize the images (by setting its mean to zero and variance to one -> "
+	"see the the Normalize Image Filter under Intensity) before calculating the similarity metrics!<br/>"
 	"<a href=\"https://itk.org/Doxygen/html/ImageSimilarityMetricsPage.html\">General information on ITK similarity metrics</a>.<br/>"
 	"<em><a href=\"https://itk.org/Doxygen/html/classitk_1_1MeanSquaresImageToImageMetric.html\">"
 	"Mean Squared Error (MSE) Metric</a></em>: The optimal value of the metric is zero, which means that the two input images are equal. "
@@ -274,6 +297,12 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"the two parameters k1 and k2 are used exactly as defined there.",
 	2, 0)
 {
+	AddParameter("Index X", Discrete, 0);
+	AddParameter("Index Y", Discrete, 0);
+	AddParameter("Index Z", Discrete, 0);
+	AddParameter("Size X", Discrete, 1);
+	AddParameter("Size Y", Discrete, 1);
+	AddParameter("Size Z", Discrete, 1);
 	AddParameter("Mean Squared Error", Boolean, false);
 	AddParameter("RMSE", Boolean, true);
 	AddParameter("Normalized RMSE", Boolean, false);
@@ -292,4 +321,25 @@ IAFILTER_CREATE(iASimilarity)
 void iASimilarity::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(similarity_metrics_template, m_con->GetITKScalarPixelType(), m_progress, m_cons, parameters, this);
+}
+
+QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::Create()
+{
+	return QSharedPointer<iAFilterRunnerGUI>(new iASimilarityFilterRunner());
+}
+
+QMap<QString, QVariant> iASimilarityFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+{
+	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
+	int const * dim = sourceMdi->getImagePointer()->GetDimensions();
+	if (params["Index X"].toUInt() >= dim[0])
+		params["Index X"] = 0;
+	if (params["Index Y"].toUInt() >= dim[1])
+		params["Index Y"] = 0;
+	if (params["Index Z"].toUInt() >= dim[2])
+		params["Index Z"] = 0;
+	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
+	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
+	params["Size Z"] = std::min(params["Size Z"].toUInt(), dim[2] - params["Index Z"].toUInt());
+	return params;
 }

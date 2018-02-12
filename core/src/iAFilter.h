@@ -143,11 +143,11 @@ public:
 	QVector<QString> const & OutputValueNames() const;
 	//! adds an output value name
 	void AddOutputValue(QString const & name);
-protected:
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
 	void AddMsg(QString msg);
+protected:
 	//! An accessor to the image to be processed by the filter
 	iAConnector* m_con;
 	//! An accessor to all input images (if more than one input is required
