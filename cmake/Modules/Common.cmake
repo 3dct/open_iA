@@ -234,17 +234,19 @@ IF (WIN32)
 	# strangely, under Windows, ITK seems to build a completely different set of shared libraries
 	# than under Linux. Those listed below are required by our binary. Even more strangely, this
 	# list is different from the list of libraries required for linking)
-	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 11)
-		SET (WIN_ITK_LIBS ITKIOXML)  # starting with 4.12, ITKFFT dll doesn't seem to get built
-	ELSE()
-		SET (WIN_ITK_LIBS ITKFFT ITKIOXML) # required for some modules
-	ENDIF()
-	SET (WIN_ITK_LIBS ${WIN_ITK_LIBS}
-		ITKCommon	ITKIOBioRad	ITKIOBMP	ITKIOGIPL	ITKIOImageBase	ITKIOPNG	ITKIOStimulate
-		ITKIOVTK	ITKIOGDCM	ITKIOGE	ITKIOIPL	ITKIOHDF5	ITKIOJPEG	ITKIOLSM	ITKIOMRC	ITKIOTIFF
-		ITKIOMeta	ITKIONIFTI	ITKIONRRD	ITKLabelMap	ITKOptimizers	ITKStatistics	ITKTransform
-		ITKVTK	ITKWatersheds
+	SET (WIN_ITK_LIBS 
+		ITKCommon	ITKIOBioRad	ITKIOBMP	ITKIOGDCM	ITKIOGE		ITKIOGIPL		ITKIOHDF5
+		ITKIOImageBase	ITKIOIPL	ITKIOJPEG	ITKIOLSM	ITKIOMeta	ITKIOMRC	ITKIONIFTI
+		ITKIONRRD	ITKIOPNG	ITKIOStimulate	ITKIOTIFF	ITKIOVTK	ITKIOXML	ITKTransform
 	)
+	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 10)
+		# libraries introduced with ITK 4.11
+		SET (WIN_ITK_LIBS ${WINK_ITK_LIBS}	ITKLabelMap	ITKOptimizers	ITKStatistics	ITKVTK	ITKWatersheds)
+	ENDIF()
+	IF (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR EQUAL 11)
+		# libraries only required under ITK 4.11
+		SET (WIN_ITK_LIBS ${WIN_ITK_LIBS} ITKFFT)  
+	ENDIF()
 	IF (SCIFIO_LOADED)
 		SET (WIN_ITK_LIBS ${WIN_ITK_LIBS} itkSCIFIO)
 	ENDIF()
