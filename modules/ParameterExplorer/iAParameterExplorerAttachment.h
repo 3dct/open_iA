@@ -18,42 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
+#include "iAModuleAttachmentToChild.h"
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <QVector>
 
-#include "iAModalityExplorerAttachment.h"
+class iAChildData;
+class iADockWidgetWrapper;
+class iAParamSPLOMView;
+class iAParamSpatialView;
+class iAParamTableView;
 
-
-void iAModalityExplorerModuleInterface::Initialize()
+class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
-}
-
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
-	return result;
-}
-
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
-{
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
-}
+public:
+	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	void ToggleDockWidgetTitleBars();
+private:
+	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
+	iAParamSPLOMView* m_SPLOMView;
+	iAParamSpatialView* m_spatialView;
+	iAParamTableView* m_tableView;
+	QVector<iADockWidgetWrapper*> m_dockWidgets;
+};

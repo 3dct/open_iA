@@ -18,42 +18,47 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
+#include "iAParameterExplorerAttachment.h"
 
-#include "iAConsole.h"
-#include "mainwindow.h"
+// IMPAsSE 	  IMage PArameter Space Explorer
+
+#include "iADockWidgetWrapper.h"
+
+#include "iAParamSPLOMView.h"
+#include "iAParamSpatialView.h"
+#include "iAParamTableView.h"
+
 #include "mdichild.h"
 
-#include "iAModalityExplorerAttachment.h"
+#include <QFileDialog>
 
-
-void iAModalityExplorerModuleInterface::Initialize()
+iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
 {
-	if (!m_mainWnd)
+	return new iAParameterExplorerAttachment(mainWnd, childData);
+}
+
+iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData)
+	:iAModuleAttachmentToChild(mainWnd, childData)
+{
+	QString csvFileName = QFileDialog::getOpenFileName(childData.child,
+			tr( "Select CSV File" ), childData.child->getFilePath(), tr( "CSV Files (*.csv);;" ) );
+	if (csvFileName.isEmpty())
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
+	m_tableView = new iAParamTableView(csvFileName);
+	m_spatialView = new iAParamSpatialView(m_tableView, QFileInfo(csvFileName).absolutePath());
+	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "ParamSpatialView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix View", "ParamSPLOMView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table View", "ParamTableView"));
+	childData.child->splitDockWidget(childData.child->logs, m_dockWidgets[0], Qt::Horizontal);
+	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
+	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
 }
 
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()
 {
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
-	return result;
-}
-
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
-{
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
+	for (int i = 0; i < m_dockWidgets.size(); ++i)
+	{
+		m_dockWidgets[i]->toggleTitleBar();
+	}
 }

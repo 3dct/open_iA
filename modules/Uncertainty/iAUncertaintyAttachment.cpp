@@ -68,7 +68,6 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 
 iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, iAChildData childData)
 {
-	MdiChild * mdiChild = childData.child;
 	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, childData);
 	return newAttachment;
 }

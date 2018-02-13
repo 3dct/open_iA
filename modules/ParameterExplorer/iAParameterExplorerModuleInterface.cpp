@@ -19,41 +19,51 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
+#include "iAParameterExplorerModuleInterface.h"
+
+#include "iAParameterExplorerAttachment.h"
 
 #include "iAConsole.h"
+#include "iAChildData.h"
 #include "mainwindow.h"
-#include "mdichild.h"
 
-#include "iAModalityExplorerAttachment.h"
-
-
-void iAModalityExplorerModuleInterface::Initialize()
+void iAParameterExplorerModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
 
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
+	QAction * actionExplore = new QAction( m_mainWnd );
+	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
+	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
 }
 
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 {
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		return;
+	}
+	attach->ToggleDockWidgetTitleBars();
+}
+
+bool iAParameterExplorerModuleInterface::StartParameterExplorer()
+{
+	PrepareActiveChild();
+	if (!m_mdiChild)
+	{
+		return false;
+	}
+	bool result = AttachToMdiChild(m_mdiChild);
 	return result;
 }
 
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
+iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
 {
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
+	iAParameterExplorerAttachment* result = iAParameterExplorerAttachment::create( mainWnd, childData);
+	return result;
 }

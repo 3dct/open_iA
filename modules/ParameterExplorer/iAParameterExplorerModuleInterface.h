@@ -18,42 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
+#pragma once
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include "iAModuleInterface.h"
 
-#include "iAModalityExplorerAttachment.h"
-
-
-void iAModalityExplorerModuleInterface::Initialize()
+class iAParameterExplorerModuleInterface : public iAModuleInterface
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
-}
-
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
-	return result;
-}
-
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
-{
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
-}
+	Q_OBJECT
+public:
+	void Initialize();
+protected:
+	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
+private slots:
+	bool StartParameterExplorer();
+	void ToggleDockWidgetTitleBars();
+};

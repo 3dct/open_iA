@@ -22,6 +22,8 @@
 
 #include "iAModuleAttachmentToChild.h"
 
+class dlg_modalitySPLOM;
+
 class iAModalityExplorerAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
@@ -29,4 +31,5 @@ public:
 	static iAModalityExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
 private:
 	iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
+	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };

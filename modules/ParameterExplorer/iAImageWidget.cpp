@@ -18,42 +18,67 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
+#include "iAImageWidget.h"
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include "iATransferFunction.h"
 
-#include "iAModalityExplorerAttachment.h"
+#include "iASlicerSettings.h"
+#include "iASlicer.h"
 
+#include <vtkTransform.h>
 
-void iAModalityExplorerModuleInterface::Initialize()
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+
+iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
+	m_transform = vtkSmartPointer<vtkTransform>::New();
+	m_slicer->setup(iASingleSlicerSettings());
+	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
+	m_slicer->initializeData(img, m_transform, m_ctf);
+	m_slicer->initializeWidget(img);
+	StyleChanged();
 }
 
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+void iAImageWidget::StyleChanged()
 {
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
-	return result;
+	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	m_slicer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 }
 
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
+void iAImageWidget::SetMode(int slicerMode)
 {
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
+	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+	m_slicer->update();
+}
+
+void iAImageWidget::SetSlice(int sliceNumber)
+{
+	m_slicer->setSliceNumber(sliceNumber);
+	m_slicer->update();
+}
+
+int iAImageWidget::GetSliceCount() const
+{
+	int * ext = m_slicer->GetImageData()->GetExtent();
+	switch (m_slicer->GetMode())
+	{
+		case XZ: return ext[3] - ext[2] + 1;
+		case YZ: return ext[1] - ext[0] + 1;
+		default:
+		case XY: return ext[5] - ext[4] + 1;
+	}
+}
+
+void iAImageWidget::SetImage(vtkSmartPointer<vtkImageData> img)
+{
+	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
+	m_slicer->reInitialize(img, m_transform, m_ctf);
+	m_slicer->update();
+}
+
+iASlicer* iAImageWidget::GetSlicer()
+{
+	return m_slicer;
 }

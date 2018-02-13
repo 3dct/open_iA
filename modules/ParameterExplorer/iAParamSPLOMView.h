@@ -18,42 +18,39 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <vtkSmartPointer.h>
 
-#include "iAModalityExplorerAttachment.h"
+#include <QVector>
+#include <QWidget>
 
+class iAParamSpatialView;
+class iAParamTableView;
+class iAQSplom;
 
-void iAModalityExplorerModuleInterface::Initialize()
+class vtkColorTransferFunction;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+
+class QCheckBox;
+
+class iAParamSPLOMView: public QWidget
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
-}
-
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
-	return result;
-}
-
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
-{
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
-}
+	Q_OBJECT
+public:
+	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
+private slots:
+	void SetLUTColumn(QString const & colName);
+	void SplomSelection(QVector<unsigned int> *);
+	void UpdateFeatVisibilty(int);
+	void PointHovered(int);
+private:
+	iAParamSpatialView* m_spatialView;
+	iAParamTableView* m_tableView;
+	iAQSplom* m_splom;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
+	QWidget* m_settings;
+	QVector<QCheckBox*> m_featCB;
+};

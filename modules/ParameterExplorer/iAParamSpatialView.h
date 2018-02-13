@@ -18,42 +18,42 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <QMap>
+#include <QWidget>
 
-#include "iAModalityExplorerAttachment.h"
+#include <vtkSmartPointer.h>
 
+#include "io/iAITKIO.h"
 
-void iAModalityExplorerModuleInterface::Initialize()
+class iAParamTableView;
+class iAImageWidget;
+
+class vtkImageData;
+
+class QSpinBox;
+class QToolButton;
+
+class iAParamSpatialView: public QWidget
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
-}
-
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
-	return result;
-}
-
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
-{
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
-}
+	Q_OBJECT
+public:
+	iAParamSpatialView(iAParamTableView* table, QString const & basePath);
+	void SetImage(int id);
+private slots:
+	void SlicerModeButtonClicked(bool checked);
+	void SliceChanged(int slice);
+private:
+	iAParamTableView* m_table;
+	QString m_basePath;
+	QMap<int, vtkSmartPointer<vtkImageData>> m_imageCache;
+	QVector<iAITKIO::ImagePointer> m_loadedImgs; // to stop itk from unloading
+	int m_curMode;
+	int m_sliceNr[3];
+	QVector<QToolButton*> slicerModeButton;
+	QSpinBox* m_sliceControl;
+	iAImageWidget* m_imageWidget;
+	QWidget* m_settings;
+	QWidget* m_imageContainer;
+	bool m_sliceNrInitialized;
+};

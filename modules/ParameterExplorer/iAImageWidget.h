@@ -18,42 +18,29 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-#include "iAModalityExplorerModuleInterface.h"
+#pragma once
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <vtkSmartPointer.h>
+#include <QWidget>
 
-#include "iAModalityExplorerAttachment.h"
+class iASlicer;
 
+class vtkImageData;
+class vtkColorTransferFunction;
+class vtkTransform;
 
-void iAModalityExplorerModuleInterface::Initialize()
+class iAImageWidget: public QWidget
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
-}
-
-
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
-{
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
-	return result;
-}
-
-
-void iAModalityExplorerModuleInterface::ModalitySPLOM()
-{
-	PrepareActiveChild();
-	UpdateChildData();
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
-	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
-}
+public:
+	iAImageWidget(vtkSmartPointer<vtkImageData> img);
+	void StyleChanged();
+	void SetMode(int slicerMode);
+	void SetSlice(int sliceNumber);
+	void SetImage(vtkSmartPointer<vtkImageData> img);
+	int GetSliceCount() const;
+	iASlicer* GetSlicer();
+private:
+	iASlicer* m_slicer;
+	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
+	vtkSmartPointer<vtkTransform> m_transform;
+};
