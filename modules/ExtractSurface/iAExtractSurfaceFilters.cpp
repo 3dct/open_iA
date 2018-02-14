@@ -25,10 +25,12 @@
 
 #include <vtkImageData.h>
 #include <vtkMarchingCubes.h>
-#include <vtkSTLWriter.h>
+#include <vtkQuadricDecimation.h>
+#include <vtkQuadricClustering.h>
 #include <vtkSmartPointer.h>
-#include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkSmoothPolyDataFilter.h>
+#include <vtkSTLWriter.h>
+#include <vtkWindowedSincPolyDataFilter.h>
 
 void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 {
@@ -37,19 +39,58 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	//auto stlProgress = vtkSmartPointer<iAObserverProgress>::New();
 	//QObject::connect(stlProgress.GetPointer(), SIGNAL(oprogress(int)), m_progress, SIGNAL(pprogress(int)));
 
-	vtkSmartPointer<vtkMarchingCubes> moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
+	auto surfaceFilter = vtkSmartPointer<vtkMarchingCubes>::New();
 	//moSurface->AddObserver(vtkCommand::ProgressEvent, vtkProgress);
-	moSurface->SetInputData(m_con->GetVTKImage().GetPointer());
-	moSurface->ComputeNormalsOn();
-	moSurface->ComputeGradientsOn();
-	moSurface->SetValue(0, parameters["Iso value"].toDouble());
+	surfaceFilter->SetInputData(m_con->GetVTKImage().GetPointer());
+	surfaceFilter->ComputeNormalsOn();
+	surfaceFilter->ComputeGradientsOn();
+	surfaceFilter->SetValue(0, parameters["Iso value"].toDouble());
 
-	vtkSmartPointer<vtkWindowedSincPolyDataFilter>
+	//vtkAlgorithmOutput* output = moSurface->GetOutputPort();
 
-	vtkSmartPointer<vtkSTLWriter> stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+	// these variables need to be created outside of if block, otherwise
+	// smart pointers could delete them after if block is finished:
+	vtkSmartPointer<vtkWindowedSincPolyDataFilter> sincFilter;
+	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter;
+
+	/*
+	// always seems to be of same size as input:
+	vtkSmartPointer<vtkQuadricDecimation> simplifyFilter;
+	//if (parameters["Quadric decimation"].toBool())
+	//{
+		simplifyFilter = vtkSmartPointer<vtkQuadricDecimation>::New();
+		simplifyFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+		simplifyFilter->SetTargetReduction(parameters["Decimation fraction"].toDouble());
+		simplifyFilter->Update();
+		//output = simplifyFilter->GetOutputPort();
+	//}
+	*/
+
+	vtkSmartPointer<vtkQuadricClustering> simplifyFilter = vtkSmartPointer<vtkQuadricClustering>::New();
+	simplifyFilter->SetNumberOfXDivisions(parameters["Cluster divisions"].toUInt());
+	simplifyFilter->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
+	simplifyFilter->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
+	simplifyFilter->SetInputConnection(surfaceFilter->GetOutputPort());
+	/*
+	if (parameters["Smooth windowed sinc"].toBool())
+	{
+		sincFilter = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+		sincFilter->SetInputConnection(output);
+		sincFilter->SetNumberOfIterations(parameters["Sinc iterations"].toUInt());
+		output = sincFilter->GetOutputPort();
+	}
+	if (parameters["Smooth poly"].toBool())
+	{
+		smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+		smoothFilter->SetInputConnection(output);
+		smoothFilter->SetNumberOfIterations(parameters["Poly iterations"].toUInt());
+		output = sincFilter->GetOutputPort();
+	}
+	*/
+	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	//stlWriter->AddObserver(vtkCommand::ProgressEvent, stlProgress);
 	stlWriter->SetFileName(parameters["STL output filename"].toString().toStdString().c_str());
-	stlWriter->SetInputConnection(moSurface->GetOutputPort());
+	stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
 	stlWriter->Write();
 }
 
@@ -57,16 +98,24 @@ IAFILTER_CREATE(iAMarchingCubes)
 
 iAMarchingCubes::iAMarchingCubes() :
 	iAFilter("Marching Cubes", "Extract Surface",
-		"Extracts a surface along the specified iso value, using the marching cubes algorithm.<br/>"
+		"Extracts a surface along the specified iso value, using the marching cubes algorithm."
+		"Subsequently, it optionally simplifies the computed surface using a quadric decimation.<br/>"
 		"<br/>"
 		"For more information, see the "
 		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkMarchingCubes.html\">"
-		"Marching Cubes Filter</a> in the VTK documentation.")
+		"Marching Cubes Filter</a> and the "
+		"<a href=\"https://www.vtk.org/doc/nightly/html/classvtkQuadricDecimation.html\">"
+		"Quadric Decimation Filter</a> in the VTK documentation.")
 {
 	AddParameter("Iso value", Continuous, 1);
 	AddParameter("STL output filename", String, "");
-	AddParameter("Smooth windowed sync", Boolean, true);
-	AddParameter("Smooth poly", Boolean, false);
+	AddParameter("Cluster divisions", Discrete, 1);
+	//AddParameter("Quadric decimation", Boolean, true);
+	//AddParameter("Decimation fraction", Continuous, 0.01);
+	//AddParameter("Smooth windowed sync", Boolean, false);
+	//AddParameter("Sinc iterations", Discrete, 1);
+	//AddParameter("Smooth poly", Boolean, false);
+	//AddParameter("Poly iterations", Discrete, 1);
 }
 
 
