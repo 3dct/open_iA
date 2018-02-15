@@ -553,7 +553,7 @@ void dlg_DatasetComparator::visualize()
 	//m_debugPlot->clearGraphs();
 	
 	calcNonLinearMapping();
-	//generateSegmentTree();
+	generateSegmentTree();
 	//showDebugPlot();
 	
 	if (m_linearScaledPlot->graphCount() < 1)
@@ -780,71 +780,70 @@ void dlg_DatasetComparator::generateSegmentTree()
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
-		plotBinNumber = ceil(plotWidth / plotBinWidth);
-	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / plotBinNumber;
+		plotBinCnt = ceil(plotWidth / (double)plotBinWidth);
+	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / plotBinCnt;
 	double rgb[3]; QColor c;
 
 	if (m_segmTreeList.isEmpty() | m_subHistBinCntChanged)
 	{
 		m_segmTreeList.clear();
 		m_subHistBinCntChanged = false;
-		for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+		for (int datsetNumber = 0; datsetNumber < m_DatasetIntensityMap.size(); ++datsetNumber)
 		{
 			std::vector<int> intensityVec;
-			for (int j = 0; j < m_DatasetIntensityMap[i].second.size(); ++j)
-				intensityVec.push_back(m_DatasetIntensityMap[i].second[j].intensity);
+			for (int hIdx = 0; hIdx < m_DatasetIntensityMap[datsetNumber].second.size(); ++hIdx)
+				intensityVec.push_back(m_DatasetIntensityMap[datsetNumber].second[hIdx].intensity);
 			iASegmentTree *segmentTree = new iASegmentTree(intensityVec, subhistBinCnt, lowerBnd, upperBnd);
 			m_segmTreeList.append(segmentTree);
 		}
 	}
 
-	for (int i = 1; i <= plotBinNumber; ++i)
+	for (int xBinNumber = 1; xBinNumber <= plotBinCnt; ++xBinNumber)
 	{
 		// TODO: check lower und upper indices -> wegen segmentree Range da diese ja so defineirt is [x, y)
-		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (i - 1)*stepSize);
+		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (xBinNumber - 1)*stepSize);
 		int lowerIdx = lower - m_nonlinearMappingVec.begin();
-		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), i*stepSize);
+		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), xBinNumber*stepSize);
 		int upperIdx = upper - m_nonlinearMappingVec.begin();
-		std::vector<int> nonlinear_histVec(subhistBinCnt);
-		int linearLowerIdx = ceil((i - 1)*((m_nonlinearMappingVec.size() - 1) / plotBinNumber));
-		int linearUpperIdx = ceil(i*((m_nonlinearMappingVec.size() - 1) / plotBinNumber));
-		std::vector<int> linear_histVec(subhistBinCnt);
+		//std::vector<int> nonlinear_histVec(subhistBinCnt);
+		int linearLowerIdx = ceil((xBinNumber - 1)*(m_nonlinearMappingVec.size() / (double)plotBinCnt));
+		int linearUpperIdx = ceil(xBinNumber*(m_nonlinearMappingVec.size() / (double)plotBinCnt));
+		//std::vector<int> linear_histVec(subhistBinCnt);
 	
-		for (int j = 0; j < subhistBinCnt; ++j)
+		for (int yBinNumber = 0; yBinNumber < subhistBinCnt; ++yBinNumber)
 		{
 			unsigned int nonlinear_sum = 0, linear_sum = 0;
-			for (int k = 0; k < m_segmTreeList.size(); ++k)
+			for (int treeNumber = 0; treeNumber < m_segmTreeList.size(); ++treeNumber)
 			{
-				nonlinear_sum += m_segmTreeList[k]->hist_query(lowerIdx, upperIdx)[j];
-				linear_sum += m_segmTreeList[k]->hist_query(linearLowerIdx, linearUpperIdx)[j];
+				nonlinear_sum += m_segmTreeList[treeNumber]->hist_query(lowerIdx, upperIdx)[yBinNumber];
+				linear_sum += m_segmTreeList[treeNumber]->hist_query(linearLowerIdx, linearUpperIdx)[yBinNumber];
 			}
-			nonlinear_histVec[j] = nonlinear_sum;
-			linear_histVec[j] = linear_sum;
+			//nonlinear_histVec[yBinNumber] = nonlinear_sum;
+			//linear_histVec[yBinNumber] = linear_sum;
 
 			QCPItemRect *nonlin_histRectItem = new QCPItemRect(m_nonlinearScaledPlot);
 			nonlin_histRectItem->setAntialiased(false);
 			nonlin_histRectItem->setLayer("background");
 			nonlin_histRectItem->setPen(QPen(Qt::NoPen));
+			nonlin_histRectItem->setClipToAxisRect(true);
 			// TODO: Problem bei 256 subhistBinCnt Farbverlauf schlecht sichtbar -> auf anderen 
 			// max wert (Lokales Histogrammmmaximum) skalieren  
-			m_histLUT->GetColor((double)nonlinear_histVec[j] / (upperIdx - lowerIdx + 1), rgb);
+			m_histLUT->GetColor((double)nonlinear_sum / (upperIdx - lowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
 			nonlin_histRectItem->setBrush(QBrush(c));
-			nonlin_histRectItem->topLeft->setCoords((i - 1)*stepSize, (((double)j / subhistBinCnt)) * upperBnd);
-			nonlin_histRectItem->bottomRight->setCoords(i*stepSize, (((double)(j + 1) / subhistBinCnt))*upperBnd);
-			nonlin_histRectItem->setClipToAxisRect(true);
+			nonlin_histRectItem->topLeft->setCoords((xBinNumber - 1)*stepSize, (((double)yBinNumber / subhistBinCnt)) * upperBnd);
+			nonlin_histRectItem->bottomRight->setCoords(xBinNumber*stepSize, (((double)(yBinNumber + 1) / subhistBinCnt))*upperBnd);
 
-			// TODO: linear rect werden am ende nicht gezeichnet?
 			QCPItemRect *linear_histRectItem = new QCPItemRect(m_linearScaledPlot);
-			m_histLUT->GetColor((double)linear_histVec[j] / (linearUpperIdx - linearLowerIdx + 1), rgb);
-			c.setRgbF(rgb[0], rgb[1], rgb[2]);
-			linear_histRectItem->setBrush(c);
 			linear_histRectItem->setAntialiased(false);
 			linear_histRectItem->setLayer("background");
 			linear_histRectItem->setPen(QPen(Qt::NoPen));
-			linear_histRectItem->topLeft->setCoords(linearLowerIdx, (((double)j / subhistBinCnt)) * upperBnd);
-			linear_histRectItem->bottomRight->setCoords(linearUpperIdx, (((double)(j + 1) / subhistBinCnt))*upperBnd);
 			linear_histRectItem->setClipToAxisRect(true);
+			m_histLUT->GetColor((double)linear_sum / (linearUpperIdx - linearLowerIdx + 1), rgb);
+			c.setRgbF(rgb[0], rgb[1], rgb[2]);
+			linear_histRectItem->setBrush(c);
+			linear_histRectItem->topLeft->setCoords(linearLowerIdx, (((double)yBinNumber / subhistBinCnt)) * upperBnd);
+			linear_histRectItem->bottomRight->setCoords(linearUpperIdx, (((double)(yBinNumber + 1) / subhistBinCnt))*upperBnd);
 		}
 	}
 }
