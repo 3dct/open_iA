@@ -120,8 +120,8 @@ void iAScalingWidget::paintGL()
 	int leftOffset = m_nonlinearAxis->axisRect()->left();
 	double linearBarStartPosX = 0, nonlinearBarStartPosX = 0, nonlinearBarWidth, linearBarWidth,
 		linearScalingFactor = m_nonlinearAxis->axisRect()->width() /
-		(m_nonlinearUpperIdx-1 + m_linearUpperRest - (m_nonlinearLowerIdx + m_linearLowerRest)),
-		nonlinearScalingFactor = m_nonlinearAxis->axisRect()->width() /
+		(m_nonlinearUpperIdx - 1 + m_linearUpperRest - (m_nonlinearLowerIdx + m_linearLowerRest));
+	double nonlinearScalingFactor = m_nonlinearAxis->axisRect()->width() /
 		(m_nonlinearScalingVec[m_nonlinearUpperIdx] - m_nonlinearUpperRest -
 		(m_nonlinearScalingVec[m_nonlinearLowerIdx] + m_nonlinearLowerRest));
 	painter.setRenderHint(QPainter::Antialiasing, true);

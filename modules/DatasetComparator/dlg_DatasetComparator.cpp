@@ -93,7 +93,8 @@ dlg_DatasetComparator::dlg_DatasetComparator(QWidget * parent /*= 0*/,
 	m_scalingWidget(0),
 	m_compLvlLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_histLUT(vtkSmartPointer<vtkLookupTable>::New()),
-	m_subHistBinCntChanged(false)
+	m_subHistBinCntChanged(false),
+	m_histRectsVisible(true)
 {
 	setupNonlinearScaledPlot();
 	setupScalingWidget();
@@ -214,6 +215,9 @@ void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
 	int upperIdx = upper - m_nonlinearMappingVec.begin();
 	double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
+
+	changeHistRectVisibility(lowerIdx, upperIdx);
+	
 	if (upperIdx < m_nonlinearMappingVec.size())
 	{
 		upperDistToNextPoint = m_nonlinearMappingVec[upperIdx] - m_nonlinearMappingVec[upperIdx-1];
@@ -242,6 +246,44 @@ void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 		m_linearIdxLine->positions()[0]->pixelPosition().x(), 
 		m_nonlinearIdxLine->positions()[0]->pixelPosition().x());
 	m_scalingWidget->update();
+}
+
+void  dlg_DatasetComparator::changeHistRectVisibility(int lowerIdx, int upperIdx)
+{
+	if ((upperIdx - lowerIdx) < 100)	// TODO: remove magic number
+	{
+		m_histRectsVisible = false;
+		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
+		{
+			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
+			{
+				m_nonlinearScaledPlot->item(i)->setVisible(false);
+				m_linearScaledPlot->item(i)->setVisible(false);
+			}
+		}
+		for (int i = 0; i < m_nonlinearScaledPlot->graphCount() - 5; ++i)	// no functional boxplots
+		{
+			m_nonlinearScaledPlot->graph(i)->setVisible(true);
+			m_linearScaledPlot->graph(i)->setVisible(true);
+		}
+	}
+	else if (!m_histRectsVisible)
+	{
+		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
+		{
+			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
+			{
+				m_nonlinearScaledPlot->item(i)->setVisible(true);
+				m_linearScaledPlot->item(i)->setVisible(true);
+			}
+		}
+		for (int i = 0; i < m_nonlinearScaledPlot->graphCount() - 5; ++i)	// no functional boxplots
+		{
+			m_nonlinearScaledPlot->graph(i)->setVisible(false);
+			m_linearScaledPlot->graph(i)->setVisible(false);
+		}
+		m_histRectsVisible = true;
+	}
 }
 
 void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
@@ -561,7 +603,7 @@ void dlg_DatasetComparator::visualize()
 		for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 		{
 			m_linearScaledPlot->addGraph();
-			m_linearScaledPlot->graph()->setVisible(true);
+			m_linearScaledPlot->graph()->setVisible(false);
 			m_linearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 			m_linearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
 				m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
@@ -612,7 +654,7 @@ void dlg_DatasetComparator::visualize()
 	for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
 		m_nonlinearScaledPlot->addGraph();
-		m_nonlinearScaledPlot->graph()->setVisible(true);
+		m_nonlinearScaledPlot->graph()->setVisible(false);
 		m_nonlinearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		m_nonlinearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
 			m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
@@ -776,12 +818,17 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 
 void dlg_DatasetComparator::generateSegmentTree()
 {
-	// TODO: nach BkgdRanges zeichnen + nur die Histogramme ohne die BkgdRanes zeichnen 	
+	// TODO: nach BkgdRanges zeichnen + nur die Histogramme ohne die BkgdRanes zeichnen 
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
 		plotBinCnt = ceil(plotWidth / (double)plotBinWidth);
-	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / plotBinCnt;
+
+	// TODO: check lower und upper indices -> wegen segmentree Range da diese ja so defineirt is [x, y)
+	// TODO: Problem richtige PlotBinNumber
+	double plotBinsNumber = plotWidth / (double)plotBinWidth;
+	double vecWidth = m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front();
+	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / (plotWidth / (double)plotBinWidth);
 	double rgb[3]; QColor c;
 
 	if (m_segmTreeList.isEmpty() | m_subHistBinCntChanged)
@@ -800,41 +847,38 @@ void dlg_DatasetComparator::generateSegmentTree()
 
 	for (int xBinNumber = 1; xBinNumber <= plotBinCnt; ++xBinNumber)
 	{
-		// TODO: check lower und upper indices -> wegen segmentree Range da diese ja so defineirt is [x, y)
 		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (xBinNumber - 1)*stepSize);
-		int lowerIdx = lower - m_nonlinearMappingVec.begin();
+		int nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin();
 		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), xBinNumber*stepSize);
-		int upperIdx = upper - m_nonlinearMappingVec.begin();
-		//std::vector<int> nonlinear_histVec(subhistBinCnt);
+		int nonlinearUpperIdx = upper - m_nonlinearMappingVec.begin();
 		int linearLowerIdx = ceil((xBinNumber - 1)*(m_nonlinearMappingVec.size() / (double)plotBinCnt));
 		int linearUpperIdx = ceil(xBinNumber*(m_nonlinearMappingVec.size() / (double)plotBinCnt));
-		//std::vector<int> linear_histVec(subhistBinCnt);
 	
 		for (int yBinNumber = 0; yBinNumber < subhistBinCnt; ++yBinNumber)
 		{
 			unsigned int nonlinear_sum = 0, linear_sum = 0;
 			for (int treeNumber = 0; treeNumber < m_segmTreeList.size(); ++treeNumber)
 			{
-				nonlinear_sum += m_segmTreeList[treeNumber]->hist_query(lowerIdx, upperIdx)[yBinNumber];
+				nonlinear_sum += m_segmTreeList[treeNumber]->hist_query(nonlinearLowerIdx, nonlinearUpperIdx)[yBinNumber];
 				linear_sum += m_segmTreeList[treeNumber]->hist_query(linearLowerIdx, linearUpperIdx)[yBinNumber];
 			}
-			//nonlinear_histVec[yBinNumber] = nonlinear_sum;
-			//linear_histVec[yBinNumber] = linear_sum;
 
 			QCPItemRect *nonlin_histRectItem = new QCPItemRect(m_nonlinearScaledPlot);
+			nonlin_histRectItem->setObjectName("histRect");
 			nonlin_histRectItem->setAntialiased(false);
 			nonlin_histRectItem->setLayer("background");
 			nonlin_histRectItem->setPen(QPen(Qt::NoPen));
 			nonlin_histRectItem->setClipToAxisRect(true);
 			// TODO: Problem bei 256 subhistBinCnt Farbverlauf schlecht sichtbar -> auf anderen 
 			// max wert (Lokales Histogrammmmaximum) skalieren  
-			m_histLUT->GetColor((double)nonlinear_sum / (upperIdx - lowerIdx + 1), rgb);
+			m_histLUT->GetColor((double)nonlinear_sum / (nonlinearUpperIdx - nonlinearLowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
 			nonlin_histRectItem->setBrush(QBrush(c));
 			nonlin_histRectItem->topLeft->setCoords((xBinNumber - 1)*stepSize, (((double)yBinNumber / subhistBinCnt)) * upperBnd);
 			nonlin_histRectItem->bottomRight->setCoords(xBinNumber*stepSize, (((double)(yBinNumber + 1) / subhistBinCnt))*upperBnd);
 
 			QCPItemRect *linear_histRectItem = new QCPItemRect(m_linearScaledPlot);
+			linear_histRectItem->setObjectName("histRect");
 			linear_histRectItem->setAntialiased(false);
 			linear_histRectItem->setLayer("background");
 			linear_histRectItem->setPen(QPen(Qt::NoPen));

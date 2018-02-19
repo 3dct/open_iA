@@ -103,6 +103,7 @@ private:
 	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
 	QList<iASegmentTree*> m_segmTreeList;
 	bool m_subHistBinCntChanged;
+	bool m_histRectsVisible;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
@@ -127,4 +128,6 @@ private:
 	void setupPlotConnections();
 	void setSelectionForRenderer(QList<QCPGraph *> visSelGraphList);
 	void generateSegmentTree();
+	
+	void changeHistRectVisibility(int lowerIdx, int upperIdx);
 };
