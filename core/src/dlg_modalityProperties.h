@@ -23,19 +23,24 @@
 #include <QSharedPointer>
 
 #include "ui_modalityProperties.h"
+#include "iAVolumeSettings.h"
 #include <iAQTtoUIConnector.h>
+
 typedef iAQTtoUIConnector<QDialog, Ui_modalityProperties> dlg_modalityPropertiesUI;
 
 class iAModality;
+class vtkRenderer; 
 
 class dlg_modalityProperties : public dlg_modalityPropertiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality);
+	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality, vtkRenderer * mainRenderer);
 public slots:
 	void OKButtonClicked();
 
 private:
 	QSharedPointer<iAModality> m_modality;
+	iAVolumeSettings m_DefaultVolumeSettings;
+	vtkRenderer *m_mainRenderer;
 };

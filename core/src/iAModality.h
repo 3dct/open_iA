@@ -21,6 +21,7 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
+#include "iAVolumeSettings.h"
 
 #include <vtkSmartPointer.h>
 
@@ -35,7 +36,6 @@ class iAImageCoordConverter;
 class iAImageInfo;
 class iAModalityTransfer;
 class iAVolumeRenderer;
-
 class vtkImageData;
 
 //! class holding the data of a single image channel
@@ -105,7 +105,24 @@ public:
 	void ComputeImageStatistics();
 	void ComputeHistogramData(size_t numBin);
 	QSharedPointer<iAHistogramData> const GetHistogramData() const;
+
+	void setVolSettings(const iAVolumeSettings &volSettings);
+
+	const iAVolumeSettings &getVolumeSettings() const; 
+
+	inline bool getVolSettingsSavedStatus() {
+		return this->m_VolSettingsSavedStatus; 
+	}
+
+	inline void setVolSettingsSavedStatusFalse() {
+		this->m_VolSettingsSavedStatus = false; 
+	}
+
+
 private:
+	iAVolumeSettings m_volSettings;
+	bool m_VolSettingsSavedStatus; 
+
 
 	QString m_name;
 	QString m_filename;
@@ -121,6 +138,7 @@ private:
 	QString positionSettings;
 	QString orientationSettings;
 	QString tfFileName;
+
 };
 
 

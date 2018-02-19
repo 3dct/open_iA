@@ -59,7 +59,7 @@ public:
 	int GetSelected() const;
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
-	void ChangeRenderSettings(iAVolumeSettings const & rs);
+	void ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
 	void Store(QString const & filename);
 	bool Load(QString const & filename);
 	void ShowSlicePlanes(bool enabled);

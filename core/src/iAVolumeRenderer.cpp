@@ -101,10 +101,16 @@ void iAVolumeRenderer::SetMovable(bool movable)
 	volume->SetDragable(movable);
 }
 
+const iAVolumeSettings& iAVolumeRenderer::getVolumeSettings() const
+{
+	return m_VolSettings;
+}
+
 void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
 		return;
+	m_VolSettings = vs; 
 	volProp->SetAmbient(vs.AmbientLighting);
 	volProp->SetDiffuse(vs.DiffuseLighting);
 	volProp->SetSpecular(vs.SpecularLighting);

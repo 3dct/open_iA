@@ -1521,10 +1521,10 @@ void MdiChild::ApplyRenderSettings(iARenderer* raycaster)
 	raycaster->ApplySettings(renderSettings);
 }
 
-void MdiChild::ApplyVolumeSettings()
+void MdiChild::ApplyVolumeSettings(const bool loadSavedVolumeSettings)
 {
 	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
-	m_dlgModalities->ChangeRenderSettings(volumeSettings);
+	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
 
 
@@ -1648,7 +1648,7 @@ bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSetting
 {
 	setRenderSettings(rs, vs);
 	ApplyRenderSettings(Raycaster);
-	ApplyVolumeSettings();
+	ApplyVolumeSettings(false);
 	renderer->vtkWidgetRC->show();
 	emit renderSettingsChanged();
 	return true;
@@ -2894,8 +2894,9 @@ void MdiChild::InitVolumeRenderers()
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
 		m_dlgModalities->InitDisplay(GetModality(i));
+
 	}
-	ApplyVolumeSettings();
+	ApplyVolumeSettings(true);
 	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
 		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
 	Raycaster->GetRenderer()->ResetCamera();
