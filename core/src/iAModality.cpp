@@ -42,7 +42,8 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	m_filename(filename),
 	renderFlags(renderFlags),
 	m_channel(channel),
-	m_imgs(1)
+	m_imgs(1),
+	m_VolSettingsSavedStatus(false)
 {
 	SetData(imgData);
 }
@@ -53,7 +54,8 @@ iAModality::iAModality(QString const & name, QString const & filename, std::vect
 	m_filename(filename),
 	renderFlags(renderFlags),
 	m_channel(-1),
-	m_imgs(imgs)
+	m_imgs(imgs),
+	m_VolSettingsSavedStatus(false)
 {
 	SetData(imgs[0]);
 }
@@ -279,6 +281,18 @@ QSharedPointer<iAHistogramData> const iAModality::GetHistogramData() const
 {
 	return m_transfer->GetHistogramData();
 }
+
+void iAModality::setVolSettings(const iAVolumeSettings &volSettings)
+{
+	this->m_volSettings = volSettings; 
+	this->m_VolSettingsSavedStatus = true; 
+}
+
+const iAVolumeSettings &iAModality::getVolumeSettings() const
+{
+	return this->m_volSettings;
+}
+
 
 
 // iAHistogramUpdater
