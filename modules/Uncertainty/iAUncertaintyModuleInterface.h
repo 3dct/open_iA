@@ -44,6 +44,7 @@ private slots:
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings();
 	void CalculateNewSubEnsemble();
+	void WriteFullDataFile();
 private:
 	void LoadEnsemble(QString const & ensembleFileName);
 	void SetupToolBar();

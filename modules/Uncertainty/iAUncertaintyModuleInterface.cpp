@@ -96,6 +96,7 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 	m_toolbar->action_ToggleSettings->setChecked(true);
 	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
 	connect(m_toolbar->action_CalculateNewSubEnsemble, SIGNAL(triggered()), this, SLOT(CalculateNewSubEnsemble()));
+	connect(m_toolbar->action_WriteFullDataFile, SIGNAL(triggered()), this, SLOT(WriteFullDataFile()));
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
@@ -130,4 +131,22 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 		return;
 	}
 	attach->CalculateNewSubEnsemble();
+}
+
+void iAUncertaintyModuleInterface::WriteFullDataFile()
+{
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		return;
+	}
+	QString fileName = QFileDialog::getSaveFileName(m_mainWnd,
+		tr("Save Full Data file"),
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
+		tr("SVM file format (*.svm);;"));
+	if (fileName.isEmpty())
+		return;
+	attach->WriteFullDataFile(fileName);
+
 }

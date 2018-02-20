@@ -61,6 +61,7 @@ public:
 	int ID() const;
 	void Store();
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
+	void WriteFullDataFile(QString const & filename);
 private:
 	bool LoadSampling(QString const & fileName, int labelCount, int id);
 	void CreateUncertaintyImages();

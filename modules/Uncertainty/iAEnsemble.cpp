@@ -581,6 +581,20 @@ void iAEnsemble::CreateUncertaintyImages()
 	}
 }
 
+void iAEnsemble::WriteFullDataFile(QString const & filename)
+{
+	QFile allDataFile(filename);
+	if (!allDataFile.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		DEBUG_LOG(QString("Could not open file '%1' for writing!").arg(filename));
+		return;
+	}
+	QTextStream out(&allDataFile);
+	// ... write all features in this format:
+	// <label> 1:<feature1value> 2:<feature2value> ...
+	// ...
+}
+
 
 vtkImagePointer iAEnsemble::GetEntropy(int source) const
 {
