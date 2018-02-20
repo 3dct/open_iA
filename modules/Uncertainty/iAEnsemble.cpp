@@ -57,6 +57,12 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	{
 		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
 	}
+	if (!ensembleFile->ReferenceImage().isEmpty())
+	{
+		iAITKIO::ScalarPixelType pixelType;
+		auto itkImg = iAITKIO::readFile(ensembleFile->ReferenceImage(), pixelType, false);
+		result->m_referenceImage = dynamic_cast<IntImage*>(itkImg.GetPointer());
+	}
 	return result;
 }
 
@@ -599,6 +605,12 @@ void iAEnsemble::WriteFullDataFile(QString const & filename)
 vtkImagePointer iAEnsemble::GetEntropy(int source) const
 {
 	return m_entropy[source];
+}
+
+
+vtkImagePointer iAEnsemble::GetReference() const
+{
+	return ConvertITK2VTK<IntImage>(m_referenceImage);
 }
 
 

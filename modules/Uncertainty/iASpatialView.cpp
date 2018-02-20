@@ -125,6 +125,7 @@ void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 	{
 		AddImage(imgs->GetSourceName(i), imgs->GetEntropy(i));
 	}
+	AddImage("Reference", imgs->GetReference());
 }
 
 
