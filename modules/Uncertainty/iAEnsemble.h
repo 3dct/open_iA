@@ -44,7 +44,8 @@ public:
 		QSharedPointer<iAEnsembleDescriptorFile> ensembleFile);
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
 		QVector<QSharedPointer<iAMember> > members,
-		QSharedPointer<iASamplingResults> superSet, int labelCount, QString const & cachePath, int id);
+		QSharedPointer<iASamplingResults> superSet, int labelCount, QString const & cachePath, int id,
+		IntImage::Pointer referenceImage);
 	vtkImagePointer GetEntropy(int source) const override;
 	vtkImagePointer GetReference() const override;
 	QString GetSourceName(int source) const override;

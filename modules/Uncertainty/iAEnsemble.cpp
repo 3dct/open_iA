@@ -31,6 +31,8 @@
 
 #include <itkConstNeighborhoodIterator.h>
 
+#include <vtkImageData.h>
+
 #include <QDir>
 #include <QFileInfo>
 #include <QTextStream>
@@ -52,23 +54,24 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	result->m_labelCount = ensembleFile->LabelCount();
 	result->m_cachePath = QFileInfo(ensembleFile->FileName()).absolutePath() + "/cache";
 	result->CreateUncertaintyImages();
-	// load sub ensembles:
-	for (int i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
-	{
-		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
-	}
 	if (!ensembleFile->ReferenceImage().isEmpty())
 	{
 		iAITKIO::ScalarPixelType pixelType;
 		auto itkImg = iAITKIO::readFile(ensembleFile->ReferenceImage(), pixelType, false);
 		result->m_referenceImage = dynamic_cast<IntImage*>(itkImg.GetPointer());
 	}
+	// load sub ensembles:
+	for (int i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
+	{
+		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
+	}
 	return result;
 }
 
 QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QVector<QSharedPointer<iAMember> > member,
-	QSharedPointer<iASamplingResults> superSet,	int labelCount, QString const & cachePath, int id)
+	QSharedPointer<iASamplingResults> superSet,	int labelCount, QString const & cachePath, int id,
+	IntImage::Pointer reference)
 {
 	QSharedPointer<iAEnsemble> result(new iAEnsemble(entropyBinCount));
 	QSharedPointer<iASamplingResults> samplingResults(new iASamplingResults(superSet->Attributes(),
@@ -77,6 +80,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	result->m_samplings.push_back(samplingResults);
 	result->m_cachePath = cachePath;
 	result->m_labelCount = labelCount;
+	result->m_referenceImage = reference;
 	result->CreateUncertaintyImages();
 	return result;
 }
@@ -732,7 +736,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::AddSubEnsemble(QVector<int> memberIDs, in
 		members.push_back(Member(memberID));
 	}
 	QString cachePath = m_cachePath + QString("/sub%1").arg(newEnsembleID);
-	auto newEnsemble = iAEnsemble::Create(EntropyBinCount(), members, Sampling(0), LabelCount(), cachePath, newEnsembleID);
+	auto newEnsemble = iAEnsemble::Create(EntropyBinCount(), members, Sampling(0), LabelCount(), cachePath, newEnsembleID, m_referenceImage);
 	m_subEnsembles.push_back(newEnsemble);
 	return newEnsemble;
 }
