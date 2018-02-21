@@ -603,6 +603,59 @@ void iAEnsemble::WriteFullDataFile(QString const & filename)
 	// ... write all features in this format:
 	// <label> 1:<feature1value> 2:<feature2value> ...
 	// ...
+	itk::Index<3> idx;
+	auto size = m_referenceImage->GetLargestPossibleRegion().GetSize();
+
+	// create cache for member / probability images
+	QVector<iAITKIO::ImagePointer> memberImageCache;
+	QVector<QVector<DoubleImage::Pointer>> memberProbImageCache;
+	for (auto s : m_samplings)
+	{
+		for (auto m : s->Members())
+		{
+			auto itkImg = m->LabelImage();
+			memberImageCache.push_back(itkImg);
+			
+			auto prob = m->ProbabilityImgs(LabelCount());
+			memberProbImageCache.push_back(prob);
+		}
+	}
+
+	// collect feature values for each pixel:
+	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+	{
+		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+		{
+			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			{
+				QString line(QString::number(m_referenceImage->GetPixel(idx))+" ");
+
+				int curFeature = 0;
+
+				for (int m=0; m < memberImageCache.size(); ++m)
+				{
+					// all member labels
+					auto memberLabelImg = dynamic_cast<IntImage*>(memberImageCache[m].GetPointer());
+					line += QString::number(++curFeature) + ":" + QString::number(memberLabelImg->GetPixel(idx)) + " ";
+
+					// all member uncertainties:
+					for (int l = 0; l < LabelCount(); ++l)
+					{
+						line += QString::number(++curFeature) + ":" + QString::number(memberProbImageCache[m][l]->GetPixel(idx)) + " ";
+					}
+				}
+
+				// all uncertainty / entropy images:
+				for (int e = 0; e < SourceCount; ++e)
+				{
+					line += QString::number(++curFeature) + ":" + QString::number(m_entropy[e]->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
+				}
+							// cut last space:
+				out << line.left(line.size()-1) << endl;
+			}
+		}
+	}
+	allDataFile.close();
 }
 
 
