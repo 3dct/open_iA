@@ -28,6 +28,7 @@
 
 class iAEnsembleDescriptorFile;
 class iAMember;
+class iAModalityList;
 class iASamplingResults;
 
 class iAEnsemble: public iAUncertaintyImages
@@ -63,7 +64,7 @@ public:
 	int ID() const;
 	void Store();
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
-	void WriteFullDataFile(QString const & filename);
+	void WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, QSharedPointer<iAModalityList> modalities);
 private:
 	bool LoadSampling(QString const & fileName, int labelCount, int id);
 	void CreateUncertaintyImages();

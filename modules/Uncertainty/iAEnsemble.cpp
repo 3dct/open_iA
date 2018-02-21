@@ -27,6 +27,8 @@
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAMathUtility.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAToolsITK.h"
 
 #include <itkConstNeighborhoodIterator.h>
@@ -591,7 +593,8 @@ void iAEnsemble::CreateUncertaintyImages()
 	}
 }
 
-void iAEnsemble::WriteFullDataFile(QString const & filename)
+void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties,
+	QSharedPointer<iAModalityList> modalities)
 {
 	QFile allDataFile(filename);
 	if (!allDataFile.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -632,23 +635,44 @@ void iAEnsemble::WriteFullDataFile(QString const & filename)
 
 				int curFeature = 0;
 
-				for (int m=0; m < memberImageCache.size(); ++m)
+				if (writeIntensities)
 				{
-					// all member labels
-					auto memberLabelImg = dynamic_cast<IntImage*>(memberImageCache[m].GetPointer());
-					line += QString::number(++curFeature) + ":" + QString::number(memberLabelImg->GetPixel(idx)) + " ";
-
-					// all member uncertainties:
-					for (int l = 0; l < LabelCount(); ++l)
+					for (int m = 0; m < modalities->size(); ++m)
 					{
-						line += QString::number(++curFeature) + ":" + QString::number(memberProbImageCache[m][l]->GetPixel(idx)) + " ";
+						for (int c = 0; c < modalities->Get(m)->ComponentCount(); ++c)
+						{
+							auto img = modalities->Get(m)->GetComponent(c);
+							line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
+						}
 					}
 				}
 
-				// all uncertainty / entropy images:
-				for (int e = 0; e < SourceCount; ++e)
+				for (int m=0; m < memberImageCache.size(); ++m)
 				{
-					line += QString::number(++curFeature) + ":" + QString::number(m_entropy[e]->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
+					if (writeMemberLabels)
+					{
+						// all member labels
+						auto memberLabelImg = dynamic_cast<IntImage*>(memberImageCache[m].GetPointer());
+						line += QString::number(++curFeature) + ":" + QString::number(memberLabelImg->GetPixel(idx)) + " ";
+					}
+
+					if (writeMemberProbabilities)
+					{
+						// all member uncertainties:
+						for (int l = 0; l < LabelCount(); ++l)
+						{
+							line += QString::number(++curFeature) + ":" + QString::number(memberProbImageCache[m][l]->GetPixel(idx)) + " ";
+						}
+					}
+				}
+
+				if (writeEnsembleUncertainties)
+				{
+					// all uncertainty / entropy images:
+					for (int e = 0; e < SourceCount; ++e)
+					{
+						line += QString::number(++curFeature) + ":" + QString::number(m_entropy[e]->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
+					}
 				}
 							// cut last space:
 				out << line.left(line.size()-1) << endl;

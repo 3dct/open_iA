@@ -133,6 +133,8 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 	attach->CalculateNewSubEnsemble();
 }
 
+#include "dlg_commoninput.h"
+
 void iAUncertaintyModuleInterface::WriteFullDataFile()
 {
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
@@ -147,6 +149,18 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 		tr("SVM file format (*.svm);;"));
 	if (fileName.isEmpty())
 		return;
-	attach->WriteFullDataFile(fileName);
+
+	QStringList params;
+	params
+		<< "$Write original data values"
+		<< "$Write Member Labels"
+		<< "$Write Member Probabilities"
+		<< "$Write Ensemble Uncertainties";
+	QList<QVariant> values;
+	values << true << true << true;
+	dlg_commoninput whatToStore(m_mainWnd, "Write parameters", params, values);
+	if (whatToStore.exec() != QDialog::Accepted)
+		return;
+	attach->WriteFullDataFile(fileName, whatToStore.getCheckValue(0), whatToStore.getCheckValue(1), whatToStore.getCheckValue(2), whatToStore.getCheckValue(3));
 
 }
