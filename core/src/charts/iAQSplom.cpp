@@ -512,6 +512,8 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 		return 0;
 	QPoint offsetPos = pos - settings.tickOffsets;		
 	QPoint grid( m_scatPlotSize.x() + settings.plotsSpacing, m_scatPlotSize.y() + settings.plotsSpacing );
+	if (grid.x() == 0 || grid.y() == 0)
+		return 0;	// to avoid division by 0
 	int ind[2] = { offsetPos.x() / grid.x(), offsetPos.y() / grid.y() };
 	//boundary checks
 	for( int i = 0; i < 2; ++i )		

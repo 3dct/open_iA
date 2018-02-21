@@ -19,42 +19,41 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iAImageComparisonMetrics.h"
+#include <QMap>
+#include <QWidget>
 
-#include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for GetITKScalarPixelType
+#include <vtkSmartPointer.h>
 
+#include "io/iAITKIO.h"
 
-// TODO: check why this function is delivering bogus results for larger images!
-template <typename T>
-void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
+class iAParamTableView;
+class iAImageWidget;
+
+class vtkImageData;
+
+class QSpinBox;
+class QToolButton;
+
+class iAParamSpatialView: public QWidget
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
-	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
-	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
-	if (!img || !ref)
-	{
-		DEBUG_LOG("compareImg_tmpl: One of the images to be compared is NULL!");
-		result.equalPixelRate = 0;
-		return;
-	}
-	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	double sumEqual = 0.0;
-#pragma omp parallel for reduction(+:sumEqual)
-	for (long long i = 0; i < size; ++i)
-	{
-		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
-		{
-			++sumEqual;
-		}
-	}
-	result.equalPixelRate = sumEqual / size;
-}
-
-iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
-{
-	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, GetITKScalarPixelType(img), img, reference, result);
-	return result;
-}
+	Q_OBJECT
+public:
+	iAParamSpatialView(iAParamTableView* table, QString const & basePath);
+	void SetImage(int id);
+private slots:
+	void SlicerModeButtonClicked(bool checked);
+	void SliceChanged(int slice);
+private:
+	iAParamTableView* m_table;
+	QString m_basePath;
+	QMap<int, vtkSmartPointer<vtkImageData>> m_imageCache;
+	QVector<iAITKIO::ImagePointer> m_loadedImgs; // to stop itk from unloading
+	int m_curMode;
+	int m_sliceNr[3];
+	QVector<QToolButton*> slicerModeButton;
+	QSpinBox* m_sliceControl;
+	iAImageWidget* m_imageWidget;
+	QWidget* m_settings;
+	QWidget* m_imageContainer;
+	bool m_sliceNrInitialized;
+};

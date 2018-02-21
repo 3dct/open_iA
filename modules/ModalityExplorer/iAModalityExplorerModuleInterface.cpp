@@ -22,26 +22,10 @@
 #include "iAModalityExplorerModuleInterface.h"
 
 #include "iAConsole.h"
-#include "io/iAIO.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#include "dlg_modalities.h"
-#include "dlg_modalitySPLOM.h"
 #include "iAModalityExplorerAttachment.h"
-#include "iAModality.h"
-
-#include <vtkImageReader2.h>
-#include <vtkTIFFReader.h>
-#include <vtkBMPReader.h>
-#include <vtkPNGReader.h>
-#include <vtkJPEGReader.h>
-#include <vtkStringArray.h>
-
-#include <QFileDialog>
-#include <QMessageBox>
-
-#include <cassert>
 
 
 void iAModalityExplorerModuleInterface::Initialize()
@@ -67,7 +51,9 @@ iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(M
 void iAModalityExplorerModuleInterface::ModalitySPLOM()
 {
 	PrepareActiveChild();
-	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(m_mdiChild->GetModalities());
-	m_mdiChild->tabifyDockWidget(m_childData.logs, m_dlgModalitySPLOM);
+	UpdateChildData();
+	bool result = AttachToMdiChild(m_mdiChild);
+	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
+	if (!result || !attach)
+		DEBUG_LOG("ModalityExplorer could not be initialized!");
 }

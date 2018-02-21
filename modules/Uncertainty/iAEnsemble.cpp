@@ -422,7 +422,7 @@ void iAEnsemble::CreateUncertaintyImages()
 				for (QSharedPointer<iAMember> member : sampling->Members())
 				{
 					iAITKIO::ImagePointer labelBaseImg = member->LabelImage();
-					typename IntImage::Pointer intlabelImg = dynamic_cast<IntImage*>(labelBaseImg.GetPointer());
+					auto intlabelImg = dynamic_cast<IntImage*>(labelBaseImg.GetPointer());
 					if (m_labelDistr.empty())
 					{	// initialize empty sums:
 						for (int i = 0; i < m_labelCount; ++i)

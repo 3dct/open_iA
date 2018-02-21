@@ -75,9 +75,8 @@ public:
 			return;
 		}
 		double t = ( val - m_range[0] ) / m_rangeLen;
-		unsigned long index = t * m_numColors;
+		int index = clamp(0ul, m_numColors-1, static_cast<unsigned long>(t * m_numColors));
 		index *= 4;
-		index = clamp(0ul, static_cast<unsigned long>(m_data.size() - 4), index);
 		for( unsigned long i = 0; i < 4; ++i )
 			rgba_out[i] = m_data[index++];
 	}

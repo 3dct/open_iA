@@ -21,12 +21,12 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
+#include "iAVolumeSettings.h"
 
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 
-class iAVolumeSettings;
 class iATransferFunction;
 
 class vtkActor;
@@ -68,7 +68,10 @@ public:
 	void SetImage(iATransferFunction * transfer, vtkSmartPointer<vtkImageData> imgData);
 
 	void SetMovable(bool movable);
+
+	const iAVolumeSettings& getVolumeSettings() const;
 private:
+	iAVolumeSettings m_VolSettings;
 	vtkSmartPointer<vtkVolume> volume;
 	vtkSmartPointer<vtkVolumeProperty> volProp;
 	vtkSmartPointer<vtkSmartVolumeMapper> volMapper;
@@ -80,5 +83,6 @@ private:
 	vtkSmartPointer<vtkActor> outlineActor;
 	vtkRenderer* currentBoundingBoxRenderer;
 	//! @}
+
 	bool m_isFlat;
 };

@@ -26,6 +26,7 @@
 #include <QVector>
 
 class iAModality;
+class iAVolumeSettings; 
 
 class vtkCamera;
 
@@ -53,6 +54,11 @@ signals:
 	void Added(QSharedPointer<iAModality> mod);
 private:
 	bool ModalityExists(QString const & filename, int channel) const;
+
+
+	void checkandSetVolumeSettings(iAVolumeSettings &volSettings, const QString &Shading, const QString &LinearInterpolation,
+		const QString &SampleDistance, const QString AmbientLighting, const QString& DiffuseLighting, const QString &SpecularLighting,
+		const QString &SpecularPower); 
 
 	ModalityCollection m_modalities;
 	QString m_fileName;

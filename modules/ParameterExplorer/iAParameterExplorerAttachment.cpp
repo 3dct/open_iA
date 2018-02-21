@@ -18,43 +18,47 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#include "iAParameterExplorerAttachment.h"
 
-#include "iAImageComparisonMetrics.h"
+// IMPAsSE 	  IMage PArameter Space Explorer
 
-#include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for GetITKScalarPixelType
+#include "iADockWidgetWrapper.h"
 
+#include "iAParamSPLOMView.h"
+#include "iAParamSpatialView.h"
+#include "iAParamTableView.h"
 
-// TODO: check why this function is delivering bogus results for larger images!
-template <typename T>
-void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
+#include "mdichild.h"
+
+#include <QFileDialog>
+
+iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
-	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
-	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
-	if (!img || !ref)
-	{
-		DEBUG_LOG("compareImg_tmpl: One of the images to be compared is NULL!");
-		result.equalPixelRate = 0;
-		return;
-	}
-	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	double sumEqual = 0.0;
-#pragma omp parallel for reduction(+:sumEqual)
-	for (long long i = 0; i < size; ++i)
-	{
-		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
-		{
-			++sumEqual;
-		}
-	}
-	result.equalPixelRate = sumEqual / size;
+	return new iAParameterExplorerAttachment(mainWnd, childData);
 }
 
-iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
+iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData)
+	:iAModuleAttachmentToChild(mainWnd, childData)
 {
-	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, GetITKScalarPixelType(img), img, reference, result);
-	return result;
+	QString csvFileName = QFileDialog::getOpenFileName(childData.child,
+			tr( "Select CSV File" ), childData.child->getFilePath(), tr( "CSV Files (*.csv);;" ) );
+	if (csvFileName.isEmpty())
+		return;
+	m_tableView = new iAParamTableView(csvFileName);
+	m_spatialView = new iAParamSpatialView(m_tableView, QFileInfo(csvFileName).absolutePath());
+	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "ParamSpatialView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix View", "ParamSPLOMView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table View", "ParamTableView"));
+	childData.child->splitDockWidget(childData.child->logs, m_dockWidgets[0], Qt::Horizontal);
+	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
+	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
+}
+
+void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()
+{
+	for (int i = 0; i < m_dockWidgets.size(); ++i)
+	{
+		m_dockWidgets[i]->toggleTitleBar();
+	}
 }

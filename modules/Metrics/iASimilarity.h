@@ -21,5 +21,13 @@
 #pragma once
 
 #include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
 IAFILTER_DEFAULT_CLASS(iASimilarity);
+
+class iASimilarityFilterRunner : public iAFilterRunnerGUI
+{
+public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+};

@@ -19,42 +19,38 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iAImageComparisonMetrics.h"
+#include <vtkSmartPointer.h>
 
-#include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for GetITKScalarPixelType
+#include <QVector>
+#include <QWidget>
 
+class iAParamSpatialView;
+class iAParamTableView;
+class iAQSplom;
 
-// TODO: check why this function is delivering bogus results for larger images!
-template <typename T>
-void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
+class vtkColorTransferFunction;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+
+class QCheckBox;
+
+class iAParamSPLOMView: public QWidget
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
-	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
-	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
-	if (!img || !ref)
-	{
-		DEBUG_LOG("compareImg_tmpl: One of the images to be compared is NULL!");
-		result.equalPixelRate = 0;
-		return;
-	}
-	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	double sumEqual = 0.0;
-#pragma omp parallel for reduction(+:sumEqual)
-	for (long long i = 0; i < size; ++i)
-	{
-		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
-		{
-			++sumEqual;
-		}
-	}
-	result.equalPixelRate = sumEqual / size;
-}
-
-iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
-{
-	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, GetITKScalarPixelType(img), img, reference, result);
-	return result;
-}
+	Q_OBJECT
+public:
+	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
+private slots:
+	void SetLUTColumn(QString const & colName);
+	void SplomSelection(QVector<unsigned int> *);
+	void UpdateFeatVisibilty(int);
+	void PointHovered(int);
+private:
+	iAParamSpatialView* m_spatialView;
+	iAParamTableView* m_tableView;
+	iAQSplom* m_splom;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
+	QWidget* m_settings;
+	QVector<QCheckBox*> m_featCB;
+};

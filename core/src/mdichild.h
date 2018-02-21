@@ -257,7 +257,7 @@ public:
 	//! apply current rendering settings of this mdi child to the given iARenderer
 	void ApplyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
-	void ApplyVolumeSettings();
+	void ApplyVolumeSettings(const bool loadSavedVolumeSettings);
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
 

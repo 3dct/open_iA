@@ -18,43 +18,52 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#include "pch.h"
+#include "iAParameterExplorerModuleInterface.h"
 
-#include "iAImageComparisonMetrics.h"
+#include "iAParameterExplorerAttachment.h"
 
-#include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for GetITKScalarPixelType
+#include "iAConsole.h"
+#include "iAChildData.h"
+#include "mainwindow.h"
 
-
-// TODO: check why this function is delivering bogus results for larger images!
-template <typename T>
-void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
+void iAParameterExplorerModuleInterface::Initialize()
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
-	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
-	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
-	if (!img || !ref)
-	{
-		DEBUG_LOG("compareImg_tmpl: One of the images to be compared is NULL!");
-		result.equalPixelRate = 0;
+	if (!m_mainWnd)
 		return;
-	}
-	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	double sumEqual = 0.0;
-#pragma omp parallel for reduction(+:sumEqual)
-	for (long long i = 0; i < size; ++i)
-	{
-		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
-		{
-			++sumEqual;
-		}
-	}
-	result.equalPixelRate = sumEqual / size;
+
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
+	QAction * actionExplore = new QAction( m_mainWnd );
+	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
+	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
 }
 
-iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
+void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 {
-	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, GetITKScalarPixelType(img), img, reference, result);
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		return;
+	}
+	attach->ToggleDockWidgetTitleBars();
+}
+
+bool iAParameterExplorerModuleInterface::StartParameterExplorer()
+{
+	PrepareActiveChild();
+	if (!m_mdiChild)
+	{
+		return false;
+	}
+	bool result = AttachToMdiChild(m_mdiChild);
+	return result;
+}
+
+iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+{
+	iAParameterExplorerAttachment* result = iAParameterExplorerAttachment::create( mainWnd, childData);
 	return result;
 }

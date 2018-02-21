@@ -83,11 +83,7 @@ struct moData
 /**
 * \brief	implement vtkChartParallelCoordinates as dialog
 */
-<<<<<<< HEAD:modules/FeatureScout/dlg_FeatureScout.h
-class dlg_FeatureScout : public QDockWidget, private Ui_FeatureScoutCE
-=======
-class dlg_FiberScout : public QDockWidget, public Ui_FiberScoutCE
->>>>>>> develop:modules/FiberScout/dlg_FiberScout.h
+class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
 

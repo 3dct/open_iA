@@ -33,10 +33,11 @@
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
-#include "iAVolumeSettings.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "io/extension2id.h"
+#include "mainwindow.h"
+
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -261,7 +262,7 @@ void dlg_modalities::EditClicked()
 		DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 		return;
 	}
-	dlg_modalityProperties prop(this, editModality);
+	dlg_modalityProperties prop(this, editModality, m_mainRenderer);
 	if (prop.exec() == QDialog::Rejected)
 	{
 		return;
@@ -384,7 +385,7 @@ vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::GetOTF(int modality)
 	return modalities->Get(modality)->GetTransfer()->GetOpacityFunction();
 }
 
-void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
+void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings)
 {
 	for (int i = 0; i < modalities->size(); ++i)
 	{
@@ -394,7 +395,22 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs)
 			DEBUG_LOG("ChangeRenderSettings: No Renderer set!");
 			return;
 		}
-		renderer->ApplySettings(rs);
+
+		//load volume settings from file otherwise use default rs
+		//check if a volume setting is saved for a modality
+		//set saved status to false after loading
+		if (loadSavedVolumeSettings) {
+			
+			
+				if (modalities->Get(i)->getVolSettingsSavedStatus()) {
+					renderer->ApplySettings(modalities->Get(i)->getVolumeSettings());
+					modalities->Get(i)->setVolSettingsSavedStatusFalse();
+				}
+
+		//use default settings
+		}else {
+			renderer->ApplySettings(rs);
+		}
 	}
 }
 
