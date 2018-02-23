@@ -48,8 +48,8 @@ void CalculateSegmentationMetrics(QVector<iAConnector*> & images, iAFilter* iafi
 	iafilter->AddOutputValue("Union Overlap (Jaccard)", filter->GetUnionOverlap());
 	iafilter->AddOutputValue("Mean Overlap (Dice)", filter->GetMeanOverlap());
 	iafilter->AddOutputValue("Volume Similarity", filter->GetVolumeSimilarity());
-	iafilter->AddOutputValue("False negatives", filter->GetFalseNegativeError());
-	iafilter->AddOutputValue("False positives", filter->GetFalsePositiveError());
+	//iafilter->AddOutputValue("False negatives", filter->GetFalseNegativeError());
+	//iafilter->AddOutputValue("False positives", filter->GetFalsePositiveError());
 
 	typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
 	typename FilterType::MapType::const_iterator it;
@@ -64,8 +64,8 @@ void CalculateSegmentationMetrics(QVector<iAConnector*> & images, iAFilter* iafi
 		iafilter->AddOutputValue(QString("Label %1 Union Overlap").arg(label), filter->GetUnionOverlap(label));
 		iafilter->AddOutputValue(QString("Label %1 Mean Overlap").arg(label), filter->GetMeanOverlap(label));
 		iafilter->AddOutputValue(QString("Label %1 Volume Similarity").arg(label), filter->GetVolumeSimilarity(label));
-		iafilter->AddOutputValue(QString("Label %1 False negatives").arg(label), filter->GetFalseNegativeError(label));
-		iafilter->AddOutputValue(QString("Label %1 False positives").arg(label), filter->GetFalsePositiveError(label));
+		//iafilter->AddOutputValue(QString("Label %1 False negatives").arg(label), filter->GetFalseNegativeError(label));
+		//iafilter->AddOutputValue(QString("Label %1 False positives").arg(label), filter->GetFalsePositiveError(label));
 	}
 }
 IAFILTER_CREATE(iASegmentationMetrics)
