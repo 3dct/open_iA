@@ -625,11 +625,11 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 	}
 
 	// collect feature values for each pixel:
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+	for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
 	{
 		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
 			{
 				QString line(QString::number(m_referenceImage->GetPixel(idx))+" ");
 

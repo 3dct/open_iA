@@ -22,6 +22,7 @@
 #include "iAUncertaintyModuleInterface.h"
 
 #include "iAEntropy.h"
+#include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
 #include "iAConsole.h"
@@ -35,6 +36,8 @@
 void iAUncertaintyModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iAEntropy);
+
+	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
