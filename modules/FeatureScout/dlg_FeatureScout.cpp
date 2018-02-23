@@ -289,9 +289,79 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 	// Gets the mouse button event for pcChart and holds the SPM-Annotations consistent with PC-Annoatations.
 	if ( this->spmActivated )
 	{
-		// TODO SPM
+		// TODO SPM MS
 		// matrix->UpdateCustomLegend();
 		// matrix->GetAnnotationLink()->SetCurrentSelection( pcChart->GetAnnotationLink()->GetCurrentSelection() );
+		
+		
+		//matrix->setSelection() 
+		////pcChart->GetAnnotationLink()
+		//vtkSmartPointer<vtkAnnotationLink> myAnnotation = this->pcChart->GetAnnotationLink(); 
+		//int text = (int) this->pcChart->GetAnnotationLink()->GetCurrentSelection()->GetNumberOfNodes(); 
+		//this->pcChart->setA
+		//end experimenting MS TODO REMOVE comments
+
+		//annotationLink is null;
+		vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection(); 
+		
+		vtkIdType val = DataSelection->GetDataTypeValueMax(); 
+
+		//QVector<uint> *
+		
+		//QSharedPointer<QVector<uint>> selID( new QVector<uint>); 
+		
+		QVector<uint> selID
+
+		//matrix->setSelection()
+		//64bit data type
+		/*vtkIdType maxID = DataSelection->GetMaxId();
+		vtkIdType minID = DataSelection->GetDataTypeValueMin()*/; 
+		int countSelection = DataSelection->GetNumberOfValues(); ;
+		int idx = 0;
+
+		vtkVariant var_Idx = 0; 
+		uint objID = 0; 
+		/*
+			// add new class
+			for ( int i = 0; i < CountObject; i++ )
+			{
+				// get objID from item->text()
+				vtkVariant v = pcChart->GetPlot( 0 )->GetSelection()->GetVariantValue( i );
+				objID = v.ToInt() + 1;	//fibre index starting at 1 n
+		
+		
+		*/
+		if (countSelection > 0) {
+
+			for (idx; idx < countSelection; idx++) {
+
+				var_Idx = DataSelection->GetVariantValue(idx);
+				//fiber starts with index 1!!, mininum is 0
+				//todo change 
+				objID =  (unsigned int)var_Idx.ToLongLong() +1;
+				
+				
+				//selID->push_back(objID); 
+				selID.push_back(objID);
+
+			}
+
+			//matrix->selectionModified(&(*selID));
+			
+			matrix->setSelection(&selID);
+			//matrix->selectionModified(&selID);
+			//matrix->up
+			//matrix->setUpdatesEnabled(true);
+			////matrix->update
+			//this->spUpdateSPColumnVisibility();
+			
+			//update view
+		}
+		//->pcChart->GetPlot(0)->GetSelection()
+		//this->pcChart->d
+		//this->pcChart.getPl
+		//tc->annotationLink
+		//DataArray->get
 		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
 	}
 	else
