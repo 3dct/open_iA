@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAUncertaintyColors.h"
 
-QColor iAUncertaintyColors::Chart(27, 158, 119);
+QColor iAUncertaintyColors::ScatterPlotDots(27, 158, 119);
 QColor iAUncertaintyColors::Selection(230, 171, 2);
-QColor iAUncertaintyColors::MemberBar(Chart);
+QColor iAUncertaintyColors::MemberBar(217, 95,2);
+QColor iAUncertaintyColors::HistogramBar(166,118,29);

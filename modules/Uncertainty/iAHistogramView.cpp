@@ -43,7 +43,7 @@ void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleH
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
 	m_chart->setMinimumHeight(120);
-	m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(data, iAUncertaintyColors::Chart, 2)));
+	m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(data, iAUncertaintyColors::HistogramBar, 2)));
 	layout()->setSpacing(5);
 	layout()->addWidget(m_chart);
 }
