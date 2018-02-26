@@ -116,6 +116,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget = new iAScatterPlotWidget(splomData);
 	QColor c(iAUncertaintyColors::ScatterPlotDots);
 	c.setAlpha(128);
+	m_scatterPlotWidget->SetSelectionMode(iAScatterPlot::Rectangle);
 	m_scatterPlotWidget->SetPlotColor(c, 0, 1);
 	m_scatterPlotWidget->SetSelectionColor(iAUncertaintyColors::Selection);
 	m_scatterPlotWidget->SetSelection(selection);
