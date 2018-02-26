@@ -26,7 +26,7 @@
 #include "iAConnector.h"
 #include "iAMathUtility.h"    // for Pi
 #include "iATypedCallHelper.h"
-#include "iAProgressToQtSignal.h"
+#include "iAProgress.h"
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>
@@ -35,7 +35,7 @@
 
 #include <QLocale>
 
-template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgressToQtSignal & progress,  QString pathCSV, bool feretDiameter )
+template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgress* progress,  QString pathCSV, bool feretDiameter )
 {
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;
@@ -249,7 +249,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 			<< minorlength * spacing << ',' 	// unit = microns
 			<< '\n';
 
-		progress.emitProgress(static_cast<int>(labelValue * 100 / allLabels.size()));
+		progress->ManualProgress(static_cast<int>(labelValue * 100 / allLabels.size()));
 	}
 	fout.close();
 }
@@ -265,13 +265,13 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,
 	m_mdiChild(parent)
 {}
 
+#include "iAProgress.h"
+
 void iACalcFeatureCharacteristics::performWork()
 {
 	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	iAProgressToQtSignal progress;
-	connect(&progress, SIGNAL(progress(int)), m_mdiChild, SLOT(updateProgressBar(int)));
 	ITK_TYPED_CALL(calcFeatureCharacteristics_template, itkType,
-		getConnector(), progress, pathCSV, m_calculateFeretDiameter);
+		getConnector(), getItkProgress(), pathCSV, m_calculateFeretDiameter);
 	addMsg(tr("%1   Feature csv file created in: %2")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(pathCSV));
