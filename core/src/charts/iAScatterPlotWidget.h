@@ -22,12 +22,15 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+
 #include <QGLWidget>
 
 class iASPLOMData;
-class iAScatterPlot;
 class iAScatterPlotStandaloneHandler;
 
+/** Widget for using a single scatter plot (outside of a SPLOM)
+*/
 class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
 {
 public:
@@ -41,6 +44,7 @@ public:
 	void SetSelection(QVector<unsigned int> const & selection);
 	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void SetSelectionColor(QColor const & c);
+	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
 protected:
 	virtual void paintEvent(QPaintEvent * event);
 	virtual void resizeEvent(QResizeEvent* event);

@@ -47,6 +47,11 @@ class open_iA_Core_API iAScatterPlot : public QObject
 	Q_OBJECT
 		//Methods
 public:
+	enum SelectionMode
+	{
+		Rectangle,
+		Polygon
+	};
 	//!  Constructor: requires a parent SPLOM widget
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
@@ -155,6 +160,8 @@ protected:
 		QColor tickLabelColor;
 		QColor backgroundColor;
 		QColor selectionColor;
+
+		SelectionMode selectionMode;
 	};
 
 	//Members
@@ -191,6 +198,7 @@ protected:
 	QGLBuffer * m_pointsBuffer;					//!< OpenGL buffer used for points VBO
 	//selection polygon
 	QPolygon m_selPoly;							//!< polygon of selection lasso
+	QPoint m_selStart;
 	//state flags
 	bool m_isMaximizedPlot;						//!< flag telling if plot is maximized (bigger plot)
 	bool m_isPreviewPlot;						//!< flag telling if plot is previewed (displayed in maximized plot)

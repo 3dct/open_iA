@@ -219,3 +219,8 @@ void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
 {
 	m_scatterplot->settings.selectionColor = c;
 }
+
+void iAScatterPlotWidget::SetSelectionMode(iAScatterPlot::SelectionMode mode)
+{
+	m_scatterplot->settings.selectionMode = mode;
+}

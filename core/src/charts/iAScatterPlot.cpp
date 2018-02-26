@@ -64,7 +64,9 @@ plotBorderColor( QColor( 170, 170, 170 ) ),
 tickLineColor( QColor( 221, 221, 221 ) ),
 tickLabelColor( QColor( 100, 100, 100 ) ),
 backgroundColor( QColor( 255, 255, 255 ) ),
-selectionColor( QColor(0, 0, 0) )
+selectionColor( QColor(0, 0, 0) ),
+
+selectionMode(Polygon)
 {}
 
 iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
@@ -290,7 +292,18 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 
 	if ( event->buttons()&Qt::LeftButton )//moving
 	{
-		m_selPoly.append( cropLocalPos( locPos ) );
+		if (settings.selectionMode == Polygon)
+		{
+			m_selPoly.append(cropLocalPos(locPos));
+		}
+		else
+		{
+			m_selPoly.clear();
+			m_selPoly.append(m_selStart);
+			m_selPoly.append(QPoint(m_selStart.x(), locPos.y()));
+			m_selPoly.append(QPoint(locPos.x(), locPos.y()));
+			m_selPoly.append(QPoint(locPos.x(), m_selStart.y()));
+		}
 		isUpdate = true;
 	}
 
@@ -304,7 +317,14 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 	m_prevPos = locPos;
 	if ( event->buttons()&Qt::LeftButton )//selection
 	{
-		m_selPoly.append( locPos );
+		if (settings.selectionMode == Rectangle)
+		{
+			m_selStart = locPos;
+		}
+		else
+		{
+			m_selPoly.append(locPos);
+		}
 	}
 }
 
