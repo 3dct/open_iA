@@ -583,29 +583,37 @@ void iAScatterPlot::updateSelectedPoints( bool append )
 	QVector<unsigned int> & selInds = m_splom->getSelection();
 	if ( !append )
 		selInds.clear();
-	QPolygonF pPoly;
-	for ( int i = 0; i < m_selPoly.size(); ++i )
+	if (m_selPoly.size() > 0)
 	{
-		QPointF p( x2p( m_selPoly.point( i ).x() ), y2p( m_selPoly.point( i ).y() ) );
-		pPoly.append( p );
-	}
-	int rangeBinX[2] = { p2binx( pPoly.boundingRect().left() ), p2binx( pPoly.boundingRect().right() ) };
-	int rangeBinY[2] = { p2biny( pPoly.boundingRect().top() ), p2biny( pPoly.boundingRect().bottom() ) };
-	for ( int binx = rangeBinX[0]; binx <= rangeBinX[1]; ++binx )
-		for ( int biny = rangeBinY[0]; biny <= rangeBinY[1]; ++biny )
+		QPolygonF pPoly;
+		for (int i = 0; i < m_selPoly.size(); ++i)
 		{
-		QList<int> pts = m_pointsGrid[getBinIndex( binx, biny )];
-		foreach( int i, pts )
+			QPointF p(x2p(m_selPoly.point(i).x()), y2p(m_selPoly.point(i).y()));
+			pPoly.append(p);
+		}
+		int rangeBinX[2] = { p2binx(pPoly.boundingRect().left()), p2binx(pPoly.boundingRect().right()) };
+		int rangeBinY[2] = { p2biny(pPoly.boundingRect().top()), p2biny(pPoly.boundingRect().bottom()) };
+		for (int binx = rangeBinX[0]; binx <= rangeBinX[1]; ++binx)
 		{
-			QPointF pt( m_splomData->paramData( m_paramIndices[0] )[i], m_splomData->paramData( m_paramIndices[1] )[i] );
-			if ( pPoly.containsPoint( pt, Qt::OddEvenFill ) )
+			for (int biny = rangeBinY[0]; biny <= rangeBinY[1]; ++biny)
 			{
-				if ( append ) if ( selInds.contains( i ) ) continue;
-				selInds.push_back( i );
+				QList<int> pts = m_pointsGrid[getBinIndex(binx, biny)];
+				foreach(int i, pts)
+				{
+					QPointF pt(m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i]);
+					if (pPoly.containsPoint(pt, Qt::OddEvenFill))
+					{
+						if (append) if (selInds.contains(i)) continue;
+						selInds.push_back(i);
+					}
+				}
 			}
 		}
-		}
-	emit selectionModified();
+	}
+	if (!append || m_selPoly.size() > 0)
+	{
+		emit selectionModified();
+	}
 }
 
 void iAScatterPlot::updateDrawRect()
