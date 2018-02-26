@@ -44,6 +44,7 @@ public:
 	void ToggleSettings();
 	void CalculateNewSubEnsemble();
 	bool LoadEnsemble(QString const & fileName);
+	void WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties);
 private slots:
 	void MemberSelected(int memberIdx);
 	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);

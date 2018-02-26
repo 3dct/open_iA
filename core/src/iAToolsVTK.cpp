@@ -40,11 +40,6 @@
 vtkStandardNewMacro(iAvtkImageData);
 
 
-void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output)
-{
-	output->DeepCopy(input);
-}
-
 vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
 {
 	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();

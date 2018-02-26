@@ -28,6 +28,7 @@
 
 class iAEnsembleDescriptorFile;
 class iAMember;
+class iAModalityList;
 class iASamplingResults;
 
 class iAEnsemble: public iAUncertaintyImages
@@ -44,9 +45,11 @@ public:
 		QSharedPointer<iAEnsembleDescriptorFile> ensembleFile);
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
 		QVector<QSharedPointer<iAMember> > members,
-		QSharedPointer<iASamplingResults> superSet, int labelCount, QString const & cachePath, int id);
-	virtual vtkImagePointer GetEntropy(int source) const;
-	virtual QString GetSourceName(int source) const;
+		QSharedPointer<iASamplingResults> superSet, int labelCount, QString const & cachePath, int id,
+		IntImage::Pointer referenceImage);
+	vtkImagePointer GetEntropy(int source) const override;
+	vtkImagePointer GetReference() const override;
+	QString GetSourceName(int source) const override;
 	QVector<IntImage::Pointer> const & GetLabelDistribution() const;
 	int LabelCount() const;
 	double * EntropyHistogram() const;
@@ -61,6 +64,7 @@ public:
 	int ID() const;
 	void Store();
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
+	void WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, QSharedPointer<iAModalityList> modalities);
 private:
 	bool LoadSampling(QString const & fileName, int labelCount, int id);
 	void CreateUncertaintyImages();
@@ -69,8 +73,8 @@ private:
 	QVector<QSharedPointer<iASamplingResults> > m_samplings;
 
 	QVector<vtkImagePointer> m_entropy;
-
 	QVector<IntImage::Pointer> m_labelDistr;
+	IntImage::Pointer m_referenceImage;
 	DoubleImage::Pointer m_entropyAvgEntropy;
 	DoubleImage::Pointer m_labelDistrEntropy;
 	DoubleImage::Pointer m_probSumEntropy;

@@ -45,5 +45,6 @@ public:
 		SourceCount
 	};
 	virtual vtkImagePointer GetEntropy(int source) const =0;
+	virtual vtkImagePointer GetReference() const =0;
 	virtual QString GetSourceName(int source) const =0;
 };

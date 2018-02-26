@@ -21,25 +21,5 @@
 #pragma once
 
 #include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
 
-IAFILTER_DEFAULT_CLASS(iAASTRAForwardProject);
-IAFILTER_DEFAULT_CLASS(iAASTRAReconstruct);
-
-enum AstraReconstructionMethods
-{
-	BP3D,
-	FDK3D,
-	SIRT3D,
-	CGLS3D
-};
-
-
-class iAASTRAFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	void Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd) override;
-	bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
-};
+IAFILTER_DEFAULT_CLASS(iACSVtoMHD);

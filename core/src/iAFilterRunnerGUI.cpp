@@ -135,7 +135,7 @@ void iAFilterRunnerGUI::StoreParameters(QSharedPointer<iAFilter> filter, QMap<QS
 
 
 bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
-	MdiChild* sourceMdi, MainWindow* mainWnd)
+	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
 {
 	auto params = filter->Parameters();
 	if (filter->RequiredInputs() == 1 && params.empty())
@@ -147,8 +147,8 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	{
 		if (mdi != sourceMdi)
 			otherMdis.push_back(mdi);
-	}	
-	if (filter->RequiredInputs() > (otherMdis.size()+1) )
+	}
+	if (askForAdditionalInput && filter->RequiredInputs() > (otherMdis.size()+1) )
 	{
 		QMessageBox::warning(mainWnd, filter->Name(),
 			QString("This filter requires %1 datasets, only %2 open file(s)!")
@@ -175,7 +175,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			dlgParamValues << paramValues[param->Name()];
 		}
 	}
-	if (filter->RequiredInputs() > 1)
+	if (askForAdditionalInput && filter->RequiredInputs() > 1)
 	{
 		QStringList mdiChildrenNames;
 		for (auto mdi: otherMdis)
@@ -215,7 +215,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		paramValues[param->Name()] = value;
 		++idx;
 	}
-	if (filter->RequiredInputs() > 1)
+	if (askForAdditionalInput && filter->RequiredInputs() > 1)
 	{
 		for (int i = 0; i < filter->RequiredInputs()-1; ++i)
 		{
@@ -239,7 +239,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 {
 	MdiChild* sourceMdi = mainWnd->activeMdiChild();
 	QMap<QString, QVariant> paramValues = LoadParameters(filter, sourceMdi);
-	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd))
+	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 		return;
 	StoreParameters(filter, paramValues);
 	

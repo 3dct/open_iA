@@ -132,6 +132,12 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 }
 
 
+void iAUncertaintyAttachment::WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
+{
+	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_childData.child->GetModalities());
+}
+
+
 void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 {
 	auto memberIDs = m_memberView->SelectedMemberIDs();

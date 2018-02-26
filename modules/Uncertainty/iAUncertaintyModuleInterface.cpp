@@ -22,6 +22,7 @@
 #include "iAUncertaintyModuleInterface.h"
 
 #include "iAEntropy.h"
+#include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
 #include "iAConsole.h"
@@ -35,6 +36,8 @@
 void iAUncertaintyModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iAEntropy);
+
+	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
@@ -96,6 +99,7 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 	m_toolbar->action_ToggleSettings->setChecked(true);
 	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
 	connect(m_toolbar->action_CalculateNewSubEnsemble, SIGNAL(triggered()), this, SLOT(CalculateNewSubEnsemble()));
+	connect(m_toolbar->action_WriteFullDataFile, SIGNAL(triggered()), this, SLOT(WriteFullDataFile()));
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
@@ -130,4 +134,36 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 		return;
 	}
 	attach->CalculateNewSubEnsemble();
+}
+
+#include "dlg_commoninput.h"
+
+void iAUncertaintyModuleInterface::WriteFullDataFile()
+{
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		return;
+	}
+	QString fileName = QFileDialog::getSaveFileName(m_mainWnd,
+		tr("Save Full Data file"),
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
+		tr("SVM file format (*.svm);;"));
+	if (fileName.isEmpty())
+		return;
+
+	QStringList params;
+	params
+		<< "$Write original data values"
+		<< "$Write Member Labels"
+		<< "$Write Member Probabilities"
+		<< "$Write Ensemble Uncertainties";
+	QList<QVariant> values;
+	values << true << true << true;
+	dlg_commoninput whatToStore(m_mainWnd, "Write parameters", params, values);
+	if (whatToStore.exec() != QDialog::Accepted)
+		return;
+	attach->WriteFullDataFile(fileName, whatToStore.getCheckValue(0), whatToStore.getCheckValue(1), whatToStore.getCheckValue(2), whatToStore.getCheckValue(3));
+
 }
