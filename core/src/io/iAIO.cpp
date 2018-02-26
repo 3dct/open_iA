@@ -29,7 +29,6 @@
 #include "iAConsole.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
-#include "iAObserverProgress.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
 #include "iAVolumeStack.h"
@@ -183,14 +182,14 @@ void iAIO::init(QWidget *par)
 	byteOrder = 1;
 	ioID = 0;
 	iosettingsreader();
-	observerProgress = iAObserverProgress::New();
+	progressObserver = iAProgress::New();
 }
 
 
 iAIO::~iAIO()
 {
 	fileNameArray->Delete();
-	if (observerProgress) observerProgress->Delete();
+	if (progressObserver) progressObserver->Delete();
 }
 
 #ifdef USE_HDF5
@@ -922,7 +921,7 @@ void iAIO::readVolumeMHDStack()
 			m_fileNames_volstack->push_back(fileName);
 
 		int progress = (fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / fileNameArray->GetMaxId();
-		observerProgress->manualProgressUpdate(progress);
+		progressObserver->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
@@ -942,7 +941,7 @@ void iAIO::readVolumeStack()
 		if(m_fileNames_volstack)
 			m_fileNames_volstack->push_back(fileName);
 		int progress = (m * 100) / fileNameArray->GetMaxId();
-		observerProgress->manualProgressUpdate(progress);
+		progressObserver->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
@@ -974,7 +973,7 @@ void iAIO::writeVolumeStack()
 	{
 		writeMetaImage(m_volumes->at(m).GetPointer(), fileNameArray->GetValue(m).c_str());
 		int progress = (m * 100) / fileNameArray->GetMaxId();
-		observerProgress->manualProgressUpdate(progress);
+		progressObserver->EmitProgress(progress);
 	}
 }
 
@@ -1014,7 +1013,7 @@ void iAIO::readMetaImage( )
 void iAIO::readSTL( )
 {
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
-	stlReader->AddObserver(vtkCommand::ProgressEvent, observerProgress);
+	stlReader->AddObserver(vtkCommand::ProgressEvent, progressObserver);
 	stlReader->SetFileName(fileName.toLatin1());
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
@@ -1409,7 +1408,7 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 void iAIO::writeSTL( )
 {
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriter->AddObserver(vtkCommand::ProgressEvent, observerProgress);
+	stlWriter->AddObserver(vtkCommand::ProgressEvent, progressObserver);
 	stlWriter->SetFileName(fileName.toLatin1());
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
@@ -1538,7 +1537,7 @@ void iAIO::readImageStack()
 		default: throw std::runtime_error("Invalid Image Stack IO id, aborting.");
 	}
 	imgReader->ReleaseDataFlagOn();
-	imgReader->AddObserver(vtkCommand::ProgressEvent, observerProgress);
+	imgReader->AddObserver(vtkCommand::ProgressEvent, progressObserver);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	imgReader->SetFileNames(fileNameArray);
 	imgReader->SetDataOrigin(origin);

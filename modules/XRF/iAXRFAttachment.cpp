@@ -30,7 +30,6 @@
 #include "iAXRFData.h"
 
 #include "iAChannelVisualizationData.h"
-#include "iAObserverProgress.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iAWidgetAddHelper.h"

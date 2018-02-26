@@ -31,7 +31,7 @@ public:
 	iAMultiStepProgressObserver(double overallSteps);
 	void SetCompletedSteps(int steps);
 Q_SIGNALS:
-	void oprogress(int progress);
+	void progress(int progress);
 private:
 	virtual void Execute(vtkObject *caller, unsigned long, void*);
 	double m_currentStep;

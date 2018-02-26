@@ -236,7 +236,7 @@ namespace
 							throw e;
 					}
 					
-					progress->ManualProgress(static_cast<int>(100.0 * curOp / totalOps));
+					progress->EmitProgress(static_cast<int>(100.0 * curOp / totalOps));
 					++curOp;
 					++outIdx[2];
 				}
