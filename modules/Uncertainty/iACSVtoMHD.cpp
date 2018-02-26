@@ -35,7 +35,7 @@
 #include <QTextStream>
 
 
-iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "File Conversions",
+iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 	"Read a CSV file and reshape it into an image of the given dimensions", 0, 1)
 {
 	QStringList pixelTypes;
