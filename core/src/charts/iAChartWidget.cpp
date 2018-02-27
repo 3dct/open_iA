@@ -49,10 +49,10 @@ namespace
 	const double Y_ZOOM_STEP = 1.5;
 	const int CATEGORICAL_TEXT_ROTATION = 15;
 	const int CATEGORICAL_FONT_SIZE = 7;
-	const int LEFT_MARGIN = 60;
+	const int LEFT_MARGIN = 5;
 	const int BOTTOM_MARGIN = 5;
-	const int TEXT_X = 15;
 	const int Y_AXIS_STEPS = 5;
+	const int TickWidth = 6;
 	const size_t MAX_X_AXIS_STEPS = 32 * static_cast<size_t>(MAX_X_ZOOM);
 }
 
@@ -68,7 +68,6 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	translationY(0),
 	translationStartX(0),
 	translationStartY( 0 ),
-	leftMargin(LEFT_MARGIN),
 	mode(NO_MODE),
 	m_contextMenuVisible(false),
 	m_customXBounds(false),
@@ -79,7 +78,8 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
 	m_draw(true),
-	m_fontHeight(0)
+	m_fontHeight(0),
+	m_yMaxTickLabelWidth(0)
 {
 	UpdateBounds();
 	setMouseTracking(true);
@@ -220,6 +220,12 @@ int iAChartWidget::BottomMargin() const
 	return BOTTOM_MARGIN + static_cast<int>((m_showXAxisLabel ? 2 : 1) * m_fontHeight);
 }
 
+int iAChartWidget::LeftMargin() const
+{
+	return (yCaption == "") ? 0 :
+		LEFT_MARGIN + m_fontHeight + m_yMaxTickLabelWidth + TickWidth;
+}
+
 iAPlotData::DataType iAChartWidget::GetMaxYDataValue() const
 {
 	iAPlotData::DataType maxVal = std::numeric_limits<iAPlotData::DataType>::lowest();
@@ -255,6 +261,7 @@ void iAChartWidget::DrawEverything()
 	QPainter painter(&m_drawBuffer);
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
+	m_yMaxTickLabelWidth = fm.width("4.44M");
 	painter.setRenderHint(QPainter::Antialiasing);
 	DrawBackground(painter);
 	painter.translate(translationX + LeftMargin(), -BottomMargin());
@@ -414,7 +421,7 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 			break;	// avoid last tick for discrete ranges
 
 		int markerX = markerPos(i, stepCount, ActiveWidth()*xZoom, markerOffset);
-		painter.drawLine(markerX, (int)(BottomMargin()*0.1), markerX, -1);
+		painter.drawLine(markerX, TickWidth, markerX, -1);
 		int textX = textPos(markerX, i, stepCount, fm.width(text));
 		int textY = fm.height() + TextAxisDistance;
 		painter.translate(textX, textY);
@@ -450,7 +457,6 @@ void iAChartWidget::DrawYAxis(QPainter &painter)
 	painter.save();
 	painter.translate(-translationX, 0);
 	QFontMetrics fm = painter.fontMetrics();
-	int fontHeight = fm.height();
 
 	int activeHeight = ActiveHeight() - 1;
 	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight + BottomMargin() + 1)),
@@ -458,7 +464,7 @@ void iAChartWidget::DrawYAxis(QPainter &painter)
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
-	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (fontHeight*1.1)));
+	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (m_fontHeight*1.1)));
 	stepNumber = std::max(1, stepNumber);	// make sure there's at least 2 steps
 	const double step = 1.0 / (stepNumber * yZoom);
 	double logMax = LogFunc(static_cast<double>(m_yBounds[1]));
@@ -466,21 +472,15 @@ void iAChartWidget::DrawYAxis(QPainter &painter)
 	for (int i = 0; i <= stepNumber; ++i)
 	{
 		double pos = step * i;
-		double yValue =
-			(m_yMappingMode == Linear) ?
-			pos * m_yBounds[1] :
-			/* Logarithmic: */ std::pow(LogBase, logMax / yZoom - (Y_AXIS_STEPS - i));
+		double yValue = (m_yMappingMode == Linear) ? pos * m_yBounds[1] :
+			/* Log: */ std::pow(LogBase, logMax / yZoom - (Y_AXIS_STEPS - i));
 		QString text = DblToStringWithUnits(yValue);
-		//calculate the y coordinate
-		int y = -(int)(pos * activeHeight * yZoom) - 1;
-		//draw a small indicator line
-		painter.drawLine((int)(-LeftMargin()*0.1), y, 0, y);
-
-		if (i == stepNumber)
-			painter.drawText(TEXT_X - LeftMargin(), y + 0.75*fontHeight, text); //write the text top aligned to the indicator line
-		else
-			painter.drawText(TEXT_X - LeftMargin(), y + 0.25*fontHeight, text); //write the text centered to the indicator line
-
+		int y = -static_cast<int>(pos * activeHeight * yZoom) - 1;
+		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
+		painter.drawText( - ( fm.width(text) + TickWidth),
+			(i == stepNumber) ? y + 0.75*m_fontHeight // write the text top aligned to the indicator line
+			: y + 0.25*m_fontHeight                   // write the text centered to the indicator line
+			, text);
 	}
 	painter.drawLine(0, -1, 0, -(int)(activeHeight*yZoom));
 	//write the y axis label
@@ -488,7 +488,7 @@ void iAChartWidget::DrawYAxis(QPainter &painter)
 	painter.rotate(-90);
 	QPointF textPos(
 		activeHeight*0.5 - 0.5*fm.width(yCaption),
-		-LeftMargin() + fontHeight - 5);
+		-LeftMargin() + m_fontHeight - 5);
 	painter.drawText(textPos, yCaption);
 	painter.restore();
 	painter.restore();

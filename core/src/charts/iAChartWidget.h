@@ -48,7 +48,7 @@ public:
 	int    XShift() const { return translationX; }
 	int    YShift() const { return translationY; }
 	virtual int BottomMargin() const;
-	virtual int LeftMargin()   const { return leftMargin;    }
+	virtual int LeftMargin() const;
 	int ActiveWidth()  const;
 	int ActiveHeight() const;
 	int Height() const;
@@ -103,7 +103,6 @@ protected:
 	int dragStartPosX;
 	int dragStartPosY;
 
-	int leftMargin;
 	int width, height;
 	int mode;
 	QSharedPointer<iAMapper> m_yConverter;
@@ -154,6 +153,7 @@ private:
 	bool m_showTooltip;
 	bool m_showXAxisLabel;
 	int  m_fontHeight;
+	int  m_yMaxTickLabelWidth;
 	bool m_draw;
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2];
