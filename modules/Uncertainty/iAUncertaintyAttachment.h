@@ -50,7 +50,7 @@ private slots:
 	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAHistogramView* m_histogramView;
+	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
 	iAMemberView* m_memberView;
 	iAScatterPlotView* m_scatterplotView;
 	iASpatialView* m_spatialView;

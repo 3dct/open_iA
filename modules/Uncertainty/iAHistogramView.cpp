@@ -50,15 +50,10 @@ void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleH
 }
 
 
-void iAHistogramView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
+void iAHistogramView::Clear()
 {
 	for (auto widget : findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
 	{
 		delete widget;
 	}
-	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
-	AddChart("Label", labelDistributionHistogram);
-
-	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
-	AddChart("Algorithmic Entropy", entropyHistogram);
 }

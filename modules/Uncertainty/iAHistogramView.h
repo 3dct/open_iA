@@ -34,8 +34,8 @@ class iAHistogramView : public QWidget
 	Q_OBJECT
 public:
 	iAHistogramView();
-	void SetEnsemble(QSharedPointer<iAEnsemble> ensemble);
-private:
+	void Clear();
 	void AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data);
+private:
 	iAChartWidget* m_chart;
 };

@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAUncertaintyAttachment.h"
 
+#include "charts/iASimpleHistogramData.h"
 #include "dlg_imageproperty.h"
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
@@ -50,12 +51,14 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
 	m_spatialView = new iASpatialView();
-	m_histogramView = new iAHistogramView();
+	m_labelDistributionView = new iAHistogramView();
+	m_uncertaintyDistributionView = new iAHistogramView();
 	m_ensembleView = new iAEnsembleView();
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "UncSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_memberView, "Member View", "UncMemberView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_scatterplotView, "Scatterplot View", "UncScatterplotView"));
-	m_dockWidgets.push_back(new iADockWidgetWrapper(m_histogramView, "Histogram View", "UncHistogramView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_labelDistributionView, "Label Distribution", "UncLabelDistrView"));
+	m_dockWidgets.push_back(new iADockWidgetWrapper(m_uncertaintyDistributionView, "Uncertainty Distribution", "UncUncertaintyDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
 	connect(mainWnd, SIGNAL(StyleChanged()), m_spatialView, SLOT(StyleChanged()));
 	connect(mainWnd, SIGNAL(StyleChanged()), m_memberView, SLOT(StyleChanged()));
@@ -119,9 +122,10 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	m_childData.child->showMaximized();
 	m_childData.child->splitDockWidget(m_childData.child->getSlicerDlgXY(), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
 	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
-	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[4], Qt::Vertical);	// Ensemble View
-	m_childData.child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Histogram View
-	m_childData.child->splitDockWidget(m_dockWidgets[4], m_dockWidgets[1], Qt::Horizontal);	// Member View
+	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
+	m_childData.child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
+	m_childData.child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
+	m_childData.child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
 	m_childData.child->getSlicerDlgXY()->hide();
 	m_childData.child->getImagePropertyDlg()->hide();
 	if (!ensembleFile->LayoutName().isEmpty())
@@ -183,5 +187,10 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_spatialView->SetDatasets(ensemble);
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
-	m_histogramView->SetEnsemble(ensemble);
+	m_labelDistributionView->Clear();
+	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
+	m_labelDistributionView->AddChart("Label", labelDistributionHistogram);
+	m_uncertaintyDistributionView->Clear();
+	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
+	m_uncertaintyDistributionView->AddChart("Algorithmic Entropy", entropyHistogram);
 }
