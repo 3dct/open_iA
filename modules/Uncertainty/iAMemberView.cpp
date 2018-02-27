@@ -51,6 +51,7 @@ iAMemberView::iAMemberView():
 	m_plot->setOpenGl(true);
 	setLayout(new QHBoxLayout());
 	layout()->setSpacing(0);
+	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_plot);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);

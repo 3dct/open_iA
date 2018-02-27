@@ -26,6 +26,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAConsole.h"
 #include "iAChannelID.h"
+#include "iAQFlowLayout.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerMode.h"
@@ -82,6 +83,8 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_sliceBar = new QWidget();
 	m_sliceBar->setLayout(new QHBoxLayout());
 	m_sliceBar->layout()->setSpacing(0);
+	m_sliceBar->layout()->setContentsMargins(0, 4, 0, 0);
+
 	m_sliceBar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	m_sliceBar->layout()->addWidget(sliceButtonBar);
 	m_sliceBar->layout()->addWidget(m_sliceControl);
@@ -89,18 +92,21 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_contentWidget = new QWidget();
 	m_contentWidget->setLayout(new QHBoxLayout());
 	m_contentWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
-	m_contentWidget->layout()->setSpacing(0);
+	m_contentWidget->layout()->setSpacing(4);
+	m_contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
 
 	m_imageBar = new QWidget();
-	m_imageBar->setLayout(new QHBoxLayout());
+	m_imageBar->setLayout(new iAQFlowLayout(0, 4, 4));
 
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
+	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_contentWidget);
 
 	m_settings = new QWidget();
 	m_settings->setLayout(new QVBoxLayout);
-	m_settings->layout()->setSpacing(0);
+	m_settings->layout()->setSpacing(4);
+	m_settings->layout()->setContentsMargins(0, 4, 0, 0);
 	m_settings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	m_settings->layout()->addWidget(m_sliceBar);
 	m_settings->layout()->addWidget(m_imageBar);
@@ -176,6 +182,8 @@ void iASpatialView::AddImageDisplay(int idx)
 	ImageGUIElements gui;
 	gui.container = new QWidget();
 	gui.container->setLayout(new QVBoxLayout());
+	gui.container->layout()->setSpacing(4);
+	gui.container->layout()->setContentsMargins(0, 0, 0, 0);
 	gui.imageWidget = new iAImageWidget(m_images[idx].image);
 	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);

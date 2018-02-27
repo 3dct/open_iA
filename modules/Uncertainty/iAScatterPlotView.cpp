@@ -20,12 +20,13 @@
 * ************************************************************************************/
 #include "iAScatterPlotView.h"
 
-#include "iAConsole.h"
-#include "iAPerformanceHelper.h"
-#include "iAToolsVTK.h"
 #include "charts/iAScatterPlot.h"
 #include "charts/iAScatterPlotWidget.h"
 #include "charts/iASPLOMData.h"
+#include "iAConsole.h"
+#include "iAPerformanceHelper.h"
+#include "iAQFlowLayout.h"
+#include "iAToolsVTK.h"
 #include "iAUncertaintyColors.h"
 #include "iAVtkDraw.h"
 
@@ -59,25 +60,29 @@ iAScatterPlotView::iAScatterPlotView():
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
+	layout()->setContentsMargins(4, 4, 4, 4);
 	m_scatterPlotContainer->setLayout(new QHBoxLayout());
 	m_scatterPlotContainer->layout()->setSpacing(0);
+	m_scatterPlotContainer->layout()->setContentsMargins(0, 0, 0, 0);
+	m_scatterPlotContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
 	layout()->addWidget(m_scatterPlotContainer);
 
 	m_settings = new QWidget();
 	m_settings->setLayout(new QVBoxLayout);
 	m_settings->layout()->setSpacing(0);
+	m_settings->layout()->setContentsMargins(0, 4, 0, 0);
 	m_settings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
 	auto datasetChoiceContainer = new QWidget();
 	datasetChoiceContainer->setLayout(new QVBoxLayout());
 	m_xAxisChooser = new QWidget();
-	m_xAxisChooser->setLayout(new QHBoxLayout());
-	m_xAxisChooser->layout()->setSpacing(0);
-	m_xAxisChooser->layout()->addWidget(new QLabel("X Axis"));
+	m_xAxisChooser->setLayout(new iAQFlowLayout(0, 0, 0));
+	m_xAxisChooser->layout()->addWidget(new QLabel("X Axis:"));
+	m_xAxisChooser->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	m_yAxisChooser = new QWidget();
-	m_yAxisChooser->setLayout(new QHBoxLayout());
-	m_yAxisChooser->layout()->setSpacing(0);
-	m_yAxisChooser->layout()->addWidget(new QLabel("Y Axis"));
+	m_yAxisChooser->setLayout(new iAQFlowLayout(0, 0, 0));
+	m_yAxisChooser->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+	m_yAxisChooser->layout()->addWidget(new QLabel("Y Axis:"));
 	datasetChoiceContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	datasetChoiceContainer->layout()->addWidget(m_xAxisChooser);
 	datasetChoiceContainer->layout()->addWidget(m_yAxisChooser);
@@ -134,11 +139,11 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 	{
 		m_scatterPlotWidget->GetSelection().clear();
 	}
-	for (auto widget : m_xAxisChooser->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	for (auto widget : m_xAxisChooser->findChildren<QToolButton*>(QString(), Qt::FindDirectChildrenOnly))
 	{
 		delete widget;
 	}
-	for (auto widget : m_yAxisChooser->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+	for (auto widget : m_yAxisChooser->findChildren<QToolButton*>(QString(), Qt::FindDirectChildrenOnly))
 	{
 		delete widget;
 	}
