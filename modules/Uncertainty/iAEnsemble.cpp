@@ -472,42 +472,6 @@ void iAEnsemble::CreateUncertaintyImages()
 			iAITKIO::writeFile(m_cachePath + "/labelDistributionEntropy.mhd", m_labelDistrEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		if (!LoadCachedImage<DoubleImage>(m_probSumEntropy, m_cachePath + "/avgAlgProbSumEntropy.mhd", "average algorithm entropy(from probability sums)"))
-		{
-			m_probDistr.clear();
-			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
-			{
-				for (QSharedPointer<iAMember> member : sampling->Members())
-				{
-					QVector<DoubleImage::Pointer> probImgs = member->ProbabilityImgs(m_labelCount);
-					if (probImgs.size() != m_labelCount)
-					{
-						DEBUG_LOG("Not enough probability images available!");
-						return;
-					}
-					bool allFresh = m_probDistr.empty();
-					for (int l = 0; l < m_labelCount; ++l)
-					{
-						// create probability histogram here?
-						if (allFresh)
-						{
-							m_probDistr.push_back(probImgs[l]);
-						}
-						else
-						{
-							AddImageInPlace(m_probDistr[l], probImgs[l]);
-						}
-					}
-				}
-			}
-			for (int l = 0; l < m_probDistr.size(); ++l)
-			{
-				MultiplyImageInPlace(m_probDistr[l], factor);
-			}
-			m_probSumEntropy = CalculateEntropyImage<DoubleImage>(m_probDistr);
-			iAITKIO::writeFile(m_cachePath + "/avgAlgProbSumEntropy.mhd", m_probSumEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
-		}
-
 		if (!LoadCachedImage<DoubleImage>(m_entropyAvgEntropy, m_cachePath + "/avgAlgEntropyAvgEntropy.mhd", "average algorithm entropy (from algorithm entropy average)")
 			|| !LoadHistogram(m_cachePath+"/algorithmEntropyHistogram.csv", m_entropyHistogram, m_entropyBinCount)
 			|| !LoadValues(m_cachePath + "/algorithmEntropyMean.csv", m_memberEntropyAvg)
@@ -557,11 +521,9 @@ void iAEnsemble::CreateUncertaintyImages()
 			iAITKIO::writeFile(m_cachePath + "/avgAlgEntropyAvgEntropy.mhd", m_entropyAvgEntropy.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
-		if (!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy3x3, m_cachePath + "/entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)") ||
-			!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy5x5, m_cachePath + "/entropyNeighbourhood5x5.mhd", "neighbourhood entropy (5x5)"))
+		if (!LoadCachedImage<DoubleImage>(m_neighbourhoodAvgEntropy3x3, m_cachePath + "/entropyNeighbourhood3x3.mhd", "neighbourhood entropy (3x3)"))
 		{
 			m_neighbourhoodAvgEntropy3x3 = CreateImage<DoubleImage>(size, spacing);
-			m_neighbourhoodAvgEntropy5x5 = CreateImage<DoubleImage>(size, spacing);
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
 				for (QSharedPointer<iAMember> member : sampling->Members())
@@ -569,23 +531,17 @@ void iAEnsemble::CreateUncertaintyImages()
 					auto labelImgOrig = member->LabelImage();
 					auto labelImg = dynamic_cast<IntImage*>(labelImgOrig.GetPointer());
 					DoubleImage::Pointer neighbourEntropyImg3x3 = NeighbourhoodEntropyImage(labelImg, m_labelCount, 1, size, spacing);
-					DoubleImage::Pointer neighbourEntropyImg5x5 = NeighbourhoodEntropyImage(labelImg, m_labelCount, 2, size, spacing);
 					AddImageInPlace(m_neighbourhoodAvgEntropy3x3, neighbourEntropyImg3x3);
-					AddImageInPlace(m_neighbourhoodAvgEntropy5x5, neighbourEntropyImg5x5);
 				}
 			}
 			MultiplyImageInPlace(m_neighbourhoodAvgEntropy3x3, factor);
-			MultiplyImageInPlace(m_neighbourhoodAvgEntropy5x5, factor);
 			iAITKIO::writeFile(m_cachePath + "/entropyNeighbourhood3x3.mhd", m_neighbourhoodAvgEntropy3x3.GetPointer(), itk::ImageIOBase::DOUBLE, true);
-			iAITKIO::writeFile(m_cachePath + "/entropyNeighbourhood5x5.mhd", m_neighbourhoodAvgEntropy5x5.GetPointer(), itk::ImageIOBase::DOUBLE, true);
 		}
 
 		m_entropy.resize(SourceCount);
 		m_entropy[LabelDistributionEntropy] = ConvertITK2VTK<DoubleImage>(m_labelDistrEntropy);
 		m_entropy[AvgAlgorithmEntropyEntrSum] = ConvertITK2VTK<DoubleImage>(m_entropyAvgEntropy);
-		m_entropy[AvgAlgorithmEntropyProbSum] = ConvertITK2VTK<DoubleImage>(m_probSumEntropy);
 		m_entropy[Neighbourhood3x3Entropy] = ConvertITK2VTK<DoubleImage>(m_neighbourhoodAvgEntropy3x3);
-		m_entropy[Neighbourhood5x5Entropy] = ConvertITK2VTK<DoubleImage>(m_neighbourhoodAvgEntropy5x5);
 	}
 	catch (itk::ExceptionObject & excp)
 	{
@@ -696,11 +652,9 @@ vtkImagePointer iAEnsemble::GetReference() const
 
 
 const char* const UncertaintyNames[] = {
-	"Ensemble Uncertainty",
 	"Algorithm Uncertainty",
-	"Algorithm U. (Prob. Sum)",
-	"Neighbour(3) Uncertainty",
-	"Neighbour(5) Uncertainty",
+	"Neighborhood Uncertainty",
+	"Ensemble Uncertainty",
 };
 
 

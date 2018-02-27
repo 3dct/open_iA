@@ -149,7 +149,7 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 	}
 	m_imgs = imgs;
 	m_xAxisChoice = iAUncertaintyImages::LabelDistributionEntropy;
-	m_yAxisChoice = iAUncertaintyImages::AvgAlgorithmEntropyProbSum;
+	m_yAxisChoice = iAUncertaintyImages::AvgAlgorithmEntropyEntrSum;
 	for (int i = 0; i < iAUncertaintyImages::SourceCount; ++i)
 	{
 		QToolButton* xButton = new QToolButton(); xButton->setText(imgs->GetSourceName(i));
