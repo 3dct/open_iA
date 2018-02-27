@@ -50,7 +50,7 @@ namespace
 	const int CATEGORICAL_TEXT_ROTATION = 15;
 	const int CATEGORICAL_FONT_SIZE = 7;
 	const int LEFT_MARGIN = 60;
-	const int BOTTOM_MARGIN = 40;
+	const int BOTTOM_MARGIN = 5;
 	const int TEXT_X = 15;
 	const int Y_AXIS_STEPS = 5;
 	const size_t MAX_X_AXIS_STEPS = 32 * static_cast<size_t>(MAX_X_ZOOM);
@@ -78,7 +78,8 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_showTooltip(true),
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
-	m_draw(true)
+	m_draw(true),
+	m_fontHeight(0)
 {
 	UpdateBounds();
 	setMouseTracking(true);
@@ -216,11 +217,7 @@ double iAChartWidget::XRange() const
 
 int iAChartWidget::BottomMargin() const
 {
-	if (!m_showXAxisLabel)
-	{
-		return BOTTOM_MARGIN / 2.0 /* TODO: estimation for font height only. use real values! */;
-	}
-	return BOTTOM_MARGIN;
+	return BOTTOM_MARGIN + static_cast<int>((m_showXAxisLabel ? 2 : 1) * m_fontHeight);
 }
 
 iAPlotData::DataType iAChartWidget::GetMaxYDataValue() const
@@ -256,6 +253,8 @@ void iAChartWidget::DrawEverything()
 		CreateYConverter();
 	m_yConverter->update(yZoom, m_yBounds[1], m_yMappingMode == Linear? m_yBounds[0] : 1, ActiveHeight());
 	QPainter painter(&m_drawBuffer);
+	QFontMetrics fm = painter.fontMetrics();
+	m_fontHeight = fm.height();
 	painter.setRenderHint(QPainter::Antialiasing);
 	DrawBackground(painter);
 	painter.translate(translationX + LeftMargin(), -BottomMargin());
@@ -431,8 +430,12 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 	{
 		//write the x axis label
 		QPointF textPos(
-			m_captionPosition.testFlag(Qt::AlignCenter) ? (int)(ActiveWidth() * 0.45 - translationX) : 0 /* left-aligned */,
-			m_captionPosition.testFlag(Qt::AlignBottom) ? BottomMargin() - fm.descent() - 1 : -Height() + BottomMargin() + fm.height()
+			m_captionPosition.testFlag(Qt::AlignCenter) ?
+				/* Center */ (int)(ActiveWidth() * 0.45 - translationX)
+				/* Left   */ : 0 ,
+			m_captionPosition.testFlag(Qt::AlignBottom) ?
+				/* Bottom */ BottomMargin() - fm.descent() - 1 :
+				/* Top (of chart) */ -Height() + BottomMargin() + m_fontHeight
 		);
 		painter.drawText(textPos, xCaption);
 	}

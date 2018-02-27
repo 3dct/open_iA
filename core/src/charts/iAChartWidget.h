@@ -153,6 +153,7 @@ private:
 	QPoint m_contextPos;
 	bool m_showTooltip;
 	bool m_showXAxisLabel;
+	int  m_fontHeight;
 	bool m_draw;
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2];
