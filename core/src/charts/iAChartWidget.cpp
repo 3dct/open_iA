@@ -438,7 +438,7 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 		//write the x axis label
 		QPointF textPos(
 			m_captionPosition.testFlag(Qt::AlignCenter) ?
-				/* Center */ (int)(ActiveWidth() * 0.45 - translationX)
+				/* Center */ (int)(ActiveWidth() * 0.5 - translationX - (0.5*fm.width(xCaption)))
 				/* Left   */ : 0 ,
 			m_captionPosition.testFlag(Qt::AlignBottom) ?
 				/* Bottom */ BottomMargin() - fm.descent() - 1 :
