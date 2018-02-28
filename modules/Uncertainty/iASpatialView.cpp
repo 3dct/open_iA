@@ -196,7 +196,7 @@ void iASpatialView::AddImageDisplay(int idx)
 	if (m_images[idx].caption.contains("Uncertainty"))
 		colors = m_uncertaintyLut;
 	gui.imageWidget = new iAImageWidget(m_images[idx].image, colors);
-	auto label = new QLabel();
+	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	label->setAlignment(Qt::AlignHCenter);
 	gui.container->layout()->addWidget(label);
