@@ -130,7 +130,7 @@ void iASlicer::enableInteractor()
 	m_widget->update();
 }
 
-void iASlicer::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool sil /*= false*/, bool sp /*= false */ )
+void iASlicer::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool sil /*= false*/, bool sp /*= false */ )
 {
 	m_data->reInitialize(ds, tr, ctf, sil, sp);
 }
@@ -233,7 +233,7 @@ vtkRenderer * iASlicer::GetRenderer() const
 	return m_data->GetRenderer();
 }
 
-void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf)
+void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf)
 {
 	m_data->initialize(ds, tr, ctf);
 }

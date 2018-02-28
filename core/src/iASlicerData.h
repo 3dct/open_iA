@@ -33,7 +33,7 @@
 class vtkActor;
 class vtkAlgorithmOutput;
 class vtkCamera;
-class vtkColorTransferFunction;
+class vtkScalarsToColors;
 class vtkDiskSource;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
@@ -78,8 +78,8 @@ public:
 	iASlicerData( iASlicer const * slicerMaster, QObject * parent = 0, bool decorations=true);
 	virtual ~iASlicerData();
 
-	void initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf);
-	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showisolines = false, bool showpolygon = false);
+	void initialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
+	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
 	void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
 	
@@ -150,7 +150,7 @@ public:
 	vtkImageActor* GetImageActor();
 	QCursor getMouseCursor();
 
-	vtkColorTransferFunction * GetColorTransferFunction();
+	vtkScalarsToColors * GetColorTransferFunction();
 
 	int getSliceNumber(); // for fisheye transformation
 
@@ -206,7 +206,7 @@ private:
 
 	vtkImageReslice* reslicer;
 	vtkImageData* imageData;
-	vtkColorTransferFunction* colorTransferFunction;
+	vtkScalarsToColors* colorTransferFunction;
 	vtkImageMapToColors* colormapper;
 	vtkImageActor* imageActor;
 	vtkPointPicker* pointPicker;

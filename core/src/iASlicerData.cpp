@@ -45,7 +45,7 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
-#include <vtkColorTransferFunction.h>
+#include <vtkScalarsToColors.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -261,11 +261,11 @@ private:
 	}
 	iASlicerData* m_redirect;
 };
-vtkColorTransferFunction * iASlicerData::GetColorTransferFunction() {
+vtkScalarsToColors * iASlicerData::GetColorTransferFunction() {
 	return colorTransferFunction;
 }
 
-void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf)
+void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf)
 {
 	imageData = ds;
 	transform = tr;
@@ -500,7 +500,7 @@ void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, do
 }
 
 
-void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf,
+void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf,
 	bool showIsoLines, bool showPolygon)
 {
 	imageData = ds;
