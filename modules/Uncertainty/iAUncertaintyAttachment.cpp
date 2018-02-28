@@ -192,17 +192,27 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
 	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
-	QSharedPointer<iALookupTable> labelLookup(new iALookupTable);
-	labelLookup->setRange(0, m_currentEnsemble->LabelCount());
-	labelLookup->allocate(m_currentEnsemble->LabelCount());
+	auto m_labelLut = vtkSmartPointer<vtkLookupTable>::New();
+	double lutRange[2];
+	lutRange[0] = 0;
+	lutRange[1] = m_currentEnsemble->LabelCount();
+	m_labelLut->SetRange(lutRange);
+	m_labelLut->SetTableRange(lutRange);
+	m_labelLut->SetNumberOfTableValues(m_currentEnsemble->LabelCount());
+	double rgba[4];
 	QColor c(iAUncertaintyColors::LabelDistributionBase);
-	for (int i=0; i<m_currentEnsemble->LabelCount(); ++i)
+	QColor curColor;
+	for (vtkIdType i = 0; i < m_currentEnsemble->LabelCount(); i++)
 	{
-		QColor curColor;
-		curColor.setHslF(c.hueF(), c.saturationF(), (static_cast<double>(m_currentEnsemble->LabelCount()-i-1) / (m_currentEnsemble->LabelCount()+1)));
-		labelLookup->setColor(i, curColor);
-		DEBUG_LOG(QString("Color %1: %2, %3, %4, %5").arg(i).arg(curColor.red()).arg(curColor.green()).arg(curColor.blue()).arg(curColor.alpha()));
+		curColor.setHslF(c.hueF(), c.saturationF(), (static_cast<double>(m_currentEnsemble->LabelCount()-i) / (m_currentEnsemble->LabelCount()+1)));
+		rgba[0] = curColor.redF();
+		rgba[1] = curColor.greenF();
+		rgba[2] = curColor.blueF();
+		rgba[3] = curColor.alphaF();
+		m_labelLut->SetTableValue(i, rgba);
 	}
+	m_labelLut->Build();
+	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
 	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
