@@ -21,8 +21,6 @@
 #include "pch.h"
 #include "iAUncertaintyAttachment.h"
 
-#include "charts/iASimpleHistogramData.h"
-#include "dlg_imageproperty.h"
 #include "iAEnsembleDescriptorFile.h"
 #include "iAEnsemble.h"
 #include "iAEnsembleView.h"
@@ -31,14 +29,19 @@
 #include "iAMemberView.h"
 #include "iAScatterPlotView.h"
 #include "iASpatialView.h"
+#include "iAUncertaintyColors.h"
 
+#include "charts/iASimpleHistogramData.h"
+#include "dlg_imageproperty.h"
 #include "iAChildData.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
+#include "iALookupTable.h"
 #include "iAStringHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
+
 
 #include <QDir>
 
@@ -189,8 +192,19 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
 	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
-	m_labelDistributionView->AddChart("Label", labelDistributionHistogram);
+	QSharedPointer<iALookupTable> labelLookup(new iALookupTable);
+	labelLookup->setRange(0, m_currentEnsemble->LabelCount());
+	labelLookup->allocate(m_currentEnsemble->LabelCount());
+	QColor c(iAUncertaintyColors::LabelDistributionBase);
+	for (int i=0; i<m_currentEnsemble->LabelCount(); ++i)
+	{
+		QColor curColor;
+		curColor.setHslF(c.hueF(), c.saturationF(), (static_cast<double>(m_currentEnsemble->LabelCount()-i-1) / (m_currentEnsemble->LabelCount()+1)));
+		labelLookup->setColor(i, curColor);
+		DEBUG_LOG(QString("Color %1: %2, %3, %4, %5").arg(i).arg(curColor.red()).arg(curColor.green()).arg(curColor.blue()).arg(curColor.alpha()));
+	}
+	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
 	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
-	m_uncertaintyDistributionView->AddChart("Algorithmic Entropy", entropyHistogram);
+	m_uncertaintyDistributionView->AddChart("Algorithmic Entropy", entropyHistogram, iAUncertaintyColors::UncertaintyDistribution);
 }

@@ -22,7 +22,6 @@
 
 #include "iAEnsemble.h"
 #include "charts/iASimpleHistogramData.h"
-#include "iAUncertaintyColors.h"
 
 #include "charts/iAChartWidget.h"
 #include "charts/iAPlotTypes.h"
@@ -39,11 +38,14 @@ iAHistogramView::iAHistogramView()
 	setLayout(new QHBoxLayout());
 }
 
-void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data)
+void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data,
+		QColor const & color, QSharedPointer<iALookupTable> lut)
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
 	m_chart->setMinimumHeight(120);
-	m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(data, iAUncertaintyColors::HistogramBar, 2)));
+	QSharedPointer<iABarGraphDrawer> barGraph(new iABarGraphDrawer(data, color, 2));
+	barGraph->setLookupTable(lut);
+	m_chart->AddPlot(barGraph);
 	layout()->setSpacing(0);
 	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_chart);

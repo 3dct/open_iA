@@ -23,4 +23,5 @@
 QColor iAUncertaintyColors::ScatterPlotDots(27, 158, 119);
 QColor iAUncertaintyColors::Selection(230, 171, 2);
 QColor iAUncertaintyColors::MemberBar(217, 95,2);
-QColor iAUncertaintyColors::HistogramBar(166,118,29);
+QColor iAUncertaintyColors::UncertaintyDistribution(166,118,29);
+QColor iAUncertaintyColors::LabelDistributionBase(8,48,107);

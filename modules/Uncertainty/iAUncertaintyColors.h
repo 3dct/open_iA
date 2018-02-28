@@ -25,7 +25,8 @@
 struct iAUncertaintyColors
 {
 	static QColor ScatterPlotDots;
-	static QColor HistogramBar;
+	static QColor UncertaintyDistribution;
+	static QColor LabelDistributionBase;
 	static QColor Selection;
 	static QColor MemberBar;
 };
