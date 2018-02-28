@@ -21,6 +21,7 @@
 #include "pch.h"
 #include "iAPlotTypes.h"
 
+#include "iALookupTable.h"
 #include "iAMapper.h"
 #include "iAPlotData.h"
 
@@ -299,8 +300,20 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<i
 	{
 		x = (int)(j * binWidth) + halfMargin;
 		h = converter->SrcToDest(rawData[j]);
+		if (m_lut)
+		{
+			double rgba[4];
+			m_lut->getColor(j, rgba);
+			fillColor = QColor(rgba[0]*255, rgba[1]*255, rgba[2]*255, rgba[3]*255);
+		}
 		painter.fillRect(QRect(x, 1, intBinWidth, h), fillColor);
 	}
+}
+
+
+void iABarGraphDrawer::setLookupTable(QSharedPointer<iALookupTable> lut)
+{
+	m_lut = lut;
 }
 
 
