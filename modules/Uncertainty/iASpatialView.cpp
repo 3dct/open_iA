@@ -30,7 +30,9 @@
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerMode.h"
+#include "iATransferFunction.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkLookupTable.h>
 #include <vtkImageData.h>
@@ -114,8 +116,13 @@ iASpatialView::iASpatialView(): QWidget(),
 }
 
 
-void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
+void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs,
+		vtkSmartPointer<vtkLookupTable> labelImgLut)
 {
+	m_labelImgLut = labelImgLut;
+	double uncertaintyRange[2] = {0.0, 1.0};
+	m_uncertaintyLut = GetDefaultColorTransferFunction(uncertaintyRange);
+
 	newImgID = 0;
 	for (auto widget : m_imageBar->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
 	{
@@ -184,8 +191,12 @@ void iASpatialView::AddImageDisplay(int idx)
 	gui.container->setLayout(new QVBoxLayout());
 	gui.container->layout()->setSpacing(4);
 	gui.container->layout()->setContentsMargins(0, 0, 0, 0);
-	gui.imageWidget = new iAImageWidget(m_images[idx].image);
-	auto label = new QLabel(m_images[idx].caption);
+
+	vtkScalarsToColors* colors = m_labelImgLut;
+	if (m_images[idx].caption.contains("Uncertainty"))
+		colors = m_uncertaintyLut;
+	gui.imageWidget = new iAImageWidget(m_images[idx].image, colors);
+	auto label = new QLabel();
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	label->setAlignment(Qt::AlignHCenter);
 	gui.container->layout()->addWidget(label);

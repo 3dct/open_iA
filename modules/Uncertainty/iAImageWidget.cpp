@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "iAImageWidget.h"
 
-#include "iATransferFunction.h"
-
 // separate solution based on vtkImageSlice:
 /*
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -39,10 +37,12 @@
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkLookupTable.h>
 
 
-
-iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
+iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkScalarsToColors> lut):
+	m_transform(vtkSmartPointer<vtkTransform>::New()),
+	m_lut(lut)
 {
 	/*
 	auto ctf = GetDefaultColorTransferFunction(img);
@@ -71,12 +71,9 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	renderWindow->AddRenderer(m_renderer);
 	SetRenderWindow(renderWindow);
 	*/
-
-	auto ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
 	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
-	auto transform = vtkSmartPointer<vtkTransform>::New();
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initializeData(img, transform, ctf);
+	m_slicer->initializeData(img, m_transform, m_lut);
 	m_slicer->initializeWidget(img);
 	StyleChanged();
 }

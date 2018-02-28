@@ -24,6 +24,8 @@
 
 #include "io/iAITKIO.h"
 
+#include <vtkSmartPointer.h>
+
 #include <QSharedPointer>
 #include <QVector>
 
@@ -34,6 +36,8 @@ class iAHistogramView;
 class iAMemberView;
 class iAScatterPlotView;
 class iASpatialView;
+
+class vtkLookupTable;
 
 class iAUncertaintyAttachment : public iAModuleAttachmentToChild
 {
@@ -58,5 +62,6 @@ private:
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
 	QVector<iAITKIO::ImagePointer> m_shownMembers;
 	QSharedPointer<iAEnsemble> m_currentEnsemble;
+	vtkSmartPointer<vtkLookupTable> m_labelLut;
 	int m_newSubEnsembleID;
 };
