@@ -724,16 +724,24 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 	if (xPos == width - 1)
 		nthBin = static_cast<int>(numBin) - 1;
 	QString toolTip;
+	double binStart = m_plots[0]->GetData()->GetBinStart(nthBin);
+	if (IsDrawnDiscrete())
+		binStart = static_cast<int>(binStart);
 	if (yCaption.isEmpty())
-		toolTip = QString("%1: ").arg(m_plots[0]->GetData()->GetBinStart(nthBin));
+		toolTip = QString("%1: ").arg(binStart);
 	else
-		toolTip = QString("%1: %2\n%3:").arg(xCaption).arg(m_plots[0]->GetData()->GetBinStart(nthBin)).arg(yCaption);
+		toolTip = QString("%1: %2\n%3: ").arg(xCaption).arg(binStart).arg(yCaption);
+	bool more = false;
 	for (auto plot : m_plots)
 	{
 		auto data = plot->GetData();
 		if (!data || !data->GetRawData())
 			continue;
-		toolTip += ", " + QString::number(data->GetRawData()[nthBin]);
+		if (more)
+			toolTip += ", ";
+		else
+			more = true;
+		toolTip += QString::number(data->GetRawData()[nthBin]);
 	}
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }
