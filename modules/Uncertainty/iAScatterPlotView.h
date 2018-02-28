@@ -54,6 +54,5 @@ private:
 	QWidget* m_scatterPlotContainer;
 	iAScatterPlotWidget* m_scatterPlotWidget;
 
-	int m_gradient;
 	void AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY);
 };

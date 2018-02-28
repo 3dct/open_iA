@@ -34,10 +34,10 @@ class iAScatterPlotStandaloneHandler;
 class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
 {
 public:
-	static const int PaddingLeft;
 	static const int PaddingTop;
 	static const int PaddingRight;
-	static const int PaddingBottom;
+	int PaddingBottom();
+	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
 	QVector<unsigned int> GetSelection();
@@ -58,4 +58,5 @@ public:
 private:
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
+	int m_fontHeight, m_maxTickLabelWidth;
 };
