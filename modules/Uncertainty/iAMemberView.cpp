@@ -71,8 +71,8 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	mean->setBrush(QBrush(iAUncertaintyColors::MemberBar));
 	mean->setName("Mean Uncertainty");
 	mean->setSelectable(QCP::stMultipleDataRanges);
-	mean->selectionDecorator()->setPen(iAUncertaintyColors::Selection);
-	mean->selectionDecorator()->setBrush(iAUncertaintyColors::Selection);
+	mean->selectionDecorator()->setPen(iAUncertaintyColors::SelectedMember);
+	mean->selectionDecorator()->setBrush(iAUncertaintyColors::SelectedMember);
 
 	QVector<double> ticks;
 	QVector<QString> labels;
