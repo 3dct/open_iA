@@ -49,6 +49,7 @@ public:
 		IntImage::Pointer referenceImage);
 	vtkImagePointer GetEntropy(int source) const override;
 	vtkImagePointer GetReference() const override;
+	bool HasReference() const override;
 	QString GetSourceName(int source) const override;
 	QVector<IntImage::Pointer> const & GetLabelDistribution() const;
 	int LabelCount() const;

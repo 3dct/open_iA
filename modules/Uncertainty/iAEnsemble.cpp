@@ -651,6 +651,12 @@ vtkImagePointer iAEnsemble::GetReference() const
 }
 
 
+bool iAEnsemble::HasReference() const
+{
+	return m_referenceImage;
+}
+
+
 const char* const UncertaintyNames[] = {
 	"Algorithm Uncertainty",
 	"Neighborhood Uncertainty",
