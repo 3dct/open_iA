@@ -25,7 +25,7 @@
 #include <QVector>
 
 class iAPlot;
-class iAFilterChart;
+class iAChartWidget;
 class iAImageTreeNode;
 class iALabelInfo;
 class iAParamHistogramData;
@@ -43,7 +43,7 @@ public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
 private:
 	iALabelInfo const * m_labelInfo;
-	QVector<iAFilterChart *> m_charts;
+	QVector<iAChartWidget *> m_charts;
 	QVector<QSharedPointer<iAParamHistogramData> > m_labelDistributionChartData;
 	QVector<QSharedPointer<iAParamHistogramData> > m_probabilitiesChartData;
 	QSharedPointer<iAParamHistogramData> m_entropyChartData;
