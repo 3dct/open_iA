@@ -69,7 +69,7 @@ namespace
 }
 const int iAScatterPlotWidget::PaddingTop = 5;
 const int iAScatterPlotWidget::PaddingRight = 5;
-const int iAScatterPlotWidget::TextPadding = 2;
+const int iAScatterPlotWidget::TextPadding = 5;
 
 
 iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
