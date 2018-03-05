@@ -127,10 +127,11 @@ void iAFiberScoutModuleInterface::setFiberScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
+//enty point für openIA FeatureScout
 bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )
 {
 	iACsvIO io;
-	if ( !io.LoadCsvFile(objectType, fileName ) )
+	if ( !io.LoadCsvFile(objectType, fileName ) ) //hier wird das csv geladen;
 		return false;
 
 	QString filtername = tr( "FeatureScout started" );

@@ -46,7 +46,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->Initialize();
 
 	// calculate the length of objects in csv file for defining the vtkTable
-	int tableLength = CalcTableLength(fileName);
+	int tableLength = CalcTableLength(fileName, nullptr);
 	if (tableLength <= 0)
 		return false;
 
@@ -187,7 +187,7 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 {
 	table->Initialize();
 	// calculate the length of objects in csv file for defining the vtkTable
-	int tableLength = CalcTableLength(fileName);
+	int tableLength = CalcTableLength(fileName,  nullptr);
 	if (tableLength <= 0)
 		return false;
 	QFile file(fileName);
@@ -211,6 +211,7 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 	//vtkSmartPointer<vtkIntArray> arrX = vtkSmartPointer<vtkIntArray>::New();
 	//arrX->SetName("Label");
 	//table->AddColumn(arrX);
+	//read out entrys
 	for (int i = 0; i<tableWidth; i++)
 	{
 		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
@@ -230,12 +231,16 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 		if (!line.isEmpty())
 		{
 			vtkVariant v = line.section(",", 0, 0).toInt();
+
+			//set pore or fibre id 
 			table->SetValue(i, 0, v.ToString());
+
+			//saving values for each col
 			for (int j = 1; j<tableWidth; j++)
 			{
 				table->SetValue(i, j, line.section(",", j, j).toFloat());
 			}
-			// set Class_ID value to zero
+			// set Class_ID value to zero 
 			table->SetValue(i, tableWidth, 0);
 		}
 	}
@@ -243,9 +248,28 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 	return true;
 }
 
-
-int iACsvIO::CalcTableLength(const QString &fileName)
+bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
 {
+	QFile file(configName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return false;
+	else return true; 
+
+}
+
+bool iACsvIO::loadCSVCustom(const csvConfig::configPararams &cnfg_params)
+{
+	return loadCsv_WithConfig(cnfg_params.fileName, cnfg_params.startLine, cnfg_params.fmt_ENG, cnfg_params.colSeparator);
+}
+
+bool iACsvIO::loadConfigurationFile(const QString & FileName)
+{
+	return false;
+}
+
+int iACsvIO::CalcTableLength(const QString &fileName,const int *nrHeadersToSkip)
+{
+	// skip lines which are not headers
 	// todo: to find another efficient way to count the lines in a file
 	if (fileName.isEmpty())
 		return 0;
@@ -257,11 +281,22 @@ int iACsvIO::CalcTableLength(const QString &fileName)
 	int TableLength = 0;
 
 	// read header lines, need specification each time the structure of the csv file changes
-	file.readLine();
-	file.readLine();
-	file.readLine();
-	file.readLine();
-	file.readLine();
+	//TODO change reading headerlines
+	//default for feature scout
+	if (!nrHeadersToSkip) {
+		file.readLine();
+		file.readLine();
+		file.readLine();
+		file.readLine();
+		file.readLine();
+	}
+	else {
+		const int headersToSkip = *nrHeadersToSkip; 
+		for (int i = 0; i < headersToSkip; i++) {
+			file.readLine();
+		}
+	}
+
 	while (!file.atEnd())
 	{
 		file.readLine();
@@ -382,3 +417,88 @@ vtkTable* iACsvIO::GetCSVTable()
 {
 	return table.GetPointer();
 }
+
+
+bool iACsvIO::loadCsv_WithConfig(const QString &fileName, const int rows_toSkip, bool EN_Values, const QString  &colSeparator) {
+	table->Initialize();
+	QString decimal_separator = "";
+
+	//english decimal format
+	if (!EN_Values) {
+		decimal_separator = ".";
+	}
+	
+
+	// calculate the length of objects in csv file for defining the vtkTable
+	int tableLength = CalcTableLength(fileName, &rows_toSkip);
+	if (tableLength <= 0)
+		return false;
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return false;
+
+	QTextStream in(&file);
+	
+	//skip header lines, not counting the line where names start
+	for (int i = 0; i < rows_toSkip -1; i++) {
+		QString tmp =in.readLine(); 
+	}
+
+	//header: names of elements
+	QString eleLine = in.readLine();
+	const char* element;
+	// count elements
+
+	const char *_colSeparator = colSeparator.toStdString().c_str(); 
+	int tableWidth = eleLine.count(colSeparator);
+	QString tmp_section = "";
+	
+	//read out entrys
+	for (int i = 0; i<tableWidth; i++)
+	{
+		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+		QByteArray byteArr = eleLine.section(colSeparator, i, i, QString::SectionSkipEmpty).toUtf8();
+		element = byteArr.constData();
+		arrX->SetName(element);
+		table->AddColumn(arrX);
+	}
+	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
+	arr->SetName("Class_ID");
+	table->AddColumn(arr);
+	table->SetNumberOfRows(tableLength);
+	QString line = ""; 
+
+	for (int i = 0; i<tableLength; ++i)
+	{
+		line = in.readLine();
+		if (!line.isEmpty())
+		{
+			vtkVariant v = line.section(colSeparator, 0, 0).toInt();
+
+
+			//set id 
+			table->SetValue(i, 0, v.ToString());
+						
+			//adding entries for each col 
+			for (int j = 1; j<tableWidth; j++)
+			{
+			
+				//replace decimal separator for german input format 
+				tmp_section = line.section(colSeparator, j, j);
+				
+				if(!EN_Values)
+					tmp_section = tmp_section.replace(",", decimal_separator);
+								
+				 
+				table->SetValue(i, j, tmp_section.toFloat();
+			}
+			// set Class_ID value to zero 
+			//set class id 0 for row
+			table->SetValue(i, tableWidth, 0);
+
+		}
+	}
+	file.close();
+	return true;
+}
+
