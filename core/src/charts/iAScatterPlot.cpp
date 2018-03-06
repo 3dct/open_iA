@@ -226,19 +226,12 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y() );
 	painter.setBrush( settings.backgroundColor );
-	//ticks
 	drawTicks( painter );
-	//parameter name
 	drawParameterName( painter );
-	//points
 	drawPoints( painter );
-	//selection
 	drawSelectionPolygon( painter );
-	//maximize
 	drawMaximizeButton( painter );
-	//border
 	drawBorder( painter );
-
 	painter.restore();
 }
 
