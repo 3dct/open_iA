@@ -67,7 +67,7 @@ public:
 	//!  Map a scalar value into an RGBA color.
 	void getColor( double val, double * rgba_out )
 	{
-		if (m_data.size() < 4);
+		if (m_data.size() < 4)
 		{
 			for (unsigned long i = 0; i < 3; ++i)
 				rgba_out[i] = 0;
