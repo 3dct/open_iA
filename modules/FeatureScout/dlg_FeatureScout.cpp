@@ -3025,14 +3025,13 @@ void dlg_FeatureScout::ScatterPlotButton()
 	{
 		assert( !matrix );
 		matrix = new iAQSplom();
-		m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
-		matrix->setLookupTable(m_pointLUT, "");
+
 		QTableWidget* spInput = new QTableWidget();
 		spInput->setColumnCount(csvTable->GetNumberOfColumns());
 		spInput->setRowCount(csvTable->GetNumberOfRows()+1);
 		for (int col = 0; col < csvTable->GetNumberOfColumns(); ++col)
 		{
-			spInput->setItem(0, col, new QTableWidgetItem(elementTable->GetValue(col, 0).ToString().c_str()));
+			spInput->setItem(0, col, new QTableWidgetItem(csvTable->GetColumnName(col)));
 		}
 		for (int row = 1; row < csvTable->GetNumberOfRows()+1; ++row)
 		{
@@ -3064,6 +3063,28 @@ void dlg_FeatureScout::ScatterPlotButton()
 		// pcChart->SetAnnotationLink( matrix->GetAnnotationLink() );
 		//matrix->SetInput( spInput, this->filterID );
 		matrix->setData(spInput);
+		double range[2];
+		//werte erste spalte min max für color transformation
+		//csv table einträge
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
+		mmr->GetRange(range);
+		m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
+		m_pointLUT->SetRange(range);
+		m_pointLUT->SetTableRange(range);
+		m_pointLUT->SetNumberOfTableValues(2);
+
+
+		for (vtkIdType i = 0; i < 2; i++)
+		{
+			/*for (int i = 0; i < 4; ++i)*/
+			double rgba[4] = { 0.5, 0.5, 0.5, 1.0 };
+			m_pointLUT->SetTableValue(i, rgba);
+		}
+		m_pointLUT->Build();
+
+
+		matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+
 
 		// TODO SPM
 
