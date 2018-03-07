@@ -938,6 +938,11 @@ void iAScatterPlot::fillVBO()
 	}
 }
 
+void iAScatterPlot::setSelectionColor(QColor selCol)
+{
+	this->settings.selectionColor = selCol;
+}
+
 double iAScatterPlot::getPointRadius() const
 {
 	double res = settings.pointRadius;

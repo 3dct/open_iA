@@ -349,19 +349,11 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 			//matrix->selectionModified(&(*selID));
 			
 			matrix->setSelection(&selID);
-			//matrix->selectionModified(&selID);
-			//matrix->up
-			//matrix->setUpdatesEnabled(true);
-			////matrix->update
-			//this->spUpdateSPColumnVisibility();
+
 			
 			//update view
 		}
-		//->pcChart->GetPlot(0)->GetSelection()
-		//this->pcChart->d
-		//this->pcChart.getPl
-		//tc->annotationLink
-		//DataArray->get
+		
 		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
 	}
 	else
@@ -3073,7 +3065,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 		m_pointLUT->SetTableRange(range);
 		m_pointLUT->SetNumberOfTableValues(2);
 
-
+		//set color for scatter plot and Renderer
 		for (vtkIdType i = 0; i < 2; i++)
 		{
 			/*for (int i = 0; i < 4; ++i)*/
@@ -3084,7 +3076,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 
 		matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
-
+		matrix->setSelectionColor(QColor(255, 40, 0, 1));
 
 		// TODO SPM
 

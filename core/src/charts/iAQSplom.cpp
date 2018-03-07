@@ -69,6 +69,17 @@ const QList<int> & iAQSplom::getHighlightedPoints() const
 	return m_highlightedPoints;
 }
 
+void iAQSplom::setSelectionColor(QColor color)
+{
+	foreach(QList<iAScatterPlot*> row, m_matrix)
+	{
+		foreach(iAScatterPlot* s, row)
+		{
+			s->setSelectionColor(color);
+		}
+	}
+}
+
 iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	:QGLWidget( parent, shareWidget, f ),
 	settings(),

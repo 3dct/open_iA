@@ -85,6 +85,7 @@ public:
 	void SPLOMMouseMoveEvent( QMouseEvent * event );
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
+	void setSelectionColor(QColor selCol);
 
 protected:
 	int p2binx( double p ) const;											//!< Get grid bin index using parameter value X

@@ -85,6 +85,8 @@ public:
 	void setAnimOut( double anim );											//!< Setter for animation in property
 	const QList<int> & getHighlightedPoints() const;
 
+	void setSelectionColor(QColor color); 
+
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.
 	virtual void initializeGL();								//!< Re-implements QGLWidget.
