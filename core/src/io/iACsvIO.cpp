@@ -593,9 +593,9 @@ bool iACsvIO::loadCsv_WithConfig(const QString &fileName, const int rows_toSkip,
 			for (int j = 1; j<tableWidth; j++)
 			{
 			
-				//replace decimal separator for german input format 
+
 				tmp_section = line.section(colSeparator, j, j);
-				
+				//replace decimal separator for german input format 
 				if(!EN_Values)
 					tmp_section = tmp_section.replace(",", decimal_separator);
 					table->SetValue(i, j, tmp_section.toFloat());
