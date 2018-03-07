@@ -35,9 +35,12 @@
 #include <QTextStream>
 
 
-iACsvIO::iACsvIO():
-	table(vtkSmartPointer<vtkTable>::New())
-{}
+iACsvIO::iACsvIO() :
+	table(vtkSmartPointer<vtkTable>::New()) 
+	
+{
+	this->setDefaultConfigPath(); 
+}
 
 
 bool iACsvIO::LoadFibreCSV(const QString &fileName)
@@ -231,13 +234,13 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 		if (!line.isEmpty())
 		{
 			vtkVariant v = line.section(",", 0, 0).toInt();
-
 			//set pore or fibre id 
 			table->SetValue(i, 0, v.ToString());
 
 			//saving values for each col
 			for (int j = 1; j<tableWidth; j++)
 			{
+				float tmp = line.section(",", j, j).toFloat(); //TODO REMOVE
 				table->SetValue(i, j, line.section(",", j, j).toFloat());
 			}
 			// set Class_ID value to zero 
@@ -257,14 +260,120 @@ bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
 
 }
 
-bool iACsvIO::loadCSVCustom(const csvConfig::configPararams &cnfg_params)
+bool iACsvIO::loadCSVCustom(csvConfig::configPararams &cnfg_params)
 {
+	this->loadConfigurationFile(cnfg_params);
 	return loadCsv_WithConfig(cnfg_params.fileName, cnfg_params.startLine, cnfg_params.fmt_ENG, cnfg_params.colSeparator);
 }
 
-bool iACsvIO::loadConfigurationFile(const QString & FileName)
+
+//TODO read configuration file
+bool iACsvIO::loadConfigurationFile(csvConfig::configPararams &cnf_Params) const
 {
-	return false;
+	QString defaultConfig = ""; 
+	QString confFilePath = this->configPath;
+	const int splitIdx = 1; 
+
+	switch (cnf_Params.file_fmt){
+
+	case csvConfig::csv_FileFormat::Default: 
+		defaultConfig = "cnf_default.txt"; break; 
+	case csvConfig::csv_FileFormat::open_IA_FeatureScout : 
+		defaultConfig = "cnf_featureScout.txt"; break; 
+	case csvConfig::csv_FileFormat::VolumeGraphics: 
+		defaultConfig = "cnf_VG.txt"; break;
+	case csvConfig::csv_FileFormat::MAVI: defaultConfig = "cnf_MAVI.txt";
+	 
+	}
+
+	confFilePath+=defaultConfig;
+	
+
+	const QString colSeparator = ":";
+	QString lineEntry = ";";
+	bool ENFormat = false;
+
+	long int startLine = 0;
+	if (confFilePath.isEmpty())
+		return 0;
+
+	QFile file(confFilePath);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return 0;
+	
+	//skip first two lines
+	file.readLine();
+	file.readLine();
+	QString line = "";
+	line = file.readLine(); 
+
+	
+	//entrys start with line 3
+	
+	
+	if (line.contains ( "StartLine")) {
+		lineEntry = line.section(colSeparator, 1, 1);
+		startLine = lineEntry.toInt(); 
+		cnf_Params.startLine = startLine; 
+	}
+	else {
+		file.close(); 
+		return false; }
+
+
+	line = file.readLine();
+
+	//check for format
+	if (line.contains("Decimals")){
+		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
+		if (line.contains("EN") ) { ENFormat = true; }
+		else if (line.contains("GER")) { ENFormat = false;  }
+		else {
+			file.close();
+			return false;
+		}
+		cnf_Params.fmt_ENG = ENFormat; 
+	}
+
+	line = file.readLine();
+	if (line.contains("Separator")) {
+		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
+		
+		//check if sign = , or semikolon
+		
+		cnf_Params.colSeparator = QString::QString(lineEntry.trimmed());
+	}else{
+		file.close();
+		return false;
+	}
+
+
+	line = file.readLine();
+	if (line.contains("Spacing")) {
+		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
+
+		//check if sign = , or semikolon
+
+		cnf_Params.spacing = lineEntry.toFloat();
+	}
+	else {
+		file.close();
+		return false;
+	}
+
+
+
+	file.close(); 
+	return true; 
+	
+	//TOOD read out other entries
+
+
+}
+
+void iACsvIO::setDefaultConfigPath()
+{
+	configPath = "D:/OpenIa_TestDaten/TestInput/config/";
 }
 
 int iACsvIO::CalcTableLength(const QString &fileName,const int *nrHeadersToSkip)
@@ -450,7 +559,8 @@ bool iACsvIO::loadCsv_WithConfig(const QString &fileName, const int rows_toSkip,
 	// count elements
 
 	const char *_colSeparator = colSeparator.toStdString().c_str(); 
-	int tableWidth = eleLine.count(colSeparator);
+	//TODO tobe tested
+	int tableWidth = eleLine.count(&colSeparator);
 	QString tmp_section = "";
 	
 	//read out entrys
@@ -474,7 +584,7 @@ bool iACsvIO::loadCsv_WithConfig(const QString &fileName, const int rows_toSkip,
 		if (!line.isEmpty())
 		{
 			vtkVariant v = line.section(colSeparator, 0, 0).toInt();
-
+			vtkStdString v1 = v.ToString();
 
 			//set id 
 			table->SetValue(i, 0, v.ToString());
@@ -488,12 +598,9 @@ bool iACsvIO::loadCsv_WithConfig(const QString &fileName, const int rows_toSkip,
 				
 				if(!EN_Values)
 					tmp_section = tmp_section.replace(",", decimal_separator);
-								
-				 
-				table->SetValue(i, j, tmp_section.toFloat();
+					table->SetValue(i, j, tmp_section.toFloat());
 			}
-			// set Class_ID value to zero 
-			//set class id 0 for row
+			//set Class_ID 0 for each row element
 			table->SetValue(i, tableWidth, 0);
 
 		}

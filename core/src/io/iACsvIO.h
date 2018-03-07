@@ -46,15 +46,20 @@ public:
 	
 	//bool loadGeneralCSVFile(const QString &FName, const QString *confName );
 	
-	bool loadCSVCustom(const csvConfig::configPararams &cnfg_params);
-
+	bool loadCSVCustom(csvConfig::configPararams &cnfg_params);
+	bool loadConfigurationFile(csvConfig::configPararams &cnf_Params) const;
+	
+	//todo check if file path exists
+	inline void setConfigPath(const QString _configPath){
+		configPath = _configPath; 
+	}
 
 private:
 
-	bool loadConfigurationFile(const QString &FileName);
+	void setDefaultConfigPath(); 
 	int CalcTableLength(const QString &fileName, const int *nrHeadersToSkip);  //
 	
-	
+	QString configPath; 
 	QStringList GetFibreElementsName(bool withUnit);
 	bool LoadFibreCSV(const QString &fileName);
 	bool LoadPoreCSV(const QString &fileName);

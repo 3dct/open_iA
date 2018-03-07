@@ -145,6 +145,8 @@ bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString
 		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
 		return false;
 	}
+
+	//TODO feature scout mit csv verbinden
 	attach->init(objectType, io.GetCSVTable());
 	return true;
 }
