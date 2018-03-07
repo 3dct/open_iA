@@ -51,6 +51,7 @@ iAMemberView::iAMemberView():
 	m_plot->setOpenGl(true);
 	setLayout(new QHBoxLayout());
 	layout()->setSpacing(0);
+	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_plot);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
@@ -70,8 +71,8 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	mean->setBrush(QBrush(iAUncertaintyColors::MemberBar));
 	mean->setName("Mean Uncertainty");
 	mean->setSelectable(QCP::stMultipleDataRanges);
-	mean->selectionDecorator()->setPen(iAUncertaintyColors::Selection);
-	mean->selectionDecorator()->setBrush(iAUncertaintyColors::Selection);
+	mean->selectionDecorator()->setPen(iAUncertaintyColors::SelectedMember);
+	mean->selectionDecorator()->setBrush(iAUncertaintyColors::SelectedMember);
 
 	QVector<double> ticks;
 	QVector<QString> labels;

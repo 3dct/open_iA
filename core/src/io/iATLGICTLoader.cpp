@@ -25,7 +25,6 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMultiStepProgressObserver.h"
-#include "iAObserverProgress.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -116,7 +115,7 @@ void iATLGICTLoader::start(MdiChild* child)
 	m_child->addMsg(tr("%1  Loading TLGI-CT data, please wait...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 
-	connect(m_multiStepObserver, SIGNAL(oprogress(int)), m_child, SLOT(updateProgressBar(int)));
+	connect(m_multiStepObserver, SIGNAL(progress(int)), m_child, SLOT(updateProgressBar(int)));
 	connect(this, SIGNAL(started()), m_child, SLOT(initProgressBar()));
 	connect(this, SIGNAL(finished()), m_child, SLOT(hideProgressBar()));
 	connect(this, SIGNAL(finished()), this, SLOT(finishUp()));		// this needs to be last, as it deletes this object!

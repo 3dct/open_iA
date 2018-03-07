@@ -24,6 +24,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
+#include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 #include <itkFHWRescaleIntensityImageFilter.h>
 
@@ -300,24 +301,15 @@ iACastImageFilter::iACastImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
 		"Rescale Image Filter</a> in the ITK documentation.")
 {
-	QStringList datatypes = (QStringList()
-		<< QString("VTK_SIGNED_CHAR")
-		<< QString("VTK_UNSIGNED_CHAR")
-		<< QString("VTK_SHORT")
-		<< QString("VTK_UNSIGNED_SHORT")
-		<< QString("VTK_INT")
-		<< QString("VTK_UNSIGNED_INT")
-		<< QString("VTK_LONG")
-		<< QString("VTK_UNSIGNED_LONG")
-		<< QString("VTK_FLOAT")
-		<< QString("VTK_DOUBLE")
+	QStringList datatypes = VTKDataTypeList();
+	datatypes
 		/*	// not yet currently supported by ITK and VTK!
 		<< QString("VTK_LONG_LONG")
 		<< QString("VTK_UNSIGNED_LONG_LONG")
 		<< QString("VTK__INT64")
 		<< QString("VTK_UNSIGNED__INT64")
 		*/
-		<< ("Label image to color-coded RGBA image"));
+		<< ("Label image to color-coded RGBA image");
 	AddParameter("Data Type", Categorical, datatypes);
 	AddParameter("Rescale Range", Boolean, false);
 	AddParameter("Automatic Input Range", Boolean, false);

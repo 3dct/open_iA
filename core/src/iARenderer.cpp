@@ -26,7 +26,6 @@
 #include "iAConsole.h"
 #include "iAChannelVisualizationData.h"
 #include "iAMovieHelper.h"
-#include "iAObserverProgress.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 

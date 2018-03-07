@@ -38,12 +38,13 @@ class iAUncertaintyImages
 public:
 	enum SourceType
 	{
-		LabelDistributionEntropy,
-		AvgAlgorithmEntropyEntrSum, AvgAlgorithmEntropyProbSum, // unify? should be the same
+		AvgAlgorithmEntropyEntrSum,
 		Neighbourhood3x3Entropy,
-		Neighbourhood5x5Entropy,
+		LabelDistributionEntropy,
 		SourceCount
 	};
 	virtual vtkImagePointer GetEntropy(int source) const =0;
+	virtual vtkImagePointer GetReference() const =0;
 	virtual QString GetSourceName(int source) const =0;
+	virtual bool HasReference() const = 0;
 };

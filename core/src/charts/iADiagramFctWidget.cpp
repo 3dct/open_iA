@@ -58,7 +58,6 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 {
 	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
 	functions.push_back(transferFunction);
-	leftMargin   = (yLabel == "") ? 0 : 60;
 }
 
 iADiagramFctWidget::~iADiagramFctWidget()

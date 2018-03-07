@@ -24,6 +24,8 @@
 
 #include "io/iAITKIO.h"
 
+#include <vtkSmartPointer.h>
+
 #include <QSharedPointer>
 #include <QVector>
 
@@ -35,6 +37,8 @@ class iAMemberView;
 class iAScatterPlotView;
 class iASpatialView;
 
+class vtkLookupTable;
+
 class iAUncertaintyAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
@@ -44,12 +48,13 @@ public:
 	void ToggleSettings();
 	void CalculateNewSubEnsemble();
 	bool LoadEnsemble(QString const & fileName);
+	void WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties);
 private slots:
 	void MemberSelected(int memberIdx);
 	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAHistogramView* m_histogramView;
+	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
 	iAMemberView* m_memberView;
 	iAScatterPlotView* m_scatterplotView;
 	iASpatialView* m_spatialView;
@@ -57,5 +62,6 @@ private:
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
 	QVector<iAITKIO::ImagePointer> m_shownMembers;
 	QSharedPointer<iAEnsemble> m_currentEnsemble;
+	vtkSmartPointer<vtkLookupTable> m_labelLut;
 	int m_newSubEnsembleID;
 };

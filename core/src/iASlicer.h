@@ -34,7 +34,7 @@ class QFrame;
 class QGLWidget;
 
 class vtkCamera;
-class vtkColorTransferFunction;
+class vtkScalarsToColors;
 class vtkImageActor;
 class vtkImageData;
 class vtkImageReslice;
@@ -89,10 +89,10 @@ public:
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor(); 
 	void enableInteractor(); //also updates widget
-	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf);
+	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
 	void reInitialize(	vtkImageData *ds, 
 						vtkTransform *tr, 
-						vtkColorTransferFunction* ctf, 
+						vtkScalarsToColors* ctf,
 						bool sil = false, 
 						bool sp = false );
 

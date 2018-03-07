@@ -270,6 +270,15 @@ iAColorThemeManager::iAColorThemeManager()
 	metroColors->AddColor(QColor(160, 82, 45));
 	m_themes.insert(metroColors->GetName(), metroColors);
 
+	iAColorTheme* sevenShadesOfBlue = new iAColorTheme("Seven Shades of blue (max 7)");
+	sevenShadesOfBlue->AddColor(QColor(193, 217, 252));
+	sevenShadesOfBlue->AddColor(QColor(132, 179, 250));
+	sevenShadesOfBlue->AddColor(QColor(70, 142, 247));
+	sevenShadesOfBlue->AddColor(QColor(9, 104, 245));
+	sevenShadesOfBlue->AddColor(QColor(7, 78, 184));
+	sevenShadesOfBlue->AddColor(QColor(4, 52, 122));
+	sevenShadesOfBlue->AddColor(QColor(2, 26, 61));
+	m_themes.insert(sevenShadesOfBlue->GetName(), sevenShadesOfBlue);
 }
 
 iAColorThemeManager::~iAColorThemeManager()

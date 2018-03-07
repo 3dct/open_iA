@@ -22,25 +22,29 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+
 #include <QGLWidget>
 
 class iASPLOMData;
-class iAScatterPlot;
 class iAScatterPlotStandaloneHandler;
 
+/** Widget for using a single scatter plot (outside of a SPLOM)
+*/
 class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
 {
 public:
-	static const int PaddingLeft;
 	static const int PaddingTop;
 	static const int PaddingRight;
-	static const int PaddingBottom;
+	int PaddingBottom();
+	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
 	QVector<unsigned int> GetSelection();
 	void SetSelection(QVector<unsigned int> const & selection);
 	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void SetSelectionColor(QColor const & c);
+	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
 protected:
 	virtual void paintEvent(QPaintEvent * event);
 	virtual void resizeEvent(QResizeEvent* event);
@@ -54,4 +58,5 @@ public:
 private:
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
+	int m_fontHeight, m_maxTickLabelWidth;
 };

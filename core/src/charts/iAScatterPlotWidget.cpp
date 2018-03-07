@@ -62,17 +62,21 @@ private:
 	QVector<unsigned int> m_selection;
 };
 
-
-const int iAScatterPlotWidget::PaddingLeft = 45;
+namespace
+{
+	const int PaddingLeftBase = 2;
+	const int PaddingBottomBase = 2;
+}
 const int iAScatterPlotWidget::PaddingTop = 5;
 const int iAScatterPlotWidget::PaddingRight = 5;
-const int iAScatterPlotWidget::PaddingBottom = 45;
-const int iAScatterPlotWidget::TextPadding = 2;
+const int iAScatterPlotWidget::TextPadding = 5;
 
 
 iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_data(data),
-	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler())
+	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
+	m_fontHeight(0),
+	m_maxTickLabelWidth(0)
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -104,6 +108,14 @@ void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double
 void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 {
 	QPainter painter(this);
+	QFontMetrics fm = painter.fontMetrics();
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("0.99"))
+	{
+		m_fontHeight = fm.height();
+		m_maxTickLabelWidth = fm.width("0.99");
+		QResizeEvent *ev(nullptr);
+		resizeEvent(ev);
+	}
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
@@ -120,7 +132,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
 	m_scatterplot->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
 	painter.setPen(m_scatterplot->settings.tickLabelColor);
-	QPoint tOfs(45, 45);
+	QPoint tOfs(PaddingLeft(), PaddingBottom());
 	long tSpc = 5;
 	for (long i = 0; i < ticksY.size(); ++i)
 	{
@@ -131,15 +143,16 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	for (long i = 0; i < ticksX.size(); ++i)
 	{
 		double t = ticksX[i]; QString text = textX[i];
-		painter.drawText(QRectF(-tOfs.y() + tSpc + PaddingBottom - height() - TextPadding, t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignRight | Qt::AlignVCenter, text);
+		painter.drawText(QRectF(-tOfs.y() + tSpc + PaddingBottom() - height() - TextPadding,
+				t - tOfs.x(), tOfs.y() - tSpc, 2 * tOfs.x()), Qt::AlignRight | Qt::AlignVCenter, text);
 	}
 	painter.restore();
 
-	QFontMetrics fm = painter.fontMetrics();
 	// print axes labels:
 	painter.save();
 	painter.setPen(m_scatterplot->settings.tickLabelColor);
-	painter.drawText(QRectF(0, height() - fm.height() - TextPadding, width(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(0));
+	painter.drawText(QRectF(0, height() - fm.height() - TextPadding, width(), fm.height()),
+			Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(0));
 	painter.rotate(-90);
 	painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(1));
 	painter.restore();
@@ -150,17 +163,27 @@ void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 	QRect size(geometry());
 	size.moveTop(0);
 	size.moveLeft(0);
-	size.adjust(PaddingLeft, PaddingTop, -PaddingRight, -PaddingBottom);
+	size.adjust(PaddingLeft(), PaddingTop, -PaddingRight, -PaddingBottom());
 	if (size.width() > 0 && size.height() > 0)
 	{
 		m_scatterplot->setRect(size);
 	}
 }
 
+int iAScatterPlotWidget::PaddingLeft()
+{
+	return PaddingLeftBase+m_fontHeight+m_maxTickLabelWidth+TextPadding;
+}
+
+int iAScatterPlotWidget::PaddingBottom()
+{
+	return PaddingBottomBase+m_fontHeight+m_maxTickLabelWidth+TextPadding;
+}
+
 void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 {
-	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
-		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
 	{
 		m_scatterplot->SPLOMWheelEvent(event);
 		update();
@@ -169,8 +192,8 @@ void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 
 void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 {
-	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
-		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
 	{
 		m_scatterplot->SPLOMMousePressEvent(event);
 	}
@@ -178,8 +201,8 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 {
-	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
-		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
 	{
 		m_scatterplot->SPLOMMouseReleaseEvent(event);
 		update();
@@ -188,8 +211,8 @@ void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::mouseMoveEvent(QMouseEvent * event)
 {
-	if (event->x() >= PaddingLeft && event->x() <= (width() - PaddingRight) &&
-		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom))
+	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
+		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
 	{
 		m_scatterplot->SPLOMMouseMoveEvent(event);
 	}
@@ -218,4 +241,9 @@ void iAScatterPlotWidget::SetSelection(QVector<unsigned int> const & selection)
 void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
 {
 	m_scatterplot->settings.selectionColor = c;
+}
+
+void iAScatterPlotWidget::SetSelectionMode(iAScatterPlot::SelectionMode mode)
+{
+	m_scatterplot->settings.selectionMode = mode;
 }

@@ -58,9 +58,19 @@
     <string>New Ensemble from selected Members</string>
    </property>
   </action>
+  <action name="action_WriteFullDataFile">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/savestack.png</normaloff>:/images/savestack.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Ensemble from selected Members</string>
+   </property>
+  </action>
   <addaction name="action_ToggleTitleBar"/>
   <addaction name="action_ToggleSettings"/>
   <addaction name="action_CalculateNewSubEnsemble"/>
+  <addaction name="action_WriteFullDataFile"/>
  </widget>
  <resources>
   <include location="../../core/open_iA.qrc"/>

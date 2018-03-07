@@ -20,28 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "iAFilter.h"
 
-#include <vtkCommand.h>
-
-#include <QObject>
-
-class open_iA_Core_API iAObserverProgress : public QObject, public vtkCommand
-{
-Q_OBJECT
-public:
-	iAObserverProgress( );
-
-	static iAObserverProgress *New(	 ) 
-	{
-		return new iAObserverProgress( );
-	}
-
-	void manualProgressUpdate(int progress);
-
-Q_SIGNALS:
-	void oprogress( int progress);
-
-private:
-	virtual void Execute(vtkObject *caller, unsigned long, void*);
-};
+IAFILTER_DEFAULT_CLASS(iACSVtoMHD);

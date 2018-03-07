@@ -202,7 +202,7 @@ void dlg_commoninput::SelectFilter()
 			int filterID = iAFilterRegistry::FilterID(filterName);
 			auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
 			QMap<QString, QVariant> paramValues = runner->LoadParameters(filter, m_sourceMdi);
-			if (!runner->AskForParameters(filter, paramValues, m_sourceMdi, m_mainWnd))
+			if (!runner->AskForParameters(filter, paramValues, m_sourceMdi, m_mainWnd, false))
 				return;
 			QString paramStr;
 			for (auto param: filter->Parameters())

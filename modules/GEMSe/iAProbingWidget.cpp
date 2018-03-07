@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "iAProbingWidget.h"
 
-#include "iAFilterChart.h"
+//#include "iAFilterChart.h"
 #include "iAConsole.h"
+#include "charts/iAChartWidget.h"
 #include "charts/iAPlotTypes.h"
 #include "iAImageTreeLeaf.h"
 #include "iALabelInfo.h"
@@ -32,7 +33,13 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-int ProbabilityHistogramBinCount = 40;
+
+namespace
+{
+	const int NumOfChartsShown = 2;
+	const int ProbabilityHistogramBinCount = 25;
+	const int BarMargin = 2;
+}
 
 QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, double min, double max)
 {
@@ -40,11 +47,6 @@ QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, doubl
 		type == Discrete ? (max-min) : ProbabilityHistogramBinCount,
 		min, max, false, type));
 	return result;
-}
-
-namespace
-{
-	const int NumOfChartsShown = 5;
 }
 
 iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
@@ -64,23 +66,23 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	
 	// entropy chart:
 	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
-	m_charts.push_back(new iAFilterChart(this, "Entropy", m_entropyChartData,
-		QSharedPointer<iANameMapper>(), true));
-	m_charts[0]->Plots()[0]->setColor(QColor(64, 64, 64));
+	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));
+	auto plot = QSharedPointer<iAPlot>(
+		new iABarGraphDrawer(m_entropyChartData,
+			QColor(117, 112, 179), BarMargin));
+	m_charts[0]->AddPlot(plot);
 
 	// label distribution chart:
 	for (int label = 0; label < m_labelInfo->count(); ++label)
 	{
 		m_labelDistributionChartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelInfo->count()));
 	}
-	m_charts.push_back(new iAFilterChart(this, "Label Distribution", m_labelDistributionChartData[0],
-		QSharedPointer<iANameMapper>(), true));
-	m_charts[1]->Plots()[0]->setColor(m_labelInfo->GetColor(0));
-	for (int label = 1; label < m_labelInfo->count(); ++label)
+	m_charts.push_back(new iAChartWidget(this, "Label", "Frequency (Members)"));
+	for (int label = 0; label < m_labelInfo->count(); ++label)
 	{
 		m_drawers.push_back(QSharedPointer<iAPlot>(
 			new iABarGraphDrawer(m_labelDistributionChartData[label],
-				m_labelInfo->GetColor(label), 2)));
+				m_labelInfo->GetColor(label), BarMargin)));
 		m_charts[1]->AddPlot(m_drawers[m_drawers.size()-1]);
 	}
 
@@ -89,8 +91,11 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	for (int l = 0; l < std::min(NumOfChartsShown, labelInfo->count()); ++l)
 	{
 		m_probabilitiesChartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
-		m_charts.push_back(new iAFilterChart(this, QString("Probability Distribution Label %1").arg(l), m_probabilitiesChartData[l],
-			QSharedPointer<iANameMapper>(), true));
+		m_charts.push_back(new iAChartWidget(this, QString("Probability Label %1").arg(l), "Frequency (Members)"));
+		auto plot = QSharedPointer<iAPlot>(
+			new iABarGraphDrawer(m_probabilitiesChartData[l],
+				m_labelInfo->GetColor(l), BarMargin));
+		m_charts[m_charts.size() - 1]->AddPlot(plot);
 	}
 	for (int c = 0; c < m_charts.size(); ++c)
 	{
@@ -103,10 +108,9 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 void iAProbingWidget::SetLabelInfo(iALabelInfo const * labelInfo)
 {
 	m_labelInfo = labelInfo;
-	m_charts[1]->Plots()[0]->setColor(m_labelInfo->GetColor(0));
 	for (int l = 0; l < m_drawers.size(); ++l)
 	{
-		m_drawers[l]->setColor(m_labelInfo->GetColor(l+1));
+		m_drawers[l]->setColor(m_labelInfo->GetColor(l));
 	}
 }
 

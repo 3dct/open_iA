@@ -32,7 +32,6 @@
 
 class iAChannelVisualizationData;
 class iAChannelRenderData;
-class iAObserverProgress;
 class iARenderSettings;
 class iARenderObserver;
 

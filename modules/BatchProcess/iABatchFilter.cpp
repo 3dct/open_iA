@@ -230,7 +230,7 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			else
 				DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 		}
-		m_progress->ManualProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		m_progress->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}
 
 	if (!outputFile.isEmpty())

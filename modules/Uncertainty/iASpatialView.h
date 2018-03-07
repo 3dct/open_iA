@@ -27,6 +27,7 @@
 #include <QMap>
 #include <QWidget>
 
+class vtkColorTransferFunction;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 
@@ -58,7 +59,7 @@ class iASpatialView: public QWidget
 	Q_OBJECT
 public:
 	iASpatialView();
-	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs);
+	void SetDatasets(QSharedPointer<iAUncertaintyImages> imgs, vtkSmartPointer<vtkLookupTable> labelImgLut);
 	void AddMemberImage(QString const & caption, vtkImagePointer img, bool keep);
 	void ToggleSettings();
 	void SetupSelection(vtkImagePointer selectionImg);
@@ -92,4 +93,6 @@ private:
 	QWidget* m_settings;
 	int m_slice;
 	int newImgID;
+	vtkSmartPointer<vtkColorTransferFunction> m_uncertaintyLut;
+	vtkSmartPointer<vtkLookupTable> m_labelImgLut;
 };

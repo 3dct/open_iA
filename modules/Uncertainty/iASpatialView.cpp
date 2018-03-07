@@ -26,10 +26,13 @@
 #include "iAChannelVisualizationData.h"
 #include "iAConsole.h"
 #include "iAChannelID.h"
+#include "iAQFlowLayout.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerMode.h"
+#include "iATransferFunction.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkLookupTable.h>
 #include <vtkImageData.h>
@@ -82,6 +85,8 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_sliceBar = new QWidget();
 	m_sliceBar->setLayout(new QHBoxLayout());
 	m_sliceBar->layout()->setSpacing(0);
+	m_sliceBar->layout()->setContentsMargins(0, 4, 0, 0);
+
 	m_sliceBar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	m_sliceBar->layout()->addWidget(sliceButtonBar);
 	m_sliceBar->layout()->addWidget(m_sliceControl);
@@ -89,18 +94,21 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_contentWidget = new QWidget();
 	m_contentWidget->setLayout(new QHBoxLayout());
 	m_contentWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
-	m_contentWidget->layout()->setSpacing(0);
+	m_contentWidget->layout()->setSpacing(4);
+	m_contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
 
 	m_imageBar = new QWidget();
-	m_imageBar->setLayout(new QHBoxLayout());
+	m_imageBar->setLayout(new iAQFlowLayout(0, 4, 4));
 
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
+	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_contentWidget);
 
 	m_settings = new QWidget();
 	m_settings->setLayout(new QVBoxLayout);
-	m_settings->layout()->setSpacing(0);
+	m_settings->layout()->setSpacing(4);
+	m_settings->layout()->setContentsMargins(0, 4, 0, 0);
 	m_settings->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	m_settings->layout()->addWidget(m_sliceBar);
 	m_settings->layout()->addWidget(m_imageBar);
@@ -108,8 +116,13 @@ iASpatialView::iASpatialView(): QWidget(),
 }
 
 
-void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
+void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs,
+		vtkSmartPointer<vtkLookupTable> labelImgLut)
 {
+	m_labelImgLut = labelImgLut;
+	double uncertaintyRange[2] = {0.0, 1.0};
+	m_uncertaintyLut = GetDefaultColorTransferFunction(uncertaintyRange);
+
 	newImgID = 0;
 	for (auto widget : m_imageBar->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
 	{
@@ -125,6 +138,8 @@ void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 	{
 		AddImage(imgs->GetSourceName(i), imgs->GetEntropy(i));
 	}
+	if (imgs->HasReference())
+		AddImage("Reference", imgs->GetReference());
 }
 
 
@@ -175,7 +190,13 @@ void iASpatialView::AddImageDisplay(int idx)
 	ImageGUIElements gui;
 	gui.container = new QWidget();
 	gui.container->setLayout(new QVBoxLayout());
-	gui.imageWidget = new iAImageWidget(m_images[idx].image);
+	gui.container->layout()->setSpacing(4);
+	gui.container->layout()->setContentsMargins(0, 0, 0, 0);
+
+	vtkScalarsToColors* colors = m_labelImgLut;
+	if (m_images[idx].caption.contains("Uncertainty"))
+		colors = m_uncertaintyLut;
+	gui.imageWidget = new iAImageWidget(m_images[idx].image, colors);
 	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	label->setAlignment(Qt::AlignHCenter);
@@ -256,9 +277,9 @@ vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT()
 	result->SetRange(0, 1);                  // alpha value here is not used!
 	result->SetTableValue(0.0, 0.0, 0.0, 0.0);
 	result->SetTableValue(1.0,
-		iAUncertaintyColors::Selection.red() / 255.0,
-		iAUncertaintyColors::Selection.green() / 255.0,
-		iAUncertaintyColors::Selection.blue() / 255.0);
+		iAUncertaintyColors::SelectedPixel.red() / 255.0,
+		iAUncertaintyColors::SelectedPixel.green() / 255.0,
+		iAUncertaintyColors::SelectedPixel.blue() / 255.0);
 	result->Build();
 	return result;
 }

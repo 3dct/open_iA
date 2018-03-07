@@ -35,7 +35,7 @@
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
 #include "iAObjectAnalysisType.h"
-#include "iAObserverProgress.h"
+#include "iAProgress.h"
 #include "iARenderer.h"
 #include "mdichild.h"
 
@@ -1764,10 +1764,10 @@ void dlg_FeatureScout::saveStl()
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->initProgressBar();
 
-	iAObserverProgress* marCubProgress = iAObserverProgress::New();
-	iAObserverProgress* stlWriProgress = iAObserverProgress::New();
-	connect( marCubProgress, SIGNAL( oprogress( int ) ), this, SLOT( updateMarProgress( int ) ) );
-	connect( stlWriProgress, SIGNAL( oprogress( int ) ), this, SLOT( updateStlProgress( int ) ) );
+	iAProgress* marCubProgress = iAProgress::New();
+	iAProgress* stlWriProgress = iAProgress::New();
+	connect( marCubProgress, SIGNAL( progress( int ) ), this, SLOT( updateMarProgress( int ) ) );
+	connect( stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
 
 	vtkSmartPointer<vtkMarchingCubes> moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	moSurface->AddObserver( vtkCommand::ProgressEvent, marCubProgress );

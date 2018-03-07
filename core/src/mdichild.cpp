@@ -42,10 +42,10 @@
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
-#include "iAObserverProgress.h"
 #include "iAParametricSpline.h"
 #include "iAPreferences.h"
 #include "iAProfileProbe.h"
+#include "iAProgress.h"
 #include "iARenderer.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
@@ -281,7 +281,7 @@ void MdiChild::connectIOThreadSignals(iAIO * thread)
 	connect(thread, SIGNAL(started()), this, SLOT(initProgressBar()));
 	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
 	connect(thread, SIGNAL(finished()), this, SLOT(ioFinished()));
-	connect(thread->getObserverProgress(), SIGNAL(oprogress(int)), this, SLOT(updateProgressBar(int)));
+	connect(thread->getProgressObserver(), SIGNAL(progress(int)), this, SLOT(updateProgressBar(int)));
 	addAlgorithm(thread);
 }
 

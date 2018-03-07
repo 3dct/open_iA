@@ -93,15 +93,20 @@ private:
 };
 
 
+class iALookupTable;
+
 class open_iA_Core_API iABarGraphDrawer: public iAPlot
 {
 public:
 	iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
 	void draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const override;
 	QSharedPointer<iAPlotData> GetData() override;
+	void setLookupTable(QSharedPointer<iALookupTable> lut);
 private:
 	QSharedPointer<iAPlotData> m_data;
+	QSharedPointer<iALookupTable> m_lut;
 	int m_margin;
+
 };
 
 

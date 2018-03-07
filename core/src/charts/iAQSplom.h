@@ -144,7 +144,7 @@ protected:
 		QColor popupTextColor;
 
 		double popupTipDim[2];
-		double popupSize[2];
+		double popupWidth;
 
 		bool isAnimated;
 		double animDuration;

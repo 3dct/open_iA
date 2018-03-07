@@ -22,7 +22,6 @@
 
 #include "iAEnsemble.h"
 #include "charts/iASimpleHistogramData.h"
-#include "iAUncertaintyColors.h"
 
 #include "charts/iAChartWidget.h"
 #include "charts/iAPlotTypes.h"
@@ -39,25 +38,24 @@ iAHistogramView::iAHistogramView()
 	setLayout(new QHBoxLayout());
 }
 
-void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data)
+void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data,
+		QColor const & color, QSharedPointer<iALookupTable> lut)
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
 	m_chart->setMinimumHeight(120);
-	m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(data, iAUncertaintyColors::Chart, 2)));
-	layout()->setSpacing(5);
+	QSharedPointer<iABarGraphDrawer> barGraph(new iABarGraphDrawer(data, color, 2));
+	barGraph->setLookupTable(lut);
+	m_chart->AddPlot(barGraph);
+	layout()->setSpacing(0);
+	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_chart);
 }
 
 
-void iAHistogramView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
+void iAHistogramView::Clear()
 {
 	for (auto widget : findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
 	{
 		delete widget;
 	}
-	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
-	AddChart("Label", labelDistributionHistogram);
-
-	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
-	AddChart("Algorithmic Entropy", entropyHistogram);
 }

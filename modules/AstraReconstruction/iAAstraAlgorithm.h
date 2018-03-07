@@ -41,5 +41,5 @@ public:
 	static QSharedPointer<iAFilterRunnerGUI> Create();
 	void Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd) override;
 	bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd) override;
+		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
 };

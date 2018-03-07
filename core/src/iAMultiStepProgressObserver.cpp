@@ -34,5 +34,5 @@ void iAMultiStepProgressObserver::SetCompletedSteps(int steps)
 
 void iAMultiStepProgressObserver::Execute(vtkObject *caller, unsigned long, void*)
 {
-	emit oprogress((m_currentStep + ((vtkAlgorithm*)caller)->GetProgress()) * 100 / m_overallSteps);
+	emit progress((m_currentStep + ((vtkAlgorithm*)caller)->GetProgress()) * 100 / m_overallSteps);
 }

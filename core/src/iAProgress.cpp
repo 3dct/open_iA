@@ -22,43 +22,48 @@
 #include "pch.h"
 #include "iAProgress.h"
 
+#include <vtkAlgorithm.h>
+
 #include <itkProcessObject.h>
 
 iAProgress::iAProgress( )
-{
-	m_Command = CommandType::New();
-	m_Command->SetCallbackFunction( this, &iAProgress::ProcessEvent );
-	m_Command->SetCallbackFunction( this, &iAProgress::ConstProcessEvent );
-}
+{}
 
+iAProgress * iAProgress::New()
+{
+	return new iAProgress();
+}
 
 void iAProgress::ProcessEvent( itk::Object * caller, const itk::EventObject & event )
 {
-	if( typeid( itk::ProgressEvent )   ==  typeid( event ) )
-	{
-		::itk::ProcessObject::Pointer  process = dynamic_cast< itk::ProcessObject *>( caller );
-		const int value = static_cast<int>( process->GetProgress() * 100 );
-		emit pprogress( value );
-	}
+	if (typeid(event) != typeid(itk::ProgressEvent))
+		return;
+	auto process = dynamic_cast<itk::ProcessObject *>(caller);
+	EmitProgress(static_cast<int>(process->GetProgress() * 100));
 }
 
-
-void iAProgress::ConstProcessEvent( const itk::Object * caller, const itk::EventObject & event )
+void iAProgress::ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event)
 {
-	if( typeid( itk::ProgressEvent )   ==  typeid( event ) ) 
-	{
-		itk::ProcessObject::ConstPointer  process = dynamic_cast< const itk::ProcessObject *>( caller );
-		const int value = static_cast<int>( process->GetProgress() * 100 );
-		emit pprogress( value );
-	}
+	if (typeid(event) != typeid(itk::ProgressEvent))
+		return;
+	auto process = dynamic_cast<const itk::ProcessObject *>(caller);
+	EmitProgress(static_cast<int>(process->GetProgress() * 100));
+}
+
+void iAProgress::Execute(vtkObject* caller, unsigned long, void*)
+{
+	EmitProgress((dynamic_cast<vtkAlgorithm*>(caller))->GetProgress() * 100);
 }
 
 void iAProgress::Observe( itk::Object *caller )
 {
+	m_Command = CommandType::New();
+	m_Command->SetCallbackFunction(this, &iAProgress::ProcessEvent);
+	m_Command->SetCallbackFunction(this, &iAProgress::ConstProcessEvent);
 	caller->AddObserver(  itk::ProgressEvent(), m_Command.GetPointer() );
 }
 
-void iAProgress::ManualProgress(int i)
+void iAProgress::EmitProgress(int i)
 {
-	emit pprogress(i);
+	emit progress(i);
 }

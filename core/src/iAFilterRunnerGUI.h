@@ -89,7 +89,7 @@ public:
 	//! @param sourceMdi the mdi child that is the main image source for this filter
 	//! @param mainWnd access to the main window (as parent for GUI windows)
 	virtual bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd);
+		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput);
 
 	//! Loads parameters from the platform-specific store.
 	//! @param filter the filter for which to load the parameters

@@ -80,7 +80,7 @@ void iAFoamCharacterizationItemDistanceTransform::execute()
 	
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->Observe(pFilter);
-	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
 	
 	pFilter->Update();
 

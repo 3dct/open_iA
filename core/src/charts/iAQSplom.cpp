@@ -49,7 +49,7 @@ iAQSplom::Settings::Settings()
 	animStart( 0.0 )
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
-	popupSize[0] = 90; popupSize[1] = 50; 
+	popupWidth = 180;
 }
 
 void iAQSplom::setAnimIn( double anim )
@@ -471,31 +471,30 @@ bool iAQSplom::drawPopup( QPainter& painter )
 	//painter.setPen( settings.popupBorderColor );
 	painter.translate( popupPos );
 
+	QString text = "<center><b>#" + QString::number(curInd) + "</b><br> " + \
+		m_splomData->parameterName(pInds[0]) + ": " + \
+		QString::number(m_splomData->paramData(pInds[0])[curInd]) + "<br>" + \
+		m_splomData->parameterName(pInds[1]) + ": " + \
+		QString::number(m_splomData->paramData(pInds[1])[curInd]) + "</center>";
+	QTextDocument doc;
+	doc.setHtml(text);
+	doc.setTextWidth(settings.popupWidth);
+
 	double * tipDim = settings.popupTipDim;
-	double * popupSize = settings.popupSize;
+	double popupWidthHalf = settings.popupWidth / 2;
+	double popupHeight = doc.size().height();
 	QPointF points[7] = {
 		QPointF( 0, 0 ),
 		QPointF( -tipDim[0], -tipDim[1] ),
-		QPointF( -popupSize[0], -tipDim[1] ),
-		QPointF( -popupSize[0], -popupSize[1] - tipDim[1] ),
-		QPointF( popupSize[0], -popupSize[1] - tipDim[1] ),
-		QPointF( popupSize[0], -tipDim[1] ),
+		QPointF( -popupWidthHalf, -tipDim[1] ),
+		QPointF( -popupWidthHalf, -popupHeight - tipDim[1] ),
+		QPointF( popupWidthHalf, -popupHeight - tipDim[1] ),
+		QPointF( popupWidthHalf, -tipDim[1] ),
 		QPointF( tipDim[0], -tipDim[1] ),
 	};
 	painter.drawPolygon( points, 7 );
 
-	//render popup text
-	QRectF rect( points[3], points[5] );
-	QString text = "<center><b>#" + QString::number( curInd ) + "</b><br> " + \
-		m_splomData->parameterName( pInds[0] ) + ": " + \
-		QString::number( m_splomData->paramData( pInds[0] )[curInd] ) + "<br>" + \
-		m_splomData->parameterName( pInds[1] ) + ": " + \
-		QString::number( m_splomData->paramData( pInds[1] )[curInd] ) + "</center>";
-	QTextDocument doc;
-	doc.setHtml( text );
-	doc.setTextWidth( rect.width() );
-	painter.translate( -popupSize[0], -popupSize[1] - tipDim[1] );
-
+	painter.translate( -popupWidthHalf, -popupHeight - tipDim[1] );
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
 	ctx.palette.setColor( QPalette::Text, col );
