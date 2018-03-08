@@ -25,6 +25,7 @@
 
 IAFILTER_DEFAULT_CLASS(iAResampleFilter);
 IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
+IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
 
 class iAResampleFilterRunner : public iAFilterRunnerGUI
 {

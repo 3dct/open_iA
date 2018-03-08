@@ -29,6 +29,7 @@
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkChangeInformationImageFilter.h>
+#include <itkConstantPadImageFilter.h>
 #include <itkImageIOBase.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
@@ -246,4 +247,61 @@ QMap<QString, QVariant> iAExtractImageFilterRunner::LoadParameters(QSharedPointe
 	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
 	params["Size Z"] = std::min(params["Size Z"].toUInt(), dim[2] - params["Index Z"].toUInt());
 	return params;
+}
+
+
+
+
+
+template<class T> void padImage_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
+{
+	typedef itk::Image< T, DIM > InputImageType;
+	typedef itk::ConstantPadImageFilter<InputImageType, InputImageType> PadType;
+
+	typename PadType::InputImageRegionType::SizeType lowerPadSize;
+	lowerPadSize[0] = parameters["Lower X padding"].toUInt();
+	lowerPadSize[1] = parameters["Lower Y padding"].toUInt();
+	lowerPadSize[2] = parameters["Lower Z padding"].toUInt();
+	typename PadType::InputImageRegionType::SizeType upperPadSize;
+	upperPadSize[0] = parameters["Upper X padding"].toUInt();
+	upperPadSize[1] = parameters["Upper Y padding"].toUInt();
+	upperPadSize[2] = parameters["Upper Z padding"].toUInt();
+
+	auto filter = PadType::New();
+	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
+	filter->SetPadLowerBound(lowerPadSize);
+	filter->SetPadUpperBound(upperPadSize);
+	filter->SetConstant(parameters["Value"].toDouble());
+	p->Observe(filter);
+	filter->Update();
+
+	image->SetImage(filter->GetOutput());
+	image->Modified();
+}
+
+IAFILTER_CREATE(iAPadImageFilter)
+
+void iAPadImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(padImage_template, m_con->GetITKScalarPixelType(),
+		parameters, m_progress, m_con);
+}
+
+iAPadImageFilter::iAPadImageFilter() :
+	iAFilter("Pad Image", "Geometric Transformations",
+		"Pad image on one or more side with given number of zero pixels.<br/>"
+		"<em>Lower (x, y, z) padding</em> specifies the amount of pixels to be appended before the current first x/y/z pixel. "
+		"<em>Upper (x, y, z) padding</em> specifies the amount of pixels to be appended after the current last x/y/z pixel. "
+		"Pixels are added with the specified <em>Value</em><br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConstantPadImageFilter.html\">"
+		"Extract Image Filter</a> in the ITK documentation.")
+{
+	AddParameter("Lower X padding", Discrete, 1, 0);
+	AddParameter("Lower Y padding", Discrete, 1, 0);
+	AddParameter("Lower Z padding", Discrete, 1, 0);
+	AddParameter("Upper X padding", Discrete, 1, 0);
+	AddParameter("Upper Y padding", Discrete, 1, 0);
+	AddParameter("Upper Z padding", Discrete, 1, 0);
+	AddParameter("Value", Continuous, 0.0);
 }

@@ -29,4 +29,5 @@ void iAGeometricTransformationsModuleInterface::Initialize()
 {
 	REGISTER_FILTER_WITH_RUNNER(iAResampleFilter, iAResampleFilterRunner);
 	REGISTER_FILTER_WITH_RUNNER(iAExtractImageFilter, iAExtractImageFilterRunner);
+	REGISTER_FILTER(iAPadImageFilter);
 }
