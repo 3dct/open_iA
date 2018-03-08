@@ -278,7 +278,7 @@ void iASPMView::setSPLOMPreviewSliceNumbers( QList<int> sliceNumberLst )
 
 void iASPMView::setSPLOMPreviewSize( int percent )
 {
-	m_splom->settings.popupSize[0] = popupWidthRange[0] + (popupWidthRange[1] - popupWidthRange[0]) * percent/100.0;
+	m_splom->settings.popupWidth = popupWidthRange[0] + (popupWidthRange[1] - popupWidthRange[0]) * percent/100.0;
 	m_splom->update();
 }
 
