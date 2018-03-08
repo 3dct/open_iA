@@ -83,7 +83,8 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 	m_animIn( 1.0 ),
 	m_animOut( 0.0 ),
 	m_animationOut( new QPropertyAnimation( this, "m_animOut" ) ),
-	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) )
+	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) ),
+	m_popupHeight(0)
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -481,19 +482,19 @@ bool iAQSplom::drawPopup( QPainter& painter )
 
 	double * tipDim = settings.popupTipDim;
 	double popupWidthHalf = settings.popupWidth / 2;
-	double popupHeight = doc.size().height();
+	m_popupHeight = doc.size().height();
 	QPointF points[7] = {
 		QPointF( 0, 0 ),
 		QPointF( -tipDim[0], -tipDim[1] ),
 		QPointF( -popupWidthHalf, -tipDim[1] ),
-		QPointF( -popupWidthHalf, -popupHeight - tipDim[1] ),
-		QPointF( popupWidthHalf, -popupHeight - tipDim[1] ),
+		QPointF( -popupWidthHalf, -m_popupHeight - tipDim[1] ),
+		QPointF( popupWidthHalf, -m_popupHeight - tipDim[1] ),
 		QPointF( popupWidthHalf, -tipDim[1] ),
 		QPointF( tipDim[0], -tipDim[1] ),
 	};
 	painter.drawPolygon( points, 7 );
 
-	painter.translate( -popupWidthHalf, -popupHeight - tipDim[1] );
+	painter.translate( -popupWidthHalf, -m_popupHeight - tipDim[1] );
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
 	ctx.palette.setColor( QPalette::Text, col );

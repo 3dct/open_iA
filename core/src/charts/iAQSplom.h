@@ -173,4 +173,5 @@ protected:
 	QPropertyAnimation * m_animationIn;
 	QPropertyAnimation * m_animationOut;
 	QList<int> m_highlightedPoints;					//!< list of always highlighted points
+	double m_popupHeight;							//!< height of the last drawn popup
 };
