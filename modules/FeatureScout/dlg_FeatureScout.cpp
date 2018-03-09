@@ -2359,6 +2359,9 @@ void dlg_FeatureScout::ClassAddButton()
 			//Updates scatter plot matrix when a class is added.
 			if ( this->spmActivated && matrix != NULL )
 			{
+				//Farbe des SPM ändern
+				//Daten reinsetzen 
+				//
 				// TODO SPM
 				// matrix->UpdateColorInfo( classTreeModel, colorList );
 				// matrix->SetClass2Plot( this->activeClassItem->index().row() );
@@ -3137,6 +3140,8 @@ void dlg_FeatureScout::ScatterPlotButton()
 								SLOT( spSelInformsPCChart( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 1.0 );
 		*/
 		//iovSPM->dockWidgetContents->show();
+
+		//connects signal from SPM selection to PCView
 		connect(matrix, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(spSelInformsPCChart(QVector<unsigned int> *)) );
 	}
 }
@@ -3158,13 +3163,37 @@ void dlg_FeatureScout::spUpdateSPColumnVisibility()
 void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
 
 {
+	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	// If scatter plot selection changes Parallel Coordinates gets informed and updates.
 	if ( this->spmActivated )
 	{
 		QCoreApplication::processEvents();
 		//this->iovSPM->dockWidgetContents->update();
-		// TODO SPM
 		// update selection in PC view!
+		//set selection for pcView / chart
+		int countSelection = selInds->length();
+		//if (pcChart->GetPlot(0)->GetSelection()->GetMaxId)
+		vtk_selInd->Allocate(countSelection);
+		vtk_selInd->SetNumberOfValues(countSelection);
+		int idx = 0;
+		vtkVariant var_Idx = 0; 
+
+		//current selection index
+		long long curr_selInd;
+		if (countSelection > 0) {
+			
+
+			for (auto ind:*selInds) {
+
+				var_Idx = ind;
+				curr_selInd = var_Idx.ToLongLong()  /*+1*/; 
+				vtk_selInd->SetVariantValue(idx, curr_selInd);
+				idx++; 
+			}
+		}
+	
+		this->pcChart->GetPlot(0)->SetSelection(vtk_selInd); 
+		//this->pcChart->Update(); 
 		this->pcView->Render();
 		this->RealTimeRendering( pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
 	}

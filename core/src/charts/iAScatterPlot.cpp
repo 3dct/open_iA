@@ -603,6 +603,7 @@ void iAScatterPlot::updateSelectedPoints( bool append )
 			}
 		}
 	}
+	//add selection to pc
 	if (!append || m_selPoly.size() > 0)
 	{
 		emit selectionModified();
