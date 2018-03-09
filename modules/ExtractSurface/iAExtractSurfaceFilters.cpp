@@ -72,18 +72,19 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 		decimatePro->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 		decimatePro->SetSplitting(parameters["Splitting"].toBool());
 		decimatePro->SetBoundaryVertexDeletion(parameters["Boundary Vertex Deletion"].toBool());
+		decimatePro->SetInputConnection(surfaceFilter->GetOutputPort());
 		simplifyFilter = decimatePro;
 	}
-	else
+	else if (parameters["Simplification Algorithm"].toString() == "Quadric Clustering")
 	{
 		auto quadricClustering = vtkSmartPointer<vtkQuadricClustering>::New();
 		quadricClustering->AddObserver(vtkCommand::ProgressEvent, m_progress);
 		quadricClustering->SetNumberOfXDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
+		quadricClustering->SetInputConnection(surfaceFilter->GetOutputPort());
 		simplifyFilter = quadricClustering;
 	}
-	simplifyFilter->SetInputConnection(surfaceFilter->GetOutputPort());
 	/*
 	// smoothing?
 	vtkSmartPointer<vtkWindowedSincPolyDataFilter> sincFilter;
@@ -106,7 +107,14 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriter->AddObserver(vtkCommand::ProgressEvent, m_progress);
 	stlWriter->SetFileName(parameters["STL output filename"].toString().toStdString().c_str());
-	stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
+	if (parameters["Simplification Algorithm"].toString() == "None")
+	{
+		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
+	}
+	else
+	{
+		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
+	}
 	stlWriter->Write();
 }
 
@@ -134,13 +142,13 @@ iAMarchingCubes::iAMarchingCubes() :
 	AddParameter("Iso value", Continuous, 1);
 	AddParameter("STL output filename", String, "");
 	QStringList SimplificationAlgorithms;
-	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro";
+	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "None";
 	AddParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
 	AddParameter("Preserve Topology", Boolean, true);
 	AddParameter("Splitting", Boolean, true);
 	AddParameter("Boundary Vertex Deletion", Boolean, true);
-	AddParameter("Cluster divisions", Discrete, 1);
 	AddParameter("Decimation Target", Continuous, 0.9);
+	AddParameter("Cluster divisions", Discrete, 128);
 	//AddParameter("Smooth windowed sync", Boolean, false);
 	//AddParameter("Sinc iterations", Discrete, 1);
 	//AddParameter("Smooth poly", Boolean, false);
