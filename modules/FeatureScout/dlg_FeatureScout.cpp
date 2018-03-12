@@ -2359,10 +2359,127 @@ void dlg_FeatureScout::ClassAddButton()
 			//Updates scatter plot matrix when a class is added.
 			if ( this->spmActivated && matrix != NULL )
 			{
-				//Farbe des SPM ändern
-				//Daten reinsetzen 
+
+
+				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
+				*selInd = (matrix->getSelection());
+
+				//TODO Save data in the selection 
+				const uint entriesCount = (uint)selInd->length();
+
+				QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
+
+				const int colCount = (int) this->csvTable->GetNumberOfColumns(); 
+				const int rowCount = (int) this->csvTable->GetNumberOfRows(); 
+
+				double rgba[4];
+				rgba[0] = this->colorList.at(0).redF();
+				rgba[1] = this->colorList.at(0).greenF();
+				rgba[2] = this->colorList.at(0).blueF();
+				const double alpha = 1;/*((double)this->colorList.at(0).alpha) / 255.0*/
+				rgba[3] = alpha; 
+
+												
+				spInput->setColumnCount(colCount/*this->csvTable->GetNumberOfColumns()*/);
+				//header (1 row) + entries
+				spInput->setRowCount(entriesCount/*this->csvTable->GetNumberOfRows()*/ + 1);
+				
+				
+				//set first colum Spalte ID setzen
+				for (int col = 0; col < colCount /*this->csvTable->GetNumberOfColumns()*/; ++col)
+				{
+					spInput->setItem(0, col, new QTableWidgetItem(this->csvTable->GetColumnName(col)));
+				}
+
+
+				//set entrys for each row; 
+				//TODO ersten eintrag mit 0 und dritten eintrag mit index 2 auswählen?? schauen ob das korrekt ist
+				vtkSmartPointer<vtkAbstractArray> all_rowInd = csvTable->GetColumn(0);
+				int cur_IndRow = 0 ; 
+				//TODO set label ID in first column? 
+				bool containsRowInd = false; 
+				int rowSavingIndx = 1; 
+
+				for (auto const &curr_selIndx : *selInd) {
+
+					//if row index is in selection index
+					for (int row = 1; row < rowCount + 1; row++) {
+						
+						//skip first row
+						cur_IndRow = all_rowInd->GetVariantValue(row-1).ToInt() - 1;
+	
+					//if current selection index = rowIndex
+						containsRowInd = ((int) curr_selIndx) == cur_IndRow;
+						if (containsRowInd) {
+
+							//adds each column entry to vtktable
+							for(int col = 0; col < colCount; col++){
+								//current row index for saving sind
+								//row index of spInput and QTableWidget are different!!
+
+								vtkStdString csvValue = csvTable->GetValue(row - 1, col).ToString();								
+								spInput->setItem(rowSavingIndx, col, new QTableWidgetItem(csvValue.c_str()));
+								
+							}
+							rowSavingIndx++; 
+							break;
+						}
+					
+					}
+					
+
+				}
+
+					
+				
+				
+				//if scatterplot is active
+				if (!iovSPM)
+					return;
+				this->matrix->setData(&(*spInput));  
+				this->matrix->update(); 
+			
+				
+
+
+				double range[2];
+
+				//csv table entry values -first columne min max for color transformation
+				vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
+				mmr->GetRange(range);
+				this->m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
+				this->m_pointLUT->SetRange(range);
+				this->m_pointLUT->SetTableRange(range);
+				this->m_pointLUT->SetNumberOfTableValues(2);
+
+				//set color for scatter plot and Renderer
+				
+
+				for (vtkIdType i = 0; i < 2; i++)
+				{
+					/*for (int i = 0; i < 4; ++i)*/
+					
+					this->m_pointLUT->SetTableValue(i, rgba);
+				}
+				this->m_pointLUT->Build();
+
+
+				 
+				//wird das noch gebraucht
+				this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+				this->matrix->setSelectionColor(QColor(255, 40, 0, 1));
+				
+				//TODO show selection in color?
+				this->matrix->setSelection(&(*selInd));
+				
+				this->spUpdateSPColumnVisibility();
+				this->matrix->update();
+
+
+				
+				
 				//
-				// TODO SPM
+
 				// matrix->UpdateColorInfo( classTreeModel, colorList );
 				// matrix->SetClass2Plot( this->activeClassItem->index().row() );
 				// matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
@@ -3054,13 +3171,15 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 		//PC-SPM-AnnotationLink-Wedding to get same red selection highlights.
 
-		// TODO SPM
+		
 		// pcChart->SetAnnotationLink( matrix->GetAnnotationLink() );
 		//matrix->SetInput( spInput, this->filterID );
+
+		//apply lookup table for scatter plot matrix
 		matrix->setData(spInput);
 		double range[2];
-		//werte erste spalte min max für color transformation
-		//csv table einträge
+		
+		//csv table einträge werte erste spalte min max für color transformation
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
 		mmr->GetRange(range);
 		m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
