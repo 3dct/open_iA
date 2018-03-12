@@ -98,10 +98,18 @@ void iAFilter::ClearOutput()
 	m_output.clear();
 }
 
-void iAFilter::AddOutput(iAITKIO::ImagePointer itkImg)
+void iAFilter::AddOutput(itk::ImageBase<3>* itkImg)
 {
 	iAConnector * con = new iAConnector();
 	con->SetImage(itkImg);
+	con->Modified();
+	m_output.push_back(con);
+}
+
+void iAFilter::AddOutput(vtkSmartPointer<vtkImageData> img)
+{
+	iAConnector * con = new iAConnector();
+	con->SetImage(img);
 	con->Modified();
 	m_output.push_back(con);
 }
@@ -116,7 +124,7 @@ int iAFilter::OutputCount()
 	return m_outputCount;
 }
 
-void iAFilter::ResetInput()
+void iAFilter::ClearInput()
 {
 	m_input.clear();
 }
@@ -129,6 +137,11 @@ void iAFilter::AddInput(iAConnector* con)
 QVector<iAConnector*> const & iAFilter::Input()
 {
 	return m_input;
+}
+
+itk::ImageIOBase::IOComponentType iAFilter::InputPixelType() const
+{
+	return m_input[0]->GetITKScalarPixelType();
 }
 
 void iAFilter::SetUp(iALogger* log, iAProgress* progress)
@@ -213,6 +226,16 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 void iAFilter::AddMsg(QString msg)
 {
 	m_log->Log(msg);
+}
+
+iAProgress* iAFilter::Progress()
+{
+	return m_progress;
+}
+
+iALogger* iAFilter::Logger()
+{
+	return m_log;
 }
 
 void iAFilter::AddParameter(QString const & name, iAValueType valueType,

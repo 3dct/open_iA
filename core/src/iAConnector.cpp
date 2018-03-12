@@ -180,13 +180,13 @@ iAConnector::ImageBaseType* iAConnector::GetITKImage() const
 	return m_ITKImage;
 }
 
-void iAConnector::UpdateScalarType()
+void iAConnector::UpdateScalarType() const
 {
 	m_isTypeInitialized = true;
 	m_itkScalarType = ::GetITKScalarPixelType(m_ITKImage);
 }
 
-iAConnector::ITKScalarPixelType iAConnector::GetITKScalarPixelType()
+iAConnector::ITKScalarPixelType iAConnector::GetITKScalarPixelType() const
 {
 	if (!m_isTypeInitialized)
 		UpdateScalarType();

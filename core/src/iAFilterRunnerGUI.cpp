@@ -66,6 +66,11 @@ void iAFilterRunnerGUIThread::performWork()
 		qobject_cast<MdiChild*>(parent())->getLogger()->Log("Running filter failed!");
 		return;
 	}
+	allocConnectors(m_filter->Output().size());
+	for (int i = 0; i < m_filter->Output().size(); ++i)
+	{
+		Connectors()[i]->SetImage(m_filter->Output()[i]->GetITKImage());
+	}
 }
 
 

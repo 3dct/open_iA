@@ -22,14 +22,20 @@
 
 #include "open_iA_Core_export.h"
 
-#include "io/iAITKIO.h"    // for iAITKIO::ImagePointer
 #include "iAValueType.h"
+
+#include <itkImageBase.h>
+#include <itkImageIOBase.h>
+
+#include <vtkSmartPointer.h>
 
 #include <QMap>
 #include <QSharedPointer>
 #include <QString>
 #include <QVariant>
 #include <QVector>
+
+class vtkImageData;
 
 class iAAttributeDescriptor;
 class iAConnector;
@@ -102,7 +108,7 @@ public:
 	//! Clears the list of input images to this filter.
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images
-	void ResetInput();
+	void ClearInput();
 	//! TODO: also allow to check input files here (e.g. for AddImage to check
 	//!     if input images are all of the same type!
 	//! Adds an image as input
@@ -126,14 +132,11 @@ public:
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
 	unsigned int RequiredInputs() const;
-	//! clears current input images
-	//! to be called if same filter is called again after first run, and
-	//! it should be run with different input images. If same input images are used,
-	//! call neither this nor again AddInput()
-	void ClearInput();
 	//! input/output connectors
 	QVector<iAConnector*> const & Input();
 	QVector<iAConnector*> const & Output();
+
+	itk::ImageIOBase::IOComponentType InputPixelType() const;
 	//! returns the number of input channels from the first input image
 	unsigned int FirstInputChannels() const;
 	//! sets the first input channels
@@ -147,18 +150,17 @@ public:
 	//! adds an output value name
 	void AddOutputValue(QString const & name);
 	//! Adds an output image
-	void AddOutput(iAITKIO::ImagePointer con);
+	void AddOutput(itk::ImageBase<3> * img);
+	void AddOutput(vtkSmartPointer<vtkImageData> img);
 	//! The planned number of outputs the filter will produce
 	int OutputCount();
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
 	void AddMsg(QString msg);
-	//! The class that is watched for progress. Typically you will call
-	//! m_progress->Observe(someItkFilter) to set up the progress observation
-	iAProgress* m_progress;
-	//! The logger
-	iALogger* m_log;
+	//! Retrieve the progress reporting object for this filter
+	iAProgress* Progress();
+	iALogger* Logger();
 private:
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
@@ -170,6 +172,11 @@ private:
 	QVector<iAConnector*> m_input;
 	QVector<iAConnector*> m_output;
 	QVector<QPair<QString, QVariant> > m_outputValues;
+	//! The class that is watched for progress. Typically you will call
+	//! m_progress->Observe(someItkFilter) to set up the progress observation
+	iAProgress* m_progress;
+	//! The logger
+	iALogger* m_log;
 	//! variables describing the algorithm and its parameters and output values
 	QVector<pParameter> m_parameters;
 	QVector<QString> m_outputValueNames;
