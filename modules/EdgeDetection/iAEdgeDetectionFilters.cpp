@@ -29,7 +29,7 @@
 #include <itkCastImageFilter.h>
 
 template<class T>
-void canny_edge_detection_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image )
+void canny_edge_detection_template(iAFilter* iafilter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -37,27 +37,24 @@ void canny_edge_detection_template(QMap<QString, QVariant> const & parameters, i
 	typedef itk::CannyEdgeDetectionImageFilter < RealImageType, RealImageType > CannyEDFType;
 
 	auto toReal = CastToRealFilterType::New();
-	toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	toReal->SetInput( dynamic_cast< InputImageType * >( iafilter->Input()[0]->GetITKImage() ) );
 	auto canny = CannyEDFType::New();
 	canny->SetVariance(parameters["Variance"].toDouble());
 	canny->SetMaximumError(parameters["Maximum error"].toDouble());
 	canny->SetUpperThreshold(parameters["Upper threshold"].toDouble());
 	canny->SetLowerThreshold(parameters["Lower threshold"].toDouble());
 	canny->SetInput( toReal->GetOutput() );
-	p->Observe( canny );
+	filter->Progress()->Observe( canny );
 	canny->Update();
-	image->SetImage(canny->GetOutput( ));
-	image->Modified();
-	canny->ReleaseDataFlagOn();
+	iafilter->AddOutput(canny->GetOutput());
 }
 
 IAFILTER_CREATE(iACannyEdgeDetection)
 
 void iACannyEdgeDetection::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(canny_edge_detection_template, pixelType, parameters,
-		m_progress, m_con);
+	iAConnector::ITKScalarPixelType pixelType = Input()[0]->GetITKScalarPixelType();
+	ITK_TYPED_CALL(canny_edge_detection_template, pixelType, parameters, this);
 }
 
 iACannyEdgeDetection::iACannyEdgeDetection() :

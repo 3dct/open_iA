@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include "io/iAITKIO.h"    // for iAITKIO::ImagePointer
 #include "iAValueType.h"
 
 #include <QMap>
@@ -88,7 +89,7 @@ public:
 	QVector<pParameter> const & Parameters() const;
 	//! Used internally by the filter runner to set up the resources required in the
 	//! filter
-	bool SetUp(QVector<iAConnector*> const & cons, iALogger* logger, iAProgress* progress);
+	void SetUp(iALogger* logger, iAProgress* progress);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with
@@ -97,12 +98,18 @@ public:
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
+	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
+	//! Clears the list of input images to this filter.
+	//! Call this in case you are re-using a filter already called before,
+	//! and you want to call it with new input images
+	void ResetInput();
 	//! TODO: also allow to check input files here (e.g. for AddImage to check
 	//!     if input images are all of the same type!
-	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
+	//! Adds an image as input
+	void AddInput(iAConnector* con);
 	//! Initialize and run the filter
 	//! @param parameters the map of parameters to use in this specific filter run
-	void Run(QMap<QString, QVariant> const & parameters);
+	bool Run(QMap<QString, QVariant> const & parameters);
 	//! Adds the description of a parameter to the filter
 	//! @param name the parameter's name
 	//! @param valueType the type of value this parameter can have
@@ -119,18 +126,14 @@ public:
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
 	unsigned int RequiredInputs() const;
-	//! Returns the number of output images returned by this filter.
-	//! for typical image filters, this returns 1. The filter can modify
-	//! this through SetOutputCount.
-	unsigned int OutputCount() const;
-	//! Sets the output count. Note that at this point, it is not supported
-	//! (or at least, it might cause unintended side effects) to switch from
-	//! a non-zero value to zero via SetOutputCount or the other way round; this
-	//! will also cause a warning in the debug console. See also the note for
-	//! the outputCount parameter in the Constructor.
-	void SetOutputCount(unsigned int outputCount);
+	//! clears current input images
+	//! to be called if same filter is called again after first run, and
+	//! it should be run with different input images. If same input images are used,
+	//! call neither this nor again AddInput()
+	void ClearInput();
 	//! input/output connectors
-	QVector<iAConnector*> & Connectors();
+	QVector<iAConnector*> const & Input();
+	QVector<iAConnector*> const & Output();
 	//! returns the number of input channels from the first input image
 	unsigned int FirstInputChannels() const;
 	//! sets the first input channels
@@ -143,15 +146,14 @@ public:
 	QVector<QString> const & OutputValueNames() const;
 	//! adds an output value name
 	void AddOutputValue(QString const & name);
+	//! Adds an output image
+	void AddOutput(iAITKIO::ImagePointer con);
+	//! The planned number of outputs the filter will produce
+	int OutputCount();
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
 	void AddMsg(QString msg);
-protected:
-	//! An accessor to the image to be processed by the filter
-	iAConnector* m_con;
-	//! An accessor to all input images (if more than one input is required
-	QVector<iAConnector*> m_cons;
 	//! The class that is watched for progress. Typically you will call
 	//! m_progress->Observe(someItkFilter) to set up the progress observation
 	iAProgress* m_progress;
@@ -161,8 +163,15 @@ private:
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
 	virtual void PerformWork(QMap<QString, QVariant> const & parameters) = 0;
-	QVector<pParameter> m_parameters;
+	//! Clears the output values
+	void ClearOutput();
+
+	//! variables required to run the filter:
+	QVector<iAConnector*> m_input;
+	QVector<iAConnector*> m_output;
 	QVector<QPair<QString, QVariant> > m_outputValues;
+	//! variables describing the algorithm and its parameters and output values
+	QVector<pParameter> m_parameters;
 	QVector<QString> m_outputValueNames;
 	QString m_name, m_category, m_description;
 	unsigned int m_requiredInputs, m_outputCount, m_firstInputChannels;

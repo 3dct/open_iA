@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAFilter.h"
 
+#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAAttributeDescriptor.h"
 
@@ -35,7 +36,9 @@ iAFilter::iAFilter(QString const & name, QString const & category, QString const
 {}
 
 iAFilter::~iAFilter()
-{}
+{
+	ClearOutput();
+}
 
 QString iAFilter::Name() const
 {
@@ -68,11 +71,6 @@ unsigned int iAFilter::RequiredInputs() const
 	return m_requiredInputs;
 }
 
-unsigned int iAFilter::OutputCount() const
-{
-	return m_outputCount;
-}
-
 unsigned int iAFilter::FirstInputChannels() const
 {
 	return m_firstInputChannels;
@@ -93,41 +91,63 @@ QVector<QPair<QString, QVariant> > const & iAFilter::OutputValues() const
 	return m_outputValues;
 }
 
-QVector<iAConnector*> & iAFilter::Connectors()
+void iAFilter::ClearOutput()
 {
-	return m_cons;
+	for (iAConnector* con: m_output)
+		delete con;
+	m_output.clear();
 }
 
-void iAFilter::SetOutputCount(unsigned int outputCount)
+void iAFilter::AddOutput(iAITKIO::ImagePointer itkImg)
 {
-	if (m_outputCount == 0 && outputCount > 0 ||
-		m_outputCount > 0 && outputCount == 0)
-	{
-		AddMsg("Attempting to change output count from %1 to %2. Note that setting "
-			"an output count of zero is recommended to be done in the constructor, "
-			"and later changing of that to something else might cause unintended side effects!");
-	}
-	m_outputCount = outputCount;
+	iAConnector * con = new iAConnector();
+	con->SetImage(itkImg);
+	con->Modified();
+	m_output.push_back(con);
 }
 
-bool iAFilter::SetUp(QVector<iAConnector*> const & con, iALogger* log, iAProgress* progress)
+QVector<iAConnector*> const & iAFilter::Output()
 {
-	if (con.size() < m_requiredInputs)
-	{
-		AddMsg(QString("Not enough inputs specified, filter %1 requires %2 input images!").arg(m_name).arg(m_requiredInputs));
-		return false;
-	}
-	m_cons = con;
-	m_con = con[0];
+	return m_output;
+}
+
+int iAFilter::OutputCount()
+{
+	return m_outputCount;
+}
+
+void iAFilter::ResetInput()
+{
+	m_input.clear();
+}
+
+void iAFilter::AddInput(iAConnector* con)
+{
+	m_input.push_back(con);
+}
+
+QVector<iAConnector*> const & iAFilter::Input()
+{
+	return m_input;
+}
+
+void iAFilter::SetUp(iALogger* log, iAProgress* progress)
+{
 	m_log = log;
 	m_progress = progress;
-	return true;
 }
 
-void iAFilter::Run(QMap<QString, QVariant> const & parameters)
+bool iAFilter::Run(QMap<QString, QVariant> const & parameters)
 {
+	if (m_input.size() < m_requiredInputs)
+	{
+		AddMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!").arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
+		return false;
+	}
+	ClearOutput();
 	m_outputValues.clear();
 	PerformWork(parameters);
+	return true;
 }
 
 bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)

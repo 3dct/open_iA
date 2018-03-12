@@ -46,22 +46,20 @@
 
 // iAInvertIntensityFilter
 
-template<class T> void invert_intensity_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
+template<class T> void invert_intensity_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAFilter* iafilter)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::InvertIntensityImageFilter< ImageType, ImageType> FilterType;
 
 	auto filter = FilterType::New();
-	filter->SetInput(0, dynamic_cast< ImageType * >(image->GetITKImage()));
+	filter->SetInput(0, dynamic_cast< ImageType * >(iafilter->Input()[0]->GetITKImage()));
 	if (parameters["Set Maximum"].toBool())
 	{
 		filter->SetMaximum(parameters["Maximum"].toDouble());
 	}
 	p->Observe(filter);
 	filter->Update();
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+	iafilter->AddOutput(filter->GetOutput());
 }
 
 void iAInvertIntensityFilter::PerformWork(QMap<QString, QVariant> const & parameters)

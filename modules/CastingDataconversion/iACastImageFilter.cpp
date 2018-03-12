@@ -24,7 +24,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
-#include "iAToolsVTK.h"
+#include "iAToolsVTK.h"    // for VTKDataTypeList
 #include "iATypedCallHelper.h"
 #include <itkFHWRescaleIntensityImageFilter.h>
 
@@ -260,10 +260,10 @@ IAFILTER_CREATE(iACastImageFilter)
 
 void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
+	iAConnector::ITKScalarPixelType pixelType = Input()[0]->GetITKScalarPixelType();
 	if (parameters["Data Type"].toString() == "Label image to color-coded RGBA image")
 	{
-		ConvertToRGB(m_progress, m_con);
+		ConvertToRGB(m_progress, Input()[0]);
 	}
 	if (parameters["Rescale Range"].toBool())
 	{
@@ -275,13 +275,13 @@ void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			parameters["Use Full Output Range"].toBool(),
 			parameters["Output Min"].toDouble(),
 			parameters["Output Max"].toDouble(),
-			m_progress, m_con);
+			m_progress, Input()[0]);
 	}
 	else
 	{
 		ITK_TYPED_CALL(CastImage_template, pixelType,
 			parameters["Data Type"].toString().toStdString(),
-			m_progress, m_con);
+			m_progress, Input()[0]);
 	}
 }
 

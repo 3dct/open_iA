@@ -38,14 +38,14 @@
 
 
 template<class InPixelType, class OutPixelType>
-void freeBeamCalculation(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image )
+void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filter )
 {
 	double I0 = params["Manual I0"].toDouble();
 	typedef itk::Image< InPixelType, DIM > InputImageType;
 	typedef itk::Image< OutPixelType, DIM > OutputImageType;
-	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(image->GetITKImage())->GetSpacing();
-	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(image->GetITKImage())->GetOrigin();
-	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(image->GetITKImage())->GetLargestPossibleRegion();
+	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage())->GetSpacing();
+	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage())->GetOrigin();
+	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage())->GetLargestPossibleRegion();
 	typename OutputImageType::Pointer outputImage = OutputImageType::New();
 	outputImage->SetRegions(outputRegion);
 	outputImage->SetSpacing(outputSpacing);
@@ -71,11 +71,11 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAProgress* p, 
 		typename EIFType::InputImageRegionType::SizeType roiSize;
 		roiSize[0] = params["Size X"].toUInt();
 		roiSize[1] = params["Size Y"].toUInt();
-		roiSize[2] = image->GetITKImage()->GetLargestPossibleRegion().GetSize()[2];
+		roiSize[2] =  filter->Input()[0]->GetITKImage()->GetLargestPossibleRegion().GetSize()[2];
 		typename EIFType::InputImageRegionType::IndexType roiIndex;
 		roiIndex[0] = params["Index X"].toUInt(); roiIndex[1] = params["Index Y"].toUInt(); roiIndex[2] = 0;
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
-		roiFilter->SetInput(dynamic_cast<InputImageType *>(image->GetITKImage()));
+		roiFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
 		roiFilter->SetExtractionRegion(roiRegion);
 		roiFilter->Update();
 
@@ -154,13 +154,13 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAProgress* p, 
 			outputROISliceIt.GoToBegin();
 			inputROIIt.NextSlice();
 			++curSlice;
-			p->EmitProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
+			filter->Progress()->EmitProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
 		}
 		roiFilter->ReleaseDataFlagOn();
 	}
 	else
 	{
-		auto img = dynamic_cast<InputImageType *>(image->GetITKImage());
+		auto img = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage());
 		typedef itk::ImageRegionConstIterator< InputImageType > InputIteratorType;
 		typedef itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
 		InputIteratorType inputIt(img, img->GetLargestPossibleRegion());
@@ -193,17 +193,17 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAProgress* p, 
 }
 
 template<class InPixelType>
-void freeBeamCalculation_OutType(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
+void freeBeamCalculation_OutType(QMap<QString, QVariant> const & parameters, iAFilter* filter)
 {
 	if (parameters["Float output"].toBool())
-		freeBeamCalculation<InPixelType, float>(parameters, p, image);
+		freeBeamCalculation<InPixelType, float>(parameters, filter);
 	else
-		freeBeamCalculation<InPixelType, double>(parameters, p, image);
+		freeBeamCalculation<InPixelType, double>(parameters, p, filter);
 }
 
 void iAFreeBeamCalculation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(freeBeamCalculation_OutType, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(freeBeamCalculation_OutType, Input()[0]->GetITKScalarPixelType(), parameters, this);
 }
 
 IAFILTER_CREATE(iAFreeBeamCalculation)

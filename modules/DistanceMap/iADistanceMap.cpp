@@ -65,8 +65,8 @@ void signed_maurer_distancemap_template(iAProgress* p, iAConnector* image, QMap<
 
 void iASignedMaurerDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(signed_maurer_distancemap_template, m_con->GetITKScalarPixelType(),
-			m_progress, m_con, parameters);
+	ITK_TYPED_CALL(signed_maurer_distancemap_template, Input()[0]->GetITKScalarPixelType(),
+			m_progress, Input()[0], parameters);
 }
 
 IAFILTER_CREATE(iASignedMaurerDistanceMap)

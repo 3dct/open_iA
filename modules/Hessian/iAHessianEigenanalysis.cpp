@@ -36,8 +36,7 @@
 
 
 
-template<class T> void hessianEigenAnalysis_template(double sigma,
-		iAProgress* p, QVector<iAConnector*> image)
+template<class T> void hessianEigenAnalysis_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Vector<double, 3> VectorPixelType;
 	VectorPixelType eigenTempVector;
@@ -57,8 +56,8 @@ template<class T> void hessianEigenAnalysis_template(double sigma,
 
 	// Compute Hessian
 	auto hessianFilter = HessianFilterType::New();
-	hessianFilter->SetInput( dynamic_cast< InputImageType * >( image[0]->GetITKImage() ) );
-	hessianFilter->SetSigma(sigma);
+	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	hessianFilter->SetSigma(parameters["Sigma"].toDouble());
 	p->Observe(hessianFilter);
 	hessianFilter->Update();
 
@@ -99,23 +98,17 @@ template<class T> void hessianEigenAnalysis_template(double sigma,
 	auto eigenCastfilter1 = CastImageFilterType::New();
 	eigenCastfilter1->SetInput( eigenAdaptor3 );
 	eigenCastfilter1->Update();
-	image[0]->SetImage(eigenCastfilter1->GetOutput() );
-	image[0]->Modified();
-	eigenCastfilter1->ReleaseDataFlagOn();
+	filter->AddOutput(eigenCastfilter1->GetOutput());
 
 	auto eigenCastfilter2 = CastImageFilterType::New();
 	eigenCastfilter2->SetInput( eigenAdaptor2 );
 	eigenCastfilter2->Update();
-	image[1]->SetImage(eigenCastfilter2->GetOutput() );
-	image[1]->Modified();
-	eigenCastfilter2->ReleaseDataFlagOn();
-
+	filter->AddOutput(eigenCastfilter2->GetOutput());
+	
 	auto eigenCastfilter3 = CastImageFilterType::New();
 	eigenCastfilter3->SetInput( eigenAdaptor1 );
 	eigenCastfilter3->Update();
-	image[2]->SetImage(eigenCastfilter3->GetOutput() );
-	image[2]->Modified();
-	eigenCastfilter3->ReleaseDataFlagOn();
+	filter->AddOutput(eigenCastfilter3->GetOutput());
 
 /*
 	// TODO: check if the following code in its current form does anything useful
@@ -147,12 +140,7 @@ template<class T> void hessianEigenAnalysis_template(double sigma,
 
 void iAHessianEigenanalysis::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	m_cons.push_back(new iAConnector());
-	m_cons.push_back(new iAConnector());
-	SetOutputCount(3);
-	ITK_TYPED_CALL(hessianEigenAnalysis_template,
-		m_con->GetITKScalarPixelType(), parameters["Sigma"].toDouble(),
-		m_progress, m_cons);
+	ITK_TYPED_CALL(hessianEigenAnalysis_template, Input()[0]->GetITKScalarPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAHessianEigenanalysis)
@@ -167,7 +155,7 @@ iAHessianEigenanalysis::iAHessianEigenanalysis() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HessianRecursiveGaussianImageFilter.html\">"
 		"Hessian Recursive Gaussian Filter</a> and the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SymmetricEigenAnalysisImageFilter.html\">"
-		"Symmetric Eigen Analysis Filter</a> in the ITK documentation.")
+		"Symmetric Eigen Analysis Filter</a> in the ITK documentation.", 1, 3)
 {
 	AddParameter("Sigma", Continuous, 1.0);
 }

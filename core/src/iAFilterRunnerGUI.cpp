@@ -58,12 +58,14 @@ iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter
 
 void iAFilterRunnerGUIThread::performWork()
 {
-	if (!m_filter->SetUp(Connectors(), qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress()))
+	m_filter->SetUp(qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress());
+	for (iAConnector* con : Connectors())
+		m_filter->AddInput(con);
+	if (!m_filter->Run(m_paramValues))
 	{
-		qobject_cast<MdiChild*>(parent())->getLogger()->Log("Filter SetUp failed!");
+		qobject_cast<MdiChild*>(parent())->getLogger()->Log("Running filter failed!");
 		return;
 	}
-	m_filter->Run(m_paramValues);
 }
 
 
@@ -274,6 +276,12 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	{
 		thread->AddImage(img);
 	}
+	if (thread->Connectors().size() < filter->RequiredInputs())
+	{
+		mdiChild->addMsg(QString("Not enough inputs specified, filter %1 requires %2 input images!")
+			.arg(filter->Name()).arg(filter->RequiredInputs()));
+		return;
+	}
 	ConnectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->Name());
 	mainWnd->statusBar()->showMessage(filter->Name(), 5000);
@@ -292,15 +300,15 @@ void iAFilterRunnerGUI::FilterFinished()
 	// add additional output as additional modalities here
 	// "default" output 0 is handled elsewhere
 	auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
-	if (thread->Filter()->OutputCount() > 1)
+	if (thread->Filter()->Output().size() > 1)
 	{
-		for (int p = 1; p < thread->Filter()->Connectors().size() && p < thread->Filter()->OutputCount(); ++p)
+		for (int p = 1; p < thread->Filter()->Output().size(); ++p)
 		{
 			auto img = vtkSmartPointer<vtkImageData>::New();
 			// some filters apparently clean up the result image
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
-			img->DeepCopy(thread->Filter()->Connectors()[p]->GetVTKImage());
+			img->DeepCopy(thread->Filter()->Output()[p]->GetVTKImage());
 			mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
 				new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0)));
 		}
