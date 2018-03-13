@@ -130,6 +130,11 @@ public:
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
 	void initOrientationColorMap();
+	
+	//selection for each class and show SPM for it
+	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd);
+
+	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> classEntries);
 
 Q_SIGNALS:
 	void updateViews();
@@ -184,6 +189,10 @@ protected:
 
 
 private:
+	void setSPMData(vtkSmartPointer<vtkTable> classEntries, double rgba[4], bool & retflag);
+	void setSPMData(QSharedPointer<QVector<uint>> &selInd, double  rgba[4], bool &retflag);
+	void setClassColour(double * rgba);
+	void spmApplyColorMap(double  rgba[4], QSharedPointer<QVector<uint>> &selInd);
 	// Qt members
 	QWidget *activeChild;
 
