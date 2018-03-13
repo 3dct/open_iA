@@ -31,6 +31,7 @@
 #include "iAExtendedTypedCallHelper.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
+#include "iAStringHelper.h"
 #include "iAVolumeStack.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
@@ -1489,11 +1490,70 @@ void iAIO::writeImageStack( )
 
 bool iAIO::setupStackReader( QString f )
 {
-	int indexRange[2] = {1, 1080};
-	int digitsInIndex = 4;
-
-	fileNamesBase = f;
-	extension = "." + QFileInfo(f).suffix();
+	QFileInfo fi(f);
+	QDir dir(fi.absolutePath());
+	QStringList nameFilters;
+	nameFilters << "*."+fi.suffix();
+	QFileInfoList imgFiles = dir.entryInfoList(nameFilters);
+	// determine most common file name base
+	for (QFileInfo imgFileInfo : imgFiles)
+	{
+		QString imgFileName = imgFileInfo.absoluteFilePath();
+		QString suffix = imgFileInfo.suffix();
+		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
+		bool ok;
+		int myNum = lastDigit.toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
+			continue;
+		}
+		if (fileNamesBase.isEmpty())
+		{
+			fileNamesBase = imgFileInfo.absoluteFilePath();
+		}
+		else
+		{
+			fileNamesBase = GreatestCommonPrefix(fileNamesBase, imgFileInfo.absoluteFilePath());
+		}
+	}
+	int baseLength = fileNamesBase.length();
+	// determine index range:
+	int indexRange[2] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min() };
+	int digits = -1;
+	for (QFileInfo imgFileInfo : imgFiles)
+	{
+		QString imgFileName = imgFileInfo.absoluteFilePath();
+		QString suffix = imgFileInfo.suffix();
+		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
+		bool ok;
+		int myNum = lastDigit.toInt(&ok);
+		if (!ok)
+		{
+			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
+			continue;
+		}
+		QString numStr = imgFileName.mid(baseLength, imgFileName.length() - baseLength - suffix.length() - 1);
+		if (digits == -1)
+		{
+			digits = numStr.length();
+		}
+		int num = numStr.toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
+			continue;
+		}
+		if (num < indexRange[0])
+		{
+			indexRange[0] = num;
+		}
+		if (num > indexRange[1])
+		{
+			indexRange[1] = num;
+		}
+	}
+	extension = "." + fi.suffix();
 	QStringList inList		= (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
@@ -1502,7 +1562,7 @@ bool iAIO::setupStackReader( QString f )
 		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z"))	<< tr("+Data Type");
 	QList<QVariant> inPara	= (QList<QVariant>()
 		<< fileNamesBase << extension
-		<< tr("%1").arg(digitsInIndex)
+		<< tr("%1").arg(digits)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << VTKDataTypeList());
@@ -1515,12 +1575,12 @@ bool iAIO::setupStackReader( QString f )
 	}
 	fileNamesBase = dlg.getText(0);
 	extension = dlg.getText(1);
-	digitsInIndex = dlg.getDblValue(2);
+	digits = dlg.getDblValue(2);
 	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
 	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);
 	origin[0] = dlg.getDblValue(8); origin[1]= dlg.getDblValue(9); origin[2] = dlg.getDblValue(10);
 	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValue(11));
-	FillFileNameArray(indexRange, digitsInIndex);
+	FillFileNameArray(indexRange, digits);
 	return true;
 }
 
