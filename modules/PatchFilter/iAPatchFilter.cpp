@@ -142,8 +142,6 @@ namespace
 			patchSizeHalf[i] = patchSize[i] / 2;
 		}
 		int totalOps = blockCount[0] * blockCount[1] * blockCount[2];
-		QVector<iAConnector*> extractImageInput;
-		extractImageInput.push_back(new iAConnector);
 		bool warnOutputNotSupported = false;
 		bool center = parameters["Center patch"].toBool();
 		bool doImage = parameters["Write output value image"].toBool();
@@ -200,14 +198,12 @@ namespace
 					try
 					{
 						// extract patch from all inputs:
+						extractImageFilter->ClearInput();
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
-							extractImageInput[0]->SetImage(inputImages[i]->GetITKImage());
-							extractImageFilter->ClearInput();
-							for (int i=0; i<extractImageInput.size(); ++i)
-								extractImageFilter->AddInput(extractImageInput[i]);
+							extractImageFilter->AddInput(inputImages[i]);
 							extractImageFilter->Run(extractParams);
-							smallImageInput[i]->SetImage(extractImageInput[0]->GetITKImage());
+							smallImageInput[i]->SetImage(extractImageFilter->Output()[0]->GetITKImage());
 						}
 
 						// run filter on inputs:
