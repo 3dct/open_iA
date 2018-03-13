@@ -23,6 +23,7 @@
 #include "iAFilter.h"
 
 #include "dlg_commoninput.h"
+#include "dlg_modalities.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
@@ -314,8 +315,10 @@ void iAFilterRunnerGUI::FilterFinished()
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->Filter()->Output()[p]->GetVTKImage());
-			mdiChild->GetModalities()->Add(QSharedPointer<iAModality>(
-				new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0)));
+			QSharedPointer<iAModality> mod(new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0));
+			mdiChild->GetModalities()->Add(mod);
+			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
+			mdiChild->GetModalitiesDlg()->ModalityAdded(mod);
 		}
 	}
 	for (auto outputValue : thread->Filter()->OutputValues())
