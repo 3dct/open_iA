@@ -58,7 +58,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	auto hessianFilter = HessianFilterType::New();
 	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
 	hessianFilter->SetSigma(parameters["Sigma"].toDouble());
-	p->Observe(hessianFilter);
+	filter->Progress()->Observe(hessianFilter);
 	hessianFilter->Update();
 
 	// Compute eigen values, order them in ascending order
@@ -140,7 +140,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 
 void iAHessianEigenanalysis::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(hessianEigenAnalysis_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(hessianEigenAnalysis, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAHessianEigenanalysis)
@@ -162,7 +162,7 @@ iAHessianEigenanalysis::iAHessianEigenanalysis() :
 
 
 
-template<class T> void Laplacian_template(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void Laplacian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::Image<float, DIM> OutputImageType; 
@@ -170,14 +170,14 @@ template<class T> void Laplacian_template(iAFilter* filter, QMap<QString, QVaria
 
 	auto logFilter = LoGFilterType::New();
 	logFilter->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
-	logFilter->SetSigma(parameters["Sigma"].toDouble());
+	logFilter->SetSigma(params["Sigma"].toDouble());
 	logFilter->Update();
 	filter->AddOutput(logFilter->GetOutput());
 }
 
 void iALaplacian::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(Laplacian_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(Laplacian, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iALaplacian)
