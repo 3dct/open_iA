@@ -83,3 +83,8 @@ QString Join(QVector<T> const & vec, QString const & joinStr)
 	}
 	return result;
 }
+
+//! find the greatest common prefix of the two given strings
+//! example: str1 ="BaseMethod", str2="BaseMember"
+//!     result: "BaseMe"
+QString GreatestCommonPrefix(QString const & str1, QString const & str2);

@@ -25,6 +25,7 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMultiStepProgressObserver.h"
+#include "iAStringHelper.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -38,19 +39,6 @@
 #include <QDateTime>
 #include <QDir>
 #include <QSettings>
-
-namespace
-{
-	QString GreatestCommonPrefix(QString const & str1, QString const & str2)
-	{
-		int pos = 0;
-		while (pos < str1.size() && pos < str2.size() && str1.at(pos) == str2.at(pos))
-		{
-			++pos;
-		}
-		return str1.left(pos);
-	}
-}
 
 
 iATLGICTLoader::iATLGICTLoader():
