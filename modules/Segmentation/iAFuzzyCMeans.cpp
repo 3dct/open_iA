@@ -44,7 +44,7 @@ typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabil
 typedef itk::FuzzyClassifierImageFilter<VectorImageType, LabelPixelType> TLabelClassifier;
 
 
-void SetProbabilities(VectorImageType::Pointer vectorImg, QVector<iAConnector*> & cons)
+void SetProbabilities(VectorImageType::Pointer vectorImg, iAFilter* filter)
 {
 	for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
 	{
@@ -52,9 +52,7 @@ void SetProbabilities(VectorImageType::Pointer vectorImg, QVector<iAConnector*> 
 		indexSelectionFilter->SetIndex(p);
 		indexSelectionFilter->SetInput(vectorImg);
 		indexSelectionFilter->Update();
-		iAConnector* con = new iAConnector();
-		con->SetImage(indexSelectionFilter->GetOutput());
-		cons.push_back(con);
+		filter->AddOutput(indexSelectionFilter->GetOutput());
 	}
 }
 
@@ -116,36 +114,37 @@ namespace
 // FCM
 
 template <typename InputPixelType>
-void fcm_template(QVector<iAConnector*> & cons, unsigned int maxIter, double maxError, double m,
-	unsigned int numOfThreads, unsigned int numOfClasses, QVector<double> const & centroids,
-	bool ignoreBackgroundPixels, double backgroundPixel, iAProgress* p)
+void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<InputPixelType, DIM> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
 	typedef itk::FCMClassifierInitializationImageFilter<InputImageType> TClassifierFCM;
 
+	unsigned int numberOfClasses = params["Number of Classes"].toUInt();
+	QVector<double> centroids;
+	ConvertStringToCentroids(params["Centroids"].toString(), numberOfClasses, centroids);
 	auto classifier = TClassifierFCM::New();
-	p->Observe(classifier);
-	classifier->SetMaximumNumberOfIterations(maxIter);
-	classifier->SetMaximumError(maxError);
-	classifier->SetM(m);
-	classifier->SetNumberOfThreads(numOfThreads);
-	classifier->SetNumberOfClasses(numOfClasses);
+	filter->Progress()->Observe(classifier);
+	classifier->SetMaximumNumberOfIterations(params["Maximum Iterations"].toUInt());
+	classifier->SetMaximumError(params["Maximum Error"].toDouble());
+	classifier->SetM(params["M"].toDouble());
+	classifier->SetNumberOfThreads(params["Number of Threads"].toUInt());
+	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numOfClasses; i++)
+	for (int i = 0; i < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
 	classifier->SetCentroids(centroidsArray);
-	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
-	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(cons[0]->GetITKImage()));
+	classifier->SetIgnoreBackgroundPixels(params["Ignore Background"].toBool());
+	classifier->SetBackgroundPixel(params["Background Value"].toDouble());
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
-	SetProbabilities(probs, cons);
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
-	cons[0]->SetImage(labelClass->GetOutput());
+	filter->AddOutput(labelClass->GetOutput());
+	SetProbabilities(probs, filter);
 }
 
 IAFILTER_CREATE(iAFCMFilter)
@@ -167,23 +166,7 @@ bool iAFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 
 void iAFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
-	QVector<double> centroids;
-	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
-	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(fcm_template, itkType,
-		m_cons,
-		parameters["Maximum Iterations"].toUInt(),
-		parameters["Maximum Error"].toDouble(),
-		parameters["M"].toDouble(),
-		parameters["Number of Threads"].toUInt(),
-		numberOfClasses,
-		centroids,
-		parameters["Ignore Background"].toBool(),
-		parameters["Background Value"].toDouble(),
-		m_progress
-	);
-	SetOutputCount(m_cons.size());
+	ITK_TYPED_CALL(fcm, InputPixelType(), this, parameters);
 }
 
 
@@ -207,58 +190,7 @@ bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 }
 
 template <typename InputPixelType>
-void kfcm_template(QVector<iAConnector*> & cons, unsigned int maxIter, double maxError, double m,
-	unsigned int numOfThreads, unsigned int numOfClasses, QVector<double> const & centroids,
-	bool ignoreBackgroundPixels, double backgroundPixel, double alpha, double sigma,
-	unsigned int seRadius[3], iAProgress* p)
-{
-	typedef itk::Image<InputPixelType, DIM> InputImageType;
-	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
-	typedef itk::KFCMSClassifierInitializationImageFilter<InputImageType> TClassifierKFCMS;
-	typedef typename TClassifierKFCMS::KernelDistanceMetricPointer KernelDistMetricPtr;
-	typedef typename TFuzzyClassifier::CentroidType TCentroid;
-	typedef itk::Statistics::RBFKernelInducedDistanceMetric<TCentroid> RBFKernelType;
-	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
-
-	auto classifier = TClassifierKFCMS::New();
-	p->Observe(classifier);
-	classifier->SetMaximumNumberOfIterations(maxIter);
-	classifier->SetMaximumError(maxError);
-	classifier->SetM(m);
-	classifier->SetAlpha(alpha);
-	classifier->SetNumberOfThreads(numOfThreads);
-	classifier->SetNumberOfClasses(numOfClasses);
-	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numOfClasses; i++)
-	{
-		centroidsArray.push_back(centroids[i]);
-	}
-	classifier->SetCentroids(centroidsArray);
-	auto kernelDistancePtr = RBFKernelType::New();
-	kernelDistancePtr->SetA(2.0);		// make a parameter?
-	kernelDistancePtr->SetB(1.0);		// make a parameter?
-	kernelDistancePtr->SetSigma(sigma);
-	classifier->SetKernelDistanceMetric(static_cast<KernelDistMetricPtr>(kernelDistancePtr));
-	typename StructuringElementType::RadiusType elementRadius;
-	for (int i = 0; i < DIM; i++)
-	{
-		elementRadius[i] = seRadius[i];
-	}
-	auto structuringElement = StructuringElementType::Box(elementRadius);
-	classifier->SetStructuringElement(structuringElement);
-	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
-	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(cons[0]->GetITKImage()));
-	classifier->Update();
-	auto probs = classifier->GetOutput();
-	SetProbabilities(probs, cons);
-	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
-	labelClass->SetInput(probs);
-	labelClass->Update();
-	cons[0]->SetImage(labelClass->GetOutput());
-}
-
-void iAKFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
@@ -268,23 +200,55 @@ void iAKFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		parameters["StructRadius Y"].toUInt(),
 		parameters["StructRadius Z"].toUInt()
 	};
-	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(kfcm_template, itkType,
-		m_cons,
-		parameters["Maximum Iterations"].toUInt(),
-		parameters["Maximum Error"].toDouble(),
-		parameters["M"].toDouble(),
-		parameters["Number of Threads"].toUInt(),
-		numberOfClasses,
-		centroids,
-		parameters["Ignore Background"].toBool(),
-		parameters["Background Value"].toDouble(),
-		parameters["Alpha"].toDouble(),
-		parameters["Sigma"].toDouble(),
-		seRadius,
-		m_progress
-	);
-	SetOutputCount(m_cons.size());
+	typedef itk::Image<InputPixelType, DIM> InputImageType;
+	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
+	typedef itk::KFCMSClassifierInitializationImageFilter<InputImageType> TClassifierKFCMS;
+	typedef typename TClassifierKFCMS::KernelDistanceMetricPointer KernelDistMetricPtr;
+	typedef typename TFuzzyClassifier::CentroidType TCentroid;
+	typedef itk::Statistics::RBFKernelInducedDistanceMetric<TCentroid> RBFKernelType;
+	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
+
+	auto classifier = TClassifierKFCMS::New();
+	filter->Progress()->Observe(classifier);
+	classifier->SetMaximumNumberOfIterations(parameters["Maximum Iterations"].toUInt());
+	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
+	classifier->SetM(parameters["M"].toDouble());
+	classifier->SetAlpha(parameters["Alpha"].toDouble());
+	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
+	classifier->SetNumberOfClasses(numberOfClasses);
+	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
+	for (int i = 0; i < numberOfClasses; i++)
+	{
+		centroidsArray.push_back(centroids[i]);
+	}
+	classifier->SetCentroids(centroidsArray);
+	auto kernelDistancePtr = RBFKernelType::New();
+	kernelDistancePtr->SetA(2.0);		// make a parameter?
+	kernelDistancePtr->SetB(1.0);		// make a parameter?
+	kernelDistancePtr->SetSigma(parameters["Sigma"].toDouble());
+	classifier->SetKernelDistanceMetric(static_cast<KernelDistMetricPtr>(kernelDistancePtr));
+	typename StructuringElementType::RadiusType elementRadius;
+	for (int i = 0; i < DIM; i++)
+	{
+		elementRadius[i] = seRadius[i];
+	}
+	auto structuringElement = StructuringElementType::Box(elementRadius);
+	classifier->SetStructuringElement(structuringElement);
+	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
+	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	classifier->Update();
+	auto probs = classifier->GetOutput();
+	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
+	labelClass->SetInput(probs);
+	labelClass->Update();
+	filter->AddOutput(labelClass->GetOutput());
+	SetProbabilities(probs, filter);
+}
+
+void iAKFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(kfcm, InputPixelType(), this, parameters);
 }
 
 
@@ -312,27 +276,33 @@ bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 }
 
 template <typename InputPixelType>
-void mskfcm_template(QVector<iAConnector*> & cons, unsigned int maxIter, double maxError, double m,
-	unsigned int numOfThreads, unsigned int numOfClasses, QVector<double> const & centroids,
-	bool ignoreBackgroundPixels, double backgroundPixel, double alpha, double sigma,
-	unsigned int seRadius[3], double p, double q, iAProgress* progress)
+void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<InputPixelType, DIM> InputImageType;
 	typedef itk::FuzzyClassifierInitializationImageFilter<InputImageType> TFuzzyClassifier;
 	typedef itk::MSKFCMClassifierInitializationImageFilter<InputImageType> TClassifierMSKFCM;
 	typedef typename TClassifierMSKFCM::KernelDistanceMetricPointer KernelDistMetricPtr;
 
+	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
+	QVector<double> centroids;
+	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
+	unsigned int seRadius[3] = {
+		parameters["StructRadius X"].toUInt(),
+		parameters["StructRadius Y"].toUInt(),
+		parameters["StructRadius Z"].toUInt()
+	};
 	auto classifier = TClassifierMSKFCM::New();
-	progress->Observe(classifier);
-	classifier->SetMaximumNumberOfIterations(maxIter);
-	classifier->SetMaximumError(maxError);
-	classifier->SetM(m);
-	classifier->SetP(p);
-	classifier->SetQ(q);
-	classifier->SetNumberOfThreads(numOfThreads);
-	classifier->SetNumberOfClasses(numOfClasses);
+	filter->Progress()->Observe(classifier);
+	classifier->SetMaximumNumberOfIterations(parameters["Maximum Iterations"].toUInt());
+	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
+	classifier->SetM(parameters["M"].toDouble());
+	//classifier->SetAlpha(parameters["Alpha"].toDouble());
+	classifier->SetP(parameters["P"].toDouble());
+	classifier->SetQ(parameters["Q"].toDouble());
+	classifier->SetNumberOfThreads(parameters["Number of Threads"].toUInt());
+	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numOfClasses; i++)
+	for (int i = 0; i < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
@@ -344,7 +314,7 @@ void mskfcm_template(QVector<iAConnector*> & cons, unsigned int maxIter, double 
 	auto kernelDistancePtr = RBFKernelType::New();
 	kernelDistancePtr->SetA(2.0);		// make a parameter?
 	kernelDistancePtr->SetB(1.0);		// make a parameter?
-	kernelDistancePtr->SetSigma(sigma);
+	kernelDistancePtr->SetSigma(parameters["Sigma"].toDouble());
 	classifier->SetKernelDistanceMetric(static_cast<KernelDistMetricPtr>(kernelDistancePtr));
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
 	typename StructuringElementType::RadiusType elementRadius;
@@ -354,45 +324,19 @@ void mskfcm_template(QVector<iAConnector*> & cons, unsigned int maxIter, double 
 	}
 	auto structuringElement = StructuringElementType::Ball(elementRadius);
 	classifier->SetStructuringElement(structuringElement);
-	classifier->SetIgnoreBackgroundPixels(ignoreBackgroundPixels);
-	classifier->SetBackgroundPixel(backgroundPixel);
-	classifier->SetInput(dynamic_cast<InputImageType *>(cons[0]->GetITKImage()));
+	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
+	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
-	SetProbabilities(probs, cons);
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
-	cons[0]->SetImage(labelClass->GetOutput());
+	filter->AddOutput(labelClass->GetOutput());
+	SetProbabilities(probs, filter);
 }
 
 void iAMSKFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
-	QVector<double> centroids;
-	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
-	unsigned int seRadius[3] = {
-		parameters["StructRadius X"].toUInt(),
-		parameters["StructRadius Y"].toUInt(),
-		parameters["StructRadius Z"].toUInt()
-	};
-	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(mskfcm_template, itkType,
-		m_cons,
-		parameters["Maximum Iterations"].toUInt(),
-		parameters["Maximum Error"].toDouble(),
-		parameters["M"].toDouble(),
-		parameters["Number of Threads"].toUInt(),
-		numberOfClasses,
-		centroids,
-		parameters["Ignore Background"].toBool(),
-		parameters["Background Value"].toDouble(),
-		parameters["Alpha"].toDouble(),
-		parameters["Sigma"].toDouble(),
-		seRadius,
-		parameters["P"].toDouble(),
-		parameters["Q"].toDouble(),
-		m_progress
-	);
-	SetOutputCount(m_cons.size());
+	ITK_TYPED_CALL(mskfcm, InputPixelType(), this, parameters);
 }

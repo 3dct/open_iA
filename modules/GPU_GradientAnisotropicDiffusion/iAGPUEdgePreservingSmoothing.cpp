@@ -34,8 +34,7 @@
 
 
 template<class T>
-void GPU_gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const & params,
-	iAProgress* p, iAConnector* image)
+void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	// register object factory for GPU image and filter
 	itk::ObjectFactoryBase::RegisterFactory(itk::GPUImageFactory::New());
@@ -45,25 +44,22 @@ void GPU_gradient_anisotropic_diffusion_template(QMap<QString, QVariant> const &
 	typedef itk::Image< float, DIM >   RealImageType;
 	typedef itk::GPUGradientAnisotropicDiffusionImageFilter< InputImageType, RealImageType > GGADIFType;
 
-	auto filter = GGADIFType::New();
-	filter->SetNumberOfIterations(params["Number of iterations"].toUInt());
-	filter->SetTimeStep(params["Time Step"].toDouble());
-	filter->SetConductanceParameter(params["Conductance"].toDouble());
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	p->Observe(filter);
-	filter->Update();
+	auto gadFilter = GGADIFType::New();
+	gadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
+	gadFilter->SetTimeStep(params["Time Step"].toDouble());
+	gadFilter->SetConductanceParameter(params["Conductance"].toDouble());
+	gadFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	filter->Progress()->Observe(gadFilter);
+	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(gadFilter->GetOutput()));
 	else
-		image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+		filter->AddOutput(gadFilter->GetOutput());
 }
 
 void iAGPUEdgePreservingSmoothing::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion_template, m_con->GetITKScalarPixelType(),
-		parameters, m_progress, m_con);
+	ITK_TYPED_CALL(GPU_gradient_anisotropic_diffusion, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAGPUEdgePreservingSmoothing)

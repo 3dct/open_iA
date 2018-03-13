@@ -32,7 +32,7 @@
 
 
 template<class T> 
-void signed_maurer_distancemap_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void signed_maurer_distancemap(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 > InputImageType;
 	typedef itk::Image< float, 3 > RealImageType;
@@ -63,7 +63,7 @@ void signed_maurer_distancemap_template(iAFilter* filter, QMap<QString, QVariant
 
 void iASignedMaurerDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(signed_maurer_distancemap_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(signed_maurer_distancemap, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASignedMaurerDistanceMap)
@@ -87,7 +87,7 @@ iASignedMaurerDistanceMap::iASignedMaurerDistanceMap() :
 
 
 template<class T>
-void danielsson_distancemap_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void danielsson_distancemap(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< unsigned short, 3 >   UShortImageType;
@@ -118,7 +118,7 @@ void danielsson_distancemap_template(iAFilter* filter, QMap<QString, QVariant> c
 
 void iADanielssonDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(danielsson_distancemap_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(danielsson_distancemap, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADanielssonDistanceMap)

@@ -44,7 +44,7 @@ class myRGBATypeException : public std::exception
 	}
 } myRGBATypeExcep;
 
-template <class InT, class OutT> void CastImage_template2(iAFilter* filter)
+template <class InT, class OutT> void CastImage(iAFilter* filter)
 {
 	typedef itk::Image<InT, DIM > InputImageType;
 	typedef itk::Image<OutT, DIM> OutputImageType;
@@ -56,55 +56,55 @@ template <class InT, class OutT> void CastImage_template2(iAFilter* filter)
 	filter->AddOutput(castFilter->GetOutput());
 }
 
-template<class T> void CastImage_template(iAFilter* filter, std::string datatype)
+template<class T> void CastImage(iAFilter* filter, std::string datatype)
 {
 	if (datatype.compare("VTK_CHAR") == 0 ||  datatype.compare( "VTK_SIGNED_CHAR" ) == 0)
 	{
-		CastImage_template2<T, char>(filter);
+		CastImage<T, char>(filter);
 	}
 	else if (datatype.compare( "VTK_UNSIGNED_CHAR" ) == 0)
 	{
-		CastImage_template2<T, unsigned char>(filter);
+		CastImage<T, unsigned char>(filter);
 	}
 	else if (datatype.compare( "VTK_SHORT" ) == 0)
 	{
-		CastImage_template2<T, short>(filter);
+		CastImage<T, short>(filter);
 	}
 	else if (datatype.compare( "VTK_UNSIGNED_SHORT" ) == 0)
 	{
-		CastImage_template2<T, unsigned short>(filter);
+		CastImage<T, unsigned short>(filter);
 	}
 	else if (datatype.compare( "VTK_INT" ) == 0)
 	{
-		CastImage_template2<T, int>(filter);
+		CastImage<T, int>(filter);
 	}
 	else if (datatype.compare( "VTK_UNSIGNED_INT" ) == 0)
 	{
-		CastImage_template2<T, unsigned int>(filter);
+		CastImage<T, unsigned int>(filter);
 	}
 	else if (datatype.compare( "VTK_LONG" ) == 0)
 	{
-		CastImage_template2<T, long>(filter);
+		CastImage<T, long>(filter);
 	}
 	else if (datatype.compare( "VTK_UNSIGNED_LONG" ) == 0)
 	{
-		CastImage_template2<T, unsigned long>(filter);
+		CastImage<T, unsigned long>(filter);
 	}
 	else if (datatype.compare("VTK_LONG_LONG") == 0 || datatype.compare("VTK__INT64") == 0)
 	{
-		CastImage_template2<T, long long>(filter);
+		CastImage<T, long long>(filter);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_LONG_LONG") == 0 || datatype.compare("VTK_UNSIGNED__INT64") == 0)
 	{
-		CastImage_template2<T, unsigned long long>(filter);
+		CastImage<T, unsigned long long>(filter);
 	}
 	else if (datatype.compare( "VTK_FLOAT" ) == 0)
 	{
-		CastImage_template2<T, float>(filter);
+		CastImage<T, float>(filter);
 	}
 	else if (datatype.compare( "VTK_DOUBLE" ) == 0)
 	{
-		CastImage_template2<T, double>(filter);
+		CastImage<T, double>(filter);
 	}
 	else
 	{
@@ -113,7 +113,7 @@ template<class T> void CastImage_template(iAFilter* filter, std::string datatype
 }
 
 template <class InT, class OutT>
-void DataTypeConversion_template2(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<InT, DIM>   InputImageType;
 	typedef itk::Image<OutT, DIM> OutputImageType;
@@ -151,56 +151,56 @@ void DataTypeConversion_template2(iAFilter* filter, QMap<QString, QVariant> cons
 }
 
 template<class T>
-void DataTypeConversion_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	std::string datatype = parameters["Data Type"].toString().toStdString();
 	if (datatype.compare("VTK_UNSIGNED_CHAR") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned char>(filter, parameters);
+		DataTypeConversion<T, unsigned char>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_CHAR") == 0 || datatype.compare("VTK_SIGNED_CHAR") == 0)
 	{
-		DataTypeConversion_template2<T, char>(filter, parameters);
+		DataTypeConversion<T, char>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_SHORT") == 0)
 	{
-		DataTypeConversion_template2<T, short>(filter, parameters);
+		DataTypeConversion<T, short>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_SHORT") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned short>(filter, parameters);
+		DataTypeConversion<T, unsigned short>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_INT") == 0)
 	{
-		DataTypeConversion_template2<T, int>(filter, parameters);
+		DataTypeConversion<T, int>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_INT") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned int>(filter, parameters);
+		DataTypeConversion<T, unsigned int>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_LONG") == 0)
 	{
-		DataTypeConversion_template2<T, long>(filter, parameters);
+		DataTypeConversion<T, long>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_LONG") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned long>(filter, parameters);
+		DataTypeConversion<T, unsigned long>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_LONG_LONG") == 0 || datatype.compare("VTK__INT64") == 0)
 	{
-		DataTypeConversion_template2<T, long long>(filter, parameters);
+		DataTypeConversion<T, long long>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_UNSIGNED_LONG_LONG") == 0 || datatype.compare("VTK_UNSIGNED__INT64") == 0)
 	{
-		DataTypeConversion_template2<T, unsigned long long>(filter, parameters);
+		DataTypeConversion<T, unsigned long long>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_FLOAT") == 0)
 	{
-		DataTypeConversion_template2<T, float>(filter, parameters);
+		DataTypeConversion<T, float>(filter, parameters);
 	}
 	else if (datatype.compare("VTK_DOUBLE") == 0)
 	{
-		DataTypeConversion_template2<T, double>(filter, parameters);
+		DataTypeConversion<T, double>(filter, parameters);
 	}
 	else
 	{
@@ -255,11 +255,11 @@ void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	}
 	if (parameters["Rescale Range"].toBool())
 	{
-		ITK_TYPED_CALL(DataTypeConversion_template, InputPixelType(), this, parameters);
+		ITK_TYPED_CALL(DataTypeConversion, InputPixelType(), this, parameters);
 	}
 	else
 	{
-		ITK_TYPED_CALL(CastImage_template, InputPixelType(), this, parameters["Data Type"].toString().toStdString());
+		ITK_TYPED_CALL(CastImage, InputPixelType(), this, parameters["Data Type"].toString().toStdString());
 	}
 }
 

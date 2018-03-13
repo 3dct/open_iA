@@ -70,7 +70,7 @@ namespace
 	}
 }
 
-template <typename T> void computeHistogram(iAConnector* con, iAProgress* progress, size_t binCount,
+template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	double minVal, double maxVal, std::vector<double> & vecHist)
 {
 	typedef itk::Image<T, DIM>  InputImageType;
@@ -78,7 +78,7 @@ template <typename T> void computeHistogram(iAConnector* con, iAProgress* progre
 	const int ChannelCount = 1;
 	auto histogramFilter = ImageHistogramFilterType::New();
 	histogramFilter->ReleaseDataFlagOff();
-	histogramFilter->SetInput(dynamic_cast<InputImageType*>(con->GetITKImage()));
+	histogramFilter->SetInput(dynamic_cast<InputImageType*>(filter->Input()[0]->GetITKImage()));
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMin(ChannelCount);
 	binMin.Fill(minVal);
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMax(ChannelCount);
@@ -90,28 +90,28 @@ template <typename T> void computeHistogram(iAConnector* con, iAProgress* progre
 	histogramFilter->SetAutoMinimumMaximum(false);
 	histogramFilter->SetHistogramSize(binCountMulti);
 	histogramFilter->Update();
-	progress->Observe(histogramFilter);
+	filter->Progress()->Observe(histogramFilter);
 	auto histogram = histogramFilter->GetOutput();
 	vecHist.clear();
 	for (auto it = histogram->Begin(); it != histogram->End(); ++it)
 		vecHist.push_back(it.GetFrequency());
 }
 
-void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQMeasure* filter, iAProgress* progress)
+void computeQ(iAQMeasure* filter, QMap<QString, QVariant> const & parameters)
 {
 	size_t numberOfPeaks = parameters["Number of peaks"].toULongLong();
 	double histogramBinFactor = parameters["Histogram bin factor"].toDouble();
 	double Kderiv = parameters["Derivative smoothing factor"].toDouble();
 	double Kminima = parameters["Minima finding smoothing factor"].toDouble();
 
-	double minVal = con->GetVTKImage()->GetScalarRange()[0];
-	double maxVal = con->GetVTKImage()->GetScalarRange()[1];
-	auto size =	con->GetITKImage()->GetLargestPossibleRegion().GetSize();
+	double minVal = filter->Input()[0]->GetVTKImage()->GetScalarRange()[0];
+	double maxVal = filter->Input()[0]->GetVTKImage()->GetScalarRange()[1];
+	auto size =	filter->Input()[0]->GetITKImage()->GetLargestPossibleRegion().GetSize();
 	size_t voxelCount = size[0] * size[1] * size[2];
 	size_t binCount = std::max(static_cast<size_t>(2), static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount)));
 	std::vector<double> vecHist;
 
-	ITK_TYPED_CALL(computeHistogram, con->GetITKScalarPixelType(), con, progress, binCount, minVal, maxVal, vecHist);
+	ITK_TYPED_CALL(computeHistogram, filter->InputPixelType(), filter, binCount, minVal, maxVal, vecHist);
 	
 	if (filter->m_chart)
 	{
@@ -282,7 +282,7 @@ void computeQ(iAConnector* con, QMap<QString, QVariant> const & parameters, iAQM
 
 void iAQMeasure::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	computeQ(m_con, parameters, this, m_progress);
+	computeQ(this, parameters);
 }
 
 IAFILTER_CREATE(iAQMeasure)

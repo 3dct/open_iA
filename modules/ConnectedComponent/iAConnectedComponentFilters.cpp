@@ -34,7 +34,7 @@
 #include <QMessageBox>
 
 template<class T> 
-void SimpleConnectedComponentFilter_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void SimpleConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -50,7 +50,7 @@ void SimpleConnectedComponentFilter_template(iAFilter* filter, QMap<QString, QVa
 
 void iASimpleConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(SimpleConnectedComponentFilter, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASimpleConnectedComponents)
@@ -69,7 +69,7 @@ iASimpleConnectedComponents::iASimpleConnectedComponents() :
 
 
 template<class T> 
-void ScalarConnectedComponentFilter_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void ScalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -86,7 +86,7 @@ IAFILTER_CREATE(iAScalarConnectedComponents)
 
 void iAScalarConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(ScalarConnectedComponentFilter, InputPixelType(), this, parameters);
 }
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
@@ -102,7 +102,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 
 
 template<class T> 
-void SimpleRelabelComponentImageFilter_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -131,7 +131,7 @@ IAFILTER_CREATE(iASimpleRelabelConnectedComponents)
 
 void iASimpleRelabelConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter, InputPixelType(), this, parameters);
 }
 
 iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :

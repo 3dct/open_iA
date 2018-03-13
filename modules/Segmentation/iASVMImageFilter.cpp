@@ -57,7 +57,7 @@ namespace
 
 void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	if (m_cons.size() == 0)
+	if (Input().size() == 0)
 	{
 		DEBUG_LOG("No Input available!");
 		return;
@@ -73,7 +73,7 @@ void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	param.coef0 = parameters["Coef0"].toDouble();
 	param.probability = 1;
 
-	int const * dim = m_cons[0]->GetVTKImage()->GetDimensions();
+	int const * dim = Input()[0]->GetVTKImage()->GetDimensions();
 	auto seeds = ExtractSeedVector(parameters["Seeds"].toString(), dim[0], dim[1], dim[2]);
 
 	// default parameters:
@@ -92,7 +92,7 @@ void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	problem.l = seeds->size();
 	problem.x = new p_svm_node[seeds->size()];
 	problem.y = new double[seeds->size()];
-	size_t xspacesize = seeds->size() * (m_cons.size() + 1);
+	size_t xspacesize = seeds->size() * (Input().size() + 1);
 	svm_node *x_space = new svm_node[xspacesize];
 
 	int curSpaceIdx = 0;
@@ -107,10 +107,10 @@ void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		if (seed.second < labelMin) labelMin = seed.second;
 		if (seed.second > labelMax) labelMax = seed.second;
 		problem.x[seedIdx] = &x_space[curSpaceIdx];
-		for (int m = 0; m < m_cons.size(); ++m)
+		for (int m = 0; m < Input().size(); ++m)
 		{
 			x_space[curSpaceIdx].index = m;
-			x_space[curSpaceIdx].value = m_cons[m]->GetVTKImage()
+			x_space[curSpaceIdx].value = Input()[m]->GetVTKImage()
 				->GetScalarComponentAsDouble(seed.first.x, seed.first.y, seed.first.z, 0);
 				// TODO: potentially slow! use GetScalarPointer instead?
 			++curSpaceIdx;
@@ -142,9 +142,9 @@ void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	int labelCount = labelMax - labelMin + 1;
 
 	QVector<vtkSmartPointer<vtkImageData> > probabilities(labelCount);
-	svm_node* node = new svm_node[m_cons.size() + 1];
-	node[m_cons.size()].index = -1;	// the termination marker
-	double const* spc = m_cons[0]->GetVTKImage()->GetSpacing();
+	svm_node* node = new svm_node[Input().size() + 1];
+	node[Input().size()].index = -1;	// the termination marker
+	double const* spc = Input()[0]->GetVTKImage()->GetSpacing();
 	double * prob_estimates = new double[labelCount];
 
 	for (int l = 0; l < labelCount; ++l)
@@ -154,12 +154,12 @@ void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	}
 
 	// for each pixel, execute svm_predict :
-	FOR_VTKIMG_PIXELS(m_cons[0]->GetVTKImage(), x, y, z)
+	FOR_VTKIMG_PIXELS(Input()[0]->GetVTKImage(), x, y, z)
 	{
-		for (int m = 0; m < m_cons.size(); ++m)
+		for (int m = 0; m < Input().size(); ++m)
 		{
 			node[m].index = m;
-			node[m].value = m_cons[m]->GetVTKImage()->GetScalarComponentAsDouble(x, y, z, 0);
+			node[m].value = Input()[m]->GetVTKImage()->GetScalarComponentAsDouble(x, y, z, 0);
 		}
 		double label = svm_predict_probability(model, node, prob_estimates);
 		double label2 = svm_predict(model, node);
@@ -190,17 +190,10 @@ void iASVMImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 		// DEBUG check end
 	}
-
-	for (int l = m_cons.size(); l < labelCount; ++l)
-	{
-		m_cons.push_back(new iAConnector);
-	}
 	for (int l = 0; l < labelCount; ++l)
 	{
-		probabilities[l]->Modified();
-		m_cons[l]->SetImage(probabilities[l]);
+		AddOutput(probabilities[l]);
 	}
-	SetOutputCount(labelCount);
 	delete[] prob_estimates;
 	delete[] node;
 	delete[] x_space;
@@ -239,30 +232,28 @@ iASVMImageFilter::iASVMImageFilter() :
 
 
 
-template<class T> void kmeanscluster_template(iAConnector* image, iAProgress* p,
-		QMap<QString, QVariant> const & parameters)
+template<class T> void kmeansclustering(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<int, DIM> IntImageType;
 
 	typedef itk::ScalarImageKmeansImageFilter<ImageType, IntImageType> KMeansFilterType;
-	auto filter = KMeansFilterType::New();
-	filter->SetInput(dynamic_cast<ImageType*> (image->GetITKImage()));
-	filter->SetUseNonContiguousLabels(parameters["Non-contiguous labels"].toBool());
+	auto kmeansFilter = KMeansFilterType::New();
+	kmeansFilter->SetInput(dynamic_cast<ImageType*> (filter->Input()[0]->GetITKImage()));
+	kmeansFilter->SetUseNonContiguousLabels(parameters["Non-contiguous labels"].toBool());
 	QStringList means = parameters["Initial means"].toString().split(" ");
 	for (QString mean: means)
 	{
-		filter->AddClassWithInitialMean(mean.toDouble());
+		kmeansFilter->AddClassWithInitialMean(mean.toDouble());
 	}
-	p->Observe(filter);
-	filter->Update();
-	image->SetImage(filter->GetOutput());
-	image->Modified();
+	filter->Progress()->Observe(kmeansFilter);
+	kmeansFilter->Update();
+	filter->AddOutput(kmeansFilter->GetOutput());
 }
 
 void iAKMeans::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(kmeanscluster_template, m_con->GetITKScalarPixelType(), m_con, m_progress, parameters);
+	ITK_TYPED_CALL(kmeansclustering, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAKMeans)

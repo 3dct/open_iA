@@ -32,23 +32,22 @@
 #include <itkShotNoiseImageFilter.h>
 #include <itkSpeckleNoiseImageFilter.h>
 
-template<class T> void additiveGaussianNoise_template(iAProgress* p, iAConnector* image, QMap<QString, QVariant> const & parameters)
+template<class T> void additiveGaussianNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::AdditiveGaussianNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
-	auto filter = NoiseFilterType::New();
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	filter->SetMean(parameters["Mean"].toDouble());
-	filter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
-	p->Observe( filter );
-	filter->Update(); 
-	image->SetImage(filter->GetOutput());
-	image->Modified();
+	auto noiseFilter = NoiseFilterType::New();
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetMean(parameters["Mean"].toDouble());
+	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
+	filter->Progress()->Observe( noiseFilter );
+	noiseFilter->Update();
+	filter->AddOutput(noiseFilter->GetOutput());
 }
 
 void iAAdditiveGaussianNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(additiveGaussianNoise_template, Input()[0]->GetITKScalarPixelType(), m_progress, Input()[0], parameters);
+	ITK_TYPED_CALL(additiveGaussianNoise, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAAdditiveGaussianNoise)
@@ -68,22 +67,21 @@ iAAdditiveGaussianNoise::iAAdditiveGaussianNoise() :
 
 
 
-template<class T> void saltAndPepperNoise_template(iAProgress* p, iAConnector* image, QMap<QString, QVariant> const & parameters)
+template<class T> void saltAndPepperNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SaltAndPepperNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
-	auto filter = NoiseFilterType::New();
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	filter->SetProbability(parameters["Probability"].toDouble());
-	p->Observe( filter );
-	filter->Update(); 
-	image->SetImage(filter->GetOutput());
-	image->Modified();
+	auto noiseFilter = NoiseFilterType::New();
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetProbability(parameters["Probability"].toDouble());
+	filter->Progress()->Observe( noiseFilter );
+	noiseFilter->Update();
+	filter->AddOutput(noiseFilter->GetOutput());
 }
 
 void iASaltAndPepperNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(saltAndPepperNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
+	ITK_TYPED_CALL(saltAndPepperNoise, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASaltAndPepperNoise)
@@ -102,22 +100,21 @@ iASaltAndPepperNoise::iASaltAndPepperNoise() :
 
 
 
-template<class T> void shotNoise_template(iAProgress* p, iAConnector* image, QMap<QString, QVariant> const & parameters)
+template<class T> void shotNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::ShotNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
-	auto filter = NoiseFilterType::New();
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	filter->SetScale(parameters["Scale"].toDouble());
-	p->Observe( filter );
-	filter->Update(); 
-	image->SetImage(filter->GetOutput());
-	image->Modified();
+	auto noiseFilter = NoiseFilterType::New();
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetScale(parameters["Scale"].toDouble());
+	filter->Progress()->Observe( noiseFilter );
+	noiseFilter->Update();
+	filter->AddOutput(noiseFilter->GetOutput());
 }
 
 void iAShotNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(shotNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
+	ITK_TYPED_CALL(shotNoise, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAShotNoise)
@@ -136,22 +133,21 @@ iAShotNoise::iAShotNoise() :
 
 
 
-template<class T> void speckleNoise_template(iAProgress* p, iAConnector* image, QMap<QString, QVariant> const & parameters)
+template<class T> void speckleNoise(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SpeckleNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
-	auto filter = NoiseFilterType::New();
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	filter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
-	p->Observe( filter );
-	filter->Update(); 
-	image->SetImage(filter->GetOutput());
-	image->Modified();
+	auto noiseFilter = NoiseFilterType::New();
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
+	filter->Progress()->Observe( noiseFilter );
+	noiseFilter->Update();
+	filter->AddOutput(noiseFilter->GetOutput());
 }
 
 void iASpeckleNoise::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(speckleNoise_template, m_con->GetITKScalarPixelType(), m_progress, m_con, parameters);
+	ITK_TYPED_CALL(speckleNoise, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASpeckleNoise)

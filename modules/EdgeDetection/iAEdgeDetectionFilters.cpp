@@ -29,7 +29,7 @@
 #include <itkCastImageFilter.h>
 
 template<class T>
-void canny_edge_detection_template(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
@@ -53,7 +53,7 @@ IAFILTER_CREATE(iACannyEdgeDetection)
 
 void iACannyEdgeDetection::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(canny_edge_detection_template, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(canny_edge_detection, InputPixelType(), this, parameters);
 }
 
 iACannyEdgeDetection::iACannyEdgeDetection() :

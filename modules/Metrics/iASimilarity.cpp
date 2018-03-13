@@ -40,8 +40,7 @@
 #include <vtkImageData.h>
 
 template<class T>
-void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
-	QMap<QString, QVariant> const & parameters, iAFilter* filter)
+void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > ImageType;
 	typedef itk::ExtractImageFilter< ImageType, ImageType > EIFType;
@@ -54,8 +53,8 @@ void similarity_metrics_template(iAProgress* p, QVector<iAConnector*> images,
 	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
 	activeImage_ROIExtractor->InPlaceOn();
 	nonActiveImage_ROIExtractor->InPlaceOn();
-	activeImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(images[0]->GetITKImage()));
-	nonActiveImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(images[1]->GetITKImage()));
+	activeImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
+	nonActiveImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(filter->Input()[1]->GetITKImage()));
 	activeImage_ROIExtractor->SetExtractionRegion(region);
 	nonActiveImage_ROIExtractor->SetExtractionRegion(region);
 	activeImage_ROIExtractor->Update();
@@ -320,7 +319,7 @@ IAFILTER_CREATE(iASimilarity)
 
 void iASimilarity::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(similarity_metrics_template, m_con->GetITKScalarPixelType(), m_progress, m_cons, parameters, this);
+	ITK_TYPED_CALL(similarity_metrics, InputPixelType(), this, parameters);
 }
 
 QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::Create()

@@ -46,21 +46,18 @@ namespace
 	const QString InterpWindowedSinc("Windowed Sinc");
 }
 
-template<class T> void resampler_template(
-	unsigned int originX, unsigned int originY, unsigned int originZ,
-	double spacingX, double spacingY, double spacingZ,
-	unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ,
-	QString const & interpolator,
-	iAProgress* p, iAConnector* image  )
+template<class T> void resampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< T, DIM > InputImageType;
-	typedef itk::ResampleImageFilter< InputImageType, InputImageType >    ResampleFilterType;
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
-
-	typename ResampleFilterType::OriginPointType origin; origin[0] = originX; origin[1] = originY; origin[2] = originZ;
-	typename ResampleFilterType::SpacingType spacing; spacing[0] = spacingX; spacing[1] = spacingY; spacing[2] = spacingZ;
-	typename ResampleFilterType::SizeType size; size[0] = sizeX; size[1] = sizeY; size[2] = sizeZ;
-
+	typename ResampleFilterType::OriginPointType origin;
+	origin[0] = parameters["Origin X"].toUInt(); origin[1] = parameters["Origin Y"].toUInt(); origin[2] = parameters["Origin Z"].toUInt();
+	typename ResampleFilterType::SpacingType spacing;
+	spacing[0] = parameters["Spacing X"].toDouble(); spacing[1] = parameters["Spacing Y"].toDouble(); spacing[2] = parameters["Spacing Z"].toDouble();
+	typename ResampleFilterType::SizeType size;
+	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	QString interpolator = parameters["Interpolator"].toString();
 	if (interpolator == InterpLinear)
 	{
 		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
@@ -91,28 +88,21 @@ template<class T> void resampler_template(
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	resampler->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	resampler->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage() ) );
 	resampler->SetOutputOrigin( origin );
 	resampler->SetOutputSpacing( spacing );
 	resampler->SetSize( size );
 	resampler->SetDefaultPixelValue( 0 );
-	p->Observe( resampler );
+	filter->Progress()->Observe( resampler );
 	resampler->Update( );
-	image->SetImage( resampler->GetOutput() );
-	image->Modified();
-	resampler->ReleaseDataFlagOn();
+	filter->AddOutput( resampler->GetOutput() );
 }
 
 IAFILTER_CREATE(iAResampleFilter)
 
 void iAResampleFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(resampler_template, m_con->GetITKScalarPixelType(),
-		parameters["Origin X"].toUInt(), parameters["Origin Y"].toUInt(), parameters["Origin Z"].toUInt(),
-		parameters["Spacing X"].toDouble(), parameters["Spacing Y"].toDouble(), parameters["Spacing Z"].toDouble(),
-		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(), parameters["Size Z"].toUInt(),
-		parameters["Interpolator"].toString(),
-		m_progress, m_con);
+	ITK_TYPED_CALL(resampler, InputPixelType(), this, parameters);
 }
 
 iAResampleFilter::iAResampleFilter() :
@@ -159,57 +149,52 @@ QMap<QString, QVariant> iAResampleFilterRunner::LoadParameters(QSharedPointer<iA
 
 
 template<class T>
-void extractImage_template(unsigned int indexX, unsigned int indexY, unsigned int indexZ,
-	unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ,
-	iAProgress* p, iAConnector* image)
+void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::Image< T, DIM > OutputImageType;
 	typedef itk::ExtractImageFilter< InputImageType, OutputImageType > EIFType;
 
-	typename EIFType::InputImageRegionType::SizeType size; size[0] = sizeX; size[1] = sizeY; size[2] = sizeZ;
-	typename EIFType::InputImageRegionType::IndexType index; index[0] = indexX; index[1] = indexY; index[2] = indexZ;
+	typename EIFType::InputImageRegionType::SizeType size;
+	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	typename EIFType::InputImageRegionType::IndexType index;
+	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] =	 parameters["Index Z"].toUInt();
 	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
 
-	auto filter = EIFType::New();
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	filter->SetExtractionRegion(region);
-	p->Observe(filter);
-	filter->Update();
+	auto extractFilter = EIFType::New();
+	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	extractFilter->SetExtractionRegion(region);
+	filter->Progress()->Observe(extractFilter);
+	extractFilter->Update();
 
 	//change the output image information - offset change to zero
 	typename OutputImageType::IndexType idx; idx.Fill(0);
 	typename OutputImageType::PointType origin; origin.Fill(0);
-	typename OutputImageType::SizeType outsize; outsize[0] = sizeX;	outsize[1] = sizeY;	outsize[2] = sizeZ;
+	typename OutputImageType::SizeType outsize;
 	typename OutputImageType::RegionType outreg;
 	outreg.SetIndex(idx);
-	outreg.SetSize(outsize);
+	outreg.SetSize(size);
 	auto refimage = OutputImageType::New();
 	refimage->SetRegions(outreg);
 	refimage->SetOrigin(origin);
-	refimage->SetSpacing(filter->GetOutput()->GetSpacing());
+	refimage->SetSpacing(extractFilter->GetOutput()->GetSpacing());
 	refimage->Allocate();
 
 	typedef itk::ChangeInformationImageFilter<OutputImageType> CIIFType;
 	auto changefilter = CIIFType::New();
-	changefilter->SetInput(filter->GetOutput());
+	changefilter->SetInput(extractFilter->GetOutput());
 	changefilter->UseReferenceImageOn();
 	changefilter->SetReferenceImage(refimage);
 	changefilter->SetChangeRegion(1);
 	changefilter->Update();
-	image->SetImage(changefilter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+	filter->AddOutput(changefilter->GetOutput());
 }
 
 IAFILTER_CREATE(iAExtractImageFilter)
 
 void iAExtractImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(extractImage_template, m_con->GetITKScalarPixelType(),
-		parameters["Index X"].toUInt(), parameters["Index Y"].toUInt(), parameters["Index Z"].toUInt(),
-		parameters["Size X"].toUInt(), parameters["Size Y"].toUInt(), parameters["Size Z"].toUInt(),
-		m_progress, m_con);
+	ITK_TYPED_CALL(extractImage, InputPixelType(), this, parameters);
 }
 
 iAExtractImageFilter::iAExtractImageFilter() :
@@ -253,7 +238,7 @@ QMap<QString, QVariant> iAExtractImageFilterRunner::LoadParameters(QSharedPointe
 
 
 
-template<class T> void padImage_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
+template<class T> void padImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::ConstantPadImageFilter<InputImageType, InputImageType> PadType;
@@ -267,24 +252,21 @@ template<class T> void padImage_template(QMap<QString, QVariant> const & paramet
 	upperPadSize[1] = parameters["Upper Y padding"].toUInt();
 	upperPadSize[2] = parameters["Upper Z padding"].toUInt();
 
-	auto filter = PadType::New();
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	filter->SetPadLowerBound(lowerPadSize);
-	filter->SetPadUpperBound(upperPadSize);
-	filter->SetConstant(parameters["Value"].toDouble());
-	p->Observe(filter);
-	filter->Update();
-
-	image->SetImage(filter->GetOutput());
-	image->Modified();
+	auto padFilter = PadType::New();
+	padFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	padFilter->SetPadLowerBound(lowerPadSize);
+	padFilter->SetPadUpperBound(upperPadSize);
+	padFilter->SetConstant(parameters["Value"].toDouble());
+	filter->Progress()->Observe(padFilter);
+	padFilter->Update();
+	filter->AddOutput(padFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iAPadImageFilter)
 
 void iAPadImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(padImage_template, m_con->GetITKScalarPixelType(),
-		parameters, m_progress, m_con);
+	ITK_TYPED_CALL(padImage, InputPixelType(), this, parameters);
 }
 
 iAPadImageFilter::iAPadImageFilter() :

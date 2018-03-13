@@ -64,14 +64,19 @@ namespace
 	}
 
 	template <typename T>
-	void patch_template(QMap<QString, QVariant> const & parameters, QSharedPointer<iAFilter> filter,
-		QVector<iAConnector*> & con, iAProgress* progress, iALogger* log)
+	void patch(iAFilter* patchFilter, QMap<QString, QVariant> const & parameters)
 	{
+		auto filter = iAFilterRegistry::Filter(parameters["Filter"].toString());
+		if (!filter)
+		{
+			patchFilter->AddMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
+			return;
+		}
 		typedef itk::Image<T, DIM> InputImageType;
 		typedef itk::Image<double, DIM> OutputImageType;
-		auto size = dynamic_cast<InputImageType*>(con[0]->GetITKImage())->GetLargestPossibleRegion().GetSize();
+		auto size = dynamic_cast<InputImageType*>(patchFilter->Input()[0]->GetITKImage())->GetLargestPossibleRegion().GetSize();
 		//DEBUG_LOG(QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
-		auto inputSpacing = dynamic_cast<InputImageType*>(con[0]->GetITKImage())->GetSpacing();
+		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->Input()[0]->GetITKImage())->GetSpacing();
 	
 		QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->Parameters().size() != filterParamStrs.size())
@@ -87,7 +92,7 @@ namespace
 		
 		QVector<iAConnector*> inputImages;
 		inputImages.push_back(new iAConnector);
-		inputImages[0]->SetImage(con[0]->GetITKImage());
+		inputImages[0]->SetImage(patchFilter->Input()[0]->GetITKImage());
 		QVector<iAConnector*> smallImageInput;
 		smallImageInput.push_back(new iAConnector);
 		// TODO: read from con array?
@@ -108,6 +113,12 @@ namespace
 		QStringList outputBuffer;
 
 		QSharedPointer<iAFilter> extractImageFilter = iAFilterRegistry::Filter("Extract Image");
+		if (!extractImageFilter)
+		{
+			DEBUG_LOG("Image Extraction filter could not be loaded!");
+			return;
+		}
+		extractImageFilter->SetUp(patchFilter->Logger(), &dummyProgress);
 
 		int curOp = 0;
 		QMap<QString, QVariant> extractParams;
@@ -144,6 +155,7 @@ namespace
 				outputImages.push_back(AllocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
 				outputNames << filter->OutputValueNames()[outputImages.size() - 1];
 			}
+		filter->SetUp(patchFilter->Logger(), &dummyProgress);
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (int x = 0; x < size[0]; x += stepSize[0])
@@ -191,17 +203,21 @@ namespace
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
 							extractImageInput[0]->SetImage(inputImages[i]->GetITKImage());
-							extractImageFilter->SetUp(extractImageInput, log, &dummyProgress);
+							extractImageFilter->ClearInput();
+							for (int i=0; i<extractImageInput.size(); ++i)
+								extractImageFilter->AddInput(extractImageInput[i]);
 							extractImageFilter->Run(extractParams);
 							smallImageInput[i]->SetImage(extractImageInput[0]->GetITKImage());
 						}
 
 						// run filter on inputs:
-						filter->SetUp(smallImageInput, log, &dummyProgress);
+						filter->ClearInput();
+						for (int i=0; i<smallImageInput.size(); ++i)
+							filter->AddInput(smallImageInput[i]);
 						filter->Run(filterParams);
 
 						// get output images and values from filter:
-						if (filter->OutputCount() > 0)
+						if (filter->OutputCount() > 0 || filter->Output().size() > 0)
 							warnOutputNotSupported = true;
 
 						if (filter->OutputValues().size() > 0)
@@ -236,7 +252,7 @@ namespace
 							throw e;
 					}
 					
-					progress->EmitProgress(static_cast<int>(100.0 * curOp / totalOps));
+					patchFilter->Progress()->EmitProgress(static_cast<int>(100.0 * curOp / totalOps));
 					++curOp;
 					++outIdx[2];
 				}
@@ -297,13 +313,7 @@ iAPatchFilter::iAPatchFilter():
 
 void iAPatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	auto filter = iAFilterRegistry::Filter(parameters["Filter"].toString());
-	if (!filter)
-	{
-		AddMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
-		return;
-	}
-	ITK_TYPED_CALL(patch_template, m_con->GetITKScalarPixelType(), parameters, filter, m_cons, m_progress, m_log);
+	ITK_TYPED_CALL(patch, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAPatchFilter);

@@ -151,9 +151,7 @@ void iACSVtoMHD::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 	}
 	in.close();
-	int a = m_cons.size();
-	m_cons[0]->SetImage(img);
-	m_cons[0]->Modified();
+	AddOutput(img);
 	QString outputFileName = parameters["Output fileName"].toString();
 	if (!outputFileName.isEmpty())
 	{

@@ -49,7 +49,7 @@
 #include <vtkTubeFilter.h>
 
 
-template<class T> void convolution_template(iAFilter* filter)
+template<class T> void convolution(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
@@ -71,7 +71,7 @@ template<class T> void convolution_template(iAFilter* filter)
 
 void iAConvolution::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(convolution_template, InputPixelType(), this);
+	ITK_TYPED_CALL(convolution, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAConvolution)
@@ -89,7 +89,7 @@ iAConvolution::iAConvolution() :
 {}
 
 // FFT-based convolution instead of spatial domain convolution
-template<class T> void fft_convolution_template(iAFilter* filter)
+template<class T> void fft_convolution(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
@@ -111,7 +111,7 @@ template<class T> void fft_convolution_template(iAFilter* filter)
 
 void iAFFTConvolution::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(fft_convolution_template, InputPixelType(), this);
+	ITK_TYPED_CALL(fft_convolution, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAFFTConvolution)
@@ -129,7 +129,7 @@ iAFFTConvolution::iAFFTConvolution() :
 		"FFT Convolution Filter</a> in the ITK documentation.", 2)
 {}
 
-template<class T> void correlation_template(iAFilter* filter)
+template<class T> void correlation(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
@@ -161,7 +161,7 @@ template<class T> void correlation_template(iAFilter* filter)
 
 void iACorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(correlation_template, InputPixelType(), this);
+	ITK_TYPED_CALL(correlation, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iACorrelation)
@@ -179,7 +179,7 @@ iACorrelation::iACorrelation() :
 {}
 
 //NCC calculation using fft
-template<class T> void fft_correlation_template(iAFilter* filter)
+template<class T> void fft_correlation(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
@@ -208,7 +208,7 @@ template<class T> void fft_correlation_template(iAFilter* filter)
 
 void iAFFTCorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(fft_correlation_template, InputPixelType(), this);
+	ITK_TYPED_CALL(fft_correlation, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAFFTCorrelation)
@@ -225,7 +225,7 @@ iAFFTCorrelation::iAFFTCorrelation() :
 		"FFT Normalized Correlation Filter</a> in the ITK documentation.", 2)
 {}
 
-template<class T> void streamed_fft_correlation_template(iAFilter* filter)
+template<class T> void streamed_fft_correlation(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
@@ -264,7 +264,7 @@ template<class T> void streamed_fft_correlation_template(iAFilter* filter)
 
 void iAStreamedFFTCorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(streamed_fft_correlation_template, InputPixelType(), this);
+	ITK_TYPED_CALL(streamed_fft_correlation, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAStreamedFFTCorrelation)

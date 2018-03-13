@@ -27,32 +27,32 @@
 #include <itkLabelOverlapMeasuresImageFilter.h>
 
 template <typename ImagePixelType>
-void CalculateSegmentationMetrics(QVector<iAConnector*> & images, iAFilter* iafilter)
+void CalculateSegmentationMetrics(iAFilter* filter)
 {
 	typedef itk::Image<ImagePixelType, 3> ImageType;
 	typedef typename ImageType::Pointer ImagePointer;
-	typedef itk::LabelOverlapMeasuresImageFilter<ImageType > FilterType;
-	typename FilterType::Pointer filter = FilterType::New();
-	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(images[0]->GetITKImage());
-	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(images[1]->GetITKImage());
+	typedef itk::LabelOverlapMeasuresImageFilter<ImageType > DiceFilterType;
+	auto diceFilter = DiceFilterType::New();
+	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(filter->Input()[0]->GetITKImage());
+	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->Input()[1]->GetITKImage());
 	if (!groundTruthPtr || !segmentedPtr)
 	{
 		DEBUG_LOG("Input images do not have the same type, but are required to!");
 		return;
 	}
-	filter->SetSourceImage(groundTruthPtr);
-	filter->SetTargetImage(segmentedPtr);
-	filter->Update();
+	diceFilter->SetSourceImage(groundTruthPtr);
+	diceFilter->SetTargetImage(segmentedPtr);
+	diceFilter->Update();
 
-	iafilter->AddOutputValue("Total Overlap", filter->GetTotalOverlap());
-	iafilter->AddOutputValue("Union Overlap (Jaccard)", filter->GetUnionOverlap());
-	iafilter->AddOutputValue("Mean Overlap (Dice)", filter->GetMeanOverlap());
-	iafilter->AddOutputValue("Volume Similarity", filter->GetVolumeSimilarity());
-	//iafilter->AddOutputValue("False negatives", filter->GetFalseNegativeError());
-	//iafilter->AddOutputValue("False positives", filter->GetFalsePositiveError());
+	filter->AddOutputValue("Total Overlap", diceFilter->GetTotalOverlap());
+	filter->AddOutputValue("Union Overlap (Jaccard)", diceFilter->GetUnionOverlap());
+	filter->AddOutputValue("Mean Overlap (Dice)", diceFilter->GetMeanOverlap());
+	filter->AddOutputValue("Volume Similarity", diceFilter->GetVolumeSimilarity());
+	//filter->AddOutputValue("False negatives", diceFilter->GetFalseNegativeError());
+	//filter->AddOutputValue("False positives", diceFilter->GetFalsePositiveError());
 
-	typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
-	typename FilterType::MapType::const_iterator it;
+	typename DiceFilterType::MapType labelMap = diceFilter->GetLabelSetMeasures();
+	typename DiceFilterType::MapType::const_iterator it;
 	for (it = labelMap.begin(); it != labelMap.end(); ++it)
 	{
 		if ((*it).first == 0)
@@ -60,12 +60,12 @@ void CalculateSegmentationMetrics(QVector<iAConnector*> & images, iAFilter* iafi
 			continue;
 		}
 		int label = (*it).first;
-		iafilter->AddOutputValue(QString("Label %1 Target Overlap").arg(label), filter->GetTargetOverlap(label));
-		iafilter->AddOutputValue(QString("Label %1 Union Overlap").arg(label), filter->GetUnionOverlap(label));
-		iafilter->AddOutputValue(QString("Label %1 Mean Overlap").arg(label), filter->GetMeanOverlap(label));
-		iafilter->AddOutputValue(QString("Label %1 Volume Similarity").arg(label), filter->GetVolumeSimilarity(label));
-		//iafilter->AddOutputValue(QString("Label %1 False negatives").arg(label), filter->GetFalseNegativeError(label));
-		//iafilter->AddOutputValue(QString("Label %1 False positives").arg(label), filter->GetFalsePositiveError(label));
+		filter->AddOutputValue(QString("Label %1 Target Overlap").arg(label), diceFilter->GetTargetOverlap(label));
+		filter->AddOutputValue(QString("Label %1 Union Overlap").arg(label), diceFilter->GetUnionOverlap(label));
+		filter->AddOutputValue(QString("Label %1 Mean Overlap").arg(label), diceFilter->GetMeanOverlap(label));
+		filter->AddOutputValue(QString("Label %1 Volume Similarity").arg(label), diceFilter->GetVolumeSimilarity(label));
+		//filter->AddOutputValue(QString("Label %1 False negatives").arg(label), diceFilter->GetFalseNegativeError(label));
+		//filter->AddOutputValue(QString("Label %1 False positives").arg(label), diceFilter->GetFalsePositiveError(label));
 	}
 }
 IAFILTER_CREATE(iASegmentationMetrics)
@@ -82,16 +82,16 @@ iASegmentationMetrics::iASegmentationMetrics() :
 
 void iASegmentationMetrics::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	switch (m_con->GetITKScalarPixelType())
+	switch (InputPixelType())
 	{	// only int types, so ITK_TYPED_CALL won't work
-	case itk::ImageIOBase::UCHAR: CalculateSegmentationMetrics<unsigned char> (m_cons, this); break;
-	case itk::ImageIOBase::CHAR:  CalculateSegmentationMetrics<char>          (m_cons, this); break;
-	case itk::ImageIOBase::SHORT: CalculateSegmentationMetrics<short>         (m_cons, this); break;
-	case itk::ImageIOBase::USHORT:CalculateSegmentationMetrics<unsigned short>(m_cons, this); break;
-	case itk::ImageIOBase::INT:   CalculateSegmentationMetrics<int>           (m_cons, this); break;
-	case itk::ImageIOBase::UINT:  CalculateSegmentationMetrics<unsigned int>  (m_cons, this); break;
-	case itk::ImageIOBase::LONG:  CalculateSegmentationMetrics<long>          (m_cons, this); break;
-	case itk::ImageIOBase::ULONG: CalculateSegmentationMetrics<unsigned long> (m_cons, this); break;
+	case itk::ImageIOBase::UCHAR: CalculateSegmentationMetrics<unsigned char> (this); break;
+	case itk::ImageIOBase::CHAR:  CalculateSegmentationMetrics<char>          (this); break;
+	case itk::ImageIOBase::SHORT: CalculateSegmentationMetrics<short>         (this); break;
+	case itk::ImageIOBase::USHORT:CalculateSegmentationMetrics<unsigned short>(this); break;
+	case itk::ImageIOBase::INT:   CalculateSegmentationMetrics<int>           (this); break;
+	case itk::ImageIOBase::UINT:  CalculateSegmentationMetrics<unsigned int>  (this); break;
+	case itk::ImageIOBase::LONG:  CalculateSegmentationMetrics<long>          (this); break;
+	case itk::ImageIOBase::ULONG: CalculateSegmentationMetrics<unsigned long> (this); break;
 	default:
 		throw itk::ExceptionObject(__FILE__, __LINE__,
 			"Segmentation Metrics: Only Integer image types are allowed as input!");
