@@ -56,7 +56,7 @@ void iASimpleConnectedComponents::PerformWork(QMap<QString, QVariant> const & pa
 IAFILTER_CREATE(iASimpleConnectedComponents)
 
 iASimpleConnectedComponents::iASimpleConnectedComponents() :
-	iAFilter("Simple Connected Component Filter", "Connected Component Filters",
+	iAFilter("Connected Component Filter", "Connected Component Filters",
 		"Assigns each distinct object in a binary image a unique label.<br/>"
 		"Non-zero pixels are considered to be objects, zero-valued pixels are "
 		"considered to be background).<br/>"
@@ -135,7 +135,7 @@ void iASimpleRelabelConnectedComponents::PerformWork(QMap<QString, QVariant> con
 }
 
 iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
-	iAFilter("Simple Relabel Connected Component Filter", "Connected Component Filters",
+	iAFilter("Relabel Components", "Connected Component Filters",
 		"Remaps the labels associated with the objects in an image such that the "
 		"label numbers are consecutive with no gaps.<br/>"
 		"The input could for example be the output of the Simple Connected "
