@@ -45,6 +45,7 @@ private slots:
 	void UpdateFeatVisibilty(int);
 	void PointHovered(int);
 	void SeparationChanged(int);
+	void SetColorTheme(const QString &name);
 private:
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;
