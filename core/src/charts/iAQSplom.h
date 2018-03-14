@@ -87,6 +87,8 @@ public:
 
 	void setSelectionColor(QColor color); 
 
+	void clearSelection();  //deletes current seltion
+
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.
 	virtual void initializeGL();								//!< Re-implements QGLWidget.

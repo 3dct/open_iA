@@ -69,6 +69,11 @@ const QList<int> & iAQSplom::getHighlightedPoints() const
 	return m_highlightedPoints;
 }
 
+void iAQSplom::clearSelection()
+{
+	this->m_selInds.clear(); 
+}
+
 void iAQSplom::setSelectionColor(QColor color)
 {
 	foreach(QList<iAScatterPlot*> row, m_matrix)

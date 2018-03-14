@@ -132,9 +132,9 @@ public:
 	void initOrientationColorMap();
 	
 	//selection for each class and show SPM for it
-	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd);
+	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
 
-	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> classEntries);
+	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
 
 Q_SIGNALS:
 	void updateViews();
@@ -189,10 +189,10 @@ protected:
 
 
 private:
-	void setSPMData(vtkSmartPointer<vtkTable> classEntries, double rgba[4], bool & retflag);
-	void setSPMData(QSharedPointer<QVector<uint>> &selInd, double  rgba[4], bool &retflag);
-	void setClassColour(double * rgba);
-	void spmApplyColorMap(double  rgba[4], QSharedPointer<QVector<uint>> &selInd);
+	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
+	void setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag);
+	void setClassColour(double * rgba, const int colInd);
+	void spmApplyColorMap(double  rgba[4], const int colInd);
 	// Qt members
 	QWidget *activeChild;
 

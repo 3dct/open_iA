@@ -2266,7 +2266,7 @@ void dlg_FeatureScout::ClassAddButton()
 		cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
 
 		if ( ok ) // if input correctly
-		{
+		{ //TODO save transfer function for each class classe
 			this->colorList.append( cColor );
 			// get the root item from class tree
 			QStandardItem *rootItem = classTreeModel->invisibleRootItem();
@@ -2361,8 +2361,10 @@ void dlg_FeatureScout::ClassAddButton()
 			{
 				bool retflag;
 				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
+				
+				//handle over cid (color id) 
 				*selInd = matrix->getSelection(); 
-				applyClassSelection(retflag, selInd);
+				applyClassSelection(retflag, selInd, cid, true);
 				if (retflag) return;
 
 
@@ -2386,26 +2388,32 @@ void dlg_FeatureScout::ClassAddButton()
 	}
 }
 
-void dlg_FeatureScout::applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd)
+void dlg_FeatureScout::applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap)
 {
 	retflag = true;
 	double rgba[4];
-
-	//QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
 	bool returnflag;
-	
-	setSPMData(selInd, rgba, returnflag);
+	setSPMData(selInd, returnflag);
+	if (applyColorMap) {
+		spmApplyColorMap(rgba, colorIdx);
+	}
+
 	if (retflag) return;
-
-
-
-
-	spmApplyColorMap(rgba, selInd);
 	retflag = false;
 }
 
-void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTable> classEntries) {
-	
+//apply color index
+void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const int colorIdx, const bool applyColorMap) {
+	retflag = true;
+	double rgba[4];
+	setSPMData(classEntries, retflag); 
+	if (retflag)return; 
+
+	if (applyColorMap) {
+		spmApplyColorMap(rgba, colorIdx);
+	}
+
+	retflag = false;
 
 
 }
@@ -2414,7 +2422,7 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTab
 //with no selection?
 
 
-void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableWidget> &spInput, vtkSmartPointer<vtkTable> &classEntries) {
+void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableWidget> &spInput, const vtkSmartPointer<vtkTable> &classEntries) {
 	spInput->setColumnCount(colCount/*this->csvTable->GetNumberOfColumns()*/);
 	//header (1 row) + entries
 	spInput->setRowCount(rowCount/*this->csvTable->GetNumberOfRows()*/ + 1);
@@ -2425,19 +2433,45 @@ void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableW
 
 }
 
-void dlg_FeatureScout::setSPMData(vtkSmartPointer<vtkTable> classEntries, double  rgba[4], bool &retflag) {
-	setClassColour(rgba);
+void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool &retflag) {
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
 	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
 	const int rowCount = (int)classEntries->GetNumberOfRows();
 	prepareTable(rowCount, colCount, spInput, classEntries);
+	//QTableWind
+	/*QSharedPointer<QTableWidgetItem> currentWidget = QSharedPointer<QTableWidgetItem>(new QTableWidgetItem(""));*/
 	
+	QTableWidgetItem currentWidget(""); 
 
+	
+	for (int row = 1; row < rowCount + 1; row++) {
+		
+	//adds each column entry to vtktable
+			for (int col = 0; col < colCount; col++) {
+				
+				vtkStdString csvValue = classEntries->GetValue(row-1, col).ToString();
+				spInput->setItem(row, col, new QTableWidgetItem(csvValue.c_str()));
+
+			}
+
+	}
+
+
+	if (!iovSPM)
+		return;
+
+
+	this->matrix->setData(&(*spInput));
+	/*this->matrix->selectionModified(&(*selInd));*/
+	this->spUpdateSPColumnVisibility();
+
+	retflag = false;
 
 }
 
 //set data in SPM selection to class
-void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, double  rgba[4], bool &retflag)
+
+void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag)
 {
 	retflag = true;
 	/**selInd = (this->matrix->getSelection());*/
@@ -2446,26 +2480,20 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, double 
 
 	//TODO Save data in the selection 
 	const uint entriesCount = (uint)selInd->length();
-	setClassColour(rgba);
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
-
 	const int colCount = (int)this->csvTable->GetNumberOfColumns();
 	const int rowCount = (int)this->csvTable->GetNumberOfRows();
-
-
-	
-
-
 	spInput->setColumnCount(colCount/*this->csvTable->GetNumberOfColumns()*/);
 	//header (1 row) + entries
 	spInput->setRowCount(entriesCount/*this->csvTable->GetNumberOfRows()*/ + 1);
 
 
-	//set first colum Spalte ID setzen
-	for (int col = 0; col < colCount /*this->csvTable->GetNumberOfColumns()*/; ++col)
-	{
-		spInput->setItem(0, col, new QTableWidgetItem(this->csvTable->GetColumnName(col)));
-	}
+	//set first colum n ID n
+	//for (int col = 0; col < colCount /*this->csvTable->GetNumberOfColumns()*/; ++col)
+	//{
+	//	spInput->setItem(0, col, new QTableWidgetItem(this->csvTable->GetColumnName(col)));
+	//}
+	prepareTable(entriesCount, colCount, spInput, this->csvTable);
 
 
 	//set entrys for each row; 
@@ -2487,10 +2515,7 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, double 
 
 			//skip first row
 			cur_IndRow = all_rowInd->GetVariantValue(row - 1).ToInt() - 1;
-
-			//if current selection index = rowIndex
-
-
+			//compares current selection index to rowIndex
 			containsRowInd = ((int)curr_selIndx) == cur_IndRow;
 			if (containsRowInd) {
 
@@ -2501,7 +2526,6 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, double 
 
 					vtkStdString csvValue = csvTable->GetValue(row - 1, col).ToString();
 					spInput->setItem(rowSavingIndx, col, new QTableWidgetItem(csvValue.c_str()));
-
 				}
 				rowSavingIndx++;
 				break;
@@ -2527,17 +2551,20 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, double 
 	retflag = false;
 }
 
-void dlg_FeatureScout::setClassColour(double * rgba)
+
+//sets color based on color index
+void dlg_FeatureScout::setClassColour(double * rgba, const int colInd)
 {
-	rgba[0] = this->colorList.at(0).redF();
-	rgba[1] = this->colorList.at(0).greenF();
-	rgba[2] = this->colorList.at(0).blueF();
+	rgba[0] = this->colorList.at(colInd).redF();
+	rgba[1] = this->colorList.at(colInd).greenF();
+	rgba[2] = this->colorList.at(colInd).blueF();
 	const double alpha = 1;/*((double)this->colorList.at(0).alpha) / 255.0*/
 	rgba[3] = alpha;
 }
 
-void dlg_FeatureScout::spmApplyColorMap(double  rgba[4], QSharedPointer<QVector<uint>> &selInd)
+void dlg_FeatureScout::spmApplyColorMap(double  rgba[4], const int colInd)
 {
+	setClassColour(rgba, colInd);
 	double range[2];
 
 	//csv table entry values -first columne min max for color transformation
@@ -3639,7 +3666,11 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 				// Update Scatter Plot Matrix when another class than the active is selected.
 				if ( matrix)
 				{
-					// TODO SPM
+					matrix->clearSelection();
+					bool returnFlag = false;
+					this->applyClassSelection(returnFlag, this->chartTable, index.row(), true);
+					if (returnFlag) return;
+					
 					//matrix->SetSelection(annLink->GetCurrentSelection());
 					// matrix->UpdateColorInfo( classTreeModel, colorList );
 					// matrix->SetClass2Plot( this->activeClassItem->index().row() );
@@ -3690,7 +3721,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		msgBox.exec();
 		return;
 	}
-	// for first level class //children = class
+	// for first level class //has children = class
 	if ( item->hasChildren() )
 	{
 		if ( this->activeClassItem != item )
@@ -3709,33 +3740,10 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 				{
 
 
-					/*
-					
-					int id = item->index().row();
-					chartTable->ShallowCopy( tableList[id] );
-					*/
-					/*int id = item->index().row();*/
-					/*chartTable->ShallowCopy(tableList[id]);*/
-					//da sind die eintrgäe drin!! 
-					int u = item->rowCount();
-					int u1 = item->columnCount(); 
 
-
-					QList< QStandardItem* > items = item->takeRow(1);
-					
-					QStandardItem* xxx  = items.at(0);
-					auto x = xxx->takeColumn(0); 
-					/*	at(0)->data().toString(); */
-					/*item->take; 
-					item_data.
-					*//*item->data()*/
-					/*what is class  what are childs?? cvsTable are all entries, but not  */
-					/*matrix->clear();*/ 
-					//old entries are saved in matrix?? 
-					
-					QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
+					matrix->clearSelection(); 
 					bool returnFlag = false;
-					/*this->applyClassSelection(returnFlag, nullptr, );*/
+					this->applyClassSelection(returnFlag, this->chartTable, index.row(), true);
 					if (returnFlag) return;
 				}
 			}
@@ -3787,7 +3795,13 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			//set ID selection im feature scout
 			if ( matrix )
 			{
-				
+				const int colorId = this->activeClassItem->index().row(); 
+				bool retflag = false; 
+				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
+				selInd->push_back((uint)oID);
+				applyClassSelection(retflag, selInd, colorId, true);
+				if (retflag) return;
+
 				//matrix->SetClass2Plot( this->activeClassItem->index().row() );
 				//matrix->UpdateLayout();
 			}
