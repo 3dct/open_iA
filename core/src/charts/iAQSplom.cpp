@@ -20,6 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
+#include "iAColorTheme.h"
 #include "iAQSplom.h"
 #include "iAScatterPlot.h"
 #include "iALookupTable.h"
@@ -82,6 +83,17 @@ void iAQSplom::SetSeparation(int idx)
 	update();
 }
 
+void iAQSplom::SetBackgroundColorTheme(iAColorTheme const * theme)
+{
+	m_bgColorTheme = theme;
+	update();
+}
+
+iAColorTheme const * iAQSplom::GetBackgroundColorTheme()
+{
+	return m_bgColorTheme;
+}
+
 iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	:QGLWidget( parent, shareWidget, f ),
 	settings(),
@@ -98,7 +110,8 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 	m_animationOut( new QPropertyAnimation( this, "m_animOut" ) ),
 	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) ),
 	m_popupHeight(0),
-	m_separationIdx(-1)
+	m_separationIdx(-1),
+	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White"))
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -451,6 +464,29 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.beginNativePainting();
 	glClear( GL_COLOR_BUFFER_BIT );
 	painter.endNativePainting();
+
+	if (m_separationIdx != -1)
+	{
+		QRect upperLeft = getPlotRectByIndex(0, getVisibleParametersCount()-1);
+		QRect lowerRight = getPlotRectByIndex(getVisibleParametersCount()-1, 0);
+		QRect separation = getPlotRectByIndex(m_separationIdx+1, m_separationIdx+1);
+		QRect r1(
+			QPoint(upperLeft.left(), upperLeft.top()), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, separation.bottom())
+		), r2(
+			QPoint(separation.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(lowerRight.right(), lowerRight.bottom())
+		), r3(
+			QPoint(upperLeft.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, lowerRight.bottom())
+		), r4(
+			QPoint(separation.left(), upperLeft.top()), QPoint(lowerRight.right(), separation.bottom())
+		);
+		QColor c1(m_bgColorTheme->GetColor(0)); c1.setAlpha(64);
+		QColor c2(m_bgColorTheme->GetColor(1)); c2.setAlpha(64);
+		QColor c3(m_bgColorTheme->GetColor(3)); c3.setAlpha(64);
+		painter.fillRect(r1, QBrush(c1));
+		painter.fillRect(r2, QBrush(c1));
+		painter.fillRect(r3, QBrush(c2));
+		painter.fillRect(r4, QBrush(c3));
+	}
 	if( !getVisibleParametersCount() )
 		return;
 	drawTicks( painter, ticksX, ticksY, textX, textY );

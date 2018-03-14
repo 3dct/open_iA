@@ -27,13 +27,17 @@
 #include <QGLWidget>
 #include <QList>
 
+class iAColorTheme;
+class iALookupTable;
 class iAScatterPlot;
 class iASPLOMData;
+
+class vtkLookupTable;
+
 class QTableWidget;
 class QGridLayout;
 class QPropertyAnimation;
-class iALookupTable;
-class vtkLookupTable;
+
 
 //! A scatter plot matrix (SPLOM) widget.
 /*!
@@ -85,6 +89,8 @@ public:
 	void setAnimOut( double anim );											//!< Setter for animation in property
 	const QList<int> & getHighlightedPoints() const;
 	void SetSeparation(int idx);								//!< define an index at which a separation margin is inserted
+	void SetBackgroundColorTheme(iAColorTheme const * theme);   //!< define the color theme to use for coloring the different separated regions
+	iAColorTheme const * GetBackgroundColorTheme();
 
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.
@@ -178,4 +184,5 @@ protected:
 	QList<int> m_highlightedPoints;					//!< list of always highlighted points
 	double m_popupHeight;							//!< height of the last drawn popup
 	int m_separationIdx;							//!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
+	iAColorTheme const * m_bgColorTheme;			//!< background colors for regions in the scatterplot
 };
