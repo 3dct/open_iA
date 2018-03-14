@@ -1781,6 +1781,11 @@ iADiagramFctWidget* MdiChild::getHistogram()
 
 // }
 
+iADockWidgetWrapper* MdiChild::getHistogramDockWidget()
+{
+	return m_histogramContainer;
+}
+
 
 void MdiChild::saveMovie(iASlicer * slicer)
 {

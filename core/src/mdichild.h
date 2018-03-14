@@ -69,6 +69,7 @@ class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelVisualizationData;
 class iADiagramFctWidget;
+class iADockWidgetWrapper;
 class iAIO;
 class iALogger;
 class iAModality;
@@ -196,6 +197,7 @@ public:
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
 	iADiagramFctWidget* getHistogram();
+	iADockWidgetWrapper* getHistogramDockWidget();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
@@ -459,7 +461,7 @@ private:
 	iAIO* ioThread;
 
 	iADiagramFctWidget* m_histogram;
-	QDockWidget* m_histogramContainer;
+	iADockWidgetWrapper* m_histogramContainer;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	dlg_imageproperty* imgProperty;
