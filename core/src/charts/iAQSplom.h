@@ -84,6 +84,7 @@ public:
 	double getAnimOut() const { return m_animOut; }							//!< Getter for animation in property
 	void setAnimOut( double anim );											//!< Setter for animation in property
 	const QList<int> & getHighlightedPoints() const;
+	void SetSeparation(int idx);								//!< define an index at which a separation margin is inserted
 
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.
@@ -149,6 +150,8 @@ protected:
 		bool isAnimated;
 		double animDuration;
 		double animStart;
+
+		int separationMargin;
 	};
 
 //Members
@@ -174,4 +177,5 @@ protected:
 	QPropertyAnimation * m_animationOut;
 	QList<int> m_highlightedPoints;					//!< list of always highlighted points
 	double m_popupHeight;							//!< height of the last drawn popup
+	int m_separationIdx;							//!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
 };

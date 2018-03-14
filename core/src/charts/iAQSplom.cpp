@@ -50,7 +50,8 @@ iAQSplom::Settings::Settings()
 	popupTextColor( QColor( 50, 50, 50 ) ),
 	isAnimated( true ),
 	animDuration( 100.0 ),
-	animStart( 0.0 )
+	animStart( 0.0 ),
+	separationMargin( 10 )
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 	popupWidth = 180;
@@ -73,6 +74,14 @@ const QList<int> & iAQSplom::getHighlightedPoints() const
 	return m_highlightedPoints;
 }
 
+void iAQSplom::SetSeparation(int idx)
+{
+	m_separationIdx = idx;
+	updatePlotGridParams();
+	updateSPLOMLayout();
+	update();
+}
+
 iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	:QGLWidget( parent, shareWidget, f ),
 	settings(),
@@ -88,7 +97,8 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 	m_animOut( 0.0 ),
 	m_animationOut( new QPropertyAnimation( this, "m_animOut" ) ),
 	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) ),
-	m_popupHeight(0)
+	m_popupHeight(0),
+	m_separationIdx(-1)
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -574,8 +584,8 @@ void iAQSplom::updatePlotGridParams()
 	long visParamCnt = getVisibleParametersCount();
 	int spc = settings.plotsSpacing;
 	int wSz[2] = {
-		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc ) / ( (double)visParamCnt )),
-		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc ) / ( (double)visParamCnt )),
+		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
+		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
 	};
 	m_scatPlotSize = QPoint( wSz[0], wSz[1] );
 }
@@ -585,8 +595,8 @@ QRect iAQSplom::getPlotRectByIndex( int x, int y )
 	if( m_isIndexingBottomToTop )
 		y = invert( y );
 	int spc = settings.plotsSpacing;
-	int xpos = settings.tickOffsets.x() + x * ( m_scatPlotSize.x() + spc );
-	int ypos = settings.tickOffsets.y() + y * ( m_scatPlotSize.y() + spc );
+	int xpos = settings.tickOffsets.x() + x * ( m_scatPlotSize.x() + spc ) + ((m_separationIdx != -1 && x > m_separationIdx) ? settings.separationMargin : 0);
+	int ypos = settings.tickOffsets.y() + y * ( m_scatPlotSize.y() + spc ) + ((m_separationIdx != -1 && y > (getVisibleParametersCount() - m_separationIdx - 2)) ? settings.separationMargin : 0);
 	QRect res( xpos, ypos, m_scatPlotSize.x(), m_scatPlotSize.y() );
 	return res;
 }
