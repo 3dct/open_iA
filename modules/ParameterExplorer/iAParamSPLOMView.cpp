@@ -37,6 +37,7 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QSpinBox>
 #include <QVBoxLayout>
 #include <QTableWidget>
 
@@ -70,6 +71,11 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 
 	// set up settings:
 	m_settings->setLayout(new QVBoxLayout());
+	QSpinBox* separationSpinBox = new QSpinBox();
+	separationSpinBox->setMinimum(0);
+	separationSpinBox->setMaximum(m_tableView->Table()->columnCount()-1);
+	separationSpinBox->setValue(0);
+	connect(separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
 	QComboBox* lutSourceChoice = new QComboBox();
 	lutSourceChoice->addItem("None");
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
@@ -77,6 +83,8 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	connect(lutSourceChoice, SIGNAL(currentTextChanged(const QString &)), this, SLOT(SetLUTColumn(const QString &)));
 	QWidget* lutSourceLine = new QWidget();
 	lutSourceLine->setLayout(new QHBoxLayout());
+	lutSourceLine->layout()->addWidget(new QLabel("Input Parameter #: "));
+	lutSourceLine->layout()->addWidget(separationSpinBox);
 	lutSourceLine->layout()->addWidget(new QLabel("LUT Source:"));
 	lutSourceLine->layout()->addWidget(lutSourceChoice);
 	lutSourceLine->setFixedHeight(24);
@@ -170,4 +178,9 @@ void iAParamSPLOMView::UpdateFeatVisibilty(int)
 void iAParamSPLOMView::PointHovered(int id)
 {
 	m_spatialView->SetImage(id+1);
+}
+
+void iAParamSPLOMView::SeparationChanged(int idx)
+{
+	m_splom->SetSeparation(idx-1);
 }

@@ -44,6 +44,7 @@ private slots:
 	void SplomSelection(QVector<unsigned int> *);
 	void UpdateFeatVisibilty(int);
 	void PointHovered(int);
+	void SeparationChanged(int);
 private:
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;
