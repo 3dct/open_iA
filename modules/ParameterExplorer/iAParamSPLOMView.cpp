@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "iAParamSPLOMView.h"
 
-#include "iAParamTableView.h"
+#include "iAParamColors.h"
 #include "iAParamSpatialView.h"
+#include "iAParamTableView.h"
 
 #include "charts/iAQSplom.h"
 #include "iAConsole.h"
@@ -41,8 +42,6 @@
 
 namespace
 {
-	const double DotAlpha = 0.5;
-	const double DefaultColor[4] = {0.0, 0.0, 1.0, DotAlpha};
 	const int EmptyTableValues = 2;
 	const int FullTableValues = 256;
 	const int DefaultColorColumn = 1;
@@ -149,7 +148,7 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 		for (vtkIdType i = 0; i < 2; i++)
 		{
 			for (int i = 0; i < 4; ++i)
-				rgba[i] = DefaultColor[i];
+				rgba[i] = SPLOMDotColor[i];
 			m_lut->SetTableValue(i, rgba);
 		}
 		m_lut->Build();
@@ -167,7 +166,6 @@ void iAParamSPLOMView::UpdateFeatVisibilty(int)
 	for (int i = 0; i < m_featCB.size(); ++i)
 		m_splom->setParameterVisibility(m_tableView->Table()->item(0, i+1)->text(), m_featCB[i]->isChecked());
 }
-
 
 void iAParamSPLOMView::PointHovered(int id)
 {

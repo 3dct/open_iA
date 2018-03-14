@@ -18,53 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#include <QMap>
-#include <QWidget>
-
-#include <vtkSmartPointer.h>
-
-#include "io/iAITKIO.h"
-
-class iADiagramFctWidget;
-class iAParamTableView;
-class iAHistogramCreator;
-class iAHistogramData;
-class iAImageWidget;
-class iAPlot;
-
-class vtkImageData;
-
-class QSpinBox;
-class QToolButton;
-
-class iAParamSpatialView: public QWidget
-{
-	Q_OBJECT
-public:
-	iAParamSpatialView(iAParamTableView* table, QString const & basePath, iADiagramFctWidget* chartWidget, int binCount);
-	void SetImage(int id);
-private slots:
-	void SlicerModeButtonClicked(bool checked);
-	void SliceChanged(int slice);
-	void HistogramReady();
-private:
-	void SwitchToHistogram(int id);
-	iAParamTableView* m_table;
-	QString m_basePath;
-	QMap<int, vtkSmartPointer<vtkImageData>> m_imageCache;
-	QVector<iAITKIO::ImagePointer> m_loadedImgs; // to stop itk from unloading
-	int m_curMode;
-	int m_sliceNr[3];
-	QVector<QToolButton*> slicerModeButton;
-	QSpinBox* m_sliceControl;
-	iAImageWidget* m_imageWidget;
-	QWidget* m_settings;
-	QWidget* m_imageContainer;
-	bool m_sliceNrInitialized;
-	iADiagramFctWidget* m_chartWidget;
-	QSharedPointer<iAPlot> m_curHistogramPlot;
-	QVector<QSharedPointer<iAHistogramCreator> > m_histogramCreaters;
-	QMap<int, QSharedPointer<iAHistogramData>> m_histogramCache;
-	int m_binCount;
-};
+const double DotAlpha = 0.5;
+const double SPLOMDotColor[4] = { 0.0, 0.0, 1.0, DotAlpha };
+const QColor SPLOMDotQColor = QColor(SPLOMDotColor[0] * 255, SPLOMDotColor[1] * 255, SPLOMDotColor[2] * 255);
