@@ -52,7 +52,9 @@ iAParamFeaturesView::iAParamFeaturesView(QTableWidget* dataTable):
 		visibleCheckbox->setChecked(row != 0);
 		connect(visibleCheckbox, SIGNAL(stateChanged(int)), this, SLOT(VisibleCheckChanged(int)));
 		m_featureTable->setCellWidget(row, ShowColumn, visibleCheckbox);
-		m_featureTable->setItem(row, 1, new QTableWidgetItem(dataTable->item(0, row)->text()));
+		auto titleItem = new QTableWidgetItem(dataTable->item(0, row)->text());
+		titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
+		m_featureTable->setItem(row, 1, titleItem);
 		QCheckBox* invertCheckbox = new QCheckBox();
 		invertCheckbox->setProperty("featureID", row);
 		m_featureTable->setCellWidget(row, InvertColumn, invertCheckbox);
