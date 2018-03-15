@@ -75,7 +75,7 @@ void iAParameterExplorerModuleInterface::ToggleSettings()
 		DEBUG_LOG("ParameterExplorer was not loaded properly!");
 		return;
 	}
-	attach->ToggleSettings();
+	attach->ToggleSettings(m_toolBar->action_ToggleSettings->isChecked());
 }
 
 bool iAParameterExplorerModuleInterface::StartParameterExplorer()

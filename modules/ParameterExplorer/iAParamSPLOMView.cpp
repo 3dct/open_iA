@@ -202,3 +202,8 @@ void iAParamSPLOMView::SetColorTheme(const QString &name)
 {
 	m_splom->SetBackgroundColorTheme(iAColorThemeManager::GetInstance().GetTheme(name));
 }
+
+void iAParamSPLOMView::ToggleSettings(bool visible)
+{
+	m_settings->setVisible(visible);
+}

@@ -33,7 +33,7 @@ class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 public:
 	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
 	void ToggleDockWidgetTitleBars();
-	void ToggleSettings();
+	void ToggleSettings(bool visible);
 private:
 	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
 	iAParamSPLOMView* m_SPLOMView;

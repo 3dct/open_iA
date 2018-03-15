@@ -187,3 +187,8 @@ void iAParamSpatialView::SwitchToHistogram(int id)
 	m_chartWidget->AddPlot(m_curHistogramPlot);
 	m_chartWidget->redraw();
 }
+
+void iAParamSpatialView::ToggleSettings(bool visible)
+{
+	m_settings->setVisible(visible);
+}

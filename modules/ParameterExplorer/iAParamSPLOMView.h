@@ -39,6 +39,7 @@ class iAParamSPLOMView: public QWidget
 	Q_OBJECT
 public:
 	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
+	void ToggleSettings(bool visible);
 private slots:
 	void SetLUTColumn(QString const & colName);
 	void SplomSelection(QVector<unsigned int> *);

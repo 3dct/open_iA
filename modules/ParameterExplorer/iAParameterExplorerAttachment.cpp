@@ -64,7 +64,9 @@ void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()
 	}
 }
 
-void iAParameterExplorerAttachment::ToggleSettings()
+void iAParameterExplorerAttachment::ToggleSettings(bool visible)
 {
+	m_spatialView->ToggleSettings(visible);
+	m_SPLOMView->ToggleSettings(visible);
 }
 
