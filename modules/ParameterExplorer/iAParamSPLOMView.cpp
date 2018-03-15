@@ -194,5 +194,5 @@ void iAParamSPLOMView::ShowFeature(int featureID, bool show)
 
 void iAParamSPLOMView::InvertFeature(int featureID, bool show)
 {
-
+	m_splom->setParameterInverted(featureID, show);
 }
