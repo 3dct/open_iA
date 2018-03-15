@@ -40,6 +40,22 @@ void iAParameterExplorerModuleInterface::Initialize()
 	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
 }
 
+
+
+void iAParameterExplorerModuleInterface::SetupToolBar()
+{
+	if (m_toolBar)
+		return;
+	m_toolBar = new iAParamToolBar("Parameter Explorer Toolbar");
+	m_toolBar->action_ToggleTitleBar->setCheckable(true);
+	m_toolBar->action_ToggleTitleBar->setChecked(true);
+	connect(m_toolBar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(ToggleDockWidgetTitleBars()));
+	m_toolBar->action_ToggleSettings->setCheckable(true);
+	m_toolBar->action_ToggleSettings->setChecked(true);
+	connect(m_toolBar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
+	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolBar);
+}
+
 void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 {
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
@@ -51,6 +67,17 @@ void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 	attach->ToggleDockWidgetTitleBars();
 }
 
+void iAParameterExplorerModuleInterface::ToggleSettings()
+{
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		return;
+	}
+	attach->ToggleSettings();
+}
+
 bool iAParameterExplorerModuleInterface::StartParameterExplorer()
 {
 	PrepareActiveChild();
@@ -58,8 +85,8 @@ bool iAParameterExplorerModuleInterface::StartParameterExplorer()
 	{
 		return false;
 	}
-	bool result = AttachToMdiChild(m_mdiChild);
-	return result;
+	SetupToolBar();
+	return AttachToMdiChild(m_mdiChild);
 }
 
 iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)

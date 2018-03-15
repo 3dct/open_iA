@@ -63,3 +63,8 @@ void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()
 		m_dockWidgets[i]->toggleTitleBar();
 	}
 }
+
+void iAParameterExplorerAttachment::ToggleSettings()
+{
+}
+

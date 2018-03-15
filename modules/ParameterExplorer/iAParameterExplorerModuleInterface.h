@@ -21,6 +21,12 @@
 #pragma once
 
 #include "iAModuleInterface.h"
+#include "ui_ParamToolBar.h"
+#include "iAQTtoUIConnector.h"
+
+#include <QToolBar>
+
+typedef iAQTtoUIConnector<QToolBar, Ui_ParamToolBar> iAParamToolBar;
 
 class iAParameterExplorerModuleInterface : public iAModuleInterface
 {
@@ -32,4 +38,8 @@ protected:
 private slots:
 	bool StartParameterExplorer();
 	void ToggleDockWidgetTitleBars();
+	void ToggleSettings();
+private:
+	void SetupToolBar();
+	iAParamToolBar * m_toolBar;
 };
