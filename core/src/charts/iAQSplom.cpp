@@ -489,20 +489,24 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		QRect separation = getPlotRectByIndex(m_separationIdx+1, m_separationIdx+1);
 		QRect r1(
 			QPoint(upperLeft.left(), upperLeft.top()), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, separation.bottom())
-		), r2(
-			QPoint(separation.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(lowerRight.right(), lowerRight.bottom())
-		), r3(
-			QPoint(upperLeft.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, lowerRight.bottom())
-		), r4(
-			QPoint(separation.left(), upperLeft.top()), QPoint(lowerRight.right(), separation.bottom())
 		);
 		QColor c1(m_bgColorTheme->GetColor(0)); c1.setAlpha(64);
-		QColor c2(m_bgColorTheme->GetColor(1)); c2.setAlpha(64);
-		QColor c3(m_bgColorTheme->GetColor(3)); c3.setAlpha(64);
 		painter.fillRect(r1, QBrush(c1));
-		painter.fillRect(r2, QBrush(c1));
-		painter.fillRect(r3, QBrush(c2));
-		painter.fillRect(r4, QBrush(c3));
+		if (!m_maximizedPlot)
+		{
+			QColor c2(m_bgColorTheme->GetColor(1)); c2.setAlpha(64);
+			QColor c3(m_bgColorTheme->GetColor(3)); c3.setAlpha(64);
+			QRect r2(
+				QPoint(separation.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(lowerRight.right(), lowerRight.bottom())
+			), r3(
+				QPoint(upperLeft.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, lowerRight.bottom())
+			), r4(
+				QPoint(separation.left(), upperLeft.top()), QPoint(lowerRight.right(), separation.bottom())
+			);
+			painter.fillRect(r2, QBrush(c1));
+			painter.fillRect(r3, QBrush(c2));
+			painter.fillRect(r4, QBrush(c3));
+		}
 	}
 	if( !getVisibleParametersCount() )
 		return;
