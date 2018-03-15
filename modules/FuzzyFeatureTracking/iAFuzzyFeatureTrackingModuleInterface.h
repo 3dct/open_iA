@@ -33,6 +33,5 @@ public:
 private slots:
 	bool start_FuzzyFeatureTracking();
 
-	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData );
-
+	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
 };
