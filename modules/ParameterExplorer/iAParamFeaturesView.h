@@ -24,6 +24,7 @@
 
 class iAParamTableView;
 
+class QSettings;
 class QTableWidget;
 
 class iAParamFeaturesView : public QWidget
@@ -31,6 +32,8 @@ class iAParamFeaturesView : public QWidget
 	Q_OBJECT
 public:
 	iAParamFeaturesView(QTableWidget* dataTable);
+	void SaveSettings(QSettings & settings);
+	void LoadSettings(QSettings const & settings);
 signals:
 	void ShowFeature(int id, bool invert);
 	void InvertFeature(int id, bool invert);

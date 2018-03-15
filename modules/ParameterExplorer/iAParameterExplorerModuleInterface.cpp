@@ -25,7 +25,12 @@
 
 #include "iAConsole.h"
 #include "iAChildData.h"
+#include "io/iAFileUtils.h"
 #include "mainwindow.h"
+#include "mdichild.h"
+
+#include <QFileDialog>
+#include <QSettings>
 
 void iAParameterExplorerModuleInterface::Initialize()
 {
@@ -38,9 +43,12 @@ void iAParameterExplorerModuleInterface::Initialize()
 	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
 	connect(actionExplore, SIGNAL(triggered()), this, SLOT(StartParameterExplorer()));
+	
+	QAction * actionLoad = new QAction(m_mainWnd);
+	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", 0));
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLoad, false);
+	connect(actionLoad, SIGNAL(triggered()), this, SLOT(LoadState()));
 }
-
-
 
 void iAParameterExplorerModuleInterface::SetupToolBar()
 {
@@ -53,11 +61,13 @@ void iAParameterExplorerModuleInterface::SetupToolBar()
 	m_toolBar->action_ToggleSettings->setCheckable(true);
 	m_toolBar->action_ToggleSettings->setChecked(true);
 	connect(m_toolBar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
+	connect(m_toolBar->action_SaveState, SIGNAL(triggered()), this, SLOT(SaveState()));
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolBar);
 }
 
 void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 {
+	m_mdiChild = m_mainWnd->activeMdiChild();
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
@@ -69,6 +79,7 @@ void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAParameterExplorerModuleInterface::ToggleSettings()
 {
+	m_mdiChild = m_mainWnd->activeMdiChild();
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
@@ -78,19 +89,86 @@ void iAParameterExplorerModuleInterface::ToggleSettings()
 	attach->ToggleSettings(m_toolBar->action_ToggleSettings->isChecked());
 }
 
-bool iAParameterExplorerModuleInterface::StartParameterExplorer()
+void iAParameterExplorerModuleInterface::StartParameterExplorer()
 {
 	PrepareActiveChild();
 	if (!m_mdiChild)
+		return;
+	QString csvFileName = QFileDialog::getOpenFileName(m_mainWnd,
+		tr("Select CSV File"), m_mdiChild->getFilePath(), tr("CSV Files (*.csv);;"));
+	if (csvFileName.isEmpty())
+		return;
+	CreateAttachment(csvFileName);
+}
+
+void iAParameterExplorerModuleInterface::SaveState()
+{
+	m_mdiChild = m_mainWnd->activeMdiChild();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!attach)
 	{
+		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		return;
+	}
+	QString stateFileName = QFileDialog::getSaveFileName(m_mainWnd, "Save Parameter Explorer State",
+		m_mdiChild->getFilePath(), "Parameter Explorer State (*.pes);;");
+	if (stateFileName.isEmpty())
+		return;
+	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
+	QFileInfo stateFileInfo(stateFileName);
+	stateFileSettings.setValue("Reference", MakeRelative(stateFileInfo.absoluteFilePath(), m_mdiChild->currentFile()));
+	stateFileSettings.setValue("CSVFile", MakeRelative(stateFileInfo.absoluteFilePath(), attach->CSVFileName()));
+	stateFileSettings.setValue("Layout", m_mdiChild->GetLayoutName());
+	attach->SaveSettings(stateFileSettings);
+}
+
+void iAParameterExplorerModuleInterface::LoadState()
+{
+	QString stateFileName = QFileDialog::getOpenFileName(m_mainWnd, "Save Parameter Explorer State",
+		"", "Parameter Explorer State (*.pes);;");
+	if (stateFileName.isEmpty())
+		return;
+	QFileInfo stateFileInfo(stateFileName);
+	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
+	QString refFileName = MakeAbsolute(stateFileInfo.absoluteFilePath(), stateFileSettings.value("Reference").toString());
+	MdiChild *child = m_mainWnd->createMdiChild(false);
+	if (!child->loadFile(refFileName, false))
+	{
+		DEBUG_LOG(QString("Could not load reference file %1.").arg(refFileName));
+		return;
+	}
+	m_mdiChild = child;
+	QString csvFileName = MakeAbsolute(stateFileInfo.absoluteFilePath(), stateFileSettings.value("CSVFile").toString());
+	if (!CreateAttachment(csvFileName))
+		return;
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		return;
+	}
+	attach->LoadSettings(stateFileSettings);
+	m_mdiChild->showMaximized();
+	m_mdiChild->LoadLayout(stateFileSettings.value("Layout").toString());
+}
+
+bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName)
+{
+	bool result = AttachToMdiChild(m_mdiChild);
+	if (!result)
+		return false;
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("ParameterExplorer was not loaded properly!");
 		return false;
 	}
+	attach->LoadCSV(csvFileName);
 	SetupToolBar();
-	return AttachToMdiChild(m_mdiChild);
+	return true;
 }
 
 iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
 {
-	iAParameterExplorerAttachment* result = iAParameterExplorerAttachment::create( mainWnd, childData);
-	return result;
+	return iAParameterExplorerAttachment::create( mainWnd, childData);
 }

@@ -30,12 +30,19 @@ class iAParamSPLOMView;
 class iAParamSpatialView;
 class iAParamTableView;
 
+class QSettings;
+
 class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 {
 public:
 	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	void LoadCSV(QString const & fileName);
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings(bool visible);
+	void SaveAll(QString const & fileName);
+	void SaveSettings(QSettings & settings);
+	void LoadSettings(QSettings const & settings);
+	QString const & CSVFileName() const;
 private:
 	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
 	iAParamSPLOMView* m_SPLOMView;
@@ -43,4 +50,5 @@ private:
 	iAParamTableView* m_tableView;
 	iAParamFeaturesView* m_featuresView;
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
+	QString m_csvFileName;
 };

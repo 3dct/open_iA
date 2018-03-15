@@ -49,8 +49,18 @@
     <string>Toggle Settings</string>
    </property>
   </action>
+  <action name="action_SaveState">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save State</string>
+   </property>
+  </action>
   <addaction name="action_ToggleTitleBar"/>
   <addaction name="action_ToggleSettings"/>
+  <addaction name="action_SaveState"/>
  </widget>
  <resources>
   <include location="../../core/open_iA.qrc"/>

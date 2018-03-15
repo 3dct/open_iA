@@ -34,11 +34,15 @@ class iAParameterExplorerModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 protected:
-	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
 private slots:
-	bool StartParameterExplorer();
+	void StartParameterExplorer();
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings();
+	void SaveState();
+	void LoadState();
+private:
+	bool CreateAttachment(QString const & csvFileName);
 private:
 	void SetupToolBar();
 	iAParamToolBar * m_toolBar;

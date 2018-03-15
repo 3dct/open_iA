@@ -32,7 +32,9 @@ class vtkColorTransferFunction;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 
-class QCheckBox;
+class QComboBox;
+class QSettings;
+class QSpinBox;
 
 class iAParamSPLOMView: public QWidget
 {
@@ -40,6 +42,8 @@ class iAParamSPLOMView: public QWidget
 public:
 	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
 	void ToggleSettings(bool visible);
+	void SaveSettings(QSettings & settings);
+	void LoadSettings(QSettings const & settings);
 public slots:
 	void ShowFeature(int featureID, bool show);
 	void InvertFeature(int featureID, bool show);
@@ -57,5 +61,6 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
 	QWidget* m_settings;
-	QVector<QCheckBox*> m_featCB;
+	QComboBox* m_separationColors;
+	QSpinBox* m_separationSpinBox;
 };

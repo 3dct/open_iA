@@ -38,6 +38,7 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QSettings>
 #include <QSpinBox>
 #include <QVBoxLayout>
 #include <QTableWidget>
@@ -72,21 +73,21 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 
 	// set up settings:
 	m_settings->setLayout(new QVBoxLayout());
-	QSpinBox* separationSpinBox = new QSpinBox();
-	separationSpinBox->setMinimum(0);
-	separationSpinBox->setMaximum(m_tableView->Table()->columnCount()-1);
-	separationSpinBox->setValue(0);
-	connect(separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
-	QComboBox* separationColors = new QComboBox();
+	m_separationSpinBox = new QSpinBox();
+	m_separationSpinBox->setMinimum(0);
+	m_separationSpinBox->setMaximum(m_tableView->Table()->columnCount()-1);
+	m_separationSpinBox->setValue(0);
+	connect(m_separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
+	m_separationColors = new QComboBox();
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
 	{
-		separationColors->addItem(themeName);
+		m_separationColors->addItem(themeName);
 		if (themeName == m_splom->GetBackgroundColorTheme()->GetName())
 		{
-			separationColors->setCurrentText(themeName);
+			m_separationColors->setCurrentText(themeName);
 		}
 	}
-	connect(separationColors, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
+	connect(m_separationColors, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
 	QComboBox* lutSourceChoice = new QComboBox();
 	lutSourceChoice->addItem("None");
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
@@ -95,9 +96,9 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	QWidget* lutSourceLine = new QWidget();
 	lutSourceLine->setLayout(new QHBoxLayout());
 	lutSourceLine->layout()->addWidget(new QLabel("Input Parameter #: "));
-	lutSourceLine->layout()->addWidget(separationSpinBox);
+	lutSourceLine->layout()->addWidget(m_separationSpinBox);
 	lutSourceLine->layout()->addWidget(new QLabel("Separation color scheme: "));
-	lutSourceLine->layout()->addWidget(separationColors);
+	lutSourceLine->layout()->addWidget(m_separationColors);
 	lutSourceLine->layout()->addWidget(new QLabel("LUT Source:"));
 	lutSourceLine->layout()->addWidget(lutSourceChoice);
 	lutSourceLine->setFixedHeight(24);
@@ -195,4 +196,18 @@ void iAParamSPLOMView::ShowFeature(int featureID, bool show)
 void iAParamSPLOMView::InvertFeature(int featureID, bool show)
 {
 	m_splom->setParameterInverted(featureID, show);
+}
+
+void iAParamSPLOMView::SaveSettings(QSettings & settings)
+{
+	settings.setValue("SPLOMBackgroundColorTheme", m_separationColors->currentText());
+	settings.setValue("SPLOMSeparationIndex", m_separationSpinBox->value());
+}
+
+void iAParamSPLOMView::LoadSettings(QSettings const & settings)
+{
+	m_separationColors->setCurrentText(settings.value("SPLOMBackgroundColorTheme", "White").toString());
+	m_separationSpinBox->setValue(settings.value("SPLOMSeparationIndex", 0).toInt());
+	//m_splom->SetBackgroundColorTheme(iAColorThemeManager::GetInstance().GetTheme(settings.value("SPLOMBackgroundColorTheme", "White").toString()));
+	//m_splom->SetSeparation(settings.value("SPLOMSeparationIndex", -1).toInt());
 }
