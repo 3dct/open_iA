@@ -57,7 +57,7 @@ const int iAImagePreviewWidget::SliceNumberNotSet = -1;
 #include <QSizePolicy>
 
 iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera,
-	iASlicerMode mode, int labelCount, iAColorTheme const * colorTheme, bool magicLens):
+	iASlicerMode mode, int labelCount, bool magicLens):
 	QWidget(parent),
 	m_isLabelImage(isLabel),
 	m_conn(0),
@@ -69,7 +69,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_sliceNumber(SliceNumberNotSet),
 	m_mode(mode),
 	m_aspectRatio(1.0),
-	m_colorTheme(colorTheme)
+	m_colorTheme(nullptr)
 {
 	m_slicer = new iASlicer(this, mode, this, 0, 0, false, magicLens);
 }
@@ -251,7 +251,7 @@ void iAImagePreviewWidget::RemoveChannel()
 	m_addChannelImgActor = nullptr;
 }
 
- void iAImagePreviewWidget::BuildCTF()
+ bool iAImagePreviewWidget::BuildCTF()
 {
 	// TODO: cache/reuse ctf
 	if (m_empty || !m_isLabelImage)
@@ -264,6 +264,8 @@ void iAImagePreviewWidget::RemoveChannel()
 	}
 	else
 	{
+		if (!m_colorTheme)
+			return false;
 		vtkSmartPointer<vtkDiscretizableColorTransferFunction> ctf = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
 		assert(ctf);
 		ctf->RemoveAllPoints();
@@ -285,11 +287,13 @@ void iAImagePreviewWidget::RemoveChannel()
 		ctf->Build();
 		m_ctf = ctf;
 	}
+	return true;
 }
 
 void iAImagePreviewWidget::UpdateImage()
 {
-	BuildCTF();
+	if (!BuildCTF())
+		return;
 	m_slicer->reInitialize(m_imageData, m_slicerTransform, m_ctf);
 	m_slicer->changeImageData(m_imageData);
 	UpdateView();
