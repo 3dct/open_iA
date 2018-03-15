@@ -206,6 +206,23 @@ void iAQSplom::setParameterVisibility( int paramIndex, bool isVisible )
 	update();
 }
 
+void iAQSplom::setParameterInverted(int paramIndex, bool isInverted)
+{
+	m_splomData->setInverted(paramIndex, isInverted);
+	unsigned long numParams = m_splomData->numParams();
+	for (unsigned long row = 0; row < numParams; ++row)
+	{
+		if (m_paramVisibility[row])
+			m_matrix[row][paramIndex]->UpdatePoints();
+	}
+	for (unsigned long col = 0; col < numParams; ++col)
+	{  // avoid double updated of row==col plot
+		if (col != paramIndex && m_paramVisibility[col])
+			m_matrix[paramIndex][col]->UpdatePoints();
+	}
+	update();
+}
+
 QVector<unsigned int> & iAQSplom::getSelection()
 {
 	return m_selInds;
