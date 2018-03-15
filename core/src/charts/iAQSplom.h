@@ -76,6 +76,7 @@ public:
 	void applyLookupTable();												//!< Apply lookup table to all the scatter plots.
 	void setParameterVisibility( int paramIndex, bool isVisible );			//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
+	void setParameterInverted(int paramIndex, bool isInverted);				//!< whether to invert the axis for a given parameter's index.
 	QVector<unsigned int> & getSelection();									//!< Get vector of indices of currently selected data points.
 	void setSelection( const QVector<unsigned int> * selInds );				//!< Set selected data points from a vector of indices.
 	void getActivePlotIndices( int * inds_out );							//!< Get X and Y parameter indices of currently active scatter plot.
