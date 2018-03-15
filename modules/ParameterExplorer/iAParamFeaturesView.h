@@ -2,7 +2,7 @@
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,32 +15,28 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAModuleAttachmentToChild.h"
+#pragma once
 
-#include <QVector>
+#include <QWidget>
 
-class iAChildData;
-class iADockWidgetWrapper;
-
-class iAParamFeaturesView;
-class iAParamSPLOMView;
-class iAParamSpatialView;
 class iAParamTableView;
 
-class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
+class QTableWidget;
+
+class iAParamFeaturesView : public QWidget
 {
+	Q_OBJECT
 public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void ToggleDockWidgetTitleBars();
-	void ToggleSettings(bool visible);
+	iAParamFeaturesView(QTableWidget* dataTable);
+signals:
+	void ShowFeature(int id, bool invert);
+	void InvertFeature(int id, bool invert);
 private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAParamSPLOMView* m_SPLOMView;
-	iAParamSpatialView* m_spatialView;
-	iAParamTableView* m_tableView;
-	iAParamFeaturesView* m_featuresView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
+	QTableWidget* m_featureTable;
+private slots:
+	void InvertCheckChanged(int);
+	void VisibleCheckChanged(int);
 };

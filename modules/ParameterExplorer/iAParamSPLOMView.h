@@ -40,10 +40,12 @@ class iAParamSPLOMView: public QWidget
 public:
 	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
 	void ToggleSettings(bool visible);
+public slots:
+	void ShowFeature(int featureID, bool show);
+	void InvertFeature(int featureID, bool show);
 private slots:
 	void SetLUTColumn(QString const & colName);
 	void SplomSelection(QVector<unsigned int> *);
-	void UpdateFeatVisibilty(int);
 	void PointHovered(int);
 	void SeparationChanged(int);
 	void SetColorTheme(const QString &name);

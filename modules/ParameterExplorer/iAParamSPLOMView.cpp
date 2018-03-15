@@ -104,23 +104,9 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	lutSourceLine->layout()->setMargin(0);
 	lutSourceLine->layout()->setSpacing(2);
 
-	QWidget* featSelectLine = new QWidget();
-	featSelectLine->setLayout(new iAQFlowLayout());
-	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
-	{
-		QCheckBox* cb = new QCheckBox(m_tableView->Table()->item(0, c)->text());
-		cb->setChecked(true);
-		featSelectLine->layout()->addWidget(cb);
-		m_featCB.push_back(cb);
-		connect(cb, SIGNAL(stateChanged(int)), this, SLOT(UpdateFeatVisibilty(int)));
-	}
-	featSelectLine->layout()->setMargin(0);
-	featSelectLine->layout()->setSpacing(2);
-	featSelectLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_settings->layout()->setMargin(0);
 	m_settings->layout()->setSpacing(0);
 	m_settings->layout()->addWidget(lutSourceLine);
-	m_settings->layout()->addWidget(featSelectLine);
 
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_splom);
@@ -181,13 +167,6 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 	m_splom->setLookupTable(m_lut, (colName == "None") ? m_tableView->Table()->item(0, 1)->text() : colName );
 }
 
-
-void iAParamSPLOMView::UpdateFeatVisibilty(int)
-{
-	for (int i = 0; i < m_featCB.size(); ++i)
-		m_splom->setParameterVisibility(m_tableView->Table()->item(0, i+1)->text(), m_featCB[i]->isChecked());
-}
-
 void iAParamSPLOMView::PointHovered(int id)
 {
 	m_spatialView->SetImage(id+1);
@@ -206,4 +185,14 @@ void iAParamSPLOMView::SetColorTheme(const QString &name)
 void iAParamSPLOMView::ToggleSettings(bool visible)
 {
 	m_settings->setVisible(visible);
+}
+
+void iAParamSPLOMView::ShowFeature(int featureID, bool show)
+{
+	m_splom->setParameterVisibility(featureID, show);
+}
+
+void iAParamSPLOMView::InvertFeature(int featureID, bool show)
+{
+
 }
