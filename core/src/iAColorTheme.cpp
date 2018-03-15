@@ -319,7 +319,10 @@ iAColorThemeManager::~iAColorThemeManager()
 iAColorTheme const * iAColorThemeManager::GetTheme(QString const & name) const
 {
 	QMap<QString, iAColorTheme*>::const_iterator it = m_themes.find(name);
-	assert (it != m_themes.end());
+	if (it == m_themes.end())
+	{
+		return m_themes[0];
+	}
 	return *it;
 }
 
