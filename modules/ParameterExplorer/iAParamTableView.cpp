@@ -24,6 +24,7 @@
 
 #include <QFile>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QTableWidget>
 #include <QTextStream>
 
@@ -52,6 +53,9 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 
 	m_table->clear();
 	m_table->setRowCount(csvLines.size());
+	m_table->verticalHeader()->setVisible(false);
+	m_table->horizontalHeader()->setVisible(false);
+	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	QStringList headers = csvLines[0].split(",");
 	m_table->setColumnCount(headers.size());
@@ -94,4 +98,11 @@ double iAParamTableView::ColumnMax(int col) const
 QTableWidget* iAParamTableView::Table()
 {
 	return m_table;
+}
+
+void iAParamTableView::ShowFeature(int index, bool show)
+{
+	if (index == 0)
+		return;
+	m_table->setColumnHidden(index, !show);
 }

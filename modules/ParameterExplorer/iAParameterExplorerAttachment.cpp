@@ -52,6 +52,7 @@ void iAParameterExplorerAttachment::LoadCSV(QString const & csvFileName)
 	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
 	m_featuresView = new iAParamFeaturesView(m_tableView->Table());
 	connect(m_featuresView, SIGNAL(ShowFeature(int, bool)), m_SPLOMView, SLOT(ShowFeature(int, bool)));
+	connect(m_featuresView, SIGNAL(ShowFeature(int, bool)), m_tableView, SLOT(ShowFeature(int, bool)));
 	connect(m_featuresView, SIGNAL(InvertFeature(int, bool)), m_SPLOMView, SLOT(InvertFeature(int, bool)));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix", "ParamSPLOMView"));
