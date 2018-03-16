@@ -47,21 +47,21 @@ public:
 	QString getText(int index) const;
 	int getIntValue(int index) const;
 	double getDblValue(int index) const;
-	void showROI(MdiChild *child);
+	void showROI();
 	int exec() override;
 	void setSourceMdi(MdiChild* child, MainWindow* mainWnd);
 private:
 	QWidget *container;
 	int m_roi[6];
 	QVector<int> m_filterWithParameters;
-	MdiChild *m_roiMdiChild, *m_sourceMdi;
+	MdiChild *m_sourceMdiChild;
 	MainWindow* m_mainWnd;
-	bool m_roiMdiChildClosed;
+	bool m_sourceMdiChildClosed;
 	void updateValues(QList<QVariant>);
 	void UpdateROIPart(QString const & partName, QString const & value);
 private slots:
 	void ROIUpdated(QString text);
-	void ROIChildClosed();
+	void SourceChildClosed();
 	void SelectFilter();
 protected:
 	QVector<QWidget*> widgetList;
