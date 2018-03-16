@@ -134,7 +134,11 @@ public:
 	//selection for each class and show SPM for it
 	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
 
+	//selection for single class and show SPM
 	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
+	
+	//highlights singe object in class
+	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
 
 Q_SIGNALS:
 	void updateViews();
@@ -174,6 +178,8 @@ public slots:
 	void spSelInformsPCChart(QVector<unsigned int> * selInds);
 	void spUpdateSPColumnVisibility();
 
+	void spUpdateSPColumnVisibilityWithVis();
+
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	bool changeFeatureScout_Options( int idx );
 
@@ -191,8 +197,13 @@ protected:
 private:
 	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
 	void setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag);
+	void setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
 	void setClassColour(double * rgba, const int colInd);
 	void spmApplyColorMap(double  rgba[4], const int colInd);
+	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
+	void spmApplyGeneralColorMap(const double rgba[4]);
+	void setRedSelectionColor();
+	void setSelectionColor(const QColor & selColor);
 	// Qt members
 	QWidget *activeChild;
 

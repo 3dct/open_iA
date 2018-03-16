@@ -1006,6 +1006,25 @@ void dlg_FeatureScout::RenderingButton()
 		// matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 		// matrix->SetClass2Plot( -1 );
 		// matrix->UpdateLayout();
+
+		/*
+		iterate over each class get ID, do copy for chartTable, set Data and Apply ColorMap
+		
+		QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
+		int classCount = rootItem->rowCount();
+		// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
+		for ( int i = 0; i < classCount; i++ )
+		QStandardItem *item = rootItem->child( i, 0 );
+		int itemL = item->rowCount();
+
+		// Class has no objects, proceed with next class
+		if ( !itemL )
+		continue;
+		/
+		*/
+
+		//chartTable->ShallowCopy( tableList[item->index().row()] );
+		
 	}
 
 	static_cast<MdiChild*>( activeChild )->updateViews();
@@ -2360,11 +2379,17 @@ void dlg_FeatureScout::ClassAddButton()
 			if ( this->spmActivated && matrix != NULL )
 			{
 				bool retflag;
+
 				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
 				
 				//handle over cid (color id) 
 				*selInd = matrix->getSelection(); 
-				applyClassSelection(retflag, selInd, cid, true);
+				applyClassSelection(retflag, selInd, cid, false);
+				matrix->clearSelection(); 
+				matrix->update(); 
+				this->setRedSelectionColor();
+				spUpdateSPColumnVisibilityWithVis(); 
+				
 				if (retflag) return;
 
 
@@ -2418,6 +2443,24 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTab
 
 }
 
+//applies selection for single object selected in class
+void dlg_FeatureScout::applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries,const uint selectionOID, const int colorIdx, const bool applyColorMap) {
+	retflag = true;
+	double rgba[4];
+	setSingeSPMObjectDataSelection(classEntries, selectionOID, retflag); 
+	
+	if (retflag)return;
+
+	if (applyColorMap) {
+		spmApplyColorMap(rgba, colorIdx);
+	}
+
+	retflag = false; 
+	//(classEntries, retflag);
+
+
+}
+
 //copy all entries from a chart table to matrix
 //with no selection?
 
@@ -2433,6 +2476,7 @@ void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableW
 
 }
 
+//set data from current class to SPM
 void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool &retflag) {
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
 	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
@@ -2489,10 +2533,6 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 
 
 	//set first colum n ID n
-	//for (int col = 0; col < colCount /*this->csvTable->GetNumberOfColumns()*/; ++col)
-	//{
-	//	spInput->setItem(0, col, new QTableWidgetItem(this->csvTable->GetColumnName(col)));
-	//}
 	prepareTable(entriesCount, colCount, spInput, this->csvTable);
 
 
@@ -2503,11 +2543,6 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 	//TODO set label ID in first column? 
 	bool containsRowInd = false;
 	int rowSavingIndx = 1;
-	QTableWidgetItem currItem; 
-
-
-	
-
 	for (auto const &curr_selIndx : *selInd) {
 
 		//if row index is in selection index
@@ -2551,6 +2586,53 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 	retflag = false;
 }
 
+//set data for single object in class
+void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, bool &retflag) {
+	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
+	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
+	const int rowCount = (int)classEntries->GetNumberOfRows();
+	prepareTable(rowCount, colCount, spInput, classEntries);
+	vtkSmartPointer<vtkAbstractArray> all_rowInd = classEntries->GetColumn(0);
+	int cur_IndRow = 0;
+	
+	//TODO set label ID in first column? 
+	bool containsRowInd = false;
+	int rowSavingIndx = 1;
+
+	for (int row = 1; row < rowCount + 1; row++) {
+
+		//skip first row
+		cur_IndRow = all_rowInd->GetVariantValue(row - 1).ToInt() - 1;
+		//compares current selection index to rowIndex
+		containsRowInd = ((int)selectionOID) == cur_IndRow;
+		if (containsRowInd) {
+
+			//adds each column entry to vtktable
+			for (int col = 0; col < colCount; col++) {
+				//current row index for saving sind
+				//row index of spInput and QTableWidget are different!!
+
+				vtkStdString csvValue = csvTable->GetValue(row - 1, col).ToString();
+				spInput->setItem(rowSavingIndx, col, new QTableWidgetItem(csvValue.c_str()));
+			}
+			rowSavingIndx++;
+			break;
+		}
+
+	}
+
+	//if scatterplot is active
+	if (!iovSPM)
+		return;
+	//t/*his->matrix->clear(); */
+
+	this->matrix->setData(&(*spInput));
+	this->matrix->update(); 
+	/*this->matrix->selectionModified(&(*selInd));*/
+	this->spUpdateSPColumnVisibility();
+	/*this->matrix->update();*/
+	retflag = false;
+}
 
 //sets color based on color index
 void dlg_FeatureScout::setClassColour(double * rgba, const int colInd)
@@ -2558,26 +2640,24 @@ void dlg_FeatureScout::setClassColour(double * rgba, const int colInd)
 	rgba[0] = this->colorList.at(colInd).redF();
 	rgba[1] = this->colorList.at(colInd).greenF();
 	rgba[2] = this->colorList.at(colInd).blueF();
-	const double alpha = 1;/*((double)this->colorList.at(0).alpha) / 255.0*/
+	const double alpha = 1;
 	rgba[3] = alpha;
 }
 
 void dlg_FeatureScout::spmApplyColorMap(double  rgba[4], const int colInd)
 {
 	setClassColour(rgba, colInd);
-	double range[2];
+	spmApplyGeneralColorMap(rgba); 
+}
 
-	//csv table entry values -first columne min max for color transformation
-	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
-	mmr->GetRange(range);
+
+void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4], double range[2]) {
 	this->m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
 	this->m_pointLUT->SetRange(range);
 	this->m_pointLUT->SetTableRange(range);
 	this->m_pointLUT->SetNumberOfTableValues(2);
 
 	//set color for scatter plot and Renderer
-
-
 	for (vtkIdType i = 0; i < 2; i++)
 	{
 		/*for (int i = 0; i < 4; ++i)*/
@@ -2586,19 +2666,49 @@ void dlg_FeatureScout::spmApplyColorMap(double  rgba[4], const int colInd)
 	}
 	this->m_pointLUT->Build();
 
-
-
-	//wird das noch gebraucht
+	//is this still required?
 	this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
-	this->matrix->setSelectionColor(QColor(255, 40, 0, 1));
-
-	//TODO show selection in color?
-	
-	
-	this->matrix->update();
-	
-	
+	setRedSelectionColor();
 }
+
+
+void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4])
+{
+	double range[2];
+	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
+	mmr->GetRange(range);
+	this->m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
+	this->m_pointLUT->SetRange(range);
+	this->m_pointLUT->SetTableRange(range);
+	this->m_pointLUT->SetNumberOfTableValues(2);
+
+	//set color for scatter plot and Renderer
+	for (vtkIdType i = 0; i < 2; i++)
+	{
+		/*for (int i = 0; i < 4; ++i)*/
+
+		this->m_pointLUT->SetTableValue(i, rgba);
+	}
+	this->m_pointLUT->Build();
+
+	//is this still required?
+	this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+	setRedSelectionColor();
+
+}
+
+void dlg_FeatureScout::setRedSelectionColor()
+{
+	this->matrix->setSelectionColor(QColor(255, 40, 0, 1));
+	this->matrix->update();
+}
+
+void dlg_FeatureScout::setSelectionColor(const QColor &selColor) {
+
+	this->matrix->setSelectionColor(selColor);
+	/*this->matrix->update();*/
+}
+
 
 void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 {
@@ -3226,7 +3336,13 @@ void dlg_FeatureScout::ClassDeleteButton()
 	this->SingleRendering();
 
 	if ( this->spmActivated )
-	{	//Updates SPM
+	{
+		bool retFlag = true; 
+		applyClassSelection(retFlag, this->chartTable, 0, false); 
+		spUpdateSPColumnVisibilityWithVis();
+		/*matrix->clearSelection();
+		matrix->update(); */
+		//Updates SPM
 		// TODO SPM
 		// matrix->UpdateColorInfo( classTreeModel, colorList );
 		// matrix->SetClass2Plot( this->activeClassItem->index().row() );
@@ -3315,6 +3431,21 @@ void dlg_FeatureScout::ScatterPlotButton()
 		// matrix->SetClass2Plot( this->activeClassItem->index().row() );
 
 		// Scatter plot matrix settings
+
+
+
+		/*
+		
+		
+		
+		this->activeClassItem = item;
+		// make sure when a class is added, at the same time the tableList should also be updated
+
+		// reload the class table to chartTable
+		int id = item->index().row();
+		chartTable->ShallowCopy( tableList[id] );
+				
+		*/
 		if ( this->activeClassItem->rowCount() < 30 )
 		{
 			//matrix->SetPlotMarkerSize( 0, 3.0f );
@@ -3324,9 +3455,12 @@ void dlg_FeatureScout::ScatterPlotButton()
 		//matrix->SetScatterPlotSelectedRowColumnColor( vtkColor4ub( 0, 0, 0, 20 ) );
 		//matrix->SetBackgroundColor( 1, vtkColor4ub( 235, 235, 235, 100 ) );
 		//matrix->SetGutter( vtkVector2f( 30.0f, 30.0f ) );
+		/*matrix->setM_Mode(iAQSplom::splom_mode::UPPER_HALF);*/
 
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
-		spUpdateSPColumnVisibility();
+		spUpdateSPColumnVisibilityWithVis();
+		matrix->showSelectedPlot(1, 0);
+	
 
 		// Creates a popup menu
 		QMenu* popup1 = new QMenu( iovSPM );
@@ -3380,8 +3514,29 @@ void dlg_FeatureScout::spUpdateSPColumnVisibility()
 			matrix->setParameterVisibility( elementTable->GetValue( j, 0 ).ToString().c_str(),
 				elementTableModel->item(j, 0)->checkState() == Qt::Checked );
 		}
+		matrix->update(); 
 	}
 }
+
+
+void dlg_FeatureScout::spUpdateSPColumnVisibilityWithVis()
+{
+	matrix->showAllPlots(false);
+	matrix->update(); 
+	matrix->showPreviewPlot();
+	// Updates scatter plot matrix if a feature of PC-ElementTableModel is added or removed.
+	if (this->spmActivated)
+	{
+		// TODO SPM: only update matrix after all parameters visibility set?
+		for (int j = 0; j < elementNr; ++j)
+		{
+			matrix->setParameterVisibility(elementTable->GetValue(j, 0).ToString().c_str(),
+				elementTableModel->item(j, 0)->checkState() == Qt::Checked);
+		}
+		matrix->update();
+	}
+}
+
 
 void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
 
@@ -3670,7 +3825,7 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 					bool returnFlag = false;
 					this->applyClassSelection(returnFlag, this->chartTable, index.row(), true);
 					if (returnFlag) return;
-					
+					this->spUpdateSPColumnVisibilityWithVis(); 
 					//matrix->SetSelection(annLink->GetCurrentSelection());
 					// matrix->UpdateColorInfo( classTreeModel, colorList );
 					// matrix->SetClass2Plot( this->activeClassItem->index().row() );
@@ -3683,6 +3838,8 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 
 void dlg_FeatureScout::classClicked( const QModelIndex &index )
 {
+	setRedSelectionColor(); 
+
 	//Turns off FLD scalar bar updates polar plot view
 	if ( m_scalarWidgetFLD )
 	{
@@ -3738,12 +3895,12 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 				// Update Scatter Plot Matrix when another class than the active is selected.
 				if ( matrix )
 				{
-
-
-
 					matrix->clearSelection(); 
+					matrix->update(); 
 					bool returnFlag = false;
-					this->applyClassSelection(returnFlag, this->chartTable, index.row(), true);
+					this->applyClassSelection(returnFlag, this->chartTable, index.row(), false);
+					setRedSelectionColor();
+					this->spUpdateSPColumnVisibilityWithVis(); 
 					if (returnFlag) return;
 				}
 			}
@@ -3795,13 +3952,28 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			//set ID selection im feature scout
 			if ( matrix )
 			{
-				const int colorId = this->activeClassItem->index().row(); 
+				matrix->clearSelection(); 
+				matrix->update(); 
+				const int colorID = this->activeClassItem->index().row(); 
 				bool retflag = false; 
 				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
-				selInd->push_back((uint)oID);
-				applyClassSelection(retflag, selInd, colorId, true);
-				if (retflag) return;
+				
+				//Object ID starts with 0 eg. oID -1; 
+				
+				/*int test = 2;*/
+				selInd->push_back(sID);
+				/*double rgba[4];
+				setClassColour(rgba, colorID);*/
+				//applySingleClassObjectSelection(retflag, chartTable, oID-1, colorID, true); 
+				//set all entries 
+				applyClassSelection(retflag, chartTable, colorID, false); 
 
+				setRedSelectionColor();
+				matrix->setSelection(&(*selInd));
+				matrix->update(); 
+				spUpdateSPColumnVisibilityWithVis(); 
+				//setRedSelectionColor(); 
+				if (retflag) return;
 				//matrix->SetClass2Plot( this->activeClassItem->index().row() );
 				//matrix->UpdateLayout();
 			}

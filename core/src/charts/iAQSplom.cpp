@@ -72,6 +72,36 @@ const QList<int> & iAQSplom::getHighlightedPoints() const
 void iAQSplom::clearSelection()
 {
 	this->m_selInds.clear(); 
+
+}
+
+
+/*all plots are shown if enableAllPlotsVisible set true,
+*else other upper half is shown
+*/
+void iAQSplom::showAllPlots(const bool enableAllPlotsVisible){
+	if (enableAllPlotsVisible) {
+		this->setSplomVisModeAllPlots();
+	}
+	else this->setSplomVisModeUpperHalf(); 
+
+}
+
+void iAQSplom::setSplomVisModeUpperHalf()
+{
+	this->setM_Mode(UPPER_HALF);
+}
+
+
+void iAQSplom::setSplomVisModeAllPlots()
+{
+	this->setM_Mode(ALL_PLOTS);
+}
+
+void iAQSplom::setM_Mode(splom_mode vis_mode)
+{
+	this->m_mode= vis_mode;
+	this->update(); 
 }
 
 void iAQSplom::setSelectionColor(QColor color)
@@ -106,6 +136,7 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
+	m_showAllPlots = false; 
 }
 
 void iAQSplom::initializeGL()
@@ -381,6 +412,7 @@ void iAQSplom::plotMaximized()
 	//create main plot
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot( this, this, 11, true );
+
 	connect( m_maximizedPlot, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
 	connect( m_maximizedPlot, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
 	connect( m_maximizedPlot, SIGNAL( plotMaximized() ), this, SLOT( plotMinimized() ) );
@@ -393,6 +425,8 @@ void iAQSplom::plotMaximized()
 	if( m_lut->initialized() )
 		m_maximizedPlot->setLookupTable( m_lut, m_colorArrayName );
 	//rectangle
+	//selection color 
+	m_maximizedPlot->setSelectionColor(QColor(255, 40, 0, 1));
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = senderPlot->getOffset();
@@ -405,6 +439,115 @@ void iAQSplom::plotMaximized()
 	//final update
 	update();
 }
+
+
+//shows a preselected plot based on id
+void iAQSplom::showSelectedPlot(const unsigned int plot_selInd_y, const unsigned int plot_selind_x) {
+	//iAQSplom_variables::plotSelectionIndex plt_ind;
+	this->plt_selIndx.initPlotSelection(plot_selInd_y, plot_selind_x);
+	//s	plt_ind.initPlotSelection(plot_selInd_y, plot_selind_x);
+
+	//shared pointer
+	renderPreselectedPlot();
+	 
+}
+
+void iAQSplom::renderPreselectedPlot()
+{
+	iAScatterPlot *sel_Plot = NULL;
+
+	this->getPlotByIdx(sel_Plot, this->plt_selIndx);
+	this->maximizeSelectedPlot(sel_Plot);
+}
+
+void iAQSplom::showPreviewPlot()
+{
+	if (!this->plt_selIndx.isPlotpreselected) {
+	
+		this->plt_selIndx.setPlotIdxToZero();
+	}
+
+	this->renderPreselectedPlot(); 
+}
+
+//selects a scatterplot by an indx
+void iAQSplom::getPlotByIdx(iAScatterPlot *&selected_Plot, const iAQSplom_variables::plotSelectionIndex &plt_idx) const {
+	unsigned int visParamCnt = (uint)  getVisibleParametersCount(); 
+	if(this->m_visiblePlots.isEmpty()) {
+		return;
+	}
+
+	if((plt_idx.plt_ind_y > visParamCnt) || (plt_idx.plt_ind_x > visParamCnt)){
+
+		return; //selected_Plot =  m_visiblePlots[plt_sel_indx_y] [plt_sel_ind_x];
+	}else 
+		selected_Plot = (m_visiblePlots.at(plt_idx.plt_ind_y).at(plt_idx.plt_ind_x));
+}
+
+
+//show preview of a selected plot
+void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
+	
+	if (!selectedPlot) {
+		return;
+	}
+
+	if (m_previewPlot)
+		m_previewPlot->setPreviewState(false);
+	selectedPlot->setPreviewState(true);
+	m_previewPlot = selectedPlot;
+
+	m_mode = UPPER_HALF;
+
+	//hide lower triangle
+	QList<QList<iAScatterPlot*>> newVisPlots;
+	int visParamCnt = getVisibleParametersCount();
+	for (int y = 0; y < visParamCnt; ++y)
+	{
+		QList<iAScatterPlot*> row;
+		for (int x = 0; x < visParamCnt; ++x)
+		{
+			if (x <= y)
+				row.push_back(m_visiblePlots[y][x]);
+			else
+				row.push_back(0);
+		}
+		newVisPlots.push_back(row);
+	}
+	m_visiblePlots = newVisPlots;
+
+	//create main plot
+	delete m_maximizedPlot;
+	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
+
+	connect(m_maximizedPlot, SIGNAL(selectionModified()), this, SLOT(selectionUpdated()));
+	connect(m_maximizedPlot, SIGNAL(currentPointModified(int)), this, SLOT(currentPointUpdated(int)));
+	connect(m_maximizedPlot, SIGNAL(plotMaximized()), this, SLOT(plotMinimized()));
+
+	if (settings.maximizedLinked)
+		connect(m_maximizedPlot, SIGNAL(transformModified(double, QPointF)), this, SLOT(transformUpdated(double, QPointF)));
+
+	const int * plotInds = selectedPlot->getIndices();
+	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
+	if (m_lut->initialized())
+		m_maximizedPlot->setLookupTable(m_lut, m_colorArrayName);
+	//rectangle
+	//selection color mitgeben
+	m_maximizedPlot->setSelectionColor(QColor(255, 40, 0, 1));
+	updateMaxPlotRect();
+	//transform
+	QPointF ofst = selectedPlot->getOffset();
+	double scl[2] = {
+		((double)m_maximizedPlot->getRect().width()) / selectedPlot->getRect().width(),
+		((double)m_maximizedPlot->getRect().height()) / selectedPlot->getRect().height()
+	};
+	m_maximizedPlot->setTransform(selectedPlot->getScale(), QPointF(ofst.x() * scl[0], ofst.y() * scl[1]));
+
+	//final update
+	update();
+
+}
+
 
 void iAQSplom::plotMinimized()
 {

@@ -423,8 +423,8 @@ void iAScatterPlot::updateGrid()
 
 	for ( unsigned long i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		double x = m_splomData->paramData( m_paramIndices[0] )[i];
-		double y = m_splomData->paramData( m_paramIndices[1] )[i];
+		double x = m_splomData->paramData(m_paramIndices[0] )[i];
+		double y = m_splomData->paramData(m_paramIndices[1] )[i];
 		int xbin = p2binx( x );
 		int ybin = p2biny( y );
 		int binInd = getBinIndex( xbin, ybin );

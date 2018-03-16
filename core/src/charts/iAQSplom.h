@@ -35,6 +35,34 @@ class QPropertyAnimation;
 class iALookupTable;
 class vtkLookupTable;
 
+
+namespace iAQSplom_variables{
+	
+	//storing current selection index of previewplot
+	struct plotSelectionIndex {
+		plotSelectionIndex() :plt_ind_y(0), plt_ind_x(0), isPlotpreselected(false){
+		
+		}
+
+		void initPlotSelection(const unsigned int plt_id_y, const unsigned int plt_id_x) {
+			plt_ind_y = plt_id_y;
+			plt_ind_x = plt_id_x;
+			isPlotpreselected = true; 
+		}
+
+		void setPlotIdxToZero() {
+			plt_ind_y = 0;
+			plt_ind_x = 0;
+			isPlotpreselected = false; 
+		}
+
+		 unsigned int plt_ind_y;
+		 unsigned int plt_ind_x;
+		 bool isPlotpreselected;
+	};
+
+};
+
 //! A scatter plot matrix (SPLOM) widget.
 /*!
 	Multidimensional data points are shown using a grid of 2D scatter plots for each pair of dimensions.
@@ -55,7 +83,7 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
 	Q_PROPERTY( double m_animOut READ getAnimOut WRITE setAnimOut )
 
-	enum splom_mode //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
+	 enum splom_mode //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
 	{
 		UPPER_HALF,
 		ALL_PLOTS
@@ -87,7 +115,19 @@ public:
 
 	void setSelectionColor(QColor color); 
 
-	void clearSelection();  //deletes current seltion
+	void clearSelection();  //deletes current selection
+	
+	void showAllPlots(const bool enableAllPlotsVisible);
+
+	//sets visibility for plots upperhalf
+	
+
+	//TODO show plot selected by index
+	void showSelectedPlot(const unsigned int plot_selInd_y, const unsigned int plot_selind_x);
+	
+	void showPreviewPlot(); 
+	//maximize selected plot 
+	
 
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.
@@ -107,6 +147,13 @@ protected:
 	void removeMaximizedPlot();									//!< Removes maximized plot.
 	int invert( int val ) const;								//!< Inverts parameter index. Used for inverting SPLOM Y indexing order.
 
+	
+
+	void setM_Mode(splom_mode);
+	void setSplomVisModeUpperHalf();
+
+	//sets visibility for ALL Plots
+	void setSplomVisModeAllPlots();
 	//Re-implements Qt event handlers
 protected:
 	virtual void wheelEvent( QWheelEvent * event );
@@ -177,4 +224,12 @@ protected:
 	QPropertyAnimation * m_animationIn;
 	QPropertyAnimation * m_animationOut;
 	QList<int> m_highlightedPoints;					//!< list of always highlighted points
+private: 
+	//shows a maximized preview of a plot
+	void maximizeSelectedPlot(iAScatterPlot * selectedPlot);
+	void getPlotByIdx(iAScatterPlot *&selected_Plot, const iAQSplom_variables::plotSelectionIndex &plt_idx) const;
+	iAQSplom_variables::plotSelectionIndex plt_selIndx; 
+	void renderPreselectedPlot();
+	bool m_showAllPlots; 
+
 };
