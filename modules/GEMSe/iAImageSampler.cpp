@@ -269,7 +269,9 @@ void iAImageSampler::computationFinished()
 	}
 	m_runningComputation.remove(cmd);
 	delete cmd;
-
+	m_mutex.lock();
+	m_runningOperations--;
+	m_mutex.unlock();
 }
 
 
