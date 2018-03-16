@@ -175,9 +175,12 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		{
 			iAITKIO::ScalarPixelType pixelType;
 			iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+			iAConnector con;
+			con.SetImage(img);
 			filter->ClearInput();
+			filter->AddInput(&con);
 			for (int i = 0; i < inputImages.size(); ++i)
-				AddInput(inputImages[i]);
+				filter->AddInput(inputImages[i]);
 			filter->Run(filterParams);
 			if (curLine == 0)
 			{
