@@ -59,7 +59,7 @@ iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter
 
 void iAFilterRunnerGUIThread::performWork()
 {
-	m_filter->SetUp(qobject_cast<MdiChild*>(parent())->getLogger(), getItkProgress());
+	m_filter->SetUp(qobject_cast<MdiChild*>(parent())->getLogger(), ProgressObserver());
 	for (iAConnector* con : Connectors())
 		m_filter->AddInput(con);
 	if (!m_filter->Run(m_paramValues))

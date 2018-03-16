@@ -41,7 +41,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
 		auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
-		marchingCubes->AddObserver(vtkCommand::ProgressEvent, Progress());
+		Progress()->Observe(marchingCubes);
 		marchingCubes->SetInputData(Input()[0]->GetVTKImage().GetPointer());
 		marchingCubes->ComputeNormalsOn();
 		marchingCubes->ComputeGradientsOn();
@@ -52,7 +52,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	else
 	{
 		auto flyingEdges = vtkSmartPointer<vtkFlyingEdges3D>::New();
-		flyingEdges->AddObserver(vtkCommand::ProgressEvent, Progress());
+		Progress()->Observe(flyingEdges);
 		flyingEdges->SetInputData(Input()[0]->GetVTKImage().GetPointer());
 		flyingEdges->SetNumberOfContours(1);
 		flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
@@ -67,7 +67,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
 	{
 		auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
-		decimatePro->AddObserver(vtkCommand::ProgressEvent, Progress());
+		Progress()->Observe(decimatePro);
 		decimatePro->SetTargetReduction(parameters["Decimation Target"].toDouble());
 		decimatePro->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 		decimatePro->SetSplitting(parameters["Splitting"].toBool());
@@ -78,7 +78,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	else if (parameters["Simplification Algorithm"].toString() == "Quadric Clustering")
 	{
 		auto quadricClustering = vtkSmartPointer<vtkQuadricClustering>::New();
-		quadricClustering->AddObserver(vtkCommand::ProgressEvent, Progress());
+		Progress()->Observe(quadricClustering);
 		quadricClustering->SetNumberOfXDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
@@ -105,7 +105,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	}
 	*/
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriter->AddObserver(vtkCommand::ProgressEvent, Progress());
+	Progress()->Observe(stlWriter);
 	stlWriter->SetFileName(parameters["STL output filename"].toString().toStdString().c_str());
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{

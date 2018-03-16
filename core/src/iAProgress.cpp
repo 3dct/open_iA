@@ -23,16 +23,31 @@
 #include "iAProgress.h"
 
 #include <vtkAlgorithm.h>
+#include <vtkCommand.h>
 
 #include <itkProcessObject.h>
 
+class iAvtkCommand : public vtkCommand
+{
+public:
+	static iAvtkCommand * iAvtkCommand::New()
+	{
+		return new iAvtkCommand();
+	}
+	void SetProgress(iAProgress* progress)
+	{
+		m_progress = progress;
+	}
+	void Execute(vtkObject* caller, unsigned long, void*)
+	{
+		m_progress->EmitProgress((dynamic_cast<vtkAlgorithm*>(caller))->GetProgress() * 100);
+	}
+private:
+	iAProgress* m_progress;
+};
+
 iAProgress::iAProgress( )
 {}
-
-iAProgress * iAProgress::New()
-{
-	return new iAProgress();
-}
 
 void iAProgress::ProcessEvent( itk::Object * caller, const itk::EventObject & event )
 {
@@ -50,17 +65,25 @@ void iAProgress::ConstProcessEvent(const itk::Object * caller, const itk::EventO
 	EmitProgress(static_cast<int>(process->GetProgress() * 100));
 }
 
-void iAProgress::Execute(vtkObject* caller, unsigned long, void*)
-{
-	EmitProgress((dynamic_cast<vtkAlgorithm*>(caller))->GetProgress() * 100);
-}
-
 void iAProgress::Observe( itk::Object *caller )
 {
-	m_Command = CommandType::New();
-	m_Command->SetCallbackFunction(this, &iAProgress::ProcessEvent);
-	m_Command->SetCallbackFunction(this, &iAProgress::ConstProcessEvent);
-	caller->AddObserver(  itk::ProgressEvent(), m_Command.GetPointer() );
+	if (!m_itkCommand)
+	{
+		m_itkCommand = CommandType::New();
+		m_itkCommand->SetCallbackFunction(this, &iAProgress::ProcessEvent);
+		m_itkCommand->SetCallbackFunction(this, &iAProgress::ConstProcessEvent);
+	}
+	caller->AddObserver(  itk::ProgressEvent(), m_itkCommand.GetPointer() );
+}
+
+void iAProgress::Observe(vtkAlgorithm* caller)
+{
+	if (!m_vtkCommand)
+	{
+		m_vtkCommand = vtkSmartPointer<iAvtkCommand>::New();
+		m_vtkCommand->SetProgress(this);
+	}
+	caller->AddObserver(vtkCommand::ProgressEvent, m_vtkCommand);
 }
 
 void iAProgress::EmitProgress(int i)

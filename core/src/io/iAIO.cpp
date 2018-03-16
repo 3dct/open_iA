@@ -183,14 +183,12 @@ void iAIO::init(QWidget *par)
 	byteOrder = 1;
 	ioID = 0;
 	iosettingsreader();
-	progressObserver = iAProgress::New();
 }
 
 
 iAIO::~iAIO()
 {
 	fileNameArray->Delete();
-	if (progressObserver) progressObserver->Delete();
 }
 
 #ifdef USE_HDF5
@@ -899,7 +897,7 @@ void iAIO::loadMetaImageFile(QString const & fileName)
 	const ScalarPixelType pixelType = imageIO->GetComponentType();
 	const PixelType imagePixelType = imageIO->GetPixelType();
 	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType,
-		fileName, getItkProgress(), getConnector());
+		fileName, ProgressObserver(), getConnector());
 }
 
 
@@ -922,7 +920,7 @@ void iAIO::readVolumeMHDStack()
 			m_fileNames_volstack->push_back(fileName);
 
 		int progress = (fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / fileNameArray->GetMaxId();
-		progressObserver->EmitProgress(progress);
+		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
@@ -942,7 +940,7 @@ void iAIO::readVolumeStack()
 		if(m_fileNames_volstack)
 			m_fileNames_volstack->push_back(fileName);
 		int progress = (m * 100) / fileNameArray->GetMaxId();
-		progressObserver->EmitProgress(progress);
+		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
@@ -974,7 +972,7 @@ void iAIO::writeVolumeStack()
 	{
 		writeMetaImage(m_volumes->at(m).GetPointer(), fileNameArray->GetValue(m).c_str());
 		int progress = (m * 100) / fileNameArray->GetMaxId();
-		progressObserver->EmitProgress(progress);
+		ProgressObserver()->EmitProgress(progress);
 	}
 }
 
@@ -982,7 +980,7 @@ void iAIO::writeVolumeStack()
 void iAIO::readRawImage()
 {
 	VTK_TYPED_CALL(read_raw_image_template, scalarType, headersize, byteOrder,
-		extent, spacing, origin, fileName, getItkProgress(), getConnector());
+		extent, spacing, origin, fileName, ProgressObserver(), getConnector());
 }
 
 
@@ -1014,7 +1012,7 @@ void iAIO::readMetaImage( )
 void iAIO::readSTL( )
 {
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
-	stlReader->AddObserver(vtkCommand::ProgressEvent, progressObserver);
+	ProgressObserver()->Observe(stlReader);
 	stlReader->SetFileName(fileName.toLatin1());
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
@@ -1401,7 +1399,7 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
 	iAConnector::ITKPixelType itkPixelType = con.GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType,
-		compression, fileName, getItkProgress(), &con);
+		compression, fileName, ProgressObserver(), &con);
 	addMsg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 }
 
@@ -1409,7 +1407,7 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 void iAIO::writeSTL( )
 {
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriter->AddObserver(vtkCommand::ProgressEvent, progressObserver);
+	ProgressObserver()->Observe(stlWriter);
 	stlWriter->SetFileName(fileName.toLatin1());
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
@@ -1475,7 +1473,7 @@ void iAIO::writeImageStack( )
 	const ScalarPixelType pixelType = getConnector()->GetITKScalarPixelType();
 	const PixelType imagePixelType = getConnector()->GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
-		fileName, getItkProgress(), getConnector(), compression);
+		fileName, ProgressObserver(), getConnector(), compression);
 	addMsg(tr("%1  %2 Image Stack saved.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QFileInfo(fileName).completeSuffix().toUpper()));
@@ -1597,7 +1595,7 @@ void iAIO::readImageStack()
 		default: throw std::runtime_error("Invalid Image Stack IO id, aborting.");
 	}
 	imgReader->ReleaseDataFlagOn();
-	imgReader->AddObserver(vtkCommand::ProgressEvent, progressObserver);
+	ProgressObserver()->Observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	imgReader->SetFileNames(fileNameArray);
 	imgReader->SetDataOrigin(origin);

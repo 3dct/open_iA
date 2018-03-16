@@ -38,7 +38,6 @@ class vtkSTLWriter;
 class vtkStringArray;
 class vtkTable;
 
-class iAProgress;
 class iASimReader;
 
 
@@ -54,7 +53,6 @@ public:
 	void init(QWidget *par);
 
 	bool setupIO( IOType type, QString f, bool comp = false, int channel=-1);
-	iAProgress* getProgressObserver() { return progressObserver; };
 	void iosettingswriter();
 	void iosettingsreader();
 
@@ -101,8 +99,6 @@ private:
 	void printSTLFileInfos();
 
 	vtkMetaImageWriter *metaImageWriter;
-	
-	iAProgress* progressObserver;
 
 	QWidget *parent;
 	QString fileName;

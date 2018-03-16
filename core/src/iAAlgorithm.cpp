@@ -44,12 +44,12 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	m_image(idata),
 	m_polyData(p),
 	m_logger(logger),
-	m_itkProgress(new iAProgress)
+	m_progressObserver(new iAProgress)
 {
 	m_connectors.push_back(new iAConnector());
 	if (parent)
 		connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
-	connect(m_itkProgress, SIGNAL( progress(int) ), this, SIGNAL( aprogress(int) ));
+	connect(m_progressObserver, SIGNAL( progress(int) ), this, SIGNAL( aprogress(int) ));
 }
 
 
@@ -58,7 +58,7 @@ iAAlgorithm::~iAAlgorithm()
 	foreach(iAConnector* c, m_connectors)
 		delete c;
 	m_connectors.clear();
-	delete m_itkProgress;
+	delete m_progressObserver;
 }
 
 
@@ -206,9 +206,9 @@ void iAAlgorithm::allocConnectors(int size)
 }
 
 
-iAProgress* iAAlgorithm::getItkProgress()
+iAProgress* iAAlgorithm::ProgressObserver()
 {
-	return m_itkProgress;
+	return m_progressObserver;
 }
 
 void iAAlgorithm::updateVtkImageData(int ch)
