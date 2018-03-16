@@ -184,7 +184,7 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 	{
 		if (id)
 		{
-			outParamSet << m_results[i]->GetID() << ValueSplitString;
+			outParamSet << m_results[i]->GetID() << iASingleResult::ValueSplitString;
 		}
 		outParamSet << m_results[i]->ToString(m_attributes, type) << endl;
 	}

@@ -32,7 +32,7 @@ class iASamplingResults;
 class iASingleResult
 {
 public:
-
+	static const QString ValueSplitString;
 	//! create from string
 	static QSharedPointer<iASingleResult> Create(
 		QString const & line,
