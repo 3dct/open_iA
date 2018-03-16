@@ -2879,8 +2879,11 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 	{
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
 		slicerXZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerXZ->GetSlicerData()->ResetCamera();
 		slicerXY->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerXY->GetSlicerData()->ResetCamera();
 		slicerYZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerYZ->GetSlicerData()->ResetCamera();
 	}
 	ModalityTFChanged();
 	updateViews();

@@ -528,7 +528,6 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsT
 	}
 
 	colormapper->Update();
-	ren->ResetCamera();
 }
 
 
@@ -1778,6 +1777,11 @@ void iASlicerData::SetCamera(vtkCamera* cam, bool camOwner /*=true*/)
 	}
 	m_cameraOwner = camOwner;
 	m_camera = cam;
+}
+
+void iASlicerData::ResetCamera()
+{
+	ren->ResetCamera();
 }
 
 void iASlicerData::updateChannelMappers()
