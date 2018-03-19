@@ -175,8 +175,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	}else{
 		scrollArea->setMinimumWidth(containerLayout->minimumSize().width());
 	}
-
 	scrollArea->setWidget(container);
+	scrollArea->setWidgetResizable(true);
 
 	//make scrollArea widgets backround transparent
 	QPalette pal = scrollArea->palette();
