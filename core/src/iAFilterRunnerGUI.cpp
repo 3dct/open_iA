@@ -101,6 +101,9 @@ namespace
 		case Text       : return "=";
 		case FilterName : return "&";
 		case FilterParameters: return ".";
+		case FileNameOpen: return "<";
+		case FileNameSave: return ">";
+		case Folder:       return ";";
 		default:
 		case String     : return "#";
 		}
@@ -218,6 +221,9 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		case FilterName:
 		case FilterParameters:
 		case Text:
+		case Folder:
+		case FileNameSave:
+		case FileNameOpen:
 		case String:      value = dlg.getText(idx);          break;
 		case Boolean:     value = dlg.getCheckValue(idx);    break;
 		case Categorical: value = dlg.getComboBoxValue(idx); break;

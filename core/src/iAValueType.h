@@ -30,7 +30,10 @@ enum iAValueType
 	Text,
 	Boolean,
 	FilterName,
-	FilterParameters
+	FilterParameters,
+	Folder,
+	FileNameOpen,
+	FileNameSave
 };
 
 class QString;

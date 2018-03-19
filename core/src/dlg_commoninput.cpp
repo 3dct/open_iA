@@ -28,6 +28,7 @@
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"
+#include "io/iAFileChooserWidget.h"
 
 #include "mdichild.h"
 
@@ -131,6 +132,15 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 			case '&':
 				newWidget = new QPushButton(container);
 				connect(newWidget, SIGNAL(clicked()), this, SLOT(SelectFilter()));
+				break;
+			case '<':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameOpen);
+				break;
+			case '>':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameSave);
+				break;
+			case ';':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::Folder);
 				break;
 			case '?':
 			{
@@ -290,6 +300,10 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 		QPushButton *button = qobject_cast<QPushButton*>(children.at(i));
 		if (button)
 			button->setText(inPara[paramIdx++].toString());
+
+		iAFileChooserWidget* fileChooser = qobject_cast<iAFileChooserWidget*>(children.at(i));
+		if (fileChooser)
+			fileChooser->setText(inPara[paramIdx++].toString());
 	}
 }
 
@@ -408,7 +422,10 @@ QString dlg_commoninput::getText(int index) const
 	if (t2)
 		return t2->toPlainText();
 	QPushButton * t3 = qobject_cast<QPushButton*>(widgetList[index]);
-	return t3? t3->text(): "";
+	if (t3)
+		return t3->text();
+	iAFileChooserWidget* t4 = qobject_cast<iAFileChooserWidget*>(widgetList[index]);
+	return (t4)? t4->text() : "";
 }
 
 
