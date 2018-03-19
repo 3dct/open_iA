@@ -124,6 +124,8 @@ public:
 
 	//TODO show plot selected by index
 	void showSelectedPlot(const unsigned int plot_selInd_y, const unsigned int plot_selind_x);
+
+	void showSelectedPlot();
 	
 	void showPreviewPlot(); 
 	//maximize selected plot 

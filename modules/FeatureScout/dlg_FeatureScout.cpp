@@ -3459,8 +3459,10 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
 		spUpdateSPColumnVisibilityWithVis();
-		matrix->showSelectedPlot(1, 0);
-	
+		//matrix->showSelectedPlot(1, 0);
+		
+		//showing upper corner in the scatter plot matrix
+		matrix->showSelectedPlot(); 
 
 		// Creates a popup menu
 		QMenu* popup1 = new QMenu( iovSPM );
