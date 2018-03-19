@@ -121,9 +121,11 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );							//!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );							//!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );									//!< Draws plot's points (uses native OpenGL)
-	void drawMaximizeButton( QPainter & painter );							//!< Draws plot's maximized button (only active plot)
+	//void drawMaximizeButton( QPainter & painter );							//!< Draws plot's maximized button (only active plot)
 	void createAndFillVBO();												//!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();															//!< Fill existing VBO with plot's 2D-points.
+
+	
 
 signals:
 	void selectionModified();												//!< Emitted when selected points changed

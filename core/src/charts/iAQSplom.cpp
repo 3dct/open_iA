@@ -382,62 +382,62 @@ void iAQSplom::removeHighlightedPoint( int index )
 void iAQSplom::plotMaximized()
 {
 	iAScatterPlot * senderPlot = dynamic_cast<iAScatterPlot *>( QObject::sender() );
-	if( !senderPlot )
-		return;
-	
-	if( m_previewPlot )
-		m_previewPlot->setPreviewState( false );
-	senderPlot->setPreviewState( true );
-	m_previewPlot = senderPlot;
-	
-	m_mode = UPPER_HALF;
+	maximizeSelectedPlot(senderPlot);
+	//if( !senderPlot )
+	//	return;
+	//
+	//if( m_previewPlot )
+	//	m_previewPlot->setPreviewState( false );
+	//senderPlot->setPreviewState( true );
+	//m_previewPlot = senderPlot;
+	//
+	//m_mode = UPPER_HALF;
 
-	//hide lower triangle
-	QList<QList<iAScatterPlot*>> newVisPlots;
-	int visParamCnt = getVisibleParametersCount();
-	for( int y = 0; y < visParamCnt; ++y )
-	{
-		QList<iAScatterPlot*> row;
-		for( int x = 0; x < visParamCnt; ++x )
-		{
-			if( x <=  y )
-				row.push_back( m_visiblePlots[y][x] );
-			else
-				row.push_back( 0 );
-		}
-		newVisPlots.push_back( row );
-	}
-	m_visiblePlots = newVisPlots;
+	////hide lower triangle
+	//QList<QList<iAScatterPlot*>> newVisPlots;
+	//int visParamCnt = getVisibleParametersCount();
+	//for( int y = 0; y < visParamCnt; ++y )
+	//{
+	//	QList<iAScatterPlot*> row;
+	//	for( int x = 0; x < visParamCnt; ++x )
+	//	{
+	//		if( x <=  y )
+	//			row.push_back( m_visiblePlots[y][x] );
+	//		else
+	//			row.push_back( 0 );
+	//	}
+	//	newVisPlots.push_back( row );
+	//}
+	//m_visiblePlots = newVisPlots;
 
-	//create main plot
-	delete m_maximizedPlot;
-	m_maximizedPlot = new iAScatterPlot( this, this, 11, true );
+	////create main plot
+	//delete m_maximizedPlot;
+	//m_maximizedPlot = new iAScatterPlot( this, this, 11, true );
 
-	connect( m_maximizedPlot, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
-	connect( m_maximizedPlot, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
-	connect( m_maximizedPlot, SIGNAL( plotMaximized() ), this, SLOT( plotMinimized() ) );
+	//connect( m_maximizedPlot, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
+	//connect( m_maximizedPlot, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
+	//connect( m_maximizedPlot, SIGNAL( plotMaximized() ), this, SLOT( plotMinimized() ) );
 
-	if (settings.maximizedLinked)
-		connect( m_maximizedPlot, SIGNAL( transformModified(double,QPointF) ), this, SLOT( transformUpdated(double,QPointF) ) );
+	//if (settings.maximizedLinked)
+	//	connect( m_maximizedPlot, SIGNAL( transformModified(double,QPointF) ), this, SLOT( transformUpdated(double,QPointF) ) );
 
-	const int * plotInds = senderPlot->getIndices();
-	m_maximizedPlot->setData( plotInds[0], plotInds[1], m_splomData ); //we want first plot in lower left corner of the SPLOM
-	if( m_lut->initialized() )
-		m_maximizedPlot->setLookupTable( m_lut, m_colorArrayName );
-	//rectangle
-	//selection color 
-	m_maximizedPlot->setSelectionColor(QColor(255, 40, 0, 1));
-	updateMaxPlotRect();
-	//transform
-	QPointF ofst = senderPlot->getOffset();
-	double scl[2] = {
-		( (double)m_maximizedPlot->getRect().width() ) / senderPlot->getRect().width(),
-		( (double)m_maximizedPlot->getRect().height() ) / senderPlot->getRect().height()
-	};
-	m_maximizedPlot->setTransform( senderPlot->getScale(), QPointF( ofst.x() * scl[0], ofst.y() * scl[1] ) );
-	
-	//final update
-	update();
+	//const int * plotInds = senderPlot->getIndices();
+	//m_maximizedPlot->setData( plotInds[0], plotInds[1], m_splomData ); //we want first plot in lower left corner of the SPLOM
+	//if( m_lut->initialized() )
+	//	m_maximizedPlot->setLookupTable( m_lut, m_colorArrayName );
+	////rectangle
+	////selection color 
+	//m_maximizedPlot->setSelectionColor(QColor(255, 40, 0, 1));
+	//updateMaxPlotRect();
+	////transform
+	//QPointF ofst = senderPlot->getOffset();
+	//double scl[2] = {
+	//	( (double)m_maximizedPlot->getRect().width() ) / senderPlot->getRect().width(),
+	//	( (double)m_maximizedPlot->getRect().height() ) / senderPlot->getRect().height()
+	//};
+	//m_maximizedPlot->setTransform( senderPlot->getScale(), QPointF( ofst.x() * scl[0], ofst.y() * scl[1] ) );
+	////final update
+	//update();
 }
 
 
@@ -522,7 +522,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
 
 	connect(m_maximizedPlot, SIGNAL(selectionModified()), this, SLOT(selectionUpdated()));
 	connect(m_maximizedPlot, SIGNAL(currentPointModified(int)), this, SLOT(currentPointUpdated(int)));
-	connect(m_maximizedPlot, SIGNAL(plotMaximized()), this, SLOT(plotMinimized()));
+	//connect(m_maximizedPlot, SIGNAL(plotMaximized()), this, SLOT(plotMinimized()));
 
 	if (settings.maximizedLinked)
 		connect(m_maximizedPlot, SIGNAL(transformModified(double, QPointF)), this, SLOT(transformUpdated(double, QPointF)));
@@ -889,7 +889,11 @@ void iAQSplom::keyPressEvent( QKeyEvent * event )
 
 void iAQSplom::mouseDoubleClickEvent( QMouseEvent * event )
 {
-	resetTransform();
+	//resetTransform();
+	iAScatterPlot * s = getScatterplotAt(event->pos());
+	maximizeSelectedPlot(s);
+
+	event->accept(); 
 }
 
 void iAQSplom::changeActivePlot( iAScatterPlot * s )
