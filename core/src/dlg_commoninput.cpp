@@ -436,7 +436,7 @@ int dlg_commoninput::exec()
 		return QDialog::Rejected;
 	if (m_sourceMdiChild)
 	{
-		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(ROIChildClosed()));
+		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
 		m_sourceMdiChild->SetROIVisible(false);
 	}
 	return result;
