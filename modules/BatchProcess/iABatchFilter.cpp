@@ -68,17 +68,17 @@ iABatchFilter::iABatchFilter():
 		"If <em>Add filename</em> is enabled, then the name of the file processed for that "
 		"line will be appended before the first output value from that file.", 0, 0)
 {
-	AddParameter("Image folder", String, "");
+	AddParameter("Image folder", Folder, "");
 	AddParameter("Recursive", Boolean, false);
 	AddParameter("File mask", String, "*.mhd");
 	AddParameter("Filter", FilterName, "Image Quality");
 	AddParameter("Parameters", FilterParameters, "");
 	AddParameter("Additional Input", String, "");
-	AddParameter("Output directory", String, "");
+	AddParameter("Output directory", Folder, "");
 	AddParameter("Output suffix", String, "");
 	AddParameter("Overwrite output", Boolean, false);
 	AddParameter("Compress output", Boolean, true);
-	AddParameter("Output csv file", String, "");
+	AddParameter("Output csv file", FileNameSave, "");
 	AddParameter("Append to output", Boolean, true);
 	AddParameter("Add filename", Boolean, true);
 	AddParameter("Continue on error", Boolean, true);
