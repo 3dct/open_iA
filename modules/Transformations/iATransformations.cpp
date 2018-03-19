@@ -57,33 +57,30 @@ static typename TImageType::PointType center_image(TImageType * image, typename 
 	return center;
 }
 
-template<class TPixelType> void flip_template(QString const & axis, iAProgress* progress, iAConnector* connector)
+template<class TPixelType> void flip(iAFilter* filter, QString const & axis)
 {
 	typedef itk::Image<TPixelType, DIM>         	ImageType;
 	typedef itk::FlipImageFilter<ImageType>			FilterType;
 
-	auto filter = FilterType::New();
+	auto flipFilter = FilterType::New();
 	typename FilterType::FlipAxesArrayType flip;
 	typename ImageType::PointType origin;
-	center_image<ImageType>(dynamic_cast<ImageType *>(connector->GetITKImage()), &origin);
-	filter->SetInput(dynamic_cast<ImageType *>(connector->GetITKImage()));
+	center_image<ImageType>(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()), &origin);
+	flipFilter->SetInput(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()));
 	flip[0] = (axis == "X");
 	flip[1] = (axis == "Y");
 	flip[2] = (axis == "Z");
-	filter->SetFlipAxes(flip);
-	progress->Observe(filter);
-	filter->Update();
-	ImageType * outImage = filter->GetOutput();
+	flipFilter->SetFlipAxes(flip);
+	filter->Progress()->Observe(flipFilter);
+	flipFilter->Update();
+	ImageType * outImage = flipFilter->GetOutput();
 	outImage->SetOrigin(origin);
-	connector->SetImage(outImage);
-	connector->Modified();
-	filter->ReleaseDataFlagOn();
+	filter->AddOutput(outImage);
 }
 
 void iAFlipAxis::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(flip_template, pixelType, parameters["Flip axis"].toString(), m_progress, m_con);
+	ITK_TYPED_CALL(flip, InputPixelType(), this, parameters["Flip axis"].toString());
 }
 
 IAFILTER_CREATE(iAFlipAxis)
@@ -102,13 +99,12 @@ iAFlipAxis::iAFlipAxis() :
 
 
 template<class TPixelType, class TPrecision>
-static void affine_template(iAProgress * progress, iAConnector* connector,
-	itk::AffineTransform<TPrecision, DIM> * transform)
+static void affine(iAFilter* filter, itk::AffineTransform<TPrecision, DIM> * transform)
 {
 	typedef itk::Image<TPixelType, DIM>         			ImageType;
 	typedef itk::ResampleImageFilter<ImageType, ImageType, TPrecision>	FilterType;
 
-	ImageType * inpImage = dynamic_cast<ImageType *>(connector->GetITKImage());
+	ImageType * inpImage = dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage());
 	auto inpOrigin = inpImage->GetOrigin();
 	auto inpSize = inpImage->GetLargestPossibleRegion().GetSize();
 	auto inpSpacing = inpImage->GetSpacing();
@@ -120,21 +116,18 @@ static void affine_template(iAProgress * progress, iAConnector* connector,
 	resample->SetOutputDirection(inpImage->GetDirection());
 	resample->SetInput(inpImage);
 	resample->SetTransform(transform);
-	progress->Observe(resample);
+	filter->Progress()->Observe(resample);
 	resample->Update();
-	connector->SetImage(resample->GetOutput());
-	connector->Modified();
-	resample->ReleaseDataFlagOn();
+	filter->AddOutput(resample->GetOutput());
 }
 
 typedef double TPrecision;
 
 template<class TPixelType>
-static void rotate_template(QMap<QString, QVariant> const & parameters, iAProgress* progress, iAConnector* connector)
+static void rotate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<TPixelType, DIM> ImageType;
 	typedef itk::AffineTransform<TPrecision, DIM> TransformType;
-	
 
 	auto transform = TransformType::New();
 	typename ImageType::PointType center;
@@ -149,7 +142,7 @@ static void rotate_template(QMap<QString, QVariant> const & parameters, iAProgre
 	rotationAxis[2] = parameters["Rotation axis"].toString() == "Rotation along Z" ? 1 : 0;
 
 	//get rotation center
-	ImageType * inpImage = dynamic_cast<ImageType *>(connector->GetITKImage());
+	ImageType * inpImage = dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage());
 	if (parameters["Rotation center"] == "Image center")
 	{
 		center = image_center(inpImage);
@@ -172,13 +165,12 @@ static void rotate_template(QMap<QString, QVariant> const & parameters, iAProgre
 	transform->Translate(translation1);
 	transform->Rotate3D(rotationAxis, (parameters["Rotation angle"].toDouble() * vnl_math::pi / 180.0), false);
 	transform->Translate(translation2);
-	affine_template<TPixelType, TPrecision>(progress, connector, transform);
+	affine<TPixelType, TPrecision>(filter, transform);
 }
 
 void iARotate::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(rotate_template, pixelType, parameters, m_progress, m_con);
+	ITK_TYPED_CALL(rotate, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iARotate)
@@ -205,7 +197,7 @@ iARotate::iARotate() :
 
 
 template<class TPixelType>
-static void translate_template(QMap<QString, QVariant> const & parameters, iAProgress* progress, iAConnector* connector)
+static void translate(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::AffineTransform<TPrecision, DIM> TransformType;
 	auto transform = TransformType::New();
@@ -214,13 +206,12 @@ static void translate_template(QMap<QString, QVariant> const & parameters, iAPro
 	translation[1] = parameters["Translate Y"].toDouble();
 	translation[2] = parameters["Translate Z"].toDouble();
 	transform->Translate(translation);
-	affine_template<TPixelType, TPrecision>(progress, connector, transform);
+	affine<TPixelType, TPrecision>(filter, transform);
 }
 
 void iATranslate::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(translate_template, pixelType, parameters, m_progress, m_con);
+	ITK_TYPED_CALL(translate, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iATranslate)
@@ -241,31 +232,28 @@ iATranslate::iATranslate() :
 }
 
 
-template<class TPixelType> void permute_template(QString  const & orderStr, iAProgress* progress, iAConnector * connector)
+template<class TPixelType> void permute(iAFilter* filter, QString  const & orderStr)
 {
 	typedef itk::Image<TPixelType, DIM>         			ImageType;
 	typedef itk::PermuteAxesImageFilter<ImageType>			FilterType;
 
-	auto filter = FilterType::New();
+	auto permFilter = FilterType::New();
 	typename FilterType::PermuteOrderArrayType order;
-	filter->SetInput(dynamic_cast<ImageType *>(connector->GetITKImage()));
+	permFilter->SetInput(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()));
 	for (int k = 0; k < 3; k++)
 	{
 		char axes = orderStr.at(k).toUpper().toLatin1();
 		order[k] = axes - QChar('X').toLatin1();
 	}
-	filter->SetOrder(order);
-	progress->Observe(filter);
-	filter->Update();
-	connector->SetImage(filter->GetOutput());
-	connector->Modified();
-	filter->ReleaseDataFlagOn();
+	permFilter->SetOrder(order);
+	filter->Progress()->Observe(permFilter);
+	permFilter->Update();
+	filter->AddOutput(permFilter->GetOutput());
 }
 
 void iAPermuteAxes::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType pixelType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(permute_template, pixelType, parameters["Order"].toString(), m_progress, m_con);
+	ITK_TYPED_CALL(permute, InputPixelType(), this, parameters["Order"].toString());
 }
 
 IAFILTER_CREATE(iAPermuteAxes)

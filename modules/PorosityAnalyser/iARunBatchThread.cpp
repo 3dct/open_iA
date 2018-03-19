@@ -936,7 +936,7 @@ void computeFhwThreshold( ImagePointer & image, PorosityFilterID filterId, RunIn
 	maxDistFilter->SetBins( 10 );
 	maxDistFilter->SetCentre( airporeGV );
 	maxDistFilter->Update();
-	maxDistFilter->GetThreshold( &mdThr );
+	mdThr = maxDistFilter->GetOutThreshold();
 	maxDistFilter->ReleaseDataFlagOn();
 
 	// Calculate Otsu Threshold

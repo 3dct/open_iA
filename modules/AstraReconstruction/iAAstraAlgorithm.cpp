@@ -306,7 +306,7 @@ public:
 
 void iAASTRAForwardProject::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkImageData> volImg = m_con->GetVTKImage();
+	vtkSmartPointer<vtkImageData> volImg = Input()[0]->GetVTKImage();
 	int * volDim = volImg->GetDimensions();
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
@@ -365,8 +365,7 @@ void iAASTRAForwardProject::PerformWork(QMap<QString, QVariant> const & paramete
 			imgIndex += projDim[0];
 		}
 	}
-	m_con->SetImage(projImg);
-	m_con->Modified();
+	AddOutput(projImg);
 
 	delete algorithm;
 	delete volumeData;
@@ -435,7 +434,7 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 
 void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkImageData> projImg = m_con->GetVTKImage();
+	vtkSmartPointer<vtkImageData> projImg = Input()[0]->GetVTKImage();
 	int * projDim = projImg->GetDimensions();
 	size_t detRowCnt = projDim[parameters[DetRowDim].toUInt() % 3];
 	size_t detColCnt = projDim[parameters[DetColDim].toUInt() % 3];
@@ -533,8 +532,7 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 		slice += sliceOffset;
 	}
-	m_con->SetImage(volImg);
-	m_con->Modified();
+	AddOutput(volImg);
 
 	delete volumeData;
 	delete projectionData;

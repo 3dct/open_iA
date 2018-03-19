@@ -123,6 +123,7 @@ public:
 	vtkRenderer* GetRenderer();
 	vtkCamera* GetCamera();
 	void SetCamera(vtkCamera* camera, bool camOwner=true);
+	void ResetCamera();
 	vtkImageData* GetImageData() const { return imageData; };
 
 	iASlicerMode getMode() const { return m_mode; }

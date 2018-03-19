@@ -20,23 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include "iAModuleInterface.h"
 
-IAFILTER_DEFAULT_CLASS(iAResampleFilter);
-IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
-IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
-
-class iAResampleFilterRunner : public iAFilterRunnerGUI
+class iAExtractSurfaceModuleInterface : public iAModuleInterface
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
-};
-
-class iAExtractImageFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+	void Initialize();
 };

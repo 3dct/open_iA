@@ -33,6 +33,10 @@
 #include <QTableWidget>
 #include <QWheelEvent>
 
+namespace
+{ // apparently QFontMetric width is not returning the full width of the string - correction constant:
+	const int TextPadding = 7;
+}
 
 iAQSplom::Settings::Settings()
 	:plotsSpacing( 7 ),
@@ -129,7 +133,8 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 	m_animIn( 1.0 ),
 	m_animOut( 0.0 ),
 	m_animationOut( new QPropertyAnimation( this, "m_animOut" ) ),
-	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) )
+	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) ),
+	m_popupHeight(0)
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -527,6 +532,20 @@ int iAQSplom::invert( int val ) const
 void iAQSplom::paintEvent( QPaintEvent * event )
 {
 	QPainter painter( this );
+	QFontMetrics fm = painter.fontMetrics();
+	//collect info
+	QList<double> ticksX, ticksY; QList<QString> textX, textY;
+	for (int i = 0; i < m_visiblePlots.size(); ++i)
+	{
+		m_visiblePlots[i][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+	}
+	int maxTickLabelWidth = GetMaxTickLabelWidth(textX, fm);
+	if (settings.tickOffsets.x() != maxTickLabelWidth || settings.tickOffsets.y() != maxTickLabelWidth)
+	{
+		settings.tickOffsets.setX(maxTickLabelWidth);
+		settings.tickOffsets.setY(maxTickLabelWidth);
+		updateSPLOMLayout();
+	}
 	painter.setRenderHint( QPainter::Antialiasing );
 	painter.setRenderHint( QPainter::HighQualityAntialiasing );
 	painter.beginNativePainting();
@@ -534,7 +553,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.endNativePainting();
 	if( !getVisibleParametersCount() )
 		return;
-	drawTicks( painter );
+	drawTicks( painter, ticksX, ticksY, textX, textY );
 	foreach( const QList<iAScatterPlot*> & row, m_visiblePlots )
 	{
 		foreach( iAScatterPlot * s, row )
@@ -591,19 +610,19 @@ bool iAQSplom::drawPopup( QPainter& painter )
 
 	double * tipDim = settings.popupTipDim;
 	double popupWidthHalf = settings.popupWidth / 2;
-	double popupHeight = doc.size().height();
+	m_popupHeight = doc.size().height();
 	QPointF points[7] = {
 		QPointF( 0, 0 ),
 		QPointF( -tipDim[0], -tipDim[1] ),
 		QPointF( -popupWidthHalf, -tipDim[1] ),
-		QPointF( -popupWidthHalf, -popupHeight - tipDim[1] ),
-		QPointF( popupWidthHalf, -popupHeight - tipDim[1] ),
+		QPointF( -popupWidthHalf, -m_popupHeight - tipDim[1] ),
+		QPointF( popupWidthHalf, -m_popupHeight - tipDim[1] ),
 		QPointF( popupWidthHalf, -tipDim[1] ),
 		QPointF( tipDim[0], -tipDim[1] ),
 	};
 	painter.drawPolygon( points, 7 );
 
-	painter.translate( -popupWidthHalf, -popupHeight - tipDim[1] );
+	painter.translate( -popupWidthHalf, -m_popupHeight - tipDim[1] );
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
 	ctx.palette.setColor( QPalette::Text, col );
@@ -859,16 +878,20 @@ void iAQSplom::changeActivePlot( iAScatterPlot * s )
 	}
 }
 
-void iAQSplom::drawTicks( QPainter & painter )
+int iAQSplom::GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const
+{
+	int maxLength = 0;
+	for (long i = 0; i < textX.size(); ++i)
+	{
+		maxLength = std::max(fm.width(textX[i]), maxLength);
+	}
+	return maxLength+TextPadding;
+}
+
+void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX, QList<QString> const & textY)
 {
 	//prepare painter
 	painter.save();
-	//collect info
-	QList<double> ticksX, ticksY; QList<QString> textX, textY;
-	for( int i = 0; i < m_visiblePlots.size(); ++i )		
-	{
-		m_visiblePlots[i][i]->printTicksInfo( &ticksX, &ticksY, &textX, &textY );
-	}
 	//draw ticks text
 	painter.setPen( m_visiblePlots[0][0]->settings.tickLabelColor );
 	QPoint * tOfs = &settings.tickOffsets;

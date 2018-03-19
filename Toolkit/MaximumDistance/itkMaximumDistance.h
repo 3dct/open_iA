@@ -99,19 +99,19 @@ namespace itk {
 		/*!
 		\return t an int, which is the maximum distance threshold.
 		*/
-		void GetThreshold( int* t);
+		int GetOutThreshold();
 
 		//!Get low intensity peak
 		/*!
 		\return li an int, which is the low intensity peak.
 		*/
-		void GetLowIntensity( int* li);
+		int GetLowIntensity();
 
 		//!Get high intensity peak
 		/*!
 		\return hi an int, which is the high intensity peak.
 		*/
-		void GetHighIntensity( int* hi);
+		int GetHighIntensity();
 
 	protected:
 

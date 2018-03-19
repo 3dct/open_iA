@@ -48,23 +48,22 @@ IAFILTER_CREATE(iAEntropy)
 
 
 template <typename PixelType>
-void entropy_template(QVector<iAConnector*> & cons, QMap<QString, QVariant> const & parameters)
+void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<PixelType, DIM> InputImageType;
 	typedef fhw::EntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
 	auto entropyFilter = EntropyFilter::New();
-	for (int i = 0; i < cons.size(); ++i)
+	for (int i = 0; i < filter->Input().size(); ++i)
 	{
-		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(cons[i]->GetITKImage()));
+		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->Input()[i]->GetITKImage()));
 	}
 	entropyFilter->SetNormalize(parameters["Normalize"].toBool());
 	entropyFilter->Update();
-	cons[0]->SetImage(entropyFilter->GetOutput());
-	cons[0]->Modified();
+	filter->AddOutput(entropyFilter->GetOutput());
 }
 
 
 void iAEntropy::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(entropy_template, m_con->GetITKScalarPixelType(), m_cons, parameters);
+	ITK_TYPED_CALL(entropy, InputPixelType(), this, parameters);
 }

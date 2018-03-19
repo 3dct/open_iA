@@ -49,30 +49,29 @@
 #include <vtkTubeFilter.h>
 
 
-template<class T> void convolution_template(QVector<iAConnector*> & image, iAProgress* p)
+template<class T> void convolution(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
 	typedef itk::ConvolutionImageFilter<ImageType, KernelImageType, KernelImageType> ConvFilterType;
 
-	auto filter = ConvFilterType::New();
-	auto img = dynamic_cast<ImageType *>(image[0]->GetITKImage());
-	auto kernelImg = dynamic_cast<KernelImageType*>(image[1]->GetITKImage());
+	auto convFilter = ConvFilterType::New();
+	auto img = dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage());
+	auto kernelImg = dynamic_cast<KernelImageType*>(filter->Input()[1]->GetITKImage());
 	if (!kernelImg)
 	{
 		throw std::invalid_argument("Kernel Image must be of float type!");
 	}
-	filter->SetInput(img);
-	filter->SetKernelImage(kernelImg);
-	p->Observe(filter);
-	filter->Update();
-	image[0]->SetImage(filter->GetOutput());
-	image[0]->Modified();
+	convFilter->SetInput(img);
+	convFilter->SetKernelImage(kernelImg);
+	filter->Progress()->Observe(convFilter);
+	convFilter->Update();
+	filter->AddOutput(convFilter->GetOutput());
 }
 
 void iAConvolution::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(convolution_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
+	ITK_TYPED_CALL(convolution, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAConvolution)
@@ -90,30 +89,29 @@ iAConvolution::iAConvolution() :
 {}
 
 // FFT-based convolution instead of spatial domain convolution
-template<class T> void fft_convolution_template(QVector<iAConnector*> & image, iAProgress* p)
+template<class T> void fft_convolution(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
 	typedef itk::FFTConvolutionImageFilter<ImageType, KernelImageType, KernelImageType> ConvFilterType;
 
-	auto kernelImg = dynamic_cast<KernelImageType *>(image[1]->GetITKImage());
+	auto kernelImg = dynamic_cast<KernelImageType *>(filter->Input()[1]->GetITKImage());
 	if (!kernelImg)
 	{
 		throw std::invalid_argument("Kernel Image must be of float type!");
 	}
-	auto filter = ConvFilterType::New();
-	filter->SetInput(dynamic_cast<ImageType *>(image[0]->GetITKImage()));
-	filter->SetKernelImage(kernelImg);
-	filter->SetNormalize(true);
-	p->Observe(filter);
-	filter->Update();
-	image[0]->SetImage(filter->GetOutput());
-	image[0]->Modified();
+	auto fftConvFilter = ConvFilterType::New();
+	fftConvFilter->SetInput(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()));
+	fftConvFilter->SetKernelImage(kernelImg);
+	fftConvFilter->SetNormalize(true);
+	filter->Progress()->Observe(fftConvFilter);
+	fftConvFilter->Update();
+	filter->AddOutput(fftConvFilter->GetOutput());
 }
 
 void iAFFTConvolution::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(fft_convolution_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
+	ITK_TYPED_CALL(fft_convolution, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAFFTConvolution)
@@ -131,12 +129,12 @@ iAFFTConvolution::iAFFTConvolution() :
 		"FFT Convolution Filter</a> in the ITK documentation.", 2)
 {}
 
-template<class T> void correlation_template(QVector<iAConnector*> & image, iAProgress* p)
+template<class T> void correlation(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
 
-	auto kernelImg = dynamic_cast<KernelImageType*>(image[1]->GetITKImage());
+	auto kernelImg = dynamic_cast<KernelImageType*>(filter->Input()[1]->GetITKImage());
 	if (!kernelImg)
 	{
 		throw std::invalid_argument("Kernel Image must be of float type!");
@@ -151,20 +149,19 @@ template<class T> void correlation_template(QVector<iAConnector*> & image, iAPro
 	kernelOperator.SetImageKernel(kernelImg);
 	kernelOperator.CreateToRadius(radius);
 
-	auto img = dynamic_cast<ImageType *>(image[0]->GetITKImage());
+	auto img = dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage());
 	typedef itk::NormalizedCorrelationImageFilter<ImageType, KernelImageType, KernelImageType> CorrelationFilterType;
-	auto filter = CorrelationFilterType::New();
-	filter->SetInput(img);
-	filter->SetTemplate(kernelOperator);
-	p->Observe(filter);
-	filter->Update();
-	image[0]->SetImage(filter->GetOutput());
-	image[0]->Modified();
+	auto corrFilter = CorrelationFilterType::New();
+	corrFilter->SetInput(img);
+	corrFilter->SetTemplate(kernelOperator);
+	filter->Progress()->Observe(corrFilter);
+	corrFilter->Update();
+	filter->AddOutput(corrFilter->GetOutput());
 }
 
 void iACorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(correlation_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
+	ITK_TYPED_CALL(correlation, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iACorrelation)
@@ -182,12 +179,12 @@ iACorrelation::iACorrelation() :
 {}
 
 //NCC calculation using fft
-template<class T> void fft_correlation_template(QVector<iAConnector*> & image, iAProgress* p)
+template<class T> void fft_correlation(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
-	auto img = dynamic_cast<ImageType *>(image[0]->GetITKImage());
-	auto templateImg = dynamic_cast<KernelImageType*>(image[1]->GetITKImage());
+	auto img = dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage());
+	auto templateImg = dynamic_cast<KernelImageType*>(filter->Input()[1]->GetITKImage());
 	if (!templateImg)
 	{
 		throw std::invalid_argument("Template Image must be of float type!");
@@ -199,20 +196,19 @@ template<class T> void fft_correlation_template(QVector<iAConnector*> & image, i
 	caster->SetInput(img);
 
 	typedef itk::FFTNormalizedCorrelationImageFilter<KernelImageType, KernelImageType> CorrelationFilterType;
-	auto filter = CorrelationFilterType::New();
-	filter->SetInput(caster->GetOutput());
+	auto corrFilter = CorrelationFilterType::New();
+	corrFilter->SetInput(caster->GetOutput());
 	//filter->SetFixedImage(img);
-	filter->SetMovingImage(templateImg);
-	filter->Modified();
-	p->Observe(filter);
-	filter->Update();
-	image[0]->SetImage(filter->GetOutput());
-	image[0]->Modified();
+	corrFilter->SetMovingImage(templateImg);
+	corrFilter->Modified();
+	filter->Progress()->Observe(corrFilter);
+	corrFilter->Update();
+	filter->AddOutput(corrFilter->GetOutput());
 }
 
 void iAFFTCorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(fft_correlation_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
+	ITK_TYPED_CALL(fft_correlation, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAFFTCorrelation)
@@ -229,7 +225,7 @@ iAFFTCorrelation::iAFFTCorrelation() :
 		"FFT Normalized Correlation Filter</a> in the ITK documentation.", 2)
 {}
 
-template<class T> void streamed_fft_correlation_template(QVector<iAConnector*> & image, iAProgress* p)
+template<class T> void streamed_fft_correlation(iAFilter* filter)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::Image<float, DIM> KernelImageType;
@@ -239,14 +235,14 @@ template<class T> void streamed_fft_correlation_template(QVector<iAConnector*> &
 	typedef itk::FFTNormalizedCorrelationImageFilter<KernelImageType, KernelImageType> CorrelationFilterType;
 	//typedef itk::NormalizedCorrelationImageFilter<KernelImageType, KernelImageType, KernelImageType> CorrelationFilterType;
 
-	auto templateImg = dynamic_cast<KernelImageType*>(image[1]->GetITKImage());
+	auto templateImg = dynamic_cast<KernelImageType*>(filter->Input()[1]->GetITKImage());
 	if (!templateImg)
 	{
 		throw std::invalid_argument("Template Image must be of float type!");
 	}
 	//cast input image to float
 	auto caster = CasterType::New();
-	caster->SetInput(dynamic_cast<ImageType *>(image[0]->GetITKImage()));
+	caster->SetInput(dynamic_cast<ImageType *>(filter->Input()[0]->GetITKImage()));
 	auto monitorFilter = MonitorFilterType::New();
 	monitorFilter->SetInput(caster->GetOutput());
 	//monitorFilter->DebugOn();
@@ -257,19 +253,18 @@ template<class T> void streamed_fft_correlation_template(QVector<iAConnector*> &
 	streamer->SetInput(monitorFilter->GetOutput());
 	streamer->SetNumberOfStreamDivisions(numStreamDivisions);
 
-	auto filter = CorrelationFilterType::New();
-	filter->SetInput(streamer->GetOutput());
+	auto corrFilter = CorrelationFilterType::New();
+	corrFilter->SetInput(streamer->GetOutput());
 	//filter->SetFixedImage(img);
-	filter->SetMovingImage(templateImg);
-	p->Observe(filter);
-	filter->Update();
-	image[0]->SetImage(filter->GetOutput());
-	image[0]->Modified();
+	corrFilter->SetMovingImage(templateImg);
+	filter->Progress()->Observe(corrFilter);
+	corrFilter->Update();
+	filter->AddOutput(corrFilter->GetOutput());
 }
 
 void iAStreamedFFTCorrelation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(streamed_fft_correlation_template, m_con->GetITKScalarPixelType(), m_cons, m_progress);
+	ITK_TYPED_CALL(streamed_fft_correlation, InputPixelType(), this);
 }
 
 IAFILTER_CREATE(iAStreamedFFTCorrelation)

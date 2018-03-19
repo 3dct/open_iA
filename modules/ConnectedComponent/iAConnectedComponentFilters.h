@@ -24,14 +24,4 @@
 
 IAFILTER_DEFAULT_CLASS(iASimpleConnectedComponents);
 IAFILTER_DEFAULT_CLASS(iAScalarConnectedComponents);
-
-class iASimpleRelabelConnectedComponents : public iAFilter
-{
-public:
-	static QSharedPointer<iASimpleRelabelConnectedComponents> Create();
-	void PerformWork(QMap<QString, QVariant> const & parameters) override;
-	bool CheckParameters(QMap<QString, QVariant> & parameters) override;
-private:
-	iASimpleRelabelConnectedComponents();
-	QString m_outFile;
-};
+IAFILTER_DEFAULT_CLASS(iASimpleRelabelConnectedComponents);

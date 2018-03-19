@@ -1775,20 +1775,20 @@ void dlg_FeatureScout::saveStl()
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->initProgressBar();
 
-	iAProgress* marCubProgress = iAProgress::New();
-	iAProgress* stlWriProgress = iAProgress::New();
-	connect( marCubProgress, SIGNAL( progress( int ) ), this, SLOT( updateMarProgress( int ) ) );
-	connect( stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
+	iAProgress marCubProgress;
+	iAProgress stlWriProgress;
+	connect( &marCubProgress, SIGNAL( progress( int ) ), this, SLOT( updateMarProgress( int ) ) );
+	connect( &stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
 
 	vtkSmartPointer<vtkMarchingCubes> moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-	moSurface->AddObserver( vtkCommand::ProgressEvent, marCubProgress );
+	marCubProgress.Observe(moSurface);
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
 	moSurface->SetValue( 0, iovMO->dsb_IsoValue->value() );
 
 	vtkSmartPointer<vtkSTLWriter> stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriter->AddObserver( vtkCommand::ProgressEvent, stlWriProgress );
+	stlWriProgress.Observe(stlWriter);
 	stlWriter->SetFileName( iovMO->le_StlPath->text().toStdString().c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();

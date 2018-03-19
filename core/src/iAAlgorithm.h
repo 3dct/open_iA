@@ -69,7 +69,7 @@ public:
 	bool deleteConnector(iAConnector* c);
 	void allocConnectors(int size);
 
-	iAProgress* getItkProgress();
+	iAProgress* ProgressObserver();
 	void vtkPolydata_itkMesh ( vtkPolyData* polyData, MeshType::Pointer mesh );
 	void itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData );
 	virtual void SafeTerminate();
@@ -103,7 +103,7 @@ private:
 	QString m_filterName;
 	vtkImageData *m_image;
 	vtkPolyData *m_polyData;
-	iAProgress *m_itkProgress;
+	iAProgress *m_progressObserver;
 	iALogger * m_logger;
 	QVector<iAConnector*> m_connectors;
 };

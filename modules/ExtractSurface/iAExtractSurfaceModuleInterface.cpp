@@ -18,25 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "pch.h"
+#include "iAExtractSurfaceModuleInterface.h"
 
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include "iAFilterRegistry.h"
 
-IAFILTER_DEFAULT_CLASS(iAResampleFilter);
-IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
-IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
+#include "iAExtractSurfaceFilters.h"
 
-class iAResampleFilterRunner : public iAFilterRunnerGUI
+void iAExtractSurfaceModuleInterface::Initialize()
 {
-public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
-};
-
-class iAExtractImageFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
-};
+	REGISTER_FILTER(iAMarchingCubes);
+	//REGISTER_FILTER(iAFlyingEdges);
+}

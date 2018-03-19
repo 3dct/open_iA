@@ -24,6 +24,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 
 #include <itkCastImageFilter.h>
@@ -41,23 +42,17 @@
 // Watershed segmentation 
 
 template<class T> 
-void watershed_template( double l, double t, iAProgress* p, iAConnector* image)
+void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::WatershedImageFilter < InputImageType > WIFType;
-	auto filter = WIFType::New();
-	filter->SetLevel ( l );
-	filter->SetThreshold ( t);
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	p->Observe( filter );
-	filter->Update();
-	typedef itk::Image< typename WIFType::OutputImagePixelType, DIM > IntImageType;
-	typedef itk::Image<	unsigned long, DIM>  LongImageType;
-	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
-	auto longcaster = CastFilterType::New();
-	longcaster->SetInput(0, filter->GetOutput() );
-	image->SetImage( longcaster->GetOutput() );
-	image->Modified();
+	auto wsFilter = WIFType::New();
+	wsFilter->SetLevel ( parameters["Level"].toDouble() );
+	wsFilter->SetThreshold ( parameters["Threshold"].toDouble() );
+	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	filter->Progress()->Observe( wsFilter );
+	wsFilter->Update();
+	filter->AddOutput( CastImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
 IAFILTER_CREATE(iAWatershed)
@@ -79,37 +74,26 @@ iAWatershed::iAWatershed() :
 
 void iAWatershed::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(watershed_template, itkType,
-		parameters["Level"].toDouble(),
-		parameters["Threshold"].toDouble(),
-		m_progress, m_con);
+	ITK_TYPED_CALL(watershed, InputPixelType(), this, parameters);
 }
 
 
 // Morphological Watershed
 
 template<class T>
-void morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFullyConnected, iAProgress* p,
-							  iAConnector* image)
+void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< unsigned long, DIM > OutputImageType;
 	typedef itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType> MWIFType;
 	auto mWSFilter = MWIFType::New();
-	mwsMarkWSLines ? mWSFilter->MarkWatershedLineOn() : mWSFilter->MarkWatershedLineOff();
-	mwsFullyConnected ? mWSFilter->FullyConnectedOn() : mWSFilter->FullyConnectedOff();
-	mWSFilter->SetLevel( mwsLevel );
-	mWSFilter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	p->Observe( mWSFilter );
+	mWSFilter->SetMarkWatershedLine(parameters["Mark WS Lines"].toBool());
+	mWSFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
+	mWSFilter->SetLevel( parameters["Level"].toDouble() );
+	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	filter->Progress()->Observe( mWSFilter );
 	mWSFilter->Update();
-	typedef itk::Image< typename MWIFType::OutputImagePixelType, DIM > IntImageType;
-	typedef itk::Image<	unsigned long, DIM>  LongImageType;
-	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
-	auto longcaster = CastFilterType::New();
-	longcaster->SetInput( 0, mWSFilter->GetOutput() );
-	image->SetImage( longcaster->GetOutput() );
-	image->Modified();
+	filter->AddOutput( CastImageTo<unsigned long>(mWSFilter->GetOutput()) );
 }
 
 IAFILTER_CREATE(iAMorphologicalWatershed)
@@ -130,10 +114,5 @@ iAMorphologicalWatershed::iAMorphologicalWatershed() :
 
 void iAMorphologicalWatershed::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType itkType = m_con->GetITKScalarPixelType();
-	ITK_TYPED_CALL(morph_watershed_template, itkType,
-		parameters["Level"].toDouble(),
-		parameters["Mark WS Lines"].toBool(),
-		parameters["Fully Connected"].toBool(),
-		m_progress, m_con);
+	ITK_TYPED_CALL(morph_watershed, InputPixelType(), this, parameters);
 }

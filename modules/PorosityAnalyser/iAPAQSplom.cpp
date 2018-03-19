@@ -180,17 +180,11 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 	popupPos.setY( popupPos.y() - pPM * ptRad );
 	painter.translate( popupPos );
 	
-	//draw dataset preview
-	double * popupSize = settings.popupSize;
-	double scaledW = 2 * popupSize[0];
 	
 	int dsInd = getDatasetIndexFromPointIndex( curInd );
 	const QRectF & roi = m_roiLst[dsInd];
-	double scaledH = scaledW / roi.width() * roi.height();
+	double scaledH = settings.popupWidth / roi.width() * roi.height();
 	painter.setOpacity( anim*1.0 );
-	QPointF pixOrigin( -popupSize[0], -popupSize[1] - settings.popupTipDim[1] - scaledH );
-	painter.drawPixmap( pixOrigin, m_curSlicePxmp );
-	painter.drawPixmap( pixOrigin, m_maskPxmpRoi );
 
 	//draw current dataset name, pipeline name, slice number
 	QString text =
@@ -204,10 +198,16 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 		"</table>";
 	QTextDocument doc;
 	doc.setHtml( text );
-	doc.setTextWidth( scaledW );
+	doc.setTextWidth( settings.popupWidth);
 	QColor col = settings.popupFillColor; col.setAlpha( col.alpha()* anim ); painter.setBrush( col );
 	col = settings.popupBorderColor; col.setAlpha( col.alpha()* anim ); painter.setPen( col );
-	painter.drawRect( pixOrigin.x(), pixOrigin.y() - doc.size().rheight() - 3, scaledW, doc.size().rheight() + 3 );
+
+	//draw dataset preview
+	QPointF pixOrigin(-(settings.popupWidth/2), - m_popupHeight - settings.popupTipDim[1] - scaledH);
+	painter.drawPixmap(pixOrigin, m_curSlicePxmp);
+	painter.drawPixmap(pixOrigin, m_maskPxmpRoi);
+
+	painter.drawRect( pixOrigin.x(), pixOrigin.y() - doc.size().rheight() - 3, settings.popupWidth, doc.size().rheight() + 3 );
 	painter.translate( pixOrigin.x(), pixOrigin.y() - doc.size().rheight() - 3 );
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
@@ -329,15 +329,14 @@ void iAPAQSplom::updatePreviewPixmap()
 	}
 
 	m_maskPxmp = QPixmap::fromImage( maskImg );
-	double scaledW = 2 * settings.popupSize[0]; //double scaledH = scaledW / m_roi.width() * m_roi.height();
 	QRect roi = m_roiLst[dsInd].toRect();
-	m_maskPxmpRoi = m_maskPxmp.copy( roi ).scaledToWidth( scaledW );
+	m_maskPxmpRoi = m_maskPxmp.copy( roi ).scaledToWidth(settings.popupWidth);
 
 	QString dataSliceFilename = getSliceFilename( m_datasets[dsInd], m_sliceNumPopupLst[dsInd] );
 	QPixmap dataPixmap;
 	if( !dataPixmap.load( dataSliceFilename, "PNG" ) )
 		return;
-	m_curSlicePxmp = dataPixmap.copy( roi ).scaledToWidth( scaledW );
+	m_curSlicePxmp = dataPixmap.copy( roi ).scaledToWidth(settings.popupWidth);
 	emit maskHovered( &m_maskPxmp, dsInd );
 }
 

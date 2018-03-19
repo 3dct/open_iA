@@ -265,8 +265,6 @@ namespace
 
 		try
 		{
-			// read input file(s)
-			QVector<iAConnector*> cons;
 			for (int i = 0; i < inputFiles.size(); ++i)
 			{
 				if (!quiet)
@@ -277,7 +275,7 @@ namespace
 				iAITKIO::ImagePointer img = iAITKIO::readFile(inputFiles[i], pixelType, false);
 				iAConnector * con = new iAConnector();
 				con->SetImage(img);
-				cons.push_back(con);
+				filter->AddInput(con);
 			}
 
 			if (!quiet)
@@ -292,17 +290,20 @@ namespace
 			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
 			QObject::connect(&progress, SIGNAL(progress(int)), &progressIndicator, SLOT(Progress(int)));
-			filter->SetUp(cons, iAStdOutLogger::Get(), &progress);
+			filter->SetUp(iAStdOutLogger::Get(), &progress);
 			if (!filter->CheckParameters(parameters))
 			{   // output already happened in CheckParameters via logger
 				return 1;
 			}
-			filter->Run(parameters);
+			if (!filter->Run(parameters))
+			{	// output already happened in Run via logger
+				return 1;
+			}
 			// write output file(s)
-			for (int o = 0; o < filter->OutputCount(); ++o)
+			for (int o = 0; o < filter->Output().size(); ++o)
 			{
 				QString outFileName;
-				if (filter->OutputCount() == 1 ||  o < outputFiles.size()-1)
+				if (filter->Output().size() == 1 ||  o < outputFiles.size()-1)
 				{
 					outFileName = outputFiles[o];
 				}
@@ -325,7 +326,7 @@ namespace
 						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
 						<< std::endl;
 				}
-				iAITKIO::writeFile(outFileName, filter->Connectors()[o]->GetITKImage(), filter->Connectors()[o]->GetITKScalarPixelType(), compress);
+				iAITKIO::writeFile(outFileName, filter->Output()[o]->GetITKImage(), filter->Output()[o]->GetITKScalarPixelType(), compress);
 			}
 			for (auto outputValue: filter->OutputValues())
 				std::cout << outputValue.first.toStdString() << ": "

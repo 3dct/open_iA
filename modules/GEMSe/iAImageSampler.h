@@ -56,6 +56,7 @@ public:
 		QString const & pipelineName,
 		QString const & imageBaseName,
 		bool separateOutputDir,
+		bool calculateChar,
 		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
@@ -86,6 +87,7 @@ private:
 
 	QString m_imageBaseName;
 	bool m_separateOutputDir;
+	bool m_calculateCharacteristics;
 	//! @}
 
 	size_t m_curLoop;

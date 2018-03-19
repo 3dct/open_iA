@@ -133,7 +133,7 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 	}
 	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->SetUp(inputImages, m_log, &p);
+	filter->SetUp(Logger(), &p);
 
 	QStringList filters = parameters["File mask"].toString().split(";");
 	
@@ -175,7 +175,12 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		{
 			iAITKIO::ScalarPixelType pixelType;
 			iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-			inputImages[0]->SetImage(img);
+			iAConnector con;
+			con.SetImage(img);
+			filter->ClearInput();
+			filter->AddInput(&con);
+			for (int i = 0; i < inputImages.size(); ++i)
+				filter->AddInput(inputImages[i]);
 			filter->Run(filterParams);
 			if (curLine == 0)
 			{
@@ -202,10 +207,10 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;
 			++curLine;
-			for (int o = 0; o < filter->OutputCount(); ++o)
+			for (int o = 0; o < filter->Output().size(); ++o)
 			{
 				QFileInfo fi(outDir + "/" + relFileName);
-				QString multiFileSuffix = filter->OutputCount() > 1 ? QString::number(o) : "";
+				QString multiFileSuffix = filter->Output().size() > 1 ? QString::number(o) : "";
 				QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(fi.baseName())
 					.arg(outSuffix).arg(multiFileSuffix).arg(fi.completeSuffix());
 				int overwriteSuffix = 0;
@@ -219,8 +224,8 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 					AddMsg(QString("Error creating output directory %1, skipping writing output file %2")
 						.arg(fi.absolutePath()).arg(outName));
 				else
-					iAITKIO::writeFile(outName, filter->Connectors()[o]->GetITKImage(),
-						filter->Connectors()[o]->GetITKScalarPixelType(), useCompression);
+					iAITKIO::writeFile(outName, filter->Output()[o]->GetITKImage(),
+						filter->Output()[o]->GetITKScalarPixelType(), useCompression);
 			}
 		}
 		catch (std::exception & e)
@@ -230,7 +235,7 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			else
 				DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 		}
-		m_progress->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		Progress()->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}
 
 	if (!outputFile.isEmpty())

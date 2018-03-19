@@ -21,22 +21,6 @@
 #pragma once
 
 #include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
 
-IAFILTER_DEFAULT_CLASS(iAResampleFilter);
-IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
-IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
-
-class iAResampleFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
-};
-
-class iAExtractImageFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
-};
+IAFILTER_DEFAULT_CLASS(iAMarchingCubes);
+//IAFILTER_DEFAULT_CLASS(iAFlyingEdges);

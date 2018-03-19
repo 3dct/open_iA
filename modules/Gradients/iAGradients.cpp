@@ -36,25 +36,23 @@
 
 // iAGradientMagnitude
 
-template<class T> void gradient_magnitude_template(bool useImageSpacing, iAProgress* p, iAConnector* image)
+template<class T> void gradient_magnitude(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< float, 3 >   RealImageType;
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, InputImageType > GMFType;
 
-	auto filter = GMFType::New();
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	filter->SetUseImageSpacing(useImageSpacing);
-	p->Observe(filter);
-	filter->Update();
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+	auto gmFilter = GMFType::New();
+	gmFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	gmFilter->SetUseImageSpacing(params["Use Image Spacing"].toBool());
+	filter->Progress()->Observe(gmFilter);
+	gmFilter->Update();
+	filter->AddOutput(gmFilter->GetOutput());
 }
 
 void iAGradientMagnitude::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(gradient_magnitude_template, m_con->GetITKScalarPixelType(), parameters["Use Image Spacing"].toBool(), m_progress, m_con);
+	ITK_TYPED_CALL(gradient_magnitude, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAGradientMagnitude)
@@ -74,7 +72,7 @@ iAGradientMagnitude::iAGradientMagnitude() :
 // iADerivative:
 
 template<class T> 
-void derivative_template( unsigned int o, unsigned int d, iAProgress* p, iAConnector* image )
+void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<float, DIM> RealImageType;
@@ -83,21 +81,18 @@ void derivative_template( unsigned int o, unsigned int d, iAProgress* p, iAConne
 
 	//auto toReal = CastToRealFilterType::New();
 	//toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	auto filter = DIFType::New();
-	filter->SetOrder( o );
-	filter->SetDirection( d );
-	filter->SetInput( dynamic_cast< InputImageType * >(image->GetITKImage()) );
-	p->Observe( filter );
-	filter->Update(); 
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+	auto derFilter = DIFType::New();
+	derFilter->SetOrder(params["Order"].toUInt());
+	derFilter->SetDirection(params["Direction"].toUInt());
+	derFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
+	filter->Progress()->Observe( derFilter );
+	derFilter->Update();
+	filter->AddOutput(derFilter->GetOutput());
 }
 
 void iADerivative::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(derivative_template, m_con->GetITKScalarPixelType(),
-		parameters["Order"].toUInt(), parameters["Direction"].toUInt(), m_progress, m_con);
+	ITK_TYPED_CALL(derivative, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADerivative)
@@ -118,27 +113,25 @@ iADerivative::iADerivative() :
 // iAHigherOrderAccurateGradient
 
 template<class T>
-void hoa_derivative_template(QMap<QString, QVariant> const & parameters, iAProgress* p, iAConnector* image)
+void hoa_derivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<double, DIM> OutputImageType;
 	typedef itk::HigherOrderAccurateDerivativeImageFilter< InputImageType, OutputImageType > HOAGDFilter;
 
-	auto filter = HOAGDFilter::New();
-	filter->SetOrder(parameters["Order"].toUInt());
-	filter->SetDirection(parameters["Direction"].toUInt());
-	filter->SetOrderOfAccuracy(parameters["Order of Accuracy"].toUInt());
-	filter->SetInput(dynamic_cast<InputImageType *>(image->GetITKImage()));
-	p->Observe(filter);
-	filter->Update();
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+	auto hoaFilter = HOAGDFilter::New();
+	hoaFilter->SetOrder(parameters["Order"].toUInt());
+	hoaFilter->SetDirection(parameters["Direction"].toUInt());
+	hoaFilter->SetOrderOfAccuracy(parameters["Order of Accuracy"].toUInt());
+	hoaFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	filter->Progress()->Observe(hoaFilter);
+	hoaFilter->Update();
+	filter->AddOutput(hoaFilter->GetOutput());
 }
 		
 void iAHigherOrderAccurateDerivative::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(hoa_derivative_template, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(hoa_derivative, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAHigherOrderAccurateDerivative)

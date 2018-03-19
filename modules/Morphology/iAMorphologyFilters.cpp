@@ -33,7 +33,7 @@
 #include <itkHessian3DToVesselnessMeasureImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>
 
-template<class T> void dilation_template(iAProgress* p, iAConnector* image, int radius)
+template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType,3> StructuringElementType;
@@ -41,22 +41,19 @@ template<class T> void dilation_template(iAProgress* p, iAConnector* image, int 
 		GrayscaleDilateImageFilterType;
 
 	StructuringElementType structuringElement;
-	structuringElement.SetRadius(radius);
+	structuringElement.SetRadius(params["Radius"].toUInt());
 	structuringElement.CreateStructuringElement();
 	auto dilateFilter = GrayscaleDilateImageFilterType::New();
-	dilateFilter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
+	dilateFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
 	dilateFilter->SetKernel(structuringElement);
-	p->Observe( dilateFilter );
+	filter->Progress()->Observe( dilateFilter );
 	dilateFilter->Update(); 
-	image->SetImage(dilateFilter->GetOutput());
-	image->Modified();
-	dilateFilter->ReleaseDataFlagOn();
+	filter->AddOutput(dilateFilter->GetOutput());
 }
 
 void iADilation::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(dilation_template, m_con->GetITKScalarPixelType(),
-		m_progress, m_con, parameters["Radius"].toInt());
+	ITK_TYPED_CALL(dilation, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADilation)
@@ -77,7 +74,7 @@ iADilation::iADilation() :
 
 
 
-template<class T> void erosion_template(iAProgress* p, iAConnector* image, int radius)
+template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType,3> StructuringElementType;
@@ -85,22 +82,19 @@ template<class T> void erosion_template(iAProgress* p, iAConnector* image, int r
 		GrayscaleErodeImageFilterType;
 
 	StructuringElementType structuringElement;
-	structuringElement.SetRadius(radius);
+	structuringElement.SetRadius(params["Radius"].toInt());
 	structuringElement.CreateStructuringElement();
 	auto erodeFilter = GrayscaleErodeImageFilterType::New();
-	erodeFilter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	erodeFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
 	erodeFilter->SetKernel(structuringElement);
-	p->Observe( erodeFilter );
+	filter->Progress()->Observe( erodeFilter );
 	erodeFilter->Update();
-	image->SetImage(erodeFilter->GetOutput());
-	image->Modified();
-	erodeFilter->ReleaseDataFlagOn();
+	filter->AddOutput(erodeFilter->GetOutput());
 }
 
 void iAErosion::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(erosion_template, m_con->GetITKScalarPixelType(),
-		m_progress, m_con, parameters["Radius"].toInt());
+	ITK_TYPED_CALL(erosion, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAErosion)
@@ -121,27 +115,25 @@ iAErosion::iAErosion() :
 
 
 
-template<class T> void vesselEnhancement_template(iAProgress* p, iAConnector* image, double sigma)
+template<class T> void vesselEnhancement(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Hessian3DToVesselnessMeasureImageFilter<typename InputImageType::PixelType> EnhancementFilter; 
 	typedef itk::HessianRecursiveGaussianImageFilter<InputImageType> HRGIFType;
 
 	auto hessfilter = HRGIFType::New();
-	hessfilter->SetInput(dynamic_cast< InputImageType * >( image->GetITKImage() ));
-	hessfilter->SetSigma(sigma);
+	hessfilter->SetInput(dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ));
+	hessfilter->SetSigma(params["Sigma"].toDouble());
 	hessfilter->Update();
 	auto vesselness = EnhancementFilter::New();
 	vesselness->SetInput( hessfilter->GetOutput() );
 	vesselness->Update();
-	image->SetImage(vesselness->GetOutput());
-	image->Modified();
+	filter->AddOutput(vesselness->GetOutput());
 }
 
 void iAVesselEnhancement::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(vesselEnhancement_template, m_con->GetITKScalarPixelType(),
-		m_progress, m_con, parameters["Sigma"].toDouble());
+	ITK_TYPED_CALL(vesselEnhancement, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAVesselEnhancement)

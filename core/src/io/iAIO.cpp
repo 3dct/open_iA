@@ -31,6 +31,7 @@
 #include "iAExtendedTypedCallHelper.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
+#include "iAStringHelper.h"
 #include "iAVolumeStack.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
@@ -182,14 +183,12 @@ void iAIO::init(QWidget *par)
 	byteOrder = 1;
 	ioID = 0;
 	iosettingsreader();
-	progressObserver = iAProgress::New();
 }
 
 
 iAIO::~iAIO()
 {
 	fileNameArray->Delete();
-	if (progressObserver) progressObserver->Delete();
 }
 
 #ifdef USE_HDF5
@@ -898,7 +897,7 @@ void iAIO::loadMetaImageFile(QString const & fileName)
 	const ScalarPixelType pixelType = imageIO->GetComponentType();
 	const PixelType imagePixelType = imageIO->GetPixelType();
 	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType,
-		fileName, getItkProgress(), getConnector());
+		fileName, ProgressObserver(), getConnector());
 }
 
 
@@ -921,7 +920,7 @@ void iAIO::readVolumeMHDStack()
 			m_fileNames_volstack->push_back(fileName);
 
 		int progress = (fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / fileNameArray->GetMaxId();
-		progressObserver->EmitProgress(progress);
+		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
@@ -941,7 +940,7 @@ void iAIO::readVolumeStack()
 		if(m_fileNames_volstack)
 			m_fileNames_volstack->push_back(fileName);
 		int progress = (m * 100) / fileNameArray->GetMaxId();
-		progressObserver->EmitProgress(progress);
+		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	iosettingswriter();
@@ -973,7 +972,7 @@ void iAIO::writeVolumeStack()
 	{
 		writeMetaImage(m_volumes->at(m).GetPointer(), fileNameArray->GetValue(m).c_str());
 		int progress = (m * 100) / fileNameArray->GetMaxId();
-		progressObserver->EmitProgress(progress);
+		ProgressObserver()->EmitProgress(progress);
 	}
 }
 
@@ -981,7 +980,7 @@ void iAIO::writeVolumeStack()
 void iAIO::readRawImage()
 {
 	VTK_TYPED_CALL(read_raw_image_template, scalarType, headersize, byteOrder,
-		extent, spacing, origin, fileName, getItkProgress(), getConnector());
+		extent, spacing, origin, fileName, ProgressObserver(), getConnector());
 }
 
 
@@ -1013,7 +1012,7 @@ void iAIO::readMetaImage( )
 void iAIO::readSTL( )
 {
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
-	stlReader->AddObserver(vtkCommand::ProgressEvent, progressObserver);
+	ProgressObserver()->Observe(stlReader);
 	stlReader->SetFileName(fileName.toLatin1());
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
@@ -1400,7 +1399,7 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 	iAConnector::ITKScalarPixelType itkType = con.GetITKScalarPixelType();
 	iAConnector::ITKPixelType itkPixelType = con.GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType,
-		compression, fileName, getItkProgress(), &con);
+		compression, fileName, ProgressObserver(), &con);
 	addMsg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
 }
 
@@ -1408,7 +1407,7 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 void iAIO::writeSTL( )
 {
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriter->AddObserver(vtkCommand::ProgressEvent, progressObserver);
+	ProgressObserver()->Observe(stlWriter);
 	stlWriter->SetFileName(fileName.toLatin1());
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
@@ -1474,7 +1473,7 @@ void iAIO::writeImageStack( )
 	const ScalarPixelType pixelType = getConnector()->GetITKScalarPixelType();
 	const PixelType imagePixelType = getConnector()->GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
-		fileName, getItkProgress(), getConnector(), compression);
+		fileName, ProgressObserver(), getConnector(), compression);
 	addMsg(tr("%1  %2 Image Stack saved.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(QFileInfo(fileName).completeSuffix().toUpper()));
@@ -1489,11 +1488,70 @@ void iAIO::writeImageStack( )
 
 bool iAIO::setupStackReader( QString f )
 {
-	int indexRange[2] = {1, 1080};
-	int digitsInIndex = 4;
-
-	fileNamesBase = f;
-	extension = "." + QFileInfo(f).suffix();
+	QFileInfo fi(f);
+	QDir dir(fi.absolutePath());
+	QStringList nameFilters;
+	nameFilters << "*."+fi.suffix();
+	QFileInfoList imgFiles = dir.entryInfoList(nameFilters);
+	// determine most common file name base
+	for (QFileInfo imgFileInfo : imgFiles)
+	{
+		QString imgFileName = imgFileInfo.absoluteFilePath();
+		QString suffix = imgFileInfo.suffix();
+		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
+		bool ok;
+		int myNum = lastDigit.toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
+			continue;
+		}
+		if (fileNamesBase.isEmpty())
+		{
+			fileNamesBase = imgFileInfo.absoluteFilePath();
+		}
+		else
+		{
+			fileNamesBase = GreatestCommonPrefix(fileNamesBase, imgFileInfo.absoluteFilePath());
+		}
+	}
+	int baseLength = fileNamesBase.length();
+	// determine index range:
+	int indexRange[2] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min() };
+	int digits = -1;
+	for (QFileInfo imgFileInfo : imgFiles)
+	{
+		QString imgFileName = imgFileInfo.absoluteFilePath();
+		QString suffix = imgFileInfo.suffix();
+		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
+		bool ok;
+		int myNum = lastDigit.toInt(&ok);
+		if (!ok)
+		{
+			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
+			continue;
+		}
+		QString numStr = imgFileName.mid(baseLength, imgFileName.length() - baseLength - suffix.length() - 1);
+		if (digits == -1)
+		{
+			digits = numStr.length();
+		}
+		int num = numStr.toInt(&ok);
+		if (!ok)
+		{
+			DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
+			continue;
+		}
+		if (num < indexRange[0])
+		{
+			indexRange[0] = num;
+		}
+		if (num > indexRange[1])
+		{
+			indexRange[1] = num;
+		}
+	}
+	extension = "." + fi.suffix();
 	QStringList inList		= (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
@@ -1502,7 +1560,7 @@ bool iAIO::setupStackReader( QString f )
 		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z"))	<< tr("+Data Type");
 	QList<QVariant> inPara	= (QList<QVariant>()
 		<< fileNamesBase << extension
-		<< tr("%1").arg(digitsInIndex)
+		<< tr("%1").arg(digits)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << VTKDataTypeList());
@@ -1515,12 +1573,12 @@ bool iAIO::setupStackReader( QString f )
 	}
 	fileNamesBase = dlg.getText(0);
 	extension = dlg.getText(1);
-	digitsInIndex = dlg.getDblValue(2);
+	digits = dlg.getDblValue(2);
 	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
 	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);
 	origin[0] = dlg.getDblValue(8); origin[1]= dlg.getDblValue(9); origin[2] = dlg.getDblValue(10);
 	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValue(11));
-	FillFileNameArray(indexRange, digitsInIndex);
+	FillFileNameArray(indexRange, digits);
 	return true;
 }
 
@@ -1537,7 +1595,7 @@ void iAIO::readImageStack()
 		default: throw std::runtime_error("Invalid Image Stack IO id, aborting.");
 	}
 	imgReader->ReleaseDataFlagOn();
-	imgReader->AddObserver(vtkCommand::ProgressEvent, progressObserver);
+	ProgressObserver()->Observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	imgReader->SetFileNames(fileNameArray);
 	imgReader->SetDataOrigin(origin);

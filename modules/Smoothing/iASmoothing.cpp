@@ -40,31 +40,30 @@
 typedef float RealType;
 typedef itk::Image<RealType, DIM> RealImageType;
 
-template<class T> void medianFilter(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image  )
+template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::MedianImageFilter<RealImageType, RealImageType > FilterType;
-	auto realImage = CastImageTo<RealType>(image->GetITKImage());
-	auto filter = FilterType::New();
+	auto realImage = CastImageTo<RealType>(filter->Input()[0]->GetITKImage());
+	auto medianFilter = FilterType::New();
 	typename FilterType::InputSizeType indexRadius;
 	indexRadius[0] = params["Kernel radius X"].toDouble();
 	indexRadius[1] = params["Kernel radius Y"].toDouble();
 	indexRadius[2] = params["Kernel radius Z"].toDouble();
-	filter->SetRadius(indexRadius);
-	filter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	p->Observe( filter );
-	filter->Update();
+	medianFilter->SetRadius(indexRadius);
+	medianFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
+	filter->Progress()->Observe( medianFilter );
+	medianFilter->Update();
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(medianFilter->GetOutput()));
 	else
-		image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+		filter->AddOutput(medianFilter->GetOutput());
+
 }
 
 void iAMedianFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(medianFilter, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(medianFilter, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAMedianFilter)
@@ -93,7 +92,7 @@ iAMedianFilter::iAMedianFilter() :
 
 
 template<class T>
-void recursiveGaussian(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image)
+void recursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef typename itk::Image<T, DIM> InputImageType;
 	typedef itk::RecursiveGaussianImageFilter<InputImageType, RealImageType > RGSFXType;
@@ -101,7 +100,7 @@ void recursiveGaussian(QMap<QString, QVariant> const & params, iAProgress* p, iA
 	typedef itk::RecursiveGaussianImageFilter<RealImageType, RealImageType > RGSFYZType;
 	typename RGSFYZType::Pointer rgsfilterY = RGSFYZType::New();
 	typename RGSFYZType::Pointer rgsfilterZ = RGSFYZType::New();
-	rgsfilterX->SetInput(dynamic_cast<InputImageType*>(image->GetITKImage()));
+	rgsfilterX->SetInput(dynamic_cast<InputImageType*>(filter->Input()[0]->GetITKImage()));
 	rgsfilterY->SetInput(rgsfilterX->GetOutput());
 	rgsfilterZ->SetInput(rgsfilterY->GetOutput());
 	rgsfilterX->SetDirection(0); // 0 --> X direction
@@ -116,23 +115,19 @@ void recursiveGaussian(QMap<QString, QVariant> const & params, iAProgress* p, iA
 	rgsfilterX->SetSigma(params["Sigma"].toDouble());
 	rgsfilterY->SetSigma(params["Sigma"].toDouble());
 	rgsfilterZ->SetSigma(params["Sigma"].toDouble());
+	filter->Progress()->Observe(rgsfilterZ);
 	rgsfilterZ->Update();
-	p->Observe(rgsfilterZ);
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(rgsfilterZ->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(rgsfilterZ->GetOutput()));
 	else
-		image->SetImage(rgsfilterZ->GetOutput());
-	image->Modified();
-	rgsfilterX->ReleaseDataFlagOn();
-	rgsfilterY->ReleaseDataFlagOn();
-	rgsfilterZ->ReleaseDataFlagOn();
+		filter->AddOutput(rgsfilterZ->GetOutput());
 }
 
 IAFILTER_CREATE(iARecursiveGaussian)
 
 void iARecursiveGaussian::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(recursiveGaussian, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(recursiveGaussian, InputPixelType(), this, parameters);
 }
 
 iARecursiveGaussian::iARecursiveGaussian() :
@@ -152,30 +147,28 @@ iARecursiveGaussian::iARecursiveGaussian() :
 
 
 template<class T> 
-void discreteGaussian(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image)
+void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::DiscreteGaussianImageFilter<RealImageType, RealImageType > DGIFType;
-	auto realImage = CastImageTo<RealType>(dynamic_cast<InputImageType *>(image->GetITKImage()));
-	typename DGIFType::Pointer filter = DGIFType::New();
-	filter->SetVariance(params["Variance"].toDouble());
-	filter->SetMaximumError(params["Maximum error"].toDouble());
-	filter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	filter->Update();
-	p->Observe(filter);
+	auto realImage = CastImageTo<RealType>(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	typename DGIFType::Pointer dgFilter = DGIFType::New();
+	dgFilter->SetVariance(params["Variance"].toDouble());
+	dgFilter->SetMaximumError(params["Maximum error"].toDouble());
+	dgFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
+	filter->Progress()->Observe(dgFilter);
+	dgFilter->Update();
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(dgFilter->GetOutput()));
 	else
-		image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+		filter->AddOutput(dgFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iADiscreteGaussian)
 
 void iADiscreteGaussian::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(discreteGaussian, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(discreteGaussian, InputPixelType(), this, parameters);
 }
 
 iADiscreteGaussian::iADiscreteGaussian() :
@@ -195,27 +188,25 @@ iADiscreteGaussian::iADiscreteGaussian() :
 }
 
 template<class T>
-void patchBasedDenoising(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* con)
+void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::PatchBasedDenoisingImageFilter<ImageType, ImageType> NonLocalMeansFilter;
-	auto filter(NonLocalMeansFilter::New());
-	filter->SetInput(dynamic_cast<ImageType*>(con->GetITKImage()));
-	filter->SetNumberOfIterations(params["Number of iterations"].toDouble());
-	filter->SetKernelBandwidthEstimation(params["Kernel bandwidth estimation"].toBool());
-	filter->SetPatchRadius(params["Patch radius"].toDouble());
-	p->Observe(filter);
-	filter->Update();
-	con->SetImage(filter->GetOutput());
-	con->Modified();
-	filter->ReleaseDataFlagOn();
+	auto nlmFilter(NonLocalMeansFilter::New());
+	nlmFilter->SetInput(dynamic_cast<ImageType*>(filter->Input()[0]->GetITKImage()));
+	nlmFilter->SetNumberOfIterations(params["Number of iterations"].toDouble());
+	nlmFilter->SetKernelBandwidthEstimation(params["Kernel bandwidth estimation"].toBool());
+	nlmFilter->SetPatchRadius(params["Patch radius"].toDouble());
+	filter->Progress()->Observe(nlmFilter);
+	nlmFilter->Update();
+	filter->AddOutput(nlmFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iANonLocalMeans)
 
 void iANonLocalMeans::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(patchBasedDenoising, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(patchBasedDenoising, InputPixelType(), this, parameters);
 }
 
 iANonLocalMeans::iANonLocalMeans() :
@@ -257,31 +248,29 @@ iANonLocalMeans::iANonLocalMeans() :
 
 
 template<class T>
-void gradientAnisotropicDiffusion(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image)
+void gradientAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::GradientAnisotropicDiffusionImageFilter<RealImageType, RealImageType> GADIFType;
-	auto realImage = CastImageTo<RealType>(dynamic_cast<InputImageType *>(image->GetITKImage()));
-	auto filter = GADIFType::New();
-	filter->SetNumberOfIterations(params["Number of iterations"].toUInt());
-	filter->SetTimeStep(params["Time step"].toDouble());
-	filter->SetConductanceParameter(params["Conductance"].toDouble());
-	filter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	p->Observe(filter);
-	filter->Update();
+	auto realImage = CastImageTo<RealType>(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	auto gadFilter = GADIFType::New();
+	gadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
+	gadFilter->SetTimeStep(params["Time step"].toDouble());
+	gadFilter->SetConductanceParameter(params["Conductance"].toDouble());
+	gadFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
+	filter->Progress()->Observe(gadFilter);
+	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(gadFilter->GetOutput()));
 	else
-		image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+		filter->AddOutput(gadFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iAGradientAnisotropicDiffusion)
 
 void iAGradientAnisotropicDiffusion::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(gradientAnisotropicDiffusion, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(gradientAnisotropicDiffusion, InputPixelType(), this, parameters);
 }
 
 iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
@@ -302,31 +291,29 @@ iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
 
 
 template<class T>
-void curvatureAnisotropicDiffusion(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image)
+void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::CurvatureAnisotropicDiffusionImageFilter<RealImageType, RealImageType > CADIFType;
-	auto realImage = CastImageTo<RealType>(dynamic_cast<InputImageType *>(image->GetITKImage()));
-	auto filter = CADIFType::New();
-	filter->SetNumberOfIterations(params["Number of iterations"].toUInt());
-	filter->SetTimeStep(params["Time step"].toDouble());
-	filter->SetConductanceParameter(params["Conductance"].toDouble());
-	filter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
-	p->Observe(filter);
-	filter->Update();
+	auto realImage = CastImageTo<RealType>(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	auto cadFilter = CADIFType::New();
+	cadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
+	cadFilter->SetTimeStep(params["Time step"].toDouble());
+	cadFilter->SetConductanceParameter(params["Conductance"].toDouble());
+	cadFilter->SetInput(dynamic_cast<RealImageType*>(realImage.GetPointer()));
+	filter->Progress()->Observe(cadFilter);
+	cadFilter->Update();
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(cadFilter->GetOutput()));
 	else
-		image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+		filter->AddOutput(cadFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iACurvatureAnisotropicDiffusion)
 
 void iACurvatureAnisotropicDiffusion::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(curvatureAnisotropicDiffusion, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(curvatureAnisotropicDiffusion, InputPixelType(), this, parameters);
 }
 
 iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
@@ -348,29 +335,27 @@ iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
 
 
 template<class T>
-void curvatureFlow(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image)
+void curvatureFlow(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef typename itk::Image<T, DIM>   InputImageType;
 	typedef itk::CurvatureFlowImageFilter<InputImageType, RealImageType> CFFType;
-	auto filter = CFFType::New();
-	filter->SetInput(dynamic_cast<InputImageType*>(image->GetITKImage()));
-	filter->SetNumberOfIterations(params["Number of iterations"].toUInt());
-	filter->SetTimeStep(params["Time step"].toDouble());
-	p->Observe(filter);
-	filter->Update();
+	auto cfFfilter = CFFType::New();
+	cfFfilter->SetInput(dynamic_cast<InputImageType*>(filter->Input()[0]->GetITKImage()));
+	cfFfilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
+	cfFfilter->SetTimeStep(params["Time step"].toDouble());
+	filter->Progress()->Observe(cfFfilter);
+	cfFfilter->Update();
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(cfFfilter->GetOutput()));
 	else
-		image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+		filter->AddOutput(cfFfilter->GetOutput());
 }
 
 IAFILTER_CREATE(iACurvatureFlow)
 
 void iACurvatureFlow::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(curvatureFlow, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(curvatureFlow, InputPixelType(), this, parameters);
 }
 
 iACurvatureFlow::iACurvatureFlow() :
@@ -390,29 +375,27 @@ iACurvatureFlow::iACurvatureFlow() :
 
 
 template<class T>
-void bilateralFilter(QMap<QString, QVariant> const & params, iAProgress* p, iAConnector* image)
+void bilateralFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::BilateralImageFilter< InputImageType, RealImageType > BIFType;
-	auto filter = BIFType::New();
-	filter->SetRangeSigma(params["Range sigma"].toDouble());
-	filter->SetDomainSigma(params["Domain sigma"].toDouble());
-	filter->SetInput(dynamic_cast< InputImageType * >(image->GetITKImage()));
-	p->Observe(filter);
-	filter->Update();
+	auto biFilter = BIFType::New();
+	biFilter->SetRangeSigma(params["Range sigma"].toDouble());
+	biFilter->SetDomainSigma(params["Domain sigma"].toDouble());
+	biFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	filter->Progress()->Observe(biFilter);
+	biFilter->Update();
 	if (params["Convert back to input type"].toBool())
-		image->SetImage(CastImageTo<T>(filter->GetOutput()));
+		filter->AddOutput(CastImageTo<T>(biFilter->GetOutput()));
 	else
-		image->SetImage(filter->GetOutput());
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+		filter->AddOutput(biFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iABilateral)
 
 void iABilateral::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(bilateralFilter, m_con->GetITKScalarPixelType(), parameters, m_progress, m_con);
+	ITK_TYPED_CALL(bilateralFilter, InputPixelType(), this, parameters);
 }
 
 iABilateral::iABilateral() :

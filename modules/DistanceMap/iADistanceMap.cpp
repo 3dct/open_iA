@@ -32,20 +32,20 @@
 
 
 template<class T> 
-void signed_maurer_distancemap_template(iAProgress* p, iAConnector* image, QMap<QString, QVariant> const & parameters)
+void signed_maurer_distancemap(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 > InputImageType;
 	typedef itk::Image< float, 3 > RealImageType;
 	typedef itk::SignedMaurerDistanceMapImageFilter< InputImageType, RealImageType > SDDMType;
-	auto filter = SDDMType::New();
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	filter->SetBackgroundValue(parameters["Background Value"].toDouble());
-	filter->SetUseImageSpacing(parameters["Use image spacing"].toBool());
-	filter->SetSquaredDistance(parameters["Squared distance"].toBool());
-	filter->SetInsideIsPositive(parameters["Inside positive"].toBool());
-	p->Observe(filter);
-	filter->Update();
-	auto distanceImage = filter->GetOutput();
+	auto distFilter = SDDMType::New();
+	distFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	distFilter->SetBackgroundValue(parameters["Background Value"].toDouble());
+	distFilter->SetUseImageSpacing(parameters["Use image spacing"].toBool());
+	distFilter->SetSquaredDistance(parameters["Squared distance"].toBool());
+	distFilter->SetInsideIsPositive(parameters["Inside positive"].toBool());
+	filter->Progress()->Observe(distFilter);
+	distFilter->Update();
+	auto distanceImage = distFilter->GetOutput();
 	if (parameters["Remove negative values"].toBool())
 	{
 		typedef itk::ImageRegionIterator<RealImageType> ImageIteratorType;
@@ -58,15 +58,12 @@ void signed_maurer_distancemap_template(iAProgress* p, iAConnector* image, QMap<
 			++iter;
 		}
 	}
-	image->SetImage( distanceImage );
-	image->Modified();
-	filter->ReleaseDataFlagOn();
+	filter->AddOutput( distanceImage );
 }
 
 void iASignedMaurerDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(signed_maurer_distancemap_template, m_con->GetITKScalarPixelType(),
-			m_progress, m_con, parameters);
+	ITK_TYPED_CALL(signed_maurer_distancemap, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASignedMaurerDistanceMap)
@@ -90,43 +87,38 @@ iASignedMaurerDistanceMap::iASignedMaurerDistanceMap() :
 
 
 template<class T>
-void danielsson_distancemap_template(iAProgress* p, iAConnector* image, QMap<QString, QVariant> const & parameters)
+void danielsson_distancemap(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef itk::Image< unsigned short, 3 >   UShortImageType;
 	typedef itk::Image< unsigned char, 3 >   OutputImageType;
 	typedef itk::DanielssonDistanceMapImageFilter< InputImageType, UShortImageType, UShortImageType > danielssonDistFilterType;
 
-	auto filter = danielssonDistFilterType::New();
-	filter->SetInputIsBinary(parameters["Input binary"].toBool());
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	p->Observe( filter );
-	filter->Update();
+	auto distFilter = danielssonDistFilterType::New();
+	distFilter->SetInputIsBinary(parameters["Input binary"].toBool());
+	distFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage() ) );
+	filter->Progress()->Observe(distFilter);
+	distFilter->Update();
 
 	if (!parameters["Rescale to unsigned char"].toBool())
 	{
-		image->SetImage(filter->GetOutput());
-		image->Modified();
+		filter->AddOutput(distFilter->GetOutput());
 	}
 	else
 	{
 		typedef itk::RescaleIntensityImageFilter< UShortImageType, OutputImageType > RescaleFilterType;
 		auto intensityRescaler = RescaleFilterType::New();
-		intensityRescaler->SetInput( filter->GetOutput() );
+		intensityRescaler->SetInput( distFilter->GetOutput() );
 		intensityRescaler->SetOutputMinimum( 0 );
 		intensityRescaler->SetOutputMaximum( 255 );
 		intensityRescaler->Update();
-		image->SetImage( intensityRescaler->GetOutput() );
-		image->Modified();
-		intensityRescaler->ReleaseDataFlagOn();
+		filter->AddOutput( intensityRescaler->GetOutput() );
 	}
-	filter->ReleaseDataFlagOn();
 }
 
 void iADanielssonDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(danielsson_distancemap_template, m_con->GetITKScalarPixelType(),
-			m_progress, m_con, parameters);
+	ITK_TYPED_CALL(danielsson_distancemap, InputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADanielssonDistanceMap)

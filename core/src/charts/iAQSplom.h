@@ -138,7 +138,8 @@ protected:
 	virtual bool drawPopup( QPainter& painter );				//!< Draws popup on the splom
 	iAScatterPlot * getScatterplotAt( QPoint pos );				//!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);					//!< Specify the new active scatter plot.
-	void drawTicks( QPainter & painter );						//!< Draw ticks for X and Y parameters of plots in the SPLOM.
+	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
+		QList<QString> const & textY);							//!< Draw ticks for X and Y parameters of plots in the SPLOM.
 	void updateMaxPlotRect();									//!< Updates the rectangle of the maximized scatter plot.
 	void updateSPLOMLayout();									//!< Updates SPLOM layout: every plot in the matrix + maximized plot (if exists).
 	void updatePlotGridParams();								//!< Updates some parameters used for the matrix grid layout calculations.
@@ -148,6 +149,7 @@ protected:
 	QRect getPlotRectByIndex( int x, int y );					//!< Get a rectangle of a plot by its indices.
 	void removeMaximizedPlot();									//!< Removes maximized plot.
 	int invert( int val ) const;								//!< Inverts parameter index. Used for inverting SPLOM Y indexing order.
+	int GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const;//!< Get the width of the longest tick label width
 
 	
 
@@ -157,7 +159,6 @@ protected:
 	//sets visibility for ALL Plots
 	void setSplomVisModeAllPlots();
 	//Re-implements Qt event handlers
-protected:
 	virtual void wheelEvent( QWheelEvent * event );
 	virtual void resizeEvent( QResizeEvent * event );
 	virtual void mousePressEvent( QMouseEvent * event );
@@ -166,7 +167,6 @@ protected:
 	virtual void keyPressEvent( QKeyEvent * event );
 	virtual void mouseDoubleClickEvent( QMouseEvent * event );
 
-	//slots
 protected slots:
 	void selectionUpdated();									//!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );	//!< When transform of scatter plots is modified.
@@ -177,7 +177,7 @@ protected slots:
 	void plotMinimized();										//!< When maximized scatter plot is removed.
 
 signals:
-	void selectionModified( QVector<unsigned int> * selInds );		//!< Emitted when new data points are selected. Contains a list of selected data points. 
+	void selectionModified( QVector<unsigned int> * selInds );		//!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified( int index );							//!< Emitted when hovered over a new point.
 
 protected:
@@ -226,6 +226,8 @@ protected:
 	QPropertyAnimation * m_animationIn;
 	QPropertyAnimation * m_animationOut;
 	QList<int> m_highlightedPoints;					//!< list of always highlighted points
+	double m_popupHeight;							//!< height of the last drawn popup
+
 private: 
 	//shows a maximized preview of a plot
 	void maximizeSelectedPlot(iAScatterPlot * selectedPlot);

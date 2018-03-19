@@ -219,6 +219,7 @@ void dlg_GEMSeControl::StartSampling()
 			m_dlgSamplingSettings->GetPipelineName(),
 			m_dlgSamplingSettings->GetImageBaseName(),
 			m_dlgSamplingSettings->GetSeparateFolder(),
+			m_dlgSamplingSettings->GetCalcChar(),
 			m_dlgSamplings->GetSamplings()->size()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
