@@ -39,6 +39,9 @@
 #include "iAToolsVTK.h"
 #include "io/iATLGICTLoader.h"
 #include "mdichild.h"
+#include "io/iACsvIO.h"
+#include "ui_CsvInput.h"
+#include "dlg_CSVInput.h"
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -214,6 +217,28 @@ void MainWindow::Open()
 	);
 }
 
+void MainWindow::OpenCSV()
+{   /* code to load CSV-data*/
+	/*IAOCSV FReader(); */
+	//typedef iAQTtoUIConnector<QDialog, Ui_CsvInput>   dlg_csvInput;
+	csvConfig::configPararams fileConfParams; 
+
+	dlg_CSVInput dlg;
+	if (dlg.exec() != QDialog::Accepted) {
+	
+		return; 
+	}
+
+	dlg.getConfigParameters(fileConfParams); 
+
+
+	iACsvIO io;
+	if (!io.loadCSVCustom(fileConfParams)) {
+		return; 
+	}
+	
+
+}
 
 void MainWindow::OpenRaw()
 {
@@ -1747,6 +1772,7 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 void MainWindow::connectSignalsToSlots()
 {
 	connect(openAct, SIGNAL(triggered()), this, SLOT(Open()));
+	connect(actionOpen_CSV, SIGNAL(triggered()), this, SLOT(OpenCSV()));
 	connect(actionOpen_Raw, SIGNAL(triggered()), this, SLOT(OpenRaw()));
 	connect(actionOpen_Image_Stack, SIGNAL(triggered()), this, SLOT(OpenImageStack()));
 	connect(actionOpen_Volume_Stack, SIGNAL(triggered()), this, SLOT(OpenVolumeStack()));

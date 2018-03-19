@@ -35,9 +35,12 @@
 #include <QTextStream>
 
 
-iACsvIO::iACsvIO():
-	table(vtkSmartPointer<vtkTable>::New())
-{}
+iACsvIO::iACsvIO() :
+	table(vtkSmartPointer<vtkTable>::New()) 
+	
+{
+	this->setDefaultConfigPath(); 
+}
 
 
 bool iACsvIO::LoadFibreCSV(const QString &fileName)
@@ -46,7 +49,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->Initialize();
 
 	// calculate the length of objects in csv file for defining the vtkTable
-	int tableLength = CalcTableLength(fileName);
+	int tableLength = CalcTableLength(fileName, nullptr);
 	if (tableLength <= 0)
 		return false;
 
@@ -187,7 +190,7 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 {
 	table->Initialize();
 	// calculate the length of objects in csv file for defining the vtkTable
-	int tableLength = CalcTableLength(fileName);
+	int tableLength = CalcTableLength(fileName,  nullptr);
 	if (tableLength <= 0)
 		return false;
 	QFile file(fileName);
@@ -211,6 +214,7 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 	//vtkSmartPointer<vtkIntArray> arrX = vtkSmartPointer<vtkIntArray>::New();
 	//arrX->SetName("Label");
 	//table->AddColumn(arrX);
+	//read out entrys
 	for (int i = 0; i<tableWidth; i++)
 	{
 		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
@@ -230,12 +234,16 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 		if (!line.isEmpty())
 		{
 			vtkVariant v = line.section(",", 0, 0).toInt();
+			//set pore or fibre id 
 			table->SetValue(i, 0, v.ToString());
+
+			//saving values for each col
 			for (int j = 1; j<tableWidth; j++)
 			{
+				float tmp = line.section(",", j, j).toFloat(); //TODO REMOVE
 				table->SetValue(i, j, line.section(",", j, j).toFloat());
 			}
-			// set Class_ID value to zero
+			// set Class_ID value to zero 
 			table->SetValue(i, tableWidth, 0);
 		}
 	}
@@ -243,9 +251,134 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 	return true;
 }
 
-
-int iACsvIO::CalcTableLength(const QString &fileName)
+bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
 {
+	QFile file(configName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return false;
+	else return true; 
+
+}
+
+bool iACsvIO::loadCSVCustom(csvConfig::configPararams &cnfg_params)
+{
+	this->loadConfigurationFile(cnfg_params);
+	return loadCsv_WithConfig(cnfg_params.fileName, cnfg_params.startLine, cnfg_params.fmt_ENG, cnfg_params.colSeparator);
+}
+
+
+//TODO read configuration file
+bool iACsvIO::loadConfigurationFile(csvConfig::configPararams &cnf_Params) const
+{
+	QString defaultConfig = ""; 
+	QString confFilePath = this->configPath;
+	const int splitIdx = 1; 
+
+	switch (cnf_Params.file_fmt){
+
+	case csvConfig::csv_FileFormat::Default: 
+		defaultConfig = "cnf_default.txt"; break; 
+	case csvConfig::csv_FileFormat::open_IA_FeatureScout : 
+		defaultConfig = "cnf_featureScout.txt"; break; 
+	case csvConfig::csv_FileFormat::VolumeGraphics: 
+		defaultConfig = "cnf_VG.txt"; break;
+	case csvConfig::csv_FileFormat::MAVI: defaultConfig = "cnf_MAVI.txt";
+	 
+	}
+
+	confFilePath+=defaultConfig;
+	
+
+	const QString colSeparator = ":";
+	QString lineEntry = ";";
+	bool ENFormat = false;
+
+	long int startLine = 0;
+	if (confFilePath.isEmpty())
+		return 0;
+
+	QFile file(confFilePath);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return 0;
+	
+	//skip first two lines
+	file.readLine();
+	file.readLine();
+	QString line = "";
+	line = file.readLine(); 
+
+	
+	//entrys start with line 3
+	
+	
+	if (line.contains ( "StartLine")) {
+		lineEntry = line.section(colSeparator, 1, 1);
+		startLine = lineEntry.toInt(); 
+		cnf_Params.startLine = startLine; 
+	}
+	else {
+		file.close(); 
+		return false; }
+
+
+	line = file.readLine();
+
+	//check for format
+	if (line.contains("Decimals")){
+		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
+		if (line.contains("EN") ) { ENFormat = true; }
+		else if (line.contains("GER")) { ENFormat = false;  }
+		else {
+			file.close();
+			return false;
+		}
+		cnf_Params.fmt_ENG = ENFormat; 
+	}
+
+	line = file.readLine();
+	if (line.contains("Separator")) {
+		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
+		
+		//check if sign = , or semikolon
+		
+		cnf_Params.colSeparator = QString::QString(lineEntry.trimmed());
+	}else{
+		file.close();
+		return false;
+	}
+
+
+	line = file.readLine();
+	if (line.contains("Spacing")) {
+		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
+
+		//check if sign = , or semikolon
+
+		cnf_Params.spacing = lineEntry.toFloat();
+	}
+	else {
+		file.close();
+		return false;
+	}
+
+
+
+	file.close(); 
+	return true; 
+	
+	//TOOD read out other entries
+
+
+}
+
+void iACsvIO::setDefaultConfigPath()
+{
+	configPath = "D:/OpenIa_TestDaten/TestInput/config/";
+}
+
+int iACsvIO::CalcTableLength(const QString &fileName,const int *nrHeadersToSkip)
+{
+	// skip lines which are not headers
 	// todo: to find another efficient way to count the lines in a file
 	if (fileName.isEmpty())
 		return 0;
@@ -257,11 +390,22 @@ int iACsvIO::CalcTableLength(const QString &fileName)
 	int TableLength = 0;
 
 	// read header lines, need specification each time the structure of the csv file changes
-	file.readLine();
-	file.readLine();
-	file.readLine();
-	file.readLine();
-	file.readLine();
+	//TODO change reading headerlines
+	//default for feature scout
+	if (!nrHeadersToSkip) {
+		file.readLine();
+		file.readLine();
+		file.readLine();
+		file.readLine();
+		file.readLine();
+	}
+	else {
+		const int headersToSkip = *nrHeadersToSkip; 
+		for (int i = 0; i < headersToSkip; i++) {
+			file.readLine();
+		}
+	}
+
 	while (!file.atEnd())
 	{
 		file.readLine();
@@ -382,3 +526,86 @@ vtkTable* iACsvIO::GetCSVTable()
 {
 	return table.GetPointer();
 }
+
+
+bool iACsvIO::loadCsv_WithConfig(const QString &fileName, const int rows_toSkip, bool EN_Values, const QString  &colSeparator) {
+	table->Initialize();
+	QString decimal_separator = "";
+
+	//english decimal format
+	if (!EN_Values) {
+		decimal_separator = ".";
+	}
+	
+
+	// calculate the length of objects in csv file for defining the vtkTable
+	int tableLength = CalcTableLength(fileName, &rows_toSkip);
+	if (tableLength <= 0)
+		return false;
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		return false;
+
+	QTextStream in(&file);
+	
+	//skip header lines, not counting the line where names start
+	for (int i = 0; i < rows_toSkip -1; i++) {
+		QString tmp =in.readLine(); 
+	}
+
+	//header: names of elements
+	QString eleLine = in.readLine();
+	const char* element;
+	// count elements
+
+	const char *_colSeparator = colSeparator.toStdString().c_str(); 
+	//TODO tobe tested
+	int tableWidth = eleLine.count(&colSeparator);
+	QString tmp_section = "";
+	
+	//read out entrys
+	for (int i = 0; i<tableWidth; i++)
+	{
+		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+		QByteArray byteArr = eleLine.section(colSeparator, i, i, QString::SectionSkipEmpty).toUtf8();
+		element = byteArr.constData();
+		arrX->SetName(element);
+		table->AddColumn(arrX);
+	}
+	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
+	arr->SetName("Class_ID");
+	table->AddColumn(arr);
+	table->SetNumberOfRows(tableLength);
+	QString line = ""; 
+
+	for (int i = 0; i<tableLength; ++i)
+	{
+		line = in.readLine();
+		if (!line.isEmpty())
+		{
+			vtkVariant v = line.section(colSeparator, 0, 0).toInt();
+			vtkStdString v1 = v.ToString();
+
+			//set id 
+			table->SetValue(i, 0, v.ToString());
+						
+			//adding entries for each col 
+			for (int j = 1; j<tableWidth; j++)
+			{
+			
+
+				tmp_section = line.section(colSeparator, j, j);
+				//replace decimal separator for german input format 
+				if(!EN_Values)
+					tmp_section = tmp_section.replace(",", decimal_separator);
+					table->SetValue(i, j, tmp_section.toFloat());
+			}
+			//set Class_ID 0 for each row element
+			table->SetValue(i, tableWidth, 0);
+
+		}
+	}
+	file.close();
+	return true;
+}
+

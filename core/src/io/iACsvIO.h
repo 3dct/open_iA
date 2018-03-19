@@ -22,9 +22,8 @@
 
 #include "iAObjectAnalysisType.h"
 #include "open_iA_Core_export.h"
-
 #include <vtkSmartPointer.h>
-
+#include "io/csv_config.h"
 #include <QString>
 
 class vtkTable;
@@ -35,10 +34,38 @@ public:
 	iACsvIO();
 	bool LoadCsvFile(iAObjectAnalysisType fid, QString const & fileName);
 	vtkTable * GetCSVTable();
+	
+	//input parameters from configuration file 
+	//headerlines to skip	nrOfHeaderLines: headerLinesToSkip
+	//startRowInd -> where to start from row
+	//column separator "," "\t", ";"
+
+	/*bool loadCSVData(const QString &fileName, const int nrOfHeaderLines, const int NrOFParameters, const int startRowInd, const char separator);*/
+	
+	//similar to load pore csv
+	
+	//bool loadGeneralCSVFile(const QString &FName, const QString *confName );
+	
+	bool loadCSVCustom(csvConfig::configPararams &cnfg_params);
+	bool loadConfigurationFile(csvConfig::configPararams &cnf_Params) const;
+	
+	//todo check if file path exists
+	inline void setConfigPath(const QString _configPath){
+		configPath = _configPath; 
+	}
+
 private:
-	int CalcTableLength(const QString &fileName);
+
+	void setDefaultConfigPath(); 
+	int CalcTableLength(const QString &fileName, const int *nrHeadersToSkip);  //
+	
+	QString configPath; 
 	QStringList GetFibreElementsName(bool withUnit);
 	bool LoadFibreCSV(const QString &fileName);
 	bool LoadPoreCSV(const QString &fileName);
+	
+	bool loadCsv_WithConfig(const QString &fileName, const int rows_toSkip, bool EN_Values, const QString  &colSeparator);
+	//TODO load config file
+	bool loadConfig(const QString configName, bool & applyEN_Formating);
 	vtkSmartPointer<vtkTable> table;
 };

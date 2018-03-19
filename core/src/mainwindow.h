@@ -115,6 +115,7 @@ protected:
 private slots:
 	void timeout();
 	void Open();
+	void OpenCSV();
 	void OpenRaw();
 	void OpenImageStack();
 	void OpenVolumeStack();

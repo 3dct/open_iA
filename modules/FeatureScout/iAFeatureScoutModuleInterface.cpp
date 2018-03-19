@@ -127,10 +127,11 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
+//enty point für openIA FeatureScout
 bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )
 {
 	iACsvIO io;
-	if ( !io.LoadCsvFile(objectType, fileName ) )
+	if ( !io.LoadCsvFile(objectType, fileName ) ) //hier wird das csv geladen;
 		return false;
 
 	QString filtername = tr( "FeatureScout started" );
@@ -144,6 +145,8 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
 		return false;
 	}
+
+	//TODO feature scout mit csv verbinden
 	attach->init(objectType, io.GetCSVTable());
 	return true;
 }
