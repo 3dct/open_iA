@@ -73,7 +73,7 @@ iABatchFilter::iABatchFilter():
 	AddParameter("File mask", String, "*.mhd");
 	AddParameter("Filter", FilterName, "Image Quality");
 	AddParameter("Parameters", FilterParameters, "");
-	AddParameter("Additional Input", String, "");
+	AddParameter("Additional Input", FileNamesOpen, "");
 	AddParameter("Output directory", Folder, "");
 	AddParameter("Output suffix", String, "");
 	AddParameter("Overwrite output", Boolean, false);

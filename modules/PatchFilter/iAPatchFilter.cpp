@@ -299,8 +299,8 @@ iAPatchFilter::iAPatchFilter():
 	AddParameter("Center patch", Boolean, true);
 	AddParameter("Filter", FilterName, "Image Quality");
 	AddParameter("Parameters", FilterParameters, "");
-	AddParameter("Additional input", String, "");
-	AddParameter("Output csv file", String, "");
+	AddParameter("Additional input", FileNamesOpen, "");
+	AddParameter("Output csv file", FileNameSave, "");
 	AddParameter("Write output value image", Boolean, true);
 	AddParameter("Output image base name", String, "output.mhd");
 	AddParameter("Compress image", Boolean, true);
