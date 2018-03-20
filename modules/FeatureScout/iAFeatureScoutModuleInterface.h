@@ -37,6 +37,9 @@ public:
 	void Initialize();
 	void hideFeatureScoutToolbar();
 private slots:
+	//todo implement
+	void FeatureScoutWithCSV(); 
+	
 	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();

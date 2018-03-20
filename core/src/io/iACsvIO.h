@@ -34,7 +34,10 @@ public:
 	iACsvIO();
 	bool LoadCsvFile(iAObjectAnalysisType fid, QString const & fileName);
 	vtkTable * GetCSVTable();
-	
+
+	bool loadCsv_WithConfig(const QString & fileName, csvConfig::configPararams &csv_Params);
+	void readFileEntries(const QString & fileName, const int rows_toSkip, const QString & colSeparator, const QString decimalSeparator, bool En_Values, bool & retFlag);
+
 	//input parameters from configuration file 
 	//headerlines to skip	nrOfHeaderLines: headerLinesToSkip
 	//startRowInd -> where to start from row

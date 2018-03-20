@@ -23,6 +23,11 @@
 
 #include "iAConsole.h"
 #include "io/iACsvIO.h"
+
+#include "ui_CsvInput.h"
+#include "dlg_CSVInput.h"
+
+
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
 #include "mainwindow.h"
@@ -39,12 +44,74 @@ void iAFeatureScoutModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * FeatureScoutCsvReader = getMenuWithTitle(toolsMenu, QString("FeatureScout"), false);
+
+	//1 Menu mit mehreren untereinträgen
+	
+	//adds an entry to feature scout with name featurescout 
 	QAction * actionFibreScout = new QAction( m_mainWnd );
 	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
-	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout );
+
+	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionFibreScout);
+
+	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
+
+	
+	//new entry FeaturescoutWithCSV
+	QAction * actionOpenCSVFeatureScout = new QAction(m_mainWnd);
+	actionOpenCSVFeatureScout->setText(QApplication::translate("MainWindow", "FeatureScoutWithCSV", 0));
+	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionOpenCSVFeatureScout);
+
+	//action mit module verbinden
+	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
+
+	//actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+	/*
+	
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
+	
+	QAction * actionGEMSe = new QAction( m_mainWnd );
+	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
+	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
+	
+	*/
+	
+	
+	
+	
 	tlbFeatureScout = 0;
-	connect( actionFibreScout, SIGNAL( triggered() ), this, SLOT( FeatureScout() ) );
+	
 }
+
+void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
+	
+	
+	
+	csvConfig::configPararams fileConfParams;
+	dlg_CSVInput dlg;
+	
+	//dlg.showConfigParams(fileConfParams);
+	
+	if (dlg.exec() != QDialog::Accepted) {
+		return;
+	}
+
+	iACsvIO io;
+
+	fileConfParams = dlg.getConfigParameters();
+	//io.setConfigPath()
+	if (!io.loadCSVCustom(fileConfParams)) {
+		return;
+	}
+
+	PrepareActiveChild();
+
+
+};
+
 
 void iAFeatureScoutModuleInterface::FeatureScout()
 {

@@ -67,7 +67,6 @@
      <string>&amp;File</string>
     </property>
     <addaction name="openAct"/>
-    <addaction name="actionOpen_CSV"/>
     <addaction name="actionOpen_Raw"/>
     <addaction name="actionOpen_Image_Stack"/>
     <addaction name="actionOpen_Volume_Stack"/>

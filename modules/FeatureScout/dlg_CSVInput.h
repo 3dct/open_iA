@@ -16,18 +16,14 @@ class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	
-	
-	
-
-	
-	
-	
-	const void getConfigParameters(csvConfig::configPararams &params_out) const;
+	const csvConfig::configPararams & getConfigParameters() const;
+	void showConfigParams(const csvConfig::configPararams &params);
 	
 	 
 	
 private slots: 
 	void FileBtnClicked(); 
+	void LoadFormatBtnClicked(); 
 
 
 
@@ -38,21 +34,22 @@ private:
 	bool validateParameters();
 	
 	void setError(const QString &ParamName, const QString & Param_value);
+
+	void assignFileFormat();
+
+	void assignSeparator();
+
+	void checkFileExist();
 	
-	
+private:
+
+
+	QSharedPointer<csvConfig::configPararams> m_confParams; 
 	QString m_fPath; 
-	QString m_colSeparator;
-
-
 	QString m_Error_Parameter; 
-	//QFile
-	bool m_VG_File_Selected;
-	bool m_fmt_Engl;
-	unsigned long m_startLine; 
-	bool m_paramsValid; 
+
+
 	csvConfig::csv_FileFormat m_csvFileFormat;
-	//vtkSmartPointer<vtkTable> ioTable; 
 	
-	//QSharedPointer<iACsvIO> FileIO; 
 
 };
