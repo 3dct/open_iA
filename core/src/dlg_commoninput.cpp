@@ -136,6 +136,9 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 			case '<':
 				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameOpen);
 				break;
+			case '{':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNamesOpen);
+				break;
 			case '>':
 				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameSave);
 				break;

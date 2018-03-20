@@ -14,6 +14,7 @@ public:
 	{
 		FileNameSave,
 		FileNameOpen,
+		FileNamesOpen,
 		Folder
 	};
 	iAFileChooserWidget(QWidget* parent, ChoiceType type):
@@ -35,8 +36,9 @@ public:
 		QString choice;
 		switch (m_choiceType)
 		{
-			case FileNameOpen: choice = QFileDialog::getOpenFileName(this, "Open File", QFileInfo(m_textEdit->text()).absolutePath());	break;
-			case FileNameSave: choice = QFileDialog::getSaveFileName(this, "Save File", QFileInfo(m_textEdit->text()).absolutePath());	break;
+			case FileNameOpen: choice  = QFileDialog::getOpenFileName(this, "Open File", QFileInfo(m_textEdit->text()).absolutePath());	break;
+			case FileNamesOpen: choice = "\""+QFileDialog::getOpenFileNames(this, "Open File", QFileInfo(m_textEdit->text().split(" ")[0]).absolutePath()).join("\" \"")+"\"";	break;
+			case FileNameSave: choice  = QFileDialog::getSaveFileName(this, "Save File", QFileInfo(m_textEdit->text()).absolutePath());	break;
 			default:
 			case Folder: choice = QFileDialog::getExistingDirectory(this, "Choose Folder", m_textEdit->text());	break;
 		}

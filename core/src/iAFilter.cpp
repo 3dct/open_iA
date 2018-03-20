@@ -24,6 +24,8 @@
 #include "iAConsole.h"
 #include "iAAttributeDescriptor.h"
 
+#include <QFileInfo>
+
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
 	m_name(name),
@@ -214,6 +216,45 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 					.arg(param->Name())
 					.arg(parameters[param->Name()].toString())
 					.arg(values.join(",")));
+				return false;
+			}
+			break;
+		}
+		case FileNameOpen:
+		{
+			QFileInfo file(parameters[param->Name()].toString());
+			if (!file.isFile() || !file.isReadable())
+			{
+				AddMsg(QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
+					"the file does not exist, or it is not readable!").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				return false;
+			}
+			break;
+		}
+		case FileNamesOpen:
+		{
+			QStringList files = parameters[param->Name()].toString().split(" ");
+			for (auto fileName : files)
+			{
+				QFileInfo file(fileName);
+				if (!file.isFile() || !file.isReadable())
+				{
+					AddMsg(QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
+						"the file does not exist, or it is not readable!").arg(param->Name())
+						.arg(fileName)
+						.arg(parameters[param->Name()].toString()));
+					return false;
+				}
+			}
+			break;
+		}
+		case Folder:
+		{
+			QFileInfo file(parameters[param->Name()].toString());
+			if (!file.isDir() || !file.isReadable())
+			{
+				AddMsg(QString("Parameter %1: Given folder '%2' either doesn't reference a folder, "
+					"the folder does not exist, or it is not readable!").arg(param->Name()).arg(parameters[param->Name()].toString()));
 				return false;
 			}
 			break;

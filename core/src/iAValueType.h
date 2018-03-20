@@ -33,6 +33,7 @@ enum iAValueType
 	FilterParameters,
 	Folder,
 	FileNameOpen,
+	FileNamesOpen,
 	FileNameSave
 };
 

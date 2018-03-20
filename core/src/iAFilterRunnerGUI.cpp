@@ -102,6 +102,7 @@ namespace
 		case FilterName : return "&";
 		case FilterParameters: return ".";
 		case FileNameOpen: return "<";
+		case FileNamesOpen: return "{";
 		case FileNameSave: return ">";
 		case Folder:       return ";";
 		default:
