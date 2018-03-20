@@ -183,7 +183,9 @@ void iAParamSpatialView::HistogramReady()
 void iAParamSpatialView::SwitchToHistogram(int id)
 {
 	m_chartWidget->RemovePlot(m_curHistogramPlot);
-	m_curHistogramPlot = QSharedPointer<iAPlot>(new iABarGraphDrawer(m_histogramCache[id], SPLOMDotQColor, 2));
+	QColor histoChartColor(SPLOMDotQColor);
+	histoChartColor.setAlpha(96);
+	m_curHistogramPlot = QSharedPointer<iAPlot>(new iABarGraphDrawer(m_histogramCache[id], histoChartColor, 2));
 	m_chartWidget->AddPlot(m_curHistogramPlot);
 	m_chartWidget->redraw();
 }
