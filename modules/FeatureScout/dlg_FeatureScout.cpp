@@ -179,10 +179,10 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
-dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl )
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly )
 	: QDockWidget( parent ),
-	oTF( parent->getPiecewiseFunction() ),
-	cTF( parent->getColorTransferFunction() ),
+	/*oTF( parent->getPiecewiseFunction() ),
+	cTF( parent->getColorTransferFunction() ),*/
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
 	elementTableModel(nullptr),
@@ -196,6 +196,13 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	sourcePath( parent->currentFile() )
 {
 	setupUi( this );
+
+	this->useCsvOnly = useCsvOnly; 
+	if (!this->useCsvOnly); {
+	
+		oTF = parent->getPiecewiseFunction(); //added
+		cTF = parent->getColorTransferFunction(); //added
+	}
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;

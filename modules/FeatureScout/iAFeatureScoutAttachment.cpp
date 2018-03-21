@@ -40,9 +40,9 @@ iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildD
 iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {}
 
-void iAFeatureScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl)
+void iAFeatureScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly)
 {
-	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAObjectAnalysisType>(filterID), blobRen, csvtbl);
+	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAObjectAnalysisType>(filterID), blobRen, csvtbl, useCsvOnly);
 	connect(imgFS, SIGNAL(updateViews()), m_childData.child, SLOT(updateViews()));
 
 	blobRen->SetLayer(1);

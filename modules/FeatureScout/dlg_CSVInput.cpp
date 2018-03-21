@@ -12,9 +12,24 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	
 	connect(btn_loadCSV, SIGNAL(clicked()), this, SLOT(FileBtnClicked()));
 	connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked())); 
-
+	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked())); 
 
 }
+
+//enabling for custom file format
+void dlg_CSVInput::CustomFormatBtnClicked(){
+	bool enabled = true; 
+	this->ed_startLine->setEnabled(true);
+	this->ed_endLine->setEnabled(true);
+	this->ed_Separator->setEnabled(true);
+	this->ed_decimal->setEnabled(true);
+	this->ed_language->setEnabled(true);
+	this->ed_Spacing->setEnabled(true);
+	
+
+}
+
+
 
 
 void dlg_CSVInput::FileBtnClicked()

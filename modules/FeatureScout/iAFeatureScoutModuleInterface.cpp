@@ -51,7 +51,6 @@ void iAFeatureScoutModuleInterface::Initialize()
 	//adds an entry to feature scout with name featurescout 
 	QAction * actionFibreScout = new QAction( m_mainWnd );
 	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
-
 	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionFibreScout);
 
 	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
@@ -60,7 +59,7 @@ void iAFeatureScoutModuleInterface::Initialize()
 	//new entry FeaturescoutWithCSV
 	QAction * actionOpenCSVFeatureScout = new QAction(m_mainWnd);
 	actionOpenCSVFeatureScout->setText(QApplication::translate("MainWindow", "FeatureScoutWithCSV", 0));
-	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionOpenCSVFeatureScout);
+	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionOpenCSVFeatureScout, false);
 
 	//action mit module verbinden
 	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
@@ -77,7 +76,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	csvConfig::configPararams fileConfParams;
 	//TODO set file path
 	dlg_CSVInput dlg;
-	const QString fPath = m_mdiChild->getFilePath(); 
+	//const QString fPath = m_mdiChild->getFilePath(); 
 	//dlg.setFilePath(fPath);
 	//dlg.showConfigParams(fileConfParams);
 	
@@ -87,11 +86,55 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 
 	iACsvIO io;
 
+
+	this->m_mdiChild = new MdiChild(m_mainWnd, m_mainWnd->GetDefaultPreferences(), false);
+	/*iARenderSettings FS_RenderSettings = m_mdiChild->GetRenderSettings();
+	iAVolumeSettings FS_VolumeSettings = m_mdiChild->GetVolumeSettings();*/
+	
+	this->m_mdiChild->show(); 
+
+	/*
+	
+	MdiChild *child = new MdiChild(this, defaultPreferences, unsavedChanges);
+	QMdiSubWindow* subWin = mdiArea->addSubWindow(child);
+	subWin->setOption(QMdiSubWindow::RubberBandResize);
+	subWin->setOption(QMdiSubWindow::RubberBandMove);
+
+	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
+	child->setupSlicers(defaultSlicerSettings, false);
+
+	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
+	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );
+	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
+	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
+	connect( child, SIGNAL( autoUpdateChanged( bool ) ), actionUpdate_automatically, SLOT( setChecked( bool ) ) );
+	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
+
+	SetModuleActionsEnabled( true );
+
+	m_moduleDispatcher->ChildCreated(child);
+	return child;
+	
+	
+	
+	
+	*/
+
+
+	
+
+
+	
+	//create new child
+
+
+	//PrepareActiveChild();
+	//m_mdiChild = 
+
+	if (!m_mdiChild) return;
+
 	fileConfParams = dlg.getConfigParameters();
-	//io.setConfigPath()
-	if (!io.loadCSVCustom(fileConfParams)) {
-		return;
-	}
+	
 
 	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
@@ -99,7 +142,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 
 	QStringList items;
 	items << tr("Fibers") << tr("Voids");
-	QString fileName, filterName = tr("FeatureScout"), item;
+	QString filterName = tr("FeatureScout"), item;
 	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids) {
 		item = "Voids"; 
 	}
@@ -108,20 +151,13 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	
 	}
 
-	/*PrepareActiveChild();*/
 
-
-	/*if (item == items[0] || item == items[1])
-	{
-		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item]))
-		{
-			SetupToolbar();
-			m_mdiChild->addStatusMsg(filterName);
-			setFeatureScoutRenderSettings();
-			m_mdiChild->addMsg("The render settings of the current mdiChild"
-				" window have been adapted to the FeatureScout!");
-		}
-	}*/
+	//do not see anything
+	if (!fileConfParams.fileName.isEmpty()) {
+		initializeFeatureScoutStartUp(item, items, fileConfParams.fileName, objectMap, filterName, true);
+	}
+	else m_mdiChild->addMsg("CSV-file name error.");
+	
 
 
 };
@@ -155,25 +191,31 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				item = "Fibers";
 			file.close();
 
-			if ( item == items[0] || item == items[1] )
-			{
-				if ( m_mdiChild && filter_FeatureScout( m_mdiChild, fileName, objectMap[item] ) )
-				{
-					SetupToolbar();
-					m_mdiChild->addStatusMsg( filterName );
-					setFeatureScoutRenderSettings();
-					m_mdiChild->addMsg("The render settings of the current mdiChild"
-						" window have been adapted to the FeatureScout!");
-				}
-			}
-			else
-				m_mdiChild->addMsg( "CSV-file header error." );
+			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false);
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
 	}
 	else
 		m_mdiChild->addMsg( "CSV-file name error." );
+}
+
+void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString, 
+	iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly)
+{
+	if (item == items[0] || item == items[1])
+	{
+		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], nullptr, isCsvOnly))
+		{
+			SetupToolbar();
+			m_mdiChild->addStatusMsg(filterName);
+			setFeatureScoutRenderSettings();
+			m_mdiChild->addMsg("The render settings of the current mdiChild"
+				" window have been adapted to the FeatureScout!");
+		}
+	}
+	else
+		m_mdiChild->addMsg("CSV-file header error.");
 }
 
 void iAFeatureScoutModuleInterface::SetupToolbar()
@@ -208,12 +250,24 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-//enty point für openIA FeatureScout
-bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )
-{
-	iACsvIO io;
-	if ( !io.LoadCsvFile(objectType, fileName ) ) //hier wird das csv geladen;
-		return false;
+/*enty point für openIA FeatureScout
+*optional parameter FileParams for custom csv
+*/
+bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType, csvConfig::configPararams *FileParams, const bool is_csvOnly)
+	{iACsvIO io;
+	//default action if file params is null
+	if (!FileParams) {
+
+		
+		if (!io.LoadCsvFile(objectType, fileName)) //hier wird das csv geladen;
+			return false;
+	}
+	else {
+		if (!io.loadCSVCustom(*FileParams)) {
+			return false;
+		}
+
+	}
 
 	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );
@@ -228,7 +282,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 	}
 
 	//TODO feature scout mit csv verbinden
-	attach->init(objectType, io.GetCSVTable());
+	attach->init(objectType, io.GetCSVTable(), is_csvOnly);
 	return true;
 }
 

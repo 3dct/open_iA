@@ -29,7 +29,7 @@ public:
 private slots: 
 	void FileBtnClicked(); 
 	void LoadFormatBtnClicked(); 
-
+	void CustomFormatBtnClicked(); 
 
 
 private: 

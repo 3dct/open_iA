@@ -88,7 +88,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 
 public:
-	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl);
+	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly);
 	~dlg_FeatureScout();
 
 	// setups
@@ -220,6 +220,8 @@ private:
 	bool enableRealTimeRendering;
 	bool classRendering;
 	bool spmActivated;
+
+	bool useCsvOnly;
 
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;

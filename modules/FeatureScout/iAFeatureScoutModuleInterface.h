@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include "io/csv_config.h"
 #include "iAModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "mdichild.h"
@@ -27,6 +28,7 @@
 class QDockWidget;
 class dlg_FeatureScout;
 class iAFeatureScoutToolbar;
+
 
 
 class iAFeatureScoutModuleInterface : public iAModuleInterface
@@ -45,8 +47,9 @@ private slots:
 	void onChildClose();
 private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID);
+	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID, csvConfig::configPararams *FileParams, const bool is_csvOnly);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
+	void initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString, iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly);
 	iAFeatureScoutToolbar * tlbFeatureScout;
 };
