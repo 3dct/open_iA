@@ -64,22 +64,6 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 	//action mit module verbinden
 	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
-
-	//actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
-	/*
-	
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
-	
-	QAction * actionGEMSe = new QAction( m_mainWnd );
-	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
-
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
-	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
-	
-	*/
-	
-	
 	
 	
 	tlbFeatureScout = 0;
@@ -91,8 +75,10 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	
 	
 	csvConfig::configPararams fileConfParams;
+	//TODO set file path
 	dlg_CSVInput dlg;
-	
+	const QString fPath = m_mdiChild->getFilePath(); 
+	//dlg.setFilePath(fPath);
 	//dlg.showConfigParams(fileConfParams);
 	
 	if (dlg.exec() != QDialog::Accepted) {
@@ -107,7 +93,35 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 		return;
 	}
 
-	PrepareActiveChild();
+	QMap<QString, iAObjectAnalysisType> objectMap;
+	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
+	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
+
+	QStringList items;
+	items << tr("Fibers") << tr("Voids");
+	QString fileName, filterName = tr("FeatureScout"), item;
+	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids) {
+		item = "Voids"; 
+	}
+	else {
+		item = "Fibers";
+	
+	}
+
+	/*PrepareActiveChild();*/
+
+
+	/*if (item == items[0] || item == items[1])
+	{
+		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item]))
+		{
+			SetupToolbar();
+			m_mdiChild->addStatusMsg(filterName);
+			setFeatureScoutRenderSettings();
+			m_mdiChild->addMsg("The render settings of the current mdiChild"
+				" window have been adapted to the FeatureScout!");
+		}
+	}*/
 
 
 };

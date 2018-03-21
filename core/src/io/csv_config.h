@@ -10,6 +10,7 @@ namespace csvConfig {
 	enum class csvSeparator{Colunm = 1, Comma };
 	enum class decimalPoint{Dot = 1, Comma  };
 	enum class inputLang{EN = 1, GER};
+	enum class CTInputObjectType{Fiber =1, Voids = 0};
 
 	//parameters for csv loading configuraton
 	struct configPararams {
@@ -30,6 +31,7 @@ namespace csvConfig {
 			file_decimalPoint = decimalPoint::Dot;
 			csv_units = "microns";
 			paramsValid = true; 
+			inputObjectType = CTInputObjectType::Voids; 
 		
 		}
 
@@ -48,6 +50,7 @@ namespace csvConfig {
 		enum inputLang csv_Inputlanguage; 
 		enum decimalPoint file_decimalPoint; 
 		bool paramsValid;
+		CTInputObjectType inputObjectType; 
 	};
 	
 	

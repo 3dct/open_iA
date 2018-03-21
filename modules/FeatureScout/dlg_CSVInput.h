@@ -18,6 +18,11 @@ public:
 	
 	const csvConfig::configPararams & getConfigParameters() const;
 	void showConfigParams(const csvConfig::configPararams &params);
+	inline void setFilePath(const QString& FPath) {
+			if(!FPath.isEmpty()) {
+			this->m_fPath = FPath; 
+		}
+	}
 	
 	 
 	
@@ -47,8 +52,6 @@ private:
 	QSharedPointer<csvConfig::configPararams> m_confParams; 
 	QString m_fPath; 
 	QString m_Error_Parameter; 
-
-
 	csvConfig::csv_FileFormat m_csvFileFormat;
 	
 

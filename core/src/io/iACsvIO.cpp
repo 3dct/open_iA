@@ -89,6 +89,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->AddColumn(arr);
 	table->SetNumberOfRows(tableLength);
 
+	//additional entries in SPM for Fibres
 	double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
 	double a11, a22, a33, a12, a13, a23;
 
@@ -263,6 +264,10 @@ bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
 bool iACsvIO::loadCSVCustom(csvConfig::configPararams &cnfg_params)
 {
 	this->loadConfigurationFile(cnfg_params);
+	if (!cnfg_params.paramsValid) {
+		return false; 
+	}
+
 	return loadCsv_WithConfig(cnfg_params.fileName, cnfg_params);
 }
 

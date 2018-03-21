@@ -76,6 +76,7 @@ void dlg_CSVInput::initParameters(){
 	this->m_confParams->spacing = 10.5f;
 	this->m_confParams->csv_units = "microns";
 	this->m_confParams->paramsValid = false;
+	this->m_fPath = "D:/OpenIa_TestDaten/Pores/";
 	
 
 
@@ -84,9 +85,6 @@ void dlg_CSVInput::initParameters(){
 void dlg_CSVInput::resetDefault()
 {
 	this->initParameters(); 
-	/*this->m_startLine = 1;
-	this->m_colSeparator = ";";*/
-	
 }
 
 bool dlg_CSVInput::validateParameters()
@@ -150,14 +148,21 @@ void dlg_CSVInput::assignSeparator() {
 }
 
 void dlg_CSVInput::checkFileExist() {
+	
+	if (m_fPath.isEmpty()) {
+
+		this->m_confParams->paramsValid = false; 
+		return; 
+		
+	}
+
 	QString fileName = QFileDialog::getOpenFileName(
-		this, tr("Open Files"), "D:/OpenIa_TestDaten/Pores/", tr("csv spreadsheet (*.csv),.csv")
+		this, tr("Open Files"), m_fPath, tr("csv spreadsheet (*.csv),.csv")
 	);
 
 	if (fileName.isEmpty())
 	{
 		this->m_confParams->paramsValid= false;
-
 		return;
 	}
 	else {

@@ -57,6 +57,10 @@ public:
 		configPath = _configPath; 
 	}
 
+	const csvConfig::CTInputObjectType getInputElementType() const {
+		return this->inputElementType; 
+	}
+
 private:
 
 	void setDefaultConfigPath(); 
@@ -67,8 +71,7 @@ private:
 	bool LoadFibreCSV(const QString &fileName);
 	bool LoadPoreCSV(const QString &fileName);
 	
-	bool loadCsv_WithConfig(const QString &fileName, const int rows_toSkip, bool EN_Values, const QString  &colSeparator);
-	//TODO load config file
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
 	vtkSmartPointer<vtkTable> table;
+	csvConfig::CTInputObjectType inputElementType; 
 };
