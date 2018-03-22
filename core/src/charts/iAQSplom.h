@@ -27,13 +27,17 @@
 #include <QGLWidget>
 #include <QList>
 
+class iAColorTheme;
+class iALookupTable;
 class iAScatterPlot;
 class iASPLOMData;
+
+class vtkLookupTable;
+
 class QTableWidget;
 class QGridLayout;
 class QPropertyAnimation;
-class iALookupTable;
-class vtkLookupTable;
+
 
 //! A scatter plot matrix (SPLOM) widget.
 /*!
@@ -72,6 +76,7 @@ public:
 	void applyLookupTable();												//!< Apply lookup table to all the scatter plots.
 	void setParameterVisibility( int paramIndex, bool isVisible );			//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
+	void setParameterInverted(int paramIndex, bool isInverted);				//!< whether to invert the axis for a given parameter's index.
 	QVector<unsigned int> & getSelection();									//!< Get vector of indices of currently selected data points.
 	void setSelection( const QVector<unsigned int> * selInds );				//!< Set selected data points from a vector of indices.
 	void getActivePlotIndices( int * inds_out );							//!< Get X and Y parameter indices of currently active scatter plot.
@@ -84,6 +89,9 @@ public:
 	double getAnimOut() const { return m_animOut; }							//!< Getter for animation in property
 	void setAnimOut( double anim );											//!< Setter for animation in property
 	const QList<int> & getHighlightedPoints() const;
+	void SetSeparation(int idx);								//!< define an index at which a separation margin is inserted
+	void SetBackgroundColorTheme(iAColorTheme const * theme);   //!< define the color theme to use for coloring the different separated regions
+	iAColorTheme const * GetBackgroundColorTheme();
 
 protected:
 	void clear();												//!< Clear all scatter plots in the SPLOM.
@@ -149,6 +157,8 @@ protected:
 		bool isAnimated;
 		double animDuration;
 		double animStart;
+
+		int separationMargin;
 	};
 
 //Members
@@ -174,4 +184,6 @@ protected:
 	QPropertyAnimation * m_animationOut;
 	QList<int> m_highlightedPoints;					//!< list of always highlighted points
 	double m_popupHeight;							//!< height of the last drawn popup
+	int m_separationIdx;							//!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
+	iAColorTheme const * m_bgColorTheme;			//!< background colors for regions in the scatterplot
 };

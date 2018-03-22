@@ -42,7 +42,7 @@ class iAImagePreviewWidget: public QWidget
 public:
 	static const int SliceNumberNotSet;
 	iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera, iASlicerMode,
-		int labelCount, iAColorTheme const * colorTheme, bool magicLens=false);
+		int labelCount, bool magicLens=false);
 	~iAImagePreviewWidget();
 	void SetImage(iAITKIO::ImagePointer img, bool empty, bool isLabelImg);
 	void SetImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg);
@@ -72,7 +72,7 @@ private:
 	virtual QSize sizeHint() const;
 	void InitializeSlicer();
 	void UpdateImage();
-	void BuildCTF();
+	bool BuildCTF();
 
 	bool m_isLabelImage;
 	bool m_empty;

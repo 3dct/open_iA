@@ -30,7 +30,7 @@ class iAModalityExplorerModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 protected:
-	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
 private slots:
 	void ModalitySPLOM();
 };

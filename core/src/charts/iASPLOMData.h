@@ -37,6 +37,7 @@ public:
 	{
 		m_paramNames.clear();
 		m_dataPoints.clear();
+		m_inverted.clear();
 	}
 
 	//! Methods that imports data from a QTableWidget and stores them in a list of double-lists.
@@ -55,6 +56,7 @@ public:
 			QList<double> * paramData = &m_dataPoints[c];
 			for( unsigned long r = 1; r < numPoints + 1; ++r )
 				paramData->push_back( tw->item( r, c )->text().toDouble() );
+			m_inverted.push_back(false);
 		}
 	}
 	QList<QList<double>> & data() { return m_dataPoints; }
@@ -75,7 +77,12 @@ public:
 	//! Get number of data points.
 	unsigned long numPoints() const { return m_dataPoints.size() < 1 ? 0 : m_dataPoints[0].size(); }
 
+	bool isInverted(int paramIndex) { return m_inverted[paramIndex]; }
+
+	void setInverted(int paramIndex, bool isInverted) { m_inverted[paramIndex] = isInverted; }
+
 protected:
-	QList<QString> m_paramNames;		///< list of parameter names
-	QList<QList<double>> m_dataPoints;	///< lists containing data points
+	QList<QString> m_paramNames;        //!< list of parameter names
+	QList<QList<double>> m_dataPoints;  //!< lists containing data points
+	QList<bool> m_inverted;             //!< whether to invert a feature
 };
