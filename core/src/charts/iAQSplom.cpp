@@ -579,17 +579,21 @@ bool iAQSplom::drawPopup( QPainter& painter )
 iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 {
 	if( m_visiblePlots.isEmpty() )
-		return 0;
+		return nullptr;
 	QPoint offsetPos = pos - settings.tickOffsets;		
 	QPoint grid( m_scatPlotSize.x() + settings.plotsSpacing, m_scatPlotSize.y() + settings.plotsSpacing );
 	if (grid.x() == 0 || grid.y() == 0)
-		return 0;	// to avoid division by 0
+		return nullptr;	// to avoid division by 0
 	int ind[2] = { offsetPos.x() / grid.x(), offsetPos.y() / grid.y() };
 	//boundary checks
-	for( int i = 0; i < 2; ++i )		
+	for( int i = 0; i < 2; ++i )
 	{
 		ind[i] = clamp(0, getVisibleParametersCount() - 1, ind[i]);
 	}
+	if (ind[0] > m_separationIdx)
+		offsetPos.setX(offsetPos.x() - settings.separationMargin);
+	if (ind[1] > m_separationIdx)
+		offsetPos.setY(offsetPos.y() - settings.separationMargin);
 	//are we between plots due to the spacing?
 	bool isBetween = false;
 	if( offsetPos.x() - ind[0] * grid.x() >= m_scatPlotSize.x() ) isBetween = true;
