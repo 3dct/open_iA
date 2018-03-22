@@ -24,24 +24,28 @@
 
 #include <itkCommand.h>
 
-#include <vtkCommand.h>
+#include <vtkSmartPointer.h>
 
 #include <QObject>
 
-class open_iA_Core_API iAProgress : public QObject, public vtkCommand
+class iAvtkCommand;
+
+class vtkAlgorithm;
+
+class open_iA_Core_API iAProgress : public QObject
 {
 	Q_OBJECT
 public:
-	static iAProgress *New();
 	typedef itk::MemberCommand< iAProgress >  CommandType;
 	iAProgress( );
 	void ProcessEvent(itk::Object * caller, const itk::EventObject & event );
 	void ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event );
 	void Observe( itk::Object *caller );
+	void Observe( vtkAlgorithm* caller );
 	void EmitProgress(int i);
 Q_SIGNALS:
 	void progress(int i);
 private:
-	virtual void Execute(vtkObject *caller, unsigned long, void*);
-	CommandType::Pointer m_Command;
+	CommandType::Pointer m_itkCommand;
+	vtkSmartPointer<iAvtkCommand> m_vtkCommand;
 };

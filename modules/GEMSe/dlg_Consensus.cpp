@@ -994,6 +994,7 @@ void dlg_Consensus::LoadConfig()
 			samplingResults->GetName(),
 			"label.mhd",
 			true,
+			true,
 			lastSamplingID+s
 		));
 		m_queuedSamplers.push_back(sampler);

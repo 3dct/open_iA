@@ -49,6 +49,9 @@ open_iA_Core_API double GetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBas
 open_iA_Core_API void SetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value);
 //! @}
 
+//! extract part of an image as a new file
+open_iA_Core_API iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[3], size_t const sizeArr[3]);
+
 //! Source: http://itk.org/Wiki/ITK/Examples/Utilities/DeepCopy
 template<typename TImage>
 void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)

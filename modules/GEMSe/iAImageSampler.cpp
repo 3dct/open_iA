@@ -58,6 +58,7 @@ iAImageSampler::iAImageSampler(
 		QString const & pipelineName,
 		QString const & imageBaseName,
 		bool separateOutputDir,
+		bool calculateChar,
 		int samplingID) :
 	m_modalities(modalities),
 	m_parameters(parameters),
@@ -79,7 +80,8 @@ iAImageSampler::iAImageSampler(
 	m_derivedOutputDuration(0),
 	m_samplingID(samplingID),
 	m_imageBaseName(imageBaseName),
-	m_separateOutputDir(separateOutputDir)
+	m_separateOutputDir(separateOutputDir),
+	m_calculateCharacteristics(calculateChar)
 {
 }
 
@@ -245,15 +247,31 @@ void iAImageSampler::computationFinished()
 	result->SetAttribute(m_parameterCount+2, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+2)->AdjustMinMax(computationTime);
 
-	// TODO: use external programs to calculate derived output!
-	iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator (result, m_parameterCount, m_parameterCount+1, m_labelCount);
-	m_runningDerivedOutput.insert(newCharCalc, result);
-	connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()) );
-	newCharCalc->start();
-
+	if (m_calculateCharacteristics)
+	{
+		// TODO: use external programs to calculate derived output!
+		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount, m_parameterCount + 1, m_labelCount);
+		m_runningDerivedOutput.insert(newCharCalc, result);
+		connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()));
+		newCharCalc->start();
+	}
+	else
+	{
+		QString sampleMetaFile = m_outputBaseDir + "/" + m_parameterRangeFile;
+		QString parameterSetFile = m_outputBaseDir + "/" + m_parameterSetFile;
+		QString derivedOutputFile = m_outputBaseDir + "/" + m_derivedOutputFile;
+		m_results->AddResult(result);
+		emit Progress((100 * m_results->size()) / m_parameterSets->size());
+		if (!m_results->Store(sampleMetaFile, parameterSetFile, derivedOutputFile))
+		{
+			DEBUG_LOG("Error writing parameter file.");
+		}
+	}
 	m_runningComputation.remove(cmd);
 	delete cmd;
-
+	m_mutex.lock();
+	m_runningOperations--;
+	m_mutex.unlock();
 }
 
 

@@ -273,26 +273,19 @@ void iAQSplom::selectionUpdated()
 void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 {
 	iAScatterPlot * sender = dynamic_cast<iAScatterPlot*>( QObject::sender() );
+	if (!sender)
+		return;
 
 	if (m_maximizedPlot != 0 && settings.maximizedLinked)
 	{
 		m_maximizedPlot->setTransform(sender->getScale(),
 									  QPointF(sender->getOffset().x() / sender->getRect().width() * m_maximizedPlot->getRect().width(),
 											  sender->getOffset().y() / sender->getRect().height() * m_maximizedPlot->getRect().height()));
-
 		if (sender == m_maximizedPlot)
 			deltaOffset = QPointF(deltaOffset.x() / m_maximizedPlot->getRect().width() * m_previewPlot->getRect().width(),
 								  deltaOffset.y() / m_maximizedPlot->getRect().height() * m_previewPlot->getRect().height());
-
-		/*if (sender == m_maximizedPlot)
-		{
-			m_previewPlot->setTransform(sender->getScale(), deltaOffset);
-			sender = m_previewPlot;
-		}*/
 	}
 
-	if( !sender )
-		return;
 	const int * ind = sender->getIndices();
 	foreach( QList<iAScatterPlot*> row, m_matrix )
 	{
@@ -300,19 +293,12 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 		{
 			if( s != sender )
 			{
-				if (s != m_previewPlot )
-				{
-					if( s->getIndices()[0] == ind[0] )
-						s->setTransformDelta( scale, QPointF( deltaOffset.x(), 0.0f ) );
-					else if( s->getIndices()[1] == ind[1] )
-						s->setTransformDelta( scale, QPointF( 0.0f, deltaOffset.y() ) );
-					else
-						s->setTransformDelta( scale, QPointF( 0.0f, 0.0f ) );
-				}
+				if( s->getIndices()[0] == ind[0] )
+					s->setTransformDelta( scale, QPointF( deltaOffset.x(), 0.0f ) );
+				else if( s->getIndices()[1] == ind[1] )
+					s->setTransformDelta( scale, QPointF( 0.0f, deltaOffset.y() ) );
 				else
-				{
-					s->setTransformDelta( scale, deltaOffset );
-				}
+					s->setTransformDelta( scale, QPointF( 0.0f, 0.0f ) );
 			}
 		}
 	}

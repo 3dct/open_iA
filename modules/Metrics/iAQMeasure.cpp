@@ -32,6 +32,8 @@
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"
+#include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 #include "mdichild.h"
 
@@ -97,15 +99,15 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 		vecHist.push_back(it.GetFrequency());
 }
 
-void computeQ(iAQMeasure* filter, QMap<QString, QVariant> const & parameters)
+void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QString, QVariant> const & parameters)
 {
 	size_t numberOfPeaks = parameters["Number of peaks"].toULongLong();
 	double histogramBinFactor = parameters["Histogram bin factor"].toDouble();
 	double Kderiv = parameters["Derivative smoothing factor"].toDouble();
 	double Kminima = parameters["Minima finding smoothing factor"].toDouble();
 
-	double minVal = filter->Input()[0]->GetVTKImage()->GetScalarRange()[0];
-	double maxVal = filter->Input()[0]->GetVTKImage()->GetScalarRange()[1];
+	double minVal = img->GetScalarRange()[0];
+	double maxVal = img->GetScalarRange()[1];
 	auto size =	filter->Input()[0]->GetITKImage()->GetLargestPossibleRegion().GetSize();
 	size_t voxelCount = size[0] * size[1] * size[2];
 	size_t binCount = std::max(static_cast<size_t>(2), static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount)));
@@ -275,14 +277,83 @@ void computeQ(iAQMeasure* filter, QMap<QString, QVariant> const & parameters)
 			}
 		}
 		*/
+		for (int i = 0; i < mean.size(); ++i)
+		{
+			QString peakName(i == minDistToZeroIdx ? "air" : "highest non-air");
+			if (i == minDistToZeroIdx || i == highestNonAirPeakIdx)
+			{
+				filter->AddOutputValue(QString("Mean (%1)").arg(peakName), mean[i]);
+				filter->AddOutputValue(QString("Sigma (%1)").arg(peakName), std::sqrt(variance[minDistToZeroIdx]));
+				filter->AddOutputValue(QString("Min (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i]));
+				filter->AddOutputValue(QString("Max (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i+1]));
+			}
+		}
 		double Q = calculateQ(mean[highestNonAirPeakIdx], mean[minDistToZeroIdx], variance[highestNonAirPeakIdx], variance[minDistToZeroIdx]);
 		filter->AddOutputValue("Q", Q);
 	}
 }
 
+#include "ImageHistogram.h"
+
+void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QString, QVariant> const & params)
+{
+	// some "magic numbers"
+	unsigned int dgauss_size_BINscale = 24;
+	unsigned int gauss_size_P2Pscale = 24;
+	double threshold_x = -0.1;
+	double threshold_y = 2;						// one single voxel is no valid class
+
+	vtkSmartPointer<vtkImageData> floatImage;
+	if (filter->InputPixelType() == itk::ImageIOBase::FLOAT)
+		floatImage = img;
+	else
+		floatImage = CastVTKImage(img, VTK_FLOAT);
+
+	int const * dim = floatImage->GetDimensions();
+	double const * range = floatImage->GetScalarRange();
+	float* fImage = static_cast<float*>(floatImage->GetScalarPointer());
+	cImageHistogram curHist;
+	curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
+		params["OrigQ Histogram bins"].toInt(), range[0], range[1], false, 0, 0);
+	unsigned int Peaks_fnd = curHist.DetectPeaksValleys(params["Number of peaks"].toInt(),
+		dgauss_size_BINscale, gauss_size_P2Pscale, threshold_x, threshold_y, false);
+
+	// Calculate histogram quality measures Q using the valley thresholds to seperate classes
+	std::vector<int> thresholds_IDX = curHist.GetValleyThreshold_IDX();
+	std::vector<float> thresholds = curHist.GetValleyThreshold();
+	std::vector<ClassMeasure> classMeasures;
+	double Q0 = (thresholds_IDX.size() == 0) ? 0.0 : curHist.CalcQ(thresholds_IDX, classMeasures, 0);
+	double Q1 = (thresholds_IDX.size() == 0) ? 0.0 : curHist.CalcQ(thresholds_IDX, classMeasures, 1);
+	filter->AddOutputValue("Q (orig, equ 0)", Q0);
+	filter->AddOutputValue("Q (orig, equ 1)", Q1);
+
+	int classNr = 0;
+	for (auto c: classMeasures)
+	{
+		QString peakName(c.UsedForQ == 1 ? "air" : "highest non-air");
+		if (c.UsedForQ == 1 || c.UsedForQ == 2)
+		{
+			filter->AddOutputValue(QString("Qorig Mean (%1)").arg(peakName), c.mean);
+			filter->AddOutputValue(QString("Qorig Sigma (%1)").arg(peakName), c.sigma);
+			filter->AddOutputValue(QString("Probability (%1)").arg(peakName), c.probability);
+			filter->AddOutputValue(QString("Min (%1)").arg(peakName), c.LowerThreshold);
+			filter->AddOutputValue(QString("Max (%1)").arg(peakName), c.UpperThreshold);
+		}
+		++classNr;
+	}
+}
+
+
 void iAQMeasure::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	computeQ(this, parameters);
+	size_t size[3], index[3];
+	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
+	auto extractImg = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	iAConnector extractCon;
+	extractCon.SetImage(extractImg);
+	computeQ(this, extractCon.GetVTKImage(), parameters);
+	computeOrigQ(this, extractCon.GetVTKImage(), parameters);
 }
 
 IAFILTER_CREATE(iAQMeasure)
@@ -298,6 +369,12 @@ iAQMeasure::iAQMeasure() :
 	m_chart(nullptr),
 	m_mdiChild(nullptr)
 {
+	AddParameter("Index X", Discrete, 0);
+	AddParameter("Index Y", Discrete, 0);
+	AddParameter("Index Z", Discrete, 0);
+	AddParameter("Size X", Discrete, 1);
+	AddParameter("Size Y", Discrete, 1);
+	AddParameter("Size Z", Discrete, 1);
 	AddParameter("Signal-to-noise ratio", Boolean, true);
 	AddParameter("Contrast-to-noise ratio", Boolean, true);
 	AddParameter("Q metric", Boolean, true);
@@ -305,6 +382,8 @@ iAQMeasure::iAQMeasure() :
 	AddParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
 	AddParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
 	AddParameter("Minima finding smoothing factor", Continuous, 8, 0.0000001);
+
+	AddParameter("OrigQ Histogram bins", Discrete, 512, 2);
 
 	AddOutputValue("Signal-to-noise ratio");
 	AddOutputValue("Contrast-to-noise ratio");

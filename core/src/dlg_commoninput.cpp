@@ -28,6 +28,7 @@
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"
+#include "io/iAFileChooserWidget.h"
 
 #include "mdichild.h"
 
@@ -49,9 +50,9 @@ enum ContainerSize {
 
 
 dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr)
-	: QDialog (parent),
-	m_roiMdiChild(nullptr),
-	m_roiMdiChildClosed(false),
+	: QDialog(parent),
+	m_sourceMdiChild(nullptr),
+	m_sourceMdiChildClosed(false),
 	widgetList(inList.size())
 {
 	//initialize a instance of error message dialog box
@@ -132,6 +133,18 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 				newWidget = new QPushButton(container);
 				connect(newWidget, SIGNAL(clicked()), this, SLOT(SelectFilter()));
 				break;
+			case '<':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameOpen);
+				break;
+			case '{':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNamesOpen);
+				break;
+			case '>':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameSave);
+				break;
+			case ';':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::Folder);
+				break;
 			case '?':
 			{
 				label->setStyleSheet("background-color : lightGray");
@@ -165,8 +178,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	}else{
 		scrollArea->setMinimumWidth(containerLayout->minimumSize().width());
 	}
-
 	scrollArea->setWidget(container);
+	scrollArea->setWidgetResizable(true);
 
 	//make scrollArea widgets backround transparent
 	QPalette pal = scrollArea->palette();
@@ -182,8 +195,9 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 
 void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
 {
-	m_sourceMdi = child;
+	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
+	connect(child, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
 }
 
 
@@ -196,13 +210,13 @@ void dlg_commoninput::SelectFilter()
 		QString filterName = dlg.SelectedFilterName();
 		int idx = widgetList.indexOf(sender);
 		if (idx < widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
-			m_sourceMdi)	// TODO: if possible, get rid of sourceMdi?
+			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?
 		{
 			auto filter = iAFilterRegistry::Filter(filterName);
 			int filterID = iAFilterRegistry::FilterID(filterName);
 			auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
-			QMap<QString, QVariant> paramValues = runner->LoadParameters(filter, m_sourceMdi);
-			if (!runner->AskForParameters(filter, paramValues, m_sourceMdi, m_mainWnd, false))
+			QMap<QString, QVariant> paramValues = runner->LoadParameters(filter, m_sourceMdiChild);
+			if (!runner->AskForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
 				return;
 			QString paramStr;
 			for (auto param: filter->Parameters())
@@ -289,21 +303,26 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 		QPushButton *button = qobject_cast<QPushButton*>(children.at(i));
 		if (button)
 			button->setText(inPara[paramIdx++].toString());
+
+		iAFileChooserWidget* fileChooser = qobject_cast<iAFileChooserWidget*>(children.at(i));
+		if (fileChooser)
+			fileChooser->setText(inPara[paramIdx++].toString());
 	}
 }
 
 
-void dlg_commoninput::showROI(MdiChild *child)
+void dlg_commoninput::showROI()
 {
-	m_roiMdiChild = child;
-	setModal(false);
-	hide();	show(); // required to apply change in modality!
-	connect(child, SIGNAL(closed()), this, SLOT(ROIChildClosed()));
+	if (!m_sourceMdiChild)
+	{
+		DEBUG_LOG("You need to call setSourceMDI before show ROI!");
+		return;
+	}
 	QObjectList children = container->children();
 	for (int i = 0; i < 3; ++i)
 	{
 		m_roi[i] = 0;
-		m_roi[i + 3] = child->getImagePointer()->GetDimensions()[i];
+		m_roi[i + 3] = m_sourceMdiChild->getImagePointer()->GetDimensions()[i];
 	}
 	for (int i = 0; i < children.size(); i++)
 	{
@@ -314,14 +333,14 @@ void dlg_commoninput::showROI(MdiChild *child)
 			UpdateROIPart(input->objectName(), input->text());
 		}
 	}
-	m_roiMdiChild->SetROIVisible(true);
-	m_roiMdiChild->UpdateROI(m_roi);
+	m_sourceMdiChild->SetROIVisible(true);
+	m_sourceMdiChild->UpdateROI(m_roi);
 }
 
 
 void dlg_commoninput::ROIUpdated(QString text)
 {
-	if (m_roiMdiChildClosed)
+	if (m_sourceMdiChildClosed)
 		return;
 	QString senderName = QObject::sender()->objectName();
 	UpdateROIPart(senderName, text);
@@ -329,7 +348,7 @@ void dlg_commoninput::ROIUpdated(QString text)
 	if (m_roi[3] <= 0) m_roi[3] = 1;
 	if (m_roi[4] <= 0) m_roi[4] = 1;
 	if (m_roi[5] <= 0) m_roi[5] = 1;
-	m_roiMdiChild->UpdateROI(m_roi);
+	m_sourceMdiChild->UpdateROI(m_roi);
 }
 
 
@@ -350,9 +369,9 @@ void dlg_commoninput::UpdateROIPart(QString const & partName, QString const & va
 }
 
 
-void dlg_commoninput::ROIChildClosed()
+void dlg_commoninput::SourceChildClosed()
 {
-	m_roiMdiChildClosed = true;
+	m_sourceMdiChildClosed = true;
 }
 
 
@@ -406,19 +425,22 @@ QString dlg_commoninput::getText(int index) const
 	if (t2)
 		return t2->toPlainText();
 	QPushButton * t3 = qobject_cast<QPushButton*>(widgetList[index]);
-	return t3? t3->text(): "";
+	if (t3)
+		return t3->text();
+	iAFileChooserWidget* t4 = qobject_cast<iAFileChooserWidget*>(widgetList[index]);
+	return (t4)? t4->text() : "";
 }
 
 
 int dlg_commoninput::exec()
 {
 	int result = QDialog::exec();
-	if (m_roiMdiChildClosed || (m_roiMdiChild && !qobject_cast<QWidget*>(parent())->isVisible()))
+	if (m_sourceMdiChildClosed || (m_sourceMdiChild && !qobject_cast<QWidget*>(parent())->isVisible()))
 		return QDialog::Rejected;
-	if (m_roiMdiChild)
+	if (m_sourceMdiChild)
 	{
-		disconnect(m_roiMdiChild, SIGNAL(closed()), this, SLOT(ROIChildClosed()));
-		m_roiMdiChild->SetROIVisible(false);
+		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+		m_sourceMdiChild->SetROIVisible(false);
 	}
 	return result;
 }

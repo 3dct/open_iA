@@ -44,6 +44,8 @@ open_iA_Core_API int MapVTKTypeStringToInt(QString const & vtkTypeName);
 
 open_iA_Core_API int MapVTKTypeStringToSize(QString const & vtkTypeString);
 
+open_iA_Core_API vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkImageData> img, int DestType);
+
 open_iA_Core_API bool isVtkIntegerType(int type);
 
 open_iA_Core_API QStringList const & VTKDataTypeList();

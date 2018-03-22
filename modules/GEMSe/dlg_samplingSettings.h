@@ -101,6 +101,7 @@ public:
 	void GetValues(QMap<QString, QString> & values) const;
 	QString GetImageBaseName() const;
 	bool GetSeparateFolder() const;
+	bool GetCalcChar() const;
 private slots:
 	void ChooseOutputFolder();
 	void ChooseParameterDescriptor();

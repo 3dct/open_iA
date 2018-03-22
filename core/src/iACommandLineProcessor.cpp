@@ -290,7 +290,7 @@ namespace
 			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
 			QObject::connect(&progress, SIGNAL(progress(int)), &progressIndicator, SLOT(Progress(int)));
-			filter->SetUp(iAStdOutLogger::Get(), &progress);
+			filter->SetProgress(&progress);
 			if (!filter->CheckParameters(parameters))
 			{   // output already happened in CheckParameters via logger
 				return 1;

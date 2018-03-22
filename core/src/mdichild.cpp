@@ -278,11 +278,8 @@ void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
 
 void MdiChild::connectIOThreadSignals(iAIO * thread)
 {
-	connect(thread, SIGNAL(started()), this, SLOT(initProgressBar()));
-	connect(thread, SIGNAL(finished()), this, SLOT(hideProgressBar()));
+	connectAlgorithmSignalsToChildSlots(thread);
 	connect(thread, SIGNAL(finished()), this, SLOT(ioFinished()));
-	connect(thread->getProgressObserver(), SIGNAL(progress(int)), this, SLOT(updateProgressBar(int)));
-	addAlgorithm(thread);
 }
 
 void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
@@ -2879,8 +2876,11 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 	{
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
 		slicerXZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerXZ->GetSlicerData()->ResetCamera();
 		slicerXY->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerXY->GetSlicerData()->ResetCamera();
 		slicerYZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+		slicerYZ->GetSlicerData()->ResetCamera();
 	}
 	ModalityTFChanged();
 	updateViews();

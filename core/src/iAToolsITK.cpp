@@ -19,8 +19,11 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
+#include "iAMathUtility.h"
 #include "iAToolsITK.h"
+#include "iATypedCallHelper.h"
 
+#include <itkExtractImageFilter.h>
 
 itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image)
 {
@@ -264,4 +267,36 @@ void SetITKPixel(double value, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType
 void SetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value)
 {
 	ITK_TYPED_CALL(SetITKPixel, GetITKScalarPixelType(img), value, img, idx);
+}
+
+
+template <typename T>
+void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[3], size_t const sizeArr[3], iAITKIO::ImagePointer & outImg)
+{
+	typedef itk::Image< T, 3 > ImageType;
+	auto typedImg = dynamic_cast<ImageType *>(inImg.GetPointer());
+	typedef itk::ExtractImageFilter< ImageType, ImageType > ExtractType;
+	auto extractor = ExtractType::New();
+	auto size = typedImg->GetLargestPossibleRegion().GetSize();
+	typename ExtractType::InputImageRegionType::IndexType index;
+	for (int i = 0; i < 3; ++i)
+	{
+		index[i] = clamp(static_cast<size_t>(0), size[i], indexArr[i]);
+		size[i] = clamp(static_cast<size_t>(0), size[i] - index[i], sizeArr[i]);
+	}
+	typename ExtractType::InputImageRegionType region;
+	region.SetIndex(index);
+	region.SetSize(size);
+	extractor->InPlaceOn();
+	extractor->SetInput(typedImg);
+	extractor->SetExtractionRegion(region);
+	extractor->Update();
+	outImg = extractor->GetOutput();
+}
+
+iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[3], size_t const sizeArr[3])
+{
+	iAITKIO::ImagePointer outImg;
+	ITK_TYPED_CALL(InternalExtractImage, GetITKScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);
+	return outImg;
 }

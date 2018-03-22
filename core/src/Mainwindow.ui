@@ -338,6 +338,9 @@
    <property name="toolTip">
     <string>Save the document under a new name</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
   </action>
   <action name="exitAct">
    <property name="text">

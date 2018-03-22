@@ -436,6 +436,13 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = Input()[0]->GetVTKImage();
 	int * projDim = projImg->GetDimensions();
+	if (parameters[DetRowDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3 ||
+		parameters[DetRowDim].toUInt() % 3 == parameters[ProjAngleDim].toUInt() % 3 ||
+		parameters[ProjAngleDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3)
+	{
+		DEBUG_LOG("Invalid parameters: One dimension referenced multiple times!");
+		return;
+	}
 	size_t detRowCnt = projDim[parameters[DetRowDim].toUInt() % 3];
 	size_t detColCnt = projDim[parameters[DetColDim].toUInt() % 3];
 	size_t projAngleCnt = projDim[parameters[ProjAngleDim].toUInt() % 3];
