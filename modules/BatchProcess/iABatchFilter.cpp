@@ -188,7 +188,11 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 				if (parameters["Add filename"].toBool())
 					captions << "filename";
 				for (auto outValue : filter->OutputValues())
-					captions << outValue.first;
+				{
+					QString curCap(outValue.first);
+					curCap.replace(",", "");
+					captions << curCap;
+				}
 				if (outputBuffer.empty())
 					outputBuffer.append("");
 				outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");
