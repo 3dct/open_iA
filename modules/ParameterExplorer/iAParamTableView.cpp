@@ -82,6 +82,14 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 					m_columnBounds[col].second = val;
 			}
 		}
+		if (items.size() < headers.size())
+		{
+			DEBUG_LOG(QString("Line %1 has less columns(%2) than expected(%3)").arg(row).arg(items.size()).arg(headers.size()));
+			for (int col = items.size(); col < headers.size(); ++col)
+			{
+				m_table->setItem(row, col, new QTableWidgetItem("0"));
+			}
+		}
 	}
 }
 
