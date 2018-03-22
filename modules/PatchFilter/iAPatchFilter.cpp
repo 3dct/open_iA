@@ -153,7 +153,8 @@ namespace
 				outputImages.push_back(AllocateImage(blockCount, outputSpacing, itk::ImageIOBase::DOUBLE));
 				outputNames << filter->OutputValueNames()[outputImages.size() - 1];
 			}
-		filter->SetUp(patchFilter->Logger(), &dummyProgress);
+		filter->SetLogger(patchFilter->Logger());
+		filter->SetProgress(&dummyProgress);
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (int x = 0; x < size[0]; x += stepSize[0])

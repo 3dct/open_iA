@@ -132,7 +132,8 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 	}
 	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->SetUp(Logger(), &p);
+	filter->SetProgress(&p);
+	filter->SetLogger(Logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
 	

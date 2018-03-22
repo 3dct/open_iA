@@ -147,9 +147,13 @@ itk::ImageIOBase::IOComponentType iAFilter::InputPixelType() const
 	return m_input[0]->GetITKScalarPixelType();
 }
 
-void iAFilter::SetUp(iALogger* log, iAProgress* progress)
+void iAFilter::SetLogger(iALogger* log)
 {
 	m_log = log;
+}
+
+void iAFilter::SetProgress(iAProgress* progress)
+{
 	m_progress = progress;
 }
 

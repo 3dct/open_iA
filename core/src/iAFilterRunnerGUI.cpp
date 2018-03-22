@@ -59,12 +59,12 @@ iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter
 
 void iAFilterRunnerGUIThread::performWork()
 {
-	m_filter->SetUp(qobject_cast<MdiChild*>(parent())->getLogger(), ProgressObserver());
+	m_filter->SetProgress(ProgressObserver());
 	for (iAConnector* con : Connectors())
 		m_filter->AddInput(con);
 	if (!m_filter->Run(m_paramValues))
 	{
-		qobject_cast<MdiChild*>(parent())->getLogger()->Log("Running filter failed!");
+		m_filter->Logger()->Log("Running filter failed!");
 		return;
 	}
 	allocConnectors(m_filter->Output().size());
@@ -256,6 +256,7 @@ void iAFilterRunnerGUI::FilterGUIPreparations(QSharedPointer<iAFilter> filter, M
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	MdiChild* sourceMdi = mainWnd->activeMdiChild();
+	filter->SetLogger(sourceMdi->getLogger());
 	QMap<QString, QVariant> paramValues = LoadParameters(filter, sourceMdi);
 	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 		return;
