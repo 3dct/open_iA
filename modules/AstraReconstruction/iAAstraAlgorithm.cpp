@@ -410,7 +410,7 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 	int detColDimIdx = detColDim % 3;		// only do modulus once before loop
 	int detRowDimIdx = detRowDim % 3;
 	int projAngleDimIdx = projAngleDim % 3;
-	int idx[3];
+	size_t idx[3];
 	size_t imgBufIdx = 0;
 	for (idx[2] = 0; idx[2] < dim[2]; ++idx[2])
 	{
@@ -420,10 +420,10 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 			for (long long x = 0; x < dim[0]; ++x)
 			{
 				idx[0] = x;
-				int detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
-				int detRow    = idx[detRowDimIdx];     if (detRowDim >= 3)    { detRow    = dim[detRowDimIdx]    - detRow    - 1; }
-				int projAngle = idx[projAngleDimIdx];  if (projAngleDim >= 3) { projAngle = dim[projAngleDimIdx] - projAngle - 1; }
-				int bufIndex = detCol + ((projAngle + detRow*dim[projAngleDimIdx])*dim[detColDimIdx]);
+				size_t detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
+				size_t detRow    = idx[detRowDimIdx];     if (detRowDim >= 3)    { detRow    = dim[detRowDimIdx]    - detRow    - 1; }
+				size_t projAngle = idx[projAngleDimIdx];  if (projAngleDim >= 3) { projAngle = dim[projAngleDimIdx] - projAngle - 1; }
+				size_t bufIndex = detCol + ((projAngle + detRow*dim[projAngleDimIdx])*dim[detColDimIdx]);
 				buf[bufIndex] = static_cast<float>(imgBuf[imgBufIdx + idx[0]]);
 			}
 			imgBufIdx += dim[0];
