@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iAFilter.h"
 
+#include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "iAAttributeDescriptor.h"
+#include "iAStringHelper.h"
 
 #include <QFileInfo>
 
@@ -233,7 +234,7 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 		}
 		case FileNamesOpen:
 		{
-			QStringList files = parameters[param->Name()].toString().split(" ");
+			QStringList files = SplitPossiblyQuotedString(parameters[param->Name()].toString());
 			for (auto fileName : files)
 			{
 				QFileInfo file(fileName);
@@ -251,10 +252,10 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 		case Folder:
 		{
 			QFileInfo file(parameters[param->Name()].toString());
-			if (!file.isDir() || !file.isReadable())
+			if (!file.isDir())
 			{
-				AddMsg(QString("Parameter %1: Given folder '%2' either doesn't reference a folder, "
-					"the folder does not exist, or it is not readable!").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				AddMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
+					.arg(param->Name()).arg(parameters[param->Name()].toString()));
 				return false;
 			}
 			break;

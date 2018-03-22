@@ -225,6 +225,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		case Folder:
 		case FileNameSave:
 		case FileNameOpen:
+		case FileNamesOpen:
 		case String:      value = dlg.getText(idx);          break;
 		case Boolean:     value = dlg.getCheckValue(idx);    break;
 		case Categorical: value = dlg.getComboBoxValue(idx); break;
