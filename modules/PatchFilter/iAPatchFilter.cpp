@@ -109,19 +109,9 @@ namespace
 		}
 
 		iAProgress dummyProgress;
-
 		QStringList outputBuffer;
 
-		QSharedPointer<iAFilter> extractImageFilter = iAFilterRegistry::Filter("Extract Image");
-		if (!extractImageFilter)
-		{
-			DEBUG_LOG("Image Extraction filter could not be loaded!");
-			return;
-		}
-		extractImageFilter->SetUp(patchFilter->Logger(), &dummyProgress);
-
 		int curOp = 0;
-		QMap<QString, QVariant> extractParams;
 		int patchSize[3] = {
 			parameters["Patch size X"].toInt(),
 			parameters["Patch size Y"].toInt(),
@@ -160,23 +150,18 @@ namespace
 		for (int x = 0; x < size[0]; x += stepSize[0])
 		{
 			outIdx[1] = 0;
-			int leftX = getLeft(x, patchSizeHalf[0], center);
-			extractParams.insert("Index X", leftX);
-			int xSize = getSize(x, leftX, size[0], patchSizeHalf[0], patchSize[0], center);
-			extractParams.insert("Size X", xSize);
+			size_t extractIndex[3], extractSize[3];
+			extractIndex[0] = getLeft(x, patchSizeHalf[0], center);
+			extractSize[0] = getSize(x, extractIndex[0], size[0], patchSizeHalf[0], patchSize[0], center);
 			for (int y = 0; y < size[1]; y += stepSize[1])
 			{
 				outIdx[2] = 0;
-				int leftY = getLeft(y, patchSizeHalf[1], center);
-				extractParams.insert("Index Y", leftY);
-				int ySize = getSize(y, leftY, size[1], patchSizeHalf[1], patchSize[1], center);
-				extractParams.insert("Size Y", ySize);
+				extractIndex[1] = getLeft(y, patchSizeHalf[1], center);
+				extractSize[1] = getSize(y, extractIndex[1], size[1], patchSizeHalf[1], patchSize[1], center);
 				for (int z = 0; z < size[2]; z += stepSize[2])
 				{
-					int leftZ = getLeft(z, patchSizeHalf[2], center);
-					extractParams.insert("Index Z", leftZ);
-					int zSize = getSize(z, leftZ, size[2], patchSizeHalf[2], patchSize[2], center);
-					extractParams.insert("Size Z", zSize);
+					extractIndex[2] = getLeft(z, patchSizeHalf[2], center);
+					extractSize[2] = getSize(z, extractIndex[2], size[2], patchSizeHalf[2], patchSize[2], center);
 					/*
 					DEBUG_LOG(QString("Working on patch: upper left=(%1, %2, %3), dim=(%4, %5, %6), outIdx=(%10,%11,%12).")
 						.arg(extractParams["Index X"].toUInt())
@@ -189,9 +174,7 @@ namespace
 					*/
 					// apparently some ITK filters (e.g. statistics) have problems with images
 					// with a size of 1 in one dimension, so let's skip such patches for the moment...
-					if (extractParams["Size X"].toUInt() <= 1 ||
-						extractParams["Size Y"].toUInt() <= 1 ||
-						extractParams["Size Z"].toUInt() <= 1)
+					if (extractSize[0] <= 1 || extractSize[1] <= 1 || extractSize[2] <= 1)
 					{
 						//DEBUG_LOG("    skipping because one side <= 1.");
 						continue;
@@ -199,12 +182,10 @@ namespace
 					try
 					{
 						// extract patch from all inputs:
-						extractImageFilter->ClearInput();
 						for (int i = 0; i < inputImages.size(); ++i)
 						{
-							extractImageFilter->AddInput(inputImages[i]);
-							extractImageFilter->Run(extractParams);
-							smallImageInput[i]->SetImage(extractImageFilter->Output()[0]->GetITKImage());
+							auto itkExtractImg = ExtractImage(inputImages[i]->GetITKImage(), extractIndex, extractSize);
+							smallImageInput[i]->SetImage(itkExtractImg);
 						}
 
 						// run filter on inputs:
