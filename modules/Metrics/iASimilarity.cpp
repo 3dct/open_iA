@@ -24,6 +24,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 #include "mdichild.h"
 
@@ -43,28 +44,19 @@ template<class T>
 void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > ImageType;
-	typedef itk::ExtractImageFilter< ImageType, ImageType > EIFType;
-	typename EIFType::Pointer activeImage_ROIExtractor = EIFType::New();
-	typename EIFType::Pointer nonActiveImage_ROIExtractor = EIFType::New();
-	typename EIFType::InputImageRegionType::SizeType size; 
+	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
-	typename EIFType::InputImageRegionType::IndexType index; 
 	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
-	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
-	activeImage_ROIExtractor->InPlaceOn();
-	nonActiveImage_ROIExtractor->InPlaceOn();
-	activeImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
-	nonActiveImage_ROIExtractor->SetInput(dynamic_cast< ImageType * >(filter->Input()[1]->GetITKImage()));
-	activeImage_ROIExtractor->SetExtractionRegion(region);
-	nonActiveImage_ROIExtractor->SetExtractionRegion(region);
-	activeImage_ROIExtractor->Update();
-	nonActiveImage_ROIExtractor->Update();
+	auto activeExtract = ExtractImage(filter->Input()[0]->GetITKImage(), index, size);
+	auto nonActiveExtract = ExtractImage(filter->Input()[1]->GetITKImage(), index, size);
+	ImageType* img = dynamic_cast<ImageType*>(activeExtract.GetPointer());
+	ImageType* ref = dynamic_cast<ImageType*>(nonActiveExtract.GetPointer());
 	typedef itk::TranslationTransform < double, DIM > TransformType;
 	typedef itk::LinearInterpolateImageFunction<ImageType, double >	InterpolatorType;
 	auto transform = TransformType::New();
 	transform->SetIdentity();
 	auto interpolator = InterpolatorType::New();
-	interpolator->SetInputImage(activeImage_ROIExtractor->GetOutput());
+	interpolator->SetInputImage(img);
 	typename TransformType::ParametersType params(transform->GetNumberOfParameters());
 	filter->AddMsg(QString("ROI[Origin_XYZ; SIZE_XYZ] = [%1, %2, %3; %4, %5, %6]")
 		.arg(index[0]).arg(index[1]).arg(index[2])
@@ -76,14 +68,14 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	{
 		typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
 		auto imgStatFilter = StatisticsImageFilterType::New();
-		imgStatFilter->SetInput(activeImage_ROIExtractor->GetOutput());
+		imgStatFilter->SetInput(img);
 		imgStatFilter->Update();
 		imgMean = imgStatFilter->GetMean();
 		imgVar = imgStatFilter->GetSigma();
 		double imgMin = imgStatFilter->GetMinimum();
 		double imgMax = imgStatFilter->GetMaximum();
 		auto refStatFilter = StatisticsImageFilterType::New();
-		refStatFilter->SetInput(nonActiveImage_ROIExtractor->GetOutput());
+		refStatFilter->SetInput(ref);
 		refStatFilter->Update();
 		refMean = refStatFilter->GetMean();
 		refVar = refStatFilter->GetSigma();
@@ -98,9 +90,9 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	{
 		typedef itk::MeanSquaresImageToImageMetric<	ImageType, ImageType > MSMetricType;
 		auto msmetric = MSMetricType::New();
-		msmetric->SetFixedImage(activeImage_ROIExtractor->GetOutput());
-		msmetric->SetFixedImageRegion(activeImage_ROIExtractor->GetOutput()->GetLargestPossibleRegion());
-		msmetric->SetMovingImage(nonActiveImage_ROIExtractor->GetOutput());
+		msmetric->SetFixedImage(img);
+		msmetric->SetFixedImageRegion(img->GetLargestPossibleRegion());
+		msmetric->SetMovingImage(ref);
 		msmetric->SetTransform(transform);
 		msmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
@@ -121,8 +113,6 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	}
 	if (parameters["Mean Absolute Error"].toBool())
 	{
-		ImageType* img = activeImage_ROIExtractor->GetOutput();
-		ImageType* ref = nonActiveImage_ROIExtractor->GetOutput();
 		itk::ImageRegionConstIterator<ImageType> imgIt(img, img->GetLargestPossibleRegion());
 		itk::ImageRegionConstIterator<ImageType> refIt(ref, ref->GetLargestPossibleRegion());
 		imgIt.GoToBegin(); refIt.GoToBegin();
@@ -138,9 +128,9 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	{
 		typedef itk::NormalizedCorrelationImageToImageMetric< ImageType, ImageType > NCMetricType;
 		auto ncmetric = NCMetricType::New();
-		ncmetric->SetFixedImage(activeImage_ROIExtractor->GetOutput());
-		ncmetric->SetFixedImageRegion(activeImage_ROIExtractor->GetOutput()->GetLargestPossibleRegion());
-		ncmetric->SetMovingImage(nonActiveImage_ROIExtractor->GetOutput());
+		ncmetric->SetFixedImage(img);
+		ncmetric->SetFixedImageRegion(img->GetLargestPossibleRegion());
+		ncmetric->SetMovingImage(ref);
 		ncmetric->SetTransform(transform);
 		ncmetric->SetInterpolator(interpolator);
 		params.Fill(0.0);
@@ -153,8 +143,8 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		//ITK-Example: https://itk.org/Doxygen/html/Examples_2Statistics_2ImageMutualInformation1_8cxx-example.html
 		typedef itk::JoinImageFilter< ImageType, ImageType > JoinFilterType;
 		auto joinFilter = JoinFilterType::New();
-		joinFilter->SetInput1(activeImage_ROIExtractor->GetOutput());
-		joinFilter->SetInput2(nonActiveImage_ROIExtractor->GetOutput());
+		joinFilter->SetInput1(img);
+		joinFilter->SetInput2(ref);
 		joinFilter->Update();
 
 		typedef typename JoinFilterType::OutputImageType  VectorImageType;
@@ -247,8 +237,6 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	}
 	if (parameters["Structural Similarity Index"].toBool())
 	{
-		ImageType* img = activeImage_ROIExtractor->GetOutput();
-		ImageType* ref = nonActiveImage_ROIExtractor->GetOutput();
 		itk::ImageRegionConstIterator<ImageType> imgIt(img, img->GetLargestPossibleRegion());
 		itk::ImageRegionConstIterator<ImageType> refIt(ref, ref->GetLargestPossibleRegion());
 		imgIt.GoToBegin(); refIt.GoToBegin();
