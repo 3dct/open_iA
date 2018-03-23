@@ -2991,3 +2991,9 @@ void MdiChild::SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Ori
 		splitDockWidget(ref, newWidget, orientation);
 	}
 }
+
+bool MdiChild::IsFullyLoaded() const
+{
+	int const * dim = imageData->GetDimensions();
+	return dim[0] > 0 && dim[1] > 0 && dim[2] > 0;
+}

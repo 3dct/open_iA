@@ -1531,7 +1531,9 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 {
 	if (oldChild->getResultInNewWindow())
 	{
-		// TODO: copy all modality images, or don't copy anything here and use image from old image directly!
+		// TODO: copy all modality images, or don't copy anything here and use image from old child directly,
+		// or nothing at all until new image available!
+		// Note that filters currently get their input from this child already!
 		vtkSmartPointer<vtkImageData> imageData = oldChild->getImagePointer();
 		MdiChild* newChild = createMdiChild(true);
 		newChild->show();

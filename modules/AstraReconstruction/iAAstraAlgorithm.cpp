@@ -436,6 +436,11 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = Input()[0]->GetVTKImage();
 	int * projDim = projImg->GetDimensions();
+	if (projDim[0] == 0 || projDim[1] == 0 || projDim[2] == 0)
+	{
+		DEBUG_LOG("File not fully loaded or invalid, at least one side is reported to have size 0.");
+		return;
+	}
 	if (parameters[DetRowDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3 ||
 		parameters[DetRowDim].toUInt() % 3 == parameters[ProjAngleDim].toUInt() % 3 ||
 		parameters[ProjAngleDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3)

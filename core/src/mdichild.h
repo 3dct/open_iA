@@ -274,6 +274,9 @@ public:
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
 	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
+	//! checks whether the main image data in this child is fully loaded
+	bool IsFullyLoaded() const;
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();

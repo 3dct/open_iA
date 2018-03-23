@@ -256,8 +256,15 @@ void iAFilterRunnerGUI::FilterGUIPreparations(QSharedPointer<iAFilter> filter, M
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	MdiChild* sourceMdi = mainWnd->activeMdiChild();
+	if (filter->RequiredInputs() > 0 && (!sourceMdi || !sourceMdi->IsFullyLoaded()))
+	{
+		mainWnd->statusBar()->showMessage("Please wait until file is fully loaded!");
+		return;
+	}
+
 	filter->SetLogger(sourceMdi->getLogger());
 	QMap<QString, QVariant> paramValues = LoadParameters(filter, sourceMdi);
+
 	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 		return;
 	StoreParameters(filter, paramValues);
