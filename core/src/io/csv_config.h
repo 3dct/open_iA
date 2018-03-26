@@ -22,7 +22,9 @@ namespace csvConfig {
 
 		void initDefaultParams() {
 			fileName = "";
-			startLine = 1;
+			startLine = 6;
+			headerStartLine = 5;
+			colCount = 31; 
 			endLine = 0;
 			file_seperator = csvSeparator::Colunm;
 			csv_Inputlanguage = inputLang::EN; 
@@ -36,10 +38,13 @@ namespace csvConfig {
 		}
 
 		QString fileName;
-		//QString colSeparator;
+		
 		
 		unsigned long startLine;
+
+		unsigned long headerStartLine; 
 		unsigned long endLine; 
+		unsigned long colCount; 
 
 		//TODO to be applied later
 		float spacing; 

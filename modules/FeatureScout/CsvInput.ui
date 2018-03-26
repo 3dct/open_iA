@@ -68,7 +68,7 @@
       <property name="title">
        <string>Load Columns</string>
       </property>
-      <widget class="QListWidget" name="listWidget">
+      <widget class="QListWidget" name="textControl_list">
        <property name="enabled">
         <bool>true</bool>
        </property>

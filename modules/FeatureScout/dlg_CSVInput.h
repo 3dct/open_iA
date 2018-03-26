@@ -41,22 +41,15 @@ private:
 	void resetDefault(); 
 
 	bool validateParameters();
-	
 	void setError(const QString &ParamName, const QString & Param_value);
-
 	void assignFileFormat();
-
 	void assignSeparator();
-
-	void loadFilePreview();
-
-	void checkFileExist();
-
+	void loadFilePreview(const int rowCount);
 	bool checkFile();
 	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements);
-
-	
 	void showPreviewTable();
+	void assignHeaderLine();
+	void readHeaderLine(const uint headerStartRow); 
 
 private:
 
@@ -66,6 +59,9 @@ private:
 	QString m_Error_Parameter; 
 	csvConfig::csv_FileFormat m_csvFileFormat;
 	csvTable_ptr m_entriesTable = nullptr; 
+
+	//current headers of the table
+	QSharedPointer<QStringList> m_currentHeaders; 
 	
 
 };

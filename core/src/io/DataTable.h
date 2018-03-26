@@ -1,0 +1,75 @@
+#pragma once
+
+#include "open_iA_Core_export.h"
+#include "io/csv_config.h"
+#include <qstringlist.h>
+#include <qtablewidget.h>
+#include <QSharedPointer>
+#include <qstringlist.h>
+#include <qstring.h>
+
+
+class QFile; 
+
+
+namespace  DataIO{
+			
+
+	class open_iA_Core_API DataTable : public QTableWidget
+	{
+	public:
+		DataTable();
+		~DataTable();
+
+		
+
+		void initTable();
+
+		inline const DataTable &getPreviewTable() const {
+			return *this;
+		}
+
+		void addLineToTable(const QSharedPointer<QStringList> &tableEntries);
+		
+		//reading rows from a file; 
+		bool readTableEntries(const QString &fName, const uint rowCount, const uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders);
+
+		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
+
+		inline void showTable() {
+			this->show();
+		}
+
+		//writing all elements to file
+		void dataToFile(const QString &FileName);
+
+
+		void setHeader(const QStringList &headerEntries);
+		void setColSeparator(const csvConfig::csvSeparator & separator);
+
+		inline const QStringList &getHeaders() {
+			return *this->m_headerEntries; 
+		}
+
+	protected:
+		QSharedPointer<QStringList> m_currentEntry;
+		
+		QSharedPointer<QStringList> m_headerEntries; 
+
+		QTableWidgetItem *m_currentItem;
+		QItemSelectionModel *m_variableModel;
+		QModelIndex m_item; 
+		uint m_rowInd;
+		uint m_colInd;
+		uint m_currHeaderLineNr; 
+		bool isInitialized;
+		QString m_FileSeperator; 
+
+	private:
+		//disable copy constructor
+		DataTable(const DataTable &other);
+
+	};
+
+	
+}

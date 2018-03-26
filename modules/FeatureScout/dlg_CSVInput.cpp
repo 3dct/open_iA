@@ -24,7 +24,6 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 	this->ed_decimal->setEnabled(true);
 	this->ed_language->setEnabled(true);
 	this->ed_Spacing->setEnabled(true);
-	
 }
 
 
@@ -33,17 +32,14 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 void dlg_CSVInput::FileBtnClicked()
 {
 	this->myLayout->addWidget(this->m_entriesTable); 
-	
-	/*bool param_HeaderLines_ok = false;*/
 	this->assignFileFormat(); 
 	this->assignSeparator();
 	this->AssignFormatLanguage(); 
-	this->loadFilePreview(); 
 
+	this->loadFilePreview(10); 
 	this->showConfigParams(*this->m_confParams);
 	this->buttonBox->setEnabled(true);
 	this->buttonBox->setVisible(true);
-
 }
 
 void dlg_CSVInput::AssignFormatLanguage() {
@@ -87,9 +83,15 @@ void dlg_CSVInput::initParameters(){
 	this->m_confParams->endLine = 0; 
 	this->m_confParams->spacing = 10.5f;
 	this->m_confParams->csv_units = "microns";
+	this->m_confParams->headerStartLine = 5; 
 	this->m_confParams->paramsValid = false;
 	this->m_fPath = "D:/OpenIa_TestDaten/Pores/";
 	this->m_entriesTable = new dataTable(); 
+	
+	if (!this->m_currentHeaders) {
+		this->m_currentHeaders = QSharedPointer<QStringList>(new QStringList()); 
+	
+	}
 
 }
 
@@ -158,18 +160,17 @@ void dlg_CSVInput::assignSeparator() {
 	
 }
 
-void dlg_CSVInput::loadFilePreview() {
-	const int nrOfRowsLoaded = 10; 
-	const int nrCols = 40; 
-
+void dlg_CSVInput::loadFilePreview(const int rowCount) {
+	m_entriesTable->setColSeparator(this->m_confParams->file_seperator);
+	
 	if (!this->checkFile())
 	{
 		return; 
 	}
 	else
 	{
-		this->m_entriesTable->initTable(nrOfRowsLoaded, nrCols);
-		this->loadEntries(this->m_confParams->fileName, nrOfRowsLoaded); 
+		this->m_entriesTable->prepareTable(rowCount, this->m_confParams->colCount, this->m_confParams->headerStartLine); 
+		this->loadEntries(this->m_confParams->fileName, rowCount);
 		this->showPreviewTable(); 
 	}
 }
@@ -234,7 +235,8 @@ bool dlg_CSVInput::checkFile() {
 bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements) {
 	bool dataLoaded = false; 
 	uint startElLine = (uint)  this->m_confParams->startLine;
-	dataLoaded = this->m_entriesTable->readTableEntries(fileName, this->m_confParams->file_seperator, nrPreviewElements, &startElLine); 
+	dataLoaded = this->m_entriesTable->readTableEntries(fileName, nrPreviewElements, 31,this->m_confParams->headerStartLine, &startElLine,  true); 
+	this->assignHeaderLine(); 
 	return dataLoaded; 
 }
 
@@ -243,4 +245,16 @@ void dlg_CSVInput::showPreviewTable()
 	this->m_entriesTable->setAutoScroll(true);
 	this->m_entriesTable->setEnabled(true);
 	this->m_entriesTable->setVisible(true);
+	this->m_entriesTable->update();
+}
+
+void dlg_CSVInput::assignHeaderLine() {
+	if (!this->m_currentHeaders) return; 
+	*this->m_currentHeaders = m_entriesTable->getHeaders(); 
+	for (const auto &currItem:*this->m_currentHeaders) {
+		this->textControl_list->addItem(currItem); 
+	}
+
+	this->textControl_list->update(); 
+
 }
