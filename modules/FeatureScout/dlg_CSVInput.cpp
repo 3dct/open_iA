@@ -21,12 +21,10 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 	bool enabled = true; 
 	this->ed_startLine->setEnabled(true);
 	this->ed_endLine->setEnabled(true);
-	this->ed_Separator->setEnabled(true);
 	this->ed_decimal->setEnabled(true);
 	this->ed_language->setEnabled(true);
 	this->ed_Spacing->setEnabled(true);
 	
-
 }
 
 
@@ -34,28 +32,27 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 
 void dlg_CSVInput::FileBtnClicked()
 {
+	this->myLayout->addWidget(this->m_entriesTable); 
 	
 	/*bool param_HeaderLines_ok = false;*/
-	
-
-	//read out text of combo box
-	
 	this->assignFileFormat(); 
 	this->assignSeparator();
+	this->AssignFormatLanguage(); 
+	this->loadFilePreview(); 
 
-	if (cb_fmtEnglish->isChecked()) {
-		this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::EN; 
-	
-	}else this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::GER;
-	
-	checkFileExist(); 
 	this->showConfigParams(*this->m_confParams);
-
 	this->buttonBox->setEnabled(true);
 	this->buttonBox->setVisible(true);
 
 }
 
+void dlg_CSVInput::AssignFormatLanguage() {
+	if (cb_fmtEnglish->isChecked()) {
+		this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::EN;
+
+	}
+	else this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::GER;
+}
 
 const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const {
 	return *this->m_confParams; 
@@ -92,8 +89,7 @@ void dlg_CSVInput::initParameters(){
 	this->m_confParams->csv_units = "microns";
 	this->m_confParams->paramsValid = false;
 	this->m_fPath = "D:/OpenIa_TestDaten/Pores/";
-	
-
+	this->m_entriesTable = new dataTable(); 
 
 }
 
@@ -162,13 +158,31 @@ void dlg_CSVInput::assignSeparator() {
 	
 }
 
-void dlg_CSVInput::checkFileExist() {
-	
+void dlg_CSVInput::loadFilePreview() {
+	const int nrOfRowsLoaded = 10; 
+	const int nrCols = 40; 
+
+	if (!this->checkFile())
+	{
+		return; 
+	}
+	else
+	{
+		this->m_entriesTable->initTable(nrOfRowsLoaded, nrCols);
+		this->loadEntries(this->m_confParams->fileName, nrOfRowsLoaded); 
+		this->showPreviewTable(); 
+	}
+}
+
+
+//checks if file exists and save it to config params
+bool dlg_CSVInput::checkFile() {
+	bool fileOK = false; 
 	if (m_fPath.isEmpty()) {
 
-		this->m_confParams->paramsValid = false; 
-		return; 
-		
+		this->m_confParams->paramsValid = false;
+		return fileOK;
+
 	}
 
 	QString fileName = QFileDialog::getOpenFileName(
@@ -177,8 +191,8 @@ void dlg_CSVInput::checkFileExist() {
 
 	if (fileName.isEmpty())
 	{
-		this->m_confParams->paramsValid= false;
-		return;
+		this->m_confParams->paramsValid = false;
+		return fileOK;
 	}
 	else {
 		QFile file(fileName);
@@ -187,7 +201,7 @@ void dlg_CSVInput::checkFileExist() {
 				file.errorString());
 			this->setError(QString("unable to open file"), file.errorString());
 			this->m_confParams->paramsValid = false;
-			return;
+			return fileOK;
 		}
 		else {
 			this->m_confParams->paramsValid = (this->m_confParams->paramsValid && true);
@@ -197,13 +211,36 @@ void dlg_CSVInput::checkFileExist() {
 					this->m_Error_Parameter);
 			}
 			else {
+				fileOK = true; 
+				this->m_confParams->fileName = fileName;
 				
-				this->m_confParams->fileName = fileName; 
 				/*this->m_fPath = fileName;*/
 				this->btn_loadCSV->setEnabled(false);
 				this->btn_loadCSV->setVisible(false);
 			}
 		}
 
+		if (file.isOpen()) {
+			file.close(); 
+		}
 	}
+
+
+	return fileOK; 
+
+}
+
+//loading entries in tablewidget preview
+bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements) {
+	bool dataLoaded = false; 
+	uint startElLine = (uint)  this->m_confParams->startLine;
+	dataLoaded = this->m_entriesTable->readTableEntries(fileName, this->m_confParams->file_seperator, nrPreviewElements, &startElLine); 
+	return dataLoaded; 
+}
+
+void dlg_CSVInput::showPreviewTable()
+{
+	this->m_entriesTable->setAutoScroll(true);
+	this->m_entriesTable->setEnabled(true);
+	this->m_entriesTable->setVisible(true);
 }

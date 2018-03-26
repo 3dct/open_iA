@@ -39,9 +39,6 @@
 #include "iAToolsVTK.h"
 #include "io/iATLGICTLoader.h"
 #include "mdichild.h"
-#include "io/iACsvIO.h"
-#include "ui_CsvInput.h"
-#include "dlg_CSVInput.h"
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
