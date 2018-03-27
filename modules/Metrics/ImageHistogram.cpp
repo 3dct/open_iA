@@ -8,7 +8,7 @@
 namespace
 {
 	const double LOG2M1 = 1.4426950408889634073599246810018921374266459541529860;
-	const double M_PI = 3.141592653589793238;
+	const double MyPI = 3.141592653589793238;
 	// Calculates log2=log(n)/log(2)
 	double dlog2(double n)
 	{
@@ -163,7 +163,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 	double sum=0.0, value;
 	for(int i=-dknl_sz; i<=dknl_sz; i++)
 	{
-		double value=1/(sqrt(2*M_PI)*gauss_sigma)*exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
+		double value=1/(sqrt(2*MyPI)*gauss_sigma)*exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
 		gauss_knl.push_back(value);
 		sum+=value;
 	}
@@ -243,7 +243,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			sum = 0.0;
 			for(int i=-knl_sz; i<=knl_sz; i++)
 			{
-				value = 1/(sqrt(2*M_PI)*gauss_sigma)*exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
+				value = 1/(sqrt(2*MyPI)*gauss_sigma)*exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
 				gauss_knl_P2P.push_back(value);
 				sum+=value;
 			}
